@@ -56,6 +56,20 @@ export interface AudioEngineOptions {
         readonly depth?: number;
         readonly rampSec?: number;
       };
+  /** Buses silenced by `setPaused(true)` (game pause). Default sfx/voice/ambient. */
+  readonly pausedBuses?: readonly AudioBusId[];
+}
+
+/** Queryable engine state for HUDs / the diagnostics-summary convention. */
+export interface AudioDiagnostics {
+  readonly state: AudioContextState;
+  readonly activeVoices: number;
+  readonly virtualVoices: number;
+  readonly activeSources: number;
+  readonly activePanners: number;
+  readonly decodeCount: number;
+  readonly outputLatency: number;
+  readonly baseLatency: number;
 }
 
 interface DuckConfig {
@@ -104,6 +118,16 @@ export interface AudioEngine {
   readonly activePannerCount: number;
   /** Demoted node-less voices retaining a playhead (virtualization). */
   readonly virtualVoiceCount: number;
+  /**
+   * Game pause (distinct from tab-hidden `suspend()`): silences the paused
+   * buses (sfx/voice/ambient by default) while music/ui keep playing. Playheads
+   * keep advancing (gain-to-zero), so loops resume in phase on unpause.
+   */
+  setPaused(paused: boolean): void;
+  /** Latency compensation: shift scheduled `start()` times by `seconds`. */
+  setAudioOffset(seconds: number): void;
+  /** Snapshot of engine state for HUDs / diagnostics. */
+  diagnostics(): AudioDiagnostics;
   dispose(): void;
 }
 
@@ -123,6 +147,7 @@ export function createAudioEngine(
       : { ...DEFAULT_DUCK, ...(options.duck ?? {}) };
   let ducked = false;
   let disposed = false;
+  const pausedBuses = options.pausedBuses ?? ["sfx", "voice", "ambient"];
 
   return {
     backend,
@@ -183,6 +208,26 @@ export function createAudioEngine(
     },
     get virtualVoiceCount(): number {
       return voices.virtualVoiceCount;
+    },
+    setPaused(paused) {
+      for (const bus of pausedBuses) {
+        mixer.setBusPause(bus, paused ? 0 : 1);
+      }
+    },
+    setAudioOffset(seconds) {
+      voices.setAudioOffset(seconds);
+    },
+    diagnostics() {
+      return {
+        state: backend.state,
+        activeVoices: voices.activeVoiceCount,
+        virtualVoices: voices.virtualVoiceCount,
+        activeSources: voices.activeSourceCount,
+        activePanners: voices.activePannerCount,
+        decodeCount: clips.decodeCount,
+        outputLatency: backend.outputLatency,
+        baseLatency: backend.baseLatency,
+      };
     },
     dispose() {
       if (disposed) {

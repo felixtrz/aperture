@@ -44,6 +44,11 @@ export interface AudioMixer {
    * duck `music` to 0.25 while dialogue plays, then `duckBus(bus, 1)` to recover.
    */
   duckBus(bus: AudioBusId, factor: number, rampSec?: number): void;
+  /**
+   * Independent pause multiplier for a bus (composed with authored gain + duck).
+   * Game-pause sets it to 0 on sfx/voice/ambient while music/ui keep playing.
+   */
+  setBusPause(bus: AudioBusId, factor: number, rampSec?: number): void;
   /** Node a music track routes into to play on the given crossfade sub-bus. */
   musicSubInput(slot: MusicSlot): AudioNode;
   /**
@@ -110,8 +115,10 @@ export function createAudioMixer(
   // Ducking multiplier per bus, composed with the authored gain so dialogue
   // sidechain ducking and authored volume don't clobber each other.
   const duckFactors = new Map<AudioBusId, number>();
+  const pauseFactors = new Map<AudioBusId, number>();
   for (const bus of AUDIO_BUS_IDS) {
     duckFactors.set(bus, 1);
+    pauseFactors.set(bus, 1);
   }
 
   // Dual `music` sub-buses for equal-power track crossfades; both sum into the
@@ -138,7 +145,11 @@ export function createAudioMixer(
   }
 
   function busEffective(bus: AudioBusId): number {
-    return (busTargets.get(bus) ?? 0) * (duckFactors.get(bus) ?? 1);
+    return (
+      (busTargets.get(bus) ?? 0) *
+      (duckFactors.get(bus) ?? 1) *
+      (pauseFactors.get(bus) ?? 1)
+    );
   }
 
   return {
@@ -171,6 +182,15 @@ export function createAudioMixer(
     },
     duckBus(bus, factor, rampSec = DEFAULT_RAMP_SEC) {
       duckFactors.set(bus, clampGain(factor));
+      rampParam(
+        requireBusGain(bus).gain,
+        backend.currentTime,
+        busEffective(bus),
+        rampSec,
+      );
+    },
+    setBusPause(bus, factor, rampSec = DEFAULT_RAMP_SEC) {
+      pauseFactors.set(bus, clampGain(factor));
       rampParam(
         requireBusGain(bus).gain,
         backend.currentTime,

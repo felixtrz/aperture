@@ -63,6 +63,8 @@ export interface VoiceManager {
   readonly virtualVoiceCount: number;
   /** Whether any real voice is currently routed to the given bus. */
   busActive(bus: AudioBusId): boolean;
+  /** Shift scheduled `start()` times by `seconds` (latency compensation). */
+  setAudioOffset(seconds: number): void;
   dispose(): void;
 }
 
@@ -126,6 +128,7 @@ export function createVoiceManager(
   const maxBurst = Math.max(1, options.maxBurstPerFrame ?? DEFAULT_MAX_BURST);
   const maxVoices = Math.max(1, options.maxVoices ?? DEFAULT_MAX_VOICES);
   const doppler = options.doppler ?? false;
+  let audioOffset = 0;
   const busCaps: Record<AudioBusId, number> = { ...DEFAULT_BUS_CAPS };
   for (const bus of AUDIO_BUS_IDS) {
     const override = options.busCaps?.[bus];
@@ -478,7 +481,7 @@ export function createVoiceManager(
     }
     voice.loopLenSec = buffer.duration;
     const source = newSource(voice, buffer, true);
-    source.start(backend.currentTime, offset);
+    source.start(backend.currentTime + audioOffset, offset);
     voice.sources.add(source);
     voice.looping = source;
   }
@@ -490,7 +493,7 @@ export function createVoiceManager(
       return;
     }
     const source = newSource(voice, buffer, false);
-    source.start(backend.currentTime, voice.offsetSec);
+    source.start(backend.currentTime + audioOffset, voice.offsetSec);
     voice.sources.add(source);
   }
 
@@ -687,6 +690,9 @@ export function createVoiceManager(
         }
       }
       return false;
+    },
+    setAudioOffset(seconds) {
+      audioOffset = Number.isFinite(seconds) && seconds > 0 ? seconds : 0;
     },
     dispose() {
       if (disposed) {
