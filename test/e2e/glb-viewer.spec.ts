@@ -1258,6 +1258,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     { timeout: 15000 },
   );
   const animatedStartStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  await waitForRenderedFrameAdvance(page);
   const animatedStartScreenshot = await page
     .locator("#aperture-canvas")
     .screenshot();
@@ -1348,7 +1349,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     "animated GLB status should show transform movement over time",
   ).toBeGreaterThan(0.2);
   expect(
-    maxSampleDelta(animatedStartScreenshot, animatedLaterScreenshot),
+    maxWideSampleDelta(animatedStartScreenshot, animatedLaterScreenshot),
     "animated GLB playback should change rendered pixels over time",
   ).toBeGreaterThan(8);
 
@@ -28592,6 +28593,34 @@ function maxRegionLuminanceDelta(
 
 function luminance(sample: ReturnType<typeof readPngPixel>): number {
   return sample.r * 0.2126 + sample.g * 0.7152 + sample.b * 0.0722;
+}
+
+/**
+ * Wide-window variant for "something moved" assertions only: animated nodes'
+ * screen-space arcs shifted with the brighter prefiltered lighting / camera
+ * fit, and the centre-only maxSampleDelta window can miss moving geometry
+ * entirely (pixel delta reads 0 while the status provably moved). Stability
+ * assertions (toBeLessThan) keep the narrow window.
+ */
+function maxWideSampleDelta(before: Buffer, after: Buffer): number {
+  let maxDelta = 0;
+
+  for (let y = 0; y < 13; y += 1) {
+    for (let x = 0; x < 13; x += 1) {
+      const xRatio = 0.2 + (0.6 * x) / 12;
+      const yRatio = 0.15 + (0.7 * y) / 12;
+
+      maxDelta = Math.max(
+        maxDelta,
+        pixelDistance(
+          readPngPixel(before, xRatio, yRatio),
+          readPngPixel(after, xRatio, yRatio),
+        ),
+      );
+    }
+  }
+
+  return maxDelta;
 }
 
 function maxSampleDelta(before: Buffer, after: Buffer): number {
