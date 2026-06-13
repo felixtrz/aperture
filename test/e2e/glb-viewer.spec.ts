@@ -18384,9 +18384,6 @@ test("Playwright reports a transformed normal texture in the GLB viewer", async 
       ? { r: 4, g: 6, b: 9, a: 255 }
       : rgbaColorToPixel(status.clearColor);
   const transformedA = readPngPixel(screenshot, 0.38, 0.46);
-  const transformedB = readPngPixel(screenshot, 0.46, 0.58);
-  const flatA = readPngPixel(screenshot, 0.56, 0.46);
-  const flatB = readPngPixel(screenshot, 0.64, 0.58);
 
   expectStatusJsonSafeForGpu(status);
   expect(status).toMatchObject({
@@ -18494,25 +18491,37 @@ test("Playwright reports a transformed normal texture in the GLB viewer", async 
       transformedA,
     )}`,
   ).toBeGreaterThan(20);
-  // Region extremes instead of two fixed probes (see the UV1 test): the
-  // brighter prefiltered lighting washes individual points out while the
-  // pattern's contrast stays visible elsewhere in the quad.
-  const normalTransformRegion = readPngRegionExtremes(screenshot, {
-    xMin: 0.28,
-    xMax: 0.46,
-    yMin: 0.38,
-    yMax: 0.62,
-  });
+  // Background-excluded SURFACE variation, not fixed probes: under the bright
+  // prefiltered lighting the normal-mapped quad and the flat control both blow
+  // out to near-white at any single point, so fixed-point comparisons wash
+  // out. The real, robust discriminator is surface contrast — the normal map
+  // produces bump shading (measured ~125 of internal variation) while the flat
+  // control is near-uniform white (~16). The interiors exclude near-clear
+  // background and the quad edges.
+  const normalTransformSurface = readPngRegionExtremes(
+    screenshot,
+    { xMin: 0.18, xMax: 0.32, yMin: 0.42, yMax: 0.6 },
+    0.01,
+    { pixel: clear, minDistance: 30 },
+  );
+  const flatControlSurface = readPngRegionExtremes(
+    screenshot,
+    { xMin: 0.58, xMax: 0.78, yMin: 0.42, yMax: 0.6 },
+    0.01,
+    { pixel: clear, minDistance: 30 },
+  );
   expect(
-    normalTransformRegion.variation,
-    `normal-transform texture should produce non-flat lighting variation; extremes=${JSON.stringify(
-      normalTransformRegion,
+    normalTransformSurface.variation,
+    `normal-transform texture should produce non-flat surface shading; surface=${JSON.stringify(
+      normalTransformSurface,
     )}`,
-  ).toBeGreaterThan(8);
+  ).toBeGreaterThan(50);
   expect(
-    pixelDistance(transformedA, flatA) + pixelDistance(transformedB, flatB),
-    "normal-transform textured primitive should differ from the flat control",
-  ).toBeGreaterThan(20);
+    normalTransformSurface.variation - flatControlSurface.variation,
+    `normal-transform quad should show more surface contrast than the flat control; transformed=${JSON.stringify(
+      normalTransformSurface,
+    )} flat=${JSON.stringify(flatControlSurface)}`,
+  ).toBeGreaterThan(30);
   webGpuValidation.expectNoWarnings();
 });
 
@@ -18752,27 +18761,30 @@ test("Playwright compares transformed and untransformed normal texture controls 
       pixelDistance(transformedB, untransformedB),
     "transformed normal primitive should differ from the untransformed normal control",
   ).toBeGreaterThan(8);
-  // The flat control has no normal map, so its region is uniform; the
-  // transformed primitive's normal-mapped region must spread its extremes
-  // wider. Region variation difference replaces washed-out fixed probes.
-  const transformedControlRegion = readPngRegionExtremes(screenshot, {
-    xMin: 0.14,
-    xMax: 0.34,
-    yMin: 0.38,
-    yMax: 0.62,
-  });
-  const flatControlRegion = readPngRegionExtremes(screenshot, {
-    xMin: 0.64,
-    xMax: 0.84,
-    yMin: 0.38,
-    yMax: 0.62,
-  });
+  // The flat control has no normal map, so its lit surface is near-uniform
+  // white (~18 of bg-excluded surface variation); the normal-mapped quad's
+  // bump shading spreads its surface much wider (~250). Comparing surface
+  // variation EXCLUDING the background+edges is the robust signal — the older
+  // full-region extremes both spanned object-white→background and so were
+  // identical under the brighter prefiltered lighting.
+  const transformedControlSurface = readPngRegionExtremes(
+    screenshot,
+    { xMin: 0.16, xMax: 0.3, yMin: 0.42, yMax: 0.6 },
+    0.01,
+    { pixel: clear, minDistance: 30 },
+  );
+  const flatControlSurface = readPngRegionExtremes(
+    screenshot,
+    { xMin: 0.7, xMax: 0.84, yMin: 0.42, yMax: 0.6 },
+    0.01,
+    { pixel: clear, minDistance: 30 },
+  );
   expect(
-    transformedControlRegion.variation - flatControlRegion.variation,
-    `transformed normal primitive should differ from the flat control; transformed=${JSON.stringify(
-      transformedControlRegion,
-    )} flat=${JSON.stringify(flatControlRegion)}`,
-  ).toBeGreaterThan(10);
+    transformedControlSurface.variation - flatControlSurface.variation,
+    `transformed normal primitive should show more surface contrast than the flat control; transformed=${JSON.stringify(
+      transformedControlSurface,
+    )} flat=${JSON.stringify(flatControlSurface)}`,
+  ).toBeGreaterThan(30);
   webGpuValidation.expectNoWarnings();
 });
 
