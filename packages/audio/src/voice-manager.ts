@@ -20,6 +20,9 @@ const SPEED_OF_SOUND = 343;
 const DOPPLER_DEADZONE = 0.5;
 const DOPPLER_MAX_RATE = 2;
 const DOPPLER_MIN_RATE = 0.5;
+/** Occlusion lowpass cutoff range (Hz): open at MAX, fully muffled at MIN. */
+const OCCLUSION_MAX_HZ = 22000;
+const OCCLUSION_MIN_HZ = 350;
 
 /** Per-bus simultaneous-voice caps so one category can't starve another. */
 const DEFAULT_BUS_CAPS: Readonly<Record<AudioBusId, number>> = {
@@ -72,8 +75,10 @@ interface Voice {
   key: string;
   busId: AudioBusId;
   readonly gain: GainNode;
-  /** Spatial voices route source -> panner -> gain; 2D voices skip the panner. */
+  /** Spatial voices route source -> occluder -> panner -> gain; 2D skip panner. */
   readonly panner: PannerNode | null;
+  /** Per-voice occlusion lowpass (transparent at ~22kHz when open). */
+  readonly occluder: BiquadFilterNode;
   readonly sources: Set<AudioBufferSourceNode>;
   looping: AudioBufferSourceNode | null;
   realizedEpoch: number;
@@ -369,6 +374,13 @@ export function createVoiceManager(
       updatePanner(voice.panner, packet, transforms, frameDelta);
     }
     applyPlaybackRate(voice, packet, transforms, frameDelta);
+    const cutoff =
+      OCCLUSION_MAX_HZ -
+      (OCCLUSION_MAX_HZ - OCCLUSION_MIN_HZ) * clampNum(packet.occlusion, 0, 1);
+    voice.occluder.frequency.linearRampToValueAtTime(
+      cutoff,
+      backend.currentTime + frameDelta,
+    );
   }
 
   function reconcileVirtual(packet: AudioEmitterPacket, bus: AudioBusId): void {
@@ -439,12 +451,17 @@ export function createVoiceManager(
       panner = backend.createPanner();
       panner.connect(gain);
     }
+    const occluder = backend.createBiquad();
+    occluder.type = "lowpass";
+    occluder.frequency.value = OCCLUSION_MAX_HZ;
+    occluder.connect(panner ?? gain);
     gain.connect(mixer.busInput(bus));
     return {
       key: "",
       busId: bus,
       gain,
       panner,
+      occluder,
       sources: new Set(),
       looping: null,
       realizedEpoch: 0,
@@ -506,7 +523,7 @@ export function createVoiceManager(
     source.buffer = buffer;
     source.loop = loop;
     source.playbackRate.value = voice.timeScale;
-    source.connect(voice.panner ?? voice.gain);
+    source.connect(voice.occluder);
     source.onended = () => {
       voice.sources.delete(source);
       if (voice.looping === source) {
@@ -576,6 +593,7 @@ export function createVoiceManager(
     if (disposed) {
       voice.gain.disconnect();
       voice.panner?.disconnect();
+      voice.occluder.disconnect();
       return;
     }
     voice.gain.disconnect();
@@ -706,6 +724,7 @@ export function createVoiceManager(
         }
         voice.gain.disconnect();
         voice.panner?.disconnect();
+        voice.occluder.disconnect();
       }
       real.clear();
       virtual.clear();

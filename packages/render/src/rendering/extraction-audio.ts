@@ -150,6 +150,9 @@ export function extractAudioEmitters(
         0,
       ),
       loopEnd: finiteNonNegative(entity.getValue(AudioEmitter, "loopEnd"), 0),
+      occlusion: clamp01(
+        finiteNumber(entity.getValue(AudioEmitter, "occlusion"), 0),
+      ),
       audibility: "audible",
       muted: entity.getValue(AudioEmitter, "muted") === true,
       worldTransformOffset,
@@ -260,6 +263,10 @@ function stringOr(value: unknown, fallback: string): string {
 
 function finiteNumber(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function clamp01(value: number): number {
+  return value < 0 ? 0 : value > 1 ? 1 : value;
 }
 
 function finiteInteger(value: unknown, fallback: number): number {

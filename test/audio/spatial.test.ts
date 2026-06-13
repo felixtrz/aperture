@@ -9,6 +9,7 @@ import type {
 import { createAudioEngine, type ResolvedClip } from "@aperture-engine/audio";
 import {
   FakeAudioBackend,
+  type FakeBiquadFilterNode,
   type FakePannerNode,
 } from "@aperture-engine/audio/test-support";
 
@@ -42,6 +43,7 @@ function worldEmitter(
     offsetSec: 0,
     loopStart: 0,
     loopEnd: 0,
+    occlusion: 0,
     audibility: "audible",
     muted: false,
     worldTransformOffset: 0,
@@ -170,5 +172,34 @@ describe("spatial audio (AU-5/6/7)", () => {
     expect(panner.positionX.value).toBe(10);
     // Same panner reused (no realloc on move).
     expect(backend.created.panners.length).toBe(1);
+  });
+
+  it("lowers the occlusion lowpass cutoff with the occlusion amount (AU-12)", () => {
+    const { backend, eng } = engine();
+    eng.applySnapshot(
+      snapshot(
+        [worldEmitter({ occlusion: 0.8 })],
+        undefined,
+        new Float32Array(16),
+      ),
+      0.016,
+    );
+    const biquad = backend.created.biquads[0] as FakeBiquadFilterNode;
+    expect(biquad.type).toBe("lowpass");
+    expect(biquad.frequency.value).toBeLessThan(8000); // muffled
+  });
+
+  it("keeps the occlusion filter transparent when open (AU-12)", () => {
+    const { backend, eng } = engine();
+    eng.applySnapshot(
+      snapshot(
+        [worldEmitter({ occlusion: 0 })],
+        undefined,
+        new Float32Array(16),
+      ),
+      0.016,
+    );
+    const biquad = backend.created.biquads[0] as FakeBiquadFilterNode;
+    expect(biquad.frequency.value).toBeGreaterThan(15000);
   });
 });

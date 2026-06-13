@@ -291,6 +291,8 @@ export interface AudioEmitterInput {
   readonly coneOuterGain?: number;
   readonly boundsCenter?: Vec3Like;
   readonly audibilityRadius?: number;
+  /** Occlusion lowpass amount in [0,1]: 0 open, 1 fully muffled. */
+  readonly occlusion?: number;
   readonly active?: boolean;
 }
 

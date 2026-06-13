@@ -164,6 +164,8 @@ export interface AudioEmitterPacket {
   readonly coneInnerAngle: number;
   readonly coneOuterAngle: number;
   readonly coneOuterGain: number;
+  /** Occlusion lowpass amount in [0,1] (0 open). */
+  readonly occlusion: number;
   readonly offsetSec: number;
   readonly loopStart: number;
   readonly loopEnd: number;

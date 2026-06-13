@@ -152,6 +152,7 @@ export const AudioEmitter = defineComponent(
     coneOuterGain: { type: EcsType.Float32, default: 0 },
     boundsCenter: { type: EcsType.Vec3, default: [0, 0, 0] },
     audibilityRadius: { type: EcsType.Float32, default: 1 },
+    occlusion: { type: EcsType.Float32, default: 0 },
     active: { type: EcsType.Boolean, default: true },
   },
   "Renderer-independent audio emitter authoring. ECS owns playback intent, epochs, seeds, gain, bus routing, " +

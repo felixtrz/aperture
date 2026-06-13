@@ -80,6 +80,7 @@ function localVoiceEmitter(): AudioEmitterPacket {
     offsetSec: 0,
     loopStart: 0,
     loopEnd: 0,
+    occlusion: 0,
     audibility: "audible",
     muted: false,
     worldTransformOffset: 0,
