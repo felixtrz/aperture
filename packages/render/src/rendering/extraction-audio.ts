@@ -99,6 +99,7 @@ export function extractAudioEmitters(
       busId: stringOr(entity.getValue(AudioEmitter, "busId"), "sfx"),
       gain: finiteNonNegative(entity.getValue(AudioEmitter, "gain"), 1),
       loop: entity.getValue(AudioEmitter, "loop") === true,
+      autoplay: entity.getValue(AudioEmitter, "autoplay") === true,
       playEpoch: finiteInteger(entity.getValue(AudioEmitter, "playEpoch"), 0),
       stopEpoch: finiteInteger(entity.getValue(AudioEmitter, "stopEpoch"), 0),
       timeScale: finiteNonNegative(

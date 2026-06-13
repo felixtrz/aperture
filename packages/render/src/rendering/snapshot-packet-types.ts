@@ -146,6 +146,8 @@ export interface AudioEmitterPacket {
   readonly busId: string;
   readonly gain: number;
   readonly loop: boolean;
+  /** Start the voice on first sight (no `playEpoch` bump required). */
+  readonly autoplay: boolean;
   /** Monotonic trigger counter; the engine fires the signed delta as voices. */
   readonly playEpoch: number;
   /** Monotonic stop counter; requests a click-free fade-stop. */
