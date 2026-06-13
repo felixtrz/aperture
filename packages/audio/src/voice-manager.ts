@@ -54,6 +54,8 @@ export interface VoiceManager {
   readonly activePannerCount: number;
   /** Demoted node-less voices retaining a playhead for mid-loop resume. */
   readonly virtualVoiceCount: number;
+  /** Whether any real voice is currently routed to the given bus. */
+  busActive(bus: AudioBusId): boolean;
   dispose(): void;
 }
 
@@ -623,6 +625,14 @@ export function createVoiceManager(
     },
     get virtualVoiceCount(): number {
       return virtual.size;
+    },
+    busActive(bus) {
+      for (const voice of real.values()) {
+        if (voice.busId === bus && !voice.fadingOut) {
+          return true;
+        }
+      }
+      return false;
     },
     dispose() {
       if (disposed) {

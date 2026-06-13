@@ -11,8 +11,8 @@ describe("audio mixer bus graph", () => {
     const backend = new FakeAudioBackend();
     createAudioMixer(backend);
 
-    // master gain + one gain per bus.
-    expect(backend.created.gains.length).toBe(1 + AUDIO_BUS_IDS.length);
+    // master gain + one gain per bus + two music crossfade sub-buses.
+    expect(backend.created.gains.length).toBe(1 + AUDIO_BUS_IDS.length + 2);
     // master analyser + one tap per bus.
     expect(backend.created.analysers.length).toBe(1 + AUDIO_BUS_IDS.length);
     // exactly one master limiter.

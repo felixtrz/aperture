@@ -18,6 +18,9 @@ export const AUDIO_BUS_IDS: readonly AudioBusId[] = [
 
 export type AudioAnalyserTarget = AudioBusId | "master";
 
+/** The two `music` sub-buses used for equal-power track crossfades. */
+export type MusicSlot = "a" | "b";
+
 /** Default click-free ramp, in seconds, for gain changes. */
 const DEFAULT_RAMP_SEC = 0.015;
 
@@ -36,6 +39,18 @@ export interface AudioMixer {
   setBusGain(bus: AudioBusId, value: number, rampSec?: number): void;
   getMasterGain(): number;
   getBusGain(bus: AudioBusId): number;
+  /**
+   * Apply a ducking multiplier to a bus (composed with its authored gain), e.g.
+   * duck `music` to 0.25 while dialogue plays, then `duckBus(bus, 1)` to recover.
+   */
+  duckBus(bus: AudioBusId, factor: number, rampSec?: number): void;
+  /** Node a music track routes into to play on the given crossfade sub-bus. */
+  musicSubInput(slot: MusicSlot): AudioNode;
+  /**
+   * Equal-power crossfade between the two music sub-buses. `t=0` is fully A,
+   * `t=1` fully B; the summed power stays ~constant across the sweep.
+   */
+  setMusicCrossfade(t: number, rampSec?: number): void;
   /** FFT tap for a bus or the summed master, for visualizers/diagnostics. */
   analyser(target: AudioAnalyserTarget): AnalyserNode;
   dispose(): void;
@@ -92,6 +107,23 @@ export function createAudioMixer(
     busTargets.set(bus, initial);
   }
 
+  // Ducking multiplier per bus, composed with the authored gain so dialogue
+  // sidechain ducking and authored volume don't clobber each other.
+  const duckFactors = new Map<AudioBusId, number>();
+  for (const bus of AUDIO_BUS_IDS) {
+    duckFactors.set(bus, 1);
+  }
+
+  // Dual `music` sub-buses for equal-power track crossfades; both sum into the
+  // single `music` bus gain. Start fully on A.
+  const musicBusGain = busGainNodes.get("music") as GainNode;
+  const musicA = backend.createGain();
+  const musicB = backend.createGain();
+  musicA.connect(musicBusGain);
+  musicB.connect(musicBusGain);
+  musicA.gain.value = 1;
+  musicB.gain.value = 0;
+
   let masterTarget = clampGain(options.masterGain ?? 1);
   masterGainNode.gain.value = masterTarget;
 
@@ -103,6 +135,10 @@ export function createAudioMixer(
       throw new RangeError(`Unknown audio bus '${bus}'.`);
     }
     return node;
+  }
+
+  function busEffective(bus: AudioBusId): number {
+    return (busTargets.get(bus) ?? 0) * (duckFactors.get(bus) ?? 1);
   }
 
   return {
@@ -119,15 +155,38 @@ export function createAudioMixer(
       );
     },
     setBusGain(bus, value, rampSec = DEFAULT_RAMP_SEC) {
-      const target = clampGain(value);
-      busTargets.set(bus, target);
-      rampParam(requireBusGain(bus).gain, backend.currentTime, target, rampSec);
+      busTargets.set(bus, clampGain(value));
+      rampParam(
+        requireBusGain(bus).gain,
+        backend.currentTime,
+        busEffective(bus),
+        rampSec,
+      );
     },
     getMasterGain() {
       return masterTarget;
     },
     getBusGain(bus) {
       return busTargets.get(bus) ?? 0;
+    },
+    duckBus(bus, factor, rampSec = DEFAULT_RAMP_SEC) {
+      duckFactors.set(bus, clampGain(factor));
+      rampParam(
+        requireBusGain(bus).gain,
+        backend.currentTime,
+        busEffective(bus),
+        rampSec,
+      );
+    },
+    musicSubInput(slot) {
+      return slot === "b" ? musicB : musicA;
+    },
+    setMusicCrossfade(t, rampSec = DEFAULT_RAMP_SEC) {
+      const clamped = t < 0 ? 0 : t > 1 ? 1 : t;
+      const now = backend.currentTime;
+      // Equal-power: |A|^2 + |B|^2 = 1 across the sweep.
+      rampParam(musicA.gain, now, Math.cos((clamped * Math.PI) / 2), rampSec);
+      rampParam(musicB.gain, now, Math.sin((clamped * Math.PI) / 2), rampSec);
     },
     analyser(target) {
       if (target === "master") {
@@ -144,6 +203,8 @@ export function createAudioMixer(
         return;
       }
       disposed = true;
+      musicA.disconnect();
+      musicB.disconnect();
       for (const gain of busGainNodes.values()) {
         gain.disconnect();
       }

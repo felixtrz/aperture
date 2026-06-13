@@ -43,7 +43,34 @@ export interface AudioEngineOptions {
    * registry. Without it, no audio decodes (the engine still mixes silently).
    */
   readonly resolveClip?: ClipResolver;
+  /**
+   * Scripted sidechain ducking: while any real voice plays on `trigger`, the
+   * `targets` buses are ducked to `depth`. Set `false` to disable. Default:
+   * dialogue on `voice` ducks `music` + `ambient` to 0.3.
+   */
+  readonly duck?:
+    | false
+    | {
+        readonly trigger?: AudioBusId;
+        readonly targets?: readonly AudioBusId[];
+        readonly depth?: number;
+        readonly rampSec?: number;
+      };
 }
+
+interface DuckConfig {
+  readonly trigger: AudioBusId;
+  readonly targets: readonly AudioBusId[];
+  readonly depth: number;
+  readonly rampSec: number;
+}
+
+const DEFAULT_DUCK: DuckConfig = {
+  trigger: "voice",
+  targets: ["music", "ambient"],
+  depth: 0.3,
+  rampSec: 0.08,
+};
 
 /**
  * The main-thread audio engine: the derived view that realizes simulation
@@ -90,6 +117,11 @@ export function createAudioEngine(
     options.resolveClip ?? (() => undefined),
   );
   const voices = createVoiceManager(backend, mixer, clips, options.voice ?? {});
+  const duck: DuckConfig | null =
+    options.duck === false
+      ? null
+      : { ...DEFAULT_DUCK, ...(options.duck ?? {}) };
+  let ducked = false;
   let disposed = false;
 
   return {
@@ -121,6 +153,15 @@ export function createAudioEngine(
         snapshot.audioListener,
         clampRamp(frameDelta),
       );
+      if (duck !== null) {
+        const active = voices.busActive(duck.trigger);
+        if (active !== ducked) {
+          ducked = active;
+          for (const target of duck.targets) {
+            mixer.duckBus(target, active ? duck.depth : 1, duck.rampSec);
+          }
+        }
+      }
     },
     setMasterGain(value, rampSec) {
       mixer.setMasterGain(value, rampSec);
