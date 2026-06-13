@@ -158,7 +158,7 @@ This audit verified **121 framework-comparison gaps** against current `aperture`
 
 **Biggest still-open blockers (surviving critical/high):**
 
-- **Audio (critical)** — entirely absent; classified by-design (out of North Star scope).
+- **Audio (critical)** — ✅ now in-scope and largely implemented as `@aperture-engine/audio` (main-thread Web Audio, derived view of the worker ECS); see `docs/AUDIO_SUBSYSTEM_PLAN.md`. Previously classified by-design out-of-scope.
 - **CI runs only 4 of 145 e2e specs** on SwiftShader, single OS/Node (AI-19, P1) — ~97% of e2e proofs are non-gating.
 - **All packages unpublished** to npm (AI-20, P1) — engine is un-adoptable externally.
 - **No golden-image visual regression** (AI-33, P2) — color/gamma/shading drift is undetectable.
@@ -419,7 +419,7 @@ Gaps the verification found already fixed since the snapshot — with the eviden
 
 Real gaps, intentionally out of scope. Acknowledged so they aren't forgotten; the right-hand note flags which need a **roadmap decision** to pick up.
 
-- **No audio subsystem** _(critical)_ — zero `AudioContext`/`AudioListener`/`PositionalAudio` anywhere; not on any roadmap doc. **Roadmap decision required** to bring spatial audio into the North Star.
+- **Audio subsystem** _(implemented)_ — `@aperture-engine/audio`: a main-thread Web Audio "derived view" of the worker ECS. `AudioEmitter`/`AudioListener` intent-only components → extraction → transferable snapshot → a pooled voice graph with max-voices virtualization + stealing, PannerNode spatialization + distance/cone, a bus mixer (master `DynamicsCompressor` limiter + FFT taps) with ducking + music crossfade, Doppler, occlusion, and full context lifecycle. Plan: `docs/AUDIO_SUBSYSTEM_PLAN.md`.
 - **No accessibility (ARIA / accessibility tree / screen-reader)** _(high)_ — canvas-only UI; no DOM a11y bridge. **Roadmap decision required** (interacts with AI-45/AI-46 once an editable/focus model exists).
 - **No networking / replication / multiplayer** _(high — two entries)_ — only the Vite devtools `ws://` bridge exists; sim-authoritative fixed-step is a foundation but no netcode hooks are scoped. **Roadmap decision required.**
 - **No internationalization (locale / RTL / message catalog / Intl formatting)** _(medium)_ — only `localeCompare` for sort stability; explicitly an app-framework concern outside the runtime. **Roadmap decision required.**
