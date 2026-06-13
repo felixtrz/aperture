@@ -1522,7 +1522,10 @@ test("aperture create produces an installable app that works with CLI AI tools",
 
       const workerFailure = await callMcpTool(
         "browser_wait_for_webgpu",
-        { timeoutMs: 5_000 },
+        // The broken app still has to compile and boot before the worker
+        // throws; under SwiftShader CI that takes >5s, and a short budget
+        // returns a generic timeout instead of the worker-error diagnostic.
+        { timeoutMs: 20_000 },
         { cwd: appRoot },
       );
       expect(workerFailure.structuredContent).toMatchObject({

@@ -1,6 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { pixelDistance, readPngPixel, rgbaColorToPixel } from "./png.js";
+import {
+  pixelDistance,
+  readPngPixel,
+  readPngRegionExtremes,
+  rgbaColorToPixel,
+} from "./png.js";
 import {
   attachExampleStatus,
   expectStatusJsonSafeForGpu,
@@ -707,10 +712,32 @@ function expectRoughnessMipChainPixels(
     yMax: 0.88,
   });
 
+  // Peak-vs-peak comparison is the wrong signal for roughness: a rough
+  // (blurred) probe's brightest pixel can approach the glossy peak even when
+  // their contrast clearly differs. Compare region variation instead — the
+  // glossy probe's sharp reflection must spread its region's extremes wider
+  // than the rough probe's blurred one.
+  const glossyRegion = readPngRegionExtremes(screenshot, {
+    xMin: 0.18,
+    xMax: 0.34,
+    yMin: 0.72,
+    yMax: 0.88,
+  });
+  const roughRegion = readPngRegionExtremes(screenshot, {
+    xMin: 0.62,
+    xMax: 0.78,
+    yMin: 0.72,
+    yMax: 0.88,
+  });
   expect(
-    pixelDistance(glossyProbe.pixel, roughProbe.pixel),
-    `roughness-aware specular IBL mip sampling should visibly change the glossy and rough probes; glossy=${JSON.stringify(glossyProbe)} rough=${JSON.stringify(roughProbe)}`,
-  ).toBeGreaterThan(8);
+    glossyRegion.variation - roughRegion.variation,
+    `roughness-aware specular IBL mip sampling should leave the glossy probe sharper than the rough probe; glossy=${JSON.stringify(
+      glossyRegion,
+    )} rough=${JSON.stringify(roughRegion)} legacyPeaks=${JSON.stringify({
+      glossyProbe,
+      roughProbe,
+    })}`,
+  ).toBeGreaterThan(4);
 }
 
 function findBrightestCubeSample(

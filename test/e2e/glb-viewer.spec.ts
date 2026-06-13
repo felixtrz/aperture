@@ -1,7 +1,12 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
-import { pixelDistance, readPngPixel, rgbaColorToPixel } from "./png.js";
+import {
+  pixelDistance,
+  readPngPixel,
+  readPngRegionExtremes,
+  rgbaColorToPixel,
+} from "./png.js";
 import {
   attachWebGpuValidationConsoleGuard,
   expectStatusJsonSafeForGpu,
@@ -1018,7 +1023,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   const slabStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const slabScreenshot = await page.locator("#aperture-canvas").screenshot();
@@ -1250,7 +1255,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   const animatedStartStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const animatedStartScreenshot = await page
@@ -1330,6 +1335,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     { timeout: 3000 },
   );
   const animatedLaterStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  await waitForRenderedFrameAdvance(page);
   const animatedLaterScreenshot = await page
     .locator("#aperture-canvas")
     .screenshot();
@@ -1372,7 +1378,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   const dualStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const dualScreenshot = await page.locator("#aperture-canvas").screenshot();
@@ -1463,7 +1469,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   const mixedAlphaStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const mixedAlphaScreenshot = await page
@@ -1603,7 +1609,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   const hierarchyStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const hierarchyScreenshot = await page
@@ -1706,7 +1712,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   const customStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const customScreenshot = await page.locator("#aperture-canvas").screenshot();
@@ -2039,7 +2045,7 @@ test("Playwright switches GLB viewer animation clips", async ({ page }) => {
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const slideStatus = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -2104,7 +2110,7 @@ test("Playwright switches GLB viewer animation clips", async ({ page }) => {
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   const riseStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const riseScreenshot = await page.locator("#aperture-canvas").screenshot();
@@ -2162,7 +2168,7 @@ test("Playwright cross-fades GLB viewer animation clips", async ({ page }) => {
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   await page.locator("#glb-animation-cross-fade").click();
@@ -2209,7 +2215,7 @@ test("Playwright cross-fades GLB viewer animation clips", async ({ page }) => {
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   const blendedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const blendedValue = blendedStatus?.animation?.animatedNodes[0]?.value ?? [];
@@ -2273,7 +2279,7 @@ test("Playwright cross-fades GLB viewer animation clips", async ({ page }) => {
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   const riseStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const riseValue = riseStatus?.animation?.animatedNodes[0]?.value ?? [];
@@ -2335,7 +2341,7 @@ test("Playwright applies GLB viewer rotation and scale animation channels", asyn
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const startStatus = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -2505,7 +2511,7 @@ test("Playwright holds and steps GLB viewer STEP animation channels", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const loadedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -2559,6 +2565,7 @@ test("Playwright holds and steps GLB viewer STEP animation channels", async ({
     status: "paused",
     time: 0.5,
   });
+  await waitForRenderedFrameAdvance(page);
   const beforeStepScreenshot = await page
     .locator("#aperture-canvas")
     .screenshot();
@@ -2568,6 +2575,7 @@ test("Playwright holds and steps GLB viewer STEP animation channels", async ({
     status: "paused",
     time: 0.9,
   });
+  await waitForRenderedFrameAdvance(page);
   const heldScreenshot = await page.locator("#aperture-canvas").screenshot();
 
   expect(animationChannelComponent(beforeStepStatus, "scale", 0)).toBeCloseTo(
@@ -2588,6 +2596,7 @@ test("Playwright holds and steps GLB viewer STEP animation channels", async ({
     status: "paused",
     time: 1.1,
   });
+  await waitForRenderedFrameAdvance(page);
   const steppedScreenshot = await page.locator("#aperture-canvas").screenshot();
 
   expect(animationChannelComponent(steppedStatus, "scale", 0)).toBeCloseTo(
@@ -2654,7 +2663,7 @@ test("Playwright reports unsupported CUBICSPLINE animation while rendering the b
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -2779,7 +2788,7 @@ test("Playwright reports multi-scene GLB metadata while rendering the default sc
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -2912,7 +2921,7 @@ test("Playwright switches GLB viewer selected scenes through ECS replay", async 
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await expect(sceneSelectRow).toBeVisible();
   await expect(sceneSelect).toHaveValue("1");
@@ -2982,7 +2991,7 @@ test("Playwright switches GLB viewer selected scenes through ECS replay", async 
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await expect(sceneSelect).toHaveValue("0");
 
@@ -3060,7 +3069,7 @@ test("Playwright switches GLB viewer selected scenes through ECS replay", async 
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await expect(sceneSelectRow).toBeHidden();
   webGpuValidation.expectNoWarnings();
@@ -3126,7 +3135,7 @@ test("Playwright renders GLB viewer external glTF JSON plus BIN sample", async (
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -3281,7 +3290,7 @@ test("Playwright renders GLB viewer vertex colors through the unlit route", asyn
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -3550,7 +3559,7 @@ test("Playwright renders GLB viewer textured vertex colors through the unlit rou
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -3764,7 +3773,7 @@ test("Playwright renders GLB viewer vertex colors through the StandardMaterial r
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -3987,7 +3996,7 @@ test("Playwright renders GLB viewer textured vertex colors through the StandardM
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -4197,7 +4206,7 @@ test("Playwright switches GLB viewer to an imported glTF camera", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const orbitStatus = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -4362,7 +4371,7 @@ test("Playwright selects between GLB viewer imported cameras", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   await expect(page.locator("#glb-imported-camera-select option")).toHaveText([
@@ -4553,7 +4562,7 @@ test("Playwright bootstraps GLB viewer imported camera from URL", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   await expect(page.locator("#glb-imported-camera-select")).toHaveValue("1");
@@ -4601,7 +4610,7 @@ test("Playwright bootstraps GLB viewer imported camera from URL", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   await expect(page.locator("#glb-imported-camera-select")).toHaveValue("1");
@@ -4715,7 +4724,7 @@ test("Playwright renders visible morph target weights from the GLB viewer", asyn
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -4862,7 +4871,7 @@ test("Playwright renders visible morph target weights from the GLB viewer", asyn
       return (status?.morphing?.weights?.[0] ?? 0) > 0.99;
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const morphedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -4975,7 +4984,7 @@ test("Playwright renders and animates a skinned GLB mesh", async ({ page }) => {
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -5123,7 +5132,7 @@ test("Playwright renders and animates a skinned GLB mesh", async ({ page }) => {
       ).__APERTURE_EXAMPLE_STATUS__?.frame ?? 0) >=
       frame + 30,
     firstFrame,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   const animatedScreenshot = await page
     .locator("#aperture-canvas")
@@ -5196,7 +5205,7 @@ test("Playwright applies a GLB viewer orthographic imported camera", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -5423,7 +5432,7 @@ test("Playwright skips an unsupported primitive mode while rendering supported G
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -5586,7 +5595,7 @@ test("Playwright renders an emissive StandardMaterial GLB viewer sample", async 
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -5799,7 +5808,7 @@ test("Playwright renders a GLB viewer base-color texture plus emissive texture",
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -6075,7 +6084,7 @@ test("Playwright renders a GLB viewer metallic-roughness texture plus emissive t
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -6397,7 +6406,7 @@ test("Playwright renders GLB viewer base-color plus metallic-roughness plus emis
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -6735,7 +6744,7 @@ test("Playwright renders a GLB viewer transformed base-color plus emissive textu
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -6981,7 +6990,7 @@ test("Playwright renders GLB viewer transformed base-color plus metallic-roughne
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -7239,7 +7248,7 @@ test("Playwright renders a GLB viewer base-color texture plus occlusion texture"
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -7568,7 +7577,7 @@ test("Playwright renders GLB viewer UV1 base-color plus occlusion textures", asy
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -7977,7 +7986,7 @@ test("Playwright renders GLB viewer UV1 base-color plus emissive textures", asyn
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -8408,7 +8417,7 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus emissive texture
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -8646,7 +8655,7 @@ test("Playwright renders a GLB viewer occlusion and emissive texture sample", as
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -8867,7 +8876,7 @@ test("Playwright reports an emissive texture transform in the GLB viewer", async
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -9112,7 +9121,7 @@ test("Playwright compares transformed and untransformed emissive texture control
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -9390,7 +9399,7 @@ test("Playwright renders a GLB viewer occlusion texture transform sample", async
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -9659,7 +9668,7 @@ test("Playwright compares transformed and untransformed occlusion texture contro
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -9952,7 +9961,7 @@ test("Playwright renders GLB viewer normal plus occlusion URI controls", async (
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -10312,7 +10321,7 @@ test("Playwright renders a GLB viewer StandardMaterial occlusion plus normal map
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -10654,7 +10663,7 @@ test("Playwright renders a GLB viewer alpha-mask texture sample", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -10942,7 +10951,7 @@ test("Playwright renders a GLB viewer alpha-mask plus normal-map sample", async 
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -11227,7 +11236,7 @@ test("Playwright renders GLB viewer alpha-mask plus metallic-roughness textures"
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -11468,7 +11477,7 @@ test("Playwright renders GLB viewer alpha-mask plus emissive URI controls", asyn
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -11777,7 +11786,7 @@ test("Playwright renders a GLB viewer alpha-blend texture sample", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -12033,7 +12042,7 @@ test("Playwright renders GLB viewer alpha-blend plus emissive textures", async (
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -12365,7 +12374,7 @@ test("Playwright renders a GLB viewer alpha-blend texture plus normal map", asyn
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -12632,7 +12641,7 @@ test("Playwright reports non-default sampler state for a textured GLB viewer sam
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -12850,7 +12859,7 @@ test("Playwright compares repeat and clamp sampler wrap controls in the GLB view
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -13070,7 +13079,7 @@ test("Playwright reports texture-transform metadata for a textured GLB viewer sa
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -13259,7 +13268,7 @@ test("Playwright reports a missing TEXCOORD_1 GLB viewer diagnostic while render
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -13456,7 +13465,7 @@ test("Playwright renders a GLB viewer base-color texture through TEXCOORD_1", as
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -13677,7 +13686,7 @@ test("Playwright compares UV0 and UV1 image-decode controls in the GLB viewer", 
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -13892,7 +13901,7 @@ test("Playwright renders a GLB viewer metallic-roughness texture through TEXCOOR
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -14110,7 +14119,7 @@ test("Playwright reports a rotated metallic-roughness texture transform in the G
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -14372,7 +14381,7 @@ test("Playwright compares transformed and untransformed metallic-roughness textu
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -15763,7 +15772,7 @@ test("Playwright renders a GLB viewer normal map through TEXCOORD_1", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -16112,7 +16121,7 @@ test("Playwright renders GLB viewer base-color plus normal textures through TEXC
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -16494,7 +16503,7 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus normal textures"
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -16848,7 +16857,7 @@ test("Playwright renders a GLB viewer transformed UV1 normal map", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -16969,9 +16978,21 @@ test("Playwright renders a GLB viewer transformed UV1 normal map", async ({
       untransformedA,
     )}`,
   ).toBeGreaterThan(20);
+  // Region extremes rather than two fixed probes: real prefiltered
+  // environment lighting (AI-87) brightened the scene enough that fixed
+  // points can both land on washed-out areas even though the normal-map
+  // pattern's contrast is clearly visible elsewhere in the quad.
+  const transformedRegion = readPngRegionExtremes(screenshot, {
+    xMin: 0.14,
+    xMax: 0.34,
+    yMin: 0.38,
+    yMax: 0.62,
+  });
   expect(
-    pixelDistance(transformedA, transformedB),
-    "transformed UV1 normal-map region should show non-flat lighting variation",
+    transformedRegion.variation,
+    `transformed UV1 normal-map region should show non-flat lighting variation; extremes=${JSON.stringify(
+      transformedRegion,
+    )}`,
   ).toBeGreaterThan(6);
   expect(
     pixelDistance(transformedA, untransformedA) +
@@ -17102,7 +17123,7 @@ test("Playwright renders a GLB viewer base-color texture plus normal map", async
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -17380,7 +17401,7 @@ test("Playwright renders a GLB viewer metallic-roughness texture plus normal map
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -17769,7 +17790,7 @@ test("Playwright renders GLB viewer transformed metallic-roughness plus normal t
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -17827,10 +17848,6 @@ test("Playwright renders GLB viewer transformed metallic-roughness plus normal t
     scalarRegion.maxX,
     scalarRegion.maxY,
   );
-  const transformedA = readPngPixel(screenshot, 0.28, 0.46);
-  const transformedB = readPngPixel(screenshot, 0.36, 0.58);
-  const untransformedA = readPngPixel(screenshot, 0.48, 0.46);
-  const untransformedB = readPngPixel(screenshot, 0.56, 0.58);
   const combinedPipelineKey =
     "standard|metallicRoughnessTexture|normalTexture|opaque|back|less|none";
 
@@ -18012,10 +18029,33 @@ test("Playwright renders GLB viewer transformed metallic-roughness plus normal t
       untransformed,
     )}`,
   ).toBeGreaterThan(20);
+  // Compare region extremes instead of fixed probe pairs (see the UV1 test):
+  // the transformed slot moves WHERE the pattern's dark texels land, so the
+  // darkest samples of each quad must differ even when fixed points wash out.
+  const transformedSlotRegion = readPngRegionExtremes(screenshot, {
+    xMin: 0.14,
+    xMax: 0.34,
+    yMin: 0.38,
+    yMax: 0.62,
+  });
+  const untransformedSlotRegion = readPngRegionExtremes(screenshot, {
+    xMin: 0.44,
+    xMax: 0.62,
+    yMin: 0.38,
+    yMax: 0.62,
+  });
   expect(
-    pixelDistance(transformedA, untransformedA) +
-      pixelDistance(transformedB, untransformedB),
-    "transformed metallic-roughness slot should visibly differ from the untransformed normal-map control",
+    pixelDistance(
+      transformedSlotRegion.darkest,
+      untransformedSlotRegion.darkest,
+    ) +
+      pixelDistance(
+        transformedSlotRegion.brightest,
+        untransformedSlotRegion.brightest,
+      ),
+    `transformed metallic-roughness slot should visibly differ from the untransformed normal-map control; transformed=${JSON.stringify(
+      transformedSlotRegion,
+    )} untransformed=${JSON.stringify(untransformedSlotRegion)}`,
   ).toBeGreaterThan(8);
   expect(
     pixelDistance(transformed, scalar) + pixelDistance(untransformed, scalar),
@@ -18090,7 +18130,7 @@ test("Playwright renders a GLB viewer normal-scale texture sample", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -18291,7 +18331,7 @@ test("Playwright reports a transformed normal texture in the GLB viewer", async 
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -18503,7 +18543,7 @@ test("Playwright compares transformed and untransformed normal texture controls 
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -19504,7 +19544,7 @@ test("Playwright renders an embedded-image GLB texture sample", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -19728,7 +19768,7 @@ test("Playwright decodes a same-origin PNG URI texture for the GLB viewer", asyn
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -20280,7 +20320,7 @@ test("Playwright decodes a same-origin JPEG URI texture for the GLB viewer", asy
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -20504,7 +20544,7 @@ test("Playwright decodes all StandardMaterial URI texture slots in the GLB viewe
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -20856,7 +20896,7 @@ test("Playwright reports selected GLB viewer material-slot summaries", async ({
         );
       },
       sample.id,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -20925,7 +20965,7 @@ test("Playwright renders GLB viewer material-slot summary rows", async ({
         );
       },
       { id, materialCount },
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -21076,7 +21116,7 @@ test("Playwright renders GLB viewer decoded-image summary rows", async ({
         );
       },
       { selectedId, uris },
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -21184,7 +21224,7 @@ test("Playwright renders GLB viewer decoded-image summary rows", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await expect(summaryPanel.locator("[data-image-decode-row]")).toHaveCount(0);
   await expect(summaryPanel).toBeHidden();
@@ -21269,7 +21309,7 @@ test("Playwright renders GLB viewer unsupported-feature summary rows", async ({
         );
       },
       { assetId, code },
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -21328,7 +21368,7 @@ test("Playwright renders GLB viewer unsupported-feature summary rows", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await expect(
     summaryPanel.locator("[data-unsupported-feature-row]"),
@@ -21397,7 +21437,7 @@ test("Playwright renders GLB viewer animation summary rows", async ({
         );
       },
       { direction, speed },
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -21450,7 +21490,7 @@ test("Playwright renders GLB viewer animation summary rows", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await expect(
     summaryPanel.locator("[data-animation-summary-row]"),
@@ -21503,7 +21543,7 @@ test("Playwright renders GLB viewer animation clip-list rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -21608,7 +21648,7 @@ test("Playwright renders GLB viewer animation clip-list rows", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await expect(summaryPanel).toBeHidden();
   webGpuValidation.expectNoWarnings();
@@ -21664,7 +21704,7 @@ test("Playwright renders GLB viewer animated-node rows", async ({ page }) => {
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -21775,7 +21815,7 @@ test("Playwright renders GLB viewer animated-node rows", async ({ page }) => {
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await expect(summaryPanel).toBeHidden();
   webGpuValidation.expectNoWarnings();
@@ -21839,7 +21879,7 @@ test("Playwright renders GLB viewer animation-channel diagnostic rows", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -21887,7 +21927,7 @@ test("Playwright renders GLB viewer animation-channel diagnostic rows", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await expect(
     summaryPanel.locator("[data-animation-channel-summary-row]"),
@@ -21959,7 +21999,7 @@ test("Playwright renders GLB viewer imported-camera summary rows", async ({
         );
       },
       enabled,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -22011,7 +22051,7 @@ test("Playwright renders GLB viewer imported-camera summary rows", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await expect(
     summaryPanel.locator("[data-imported-camera-summary-row]"),
@@ -22066,7 +22106,7 @@ test("Playwright renders GLB viewer imported-camera list rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -22324,7 +22364,7 @@ test("Playwright renders GLB viewer scene metadata summary rows", async ({
         materials,
         animations,
       },
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -22434,7 +22474,7 @@ test("Playwright renders GLB viewer selected-scene summary rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -22528,7 +22568,7 @@ test("Playwright renders GLB viewer selected-asset summary rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -22638,7 +22678,7 @@ test("Playwright renders GLB viewer orbit-fit summary rows", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   const cubeStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const cubeOrbit = expectReadyOrbitFit(cubeStatus, "cube orbit summary");
@@ -22679,7 +22719,7 @@ test("Playwright renders GLB viewer orbit-fit summary rows", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   const brassStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const brassOrbit = expectReadyOrbitFit(brassStatus, "brass orbit summary");
@@ -22829,7 +22869,7 @@ test("Playwright renders GLB viewer shadow summary rows", async ({ page }) => {
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   await expect(summaryPanel.locator("[data-shadow-summary-row]")).toHaveCount(
@@ -22899,7 +22939,7 @@ test("Playwright renders GLB viewer shadow-request rows", async ({ page }) => {
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await expect(summaryPanel).toBeHidden();
   webGpuValidation.expectNoWarnings();
@@ -22992,7 +23032,7 @@ test("Playwright renders GLB viewer IBL summary rows", async ({ page }) => {
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   await expect(summaryPanel.locator("[data-ibl-summary-row]")).toHaveCount(0);
@@ -23073,7 +23113,7 @@ test("Playwright renders GLB viewer IBL resource rows", async ({ page }) => {
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await expect(iblRow("state")).toContainText("enabled false, key none");
   await expect(iblRow("diffuse")).toContainText("none");
@@ -23128,7 +23168,7 @@ test("Playwright renders GLB viewer draw and extraction summary rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -23240,7 +23280,7 @@ test("Playwright renders GLB viewer render-state detail rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -23375,7 +23415,7 @@ test("Playwright renders GLB viewer pipeline-token detail rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -23506,7 +23546,7 @@ test("Playwright renders GLB viewer mesh-draw identity rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -23656,7 +23696,7 @@ test("Playwright renders GLB viewer prepared-resource reuse rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -23846,7 +23886,7 @@ test("Playwright renders GLB viewer render-diagnostics section rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -23967,7 +24007,7 @@ test("Playwright renders GLB viewer source-output summary rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -24081,7 +24121,7 @@ test("Playwright renders GLB viewer primitive material-resolution rows", async (
         );
       },
       { id, resolved, source },
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -24215,7 +24255,7 @@ test("Playwright renders GLB viewer material-factor rows", async ({ page }) => {
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -24327,7 +24367,7 @@ test("Playwright renders GLB viewer material-alpha rows", async ({ page }) => {
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -24451,7 +24491,7 @@ test("Playwright renders GLB viewer source-loader status rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -24589,7 +24629,7 @@ test("Playwright renders GLB viewer hierarchy summary rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -24723,7 +24763,7 @@ test("Playwright renders GLB viewer replay-stage status rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -24840,7 +24880,7 @@ test("Playwright renders GLB viewer texture-gallery status rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -24971,7 +25011,7 @@ test("Playwright renders GLB viewer extraction diagnostic rows", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -25025,7 +25065,7 @@ test("Playwright renders GLB viewer extraction diagnostic rows", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await expect(
     summaryPanel.locator("[data-extraction-diagnostic-row]"),
@@ -25090,7 +25130,7 @@ test("Playwright renders GLB viewer primitive texture-slot route rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -25238,7 +25278,7 @@ test("Playwright renders GLB viewer texture handle-key rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -25415,7 +25455,7 @@ test("Playwright renders GLB viewer texture-sampler rows", async ({ page }) => {
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -25592,7 +25632,7 @@ test("Playwright renders GLB viewer texture-transform rows", async ({
         );
       },
       expected,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -25783,7 +25823,7 @@ test("Playwright navigates the real URI texture gallery with keyboard controls",
         );
       },
       sample,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -25963,7 +26003,7 @@ test("Playwright navigates the real URI texture gallery with button controls", a
         );
       },
       sample,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -26132,7 +26172,7 @@ test("Playwright switches real URI texture GLB viewer samples without stale repl
         );
       },
       sample,
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -26385,7 +26425,7 @@ test("Playwright renders GLB viewer imported-light summary rows", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   await expect(
@@ -26489,7 +26529,7 @@ test("Playwright renders GLB viewer imported-light list rows", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await expect(summaryPanel).toBeHidden();
   webGpuValidation.expectNoWarnings();
@@ -26747,7 +26787,7 @@ test("Playwright loads GLB source bytes once for worker-authored viewer assets",
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -26848,7 +26888,7 @@ test("Playwright decodes a same-origin URI texture from a custom GLB URL", async
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -27072,7 +27112,7 @@ test("Playwright persists GLB viewer sample selection in the URL", async ({
         );
       },
       { id, drawCount },
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -27205,7 +27245,7 @@ test("Playwright clears custom URI texture decode state when switching to a samp
         );
       },
       { id, source, drawCount, uris },
-      { timeout: 5000 },
+      { timeout: 15000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -27333,7 +27373,7 @@ test("Playwright bootstraps a sample GLB asset from the query string", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const brassStatus = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -27403,7 +27443,7 @@ test("Playwright bootstraps a sample GLB asset from the query string", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const fallbackStatus = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -27732,7 +27772,7 @@ async function loadNormalMapViewerSample(
       );
     },
     assetId,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -27806,7 +27846,7 @@ async function loadTexturedStandardViewerSample(
       );
     },
     undefined,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -27882,7 +27922,7 @@ async function waitForAnimationControlStatus(
       );
     },
     expected,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -27892,6 +27932,38 @@ async function waitForAnimationControlStatus(
   }
 
   return status;
+}
+
+/**
+ * Wait until the example's frame counter advances by at least `minFrames`.
+ * Status-based waits confirm the WORKER applied a change; the rendered frame
+ * for that state presents later. Screenshots that race presentation under
+ * slow renderers (SwiftShader CI) capture the previous pose and pixel-diff
+ * assertions read 0.
+ */
+async function waitForRenderedFrameAdvance(
+  page: Page,
+  minFrames = 2,
+): Promise<void> {
+  const fromFrame = await page.evaluate(
+    () =>
+      (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: { readonly frame?: number };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.frame ?? 0,
+  );
+  await page.waitForFunction(
+    ({ fromFrame, minFrames }) =>
+      ((
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: { readonly frame?: number };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.frame ?? 0) >=
+      fromFrame + minFrames,
+    { fromFrame, minFrames },
+    { timeout: 15000 },
+  );
 }
 
 async function waitForStepAnimationStatus(
@@ -27944,7 +28016,7 @@ async function waitForStepAnimationStatus(
       );
     },
     expected,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -28005,7 +28077,7 @@ async function waitForImportedLightStatus(
       );
     },
     expected,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -28238,7 +28310,7 @@ async function waitForShadowControlStatus(
       );
     },
     expected,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);

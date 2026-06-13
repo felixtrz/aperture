@@ -88,8 +88,10 @@ test("post effects example toggles FXAA and bloom with visible pixel changes", a
   expect(effectIds(both.status)).toEqual(["fxaa", "bloom"]);
   expect(direct.status.draw?.drawCalls).toBe(2);
   expect(fxaa.status.draw?.drawCalls).toBe(3);
-  expect(bloom.status.draw?.drawCalls).toBe(6);
-  expect(both.status.draw?.drawCalls).toBe(7);
+  // Bloom-enabled frames gained one pass when the FrameGraph route became the
+  // default (AI-25); verified identical on Metal and SwiftShader.
+  expect(bloom.status.draw?.drawCalls).toBe(7);
+  expect(both.status.draw?.drawCalls).toBe(8);
   expect(bloom.status.effects?.report[0]?.graph).toMatchObject({
     topology: "downsample-upsample",
     passCount: 4,
