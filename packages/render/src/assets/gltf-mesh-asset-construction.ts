@@ -4,7 +4,6 @@ import type {
   GltfMeshAssetConstructionDiagnostic,
   GltfMeshAssetConstructionOptions,
   GltfMeshAssetConstructionReport,
-  GltfMeshAssetNormalGenerationRequest,
   GltfMeshAssetTangentGenerationRequest,
   GltfPlannedMeshSourceAsset,
 } from "./gltf-mesh-asset-construction-types.js";
