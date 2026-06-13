@@ -28669,11 +28669,33 @@ async function expectEventualPixelChange(
   threshold: number,
   message: string,
 ): Promise<void> {
+  // Wide dense grid: shape changes (scale steps, morphs, joint swings) often
+  // move only a silhouette ring that the narrow centre grid of
+  // maxSampleDelta misses entirely — flat-shaded interiors are identical
+  // before and after.
+  const wideDelta = (before: Buffer, after: Buffer): number => {
+    let maxDelta = 0;
+    for (let y = 0; y < 21; y += 1) {
+      for (let x = 0; x < 21; x += 1) {
+        const xRatio = 0.1 + (0.8 * x) / 20;
+        const yRatio = 0.1 + (0.8 * y) / 20;
+        maxDelta = Math.max(
+          maxDelta,
+          pixelDistance(
+            readPngPixel(before, xRatio, yRatio),
+            readPngPixel(after, xRatio, yRatio),
+          ),
+        );
+      }
+    }
+    return maxDelta;
+  };
+
   await expect
     .poll(
       async () => {
         const current = await page.locator("#aperture-canvas").screenshot();
-        return maxSampleDelta(baseline, current);
+        return wideDelta(baseline, current);
       },
       { message, timeout: 20000, intervals: [500, 1000, 2000] },
     )
