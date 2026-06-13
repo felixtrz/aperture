@@ -73,6 +73,8 @@ export interface AudioEngine {
   readonly activeVoiceCount: number;
   /** Live source nodes across all voices (diagnostics). */
   readonly activeSourceCount: number;
+  /** Live PannerNodes (spatial voices) — diagnostics / budget. */
+  readonly activePannerCount: number;
   dispose(): void;
 }
 
@@ -111,7 +113,12 @@ export function createAudioEngine(
       }
     },
     applySnapshot(snapshot, frameDelta) {
-      voices.apply(snapshot.audioEmitters ?? [], clampRamp(frameDelta));
+      voices.apply(
+        snapshot.audioEmitters ?? [],
+        snapshot.transforms,
+        snapshot.audioListener,
+        clampRamp(frameDelta),
+      );
     },
     setMasterGain(value, rampSec) {
       mixer.setMasterGain(value, rampSec);
@@ -127,6 +134,9 @@ export function createAudioEngine(
     },
     get activeSourceCount(): number {
       return voices.activeSourceCount;
+    },
+    get activePannerCount(): number {
+      return voices.activePannerCount;
     },
     dispose() {
       if (disposed) {

@@ -1,5 +1,6 @@
 import type {
   AudioEmitterPacket,
+  AudioListenerPacket,
   AudioVoiceKey,
 } from "@aperture-engine/render";
 import type { AudioBackend } from "./audio-backend.js";
@@ -18,14 +19,23 @@ export interface VoiceManagerOptions {
 
 export interface VoiceManager {
   /**
-   * Reconcile the live voice graph against this frame's emitter intent.
-   * `frameDelta` is the (clamped) main-thread frame interval used for ramps.
+   * Reconcile the live voice graph against this frame's audio intent.
+   * `transforms` is the snapshot's packed world matrices (emitter + listener
+   * poses ride it); `frameDelta` is the clamped main-thread frame interval used
+   * for click-free AudioParam ramps.
    */
-  apply(emitters: readonly AudioEmitterPacket[], frameDelta: number): void;
+  apply(
+    emitters: readonly AudioEmitterPacket[],
+    transforms: Float32Array,
+    listener: AudioListenerPacket | undefined,
+    frameDelta: number,
+  ): void;
   /** Logical voices currently tracked (one per live emitter key). */
   readonly activeVoiceCount: number;
   /** Live `AudioBufferSourceNode`s across all voices. */
   readonly activeSourceCount: number;
+  /** Live `PannerNode`s (spatial voices) — diagnostics / budget. */
+  readonly activePannerCount: number;
   dispose(): void;
 }
 
@@ -33,6 +43,8 @@ interface Voice {
   readonly key: string;
   busId: AudioBusId;
   readonly gain: GainNode;
+  /** Spatial voices route source -> panner -> gain; 2D voices skip the panner. */
+  readonly panner: PannerNode | null;
   readonly sources: Set<AudioBufferSourceNode>;
   looping: AudioBufferSourceNode | null;
   realizedEpoch: number;
@@ -41,7 +53,6 @@ interface Voice {
   clipId: string;
   clipVersion: number;
   offsetSec: number;
-  /** Deferred starts awaiting a decode: a loop and/or N one-shots. */
   pendingLoop: boolean;
   pendingOneShots: number;
   seen: boolean;
@@ -58,24 +69,27 @@ export function createVoiceManager(
   const maxBurst = Math.max(1, options.maxBurstPerFrame ?? DEFAULT_MAX_BURST);
   const unsubscribe = clips.onDecoded(() => flushPending());
   let disposed = false;
+  let lastListenerMasterGain = Number.NaN;
 
   function apply(
     emitters: readonly AudioEmitterPacket[],
+    transforms: Float32Array,
+    listener: AudioListenerPacket | undefined,
     frameDelta: number,
   ): void {
     if (disposed) {
       return;
     }
+    updateListener(listener, transforms, frameDelta);
+
     for (const voice of voices.values()) {
       voice.seen = false;
     }
-
     for (const packet of emitters) {
-      reconcile(packet, frameDelta);
+      reconcile(packet, transforms, frameDelta);
     }
-
-    // Seen-sweep: an emitter that vanished (despawn / active:false / hard cull)
-    // is faded out and freed. A reused key reappears as a fresh voice.
+    // Seen-sweep: a vanished emitter (despawn / active:false / hard cull) is
+    // faded out and freed; a reused key reappears as a fresh voice.
     for (const voice of [...voices.values()]) {
       if (!voice.seen) {
         free(voice);
@@ -83,7 +97,56 @@ export function createVoiceManager(
     }
   }
 
-  function reconcile(packet: AudioEmitterPacket, frameDelta: number): void {
+  function updateListener(
+    listener: AudioListenerPacket | undefined,
+    transforms: Float32Array,
+    frameDelta: number,
+  ): void {
+    if (listener === undefined) {
+      return;
+    }
+    const o = listener.worldTransformOffset;
+    const at = backend.currentTime + frameDelta;
+    const l = backend.listener;
+    // WORLD-matrix basis (not the inverted view): pos=col3, fwd=-col2, up=+col1.
+    ramp3(
+      l.positionX,
+      l.positionY,
+      l.positionZ,
+      m(transforms, o, 12),
+      m(transforms, o, 13),
+      m(transforms, o, 14),
+      at,
+    );
+    ramp3(
+      l.forwardX,
+      l.forwardY,
+      l.forwardZ,
+      -m(transforms, o, 8),
+      -m(transforms, o, 9),
+      -m(transforms, o, 10),
+      at,
+    );
+    ramp3(
+      l.upX,
+      l.upY,
+      l.upZ,
+      m(transforms, o, 4),
+      m(transforms, o, 5),
+      m(transforms, o, 6),
+      at,
+    );
+    if (listener.masterGain !== lastListenerMasterGain) {
+      lastListenerMasterGain = listener.masterGain;
+      mixer.setMasterGain(listener.masterGain, FADE_SEC);
+    }
+  }
+
+  function reconcile(
+    packet: AudioEmitterPacket,
+    transforms: Float32Array,
+    frameDelta: number,
+  ): void {
     const key = voiceKeyString(packet.key);
     const clipId = clipKeyOf(packet);
     const bus = toBus(packet.busId);
@@ -93,14 +156,18 @@ export function createVoiceManager(
     if (voice === undefined) {
       const gain = backend.createGain();
       gain.connect(mixer.busInput(bus));
+      let panner: PannerNode | null = null;
+      if (packet.simulationSpace === "world") {
+        panner = backend.createPanner();
+        panner.connect(gain);
+      }
       voice = {
         key,
         busId: bus,
         gain,
+        panner,
         sources: new Set(),
         looping: null,
-        // Seed to the packet's current counters so past triggers (or a reused
-        // entity id) never back-fire on first sight.
         realizedEpoch: packet.playEpoch,
         realizedStopEpoch: packet.stopEpoch,
         loop: packet.loop,
@@ -122,7 +189,6 @@ export function createVoiceManager(
     voice.clipVersion = packet.clipVersion;
     voice.offsetSec = packet.offsetSec;
 
-    // Click-free gain follow (mute = gain-to-zero, playhead keeps running).
     const targetGain = packet.muted ? 0 : packet.gain;
     if (!firstSight) {
       voice.gain.gain.setTargetAtTime(
@@ -132,14 +198,11 @@ export function createVoiceManager(
       );
     }
 
-    // Stop counter: a positive signed delta requests a click-free fade-stop.
     if (signedDelta(packet.stopEpoch, voice.realizedStopEpoch) > 0) {
       voice.realizedStopEpoch = packet.stopEpoch;
       fadeStopSources(voice);
     }
 
-    // Play counter: fire the signed delta as voices. First sight is seeded, so a
-    // loop/one-shot starts only via autoplay or a real bump.
     const playDelta = signedDelta(packet.playEpoch, voice.realizedEpoch);
     voice.realizedEpoch = packet.playEpoch;
 
@@ -161,13 +224,52 @@ export function createVoiceManager(
       }
     }
 
-    void frameDelta; // spatial param ramps consume this in AU-6.
+    if (voice.panner !== null) {
+      updatePanner(voice.panner, packet, transforms, frameDelta);
+    }
+  }
+
+  /** Per-frame spatial update — zero allocation. */
+  function updatePanner(
+    panner: PannerNode,
+    packet: AudioEmitterPacket,
+    transforms: Float32Array,
+    frameDelta: number,
+  ): void {
+    const o = packet.worldTransformOffset;
+    const at = backend.currentTime + frameDelta;
+    ramp3(
+      panner.positionX,
+      panner.positionY,
+      panner.positionZ,
+      m(transforms, o, 12),
+      m(transforms, o, 13),
+      m(transforms, o, 14),
+      at,
+    );
+    // Source faces its world forward = -col2 (same basis convention as the listener).
+    ramp3(
+      panner.orientationX,
+      panner.orientationY,
+      panner.orientationZ,
+      -m(transforms, o, 8),
+      -m(transforms, o, 9),
+      -m(transforms, o, 10),
+      at,
+    );
+    panner.panningModel = packet.panningModel;
+    panner.distanceModel = packet.distanceModel;
+    panner.refDistance = packet.refDistance;
+    panner.maxDistance = packet.maxDistance;
+    panner.rolloffFactor = packet.rolloffFactor;
+    panner.coneInnerAngle = packet.coneInnerAngle;
+    panner.coneOuterAngle = packet.coneOuterAngle;
+    panner.coneOuterGain = packet.coneOuterGain;
   }
 
   function startSource(voice: Voice, loop: boolean): void {
     const buffer = clips.acquire(voice.clipId, voice.clipVersion);
     if (buffer === undefined) {
-      // Buffer not decoded yet — defer until onDecoded fires.
       if (loop) {
         voice.pendingLoop = true;
       } else {
@@ -179,7 +281,7 @@ export function createVoiceManager(
     const source = backend.createSource();
     source.buffer = buffer;
     source.loop = loop;
-    source.connect(voice.gain);
+    source.connect(voice.panner ?? voice.gain);
     source.onended = () => {
       voice.sources.delete(source);
       if (voice.looping === source) {
@@ -187,6 +289,7 @@ export function createVoiceManager(
       }
       if (voice.fadingOut && voice.sources.size === 0) {
         voice.gain.disconnect();
+        voice.panner?.disconnect();
       }
     };
     source.start(backend.currentTime, voice.offsetSec);
@@ -208,7 +311,6 @@ export function createVoiceManager(
         const before = voice.sources.size;
         voice.pendingLoop = false;
         startSource(voice, true);
-        // startSource re-defers if still not ready.
         if (voice.sources.size === before && voice.looping === null) {
           voice.pendingLoop = true;
         }
@@ -218,7 +320,6 @@ export function createVoiceManager(
         voice.pendingOneShots -= 1;
         startSource(voice, false);
         if (voice.sources.size === before) {
-          // Still not ready — restore and stop trying this round.
           voice.pendingOneShots += 1;
           break;
         }
@@ -249,6 +350,7 @@ export function createVoiceManager(
     voice.pendingOneShots = 0;
     if (voice.sources.size === 0) {
       voice.gain.disconnect();
+      voice.panner?.disconnect();
       return;
     }
     fadeStopSources(voice);
@@ -262,6 +364,16 @@ export function createVoiceManager(
     return total;
   }
 
+  function countPanners(): number {
+    let total = 0;
+    for (const voice of voices.values()) {
+      if (voice.panner !== null) {
+        total += 1;
+      }
+    }
+    return total;
+  }
+
   return {
     apply,
     get activeVoiceCount(): number {
@@ -269,6 +381,9 @@ export function createVoiceManager(
     },
     get activeSourceCount(): number {
       return countSources();
+    },
+    get activePannerCount(): number {
+      return countPanners();
     },
     dispose() {
       if (disposed) {
@@ -281,6 +396,7 @@ export function createVoiceManager(
           safeStop(source, backend.currentTime);
         }
         voice.gain.disconnect();
+        voice.panner?.disconnect();
       }
       voices.clear();
     },
@@ -304,6 +420,25 @@ function toBus(busId: string): AudioBusId {
 /** 32-bit wrapping signed difference, for monotonic Int32 epoch counters. */
 function signedDelta(current: number, realized: number): number {
   return (current - realized) | 0;
+}
+
+/** Read a column-major matrix element from the packed transforms array. */
+function m(transforms: Float32Array, offset: number, index: number): number {
+  return transforms[offset + index] ?? 0;
+}
+
+function ramp3(
+  x: AudioParam,
+  y: AudioParam,
+  z: AudioParam,
+  vx: number,
+  vy: number,
+  vz: number,
+  at: number,
+): void {
+  x.linearRampToValueAtTime(vx, at);
+  y.linearRampToValueAtTime(vy, at);
+  z.linearRampToValueAtTime(vz, at);
 }
 
 function safeStop(source: AudioBufferSourceNode, when: number): void {

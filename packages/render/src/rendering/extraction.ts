@@ -150,7 +150,12 @@ export function extractRenderSnapshot(
     transforms,
     diagnostics,
   );
-  const audioListener = extractAudioListener(world, transforms, diagnostics);
+  const audioListener = extractAudioListener(
+    world,
+    transforms,
+    diagnostics,
+    audioEmitters.length > 0,
+  );
   const uiLayout = extractUiLayout(world, diagnostics, cameraLayerMask);
   const skyboxes = extractSkyboxes(world, assets, diagnostics, cameraLayerMask);
 

@@ -3,11 +3,13 @@ import {
   WorldTransform,
   type AssetRegistry,
   type EcsWorld,
+  type Entity,
 } from "@aperture-engine/simulation";
 import {
   AudioEmitter,
   AudioListener,
   AudioSimulationSpace,
+  Camera,
   RenderLayer,
 } from "./authoring.js";
 import type { AudioClipAsset } from "../assets/audio-clip.js";
@@ -167,6 +169,7 @@ export function extractAudioListener(
   world: EcsWorld,
   transforms: number[],
   diagnostics: RenderDiagnostic[],
+  hasEmitters: boolean,
 ): AudioListenerPacket | undefined {
   const query = world.queryManager.registerQuery({ required: [AudioListener] });
   let chosen: AudioListenerPacket | undefined;
@@ -201,7 +204,48 @@ export function extractAudioListener(
     };
   }
 
+  // Fallback: no explicit AudioListener → adopt the highest-priority active
+  // Camera's WORLD pose so positional audio "just works" out of the box. Only
+  // when the scene actually has emitters, so an audio-free camera scene neither
+  // ships a useless listener packet nor forfeits the SharedArrayBuffer path.
+  if (chosen === undefined && hasEmitters) {
+    const camera = highestPriorityCamera(world);
+    if (camera !== undefined) {
+      chosen = {
+        listenerId: createStableRenderId(entityRef(camera)),
+        entity: entityRef(camera),
+        worldTransformOffset: pushMatrix(transforms, readWorldMatrix(camera)),
+        masterGain: 1,
+      };
+    }
+  }
+
   return chosen;
+}
+
+function highestPriorityCamera(world: EcsWorld): Entity | undefined {
+  const query = world.queryManager.registerQuery({ required: [Camera] });
+  let best: Entity | undefined;
+  let bestPriority = Number.NEGATIVE_INFINITY;
+
+  for (const entity of sortedEntities(query.entities)) {
+    if (
+      entity.hasComponent(Enabled) &&
+      entity.getValue(Enabled, "value") === false
+    ) {
+      continue;
+    }
+    if (!entity.hasComponent(WorldTransform)) {
+      continue;
+    }
+    const priority = finiteInteger(entity.getValue(Camera, "priority"), 0);
+    if (best === undefined || priority > bestPriority) {
+      best = entity;
+      bestPriority = priority;
+    }
+  }
+
+  return best;
 }
 
 function parseDistanceModel(
