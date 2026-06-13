@@ -177,9 +177,16 @@ for (
   console.log(
     `[attempt ${attempt}] ${newVerdicts} new verdict(s); ${before - queue.length} spec file(s) resolved; ${queue.length} remaining`,
   );
-  if (newVerdicts === 0 && queue.length === before && attempt > 1) {
-    console.log("[runner] no progress this round — stopping early");
-    break;
+  if (newVerdicts === 0 && queue.length === before) {
+    if (!splitMode) {
+      splitMode = true;
+      console.log(
+        "[runner] no progress — switching to one-file-per-invocation mode",
+      );
+    } else if (attempt > 2) {
+      console.log("[runner] no progress in split mode — stopping early");
+      break;
+    }
   }
 }
 

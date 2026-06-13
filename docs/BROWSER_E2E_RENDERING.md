@@ -77,6 +77,37 @@ The standard `npm run check` command includes `check:examples`. The Playwright
 web server command builds the package before serving, so `npm run test:e2e` is
 enough for browser verification.
 
+### macOS local runs (real GPU)
+
+On macOS, prefer the convergent local runner over invoking Playwright
+directly:
+
+```sh
+node scripts/webgpu-e2e-local.mjs                      # whole suite
+node scripts/webgpu-e2e-local.mjs test/e2e/fog.spec.ts # specific files
+```
+
+It uses `playwright.macos.config.ts`, which drives WebGPU on Metal through
+Playwright's bundled Chromium in new-headless mode (`pnpm exec playwright
+install chromium` once). Two platform quirks make a plain `playwright test`
+invocation unreliable here, and the runner absorbs both:
+
+- Workers intermittently hang on exit after their tests pass. Playwright's
+  default grace is five minutes per worker
+  (`PWTEST_CHILD_PROCESS_TIMEOUT`); the runner caps it at 10s so a hang
+  costs seconds and the JSON report still finalizes.
+- Launches occasionally wedge outright. The runner records per-test verdicts
+  across attempts, pre-cleans leftover worker/Chromium processes, and retries
+  only spec files that never produced a verdict — real failures are never
+  retried into passes.
+
+The system Google Chrome channel (`playwright.config.ts`) additionally hangs
+on browser close after WebGPU pages on this platform; that is why the macOS
+config pins the bundled Chromium. On machines without an attached display,
+the config's `--disable-frame-rate-limit --disable-gpu-vsync` args keep
+Chrome's frame production (and therefore `requestAnimationFrame`-driven
+example status) from stalling when the display/vsync source sleeps.
+
 ## Playwright Checks
 
 The e2e tests wait for each page to publish
