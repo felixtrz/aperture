@@ -76,18 +76,38 @@ export function apertureSessionFile(appRoot: string): string {
 export async function readApertureDevSession(
   appRoot: string,
 ): Promise<ApertureDevSession | null> {
-  try {
-    const source = await readFile(apertureSessionFile(appRoot), "utf8");
-    const parsed = JSON.parse(source) as unknown;
+  // One short retry before giving up: writes are atomic (write-then-rename
+  // below), but an empty or torn file can still be observed around session
+  // teardown/startup races, and JSON.parse("") throws "Unexpected end of
+  // JSON input" — which previously escaped as a hard `aperture.cli.failed`.
+  // An unreadable session file means "no usable session", never a crash.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    let source: string;
+    try {
+      source = await readFile(apertureSessionFile(appRoot), "utf8");
+    } catch (error: unknown) {
+      if (isNodeErrorCode(error, "ENOENT")) {
+        return null;
+      }
 
-    return isApertureDevSession(parsed) ? parsed : null;
-  } catch (error: unknown) {
-    if (isNodeErrorCode(error, "ENOENT")) {
-      return null;
+      throw error;
     }
 
-    throw error;
+    try {
+      const parsed = JSON.parse(source) as unknown;
+
+      return isApertureDevSession(parsed) ? parsed : null;
+    } catch {
+      if (attempt === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        continue;
+      }
+
+      return null;
+    }
   }
+
+  return null;
 }
 
 export async function writeApertureDevSession(

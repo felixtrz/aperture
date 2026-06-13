@@ -682,7 +682,10 @@ interface TextureSlotStatus {
 test("Playwright renders the fetched sample GLB viewer asset", async ({
   page,
 }) => {
-  test.setTimeout(60_000);
+  // Walks many asset switches, each worth ~5s under SwiftShader since real
+  // specular prefiltering (AI-87); 60s exhausted mid-test once the per-wait
+  // budgets were raised to match.
+  test.setTimeout(120_000);
 
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
