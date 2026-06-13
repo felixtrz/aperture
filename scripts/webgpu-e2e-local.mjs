@@ -149,12 +149,18 @@ function runAttempt(files, attempt) {
   return found;
 }
 
+// Batched attempts amortize startup, but a single launch wedge starves the
+// whole batch. Once a batch makes no progress, fall back to one spec file per
+// invocation — solo runs are empirically far more reliable here.
+let splitMode = false;
+
 for (
   let attempt = 1;
   attempt <= maxAttempts && queue.length > 0;
   attempt += 1
 ) {
-  const results = runAttempt(queue, attempt);
+  const batch = splitMode ? [queue[0]] : queue;
+  const results = runAttempt(batch, attempt);
   let newVerdicts = 0;
   for (const r of results) {
     if (!verdicts.has(r.id)) {
