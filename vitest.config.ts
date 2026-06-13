@@ -129,6 +129,18 @@ export default defineConfig({
         replacement: new URL("./packages/webgpu/src/index.ts", import.meta.url)
           .pathname,
       },
+      {
+        find: "@aperture-engine/audio/test-support",
+        replacement: new URL(
+          "./packages/audio/src/test-support.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
+        find: "@aperture-engine/audio",
+        replacement: new URL("./packages/audio/src/index.ts", import.meta.url)
+          .pathname,
+      },
     ],
   },
   test: {

@@ -35,6 +35,28 @@ export const FORBIDDEN_WEBGPU_GLOBALS = [
   "GPUTextureView",
 ];
 
+// Web Audio is main-thread-only, so headless packages (which the audio plan
+// keeps free of any Web Audio node) must never reference these globals. The
+// non-headless @aperture-engine/audio package is exempt — it is not in
+// DEFAULT_HEADLESS_PACKAGES, exactly as @aperture-engine/webgpu is exempt from
+// the GPU globals. `AudioListener` is intentionally absent: it collides with
+// the render-side ECS component of the same name and is never constructed
+// directly anyway (you reach it via `context.listener`).
+export const FORBIDDEN_WEBAUDIO_GLOBALS = [
+  "AnalyserNode",
+  "AudioBufferSourceNode",
+  "AudioContext",
+  "AudioWorkletNode",
+  "BiquadFilterNode",
+  "ConvolverNode",
+  "DynamicsCompressorNode",
+  "GainNode",
+  "MediaElementAudioSourceNode",
+  "OfflineAudioContext",
+  "PannerNode",
+  "webkitAudioContext",
+];
+
 const SOURCE_EXTENSIONS = new Set([
   ".cjs",
   ".cts",
@@ -59,6 +81,9 @@ export function checkPackageBoundaries(options = {}) {
     options.headlessPackages ?? DEFAULT_HEADLESS_PACKAGES;
   const forbiddenGlobals = new Set(
     options.forbiddenGlobals ?? FORBIDDEN_WEBGPU_GLOBALS,
+  );
+  const forbiddenAudioGlobals = new Set(
+    options.forbiddenAudioGlobals ?? FORBIDDEN_WEBAUDIO_GLOBALS,
   );
   const forbiddenPackage = options.forbiddenPackage ?? FORBIDDEN_WEBGPU_PACKAGE;
   const violations = [];
@@ -95,6 +120,7 @@ export function checkPackageBoundaries(options = {}) {
         filePath,
         forbiddenPackage,
         forbiddenGlobals,
+        forbiddenAudioGlobals,
         violations,
       });
     }
@@ -228,6 +254,15 @@ function collectSourceViolations(options) {
         "forbidden-global",
         node.text,
         `Headless package references browser WebGPU global '${node.text}'.`,
+      );
+    }
+
+    if (ts.isIdentifier(node) && options.forbiddenAudioGlobals.has(node.text)) {
+      report(
+        node,
+        "forbidden-global",
+        node.text,
+        `Headless package references browser Web Audio global '${node.text}'.`,
       );
     }
 

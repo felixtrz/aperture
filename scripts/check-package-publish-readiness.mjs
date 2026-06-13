@@ -21,6 +21,7 @@ const publishablePackages = [
   "packages/render",
   "packages/runtime",
   "packages/webgpu",
+  "packages/audio",
   "packages/vite-plugin",
   "packages/app",
   "packages/cli",
