@@ -18462,9 +18462,20 @@ test("Playwright reports a transformed normal texture in the GLB viewer", async 
       transformedA,
     )}`,
   ).toBeGreaterThan(20);
+  // Region extremes instead of two fixed probes (see the UV1 test): the
+  // brighter prefiltered lighting washes individual points out while the
+  // pattern's contrast stays visible elsewhere in the quad.
+  const normalTransformRegion = readPngRegionExtremes(screenshot, {
+    xMin: 0.28,
+    xMax: 0.46,
+    yMin: 0.38,
+    yMax: 0.62,
+  });
   expect(
-    pixelDistance(transformedA, transformedB),
-    "normal-transform texture should produce non-flat lighting variation",
+    normalTransformRegion.variation,
+    `normal-transform texture should produce non-flat lighting variation; extremes=${JSON.stringify(
+      normalTransformRegion,
+    )}`,
   ).toBeGreaterThan(8);
   expect(
     pixelDistance(transformedA, flatA) + pixelDistance(transformedB, flatB),
@@ -18570,8 +18581,6 @@ test("Playwright compares transformed and untransformed normal texture controls 
   const transformedB = readPngPixel(screenshot, 0.36, 0.58);
   const untransformedA = readPngPixel(screenshot, 0.48, 0.46);
   const untransformedB = readPngPixel(screenshot, 0.56, 0.58);
-  const flatA = readPngPixel(screenshot, 0.68, 0.46);
-  const flatB = readPngPixel(screenshot, 0.76, 0.58);
 
   expectStatusJsonSafeForGpu(status);
   expect(status).toMatchObject({
@@ -18711,10 +18720,27 @@ test("Playwright compares transformed and untransformed normal texture controls 
       pixelDistance(transformedB, untransformedB),
     "transformed normal primitive should differ from the untransformed normal control",
   ).toBeGreaterThan(8);
+  // The flat control has no normal map, so its region is uniform; the
+  // transformed primitive's normal-mapped region must spread its extremes
+  // wider. Region variation difference replaces washed-out fixed probes.
+  const transformedControlRegion = readPngRegionExtremes(screenshot, {
+    xMin: 0.14,
+    xMax: 0.34,
+    yMin: 0.38,
+    yMax: 0.62,
+  });
+  const flatControlRegion = readPngRegionExtremes(screenshot, {
+    xMin: 0.64,
+    xMax: 0.84,
+    yMin: 0.38,
+    yMax: 0.62,
+  });
   expect(
-    pixelDistance(transformedA, flatA) + pixelDistance(transformedB, flatB),
-    "transformed normal primitive should differ from the flat control",
-  ).toBeGreaterThan(18);
+    transformedControlRegion.variation - flatControlRegion.variation,
+    `transformed normal primitive should differ from the flat control; transformed=${JSON.stringify(
+      transformedControlRegion,
+    )} flat=${JSON.stringify(flatControlRegion)}`,
+  ).toBeGreaterThan(10);
   webGpuValidation.expectNoWarnings();
 });
 
