@@ -176,6 +176,7 @@ export function createAudioEngine(
       : { ...DEFAULT_DUCK, ...(options.duck ?? {}) };
   let ducked = false;
   let disposed = false;
+  let resumePending = false;
   const pausedBuses = options.pausedBuses ?? ["sfx", "voice", "ambient"];
 
   return {
@@ -188,6 +189,7 @@ export function createAudioEngine(
     async unlock() {
       if (backend.state !== "running") {
         await backend.resume();
+        resumePending = true;
       }
     },
     async suspend() {
@@ -198,6 +200,7 @@ export function createAudioEngine(
     async resume() {
       if (backend.state === "suspended") {
         await backend.resume();
+        resumePending = true;
       }
     },
     applySnapshot(snapshot, frameDelta) {
@@ -206,7 +209,9 @@ export function createAudioEngine(
         snapshot.transforms,
         snapshot.audioListener,
         clampRamp(frameDelta),
+        resumePending,
       );
+      resumePending = false;
       if (duck !== null) {
         const active = voices.busActive(duck.trigger);
         if (active !== ducked) {

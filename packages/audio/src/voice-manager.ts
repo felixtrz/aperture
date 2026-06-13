@@ -59,6 +59,7 @@ export interface VoiceManager {
     transforms: Float32Array,
     listener: AudioListenerPacket | undefined,
     frameDelta: number,
+    resumed?: boolean,
   ): void;
   /** Real (sounding) voices — bounded by maxVoices and the per-bus caps. */
   readonly activeVoiceCount: number;
@@ -148,6 +149,7 @@ export function createVoiceManager(
 
   const unsubscribe = clips.onDecoded(() => flushPending());
   let disposed = false;
+  let resumedFrame = false;
   let lastListenerMasterGain = Number.NaN;
   let listenerX = 0;
   let listenerY = 0;
@@ -159,10 +161,12 @@ export function createVoiceManager(
     transforms: Float32Array,
     listener: AudioListenerPacket | undefined,
     frameDelta: number,
+    resumed = false,
   ): void {
     if (disposed) {
       return;
     }
+    resumedFrame = resumed;
     updateListener(listener, transforms, frameDelta);
 
     // 1. Score every emitter and pick the audible set (top-N within per-bus caps).
@@ -337,6 +341,14 @@ export function createVoiceManager(
     voice.clipVersion = packet.clipVersion;
     voice.offsetSec = packet.offsetSec;
     voice.timeScale = packet.timeScale;
+
+    // On resume, re-seed epochs so a backlog of triggers accumulated while
+    // suspended doesn't blast a burst of stale one-shots; playing loops keep
+    // running with the resumed context clock.
+    if (resumedFrame && !firstSight) {
+      voice.realizedEpoch = packet.playEpoch;
+      voice.realizedStopEpoch = packet.stopEpoch;
+    }
 
     if (!firstSight) {
       voice.gain.gain.setTargetAtTime(
