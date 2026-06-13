@@ -14900,8 +14900,8 @@ test("Playwright renders the lit brass sample with a shadow-receiver floor", asy
     )}`,
   ).toBeGreaterThan(6);
   expect(
-    baselineFloor.average - shadowedFloor.average,
-    `shadow receiver floor should darken when the brass cube casts a shadow; baseline=${JSON.stringify(
+    maxRegionDarkening(baselineScreenshot, shadowedScreenshot, floorRegion),
+    `the cast shadow should darken its part of the floor; baseline=${JSON.stringify(
       baselineFloor,
     )} shadowed=${JSON.stringify(shadowedFloor)}`,
   ).toBeGreaterThan(7.5);
@@ -15045,8 +15045,8 @@ test("Playwright mutates GLB viewer ECS shadow controls", async ({ page }) => {
     },
   });
   expect(
-    unshadowedFloor.average - shadowedFloor.average,
-    `disabling the ECS shadow receiver should brighten the floor; shadowed=${JSON.stringify(
+    maxRegionDarkening(noReceiverScreenshot, shadowedScreenshot, floorRegion),
+    `the ECS shadow receiver should darken its part of the floor (so disabling it brightens); shadowed=${JSON.stringify(
       shadowedFloor,
     )} unshadowed=${JSON.stringify(unshadowedFloor)}`,
   ).toBeGreaterThan(7);
@@ -28668,6 +28668,35 @@ function maxRegionLuminanceDelta(
   }
 
   return maxDelta;
+}
+
+/**
+ * Max directional darkening (`before` brighter than `after`) over a region,
+ * sampled on a fine grid. A cast shadow darkens only the cells it falls on, so
+ * the floor's AVERAGE luminance barely moves — the robust signal is the
+ * darkest single cell of darkening. Returns 0 when nothing darkened.
+ */
+function maxRegionDarkening(
+  before: Buffer,
+  after: Buffer,
+  region: ReturnType<typeof glbViewerFloorShadowRegion>,
+): number {
+  let maxDarkening = 0;
+
+  for (let y = 0; y <= 16; y += 1) {
+    for (let x = 0; x <= 16; x += 1) {
+      const xRatio = region.minX + ((region.maxX - region.minX) * x) / 16;
+      const yRatio = region.minY + ((region.maxY - region.minY) * y) / 16;
+
+      maxDarkening = Math.max(
+        maxDarkening,
+        luminance(readPngPixel(before, xRatio, yRatio)) -
+          luminance(readPngPixel(after, xRatio, yRatio)),
+      );
+    }
+  }
+
+  return maxDarkening;
 }
 
 function luminance(sample: ReturnType<typeof readPngPixel>): number {
