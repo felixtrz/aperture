@@ -7,6 +7,14 @@ name: Refresh golden baselines
 
 on:
   workflow_dispatch:
+  # TEMPORARY bootstrap trigger: workflow_dispatch only works once the file
+  # exists on the default branch. Scoped to this branch and removed after the
+  # first refresh lands.
+  push:
+    branches:
+      - claude/v1-e2e-hardening
+    paths:
+      - ".github/workflows/refresh-goldens.yml"
 
 permissions:
   contents: write
