@@ -4,6 +4,7 @@ import type {
   GltfMeshAssetConstructionDiagnostic,
   GltfMeshAssetConstructionOptions,
   GltfMeshAssetConstructionReport,
+  GltfMeshAssetNormalGenerationRequest,
   GltfMeshAssetTangentGenerationRequest,
   GltfPlannedMeshSourceAsset,
 } from "./gltf-mesh-asset-construction-types.js";
@@ -32,6 +33,7 @@ export type {
   GltfMeshAssetConstructionReport,
   GltfMeshAssetConstructionReportJsonValue,
   GltfMeshAssetConstructionVertexStreamJsonSummary,
+  GltfMeshAssetNormalGenerationRequest,
   GltfMeshAssetTangentGenerationReason,
   GltfMeshAssetTangentGenerationRequest,
   GltfPlannedMeshSourceAsset,
@@ -53,23 +55,23 @@ export function createMeshAssetsFromGltfDecodedAccessors(
       request,
     ]),
   );
+  const normalRequests = new Set(
+    (options.generateMissingNormalsFor ?? []).map((request) =>
+      gltfMeshPrimitiveRequestKey(request.meshIndex, request.primitiveIndex),
+    ),
+  );
 
   for (const primitive of options.decodedReport.primitives) {
+    const primitiveKey = gltfMeshPrimitiveRequestKey(
+      primitive.meshIndex,
+      primitive.primitiveIndex,
+    );
     const mesh = createMeshAssetFromPrimitive(
       primitive,
       diagnostics,
-      tangentRequests.get(
-        gltfMeshPrimitiveRequestKey(
-          primitive.meshIndex,
-          primitive.primitiveIndex,
-        ),
-      ),
-      options.morphTargetDataFor?.get(
-        gltfMeshPrimitiveRequestKey(
-          primitive.meshIndex,
-          primitive.primitiveIndex,
-        ),
-      ),
+      tangentRequests.get(primitiveKey),
+      options.morphTargetDataFor?.get(primitiveKey),
+      normalRequests.has(primitiveKey),
     );
     meshes.push({
       handleKey: gltfMeshAssetIdFromRegisteredHandleKey(
@@ -94,6 +96,7 @@ function createMeshAssetFromPrimitive(
   diagnostics: GltfMeshAssetConstructionDiagnostic[],
   tangentRequest: GltfMeshAssetTangentGenerationRequest | undefined,
   morphTargetData: MeshMorphTargetData | undefined,
+  generateNormals: boolean,
 ): MeshAsset | null {
   const position = primitive.attributes.find(
     (attribute) => attribute.semantic === "POSITION",
@@ -117,6 +120,7 @@ function createMeshAssetFromPrimitive(
     position,
     diagnostics,
     tangentRequest,
+    generateNormals,
   );
   if (attributes === null) {
     return null;
