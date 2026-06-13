@@ -82,6 +82,7 @@ export function readPngRegionExtremes(
     readonly yMax: number;
   },
   step = 0.02,
+  exclude?: { readonly pixel: RgbaPixel; readonly minDistance: number },
 ): PngRegionExtremes {
   const image = readPngImage(png);
   let brightest: RgbaPixel | null = null;
@@ -92,6 +93,12 @@ export function readPngRegionExtremes(
   for (let y = region.yMin; y <= region.yMax; y += step) {
     for (let x = region.xMin; x <= region.xMax; x += step) {
       const pixel = readPngImagePixel(image, x, y);
+      if (
+        exclude !== undefined &&
+        pixelDistance(pixel, exclude.pixel) < exclude.minDistance
+      ) {
+        continue;
+      }
       const luma = 0.2126 * pixel.r + 0.7152 * pixel.g + 0.0722 * pixel.b;
       if (luma > brightestLuma) {
         brightestLuma = luma;

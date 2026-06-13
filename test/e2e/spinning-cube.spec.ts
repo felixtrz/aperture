@@ -717,18 +717,21 @@ function expectRoughnessMipChainPixels(
   // their contrast clearly differs. Compare region variation instead — the
   // glossy probe's sharp reflection must spread its region's extremes wider
   // than the rough probe's blurred one.
-  const glossyRegion = readPngRegionExtremes(screenshot, {
-    xMin: 0.18,
-    xMax: 0.34,
-    yMin: 0.72,
-    yMax: 0.88,
-  });
-  const roughRegion = readPngRegionExtremes(screenshot, {
-    xMin: 0.62,
-    xMax: 0.78,
-    yMin: 0.72,
-    yMax: 0.88,
-  });
+  // Exclude background samples (both regions contain clear-color pixels, so
+  // without the exclusion both "darkest" extremes are the background and the
+  // variation difference collapses to ~0).
+  const glossyRegion = readPngRegionExtremes(
+    screenshot,
+    { xMin: 0.18, xMax: 0.34, yMin: 0.72, yMax: 0.88 },
+    0.01,
+    { pixel: clear, minDistance: 24 },
+  );
+  const roughRegion = readPngRegionExtremes(
+    screenshot,
+    { xMin: 0.62, xMax: 0.78, yMin: 0.72, yMax: 0.88 },
+    0.01,
+    { pixel: clear, minDistance: 24 },
+  );
   expect(
     glossyRegion.variation - roughRegion.variation,
     `roughness-aware specular IBL mip sampling should leave the glossy probe sharper than the rough probe; glossy=${JSON.stringify(

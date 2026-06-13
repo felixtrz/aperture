@@ -92,10 +92,12 @@ test("post effects example toggles FXAA and bloom with visible pixel changes", a
   // default (AI-25); verified identical on Metal and SwiftShader.
   expect(bloom.status.draw?.drawCalls).toBe(7);
   expect(both.status.draw?.drawCalls).toBe(8);
+  // Bloom gained an explicit brightpass stage on the FrameGraph route — the
+  // same change that put bloom frames at 7 draw calls above.
   expect(bloom.status.effects?.report[0]?.graph).toMatchObject({
-    topology: "downsample-upsample",
-    passCount: 4,
-    resourceCount: 3,
+    topology: "brightpass-downsample-upsample",
+    passCount: 5,
+    resourceCount: 4,
     downsamplePasses: 2,
     upsamplePasses: 1,
     compositePasses: 1,

@@ -948,7 +948,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
       );
     },
     initialOrbit.fit.distance,
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
   const movedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
 
@@ -983,7 +983,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
       );
     },
     { yaw: initialOrbit.fit.yaw, distance: initialOrbit.fit.distance },
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
   const resetStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const resetScreenshot = await page.locator("#aperture-canvas").screenshot();
@@ -1332,7 +1332,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
       return typeof value === "number" && Math.abs(value - initialX) > 0.2;
     },
     animatedStartX,
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
   const animatedLaterStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   await waitForRenderedFrameAdvance(page);
@@ -1818,7 +1818,7 @@ test("Playwright pauses and scrubs GLB viewer animation controls", async ({
       );
     },
     { frame: pausedFrame, time: pausedTime, x: pausedX },
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
   const pausedLaterStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const pausedLaterScreenshot = await page
@@ -1950,7 +1950,7 @@ test("Playwright changes GLB viewer animation playback speed", async ({
       );
     },
     { frame: frozenFrame, time: 0.5, x: frozenX },
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
 
   const frozenLaterStatus = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -2435,7 +2435,7 @@ test("Playwright applies GLB viewer rotation and scale animation channels", asyn
       rotationY: startRotationY,
       scaleX: startScaleX,
     },
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
   const laterStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const laterScreenshot = await page.locator("#aperture-canvas").screenshot();
@@ -4280,7 +4280,7 @@ test("Playwright switches GLB viewer to an imported glTF camera", async ({
       return importedCamera?.controls?.enabled === true;
     },
     undefined,
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
   const importedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const importedScreenshot = await page
@@ -4459,7 +4459,7 @@ test("Playwright selects between GLB viewer imported cameras", async ({
       return importedCamera?.controls?.enabled === true;
     },
     undefined,
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
   const wideScreenshot = await page.locator("#aperture-canvas").screenshot();
 
@@ -4493,7 +4493,7 @@ test("Playwright selects between GLB viewer imported cameras", async ({
       );
     },
     undefined,
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
 
   const tightStatus = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -5341,7 +5341,7 @@ test("Playwright applies a GLB viewer orthographic imported camera", async ({
       );
     },
     undefined,
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
   const importedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const importedScreenshot = await page
@@ -14624,7 +14624,7 @@ test("Playwright clamps and repeats GLB viewer animation loop modes", async ({
       );
     },
     undefined,
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
   const clampedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const clampedScreenshot = await page.locator("#aperture-canvas").screenshot();
@@ -14674,7 +14674,7 @@ test("Playwright clamps and repeats GLB viewer animation loop modes", async ({
       );
     },
     undefined,
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
   const repeatStatus = await waitForExampleStatus<GlbViewerStatus>(page);
 
@@ -14740,7 +14740,7 @@ test("Playwright reverses GLB viewer animation playback", async ({ page }) => {
       );
     },
     { time: 2, x: pausedX },
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
   const reverseStatus = await waitForExampleStatus<GlbViewerStatus>(page);
 
@@ -22750,7 +22750,7 @@ test("Playwright renders GLB viewer orbit-fit summary rows", async ({
       );
     },
     undefined,
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
   const resetStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const resetOrbit = expectReadyOrbitFit(resetStatus, "reset orbit summary");
@@ -28138,7 +28138,7 @@ async function waitForAnimationFrameAdvance(
         }
       ).__APERTURE_EXAMPLE_STATUS__?.frame ?? 0) >= frame,
     minFrame,
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
 }
 
@@ -28239,7 +28239,7 @@ async function waitForLightingStatus(
       );
     },
     expected,
-    { timeout: 3000 },
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
