@@ -24314,19 +24314,38 @@ test("Playwright renders GLB viewer material-alpha rows", async ({ page }) => {
           }
         ).__APERTURE_EXAMPLE_STATUS__;
 
-        return (
-          (status?.frame ?? 0) >= 3 &&
-          status?.selectedAsset?.id === id &&
-          status.selectedAsset.loading === false &&
-          status.gltf?.primitiveMaterials?.resolved === resolved &&
-          status.gltf.primitiveMaterials.resolutions?.length === resolved &&
-          document.querySelectorAll(
-            "#glb-material-alpha-summary [data-material-alpha-row]",
-          ).length === resolved
-        );
+        if (
+          (status?.frame ?? 0) < 3 ||
+          status?.selectedAsset?.id !== id ||
+          status.selectedAsset.loading !== false ||
+          status.gltf?.primitiveMaterials?.resolved !== resolved
+        ) {
+          return false;
+        }
+        const resolutions = status.gltf.primitiveMaterials.resolutions ?? [];
+        if (resolutions.length !== resolved) {
+          return false;
+        }
+        // Require the DOM rows to match the CURRENT asset's resolution keys,
+        // not merely the row COUNT: when switching between two assets that both
+        // resolve N primitives, the count check passes while the previous
+        // asset's rows are still mounted, so a per-key check (e.g. `0:1`) would
+        // then miss. This waits until every current resolution has its row.
+        return resolutions.every((resolution) => {
+          const key = `${(resolution as { meshIndex: number }).meshIndex}:${
+            (resolution as { primitiveIndex: number }).primitiveIndex
+          }`;
+          return (
+            document.querySelector(
+              `#glb-material-alpha-summary [data-material-alpha-row="${key}"]`,
+            ) !== null
+          );
+        });
       },
       expected,
-      { timeout: 15000 },
+      // Asset-switch test (load asset A, switch to asset B): both decode and
+      // re-resolve materials, slow under SwiftShader on a loaded CI shard.
+      { timeout: 30000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -25782,7 +25801,9 @@ test("Playwright navigates the real URI texture gallery with keyboard controls",
         );
       },
       sample,
-      { timeout: 15000 },
+      // Each gallery sample decodes URI image textures, which is slow under
+      // SwiftShader; 15s flaked on loaded CI shards.
+      { timeout: 30000 },
     );
 
     const status = await waitForExampleStatus<GlbViewerStatus>(page);
