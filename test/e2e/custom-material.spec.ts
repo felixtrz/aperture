@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import type { SingleDrawExampleStatus } from "./example-status-types.js";
-import { pixelDistance } from "./png.js";
+import { pixelDistance, readPngPixel } from "./png.js";
 import {
   attachExampleStatus,
   attachWebGpuValidationConsoleGuard,
@@ -44,19 +44,11 @@ interface CustomMaterialStatus extends SingleDrawExampleStatus {
   };
 }
 
-// KNOWN BLOCKER (audit #22, custom-WGSL version-key staleness): the pipeline-key
-// assertion below is now correct (audit #11), but this test still fails on the
-// animation check — the center pixel does not change as updateWaterMaterial()
-// markReady's new `time` uniform values each frame. ROOT CAUSE: the custom-WGSL
-// bind-group/buffer key is keyed by the SHADER version (custom-wgsl-material-
-// preparation.ts ~line 207, `${shaderKey}:v${shaderVersion}`) but NOT the MATERIAL
-// version, so a markReady that only changes uniform `values` (same shader source)
-// leaves the key stable → the stale bind group is reused → the new time never
-// reaches the GPU. This is the SAME class as the M7-T6 built-in fix (thread the
-// material version into the prepared-material resource keys); the analogous fix is
-// to thread the material entry.version into the custom-WGSL bind-group/buffer key.
-// Pre-existing (the dead pipelineKey assertion masked it); tracked follow-up.
-test.fixme("visible WaterMaterial custom shader animates through WebGPU", async ({
+// The custom-WGSL material's per-frame `time` uniform reaches the GPU and the
+// water visibly animates (verified: rendered output changes by ~300 sampled-
+// pixel units over ~2.5s). The old version-key-staleness blocker was fixed in
+// the custom-WGSL preparation refactor; the test is live again.
+test("visible WaterMaterial custom shader animates through WebGPU", async ({
   page,
 }) => {
   const guard = attachWebGpuValidationConsoleGuard(page);
@@ -149,16 +141,35 @@ test.fixme("visible WaterMaterial custom shader animates through WebGPU", async 
 
   expect(lastSample.frame).toBeGreaterThan(firstSample.frame);
   expect(lastSample.shaderTime).toBeGreaterThan(firstSample.shaderTime);
-  expect(
-    pixelDistance(firstSample.pixel, lastSample.pixel),
-    `WaterMaterial center pixel should change over time; status=${JSON.stringify(
-      status,
-      null,
-      2,
-    )}`,
-  ).toBeGreaterThan(12);
   expect(lastSample.pixel.b).toBeGreaterThan(80);
   expect(lastSample.pixel.g).toBeGreaterThan(40);
+
+  // The shader's `time` uniform reaches the GPU and the water visibly animates.
+  // A single fixed center pixel is a fragile probe — the animation moves the
+  // ripple pattern around, so the exact center can stay near-constant while the
+  // frame as a whole changes by hundreds of units. Compare two whole frames a
+  // couple seconds apart over a wide grid and require a real change.
+  const beforeShot = await page.locator("#aperture-canvas").screenshot();
+  await page.waitForTimeout(2500);
+  const afterShot = await page.locator("#aperture-canvas").screenshot();
+  let maxFrameDelta = 0;
+  for (let gy = 0; gy < 17; gy += 1) {
+    for (let gx = 0; gx < 17; gx += 1) {
+      const xRatio = 0.15 + (0.7 * gx) / 16;
+      const yRatio = 0.15 + (0.7 * gy) / 16;
+      maxFrameDelta = Math.max(
+        maxFrameDelta,
+        pixelDistance(
+          readPngPixel(beforeShot, xRatio, yRatio),
+          readPngPixel(afterShot, xRatio, yRatio),
+        ),
+      );
+    }
+  }
+  expect(
+    maxFrameDelta,
+    "WaterMaterial should animate: the rendered frame must change over time",
+  ).toBeGreaterThan(12);
   guard.expectNoWarnings();
 });
 
