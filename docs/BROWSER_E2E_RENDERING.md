@@ -108,6 +108,13 @@ the config's `--disable-frame-rate-limit --disable-gpu-vsync` args keep
 Chrome's frame production (and therefore `requestAnimationFrame`-driven
 example status) from stalling when the display/vsync source sleeps.
 
+Known residual on headless-display machines: a page load can present a black
+canvas while the app reports healthy frames — readback/status assertions stay
+trustworthy, but **screenshot-diff tests can false-fail locally** (two blank
+captures diff to zero). Treat screenshot-based verdicts from CI as
+authoritative; locally, check the failure PNG before chasing a "regression"
+that is actually a blank capture.
+
 ## Playwright Checks
 
 The e2e tests wait for each page to publish
