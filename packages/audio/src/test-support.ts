@@ -79,6 +79,9 @@ export class FakeAudioNode {
 
 export class FakeGainNode extends FakeAudioNode {
   readonly gain = new FakeAudioParam(1);
+  channelCount = 2;
+  channelCountMode: ChannelCountMode = "max";
+  channelInterpretation: ChannelInterpretation = "speakers";
 }
 
 export class FakeAnalyserNode extends FakeAudioNode {

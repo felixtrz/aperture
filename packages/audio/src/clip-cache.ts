@@ -10,6 +10,8 @@ export interface ResolvedClip {
   readonly url?: string;
   readonly streaming: boolean;
   readonly durationHint: number;
+  /** Optional caption/subtitle track key surfaced on clip start/end events. */
+  readonly captionTrackId?: string;
 }
 
 export type ClipResolver = (clipId: string) => ResolvedClip | undefined;

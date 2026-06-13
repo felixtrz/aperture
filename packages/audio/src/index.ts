@@ -60,6 +60,13 @@ export interface AudioEngineOptions {
   readonly pausedBuses?: readonly AudioBusId[];
 }
 
+/** Emitted when a voice's source starts or ends; drives caption/a11y UIs. */
+export interface AudioClipEvent {
+  readonly type: "start" | "end";
+  readonly clipId: string;
+  readonly captionTrackId?: string;
+}
+
 /** Queryable engine state for HUDs / the diagnostics-summary convention. */
 export interface AudioDiagnostics {
   readonly state: AudioContextState;
@@ -126,6 +133,10 @@ export interface AudioEngine {
   setPaused(paused: boolean): void;
   /** Latency compensation: shift scheduled `start()` times by `seconds`. */
   setAudioOffset(seconds: number): void;
+  /** Collapse the master output to mono (accessibility), or restore stereo. */
+  setMonoDownmix(mono: boolean): void;
+  /** Subscribe to clip start/end events (captions/accessibility). */
+  onClipEvent(listener: (event: AudioClipEvent) => void): () => void;
   /** Snapshot of engine state for HUDs / diagnostics. */
   diagnostics(): AudioDiagnostics;
   dispose(): void;
@@ -134,13 +145,31 @@ export interface AudioEngine {
 export function createAudioEngine(
   options: AudioEngineOptions = {},
 ): AudioEngine {
+  const resolveClip = options.resolveClip ?? (() => undefined);
+  const clipListeners = new Set<(event: AudioClipEvent) => void>();
   const backend = options.backend ?? createWebAudioBackend(options.web ?? {});
   const mixer = createAudioMixer(backend, options.mixer ?? {});
-  const clips = createClipCache(
-    backend,
-    options.resolveClip ?? (() => undefined),
-  );
-  const voices = createVoiceManager(backend, mixer, clips, options.voice ?? {});
+  const clips = createClipCache(backend, resolveClip);
+  const voices = createVoiceManager(backend, mixer, clips, {
+    ...(options.voice ?? {}),
+    onSourceStart: (clipId) => emitClip("start", clipId),
+    onSourceEnd: (clipId) => emitClip("end", clipId),
+  });
+
+  function emitClip(type: "start" | "end", clipId: string): void {
+    if (clipListeners.size === 0) {
+      return;
+    }
+    const captionTrackId = resolveClip(clipId)?.captionTrackId;
+    const event: AudioClipEvent = {
+      type,
+      clipId,
+      ...(captionTrackId === undefined ? {} : { captionTrackId }),
+    };
+    for (const listener of clipListeners) {
+      listener(event);
+    }
+  }
   const duck: DuckConfig | null =
     options.duck === false
       ? null
@@ -216,6 +245,13 @@ export function createAudioEngine(
     },
     setAudioOffset(seconds) {
       voices.setAudioOffset(seconds);
+    },
+    setMonoDownmix(mono) {
+      mixer.setMonoDownmix(mono);
+    },
+    onClipEvent(listener) {
+      clipListeners.add(listener);
+      return () => clipListeners.delete(listener);
     },
     diagnostics() {
       return {

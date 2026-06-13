@@ -25,6 +25,8 @@ export interface AudioClipAssetInput {
    */
   readonly durationHint?: number;
   readonly channels?: number;
+  /** Optional caption/subtitle track key surfaced on clip start/end events. */
+  readonly captionTrackId?: string;
 }
 
 export interface AudioClipAsset {
@@ -35,6 +37,7 @@ export interface AudioClipAsset {
   readonly streaming: boolean;
   readonly durationHint: number;
   readonly channels: number;
+  readonly captionTrackId?: string;
 }
 
 export type AudioClipDiagnosticCode =
@@ -64,6 +67,9 @@ export function createAudioClipAsset(
     channels: Math.trunc(input.channels ?? 2),
     ...(input.url === undefined ? {} : { url: input.url }),
     ...(input.bytes === undefined ? {} : { bytes: input.bytes }),
+    ...(input.captionTrackId === undefined
+      ? {}
+      : { captionTrackId: input.captionTrackId }),
   };
 
   return Object.freeze(asset);

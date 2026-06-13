@@ -42,6 +42,10 @@ export interface VoiceManagerOptions {
   readonly busCaps?: Partial<Record<AudioBusId, number>>;
   /** Auto-Doppler pitch shift from radial velocity (default off). */
   readonly doppler?: boolean;
+  /** Fired when a source starts playing (for caption / accessibility hooks). */
+  readonly onSourceStart?: (clipId: string) => void;
+  /** Fired when a source ends (natural end, stop, or steal). */
+  readonly onSourceEnd?: (clipId: string) => void;
 }
 
 export interface VoiceManager {
@@ -524,15 +528,18 @@ export function createVoiceManager(
     source.loop = loop;
     source.playbackRate.value = voice.timeScale;
     source.connect(voice.occluder);
+    const clipId = voice.clipId;
     source.onended = () => {
       voice.sources.delete(source);
       if (voice.looping === source) {
         voice.looping = null;
       }
+      options.onSourceEnd?.(clipId);
       if (voice.fadingOut && voice.sources.size === 0) {
         recycle(voice);
       }
     };
+    options.onSourceStart?.(voice.clipId);
     return source;
   }
 

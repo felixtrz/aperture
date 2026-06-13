@@ -35,6 +35,8 @@ export interface AudioMixer {
   busInput(bus: AudioBusId): AudioNode;
   /** Set master gain with a click-free ramp (instant when `rampSec <= 0`). */
   setMasterGain(value: number, rampSec?: number): void;
+  /** Collapse the master output to mono (accessibility) or restore stereo. */
+  setMonoDownmix(mono: boolean): void;
   /** Set a bus gain with a click-free ramp (instant when `rampSec <= 0`). */
   setBusGain(bus: AudioBusId, value: number, rampSec?: number): void;
   getMasterGain(): number;
@@ -173,6 +175,10 @@ export function createAudioMixer(
         busEffective(bus),
         rampSec,
       );
+    },
+    setMonoDownmix(mono) {
+      masterGainNode.channelCount = mono ? 1 : 2;
+      masterGainNode.channelCountMode = mono ? "explicit" : "max";
     },
     getMasterGain() {
       return masterTarget;
