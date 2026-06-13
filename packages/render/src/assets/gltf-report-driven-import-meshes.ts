@@ -10,6 +10,7 @@ import {
 import {
   createMeshAssetsFromGltfDecodedAccessors,
   type GltfMeshAssetConstructionReport,
+  type GltfMeshAssetNormalGenerationRequest,
   type GltfMeshAssetTangentGenerationRequest,
 } from "./gltf-mesh-asset-construction.js";
 import { importGltfMorphTargets } from "./gltf-morph-target-import.js";
@@ -106,6 +107,10 @@ export function createGltfReportDrivenMeshReports(
       meshRoot,
       meshPrimitive,
     ),
+    generateMissingNormalsFor: createMissingNormalGenerationRequests(
+      meshRoot,
+      meshPrimitive,
+    ),
     ...(morphTargetDataFor.size === 0 ? {} : { morphTargetDataFor }),
   });
 
@@ -163,6 +168,51 @@ function gltfMaterialNeedsTangents(
   const material = materials[materialIndex];
 
   return isRecord(material) && isRecord(material.normalTexture);
+}
+
+function createMissingNormalGenerationRequests(
+  root: unknown,
+  meshPrimitive: GltfMeshPrimitiveMappingReport,
+): readonly GltfMeshAssetNormalGenerationRequest[] {
+  if (!isRecord(root) || !Array.isArray(root.materials)) {
+    return [];
+  }
+
+  const requests: GltfMeshAssetNormalGenerationRequest[] = [];
+
+  for (const mesh of meshPrimitive.meshes) {
+    // Only lit (non-unlit) materials shade against normals; unlit primitives
+    // are left untouched so their vertex layout is unchanged. If NORMAL is
+    // already present the construction step skips generation.
+    if (
+      mesh.materialIndex === null ||
+      !gltfMaterialIsLit(root.materials, mesh.materialIndex)
+    ) {
+      continue;
+    }
+
+    requests.push({
+      meshIndex: mesh.meshIndex,
+      primitiveIndex: mesh.primitiveIndex,
+    });
+  }
+
+  return requests;
+}
+
+function gltfMaterialIsLit(
+  materials: readonly unknown[],
+  materialIndex: number,
+): boolean {
+  const material = materials[materialIndex];
+  if (!isRecord(material)) {
+    return false;
+  }
+
+  const extensions = material.extensions;
+  const unlit =
+    isRecord(extensions) && extensions.KHR_materials_unlit !== undefined;
+  return !unlit;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

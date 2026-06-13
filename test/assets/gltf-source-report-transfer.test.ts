@@ -7,7 +7,7 @@ import {
 } from "@aperture-engine/render";
 
 describe("glTF source asset report transfer packaging", () => {
-  it("moves upload bytes to main while keeping extraction metadata usable", () => {
+  it("moves owned upload-byte copies to main while keeping extraction metadata usable and caller buffers intact", () => {
     const textureBytes = new Uint8Array([255, 0, 0, 255]);
     const vertexData = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]);
     const indexData = new Uint16Array([0, 1, 2]);
@@ -22,13 +22,13 @@ describe("glTF source asset report transfer packaging", () => {
     const extractionTexture =
       transferPackage.extractionThread.assetMapping.textures[0]?.texture;
 
-    expect(transferPackage.transferList).toEqual(
-      expect.arrayContaining([
-        textureBytes.buffer,
-        vertexData.buffer,
-        indexData.buffer,
-      ]),
-    );
+    // The transfer list must hold package-owned copies, never the caller's
+    // buffers: source views routinely alias loader-cache memory, and
+    // transferring a cache-owned buffer detaches it for every later cache
+    // hit (the gallery-navigation "ArrayBuffer is detached" regression).
+    expect(transferPackage.transferList).not.toContain(textureBytes.buffer);
+    expect(transferPackage.transferList).not.toContain(vertexData.buffer);
+    expect(transferPackage.transferList).not.toContain(indexData.buffer);
     expect(transferPackage.transferredByteLength).toBe(
       textureBytes.buffer.byteLength +
         vertexData.buffer.byteLength +
@@ -49,9 +49,11 @@ describe("glTF source asset report transfer packaging", () => {
       transfer: [...transferPackage.transferList],
     });
 
-    expect(vertexData.byteLength).toBe(0);
-    expect(indexData.byteLength).toBe(0);
-    expect(textureBytes.byteLength).toBe(0);
+    // Caller-owned views survive the transfer untouched.
+    expect(vertexData.byteLength).toBe(36);
+    expect(indexData.byteLength).toBe(6);
+    expect(textureBytes.byteLength).toBe(4);
+    expect([...textureBytes]).toEqual([255, 0, 0, 255]);
     expect(
       clonedMainThread.meshConstruction.meshes[0]?.mesh?.vertexStreams[0]?.data
         .byteLength,

@@ -31,6 +31,26 @@ For browser rendering, the default shape is worker-by-default:
 
 ## Quick Start
 
+Scaffold an app with the CLI — it generates the Vite config, the worker/main
+split, and starter ECS systems for you:
+
+```sh
+pnpm dlx @aperture-engine/cli create my-app
+cd my-app
+pnpm install
+pnpm run dev
+```
+
+See [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) for the five-minute
+walkthrough (edit systems, load a GLB, react to input) and
+[`docs/AUTHORING.md`](docs/AUTHORING.md) for the full authoring model.
+
+## Low-Level Runtime Example
+
+The app facade above is the default surface. The focused runtime packages
+remain usable directly for custom orchestration — the example below wires the
+worker/renderer split by hand.
+
 Create a renderer main module:
 
 ```js

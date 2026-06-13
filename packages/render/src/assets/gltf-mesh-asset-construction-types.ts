@@ -91,9 +91,21 @@ export interface GltfMeshAssetTangentGenerationRequest {
   readonly reason: GltfMeshAssetTangentGenerationReason;
 }
 
+export interface GltfMeshAssetNormalGenerationRequest {
+  readonly meshIndex: number;
+  readonly primitiveIndex: number;
+}
+
 export interface GltfMeshAssetConstructionOptions {
   readonly decodedReport: GltfAccessorDecodingReport;
   readonly generateMissingTangentsFor?: readonly GltfMeshAssetTangentGenerationRequest[];
+  /**
+   * Primitives (keyed by `${meshIndex}:${primitiveIndex}`) whose lit material
+   * needs synthesized NORMAL data when the source mesh omits it. glTF requires
+   * clients to compute normals for shaded meshes that lack them; unlit
+   * primitives are excluded so their vertex layout is unchanged.
+   */
+  readonly generateMissingNormalsFor?: readonly GltfMeshAssetNormalGenerationRequest[];
   /**
    * All-N morph-target deltas keyed by `${meshIndex}:${primitiveIndex}`, decoded
    * upstream by `importGltfMorphTargets`. Attached to the constructed mesh asset

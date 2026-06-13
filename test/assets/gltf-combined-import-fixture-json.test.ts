@@ -59,7 +59,11 @@ describe("combined glTF import fixture JSON", () => {
               mesh: {
                 vertexStreams: [
                   {
-                    data: { type: "Uint8Array", length: 36 },
+                    // The fixture's lit (pbrMetallicRoughness) material has a
+                    // POSITION-only primitive, so import synthesizes NORMAL
+                    // data (glTF flat/smooth-normal fallback): the interleaved
+                    // stream grows from 3 floats/vertex to 6, hence 18 floats.
+                    data: { type: "Float32Array", length: 18 },
                   },
                 ],
               },

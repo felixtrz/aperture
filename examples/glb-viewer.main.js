@@ -870,10 +870,16 @@ function startGlbViewerMain(aperture, app, sourceAssets, textureCompression) {
     app,
     sourceAssets,
     textureCompression,
-    worker: new Worker("/worker-modules/examples/glb-viewer.worker.js", {
-      name: "aperture-glb-viewer-simulation",
-      type: "module",
-    }),
+    // Forward the page query string: the worker derives example flags (e.g.
+    // disable-ibl-sampling, disable-shadow-receiver) from its own
+    // location.search, which is the worker URL — not the page URL.
+    worker: new Worker(
+      `/worker-modules/examples/glb-viewer.worker.js${globalThis.location.search}`,
+      {
+        name: "aperture-glb-viewer-simulation",
+        type: "module",
+      },
+    ),
     frame: 0,
     receivedSnapshots: 0,
     workerReady: false,
@@ -924,6 +930,10 @@ function startGlbViewerMain(aperture, app, sourceAssets, textureCompression) {
 
   if (assetSelect instanceof HTMLSelectElement) {
     assetSelect.value = initialSampleSelection.asset.id;
+  }
+
+  if (customUrlInput instanceof HTMLInputElement && initialCustomUrl !== null) {
+    customUrlInput.value = initialCustomUrl.href;
   }
 
   const initialLoad = beginMainAssetLoad(aperture, state, initialAsset, {

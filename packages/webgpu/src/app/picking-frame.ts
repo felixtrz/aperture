@@ -339,10 +339,33 @@ export async function pickWebGpuAppEntity(
       },
     });
 
-    await waitForSubmittedWork(context.app.initialization.device);
-    const validationMessage = await popWebGpuPickErrorScope(
-      context.app.initialization.device,
-    );
+    let validationMessage: string | null = null;
+    try {
+      await waitForSubmittedWork(context.app.initialization.device);
+      validationMessage = await popWebGpuPickErrorScope(
+        context.app.initialization.device,
+      );
+    } catch (error) {
+      // Device-level failure (device lost / GPU process gone): picks must
+      // report a structured diagnostic instead of throwing — an unhandled
+      // OperationError here fails the whole devtools tool call (seen as
+      // "A valid external Instance reference no longer exists" in CI).
+      return createWebGpuAppPickReport({
+        x: pixel.x,
+        y: pixel.y,
+        dimensions,
+        id: null,
+        entity: null,
+        diagnostics: [
+          {
+            code: "webGpuApp.pickDeviceUnavailable",
+            message: `Entity pick could not drain the GPU queue: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          },
+        ],
+      });
+    }
 
     if (!boundary.valid || validationMessage !== null) {
       return createWebGpuAppPickReport({

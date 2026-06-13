@@ -222,13 +222,13 @@ function emptyVertexDataFor(
 function compactTransferableView<
   T extends Uint8Array | Uint16Array | Uint32Array | Float32Array,
 >(view: T): T {
-  if (
-    view.buffer instanceof ArrayBuffer &&
-    view.byteOffset === 0 &&
-    view.byteLength === view.buffer.byteLength
-  ) {
-    return view;
-  }
-
+  // Always copy: the transfer package cannot prove it owns the underlying
+  // buffer. Source views regularly alias loader-cache memory (e.g. the
+  // per-URI byte cache in loadGlbFromUri/loadGltfFromUri), and transferring
+  // a cache-owned buffer detaches it for every later cache hit — the next
+  // load of an asset sharing that URI then dies with "An ArrayBuffer is
+  // detached and could not be cloned" when its report is posted. A fresh
+  // slice keeps the transfer zero-copy across the thread boundary while
+  // leaving the loader cache intact.
   return view.slice() as T;
 }

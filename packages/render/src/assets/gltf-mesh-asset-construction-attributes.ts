@@ -8,6 +8,7 @@ import type {
 } from "./gltf-mesh-asset-construction-types.js";
 import { createGltfMeshAssetDiagnostic } from "./gltf-mesh-asset-construction-diagnostics.js";
 import { generateMissingTangents } from "./gltf-mesh-tangents.js";
+import { generateMissingNormals } from "./gltf-mesh-normals.js";
 import {
   decodedAttributeByteSize,
   isSupportedMeshAttributeArray,
@@ -19,12 +20,21 @@ export function collectGltfMeshAttributeSources(
   position: GltfDecodedAccessor,
   diagnostics: GltfMeshAssetConstructionDiagnostic[],
   tangentRequest: GltfMeshAssetTangentGenerationRequest | undefined,
+  generateNormals: boolean = false,
 ): readonly GltfMeshAttributeSource[] | null {
   const sources: GltfMeshAttributeSource[] = [{ decoded: position, offset: 0 }];
   let offset = decodedAttributeByteSize(position);
   const decodedBySemantic = new Map(
     primitive.attributes.map((attribute) => [attribute.semantic, attribute]),
   );
+
+  // Synthesize normals BEFORE tangents — tangent generation consumes NORMAL.
+  if (generateNormals && !decodedBySemantic.has("NORMAL")) {
+    const generated = generateMissingNormals(primitive, position);
+    if (generated !== null) {
+      decodedBySemantic.set("NORMAL", generated);
+    }
+  }
 
   if (tangentRequest !== undefined && !decodedBySemantic.has("TANGENT")) {
     const generated = generateMissingTangents(

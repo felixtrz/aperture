@@ -7,6 +7,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   apertureRuntimeDir,
+  apertureSessionFile,
   callApertureTool,
   createApertureDevSession,
   isProcessAlive,
@@ -102,6 +103,20 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     expect(logs.stdout).toContain("server two");
     expect(logs.stdout).toContain("browser two");
     expect(down.exitCode).toBe(0);
+    expect(await readApertureDevSession(root)).toBeNull();
+  });
+
+  it("treats an empty or corrupt session.json as no session instead of crashing", async () => {
+    const root = await tempRoot();
+    const sessionFile = apertureSessionFile(root);
+    await mkdir(path.dirname(sessionFile), { recursive: true });
+
+    // JSON.parse("") throws "Unexpected end of JSON input"; this previously
+    // escaped readApertureDevSession and failed whole `dev` commands.
+    await writeFile(sessionFile, "", "utf8");
+    expect(await readApertureDevSession(root)).toBeNull();
+
+    await writeFile(sessionFile, '{"appRoot": "/tru', "utf8");
     expect(await readApertureDevSession(root)).toBeNull();
   });
 

@@ -59,6 +59,68 @@ export function readPngPixel(
   return readPngImagePixel(readPngImage(png), xRatio, yRatio);
 }
 
+export interface PngRegionExtremes {
+  readonly brightest: RgbaPixel;
+  readonly darkest: RgbaPixel;
+  /** pixelDistance(brightest, darkest) — the region's lighting variation. */
+  readonly variation: number;
+}
+
+/**
+ * Scan a normalized-coordinate region on a step grid and return the
+ * brightest/darkest samples by luminance. Region-extreme comparisons are
+ * robust where fixed-point probes are not: lighting changes (e.g. brighter
+ * prefiltered environment speculars) move WHERE a pattern's contrast lives
+ * without removing it.
+ */
+export function readPngRegionExtremes(
+  png: Buffer,
+  region: {
+    readonly xMin: number;
+    readonly xMax: number;
+    readonly yMin: number;
+    readonly yMax: number;
+  },
+  step = 0.02,
+  exclude?: { readonly pixel: RgbaPixel; readonly minDistance: number },
+): PngRegionExtremes {
+  const image = readPngImage(png);
+  let brightest: RgbaPixel | null = null;
+  let darkest: RgbaPixel | null = null;
+  let brightestLuma = -1;
+  let darkestLuma = Number.POSITIVE_INFINITY;
+
+  for (let y = region.yMin; y <= region.yMax; y += step) {
+    for (let x = region.xMin; x <= region.xMax; x += step) {
+      const pixel = readPngImagePixel(image, x, y);
+      if (
+        exclude !== undefined &&
+        pixelDistance(pixel, exclude.pixel) < exclude.minDistance
+      ) {
+        continue;
+      }
+      const luma = 0.2126 * pixel.r + 0.7152 * pixel.g + 0.0722 * pixel.b;
+      if (luma > brightestLuma) {
+        brightestLuma = luma;
+        brightest = pixel;
+      }
+      if (luma < darkestLuma) {
+        darkestLuma = luma;
+        darkest = pixel;
+      }
+    }
+  }
+
+  const brightestPixel = brightest ?? { r: 0, g: 0, b: 0, a: 255 };
+  const darkestPixel = darkest ?? { r: 0, g: 0, b: 0, a: 255 };
+
+  return {
+    brightest: brightestPixel,
+    darkest: darkestPixel,
+    variation: pixelDistance(brightestPixel, darkestPixel),
+  };
+}
+
 export function readPngImagePixel(
   image: PngImage,
   xRatio: number,
