@@ -11,18 +11,34 @@ import { AUDIO_BUS_IDS, type AudioBusId, type AudioMixer } from "./mixer.js";
 const FADE_SEC = 0.015;
 /** Default cap on one-shot voices fired from a single frame's epoch delta. */
 const DEFAULT_MAX_BURST = 8;
+/** Default global ceiling on simultaneously-sounding real voices. */
+const DEFAULT_MAX_VOICES = 32;
+/** Score floor that 2D / non-spatial voices sit above any spatial voice. */
+const LOCAL_BASE = 1e6;
+
+/** Per-bus simultaneous-voice caps so one category can't starve another. */
+const DEFAULT_BUS_CAPS: Readonly<Record<AudioBusId, number>> = {
+  music: 2,
+  sfx: 12,
+  ui: Number.POSITIVE_INFINITY,
+  ambient: 6,
+  voice: 2,
+};
 
 export interface VoiceManagerOptions {
   /** Max one-shots fired per emitter per frame (burst overflow is dropped). */
   readonly maxBurstPerFrame?: number;
+  /** Global ceiling on simultaneously-sounding real voices. */
+  readonly maxVoices?: number;
+  /** Override per-bus simultaneous-voice caps. */
+  readonly busCaps?: Partial<Record<AudioBusId, number>>;
 }
 
 export interface VoiceManager {
   /**
    * Reconcile the live voice graph against this frame's audio intent.
-   * `transforms` is the snapshot's packed world matrices (emitter + listener
-   * poses ride it); `frameDelta` is the clamped main-thread frame interval used
-   * for click-free AudioParam ramps.
+   * `transforms` carries the packed world matrices (emitter + listener poses);
+   * `frameDelta` is the clamped main-thread frame interval used for ramps.
    */
   apply(
     emitters: readonly AudioEmitterPacket[],
@@ -30,17 +46,19 @@ export interface VoiceManager {
     listener: AudioListenerPacket | undefined,
     frameDelta: number,
   ): void;
-  /** Logical voices currently tracked (one per live emitter key). */
+  /** Real (sounding) voices — bounded by maxVoices and the per-bus caps. */
   readonly activeVoiceCount: number;
-  /** Live `AudioBufferSourceNode`s across all voices. */
+  /** Live `AudioBufferSourceNode`s across all real voices. */
   readonly activeSourceCount: number;
-  /** Live `PannerNode`s (spatial voices) — diagnostics / budget. */
+  /** Live `PannerNode`s (spatial real voices) — diagnostics / budget. */
   readonly activePannerCount: number;
+  /** Demoted node-less voices retaining a playhead for mid-loop resume. */
+  readonly virtualVoiceCount: number;
   dispose(): void;
 }
 
 interface Voice {
-  readonly key: string;
+  key: string;
   busId: AudioBusId;
   readonly gain: GainNode;
   /** Spatial voices route source -> panner -> gain; 2D voices skip the panner. */
@@ -53,10 +71,32 @@ interface Voice {
   clipId: string;
   clipVersion: number;
   offsetSec: number;
+  loopStartedAt: number;
+  loopLenSec: number;
   pendingLoop: boolean;
   pendingOneShots: number;
   seen: boolean;
   fadingOut: boolean;
+}
+
+interface VirtualVoice {
+  key: string;
+  busId: AudioBusId;
+  realizedEpoch: number;
+  realizedStopEpoch: number;
+  loop: boolean;
+  clipId: string;
+  clipVersion: number;
+  offsetSec: number;
+  loopStartedAt: number;
+  loopLenSec: number;
+  seen: boolean;
+}
+
+interface Candidate {
+  key: string;
+  packet: AudioEmitterPacket;
+  score: number;
 }
 
 export function createVoiceManager(
@@ -65,11 +105,30 @@ export function createVoiceManager(
   clips: ClipCache,
   options: VoiceManagerOptions = {},
 ): VoiceManager {
-  const voices = new Map<string, Voice>();
+  const real = new Map<string, Voice>();
+  const virtual = new Map<string, VirtualVoice>();
+  const spatialPool: Voice[] = [];
+  const flatPool: Voice[] = [];
+  const candidates: Candidate[] = [];
+  const busCounts = new Map<AudioBusId, number>();
+
   const maxBurst = Math.max(1, options.maxBurstPerFrame ?? DEFAULT_MAX_BURST);
+  const maxVoices = Math.max(1, options.maxVoices ?? DEFAULT_MAX_VOICES);
+  const busCaps: Record<AudioBusId, number> = { ...DEFAULT_BUS_CAPS };
+  for (const bus of AUDIO_BUS_IDS) {
+    const override = options.busCaps?.[bus];
+    if (override !== undefined) {
+      busCaps[bus] = override;
+    }
+  }
+
   const unsubscribe = clips.onDecoded(() => flushPending());
   let disposed = false;
   let lastListenerMasterGain = Number.NaN;
+  let listenerX = 0;
+  let listenerY = 0;
+  let listenerZ = 0;
+  let hasListener = false;
 
   function apply(
     emitters: readonly AudioEmitterPacket[],
@@ -82,19 +141,79 @@ export function createVoiceManager(
     }
     updateListener(listener, transforms, frameDelta);
 
-    for (const voice of voices.values()) {
+    // 1. Score every emitter and pick the audible set (top-N within per-bus caps).
+    candidates.length = 0;
+    for (const packet of emitters) {
+      candidates.push({
+        key: voiceKeyString(packet.key),
+        packet,
+        score: score(packet, transforms),
+      });
+    }
+    candidates.sort(byScoreDesc);
+
+    busCounts.clear();
+    let realCount = 0;
+    for (const voice of real.values()) {
       voice.seen = false;
     }
-    for (const packet of emitters) {
-      reconcile(packet, transforms, frameDelta);
+    for (const v of virtual.values()) {
+      v.seen = false;
     }
-    // Seen-sweep: a vanished emitter (despawn / active:false / hard cull) is
-    // faded out and freed; a reused key reappears as a fresh voice.
-    for (const voice of [...voices.values()]) {
+
+    for (const candidate of candidates) {
+      const bus = toBus(candidate.packet.busId);
+      const used = busCounts.get(bus) ?? 0;
+      const audible =
+        candidate.score > Number.NEGATIVE_INFINITY &&
+        realCount < maxVoices &&
+        used < busCaps[bus];
+      if (audible) {
+        busCounts.set(bus, used + 1);
+        realCount += 1;
+        reconcileReal(candidate.packet, bus, transforms, frameDelta);
+      } else {
+        reconcileVirtual(candidate.packet, bus);
+      }
+    }
+
+    // 2. Sweep: emitters that vanished are faded/freed; gone virtuals dropped.
+    for (const voice of [...real.values()]) {
       if (!voice.seen) {
         free(voice);
       }
     }
+    for (const v of [...virtual.values()]) {
+      if (!v.seen) {
+        virtual.delete(v.key);
+      }
+    }
+  }
+
+  function score(packet: AudioEmitterPacket, transforms: Float32Array): number {
+    if (packet.simulationSpace === "local") {
+      return LOCAL_BASE + packet.priority + packet.gain;
+    }
+    if (!hasListener) {
+      return LOCAL_BASE / 2 + packet.priority + packet.gain;
+    }
+    const o = packet.worldTransformOffset;
+    const dx = m(transforms, o, 12) - listenerX;
+    const dy = m(transforms, o, 13) - listenerY;
+    const dz = m(transforms, o, 14) - listenerZ;
+    const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    if (dist > packet.maxDistance) {
+      // Inaudible: never consumes a real voice (kept virtual for mid-loop resume).
+      return Number.NEGATIVE_INFINITY;
+    }
+    const att = rolloff(
+      packet.distanceModel,
+      dist,
+      packet.refDistance,
+      packet.maxDistance,
+      packet.rolloffFactor,
+    );
+    return packet.gain * att + packet.priority;
   }
 
   function updateListener(
@@ -103,19 +222,24 @@ export function createVoiceManager(
     frameDelta: number,
   ): void {
     if (listener === undefined) {
+      hasListener = false;
       return;
     }
     const o = listener.worldTransformOffset;
+    listenerX = m(transforms, o, 12);
+    listenerY = m(transforms, o, 13);
+    listenerZ = m(transforms, o, 14);
+    hasListener = true;
     const at = backend.currentTime + frameDelta;
     const l = backend.listener;
-    // WORLD-matrix basis (not the inverted view): pos=col3, fwd=-col2, up=+col1.
+    // WORLD basis (not inverted view): pos=col3, fwd=-col2, up=+col1.
     ramp3(
       l.positionX,
       l.positionY,
       l.positionZ,
-      m(transforms, o, 12),
-      m(transforms, o, 13),
-      m(transforms, o, 14),
+      listenerX,
+      listenerY,
+      listenerZ,
       at,
     );
     ramp3(
@@ -142,45 +266,45 @@ export function createVoiceManager(
     }
   }
 
-  function reconcile(
+  function reconcileReal(
     packet: AudioEmitterPacket,
+    bus: AudioBusId,
     transforms: Float32Array,
     frameDelta: number,
   ): void {
     const key = voiceKeyString(packet.key);
     const clipId = clipKeyOf(packet);
-    const bus = toBus(packet.busId);
-    let voice = voices.get(key);
+    let voice = real.get(key);
+    const promotion = virtual.get(key);
     const firstSight = voice === undefined;
 
     if (voice === undefined) {
-      const gain = backend.createGain();
-      gain.connect(mixer.busInput(bus));
-      let panner: PannerNode | null = null;
-      if (packet.simulationSpace === "world") {
-        panner = backend.createPanner();
-        panner.connect(gain);
+      voice = acquireVoice(packet.simulationSpace === "world", bus);
+      voice.key = key;
+      voice.busId = bus;
+      voice.clipId = clipId;
+      voice.clipVersion = packet.clipVersion;
+      voice.offsetSec = packet.offsetSec;
+      voice.loop = packet.loop;
+      if (promotion !== undefined) {
+        // Promote a demoted voice: resume epochs + mid-loop playhead.
+        voice.realizedEpoch = promotion.realizedEpoch;
+        voice.realizedStopEpoch = promotion.realizedStopEpoch;
+        voice.loopStartedAt = promotion.loopStartedAt;
+        voice.loopLenSec = promotion.loopLenSec;
+        virtual.delete(key);
+      } else {
+        voice.realizedEpoch = packet.playEpoch;
+        voice.realizedStopEpoch = packet.stopEpoch;
+        voice.loopStartedAt = 0;
+        voice.loopLenSec = 0;
       }
-      voice = {
-        key,
-        busId: bus,
-        gain,
-        panner,
-        sources: new Set(),
-        looping: null,
-        realizedEpoch: packet.playEpoch,
-        realizedStopEpoch: packet.stopEpoch,
-        loop: packet.loop,
-        clipId,
-        clipVersion: packet.clipVersion,
-        offsetSec: packet.offsetSec,
-        pendingLoop: false,
-        pendingOneShots: 0,
-        seen: true,
-        fadingOut: false,
-      };
-      voices.set(key, voice);
-      gain.gain.value = packet.muted ? 0 : packet.gain;
+      real.set(key, voice);
+      voice.gain.gain.cancelScheduledValues(backend.currentTime);
+      voice.gain.gain.setValueAtTime(
+        packet.muted ? 0 : packet.gain,
+        backend.currentTime,
+      );
     }
 
     voice.seen = true;
@@ -189,10 +313,9 @@ export function createVoiceManager(
     voice.clipVersion = packet.clipVersion;
     voice.offsetSec = packet.offsetSec;
 
-    const targetGain = packet.muted ? 0 : packet.gain;
     if (!firstSight) {
       voice.gain.gain.setTargetAtTime(
-        targetGain,
+        packet.muted ? 0 : packet.gain,
         backend.currentTime,
         FADE_SEC,
       );
@@ -207,20 +330,22 @@ export function createVoiceManager(
     voice.realizedEpoch = packet.playEpoch;
 
     if (voice.loop) {
-      const wantLoop = (firstSight && packet.autoplay) || playDelta > 0;
-      if (wantLoop && voice.looping === null && !voice.pendingLoop) {
-        startSource(voice, true);
+      const wantLoop =
+        ((firstSight && (packet.autoplay || promotion !== undefined)) ||
+          playDelta > 0) &&
+        voice.looping === null &&
+        !voice.pendingLoop;
+      if (wantLoop) {
+        startLoop(voice, firstSight && promotion !== undefined);
       }
     } else {
       let toFire = playDelta > 0 ? playDelta : 0;
-      if (firstSight && packet.autoplay) {
+      if (firstSight && packet.autoplay && promotion === undefined) {
         toFire = Math.max(toFire, 1);
       }
-      if (toFire > 0) {
-        const fired = Math.min(toFire, maxBurst);
-        for (let index = 0; index < fired; index += 1) {
-          startSource(voice, false);
-        }
+      const fired = Math.min(toFire, maxBurst);
+      for (let index = 0; index < fired; index += 1) {
+        startOneShot(voice);
       }
     }
 
@@ -229,55 +354,134 @@ export function createVoiceManager(
     }
   }
 
-  /** Per-frame spatial update — zero allocation. */
-  function updatePanner(
-    panner: PannerNode,
-    packet: AudioEmitterPacket,
-    transforms: Float32Array,
-    frameDelta: number,
-  ): void {
-    const o = packet.worldTransformOffset;
-    const at = backend.currentTime + frameDelta;
-    ramp3(
-      panner.positionX,
-      panner.positionY,
-      panner.positionZ,
-      m(transforms, o, 12),
-      m(transforms, o, 13),
-      m(transforms, o, 14),
-      at,
-    );
-    // Source faces its world forward = -col2 (same basis convention as the listener).
-    ramp3(
-      panner.orientationX,
-      panner.orientationY,
-      panner.orientationZ,
-      -m(transforms, o, 8),
-      -m(transforms, o, 9),
-      -m(transforms, o, 10),
-      at,
-    );
-    panner.panningModel = packet.panningModel;
-    panner.distanceModel = packet.distanceModel;
-    panner.refDistance = packet.refDistance;
-    panner.maxDistance = packet.maxDistance;
-    panner.rolloffFactor = packet.rolloffFactor;
-    panner.coneInnerAngle = packet.coneInnerAngle;
-    panner.coneOuterAngle = packet.coneOuterAngle;
-    panner.coneOuterGain = packet.coneOuterGain;
-  }
+  function reconcileVirtual(packet: AudioEmitterPacket, bus: AudioBusId): void {
+    const key = voiceKeyString(packet.key);
+    const demoted = real.get(key);
+    let v = virtual.get(key);
 
-  function startSource(voice: Voice, loop: boolean): void {
-    const buffer = clips.acquire(voice.clipId, voice.clipVersion);
-    if (buffer === undefined) {
-      if (loop) {
-        voice.pendingLoop = true;
-      } else {
-        voice.pendingOneShots = Math.min(voice.pendingOneShots + 1, maxBurst);
-      }
+    if (demoted !== undefined) {
+      // Demote a real voice to node-less, retaining loop playhead.
+      v = {
+        key,
+        busId: bus,
+        realizedEpoch: demoted.realizedEpoch,
+        realizedStopEpoch: demoted.realizedStopEpoch,
+        loop: demoted.loop,
+        clipId: demoted.clipId,
+        clipVersion: demoted.clipVersion,
+        offsetSec: demoted.offsetSec,
+        loopStartedAt: demoted.loopStartedAt,
+        loopLenSec: demoted.loopLenSec,
+        seen: true,
+      };
+      virtual.set(key, v);
+      free(demoted);
       return;
     }
 
+    if (v === undefined) {
+      v = {
+        key,
+        busId: bus,
+        realizedEpoch: packet.playEpoch,
+        realizedStopEpoch: packet.stopEpoch,
+        loop: packet.loop,
+        clipId: clipKeyOf(packet),
+        clipVersion: packet.clipVersion,
+        offsetSec: packet.offsetSec,
+        loopStartedAt: backend.currentTime,
+        loopLenSec: 0,
+        seen: true,
+      };
+      virtual.set(key, v);
+      return;
+    }
+
+    // Track epochs while virtual so a promotion doesn't back-fire or miss a stop.
+    v.seen = true;
+    v.realizedEpoch = packet.playEpoch;
+    v.realizedStopEpoch = packet.stopEpoch;
+    v.loop = packet.loop;
+  }
+
+  function acquireVoice(spatial: boolean, bus: AudioBusId): Voice {
+    const pool = spatial ? spatialPool : flatPool;
+    const pooled = pool.pop();
+    if (pooled !== undefined) {
+      pooled.gain.connect(mixer.busInput(bus));
+      pooled.fadingOut = false;
+      pooled.pendingLoop = false;
+      pooled.pendingOneShots = 0;
+      pooled.looping = null;
+      return pooled;
+    }
+    const gain = backend.createGain();
+    let panner: PannerNode | null = null;
+    if (spatial) {
+      panner = backend.createPanner();
+      panner.connect(gain);
+    }
+    gain.connect(mixer.busInput(bus));
+    return {
+      key: "",
+      busId: bus,
+      gain,
+      panner,
+      sources: new Set(),
+      looping: null,
+      realizedEpoch: 0,
+      realizedStopEpoch: 0,
+      loop: false,
+      clipId: "",
+      clipVersion: 0,
+      offsetSec: 0,
+      loopStartedAt: 0,
+      loopLenSec: 0,
+      pendingLoop: false,
+      pendingOneShots: 0,
+      seen: true,
+      fadingOut: false,
+    };
+  }
+
+  function startLoop(voice: Voice, resume: boolean): void {
+    const buffer = clips.acquire(voice.clipId, voice.clipVersion);
+    if (buffer === undefined) {
+      voice.pendingLoop = true;
+      return;
+    }
+    let offset = voice.offsetSec;
+    if (resume && voice.loopLenSec > 0) {
+      const elapsed =
+        backend.currentTime - voice.loopStartedAt + voice.offsetSec;
+      offset =
+        ((elapsed % voice.loopLenSec) + voice.loopLenSec) % voice.loopLenSec;
+    } else {
+      voice.loopStartedAt = backend.currentTime - voice.offsetSec;
+    }
+    voice.loopLenSec = buffer.duration;
+    const source = newSource(voice, buffer, true);
+    source.start(backend.currentTime, offset);
+    voice.sources.add(source);
+    voice.looping = source;
+  }
+
+  function startOneShot(voice: Voice): void {
+    const buffer = clips.acquire(voice.clipId, voice.clipVersion);
+    if (buffer === undefined) {
+      voice.pendingOneShots = Math.min(voice.pendingOneShots + 1, maxBurst);
+      return;
+    }
+    const source = newSource(voice, buffer, false);
+    source.start(backend.currentTime, voice.offsetSec);
+    voice.sources.add(source);
+  }
+
+  function newSource(
+    voice: Voice,
+    buffer: AudioBuffer,
+    loop: boolean,
+  ): AudioBufferSourceNode {
     const source = backend.createSource();
     source.buffer = buffer;
     source.loop = loop;
@@ -288,37 +492,28 @@ export function createVoiceManager(
         voice.looping = null;
       }
       if (voice.fadingOut && voice.sources.size === 0) {
-        voice.gain.disconnect();
-        voice.panner?.disconnect();
+        recycle(voice);
       }
     };
-    source.start(backend.currentTime, voice.offsetSec);
-    voice.sources.add(source);
-    if (loop) {
-      voice.looping = source;
-    }
+    return source;
   }
 
   function flushPending(): void {
     if (disposed) {
       return;
     }
-    for (const voice of voices.values()) {
+    for (const voice of real.values()) {
       if (voice.fadingOut) {
         continue;
       }
       if (voice.pendingLoop && voice.looping === null) {
-        const before = voice.sources.size;
         voice.pendingLoop = false;
-        startSource(voice, true);
-        if (voice.sources.size === before && voice.looping === null) {
-          voice.pendingLoop = true;
-        }
+        startLoop(voice, false);
       }
       while (voice.pendingOneShots > 0) {
         const before = voice.sources.size;
         voice.pendingOneShots -= 1;
-        startSource(voice, false);
+        startOneShot(voice);
         if (voice.sources.size === before) {
           voice.pendingOneShots += 1;
           break;
@@ -344,46 +539,90 @@ export function createVoiceManager(
   }
 
   function free(voice: Voice): void {
-    voices.delete(voice.key);
+    real.delete(voice.key);
     voice.fadingOut = true;
     voice.pendingLoop = false;
     voice.pendingOneShots = 0;
     if (voice.sources.size === 0) {
-      voice.gain.disconnect();
-      voice.panner?.disconnect();
+      recycle(voice);
       return;
     }
     fadeStopSources(voice);
   }
 
-  function countSources(): number {
-    let total = 0;
-    for (const voice of voices.values()) {
-      total += voice.sources.size;
+  /** Return a freed voice's persistent subgraph to the pool (AU-8). */
+  function recycle(voice: Voice): void {
+    if (disposed) {
+      voice.gain.disconnect();
+      voice.panner?.disconnect();
+      return;
     }
-    return total;
+    voice.gain.disconnect();
+    voice.sources.clear();
+    voice.looping = null;
+    (voice.panner !== null ? spatialPool : flatPool).push(voice);
   }
 
-  function countPanners(): number {
-    let total = 0;
-    for (const voice of voices.values()) {
-      if (voice.panner !== null) {
-        total += 1;
-      }
-    }
-    return total;
+  function updatePanner(
+    panner: PannerNode,
+    packet: AudioEmitterPacket,
+    transforms: Float32Array,
+    frameDelta: number,
+  ): void {
+    const o = packet.worldTransformOffset;
+    const at = backend.currentTime + frameDelta;
+    ramp3(
+      panner.positionX,
+      panner.positionY,
+      panner.positionZ,
+      m(transforms, o, 12),
+      m(transforms, o, 13),
+      m(transforms, o, 14),
+      at,
+    );
+    // Source faces world forward = -col2 (same basis as the listener).
+    ramp3(
+      panner.orientationX,
+      panner.orientationY,
+      panner.orientationZ,
+      -m(transforms, o, 8),
+      -m(transforms, o, 9),
+      -m(transforms, o, 10),
+      at,
+    );
+    panner.panningModel = packet.panningModel;
+    panner.distanceModel = packet.distanceModel;
+    panner.refDistance = packet.refDistance;
+    panner.maxDistance = packet.maxDistance;
+    panner.rolloffFactor = packet.rolloffFactor;
+    panner.coneInnerAngle = packet.coneInnerAngle;
+    panner.coneOuterAngle = packet.coneOuterAngle;
+    panner.coneOuterGain = packet.coneOuterGain;
   }
 
   return {
     apply,
     get activeVoiceCount(): number {
-      return voices.size;
+      return real.size;
     },
     get activeSourceCount(): number {
-      return countSources();
+      let total = 0;
+      for (const voice of real.values()) {
+        total += voice.sources.size;
+      }
+      return total;
     },
     get activePannerCount(): number {
-      return countPanners();
+      let total = 0;
+      for (const voice of real.values()) {
+        if (voice.panner !== null) {
+          total += 1;
+        }
+      }
+      return total;
+    },
+    get virtualVoiceCount(): number {
+      return virtual.size;
     },
     dispose() {
       if (disposed) {
@@ -391,16 +630,23 @@ export function createVoiceManager(
       }
       disposed = true;
       unsubscribe();
-      for (const voice of [...voices.values()]) {
+      for (const voice of [...real.values()]) {
         for (const source of voice.sources) {
           safeStop(source, backend.currentTime);
         }
         voice.gain.disconnect();
         voice.panner?.disconnect();
       }
-      voices.clear();
+      real.clear();
+      virtual.clear();
+      spatialPool.length = 0;
+      flatPool.length = 0;
     },
   };
+}
+
+function byScoreDesc(a: Candidate, b: Candidate): number {
+  return b.score - a.score || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
 }
 
 function voiceKeyString(key: AudioVoiceKey): string {
@@ -417,12 +663,30 @@ function toBus(busId: string): AudioBusId {
     : "sfx";
 }
 
+/** Web Audio distance-model attenuation in [0,1]. */
+function rolloff(
+  model: "inverse" | "linear" | "exponential",
+  dist: number,
+  ref: number,
+  max: number,
+  factor: number,
+): number {
+  const d = Math.max(dist, ref);
+  if (model === "linear") {
+    const denom = Math.max(1e-6, max - ref);
+    return Math.max(0, 1 - (factor * (Math.min(d, max) - ref)) / denom);
+  }
+  if (model === "exponential") {
+    return Math.pow(d / ref, -factor);
+  }
+  return ref / (ref + factor * (d - ref));
+}
+
 /** 32-bit wrapping signed difference, for monotonic Int32 epoch counters. */
 function signedDelta(current: number, realized: number): number {
   return (current - realized) | 0;
 }
 
-/** Read a column-major matrix element from the packed transforms array. */
 function m(transforms: Float32Array, offset: number, index: number): number {
   return transforms[offset + index] ?? 0;
 }

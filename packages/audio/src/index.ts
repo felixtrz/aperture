@@ -75,6 +75,8 @@ export interface AudioEngine {
   readonly activeSourceCount: number;
   /** Live PannerNodes (spatial voices) — diagnostics / budget. */
   readonly activePannerCount: number;
+  /** Demoted node-less voices retaining a playhead (virtualization). */
+  readonly virtualVoiceCount: number;
   dispose(): void;
 }
 
@@ -137,6 +139,9 @@ export function createAudioEngine(
     },
     get activePannerCount(): number {
       return voices.activePannerCount;
+    },
+    get virtualVoiceCount(): number {
+      return voices.virtualVoiceCount;
     },
     dispose() {
       if (disposed) {
