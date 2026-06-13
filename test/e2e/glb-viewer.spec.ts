@@ -1339,10 +1339,6 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     { timeout: 15000 },
   );
   const animatedLaterStatus = await waitForExampleStatus<GlbViewerStatus>(page);
-  await waitForRenderedFrameAdvance(page);
-  const animatedLaterScreenshot = await page
-    .locator("#aperture-canvas")
-    .screenshot();
 
   expect(
     Math.abs(
@@ -1351,10 +1347,12 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     ),
     "animated GLB status should show transform movement over time",
   ).toBeGreaterThan(0.2);
-  expect(
-    maxWideSampleDelta(animatedStartScreenshot, animatedLaterScreenshot),
+  await expectEventualPixelChange(
+    page,
+    animatedStartScreenshot,
+    8,
     "animated GLB playback should change rendered pixels over time",
-  ).toBeGreaterThan(8);
+  );
 
   await page.locator("#glb-asset-select").selectOption("dual");
   await page.waitForFunction(
@@ -1384,6 +1382,28 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     undefined,
     { timeout: 15000 },
   );
+  // Poll the deep match: the status republishes per frame, and one computed
+  // before the asset switch completed can land after the readiness wait,
+  // briefly showing the previous asset's metadata.
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          () =>
+            (
+              globalThis as {
+                readonly __APERTURE_EXAMPLE_STATUS__?: unknown;
+              }
+            ).__APERTURE_EXAMPLE_STATUS__,
+        ),
+      { timeout: 15000 },
+    )
+    .toMatchObject({
+      selectedAsset: { id: "dual", loading: false },
+      gltf: { metadata: { counts: { materials: 2, animations: 0 } } },
+      extraction: { meshDraws: 2 },
+      draw: { drawCalls: 2 },
+    });
   const dualStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const dualScreenshot = await page.locator("#aperture-canvas").screenshot();
 
@@ -28634,34 +28654,6 @@ function maxRegionLuminanceDelta(
 
 function luminance(sample: ReturnType<typeof readPngPixel>): number {
   return sample.r * 0.2126 + sample.g * 0.7152 + sample.b * 0.0722;
-}
-
-/**
- * Wide-window variant for "something moved" assertions only: animated nodes'
- * screen-space arcs shifted with the brighter prefiltered lighting / camera
- * fit, and the centre-only maxSampleDelta window can miss moving geometry
- * entirely (pixel delta reads 0 while the status provably moved). Stability
- * assertions (toBeLessThan) keep the narrow window.
- */
-function maxWideSampleDelta(before: Buffer, after: Buffer): number {
-  let maxDelta = 0;
-
-  for (let y = 0; y < 13; y += 1) {
-    for (let x = 0; x < 13; x += 1) {
-      const xRatio = 0.2 + (0.6 * x) / 12;
-      const yRatio = 0.15 + (0.7 * y) / 12;
-
-      maxDelta = Math.max(
-        maxDelta,
-        pixelDistance(
-          readPngPixel(before, xRatio, yRatio),
-          readPngPixel(after, xRatio, yRatio),
-        ),
-      );
-    }
-  }
-
-  return maxDelta;
 }
 
 /**
