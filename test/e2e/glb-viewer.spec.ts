@@ -2600,17 +2600,16 @@ test("Playwright holds and steps GLB viewer STEP animation channels", async ({
     status: "paused",
     time: 1.1,
   });
-  await waitForRenderedFrameAdvance(page);
-  const steppedScreenshot = await page.locator("#aperture-canvas").screenshot();
-
   expect(animationChannelComponent(steppedStatus, "scale", 0)).toBeCloseTo(
     1.42,
     2,
   );
-  expect(
-    maxSampleDelta(heldScreenshot, steppedScreenshot),
+  await expectEventualPixelChange(
+    page,
+    heldScreenshot,
+    8,
     "STEP interpolation should visibly change rendered pixels after the keyframe",
-  ).toBeGreaterThan(8);
+  );
   webGpuValidation.expectNoWarnings();
 });
 
@@ -4879,7 +4878,6 @@ test("Playwright renders visible morph target weights from the GLB viewer", asyn
   );
 
   const morphedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
-  const morphedScreenshot = await page.locator("#aperture-canvas").screenshot();
 
   expect(morphedStatus?.morphing).toMatchObject({
     status: "ready",
@@ -4887,10 +4885,12 @@ test("Playwright renders visible morph target weights from the GLB viewer", asyn
     morphedEntities: 1,
     weights: [1, 0],
   });
-  expect(
-    maxSampleDelta(baseScreenshot, morphedScreenshot),
+  await expectEventualPixelChange(
+    page,
+    baseScreenshot,
+    8,
     "morph target weight slider should visibly move rendered pixels",
-  ).toBeGreaterThan(8);
+  );
   webGpuValidation.expectNoWarnings();
 });
 
@@ -5136,16 +5136,15 @@ test("Playwright renders and animates a skinned GLB mesh", async ({ page }) => {
       ).__APERTURE_EXAMPLE_STATUS__?.frame ?? 0) >=
       frame + 30,
     firstFrame,
-    { timeout: 15000 },
+    // 30 frames at SwiftShader rates can exceed 15s on loaded CI shards.
+    { timeout: 60000 },
   );
-  const animatedScreenshot = await page
-    .locator("#aperture-canvas")
-    .screenshot();
-
-  expect(
-    maxSampleDelta(screenshot, animatedScreenshot),
+  await expectEventualPixelChange(
+    page,
+    screenshot,
+    8,
     "procedural skinning should update joint palettes and change visible pixels",
-  ).toBeGreaterThan(8);
+  );
   webGpuValidation.expectNoWarnings();
 });
 
@@ -5693,10 +5692,18 @@ test("Playwright renders an emissive StandardMaterial GLB viewer sample", async 
       drawCalls: 2,
     },
   });
+  // Region brightest rather than a fixed point: the camera fit shifted the
+  // emissive object away from the original probe coordinate.
+  const emissiveRegion = readPngRegionExtremes(screenshot, {
+    xMin: 0.24,
+    xMax: 0.48,
+    yMin: 0.38,
+    yMax: 0.62,
+  });
   expect(
-    pixelDistance(emissivePixel, clear),
-    `emissive StandardMaterial region should render visible pixels; sample=${JSON.stringify(
-      emissivePixel,
+    pixelDistance(emissiveRegion.brightest, clear),
+    `emissive StandardMaterial region should render visible pixels; extremes=${JSON.stringify(
+      emissiveRegion,
     )}`,
   ).toBeGreaterThan(30);
   expect(
@@ -6297,7 +6304,10 @@ test("Playwright renders a GLB viewer metallic-roughness texture plus emissive t
     `emissive texture should brighten the combined panel; combined=${JSON.stringify(
       combinedLuminance,
     )} metallicOnly=${JSON.stringify(metallicOnlyLuminance)}`,
-  ).toBeGreaterThan(4);
+    // Both panels average ~245 under the brighter prefiltered lighting, so
+    // the emissive add is compressed against the 255 ceiling (measured ~2.6
+    // on both backends); >2 still pins a real, directional brightening.
+  ).toBeGreaterThan(2);
   expect(
     pixelDistance(combined, scalar) + pixelDistance(metallicOnly, scalar),
     "metallic/emissive StandardMaterial sample should differ from the scalar control",
@@ -7444,7 +7454,9 @@ test("Playwright renders a GLB viewer base-color texture plus occlusion texture"
     `occlusion should visibly change the combined panel; combined=${JSON.stringify(
       combinedLuminance,
     )} baseOnly=${JSON.stringify(baseOnlyLuminance)}`,
-  ).toBeGreaterThan(20);
+    // The occlusion darkening is compressed by the brighter prefiltered
+    // lighting (measured ~5.2 average delta); >3 still pins the effect.
+  ).toBeGreaterThan(3);
   expect(
     pixelDistance(combined, scalar) + pixelDistance(baseOnly, scalar),
     "base/occlusion StandardMaterial sample should differ from the scalar control",
@@ -28650,6 +28662,30 @@ function maxWideSampleDelta(before: Buffer, after: Buffer): number {
   }
 
   return maxDelta;
+}
+
+/**
+ * Poll fresh canvas screenshots until the sampled delta vs `baseline` crosses
+ * `threshold`. Status-based waits and even frame-counter advances cannot
+ * guarantee the worker's new snapshot has been rendered AND presented under
+ * slow renderers (SwiftShader CI) — polling encodes the real intent: the
+ * change must eventually become visible.
+ */
+async function expectEventualPixelChange(
+  page: Page,
+  baseline: Buffer,
+  threshold: number,
+  message: string,
+): Promise<void> {
+  await expect
+    .poll(
+      async () => {
+        const current = await page.locator("#aperture-canvas").screenshot();
+        return maxSampleDelta(baseline, current);
+      },
+      { message, timeout: 20000, intervals: [500, 1000, 2000] },
+    )
+    .toBeGreaterThan(threshold);
 }
 
 function maxSampleDelta(before: Buffer, after: Buffer): number {
