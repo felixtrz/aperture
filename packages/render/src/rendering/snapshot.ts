@@ -1,4 +1,8 @@
 export type {
+  AudioEmitterPacket,
+  AudioListenerPacket,
+  AudioSimulationSpacePacket,
+  AudioVoiceKey,
   BatchCompatibilityKey,
   BoundsPacket,
   EnvironmentPacket,

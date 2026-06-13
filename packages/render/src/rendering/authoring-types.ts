@@ -1,4 +1,5 @@
 import type {
+  AudioClipHandle,
   EnvironmentMapHandle,
   FontAtlasHandle,
   MaterialHandle,
@@ -90,6 +91,33 @@ export const ParticleSimulationSpace = {
 
 export type ParticleSimulationSpace =
   (typeof ParticleSimulationSpace)[keyof typeof ParticleSimulationSpace];
+
+export const AudioSimulationSpace = {
+  /** Spatialized through a PannerNode from the emitter's world transform. */
+  World: "world",
+  /** Non-spatial / 2D (UI, music, ambience) — routed straight to its bus. */
+  Local: "local",
+} as const;
+
+export type AudioSimulationSpace =
+  (typeof AudioSimulationSpace)[keyof typeof AudioSimulationSpace];
+
+export const AudioPanningModel = {
+  EqualPower: "equalpower",
+  Hrtf: "HRTF",
+} as const;
+
+export type AudioPanningModel =
+  (typeof AudioPanningModel)[keyof typeof AudioPanningModel];
+
+export const AudioDistanceModel = {
+  Inverse: "inverse",
+  Linear: "linear",
+  Exponential: "exponential",
+} as const;
+
+export type AudioDistanceModel =
+  (typeof AudioDistanceModel)[keyof typeof AudioDistanceModel];
 
 export const UiScreenScaleMode = {
   Fixed: "fixed",
@@ -237,6 +265,40 @@ export interface ParticleEmitterInput {
   readonly visible?: boolean;
 }
 
+export interface AudioEmitterInput {
+  readonly clip: AudioClipHandle;
+  readonly busId?: string;
+  readonly gain?: number;
+  readonly timeScale?: number;
+  readonly loop?: boolean;
+  readonly autoplay?: boolean;
+  readonly muted?: boolean;
+  readonly playEpoch?: number;
+  readonly stopEpoch?: number;
+  readonly seed?: number;
+  readonly priority?: number;
+  readonly offsetSec?: number;
+  readonly loopStart?: number;
+  readonly loopEnd?: number;
+  readonly simulationSpace?: AudioSimulationSpace;
+  readonly panningModel?: AudioPanningModel;
+  readonly distanceModel?: AudioDistanceModel;
+  readonly refDistance?: number;
+  readonly maxDistance?: number;
+  readonly rolloffFactor?: number;
+  readonly coneInnerAngle?: number;
+  readonly coneOuterAngle?: number;
+  readonly coneOuterGain?: number;
+  readonly boundsCenter?: Vec3Like;
+  readonly audibilityRadius?: number;
+  readonly active?: boolean;
+}
+
+export interface AudioListenerInput {
+  readonly active?: boolean;
+  readonly masterGain?: number;
+}
+
 export interface UiScreenInput {
   readonly width?: number;
   readonly height?: number;
@@ -382,6 +444,14 @@ export type RenderAuthoringDiagnosticCode =
   | "particle.invalidTimeScale"
   | "particle.invalidSimulationSpace"
   | "particle.invalidBounds"
+  | "audio.invalidClip"
+  | "audio.invalidBusId"
+  | "audio.invalidGain"
+  | "audio.invalidTimeScale"
+  | "audio.invalidDistance"
+  | "audio.invalidRolloff"
+  | "audio.invalidCone"
+  | "audio.invalidAudibilityRadius"
   | "skybox.invalidTexture"
   | "skybox.invalidIntensity"
   | "fog.invalidMode"

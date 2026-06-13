@@ -1,3 +1,4 @@
+export { validateAudioEmitterInput } from "./authoring-validation-audio.js";
 export { validateCameraInput } from "./authoring-validation-camera.js";
 export {
   validateLightCookieInput,

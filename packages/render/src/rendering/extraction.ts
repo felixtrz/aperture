@@ -18,6 +18,10 @@ import {
   type ViewCullStats,
 } from "./snapshot.js";
 import {
+  extractAudioEmitters,
+  extractAudioListener,
+} from "./extraction-audio.js";
+import {
   createViewCullSignature,
   type ViewCullContext,
 } from "./extraction-culling.js";
@@ -137,6 +141,16 @@ export function extractRenderSnapshot(
     cameraLayerMask,
     viewCullContexts,
   ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
+  // Audio is a derived view too: emitter/listener WORLD matrices ride the same
+  // `transforms` array. Not frustum-culled — audibility virtualization is a
+  // main-side concern (AU-9).
+  const audioEmitters = extractAudioEmitters(
+    world,
+    assets,
+    transforms,
+    diagnostics,
+  );
+  const audioListener = extractAudioListener(world, transforms, diagnostics);
   const uiLayout = extractUiLayout(world, diagnostics, cameraLayerMask);
   const skyboxes = extractSkyboxes(world, assets, diagnostics, cameraLayerMask);
 
@@ -148,6 +162,8 @@ export function extractRenderSnapshot(
     meshDraws,
     spriteDraws,
     ...(particleEmitters.length === 0 ? {} : { particleEmitters }),
+    ...(audioEmitters.length === 0 ? {} : { audioEmitters }),
+    ...(audioListener === undefined ? {} : { audioListener }),
     ...(quadInstanceFloats.length === 0
       ? {}
       : {
@@ -194,6 +210,7 @@ export function extractRenderSnapshot(
       meshDraws: meshDraws.length,
       spriteDraws: spriteDraws.length,
       particleEmitters: particleEmitters.length,
+      audioEmitters: audioEmitters.length,
       quadInstances: quadInstanceFloats.length / QUAD_INSTANCE_FLOAT_STRIDE,
       quadBatches: quadBatches.length,
       uiNodes: uiLayout.nodes.length,

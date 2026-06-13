@@ -2,6 +2,7 @@ export * from "./authoring.js";
 export * from "./batching-report.js";
 export * from "./draw-package.js";
 export * from "./extraction.js";
+export * from "./extraction-audio.js";
 export * from "./extraction-ui.js";
 export * from "./material-queue.js";
 export * from "./mesh-merge.js";
