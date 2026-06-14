@@ -108,35 +108,88 @@ fn apertureOutputTonemap(color: vec3f) -> vec3f {
 `.trim();
 
     case "agx":
+      // Faithful port of three.js agxToneMapping (AI-90). The contrast curve
+      // alone (the old implementation) is not AgX: the look comes from the
+      // LINEAR_SRGB<->LINEAR_REC2020 transforms plus the AgX inset/outset
+      // matrices that desaturate highlights, and the final 2.2 power. Matrices
+      // are column vectors, matching three.js `mat3(col0, col1, col2)` and
+      // WGSL's column-major `m * v`.
+      // Reference: three.js src/nodes/display/ToneMappingFunctions.js.
       return `
 fn apertureOutputTonemap(color: vec3f) -> vec3f {
-  let positive = max(color, vec3f(0.0));
-  let logColor = clamp((log2(positive + vec3f(0.00001)) + vec3f(12.47393)) / vec3f(16.5), vec3f(0.0), vec3f(1.0));
-  let mapped = 15.5 * pow(logColor, vec3f(6.0)) -
-    40.14 * pow(logColor, vec3f(5.0)) +
-    31.96 * pow(logColor, vec3f(4.0)) -
-    6.868 * pow(logColor, vec3f(3.0)) +
-    0.4298 * pow(logColor, vec3f(2.0)) +
-    0.1191 * logColor - vec3f(0.00232);
-  return clamp(mapped, vec3f(0.0), vec3f(1.0));
+  let agxInset = mat3x3<f32>(
+    vec3f(0.856627153315983, 0.137318972929847, 0.11189821299995),
+    vec3f(0.0951212405381588, 0.761241990602591, 0.0767994186031903),
+    vec3f(0.0482516061458583, 0.101439036467562, 0.811302368396859)
+  );
+  let agxOutset = mat3x3<f32>(
+    vec3f(1.1271005818144368, -0.1413297634984383, -0.14132976349843826),
+    vec3f(-0.11060664309660323, 1.157823702216272, -0.11060664309660294),
+    vec3f(-0.016493938717834573, -0.016493938717834257, 1.2519364065950405)
+  );
+  let linSrgbToRec2020 = mat3x3<f32>(
+    vec3f(0.6274, 0.0691, 0.0164),
+    vec3f(0.3293, 0.9195, 0.0880),
+    vec3f(0.0433, 0.0113, 0.8956)
+  );
+  let linRec2020ToSrgb = mat3x3<f32>(
+    vec3f(1.6605, -0.1246, -0.0182),
+    vec3f(-0.5876, 1.1329, -0.1006),
+    vec3f(-0.0728, -0.0083, 1.1187)
+  );
+  let minEv = -12.47393;
+  let maxEv = 4.026069;
+
+  var c = linSrgbToRec2020 * color;
+  c = agxInset * c;
+  c = max(c, vec3f(1e-10));
+  c = log2(c);
+  c = (c - vec3f(minEv)) / (maxEv - minEv);
+  c = clamp(c, vec3f(0.0), vec3f(1.0));
+
+  let x2 = c * c;
+  let x4 = x2 * x2;
+  c = 15.5 * x4 * x2 - 40.14 * x4 * c + 31.96 * x4 -
+    6.868 * x2 * c + 0.4298 * x2 + 0.1191 * c - vec3f(0.00232);
+
+  c = agxOutset * c;
+  c = pow(max(vec3f(0.0), c), vec3f(2.2));
+  c = linRec2020ToSrgb * c;
+  return clamp(c, vec3f(0.0), vec3f(1.0));
 }
 `.trim();
 
     case "neutral":
+      // Faithful port of three.js neutralToneMapping (the Khronos PBR-neutral
+      // operator, AI-90). The old implementation had the peak compression but
+      // dropped the low-end black offset and the final hue-preserving
+      // desaturation mix, so darks and bright saturated hues were off.
+      // Reference: three.js src/nodes/display/ToneMappingFunctions.js
+      // (modelviewer.dev/examples/tone-mapping).
       return `
 fn apertureOutputTonemap(color: vec3f) -> vec3f {
-  let positive = max(color, vec3f(0.0));
-  let peak = max(positive.r, max(positive.g, positive.b));
-  let startCompression = 0.76;
+  let startCompression = 0.8 - 0.04;
+  let desaturation = 0.15;
 
+  var c = color;
+  let lowest = min(c.r, min(c.g, c.b));
+  var offset = 0.04;
+  if (lowest < 0.08) {
+    offset = lowest - 6.25 * lowest * lowest;
+  }
+  c = c - vec3f(offset);
+
+  let peak = max(c.r, max(c.g, c.b));
   if (peak < startCompression) {
-    return positive;
+    return c;
   }
 
-  let compressionRange = 1.0 - startCompression;
-  let compressedPeak = 1.0 - compressionRange * compressionRange /
-    (peak + compressionRange - startCompression);
-  return positive * (compressedPeak / max(peak, 0.0001));
+  let d = 1.0 - startCompression;
+  let newPeak = 1.0 - d * d / (peak + d - startCompression);
+  c = c * (newPeak / peak);
+
+  let g = 1.0 - 1.0 / (desaturation * (peak - newPeak) + 1.0);
+  return mix(c, vec3f(newPeak), g);
 }
 `.trim();
   }
