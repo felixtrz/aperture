@@ -45,7 +45,7 @@ export function createAudioEmitter(
       input.boundsCenter?.[1] ?? 0,
       input.boundsCenter?.[2] ?? 0,
     ],
-    audibilityRadius: input.audibilityRadius ?? 1,
+    audibilityRadius: input.audibilityRadius ?? 0,
     occlusion: input.occlusion ?? 0,
     active: input.active ?? true,
   };

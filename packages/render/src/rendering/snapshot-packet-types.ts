@@ -169,6 +169,15 @@ export interface AudioEmitterPacket {
   readonly offsetSec: number;
   readonly loopStart: number;
   readonly loopEnd: number;
+  /** Deterministic variation index — drives per-voice pitch jitter when the
+   * engine's `pitchVariation` is enabled. */
+  readonly seed?: number;
+  /** Local-space audibility/emission center offset (default origin); the engine
+   * transforms it by the world matrix as the spatial sample point. */
+  readonly boundsCenter?: readonly [number, number, number];
+  /** Virtualization radius (default 0 = use `maxDistance`). When > 0 and tighter
+   * than `maxDistance`, voices beyond it demote to virtual (still tracked). */
+  readonly audibilityRadius?: number;
   /** Soft-demote flag; an `inaudible` packet still ships to retain its playhead. */
   readonly audibility: "audible" | "inaudible";
   /** Per-emitter mute = gain-to-zero, playhead continues (not a drop). */

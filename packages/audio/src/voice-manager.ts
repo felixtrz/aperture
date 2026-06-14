@@ -45,6 +45,12 @@ export interface VoiceManagerOptions {
   readonly busCaps?: Partial<Record<AudioBusId, number>>;
   /** Auto-Doppler pitch shift from radial velocity (default off). */
   readonly doppler?: boolean;
+  /**
+   * Deterministic per-emitter pitch variation range as a ratio (e.g. 0.06 =
+   * ±6%), derived from each emitter's `seed`. Default 0 (no variation), so
+   * repeated SFX can be de-cloned without touching gameplay. Clamped to [0, 1).
+   */
+  readonly pitchVariation?: number;
   /** Fired when a source starts playing (for caption / accessibility hooks). */
   readonly onSourceStart?: (clipId: string) => void;
   /** Fired when a source ends (natural end, stop, or steal). */
@@ -100,6 +106,8 @@ interface Voice {
   loopStart: number;
   loopEnd: number;
   timeScale: number;
+  /** Deterministic per-seed pitch multiplier (1 when pitchVariation is off). */
+  seedPitch: number;
   prevDist: number;
   loopStartedAt: number;
   loopLenSec: number;
@@ -145,6 +153,7 @@ export function createVoiceManager(
   const maxBurst = Math.max(1, options.maxBurstPerFrame ?? DEFAULT_MAX_BURST);
   const maxVoices = Math.max(1, options.maxVoices ?? DEFAULT_MAX_VOICES);
   const doppler = options.doppler ?? false;
+  const pitchVariation = clampNum(options.pitchVariation ?? 0, 0, 0.999);
   let audioOffset = 0;
   const busCaps: Record<AudioBusId, number> = { ...DEFAULT_BUS_CAPS };
   for (const bus of AUDIO_BUS_IDS) {
@@ -232,13 +241,19 @@ export function createVoiceManager(
     if (!hasListener) {
       return LOCAL_BASE / 2 + packet.priority + packet.gain;
     }
-    const o = packet.worldTransformOffset;
-    const dx = m(transforms, o, 12) - listenerX;
-    const dy = m(transforms, o, 13) - listenerY;
-    const dz = m(transforms, o, 14) - listenerZ;
+    const sp = worldSamplePoint(packet, transforms);
+    const dx = sp[0] - listenerX;
+    const dy = sp[1] - listenerY;
+    const dz = sp[2] - listenerZ;
     const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
     if (dist > packet.maxDistance) {
       // Inaudible: never consumes a real voice (kept virtual for mid-loop resume).
+      return Number.NEGATIVE_INFINITY;
+    }
+    // Optional tighter virtualization radius: beyond it the voice demotes to
+    // virtual (still tracked, re-promotes on approach). 0 ⇒ disabled.
+    const audibilityRadius = packet.audibilityRadius ?? 0;
+    if (audibilityRadius > 0 && dist > audibilityRadius) {
       return Number.NEGATIVE_INFINITY;
     }
     const att = rolloff(
@@ -269,9 +284,10 @@ export function createVoiceManager(
     const fx = -m(transforms, o, 8);
     const fy = -m(transforms, o, 9);
     const fz = -m(transforms, o, 10);
-    const tx = listenerX - m(transforms, o, 12);
-    const ty = listenerY - m(transforms, o, 13);
-    const tz = listenerZ - m(transforms, o, 14);
+    const sp = worldSamplePoint(packet, transforms);
+    const tx = listenerX - sp[0];
+    const ty = listenerY - sp[1];
+    const tz = listenerZ - sp[2];
     const fl = Math.sqrt(fx * fx + fy * fy + fz * fz);
     const tl = Math.sqrt(tx * tx + ty * ty + tz * tz);
     if (fl === 0 || tl === 0) {
@@ -389,6 +405,7 @@ export function createVoiceManager(
     voice.loopStart = packet.loopStart;
     voice.loopEnd = packet.loopEnd;
     voice.timeScale = packet.timeScale;
+    voice.seedPitch = seedPitchMultiplier(packet.seed ?? 1, pitchVariation);
 
     // On resume, re-seed epochs so a backlog of triggers accumulated while
     // suspended doesn't blast a burst of stale one-shots; playing loops keep
@@ -557,6 +574,7 @@ export function createVoiceManager(
       loopStart: 0,
       loopEnd: 0,
       timeScale: 1,
+      seedPitch: 1,
       prevDist: Number.NaN,
       loopStartedAt: 0,
       loopLenSec: 0,
@@ -622,7 +640,7 @@ export function createVoiceManager(
       source.loopStart = voice.loopStart;
       source.loopEnd = voice.loopEnd;
     }
-    source.playbackRate.value = voice.timeScale;
+    source.playbackRate.value = voice.timeScale * voice.seedPitch;
     source.connect(voice.occluder);
     const clipId = voice.clipId;
     source.onended = () => {
@@ -729,12 +747,15 @@ export function createVoiceManager(
     transforms: Float32Array,
     frameDelta: number,
   ): void {
-    let rate = voice.timeScale;
+    // Effective base rate = authored timeScale × the deterministic per-seed
+    // variation (seedPitch is 1 unless the engine's pitchVariation is enabled).
+    const base = voice.timeScale * voice.seedPitch;
+    let rate = base;
     if (doppler && voice.panner !== null && hasListener && frameDelta > 0) {
-      const o = packet.worldTransformOffset;
-      const dx = m(transforms, o, 12) - listenerX;
-      const dy = m(transforms, o, 13) - listenerY;
-      const dz = m(transforms, o, 14) - listenerZ;
+      const sp = worldSamplePoint(packet, transforms);
+      const dx = sp[0] - listenerX;
+      const dy = sp[1] - listenerY;
+      const dz = sp[2] - listenerZ;
       const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
       if (Number.isFinite(voice.prevDist)) {
         let radial = (dist - voice.prevDist) / frameDelta;
@@ -743,8 +764,7 @@ export function createVoiceManager(
         }
         radial = clampNum(radial, -SPEED_OF_SOUND * 0.5, SPEED_OF_SOUND * 0.5);
         const shift = SPEED_OF_SOUND / (SPEED_OF_SOUND + radial);
-        rate =
-          voice.timeScale * clampNum(shift, DOPPLER_MIN_RATE, DOPPLER_MAX_RATE);
+        rate = base * clampNum(shift, DOPPLER_MIN_RATE, DOPPLER_MAX_RATE);
       }
       voice.prevDist = dist;
     }
@@ -763,13 +783,14 @@ export function createVoiceManager(
   ): void {
     const o = packet.worldTransformOffset;
     const at = backend.currentTime + frameDelta;
+    const sp = worldSamplePoint(packet, transforms);
     ramp3(
       panner.positionX,
       panner.positionY,
       panner.positionZ,
-      m(transforms, o, 12),
-      m(transforms, o, 13),
-      m(transforms, o, 14),
+      sp[0],
+      sp[1],
+      sp[2],
       at,
     );
     // Source faces world forward = -col2 (same basis as the listener).
@@ -897,8 +918,63 @@ function clampNum(value: number, min: number, max: number): number {
   return value < min ? min : value > max ? max : value;
 }
 
+/**
+ * Deterministic per-seed pitch multiplier in `[1 − range, 1 + range)`. A Knuth
+ * multiplicative hash maps the Int32 seed to `[0, 1)`; `range` 0 returns exactly
+ * 1, so the default (variation off) never perturbs playbackRate.
+ */
+function seedPitchMultiplier(seed: number, range: number): number {
+  if (range <= 0) {
+    return 1;
+  }
+  const normalized = ((Math.trunc(seed) * 2654435761) >>> 0) / 4294967296;
+  return 1 + (normalized * 2 - 1) * range;
+}
+
 function m(transforms: Float32Array, offset: number, index: number): number {
   return transforms[offset + index] ?? 0;
+}
+
+/** Reused scratch for {@link worldSamplePoint} — single-threaded, read immediately. */
+const SAMPLE_SCRATCH: [number, number, number] = [0, 0, 0];
+
+/**
+ * The emitter's world-space audibility/emission point: its world translation
+ * plus the authored local `boundsCenter` rotated into world space. Default
+ * `boundsCenter` (origin) returns the translation unchanged. Writes and returns
+ * a shared scratch array — copy the values out before the next call.
+ */
+function worldSamplePoint(
+  packet: AudioEmitterPacket,
+  transforms: Float32Array,
+): readonly [number, number, number] {
+  const o = packet.worldTransformOffset;
+  const bc = packet.boundsCenter;
+  const bx = bc?.[0] ?? 0;
+  const by = bc?.[1] ?? 0;
+  const bz = bc?.[2] ?? 0;
+  if (bx === 0 && by === 0 && bz === 0) {
+    SAMPLE_SCRATCH[0] = m(transforms, o, 12);
+    SAMPLE_SCRATCH[1] = m(transforms, o, 13);
+    SAMPLE_SCRATCH[2] = m(transforms, o, 14);
+  } else {
+    SAMPLE_SCRATCH[0] =
+      m(transforms, o, 12) +
+      bx * m(transforms, o, 0) +
+      by * m(transforms, o, 4) +
+      bz * m(transforms, o, 8);
+    SAMPLE_SCRATCH[1] =
+      m(transforms, o, 13) +
+      bx * m(transforms, o, 1) +
+      by * m(transforms, o, 5) +
+      bz * m(transforms, o, 9);
+    SAMPLE_SCRATCH[2] =
+      m(transforms, o, 14) +
+      bx * m(transforms, o, 2) +
+      by * m(transforms, o, 6) +
+      bz * m(transforms, o, 10);
+  }
+  return SAMPLE_SCRATCH;
 }
 
 function ramp3(

@@ -159,6 +159,14 @@ export function extractAudioEmitters(
         0,
       ),
       loopEnd: finiteNonNegative(entity.getValue(AudioEmitter, "loopEnd"), 0),
+      seed: finiteInteger(entity.getValue(AudioEmitter, "seed"), 1),
+      boundsCenter: readVec3(
+        entity.getVectorView(AudioEmitter, "boundsCenter"),
+      ),
+      audibilityRadius: finiteNonNegative(
+        entity.getValue(AudioEmitter, "audibilityRadius"),
+        0,
+      ),
       occlusion: clamp01(
         finiteNumber(entity.getValue(AudioEmitter, "occlusion"), 0),
       ),
@@ -272,6 +280,18 @@ function stringOr(value: unknown, fallback: string): string {
 
 function finiteNumber(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function readVec3(value: unknown): readonly [number, number, number] {
+  if (Array.isArray(value) || ArrayBuffer.isView(value)) {
+    const v = value as ArrayLike<number>;
+    return [
+      finiteNumber(v[0], 0),
+      finiteNumber(v[1], 0),
+      finiteNumber(v[2], 0),
+    ];
+  }
+  return [0, 0, 0];
 }
 
 function clamp01(value: number): number {

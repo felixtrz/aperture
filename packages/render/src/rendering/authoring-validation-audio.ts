@@ -43,7 +43,9 @@ export function validateAudioEmitterInput(
   ) {
     diagnostics.push(diagnostic("audio.invalidCone", "cone"));
   }
-  if (!positiveFinite(emitter.audibilityRadius)) {
+  // 0 means "disabled — use maxDistance for virtualization"; only a negative or
+  // non-finite radius is invalid.
+  if (!nonNegativeFinite(emitter.audibilityRadius)) {
     diagnostics.push(
       diagnostic("audio.invalidAudibilityRadius", "audibilityRadius"),
     );
