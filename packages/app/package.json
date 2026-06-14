@@ -70,6 +70,7 @@
     "@aperture-engine/render": "workspace:^",
     "@aperture-engine/runtime": "workspace:^",
     "@aperture-engine/simulation": "workspace:^",
+    "@aperture-engine/vite-plugin": "workspace:^",
     "@aperture-engine/webgpu": "workspace:^",
     "@preact/signals-core": "^1.8.0",
     "elics": "^3.4.2"
