@@ -96,6 +96,15 @@ importers:
         specifier: ^3.4.2
         version: 3.4.2
 
+  packages/audio:
+    dependencies:
+      "@aperture-engine/render":
+        specifier: workspace:^
+        version: link:../render
+      "@aperture-engine/simulation":
+        specifier: workspace:^
+        version: link:../simulation
+
   packages/cli:
     dependencies:
       playwright:

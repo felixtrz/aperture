@@ -16,6 +16,7 @@ const publishablePackages = [
   { dir: "packages/render", name: "@aperture-engine/render" },
   { dir: "packages/runtime", name: "@aperture-engine/runtime" },
   { dir: "packages/webgpu", name: "@aperture-engine/webgpu" },
+  { dir: "packages/audio", name: "@aperture-engine/audio" },
   { dir: "packages/vite-plugin", name: "@aperture-engine/vite-plugin" },
   { dir: "packages/app", name: "@aperture-engine/app" },
   { dir: "packages/cli", name: "@aperture-engine/cli" },

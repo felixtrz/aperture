@@ -1,4 +1,6 @@
 import type {
+  AudioEmitterPacket,
+  AudioListenerPacket,
   BoundsPacket,
   EnvironmentPacket,
   FogPacket,
@@ -29,6 +31,8 @@ export interface RenderSnapshot {
   readonly meshDraws: readonly MeshDrawPacket[];
   readonly spriteDraws?: readonly SpriteDrawPacket[];
   readonly particleEmitters?: readonly ParticleEmitterPacket[];
+  readonly audioEmitters?: readonly AudioEmitterPacket[];
+  readonly audioListener?: AudioListenerPacket;
   readonly quads?: QuadSnapshotBuffers;
   readonly quadBatches?: readonly QuadBatchPacket[];
   readonly uiNodes?: readonly UiNodePacket[];

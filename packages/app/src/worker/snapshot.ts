@@ -198,12 +198,21 @@ function createSharedSnapshotMessage(
   }
 }
 
-function hasUnsupportedSharedSnapshotPayload(
+/**
+ * True when a snapshot carries packet kinds the SAB packed codec cannot encode
+ * (sprites, particles, audio, UI, fog, skyboxes, skinning/morph buffers). Such
+ * a frame falls back to the transferable path, preserving every packet. Audio
+ * uses the identical mechanism particles do — see AUDIO_SUBSYSTEM_PLAN §4.
+ * Exported for the transport-fallback test (AU-2).
+ */
+export function hasUnsupportedSharedSnapshotPayload(
   snapshot: RenderSnapshot,
 ): boolean {
   return (
     hasItems(snapshot.spriteDraws) ||
     hasItems(snapshot.particleEmitters) ||
+    hasItems(snapshot.audioEmitters) ||
+    snapshot.audioListener !== undefined ||
     hasItems(snapshot.uiNodes) ||
     hasItems(snapshot.uiHitRegions) ||
     hasItems(snapshot.skyboxes) ||

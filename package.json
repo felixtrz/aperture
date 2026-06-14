@@ -7,7 +7,7 @@
   "private": true,
   "packageManager": "pnpm@10.12.1",
   "scripts": {
-    "build": "tsc -b packages/simulation packages/physics packages/physics-rapier packages/render packages/runtime packages/webgpu packages/vite-plugin packages/app packages/cli",
+    "build": "tsc -b packages/simulation packages/physics packages/physics-rapier packages/render packages/runtime packages/webgpu packages/audio packages/vite-plugin packages/app packages/cli",
     "typecheck": "pnpm run build",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "check:boundaries": "node scripts/check-package-boundaries.mjs",
@@ -31,6 +31,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:install": "playwright install chrome",
     "setup:references": "bash scripts/setup-references.sh",
+    "audio:pcm-check": "node scripts/audio-pcm-check.mjs",
     "examples:build": "pnpm run build",
     "examples:serve": "node scripts/serve-examples.mjs",
     "render-control": "node scripts/render-control.mjs",

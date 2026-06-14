@@ -35,7 +35,11 @@
       "@aperture-engine/webgpu/test-support": [
         "packages/webgpu/src/test-support.ts"
       ],
-      "@aperture-engine/webgpu": ["packages/webgpu/src/index.ts"]
+      "@aperture-engine/webgpu": ["packages/webgpu/src/index.ts"],
+      "@aperture-engine/audio": ["packages/audio/src/index.ts"],
+      "@aperture-engine/audio/test-support": [
+        "packages/audio/src/test-support.ts"
+      ]
     }
   },
   "include": [

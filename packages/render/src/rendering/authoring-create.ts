@@ -1,3 +1,4 @@
+export * from "./authoring-create-audio.js";
 export * from "./authoring-create-camera-light.js";
 export * from "./authoring-create-effects.js";
 export * from "./authoring-create-interaction.js";

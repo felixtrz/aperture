@@ -3766,6 +3766,12 @@ suggestedFix accompanies it, and where it is emitted.
 | --------------------------- | ------------------------------------------- | ---- | --------------------------------------------------- |
 | `queueSubmit.missingSubmit` | WebGPU queue cannot submit command buffers. | —    | `packages/webgpu/src/render/queues/queue-submit.ts` |
 
+## render.audio (1)
+
+| Code                           | Message                                       | Fix? | Emitted from                                            |
+| ------------------------------ | --------------------------------------------- | ---- | ------------------------------------------------------- |
+| `render.audio.oneShotOverflow` | Dropped … one-shot(s): queue at capacity (…). | —    | `packages/render/src/rendering/audio-one-shot-queue.ts` |
+
 ## render.standardMaterialTexture (1)
 
 | Code                                              | Message                                                                                                      | Fix? | Emitted from                                                               |

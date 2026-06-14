@@ -1,5 +1,7 @@
 import type { EcsWorld } from "@aperture-engine/simulation";
 import {
+  AudioEmitter,
+  AudioListener,
   Camera,
   Fog,
   InstanceData,
@@ -43,6 +45,8 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(MaterialSlots);
   world.registerComponent(Sprite);
   world.registerComponent(ParticleEmitter);
+  world.registerComponent(AudioEmitter);
+  world.registerComponent(AudioListener);
   world.registerComponent(UiScreen);
   world.registerComponent(UiNode);
   world.registerComponent(UiPanel);

@@ -52,6 +52,8 @@ import {
   LightCookie,
   LightKind,
   LightShadowSettings,
+  AudioEmitter,
+  AudioListener,
   Material,
   MaterialSlots,
   Mesh,
@@ -83,6 +85,8 @@ import {
   createMaterialSlots,
   createMorphTargetWeights,
   createOcclusionQuery,
+  createAudioEmitter,
+  createAudioListener,
   createParticleEmitter,
   createSkin,
   createSprite,
@@ -108,6 +112,8 @@ import {
   type LightShadowSettingsInput,
   type MaterialSlotsInput,
   type MorphTargetWeightsInput,
+  type AudioEmitterInput,
+  type AudioListenerInput,
   type OcclusionQueryInput,
   type ParticleEmitterInput,
   type RenderSnapshot,
@@ -423,6 +429,24 @@ export function withParticleEmitter(
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(ParticleEmitter, createParticleEmitter(input));
+  };
+}
+
+export function withAudioEmitter(
+  input: AudioEmitterInput,
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(AudioEmitter, createAudioEmitter(input));
+  };
+}
+
+export function withAudioListener(
+  input: AudioListenerInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(AudioListener, createAudioListener(input));
   };
 }
 

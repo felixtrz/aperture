@@ -5,6 +5,9 @@ import {
 } from "@aperture-engine/simulation";
 
 import {
+  AudioDistanceModel,
+  AudioPanningModel,
+  AudioSimulationSpace,
   FogMode,
   ParticleSimulationSpace,
   SpriteBillboardMode,
@@ -107,6 +110,63 @@ export const ParticleEmitter = defineComponent(
     visible: { type: EcsType.Boolean, default: true },
   },
   "Renderer-independent GPU particle emitter authoring. ECS owns playback intent, seeds, reset epochs, bounds, and effect handles; live particle buffers remain WebGPU-owned.",
+);
+
+export const AudioEmitter = defineComponent(
+  "aperture.render.audioEmitter",
+  {
+    clipId: { type: EcsType.String, default: "" },
+    busId: { type: EcsType.String, default: "sfx" },
+    gain: { type: EcsType.Float32, default: 1 },
+    timeScale: { type: EcsType.Float32, default: 1 },
+    loop: { type: EcsType.Boolean, default: false },
+    autoplay: { type: EcsType.Boolean, default: false },
+    playEpoch: { type: EcsType.Int32, default: 0 },
+    stopEpoch: { type: EcsType.Int32, default: 0 },
+    seed: { type: EcsType.Int32, default: 1 },
+    priority: { type: EcsType.Int32, default: 0 },
+    muted: { type: EcsType.Boolean, default: false },
+    offsetSec: { type: EcsType.Float32, default: 0 },
+    loopStart: { type: EcsType.Float32, default: 0 },
+    loopEnd: { type: EcsType.Float32, default: 0 },
+    simulationSpace: {
+      type: EcsType.Enum,
+      enum: AudioSimulationSpace,
+      default: AudioSimulationSpace.World,
+    },
+    panningModel: {
+      type: EcsType.Enum,
+      enum: AudioPanningModel,
+      default: AudioPanningModel.EqualPower,
+    },
+    distanceModel: {
+      type: EcsType.Enum,
+      enum: AudioDistanceModel,
+      default: AudioDistanceModel.Inverse,
+    },
+    refDistance: { type: EcsType.Float32, default: 1 },
+    maxDistance: { type: EcsType.Float32, default: 10000 },
+    rolloffFactor: { type: EcsType.Float32, default: 1 },
+    coneInnerAngle: { type: EcsType.Float32, default: 360 },
+    coneOuterAngle: { type: EcsType.Float32, default: 360 },
+    coneOuterGain: { type: EcsType.Float32, default: 0 },
+    boundsCenter: { type: EcsType.Vec3, default: [0, 0, 0] },
+    audibilityRadius: { type: EcsType.Float32, default: 1 },
+    occlusion: { type: EcsType.Float32, default: 0 },
+    active: { type: EcsType.Boolean, default: true },
+  },
+  "Renderer-independent audio emitter authoring. ECS owns playback intent, epochs, seeds, gain, bus routing, " +
+    "and clip handles; live AudioBufferSourceNodes/PannerNodes remain Web-Audio-owned on the main thread.",
+);
+
+export const AudioListener = defineComponent(
+  "aperture.render.audioListener",
+  {
+    active: { type: EcsType.Boolean, default: true },
+    masterGain: { type: EcsType.Float32, default: 1 },
+  },
+  "Marks the entity (usually the Camera) whose WORLD transform drives the Web Audio listener pose. " +
+    "Pose comes from the WORLD matrix basis (not the inverted view matrix). No AudioContext.listener node lives here.",
 );
 
 export const UiScreen = defineComponent(
