@@ -135,6 +135,12 @@ export interface AudioEngine {
   setAudioOffset(seconds: number): void;
   /** Collapse the master output to mono (accessibility), or restore stereo. */
   setMonoDownmix(mono: boolean): void;
+  /**
+   * Upgrade the master limiter to an AudioWorklet brickwall. Resolves true when
+   * inserted; false when the worklet/SAB isolation is unavailable (the master
+   * `DynamicsCompressor` limiter stays in place — the degraded path).
+   */
+  enableWorkletLimiter(): Promise<boolean>;
   /** Subscribe to clip start/end events (captions/accessibility). */
   onClipEvent(listener: (event: AudioClipEvent) => void): () => void;
   /** Snapshot of engine state for HUDs / diagnostics. */
@@ -253,6 +259,14 @@ export function createAudioEngine(
     },
     setMonoDownmix(mono) {
       mixer.setMonoDownmix(mono);
+    },
+    async enableWorkletLimiter() {
+      const node = await backend.createWorkletLimiter();
+      if (node === null) {
+        return false;
+      }
+      mixer.setMasterTail(node);
+      return true;
     },
     onClipEvent(listener) {
       clipListeners.add(listener);

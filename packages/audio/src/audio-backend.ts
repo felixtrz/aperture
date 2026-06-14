@@ -40,7 +40,33 @@ export interface AudioBackend {
   createConvolver(): ConvolverNode;
   createAnalyser(): AnalyserNode;
   createCompressor(): DynamicsCompressorNode;
+  /**
+   * Try to build an AudioWorklet brickwall limiter node; resolves null when the
+   * worklet API / cross-origin isolation is unavailable (degrade to compressor).
+   */
+  createWorkletLimiter(): Promise<AudioNode | null>;
 }
+
+/** Inline AudioWorklet brickwall limiter — hard-clamps samples to ±0.99. */
+const BRICKWALL_PROCESSOR = `
+registerProcessor("aperture-brickwall-limiter", class extends AudioWorkletProcessor {
+  process(inputs, outputs) {
+    const input = inputs[0];
+    const output = outputs[0];
+    if (!output) return true;
+    for (let c = 0; c < output.length; c++) {
+      const oc = output[c];
+      const ic = input ? input[c] : undefined;
+      if (!oc) continue;
+      for (let i = 0; i < oc.length; i++) {
+        const s = ic ? ic[i] : 0;
+        oc[i] = s > 0.99 ? 0.99 : s < -0.99 ? -0.99 : s;
+      }
+    }
+    return true;
+  }
+});
+`;
 
 /** A streamed media-element source: its graph node plus transport controls. */
 export interface StreamingSource {
@@ -128,6 +154,30 @@ export function createWebAudioBackend(
     createConvolver: () => context.createConvolver(),
     createAnalyser: () => context.createAnalyser(),
     createCompressor: () => context.createDynamicsCompressor(),
+    createWorkletLimiter: async () => {
+      const worklet = (
+        context as unknown as {
+          audioWorklet?: { addModule(url: string): Promise<void> };
+        }
+      ).audioWorklet;
+      if (worklet === undefined || typeof AudioWorkletNode === "undefined") {
+        return null;
+      }
+      try {
+        const blob = new Blob([BRICKWALL_PROCESSOR], {
+          type: "text/javascript",
+        });
+        const url = URL.createObjectURL(blob);
+        await worklet.addModule(url);
+        URL.revokeObjectURL(url);
+        return new AudioWorkletNode(
+          context as unknown as BaseAudioContext,
+          "aperture-brickwall-limiter",
+        );
+      } catch {
+        return null;
+      }
+    },
   };
 }
 

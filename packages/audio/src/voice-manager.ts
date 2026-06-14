@@ -400,9 +400,10 @@ export function createVoiceManager(
       updatePanner(voice.panner, packet, transforms, frameDelta);
     }
     applyPlaybackRate(voice, packet, transforms, frameDelta);
+    const occlusion = Number.isFinite(packet.occlusion) ? packet.occlusion : 0;
     const cutoff =
       OCCLUSION_MAX_HZ -
-      (OCCLUSION_MAX_HZ - OCCLUSION_MIN_HZ) * clampNum(packet.occlusion, 0, 1);
+      (OCCLUSION_MAX_HZ - OCCLUSION_MIN_HZ) * clampNum(occlusion, 0, 1);
     voice.occluder.frequency.linearRampToValueAtTime(
       cutoff,
       backend.currentTime + frameDelta,

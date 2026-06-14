@@ -359,4 +359,9 @@ export class FakeAudioBackend implements AudioBackend {
     this.created.compressors.push(node);
     return node as unknown as DynamicsCompressorNode;
   }
+
+  async createWorkletLimiter(): Promise<AudioNode | null> {
+    // No AudioWorklet in the fake — exercises the degrade-to-compressor path.
+    return null;
+  }
 }

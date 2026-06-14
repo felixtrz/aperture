@@ -138,6 +138,7 @@ try {
         coneInnerAngle: 360,
         coneOuterAngle: 360,
         coneOuterGain: 0,
+        occlusion: 0,
         offsetSec: 0,
         loopStart: 0,
         loopEnd: 0,
@@ -153,6 +154,15 @@ try {
       let sum = 0;
       for (let i = 0; i < channel.length; i++) sum += channel[i] * channel[i];
       return Math.sqrt(sum / channel.length);
+    }
+
+    function peak(channel) {
+      let max = 0;
+      for (let i = 0; i < channel.length; i++) {
+        const a = Math.abs(channel[i]);
+        if (a > max) max = a;
+      }
+      return max;
     }
 
     async function render(emitters, listener, transforms, seconds) {
@@ -174,9 +184,12 @@ try {
       // Let the async decodeAudioData + deferred source-start settle, then render.
       await new Promise((r) => setTimeout(r, 30));
       const buffer = await ctx.startRendering();
+      const l = buffer.getChannelData(0);
+      const r = buffer.getChannelData(1);
       return {
-        left: rms(buffer.getChannelData(0)),
-        right: rms(buffer.getChannelData(1)),
+        left: rms(l),
+        right: rms(r),
+        peak: Math.max(peak(l), peak(r)),
       };
     }
 
@@ -203,14 +216,24 @@ try {
       0.5,
     );
 
-    return { nonSilent, right, left };
+    // (3) Master limiter: a 4x over-unity one-shot is hard-limited near unity
+    // (raw peak would be ~2.0 for a 0.5-amplitude source at gain 4).
+    const normal = await render([emitter()], undefined, pose(0, 0, 0), 0.5);
+    const loud = await render(
+      [emitter({ gain: 4 })],
+      undefined,
+      pose(0, 0, 0),
+      0.5,
+    );
+
+    return { nonSilent, right, left, normal, loud };
   });
 
   if (errors.length > 0) {
     fail(`page errors: ${errors.join("; ")}`);
   }
 
-  const { nonSilent, right, left } = results;
+  const { nonSilent, right, left, normal, loud } = results;
   check("non-silent one-shot (AU-3/4)", nonSilent.left > 0.02, nonSilent);
   check(
     "emitter at +X is louder on the right (AU-6/7)",
@@ -221,6 +244,11 @@ try {
     "emitter at -X is louder on the left (AU-6/7)",
     left.left > left.right * 1.2,
     left,
+  );
+  check(
+    "master limiter hard-limits 4x over-unity input near unity (AU-13)",
+    loud.peak < 1.3 && loud.peak > normal.peak,
+    { normalPeak: normal.peak, loudPeak: loud.peak },
   );
 } finally {
   await browser.close();

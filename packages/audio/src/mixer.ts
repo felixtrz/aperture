@@ -37,6 +37,8 @@ export interface AudioMixer {
   setMasterGain(value: number, rampSec?: number): void;
   /** Collapse the master output to mono (accessibility) or restore stereo. */
   setMonoDownmix(mono: boolean): void;
+  /** Insert a post-limiter master tail node (e.g. a worklet limiter), or clear. */
+  setMasterTail(node: AudioNode | null): void;
   /** Set a bus gain with a click-free ramp (instant when `rampSec <= 0`). */
   setBusGain(bus: AudioBusId, value: number, rampSec?: number): void;
   getMasterGain(): number;
@@ -136,6 +138,7 @@ export function createAudioMixer(
   let masterTarget = clampGain(options.masterGain ?? 1);
   masterGainNode.gain.value = masterTarget;
 
+  let masterTail: AudioNode | null = null;
   let disposed = false;
 
   function requireBusGain(bus: AudioBusId): GainNode {
@@ -179,6 +182,17 @@ export function createAudioMixer(
     setMonoDownmix(mono) {
       masterGainNode.channelCount = mono ? 1 : 2;
       masterGainNode.channelCountMode = mono ? "explicit" : "max";
+    },
+    setMasterTail(node) {
+      limiter.disconnect();
+      masterTail?.disconnect();
+      masterTail = node;
+      if (node !== null) {
+        limiter.connect(node);
+        node.connect(backend.destination);
+      } else {
+        limiter.connect(backend.destination);
+      }
     },
     getMasterGain() {
       return masterTarget;
@@ -240,6 +254,7 @@ export function createAudioMixer(
       masterGainNode.disconnect();
       masterAnalyser.disconnect();
       limiter.disconnect();
+      masterTail?.disconnect();
     },
   };
 }
