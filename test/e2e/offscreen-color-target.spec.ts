@@ -665,16 +665,20 @@ test("renders ECS ViewPacket targets to off-screen texture and swapchain", async
   // drawCalls:1, and zero diagnostics. Both readback operations succeeded.
   expect(result.readback?.ok).toBe(true);
 
-  // We do NOT assert an exact rendered pixel: the readback of the
-  // renderSnapshot render-target-asset path is environment-dependent. Metal
-  // returns the unlit green box ~[13, 217, 46] (baseColorFactor
-  // [0.05, 0.85, 0.18]); SwiftShader-under-xvfb returns all zeros for this
-  // route (the raw-pipeline off-screen readback in the sibling tests works
-  // there, so this is specific to the material-system render-target path —
-  // tracked as a follow-up). A fixed green threshold would make CI red on
-  // SwiftShader. Instead, WHEN a backend reads back substantial content, assert
-  // it is green-dominant — this catches a real color regression (green box
-  // rendering red/blue) without depending on a backend that reads back zeros.
+  // We do NOT unconditionally assert an exact rendered pixel: the readback is
+  // ENVIRONMENT-fragile, not engine-fragile. The renderSnapshot render-target
+  // route renders correctly on every backend (verified directly on SwiftShader
+  // via forceFallbackAdapter — green box ~[13, 217, 46] for baseColorFactor
+  // [0.05, 0.85, 0.18]). But when Chrome's window/surface is occluded or
+  // throttled (headed-under-xvfb on CI; headed on a display-less dev box) the
+  // GPU process drops the whole render — the readback comes back [0,0,0,0],
+  // alpha 0, i.e. the clear color [0,0,0,1] itself is missing, while the frame
+  // report still shows readback.ok and 0 diagnostics. Anti-throttle launch
+  // flags (playwright.ci.config.ts) reduce but do not eliminate this. So:
+  // assert green-dominance ONLY when a backend actually read back content. This
+  // catches a real color regression (green box rendering red/blue) without
+  // false-failing on an environment that blanked the read. See
+  // docs/FOLLOWUP_OFFSCREEN_RENDER_TARGET_READBACK.md.
   const offscreenCenter = result.offscreenCenter ?? [];
   const offscreenSum =
     (offscreenCenter[0] ?? 0) +

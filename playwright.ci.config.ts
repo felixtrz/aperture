@@ -14,6 +14,17 @@ const swiftShaderArgs = [
   "--use-vulkan=swiftshader",
   "--enable-features=Vulkan",
   "--enable-unsafe-swiftshader",
+  // Headed Chrome under xvfb has no compositor keeping its window "visible", so
+  // the renderer is treated as occluded/backgrounded and throttled — which
+  // silently blanks WebGPU pixel readbacks to all-zero (clear color included)
+  // while the frame report still looks healthy. These flags keep the renderer
+  // eager to reduce that blanking. NOTE: a partial mitigation, not a guarantee
+  // — the blank still reproduces on a real-GPU headed surface even with these
+  // set, so pixel-readback specs keep a "assert only when content was read
+  // back" guard (see docs/FOLLOWUP_OFFSCREEN_RENDER_TARGET_READBACK.md).
+  "--disable-backgrounding-occluded-windows",
+  "--disable-renderer-backgrounding",
+  "--disable-background-timer-throttling",
 ];
 
 const isCi = process.env.CI === "true";
