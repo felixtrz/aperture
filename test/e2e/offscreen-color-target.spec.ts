@@ -673,8 +673,7 @@ test("renders ECS ViewPacket targets to off-screen texture and swapchain", async
   // throttled (headed-under-xvfb on CI; headed on a display-less dev box) the
   // GPU process drops the whole render — the readback comes back [0,0,0,0],
   // alpha 0, i.e. the clear color [0,0,0,1] itself is missing, while the frame
-  // report still shows readback.ok and 0 diagnostics. Anti-throttle launch
-  // flags (playwright.ci.config.ts) reduce but do not eliminate this. So:
+  // report still shows readback.ok and 0 diagnostics. So:
   // assert green-dominance ONLY when a backend actually read back content. This
   // catches a real color regression (green box rendering red/blue) without
   // false-failing on an environment that blanked the read. See
