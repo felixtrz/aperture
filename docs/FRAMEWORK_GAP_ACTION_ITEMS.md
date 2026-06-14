@@ -158,7 +158,7 @@ This audit verified **121 framework-comparison gaps** against current `aperture`
 
 **Biggest still-open blockers (surviving critical/high):**
 
-- **Audio (critical)** — ✅ now in-scope and largely implemented as `@aperture-engine/audio` (main-thread Web Audio, derived view of the worker ECS); see `docs/AUDIO_SUBSYSTEM_PLAN.md`. Previously classified by-design out-of-scope.
+- **Audio (critical)** — ✅ now in-scope and **fully implemented (AU-1..AU-19)** as `@aperture-engine/audio` (main-thread Web Audio, derived view of the worker ECS); see `docs/AUDIO_SUBSYSTEM_PLAN.md`. Previously classified by-design out-of-scope.
 - **CI runs only 4 of 145 e2e specs** on SwiftShader, single OS/Node (AI-19, P1) — ~97% of e2e proofs are non-gating.
 - **All packages unpublished** to npm (AI-20, P1) — engine is un-adoptable externally.
 - **No golden-image visual regression** (AI-33, P2) — color/gamma/shading drift is undetectable.
