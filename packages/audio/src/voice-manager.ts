@@ -3,7 +3,7 @@ import type {
   AudioListenerPacket,
   AudioVoiceKey,
 } from "@aperture-engine/render";
-import type { AudioBackend } from "./audio-backend.js";
+import type { AudioBackend, StreamingSource } from "./audio-backend.js";
 import type { ClipCache } from "./clip-cache.js";
 import { AUDIO_BUS_IDS, type AudioBusId, type AudioMixer } from "./mixer.js";
 
@@ -84,6 +84,8 @@ interface Voice {
   readonly panner: PannerNode | null;
   /** Per-voice occlusion lowpass (transparent at ~22kHz when open). */
   readonly occluder: BiquadFilterNode;
+  /** Streamed (MediaElement) source for streaming clips; null for buffered. */
+  stream: StreamingSource | null;
   readonly sources: Set<AudioBufferSourceNode>;
   looping: AudioBufferSourceNode | null;
   realizedEpoch: number;
@@ -366,7 +368,15 @@ export function createVoiceManager(
     const playDelta = signedDelta(packet.playEpoch, voice.realizedEpoch);
     voice.realizedEpoch = packet.playEpoch;
 
-    if (voice.loop) {
+    const streamUrl = clips.streamingUrl(voice.clipId);
+    if (streamUrl !== undefined) {
+      const shouldStartStream =
+        (firstSight && (packet.autoplay || promotion !== undefined)) ||
+        playDelta > 0;
+      if (shouldStartStream && voice.stream === null) {
+        startStreaming(voice, streamUrl, packet.loop);
+      }
+    } else if (voice.loop) {
       const wantLoop =
         ((firstSight && (packet.autoplay || promotion !== undefined)) ||
           playDelta > 0) &&
@@ -478,6 +488,7 @@ export function createVoiceManager(
       gain,
       panner,
       occluder,
+      stream: null,
       sources: new Set(),
       looping: null,
       realizedEpoch: 0,
@@ -517,6 +528,14 @@ export function createVoiceManager(
     source.start(backend.currentTime + audioOffset, offset);
     voice.sources.add(source);
     voice.looping = source;
+  }
+
+  function startStreaming(voice: Voice, url: string, loop: boolean): void {
+    const stream = backend.createStreamingSource(url);
+    stream.node.connect(voice.occluder);
+    stream.setLoop(loop);
+    stream.play();
+    voice.stream = stream;
   }
 
   function startOneShot(voice: Voice): void {
@@ -580,7 +599,7 @@ export function createVoiceManager(
   }
 
   function fadeStopSources(voice: Voice): void {
-    if (voice.sources.size === 0) {
+    if (voice.sources.size === 0 && voice.stream === null) {
       voice.looping = null;
       return;
     }
@@ -592,6 +611,11 @@ export function createVoiceManager(
     for (const source of voice.sources) {
       safeStop(source, stopAt);
     }
+    if (voice.stream !== null) {
+      voice.stream.stop();
+      voice.stream.node.disconnect();
+      voice.stream = null;
+    }
     voice.looping = null;
   }
 
@@ -601,6 +625,8 @@ export function createVoiceManager(
     voice.pendingLoop = false;
     voice.pendingOneShots = 0;
     if (voice.sources.size === 0) {
+      // No buffer sources to wait on (silent or streaming): stop + recycle now.
+      fadeStopSources(voice);
       recycle(voice);
       return;
     }
@@ -609,6 +635,11 @@ export function createVoiceManager(
 
   /** Return a freed voice's persistent subgraph to the pool (AU-8). */
   function recycle(voice: Voice): void {
+    if (voice.stream !== null) {
+      voice.stream.stop();
+      voice.stream.node.disconnect();
+      voice.stream = null;
+    }
     if (disposed) {
       voice.gain.disconnect();
       voice.panner?.disconnect();
@@ -741,6 +772,8 @@ export function createVoiceManager(
         for (const source of voice.sources) {
           safeStop(source, backend.currentTime);
         }
+        voice.stream?.stop();
+        voice.stream?.node.disconnect();
         voice.gain.disconnect();
         voice.panner?.disconnect();
         voice.occluder.disconnect();

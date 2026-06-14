@@ -28,6 +28,8 @@ export interface ClipCache {
    * runs (or for streamed / url-only clips, which are not buffer-decoded here).
    */
   acquire(clipId: string, version: number): AudioBuffer | undefined;
+  /** The streaming URL for a `streaming:true` clip, else undefined. */
+  streamingUrl(clipId: string): string | undefined;
   /** Subscribe to decode-completion (the engine flushes deferred starts). */
   onDecoded(listener: () => void): () => void;
   /** Total `decodeAudioData` calls issued — one per `(clipId, version)`. */
@@ -93,6 +95,12 @@ export function createClipCache(
         },
       );
       return undefined;
+    },
+    streamingUrl(clipId) {
+      const clip = resolve(clipId);
+      return clip !== undefined && clip.streaming && clip.url !== undefined
+        ? clip.url
+        : undefined;
     },
     onDecoded(listener) {
       listeners.add(listener);

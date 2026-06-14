@@ -33,11 +33,21 @@ export interface AudioBackend {
   createGain(): GainNode;
   createSource(): AudioBufferSourceNode;
   createMediaSource(element: HTMLMediaElement): MediaElementAudioSourceNode;
+  /** A streamed source (long music) backed by a media element — no decode. */
+  createStreamingSource(url: string): StreamingSource;
   createPanner(): PannerNode;
   createBiquad(): BiquadFilterNode;
   createConvolver(): ConvolverNode;
   createAnalyser(): AnalyserNode;
   createCompressor(): DynamicsCompressorNode;
+}
+
+/** A streamed media-element source: its graph node plus transport controls. */
+export interface StreamingSource {
+  readonly node: AudioNode;
+  play(): void;
+  stop(): void;
+  setLoop(loop: boolean): void;
 }
 
 export interface WebAudioBackendOptions {
@@ -91,6 +101,28 @@ export function createWebAudioBackend(
     createGain: () => context.createGain(),
     createSource: () => context.createBufferSource(),
     createMediaSource: (element) => context.createMediaElementSource(element),
+    createStreamingSource: (url) => {
+      const element = new Audio(url);
+      element.crossOrigin = "anonymous";
+      const node = context.createMediaElementSource(element);
+      return {
+        node,
+        play: () => {
+          void element.play();
+        },
+        stop: () => {
+          element.pause();
+          try {
+            element.currentTime = 0;
+          } catch {
+            // Not seekable yet — ignore.
+          }
+        },
+        setLoop: (loop) => {
+          element.loop = loop;
+        },
+      };
+    },
     createPanner: () => context.createPanner(),
     createBiquad: () => context.createBiquadFilter(),
     createConvolver: () => context.createConvolver(),

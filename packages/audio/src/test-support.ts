@@ -7,7 +7,7 @@
  * browser e2e layer against a real `OfflineAudioContext`; this fake exercises
  * the control logic, not the DSP.
  */
-import type { AudioBackend } from "./audio-backend.js";
+import type { AudioBackend, StreamingSource } from "./audio-backend.js";
 
 export interface ParamEvent {
   readonly method:
@@ -182,6 +182,27 @@ export class FakeMediaElementAudioSourceNode extends FakeAudioNode {
   }
 }
 
+export class FakeStreamingSource {
+  readonly node = new FakeAudioNode();
+  played = false;
+  stopped = false;
+  loop = false;
+
+  constructor(readonly url: string) {}
+
+  play(): void {
+    this.played = true;
+  }
+
+  stop(): void {
+    this.stopped = true;
+  }
+
+  setLoop(loop: boolean): void {
+    this.loop = loop;
+  }
+}
+
 export class FakeAudioListener {
   readonly positionX = new FakeAudioParam(0);
   readonly positionY = new FakeAudioParam(0);
@@ -239,6 +260,7 @@ export class FakeAudioBackend implements AudioBackend {
     biquads: [] as FakeBiquadFilterNode[],
     convolvers: [] as FakeConvolverNode[],
     mediaSources: [] as FakeMediaElementAudioSourceNode[],
+    streams: [] as FakeStreamingSource[],
   };
 
   constructor(options: FakeAudioBackendOptions = {}) {
@@ -300,6 +322,12 @@ export class FakeAudioBackend implements AudioBackend {
     const node = new FakeMediaElementAudioSourceNode(element);
     this.created.mediaSources.push(node);
     return node as unknown as MediaElementAudioSourceNode;
+  }
+
+  createStreamingSource(url: string): StreamingSource {
+    const source = new FakeStreamingSource(url);
+    this.created.streams.push(source);
+    return source as unknown as StreamingSource;
   }
 
   createPanner(): PannerNode {
