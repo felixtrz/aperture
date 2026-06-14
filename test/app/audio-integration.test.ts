@@ -111,6 +111,7 @@ describe("installGeneratedAudio (main-thread integration)", () => {
       backend,
       autoUnlock: false,
     });
+    if (audio === null) throw new Error("expected audio to install");
 
     // No snapshot yet ⇒ no voices.
     expect(audio.engine.activeVoiceCount).toBe(0);
@@ -134,6 +135,7 @@ describe("installGeneratedAudio (main-thread integration)", () => {
       backend,
       autoUnlock: false,
     });
+    if (audio === null) throw new Error("expected audio to install");
 
     expect(probe.listeners).toBe(1);
     audio.dispose();
@@ -152,6 +154,7 @@ describe("installGeneratedAudio (main-thread integration)", () => {
       backend,
       autoUnlock: false,
     });
+    if (audio === null) throw new Error("expected audio to install");
 
     emit(snap([emitter({ autoplay: true })]));
     await tick();

@@ -5,7 +5,10 @@ import type {
   AudioEmitterPacket,
   RenderSnapshot,
 } from "@aperture-engine/render";
-import { createAudioEngine, type ResolvedClip } from "@aperture-engine/audio";
+import {
+  createAudioEngineOrThrow,
+  type ResolvedClip,
+} from "@aperture-engine/audio";
 import { FakeAudioBackend } from "@aperture-engine/audio/test-support";
 
 function poseInto(out: Float32Array, offset: number, tx: number): void {
@@ -64,7 +67,7 @@ function snap(x: number, timeScale = 1): RenderSnapshot {
 
 function engine(doppler: boolean) {
   const backend = new FakeAudioBackend({ state: "running" });
-  const eng = createAudioEngine({
+  const eng = createAudioEngineOrThrow({
     backend,
     voice: { doppler },
     resolveClip: (): ResolvedClip => ({

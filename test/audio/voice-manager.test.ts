@@ -6,7 +6,10 @@ import type {
   AudioVoiceKey,
   RenderSnapshot,
 } from "@aperture-engine/render";
-import { createAudioEngine, type ResolvedClip } from "@aperture-engine/audio";
+import {
+  createAudioEngineOrThrow,
+  type ResolvedClip,
+} from "@aperture-engine/audio";
 import {
   FakeAudioBackend,
   type FakeGainNode,
@@ -65,7 +68,7 @@ function tick(): Promise<void> {
 
 function engine(maxBurstPerFrame?: number) {
   const backend = new FakeAudioBackend({ state: "running" });
-  const eng = createAudioEngine({
+  const eng = createAudioEngineOrThrow({
     backend,
     resolveClip: () => resolver(),
     ...(maxBurstPerFrame === undefined ? {} : { voice: { maxBurstPerFrame } }),

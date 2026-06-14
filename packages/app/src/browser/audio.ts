@@ -45,20 +45,26 @@ export interface GeneratedAudio {
  * derived view, not a child of the renderer), reconciling its `audioEmitters` /
  * `audioListener` into a live voice graph each frame. `frameDelta` is the
  * measured, monotonic main-thread interval; the engine clamps it to a safe ramp
- * window. Clips resolve from the mirrored source-asset registry.
+ * window. Clips resolve from the mirrored source-asset registry. Returns `null`
+ * when the AudioContext is unavailable (SSR / unsupported browser) — audio is an
+ * optional layer, so a missing context degrades gracefully instead of throwing.
  */
 export function installGeneratedAudio(
   worker: SimulationWorker,
   sourceAssets: AssetRegistry,
   options: GeneratedAudioOptions = {},
-): GeneratedAudio {
+): GeneratedAudio | null {
   const { autoUnlock = true, resolveClip, ...engineOptions } = options;
-  const engine = createAudioEngine({
+  const created = createAudioEngine({
     ...engineOptions,
     resolveClip:
       resolveClip ??
       ((clipId) => resolveClipFromRegistry(sourceAssets, clipId)),
   });
+  if (!created.ok) {
+    return null;
+  }
+  const engine = created.engine;
 
   let previousTime = monotonicNow();
   const unsubscribe = worker.onSnapshot(

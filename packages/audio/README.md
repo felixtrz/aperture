@@ -19,10 +19,16 @@ Aperture's authoritative simulation runs in a worker; this package is the main-t
 ```ts
 import { createAudioEngine } from "@aperture-engine/audio";
 
-const engine = createAudioEngine({
+// Returns a discriminated result so a missing/blocked AudioContext is graceful.
+const created = createAudioEngine({
   // Resolve a clip id (e.g. "audio-clip:boom") to encoded bytes + metadata.
   resolveClip: (clipId) => clipRegistry.get(clipId),
 });
+if (!created.ok) {
+  // No AudioContext (SSR / unsupported browser); run without audio.
+  return;
+}
+const engine = created.engine;
 
 // Resume the AudioContext on the first user gesture (autoplay policy).
 canvas.addEventListener("pointerdown", () => engine.unlock(), { once: true });

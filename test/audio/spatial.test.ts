@@ -6,7 +6,10 @@ import type {
   AudioListenerPacket,
   RenderSnapshot,
 } from "@aperture-engine/render";
-import { createAudioEngine, type ResolvedClip } from "@aperture-engine/audio";
+import {
+  createAudioEngineOrThrow,
+  type ResolvedClip,
+} from "@aperture-engine/audio";
 import {
   FakeAudioBackend,
   type FakeBiquadFilterNode,
@@ -81,7 +84,10 @@ function resolver(): ResolvedClip {
 
 function engine() {
   const backend = new FakeAudioBackend({ state: "running" });
-  const eng = createAudioEngine({ backend, resolveClip: () => resolver() });
+  const eng = createAudioEngineOrThrow({
+    backend,
+    resolveClip: () => resolver(),
+  });
   return { backend, eng };
 }
 

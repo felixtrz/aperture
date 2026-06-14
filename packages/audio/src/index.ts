@@ -149,12 +149,40 @@ export interface AudioEngine {
   dispose(): void;
 }
 
+/** Discriminated result of {@link createAudioEngine} (mirrors createWebGpuApp). */
+export type CreateAudioEngineResult =
+  | { readonly ok: true; readonly engine: AudioEngine }
+  | {
+      readonly ok: false;
+      readonly reason: "audio-context-unavailable";
+      readonly message: string;
+    };
+
+/**
+ * Create the main-thread audio engine. Returns a discriminated result instead of
+ * throwing, so a missing/blocked `AudioContext` (SSR, unsupported browser) is a
+ * graceful `{ ok: false }` rather than a crash. Inject a `backend` (e.g. the
+ * test fake) and it never fails. See {@link createAudioEngineOrThrow} for the
+ * simple/unwrapped form.
+ */
 export function createAudioEngine(
   options: AudioEngineOptions = {},
-): AudioEngine {
+): CreateAudioEngineResult {
+  let backend: AudioBackend;
+  try {
+    backend = options.backend ?? createWebAudioBackend(options.web ?? {});
+  } catch (error) {
+    return {
+      ok: false,
+      reason: "audio-context-unavailable",
+      message:
+        error instanceof Error
+          ? error.message
+          : "The Web Audio API is unavailable in this environment.",
+    };
+  }
   const resolveClip = options.resolveClip ?? (() => undefined);
   const clipListeners = new Set<(event: AudioClipEvent) => void>();
-  const backend = options.backend ?? createWebAudioBackend(options.web ?? {});
   const mixer = createAudioMixer(backend, options.mixer ?? {});
   const clips = createClipCache(backend, resolveClip);
   const voices = createVoiceManager(backend, mixer, clips, {
@@ -188,7 +216,7 @@ export function createAudioEngine(
   let resumePending = false;
   const pausedBuses = options.pausedBuses ?? ["sfx", "voice", "ambient"];
 
-  return {
+  const engine: AudioEngine = {
     backend,
     mixer,
     clips,
@@ -298,6 +326,23 @@ export function createAudioEngine(
       mixer.dispose();
     },
   };
+
+  return { ok: true, engine };
+}
+
+/**
+ * Unwrapped {@link createAudioEngine}: returns the engine directly and throws if
+ * the AudioContext is unavailable. Convenient when a backend is injected (tests)
+ * or when a missing context should be fatal.
+ */
+export function createAudioEngineOrThrow(
+  options: AudioEngineOptions = {},
+): AudioEngine {
+  const result = createAudioEngine(options);
+  if (!result.ok) {
+    throw new Error(result.message);
+  }
+  return result.engine;
 }
 
 function clampRamp(frameDelta: number): number {

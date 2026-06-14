@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createAudioEngine } from "@aperture-engine/audio";
+import { createAudioEngineOrThrow } from "@aperture-engine/audio";
 import {
   FakeAudioBackend,
   type FakeGainNode,
@@ -16,7 +16,7 @@ const BUS_GAIN_INDEX = {
 describe("game pause + diagnostics (AU-16/19)", () => {
   it("pause silences sfx/ambient but keeps music playing; resume restores", () => {
     const backend = new FakeAudioBackend({ state: "running" });
-    const eng = createAudioEngine({ backend });
+    const eng = createAudioEngineOrThrow({ backend });
     const sfx = backend.created.gains[BUS_GAIN_INDEX.sfx] as FakeGainNode;
     const music = backend.created.gains[BUS_GAIN_INDEX.music] as FakeGainNode;
     const ambient = backend.created.gains[
@@ -34,7 +34,7 @@ describe("game pause + diagnostics (AU-16/19)", () => {
 
   it("exposes a diagnostics summary", () => {
     const backend = new FakeAudioBackend({ state: "running" });
-    const eng = createAudioEngine({ backend });
+    const eng = createAudioEngineOrThrow({ backend });
 
     const diag = eng.diagnostics();
     expect(diag.state).toBe("running");
@@ -47,7 +47,7 @@ describe("game pause + diagnostics (AU-16/19)", () => {
   it("setAudioOffset shifts a one-shot's scheduled start time", async () => {
     const backend = new FakeAudioBackend({ state: "running" });
     backend.advanceTime(1);
-    const eng = createAudioEngine({
+    const eng = createAudioEngineOrThrow({
       backend,
       resolveClip: () => ({
         bytes: new ArrayBuffer(16),

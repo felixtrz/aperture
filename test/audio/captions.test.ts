@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { AudioClipEvent, ResolvedClip } from "@aperture-engine/audio";
-import { createAudioEngine } from "@aperture-engine/audio";
+import { createAudioEngineOrThrow } from "@aperture-engine/audio";
 import {
   FakeAudioBackend,
   type FakeGainNode,
@@ -54,7 +54,7 @@ describe("caption hook + mono downmix (AU-18)", () => {
   it("emits a clip start event carrying the captionTrackId", async () => {
     const backend = new FakeAudioBackend({ state: "running" });
     const events: AudioClipEvent[] = [];
-    const eng = createAudioEngine({
+    const eng = createAudioEngineOrThrow({
       backend,
       resolveClip: (clipId): ResolvedClip => ({
         bytes: new ArrayBuffer(16),
@@ -76,7 +76,7 @@ describe("caption hook + mono downmix (AU-18)", () => {
 
   it("collapses the master to mono and restores stereo", () => {
     const backend = new FakeAudioBackend({ state: "running" });
-    const eng = createAudioEngine({ backend });
+    const eng = createAudioEngineOrThrow({ backend });
     const master = backend.created.gains[0] as FakeGainNode;
 
     eng.setMonoDownmix(true);

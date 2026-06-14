@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { createAudioEngine } from "@aperture-engine/audio";
+import { createAudioEngineOrThrow } from "@aperture-engine/audio";
 import { FakeAudioBackend } from "@aperture-engine/audio/test-support";
 
 describe("audio engine lifecycle", () => {
   it("unlocks a suspended context by resuming it", async () => {
     const backend = new FakeAudioBackend({ state: "suspended" });
-    const engine = createAudioEngine({ backend });
+    const engine = createAudioEngineOrThrow({ backend });
 
     expect(engine.state).toBe("suspended");
     await engine.unlock();
@@ -15,7 +15,7 @@ describe("audio engine lifecycle", () => {
 
   it("is idempotent: unlocking a running context does nothing", async () => {
     const backend = new FakeAudioBackend({ state: "running" });
-    const engine = createAudioEngine({ backend });
+    const engine = createAudioEngineOrThrow({ backend });
 
     await engine.unlock();
     expect(engine.state).toBe("running");
@@ -23,7 +23,7 @@ describe("audio engine lifecycle", () => {
 
   it("suspends and resumes around the running state", async () => {
     const backend = new FakeAudioBackend();
-    const engine = createAudioEngine({ backend });
+    const engine = createAudioEngineOrThrow({ backend });
 
     await engine.unlock();
     await engine.suspend();
@@ -34,7 +34,7 @@ describe("audio engine lifecycle", () => {
 
   it("delegates gain control to the mixer", () => {
     const backend = new FakeAudioBackend();
-    const engine = createAudioEngine({ backend });
+    const engine = createAudioEngineOrThrow({ backend });
 
     engine.setBusGain("music", 0.3, 0.02);
     expect(engine.mixer.getBusGain("music")).toBeCloseTo(0.3);
@@ -45,7 +45,7 @@ describe("audio engine lifecycle", () => {
 
   it("exposes FFT taps and disposes idempotently", () => {
     const backend = new FakeAudioBackend();
-    const engine = createAudioEngine({ backend });
+    const engine = createAudioEngineOrThrow({ backend });
 
     expect(engine.analyser("master")).toBeDefined();
     expect(engine.analyser("sfx")).toBeDefined();
@@ -56,7 +56,7 @@ describe("audio engine lifecycle", () => {
 
   it("honours initial bus and master gains from options", () => {
     const backend = new FakeAudioBackend();
-    const engine = createAudioEngine({
+    const engine = createAudioEngineOrThrow({
       backend,
       mixer: { masterGain: 0.5, busGains: { music: 0.25 } },
     });

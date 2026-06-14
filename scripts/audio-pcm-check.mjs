@@ -65,7 +65,7 @@ try {
 
   const results = await page.evaluate(async () => {
     const SR = 48000;
-    const { createAudioEngine } = window.ApertureAudio;
+    const { createAudioEngineOrThrow } = window.ApertureAudio;
 
     // 16-bit PCM mono WAV of a sine — valid encoded bytes for decodeAudioData.
     function makeWav(freq, durSec) {
@@ -167,7 +167,7 @@ try {
 
     async function render(emitters, listener, transforms, seconds) {
       const ctx = new OfflineAudioContext(2, Math.floor(SR * seconds), SR);
-      const engine = createAudioEngine({
+      const engine = createAudioEngineOrThrow({
         web: { context: ctx },
         resolveClip: () => ({
           bytes: makeWav(440, 1),

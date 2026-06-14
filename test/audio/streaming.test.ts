@@ -5,7 +5,10 @@ import type {
   AudioEmitterPacket,
   RenderSnapshot,
 } from "@aperture-engine/render";
-import { createAudioEngine, type ResolvedClip } from "@aperture-engine/audio";
+import {
+  createAudioEngineOrThrow,
+  type ResolvedClip,
+} from "@aperture-engine/audio";
 import {
   FakeAudioBackend,
   type FakeStreamingSource,
@@ -57,7 +60,7 @@ function snap(e: AudioEmitterPacket[]): RenderSnapshot {
 
 function engine() {
   const backend = new FakeAudioBackend({ state: "running" });
-  const eng = createAudioEngine({
+  const eng = createAudioEngineOrThrow({
     backend,
     resolveClip: (): ResolvedClip => ({
       url: "https://example/theme.ogg",

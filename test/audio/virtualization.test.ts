@@ -6,7 +6,7 @@ import type {
   RenderSnapshot,
 } from "@aperture-engine/render";
 import {
-  createAudioEngine,
+  createAudioEngineOrThrow,
   type AudioBusId,
   type ResolvedClip,
   type VoiceManagerOptions,
@@ -83,7 +83,7 @@ function worldSnap(specs: Spec[]): RenderSnapshot {
 
 function engine(voice: VoiceManagerOptions) {
   const backend = new FakeAudioBackend({ state: "running" });
-  const eng = createAudioEngine({
+  const eng = createAudioEngineOrThrow({
     backend,
     voice,
     resolveClip: (): ResolvedClip => ({

@@ -5,7 +5,10 @@ import type {
   AudioEmitterPacket,
   RenderSnapshot,
 } from "@aperture-engine/render";
-import { createAudioEngine, createAudioMixer } from "@aperture-engine/audio";
+import {
+  createAudioEngineOrThrow,
+  createAudioMixer,
+} from "@aperture-engine/audio";
 import {
   FakeAudioBackend,
   type FakeGainNode,
@@ -98,7 +101,7 @@ function snap(emitters: AudioEmitterPacket[]): RenderSnapshot {
 describe("auto-duck (AU-11)", () => {
   it("ducks music while a dialogue voice plays and recovers when it stops", () => {
     const backend = new FakeAudioBackend({ state: "running" });
-    const eng = createAudioEngine({
+    const eng = createAudioEngineOrThrow({
       backend,
       resolveClip: () => ({
         bytes: new ArrayBuffer(16),

@@ -6,7 +6,10 @@ import type {
   AudioVoiceKey,
   RenderSnapshot,
 } from "@aperture-engine/render";
-import { createAudioEngine, type ResolvedClip } from "@aperture-engine/audio";
+import {
+  createAudioEngineOrThrow,
+  type ResolvedClip,
+} from "@aperture-engine/audio";
 import {
   FakeAudioBackend,
   type FakeAudioBufferSourceNode,
@@ -64,7 +67,10 @@ const tick = (): Promise<void> =>
 describe("audio fixes", () => {
   it("applies the authored loop window (loopStart/loopEnd) to the looping source", async () => {
     const backend = new FakeAudioBackend({ state: "running" });
-    const eng = createAudioEngine({ backend, resolveClip: () => resolver() });
+    const eng = createAudioEngineOrThrow({
+      backend,
+      resolveClip: () => resolver(),
+    });
 
     eng.applySnapshot(
       snap([
@@ -84,7 +90,10 @@ describe("audio fixes", () => {
 
   it("does NOT set a loop window when loopEnd <= loopStart (loops whole buffer)", async () => {
     const backend = new FakeAudioBackend({ state: "running" });
-    const eng = createAudioEngine({ backend, resolveClip: () => resolver() });
+    const eng = createAudioEngineOrThrow({
+      backend,
+      resolveClip: () => resolver(),
+    });
 
     eng.applySnapshot(
       snap([emitter({ loop: true, autoplay: true, loopStart: 0, loopEnd: 0 })]),
@@ -102,7 +111,7 @@ describe("audio fixes", () => {
 
   it("defers one-shot burst overflow across frames instead of dropping triggers", async () => {
     const backend = new FakeAudioBackend({ state: "running" });
-    const eng = createAudioEngine({
+    const eng = createAudioEngineOrThrow({
       backend,
       resolveClip: () => resolver(),
       voice: { maxBurstPerFrame: 4 },
