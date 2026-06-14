@@ -12,11 +12,10 @@ import {
   type WebGpuCanvasLike,
 } from "@aperture-engine/webgpu";
 import { defineApertureConfig, type ApertureConfig } from "../config.js";
-import {
-  installGeneratedAudio,
-  type GeneratedAudio,
-  type GeneratedAudioOptions,
-} from "./audio.js";
+// Type-only: the audio module is imported DYNAMICALLY below, only when audio is
+// enabled, so a non-audio app (and every example whose import map omits
+// @aperture-engine/audio) never loads it.
+import type { GeneratedAudio, GeneratedAudioOptions } from "./audio.js";
 import { mirrorSimulationWorkerSourceAssets } from "./assets.js";
 import { resolveCanvas, installCanvasResizeSync } from "./canvas.js";
 import { installGeneratedCommandForwarding } from "./commands.js";
@@ -125,15 +124,18 @@ export async function startGeneratedBrowserApp(
   // Audio is a sibling derived view: it subscribes to the same worker snapshots.
   // The renderer's asset-mirroring subscription is registered first (createWebGpuApp
   // autoStart, above), so by the time this raw-worker subscription fires each
-  // frame, `sourceAssets` already holds the mirrored audio-clip bytes.
-  const audio =
-    options.audio === undefined || options.audio === false
-      ? null
-      : installGeneratedAudio(
-          worker,
-          sourceAssets,
-          options.audio === true ? {} : options.audio,
-        );
+  // frame, `sourceAssets` already holds the mirrored audio-clip bytes. The audio
+  // module is imported dynamically only when enabled, so a non-audio app never
+  // loads @aperture-engine/audio.
+  let audio: GeneratedAudio | null = null;
+  if (options.audio !== undefined && options.audio !== false) {
+    const { installGeneratedAudio } = await import("./audio.js");
+    audio = installGeneratedAudio(
+      worker,
+      sourceAssets,
+      options.audio === true ? {} : options.audio,
+    );
+  }
 
   return {
     worker,
