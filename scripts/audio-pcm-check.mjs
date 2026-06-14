@@ -115,6 +115,27 @@ try {
       1,
     ];
 
+    // Identity rotated 180° about Y (forward = +Z), so a source at +Z faces
+    // AWAY from a listener at the origin — the off-axis case for the cone oracle.
+    const poseAwayY = (tx, ty, tz) => [
+      -1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      -1,
+      0,
+      tx,
+      ty,
+      tz,
+      1,
+    ];
+
     function emitter(over) {
       return {
         key: { kind: "entity", id: 1 },
@@ -226,14 +247,37 @@ try {
       0.5,
     );
 
-    return { nonSilent, right, left, normal, loud };
+    // (4) Directional cone: a source FACING the listener is far louder than the
+    // same source FACING AWAY (off-axis → coneOuterGain).
+    const cone = {
+      simulationSpace: "world",
+      refDistance: 4,
+      coneInnerAngle: 40,
+      coneOuterAngle: 90,
+      coneOuterGain: 0.05,
+    };
+    const coneToward = await render(
+      [emitter(cone)],
+      listener,
+      [...pose(0, 0, 8), ...pose(0, 0, 0)],
+      0.5,
+    );
+    const coneAway = await render(
+      [emitter(cone)],
+      listener,
+      [...poseAwayY(0, 0, 8), ...pose(0, 0, 0)],
+      0.5,
+    );
+
+    return { nonSilent, right, left, normal, loud, coneToward, coneAway };
   });
 
   if (errors.length > 0) {
     fail(`page errors: ${errors.join("; ")}`);
   }
 
-  const { nonSilent, right, left, normal, loud } = results;
+  const { nonSilent, right, left, normal, loud, coneToward, coneAway } =
+    results;
   check("non-silent one-shot (AU-3/4)", nonSilent.left > 0.02, nonSilent);
   check(
     "emitter at +X is louder on the right (AU-6/7)",
@@ -249,6 +293,15 @@ try {
     "master limiter hard-limits 4x over-unity input near unity (AU-13)",
     loud.peak < 1.3 && loud.peak > normal.peak,
     { normalPeak: normal.peak, loudPeak: loud.peak },
+  );
+  check(
+    "directional cone: facing the listener is far louder than facing away (AU-7)",
+    coneToward.left + coneToward.right >
+      (coneAway.left + coneAway.right) * 2 + 0.01,
+    {
+      toward: coneToward.left + coneToward.right,
+      away: coneAway.left + coneAway.right,
+    },
   );
 } finally {
   await browser.close();
