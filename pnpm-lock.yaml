@@ -105,9 +105,6 @@ importers:
       '@aperture-engine/render':
         specifier: workspace:^
         version: link:../render
-      '@aperture-engine/simulation':
-        specifier: workspace:^
-        version: link:../simulation
 
   packages/cli:
     dependencies:

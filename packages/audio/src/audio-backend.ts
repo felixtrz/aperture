@@ -56,7 +56,10 @@ registerProcessor("aperture-brickwall-limiter", class extends AudioWorkletProces
     if (!output) return true;
     for (let c = 0; c < output.length; c++) {
       const oc = output[c];
-      const ic = input ? input[c] : undefined;
+      // When the upstream is mono (e.g. the accessibility mono-downmix), input
+      // has one channel; fall back to channel 0 so every output channel carries
+      // the signal instead of writing silence to the right channel.
+      const ic = input ? input[c] || input[0] : undefined;
       if (!oc) continue;
       for (let i = 0; i < oc.length; i++) {
         const s = ic ? ic[i] : 0;
@@ -95,6 +98,10 @@ export function createWebAudioBackend(
   options: WebAudioBackendOptions = {},
 ): AudioBackend {
   const context = options.context ?? createBrowserContext(options);
+  // A given processor name can only be registered once per context; track it so
+  // re-enabling the worklet limiter on a shared/reused context is idempotent
+  // instead of throwing "already registered" and silently degrading.
+  let workletModuleAdded = false;
 
   return {
     get currentTime(): number {
@@ -137,12 +144,17 @@ export function createWebAudioBackend(
           void element.play();
         },
         stop: () => {
+          // stop() is terminal here — the voice discards the stream right after —
+          // so release the network/media resource, not just pause it. Clearing
+          // `src` + load() lets the browser tear down the underlying HTMLMediaElement.
           element.pause();
           try {
             element.currentTime = 0;
           } catch {
             // Not seekable yet — ignore.
           }
+          element.removeAttribute("src");
+          element.load();
         },
         setLoop: (loop) => {
           element.loop = loop;
@@ -164,12 +176,15 @@ export function createWebAudioBackend(
         return null;
       }
       try {
-        const blob = new Blob([BRICKWALL_PROCESSOR], {
-          type: "text/javascript",
-        });
-        const url = URL.createObjectURL(blob);
-        await worklet.addModule(url);
-        URL.revokeObjectURL(url);
+        if (!workletModuleAdded) {
+          const blob = new Blob([BRICKWALL_PROCESSOR], {
+            type: "text/javascript",
+          });
+          const url = URL.createObjectURL(blob);
+          await worklet.addModule(url);
+          URL.revokeObjectURL(url);
+          workletModuleAdded = true;
+        }
         return new AudioWorkletNode(
           context as unknown as BaseAudioContext,
           "aperture-brickwall-limiter",

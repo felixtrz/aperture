@@ -1,6 +1,7 @@
 import {
   assetHandleKey,
   type ComponentInitialData,
+  type Entity,
 } from "@aperture-engine/simulation";
 import {
   AudioDistanceModel,
@@ -9,7 +10,8 @@ import {
   type AudioEmitterInput,
   type AudioListenerInput,
 } from "./authoring-types.js";
-import type { AudioEmitter, AudioListener } from "./authoring-components.js";
+import { AudioEmitter } from "./authoring-components.js";
+import type { AudioListener } from "./authoring-components.js";
 
 export function createAudioEmitter(
   input: AudioEmitterInput,
@@ -56,4 +58,30 @@ export function createAudioListener(
     active: input.active ?? true,
     masterGain: input.masterGain ?? 1,
   };
+}
+
+/**
+ * Fire a one-shot on an existing {@link AudioEmitter} by bumping its monotonic
+ * `playEpoch` counter — the discrete-intent trigger the main-thread engine
+ * realizes as `(playEpoch − lastRealized)` voices. Returns the new epoch. Wraps
+ * as Int32 to compose with the engine's wrapping signed-delta.
+ */
+export function bumpAudioPlayEpoch(entity: Entity): number {
+  const next = (toEpoch(entity.getValue(AudioEmitter, "playEpoch")) + 1) | 0;
+  entity.setValue(AudioEmitter, "playEpoch", next);
+  return next;
+}
+
+/**
+ * Request a click-free fade-stop of an emitter's sustained voice by bumping its
+ * monotonic `stopEpoch` counter. Returns the new epoch.
+ */
+export function stopAudioEmitter(entity: Entity): number {
+  const next = (toEpoch(entity.getValue(AudioEmitter, "stopEpoch")) + 1) | 0;
+  entity.setValue(AudioEmitter, "stopEpoch", next);
+  return next;
+}
+
+function toEpoch(value: unknown): number {
+  return Number.isInteger(value) ? (value as number) | 0 : 0;
 }

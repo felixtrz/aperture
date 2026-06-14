@@ -11,6 +11,9 @@ import { AUDIO_BUS_IDS, type AudioBusId, type AudioMixer } from "./mixer.js";
 const FADE_SEC = 0.015;
 /** Default cap on one-shot voices fired from a single frame's epoch delta. */
 const DEFAULT_MAX_BURST = 8;
+/** One-shot overflow beyond the per-frame burst is carried for up to this many
+ * frames (× maxBurst) before excess is dropped, so rapid triggers aren't lost. */
+const ONESHOT_BACKLOG_FRAMES = 8;
 /** Default global ceiling on simultaneously-sounding real voices. */
 const DEFAULT_MAX_VOICES = 32;
 /** Score floor that 2D / non-spatial voices sit above any spatial voice. */
@@ -94,6 +97,8 @@ interface Voice {
   clipId: string;
   clipVersion: number;
   offsetSec: number;
+  loopStart: number;
+  loopEnd: number;
   timeScale: number;
   prevDist: number;
   loopStartedAt: number;
@@ -243,7 +248,46 @@ export function createVoiceManager(
       packet.maxDistance,
       packet.rolloffFactor,
     );
-    return packet.gain * att + packet.priority;
+    // Directional cone attenuation must inform virtualization too, or a source
+    // pointing away could steal a real voice from a louder on-axis source.
+    return packet.gain * att * coneGain(packet, transforms) + packet.priority;
+  }
+
+  /**
+   * PannerNode-equivalent directional cone gain in [coneOuterGain, 1], from the
+   * angle between the source's facing (-col2) and the source→listener vector.
+   * A fully-open cone (default 360°) attenuates nothing.
+   */
+  function coneGain(
+    packet: AudioEmitterPacket,
+    transforms: Float32Array,
+  ): number {
+    if (packet.coneInnerAngle >= 360) {
+      return 1;
+    }
+    const o = packet.worldTransformOffset;
+    const fx = -m(transforms, o, 8);
+    const fy = -m(transforms, o, 9);
+    const fz = -m(transforms, o, 10);
+    const tx = listenerX - m(transforms, o, 12);
+    const ty = listenerY - m(transforms, o, 13);
+    const tz = listenerZ - m(transforms, o, 14);
+    const fl = Math.sqrt(fx * fx + fy * fy + fz * fz);
+    const tl = Math.sqrt(tx * tx + ty * ty + tz * tz);
+    if (fl === 0 || tl === 0) {
+      return 1;
+    }
+    const cos = clampNum((fx * tx + fy * ty + fz * tz) / (fl * tl), -1, 1);
+    const angle = (Math.acos(cos) * 180) / Math.PI;
+    const inner = packet.coneInnerAngle / 2;
+    const outer = packet.coneOuterAngle / 2;
+    if (angle <= inner) {
+      return 1;
+    }
+    if (angle >= outer || outer <= inner) {
+      return packet.coneOuterGain;
+    }
+    return 1 + ((angle - inner) / (outer - inner)) * (packet.coneOuterGain - 1);
   }
 
   function updateListener(
@@ -342,6 +386,8 @@ export function createVoiceManager(
     voice.clipId = clipId;
     voice.clipVersion = packet.clipVersion;
     voice.offsetSec = packet.offsetSec;
+    voice.loopStart = packet.loopStart;
+    voice.loopEnd = packet.loopEnd;
     voice.timeScale = packet.timeScale;
 
     // On resume, re-seed epochs so a backlog of triggers accumulated while
@@ -393,6 +439,16 @@ export function createVoiceManager(
       const fired = Math.min(toFire, maxBurst);
       for (let index = 0; index < fired; index += 1) {
         startOneShot(voice);
+      }
+      // Carry the overflow beyond this frame's burst to subsequent frames
+      // instead of dropping it, so a multi-trigger spike is not silently lost.
+      // Bounded so a pathological emitter cannot accumulate an unbounded backlog.
+      const overflow = Math.min(
+        Math.max(0, toFire - fired),
+        maxBurst * ONESHOT_BACKLOG_FRAMES,
+      );
+      if (overflow > 0) {
+        voice.realizedEpoch = (packet.playEpoch - overflow) | 0;
       }
     }
 
@@ -498,6 +554,8 @@ export function createVoiceManager(
       clipId: "",
       clipVersion: 0,
       offsetSec: 0,
+      loopStart: 0,
+      loopEnd: 0,
       timeScale: 1,
       prevDist: Number.NaN,
       loopStartedAt: 0,
@@ -558,6 +616,12 @@ export function createVoiceManager(
     const source = backend.createSource();
     source.buffer = buffer;
     source.loop = loop;
+    // Authored loop window (three.js parity): only when a real sub-buffer region
+    // was specified (loopEnd > loopStart); otherwise loop the whole buffer.
+    if (loop && voice.loopEnd > voice.loopStart) {
+      source.loopStart = voice.loopStart;
+      source.loopEnd = voice.loopEnd;
+    }
     source.playbackRate.value = voice.timeScale;
     source.connect(voice.occluder);
     const clipId = voice.clipId;

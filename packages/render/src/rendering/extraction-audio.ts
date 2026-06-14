@@ -93,6 +93,21 @@ export function extractAudioEmitters(
         ? "local"
         : "world";
 
+    // A PannerNode requires maxDistance > refDistance; a misauthored emitter
+    // with maxDistance <= refDistance yields a degenerate (linear-model
+    // divide-by-zero) falloff. Enforce a strictly-greater range here so neither
+    // the PannerNode nor the main-side rolloff scorer ever sees the bad case.
+    const refDistance = finitePositive(
+      entity.getValue(AudioEmitter, "refDistance"),
+      1,
+    );
+    const maxDistanceRaw = finitePositive(
+      entity.getValue(AudioEmitter, "maxDistance"),
+      10000,
+    );
+    const maxDistance =
+      maxDistanceRaw > refDistance ? maxDistanceRaw : refDistance + 1;
+
     packets.push({
       key: { kind: "entity", id: createStableRenderId(entityRef(entity)) },
       entity: entityRef(entity),
@@ -117,14 +132,8 @@ export function extractAudioEmitters(
       distanceModel: parseDistanceModel(
         entity.getValue(AudioEmitter, "distanceModel"),
       ),
-      refDistance: finitePositive(
-        entity.getValue(AudioEmitter, "refDistance"),
-        1,
-      ),
-      maxDistance: finitePositive(
-        entity.getValue(AudioEmitter, "maxDistance"),
-        10000,
-      ),
+      refDistance,
+      maxDistance,
       rolloffFactor: finiteNonNegative(
         entity.getValue(AudioEmitter, "rolloffFactor"),
         1,

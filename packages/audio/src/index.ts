@@ -164,7 +164,9 @@ export function createAudioEngine(
   });
 
   function emitClip(type: "start" | "end", clipId: string): void {
-    if (clipListeners.size === 0) {
+    // Tearing down the voice graph stops sources, whose `onended` fires `end`
+    // events; never deliver those into a disposed engine.
+    if (disposed || clipListeners.size === 0) {
       return;
     }
     const captionTrackId = resolveClip(clipId)?.captionTrackId;
@@ -290,6 +292,7 @@ export function createAudioEngine(
         return;
       }
       disposed = true;
+      clipListeners.clear();
       voices.dispose();
       clips.dispose();
       mixer.dispose();

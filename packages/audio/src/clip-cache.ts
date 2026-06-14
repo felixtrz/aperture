@@ -42,12 +42,21 @@ interface CacheEntry {
   buffer: AudioBuffer | null;
 }
 
+/** Bound on decode retries before a clip is treated as permanently failed. */
+const MAX_DECODE_ATTEMPTS = 3;
+
 export function createClipCache(
   backend: AudioBackend,
   resolve: ClipResolver,
 ): ClipCache {
   const entries = new Map<string, CacheEntry>();
   const listeners = new Set<() => void>();
+  // Latest decoded version per clip id, so a bumped version evicts the
+  // superseded buffer instead of leaking it (the asset hot-swap case).
+  const decodedVersion = new Map<string, number>();
+  // Decode attempts per key, so a transient decodeAudioData failure is retried a
+  // bounded number of times rather than cached as a permanent silence.
+  const attempts = new Map<string, number>();
   let decodeCount = 0;
   let disposed = false;
 
@@ -75,6 +84,16 @@ export function createClipCache(
         return undefined;
       }
 
+      // Evict the superseded version's buffer when this clip's version bumped —
+      // already-playing sources hold their AudioBuffer directly, so dropping the
+      // old cache entry only releases memory and never cuts a live voice.
+      const priorVersion = decodedVersion.get(clipId);
+      if (priorVersion !== undefined && priorVersion !== version) {
+        entries.delete(`${clipId}@${priorVersion}`);
+        attempts.delete(`${clipId}@${priorVersion}`);
+      }
+      decodedVersion.set(clipId, version);
+
       const entry: CacheEntry = { status: "decoding", buffer: null };
       entries.set(key, entry);
       decodeCount += 1;
@@ -86,10 +105,21 @@ export function createClipCache(
           }
           entry.status = "ready";
           entry.buffer = buffer;
+          attempts.delete(key);
           notify();
         },
         () => {
-          if (!disposed) {
+          if (disposed) {
+            return;
+          }
+          const tries = (attempts.get(key) ?? 0) + 1;
+          attempts.set(key, tries);
+          if (tries < MAX_DECODE_ATTEMPTS) {
+            // Transient failure: drop the entry so a later acquire re-decodes,
+            // and wake deferred starts to retry.
+            entries.delete(key);
+            notify();
+          } else {
             entry.status = "failed";
           }
         },
@@ -110,6 +140,8 @@ export function createClipCache(
       disposed = true;
       listeners.clear();
       entries.clear();
+      decodedVersion.clear();
+      attempts.clear();
     },
   };
 }
