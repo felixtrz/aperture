@@ -175,6 +175,17 @@ export * from "./animation-driver-system.js";
 export * from "./fixed-step-schedule.js";
 export * from "@aperture-engine/physics";
 
+// Re-export the most fundamental ECS types from the umbrella so a consumer can
+// NAME them (they appear throughout the public spawn/component API above but
+// were previously only importable from @aperture-engine/simulation directly).
+export type {
+  Entity,
+  EcsWorld,
+  AnyEcsComponent,
+  ComponentInitialData,
+  WorldOptions,
+} from "@aperture-engine/simulation";
+
 export interface SpawnContext {
   readonly app: SimulationApp;
   readonly world: EcsWorld;
