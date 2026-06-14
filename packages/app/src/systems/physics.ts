@@ -193,6 +193,10 @@ export interface PhysicsAccess {
   ): void;
   setLinearVelocity(entity: Entity, velocity: PhysicsVec3): void;
   setAngularVelocity(entity: Entity, velocity: PhysicsVec3): void;
+  /** Read the body's most recent linear velocity (written back each step). */
+  getLinearVelocity(entity: Entity): PhysicsVec3;
+  /** Read the body's most recent angular velocity (written back each step). */
+  getAngularVelocity(entity: Entity): PhysicsVec3;
   setKinematicTarget(entity: Entity, transform: PhysicsTransform): void;
   sleepBody(entity: Entity): boolean;
   wakeBody(entity: Entity): boolean;
@@ -323,6 +327,12 @@ export function createPhysicsAccess(
     setAngularVelocity(entity, velocity) {
       ensurePhysicsVelocity(world, entity);
       setPhysicsVelocityField(entity, "angular", velocity);
+    },
+    getLinearVelocity(entity) {
+      return readPhysicsVelocityField(entity, "linear");
+    },
+    getAngularVelocity(entity) {
+      return readPhysicsVelocityField(entity, "angular");
     },
     setKinematicTarget(entity, transform) {
       ensureKinematicTarget(world, entity);
@@ -770,6 +780,17 @@ function setPhysicsVelocityField(
   value: PhysicsVec3,
 ): void {
   entity.getVectorView(PhysicsVelocity, field).set(value);
+}
+
+function readPhysicsVelocityField(
+  entity: Entity,
+  field: "linear" | "angular",
+): PhysicsVec3 {
+  if (!entity.hasComponent(PhysicsVelocity)) {
+    return [0, 0, 0];
+  }
+  const view = entity.getVectorView(PhysicsVelocity, field);
+  return [view[0] ?? 0, view[1] ?? 0, view[2] ?? 0];
 }
 
 function setKinematicTargetVec3Field(

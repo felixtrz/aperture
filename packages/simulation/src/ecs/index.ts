@@ -56,8 +56,21 @@ export interface EntityVersionTracking {
 export type VersionedEcsWorld = World & EntityVersionTracking;
 export type EcsWorld = VersionedEcsWorld;
 
+/**
+ * elics allocates each component's storage as a dense array sized to
+ * `entityCapacity` ONCE (no growth), and throws a cryptic "offset is out of
+ * bounds" when an entity row exceeds it. elics' own default is only 1000, which
+ * any non-trivial 3D scene blows past (a single glTF expands to several entities;
+ * a decorated track is ~1000+). Default to a generous capacity so apps don't hit
+ * that wall, while still allowing an explicit override (threaded from app config
+ * via worldOptions.entityCapacity). See racing/docs/PORT_PROGRESS.md.
+ */
+export const DEFAULT_ENTITY_CAPACITY = 16384;
+
 export function createWorld(options: Partial<WorldOptions> = {}): EcsWorld {
-  return installEntityVersionTracking(new World(options));
+  return installEntityVersionTracking(
+    new World({ entityCapacity: DEFAULT_ENTITY_CAPACITY, ...options }),
+  );
 }
 
 type VectorView = {

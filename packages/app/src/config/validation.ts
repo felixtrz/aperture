@@ -49,7 +49,53 @@ export function validateApertureConfig(config: ApertureConfig): void {
   }
 
   validateAssetDecoderConfig(config.assetDecoders);
+  validatePhysicsConfig(config.physics);
   validateInputActions(config.input?.actions ?? {});
+}
+
+function validatePhysicsConfig(physics: ApertureConfig["physics"]): void {
+  if (physics === undefined || typeof physics === "boolean") {
+    return;
+  }
+
+  if (typeof physics !== "object" || physics === null) {
+    throw new ApertureConfigError(
+      "aperture.config.invalidPhysics",
+      "Aperture physics config must be a boolean or an options object.",
+      "Use physics: true, or physics: { gravity: [0, -9.81, 0] }.",
+    );
+  }
+
+  if (physics.enabled !== undefined && typeof physics.enabled !== "boolean") {
+    throw new ApertureConfigError(
+      "aperture.config.invalidPhysics",
+      "Aperture physics.enabled must be a boolean when provided.",
+      "Set physics.enabled to true or false.",
+    );
+  }
+
+  if (physics.backend !== undefined && physics.backend !== "rapier") {
+    throw new ApertureConfigError(
+      "aperture.config.invalidPhysics",
+      `Unsupported physics backend '${String(physics.backend)}'.`,
+      "Only the 'rapier' backend is available; omit backend to use the default.",
+    );
+  }
+
+  if (physics.gravity !== undefined) {
+    const g: unknown = physics.gravity;
+    if (
+      !Array.isArray(g) ||
+      g.length !== 3 ||
+      g.some((n) => typeof n !== "number" || !Number.isFinite(n))
+    ) {
+      throw new ApertureConfigError(
+        "aperture.config.invalidPhysics",
+        "Aperture physics.gravity must be a tuple of three finite numbers.",
+        "Use physics: { gravity: [0, -9.81, 0] }.",
+      );
+    }
+  }
 }
 
 export function isPreloadPolicy(value: unknown): value is AssetPreloadPolicy {

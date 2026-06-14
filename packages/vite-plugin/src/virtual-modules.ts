@@ -74,11 +74,16 @@ export async function loadApertureVirtualModule(
       `import { startGeneratedBrowserApp } from "@aperture-engine/app/browser";`,
       `const worker = new Worker(${JSON.stringify(workerEntryPath)}, { type: "module" });`,
       `const apertureDevtoolsEnabled = ${JSON.stringify(options.aiDevtoolsEnabled)} && import.meta.env.DEV;`,
+      // The page URL is only readable on the main thread (worker scope has no
+      // location.search). Forward every search param to the simulation worker
+      // start options so systems can read app-specific values (e.g. ?map=<codec>).
+      `const apertureUrlParams = typeof location === "undefined" ? {} : Object.fromEntries(new URLSearchParams(location.search));`,
       `startGeneratedBrowserApp({`,
       `  config,`,
       `  systemManifest,`,
       `  workerEntry: worker,`,
       `  devtools: { enabled: apertureDevtoolsEnabled },`,
+      `  workerStartOptions: apertureUrlParams,`,
       `});`,
       "",
     ].join("\n");

@@ -1,4 +1,9 @@
-import type { CameraInput, LightInput } from "@aperture-engine/render";
+import type {
+  CameraInput,
+  FogInput,
+  LightInput,
+  LightShadowSettingsInput,
+} from "@aperture-engine/render";
 import type {
   ColliderInput,
   ExternalForceInput,
@@ -58,9 +63,25 @@ export interface SpawnLightOptions extends SpawnMetadata {
   readonly transform?: SystemTransformInput;
   readonly kind?: LightInput["kind"];
   readonly color?: Vec4Like;
+  /**
+   * Hemisphere lights only: ground (lower-hemisphere) irradiance color. The
+   * `color` field carries the sky color. Ignored by all other light kinds.
+   */
+  readonly groundColor?: Vec4Like;
   readonly illuminance?: number;
   readonly intensity?: number;
   readonly light?: LightInput;
+  /**
+   * Enable shadow casting for this light. `true` uses defaults; an object
+   * customizes map size, cascades, PCF radius, bias, etc. Attaches a
+   * `LightShadowSettings` component (enabled). Only meshes spawned with
+   * `castShadow`/`receiveShadow` participate.
+   */
+  readonly shadow?: boolean | LightShadowSettingsInput;
+}
+
+export interface SpawnFogOptions extends SpawnMetadata, FogInput {
+  readonly transform?: SystemTransformInput;
 }
 
 export interface PrimitiveMeshDescriptor {
@@ -119,6 +140,10 @@ export interface SpawnMeshOptions extends SpawnMetadata {
   readonly material: MaterialDescriptor | MaterialHandle;
   readonly transform?: SystemTransformInput;
   readonly physics?: PhysicsSpawnDescriptor;
+  /** Attach a `ShadowCaster` component so this mesh casts shadows. */
+  readonly castShadow?: boolean;
+  /** Attach a `ShadowReceiver` component so this mesh receives shadows. */
+  readonly receiveShadow?: boolean;
 }
 
 export type PhysicsComponentDescriptor<TInput> = TInput | true;
@@ -167,6 +192,10 @@ export interface CustomWgslSamplerBindingOptions {
 
 export interface SpawnGltfOptions extends SpawnMetadata {
   readonly transform?: SystemTransformInput;
+  /** Attach `ShadowCaster` to every mesh in the spawned subtree. */
+  readonly castShadow?: boolean;
+  /** Attach `ShadowReceiver` to every mesh in the spawned subtree. */
+  readonly receiveShadow?: boolean;
 }
 
 export interface SpawnPrefabOptions extends SpawnMetadata {
@@ -184,6 +213,8 @@ export interface SpawnPhysicsOptions extends SpawnMetadata {
 export interface SpawnCommands {
   camera(options?: SpawnCameraOptions): Entity;
   light(options?: SpawnLightOptions): Entity;
+  /** Spawn a distance-fog entity (linear/exp/exp2) consumed by render extraction. */
+  fog(options?: SpawnFogOptions): Entity;
   mesh(options: SpawnMeshOptions): Entity;
   /** Spawn a non-render physics entity, useful for joints, triggers, and pure colliders. */
   physics(options: SpawnPhysicsOptions): Entity;

@@ -18,10 +18,25 @@ export async function launchManagedBrowser(input: {
   const { chromium } = await import("playwright");
   const browser = await chromium.launch({
     headless: input.headless,
+    // Use the user's installed Google Chrome (real GPU/Metal stack), NOT Playwright's
+    // bundled Chromium. The bundled build has a flakier WebGPU path on macOS and,
+    // combined with --enable-unsafe-webgpu, intermittently selects the software
+    // (SwiftShader) fallback adapter and renders garbage (full-screen magenta).
+    // Stock Chrome ships WebGPU on the hardware adapter by default, so we add no
+    // GPU/WebGPU flags here and let it behave exactly like the user's own browser.
+    channel: "chrome",
     args: [
       `--remote-debugging-address=${input.host}`,
       `--remote-debugging-port=${input.cdpPort}`,
-      "--enable-unsafe-webgpu",
+      // Keep WebGPU rendering alive when the headed window is occluded or
+      // backgrounded. These only affect scheduling, not the GPU path: without
+      // them macOS/Chrome drops the frame and WebGPU readbacks (screenshots,
+      // render_readback_samples) come back all-zero / blank even though the
+      // simulation is healthy.
+      "--disable-features=CalculateNativeWinOcclusion",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-renderer-backgrounding",
+      "--disable-background-timer-throttling",
     ],
   });
   const page = await browser.newPage({ viewport: { width: 960, height: 640 } });

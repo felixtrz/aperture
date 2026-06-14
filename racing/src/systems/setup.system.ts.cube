@@ -1,0 +1,69 @@
+import {
+  LocalTransform,
+  createSystem,
+  material,
+  mesh,
+} from "@aperture-engine/app/systems";
+import { quatLookAt, type Quat, type Vec3 } from "../lib/math.js";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MINIMAL CUBE RENDER TEST. The whole game is stripped (all other systems are
+// disabled as *.system.ts.bak; the real setup is setup.system.ts.current). Just a
+// camera + lights + one procedural box. Blue clearColor so we can tell apart:
+//   - orange cube on blue  -> engine renders fine (regression is in the game systems)
+//   - solid blue           -> clear/present works but the cube didn't draw
+//   - black                -> present/pipeline fundamentally broken
+// ─────────────────────────────────────────────────────────────────────────────
+export default class SetupSystem extends createSystem({ priority: 0 }) {
+  override init(): void {
+    const eye: Vec3 = [6, 5, 6];
+    const target: Vec3 = [0, 0, 0];
+    const cam = this.spawn.camera({
+      key: "camera.main",
+      name: "main-camera",
+      transform: { translation: [...eye] },
+      fovYDegrees: 50,
+      camera: { near: 0.1, far: 100, clearColor: [0.3, 0.45, 0.65, 1] },
+    });
+    cam
+      .getVectorView(LocalTransform, "rotation")
+      .set(quatLookAt(eye, target) as Quat);
+
+    this.spawn.light({
+      key: "light.ambient",
+      name: "ambient",
+      kind: "ambient",
+      color: [1, 1, 1, 1],
+      intensity: 1.5,
+    });
+    this.spawn.light({
+      key: "light.sun",
+      name: "sun",
+      kind: "directional",
+      color: [1, 1, 1, 1],
+      illuminance: 3,
+      transform: { translation: [5, 8, 5], lookAt: [0, 0, 0] },
+      // BISECT: add the same shadow config the real scene uses. If the cube goes
+      // black with this, the shadow pass is the black-screen culprit.
+      shadow: {
+        mapSize: 2048,
+        cascadeCount: 3,
+        shadowType: 1,
+        filterRadius: 2,
+        normalBias: 0.02,
+      },
+    });
+
+    this.spawn.mesh({
+      key: "cube",
+      name: "cube",
+      mesh: mesh.box({ size: 2 }),
+      material: material.standard({
+        baseColor: [0.95, 0.35, 0.2, 1],
+        roughness: 1,
+        metallic: 0,
+      }),
+      transform: { translation: [0, 0, 0] },
+    });
+  }
+}

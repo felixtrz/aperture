@@ -5,7 +5,12 @@ import {
   type SimulationWorkerStartOptions,
 } from "@aperture-engine/runtime";
 import type { Ktx2TextureCompressionSupport } from "@aperture-engine/render";
-import { createApertureApp, type ApertureApp } from "../advanced.js";
+import {
+  createApertureApp,
+  type ApertureApp,
+  type CreateApertureAppOptions,
+} from "../advanced.js";
+import type { AperturePhysicsAppConfig } from "../config.js";
 import { createDefaultSystemGltfAssetDecoderProvider } from "../systems.js";
 import { createSourceAssetSerializationState } from "../asset-mirror.js";
 import type { ApertureConfig } from "../config.js";
@@ -49,6 +54,7 @@ export async function runGeneratedWorkerLoop(options: {
     );
     const decoderBaseUrl =
       workerAssetDecoders?.baseUrl ?? options.config.assetDecoders?.baseUrl;
+    const physicsOption = resolveConfigPhysicsOption(options.config.physics);
     const app = await createApertureApp({
       config: options.config,
       systems: options.systems,
@@ -67,7 +73,15 @@ export async function runGeneratedWorkerLoop(options: {
           : { entityCapacity: options.start.entityCapacity },
       ...(fixedStep === undefined ? {} : { fixedStep }),
       ...(physicsInterpolation === undefined ? {} : { physicsInterpolation }),
+      ...(physicsOption === undefined ? {} : { physics: physicsOption }),
     });
+    // Bridge: expose the raw `start` options to systems on the ECS world globals
+    // (the same channel installApertureSystemContext uses). The page URL lives on
+    // the main thread; the browser bootstrap forwards arbitrary start fields (e.g.
+    // a `?map=` codec string) through SimulationWorkerStartOptions, and a system
+    // reads them here after createApertureApp installs the context but before the
+    // first step runs any system `init()`.
+    publishWorkerStartOptions(app.lowLevel.world, options.start);
     const entityTools = options.createEntityTools(app.lowLevel.world);
     const sourceAssetState = createSourceAssetSerializationState();
     let frame = 0;
@@ -162,6 +176,24 @@ export async function runGeneratedWorkerLoop(options: {
   }
 }
 
+/**
+ * Globals key under which the raw simulation-worker start options are published
+ * on the ECS world. Systems can read app-specific start fields (forwarded from
+ * the main-thread page URL by the generated browser bootstrap) here. Documented
+ * so app systems have a stable accessor, mirroring `aperture.systemContext`.
+ */
+export const APERTURE_WORKER_START_OPTIONS_KEY = "aperture.workerStartOptions";
+
+function publishWorkerStartOptions(
+  world: ApertureApp["lowLevel"]["world"],
+  start: SimulationWorkerStartOptions,
+): void {
+  const globals = (world as { globals?: Record<string, unknown> }).globals;
+  if (globals !== undefined) {
+    globals[APERTURE_WORKER_START_OPTIONS_KEY] = start;
+  }
+}
+
 interface WorkerAssetDecoderOptions {
   readonly baseUrl?: string;
   readonly ktx2TextureCompression?: Ktx2TextureCompressionSupport;
@@ -202,6 +234,27 @@ function readWorkerFixedStepOptions(
   copyNumberOption(record, fixedStep, "maxAccumulatedTime");
 
   return fixedStep;
+}
+
+function resolveConfigPhysicsOption(
+  physics: boolean | AperturePhysicsAppConfig | undefined,
+): CreateApertureAppOptions["physics"] {
+  if (physics === undefined || physics === false) {
+    return undefined;
+  }
+
+  if (physics === true) {
+    return true;
+  }
+
+  if (physics.enabled === false) {
+    return undefined;
+  }
+
+  return {
+    ...(physics.backend === undefined ? {} : { backend: physics.backend }),
+    ...(physics.gravity === undefined ? {} : { gravity: physics.gravity }),
+  };
 }
 
 function readWorkerPhysicsInterpolationOption(

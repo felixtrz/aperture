@@ -6,6 +6,7 @@ import {
 import { AssetRegistry } from "@aperture-engine/simulation";
 import {
   createWebGpuApp,
+  createWebGpuBloomPostEffect,
   type CreateWebGpuAppResult,
   type WebGpuAppComputePassDescriptor,
   type WebGpuAppRenderPassDescriptor,
@@ -40,6 +41,14 @@ export interface StartGeneratedBrowserAppOptions {
     entry: string | URL,
     options?: WorkerOptions,
   ) => Worker;
+  /**
+   * Extra fields forwarded verbatim to the simulation worker's start options
+   * (SimulationWorkerStartOptions). The page URL only exists on the main thread,
+   * so the generated browser bootstrap reads e.g. `?map=` from location.search
+   * and threads the value here; the worker loop republishes these on the ECS
+   * world globals for systems to read. Merged into the worker `start` message.
+   */
+  readonly workerStartOptions?: Record<string, unknown>;
   /**
    * Opt into main-thread audio. `true` wires the engine with defaults; an
    * options object configures buses/ducking/clip resolution. Omitted ⇒ no audio
@@ -104,6 +113,11 @@ export async function startGeneratedBrowserApp(
       ? new URLSearchParams(window.location.search)
       : null,
   );
+  const postEffects = resolveGeneratedPostEffects(config.render);
+  // Bloom needs the HDR scene-buffer path; opting into bloom implies exposure.
+  const bloomEnabled = postEffects.length > 0;
+  const exposure =
+    config.render?.exposure ?? (bloomEnabled ? 1 : undefined);
   const webgpu = await createWebGpuApp({
     canvas: canvas as unknown as WebGpuCanvasLike,
     simulationWorker: mirroredWorker,
@@ -111,6 +125,14 @@ export async function startGeneratedBrowserApp(
     autoStart: true,
     msaaSampleCount: status.render.requestedSampleCount,
     useFrameGraph,
+    ...(options.workerStartOptions === undefined
+      ? {}
+      : { workerStartOptions: options.workerStartOptions }),
+    ...(config.render?.tonemap === undefined
+      ? {}
+      : { tonemap: config.render.tonemap }),
+    ...(exposure === undefined ? {} : { exposure }),
+    ...(postEffects.length === 0 ? {} : { postEffects }),
   });
   webgpuResult = webgpu;
 
@@ -155,4 +177,24 @@ export async function startGeneratedBrowserApp(
       return webgpu.ok ? webgpu.app.removePass(name) : false;
     },
   };
+}
+
+function resolveGeneratedPostEffects(
+  render: ApertureConfig["render"],
+): ReturnType<typeof createWebGpuBloomPostEffect>[] {
+  const bloom = render?.bloom;
+  if (bloom === undefined || bloom === false) {
+    return [];
+  }
+
+  const options = bloom === true ? {} : bloom;
+  return [
+    createWebGpuBloomPostEffect({
+      ...(options.threshold === undefined ? {} : { threshold: options.threshold }),
+      ...(options.intensity === undefined ? {} : { intensity: options.intensity }),
+      ...(options.radiusPixels === undefined
+        ? {}
+        : { radiusPixels: options.radiusPixels }),
+    }),
+  ];
 }

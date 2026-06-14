@@ -12,6 +12,7 @@ export type {
   PhysicsSpawnDescriptor,
   SpawnCameraOptions,
   SpawnCommands,
+  SpawnFogOptions,
   SpawnGltfOptions,
   SpawnLightOptions,
   SpawnMeshOptions,

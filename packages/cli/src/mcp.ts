@@ -169,6 +169,28 @@ async function callTool(params: unknown, cwd: string): Promise<unknown> {
     arguments: args,
   });
 
+  // If a tool returns an image payload (e.g. browser_screenshot), emit a real MCP
+  // `image` content block so clients render it directly. Otherwise the base64 was
+  // stringified into a `text` block, forcing callers to decode it to a file (and
+  // overflowing text token limits on every screenshot).
+  if (isImageToolResult(result)) {
+    return {
+      content: [
+        {
+          type: "image",
+          data: result.data,
+          mimeType: result.mimeType,
+        },
+      ],
+      // Keep structuredContent free of the (huge) base64 so it stays small.
+      structuredContent: {
+        ok: typeof result.ok === "boolean" ? result.ok : true,
+        mimeType: result.mimeType,
+        encoding: "base64",
+      },
+    };
+  }
+
   return {
     content: [
       {
@@ -178,6 +200,18 @@ async function callTool(params: unknown, cwd: string): Promise<unknown> {
     ],
     structuredContent: result,
   };
+}
+
+function isImageToolResult(
+  value: unknown,
+): value is { ok?: boolean; mimeType: string; encoding?: string; data: string } {
+  return (
+    isRecord(value) &&
+    typeof value["data"] === "string" &&
+    typeof value["mimeType"] === "string" &&
+    (value["mimeType"] as string).startsWith("image/") &&
+    value["encoding"] === "base64"
+  );
 }
 
 function writeJson(stdout: McpOutputStream, value: unknown): void {
