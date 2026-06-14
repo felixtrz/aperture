@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { AssetRegistry, createAudioClipHandle } from "@aperture-engine/simulation";
+import {
+  AssetRegistry,
+  createAudioClipHandle,
+} from "@aperture-engine/simulation";
 import { createAudioClipAsset } from "@aperture-engine/render";
 import type {
   AudioEmitterPacket,
@@ -33,7 +36,10 @@ function fakeWorker(): {
   return {
     worker,
     emit(snapshot) {
-      const event = { frame: snapshot.frame ?? 0, snapshot } as SimulationWorkerSnapshotEvent;
+      const event = {
+        frame: snapshot.frame ?? 0,
+        snapshot,
+      } as SimulationWorkerSnapshotEvent;
       for (const sub of subs) {
         sub(event);
       }

@@ -56,7 +56,8 @@ export function installGeneratedAudio(
   const engine = createAudioEngine({
     ...engineOptions,
     resolveClip:
-      resolveClip ?? ((clipId) => resolveClipFromRegistry(sourceAssets, clipId)),
+      resolveClip ??
+      ((clipId) => resolveClipFromRegistry(sourceAssets, clipId)),
   });
 
   let previousTime = monotonicNow();
@@ -108,7 +109,10 @@ function resolveClipFromRegistry(
 
 /** Resume the context on the first user gesture; detaches after firing once. */
 function installAutoUnlock(engine: AudioEngine): (() => void) | null {
-  if (typeof window === "undefined" || typeof window.addEventListener !== "function") {
+  if (
+    typeof window === "undefined" ||
+    typeof window.addEventListener !== "function"
+  ) {
     return null;
   }
   const detach = (): void => {
