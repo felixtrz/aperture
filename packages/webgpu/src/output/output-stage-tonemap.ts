@@ -98,12 +98,36 @@ fn apertureOutputTonemap(color: vec3f) -> vec3f {
 `.trim();
 
     case "aces":
+      // Faithful port of three.js WebGLRenderer ACESFilmicToneMapping: the
+      // Stephen Hill RRTAndODT fit, bracketed by the ACES input/output color
+      // matrices, with the deliberate `/0.6` brighter-viewing-environment
+      // scale. The previous Narkowicz approximation omitted both the color
+      // matrices and the /0.6 scale, so it rendered ~1.67x too bright/hot
+      // versus the reference renderer. Matrices are column vectors (three.js
+      // `mat3(col0,col1,col2)` == WGSL column-major `m * v`), matching agx above.
+      // When the exposure wrapper is applied it prepends `let color =
+      // inputColor * exposure;`, so `color / 0.6` reproduces three.js's
+      // `color *= toneMappingExposure / 0.6` exactly.
+      // Reference: three.js src/renderers/shaders/ShaderChunk/tonemapping_pars_fragment.glsl.js
       return `
 fn apertureOutputTonemap(color: vec3f) -> vec3f {
-  let positive = max(color, vec3f(0.0));
-  let mapped = (positive * (2.51 * positive + vec3f(0.03))) /
-    (positive * (2.43 * positive + vec3f(0.59)) + vec3f(0.14));
-  return clamp(mapped, vec3f(0.0), vec3f(1.0));
+  let ACESInputMat = mat3x3<f32>(
+    vec3f(0.59719, 0.07600, 0.02840),
+    vec3f(0.35458, 0.90834, 0.13383),
+    vec3f(0.04823, 0.01566, 0.83777)
+  );
+  let ACESOutputMat = mat3x3<f32>(
+    vec3f(1.60475, -0.10208, -0.00327),
+    vec3f(-0.53108, 1.10813, -0.07276),
+    vec3f(-0.07367, -0.00605, 1.07602)
+  );
+  var c = max(color, vec3f(0.0)) / 0.6;
+  c = ACESInputMat * c;
+  let a = c * (c + vec3f(0.0245786)) - vec3f(0.000090537);
+  let b = c * (0.983729 * c + vec3f(0.4329510)) + vec3f(0.238081);
+  c = a / b;
+  c = ACESOutputMat * c;
+  return clamp(c, vec3f(0.0), vec3f(1.0));
 }
 `.trim();
 
