@@ -12,6 +12,11 @@ import {
   type WebGpuCanvasLike,
 } from "@aperture-engine/webgpu";
 import { defineApertureConfig, type ApertureConfig } from "../config.js";
+import {
+  installGeneratedAudio,
+  type GeneratedAudio,
+  type GeneratedAudioOptions,
+} from "./audio.js";
 import { mirrorSimulationWorkerSourceAssets } from "./assets.js";
 import { resolveCanvas, installCanvasResizeSync } from "./canvas.js";
 import { installGeneratedCommandForwarding } from "./commands.js";
@@ -36,11 +41,20 @@ export interface StartGeneratedBrowserAppOptions {
     entry: string | URL,
     options?: WorkerOptions,
   ) => Worker;
+  /**
+   * Opt into main-thread audio. `true` wires the engine with defaults; an
+   * options object configures buses/ducking/clip resolution. Omitted ⇒ no audio
+   * engine is created (zero cost). Audio is a sibling derived view of the same
+   * worker snapshot the renderer consumes.
+   */
+  readonly audio?: boolean | GeneratedAudioOptions;
 }
 
 export interface GeneratedBrowserApp {
   readonly worker: SimulationWorker;
   readonly webgpu: CreateWebGpuAppResult;
+  /** The wired audio engine + teardown, or null when audio was not enabled. */
+  readonly audio: GeneratedAudio | null;
   // M3-T7: surface the user-pass insertion API through the generated app so a
   // developer can register custom render/compute passes without reaching into
   // `.webgpu.app`. No-ops (with a console warning) if WebGPU failed to start.
@@ -108,9 +122,23 @@ export async function startGeneratedBrowserApp(
     syncGeneratedDiagnostics(webgpu.app.getDiagnostics, status);
   }
 
+  // Audio is a sibling derived view: it subscribes to the same worker snapshots.
+  // The renderer's asset-mirroring subscription is registered first (createWebGpuApp
+  // autoStart, above), so by the time this raw-worker subscription fires each
+  // frame, `sourceAssets` already holds the mirrored audio-clip bytes.
+  const audio =
+    options.audio === undefined || options.audio === false
+      ? null
+      : installGeneratedAudio(
+          worker,
+          sourceAssets,
+          options.audio === true ? {} : options.audio,
+        );
+
   return {
     worker,
     webgpu,
+    audio,
     addRenderPass(descriptor) {
       if (webgpu.ok) {
         webgpu.app.addRenderPass(descriptor);

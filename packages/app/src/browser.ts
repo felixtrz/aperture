@@ -35,3 +35,5 @@ export type {
   GeneratedBrowserApp,
   StartGeneratedBrowserAppOptions,
 } from "./browser/app.js";
+export { installGeneratedAudio } from "./browser/audio.js";
+export type { GeneratedAudio, GeneratedAudioOptions } from "./browser/audio.js";

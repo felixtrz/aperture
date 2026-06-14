@@ -72,6 +72,9 @@ importers:
 
   packages/app:
     dependencies:
+      '@aperture-engine/audio':
+        specifier: workspace:^
+        version: link:../audio
       '@aperture-engine/physics':
         specifier: workspace:^
         version: link:../physics

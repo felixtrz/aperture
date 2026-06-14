@@ -65,6 +65,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@aperture-engine/audio": "workspace:^",
     "@aperture-engine/physics": "workspace:^",
     "@aperture-engine/physics-rapier": "workspace:^",
     "@aperture-engine/render": "workspace:^",
