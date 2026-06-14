@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": "./.tsbuildinfo"
+  },
+  "references": [{ "path": "../simulation" }, { "path": "../render" }],
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules"]
+}

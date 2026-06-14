@@ -128,6 +128,15 @@ jobs:
           APERTURE_REQUIRE_WEBGPU: "1"
           APERTURE_WEBGPU_CHANNEL: chrome
 
+      # AI-90: evaluate the agx/neutral/reinhard operator WGSL on the GPU and
+      # assert the read-back colors match values pinned from the three.js
+      # reference — a compile pass alone cannot catch a numerically wrong curve.
+      - name: WebGPU tonemap numeric gate (Dawn)
+        run: xvfb-run -a pnpm run test:tonemap-numeric
+        env:
+          APERTURE_REQUIRE_WEBGPU: "1"
+          APERTURE_WEBGPU_CHANNEL: chrome
+
   e2e:
     name: WebGPU E2E (SwiftShader, shard ${{ matrix.shard }}/8)
     runs-on: ubuntu-latest

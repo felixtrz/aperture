@@ -1,4 +1,5 @@
 import {
+  createAudioClipHandle,
   createEnvironmentMapHandle,
   createMaterialHandle,
   createMeshHandle,
@@ -6,6 +7,7 @@ import {
   createRenderTargetHandle,
   createSamplerHandle,
   createTextureHandle,
+  type AudioClipHandle,
   type EnvironmentMapHandle,
   type MaterialHandle,
   type MeshHandle,
@@ -264,6 +266,11 @@ export function parseParticleEffectHandle(
 ): ParticleEffectHandle | null {
   const id = parseAssetId(value, "particle-effect");
   return id === null ? null : createParticleEffectHandle(id);
+}
+
+export function parseAudioClipHandle(value: string): AudioClipHandle | null {
+  const id = parseAssetId(value, "audio-clip");
+  return id === null ? null : createAudioClipHandle(id);
 }
 
 function parseAssetId(value: string, kind: string): string | null {

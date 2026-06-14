@@ -68,6 +68,27 @@ describe("package boundary guard", () => {
       "packages/runtime/src/navigator.ts",
     );
   });
+
+  it("reports Web Audio globals in headless packages", () => {
+    const root = createTempWorkspace();
+
+    writePackage(root, "render", {
+      "src/bad-audio.ts": "export const ctx = new AudioContext();\n",
+    });
+    // The render-side ECS AudioListener component must NOT trip the check.
+    writePackage(root, "simulation", {
+      "src/listener.ts": "export const AudioListener = { tag: true };\n",
+    });
+
+    const violations = checkPackageBoundaries({ rootDir: root });
+
+    expect(violations.map((violation) => violation.name)).toEqual([
+      "AudioContext",
+    ]);
+    expect(formatPackageBoundaryViolations(violations)).toContain(
+      "browser Web Audio global 'AudioContext'",
+    );
+  });
 });
 
 function createTempWorkspace() {

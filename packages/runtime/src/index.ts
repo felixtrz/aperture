@@ -52,6 +52,8 @@ import {
   LightCookie,
   LightKind,
   LightShadowSettings,
+  AudioEmitter,
+  AudioListener,
   Material,
   MaterialSlots,
   Mesh,
@@ -83,6 +85,8 @@ import {
   createMaterialSlots,
   createMorphTargetWeights,
   createOcclusionQuery,
+  createAudioEmitter,
+  createAudioListener,
   createParticleEmitter,
   createSkin,
   createSprite,
@@ -108,6 +112,8 @@ import {
   type LightShadowSettingsInput,
   type MaterialSlotsInput,
   type MorphTargetWeightsInput,
+  type AudioEmitterInput,
+  type AudioListenerInput,
   type OcclusionQueryInput,
   type ParticleEmitterInput,
   type RenderSnapshot,
@@ -168,6 +174,17 @@ export * from "./skinning-palette-system.js";
 export * from "./animation-driver-system.js";
 export * from "./fixed-step-schedule.js";
 export * from "@aperture-engine/physics";
+
+// Re-export the most fundamental ECS types from the umbrella so a consumer can
+// NAME them (they appear throughout the public spawn/component API above but
+// were previously only importable from @aperture-engine/simulation directly).
+export type {
+  Entity,
+  EcsWorld,
+  AnyEcsComponent,
+  ComponentInitialData,
+  WorldOptions,
+} from "@aperture-engine/simulation";
 
 export interface SpawnContext {
   readonly app: SimulationApp;
@@ -423,6 +440,24 @@ export function withParticleEmitter(
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(ParticleEmitter, createParticleEmitter(input));
+  };
+}
+
+export function withAudioEmitter(
+  input: AudioEmitterInput,
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(AudioEmitter, createAudioEmitter(input));
+  };
+}
+
+export function withAudioListener(
+  input: AudioListenerInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(AudioListener, createAudioListener(input));
   };
 }
 

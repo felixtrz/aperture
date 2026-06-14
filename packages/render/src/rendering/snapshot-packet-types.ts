@@ -1,5 +1,6 @@
 import type {
   Aabb,
+  AudioClipHandle,
   BoundingSphere,
   EnvironmentMapHandle,
   MaterialHandle,
@@ -124,6 +125,74 @@ export interface ParticleEmitterPacket {
   readonly boundsIndex: number;
   readonly layerMask: number;
   readonly sortKey: RenderSortKey;
+}
+
+export type AudioSimulationSpacePacket = "world" | "local";
+
+/**
+ * Voice-reconciliation key. A tagged union keeps the entity and one-shot id
+ * spaces structurally disjoint so a `createStableRenderId` value (which already
+ * consumes all 32 bits) can never collide with a transient one-shot sequence.
+ */
+export type AudioVoiceKey =
+  | { readonly kind: "entity"; readonly id: number }
+  | { readonly kind: "oneshot"; readonly seq: number };
+
+export interface AudioEmitterPacket {
+  readonly key: AudioVoiceKey;
+  readonly entity: RenderEntityRef;
+  readonly clip: AudioClipHandle;
+  readonly clipVersion: number;
+  readonly busId: string;
+  readonly gain: number;
+  readonly loop: boolean;
+  /** Start the voice on first sight (no `playEpoch` bump required). */
+  readonly autoplay: boolean;
+  /** Monotonic trigger counter; the engine fires the signed delta as voices. */
+  readonly playEpoch: number;
+  /** Monotonic stop counter; requests a click-free fade-stop. */
+  readonly stopEpoch: number;
+  /** Authored playbackRate; Doppler composes multiplicatively main-side. */
+  readonly timeScale: number;
+  readonly priority: number;
+  readonly panningModel: "equalpower" | "HRTF";
+  readonly simulationSpace: AudioSimulationSpacePacket;
+  readonly distanceModel: "inverse" | "linear" | "exponential";
+  readonly refDistance: number;
+  readonly maxDistance: number;
+  readonly rolloffFactor: number;
+  readonly coneInnerAngle: number;
+  readonly coneOuterAngle: number;
+  readonly coneOuterGain: number;
+  /** Occlusion lowpass amount in [0,1] (0 open). */
+  readonly occlusion: number;
+  readonly offsetSec: number;
+  readonly loopStart: number;
+  readonly loopEnd: number;
+  /** Deterministic variation index — drives per-voice pitch jitter when the
+   * engine's `pitchVariation` is enabled. */
+  readonly seed?: number;
+  /** Local-space audibility/emission center offset (default origin); the engine
+   * transforms it by the world matrix as the spatial sample point. */
+  readonly boundsCenter?: readonly [number, number, number];
+  /** Virtualization radius (default 0 = use `maxDistance`). When > 0 and tighter
+   * than `maxDistance`, voices beyond it demote to virtual (still tracked). */
+  readonly audibilityRadius?: number;
+  /** Soft-demote flag; an `inaudible` packet still ships to retain its playhead. */
+  readonly audibility: "audible" | "inaudible";
+  /** Per-emitter mute = gain-to-zero, playhead continues (not a drop). */
+  readonly muted: boolean;
+  /** Index into `snapshot.transforms`; this is the WORLD matrix. */
+  readonly worldTransformOffset: number;
+  readonly layerMask: number;
+}
+
+export interface AudioListenerPacket {
+  readonly listenerId: number;
+  readonly entity: RenderEntityRef;
+  /** Index into `snapshot.transforms`; WORLD matrix (pos=col3, fwd=-col2, up=+col1). */
+  readonly worldTransformOffset: number;
+  readonly masterGain: number;
 }
 
 export type UiNodeKind = "screen" | "node" | "panel" | "image" | "text";

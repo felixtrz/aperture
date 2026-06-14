@@ -13,6 +13,7 @@ export const ASSET_KINDS = [
   "shader",
   "font-atlas",
   "particle-effect",
+  "audio-clip",
 ] as const;
 
 export type AssetKind = (typeof ASSET_KINDS)[number];
@@ -47,6 +48,7 @@ export type EnvironmentMapHandle = AssetHandle<"environment-map">;
 export type ShaderHandle = AssetHandle<"shader">;
 export type FontAtlasHandle = AssetHandle<"font-atlas">;
 export type ParticleEffectHandle = AssetHandle<"particle-effect">;
+export type AudioClipHandle = AssetHandle<"audio-clip">;
 
 export interface SerializedAssetHandle<TKind extends AssetKind = AssetKind> {
   readonly kind: TKind;

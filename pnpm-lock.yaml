@@ -71,6 +71,9 @@ importers:
 
   packages/app:
     dependencies:
+      "@aperture-engine/audio":
+        specifier: workspace:^
+        version: link:../audio
       "@aperture-engine/physics":
         specifier: workspace:^
         version: link:../physics
@@ -86,6 +89,9 @@ importers:
       "@aperture-engine/simulation":
         specifier: workspace:^
         version: link:../simulation
+      "@aperture-engine/vite-plugin":
+        specifier: workspace:^
+        version: link:../vite-plugin
       "@aperture-engine/webgpu":
         specifier: workspace:^
         version: link:../webgpu
@@ -95,6 +101,12 @@ importers:
       elics:
         specifier: ^3.4.2
         version: 3.4.2
+
+  packages/audio:
+    dependencies:
+      "@aperture-engine/render":
+        specifier: workspace:^
+        version: link:../render
 
   packages/cli:
     dependencies:

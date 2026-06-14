@@ -1,5 +1,11 @@
 // Generated from references/three.js/examples/jsm/lights/RectAreaLightTexturesLib.js.
 // Source table: selfshadow/ltc_code fit results, stored as little-endian RGBA16F bytes.
+//
+// three.js is MIT-licensed (Copyright © 2010-2026 three.js authors). This data
+// table is a substantial portion of that software; its MIT copyright + permission
+// notice is reproduced in THIRD_PARTY_NOTICES.md at the repo root and shipped in
+// this package's tarball. The underlying LTC fit is by Eric Heitz & Stephen Hill
+// (https://github.com/selfshadow/ltc_code).
 
 export const STANDARD_AREA_LIGHT_LTC_SIZE = 64;
 export const STANDARD_AREA_LIGHT_LTC_TEXTURE_FORMAT = "rgba16float" as const;

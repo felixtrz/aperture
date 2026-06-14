@@ -5,6 +5,7 @@
     { "path": "./packages/render" },
     { "path": "./packages/runtime" },
     { "path": "./packages/webgpu" },
+    { "path": "./packages/audio" },
     { "path": "./packages/vite-plugin" },
     { "path": "./packages/app" },
     { "path": "./packages/cli" }

@@ -35,3 +35,8 @@ export type {
   GeneratedBrowserApp,
   StartGeneratedBrowserAppOptions,
 } from "./browser/app.js";
+// NOTE: installGeneratedAudio is intentionally NOT re-exported here — a static
+// value re-export would force every consumer of @aperture-engine/app/browser to
+// load @aperture-engine/audio. Audio is opt-in via startGeneratedBrowserApp({
+// audio: true }), which imports it dynamically. Only the types are surfaced.
+export type { GeneratedAudio, GeneratedAudioOptions } from "./browser/audio.js";

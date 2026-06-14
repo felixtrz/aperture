@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,6 +14,13 @@ const options = parseArgs(process.argv.slice(2));
 const rootDir = options.rootDir;
 const shouldPack = options.shouldPack;
 
+// The CLI is a scaffolding generator: its emitted dist embeds `import ... from
+// "@aperture-engine/*"` lines as TEMPLATE STRINGS written into the projects it
+// generates, not as its own runtime imports (it declares zero @aperture deps by
+// design). Static regex can't tell a real import from a string-literal one, so
+// the generator is exempt from the emitted-import resolution check.
+const EMITTED_IMPORT_CHECK_SKIP = new Set(["packages/cli"]);
+
 const publishablePackages = [
   "packages/simulation",
   "packages/physics",
@@ -21,6 +28,7 @@ const publishablePackages = [
   "packages/render",
   "packages/runtime",
   "packages/webgpu",
+  "packages/audio",
   "packages/vite-plugin",
   "packages/app",
   "packages/cli",
@@ -141,6 +149,74 @@ async function checkPackage(packageDir) {
   for (const target of exportTargets(packageJson.exports)) {
     await checkPackagePath(packageDir, absoluteDir, target.path, target.label);
   }
+
+  await checkEmittedDependencyImports(packageDir, absoluteDir, packageJson);
+}
+
+/**
+ * Every `@aperture-engine/*` package that the EMITTED dist actually imports must
+ * be a declared dependency (or peer, or the package itself). Without this, a
+ * subpath that re-exports a sibling — e.g. `@aperture-engine/app/vite` re-exporting
+ * `@aperture-engine/vite-plugin` — passes the spec/target checks yet throws
+ * ERR_MODULE_NOT_FOUND on a clean external install. Scans `dist/**\/*.js` for
+ * `from "@aperture-engine/X..."` / `import("@aperture-engine/X...")` statements.
+ */
+async function checkEmittedDependencyImports(
+  packageDir,
+  absoluteDir,
+  packageJson,
+) {
+  if (EMITTED_IMPORT_CHECK_SKIP.has(packageDir)) {
+    return;
+  }
+  const declared = new Set([
+    packageJson.name,
+    ...Object.keys(packageJson.dependencies ?? {}),
+    ...Object.keys(packageJson.peerDependencies ?? {}),
+    ...Object.keys(packageJson.optionalDependencies ?? {}),
+  ]);
+  const importPattern =
+    /(?:from\s*|import\(\s*)["'](@aperture-engine\/[a-z0-9-]+)(?:\/[^"']*)?["']/g;
+  const referenced = new Set();
+
+  for (const file of await collectJsFiles(path.join(absoluteDir, "dist"))) {
+    const code = await readText(file);
+    let match;
+    while ((match = importPattern.exec(code)) !== null) {
+      referenced.add(match[1]);
+    }
+  }
+
+  for (const name of referenced) {
+    if (!declared.has(name)) {
+      fail(
+        `${packageDir} emitted dist imports ${name} but it is not a declared dependency — an external install would fail to resolve it`,
+      );
+    }
+  }
+}
+
+async function collectJsFiles(dir) {
+  const out = [];
+  let entries;
+
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch {
+    return out;
+  }
+
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      out.push(...(await collectJsFiles(full)));
+    } else if (entry.name.endsWith(".js")) {
+      out.push(full);
+    }
+  }
+
+  return out;
 }
 
 async function checkPacks() {

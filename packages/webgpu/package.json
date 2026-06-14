@@ -1,7 +1,24 @@
 {
   "name": "@aperture-engine/webgpu",
   "version": "0.1.0",
-  "description": "WebGPU backend package for Aperture render snapshots and render-world data.",
+  "description": "WebGPU rendering backend for the Aperture game engine: materials, shadows, IBL, post effects, picking, text, UI, and particles.",
+  "author": "Felix Zhang",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felixtrz/aperture.git",
+    "directory": "packages/webgpu"
+  },
+  "homepage": "https://github.com/felixtrz/aperture/tree/main/packages/webgpu#readme",
+  "bugs": "https://github.com/felixtrz/aperture/issues",
+  "keywords": [
+    "aperture",
+    "webgpu",
+    "game-engine",
+    "renderer",
+    "ecs",
+    "pbr",
+    "typescript"
+  ],
   "type": "module",
   "license": "MIT",
   "sideEffects": false,
@@ -19,7 +36,8 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "LICENSE"
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "publishConfig": {
     "access": "public"

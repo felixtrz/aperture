@@ -39,6 +39,10 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+          # Without registry-url, setup-node writes no .npmrc authToken line, so
+          # NODE_AUTH_TOKEN is never consumed and `changeset publish` fails E401.
+          registry-url: https://registry.npmjs.org
+          always-auth: true
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -57,6 +61,8 @@ jobs:
       id-token: write
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # id-token: write above + this flag attest npm provenance for each package.
+      NPM_CONFIG_PROVENANCE: "true"
 
     steps:
       - name: Checkout
@@ -72,6 +78,10 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+          # Without registry-url, setup-node writes no .npmrc authToken line, so
+          # NODE_AUTH_TOKEN is never consumed and `changeset publish` fails E401.
+          registry-url: https://registry.npmjs.org
+          always-auth: true
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

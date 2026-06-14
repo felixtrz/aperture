@@ -34,6 +34,7 @@ export interface RenderSnapshotReport {
   readonly meshDraws: number;
   readonly spriteDraws?: number;
   readonly particleEmitters?: number;
+  readonly audioEmitters?: number;
   readonly quadInstances?: number;
   readonly quadBatches?: number;
   readonly uiNodes?: number;

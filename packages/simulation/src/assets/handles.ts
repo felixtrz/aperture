@@ -1,6 +1,7 @@
 import { ASSET_KINDS, type AssetHandle, type AssetKind } from "./types.js";
 import type {
   AnimationClipHandle,
+  AudioClipHandle,
   EnvironmentMapHandle,
   FontAtlasHandle,
   MaterialHandle,
@@ -86,6 +87,10 @@ export function createFontAtlasHandle(id: string): FontAtlasHandle {
 
 export function createParticleEffectHandle(id: string): ParticleEffectHandle {
   return createAssetHandle("particle-effect", id);
+}
+
+export function createAudioClipHandle(id: string): AudioClipHandle {
+  return createAssetHandle("audio-clip", id);
 }
 
 export function assetHandleKey(handle: AssetHandle): string {

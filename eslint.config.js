@@ -11,6 +11,7 @@ export default tseslint.config(
     ignores: [
       "dist/**",
       "packages/*/dist/**",
+      "examples/**/dist/**",
       "node_modules/**",
       "coverage/**",
       "agent/logs/**",
