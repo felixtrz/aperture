@@ -4,6 +4,21 @@
   "description": "WebGPU-only, ECS-native 3D runtime where simulation is authoritative and rendering is a derived view.",
   "type": "module",
   "license": "MIT",
+  "author": "Felix Zhang",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felixtrz/aperture.git"
+  },
+  "homepage": "https://github.com/felixtrz/aperture#readme",
+  "bugs": "https://github.com/felixtrz/aperture/issues",
+  "keywords": [
+    "aperture",
+    "game-engine",
+    "webgpu",
+    "ecs",
+    "3d",
+    "typescript"
+  ],
   "private": true,
   "packageManager": "pnpm@10.12.1",
   "scripts": {

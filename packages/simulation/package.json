@@ -2,6 +2,23 @@
   "name": "@aperture-engine/simulation",
   "version": "0.1.0",
   "description": "Headless ECS, assets, math, diagnostics, and transform foundation for Aperture.",
+  "author": "Felix Zhang",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felixtrz/aperture.git",
+    "directory": "packages/simulation"
+  },
+  "homepage": "https://github.com/felixtrz/aperture/tree/main/packages/simulation#readme",
+  "bugs": "https://github.com/felixtrz/aperture/issues",
+  "keywords": [
+    "aperture",
+    "ecs",
+    "webgpu",
+    "game-engine",
+    "typescript",
+    "transform",
+    "scene-graph"
+  ],
   "type": "module",
   "license": "MIT",
   "sideEffects": false,

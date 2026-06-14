@@ -16,3 +16,7 @@ npm-debug.log*
 !.env.example
 playwright.local.config.ts
 .claude/settings.local.json
+
+# TypeScript incremental build cache (kept out of dist so it is not published)
+*.tsbuildinfo
+.tsbuildinfo
