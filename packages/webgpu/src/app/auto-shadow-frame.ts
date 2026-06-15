@@ -58,14 +58,87 @@ export function createWebGpuAppAutoShadowFrame(options: {
 
   const meshViews = createAutoShadowCasterMeshViews(options);
 
+  // Center the shadow ortho on the primary camera's ground look-target (≈ the
+  // followed subject) and size it to the visible play area, mirroring the
+  // reference's car-targeted DirectionalLight shadow camera. Without this the
+  // matrix computation defaults to a tiny origin-centered ortho that misses an
+  // off-origin / moving scene, so shadows only appear near the world origin.
+  const sceneMatrix = computeShadowSceneMatrix(options.snapshot);
+
   return createRenderShadowFrame({
     device: options.app.initialization.device as RenderShadowFrameDeviceLike,
     snapshot: options.snapshot,
     preparedMeshes: meshViews.preparedMeshes,
     executableMeshes: meshViews.executableMeshes,
     cache: options.cache.environmentResources,
+    ...(sceneMatrix === null ? {} : { matrix: sceneMatrix }),
     label: `${options.label ?? "aperture-webgpu-app"}:auto-shadow`,
   });
+}
+
+/**
+ * Derive a light-space ortho centered on the primary camera's ground look-target,
+ * sized to the visible play area. Recovers the camera world position + forward
+ * from the column-major view matrix without a full inverse (camPos = -Rᵀ·t,
+ * forward = -(c0.z,c1.z,c2.z)). Null when there is no view.
+ */
+function computeShadowSceneMatrix(snapshot: RenderSnapshot): {
+  readonly center: readonly [number, number, number];
+  readonly orthographicSize: number;
+  readonly near: number;
+  readonly far: number;
+  readonly lightDistance: number;
+} | null {
+  const views = snapshot.views;
+  if (views.length === 0) {
+    return null;
+  }
+  let primary = views[0];
+  for (const view of views) {
+    if (primary === undefined || view.priority > primary.priority) {
+      primary = view;
+    }
+  }
+  if (primary === undefined) {
+    return null;
+  }
+  const m = snapshot.viewMatrices;
+  const o = primary.viewMatrixOffset;
+  if (m.length < o + 16) {
+    return null;
+  }
+  const c0x = m[o] as number;
+  const c0z = m[o + 2] as number;
+  const c1z = m[o + 6] as number;
+  const c2x = m[o + 8] as number;
+  const c2z = m[o + 10] as number;
+  const c0y = m[o + 1] as number;
+  const c2y = m[o + 9] as number;
+  const tx = m[o + 12] as number;
+  const ty = m[o + 13] as number;
+  const tz = m[o + 14] as number;
+  const camX = -(c0x * tx + c0y * ty + c0z * tz);
+  const camZ = -(c2x * tx + c2y * ty + c2z * tz);
+  let fx = -c0z;
+  let fz = -c2z;
+  const flen = Math.sqrt(fx * fx + c1z * c1z + fz * fz) || 1;
+  fx /= flen;
+  fz /= flen;
+  if (!Number.isFinite(camX) || !Number.isFinite(fx)) {
+    return null;
+  }
+
+  // Ground look-target ahead of the camera (≈ the followed subject), and a
+  // radius covering the visible play area at workable shadow-map precision.
+  const LOOK_DISTANCE = 16;
+  const radius = 30;
+  return {
+    center: [camX + fx * LOOK_DISTANCE, 0, camZ + fz * LOOK_DISTANCE],
+    orthographicSize: radius * 2,
+    lightDistance: radius * 1.6,
+    near: radius * 0.3,
+    far: radius * 3,
+  };
 }
 
 function createAutoShadowCasterMeshViews(options: {

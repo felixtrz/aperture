@@ -134,11 +134,14 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         lookAt: [0, 0, 0],
       },
       shadow: {
-        mapSize: 2048,
-        cascadeCount: 3,
+        // Single sized shadow ortho fit to the camera target (engine
+        // auto-shadow path), matching the reference's one DirectionalLight
+        // shadow camera — no cascade-selection / light-range dependency.
+        mapSize: 4096,
+        cascadeCount: 1,
         shadowType: 1,
         filterRadius: DIR_LIGHT.shadowRadius,
-        normalBias: 0.02,
+        normalBias: 0.05,
       },
     });
 
