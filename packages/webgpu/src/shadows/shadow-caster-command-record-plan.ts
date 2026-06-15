@@ -135,6 +135,17 @@ export interface CreateShadowCasterCommandRecordPlanReportOptions {
   readonly pipelines?: readonly ShadowCasterPipelineResourceView[];
   readonly matrixBindGroups?: readonly ShadowCasterMatrixBindGroupResourceView[];
   readonly meshes?: readonly ShadowCasterExecutableMeshResourceView[];
+  /**
+   * Per-`${passKey}:${renderId}` baked-entry index into a SEPARATE caster matrix
+   * buffer whose entry = lightVP_pass * worldMatrix. When supplied together with
+   * {@link bakedMatrixBindGroup}, each caster draw's firstInstance selects its
+   * baked matrix so the depth map is rendered in WORLD space (the caster vertex
+   * shader computes `matrices[instanceIndex] * localPosition`). Without it, the
+   * legacy per-pass cascade offset is used (casters render in LOCAL space).
+   */
+  readonly bakedMatrixIndexByPassDraw?: ReadonlyMap<string, number>;
+  /** Group-0 bind group over the baked caster matrix buffer (lockstep with the index map). */
+  readonly bakedMatrixBindGroup?: ShadowCasterMatrixBindGroupResourceView;
 }
 
 export function createShadowCasterCommandRecordPlanReport(
@@ -284,9 +295,20 @@ export function createShadowCasterCommandRecordPlanReport(
 
     const vertexBuffers = resolveVertexBuffers(record, mesh, diagnostics);
     const indexBuffer = resolveIndexBuffer(record, mesh, diagnostics);
-    const transformPackedOffset = matrixOffsetBytesToPackedOffset(
-      commandPlan.matrixOffsetBytes,
+    // When a baked caster buffer + its bind group are supplied, point this
+    // draw's firstInstance at the per-(pass,object) baked matrix index so the
+    // depth map renders WORLD-space geometry. transformPackedOffsetToInstance
+    // divides by 16, so transformPackedOffset = bakedIndex * 16 yields
+    // firstInstance = bakedIndex. Otherwise fall back to the legacy per-pass
+    // cascade offset so existing callers/tests are unchanged.
+    const bakedIndex = options.bakedMatrixIndexByPassDraw?.get(
+      `${record.passKey}:${record.renderId}`,
     );
+    const useBaked =
+      bakedIndex !== undefined && options.bakedMatrixBindGroup !== undefined;
+    const transformPackedOffset = useBaked
+      ? bakedIndex * 16
+      : matrixOffsetBytesToPackedOffset(commandPlan.matrixOffsetBytes);
 
     if (transformPackedOffset === null) {
       diagnostics.push({
@@ -306,15 +328,19 @@ export function createShadowCasterCommandRecordPlanReport(
       continue;
     }
 
+    const activeBindGroup =
+      useBaked && options.bakedMatrixBindGroup !== undefined
+        ? options.bakedMatrixBindGroup
+        : matrixBindGroup;
     const draw: ResolvedRenderPassDraw = {
       renderId: record.renderId,
       pipelineKey: pipeline.pipelineKey,
       pipeline: pipeline.pipeline,
       bindGroups: [
         {
-          group: matrixBindGroup.group,
-          resourceKey: matrixBindGroup.resourceKey,
-          bindGroup: matrixBindGroup.bindGroup,
+          group: activeBindGroup.group,
+          resourceKey: activeBindGroup.resourceKey,
+          bindGroup: activeBindGroup.bindGroup,
         },
       ],
       vertexBuffers,

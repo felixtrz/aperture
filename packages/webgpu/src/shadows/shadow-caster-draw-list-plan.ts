@@ -26,6 +26,8 @@ export interface ShadowCasterDrawRecord {
   readonly meshLayoutKey: string;
   readonly submesh: number;
   readonly layerMask: number;
+  /** Float offset into `snapshot.transforms` for this caster's WORLD matrix (16 floats). */
+  readonly worldTransformOffset: number;
 }
 
 export interface ShadowCasterDrawList {
@@ -156,6 +158,7 @@ export function createShadowCasterDrawListPlanReport(
         meshLayoutKey: draw.batchKey.meshLayoutKey,
         submesh: draw.submesh,
         layerMask: draw.layerMask,
+        worldTransformOffset: draw.worldTransformOffset,
       }));
     const skippedDrawCount = input.meshDraws.length - included.length;
 

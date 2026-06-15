@@ -274,7 +274,11 @@ fn lightTransformIndex(lightIndex: u32) -> u32 {
 }
 
 fn directionalLightDirection(lightIndex: u32) -> vec3f {
-  return packedLightDirection(lightIndex);
+  // packedLightDirection is the light's TRAVEL direction (the way photons go).
+  // evaluateDirectLight expects the surface->light vector (N·L lit when the
+  // surface faces the light), matching the spot/point paths which pass
+  // toward-light. Negate so an overhead sun lights up-facing receivers.
+  return -packedLightDirection(lightIndex);
 }
 
 fn pointLightPosition(lightIndex: u32) -> vec3f {

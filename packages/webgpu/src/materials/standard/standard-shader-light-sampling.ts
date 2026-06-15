@@ -663,12 +663,12 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {`,
     result = result
       .replace(
         `  let receiverPointShadowFactor = samplePointShadowReceiverFactor(input.worldPosition);
-  let color = (ambientDiffuse + direct) * receiverPointShadowFactor + material.emissiveFactor;`,
+  let color = ambientDiffuse + direct * receiverPointShadowFactor + material.emissiveFactor;`,
         `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
       )
       .replace(
         `  let receiverPointShadowFactor = samplePointShadowReceiverFactor(input.worldPosition);
-  let color = (ambientDiffuse + direct) * receiverPointShadowFactor + emissive;`,
+  let color = ambientDiffuse + direct * receiverPointShadowFactor + emissive;`,
         `  let color = ambientDiffuse + direct + emissive;`,
       );
   }
@@ -677,12 +677,12 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {`,
     result = result
       .replace(
         `  let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
-  let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
+  let color = ambientDiffuse + direct * receiverShadowFactor + material.emissiveFactor;`,
         `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
       )
       .replace(
         `  let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
-  let color = (ambientDiffuse + direct) * receiverShadowFactor + emissive;`,
+  let color = ambientDiffuse + direct * receiverShadowFactor + emissive;`,
         `  let color = ambientDiffuse + direct + emissive;`,
       )
       .replace(
@@ -693,7 +693,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {`,
     ),
     samplePointShadowReceiverFactor(input.worldPosition),
   );
-  let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
+  let color = ambientDiffuse + direct * receiverShadowFactor + material.emissiveFactor;`,
         `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
       )
       .replace(
@@ -704,7 +704,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {`,
     ),
     samplePointShadowReceiverFactor(input.worldPosition),
   );
-  let color = (ambientDiffuse + direct) * receiverShadowFactor + emissive;`,
+  let color = ambientDiffuse + direct * receiverShadowFactor + emissive;`,
         `  let color = ambientDiffuse + direct + emissive;`,
       );
   }

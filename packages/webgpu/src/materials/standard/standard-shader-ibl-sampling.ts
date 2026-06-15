@@ -22,14 +22,14 @@ export function applyStandardDiffuseIblSampling(code: string): string {
     )
     .replace(
       `  let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
-  let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
+  let color = ambientDiffuse + direct * receiverShadowFactor + material.emissiveFactor;`,
       `${sample}
   let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
   let color = (ambientDiffuse + diffuseIbl + direct) * receiverShadowFactor + material.emissiveFactor;`,
     )
     .replace(
       `  let receiverShadowFactor = sampleDirectionalShadowReceiverFactor(input.worldPosition, normal);
-  let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
+  let color = ambientDiffuse + direct * receiverShadowFactor + material.emissiveFactor;`,
       `${sample}
   let receiverShadowFactor = sampleDirectionalShadowReceiverFactor(input.worldPosition, normal);
   let color = (ambientDiffuse + diffuseIbl + direct) * receiverShadowFactor + material.emissiveFactor;`,
