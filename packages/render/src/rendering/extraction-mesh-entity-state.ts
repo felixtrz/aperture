@@ -63,6 +63,9 @@ export function readMeshEntityExtractionState(input: {
   const layerMask = input.entity.hasComponent(RenderLayer)
     ? (input.entity.getValue(RenderLayer, "mask") ?? 1)
     : 1;
+  // Meshes cast by default (glTF-imported meshes carry no ShadowCaster component
+  // and rely on this). An explicit opt-out is authored as ShadowCaster{enabled:false}
+  // (see spawn.mesh `castShadow: false`), which this reads back as not-casting.
   const castsShadow = input.entity.hasComponent(ShadowCaster)
     ? (input.entity.getValue(ShadowCaster, "enabled") ?? true)
     : true;

@@ -112,11 +112,15 @@ export function createSpawnCommands(options: {
       entity.addComponent(Material, {
         materialId: assetHandleKey(materialHandle),
       });
-      if (input.castShadow === true) {
-        entity.addComponent(ShadowCaster, { enabled: true });
+      // Author both true and false explicitly: `castShadow: false` must attach
+      // ShadowCaster{enabled:false} so it actually opts the mesh OUT of casting
+      // (meshes cast by default when the component is absent). Leaving it
+      // undefined keeps the default-cast behavior.
+      if (input.castShadow !== undefined) {
+        entity.addComponent(ShadowCaster, { enabled: input.castShadow });
       }
-      if (input.receiveShadow === true) {
-        entity.addComponent(ShadowReceiver, { enabled: true });
+      if (input.receiveShadow !== undefined) {
+        entity.addComponent(ShadowReceiver, { enabled: input.receiveShadow });
       }
       applyPhysicsSpawnDescriptor({
         world: options.world,
@@ -167,16 +171,20 @@ export function createSpawnCommands(options: {
       const replay = replayGltfLoadedScene(options.world, loadedScene);
       const root = firstReplayRootEntity(loadedScene, replay);
 
-      if (input.castShadow === true || input.receiveShadow === true) {
+      if (input.castShadow !== undefined || input.receiveShadow !== undefined) {
         for (const meshEntity of replay.entitiesByKey.values()) {
           if (!meshEntity.hasComponent(Mesh)) {
             continue;
           }
-          if (input.castShadow === true) {
-            meshEntity.addComponent(ShadowCaster, { enabled: true });
+          // Apply explicit true/false to every mesh in the subtree; `false`
+          // opts the subtree out of casting/receiving (default is to cast).
+          if (input.castShadow !== undefined) {
+            meshEntity.addComponent(ShadowCaster, { enabled: input.castShadow });
           }
-          if (input.receiveShadow === true) {
-            meshEntity.addComponent(ShadowReceiver, { enabled: true });
+          if (input.receiveShadow !== undefined) {
+            meshEntity.addComponent(ShadowReceiver, {
+              enabled: input.receiveShadow,
+            });
           }
         }
       }

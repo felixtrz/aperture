@@ -174,19 +174,28 @@ async function callTool(params: unknown, cwd: string): Promise<unknown> {
   // stringified into a `text` block, forcing callers to decode it to a file (and
   // overflowing text token limits on every screenshot).
   if (isImageToolResult(result)) {
+    const {
+      data,
+      mimeType,
+      encoding: _encoding,
+      includeData,
+      ...metadata
+    } = result;
     return {
       content: [
         {
           type: "image",
-          data: result.data,
-          mimeType: result.mimeType,
+          data,
+          mimeType,
         },
       ],
       // Keep structuredContent free of the (huge) base64 so it stays small.
       structuredContent: {
-        ok: typeof result.ok === "boolean" ? result.ok : true,
-        mimeType: result.mimeType,
+        ...metadata,
+        ok: typeof metadata.ok === "boolean" ? metadata.ok : true,
+        mimeType,
         encoding: "base64",
+        ...(includeData === true ? { data } : {}),
       },
     };
   }
@@ -204,7 +213,14 @@ async function callTool(params: unknown, cwd: string): Promise<unknown> {
 
 function isImageToolResult(
   value: unknown,
-): value is { ok?: boolean; mimeType: string; encoding?: string; data: string } {
+): value is {
+  ok?: boolean;
+  mimeType: string;
+  encoding?: string;
+  data: string;
+  includeData?: boolean;
+  readonly [key: string]: unknown;
+} {
   return (
     isRecord(value) &&
     typeof value["data"] === "string" &&
@@ -225,7 +241,11 @@ function toolDefinitions(): readonly McpToolDefinition[] {
       "browser_canvas_status",
       "Read canvas CSS size, backing size, DPR policy, and render-target size.",
     ),
-    tool("browser_screenshot", "Capture a PNG screenshot of the managed tab."),
+    tool("browser_screenshot", "Capture a PNG screenshot of the managed tab.", {
+      path: { type: "string" },
+      outputPath: { type: "string" },
+      includeData: { type: "boolean" },
+    }),
     tool("browser_console_logs", "Read recent managed-browser console logs.", {
       lines: { type: "number" },
     }),

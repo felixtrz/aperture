@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Shadow Lab — Aperture</title>
+    <script>
+      // Opt this page into the engine's in-browser devtools runtime. The
+      // generated boot calls installGeneratedDevtoolsRuntime() when devtools are
+      // enabled (dev mode), but it only publishes window.__APERTURE_MCP_RUNTIME__
+      // when this flag is already true. The MCP launcher sets it; we set it here
+      // so the debug panel works in any plain dev tab too. Must run before the
+      // auto-injected app bootstrap module.
+      window.__APERTURE_MCP_MANAGED__ = true;
+    </script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+      #aperture {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        touch-action: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="aperture"></canvas>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

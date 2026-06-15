@@ -369,8 +369,19 @@ export function createRenderShadowFrame(
     commandPlan,
     commandEncoding: "ready",
   });
+  // three.js shadowSide parity: emit one caster pipeline per distinct cull mode
+  // present in the frame (single-sided -> "front"/render back faces, the primary
+  // self-shadow defense; double-sided -> "none"). Resolved per draw upstream.
+  const casterCullModes = [
+    ...new Set(
+      casterDrawList.lists.flatMap((list) =>
+        list.draws.map((draw) => draw.casterCullMode),
+      ),
+    ),
+  ];
   const pipelineDescriptor = createShadowCasterPipelineDescriptorReport({
     commandEncoding,
+    ...(casterCullModes.length > 0 ? { casterCullModes } : {}),
   });
   const pipelineResource = createShadowCasterPipelineResourceReport({
     device: options.device,
@@ -704,7 +715,10 @@ function createDirectionalShadowDescriptor(
   return {
     shadowId: request.shadowId,
     lightId: request.lightId,
-    mapSize: options?.mapSize ?? DEFAULT_SHADOW_MAP_SIZE,
+    // Honor the authored shadow-map resolution (three.js LightShadow.mapSize /
+    // PlayCanvas light._shadowResolution parity); only fall back to the engine
+    // default when neither an explicit option nor an authored value is present.
+    mapSize: options?.mapSize ?? request.mapSize ?? DEFAULT_SHADOW_MAP_SIZE,
     depthBias: options?.depthBias ?? DEFAULT_DEPTH_BIAS,
     normalBias: options?.normalBias ?? 0,
     filterRadiusTexels: options?.filterRadiusTexels ?? 1,

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "aperture": {
+      "command": "pnpm",
+      "args": ["exec", "aperture", "mcp", "stdio"]
+    }
+  }
+}

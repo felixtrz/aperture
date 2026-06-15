@@ -143,6 +143,17 @@ export function createShadowMatrixBufferResourceReport(
   const cached = options.cache?.get(descriptor.resourceKey);
 
   if (cached !== undefined) {
+    // Re-upload the CURRENT matrices into the reused buffer. The cache key is the
+    // stable resourceKey, so a plain cache hit would keep serving the light-VP
+    // matrices captured on the first frame. The light-space ortho is recomputed
+    // every frame (it tracks the light + camera-derived shadow center) and the
+    // CASTER re-bakes lightVP*world every frame — so without this re-upload the
+    // receiver samples a STALE light-VP and the shadow desyncs from its caster
+    // the moment the camera or light moves.
+    const refreshed = packShadowMatrices(options.descriptor, options.matrices);
+    if (!("diagnostics" in refreshed)) {
+      options.device.queue?.writeBuffer?.(cached.buffer, 0, refreshed.data);
+    }
     return report({
       status: "available",
       matrixCount: cached.matrixCount,

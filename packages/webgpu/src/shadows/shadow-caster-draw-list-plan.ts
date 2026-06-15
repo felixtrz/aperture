@@ -4,7 +4,34 @@ import type {
   ShadowRequestPacket,
 } from "@aperture-engine/render";
 
+import { parseMaterialPipelineRenderStateTokens } from "../materials/core/material-render-state.js";
 import type { ShadowPassPlanReport } from "./shadow-pass-plan.js";
+
+export type ShadowCasterCullMode = "back" | "front" | "none";
+
+// PlayCanvas parity: a caster renders the SAME faces as the forward pass (its
+// light-facing FRONT faces), so a caster that punches up through a receiver
+// still writes the depth of its protruding front geometry and casts correctly.
+// (three.js renders the OPPOSITE/back faces, which loses thin/protruding-front
+// shadows — a documented flaw aperture previously inherited.) Front-face
+// rendering moves self-shadow acne onto the lit faces, so it MUST be paired with
+// the slope-scaled rasterizer depth bias applied to every caster pipeline
+// (shadow-caster-pipeline-descriptor.ts biasForCull) — exactly PlayCanvas's
+// front-face + always-on slope/constant bias model. Double-sided ("none") stays
+// two-sided so thin/open geometry casts from both faces.
+function casterCullModeForForward(
+  forwardCullMode: string | null,
+): ShadowCasterCullMode {
+  if (forwardCullMode === "none") {
+    return "none";
+  }
+  if (forwardCullMode === "front") {
+    return "front";
+  }
+  // forward "back" (single-sided) or unknown -> render FRONT faces (same as
+  // the forward pass), so protruding front geometry casts correctly.
+  return "back";
+}
 
 export type ShadowCasterDrawListStatus =
   | "ready"
@@ -24,6 +51,13 @@ export interface ShadowCasterDrawRecord {
   readonly meshKey: string;
   readonly materialKey: string;
   readonly meshLayoutKey: string;
+  /**
+   * Cull mode for rendering this caster into the depth map. PlayCanvas parity:
+   * the caster renders the SAME faces as the forward pass (single-sided -> render
+   * front faces; double-sided -> "none"), so protruding geometry casts correctly;
+   * acne is handled by the slope-scaled depth bias, not by back-face rendering.
+   */
+  readonly casterCullMode: ShadowCasterCullMode;
   readonly submesh: number;
   readonly layerMask: number;
   /** Float offset into `snapshot.transforms` for this caster's WORLD matrix (16 floats). */
@@ -156,6 +190,10 @@ export function createShadowCasterDrawListPlanReport(
         meshKey: assetHandleKey(draw.mesh),
         materialKey: assetHandleKey(draw.material),
         meshLayoutKey: draw.batchKey.meshLayoutKey,
+        casterCullMode: casterCullModeForForward(
+          parseMaterialPipelineRenderStateTokens(draw.batchKey.pipelineKey)
+            .cullMode,
+        ),
         submesh: draw.submesh,
         layerMask: draw.layerMask,
         worldTransformOffset: draw.worldTransformOffset,

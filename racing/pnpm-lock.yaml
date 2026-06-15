@@ -88,7 +88,7 @@ packages:
       '@aperture-engine/app': ^0.1.0
 
   '@aperture-engine/webgpu@file:vendor/aperture-engine-webgpu-0.1.0.tgz':
-    resolution: {integrity: sha512-bwZcLLjEgZK0n7OQaPewKStThdfaEwhgQdbcyIW0WLQVHVlpVTaJ7uKfV8yg1B28Vl7ZpqVxVzPchQxujpo+6w==, tarball: file:vendor/aperture-engine-webgpu-0.1.0.tgz}
+    resolution: {integrity: sha512-3ZVc+bIgmvL4eiBDCtSxjeDuyMNvTMGKzQlGQs8/pZXxVyNAS7PuuKsCoap+5CAcKq4XbeQDv1NfJT20z96f8w==, tarball: file:vendor/aperture-engine-webgpu-0.1.0.tgz}
     version: 0.1.0
 
   '@dimforge/rapier3d-compat@0.19.3':

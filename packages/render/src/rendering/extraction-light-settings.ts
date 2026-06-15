@@ -142,6 +142,7 @@ export function appendShadowRequest(
   const slopeBias = settings.slopeBias ?? 0;
   const depthBias = settings.bias ?? 0;
   const normalBias = settings.normalBias ?? 0;
+  const mapSize = settings.mapSize ?? 1024;
 
   shadowRequests.push({
     shadowId: lightId,
@@ -158,6 +159,10 @@ export function appendShadowRequest(
     ...(slopeBias === 0 ? {} : { slopeBias }),
     ...(depthBias === 0 ? {} : { depthBias }),
     ...(normalBias === 0 ? {} : { normalBias }),
+    // Authored shadow-map resolution; both three.js (LightShadow.mapSize) and
+    // PlayCanvas (light._shadowResolution) honor it. Only attached when it
+    // differs from the renderer default so default lights round-trip minimally.
+    ...(mapSize === 1024 ? {} : { mapSize }),
   });
 }
 

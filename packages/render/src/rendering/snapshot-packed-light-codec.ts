@@ -131,6 +131,7 @@ export function writeShadowRequestPacket(
   writeFloat32(words, offset + 9, packet.slopeBias ?? 0);
   writeFloat32(words, offset + 10, packet.depthBias ?? 0);
   writeFloat32(words, offset + 11, packet.normalBias ?? 0);
+  words[offset + 12] = Math.max(0, Math.floor(packet.mapSize ?? 0)) >>> 0;
 }
 
 export function readShadowRequestPacket(
@@ -154,6 +155,7 @@ export function readShadowRequestPacket(
   const slopeBias = readFloat32(words, offset + 9);
   const depthBias = readFloat32(words, offset + 10);
   const normalBias = readFloat32(words, offset + 11);
+  const mapSize = words[offset + 12] ?? 0;
 
   return {
     ...packet,
@@ -165,5 +167,6 @@ export function readShadowRequestPacket(
     ...(slopeBias === 0 ? {} : { slopeBias }),
     ...(depthBias === 0 ? {} : { depthBias }),
     ...(normalBias === 0 ? {} : { normalBias }),
+    ...(mapSize === 0 ? {} : { mapSize }),
   };
 }

@@ -99,8 +99,13 @@ describe("shadow matrix buffer resources", () => {
     expect(JSON.parse(shadowMatrixBufferResourceReportToJson(second))).toEqual(
       json,
     );
+    // The buffer is allocated once (reuse does NOT recreate it)...
     expect(createdBuffers).toHaveLength(1);
-    expect(writes).toHaveLength(1);
+    // ...but the reuse path RE-UPLOADS the current matrices into that same
+    // buffer (write on create + write on reuse), so the receiver never samples a
+    // stale light-VP after the shadow ortho moves with the light/camera.
+    expect(writes).toHaveLength(2);
+    expect((writes[1] as unknown[])[0]).toBe((writes[0] as unknown[])[0]);
     expect(JSON.stringify(json)).not.toMatch(/GPUBuffer|writeBuffer|"raw"/);
   });
 

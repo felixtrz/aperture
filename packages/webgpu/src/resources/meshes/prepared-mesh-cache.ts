@@ -195,7 +195,11 @@ export function prepareMeshGpuResource(
 
   const mesh = createMeshGpuBuffers({
     device: options.device,
-    plan: descriptors.plan,
+    plan: withPreparedMeshResourceLabel(
+      descriptors.plan,
+      sourceMeshKey,
+      options.sourceVersion,
+    ),
   });
 
   if (!mesh.valid || mesh.resource === null) {
@@ -236,6 +240,17 @@ export function preparedMeshGpuResourceCacheKey(input: {
     `version:${input.sourceVersion}`,
     `layout:${input.layoutKey}`,
   ].join("|");
+}
+
+function withPreparedMeshResourceLabel(
+  plan: MeshUploadBufferDescriptorPlan,
+  sourceMeshKey: string,
+  sourceVersion: number,
+): MeshUploadBufferDescriptorPlan {
+  return {
+    ...plan,
+    label: `${sourceMeshKey}@v${sourceVersion}`,
+  };
 }
 
 export function preparedMeshGpuResourceLayoutKey(

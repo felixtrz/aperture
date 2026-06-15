@@ -393,14 +393,16 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "exp(-distanceToCamera * distanceToCamera * view.fogParams.y * view.fogParams.y)",
     );
+    // Fog folds into a fresh `let foggedColor`; the base `color` stays `let`
+    // (immutable). Reassigning `color` directly would be invalid WGSL on the
+    // shadow path, which keeps it immutable.
     expect(shader.code).toContain(
-      "var color = ambientDiffuse + direct + material.emissiveFactor;",
-    );
-    expect(shader.code).not.toContain(
       "let color = ambientDiffuse + direct + material.emissiveFactor;",
     );
-    expect(shader.code).toContain("color = applyDistanceFog");
-    expect(shader.code).toContain("return vec4f(color, alpha);");
+    expect(shader.code).toContain(
+      "let foggedColor = applyDistanceFog(color, length(view.cameraPosition.xyz - input.worldPosition));",
+    );
+    expect(shader.code).toContain("return vec4f(foggedColor, alpha);");
   });
 
   it("generates a scalar clearcoat StandardMaterial shader variant", () => {
@@ -1350,7 +1352,15 @@ describe("built-in standard material WGSL shader metadata", () => {
       "@group(3) @binding(4) var directionalShadowSampler: sampler_comparison;",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
-      "fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32",
+      "fn sampleDirectionalShadowFactor(worldPosition: vec3f, normal: vec3f) -> f32",
+    );
+    // three.js normalBias parity: the non-cascaded receiver offsets the sample
+    // along the surface normal before the shadow lookup.
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "fn directionalShadowNormalBiasValue() -> f32",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "worldPosition + normal * directionalShadowNormalBiasValue()",
     );
     // M4-T4: the baked MIN_VISIBILITY floor is gone; the shadow factor is now
     // floored by the authored per-light strength read from the packed buffer.
@@ -1370,8 +1380,12 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "for (var y: i32 = -1; y <= 1; y = y + 1)",
     );
+    // Depth convention is centralized in one helper (shadowDepthFromClip): wgpu
+    // clip z is [0,1], so the receiver depth is the raw clip z and out-of-frustum
+    // z is treated as lit by the bounds check. The cross-variant test below
+    // asserts the no-GL-remap guarantee for EVERY shadow sampler site.
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
-      "let shadowDepth = select(",
+      "let shadowDepth = shadowDepthFromClip(shadowClip);",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "if (projectionDistance > 0.0) {",
@@ -1403,6 +1417,60 @@ describe("built-in standard material WGSL shader metadata", () => {
       ["directionalShadowMap", 3, 3, "texture"],
       ["directionalShadowSampler", 3, 4, "sampler"],
     ]);
+  });
+
+  it("routes every shadow sampler through one shadowDepthFromClip helper with no GL depth remap", () => {
+    // Regression guard for the buried-caster spurious-shadow bug. aperture's
+    // shadow matrices are wgpu (clip z in [0,1]); the GL-style
+    // select(shadowClip.z, shadowClip.z*0.5+0.5, shadowClip.z<0) remap folded
+    // out-of-frustum receivers into a valid depth and shadowed them. The
+    // convention now lives in a SINGLE helper that every sampler site
+    // (directional, cascaded, spot, point) calls — so no site can drift, and
+    // the remap can never reappear at any of them.
+    const noTextures = {
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+    } as const;
+    const variants: ReadonlyArray<readonly [string, string]> = [
+      ["non-cascaded directional", STANDARD_SHADOW_RECEIVER_MESH_WGSL],
+      ["cascaded directional", STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL],
+      [
+        "point",
+        createStandardTextureVariantShader({ ...noTextures, pointShadowMap: true })
+          .code,
+      ],
+      [
+        "directional+point (multi)",
+        createStandardTextureVariantShader({
+          ...noTextures,
+          shadowMap: true,
+          pointShadowMap: true,
+        }).code,
+      ],
+    ];
+
+    for (const [label, code] of variants) {
+      // The depth convention is declared exactly ONCE per shader (a second
+      // declaration would be a WGSL duplicate-symbol compile error)...
+      const helperCount = code.split(
+        "fn shadowDepthFromClip(shadowClip: vec3f) -> f32",
+      ).length - 1;
+      expect(helperCount, `${label}: one shadowDepthFromClip declaration`).toBe(1);
+      // ...every sampler site reads its depth through that helper...
+      expect(code, `${label}: sites use the helper`).toContain(
+        "let shadowDepth = shadowDepthFromClip(shadowClip);",
+      );
+      // ...and the GL-style [-1,1]->[0,1] remap appears at NO site.
+      expect(code, `${label}: no GL select remap`).not.toContain(
+        "let shadowDepth = select(",
+      );
+      expect(code, `${label}: no GL remap math`).not.toContain(
+        "shadowClip.z * 0.5 + 0.5",
+      );
+    }
   });
 
   it("compares point shadow cube samples against projected receiver depth", () => {

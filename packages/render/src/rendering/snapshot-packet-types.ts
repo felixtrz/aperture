@@ -313,6 +313,9 @@ export interface ShadowRequestPacket {
   readonly depthBias?: number;
   /** Authored normal-offset bias (LightShadowSettings.normalBias) (M4-T5). */
   readonly normalBias?: number;
+  /** Authored shadow-map resolution (LightShadowSettings.mapSize); the
+   * directional shadow descriptor honors it instead of the hardcoded default. */
+  readonly mapSize?: number;
 }
 
 export interface BoundsPacket {

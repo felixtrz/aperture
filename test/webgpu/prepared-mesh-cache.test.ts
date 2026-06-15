@@ -120,6 +120,38 @@ describe("prepared mesh GPU resource cache", () => {
     expect(result.resource).not.toHaveProperty("viewUniforms");
   });
 
+  it("keeps same-label prepared mesh GPU resource keys distinct by source mesh", () => {
+    const cache = createPreparedMeshGpuResourceCache();
+    const device = deviceWithBuffers([]);
+    const first = prepareMeshGpuResource({
+      device,
+      cache,
+      handle: createMeshHandle("tree.cone0"),
+      mesh: createBoxMeshAsset({ label: "Cone" }),
+      sourceVersion: 1,
+    });
+    const second = prepareMeshGpuResource({
+      device,
+      cache,
+      handle: createMeshHandle("tree.cone1"),
+      mesh: createBoxMeshAsset({ label: "Cone" }),
+      sourceVersion: 1,
+    });
+
+    expect(first.status).toBe("created");
+    expect(second.status).toBe("created");
+    expect(first.resource?.layoutKey).toBe(second.resource?.layoutKey);
+    expect(first.resource?.mesh.resourceKey).toBe(
+      "mesh-buffer:mesh:tree.cone0@v1",
+    );
+    expect(second.resource?.mesh.resourceKey).toBe(
+      "mesh-buffer:mesh:tree.cone1@v1",
+    );
+    expect(first.resource?.mesh.resourceKey).not.toBe(
+      second.resource?.mesh.resourceKey,
+    );
+  });
+
   it("summarizes an empty prepared mesh backend cache", () => {
     const cache = createPreparedMeshGpuResourceCache();
     const summary = createPreparedMeshGpuResourceCacheSummary();
