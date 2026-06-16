@@ -70,6 +70,7 @@ import type { CameraAccess } from "./systems/cameras.js";
 import type { HierarchyAccess } from "./systems/hierarchy.js";
 import type { InteractionAccess } from "./interaction/access.js";
 import type { MaterialAccess } from "./systems/materials.js";
+import type { MeshAccess } from "./systems/meshes.js";
 import type { PhysicsAccess } from "./systems/physics.js";
 import type { FixedStepAccess } from "./systems/fixed-step.js";
 import type { PrefabAccess } from "./systems/prefabs.js";
@@ -248,6 +249,14 @@ export type {
 } from "./systems/materials.js";
 export { createMaterialAccess } from "./systems/materials.js";
 export type {
+  DynamicMesh,
+  DynamicMeshOptions,
+  MeshAccess,
+  MeshPublishOptions,
+  MeshPublishResult,
+} from "./systems/meshes.js";
+export { createMeshAccess } from "./systems/meshes.js";
+export type {
   PhysicsApplyForceOptions,
   PhysicsApplyImpulseOptions,
   PhysicsAccess,
@@ -384,6 +393,7 @@ export interface ApertureSystemInstance {
   readonly hierarchy: HierarchyAccess;
   readonly prefabs: PrefabAccess;
   readonly materials: MaterialAccess;
+  readonly meshes: MeshAccess;
   readonly physics: PhysicsAccess;
   readonly fixedStep: FixedStepAccess;
   readonly interaction: InteractionAccess;
@@ -526,6 +536,10 @@ export function createSystem<
 
     get materials(): MaterialAccess {
       return this.#context.materials;
+    }
+
+    get meshes(): MeshAccess {
+      return this.#context.meshes;
     }
 
     get physics(): PhysicsAccess {

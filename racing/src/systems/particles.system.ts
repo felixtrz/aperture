@@ -3,6 +3,7 @@ import {
   Name,
   clamp,
   createSystem,
+  type DynamicMesh,
   type Vec3Tuple as Vec3,
 } from "@aperture-engine/app/systems";
 import {
@@ -15,9 +16,7 @@ import {
   type TextureSourceData,
 } from "@aperture-engine/render";
 import {
-  assetHandleKey,
   createMaterialHandle,
-  createMeshHandle,
   createSamplerHandle,
   createTextureHandle,
   type AssetRegistry,
@@ -26,8 +25,8 @@ import { VehicleResource } from "../lib/vehicle-resource.js";
 
 // Port of Particles.js (REFERENCE_SPEC §6). The engine GPU particle pipeline is a
 // broken placeholder, so smoke is implemented app-side as textured, camera-facing
-// (billboarded) quads in ONE dynamic interleaved-vertex MeshAsset — the SAME
-// dynamic-mesh + asset-registry pattern that drift-marks.system.ts uses.
+// (billboarded) quads in one dynamic interleaved-vertex MeshAsset, using the
+// same public dynamic mesh helper that drift-marks.system.ts uses.
 //
 // Reference behavior (REFERENCE_SPEC §6): pool 1280, emit 3 particles per back
 // wheel per frame when driftIntensity > 0.7, MAX_LIFE 2.5s; spawn at the back
@@ -107,18 +106,16 @@ export default class ParticlesSystem extends createSystem({
   readonly #vertices = new Float32Array(POOL * FLOATS_PER_PARTICLE);
   readonly #indices = new Uint16Array(POOL * VERTS_PER_PARTICLE);
 
-  #registry: AssetRegistry | null = null;
-  readonly #meshHandle = createMeshHandle("racing.particles.smoke");
   readonly #materialHandle = createMaterialHandle("racing.particles.smoke");
   readonly #textureHandle = createTextureHandle("racing.particles.smoke");
   readonly #samplerHandle = createSamplerHandle("racing.particles.smoke");
+  #mesh: DynamicMesh | null = null;
 
   #camera: QueryEntity | null = null;
   #ready = false; // mesh + material registered and entity spawned
 
   override init(): void {
     const registry = this.assetsRegistry;
-    this.#registry = registry;
 
     // uint16 index buffer: POOL*6 = 7680 < 65535, safe. Sequential (non-indexed
     // topology emulated via 0..N indices, matching drift-marks).
@@ -175,17 +172,20 @@ export default class ParticlesSystem extends createSystem({
     }
     registry.markReady(this.#materialHandle, materialAsset);
 
-    // --- Mesh: publish an initial (empty) buffer so the entity has a ready mesh.
-    registry.register(this.#meshHandle, { label: "Smoke particles" });
-    registry.markReady(this.#meshHandle, this.#buildAsset(0));
+    // --- Mesh: publish an initial empty buffer so the entity has a ready mesh.
+    const mesh = this.meshes.dynamic("racing.particles.smoke", {
+      label: "Smoke particles",
+      initial: this.#buildAsset(0),
+    });
+    this.#mesh = mesh;
 
     // --- Entity: handle keys pass straight through; the renderer resolves the
-    // live registry version each frame so per-frame markReady re-uploads.
+    // live registry version each frame so per-frame publish() re-uploads.
     this.spawn.mesh({
-      key: `${assetHandleKey(this.#meshHandle)}.entity`,
-      name: assetHandleKey(this.#meshHandle),
+      key: `${mesh.key}.entity`,
+      name: mesh.key,
       tags: ["smoke-particles"],
-      mesh: this.#meshHandle,
+      mesh: mesh.handle,
       material: this.#materialHandle,
       castShadow: false,
     });
@@ -194,7 +194,7 @@ export default class ParticlesSystem extends createSystem({
   }
 
   override update(delta: number): void {
-    if (!this.#ready || this.#registry === null) return;
+    if (!this.#ready || this.#mesh === null) return;
 
     const dt = clampDt(delta);
 
@@ -229,8 +229,8 @@ export default class ParticlesSystem extends createSystem({
     const cam = this.#cameraPosition();
     const live = cam === null ? 0 : this.#writeBillboards(cam);
 
-    // Re-publish the mutated buffers (bumps the registry version → GPU re-upload).
-    this.#registry.markReady(this.#meshHandle, this.#buildAsset(live));
+    // Publish the mutated buffers (bumps mesh version for GPU re-upload).
+    this.#mesh.publish(this.#buildAsset(live));
   }
 
   #emitFromWheel(wheel: Vec3 | null, groundY: number): void {

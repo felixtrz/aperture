@@ -1,6 +1,8 @@
 import {
   clamp01,
   createSystem,
+  type DynamicMesh,
+  type MeshAccess,
   type Vec3Tuple as Vec3,
 } from "@aperture-engine/app/systems";
 import {
@@ -10,12 +12,8 @@ import {
   type MeshAsset,
 } from "@aperture-engine/render";
 import {
-  assetHandleKey,
   createMaterialHandle,
-  createMeshHandle,
-  type AssetRegistry,
   type MaterialHandle,
-  type MeshHandle,
 } from "@aperture-engine/simulation";
 import { VehicleResource } from "../lib/vehicle-resource.js";
 
@@ -48,10 +46,10 @@ const MARK_RGB = 0x11 / 0xff;
 const MATERIAL_OPACITY = 0.5;
 
 // One ground-projected wheel trail backed by an interleaved typed-array vertex
-// buffer and a matching index buffer. Mutated in place, then re-published to the
-// asset registry (version bump) so the renderer re-uploads the GPU buffers.
+// buffer and a matching index buffer. Mutated in place, then published through
+// the dynamic mesh helper so the renderer re-uploads the GPU buffers.
 class DriftTrail {
-  readonly meshHandle: MeshHandle;
+  readonly mesh: DynamicMesh;
   readonly #vertices = new Float32Array(MAX_SEGMENTS * FLOATS_PER_SEGMENT);
   readonly #indices: Uint16Array;
   #segmentIndex = 0;
@@ -63,23 +61,19 @@ class DriftTrail {
   #max: Vec3 = [0, 0, 0];
   #boundsInit = false;
 
-  constructor(
-    private readonly registry: AssetRegistry,
-    private readonly materialKey: string,
-    id: string,
-  ) {
-    this.meshHandle = createMeshHandle(`racing.driftMarks.${id}`);
-
+  constructor(meshes: MeshAccess, id: string) {
     // 6 indices per segment. uint16 caps at 65535 verts = ~10922 segments >
     // 4096*6=24576, so uint16 is safe.
     const indexCount = MAX_SEGMENTS * VERTS_PER_SEGMENT;
     this.#indices = new Uint16Array(indexCount);
     for (let i = 0; i < indexCount; i += 1) this.#indices[i] = i;
 
-    this.registry.register(this.meshHandle, { label: `Drift trail ${id}` });
-    // Publish an initial (empty) mesh so the entity has a ready mesh at spawn;
-    // indexCount 0 renders nothing until the first segment is written.
-    this.registry.markReady(this.meshHandle, this.#buildAsset(id));
+    this.mesh = meshes.dynamic(`racing.driftMarks.${id}`, {
+      label: `Drift trail ${id}`,
+      // Publish an initial empty mesh so the entity has a ready mesh at spawn;
+      // indexCount 0 renders nothing until the first segment is written.
+      initial: this.#buildAsset(id),
+    });
   }
 
   /** Reference DriftTrail.track: project wheel to groundY, emit a segment. */
@@ -99,10 +93,10 @@ class DriftTrail {
     this.#active = emit;
   }
 
-  /** Re-publish the mutated buffers (bumps registry version → GPU re-upload). */
+  /** Publish the mutated buffers (bumps mesh version for GPU re-upload). */
   flush(id: string): void {
     if (!this.#dirty) return;
-    this.registry.markReady(this.meshHandle, this.#buildAsset(id));
+    this.mesh.publish(this.#buildAsset(id));
     this.#dirty = false;
   }
 
@@ -245,11 +239,9 @@ export default class DriftMarksSystem extends createSystem({ priority: 135 }) {
       });
     }
     registry.markReady(materialHandle, materialAsset);
-    const materialKey = assetHandleKey(materialHandle);
-
     this.#trails = [
-      new DriftTrail(registry, materialKey, "bl"),
-      new DriftTrail(registry, materialKey, "br"),
+      new DriftTrail(this.meshes, "bl"),
+      new DriftTrail(this.meshes, "br"),
     ];
 
     // Spawn one render entity per trail. The pre-registered mesh + material
@@ -258,10 +250,10 @@ export default class DriftMarksSystem extends createSystem({ priority: 135 }) {
     // frame (so the per-frame markReady re-uploads).
     for (const trail of this.#trails) {
       this.spawn.mesh({
-        key: `${assetHandleKey(trail.meshHandle)}.entity`,
-        name: assetHandleKey(trail.meshHandle),
+        key: `${trail.mesh.key}.entity`,
+        name: trail.mesh.key,
         tags: ["drift-marks"],
-        mesh: trail.meshHandle,
+        mesh: trail.mesh.handle,
         material: materialHandle,
         castShadow: false,
       });

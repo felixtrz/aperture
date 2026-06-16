@@ -46,6 +46,11 @@ building blocks and default paths.
   while engine-reserved fields such as snapshot transport buffers stay private.
   Racing and shadow-lab track setup no longer read
   `world.globals["aperture.workerStartOptions"]`.
+- 2026-06-16: Public dynamic mesh access landed:
+  `this.meshes.dynamic(...)` owns mesh asset registration and version bumps for
+  worker-authored runtime meshes. Racing smoke particles and drift trails now
+  publish mesh updates through this helper instead of touching mesh registry
+  lifecycle directly.
 
 ## Goals
 

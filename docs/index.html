@@ -393,13 +393,17 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 18:27 UTC</dd>
+            <dd>2026-06-16 18:41 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: app systems now have typed
-              <code>defineResource</code>/<code>this.resources</code>
+              Latest update: app systems now expose
+              <code>this.meshes.dynamic(...)</code> for runtime mesh source
+              assets. Racing smoke particles and drift trails now publish
+              dynamic mesh versions through the library helper instead of
+              app-local mesh registry plumbing. Prior update: app systems have
+              typed <code>defineResource</code>/<code>this.resources</code>
               singletons for simulation-owned cross-system state. Racing moved
               its vehicle/camera/particles/drift/lap shared state off a module
               singleton and onto the generated-worker resource summary; racing
@@ -407,40 +411,38 @@
               <code>this.startOptions</code> instead of private world globals.
               Both apps were rebuilt and reverified through their managed
               Aperture sessions. Prior update: directional app auto-shadows now
-              use the active
-              render camera for PlayCanvas-style frustum fitting with
-              texel-snapped coverage and caster-bound depth expansion. Shadow
-              Lab and racing both exercise the automatic Aperture path without
-              authored shadow-camera bounds. Prior update: fixed-step app
-              systems can now implement
-              <code>fixedUpdate(context)</code>, the runtime scheduler preserves
-              fixed-step priority order, and opt-in
-              <code>RenderInterpolation</code> rewrites presentation snapshots
-              for smooth camera and visual transforms between fixed ticks.
-              Shadow Lab applies the route to the racing truck/camera and now
-              forces imported GLB materials through front-side culling parity so
-              the Aperture panel no longer renders the underside/backfaces that
-              three.js hides. Prior update: bloom now follows the three.js
-              BloomNode-style half-resolution brightpass plus Gaussian mip
-              graph, and non-final post effects preserve the HDR scene format
-              until the final tonemap pass. Shadow Lab verifies the emissive
-              probe on the racing scene side by side against three.js with a
-              matching five-level bloom graph. Prior update: generated/default
-              app snapshot transport now defaults to <code>auto</code>: isolated
-              hosts receive SharedArrayBuffer start payloads, generated
-              simulation workers write supported render packets and typed
-              buffers through the shared snapshot writer, and non-isolated or
-              unsupported frames keep using transfer-list snapshots. The dormant
-              runtime render-snapshot buffer pool was benchmarked and removed
-              after its copy/recycle route missed the adoption bar, leaving
-              <code>renderSnapshotTransferList</code> as the public transferable
-              fallback. Prepared mesh/material backend caches now run bounded
-              post-frame eviction through the app render path, report JSON-safe
-              eviction counters, and keep current-frame resources stamped as
-              in-use even on the StandardMaterial route. Generic app environment
-              assets now accept direct equirect sources: the app projects to a
-              renderer-owned cube texture, feeds PMREM and irradiance
-              convolution without CPU readback, and the
+              use the active render camera for PlayCanvas-style frustum fitting
+              with texel-snapped coverage and caster-bound depth expansion.
+              Shadow Lab and racing both exercise the automatic Aperture path
+              without authored shadow-camera bounds. Prior update: fixed-step
+              app systems can now implement <code>fixedUpdate(context)</code>,
+              the runtime scheduler preserves fixed-step priority order, and
+              opt-in <code>RenderInterpolation</code> rewrites presentation
+              snapshots for smooth camera and visual transforms between fixed
+              ticks. Shadow Lab applies the route to the racing truck/camera and
+              now forces imported GLB materials through front-side culling
+              parity so the Aperture panel no longer renders the
+              underside/backfaces that three.js hides. Prior update: bloom now
+              follows the three.js BloomNode-style half-resolution brightpass
+              plus Gaussian mip graph, and non-final post effects preserve the
+              HDR scene format until the final tonemap pass. Shadow Lab verifies
+              the emissive probe on the racing scene side by side against
+              three.js with a matching five-level bloom graph. Prior update:
+              generated/default app snapshot transport now defaults to
+              <code>auto</code>: isolated hosts receive SharedArrayBuffer start
+              payloads, generated simulation workers write supported render
+              packets and typed buffers through the shared snapshot writer, and
+              non-isolated or unsupported frames keep using transfer-list
+              snapshots. The dormant runtime render-snapshot buffer pool was
+              benchmarked and removed after its copy/recycle route missed the
+              adoption bar, leaving <code>renderSnapshotTransferList</code> as
+              the public transferable fallback. Prepared mesh/material backend
+              caches now run bounded post-frame eviction through the app render
+              path, report JSON-safe eviction counters, and keep current-frame
+              resources stamped as in-use even on the StandardMaterial route.
+              Generic app environment assets now accept direct equirect sources:
+              the app projects to a renderer-owned cube texture, feeds PMREM and
+              irradiance convolution without CPU readback, and the
               <code>ibl-equirect</code> browser proof asserts the generic route.
               GPU particle over-lifetime curves now reach the WebGPU particle
               parameter upload as fixed LUT data, and the compute shader samples

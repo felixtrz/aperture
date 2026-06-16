@@ -50,6 +50,9 @@ the runtime architecture:
   `defineResource(...)`, `resource.*`, and `this.resources`; these resources are
   simulation-worker state and are summarized through generated worker/headless
   status, not renderer-owned objects.
+  Systems that produce runtime mesh data can publish renderer-independent
+  `MeshAsset` updates through `this.meshes.dynamic(...)`, keeping asset
+  registration and version bumps out of app-local registry plumbing.
 - `@aperture-engine/vite-plugin`: the default Vite integration. It discovers
   `aperture.config.ts`, system globs, system descriptor metadata, and generated
   browser/worker virtual modules. It is build-time code and is intentionally not
@@ -80,6 +83,9 @@ The default browser application shape is now a Vite metaframework path:
 - Worker systems share singleton app state through typed resources on
   `this.resources`. Resource values must stay structured-clone safe and must not
   hold GPU, DOM, Web Audio, or renderer handles.
+- Worker systems publish dynamic mesh source data through `this.meshes`.
+  Meshes remain source assets in the registry; GPU buffers remain renderer-owned
+  and are refreshed from asset versions.
 - App-level browser URL/start fields forwarded to the worker are available to
   systems through `this.startOptions`. Engine-reserved worker fields such as
   snapshot transport buffers stay out of that public system view.

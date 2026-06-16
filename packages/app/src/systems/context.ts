@@ -24,6 +24,7 @@ import {
   type InteractionAccess,
 } from "../interaction/access.js";
 import { createMaterialAccess, type MaterialAccess } from "./materials.js";
+import { createMeshAccess, type MeshAccess } from "./meshes.js";
 import { createPhysicsAccess, type PhysicsAccess } from "./physics.js";
 import { createPrefabAccess, type PrefabAccess } from "./prefabs.js";
 import { createSignalStore, type SignalStore } from "./signals.js";
@@ -66,6 +67,7 @@ export interface ApertureSystemContext {
   readonly hierarchy: HierarchyAccess;
   readonly prefabs: PrefabAccess;
   readonly materials: MaterialAccess;
+  readonly meshes: MeshAccess;
   readonly physics: PhysicsAccess;
   readonly fixedStep: FixedStepAccess;
   readonly interaction: InteractionAccess;
@@ -133,6 +135,7 @@ export function createApertureSystemContext(
   const hierarchy = createHierarchyAccess(options.world);
   const prefabs = createPrefabAccess(options.assetsRegistry);
   const materials = createMaterialAccess(options.assetsRegistry);
+  const meshes = createMeshAccess(options.assetsRegistry);
   const fixedStep = createFixedStepAccess(options.registerFixedStepTask);
   const interaction = createInteractionAccess(options.world);
 
@@ -151,6 +154,7 @@ export function createApertureSystemContext(
     hierarchy,
     prefabs,
     materials,
+    meshes,
     physics,
     fixedStep,
     interaction,
@@ -188,6 +192,7 @@ function isApertureSystemContext(
     "resources" in value &&
     "startOptions" in value &&
     "spawn" in value &&
+    "meshes" in value &&
     "effects" in value
   );
 }
