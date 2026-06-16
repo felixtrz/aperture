@@ -15,6 +15,7 @@ import {
   type RenderShadowFrameResult,
 } from "../shadows/render-shadow-frame.js";
 import type { ShadowCasterExecutableMeshResourceView } from "../shadows/shadow-caster-command-record-plan.js";
+import { isDepthOnlyShadowCasterDrawSupported } from "../shadows/shadow-caster-draw-list-plan.js";
 import type { ShadowCasterPreparedMeshResourceView } from "../shadows/shadow-caster-frame-resource-readiness.js";
 import type { WebGpuApp, WebGpuAppResourceReuseReport } from "./app.js";
 import { sourceAssetCacheKey } from "./app-texture-sampler-resources.js";
@@ -58,10 +59,9 @@ export function createWebGpuAppAutoShadowFrame(options: {
 
   const meshViews = createAutoShadowCasterMeshViews(options);
 
-  // Derive the directional shadow ortho. Prefer fitting it to the shadow
-  // CASTERS' world bounds (camera-independent, tight, stable) and only fall back
-  // to a camera-followed region when the casters are too large for one shadow
-  // map (open worlds, which should use cascaded shadow maps).
+  // Single directional auto-shadows are scene-fitted and camera-independent.
+  // The lower-level shadow-frame path still supports camera-frustum fitting for
+  // explicit/cascaded use, but app auto-fit should not reintroduce swimming.
   const sceneMatrix = computeShadowSceneMatrix(options.snapshot);
 
   return createRenderShadowFrame({
@@ -85,11 +85,13 @@ interface ShadowSceneMatrix {
 
 const SHADOW_RADIUS_MARGIN = 1.1;
 const SHADOW_MIN_RADIUS = 2;
+const SHADOW_NEAR_MIN = 0.1;
+const SHADOW_DEPTH_SLACK = 1;
 
 /**
  * Derive the directional shadow ortho by fitting a light-space ortho to the
  * world-space region the shadow map must cover: the shadow CASTERS plus where
- * their shadows land (see computeCasterShadowBounds). This is the single,
+ * their shadows land (see computeCasterShadowFit). This is the single,
  * camera-INDEPENDENT path — there is no camera-following heuristic, so shadows
  * never swim, detach, or change behavior as the camera orbits/zooms/pans. It
  * mirrors hand-authoring a three.js `DirectionalLight.shadow.camera` to fit the
@@ -108,26 +110,32 @@ function computeShadowSceneMatrix(
   const lightDirection = directionalLightDirection(snapshot);
   const floorY = receiverFloorY(snapshot);
   const ceilingY = receiverCeilingY(snapshot);
-  const casterBounds = computeCasterShadowBounds(
+  const casterFit = computeCasterShadowFit(
     snapshot,
     lightDirection,
     floorY,
     ceilingY,
   );
-  if (casterBounds === null) {
+  if (casterFit === null) {
     return null;
   }
 
   const radius = Math.max(
-    casterBounds.radius * SHADOW_RADIUS_MARGIN,
+    casterFit.inPlaneRadius * SHADOW_RADIUS_MARGIN,
     SHADOW_MIN_RADIUS,
   );
+  const depthRadius = Math.max(
+    casterFit.depthRadius * SHADOW_RADIUS_MARGIN,
+    SHADOW_MIN_RADIUS,
+  );
+  const near = Math.max(SHADOW_NEAR_MIN, depthRadius * 0.1);
+  const lightDistance = depthRadius + near + SHADOW_DEPTH_SLACK;
   return {
-    center: casterBounds.center,
+    center: casterFit.center,
     orthographicSize: radius * 2,
-    lightDistance: radius * 1.6,
-    near: radius * 0.3,
-    far: radius * 3,
+    lightDistance,
+    near,
+    far: lightDistance + depthRadius + SHADOW_DEPTH_SLACK,
   };
 }
 
@@ -137,18 +145,22 @@ function computeShadowSceneMatrix(
  * caster onto the receivers, well beyond the caster's own bounds, so fitting to
  * the casters alone clips the cast shadow. We additionally project each caster
  * AABB corner onto the receiver floor along the light and fold those points into
- * the bound, then return its bounding sphere (center + half-diagonal radius).
- * Null when there are no casters.
+ * the fit. The final size is a LIGHT-SPACE square, not a world-space
+ * half-diagonal sphere: directional shadows only need enough in-plane coverage
+ * for the light's orthographic camera, while depth coverage is handled
+ * separately by near/far. Null when there are no casters.
  */
-function computeCasterShadowBounds(
+function computeCasterShadowFit(
   snapshot: RenderSnapshot,
   lightDirection: readonly [number, number, number] | null,
   floorY: number | null,
   ceilingY: number | null,
 ): {
   readonly center: readonly [number, number, number];
-  readonly radius: number;
+  readonly inPlaneRadius: number;
+  readonly depthRadius: number;
 } | null {
+  const points: (readonly [number, number, number])[] = [];
   let minX = Infinity;
   let minY = Infinity;
   let minZ = Infinity;
@@ -163,6 +175,7 @@ function computeCasterShadowBounds(
     lightDirection !== null && lightDirection[1] < -1e-3 && floorY !== null;
 
   const include = (x: number, y: number, z: number): void => {
+    points.push([x, y, z]);
     minX = Math.min(minX, x);
     minY = Math.min(minY, y);
     minZ = Math.min(minZ, z);
@@ -213,7 +226,22 @@ function computeCasterShadowBounds(
   // under the ground plane) reads as farther from the light than the ground and
   // correctly casts NO shadow on it — instead of a spurious one.
   if (ceilingY !== null && ceilingY > maxY) {
-    maxY = ceilingY;
+    const ceilingMinX = minX;
+    const ceilingMaxX = maxX;
+    const ceilingMinZ = minZ;
+    const ceilingMaxZ = maxZ;
+    include(ceilingMinX, ceilingY, ceilingMinZ);
+    include(ceilingMinX, ceilingY, ceilingMaxZ);
+    include(ceilingMaxX, ceilingY, ceilingMinZ);
+    include(ceilingMaxX, ceilingY, ceilingMaxZ);
+  }
+
+  const lightSpaceFit =
+    lightDirection === null
+      ? null
+      : fitShadowPointsInLightSpace(points, lightDirection);
+  if (lightSpaceFit !== null) {
+    return lightSpaceFit;
   }
 
   const center: readonly [number, number, number] = [
@@ -222,7 +250,126 @@ function computeCasterShadowBounds(
     (minZ + maxZ) * 0.5,
   ];
   const radius = 0.5 * Math.hypot(maxX - minX, maxY - minY, maxZ - minZ);
-  return { center, radius };
+  return { center, inPlaneRadius: radius, depthRadius: radius };
+}
+
+function fitShadowPointsInLightSpace(
+  points: readonly (readonly [number, number, number])[],
+  lightDirection: readonly [number, number, number],
+): {
+  readonly center: readonly [number, number, number];
+  readonly inPlaneRadius: number;
+  readonly depthRadius: number;
+} | null {
+  const basis = lightSpaceBasis(lightDirection);
+  if (basis === null) {
+    return null;
+  }
+
+  let minU = Infinity;
+  let maxU = -Infinity;
+  let minV = Infinity;
+  let maxV = -Infinity;
+  let minW = Infinity;
+  let maxW = -Infinity;
+
+  for (const point of points) {
+    const u = dot(basis.xAxis, point);
+    const v = dot(basis.yAxis, point);
+    const w = dot(basis.zAxis, point);
+    minU = Math.min(minU, u);
+    maxU = Math.max(maxU, u);
+    minV = Math.min(minV, v);
+    maxV = Math.max(maxV, v);
+    minW = Math.min(minW, w);
+    maxW = Math.max(maxW, w);
+  }
+
+  if (
+    !Number.isFinite(minU) ||
+    !Number.isFinite(maxU) ||
+    !Number.isFinite(minV) ||
+    !Number.isFinite(maxV) ||
+    !Number.isFinite(minW) ||
+    !Number.isFinite(maxW)
+  ) {
+    return null;
+  }
+
+  const centerU = (minU + maxU) * 0.5;
+  const centerV = (minV + maxV) * 0.5;
+  const centerW = (minW + maxW) * 0.5;
+  const center: readonly [number, number, number] = [
+    centerU * basis.xAxis[0] +
+      centerV * basis.yAxis[0] +
+      centerW * basis.zAxis[0],
+    centerU * basis.xAxis[1] +
+      centerV * basis.yAxis[1] +
+      centerW * basis.zAxis[1],
+    centerU * basis.xAxis[2] +
+      centerV * basis.yAxis[2] +
+      centerW * basis.zAxis[2],
+  ];
+  return {
+    center,
+    inPlaneRadius: Math.max(maxU - minU, maxV - minV) * 0.5,
+    depthRadius: Math.max(maxW - minW, 0) * 0.5,
+  };
+}
+
+function lightSpaceBasis(
+  lightDirection: readonly [number, number, number],
+): {
+  readonly xAxis: readonly [number, number, number];
+  readonly yAxis: readonly [number, number, number];
+  readonly zAxis: readonly [number, number, number];
+} | null {
+  const zAxis = normalize([
+    -lightDirection[0],
+    -lightDirection[1],
+    -lightDirection[2],
+  ]);
+  if (zAxis === null) {
+    return null;
+  }
+
+  let xAxis = normalize(cross([0, 1, 0], zAxis));
+  if (xAxis === null) {
+    xAxis = normalize(cross([0, 0, 1], zAxis));
+  }
+  if (xAxis === null) {
+    return null;
+  }
+
+  return { xAxis, yAxis: cross(zAxis, xAxis), zAxis };
+}
+
+function normalize(
+  value: readonly [number, number, number],
+): readonly [number, number, number] | null {
+  const length = Math.hypot(value[0], value[1], value[2]);
+  if (length <= 1e-6) {
+    return null;
+  }
+  return [value[0] / length, value[1] / length, value[2] / length];
+}
+
+function cross(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+): readonly [number, number, number] {
+  return [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0],
+  ];
+}
+
+function dot(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+): number {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
 /**
@@ -277,7 +424,7 @@ function receiverFloorY(snapshot: RenderSnapshot): number | null {
 /**
  * Highest world-space surface among shadow RECEIVERS. The shadow ortho's bound
  * is extended up to this so the light eye clears the receivers (see
- * computeCasterShadowBounds). Null when there are no receivers.
+ * computeCasterShadowFit). Null when there are no receivers.
  */
 function receiverCeilingY(snapshot: RenderSnapshot): number | null {
   let ceiling = -Infinity;
@@ -393,6 +540,7 @@ function isShadowCasterDraw(
 ): boolean {
   return (
     draw.castsShadow !== false &&
+    isDepthOnlyShadowCasterDrawSupported(draw) &&
     shadowRequests.some(
       (request) =>
         isDirectionalShadowRequest(request) &&

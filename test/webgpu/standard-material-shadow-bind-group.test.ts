@@ -288,8 +288,8 @@ describe("StandardMaterial shadow bind group descriptor planning", () => {
         resourceKey: "shadow-sampler:directional",
         descriptor: {
           compare: "less-equal",
-          magFilter: "linear",
-          minFilter: "linear",
+          magFilter: "nearest",
+          minFilter: "nearest",
         },
       },
     });

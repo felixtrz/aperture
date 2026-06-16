@@ -105,8 +105,8 @@ export interface ShadowSamplerDescriptor {
   readonly addressModeU: "clamp-to-edge";
   readonly addressModeV: "clamp-to-edge";
   readonly addressModeW: "clamp-to-edge";
-  readonly magFilter: "linear" | "nearest";
-  readonly minFilter: "linear" | "nearest";
+  readonly magFilter: "nearest";
+  readonly minFilter: "nearest";
   readonly mipmapFilter: "nearest";
   readonly lodMinClamp: 0;
   readonly lodMaxClamp: 32;
@@ -682,8 +682,10 @@ function createShadowSamplerDescriptor(
     addressModeU: "clamp-to-edge",
     addressModeV: "clamp-to-edge",
     addressModeW: "clamp-to-edge",
-    magFilter: "linear",
-    minFilter: "linear",
+    // The shader owns PCF/PCFSoft/PCSS taps explicitly. Keep the comparison
+    // sampler nearest so hardware interpolation does not add extra blur.
+    magFilter: "nearest",
+    minFilter: "nearest",
     mipmapFilter: "nearest",
     lodMinClamp: 0,
     lodMaxClamp: 32,
