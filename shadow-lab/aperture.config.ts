@@ -1,4 +1,5 @@
 import { asset, defineApertureConfig } from "@aperture-engine/app/config";
+import { BLOOM } from "./src/lib/tuning.js";
 
 // Racing static-scene shadow test: the parked racing app's STATIC scene (track
 // pieces, decorations, parked NPC trucks) — all generic glTF meshes — lit by one
@@ -33,9 +34,12 @@ export default defineApertureConfig({
     sampleCount: 4,
     tonemap: "aces",
     exposure: 1.0,
-    // No bloom: this is a clean shadow-verification scene — static glTF geometry
-    // + racing's lighting only, no post FX to confound the shadow read. (The
-    // engine bloom path itself is fixed in post-bloom.ts; just not used here.)
+    // UnrealBloomPass: strength 0.02, radius 0.02, threshold 0.5.
+    bloom: {
+      threshold: BLOOM.threshold,
+      intensity: BLOOM.strength,
+      radiusPixels: 2,
+    },
   },
   diagnostics: {
     level: "info",
