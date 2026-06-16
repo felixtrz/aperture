@@ -44,6 +44,9 @@ export interface ApertureHeadlessStatus {
   readonly input: ApertureInputSummary;
   readonly signals: SignalSummary;
   readonly resources: ReturnType<ApertureApp["context"]["resources"]["summary"]>;
+  readonly startOptions: ReturnType<
+    ApertureApp["context"]["startOptions"]["summary"]
+  >;
   readonly diagnostics: ReturnType<
     ApertureApp["context"]["diagnostics"]["list"]
   >;
@@ -152,6 +155,7 @@ function createHeadlessStatus(
     input: createInputSummary(app.context.input),
     signals: createSignalSummary(app.context.signals),
     resources: app.context.resources.summary(),
+    startOptions: app.context.startOptions.summary(),
     diagnostics: app.context.diagnostics.list(),
     entities: createApertureEntityLookupSnapshot(app.lowLevel.world, {
       label: "headless",

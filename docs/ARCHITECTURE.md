@@ -80,6 +80,9 @@ The default browser application shape is now a Vite metaframework path:
 - Worker systems share singleton app state through typed resources on
   `this.resources`. Resource values must stay structured-clone safe and must not
   hold GPU, DOM, Web Audio, or renderer handles.
+- App-level browser URL/start fields forwarded to the worker are available to
+  systems through `this.startOptions`. Engine-reserved worker fields such as
+  snapshot transport buffers stay out of that public system view.
 - The boundary is structured-clone/transferable snapshot data plus explicit
   command messages. Main-thread code does not receive live system classes and
   does not own authoritative simulation state.

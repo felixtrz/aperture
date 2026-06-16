@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 18:14 UTC</dd>
+            <dd>2026-06-16 18:27 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -403,7 +403,9 @@
               singletons for simulation-owned cross-system state. Racing moved
               its vehicle/camera/particles/drift/lap shared state off a module
               singleton and onto the generated-worker resource summary; racing
-              and Shadow Lab were rebuilt and reverified through their managed
+              and Shadow Lab now read URL-forwarded map data through
+              <code>this.startOptions</code> instead of private world globals.
+              Both apps were rebuilt and reverified through their managed
               Aperture sessions. Prior update: directional app auto-shadows now
               use the active
               render camera for PlayCanvas-style frustum fitting with

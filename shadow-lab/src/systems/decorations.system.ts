@@ -22,7 +22,7 @@ const BUCKET_ASSET: Record<string, string> = {
 // comes entirely from these decoration-empty tiles, and the rest fades to fog.
 export default class DecorationsSystem extends createSystem({ priority: 10 }) {
   override init(): void {
-    const { cells, customMap } = resolveTrackCells(this.world);
+    const { cells, customMap } = resolveTrackCells(this.startOptions);
     const buckets = computeDecorationBuckets(cells, customMap);
     this.#spawnBucket("empty", buckets.empty);
     this.#spawnBucket("forest", buckets.forest);

@@ -41,6 +41,11 @@ building blocks and default paths.
   `this.resources`; generated worker/headless status summarizes resources.
   Racing now defines `VehicleResource` and no longer uses
   `src/lib/vehicle-state.ts` as a mutable module singleton.
+- 2026-06-16: Public worker start-option access landed:
+  `this.startOptions` exposes filtered app-level fields such as `?map=...`,
+  while engine-reserved fields such as snapshot transport buffers stay private.
+  Racing and shadow-lab track setup no longer read
+  `world.globals["aperture.workerStartOptions"]`.
 
 ## Goals
 

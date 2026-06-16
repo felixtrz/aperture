@@ -57,7 +57,9 @@ export default class VehicleSystem extends createSystem({
   #prevModel: Vec3 = [this.#spawnPos[0], 0, this.#spawnPos[2]];
 
   override init(): void {
-    const spawn = computeSpawnPosition(resolveTrackCells(this.world).cells);
+    const spawn = computeSpawnPosition(
+      resolveTrackCells(this.startOptions).cells,
+    );
     this.#spawnPos = [...spawn.position];
     this.#spawnYaw = spawn.angle;
     this.#yaw = spawn.angle;

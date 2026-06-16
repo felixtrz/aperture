@@ -75,6 +75,7 @@ import type { FixedStepAccess } from "./systems/fixed-step.js";
 import type { PrefabAccess } from "./systems/prefabs.js";
 import type { ResourceStore } from "./systems/resources.js";
 import type { SignalStore } from "./systems/signals.js";
+import type { StartOptionsAccess } from "./systems/start-options.js";
 import type { SpawnCommands } from "./systems/spawn/index.js";
 import {
   getApertureSystemContext,
@@ -179,6 +180,14 @@ export {
   defineResource,
   resource,
 } from "./systems/resources.js";
+export type {
+  StartOptionsAccess,
+  StartOptionsSummary,
+} from "./systems/start-options.js";
+export {
+  createStartOptionsAccess,
+  filterSystemStartOptions,
+} from "./systems/start-options.js";
 
 export type {
   ApertureSystemDiagnostic,
@@ -361,6 +370,7 @@ export interface ApertureSystemInstance {
   readonly priority: number;
   readonly signals: SignalStore;
   readonly resources: ResourceStore;
+  readonly startOptions: StartOptionsAccess;
   readonly input: InputSignals;
   readonly actions: InputActions;
   readonly keyboard: StatefulKeyboardState;
@@ -460,6 +470,10 @@ export function createSystem<
 
     get resources(): ResourceStore {
       return this.#context.resources;
+    }
+
+    get startOptions(): StartOptionsAccess {
+      return this.#context.startOptions;
     }
 
     get input(): InputSignals {

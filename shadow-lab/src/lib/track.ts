@@ -1,6 +1,7 @@
 // Faithful port of references/Starter-Kit-Racing/js/Track.js — pure logic only
 // (no rendering). Grid layout, piece placement math, decoration buckets, NPCs,
 // the base64url map codec, spawn position, and track bounds.
+import type { StartOptionsAccess } from "@aperture-engine/app/systems";
 
 export type GridCell = readonly [number, number, string, number];
 
@@ -267,22 +268,11 @@ export function decodeCells(str: string): GridCell[] {
 //
 // Systems run in the simulation worker, which has no `location.search`. The
 // generated browser bootstrap (vite-plugin) reads the page URL on the main
-// thread and forwards every query param into the worker start options; the app
-// worker loop republishes them on the ECS world globals under this key (see
-// packages/app/src/worker/loop.ts → APERTURE_WORKER_START_OPTIONS_KEY). We read
-// the `map` field here — matching the existing `aperture.systemContext` globals
-// accessor already used by drift-marks/particles systems.
-const WORKER_START_OPTIONS_KEY = "aperture.workerStartOptions";
+// thread and forwards app-level query params into this.startOptions.
 
 /** Read the raw `?map=` codec string forwarded from the page URL, if any. */
-export function readMapParam(world: unknown): string | null {
-  const globals = (world as { readonly globals?: Record<string, unknown> })
-    .globals;
-  const start = globals?.[WORKER_START_OPTIONS_KEY] as
-    | { readonly map?: unknown }
-    | undefined;
-  const map = start?.map;
-  return typeof map === "string" && map.length > 0 ? map : null;
+export function readMapParam(startOptions: StartOptionsAccess): string | null {
+  return startOptions.string("map");
 }
 
 /**
@@ -292,11 +282,11 @@ export function readMapParam(world: unknown): string | null {
  * placement skips the hand-authored DECO_CELLS for custom maps, matching
  * Track.js' shared-map behaviour).
  */
-export function resolveTrackCells(world: unknown): {
+export function resolveTrackCells(startOptions: StartOptionsAccess): {
   readonly cells: readonly GridCell[];
   readonly customMap: boolean;
 } {
-  const mapParam = readMapParam(world);
+  const mapParam = readMapParam(startOptions);
   if (mapParam !== null) {
     const decoded = decodeCells(mapParam);
     if (decoded.length > 0) {

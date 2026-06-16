@@ -39,7 +39,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
   #cells: readonly GridCell[] = TRACK_CELLS;
 
   override init(): void {
-    this.#cells = resolveTrackCells(this.world).cells;
+    this.#cells = resolveTrackCells(this.startOptions).cells;
     this.#forceFrontSideGltfMaterials();
     this.#spawnCamera();
     this.#spawnLights();

@@ -25,7 +25,7 @@ export default class DecorationsSystem extends createSystem({ priority: 10 }) {
     // Decorate the active track: a `?map=` codec string from the page URL when
     // present, else TRACK_CELLS. Custom maps skip the hand-authored DECO_CELLS
     // (the forest-border + tents ring is still generated around the bounds).
-    const { cells, customMap } = resolveTrackCells(this.world);
+    const { cells, customMap } = resolveTrackCells(this.startOptions);
     const buckets = computeDecorationBuckets(cells, customMap);
     this.#spawnBucket("empty", buckets.empty);
     this.#spawnBucket("forest", buckets.forest);

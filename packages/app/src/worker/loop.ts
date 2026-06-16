@@ -74,13 +74,11 @@ export async function runGeneratedWorkerLoop(options: {
       ...(fixedStep === undefined ? {} : { fixedStep }),
       ...(physicsInterpolation === undefined ? {} : { physicsInterpolation }),
       ...(physicsOption === undefined ? {} : { physics: physicsOption }),
+      startOptions: options.start,
     });
-    // Bridge: expose the raw `start` options to systems on the ECS world globals
-    // (the same channel installApertureSystemContext uses). The page URL lives on
-    // the main thread; the browser bootstrap forwards arbitrary start fields (e.g.
-    // a `?map=` codec string) through SimulationWorkerStartOptions, and a system
-    // reads them here after createApertureApp installs the context but before the
-    // first step runs any system `init()`.
+    // Legacy bridge: keep the raw `start` options visible on world globals for
+    // older apps. New app systems should use the filtered public
+    // `this.startOptions` accessor installed on ApertureSystemContext.
     publishWorkerStartOptions(app.lowLevel.world, options.start);
     const entityTools = options.createEntityTools(app.lowLevel.world);
     const sourceAssetState = createSourceAssetSerializationState();
@@ -177,10 +175,9 @@ export async function runGeneratedWorkerLoop(options: {
 }
 
 /**
- * Globals key under which the raw simulation-worker start options are published
- * on the ECS world. Systems can read app-specific start fields (forwarded from
- * the main-thread page URL by the generated browser bootstrap) here. Documented
- * so app systems have a stable accessor, mirroring `aperture.systemContext`.
+ * Legacy globals key under which raw simulation-worker start options are
+ * published on the ECS world. Prefer `this.startOptions` in app systems; this
+ * remains for old callers that reached into world globals directly.
  */
 export const APERTURE_WORKER_START_OPTIONS_KEY = "aperture.workerStartOptions";
 

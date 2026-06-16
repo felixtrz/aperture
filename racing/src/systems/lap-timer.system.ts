@@ -27,7 +27,7 @@ export default class LapTimerSystem extends createSystem({ priority: 130 }) {
   #started = false;
 
   override init(): void {
-    const cells = resolveTrackCells(this.world).cells;
+    const cells = resolveTrackCells(this.startOptions).cells;
     const spawn = computeSpawnPosition(cells);
     this.#lineCenter = [...spawn.position];
     const a = spawn.angle;

@@ -55,6 +55,7 @@ export interface CreateApertureAppOptions {
   readonly fixedStep?: CreateExtractionAppOptions["fixedStep"];
   readonly physics?: boolean | AperturePhysicsConfig;
   readonly physicsInterpolation?: boolean;
+  readonly startOptions?: Readonly<Record<string, unknown>>;
 }
 
 export interface AperturePreloadReport {
@@ -134,6 +135,9 @@ export async function createApertureApp(
     config,
     registerFixedStepTask: (task, taskOptions) =>
       lowLevel.registerFixedStepTask(task, taskOptions),
+    ...(options.startOptions === undefined
+      ? {}
+      : { startOptions: options.startOptions }),
     ...(options.assetLoader === undefined
       ? {}
       : { assetLoader: options.assetLoader }),

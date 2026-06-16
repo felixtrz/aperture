@@ -45,8 +45,8 @@ export interface StartGeneratedBrowserAppOptions {
    * Extra fields forwarded verbatim to the simulation worker's start options
    * (SimulationWorkerStartOptions). The page URL only exists on the main thread,
    * so the generated browser bootstrap reads e.g. `?map=` from location.search
-   * and threads the value here; the worker loop republishes these on the ECS
-   * world globals for systems to read. Merged into the worker `start` message.
+   * and threads the value here; app systems read filtered app-level fields
+   * through `this.startOptions`. Merged into the worker `start` message.
    */
   readonly workerStartOptions?: Record<string, unknown>;
   /**
