@@ -746,9 +746,8 @@ Suggested validation: `pnpm run check:examples`, `pnpm run check:progress`,
 ### DOC-04 - Retire stale ACTIVE debug-normal research docs
 
 - Status: completed 2026-06-06.
-- Files:
-  `docs/research/SUPERSEDED_DEBUG_NORMAL_ROUTE_INTEGRATION_PLAN_2026_05_18.md`
-  and audit sibling.
+- Files: `SUPERSEDED_DEBUG_NORMAL_ROUTE_INTEGRATION_PLAN_2026_05_18.md` and its
+  audit sibling (since removed in the docs/research scratch cleanup).
 - Action: rename/drop `ACTIVE_` and mark superseded, or delete if no longer
   useful.
 - Accept: no stale active debug-normal plan remains.
