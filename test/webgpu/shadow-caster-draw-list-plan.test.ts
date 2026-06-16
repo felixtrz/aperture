@@ -55,6 +55,7 @@ describe("shadow caster draw-list planning", () => {
               casterCullMode: "front",
               submesh: 0,
               layerMask: 1,
+              boundsIndex: 0,
               worldTransformOffset: 0,
             },
           ],

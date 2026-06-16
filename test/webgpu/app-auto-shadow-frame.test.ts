@@ -17,7 +17,7 @@ import { createWebGpuAppAutoShadowFrame } from "../../packages/webgpu/src/app/au
 import { createWebGpuAppResourceReuseReport } from "../../packages/webgpu/src/app/report.js";
 
 describe("WebGPU app auto-shadow frame", () => {
-  it("keeps single directional auto-shadows scene-fitted when a primary camera exists", () => {
+  it("frustum-fits single directional auto-shadows when a primary camera exists", () => {
     const calls = createDeviceCalls();
     const assets = new AssetRegistry();
     const opaqueMesh = createMeshHandle("opaque-caster");
@@ -47,11 +47,13 @@ describe("WebGPU app auto-shadow frame", () => {
     ).toEqual(["shadowCasterDrawList.unsupportedAlphaBlendCaster"]);
     expect(
       result?.matrixComputation.matrices[0]?.orthographicSize,
-    ).toBeLessThan(10);
-    expect(result?.matrixComputation.matrices[0]?.center[0]).toBeCloseTo(0, 3);
+    ).toBeGreaterThan(100);
+    expect(result?.matrixComputation.matrices[0]?.center).not.toEqual([
+      0, 0, 0,
+    ]);
   });
 
-  it("fits single directional auto-shadows in light space instead of a world-space diagonal", () => {
+  it("uses light-space scene fit as the no-camera fallback", () => {
     const calls = createDeviceCalls();
     const assets = new AssetRegistry();
     const opaqueMesh = createMeshHandle("flat-caster");
@@ -73,6 +75,7 @@ describe("WebGPU app auto-shadow frame", () => {
         opaqueBounds: { min: [-10, 0, -10], max: [10, 1, 10] },
         receiverBounds: { min: [-12, 0, -12], max: [12, 0.1, 12] },
         transforms: directionalLightTransform([0, -1, 0]),
+        includeView: false,
       }),
     });
 
@@ -103,10 +106,12 @@ function snapshot(input: {
     readonly max: readonly [number, number, number];
   };
   readonly transforms?: Float32Array;
+  readonly includeView?: boolean;
 }): RenderSnapshot {
+  const view = primaryCameraView();
   return {
     frame: 1,
-    views: primaryCameraView().views,
+    views: input.includeView === false ? [] : view.views,
     meshDraws: [
       meshDraw({
         renderId: 101,
@@ -162,25 +167,31 @@ function snapshot(input: {
       },
     ],
     bounds: [
-      {
-        worldAabb: input.opaqueBounds ?? {
+      boundsPacket(
+        0,
+        input.opaqueBounds ?? {
           min: [-1, 0, -1],
           max: [1, 2, 1],
         },
-      },
-      { worldAabb: { min: [-1000, -1000, -1000], max: [1000, 1000, 1000] } },
-      {
-        worldAabb: input.receiverBounds ?? {
+      ),
+      boundsPacket(1, {
+        min: [-1000, -1000, -1000],
+        max: [1000, 1000, 1000],
+      }),
+      boundsPacket(
+        2,
+        input.receiverBounds ?? {
           min: [-4, 0, -4],
           max: [4, 0.1, 4],
         },
-      },
+      ),
     ],
     transforms: input.transforms ?? identityTransform(),
-    viewMatrices: primaryCameraView().viewMatrices,
+    viewMatrices:
+      input.includeView === false ? new Float32Array(0) : view.viewMatrices,
     diagnostics: [],
     report: {
-      views: 1,
+      views: input.includeView === false ? 0 : 1,
       meshDraws: 3,
       lights: 1,
       environments: 0,
@@ -188,6 +199,31 @@ function snapshot(input: {
       bounds: 3,
       diagnostics: 0,
     },
+  };
+}
+
+function boundsPacket(
+  boundsId: number,
+  worldAabb: RenderSnapshot["bounds"][number]["worldAabb"],
+): RenderSnapshot["bounds"][number] {
+  const center: readonly [number, number, number] = [
+    (worldAabb.min[0] + worldAabb.max[0]) * 0.5,
+    (worldAabb.min[1] + worldAabb.max[1]) * 0.5,
+    (worldAabb.min[2] + worldAabb.max[2]) * 0.5,
+  ];
+  const radius = Math.hypot(
+    worldAabb.max[0] - center[0],
+    worldAabb.max[1] - center[1],
+    worldAabb.max[2] - center[2],
+  );
+
+  return {
+    boundsId,
+    entity: { index: boundsId, generation: 0 },
+    localAabb: worldAabb,
+    worldAabb,
+    localSphere: { center, radius },
+    worldSphere: { center, radius },
   };
 }
 

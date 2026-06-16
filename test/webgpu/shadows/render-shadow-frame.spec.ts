@@ -78,6 +78,33 @@ describe("render shadow frame", () => {
     expect(result.matrixComputation.matrices[0]?.center).not.toEqual([0, 0, 0]);
   });
 
+  it("uses matrix options as fallback without suppressing primary camera frustum fit", () => {
+    const calls = createDeviceCalls();
+    const result = createRenderShadowFrame({
+      device: device(calls),
+      snapshot: snapshot({ view: primaryCameraView() }),
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache: createWebGpuEnvironmentResourceCache(),
+      shadowMap: { cascadeCount: 1, mapSize: 1024 },
+      matrix: {
+        center: [0, 0, -2],
+        orthographicSize: 4,
+        near: 0.5,
+        far: 8,
+        lightDistance: 4,
+      },
+    });
+
+    expect(result.report.status).toBe("submitted");
+    expect(
+      result.matrixComputation.matrices[0]?.orthographicSize,
+    ).toBeGreaterThan(20);
+    expect(result.matrixComputation.matrices[0]?.center).not.toEqual([
+      0, 0, -2,
+    ]);
+  });
+
   it("reuses cached shadow resources across identical frames", () => {
     const calls = createDeviceCalls();
     const cache = createWebGpuEnvironmentResourceCache();
@@ -158,6 +185,7 @@ describe("render shadow frame", () => {
     const result = createRenderShadowFrame({
       device: device(calls),
       snapshot: snapshot({
+        view: primaryCameraView(),
         shadowRequest: {
           cascadeCount: 1,
           center: [1, 2, 3],

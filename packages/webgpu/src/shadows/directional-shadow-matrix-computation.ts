@@ -71,6 +71,16 @@ export interface DirectionalShadowMatrixComputationReport {
   readonly diagnostics: readonly DirectionalShadowMatrixComputationDiagnostic[];
 }
 
+export interface DirectionalShadowCasterBoundsInput {
+  readonly passKey: string;
+  readonly bounds: readonly DirectionalShadowCasterWorldAabb[];
+}
+
+export interface DirectionalShadowCasterWorldAabb {
+  readonly min: Vec3Like;
+  readonly max: Vec3Like;
+}
+
 export type DirectionalShadowMatrixComputationReportJsonValue =
   DirectionalShadowMatrixComputationReport;
 
@@ -95,6 +105,11 @@ export interface DirectionalShadowMatrixComputationInput {
   readonly cameraProjectionMatrix?: Mat4Like | undefined;
   /** Optional world up used to build the light view basis (defaults to +Y). */
   readonly up?: Vec3Like | undefined;
+  /**
+   * Optional caster bounds grouped by shadow pass. Frustum fitting uses these to
+   * tighten the depth range like PlayCanvas does after culling visible casters.
+   */
+  readonly casterBounds?: readonly DirectionalShadowCasterBoundsInput[];
 }
 
 const DEFAULT_CENTER = [0, 0, 0] as const;
@@ -485,6 +500,7 @@ function tryFrustumFit(
 
   const mapSize = plan.mapSize > 0 ? plan.mapSize : 1;
   const texelSize = diameter / mapSize;
+  const halfSize = diameter * 0.5;
 
   // Snap the in-plane center to integer texel multiples for stability; the
   // depth (w) center is not snapped (it only shifts the ortho near/far range).
@@ -497,14 +513,28 @@ function tryFrustumFit(
     centerU * xAxis[2] + centerV * yAxis[2] + centerW * zAxis[2],
   ];
 
-  // Place the light eye behind the slice along +zAxis (toward the light) with a
-  // near-plane slack of one slice thickness so casters between the light and
-  // the slice still write the depth map.
-  const depthSpan = Math.max(maxW - minW, EPSILON);
-  const halfDepth = depthSpan * 0.5;
-  const distance = depthSpan + halfDepth + 1;
+  const casterDepth = fitCasterDepthRange({
+    casterBounds: input.casterBounds,
+    passKey: plan.passKey,
+    xAxis,
+    yAxis,
+    zAxis,
+    minU: centerU - halfSize,
+    maxU: centerU + halfSize,
+    minV: centerV - halfSize,
+    maxV: centerV + halfSize,
+  });
+  const depthMinW = Math.min(minW, casterDepth?.minW ?? minW);
+  const depthMaxW = Math.max(maxW, casterDepth?.maxW ?? maxW);
+  const towardLight = Math.max(depthMaxW - centerW, EPSILON);
+  const awayFromLight = Math.max(centerW - depthMinW, EPSILON);
+
+  // Place the light eye behind the slice along +zAxis (toward the light). The
+  // in-plane fit stays camera-frustum based, while depth is tightened to the
+  // visible in-plane caster bounds like PlayCanvas' directional shadow pass.
   const near = 1;
-  const far = distance + halfDepth;
+  const distance = towardLight + near + 0.1;
+  const far = distance + awayFromLight + 0.1;
   const lightPosition: readonly [number, number, number] = [
     center[0] + zAxis[0] * distance,
     center[1] + zAxis[1] * distance,
@@ -569,6 +599,103 @@ function makeLookAt(
     -dot(zAxis, eye),
     1,
   ];
+}
+
+function fitCasterDepthRange(input: {
+  readonly casterBounds:
+    | readonly DirectionalShadowCasterBoundsInput[]
+    | undefined;
+  readonly passKey: string;
+  readonly xAxis: readonly [number, number, number];
+  readonly yAxis: readonly [number, number, number];
+  readonly zAxis: readonly [number, number, number];
+  readonly minU: number;
+  readonly maxU: number;
+  readonly minV: number;
+  readonly maxV: number;
+}): { readonly minW: number; readonly maxW: number } | null {
+  const passBounds = input.casterBounds?.find(
+    (entry) => entry.passKey === input.passKey,
+  );
+
+  if (passBounds === undefined || passBounds.bounds.length === 0) {
+    return null;
+  }
+
+  let found = false;
+  let minW = Infinity;
+  let maxW = -Infinity;
+
+  for (const bounds of passBounds.bounds) {
+    const projected = projectAabbToLightSpace(bounds, {
+      xAxis: input.xAxis,
+      yAxis: input.yAxis,
+      zAxis: input.zAxis,
+    });
+
+    if (
+      projected.maxU < input.minU ||
+      projected.minU > input.maxU ||
+      projected.maxV < input.minV ||
+      projected.minV > input.maxV
+    ) {
+      continue;
+    }
+
+    found = true;
+    minW = Math.min(minW, projected.minW);
+    maxW = Math.max(maxW, projected.maxW);
+  }
+
+  return found ? { minW, maxW } : null;
+}
+
+function projectAabbToLightSpace(
+  bounds: DirectionalShadowCasterWorldAabb,
+  basis: {
+    readonly xAxis: readonly [number, number, number];
+    readonly yAxis: readonly [number, number, number];
+    readonly zAxis: readonly [number, number, number];
+  },
+): {
+  readonly minU: number;
+  readonly maxU: number;
+  readonly minV: number;
+  readonly maxV: number;
+  readonly minW: number;
+  readonly maxW: number;
+} {
+  const min = tuple3(bounds.min);
+  const max = tuple3(bounds.max);
+  let minU = Infinity;
+  let maxU = -Infinity;
+  let minV = Infinity;
+  let maxV = -Infinity;
+  let minW = Infinity;
+  let maxW = -Infinity;
+
+  for (let cx = 0; cx < 2; cx += 1) {
+    for (let cy = 0; cy < 2; cy += 1) {
+      for (let cz = 0; cz < 2; cz += 1) {
+        const point: readonly [number, number, number] = [
+          cx === 0 ? min[0] : max[0],
+          cy === 0 ? min[1] : max[1],
+          cz === 0 ? min[2] : max[2],
+        ];
+        const u = dot(basis.xAxis, point);
+        const v = dot(basis.yAxis, point);
+        const w = dot(basis.zAxis, point);
+        minU = Math.min(minU, u);
+        maxU = Math.max(maxU, u);
+        minV = Math.min(minV, v);
+        maxV = Math.max(maxV, v);
+        minW = Math.min(minW, w);
+        maxW = Math.max(maxW, w);
+      }
+    }
+  }
+
+  return { minU, maxU, minV, maxV, minW, maxW };
 }
 
 function hasMatrix(transforms: Float32Array, offset: number): boolean {

@@ -193,6 +193,38 @@ describe("directional shadow matrix computation", () => {
     expect(sizes[2]).toBeLessThan(sizes[3]!);
   });
 
+  it("expands frustum-fit depth to include in-plane caster bounds", () => {
+    const request = { ...shadowRequest(), cascadeCount: 1 };
+    const baseInput = {
+      viewProjection: frustumFitPlan(request),
+      transforms: directionalDownTransform(),
+      cameraViewMatrix: translationView(0, 0, 0),
+      cameraProjectionMatrix: makePerspective(1.0, 1, 1, 200),
+    } as const;
+
+    const withoutCasterBounds =
+      createDirectionalShadowMatrixComputationReport(baseInput);
+    const withCasterBounds = createDirectionalShadowMatrixComputationReport({
+      ...baseInput,
+      casterBounds: [
+        {
+          passKey: "shadow-pass:7:light:11",
+          bounds: [{ min: [-1, 500, -20], max: [1, 510, -10] }],
+        },
+      ],
+    });
+
+    expect(withCasterBounds.matrices[0]?.orthographicSize).toBe(
+      withoutCasterBounds.matrices[0]?.orthographicSize,
+    );
+    expect(withCasterBounds.matrices[0]?.far).toBeGreaterThan(
+      withoutCasterBounds.matrices[0]!.far,
+    );
+    expect(withCasterBounds.matrices[0]?.lightPosition[1]).toBeGreaterThan(
+      withoutCasterBounds.matrices[0]!.lightPosition[1],
+    );
+  });
+
   it("falls back to the static-center behavior byte-identically when no camera frustum is supplied", () => {
     const request = { ...shadowRequest(), cascadeCount: 3 };
     const baseInput = {

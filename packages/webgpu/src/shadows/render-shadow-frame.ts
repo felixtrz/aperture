@@ -1,4 +1,5 @@
 import type {
+  BoundsPacket,
   RenderSnapshot,
   ShadowRequestPacket,
 } from "@aperture-engine/render";
@@ -29,6 +30,7 @@ import type { StandardFrameShadowReceiverResources } from "../materials/standard
 import {
   createDirectionalShadowMatrixComputationReport,
   directionalShadowMatrixComputationReportToJsonValue,
+  type DirectionalShadowCasterBoundsInput,
   type DirectionalShadowMatrixComputationReport,
 } from "./directional-shadow-matrix-computation.js";
 import {
@@ -180,7 +182,9 @@ export interface RenderShadowFrameShadowMapOptions {
 }
 
 export interface RenderShadowFrameMatrixOptions {
+  /** Fallback center used only when no primary render camera can drive auto-fit. */
   readonly center?: readonly [number, number, number];
+  /** Fallback span used only when no primary render camera can drive auto-fit. */
   readonly orthographicSize?: number;
   readonly near?: number;
   readonly far?: number;
@@ -318,10 +322,7 @@ export function createRenderShadowFrame(
     shadowPassPlan: passPlan,
     depthTextureResources,
   });
-  const shadowCamera =
-    options.matrix === undefined
-      ? resolvePrimaryShadowCamera(options.snapshot)
-      : null;
+  const shadowCamera = resolvePrimaryShadowCamera(options.snapshot);
   const viewProjection = createDirectionalShadowViewProjectionPlanReport({
     shadowRequests,
     lights: options.snapshot.lights,
@@ -335,6 +336,12 @@ export function createRenderShadowFrame(
           shadowMaxDistance: shadowCamera.far,
         }),
   });
+  const casterDrawList = createShadowCasterDrawListPlanReport({
+    shadowRequests,
+    meshDraws: options.snapshot.meshDraws,
+    shadowPassPlan: passPlan,
+    commandEncoding: "ready",
+  });
   const matrixComputation = createDirectionalShadowMatrixComputationReport({
     viewProjection,
     transforms: options.snapshot.transforms,
@@ -344,6 +351,10 @@ export function createRenderShadowFrame(
           cameraViewMatrix: shadowCamera.viewMatrix,
           cameraProjectionMatrix: shadowCamera.projectionMatrix,
         }),
+    casterBounds: createDirectionalShadowCasterBounds({
+      casterDrawList,
+      bounds: options.snapshot.bounds,
+    }),
     ...(options.matrix?.center === undefined
       ? {}
       : { center: options.matrix.center }),
@@ -371,12 +382,6 @@ export function createRenderShadowFrame(
     ...(options.cache?.shadowMatrixBuffers === undefined
       ? {}
       : { cache: options.cache.shadowMatrixBuffers }),
-  });
-  const casterDrawList = createShadowCasterDrawListPlanReport({
-    shadowRequests,
-    meshDraws: options.snapshot.meshDraws,
-    shadowPassPlan: passPlan,
-    commandEncoding: "ready",
   });
   const commandPlan = createShadowCasterCommandPlanReadinessReport({
     shadowPassPlan: passPlan,
@@ -572,6 +577,36 @@ export function createRenderShadowFrame(
     encoderAssembly,
     commandBufferSubmission,
   };
+}
+
+function createDirectionalShadowCasterBounds(input: {
+  readonly casterDrawList: ShadowCasterDrawListPlanReport;
+  readonly bounds: readonly BoundsPacket[];
+}): readonly DirectionalShadowCasterBoundsInput[] {
+  if (
+    input.casterDrawList.status === "not-required" ||
+    input.casterDrawList.listCount === 0
+  ) {
+    return [];
+  }
+
+  return input.casterDrawList.lists.map((list) => ({
+    passKey: list.passKey,
+    bounds: list.draws.flatMap((draw) => {
+      const bounds = input.bounds[draw.boundsIndex];
+
+      if (bounds === undefined) {
+        return [];
+      }
+
+      return [
+        {
+          min: bounds.worldAabb.min,
+          max: bounds.worldAabb.max,
+        },
+      ];
+    }),
+  }));
 }
 
 const BAKED_CASTER_MATRIX_FLOATS = 16;

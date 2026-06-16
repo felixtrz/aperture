@@ -153,19 +153,6 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
 
   #spawnLights(): void {
     // Sun: directional, aimed from DIR_LIGHT.position toward the origin.
-    const bounds = computeTrackBounds(this.#cells);
-    const shadowExtent = Math.max(bounds.halfWidth, bounds.halfDepth) + 10;
-    const shadowCenter: [number, number, number] = [
-      bounds.centerX,
-      0,
-      bounds.centerZ,
-    ];
-    const lightDistance = Math.hypot(
-      DIR_LIGHT.position[0],
-      DIR_LIGHT.position[1],
-      DIR_LIGHT.position[2],
-    );
-
     this.spawn.light({
       key: "light.sun",
       name: "sun",
@@ -177,18 +164,13 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         lookAt: [0, 0, 0],
       },
       shadow: {
-        // Starter-Kit-Racing authors one fixed DirectionalLight shadow camera
-        // from track bounds. This is scene-fixed, not camera-followed.
+        // Aperture auto-fits the directional shadow camera from the active
+        // render camera frustum; these remain quality/filtering knobs only.
         mapSize: 4096,
         cascadeCount: 1,
         shadowType: 1,
         filterRadius: DIR_LIGHT.shadowRadius,
         normalBias: 0.05,
-        center: shadowCenter,
-        orthographicSize: shadowExtent * 2,
-        near: DIR_LIGHT.shadowNear,
-        far: DIR_LIGHT.shadowFar,
-        lightDistance,
       },
     });
 

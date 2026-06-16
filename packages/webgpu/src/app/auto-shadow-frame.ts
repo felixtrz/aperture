@@ -59,9 +59,9 @@ export function createWebGpuAppAutoShadowFrame(options: {
 
   const meshViews = createAutoShadowCasterMeshViews(options);
 
-  // Single directional auto-shadows are scene-fitted and camera-independent.
-  // The lower-level shadow-frame path still supports camera-frustum fitting for
-  // explicit/cascaded use, but app auto-fit should not reintroduce swimming.
+  // The render-shadow frame uses the active render camera for PlayCanvas-style
+  // automatic directional fitting when a primary view exists. This scene fit is
+  // retained only as the no-camera fallback for headless/simple snapshots.
   const sceneMatrix = computeShadowSceneMatrix(options.snapshot);
 
   return createRenderShadowFrame({
@@ -317,9 +317,7 @@ function fitShadowPointsInLightSpace(
   };
 }
 
-function lightSpaceBasis(
-  lightDirection: readonly [number, number, number],
-): {
+function lightSpaceBasis(lightDirection: readonly [number, number, number]): {
   readonly xAxis: readonly [number, number, number];
   readonly yAxis: readonly [number, number, number];
   readonly zAxis: readonly [number, number, number];

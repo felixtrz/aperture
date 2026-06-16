@@ -67,6 +67,8 @@ export interface ShadowCasterDrawRecord {
   readonly casterCullMode: ShadowCasterCullMode;
   readonly submesh: number;
   readonly layerMask: number;
+  /** Index into `snapshot.bounds` for this caster's world bounds. */
+  readonly boundsIndex: number;
   /** Float offset into `snapshot.transforms` for this caster's WORLD matrix (16 floats). */
   readonly worldTransformOffset: number;
 }
@@ -218,6 +220,7 @@ export function createShadowCasterDrawListPlanReport(
         ),
         submesh: draw.submesh,
         layerMask: draw.layerMask,
+        boundsIndex: draw.boundsIndex,
         worldTransformOffset: draw.worldTransformOffset,
       });
     }

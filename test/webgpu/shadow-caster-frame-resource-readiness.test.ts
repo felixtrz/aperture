@@ -255,6 +255,7 @@ function casterDrawList(
                 casterCullMode: "none",
                 submesh: 0,
                 layerMask: 1,
+                boundsIndex: 0,
                 worldTransformOffset: 0,
               },
             ],

@@ -393,12 +393,17 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 04:59 UTC</dd>
+            <dd>2026-06-16 17:17 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: fixed-step app systems can now implement
+              Latest update: directional app auto-shadows now use the active
+              render camera for PlayCanvas-style frustum fitting with
+              texel-snapped coverage and caster-bound depth expansion. Shadow
+              Lab and racing both exercise the automatic Aperture path without
+              authored shadow-camera bounds. Prior update: fixed-step app
+              systems can now implement
               <code>fixedUpdate(context)</code>, the runtime scheduler preserves
               fixed-step priority order, and opt-in
               <code>RenderInterpolation</code> rewrites presentation snapshots
