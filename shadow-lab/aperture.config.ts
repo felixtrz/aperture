@@ -13,6 +13,10 @@ export default defineApertureConfig({
   canvas: "#aperture",
   systems: ["src/systems/**/*.system.ts"],
   assets: {
+    "vehicle-truck-yellow": gltf("vehicle-truck-yellow"),
+    "vehicle-truck-green": gltf("vehicle-truck-green"),
+    "vehicle-truck-purple": gltf("vehicle-truck-purple"),
+    "vehicle-truck-red": gltf("vehicle-truck-red"),
     "track-straight": gltf("track-straight"),
     "track-corner": gltf("track-corner"),
     "track-bump": gltf("track-bump"),
@@ -20,9 +24,6 @@ export default defineApertureConfig({
     "decoration-empty": gltf("decoration-empty"),
     "decoration-forest": gltf("decoration-forest"),
     "decoration-tents": gltf("decoration-tents"),
-    "vehicle-truck-green": gltf("vehicle-truck-green"),
-    "vehicle-truck-purple": gltf("vehicle-truck-purple"),
-    "vehicle-truck-red": gltf("vehicle-truck-red"),
   },
   render: {
     // scene.background = 0xadb2ba (racing main.js)

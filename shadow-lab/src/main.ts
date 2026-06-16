@@ -6,6 +6,10 @@ import { readGeneratedBrowserAppStatus } from "@aperture-engine/app/browser";
 import { installThreeCompare } from "./compare/three-compare.js";
 import { installDebugPanel } from "./debug-panel.js";
 
+const params = new URLSearchParams(window.location.search);
+const compareMode = params.get("compare") === "three";
+const debugMode = params.get("debug") === "1" || params.has("debug");
+
 function tick(): void {
   const status = readGeneratedBrowserAppStatus();
   document.body.dataset.apertureStatus = status?.status ?? "starting";
@@ -14,5 +18,11 @@ function tick(): void {
 }
 requestAnimationFrame(tick);
 
-void installDebugPanel();
-void installThreeCompare();
+if (debugMode) {
+  void installDebugPanel();
+}
+
+if (compareMode) {
+  document.body.classList.add("shadow-lab-compare");
+  void installThreeCompare();
+}

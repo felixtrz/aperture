@@ -1,32 +1,68 @@
-import { createSystem, material, mesh } from "@aperture-engine/app/systems";
+import { createSystem } from "@aperture-engine/app/systems";
 import { hexColor } from "../lib/math.js";
-import { DIR_LIGHT, HEMI_LIGHT, VEHICLE_ROOT_SCALE } from "../lib/tuning.js";
+import {
+  BACKGROUND_HEX,
+  CAMERA,
+  DIR_LIGHT,
+  FOG_HEX,
+  HEMI_LIGHT,
+  SPAWN_POS,
+  VEHICLE_ROOT_SCALE,
+} from "../lib/tuning.js";
+import {
+  CELL_RAW,
+  GRID_SCALE,
+  NPC_TRUCKS,
+  ORIENT_DEG,
+  TRACK_CELLS,
+  computeTrackBounds,
+  resolveTrackCells,
+  type GridCell,
+} from "../lib/track.js";
 
-const TRUCK_ASSET = "vehicle-truck-green";
-const SUN_DISTANCE = Math.hypot(
-  DIR_LIGHT.position[0],
-  DIR_LIGHT.position[1],
-  DIR_LIGHT.position[2],
-);
+const PLAYER_ASSET = "vehicle-truck-yellow";
+const GROUP_Y = GRID_SCALE * 0.5 - 0.5;
 
-// MINIMAL shadow-verification scene (per Felix): a flat ground + ONE glTF truck,
-// nothing else. A single real racing caster keeps the shadow ortho tight so the
-// ground shadow shape is easy to compare against the Three reference. Racing's
-// sun + ambient lighting are kept. The full racing static scene
-// (track/decorations/trucks) is recoverable via git on this file +
-// decorations.system.ts.
+// Static visual scene ported from racing: track pieces, decoration tiles, parked
+// NPC trucks, and the yellow player truck at spawn. Physics/gameplay systems stay
+// out of Shadow Lab; this route isolates rendering/shadow parity on real racing
+// content.
 export default class SetupSystem extends createSystem({ priority: 0 }) {
+  #cells: readonly GridCell[] = TRACK_CELLS;
+
   override init(): void {
-    // Camera pose is owned by the split-screen Three compare harness.
+    this.#cells = resolveTrackCells(this.world).cells;
+    this.#spawnCamera();
+    this.#spawnLights();
+    this.#spawnFog();
+    this.#spawnTrack();
+    this.#spawnNpcs();
+    this.#spawnPlayer();
+  }
+
+  #spawnCamera(): void {
+    const target: [number, number, number] = [SPAWN_POS[0], 0, SPAWN_POS[2]];
     this.spawn.camera({
       key: "camera.main",
       name: "main-camera",
-      transform: { translation: [8, 6, 8], lookAt: [0, 0.5, 0] },
-      fovYDegrees: 40,
-      camera: { near: 0.1, far: 200, clearColor: hexColor(0xadb2ba) },
+      transform: {
+        translation: [
+          target[0] + CAMERA.offset[0],
+          target[1] + CAMERA.offset[1],
+          target[2] + CAMERA.offset[2],
+        ],
+        lookAt: target,
+      },
+      fovYDegrees: CAMERA.fovDeg,
+      camera: {
+        near: CAMERA.near,
+        far: CAMERA.far,
+        clearColor: hexColor(BACKGROUND_HEX),
+      },
     });
+  }
 
-    // Sun: racing's directional light + shadow.
+  #spawnLights(): void {
     this.spawn.light({
       key: "light.sun",
       name: "sun",
@@ -39,20 +75,10 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         cascadeCount: 1,
         shadowType: 1,
         filterRadius: DIR_LIGHT.shadowRadius,
-        // Three.js reference uses bias=-0.0004 and normalBias=0.02. Aperture's
-        // receiver bias is authored as a positive subtraction from receiver
-        // depth, so 0.0004 matches the same comparison direction.
-        bias: 0.0004,
-        normalBias: 0.02,
-        center: [0, 0, 0],
-        orthographicSize: 16,
-        near: 0.5,
-        far: 60,
-        lightDistance: SUN_DISTANCE,
+        normalBias: 0.05,
       },
     });
 
-    // Racing's sky-biased ambient fill.
     const sky = hexColor(HEMI_LIGHT.skyHex);
     const ground = hexColor(HEMI_LIGHT.groundHex);
     const skyBias = 0.85;
@@ -66,39 +92,75 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         sky[2] * skyBias + ground[2] * (1 - skyBias),
         1,
       ],
-      // DIAGNOSTIC: ambient dropped from HEMI_LIGHT.intensity (2) so shadows go
-      // dark and their SHAPE is unambiguous to judge. Restore to 2 for racing
-      // look once shadows are verified.
-      intensity: 0.25,
+      intensity: HEMI_LIGHT.intensity,
     });
+  }
 
-    // Flat ground (top surface at y=0), receives shadow, does not cast.
-    this.spawn.mesh({
-      key: "ground",
-      name: "ground",
-      mesh: mesh.box({ size: 1 }),
-      material: material.standard({
-        baseColor: [0.45, 0.7, 0.45, 1],
-        roughness: 1,
-        metallic: 0,
-      }),
-      transform: { translation: [0, -0.5, 0], scale: [40, 1, 40] },
-      receiveShadow: true,
-      castShadow: false,
+  #spawnFog(): void {
+    const bounds = computeTrackBounds(this.#cells);
+    const groundSize = Math.max(bounds.halfWidth, bounds.halfDepth) * 2 + 20;
+    this.spawn.fog({
+      key: "fog.main",
+      mode: "linear",
+      color: hexColor(FOG_HEX),
+      start: groundSize * 0.4,
+      end: groundSize * 0.8,
     });
+  }
 
-    // Single real racing GLB caster. The import scale and slight Y offset match
-    // the racing app's truck placements.
-    this.spawn.gltf(this.assets.gltf(TRUCK_ASSET), {
-      key: "truck",
-      name: "truck",
-      tags: ["shadow-caster", "truck"],
+  #spawnTrack(): void {
+    for (const cell of this.#cells) {
+      this.#spawnPiece(cell);
+    }
+  }
+
+  #spawnPiece(cell: GridCell): void {
+    const [gx, gz, key, orient] = cell;
+    this.spawn.gltf(this.assets.gltf(key), {
+      key: `track.${gx}.${gz}`,
+      name: `track.${gx}.${gz}`,
+      tags: ["track"],
       castShadow: true,
       receiveShadow: true,
       transform: {
-        translation: [0, -0.01, 0],
+        translation: [
+          GRID_SCALE * (gx + 0.5) * CELL_RAW,
+          GROUP_Y,
+          GRID_SCALE * (gz + 0.5) * CELL_RAW,
+        ],
+        scale: [GRID_SCALE, GRID_SCALE, GRID_SCALE],
+        rotationEulerDegrees: [0, ORIENT_DEG[orient] ?? 0, 0],
+      },
+    });
+  }
+
+  #spawnNpcs(): void {
+    NPC_TRUCKS.forEach(([key, x, y, z, rotDeg], i) => {
+      this.spawn.gltf(this.assets.gltf(key), {
+        key: `npc.${i}`,
+        name: `npc.${i}`,
+        tags: ["npc"],
+        castShadow: true,
+        receiveShadow: true,
+        transform: {
+          translation: [x, y, z],
+          scale: [VEHICLE_ROOT_SCALE, VEHICLE_ROOT_SCALE, VEHICLE_ROOT_SCALE],
+          rotationEulerDegrees: [0, rotDeg + 180, 0],
+        },
+      });
+    });
+  }
+
+  #spawnPlayer(): void {
+    this.spawn.gltf(this.assets.gltf(PLAYER_ASSET), {
+      key: "player.vehicle",
+      name: "player",
+      tags: ["player"],
+      castShadow: true,
+      receiveShadow: true,
+      transform: {
+        translation: [SPAWN_POS[0], SPAWN_POS[1] - 0.5, SPAWN_POS[2]],
         scale: [VEHICLE_ROOT_SCALE, VEHICLE_ROOT_SCALE, VEHICLE_ROOT_SCALE],
-        rotationEulerDegrees: [0, 180, 0],
       },
     });
   }

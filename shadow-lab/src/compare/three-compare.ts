@@ -183,8 +183,8 @@ async function buildScene(): Promise<{
   // Ambient fill: sky-biased hemisphere approximation (matches setup.system.ts:
   // sky 0xc8d8e8 * 0.85 + ground 0x7a8a5a * 0.15, intensity 0.25).
   const skyBias = 0.85;
-  const sky = [0xc8 / 255, 0xd8 / 255, 0xe8 / 255];
-  const grd = [0x7a / 255, 0x8a / 255, 0x5a / 255];
+  const sky = [0xc8 / 255, 0xd8 / 255, 0xe8 / 255] as const;
+  const grd = [0x7a / 255, 0x8a / 255, 0x5a / 255] as const;
   const amb = new THREE.AmbientLight(
     new THREE.Color(
       sky[0] * skyBias + grd[0] * (1 - skyBias),
@@ -258,9 +258,9 @@ function makeDiffer(
     const o = out.data;
     for (let i = 0; i < pa.length; i += 4) {
       const d = Math.max(
-        Math.abs(pa[i] - pb[i]),
-        Math.abs(pa[i + 1] - pb[i + 1]),
-        Math.abs(pa[i + 2] - pb[i + 2]),
+        Math.abs((pa[i] ?? 0) - (pb[i] ?? 0)),
+        Math.abs((pa[i + 1] ?? 0) - (pb[i + 1] ?? 0)),
+        Math.abs((pa[i + 2] ?? 0) - (pb[i + 2] ?? 0)),
       );
       // black (match) → red → yellow (large diff)
       o[i] = Math.min(255, d * 4);
