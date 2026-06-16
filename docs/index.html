@@ -393,12 +393,18 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 20:47 UTC</dd>
+            <dd>2026-06-16 21:06 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update: app systems now expose
+              <code>this.trails.groundRibbon(...)</code> for vertex-colored
+              ground ribbons. Racing drift marks now call
+              <code>track(...)</code>/<code>flush()</code> on library trail
+              handles instead of building raw dynamic <code>MeshAsset</code>
+              descriptors or registering materials in app code. Prior update:
+              app systems now expose
               <code>this.particles.emit(...)</code> for transient particle
               bursts. Render extraction drains worker-authored burst requests
               into particle packets, WebGPU keeps renderer-owned live particle

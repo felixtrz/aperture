@@ -89,6 +89,12 @@ building blocks and default paths.
   Racing wheel smoke no longer registers sampler/material/mesh assets or builds
   a `MeshAsset` every frame. The default active burst budget now covers
   sustained two-wheel smoke emission without overflow diagnostics.
+- 2026-06-16: Ground-ribbon trail authoring landed:
+  `this.trails.groundRibbon(...)` now owns dynamic trail mesh layout, unlit
+  alpha material registration, bounds, index format selection, spawn handles,
+  and mesh version bumps. Racing drift marks now call `track(...)`/`flush()`
+  on library trail handles instead of constructing raw `MeshAsset` descriptors
+  or touching `assetsRegistry.markReady` per frame.
 
 ## Goals
 
@@ -116,18 +122,17 @@ building blocks and default paths.
 
 ## Source Inventory
 
-Racing source currently has about 3,031 lines under `src/`. The largest and most
+Racing source currently has about 2,808 lines under `src/`. The largest and most
 engine-shaped files are:
 
-- `src/systems/particles.system.ts`: 537 lines.
-- `src/audio.ts`: 473 lines.
+- `src/audio.ts`: 446 lines.
 - `src/lib/track.ts`: 369 lines.
-- `src/systems/vehicle.system.ts`: 317 lines.
-- `src/systems/drift-marks.system.ts`: 292 lines.
+- `src/systems/vehicle.system.ts`: 324 lines.
 - `src/systems/setup.system.ts`: 244 lines.
-- `src/lib/math.ts`: 160 lines.
-- `src/systems/camera-follow.system.ts`: 132 lines.
+- `src/systems/camera-follow.system.ts`: 133 lines.
 - `src/hud.ts`: 119 lines.
+- `src/systems/drift-marks.system.ts`: 84 lines.
+- `src/systems/particles.system.ts`: 65 lines.
 
 There are also inactive `setup.system.ts.*` files in `src/systems/`:
 
@@ -339,29 +344,26 @@ Library direction:
 
 ### 6. Drift Marks Are A Trail/Ribbon Renderer In Disguise
 
-Evidence:
+Original evidence:
 
 - `drift-marks.system.ts:19` ports the reference drift mark system as two
   dynamic vertex-colored triangle meshes.
-- `DriftTrail` manually owns typed vertex/index buffers and republished mesh
-  assets:
-  `racing/src/systems/drift-marks.system.ts:47`, `:99`, `:165`.
-- App code builds the unlit alpha material and spawns one mesh per trail:
-  `racing/src/systems/drift-marks.system.ts:222`, `:252`.
-- The app uses a Y offset because polygon offset/depth bias is not available
-  through the material render state in the needed path:
-  `racing/src/systems/drift-marks.system.ts:24`.
+- Before the ground-ribbon slice, app code manually owned typed vertex/index
+  buffers, built `MeshAsset` descriptors, registered an unlit alpha material,
+  spawned render entities, and republished dynamic mesh versions every frame.
 
 Current Aperture state:
 
-- Dynamic meshes are possible because systems can access `assetsRegistry`.
-- But the app must manually author low-level `MeshAsset` descriptors, bounds,
-  material assets, and per-frame version bumps.
+- App systems now expose `this.trails.groundRibbon(...)` for common
+  vertex-colored ground ribbons. The helper owns mesh layout, bounds, index
+  buffers, material registration, spawn handles, and version bumps.
+- Racing drift marks use the trail helper and no longer construct raw mesh or
+  material assets.
 
 Library direction:
 
-- Add either a `Trail`/`Ribbon` render authoring primitive or a public dynamic
-  mesh builder.
+- Continue hardening `Trail`/`Ribbon` authoring primitives where other apps need
+  trails, debug ribbons, editor handles, or ground decals.
 - Add polygon offset/depth bias support through material render state where it
   belongs.
 
@@ -764,21 +766,22 @@ Packages:
 
 Two possible levels:
 
-1. High-level:
+Landed high-level path:
 
 ```ts
-const trail = this.trails.create({
-  material: "drift-mark",
+const trail = this.trails.groundRibbon("racing.driftMarks.bl", {
+  material: "racing.driftMarks.material",
   width: 0.08,
   maxSegments: 4096,
-  mode: "ground-ribbon",
-  fade: "vertex-alpha",
+  color: [0x11 / 255, 0x11 / 255, 0x11 / 255],
+  opacity: 0.5,
 });
 
-trail.addSegment(previousWheel, currentWheel, { alpha });
+trail.track(currentWheel, { emit, alpha });
+trail.flush();
 ```
 
-2. Lower-level but still safe:
+Possible future lower-level path:
 
 ```ts
 const mesh = this.assets.dynamicMesh({
@@ -803,7 +806,8 @@ Implementation notes:
 Acceptance criteria:
 
 - `racing/src/systems/drift-marks.system.ts` no longer constructs raw
-  `MeshAsset` descriptors or calls `assetsRegistry.markReady` per frame.
+  `MeshAsset` descriptors or calls `assetsRegistry.markReady` per frame. Done
+  2026-06-16.
 - Drift marks remain visually stable without z-fighting.
 
 ### API 8: GLTF Instance Lookup And Spawn Overrides
@@ -960,7 +964,7 @@ Work items:
 - RACE-LIB-09: Make config textures decode to real `TextureAsset` data.
 - RACE-LIB-10: Finish textured billboard particle renderer. Done 2026-06-16.
 - RACE-LIB-11: Add particle burst/event emission API. Done 2026-06-16.
-- RACE-LIB-12: Add trail/ribbon or dynamic mesh builder.
+- RACE-LIB-12: Add trail/ribbon or dynamic mesh builder. Done 2026-06-16.
 - RACE-LIB-13: Wire material depth bias / polygon offset.
 
 Racing migration:
@@ -968,7 +972,7 @@ Racing migration:
 - Replace `particles.system.ts` with a compact particle emitter/update system.
   Done 2026-06-16.
 - Replace `drift-marks.system.ts` with trail/ribbon calls or dynamic mesh
-  builder calls.
+  builder calls. Done 2026-06-16.
 - Remove app image decode code.
 
 Validation:

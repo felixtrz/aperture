@@ -72,6 +72,7 @@ import type { InteractionAccess } from "./interaction/access.js";
 import type { MaterialAccess } from "./systems/materials.js";
 import type { MeshAccess } from "./systems/meshes.js";
 import type { ParticleAccess } from "./systems/particles.js";
+import type { TrailAccess } from "./systems/trails.js";
 import type { PhysicsAccess } from "./systems/physics.js";
 import type { FixedStepAccess } from "./systems/fixed-step.js";
 import type { PrefabAccess } from "./systems/prefabs.js";
@@ -268,6 +269,13 @@ export type {
 } from "./systems/meshes.js";
 export { createMeshAccess } from "./systems/meshes.js";
 export type {
+  GroundRibbonTrail,
+  GroundRibbonTrailOptions,
+  GroundRibbonTrailTrackOptions,
+  TrailAccess,
+} from "./systems/trails.js";
+export { createTrailAccess } from "./systems/trails.js";
+export type {
   PhysicsApplyForceOptions,
   PhysicsApplyImpulseOptions,
   PhysicsAccess,
@@ -408,6 +416,7 @@ export interface ApertureSystemInstance {
   readonly particles: ParticleAccess;
   readonly materials: MaterialAccess;
   readonly meshes: MeshAccess;
+  readonly trails: TrailAccess;
   readonly physics: PhysicsAccess;
   readonly fixedStep: FixedStepAccess;
   readonly interaction: InteractionAccess;
@@ -558,6 +567,10 @@ export function createSystem<
 
     get meshes(): MeshAccess {
       return this.#context.meshes;
+    }
+
+    get trails(): TrailAccess {
+      return this.#context.trails;
     }
 
     get physics(): PhysicsAccess {

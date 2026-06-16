@@ -28,6 +28,7 @@ import { createMeshAccess, type MeshAccess } from "./meshes.js";
 import { createPhysicsAccess, type PhysicsAccess } from "./physics.js";
 import { createPrefabAccess, type PrefabAccess } from "./prefabs.js";
 import { createParticleAccess, type ParticleAccess } from "./particles.js";
+import { createTrailAccess, type TrailAccess } from "./trails.js";
 import { createSignalStore, type SignalStore } from "./signals.js";
 import { createResourceStore, type ResourceStore } from "./resources.js";
 import {
@@ -70,6 +71,7 @@ export interface ApertureSystemContext {
   readonly particles: ParticleAccess;
   readonly materials: MaterialAccess;
   readonly meshes: MeshAccess;
+  readonly trails: TrailAccess;
   readonly physics: PhysicsAccess;
   readonly fixedStep: FixedStepAccess;
   readonly interaction: InteractionAccess;
@@ -139,6 +141,11 @@ export function createApertureSystemContext(
   const particles = createParticleAccess({ world: options.world, assets });
   const materials = createMaterialAccess(options.assetsRegistry);
   const meshes = createMeshAccess(options.assetsRegistry);
+  const trails = createTrailAccess({
+    registry: options.assetsRegistry,
+    meshes,
+    spawn,
+  });
   const fixedStep = createFixedStepAccess(options.registerFixedStepTask);
   const interaction = createInteractionAccess(options.world);
 
@@ -159,6 +166,7 @@ export function createApertureSystemContext(
     particles,
     materials,
     meshes,
+    trails,
     physics,
     fixedStep,
     interaction,
@@ -197,6 +205,7 @@ function isApertureSystemContext(
     "startOptions" in value &&
     "spawn" in value &&
     "meshes" in value &&
+    "trails" in value &&
     "particles" in value &&
     "effects" in value
   );
