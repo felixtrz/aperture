@@ -8,11 +8,14 @@ import {
   createDracoMeshDecoder,
   createMeshoptDecoder as createMeshoptBufferDecoder,
   createWgslShaderAsset,
+  createAudioClipAsset,
   createStandardMaterialAsset,
   loadGlbFromUri,
   loadGltfFromUri,
   registerGltfSourceAssetsFromReports,
+  validateAudioClipAsset,
   type DracoMeshDecoder,
+  type AudioClipAsset,
   type GltfAnimationImportReport,
   type GltfEcsAuthoringCommandPlan,
   type GltfMeshSourceAssetRegistrationReport,
@@ -27,6 +30,7 @@ import {
 import {
   assetHandleKey,
   createAnimationClipHandle,
+  createAudioClipHandle,
   createEnvironmentMapHandle,
   createMaterialHandle,
   createSceneHandle,
@@ -34,6 +38,7 @@ import {
   createTextureHandle,
   type AnimationClip,
   type AnimationClipHandle,
+  type AudioClipHandle,
   type AssetRegistry,
   type AssetHandle,
   type SceneHandle,
@@ -41,6 +46,7 @@ import {
 } from "@aperture-engine/simulation";
 import type {
   ApertureConfig,
+  ApertureAudioAssetDescriptor,
   ApertureConfigAssetDescriptor,
   AssetPreloadPolicy,
   ConfigAssetKind,
@@ -58,10 +64,17 @@ export interface SystemAssetHandle<TKind extends SystemAssetKind> {
   readonly id: string;
   readonly kind: TKind;
   readonly url: string;
+  readonly label?: string;
   readonly preload: AssetPreloadPolicy;
   readonly ready: Signal<boolean>;
   readonly error: Signal<ApertureSystemDiagnostic | null>;
-  readonly renderHandle: TKind extends "gltf" ? SceneHandle : unknown;
+  readonly renderHandle: TKind extends "gltf"
+    ? SceneHandle
+    : TKind extends "shader"
+      ? ShaderHandle
+      : TKind extends "audio"
+        ? AudioClipHandle
+        : unknown;
 }
 
 export type SystemGltfAssetHandle = SystemAssetHandle<"gltf"> & {
@@ -71,6 +84,14 @@ export type SystemGltfAssetHandle = SystemAssetHandle<"gltf"> & {
 
 export type SystemShaderAssetHandle = SystemAssetHandle<"shader"> & {
   readonly renderHandle: ShaderHandle;
+};
+
+export type SystemAudioAssetHandle = SystemAssetHandle<"audio"> & {
+  readonly renderHandle: AudioClipHandle;
+  readonly streaming: boolean;
+  readonly durationHint?: number;
+  readonly channels?: number;
+  readonly captionTrackId?: string;
 };
 
 /** A glTF animation clip registered in the AssetRegistry under a handle. */
@@ -104,6 +125,7 @@ export interface SystemAssetAccess {
   texture(id: string): SystemAssetHandle<"texture">;
   hdr(id: string): SystemAssetHandle<"hdr">;
   shader(id: string): SystemShaderAssetHandle;
+  audio(id: string): SystemAudioAssetHandle;
   request(
     idOrHandle: string | SystemAssetHandle<SystemAssetKind>,
   ): Promise<void>;
@@ -224,9 +246,17 @@ export function createSystemAssetAccess(options: {
           handle as SystemShaderAssetHandle,
         );
         options.registry.markReady(registryHandle as ShaderHandle, shaderAsset);
+      } else if (handle.kind === "audio") {
+        const audioAsset = await loadSystemAudioAsset(
+          handle as SystemAudioAssetHandle,
+        );
+        options.registry.markReady(
+          registryHandle as AudioClipHandle,
+          audioAsset,
+        );
       }
 
-      if (handle.kind !== "shader") {
+      if (handle.kind !== "shader" && handle.kind !== "audio") {
         options.registry.markReady(registryHandle, {
           id: handle.id,
           kind: handle.kind,
@@ -330,6 +360,18 @@ export function createSystemAssetAccess(options: {
 
       return handle as SystemShaderAssetHandle;
     },
+    audio(id) {
+      const handle = lookup(id);
+      if (handle.kind !== "audio") {
+        throw new ApertureSystemError(
+          "aperture.asset.kindMismatch",
+          `Asset '${id}' is '${handle.kind}', not 'audio'.`,
+          "Use this.assets.audio() only with asset.audio() declarations.",
+        );
+      }
+
+      return handle as SystemAudioAssetHandle;
+    },
     request,
     readiness(id) {
       return lookup(id).ready;
@@ -360,6 +402,7 @@ function createSystemAssetHandle(
       id,
       kind: descriptor.kind,
       url: descriptor.url,
+      ...(descriptor.label === undefined ? {} : { label: descriptor.label }),
       preload: descriptor.preload,
       ready: createSignal(false),
       error: createSignal<ApertureSystemDiagnostic | null>(null),
@@ -368,10 +411,33 @@ function createSystemAssetHandle(
     } as SystemGltfAssetHandle;
   }
 
+  if (descriptor.kind === "audio") {
+    const audio = descriptor as ApertureAudioAssetDescriptor;
+    return {
+      id,
+      kind: descriptor.kind,
+      url: descriptor.url,
+      ...(descriptor.label === undefined ? {} : { label: descriptor.label }),
+      preload: descriptor.preload,
+      ready: createSignal(false),
+      error: createSignal<ApertureSystemDiagnostic | null>(null),
+      renderHandle: createAudioClipHandle(id),
+      streaming: audio.streaming ?? false,
+      ...(audio.durationHint === undefined
+        ? {}
+        : { durationHint: audio.durationHint }),
+      ...(audio.channels === undefined ? {} : { channels: audio.channels }),
+      ...(audio.captionTrackId === undefined
+        ? {}
+        : { captionTrackId: audio.captionTrackId }),
+    } as SystemAudioAssetHandle;
+  }
+
   return {
     id,
     kind: descriptor.kind,
     url: descriptor.url,
+    ...(descriptor.label === undefined ? {} : { label: descriptor.label }),
     preload: descriptor.preload,
     ready: createSignal(false),
     error: createSignal<ApertureSystemDiagnostic | null>(null),
@@ -384,6 +450,118 @@ function createSystemAssetHandle(
             ? createShaderHandle(id)
             : createSceneHandle(id),
   } as SystemAssetHandle<SystemAssetKind>;
+}
+
+async function loadSystemAudioAsset(
+  handle: SystemAudioAssetHandle,
+): Promise<AudioClipAsset> {
+  const resolvedUrl = resolveAssetUrl(handle.url);
+
+  if (resolvedUrl === null) {
+    throw new ApertureSystemError(
+      "aperture.asset.invalidUrl",
+      `Audio asset '${handle.id}' URL '${handle.url}' could not be resolved.`,
+      "Use an absolute URL, a root-relative Vite public asset URL, or a data URL in aperture.config.ts.",
+      {
+        asset: handle.id,
+        url: handle.url,
+        kind: handle.kind,
+        preload: handle.preload,
+        phase: "load",
+        blocksStartup: handle.preload === "blocking",
+      },
+    );
+  }
+
+  const base = {
+    label: handle.label ?? handle.id,
+    url: resolvedUrl,
+    streaming: handle.streaming,
+    ...(handle.durationHint === undefined
+      ? {}
+      : { durationHint: handle.durationHint }),
+    ...(handle.channels === undefined ? {} : { channels: handle.channels }),
+    ...(handle.captionTrackId === undefined
+      ? {}
+      : { captionTrackId: handle.captionTrackId }),
+  };
+
+  if (handle.streaming) {
+    return validatedAudioClip(handle, createAudioClipAsset(base));
+  }
+
+  if (typeof fetch !== "function") {
+    throw new ApertureSystemError(
+      "aperture.asset.audioFetchUnavailable",
+      `Audio asset '${handle.id}' cannot be fetched in this environment.`,
+      "Provide an ApertureAssetLoader in tests/headless mode or run in a browser worker with fetch support.",
+      {
+        asset: handle.id,
+        url: handle.url,
+        kind: handle.kind,
+        preload: handle.preload,
+        phase: "load",
+        blocksStartup: handle.preload === "blocking",
+      },
+    );
+  }
+
+  const response = await fetch(resolvedUrl);
+
+  if (!response.ok) {
+    throw new ApertureSystemError(
+      "aperture.asset.audioLoadFailed",
+      `Audio asset '${handle.id}' failed to load with HTTP ${response.status}.`,
+      "Check the audio URL in aperture.config.ts.",
+      {
+        asset: handle.id,
+        url: handle.url,
+        status: response.status,
+        kind: handle.kind,
+        preload: handle.preload,
+        phase: "load",
+        blocksStartup: handle.preload === "blocking",
+      },
+    );
+  }
+
+  return validatedAudioClip(
+    handle,
+    createAudioClipAsset({
+      ...base,
+      bytes: await response.arrayBuffer(),
+    }),
+  );
+}
+
+function validatedAudioClip(
+  handle: SystemAudioAssetHandle,
+  asset: AudioClipAsset,
+): AudioClipAsset {
+  const report = validateAudioClipAsset(asset);
+  if (report.valid) {
+    return asset;
+  }
+
+  throw new ApertureSystemError(
+    "aperture.asset.audioInvalid",
+    `Audio asset '${handle.id}' is invalid. ${formatReportDiagnostics(
+      report.diagnostics.map((diagnostic) => ({
+        code: diagnostic.code,
+        severity: "error" as const,
+        message: diagnostic.message,
+      })),
+    )}`,
+    "Check the asset.audio() options in aperture.config.ts.",
+    {
+      asset: handle.id,
+      url: handle.url,
+      kind: handle.kind,
+      preload: handle.preload,
+      phase: "load",
+      blocksStartup: handle.preload === "blocking",
+    },
+  );
 }
 
 async function loadSystemShaderAsset(

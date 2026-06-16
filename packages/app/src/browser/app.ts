@@ -116,8 +116,7 @@ export async function startGeneratedBrowserApp(
   const postEffects = resolveGeneratedPostEffects(config.render);
   // Bloom needs the HDR scene-buffer path; opting into bloom implies exposure.
   const bloomEnabled = postEffects.length > 0;
-  const exposure =
-    config.render?.exposure ?? (bloomEnabled ? 1 : undefined);
+  const exposure = config.render?.exposure ?? (bloomEnabled ? 1 : undefined);
   const webgpu = await createWebGpuApp({
     canvas: canvas as unknown as WebGpuCanvasLike,
     simulationWorker: mirroredWorker,
@@ -150,12 +149,13 @@ export async function startGeneratedBrowserApp(
   // module is imported dynamically only when enabled, so a non-audio app never
   // loads @aperture-engine/audio.
   let audio: GeneratedAudio | null = null;
-  if (options.audio !== undefined && options.audio !== false) {
+  const audioOptions = resolveGeneratedAudioOptions(config, options.audio);
+  if (audioOptions !== undefined && audioOptions !== false) {
     const { installGeneratedAudio } = await import("./audio.js");
     audio = installGeneratedAudio(
       worker,
       sourceAssets,
-      options.audio === true ? {} : options.audio,
+      audioOptions === true ? {} : audioOptions,
     );
   }
 
@@ -179,6 +179,32 @@ export async function startGeneratedBrowserApp(
   };
 }
 
+function resolveGeneratedAudioOptions(
+  config: ApertureConfig,
+  override: StartGeneratedBrowserAppOptions["audio"],
+): boolean | GeneratedAudioOptions | false | undefined {
+  if (override !== undefined) {
+    return override;
+  }
+
+  const audio = config.audio;
+  if (audio === undefined || audio === false) {
+    return undefined;
+  }
+
+  if (audio === true) {
+    return true;
+  }
+
+  if (audio.enabled === false) {
+    return false;
+  }
+
+  return {
+    ...(audio.autoUnlock === undefined ? {} : { autoUnlock: audio.autoUnlock }),
+  };
+}
+
 function resolveGeneratedPostEffects(
   render: ApertureConfig["render"],
 ): ReturnType<typeof createWebGpuBloomPostEffect>[] {
@@ -190,8 +216,12 @@ function resolveGeneratedPostEffects(
   const options = bloom === true ? {} : bloom;
   return [
     createWebGpuBloomPostEffect({
-      ...(options.threshold === undefined ? {} : { threshold: options.threshold }),
-      ...(options.intensity === undefined ? {} : { intensity: options.intensity }),
+      ...(options.threshold === undefined
+        ? {}
+        : { threshold: options.threshold }),
+      ...(options.intensity === undefined
+        ? {}
+        : { intensity: options.intensity }),
       ...(options.radius === undefined ? {} : { radius: options.radius }),
       ...(options.radiusPixels === undefined
         ? {}

@@ -56,6 +56,11 @@ building blocks and default paths.
   decoder for app-authored texture source data. Racing smoke now uses the
   library helper instead of carrying a private `fetch`/`createImageBitmap`/
   `OffscreenCanvas` decoder.
+- 2026-06-16: Declarative audio clip config landed:
+  `asset.audio(...)` now registers config-authored `audio-clip` source assets
+  with encoded bytes for non-streaming clips, generated browser apps can opt
+  into audio through `audio: true`, and racing declares its engine/skid/impact
+  clips in `aperture.config.ts`.
 
 ## Goals
 

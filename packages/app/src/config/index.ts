@@ -1,4 +1,5 @@
 import type {
+  AudioClipHandle,
   EnvironmentMapHandle,
   SceneHandle,
   ShaderHandle,
@@ -12,7 +13,7 @@ export { validateApertureConfig } from "./validation.js";
 
 export type ApertureAppMode = "browser" | "headless";
 export type AssetPreloadPolicy = "blocking" | "background" | "manual";
-export type ConfigAssetKind = "gltf" | "texture" | "hdr" | "shader";
+export type ConfigAssetKind = "gltf" | "texture" | "hdr" | "shader" | "audio";
 export type DiagnosticsLevel = "debug" | "info" | "warn" | "error" | "silent";
 
 export type EcsEntityRef = {
@@ -23,6 +24,13 @@ export type EcsEntityRef = {
 export interface ApertureAssetOptions {
   readonly preload?: AssetPreloadPolicy;
   readonly label?: string;
+}
+
+export interface ApertureAudioAssetOptions extends ApertureAssetOptions {
+  readonly streaming?: boolean;
+  readonly durationHint?: number;
+  readonly channels?: number;
+  readonly captionTrackId?: string;
 }
 
 export interface ApertureConfigAssetDescriptor<
@@ -40,6 +48,12 @@ export type ApertureTextureAssetDescriptor =
 export type ApertureHdrAssetDescriptor = ApertureConfigAssetDescriptor<"hdr">;
 export type ApertureShaderAssetDescriptor =
   ApertureConfigAssetDescriptor<"shader">;
+export interface ApertureAudioAssetDescriptor extends ApertureConfigAssetDescriptor<"audio"> {
+  readonly streaming?: boolean;
+  readonly durationHint?: number;
+  readonly channels?: number;
+  readonly captionTrackId?: string;
+}
 
 export interface ApertureConfigAssetHelpers {
   gltf(
@@ -55,6 +69,10 @@ export interface ApertureConfigAssetHelpers {
     url: string,
     options?: ApertureAssetOptions,
   ): ApertureShaderAssetDescriptor;
+  audio(
+    url: string,
+    options?: ApertureAudioAssetOptions,
+  ): ApertureAudioAssetDescriptor;
 }
 
 export type ApertureSignalKind = "ref" | "string" | "number" | "boolean";
@@ -281,6 +299,13 @@ export interface ApertureDiagnosticsConfig {
   readonly level?: DiagnosticsLevel;
 }
 
+export interface ApertureAudioAppConfig {
+  /** Set false to keep declarative audio config present but disabled. */
+  readonly enabled?: boolean;
+  /** Resume the generated AudioContext on the first user gesture. Default true. */
+  readonly autoUnlock?: boolean;
+}
+
 /**
  * Physics enablement for a generated app. Setting `physics` (to `true` or an
  * options object) installs the rigid-body backend in the simulation worker and
@@ -311,6 +336,7 @@ export interface ApertureConfig {
   readonly signals?: Readonly<Record<string, ApertureSignalDescriptor>>;
   readonly input?: ApertureInputConfig;
   readonly render?: ApertureRenderDefaults;
+  readonly audio?: boolean | ApertureAudioAppConfig;
   readonly physics?: boolean | AperturePhysicsAppConfig;
   readonly diagnostics?: ApertureDiagnosticsConfig;
   readonly assetDecoders?: ApertureAssetDecoderConfig;
@@ -323,6 +349,7 @@ export interface RuntimeAssetHandles {
   readonly texture: Readonly<Record<string, TextureHandle>>;
   readonly hdr: Readonly<Record<string, EnvironmentMapHandle>>;
   readonly shader: Readonly<Record<string, ShaderHandle>>;
+  readonly audio: Readonly<Record<string, AudioClipHandle>>;
 }
 
 export const asset: ApertureConfigAssetHelpers = Object.freeze({
@@ -337,6 +364,22 @@ export const asset: ApertureConfigAssetHelpers = Object.freeze({
   },
   shader(url: string, options: ApertureAssetOptions = {}) {
     return assetDescriptor("shader", url, options);
+  },
+  audio(url: string, options: ApertureAudioAssetOptions = {}) {
+    const descriptor = assetDescriptor("audio", url, options);
+    return Object.freeze({
+      ...descriptor,
+      ...(options.streaming === undefined
+        ? {}
+        : { streaming: options.streaming }),
+      ...(options.durationHint === undefined
+        ? {}
+        : { durationHint: options.durationHint }),
+      ...(options.channels === undefined ? {} : { channels: options.channels }),
+      ...(options.captionTrackId === undefined
+        ? {}
+        : { captionTrackId: options.captionTrackId }),
+    });
   },
 });
 

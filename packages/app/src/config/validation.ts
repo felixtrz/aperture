@@ -1,6 +1,7 @@
 import { ApertureConfigError } from "./errors.js";
 import type {
   ApertureConfig,
+  ApertureAudioAssetDescriptor,
   ApertureConfigAssetDescriptor,
   AssetPreloadPolicy,
   GamepadButtonName,
@@ -49,8 +50,39 @@ export function validateApertureConfig(config: ApertureConfig): void {
   }
 
   validateAssetDecoderConfig(config.assetDecoders);
+  validateAudioConfig(config.audio);
   validatePhysicsConfig(config.physics);
   validateInputActions(config.input?.actions ?? {});
+}
+
+function validateAudioConfig(audio: ApertureConfig["audio"]): void {
+  if (audio === undefined || typeof audio === "boolean") {
+    return;
+  }
+
+  if (typeof audio !== "object" || audio === null) {
+    throw new ApertureConfigError(
+      "aperture.config.invalidAudio",
+      "Aperture audio config must be a boolean or an options object.",
+      "Use audio: true, audio: false, or audio: { autoUnlock: true }.",
+    );
+  }
+
+  if (audio.enabled !== undefined && typeof audio.enabled !== "boolean") {
+    throw new ApertureConfigError(
+      "aperture.config.invalidAudio",
+      "Aperture audio.enabled must be a boolean when provided.",
+      "Set audio.enabled to true or false.",
+    );
+  }
+
+  if (audio.autoUnlock !== undefined && typeof audio.autoUnlock !== "boolean") {
+    throw new ApertureConfigError(
+      "aperture.config.invalidAudio",
+      "Aperture audio.autoUnlock must be a boolean when provided.",
+      "Set audio.autoUnlock to true or false.",
+    );
+  }
 }
 
 function validatePhysicsConfig(physics: ApertureConfig["physics"]): void {
@@ -138,12 +170,13 @@ function validateAssetDescriptor(
     descriptor.kind !== "gltf" &&
     descriptor.kind !== "texture" &&
     descriptor.kind !== "hdr" &&
-    descriptor.kind !== "shader"
+    descriptor.kind !== "shader" &&
+    descriptor.kind !== "audio"
   ) {
     throw new ApertureConfigError(
       "aperture.config.invalidAssetKind",
       `Asset '${id}' has unsupported kind '${String(descriptor.kind)}'.`,
-      "Declare assets through asset.gltf(), asset.texture(), asset.hdr(), or asset.shader().",
+      "Declare assets through asset.gltf(), asset.texture(), asset.hdr(), asset.shader(), or asset.audio().",
     );
   }
 
@@ -164,6 +197,74 @@ function validateAssetDescriptor(
       "Use 'blocking', 'background', or 'manual'.",
     );
   }
+
+  if (descriptor.kind === "audio") {
+    validateAudioAssetDescriptor(
+      id,
+      descriptor as ApertureAudioAssetDescriptor,
+    );
+  }
+}
+
+function validateAudioAssetDescriptor(
+  id: string,
+  descriptor: ApertureAudioAssetDescriptor,
+): void {
+  if (
+    descriptor.streaming !== undefined &&
+    typeof descriptor.streaming !== "boolean"
+  ) {
+    throw invalidAudioAsset(
+      id,
+      "streaming",
+      "Audio asset streaming must be a boolean when provided.",
+    );
+  }
+
+  if (
+    descriptor.durationHint !== undefined &&
+    !(Number.isFinite(descriptor.durationHint) && descriptor.durationHint >= 0)
+  ) {
+    throw invalidAudioAsset(
+      id,
+      "durationHint",
+      "Audio asset durationHint must be a finite non-negative number.",
+    );
+  }
+
+  if (
+    descriptor.channels !== undefined &&
+    !(Number.isInteger(descriptor.channels) && descriptor.channels > 0)
+  ) {
+    throw invalidAudioAsset(
+      id,
+      "channels",
+      "Audio asset channels must be a positive integer when provided.",
+    );
+  }
+
+  if (
+    descriptor.captionTrackId !== undefined &&
+    descriptor.captionTrackId.trim().length === 0
+  ) {
+    throw invalidAudioAsset(
+      id,
+      "captionTrackId",
+      "Audio asset captionTrackId must be non-empty when provided.",
+    );
+  }
+}
+
+function invalidAudioAsset(
+  id: string,
+  field: string,
+  message: string,
+): ApertureConfigError {
+  return new ApertureConfigError(
+    "aperture.config.invalidAudioAsset",
+    `Asset '${id}' has invalid audio ${field}. ${message}`,
+    "Use asset.audio('/assets/clip.ogg', { durationHint: 1.2 }) with finite plain-data options.",
+  );
 }
 
 function validateInputActions(

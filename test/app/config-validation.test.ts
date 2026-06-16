@@ -82,7 +82,13 @@ describe("validateApertureConfig", () => {
             floorColor: asset.texture("/assets/floor.png"),
             sky: asset.hdr("/assets/sky.hdr", { preload: "background" }),
             "level.crate": asset.shader("/assets/crate.wgsl"),
+            engine: asset.audio("/assets/engine.ogg", {
+              preload: "blocking",
+              durationHint: 2.1,
+              channels: 2,
+            }),
           },
+          audio: { autoUnlock: true },
         }),
       ).not.toThrow();
     });
@@ -105,8 +111,8 @@ describe("validateApertureConfig", () => {
           mode: "headless",
           assets: {
             theme: {
-              kind: "audio",
-              url: "/assets/theme.ogg",
+              kind: "video",
+              url: "/assets/theme.mp4",
               preload: "manual",
             } as unknown as ApertureConfigAssetDescriptor,
           },
@@ -114,7 +120,23 @@ describe("validateApertureConfig", () => {
       );
 
       expect(error.code).toBe("aperture.config.invalidAssetKind");
-      expect(error.message).toContain("'audio'");
+      expect(error.message).toContain("'video'");
+    });
+
+    it("rejects invalid audio asset options", () => {
+      const error = configError(() =>
+        validateApertureConfig({
+          mode: "headless",
+          assets: {
+            engine: asset.audio("/assets/engine.ogg", {
+              durationHint: -1,
+            }),
+          },
+        }),
+      );
+
+      expect(error.code).toBe("aperture.config.invalidAudioAsset");
+      expect(error.message).toContain("durationHint");
     });
 
     it("rejects asset descriptors with empty URLs", () => {
@@ -144,6 +166,29 @@ describe("validateApertureConfig", () => {
 
       expect(error.code).toBe("aperture.config.invalidPreloadPolicy");
       expect(error.message).toContain("'eager'");
+    });
+  });
+
+  describe("audio", () => {
+    it("accepts generated audio enablement config", () => {
+      expect(() =>
+        validateApertureConfig({
+          mode: "headless",
+          audio: { enabled: true, autoUnlock: false },
+        }),
+      ).not.toThrow();
+    });
+
+    it("rejects invalid generated audio config", () => {
+      const error = configError(() =>
+        validateApertureConfig({
+          mode: "headless",
+          audio: { autoUnlock: "yes" } as never,
+        }),
+      );
+
+      expect(error.code).toBe("aperture.config.invalidAudio");
+      expect(error.message).toContain("autoUnlock");
     });
   });
 

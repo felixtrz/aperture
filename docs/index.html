@@ -393,12 +393,17 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 18:51 UTC</dd>
+            <dd>2026-06-16 19:06 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: render now exposes
+              Latest update: app config now exposes
+              <code>asset.audio(...)</code> and generated browser apps can opt
+              into audio with <code>audio: true</code>. Racing declares its
+              engine/skid/impact clips through the config so the source asset
+              registry owns clip metadata and encoded bytes. Prior update:
+              render now exposes
               <code>decodeImageUrlToTextureSource(...)</code> so worker systems
               can decode image URLs into texture source data without copying
               browser canvas code. Racing smoke now uses this public helper for
@@ -2026,6 +2031,14 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">app</span> Added
+                <code>asset.audio(...)</code> and config-level generated audio
+                enablement. App preloading now turns non-streaming audio config
+                entries into ready <code>audio-clip</code> source assets with
+                encoded bytes, and racing declares its engine, skid, and impact
+                clips through <code>aperture.config.ts</code>.
+              </li>
               <li>
                 <span class="badge green">app</span> Added priority-aware
                 fixed-step registration, the

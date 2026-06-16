@@ -24,6 +24,18 @@ export default defineApertureConfig({
     "decoration-empty": gltf("decoration-empty"),
     "decoration-forest": gltf("decoration-forest"),
     "decoration-tents": gltf("decoration-tents"),
+    engine: asset.audio("/audio/engine.ogg", {
+      preload: "blocking",
+      durationHint: 2.1,
+    }),
+    skid: asset.audio("/audio/skid.ogg", {
+      preload: "blocking",
+      durationHint: 1,
+    }),
+    impact: asset.audio("/audio/impact.ogg", {
+      preload: "blocking",
+      durationHint: 0.5,
+    }),
   },
   signals: {
     lap: signal.number(1),
@@ -36,6 +48,7 @@ export default defineApertureConfig({
     throttle: signal.number(0),
     driftIntensity: signal.number(0),
   },
+  audio: true,
   input: {
     actions: {
       // x = steer (+right), y = throttle (+forward). Mirrors Controls.js.

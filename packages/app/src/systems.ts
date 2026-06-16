@@ -217,6 +217,7 @@ export type {
   SystemAssetAccess,
   SystemAssetHandle,
   SystemAssetKind,
+  SystemAudioAssetHandle,
   SystemGltfAnimationClip,
   SystemGltfAssetHandle,
   SystemGltfLoadedScene,
