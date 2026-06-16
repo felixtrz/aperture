@@ -3,6 +3,7 @@ import {
   type AssetRegistry,
 } from "@aperture-engine/simulation";
 import {
+  createSamplerAsset,
   type PackedSnapshotViewUniforms,
   type ParticleEffectAsset,
   type ParticleEmitterPacket,
@@ -14,6 +15,13 @@ import { createCommandEncoderResource } from "../gpu/command-encoder.js";
 import { finishCommandEncoder } from "../gpu/command-buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
 import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
+import {
+  createSamplerGpuResource,
+  createTextureGpuResource,
+  WEBGPU_TEXTURE_USAGE_FLAGS,
+  type SamplerGpuResource,
+  type TextureGpuResource,
+} from "../resources/textures/texture-resources.js";
 import type { TonemapOperator } from "../output/output-stage-tonemap.js";
 import type { OutputColorSpace } from "../output/output-stage-color-space.js";
 import { submitCommandBuffers } from "../render/queues/queue-submit.js";
@@ -29,9 +37,13 @@ import {
   type CreateParticleComputePipelineResourceResult,
   type CreateParticleRenderPipelineResourceResult,
   type ParticleComputePipelineResource,
-  type ParticleRenderPipelineResource,
 } from "../render/particles/particle-pipeline.js";
 import type { RenderPassCommand } from "../render/passes/render-pass-commands.js";
+import {
+  prepareAppSamplerResource,
+  prepareAppTextureResource,
+  type AppTextureSamplerResourceReuseReport,
+} from "./app-texture-sampler-resources.js";
 import type {
   ParticleEmitterGpuStateResource,
   WebGpuAppResourceCache,
@@ -64,10 +76,15 @@ export interface ParticleFrameResources {
 export interface ParticleFrameReport {
   readonly emitters: number;
   readonly liveParticles: number;
+  readonly texturedEmitters: number;
   readonly statesCreated: number;
   readonly statesReused: number;
   readonly staleStatesRemoved: number;
   readonly dispatches: number;
+  readonly textureResourcesCreated: number;
+  readonly textureResourcesReused: number;
+  readonly samplerResourcesCreated: number;
+  readonly samplerResourcesReused: number;
 }
 
 const PARTICLE_VIEWPORT_FLOAT_OFFSET = 20;
@@ -79,6 +96,8 @@ const PARTICLE_COLOR_CURVE_FLOAT_OFFSET =
 const PARTICLE_PARAM_BYTE_LENGTH =
   16 +
   (PARTICLE_COLOR_CURVE_FLOAT_OFFSET + PARTICLE_CURVE_SAMPLE_COUNT * 4) * 4;
+const PARTICLE_DEFAULT_TEXTURE_CACHE_KEY = "particle:default-white-texture";
+const PARTICLE_DEFAULT_SAMPLER_CACHE_KEY = "particle:default-linear-sampler";
 
 export async function prepareParticleFrameResourcesForSnapshot(options: {
   readonly app: WebGpuAppParticleContext;
@@ -86,6 +105,7 @@ export async function prepareParticleFrameResourcesForSnapshot(options: {
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
   readonly viewUniforms: PackedSnapshotViewUniforms;
+  readonly reuse?: AppTextureSamplerResourceReuseReport;
   readonly time?: number;
 }): Promise<ParticleFrameResources> {
   const emitters = options.snapshot.particleEmitters ?? [];
@@ -109,24 +129,12 @@ export async function prepareParticleFrameResourcesForSnapshot(options: {
     options.app,
     options.cache,
   );
-  const renderPipeline = await getOrCreateWebGpuAppParticleRenderPipeline(
-    options.app,
-    options.cache,
-  );
 
-  if (
-    !computePipeline.valid ||
-    computePipeline.resource === null ||
-    !renderPipeline.valid ||
-    renderPipeline.resource === null
-  ) {
+  if (!computePipeline.valid || computePipeline.resource === null) {
     return {
       valid: false,
       commands: [],
-      diagnostics: [
-        ...computePipeline.diagnostics,
-        ...renderPipeline.diagnostics,
-      ],
+      diagnostics: [...computePipeline.diagnostics],
       report: emptyParticleFrameReport(emitters.length),
     };
   }
@@ -138,7 +146,7 @@ export async function prepareParticleFrameResourcesForSnapshot(options: {
     snapshot: options.snapshot,
     viewUniforms: options.viewUniforms,
     computePipeline: computePipeline.resource,
-    renderPipeline: renderPipeline.resource,
+    ...(options.reuse === undefined ? {} : { reuse: options.reuse }),
     time: options.time ?? 0,
   });
 }
@@ -167,6 +175,7 @@ export async function getOrCreateWebGpuAppParticleComputePipeline(
 export async function getOrCreateWebGpuAppParticleRenderPipeline(
   app: WebGpuAppParticleContext,
   cache: WebGpuAppResourceCache,
+  blendMode: ParticleEffectAsset["blendMode"],
 ): Promise<CreateParticleRenderPipelineResourceResult> {
   const isHdr =
     app.sceneRenderFormat !== undefined &&
@@ -179,6 +188,7 @@ export async function getOrCreateWebGpuAppParticleRenderPipeline(
     app.initialization.format,
     WEBGPU_APP_DEPTH_FORMAT,
     app.msaa.sampleCount,
+    blendMode,
     tonemap,
     outputColorSpace,
   );
@@ -195,6 +205,7 @@ export async function getOrCreateWebGpuAppParticleRenderPipeline(
     colorFormat: app.initialization.format,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
+    blendMode,
     tonemap,
     outputColorSpace,
   });
@@ -203,16 +214,16 @@ export async function getOrCreateWebGpuAppParticleRenderPipeline(
   return result;
 }
 
-function createParticleFrameResources(options: {
+async function createParticleFrameResources(options: {
   readonly app: WebGpuAppParticleContext;
   readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly computePipeline: ParticleComputePipelineResource;
-  readonly renderPipeline: ParticleRenderPipelineResource;
+  readonly reuse?: AppTextureSamplerResourceReuseReport;
   readonly time: number;
-}): ParticleFrameResources {
+}): Promise<ParticleFrameResources> {
   const diagnostics: unknown[] = [];
   const commands: RenderPassCommand[] = [];
   const report = emptyParticleFrameReport(
@@ -229,14 +240,10 @@ function createParticleFrameResources(options: {
   const computePipeline = options.computePipeline.pipeline as {
     readonly getBindGroupLayout?: (group: number) => unknown;
   };
-  const renderPipeline = options.renderPipeline.pipeline as {
-    readonly getBindGroupLayout?: (group: number) => unknown;
-  };
 
   if (
     device.createBindGroup === undefined ||
-    computePipeline.getBindGroupLayout === undefined ||
-    renderPipeline.getBindGroupLayout === undefined
+    computePipeline.getBindGroupLayout === undefined
   ) {
     return {
       valid: false,
@@ -252,6 +259,7 @@ function createParticleFrameResources(options: {
     };
   }
 
+  const reuse = options.reuse ?? createParticleTextureSamplerReuseReport();
   const viewData = viewUniformData(options);
   const viewBuffer = createWebGpuBuffer({
     device,
@@ -278,11 +286,6 @@ function createParticleFrameResources(options: {
     };
   }
 
-  const viewBindGroup = device.createBindGroup({
-    label: "Particle/ViewBindGroup",
-    layout: renderPipeline.getBindGroupLayout(0),
-    entries: [{ binding: 0, resource: { buffer: viewBuffer.buffer } }],
-  });
   const activeStateKeys = new Set<string>();
 
   for (const emitter of options.snapshot.particleEmitters ?? []) {
@@ -302,6 +305,48 @@ function createParticleFrameResources(options: {
         message: `Particle effect '${assetHandleKey(emitter.effect)}' is not ready.`,
       });
       continue;
+    }
+
+    const renderPipelineResult =
+      await getOrCreateWebGpuAppParticleRenderPipeline(
+        options.app,
+        options.cache,
+        effect.blendMode,
+      );
+
+    if (!renderPipelineResult.valid || renderPipelineResult.resource === null) {
+      diagnostics.push(...renderPipelineResult.diagnostics);
+      continue;
+    }
+
+    const renderPipelineResource = renderPipelineResult.resource;
+    const renderPipeline = renderPipelineResource.pipeline as {
+      readonly getBindGroupLayout?: (group: number) => unknown;
+    };
+
+    if (renderPipeline.getBindGroupLayout === undefined) {
+      diagnostics.push({
+        code: "particleFrame.missingBindGroupSupport",
+        message: "Particle render pipeline does not expose bind-group layouts.",
+      });
+      continue;
+    }
+
+    const textureSampler = prepareParticleTextureSamplerResources({
+      assets: options.assets,
+      cache: options.cache,
+      device,
+      effect,
+      reuse,
+      diagnostics,
+    });
+
+    if (textureSampler === null) {
+      continue;
+    }
+
+    if (effect.texture !== undefined && effect.texture !== null) {
+      mutableReport.texturedEmitters += 1;
     }
 
     const stateResult = getOrCreateParticleEmitterGpuState({
@@ -346,6 +391,11 @@ function createParticleFrameResources(options: {
       continue;
     }
 
+    const viewBindGroup = device.createBindGroup({
+      label: `Particle/ViewBindGroup/${emitter.emitterId}`,
+      layout: renderPipeline.getBindGroupLayout(0),
+      entries: [{ binding: 0, resource: { buffer: viewBuffer.buffer } }],
+    });
     const computeBindGroup = device.createBindGroup({
       label: `Particle/ComputeBindGroup/${emitter.emitterId}`,
       layout: computePipeline.getBindGroupLayout(0),
@@ -372,13 +422,21 @@ function createParticleFrameResources(options: {
         { binding: 0, resource: { buffer: stateResult.state.particleBuffer } },
       ],
     });
+    const textureBindGroup = device.createBindGroup({
+      label: `Particle/TextureBindGroup/${emitter.emitterId}`,
+      layout: renderPipeline.getBindGroupLayout(2),
+      entries: [
+        { binding: 0, resource: textureSampler.texture.view },
+        { binding: 1, resource: textureSampler.sampler.sampler },
+      ],
+    });
 
     commands.push(
       {
         kind: "setPipeline",
         renderId: emitter.emitterId,
-        pipelineKey: options.renderPipeline.cacheKey,
-        pipeline: options.renderPipeline.pipeline,
+        pipelineKey: renderPipelineResource.cacheKey,
+        pipeline: renderPipelineResource.pipeline,
       },
       {
         kind: "setBindGroup",
@@ -395,6 +453,13 @@ function createParticleFrameResources(options: {
         bindGroup: particleBindGroup,
       },
       {
+        kind: "setBindGroup",
+        renderId: emitter.emitterId,
+        index: 2,
+        resourceKey: `${textureSampler.textureKey}:${textureSampler.samplerKey}`,
+        bindGroup: textureBindGroup,
+      },
+      {
         kind: "draw",
         renderId: emitter.emitterId,
         vertexCount: 6,
@@ -405,6 +470,10 @@ function createParticleFrameResources(options: {
     );
   }
 
+  mutableReport.textureResourcesCreated += reuse.textureResourcesCreated;
+  mutableReport.textureResourcesReused += reuse.textureResourcesReused;
+  mutableReport.samplerResourcesCreated += reuse.samplerResourcesCreated;
+  mutableReport.samplerResourcesReused += reuse.samplerResourcesReused;
   mutableReport.staleStatesRemoved = cleanupParticleStates(
     options.cache,
     activeStateKeys,
@@ -415,6 +484,179 @@ function createParticleFrameResources(options: {
     commands,
     diagnostics,
     report,
+  };
+}
+
+function prepareParticleTextureSamplerResources(options: {
+  readonly assets: AssetRegistry;
+  readonly cache: WebGpuAppResourceCache;
+  readonly device: unknown;
+  readonly effect: ParticleEffectAsset;
+  readonly reuse: AppTextureSamplerResourceReuseReport;
+  readonly diagnostics: unknown[];
+}): {
+  readonly texture: TextureGpuResource;
+  readonly sampler: SamplerGpuResource;
+  readonly textureKey: string;
+  readonly samplerKey: string;
+} | null {
+  const texture =
+    options.effect.texture === undefined || options.effect.texture === null
+      ? getOrCreateDefaultParticleTexture({
+          cache: options.cache,
+          device: options.device,
+          reuse: options.reuse,
+          diagnostics: options.diagnostics,
+        })
+      : prepareAppTextureResource({
+          assets: options.assets,
+          device: options.device,
+          cache: options.cache,
+          handle: options.effect.texture,
+          reuse: options.reuse,
+          diagnostics: options.diagnostics as Parameters<
+            typeof prepareAppTextureResource
+          >[0]["diagnostics"],
+        });
+  const sampler =
+    options.effect.sampler === undefined || options.effect.sampler === null
+      ? getOrCreateDefaultParticleSampler({
+          cache: options.cache,
+          device: options.device,
+          reuse: options.reuse,
+          diagnostics: options.diagnostics,
+        })
+      : prepareAppSamplerResource({
+          assets: options.assets,
+          device: options.device,
+          cache: options.cache,
+          handle: options.effect.sampler,
+          reuse: options.reuse,
+          diagnostics: options.diagnostics as Parameters<
+            typeof prepareAppSamplerResource
+          >[0]["diagnostics"],
+        });
+
+  if (texture === null || sampler === null) {
+    return null;
+  }
+
+  return {
+    texture: texture.resource,
+    sampler: sampler.resource,
+    textureKey: texture.cacheKey,
+    samplerKey: sampler.cacheKey,
+  };
+}
+
+function getOrCreateDefaultParticleTexture(options: {
+  readonly cache: WebGpuAppResourceCache;
+  readonly device: unknown;
+  readonly reuse: AppTextureSamplerResourceReuseReport;
+  readonly diagnostics: unknown[];
+}): {
+  readonly cacheKey: string;
+  readonly resource: TextureGpuResource;
+} | null {
+  const cached = options.cache.textures.get(PARTICLE_DEFAULT_TEXTURE_CACHE_KEY);
+
+  if (cached !== undefined) {
+    options.reuse.textureResourcesReused += 1;
+    return {
+      cacheKey: PARTICLE_DEFAULT_TEXTURE_CACHE_KEY,
+      resource: cached,
+    };
+  }
+
+  const result = createTextureGpuResource({
+    device: options.device as Parameters<
+      typeof createTextureGpuResource
+    >[0]["device"],
+    resourceKey: "texture:__aperture_particle_default_white",
+    descriptor: {
+      label: "Particle default white texture",
+      size: [1, 1, 1],
+      format: "rgba8unorm",
+      usage:
+        WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
+        WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST,
+      colorSpace: "srgb",
+      semantic: "base-color",
+      mipLevelCount: 1,
+    },
+    upload: {
+      data: new Uint8Array([255, 255, 255, 255]),
+      bytesPerRow: 4,
+    },
+  });
+
+  options.diagnostics.push(...result.diagnostics);
+
+  if (!result.valid || result.resource === null) {
+    return null;
+  }
+
+  options.cache.textures.set(
+    PARTICLE_DEFAULT_TEXTURE_CACHE_KEY,
+    result.resource,
+  );
+  options.reuse.textureResourcesCreated += 1;
+  return {
+    cacheKey: PARTICLE_DEFAULT_TEXTURE_CACHE_KEY,
+    resource: result.resource,
+  };
+}
+
+function getOrCreateDefaultParticleSampler(options: {
+  readonly cache: WebGpuAppResourceCache;
+  readonly device: unknown;
+  readonly reuse: AppTextureSamplerResourceReuseReport;
+  readonly diagnostics: unknown[];
+}): {
+  readonly cacheKey: string;
+  readonly resource: SamplerGpuResource;
+} | null {
+  const cached = options.cache.samplers.get(PARTICLE_DEFAULT_SAMPLER_CACHE_KEY);
+
+  if (cached !== undefined) {
+    options.reuse.samplerResourcesReused += 1;
+    return {
+      cacheKey: PARTICLE_DEFAULT_SAMPLER_CACHE_KEY,
+      resource: cached,
+    };
+  }
+
+  const result = createSamplerGpuResource({
+    device: options.device as Parameters<
+      typeof createSamplerGpuResource
+    >[0]["device"],
+    resourceKey: "sampler:__aperture_particle_default_linear",
+    sampler: createSamplerAsset({
+      label: "Particle default linear sampler",
+      addressModeU: "clamp-to-edge",
+      addressModeV: "clamp-to-edge",
+      addressModeW: "clamp-to-edge",
+      magFilter: "linear",
+      minFilter: "linear",
+      mipmapFilter: "nearest",
+      lodMaxClamp: 0,
+    }),
+  });
+
+  options.diagnostics.push(...result.diagnostics);
+
+  if (!result.valid || result.resource === null) {
+    return null;
+  }
+
+  options.cache.samplers.set(
+    PARTICLE_DEFAULT_SAMPLER_CACHE_KEY,
+    result.resource,
+  );
+  options.reuse.samplerResourcesCreated += 1;
+  return {
+    cacheKey: PARTICLE_DEFAULT_SAMPLER_CACHE_KEY,
+    resource: result.resource,
   };
 }
 
@@ -773,10 +1015,24 @@ function emptyParticleFrameReport(emitters = 0): ParticleFrameReport {
   return {
     emitters,
     liveParticles: 0,
+    texturedEmitters: 0,
     statesCreated: 0,
     statesReused: 0,
     staleStatesRemoved: 0,
     dispatches: 0,
+    textureResourcesCreated: 0,
+    textureResourcesReused: 0,
+    samplerResourcesCreated: 0,
+    samplerResourcesReused: 0,
+  };
+}
+
+function createParticleTextureSamplerReuseReport(): AppTextureSamplerResourceReuseReport {
+  return {
+    textureResourcesCreated: 0,
+    textureResourcesReused: 0,
+    samplerResourcesCreated: 0,
+    samplerResourcesReused: 0,
   };
 }
 

@@ -33,13 +33,14 @@ describe("GPU particle WebGPU pipelines", () => {
       colorFormat: "bgra8unorm",
       depthFormat: "depth24plus",
       sampleCount: 4,
+      blendMode: "alpha",
     });
 
     expect(compute.valid).toBe(true);
     expect(render.valid).toBe(true);
     expect(compute.resource?.cacheKey).toBe(particleComputePipelineCacheKey());
     expect(render.resource?.cacheKey).toBe(
-      particleRenderPipelineCacheKey("bgra8unorm", "depth24plus", 4),
+      particleRenderPipelineCacheKey("bgra8unorm", "depth24plus", 4, "alpha"),
     );
     expect(PARTICLE_COMPUTE_WGSL).toContain(
       "var<storage, read_write> particles",
@@ -52,6 +53,8 @@ describe("GPU particle WebGPU pipelines", () => {
       "let color = mix(params.colorA, params.colorB, c);",
     );
     expect(PARTICLE_RENDER_WGSL).toContain("var<storage, read> particles");
+    expect(PARTICLE_RENDER_WGSL).toContain("var particleTexture");
+    expect(PARTICLE_RENDER_WGSL).toContain("textureSample");
     expect(PARTICLE_RENDER_WGSL).toContain("@builtin(instance_index)");
     expect(computeDescriptors).toEqual([
       expect.objectContaining({
@@ -74,12 +77,12 @@ describe("GPU particle WebGPU pipelines", () => {
                 color: {
                   operation: "add",
                   srcFactor: "src-alpha",
-                  dstFactor: "one",
+                  dstFactor: "one-minus-src-alpha",
                 },
                 alpha: {
                   operation: "add",
                   srcFactor: "one",
-                  dstFactor: "one",
+                  dstFactor: "one-minus-src-alpha",
                 },
               },
             }),
@@ -93,7 +96,7 @@ describe("GPU particle WebGPU pipelines", () => {
         depthStencil: {
           format: "depth24plus",
           depthWriteEnabled: false,
-          depthCompare: "always",
+          depthCompare: "less",
         },
         multisample: { count: 4 },
       }),

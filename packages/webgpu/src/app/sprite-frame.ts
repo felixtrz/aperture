@@ -142,6 +142,7 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     cache: resourceCache,
     snapshot: options.snapshot,
     viewUniforms: packedViews,
+    reuse,
     time: options.snapshot.frame / 60,
   });
 

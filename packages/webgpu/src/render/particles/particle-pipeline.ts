@@ -17,6 +17,10 @@ import {
   createOutputColorSpacePipelineKey,
   type OutputColorSpace,
 } from "../../output/output-stage-color-space.js";
+import {
+  SpriteBlendMode,
+  type SpriteBlendMode as SpriteBlendModeValue,
+} from "@aperture-engine/render";
 
 export const PARTICLE_COMPUTE_PIPELINE_KEY = "aperture/gpu-particles-compute";
 export const PARTICLE_RENDER_PIPELINE_KEY = "aperture/gpu-particles-render";
@@ -145,15 +149,24 @@ struct ParticleData {
 struct VertexOutput {
   @builtin(position) position: vec4f,
   @location(0) color: vec4f,
+  @location(1) uv: vec2f,
 };
 
 @group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
 @group(1) @binding(0) var<storage, read> particles: array<ParticleData>;
+@group(2) @binding(0) var particleTexture: texture_2d<f32>;
+@group(2) @binding(1) var particleSampler: sampler;
 
 fn quadPosition(vertexIndex: u32) -> vec2f {
   let x = array<f32, 6>(-0.5, 0.5, 0.5, -0.5, 0.5, -0.5);
   let y = array<f32, 6>(-0.5, -0.5, 0.5, -0.5, 0.5, 0.5);
   return vec2f(x[vertexIndex], y[vertexIndex]);
+}
+
+fn quadUv(vertexIndex: u32) -> vec2f {
+  let u = array<f32, 6>(0.0, 1.0, 1.0, 0.0, 1.0, 0.0);
+  let v = array<f32, 6>(1.0, 1.0, 0.0, 1.0, 0.0, 0.0);
+  return vec2f(u[vertexIndex], v[vertexIndex]);
 }
 
 @vertex
@@ -168,12 +181,14 @@ fn vs_main(
 
   output.position = view.viewProjection * vec4f(world, 1.0);
   output.color = particle.color;
+  output.uv = quadUv(vertexIndex);
   return output;
 }
 
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
-  return input.color;
+  let texel = textureSample(particleTexture, particleSampler, input.uv);
+  return input.color * texel;
 }
 `.trim();
 
@@ -230,6 +245,7 @@ export function particleRenderPipelineCacheKey(
   colorFormat: string,
   depthFormat: string | null = null,
   sampleCount = 1,
+  blendMode: SpriteBlendModeValue = SpriteBlendMode.Additive,
   tonemap: TonemapOperator = "none",
   outputColorSpace: OutputColorSpace = "linear",
 ): string {
@@ -238,7 +254,7 @@ export function particleRenderPipelineCacheKey(
       ? ""
       : `:${createTonemapPipelineKey(tonemap)}:${createOutputColorSpacePipelineKey(outputColorSpace)}`;
 
-  return `${PARTICLE_RENDER_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}${outputStage}`;
+  return `${PARTICLE_RENDER_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}:blend-${blendMode}${outputStage}`;
 }
 
 export async function createParticleComputePipelineResource(options: {
@@ -325,6 +341,7 @@ export async function createParticleRenderPipelineResource(options: {
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
+  readonly blendMode?: SpriteBlendModeValue;
   readonly tonemap?: TonemapOperator;
   readonly outputColorSpace?: OutputColorSpace;
 }): Promise<CreateParticleRenderPipelineResourceResult> {
@@ -332,6 +349,7 @@ export async function createParticleRenderPipelineResource(options: {
   // unless the caller opts into the output stage.
   const tonemap = options.tonemap ?? "none";
   const outputColorSpace = options.outputColorSpace ?? "linear";
+  const blendMode = options.blendMode ?? SpriteBlendMode.Additive;
   const shaderModule = await createWebGpuShaderModule({
     device: options.device,
     descriptor: {
@@ -384,6 +402,7 @@ export async function createParticleRenderPipelineResource(options: {
     ...(options.sampleCount === undefined
       ? {}
       : { sampleCount: options.sampleCount }),
+    blendMode,
   });
 
   try {
@@ -394,6 +413,7 @@ export async function createParticleRenderPipelineResource(options: {
           options.colorFormat,
           options.depthFormat ?? null,
           options.sampleCount ?? 1,
+          blendMode,
           tonemap,
           outputColorSpace,
         ),
@@ -426,6 +446,7 @@ function createParticleRenderPipelineDescriptor(input: {
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
+  readonly blendMode: SpriteBlendModeValue;
 }): WebGpuRenderPipelineCreateDescriptor {
   return {
     label: `${PARTICLE_RENDER_PIPELINE_KEY}:${input.colorFormat}`,
@@ -440,18 +461,7 @@ function createParticleRenderPipelineDescriptor(input: {
       targets: [
         {
           format: input.colorFormat,
-          blend: {
-            color: {
-              operation: "add",
-              srcFactor: "src-alpha",
-              dstFactor: "one",
-            },
-            alpha: {
-              operation: "add",
-              srcFactor: "one",
-              dstFactor: "one",
-            },
-          },
+          blend: particleBlendState(input.blendMode),
         },
       ],
     },
@@ -466,13 +476,60 @@ function createParticleRenderPipelineDescriptor(input: {
           depthStencil: {
             format: input.depthFormat,
             depthWriteEnabled: false,
-            depthCompare: "always",
+            depthCompare: "less",
           },
         }),
     multisample: {
       count: input.sampleCount ?? 1,
     },
   };
+}
+
+function particleBlendState(blendMode: SpriteBlendModeValue): unknown {
+  switch (blendMode) {
+    case SpriteBlendMode.Opaque:
+      return null;
+    case SpriteBlendMode.Alpha:
+      return {
+        color: {
+          operation: "add",
+          srcFactor: "src-alpha",
+          dstFactor: "one-minus-src-alpha",
+        },
+        alpha: {
+          operation: "add",
+          srcFactor: "one",
+          dstFactor: "one-minus-src-alpha",
+        },
+      };
+    case SpriteBlendMode.Multiply:
+      return {
+        color: {
+          operation: "add",
+          srcFactor: "dst",
+          dstFactor: "zero",
+        },
+        alpha: {
+          operation: "add",
+          srcFactor: "one",
+          dstFactor: "one-minus-src-alpha",
+        },
+      };
+    case SpriteBlendMode.Additive:
+    default:
+      return {
+        color: {
+          operation: "add",
+          srcFactor: "src-alpha",
+          dstFactor: "one",
+        },
+        alpha: {
+          operation: "add",
+          srcFactor: "one",
+          dstFactor: "one",
+        },
+      };
+  }
 }
 
 function mapShaderDiagnostic(

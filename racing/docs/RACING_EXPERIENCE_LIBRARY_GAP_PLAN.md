@@ -77,6 +77,13 @@ building blocks and default paths.
   consumes the config-authored `smoke-effect` texture dependency instead of
   looking up the sprite separately, while the visible wheel smoke remains on the
   dynamic-mesh path until burst/textured particle renderer parity lands.
+- 2026-06-16: Textured particle billboard rendering landed:
+  the WebGPU particle frame path now binds and samples
+  `ParticleEffectAsset.texture`/`sampler` dependencies, falls back to default
+  white texture plus linear sampler resources, specializes particle pipelines by
+  blend mode, and depth-tests without depth writes for smoke-style alpha
+  particles. Racing can now move visible wheel smoke off dynamic meshes once
+  burst/event emission is available.
 
 ## Goals
 
@@ -320,9 +327,9 @@ Current Aperture state:
 - Aperture has `ParticleEffectAsset`, `ParticleEmitter`, extraction, and a
   WebGPU particle frame path.
 - The current WebGPU particle path is not feature-complete for racing smoke:
-  effect assets carry texture/sampler fields, but the WebGPU particle frame path
-  does not bind/sample those textures; it also does not expose an app-facing
-  event emission API tied to wheel contact.
+  effect assets now bind/sample their texture/sampler dependencies in the
+  WebGPU billboard renderer, but the runtime still does not expose an
+  app-facing burst/event emission API tied to wheel contact.
 
 Library direction:
 

@@ -864,6 +864,7 @@ export async function renderWebGpuAppFrame(
     cache: resourceCache,
     snapshot,
     viewUniforms: packedViews,
+    reuse,
     time: snapshot.frame / 60,
   });
   const uiFrame = await prepareUiFrameResourcesForSnapshot({

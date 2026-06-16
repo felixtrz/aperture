@@ -5,6 +5,8 @@ import {
   createParticleEffectAsset,
   createParticleEffectHandle,
   createRenderSortKey,
+  createTextureAsset,
+  createTextureHandle,
   createWebGpuAppResourceCache,
   prepareParticleFrameResourcesForSnapshot,
   writePackedSnapshotViewUniforms,
@@ -14,6 +16,7 @@ import {
 describe("GPU particle app frame resources", () => {
   it("creates, reuses, dispatches, and cleans particle emitter GPU state", async () => {
     const effect = createParticleEffectHandle("spark-burst");
+    const texture = createTextureHandle("spark-smoke");
     const assets = new AssetRegistry();
     const cache = createWebGpuAppResourceCache();
     const fixture = createParticleDeviceFixture();
@@ -24,11 +27,31 @@ describe("GPU particle app frame resources", () => {
     );
 
     assets.register(effect);
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "spark-smoke",
+        dimension: "2d",
+        width: 2,
+        height: 1,
+        format: "rgba8unorm-srgb",
+        colorSpace: "srgb",
+        semantic: "base-color",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([255, 255, 255, 255, 0, 0, 0, 0]),
+          bytesPerRow: 8,
+        },
+      }),
+    );
     assets.markReady(
       effect,
       createParticleEffectAsset({
         label: "SparkBurst",
         capacity: 8,
+        blendMode: "alpha",
+        texture,
         startSpeed: { min: 0.5, max: 1.5 },
         startSize: { min: 0.2, max: 0.4 },
         startColor: [1, 0.25, 0.1, 0.8],
@@ -64,17 +87,22 @@ describe("GPU particle app frame resources", () => {
     expect(first.report).toEqual({
       emitters: 1,
       liveParticles: 4,
+      texturedEmitters: 1,
       statesCreated: 1,
       statesReused: 0,
       staleStatesRemoved: 0,
       dispatches: 1,
+      textureResourcesCreated: 1,
+      textureResourcesReused: 0,
+      samplerResourcesCreated: 1,
+      samplerResourcesReused: 0,
     });
     expect(first.commands).toEqual([
       expect.objectContaining({
         kind: "setPipeline",
         renderId: 99,
         pipelineKey:
-          "aperture/gpu-particles-render:bgra8unorm:depth24plus:samples-1",
+          "aperture/gpu-particles-render:bgra8unorm:depth24plus:samples-1:blend-alpha",
       }),
       expect.objectContaining({
         kind: "setBindGroup",
@@ -86,6 +114,12 @@ describe("GPU particle app frame resources", () => {
         renderId: 99,
         index: 1,
         resourceKey: "particle:99:effect-v1:capacity-4:reset-0",
+      }),
+      expect.objectContaining({
+        kind: "setBindGroup",
+        renderId: 99,
+        index: 2,
+        resourceKey: "texture:spark-smoke@1:particle:default-linear-sampler",
       }),
       {
         kind: "draw",
@@ -102,6 +136,19 @@ describe("GPU particle app frame resources", () => {
     expect(
       fixture.writes.filter((write) => write.label === "Particle/State/99"),
     ).toHaveLength(1);
+    expect(fixture.textureWrites).toEqual([
+      expect.objectContaining({
+        layout: { bytesPerRow: 8 },
+        size: [2, 1, 1],
+      }),
+    ]);
+    expect(fixture.createdSamplers).toEqual([
+      expect.objectContaining({
+        label: "Particle default linear sampler",
+        magFilter: "linear",
+        minFilter: "linear",
+      }),
+    ]);
 
     const paramUpload = fixture.writes.find(
       (write) => write.label === "Particle/Params/99",
@@ -141,6 +188,10 @@ describe("GPU particle app frame resources", () => {
     expect(second.report.statesCreated).toBe(0);
     expect(second.report.statesReused).toBe(1);
     expect(second.report.dispatches).toBe(1);
+    expect(second.report.textureResourcesCreated).toBe(0);
+    expect(second.report.textureResourcesReused).toBe(1);
+    expect(second.report.samplerResourcesCreated).toBe(0);
+    expect(second.report.samplerResourcesReused).toBe(1);
     expect(cache.particleEmitterStates).toHaveLength(1);
     expect(
       fixture.writes.filter((write) => write.label === "Particle/State/99"),
@@ -173,10 +224,16 @@ interface BufferWriteRecord {
 function createParticleDeviceFixture(): {
   readonly device: unknown;
   readonly writes: BufferWriteRecord[];
+  readonly createdTextures: unknown[];
+  readonly createdSamplers: unknown[];
+  readonly textureWrites: unknown[];
   readonly dispatches: [number, number, number][];
   readonly submissions: readonly unknown[][];
 } {
   const writes: BufferWriteRecord[] = [];
+  const createdTextures: unknown[] = [];
+  const createdSamplers: unknown[] = [];
+  const textureWrites: unknown[] = [];
   const dispatches: [number, number, number][] = [];
   const submissions: unknown[][] = [];
   const device = {
@@ -191,6 +248,14 @@ function createParticleDeviceFixture(): {
       descriptor,
       getBindGroupLayout: (group: number) => ({ kind: "render", group }),
     }),
+    createTexture: (descriptor: unknown) => {
+      createdTextures.push(descriptor);
+      return { createView: () => ({ label: "particle-texture-view" }) };
+    },
+    createSampler: (descriptor: unknown) => {
+      createdSamplers.push(descriptor);
+      return { label: "particle-sampler" };
+    },
     createBuffer: (descriptor: { readonly label?: string }) => ({
       label: descriptor.label ?? "buffer",
       descriptor,
@@ -225,10 +290,26 @@ function createParticleDeviceFixture(): {
       submit: (buffers: readonly unknown[]) => {
         submissions.push([...buffers]);
       },
+      writeTexture: (
+        destination: unknown,
+        data: Uint8Array,
+        layout: unknown,
+        size: unknown,
+      ) => {
+        textureWrites.push({ destination, data, layout, size });
+      },
     },
   };
 
-  return { device, writes, dispatches, submissions };
+  return {
+    device,
+    writes,
+    createdTextures,
+    createdSamplers,
+    textureWrites,
+    dispatches,
+    submissions,
+  };
 }
 
 function createParticleSnapshot(
