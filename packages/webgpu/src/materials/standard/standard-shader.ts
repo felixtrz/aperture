@@ -673,11 +673,11 @@ fn saturate(value: f32) -> f32 {`,
       : `  let emissive = material.emissiveFactor;`;
 
     code = code.replace(
-      `  let ambientDiffuse = ambient * baseColor * (1.0 - metallic);
+      `  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI);
   let color = ambientDiffuse + direct + material.emissiveFactor;`,
       `${occlusion}
 ${emissive}
-  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * occlusion;
+  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI) * occlusion;
   let color = ambientDiffuse + direct + emissive;`,
     );
   }

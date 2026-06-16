@@ -397,6 +397,9 @@ describe("built-in standard material WGSL shader metadata", () => {
     // (immutable). Reassigning `color` directly would be invalid WGSL on the
     // shadow path, which keeps it immutable.
     expect(shader.code).toContain(
+      "let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI);",
+    );
+    expect(shader.code).toContain(
       "let color = ambientDiffuse + direct + material.emissiveFactor;",
     );
     expect(shader.code).toContain(
@@ -2449,7 +2452,7 @@ describe("built-in standard material WGSL shader metadata", () => {
       "material.emissiveFactor * emissiveSample.rgb",
     );
     expect(shader.code).toContain(
-      "ambient * baseColor * (1.0 - metallic) * occlusion",
+      "ambient * baseColor * (1.0 - metallic) * (1.0 / PI) * occlusion",
     );
     expect(
       shader.bindings.map((binding) => [
@@ -2601,7 +2604,7 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain("textureSample(baseColorTexture");
     expect(shader.code).toContain("occlusionSample.r");
     expect(shader.code).toContain(
-      "ambient * baseColor * (1.0 - metallic) * occlusion",
+      "ambient * baseColor * (1.0 - metallic) * (1.0 / PI) * occlusion",
     );
     expect(
       shader.bindings.map((binding) => [
@@ -2754,7 +2757,7 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain("textureSample(normalTexture, normalSampler");
     expect(shader.code).toContain("occlusionSample.r");
     expect(shader.code).toContain(
-      "ambient * baseColor * (1.0 - metallic) * occlusion",
+      "ambient * baseColor * (1.0 - metallic) * (1.0 / PI) * occlusion",
     );
     expect(
       shader.bindings.map((binding) => [
@@ -3016,7 +3019,7 @@ describe("built-in standard material WGSL shader metadata", () => {
       "textureSample(occlusionTexture, occlusionSampler, occlusionTextureUv)",
     );
     expect(shader.code).toContain(
-      "ambient * baseColor * (1.0 - metallic) * occlusion",
+      "ambient * baseColor * (1.0 - metallic) * (1.0 / PI) * occlusion",
     );
     expect(
       shader.bindings.map((binding) => [

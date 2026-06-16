@@ -716,7 +716,7 @@ fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> @lo
     }
   }
 
-  let ambientDiffuse = ambient * baseColor * (1.0 - metallic);
+  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI);
   let color = ambientDiffuse + direct + material.emissiveFactor;
   return vec4f(color, alpha);
 }
