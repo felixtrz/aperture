@@ -1476,6 +1476,100 @@ describe("developer-facing app API", () => {
     });
   });
 
+  it("applies spawn-time GLB material render-state overrides to one instance subtree", async () => {
+    const cubeBytes = await readFile("examples/assets/cube.glb");
+    const cubeDataUrl = `data:model/gltf-binary;base64,${cubeBytes.toString(
+      "base64",
+    )}`;
+    const config = defineApertureConfig({
+      mode: "headless",
+      systems: ["src/systems/**/*.system.ts"],
+      assets: {
+        robot: asset.gltf(cubeDataUrl, { preload: "blocking" }),
+      },
+      render: {
+        defaultCamera: false,
+        defaultLight: false,
+      },
+    });
+    const SetupSystemModule: ApertureSystemModule = {
+      default: class SetupSystem extends createSystem({
+        priority: 0,
+      }) {
+        override init(): void {
+          this.spawn.camera({
+            key: "camera.main",
+            name: "main-camera",
+            transform: { translation: [0, 1.5, 5], lookAt: [0, 0.5, 0] },
+          });
+          this.spawn.light({
+            key: "light.key",
+            name: "key-light",
+            kind: "directional",
+            illuminance: 4,
+            transform: { rotationEulerDegrees: [-45, 35, 0] },
+          });
+          this.spawn.gltf(this.assets.gltf("robot"), {
+            key: "level.robot.default",
+            name: "robot-default",
+            transform: { translation: [-1.25, 0, 0] },
+          });
+          this.spawn.gltf(this.assets.gltf("robot"), {
+            key: "level.robot.override",
+            name: "robot-override",
+            materials: {
+              renderState: { cullMode: "front" },
+            },
+            transform: { translation: [1.25, 0, 0] },
+          });
+        }
+      },
+    };
+
+    const app = await createApertureApp({
+      config,
+      systems: [SetupSystemModule],
+    });
+    const robot = app.context.assets.gltf("robot");
+    const loadedScene = robot.scene.value;
+    const sourceMaterialKeys = new Set(
+      loadedScene?.primitiveMaterials.resolved.map(
+        (entry) => entry.materialHandleKey,
+      ) ?? [],
+    );
+
+    expect(sourceMaterialKeys.size).toBeGreaterThan(0);
+    for (const sourceMaterialKey of sourceMaterialKeys) {
+      const sourceEntry = app.lowLevel.assets
+        .list({ kind: "material", status: "ready" })
+        .find((entry) => `material:${entry.handle.id}` === sourceMaterialKey);
+      expect(materialCullMode(sourceEntry)).not.toBe("front");
+    }
+
+    const overrideEntries = app.lowLevel.assets
+      .list({ kind: "material", status: "ready" })
+      .filter(
+        (entry) =>
+          entry.handle.id.includes("robot:material:") &&
+          entry.handle.id.includes(":override:"),
+      );
+    expect(overrideEntries).toHaveLength(sourceMaterialKeys.size);
+    expect(overrideEntries.map(materialCullMode)).toEqual(
+      new Array(sourceMaterialKeys.size).fill("front"),
+    );
+
+    const snapshot = app.stepAndExtract(1 / 60, 0.5, 0);
+    const drawCullModes = snapshot.meshDraws.map((draw) =>
+      materialCullMode(app.lowLevel.assets.get(draw.material)),
+    );
+
+    expect(snapshot.meshDraws.length).toBeGreaterThan(1);
+    expect(drawCullModes).toContain("front");
+    expect(drawCullModes.filter((mode) => mode === "front")).toHaveLength(
+      overrideEntries.length,
+    );
+  });
+
   it("runs the developer API example systems through a config-driven headless runner", async () => {
     const loadedAssets: string[] = [];
     const runner = await createApertureHeadlessRunner({
@@ -2219,6 +2313,13 @@ function readRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null
     ? (value as Record<string, unknown>)
     : null;
+}
+
+function materialCullMode(entry: { readonly asset: unknown } | undefined) {
+  const asset = readRecord(entry?.asset);
+  const renderState = readRecord(asset?.renderState);
+  const cullMode = renderState?.cullMode;
+  return typeof cullMode === "string" ? cullMode : undefined;
 }
 
 function createCanvasMeasureElement(input: {

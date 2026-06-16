@@ -108,6 +108,13 @@ building blocks and default paths.
   index when present and falls back to authoritative `Parent` links for raw
   GLTF replay subtrees. Racing vehicle child-node lookup now uses the shared
   helper instead of scanning an app-owned query every fixed step.
+- 2026-06-16: Spawn-time GLTF material overrides landed:
+  `this.spawn.gltf(...)` now accepts `materials.renderState` overrides,
+  clones/reuses patched source material assets keyed by source material plus
+  override hash, and retargets only spawned subtree mesh `Material`
+  components. Racing and shadow-lab now request `cullMode: "back"` at each
+  GLTF spawn site instead of scanning every ready material asset in
+  `setup.system.ts`.
 
 ## Goals
 
@@ -1004,7 +1011,8 @@ Validation:
 Work items:
 
 - RACE-LIB-14: Add GLTF instance node lookup helper. Done 2026-06-16.
-- RACE-LIB-15: Add spawn-time material/render-state overrides.
+- RACE-LIB-15: Add spawn-time material/render-state overrides. Done
+  2026-06-16.
 - RACE-LIB-16: Add batch/instanced spawn helper if decoration count remains
   noisy after lookup/override work.
 
@@ -1012,15 +1020,16 @@ Racing migration:
 
 - Replace vehicle child-node scanning with instance lookup. Done 2026-06-16.
 - Replace global material registry patching with spawn overrides or imported
-  material defaults.
+  material defaults. Done 2026-06-16.
 - Simplify decoration spawning if a batch helper lands.
 
 Validation:
 
 - GLTF lookup tests for named node success, missing node, duplicate node, and
   raw GLTF replay `Parent` fallback. Done 2026-06-16.
-- Material override tests through render extraction.
-- Racing typecheck/build and visual smoke.
+- Material override tests through render extraction. Done 2026-06-16.
+- Racing/shadow-lab typecheck/build, no-cache live source probes, and racing
+  MCP runtime screenshot/status check. Done 2026-06-16.
 
 ### Phase 5: Racing Source Cleanup
 
@@ -1115,18 +1124,23 @@ Shadow-lab validation:
 
 ## Recommended Next Implementation Slice
 
-Continue Phase 4 with RACE-LIB-15:
+Continue Phase 4 with RACE-LIB-16:
 
-1. Add spawn-time GLTF material/render-state overrides, starting with the
-   racing/shadow-lab `cullMode: "back"` patch use case.
-2. Migrate racing and shadow-lab away from global material registry scans in
-   `setup.system.ts`.
-3. Validate with render-extraction tests, racing/shadow-lab typecheck/build,
-   and no-cache live source probes.
+1. Add a small batch/instanced GLTF spawn helper for repeated static imported
+   assets, starting with racing/shadow-lab decoration buckets.
+2. Preserve the current public `spawn.gltf(...)` path and compile the helper
+   down to ECS-spawned roots/material overrides rather than a hidden scene
+   graph.
+3. Migrate the repeated decoration loops only if the helper makes the active
+   systems easier to scan without changing placement or render output.
+4. Validate with focused app tests, racing/shadow-lab typecheck/build, no-cache
+   live source probes, and a racing MCP visual/status check.
 
 Reason:
 
-- RACE-LIB-14 removed the vehicle child-node query scan, but both experiences
-  still patch imported materials by scanning all ready material assets.
-- Spawn-time overrides are the next smallest library-owned API that removes
-  app-owned engine behavior without changing gameplay.
+- RACE-LIB-14 and RACE-LIB-15 removed the child-node query scan and global
+  material registry scan. Decoration spawning is now the remaining Phase 4
+  repetition: both experiences still hand-loop many static GLTF instances with
+  identical shadow/material options.
+- A batch helper is the next smallest library-owned API that can reduce app
+  boilerplate without changing racing gameplay or render architecture.

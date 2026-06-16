@@ -4,7 +4,6 @@ import {
   material,
   mesh,
 } from "@aperture-engine/app/systems";
-import type { MaterialHandle } from "@aperture-engine/simulation";
 import {
   BACKGROUND_HEX,
   CAMERA,
@@ -28,6 +27,9 @@ import {
 
 const PLAYER_ASSET = "vehicle-truck-yellow";
 const GROUP_Y = GRID_SCALE * 0.5 - 0.5;
+const GLTF_FRONT_SIDE_MATERIALS = {
+  renderState: { cullMode: "back" as const },
+};
 
 // Static visual scene ported from racing: track pieces, decoration tiles, parked
 // NPC trucks, and the yellow player truck at spawn. Physics/gameplay systems stay
@@ -38,7 +40,6 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
 
   override init(): void {
     this.#cells = resolveTrackCells(this.startOptions).cells;
-    this.#forceFrontSideGltfMaterials();
     this.#spawnCamera();
     this.#spawnLights();
     this.#spawnFog();
@@ -46,28 +47,6 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     this.#spawnNpcs();
     this.#spawnPlayer();
     this.#spawnBloomProbe();
-  }
-
-  #forceFrontSideGltfMaterials(): void {
-    for (const entry of this.assetsRegistry.list({
-      kind: "material",
-      status: "ready",
-    })) {
-      if (!entry.handle.id.includes(":material:")) {
-        continue;
-      }
-
-      const result = this.materials.set(entry.handle as MaterialHandle, {
-        renderState: { cullMode: "back" },
-      });
-
-      if (!result.ok) {
-        this.diagnostics.warn("shadowLab.gltfFrontSideMaterialPatchFailed", {
-          handle: entry.handle.id,
-          code: result.diagnostic.code,
-        });
-      }
-    }
   }
 
   #spawnCamera(): void {
@@ -150,6 +129,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       key: `track.${gx}.${gz}`,
       name: `track.${gx}.${gz}`,
       tags: ["track"],
+      materials: GLTF_FRONT_SIDE_MATERIALS,
       castShadow: true,
       receiveShadow: true,
       transform: {
@@ -170,6 +150,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         key: `npc.${i}`,
         name: `npc.${i}`,
         tags: ["npc"],
+        materials: GLTF_FRONT_SIDE_MATERIALS,
         castShadow: true,
         receiveShadow: true,
         transform: {
@@ -186,6 +167,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       key: "player.vehicle",
       name: "player",
       tags: ["player"],
+      materials: GLTF_FRONT_SIDE_MATERIALS,
       castShadow: true,
       receiveShadow: true,
       transform: {

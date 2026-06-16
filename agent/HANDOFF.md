@@ -1,6 +1,6 @@
 # Handoff - Racing Library Gap Slices
 
-**Updated:** 2026-06-16 14:43 PDT
+**Updated:** 2026-06-16 15:03 PDT
 
 Current user-directed work is executing
 `racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
@@ -8,44 +8,55 @@ slices while keeping racing and Shadow Lab working.
 
 ## Latest Completed Slice
 
-- Added public GLTF instance lookup in `@aperture-engine/app/systems`:
-  `this.gltf.node(root, name, filter?)` and `this.gltf.nodes(root, filter?)`.
-- Surfaced structured diagnostics for inactive roots, empty names, missing
-  nodes, and duplicate node names.
-- Made the helper walk the fast `Children` index when present and fall back to
-  authoritative `Parent` links so raw GLTF replay subtrees are covered.
-- Migrated racing vehicle body/wheel lookup from an app-owned all-node query to
-  `this.gltf`.
+- Added spawn-time GLTF material/render-state overrides to
+  `this.spawn.gltf(...)` through `materials.renderState`.
+- Implemented the override path by cloning/reusing patched source material
+  assets keyed by source material plus override hash, then retargeting the
+  spawned subtree `Material` components. Source GLTF materials are not mutated.
+- Migrated racing and shadow-lab GLTF spawns to request `cullMode: "back"`
+  through the public spawn API.
+- Removed the global ready-material registry scans from both setup systems.
 - Rebuilt package `dist` outputs and both experience production bundles.
-- Updated the racing plan for RACE-LIB-14.
+- Updated the racing plan for RACE-LIB-15.
 
 ## Latest Validation
 
 - `pnpm run build`
 - `pnpm run typecheck:test`
-- `pnpm exec vitest run test/app/gltf-instance-lookup.test.ts`
-- `pnpm exec vitest run test/app/gltf-instance-lookup.test.ts test/app/hierarchy-accessor.test.ts test/app/trails.test.ts`
+- `pnpm exec tsc -p packages/app/tsconfig.json --noEmit --pretty false`
+- `pnpm exec vitest run test/app/developer-api.test.ts --testNamePattern "spawn-time GLB material"`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/app/gltf-instance-lookup.test.ts`
+- `pnpm run check:progress`
 - `pnpm run typecheck && pnpm run build` in `racing/`
 - `pnpm run typecheck && pnpm run build` in `shadow-lab/`
 - No-cache HTTP probes against both running dev servers confirmed the served
-  racing vehicle system uses `this.gltf` and the served shared package module
-  contains the `Parent` fallback helper code.
+  racing/shadow-lab systems use `materials: GLTF_FRONT_SIDE_MATERIALS`, no
+  active system uses the old global material scan path, and both apps serve the
+  same rebuilt shared `spawn/gltf.js` helper with `materialOverrideKey(...)`.
 - Aperture MCP `browser_status` for racing was running with `webgpuOk:true`,
-  `lastError:null`, automatic directional shadow submitted, and restored
-  non-null `wheelBL`/`wheelBR` vehicle resource values.
+  `lastError:null`, automatic directional shadow submitted, compact shared
+  `:override:` material assets, and non-null `wheelBL`/`wheelBR` vehicle
+  resource values.
+- Racing screenshot captured at
+  `racing/.aperture/runtime/race-lib-15-gltf-material-overrides-shared.png`.
+- Shadow-lab `pnpm exec aperture dev status` reported daemon/server/browser
+  running and bridge available on `http://127.0.0.1:8861/`.
 
 ## Current Notes
 
 - The racing console log history still contains earlier errors from the
   half-written helper placement and the pre-rebuild `this.gltf` migration, but
   the current MCP status is healthy after rebuilding package `dist`.
+- Shadow-lab browser logs also contain earlier transient errors from prior
+  render work; current dev status is alive and source probes/builds are clean.
 - Pre-existing untracked screenshot/parity artifacts remain outside the commit.
 
 ## Recommended Next Task
 
-Continue Phase 4 with RACE-LIB-15: add spawn-time GLTF material/render-state
-overrides, then migrate racing and shadow-lab off the global material registry
-scan in `setup.system.ts`.
+Continue Phase 4 with RACE-LIB-16: add a batch/instanced GLTF spawn helper for
+repeated static imported assets, then migrate racing/shadow-lab decoration
+buckets only if it reduces active system boilerplate without changing placement
+or visual output.
 
 ---
 

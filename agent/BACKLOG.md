@@ -59,22 +59,26 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Add spawn-time GLTF material/render-state overrides and migrate racing/shadow-lab
-off global material registry scans.
+Add a batch/instanced GLTF spawn helper for repeated static imported assets and
+try it on racing/shadow-lab decoration buckets.
 
 Category: `runtime-orchestration`
 
 Reference anchor: `references/engine/src/framework/entity.js:336` and
 `references/engine/src/framework/components/render/component.js` for component
-spawn ergonomics and material/render override expectations.
+spawn ergonomics, render asset component expectations, and repeated imported
+asset placement patterns.
 
 Acceptance criteria:
 
-- `this.spawn.gltf(...)` accepts spawn-time material/render-state overrides for
-  imported subtree materials, starting with `cullMode: "back"`.
-- Racing and shadow-lab no longer scan every ready material asset in
-  `setup.system.ts` to force imported GLB culling.
-- Focused app/render extraction tests cover the override behavior.
+- Add a typed helper for spawning repeated static GLTF instances with shared
+  options such as tags, shadows, material overrides, and per-instance
+  transforms.
+- Racing and shadow-lab decoration spawning use the helper if it reduces active
+  system boilerplate without changing placement or visual output.
+- Focused app tests cover repeated GLTF spawn behavior and ensure the helper
+  compiles down to ECS entities/components rather than introducing a scene
+  graph.
 - Racing/shadow-lab typecheck/build pass, and no-cache live source probes show
   both apps are using the updated workspace `dist` code.
 

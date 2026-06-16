@@ -1,15 +1,30 @@
 import {
+  Material,
+  patchMatcapMaterial,
+  patchStandardMaterial,
+  patchUnlitMaterial,
   replayGltfEcsAuthoringCommands,
   type GltfEcsCommandReplayReport,
+  type MaterialAsset,
+  type SourceMaterialAsset,
 } from "@aperture-engine/render";
-import type { EcsWorld, Entity } from "@aperture-engine/simulation";
+import {
+  assetHandleKey,
+  createMaterialHandle,
+  type AssetRegistry,
+  type EcsWorld,
+  type Entity,
+  type MaterialHandle,
+} from "@aperture-engine/simulation";
 import type { SystemGltfLoadedScene } from "../assets.js";
 import {
   AppEntitySource,
   registerApertureAppComponents,
 } from "../components.js";
 import { formatReportDiagnostics } from "../diagnostics.js";
+import type { SystemDiagnostics } from "../diagnostics.js";
 import { ApertureSystemError } from "../errors.js";
+import type { SpawnGltfMaterialOverrides } from "./types.js";
 
 export function applyGltfSourceMetadata(
   world: EcsWorld,
@@ -67,6 +82,49 @@ export function firstReplayRootEntity(
   return root;
 }
 
+export function applyGltfMaterialOverrides(input: {
+  readonly registry: AssetRegistry;
+  readonly diagnostics: SystemDiagnostics;
+  readonly scene: SystemGltfLoadedScene;
+  readonly replay: GltfEcsCommandReplayReport;
+  readonly overrides: SpawnGltfMaterialOverrides | undefined;
+}): void {
+  if (!hasMaterialOverrides(input.overrides)) {
+    return;
+  }
+
+  const replacements = new Map<string, string>();
+
+  for (const entity of input.replay.entitiesByKey.values()) {
+    if (!entity.active || !entity.hasComponent(Material)) {
+      continue;
+    }
+
+    const sourceMaterialKey = entity.getValue(Material, "materialId");
+    if (typeof sourceMaterialKey !== "string" || sourceMaterialKey === "") {
+      continue;
+    }
+
+    let replacementKey = replacements.get(sourceMaterialKey);
+    if (replacementKey === undefined) {
+      const replacement = cloneGltfMaterialForSpawn({
+        registry: input.registry,
+        diagnostics: input.diagnostics,
+        scene: input.scene,
+        sourceMaterialKey,
+        overrides: input.overrides,
+      });
+      if (replacement === null) {
+        continue;
+      }
+      replacementKey = replacement;
+      replacements.set(sourceMaterialKey, replacementKey);
+    }
+
+    entity.setValue(Material, "materialId", replacementKey);
+  }
+}
+
 function sourceFromGltfEntityKey(
   scene: SystemGltfLoadedScene,
   entityKey: string,
@@ -114,6 +172,135 @@ function sourceFromGltfEntityKey(
     gltfNodeIndex: -1,
     gltfNodePath: localKey,
   };
+}
+
+function hasMaterialOverrides(
+  overrides: SpawnGltfMaterialOverrides | undefined,
+): overrides is SpawnGltfMaterialOverrides {
+  return overrides?.renderState !== undefined;
+}
+
+function cloneGltfMaterialForSpawn(input: {
+  readonly registry: AssetRegistry;
+  readonly diagnostics: SystemDiagnostics;
+  readonly scene: SystemGltfLoadedScene;
+  readonly sourceMaterialKey: string;
+  readonly overrides: SpawnGltfMaterialOverrides;
+}): string | null {
+  const sourceHandle = materialHandleFromKey(input.sourceMaterialKey);
+  const sourceEntry = input.registry.get<"material", SourceMaterialAsset>(
+    sourceHandle,
+  );
+
+  if (sourceEntry?.status !== "ready" || sourceEntry.asset === null) {
+    input.diagnostics.warn("aperture.spawn.gltfMaterialOverrideSkipped", {
+      assetId: input.scene.assetId,
+      sourceMaterialKey: input.sourceMaterialKey,
+      reason: "source-material-not-ready",
+    });
+    return null;
+  }
+
+  const patched = patchMaterialAsset(sourceEntry.asset, input.overrides);
+  if (patched === null) {
+    input.diagnostics.warn("aperture.spawn.gltfMaterialOverrideSkipped", {
+      assetId: input.scene.assetId,
+      sourceMaterialKey: input.sourceMaterialKey,
+      kind: builtInMaterialKind(sourceEntry.asset) ?? "custom-wgsl",
+      reason: "unsupported-material-kind",
+    });
+    return null;
+  }
+
+  const replacementHandle = createMaterialHandle(
+    [
+      materialIdFromHandleKey(input.sourceMaterialKey),
+      "override",
+      materialOverrideKey(input.overrides),
+    ].join(":"),
+  );
+  if (!input.registry.has(replacementHandle)) {
+    input.registry.register<"material", SourceMaterialAsset>(
+      replacementHandle,
+      {
+        label: `${sourceEntry.label} (spawn override)`,
+        dependencies: sourceEntry.dependencies,
+        diagnostics: sourceEntry.diagnostics,
+      },
+    );
+  }
+  input.registry.markReady<"material", SourceMaterialAsset>(
+    replacementHandle,
+    patched,
+    sourceEntry.diagnostics,
+  );
+
+  return assetHandleKey(replacementHandle);
+}
+
+function patchMaterialAsset(
+  material: SourceMaterialAsset,
+  overrides: SpawnGltfMaterialOverrides,
+): SourceMaterialAsset | null {
+  if (overrides.renderState === undefined) {
+    return material;
+  }
+
+  const patch = { renderState: overrides.renderState };
+  switch (builtInMaterialKind(material)) {
+    case "standard":
+      return patchStandardMaterial(
+        material as Extract<MaterialAsset, { readonly kind: "standard" }>,
+        patch,
+      );
+    case "unlit":
+      return patchUnlitMaterial(
+        material as Extract<MaterialAsset, { readonly kind: "unlit" }>,
+        patch,
+      );
+    case "matcap":
+      return patchMatcapMaterial(
+        material as Extract<MaterialAsset, { readonly kind: "matcap" }>,
+        patch,
+      );
+    default:
+      return null;
+  }
+}
+
+function builtInMaterialKind(
+  material: SourceMaterialAsset,
+): MaterialAsset["kind"] | null {
+  const kind = (material as { readonly kind?: unknown }).kind;
+  return kind === "standard" ||
+    kind === "unlit" ||
+    kind === "matcap" ||
+    kind === "debug-normal"
+    ? kind
+    : null;
+}
+
+function materialHandleFromKey(handleKey: string): MaterialHandle {
+  return createMaterialHandle(materialIdFromHandleKey(handleKey));
+}
+
+function materialIdFromHandleKey(handleKey: string): string {
+  const prefix = "material:";
+  return handleKey.startsWith(prefix)
+    ? handleKey.slice(prefix.length)
+    : handleKey;
+}
+
+function materialOverrideKey(overrides: SpawnGltfMaterialOverrides): string {
+  return hashString(JSON.stringify(overrides));
+}
+
+function hashString(value: string): string {
+  let hash = 5381;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 33) ^ value.charCodeAt(index);
+  }
+  return (hash >>> 0).toString(36);
 }
 
 function upsertAppEntitySource(

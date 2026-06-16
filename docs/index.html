@@ -393,21 +393,23 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 21:43 UTC</dd>
+            <dd>2026-06-16 22:03 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: app systems now expose
+              Latest update: <code>this.spawn.gltf(...)</code> now accepts
+              spawn-time <code>materials.renderState</code> overrides. Racing
+              and shadow-lab request GLTF <code>cullMode: "back"</code> through
+              the public spawn API instead of scanning every ready material
+              asset in setup systems, and the override path reuses cloned source
+              material assets by source material plus override hash. Prior
+              update: app systems now expose
               <code>this.gltf.node(...)</code> and
               <code>this.gltf.nodes(...)</code> for spawned GLTF instance
-              lookup, with structured diagnostics and a raw GLTF replay
-              <code>Parent</code>-link fallback when the derived
-              <code>Children</code> index is absent. Racing vehicle body/wheel
-              lookup now uses the library helper instead of an app-owned
-              all-node query. Prior update: material depth bias now flows
-              through render-state pipeline keys, WebGPU depth-stencil
-              descriptors, and render pipeline cache keys. The
+              lookup. Material depth bias now flows through render-state
+              pipeline keys, WebGPU depth-stencil descriptors, and render
+              pipeline cache keys. The
               <code>this.trails.groundRibbon(...)</code> helper exposes that
               bias for decal/trail-style geometry, and racing drift marks
               request it through the library path. Prior update: app systems now
@@ -1148,10 +1150,10 @@
             <dt>Next focus</dt>
             <dd>
               Continue the racing library-gap plan with
-              <code>RACE-LIB-15</code>: add spawn-time GLTF
-              material/render-state overrides, then migrate racing and
-              shadow-lab away from global material registry scans in
-              <code>setup.system.ts</code>.
+              <code>RACE-LIB-16</code>: add a batch/instanced GLTF spawn helper
+              for repeated static imported assets, then try it on
+              racing/shadow-lab decoration buckets if it reduces boilerplate
+              without changing placement or render output.
             </dd>
           </dl>
         </aside>

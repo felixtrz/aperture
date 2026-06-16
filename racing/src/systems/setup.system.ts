@@ -1,12 +1,8 @@
 import {
-  LocalTransform,
-  Name,
-  Parent,
   RenderInterpolation,
   createSystem,
   hexColor,
 } from "@aperture-engine/app/systems";
-import type { MaterialHandle } from "@aperture-engine/simulation";
 import {
   CELL_RAW,
   GRID_SCALE,
@@ -32,6 +28,9 @@ import {
 } from "../lib/physics-colliders.js";
 
 const GROUP_Y = GRID_SCALE * 0.5 - 0.5; // trackGroup.position.y(-0.5) + scale*0.5
+const GLTF_FRONT_SIDE_MATERIALS = {
+  renderState: { cullMode: "back" as const },
+};
 
 export default class SetupSystem extends createSystem({ priority: 0 }) {
   // Active track cells for this run: a `?map=` codec string from the page URL
@@ -40,7 +39,6 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
 
   override init(): void {
     this.#cells = resolveTrackCells(this.startOptions).cells;
-    this.#forceFrontSideGltfMaterials();
     this.#spawnCamera();
     this.#spawnLights();
     this.#spawnFog();
@@ -49,28 +47,6 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     this.#spawnColliders();
     this.#spawnTrack();
     this.#spawnNpcs();
-  }
-
-  #forceFrontSideGltfMaterials(): void {
-    for (const entry of this.assetsRegistry.list({
-      kind: "material",
-      status: "ready",
-    })) {
-      if (!entry.handle.id.includes(":material:")) {
-        continue;
-      }
-
-      const result = this.materials.set(entry.handle as MaterialHandle, {
-        renderState: { cullMode: "back" },
-      });
-
-      if (!result.ok) {
-        this.diagnostics.warn("racing.gltfFrontSideMaterialPatchFailed", {
-          handle: entry.handle.id,
-          code: result.diagnostic.code,
-        });
-      }
-    }
   }
 
   #spawnColliders(): void {
@@ -206,6 +182,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       key: `track.${gx}.${gz}`,
       name: `track.${gx}.${gz}`,
       tags: ["track"],
+      materials: GLTF_FRONT_SIDE_MATERIALS,
       castShadow: true,
       receiveShadow: true,
       transform: {
@@ -226,6 +203,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         key: `npc.${i}`,
         name: `npc.${i}`,
         tags: ["npc"],
+        materials: GLTF_FRONT_SIDE_MATERIALS,
         castShadow: true,
         receiveShadow: true,
         transform: {
@@ -237,8 +215,3 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     });
   }
 }
-
-// Silence unused-import noise during Phase A scaffolding.
-void Parent;
-void Name;
-void LocalTransform;

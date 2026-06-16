@@ -24,6 +24,9 @@ import { VehicleResource } from "../lib/vehicle-resource.js";
 
 const PLAYER_ASSET = "vehicle-truck-yellow";
 const Y_AXIS: Vec3 = [0, 1, 0];
+const GLTF_FRONT_SIDE_MATERIALS = {
+  renderState: { cullMode: "back" as const },
+};
 
 export default class VehicleSystem extends createSystem({
   priority: 40,
@@ -92,6 +95,7 @@ export default class VehicleSystem extends createSystem({
       key: "player.vehicle",
       name: "player",
       tags: ["player"],
+      materials: GLTF_FRONT_SIDE_MATERIALS,
       castShadow: true,
       receiveShadow: true,
       transform: {

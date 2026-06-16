@@ -15,6 +15,9 @@ const BUCKET_ASSET: Record<string, string> = {
   forest: "decoration-forest",
   tents: "decoration-tents",
 };
+const GLTF_FRONT_SIDE_MATERIALS = {
+  renderState: { cullMode: "back" as const },
+};
 
 // Port of Decoration.js: instanced forest / tents / empty-ground tiles placed on a
 // padded ring around the track (placement algorithm lives in computeDecorationBuckets).
@@ -37,6 +40,7 @@ export default class DecorationsSystem extends createSystem({ priority: 10 }) {
         key: `deco.${bucket}.${i}`,
         name: `deco.${bucket}.${i}`,
         tags: ["decoration", `deco-${bucket}`],
+        materials: GLTF_FRONT_SIDE_MATERIALS,
         castShadow: true,
         receiveShadow: true,
         transform: {

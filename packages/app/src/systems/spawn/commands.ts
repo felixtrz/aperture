@@ -37,6 +37,7 @@ import type { SystemDiagnostics } from "../diagnostics.js";
 import { ApertureSystemError } from "../errors.js";
 import { resolveMaterialHandle, resolveMeshHandle } from "./assets.js";
 import {
+  applyGltfMaterialOverrides,
   applyGltfSourceMetadata,
   firstReplayRootEntity,
   replayGltfLoadedScene,
@@ -189,6 +190,14 @@ export function createSpawnCommands(options: {
 
       const replay = replayGltfLoadedScene(options.world, loadedScene);
       const root = firstReplayRootEntity(loadedScene, replay);
+
+      applyGltfMaterialOverrides({
+        registry: options.registry,
+        diagnostics: options.diagnostics,
+        scene: loadedScene,
+        replay,
+        overrides: input.materials,
+      });
 
       if (input.castShadow !== undefined || input.receiveShadow !== undefined) {
         for (const meshEntity of replay.entitiesByKey.values()) {

@@ -1,9 +1,39 @@
 # Completed Tasks
 
+## RACE-LIB-15 — Spawn-time GLTF material overrides
+
+Completed: 2026-06-16 15:03 PDT
+Commit: pending
+
+### Summary
+
+- Added `materials.renderState` to `this.spawn.gltf(...)` so systems can
+  request imported material render-state overrides at spawn time.
+- Implemented override material cloning/reuse keyed by source material plus
+  override hash, leaving source GLTF materials unchanged while retargeting only
+  spawned subtree `Material` components.
+- Migrated racing and shadow-lab GLTF spawns to request `cullMode: "back"`
+  through the public spawn API.
+- Removed the global ready-material registry scan from both setup systems.
+
+### Validation
+
+- `pnpm exec tsc -p packages/app/tsconfig.json --noEmit --pretty false`
+- `pnpm exec vitest run test/app/developer-api.test.ts --testNamePattern "spawn-time GLB material"`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm --dir racing run typecheck && pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck && pnpm --dir shadow-lab run build`
+- No-cache live source probes confirmed racing and shadow-lab serve the updated
+  `spawn/gltf.js` helper and no longer serve the global material scan path.
+- Aperture MCP racing status was healthy with WebGPU running, no last
+  error/failure, automatic shadows submitted, compact shared `:override:`
+  material assets, and a fresh screenshot captured.
+
 ## RACE-LIB-14 — GLTF instance lookup helper
 
 Completed: 2026-06-16 14:43 PDT
-Commit: pending
+Commit: `f551f977`
 
 ### Summary
 

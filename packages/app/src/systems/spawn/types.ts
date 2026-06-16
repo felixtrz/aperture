@@ -4,6 +4,7 @@ import type {
   LightInput,
   LightShadowSettingsInput,
   ParticleEmitterInput,
+  RenderStateDescriptor,
 } from "@aperture-engine/render";
 import type {
   ColliderInput,
@@ -209,10 +210,21 @@ export interface CustomWgslSamplerBindingOptions {
 
 export interface SpawnGltfOptions extends SpawnMetadata {
   readonly transform?: SystemTransformInput;
+  /**
+   * Clone/reuse patched imported material assets for this spawned subtree
+   * without mutating the source GLTF material assets.
+   * Useful for GLB render-state adjustments such as cull mode without scanning
+   * or mutating every registered material in the app.
+   */
+  readonly materials?: SpawnGltfMaterialOverrides;
   /** Attach `ShadowCaster` to every mesh in the spawned subtree. */
   readonly castShadow?: boolean;
   /** Attach `ShadowReceiver` to every mesh in the spawned subtree. */
   readonly receiveShadow?: boolean;
+}
+
+export interface SpawnGltfMaterialOverrides {
+  readonly renderState?: Partial<RenderStateDescriptor>;
 }
 
 export interface SpawnPrefabOptions extends SpawnMetadata {
