@@ -393,12 +393,16 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 18:41 UTC</dd>
+            <dd>2026-06-16 18:51 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: app systems now expose
+              Latest update: render now exposes
+              <code>decodeImageUrlToTextureSource(...)</code> so worker systems
+              can decode image URLs into texture source data without copying
+              browser canvas code. Racing smoke now uses this public helper for
+              its sprite texture. Prior update: app systems now expose
               <code>this.meshes.dynamic(...)</code> for runtime mesh source
               assets. Racing smoke particles and drift trails now publish
               dynamic mesh versions through the library helper instead of

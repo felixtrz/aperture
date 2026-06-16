@@ -11,9 +11,9 @@ import {
   createSamplerAsset,
   createTextureAsset,
   createUnlitMaterialAsset,
+  decodeImageUrlToTextureSource,
   materialAssetDependencies,
   type MeshAsset,
-  type TextureSourceData,
 } from "@aperture-engine/render";
 import {
   createMaterialHandle,
@@ -404,30 +404,21 @@ export default class ParticlesSystem extends createSystem({
    */
   async #decodeSpriteAsync(registry: AssetRegistry): Promise<void> {
     try {
-      const sourceData = await decodeSpriteToRgba8("/sprites/smoke.png");
-      if (sourceData === null) {
-        registry.markFailed(this.#textureHandle, [
-          {
-            code: "racing.particles.smokeDecodeUnavailable",
-            severity: "warning",
-            message:
-              "Smoke sprite decode unavailable (no createImageBitmap/OffscreenCanvas in this context).",
-          },
-        ]);
-        return;
-      }
+      const source = await decodeImageUrlToTextureSource("/sprites/smoke.png", {
+        mimeType: "image/png",
+      });
       registry.markReady(
         this.#textureHandle,
         createTextureAsset({
           label: "Smoke sprite",
           dimension: "2d",
-          width: sourceData.width,
-          height: sourceData.height,
+          width: source.width,
+          height: source.height,
           // base-color srgb sprite: format + colorSpace must agree (validation).
           format: "rgba8unorm-srgb",
           colorSpace: "srgb",
           semantic: "base-color",
-          sourceData: sourceData.data,
+          sourceData: source.sourceData,
         }),
       );
     } catch (error) {
@@ -474,66 +465,4 @@ function writeVertex(
 function clampDt(delta: number): number {
   if (!Number.isFinite(delta) || delta <= 0) return 0;
   return clamp(delta, 0, 1 / 30);
-}
-
-interface DecodedSprite {
-  readonly width: number;
-  readonly height: number;
-  readonly data: TextureSourceData;
-}
-
-/**
- * Decode an image URL to rgba8 source data using browser-worker primitives.
- * Returns null when the primitives aren't available (e.g. a non-browser test
- * harness) so the caller can no-op gracefully. Mirrors the engine's own
- * decodeImageBytesWithBrowserCanvas (which is not re-exported publicly).
- */
-async function decodeSpriteToRgba8(url: string): Promise<DecodedSprite | null> {
-  const fetchFn = (globalThis as { fetch?: typeof fetch }).fetch;
-  const createBitmap = (
-    globalThis as { createImageBitmap?: typeof createImageBitmap }
-  ).createImageBitmap;
-  const OffscreenCanvasCtor = (
-    globalThis as { OffscreenCanvas?: typeof OffscreenCanvas }
-  ).OffscreenCanvas;
-  if (
-    typeof fetchFn !== "function" ||
-    typeof createBitmap !== "function" ||
-    typeof OffscreenCanvasCtor !== "function"
-  ) {
-    return null;
-  }
-
-  const response = await fetchFn(url);
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status} ${response.statusText}`);
-  }
-  const blob = await response.blob();
-  const bitmap = await createBitmap(blob);
-  const width = bitmap.width;
-  const height = bitmap.height;
-  const canvas = new OffscreenCanvasCtor(width, height);
-  const ctx = canvas.getContext("2d");
-  if (ctx === null) {
-    bitmap.close();
-    throw new Error("OffscreenCanvas 2d context unavailable.");
-  }
-  ctx.drawImage(bitmap, 0, 0);
-  bitmap.close();
-  const image = ctx.getImageData(0, 0, width, height);
-  const bytes = new Uint8Array(
-    image.data.buffer,
-    image.data.byteOffset,
-    image.data.byteLength,
-  );
-
-  return {
-    width,
-    height,
-    data: {
-      bytes,
-      bytesPerRow: width * 4,
-      rowsPerImage: height,
-    },
-  };
 }

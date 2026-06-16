@@ -51,6 +51,11 @@ building blocks and default paths.
   worker-authored runtime meshes. Racing smoke particles and drift trails now
   publish mesh updates through this helper instead of touching mesh registry
   lifecycle directly.
+- 2026-06-16: Public browser image decode access landed:
+  `decodeImageUrlToTextureSource(...)` wraps the renderer's browser canvas
+  decoder for app-authored texture source data. Racing smoke now uses the
+  library helper instead of carrying a private `fetch`/`createImageBitmap`/
+  `OffscreenCanvas` decoder.
 
 ## Goals
 
