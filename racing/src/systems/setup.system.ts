@@ -4,6 +4,7 @@ import {
   Parent,
   RenderInterpolation,
   createSystem,
+  hexColor,
 } from "@aperture-engine/app/systems";
 import type { MaterialHandle } from "@aperture-engine/simulation";
 import {
@@ -16,7 +17,6 @@ import {
   resolveTrackCells,
   type GridCell,
 } from "../lib/track.js";
-import { hexColor } from "../lib/math.js";
 import {
   BACKGROUND_HEX,
   CAMERA,

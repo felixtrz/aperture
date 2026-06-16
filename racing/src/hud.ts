@@ -1,10 +1,10 @@
 import {
   dispatchApertureInputAction,
   readGeneratedBrowserAppStatus,
+  readGeneratedSignals,
 } from "@aperture-engine/app/browser";
+import { clamp } from "@aperture-engine/simulation";
 import { initRacingAudio } from "./audio.js";
-
-type JsonRecord = Record<string, unknown>;
 
 const lapEl = document.querySelector<HTMLElement>("#lap-timer .lap");
 const currentEl = document.querySelector<HTMLElement>("#lap-timer .current");
@@ -18,10 +18,6 @@ function formatTime(t: number | null): string {
   return `${m}:${s.toFixed(2).padStart(5, "0")}`;
 }
 
-function readRecord(value: unknown): JsonRecord | null {
-  return typeof value === "object" && value !== null ? (value as JsonRecord) : null;
-}
-
 function readNumber(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
@@ -32,8 +28,7 @@ function writeText(el: HTMLElement | null, value: string): void {
 
 function render(): void {
   const status = readGeneratedBrowserAppStatus();
-  const worker = readRecord(status?.lastWorkerSummary);
-  const signals = readRecord(worker?.signals);
+  const signals = readGeneratedSignals();
 
   const lap = readNumber(signals?.lap, 1);
   const current = readNumber(signals?.currentLapTime, 0);
@@ -48,7 +43,9 @@ function render(): void {
   document.body.dataset.apertureStatus = status?.status ?? "starting";
   document.body.dataset.apertureSnapshots = String(status?.snapshots ?? 0);
   document.body.dataset.webgpuOk = String(status?.webgpuOk ?? false);
-  document.body.dataset.speed = String(readNumber(signals?.speed, 0).toFixed(2));
+  document.body.dataset.speed = String(
+    readNumber(signals?.speed, 0).toFixed(2),
+  );
 
   requestAnimationFrame(render);
 }
@@ -64,7 +61,6 @@ function setupTouchControls(): void {
   let originX = 0;
   let originY = 0;
 
-  const clamp = (v: number) => (v < -1 ? -1 : v > 1 ? 1 : v);
   const drive = (x: number, y: number) =>
     dispatchApertureInputAction("drive", { x, y });
 
@@ -76,7 +72,10 @@ function setupTouchControls(): void {
   };
   const move = (x: number, y: number) => {
     if (!active) return;
-    drive(clamp((x - originX) / RADIUS), clamp((originY - y) / RADIUS));
+    drive(
+      clamp((x - originX) / RADIUS, -1, 1),
+      clamp((originY - y) / RADIUS, -1, 1),
+    );
   };
   const end = () => {
     if (!active) return;

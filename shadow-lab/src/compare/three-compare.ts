@@ -2,10 +2,13 @@
 // racing static scene on the left, and this module renders the same GLB scene
 // through three.js r184 WebGPU on the right. One orbit controller drives both
 // cameras so shadow/fog/post differences can be inspected side by side.
+import {
+  quatLookAt,
+  type Vec3Tuple as Vec3,
+} from "@aperture-engine/simulation";
 import * as THREE from "./three.webgpu.js";
 import { GLTFLoader } from "./loaders/GLTFLoader.js";
 import { bloom } from "./tsl/BloomNode.js";
-import { quatLookAt, type Vec3 } from "../lib/math.js";
 import {
   BACKGROUND_HEX,
   BLOOM,

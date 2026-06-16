@@ -4,20 +4,17 @@ import {
   Name,
   RenderInterpolation,
   WorldTransform,
-  createSystem,
-  type ApertureQuery,
-  type SimulationFixedStepContext,
-  type InputAxis2dAction,
-} from "@aperture-engine/app/systems";
-import {
   clamp,
+  createSystem,
   lerp,
   lerpAngle,
   quatFromAxisAngle,
   quatFromEulerYXZ,
-  type Quat,
-  type Vec3,
-} from "../lib/math.js";
+  type ApertureQuery,
+  type InputAxis2dAction,
+  type SimulationFixedStepContext,
+  type Vec3Tuple as Vec3,
+} from "@aperture-engine/app/systems";
 import {
   LINEAR_DAMP,
   MAX_SPEED,
@@ -64,7 +61,11 @@ export default class VehicleSystem extends createSystem({
     this.#spawnPos = [...spawn.position];
     this.#spawnYaw = spawn.angle;
     this.#yaw = spawn.angle;
-    this.#prevModel = [this.#spawnPos[0], this.#spawnPos[1] - 0.5, this.#spawnPos[2]];
+    this.#prevModel = [
+      this.#spawnPos[0],
+      this.#spawnPos[1] - 0.5,
+      this.#spawnPos[2],
+    ];
 
     // Dynamic sphere body (Physics.js createSphereBody). Density chosen for the
     // reference's ~1000 kg mass given r=0.5 (volume ≈ 0.5236 m³).
@@ -252,7 +253,7 @@ export default class VehicleSystem extends createSystem({
     );
     this.#body
       .getVectorView(LocalTransform, "rotation")
-      .set(quatFromEulerYXZ(this.#bodyPitch, 0, this.#bodyRoll) as Quat);
+      .set(quatFromEulerYXZ(this.#bodyPitch, 0, this.#bodyRoll));
     const t = this.#body.getVectorView(LocalTransform, "translation");
     t[1] = lerp(t[1] ?? 0, 0.3, dt * 5);
   }
@@ -264,7 +265,7 @@ export default class VehicleSystem extends createSystem({
       const steer = this.#frontWheels.includes(wheel) ? this.#frontSteer : 0;
       wheel
         .getVectorView(LocalTransform, "rotation")
-        .set(quatFromEulerYXZ(this.#wheelSpin, steer, 0) as Quat);
+        .set(quatFromEulerYXZ(this.#wheelSpin, steer, 0));
     }
   }
 

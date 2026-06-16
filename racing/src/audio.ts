@@ -25,18 +25,14 @@ import {
   type AudioBackend,
   type AudioMixer,
 } from "@aperture-engine/audio";
+import { readGeneratedSignals } from "@aperture-engine/app/browser";
+import {
+  clamp,
+  lerp,
+  remapClamped as remap,
+} from "@aperture-engine/simulation";
 
-import { readGeneratedBrowserAppStatus } from "@aperture-engine/app/browser";
-
-// ── Signal access (mirrors hud.ts: status.lastWorkerSummary.signals) ──────────
-
-type JsonRecord = Record<string, unknown>;
-
-function readRecord(value: unknown): JsonRecord | null {
-  return typeof value === "object" && value !== null
-    ? (value as JsonRecord)
-    : null;
-}
+// ── Signal access (mirrors hud.ts via public browser signal helpers) ──────────
 
 function readNumber(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
@@ -54,9 +50,7 @@ interface Signals {
 }
 
 function readSignals(): Signals {
-  const status = readGeneratedBrowserAppStatus();
-  const worker = readRecord(status?.lastWorkerSummary);
-  const signals = readRecord(worker?.signals);
+  const signals = readGeneratedSignals();
   return {
     speed: readNumber(signals?.speed, 0),
     throttle: readNumber(signals?.throttle, 0),
@@ -66,27 +60,6 @@ function readSignals(): Signals {
 }
 
 // ── Math helpers (REFERENCE_SPEC §8) ──────────────────────────────────────────
-
-function clamp(v: number, min: number, max: number): number {
-  return v < min ? min : v > max ? max : v;
-}
-
-function remap(
-  v: number,
-  inMin: number,
-  inMax: number,
-  outMin: number,
-  outMax: number,
-): number {
-  const span = inMax - inMin;
-  if (span === 0) return outMin;
-  const t = clamp((v - inMin) / span, 0, 1);
-  return outMin + t * (outMax - outMin);
-}
-
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
-}
 
 // ── Engine model constants (REFERENCE_SPEC §8) ────────────────────────────────
 

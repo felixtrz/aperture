@@ -1,4 +1,8 @@
-import { createSystem } from "@aperture-engine/app/systems";
+import {
+  clamp01,
+  createSystem,
+  type Vec3Tuple as Vec3,
+} from "@aperture-engine/app/systems";
 import {
   createDefaultRenderState,
   createUnlitMaterialAsset,
@@ -13,7 +17,6 @@ import {
   type MaterialHandle,
   type MeshHandle,
 } from "@aperture-engine/simulation";
-import type { Vec3 } from "../lib/math.js";
 import { vehicleState } from "../lib/vehicle-state.js";
 
 // Port of DriftMarks.js (REFERENCE_SPEC §7). Two dynamic vertex-colored triangle
@@ -285,8 +288,4 @@ export default class DriftMarksSystem extends createSystem({ priority: 135 }) {
     bl.flush("bl");
     br.flush("br");
   }
-}
-
-function clamp01(v: number): number {
-  return v < 0 ? 0 : v > 1 ? 1 : v;
 }

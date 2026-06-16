@@ -3,7 +3,7 @@
 // simulation worker, so a module singleton is the simplest faithful analogue of
 // the reference passing its `vehicle` object to each subsystem.
 
-import type { Vec3 } from "./math.js";
+import type { Vec3Tuple as Vec3 } from "@aperture-engine/simulation";
 
 export interface VehicleState {
   ready: boolean;

@@ -30,6 +30,16 @@ export type {
   GeneratedBrowserAppStatus,
   GeneratedBrowserSystemManifestEntry,
 } from "./browser/status.js";
+export {
+  readGeneratedSignal,
+  readGeneratedSignals,
+  subscribeGeneratedSignals,
+} from "./browser/signals.js";
+export type {
+  GeneratedSignalSummary,
+  GeneratedSignalsListener,
+  GeneratedSignalsSubscriptionOptions,
+} from "./browser/signals.js";
 export { startGeneratedBrowserApp } from "./browser/app.js";
 export type {
   GeneratedBrowserApp,

@@ -3,10 +3,15 @@ import {
   Name,
   RenderInterpolation,
   createSystem,
+  expSmoothingAlpha,
+  lerp,
+  quatLookAt,
+  vec3Dot,
+  vec3Normalize,
   type ApertureQuery,
   type SimulationFixedStepContext,
+  type Vec3Tuple as Vec3,
 } from "@aperture-engine/app/systems";
-import { quatLookAt, type Quat, type Vec3 } from "../lib/math.js";
 import { CAMERA } from "../lib/tuning.js";
 import { vehicleState } from "../lib/vehicle-state.js";
 
@@ -15,8 +20,8 @@ type QueryEntity = ApertureQuery["entities"] extends Set<infer T> ? T : never;
 // Camera-aligned ground basis derived from the fixed offset (Camera.js):
 // camRightXZ = normalize(offset.z, 0, -offset.x); camForwardXZ = normalize(-offset.x, 0, -offset.z)
 const OFF = CAMERA.offset;
-const RIGHT_XZ = normalize([OFF[2], 0, -OFF[0]]);
-const FWD_XZ = normalize([-OFF[0], 0, -OFF[2]]);
+const RIGHT_XZ = vec3Normalize([OFF[2], 0, -OFF[0]]);
+const FWD_XZ = vec3Normalize([-OFF[0], 0, -OFF[2]]);
 
 export default class CameraFollowSystem extends createSystem({
   priority: 120,
@@ -53,8 +58,8 @@ export default class CameraFollowSystem extends createSystem({
     const radius = CAMERA.deadzoneRadius;
     const radiusSq = radius * radius;
 
-    let leadX = dot(velocity, RIGHT_XZ) * CAMERA.leadFactor;
-    let leadY = dot(velocity, FWD_XZ) * CAMERA.leadFactor;
+    let leadX = vec3Dot(velocity, RIGHT_XZ) * CAMERA.leadFactor;
+    let leadY = vec3Dot(velocity, FWD_XZ) * CAMERA.leadFactor;
     const leadLenSq = leadX * leadX + leadY * leadY;
     if (leadLenSq > radiusSq) {
       const k = radius / Math.sqrt(leadLenSq);
@@ -68,7 +73,9 @@ export default class CameraFollowSystem extends createSystem({
       target[2] + RIGHT_XZ[2] * leadX + FWD_XZ[2] * leadY,
     ];
 
-    const alpha = this.#initialized ? 1 - Math.exp(-dt * CAMERA.smoothing) : 1;
+    const alpha = this.#initialized
+      ? expSmoothingAlpha(dt, CAMERA.smoothing)
+      : 1;
     this.#smoothed = [
       lerp(this.#smoothed[0], desired[0], alpha),
       lerp(this.#smoothed[1], desired[1], alpha),
@@ -81,8 +88,8 @@ export default class CameraFollowSystem extends createSystem({
     const dy = target[1] - this.#smoothed[1];
     const dz = target[2] - this.#smoothed[2];
     const delta3: Vec3 = [dx, dy, dz];
-    const offX = dot(delta3, RIGHT_XZ);
-    const offY = dot(delta3, FWD_XZ);
+    const offX = vec3Dot(delta3, RIGHT_XZ);
+    const offY = vec3Dot(delta3, FWD_XZ);
     const offLenSq = offX * offX + offY * offY;
     if (offLenSq > radiusSq) {
       const offLen = Math.sqrt(offLenSq);
@@ -109,7 +116,7 @@ export default class CameraFollowSystem extends createSystem({
     this.#camera.getVectorView(LocalTransform, "translation").set(eye);
     this.#camera
       .getVectorView(LocalTransform, "rotation")
-      .set(quatLookAt(eye, lookPoint) as Quat);
+      .set(quatLookAt(eye, lookPoint));
   }
 
   #findNamed(name: string): QueryEntity | null {
@@ -118,15 +125,4 @@ export default class CameraFollowSystem extends createSystem({
     }
     return null;
   }
-}
-
-function normalize(v: Vec3): Vec3 {
-  const l = Math.hypot(v[0], v[1], v[2]) || 1;
-  return [v[0] / l, v[1] / l, v[2] / l];
-}
-function dot(a: Vec3, b: Vec3): number {
-  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-}
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
 }

@@ -1,11 +1,13 @@
-import { createSystem } from "@aperture-engine/app/systems";
+import {
+  createSystem,
+  type Vec3Tuple as Vec3,
+} from "@aperture-engine/app/systems";
 import {
   CELL_RAW,
   GRID_SCALE,
   computeSpawnPosition,
   resolveTrackCells,
 } from "../lib/track.js";
-import type { Vec3 } from "../lib/math.js";
 import { vehicleState } from "../lib/vehicle-state.js";
 
 const CELL_SIZE = CELL_RAW * GRID_SCALE;

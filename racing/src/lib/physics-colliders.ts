@@ -10,7 +10,10 @@ import {
   computeTrackBounds,
   type GridCell,
 } from "./track.js";
-import type { Quat, Vec3 } from "./math.js";
+import type {
+  QuatTuple as Quat,
+  Vec3Tuple as Vec3,
+} from "@aperture-engine/simulation";
 
 export interface BoxColliderSpec {
   halfExtents: Vec3;
@@ -61,7 +64,11 @@ export function computeWallColliders(
       const aMid = arcStart + ((i + 0.5) / numSeg) * ARC_SPAN;
       out.push({
         halfExtents: [hThick, hHeight, segHalfLen],
-        position: [wcx + radius * Math.cos(aMid) * S, wallY, wcz + radius * Math.sin(aMid) * S],
+        position: [
+          wcx + radius * Math.cos(aMid) * S,
+          wallY,
+          wcz + radius * Math.sin(aMid) * S,
+        ],
         quaternion: [0, Math.sin(-aMid / 2), 0, Math.cos(-aMid / 2)],
         friction: WALL_FRICTION,
         restitution: WALL_RESTITUTION,

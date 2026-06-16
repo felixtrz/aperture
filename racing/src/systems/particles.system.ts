@@ -1,7 +1,9 @@
 import {
   LocalTransform,
   Name,
+  clamp,
   createSystem,
+  type Vec3Tuple as Vec3,
 } from "@aperture-engine/app/systems";
 import {
   createDefaultRenderState,
@@ -20,7 +22,6 @@ import {
   createTextureHandle,
   type AssetRegistry,
 } from "@aperture-engine/simulation";
-import type { Vec3 } from "../lib/math.js";
 import { vehicleState } from "../lib/vehicle-state.js";
 
 // Port of Particles.js (REFERENCE_SPEC §6). The engine GPU particle pipeline is a
@@ -471,7 +472,7 @@ function writeVertex(
 
 function clampDt(delta: number): number {
   if (!Number.isFinite(delta) || delta <= 0) return 0;
-  return delta > 1 / 30 ? 1 / 30 : delta;
+  return clamp(delta, 0, 1 / 30);
 }
 
 interface DecodedSprite {

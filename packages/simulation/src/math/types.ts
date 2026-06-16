@@ -18,6 +18,12 @@ export type Quat = WgpuQuat;
 export type Mat4 = WgpuMat4;
 export type Color = Vec4;
 
+export type Vec2Tuple = [number, number];
+export type Vec3Tuple = [number, number, number];
+export type Vec4Tuple = [number, number, number, number];
+export type QuatTuple = [number, number, number, number];
+export type ColorTuple = Vec4Tuple;
+
 export type Vec2Like = WgpuVec2Arg | readonly [number, number];
 export type Vec3Like = WgpuVec3Arg | readonly [number, number, number];
 export type Vec4Like = WgpuVec4Arg | readonly [number, number, number, number];

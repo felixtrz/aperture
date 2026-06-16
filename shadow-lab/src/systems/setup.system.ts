@@ -1,6 +1,10 @@
-import { createSystem, material, mesh } from "@aperture-engine/app/systems";
+import {
+  createSystem,
+  hexColor,
+  material,
+  mesh,
+} from "@aperture-engine/app/systems";
 import type { MaterialHandle } from "@aperture-engine/simulation";
-import { hexColor } from "../lib/math.js";
 import {
   BACKGROUND_HEX,
   CAMERA,
