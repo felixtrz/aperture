@@ -7,7 +7,7 @@ import { installThreeCompare } from "./compare/three-compare.js";
 import { installDebugPanel } from "./debug-panel.js";
 
 const params = new URLSearchParams(window.location.search);
-const compareMode = params.get("compare") === "three";
+const compareMode = params.get("compare") !== "0";
 const debugMode = params.get("debug") === "1" || params.has("debug");
 
 function tick(): void {

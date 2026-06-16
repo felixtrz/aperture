@@ -1,29 +1,68 @@
-// Split-screen shadow PARITY harness: aperture (left) vs a reference three.js
-// r184 WebGPU renderer (right), driving an IDENTICAL scene (same geometry,
-// camera, sun direction, ACES tonemap). The right pane toggles to a per-pixel
-// diff heatmap so we can SEE exactly where aperture's shadow diverges from the
-// reference — black = identical, red→yellow = increasing difference.
-//
-// Why this exists: the auto-shadow ortho/bias work needs a ground truth. Eyeball
-// "looks shadowy" is not parity; this is. The three.js scene below mirrors
-// src/systems/setup.system.ts one-for-one (truck GLB, ground box, sun position,
-// ambient). Keep the two in sync when either changes.
-//
-// Aperture renders in its own loop on #aperture; this module owns a second
-// WebGPU canvas (#sl-three) and a shared camera. The aperture camera is driven
-// from here via the devtools runtime so both panes always frame the same pose
-// (the worker orbit-controls system is disabled while this harness runs).
+// Split-screen static-scene parity harness: Aperture renders the ECS-authored
+// racing static scene on the left, and this module renders the same GLB scene
+// through three.js r184 WebGPU on the right. One orbit controller drives both
+// cameras so shadow/fog/post differences can be inspected side by side.
 import * as THREE from "./three.webgpu.js";
 import { GLTFLoader } from "./loaders/GLTFLoader.js";
+import { bloom } from "./tsl/BloomNode.js";
 import { quatLookAt, type Vec3 } from "../lib/math.js";
+import {
+  BACKGROUND_HEX,
+  BLOOM,
+  CAMERA,
+  DIR_LIGHT,
+  FOG_HEX,
+  HEMI_LIGHT,
+  SPAWN_POS,
+  VEHICLE_ROOT_SCALE,
+} from "../lib/tuning.js";
+import {
+  CELL_RAW,
+  GRID_SCALE,
+  NPC_TRUCKS,
+  ORIENT_DEG,
+  TRACK_CELLS,
+  computeDecorationBuckets,
+  computeTrackBounds,
+  decodeCells,
+  type DecorationInstance,
+  type GridCell,
+} from "../lib/track.js";
 
 interface DevtoolsResponse {
   readonly ok: boolean;
   readonly result?: unknown;
 }
+
 interface McpRuntime {
   callTool(tool: string, payload?: unknown): Promise<DevtoolsResponse>;
 }
+
+type ThreeObject = typeof THREE.Group.prototype;
+type ThreeMesh = typeof THREE.Mesh.prototype;
+
+const MODEL_NAMES = [
+  "vehicle-truck-yellow",
+  "vehicle-truck-green",
+  "vehicle-truck-purple",
+  "vehicle-truck-red",
+  "track-straight",
+  "track-corner",
+  "track-bump",
+  "track-finish",
+  "decoration-empty",
+  "decoration-forest",
+  "decoration-tents",
+] as const;
+
+const initialHorizontalDistance = Math.hypot(CAMERA.offset[0], CAMERA.offset[2]);
+const orbit = {
+  azimuth: Math.atan2(CAMERA.offset[0], CAMERA.offset[2]),
+  elevation: Math.atan2(CAMERA.offset[1], initialHorizontalDistance),
+  distance: 4,
+};
+const POLE = Math.PI / 2 - 0.01;
+const target: Vec3 = [SPAWN_POS[0], 0.25, SPAWN_POS[2]];
 
 function runtime(): McpRuntime | null {
   return (globalThis as Record<string, unknown>)["__APERTURE_MCP_RUNTIME__"] as
@@ -37,18 +76,9 @@ async function waitForRuntime(timeoutMs = 15_000): Promise<McpRuntime | null> {
     const rt = runtime();
     if (rt) return rt;
     if (performance.now() - start > timeoutMs) return null;
-    await new Promise((r) => setTimeout(r, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 }
-
-// ---- shared orbit state (mirrors orbit-controls.system.ts defaults) ----
-const orbit = { azimuth: 0.8, elevation: 1.15, distance: 4 };
-const POLE = Math.PI / 2 - 0.01;
-const target: Vec3 = [0, 0.5, 0];
-const TRUCK_URL = "/models/vehicle-truck-green.glb";
-const TRUCK_SCALE = 0.5;
-const TRUCK_TRANSLATION: Vec3 = [0, -0.01, 0];
-const TRUCK_YAW_RADIANS = Math.PI;
 
 function orbitEye(): Vec3 {
   const cosEl = Math.cos(orbit.elevation);
@@ -59,14 +89,17 @@ function orbitEye(): Vec3 {
   ];
 }
 
-// ---- DOM layout: split the window, add the three pane + diff overlay + bar ----
 function layout(): {
   threeCanvas: HTMLCanvasElement;
   diffCanvas: HTMLCanvasElement;
   setLabel: (text: string) => void;
   diffButton: HTMLButtonElement;
 } {
-  const aperture = document.getElementById("aperture") as HTMLCanvasElement;
+  const aperture = document.getElementById("aperture") as HTMLCanvasElement | null;
+  if (aperture === null) {
+    throw new Error("Shadow Lab compare mode requires #aperture canvas.");
+  }
+
   aperture.style.cssText =
     "position:fixed;left:0;top:0;width:50vw;height:100vh;touch-action:none;";
 
@@ -83,29 +116,26 @@ function layout(): {
     "image-rendering:pixelated;pointer-events:none;background:#000;";
   document.body.append(diffCanvas);
 
-  // center divider
   const divider = document.createElement("div");
   divider.style.cssText =
     "position:fixed;left:50vw;top:0;width:1px;height:100vh;" +
     "background:rgba(255,255,255,.35);z-index:1000;pointer-events:none;";
   document.body.append(divider);
 
-  // pane labels
   const mkLabel = (text: string, side: "left" | "right"): HTMLDivElement => {
-    const d = document.createElement("div");
-    d.textContent = text;
-    d.style.cssText =
-      `position:fixed;top:10px;${side === "left" ? "left:288px" : "right:12px"};` +
+    const node = document.createElement("div");
+    node.textContent = text;
+    node.style.cssText =
+      `position:fixed;top:10px;${side === "left" ? "left:12px" : "right:12px"};` +
       "z-index:1000;font:600 11px ui-monospace,Menlo,monospace;color:#cdd6e0;" +
       "background:rgba(18,22,28,.7);padding:3px 8px;border-radius:6px;" +
       "letter-spacing:.5px;pointer-events:none;";
-    document.body.append(d);
-    return d;
+    document.body.append(node);
+    return node;
   };
-  mkLabel("◀ APERTURE (WebGPU)", "left");
-  const rightLabel = mkLabel("THREE.js r184 (WebGPU) ▶", "right");
+  mkLabel("APERTURE", "left");
+  const rightLabel = mkLabel("THREE.js r184", "right");
 
-  // control bar (bottom center)
   const bar = document.createElement("div");
   bar.style.cssText =
     "position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:1000;" +
@@ -119,191 +149,309 @@ function layout(): {
     "border:1px solid rgba(255,255,255,.16);border-radius:6px;padding:5px 10px;";
   bar.append(diffButton);
   document.body.append(bar);
-  // keep bar/button clicks out of the engine's window input forwarding
-  for (const t of ["pointerdown", "wheel", "keydown"]) {
-    bar.addEventListener(t, (e) => e.stopPropagation());
+  for (const type of ["pointerdown", "wheel", "keydown"]) {
+    bar.addEventListener(type, (event) => event.stopPropagation());
   }
 
   return {
     threeCanvas,
     diffCanvas,
-    setLabel: (text) => (rightLabel.textContent = text),
+    setLabel: (text) => {
+      rightLabel.textContent = text;
+    },
     diffButton,
   };
 }
 
-// ---- build the reference scene (1:1 with setup.system.ts) ----
-async function buildScene(): Promise<{
-  scene: typeof THREE.Scene.prototype;
-  truckRoot: typeof THREE.Group.prototype;
-}> {
-  const scene = new THREE.Scene();
-  // Racing background (scene.background = 0xadb2ba, sRGB hex).
-  scene.background = new THREE.Color(0xadb2ba);
+function resolvePageTrack(): {
+  readonly cells: readonly GridCell[];
+  readonly customMap: boolean;
+} {
+  const mapParam = new URLSearchParams(window.location.search).get("map");
+  if (mapParam !== null && mapParam.length > 0) {
+    try {
+      const cells = decodeCells(mapParam);
+      if (cells.length > 0) {
+        return { cells, customMap: true };
+      }
+    } catch {
+      // Match the reference: bad shared-map links fall back to the default track.
+    }
+  }
+  return { cells: TRACK_CELLS, customMap: false };
+}
 
-  const linear = (r: number, g: number, b: number): typeof THREE.Color.prototype =>
-    new THREE.Color().setRGB(r, g, b, THREE.LinearSRGBColorSpace);
-
-  // Ground: box scaled [40,1,40] at y=-0.5 → top surface at y=0.
-  const ground = new THREE.Mesh(
-    new THREE.BoxGeometry(40, 1, 40),
-    new THREE.MeshStandardMaterial({
-      color: linear(0.45, 0.7, 0.45),
-      roughness: 1,
-      metalness: 0,
+async function loadModels(): Promise<Map<string, ThreeObject>> {
+  const loader = new GLTFLoader();
+  const models = new Map<string, ThreeObject>();
+  await Promise.all(
+    MODEL_NAMES.map(async (name) => {
+      const gltf = await loader.loadAsync(`/models/${name}.glb`);
+      const root = gltf.scene as ThreeObject;
+      root.traverse((object: unknown) => {
+        const mesh = object as ThreeMesh & {
+          isMesh?: boolean;
+          material?: { side?: unknown };
+        };
+        if (mesh.isMesh === true) {
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+          if (mesh.material !== undefined) {
+            mesh.material.side = THREE.FrontSide;
+          }
+        }
+      });
+      models.set(name, root);
     }),
   );
-  ground.position.set(0, -0.5, 0);
-  ground.receiveShadow = true;
-  ground.castShadow = false;
-  scene.add(ground);
+  return models;
+}
 
-  const truckRoot = await loadTruckReference();
-  scene.add(truckRoot);
+async function buildScene(): Promise<{
+  readonly scene: typeof THREE.Scene.prototype;
+  readonly playerRoot: ThreeObject | null;
+}> {
+  const { cells, customMap } = resolvePageTrack();
+  const bounds = computeTrackBounds(cells);
+  const groundSize = Math.max(bounds.halfWidth, bounds.halfDepth) * 2 + 20;
+  const models = await loadModels();
 
-  // Sun: directional, position [11.4,15,-5.3] → target origin (matches DIR_LIGHT).
-  const sun = new THREE.DirectionalLight(0xffffff, 3);
-  sun.position.set(11.4, 15, -5.3);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(BACKGROUND_HEX);
+  scene.fog = new THREE.Fog(FOG_HEX, groundSize * 0.4, groundSize * 0.8);
+
+  buildTrack(scene, models, cells, customMap);
+  const playerRoot = buildPlayer(scene, models);
+
+  const shadowExtent = Math.max(bounds.halfWidth, bounds.halfDepth) + 10;
+  const sun = new THREE.DirectionalLight(DIR_LIGHT.colorHex, DIR_LIGHT.intensity);
+  sun.position.set(...DIR_LIGHT.position);
   sun.target.position.set(0, 0, 0);
   scene.add(sun.target);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(4096, 4096);
-  const sc = sun.shadow.camera;
-  sc.left = -8;
-  sc.right = 8;
-  sc.top = 8;
-  sc.bottom = -8;
-  sc.near = 0.5;
-  sc.far = 60;
-  sc.updateProjectionMatrix();
-  sun.shadow.bias = -0.0004;
-  sun.shadow.normalBias = 0.02;
+  sun.shadow.mapSize.setScalar(DIR_LIGHT.shadowMapSize);
+  const shadowCamera = sun.shadow.camera;
+  shadowCamera.left = -shadowExtent;
+  shadowCamera.right = shadowExtent;
+  shadowCamera.top = shadowExtent;
+  shadowCamera.bottom = -shadowExtent;
+  shadowCamera.near = DIR_LIGHT.shadowNear;
+  shadowCamera.far = DIR_LIGHT.shadowFar;
+  shadowCamera.updateProjectionMatrix();
+  sun.shadow.radius = DIR_LIGHT.shadowRadius;
   scene.add(sun);
 
-  // Ambient fill: sky-biased hemisphere approximation (matches setup.system.ts:
-  // sky 0xc8d8e8 * 0.85 + ground 0x7a8a5a * 0.15, intensity 0.25).
+  // Aperture currently approximates the reference HemisphereLight as a single
+  // sky-biased ambient light. Keep the reference pane on the same fill model so
+  // this view isolates render/shadow/post differences instead of light-model drift.
   const skyBias = 0.85;
-  const sky = [0xc8 / 255, 0xd8 / 255, 0xe8 / 255] as const;
-  const grd = [0x7a / 255, 0x8a / 255, 0x5a / 255] as const;
-  const amb = new THREE.AmbientLight(
+  const sky = new THREE.Color(HEMI_LIGHT.skyHex);
+  const ground = new THREE.Color(HEMI_LIGHT.groundHex);
+  const ambient = new THREE.AmbientLight(
     new THREE.Color(
-      sky[0] * skyBias + grd[0] * (1 - skyBias),
-      sky[1] * skyBias + grd[1] * (1 - skyBias),
-      sky[2] * skyBias + grd[2] * (1 - skyBias),
+      sky.r * skyBias + ground.r * (1 - skyBias),
+      sky.g * skyBias + ground.g * (1 - skyBias),
+      sky.b * skyBias + ground.b * (1 - skyBias),
     ),
-    0.25,
+    HEMI_LIGHT.intensity,
   );
-  scene.add(amb);
+  scene.add(ambient);
 
-  return { scene, truckRoot };
+  return { scene, playerRoot };
 }
 
-async function loadTruckReference(): Promise<typeof THREE.Group.prototype> {
-  const loader = new GLTFLoader();
-  const gltf = await loader.loadAsync(TRUCK_URL);
-  const truckRoot = gltf.scene as typeof THREE.Group.prototype;
-  truckRoot.name = "truck";
-  truckRoot.position.set(
-    TRUCK_TRANSLATION[0],
-    TRUCK_TRANSLATION[1],
-    TRUCK_TRANSLATION[2],
-  );
-  truckRoot.scale.set(TRUCK_SCALE, TRUCK_SCALE, TRUCK_SCALE);
-  truckRoot.rotation.y = TRUCK_YAW_RADIANS;
-  truckRoot.traverse((object: unknown) => {
-    const mesh = object as {
+function buildTrack(
+  scene: typeof THREE.Scene.prototype,
+  models: ReadonlyMap<string, ThreeObject>,
+  cells: readonly GridCell[],
+  customMap: boolean,
+): void {
+  const trackGroup = new THREE.Group();
+  trackGroup.position.y = -0.5;
+  trackGroup.scale.setScalar(GRID_SCALE);
+
+  const trackPieceGroup = new THREE.Group();
+  for (const cell of cells) {
+    const piece = placePiece(models, cell);
+    if (piece !== null) {
+      trackPieceGroup.add(piece);
+    }
+  }
+
+  const decoGroup = new THREE.Group();
+  const buckets = computeDecorationBuckets(cells, customMap);
+  createInstances(models.get("decoration-empty") ?? null, buckets.empty, decoGroup);
+  createInstances(models.get("decoration-forest") ?? null, buckets.forest, decoGroup);
+  createInstances(models.get("decoration-tents") ?? null, buckets.tents, decoGroup);
+
+  trackGroup.add(trackPieceGroup);
+  trackGroup.add(decoGroup);
+  scene.add(trackGroup);
+
+  if (!customMap) {
+    for (const [key, x, y, z, rotDeg] of NPC_TRUCKS) {
+      const src = models.get(key);
+      if (src === undefined) continue;
+      const npc = cloneObject(src);
+      npc.position.set(x, y, z);
+      npc.scale.setScalar(VEHICLE_ROOT_SCALE);
+      npc.rotation.y = THREE.MathUtils.degToRad(rotDeg + 180);
+      setShadowRecursive(npc, true, true);
+      scene.add(npc);
+    }
+  }
+}
+
+function placePiece(
+  models: ReadonlyMap<string, ThreeObject>,
+  cell: GridCell,
+): ThreeObject | null {
+  const [gx, gz, key, orient] = cell;
+  const src = models.get(key);
+  if (src === undefined) return null;
+  const piece = cloneObject(src);
+  piece.position.set((gx + 0.5) * CELL_RAW, 0.5, (gz + 0.5) * CELL_RAW);
+  piece.rotation.y = THREE.MathUtils.degToRad(ORIENT_DEG[orient] ?? 0);
+  setShadowRecursive(piece, true, true);
+  return piece;
+}
+
+function createInstances(
+  src: ThreeObject | null,
+  instances: readonly DecorationInstance[],
+  parent: ThreeObject,
+): void {
+  if (src === null || instances.length === 0) return;
+  const dummy = new THREE.Object3D();
+  src.traverse((object: unknown) => {
+    const mesh = object as ThreeMesh & {
       isMesh?: boolean;
-      castShadow?: boolean;
-      receiveShadow?: boolean;
+      geometry?: unknown;
+      material?: unknown;
     };
+    if (mesh.isMesh !== true || mesh.geometry === undefined) return;
+    const instanced = new THREE.InstancedMesh(
+      mesh.geometry,
+      mesh.material,
+      instances.length,
+    );
+    instanced.castShadow = true;
+    instanced.receiveShadow = true;
+    for (let i = 0; i < instances.length; i += 1) {
+      const instance = instances[i]!;
+      dummy.position.set(instance.x, 0.5, instance.z);
+      dummy.rotation.y = instance.rotQuarters * (Math.PI / 2);
+      dummy.updateMatrix();
+      instanced.setMatrixAt(i, dummy.matrix);
+    }
+    instanced.instanceMatrix.needsUpdate = true;
+    parent.add(instanced);
+  });
+}
+
+function buildPlayer(
+  scene: typeof THREE.Scene.prototype,
+  models: ReadonlyMap<string, ThreeObject>,
+): ThreeObject | null {
+  const src = models.get("vehicle-truck-yellow");
+  if (src === undefined) return null;
+  const player = cloneObject(src);
+  player.name = "player";
+  player.position.set(SPAWN_POS[0], SPAWN_POS[1] - 0.5, SPAWN_POS[2]);
+  player.scale.setScalar(VEHICLE_ROOT_SCALE);
+  setShadowRecursive(player, true, true);
+  scene.add(player);
+  return player;
+}
+
+function cloneObject(src: ThreeObject): ThreeObject {
+  return src.clone(true) as ThreeObject;
+}
+
+function setShadowRecursive(object: ThreeObject, cast: boolean, receive: boolean): void {
+  object.traverse((child: unknown) => {
+    const mesh = child as ThreeMesh & { isMesh?: boolean };
     if (mesh.isMesh === true) {
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
+      mesh.castShadow = cast;
+      mesh.receiveShadow = receive;
     }
   });
-  return truckRoot;
 }
 
-// ---- per-pixel diff heatmap (aperture canvas vs three canvas) ----
 function makeDiffer(
   apertureCanvas: HTMLCanvasElement,
   threeCanvas: HTMLCanvasElement,
   diffCanvas: HTMLCanvasElement,
 ): () => void {
-  // Diff at a capped resolution for speed; CSS scales the result up.
-  const W = 480;
-  const H = 640;
-  diffCanvas.width = W;
-  diffCanvas.height = H;
-  const a = document.createElement("canvas");
-  a.width = W;
-  a.height = H;
-  const b = document.createElement("canvas");
-  b.width = W;
-  b.height = H;
-  const ga = a.getContext("2d", { willReadFrequently: true })!;
-  const gb = b.getContext("2d", { willReadFrequently: true })!;
-  const gd = diffCanvas.getContext("2d")!;
-  const out = gd.createImageData(W, H);
+  const width = 480;
+  const height = 640;
+  diffCanvas.width = width;
+  diffCanvas.height = height;
+  const apertureCopy = document.createElement("canvas");
+  apertureCopy.width = width;
+  apertureCopy.height = height;
+  const threeCopy = document.createElement("canvas");
+  threeCopy.width = width;
+  threeCopy.height = height;
+  const apertureContext = apertureCopy.getContext("2d", {
+    willReadFrequently: true,
+  })!;
+  const threeContext = threeCopy.getContext("2d", { willReadFrequently: true })!;
+  const diffContext = diffCanvas.getContext("2d")!;
+  const output = diffContext.createImageData(width, height);
 
   return () => {
     try {
-      ga.drawImage(apertureCanvas, 0, 0, W, H);
-      gb.drawImage(threeCanvas, 0, 0, W, H);
+      apertureContext.drawImage(apertureCanvas, 0, 0, width, height);
+      threeContext.drawImage(threeCanvas, 0, 0, width, height);
     } catch {
       return;
     }
-    const pa = ga.getImageData(0, 0, W, H).data;
-    const pb = gb.getImageData(0, 0, W, H).data;
-    const o = out.data;
-    for (let i = 0; i < pa.length; i += 4) {
-      const d = Math.max(
-        Math.abs((pa[i] ?? 0) - (pb[i] ?? 0)),
-        Math.abs((pa[i + 1] ?? 0) - (pb[i + 1] ?? 0)),
-        Math.abs((pa[i + 2] ?? 0) - (pb[i + 2] ?? 0)),
+    const aperturePixels = apertureContext.getImageData(0, 0, width, height).data;
+    const threePixels = threeContext.getImageData(0, 0, width, height).data;
+    const outputPixels = output.data;
+    for (let i = 0; i < aperturePixels.length; i += 4) {
+      const delta = Math.max(
+        Math.abs((aperturePixels[i] ?? 0) - (threePixels[i] ?? 0)),
+        Math.abs((aperturePixels[i + 1] ?? 0) - (threePixels[i + 1] ?? 0)),
+        Math.abs((aperturePixels[i + 2] ?? 0) - (threePixels[i + 2] ?? 0)),
       );
-      // black (match) → red → yellow (large diff)
-      o[i] = Math.min(255, d * 4);
-      o[i + 1] = Math.min(255, Math.max(0, d * 4 - 255));
-      o[i + 2] = 0;
-      o[i + 3] = 255;
+      outputPixels[i] = Math.min(255, delta * 4);
+      outputPixels[i + 1] = Math.min(255, Math.max(0, delta * 4 - 255));
+      outputPixels[i + 2] = 0;
+      outputPixels[i + 3] = 255;
     }
-    gd.putImageData(out, 0, 0);
+    diffContext.putImageData(output, 0, 0);
   };
 }
 
 export async function installThreeCompare(): Promise<void> {
   const rt = await waitForRuntime();
-  if (!rt) {
+  if (rt === null) {
     // eslint-disable-next-line no-console
     console.warn("[three-compare] devtools runtime unavailable; skipping.");
     return;
   }
 
   const { threeCanvas, diffCanvas, setLabel, diffButton } = layout();
-  setLabel("THREE.js loading truck...");
-  let sceneBundle:
-    | {
-        scene: typeof THREE.Scene.prototype;
-        truckRoot: typeof THREE.Group.prototype;
-      }
-    | null = null;
+  setLabel("THREE.js loading scene...");
+  let sceneBundle: Awaited<ReturnType<typeof buildScene>>;
   try {
     sceneBundle = await buildScene();
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error("[three-compare] truck GLB load failed:", err);
-    setLabel("THREE.js truck load FAILED — see console");
+    console.error("[three-compare] scene load failed:", err);
+    setLabel("THREE.js scene load failed");
     return;
   }
-  const { scene, truckRoot } = sceneBundle;
-  setLabel("THREE.js r184 (WebGPU) ▶");
+  const { scene, playerRoot } = sceneBundle;
+  setLabel("THREE.js r184");
 
   const renderer = new THREE.WebGPURenderer({
     canvas: threeCanvas,
     antialias: true,
   });
-  renderer.setClearColor(0xadb2ba, 1);
+  renderer.setClearColor(BACKGROUND_HEX, 1);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true;
@@ -313,40 +461,39 @@ export async function installThreeCompare(): Promise<void> {
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error("[three-compare] WebGPU renderer init failed:", err);
-    setLabel("THREE.js init FAILED — see console");
+    setLabel("THREE.js init failed");
     return;
   }
 
-  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
-
-  const sizePixels = (): { w: number; h: number; dpr: number } => {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    return { w: Math.floor(window.innerWidth / 2), h: window.innerHeight, dpr };
-  };
+  const camera = new THREE.PerspectiveCamera(CAMERA.fovDeg, 1, CAMERA.near, CAMERA.far);
   const resize = (): void => {
-    const { w, h, dpr } = sizePixels();
-    renderer.setPixelRatio(dpr);
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    const width = Math.floor(window.innerWidth / 2);
+    const height = window.innerHeight;
+    renderer.setPixelRatio(pixelRatio);
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
   };
   resize();
   window.addEventListener("resize", resize);
 
-  // ---- own the camera: find aperture's camera + truck entities, disable the
-  // worker orbit-controls (done in the system file), push pose from here. ----
-  interface EntityRef {
-    readonly index: number;
-    readonly generation: number;
+  let renderPipeline: typeof THREE.RenderPipeline.prototype | null = null;
+  try {
+    const scenePass = THREE.TSL.pass(scene, camera);
+    const scenePassColor = scenePass.getTextureNode("output");
+    const bloomPass = bloom(
+      scenePassColor,
+      BLOOM.strength,
+      BLOOM.radius,
+      BLOOM.threshold,
+    );
+    renderPipeline = new THREE.RenderPipeline(renderer);
+    renderPipeline.outputNode = scenePassColor.add(bloomPass);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn("[three-compare] bloom pipeline unavailable; rendering direct.", err);
   }
-  const find = async (name: string): Promise<EntityRef | null> => {
-    const res = await rt.callTool("ecs_find_entities", { query: { limit: 200 } });
-    const summaries =
-      (res.result as { summaries?: { name: string | null; entity: EntityRef }[] })
-        ?.summaries ?? [];
-    return summaries.find((s) => s.name === name)?.entity ?? null;
-  };
-  let truckRef = await find("truck");
 
   let cameraPushInFlight = false;
   let cameraPushQueued = false;
@@ -355,7 +502,6 @@ export async function installThreeCompare(): Promise<void> {
       cameraPushQueued = true;
       return;
     }
-
     cameraPushInFlight = true;
     cameraPushQueued = false;
     void rt
@@ -379,12 +525,10 @@ export async function installThreeCompare(): Promise<void> {
   };
   applyCameraPose();
 
-  // Mirror aperture's truck transform onto the three group. The debug panel can
-  // move/rotate/scale the aperture truck; poll so the reference truck follows.
-  const pollTruck = async (): Promise<void> => {
-    if (!truckRef) truckRef = await find("truck");
-    if (!truckRef) return;
-    const res = await rt.callTool("ecs_get_entity", { entity: truckRef });
+  const playerRef = await findEntityByName(rt, "player");
+  const pollPlayer = async (): Promise<void> => {
+    if (playerRoot === null || playerRef === null) return;
+    const res = await rt.callTool("ecs_get_entity", { entity: playerRef });
     const localTransform = (
       res.result as {
         summary?: {
@@ -398,49 +542,48 @@ export async function installThreeCompare(): Promise<void> {
     )?.summary?.localTransform;
     const t = localTransform?.translation;
     if (t) {
-      truckRoot.position.set(
-        t[0] ?? TRUCK_TRANSLATION[0],
-        t[1] ?? TRUCK_TRANSLATION[1],
-        t[2] ?? TRUCK_TRANSLATION[2],
+      playerRoot.position.set(
+        t[0] ?? SPAWN_POS[0],
+        t[1] ?? SPAWN_POS[1] - 0.5,
+        t[2] ?? SPAWN_POS[2],
       );
     }
     const r = localTransform?.rotation;
     if (r) {
-      truckRoot.quaternion.set(r[0] ?? 0, r[1] ?? 0, r[2] ?? 0, r[3] ?? 1);
+      playerRoot.quaternion.set(r[0] ?? 0, r[1] ?? 0, r[2] ?? 0, r[3] ?? 1);
     }
     const s = localTransform?.scale;
     if (s) {
-      truckRoot.scale.set(
-        s[0] ?? TRUCK_SCALE,
-        s[1] ?? TRUCK_SCALE,
-        s[2] ?? TRUCK_SCALE,
+      playerRoot.scale.set(
+        s[0] ?? VEHICLE_ROOT_SCALE,
+        s[1] ?? VEHICLE_ROOT_SCALE,
+        s[2] ?? VEHICLE_ROOT_SCALE,
       );
     }
   };
-  void pollTruck();
-  setInterval(() => void pollTruck(), 200);
+  void pollPlayer();
+  setInterval(() => void pollPlayer(), 200);
 
-  // ---- camera orbit (drag + wheel), drives BOTH renderers ----
   let prev: [number, number] | null = null;
-  const onDown = (e: PointerEvent): void => {
-    if ((e.target as HTMLElement)?.closest?.("#sl-panel")) return;
-    prev = [e.clientX, e.clientY];
+  const onDown = (event: PointerEvent): void => {
+    if ((event.target as HTMLElement)?.closest?.("#sl-panel")) return;
+    prev = [event.clientX, event.clientY];
   };
-  const onMove = (e: PointerEvent): void => {
-    if (!prev) return;
-    const dx = (e.clientX - prev[0]) / window.innerWidth;
-    const dy = (e.clientY - prev[1]) / window.innerHeight;
+  const onMove = (event: PointerEvent): void => {
+    if (prev === null) return;
+    const dx = (event.clientX - prev[0]) / window.innerWidth;
+    const dy = (event.clientY - prev[1]) / window.innerHeight;
     orbit.azimuth -= dx * 3.0;
     orbit.elevation = Math.max(-POLE, Math.min(POLE, orbit.elevation - dy * 3.0));
-    prev = [e.clientX, e.clientY];
+    prev = [event.clientX, event.clientY];
     applyCameraPose();
   };
   const onUp = (): void => {
     prev = null;
   };
-  const onWheel = (e: WheelEvent): void => {
-    if ((e.target as HTMLElement)?.closest?.("#sl-panel")) return;
-    orbit.distance = Math.max(2, Math.min(120, orbit.distance + e.deltaY * 0.02));
+  const onWheel = (event: WheelEvent): void => {
+    if ((event.target as HTMLElement)?.closest?.("#sl-panel")) return;
+    orbit.distance = Math.max(2, Math.min(120, orbit.distance + event.deltaY * 0.02));
     applyCameraPose();
   };
   window.addEventListener("pointerdown", onDown);
@@ -448,12 +591,8 @@ export async function installThreeCompare(): Promise<void> {
   window.addEventListener("pointerup", onUp);
   window.addEventListener("wheel", onWheel, { passive: true });
 
-  // ---- diff toggle ----
-  const differ = makeDiffer(
-    document.getElementById("aperture") as HTMLCanvasElement,
-    threeCanvas,
-    diffCanvas,
-  );
+  const apertureCanvas = document.getElementById("aperture") as HTMLCanvasElement;
+  const differ = makeDiffer(apertureCanvas, threeCanvas, diffCanvas);
   let diffOn = false;
   diffButton.addEventListener("click", () => {
     diffOn = !diffOn;
@@ -464,15 +603,35 @@ export async function installThreeCompare(): Promise<void> {
     diffCanvas.style.display = diffOn ? "block" : "none";
   });
 
-  // ---- render loop ----
-  const loop = async (): Promise<void> => {
+  const loop = (): void => {
     try {
-      renderer.render(scene, camera);
+      if (renderPipeline !== null) {
+        renderPipeline.render();
+      } else {
+        renderer.render(scene, camera);
+      }
     } catch {
-      /* transient device hiccup; next frame retries */
+      // Transient device hiccup; next frame retries.
     }
     if (diffOn) differ();
-    requestAnimationFrame(() => void loop());
+    requestAnimationFrame(loop);
   };
-  void loop();
+  requestAnimationFrame(loop);
+}
+
+async function findEntityByName(
+  rt: McpRuntime,
+  name: string,
+): Promise<{ readonly index: number; readonly generation: number } | null> {
+  const res = await rt.callTool("ecs_find_entities", { query: { limit: 400 } });
+  const summaries =
+    (
+      res.result as {
+        summaries?: {
+          readonly name: string | null;
+          readonly entity: { readonly index: number; readonly generation: number };
+        }[];
+      }
+    )?.summaries ?? [];
+  return summaries.find((summary) => summary.name === name)?.entity ?? null;
 }
