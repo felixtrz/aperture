@@ -1,3 +1,5 @@
+import { promises as fs } from "node:fs";
+import path from "node:path";
 import { resolveConfigFile, toModuleUrl } from "./file-utils.js";
 import { writeApertureGeneratedActionTypes } from "./generated-action-types.js";
 import {
@@ -66,13 +68,17 @@ export async function loadApertureVirtualModule(
   }
 
   if (virtualId === VIRTUAL_BROWSER_ENTRY) {
-    const workerEntryPath = `/@id/__x00__${VIRTUAL_WORKER_ENTRY}`;
+    const workerEntryFile = await writeApertureGeneratedWorkerEntry({
+      root: options.root,
+      configFile,
+    });
 
     return [
       `import config from ${JSON.stringify(VIRTUAL_CONFIG)};`,
       `import systemManifest from ${JSON.stringify(VIRTUAL_SYSTEM_MANIFEST)};`,
+      `import ApertureSimulationWorker from ${JSON.stringify(`${toModuleUrl(workerEntryFile)}?worker`)};`,
       `import { startGeneratedBrowserApp } from "@aperture-engine/app/browser";`,
-      `const worker = new Worker(${JSON.stringify(workerEntryPath)}, { type: "module" });`,
+      `const worker = new ApertureSimulationWorker();`,
       `const apertureDevtoolsEnabled = ${JSON.stringify(options.aiDevtoolsEnabled)} && import.meta.env.DEV;`,
       // The page URL is only readable on the main thread (worker scope has no
       // location.search). Forward every search param to the simulation worker
@@ -90,6 +96,42 @@ export async function loadApertureVirtualModule(
   }
 
   return null;
+}
+
+async function writeApertureGeneratedWorkerEntry(options: {
+  readonly root: string;
+  readonly configFile: string;
+}): Promise<string> {
+  const manifest = await createApertureSystemManifest({
+    root: options.root,
+    configFile: options.configFile,
+  });
+  const systemImports = manifest.systems
+    .map(
+      (system, index) =>
+        `import * as SystemModule${index} from ${JSON.stringify(system.moduleUrl)};`,
+    )
+    .join("\n");
+  const systems = manifest.systems
+    .map((_system, index) => `{ default: SystemModule${index}.default }`)
+    .join(",\n  ");
+  const directory = path.join(options.root, ".aperture", "generated");
+  const file = path.join(directory, "aperture-worker-entry.js");
+  const contents = [
+    `import config from ${JSON.stringify(toModuleUrl(options.configFile))};`,
+    systemImports,
+    `import { startGeneratedSimulationWorker } from "@aperture-engine/app/worker";`,
+    `const systems = [`,
+    `  ${systems}`,
+    `];`,
+    `startGeneratedSimulationWorker({ config, systems });`,
+    "",
+  ].join("\n");
+
+  await fs.mkdir(directory, { recursive: true });
+  await fs.writeFile(file, contents, "utf8");
+
+  return file;
 }
 
 export function injectApertureBrowserEntry(html: string): string {
