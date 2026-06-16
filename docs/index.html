@@ -393,12 +393,17 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 19:23 UTC</dd>
+            <dd>2026-06-16 19:37 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update: app config
+              <code>asset.particleEffect(...)</code> now registers
+              config-authored <code>particle-effect</code> source assets with
+              texture/sampler dependencies. Racing declares its smoke effect
+              data through config, ready for the follow-up emitter renderer
+              migration. Prior update: app config
               <code>asset.texture(...)</code> now decodes image URLs into real
               <code>TextureAsset</code> source data with texture
               color-space/semantic validation. Racing declares its smoke sprite

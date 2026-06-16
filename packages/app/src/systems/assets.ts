@@ -9,6 +9,7 @@ import {
   createMeshoptDecoder as createMeshoptBufferDecoder,
   createWgslShaderAsset,
   createAudioClipAsset,
+  createParticleEffectAsset,
   createTextureAsset,
   createStandardMaterialAsset,
   decodeImageUrlToTextureSource,
@@ -16,6 +17,7 @@ import {
   loadGltfFromUri,
   registerGltfSourceAssetsFromReports,
   validateAudioClipAsset,
+  validateParticleEffectAsset,
   validateTextureAsset,
   type DracoMeshDecoder,
   type AudioClipAsset,
@@ -29,6 +31,7 @@ import {
   type Ktx2BasisTranscoder,
   type Ktx2TextureCompressionSupport,
   type MeshoptBufferDecoder,
+  type ParticleEffectAsset,
   type TextureAsset,
   type TextureColorSpace,
   type TextureSemantic,
@@ -39,6 +42,8 @@ import {
   createAudioClipHandle,
   createEnvironmentMapHandle,
   createMaterialHandle,
+  createParticleEffectHandle,
+  createSamplerHandle,
   createSceneHandle,
   createShaderHandle,
   createTextureHandle,
@@ -47,6 +52,8 @@ import {
   type AudioClipHandle,
   type AssetRegistry,
   type AssetHandle,
+  type ParticleEffectHandle,
+  type SamplerHandle,
   type SceneHandle,
   type ShaderHandle,
   type TextureHandle,
@@ -54,7 +61,8 @@ import {
 import type {
   ApertureConfig,
   ApertureAudioAssetDescriptor,
-  ApertureConfigAssetDescriptor,
+  ApertureConfigAsset,
+  ApertureParticleEffectAssetDescriptor,
   ApertureTextureAssetDescriptor,
   AssetPreloadPolicy,
   ConfigAssetKind,
@@ -71,7 +79,7 @@ export type SystemAssetKind = ConfigAssetKind;
 export interface SystemAssetHandle<TKind extends SystemAssetKind> {
   readonly id: string;
   readonly kind: TKind;
-  readonly url: string;
+  readonly url?: string;
   readonly label?: string;
   readonly preload: AssetPreloadPolicy;
   readonly ready: Signal<boolean>;
@@ -84,19 +92,24 @@ export interface SystemAssetHandle<TKind extends SystemAssetKind> {
         ? AudioClipHandle
         : TKind extends "texture"
           ? TextureHandle
-          : unknown;
+          : TKind extends "particle-effect"
+            ? ParticleEffectHandle
+            : unknown;
 }
 
 export type SystemGltfAssetHandle = SystemAssetHandle<"gltf"> & {
+  readonly url: string;
   readonly renderHandle: SceneHandle;
   readonly scene: Signal<SystemGltfLoadedScene | null>;
 };
 
 export type SystemShaderAssetHandle = SystemAssetHandle<"shader"> & {
+  readonly url: string;
   readonly renderHandle: ShaderHandle;
 };
 
 export type SystemAudioAssetHandle = SystemAssetHandle<"audio"> & {
+  readonly url: string;
   readonly renderHandle: AudioClipHandle;
   readonly streaming: boolean;
   readonly durationHint?: number;
@@ -105,11 +118,20 @@ export type SystemAudioAssetHandle = SystemAssetHandle<"audio"> & {
 };
 
 export type SystemTextureAssetHandle = SystemAssetHandle<"texture"> & {
+  readonly url: string;
   readonly renderHandle: TextureHandle;
   readonly colorSpace: TextureColorSpace;
   readonly semantic: TextureSemantic;
   readonly mimeType?: string;
 };
+
+export type SystemParticleEffectAssetHandle =
+  SystemAssetHandle<"particle-effect"> & {
+    readonly renderHandle: ParticleEffectHandle;
+    readonly descriptor: ApertureParticleEffectAssetDescriptor;
+    readonly texture?: TextureHandle | null;
+    readonly sampler?: SamplerHandle | null;
+  };
 
 /** A glTF animation clip registered in the AssetRegistry under a handle. */
 export interface SystemGltfAnimationClip {
@@ -143,6 +165,7 @@ export interface SystemAssetAccess {
   hdr(id: string): SystemAssetHandle<"hdr">;
   shader(id: string): SystemShaderAssetHandle;
   audio(id: string): SystemAudioAssetHandle;
+  particleEffect(id: string): SystemParticleEffectAssetHandle;
   request(
     idOrHandle: string | SystemAssetHandle<SystemAssetKind>,
   ): Promise<void>;
@@ -222,8 +245,10 @@ export function createSystemAssetAccess(options: {
     assets.set(id, handle);
 
     if (!options.registry.has(handle.renderHandle as AssetHandle)) {
+      const dependencies = systemAssetDependencies(handle);
       options.registry.register(handle.renderHandle as AssetHandle, {
-        label: descriptor.label ?? descriptor.url,
+        label: descriptor.label ?? assetDescriptorLabel(id, descriptor),
+        ...(dependencies.length === 0 ? {} : { dependencies }),
       });
     }
   }
@@ -279,6 +304,14 @@ export function createSystemAssetAccess(options: {
           registryHandle as TextureHandle,
           textureAsset,
         );
+      } else if (handle.kind === "particle-effect") {
+        const particleEffectAsset = loadSystemParticleEffectAsset(
+          handle as SystemParticleEffectAssetHandle,
+        );
+        options.registry.markReady(
+          registryHandle as ParticleEffectHandle,
+          particleEffectAsset,
+        );
       }
 
       if (handle.kind !== "shader" && handle.kind !== "audio") {
@@ -292,7 +325,7 @@ export function createSystemAssetAccess(options: {
         options.registry.markReady(registryHandle, {
           id: handle.id,
           kind: handle.kind,
-          url: handle.url,
+          ...(handle.url === undefined ? {} : { url: handle.url }),
           ...systemAssetReadyMetadata(handle),
         });
       }
@@ -404,6 +437,18 @@ export function createSystemAssetAccess(options: {
 
       return handle as SystemAudioAssetHandle;
     },
+    particleEffect(id) {
+      const handle = lookup(id);
+      if (handle.kind !== "particle-effect") {
+        throw new ApertureSystemError(
+          "aperture.asset.kindMismatch",
+          `Asset '${id}' is '${handle.kind}', not 'particle-effect'.`,
+          "Use this.assets.particleEffect() only with asset.particleEffect() declarations.",
+        );
+      }
+
+      return handle as SystemParticleEffectAssetHandle;
+    },
     request,
     readiness(id) {
       return lookup(id).ready;
@@ -425,9 +470,36 @@ function createDecoderAssetUrlResolver(
   return (path: string) => `${normalizedBase}${path}`;
 }
 
+function assetDescriptorLabel(
+  id: string,
+  descriptor: ApertureConfigAsset,
+): string {
+  return "url" in descriptor ? descriptor.url : id;
+}
+
+function systemAssetDependencies(
+  handle: SystemAssetHandle<SystemAssetKind>,
+): readonly AssetHandle[] {
+  if (handle.kind !== "particle-effect") {
+    return [];
+  }
+
+  const particleEffect = handle as SystemParticleEffectAssetHandle;
+  const dependencies: AssetHandle[] = [];
+
+  if (particleEffect.texture !== undefined && particleEffect.texture !== null) {
+    dependencies.push(particleEffect.texture);
+  }
+  if (particleEffect.sampler !== undefined && particleEffect.sampler !== null) {
+    dependencies.push(particleEffect.sampler);
+  }
+
+  return dependencies;
+}
+
 function createSystemAssetHandle(
   id: string,
-  descriptor: ApertureConfigAssetDescriptor,
+  descriptor: ApertureConfigAsset,
 ): SystemAssetHandle<SystemAssetKind> {
   if (descriptor.kind === "gltf") {
     return {
@@ -482,6 +554,36 @@ function createSystemAssetHandle(
     } as SystemTextureAssetHandle;
   }
 
+  if (descriptor.kind === "particle-effect") {
+    const particleEffect = descriptor as ApertureParticleEffectAssetDescriptor;
+    return {
+      id,
+      kind: descriptor.kind,
+      ...(descriptor.label === undefined ? {} : { label: descriptor.label }),
+      preload: descriptor.preload,
+      ready: createSignal(false),
+      error: createSignal<ApertureSystemDiagnostic | null>(null),
+      renderHandle: createParticleEffectHandle(id),
+      descriptor: particleEffect,
+      ...(particleEffect.texture === undefined
+        ? {}
+        : {
+            texture:
+              particleEffect.texture === null
+                ? null
+                : createTextureHandle(particleEffect.texture),
+          }),
+      ...(particleEffect.sampler === undefined
+        ? {}
+        : {
+            sampler:
+              particleEffect.sampler === null
+                ? null
+                : createSamplerHandle(particleEffect.sampler),
+          }),
+    } as SystemParticleEffectAssetHandle;
+  }
+
   return {
     id,
     kind: descriptor.kind,
@@ -495,6 +597,90 @@ function createSystemAssetHandle(
         ? createEnvironmentMapHandle(id)
         : createShaderHandle(id),
   } as SystemAssetHandle<SystemAssetKind>;
+}
+
+function loadSystemParticleEffectAsset(
+  handle: SystemParticleEffectAssetHandle,
+): ParticleEffectAsset {
+  const descriptor = handle.descriptor;
+  const asset = createParticleEffectAsset({
+    label: handle.label ?? handle.id,
+    ...(descriptor.capacity === undefined
+      ? {}
+      : { capacity: descriptor.capacity }),
+    ...(descriptor.duration === undefined
+      ? {}
+      : { duration: descriptor.duration }),
+    ...(descriptor.looping === undefined
+      ? {}
+      : { looping: descriptor.looping }),
+    ...(descriptor.prewarm === undefined
+      ? {}
+      : { prewarm: descriptor.prewarm }),
+    ...(descriptor.emissionRate === undefined
+      ? {}
+      : { emissionRate: descriptor.emissionRate }),
+    ...(descriptor.bursts === undefined ? {} : { bursts: descriptor.bursts }),
+    ...(descriptor.lifetime === undefined
+      ? {}
+      : { lifetime: descriptor.lifetime }),
+    ...(descriptor.startSpeed === undefined
+      ? {}
+      : { startSpeed: descriptor.startSpeed }),
+    ...(descriptor.startSize === undefined
+      ? {}
+      : { startSize: descriptor.startSize }),
+    ...(descriptor.startColor === undefined
+      ? {}
+      : { startColor: descriptor.startColor }),
+    ...(descriptor.endColor === undefined
+      ? {}
+      : { endColor: descriptor.endColor }),
+    ...(descriptor.gravity === undefined
+      ? {}
+      : { gravity: descriptor.gravity }),
+    ...(descriptor.blendMode === undefined
+      ? {}
+      : { blendMode: descriptor.blendMode }),
+    ...(handle.texture === undefined ? {} : { texture: handle.texture }),
+    ...(handle.sampler === undefined ? {} : { sampler: handle.sampler }),
+    ...(descriptor.atlasFrameCount === undefined
+      ? {}
+      : { atlasFrameCount: descriptor.atlasFrameCount }),
+    ...(descriptor.sizeOverLifetime === undefined
+      ? {}
+      : { sizeOverLifetime: descriptor.sizeOverLifetime }),
+    ...(descriptor.colorOverLifetime === undefined
+      ? {}
+      : { colorOverLifetime: descriptor.colorOverLifetime }),
+    ...(descriptor.curveSampleCount === undefined
+      ? {}
+      : { curveSampleCount: descriptor.curveSampleCount }),
+  });
+  const report = validateParticleEffectAsset(asset);
+
+  if (report.valid) {
+    return asset;
+  }
+
+  throw new ApertureSystemError(
+    "aperture.asset.particleEffectInvalid",
+    `Particle effect asset '${handle.id}' is invalid. ${formatReportDiagnostics(
+      report.diagnostics.map((diagnostic) => ({
+        code: diagnostic.code,
+        severity: "error" as const,
+        message: diagnostic.message,
+      })),
+    )}`,
+    "Check the asset.particleEffect() options in aperture.config.ts.",
+    {
+      asset: handle.id,
+      kind: handle.kind,
+      preload: handle.preload,
+      phase: "load",
+      blocksStartup: handle.preload === "blocking",
+    },
+  );
 }
 
 async function loadSystemTextureAsset(

@@ -91,6 +91,12 @@ describe("validateApertureConfig", () => {
               durationHint: 2.1,
               channels: 2,
             }),
+            smoke: asset.particleEffect({
+              texture: "floorColor",
+              capacity: 1280,
+              lifetime: { min: 2.5, max: 2.5 },
+              blendMode: "alpha",
+            }),
           },
           audio: { autoUnlock: true },
         }),
@@ -158,6 +164,23 @@ describe("validateApertureConfig", () => {
 
       expect(error.code).toBe("aperture.config.invalidTextureAsset");
       expect(error.message).toContain("normal");
+    });
+
+    it("rejects invalid particle effect asset options", () => {
+      const error = configError(() =>
+        validateApertureConfig({
+          mode: "headless",
+          assets: {
+            smoke: asset.particleEffect({
+              texture: "9smoke",
+              capacity: 0,
+            }),
+          },
+        }),
+      );
+
+      expect(error.code).toBe("aperture.config.invalidParticleEffectAsset");
+      expect(error.message).toContain("texture");
     });
 
     it("rejects asset descriptors with empty URLs", () => {

@@ -66,6 +66,11 @@ building blocks and default paths.
   source data with color-space/semantic validation. Racing declares the smoke
   sprite in `aperture.config.ts`, and `particles.system.ts` no longer fetches
   or decodes image pixels itself.
+- 2026-06-16: Declarative particle-effect config landed:
+  `asset.particleEffect(...)` now registers config-authored
+  `particle-effect` source assets with texture/sampler dependencies. Racing
+  declares its smoke effect data in `aperture.config.ts`, ready for the
+  follow-up emitter renderer migration.
 
 ## Goals
 

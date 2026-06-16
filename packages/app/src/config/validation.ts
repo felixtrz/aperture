@@ -1,8 +1,14 @@
 import { ApertureConfigError } from "./errors.js";
+import {
+  createParticleEffectAsset,
+  validateParticleEffectAsset,
+} from "@aperture-engine/render";
 import type {
   ApertureConfig,
   ApertureAudioAssetDescriptor,
+  ApertureConfigAsset,
   ApertureConfigAssetDescriptor,
+  ApertureParticleEffectAssetDescriptor,
   ApertureTextureAssetDescriptor,
   AssetPreloadPolicy,
   GamepadButtonName,
@@ -165,20 +171,28 @@ function validateAssetId(id: string): void {
 
 function validateAssetDescriptor(
   id: string,
-  descriptor: ApertureConfigAssetDescriptor,
+  descriptor: ApertureConfigAsset,
 ): void {
+  const kind = (descriptor as { readonly kind?: unknown }).kind;
+
   if (
-    descriptor.kind !== "gltf" &&
-    descriptor.kind !== "texture" &&
-    descriptor.kind !== "hdr" &&
-    descriptor.kind !== "shader" &&
-    descriptor.kind !== "audio"
+    kind !== "gltf" &&
+    kind !== "texture" &&
+    kind !== "hdr" &&
+    kind !== "shader" &&
+    kind !== "audio" &&
+    kind !== "particle-effect"
   ) {
     throw new ApertureConfigError(
       "aperture.config.invalidAssetKind",
-      `Asset '${id}' has unsupported kind '${String(descriptor.kind)}'.`,
-      "Declare assets through asset.gltf(), asset.texture(), asset.hdr(), asset.shader(), or asset.audio().",
+      `Asset '${id}' has unsupported kind '${String(kind)}'.`,
+      "Declare assets through asset.gltf(), asset.texture(), asset.hdr(), asset.shader(), asset.audio(), or asset.particleEffect().",
     );
+  }
+
+  if (descriptor.kind === "particle-effect") {
+    validateParticleEffectAssetDescriptor(id, descriptor);
+    return;
   }
 
   if (descriptor.url.trim().length === 0) {
@@ -212,6 +226,130 @@ function validateAssetDescriptor(
       descriptor as ApertureTextureAssetDescriptor,
     );
   }
+}
+
+const PARTICLE_BLEND_MODES = new Set([
+  "opaque",
+  "alpha",
+  "additive",
+  "multiply",
+]);
+
+function validateParticleEffectAssetDescriptor(
+  id: string,
+  descriptor: ApertureParticleEffectAssetDescriptor,
+): void {
+  validateAssetReference(id, "texture", descriptor.texture);
+  validateAssetReference(id, "sampler", descriptor.sampler);
+
+  if (
+    descriptor.blendMode !== undefined &&
+    !PARTICLE_BLEND_MODES.has(descriptor.blendMode)
+  ) {
+    throw invalidParticleEffectAsset(
+      id,
+      "blendMode",
+      `Unsupported particle blendMode '${String(descriptor.blendMode)}'.`,
+    );
+  }
+
+  const report = validateParticleEffectAsset(
+    createParticleEffectAsset({
+      ...(descriptor.label === undefined ? {} : { label: descriptor.label }),
+      ...(descriptor.capacity === undefined
+        ? {}
+        : { capacity: descriptor.capacity }),
+      ...(descriptor.duration === undefined
+        ? {}
+        : { duration: descriptor.duration }),
+      ...(descriptor.looping === undefined
+        ? {}
+        : { looping: descriptor.looping }),
+      ...(descriptor.prewarm === undefined
+        ? {}
+        : { prewarm: descriptor.prewarm }),
+      ...(descriptor.emissionRate === undefined
+        ? {}
+        : { emissionRate: descriptor.emissionRate }),
+      ...(descriptor.bursts === undefined ? {} : { bursts: descriptor.bursts }),
+      ...(descriptor.lifetime === undefined
+        ? {}
+        : { lifetime: descriptor.lifetime }),
+      ...(descriptor.startSpeed === undefined
+        ? {}
+        : { startSpeed: descriptor.startSpeed }),
+      ...(descriptor.startSize === undefined
+        ? {}
+        : { startSize: descriptor.startSize }),
+      ...(descriptor.startColor === undefined
+        ? {}
+        : { startColor: descriptor.startColor }),
+      ...(descriptor.endColor === undefined
+        ? {}
+        : { endColor: descriptor.endColor }),
+      ...(descriptor.gravity === undefined
+        ? {}
+        : { gravity: descriptor.gravity }),
+      ...(descriptor.blendMode === undefined
+        ? {}
+        : { blendMode: descriptor.blendMode }),
+      ...(descriptor.texture === null ? { texture: null } : {}),
+      ...(descriptor.sampler === null ? { sampler: null } : {}),
+      ...(descriptor.atlasFrameCount === undefined
+        ? {}
+        : { atlasFrameCount: descriptor.atlasFrameCount }),
+      ...(descriptor.sizeOverLifetime === undefined
+        ? {}
+        : { sizeOverLifetime: descriptor.sizeOverLifetime }),
+      ...(descriptor.colorOverLifetime === undefined
+        ? {}
+        : { colorOverLifetime: descriptor.colorOverLifetime }),
+      ...(descriptor.curveSampleCount === undefined
+        ? {}
+        : { curveSampleCount: descriptor.curveSampleCount }),
+    }),
+  );
+
+  if (report.valid) {
+    return;
+  }
+
+  const diagnostic = report.diagnostics[0];
+  throw invalidParticleEffectAsset(
+    id,
+    diagnostic?.field ?? "effect",
+    diagnostic?.message ?? "Particle effect options are invalid.",
+  );
+}
+
+function validateAssetReference(
+  id: string,
+  field: "texture" | "sampler",
+  value: string | null | undefined,
+): void {
+  if (value === undefined || value === null) {
+    return;
+  }
+
+  if (!/^[A-Za-z_][A-Za-z0-9_.-]*$/.test(value)) {
+    throw invalidParticleEffectAsset(
+      id,
+      field,
+      `${field} reference '${value}' is not a valid config asset id.`,
+    );
+  }
+}
+
+function invalidParticleEffectAsset(
+  id: string,
+  field: string,
+  message: string,
+): ApertureConfigError {
+  return new ApertureConfigError(
+    "aperture.config.invalidParticleEffectAsset",
+    `Asset '${id}' has invalid particle effect ${field}. ${message}`,
+    "Use asset.particleEffect({ texture: 'smoke', capacity: 1280 }) with finite plain-data options.",
+  );
 }
 
 function validateAudioAssetDescriptor(

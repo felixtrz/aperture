@@ -6,6 +6,7 @@ import type {
   TextureHandle,
 } from "@aperture-engine/simulation";
 import type {
+  ParticleEffectAssetInput,
   TextureColorSpace,
   TextureSemantic,
 } from "@aperture-engine/render";
@@ -17,7 +18,14 @@ export { validateApertureConfig } from "./validation.js";
 
 export type ApertureAppMode = "browser" | "headless";
 export type AssetPreloadPolicy = "blocking" | "background" | "manual";
-export type ConfigAssetKind = "gltf" | "texture" | "hdr" | "shader" | "audio";
+export type ConfigAssetKind =
+  | "gltf"
+  | "texture"
+  | "hdr"
+  | "shader"
+  | "audio"
+  | "particle-effect";
+export type ConfigUrlAssetKind = Exclude<ConfigAssetKind, "particle-effect">;
 export type DiagnosticsLevel = "debug" | "info" | "warn" | "error" | "silent";
 
 export type EcsEntityRef = {
@@ -43,8 +51,16 @@ export interface ApertureTextureAssetOptions extends ApertureAssetOptions {
   readonly mimeType?: string;
 }
 
+export interface ApertureParticleEffectAssetOptions
+  extends
+    ApertureAssetOptions,
+    Omit<ParticleEffectAssetInput, "label" | "texture" | "sampler"> {
+  readonly texture?: string | null;
+  readonly sampler?: string | null;
+}
+
 export interface ApertureConfigAssetDescriptor<
-  TKind extends ConfigAssetKind = ConfigAssetKind,
+  TKind extends ConfigUrlAssetKind = ConfigUrlAssetKind,
 > {
   readonly kind: TKind;
   readonly url: string;
@@ -67,6 +83,21 @@ export interface ApertureAudioAssetDescriptor extends ApertureConfigAssetDescrip
   readonly channels?: number;
   readonly captionTrackId?: string;
 }
+export interface ApertureParticleEffectAssetDescriptor extends Omit<
+  ApertureParticleEffectAssetOptions,
+  "preload"
+> {
+  readonly kind: "particle-effect";
+  readonly preload: AssetPreloadPolicy;
+}
+
+export type ApertureConfigAsset =
+  | ApertureGltfAssetDescriptor
+  | ApertureTextureAssetDescriptor
+  | ApertureHdrAssetDescriptor
+  | ApertureShaderAssetDescriptor
+  | ApertureAudioAssetDescriptor
+  | ApertureParticleEffectAssetDescriptor;
 
 export interface ApertureConfigAssetHelpers {
   gltf(
@@ -86,6 +117,9 @@ export interface ApertureConfigAssetHelpers {
     url: string,
     options?: ApertureAudioAssetOptions,
   ): ApertureAudioAssetDescriptor;
+  particleEffect(
+    options?: ApertureParticleEffectAssetOptions,
+  ): ApertureParticleEffectAssetDescriptor;
 }
 
 export type ApertureSignalKind = "ref" | "string" | "number" | "boolean";
@@ -343,9 +377,7 @@ export interface ApertureConfig {
   readonly mode: ApertureAppMode;
   readonly canvas?: string;
   readonly systems?: readonly string[];
-  readonly assets?: Readonly<
-    Record<string, ApertureConfigAssetDescriptor<ConfigAssetKind>>
-  >;
+  readonly assets?: Readonly<Record<string, ApertureConfigAsset>>;
   readonly signals?: Readonly<Record<string, ApertureSignalDescriptor>>;
   readonly input?: ApertureInputConfig;
   readonly render?: ApertureRenderDefaults;
@@ -400,6 +432,59 @@ export const asset: ApertureConfigAssetHelpers = Object.freeze({
       ...(options.captionTrackId === undefined
         ? {}
         : { captionTrackId: options.captionTrackId }),
+    });
+  },
+  particleEffect(options: ApertureParticleEffectAssetOptions = {}) {
+    const preload = options.preload ?? "manual";
+    if (!isPreloadPolicy(preload)) {
+      throw new ApertureConfigError(
+        "aperture.config.invalidPreloadPolicy",
+        `Unsupported preload policy '${String(preload)}'.`,
+        "Use 'blocking', 'background', or 'manual'.",
+      );
+    }
+
+    return Object.freeze({
+      kind: "particle-effect",
+      preload,
+      ...(options.label === undefined ? {} : { label: options.label }),
+      ...(options.capacity === undefined ? {} : { capacity: options.capacity }),
+      ...(options.duration === undefined ? {} : { duration: options.duration }),
+      ...(options.looping === undefined ? {} : { looping: options.looping }),
+      ...(options.prewarm === undefined ? {} : { prewarm: options.prewarm }),
+      ...(options.emissionRate === undefined
+        ? {}
+        : { emissionRate: options.emissionRate }),
+      ...(options.bursts === undefined ? {} : { bursts: options.bursts }),
+      ...(options.lifetime === undefined ? {} : { lifetime: options.lifetime }),
+      ...(options.startSpeed === undefined
+        ? {}
+        : { startSpeed: options.startSpeed }),
+      ...(options.startSize === undefined
+        ? {}
+        : { startSize: options.startSize }),
+      ...(options.startColor === undefined
+        ? {}
+        : { startColor: options.startColor }),
+      ...(options.endColor === undefined ? {} : { endColor: options.endColor }),
+      ...(options.gravity === undefined ? {} : { gravity: options.gravity }),
+      ...(options.blendMode === undefined
+        ? {}
+        : { blendMode: options.blendMode }),
+      ...(options.texture === undefined ? {} : { texture: options.texture }),
+      ...(options.sampler === undefined ? {} : { sampler: options.sampler }),
+      ...(options.atlasFrameCount === undefined
+        ? {}
+        : { atlasFrameCount: options.atlasFrameCount }),
+      ...(options.sizeOverLifetime === undefined
+        ? {}
+        : { sizeOverLifetime: options.sizeOverLifetime }),
+      ...(options.colorOverLifetime === undefined
+        ? {}
+        : { colorOverLifetime: options.colorOverLifetime }),
+      ...(options.curveSampleCount === undefined
+        ? {}
+        : { curveSampleCount: options.curveSampleCount }),
     });
   },
 });
@@ -524,7 +609,7 @@ export function defineApertureConfig<TConfig extends ApertureConfig>(
   return config;
 }
 
-function assetDescriptor<TKind extends ConfigAssetKind>(
+function assetDescriptor<TKind extends ConfigUrlAssetKind>(
   kind: TKind,
   url: string,
   options: ApertureAssetOptions,

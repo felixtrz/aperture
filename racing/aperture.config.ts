@@ -31,6 +31,25 @@ export default defineApertureConfig({
       semantic: "base-color",
       mimeType: "image/png",
     }),
+    "smoke-effect": asset.particleEffect({
+      preload: "blocking",
+      label: "Smoke effect",
+      texture: "smoke",
+      capacity: 1280,
+      duration: 2.5,
+      emissionRate: 0,
+      lifetime: { min: 2.5, max: 2.5 },
+      startSize: { min: 0.5, max: 1 },
+      blendMode: "alpha",
+      sizeOverLifetime: [
+        { t: 0, value: 0.5 },
+        { t: 1, value: 3 },
+      ],
+      colorOverLifetime: [
+        { t: 0, color: [0x5e / 0xff, 0x5f / 0xff, 0x6b / 0xff, 0.25] },
+        { t: 1, color: [0x5e / 0xff, 0x5f / 0xff, 0x6b / 0xff, 0] },
+      ],
+    }),
     engine: asset.audio("/audio/engine.ogg", {
       preload: "blocking",
       durationHint: 2.1,
