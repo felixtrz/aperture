@@ -36,6 +36,7 @@ export default class VehicleSystem extends createSystem({
     nodes: { required: [Name, LocalTransform, AppEntitySource] },
   },
 }) {
+  #disposeFixedStep: (() => void) | null = null;
   #sphere: QueryEntity | null = null;
   #root: QueryEntity | null = null;
   #body: QueryEntity | null = null;
@@ -79,6 +80,9 @@ export default class VehicleSystem extends createSystem({
         velocity: { linear: [0, 0, 0], angular: [0, 0, 0] },
       },
     }) as QueryEntity;
+    this.#disposeFixedStep = this.fixedStep.register((context) => {
+      this.#step(context.fixedDelta);
+    });
 
     // Player vehicle (yellow truck), root scale 0.5 (Godot import).
     this.#root = this.spawn.gltf(this.assets.gltf(PLAYER_ASSET), {
@@ -95,6 +99,16 @@ export default class VehicleSystem extends createSystem({
   }
 
   override update(delta: number): void {
+    void delta;
+  }
+
+  override destroy(): void {
+    this.#disposeFixedStep?.();
+    this.#disposeFixedStep = null;
+    super.destroy();
+  }
+
+  #step(delta: number): void {
     if (this.#sphere === null || this.#root === null) return;
     if (!this.#resolved) this.#resolveNodes();
 

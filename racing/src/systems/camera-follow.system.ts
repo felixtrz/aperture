@@ -20,11 +20,28 @@ export default class CameraFollowSystem extends createSystem({
   priority: 120,
   queries: { cams: { required: [Name, LocalTransform] } },
 }) {
+  #disposeFixedStep: (() => void) | null = null;
   #camera: QueryEntity | null = null;
   #smoothed: Vec3 = [...vehicleState.sphere];
   #initialized = false;
 
+  override init(): void {
+    this.#disposeFixedStep = this.fixedStep.register((context) => {
+      this.#step(context.fixedDelta);
+    });
+  }
+
   override update(delta: number): void {
+    void delta;
+  }
+
+  override destroy(): void {
+    this.#disposeFixedStep?.();
+    this.#disposeFixedStep = null;
+    super.destroy();
+  }
+
+  #step(delta: number): void {
     if (!vehicleState.ready) return;
     if (this.#camera === null) this.#camera = this.#findNamed("main-camera");
     if (this.#camera === null) return;
