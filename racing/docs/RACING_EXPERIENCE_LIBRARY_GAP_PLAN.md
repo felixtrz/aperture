@@ -1,7 +1,7 @@
 # Racing Experience Source Audit And Aperture V1 Library Plan
 
 Date: 2026-06-16
-Status: proposed
+Status: in progress
 
 ## Executive Summary
 
@@ -101,6 +101,13 @@ building blocks and default paths.
   `this.trails.groundRibbon(...)` exposes the bias fields, and racing drift
   marks request the shared material path instead of relying only on a
   geometry-offset workaround.
+- 2026-06-16: Public GLTF instance lookup landed:
+  `@aperture-engine/app/systems` now exposes `this.gltf.node(...)` and
+  `this.gltf.nodes(...)` with structured diagnostics for inactive roots,
+  missing nodes, and duplicate names. The helper walks the fast `Children`
+  index when present and falls back to authoritative `Parent` links for raw
+  GLTF replay subtrees. Racing vehicle child-node lookup now uses the shared
+  helper instead of scanning an app-owned query every fixed step.
 
 ## Goals
 
@@ -852,7 +859,7 @@ Implementation notes:
 Acceptance criteria:
 
 - `vehicle.system.ts` no longer scans all nodes to find body/wheels every
-  update.
+  update. Done 2026-06-16.
 - `setup.system.ts` no longer scans all material assets to force culling.
 - Decorations can use a batch/instanced helper or at least a compact public
   spawn-list utility.
@@ -996,21 +1003,22 @@ Validation:
 
 Work items:
 
-- RACE-LIB-14: Add GLTF instance node lookup helper.
+- RACE-LIB-14: Add GLTF instance node lookup helper. Done 2026-06-16.
 - RACE-LIB-15: Add spawn-time material/render-state overrides.
 - RACE-LIB-16: Add batch/instanced spawn helper if decoration count remains
   noisy after lookup/override work.
 
 Racing migration:
 
-- Replace vehicle child-node scanning with instance lookup.
+- Replace vehicle child-node scanning with instance lookup. Done 2026-06-16.
 - Replace global material registry patching with spawn overrides or imported
   material defaults.
 - Simplify decoration spawning if a batch helper lands.
 
 Validation:
 
-- GLTF lookup tests for named node success, missing node, duplicate node.
+- GLTF lookup tests for named node success, missing node, duplicate node, and
+  raw GLTF replay `Parent` fallback. Done 2026-06-16.
 - Material override tests through render extraction.
 - Racing typecheck/build and visual smoke.
 
@@ -1107,17 +1115,18 @@ Shadow-lab validation:
 
 ## Recommended Next Implementation Slice
 
-Start with API 1 and API 3 together:
+Continue Phase 4 with RACE-LIB-15:
 
-1. Promote math helpers from existing `simulation/math` and app-private
-   transform code into a tested public surface.
-2. Add browser signal subscription/read helpers.
-3. Migrate racing off `src/lib/math.ts` and generated-status signal parsing.
+1. Add spawn-time GLTF material/render-state overrides, starting with the
+   racing/shadow-lab `cullMode: "back"` patch use case.
+2. Migrate racing and shadow-lab away from global material registry scans in
+   `setup.system.ts`.
+3. Validate with render-extraction tests, racing/shadow-lab typecheck/build,
+   and no-cache live source probes.
 
 Reason:
 
-- This is low-risk, immediately removes duplicated code, and gives the rest of
-  the work cleaner primitives.
-- It does not require solving particles/audio/dynamic mesh in the same diff.
-- It establishes the pattern for turning racing pain into library API plus
-  focused validation.
+- RACE-LIB-14 removed the vehicle child-node query scan, but both experiences
+  still patch imported materials by scanning all ready material assets.
+- Spawn-time overrides are the next smallest library-owned API that removes
+  app-owned engine behavior without changing gameplay.

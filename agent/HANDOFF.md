@@ -1,6 +1,6 @@
 # Handoff - Racing Library Gap Slices
 
-**Updated:** 2026-06-16 14:22 PDT
+**Updated:** 2026-06-16 14:43 PDT
 
 Current user-directed work is executing
 `racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
@@ -8,42 +8,44 @@ slices while keeping racing and Shadow Lab working.
 
 ## Latest Completed Slice
 
-- Wired material depth bias / polygon offset through built-in material pipeline
-  keys, WebGPU depth-stencil descriptors, and render pipeline cache keys.
-- Exposed `depthBias` and `depthBiasSlopeScale` on
-  `this.trails.groundRibbon(...)`.
-- Migrated racing drift marks to request `depthBias: -2` through the shared
-  trail helper.
-- Updated the racing plan and public tracker pages for RACE-LIB-13.
+- Added public GLTF instance lookup in `@aperture-engine/app/systems`:
+  `this.gltf.node(root, name, filter?)` and `this.gltf.nodes(root, filter?)`.
+- Surfaced structured diagnostics for inactive roots, empty names, missing
+  nodes, and duplicate node names.
+- Made the helper walk the fast `Children` index when present and fall back to
+  authoritative `Parent` links so raw GLTF replay subtrees are covered.
+- Migrated racing vehicle body/wheel lookup from an app-owned all-node query to
+  `this.gltf`.
+- Rebuilt package `dist` outputs and both experience production bundles.
+- Updated the racing plan for RACE-LIB-14.
 
 ## Latest Validation
 
-- `pnpm exec tsc -b packages/render packages/webgpu packages/app --pretty false`
-- `pnpm exec tsc --noEmit -p tsconfig.test.json --pretty false`
-- `pnpm exec vitest run test/app/trails.test.ts test/webgpu/material-render-state.test.ts test/materials/key-format-contract.test.ts test/webgpu/unlit-pipeline-descriptor.test.ts test/webgpu/pipeline-cache.test.ts`
-- `pnpm run check:progress`
-- `git diff --check`
 - `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/app/gltf-instance-lookup.test.ts`
+- `pnpm exec vitest run test/app/gltf-instance-lookup.test.ts test/app/hierarchy-accessor.test.ts test/app/trails.test.ts`
 - `pnpm run typecheck && pnpm run build` in `racing/`
 - `pnpm run typecheck && pnpm run build` in `shadow-lab/`
 - No-cache HTTP probes against both running dev servers confirmed the served
-  shared package modules contain the updated depth-bias code.
+  racing vehicle system uses `this.gltf` and the served shared package module
+  contains the `Parent` fallback helper code.
 - Aperture MCP `browser_status` for racing was running with `webgpuOk:true`,
-  `lastError:null`, and prepared drift material pipeline key
-  `unlit|depth-bias:-2:0|blend|none|less|alpha`.
+  `lastError:null`, automatic directional shadow submitted, and restored
+  non-null `wheelBL`/`wheelBR` vehicle resource values.
 
 ## Current Notes
 
 - The racing console log history still contains earlier errors from the
-  half-written helper placement before this slice was fixed, but the current
-  MCP status is healthy.
+  half-written helper placement and the pre-rebuild `this.gltf` migration, but
+  the current MCP status is healthy after rebuilding package `dist`.
 - Pre-existing untracked screenshot/parity artifacts remain outside the commit.
 
 ## Recommended Next Task
 
-Continue the racing library-gap plan with the next non-render-state slice:
-audio runtime ergonomics, GLTF spawn/material override ergonomics, or cleanup of
-inactive racing setup variants.
+Continue Phase 4 with RACE-LIB-15: add spawn-time GLTF material/render-state
+overrides, then migrate racing and shadow-lab off the global material registry
+scan in `setup.system.ts`.
 
 ---
 

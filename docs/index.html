@@ -393,14 +393,21 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 21:21 UTC</dd>
+            <dd>2026-06-16 21:43 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: material depth bias now flows through render-state
-              pipeline keys, WebGPU depth-stencil descriptors, and render
-              pipeline cache keys. The
+              Latest update: app systems now expose
+              <code>this.gltf.node(...)</code> and
+              <code>this.gltf.nodes(...)</code> for spawned GLTF instance
+              lookup, with structured diagnostics and a raw GLTF replay
+              <code>Parent</code>-link fallback when the derived
+              <code>Children</code> index is absent. Racing vehicle body/wheel
+              lookup now uses the library helper instead of an app-owned
+              all-node query. Prior update: material depth bias now flows
+              through render-state pipeline keys, WebGPU depth-stencil
+              descriptors, and render pipeline cache keys. The
               <code>this.trails.groundRibbon(...)</code> helper exposes that
               bias for decal/trail-style geometry, and racing drift marks
               request it through the library path. Prior update: app systems now
@@ -1140,34 +1147,11 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue the active physics plan inside the generated simulation
-              worker: keep adding gameplay physics semantics through
-              pause/snapshot/command-or-edit/step/diff coverage, with body,
-              collider, joint, query, character-controller authoring,
-              command-tool, and debug-geometry inspection plus post-physics
-              interaction picking now covered by that route. The route also now
-              exposes backend step/readback/writeback counters directly in the
-              physics summary. Primitive collider shape edits are now covered
-              through the same route for cylinder dimensions, and child collider
-              entities now cover compound separated body/collider authoring.
-              Next unresolved physics semantics are enforceable motor
-              force-limit execution, automatic
-              <code>breakForce</code>/impulse-driven joint breaks, native joint
-              impulse readback, broader paired joint-frame semantics beyond
-              frame-oriented unit axes (now reported and inspectable through
-              <code>physics_joint_status</code> when unsupported, including
-              authored <code>motorMaxForce</code> caps), broader rigid-body
-              gameplay semantics beyond the now-covered axis locks, damping, and
-              kinematic-velocity body motion, canSleep behavior, and angular
-              rotation writeback, or additional joint/gameplay semantics through
-              that harness. Use the dedicated Rapier physics-worker route for
-              transfer and worker-owned-action coverage, but keep the generated
-              simulation worker as the default developer route. Asset-backed
-              collider cooking plus the large-scale physics example are covered;
-              resume remaining joint/gameplay physics semantics next, and resume
-              <code>M10-T3</code> WebXR separately from
-              <code>docs/WEBXR_IMPLEMENTATION_PLAN.md</code> when physics no
-              longer needs that focus.
+              Continue the racing library-gap plan with
+              <code>RACE-LIB-15</code>: add spawn-time GLTF
+              material/render-state overrides, then migrate racing and
+              shadow-lab away from global material registry scans in
+              <code>setup.system.ts</code>.
             </dd>
           </dl>
         </aside>

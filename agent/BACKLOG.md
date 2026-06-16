@@ -59,28 +59,24 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Continue remaining M10 joint/gameplay semantics in the generated
-simulation-worker route.
+Add spawn-time GLTF material/render-state overrides and migrate racing/shadow-lab
+off global material registry scans.
 
-Category: `simulation`
+Category: `runtime-orchestration`
 
-Reference anchor: `references/bevy/crates/bevy_app/src/main_schedule.rs`,
-`references/engine/src/framework/components/joint/component.js`,
-`references/engine/src/framework/components/rigid-body/system.js`, current
-`packages/physics/src/backend.ts`, and
-`packages/physics-rapier/src/joints.ts`.
+Reference anchor: `references/engine/src/framework/entity.js:336` and
+`references/engine/src/framework/components/render/component.js` for component
+spawn ergonomics and material/render override expectations.
 
 Acceptance criteria:
 
-- Implement one remaining joint/gameplay semantic as a concrete vertical slice:
-  enforceable motor force caps, automatic `breakForce` / impulse-driven joint
-  breaks, native joint impulse readback, or broader paired non-fixed joint frame
-  semantics.
-- Keep unsupported backend limitations truthful through structured diagnostics
-  when enforcement/readback is not possible.
-- Generated-worker pause/snapshot/edit-or-command/`ecs_step` or
-  `ecs_step_and_diff`/query/`ecs_diff` proves the behavior from ECS state.
-- Focused backend/generated-worker tests and `pnpm run check` pass.
+- `this.spawn.gltf(...)` accepts spawn-time material/render-state overrides for
+  imported subtree materials, starting with `cullMode: "back"`.
+- Racing and shadow-lab no longer scan every ready material asset in
+  `setup.system.ts` to force imported GLB culling.
+- Focused app/render extraction tests cover the override behavior.
+- Racing/shadow-lab typecheck/build pass, and no-cache live source probes show
+  both apps are using the updated workspace `dist` code.
 
 ## Historical M10 Physics Notes
 

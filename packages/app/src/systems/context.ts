@@ -18,6 +18,7 @@ import {
 } from "./assets.js";
 import { registerApertureAppComponents } from "./components.js";
 import { createCameraAccess, type CameraAccess } from "./cameras.js";
+import { createGltfInstanceAccess, type GltfInstanceAccess } from "./gltf.js";
 import { createHierarchyAccess, type HierarchyAccess } from "./hierarchy.js";
 import {
   createInteractionAccess,
@@ -66,6 +67,7 @@ export interface ApertureSystemContext {
   readonly spawn: SpawnCommands;
   readonly spatial: SpatialQueries;
   readonly cameras: CameraAccess;
+  readonly gltf: GltfInstanceAccess;
   readonly hierarchy: HierarchyAccess;
   readonly prefabs: PrefabAccess;
   readonly particles: ParticleAccess;
@@ -136,6 +138,7 @@ export function createApertureSystemContext(
   const cameras = createCameraAccess(options.world, {
     contextKey: APERTURE_SYSTEM_CONTEXT_KEY,
   });
+  const gltf = createGltfInstanceAccess(options.world);
   const hierarchy = createHierarchyAccess(options.world);
   const prefabs = createPrefabAccess(options.assetsRegistry);
   const particles = createParticleAccess({ world: options.world, assets });
@@ -161,6 +164,7 @@ export function createApertureSystemContext(
     spawn,
     spatial,
     cameras,
+    gltf,
     hierarchy,
     prefabs,
     particles,
@@ -205,6 +209,7 @@ function isApertureSystemContext(
     "startOptions" in value &&
     "spawn" in value &&
     "meshes" in value &&
+    "gltf" in value &&
     "trails" in value &&
     "particles" in value &&
     "effects" in value

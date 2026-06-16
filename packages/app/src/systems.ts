@@ -67,6 +67,7 @@ import { ApertureSystemError } from "./systems/errors.js";
 import type { CommandAccess } from "./systems/commands.js";
 import type { SystemAssetAccess } from "./systems/assets.js";
 import type { CameraAccess } from "./systems/cameras.js";
+import type { GltfInstanceAccess } from "./systems/gltf.js";
 import type { HierarchyAccess } from "./systems/hierarchy.js";
 import type { InteractionAccess } from "./interaction/access.js";
 import type { MaterialAccess } from "./systems/materials.js";
@@ -149,6 +150,7 @@ export {
 
 export type {
   ColorTuple,
+  Entity,
   EulerRotationOrder,
   Mat4,
   Mat4Like,
@@ -239,6 +241,15 @@ export {
   registerApertureAppComponents,
 } from "./systems/components.js";
 export type { CameraAccess, CameraHandle } from "./systems/cameras.js";
+export type {
+  GltfInstanceAccess,
+  GltfNodeFilter,
+  GltfNodeLookupDiagnostic,
+  GltfNodeLookupDiagnosticCode,
+  GltfNodeLookupResult,
+  GltfNodeRecord,
+} from "./systems/gltf.js";
+export { createGltfInstanceAccess } from "./systems/gltf.js";
 export type {
   HierarchyAccess,
   HierarchyChildrenResult,
@@ -411,6 +422,7 @@ export interface ApertureSystemInstance {
   readonly spawn: SpawnCommands;
   readonly spatial: SpatialQueries;
   readonly cameras: CameraAccess;
+  readonly gltf: GltfInstanceAccess;
   readonly hierarchy: HierarchyAccess;
   readonly prefabs: PrefabAccess;
   readonly particles: ParticleAccess;
@@ -547,6 +559,10 @@ export function createSystem<
 
     get cameras(): CameraAccess {
       return this.#context.cameras;
+    }
+
+    get gltf(): GltfInstanceAccess {
+      return this.#context.gltf;
     }
 
     get hierarchy(): HierarchyAccess {

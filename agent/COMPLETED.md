@@ -1,5 +1,30 @@
 # Completed Tasks
 
+## RACE-LIB-14 — GLTF instance lookup helper
+
+Completed: 2026-06-16 14:43 PDT
+Commit: pending
+
+### Summary
+
+- Added `this.gltf.node(...)` and `this.gltf.nodes(...)` to app system
+  context/facade exports.
+- Added structured diagnostics for inactive roots, invalid names, missing
+  nodes, and duplicate GLTF node names.
+- Traverses the fast `Children` index when present and falls back to
+  authoritative `Parent` links for raw GLTF replay subtrees.
+- Migrated racing vehicle body/wheel lookup off an app-owned all-node query.
+
+### Validation
+
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/app/gltf-instance-lookup.test.ts`
+- `pnpm exec vitest run test/app/gltf-instance-lookup.test.ts test/app/hierarchy-accessor.test.ts test/app/trails.test.ts`
+- `pnpm run typecheck && pnpm run build` in `racing/`
+- `pnpm run typecheck && pnpm run build` in `shadow-lab/`
+- Aperture MCP racing status healthy with non-null rear wheel positions.
+
 ## PHYS — Rapier backend refactor and worker action route
 
 Completed: 2026-06-06 09:50 PDT

@@ -1,7 +1,5 @@
 import {
-  AppEntitySource,
   LocalTransform,
-  Name,
   RenderInterpolation,
   WorldTransform,
   clamp,
@@ -10,7 +8,7 @@ import {
   lerpAngle,
   quatFromAxisAngle,
   quatFromEulerYXZ,
-  type ApertureQuery,
+  type Entity,
   type InputAxis2dAction,
   type SimulationFixedStepContext,
   type Vec3Tuple as Vec3,
@@ -24,22 +22,19 @@ import {
 import { computeSpawnPosition, resolveTrackCells } from "../lib/track.js";
 import { VehicleResource } from "../lib/vehicle-resource.js";
 
-type QueryEntity = ApertureQuery["entities"] extends Set<infer T> ? T : never;
-
 const PLAYER_ASSET = "vehicle-truck-yellow";
 const Y_AXIS: Vec3 = [0, 1, 0];
 
 export default class VehicleSystem extends createSystem({
   priority: 40,
-  queries: {
-    nodes: { required: [Name, LocalTransform, AppEntitySource] },
-  },
 }) {
-  #sphere: QueryEntity | null = null;
-  #root: QueryEntity | null = null;
-  #body: QueryEntity | null = null;
-  #wheels: QueryEntity[] = [];
-  #frontWheels: QueryEntity[] = [];
+  #sphere: Entity | null = null;
+  #root: Entity | null = null;
+  #body: Entity | null = null;
+  #wheels: Entity[] = [];
+  #frontWheels: Entity[] = [];
+  #rearLeftWheel: Entity | null = null;
+  #rearRightWheel: Entity | null = null;
   #resolved = false;
 
   // Vehicle dynamics state (mirrors Vehicle.js).
@@ -91,7 +86,7 @@ export default class VehicleSystem extends createSystem({
         },
         velocity: { linear: [0, 0, 0], angular: [0, 0, 0] },
       },
-    }) as QueryEntity;
+    });
     // Player vehicle (yellow truck), root scale 0.5 (Godot import).
     this.#root = this.spawn.gltf(this.assets.gltf(PLAYER_ASSET), {
       key: "player.vehicle",
@@ -108,7 +103,7 @@ export default class VehicleSystem extends createSystem({
         rotation: quatFromAxisAngle(Y_AXIS, this.#spawnYaw),
         scale: [VEHICLE_ROOT_SCALE, VEHICLE_ROOT_SCALE, VEHICLE_ROOT_SCALE],
       },
-    }) as QueryEntity;
+    });
     enableRenderInterpolation(this.#root);
   }
 
@@ -217,8 +212,8 @@ export default class VehicleSystem extends createSystem({
       mvz = (cz - this.#prevModel[2]) / dt;
       this.#prevModel = [cx, cy, cz];
     }
-    const wheelBL = this.#worldPos(this.#findWheel("wheel-back-left"));
-    const wheelBR = this.#worldPos(this.#findWheel("wheel-back-right"));
+    const wheelBL = this.#worldPos(this.#rearLeftWheel);
+    const wheelBR = this.#worldPos(this.#rearRightWheel);
     this.resources.write(VehicleResource, (state) => {
       state.ready = true;
       state.sphere = [sx, sy, sz];
@@ -280,44 +275,42 @@ export default class VehicleSystem extends createSystem({
     }
   }
 
-  #worldPos(entity: QueryEntity | null): Vec3 | null {
+  #worldPos(entity: Entity | null): Vec3 | null {
     if (entity === null || !entity.hasComponent(WorldTransform)) return null;
     const c3 = entity.getVectorView(WorldTransform, "col3");
     return [c3[0] ?? 0, c3[1] ?? 0, c3[2] ?? 0];
   }
 
   #resolveNodes(): void {
-    for (const entity of this.queries.nodes.entities) {
-      if (entity.getValue(AppEntitySource, "assetId") !== PLAYER_ASSET)
-        continue;
-      const name = entity.getValue(Name, "value");
-      if (name === "body") {
-        this.#body = entity;
-        enableRenderInterpolation(entity);
-      } else if (typeof name === "string" && name.includes("wheel")) {
-        if (!this.#wheels.includes(entity)) {
-          this.#wheels.push(entity);
-        }
-        enableRenderInterpolation(entity);
-        if (name.includes("front") && !this.#frontWheels.includes(entity)) {
-          this.#frontWheels.push(entity);
-        }
-      }
-    }
-    if (this.#body !== null && this.#wheels.length >= 4) this.#resolved = true;
-  }
+    if (this.#root === null) return;
 
-  #findWheel(nodeName: string): QueryEntity | null {
-    for (const entity of this.queries.nodes.entities) {
-      if (entity.getValue(AppEntitySource, "assetId") !== PLAYER_ASSET)
-        continue;
-      if (entity.getValue(Name, "value") === nodeName) return entity;
+    const body = this.gltf.node(this.#root, "body", { assetId: PLAYER_ASSET });
+    if (body.ok && body.entity !== null) {
+      this.#body = body.entity;
+      enableRenderInterpolation(body.entity);
     }
-    return null;
+
+    const wheels = this.gltf.nodes(this.#root, {
+      assetId: PLAYER_ASSET,
+      nameIncludes: "wheel",
+    });
+    this.#wheels = wheels.map((node) => node.entity);
+    this.#frontWheels = wheels
+      .filter((node) => node.name.includes("front"))
+      .map((node) => node.entity);
+    this.#rearLeftWheel = this.gltf.node(this.#root, "wheel-back-left", {
+      assetId: PLAYER_ASSET,
+    }).entity;
+    this.#rearRightWheel = this.gltf.node(this.#root, "wheel-back-right", {
+      assetId: PLAYER_ASSET,
+    }).entity;
+    for (const wheel of this.#wheels) enableRenderInterpolation(wheel);
+
+    if (this.#body !== null && this.#wheels.length >= 4) this.#resolved = true;
   }
 }
 
-function enableRenderInterpolation(entity: QueryEntity): void {
+function enableRenderInterpolation(entity: Entity): void {
   if (!entity.hasComponent(RenderInterpolation)) {
     entity.addComponent(RenderInterpolation);
   }
