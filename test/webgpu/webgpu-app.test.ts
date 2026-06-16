@@ -1074,6 +1074,57 @@ describe("WebGPU app facade", () => {
     );
   });
 
+  it("toggles configured post effects by id between frames", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+      postEffects: [createWebGpuCopyPostEffect({ id: "noop" })],
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "White" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const enabledFrame = await app.stepAndRender(1 / 60, 1, 14);
+    expect(enabledFrame.postEffects).toMatchObject([{ effectId: "noop" }]);
+
+    expect(app.setPostEffectEnabled("noop", false)).toBe(true);
+    expect(app.setPostEffectEnabled("missing", false)).toBe(false);
+
+    const disabledFrame = await app.stepAndRender(1 / 60, 1, 14);
+    expect(disabledFrame.postEffects).toEqual([]);
+    expect(disabledFrame.counts.drawCalls).toBe(1);
+
+    expect(app.setPostEffectEnabled("noop", true)).toBe(true);
+
+    const reenabledFrame = await app.stepAndRender(1 / 60, 1, 14);
+    expect(reenabledFrame.postEffects).toMatchObject([{ effectId: "noop" }]);
+  });
+
   it("passes the renderer-owned scene depth texture to SSAO post effects", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);

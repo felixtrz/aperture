@@ -9,6 +9,7 @@ import { quatLookAt, type Vec3 } from "../lib/math.js";
 import {
   BACKGROUND_HEX,
   BLOOM,
+  BLOOM_PROBE,
   CAMERA,
   DIR_LIGHT,
   FOG_HEX,
@@ -94,6 +95,7 @@ function layout(): {
   diffCanvas: HTMLCanvasElement;
   setLabel: (text: string) => void;
   diffButton: HTMLButtonElement;
+  bloomButton: HTMLButtonElement;
 } {
   const aperture = document.getElementById("aperture") as HTMLCanvasElement | null;
   if (aperture === null) {
@@ -142,11 +144,18 @@ function layout(): {
     "display:flex;gap:8px;align-items:center;font:12px ui-monospace,Menlo,monospace;" +
     "color:#e7ecf2;background:rgba(18,22,28,.86);padding:7px 10px;border-radius:9px;" +
     "border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 30px rgba(0,0,0,.45);";
-  const diffButton = document.createElement("button");
-  diffButton.textContent = "Diff heatmap: OFF";
-  diffButton.style.cssText =
-    "cursor:pointer;font:inherit;color:#e7ecf2;background:rgba(255,255,255,.08);" +
-    "border:1px solid rgba(255,255,255,.16);border-radius:6px;padding:5px 10px;";
+
+  const makeButton = (text: string): HTMLButtonElement => {
+    const button = document.createElement("button");
+    button.textContent = text;
+    button.style.cssText =
+      "cursor:pointer;font:inherit;color:#e7ecf2;background:rgba(255,255,255,.08);" +
+      "border:1px solid rgba(255,255,255,.16);border-radius:6px;padding:5px 10px;";
+    return button;
+  };
+  const bloomButton = makeButton("Bloom: ON");
+  const diffButton = makeButton("Diff heatmap: OFF");
+  bar.append(bloomButton);
   bar.append(diffButton);
   document.body.append(bar);
   for (const type of ["pointerdown", "wheel", "keydown"]) {
@@ -160,6 +169,7 @@ function layout(): {
       rightLabel.textContent = text;
     },
     diffButton,
+    bloomButton,
   };
 }
 
@@ -222,6 +232,7 @@ async function buildScene(): Promise<{
 
   buildTrack(scene, models, cells, customMap);
   const playerRoot = buildPlayer(scene, models);
+  buildBloomProbe(scene);
 
   const shadowExtent = Math.max(bounds.halfWidth, bounds.halfDepth) + 10;
   const sun = new THREE.DirectionalLight(DIR_LIGHT.colorHex, DIR_LIGHT.intensity);
@@ -364,6 +375,33 @@ function buildPlayer(
   return player;
 }
 
+function buildBloomProbe(scene: typeof THREE.Scene.prototype): void {
+  const material = new THREE.MeshStandardMaterial({
+    color: BLOOM_PROBE.baseColorHex,
+    emissive: new THREE.Color(
+      BLOOM_PROBE.emissiveFactor[0],
+      BLOOM_PROBE.emissiveFactor[1],
+      BLOOM_PROBE.emissiveFactor[2],
+    ),
+    emissiveIntensity: 1,
+    metalness: 0,
+    roughness: BLOOM_PROBE.roughness,
+  });
+  const probe = new THREE.Mesh(
+    new THREE.SphereGeometry(
+      BLOOM_PROBE.radius,
+      BLOOM_PROBE.segments,
+      Math.max(8, Math.floor(BLOOM_PROBE.segments / 2)),
+    ),
+    material,
+  );
+  probe.name = "bloom-probe";
+  probe.position.set(...BLOOM_PROBE.position);
+  probe.castShadow = false;
+  probe.receiveShadow = false;
+  scene.add(probe);
+}
+
 function cloneObject(src: ThreeObject): ThreeObject {
   return src.clone(true) as ThreeObject;
 }
@@ -433,7 +471,7 @@ export async function installThreeCompare(): Promise<void> {
     return;
   }
 
-  const { threeCanvas, diffCanvas, setLabel, diffButton } = layout();
+  const { threeCanvas, diffCanvas, setLabel, diffButton, bloomButton } = layout();
   setLabel("THREE.js loading scene...");
   let sceneBundle: Awaited<ReturnType<typeof buildScene>>;
   try {
@@ -478,7 +516,7 @@ export async function installThreeCompare(): Promise<void> {
   resize();
   window.addEventListener("resize", resize);
 
-  let renderPipeline: typeof THREE.RenderPipeline.prototype | null = null;
+  let bloomPipeline: typeof THREE.RenderPipeline.prototype | null = null;
   try {
     const scenePass = THREE.TSL.pass(scene, camera);
     const scenePassColor = scenePass.getTextureNode("output");
@@ -488,12 +526,43 @@ export async function installThreeCompare(): Promise<void> {
       BLOOM.radius,
       BLOOM.threshold,
     );
-    renderPipeline = new THREE.RenderPipeline(renderer);
-    renderPipeline.outputNode = scenePassColor.add(bloomPass);
+    bloomPipeline = new THREE.RenderPipeline(renderer);
+    bloomPipeline.outputNode = scenePassColor.add(bloomPass);
   } catch (err) {
     // eslint-disable-next-line no-console
     console.warn("[three-compare] bloom pipeline unavailable; rendering direct.", err);
   }
+
+  let bloomOn = new URLSearchParams(window.location.search).get("bloom") !== "0";
+  let bloomToggleInFlight = false;
+  const updateBloomButton = (): void => {
+    bloomButton.textContent = `Bloom: ${bloomOn ? "ON" : "OFF"}`;
+    bloomButton.style.background = bloomOn
+      ? "rgba(59,125,221,.9)"
+      : "rgba(255,255,255,.08)";
+    bloomButton.disabled = bloomToggleInFlight;
+    bloomButton.style.opacity = bloomToggleInFlight ? "0.65" : "1";
+  };
+  const setBloomEnabled = async (enabled: boolean): Promise<void> => {
+    if (bloomToggleInFlight) return;
+    const previous = bloomOn;
+    bloomOn = enabled;
+    bloomToggleInFlight = true;
+    updateBloomButton();
+    const response = await rt.callTool("render_set_post_effect_enabled", {
+      effectId: "bloom",
+      enabled,
+    });
+    bloomToggleInFlight = false;
+    if (!response.ok) {
+      bloomOn = previous;
+      // eslint-disable-next-line no-console
+      console.warn("[three-compare] failed to toggle Aperture bloom:", response);
+    }
+    updateBloomButton();
+  };
+  updateBloomButton();
+  void setBloomEnabled(bloomOn);
 
   let cameraPushInFlight = false;
   let cameraPushQueued = false;
@@ -602,11 +671,14 @@ export async function installThreeCompare(): Promise<void> {
       : "rgba(255,255,255,.08)";
     diffCanvas.style.display = diffOn ? "block" : "none";
   });
+  bloomButton.addEventListener("click", () => {
+    void setBloomEnabled(!bloomOn);
+  });
 
   const loop = (): void => {
     try {
-      if (renderPipeline !== null) {
-        renderPipeline.render();
+      if (bloomOn && bloomPipeline !== null) {
+        bloomPipeline.render();
       } else {
         renderer.render(scene, camera);
       }

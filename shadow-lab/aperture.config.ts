@@ -38,7 +38,8 @@ export default defineApertureConfig({
     bloom: {
       threshold: BLOOM.threshold,
       intensity: BLOOM.strength,
-      radiusPixels: 2,
+      radiusPixels: 8,
+      levels: 5,
     },
   },
   diagnostics: {

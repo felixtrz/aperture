@@ -59,3 +59,18 @@ export const HEMI_LIGHT = {
   intensity: 2,
 } as const;
 export const BLOOM = { strength: 0.02, radius: 0.02, threshold: 0.5 } as const;
+
+export const BLOOM_PROBE = {
+  baseColorHex: 0xffdf6b,
+  emissiveFactor: [12, 8, 1.5] as [number, number, number],
+  radius: 0.28,
+  segments: 32,
+  roughness: 0.15,
+  // Partly intersects the parked player truck so the halo is easy to compare
+  // against hard geometry edges in both renderers.
+  position: [SPAWN_POS[0] - 0.1, 0.56, SPAWN_POS[2] - 0.15] as [
+    number,
+    number,
+    number,
+  ],
+} as const;

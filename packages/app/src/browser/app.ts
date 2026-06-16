@@ -195,6 +195,7 @@ function resolveGeneratedPostEffects(
       ...(options.radiusPixels === undefined
         ? {}
         : { radiusPixels: options.radiusPixels }),
+      ...(options.levels === undefined ? {} : { levels: options.levels }),
     }),
   ];
 }

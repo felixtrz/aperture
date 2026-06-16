@@ -200,6 +200,15 @@ function materialDescriptorToAsset(
     ...(descriptorValue.options.metallic === undefined
       ? {}
       : { metallicFactor: descriptorValue.options.metallic }),
+    ...(descriptorValue.options.emissiveFactor === undefined
+      ? {}
+      : {
+          emissiveFactor: [
+            read3(descriptorValue.options.emissiveFactor, 0),
+            read3(descriptorValue.options.emissiveFactor, 1),
+            read3(descriptorValue.options.emissiveFactor, 2),
+          ],
+        }),
   });
 }
 

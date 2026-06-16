@@ -122,6 +122,14 @@ export async function createWebGpuApp(
     removePass(name) {
       return userPassRegistry.removePass(name);
     },
+    setPostEffectEnabled(id, enabled) {
+      const effectIndex = postEffects.findIndex((effect) => effect.id === id);
+      if (effectIndex < 0) return false;
+      const effect = postEffects[effectIndex];
+      if (effect === undefined) return false;
+      postEffects[effectIndex] = { ...effect, enabled };
+      return true;
+    },
     start(startOptions = {}) {
       if (running) {
         return;

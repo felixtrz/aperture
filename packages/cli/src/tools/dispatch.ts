@@ -113,6 +113,8 @@ export async function callBrowserBackedTool(
       return renderExplainEntity(page, args);
     case "render_get_diagnostics":
       return renderDiagnostics(page);
+    case "render_set_post_effect_enabled":
+      return callGeneratedRuntimeTool(page, name, args);
     case "render_readback_samples":
     case "render_pick_entity":
       return callGeneratedRuntimeTool(page, name, args);

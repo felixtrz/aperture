@@ -528,6 +528,8 @@ export interface WebGpuApp {
   addComputePass(descriptor: WebGpuAppComputePassDescriptor): void;
   /** Remove a user pass by name; returns true if one was registered. */
   removePass(name: string): boolean;
+  /** Enable or disable a configured post effect by id; returns true if found. */
+  setPostEffectEnabled(id: string, enabled: boolean): boolean;
 }
 
 export interface CreateWebGpuAppOptions extends Omit<

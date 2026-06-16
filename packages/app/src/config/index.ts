@@ -240,6 +240,8 @@ export interface ApertureBloomConfig {
   readonly intensity?: number;
   /** Blur radius in pixels at full resolution. */
   readonly radiusPixels?: number;
+  /** Number of downsampled bloom levels to blur and composite. */
+  readonly levels?: number;
 }
 
 export interface ApertureRenderDefaults {

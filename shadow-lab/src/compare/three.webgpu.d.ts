@@ -19,5 +19,6 @@ export const PCFSoftShadowMap: any;
 export const PerspectiveCamera: any;
 export const RenderPipeline: any;
 export const Scene: any;
+export const SphereGeometry: any;
 export const TSL: any;
 export const WebGPURenderer: any;

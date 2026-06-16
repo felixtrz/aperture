@@ -1,8 +1,9 @@
-import { createSystem } from "@aperture-engine/app/systems";
+import { createSystem, material, mesh } from "@aperture-engine/app/systems";
 import { hexColor } from "../lib/math.js";
 import {
   BACKGROUND_HEX,
   CAMERA,
+  BLOOM_PROBE,
   DIR_LIGHT,
   FOG_HEX,
   HEMI_LIGHT,
@@ -38,6 +39,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     this.#spawnTrack();
     this.#spawnNpcs();
     this.#spawnPlayer();
+    this.#spawnBloomProbe();
   }
 
   #spawnCamera(): void {
@@ -162,6 +164,30 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         translation: [SPAWN_POS[0], SPAWN_POS[1] - 0.5, SPAWN_POS[2]],
         scale: [VEHICLE_ROOT_SCALE, VEHICLE_ROOT_SCALE, VEHICLE_ROOT_SCALE],
       },
+    });
+  }
+
+  #spawnBloomProbe(): void {
+    this.spawn.mesh({
+      key: "bloom.probe",
+      name: "bloom-probe",
+      tags: ["probe", "bloom"],
+      mesh: mesh.sphere({
+        radius: BLOOM_PROBE.radius,
+        segments: BLOOM_PROBE.segments,
+      }),
+      material: material.standard({
+        label: "Bloom Probe HDR Material",
+        baseColor: hexColor(BLOOM_PROBE.baseColorHex),
+        emissiveFactor: BLOOM_PROBE.emissiveFactor,
+        metallic: 0,
+        roughness: BLOOM_PROBE.roughness,
+      }),
+      transform: {
+        translation: BLOOM_PROBE.position,
+      },
+      castShadow: false,
+      receiveShadow: false,
     });
   }
 }

@@ -132,6 +132,10 @@ export interface StandardMaterialOptions {
   readonly baseColor?: Vec4Like;
   readonly roughness?: number;
   readonly metallic?: number;
+  /**
+   * Additive linear emissive color. Values may exceed 1 for HDR/bloom probes.
+   */
+  readonly emissiveFactor?: Vec3Like;
   readonly label?: string;
 }
 

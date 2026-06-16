@@ -1058,7 +1058,7 @@ fn fs(input: VertexOutput) -> @location(0) vec4f {
   bloom += sampleBloom(uv + texel * vec2f(-1.0, 0.0) * BLOOM_RADIUS_PIXELS) * 0.145;
   bloom += sampleBloom(uv + texel * vec2f(0.0, 1.0) * BLOOM_RADIUS_PIXELS) * 0.145;
   bloom += sampleBloom(uv + texel * vec2f(0.0, -1.0) * BLOOM_RADIUS_PIXELS) * 0.145;
-  let color = min(base.rgb + bloom * BLOOM_INTENSITY, vec3f(1.0));
+  let color = base.rgb + bloom * BLOOM_INTENSITY;
   return vec4f(color, base.a);
 }
 `;

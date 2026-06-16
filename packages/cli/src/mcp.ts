@@ -383,6 +383,15 @@ function toolDefinitions(): readonly McpToolDefinition[] {
       "Explain why an entity did or did not render.",
     ),
     tool("render_get_diagnostics", "Read render diagnostics."),
+    tool(
+      "render_set_post_effect_enabled",
+      "Enable or disable a named generated WebGPU post effect.",
+      {
+        effectId: { type: "string" },
+        id: { type: "string" },
+        enabled: { type: "boolean" },
+      },
+    ),
     tool("render_readback_samples", "Read JSON-safe pixel samples.", {
       samples: { type: "array" },
     }),

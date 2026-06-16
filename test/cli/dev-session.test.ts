@@ -247,6 +247,7 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       "render_get_packets",
       "render_explain_entity",
       "render_get_diagnostics",
+      "render_set_post_effect_enabled",
       "render_readback_samples",
       "render_pick_entity",
       "reference_search",
