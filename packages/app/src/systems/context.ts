@@ -27,6 +27,7 @@ import { createMaterialAccess, type MaterialAccess } from "./materials.js";
 import { createMeshAccess, type MeshAccess } from "./meshes.js";
 import { createPhysicsAccess, type PhysicsAccess } from "./physics.js";
 import { createPrefabAccess, type PrefabAccess } from "./prefabs.js";
+import { createParticleAccess, type ParticleAccess } from "./particles.js";
 import { createSignalStore, type SignalStore } from "./signals.js";
 import { createResourceStore, type ResourceStore } from "./resources.js";
 import {
@@ -66,6 +67,7 @@ export interface ApertureSystemContext {
   readonly cameras: CameraAccess;
   readonly hierarchy: HierarchyAccess;
   readonly prefabs: PrefabAccess;
+  readonly particles: ParticleAccess;
   readonly materials: MaterialAccess;
   readonly meshes: MeshAccess;
   readonly physics: PhysicsAccess;
@@ -134,6 +136,7 @@ export function createApertureSystemContext(
   });
   const hierarchy = createHierarchyAccess(options.world);
   const prefabs = createPrefabAccess(options.assetsRegistry);
+  const particles = createParticleAccess({ world: options.world, assets });
   const materials = createMaterialAccess(options.assetsRegistry);
   const meshes = createMeshAccess(options.assetsRegistry);
   const fixedStep = createFixedStepAccess(options.registerFixedStepTask);
@@ -153,6 +156,7 @@ export function createApertureSystemContext(
     cameras,
     hierarchy,
     prefabs,
+    particles,
     materials,
     meshes,
     physics,
@@ -193,6 +197,7 @@ function isApertureSystemContext(
     "startOptions" in value &&
     "spawn" in value &&
     "meshes" in value &&
+    "particles" in value &&
     "effects" in value
   );
 }

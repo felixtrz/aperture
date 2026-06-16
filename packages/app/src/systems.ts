@@ -71,6 +71,7 @@ import type { HierarchyAccess } from "./systems/hierarchy.js";
 import type { InteractionAccess } from "./interaction/access.js";
 import type { MaterialAccess } from "./systems/materials.js";
 import type { MeshAccess } from "./systems/meshes.js";
+import type { ParticleAccess } from "./systems/particles.js";
 import type { PhysicsAccess } from "./systems/physics.js";
 import type { FixedStepAccess } from "./systems/fixed-step.js";
 import type { PrefabAccess } from "./systems/prefabs.js";
@@ -247,6 +248,11 @@ export { createHierarchyAccess } from "./systems/hierarchy.js";
 export type { PrefabAccess, PrefabRegisterOptions } from "./systems/prefabs.js";
 export { createPrefabAccess } from "./systems/prefabs.js";
 export type {
+  ParticleAccess,
+  ParticleEmitOptions,
+} from "./systems/particles.js";
+export { createParticleAccess } from "./systems/particles.js";
+export type {
   MaterialAccess,
   MaterialPatch,
   MaterialSetDiagnostic,
@@ -399,6 +405,7 @@ export interface ApertureSystemInstance {
   readonly cameras: CameraAccess;
   readonly hierarchy: HierarchyAccess;
   readonly prefabs: PrefabAccess;
+  readonly particles: ParticleAccess;
   readonly materials: MaterialAccess;
   readonly meshes: MeshAccess;
   readonly physics: PhysicsAccess;
@@ -539,6 +546,10 @@ export function createSystem<
 
     get prefabs(): PrefabAccess {
       return this.#context.prefabs;
+    }
+
+    get particles(): ParticleAccess {
+      return this.#context.particles;
     }
 
     get materials(): MaterialAccess {

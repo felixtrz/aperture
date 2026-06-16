@@ -10,6 +10,8 @@ export type {
   InstanceAttributeFieldPacket,
   InstanceAttributePacket,
   LightPacket,
+  ParticleBurstPacket,
+  ParticleEmitterModePacket,
   MeshDrawPacket,
   ParticleEmitterPacket,
   ParticleSimulationSpacePacket,

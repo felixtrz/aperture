@@ -111,6 +111,18 @@ export interface QuadBatchPacket {
 }
 
 export type ParticleSimulationSpacePacket = "world" | "local";
+export type ParticleEmitterModePacket = "continuous" | "burst";
+
+export interface ParticleBurstPacket {
+  readonly burstId: number;
+  readonly startFrame: number;
+  readonly count: number;
+  readonly position: readonly [number, number, number];
+  readonly positionJitterMin: readonly [number, number, number];
+  readonly positionJitterMax: readonly [number, number, number];
+  readonly velocityMin: readonly [number, number, number];
+  readonly velocityMax: readonly [number, number, number];
+}
 
 export interface ParticleEmitterPacket {
   readonly emitterId: number;
@@ -126,6 +138,8 @@ export interface ParticleEmitterPacket {
   readonly boundsIndex: number;
   readonly layerMask: number;
   readonly sortKey: RenderSortKey;
+  readonly mode?: ParticleEmitterModePacket;
+  readonly burst?: ParticleBurstPacket;
 }
 
 export type AudioSimulationSpacePacket = "world" | "local";

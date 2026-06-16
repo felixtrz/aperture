@@ -176,7 +176,19 @@ fn vs_main(
 ) -> VertexOutput {
   let particle = particles[instanceIndex];
   let local = quadPosition(vertexIndex) * particle.positionSize.w;
-  let world = particle.positionSize.xyz + vec3f(local, 0.0);
+  let forwardRaw = view.cameraPosition.xyz - particle.positionSize.xyz;
+  let forwardLength = max(length(forwardRaw), 0.0001);
+  let forward = forwardRaw / forwardLength;
+  let rightRaw = cross(vec3f(0.0, 1.0, 0.0), forward);
+  let rightLength = length(rightRaw);
+  var right = rightRaw / max(rightLength, 0.0001);
+
+  if (rightLength < 0.0001) {
+    right = vec3f(1.0, 0.0, 0.0);
+  }
+
+  let up = normalize(cross(forward, right));
+  let world = particle.positionSize.xyz + right * local.x + up * local.y;
   var output: VertexOutput;
 
   output.position = view.viewProjection * vec4f(world, 1.0);

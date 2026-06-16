@@ -75,15 +75,20 @@ building blocks and default paths.
   `this.spawn.particles(...)` now authors renderer-independent
   `ParticleEmitter` components from app systems. Racing's smoke system now
   consumes the config-authored `smoke-effect` texture dependency instead of
-  looking up the sprite separately, while the visible wheel smoke remains on the
-  dynamic-mesh path until burst/textured particle renderer parity lands.
+  looking up the sprite separately.
 - 2026-06-16: Textured particle billboard rendering landed:
   the WebGPU particle frame path now binds and samples
   `ParticleEffectAsset.texture`/`sampler` dependencies, falls back to default
   white texture plus linear sampler resources, specializes particle pipelines by
   blend mode, and depth-tests without depth writes for smoke-style alpha
-  particles. Racing can now move visible wheel smoke off dynamic meshes once
-  burst/event emission is available.
+  particles.
+- 2026-06-16: Particle burst emission landed:
+  `this.particles.emit(...)` queues worker-authored transient burst requests,
+  extraction turns them into burst-mode particle packets, and WebGPU advances
+  renderer-owned live burst state through the same textured billboard renderer.
+  Racing wheel smoke no longer registers sampler/material/mesh assets or builds
+  a `MeshAsset` every frame. The default active burst budget now covers
+  sustained two-wheel smoke emission without overflow diagnostics.
 
 ## Goals
 
@@ -304,37 +309,31 @@ Library direction:
   sufficient for racing's lowpass model.
 - Add declarative config support for audio clips and generated audio enablement.
 
-### 5. Smoke Particles Are Implemented As Dynamic Meshes In App Code
+### 5. Smoke Particles Were Implemented As Dynamic Meshes In App Code
 
-Evidence:
+Original evidence:
 
-- `particles.system.ts:26` states the engine GPU particle pipeline is a broken
-  placeholder and smoke is implemented app-side as textured camera-facing quads.
-- The app owns a particle pool and simulation state:
-  `racing/src/systems/particles.system.ts:67`.
-- The app registers sampler/texture/material/mesh handles manually:
-  `racing/src/systems/particles.system.ts:118`.
-- The app emits, integrates, billboards, writes vertex buffers, builds a
-  `MeshAsset`, and republishes it each frame:
-  `racing/src/systems/particles.system.ts:195`, `:254`, `:337`.
-- The app also decodes `/sprites/smoke.png` itself because config texture assets
-  do not decode to pixels for general app use and the engine image decoder is
-  not public:
-  `racing/src/systems/particles.system.ts:396`, `:483`.
+- Before the Phase 3 particle slices, `particles.system.ts` owned a particle
+  pool, registered sampler/material/mesh handles, built camera-facing quads into
+  a `MeshAsset`, and republished a dynamic mesh every frame.
+- That path has been removed. `racing/src/systems/particles.system.ts` now reads
+  `VehicleResource` and calls `this.particles.emit(...)`; texture sampling,
+  billboard expansion, live burst state, and GPU buffer updates are library
+  responsibilities.
 
 Current Aperture state:
 
 - Aperture has `ParticleEffectAsset`, `ParticleEmitter`, extraction, and a
   WebGPU particle frame path.
-- The current WebGPU particle path is not feature-complete for racing smoke:
-  effect assets now bind/sample their texture/sampler dependencies in the
-  WebGPU billboard renderer, but the runtime still does not expose an
-  app-facing burst/event emission API tied to wheel contact.
+- The current WebGPU particle path now covers racing smoke: effect assets
+  bind/sample texture/sampler dependencies, app systems can queue burst events
+  through `this.particles.emit(...)`, and the WebGPU renderer owns the transient
+  live particle state.
 
 Library direction:
 
 - Make the Aperture particle path production-usable for common billboard smoke.
-- Add event/burst emission from worker systems.
+- Continue hardening event/burst emission from worker systems.
 - Support textured billboards, alpha blending, depth behavior, curves over
   lifetime, world-space simulation, and deterministic seeds.
 
@@ -959,14 +958,15 @@ Validation:
 Work items:
 
 - RACE-LIB-09: Make config textures decode to real `TextureAsset` data.
-- RACE-LIB-10: Finish textured billboard particle renderer.
-- RACE-LIB-11: Add particle burst/event emission API.
+- RACE-LIB-10: Finish textured billboard particle renderer. Done 2026-06-16.
+- RACE-LIB-11: Add particle burst/event emission API. Done 2026-06-16.
 - RACE-LIB-12: Add trail/ribbon or dynamic mesh builder.
 - RACE-LIB-13: Wire material depth bias / polygon offset.
 
 Racing migration:
 
 - Replace `particles.system.ts` with a compact particle emitter/update system.
+  Done 2026-06-16.
 - Replace `drift-marks.system.ts` with trail/ribbon calls or dynamic mesh
   builder calls.
 - Remove app image decode code.

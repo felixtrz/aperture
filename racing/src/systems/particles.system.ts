@@ -1,423 +1,62 @@
 import {
-  LocalTransform,
-  Name,
   clamp,
   createSystem,
-  type DynamicMesh,
+  type SystemParticleEffectAssetHandle,
   type Vec3Tuple as Vec3,
 } from "@aperture-engine/app/systems";
-import {
-  createDefaultRenderState,
-  createSamplerAsset,
-  createUnlitMaterialAsset,
-  materialAssetDependencies,
-  type MeshAsset,
-} from "@aperture-engine/render";
-import {
-  createMaterialHandle,
-  createSamplerHandle,
-} from "@aperture-engine/simulation";
 import { VehicleResource } from "../lib/vehicle-resource.js";
 
-// Port of Particles.js (REFERENCE_SPEC §6). Racing now declares the smoke effect
-// and sprite through aperture.config.ts, but the engine particle renderer still
-// lacks the burst/emission controls needed for wheel smoke parity. Until that
-// follow-up lands, visible smoke is implemented app-side as textured,
-// camera-facing (billboarded) quads in one dynamic interleaved-vertex MeshAsset,
-// using the same public dynamic mesh helper that drift-marks.system.ts uses.
-//
-// Reference behavior (REFERENCE_SPEC §6): pool 1280, emit 3 particles per back
-// wheel per frame when driftIntensity > 0.7, MAX_LIFE 2.5s; spawn at the back
-// wheel world position + y offset with XZ/Y jitter; velocity damped each frame;
-// size grows over life (size0*(0.5 + tn*2.5)), opacity (1 - tn) * 0.25; tinted
-// 0x5E5F6B; the reference PointsMaterial uses sizeAttenuation (perspective size).
-// We reproduce sizeAttenuation implicitly: world-space quads naturally shrink with
-// distance under the projection, which is exactly what PointsMaterial's
-// sizeAttenuation does. color/opacity ride per-vertex COLOR_0 (× material opacity
-// via alpha blend); the sprite rides the unlit material's baseColorTexture.
-//
-// Priority 125: this runs AFTER camera-follow (priority 120), so we read the
-// camera's just-updated world position THIS frame and billboard with zero lag —
-// the quads face exactly where the camera moved to. (Running before p120 would
-// orient to the previous frame's camera, a visible 1-frame skew during fast
-// turns.) Everything is read-only against vehicle/camera and no-ops if the
-// camera is absent, so ordering is otherwise safe.
+// Port of Particles.js (REFERENCE_SPEC section 6). Aperture now owns the
+// textured billboard particle renderer and transient burst simulation; racing
+// only authors wheel-smoke intent from game state.
 
-const POOL = 1280;
-const VERTS_PER_PARTICLE = 6; // 2 triangles
-const FLOATS_PER_VERTEX = 12; // POSITION(3) + NORMAL(3) + TEXCOORD_0(2) + COLOR_0(4)
-const FLOATS_PER_PARTICLE = VERTS_PER_PARTICLE * FLOATS_PER_VERTEX;
-const VERTEX_STRIDE_BYTES = FLOATS_PER_VERTEX * 4;
-
-const MAX_LIFE = 2.5;
 const EMIT_THRESHOLD = 0.7;
 const EMIT_PER_WHEEL = 3;
 const Y_OFFSET = 0.05;
-const SIZE_BASE = 1.0;
-const OPACITY_SCALE = 0.25;
+const POSITION_JITTER = {
+  min: [-0.075, 0, -0.075],
+  max: [0.075, 0.15, 0.075],
+} as const;
+const VELOCITY = {
+  min: [-0.1, 0.5, -0.1],
+  max: [0.1, 1.0, 0.1],
+} as const;
 
-// color 0x5E5F6B → normalized sRGB-ish factors (the texture luminance multiplies
-// in; the tint is what the reference PointsMaterial.color applies).
-const TINT_R = 0x5e / 0xff;
-const TINT_G = 0x5f / 0xff;
-const TINT_B = 0x6b / 0xff;
-
-// Per-particle simulation state (struct-of-arrays for cheap GC-free recycling).
-interface ParticlePool {
-  readonly px: Float32Array;
-  readonly py: Float32Array;
-  readonly pz: Float32Array;
-  readonly vx: Float32Array;
-  readonly vy: Float32Array;
-  readonly vz: Float32Array;
-  readonly life: Float32Array; // remaining seconds; <= 0 means dead
-  readonly size0: Float32Array;
-}
-
-function createPool(): ParticlePool {
-  return {
-    px: new Float32Array(POOL),
-    py: new Float32Array(POOL),
-    pz: new Float32Array(POOL),
-    vx: new Float32Array(POOL),
-    vy: new Float32Array(POOL),
-    vz: new Float32Array(POOL),
-    life: new Float32Array(POOL),
-    size0: new Float32Array(POOL),
-  };
-}
-
-type QueryEntity = {
-  getValue(component: typeof Name, field: "value"): string;
-  getVectorView(
-    component: typeof LocalTransform,
-    field: "translation",
-  ): Float32Array;
-};
-
-export default class ParticlesSystem extends createSystem({
-  priority: 125,
-  queries: { cams: { required: [Name, LocalTransform] } },
-}) {
-  readonly #pool = createPool();
-  #next = 0; // round-robin write cursor into the pool
-  readonly #vertices = new Float32Array(POOL * FLOATS_PER_PARTICLE);
-  readonly #indices = new Uint16Array(POOL * VERTS_PER_PARTICLE);
-
-  readonly #materialHandle = createMaterialHandle("racing.particles.smoke");
-  readonly #samplerHandle = createSamplerHandle("racing.particles.smoke");
-  #mesh: DynamicMesh | null = null;
-
-  #camera: QueryEntity | null = null;
-  #ready = false; // mesh + material registered and entity spawned
+export default class ParticlesSystem extends createSystem({ priority: 125 }) {
+  #smoke: SystemParticleEffectAssetHandle | null = null;
 
   override init(): void {
-    const registry = this.assetsRegistry;
-    const smokeEffect = this.assets.particleEffect("smoke-effect");
-
-    if (smokeEffect.texture === undefined || smokeEffect.texture === null) {
-      throw new Error("Racing smoke-effect must declare a smoke texture.");
-    }
-
-    const textureHandle = smokeEffect.texture;
-
-    // uint16 index buffer: POOL*6 = 7680 < 65535, safe. Sequential (non-indexed
-    // topology emulated via 0..N indices, matching drift-marks).
-    for (let i = 0; i < this.#indices.length; i += 1) this.#indices[i] = i;
-
-    // --- Sampler (synchronous, no pixels needed) ---
-    registry.register(this.#samplerHandle, { label: "Smoke sampler" });
-    registry.markReady(
-      this.#samplerHandle,
-      createSamplerAsset({
-        label: "Smoke sampler",
-        // The sprite is a single tile; clamp so edge texels don't wrap/bleed.
-        addressModeU: "clamp-to-edge",
-        addressModeV: "clamp-to-edge",
-        addressModeW: "clamp-to-edge",
-        // Single mip level → no mip filtering needed.
-        mipmapFilter: "nearest",
-        lodMaxClamp: 0,
-      }),
-    );
-
-    // --- Material: unlit, textured, alpha-blended, double-sided, no depth write.
-    // Blend materials must author depth writes off explicitly; cullMode "none"
-    // keeps quads visible from both sides. The configured smoke texture is
-    // blocking-preloaded by Aperture before systems initialize.
-    const materialAsset = createUnlitMaterialAsset({
-      label: "Smoke",
-      baseColorFactor: new Float32Array([TINT_R, TINT_G, TINT_B, 1]),
-      baseColorTexture: {
-        texture: textureHandle,
-        sampler: this.#samplerHandle,
-      },
-      renderState: createDefaultRenderState({
-        alphaMode: "blend",
-        cullMode: "none",
-        depth: { test: true, write: false, compare: "less" },
-        blend: { preset: "alpha" },
-      }),
-    });
-    if (!registry.has(this.#materialHandle)) {
-      registry.register(this.#materialHandle, {
-        label: "Smoke",
-        dependencies: materialAssetDependencies(materialAsset),
-      });
-    }
-    registry.markReady(this.#materialHandle, materialAsset);
-
-    // --- Mesh: publish an initial empty buffer so the entity has a ready mesh.
-    const mesh = this.meshes.dynamic("racing.particles.smoke", {
-      label: "Smoke particles",
-      initial: this.#buildAsset(0),
-    });
-    this.#mesh = mesh;
-
-    // --- Entity: handle keys pass straight through; the renderer resolves the
-    // live registry version each frame so per-frame publish() re-uploads.
-    this.spawn.mesh({
-      key: `${mesh.key}.entity`,
-      name: mesh.key,
-      tags: ["smoke-particles"],
-      mesh: mesh.handle,
-      material: this.#materialHandle,
-      castShadow: false,
-    });
-
-    this.#ready = true;
+    this.#smoke = this.particles.effect("smoke-effect");
   }
 
   override update(delta: number): void {
-    if (!this.#ready || this.#mesh === null) return;
+    if (this.#smoke === null || clampDt(delta) <= 0) {
+      return;
+    }
 
-    const dt = clampDt(delta);
-
-    // Resolve the camera lazily (the same way camera-follow does). If it's not
-    // found yet, age particles but skip the billboard rebuild this frame.
-    if (this.#camera === null) this.#camera = this.#findNamed("main-camera");
-
-    // --- Emit (only when the vehicle is ready and drifting hard enough) ---
     const vehicle = this.resources.read(VehicleResource);
-    if (vehicle.ready && vehicle.driftIntensity > EMIT_THRESHOLD) {
-      const groundY = vehicle.container[1] + Y_OFFSET;
-      this.#emitFromWheel(vehicle.wheelBL, groundY);
-      this.#emitFromWheel(vehicle.wheelBR, groundY);
+    if (!vehicle.ready || vehicle.driftIntensity <= EMIT_THRESHOLD) {
+      return;
     }
 
-    // --- Integrate every live particle (damped velocity, age down) ---
-    const p = this.#pool;
-    const damp = 1 - dt; // reference: vel *= (1 - dt)
-    for (let i = 0; i < POOL; i += 1) {
-      if (p.life[i]! <= 0) continue;
-      p.life[i] = p.life[i]! - dt;
-      if (p.life[i]! <= 0) continue;
-      p.vx[i] = p.vx[i]! * damp;
-      p.vy[i] = p.vy[i]! * damp;
-      p.vz[i] = p.vz[i]! * damp;
-      p.px[i] = p.px[i]! + p.vx[i]! * dt;
-      p.py[i] = p.py[i]! + p.vy[i]! * dt;
-      p.pz[i] = p.pz[i]! + p.vz[i]! * dt;
-    }
-
-    // --- Build the camera-facing quads from live particles ---
-    const cam = this.#cameraPosition();
-    const live = cam === null ? 0 : this.#writeBillboards(cam);
-
-    // Publish the mutated buffers (bumps mesh version for GPU re-upload).
-    this.#mesh.publish(this.#buildAsset(live));
+    const groundY = vehicle.container[1] + Y_OFFSET;
+    this.#emitFromWheel(vehicle.wheelBL, groundY);
+    this.#emitFromWheel(vehicle.wheelBR, groundY);
   }
 
   #emitFromWheel(wheel: Vec3 | null, groundY: number): void {
-    if (wheel === null) return;
-    for (let n = 0; n < EMIT_PER_WHEEL; n += 1) {
-      const i = this.#next;
-      this.#next = (this.#next + 1) % POOL;
-      const p = this.#pool;
-      // pos = back wheel world, y = container.y + 0.05; jitter XZ ±0.075, Y +0..0.15
-      p.px[i] = wheel[0] + (Math.random() - 0.5) * 0.15;
-      p.py[i] = groundY + Math.random() * 0.15;
-      p.pz[i] = wheel[2] + (Math.random() - 0.5) * 0.15;
-      // vel: XZ ±0.1*rand, Y 0.5 + 0.5*rand
-      p.vx[i] = (Math.random() - 0.5) * 0.2;
-      p.vy[i] = 0.5 + Math.random() * 0.5;
-      p.vz[i] = (Math.random() - 0.5) * 0.2;
-      p.life[i] = MAX_LIFE;
-      // size0 = 1.0 * (0.5 + 0.5*rand)
-      p.size0[i] = SIZE_BASE * (0.5 + Math.random() * 0.5);
-    }
-  }
-
-  /** Write a camera-facing quad for every live particle. Returns the live count. */
-  #writeBillboards(cam: Vec3): number {
-    const p = this.#pool;
-    const verts = this.#vertices;
-    let live = 0;
-
-    for (let i = 0; i < POOL; i += 1) {
-      const lifeRemaining = p.life[i]!;
-      if (lifeRemaining <= 0) continue;
-
-      const cx = p.px[i]!;
-      const cy = p.py[i]!;
-      const cz = p.pz[i]!;
-
-      // tn = 1 - (life / MAX). At spawn life=MAX → tn=0; at death life→0 → tn=1.
-      const tn = 1 - lifeRemaining / MAX_LIFE;
-      const size = p.size0[i]! * (0.5 + tn * 2.5);
-      const alpha = (1 - tn) * OPACITY_SCALE;
-      const half = size * 0.5;
-
-      // Camera-facing basis: forward = particle→camera; right = up × forward;
-      // up = forward × right. World up [0,1,0] as the reference up vector.
-      let fx = cam[0] - cx;
-      let fy = cam[1] - cy;
-      let fz = cam[2] - cz;
-      const fl = Math.hypot(fx, fy, fz) || 1;
-      fx /= fl;
-      fy /= fl;
-      fz /= fl;
-
-      // right = normalize(cross(worldUp, forward))
-      let rx = fz; // (1*fz - 0*fy)
-      let ry = 0; // (0*fx - 0*fz)
-      let rz = -fx; // (0*fy - 1*fx)
-      const rl = Math.hypot(rx, ry, rz);
-      if (rl < 1e-5) {
-        // Looking straight up/down: pick an arbitrary stable right axis.
-        rx = 1;
-        ry = 0;
-        rz = 0;
-      } else {
-        rx /= rl;
-        ry /= rl;
-        rz /= rl;
-      }
-      // up = cross(forward, right)
-      const ux = fy * rz - fz * ry;
-      const uy = fz * rx - fx * rz;
-      const uz = fx * ry - fy * rx;
-
-      // Quad corners: bottom-left, bottom-right, top-left, top-right (then 2 tris).
-      const blX = cx - rx * half - ux * half;
-      const blY = cy - ry * half - uy * half;
-      const blZ = cz - rz * half - uz * half;
-      const brX = cx + rx * half - ux * half;
-      const brY = cy + ry * half - uy * half;
-      const brZ = cz + rz * half - uz * half;
-      const tlX = cx - rx * half + ux * half;
-      const tlY = cy - ry * half + uy * half;
-      const tlZ = cz - rz * half + uz * half;
-      const trX = cx + rx * half + ux * half;
-      const trY = cy + ry * half + uy * half;
-      const trZ = cz + rz * half + uz * half;
-
-      // Triangle list (CCW from the camera): bl, br, tl | br, tr, tl.
-      // UVs map the sprite 0..1 with V up. Normal = forward (faces camera).
-      let o = live * FLOATS_PER_PARTICLE;
-      o = writeVertex(verts, o, blX, blY, blZ, fx, fy, fz, 0, 1, alpha);
-      o = writeVertex(verts, o, brX, brY, brZ, fx, fy, fz, 1, 1, alpha);
-      o = writeVertex(verts, o, tlX, tlY, tlZ, fx, fy, fz, 0, 0, alpha);
-      o = writeVertex(verts, o, brX, brY, brZ, fx, fy, fz, 1, 1, alpha);
-      o = writeVertex(verts, o, trX, trY, trZ, fx, fy, fz, 1, 0, alpha);
-      writeVertex(verts, o, tlX, tlY, tlZ, fx, fy, fz, 0, 0, alpha);
-
-      live += 1;
+    if (wheel === null || this.#smoke === null) {
+      return;
     }
 
-    // Zero out the tail (verts beyond the live set) so stale quads never draw.
-    // We only ever draw `live * VERTS_PER_PARTICLE` indices, so this is belt-and-
-    // braces; cheaper to skip, but keeps the buffer tidy for inspection tools.
-    return live;
+    this.particles.emit(this.#smoke, {
+      count: EMIT_PER_WHEEL,
+      position: [wheel[0], groundY, wheel[2]],
+      positionJitter: POSITION_JITTER,
+      velocity: VELOCITY,
+      boundsRadius: 8,
+    });
   }
-
-  #buildAsset(liveParticles: number): MeshAsset {
-    const vertexCount = POOL * VERTS_PER_PARTICLE;
-    const indexCount = liveParticles * VERTS_PER_PARTICLE;
-    return {
-      kind: "mesh",
-      label: "Smoke particles",
-      vertexStreams: [
-        {
-          id: "smoke-interleaved",
-          arrayStride: VERTEX_STRIDE_BYTES,
-          vertexCount,
-          attributes: [
-            { semantic: "POSITION", format: "float32x3", offset: 0 },
-            { semantic: "NORMAL", format: "float32x3", offset: 12 },
-            { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-            { semantic: "COLOR_0", format: "float32x4", offset: 32 },
-          ],
-          data: this.#vertices,
-        },
-      ],
-      indexBuffer: {
-        format: "uint16",
-        data: this.#indices,
-        indexCount,
-      },
-      submeshes: [
-        {
-          label: "default",
-          topology: "triangle-list",
-          materialSlot: 0,
-          vertexStart: 0,
-          vertexCount,
-          indexStart: 0,
-          indexCount,
-        },
-      ],
-      materialSlots: [{ index: 0, label: "default" }],
-      // The particles can be anywhere on the track; use a generous bounds so the
-      // renderer never frustum-culls the (already cheap) dynamic mesh.
-      localAabb: { min: [-1000, -1000, -1000], max: [1000, 1000, 1000] },
-      localSphere: { center: [0, 0, 0], radius: 2000 },
-    };
-  }
-
-  #cameraPosition(): Vec3 | null {
-    if (this.#camera === null) return null;
-    const t = this.#camera.getVectorView(LocalTransform, "translation");
-    return [t[0]!, t[1]!, t[2]!];
-  }
-
-  #findNamed(name: string): QueryEntity | null {
-    for (const entity of this.queries.cams.entities) {
-      if (entity.getValue(Name, "value") === name) {
-        return entity as unknown as QueryEntity;
-      }
-    }
-    return null;
-  }
-}
-
-function writeVertex(
-  verts: Float32Array,
-  offset: number,
-  x: number,
-  y: number,
-  z: number,
-  nx: number,
-  ny: number,
-  nz: number,
-  u: number,
-  v: number,
-  alpha: number,
-): number {
-  verts[offset] = x;
-  verts[offset + 1] = y;
-  verts[offset + 2] = z;
-  verts[offset + 3] = nx;
-  verts[offset + 4] = ny;
-  verts[offset + 5] = nz;
-  verts[offset + 6] = u;
-  verts[offset + 7] = v;
-  // Per-vertex COLOR_0: white RGB (tint lives in baseColorFactor), alpha = fade.
-  verts[offset + 8] = 1;
-  verts[offset + 9] = 1;
-  verts[offset + 10] = 1;
-  verts[offset + 11] = alpha;
-  return offset + FLOATS_PER_VERTEX;
 }
 
 function clampDt(delta: number): number {

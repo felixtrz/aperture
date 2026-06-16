@@ -184,6 +184,19 @@ export interface ParticleEmitterGpuStateResource {
   readonly resetEpoch: number;
   readonly particleBuffer: unknown;
   readonly byteLength: number;
+  readonly cpu?: ParticleEmitterCpuStateResource;
+}
+
+export interface ParticleEmitterCpuStateResource {
+  readonly positions: Float32Array;
+  readonly velocities: Float32Array;
+  readonly ages: Float32Array;
+  readonly lifetimes: Float32Array;
+  readonly baseSizes: Float32Array;
+  readonly bufferData: Float32Array;
+  initialized: boolean;
+  lastTime: number;
+  liveCount: number;
 }
 
 export interface WebGpuAppPostPassCache {

@@ -45,6 +45,7 @@ import {
   type AppTextureSamplerResourceReuseReport,
 } from "./app-texture-sampler-resources.js";
 import type {
+  ParticleEmitterCpuStateResource,
   ParticleEmitterGpuStateResource,
   WebGpuAppResourceCache,
 } from "./resource-cache.js";
@@ -364,30 +365,70 @@ async function createParticleFrameResources(options: {
     mutableReport.statesCreated += stateResult.created ? 1 : 0;
     mutableReport.statesReused += stateResult.created ? 0 : 1;
 
-    const params = createParticleParamData({
-      emitter,
-      effect,
-      snapshot: options.snapshot,
-      frame: options.snapshot.frame,
-      time: options.time,
-    });
-    const paramBuffer = createWebGpuBuffer({
-      device,
-      descriptor: {
-        label: `Particle/Params/${emitter.emitterId}`,
-        size: params.byteLength,
-        usage:
-          WEBGPU_BUFFER_USAGE_FLAGS.UNIFORM |
-          WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
-        initialData: params,
-      },
-    });
+    let drawInstanceCount = emitter.capacity;
 
-    if (!paramBuffer.ok) {
-      diagnostics.push({
-        code: "particleFrame.paramBufferFailed",
-        message: paramBuffer.message,
+    if (emitter.mode === "burst" && emitter.burst !== undefined) {
+      const burstReport = updateParticleBurstCpuState({
+        device,
+        state: stateResult.state,
+        emitter,
+        effect,
+        time: options.time,
       });
+
+      diagnostics.push(...burstReport.diagnostics);
+      drawInstanceCount = burstReport.liveParticles;
+    } else {
+      const params = createParticleParamData({
+        emitter,
+        effect,
+        snapshot: options.snapshot,
+        frame: options.snapshot.frame,
+        time: options.time,
+      });
+      const paramBuffer = createWebGpuBuffer({
+        device,
+        descriptor: {
+          label: `Particle/Params/${emitter.emitterId}`,
+          size: params.byteLength,
+          usage:
+            WEBGPU_BUFFER_USAGE_FLAGS.UNIFORM |
+            WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
+          initialData: params,
+        },
+      });
+
+      if (!paramBuffer.ok) {
+        diagnostics.push({
+          code: "particleFrame.paramBufferFailed",
+          message: paramBuffer.message,
+        });
+        continue;
+      }
+
+      const computeBindGroup = device.createBindGroup({
+        label: `Particle/ComputeBindGroup/${emitter.emitterId}`,
+        layout: computePipeline.getBindGroupLayout(0),
+        entries: [
+          { binding: 0, resource: { buffer: paramBuffer.buffer } },
+          {
+            binding: 1,
+            resource: { buffer: stateResult.state.particleBuffer },
+          },
+        ],
+      });
+      const computeReport = submitParticleComputePass({
+        device,
+        pipeline: options.computePipeline,
+        bindGroup: computeBindGroup,
+        emitter,
+      });
+
+      diagnostics.push(...computeReport.diagnostics);
+      mutableReport.dispatches += computeReport.dispatches;
+    }
+
+    if (drawInstanceCount <= 0) {
       continue;
     }
 
@@ -396,24 +437,7 @@ async function createParticleFrameResources(options: {
       layout: renderPipeline.getBindGroupLayout(0),
       entries: [{ binding: 0, resource: { buffer: viewBuffer.buffer } }],
     });
-    const computeBindGroup = device.createBindGroup({
-      label: `Particle/ComputeBindGroup/${emitter.emitterId}`,
-      layout: computePipeline.getBindGroupLayout(0),
-      entries: [
-        { binding: 0, resource: { buffer: paramBuffer.buffer } },
-        { binding: 1, resource: { buffer: stateResult.state.particleBuffer } },
-      ],
-    });
-    const computeReport = submitParticleComputePass({
-      device,
-      pipeline: options.computePipeline,
-      bindGroup: computeBindGroup,
-      emitter,
-    });
-
-    diagnostics.push(...computeReport.diagnostics);
-    mutableReport.dispatches += computeReport.dispatches;
-    mutableReport.liveParticles += emitter.capacity;
+    mutableReport.liveParticles += drawInstanceCount;
 
     const particleBindGroup = device.createBindGroup({
       label: `Particle/RenderBindGroup/${emitter.emitterId}`,
@@ -463,7 +487,7 @@ async function createParticleFrameResources(options: {
         kind: "draw",
         renderId: emitter.emitterId,
         vertexCount: 6,
-        instanceCount: emitter.capacity,
+        instanceCount: drawInstanceCount,
         firstVertex: 0,
         firstInstance: 0,
       },
@@ -576,7 +600,7 @@ function getOrCreateDefaultParticleTexture(options: {
     descriptor: {
       label: "Particle default white texture",
       size: [1, 1, 1],
-      format: "rgba8unorm",
+      format: "rgba8unorm-srgb",
       usage:
         WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
         WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST,
@@ -714,10 +738,237 @@ function getOrCreateParticleEmitterGpuState(options: {
     resetEpoch: options.emitter.resetEpoch,
     particleBuffer: buffer.buffer,
     byteLength,
+    ...(options.emitter.mode === "burst"
+      ? { cpu: createParticleEmitterCpuState(options.emitter.capacity) }
+      : {}),
   };
 
   options.cache.particleEmitterStates.set(key, state);
   return { valid: true, state, created: true, diagnostics: [] };
+}
+
+function createParticleEmitterCpuState(
+  capacity: number,
+): ParticleEmitterCpuStateResource {
+  return {
+    positions: new Float32Array(capacity * 3),
+    velocities: new Float32Array(capacity * 3),
+    ages: new Float32Array(capacity),
+    lifetimes: new Float32Array(capacity),
+    baseSizes: new Float32Array(capacity),
+    bufferData: new Float32Array(capacity * PARTICLE_DATA_FLOAT_STRIDE),
+    initialized: false,
+    lastTime: 0,
+    liveCount: 0,
+  };
+}
+
+function updateParticleBurstCpuState(options: {
+  readonly device: {
+    readonly queue?: {
+      readonly writeBuffer?: (
+        buffer: unknown,
+        bufferOffset: number,
+        data: ArrayBufferLike | ArrayBufferView,
+        dataOffset?: number,
+        size?: number,
+      ) => void;
+    };
+  };
+  readonly state: ParticleEmitterGpuStateResource;
+  readonly emitter: ParticleEmitterPacket;
+  readonly effect: ParticleEffectAsset;
+  readonly time: number;
+}): {
+  readonly liveParticles: number;
+  readonly diagnostics: readonly unknown[];
+} {
+  const burst = options.emitter.burst;
+  const cpu = options.state.cpu;
+
+  if (burst === undefined || cpu === undefined) {
+    return {
+      liveParticles: 0,
+      diagnostics: [
+        {
+          code: "particleFrame.burstStateMissing",
+          message: "Particle burst packet is missing renderer CPU state.",
+        },
+      ],
+    };
+  }
+
+  if (options.device.queue?.writeBuffer === undefined) {
+    return {
+      liveParticles: 0,
+      diagnostics: [
+        {
+          code: "particleFrame.burstWriteBufferUnavailable",
+          message: "Particle burst simulation requires queue.writeBuffer.",
+        },
+      ],
+    };
+  }
+
+  if (!cpu.initialized) {
+    initializeParticleBurstCpuState({
+      cpu,
+      emitter: options.emitter,
+      effect: options.effect,
+    });
+    cpu.initialized = true;
+    cpu.lastTime = options.time;
+  }
+
+  const rawDelta = options.time - cpu.lastTime;
+  const delta =
+    !Number.isFinite(rawDelta) || rawDelta <= 0
+      ? 0
+      : Math.min(rawDelta, 1 / 15) * options.emitter.timeScale;
+  cpu.lastTime = options.time;
+
+  const liveParticles = writeParticleBurstCpuBuffer({
+    cpu,
+    effect: options.effect,
+    delta,
+  });
+
+  if (liveParticles > 0) {
+    options.device.queue.writeBuffer(
+      options.state.particleBuffer,
+      0,
+      cpu.bufferData.buffer,
+      cpu.bufferData.byteOffset,
+      liveParticles * PARTICLE_DATA_FLOAT_STRIDE * 4,
+    );
+  }
+
+  return { liveParticles, diagnostics: [] };
+}
+
+function initializeParticleBurstCpuState(options: {
+  readonly cpu: ParticleEmitterCpuStateResource;
+  readonly emitter: ParticleEmitterPacket;
+  readonly effect: ParticleEffectAsset;
+}): void {
+  const burst = options.emitter.burst;
+  if (burst === undefined) {
+    return;
+  }
+
+  for (let index = 0; index < options.emitter.capacity; index += 1) {
+    const offset = index * 3;
+    const r0 = hashUnit(options.emitter.seed ^ (index * 747796405));
+    const r1 = hashUnit(options.emitter.seed ^ (index * 277803737));
+    const r2 = hashUnit(options.emitter.seed ^ (index * 1442695041));
+    const r3 = hashUnit(options.emitter.seed ^ (index * 1597334677));
+    const r4 = hashUnit(options.emitter.seed ^ (index * 2891336453));
+
+    options.cpu.positions[offset] =
+      burst.position[0] +
+      lerp(burst.positionJitterMin[0], burst.positionJitterMax[0], r0);
+    options.cpu.positions[offset + 1] =
+      burst.position[1] +
+      lerp(burst.positionJitterMin[1], burst.positionJitterMax[1], r1);
+    options.cpu.positions[offset + 2] =
+      burst.position[2] +
+      lerp(burst.positionJitterMin[2], burst.positionJitterMax[2], r2);
+    options.cpu.velocities[offset] = lerp(
+      burst.velocityMin[0],
+      burst.velocityMax[0],
+      r2,
+    );
+    options.cpu.velocities[offset + 1] = lerp(
+      burst.velocityMin[1],
+      burst.velocityMax[1],
+      r3,
+    );
+    options.cpu.velocities[offset + 2] = lerp(
+      burst.velocityMin[2],
+      burst.velocityMax[2],
+      r4,
+    );
+    options.cpu.ages[index] = 0;
+    options.cpu.lifetimes[index] = Math.max(
+      0.001,
+      lerp(options.effect.lifetime.min, options.effect.lifetime.max, r3),
+    );
+    options.cpu.baseSizes[index] = Math.max(
+      0.001,
+      lerp(options.effect.startSize.min, options.effect.startSize.max, r4),
+    );
+  }
+}
+
+function writeParticleBurstCpuBuffer(options: {
+  readonly cpu: ParticleEmitterCpuStateResource;
+  readonly effect: ParticleEffectAsset;
+  readonly delta: number;
+}): number {
+  let live = 0;
+
+  for (let index = 0; index < options.cpu.ages.length; index += 1) {
+    const lifetime = options.cpu.lifetimes[index] ?? 0;
+    const age = (options.cpu.ages[index] ?? 0) + options.delta;
+
+    if (age >= lifetime) {
+      options.cpu.ages[index] = lifetime;
+      continue;
+    }
+
+    options.cpu.ages[index] = age;
+    const sourceOffset = index * 3;
+    options.cpu.velocities[sourceOffset] =
+      (options.cpu.velocities[sourceOffset] ?? 0) +
+      options.effect.gravity[0] * options.delta;
+    options.cpu.velocities[sourceOffset + 1] =
+      (options.cpu.velocities[sourceOffset + 1] ?? 0) +
+      options.effect.gravity[1] * options.delta;
+    options.cpu.velocities[sourceOffset + 2] =
+      (options.cpu.velocities[sourceOffset + 2] ?? 0) +
+      options.effect.gravity[2] * options.delta;
+    options.cpu.positions[sourceOffset] =
+      (options.cpu.positions[sourceOffset] ?? 0) +
+      (options.cpu.velocities[sourceOffset] ?? 0) * options.delta;
+    options.cpu.positions[sourceOffset + 1] =
+      (options.cpu.positions[sourceOffset + 1] ?? 0) +
+      (options.cpu.velocities[sourceOffset + 1] ?? 0) * options.delta;
+    options.cpu.positions[sourceOffset + 2] =
+      (options.cpu.positions[sourceOffset + 2] ?? 0) +
+      (options.cpu.velocities[sourceOffset + 2] ?? 0) * options.delta;
+
+    const lifeT = clamp01(age / lifetime);
+    const color = samplePackedParticleColorCurve(options.effect, lifeT);
+    const outputOffset = live * PARTICLE_DATA_FLOAT_STRIDE;
+
+    options.cpu.bufferData[outputOffset] =
+      options.cpu.positions[sourceOffset] ?? 0;
+    options.cpu.bufferData[outputOffset + 1] =
+      options.cpu.positions[sourceOffset + 1] ?? 0;
+    options.cpu.bufferData[outputOffset + 2] =
+      options.cpu.positions[sourceOffset + 2] ?? 0;
+    options.cpu.bufferData[outputOffset + 3] = Math.max(
+      0.001,
+      (options.cpu.baseSizes[index] ?? 1) *
+        samplePackedParticleSizeCurve(options.effect, lifeT),
+    );
+    options.cpu.bufferData[outputOffset + 4] = color[0];
+    options.cpu.bufferData[outputOffset + 5] = color[1];
+    options.cpu.bufferData[outputOffset + 6] = color[2];
+    options.cpu.bufferData[outputOffset + 7] = color[3];
+    live += 1;
+  }
+
+  options.cpu.liveCount = live;
+  return live;
+}
+
+function hashUnit(value: number): number {
+  let x = value >>> 0;
+  x = (((x >>> 16) ^ x) * 0x45d9f3b) >>> 0;
+  x = (((x >>> 16) ^ x) * 0x45d9f3b) >>> 0;
+  x = ((x >>> 16) ^ x) >>> 0;
+  return (x & 0x00ff_ffff) / 0x0100_0000;
 }
 
 function submitParticleComputePass(options: {

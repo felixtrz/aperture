@@ -212,6 +212,80 @@ describe("GPU particle app frame resources", () => {
     expect(empty.report.staleStatesRemoved).toBe(1);
     expect(cache.particleEmitterStates).toHaveLength(0);
   });
+
+  it("uploads burst particle state without running the continuous compute pass", async () => {
+    const effect = createParticleEffectHandle("smoke-burst");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect, {
+      mode: "burst",
+      capacity: 3,
+      resetEpoch: 12,
+      burst: {
+        burstId: 1,
+        startFrame: 12,
+        count: 3,
+        position: [1, 2, 3],
+        positionJitterMin: [-0.1, 0, -0.1],
+        positionJitterMax: [0.1, 0.2, 0.1],
+        velocityMin: [-0.1, 0.5, -0.1],
+        velocityMax: [0.1, 1, 0.1],
+      },
+    });
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        label: "SmokeBurst",
+        capacity: 16,
+        emissionRate: 0,
+        lifetime: { min: 1, max: 1 },
+        startSize: { min: 0.5, max: 1 },
+        blendMode: "alpha",
+        colorOverLifetime: [
+          { t: 0, color: [0.4, 0.4, 0.45, 0.25] },
+          { t: 1, color: [0.4, 0.4, 0.45, 0] },
+        ],
+      }),
+    );
+
+    const burst = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 12 / 60,
+    });
+
+    expect(burst.diagnostics).toEqual([]);
+    expect(burst.valid).toBe(true);
+    expect(burst.report).toMatchObject({
+      emitters: 1,
+      liveParticles: 3,
+      dispatches: 0,
+      statesCreated: 1,
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+    });
+    expect(fixture.dispatches).toEqual([]);
+    expect(
+      fixture.writes.filter((write) => write.label === "Particle/State/99"),
+    ).toHaveLength(2);
+    expect(burst.commands).toContainEqual(
+      expect.objectContaining({
+        kind: "draw",
+        renderId: 99,
+        vertexCount: 6,
+        instanceCount: 3,
+      }),
+    );
+  });
 });
 
 interface BufferWriteRecord {
@@ -219,6 +293,14 @@ interface BufferWriteRecord {
   readonly data: ArrayBufferLike | ArrayBufferView;
   readonly dataOffset?: number;
   readonly size?: number;
+}
+
+function createParticleAppContext(device: unknown) {
+  return {
+    canvas: { width: 320, height: 180 } as never,
+    initialization: { device, format: "bgra8unorm" },
+    msaa: { sampleCount: 1 },
+  };
 }
 
 function createParticleDeviceFixture(): {
@@ -314,6 +396,9 @@ function createParticleDeviceFixture(): {
 
 function createParticleSnapshot(
   effect: ReturnType<typeof createParticleEffectHandle>,
+  overrides: Partial<
+    NonNullable<RenderSnapshot["particleEmitters"]>[number]
+  > = {},
 ): RenderSnapshot {
   const transforms = identityMatrix();
 
@@ -364,6 +449,7 @@ function createParticleSnapshot(
           meshKey: "particle-quad",
           stableId: 99,
         }),
+        ...overrides,
       },
     ],
     lights: [],

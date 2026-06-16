@@ -135,6 +135,7 @@ export function extractRenderSnapshot(
   const particleEmitters = extractParticleEmitters(
     world,
     assets,
+    options.frame ?? 0,
     transforms,
     bounds,
     diagnostics,

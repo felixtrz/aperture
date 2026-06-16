@@ -393,25 +393,28 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 20:25 UTC</dd>
+            <dd>2026-06-16 20:47 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update: app systems now expose
-              <code>ParticleEffectAsset.texture</code> to the WebGPU billboard
-              particle renderer. Particle quads now bind effect texture/sampler
-              dependencies, fall back to a default white texture plus linear
-              sampler, specialize render pipelines by blend mode, and depth-test
-              without depth writes for smoke-style effects. Racing still keeps
-              visible wheel smoke on the dynamic-mesh path until burst/event
-              particle emission lands. Prior update: app systems now expose
+              <code>this.particles.emit(...)</code> for transient particle
+              bursts. Render extraction drains worker-authored burst requests
+              into particle packets, WebGPU keeps renderer-owned live particle
+              state for those bursts, and racing wheel smoke now uses the
+              library particle path instead of building a dynamic
+              <code>MeshAsset</code> each frame. Prior update: app systems now
+              expose <code>ParticleEffectAsset.texture</code> to the WebGPU
+              billboard particle renderer. Particle quads now bind effect
+              texture/sampler dependencies, fall back to a default white texture
+              plus linear sampler, specialize render pipelines by blend mode,
+              and depth-test without depth writes for smoke-style effects. Prior
+              update: app systems now expose
               <code>this.spawn.particles(...)</code> for renderer-independent
               <code>ParticleEmitter</code> authoring. Racing consumes the
               config-authored <code>smoke-effect</code>
-              texture dependency in its smoke system while visible wheel smoke
-              stays on the dynamic-mesh path until burst/textured particle
-              renderer parity lands. Prior update: app config
+              texture dependency in its smoke system. Prior update: app config
               <code>asset.particleEffect(...)</code> now registers
               config-authored <code>particle-effect</code> source assets with
               texture/sampler dependencies. Racing declares its smoke effect
