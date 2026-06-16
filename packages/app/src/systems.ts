@@ -73,6 +73,7 @@ import type { MaterialAccess } from "./systems/materials.js";
 import type { PhysicsAccess } from "./systems/physics.js";
 import type { FixedStepAccess } from "./systems/fixed-step.js";
 import type { PrefabAccess } from "./systems/prefabs.js";
+import type { ResourceStore } from "./systems/resources.js";
 import type { SignalStore } from "./systems/signals.js";
 import type { SpawnCommands } from "./systems/spawn/index.js";
 import {
@@ -163,6 +164,21 @@ export type {
 
 export type { SignalStore, SignalSummary } from "./systems/signals.js";
 export { createSignalSummary } from "./systems/signals.js";
+export type {
+  ApertureResourceDescriptor,
+  ApertureResourceField,
+  ApertureResourceFieldSummary,
+  ApertureResourceState,
+  ApertureResourceStateFromSchema,
+  ApertureResourceStoreSummary,
+  ApertureResourceSummaryEntry,
+  ResourceStore,
+} from "./systems/resources.js";
+export {
+  createResourceStore,
+  defineResource,
+  resource,
+} from "./systems/resources.js";
 
 export type {
   ApertureSystemDiagnostic,
@@ -344,6 +360,7 @@ export interface ApertureSystemInstance {
   readonly config: Record<string, Signal<unknown>>;
   readonly priority: number;
   readonly signals: SignalStore;
+  readonly resources: ResourceStore;
   readonly input: InputSignals;
   readonly actions: InputActions;
   readonly keyboard: StatefulKeyboardState;
@@ -439,6 +456,10 @@ export function createSystem<
 
     get signals(): SignalStore {
       return this.#context.signals;
+    }
+
+    get resources(): ResourceStore {
+      return this.#context.resources;
     }
 
     get input(): InputSignals {

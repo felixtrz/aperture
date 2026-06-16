@@ -816,3 +816,46 @@ Consequences:
 - Future shared snapshot and worker transports may move the interpolation write
   closer to packed snapshot publication, but they must preserve the
   presentation-only contract.
+
+## 0022 — App Resources Are Typed Simulation-Owned Singletons
+
+Date: 2026-06-16 (racing library-gap resource slice)
+
+Status: accepted
+
+Context:
+
+The racing experience needed to share vehicle state between vehicle physics,
+camera follow, smoke particles, drift marks, and lap timing. It originally used
+an app-local mutable module singleton. That worked only because the current
+systems run in one generated simulation worker, but it bypassed Aperture
+inspection, generated-worker summaries, future replay/diff tooling, and the
+ECS-first expectation that cross-system state belongs to the simulation world
+rather than arbitrary modules.
+
+Bevy treats resources as unique singleton-like data stored in the world and
+read/written by systems. Aperture needs the same concept, adapted to TypeScript
+and the current EliCS/app-context boundary.
+
+Decision:
+
+`@aperture-engine/app/systems` exposes typed app resources through
+`defineResource(...)`, `resource.*` field helpers, and `this.resources`.
+Resources are installed on `ApertureSystemContext`, live with the generated
+simulation worker/headless app, and are summarized in generated worker/headless
+status as JSON-safe data.
+
+Resources are simulation/app state only. They must not store GPU resources,
+DOM objects, Web Audio nodes, renderer caches, or browser-only handles. Render
+extraction continues to derive render snapshots from ECS components and
+authoring data; resources do not become a hidden scene graph.
+
+Consequences:
+
+- App systems can share one-per-world state without module singletons.
+- Tooling can inspect resource values through worker/headless summaries.
+- Resource schemas should remain structured-clone friendly and field-typed.
+- Future devtools may add resource get/set/diff commands over the same summary
+  contract.
+- Experiences such as racing should migrate shared simulation state onto
+  resources before adding higher-level particle/audio helpers.

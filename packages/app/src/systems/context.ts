@@ -27,6 +27,7 @@ import { createMaterialAccess, type MaterialAccess } from "./materials.js";
 import { createPhysicsAccess, type PhysicsAccess } from "./physics.js";
 import { createPrefabAccess, type PrefabAccess } from "./prefabs.js";
 import { createSignalStore, type SignalStore } from "./signals.js";
+import { createResourceStore, type ResourceStore } from "./resources.js";
 import { createSpawnCommands, type SpawnCommands } from "./spawn/index.js";
 import {
   createFixedStepAccess,
@@ -50,6 +51,7 @@ export interface ApertureSystemContext {
   readonly world: unknown;
   readonly assetsRegistry: AssetRegistry;
   readonly signals: SignalStore;
+  readonly resources: ResourceStore;
   readonly input: InputSignals;
   readonly assets: SystemAssetAccess;
   readonly commands: CommandAccess;
@@ -91,6 +93,7 @@ export function createApertureSystemContext(
 
   const diagnostics = createDiagnostics();
   const signals = createSignalStore(options.config?.signals ?? {});
+  const resources = createResourceStore();
   const input = createInputSignals(options.config);
   const assets = createSystemAssetAccess({
     config: options.config,
@@ -130,6 +133,7 @@ export function createApertureSystemContext(
     world: options.world,
     assetsRegistry: options.assetsRegistry,
     signals,
+    resources,
     input,
     assets,
     commands,
@@ -173,6 +177,7 @@ function isApertureSystemContext(
     typeof value === "object" &&
     value !== null &&
     "signals" in value &&
+    "resources" in value &&
     "spawn" in value &&
     "effects" in value
   );

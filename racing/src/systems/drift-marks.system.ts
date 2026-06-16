@@ -17,7 +17,7 @@ import {
   type MaterialHandle,
   type MeshHandle,
 } from "@aperture-engine/simulation";
-import { vehicleState } from "../lib/vehicle-state.js";
+import { VehicleResource } from "../lib/vehicle-resource.js";
 
 // Port of DriftMarks.js (REFERENCE_SPEC §7). Two dynamic vertex-colored triangle
 // meshes (one per rear wheel) laid flat on the ground. Each drift step appends a
@@ -269,21 +269,22 @@ export default class DriftMarksSystem extends createSystem({ priority: 135 }) {
   }
 
   override update(): void {
-    if (!vehicleState.ready || this.#trails.length === 0) return;
+    const vehicle = this.resources.read(VehicleResource);
+
+    if (!vehicle.ready || this.#trails.length === 0) return;
 
     const emit =
-      vehicleState.driftIntensity > 0.5 &&
-      Math.abs(vehicleState.linearSpeed) > 0.15;
+      vehicle.driftIntensity > 0.5 && Math.abs(vehicle.linearSpeed) > 0.15;
 
     const bl = this.#trails[0];
     const br = this.#trails[1];
     if (bl === undefined || br === undefined) return;
 
-    const groundY = vehicleState.container[1] + Y_OFFSET;
-    const intensity = vehicleState.driftIntensity;
+    const groundY = vehicle.container[1] + Y_OFFSET;
+    const intensity = vehicle.driftIntensity;
 
-    bl.track(vehicleState.wheelBL, groundY, intensity, emit);
-    br.track(vehicleState.wheelBR, groundY, intensity, emit);
+    bl.track(vehicle.wheelBL, groundY, intensity, emit);
+    br.track(vehicle.wheelBR, groundY, intensity, emit);
 
     bl.flush("bl");
     br.flush("br");

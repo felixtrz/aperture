@@ -100,6 +100,7 @@ export function publishGeneratedWorkerSnapshot(options: {
     sourceAssets.entries.length > 0 ? { sourceAssets } : {};
   const workerSummary = {
     signals: createSignalSummary(options.app.context.signals),
+    resources: options.app.context.resources.summary(),
     input: createInputSummary(options.app.context.input),
     assets: createAssetSummary(options.app.context.assets.list()),
     commands: options.app.context.commands.summary(),

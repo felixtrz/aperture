@@ -393,12 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 17:17 UTC</dd>
+            <dd>2026-06-16 18:14 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: directional app auto-shadows now use the active
+              Latest update: app systems now have typed
+              <code>defineResource</code>/<code>this.resources</code>
+              singletons for simulation-owned cross-system state. Racing moved
+              its vehicle/camera/particles/drift/lap shared state off a module
+              singleton and onto the generated-worker resource summary; racing
+              and Shadow Lab were rebuilt and reverified through their managed
+              Aperture sessions. Prior update: directional app auto-shadows now
+              use the active
               render camera for PlayCanvas-style frustum fitting with
               texel-snapped coverage and caster-bound depth expansion. Shadow
               Lab and racing both exercise the automatic Aperture path without

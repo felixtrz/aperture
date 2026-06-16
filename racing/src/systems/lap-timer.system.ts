@@ -8,7 +8,7 @@ import {
   computeSpawnPosition,
   resolveTrackCells,
 } from "../lib/track.js";
-import { vehicleState } from "../lib/vehicle-state.js";
+import { VehicleResource } from "../lib/vehicle-resource.js";
 
 const CELL_SIZE = CELL_RAW * GRID_SCALE;
 
@@ -42,12 +42,14 @@ export default class LapTimerSystem extends createSystem({ priority: 130 }) {
   }
 
   override update(delta: number): void {
-    if (!vehicleState.ready) return;
+    const vehicle = this.resources.read(VehicleResource);
+
+    if (!vehicle.ready) return;
     const dt = Math.min(Math.max(delta, 0), 1 / 30);
-    const pos = vehicleState.sphere;
+    const pos = vehicle.sphere;
 
     if (!this.#started) {
-      if (vehicleState.hadInput) {
+      if (vehicle.hadInput) {
         this.#started = true;
         this.#setSignal("started", true);
       } else {

@@ -46,6 +46,10 @@ the runtime architecture:
   work, or explicitly register advanced tasks through
   `this.fixedStep.register(...)`; the app wires both routes to the runtime
   fixed-step scheduler when systems are created through `createApertureApp()`.
+  The systems facade also owns typed app resources/singletons through
+  `defineResource(...)`, `resource.*`, and `this.resources`; these resources are
+  simulation-worker state and are summarized through generated worker/headless
+  status, not renderer-owned objects.
 - `@aperture-engine/vite-plugin`: the default Vite integration. It discovers
   `aperture.config.ts`, system globs, system descriptor metadata, and generated
   browser/worker virtual modules. It is build-time code and is intentionally not
@@ -73,6 +77,9 @@ The default browser application shape is now a Vite metaframework path:
 - The generated worker registers discovered system modules in priority order,
   owns ECS state, runs registered fixed-step tasks before transform resolution,
   resolves transforms, and extracts `RenderSnapshot` data.
+- Worker systems share singleton app state through typed resources on
+  `this.resources`. Resource values must stay structured-clone safe and must not
+  hold GPU, DOM, Web Audio, or renderer handles.
 - The boundary is structured-clone/transferable snapshot data plus explicit
   command messages. Main-thread code does not receive live system classes and
   does not own authoritative simulation state.
@@ -111,14 +118,17 @@ Owns:
 - Entities.
 - Components.
 - Systems.
-- Resources.
+- Resources/singletons.
 - Commands.
 - Events.
 - Game/app logic.
 - Transform hierarchy.
 - Simulation state.
 
-The ECS layer does not own GPU resources.
+The ECS layer does not own GPU resources. App resources are for authoritative
+simulation or app coordination state that needs one value per world, such as a
+player vehicle state, clock, mode, or score cache. They are not a scene graph and
+must remain inspectable as JSON-safe worker/headless summaries.
 
 ### Render Extraction Layer
 

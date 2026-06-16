@@ -22,7 +22,7 @@ import {
   createTextureHandle,
   type AssetRegistry,
 } from "@aperture-engine/simulation";
-import { vehicleState } from "../lib/vehicle-state.js";
+import { VehicleResource } from "../lib/vehicle-resource.js";
 
 // Port of Particles.js (REFERENCE_SPEC §6). The engine GPU particle pipeline is a
 // broken placeholder, so smoke is implemented app-side as textured, camera-facing
@@ -43,7 +43,7 @@ import { vehicleState } from "../lib/vehicle-state.js";
 // camera's just-updated world position THIS frame and billboard with zero lag —
 // the quads face exactly where the camera moved to. (Running before p120 would
 // orient to the previous frame's camera, a visible 1-frame skew during fast
-// turns.) Everything is read-only against vehicleState/camera and no-ops if the
+// turns.) Everything is read-only against vehicle/camera and no-ops if the
 // camera is absent, so ordering is otherwise safe.
 
 const POOL = 1280;
@@ -203,10 +203,11 @@ export default class ParticlesSystem extends createSystem({
     if (this.#camera === null) this.#camera = this.#findNamed("main-camera");
 
     // --- Emit (only when the vehicle is ready and drifting hard enough) ---
-    if (vehicleState.ready && vehicleState.driftIntensity > EMIT_THRESHOLD) {
-      const groundY = vehicleState.container[1] + Y_OFFSET;
-      this.#emitFromWheel(vehicleState.wheelBL, groundY);
-      this.#emitFromWheel(vehicleState.wheelBR, groundY);
+    const vehicle = this.resources.read(VehicleResource);
+    if (vehicle.ready && vehicle.driftIntensity > EMIT_THRESHOLD) {
+      const groundY = vehicle.container[1] + Y_OFFSET;
+      this.#emitFromWheel(vehicle.wheelBL, groundY);
+      this.#emitFromWheel(vehicle.wheelBR, groundY);
     }
 
     // --- Integrate every live particle (damped velocity, age down) ---

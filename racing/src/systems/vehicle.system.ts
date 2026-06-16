@@ -22,7 +22,7 @@ import {
   VEHICLE_ROOT_SCALE,
 } from "../lib/tuning.js";
 import { computeSpawnPosition, resolveTrackCells } from "../lib/track.js";
-import { vehicleState } from "../lib/vehicle-state.js";
+import { VehicleResource } from "../lib/vehicle-resource.js";
 
 type QueryEntity = ApertureQuery["entities"] extends Set<infer T> ? T : never;
 
@@ -123,7 +123,10 @@ export default class VehicleSystem extends createSystem({
     const drive = this.actions.drive as InputAxis2dAction | undefined;
     const inputX = drive?.x.value ?? 0; // steer (+right)
     const inputZ = drive?.y.value ?? 0; // throttle (+forward)
-    if (inputX !== 0 || inputZ !== 0) vehicleState.hadInput = true;
+    const hadInput =
+      this.resources.read(VehicleResource).hadInput ||
+      inputX !== 0 ||
+      inputZ !== 0;
 
     // ── Steering + throttle (keyboard/gamepad path of Vehicle.js) ──
     let direction = Math.sign(this.#linearSpeed);
@@ -212,16 +215,22 @@ export default class VehicleSystem extends createSystem({
       mvz = (cz - this.#prevModel[2]) / dt;
       this.#prevModel = [cx, cy, cz];
     }
-    vehicleState.ready = true;
-    vehicleState.sphere = [sx, sy, sz];
-    vehicleState.container = [cx, cy, cz];
-    vehicleState.yaw = this.#yaw;
-    vehicleState.forward = forward;
-    vehicleState.linearSpeed = this.#linearSpeed;
-    vehicleState.modelVelocity = [mvx, mvy, mvz];
-    vehicleState.driftIntensity = this.#driftIntensity;
-    vehicleState.throttle = inputZ;
-    this.#updateWheelWorldPositions();
+    const wheelBL = this.#worldPos(this.#findWheel("wheel-back-left"));
+    const wheelBR = this.#worldPos(this.#findWheel("wheel-back-right"));
+    this.resources.write(VehicleResource, (state) => {
+      state.ready = true;
+      state.sphere = [sx, sy, sz];
+      state.container = [cx, cy, cz];
+      state.yaw = this.#yaw;
+      state.forward = forward;
+      state.linearSpeed = this.#linearSpeed;
+      state.modelVelocity = [mvx, mvy, mvz];
+      state.driftIntensity = this.#driftIntensity;
+      state.throttle = inputZ;
+      state.hadInput = hadInput;
+      state.wheelBL = wheelBL;
+      state.wheelBR = wheelBR;
+    });
 
     const speedSignal = this.signals["speed"];
     if (speedSignal !== undefined) {
@@ -267,11 +276,6 @@ export default class VehicleSystem extends createSystem({
         .getVectorView(LocalTransform, "rotation")
         .set(quatFromEulerYXZ(this.#wheelSpin, steer, 0));
     }
-  }
-
-  #updateWheelWorldPositions(): void {
-    vehicleState.wheelBL = this.#worldPos(this.#findWheel("wheel-back-left"));
-    vehicleState.wheelBR = this.#worldPos(this.#findWheel("wheel-back-right"));
   }
 
   #worldPos(entity: QueryEntity | null): Vec3 | null {

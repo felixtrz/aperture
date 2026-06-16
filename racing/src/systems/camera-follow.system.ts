@@ -13,7 +13,10 @@ import {
   type Vec3Tuple as Vec3,
 } from "@aperture-engine/app/systems";
 import { CAMERA } from "../lib/tuning.js";
-import { vehicleState } from "../lib/vehicle-state.js";
+import {
+  VEHICLE_INITIAL_SPHERE,
+  VehicleResource,
+} from "../lib/vehicle-resource.js";
 
 type QueryEntity = ApertureQuery["entities"] extends Set<infer T> ? T : never;
 
@@ -28,7 +31,7 @@ export default class CameraFollowSystem extends createSystem({
   queries: { cams: { required: [Name, LocalTransform] } },
 }) {
   #camera: QueryEntity | null = null;
-  #smoothed: Vec3 = [...vehicleState.sphere];
+  #smoothed: Vec3 = [...VEHICLE_INITIAL_SPHERE];
   #initialized = false;
 
   override fixedUpdate(context: SimulationFixedStepContext): void {
@@ -36,7 +39,9 @@ export default class CameraFollowSystem extends createSystem({
   }
 
   #step(delta: number): void {
-    if (!vehicleState.ready) return;
+    const vehicle = this.resources.read(VehicleResource);
+
+    if (!vehicle.ready) return;
     if (this.#camera === null) this.#camera = this.#findNamed("main-camera");
     if (this.#camera === null) return;
     if (!this.#camera.hasComponent(RenderInterpolation)) {
@@ -44,15 +49,15 @@ export default class CameraFollowSystem extends createSystem({
     }
 
     const dt = delta;
-    const target = vehicleState.sphere;
+    const target = vehicle.sphere;
 
     // Lead = forward * horizontal speed (main.js _camLead).
-    const mv = vehicleState.modelVelocity;
+    const mv = vehicle.modelVelocity;
     const horizSpeed = Math.hypot(mv[0], mv[2]);
     const velocity: Vec3 = [
-      vehicleState.forward[0] * horizSpeed,
+      vehicle.forward[0] * horizSpeed,
       0,
-      vehicleState.forward[2] * horizSpeed,
+      vehicle.forward[2] * horizSpeed,
     ];
 
     const radius = CAMERA.deadzoneRadius;

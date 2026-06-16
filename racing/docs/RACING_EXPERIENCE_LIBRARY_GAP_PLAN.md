@@ -31,6 +31,17 @@ responsible for game-specific data and tuning - track layout, vehicle feel, lap
 rules, and the art direction of the smoke/audio. Aperture should own the reusable
 building blocks and default paths.
 
+## Execution Progress
+
+- 2026-06-16: Public math helpers and generated browser signal readers landed,
+  and racing/shadow-lab were migrated off app-local math files and direct
+  generated-status signal parsing.
+- 2026-06-16: The first ECS resource slice landed in the library:
+  `@aperture-engine/app/systems` now exposes `defineResource`, `resource.*`, and
+  `this.resources`; generated worker/headless status summarizes resources.
+  Racing now defines `VehicleResource` and no longer uses
+  `src/lib/vehicle-state.ts` as a mutable module singleton.
+
 ## Goals
 
 - Make racing smaller, clearer, and less fragile by moving reusable engine
