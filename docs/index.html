@@ -393,25 +393,32 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 03:09 UTC</dd>
+            <dd>2026-06-16 04:59 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: bloom now follows the three.js BloomNode-style
-              half-resolution brightpass plus Gaussian mip graph, and
-              non-final post effects preserve the HDR scene format until the
-              final tonemap pass. Shadow Lab verifies the emissive probe on the
-              racing scene side by side against three.js with a matching
-              five-level bloom graph. Prior update: generated/default app
-              snapshot transport now
-              defaults to <code>auto</code>: isolated hosts receive
-              SharedArrayBuffer start payloads, generated simulation workers
-              write supported render packets and typed buffers through the
-              shared snapshot writer, and non-isolated or unsupported frames
-              keep using transfer-list snapshots. The dormant runtime
-              render-snapshot buffer pool was benchmarked and removed after its
-              copy/recycle route missed the adoption bar, leaving
+              Latest update: fixed-step app systems can now implement
+              <code>fixedUpdate(context)</code>, the runtime scheduler preserves
+              fixed-step priority order, and opt-in
+              <code>RenderInterpolation</code> rewrites presentation snapshots
+              for smooth camera and visual transforms between fixed ticks.
+              Shadow Lab applies the route to the racing truck/camera and now
+              forces imported GLB materials through front-side culling parity so
+              the Aperture panel no longer renders the underside/backfaces that
+              three.js hides. Prior update: bloom now follows the three.js
+              BloomNode-style half-resolution brightpass plus Gaussian mip
+              graph, and non-final post effects preserve the HDR scene format
+              until the final tonemap pass. Shadow Lab verifies the emissive
+              probe on the racing scene side by side against three.js with a
+              matching five-level bloom graph. Prior update: generated/default
+              app snapshot transport now defaults to <code>auto</code>: isolated
+              hosts receive SharedArrayBuffer start payloads, generated
+              simulation workers write supported render packets and typed
+              buffers through the shared snapshot writer, and non-isolated or
+              unsupported frames keep using transfer-list snapshots. The dormant
+              runtime render-snapshot buffer pool was benchmarked and removed
+              after its copy/recycle route missed the adoption bar, leaving
               <code>renderSnapshotTransferList</code> as the public transferable
               fallback. Prepared mesh/material backend caches now run bounded
               post-frame eviction through the app render path, report JSON-safe
@@ -1914,16 +1921,16 @@
               keys built-in pipelines by effective sample count. Bloom now
               submits through a renderer-owned BloomNode-style brightpass,
               Gaussian mip blur, and composite graph while preserving HDR
-              intermediate formats until final tonemap, and
-              StandardMaterial IBL resources can execute from multiple
-              renderer-owned environment assets. StandardMaterial many-light
-              scenes now prepare clustered local-light indices and bind them
-              through the light group, reducing point/spot fragment work to the
-              current cluster's local index list. Submesh draw ranges now travel
-              through draw packages, draw-command descriptors, draw lists,
-              resource resolution, render-pass command emission, and render
-              bundles, so one prepared mesh can submit distinct material groups
-              with the correct <code>firstIndex</code> /
+              intermediate formats until final tonemap, and StandardMaterial IBL
+              resources can execute from multiple renderer-owned environment
+              assets. StandardMaterial many-light scenes now prepare clustered
+              local-light indices and bind them through the light group,
+              reducing point/spot fragment work to the current cluster's local
+              index list. Submesh draw ranges now travel through draw packages,
+              draw-command descriptors, draw lists, resource resolution,
+              render-pass command emission, and render bundles, so one prepared
+              mesh can submit distinct material groups with the correct
+              <code>firstIndex</code> /
               <code>firstVertex</code>
               offsets. Clustered local-light lookup now uses active-view
               view/depth coordinates and reports occupancy hashes for
@@ -1999,6 +2006,16 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">app</span> Added priority-aware
+                fixed-step registration, the
+                <code>fixedUpdate(context)</code> system hook, and opt-in
+                <code>RenderInterpolation</code> for presentation-only snapshot
+                smoothing of cameras and visual ECS hierarchies. Shadow Lab's
+                racing parity scene now uses that path for the truck/camera and
+                routes imported GLB materials to front-side culling parity with
+                three.js.
+              </li>
               <li>
                 <span class="badge green">post</span> Matched bloom to the
                 three.js BloomNode route used by Shadow Lab: half-resolution

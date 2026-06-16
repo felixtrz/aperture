@@ -26,6 +26,10 @@ export type SimulationFixedStepCallback = (
   context: SimulationFixedStepContext,
 ) => void;
 
+export interface SimulationFixedStepTaskOptions {
+  readonly priority?: number;
+}
+
 export interface SimulationFixedStepOptions extends FixedStepClockOptions {
   readonly enabled?: boolean;
   readonly update?: SimulationFixedStepCallback;
@@ -45,7 +49,10 @@ export interface SimulationFixedStepFrameReport {
 
 export interface SimulationFixedStepRunner {
   readonly enabled: boolean;
-  registerTask(task: SimulationFixedStepCallback): () => void;
+  registerTask(
+    task: SimulationFixedStepCallback,
+    options?: SimulationFixedStepTaskOptions,
+  ): () => void;
   step(delta: number, time: number): SimulationFixedStepFrameReport;
   reset(): void;
 }
@@ -53,6 +60,12 @@ export interface SimulationFixedStepRunner {
 interface SimulationFixedStepRunnerContext {
   readonly world: EcsWorld;
   readonly assets: AssetRegistry;
+}
+
+interface RegisteredFixedStepTask {
+  readonly task: SimulationFixedStepCallback;
+  readonly priority: number;
+  readonly order: number;
 }
 
 const DISABLED_FIXED_STEP_REPORT: SimulationFixedStepFrameReport =
@@ -90,19 +103,36 @@ export function createSimulationFixedStepRunner(
   }
 
   const clock = createFixedStepClock(options);
-  const tasks = new Set<SimulationFixedStepCallback>();
+  const tasks: RegisteredFixedStepTask[] = [];
+  let nextOrder = 0;
 
   if (options.update !== undefined) {
-    tasks.add(options.update);
+    tasks.push({
+      task: options.update,
+      priority: 0,
+      order: nextOrder,
+    });
+    nextOrder += 1;
   }
 
   return {
     enabled: true,
-    registerTask(task) {
-      tasks.add(task);
+    registerTask(task, taskOptions = {}) {
+      const entry: RegisteredFixedStepTask = {
+        task,
+        priority: normalizeTaskPriority(taskOptions.priority),
+        order: nextOrder,
+      };
+
+      nextOrder += 1;
+      tasks.push(entry);
+      sortFixedStepTasks(tasks);
 
       return () => {
-        tasks.delete(task);
+        const index = tasks.indexOf(entry);
+        if (index >= 0) {
+          tasks.splice(index, 1);
+        }
       };
     },
     step(delta, time) {
@@ -129,13 +159,13 @@ function runFixedSubsteps(options: {
   readonly advance: FixedStepAdvanceResult;
   readonly clock: FixedStepClock;
   readonly context: SimulationFixedStepRunnerContext;
-  readonly tasks: ReadonlySet<SimulationFixedStepCallback>;
+  readonly tasks: readonly RegisteredFixedStepTask[];
   readonly frameDelta: number;
   readonly frameTime: number;
 }): void {
   const { advance, clock, context, tasks, frameDelta, frameTime } = options;
 
-  if (tasks.size === 0) {
+  if (tasks.length === 0) {
     return;
   }
 
@@ -143,7 +173,7 @@ function runFixedSubsteps(options: {
     const fixedStep = advance.fixedStepStart + substep;
 
     for (const task of tasks) {
-      task({
+      task.task({
         world: context.world,
         assets: context.assets,
         fixedDelta: advance.fixedDelta,
@@ -158,6 +188,20 @@ function runFixedSubsteps(options: {
       });
     }
   }
+}
+
+function sortFixedStepTasks(tasks: RegisteredFixedStepTask[]): void {
+  tasks.sort((a, b) => a.priority - b.priority || a.order - b.order);
+}
+
+function normalizeTaskPriority(priority: number | undefined): number {
+  const normalized = priority ?? 0;
+
+  if (!Number.isFinite(normalized)) {
+    throw new TypeError("Fixed-step task priority must be a finite number.");
+  }
+
+  return normalized;
 }
 
 function fixedStepFrameReport(

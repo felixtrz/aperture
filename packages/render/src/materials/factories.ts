@@ -134,6 +134,7 @@ const VEC3_PATCH_FIELDS = new Set<string>([
 
 export interface StandardMaterialPatch {
   readonly baseColorFactor?: Vec4Like;
+  readonly renderState?: Partial<RenderStateDescriptor>;
   readonly metallicFactor?: number;
   readonly roughnessFactor?: number;
   readonly emissiveFactor?: Vec3Like;
@@ -152,11 +153,13 @@ export interface StandardMaterialPatch {
 
 export interface UnlitMaterialPatch {
   readonly baseColorFactor?: Vec4Like;
+  readonly renderState?: Partial<RenderStateDescriptor>;
   readonly label?: string;
 }
 
 export interface MatcapMaterialPatch {
   readonly baseColorFactor?: Vec4Like;
+  readonly renderState?: Partial<RenderStateDescriptor>;
   readonly label?: string;
 }
 
@@ -195,11 +198,36 @@ function mergeMaterialAsset<T extends object>(prev: T, patch: object): T {
       next[key] = new Float32Array(value as ArrayLike<number>);
     } else if (VEC3_PATCH_FIELDS.has(key)) {
       next[key] = Array.from(value as ArrayLike<number>);
+    } else if (key === "renderState") {
+      next[key] = mergeRenderState(
+        (prev as { readonly renderState?: RenderStateDescriptor }).renderState,
+        value as Partial<RenderStateDescriptor>,
+      );
     } else {
       next[key] = value;
     }
   }
   return Object.freeze(next) as T;
+}
+
+function mergeRenderState(
+  previous: RenderStateDescriptor | undefined,
+  patch: Partial<RenderStateDescriptor>,
+): RenderStateDescriptor {
+  const fallback = createDefaultRenderState();
+
+  return createDefaultRenderState({
+    ...(previous ?? fallback),
+    ...patch,
+    depth:
+      patch.depth === undefined
+        ? (previous?.depth ?? fallback.depth)
+        : { ...(previous?.depth ?? fallback.depth), ...patch.depth },
+    blend:
+      patch.blend === undefined
+        ? (previous?.blend ?? fallback.blend)
+        : { ...(previous?.blend ?? fallback.blend), ...patch.blend },
+  });
 }
 
 export function createDebugNormalMaterialAsset(

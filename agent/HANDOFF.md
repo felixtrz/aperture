@@ -1,66 +1,60 @@
-# Handoff - Rapier Asset-Backed Colliders
+# Handoff - Shadow Lab Fixed-Step Render Interpolation
 
-**Updated:** 2026-06-06 11:52 PDT
+**Updated:** 2026-06-15 22:03 PDT
 
-This run completed the asset-backed collider plan in
-`docs/PHYSICS_ASSET_COLLIDER_PLAN.md`. Physics remains Rapier-first and
-ECS-authoritative, with the generated simulation worker as the default
-developer/agent proof route.
+This run completed the user-directed Shadow Lab/racing parity slice for
+fixed-step migration fallout and GLB front-side culling parity.
 
 ## Completed
 
-- Added backend-neutral triangle-mesh and heightfield geometry contracts in
-  `@aperture-engine/physics`.
-- Added an app-owned asset-backed collider geometry provider that adapts ready
-  render `MeshAsset` CPU geometry through the existing render spatial adapter,
-  caches by asset version, and reports missing/not-ready/invalid geometry
-  diagnostics.
-- Extended the Rapier backend to cook provider-backed `convexHull`, static
-  `trimesh`, and static `heightfield` colliders into real Rapier colliders.
-- Kept unsupported semantics explicit: no provider, missing/invalid assets,
-  dynamic `trimesh`/`heightfield`, and non-unit asset-collider scale report
-  structured unsupported features instead of using primitive fallbacks.
-- Proved generated-worker pause/snapshot/edit/`ecs_step_and_diff`/query/diff
-  against a real provider-backed `trimesh` collider.
-- Added `examples/physics-large-scale.html`, which runs Rapier in the
-  simulation-worker route with asset-backed terrain plus 256 dynamic bodies.
-- Updated physics implementation docs, backend comparison notes, the public
-  tracker, SOTA roadmap, backlog, current task, and completion log.
+- Added priority-aware fixed-step task registration in
+  `@aperture-engine/runtime`, preserving insertion order for equal priorities.
+- Added the app-level `fixedUpdate(context)` hook so systems can declare
+  deterministic fixed-step work without manual disposer boilerplate.
+- Added opt-in `RenderInterpolation` ECS state and app-side snapshot
+  interpolation for presentation-only smoothing of mesh transforms and camera
+  view matrices between fixed ticks.
+- Migrated the racing vehicle and camera systems to `fixedUpdate(context)`.
+- Fixed wheel spin to scale by fixed delta while preserving the prior 60 Hz
+  feel, and removed misleading fixed-step `dt` clamps.
+- Added material patch support for render-state updates and forced imported GLB
+  materials in Shadow Lab/racing through `cullMode: "back"` so Aperture matches
+  three.js `FrontSide` behavior unless a source material opts into
+  double-sided/no-cull.
+- Updated architecture, decision, dashboard, and render-pipeline tracker docs.
 
 ## Validation Run
 
-- `pnpm exec vitest run test/app/physics-collider-geometry.test.ts test/physics-rapier/rapier-backend.test.ts test/app/generated-worker-start.test.ts`
-  passed with 3 test files and 72 tests.
-- `pnpm exec playwright test test/e2e/physics-large-scale.spec.ts --reporter=line`
-  passed.
-- `pnpm run check` passed with 445 test files and 2486 tests.
+- `pnpm exec vitest run test/runtime/fixed-step-schedule.test.ts test/app/fixed-step-app.test.ts`
+  passed with 2 test files and 8 tests.
+- `pnpm run build` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run check:boundaries` passed.
+- `pnpm run check:doc-paths` passed.
+- `pnpm run check:progress` passed.
+- `pnpm run typecheck` passed in `shadow-lab/`.
+- `pnpm run typecheck` passed in `racing/`.
+- Targeted `pnpm exec eslint ...` over changed root TypeScript files passed.
+  The root ESLint config ignores the changed app project files, so those are
+  covered by their app typechecks.
+- Targeted `pnpm exec prettier --check ...` over changed files passed.
+- Aperture MCP browser status was `running` with `lastError:null`; a no-reload
+  screenshot was captured at
+  `shadow-lab/.aperture/runtime/current-fixedupdate-render-interpolation-culling.png`.
 
-## Current State
+## Known Issues
 
-Asset-backed collider V1 is implemented for the default simulation-worker
-route. `@aperture-engine/physics` remains backend-neutral, `@aperture-engine/app`
-owns render-asset adaptation, and `@aperture-engine/physics-rapier` consumes
-provider geometry without importing app/render packages.
-
-Bevy was checked as the ECS/fixed-schedule/mesh-extraction reference, not as a
-collider-cooking parity source. PlayCanvas was checked as the direct
-asset-backed mesh collider cooking reference.
-
-## Known Gaps
-
-- Asset-collider V2 scale baking/recreation, dynamic non-convex policy,
-  async/decimated cooking, and richer compound mesh cooking metadata remain
-  future work.
-- Generic joints, automatic break-force enforcement, native joint impulse
-  readback, motor force limits, and broader paired non-fixed body-B frame
-  semantics remain unsupported or diagnostic-only.
-- The dedicated physics-worker route remains a supported Rapier transferable
-  proof route, but it is not the next product focus unless a future explicit
-  decision promotes it.
+- Full `pnpm run format:check` still fails on pre-existing formatting drift in
+  many untouched files.
+- Full `pnpm run lint` still fails on pre-existing vendored Shadow Lab
+  three.js/compat-rule lint issues after the local unused import was fixed.
+- Render interpolation currently covers opted-in `LocalTransform` hierarchies
+  and camera view matrices. Future shared-buffer publication may want the same
+  presentation-only rewrite closer to packed snapshot transport.
 
 ## Recommended Next Task
 
-Continue remaining M10 joint/gameplay semantics through the generated
-simulation-worker proof route: enforceable motor force caps, automatic
-`breakForce` / impulse-driven joint breaks, native joint impulse readback, and
-broader paired non-fixed joint frame semantics.
+Continue Shadow Lab parity by comparing the remaining StandardMaterial shader
+variant/resource behavior against three.js with the same side-by-side scene,
+especially bloom intensity, shadow filtering, and any residual imported material
+differences now that fixed-step cadence and GLB culling parity are corrected.

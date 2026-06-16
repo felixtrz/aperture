@@ -1,4 +1,5 @@
 import { createSystem, material, mesh } from "@aperture-engine/app/systems";
+import type { MaterialHandle } from "@aperture-engine/simulation";
 import { hexColor } from "../lib/math.js";
 import {
   BACKGROUND_HEX,
@@ -33,6 +34,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
 
   override init(): void {
     this.#cells = resolveTrackCells(this.world).cells;
+    this.#forceFrontSideGltfMaterials();
     this.#spawnCamera();
     this.#spawnLights();
     this.#spawnFog();
@@ -40,6 +42,28 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     this.#spawnNpcs();
     this.#spawnPlayer();
     this.#spawnBloomProbe();
+  }
+
+  #forceFrontSideGltfMaterials(): void {
+    for (const entry of this.assetsRegistry.list({
+      kind: "material",
+      status: "ready",
+    })) {
+      if (!entry.handle.id.includes(":material:")) {
+        continue;
+      }
+
+      const result = this.materials.set(entry.handle as MaterialHandle, {
+        renderState: { cullMode: "back" },
+      });
+
+      if (!result.ok) {
+        this.diagnostics.warn("shadowLab.gltfFrontSideMaterialPatchFailed", {
+          handle: entry.handle.id,
+          code: result.diagnostic.code,
+        });
+      }
+    }
   }
 
   #spawnCamera(): void {

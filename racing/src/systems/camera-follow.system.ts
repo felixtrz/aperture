@@ -1,8 +1,10 @@
 import {
   LocalTransform,
   Name,
+  RenderInterpolation,
   createSystem,
   type ApertureQuery,
+  type SimulationFixedStepContext,
 } from "@aperture-engine/app/systems";
 import { quatLookAt, type Quat, type Vec3 } from "../lib/math.js";
 import { CAMERA } from "../lib/tuning.js";
@@ -20,33 +22,23 @@ export default class CameraFollowSystem extends createSystem({
   priority: 120,
   queries: { cams: { required: [Name, LocalTransform] } },
 }) {
-  #disposeFixedStep: (() => void) | null = null;
   #camera: QueryEntity | null = null;
   #smoothed: Vec3 = [...vehicleState.sphere];
   #initialized = false;
 
-  override init(): void {
-    this.#disposeFixedStep = this.fixedStep.register((context) => {
-      this.#step(context.fixedDelta);
-    });
-  }
-
-  override update(delta: number): void {
-    void delta;
-  }
-
-  override destroy(): void {
-    this.#disposeFixedStep?.();
-    this.#disposeFixedStep = null;
-    super.destroy();
+  override fixedUpdate(context: SimulationFixedStepContext): void {
+    this.#step(context.fixedDelta);
   }
 
   #step(delta: number): void {
     if (!vehicleState.ready) return;
     if (this.#camera === null) this.#camera = this.#findNamed("main-camera");
     if (this.#camera === null) return;
+    if (!this.#camera.hasComponent(RenderInterpolation)) {
+      this.#camera.addComponent(RenderInterpolation);
+    }
 
-    const dt = Math.min(Math.max(delta, 0), 1 / 30);
+    const dt = delta;
     const target = vehicleState.sphere;
 
     // Lead = forward * horizontal speed (main.js _camLead).

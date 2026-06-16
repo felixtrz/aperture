@@ -1,0 +1,451 @@
+import type { RenderSnapshot } from "@aperture-engine/render";
+import {
+  LocalTransform,
+  Parent,
+  WorldTransform,
+  composeTrsMatrix,
+  invertMat4,
+  multiplyMat4,
+  type EcsWorld,
+  type Entity,
+  type Mat4,
+  type Mat4Like,
+  type QuatLike,
+  type Vec3Like,
+} from "@aperture-engine/simulation";
+import { slerpQuat } from "@aperture-engine/physics";
+import { RenderInterpolation } from "./systems/components.js";
+import type { FixedStepTaskRegistrar } from "./systems/fixed-step.js";
+
+export const RENDER_INTERPOLATION_PRE_PRIORITY = -1_000_000_000;
+export const RENDER_INTERPOLATION_POST_PRIORITY = 1_000_000_000;
+
+export interface RenderSnapshotInterpolationReport {
+  readonly enabled: boolean;
+  readonly alpha: number;
+  readonly transformWrites: number;
+  readonly viewWrites: number;
+}
+
+export function installRenderInterpolationFixedStep(options: {
+  readonly world: EcsWorld;
+  readonly registerFixedStepTask: FixedStepTaskRegistrar;
+}): () => void {
+  const unregisterPrepare = options.registerFixedStepTask(
+    () => prepareRenderInterpolationFixedStep(options.world),
+    { priority: RENDER_INTERPOLATION_PRE_PRIORITY },
+  );
+  const unregisterCommit = options.registerFixedStepTask(
+    () => commitRenderInterpolationFixedStep(options.world),
+    { priority: RENDER_INTERPOLATION_POST_PRIORITY },
+  );
+
+  return () => {
+    unregisterPrepare();
+    unregisterCommit();
+  };
+}
+
+export function prepareRenderInterpolationFixedStep(world: EcsWorld): void {
+  for (const entity of renderInterpolationEntities(world)) {
+    if (!renderInterpolationEnabled(entity)) {
+      continue;
+    }
+
+    if (entity.getValue(RenderInterpolation, "initialized") === true) {
+      copyVectorField(entity, "currentTranslation", "previousTranslation");
+      copyVectorField(entity, "currentRotation", "previousRotation");
+      copyVectorField(entity, "currentScale", "previousScale");
+    } else {
+      copyLocalToInterpolation(entity, "previous");
+      copyLocalToInterpolation(entity, "current");
+      entity.setValue(RenderInterpolation, "initialized", true);
+    }
+  }
+}
+
+export function commitRenderInterpolationFixedStep(world: EcsWorld): void {
+  for (const entity of renderInterpolationEntities(world)) {
+    if (!renderInterpolationEnabled(entity)) {
+      continue;
+    }
+
+    if (entity.getValue(RenderInterpolation, "initialized") !== true) {
+      copyLocalToInterpolation(entity, "previous");
+      entity.setValue(RenderInterpolation, "initialized", true);
+    }
+
+    copyLocalToInterpolation(entity, "current");
+  }
+}
+
+export function applyRenderSnapshotInterpolation(options: {
+  readonly snapshot: RenderSnapshot;
+  readonly world: EcsWorld;
+  readonly alpha: number;
+}): RenderSnapshotInterpolationReport {
+  const alpha = clampAlpha(options.alpha);
+  const matrixCache = new Map<string, Mat4 | null>();
+  const writtenOffsets = new Set<number>();
+  let transformWrites = 0;
+  let viewWrites = 0;
+
+  for (const draw of options.snapshot.meshDraws) {
+    transformWrites += writeInterpolatedPacketTransform({
+      world: options.world,
+      transforms: options.snapshot.transforms,
+      entityRef: draw.entity,
+      offset: draw.worldTransformOffset,
+      alpha,
+      matrixCache,
+      writtenOffsets,
+    });
+  }
+
+  for (const draw of options.snapshot.spriteDraws ?? []) {
+    transformWrites += writeInterpolatedPacketTransform({
+      world: options.world,
+      transforms: options.snapshot.transforms,
+      entityRef: draw.entity,
+      offset: draw.worldTransformOffset,
+      alpha,
+      matrixCache,
+      writtenOffsets,
+    });
+  }
+
+  for (const emitter of options.snapshot.particleEmitters ?? []) {
+    transformWrites += writeInterpolatedPacketTransform({
+      world: options.world,
+      transforms: options.snapshot.transforms,
+      entityRef: emitter.entity,
+      offset: emitter.worldTransformOffset,
+      alpha,
+      matrixCache,
+      writtenOffsets,
+    });
+  }
+
+  for (const view of options.snapshot.views) {
+    viewWrites += writeInterpolatedViewMatrices({
+      world: options.world,
+      viewMatrices: options.snapshot.viewMatrices,
+      entityRef: view.camera,
+      viewOffset: view.viewMatrixOffset,
+      projectionOffset: view.projectionMatrixOffset,
+      viewProjectionOffset: view.viewProjectionMatrixOffset,
+      alpha,
+      matrixCache,
+    });
+  }
+
+  return {
+    enabled: true,
+    alpha,
+    transformWrites,
+    viewWrites,
+  };
+}
+
+function writeInterpolatedPacketTransform(options: {
+  readonly world: EcsWorld;
+  readonly transforms: Float32Array;
+  readonly entityRef: { readonly index: number; readonly generation: number };
+  readonly offset: number;
+  readonly alpha: number;
+  readonly matrixCache: Map<string, Mat4 | null>;
+  readonly writtenOffsets: Set<number>;
+}): number {
+  if (
+    options.writtenOffsets.has(options.offset) ||
+    !matrixOffsetValid(options.transforms, options.offset)
+  ) {
+    return 0;
+  }
+
+  const entity = resolveSnapshotEntity(options.world, options.entityRef);
+
+  if (entity === null || !renderInterpolationReady(entity)) {
+    return 0;
+  }
+
+  const matrix = interpolatedWorldMatrix(
+    entity,
+    options.alpha,
+    options.matrixCache,
+    new Set(),
+  );
+
+  if (matrix === null) {
+    return 0;
+  }
+
+  options.transforms.set(matrix, options.offset);
+  options.writtenOffsets.add(options.offset);
+  return 1;
+}
+
+function writeInterpolatedViewMatrices(options: {
+  readonly world: EcsWorld;
+  readonly viewMatrices: Float32Array;
+  readonly entityRef: { readonly index: number; readonly generation: number };
+  readonly viewOffset: number;
+  readonly projectionOffset: number;
+  readonly viewProjectionOffset: number;
+  readonly alpha: number;
+  readonly matrixCache: Map<string, Mat4 | null>;
+}): number {
+  if (
+    !matrixOffsetValid(options.viewMatrices, options.viewOffset) ||
+    !matrixOffsetValid(options.viewMatrices, options.projectionOffset) ||
+    !matrixOffsetValid(options.viewMatrices, options.viewProjectionOffset)
+  ) {
+    return 0;
+  }
+
+  const entity = resolveSnapshotEntity(options.world, options.entityRef);
+
+  if (entity === null || !renderInterpolationReady(entity)) {
+    return 0;
+  }
+
+  const worldMatrix = interpolatedWorldMatrix(
+    entity,
+    options.alpha,
+    options.matrixCache,
+    new Set(),
+  );
+  const viewMatrix = worldMatrix === null ? null : invertMat4(worldMatrix);
+
+  if (viewMatrix === null) {
+    return 0;
+  }
+
+  const projectionMatrix = readMatrix(
+    options.viewMatrices,
+    options.projectionOffset,
+  );
+  const viewProjectionMatrix = multiplyMat4(projectionMatrix, viewMatrix);
+
+  options.viewMatrices.set(viewMatrix, options.viewOffset);
+  options.viewMatrices.set(viewProjectionMatrix, options.viewProjectionOffset);
+  return 1;
+}
+
+function interpolatedWorldMatrix(
+  entity: Entity,
+  alpha: number,
+  cache: Map<string, Mat4 | null>,
+  visiting: Set<string>,
+): Mat4 | null {
+  const key = entityKey(entity);
+  const cached = cache.get(key);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  if (visiting.has(key)) {
+    cache.set(key, null);
+    return null;
+  }
+
+  visiting.add(key);
+  const localMatrix = renderInterpolationReady(entity)
+    ? interpolatedLocalMatrix(entity, alpha)
+    : currentLocalMatrix(entity);
+  let worldMatrix: Mat4 | null = null;
+
+  if (localMatrix !== null) {
+    const parent = parentEntity(entity);
+    if (parent !== null) {
+      const parentMatrix = renderInterpolationReady(parent)
+        ? interpolatedWorldMatrix(parent, alpha, cache, visiting)
+        : readWorldMatrix(parent);
+      worldMatrix =
+        parentMatrix === null ? null : multiplyMat4(parentMatrix, localMatrix);
+    } else {
+      worldMatrix = localMatrix;
+    }
+  }
+
+  visiting.delete(key);
+  cache.set(key, worldMatrix);
+  return worldMatrix;
+}
+
+function interpolatedLocalMatrix(entity: Entity, alpha: number): Mat4 {
+  return composeTrsMatrix(
+    lerpVec3(
+      entity.getVectorView(RenderInterpolation, "previousTranslation"),
+      entity.getVectorView(RenderInterpolation, "currentTranslation"),
+      alpha,
+    ),
+    slerpQuat(
+      entity.getVectorView(RenderInterpolation, "previousRotation"),
+      entity.getVectorView(RenderInterpolation, "currentRotation"),
+      alpha,
+    ),
+    lerpVec3(
+      entity.getVectorView(RenderInterpolation, "previousScale"),
+      entity.getVectorView(RenderInterpolation, "currentScale"),
+      alpha,
+    ),
+  );
+}
+
+function currentLocalMatrix(entity: Entity): Mat4 | null {
+  if (!entity.hasComponent(LocalTransform)) {
+    return readWorldMatrix(entity);
+  }
+
+  return composeTrsMatrix(
+    entity.getVectorView(LocalTransform, "translation"),
+    entity.getVectorView(LocalTransform, "rotation"),
+    entity.getVectorView(LocalTransform, "scale"),
+  );
+}
+
+function readWorldMatrix(entity: Entity): Mat4 | null {
+  if (!entity.hasComponent(WorldTransform)) {
+    return null;
+  }
+
+  return readWorldTransformMatrix(entity);
+}
+
+function readWorldTransformMatrix(entity: Entity): Mat4 {
+  return new Float32Array([
+    ...entity.getVectorView(WorldTransform, "col0"),
+    ...entity.getVectorView(WorldTransform, "col1"),
+    ...entity.getVectorView(WorldTransform, "col2"),
+    ...entity.getVectorView(WorldTransform, "col3"),
+  ]) as Mat4;
+}
+
+function readMatrix(buffer: Float32Array, offset: number): Mat4 {
+  return buffer.slice(offset, offset + 16) as Mat4;
+}
+
+function renderInterpolationEntities(world: EcsWorld): Iterable<Entity> {
+  return world.queryManager.registerQuery({
+    required: [RenderInterpolation, LocalTransform],
+  }).entities;
+}
+
+function renderInterpolationReady(entity: Entity): boolean {
+  return (
+    entity.hasComponent(RenderInterpolation) &&
+    renderInterpolationEnabled(entity) &&
+    entity.getValue(RenderInterpolation, "initialized") === true
+  );
+}
+
+function renderInterpolationEnabled(entity: Entity): boolean {
+  return entity.getValue(RenderInterpolation, "enabled") !== false;
+}
+
+function copyLocalToInterpolation(
+  entity: Entity,
+  target: "previous" | "current",
+): void {
+  const translation =
+    target === "previous" ? "previousTranslation" : "currentTranslation";
+  const rotation =
+    target === "previous" ? "previousRotation" : "currentRotation";
+  const scale = target === "previous" ? "previousScale" : "currentScale";
+
+  entity
+    .getVectorView(RenderInterpolation, translation)
+    .set(entity.getVectorView(LocalTransform, "translation"));
+  entity
+    .getVectorView(RenderInterpolation, rotation)
+    .set(entity.getVectorView(LocalTransform, "rotation"));
+  entity
+    .getVectorView(RenderInterpolation, scale)
+    .set(entity.getVectorView(LocalTransform, "scale"));
+}
+
+function copyVectorField(
+  entity: Entity,
+  source: keyof typeof RenderInterpolation.schema,
+  target: keyof typeof RenderInterpolation.schema,
+): void {
+  entity
+    .getVectorView(RenderInterpolation, target as "previousTranslation")
+    .set(
+      entity.getVectorView(RenderInterpolation, source as "currentTranslation"),
+    );
+}
+
+function parentEntity(entity: Entity): Entity | null {
+  if (!entity.hasComponent(Parent)) {
+    return null;
+  }
+
+  const parent = entity.getValue(Parent, "entity") as Entity | null | undefined;
+  return parent !== null && parent !== undefined && parent.active
+    ? parent
+    : null;
+}
+
+function resolveSnapshotEntity(
+  world: EcsWorld,
+  ref: { readonly index: number; readonly generation: number },
+): Entity | null {
+  if (
+    !Number.isInteger(ref.index) ||
+    !Number.isInteger(ref.generation) ||
+    ref.index < 0 ||
+    ref.generation < 0
+  ) {
+    return null;
+  }
+
+  const entity = world.entityManager.getEntityByIndex(ref.index);
+
+  if (
+    entity === null ||
+    !entity.active ||
+    entity.generation !== ref.generation
+  ) {
+    return null;
+  }
+
+  return entity;
+}
+
+function lerpVec3(
+  previous: Vec3Like,
+  current: Vec3Like,
+  alpha: number,
+): [number, number, number] {
+  return [
+    lerp(read(previous, 0), read(current, 0), alpha),
+    lerp(read(previous, 1), read(current, 1), alpha),
+    lerp(read(previous, 2), read(current, 2), alpha),
+  ];
+}
+
+function lerp(left: number, right: number, alpha: number): number {
+  return left + (right - left) * alpha;
+}
+
+function clampAlpha(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.min(1, Math.max(0, value));
+}
+
+function matrixOffsetValid(buffer: Float32Array, offset: number): boolean {
+  return offset >= 0 && offset + 16 <= buffer.length;
+}
+
+function entityKey(entity: Entity): string {
+  return `${entity.index}:${entity.generation}`;
+}
+
+function read(values: Mat4Like | QuatLike | Vec3Like, index: number): number {
+  return values[index] ?? 0;
+}

@@ -774,3 +774,45 @@ Consequences:
   step, inspect, and diff ECS state.
 - Browser/WebXR type dependencies, if added, must stay isolated to
   browser-facing app/WebGPU code.
+
+## 0021 — Fixed-Step Render Interpolation Is a Presentation Snapshot Rewrite
+
+Date: 2026-06-16 (Shadow Lab fixed-step parity slice)
+
+Status: accepted
+
+Context:
+
+Shadow Lab moved vehicle and camera logic from once-per-render-frame updates to
+fixed-step simulation. That preserves deterministic physics ordering, but it
+also means a 60 Hz fixed clock can publish the same camera or visual transform
+across multiple high-refresh render frames. Physics body interpolation already
+handles physics-owned `PhysicsBodyState` entities, but camera rigs, vehicle
+roots, wheels, and other ECS-authored visual transforms need the same
+presentation smoothness without making rendering authoritative.
+
+Decision:
+
+Render-facing interpolation is opt-in through an ECS `RenderInterpolation`
+component. Fixed-step bookkeeping captures previous and current local transform
+samples before and after user fixed-step work. The app applies interpolation
+after normal render extraction and physics interpolation by rewriting only the
+outgoing `RenderSnapshot` transform and view-matrix data for presentation.
+Simulation systems still read and write the authoritative fixed-step ECS
+transforms.
+
+Fixed-step task ordering belongs to the runtime scheduler. App systems may
+declare `fixedUpdate(context)`, which is registered with the system priority
+used by normal system discovery; manual fixed-step registration remains
+available for framework tasks and advanced app code.
+
+Consequences:
+
+- The renderer still consumes snapshots and does not own gameplay transforms.
+- Camera and non-physics visual entities can be smoothed at render cadence while
+  simulation remains fixed-step deterministic.
+- Interpolated child hierarchies must compose from interpolated parent local
+  samples when both parent and child opt in.
+- Future shared snapshot and worker transports may move the interpolation write
+  closer to packed snapshot publication, but they must preserve the
+  presentation-only contract.

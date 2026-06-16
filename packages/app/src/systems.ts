@@ -21,9 +21,11 @@ import {
   createSystem as createElicsSystem,
   defineComponent,
   quatFromAxisAngle,
+  type AssetRegistry,
   type EcsWorld,
   type Entity,
 } from "@aperture-engine/simulation";
+import type { SimulationFixedStepContext } from "@aperture-engine/runtime";
 import type { SpatialQueries } from "./spatial/index.js";
 import {
   type StatefulGamepadsState,
@@ -55,6 +57,10 @@ import {
 } from "./systems/context.js";
 
 export { createSpatialQueries } from "./spatial/index.js";
+export type {
+  SimulationFixedStepContext,
+  SimulationFixedStepTaskOptions,
+} from "@aperture-engine/runtime";
 export type {
   RayInput,
   SpatialClosestPointHit,
@@ -125,6 +131,7 @@ export {
   AppEntityKey,
   AppEntitySource,
   AppEntityTags,
+  RenderInterpolation,
   registerApertureAppComponents,
 } from "./systems/components.js";
 export type { CameraAccess, CameraHandle } from "./systems/cameras.js";
@@ -270,6 +277,7 @@ export interface ApertureSystemInstance {
   readonly actions: InputActions;
   readonly keyboard: StatefulKeyboardState;
   readonly gamepads: StatefulGamepadsState;
+  readonly assetsRegistry: AssetRegistry;
   readonly assets: SystemAssetAccess;
   readonly commands: CommandAccess;
   readonly spawn: SpawnCommands;
@@ -286,6 +294,7 @@ export interface ApertureSystemInstance {
   createEntity(): Entity;
   init(): void;
   update(delta: number, time: number): void;
+  fixedUpdate?(context: SimulationFixedStepContext): void;
   destroy(): void;
 }
 
@@ -347,12 +356,14 @@ export function createSystem<
 
     readonly #context: ApertureSystemContext;
     readonly #effects: ScheduledEffects;
+    readonly #disposeFixedStep: (() => void) | null;
 
     constructor(...args: ConstructorParameters<typeof Base>) {
       super(...args);
       this.#context = getApertureSystemContext(this.world as EcsWorld);
       this.#effects = createScheduledEffects();
       registerSystemEffects(this, this.#effects);
+      this.#disposeFixedStep = this.#registerFixedUpdate(args[2]);
     }
 
     get signals(): SignalStore {
@@ -373,6 +384,10 @@ export function createSystem<
 
     get gamepads(): StatefulGamepadsState {
       return this.#context.input.gamepads;
+    }
+
+    get assetsRegistry(): AssetRegistry {
+      return this.#context.assetsRegistry;
     }
 
     get assets(): SystemAssetAccess {
@@ -428,7 +443,28 @@ export function createSystem<
     }
 
     override destroy(): void {
+      this.#disposeFixedStep?.();
       this.#effects.dispose();
+    }
+
+    #registerFixedUpdate(priorityArg: number | undefined): (() => void) | null {
+      const fixedUpdate = (this as ApertureSystemInstance).fixedUpdate;
+
+      if (
+        typeof fixedUpdate !== "function" ||
+        !this.#context.fixedStep.available
+      ) {
+        return null;
+      }
+
+      const taskPriority = Number.isFinite(priorityArg)
+        ? (priorityArg as number)
+        : priority;
+
+      return this.#context.fixedStep.register(
+        (context) => fixedUpdate.call(this, context),
+        { priority: taskPriority },
+      );
     }
   }
 

@@ -2,8 +2,10 @@ import {
   LocalTransform,
   Name,
   Parent,
+  RenderInterpolation,
   createSystem,
 } from "@aperture-engine/app/systems";
+import type { MaterialHandle } from "@aperture-engine/simulation";
 import {
   CELL_RAW,
   GRID_SCALE,
@@ -39,6 +41,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
 
   override init(): void {
     this.#cells = resolveTrackCells(this.world).cells;
+    this.#forceFrontSideGltfMaterials();
     this.#spawnCamera();
     this.#spawnLights();
     this.#spawnFog();
@@ -47,6 +50,28 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     this.#spawnColliders();
     this.#spawnTrack();
     this.#spawnNpcs();
+  }
+
+  #forceFrontSideGltfMaterials(): void {
+    for (const entry of this.assetsRegistry.list({
+      kind: "material",
+      status: "ready",
+    })) {
+      if (!entry.handle.id.includes(":material:")) {
+        continue;
+      }
+
+      const result = this.materials.set(entry.handle as MaterialHandle, {
+        renderState: { cullMode: "back" },
+      });
+
+      if (!result.ok) {
+        this.diagnostics.warn("racing.gltfFrontSideMaterialPatchFailed", {
+          handle: entry.handle.id,
+          code: result.diagnostic.code,
+        });
+      }
+    }
   }
 
   #spawnColliders(): void {
@@ -101,7 +126,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
 
   #spawnCamera(): void {
     const target: [number, number, number] = [SPAWN_POS[0], 0, SPAWN_POS[2]];
-    this.spawn.camera({
+    const camera = this.spawn.camera({
       key: "camera.main",
       name: "main-camera",
       transform: {
@@ -119,6 +144,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         clearColor: hexColor(BACKGROUND_HEX),
       },
     });
+    camera.addComponent(RenderInterpolation);
   }
 
   #spawnLights(): void {

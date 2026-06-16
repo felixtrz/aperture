@@ -1,19 +1,28 @@
-import type { SimulationFixedStepCallback } from "@aperture-engine/runtime";
+import type {
+  SimulationFixedStepCallback,
+  SimulationFixedStepTaskOptions,
+} from "@aperture-engine/runtime";
 import { ApertureSystemError } from "./errors.js";
 
 export interface FixedStepAccess {
-  register(task: SimulationFixedStepCallback): () => void;
+  readonly available: boolean;
+  register(
+    task: SimulationFixedStepCallback,
+    options?: SimulationFixedStepTaskOptions,
+  ): () => void;
 }
 
 export type FixedStepTaskRegistrar = (
   task: SimulationFixedStepCallback,
+  options?: SimulationFixedStepTaskOptions,
 ) => () => void;
 
 export function createFixedStepAccess(
   registerTask?: FixedStepTaskRegistrar,
 ): FixedStepAccess {
   return {
-    register(task) {
+    available: registerTask !== undefined,
+    register(task, options) {
       if (registerTask === undefined) {
         throw new ApertureSystemError(
           "aperture.fixedStep.unavailable",
@@ -22,7 +31,7 @@ export function createFixedStepAccess(
         );
       }
 
-      return registerTask(task);
+      return registerTask(task, options);
     },
   };
 }

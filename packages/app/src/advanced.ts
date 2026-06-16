@@ -18,6 +18,10 @@ import {
   populateSpatialIndexFromWorld,
 } from "./systems/spatial-index-population.js";
 import { applyPhysicsSnapshotInterpolation } from "./physics-interpolation.js";
+import {
+  applyRenderSnapshotInterpolation,
+  installRenderInterpolationFixedStep,
+} from "./render-interpolation.js";
 import { runInteractionFrame } from "./interaction/system.js";
 import {
   defineApertureConfig,
@@ -70,6 +74,7 @@ export interface ApertureApp {
   extract(frame?: number): ReturnType<ExtractionApp["extract"]>;
   registerFixedStepTask(
     task: Parameters<ExtractionApp["registerFixedStepTask"]>[0],
+    options?: Parameters<ExtractionApp["registerFixedStepTask"]>[1],
   ): () => void;
   resetFixedStepClock(): void;
   stepAndExtract(
@@ -127,7 +132,8 @@ export async function createApertureApp(
     world: lowLevel.world,
     assetsRegistry: lowLevel.assets,
     config,
-    registerFixedStepTask: (task) => lowLevel.registerFixedStepTask(task),
+    registerFixedStepTask: (task, taskOptions) =>
+      lowLevel.registerFixedStepTask(task, taskOptions),
     ...(options.assetLoader === undefined
       ? {}
       : { assetLoader: options.assetLoader }),
@@ -137,6 +143,11 @@ export async function createApertureApp(
   });
   const preload = preloadReport(config);
   const spatialIndexPopulation = createSpatialIndexPopulationState();
+  installRenderInterpolationFixedStep({
+    world: lowLevel.world,
+    registerFixedStepTask: (task, taskOptions) =>
+      lowLevel.registerFixedStepTask(task, taskOptions),
+  });
   const physicsInterpolation = options.physicsInterpolation === true;
   const physicsFacade =
     physicsConfig === null
@@ -146,7 +157,8 @@ export async function createApertureApp(
           assets: lowLevel.assets,
           physics: context.physics,
           config: physicsConfig,
-          registerFixedStepTask: (task) => lowLevel.registerFixedStepTask(task),
+          registerFixedStepTask: (task, taskOptions) =>
+            lowLevel.registerFixedStepTask(task, taskOptions),
         });
   let lastFixedStep: ReturnType<ExtractionApp["step"]>["fixedStep"] | null =
     null;
@@ -207,10 +219,18 @@ export async function createApertureApp(
         });
       }
 
+      if (lastFixedStep !== null) {
+        applyRenderSnapshotInterpolation({
+          snapshot,
+          world: lowLevel.world,
+          alpha: lastFixedStep.overstepAlpha,
+        });
+      }
+
       return snapshot;
     },
-    registerFixedStepTask(task) {
-      return lowLevel.registerFixedStepTask(task);
+    registerFixedStepTask(task, taskOptions) {
+      return lowLevel.registerFixedStepTask(task, taskOptions);
     },
     resetFixedStepClock() {
       lowLevel.resetFixedStepClock();

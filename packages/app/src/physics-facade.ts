@@ -8,7 +8,10 @@ import {
   type PhysicsVec3,
 } from "@aperture-engine/physics";
 import type { AssetRegistry, EcsWorld } from "@aperture-engine/simulation";
-import type { SimulationFixedStepCallback } from "@aperture-engine/runtime";
+import type {
+  SimulationFixedStepCallback,
+  SimulationFixedStepTaskOptions,
+} from "@aperture-engine/runtime";
 import { createAssetBackedPhysicsColliderGeometryProvider } from "./physics-collider-geometry.js";
 import type { PhysicsAccess } from "./systems/physics.js";
 
@@ -50,6 +53,7 @@ export interface InstallApertureAppPhysicsOptions {
   readonly config: AperturePhysicsConfig;
   readonly registerFixedStepTask: (
     task: SimulationFixedStepCallback,
+    options?: SimulationFixedStepTaskOptions,
   ) => () => void;
 }
 

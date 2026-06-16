@@ -194,4 +194,24 @@ describe("runtime fixed-step scheduling", () => {
       "b:0:0.1",
     ]);
   });
+
+  it("orders fixed-step tasks by priority with insertion order as the tie-breaker", () => {
+    const order: string[] = [];
+    const app = createSimulationApp({
+      fixedStep: {
+        fixedDelta: 0.1,
+        update() {
+          order.push("option-update");
+        },
+      },
+    });
+
+    app.registerFixedStepTask(() => order.push("late-a"), { priority: 20 });
+    app.registerFixedStepTask(() => order.push("early"), { priority: -10 });
+    app.registerFixedStepTask(() => order.push("late-b"), { priority: 20 });
+
+    app.step(0.1, 1);
+
+    expect(order).toEqual(["early", "option-update", "late-a", "late-b"]);
+  });
 });

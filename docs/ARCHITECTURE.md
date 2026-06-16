@@ -42,9 +42,10 @@ the runtime architecture:
   `config`, `systems`, and `advanced` entry points are headless-safe app
   ergonomics over the lower layers. Browser-specific generated bootstrap lives
   behind the `browser` and `worker` entry points, not the root export. App
-  systems may register deterministic fixed-step work through
-  `this.fixedStep.register(...)`; the app wires that to the runtime fixed-step
-  scheduler when systems are created through `createApertureApp()`.
+  systems may implement `fixedUpdate(context)` for deterministic fixed-step
+  work, or explicitly register advanced tasks through
+  `this.fixedStep.register(...)`; the app wires both routes to the runtime
+  fixed-step scheduler when systems are created through `createApertureApp()`.
 - `@aperture-engine/vite-plugin`: the default Vite integration. It discovers
   `aperture.config.ts`, system globs, system descriptor metadata, and generated
   browser/worker virtual modules. It is build-time code and is intentionally not
@@ -422,6 +423,16 @@ Main:
   6. Queue and sort draw items
   7. Render via WebGPU
 ```
+
+Fixed-step simulation and presentation can run at different cadences. App
+systems that implement `fixedUpdate(context)` are registered in system-priority
+order on the runtime fixed-step scheduler. Entities that opt into
+`RenderInterpolation` keep previous/current fixed-step transform samples in ECS;
+after extraction, the app rewrites only the outgoing `RenderSnapshot`
+transforms and view matrices using the current fixed-step overstep alpha. The
+authoritative ECS `LocalTransform` and `WorldTransform` values remain the fixed
+simulation state, and render interpolation does not introduce a renderer-owned
+scene graph.
 
 The canonical submitted-frame diagnostics taxonomy lives in
 `packages/webgpu/src/render/frame/render-frame-phases.ts` and is:

@@ -4,6 +4,7 @@ import {
   type SimulationFixedStepCallback,
   type SimulationFixedStepFrameReport,
   type SimulationFixedStepOptions,
+  type SimulationFixedStepTaskOptions,
 } from "./fixed-step-schedule.js";
 import {
   Animation,
@@ -245,7 +246,10 @@ export interface SimulationApp {
   readonly world: EcsWorld;
   readonly assets: AssetRegistry;
   spawn(...initializers: SpawnEntityInitializer[]): Entity;
-  registerFixedStepTask(task: SimulationFixedStepCallback): () => void;
+  registerFixedStepTask(
+    task: SimulationFixedStepCallback,
+    options?: SimulationFixedStepTaskOptions,
+  ): () => void;
   resetFixedStepClock(): void;
   registerSystem(
     system: Parameters<EcsWorld["registerSystem"]>[0],
@@ -304,8 +308,8 @@ export function createSimulationApp(
       world.registerSystem(system);
       return this;
     },
-    registerFixedStepTask(task) {
-      return fixedStep.registerTask(task);
+    registerFixedStepTask(task, taskOptions) {
+      return fixedStep.registerTask(task, taskOptions);
     },
     resetFixedStepClock() {
       fixedStep.reset();

@@ -34,6 +34,21 @@ export const AppEntitySource = defineComponent(
   "Optional app-authored or loader-authored source metadata for tooling and diagnostics.",
 );
 
+export const RenderInterpolation = defineComponent(
+  "aperture.render.interpolation",
+  {
+    enabled: { type: EcsType.Boolean, default: true },
+    initialized: { type: EcsType.Boolean, default: false },
+    previousTranslation: { type: EcsType.Vec3, default: [0, 0, 0] },
+    previousRotation: { type: EcsType.Vec4, default: [0, 0, 0, 1] },
+    previousScale: { type: EcsType.Vec3, default: [1, 1, 1] },
+    currentTranslation: { type: EcsType.Vec3, default: [0, 0, 0] },
+    currentRotation: { type: EcsType.Vec4, default: [0, 0, 0, 1] },
+    currentScale: { type: EcsType.Vec3, default: [1, 1, 1] },
+  },
+  "Opt-in fixed-step render interpolation state for non-physics LocalTransform entities.",
+);
+
 export function registerApertureAppComponents(world: EcsWorld): EcsWorld {
   registerTransformComponents(world);
   registerMetadataComponents(world);
@@ -41,5 +56,6 @@ export function registerApertureAppComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(AppEntityKey);
   world.registerComponent(AppEntityTags);
   world.registerComponent(AppEntitySource);
+  world.registerComponent(RenderInterpolation);
   return world;
 }
