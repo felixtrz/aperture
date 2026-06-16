@@ -1,6 +1,14 @@
 # Standard Shader Composer TODO
 
-Status: TODO
+Status: Implemented in the internal StandardMaterial shader composer.
+
+Implementation note: `packages/webgpu/src/materials/standard` now has
+fragment and vertex composers with named slots for material inputs, normal
+setup, metallic/roughness inputs, final color terms, output transforms, vertex
+fields, vertex bindings, helper functions, and local transform stages. The
+StandardMaterial builder still emits WGSL text, but features contribute through
+those slots instead of rewriting final color assembly, material input lines, or
+vertex structs/body text.
 
 ## Problem
 

@@ -1,6 +1,6 @@
 import { STANDARD_MESH_WGSL } from "./standard-shader-source.js";
-import { applyStandardSkinningToWgsl } from "./standard-skinning-shader.js";
-import { applyStandardMorphTargetsToWgsl } from "./standard-morph-target-shader.js";
+import { addStandardSkinningVertexSlots } from "./standard-skinning-shader.js";
+import { addStandardMorphTargetVertexSlots } from "./standard-morph-target-shader.js";
 import {
   hasAnyStandardTextureFeature,
   hasStandardFogFeature,
@@ -17,7 +17,6 @@ import {
 import {
   applyStandardClearcoatSampling,
   applyStandardClusteredLocalLightSampling,
-  applyStandardDiffuseIblSampling,
   applyStandardFogSampling,
   applyStandardIridescenceSampling,
   applyStandardMultiShadowMapSampling,
@@ -26,8 +25,25 @@ import {
   applyStandardSheenSampling,
   applyStandardSpecularIblBrdfSampling,
   applyStandardSpecularIblProofSampling,
-  applyStandardTransmissionSampling,
+  standardClearcoatMaterialStatements,
+  standardIridescenceMaterialStatements,
+  standardSheenMaterialStatements,
+  standardTransmissionColorMutationStatements,
 } from "./standard-shader-sampling.js";
+import {
+  createStandardFragmentComposer,
+  replaceStandardFragmentSlots,
+  STANDARD_AMBIENT_DIFFUSE_BRDF_EXPRESSION,
+} from "./standard-shader-composer.js";
+import {
+  createStandardVertexComposer,
+  replaceStandardVertexSlots,
+} from "./standard-vertex-composer.js";
+import {
+  STANDARD_DIFFUSE_IBL_SAMPLE_WGSL,
+  STANDARD_SPECULAR_IBL_BRDF_SAMPLE_WGSL,
+  STANDARD_SPECULAR_IBL_PROOF_SAMPLE_WGSL,
+} from "./standard-shader-ibl-sampling.js";
 import type { WebGpuShaderModuleDescriptor } from "../../gpu/shader.js";
 import type {
   BuiltInShaderBindingId,
@@ -315,52 +331,15 @@ function createStandardTextureVariantWgsl(
 @group(3) @binding(0) var<storage, read> lightFloats: array<f32>;`,
     standardTextureVariantDeclaration(features),
   );
+  const fragment = createStandardFragmentComposer();
+  const vertex = createStandardVertexComposer();
 
   if (features.normalTexture) {
-    code = code
-      .replace(
-        `struct VertexInput {
-  @location(0) position: vec3f,
-  @location(1) normal: vec3f,
-  @location(2) uv: vec2f,
-  @builtin(instance_index) instanceIndex: u32,
-};`,
-        `struct VertexInput {
-  @location(0) position: vec3f,
-  @location(1) normal: vec3f,
-  @location(2) uv: vec2f,
-  @location(3) tangent: vec4f,
-  @builtin(instance_index) instanceIndex: u32,
-};`,
-      )
-      .replace(
-        `struct VertexOutput {
-  @builtin(position) position: vec4f,
-  @location(0) worldPosition: vec3f,
-  @location(1) worldNormal: vec3f,
-  @location(2) uv: vec2f,
-};`,
-        `struct VertexOutput {
-  @builtin(position) position: vec4f,
-  @location(0) worldPosition: vec3f,
-  @location(1) worldNormal: vec3f,
-  @location(2) uv: vec2f,
-  @location(3) worldTangent: vec3f,
-  @location(4) tangentSign: f32,
-};`,
-      )
-      .replace(
-        `  output.worldNormal = normalize((world * vec4f(input.normal, 0.0)).xyz);
-  output.uv = input.uv;`,
-        `  output.worldNormal = normalize((world * vec4f(input.normal, 0.0)).xyz);
-  output.worldTangent = normalize((world * vec4f(input.tangent.xyz, 0.0)).xyz);
-  output.tangentSign = input.tangent.w;
-  output.uv = input.uv;`,
-      )
-      .replace(
-        `fn evaluateDirectLight(
-  normal: vec3f,`,
-        `fn sampleTangentSpaceNormal(input: VertexOutput, frontFacing: bool) -> vec3f {
+    vertex.addInputField("tangent", "  @location(3) tangent: vec4f,");
+    vertex.addOutputField("worldTangent", "  @location(3) worldTangent: vec3f,");
+    vertex.addOutputField("tangentSign", "  @location(4) tangentSign: f32,");
+    vertex.enableTangentOutput();
+    fragment.addHelperFunction(`fn sampleTangentSpaceNormal(input: VertexOutput, frontFacing: bool) -> vec3f {
   let normalTextureUv = standardTextureTransformUv(
     ${normalUv},
     material.normalTextureOffset,
@@ -376,105 +355,14 @@ function createStandardTextureVariantWgsl(
   let tangent = normalize(input.worldTangent - normal * dot(input.worldTangent, normal));
   let bitangent = normalize(cross(normal, tangent) * input.tangentSign);
   return normalize(mat3x3f(tangent, bitangent, normal) * tangentNormal);
-}
-
-fn evaluateDirectLight(
-  normal: vec3f,`,
-      )
-      .replace(
-        `  let normal = standardGeometryNormal(input.worldNormal, frontFacing);
-  let viewDir = normalize(view.cameraPosition.xyz - input.worldPosition);`,
-        `  let normal = sampleTangentSpaceNormal(input, frontFacing);
-  let viewDir = normalize(view.cameraPosition.xyz - input.worldPosition);`,
-      );
+}`);
+    fragment.setNormalExpression("sampleTangentSpaceNormal(input, frontFacing)");
   }
 
   if (features.texCoord1 === true) {
-    if (features.normalTexture) {
-      code = code
-        .replace(
-          `struct VertexInput {
-  @location(0) position: vec3f,
-  @location(1) normal: vec3f,
-  @location(2) uv: vec2f,
-  @location(3) tangent: vec4f,
-  @builtin(instance_index) instanceIndex: u32,
-};`,
-          `struct VertexInput {
-  @location(0) position: vec3f,
-  @location(1) normal: vec3f,
-  @location(2) uv: vec2f,
-  @location(3) tangent: vec4f,
-  @location(4) uv1: vec2f,
-  @builtin(instance_index) instanceIndex: u32,
-};`,
-        )
-        .replace(
-          `struct VertexOutput {
-  @builtin(position) position: vec4f,
-  @location(0) worldPosition: vec3f,
-  @location(1) worldNormal: vec3f,
-  @location(2) uv: vec2f,
-  @location(3) worldTangent: vec3f,
-  @location(4) tangentSign: f32,
-};`,
-          `struct VertexOutput {
-  @builtin(position) position: vec4f,
-  @location(0) worldPosition: vec3f,
-  @location(1) worldNormal: vec3f,
-  @location(2) uv: vec2f,
-  @location(3) worldTangent: vec3f,
-  @location(4) tangentSign: f32,
-  @location(5) uv1: vec2f,
-};`,
-        )
-        .replace(
-          `  output.tangentSign = input.tangent.w;
-  output.uv = input.uv;`,
-          `  output.tangentSign = input.tangent.w;
-  output.uv = input.uv;
-  output.uv1 = input.uv1;`,
-        );
-    } else {
-      code = code
-        .replace(
-          `struct VertexInput {
-  @location(0) position: vec3f,
-  @location(1) normal: vec3f,
-  @location(2) uv: vec2f,
-  @builtin(instance_index) instanceIndex: u32,
-};`,
-          `struct VertexInput {
-  @location(0) position: vec3f,
-  @location(1) normal: vec3f,
-  @location(2) uv: vec2f,
-  @location(4) uv1: vec2f,
-  @builtin(instance_index) instanceIndex: u32,
-};`,
-        )
-        .replace(
-          `struct VertexOutput {
-  @builtin(position) position: vec4f,
-  @location(0) worldPosition: vec3f,
-  @location(1) worldNormal: vec3f,
-  @location(2) uv: vec2f,
-};`,
-          `struct VertexOutput {
-  @builtin(position) position: vec4f,
-  @location(0) worldPosition: vec3f,
-  @location(1) worldNormal: vec3f,
-  @location(2) uv: vec2f,
-  @location(5) uv1: vec2f,
-};`,
-        )
-        .replace(
-          `  output.worldNormal = normalize((world * vec4f(input.normal, 0.0)).xyz);
-  output.uv = input.uv;`,
-          `  output.worldNormal = normalize((world * vec4f(input.normal, 0.0)).xyz);
-  output.uv = input.uv;
-  output.uv1 = input.uv1;`,
-        );
-    }
+    vertex.addInputField("uv1", "  @location(4) uv1: vec2f,");
+    vertex.addOutputField("uv1", "  @location(5) uv1: vec2f,");
+    vertex.addPostUvOutputAssignment("  output.uv1 = input.uv1;");
 
     code = code.replace(
       `fn saturate(value: f32) -> f32 {`,
@@ -521,120 +409,47 @@ fn saturate(value: f32) -> f32 {`,
   }
 
   if (features.baseColorTexture) {
-    code = code.replace(
-      `  let baseColor = material.baseColorFactor.rgb;
-  let alpha = material.baseColorFactor.a;`,
-      `  let baseColorUv = standardTextureTransformUv(
+    fragment.addBaseColorAlphaStatement(`  let baseColorUv = standardTextureTransformUv(
     ${baseColorUv},
     material.baseColorTextureOffset,
     material.baseColorTextureScale,
     material.baseColorTextureRotation,
   );
-  let baseColorSample = textureSample(baseColorTexture, baseColorSampler, baseColorUv);
-  let baseColor = baseColorSample.rgb * material.baseColorFactor.rgb;
-  let alpha = baseColorSample.a * material.baseColorFactor.a;`,
+  let baseColorSample = textureSample(baseColorTexture, baseColorSampler, baseColorUv);`);
+    fragment.setBaseColorExpression(
+      "baseColorSample.rgb * material.baseColorFactor.rgb",
+    );
+    fragment.setAlphaExpression(
+      "baseColorSample.a * material.baseColorFactor.a",
     );
   }
 
   if (features.vertexColor === true) {
-    code = code
-      .replace(
-        `struct VertexInput {
-  @location(0) position: vec3f,
-  @location(1) normal: vec3f,
-  @location(2) uv: vec2f,`,
-        `struct VertexInput {
-  @location(0) position: vec3f,
-  @location(1) normal: vec3f,
-  @location(2) uv: vec2f,
-  @location(5) color: vec4f,`,
-      )
-      .replace(
-        `struct VertexOutput {
-  @builtin(position) position: vec4f,
-  @location(0) worldPosition: vec3f,
-  @location(1) worldNormal: vec3f,
-  @location(2) uv: vec2f,`,
-        `struct VertexOutput {
-  @builtin(position) position: vec4f,
-  @location(0) worldPosition: vec3f,
-  @location(1) worldNormal: vec3f,
-  @location(2) uv: vec2f,
-  @location(6) vertexColor: vec4f,`,
-      )
-      .replace(
-        `  output.uv = input.uv;`,
-        `  output.uv = input.uv;
-  output.vertexColor = input.color;`,
-      );
-
-    if (features.baseColorTexture) {
-      code = code.replace(
-        `  let baseColor = baseColorSample.rgb * material.baseColorFactor.rgb;
-  let alpha = baseColorSample.a * material.baseColorFactor.a;`,
-        `  let baseColor = baseColorSample.rgb * material.baseColorFactor.rgb * input.vertexColor.rgb;
-  let alpha = baseColorSample.a * material.baseColorFactor.a * input.vertexColor.a;`,
-      );
-    } else {
-      code = code.replace(
-        `  let baseColor = material.baseColorFactor.rgb;
-  let alpha = material.baseColorFactor.a;`,
-        `  let baseColor = material.baseColorFactor.rgb * input.vertexColor.rgb;
-  let alpha = material.baseColorFactor.a * input.vertexColor.a;`,
-      );
-    }
+    vertex.addInputField("vertexColor", "  @location(5) color: vec4f,");
+    vertex.addOutputField("vertexColor", "  @location(6) vertexColor: vec4f,");
+    vertex.addPostUvOutputAssignment("  output.vertexColor = input.color;");
+    fragment.multiplyBaseColorExpression("input.vertexColor.rgb");
+    fragment.multiplyAlphaExpression("input.vertexColor.a");
   }
 
   if (features.instanceTint === true) {
-    code = code
-      .replace(
-        `struct VertexInput {
-  @location(0) position: vec3f,
-  @location(1) normal: vec3f,
-  @location(2) uv: vec2f,`,
-        `struct VertexInput {
-  @location(0) position: vec3f,
-  @location(1) normal: vec3f,
-  @location(2) uv: vec2f,
-  @location(6) instanceTint: vec4f,`,
-      )
-      .replace(
-        `struct VertexOutput {
-  @builtin(position) position: vec4f,
-  @location(0) worldPosition: vec3f,
-  @location(1) worldNormal: vec3f,
-  @location(2) uv: vec2f,`,
-        `struct VertexOutput {
-  @builtin(position) position: vec4f,
-  @location(0) worldPosition: vec3f,
-  @location(1) worldNormal: vec3f,
-  @location(2) uv: vec2f,
-  @location(7) instanceTint: vec4f,`,
-      )
-      .replace(
-        `  output.uv = input.uv;`,
-        `  output.uv = input.uv;
-  output.instanceTint = input.instanceTint;`,
-      )
-      .replace(
-        / {2}let baseColor = ([^;]+);\n {2}let alpha = ([^;]+);/u,
-        `  var baseColor = $1;
-  var alpha = $2;`,
-      )
-      .replace(
-        `  if ((material.featureFlags & STANDARD_FEATURE_ALPHA_MASK) != 0u && alpha < material.alphaCutoff) {`,
-        `  baseColor = baseColor * input.instanceTint.rgb;
-  alpha = alpha * input.instanceTint.a;
-
-  if ((material.featureFlags & STANDARD_FEATURE_ALPHA_MASK) != 0u && alpha < material.alphaCutoff) {`,
-      );
+    vertex.addInputField("instanceTint", "  @location(6) instanceTint: vec4f,");
+    vertex.addOutputField("instanceTint", "  @location(7) instanceTint: vec4f,");
+    vertex.addPostUvOutputAssignment(
+      "  output.instanceTint = input.instanceTint;",
+    );
+    fragment.setBaseColorMutable();
+    fragment.setAlphaMutable();
+    fragment.addBaseColorAlphaMutation(
+      "  baseColor = baseColor * input.instanceTint.rgb;",
+    );
+    fragment.addBaseColorAlphaMutation(
+      "  alpha = alpha * input.instanceTint.a;",
+    );
   }
 
   if (features.metallicRoughnessTexture) {
-    code = code.replace(
-      `  let metallic = clamp(material.metallicFactor, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor, 0.045, 1.0);`,
-      `  let metallicRoughnessUv = standardTextureTransformUv(
+    fragment.addMetallicRoughnessStatement(`  let metallicRoughnessUv = standardTextureTransformUv(
     ${metallicRoughnessUv},
     material.metallicRoughnessTextureOffset,
     material.metallicRoughnessTextureScale,
@@ -644,9 +459,12 @@ fn saturate(value: f32) -> f32 {`,
     metallicRoughnessTexture,
     metallicRoughnessSampler,
     metallicRoughnessUv,
-  );
-  let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0);`,
+  );`);
+    fragment.setMetallicExpression(
+      "clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0)",
+    );
+    fragment.setRoughnessExpression(
+      "clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0)",
     );
   }
 
@@ -672,14 +490,14 @@ fn saturate(value: f32) -> f32 {`,
   let emissive = material.emissiveFactor * emissiveSample.rgb;`
       : `  let emissive = material.emissiveFactor;`;
 
-    code = code.replace(
-      `  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI);
-  let color = ambientDiffuse + direct + material.emissiveFactor;`,
-      `${occlusion}
-${emissive}
-  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI) * occlusion;
-  let color = ambientDiffuse + direct + emissive;`,
+    fragment.addMaterialStatement(occlusion);
+    fragment.addMaterialStatement(emissive);
+    fragment.setIndirectDiffuseTerm(
+      "ambientDiffuse",
+      "ambientDiffuse",
+      `  let ambientDiffuse = ${STANDARD_AMBIENT_DIFFUSE_BRDF_EXPRESSION} * occlusion;`,
     );
+    fragment.replaceEmissiveTerm("emissiveTexture", "emissive");
   }
 
   if (features.shadowMap === true && features.pointShadowMap === true) {
@@ -700,17 +518,80 @@ ${emissive}
     });
   }
 
+  const removeGlobalPointShadowReceiverFactor =
+    features.clusteredLocalLights === true &&
+    features.pointShadowMap === true &&
+    features.shadowMap !== true;
+  const removeGlobalSpotShadowReceiverFactor =
+    features.clusteredLocalLights === true &&
+    features.shadowMap === true &&
+    (features.cascadedShadowMap !== true ||
+      features.clusteredLocalLightArrayShadows === true);
+
+  if (
+    features.shadowMap === true &&
+    features.pointShadowMap === true &&
+    !removeGlobalSpotShadowReceiverFactor
+  ) {
+    fragment.addMaterialStatement(`  let receiverShadowFactor = min(
+    min(
+      sampleDirectionalShadowFactor(input.worldPosition),
+      sampleSpotShadowFactor(input.worldPosition),
+    ),
+    samplePointShadowReceiverFactor(input.worldPosition),
+  );`);
+    fragment.setDirectTerm("receiverShadowDirect", "direct * receiverShadowFactor");
+  } else if (
+    features.pointShadowMap === true &&
+    features.shadowMap !== true &&
+    !removeGlobalPointShadowReceiverFactor
+  ) {
+    fragment.addMaterialStatement(
+      "  let receiverPointShadowFactor = samplePointShadowReceiverFactor(input.worldPosition);",
+    );
+    fragment.setDirectTerm(
+      "receiverPointShadowDirect",
+      "direct * receiverPointShadowFactor",
+    );
+  }
+
   if (features.iblDiffuse === true) {
-    code = applyStandardDiffuseIblSampling(code);
+    fragment.addIndirectDiffuseTerm(
+      "diffuseIbl",
+      "diffuseIbl",
+      STANDARD_DIFFUSE_IBL_SAMPLE_WGSL,
+    );
   }
 
   if (features.iblSpecularBrdf === true) {
     code = applyStandardSpecularIblBrdfSampling(code);
+    fragment.addIndirectSpecularTerm(
+      "specularIblBrdf",
+      "specularIblBrdf",
+      STANDARD_SPECULAR_IBL_BRDF_SAMPLE_WGSL,
+    );
   } else if (features.iblSpecularProof === true) {
     code = applyStandardSpecularIblProofSampling(code);
+    fragment.addIndirectSpecularTerm(
+      "specularIblProof",
+      "specularIblProof",
+      STANDARD_SPECULAR_IBL_PROOF_SAMPLE_WGSL,
+    );
   }
 
   if (features.clearcoat === true) {
+    fragment.addMetallicRoughnessStatement(
+      standardClearcoatMaterialStatements({
+        textureSample:
+          features.clearcoatTexture === true
+            ? `textureSample(clearcoatTexture, clearcoatSampler, ${clearcoatUv}).r`
+            : null,
+        roughnessTextureSample:
+          features.clearcoatRoughnessTexture === true
+            ? `textureSample(clearcoatRoughnessTexture, clearcoatRoughnessSampler, ${clearcoatRoughnessUv}).g`
+            : null,
+      }),
+    );
     code = applyStandardClearcoatSampling(code, {
       textureSample:
         features.clearcoatTexture === true
@@ -724,6 +605,18 @@ ${emissive}
   }
 
   if (features.sheen === true) {
+    fragment.addMetallicRoughnessStatement(
+      standardSheenMaterialStatements({
+        colorTextureSample:
+          features.sheenColorTexture === true
+            ? `textureSample(sheenColorTexture, sheenColorSampler, ${sheenColorUv}).rgb`
+            : null,
+        roughnessTextureSample:
+          features.sheenRoughnessTexture === true
+            ? `textureSample(sheenRoughnessTexture, sheenRoughnessSampler, ${sheenRoughnessUv}).a`
+            : null,
+      }),
+    );
     code = applyStandardSheenSampling(code, {
       colorTextureSample:
         features.sheenColorTexture === true
@@ -737,6 +630,18 @@ ${emissive}
   }
 
   if (features.iridescence === true) {
+    fragment.addMetallicRoughnessStatement(
+      standardIridescenceMaterialStatements({
+        textureSample:
+          features.iridescenceTexture === true
+            ? `textureSample(iridescenceTexture, iridescenceSampler, ${iridescenceUv}).r`
+            : null,
+        thicknessTextureSample:
+          features.iridescenceThicknessTexture === true
+            ? `textureSample(iridescenceThicknessTexture, iridescenceThicknessSampler, ${iridescenceThicknessUv}).g`
+            : null,
+      }),
+    );
     code = applyStandardIridescenceSampling(code, {
       textureSample:
         features.iridescenceTexture === true
@@ -750,16 +655,27 @@ ${emissive}
   }
 
   if (features.transmission === true) {
-    code = applyStandardTransmissionSampling(code, {
-      textureSample:
-        features.transmissionTexture === true
-          ? `textureSample(transmissionTexture, transmissionSampler, ${transmissionUv}).r`
-          : null,
-    });
+    fragment.setAlphaMutable();
+    fragment.addColorMutationStatement(
+      standardTransmissionColorMutationStatements({
+        textureSample:
+          features.transmissionTexture === true
+            ? `textureSample(transmissionTexture, transmissionSampler, ${transmissionUv}).r`
+            : null,
+      }),
+    );
   }
 
   if (hasStandardFogFeature(features)) {
     code = applyStandardFogSampling(code, features);
+    fragment.addColorMutationStatement(
+      "  let foggedColor = applyDistanceFog(color, length(view.cameraPosition.xyz - input.worldPosition));",
+    );
+    fragment.addColorMutationStatement(
+      "  let standardIndirectFoggedColor = applyDistanceFog(standardIndirectColor, length(view.cameraPosition.xyz - input.worldPosition));",
+    );
+    fragment.setOutputColorExpression("foggedColor");
+    fragment.setIndirectOutputColorExpression("standardIndirectFoggedColor");
   }
 
   if (features.clusteredLocalLights === true) {
@@ -777,16 +693,49 @@ ${emissive}
       localLightArrayCookies: features.clusteredLocalLightArrayCookies === true,
       localLightCubeCookies: features.clusteredLocalLightCubeCookies === true,
       removeGlobalPointShadowReceiverFactor:
-        features.pointShadowMap === true && features.shadowMap !== true,
+        removeGlobalPointShadowReceiverFactor,
       removeGlobalSpotShadowReceiverFactor:
-        features.shadowMap === true &&
-        (features.cascadedShadowMap !== true ||
-          features.clusteredLocalLightArrayShadows === true),
+        removeGlobalSpotShadowReceiverFactor,
     });
   }
 
-  return applyStandardMorphTargetsToWgsl(
-    applyStandardSkinningToWgsl(code, features),
-    features,
+  addStandardSkinningVertexSlots(vertex, features);
+  addStandardMorphTargetVertexSlots(vertex, features);
+
+  if (features.morphed === true) {
+    vertex.addLocalStatement(
+      "  let morphed = apertureMorph(input.position, input.normal, input.instanceIndex, input.morphVertexIndex);",
+    );
+  }
+
+  if (features.skinned === true) {
+    const skinPositionExpression =
+      features.morphed === true ? "morphed.position" : "input.position";
+    const skinNormalExpression =
+      features.morphed === true ? "morphed.normal" : "input.normal";
+
+    vertex.addLocalStatement(
+      `  let skinnedPosition = apertureSkinPosition(${skinPositionExpression}, input.joints0, input.weights0);`,
+    );
+    vertex.addLocalStatement(
+      `  let skinnedNormal = apertureSkinDirection(${skinNormalExpression}, input.joints0, input.weights0);`,
+    );
+    vertex.setLocalPositionExpression("skinnedPosition");
+    vertex.setLocalNormalExpression("skinnedNormal");
+
+    if (features.normalTexture === true) {
+      vertex.addLocalStatement(
+        "  let skinnedTangent = apertureSkinDirection(input.tangent.xyz, input.joints0, input.weights0);",
+      );
+      vertex.setLocalTangentExpression("skinnedTangent");
+    }
+  } else if (features.morphed === true) {
+    vertex.setLocalPositionExpression("morphed.position");
+    vertex.setLocalNormalExpression("morphed.normal");
+  }
+
+  return replaceStandardVertexSlots(
+    replaceStandardFragmentSlots(code, fragment),
+    vertex,
   );
 }

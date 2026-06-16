@@ -4,6 +4,8 @@ import {
   PackedAreaLightShapeId,
   PackedLightKindId,
 } from "../../lighting/light-packing.js";
+import { createStandardFragmentComposer } from "./standard-shader-composer.js";
+import { createStandardVertexComposer } from "./standard-vertex-composer.js";
 
 export const STANDARD_MESH_WGSL = `
 // StandardMaterial MVP shader.
@@ -70,6 +72,7 @@ struct VertexInput {
   @location(0) position: vec3f,
   @location(1) normal: vec3f,
   @location(2) uv: vec2f,
+${createStandardVertexComposer().emitInputFields()}
   @builtin(instance_index) instanceIndex: u32,
 };
 
@@ -78,6 +81,7 @@ struct VertexOutput {
   @location(0) worldPosition: vec3f,
   @location(1) worldNormal: vec3f,
   @location(2) uv: vec2f,
+${createStandardVertexComposer().emitOutputFields()}
 };
 
 const PI: f32 = 3.141592653589793;
@@ -96,6 +100,7 @@ const STANDARD_FEATURE_DOUBLE_SIDED: u32 = 128u;
 
 @group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
 @group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
+${createStandardVertexComposer().emitBindings()}
 @group(2) @binding(0) var<uniform> material: StandardMaterialUniform;
 @group(3) @binding(0) var<storage, read> lightFloats: array<f32>;
 @group(3) @binding(1) var<storage, read> lightMetadata: array<i32>;
@@ -103,15 +108,19 @@ const STANDARD_FEATURE_DOUBLE_SIDED: u32 = 128u;
 @group(3) @binding(12) var standardAreaLightLtcFresnelTexture: texture_2d<f32>;
 @group(3) @binding(13) var standardAreaLightLtcSampler: sampler;
 
+${createStandardVertexComposer().emitHelperFunctions()}
+
 @vertex
 fn vs_main(input: VertexInput) -> VertexOutput {
   var output: VertexOutput;
   let world = worldTransforms[input.instanceIndex];
-  let worldPosition = world * vec4f(input.position, 1.0);
+${createStandardVertexComposer().emitLocalTransformBlock()}
   output.position = view.viewProjection * worldPosition;
   output.worldPosition = worldPosition.xyz;
-  output.worldNormal = normalize((world * vec4f(input.normal, 0.0)).xyz);
+${createStandardVertexComposer().emitNormalOutputBlock()}
+${createStandardVertexComposer().emitPreUvOutputAssignments()}
   output.uv = input.uv;
+${createStandardVertexComposer().emitPostUvOutputAssignments()}
   return output;
 }
 
@@ -132,6 +141,8 @@ fn standardGeometryNormal(worldNormal: vec3f, frontFacing: bool) -> vec3f {
 
   return normal;
 }
+
+${createStandardFragmentComposer().emitHelperFunctions()}
 
 fn fresnelSchlick(cosTheta: f32, f0: vec3f) -> vec3f {
   return f0 + (vec3f(1.0) - f0) * pow(1.0 - saturate(cosTheta), 5.0);
@@ -628,17 +639,15 @@ fn evaluateAreaLight(
 
 @fragment
 fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> @location(0) vec4f {
-  let baseColor = material.baseColorFactor.rgb;
-  let alpha = material.baseColorFactor.a;
+${createStandardFragmentComposer().emitBaseColorAlphaBlock()}
 
   if ((material.featureFlags & STANDARD_FEATURE_ALPHA_MASK) != 0u && alpha < material.alphaCutoff) {
     discard;
   }
 
-  let normal = standardGeometryNormal(input.worldNormal, frontFacing);
+${createStandardFragmentComposer().emitNormalSetupBlock()}
   let viewDir = normalize(view.cameraPosition.xyz - input.worldPosition);
-  let metallic = clamp(material.metallicFactor, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor, 0.045, 1.0);
+${createStandardFragmentComposer().emitMetallicRoughnessBlock()}
   var ambient = vec3f(0.0);
   var direct = vec3f(0.0);
 
@@ -716,8 +725,6 @@ fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> @lo
     }
   }
 
-  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI);
-  let color = ambientDiffuse + direct + material.emissiveFactor;
-  return vec4f(color, alpha);
+${createStandardFragmentComposer().emit()}
 }
 `.trim();

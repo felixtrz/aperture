@@ -110,6 +110,13 @@ describe("browser standard material pipeline bridge", () => {
     expect(shader.code).toContain(
       "view.previousViewProjection * previousWorld * vec4f(input.position, 1.0)",
     );
+    expect(shader.code).toContain(
+      "fn fs_main_color(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> vec4f",
+    );
+    expect(shader.code).toContain(
+      "fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> MotionVectorFragmentOutput",
+    );
+    expect(shader.code).toContain("output.color = fs_main_color(input, frontFacing);");
     expect(shader.bindings).toContainEqual({
       id: "previousWorldTransforms",
       label: "Previous world transform matrix storage",

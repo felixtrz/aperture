@@ -24,35 +24,45 @@ describe("standard indirect color-channel shader variant (M5-T6)", () => {
     expect(variant.code).toContain(
       "fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> StandardIndirectFragmentOutput {",
     );
-    // ...with the indirect term split out of the lit color (ambientDiffuse here,
-    // since this variant has no IBL) and direct/emissive left in `color`.
+    // ...with the composer-owned indirect, direct, and emissive terms kept
+    // named before final color assembly.
     expect(variant.code).toContain(
       "let standardIndirectColor = ambientDiffuse;",
     );
     expect(variant.code).toContain(
-      "let color = standardIndirectColor + direct + material.emissiveFactor;",
+      "let standardDirectColor = direct;",
+    );
+    expect(variant.code).toContain(
+      "let standardEmissiveColor = material.emissiveFactor;",
+    );
+    expect(variant.code).toContain(
+      "var color = standardIndirectColor + standardDirectColor + standardEmissiveColor;",
     );
     expect(variant.code).toContain(
       "standardFragmentOutput.color = vec4f(color, alpha);",
     );
     expect(variant.code).toContain(
-      "standardFragmentOutput.indirect = vec4f(standardIndirectColor, 1.0);",
+      "standardFragmentOutput.indirect = vec4f(standardIndirectOutputColor, 1.0);",
     );
     // The single-target return is gone.
     expect(variant.code).not.toContain("-> @location(0) vec4f {");
   });
 
   it("captures ambient + diffuse + specular IBL terms in the indirect channel", () => {
-    // Synthetic shader carrying the specular-IBL color-assembly form, to prove
-    // the capture splits the full indirect sum regardless of which IBL terms
-    // are present.
+    // Synthetic shader carrying the composer-owned specular-IBL terms, to prove
+    // the second target uses the named indirect output instead of parsing final
+    // color math.
     const iblShader = {
       label: "aperture/standard-mesh",
       entryPoints: { vertex: "vs_main", fragment: "fs_main" },
       bindings: [],
       code: `@fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
-  let color = ambientDiffuse + diffuseIbl + specularIblBrdf + direct + material.emissiveFactor;
+  let standardIndirectColor = ambientDiffuse + diffuseIbl + specularIblBrdf;
+  let standardDirectColor = direct;
+  let standardEmissiveColor = material.emissiveFactor;
+  var color = standardIndirectColor + standardDirectColor + standardEmissiveColor;
+  let standardIndirectOutputColor = standardIndirectColor;
   return vec4f(color, alpha);
 }`,
     } as unknown as Parameters<
@@ -64,10 +74,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
       "let standardIndirectColor = ambientDiffuse + diffuseIbl + specularIblBrdf;",
     );
     expect(variant.code).toContain(
-      "let color = standardIndirectColor + direct + material.emissiveFactor;",
-    );
-    expect(variant.code).toContain(
-      "standardFragmentOutput.indirect = vec4f(standardIndirectColor, 1.0);",
+      "standardFragmentOutput.indirect = vec4f(standardIndirectOutputColor, 1.0);",
     );
   });
 
@@ -78,7 +85,9 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
       bindings: [],
       code: `@fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
-  let color = ambientDiffuse + direct + material.emissiveFactor;
+  let standardIndirectColor = ambientDiffuse;
+  var color = standardIndirectColor + direct + material.emissiveFactor;
+  let standardIndirectOutputColor = apertureOutputColorSpace(apertureOutputTonemap(standardIndirectColor));
   return vec4f(apertureOutputColorSpace(apertureOutputTonemap(color)), alpha);
 }`,
     } as unknown as Parameters<
@@ -91,7 +100,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
       "standardFragmentOutput.color = vec4f(apertureOutputColorSpace(apertureOutputTonemap(color)), alpha);",
     );
     expect(variant.code).toContain(
-      "standardFragmentOutput.indirect = vec4f(apertureOutputColorSpace(apertureOutputTonemap(standardIndirectColor)), 1.0);",
+      "standardFragmentOutput.indirect = vec4f(standardIndirectOutputColor, 1.0);",
     );
   });
 });

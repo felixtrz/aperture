@@ -1,21 +1,18 @@
 import type { StandardTextureShaderFeatures } from "./standard-shader-features.js";
 
+interface StandardIridescenceSamplingOptions {
+  readonly textureSample: string | null;
+  readonly thicknessTextureSample?: string | null;
+}
+
 export function applyStandardIridescenceSampling(
   code: string,
-  options: {
-    readonly textureSample: string | null;
-    readonly thicknessTextureSample?: string | null;
-  } = { textureSample: null, thicknessTextureSample: null },
+  options: StandardIridescenceSamplingOptions = {
+    textureSample: null,
+    thicknessTextureSample: null,
+  },
 ): string {
-  const iridescenceFactorExpression =
-    options.textureSample === null
-      ? "material.iridescenceFactorIorThickness.x"
-      : `material.iridescenceFactorIorThickness.x * ${options.textureSample}`;
-  const iridescenceThicknessExpression =
-    options.thicknessTextureSample === undefined ||
-    options.thicknessTextureSample === null
-      ? "material.iridescenceFactorIorThickness.w"
-      : `mix(material.iridescenceFactorIorThickness.z, material.iridescenceFactorIorThickness.w, ${options.thicknessTextureSample})`;
+  void options;
 
   return code
     .replace(
@@ -65,23 +62,27 @@ fn evaluateDirectLight(
     iridescenceIor,
   );
   fresnel = mix(fresnel, iridescenceFresnel, iridescence);`,
-    )
-    .replace(
-      `  let metallic = clamp(material.metallicFactor, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor, 0.045, 1.0);`,
-      `  let metallic = clamp(material.metallicFactor, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor, 0.045, 1.0);
-  let iridescence = clamp(${iridescenceFactorExpression}, 0.0, 1.0);
-  let iridescenceThickness = clamp(${iridescenceThicknessExpression}, 0.0, 1200.0);`,
-    )
-    .replace(
-      `  let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0);`,
-      `  let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0);
-  let iridescence = clamp(${iridescenceFactorExpression}, 0.0, 1.0);
-  let iridescenceThickness = clamp(${iridescenceThicknessExpression}, 0.0, 1200.0);`,
     );
+}
+
+export function standardIridescenceMaterialStatements(
+  options: StandardIridescenceSamplingOptions = {
+    textureSample: null,
+    thicknessTextureSample: null,
+  },
+): string {
+  const iridescenceFactorExpression =
+    options.textureSample === null
+      ? "material.iridescenceFactorIorThickness.x"
+      : `material.iridescenceFactorIorThickness.x * ${options.textureSample}`;
+  const iridescenceThicknessExpression =
+    options.thicknessTextureSample === undefined ||
+    options.thicknessTextureSample === null
+      ? "material.iridescenceFactorIorThickness.w"
+      : `mix(material.iridescenceFactorIorThickness.z, material.iridescenceFactorIorThickness.w, ${options.thicknessTextureSample})`;
+
+  return `  let iridescence = clamp(${iridescenceFactorExpression}, 0.0, 1.0);
+  let iridescenceThickness = clamp(${iridescenceThicknessExpression}, 0.0, 1200.0);`;
 }
 
 const STANDARD_IRIDESCENCE_WGSL = `
@@ -175,12 +176,8 @@ export function applyStandardClearcoatSampling(
     readonly roughnessTextureSample?: string | null;
   } = { textureSample: null, roughnessTextureSample: null },
 ): string {
-  const clearcoatTextureFactor = options.textureSample ?? "1.0";
-  const clearcoatRoughnessFactor =
-    options.roughnessTextureSample === undefined ||
-    options.roughnessTextureSample === null
-      ? "1.0"
-      : options.roughnessTextureSample;
+  void options;
+
   const withClearcoatFactor = code
     .replace(
       `fn evaluateDirectLight(
@@ -249,22 +246,6 @@ export function applyStandardClearcoatSampling(
           clearcoatFactor,
           clearcoatRoughness,
         );`,
-    )
-    .replace(
-      `  let metallic = clamp(material.metallicFactor, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor, 0.045, 1.0);`,
-      `  let metallic = clamp(material.metallicFactor, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor, 0.045, 1.0);
-  let clearcoatFactor = clamp(material.clearcoatFactor * ${clearcoatTextureFactor}, 0.0, 1.0);
-  let clearcoatRoughness = clamp(material.clearcoatRoughnessFactor * ${clearcoatRoughnessFactor}, 0.045, 1.0);`,
-    )
-    .replace(
-      `  let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0);`,
-      `  let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0);
-  let clearcoatFactor = clamp(material.clearcoatFactor * ${clearcoatTextureFactor}, 0.0, 1.0);
-  let clearcoatRoughness = clamp(material.clearcoatRoughnessFactor * ${clearcoatRoughnessFactor}, 0.045, 1.0);`,
     );
 
   return withClearcoatFactor.replace(
@@ -284,6 +265,23 @@ export function applyStandardClearcoatSampling(
   );
 }
 
+export function standardClearcoatMaterialStatements(
+  options: {
+    readonly textureSample: string | null;
+    readonly roughnessTextureSample?: string | null;
+  } = { textureSample: null, roughnessTextureSample: null },
+): string {
+  const clearcoatTextureFactor = options.textureSample ?? "1.0";
+  const clearcoatRoughnessFactor =
+    options.roughnessTextureSample === undefined ||
+    options.roughnessTextureSample === null
+      ? "1.0"
+      : options.roughnessTextureSample;
+
+  return `  let clearcoatFactor = clamp(material.clearcoatFactor * ${clearcoatTextureFactor}, 0.0, 1.0);
+  let clearcoatRoughness = clamp(material.clearcoatRoughnessFactor * ${clearcoatRoughnessFactor}, 0.045, 1.0);`;
+}
+
 export function applyStandardSheenSampling(
   code: string,
   options: {
@@ -291,14 +289,7 @@ export function applyStandardSheenSampling(
     readonly roughnessTextureSample: string | null;
   },
 ): string {
-  const sheenColorExpression =
-    options.colorTextureSample === null
-      ? "material.sheenColorRoughnessFactor.rgb"
-      : `material.sheenColorRoughnessFactor.rgb * ${options.colorTextureSample}`;
-  const sheenRoughnessExpression =
-    options.roughnessTextureSample === null
-      ? "material.sheenColorRoughnessFactor.a"
-      : `material.sheenColorRoughnessFactor.a * ${options.roughnessTextureSample}`;
+  void options;
 
   return code
     .replace(
@@ -416,22 +407,6 @@ export function applyStandardSheenSampling(
         ) * shadowFactor;`,
     )
     .replace(
-      `  let metallic = clamp(material.metallicFactor, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor, 0.045, 1.0);`,
-      `  let metallic = clamp(material.metallicFactor, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor, 0.045, 1.0);
-  let sheenColor = clamp(${sheenColorExpression}, vec3f(0.0), vec3f(1.0));
-  let sheenRoughness = clamp(${sheenRoughnessExpression}, 0.045, 1.0);`,
-    )
-    .replace(
-      `  let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0);`,
-      `  let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);
-  let roughness = clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0);
-  let sheenColor = clamp(${sheenColorExpression}, vec3f(0.0), vec3f(1.0));
-  let sheenRoughness = clamp(${sheenRoughnessExpression}, 0.045, 1.0);`,
-    )
-    .replace(
       `      direct = direct + evaluateAreaLight(
         lightIndex,
         input.worldPosition,
@@ -470,30 +445,29 @@ export function applyStandardSheenSampling(
     );
 }
 
-export function applyStandardTransmissionSampling(
-  code: string,
-  options: { readonly textureSample: string | null } = { textureSample: null },
-): string {
-  const transmissionTextureFactor = options.textureSample ?? "1.0";
-  const fragmentStart = code.indexOf(`@fragment\nfn fs_main`);
-  const withMutableFragment =
-    fragmentStart < 0
-      ? code
-      : `${code.slice(0, fragmentStart)}${code
-          .slice(fragmentStart)
-          .replace(`  let alpha = `, `  var alpha = `)
-          .replace(
-            `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
-            `  var color = ambientDiffuse + direct + material.emissiveFactor;`,
-          )
-          .replace(
-            `  let color = ambientDiffuse + direct + emissive;`,
-            `  var color = ambientDiffuse + direct + emissive;`,
-          )}`;
+export function standardSheenMaterialStatements(options: {
+  readonly colorTextureSample: string | null;
+  readonly roughnessTextureSample: string | null;
+}): string {
+  const sheenColorExpression =
+    options.colorTextureSample === null
+      ? "material.sheenColorRoughnessFactor.rgb"
+      : `material.sheenColorRoughnessFactor.rgb * ${options.colorTextureSample}`;
+  const sheenRoughnessExpression =
+    options.roughnessTextureSample === null
+      ? "material.sheenColorRoughnessFactor.a"
+      : `material.sheenColorRoughnessFactor.a * ${options.roughnessTextureSample}`;
 
-  return withMutableFragment.replace(
-    `  return vec4f(color, alpha);`,
-    `  let transmission = clamp(material.transmissionFactor * ${transmissionTextureFactor}, 0.0, 1.0);
+  return `  let sheenColor = clamp(${sheenColorExpression}, vec3f(0.0), vec3f(1.0));
+  let sheenRoughness = clamp(${sheenRoughnessExpression}, 0.045, 1.0);`;
+}
+
+export function standardTransmissionColorMutationStatements(options: {
+  readonly textureSample: string | null;
+}): string {
+  const transmissionTextureFactor = options.textureSample ?? "1.0";
+
+  return `  let transmission = clamp(material.transmissionFactor * ${transmissionTextureFactor}, 0.0, 1.0);
   let transmissionIor = max(material.transmissionVolume.x, 1.0);
   let transmissionThickness = max(material.transmissionVolume.y, 0.0);
   let transmissionAttenuationDistance = material.transmissionVolume.z;
@@ -570,9 +544,7 @@ export function applyStandardTransmissionSampling(
     transmittedSceneColor * transmissionTransmittance * transmissionTint,
     transmission,
   );
-  alpha = alpha * max(1.0 - transmission * 0.25, 0.72);
-  return vec4f(color, alpha);`,
-  );
+  alpha = alpha * max(1.0 - transmission * 0.25, 0.72);`;
 }
 
 export function applyStandardFogSampling(
@@ -586,25 +558,15 @@ export function applyStandardFogSampling(
         ? `  let fogFactor = 1.0 - saturate(exp(-distanceToCamera * view.fogParams.y));`
         : `  let fogFactor = 1.0 - saturate(exp(-distanceToCamera * distanceToCamera * view.fogParams.y * view.fogParams.y));`;
 
-  return code
-    .replace(
-      `fn evaluateDirectLight(
+  return code.replace(
+    `fn evaluateDirectLight(
   normal: vec3f,`,
-      `fn applyDistanceFog(color: vec3f, distanceToCamera: f32) -> vec3f {
+    `fn applyDistanceFog(color: vec3f, distanceToCamera: f32) -> vec3f {
 ${fogFactor}
   return mix(color, view.fogColor.rgb, saturate(fogFactor * view.fogColor.a));
 }
 
 fn evaluateDirectLight(
   normal: vec3f,`,
-    )
-    .replace(
-      `  return vec4f(color, alpha);`,
-      // Introduce a fresh binding instead of mutating `color`, which is declared
-      // `let` in every lit/shadowed/emissive variant. Reassigning `color`
-      // directly is invalid WGSL when shadows are enabled (the shadow path keeps
-      // it immutable). A new `let` works for all variants.
-      `  let foggedColor = applyDistanceFog(color, length(view.cameraPosition.xyz - input.worldPosition));
-  return vec4f(foggedColor, alpha);`,
-    );
+  );
 }

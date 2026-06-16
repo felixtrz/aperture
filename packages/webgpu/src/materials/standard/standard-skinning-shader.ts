@@ -1,4 +1,5 @@
 import type { BatchCompatibilityKey } from "@aperture-engine/render";
+import type { StandardVertexComposer } from "./standard-vertex-composer.js";
 
 export const STANDARD_SKINNING_FEATURE = "skinned";
 export const STANDARD_SKINNING_JOINTS_LOCATION = 8;
@@ -35,56 +36,30 @@ export function hasStandardSkinningFeature(
   return features.skinned === true;
 }
 
-export function applyStandardSkinningToWgsl(
-  code: string,
+export function addStandardSkinningVertexSlots(
+  composer: StandardVertexComposer,
   features: StandardSkinningFeatureInput,
-): string {
+): void {
   if (!hasStandardSkinningFeature(features)) {
-    return code;
+    return;
   }
 
-  return code
-    .replace(
-      `@group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
-@group(2) @binding(0) var<uniform> material: StandardMaterialUniform;`,
-      `@group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
-@group(1) @binding(1) var<storage, read> skinJointMatrices: array<mat4x4f>;
-@group(2) @binding(0) var<uniform> material: StandardMaterialUniform;`,
-    )
-    .replace(
-      `  @builtin(instance_index) instanceIndex: u32,`,
-      `  @location(${STANDARD_SKINNING_JOINTS_LOCATION}) joints0: vec4u,
-  @location(${STANDARD_SKINNING_WEIGHTS_LOCATION}) weights0: vec4f,
-  @builtin(instance_index) instanceIndex: u32,`,
-    )
-    .replace(
-      `@vertex
-fn vs_main(input: VertexInput) -> VertexOutput {`,
-      `${STANDARD_SKINNING_WGSL}
-
-@vertex
-fn vs_main(input: VertexInput) -> VertexOutput {`,
-    )
-    .replace(
-      `  let world = worldTransforms[input.instanceIndex];
-  let worldPosition = world * vec4f(input.position, 1.0);`,
-      `  let world = worldTransforms[input.instanceIndex];
-  let skinnedPosition = apertureSkinPosition(input.position, input.joints0, input.weights0);
-  let skinnedNormal = apertureSkinDirection(input.normal, input.joints0, input.weights0);
-  let worldPosition = world * vec4f(skinnedPosition, 1.0);`,
-    )
-    .replace(
-      `  output.worldNormal = normalize((world * vec4f(input.normal, 0.0)).xyz);`,
-      `  output.worldNormal = normalize((world * vec4f(skinnedNormal, 0.0)).xyz);`,
-    )
-    .replace(
-      `  output.worldTangent = normalize((world * vec4f(input.tangent.xyz, 0.0)).xyz);`,
-      `  let skinnedTangent = apertureSkinDirection(input.tangent.xyz, input.joints0, input.weights0);
-  output.worldTangent = normalize((world * vec4f(skinnedTangent, 0.0)).xyz);`,
-    );
+  composer.addBinding(
+    "skinJointMatrices",
+    "@group(1) @binding(1) var<storage, read> skinJointMatrices: array<mat4x4f>;",
+  );
+  composer.addInputField(
+    "joints0",
+    `  @location(${STANDARD_SKINNING_JOINTS_LOCATION}) joints0: vec4u,`,
+  );
+  composer.addInputField(
+    "weights0",
+    `  @location(${STANDARD_SKINNING_WEIGHTS_LOCATION}) weights0: vec4f,`,
+  );
+  composer.addHelperFunction("skinning", STANDARD_SKINNING_WGSL);
 }
 
-const STANDARD_SKINNING_WGSL = `
+export const STANDARD_SKINNING_WGSL = `
 fn apertureSkinIdentityMatrix() -> mat4x4f {
   return mat4x4f(
     vec4f(1.0, 0.0, 0.0, 0.0),

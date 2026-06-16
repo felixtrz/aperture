@@ -536,10 +536,6 @@ fn evaluateDirectLight(
         metallic,
         roughness,
       ) * shadowFactor;`,
-    )
-    .replace(
-      `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
-      `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
     );
 }
 
@@ -758,11 +754,6 @@ fn evaluateDirectLight(
           metallic,
           roughness,
         ) * shadowFactor;`,
-    )
-    .replace(
-      `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
-      `  let receiverPointShadowFactor = samplePointShadowReceiverFactor(input.worldPosition);
-  let color = ambientDiffuse + direct * receiverPointShadowFactor + material.emissiveFactor;`,
     );
 }
 
@@ -1108,17 +1099,6 @@ fn evaluateDirectLight(
           metallic,
           roughness,
         ) * shadowFactor;`,
-    )
-    .replace(
-      `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
-      `  let receiverShadowFactor = min(
-    min(
-      sampleDirectionalShadowFactor(input.worldPosition),
-      sampleSpotShadowFactor(input.worldPosition),
-    ),
-    samplePointShadowReceiverFactor(input.worldPosition),
-  );
-  let color = ambientDiffuse + direct * receiverShadowFactor + material.emissiveFactor;`,
     );
 
   if (options.compactClusteredLocalShadows === true) {

@@ -655,59 +655,9 @@ fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> @lo
       clusteredLightLoop,
     )
     .replace(
-      /([ ]{2}var ambient = vec3f\(0\.0\);\n[ ]{2}var direct = vec3f\(0\.0\);\n\n)[ ]{2}for \(var lightIndex = 0u; lightIndex < lightCount\(\); lightIndex = lightIndex \+ 1u\) \{[\s\S]*?\n[ ]{2}\}(?=\n\n[ ]{2}(?:let|var) )/,
+      /([ ]{2}var ambient = vec3f\(0\.0\);\n[ ]{2}var direct = vec3f\(0\.0\);\n\n)[ ]{2}for \(var lightIndex = 0u; lightIndex < lightCount\(\); lightIndex = lightIndex \+ 1u\) \{[\s\S]*?\n[ ]{2}\}(?=\n\n(?:[ ]{2}\/\/ @aperture-standard-fragment-assembly:begin\n)?[ ]{2}(?:let|var) )/u,
       `$1${clusteredLightLoop}`,
     );
-
-  if (options.removeGlobalPointShadowReceiverFactor === true) {
-    result = result
-      .replace(
-        `  let receiverPointShadowFactor = samplePointShadowReceiverFactor(input.worldPosition);
-  let color = ambientDiffuse + direct * receiverPointShadowFactor + material.emissiveFactor;`,
-        `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
-      )
-      .replace(
-        `  let receiverPointShadowFactor = samplePointShadowReceiverFactor(input.worldPosition);
-  let color = ambientDiffuse + direct * receiverPointShadowFactor + emissive;`,
-        `  let color = ambientDiffuse + direct + emissive;`,
-      );
-  }
-
-  if (options.removeGlobalSpotShadowReceiverFactor === true) {
-    result = result
-      .replace(
-        `  let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
-  let color = ambientDiffuse + direct * receiverShadowFactor + material.emissiveFactor;`,
-        `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
-      )
-      .replace(
-        `  let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
-  let color = ambientDiffuse + direct * receiverShadowFactor + emissive;`,
-        `  let color = ambientDiffuse + direct + emissive;`,
-      )
-      .replace(
-        `  let receiverShadowFactor = min(
-    min(
-      sampleDirectionalShadowFactor(input.worldPosition),
-      sampleSpotShadowFactor(input.worldPosition),
-    ),
-    samplePointShadowReceiverFactor(input.worldPosition),
-  );
-  let color = ambientDiffuse + direct * receiverShadowFactor + material.emissiveFactor;`,
-        `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
-      )
-      .replace(
-        `  let receiverShadowFactor = min(
-    min(
-      sampleDirectionalShadowFactor(input.worldPosition),
-      sampleSpotShadowFactor(input.worldPosition),
-    ),
-    samplePointShadowReceiverFactor(input.worldPosition),
-  );
-  let color = ambientDiffuse + direct * receiverShadowFactor + emissive;`,
-        `  let color = ambientDiffuse + direct + emissive;`,
-      );
-  }
 
   return result;
 }

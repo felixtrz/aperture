@@ -1,4 +1,5 @@
 import type { BatchCompatibilityKey } from "@aperture-engine/render";
+import type { StandardVertexComposer } from "./standard-vertex-composer.js";
 
 export const STANDARD_MORPH_TARGET_FEATURE = "morphed";
 /** group(1) binding holding the flat per-instance morph weights (`array<f32>`). */
@@ -43,6 +44,22 @@ export function hasStandardMorphTargetFeature(
   return features.morphed === true;
 }
 
+export function addStandardMorphTargetVertexSlots(
+  composer: StandardVertexComposer,
+  features: StandardMorphTargetFeatureInput,
+): void {
+  if (!hasStandardMorphTargetFeature(features)) {
+    return;
+  }
+
+  composer.addBinding("morphTargetWeights", MORPH_BINDINGS_WGSL);
+  composer.addInputField(
+    "morphVertexIndex",
+    "  @builtin(vertex_index) morphVertexIndex: u32,",
+  );
+  composer.addHelperFunction("morphTargets", STANDARD_MORPH_TARGET_WGSL);
+}
+
 /**
  * Reference CPU blend used by tests: accumulates an arbitrary number of
  * morph-target deltas weighted by the matching weight. Mirrors the WGSL loop
@@ -69,74 +86,7 @@ export function evaluateStandardMorphTargetBlend(input: {
   return out;
 }
 
-export function applyStandardMorphTargetsToWgsl(
-  code: string,
-  features: StandardMorphTargetFeatureInput,
-): string {
-  if (!hasStandardMorphTargetFeature(features)) {
-    return code;
-  }
-
-  let next = insertMorphBindings(code);
-
-  next = next
-    .replace(
-      `  @builtin(instance_index) instanceIndex: u32,`,
-      `  @builtin(vertex_index) morphVertexIndex: u32,
-  @builtin(instance_index) instanceIndex: u32,`,
-    )
-    .replace(
-      `@vertex
-fn vs_main(input: VertexInput) -> VertexOutput {`,
-      `${STANDARD_MORPH_TARGET_WGSL}
-
-@vertex
-fn vs_main(input: VertexInput) -> VertexOutput {`,
-    );
-
-  if (next.includes("let skinnedPosition = apertureSkinPosition")) {
-    return next.replace(
-      `  let world = worldTransforms[input.instanceIndex];
-  let skinnedPosition = apertureSkinPosition(input.position, input.joints0, input.weights0);
-  let skinnedNormal = apertureSkinDirection(input.normal, input.joints0, input.weights0);
-  let worldPosition = world * vec4f(skinnedPosition, 1.0);`,
-      `  let world = worldTransforms[input.instanceIndex];
-  let morphed = apertureMorph(input.position, input.normal, input.instanceIndex, input.morphVertexIndex);
-  let skinnedPosition = apertureSkinPosition(morphed.position, input.joints0, input.weights0);
-  let skinnedNormal = apertureSkinDirection(morphed.normal, input.joints0, input.weights0);
-  let worldPosition = world * vec4f(skinnedPosition, 1.0);`,
-    );
-  }
-
-  return next
-    .replace(
-      `  let world = worldTransforms[input.instanceIndex];
-  let worldPosition = world * vec4f(input.position, 1.0);`,
-      `  let world = worldTransforms[input.instanceIndex];
-  let morphed = apertureMorph(input.position, input.normal, input.instanceIndex, input.morphVertexIndex);
-  let worldPosition = world * vec4f(morphed.position, 1.0);`,
-    )
-    .replace(
-      `  output.worldNormal = normalize((world * vec4f(input.normal, 0.0)).xyz);`,
-      `  output.worldNormal = normalize((world * vec4f(morphed.normal, 0.0)).xyz);`,
-    );
-}
-
-function insertMorphBindings(code: string): string {
-  const skinBinding =
-    "@group(1) @binding(1) var<storage, read> skinJointMatrices: array<mat4x4f>;";
-
-  if (code.includes(skinBinding)) {
-    return code.replace(skinBinding, `${skinBinding}\n${MORPH_BINDINGS_WGSL}`);
-  }
-
-  return code.replace(
-    `@group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;`,
-    `@group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;\n${MORPH_BINDINGS_WGSL}`,
-  );
-}
-
-const MORPH_BINDINGS_WGSL = `@group(1) @binding(${STANDARD_MORPH_TARGET_WEIGHTS_BINDING}) var<storage, read> standardMorphTargetWeights: array<f32>;
+export const MORPH_BINDINGS_WGSL = `@group(1) @binding(${STANDARD_MORPH_TARGET_WEIGHTS_BINDING}) var<storage, read> standardMorphTargetWeights: array<f32>;
 @group(1) @binding(${STANDARD_MORPH_TARGET_DELTAS_BINDING}) var<storage, read> standardMorphTargetDeltas: array<f32>;
 @group(1) @binding(${STANDARD_MORPH_TARGET_DESCRIPTORS_BINDING}) var<storage, read> standardMorphInstanceDescriptors: array<vec4u>;`;
 
@@ -147,7 +97,7 @@ const MORPH_BINDINGS_WGSL = `@group(1) @binding(${STANDARD_MORPH_TARGET_WEIGHTS_
  * count renders without a fixed vertex-attribute cap, matching the three.js
  * WebGPURenderer morph-texture approach with a storage buffer.
  */
-const STANDARD_MORPH_TARGET_WGSL = `
+export const STANDARD_MORPH_TARGET_WGSL = `
 struct ApertureMorphedVertex {
   position: vec3f,
   normal: vec3f,

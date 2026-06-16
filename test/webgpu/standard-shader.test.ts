@@ -37,6 +37,10 @@ import {
   STANDARD_MESH_SHADER,
   STANDARD_MESH_WGSL,
   STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
+  StandardFragmentComposer,
+  StandardShaderComposerError,
+  StandardVertexComposer,
+  StandardVertexComposerError,
   STANDARD_SHEEN_SHADER_VARIANT,
   STANDARD_IRIDESCENCE_SHADER_VARIANT,
   LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
@@ -180,6 +184,133 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
     expect(STANDARD_MESH_WGSL).toContain("LIGHT_KIND_AMBIENT");
     expect(STANDARD_MESH_WGSL).toContain("standardAreaLightLtcMatrixTexture");
+  });
+
+  it("models StandardMaterial fragment color assembly as a composition contract", () => {
+    const composer = new StandardFragmentComposer();
+
+    composer.addBaseColorAlphaStatement(
+      "  let baseColorSample = textureSample(baseColorTexture, baseColorSampler, input.uv);",
+    );
+    composer.setBaseColorExpression(
+      "baseColorSample.rgb * material.baseColorFactor.rgb",
+    );
+    composer.setAlphaExpression(
+      "baseColorSample.a * material.baseColorFactor.a",
+    );
+    composer.setNormalExpression("sampleTangentSpaceNormal(input, frontFacing)");
+    composer.addMetallicRoughnessStatement(
+      "  let metallicRoughnessSample = textureSample(metallicRoughnessTexture, metallicRoughnessSampler, input.uv);",
+    );
+    composer.setMetallicExpression(
+      "clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0)",
+    );
+    composer.setRoughnessExpression(
+      "clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0)",
+    );
+    composer.addIndirectDiffuseTerm(
+      "diffuseIbl",
+      "diffuseIbl",
+      "  let diffuseIbl = textureSample(standardDiffuseIblTexture, standardIblSampler, normal).rgb;",
+    );
+    composer.addIndirectSpecularTerm(
+      "specularIblBrdf",
+      "specularIblBrdf",
+      "  let specularIblBrdf = vec3f(0.5);",
+    );
+    composer.replaceEmissiveTerm("emissiveTexture", "emissive");
+
+    expect(composer.contract()).toMatchObject({
+      baseColorAlphaStatements: [
+        "  let baseColorSample = textureSample(baseColorTexture, baseColorSampler, input.uv);",
+      ],
+      baseColorExpression:
+        "baseColorSample.rgb * material.baseColorFactor.rgb",
+      alphaExpression: "baseColorSample.a * material.baseColorFactor.a",
+      normalExpression: "sampleTangentSpaceNormal(input, frontFacing)",
+      metallicRoughnessStatements: [
+        "  let metallicRoughnessSample = textureSample(metallicRoughnessTexture, metallicRoughnessSampler, input.uv);",
+      ],
+      metallicExpression:
+        "clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0)",
+      roughnessExpression:
+        "clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0)",
+      indirectDiffuseTerms: [
+        { id: "ambientDiffuse", expression: "ambientDiffuse" },
+        { id: "diffuseIbl", expression: "diffuseIbl" },
+      ],
+      indirectSpecularTerms: [
+        { id: "specularIblBrdf", expression: "specularIblBrdf" },
+      ],
+      directTerms: [{ id: "direct", expression: "direct" }],
+      emissiveTerm: { id: "emissiveTexture", expression: "emissive" },
+      outputColorExpression: "color",
+      indirectOutputColorExpression: "standardIndirectColor",
+    });
+    expect(composer.emit()).toContain(
+      "let standardIndirectColor = ambientDiffuse + diffuseIbl + specularIblBrdf;",
+    );
+    expect(composer.emitBaseColorAlphaBlock()).toContain(
+      "let baseColor = baseColorSample.rgb * material.baseColorFactor.rgb;",
+    );
+    expect(composer.emitMetallicRoughnessBlock()).toContain(
+      "let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);",
+    );
+  });
+
+  it("models StandardMaterial vertex feature injection as a composition contract", () => {
+    const composer = new StandardVertexComposer();
+
+    composer.addInputField("tangent", "  @location(3) tangent: vec4f,");
+    composer.addOutputField(
+      "worldTangent",
+      "  @location(3) worldTangent: vec3f,",
+    );
+    composer.addBinding(
+      "skinJointMatrices",
+      "@group(1) @binding(1) var<storage, read> skinJointMatrices: array<mat4x4f>;",
+    );
+    composer.addLocalStatement(
+      "  let skinnedPosition = apertureSkinPosition(input.position, input.joints0, input.weights0);",
+    );
+    composer.setLocalPositionExpression("skinnedPosition");
+    composer.enableTangentOutput();
+
+    expect(composer.contract()).toMatchObject({
+      inputFields: [{ id: "tangent", code: "  @location(3) tangent: vec4f," }],
+      outputFields: [
+        { id: "worldTangent", code: "  @location(3) worldTangent: vec3f," },
+      ],
+      bindings: [
+        {
+          id: "skinJointMatrices",
+          code: "@group(1) @binding(1) var<storage, read> skinJointMatrices: array<mat4x4f>;",
+        },
+      ],
+      localPositionExpression: "skinnedPosition",
+      tangentOutputEnabled: true,
+    });
+    expect(composer.emitLocalTransformBlock()).toContain(
+      "let worldPosition = world * vec4f(skinnedPosition, 1.0);",
+    );
+    expect(composer.emitPreUvOutputAssignments()).toContain(
+      "output.worldTangent = normalize((world * vec4f(input.tangent.xyz, 0.0)).xyz);",
+    );
+    expect(() =>
+      composer.addInputField("tangent", "  @location(3) tangent: vec4f,"),
+    ).toThrow(StandardVertexComposerError);
+  });
+
+  it("fails StandardMaterial fragment composition diagnostics loudly", () => {
+    const composer = new StandardFragmentComposer();
+
+    expect(() => composer.addDirectTerm("direct", "direct")).toThrow(
+      StandardShaderComposerError,
+    );
+
+    const emptyComposer = new StandardFragmentComposer({ defaults: false });
+
+    expect(() => emptyComposer.emit()).toThrow(StandardShaderComposerError);
   });
 
   it("samples production LTC area-light tables with reference UV scale and matrix/fresnel terms", () => {
@@ -393,17 +524,27 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "exp(-distanceToCamera * distanceToCamera * view.fogParams.y * view.fogParams.y)",
     );
-    // Fog folds into a fresh `let foggedColor`; the base `color` stays `let`
-    // (immutable). Reassigning `color` directly would be invalid WGSL on the
-    // shadow path, which keeps it immutable.
     expect(shader.code).toContain(
       "let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI);",
     );
     expect(shader.code).toContain(
-      "let color = ambientDiffuse + direct + material.emissiveFactor;",
+      "let standardIndirectColor = ambientDiffuse;",
+    );
+    expect(shader.code).toContain("let standardDirectColor = direct;");
+    expect(shader.code).toContain(
+      "let standardEmissiveColor = material.emissiveFactor;",
+    );
+    expect(shader.code).toContain(
+      "var color = standardIndirectColor + standardDirectColor + standardEmissiveColor;",
     );
     expect(shader.code).toContain(
       "let foggedColor = applyDistanceFog(color, length(view.cameraPosition.xyz - input.worldPosition));",
+    );
+    expect(shader.code).toContain(
+      "let standardIndirectFoggedColor = applyDistanceFog(standardIndirectColor, length(view.cameraPosition.xyz - input.worldPosition));",
+    );
+    expect(shader.code).toContain(
+      "let standardIndirectOutputColor = standardIndirectFoggedColor;",
     );
     expect(shader.code).toContain("return vec4f(foggedColor, alpha);");
   });
@@ -1690,7 +1831,11 @@ describe("built-in standard material WGSL shader metadata", () => {
       "let shadowFactor = sampleDirectionalShadowFactor(lightIndex, input.worldPosition, normal);",
     );
     expect(shader.code).toContain(
-      "let color = ambientDiffuse + diffuseIbl + specularIblProof + direct + material.emissiveFactor;",
+      "let standardIndirectColor = ambientDiffuse + diffuseIbl + specularIblProof;",
+    );
+    expect(shader.code).toContain("let standardDirectColor = direct;");
+    expect(shader.code).toContain(
+      "let standardEmissiveColor = material.emissiveFactor;",
     );
   });
 
@@ -2263,7 +2408,11 @@ describe("built-in standard material WGSL shader metadata", () => {
       "textureSample(\n    standardDiffuseIblTexture,",
     );
     expect(shader.code).toContain(
-      "let color = ambientDiffuse + diffuseIbl + direct + material.emissiveFactor;",
+      "let standardIndirectColor = ambientDiffuse + diffuseIbl;",
+    );
+    expect(shader.code).toContain("let standardDirectColor = direct;");
+    expect(shader.code).toContain(
+      "let standardEmissiveColor = material.emissiveFactor;",
     );
     expect(
       shader.bindings.map((binding) => [
@@ -2814,7 +2963,10 @@ describe("built-in standard material WGSL shader metadata", () => {
       "material.emissiveFactor * emissiveSample.rgb",
     );
     expect(shader.code).toContain(
-      "let color = ambientDiffuse + direct + emissive",
+      "let standardEmissiveColor = emissive;",
+    );
+    expect(shader.code).toContain(
+      "var color = standardIndirectColor + standardDirectColor + standardEmissiveColor;",
     );
     expect(
       shader.bindings.map((binding) => [
@@ -2866,7 +3018,10 @@ describe("built-in standard material WGSL shader metadata", () => {
       "textureSample(emissiveTexture, emissiveSampler, emissiveTextureUv)",
     );
     expect(shader.code).toContain(
-      "let color = ambientDiffuse + direct + emissive;",
+      "let standardEmissiveColor = emissive;",
+    );
+    expect(shader.code).toContain(
+      "var color = standardIndirectColor + standardDirectColor + standardEmissiveColor;",
     );
     expect(
       shader.bindings.map((binding) => [
@@ -2923,7 +3078,10 @@ describe("built-in standard material WGSL shader metadata", () => {
       "textureSample(emissiveTexture, emissiveSampler, emissiveTextureUv)",
     );
     expect(shader.code).toContain(
-      "let color = ambientDiffuse + direct + emissive;",
+      "let standardEmissiveColor = emissive;",
+    );
+    expect(shader.code).toContain(
+      "var color = standardIndirectColor + standardDirectColor + standardEmissiveColor;",
     );
     expect(
       shader.bindings.map((binding) => [
@@ -3080,7 +3238,10 @@ describe("built-in standard material WGSL shader metadata", () => {
       "textureSample(emissiveTexture, emissiveSampler, emissiveTextureUv)",
     );
     expect(shader.code).toContain(
-      "let color = ambientDiffuse + direct + emissive;",
+      "let standardEmissiveColor = emissive;",
+    );
+    expect(shader.code).toContain(
+      "var color = standardIndirectColor + standardDirectColor + standardEmissiveColor;",
     );
     expect(
       shader.bindings.map((binding) => [

@@ -3,7 +3,10 @@ export {
   applyStandardFogSampling,
   applyStandardIridescenceSampling,
   applyStandardSheenSampling,
-  applyStandardTransmissionSampling,
+  standardClearcoatMaterialStatements,
+  standardIridescenceMaterialStatements,
+  standardSheenMaterialStatements,
+  standardTransmissionColorMutationStatements,
 } from "./standard-shader-extension-sampling.js";
 export { applyStandardClusteredLocalLightSampling } from "./standard-shader-light-sampling.js";
 export {
