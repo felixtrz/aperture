@@ -47,6 +47,8 @@ export function createAudioEmitter(
     ],
     audibilityRadius: input.audibilityRadius ?? 0,
     occlusion: input.occlusion ?? 0,
+    lowpassFrequency: input.lowpassFrequency ?? 22000,
+    lowpassQ: input.lowpassQ ?? 0.7,
     active: input.active ?? true,
   };
 }

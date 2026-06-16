@@ -170,6 +170,11 @@ export function extractAudioEmitters(
       occlusion: clamp01(
         finiteNumber(entity.getValue(AudioEmitter, "occlusion"), 0),
       ),
+      lowpassFrequency: finitePositive(
+        entity.getValue(AudioEmitter, "lowpassFrequency"),
+        22000,
+      ),
+      lowpassQ: finitePositive(entity.getValue(AudioEmitter, "lowpassQ"), 0.7),
       audibility: "audible",
       muted: entity.getValue(AudioEmitter, "muted") === true,
       worldTransformOffset,

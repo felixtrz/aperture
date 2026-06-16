@@ -50,6 +50,12 @@ export function validateAudioEmitterInput(
       diagnostic("audio.invalidAudibilityRadius", "audibilityRadius"),
     );
   }
+  if (
+    !positiveFinite(emitter.lowpassFrequency) ||
+    !positiveFinite(emitter.lowpassQ)
+  ) {
+    diagnostics.push(diagnostic("audio.invalidLowpass", "lowpass"));
+  }
 
   return { valid: diagnostics.length === 0, diagnostics };
 }

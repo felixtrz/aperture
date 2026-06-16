@@ -181,6 +181,10 @@ export interface AudioEmitterPacket {
   readonly coneOuterGain: number;
   /** Occlusion lowpass amount in [0,1] (0 open). */
   readonly occlusion: number;
+  /** Authored lowpass cutoff in Hz, composed with occlusion main-side. */
+  readonly lowpassFrequency: number;
+  /** Authored lowpass resonance/Q. */
+  readonly lowpassQ: number;
   readonly offsetSec: number;
   readonly loopStart: number;
   readonly loopEnd: number;

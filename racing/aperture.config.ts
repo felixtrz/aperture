@@ -70,7 +70,7 @@ export default defineApertureConfig({
     bestLapTime: signal.number(-1),
     speed: signal.number(0),
     started: signal.boolean(false),
-    // Published by vehicle.system for the main-thread audio driver (src/audio.ts).
+    // Published by vehicle.system for browser diagnostics / HUD-adjacent status.
     throttle: signal.number(0),
     driftIntensity: signal.number(0),
   },

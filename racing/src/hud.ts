@@ -4,7 +4,6 @@ import {
   readGeneratedSignals,
 } from "@aperture-engine/app/browser";
 import { clamp } from "@aperture-engine/simulation";
-import { initRacingAudio } from "./audio.js";
 
 const lapEl = document.querySelector<HTMLElement>("#lap-timer .lap");
 const currentEl = document.querySelector<HTMLElement>("#lap-timer .current");
@@ -112,7 +111,3 @@ function setupTouchControls(): void {
 }
 
 setupTouchControls();
-
-// Main-thread audio driver (engine/skid/impact); self-defers AudioContext creation
-// to the first user gesture (autoplay policy). No-ops gracefully if audio fails.
-initRacingAudio();

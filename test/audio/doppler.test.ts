@@ -42,6 +42,8 @@ function worldEmitter(x: number, timeScale = 1): AudioEmitterPacket {
     loopStart: 0,
     loopEnd: 0,
     occlusion: 0,
+    lowpassFrequency: 22000,
+    lowpassQ: 0.7,
     audibility: "audible",
     muted: false,
     worldTransformOffset: 0,

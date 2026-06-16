@@ -393,17 +393,21 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 22:39 UTC</dd>
+            <dd>2026-06-16 23:10 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: <code>@aperture-engine/audio</code> now includes a
-              sound board API for named clip preload/decode/cache, first-gesture
-              startup, loop voices, one-shots, automation, lowpass filters,
-              mixer routing, and teardown. Racing audio now keeps the
-              vehicle-specific RPM/skid/impact model but no longer owns raw Web
-              Audio node lifecycle. Prior update: inactive
+              Latest update: racing audio intent now runs from
+              <code>src/systems/audio.system.ts</code> through a worker-authored
+              <code>this.audio</code> control surface. Aperture owns
+              <code>AudioEmitter</code> extraction, authored lowpass fields,
+              clip decode/cache, browser unlock, Web Audio voices, and mixer
+              routing; the old <code>racing/src/audio.ts</code> driver was
+              deleted. Prior update: <code>@aperture-engine/audio</code> gained
+              a sound board API for named clip preload/decode/cache,
+              first-gesture startup, loop voices, one-shots, automation, lowpass
+              filters, mixer routing, and teardown. Prior update: inactive
               <code>setup.system.ts.*</code> scaffolding files were removed and
               <code>racing/src/lib/track.ts</code> became a stable barrel over
               focused data, codec, layout, and runtime modules. instead of
@@ -1159,10 +1163,9 @@
             <dt>Next focus</dt>
             <dd>
               Continue the racing library-gap plan with
-              <code>RACE-LIB-19</code>: move racing vehicle audio intent to a
-              worker-authored Aperture audio control surface so systems author
-              loop/one-shot sound intent while Aperture owns browser
-              realization.
+              <code>RACE-LIB-20</code>: add a reusable camera follow/control
+              helper and migrate racing's camera-follow system to it while
+              preserving current camera feel.
             </dd>
           </dl>
         </aside>

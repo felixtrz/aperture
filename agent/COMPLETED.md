@@ -1,9 +1,46 @@
 # Completed Tasks
 
+## RACE-LIB-19 — Worker-authored racing audio intent
+
+Completed: 2026-06-16 16:10 PDT
+Commit: current checkpoint commit
+
+### Summary
+
+- Added `@aperture-engine/app/systems` audio access for stable worker-authored
+  loops, loop updates/stops, and one-shot events backed by ECS
+  `AudioEmitter` intent.
+- Extended render audio authoring/extraction/packets with lowpass frequency/Q
+  and updated voice management to compose authored lowpass with occlusion.
+- Migrated racing's engine/skid/impact model to
+  `racing/src/systems/audio.system.ts`, removed `racing/src/audio.ts`, and
+  stopped initializing racing audio from the HUD.
+- Rebuilt package and experience bundles so workspace consumers and Vite-served
+  modules use current `dist` output.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/audio run typecheck`
+- `pnpm --filter @aperture-engine/audio run build`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm exec vitest run test/rendering/audio-emitter-extraction.test.ts test/audio/voice-manager.test.ts test/app/audio-access.test.ts test/app/audio-integration.test.ts`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Cache-busted no-cache probes confirmed racing/shadow-lab serve current source
+  and package dist modules; deleted `src/audio.ts` is not served as stale JS.
+- Aperture MCP racing status stayed healthy after a managed-browser input
+  gesture, and the generated systems list included
+  `src/systems/audio.system.ts`.
+
 ## RACE-LIB-18 — Audio sound board and racing audio graph cleanup
 
 Completed: 2026-06-16 15:39 PDT
-Commit: pending
+Commit: `edff1ab4`
 
 ### Summary
 

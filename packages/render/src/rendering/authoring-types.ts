@@ -313,6 +313,10 @@ export interface AudioEmitterInput {
   readonly audibilityRadius?: number;
   /** Occlusion lowpass amount in [0,1]: 0 open, 1 fully muffled. */
   readonly occlusion?: number;
+  /** Authored lowpass cutoff in Hz, composed with occlusion. */
+  readonly lowpassFrequency?: number;
+  /** Authored lowpass resonance/Q. */
+  readonly lowpassQ?: number;
   readonly active?: boolean;
 }
 
@@ -474,6 +478,7 @@ export type RenderAuthoringDiagnosticCode =
   | "audio.invalidRolloff"
   | "audio.invalidCone"
   | "audio.invalidAudibilityRadius"
+  | "audio.invalidLowpass"
   | "skybox.invalidTexture"
   | "skybox.invalidIntensity"
   | "fog.invalidMode"

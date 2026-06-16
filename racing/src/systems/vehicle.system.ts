@@ -239,7 +239,8 @@ export default class VehicleSystem extends createSystem({
         (Math.abs(this.#linearSpeed) / MAX_SPEED).toFixed(3),
       );
     }
-    // For the main-thread audio driver (src/audio.ts).
+    // Browser-facing signals remain useful for HUD/status diagnostics; the
+    // worker audio system reads the authoritative VehicleResource directly.
     const throttleSignal = this.signals["throttle"];
     if (throttleSignal !== undefined)
       throttleSignal.value = Number(inputZ.toFixed(3));

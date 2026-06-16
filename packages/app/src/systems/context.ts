@@ -29,6 +29,7 @@ import { createMeshAccess, type MeshAccess } from "./meshes.js";
 import { createPhysicsAccess, type PhysicsAccess } from "./physics.js";
 import { createPrefabAccess, type PrefabAccess } from "./prefabs.js";
 import { createParticleAccess, type ParticleAccess } from "./particles.js";
+import { createAudioAccess, type AudioAccess } from "./audio.js";
 import { createTrailAccess, type TrailAccess } from "./trails.js";
 import { createSignalStore, type SignalStore } from "./signals.js";
 import { createResourceStore, type ResourceStore } from "./resources.js";
@@ -71,6 +72,7 @@ export interface ApertureSystemContext {
   readonly hierarchy: HierarchyAccess;
   readonly prefabs: PrefabAccess;
   readonly particles: ParticleAccess;
+  readonly audio: AudioAccess;
   readonly materials: MaterialAccess;
   readonly meshes: MeshAccess;
   readonly trails: TrailAccess;
@@ -142,6 +144,7 @@ export function createApertureSystemContext(
   const hierarchy = createHierarchyAccess(options.world);
   const prefabs = createPrefabAccess(options.assetsRegistry);
   const particles = createParticleAccess({ world: options.world, assets });
+  const audio = createAudioAccess({ world: options.world, assets });
   const materials = createMaterialAccess(options.assetsRegistry);
   const meshes = createMeshAccess(options.assetsRegistry);
   const trails = createTrailAccess({
@@ -168,6 +171,7 @@ export function createApertureSystemContext(
     hierarchy,
     prefabs,
     particles,
+    audio,
     materials,
     meshes,
     trails,
@@ -212,6 +216,7 @@ function isApertureSystemContext(
     "gltf" in value &&
     "trails" in value &&
     "particles" in value &&
+    "audio" in value &&
     "effects" in value
   );
 }

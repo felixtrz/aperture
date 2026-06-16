@@ -73,6 +73,7 @@ import type { InteractionAccess } from "./interaction/access.js";
 import type { MaterialAccess } from "./systems/materials.js";
 import type { MeshAccess } from "./systems/meshes.js";
 import type { ParticleAccess } from "./systems/particles.js";
+import type { AudioAccess } from "./systems/audio.js";
 import type { TrailAccess } from "./systems/trails.js";
 import type { PhysicsAccess } from "./systems/physics.js";
 import type { FixedStepAccess } from "./systems/fixed-step.js";
@@ -168,8 +169,16 @@ export type {
   Vec4Tuple,
 } from "@aperture-engine/simulation";
 
-export { ParticleSimulationSpace } from "@aperture-engine/render";
-export type { ParticleEmitterInput } from "@aperture-engine/render";
+export {
+  AudioSimulationSpace,
+  ParticleSimulationSpace,
+} from "@aperture-engine/render";
+export type {
+  AudioDistanceModel,
+  AudioEmitterInput,
+  AudioPanningModel,
+  ParticleEmitterInput,
+} from "@aperture-engine/render";
 
 export type { SignalStore, SignalSummary } from "./systems/signals.js";
 export { createSignalSummary } from "./systems/signals.js";
@@ -264,6 +273,17 @@ export type {
   ParticleEmitOptions,
 } from "./systems/particles.js";
 export { createParticleAccess } from "./systems/particles.js";
+export type {
+  AudioAccess,
+  AudioClipDescriptorInput,
+  AudioEmitterControlOptions,
+  AudioLoopHandle,
+  AudioLoopOptions,
+  AudioLoopUpdateOptions,
+  AudioLowpassOptions,
+  AudioOneShotOptions,
+} from "./systems/audio.js";
+export { createAudioAccess } from "./systems/audio.js";
 export type {
   MaterialAccess,
   MaterialPatch,
@@ -428,6 +448,7 @@ export interface ApertureSystemInstance {
   readonly hierarchy: HierarchyAccess;
   readonly prefabs: PrefabAccess;
   readonly particles: ParticleAccess;
+  readonly audio: AudioAccess;
   readonly materials: MaterialAccess;
   readonly meshes: MeshAccess;
   readonly trails: TrailAccess;
@@ -577,6 +598,10 @@ export function createSystem<
 
     get particles(): ParticleAccess {
       return this.#context.particles;
+    }
+
+    get audio(): AudioAccess {
+      return this.#context.audio;
     }
 
     get materials(): MaterialAccess {

@@ -26,6 +26,7 @@ const DOPPLER_MIN_RATE = 0.5;
 /** Occlusion lowpass cutoff range (Hz): open at MAX, fully muffled at MIN. */
 const OCCLUSION_MAX_HZ = 22000;
 const OCCLUSION_MIN_HZ = 350;
+const DEFAULT_LOWPASS_Q = 0.7;
 
 /** Per-bus simultaneous-voice caps so one category can't starve another. */
 const DEFAULT_BUS_CAPS: Readonly<Record<AudioBusId, number>> = {
@@ -474,11 +475,22 @@ export function createVoiceManager(
     }
     applyPlaybackRate(voice, packet, transforms, frameDelta);
     const occlusion = Number.isFinite(packet.occlusion) ? packet.occlusion : 0;
-    const cutoff =
+    const occlusionCutoff =
       OCCLUSION_MAX_HZ -
       (OCCLUSION_MAX_HZ - OCCLUSION_MIN_HZ) * clampNum(occlusion, 0, 1);
+    const authoredCutoff = Number.isFinite(packet.lowpassFrequency)
+      ? clampNum(packet.lowpassFrequency, OCCLUSION_MIN_HZ, OCCLUSION_MAX_HZ)
+      : OCCLUSION_MAX_HZ;
+    const cutoff = Math.min(authoredCutoff, occlusionCutoff);
+    const q = Number.isFinite(packet.lowpassQ)
+      ? clampNum(packet.lowpassQ, 0.0001, 1000)
+      : DEFAULT_LOWPASS_Q;
     voice.occluder.frequency.linearRampToValueAtTime(
       cutoff,
+      backend.currentTime + frameDelta,
+    );
+    voice.occluder.Q.linearRampToValueAtTime(
+      q,
       backend.currentTime + frameDelta,
     );
   }

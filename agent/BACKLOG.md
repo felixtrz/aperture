@@ -59,27 +59,27 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Move racing vehicle audio intent to a worker-authored Aperture audio control
-surface.
+Add a reusable app-level camera follow/control helper and migrate racing's
+camera-follow system to it.
 
 Category: `runtime-orchestration`
 
-Reference anchor: `references/engine/src/framework/components/sound/component.js`
-and `references/engine/src/framework/components/sound/system.js` for
-component-owned sound slots, playback state, and app-facing sound ergonomics.
+Reference anchor: `references/bevy/crates/bevy_transform/src/components/transform.rs`
+for look-at/transform helper ergonomics and
+`references/engine/src/framework/components/camera/component.js` for
+camera component state that app code should not hand-wire repeatedly.
 
 Acceptance criteria:
 
-- Add a public worker/app-system audio control surface for stable loop ids,
-  gain/playback-rate ramps, optional lowpass/filter parameters, and one-shot
-  events that compiles to Aperture audio snapshot intent.
-- Move racing's RPM/skid/impact model out of the main-thread `src/audio.ts`
-  RAF loop and into a worker system or resource-driven path.
-- Keep browser `AudioContext` unlock, clip decode/cache, node graph ownership,
-  and mixer routing inside Aperture packages.
-- Racing typecheck/build pass, managed browser audio gesture/unlock behavior is
-  verified, cache-busted served-module probes confirm current code, and no raw
-  CDP is used.
+- Add a public helper or app-system control surface for lead/deadzone/smoothing
+  camera follow math that writes ordinary ECS camera transforms.
+- Migrate racing `src/systems/camera-follow.system.ts` to that helper while
+  preserving the existing camera feel and `RenderInterpolation` behavior.
+- Keep racing-specific offsets, smoothing constants, and screen-shift tuning in
+  racing config/tuning code.
+- Racing typecheck/build pass, managed Aperture runtime visual/status checks
+  stay healthy, cache-busted served-module probes confirm current code, and no
+  raw CDP is used.
 
 ## Historical M10 Physics Notes
 

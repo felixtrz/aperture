@@ -33,6 +33,8 @@ function oneShotSnapshot() {
         coneOuterAngle: 360,
         coneOuterGain: 0,
         occlusion: 0,
+        lowpassFrequency: 22000,
+        lowpassQ: 0.7,
         offsetSec: 0,
         loopStart: 0,
         loopEnd: 0,

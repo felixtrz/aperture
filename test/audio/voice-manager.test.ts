@@ -12,6 +12,7 @@ import {
 } from "@aperture-engine/audio";
 import {
   FakeAudioBackend,
+  type FakeBiquadFilterNode,
   type FakeGainNode,
 } from "@aperture-engine/audio/test-support";
 
@@ -45,6 +46,8 @@ function emitter(over: Partial<AudioEmitterPacket> = {}): AudioEmitterPacket {
     loopStart: 0,
     loopEnd: 0,
     occlusion: 0,
+    lowpassFrequency: 22000,
+    lowpassQ: 0.7,
     audibility: "audible",
     muted: false,
     worldTransformOffset: 0,
@@ -169,5 +172,42 @@ describe("voice manager reconciliation (AU-4)", () => {
     expect(voiceGain.gain.value).toBe(0); // gain to zero
     expect(eng.activeSourceCount).toBe(1); // source still running (not stopped)
     expect(backend.created.sources.every((s) => !s.stopped)).toBe(true);
+  });
+
+  it("applies authored lowpass and composes it with occlusion", async () => {
+    const { backend, eng } = engine();
+    eng.applySnapshot(
+      snap([
+        emitter({
+          autoplay: true,
+          loop: true,
+          lowpassFrequency: 1200,
+          lowpassQ: 0.8,
+        }),
+      ]),
+      0.016,
+    );
+    await tick();
+
+    let filter = backend.created.biquads.at(-1) as FakeBiquadFilterNode;
+    expect(filter.frequency.lastEvent()?.value).toBeCloseTo(1200);
+    expect(filter.Q.lastEvent()?.value).toBeCloseTo(0.8);
+
+    eng.applySnapshot(
+      snap([
+        emitter({
+          autoplay: true,
+          loop: true,
+          lowpassFrequency: 18000,
+          lowpassQ: 0.6,
+          occlusion: 1,
+        }),
+      ]),
+      0.016,
+    );
+
+    filter = backend.created.biquads.at(-1) as FakeBiquadFilterNode;
+    expect(filter.frequency.lastEvent()?.value).toBeCloseTo(350);
+    expect(filter.Q.lastEvent()?.value).toBeCloseTo(0.6);
   });
 });

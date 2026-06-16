@@ -40,6 +40,8 @@ describe("audio emitter extraction (AU-2)", () => {
         distanceModel: AudioDistanceModel.Inverse,
         refDistance: 2,
         maxDistance: 50,
+        lowpassFrequency: 1800,
+        lowpassQ: 0.8,
       }),
     );
 
@@ -59,11 +61,13 @@ describe("audio emitter extraction (AU-2)", () => {
       distanceModel: "inverse",
       refDistance: 2,
       maxDistance: 50,
+      lowpassFrequency: 1800,
       audibility: "audible",
       muted: false,
       layerMask: 1,
     });
     expect(packet?.gain).toBeCloseTo(0.8);
+    expect(packet?.lowpassQ).toBeCloseTo(0.8);
     expect(packet?.worldTransformOffset).toBeGreaterThanOrEqual(0);
     // The emitter's WORLD position rides snapshot.transforms at col3.
     const offset = packet?.worldTransformOffset ?? 0;
@@ -151,6 +155,8 @@ describe("audio authoring helpers (AU-2)", () => {
     expect(data.simulationSpace).toBe("world");
     expect(data.panningModel).toBe("equalpower");
     expect(data.distanceModel).toBe("inverse");
+    expect(data.lowpassFrequency).toBe(22000);
+    expect(data.lowpassQ).toBe(0.7);
     expect(data.active).toBe(true);
   });
 
@@ -166,6 +172,7 @@ describe("audio authoring helpers (AU-2)", () => {
     const bad = validateAudioEmitterInput({
       clip: createAudioClipHandle("c"),
       gain: -1,
+      lowpassFrequency: 0,
       refDistance: 100,
       maxDistance: 1, // max < ref
       coneOuterGain: 5, // > 1
@@ -175,5 +182,6 @@ describe("audio authoring helpers (AU-2)", () => {
     expect(codes).toContain("audio.invalidGain");
     expect(codes).toContain("audio.invalidDistance");
     expect(codes).toContain("audio.invalidCone");
+    expect(codes).toContain("audio.invalidLowpass");
   });
 });
