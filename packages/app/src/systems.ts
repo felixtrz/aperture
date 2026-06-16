@@ -164,6 +164,9 @@ export type {
   Vec4Tuple,
 } from "@aperture-engine/simulation";
 
+export { ParticleSimulationSpace } from "@aperture-engine/render";
+export type { ParticleEmitterInput } from "@aperture-engine/render";
+
 export type { SignalStore, SignalSummary } from "./systems/signals.js";
 export { createSignalSummary } from "./systems/signals.js";
 export type {
@@ -221,6 +224,7 @@ export type {
   SystemGltfAnimationClip,
   SystemGltfAssetHandle,
   SystemGltfLoadedScene,
+  SystemParticleEffectAssetHandle,
   SystemShaderAssetHandle,
 } from "./systems/assets.js";
 export { createDefaultSystemGltfAssetDecoderProvider } from "./systems/assets.js";
@@ -307,6 +311,7 @@ export type {
   PrimitiveMeshDescriptor,
   PhysicsComponentDescriptor,
   PhysicsSpawnDescriptor,
+  ParticleEffectDescriptorInput,
   SpawnCameraOptions,
   SpawnCommands,
   SpawnFogOptions,
@@ -314,6 +319,7 @@ export type {
   SpawnLightOptions,
   SpawnMeshOptions,
   SpawnMetadata,
+  SpawnParticlesOptions,
   SpawnPhysicsOptions,
   SpawnPrefabOptions,
   StandardMaterialDescriptor,

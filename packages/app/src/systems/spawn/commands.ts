@@ -6,12 +6,14 @@ import {
   LightShadowSettings,
   Material,
   Mesh,
+  ParticleEmitter,
   ShadowCaster,
   ShadowReceiver,
   createCamera,
   createFog,
   createLight,
   createLightShadowSettings,
+  createParticleEmitter,
 } from "@aperture-engine/render";
 import {
   DebugMetadata,
@@ -46,7 +48,7 @@ import {
 } from "./metadata.js";
 import { applyPhysicsSpawnDescriptor } from "./physics.js";
 import { addTransform, writeTransform } from "./transforms.js";
-import type { SpawnCommands } from "./types.js";
+import type { ParticleEffectDescriptorInput, SpawnCommands } from "./types.js";
 
 export function createSpawnCommands(options: {
   readonly world: EcsWorld;
@@ -130,6 +132,23 @@ export function createSpawnCommands(options: {
       });
       return entity;
     },
+    particles(input) {
+      const entity = createEntityWithMetadata(
+        options.world,
+        input,
+        "particles",
+      );
+
+      addTransform(entity, input.transform);
+      entity.addComponent(
+        ParticleEmitter,
+        createParticleEmitter({
+          ...input,
+          effect: resolveParticleEffectHandle(input.effect),
+        }),
+      );
+      return entity;
+    },
     physics(input) {
       const entity = createEntityWithMetadata(options.world, input, "physics");
 
@@ -179,7 +198,9 @@ export function createSpawnCommands(options: {
           // Apply explicit true/false to every mesh in the subtree; `false`
           // opts the subtree out of casting/receiving (default is to cast).
           if (input.castShadow !== undefined) {
-            meshEntity.addComponent(ShadowCaster, { enabled: input.castShadow });
+            meshEntity.addComponent(ShadowCaster, {
+              enabled: input.castShadow,
+            });
           }
           if (input.receiveShadow !== undefined) {
             meshEntity.addComponent(ShadowReceiver, {
@@ -255,4 +276,12 @@ export function createSpawnCommands(options: {
       return createAnimationAccess(entity);
     },
   };
+}
+
+function resolveParticleEffectHandle(input: ParticleEffectDescriptorInput) {
+  if ("renderHandle" in input) {
+    return input.renderHandle;
+  }
+
+  return input;
 }

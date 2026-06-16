@@ -19,10 +19,12 @@ import {
 } from "@aperture-engine/simulation";
 import { VehicleResource } from "../lib/vehicle-resource.js";
 
-// Port of Particles.js (REFERENCE_SPEC §6). The engine GPU particle pipeline is a
-// broken placeholder, so smoke is implemented app-side as textured, camera-facing
-// (billboarded) quads in one dynamic interleaved-vertex MeshAsset, using the
-// same public dynamic mesh helper that drift-marks.system.ts uses.
+// Port of Particles.js (REFERENCE_SPEC §6). Racing now declares the smoke effect
+// and sprite through aperture.config.ts, but the engine particle renderer still
+// lacks the burst/emission controls needed for wheel smoke parity. Until that
+// follow-up lands, visible smoke is implemented app-side as textured,
+// camera-facing (billboarded) quads in one dynamic interleaved-vertex MeshAsset,
+// using the same public dynamic mesh helper that drift-marks.system.ts uses.
 //
 // Reference behavior (REFERENCE_SPEC §6): pool 1280, emit 3 particles per back
 // wheel per frame when driftIntensity > 0.7, MAX_LIFE 2.5s; spawn at the back
@@ -111,7 +113,13 @@ export default class ParticlesSystem extends createSystem({
 
   override init(): void {
     const registry = this.assetsRegistry;
-    const textureHandle = this.assets.texture("smoke").renderHandle;
+    const smokeEffect = this.assets.particleEffect("smoke-effect");
+
+    if (smokeEffect.texture === undefined || smokeEffect.texture === null) {
+      throw new Error("Racing smoke-effect must declare a smoke texture.");
+    }
+
+    const textureHandle = smokeEffect.texture;
 
     // uint16 index buffer: POOL*6 = 7680 < 65535, safe. Sequential (non-indexed
     // topology emulated via 0..N indices, matching drift-marks).

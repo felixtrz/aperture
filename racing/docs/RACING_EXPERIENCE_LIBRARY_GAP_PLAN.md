@@ -71,6 +71,12 @@ building blocks and default paths.
   `particle-effect` source assets with texture/sampler dependencies. Racing
   declares its smoke effect data in `aperture.config.ts`, ready for the
   follow-up emitter renderer migration.
+- 2026-06-16: Public particle emitter spawning landed:
+  `this.spawn.particles(...)` now authors renderer-independent
+  `ParticleEmitter` components from app systems. Racing's smoke system now
+  consumes the config-authored `smoke-effect` texture dependency instead of
+  looking up the sprite separately, while the visible wheel smoke remains on the
+  dynamic-mesh path until burst/textured particle renderer parity lands.
 
 ## Goals
 

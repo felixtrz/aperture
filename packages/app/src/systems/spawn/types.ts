@@ -3,6 +3,7 @@ import type {
   FogInput,
   LightInput,
   LightShadowSettingsInput,
+  ParticleEmitterInput,
 } from "@aperture-engine/render";
 import type {
   ColliderInput,
@@ -23,6 +24,7 @@ import type {
   LocalTransformInput,
   MaterialHandle,
   MeshHandle,
+  ParticleEffectHandle,
   PrefabFieldOverride,
   PrefabHandle,
   PrefabTransformOverride,
@@ -35,6 +37,7 @@ import type {
 import type { CustomWgslMaterialAsset } from "@aperture-engine/render";
 import type {
   SystemGltfAssetHandle,
+  SystemParticleEffectAssetHandle,
   SystemShaderAssetHandle,
 } from "../assets.js";
 
@@ -150,6 +153,16 @@ export interface SpawnMeshOptions extends SpawnMetadata {
   readonly receiveShadow?: boolean;
 }
 
+export type ParticleEffectDescriptorInput =
+  | ParticleEffectHandle
+  | SystemParticleEffectAssetHandle;
+
+export interface SpawnParticlesOptions
+  extends SpawnMetadata, Omit<ParticleEmitterInput, "effect"> {
+  readonly effect: ParticleEffectDescriptorInput;
+  readonly transform?: SystemTransformInput;
+}
+
 export type PhysicsComponentDescriptor<TInput> = TInput | true;
 
 export interface PhysicsSpawnDescriptor {
@@ -220,6 +233,8 @@ export interface SpawnCommands {
   /** Spawn a distance-fog entity (linear/exp/exp2) consumed by render extraction. */
   fog(options?: SpawnFogOptions): Entity;
   mesh(options: SpawnMeshOptions): Entity;
+  /** Spawn a renderer-independent particle emitter entity. */
+  particles(options: SpawnParticlesOptions): Entity;
   /** Spawn a non-render physics entity, useful for joints, triggers, and pure colliders. */
   physics(options: SpawnPhysicsOptions): Entity;
   gltf(handle: SystemGltfAssetHandle, options?: SpawnGltfOptions): Entity;
