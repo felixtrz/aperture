@@ -62,7 +62,7 @@ describe("shadow caster pipeline descriptor metadata", () => {
     const report = createShadowCasterPipelineDescriptorReport({
       commandEncoding: commandEncoding("ready"),
       depthBias: 3,
-      slopeBias: 2.5,
+      slopeBias: 3,
     });
 
     expect(report.descriptor?.depthStencil).toMatchObject({
@@ -70,15 +70,16 @@ describe("shadow caster pipeline descriptor metadata", () => {
       depthWriteEnabled: true,
       depthCompare: "less-equal",
       depthBias: 3,
-      depthBiasSlopeScale: 2.5,
+      depthBiasSlopeScale: 3,
     });
-    // Truncated to an integer for the WebGPU depthBias (depth-buffer units).
+    // Authored sub-integer rounds (4.9 -> 5); invalid negative slope clamps to
+    // zero. There is no hidden global rasterizer-bias floor.
     const biased = createShadowCasterPipelineDescriptorReport({
       commandEncoding: commandEncoding("ready"),
       depthBias: 4.9,
       slopeBias: -1,
     });
-    expect(biased.descriptor?.depthStencil.depthBias).toBe(4);
+    expect(biased.descriptor?.depthStencil.depthBias).toBe(5);
     expect(biased.descriptor?.depthStencil.depthBiasSlopeScale).toBe(0);
   });
 
@@ -288,6 +289,67 @@ describe("shadow caster pipeline descriptor metadata", () => {
       "shadowCasterPipelineDescriptor.missingDepthFormat",
       "shadowCasterPipelineDescriptor.unsupportedTopology",
     ]);
+  });
+});
+
+describe("shadow caster pipeline cull mode (three.js shadowSide parity)", () => {
+  function opaqueDescriptors(
+    casterCullModes?: readonly ("back" | "front" | "none")[],
+  ) {
+    const report = createShadowCasterPipelineDescriptorReport({
+      commandEncoding: commandEncoding("ready"),
+      ...(casterCullModes === undefined ? {} : { casterCullModes }),
+    });
+    return report.descriptors.filter(
+      (descriptor) => descriptor.shader.label === "shadow-caster-depth-only",
+    );
+  }
+
+  it("defaults to cull 'none' with the legacy (unsuffixed) key when no cull modes given", () => {
+    const [descriptor] = opaqueDescriptors();
+    expect(descriptor?.primitive.cullMode).toBe("none");
+    expect(descriptor?.pipelineKey).not.toContain("/cull:");
+  });
+
+  it("emits a 'front' (back-face) descriptor with a /cull:front key suffix", () => {
+    const [descriptor] = opaqueDescriptors(["front"]);
+    expect(descriptor?.primitive.cullMode).toBe("front");
+    expect(descriptor?.pipelineKey).toContain("/cull:front");
+  });
+
+  it("emits one distinct descriptor per cull mode with distinct keys", () => {
+    const descriptors = opaqueDescriptors(["front", "none"]);
+    const byCull = new Map(
+      descriptors.map((descriptor) => [
+        descriptor.primitive.cullMode,
+        descriptor,
+      ]),
+    );
+    expect(byCull.get("front")).toBeDefined();
+    expect(byCull.get("none")).toBeDefined();
+    // Same mesh layout, different cull -> keys must NOT collide (cache guard).
+    expect(byCull.get("front")?.pipelineKey).not.toBe(
+      byCull.get("none")?.pipelineKey,
+    );
+  });
+
+  it("forces alpha-test casters to cull 'none' regardless of opaque cull modes", () => {
+    const report = createShadowCasterPipelineDescriptorReport({
+      commandEncoding: commandEncoding("ready"),
+      casterCullModes: ["front"],
+      alphaTestCasters: [
+        {
+          meshLayoutKey: null,
+          alphaCutoff: 0.5,
+          baseColorTextureKey: "texture:foliage",
+          baseColorSamplerKey: "sampler:foliage",
+        },
+      ],
+    });
+    const alphaTest = report.descriptors.find(
+      (descriptor) => descriptor.shader.label === "shadow-caster-alpha-test",
+    );
+    expect(alphaTest?.primitive.cullMode).toBe("none");
   });
 });
 

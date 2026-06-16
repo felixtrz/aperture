@@ -82,6 +82,7 @@ export function createLightCookie(
 export function createLightShadowSettings(
   input: LightShadowSettingsInput = {},
 ): ComponentInitialData<typeof LightShadowSettings> {
+  const center = input.center ?? [0, 0, 0];
   return {
     enabled: input.enabled ?? false,
     mapSize: input.mapSize ?? 1024,
@@ -94,5 +95,12 @@ export function createLightShadowSettings(
     strength: input.strength ?? 1,
     filterRadius: input.filterRadius ?? 1,
     slopeBias: input.slopeBias ?? 0,
+    centerX: center[0] ?? 0,
+    centerY: center[1] ?? 0,
+    centerZ: center[2] ?? 0,
+    orthographicSize: input.orthographicSize ?? 0,
+    near: input.near ?? 0,
+    far: input.far ?? 0,
+    lightDistance: input.lightDistance ?? 0,
   };
 }

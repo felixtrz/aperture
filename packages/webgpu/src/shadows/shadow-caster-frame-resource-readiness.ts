@@ -1,4 +1,7 @@
-import type { ShadowCasterDrawListPlanReport } from "./shadow-caster-draw-list-plan.js";
+import type {
+  ShadowCasterCullMode,
+  ShadowCasterDrawListPlanReport,
+} from "./shadow-caster-draw-list-plan.js";
 import type {
   ShadowCasterPipelineDescriptorMetadata,
   ShadowCasterPipelineDescriptorReport,
@@ -137,6 +140,7 @@ export function createShadowCasterFrameResourceReadinessReport(
           ? null
           : resolvePipelineDescriptorForLayout(
               draw.meshLayoutKey,
+              draw.casterCullMode,
               pipelineDescriptorByLayout,
             );
       const pipelineKey = pipelineDescriptor?.pipelineKey ?? null;
@@ -281,12 +285,22 @@ function report(input: {
   };
 }
 
+function descriptorLayoutCullKey(
+  meshLayoutKey: string,
+  cullMode: ShadowCasterCullMode,
+): string {
+  return `${meshLayoutKey}|cull:${cullMode}`;
+}
+
 function createPipelineDescriptorByLayout(
   descriptors: readonly ShadowCasterPipelineDescriptorMetadata[],
 ): ReadonlyMap<string, ShadowCasterPipelineDescriptorMetadata> {
   return new Map(
     descriptors.map((descriptor) => [
-      descriptor.vertex.meshLayoutKey ?? DEFAULT_MESH_LAYOUT_DESCRIPTOR_KEY,
+      descriptorLayoutCullKey(
+        descriptor.vertex.meshLayoutKey ?? DEFAULT_MESH_LAYOUT_DESCRIPTOR_KEY,
+        descriptor.primitive.cullMode,
+      ),
       descriptor,
     ]),
   );
@@ -294,11 +308,14 @@ function createPipelineDescriptorByLayout(
 
 function resolvePipelineDescriptorForLayout(
   meshLayoutKey: string,
+  cullMode: ShadowCasterCullMode,
   descriptors: ReadonlyMap<string, ShadowCasterPipelineDescriptorMetadata>,
 ): ShadowCasterPipelineDescriptorMetadata | null {
   return (
-    descriptors.get(meshLayoutKey) ??
-    descriptors.get(DEFAULT_MESH_LAYOUT_DESCRIPTOR_KEY) ??
+    descriptors.get(descriptorLayoutCullKey(meshLayoutKey, cullMode)) ??
+    descriptors.get(
+      descriptorLayoutCullKey(DEFAULT_MESH_LAYOUT_DESCRIPTOR_KEY, cullMode),
+    ) ??
     null
   );
 }

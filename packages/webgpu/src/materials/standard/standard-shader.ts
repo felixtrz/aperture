@@ -360,7 +360,7 @@ function createStandardTextureVariantWgsl(
       .replace(
         `fn evaluateDirectLight(
   normal: vec3f,`,
-        `fn sampleTangentSpaceNormal(input: VertexOutput) -> vec3f {
+        `fn sampleTangentSpaceNormal(input: VertexOutput, frontFacing: bool) -> vec3f {
   let normalTextureUv = standardTextureTransformUv(
     ${normalUv},
     material.normalTextureOffset,
@@ -372,7 +372,7 @@ function createStandardTextureVariantWgsl(
     tangentNormal.xy * material.normalScale,
     tangentNormal.z,
   ));
-  let normal = normalize(input.worldNormal);
+  let normal = standardGeometryNormal(input.worldNormal, frontFacing);
   let tangent = normalize(input.worldTangent - normal * dot(input.worldTangent, normal));
   let bitangent = normalize(cross(normal, tangent) * input.tangentSign);
   return normalize(mat3x3f(tangent, bitangent, normal) * tangentNormal);
@@ -382,9 +382,9 @@ fn evaluateDirectLight(
   normal: vec3f,`,
       )
       .replace(
-        `  let normal = normalize(input.worldNormal);
+        `  let normal = standardGeometryNormal(input.worldNormal, frontFacing);
   let viewDir = normalize(view.cameraPosition.xyz - input.worldPosition);`,
-        `  let normal = sampleTangentSpaceNormal(input);
+        `  let normal = sampleTangentSpaceNormal(input, frontFacing);
   let viewDir = normalize(view.cameraPosition.xyz - input.worldPosition);`,
       );
   }
@@ -673,11 +673,11 @@ fn saturate(value: f32) -> f32 {`,
       : `  let emissive = material.emissiveFactor;`;
 
     code = code.replace(
-      `  let ambientDiffuse = ambient * baseColor * (1.0 - metallic);
+      `  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI);
   let color = ambientDiffuse + direct + material.emissiveFactor;`,
       `${occlusion}
 ${emissive}
-  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * occlusion;
+  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI) * occlusion;
   let color = ambientDiffuse + direct + emissive;`,
     );
   }

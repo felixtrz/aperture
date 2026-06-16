@@ -41,7 +41,12 @@ export async function callBrowserBackedTool(
     case "browser_wait_for_webgpu":
       return waitForWebGpu(page, numberArg(args, "timeoutMs") ?? 30_000);
     case "browser_screenshot":
-      return screenshot(page);
+      return screenshot(page, {
+        baseDir: session.appRoot,
+        path: args["path"],
+        outputPath: args["outputPath"],
+        includeData: args["includeData"],
+      });
     case "browser_console_logs":
       return {
         ok: true,

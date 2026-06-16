@@ -92,6 +92,7 @@ const AREA_LIGHT_SHAPE_RECT: i32 = ${PackedAreaLightShapeId.Rect};
 const AREA_LIGHT_SHAPE_DISK: i32 = ${PackedAreaLightShapeId.Disk};
 const AREA_LIGHT_SHAPE_SPHERE: i32 = ${PackedAreaLightShapeId.Sphere};
 const STANDARD_FEATURE_ALPHA_MASK: u32 = 32u;
+const STANDARD_FEATURE_DOUBLE_SIDED: u32 = 128u;
 
 @group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
 @group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
@@ -116,6 +117,20 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 
 fn saturate(value: f32) -> f32 {
   return clamp(value, 0.0, 1.0);
+}
+
+fn standardFaceDirection(frontFacing: bool) -> f32 {
+  return select(-1.0, 1.0, frontFacing);
+}
+
+fn standardGeometryNormal(worldNormal: vec3f, frontFacing: bool) -> vec3f {
+  let normal = normalize(worldNormal);
+
+  if ((material.featureFlags & STANDARD_FEATURE_DOUBLE_SIDED) != 0u) {
+    return normal * standardFaceDirection(frontFacing);
+  }
+
+  return normal;
 }
 
 fn fresnelSchlick(cosTheta: f32, f0: vec3f) -> vec3f {
@@ -274,7 +289,11 @@ fn lightTransformIndex(lightIndex: u32) -> u32 {
 }
 
 fn directionalLightDirection(lightIndex: u32) -> vec3f {
-  return packedLightDirection(lightIndex);
+  // packedLightDirection is the light's TRAVEL direction (the way photons go).
+  // evaluateDirectLight expects the surface->light vector (N·L lit when the
+  // surface faces the light), matching the spot/point paths which pass
+  // toward-light. Negate so an overhead sun lights up-facing receivers.
+  return -packedLightDirection(lightIndex);
 }
 
 fn pointLightPosition(lightIndex: u32) -> vec3f {
@@ -608,7 +627,7 @@ fn evaluateAreaLight(
 }
 
 @fragment
-fn fs_main(input: VertexOutput) -> @location(0) vec4f {
+fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> @location(0) vec4f {
   let baseColor = material.baseColorFactor.rgb;
   let alpha = material.baseColorFactor.a;
 
@@ -616,7 +635,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
     discard;
   }
 
-  let normal = normalize(input.worldNormal);
+  let normal = standardGeometryNormal(input.worldNormal, frontFacing);
   let viewDir = normalize(view.cameraPosition.xyz - input.worldPosition);
   let metallic = clamp(material.metallicFactor, 0.0, 1.0);
   let roughness = clamp(material.roughnessFactor, 0.045, 1.0);
@@ -697,7 +716,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
     }
   }
 
-  let ambientDiffuse = ambient * baseColor * (1.0 - metallic);
+  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI);
   let color = ambientDiffuse + direct + material.emissiveFactor;
   return vec4f(color, alpha);
 }

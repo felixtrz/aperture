@@ -226,6 +226,22 @@ export interface InputConfigHelpers {
   axis2d(bindings: readonly InputActionBinding[]): Axis2dActionDescriptor;
 }
 
+export type ApertureTonemapOperator =
+  | "none"
+  | "aces"
+  | "agx"
+  | "neutral"
+  | "reinhard";
+
+export interface ApertureBloomConfig {
+  /** Luminance threshold above which pixels bloom (0..1). */
+  readonly threshold?: number;
+  /** Bloom additive intensity (UnrealBloom "strength"). */
+  readonly intensity?: number;
+  /** Blur radius in pixels at full resolution. */
+  readonly radiusPixels?: number;
+}
+
 export interface ApertureRenderDefaults {
   readonly clearColor?: readonly [number, number, number, number];
   readonly defaultCamera?: boolean;
@@ -233,6 +249,20 @@ export interface ApertureRenderDefaults {
   readonly sampleCount?: number;
   readonly pixelRatio?: number;
   readonly maxPixelRatio?: number;
+  /**
+   * Tonemap operator applied when converting the linear HDR scene to display.
+   * Defaults to "none". Use "aces" for filmic, "agx"/"neutral" for the
+   * three.js-faithful operators.
+   */
+  readonly tonemap?: ApertureTonemapOperator;
+  /**
+   * HDR exposure scalar. Setting any finite value renders the scene into an
+   * rgba16float buffer and moves tonemap + exposure to a final post stage
+   * (required for post effects like bloom).
+   */
+  readonly exposure?: number;
+  /** Enable UnrealBloom-style bloom (requires the HDR path; implies exposure). */
+  readonly bloom?: boolean | ApertureBloomConfig;
   /**
    * Route the generated app through the single-encoder FrameGraph (AI-25:
    * default ON at parity). Set `false` to force the legacy multi-submit route.
@@ -245,6 +275,22 @@ export interface ApertureRenderDefaults {
 
 export interface ApertureDiagnosticsConfig {
   readonly level?: DiagnosticsLevel;
+}
+
+/**
+ * Physics enablement for a generated app. Setting `physics` (to `true` or an
+ * options object) installs the rigid-body backend in the simulation worker and
+ * enables the fixed-step clock that drives it. Omit it for apps that do not need
+ * physics. The config is evaluated inside the worker, so values must be plain
+ * data.
+ */
+export interface AperturePhysicsAppConfig {
+  /** Set to `false` to declare config but keep physics off. Defaults to `true`. */
+  readonly enabled?: boolean;
+  /** Rigid-body backend. Only the Rapier backend ships today. */
+  readonly backend?: "rapier";
+  /** World gravity vector (m/s²). Defaults to the backend default. */
+  readonly gravity?: readonly [number, number, number];
 }
 
 export interface ApertureAssetDecoderConfig {
@@ -261,6 +307,7 @@ export interface ApertureConfig {
   readonly signals?: Readonly<Record<string, ApertureSignalDescriptor>>;
   readonly input?: ApertureInputConfig;
   readonly render?: ApertureRenderDefaults;
+  readonly physics?: boolean | AperturePhysicsAppConfig;
   readonly diagnostics?: ApertureDiagnosticsConfig;
   readonly assetDecoders?: ApertureAssetDecoderConfig;
 }

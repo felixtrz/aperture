@@ -22,7 +22,7 @@ describe("standard indirect color-channel shader variant (M5-T6)", () => {
     expect(variant.code).toContain("@location(0) color: vec4f,");
     expect(variant.code).toContain("@location(1) indirect: vec4f,");
     expect(variant.code).toContain(
-      "fn fs_main(input: VertexOutput) -> StandardIndirectFragmentOutput {",
+      "fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> StandardIndirectFragmentOutput {",
     );
     // ...with the indirect term split out of the lit color (ambientDiffuse here,
     // since this variant has no IBL) and direct/emissive left in `color`.

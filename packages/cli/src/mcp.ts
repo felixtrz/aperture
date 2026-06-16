@@ -169,6 +169,37 @@ async function callTool(params: unknown, cwd: string): Promise<unknown> {
     arguments: args,
   });
 
+  // If a tool returns an image payload (e.g. browser_screenshot), emit a real MCP
+  // `image` content block so clients render it directly. Otherwise the base64 was
+  // stringified into a `text` block, forcing callers to decode it to a file (and
+  // overflowing text token limits on every screenshot).
+  if (isImageToolResult(result)) {
+    const {
+      data,
+      mimeType,
+      encoding: _encoding,
+      includeData,
+      ...metadata
+    } = result;
+    return {
+      content: [
+        {
+          type: "image",
+          data,
+          mimeType,
+        },
+      ],
+      // Keep structuredContent free of the (huge) base64 so it stays small.
+      structuredContent: {
+        ...metadata,
+        ok: typeof metadata.ok === "boolean" ? metadata.ok : true,
+        mimeType,
+        encoding: "base64",
+        ...(includeData === true ? { data } : {}),
+      },
+    };
+  }
+
   return {
     content: [
       {
@@ -178,6 +209,25 @@ async function callTool(params: unknown, cwd: string): Promise<unknown> {
     ],
     structuredContent: result,
   };
+}
+
+function isImageToolResult(
+  value: unknown,
+): value is {
+  ok?: boolean;
+  mimeType: string;
+  encoding?: string;
+  data: string;
+  includeData?: boolean;
+  readonly [key: string]: unknown;
+} {
+  return (
+    isRecord(value) &&
+    typeof value["data"] === "string" &&
+    typeof value["mimeType"] === "string" &&
+    (value["mimeType"] as string).startsWith("image/") &&
+    value["encoding"] === "base64"
+  );
 }
 
 function writeJson(stdout: McpOutputStream, value: unknown): void {
@@ -191,7 +241,11 @@ function toolDefinitions(): readonly McpToolDefinition[] {
       "browser_canvas_status",
       "Read canvas CSS size, backing size, DPR policy, and render-target size.",
     ),
-    tool("browser_screenshot", "Capture a PNG screenshot of the managed tab."),
+    tool("browser_screenshot", "Capture a PNG screenshot of the managed tab.", {
+      path: { type: "string" },
+      outputPath: { type: "string" },
+      includeData: { type: "boolean" },
+    }),
     tool("browser_console_logs", "Read recent managed-browser console logs.", {
       lines: { type: "number" },
     }),

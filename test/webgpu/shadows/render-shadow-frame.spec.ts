@@ -95,9 +95,114 @@ describe("render shadow frame", () => {
     expect(calls.pipelines).toHaveLength(1);
     expect(calls.submissions).toHaveLength(2);
   });
+
+  it("honors authored shadow request bias, filter radius, and map size", () => {
+    const calls = createDeviceCalls();
+    const result = createRenderShadowFrame({
+      device: device(calls),
+      snapshot: snapshot({
+        shadowRequest: {
+          mapSize: 2048,
+          depthBias: 0.0004,
+          normalBias: 0.02,
+          filterRadius: 4,
+        },
+      }),
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache: createWebGpuEnvironmentResourceCache(),
+      matrix: { center: [0, 0, -2], orthographicSize: 16 },
+    });
+
+    expect(result.descriptor.descriptors[0]).toMatchObject({
+      mapSize: 2048,
+      textureWidth: 2048,
+      textureHeight: 2048,
+      depthBias: 0.0004,
+      normalBias: 0.02,
+      filterRadiusTexels: 4,
+    });
+  });
+
+  it("lets authored fixed shadow-camera settings override auto matrix options", () => {
+    const calls = createDeviceCalls();
+    const result = createRenderShadowFrame({
+      device: device(calls),
+      snapshot: snapshot({
+        shadowRequest: {
+          cascadeCount: 1,
+          center: [1, 2, 3],
+          orthographicSize: 16,
+          near: 0.5,
+          far: 60,
+          lightDistance: 20,
+        },
+      }),
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache: createWebGpuEnvironmentResourceCache(),
+      matrix: {
+        center: [0, 0, -2],
+        orthographicSize: 8,
+        near: 1,
+        far: 12,
+        lightDistance: 5,
+      },
+    });
+
+    expect(result.matrixComputation.matrices[0]).toMatchObject({
+      center: [1, 2, 3],
+      orthographicSize: 16,
+      near: 0.5,
+      far: 60,
+      lightPosition: [1, 2, 23],
+    });
+  });
+
+  it("specializes caster pipeline vertex layout from the caster draw list", () => {
+    const calls = createDeviceCalls();
+    const result = createRenderShadowFrame({
+      device: device(calls),
+      snapshot: snapshot(),
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache: createWebGpuEnvironmentResourceCache(),
+      matrix: { center: [0, 0, -2], orthographicSize: 16 },
+    });
+
+    expect(result.pipelineDescriptor.descriptor?.vertex.meshLayoutKey).toBe(
+      "POSITION",
+    );
+    expect(result.pipelineDescriptor.descriptor?.pipelineKey).toContain(
+      "mesh-layout:POSITION",
+    );
+    expect(calls.pipelines).toHaveLength(1);
+
+    const pipelineDescriptor = calls.pipelines[0] as {
+      readonly vertex?: {
+        readonly buffers?: readonly {
+          readonly arrayStride?: number;
+          readonly stepMode?: string;
+          readonly attributes?: readonly {
+            readonly shaderLocation?: number;
+            readonly offset?: number;
+            readonly format?: string;
+          }[];
+        }[];
+      };
+    };
+
+    expect(pipelineDescriptor.vertex?.buffers?.[0]).toMatchObject({
+      arrayStride: 12,
+      stepMode: "vertex",
+      attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }],
+    });
+  });
 });
 
-function snapshot(): RenderSnapshot {
+function snapshot(options: {
+  readonly shadowRequest?: Partial<RenderSnapshot["shadowRequests"][number]>;
+} = {}): RenderSnapshot {
   return {
     frame: 1,
     views: [],
@@ -159,6 +264,7 @@ function snapshot(): RenderSnapshot {
         cascadeCount: 3,
         casterLayerMask: 1,
         receiverLayerMask: 1,
+        ...options.shadowRequest,
       },
     ],
     bounds: [],

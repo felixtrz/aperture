@@ -1,11 +1,17 @@
 import {
   Camera,
+  Fog,
   Light,
   LightKind,
+  LightShadowSettings,
   Material,
   Mesh,
+  ShadowCaster,
+  ShadowReceiver,
   createCamera,
+  createFog,
   createLight,
+  createLightShadowSettings,
 } from "@aperture-engine/render";
 import {
   DebugMetadata,
@@ -72,10 +78,28 @@ export function createSpawnCommands(options: {
           ...(input.light ?? {}),
           kind: input.kind ?? input.light?.kind ?? LightKind.Directional,
           ...(input.color === undefined ? {} : { color: input.color }),
+          ...(input.groundColor === undefined
+            ? {}
+            : { groundColor: input.groundColor }),
           intensity:
             input.illuminance ?? input.intensity ?? input.light?.intensity ?? 1,
         }),
       );
+      if (input.shadow !== undefined && input.shadow !== false) {
+        entity.addComponent(
+          LightShadowSettings,
+          createLightShadowSettings({
+            ...(input.shadow === true ? {} : input.shadow),
+            enabled: true,
+          }),
+        );
+      }
+      return entity;
+    },
+    fog(input = {}) {
+      const entity = createEntityWithMetadata(options.world, input, "fog");
+      addTransform(entity, input.transform);
+      entity.addComponent(Fog, createFog(input));
       return entity;
     },
     mesh(input) {
@@ -88,6 +112,16 @@ export function createSpawnCommands(options: {
       entity.addComponent(Material, {
         materialId: assetHandleKey(materialHandle),
       });
+      // Author both true and false explicitly: `castShadow: false` must attach
+      // ShadowCaster{enabled:false} so it actually opts the mesh OUT of casting
+      // (meshes cast by default when the component is absent). Leaving it
+      // undefined keeps the default-cast behavior.
+      if (input.castShadow !== undefined) {
+        entity.addComponent(ShadowCaster, { enabled: input.castShadow });
+      }
+      if (input.receiveShadow !== undefined) {
+        entity.addComponent(ShadowReceiver, { enabled: input.receiveShadow });
+      }
       applyPhysicsSpawnDescriptor({
         world: options.world,
         entity,
@@ -136,6 +170,24 @@ export function createSpawnCommands(options: {
 
       const replay = replayGltfLoadedScene(options.world, loadedScene);
       const root = firstReplayRootEntity(loadedScene, replay);
+
+      if (input.castShadow !== undefined || input.receiveShadow !== undefined) {
+        for (const meshEntity of replay.entitiesByKey.values()) {
+          if (!meshEntity.hasComponent(Mesh)) {
+            continue;
+          }
+          // Apply explicit true/false to every mesh in the subtree; `false`
+          // opts the subtree out of casting/receiving (default is to cast).
+          if (input.castShadow !== undefined) {
+            meshEntity.addComponent(ShadowCaster, { enabled: input.castShadow });
+          }
+          if (input.receiveShadow !== undefined) {
+            meshEntity.addComponent(ShadowReceiver, {
+              enabled: input.receiveShadow,
+            });
+          }
+        }
+      }
 
       applyGltfSourceMetadata(options.world, loadedScene, replay);
       applySpawnMetadata(options.world, root, input, "gltf");

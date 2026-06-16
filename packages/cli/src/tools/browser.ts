@@ -1,3 +1,6 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+
 import type { ApertureDevSession } from "../session.js";
 import { isRecord } from "./args.js";
 import { STATUS_GLOBAL } from "./types.js";
@@ -128,15 +131,53 @@ export async function waitForWebGpu(
   }
 }
 
-export async function screenshot(page: AperturePage): Promise<unknown> {
+export async function screenshot(
+  page: AperturePage,
+  options: {
+    readonly baseDir?: string;
+    readonly path?: unknown;
+    readonly outputPath?: unknown;
+    readonly includeData?: unknown;
+  } = {},
+): Promise<unknown> {
   const bytes = await page.screenshot({ type: "png" });
+  const outputPath = screenshotOutputPath(options);
+
+  if (outputPath !== null) {
+    await mkdir(path.dirname(outputPath), { recursive: true });
+    await writeFile(outputPath, bytes);
+  }
 
   return {
     ok: true,
     mimeType: "image/png",
     encoding: "base64",
+    byteLength: bytes.byteLength,
+    ...(outputPath === null ? {} : { path: outputPath }),
+    ...(options.includeData === true ? { includeData: true } : {}),
     data: bytes.toString("base64"),
   };
+}
+
+function screenshotOutputPath(options: {
+  readonly baseDir?: string;
+  readonly path?: unknown;
+  readonly outputPath?: unknown;
+}): string | null {
+  const requested =
+    typeof options.path === "string"
+      ? options.path
+      : typeof options.outputPath === "string"
+        ? options.outputPath
+        : null;
+
+  if (requested === null || requested.trim().length === 0) {
+    return null;
+  }
+
+  return path.isAbsolute(requested)
+    ? requested
+    : path.resolve(options.baseDir ?? process.cwd(), requested);
 }
 
 export async function canvasStatus(page: AperturePage): Promise<unknown> {

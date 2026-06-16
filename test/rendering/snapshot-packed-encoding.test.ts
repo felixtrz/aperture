@@ -104,7 +104,7 @@ describe("snapshot packed packet encoding", () => {
     );
   });
 
-  it("round-trips authored M4-T3 shadow params through the worker codec", () => {
+  it("round-trips authored shadow params through the worker codec", () => {
     const bundle: SnapshotPacketBundle = {
       views: [],
       meshDraws: [],
@@ -122,6 +122,11 @@ describe("snapshot packed packet encoding", () => {
           strength: 0.7,
           filterRadius: 4,
           slopeBias: 2,
+          center: [1, 2, 3],
+          orthographicSize: 16,
+          near: 0.5,
+          far: 60,
+          lightDistance: 25,
         },
       ],
       bounds: [],
@@ -136,6 +141,11 @@ describe("snapshot packed packet encoding", () => {
     expect(request.filterRadius).toBe(4);
     expect(request.slopeBias).toBe(2);
     expect(request.cascadeCount).toBe(4);
+    expect(request.center).toEqual([1, 2, 3]);
+    expect(request.orthographicSize).toBe(16);
+    expect(request.near).toBe(0.5);
+    expect(request.far).toBe(60);
+    expect(request.lightDistance).toBe(25);
   });
 
   it("documents fixed packet strides in words and bytes", () => {

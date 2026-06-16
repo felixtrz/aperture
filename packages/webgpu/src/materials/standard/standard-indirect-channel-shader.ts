@@ -25,9 +25,16 @@ export function createIndirectColorChannelShaderVariant(
   shader: BuiltInShaderSourceModule,
 ): BuiltInShaderSourceModule {
   const fragmentEntry = shader.entryPoints.fragment;
-  const signature = `@fragment\nfn ${fragmentEntry}(input: VertexOutput) -> @location(0) vec4f {`;
+  const escapedFragmentEntry = fragmentEntry.replace(
+    /[.*+?^${}()|[\]\\]/gu,
+    "\\$&",
+  );
+  const signaturePattern = new RegExp(
+    `@fragment\\nfn ${escapedFragmentEntry}\\(([\\s\\S]*?)\\) -> @location\\(0\\) vec4f \\{`,
+    "u",
+  );
 
-  if (!shader.code.includes(signature)) {
+  if (!signaturePattern.test(shader.code)) {
     // Unknown fragment shape — leave the shader untouched; the caller must not
     // request the indirect channel for a shader it cannot transform.
     return shader;
@@ -60,8 +67,9 @@ export function createIndirectColorChannelShaderVariant(
 
   code = code
     .replace(
-      signature,
-      `${INDIRECT_FRAGMENT_OUTPUT_STRUCT}\n\n@fragment\nfn ${fragmentEntry}(input: VertexOutput) -> StandardIndirectFragmentOutput {`,
+      signaturePattern,
+      (_match, parameters: string) =>
+        `${INDIRECT_FRAGMENT_OUTPUT_STRUCT}\n\n@fragment\nfn ${fragmentEntry}(${parameters}) -> StandardIndirectFragmentOutput {`,
     )
     .replace(returnPattern, (_match, expression: string) => {
       const indirectExpression = expression.replace(

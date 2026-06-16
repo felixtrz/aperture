@@ -914,10 +914,15 @@ fn vs(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
     vec2f(-1.0, -1.0),
     vec2f(3.0, -1.0),
   );
+  // V is flipped (1 - clipY)/2 so screen-top (clip y=+1) samples texture v=0:
+  // WebGPU framebuffer row 0 is the TOP. This MUST match the tonemap blit
+  // (post-tonemap.ts) — every bloom pass samples the scene/intermediate targets
+  // with the same orientation, otherwise enabling bloom flips the whole image
+  // vertically (the GL-convention uvs (0,2),(0,0),(2,0) did exactly that).
   var uvs = array<vec2f, 3>(
-    vec2f(0.0, 2.0),
-    vec2f(0.0, 0.0),
-    vec2f(2.0, 0.0),
+    vec2f(0.0, -1.0),
+    vec2f(0.0, 1.0),
+    vec2f(2.0, 1.0),
   );
   var output: VertexOutput;
   output.position = vec4f(positions[vertexIndex], 0.0, 1.0);

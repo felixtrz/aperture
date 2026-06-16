@@ -109,6 +109,16 @@ export const LightShadowSettings = defineComponent(
     filterRadius: { type: EcsType.Float32, default: 1 },
     // Slope-scaled depth bias for the caster pipeline (consumed in M4-T5).
     slopeBias: { type: EcsType.Float32, default: 0 },
+    // Fixed directional shadow-camera center. Active when orthographicSize > 0.
+    centerX: { type: EcsType.Float32, default: 0 },
+    centerY: { type: EcsType.Float32, default: 0 },
+    centerZ: { type: EcsType.Float32, default: 0 },
+    // Fixed directional shadow-camera span. 0 keeps renderer auto-fit enabled.
+    orthographicSize: { type: EcsType.Float32, default: 0 },
+    // Fixed directional shadow-camera clip/depth placement. 0 means default.
+    near: { type: EcsType.Float32, default: 0 },
+    far: { type: EcsType.Float32, default: 0 },
+    lightDistance: { type: EcsType.Float32, default: 0 },
   },
   "Renderer-independent per-light shadow request authoring component.",
 );

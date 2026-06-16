@@ -3,7 +3,10 @@ import type {
   ShadowRequestPacket,
 } from "@aperture-engine/render";
 
+import { multiplyMat4, type Mat4Like } from "@aperture-engine/simulation";
+import { createWebGpuBuffer } from "../gpu/buffer.js";
 import type { WebGpuBufferDeviceLike } from "../gpu/buffer.js";
+import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
 import type { CommandEncoderFinishLike } from "../gpu/command-buffer.js";
 import {
   createCommandEncoderResource,
@@ -52,6 +55,7 @@ import {
 } from "./shadow-caster-frame-resource-readiness.js";
 import {
   createShadowCasterMatrixBindGroupResourceReport,
+  createShadowCasterMatrixBindGroupLayoutDescriptor,
   type ShadowCasterMatrixBindGroupResource,
   type ShadowCasterMatrixBindGroupResourceReport,
   type ShadowCasterMatrixBindGroupDeviceLike,
@@ -365,8 +369,21 @@ export function createRenderShadowFrame(
     commandPlan,
     commandEncoding: "ready",
   });
+  // three.js shadowSide parity: emit one caster pipeline per distinct cull mode
+  // present in the frame (single-sided -> "front"/render back faces, the primary
+  // self-shadow defense; double-sided -> "none"). Resolved per draw upstream.
+  const casterCullModes = [
+    ...new Set(
+      casterDrawList.lists.flatMap((list) =>
+        list.draws.map((draw) => draw.casterCullMode),
+      ),
+    ),
+  ];
   const pipelineDescriptor = createShadowCasterPipelineDescriptorReport({
     commandEncoding,
+    casterDrawList,
+    ...(casterCullModes.length > 0 ? { casterCullModes } : {}),
+    ...maxAuthoredCasterSlopeBias(shadowRequests),
   });
   const pipelineResource = createShadowCasterPipelineResourceReport({
     device: options.device,
@@ -392,6 +409,23 @@ export function createRenderShadowFrame(
     matrixBufferResource,
     pipelineDescriptor,
   });
+  // Casters must render WORLD-space geometry into the depth map, but the shared
+  // matrix buffer (also read by the receiver) holds only the pure lightVP. Bake
+  // a SEPARATE caster-only buffer where entry = lightVP_pass * worldMatrix and
+  // point each caster draw's firstInstance at its baked entry. The receiver's
+  // pure-lightVP buffer is left untouched.
+  const bakedCaster = buildBakedCasterMatrices({
+    device: options.device,
+    casterDrawList,
+    matrices: matrixComputation,
+    transforms: options.snapshot.transforms,
+  });
+  const bakedCasterBindGroup = createBakedCasterBindGroup(
+    options.device,
+    bakedCaster,
+    pipelineResource.resource?.matrixBindGroupLayout,
+  );
+
   const commandRecords = createShadowCasterCommandRecordPlanReport({
     frameResources,
     commandPlan,
@@ -413,6 +447,12 @@ export function createRenderShadowFrame(
             },
           ],
     meshes: options.executableMeshes,
+    ...(bakedCaster === null || bakedCasterBindGroup === null
+      ? {}
+      : {
+          bakedMatrixIndexByPassDraw: bakedCaster.indexByPassDraw,
+          bakedMatrixBindGroup: bakedCasterBindGroup,
+        }),
   });
   const encoderResource = createCommandEncoderResource({
     device: options.device,
@@ -510,6 +550,156 @@ export function createRenderShadowFrame(
   };
 }
 
+const BAKED_CASTER_MATRIX_FLOATS = 16;
+const BAKED_CASTER_IDENTITY = new Float32Array([
+  1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+]);
+
+interface BakedCasterMatrices {
+  readonly buffer: unknown;
+  readonly resourceKey: string;
+  /** `${passKey}:${renderId}` -> baked entry index (firstInstance = index). */
+  readonly indexByPassDraw: ReadonlyMap<string, number>;
+}
+
+/**
+ * Builds a caster-only matrix buffer where entry[k] = lightVP_pass * worldMatrix
+ * for each included (passKey, renderId) caster draw, so the caster vertex shader
+ * (`matrices[instanceIndex] * localPosition`) lands the occluder in WORLD space
+ * inside the depth map. Returns null (caller falls back to the legacy local-space
+ * behavior) when there is nothing to bake or the device cannot allocate.
+ */
+function buildBakedCasterMatrices(input: {
+  readonly device: RenderShadowFrameDeviceLike;
+  readonly casterDrawList: ShadowCasterDrawListPlanReport;
+  readonly matrices: DirectionalShadowMatrixComputationReport;
+  readonly transforms: Float32Array;
+}): BakedCasterMatrices | null {
+  if (
+    input.casterDrawList.status === "not-required" ||
+    input.casterDrawList.includedDrawCount === 0
+  ) {
+    return null;
+  }
+
+  const lightVpByPass = new Map<string, readonly number[]>(
+    input.matrices.matrices.map((matrix) => [
+      matrix.passKey,
+      matrix.viewProjectionMatrix,
+    ]),
+  );
+
+  let entryCount = 0;
+  for (const list of input.casterDrawList.lists) {
+    if (lightVpByPass.has(list.passKey)) {
+      entryCount += list.draws.length;
+    }
+  }
+
+  if (entryCount === 0) {
+    return null;
+  }
+
+  const data = new Float32Array(entryCount * BAKED_CASTER_MATRIX_FLOATS);
+  const indexByPassDraw = new Map<string, number>();
+  let entryIndex = 0;
+
+  for (const list of input.casterDrawList.lists) {
+    const lightVp = lightVpByPass.get(list.passKey);
+
+    if (lightVp === undefined) {
+      continue;
+    }
+
+    for (const draw of list.draws) {
+      const world = readBakedCasterWorldMatrix(
+        input.transforms,
+        draw.worldTransformOffset,
+      );
+      // Caster shader computes matrices[i] * localPos; we need
+      // lightVP * world * localPos, so bake lightVP * world. Operand order
+      // matches multiplyMat4(projectionMatrix, viewMatrix) used elsewhere and
+      // the receiver's directionalShadowMatrices[i] * worldPosition.
+      const baked = multiplyMat4(lightVp as Mat4Like, world as Mat4Like);
+      data.set(baked, entryIndex * BAKED_CASTER_MATRIX_FLOATS);
+      indexByPassDraw.set(`${list.passKey}:${draw.renderId}`, entryIndex);
+      entryIndex += 1;
+    }
+  }
+
+  const resourceKey = "shadow-caster-baked-matrix-buffer:directional";
+  const buffer = createWebGpuBuffer({
+    device: input.device,
+    descriptor: {
+      label: "DirectionalShadowCasterBakedMatrices/storage",
+      size: data.byteLength,
+      usage:
+        WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
+      initialData: data,
+    },
+  });
+
+  if (!buffer.ok) {
+    return null;
+  }
+
+  return { buffer: buffer.buffer, resourceKey, indexByPassDraw };
+}
+
+function readBakedCasterWorldMatrix(
+  transforms: Float32Array,
+  offset: number,
+): Float32Array {
+  if (
+    !Number.isInteger(offset) ||
+    offset < 0 ||
+    offset + BAKED_CASTER_MATRIX_FLOATS > transforms.length
+  ) {
+    return BAKED_CASTER_IDENTITY;
+  }
+
+  return transforms.subarray(offset, offset + BAKED_CASTER_MATRIX_FLOATS);
+}
+
+function createBakedCasterBindGroup(
+  device: RenderShadowFrameDeviceLike,
+  baked: BakedCasterMatrices | null,
+  layout: unknown,
+): {
+  readonly matrixResourceKey: string;
+  readonly resourceKey: string;
+  readonly group: number;
+  readonly bindGroup: unknown;
+} | null {
+  if (baked === null || device.createBindGroup === undefined) {
+    return null;
+  }
+
+  const resolvedLayout =
+    layout ??
+    device.createBindGroupLayout?.(
+      createShadowCasterMatrixBindGroupLayoutDescriptor(),
+    );
+
+  if (resolvedLayout === undefined || resolvedLayout === null) {
+    return null;
+  }
+
+  const resourceKey = `bind-group:shadow-caster/baked-matrices/${baked.resourceKey}`;
+  const bindGroup = device.createBindGroup({
+    label: resourceKey,
+    layout: resolvedLayout,
+    entries: [{ binding: 0, resource: { buffer: baked.buffer } }],
+  });
+
+  return {
+    matrixResourceKey: baked.resourceKey,
+    resourceKey,
+    group: 0,
+    bindGroup,
+  };
+}
+
 function createDirectionalShadowDescriptor(
   request: ShadowRequestPacket,
   options: RenderShadowFrameShadowMapOptions | undefined,
@@ -527,14 +717,30 @@ function createDirectionalShadowDescriptor(
   return {
     shadowId: request.shadowId,
     lightId: request.lightId,
-    mapSize: options?.mapSize ?? DEFAULT_SHADOW_MAP_SIZE,
-    depthBias: options?.depthBias ?? DEFAULT_DEPTH_BIAS,
-    normalBias: options?.normalBias ?? 0,
-    filterRadiusTexels: options?.filterRadiusTexels ?? 1,
+    // Honor the authored shadow-map resolution (three.js LightShadow.mapSize /
+    // PlayCanvas light._shadowResolution parity); only fall back to the engine
+    // default when neither an explicit option nor an authored value is present.
+    mapSize: options?.mapSize ?? request.mapSize ?? DEFAULT_SHADOW_MAP_SIZE,
+    depthBias: options?.depthBias ?? request.depthBias ?? DEFAULT_DEPTH_BIAS,
+    normalBias: options?.normalBias ?? request.normalBias ?? 0,
+    filterRadiusTexels:
+      options?.filterRadiusTexels ?? request.filterRadius ?? 1,
     cascadeCount,
     viewDimension: cascadeCount > 1 ? "2d-array" : "2d",
     resourceKey,
   };
+}
+
+function maxAuthoredCasterSlopeBias(
+  shadowRequests: readonly ShadowRequestPacket[],
+): { readonly slopeBias: number } | Record<string, never> {
+  let slopeBias = 0;
+
+  for (const request of shadowRequests) {
+    slopeBias = Math.max(slopeBias, request.slopeBias ?? 0);
+  }
+
+  return slopeBias > 0 ? { slopeBias } : {};
 }
 
 function createReceiverResources(input: {

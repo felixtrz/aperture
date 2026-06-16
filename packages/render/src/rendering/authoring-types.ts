@@ -236,6 +236,26 @@ export interface LightShadowSettingsInput {
   readonly filterRadius?: number;
   /** Slope-scaled depth bias for the caster pipeline (>= 0). */
   readonly slopeBias?: number;
+  /**
+   * Fixed directional shadow-camera center. Used when orthographicSize > 0;
+   * defaults to the origin. Leave orthographicSize at 0/undefined for auto-fit.
+   */
+  readonly center?: Vec3Like;
+  /**
+   * Fixed directional shadow-camera vertical/horizontal span. A value > 0 opts
+   * out of renderer auto-fit and mirrors authoring a three.js
+   * DirectionalLight.shadow.camera box.
+   */
+  readonly orthographicSize?: number;
+  /** Fixed directional shadow-camera near plane. Used with orthographicSize. */
+  readonly near?: number;
+  /** Fixed directional shadow-camera far plane. Used with orthographicSize. */
+  readonly far?: number;
+  /**
+   * Distance from center back along the light direction to place the directional
+   * shadow camera. Used with orthographicSize.
+   */
+  readonly lightDistance?: number;
 }
 
 export interface SpriteInput {
@@ -467,7 +487,9 @@ export type RenderAuthoringDiagnosticCode =
   | "shadow.invalidShadowType"
   | "shadow.invalidStrength"
   | "shadow.invalidFilterRadius"
-  | "shadow.invalidSlopeBias";
+  | "shadow.invalidSlopeBias"
+  | "shadow.invalidOrthographicSize"
+  | "shadow.invalidFixedCamera";
 
 export interface RenderAuthoringDiagnostic {
   readonly code: RenderAuthoringDiagnosticCode;

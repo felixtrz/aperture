@@ -4,7 +4,28 @@ import type {
   ShadowRequestPacket,
 } from "@aperture-engine/render";
 
+import { parseMaterialPipelineRenderStateTokens } from "../materials/core/material-render-state.js";
 import type { ShadowPassPlanReport } from "./shadow-pass-plan.js";
+
+export type ShadowCasterCullMode = "back" | "front" | "none";
+
+// three.js shadowSide parity: regular shadow-map casters render the opposite
+// side of single-sided materials by default (FrontSide -> BackSide,
+// BackSide -> FrontSide). This keeps the stored depth on the far surface of a
+// closed caster and avoids lit-face acne without forcing a global rasterizer
+// bias. Double-sided materials remain two-sided.
+function casterCullModeForForward(
+  forwardCullMode: string | null,
+): ShadowCasterCullMode {
+  if (forwardCullMode === "none") {
+    return "none";
+  }
+  if (forwardCullMode === "front") {
+    return "back";
+  }
+  // forward "back" (single-sided) or unknown -> render BACK faces.
+  return "front";
+}
 
 export type ShadowCasterDrawListStatus =
   | "ready"
@@ -24,8 +45,16 @@ export interface ShadowCasterDrawRecord {
   readonly meshKey: string;
   readonly materialKey: string;
   readonly meshLayoutKey: string;
+  /**
+   * Cull mode for rendering this caster into the depth map. three.js shadowSide
+   * parity: single-sided casters render the opposite side by default;
+   * double-sided casters stay "none".
+   */
+  readonly casterCullMode: ShadowCasterCullMode;
   readonly submesh: number;
   readonly layerMask: number;
+  /** Float offset into `snapshot.transforms` for this caster's WORLD matrix (16 floats). */
+  readonly worldTransformOffset: number;
 }
 
 export interface ShadowCasterDrawList {
@@ -154,8 +183,13 @@ export function createShadowCasterDrawListPlanReport(
         meshKey: assetHandleKey(draw.mesh),
         materialKey: assetHandleKey(draw.material),
         meshLayoutKey: draw.batchKey.meshLayoutKey,
+        casterCullMode: casterCullModeForForward(
+          parseMaterialPipelineRenderStateTokens(draw.batchKey.pipelineKey)
+            .cullMode,
+        ),
         submesh: draw.submesh,
         layerMask: draw.layerMask,
+        worldTransformOffset: draw.worldTransformOffset,
       }));
     const skippedDrawCount = input.meshDraws.length - included.length;
 

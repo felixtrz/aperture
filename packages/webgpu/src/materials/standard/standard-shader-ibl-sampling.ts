@@ -7,29 +7,29 @@ export function applyStandardDiffuseIblSampling(code: string): string {
 
   return code
     .replace(
-      `  let ambientDiffuse = ambient * baseColor * (1.0 - metallic);
+      `  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI);
   let color = ambientDiffuse + direct + material.emissiveFactor;`,
       `${sample}
-  let ambientDiffuse = ambient * baseColor * (1.0 - metallic);
+  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI);
   let color = ambientDiffuse + diffuseIbl + direct + material.emissiveFactor;`,
     )
     .replace(
-      `  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * occlusion;
+      `  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI) * occlusion;
   let color = ambientDiffuse + direct + emissive;`,
       `${sample}
-  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * occlusion;
+  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * (1.0 / PI) * occlusion;
   let color = ambientDiffuse + diffuseIbl + direct + emissive;`,
     )
     .replace(
       `  let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
-  let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
+  let color = ambientDiffuse + direct * receiverShadowFactor + material.emissiveFactor;`,
       `${sample}
   let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
   let color = (ambientDiffuse + diffuseIbl + direct) * receiverShadowFactor + material.emissiveFactor;`,
     )
     .replace(
       `  let receiverShadowFactor = sampleDirectionalShadowReceiverFactor(input.worldPosition, normal);
-  let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
+  let color = ambientDiffuse + direct * receiverShadowFactor + material.emissiveFactor;`,
       `${sample}
   let receiverShadowFactor = sampleDirectionalShadowReceiverFactor(input.worldPosition, normal);
   let color = (ambientDiffuse + diffuseIbl + direct) * receiverShadowFactor + material.emissiveFactor;`,

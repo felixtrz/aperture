@@ -9,6 +9,7 @@ import type {
   RenderTargetHandle,
   SamplerHandle,
   TextureHandle,
+  Vec3Like,
   Vec4Like,
 } from "@aperture-engine/simulation";
 import type { MeshTopology } from "../mesh/index.js";
@@ -313,6 +314,22 @@ export interface ShadowRequestPacket {
   readonly depthBias?: number;
   /** Authored normal-offset bias (LightShadowSettings.normalBias) (M4-T5). */
   readonly normalBias?: number;
+  /** Authored shadow-map resolution (LightShadowSettings.mapSize); the
+   * directional shadow descriptor honors it instead of the hardcoded default. */
+  readonly mapSize?: number;
+  /**
+   * Fixed directional shadow-camera center. Present with orthographicSize for
+   * authored shadow cameras; omitted for renderer auto-fit.
+   */
+  readonly center?: Vec3Like;
+  /** Fixed directional shadow-camera span; >0 opts out of auto-fit. */
+  readonly orthographicSize?: number;
+  /** Fixed directional shadow-camera near plane. */
+  readonly near?: number;
+  /** Fixed directional shadow-camera far plane. */
+  readonly far?: number;
+  /** Fixed directional shadow-camera distance from center toward the light. */
+  readonly lightDistance?: number;
 }
 
 export interface BoundsPacket {

@@ -52,8 +52,10 @@ describe("shadow caster draw-list planning", () => {
               meshKey: "mesh:mesh-1",
               materialKey: "material:material-1",
               meshLayoutKey: "mesh-1",
+              casterCullMode: "front",
               submesh: 0,
               layerMask: 1,
+              worldTransformOffset: 0,
             },
           ],
         },
@@ -129,6 +131,43 @@ describe("shadow caster draw-list planning", () => {
   });
 });
 
+describe("shadow caster cull mode (three.js shadowSide parity)", () => {
+  function drawsFor(pipelineKey: string) {
+    const report = createShadowCasterDrawListPlanReport({
+      shadowRequests: [shadowRequest(7, 11)],
+      meshDraws: [meshDraw(1, 1, { pipelineKey })],
+      shadowPassPlan: shadowPassPlan(),
+      commandEncoding: "ready",
+    });
+    return report.lists[0]?.draws ?? [];
+  }
+
+  it("renders a single-sided (forward cull 'back') caster's back faces via cull 'front'", () => {
+    // three.js shadowSide parity: FrontSide forward materials cast with
+    // BackSide depth material, which means culling front faces.
+    expect(drawsFor("standard|opaque|back|less|none")[0]?.casterCullMode).toBe(
+      "front",
+    );
+  });
+
+  it("keeps a double-sided (forward cull 'none') caster two-sided", () => {
+    // Thin/open geometry must cast from both faces.
+    expect(drawsFor("standard|opaque|none|less|none")[0]?.casterCullMode).toBe(
+      "none",
+    );
+  });
+
+  it("renders a back-side (forward cull 'front') caster's front faces via cull 'back'", () => {
+    expect(drawsFor("standard|opaque|front|less|none")[0]?.casterCullMode).toBe(
+      "back",
+    );
+  });
+
+  it("defaults an unknown/cull-less material to the default FrontSide shadowSide mapping", () => {
+    expect(drawsFor("standard")[0]?.casterCullMode).toBe("front");
+  });
+});
+
 function shadowPassPlan() {
   return createShadowPassPlanReport({
     shadowRequests: [shadowRequest(7, 11)],
@@ -160,8 +199,12 @@ function shadowRequest(shadowId: number, lightId: number): ShadowRequestPacket {
 function meshDraw(
   renderId: number,
   layerMask: number,
-  options: Pick<MeshDrawPacket, "castsShadow" | "receivesShadow"> = {},
+  options: Pick<MeshDrawPacket, "castsShadow" | "receivesShadow"> & {
+    /** Material forward pipeline key; the cull token drives caster cull mode. */
+    readonly pipelineKey?: string;
+  } = {},
 ): MeshDrawPacket {
+  const { pipelineKey = "standard", ...packetOptions } = options;
   return {
     renderId,
     entity: { index: renderId, generation: 0 },
@@ -172,7 +215,7 @@ function meshDraw(
     worldTransformOffset: 0,
     boundsIndex: 0,
     layerMask,
-    ...options,
+    ...packetOptions,
     sortKey: {
       queue: "opaque",
       viewId: 0,
@@ -185,7 +228,7 @@ function meshDraw(
       stableId: renderId,
     },
     batchKey: {
-      pipelineKey: "standard",
+      pipelineKey,
       materialKey: `material-${renderId}`,
       meshLayoutKey: `mesh-${renderId}`,
       topology: "triangle-list",

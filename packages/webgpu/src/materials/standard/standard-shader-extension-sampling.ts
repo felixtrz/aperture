@@ -599,16 +599,12 @@ fn evaluateDirectLight(
   normal: vec3f,`,
     )
     .replace(
-      `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
-      `  var color = ambientDiffuse + direct + material.emissiveFactor;`,
-    )
-    .replace(
-      `  let color = ambientDiffuse + direct + emissive;`,
-      `  var color = ambientDiffuse + direct + emissive;`,
-    )
-    .replace(
       `  return vec4f(color, alpha);`,
-      `  color = applyDistanceFog(color, length(view.cameraPosition.xyz - input.worldPosition));
-  return vec4f(color, alpha);`,
+      // Introduce a fresh binding instead of mutating `color`, which is declared
+      // `let` in every lit/shadowed/emissive variant. Reassigning `color`
+      // directly is invalid WGSL when shadows are enabled (the shadow path keeps
+      // it immutable). A new `let` works for all variants.
+      `  let foggedColor = applyDistanceFog(color, length(view.cameraPosition.xyz - input.worldPosition));
+  return vec4f(foggedColor, alpha);`,
     );
 }

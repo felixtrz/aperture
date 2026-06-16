@@ -1,6 +1,9 @@
 import type { MeshIndexFormat, MeshTopology } from "@aperture-engine/render";
 
-import type { ShadowCasterDrawListPlanReport } from "./shadow-caster-draw-list-plan.js";
+import type {
+  ShadowCasterCullMode,
+  ShadowCasterDrawListPlanReport,
+} from "./shadow-caster-draw-list-plan.js";
 import type { ShadowPassCommandEncodingReport } from "./shadow-pass-command-encoding-report.js";
 
 export type ShadowCasterPipelineDescriptorStatus =
@@ -8,6 +11,15 @@ export type ShadowCasterPipelineDescriptorStatus =
   | "deferred"
   | "missing"
   | "not-required";
+
+function biasForCull(
+  _cullMode: ShadowCasterCullMode,
+  base: { readonly depthBias: number; readonly depthBiasSlopeScale: number },
+): { readonly depthBias: number; readonly depthBiasSlopeScale: number } {
+  // three.js parity: no global rasterizer bias. Caster-side bias is emitted only
+  // when explicitly authored, analogous to material polygonOffset.
+  return base;
+}
 
 export type ShadowCasterPipelineDescriptorDiagnosticCode =
   | "shadowCasterPipelineDescriptor.missingCommandEncoding"
@@ -56,7 +68,7 @@ export interface ShadowCasterPipelineDescriptorMetadata {
   };
   readonly primitive: {
     readonly topology: "triangle-list";
-    readonly cullMode: "none";
+    readonly cullMode: ShadowCasterCullMode;
     readonly frontFace: "ccw";
   };
   readonly depthStencil: {
@@ -106,6 +118,14 @@ export interface CreateShadowCasterPipelineDescriptorReportOptions {
   readonly depthBias?: number;
   /** Authored slope-scaled depth bias for the caster pipeline (M4-T5). */
   readonly slopeBias?: number;
+  /**
+   * Distinct caster cull modes present in the frame (three.js `shadowSide`
+   * parity). One opaque descriptor is emitted per (meshLayoutKey, cullMode):
+   * single-sided casters resolve to "front" (render back faces, the primary
+   * self-shadow defense), double-sided to "none". Defaults to ["none"] (legacy
+   * both-faces behavior) when absent.
+   */
+  readonly casterCullModes?: readonly ShadowCasterCullMode[];
   /**
    * Alpha-tested casters (M4-T8): each entry produces an additional alpha-test
    * pipeline variant (TEXCOORD_0 + baseColor discard) distinct from the opaque
@@ -195,18 +215,30 @@ export function createShadowCasterPipelineDescriptorReport(
       diagnostic.code === "shadowCasterPipelineDescriptor.unsupportedTopology",
   );
   const bias = {
-    depthBias: Math.trunc(options.depthBias ?? 0),
+    // WebGPU depthBias is an integer in depth-buffer units. Use round (not
+    // trunc) so an authored sub-integer survives (0.6 -> 1) instead of zeroing.
+    // Default stays 0: back-face caster rendering + receiver normal-offset are
+    // the primary self-shadow defenses, so rasterizer bias is opt-in (avoids
+    // peter-panning the shared cascaded path).
+    depthBias: Math.max(0, Math.round(options.depthBias ?? 0)),
     depthBiasSlopeScale: Math.max(0, options.slopeBias ?? 0),
   };
+  const cullModes: readonly ShadowCasterCullMode[] =
+    options.casterCullModes && options.casterCullModes.length > 0
+      ? [...new Set(options.casterCullModes)]
+      : ["none"];
   const descriptors =
     hasBlockingDiagnostics || depthFormat !== "depth24plus"
       ? []
       : [
-          ...collectMeshLayoutKeys(options).map((meshLayoutKey) =>
-            createDescriptor(
-              options.indexFormat ?? "uint32",
-              meshLayoutKey,
-              bias,
+          ...collectMeshLayoutKeys(options).flatMap((meshLayoutKey) =>
+            cullModes.map((cullMode) =>
+              createDescriptor(
+                options.indexFormat ?? "uint32",
+                meshLayoutKey,
+                biasForCull(cullMode, bias),
+                cullMode,
+              ),
             ),
           ),
           ...dedupeAlphaTestCasters(options.alphaTestCasters ?? []).map(
@@ -214,7 +246,10 @@ export function createShadowCasterPipelineDescriptorReport(
               createDescriptor(
                 options.indexFormat ?? "uint32",
                 alphaTest.meshLayoutKey,
-                bias,
+                // Alpha-test casters force "none" (cutout geometry is treated
+                // as double-sided), independent of material cull resolution.
+                biasForCull("none", bias),
+                "none",
                 alphaTest,
               ),
           ),
@@ -258,8 +293,13 @@ function createDescriptor(
   indexFormat: MeshIndexFormat,
   meshLayoutKey: string | null,
   bias: { readonly depthBias: number; readonly depthBiasSlopeScale: number },
+  cullMode: ShadowCasterCullMode,
   alphaTest?: AlphaTestCasterDescriptorInput,
 ): ShadowCasterPipelineDescriptorMetadata {
+  // Alpha-test casters always render both faces; opaque casters use the
+  // material-resolved cull (three.js shadowSide).
+  const effectiveCullMode: ShadowCasterCullMode =
+    alphaTest !== undefined ? "none" : cullMode;
   const base = {
     index: {
       required: true as const,
@@ -267,7 +307,7 @@ function createDescriptor(
     },
     primitive: {
       topology: "triangle-list" as const,
-      cullMode: "none" as const,
+      cullMode: effectiveCullMode,
       frontFace: "ccw" as const,
     },
     depthStencil: {
@@ -306,8 +346,14 @@ function createDescriptor(
 
   return {
     ...base,
-    pipelineKey: shadowCasterPipelineKeyForMeshLayoutKey(meshLayoutKey),
-    label: shadowCasterPipelineLabelForMeshLayoutKey(meshLayoutKey),
+    pipelineKey: shadowCasterPipelineKeyForMeshLayoutKey(
+      meshLayoutKey,
+      effectiveCullMode,
+    ),
+    label: shadowCasterPipelineLabelForMeshLayoutKey(
+      meshLayoutKey,
+      effectiveCullMode,
+    ),
     shader: {
       family: "shadow-caster",
       label: "shadow-caster-depth-only",
@@ -361,22 +407,30 @@ function shadowCasterAlphaTestPipelineLabel(
 
 export function shadowCasterPipelineKeyForMeshLayoutKey(
   meshLayoutKey?: string | null,
+  cullMode: ShadowCasterCullMode = "none",
 ): string {
   const normalized = normalizeMeshLayoutKey(meshLayoutKey);
+  const base =
+    normalized === null
+      ? SHADOW_CASTER_DEPTH_ONLY_PIPELINE_KEY
+      : `${SHADOW_CASTER_DEPTH_ONLY_PIPELINE_KEY}/mesh-layout:${encodeURIComponent(normalized)}`;
 
-  return normalized === null
-    ? SHADOW_CASTER_DEPTH_ONLY_PIPELINE_KEY
-    : `${SHADOW_CASTER_DEPTH_ONLY_PIPELINE_KEY}/mesh-layout:${encodeURIComponent(normalized)}`;
+  // Suffix only for non-default cull so the legacy "none" key (and every
+  // existing snapshot/golden keyed on it) is byte-identical.
+  return cullMode === "none" ? base : `${base}/cull:${cullMode}`;
 }
 
 function shadowCasterPipelineLabelForMeshLayoutKey(
   meshLayoutKey: string | null,
+  cullMode: ShadowCasterCullMode = "none",
 ): string {
   const normalized = normalizeMeshLayoutKey(meshLayoutKey);
+  const base =
+    normalized === null
+      ? "shadow-caster-depth-only:depth24plus:triangle-list"
+      : `shadow-caster-depth-only:depth24plus:triangle-list:${normalized}`;
 
-  return normalized === null
-    ? "shadow-caster-depth-only:depth24plus:triangle-list"
-    : `shadow-caster-depth-only:depth24plus:triangle-list:${normalized}`;
+  return cullMode === "none" ? base : `${base}:cull:${cullMode}`;
 }
 
 function collectMeshLayoutKeys(

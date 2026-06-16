@@ -275,10 +275,14 @@ fn vs(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
     vec2f(-1.0, -1.0),
     vec2f(3.0, -1.0),
   );
+  // Flip V vs clip-space Y: WebGPU framebuffer row 0 (texture v=0) is the TOP of
+  // the rendered scene, while clip-space y=+1 is the top of the screen. Mapping
+  // uv = (pos+1)/2 would sample scene-bottom at screen-top (vertical flip); the
+  // (1 - clipY)/2 mapping keeps the blit upright.
   var uvs = array<vec2f, 3>(
-    vec2f(0.0, 2.0),
-    vec2f(0.0, 0.0),
-    vec2f(2.0, 0.0),
+    vec2f(0.0, -1.0),
+    vec2f(0.0, 1.0),
+    vec2f(2.0, 1.0),
   );
   var output: VertexOutput;
   output.position = vec4f(positions[vertexIndex], 0.0, 1.0);
