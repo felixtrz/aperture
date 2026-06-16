@@ -1,6 +1,6 @@
 # Handoff - Racing Library Gap Slices
 
-**Updated:** 2026-06-16 15:26 PDT
+**Updated:** 2026-06-16 15:39 PDT
 
 Current user-directed work is executing
 `racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
@@ -8,47 +8,53 @@ slices while keeping racing and Shadow Lab working.
 
 ## Latest Completed Slice
 
-- Removed tracked inactive `racing/src/systems/setup.system.ts.*` scaffolding
-  files from the active systems directory.
-- Removed unused decoration `CELL_RAW` imports and `void CELL_RAW`
-  placeholders from racing and shadow-lab.
-- Split racing `src/lib/track.ts` into focused data, codec, layout, and runtime
-  modules while preserving `track.ts` as the existing public import barrel.
+- Added a public `@aperture-engine/audio` sound board API for named clip
+  preload/decode/cache, first-gesture startup, loop voices, one-shots,
+  gain/playback-rate automation, lowpass filters, mixer routing, and teardown.
+- Migrated `racing/src/audio.ts` to use the sound board API. Racing still owns
+  the vehicle-specific RPM/skid/impact model, but no longer creates raw Web
+  Audio nodes or owns clip fetch/decode/teardown.
+- Rebuilt `packages/audio/dist` so workspace consumers and Vite served-module
+  imports resolve the new exports.
 - Rebuilt both experience production bundles.
-- Updated the racing plan for RACE-LIB-17.
+- Updated the racing plan for RACE-LIB-18 and moved the next recommendation to
+  worker-authored audio intent.
 
 ## Latest Validation
 
-- `pnpm run typecheck && pnpm run build` in `racing/`
-- `pnpm run typecheck && pnpm run build` in `shadow-lab/`
-- No-cache HTTP probes against both running dev servers confirmed the served
-  racing track barrel points at the split modules, the split layout module is
-  served as JavaScript, deleted setup variants no longer serve module source,
-  and the racing/shadow-lab decoration placeholder imports are gone.
-- Aperture MCP `browser_status` for racing was running with `webgpuOk:true`,
-  `lastError:null`, automatic directional shadow submitted, compact shared
-  `:override:` material assets, and non-null `wheelBL`/`wheelBR` vehicle
-  resource values.
-- Racing screenshot captured at
-  `racing/.aperture/runtime/race-lib-17-source-cleanup.png`.
+- `pnpm --filter @aperture-engine/audio run typecheck`
+- `pnpm --filter @aperture-engine/audio run build`
+- `pnpm exec vitest run test/audio/sound-board.test.ts`
+- `pnpm --dir racing run typecheck && pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck && pnpm --dir shadow-lab run build`
+- Cache-busted live probes confirmed racing serves updated `src/audio.ts`,
+  `packages/audio/dist/index.js`, and `packages/audio/dist/sound-board.js`
+  with `Cache-Control: no-cache`, and the new sound board exports are present.
+- Aperture MCP `input_key` triggered a harmless keyboard gesture so the new
+  audio startup path executed; `browser_status` remained healthy with
+  `webgpuOk:true`, `lastError:null`, `lastFailure:null`, and automatic
+  directional shadow submitted.
 - Shadow-lab `pnpm exec aperture dev status` reported daemon/server/browser
-  running and bridge available on `http://127.0.0.1:8861/`.
+  running and bridge available on `http://127.0.0.1:8861/`; cache-busted source
+  probes confirmed its decoration source stayed updated.
 
 ## Current Notes
 
 - The racing console log history still contains earlier errors from the
-  half-written helper placement and the pre-rebuild `this.gltf` migration, but
-  the current MCP status is healthy after rebuilding package `dist`.
+  half-written helper placement, the pre-rebuild `this.gltf` migration, and a
+  transient page error from before `packages/audio/dist` was rebuilt. Current
+  MCP status is healthy after rebuilding package `dist`.
 - Shadow-lab browser logs also contain earlier transient errors from prior
   render work; current dev status is alive and source probes/builds are clean.
 - Pre-existing untracked screenshot/parity artifacts remain outside the commit.
 
 ## Recommended Next Task
 
-Continue with RACE-LIB-18: finish the racing audio cleanup by moving remaining
-app-owned Web Audio graph logic behind Aperture audio APIs. `racing/src/audio.ts`
-is now the largest remaining engine-shaped app module and is still imported by
-`hud.ts`.
+Continue with RACE-LIB-19: move racing vehicle audio intent to a worker-authored
+Aperture audio control surface. The new sound board removed raw Web Audio node
+ownership from racing, but `src/audio.ts` still runs the vehicle audio model on
+the main thread; the V1 direction is for worker systems to author loop/one-shot
+audio intent while Aperture owns browser realization.
 
 ---
 

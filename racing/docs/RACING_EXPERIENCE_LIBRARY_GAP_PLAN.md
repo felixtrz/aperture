@@ -127,6 +127,12 @@ building blocks and default paths.
   `racing/src/lib/track.ts` is now a stable barrel over focused
   `track-data.ts`, `track-codec.ts`, `track-layout.ts`, and
   `track-runtime.ts` modules.
+- 2026-06-16: Main-thread audio graph ownership moved into the library:
+  `@aperture-engine/audio` now exports a sound board API for named clip
+  preload/decode/cache, first-gesture startup, loop voices, one-shots,
+  gain/playback-rate automation, lowpass filters, mixer routing, and teardown.
+  Racing keeps the vehicle-specific RPM/skid/impact model, but no longer
+  creates raw Web Audio nodes in `src/audio.ts`.
 
 ## Goals
 
@@ -154,27 +160,19 @@ building blocks and default paths.
 
 ## Source Inventory
 
-Racing source currently has about 2,808 lines under `src/`. The largest and most
+Racing source currently has about 2,086 lines under `src/`. The largest and most
 engine-shaped files are:
 
-- `src/audio.ts`: 446 lines.
-- `src/lib/track.ts`: 369 lines.
-- `src/systems/vehicle.system.ts`: 324 lines.
-- `src/systems/setup.system.ts`: 244 lines.
+- `src/audio.ts`: 325 lines.
+- `src/systems/vehicle.system.ts`: 321 lines.
+- `src/systems/setup.system.ts`: 217 lines.
+- `src/lib/track-data.ts`: 184 lines.
+- `src/lib/track-layout.ts`: 170 lines.
 - `src/systems/camera-follow.system.ts`: 133 lines.
-- `src/hud.ts`: 119 lines.
-- `src/systems/drift-marks.system.ts`: 84 lines.
+- `src/hud.ts`: 118 lines.
+- `src/systems/lap-timer.system.ts`: 118 lines.
+- `src/systems/drift-marks.system.ts`: 86 lines.
 - `src/systems/particles.system.ts`: 65 lines.
-
-There are also inactive `setup.system.ts.*` files in `src/systems/`:
-
-- `setup.system.ts.bak`
-- `setup.system.ts.current`
-- `setup.system.ts.minimal`
-- `setup.system.ts.cube`
-
-Those files do not currently drive the app, but they make the systems folder
-harder for humans and agents to scan.
 
 ## Reference Benchmarks
 
@@ -292,46 +290,61 @@ Library direction:
 
 ### 3. Browser HUD And Audio Poll Generated Diagnostics
 
-Evidence:
+Original evidence:
 
-- `hud.ts` reads `readGeneratedBrowserAppStatus()` and digs into
-  `status.lastWorkerSummary.signals` each animation frame:
-  `racing/src/hud.ts:33`.
-- `audio.ts` repeats the same status parsing at `racing/src/audio.ts:56`.
+- Before the signal-reader slice, `hud.ts` and `audio.ts` read
+  `readGeneratedBrowserAppStatus()` and dug into
+  `status.lastWorkerSummary.signals` each animation frame.
+
+Current status:
+
+- `@aperture-engine/app/browser` now exposes `readGeneratedSignals()`.
+- Racing HUD/audio read signals through that public helper instead of parsing
+  generated diagnostics.
 
 Current Aperture state:
 
-- Worker signals exist and are summarized through generated status.
-- `readGeneratedBrowserAppStatus()` is a diagnostics/status API, not a stable
-  app-facing signal subscription API.
+- Worker signals exist and are still summarized through generated status for
+  tooling.
+- `readGeneratedSignals()` is the current app-facing read path.
 
 Library direction:
 
-- Add a supported browser API for app signals:
-  `subscribeGeneratedSignals`, `readGeneratedSignals`, and typed generated
-  signal accessors.
-- Keep diagnostics status available, but app HUD/audio code should not parse it.
+- Add `subscribeGeneratedSignals` and typed generated signal accessors when the
+  browser/HUD API needs push-style updates.
+- Keep diagnostics status available, but app HUD/audio code should continue to
+  avoid parsing it.
 
 ### 4. Audio Has A Good Low-Level Base But Missing Racing-Level Control
 
-Evidence:
+Original evidence:
 
-- `audio.ts` explains why it does not use high-level `AudioEngine`:
-  `racing/src/audio.ts:10`. The high-level engine reconciles
-  `AudioEmitterPacket`s from snapshots but does not expose an imperative/live
-  loop API with playback-rate, gain, and per-voice lowpass.
-- Racing builds its own loop voices, gear/RPM model, lowpass filters, skid
-  loop, impact one-shot, autoplay unlock, fetch/decode, and RAF loop:
-  `racing/src/audio.ts:117`, `:138`, `:218`, `:293`, `:366`, `:388`.
+- Before the RACE-LIB-18 audio slice, `audio.ts` built its own loop voices,
+  gear/RPM model, lowpass filters, skid loop, impact one-shot, autoplay unlock,
+  fetch/decode path, and RAF loop.
+- That mixed racing-specific audio intent with reusable browser graph
+  lifecycle, duplicating the kind of slot/source ownership PlayCanvas keeps in
+  `SoundComponent`/`SoundComponentSystem`.
+
+Current evidence:
+
+- `racing/src/audio.ts` now imports `createAudioSoundBoard` and
+  `createFirstAudioGestureStarter` from `@aperture-engine/audio`.
+- Racing still owns the vehicle-specific RPM/skid/impact model and main-thread
+  RAF loop, but clip loading, decode/cache, `AudioContext` unlock, loop
+  sources, one-shots, gain/playback-rate ramps, lowpass filters, mixer routing,
+  and teardown are library-owned.
 
 Current Aperture state:
 
 - `@aperture-engine/audio` has a real main-thread audio engine, mixer, clip
   cache, voice manager, buses, diagnostics, and snapshot-driven
   `AudioEmitter`/`AudioListener` extraction.
-- `startGeneratedBrowserApp({ audio: true })` exists internally, but the
-  generated app config does not expose a declarative `audio` option and config
-  assets do not include `audio-clip`.
+- `@aperture-engine/audio` now also has a main-thread sound board API for
+  imperative/live loop voices and one-shots when an app needs immediate
+  browser-side control.
+- Generated app config now exposes audio clip assets and generated audio
+  enablement for config-authored clips.
 - The current `AudioEmitter` packet can carry `gain`, `timeScale`, loop,
   epochs, spatial settings, and bus routing, but not a named filter chain or a
   simple live sink handle comparable to Bevy's `AudioSink`.
@@ -339,6 +352,8 @@ Current Aperture state:
 Library direction:
 
 - Keep ECS-authored audio intent as the primary path.
+- Treat the sound board API as a pragmatic main-thread escape hatch, not the
+  final worker-authored racing-audio model.
 - Add live control primitives on top of snapshot audio:
   `AudioSink`/`AudioVoiceHandle` style controls for volume, speed,
   play/pause/stop, and parameter automation.
@@ -716,13 +731,21 @@ Important design point:
   it from snapshots. Avoid returning raw `AudioNode`, `AudioBufferSourceNode`,
   or `AudioParam` to worker code.
 
-Acceptance criteria:
+Current acceptance status:
 
-- `racing/src/audio.ts` shrinks from 473 lines to racing-specific audio model
-  logic, or disappears in favor of systems updating audio components/resources.
+- Done for the main-thread graph-ownership slice: `racing/src/audio.ts` shrank
+  from 446 lines to 325 lines and no longer creates app-owned
+  `AudioNode`/`AudioBufferSourceNode`/`AudioParam` objects.
 - Gear/RPM pitch, engine lowpass, skid loop, and impact one-shot are all
   supported without app-created Web Audio nodes.
 - Autoplay unlock and context lifecycle are owned by Aperture.
+
+Remaining acceptance for the final audio direction:
+
+- Move the vehicle audio model into a worker system or resource-driven audio
+  authoring path.
+- Represent loop gain, playback-rate, lowpass cutoff, skid loop, and impact
+  one-shot as snapshot/ECS audio intent instead of a main-thread RAF loop.
 
 Reference anchors:
 
@@ -980,12 +1003,15 @@ Work items:
 - RACE-LIB-06: Add `asset.audio` and generated config audio enablement.
 - RACE-LIB-07: Add audio sink/live-control/filter model.
 - RACE-LIB-08: Migrate racing engine/skid/impact audio to Aperture audio.
+- RACE-LIB-18: Add main-thread sound board escape hatch and remove raw Web
+  Audio node ownership from racing audio. Done 2026-06-16.
 
 Racing migration:
 
 - Declare engine/skid/impact clips in `aperture.config.ts`.
+- Remove manual Web Audio graph creation from `src/audio.ts`. Done
+  2026-06-16.
 - Move gear/RPM model into a worker system or resource-driven audio system.
-- Remove manual Web Audio graph creation from `src/audio.ts`.
 
 Validation:
 
@@ -1076,8 +1102,9 @@ Target reductions:
 
 - `src/lib/math.ts`: deleted.
 - `src/lib/vehicle-state.ts`: deleted or replaced by resource declaration.
-- `src/audio.ts`: deleted or reduced from 446 lines to a thin app-specific audio
-  model wrapper.
+- `src/audio.ts`: reduced from 446 lines to 325 lines by RACE-LIB-18; final
+  target is deletion or a very thin startup wrapper after audio intent moves to
+  worker-authored ECS/snapshot state.
 - `src/systems/particles.system.ts`: reduced from 537 lines to emitter config
   and wheel-emission logic.
 - `src/systems/drift-marks.system.ts`: reduced from 292 lines to trail setup
@@ -1142,22 +1169,23 @@ Shadow-lab validation:
 
 ## Recommended Next Implementation Slice
 
-Continue source cleanup/audio migration with RACE-LIB-18:
+Continue audio migration with RACE-LIB-19:
 
-1. Audit the remaining `racing/src/audio.ts` main-thread driver against the
-   current Aperture audio APIs and PlayCanvas sound/listener component model.
-2. Replace remaining hand-owned engine/skid/impact Web Audio graph logic with
-   library-owned audio clip/sink/live-control primitives where those APIs are
-   already available; if a narrow library API is missing, add it first.
-3. Keep racing responsible only for vehicle-specific RPM/skid/impact intent and
-   tuning values.
-4. Validate typecheck/build, browser gesture/unlock behavior, and managed
-   racing status without raw CDP.
+1. Add a worker-authored audio control surface that compiles to
+   `AudioEmitter`/snapshot intent: stable loop ids, gain/playback-rate ramps,
+   optional lowpass/filter parameters, and one-shot events.
+2. Move racing's RPM/skid/impact model out of `src/audio.ts` and into a system
+   or resource-driven path that authors that audio intent.
+3. Leave only first-gesture/main-thread realization inside Aperture browser
+   audio, not in racing app code.
+4. Validate with focused audio tests, racing typecheck/build, cache-busted
+   served-module probes, and Aperture MCP browser status/gesture checks.
 
 Reason:
 
-- RACE-LIB-17 removed inactive setup scaffolding and split the largest track
-  helper without changing the active import path.
-- `racing/src/audio.ts` is now the largest remaining app-owned engine-shaped
-  module and is still imported from `hud.ts`, so it is the next meaningful
-  source-readability and library-ownership target.
+- RACE-LIB-18 removed raw Web Audio graph ownership from racing and gave the
+  package a tested sound board API, but the vehicle audio model is still a
+  main-thread RAF loop.
+- The V1-friendly end state is closer to Bevy sinks and PlayCanvas sound slots:
+  app systems author sound intent, while Aperture owns realization and browser
+  lifecycle.

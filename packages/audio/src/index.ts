@@ -26,6 +26,7 @@ export * from "./mixer.js";
 export * from "./clip-cache.js";
 export * from "./voice-manager.js";
 export * from "./audio-settings.js";
+export * from "./sound-board.js";
 
 /** Ramp endpoints track main-thread frame cadence, clamped to this window. */
 const MIN_RAMP_SEC = 0.008;

@@ -393,30 +393,28 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 22:26 UTC</dd>
+            <dd>2026-06-16 22:39 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: racing source cleanup has started. Inactive
-              <code>setup.system.ts.*</code> scaffolding files were removed,
-              decoration placeholder imports were deleted, and
-              <code>racing/src/lib/track.ts</code> is now a stable barrel over
-              focused data, codec, layout, and runtime modules. Prior update:
-              <code>this.spawn.gltfBatch(...)</code> now spawns repeated
-              imported GLTF subtrees with shared tags, material overrides,
-              shadow flags, and per-instance metadata/transforms while
-              delegating to the ordinary ECS <code>spawn.gltf(...)</code> path.
-              Racing and shadow-lab decoration buckets now use that helper
-              instead of repeating identical GLTF spawn options inside each
-              loop. Prior update: <code>this.spawn.gltf(...)</code> now accepts
-              spawn-time <code>materials.renderState</code> overrides. Racing
-              and shadow-lab request GLTF <code>cullMode: "back"</code> through
-              the public spawn API instead of scanning every ready material
-              asset in setup systems, and the override path reuses cloned source
-              material assets by source material plus override hash. Prior
-              update: app systems now expose
-              <code>this.gltf.node(...)</code> and
+              Latest update: <code>@aperture-engine/audio</code> now includes a
+              sound board API for named clip preload/decode/cache, first-gesture
+              startup, loop voices, one-shots, automation, lowpass filters,
+              mixer routing, and teardown. Racing audio now keeps the
+              vehicle-specific RPM/skid/impact model but no longer owns raw Web
+              Audio node lifecycle. Prior update: inactive
+              <code>setup.system.ts.*</code> scaffolding files were removed and
+              <code>racing/src/lib/track.ts</code> became a stable barrel over
+              focused data, codec, layout, and runtime modules. instead of
+              repeating identical GLTF spawn options inside each loop. Prior
+              update: <code>this.spawn.gltf(...)</code> now accepts spawn-time
+              <code>materials.renderState</code> overrides. Racing and
+              shadow-lab request GLTF <code>cullMode: "back"</code> through the
+              public spawn API instead of scanning every ready material asset in
+              setup systems, and the override path reuses cloned source material
+              assets by source material plus override hash. Prior update: app
+              systems now expose <code>this.gltf.node(...)</code> and
               <code>this.gltf.nodes(...)</code> for spawned GLTF instance
               lookup. Material depth bias now flows through render-state
               pipeline keys, WebGPU depth-stencil descriptors, and render
@@ -1161,10 +1159,10 @@
             <dt>Next focus</dt>
             <dd>
               Continue the racing library-gap plan with
-              <code>RACE-LIB-18</code>: finish the racing audio cleanup by
-              moving remaining app-owned Web Audio graph logic behind Aperture
-              audio APIs, leaving racing responsible for vehicle audio intent
-              and tuning rather than <code>AudioNode</code> lifecycle.
+              <code>RACE-LIB-19</code>: move racing vehicle audio intent to a
+              worker-authored Aperture audio control surface so systems author
+              loop/one-shot sound intent while Aperture owns browser
+              realization.
             </dd>
           </dl>
         </aside>

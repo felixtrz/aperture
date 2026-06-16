@@ -2,28 +2,21 @@
  * Main-thread audio driver for the racing port.
  *
  * APP-ONLY: this module does not touch any engine package internals. It builds a
- * bespoke Web Audio voice graph out of the *public* `@aperture-engine/audio`
- * seams — {@link createWebAudioBackend} (the AudioContext wrapper) and
- * {@link createAudioMixer} (the bus → master-limiter → destination chain) — and
- * drives it per-frame from the simulation signals the worker publishes.
- *
- * Why not the high-level `AudioEngine`? `AudioEngine.applySnapshot()` is the only
- * way to drive its voices, and it reconciles `AudioEmitterPacket`s out of a
- * `RenderSnapshot` produced by the ECS — it has no imperative "start a loop and
- * set its playbackRate/volume live from the main thread" surface, and no per-gear
- * lowpass model. The mixer + backend give us exactly the public building blocks
- * to realize the REFERENCE_SPEC §8 formulas directly. See the API-gap note at the
- * bottom of the agent report for evidence.
+ * racing-specific engine/skid/impact model from REFERENCE_SPEC §8, but the
+ * reusable Web Audio lifecycle now lives behind `@aperture-engine/audio`:
+ * gesture startup, clip fetch/decode/cache, loop voices, one-shots, click-free
+ * gain/pitch automation, lowpass nodes, mixer routing, and teardown.
  *
  * The whole thing is fail-soft: if the Web Audio API or the backend is
  * unavailable (SSR, locked-down browser, decode failure) it silently no-ops and
  * never throws into the page.
  */
 import {
-  createAudioMixer,
-  createWebAudioBackend,
-  type AudioBackend,
-  type AudioMixer,
+  createAudioSoundBoard,
+  createFirstAudioGestureStarter,
+  type AudioLoopVoice,
+  type AudioSoundBoard,
+  type FirstAudioGestureStarter,
 } from "@aperture-engine/audio";
 import { readGeneratedSignals } from "@aperture-engine/app/browser";
 import {
@@ -95,47 +88,6 @@ const CLIP_URLS = {
   impact: "/audio/impact.ogg",
 } as const;
 
-// ── A single looping voice (engine, engine-layer, or skid) ────────────────────
-
-interface LoopVoice {
-  readonly gain: GainNode;
-  readonly source: AudioBufferSourceNode;
-  /** Optional per-voice lowpass (engine voices only). */
-  readonly lowpass: BiquadFilterNode | null;
-}
-
-/**
- * Build and start a looping voice routed into `destination` (a mixer bus input).
- * The source starts immediately at silence; callers ramp gain/rate per frame.
- */
-function startLoop(
-  backend: AudioBackend,
-  buffer: AudioBuffer,
-  destination: AudioNode,
-  withLowpass: boolean,
-): LoopVoice {
-  const gain = backend.createGain();
-  gain.gain.value = 0;
-  const source = backend.createSource();
-  source.buffer = buffer;
-  source.loop = true;
-
-  let lowpass: BiquadFilterNode | null = null;
-  if (withLowpass) {
-    lowpass = backend.createBiquad();
-    lowpass.type = "lowpass";
-    lowpass.Q.value = 0.7;
-    lowpass.frequency.value = 7000;
-    source.connect(lowpass);
-    lowpass.connect(gain);
-  } else {
-    source.connect(gain);
-  }
-  gain.connect(destination);
-  source.start();
-  return { gain, source, lowpass };
-}
-
 // ── Public entry point ────────────────────────────────────────────────────────
 
 export interface RacingAudioHandle {
@@ -153,16 +105,18 @@ export interface RacingAudioHandle {
  */
 export function initRacingAudio(): RacingAudioHandle {
   let disposed = false;
-  let started = false;
   let rafId = 0;
+  const gestureStarter: FirstAudioGestureStarter =
+    createFirstAudioGestureStarter(window, () => {
+      void boot();
+    });
 
   // Late-bound graph (created on first gesture).
-  let backend: AudioBackend | null = null;
-  let mixer: AudioMixer | null = null;
-  let engineVoice: LoopVoice | null = null;
-  let engineLayer: LoopVoice | null = null;
-  let skidVoice: LoopVoice | null = null;
-  let impactBuffer: AudioBuffer | null = null;
+  let soundBoard: AudioSoundBoard | null = null;
+  let engineVoice: AudioLoopVoice | null = null;
+  let engineLayer: AudioLoopVoice | null = null;
+  let skidVoice: AudioLoopVoice | null = null;
+  let impactReady = false;
 
   // Per-frame model state.
   let lastTime = 0;
@@ -175,38 +129,22 @@ export function initRacingAudio(): RacingAudioHandle {
   let impactCooldown = 0;
   let haveStarted = false; // signals.started latch (mute until first input gesture)
 
-  function removeGestureListeners(): void {
-    window.removeEventListener("pointerdown", onGesture);
-    window.removeEventListener("keydown", onGesture);
-    window.removeEventListener("touchstart", onGesture);
-  }
-
-  function onGesture(): void {
-    if (disposed || started) return;
-    started = true;
-    removeGestureListeners();
-    void boot();
-  }
-
   async function boot(): Promise<void> {
     try {
-      const created = createWebAudioBackend({ latencyHint: "interactive" });
-      backend = created;
-      mixer = createAudioMixer(created, {});
-      // Unlock a context the autoplay policy left suspended.
-      if (created.state !== "running") {
-        try {
-          await created.resume();
-        } catch {
-          // Resume may reject if the gesture window already closed; the loop
-          // will keep mixing silently and a later gesture re-resumes.
-        }
+      const created = createAudioSoundBoard({
+        web: { latencyHint: "interactive" },
+        clips: CLIP_URLS,
+      });
+      if (!created.ok) {
+        return;
       }
+      soundBoard = created.soundBoard;
+      await created.soundBoard.unlock();
       if (disposed) {
         teardownGraph();
         return;
       }
-      await loadClips(created, mixer);
+      await loadClips(created.soundBoard);
       if (disposed) {
         teardownGraph();
         return;
@@ -215,30 +153,35 @@ export function initRacingAudio(): RacingAudioHandle {
       prevSpeed = readSignals().speed;
       rafId = requestAnimationFrame(frame);
     } catch {
-      // createWebAudioBackend throws when no AudioContext exists; degrade to
+      // Missing AudioContext, rejected unlock, or decode failure: degrade to
       // silence and never surface to the page.
       teardownGraph();
     }
   }
 
-  async function loadClips(b: AudioBackend, m: AudioMixer): Promise<void> {
+  async function loadClips(board: AudioSoundBoard): Promise<void> {
     const [engineBuf, skidBuf, impactBuf] = await Promise.all([
-      fetchAndDecode(b, CLIP_URLS.engine),
-      fetchAndDecode(b, CLIP_URLS.skid),
-      fetchAndDecode(b, CLIP_URLS.impact),
+      board.preload("engine"),
+      board.preload("skid"),
+      board.preload("impact"),
     ]);
     if (disposed) return;
 
     // Engine loops run on the `sfx` bus (passes through the master limiter).
-    const sfxInput = m.busInput("sfx");
     if (engineBuf !== null) {
-      engineVoice = startLoop(b, engineBuf, sfxInput, true);
-      engineLayer = startLoop(b, engineBuf, sfxInput, true);
+      engineVoice = await board.startLoop("engine", {
+        bus: "sfx",
+        lowpass: { frequency: 7000, q: 0.7 },
+      });
+      engineLayer = await board.startLoop("engine", {
+        bus: "sfx",
+        lowpass: { frequency: 7000, q: 0.7 },
+      });
     }
     if (skidBuf !== null) {
-      skidVoice = startLoop(b, skidBuf, sfxInput, false);
+      skidVoice = await board.startLoop("skid", { bus: "sfx" });
     }
-    impactBuffer = impactBuf;
+    impactReady = impactBuf !== null;
   }
 
   function frame(now: number): void {
@@ -247,24 +190,23 @@ export function initRacingAudio(): RacingAudioHandle {
     lastTime = now;
     rafId = requestAnimationFrame(frame);
 
-    const b = backend;
-    if (b === null) return;
+    const board = soundBoard;
+    if (board === null) return;
     const signals = readSignals();
 
     // Mute everything until the sim reports the first input gesture (spec §8).
     if (signals.started) haveStarted = true;
     const masterTarget = haveStarted ? 1 : 0;
 
-    updateEngine(b, signals, dt, masterTarget);
-    updateSkid(b, signals, masterTarget);
-    updateImpact(b, signals, dt, masterTarget);
+    updateEngine(signals, dt, masterTarget);
+    updateSkid(signals, masterTarget);
+    updateImpact(board, signals, dt, masterTarget);
 
     prevSpeed = signals.speed;
     if (impactCooldown > 0) impactCooldown = Math.max(0, impactCooldown - dt);
   }
 
   function updateEngine(
-    b: AudioBackend,
     signals: Signals,
     dt: number,
     masterTarget: number,
@@ -303,44 +245,32 @@ export function initRacingAudio(): RacingAudioHandle {
 
     // Lowpass cutoff opens with throttle.
     const cutoff = remap(throttle, 0, 1, 700, 7000);
-    const now = b.currentTime;
 
-    applyVoice(engineVoice, b, pitch, engineVol * masterTarget, cutoff);
+    applyVoice(engineVoice, pitch, engineVol * masterTarget, cutoff);
     if (engineLayer !== null) {
       // The layer voice is the same loop, pitched an octave-ish lower and
       // quieter, for body (spec: "layer vol *0.4").
       applyVoice(
         engineLayer,
-        b,
         pitch * 0.5,
         engineVol * ENGINE_LAYER_GAIN * masterTarget,
         cutoff,
       );
     }
-    void now;
   }
 
   function applyVoice(
-    voice: LoopVoice,
-    b: AudioBackend,
+    voice: AudioLoopVoice,
     pitch: number,
     vol: number,
     cutoff: number | null,
   ): void {
-    const now = b.currentTime;
-    // Click-free ramps; pin current value first.
-    voice.source.playbackRate.linearRampToValueAtTime(pitch, now + 0.03);
-    voice.gain.gain.linearRampToValueAtTime(Math.max(0, vol), now + 0.03);
-    if (cutoff !== null && voice.lowpass !== null) {
-      voice.lowpass.frequency.setTargetAtTime(cutoff, now, 0.05);
-    }
+    voice.setPlaybackRate(pitch, 0.03);
+    voice.setGain(Math.max(0, vol), 0.03);
+    if (cutoff !== null) voice.setLowpassFrequency(cutoff, 0.05);
   }
 
-  function updateSkid(
-    b: AudioBackend,
-    signals: Signals,
-    masterTarget: number,
-  ): void {
+  function updateSkid(signals: Signals, masterTarget: number): void {
     if (skidVoice === null) return;
     const drift = signals.driftIntensity;
     let targetVol = 0;
@@ -350,97 +280,46 @@ export function initRacingAudio(): RacingAudioHandle {
       pitch = clamp(signals.speed * 3, 1, 3); // speed is normalized 0..1
     }
     skidVol = targetVol;
-    const now = b.currentTime;
-    skidVoice.gain.gain.linearRampToValueAtTime(
-      skidVol * masterTarget,
-      now + 0.05,
-    );
-    skidVoice.source.playbackRate.linearRampToValueAtTime(pitch, now + 0.05);
+    skidVoice.setGain(skidVol * masterTarget, 0.05);
+    skidVoice.setPlaybackRate(pitch, 0.05);
   }
 
   function updateImpact(
-    b: AudioBackend,
+    board: AudioSoundBoard,
     signals: Signals,
     _dt: number,
     masterTarget: number,
   ): void {
-    if (impactBuffer === null || mixer === null) return;
+    if (!impactReady) return;
     if (masterTarget <= 0) return;
     const drop = prevSpeed - signals.speed;
     if (drop > IMPACT_SPEED_DROP_THRESHOLD && impactCooldown === 0) {
       const impactVel = clamp(drop * IMPACT_VEL_SCALE, 0, 6);
       const vol = clamp(remap(impactVel, 0, 6, 0.01, 1.0), 0.01, 1.0);
-      fireImpact(b, mixer, vol * masterTarget);
+      void board.playOneShot("impact", {
+        bus: "sfx",
+        gain: vol * masterTarget,
+      });
       impactCooldown = IMPACT_MIN_INTERVAL;
     }
   }
 
-  function fireImpact(b: AudioBackend, m: AudioMixer, vol: number): void {
-    if (impactBuffer === null) return;
-    const gain = b.createGain();
-    gain.gain.value = vol;
-    const source = b.createSource();
-    source.buffer = impactBuffer;
-    source.connect(gain);
-    gain.connect(m.busInput("sfx"));
-    source.onended = () => {
-      try {
-        source.disconnect();
-        gain.disconnect();
-      } catch {
-        /* already torn down */
-      }
-    };
-    source.start();
-  }
-
   function teardownGraph(): void {
-    try {
-      engineVoice?.source.stop();
-      engineLayer?.source.stop();
-      skidVoice?.source.stop();
-    } catch {
-      /* sources may not have started */
-    }
-    mixer?.dispose();
-    void backend?.close();
-    backend = null;
-    mixer = null;
+    soundBoard?.dispose();
+    soundBoard = null;
     engineVoice = null;
     engineLayer = null;
     skidVoice = null;
-    impactBuffer = null;
+    impactReady = false;
   }
-
-  // First-gesture wiring (Web Audio autoplay policy).
-  window.addEventListener("pointerdown", onGesture, { once: false });
-  window.addEventListener("keydown", onGesture, { once: false });
-  window.addEventListener("touchstart", onGesture, { once: false });
 
   return {
     dispose(): void {
       if (disposed) return;
       disposed = true;
-      removeGestureListeners();
+      gestureStarter.dispose();
       if (rafId !== 0) cancelAnimationFrame(rafId);
       teardownGraph();
     },
   };
-}
-
-// ── Clip loading ──────────────────────────────────────────────────────────────
-
-/** Fetch + decode a clip URL into an AudioBuffer; null on any failure. */
-async function fetchAndDecode(
-  backend: AudioBackend,
-  url: string,
-): Promise<AudioBuffer | null> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    const bytes = await response.arrayBuffer();
-    return await backend.decode(bytes);
-  } catch {
-    return null;
-  }
 }

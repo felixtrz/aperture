@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Finish the racing audio cleanup by moving remaining app-owned Web Audio graph
-logic behind Aperture audio APIs.
+Move racing vehicle audio intent to a worker-authored Aperture audio control
+surface.
 
 Category: `runtime-orchestration`
 
@@ -70,14 +70,16 @@ component-owned sound slots, playback state, and app-facing sound ergonomics.
 
 Acceptance criteria:
 
-- Audit `racing/src/audio.ts` against the current Aperture audio clip/config
-  path and identify the smallest missing library API, if any.
-- Replace remaining app-owned engine/skid/impact Web Audio graph ownership with
-  library-owned audio clip/sink/live-control primitives where available.
-- Keep racing code responsible for vehicle-specific audio intent and tuning, not
-  browser `AudioNode` lifecycle.
+- Add a public worker/app-system audio control surface for stable loop ids,
+  gain/playback-rate ramps, optional lowpass/filter parameters, and one-shot
+  events that compiles to Aperture audio snapshot intent.
+- Move racing's RPM/skid/impact model out of the main-thread `src/audio.ts`
+  RAF loop and into a worker system or resource-driven path.
+- Keep browser `AudioContext` unlock, clip decode/cache, node graph ownership,
+  and mixer routing inside Aperture packages.
 - Racing typecheck/build pass, managed browser audio gesture/unlock behavior is
-  verified, and no raw CDP is used.
+  verified, cache-busted served-module probes confirm current code, and no raw
+  CDP is used.
 
 ## Historical M10 Physics Notes
 

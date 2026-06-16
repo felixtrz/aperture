@@ -1,9 +1,43 @@
 # Completed Tasks
 
+## RACE-LIB-18 — Audio sound board and racing audio graph cleanup
+
+Completed: 2026-06-16 15:39 PDT
+Commit: pending
+
+### Summary
+
+- Added `@aperture-engine/audio` sound board APIs for named clip
+  preload/decode/cache, first-gesture startup, loop voices, one-shots,
+  gain/playback-rate automation, lowpass filters, mixer routing, and teardown.
+- Added focused fake-backend tests for loop voice automation, one-shot decode
+  caching/cleanup, and first-gesture startup.
+- Migrated `racing/src/audio.ts` to keep only the racing-specific RPM/skid/impact
+  model while delegating all Web Audio node lifecycle to the package API.
+- Rebuilt `packages/audio/dist` so workspace consumers and the running Vite
+  dev server resolve the new package exports.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/audio run typecheck`
+- `pnpm --filter @aperture-engine/audio run build`
+- `pnpm exec vitest run test/audio/sound-board.test.ts`
+- `pnpm --dir racing run typecheck && pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck && pnpm --dir shadow-lab run build`
+- Cache-busted live probes confirmed racing serves updated `src/audio.ts`,
+  `packages/audio/dist/index.js`, and `packages/audio/dist/sound-board.js` with
+  `Cache-Control: no-cache` and the new exports present.
+- Aperture MCP racing status remained healthy after a keyboard gesture triggered
+  the audio startup path: WebGPU running, no last error/failure, and automatic
+  shadows submitted.
+- Shadow-lab dev status stayed alive on `http://127.0.0.1:8861/`, and
+  cache-busted source probes confirmed its current decoration source remained
+  updated.
+
 ## RACE-LIB-17 — Racing source cleanup start
 
 Completed: 2026-06-16 15:26 PDT
-Commit: pending
+Commit: `048d2246`
 
 ### Summary
 
