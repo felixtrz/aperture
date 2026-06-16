@@ -205,7 +205,10 @@ export async function installDebugPanel(): Promise<void> {
   ]);
 
   const body = el("div", { className: "sl-body" });
-  const panel = el("div", { id: "sl-panel" }, [head, body]);
+  const panel = el("div", { id: "sl-panel", className: "collapsed" }, [
+    head,
+    body,
+  ]);
   head.addEventListener("click", () => panel.classList.toggle("collapsed"));
   // Keep typing/scrubbing inside the panel from leaking into the engine's
   // window-level keyboard/scroll input forwarding.

@@ -319,7 +319,7 @@ fn localLightClusterPointCookieColor(position: vec3f, lightIndex: u32, lightPosi
   let result = code
     .replace(
       `@fragment
-fn fs_main(input: VertexOutput) -> @location(0) vec4f {`,
+fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> @location(0) vec4f {`,
       `fn localLightClusterEnabled() -> bool {
   return arrayLength(&localLightClusterParams) >= 28u && localLightClusterParams[11] > 0.5;
 }
@@ -576,7 +576,7 @@ fn evaluateClusteredLocalLights(
 }
 
 @fragment
-fn fs_main(input: VertexOutput) -> @location(0) vec4f {`,
+fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> @location(0) vec4f {`,
     )
     .replace(
       `  for (var lightIndex = 0u; lightIndex < lightCount(); lightIndex = lightIndex + 1u) {

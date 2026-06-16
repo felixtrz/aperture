@@ -263,10 +263,16 @@ function computeDirectionalShadowMatrix(
     };
   }
 
-  const fit = tryFrustumFit(input, plan, direction);
+  const hasAuthoredFixedCamera =
+    plan.orthographicSize !== undefined && plan.orthographicSize > 0;
+  const fit = hasAuthoredFixedCamera
+    ? null
+    : tryFrustumFit(input, plan, direction);
 
-  const center = fit?.center ?? tuple3(input.center ?? DEFAULT_CENTER);
-  const distance = input.lightDistance ?? DEFAULT_LIGHT_DISTANCE;
+  const center =
+    fit?.center ?? tuple3(plan.center ?? input.center ?? DEFAULT_CENTER);
+  const distance =
+    plan.lightDistance ?? input.lightDistance ?? DEFAULT_LIGHT_DISTANCE;
   const lightPosition =
     fit?.lightPosition ??
     tuple3([
@@ -274,13 +280,16 @@ function computeDirectionalShadowMatrix(
       center[1] - direction[1] * distance,
       center[2] - direction[2] * distance,
     ]);
+  const authoredSize = plan.orthographicSize;
   const size =
     fit?.size ??
-    (input.orthographicSize ?? DEFAULT_ORTHOGRAPHIC_SIZE) *
-      (plan.cascadeFar ?? 1);
+    (authoredSize !== undefined && authoredSize > 0
+      ? authoredSize
+      : (input.orthographicSize ?? DEFAULT_ORTHOGRAPHIC_SIZE) *
+        (plan.cascadeFar ?? 1));
   const halfSize = size * 0.5;
-  const near = fit?.near ?? input.near ?? DEFAULT_NEAR;
-  const far = fit?.far ?? input.far ?? DEFAULT_FAR;
+  const near = fit?.near ?? plan.near ?? input.near ?? DEFAULT_NEAR;
+  const far = fit?.far ?? plan.far ?? input.far ?? DEFAULT_FAR;
   const up = fit?.up ?? [0, 1, 0];
   const viewMatrix = makeLookAt(lightPosition, center, up);
   const projectionMatrix = makeOrthographic(

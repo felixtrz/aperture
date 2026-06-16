@@ -43,6 +43,11 @@ export interface DirectionalShadowViewProjectionPlan {
   readonly mapSize: number;
   readonly casterLayerMask: number;
   readonly receiverLayerMask: number;
+  readonly center?: readonly [number, number, number];
+  readonly orthographicSize?: number;
+  readonly near?: number;
+  readonly far?: number;
+  readonly lightDistance?: number;
   readonly projection: "orthographic";
   readonly viewMatrixKey: string;
   readonly projectionMatrixKey: string;
@@ -199,6 +204,17 @@ export function createDirectionalShadowViewProjectionPlanReport(
         mapSize: pass.width,
         casterLayerMask: request.casterLayerMask,
         receiverLayerMask: request.receiverLayerMask,
+        ...(request.center === undefined
+          ? {}
+          : { center: tuple3(request.center) }),
+        ...(request.orthographicSize === undefined
+          ? {}
+          : { orthographicSize: request.orthographicSize }),
+        ...(request.near === undefined ? {} : { near: request.near }),
+        ...(request.far === undefined ? {} : { far: request.far }),
+        ...(request.lightDistance === undefined
+          ? {}
+          : { lightDistance: request.lightDistance }),
         projection: "orthographic",
         viewMatrixKey: `${pass.passKey}:view`,
         projectionMatrixKey: `${pass.passKey}:projection`,
@@ -290,6 +306,12 @@ function determineStatus(input: {
 
 function shadowInputKey(shadowId: number, lightId: number): string {
   return `${shadowId}:${lightId}`;
+}
+
+function tuple3(
+  value: readonly [number, number, number] | readonly number[],
+): readonly [number, number, number] {
+  return [value[0] ?? 0, value[1] ?? 0, value[2] ?? 0];
 }
 
 function groupPassesByShadowRequest(

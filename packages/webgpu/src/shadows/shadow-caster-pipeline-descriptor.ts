@@ -12,30 +12,13 @@ export type ShadowCasterPipelineDescriptorStatus =
   | "missing"
   | "not-required";
 
-// PlayCanvas parity: casters now render their FRONT faces (same as the forward
-// pass, see casterCullModeForForward) so protruding geometry casts correctly.
-// Front-face rendering puts self-shadow acne on the lit faces, so EVERY caster
-// pipeline gets a slope-scaled + small constant rasterizer depth bias — the
-// slope term offsets stored depth per polygon by its slope, clearing acne
-// without the peter-panning a large flat bias causes and independent of the
-// shadow ortho size. This is exactly PlayCanvas's always-on caster depth bias
-// (DepthState.depthBias/depthBiasSlope from shadowBias) rather than three.js's
-// back-face trick. Authored bias/slopeBias still win when larger.
-const SHADOW_CASTER_DEPTH_BIAS = 2;
-const SHADOW_CASTER_SLOPE_SCALE = 2.75;
-
 function biasForCull(
   _cullMode: ShadowCasterCullMode,
   base: { readonly depthBias: number; readonly depthBiasSlopeScale: number },
 ): { readonly depthBias: number; readonly depthBiasSlopeScale: number } {
-  // Applied uniformly to all cull modes now that all casters render front faces.
-  return {
-    depthBias: Math.max(base.depthBias, SHADOW_CASTER_DEPTH_BIAS),
-    depthBiasSlopeScale: Math.max(
-      base.depthBiasSlopeScale,
-      SHADOW_CASTER_SLOPE_SCALE,
-    ),
-  };
+  // three.js parity: no global rasterizer bias. Caster-side bias is emitted only
+  // when explicitly authored, analogous to material polygonOffset.
+  return base;
 }
 
 export type ShadowCasterPipelineDescriptorDiagnosticCode =

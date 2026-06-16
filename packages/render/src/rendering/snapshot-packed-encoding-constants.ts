@@ -1,5 +1,5 @@
 export const SNAPSHOT_PACKET_ENCODING_MAGIC = 0x4150_5350; // "APSP"
-export const SNAPSHOT_PACKET_ENCODING_VERSION = 8;
+export const SNAPSHOT_PACKET_ENCODING_VERSION = 9;
 
 export const SNAPSHOT_PACKET_HEADER_WORDS = 9;
 export const VIEW_PACKET_WORDS = 36;
@@ -8,8 +8,9 @@ export const LIGHT_PACKET_WORDS = 31;
 export const ENVIRONMENT_PACKET_WORDS = 13;
 // 0-5: ids/kind/masks/cascadeCount; 6: shadowType; 7-9: strength/filterRadius/
 // slopeBias (M4-T3); 10-11: depthBias/normalBias (float32) (M4-T5); 12: mapSize
-// (authored shadow-map resolution, uint32).
-export const SHADOW_REQUEST_PACKET_WORDS = 13;
+// (authored shadow-map resolution, uint32); 13-17: fixed directional shadow
+// camera center.xyz/orthographicSize/near (float32); 18-19: fixed far/lightDistance.
+export const SHADOW_REQUEST_PACKET_WORDS = 20;
 export const BOUNDS_PACKET_WORDS = 43;
 export const QUAD_BATCH_PACKET_WORDS = 24;
 

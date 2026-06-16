@@ -52,7 +52,7 @@ describe("shadow caster draw-list planning", () => {
               meshKey: "mesh:mesh-1",
               materialKey: "material:material-1",
               meshLayoutKey: "mesh-1",
-              casterCullMode: "back",
+              casterCullMode: "front",
               submesh: 0,
               layerMask: 1,
               worldTransformOffset: 0,
@@ -142,11 +142,11 @@ describe("shadow caster cull mode (three.js shadowSide parity)", () => {
     return report.lists[0]?.draws ?? [];
   }
 
-  it("renders a single-sided (forward cull 'back') caster's FRONT faces via cull 'back' (PlayCanvas parity)", () => {
-    // Caster renders the SAME faces as the forward pass, so protruding geometry
-    // casts correctly; acne is handled by the always-on slope-scaled depth bias.
+  it("renders a single-sided (forward cull 'back') caster's back faces via cull 'front'", () => {
+    // three.js shadowSide parity: FrontSide forward materials cast with
+    // BackSide depth material, which means culling front faces.
     expect(drawsFor("standard|opaque|back|less|none")[0]?.casterCullMode).toBe(
-      "back",
+      "front",
     );
   });
 
@@ -157,14 +157,14 @@ describe("shadow caster cull mode (three.js shadowSide parity)", () => {
     );
   });
 
-  it("keeps a back-side (forward cull 'front') caster's faces (cull 'front')", () => {
+  it("renders a back-side (forward cull 'front') caster's front faces via cull 'back'", () => {
     expect(drawsFor("standard|opaque|front|less|none")[0]?.casterCullMode).toBe(
-      "front",
+      "back",
     );
   });
 
-  it("defaults an unknown/cull-less material to front-face rendering ('back')", () => {
-    expect(drawsFor("standard")[0]?.casterCullMode).toBe("back");
+  it("defaults an unknown/cull-less material to the default FrontSide shadowSide mapping", () => {
+    expect(drawsFor("standard")[0]?.casterCullMode).toBe("front");
   });
 });
 

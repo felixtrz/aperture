@@ -11,29 +11,16 @@
     "aperture": "aperture"
   },
   "dependencies": {
-    "@aperture-engine/app": "file:vendor/aperture-engine-app-0.1.0.tgz",
-    "@aperture-engine/audio": "file:vendor/aperture-engine-audio-0.1.0.tgz",
-    "@aperture-engine/render": "file:vendor/aperture-engine-render-0.1.0.tgz",
-    "@aperture-engine/simulation": "file:vendor/aperture-engine-simulation-0.1.0.tgz",
-    "@aperture-engine/vite-plugin": "file:vendor/aperture-engine-vite-plugin-0.1.0.tgz"
+    "@aperture-engine/app": "workspace:*",
+    "@aperture-engine/audio": "workspace:*",
+    "@aperture-engine/render": "workspace:*",
+    "@aperture-engine/simulation": "workspace:*",
+    "@aperture-engine/vite-plugin": "workspace:*",
+    "@aperture-engine/webgpu": "workspace:*"
   },
   "devDependencies": {
-    "@aperture-engine/cli": "file:vendor/aperture-engine-cli-0.1.0.tgz",
+    "@aperture-engine/cli": "workspace:*",
     "typescript": "^6.0.3",
     "vite": "^8.0.16"
-  },
-  "pnpm": {
-    "overrides": {
-      "@aperture-engine/app": "file:./vendor/aperture-engine-app-0.1.0.tgz",
-      "@aperture-engine/audio": "file:./vendor/aperture-engine-audio-0.1.0.tgz",
-      "@aperture-engine/cli": "file:./vendor/aperture-engine-cli-0.1.0.tgz",
-      "@aperture-engine/physics": "file:./vendor/aperture-engine-physics-0.1.0.tgz",
-      "@aperture-engine/physics-rapier": "file:./vendor/aperture-engine-physics-rapier-0.1.0.tgz",
-      "@aperture-engine/render": "file:./vendor/aperture-engine-render-0.1.0.tgz",
-      "@aperture-engine/runtime": "file:./vendor/aperture-engine-runtime-0.1.0.tgz",
-      "@aperture-engine/simulation": "file:./vendor/aperture-engine-simulation-0.1.0.tgz",
-      "@aperture-engine/vite-plugin": "file:./vendor/aperture-engine-vite-plugin-0.1.0.tgz",
-      "@aperture-engine/webgpu": "file:./vendor/aperture-engine-webgpu-0.1.0.tgz"
-    }
   }
 }

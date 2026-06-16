@@ -117,6 +117,10 @@ export function validateLightShadowSettingsInput(
   const strength = settings.strength ?? 1;
   const filterRadius = settings.filterRadius ?? 1;
   const slopeBias = settings.slopeBias ?? 0;
+  const orthographicSize = settings.orthographicSize ?? 0;
+  const near = settings.near ?? 0;
+  const far = settings.far ?? 0;
+  const lightDistance = settings.lightDistance ?? 0;
   const diagnostics: RenderAuthoringDiagnostic[] = [];
 
   if (!Number.isInteger(mapSize) || mapSize <= 0) {
@@ -182,6 +186,31 @@ export function validateLightShadowSettingsInput(
       code: "shadow.invalidSlopeBias",
       field: "slopeBias",
       message: "Light shadow slopeBias must be non-negative.",
+    });
+  }
+
+  if (!(orthographicSize >= 0)) {
+    diagnostics.push({
+      code: "shadow.invalidOrthographicSize",
+      field: "orthographicSize",
+      message: "Light shadow orthographicSize must be non-negative.",
+    });
+  }
+
+  if (!(near >= 0) || !(far >= 0) || !(lightDistance >= 0)) {
+    diagnostics.push({
+      code: "shadow.invalidFixedCamera",
+      field: "near/far/lightDistance",
+      message:
+        "Light shadow near, far, and lightDistance must be non-negative when authored.",
+    });
+  }
+
+  if (near > 0 && far > 0 && near >= far) {
+    diagnostics.push({
+      code: "shadow.invalidFixedCamera",
+      field: "near/far",
+      message: "Light shadow fixed camera requires near < far.",
     });
   }
 

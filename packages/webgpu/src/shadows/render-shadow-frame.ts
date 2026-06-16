@@ -381,7 +381,9 @@ export function createRenderShadowFrame(
   ];
   const pipelineDescriptor = createShadowCasterPipelineDescriptorReport({
     commandEncoding,
+    casterDrawList,
     ...(casterCullModes.length > 0 ? { casterCullModes } : {}),
+    ...maxAuthoredCasterSlopeBias(shadowRequests),
   });
   const pipelineResource = createShadowCasterPipelineResourceReport({
     device: options.device,
@@ -719,13 +721,26 @@ function createDirectionalShadowDescriptor(
     // PlayCanvas light._shadowResolution parity); only fall back to the engine
     // default when neither an explicit option nor an authored value is present.
     mapSize: options?.mapSize ?? request.mapSize ?? DEFAULT_SHADOW_MAP_SIZE,
-    depthBias: options?.depthBias ?? DEFAULT_DEPTH_BIAS,
-    normalBias: options?.normalBias ?? 0,
-    filterRadiusTexels: options?.filterRadiusTexels ?? 1,
+    depthBias: options?.depthBias ?? request.depthBias ?? DEFAULT_DEPTH_BIAS,
+    normalBias: options?.normalBias ?? request.normalBias ?? 0,
+    filterRadiusTexels:
+      options?.filterRadiusTexels ?? request.filterRadius ?? 1,
     cascadeCount,
     viewDimension: cascadeCount > 1 ? "2d-array" : "2d",
     resourceKey,
   };
+}
+
+function maxAuthoredCasterSlopeBias(
+  shadowRequests: readonly ShadowRequestPacket[],
+): { readonly slopeBias: number } | Record<string, never> {
+  let slopeBias = 0;
+
+  for (const request of shadowRequests) {
+    slopeBias = Math.max(slopeBias, request.slopeBias ?? 0);
+  }
+
+  return slopeBias > 0 ? { slopeBias } : {};
 }
 
 function createReceiverResources(input: {

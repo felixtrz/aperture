@@ -59,8 +59,6 @@ describe("shadow caster pipeline descriptor metadata", () => {
   });
 
   it("emits authored slope-scaled and constant depth bias on the caster pipeline depthStencil (M4-T5)", () => {
-    // Every caster gets an always-on slope-scaled + constant depth bias (PlayCanvas
-    // front-face parity); authored bias/slopeBias win when LARGER than the floor.
     const report = createShadowCasterPipelineDescriptorReport({
       commandEncoding: commandEncoding("ready"),
       depthBias: 3,
@@ -74,15 +72,15 @@ describe("shadow caster pipeline descriptor metadata", () => {
       depthBias: 3,
       depthBiasSlopeScale: 3,
     });
-    // Authored sub-integer rounds (4.9 -> 5); a below-floor slope (-1 -> 0) falls
-    // back to the always-on caster slope (2.75).
+    // Authored sub-integer rounds (4.9 -> 5); invalid negative slope clamps to
+    // zero. There is no hidden global rasterizer-bias floor.
     const biased = createShadowCasterPipelineDescriptorReport({
       commandEncoding: commandEncoding("ready"),
       depthBias: 4.9,
       slopeBias: -1,
     });
     expect(biased.descriptor?.depthStencil.depthBias).toBe(5);
-    expect(biased.descriptor?.depthStencil.depthBiasSlopeScale).toBe(2.75);
+    expect(biased.descriptor?.depthStencil.depthBiasSlopeScale).toBe(0);
   });
 
   it("reports depth-only shadow caster pipeline metadata without creating pipelines", () => {
@@ -137,8 +135,8 @@ describe("shadow caster pipeline descriptor metadata", () => {
           format: "depth24plus",
           depthWriteEnabled: true,
           depthCompare: "less-equal",
-          depthBias: 2,
-          depthBiasSlopeScale: 2.75,
+          depthBias: 0,
+          depthBiasSlopeScale: 0,
         },
         colorTargets: [],
       },
@@ -174,8 +172,8 @@ describe("shadow caster pipeline descriptor metadata", () => {
             format: "depth24plus",
             depthWriteEnabled: true,
             depthCompare: "less-equal",
-            depthBias: 2,
-            depthBiasSlopeScale: 2.75,
+            depthBias: 0,
+            depthBiasSlopeScale: 0,
           },
           colorTargets: [],
         },

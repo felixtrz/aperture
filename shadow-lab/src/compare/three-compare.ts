@@ -6,14 +6,15 @@
 //
 // Why this exists: the auto-shadow ortho/bias work needs a ground truth. Eyeball
 // "looks shadowy" is not parity; this is. The three.js scene below mirrors
-// src/systems/setup.system.ts one-for-one (trunk cylinder + 3 cones, ground box,
-// sun position, ambient). Keep the two in sync when either changes.
+// src/systems/setup.system.ts one-for-one (truck GLB, ground box, sun position,
+// ambient). Keep the two in sync when either changes.
 //
 // Aperture renders in its own loop on #aperture; this module owns a second
 // WebGPU canvas (#sl-three) and a shared camera. The aperture camera is driven
 // from here via the devtools runtime so both panes always frame the same pose
 // (the worker orbit-controls system is disabled while this harness runs).
 import * as THREE from "./three.webgpu.js";
+import { GLTFLoader } from "./loaders/GLTFLoader.js";
 import { quatLookAt, type Vec3 } from "../lib/math.js";
 
 interface DevtoolsResponse {
@@ -41,9 +42,13 @@ async function waitForRuntime(timeoutMs = 15_000): Promise<McpRuntime | null> {
 }
 
 // ---- shared orbit state (mirrors orbit-controls.system.ts defaults) ----
-const orbit = { azimuth: 0.8, elevation: 1.15, distance: 20 };
+const orbit = { azimuth: 0.8, elevation: 1.15, distance: 4 };
 const POLE = Math.PI / 2 - 0.01;
-const target: Vec3 = [0, 0, 0];
+const target: Vec3 = [0, 0.5, 0];
+const TRUCK_URL = "/models/vehicle-truck-green.glb";
+const TRUCK_SCALE = 0.5;
+const TRUCK_TRANSLATION: Vec3 = [0, -0.01, 0];
+const TRUCK_YAW_RADIANS = Math.PI;
 
 function orbitEye(): Vec3 {
   const cosEl = Math.cos(orbit.elevation);
@@ -128,10 +133,10 @@ function layout(): {
 }
 
 // ---- build the reference scene (1:1 with setup.system.ts) ----
-function buildScene(): {
+async function buildScene(): Promise<{
   scene: typeof THREE.Scene.prototype;
-  treeRoot: typeof THREE.Group.prototype;
-} {
+  truckRoot: typeof THREE.Group.prototype;
+}> {
   const scene = new THREE.Scene();
   // Racing background (scene.background = 0xadb2ba, sRGB hex).
   scene.background = new THREE.Color(0xadb2ba);
@@ -153,40 +158,8 @@ function buildScene(): {
   ground.castShadow = false;
   scene.add(ground);
 
-  const trunkMat = new THREE.MeshStandardMaterial({
-    color: linear(0.4, 0.26, 0.13),
-    roughness: 1,
-    metalness: 0,
-  });
-  const foliageMat = new THREE.MeshStandardMaterial({
-    color: linear(0.18, 0.5, 0.28),
-    roughness: 1,
-    metalness: 0,
-  });
-
-  // Tree root = trunk (cylinder r0.25, h1.4), root world translation [0,0.7,0].
-  // three Cylinder/Cone are centered at origin (like aperture's depth=height).
-  const treeRoot = new THREE.Group();
-  treeRoot.position.set(0, 0.7, 0);
-  const trunk = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.25, 0.25, 1.4, 24),
-    trunkMat,
-  );
-  trunk.castShadow = true;
-  trunk.receiveShadow = true;
-  treeRoot.add(trunk);
-
-  const addCone = (r: number, h: number, localY: number): void => {
-    const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 32), foliageMat);
-    cone.position.set(0, localY, 0);
-    cone.castShadow = true;
-    cone.receiveShadow = true;
-    treeRoot.add(cone);
-  };
-  addCone(1.4, 1.6, 1.0); // cone0
-  addCone(1.05, 1.5, 1.85); // cone1
-  addCone(0.7, 1.4, 2.65); // cone2
-  scene.add(treeRoot);
+  const truckRoot = await loadTruckReference();
+  scene.add(truckRoot);
 
   // Sun: directional, position [11.4,15,-5.3] → target origin (matches DIR_LIGHT).
   const sun = new THREE.DirectionalLight(0xffffff, 3);
@@ -222,7 +195,33 @@ function buildScene(): {
   );
   scene.add(amb);
 
-  return { scene, treeRoot };
+  return { scene, truckRoot };
+}
+
+async function loadTruckReference(): Promise<typeof THREE.Group.prototype> {
+  const loader = new GLTFLoader();
+  const gltf = await loader.loadAsync(TRUCK_URL);
+  const truckRoot = gltf.scene as typeof THREE.Group.prototype;
+  truckRoot.name = "truck";
+  truckRoot.position.set(
+    TRUCK_TRANSLATION[0],
+    TRUCK_TRANSLATION[1],
+    TRUCK_TRANSLATION[2],
+  );
+  truckRoot.scale.set(TRUCK_SCALE, TRUCK_SCALE, TRUCK_SCALE);
+  truckRoot.rotation.y = TRUCK_YAW_RADIANS;
+  truckRoot.traverse((object: unknown) => {
+    const mesh = object as {
+      isMesh?: boolean;
+      castShadow?: boolean;
+      receiveShadow?: boolean;
+    };
+    if (mesh.isMesh === true) {
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+    }
+  });
+  return truckRoot;
 }
 
 // ---- per-pixel diff heatmap (aperture canvas vs three canvas) ----
@@ -282,7 +281,23 @@ export async function installThreeCompare(): Promise<void> {
   }
 
   const { threeCanvas, diffCanvas, setLabel, diffButton } = layout();
-  const { scene, treeRoot } = buildScene();
+  setLabel("THREE.js loading truck...");
+  let sceneBundle:
+    | {
+        scene: typeof THREE.Scene.prototype;
+        truckRoot: typeof THREE.Group.prototype;
+      }
+    | null = null;
+  try {
+    sceneBundle = await buildScene();
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("[three-compare] truck GLB load failed:", err);
+    setLabel("THREE.js truck load FAILED — see console");
+    return;
+  }
+  const { scene, truckRoot } = sceneBundle;
+  setLabel("THREE.js r184 (WebGPU) ▶");
 
   const renderer = new THREE.WebGPURenderer({
     canvas: threeCanvas,
@@ -318,7 +333,7 @@ export async function installThreeCompare(): Promise<void> {
   resize();
   window.addEventListener("resize", resize);
 
-  // ---- own the camera: find aperture's camera + tree entities, disable the
+  // ---- own the camera: find aperture's camera + truck entities, disable the
   // worker orbit-controls (done in the system file), push pose from here. ----
   interface EntityRef {
     readonly index: number;
@@ -331,7 +346,7 @@ export async function installThreeCompare(): Promise<void> {
         ?.summaries ?? [];
     return summaries.find((s) => s.name === name)?.entity ?? null;
   };
-  let treeRef = await find("tree");
+  let truckRef = await find("truck");
 
   let cameraPushInFlight = false;
   let cameraPushQueued = false;
@@ -364,21 +379,46 @@ export async function installThreeCompare(): Promise<void> {
   };
   applyCameraPose();
 
-  // Mirror aperture's tree transform onto the three group (the debug panel moves
-  // the aperture tree; poll so the reference tree follows). Low rate is fine.
-  const pollTree = async (): Promise<void> => {
-    if (!treeRef) treeRef = await find("tree");
-    if (!treeRef) return;
-    const res = await rt.callTool("ecs_get_entity", { entity: treeRef });
-    const t = (
+  // Mirror aperture's truck transform onto the three group. The debug panel can
+  // move/rotate/scale the aperture truck; poll so the reference truck follows.
+  const pollTruck = async (): Promise<void> => {
+    if (!truckRef) truckRef = await find("truck");
+    if (!truckRef) return;
+    const res = await rt.callTool("ecs_get_entity", { entity: truckRef });
+    const localTransform = (
       res.result as {
-        summary?: { localTransform?: { translation?: number[] } | null };
+        summary?: {
+          localTransform?: {
+            translation?: number[];
+            rotation?: number[];
+            scale?: number[];
+          } | null;
+        };
       }
-    )?.summary?.localTransform?.translation;
-    if (t) treeRoot.position.set(t[0] ?? 0, t[1] ?? 0.7, t[2] ?? 0);
+    )?.summary?.localTransform;
+    const t = localTransform?.translation;
+    if (t) {
+      truckRoot.position.set(
+        t[0] ?? TRUCK_TRANSLATION[0],
+        t[1] ?? TRUCK_TRANSLATION[1],
+        t[2] ?? TRUCK_TRANSLATION[2],
+      );
+    }
+    const r = localTransform?.rotation;
+    if (r) {
+      truckRoot.quaternion.set(r[0] ?? 0, r[1] ?? 0, r[2] ?? 0, r[3] ?? 1);
+    }
+    const s = localTransform?.scale;
+    if (s) {
+      truckRoot.scale.set(
+        s[0] ?? TRUCK_SCALE,
+        s[1] ?? TRUCK_SCALE,
+        s[2] ?? TRUCK_SCALE,
+      );
+    }
   };
-  void pollTree();
-  setInterval(() => void pollTree(), 200);
+  void pollTruck();
+  setInterval(() => void pollTruck(), 200);
 
   // ---- camera orbit (drag + wheel), drives BOTH renderers ----
   let prev: [number, number] | null = null;

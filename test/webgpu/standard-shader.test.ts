@@ -1335,7 +1335,7 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(deformed[2]).toBeCloseTo(5);
   });
 
-  it("declares browser-safe group 3 bindings and 3x3 PCF comparison sampling for shadow receivers", () => {
+  it("declares browser-safe group 3 bindings and Three-style PCFSoft comparison sampling for shadow receivers", () => {
     expect(
       validateStandardShaderMetadata(STANDARD_SHADOW_RECEIVER_MESH_SHADER),
     ).toEqual({ valid: true, diagnostics: [] });
@@ -1350,6 +1350,18 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "@group(3) @binding(4) var directionalShadowSampler: sampler_comparison;",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "@builtin(front_facing) frontFacing: bool",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "const STANDARD_FEATURE_DOUBLE_SIDED: u32 = 128u;",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "return normal * standardFaceDirection(frontFacing);",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let normal = standardGeometryNormal(input.worldNormal, frontFacing);",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "fn sampleDirectionalShadowFactor(worldPosition: vec3f, normal: vec3f) -> f32",
@@ -1378,7 +1390,13 @@ describe("built-in standard material WGSL shader metadata", () => {
       "fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32, filterRadiusTexels: f32) -> f32",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
-      "for (var y: i32 = -1; y <= 1; y = y + 1)",
+      "fn sampleDirectionalShadowPcfSoft(shadowUv: vec2f, receiverDepth: f32) -> f32",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let f = fract(uv * shadowMapSize + vec2f(0.5));",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "textureGatherCompare(directionalShadowMap, directionalShadowSampler, uv, receiverDepth, vec2i(-1, 1))",
     );
     // Depth convention is centralized in one helper (shadowDepthFromClip): wgpu
     // clip z is [0,1], so the receiver depth is the raw clip z and out-of-frustum
@@ -1394,7 +1412,7 @@ describe("built-in standard material WGSL shader metadata", () => {
       "let receiverDepth = clamp(",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
-      "let rawVisibility = sampleDirectionalShadowPcf3x3(",
+      "rawVisibility = sampleDirectionalShadowPcfSoft(",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "return compareFactor;",
@@ -1509,6 +1527,31 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
   });
 
+  it("uses face-corrected geometry normals for double-sided normal maps", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: true,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      shadowMap: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.code).toContain(
+      "fn sampleTangentSpaceNormal(input: VertexOutput, frontFacing: bool) -> vec3f",
+    );
+    expect(shader.code).toContain(
+      "let normal = standardGeometryNormal(input.worldNormal, frontFacing);",
+    );
+    expect(shader.code).toContain(
+      "let normal = sampleTangentSpaceNormal(input, frontFacing);",
+    );
+  });
+
   it("declares cascaded directional shadow array sampling and distance selection", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: false,
@@ -1587,11 +1630,18 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
 
     // M4-T7: PCSS variant (blocker search via textureLoad + penumbra width +
-    // variable-radius PCF), selected by the authored shadowType; and the
-    // cascaded PCF now multiplies the kernel offset by the authored filter
-    // radius (it previously ignored it).
+    // variable-radius PCF), selected by the authored shadowType. The default
+    // PCF path now matches three.js PCFSoftShadowMap: fixed weighted
+    // textureGatherCompare taps rather than multiplying the kernel by authored
+    // radius.
     expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "fn sampleDirectionalShadowPcss(shadowUv: vec2f, receiverDepth: f32, cascadeIndex: u32, filterRadiusTexels: f32) -> f32",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "fn sampleDirectionalShadowPcfSoft(shadowUv: vec2f, receiverDepth: f32, cascadeIndex: u32) -> f32",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "textureGatherCompare(directionalShadowMap, directionalShadowSampler, uv, i32(cascadeIndex), receiverDepth, vec2i(-1, 1))",
     );
     expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "let occluderDepth = textureLoad(directionalShadowMap, coord, i32(cascadeIndex), 0);",
@@ -1634,7 +1684,10 @@ describe("built-in standard material WGSL shader metadata", () => {
       "@group(3) @binding(7) var standardSpecularIblTexture: texture_cube<f32>;",
     );
     expect(shader.code).toContain(
-      "let color = (ambientDiffuse + diffuseIbl + specularIblProof + direct) * receiverShadowFactor + material.emissiveFactor;",
+      "let shadowFactor = sampleDirectionalShadowFactor(lightIndex, input.worldPosition, normal);",
+    );
+    expect(shader.code).toContain(
+      "let color = ambientDiffuse + diffuseIbl + specularIblProof + direct + material.emissiveFactor;",
     );
   });
 
@@ -1818,8 +1871,11 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32, layerIndex: u32, filterRadiusTexels: f32) -> f32",
     );
+    expect(shader.code).toContain(
+      "fn sampleDirectionalShadowPcfSoft(shadowUv: vec2f, receiverDepth: f32, layerIndex: u32) -> f32",
+    );
     expect(shader.code).toContain("i32(layerIndex),\n        receiverDepth");
-    expect(shader.code).toContain("receiverDepth,\n    matrixBaseIndex,");
+    expect(shader.code).toContain("receiverDepth,\n      matrixBaseIndex,");
     expect(shader.code).toContain("fn localLightClusterSpotShadowFactor");
     expect(shader.code).toContain(
       "localLightClusterPointShadowMatrixBase(lightIndex)",

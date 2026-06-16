@@ -2769,7 +2769,7 @@ describe("render extraction", () => {
     ]);
   });
 
-  it("extracts authored shadowType/strength/filterRadius/slopeBias onto the shadow request packet", () => {
+  it("extracts authored shadow and fixed-camera settings onto the shadow request packet", () => {
     const world = createRuntimeWorld();
     const directionalLight = createLightEntity(world, {
       kind: LightKind.Directional,
@@ -2784,6 +2784,11 @@ describe("render extraction", () => {
         strength: 0.7,
         filterRadius: 4,
         slopeBias: 2,
+        center: [1, 2, 3],
+        orthographicSize: 16,
+        near: 0.5,
+        far: 60,
+        lightDistance: 25,
       }),
     );
 
@@ -2794,6 +2799,11 @@ describe("render extraction", () => {
     expect(request.strength).toBeCloseTo(0.7, 5);
     expect(request.filterRadius).toBe(4);
     expect(request.slopeBias).toBe(2);
+    expect(request.center).toEqual([1, 2, 3]);
+    expect(request.orthographicSize).toBe(16);
+    expect(request.near).toBe(0.5);
+    expect(request.far).toBe(60);
+    expect(request.lightDistance).toBe(25);
   });
 });
 

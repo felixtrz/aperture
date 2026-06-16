@@ -46,6 +46,16 @@ export function readShadowSettings(
     strength: entity.getValue(LightShadowSettings, "strength") ?? 1,
     filterRadius: entity.getValue(LightShadowSettings, "filterRadius") ?? 1,
     slopeBias: entity.getValue(LightShadowSettings, "slopeBias") ?? 0,
+    center: [
+      entity.getValue(LightShadowSettings, "centerX") ?? 0,
+      entity.getValue(LightShadowSettings, "centerY") ?? 0,
+      entity.getValue(LightShadowSettings, "centerZ") ?? 0,
+    ],
+    orthographicSize:
+      entity.getValue(LightShadowSettings, "orthographicSize") ?? 0,
+    near: entity.getValue(LightShadowSettings, "near") ?? 0,
+    far: entity.getValue(LightShadowSettings, "far") ?? 0,
+    lightDistance: entity.getValue(LightShadowSettings, "lightDistance") ?? 0,
   };
   const validation = validateLightShadowSettingsInput(settings);
 
@@ -143,6 +153,11 @@ export function appendShadowRequest(
   const depthBias = settings.bias ?? 0;
   const normalBias = settings.normalBias ?? 0;
   const mapSize = settings.mapSize ?? 1024;
+  const orthographicSize = settings.orthographicSize ?? 0;
+  const near = settings.near ?? 0;
+  const far = settings.far ?? 0;
+  const lightDistance = settings.lightDistance ?? 0;
+  const center = settings.center ?? [0, 0, 0];
 
   shadowRequests.push({
     shadowId: lightId,
@@ -163,6 +178,15 @@ export function appendShadowRequest(
     // PlayCanvas (light._shadowResolution) honor it. Only attached when it
     // differs from the renderer default so default lights round-trip minimally.
     ...(mapSize === 1024 ? {} : { mapSize }),
+    ...(orthographicSize <= 0
+      ? {}
+      : {
+          center,
+          orthographicSize,
+          ...(near === 0 ? {} : { near }),
+          ...(far === 0 ? {} : { far }),
+          ...(lightDistance === 0 ? {} : { lightDistance }),
+        }),
   });
 }
 

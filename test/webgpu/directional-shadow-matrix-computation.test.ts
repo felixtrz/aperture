@@ -89,6 +89,43 @@ describe("directional shadow matrix computation", () => {
     ]);
   });
 
+  it("uses an authored fixed directional camera instead of frustum fitting or cascade scaling", () => {
+    const request = {
+      ...shadowRequest(),
+      cascadeCount: 3,
+      center: [1, 2, 3] as const,
+      orthographicSize: 16,
+      near: 0.5,
+      far: 60,
+      lightDistance: 20,
+    };
+    const report = createDirectionalShadowMatrixComputationReport({
+      viewProjection: frustumFitPlan(request),
+      transforms: identityTransform(),
+      cameraViewMatrix: translationView(10, 0, 0),
+      cameraProjectionMatrix: makePerspective(1.0, 1, 1, 200),
+    });
+
+    expect(report.matrixCount).toBe(3);
+    expect(report.matrices.map((matrix) => matrix.center)).toEqual([
+      [1, 2, 3],
+      [1, 2, 3],
+      [1, 2, 3],
+    ]);
+    expect(report.matrices.map((matrix) => matrix.orthographicSize)).toEqual([
+      16, 16, 16,
+    ]);
+    expect(report.matrices.map((matrix) => matrix.near)).toEqual([
+      0.5, 0.5, 0.5,
+    ]);
+    expect(report.matrices.map((matrix) => matrix.far)).toEqual([60, 60, 60]);
+    expect(report.matrices.map((matrix) => matrix.lightPosition)).toEqual([
+      [1, 2, 23],
+      [1, 2, 23],
+      [1, 2, 23],
+    ]);
+  });
+
   it("frustum-fits a texel-stable extent: identical ortho size and texel-snapped center under camera translation", () => {
     const request = { ...shadowRequest(), cascadeCount: 4 };
     const projection = makePerspective(1.0, 1, 1, 200);

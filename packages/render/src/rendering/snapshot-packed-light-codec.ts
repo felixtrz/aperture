@@ -132,6 +132,13 @@ export function writeShadowRequestPacket(
   writeFloat32(words, offset + 10, packet.depthBias ?? 0);
   writeFloat32(words, offset + 11, packet.normalBias ?? 0);
   words[offset + 12] = Math.max(0, Math.floor(packet.mapSize ?? 0)) >>> 0;
+  writeFloat32(words, offset + 13, packet.center?.[0] ?? 0);
+  writeFloat32(words, offset + 14, packet.center?.[1] ?? 0);
+  writeFloat32(words, offset + 15, packet.center?.[2] ?? 0);
+  writeFloat32(words, offset + 16, packet.orthographicSize ?? 0);
+  writeFloat32(words, offset + 17, packet.near ?? 0);
+  writeFloat32(words, offset + 18, packet.far ?? 0);
+  writeFloat32(words, offset + 19, packet.lightDistance ?? 0);
 }
 
 export function readShadowRequestPacket(
@@ -156,6 +163,15 @@ export function readShadowRequestPacket(
   const depthBias = readFloat32(words, offset + 10);
   const normalBias = readFloat32(words, offset + 11);
   const mapSize = words[offset + 12] ?? 0;
+  const center = [
+    readFloat32(words, offset + 13),
+    readFloat32(words, offset + 14),
+    readFloat32(words, offset + 15),
+  ] as const;
+  const orthographicSize = readFloat32(words, offset + 16);
+  const near = readFloat32(words, offset + 17);
+  const far = readFloat32(words, offset + 18);
+  const lightDistance = readFloat32(words, offset + 19);
 
   return {
     ...packet,
@@ -168,5 +184,14 @@ export function readShadowRequestPacket(
     ...(depthBias === 0 ? {} : { depthBias }),
     ...(normalBias === 0 ? {} : { normalBias }),
     ...(mapSize === 0 ? {} : { mapSize }),
+    ...(orthographicSize <= 0
+      ? {}
+      : {
+          center,
+          orthographicSize,
+          ...(near === 0 ? {} : { near }),
+          ...(far === 0 ? {} : { far }),
+          ...(lightDistance === 0 ? {} : { lightDistance }),
+        }),
   };
 }

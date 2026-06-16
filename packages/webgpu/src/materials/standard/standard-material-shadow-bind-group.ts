@@ -105,8 +105,8 @@ export interface ShadowSamplerDescriptor {
   readonly addressModeU: "clamp-to-edge";
   readonly addressModeV: "clamp-to-edge";
   readonly addressModeW: "clamp-to-edge";
-  readonly magFilter: "nearest";
-  readonly minFilter: "nearest";
+  readonly magFilter: "linear" | "nearest";
+  readonly minFilter: "linear" | "nearest";
   readonly mipmapFilter: "nearest";
   readonly lodMinClamp: 0;
   readonly lodMaxClamp: 32;
@@ -682,8 +682,8 @@ function createShadowSamplerDescriptor(
     addressModeU: "clamp-to-edge",
     addressModeV: "clamp-to-edge",
     addressModeW: "clamp-to-edge",
-    magFilter: "nearest",
-    minFilter: "nearest",
+    magFilter: "linear",
+    minFilter: "linear",
     mipmapFilter: "nearest",
     lodMinClamp: 0,
     lodMaxClamp: 32,
