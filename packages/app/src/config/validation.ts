@@ -3,6 +3,7 @@ import type {
   ApertureConfig,
   ApertureAudioAssetDescriptor,
   ApertureConfigAssetDescriptor,
+  ApertureTextureAssetDescriptor,
   AssetPreloadPolicy,
   GamepadButtonName,
   GamepadStickName,
@@ -204,6 +205,13 @@ function validateAssetDescriptor(
       descriptor as ApertureAudioAssetDescriptor,
     );
   }
+
+  if (descriptor.kind === "texture") {
+    validateTextureAssetDescriptor(
+      id,
+      descriptor as ApertureTextureAssetDescriptor,
+    );
+  }
 }
 
 function validateAudioAssetDescriptor(
@@ -264,6 +272,85 @@ function invalidAudioAsset(
     "aperture.config.invalidAudioAsset",
     `Asset '${id}' has invalid audio ${field}. ${message}`,
     "Use asset.audio('/assets/clip.ogg', { durationHint: 1.2 }) with finite plain-data options.",
+  );
+}
+
+const TEXTURE_COLOR_SPACES = new Set(["srgb", "linear", "data"]);
+const TEXTURE_SEMANTICS = new Set([
+  "base-color",
+  "emissive",
+  "clearcoat-roughness",
+  "sheen-color",
+  "sheen-roughness",
+  "iridescence",
+  "iridescence-thickness",
+  "metallic-roughness",
+  "normal",
+  "occlusion",
+  "data",
+]);
+
+function validateTextureAssetDescriptor(
+  id: string,
+  descriptor: ApertureTextureAssetDescriptor,
+): void {
+  if (
+    descriptor.colorSpace !== undefined &&
+    !TEXTURE_COLOR_SPACES.has(descriptor.colorSpace)
+  ) {
+    throw invalidTextureAsset(
+      id,
+      "colorSpace",
+      `Unsupported texture colorSpace '${String(descriptor.colorSpace)}'.`,
+    );
+  }
+
+  if (
+    descriptor.semantic !== undefined &&
+    !TEXTURE_SEMANTICS.has(descriptor.semantic)
+  ) {
+    throw invalidTextureAsset(
+      id,
+      "semantic",
+      `Unsupported texture semantic '${String(descriptor.semantic)}'.`,
+    );
+  }
+
+  if (
+    descriptor.mimeType !== undefined &&
+    descriptor.mimeType.trim().length === 0
+  ) {
+    throw invalidTextureAsset(
+      id,
+      "mimeType",
+      "Texture asset mimeType must be non-empty when provided.",
+    );
+  }
+
+  const colorSpace = descriptor.colorSpace ?? "srgb";
+  const semantic = descriptor.semantic ?? "base-color";
+  if (
+    colorSpace === "srgb" &&
+    semantic !== "base-color" &&
+    semantic !== "emissive"
+  ) {
+    throw invalidTextureAsset(
+      id,
+      "colorSpace",
+      `${semantic} textures must use linear or data color space, not srgb.`,
+    );
+  }
+}
+
+function invalidTextureAsset(
+  id: string,
+  field: string,
+  message: string,
+): ApertureConfigError {
+  return new ApertureConfigError(
+    "aperture.config.invalidTextureAsset",
+    `Asset '${id}' has invalid texture ${field}. ${message}`,
+    "Use asset.texture('/assets/sprite.png', { colorSpace: 'srgb', semantic: 'base-color' }) with plain-data options.",
   );
 }
 

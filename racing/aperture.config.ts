@@ -24,6 +24,13 @@ export default defineApertureConfig({
     "decoration-empty": gltf("decoration-empty"),
     "decoration-forest": gltf("decoration-forest"),
     "decoration-tents": gltf("decoration-tents"),
+    smoke: asset.texture("/sprites/smoke.png", {
+      preload: "blocking",
+      label: "Smoke sprite",
+      colorSpace: "srgb",
+      semantic: "base-color",
+      mimeType: "image/png",
+    }),
     engine: asset.audio("/audio/engine.ogg", {
       preload: "blocking",
       durationHint: 2.1,

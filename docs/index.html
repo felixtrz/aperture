@@ -393,16 +393,21 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 19:06 UTC</dd>
+            <dd>2026-06-16 19:23 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: app config now exposes
-              <code>asset.audio(...)</code> and generated browser apps can opt
-              into audio with <code>audio: true</code>. Racing declares its
-              engine/skid/impact clips through the config so the source asset
-              registry owns clip metadata and encoded bytes. Prior update:
+              Latest update: app config
+              <code>asset.texture(...)</code> now decodes image URLs into real
+              <code>TextureAsset</code> source data with texture
+              color-space/semantic validation. Racing declares its smoke sprite
+              through config, so <code>particles.system.ts</code> no longer
+              fetches or decodes image pixels. Prior update: app config now
+              exposes <code>asset.audio(...)</code> and generated browser apps
+              can opt into audio with <code>audio: true</code>. Racing declares
+              its engine/skid/impact clips through the config so the source
+              asset registry owns clip metadata and encoded bytes. Prior update:
               render now exposes
               <code>decodeImageUrlToTextureSource(...)</code> so worker systems
               can decode image URLs into texture source data without copying

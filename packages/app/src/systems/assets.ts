@@ -9,11 +9,14 @@ import {
   createMeshoptDecoder as createMeshoptBufferDecoder,
   createWgslShaderAsset,
   createAudioClipAsset,
+  createTextureAsset,
   createStandardMaterialAsset,
+  decodeImageUrlToTextureSource,
   loadGlbFromUri,
   loadGltfFromUri,
   registerGltfSourceAssetsFromReports,
   validateAudioClipAsset,
+  validateTextureAsset,
   type DracoMeshDecoder,
   type AudioClipAsset,
   type GltfAnimationImportReport,
@@ -26,6 +29,9 @@ import {
   type Ktx2BasisTranscoder,
   type Ktx2TextureCompressionSupport,
   type MeshoptBufferDecoder,
+  type TextureAsset,
+  type TextureColorSpace,
+  type TextureSemantic,
 } from "@aperture-engine/render";
 import {
   assetHandleKey,
@@ -43,11 +49,13 @@ import {
   type AssetHandle,
   type SceneHandle,
   type ShaderHandle,
+  type TextureHandle,
 } from "@aperture-engine/simulation";
 import type {
   ApertureConfig,
   ApertureAudioAssetDescriptor,
   ApertureConfigAssetDescriptor,
+  ApertureTextureAssetDescriptor,
   AssetPreloadPolicy,
   ConfigAssetKind,
 } from "../config.js";
@@ -74,7 +82,9 @@ export interface SystemAssetHandle<TKind extends SystemAssetKind> {
       ? ShaderHandle
       : TKind extends "audio"
         ? AudioClipHandle
-        : unknown;
+        : TKind extends "texture"
+          ? TextureHandle
+          : unknown;
 }
 
 export type SystemGltfAssetHandle = SystemAssetHandle<"gltf"> & {
@@ -92,6 +102,13 @@ export type SystemAudioAssetHandle = SystemAssetHandle<"audio"> & {
   readonly durationHint?: number;
   readonly channels?: number;
   readonly captionTrackId?: string;
+};
+
+export type SystemTextureAssetHandle = SystemAssetHandle<"texture"> & {
+  readonly renderHandle: TextureHandle;
+  readonly colorSpace: TextureColorSpace;
+  readonly semantic: TextureSemantic;
+  readonly mimeType?: string;
 };
 
 /** A glTF animation clip registered in the AssetRegistry under a handle. */
@@ -122,7 +139,7 @@ export interface SystemGltfLoadedScene {
 
 export interface SystemAssetAccess {
   gltf(id: string): SystemGltfAssetHandle;
-  texture(id: string): SystemAssetHandle<"texture">;
+  texture(id: string): SystemTextureAssetHandle;
   hdr(id: string): SystemAssetHandle<"hdr">;
   shader(id: string): SystemShaderAssetHandle;
   audio(id: string): SystemAudioAssetHandle;
@@ -204,8 +221,8 @@ export function createSystemAssetAccess(options: {
     const handle = createSystemAssetHandle(id, descriptor);
     assets.set(id, handle);
 
-    if (!options.registry.has(handle.renderHandle as SceneHandle)) {
-      options.registry.register(handle.renderHandle as SceneHandle, {
+    if (!options.registry.has(handle.renderHandle as AssetHandle)) {
+      options.registry.register(handle.renderHandle as AssetHandle, {
         label: descriptor.label ?? descriptor.url,
       });
     }
@@ -254,9 +271,24 @@ export function createSystemAssetAccess(options: {
           registryHandle as AudioClipHandle,
           audioAsset,
         );
+      } else if (handle.kind === "texture") {
+        const textureAsset = await loadSystemTextureAsset(
+          handle as SystemTextureAssetHandle,
+        );
+        options.registry.markReady(
+          registryHandle as TextureHandle,
+          textureAsset,
+        );
       }
 
       if (handle.kind !== "shader" && handle.kind !== "audio") {
+        const loadedEntry = options.registry.get(registryHandle);
+        if (loadedEntry?.status === "ready") {
+          handle.ready.value = true;
+          handle.error.value = null;
+          return;
+        }
+
         options.registry.markReady(registryHandle, {
           id: handle.id,
           kind: handle.kind,
@@ -334,7 +366,7 @@ export function createSystemAssetAccess(options: {
         );
       }
 
-      return handle as SystemAssetHandle<"texture">;
+      return handle as SystemTextureAssetHandle;
     },
     hdr(id) {
       const handle = lookup(id);
@@ -433,6 +465,23 @@ function createSystemAssetHandle(
     } as SystemAudioAssetHandle;
   }
 
+  if (descriptor.kind === "texture") {
+    const texture = descriptor as ApertureTextureAssetDescriptor;
+    return {
+      id,
+      kind: descriptor.kind,
+      url: descriptor.url,
+      ...(descriptor.label === undefined ? {} : { label: descriptor.label }),
+      preload: descriptor.preload,
+      ready: createSignal(false),
+      error: createSignal<ApertureSystemDiagnostic | null>(null),
+      renderHandle: createTextureHandle(id),
+      colorSpace: texture.colorSpace ?? "srgb",
+      semantic: texture.semantic ?? "base-color",
+      ...(texture.mimeType === undefined ? {} : { mimeType: texture.mimeType }),
+    } as SystemTextureAssetHandle;
+  }
+
   return {
     id,
     kind: descriptor.kind,
@@ -442,14 +491,95 @@ function createSystemAssetHandle(
     ready: createSignal(false),
     error: createSignal<ApertureSystemDiagnostic | null>(null),
     renderHandle:
-      descriptor.kind === "texture"
-        ? createTextureHandle(id)
-        : descriptor.kind === "hdr"
-          ? createEnvironmentMapHandle(id)
-          : descriptor.kind === "shader"
-            ? createShaderHandle(id)
-            : createSceneHandle(id),
+      descriptor.kind === "hdr"
+        ? createEnvironmentMapHandle(id)
+        : createShaderHandle(id),
   } as SystemAssetHandle<SystemAssetKind>;
+}
+
+async function loadSystemTextureAsset(
+  handle: SystemTextureAssetHandle,
+): Promise<TextureAsset> {
+  const resolvedUrl = resolveAssetUrl(handle.url);
+
+  if (resolvedUrl === null) {
+    throw new ApertureSystemError(
+      "aperture.asset.invalidUrl",
+      `Texture asset '${handle.id}' URL '${handle.url}' could not be resolved.`,
+      "Use an absolute URL, a root-relative Vite public asset URL, or a data URL in aperture.config.ts.",
+      {
+        asset: handle.id,
+        url: handle.url,
+        kind: handle.kind,
+        preload: handle.preload,
+        phase: "load",
+        blocksStartup: handle.preload === "blocking",
+      },
+    );
+  }
+
+  if (typeof fetch !== "function") {
+    throw new ApertureSystemError(
+      "aperture.asset.textureFetchUnavailable",
+      `Texture asset '${handle.id}' cannot be fetched in this environment.`,
+      "Provide an ApertureAssetLoader in tests/headless mode or run in a browser worker with fetch support.",
+      {
+        asset: handle.id,
+        url: handle.url,
+        kind: handle.kind,
+        preload: handle.preload,
+        phase: "load",
+        blocksStartup: handle.preload === "blocking",
+      },
+    );
+  }
+
+  const decoded = await decodeImageUrlToTextureSource(resolvedUrl, {
+    ...(handle.mimeType === undefined ? {} : { mimeType: handle.mimeType }),
+  });
+  return validatedTexture(
+    handle,
+    createTextureAsset({
+      label: handle.label ?? handle.id,
+      dimension: "2d",
+      width: decoded.width,
+      height: decoded.height,
+      format: handle.colorSpace === "srgb" ? "rgba8unorm-srgb" : "rgba8unorm",
+      colorSpace: handle.colorSpace,
+      semantic: handle.semantic,
+      sourceData: decoded.sourceData,
+    }),
+  );
+}
+
+function validatedTexture(
+  handle: SystemTextureAssetHandle,
+  asset: TextureAsset,
+): TextureAsset {
+  const report = validateTextureAsset(asset);
+  if (report.valid) {
+    return asset;
+  }
+
+  throw new ApertureSystemError(
+    "aperture.asset.textureInvalid",
+    `Texture asset '${handle.id}' is invalid. ${formatReportDiagnostics(
+      report.diagnostics.map((diagnostic) => ({
+        code: diagnostic.code,
+        severity: "error" as const,
+        message: diagnostic.message,
+      })),
+    )}`,
+    "Check the asset.texture() colorSpace and semantic options in aperture.config.ts.",
+    {
+      asset: handle.id,
+      url: handle.url,
+      kind: handle.kind,
+      preload: handle.preload,
+      phase: "load",
+      blocksStartup: handle.preload === "blocking",
+    },
+  );
 }
 
 async function loadSystemAudioAsset(

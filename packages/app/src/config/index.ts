@@ -5,6 +5,10 @@ import type {
   ShaderHandle,
   TextureHandle,
 } from "@aperture-engine/simulation";
+import type {
+  TextureColorSpace,
+  TextureSemantic,
+} from "@aperture-engine/render";
 import { ApertureConfigError } from "./errors.js";
 import { isPreloadPolicy, validateApertureConfig } from "./validation.js";
 
@@ -33,6 +37,12 @@ export interface ApertureAudioAssetOptions extends ApertureAssetOptions {
   readonly captionTrackId?: string;
 }
 
+export interface ApertureTextureAssetOptions extends ApertureAssetOptions {
+  readonly colorSpace?: TextureColorSpace;
+  readonly semantic?: TextureSemantic;
+  readonly mimeType?: string;
+}
+
 export interface ApertureConfigAssetDescriptor<
   TKind extends ConfigAssetKind = ConfigAssetKind,
 > {
@@ -43,8 +53,11 @@ export interface ApertureConfigAssetDescriptor<
 }
 
 export type ApertureGltfAssetDescriptor = ApertureConfigAssetDescriptor<"gltf">;
-export type ApertureTextureAssetDescriptor =
-  ApertureConfigAssetDescriptor<"texture">;
+export interface ApertureTextureAssetDescriptor extends ApertureConfigAssetDescriptor<"texture"> {
+  readonly colorSpace?: TextureColorSpace;
+  readonly semantic?: TextureSemantic;
+  readonly mimeType?: string;
+}
 export type ApertureHdrAssetDescriptor = ApertureConfigAssetDescriptor<"hdr">;
 export type ApertureShaderAssetDescriptor =
   ApertureConfigAssetDescriptor<"shader">;
@@ -62,7 +75,7 @@ export interface ApertureConfigAssetHelpers {
   ): ApertureGltfAssetDescriptor;
   texture(
     url: string,
-    options?: ApertureAssetOptions,
+    options?: ApertureTextureAssetOptions,
   ): ApertureTextureAssetDescriptor;
   hdr(url: string, options?: ApertureAssetOptions): ApertureHdrAssetDescriptor;
   shader(
@@ -356,8 +369,16 @@ export const asset: ApertureConfigAssetHelpers = Object.freeze({
   gltf(url: string, options: ApertureAssetOptions = {}) {
     return assetDescriptor("gltf", url, options);
   },
-  texture(url: string, options: ApertureAssetOptions = {}) {
-    return assetDescriptor("texture", url, options);
+  texture(url: string, options: ApertureTextureAssetOptions = {}) {
+    const descriptor = assetDescriptor("texture", url, options);
+    return Object.freeze({
+      ...descriptor,
+      ...(options.colorSpace === undefined
+        ? {}
+        : { colorSpace: options.colorSpace }),
+      ...(options.semantic === undefined ? {} : { semantic: options.semantic }),
+      ...(options.mimeType === undefined ? {} : { mimeType: options.mimeType }),
+    });
   },
   hdr(url: string, options: ApertureAssetOptions = {}) {
     return assetDescriptor("hdr", url, options);

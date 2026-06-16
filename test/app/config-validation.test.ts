@@ -79,7 +79,11 @@ describe("validateApertureConfig", () => {
           mode: "headless",
           assets: {
             robot: asset.gltf("/assets/robot.glb", { preload: "blocking" }),
-            floorColor: asset.texture("/assets/floor.png"),
+            floorColor: asset.texture("/assets/floor.png", {
+              colorSpace: "srgb",
+              semantic: "base-color",
+              mimeType: "image/png",
+            }),
             sky: asset.hdr("/assets/sky.hdr", { preload: "background" }),
             "level.crate": asset.shader("/assets/crate.wgsl"),
             engine: asset.audio("/assets/engine.ogg", {
@@ -137,6 +141,23 @@ describe("validateApertureConfig", () => {
 
       expect(error.code).toBe("aperture.config.invalidAudioAsset");
       expect(error.message).toContain("durationHint");
+    });
+
+    it("rejects invalid texture asset options", () => {
+      const error = configError(() =>
+        validateApertureConfig({
+          mode: "headless",
+          assets: {
+            normalMap: asset.texture("/assets/normal.png", {
+              colorSpace: "srgb",
+              semantic: "normal",
+            }),
+          },
+        }),
+      );
+
+      expect(error.code).toBe("aperture.config.invalidTextureAsset");
+      expect(error.message).toContain("normal");
     });
 
     it("rejects asset descriptors with empty URLs", () => {

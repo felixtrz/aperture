@@ -61,6 +61,11 @@ building blocks and default paths.
   with encoded bytes for non-streaming clips, generated browser apps can opt
   into audio through `audio: true`, and racing declares its engine/skid/impact
   clips in `aperture.config.ts`.
+- 2026-06-16: Config texture decode landed:
+  `asset.texture(...)` can now decode browser images into real `TextureAsset`
+  source data with color-space/semantic validation. Racing declares the smoke
+  sprite in `aperture.config.ts`, and `particles.system.ts` no longer fetches
+  or decodes image pixels itself.
 
 ## Goals
 

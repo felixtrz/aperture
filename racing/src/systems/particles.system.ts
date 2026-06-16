@@ -9,17 +9,13 @@ import {
 import {
   createDefaultRenderState,
   createSamplerAsset,
-  createTextureAsset,
   createUnlitMaterialAsset,
-  decodeImageUrlToTextureSource,
   materialAssetDependencies,
   type MeshAsset,
 } from "@aperture-engine/render";
 import {
   createMaterialHandle,
   createSamplerHandle,
-  createTextureHandle,
-  type AssetRegistry,
 } from "@aperture-engine/simulation";
 import { VehicleResource } from "../lib/vehicle-resource.js";
 
@@ -107,7 +103,6 @@ export default class ParticlesSystem extends createSystem({
   readonly #indices = new Uint16Array(POOL * VERTS_PER_PARTICLE);
 
   readonly #materialHandle = createMaterialHandle("racing.particles.smoke");
-  readonly #textureHandle = createTextureHandle("racing.particles.smoke");
   readonly #samplerHandle = createSamplerHandle("racing.particles.smoke");
   #mesh: DynamicMesh | null = null;
 
@@ -116,6 +111,7 @@ export default class ParticlesSystem extends createSystem({
 
   override init(): void {
     const registry = this.assetsRegistry;
+    const textureHandle = this.assets.texture("smoke").renderHandle;
 
     // uint16 index buffer: POOL*6 = 7680 < 65535, safe. Sequential (non-indexed
     // topology emulated via 0..N indices, matching drift-marks).
@@ -137,24 +133,15 @@ export default class ParticlesSystem extends createSystem({
       }),
     );
 
-    // --- Texture handle: registered now, decoded + markReady'd asynchronously ---
-    // Config `asset.texture(...)` only registers the handle; the engine never
-    // decodes config textures into pixels (verified). So we register the handle
-    // here (status "loading") and fill it in once the PNG is fetched + decoded.
-    registry.register(this.#textureHandle, { label: "Smoke sprite" });
-    registry.markLoading(this.#textureHandle);
-    void this.#decodeSpriteAsync(registry);
-
     // --- Material: unlit, textured, alpha-blended, double-sided, no depth write.
     // Blend materials must author depth writes off explicitly; cullMode "none"
-    // keeps quads visible from both sides. The material is "ready" immediately;
-    // its texture dependency resolves later (the renderer skips drawing until
-    // the texture is ready — no crash, no throw).
+    // keeps quads visible from both sides. The configured smoke texture is
+    // blocking-preloaded by Aperture before systems initialize.
     const materialAsset = createUnlitMaterialAsset({
       label: "Smoke",
       baseColorFactor: new Float32Array([TINT_R, TINT_G, TINT_B, 1]),
       baseColorTexture: {
-        texture: this.#textureHandle,
+        texture: textureHandle,
         sampler: this.#samplerHandle,
       },
       renderState: createDefaultRenderState({
@@ -393,43 +380,6 @@ export default class ParticlesSystem extends createSystem({
       }
     }
     return null;
-  }
-
-  /**
-   * Fetch + decode the smoke PNG into rgba8 bytes (in the simulation worker via
-   * fetch + createImageBitmap + OffscreenCanvas), then markReady the texture so
-   * the renderer uploads pixels (version bump). Failures are routed to markFailed
-   * so a missing/blocked sprite surfaces as a diagnostic instead of a silent hang
-   * or a thrown rejection. Never throws.
-   */
-  async #decodeSpriteAsync(registry: AssetRegistry): Promise<void> {
-    try {
-      const source = await decodeImageUrlToTextureSource("/sprites/smoke.png", {
-        mimeType: "image/png",
-      });
-      registry.markReady(
-        this.#textureHandle,
-        createTextureAsset({
-          label: "Smoke sprite",
-          dimension: "2d",
-          width: source.width,
-          height: source.height,
-          // base-color srgb sprite: format + colorSpace must agree (validation).
-          format: "rgba8unorm-srgb",
-          colorSpace: "srgb",
-          semantic: "base-color",
-          sourceData: source.sourceData,
-        }),
-      );
-    } catch (error) {
-      registry.markFailed(this.#textureHandle, [
-        {
-          code: "racing.particles.smokeDecodeFailed",
-          severity: "warning",
-          message: `Failed to load /sprites/smoke.png: ${String(error)}`,
-        },
-      ]);
-    }
   }
 }
 
