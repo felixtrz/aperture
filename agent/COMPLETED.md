@@ -1,9 +1,35 @@
 # Completed Tasks
 
+## RACE-LIB-17 — Racing source cleanup start
+
+Completed: 2026-06-16 15:26 PDT
+Commit: pending
+
+### Summary
+
+- Removed tracked inactive `racing/src/systems/setup.system.ts.*` scaffolding
+  files from the active systems directory.
+- Removed unused decoration `CELL_RAW` imports and `void CELL_RAW`
+  placeholders from racing and shadow-lab.
+- Split racing `src/lib/track.ts` into `track-data.ts`, `track-codec.ts`,
+  `track-layout.ts`, and `track-runtime.ts`, while preserving `track.ts` as the
+  public barrel used by current systems.
+
+### Validation
+
+- `pnpm --dir racing run typecheck && pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck && pnpm --dir shadow-lab run build`
+- No-cache live source probes confirmed racing serves the split track modules,
+  deleted setup variants no longer serve module source, and racing/shadow-lab
+  decoration systems no longer include the placeholder import.
+- Aperture MCP racing status was healthy with WebGPU running, no last
+  error/failure, automatic shadows submitted, and screenshot
+  `racing/.aperture/runtime/race-lib-17-source-cleanup.png` captured.
+
 ## RACE-LIB-16 — Batch GLTF spawn helper
 
 Completed: 2026-06-16 15:16 PDT
-Commit: pending
+Commit: `acb5ff47`
 
 ### Summary
 

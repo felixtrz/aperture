@@ -59,27 +59,25 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start Phase 5 racing source cleanup by removing inactive setup scaffolding and
-splitting the oversized track module without behavior changes.
+Finish the racing audio cleanup by moving remaining app-owned Web Audio graph
+logic behind Aperture audio APIs.
 
-Category: `audit-refactor`
+Category: `runtime-orchestration`
 
-Reference anchor: `references/engine/src/framework/entity.js:336` and
-`references/engine/src/framework/components/render/component.js` for keeping
-active component authoring paths compact and separating framework-owned
-render/component behavior from app-specific data.
+Reference anchor: `references/engine/src/framework/components/sound/component.js`
+and `references/engine/src/framework/components/sound/system.js` for
+component-owned sound slots, playback state, and app-facing sound ergonomics.
 
 Acceptance criteria:
 
-- Remove or archive the inactive `racing/src/systems/setup.system.ts.*` files
-  outside active source/system globs.
-- Remove stale bisect comments and remaining unused-import `void` placeholders
-  that are no longer needed.
-- Start splitting `racing/src/lib/track.ts` into responsibility-focused modules
-  while preserving current public exports for racing/shadow-lab systems.
-- Racing/shadow-lab typecheck/build pass, no-cache live source probes still show
-  the current active systems, and racing MCP status/screenshot show no behavior
-  regression.
+- Audit `racing/src/audio.ts` against the current Aperture audio clip/config
+  path and identify the smallest missing library API, if any.
+- Replace remaining app-owned engine/skid/impact Web Audio graph ownership with
+  library-owned audio clip/sink/live-control primitives where available.
+- Keep racing code responsible for vehicle-specific audio intent and tuning, not
+  browser `AudioNode` lifecycle.
+- Racing typecheck/build pass, managed browser audio gesture/unlock behavior is
+  verified, and no raw CDP is used.
 
 ## Historical M10 Physics Notes
 

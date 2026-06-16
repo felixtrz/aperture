@@ -1,6 +1,6 @@
 # Handoff - Racing Library Gap Slices
 
-**Updated:** 2026-06-16 15:16 PDT
+**Updated:** 2026-06-16 15:26 PDT
 
 Current user-directed work is executing
 `racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
@@ -8,36 +8,29 @@ slices while keeping racing and Shadow Lab working.
 
 ## Latest Completed Slice
 
-- Added `this.spawn.gltfBatch(...)` for repeated imported GLTF instances with
-  shared tags, material overrides, shadow flags, and per-instance metadata and
-  transforms.
-- Implemented the helper as a thin delegation to the existing `spawn.gltf(...)`
-  path, so it still produces ordinary ECS roots/subtrees rather than a hidden
-  scene graph.
-- Migrated racing and shadow-lab decoration bucket spawning to the helper.
-- Rebuilt package `dist` outputs and both experience production bundles.
-- Updated the racing plan for RACE-LIB-16.
+- Removed tracked inactive `racing/src/systems/setup.system.ts.*` scaffolding
+  files from the active systems directory.
+- Removed unused decoration `CELL_RAW` imports and `void CELL_RAW`
+  placeholders from racing and shadow-lab.
+- Split racing `src/lib/track.ts` into focused data, codec, layout, and runtime
+  modules while preserving `track.ts` as the existing public import barrel.
+- Rebuilt both experience production bundles.
+- Updated the racing plan for RACE-LIB-17.
 
 ## Latest Validation
 
-- `pnpm run build`
-- `pnpm run typecheck:test`
-- `pnpm exec tsc -p packages/app/tsconfig.json --noEmit --pretty false`
-- `pnpm exec vitest run test/app/developer-api.test.ts --testNamePattern "repeated GLB"`
-- `pnpm exec vitest run test/app/developer-api.test.ts test/app/gltf-instance-lookup.test.ts`
-- `pnpm run check:progress`
 - `pnpm run typecheck && pnpm run build` in `racing/`
 - `pnpm run typecheck && pnpm run build` in `shadow-lab/`
 - No-cache HTTP probes against both running dev servers confirmed the served
-  racing/shadow-lab decoration systems call `this.spawn.gltfBatch(...)`, the old
-  decoration-local `this.spawn.gltf(...)` loop is gone, and both apps serve the
-  rebuilt shared spawn helper with `gltfBatch(...)`.
+  racing track barrel points at the split modules, the split layout module is
+  served as JavaScript, deleted setup variants no longer serve module source,
+  and the racing/shadow-lab decoration placeholder imports are gone.
 - Aperture MCP `browser_status` for racing was running with `webgpuOk:true`,
   `lastError:null`, automatic directional shadow submitted, compact shared
   `:override:` material assets, and non-null `wheelBL`/`wheelBR` vehicle
   resource values.
 - Racing screenshot captured at
-  `racing/.aperture/runtime/race-lib-16-gltf-batch.png`.
+  `racing/.aperture/runtime/race-lib-17-source-cleanup.png`.
 - Shadow-lab `pnpm exec aperture dev status` reported daemon/server/browser
   running and bridge available on `http://127.0.0.1:8861/`.
 
@@ -52,10 +45,10 @@ slices while keeping racing and Shadow Lab working.
 
 ## Recommended Next Task
 
-Continue Phase 5 with RACE-LIB-17: remove inactive racing setup scaffolding,
-clear stale comments/unused `void` placeholders, and start splitting
-`racing/src/lib/track.ts` by responsibility while preserving current exports and
-runtime behavior.
+Continue with RACE-LIB-18: finish the racing audio cleanup by moving remaining
+app-owned Web Audio graph logic behind Aperture audio APIs. `racing/src/audio.ts`
+is now the largest remaining engine-shaped app module and is still imported by
+`hud.ts`.
 
 ---
 

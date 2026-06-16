@@ -1,6 +1,5 @@
 import { createSystem } from "@aperture-engine/app/systems";
 import {
-  CELL_RAW,
   GRID_SCALE,
   computeDecorationBuckets,
   resolveTrackCells,
@@ -56,5 +55,3 @@ export default class DecorationsSystem extends createSystem({ priority: 10 }) {
     });
   }
 }
-
-void CELL_RAW;

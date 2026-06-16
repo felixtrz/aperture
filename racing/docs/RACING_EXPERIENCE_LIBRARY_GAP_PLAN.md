@@ -121,6 +121,12 @@ building blocks and default paths.
   delegating to the ordinary ECS `spawn.gltf(...)` path. Racing and shadow-lab
   decoration buckets now use the helper instead of repeating identical GLTF
   spawn options inside each loop.
+- 2026-06-16: Racing source cleanup started:
+  inactive `setup.system.ts.*` scaffolding files were removed from the active
+  systems directory, decoration placeholder imports were deleted, and
+  `racing/src/lib/track.ts` is now a stable barrel over focused
+  `track-data.ts`, `track-codec.ts`, `track-layout.ts`, and
+  `track-runtime.ts` modules.
 
 ## Goals
 
@@ -1044,13 +1050,17 @@ Validation:
 Work:
 
 - Remove inactive `setup.system.ts.*` files or move them to a clearly ignored
-  archive outside active system globs.
+  archive outside active system globs. Done 2026-06-16.
 - Remove stale bisect comments and unused-import `void` lines.
+  Done 2026-06-16 for the active decoration placeholder imports and deleted
+  setup scaffolds.
 - Split `track.ts` into:
   - `track-data.ts`
   - `track-codec.ts`
   - `track-layout.ts`
   - `track-runtime.ts`
+    Done 2026-06-16 for racing while preserving `track.ts` as a compatibility
+    barrel.
 - Keep racing-specific tuning in `tuning.ts`.
 - Add short module comments only where they explain domain-specific behavior.
 
@@ -1066,7 +1076,7 @@ Target reductions:
 
 - `src/lib/math.ts`: deleted.
 - `src/lib/vehicle-state.ts`: deleted or replaced by resource declaration.
-- `src/audio.ts`: deleted or reduced from 473 lines to a thin app-specific audio
+- `src/audio.ts`: deleted or reduced from 446 lines to a thin app-specific audio
   model wrapper.
 - `src/systems/particles.system.ts`: reduced from 537 lines to emitter config
   and wheel-emission logic.
@@ -1074,7 +1084,7 @@ Target reductions:
   and wheel segment emission.
 - `src/systems/vehicle.system.ts`: smaller child lookup and transform writes.
 - `src/hud.ts`: no generated-status parsing.
-- `src/lib/track.ts`: split by responsibility.
+- `src/lib/track.ts`: split by responsibility. Done 2026-06-16.
 
 The app should read as:
 
@@ -1132,25 +1142,22 @@ Shadow-lab validation:
 
 ## Recommended Next Implementation Slice
 
-Continue Phase 5 with RACE-LIB-17:
+Continue source cleanup/audio migration with RACE-LIB-18:
 
-1. Remove inactive `racing/src/systems/setup.system.ts.*` scaffolding files from
-   the active source tree or move them to a clearly ignored archive outside
-   active system globs.
-2. Remove stale bisect comments and remaining unused-import `void` lines such
-   as the decoration `void CELL_RAW` placeholders if they are no longer needed.
-3. Start splitting `racing/src/lib/track.ts` by responsibility
-   (`track-data.ts`, `track-codec.ts`, `track-layout.ts`, `track-runtime.ts`)
-   while keeping public exports stable for current systems.
-4. Validate racing/shadow-lab typecheck/build and no-cache live source probes;
-   use racing MCP status/screenshot to confirm no behavior regression.
+1. Audit the remaining `racing/src/audio.ts` main-thread driver against the
+   current Aperture audio APIs and PlayCanvas sound/listener component model.
+2. Replace remaining hand-owned engine/skid/impact Web Audio graph logic with
+   library-owned audio clip/sink/live-control primitives where those APIs are
+   already available; if a narrow library API is missing, add it first.
+3. Keep racing responsible only for vehicle-specific RPM/skid/impact intent and
+   tuning values.
+4. Validate typecheck/build, browser gesture/unlock behavior, and managed
+   racing status without raw CDP.
 
 Reason:
 
-- RACE-LIB-14 and RACE-LIB-15 removed the child-node query scan and global
-  material registry scan; RACE-LIB-16 removed repeated decoration spawn
-  boilerplate through the public batch helper.
-- Phase 5 is now the smallest remaining way to make racing easier to scan
-  without changing gameplay: inactive setup files still sit next to active
-  systems, and `track.ts` still combines raw data, codec, layout, and runtime
-  helpers.
+- RACE-LIB-17 removed inactive setup scaffolding and split the largest track
+  helper without changing the active import path.
+- `racing/src/audio.ts` is now the largest remaining app-owned engine-shaped
+  module and is still imported from `hud.ts`, so it is the next meaningful
+  source-readability and library-ownership target.
