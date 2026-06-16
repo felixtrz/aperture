@@ -50,11 +50,11 @@ export function createSphereMeshAsset(
       const d = a + 1;
 
       if (y > 0) {
-        indices.push(a, b, d);
+        indices.push(a, d, b);
       }
 
       if (y < heightSegments - 1) {
-        indices.push(d, b, c);
+        indices.push(d, c, b);
       }
     }
   }

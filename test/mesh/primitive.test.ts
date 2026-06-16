@@ -88,8 +88,9 @@ describe("mesh asset schema and primitive builders", () => {
     expect(sphere.indexBuffer?.format).toBe("uint16");
     expect(sphere.indexBuffer?.data.length).toBe(144);
     expect(Array.from(sphere.indexBuffer?.data.slice(0, 3) ?? [])).toEqual([
-      1, 9, 10,
+      1, 10, 9,
     ]);
+    expectTriangleWindingMatchesOutwardNormals(sphere);
     expect(
       Math.max(...Array.from(sphere.indexBuffer?.data ?? [])),
     ).toBeLessThan(stream.vertexCount);
@@ -314,6 +315,81 @@ function required<T>(value: T | undefined): T {
 
 function vertex(data: Float32Array | Uint16Array | Uint8Array, index: number) {
   return Array.from(data.slice(index * 8, index * 8 + 8));
+}
+
+function expectTriangleWindingMatchesOutwardNormals(mesh: MeshAsset): void {
+  const data = required(mesh.vertexStreams[0]).data;
+  const indices = required(mesh.indexBuffer).data;
+
+  for (let offset = 0; offset < indices.length; offset += 3) {
+    const a = required(indices[offset]);
+    const b = required(indices[offset + 1]);
+    const c = required(indices[offset + 2]);
+    const pa = vertexPosition(data, a);
+    const pb = vertexPosition(data, b);
+    const pc = vertexPosition(data, c);
+    const averageNormal = averageVertexNormal(data, a, b, c);
+    const faceNormal = cross(subtract(pb, pa), subtract(pc, pa));
+    expect(dot(faceNormal, averageNormal)).toBeGreaterThan(0);
+  }
+}
+
+function vertexPosition(
+  data: Float32Array | Uint16Array | Uint8Array,
+  index: number,
+): [number, number, number] {
+  return [
+    required(data[index * 8]),
+    required(data[index * 8 + 1]),
+    required(data[index * 8 + 2]),
+  ];
+}
+
+function averageVertexNormal(
+  data: Float32Array | Uint16Array | Uint8Array,
+  a: number,
+  b: number,
+  c: number,
+): [number, number, number] {
+  return [
+    (required(data[a * 8 + 3]) +
+      required(data[b * 8 + 3]) +
+      required(data[c * 8 + 3])) /
+      3,
+    (required(data[a * 8 + 4]) +
+      required(data[b * 8 + 4]) +
+      required(data[c * 8 + 4])) /
+      3,
+    (required(data[a * 8 + 5]) +
+      required(data[b * 8 + 5]) +
+      required(data[c * 8 + 5])) /
+      3,
+  ];
+}
+
+function subtract(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+): [number, number, number] {
+  return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
+
+function cross(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+): [number, number, number] {
+  return [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0],
+  ];
+}
+
+function dot(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+): number {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
 function expectVectorClose(
