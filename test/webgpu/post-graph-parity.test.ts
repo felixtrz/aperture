@@ -75,6 +75,44 @@ function simpleEffect(id: string, renderId: number) {
   };
 }
 
+interface PreparedFormatRecord {
+  readonly id: string;
+  readonly inputFormat: string;
+  readonly outputFormat: string;
+  readonly outputResourceFormat: string | null;
+  readonly isLast: boolean;
+}
+
+function formatCapturingEffect(
+  id: string,
+  renderId: number,
+  records: PreparedFormatRecord[],
+) {
+  return {
+    id,
+    prepare: (options: {
+      readonly input: { readonly format: string };
+      readonly outputFormat: string;
+      readonly output?: { readonly format: string };
+      readonly isLast: boolean;
+    }) => {
+      records.push({
+        id,
+        inputFormat: options.input.format,
+        outputFormat: options.outputFormat,
+        outputResourceFormat: options.output?.format ?? null,
+        isLast: options.isLast,
+      });
+      return {
+        effectId: id,
+        label: id,
+        commands: [drawCommand(renderId)],
+        diagnostics: [],
+      };
+    },
+  };
+}
+
 function fakeTextureResource(label: string, width: number, height: number) {
   return {
     texture: fakeTexture(label),
@@ -154,6 +192,7 @@ function postOptions(
     simpleEffect("fxaa", 10),
     simpleEffect("blur", 11),
   ],
+  sceneRenderFormat = "rgba8unorm",
 ): PostOptions {
   const device = fakeDevice(recorder);
   const app = {
@@ -161,7 +200,7 @@ function postOptions(
       device,
       context: { getCurrentTexture: () => fakeTexture("swapchain") },
     },
-    sceneRenderFormat: "rgba8unorm",
+    sceneRenderFormat,
   };
   const cache = {
     postPasses: {
@@ -277,5 +316,41 @@ describe("post processing graph-vs-legacy parity (M3-T3)", () => {
     expect(graphRecorder.encoders).toBe(1);
     expect(legacyRecorder.submits).toBe(5);
     expect(legacyRecorder.encoders).toBe(5);
+  });
+
+  it("keeps non-final post effects in the HDR scene format", () => {
+    for (const useFrameGraph of [false, true]) {
+      const records: PreparedFormatRecord[] = [];
+      const recorder: Recorder = { submits: 0, encoders: 0 };
+      const result = assembleWebGpuAppPostProcessedSwapchainTarget(
+        postOptions(
+          useFrameGraph,
+          recorder,
+          [
+            formatCapturingEffect("bloom-like", 20, records),
+            formatCapturingEffect("tonemap-like", 21, records),
+          ],
+          "rgba16float",
+        ),
+      );
+
+      expect(result.valid).toBe(true);
+      expect(records).toEqual([
+        {
+          id: "bloom-like",
+          inputFormat: "rgba16float",
+          outputFormat: "rgba16float",
+          outputResourceFormat: "rgba16float",
+          isLast: false,
+        },
+        {
+          id: "tonemap-like",
+          inputFormat: "rgba16float",
+          outputFormat: "rgba8unorm",
+          outputResourceFormat: null,
+          isLast: true,
+        },
+      ]);
+    }
   });
 });

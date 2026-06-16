@@ -25,10 +25,13 @@ interface PostEffectsStatus extends ExampleStatusBase {
         readonly resourceCount: number;
         readonly downsamplePasses: number;
         readonly upsamplePasses: number;
+        readonly horizontalBlurPasses?: number;
+        readonly verticalBlurPasses?: number;
         readonly compositePasses: number;
         readonly levels: readonly {
           readonly width: number;
           readonly height: number;
+          readonly kernelSize?: number;
         }[];
       };
     }[];
@@ -88,18 +91,18 @@ test("post effects example toggles FXAA and bloom with visible pixel changes", a
   expect(effectIds(both.status)).toEqual(["fxaa", "bloom"]);
   expect(direct.status.draw?.drawCalls).toBe(2);
   expect(fxaa.status.draw?.drawCalls).toBe(3);
-  // Bloom-enabled frames gained one pass when the FrameGraph route became the
-  // default (AI-25); verified identical on Metal and SwiftShader.
-  expect(bloom.status.draw?.drawCalls).toBe(7);
-  expect(both.status.draw?.drawCalls).toBe(8);
-  // Bloom gained an explicit brightpass stage on the FrameGraph route — the
-  // same change that put bloom frames at 7 draw calls above.
+  // Bloom uses a brightpass + horizontal/vertical Gaussian mip chain +
+  // composite. The example keeps two mips for a lightweight UI demo.
+  expect(bloom.status.draw?.drawCalls).toBe(8);
+  expect(both.status.draw?.drawCalls).toBe(9);
   expect(bloom.status.effects?.report[0]?.graph).toMatchObject({
-    topology: "brightpass-downsample-upsample",
-    passCount: 5,
-    resourceCount: 4,
-    downsamplePasses: 2,
-    upsamplePasses: 1,
+    topology: "unreal-bloom",
+    passCount: 6,
+    resourceCount: 5,
+    downsamplePasses: 0,
+    upsamplePasses: 0,
+    horizontalBlurPasses: 2,
+    verticalBlurPasses: 2,
     compositePasses: 1,
   });
   expect(bloom.status.effects?.report[0]?.graph?.levels.length).toBe(2);

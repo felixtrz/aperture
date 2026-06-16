@@ -343,6 +343,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     }
 
     const isLast = effectIndex === options.effects.length - 1;
+    const effectOutputFormat = isLast ? options.target.format : input.format;
     let outputTexture: WebGpuPostPassTextureResource | null = null;
 
     if (!isLast) {
@@ -356,7 +357,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
             : options.cache.postPasses.pong,
         width: options.target.width,
         height: options.target.height,
-        format: options.target.format,
+        format: effectOutputFormat,
         label: `${options.label}:post:${effectIndex}:intermediate`,
       });
 
@@ -374,7 +375,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
         WebGpuPostEffect["prepare"]
       >[0]["device"],
       input,
-      outputFormat: options.target.format,
+      outputFormat: effectOutputFormat,
       width: options.target.width,
       height: options.target.height,
       frame: options.snapshot.frame,
@@ -402,7 +403,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
         label: `${options.label}:post:${effectIndex}:${effect.id}`,
         graph: prepared.graph,
         isLast,
-        outputFormat: options.target.format,
+        outputFormat: effectOutputFormat,
         ...(options.readbackSamples === undefined
           ? {}
           : { readbackSamples: options.readbackSamples }),
@@ -950,6 +951,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     }
     const isLast = effectIndex === options.effects.length - 1;
     const usesColorHistory = effect.requiresColorHistory === true;
+    const effectOutputFormat = isLast ? options.target.format : input.format;
 
     // A history effect must write its accumulation buffer off-screen (the pool's
     // current buffer) so the next frame can sample it; it cannot be the final
@@ -972,7 +974,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         slot: options.cache.postPasses.taaColorHistory,
         width: options.target.width,
         height: options.target.height,
-        format: options.target.format,
+        format: effectOutputFormat,
         label: `${options.label}:post:${effectIndex}`,
       });
       diagnostics.push(...resolved.diagnostics);
@@ -988,7 +990,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       graph.declareHistory(effectHistoryHandle, {
         width: options.target.width,
         height: options.target.height,
-        format: options.target.format,
+        format: effectOutputFormat,
         sampleCount: 1,
       });
     } else if (!isLast) {
@@ -1002,7 +1004,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
             : options.cache.postPasses.pong,
         width: options.target.width,
         height: options.target.height,
-        format: options.target.format,
+        format: effectOutputFormat,
         label: `${options.label}:post:${effectIndex}:intermediate`,
       });
       diagnostics.push(...intermediate.diagnostics);
@@ -1017,7 +1019,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         WebGpuPostEffect["prepare"]
       >[0]["device"],
       input,
-      outputFormat: options.target.format,
+      outputFormat: effectOutputFormat,
       width: options.target.width,
       height: options.target.height,
       frame: options.snapshot.frame,

@@ -89,6 +89,8 @@ export type WebGpuPreparedPostEffectGraphPassKind =
   | "brightpass"
   | "downsample"
   | "upsample"
+  | "blur-horizontal"
+  | "blur-vertical"
   | "composite"
   | "custom";
 
@@ -108,16 +110,20 @@ export interface WebGpuPreparedPostEffectGraphReport {
   readonly topology:
     | "single-pass"
     | "downsample-upsample"
-    | "brightpass-downsample-upsample";
+    | "brightpass-downsample-upsample"
+    | "unreal-bloom";
   readonly passCount: number;
   readonly resourceCount: number;
   readonly brightpassPasses?: number;
   readonly downsamplePasses: number;
   readonly upsamplePasses: number;
+  readonly horizontalBlurPasses?: number;
+  readonly verticalBlurPasses?: number;
   readonly compositePasses: number;
   readonly levels: readonly {
     readonly width: number;
     readonly height: number;
+    readonly kernelSize?: number;
   }[];
 }
 

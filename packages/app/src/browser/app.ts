@@ -192,6 +192,7 @@ function resolveGeneratedPostEffects(
     createWebGpuBloomPostEffect({
       ...(options.threshold === undefined ? {} : { threshold: options.threshold }),
       ...(options.intensity === undefined ? {} : { intensity: options.intensity }),
+      ...(options.radius === undefined ? {} : { radius: options.radius }),
       ...(options.radiusPixels === undefined
         ? {}
         : { radiusPixels: options.radiusPixels }),

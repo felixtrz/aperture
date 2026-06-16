@@ -126,12 +126,13 @@ describe("WebGPU post-pass helpers", () => {
     expect(events).toContain("device:pipeline:test-fxaa:fxaa:pipeline");
   });
 
-  it("prepares bloom as a downsample/upsample post-pass graph", () => {
+  it("prepares bloom as a BloomNode-style Gaussian mip graph", () => {
     const events: string[] = [];
     const effect = createWebGpuBloomPostEffect({
       threshold: 0.7,
       intensity: 1.25,
-      radiusPixels: 2,
+      radius: 0.25,
+      levels: 2,
     });
     const input = {
       texture: {
@@ -164,35 +165,38 @@ describe("WebGPU post-pass helpers", () => {
       commands: [],
       graph: {
         report: {
-          topology: "brightpass-downsample-upsample",
-          passCount: 5,
-          resourceCount: 4,
+          topology: "unreal-bloom",
+          passCount: 6,
+          resourceCount: 5,
           brightpassPasses: 1,
-          downsamplePasses: 2,
-          upsamplePasses: 1,
+          downsamplePasses: 0,
+          upsamplePasses: 0,
+          horizontalBlurPasses: 2,
+          verticalBlurPasses: 2,
           compositePasses: 1,
           levels: [
-            { width: 16, height: 8 },
-            { width: 8, height: 4 },
+            { width: 16, height: 8, kernelSize: 6 },
+            { width: 8, height: 4, kernelSize: 10 },
           ],
         },
       },
     });
     expect(prepared.graph?.passes.map((pass) => pass.kind)).toEqual([
       "brightpass",
-      "downsample",
-      "downsample",
-      "upsample",
+      "blur-horizontal",
+      "blur-vertical",
+      "blur-horizontal",
+      "blur-vertical",
       "composite",
     ]);
     expect(prepared.graph?.passes.map((pass) => pass.commands.length)).toEqual([
-      3, 3, 3, 3, 3,
+      3, 3, 3, 3, 3, 3,
     ]);
     expect(prepared.graph?.passes[0]?.commands).toMatchObject([
       {
         kind: "setPipeline",
         pipelineKey:
-          "webgpu-post-bloom|brightpass|rgba8unorm|0.7000|1.2500|2.0000",
+          "webgpu-post-bloom|brightpass|rgba8unorm|0.7000|1.2500|0.2500|no-kernel|levels:0",
       },
       { kind: "setBindGroup", index: 0 },
       { kind: "draw", vertexCount: 3 },
@@ -201,25 +205,25 @@ describe("WebGPU post-pass helpers", () => {
       {
         kind: "setPipeline",
         pipelineKey:
-          "webgpu-post-bloom|downsample|rgba8unorm|0.7000|1.2500|2.0000",
+          "webgpu-post-bloom|blur-horizontal|rgba8unorm|0.7000|1.2500|0.2500|kernel:6|levels:0",
       },
       { kind: "setBindGroup", index: 0 },
       { kind: "draw", vertexCount: 3 },
     ]);
-    expect(prepared.graph?.passes[4]?.commands).toMatchObject([
+    expect(prepared.graph?.passes[5]?.commands).toMatchObject([
       {
         kind: "setPipeline",
         pipelineKey:
-          "webgpu-post-bloom|composite|rgba8unorm|0.7000|1.2500|2.0000",
+          "webgpu-post-bloom|composite|rgba8unorm|0.7000|1.2500|0.2500|no-kernel|levels:2",
       },
       { kind: "setBindGroup", index: 0 },
       { kind: "draw", vertexCount: 3 },
     ]);
     expect(events).toContain(
-      "device:pipeline:test-bloom:bloom:downsample:0:pipeline",
+      "device:pipeline:test-bloom:bloom:blur-horizontal:0:pipeline",
     );
     expect(events).toContain(
-      "device:pipeline:test-bloom:bloom:upsample:0:pipeline",
+      "device:pipeline:test-bloom:bloom:blur-vertical:0:pipeline",
     );
     expect(events).toContain(
       "device:pipeline:test-bloom:bloom:composite:pipeline",

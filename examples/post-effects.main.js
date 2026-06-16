@@ -203,7 +203,8 @@ function createPostEffects(aperture, config) {
       aperture.createWebGpuBloomPostEffect({
         threshold: 0.65,
         intensity: 1.15,
-        radiusPixels: 1.25,
+        radius: 0.08,
+        levels: 2,
       }),
     );
   }

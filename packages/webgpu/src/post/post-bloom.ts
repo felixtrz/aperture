@@ -18,14 +18,19 @@ export interface CreateWebGpuBloomPostEffectOptions {
   readonly enabled?: boolean;
   readonly threshold?: number;
   readonly intensity?: number;
+  readonly radius?: number;
+  /**
+   * Legacy Aperture blur radius fallback. Three.js BloomNode radius is
+   * dimensionless; prefer `radius` for new code.
+   */
   readonly radiusPixels?: number;
   readonly levels?: number;
 }
 
 type BloomPostPipelineKind =
   | "brightpass"
-  | "downsample"
-  | "upsample"
+  | "blur-horizontal"
+  | "blur-vertical"
   | "composite";
 
 interface CachedBloomPostPipeline {
@@ -33,22 +38,28 @@ interface CachedBloomPostPipeline {
   readonly pipeline: unknown;
 }
 
+const BLOOM_KERNEL_SIZES = [6, 10, 14, 18, 22, 26] as const;
+
 export function createWebGpuBloomPostEffect(
   options: CreateWebGpuBloomPostEffectOptions = {},
 ): WebGpuPostEffect {
   const id = options.id ?? "bloom";
   const label = options.label ?? "Bloom Post Effect";
   const enabled = options.enabled;
-  const threshold = clampFinite(options.threshold ?? 0.8, 0, 0.999);
+  const threshold = clampFinite(options.threshold ?? 0, 0, 64);
   const intensity = clampFinite(options.intensity ?? 0.75, 0, 8);
-  const radiusPixels = clampFinite(options.radiusPixels ?? 1.5, 0.25, 16);
-  const levelCount = clampInteger(options.levels ?? 2, 2, 6);
+  const radius = clampFinite(
+    options.radius ?? legacyRadiusPixelsToBloomRadius(options.radiusPixels),
+    0,
+    1,
+  );
+  const levelCount = clampInteger(options.levels ?? 5, 1, BLOOM_KERNEL_SIZES.length);
   const pipelines = new Map<string, CachedBloomPostPipeline>();
   const brightpassSlot = createWebGpuPostPassTextureCacheSlot();
-  const downsampleSlots = Array.from({ length: levelCount }, () =>
+  const horizontalSlots = Array.from({ length: levelCount }, () =>
     createWebGpuPostPassTextureCacheSlot(),
   );
-  const upsampleSlots = Array.from({ length: levelCount - 1 }, () =>
+  const verticalSlots = Array.from({ length: levelCount }, () =>
     createWebGpuPostPassTextureCacheSlot(),
   );
   let sampler: unknown | null = null;
@@ -72,15 +83,11 @@ export function createWebGpuBloomPostEffect(
         return preparedBloomPass(id, label, [], diagnostics);
       }
 
-      // Canonical bloom: threshold at FULL resolution first (a half-res
-      // bilinear fetch averages small bright features with their dark
-      // neighbours before the threshold sees them, cutting them to black),
-      // then blur down the chain without re-thresholding.
       const brightpassTexture = createOrReuseWebGpuPostPassTexture({
         device: prepareOptions.device,
         slot: brightpassSlot,
-        width: prepareOptions.input.width,
-        height: prepareOptions.input.height,
+        width: halfDimension(prepareOptions.input.width),
+        height: halfDimension(prepareOptions.input.height),
         format: prepareOptions.outputFormat,
         label: `${prepareOptions.label}:${id}:brightpass`,
       });
@@ -91,29 +98,17 @@ export function createWebGpuBloomPostEffect(
         return preparedBloomPass(id, label, [], diagnostics);
       }
 
-      const downsampleResources = prepareBloomTextureChain({
+      const mipResources = prepareBloomMipTextures({
         device: prepareOptions.device,
-        slots: downsampleSlots,
+        horizontalSlots,
+        verticalSlots,
         source: brightpassTexture.resource,
         format: prepareOptions.outputFormat,
-        label: `${prepareOptions.label}:${id}:downsample`,
+        label: `${prepareOptions.label}:${id}`,
         diagnostics,
       });
 
-      if (downsampleResources === null) {
-        return preparedBloomPass(id, label, [], diagnostics);
-      }
-
-      const upsampleResources = prepareBloomUpsampleTextures({
-        device: prepareOptions.device,
-        slots: upsampleSlots,
-        downsampleResources,
-        format: prepareOptions.outputFormat,
-        label: `${prepareOptions.label}:${id}:upsample`,
-        diagnostics,
-      });
-
-      if (upsampleResources === null) {
+      if (mipResources === null) {
         return preparedBloomPass(id, label, [], diagnostics);
       }
 
@@ -129,10 +124,10 @@ export function createWebGpuBloomPostEffect(
         isLast: prepareOptions.isLast,
         threshold,
         intensity,
-        radiusPixels,
+        radius,
         brightpassResource: brightpassTexture.resource,
-        downsampleResources,
-        upsampleResources,
+        horizontalResources: mipResources.horizontal,
+        verticalResources: mipResources.vertical,
         ...(prepareOptions.output === undefined
           ? {}
           : { output: prepareOptions.output }),
@@ -143,85 +138,68 @@ export function createWebGpuBloomPostEffect(
   };
 }
 
-function prepareBloomTextureChain(options: {
+function prepareBloomMipTextures(options: {
   readonly device: WebGpuPostPassDeviceLike;
-  readonly slots: readonly WebGpuPostPassTextureCacheSlot[];
+  readonly horizontalSlots: readonly WebGpuPostPassTextureCacheSlot[];
+  readonly verticalSlots: readonly WebGpuPostPassTextureCacheSlot[];
   readonly source: WebGpuPostPassTextureResource;
   readonly format: string;
   readonly label: string;
   readonly diagnostics: WebGpuPostPassDiagnostic[];
-}): readonly WebGpuPostPassTextureResource[] | null {
-  const resources: WebGpuPostPassTextureResource[] = [];
-  let source = options.source;
+}): {
+  readonly horizontal: readonly WebGpuPostPassTextureResource[];
+  readonly vertical: readonly WebGpuPostPassTextureResource[];
+} | null {
+  const horizontal: WebGpuPostPassTextureResource[] = [];
+  const vertical: WebGpuPostPassTextureResource[] = [];
+  let width = options.source.width;
+  let height = options.source.height;
 
-  for (let index = 0; index < options.slots.length; index += 1) {
-    const slot = options.slots[index];
+  for (let index = 0; index < options.horizontalSlots.length; index += 1) {
+    const horizontalSlot = options.horizontalSlots[index];
+    const verticalSlot = options.verticalSlots[index];
 
-    if (slot === undefined) {
+    if (horizontalSlot === undefined || verticalSlot === undefined) {
       return null;
     }
 
-    const width = Math.max(1, Math.floor(source.width / 2));
-    const height = Math.max(1, Math.floor(source.height / 2));
-    const texture = createOrReuseWebGpuPostPassTexture({
+    const horizontalTexture = createOrReuseWebGpuPostPassTexture({
       device: options.device,
-      slot,
+      slot: horizontalSlot,
       width,
       height,
       format: options.format,
-      label: `${options.label}:${index}:${width}x${height}`,
+      label: `${options.label}:horizontal:${index}:${width}x${height}`,
     });
 
-    options.diagnostics.push(...texture.diagnostics);
+    options.diagnostics.push(...horizontalTexture.diagnostics);
 
-    if (!texture.valid || texture.resource === null) {
+    if (!horizontalTexture.valid || horizontalTexture.resource === null) {
       return null;
     }
 
-    resources.push(texture.resource);
-    source = texture.resource;
-  }
-
-  return resources;
-}
-
-function prepareBloomUpsampleTextures(options: {
-  readonly device: WebGpuPostPassDeviceLike;
-  readonly slots: readonly WebGpuPostPassTextureCacheSlot[];
-  readonly downsampleResources: readonly WebGpuPostPassTextureResource[];
-  readonly format: string;
-  readonly label: string;
-  readonly diagnostics: WebGpuPostPassDiagnostic[];
-}): readonly WebGpuPostPassTextureResource[] | null {
-  const resources: WebGpuPostPassTextureResource[] = [];
-
-  for (let index = 0; index < options.slots.length; index += 1) {
-    const slot = options.slots[index];
-    const downsample = options.downsampleResources[index];
-
-    if (slot === undefined || downsample === undefined) {
-      return null;
-    }
-
-    const texture = createOrReuseWebGpuPostPassTexture({
+    const verticalTexture = createOrReuseWebGpuPostPassTexture({
       device: options.device,
-      slot,
-      width: downsample.width,
-      height: downsample.height,
+      slot: verticalSlot,
+      width,
+      height,
       format: options.format,
-      label: `${options.label}:${index}:${downsample.width}x${downsample.height}`,
+      label: `${options.label}:vertical:${index}:${width}x${height}`,
     });
 
-    options.diagnostics.push(...texture.diagnostics);
+    options.diagnostics.push(...verticalTexture.diagnostics);
 
-    if (!texture.valid || texture.resource === null) {
+    if (!verticalTexture.valid || verticalTexture.resource === null) {
       return null;
     }
 
-    resources.push(texture.resource);
+    horizontal.push(horizontalTexture.resource);
+    vertical.push(verticalTexture.resource);
+    width = halfDimension(width);
+    height = halfDimension(height);
   }
 
-  return resources;
+  return { horizontal, vertical };
 }
 
 function prepareBloomGraph(options: {
@@ -237,14 +215,13 @@ function prepareBloomGraph(options: {
   readonly isLast: boolean;
   readonly threshold: number;
   readonly intensity: number;
-  readonly radiusPixels: number;
+  readonly radius: number;
   readonly brightpassResource: WebGpuPostPassTextureResource;
-  readonly downsampleResources: readonly WebGpuPostPassTextureResource[];
-  readonly upsampleResources: readonly WebGpuPostPassTextureResource[];
+  readonly horizontalResources: readonly WebGpuPostPassTextureResource[];
+  readonly verticalResources: readonly WebGpuPostPassTextureResource[];
 }): WebGpuPreparedPostEffectGraph {
   const passes: WebGpuPreparedPostEffectGraphPass[] = [];
 
-  // Full-resolution bright extraction before any downsampling.
   passes.push(
     prepareSingleInputBloomGraphPass({
       device: options.device,
@@ -258,16 +235,19 @@ function prepareBloomGraph(options: {
       outputFormat: options.outputFormat,
       threshold: options.threshold,
       intensity: options.intensity,
-      radiusPixels: options.radiusPixels,
+      radius: options.radius,
+      kernelSize: null,
     }),
   );
 
   let input = options.brightpassResource;
 
-  for (let level = 0; level < options.downsampleResources.length; level += 1) {
-    const output = options.downsampleResources[level];
+  for (let level = 0; level < options.horizontalResources.length; level += 1) {
+    const horizontalOutput = options.horizontalResources[level];
+    const verticalOutput = options.verticalResources[level];
+    const kernelSize = bloomKernelSize(level);
 
-    if (output === undefined) {
+    if (horizontalOutput === undefined || verticalOutput === undefined) {
       continue;
     }
 
@@ -277,55 +257,35 @@ function prepareBloomGraph(options: {
         pipelines: options.pipelines,
         sampler: options.sampler,
         effectId: options.effectId,
-        label: `${options.frameLabel}:${options.effectId}:downsample:${level}`,
-        kind: "downsample",
+        label: `${options.frameLabel}:${options.effectId}:blur-horizontal:${level}`,
+        kind: "blur-horizontal",
         input,
-        output,
+        output: horizontalOutput,
         outputFormat: options.outputFormat,
         threshold: options.threshold,
         intensity: options.intensity,
-        radiusPixels: options.radiusPixels,
+        radius: options.radius,
+        kernelSize,
       }),
     );
-    input = output;
-  }
-
-  let bloomInput =
-    options.downsampleResources[options.downsampleResources.length - 1] ??
-    options.input;
-
-  for (
-    let level = options.upsampleResources.length - 1;
-    level >= 0;
-    level -= 1
-  ) {
-    const output = options.upsampleResources[level];
-    const skip = options.downsampleResources[level];
-
-    if (output === undefined || skip === undefined) {
-      continue;
-    }
-
-    // Progressive upsample with the canonical skip-add: blur the coarser
-    // level up AND add the same-level downsample, so each level's extracted
-    // energy survives to the composite instead of only the coarsest level's.
     passes.push(
-      prepareUpsampleBloomGraphPass({
+      prepareSingleInputBloomGraphPass({
         device: options.device,
         pipelines: options.pipelines,
         sampler: options.sampler,
         effectId: options.effectId,
-        label: `${options.frameLabel}:${options.effectId}:upsample:${level}`,
-        coarse: bloomInput,
-        skip,
-        output,
+        label: `${options.frameLabel}:${options.effectId}:blur-vertical:${level}`,
+        kind: "blur-vertical",
+        input: horizontalOutput,
+        output: verticalOutput,
         outputFormat: options.outputFormat,
         threshold: options.threshold,
         intensity: options.intensity,
-        radiusPixels: options.radiusPixels,
+        radius: options.radius,
+        kernelSize,
       }),
     );
-    bloomInput = output;
+    input = verticalOutput;
   }
 
   passes.push(
@@ -336,12 +296,12 @@ function prepareBloomGraph(options: {
       effectId: options.effectId,
       label: `${options.frameLabel}:${options.effectId}:composite`,
       base: options.input,
-      bloom: bloomInput,
+      bloomLevels: options.verticalResources,
       outputFormat: options.outputFormat,
       outputTarget: options.isLast ? "swapchain" : "offscreen",
       threshold: options.threshold,
       intensity: options.intensity,
-      radiusPixels: options.radiusPixels,
+      radius: options.radius,
       ...(options.output === undefined ? {} : { output: options.output }),
     }),
   );
@@ -349,19 +309,20 @@ function prepareBloomGraph(options: {
   return {
     passes,
     report: {
-      topology: "brightpass-downsample-upsample",
+      topology: "unreal-bloom",
       passCount: passes.length,
       resourceCount:
-        1 +
-        options.downsampleResources.length +
-        options.upsampleResources.length,
+        1 + options.horizontalResources.length + options.verticalResources.length,
       brightpassPasses: 1,
-      downsamplePasses: options.downsampleResources.length,
-      upsamplePasses: options.upsampleResources.length,
+      downsamplePasses: 0,
+      upsamplePasses: 0,
+      horizontalBlurPasses: options.horizontalResources.length,
+      verticalBlurPasses: options.verticalResources.length,
       compositePasses: 1,
-      levels: options.downsampleResources.map((resource) => ({
+      levels: options.verticalResources.map((resource, index) => ({
         width: resource.width,
         height: resource.height,
+        kernelSize: bloomKernelSize(index),
       })),
     },
   };
@@ -373,13 +334,17 @@ function prepareSingleInputBloomGraphPass(options: {
   readonly sampler: unknown;
   readonly effectId: string;
   readonly label: string;
-  readonly kind: Extract<BloomPostPipelineKind, "brightpass" | "downsample">;
+  readonly kind: Extract<
+    BloomPostPipelineKind,
+    "brightpass" | "blur-horizontal" | "blur-vertical"
+  >;
   readonly input: WebGpuPostPassTextureResource;
   readonly output: WebGpuPostPassTextureResource;
   readonly outputFormat: string;
   readonly threshold: number;
   readonly intensity: number;
-  readonly radiusPixels: number;
+  readonly radius: number;
+  readonly kernelSize: number | null;
 }): WebGpuPreparedPostEffectGraphPass {
   const diagnostics: WebGpuPostPassDiagnostic[] = [];
   const pipelineResult = getOrCreateBloomPostPipeline({
@@ -391,7 +356,9 @@ function prepareSingleInputBloomGraphPass(options: {
     kind: options.kind,
     threshold: options.threshold,
     intensity: options.intensity,
-    radiusPixels: options.radiusPixels,
+    radius: options.radius,
+    kernelSize: options.kernelSize,
+    levelCount: 0,
     diagnostics,
   });
 
@@ -422,63 +389,6 @@ function prepareSingleInputBloomGraphPass(options: {
   };
 }
 
-function prepareUpsampleBloomGraphPass(options: {
-  readonly device: WebGpuPostPassDeviceLike;
-  readonly pipelines: Map<string, CachedBloomPostPipeline>;
-  readonly sampler: unknown;
-  readonly effectId: string;
-  readonly label: string;
-  readonly coarse: WebGpuPostPassTextureResource;
-  readonly skip: WebGpuPostPassTextureResource;
-  readonly output: WebGpuPostPassTextureResource;
-  readonly outputFormat: string;
-  readonly threshold: number;
-  readonly intensity: number;
-  readonly radiusPixels: number;
-}): WebGpuPreparedPostEffectGraphPass {
-  const diagnostics: WebGpuPostPassDiagnostic[] = [];
-  const pipelineResult = getOrCreateBloomPostPipeline({
-    device: options.device,
-    pipelines: options.pipelines,
-    outputFormat: options.outputFormat,
-    label: `${options.label}:pipeline`,
-    effectId: options.effectId,
-    kind: "upsample",
-    threshold: options.threshold,
-    intensity: options.intensity,
-    radiusPixels: options.radiusPixels,
-    diagnostics,
-  });
-
-  const commands =
-    pipelineResult === null
-      ? []
-      : createTwoInputBloomCommands({
-          device: options.device,
-          sampler: options.sampler,
-          pipeline: pipelineResult.pipeline,
-          pipelineKey: pipelineResult.key,
-          effectId: options.effectId,
-          label: options.label,
-          first: options.coarse,
-          second: options.skip,
-          resourceKey: `${options.effectId}:upsample:${options.coarse.label}:${options.skip.label}`,
-          diagnostics,
-        });
-
-  return {
-    label: options.label,
-    kind: "upsample",
-    input: options.coarse.label,
-    output: "offscreen",
-    outputResource: options.output,
-    width: options.output.width,
-    height: options.output.height,
-    commands,
-    diagnostics,
-  };
-}
-
 function prepareBloomCompositeGraphPass(options: {
   readonly device: WebGpuPostPassDeviceLike;
   readonly pipelines: Map<string, CachedBloomPostPipeline>;
@@ -486,13 +396,13 @@ function prepareBloomCompositeGraphPass(options: {
   readonly effectId: string;
   readonly label: string;
   readonly base: WebGpuPostPassTextureResource;
-  readonly bloom: WebGpuPostPassTextureResource;
+  readonly bloomLevels: readonly WebGpuPostPassTextureResource[];
   readonly output?: WebGpuPostPassTextureResource;
   readonly outputFormat: string;
   readonly outputTarget: "swapchain" | "offscreen";
   readonly threshold: number;
   readonly intensity: number;
-  readonly radiusPixels: number;
+  readonly radius: number;
 }): WebGpuPreparedPostEffectGraphPass {
   const diagnostics: WebGpuPostPassDiagnostic[] = [];
   const pipelineResult = getOrCreateBloomPostPipeline({
@@ -504,7 +414,9 @@ function prepareBloomCompositeGraphPass(options: {
     kind: "composite",
     threshold: options.threshold,
     intensity: options.intensity,
-    radiusPixels: options.radiusPixels,
+    radius: options.radius,
+    kernelSize: null,
+    levelCount: options.bloomLevels.length,
     diagnostics,
   });
 
@@ -527,14 +439,14 @@ function prepareBloomCompositeGraphPass(options: {
           effectId: options.effectId,
           label: options.label,
           base: options.base,
-          bloom: options.bloom,
+          bloomLevels: options.bloomLevels,
           diagnostics,
         });
 
   return {
     label: options.label,
     kind: "composite",
-    input: options.bloom.label,
+    input: options.bloomLevels.map((level) => level.label).join(","),
     output: options.outputTarget,
     ...(options.output === undefined ? {} : { outputResource: options.output }),
     width: options.output?.width ?? options.base.width,
@@ -553,7 +465,9 @@ function getOrCreateBloomPostPipeline(options: {
   readonly kind: BloomPostPipelineKind;
   readonly threshold: number;
   readonly intensity: number;
-  readonly radiusPixels: number;
+  readonly radius: number;
+  readonly kernelSize: number | null;
+  readonly levelCount: number;
   readonly diagnostics: WebGpuPostPassDiagnostic[];
 }): CachedBloomPostPipeline | null {
   const key = bloomPipelineKey(options);
@@ -571,7 +485,9 @@ function getOrCreateBloomPostPipeline(options: {
     kind: options.kind,
     threshold: options.threshold,
     intensity: options.intensity,
-    radiusPixels: options.radiusPixels,
+    radius: options.radius,
+    kernelSize: options.kernelSize,
+    levelCount: options.levelCount,
     diagnostics: options.diagnostics,
   });
 
@@ -652,43 +568,17 @@ function createCompositeBloomCommands(options: {
   readonly effectId: string;
   readonly label: string;
   readonly base: WebGpuPostPassTextureResource;
-  readonly bloom: WebGpuPostPassTextureResource;
+  readonly bloomLevels: readonly WebGpuPostPassTextureResource[];
   readonly diagnostics: WebGpuPostPassDiagnostic[];
 }): readonly RenderPassCommand[] {
-  return createTwoInputBloomCommands({
-    device: options.device,
-    sampler: options.sampler,
-    pipeline: options.pipeline,
-    pipelineKey: options.pipelineKey,
-    effectId: options.effectId,
-    label: options.label,
-    first: options.base,
-    second: options.bloom,
-    resourceKey: `${options.effectId}:composite:${options.base.label}:${options.bloom.label}`,
-    diagnostics: options.diagnostics,
-  });
-}
+  const baseView = options.base.texture.createView?.();
+  const bloomViews = options.bloomLevels.map((level) => level.texture.createView?.());
 
-function createTwoInputBloomCommands(options: {
-  readonly device: WebGpuPostPassDeviceLike;
-  readonly sampler: unknown;
-  readonly pipeline: unknown;
-  readonly pipelineKey: string;
-  readonly effectId: string;
-  readonly label: string;
-  readonly first: WebGpuPostPassTextureResource;
-  readonly second: WebGpuPostPassTextureResource;
-  readonly resourceKey: string;
-  readonly diagnostics: WebGpuPostPassDiagnostic[];
-}): readonly RenderPassCommand[] {
-  const baseView = options.first.texture.createView?.();
-  const bloomView = options.second.texture.createView?.();
-
-  if (baseView === undefined || bloomView === undefined) {
+  if (baseView === undefined || bloomViews.some((view) => view === undefined)) {
     options.diagnostics.push({
       code: "webGpuPostPass.inputTextureViewUnavailable",
       effectId: options.effectId,
-      message: `Bloom post effect '${options.effectId}' cannot sample textures '${options.first.label}' and '${options.second.label}'.`,
+      message: `Bloom post effect '${options.effectId}' cannot sample its composite input textures.`,
     });
     return [];
   }
@@ -723,14 +613,19 @@ function createTwoInputBloomCommands(options: {
     entries: [
       { binding: 0, resource: options.sampler },
       { binding: 1, resource: baseView },
-      { binding: 2, resource: bloomView },
+      ...bloomViews.map((view, index) => ({
+        binding: index + 2,
+        resource: view,
+      })),
     ],
   });
 
   return bloomDrawCommands({
     pipelineKey: options.pipelineKey,
     pipeline: options.pipeline,
-    resourceKey: options.resourceKey,
+    resourceKey: `${options.effectId}:composite:${options.base.label}:${options.bloomLevels
+      .map((level) => level.label)
+      .join(":")}`,
     bindGroup,
   });
 }
@@ -774,7 +669,9 @@ function createBloomPostPipeline(options: {
   readonly kind: BloomPostPipelineKind;
   readonly threshold: number;
   readonly intensity: number;
-  readonly radiusPixels: number;
+  readonly radius: number;
+  readonly kernelSize: number | null;
+  readonly levelCount: number;
   readonly diagnostics: WebGpuPostPassDiagnostic[];
 }): CachedBloomPostPipeline | null {
   if (options.device.createShaderModule === undefined) {
@@ -820,7 +717,9 @@ function bloomPipelineKey(options: {
   readonly kind: BloomPostPipelineKind;
   readonly threshold: number;
   readonly intensity: number;
-  readonly radiusPixels: number;
+  readonly radius: number;
+  readonly kernelSize: number | null;
+  readonly levelCount: number;
 }): string {
   return [
     "webgpu-post-bloom",
@@ -828,7 +727,9 @@ function bloomPipelineKey(options: {
     options.outputFormat,
     options.threshold.toFixed(4),
     options.intensity.toFixed(4),
-    options.radiusPixels.toFixed(4),
+    options.radius.toFixed(4),
+    options.kernelSize === null ? "no-kernel" : `kernel:${options.kernelSize}`,
+    `levels:${options.levelCount}`,
   ].join("|");
 }
 
@@ -880,6 +781,26 @@ function clampInteger(value: number, min: number, max: number): number {
   return Math.trunc(clampFinite(value, min, max));
 }
 
+function legacyRadiusPixelsToBloomRadius(value: number | undefined): number {
+  if (value === undefined) return 0;
+  return clampFinite(value / 16, 0, 1);
+}
+
+function halfDimension(value: number): number {
+  return Math.max(1, Math.round(value / 2));
+}
+
+function bloomKernelSize(index: number): number {
+  return BLOOM_KERNEL_SIZES[index] ?? 26;
+}
+
+function gaussianCoefficients(kernelSize: number): readonly number[] {
+  const sigma = kernelSize / 3;
+  return Array.from({ length: kernelSize }, (_, index) => {
+    return (0.39894 * Math.exp((-0.5 * index * index) / (sigma * sigma))) / sigma;
+  });
+}
+
 function wgslNumber(value: number): string {
   return value.toFixed(6);
 }
@@ -888,18 +809,22 @@ function bloomPostEffectWgsl(options: {
   readonly kind: BloomPostPipelineKind;
   readonly threshold: number;
   readonly intensity: number;
-  readonly radiusPixels: number;
+  readonly radius: number;
+  readonly kernelSize: number | null;
+  readonly levelCount: number;
 }): string {
   const fragment =
     options.kind === "composite"
       ? bloomCompositeFragmentWgsl(options)
       : options.kind === "brightpass"
         ? bloomBrightpassFragmentWgsl({ threshold: options.threshold })
-        : options.kind === "upsample"
-          ? bloomUpsampleFragmentWgsl({ radiusPixels: options.radiusPixels })
-          : bloomSingleInputFragmentWgsl({
-              radiusPixels: options.radiusPixels,
-            });
+        : bloomGaussianBlurFragmentWgsl({
+            direction:
+              options.kind === "blur-horizontal"
+                ? [1, 0]
+                : ([0, 1] as const),
+            kernelSize: options.kernelSize ?? BLOOM_KERNEL_SIZES[0],
+          });
 
   return `
 struct VertexOutput {
@@ -937,36 +862,40 @@ ${fragment}
 function bloomBrightpassFragmentWgsl(options: {
   readonly threshold: number;
 }): string {
-  // Threshold at FULL resolution with a single tap: the uv lands exactly on
-  // the matching input texel center, so the linear sampler returns the texel
-  // value untouched and small bright features survive the extraction.
   return `
 @group(0) @binding(0) var inputSampler: sampler;
 @group(0) @binding(1) var inputTexture: texture_2d<f32>;
 
 const BLOOM_THRESHOLD = ${wgslNumber(options.threshold)};
-const LUMA = vec3f(0.299, 0.587, 0.114);
+const BLOOM_SMOOTH_WIDTH = 0.01;
+const LUMA = vec3f(0.2126, 0.7152, 0.0722);
 
 @fragment
 fn fs(input: VertexOutput) -> @location(0) vec4f {
   let color = textureSample(inputTexture, inputSampler, clamp(input.uv, vec2f(0.0), vec2f(1.0))).rgb;
   let luminance = dot(color, LUMA);
-  let amount = smoothstep(BLOOM_THRESHOLD, 1.0, luminance);
+  let amount = smoothstep(BLOOM_THRESHOLD, BLOOM_THRESHOLD + BLOOM_SMOOTH_WIDTH, luminance);
   return vec4f(color * amount, 1.0);
 }
 `;
 }
 
-function bloomSingleInputFragmentWgsl(options: {
-  readonly radiusPixels: number;
+function bloomGaussianBlurFragmentWgsl(options: {
+  readonly direction: readonly [number, number];
+  readonly kernelSize: number;
 }): string {
-  const radius = wgslNumber(options.radiusPixels);
+  const kernelSize = clampInteger(options.kernelSize, 1, 64);
+  const coefficients = gaussianCoefficients(kernelSize)
+    .map((coefficient) => wgslNumber(coefficient))
+    .join(", ");
 
   return `
 @group(0) @binding(0) var inputSampler: sampler;
 @group(0) @binding(1) var inputTexture: texture_2d<f32>;
 
-const BLOOM_RADIUS_PIXELS = ${radius};
+const KERNEL_SIZE: i32 = ${kernelSize};
+const BLUR_DIRECTION = vec2f(${wgslNumber(options.direction[0])}, ${wgslNumber(options.direction[1])});
+const GAUSSIAN_COEFFICIENTS = array<f32, ${kernelSize}>(${coefficients});
 
 fn sampleColor(uv: vec2f) -> vec3f {
   return textureSample(inputTexture, inputSampler, clamp(uv, vec2f(0.0), vec2f(1.0))).rgb;
@@ -977,87 +906,65 @@ fn fs(input: VertexOutput) -> @location(0) vec4f {
   let dimensions = vec2f(textureDimensions(inputTexture, 0));
   let texel = 1.0 / max(dimensions, vec2f(1.0));
   let uv = input.uv;
-  var color = sampleColor(uv) * 0.36;
-  color += sampleColor(uv + texel * vec2f(1.0, 0.0) * BLOOM_RADIUS_PIXELS) * 0.14;
-  color += sampleColor(uv + texel * vec2f(-1.0, 0.0) * BLOOM_RADIUS_PIXELS) * 0.14;
-  color += sampleColor(uv + texel * vec2f(0.0, 1.0) * BLOOM_RADIUS_PIXELS) * 0.14;
-  color += sampleColor(uv + texel * vec2f(0.0, -1.0) * BLOOM_RADIUS_PIXELS) * 0.14;
-  color += sampleColor(uv + texel * vec2f(1.0, 1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
-  color += sampleColor(uv + texel * vec2f(-1.0, 1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
-  color += sampleColor(uv + texel * vec2f(1.0, -1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
-  color += sampleColor(uv + texel * vec2f(-1.0, -1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
+  var color = sampleColor(uv) * GAUSSIAN_COEFFICIENTS[0];
+  for (var i: i32 = 1; i < KERNEL_SIZE; i = i + 1) {
+    let offset = BLUR_DIRECTION * texel * f32(i);
+    let weight = GAUSSIAN_COEFFICIENTS[i];
+    color += (sampleColor(uv + offset) + sampleColor(uv - offset)) * weight;
+  }
   return vec4f(color, 1.0);
-}
-`;
-}
-
-function bloomUpsampleFragmentWgsl(options: {
-  readonly radiusPixels: number;
-}): string {
-  // Progressive upsample: blur the coarser level up and ADD the same-level
-  // downsample (skip connection), preserving each level's extracted energy.
-  return `
-@group(0) @binding(0) var inputSampler: sampler;
-@group(0) @binding(1) var coarseTexture: texture_2d<f32>;
-@group(0) @binding(2) var skipTexture: texture_2d<f32>;
-
-const BLOOM_RADIUS_PIXELS = ${wgslNumber(options.radiusPixels)};
-
-fn sampleCoarse(uv: vec2f) -> vec3f {
-  return textureSample(coarseTexture, inputSampler, clamp(uv, vec2f(0.0), vec2f(1.0))).rgb;
-}
-
-@fragment
-fn fs(input: VertexOutput) -> @location(0) vec4f {
-  let dimensions = vec2f(textureDimensions(coarseTexture, 0));
-  let texel = 1.0 / max(dimensions, vec2f(1.0));
-  let uv = input.uv;
-  var color = sampleCoarse(uv) * 0.36;
-  color += sampleCoarse(uv + texel * vec2f(1.0, 0.0) * BLOOM_RADIUS_PIXELS) * 0.14;
-  color += sampleCoarse(uv + texel * vec2f(-1.0, 0.0) * BLOOM_RADIUS_PIXELS) * 0.14;
-  color += sampleCoarse(uv + texel * vec2f(0.0, 1.0) * BLOOM_RADIUS_PIXELS) * 0.14;
-  color += sampleCoarse(uv + texel * vec2f(0.0, -1.0) * BLOOM_RADIUS_PIXELS) * 0.14;
-  color += sampleCoarse(uv + texel * vec2f(1.0, 1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
-  color += sampleCoarse(uv + texel * vec2f(-1.0, 1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
-  color += sampleCoarse(uv + texel * vec2f(1.0, -1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
-  color += sampleCoarse(uv + texel * vec2f(-1.0, -1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
-  let skip = textureSample(skipTexture, inputSampler, clamp(uv, vec2f(0.0), vec2f(1.0))).rgb;
-  return vec4f(color + skip, 1.0);
 }
 `;
 }
 
 function bloomCompositeFragmentWgsl(options: {
   readonly intensity: number;
-  readonly radiusPixels: number;
+  readonly radius: number;
+  readonly kernelSize: number | null;
+  readonly levelCount: number;
 }): string {
+  const levelCount = clampInteger(options.levelCount, 1, BLOOM_KERNEL_SIZES.length);
+  const textureBindings = Array.from(
+    { length: levelCount },
+    (_, index) =>
+      `@group(0) @binding(${index + 2}) var bloomTexture${index}: texture_2d<f32>;`,
+  ).join("\n");
+  const bloomSum = Array.from({ length: levelCount }, (_, index) => {
+    const factor = [1, 0.8, 0.6, 0.4, 0.2][index] ?? 0.2;
+    return `  bloom += sampleBloom${index}(uv) * lerpBloomFactor(${wgslNumber(factor)});`;
+  }).join("\n");
+
   return `
 @group(0) @binding(0) var inputSampler: sampler;
 @group(0) @binding(1) var baseTexture: texture_2d<f32>;
-@group(0) @binding(2) var bloomTexture: texture_2d<f32>;
+${textureBindings}
 
 const BLOOM_INTENSITY = ${wgslNumber(options.intensity)};
-const BLOOM_RADIUS_PIXELS = ${wgslNumber(options.radiusPixels)};
+const BLOOM_RADIUS = ${wgslNumber(options.radius)};
 
 fn sampleBase(uv: vec2f) -> vec4f {
   return textureSample(baseTexture, inputSampler, clamp(uv, vec2f(0.0), vec2f(1.0)));
 }
 
-fn sampleBloom(uv: vec2f) -> vec3f {
-  return textureSample(bloomTexture, inputSampler, clamp(uv, vec2f(0.0), vec2f(1.0))).rgb;
+fn lerpBloomFactor(factor: f32) -> f32 {
+  let mirrorFactor = 1.2 - factor;
+  return mix(factor, mirrorFactor, BLOOM_RADIUS);
 }
+
+${Array.from(
+  { length: levelCount },
+  (_, index) => `
+fn sampleBloom${index}(uv: vec2f) -> vec3f {
+  return textureSample(bloomTexture${index}, inputSampler, clamp(uv, vec2f(0.0), vec2f(1.0))).rgb;
+}`,
+).join("\n")}
 
 @fragment
 fn fs(input: VertexOutput) -> @location(0) vec4f {
-  let dimensions = vec2f(textureDimensions(bloomTexture, 0));
-  let texel = 1.0 / max(dimensions, vec2f(1.0));
   let uv = input.uv;
   let base = sampleBase(uv);
-  var bloom = sampleBloom(uv) * 0.42;
-  bloom += sampleBloom(uv + texel * vec2f(1.0, 0.0) * BLOOM_RADIUS_PIXELS) * 0.145;
-  bloom += sampleBloom(uv + texel * vec2f(-1.0, 0.0) * BLOOM_RADIUS_PIXELS) * 0.145;
-  bloom += sampleBloom(uv + texel * vec2f(0.0, 1.0) * BLOOM_RADIUS_PIXELS) * 0.145;
-  bloom += sampleBloom(uv + texel * vec2f(0.0, -1.0) * BLOOM_RADIUS_PIXELS) * 0.145;
+  var bloom = vec3f(0.0);
+${bloomSum}
   let color = base.rgb + bloom * BLOOM_INTENSITY;
   return vec4f(color, base.a);
 }

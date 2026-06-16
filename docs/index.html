@@ -393,12 +393,18 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-07 01:49 UTC</dd>
+            <dd>2026-06-16 03:09 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: generated/default app snapshot transport now
+              Latest update: bloom now follows the three.js BloomNode-style
+              half-resolution brightpass plus Gaussian mip graph, and
+              non-final post effects preserve the HDR scene format until the
+              final tonemap pass. Shadow Lab verifies the emissive probe on the
+              racing scene side by side against three.js with a matching
+              five-level bloom graph. Prior update: generated/default app
+              snapshot transport now
               defaults to <code>auto</code>: isolated hosts receive
               SharedArrayBuffer start payloads, generated simulation workers
               write supported render packets and typed buffers through the
@@ -1906,7 +1912,9 @@
               forward passes through cached multisampled color/depth
               attachments, resolves to the swapchain or off-screen target, and
               keys built-in pipelines by effective sample count. Bloom now
-              submits through a renderer-owned downsample/upsample graph, and
+              submits through a renderer-owned BloomNode-style brightpass,
+              Gaussian mip blur, and composite graph while preserving HDR
+              intermediate formats until final tonemap, and
               StandardMaterial IBL resources can execute from multiple
               renderer-owned environment assets. StandardMaterial many-light
               scenes now prepare clustered local-light indices and bind them
@@ -1991,6 +1999,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">post</span> Matched bloom to the
+                three.js BloomNode route used by Shadow Lab: half-resolution
+                brightpass, horizontal/vertical Gaussian mip passes, composite
+                radius semantics, and HDR intermediate textures before tonemap.
+              </li>
               <li>
                 <span class="badge green">M6</span> Finished the GPU particle
                 over-lifetime curve follow-up. Particle effect size/color curves

@@ -238,7 +238,9 @@ export interface ApertureBloomConfig {
   readonly threshold?: number;
   /** Bloom additive intensity (UnrealBloom "strength"). */
   readonly intensity?: number;
-  /** Blur radius in pixels at full resolution. */
+  /** UnrealBloom/BloomNode radius in the range 0..1. */
+  readonly radius?: number;
+  /** Legacy Aperture blur radius fallback; prefer `radius` for new code. */
   readonly radiusPixels?: number;
   /** Number of downsampled bloom levels to blur and composite. */
   readonly levels?: number;

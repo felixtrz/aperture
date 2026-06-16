@@ -100,7 +100,7 @@ sheen; engine has Ambient/Environment/Directional/Point/Spot/RectArea, no Hemisp
 - **config**: 11 gltf assets; signals `lap,currentLapTime,lastLapTime,bestLapTime,
   speed,started`; input `drive` (axis2d: WASD/arrows + gamepad stick); physics
   gravity `[0,-9.81,0]`; render clearColor `0xadb2ba`, defaultCamera/Light false,
-  sampleCount 4, tonemap `aces`, exposure 1.0, bloom `{threshold .5, intensity .02, radiusPixels 2}`.
+  sampleCount 4, tonemap `aces`, exposure 1.0, bloom `{threshold .5, intensity .02, radius .02, levels 5}`.
 - **src/lib**: `math.ts` (quat/scalar helpers), `track.ts` (TRACK_CELLS, DECO_CELLS,
   NPC_TRUCKS, CELL_RAW 9.99, GRID_SCALE 0.75, codec, spawn/bounds, decoration buckets),
   `tuning.ts` (constants), `physics-colliders.ts` (wall+ground colliders, port of
