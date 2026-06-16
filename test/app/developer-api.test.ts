@@ -41,8 +41,12 @@ import {
   composeTrsMatrix,
   createMeshBvh,
   createShaderHandle,
+  type Entity,
 } from "@aperture-engine/simulation";
 import {
+  Mesh,
+  ShadowCaster,
+  ShadowReceiver,
   createPlaneMeshAsset,
   createSpatialTriangleMeshFromMeshAsset,
 } from "@aperture-engine/render";
@@ -1570,6 +1574,143 @@ describe("developer-facing app API", () => {
     );
   });
 
+  it("spawns repeated GLB instances with shared batch options as ECS subtrees", async () => {
+    const cubeBytes = await readFile("examples/assets/cube.glb");
+    const cubeDataUrl = `data:model/gltf-binary;base64,${cubeBytes.toString(
+      "base64",
+    )}`;
+    const spawnedRootRefs: Array<{ index: number; generation: number }> = [];
+    const config = defineApertureConfig({
+      mode: "headless",
+      systems: ["src/systems/**/*.system.ts"],
+      assets: {
+        robot: asset.gltf(cubeDataUrl, { preload: "blocking" }),
+      },
+      render: {
+        defaultCamera: false,
+        defaultLight: false,
+      },
+    });
+    const SetupSystemModule: ApertureSystemModule = {
+      default: class SetupSystem extends createSystem({
+        priority: 0,
+      }) {
+        override init(): void {
+          this.spawn.camera({
+            key: "camera.main",
+            name: "main-camera",
+            transform: { translation: [0, 1.5, 6], lookAt: [0, 0.5, 0] },
+          });
+          this.spawn.light({
+            key: "light.key",
+            name: "key-light",
+            kind: "directional",
+            illuminance: 4,
+            transform: { rotationEulerDegrees: [-45, 35, 0] },
+          });
+
+          const roots = this.spawn.gltfBatch(this.assets.gltf("robot"), {
+            tags: ["batch", "robot"],
+            materials: {
+              renderState: { cullMode: "front" },
+            },
+            castShadow: false,
+            receiveShadow: true,
+            instances: [
+              {
+                key: "level.robot.a",
+                name: "robot-a",
+                transform: { translation: [-1.5, 0, 0] },
+              },
+              {
+                key: "level.robot.b",
+                name: "robot-b",
+                tags: ["variant"],
+                transform: { translation: [1.5, 0, 0] },
+              },
+            ],
+          });
+
+          spawnedRootRefs.push(
+            ...roots.map((root) => ({
+              index: root.index,
+              generation: root.generation,
+            })),
+          );
+        }
+      },
+    };
+
+    const app = await createApertureApp({
+      config,
+      systems: [SetupSystemModule],
+    });
+    const rootsByKey = new Map(
+      [
+        ...app.lowLevel.world.queryManager.registerQuery({
+          required: [AppEntityKey],
+        }).entities,
+      ].map((entity) => [
+        entity.getValue(AppEntityKey, "value") as string,
+        entity,
+      ]),
+    );
+    const firstRoot = rootsByKey.get("level.robot.a");
+    const secondRoot = rootsByKey.get("level.robot.b");
+    expect(spawnedRootRefs).toHaveLength(2);
+    expect(firstRoot).toBeDefined();
+    expect(secondRoot).toBeDefined();
+    if (firstRoot === undefined || secondRoot === undefined) {
+      throw new Error("Expected batched GLTF roots to exist.");
+    }
+
+    expect(firstRoot.getValue(Name, "value")).toBe("robot-a");
+    expect(secondRoot.getValue(Name, "value")).toBe("robot-b");
+    expect(readAppTags(firstRoot)).toEqual(["batch", "robot"]);
+    expect(readAppTags(secondRoot)).toEqual(["batch", "robot", "variant"]);
+    expect([...firstRoot.getVectorView(LocalTransform, "translation")]).toEqual(
+      [-1.5, 0, 0],
+    );
+    expect([
+      ...secondRoot.getVectorView(LocalTransform, "translation"),
+    ]).toEqual([1.5, 0, 0]);
+
+    const firstMeshNodes = app.context.gltf
+      .nodes(firstRoot)
+      .filter((node) => node.entity.hasComponent(Mesh));
+    const secondMeshNodes = app.context.gltf
+      .nodes(secondRoot)
+      .filter((node) => node.entity.hasComponent(Mesh));
+    expect(firstMeshNodes.length).toBeGreaterThan(0);
+    expect(secondMeshNodes.length).toBeGreaterThan(0);
+    for (const node of [...firstMeshNodes, ...secondMeshNodes]) {
+      expect(node.entity.hasComponent(ShadowCaster)).toBe(true);
+      expect(node.entity.getValue(ShadowCaster, "enabled")).toBe(false);
+      expect(node.entity.hasComponent(ShadowReceiver)).toBe(true);
+      expect(node.entity.getValue(ShadowReceiver, "enabled")).toBe(true);
+    }
+
+    const sourceMaterialCount =
+      app.context.assets.gltf("robot").scene.value?.primitiveMaterials.resolved
+        .length ?? 0;
+    const overrideEntries = app.lowLevel.assets
+      .list({ kind: "material", status: "ready" })
+      .filter(
+        (entry) =>
+          entry.handle.id.includes("robot:material:") &&
+          entry.handle.id.includes(":override:"),
+      );
+    expect(overrideEntries).toHaveLength(sourceMaterialCount);
+    expect(overrideEntries.map(materialCullMode)).toEqual(
+      new Array(sourceMaterialCount).fill("front"),
+    );
+
+    const snapshot = app.stepAndExtract(1 / 60, 0.5, 0);
+    expect(snapshot.meshDraws.length).toBeGreaterThanOrEqual(
+      firstMeshNodes.length + secondMeshNodes.length,
+    );
+  });
+
   it("runs the developer API example systems through a config-driven headless runner", async () => {
     const loadedAssets: string[] = [];
     const runner = await createApertureHeadlessRunner({
@@ -2320,6 +2461,22 @@ function materialCullMode(entry: { readonly asset: unknown } | undefined) {
   const renderState = readRecord(asset?.renderState);
   const cullMode = renderState?.cullMode;
   return typeof cullMode === "string" ? cullMode : undefined;
+}
+
+function readAppTags(entity: Entity): readonly string[] {
+  if (!entity.hasComponent(AppEntityTags)) {
+    return [];
+  }
+
+  const raw = entity.getValue(AppEntityTags, "valuesJson");
+  if (typeof raw !== "string") {
+    return [];
+  }
+
+  const parsed = JSON.parse(raw) as unknown;
+  return Array.isArray(parsed)
+    ? parsed.filter((value): value is string => typeof value === "string")
+    : [];
 }
 
 function createCanvasMeasureElement(input: {

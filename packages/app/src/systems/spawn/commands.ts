@@ -49,7 +49,13 @@ import {
 } from "./metadata.js";
 import { applyPhysicsSpawnDescriptor } from "./physics.js";
 import { addTransform, writeTransform } from "./transforms.js";
-import type { ParticleEffectDescriptorInput, SpawnCommands } from "./types.js";
+import type {
+  ParticleEffectDescriptorInput,
+  SpawnCommands,
+  SpawnGltfBatchInstance,
+  SpawnGltfBatchOptions,
+  SpawnGltfOptions,
+} from "./types.js";
 
 export function createSpawnCommands(options: {
   readonly world: EcsWorld;
@@ -57,7 +63,7 @@ export function createSpawnCommands(options: {
   readonly diagnostics: SystemDiagnostics;
   readonly assets: SystemAssetAccess;
 }): SpawnCommands {
-  return {
+  const commands: SpawnCommands = {
     camera(input = {}) {
       const entity = createEntityWithMetadata(options.world, input, "camera");
       addTransform(entity, input.transform);
@@ -245,6 +251,11 @@ export function createSpawnCommands(options: {
 
       return root;
     },
+    gltfBatch(handle, input) {
+      return input.instances.map((instance) =>
+        commands.gltf(handle, gltfBatchInstanceOptions(input, instance)),
+      );
+    },
     prefab(handle, input = {}) {
       const entry = options.registry.get<"prefab", ApertureSceneDocument>(
         handle,
@@ -285,6 +296,8 @@ export function createSpawnCommands(options: {
       return createAnimationAccess(entity);
     },
   };
+
+  return commands;
 }
 
 function resolveParticleEffectHandle(input: ParticleEffectDescriptorInput) {
@@ -293,4 +306,42 @@ function resolveParticleEffectHandle(input: ParticleEffectDescriptorInput) {
   }
 
   return input;
+}
+
+function gltfBatchInstanceOptions(
+  batch: SpawnGltfBatchOptions,
+  instance: SpawnGltfBatchInstance,
+): SpawnGltfOptions {
+  const materials = instance.materials ?? batch.materials;
+  const castShadow = instance.castShadow ?? batch.castShadow;
+  const receiveShadow = instance.receiveShadow ?? batch.receiveShadow;
+
+  return {
+    ...(instance.key === undefined ? {} : { key: instance.key }),
+    ...(instance.name === undefined ? {} : { name: instance.name }),
+    ...mergedBatchTags(batch.tags, instance.tags),
+    ...(instance.transform === undefined
+      ? {}
+      : { transform: instance.transform }),
+    ...(materials === undefined ? {} : { materials }),
+    ...(castShadow === undefined ? {} : { castShadow }),
+    ...(receiveShadow === undefined ? {} : { receiveShadow }),
+  };
+}
+
+function mergedBatchTags(
+  batchTags: readonly string[] | undefined,
+  instanceTags: readonly string[] | undefined,
+): { readonly tags?: readonly string[] } {
+  if (batchTags === undefined && instanceTags === undefined) {
+    return {};
+  }
+
+  const tags: string[] = [];
+  for (const tag of [...(batchTags ?? []), ...(instanceTags ?? [])]) {
+    if (!tags.includes(tag)) {
+      tags.push(tag);
+    }
+  }
+  return { tags };
 }

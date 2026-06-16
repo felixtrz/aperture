@@ -1,9 +1,40 @@
 # Completed Tasks
 
+## RACE-LIB-16 — Batch GLTF spawn helper
+
+Completed: 2026-06-16 15:16 PDT
+Commit: pending
+
+### Summary
+
+- Added `this.spawn.gltfBatch(...)` so systems can spawn repeated GLTF
+  instances with shared tags, material overrides, and shadow flags plus
+  per-instance metadata/transforms.
+- Implemented the helper as a thin delegation to `spawn.gltf(...)`, preserving
+  ordinary ECS roots/subtrees, metadata, material override cloning, shadow
+  components, and animation behavior.
+- Migrated racing and shadow-lab decoration buckets to the batch helper.
+
+### Validation
+
+- `pnpm exec tsc -p packages/app/tsconfig.json --noEmit --pretty false`
+- `pnpm exec vitest run test/app/developer-api.test.ts --testNamePattern "repeated GLB"`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/app/gltf-instance-lookup.test.ts`
+- `pnpm run check:progress`
+- `pnpm --dir racing run typecheck && pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck && pnpm --dir shadow-lab run build`
+- No-cache live source probes confirmed racing and shadow-lab serve the rebuilt
+  `gltfBatch(...)` helper and decoration systems.
+- Aperture MCP racing status was healthy with WebGPU running, no last
+  error/failure, automatic shadows submitted, and screenshot
+  `racing/.aperture/runtime/race-lib-16-gltf-batch.png` captured.
+
 ## RACE-LIB-15 — Spawn-time GLTF material overrides
 
 Completed: 2026-06-16 15:03 PDT
-Commit: pending
+Commit: `7a318113`
 
 ### Summary
 

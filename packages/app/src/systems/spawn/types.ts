@@ -223,6 +223,25 @@ export interface SpawnGltfOptions extends SpawnMetadata {
   readonly receiveShadow?: boolean;
 }
 
+export interface SpawnGltfBatchInstance extends SpawnMetadata {
+  readonly transform?: SystemTransformInput;
+  readonly materials?: SpawnGltfMaterialOverrides;
+  readonly castShadow?: boolean;
+  readonly receiveShadow?: boolean;
+}
+
+export interface SpawnGltfBatchOptions {
+  /**
+   * Tags applied to every spawned root. Instance tags are appended and
+   * de-duplicated.
+   */
+  readonly tags?: readonly string[];
+  readonly materials?: SpawnGltfMaterialOverrides;
+  readonly castShadow?: boolean;
+  readonly receiveShadow?: boolean;
+  readonly instances: readonly SpawnGltfBatchInstance[];
+}
+
 export interface SpawnGltfMaterialOverrides {
   readonly renderState?: Partial<RenderStateDescriptor>;
 }
@@ -250,6 +269,14 @@ export interface SpawnCommands {
   /** Spawn a non-render physics entity, useful for joints, triggers, and pure colliders. */
   physics(options: SpawnPhysicsOptions): Entity;
   gltf(handle: SystemGltfAssetHandle, options?: SpawnGltfOptions): Entity;
+  /**
+   * Spawn repeated GLTF instances with shared options while still authoring
+   * ordinary ECS roots/subtrees through `spawn.gltf(...)`.
+   */
+  gltfBatch(
+    handle: SystemGltfAssetHandle,
+    options: SpawnGltfBatchOptions,
+  ): readonly Entity[];
   /** Instantiate a registered prefab blueprint, returning the subtree root. */
   prefab(handle: PrefabHandle, options?: SpawnPrefabOptions): Entity;
   /** Engine-owned animation controls for a spawned (e.g. glTF) entity. */

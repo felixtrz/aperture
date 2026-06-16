@@ -115,6 +115,12 @@ building blocks and default paths.
   components. Racing and shadow-lab now request `cullMode: "back"` at each
   GLTF spawn site instead of scanning every ready material asset in
   `setup.system.ts`.
+- 2026-06-16: Repeated GLTF spawn batching landed:
+  `this.spawn.gltfBatch(...)` now spawns repeated imported subtrees with shared
+  tags, material overrides, shadow flags, and per-instance transforms while
+  delegating to the ordinary ECS `spawn.gltf(...)` path. Racing and shadow-lab
+  decoration buckets now use the helper instead of repeating identical GLTF
+  spawn options inside each loop.
 
 ## Goals
 
@@ -1014,14 +1020,14 @@ Work items:
 - RACE-LIB-15: Add spawn-time material/render-state overrides. Done
   2026-06-16.
 - RACE-LIB-16: Add batch/instanced spawn helper if decoration count remains
-  noisy after lookup/override work.
+  noisy after lookup/override work. Done 2026-06-16.
 
 Racing migration:
 
 - Replace vehicle child-node scanning with instance lookup. Done 2026-06-16.
 - Replace global material registry patching with spawn overrides or imported
   material defaults. Done 2026-06-16.
-- Simplify decoration spawning if a batch helper lands.
+- Simplify decoration spawning if a batch helper lands. Done 2026-06-16.
 
 Validation:
 
@@ -1030,6 +1036,8 @@ Validation:
 - Material override tests through render extraction. Done 2026-06-16.
 - Racing/shadow-lab typecheck/build, no-cache live source probes, and racing
   MCP runtime screenshot/status check. Done 2026-06-16.
+- Batch GLTF spawn test proving shared options, per-instance transforms, and
+  ordinary ECS subtree output. Done 2026-06-16.
 
 ### Phase 5: Racing Source Cleanup
 
@@ -1124,23 +1132,25 @@ Shadow-lab validation:
 
 ## Recommended Next Implementation Slice
 
-Continue Phase 4 with RACE-LIB-16:
+Continue Phase 5 with RACE-LIB-17:
 
-1. Add a small batch/instanced GLTF spawn helper for repeated static imported
-   assets, starting with racing/shadow-lab decoration buckets.
-2. Preserve the current public `spawn.gltf(...)` path and compile the helper
-   down to ECS-spawned roots/material overrides rather than a hidden scene
-   graph.
-3. Migrate the repeated decoration loops only if the helper makes the active
-   systems easier to scan without changing placement or render output.
-4. Validate with focused app tests, racing/shadow-lab typecheck/build, no-cache
-   live source probes, and a racing MCP visual/status check.
+1. Remove inactive `racing/src/systems/setup.system.ts.*` scaffolding files from
+   the active source tree or move them to a clearly ignored archive outside
+   active system globs.
+2. Remove stale bisect comments and remaining unused-import `void` lines such
+   as the decoration `void CELL_RAW` placeholders if they are no longer needed.
+3. Start splitting `racing/src/lib/track.ts` by responsibility
+   (`track-data.ts`, `track-codec.ts`, `track-layout.ts`, `track-runtime.ts`)
+   while keeping public exports stable for current systems.
+4. Validate racing/shadow-lab typecheck/build and no-cache live source probes;
+   use racing MCP status/screenshot to confirm no behavior regression.
 
 Reason:
 
 - RACE-LIB-14 and RACE-LIB-15 removed the child-node query scan and global
-  material registry scan. Decoration spawning is now the remaining Phase 4
-  repetition: both experiences still hand-loop many static GLTF instances with
-  identical shadow/material options.
-- A batch helper is the next smallest library-owned API that can reduce app
-  boilerplate without changing racing gameplay or render architecture.
+  material registry scan; RACE-LIB-16 removed repeated decoration spawn
+  boilerplate through the public batch helper.
+- Phase 5 is now the smallest remaining way to make racing easier to scan
+  without changing gameplay: inactive setup files still sit next to active
+  systems, and `track.ts` still combines raw data, codec, layout, and runtime
+  helpers.

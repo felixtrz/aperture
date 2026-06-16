@@ -340,6 +340,8 @@ export type {
   SpawnCameraOptions,
   SpawnCommands,
   SpawnFogOptions,
+  SpawnGltfBatchInstance,
+  SpawnGltfBatchOptions,
   SpawnGltfOptions,
   SpawnLightOptions,
   SpawnMeshOptions,

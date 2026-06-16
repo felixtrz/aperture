@@ -1,6 +1,6 @@
 # Handoff - Racing Library Gap Slices
 
-**Updated:** 2026-06-16 15:03 PDT
+**Updated:** 2026-06-16 15:16 PDT
 
 Current user-directed work is executing
 `racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
@@ -8,37 +8,36 @@ slices while keeping racing and Shadow Lab working.
 
 ## Latest Completed Slice
 
-- Added spawn-time GLTF material/render-state overrides to
-  `this.spawn.gltf(...)` through `materials.renderState`.
-- Implemented the override path by cloning/reusing patched source material
-  assets keyed by source material plus override hash, then retargeting the
-  spawned subtree `Material` components. Source GLTF materials are not mutated.
-- Migrated racing and shadow-lab GLTF spawns to request `cullMode: "back"`
-  through the public spawn API.
-- Removed the global ready-material registry scans from both setup systems.
+- Added `this.spawn.gltfBatch(...)` for repeated imported GLTF instances with
+  shared tags, material overrides, shadow flags, and per-instance metadata and
+  transforms.
+- Implemented the helper as a thin delegation to the existing `spawn.gltf(...)`
+  path, so it still produces ordinary ECS roots/subtrees rather than a hidden
+  scene graph.
+- Migrated racing and shadow-lab decoration bucket spawning to the helper.
 - Rebuilt package `dist` outputs and both experience production bundles.
-- Updated the racing plan for RACE-LIB-15.
+- Updated the racing plan for RACE-LIB-16.
 
 ## Latest Validation
 
 - `pnpm run build`
 - `pnpm run typecheck:test`
 - `pnpm exec tsc -p packages/app/tsconfig.json --noEmit --pretty false`
-- `pnpm exec vitest run test/app/developer-api.test.ts --testNamePattern "spawn-time GLB material"`
+- `pnpm exec vitest run test/app/developer-api.test.ts --testNamePattern "repeated GLB"`
 - `pnpm exec vitest run test/app/developer-api.test.ts test/app/gltf-instance-lookup.test.ts`
 - `pnpm run check:progress`
 - `pnpm run typecheck && pnpm run build` in `racing/`
 - `pnpm run typecheck && pnpm run build` in `shadow-lab/`
 - No-cache HTTP probes against both running dev servers confirmed the served
-  racing/shadow-lab systems use `materials: GLTF_FRONT_SIDE_MATERIALS`, no
-  active system uses the old global material scan path, and both apps serve the
-  same rebuilt shared `spawn/gltf.js` helper with `materialOverrideKey(...)`.
+  racing/shadow-lab decoration systems call `this.spawn.gltfBatch(...)`, the old
+  decoration-local `this.spawn.gltf(...)` loop is gone, and both apps serve the
+  rebuilt shared spawn helper with `gltfBatch(...)`.
 - Aperture MCP `browser_status` for racing was running with `webgpuOk:true`,
   `lastError:null`, automatic directional shadow submitted, compact shared
   `:override:` material assets, and non-null `wheelBL`/`wheelBR` vehicle
   resource values.
 - Racing screenshot captured at
-  `racing/.aperture/runtime/race-lib-15-gltf-material-overrides-shared.png`.
+  `racing/.aperture/runtime/race-lib-16-gltf-batch.png`.
 - Shadow-lab `pnpm exec aperture dev status` reported daemon/server/browser
   running and bridge available on `http://127.0.0.1:8861/`.
 
@@ -53,10 +52,10 @@ slices while keeping racing and Shadow Lab working.
 
 ## Recommended Next Task
 
-Continue Phase 4 with RACE-LIB-16: add a batch/instanced GLTF spawn helper for
-repeated static imported assets, then migrate racing/shadow-lab decoration
-buckets only if it reduces active system boilerplate without changing placement
-or visual output.
+Continue Phase 5 with RACE-LIB-17: remove inactive racing setup scaffolding,
+clear stale comments/unused `void` placeholders, and start splitting
+`racing/src/lib/track.ts` by responsibility while preserving current exports and
+runtime behavior.
 
 ---
 

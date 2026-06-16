@@ -59,28 +59,27 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Add a batch/instanced GLTF spawn helper for repeated static imported assets and
-try it on racing/shadow-lab decoration buckets.
+Start Phase 5 racing source cleanup by removing inactive setup scaffolding and
+splitting the oversized track module without behavior changes.
 
-Category: `runtime-orchestration`
+Category: `audit-refactor`
 
 Reference anchor: `references/engine/src/framework/entity.js:336` and
-`references/engine/src/framework/components/render/component.js` for component
-spawn ergonomics, render asset component expectations, and repeated imported
-asset placement patterns.
+`references/engine/src/framework/components/render/component.js` for keeping
+active component authoring paths compact and separating framework-owned
+render/component behavior from app-specific data.
 
 Acceptance criteria:
 
-- Add a typed helper for spawning repeated static GLTF instances with shared
-  options such as tags, shadows, material overrides, and per-instance
-  transforms.
-- Racing and shadow-lab decoration spawning use the helper if it reduces active
-  system boilerplate without changing placement or visual output.
-- Focused app tests cover repeated GLTF spawn behavior and ensure the helper
-  compiles down to ECS entities/components rather than introducing a scene
-  graph.
-- Racing/shadow-lab typecheck/build pass, and no-cache live source probes show
-  both apps are using the updated workspace `dist` code.
+- Remove or archive the inactive `racing/src/systems/setup.system.ts.*` files
+  outside active source/system globs.
+- Remove stale bisect comments and remaining unused-import `void` placeholders
+  that are no longer needed.
+- Start splitting `racing/src/lib/track.ts` into responsibility-focused modules
+  while preserving current public exports for racing/shadow-lab systems.
+- Racing/shadow-lab typecheck/build pass, no-cache live source probes still show
+  the current active systems, and racing MCP status/screenshot show no behavior
+  regression.
 
 ## Historical M10 Physics Notes
 

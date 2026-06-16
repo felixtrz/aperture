@@ -38,20 +38,21 @@ export default class DecorationsSystem extends createSystem({ priority: 10 }) {
   #spawnBucket(bucket: string, instances: readonly DecorationInstance[]): void {
     const assetId = BUCKET_ASSET[bucket];
     if (assetId === undefined) return;
-    instances.forEach((deco, i) => {
-      this.spawn.gltf(this.assets.gltf(assetId), {
+
+    this.spawn.gltfBatch(this.assets.gltf(assetId), {
+      tags: ["decoration", `deco-${bucket}`],
+      materials: GLTF_FRONT_SIDE_MATERIALS,
+      castShadow: true,
+      receiveShadow: true,
+      instances: instances.map((deco, i) => ({
         key: `deco.${bucket}.${i}`,
         name: `deco.${bucket}.${i}`,
-        tags: ["decoration", `deco-${bucket}`],
-        materials: GLTF_FRONT_SIDE_MATERIALS,
-        castShadow: true,
-        receiveShadow: true,
         transform: {
           translation: [GRID_SCALE * deco.x, GROUP_Y, GRID_SCALE * deco.z],
           scale: [GRID_SCALE, GRID_SCALE, GRID_SCALE],
           rotationEulerDegrees: [0, deco.rotQuarters * 90, 0],
         },
-      });
+      })),
     });
   }
 }
