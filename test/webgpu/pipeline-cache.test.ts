@@ -59,6 +59,8 @@ describe("WebGPU render pipeline cache", () => {
         format: "depth24plus",
         depthWriteEnabled: false,
         depthCompare: "always",
+        depthBias: 0,
+        depthBiasSlopeScale: 0,
         stencilReadMask: 0,
         stencilWriteMask: 0,
       },
@@ -155,6 +157,10 @@ describe("WebGPU render pipeline cache", () => {
       ...base,
       materialVariantKey: "material:white|alpha-cutout",
     });
+    const depthBias = createWebGpuRenderPipelineCacheKey({
+      ...base,
+      depthStencil: { depthBias: -2, depthBiasSlopeScale: 1.25 },
+    });
     const sampleCount = createWebGpuRenderPipelineCacheKey({
       ...base,
       sampleCount: 4,
@@ -164,6 +170,7 @@ describe("WebGPU render pipeline cache", () => {
     expect(baseline).not.toBe(bindGroupLayout);
     expect(baseline).not.toBe(cullMode);
     expect(baseline).not.toBe(materialVariant);
+    expect(baseline).not.toBe(depthBias);
     expect(baseline).not.toBe(sampleCount);
   });
 

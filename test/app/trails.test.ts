@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createApertureSystemContext } from "@aperture-engine/app/systems";
+import type { MaterialAsset } from "@aperture-engine/render";
 import {
   AssetRegistry,
   createMaterialHandle,
@@ -19,14 +20,20 @@ describe("Aperture system trail access", () => {
       material: "test.skid.material",
       color: [0.1, 0.2, 0.3],
       opacity: 0.5,
+      depthBias: -2,
+      depthBiasSlopeScale: 1.25,
       width: 0.25,
       maxSegments: 4,
       minSegmentLength: 0.01,
       tags: ["trail"],
     });
 
+    const material = registry.get<"material">(trail.material);
+    const materialAsset = material?.asset as MaterialAsset | null | undefined;
     expect(registry.get<"mesh">(trail.mesh.handle)?.status).toBe("ready");
-    expect(registry.get<"material">(trail.material)?.status).toBe("ready");
+    expect(material?.status).toBe("ready");
+    expect(materialAsset?.renderState.depth.bias).toBe(-2);
+    expect(materialAsset?.renderState.depth.biasSlopeScale).toBe(1.25);
     expect(trail.material).toEqual(createMaterialHandle("test.skid.material"));
     expect(trail.entity).toBeDefined();
     expect(trail.getMeshAsset().indexBuffer?.indexCount).toBe(0);

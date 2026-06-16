@@ -60,4 +60,25 @@ describe("material pipeline key format contract (audit A4 / #11)", () => {
     expect(key).toContain("|bindings:");
     expect(key).toContain("|specialization:");
   });
+
+  it("encodes nonzero material depth bias as a pipeline feature token", () => {
+    const key = materialPipelineKeyInputToKey({
+      shaderFamily: "unlit",
+      features: [],
+      alphaMode: "blend",
+      cullMode: "none",
+      frontFace: "ccw",
+      depth: {
+        test: true,
+        write: false,
+        compare: "less",
+        bias: -2.3,
+        biasSlopeScale: 1.5,
+      },
+      blend: { preset: "alpha" },
+      colorWriteMask: "all",
+    });
+
+    expect(key).toBe("unlit|depth-bias:-2:1.5|blend|none|less|alpha");
+  });
 });

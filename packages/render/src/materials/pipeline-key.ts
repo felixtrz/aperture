@@ -101,14 +101,42 @@ function usesStandardIridescence(material: MaterialAsset): boolean {
 export function materialPipelineKeyInputToKey(
   input: MaterialPipelineKeyInput,
 ): string {
+  const features = [
+    ...input.features,
+    ...materialDepthBiasPipelineFeatures(input.depth),
+  ].sort();
+
   return [
     input.shaderFamily,
-    ...input.features,
+    ...features,
     input.alphaMode,
     input.cullMode,
     input.depth.compare,
     input.blend.preset,
   ].join("|");
+}
+
+function materialDepthBiasPipelineFeatures(
+  depth: MaterialPipelineKeyInput["depth"],
+): readonly string[] {
+  const depthBias = normalizeDepthBias(depth.bias);
+  const depthBiasSlopeScale = normalizeDepthBiasSlopeScale(
+    depth.biasSlopeScale,
+  );
+
+  return depthBias === 0 && depthBiasSlopeScale === 0
+    ? []
+    : [`depth-bias:${depthBias}:${depthBiasSlopeScale}`];
+}
+
+function normalizeDepthBias(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.round(value)
+    : 0;
+}
+
+function normalizeDepthBiasSlopeScale(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
 export function samplerPipelineKey(sampler: SamplerAsset): string {

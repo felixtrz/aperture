@@ -44,4 +44,21 @@ describe("WebGPU material render-state descriptors", () => {
       depthCompare: "less",
     });
   });
+
+  it("parses material depth bias tokens into WebGPU depth-stencil descriptors", () => {
+    const renderState = resolveWebGpuPipelineRenderState(
+      "unlit|depth-bias:-2:1.5|blend|none|less|alpha",
+      "depth24plus",
+    );
+
+    expect(
+      createWebGpuDepthStencilDescriptor("depth24plus", renderState),
+    ).toEqual({
+      format: "depth24plus",
+      depthWriteEnabled: false,
+      depthCompare: "less",
+      depthBias: -2,
+      depthBiasSlopeScale: 1.5,
+    });
+  });
 });

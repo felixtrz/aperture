@@ -95,6 +95,12 @@ building blocks and default paths.
   and mesh version bumps. Racing drift marks now call `track(...)`/`flush()`
   on library trail handles instead of constructing raw `MeshAsset` descriptors
   or touching `assetsRegistry.markReady` per frame.
+- 2026-06-16: Material depth bias / polygon offset landed for built-in material
+  pipelines: render-state depth bias now participates in material pipeline
+  keys, WebGPU depth-stencil descriptors, and render-pipeline cache keys.
+  `this.trails.groundRibbon(...)` exposes the bias fields, and racing drift
+  marks request the shared material path instead of relying only on a
+  geometry-offset workaround.
 
 ## Goals
 
@@ -356,16 +362,18 @@ Current Aperture state:
 
 - App systems now expose `this.trails.groundRibbon(...)` for common
   vertex-colored ground ribbons. The helper owns mesh layout, bounds, index
-  buffers, material registration, spawn handles, and version bumps.
+  buffers, material registration, material depth bias, spawn handles, and
+  version bumps.
 - Racing drift marks use the trail helper and no longer construct raw mesh or
-  material assets.
+  material assets. The drift material requests `depthBias` through the library
+  trail helper.
 
 Library direction:
 
 - Continue hardening `Trail`/`Ribbon` authoring primitives where other apps need
   trails, debug ribbons, editor handles, or ground decals.
-- Add polygon offset/depth bias support through material render state where it
-  belongs.
+- Continue replacing residual Y-offset decal habits with authored material
+  render-state controls where visual parity allows it.
 
 ### 7. GLB Spawn And Hierarchy Ergonomics Are Too Low-Level
 
@@ -775,6 +783,7 @@ const trail = this.trails.groundRibbon("racing.driftMarks.bl", {
   maxSegments: 4096,
   color: [0x11 / 255, 0x11 / 255, 0x11 / 255],
   opacity: 0.5,
+  depthBias: -2,
 });
 
 trail.track(currentWheel, { emit, alpha });
@@ -800,8 +809,9 @@ Implementation notes:
 
 - The builder should own bounds updates, index formats, version bumps, and
   validation.
-- Add render-state depth bias / polygon offset support so apps do not rely on
-  arbitrary Y offsets for coplanar decals/trails.
+- Render-state depth bias / polygon offset support now lives in material
+  pipeline keys, WebGPU depth-stencil descriptors, and pipeline cache keys.
+  The ground-ribbon helper exposes it for decal/trail-style geometry.
 
 Acceptance criteria:
 
@@ -965,7 +975,7 @@ Work items:
 - RACE-LIB-10: Finish textured billboard particle renderer. Done 2026-06-16.
 - RACE-LIB-11: Add particle burst/event emission API. Done 2026-06-16.
 - RACE-LIB-12: Add trail/ribbon or dynamic mesh builder. Done 2026-06-16.
-- RACE-LIB-13: Wire material depth bias / polygon offset.
+- RACE-LIB-13: Wire material depth bias / polygon offset. Done 2026-06-16.
 
 Racing migration:
 
@@ -978,7 +988,8 @@ Racing migration:
 Validation:
 
 - WebGPU particle tests for textured alpha billboard output.
-- Dynamic trail tests for bounds/version updates.
+- Dynamic trail tests for bounds/version updates and authored material depth
+  bias.
 - Racing drift visual check for smoke and tire marks.
 
 ### Phase 4: GLTF Spawn Ergonomics And Material Overrides

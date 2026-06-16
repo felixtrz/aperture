@@ -17,6 +17,8 @@ export interface WebGpuRenderPipelineDepthStencilStateKey {
   readonly format?: string | null;
   readonly depthWriteEnabled?: boolean;
   readonly depthCompare?: string;
+  readonly depthBias?: number;
+  readonly depthBiasSlopeScale?: number;
   readonly stencilReadMask?: number;
   readonly stencilWriteMask?: number;
 }
@@ -159,6 +161,8 @@ export function createWebGpuRenderPipelineCacheKey(
       format: depthFormat,
       depthWriteEnabled: input.depthStencil?.depthWriteEnabled ?? false,
       depthCompare: input.depthStencil?.depthCompare ?? "always",
+      depthBias: input.depthStencil?.depthBias ?? 0,
+      depthBiasSlopeScale: input.depthStencil?.depthBiasSlopeScale ?? 0,
       stencilReadMask: input.depthStencil?.stencilReadMask ?? 0,
       stencilWriteMask: input.depthStencil?.stencilWriteMask ?? 0,
     },

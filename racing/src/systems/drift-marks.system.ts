@@ -17,6 +17,7 @@ const MIN_SEGMENT_LENGTH = 0.02;
 const INTENSITY_MIN = 0.5;
 const INTENSITY_MAX = 2.0;
 const INV_INTENSITY_RANGE = 1 / (INTENSITY_MAX - INTENSITY_MIN);
+const DEPTH_BIAS = -2;
 
 // MeshBasicMaterial color 0x111111 -> 0.0667 baseColorFactor RGB; the
 // per-vertex alpha carries the fade and the material opacity 0.5 multiplies in.
@@ -60,6 +61,7 @@ export default class DriftMarksSystem extends createSystem({ priority: 135 }) {
       minSegmentLength: MIN_SEGMENT_LENGTH,
       color: [MARK_RGB, MARK_RGB, MARK_RGB],
       opacity: MATERIAL_OPACITY,
+      depthBias: DEPTH_BIAS,
       tags: ["drift-marks"],
       castShadow: false,
     });

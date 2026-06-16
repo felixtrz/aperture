@@ -393,14 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 21:06 UTC</dd>
+            <dd>2026-06-16 21:21 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: app systems now expose
-              <code>this.trails.groundRibbon(...)</code> for vertex-colored
-              ground ribbons. Racing drift marks now call
+              Latest update: material depth bias now flows through render-state
+              pipeline keys, WebGPU depth-stencil descriptors, and render
+              pipeline cache keys. The
+              <code>this.trails.groundRibbon(...)</code> helper exposes that
+              bias for decal/trail-style geometry, and racing drift marks
+              request it through the library path. Prior update: app systems now
+              expose <code>this.trails.groundRibbon(...)</code> for
+              vertex-colored ground ribbons. Racing drift marks now call
               <code>track(...)</code>/<code>flush()</code> on library trail
               handles instead of building raw dynamic <code>MeshAsset</code>
               descriptors or registering materials in app code. Prior update:

@@ -23,6 +23,8 @@ export interface GroundRibbonTrailOptions {
   readonly opacity?: number;
   readonly material?: string | MaterialHandle;
   readonly materialLabel?: string;
+  readonly depthBias?: number;
+  readonly depthBiasSlopeScale?: number;
   readonly entityKey?: string;
   readonly name?: string;
   readonly tags?: readonly string[];
@@ -126,6 +128,8 @@ class GroundRibbonTrailImpl implements GroundRibbonTrail {
     ensureTrailMaterial(access.registry, this.material, {
       label: options.materialLabel ?? `${label} material`,
       opacity: finiteUnit(options.opacity, 1),
+      depthBias: finiteNumber(options.depthBias, 0),
+      depthBiasSlopeScale: finiteNumber(options.depthBiasSlopeScale, 0),
     });
     this.mesh = access.meshes.dynamic(id, {
       label,
@@ -304,7 +308,12 @@ class GroundRibbonTrailImpl implements GroundRibbonTrail {
 function ensureTrailMaterial(
   registry: AssetRegistry,
   handle: MaterialHandle,
-  options: { readonly label: string; readonly opacity: number },
+  options: {
+    readonly label: string;
+    readonly opacity: number;
+    readonly depthBias: number;
+    readonly depthBiasSlopeScale: number;
+  },
 ): void {
   const entry = registry.get<"material">(handle);
   if (entry?.status === "ready" && entry.asset !== null) {
@@ -317,7 +326,15 @@ function ensureTrailMaterial(
     renderState: createDefaultRenderState({
       alphaMode: "blend",
       cullMode: "none",
-      depth: { test: true, write: false, compare: "less" },
+      depth: {
+        test: true,
+        write: false,
+        compare: "less",
+        ...(options.depthBias === 0 ? {} : { bias: options.depthBias }),
+        ...(options.depthBiasSlopeScale === 0
+          ? {}
+          : { biasSlopeScale: options.depthBiasSlopeScale }),
+      },
       blend: { preset: "alpha" },
     }),
   });

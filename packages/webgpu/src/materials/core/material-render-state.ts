@@ -2,6 +2,8 @@ export interface MaterialPipelineRenderStateTokens {
   readonly alphaMode: string | null;
   readonly cullMode: string | null;
   readonly depthCompare: string | null;
+  readonly depthBias: number | null;
+  readonly depthBiasSlopeScale: number | null;
   readonly blendPreset: string | null;
 }
 
@@ -21,6 +23,8 @@ export interface WebGpuPipelineRenderState {
   readonly cullMode: string;
   readonly depthCompare: string;
   readonly depthWriteEnabled: boolean;
+  readonly depthBias: number;
+  readonly depthBiasSlopeScale: number;
   readonly blend: WebGpuBlendState | null;
 }
 
@@ -32,17 +36,22 @@ export function parseMaterialPipelineRenderStateTokens(
       alphaMode: null,
       cullMode: null,
       depthCompare: null,
+      depthBias: null,
+      depthBiasSlopeScale: null,
       blendPreset: null,
     };
   }
 
   const parts = pipelineKey.split("|");
   const renderStateStart = Math.max(1, parts.length - 4);
+  const depthBias = parseDepthBiasToken(parts.slice(1, renderStateStart));
 
   return {
     alphaMode: parts[renderStateStart] ?? null,
     cullMode: parts[renderStateStart + 1] ?? null,
     depthCompare: parts[renderStateStart + 2] ?? null,
+    depthBias: depthBias.depthBias,
+    depthBiasSlopeScale: depthBias.depthBiasSlopeScale,
     blendPreset: parts[renderStateStart + 3] ?? null,
   };
 }
@@ -59,6 +68,8 @@ export function resolveWebGpuPipelineRenderState(
     alphaMode,
     cullMode: tokens.cullMode ?? "back",
     depthCompare,
+    depthBias: tokens.depthBias ?? 0,
+    depthBiasSlopeScale: tokens.depthBiasSlopeScale ?? 0,
     depthWriteEnabled:
       depthFormat !== undefined &&
       depthFormat !== null &&
@@ -74,6 +85,8 @@ export function createWebGpuDepthStencilStateKey(
   readonly format: string | null;
   readonly depthWriteEnabled: boolean;
   readonly depthCompare: string;
+  readonly depthBias?: number;
+  readonly depthBiasSlopeScale?: number;
 } {
   if (depthFormat === undefined || depthFormat === null) {
     return {
@@ -87,6 +100,7 @@ export function createWebGpuDepthStencilStateKey(
     format: depthFormat,
     depthWriteEnabled: renderState.depthWriteEnabled,
     depthCompare: renderState.depthCompare,
+    ...depthBiasFields(renderState),
   };
 }
 
@@ -97,6 +111,8 @@ export function createWebGpuDepthStencilDescriptor(
   readonly format: string;
   readonly depthWriteEnabled: boolean;
   readonly depthCompare: string;
+  readonly depthBias?: number;
+  readonly depthBiasSlopeScale?: number;
 } | null {
   if (depthFormat === undefined || depthFormat === null) {
     return null;
@@ -106,6 +122,7 @@ export function createWebGpuDepthStencilDescriptor(
     format: depthFormat,
     depthWriteEnabled: renderState.depthWriteEnabled,
     depthCompare: renderState.depthCompare,
+    ...depthBiasFields(renderState),
   };
 }
 
@@ -183,4 +200,39 @@ function createBlendState(preset: string): WebGpuBlendState | null {
     default:
       return null;
   }
+}
+
+function parseDepthBiasToken(features: readonly string[]): {
+  readonly depthBias: number | null;
+  readonly depthBiasSlopeScale: number | null;
+} {
+  const token = features.find((feature) => feature.startsWith("depth-bias:"));
+  if (token === undefined) {
+    return { depthBias: null, depthBiasSlopeScale: null };
+  }
+
+  const [, depthBiasRaw, depthBiasSlopeScaleRaw] = token.split(":");
+  const depthBias = Number(depthBiasRaw);
+  const depthBiasSlopeScale = Number(depthBiasSlopeScaleRaw);
+
+  return {
+    depthBias: Number.isFinite(depthBias) ? Math.round(depthBias) : 0,
+    depthBiasSlopeScale: Number.isFinite(depthBiasSlopeScale)
+      ? depthBiasSlopeScale
+      : 0,
+  };
+}
+
+function depthBiasFields(renderState: WebGpuPipelineRenderState): {
+  readonly depthBias?: number;
+  readonly depthBiasSlopeScale?: number;
+} {
+  return {
+    ...(renderState.depthBias === 0
+      ? {}
+      : { depthBias: renderState.depthBias }),
+    ...(renderState.depthBiasSlopeScale === 0
+      ? {}
+      : { depthBiasSlopeScale: renderState.depthBiasSlopeScale }),
+  };
 }

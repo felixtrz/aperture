@@ -102,6 +102,36 @@ describe("unlit pipeline descriptor planning", () => {
     );
   });
 
+  it("applies authored material depth bias to unlit pipeline descriptors", () => {
+    const result = createUnlitPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey: {
+        ...BATCH_KEY,
+        pipelineKey: "unlit|depth-bias:-2:1.25|blend|none|less|alpha",
+      },
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.plan?.descriptor).toMatchObject({
+      depthStencil: {
+        format: "depth24plus",
+        depthWriteEnabled: false,
+        depthCompare: "less",
+        depthBias: -2,
+        depthBiasSlopeScale: 1.25,
+      },
+    });
+    expect(JSON.parse(required(result.plan).cacheKey) as unknown).toMatchObject(
+      {
+        depthStencil: {
+          depthBias: -2,
+          depthBiasSlopeScale: 1.25,
+        },
+      },
+    );
+  });
+
   it("selects a textured shader and distinct cache key for base-color textures", () => {
     const factorOnly = createUnlitPipelineDescriptorPlan({
       colorFormat: "bgra8unorm",

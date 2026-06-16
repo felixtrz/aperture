@@ -1,3 +1,52 @@
+# Handoff - Racing Library Gap Slices
+
+**Updated:** 2026-06-16 14:22 PDT
+
+Current user-directed work is executing
+`racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
+slices while keeping racing and Shadow Lab working.
+
+## Latest Completed Slice
+
+- Wired material depth bias / polygon offset through built-in material pipeline
+  keys, WebGPU depth-stencil descriptors, and render pipeline cache keys.
+- Exposed `depthBias` and `depthBiasSlopeScale` on
+  `this.trails.groundRibbon(...)`.
+- Migrated racing drift marks to request `depthBias: -2` through the shared
+  trail helper.
+- Updated the racing plan and public tracker pages for RACE-LIB-13.
+
+## Latest Validation
+
+- `pnpm exec tsc -b packages/render packages/webgpu packages/app --pretty false`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json --pretty false`
+- `pnpm exec vitest run test/app/trails.test.ts test/webgpu/material-render-state.test.ts test/materials/key-format-contract.test.ts test/webgpu/unlit-pipeline-descriptor.test.ts test/webgpu/pipeline-cache.test.ts`
+- `pnpm run check:progress`
+- `git diff --check`
+- `pnpm run build`
+- `pnpm run typecheck && pnpm run build` in `racing/`
+- `pnpm run typecheck && pnpm run build` in `shadow-lab/`
+- No-cache HTTP probes against both running dev servers confirmed the served
+  shared package modules contain the updated depth-bias code.
+- Aperture MCP `browser_status` for racing was running with `webgpuOk:true`,
+  `lastError:null`, and prepared drift material pipeline key
+  `unlit|depth-bias:-2:0|blend|none|less|alpha`.
+
+## Current Notes
+
+- The racing console log history still contains earlier errors from the
+  half-written helper placement before this slice was fixed, but the current
+  MCP status is healthy.
+- Pre-existing untracked screenshot/parity artifacts remain outside the commit.
+
+## Recommended Next Task
+
+Continue the racing library-gap plan with the next non-render-state slice:
+audio runtime ergonomics, GLTF spawn/material override ergonomics, or cleanup of
+inactive racing setup variants.
+
+---
+
 # Handoff - Shadow Lab Fixed-Step Render Interpolation
 
 **Updated:** 2026-06-15 22:03 PDT
