@@ -197,6 +197,77 @@ describe("queued built-in app resource set collector", () => {
     expect(JSON.stringify(result)).not.toContain("rawGpuHandle");
   });
 
+  it("keeps routed resources when unrelated queue items only have warning diagnostics", () => {
+    const assets = readyAssets("standard");
+    const snapshot = renderSnapshot([
+      drawPacket({
+        renderId: 21,
+        materialFamily: "standard",
+        pipelineKey:
+          "standard|shadowMap|fogLinear|opaque|back|less|none",
+      }),
+      drawPacket({
+        renderId: 22,
+        materialFamily: "standard",
+        materialId: "smoke",
+      }),
+    ]);
+    const meshes = createPreparedMeshStore();
+    const materials = createPreparedMaterialStore();
+
+    prepareSnapshotMeshes({ registry: assets, snapshot, meshes });
+    prepareSnapshotMaterials({ registry: assets, snapshot, materials });
+
+    const result = collectQueuedBuiltInAppResourceSet({
+      assets,
+      snapshot,
+      materialQueueScratch: createMaterialQueueScratch(),
+      routeScratch: routeScratch(),
+      meshes,
+      materials,
+      adapters: adapters(),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.resourceSet?.items).toHaveLength(1);
+    expect(result.resourceSet?.items[0]).toMatchObject({
+      queueItem: {
+        renderId: 21,
+        materialFamily: "standard",
+        pipelineKey: "standard|shadowMap|fogLinear|opaque|back|less|none",
+        materialResourceKey: "prepared-material:material:white@v1",
+      },
+      prepareRoute: {
+        valid: true,
+        pipelineKey: "standard|shadowMap|fogLinear|opaque|back|less|none",
+      },
+    });
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "materialQueue.missingPreparedResource",
+          assetKey: "material:smoke",
+          severity: "warning",
+        }),
+        expect.objectContaining({
+          code: "webGpuApp.materialQueueRouteReport",
+          message: "WebGPU app material queue routing reported diagnostics.",
+          report: expect.objectContaining({
+            valid: true,
+            queueItemCount: 1,
+            routedItemCount: 1,
+            skippedItemCount: 0,
+            diagnosticSummary: expect.objectContaining({
+              byCode: {
+                "materialQueue.missingPreparedResource": 1,
+              },
+            }),
+          }),
+        }),
+      ]),
+    );
+  });
+
   it("reports unsupported route families without routed resources or raw handles", () => {
     const assets = readyAssets("unlit");
     const snapshot = renderSnapshot([
@@ -431,10 +502,12 @@ function drawPacket(options: {
   readonly renderId: number;
   readonly materialFamily: string;
   readonly materialId?: string;
+  readonly pipelineKey?: string;
 }): MeshDrawPacket {
   const meshKey = "mesh:cube";
   const materialKey = `material:${options.materialId ?? "white"}`;
-  const pipelineKey = `${options.materialFamily}|opaque|back|less|none`;
+  const pipelineKey =
+    options.pipelineKey ?? `${options.materialFamily}|opaque|back|less|none`;
 
   return {
     renderId: options.renderId,

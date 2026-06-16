@@ -142,6 +142,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
   readonly snapshotUpdateSchedule: RenderSnapshotUpdateSchedule;
   readonly builtInSnapshot: RenderSnapshot;
   readonly builtInResourceSet: QueuedBuiltInAppResourceSet;
+  readonly routeDiagnostics?: readonly unknown[];
   readonly reuse: WebGpuAppResourceReuseReport;
   readonly clearColor?: readonly number[];
   readonly label?: string;
@@ -577,6 +578,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     commandPressure: framePlan.commandPlan.pressure,
     diagnostics: [
       ...options.snapshot.diagnostics,
+      ...(options.routeDiagnostics ?? []),
       ...framePlan.bindingPlan.diagnostics,
       ...framePlan.readiness.diagnostics,
       ...framePlan.packages.diagnostics,

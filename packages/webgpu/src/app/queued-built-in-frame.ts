@@ -78,6 +78,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   readonly snapshotChangeSet: RenderSnapshotChangeSet;
   readonly snapshotUpdateSchedule: RenderSnapshotUpdateSchedule;
   readonly resourceSet: QueuedBuiltInAppResourceSet;
+  readonly routeDiagnostics?: readonly unknown[];
   readonly reuse: WebGpuAppResourceReuseReport;
   readonly clearColor?: readonly number[];
   readonly label?: string;
@@ -306,7 +307,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   );
   options.phaseTimer.finish("queue");
 
-  if (queue.diagnostics.length > 0) {
+  if (hasErrorDiagnostics(queue.diagnostics)) {
     return renderReport({
       ok: false,
       snapshot: options.snapshot,
@@ -325,6 +326,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
         ...packedTransforms.diagnostics,
         ...previousObjectTransforms.diagnostics,
         ...packedInstanceTints.diagnostics,
+        ...(options.routeDiagnostics ?? []),
         ...queue.diagnostics,
       ],
     });
@@ -555,6 +557,8 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     commandPressure: framePlan.commandPlan.pressure,
     diagnostics: [
       ...options.snapshot.diagnostics,
+      ...(options.routeDiagnostics ?? []),
+      ...(options.routeDiagnostics === undefined ? queue.diagnostics : []),
       ...previousObjectTransforms.diagnostics,
       ...framePlan.bindingPlan.diagnostics,
       ...framePlan.readiness.diagnostics,
@@ -572,5 +576,16 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
         boundaries.occlusionQueryDiagnostics,
       ),
     ],
+  });
+}
+
+function hasErrorDiagnostics(diagnostics: readonly unknown[]): boolean {
+  return diagnostics.some((diagnostic) => {
+    if (typeof diagnostic !== "object" || diagnostic === null) {
+      return true;
+    }
+
+    const severity = (diagnostic as { readonly severity?: unknown }).severity;
+    return severity !== "warning" && severity !== "info";
   });
 }

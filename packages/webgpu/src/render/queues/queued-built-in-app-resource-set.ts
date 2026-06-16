@@ -254,19 +254,23 @@ export function collectQueuedBuiltInAppResourceSet(
     );
   }
 
-  const valid = diagnostics.length === 0 && items.length === queue.items.length;
-
-  if (!valid) {
-    diagnostics.push(
-      createWebGpuAppMaterialQueueRouteReportDiagnostic({
+  const routeDiagnostics = diagnostics.flatMap(
+    unknownToWebGpuAppMaterialQueueRouteDiagnostics,
+  );
+  const needsRouteReport =
+    routeDiagnostics.length > 0 || items.length !== queue.items.length;
+  const routeReport = needsRouteReport
+    ? createWebGpuAppMaterialQueueRouteReportDiagnostic({
         queueItems: queue.items,
         routedItems: items,
-        diagnostics: diagnostics.flatMap(
-          unknownToWebGpuAppMaterialQueueRouteDiagnostics,
-        ),
+        diagnostics: routeDiagnostics,
         shell: options.routeScratch.routeReport,
-      }),
-    );
+      })
+    : null;
+  const valid = routeReport?.report.valid ?? true;
+
+  if (routeReport !== null) {
+    diagnostics.push(routeReport);
   }
 
   return {

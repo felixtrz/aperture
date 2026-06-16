@@ -152,13 +152,18 @@ export function createQueuedMaterialAppRouteReportDiagnostic(input: {
     },
     input.shell,
   );
+  const report = webGpuAppMaterialQueueRouteReportShellToJsonValue(
+    input.shell,
+  );
 
   return {
     code: "webGpuApp.materialQueueRouteReport",
-    message: "WebGPU app material queue routing failed.",
+    message: report.valid
+      ? "WebGPU app material queue routing reported diagnostics."
+      : "WebGPU app material queue routing failed.",
     routedItems: input.routedItems.map(
       queuedMaterialAppResourceItemToJsonValue,
     ),
-    report: webGpuAppMaterialQueueRouteReportShellToJsonValue(input.shell),
+    report,
   };
 }

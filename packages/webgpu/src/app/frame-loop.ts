@@ -392,6 +392,7 @@ export async function renderWebGpuAppFrame(
       snapshotUpdateSchedule: updateMetadata.snapshotUpdateSchedule,
       builtInSnapshot: mixedCustomBuiltInSnapshot,
       builtInResourceSet: queuedBuiltIn.resourceSet,
+      routeDiagnostics: queuedBuiltIn.diagnostics,
       reuse,
       ...(options.clearColor === undefined
         ? {}
@@ -527,6 +528,7 @@ export async function renderWebGpuAppFrame(
       snapshotChangeSet: updateMetadata.snapshotChangeSet,
       snapshotUpdateSchedule: updateMetadata.snapshotUpdateSchedule,
       resourceSet: queuedBuiltIn.resourceSet,
+      routeDiagnostics: queuedBuiltIn.diagnostics,
       reuse,
       ...(options.clearColor === undefined
         ? {}
