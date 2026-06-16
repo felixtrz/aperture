@@ -38,6 +38,31 @@ describe("injected render pass assembly runner", () => {
     ]);
   });
 
+  it("treats zero-count draws as ready no-ops", () => {
+    const events: string[] = [];
+    const report = runInjectedRenderPassAssembly({
+      drawList: [draw({ vertexCount: 0 })],
+      pipelines: [pipeline()],
+      bindGroups: bindGroups(),
+      meshResources: [mesh()],
+      pass: pass(events),
+    });
+
+    expect(report.commands.valid).toBe(true);
+    expect(report.commands.commands).toEqual([]);
+    expect(report.execution.valid).toBe(true);
+    expect(report.assembly.ready).toBe(true);
+    expect(report.assembly.summary.commands).toMatchObject({
+      commandCount: 0,
+      drawCount: 0,
+    });
+    expect(report.assembly.summary.execution).toMatchObject({
+      commandCount: 0,
+      drawCalls: 0,
+    });
+    expect(events).toEqual([]);
+  });
+
   it("reports missing pipeline resources", () => {
     const report = runInjectedRenderPassAssembly({
       drawList: [draw()],
@@ -60,7 +85,7 @@ describe("injected render pass assembly runner", () => {
 
   it("reports invalid draw counts during command planning", () => {
     const report = runInjectedRenderPassAssembly({
-      drawList: [draw({ vertexCount: 0 })],
+      drawList: [draw({ vertexCount: -1 })],
       pipelines: [pipeline()],
       bindGroups: bindGroups(),
       meshResources: [mesh()],

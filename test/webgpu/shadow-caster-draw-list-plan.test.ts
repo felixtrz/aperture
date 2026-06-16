@@ -129,6 +129,33 @@ describe("shadow caster draw-list planning", () => {
     expect(report.skippedDrawCount).toBe(1);
     expect(report.lists[0]?.draws.map((draw) => draw.renderId)).toEqual([2]);
   });
+
+  it("skips alpha-blended draws because the caster pass is depth-only", () => {
+    const report = createShadowCasterDrawListPlanReport({
+      shadowRequests: [shadowRequest(7, 11)],
+      meshDraws: [
+        meshDraw(1, 1, { pipelineKey: "unlit|blend|none|less|alpha" }),
+        meshDraw(2, 1, { pipelineKey: "standard|opaque|back|less|none" }),
+      ],
+      shadowPassPlan: shadowPassPlan(),
+      commandEncoding: "ready",
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.includedDrawCount).toBe(1);
+    expect(report.skippedDrawCount).toBe(1);
+    expect(report.lists[0]?.draws.map((draw) => draw.renderId)).toEqual([2]);
+    expect(report.diagnostics).toEqual([
+      {
+        code: "shadowCasterDrawList.unsupportedAlphaBlendCaster",
+        severity: "warning",
+        shadowId: 7,
+        lightId: 11,
+        message:
+          "Shadow request '7' skipped alpha-blended render object '1' because the depth-only shadow caster pass cannot evaluate material alpha.",
+      },
+    ]);
+  });
 });
 
 describe("shadow caster cull mode (three.js shadowSide parity)", () => {

@@ -3,7 +3,12 @@ import type {
   ShadowRequestPacket,
 } from "@aperture-engine/render";
 
-import { multiplyMat4, type Mat4Like } from "@aperture-engine/simulation";
+import {
+  invertMat4,
+  multiplyMat4,
+  transformPoint,
+  type Mat4Like,
+} from "@aperture-engine/simulation";
 import { createWebGpuBuffer } from "../gpu/buffer.js";
 import type { WebGpuBufferDeviceLike } from "../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
@@ -272,6 +277,8 @@ export interface RenderShadowFrameDiagnostic {
 
 const DEFAULT_SHADOW_MAP_SIZE = 1024;
 const DEFAULT_DEPTH_BIAS = 0.001;
+const MATRIX_FLOAT_COUNT = 16;
+const EPSILON = 1e-6;
 
 export function createRenderShadowFrame(
   options: CreateRenderShadowFrameOptions,
@@ -311,15 +318,32 @@ export function createRenderShadowFrame(
     shadowPassPlan: passPlan,
     depthTextureResources,
   });
+  const shadowCamera =
+    options.matrix === undefined
+      ? resolvePrimaryShadowCamera(options.snapshot)
+      : null;
   const viewProjection = createDirectionalShadowViewProjectionPlanReport({
     shadowRequests,
     lights: options.snapshot.lights,
     shadowPassPlan: passPlan,
     computation: "ready",
+    ...(shadowCamera === null
+      ? {}
+      : {
+          cameraNear: shadowCamera.near,
+          cameraFar: shadowCamera.far,
+          shadowMaxDistance: shadowCamera.far,
+        }),
   });
   const matrixComputation = createDirectionalShadowMatrixComputationReport({
     viewProjection,
     transforms: options.snapshot.transforms,
+    ...(shadowCamera === null
+      ? {}
+      : {
+          cameraViewMatrix: shadowCamera.viewMatrix,
+          cameraProjectionMatrix: shadowCamera.projectionMatrix,
+        }),
     ...(options.matrix?.center === undefined
       ? {}
       : { center: options.matrix.center }),
@@ -698,6 +722,143 @@ function createBakedCasterBindGroup(
     group: 0,
     bindGroup,
   };
+}
+
+interface PrimaryShadowCamera {
+  readonly viewMatrix: Mat4Like;
+  readonly projectionMatrix: Mat4Like;
+  readonly near: number;
+  readonly far: number;
+}
+
+function resolvePrimaryShadowCamera(
+  snapshot: RenderSnapshot,
+): PrimaryShadowCamera | null {
+  const view = selectPrimaryShadowView(snapshot);
+
+  if (view === undefined) {
+    return null;
+  }
+
+  const viewMatrix = readSnapshotMatrix(
+    snapshot.viewMatrices,
+    view.viewMatrixOffset,
+  );
+  const projectionMatrix = readSnapshotMatrix(
+    snapshot.viewMatrices,
+    view.projectionMatrixOffset,
+  );
+
+  if (viewMatrix === null || projectionMatrix === null) {
+    return null;
+  }
+
+  const range = cameraDepthRange(viewMatrix, projectionMatrix);
+
+  if (range === null) {
+    return null;
+  }
+
+  return {
+    viewMatrix,
+    projectionMatrix,
+    near: range.near,
+    far: range.far,
+  };
+}
+
+function selectPrimaryShadowView(
+  snapshot: RenderSnapshot,
+): RenderSnapshot["views"][number] | undefined {
+  return (
+    snapshot.views.find((view) => view.renderTarget === null) ??
+    snapshot.views[0]
+  );
+}
+
+function readSnapshotMatrix(
+  values: Float32Array,
+  offset: number,
+): Mat4Like | null {
+  if (
+    !Number.isInteger(offset) ||
+    offset < 0 ||
+    offset + MATRIX_FLOAT_COUNT > values.length
+  ) {
+    return null;
+  }
+
+  return values.subarray(offset, offset + MATRIX_FLOAT_COUNT);
+}
+
+function cameraDepthRange(
+  viewMatrix: Mat4Like,
+  projectionMatrix: Mat4Like,
+): { readonly near: number; readonly far: number } | null {
+  const inverseViewProjection = invertMat4(
+    multiplyMat4(projectionMatrix, viewMatrix),
+  );
+  const inverseView = invertMat4(viewMatrix);
+
+  if (inverseViewProjection === null || inverseView === null) {
+    return null;
+  }
+
+  const cameraPosition: readonly [number, number, number] = [
+    inverseView[12] ?? 0,
+    inverseView[13] ?? 0,
+    inverseView[14] ?? 0,
+  ];
+  const forward = normalizeTuple3([
+    -(inverseView[8] ?? 0),
+    -(inverseView[9] ?? 0),
+    -(inverseView[10] ?? 0),
+  ]);
+
+  if (forward === null) {
+    return null;
+  }
+
+  const nearCenter = tuple3(transformPoint(inverseViewProjection, [0, 0, 0]));
+  const farCenter = tuple3(transformPoint(inverseViewProjection, [0, 0, 1]));
+  const near = dotTuple3(forward, subTuple3(nearCenter, cameraPosition));
+  const far = dotTuple3(forward, subTuple3(farCenter, cameraPosition));
+
+  if (!(near > 0) || !(far > near + EPSILON)) {
+    return null;
+  }
+
+  return { near, far };
+}
+
+function tuple3(value: readonly number[]): readonly [number, number, number] {
+  return [value[0] ?? 0, value[1] ?? 0, value[2] ?? 0];
+}
+
+function normalizeTuple3(
+  value: readonly [number, number, number],
+): readonly [number, number, number] | null {
+  const length = Math.hypot(value[0], value[1], value[2]);
+
+  if (length <= EPSILON) {
+    return null;
+  }
+
+  return [value[0] / length, value[1] / length, value[2] / length];
+}
+
+function dotTuple3(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+): number {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+function subTuple3(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+): readonly [number, number, number] {
+  return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 }
 
 function createDirectionalShadowDescriptor(

@@ -1,5 +1,8 @@
-import { createSystem } from "@aperture-engine/app/systems";
-import { LocalTransform, Name } from "@aperture-engine/app/systems";
+import {
+  LocalTransform,
+  Name,
+  createSystem,
+} from "@aperture-engine/app/systems";
 import {
   createDefaultRenderState,
   createSamplerAsset,
@@ -88,7 +91,10 @@ function createPool(): ParticlePool {
 
 type QueryEntity = {
   getValue(component: typeof Name, field: "value"): string;
-  getVectorView(component: typeof LocalTransform, field: "translation"): Float32Array;
+  getVectorView(
+    component: typeof LocalTransform,
+    field: "translation",
+  ): Float32Array;
 };
 
 export default class ParticlesSystem extends createSystem({
@@ -110,10 +116,7 @@ export default class ParticlesSystem extends createSystem({
   #ready = false; // mesh + material registered and entity spawned
 
   override init(): void {
-    // Never throw out of init: if the system context / registry is missing the
-    // whole subsystem no-ops (the rest of the game still runs).
-    const registry = tryReadAssetRegistry(this.world);
-    if (registry === null) return;
+    const registry = this.assetsRegistry;
     this.#registry = registry;
 
     // uint16 index buffer: POOL*6 = 7680 < 65535, safe. Sequential (non-indexed
@@ -145,10 +148,10 @@ export default class ParticlesSystem extends createSystem({
     void this.#decodeSpriteAsync(registry);
 
     // --- Material: unlit, textured, alpha-blended, double-sided, no depth write.
-    // alphaMode "blend" turns off depth write automatically and enables the alpha
-    // blend; cullMode "none" keeps quads visible from both sides. The material is
-    // "ready" immediately; its texture dependency resolves later (the renderer
-    // simply skips drawing until the texture is ready — no crash, no throw).
+    // Blend materials must author depth writes off explicitly; cullMode "none"
+    // keeps quads visible from both sides. The material is "ready" immediately;
+    // its texture dependency resolves later (the renderer skips drawing until
+    // the texture is ready — no crash, no throw).
     const materialAsset = createUnlitMaterialAsset({
       label: "Smoke",
       baseColorFactor: new Float32Array([TINT_R, TINT_G, TINT_B, 1]),
@@ -159,6 +162,7 @@ export default class ParticlesSystem extends createSystem({
       renderState: createDefaultRenderState({
         alphaMode: "blend",
         cullMode: "none",
+        depth: { test: true, write: false, compare: "less" },
         blend: { preset: "alpha" },
       }),
     });
@@ -182,6 +186,7 @@ export default class ParticlesSystem extends createSystem({
       tags: ["smoke-particles"],
       mesh: this.#meshHandle,
       material: this.#materialHandle,
+      castShadow: false,
     });
 
     this.#ready = true;
@@ -529,17 +534,4 @@ async function decodeSpriteToRgba8(url: string): Promise<DecodedSprite | null> {
       rowsPerImage: height,
     },
   };
-}
-
-// The asset registry is not on the public system-context surface, but it is
-// stored on the ECS world globals by installApertureSystemContext (same accessor
-// as drift-marks.system.ts). Returns null instead of throwing so the smoke
-// subsystem degrades gracefully if the context is ever absent.
-function tryReadAssetRegistry(world: unknown): AssetRegistry | null {
-  const globals = (world as { readonly globals?: Record<string, unknown> })
-    .globals;
-  const context = globals?.["aperture.systemContext"] as
-    | { readonly assetsRegistry?: AssetRegistry }
-    | undefined;
-  return context?.assetsRegistry ?? null;
 }

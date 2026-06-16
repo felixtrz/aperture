@@ -172,6 +172,7 @@ export function createTextureGpuResource(
     texture = options.device.createTexture(
       textureDescriptorForWebGpu(options.descriptor, {
         generateMipmaps: mipGenerationRequested,
+        upload: options.upload !== undefined,
       }),
     );
   } catch (error) {
@@ -323,24 +324,31 @@ function validateTextureDescriptorColorSpace(
 
 function textureDescriptorForWebGpu(
   descriptor: TextureDescriptorInput,
-  options: { readonly generateMipmaps?: boolean } = {},
+  options: {
+    readonly generateMipmaps?: boolean;
+    readonly upload?: boolean;
+  } = {},
 ): Omit<TextureDescriptorInput, "colorSpace" | "semantic"> {
   const {
     colorSpace: _colorSpace,
     semantic: _semantic,
     ...webGpuDescriptor
   } = descriptor;
+  let usage = webGpuDescriptor.usage;
+
+  if (options.upload === true) {
+    usage |= WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST;
+  }
+
+  if (options.generateMipmaps === true) {
+    usage |=
+      WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
+      WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT;
+  }
 
   return {
     ...webGpuDescriptor,
-    ...(options.generateMipmaps === true
-      ? {
-          usage:
-            webGpuDescriptor.usage |
-            WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
-            WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT,
-        }
-      : {}),
+    usage,
   };
 }
 

@@ -23,7 +23,6 @@ import {
   DIR_LIGHT,
   FOG_HEX,
   HEMI_LIGHT,
-  SPAWN_POS,
   VEHICLE_ROOT_SCALE,
 } from "../lib/tuning.js";
 import { computeTrackBounds } from "../lib/track.js";
@@ -125,7 +124,12 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
   }
 
   #spawnCamera(): void {
-    const target: [number, number, number] = [SPAWN_POS[0], 0, SPAWN_POS[2]];
+    const spawn = computeSpawnPosition(this.#cells);
+    const target: [number, number, number] = [
+      spawn.position[0],
+      0,
+      spawn.position[2],
+    ];
     const camera = this.spawn.camera({
       key: "camera.main",
       name: "main-camera",
@@ -256,4 +260,3 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
 void Parent;
 void Name;
 void LocalTransform;
-void computeSpawnPosition;

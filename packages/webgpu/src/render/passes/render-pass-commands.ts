@@ -277,6 +277,10 @@ export function writeRenderPassCommands(
     const firstInstance = transformPackedOffsetToInstance(
       draw.transformPackedOffset,
     );
+    const indexed = draw.indexBuffer !== null;
+    const drawCount = indexed
+      ? (draw.indexCount ?? draw.indexBuffer.indexCount)
+      : draw.vertexCount;
 
     if (firstInstance === null) {
       scratch.diagnostics.push({
@@ -284,6 +288,23 @@ export function writeRenderPassCommands(
         renderId: draw.renderId,
         message: `Render id ${draw.renderId} has invalid transform packed offset '${String(draw.transformPackedOffset)}'.`,
       });
+      continue;
+    }
+
+    if (!isNonNegativeInteger(drawCount)) {
+      scratch.diagnostics.push({
+        code: indexed
+          ? "renderPassCommand.invalidIndexCount"
+          : "renderPassCommand.invalidVertexCount",
+        renderId: draw.renderId,
+        message: indexed
+          ? `Render id ${draw.renderId} has invalid indexed draw count '${String(drawCount)}'.`
+          : `Render id ${draw.renderId} has invalid vertex draw count '${String(drawCount)}'.`,
+      });
+      continue;
+    }
+
+    if (drawCount === 0) {
       continue;
     }
 
@@ -363,8 +384,6 @@ export function writeRenderPassCommands(
     }
 
     if (draw.indexBuffer !== null) {
-      const indexCount = draw.indexCount ?? draw.indexBuffer.indexCount;
-
       if (
         hasActiveIndexBuffer &&
         activeIndexBufferResourceKey === draw.indexBuffer.resourceKey &&
@@ -389,20 +408,11 @@ export function writeRenderPassCommands(
         hasActiveIndexBuffer = true;
       }
 
-      if (!isPositiveInteger(indexCount)) {
-        scratch.diagnostics.push({
-          code: "renderPassCommand.invalidIndexCount",
-          renderId: draw.renderId,
-          message: `Render id ${draw.renderId} has invalid indexed draw count '${String(indexCount)}'.`,
-        });
-        continue;
-      }
-
       if (draw.occlusionQuery === true) {
         pushBeginOcclusionQueryCommand(scratch, draw, occlusionQueryCount);
       }
 
-      pushDrawIndexedCommand(scratch, draw, indexCount, firstInstance);
+      pushDrawIndexedCommand(scratch, draw, drawCount, firstInstance);
 
       if (draw.occlusionQuery === true) {
         pushEndOcclusionQueryCommand(scratch, draw, occlusionQueryCount);
@@ -411,15 +421,6 @@ export function writeRenderPassCommands(
       }
 
       indexedDrawCount += 1;
-      continue;
-    }
-
-    if (!isPositiveInteger(draw.vertexCount)) {
-      scratch.diagnostics.push({
-        code: "renderPassCommand.invalidVertexCount",
-        renderId: draw.renderId,
-        message: `Render id ${draw.renderId} has invalid vertex draw count '${String(draw.vertexCount)}'.`,
-      });
       continue;
     }
 
@@ -695,8 +696,8 @@ type MutableRenderPassStateCommandPressureReport =
     -readonly [Key in RenderPassStateCommandKind]: RenderPassStateCommandPressureReport[Key];
   };
 
-function isPositiveInteger(value: number): boolean {
-  return Number.isInteger(value) && value > 0;
+function isNonNegativeInteger(value: number): boolean {
+  return Number.isInteger(value) && value >= 0;
 }
 
 function transformPackedOffsetToInstance(offset: number): number | null {

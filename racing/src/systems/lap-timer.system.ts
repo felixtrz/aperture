@@ -2,8 +2,8 @@ import { createSystem } from "@aperture-engine/app/systems";
 import {
   CELL_RAW,
   GRID_SCALE,
-  TRACK_CELLS,
   computeSpawnPosition,
+  resolveTrackCells,
 } from "../lib/track.js";
 import type { Vec3 } from "../lib/math.js";
 import { vehicleState } from "../lib/vehicle-state.js";
@@ -25,13 +25,14 @@ export default class LapTimerSystem extends createSystem({ priority: 130 }) {
   #started = false;
 
   override init(): void {
-    const spawn = computeSpawnPosition(TRACK_CELLS);
+    const cells = resolveTrackCells(this.world).cells;
+    const spawn = computeSpawnPosition(cells);
     this.#lineCenter = [...spawn.position];
     const a = spawn.angle;
     // Car forward at yaw a is [sin a, 0, cos a] (matches Vehicle.js); right is ⟂.
     this.#lineForward = [Math.sin(a), 0, Math.cos(a)];
     this.#lineRight = [Math.cos(a), 0, -Math.sin(a)];
-    for (const [gx, gz, key] of TRACK_CELLS) {
+    for (const [gx, gz, key] of cells) {
       if (key === "track-finish") continue;
       this.#required.add(`${gx},${gz}`);
     }

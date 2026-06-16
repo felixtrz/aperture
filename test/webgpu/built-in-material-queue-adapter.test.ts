@@ -106,6 +106,11 @@ describe("built-in material queue route adapter factory", () => {
       ),
     ).toBeNull();
     expect(
+      adapter(registry, "unlit").validateQueueItem(
+        queueItem("unlit", "transparent", "unlit|blend|none|less|alpha"),
+      ),
+    ).toBeNull();
+    expect(
       adapter(registry, "matcap").validateQueueItem(
         queueItem("matcap", "transparent"),
       ),
@@ -126,6 +131,16 @@ describe("built-in material queue route adapter factory", () => {
       code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
       renderPhase: "transparent",
       materialFamily: "standard",
+      blendPreset: "additive",
+    });
+    expect(
+      adapter(registry, "unlit").validateQueueItem(
+        queueItem("unlit", "transparent", "unlit|blend|none|less|additive"),
+      ),
+    ).toMatchObject({
+      code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
+      renderPhase: "transparent",
+      materialFamily: "unlit",
       blendPreset: "additive",
     });
   });

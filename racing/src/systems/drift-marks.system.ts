@@ -20,10 +20,10 @@ import { vehicleState } from "../lib/vehicle-state.js";
 // meshes (one per rear wheel) laid flat on the ground. Each drift step appends a
 // quad (2 triangles, 6 verts) connecting the wheel's previous and current ground
 // position. The unlit material is the MeshBasicMaterial analogue: vertex colors,
-// transparent at opacity 0.5, depthWrite off (driven by alphaMode "blend"),
-// double-sided (cullMode "none"). polygonOffset is not yet an engine render-state
-// field, so we keep the reference's Y_OFFSET (0.05) to avoid z-fighting with the
-// ground; if shimmering appears at grazing angles, that is the only gap — see the
+// transparent at opacity 0.5, explicit depthWrite off, double-sided
+// (cullMode "none"). polygonOffset is not yet an engine render-state field, so
+// we keep the reference's Y_OFFSET (0.05) to avoid z-fighting with the ground; if
+// shimmering appears at grazing angles, that is the only gap — see the
 // "needs-engine-patch" note for the exact polygonOffset wiring.
 
 const MAX_SEGMENTS = 4096;
@@ -220,11 +220,10 @@ export default class DriftMarksSystem extends createSystem({ priority: 135 }) {
   #trails: DriftTrail[] = [];
 
   override init(): void {
-    const registry = readAssetRegistry(this.world);
+    const registry = this.assetsRegistry;
 
-    // Shared unlit material: MeshBasicMaterial analogue. alphaMode "blend" turns
-    // off depth write automatically (material-render-state.ts) and enables the
-    // alpha blend; cullMode "none" is double-sided.
+    // Shared unlit material: MeshBasicMaterial analogue. Blend materials must
+    // author depth writes off explicitly; cullMode "none" is double-sided.
     const materialHandle = createMaterialHandle("racing.driftMarks.material");
     const materialAsset = createUnlitMaterialAsset({
       label: "Drift marks",
@@ -232,6 +231,7 @@ export default class DriftMarksSystem extends createSystem({ priority: 135 }) {
       renderState: createDefaultRenderState({
         alphaMode: "blend",
         cullMode: "none",
+        depth: { test: true, write: false, compare: "less" },
         blend: { preset: "alpha" },
       }),
     });
@@ -260,6 +260,7 @@ export default class DriftMarksSystem extends createSystem({ priority: 135 }) {
         tags: ["drift-marks"],
         mesh: trail.meshHandle,
         material: materialHandle,
+        castShadow: false,
       });
     }
   }
@@ -288,22 +289,4 @@ export default class DriftMarksSystem extends createSystem({ priority: 135 }) {
 
 function clamp01(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
-}
-
-// The asset registry is not on the public system context surface, but it is
-// stored on the ECS world globals by installApertureSystemContext. This is the
-// only app-side way to register/mutate custom mesh + unlit material assets until
-// the engine exposes a public mesh/material registration API (see notes).
-function readAssetRegistry(world: unknown): AssetRegistry {
-  const globals = (world as { readonly globals?: Record<string, unknown> })
-    .globals;
-  const context = globals?.["aperture.systemContext"] as
-    | { readonly assetsRegistry?: AssetRegistry }
-    | undefined;
-  if (context?.assetsRegistry === undefined) {
-    throw new Error(
-      "Aperture system context (assetsRegistry) not found on the ECS world globals.",
-    );
-  }
-  return context.assetsRegistry;
 }

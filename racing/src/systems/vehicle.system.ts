@@ -21,10 +21,10 @@ import {
 import {
   LINEAR_DAMP,
   MAX_SPEED,
-  SPAWN_POS,
   SPHERE_RADIUS,
   VEHICLE_ROOT_SCALE,
 } from "../lib/tuning.js";
+import { computeSpawnPosition, resolveTrackCells } from "../lib/track.js";
 import { vehicleState } from "../lib/vehicle-state.js";
 
 type QueryEntity = ApertureQuery["entities"] extends Set<infer T> ? T : never;
@@ -55,15 +55,23 @@ export default class VehicleSystem extends createSystem({
   #bodyPitch = 0;
   #bodyRoll = 0;
   #driftIntensity = 0;
-  #prevModel: Vec3 = [SPAWN_POS[0], 0, SPAWN_POS[2]];
+  #spawnPos: Vec3 = [3.5, 0.5, 5];
+  #spawnYaw = 0;
+  #prevModel: Vec3 = [this.#spawnPos[0], 0, this.#spawnPos[2]];
 
   override init(): void {
+    const spawn = computeSpawnPosition(resolveTrackCells(this.world).cells);
+    this.#spawnPos = [...spawn.position];
+    this.#spawnYaw = spawn.angle;
+    this.#yaw = spawn.angle;
+    this.#prevModel = [this.#spawnPos[0], this.#spawnPos[1] - 0.5, this.#spawnPos[2]];
+
     // Dynamic sphere body (Physics.js createSphereBody). Density chosen for the
     // reference's ~1000 kg mass given r=0.5 (volume ≈ 0.5236 m³).
     this.#sphere = this.spawn.physics({
       key: "vehicle.sphere",
       name: "vehicle.sphere",
-      transform: { translation: [...SPAWN_POS] },
+      transform: { translation: [...this.#spawnPos] },
       physics: {
         rigidBody: {
           type: "dynamic",
@@ -89,7 +97,12 @@ export default class VehicleSystem extends createSystem({
       castShadow: true,
       receiveShadow: true,
       transform: {
-        translation: [SPAWN_POS[0], SPAWN_POS[1] - 0.5, SPAWN_POS[2]],
+        translation: [
+          this.#spawnPos[0],
+          this.#spawnPos[1] - 0.5,
+          this.#spawnPos[2],
+        ],
+        rotation: quatFromAxisAngle(Y_AXIS, this.#spawnYaw),
         scale: [VEHICLE_ROOT_SCALE, VEHICLE_ROOT_SCALE, VEHICLE_ROOT_SCALE],
       },
     }) as QueryEntity;
@@ -148,9 +161,9 @@ export default class VehicleSystem extends createSystem({
 
     // ── Read sphere pose (physics writeback to LocalTransform) ──
     const spherePos = this.#sphere.getVectorView(LocalTransform, "translation");
-    let sx = spherePos[0] ?? SPAWN_POS[0];
-    let sy = spherePos[1] ?? SPAWN_POS[1];
-    let sz = spherePos[2] ?? SPAWN_POS[2];
+    let sx = spherePos[0] ?? this.#spawnPos[0];
+    let sy = spherePos[1] ?? this.#spawnPos[1];
+    let sz = spherePos[2] ?? this.#spawnPos[2];
 
     this.#acceleration = lerp(
       this.#acceleration,
@@ -161,16 +174,16 @@ export default class VehicleSystem extends createSystem({
 
     // Respawn when falling out of the world.
     if (sy < -10) {
-      spherePos.set([...SPAWN_POS]);
+      spherePos.set([...this.#spawnPos]);
       this.physics.setLinearVelocity(this.#sphere, [0, 0, 0]);
       this.physics.setAngularVelocity(this.#sphere, [0, 0, 0]);
-      sx = SPAWN_POS[0];
-      sy = SPAWN_POS[1];
-      sz = SPAWN_POS[2];
+      sx = this.#spawnPos[0];
+      sy = this.#spawnPos[1];
+      sz = this.#spawnPos[2];
       this.#linearSpeed = 0;
       this.#angularSpeed = 0;
       this.#acceleration = 0;
-      this.#yaw = 0;
+      this.#yaw = this.#spawnYaw;
     }
 
     // ── Container follows the sphere (y - 0.5) ──

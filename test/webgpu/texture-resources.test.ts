@@ -56,6 +56,41 @@ describe("texture GPU resource creation", () => {
     ]);
   });
 
+  it("adds COPY_DST usage to WebGPU textures when upload bytes are provided", () => {
+    const created: unknown[] = [];
+    const descriptor = textureDescriptor({
+      usage: WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING,
+    });
+    const result = createTextureGpuResource({
+      device: {
+        createTexture: (input) => {
+          created.push(input);
+          return textureWithView({ label: "upload-view" });
+        },
+        queue: {
+          writeTexture: () => undefined,
+        },
+      },
+      resourceKey: "texture:upload-only",
+      descriptor,
+      upload: {
+        data: new Uint8Array(16),
+        bytesPerRow: 8,
+        rowsPerImage: 2,
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.resource?.descriptor).toBe(descriptor);
+    expect(created).toMatchObject([
+      {
+        usage:
+          WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
+          WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST,
+      },
+    ]);
+  });
+
   it("accepts padded texture upload row strides", () => {
     const writes: unknown[] = [];
     const result = createTextureGpuResource({

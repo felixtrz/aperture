@@ -78,7 +78,7 @@ describe("render pass assembly smoke JSON helpers", () => {
   it("summarizes command planning and execution failures", () => {
     const commandFailure = renderPassAssemblySmokeReportToJsonValue(
       runInjectedRenderPassAssembly({
-        drawList: [draw({ vertexCount: 0 })],
+        drawList: [draw({ vertexCount: -1 })],
         pipelines: [pipeline()],
         bindGroups: bindGroups(),
         meshResources: [mesh()],

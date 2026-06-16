@@ -32,7 +32,7 @@ describe("render pass assembly diagnostics by section", () => {
   it("groups command planning failures", () => {
     const report = summarizeRenderPassAssemblyDiagnosticsBySection(
       runInjectedRenderPassAssembly({
-        drawList: [draw({ vertexCount: 0 })],
+        drawList: [draw({ vertexCount: -1 })],
         pipelines: [pipeline()],
         bindGroups: bindGroups(),
         meshResources: [mesh()],

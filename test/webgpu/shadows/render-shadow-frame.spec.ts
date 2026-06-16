@@ -5,6 +5,8 @@ import {
   createMeshHandle,
   createRenderShadowFrame,
   createWebGpuEnvironmentResourceCache,
+  makePerspective,
+  multiplyMat4,
   type RenderShadowFrameDeviceLike,
   type RenderSnapshot,
   type ShadowCasterExecutableMeshResourceView,
@@ -47,6 +49,33 @@ describe("render shadow frame", () => {
     expect(JSON.stringify(result.report)).not.toMatch(
       /deferred|not implemented yet/i,
     );
+  });
+
+  it("frustum-fits automatic directional shadows from the primary snapshot camera", () => {
+    const calls = createDeviceCalls();
+    const result = createRenderShadowFrame({
+      device: device(calls),
+      snapshot: snapshot({ view: primaryCameraView() }),
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache: createWebGpuEnvironmentResourceCache(),
+      shadowMap: { cascadeCount: 1, mapSize: 1024 },
+    });
+
+    expect(result.report.status).toBe("submitted");
+    expect(result.report.diagnostics).toEqual([]);
+    expect(result.viewProjection.plans[0]?.cascadeNearDistance).toBeCloseTo(
+      0.1,
+      4,
+    );
+    expect(result.viewProjection.plans[0]?.cascadeFarDistance).toBeCloseTo(
+      60,
+      2,
+    );
+    expect(
+      result.matrixComputation.matrices[0]?.orthographicSize,
+    ).toBeGreaterThan(20);
+    expect(result.matrixComputation.matrices[0]?.center).not.toEqual([0, 0, 0]);
   });
 
   it("reuses cached shadow resources across identical frames", () => {
@@ -200,12 +229,15 @@ describe("render shadow frame", () => {
   });
 });
 
-function snapshot(options: {
-  readonly shadowRequest?: Partial<RenderSnapshot["shadowRequests"][number]>;
-} = {}): RenderSnapshot {
+function snapshot(
+  options: {
+    readonly shadowRequest?: Partial<RenderSnapshot["shadowRequests"][number]>;
+    readonly view?: Pick<RenderSnapshot, "views" | "viewMatrices">;
+  } = {},
+): RenderSnapshot {
   return {
     frame: 1,
-    views: [],
+    views: options.view?.views ?? [],
     meshDraws: [
       {
         renderId: 101,
@@ -269,7 +301,7 @@ function snapshot(options: {
     ],
     bounds: [],
     transforms: identityTransform(),
-    viewMatrices: new Float32Array(0),
+    viewMatrices: options.view?.viewMatrices ?? new Float32Array(0),
     diagnostics: [],
     report: {
       views: 0,
@@ -281,6 +313,42 @@ function snapshot(options: {
       diagnostics: 0,
     },
   };
+}
+
+function primaryCameraView(): Pick<RenderSnapshot, "views" | "viewMatrices"> {
+  const viewMatrix = translationView(4, 2, 10);
+  const projectionMatrix = makePerspective(1.0, 1.5, 0.1, 60);
+  const viewProjectionMatrix = multiplyMat4(projectionMatrix, viewMatrix);
+  const viewMatrices = new Float32Array(48);
+
+  viewMatrices.set(viewMatrix, 0);
+  viewMatrices.set(projectionMatrix, 16);
+  viewMatrices.set(viewProjectionMatrix, 32);
+
+  return {
+    views: [
+      {
+        viewId: 0,
+        camera: { index: 99, generation: 0 },
+        priority: 0,
+        layerMask: 1,
+        viewMatrixOffset: 0,
+        projectionMatrixOffset: 16,
+        viewProjectionMatrixOffset: 32,
+        viewport: [0, 0, 1, 1],
+        scissor: [0, 0, 1, 1],
+        clearColor: [0, 0, 0, 1],
+        clearDepth: 1,
+        clearStencil: 0,
+        renderTarget: null,
+      },
+    ],
+    viewMatrices,
+  };
+}
+
+function translationView(x: number, y: number, z: number): Float32Array {
+  return new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -x, -y, -z, 1]);
 }
 
 function preparedMeshes(): readonly ShadowCasterPreparedMeshResourceView[] {

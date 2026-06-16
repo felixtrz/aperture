@@ -268,7 +268,7 @@ describe("render pass command planning", () => {
     ).toEqual([0, 1]);
   });
 
-  it("diagnoses invalid indexed and non-indexed draw counts", () => {
+  it("skips zero-count indexed and non-indexed draws as no-ops", () => {
     const plan = planRenderPassCommands({
       draws: [
         resolvedDraw(1, { indexCount: 0 }),
@@ -276,8 +276,32 @@ describe("render pass command planning", () => {
       ],
     });
 
+    expect(plan.valid).toBe(true);
+    expect(plan.drawCount).toBe(0);
+    expect(plan.commands).toEqual([]);
+    expect(plan.diagnostics).toEqual([]);
+    expect(plan.pressure).toMatchObject({
+      resolvedDraws: 2,
+      drawCommands: 0,
+      stateCommands: {
+        planned: 0,
+        emitted: 0,
+        elided: 0,
+      },
+    });
+  });
+
+  it("diagnoses invalid indexed and non-indexed draw counts", () => {
+    const plan = planRenderPassCommands({
+      draws: [
+        resolvedDraw(1, { indexCount: -1 }),
+        resolvedDraw(2, { indexed: false, vertexCount: -1 }),
+      ],
+    });
+
     expect(plan.valid).toBe(false);
     expect(plan.drawCount).toBe(0);
+    expect(plan.commands).toEqual([]);
     expect(plan.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
       "renderPassCommand.invalidIndexCount",
       "renderPassCommand.invalidVertexCount",

@@ -38,7 +38,21 @@ export type ShadowCasterDrawListMode = "ready" | "deferred";
 export type ShadowCasterDrawListDiagnosticCode =
   | "shadowCasterDrawList.missingPassPlan"
   | "shadowCasterDrawList.noCasters"
+  | "shadowCasterDrawList.unsupportedAlphaBlendCaster"
   | "shadowCasterDrawList.commandEncodingDeferred";
+
+export function isDepthOnlyShadowCasterDrawSupported(
+  draw: Pick<MeshDrawPacket, "batchKey">,
+): boolean {
+  const tokens = parseMaterialPipelineRenderStateTokens(
+    draw.batchKey.pipelineKey,
+  );
+
+  // The current caster pass writes depth only; it does not sample material
+  // alpha. Alpha-blended visual helpers would cast as solid geometry and their
+  // broad culling bounds can destroy auto-shadow scene fitting.
+  return tokens.alphaMode !== "blend";
+}
 
 export interface ShadowCasterDrawRecord {
   readonly renderId: number;
@@ -172,13 +186,28 @@ export function createShadowCasterDrawListPlanReport(
       continue;
     }
 
-    const included = input.meshDraws
-      .filter(
-        (draw) =>
-          draw.castsShadow !== false &&
-          (draw.layerMask & request.casterLayerMask) !== 0,
-      )
-      .map((draw) => ({
+    const included: ShadowCasterDrawRecord[] = [];
+
+    for (const draw of input.meshDraws) {
+      if (
+        draw.castsShadow === false ||
+        (draw.layerMask & request.casterLayerMask) === 0
+      ) {
+        continue;
+      }
+
+      if (!isDepthOnlyShadowCasterDrawSupported(draw)) {
+        diagnostics.push({
+          code: "shadowCasterDrawList.unsupportedAlphaBlendCaster",
+          severity: "warning",
+          shadowId: request.shadowId,
+          lightId: request.lightId,
+          message: `Shadow request '${request.shadowId}' skipped alpha-blended render object '${draw.renderId}' because the depth-only shadow caster pass cannot evaluate material alpha.`,
+        });
+        continue;
+      }
+
+      included.push({
         renderId: draw.renderId,
         meshKey: assetHandleKey(draw.mesh),
         materialKey: assetHandleKey(draw.material),
@@ -190,7 +219,8 @@ export function createShadowCasterDrawListPlanReport(
         submesh: draw.submesh,
         layerMask: draw.layerMask,
         worldTransformOffset: draw.worldTransformOffset,
-      }));
+      });
+    }
     const skippedDrawCount = input.meshDraws.length - included.length;
 
     if (included.length === 0) {

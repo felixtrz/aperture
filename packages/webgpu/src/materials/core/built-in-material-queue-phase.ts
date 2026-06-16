@@ -59,7 +59,8 @@ export function createUnsupportedBuiltInMaterialQueuePhaseDiagnostic(
 
   if (
     queueItem.renderPhase === "transparent" &&
-    queueItem.materialFamily === "standard"
+    (queueItem.materialFamily === "standard" ||
+      queueItem.materialFamily === "unlit")
   ) {
     const tokens = parseMaterialPipelineRenderStateTokens(
       queueItem.pipelineKey,
@@ -77,7 +78,7 @@ export function createUnsupportedBuiltInMaterialQueuePhaseDiagnostic(
       materialFamily: queueItem.materialFamily,
       blendPreset: tokens.blendPreset,
       ...optionalEntity(queueItem),
-      message: `WebGPU app material queue routing supports StandardMaterial transparent draws with alpha blending, not blend preset '${String(tokens.blendPreset)}'.`,
+      message: `WebGPU app material queue routing supports transparent ${materialFamilyLabel(queueItem.materialFamily)} draws with alpha blending, not blend preset '${String(tokens.blendPreset)}'.`,
     };
   }
 
@@ -89,7 +90,7 @@ export function createUnsupportedBuiltInMaterialQueuePhaseDiagnostic(
       renderPhase: queueItem.renderPhase,
       materialFamily: queueItem.materialFamily,
       ...optionalEntity(queueItem),
-      message: `WebGPU app material queue routing supports transparent draws for StandardMaterial, not '${queueItem.materialFamily}'.`,
+      message: `WebGPU app material queue routing supports transparent draws for StandardMaterial and UnlitMaterial, not '${queueItem.materialFamily}'.`,
     };
   }
 
@@ -108,4 +109,15 @@ function optionalEntity(queueItem: BuiltInMaterialQueuePhaseItem): {
   readonly entity?: BuiltInMaterialQueuePhaseEntityRef;
 } {
   return queueItem.entity === undefined ? {} : { entity: queueItem.entity };
+}
+
+function materialFamilyLabel(family: string): string {
+  switch (family) {
+    case "standard":
+      return "StandardMaterial";
+    case "unlit":
+      return "UnlitMaterial";
+    default:
+      return family;
+  }
 }

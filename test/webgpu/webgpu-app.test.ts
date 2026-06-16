@@ -5947,7 +5947,7 @@ describe("WebGPU app facade", () => {
     expect(events).not.toContain("queue:submit:1");
   });
 
-  it("diagnoses unsupported transparent material queue families and blend presets without submitting", async () => {
+  it("routes transparent unlit and diagnoses unsupported transparent blend presets without submitting", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
     const created = await createWebGpuApp({
@@ -6017,11 +6017,6 @@ describe("WebGPU app facade", () => {
     expect(frame.diagnostics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          code: "webGpuApp.unsupportedMaterialQueueTransparentFamily",
-          renderPhase: "transparent",
-          materialFamily: "unlit",
-        }),
-        expect.objectContaining({
           code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
           renderPhase: "transparent",
           materialFamily: "standard",
@@ -6031,17 +6026,6 @@ describe("WebGPU app facade", () => {
     );
     expect(JSON.parse(JSON.stringify(frame.diagnostics))).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({
-          code: "webGpuApp.unsupportedMaterialQueueTransparentFamily",
-          renderId: expect.any(Number),
-          drawIndex: expect.any(Number),
-          renderPhase: "transparent",
-          materialFamily: "unlit",
-          entity: expect.objectContaining({
-            index: expect.any(Number),
-            generation: expect.any(Number),
-          }),
-        }),
         expect.objectContaining({
           code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
           renderId: expect.any(Number),
@@ -6059,14 +6043,14 @@ describe("WebGPU app facade", () => {
           report: expect.objectContaining({
             valid: false,
             queueItemCount: 2,
-            routedItemCount: 0,
-            skippedItemCount: 2,
+            routedItemCount: 1,
+            skippedItemCount: 1,
             byFamily: expect.arrayContaining([
               expect.objectContaining({
                 key: "unlit",
                 queuedCount: 1,
-                routedCount: 0,
-                skippedCount: 1,
+                routedCount: 1,
+                skippedCount: 0,
               }),
               expect.objectContaining({
                 key: "standard",
@@ -6079,20 +6063,15 @@ describe("WebGPU app facade", () => {
               expect.objectContaining({
                 key: "transparent",
                 queuedCount: 2,
-                routedCount: 0,
-                skippedCount: 2,
+                routedCount: 1,
+                skippedCount: 1,
               }),
             ]),
             diagnosticSummary: expect.objectContaining({
-              total: 2,
-              bySeverity: expect.objectContaining({ error: 2 }),
+              total: 1,
+              bySeverity: expect.objectContaining({ error: 1 }),
             }),
             diagnostics: expect.arrayContaining([
-              expect.objectContaining({
-                code: "webGpuApp.unsupportedMaterialQueueTransparentFamily",
-                materialFamily: "unlit",
-                renderPhase: "transparent",
-              }),
               expect.objectContaining({
                 code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
                 materialFamily: "standard",
@@ -7676,6 +7655,88 @@ describe("WebGPU app facade", () => {
     expect(secondFrame.counts.drawCalls).toBe(4);
     expect(secondFrame.resourceReuse).toMatchObject({
       pipelineHits: 4,
+      pipelineMisses: 0,
+    });
+  });
+
+  it("renders transparent UnlitMaterial alpha-blend queue items", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 6 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "TransparentUnlitCube" }),
+    );
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({
+        label: "Transparent Route Unlit",
+        baseColorFactor: new Float32Array([0.2, 0.8, 1, 0.4]),
+        renderState: {
+          alphaMode: "blend",
+          cullMode: "none",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "alpha" },
+        },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 55.5);
+
+    expect(frame.ok).toBe(true);
+    expect(
+      frame.snapshot.meshDraws.map((draw) => ({
+        queue: draw.sortKey.queue,
+        materialKey: draw.batchKey.materialKey,
+        pipelineKey: draw.batchKey.pipelineKey,
+      })),
+    ).toEqual([
+      {
+        queue: "transparent",
+        materialKey: assetHandleKey(material),
+        pipelineKey: "unlit|blend|none|less|alpha",
+      },
+    ]);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 1,
+      drawPackages: 1,
+      drawCalls: 1,
+      diagnostics: 0,
+    });
+    expect(queuedFamilyResourceCount(frame.resources?.resources, "unlit")).toBe(
+      1,
+    );
+    expect(events).toContain("queue:submit:1");
+
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 56);
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.counts.drawCalls).toBe(1);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
       pipelineMisses: 0,
     });
   });

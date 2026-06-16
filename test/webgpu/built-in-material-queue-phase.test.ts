@@ -14,6 +14,9 @@ describe("built-in material queue phase diagnostics", () => {
     expect(
       diagnostic("standard", "transparent", "standard|blend|back|less|alpha"),
     ).toBeNull();
+    expect(
+      diagnostic("unlit", "transparent", "unlit|blend|none|less|alpha"),
+    ).toBeNull();
   });
 
   it("diagnoses unsupported alpha-test and transparent families", () => {
@@ -43,6 +46,14 @@ describe("built-in material queue phase diagnostics", () => {
       code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
       renderPhase: "transparent",
       materialFamily: "standard",
+      blendPreset: "additive",
+    });
+    expect(
+      diagnostic("unlit", "transparent", "unlit|blend|none|less|additive"),
+    ).toMatchObject({
+      code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
+      renderPhase: "transparent",
+      materialFamily: "unlit",
       blendPreset: "additive",
     });
   });
