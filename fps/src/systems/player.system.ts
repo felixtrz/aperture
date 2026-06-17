@@ -43,6 +43,7 @@ import {
   horizontalRightFromYaw,
   normalizedMoveAxis,
   snapToGroundDistanceForMove,
+  sourceChildPositionFromLook,
   weaponViewmodelOffsetTarget,
 } from "../lib/fps-controls.js";
 import {
@@ -799,15 +800,15 @@ export default class PlayerSystem extends createSystem({
   }
 
   #triggerEnemyMuzzleFlashes(enemyPosition: Vec3, playerPosition: Vec3): void {
-    const { yaw } = enemyLookAngles({
+    const look = enemyLookAngles({
       enemy: enemyPosition,
       player: playerPosition,
       targetYOffset: ENEMY_LOOK_TARGET_Y_OFFSET,
     });
     for (let i = 0; i < ENEMY_MUZZLE_OFFSETS.length; i += 1) {
-      this.#enemyMuzzleFlashPositions[i] = enemyMuzzlePosition(
+      this.#enemyMuzzleFlashPositions[i] = sourceChildPositionFromLook(
         enemyPosition,
-        yaw,
+        look,
         ENEMY_MUZZLE_OFFSETS[i]!,
       );
       this.#enemyMuzzleFlashRolls[i] = randomBetween(
@@ -1184,16 +1185,6 @@ function enemyPosition(base: Vec3, time: number): Vec3 {
     base[0],
     base[1] + Math.sin(time * ENEMY_HOVER_RATE) * ENEMY_HOVER_AMPLITUDE,
     base[2],
-  ];
-}
-
-function enemyMuzzlePosition(enemy: Vec3, yaw: number, offset: Vec3): Vec3 {
-  const right: Vec3 = [Math.cos(yaw), 0, -Math.sin(yaw)];
-  const forward: Vec3 = [Math.sin(yaw), 0, Math.cos(yaw)];
-  return [
-    enemy[0] + right[0] * offset[0] + forward[0] * offset[2],
-    enemy[1] + offset[1],
-    enemy[2] + right[2] * offset[0] + forward[2] * offset[2],
   ];
 }
 

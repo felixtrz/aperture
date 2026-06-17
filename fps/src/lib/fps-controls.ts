@@ -1,4 +1,8 @@
-import type { Vec3Tuple as Vec3 } from "@aperture-engine/app/systems";
+import {
+  quatFromEulerYXZ,
+  rotateVec3ByQuat,
+  type Vec3Tuple as Vec3,
+} from "@aperture-engine/app/systems";
 
 export interface CameraRelativeMoveInput {
   readonly moveX: number;
@@ -103,6 +107,22 @@ export function enemyLookAngles(input: EnemyLookAnglesInput): EnemyLookAngles {
         ? verticalLookPitch(dy)
         : -Math.atan2(dy, horizontalDistance),
   };
+}
+
+export function sourceChildPositionFromLook(
+  origin: Vec3,
+  look: EnemyLookAngles,
+  localOffset: Vec3,
+): Vec3 {
+  const rotatedOffset = rotateVec3ByQuat(
+    localOffset,
+    quatFromEulerYXZ(look.pitch, look.yaw, 0),
+  );
+  return [
+    origin[0] + rotatedOffset[0],
+    origin[1] + rotatedOffset[1],
+    origin[2] + rotatedOffset[2],
+  ];
 }
 
 export function snapToGroundDistanceForMove(

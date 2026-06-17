@@ -11,6 +11,7 @@ import {
   horizontalBackwardFromYaw,
   normalizedMoveAxis,
   snapToGroundDistanceForMove,
+  sourceChildPositionFromLook,
   weaponViewmodelOffsetTarget,
 } from "../../fps/src/lib/fps-controls.js";
 
@@ -144,6 +145,27 @@ describe("Starter Kit FPS controls", () => {
     expect(forward[0]).toBeCloseTo(expectedDirection[0], 5);
     expect(forward[1]).toBeCloseTo(expectedDirection[1], 5);
     expect(forward[2]).toBeCloseTo(expectedDirection[2], 5);
+  });
+
+  it("places enemy muzzle child offsets through the source look transform", () => {
+    const enemy: [number, number, number] = [0, 3, 0];
+    const player: [number, number, number] = [0, 1.5, 5];
+    const localOffset: [number, number, number] = [-0.45, 0.3, 0.4];
+    const look = enemyLookAngles({
+      enemy,
+      player,
+      targetYOffset: 0.5,
+    });
+    const muzzle = sourceChildPositionFromLook(enemy, look, localOffset);
+    const expectedOffset = rotateVec3ByQuat(
+      localOffset,
+      quatFromEulerYXZ(look.pitch, look.yaw, 0),
+    );
+
+    expect(muzzle[0]).toBeCloseTo(enemy[0] + expectedOffset[0], 10);
+    expect(muzzle[1]).toBeCloseTo(enemy[1] + expectedOffset[1], 10);
+    expect(muzzle[2]).toBeCloseTo(enemy[2] + expectedOffset[2], 10);
+    expect(muzzle[1]).toBeLessThan(enemy[1] + localOffset[1]);
   });
 
   it("disables snap-to-ground for upward character movement", () => {
