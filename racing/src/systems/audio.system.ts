@@ -1,5 +1,6 @@
 import {
   AudioSimulationSpace,
+  type AudioLoopHandle,
   clamp,
   createSystem,
   lerp,
@@ -38,6 +39,9 @@ export default class RacingAudioSystem extends createSystem({ priority: 127 }) {
   #prevSpeed = 0;
   #impactCooldown = 0;
   #haveStarted = false;
+  #engineLoop: AudioLoopHandle | null = null;
+  #engineLayerLoop: AudioLoopHandle | null = null;
+  #skidLoop: AudioLoopHandle | null = null;
 
   override update(delta: number): void {
     const vehicle = this.resources.read(VehicleResource);
@@ -98,21 +102,40 @@ export default class RacingAudioSystem extends createSystem({ priority: 127 }) {
     this.#engineVol = lerp(this.#engineVol, targetVol, Math.min(1, dt * 5));
 
     const cutoff = remap(throttle, 0, 1, 700, 7000);
-    this.audio.loop("racing.engine", {
-      clip: this.audio.clip("engine"),
-      busId: "sfx",
-      gain: this.#engineVol * masterTarget,
-      timeScale: pitch,
-      lowpass: { frequency: cutoff, q: 0.7 },
-      simulationSpace: AudioSimulationSpace.Local,
+    const engineLoop =
+      this.#engineLoop ??
+      this.audio.loop("racing.engine", {
+        clip: this.audio.clip("engine"),
+        busId: "sfx",
+        gain: 0,
+        timeScale: pitch,
+        lowpass: { frequency: cutoff, q: 0.7 },
+        simulationSpace: AudioSimulationSpace.Local,
+      });
+    this.#engineLoop = engineLoop;
+    engineLoop.automate({
+      gain: { target: this.#engineVol * masterTarget },
+      timeScale: { target: pitch },
+      lowpass: { frequency: { target: cutoff }, q: { target: 0.7 } },
+      muted: masterTarget <= 0,
     });
-    this.audio.loop("racing.engine.layer", {
-      clip: this.audio.clip("engine"),
-      busId: "sfx",
-      gain: this.#engineVol * ENGINE_LAYER_GAIN * masterTarget,
-      timeScale: pitch * 0.5,
-      lowpass: { frequency: cutoff, q: 0.7 },
-      simulationSpace: AudioSimulationSpace.Local,
+
+    const engineLayerLoop =
+      this.#engineLayerLoop ??
+      this.audio.loop("racing.engine.layer", {
+        clip: this.audio.clip("engine"),
+        busId: "sfx",
+        gain: 0,
+        timeScale: pitch * 0.5,
+        lowpass: { frequency: cutoff, q: 0.7 },
+        simulationSpace: AudioSimulationSpace.Local,
+      });
+    this.#engineLayerLoop = engineLayerLoop;
+    engineLayerLoop.automate({
+      gain: { target: this.#engineVol * ENGINE_LAYER_GAIN * masterTarget },
+      timeScale: { target: pitch * 0.5 },
+      lowpass: { frequency: { target: cutoff }, q: { target: 0.7 } },
+      muted: masterTarget <= 0,
     });
   }
 
@@ -128,12 +151,20 @@ export default class RacingAudioSystem extends createSystem({ priority: 127 }) {
       pitch = clamp(speed * 3, 1, 3);
     }
     this.#skidVol = targetVol;
-    this.audio.loop("racing.skid", {
-      clip: this.audio.clip("skid"),
-      busId: "sfx",
-      gain: this.#skidVol * masterTarget,
-      timeScale: pitch,
-      simulationSpace: AudioSimulationSpace.Local,
+    const skidLoop =
+      this.#skidLoop ??
+      this.audio.loop("racing.skid", {
+        clip: this.audio.clip("skid"),
+        busId: "sfx",
+        gain: 0,
+        timeScale: pitch,
+        simulationSpace: AudioSimulationSpace.Local,
+      });
+    this.#skidLoop = skidLoop;
+    skidLoop.automate({
+      gain: { target: this.#skidVol * masterTarget },
+      timeScale: { target: pitch },
+      muted: masterTarget <= 0,
     });
   }
 

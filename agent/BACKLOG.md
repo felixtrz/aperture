@@ -59,30 +59,32 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Add worker-safe audio loop lifecycle controls and automation descriptors so
-systems can pause/resume stable loops and schedule generic gain/rate/filter
-ramps without app-local browser audio code.
+Add a production particle proof route and focused particle diagnostics so agents
+can verify textured burst particles without depending on the racing vehicle
+drift setup.
 
 Category: `runtime-orchestration`
 
-Reference anchor: `references/bevy/crates/bevy_audio/src/audio.rs` for playback
-intent/lifecycle and `references/engine/src/framework/components/sound/component.js`
-for sound component slot playback/control behavior.
+Reference anchor: `references/engine/src/framework/components/particle-system/component.js`
+for first-class particle component behavior, plus
+`references/bevy/crates/bevy_sprite/src/sprite_mesh.rs` for ECS-authored
+renderable effect assets.
 
 Acceptance criteria:
 
-- Extend the worker-safe `this.audio` loop handle with generic pause/resume or
-  equivalent lifecycle intent that survives the simulation-worker snapshot
-  boundary.
-- Add typed automation descriptors for common loop parameters already supported
-  by the voice manager, such as gain, playback rate, and lowpass cutoff/Q,
-  without exposing Web Audio nodes to systems.
-- Add extraction/voice-manager tests proving lifecycle and automation packets
-  remain JSON-safe and apply deterministically.
-- Migrate any remaining racing audio smoothing that is generic loop automation
-  to the shared API while keeping the vehicle-specific RPM/skid model in
-  `racing/src/systems/audio.system.ts`.
-- Verify managed racing and Shadow Lab stay healthy through Aperture tooling.
+- Add a small public browser route or example that declares a texture,
+  declares a particle effect, and emits textured burst particles from a worker
+  system through `this.particles.emit(...)`.
+- Surface compact particle readiness/budget diagnostics that distinguish no
+  authored emitters, not-ready effect assets, burst budget overflow, and
+  renderer-owned live textured particles without requiring a full entity dump.
+- Add focused browser or WebGPU proof coverage that drives the burst effect and
+  verifies nonzero live textured particles, draw submission, and alpha/depth
+  behavior.
+- Re-run managed racing through Aperture MCP and confirm racing smoke still
+  reports hundreds of live textured particles with zero frame diagnostics.
+- Verify Shadow Lab still typechecks/builds and its managed session remains
+  healthy if left running.
 
 ## Historical M10 Physics Notes
 

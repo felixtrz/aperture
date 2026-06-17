@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "ff39884c",
   "activePid": null,
-  "notes": "Completed and committed Rapier asset-backed collider V1: backend-neutral geometry contracts, app-owned mesh/heightfield provider, Rapier convexHull/static trimesh/static heightfield cooking, generated-worker pause-step-query-diff proof, large-scale simulation-worker browser example, docs/tracker/handoff updates, focused Vitest, Playwright large-scale, and pnpm run check green.",
-  "lastRunFinishedAt": "2026-06-06T18:55:31Z"
+  "notes": "Completed worker-safe audio loop lifecycle and automation controls; rebuilt app dist, cache-busted managed racing, fixed stale automate crash, and verified smoke particles plus zero frame diagnostics.",
+  "lastRunFinishedAt": "2026-06-17T02:34:58Z"
 }

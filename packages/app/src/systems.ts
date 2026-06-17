@@ -285,11 +285,15 @@ export type {
 export { createParticleAccess } from "./systems/particles.js";
 export type {
   AudioAccess,
+  AudioAutomationNumber,
+  AudioAutomationTarget,
   AudioClipDescriptorInput,
   AudioEmitterControlOptions,
   AudioLoopHandle,
+  AudioLoopAutomationOptions,
   AudioLoopOptions,
   AudioLoopUpdateOptions,
+  AudioLowpassAutomationOptions,
   AudioLowpassOptions,
   AudioOneShotOptions,
 } from "./systems/audio.js";

@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## RACE-LIB-24 — Worker-safe audio loop lifecycle and automation
+
+Completed: 2026-06-16 19:29 PDT
+Commit: current checkpoint commit
+
+### Summary
+
+- Added `automate(...)`, `pause()`, and `resume()` to worker-safe audio loop
+  handles and matching stable-id methods to `this.audio`.
+- Normalized numeric and `{ target }` automation descriptors for gain,
+  playback rate, and lowpass cutoff/Q into JSON-safe `AudioEmitter` snapshot
+  fields.
+- Migrated racing's generic engine/skid loop smoothing to the shared handle API
+  while leaving RPM/skid/impact game logic in
+  `racing/src/systems/audio.system.ts`.
+- Fixed the live racing worker crash caused by stale `@aperture-engine/app`
+  dist output after the source migration.
+
+### Validation
+
+- `pnpm exec vitest run test/app/audio-access.test.ts test/audio/voice-manager.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run build`
+- Managed Aperture racing proof: cache-busted restart on `127.0.0.1:5173`,
+  WebGPU ready, held virtual `drive=[-1,1]`, frame `3321` reported
+  `particleEmitters:306`, `liveParticles:906`, `texturedEmitters:306`, and
+  diagnostics `0`; inputs were reset afterward.
+
 ## RACE-LIB-23 — Generated audio unlock startup hardening
 
 Completed: 2026-06-16 19:06 PDT

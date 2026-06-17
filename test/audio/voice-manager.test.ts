@@ -210,4 +210,50 @@ describe("voice manager reconciliation (AU-4)", () => {
     expect(filter.frequency.lastEvent()?.value).toBeCloseTo(350);
     expect(filter.Q.lastEvent()?.value).toBeCloseTo(0.6);
   });
+
+  it("applies loop automation packets through click-free voice updates", async () => {
+    const { backend, eng } = engine();
+    eng.applySnapshot(
+      snap([
+        emitter({
+          autoplay: true,
+          loop: true,
+          gain: 0.2,
+          timeScale: 1,
+          lowpassFrequency: 1200,
+          lowpassQ: 0.7,
+        }),
+      ]),
+      0.016,
+    );
+    await tick();
+
+    eng.applySnapshot(
+      snap([
+        emitter({
+          autoplay: true,
+          loop: true,
+          gain: 0.65,
+          timeScale: 1.4,
+          lowpassFrequency: 4000,
+          lowpassQ: 0.9,
+        }),
+      ]),
+      0.016,
+    );
+
+    const voiceGain = backend.created.gains.at(-1) as FakeGainNode;
+    expect(voiceGain.gain.lastEvent()).toMatchObject({
+      method: "setTargetAtTime",
+      value: 0.65,
+    });
+    expect(backend.created.sources[0]?.playbackRate.lastEvent()).toMatchObject({
+      method: "linearRampToValueAtTime",
+      value: 1.4,
+    });
+
+    const filter = backend.created.biquads.at(-1) as FakeBiquadFilterNode;
+    expect(filter.frequency.lastEvent()?.value).toBeCloseTo(4000);
+    expect(filter.Q.lastEvent()?.value).toBeCloseTo(0.9);
+  });
 });

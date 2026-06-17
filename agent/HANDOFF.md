@@ -1,3 +1,71 @@
+# Handoff - Worker-Safe Audio Loop Lifecycle
+
+**Updated:** 2026-06-16 19:29 PDT
+
+Current user-directed work is executing
+`racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
+slices while keeping racing and Shadow Lab working.
+
+## Latest Completed Slice
+
+- Added worker-safe audio loop lifecycle/automation controls to
+  `@aperture-engine/app/systems`: loop handles now expose `automate(...)`,
+  `pause()`, and `resume()`, and `this.audio` exposes matching stable-id
+  methods.
+- Automation descriptors accept either numbers or `{ target }` values and
+  normalize gain, playback rate, and lowpass cutoff/Q into ordinary JSON-safe
+  `AudioEmitter` snapshot fields. Pause/resume mute/unmute stable loops without
+  tearing down their emitters or losing loop phase.
+- Migrated racing's generic loop smoothing to the shared API while keeping the
+  vehicle-specific RPM/skid/impact model in
+  `racing/src/systems/audio.system.ts`.
+- Added app extraction coverage proving lifecycle/automation packets survive
+  JSON serialization, plus voice-manager coverage proving gain, playback-rate,
+  and lowpass updates apply through click-free ramps.
+- Rebuilt `@aperture-engine/app`, typechecked/built racing and Shadow Lab, then
+  cache-busted and relaunched only managed racing on `127.0.0.1:5173`.
+- The alarming current console error was
+  `TypeError: engineLoop.automate is not a function`; root cause was racing
+  source calling the new API while the worker still imported stale
+  `packages/app/dist`. Rebuilding the app package and clearing
+  `racing/node_modules/.vite` fixed it.
+
+## Latest Validation
+
+- `pnpm exec vitest run test/app/audio-access.test.ts test/audio/voice-manager.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run build`
+- Managed Aperture racing proof: `pnpm exec aperture dev down`, clear
+  `racing/node_modules/.vite`, `pnpm exec aperture dev up --open --host
+127.0.0.1 --port 5173`, `browser_wait_for_webgpu`, console/status/frame
+  checks, forced `drive=[-1,1]`, and observed frame `3321` with
+  `particleEmitters:306`, `liveParticles:906`, `texturedEmitters:306`, and
+  diagnostics `0`. Inputs were reset after the proof.
+
+## Current Notes
+
+- Managed racing is running at `http://127.0.0.1:5173/` through Aperture dev.
+  The append-only console still contains the older stale-dist
+  `engineLoop.automate` worker crash, but fresh post-restart timestamps show
+  only Vite connection logs plus the known Rapier deprecated init signature
+  warning.
+- Shadow Lab was not restarted and remains isolated from racing; it was
+  typechecked/built against the rebuilt workspace packages.
+- Pre-existing untracked screenshot/parity artifacts remain outside the commit.
+
+## Recommended Next Task
+
+Add a production particle proof route and focused particle diagnostics so agents
+can verify textured burst particles without depending on the racing vehicle
+drift setup. Use `references/engine/src/framework/components/particle-system/component.js`
+and `references/bevy/crates/bevy_sprite/src/sprite_mesh.rs` as anchors.
+
+---
+
 # Handoff - Generated Audio Unlock Startup
 
 **Updated:** 2026-06-16 19:06 PDT

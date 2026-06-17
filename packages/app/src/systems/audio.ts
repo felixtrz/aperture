@@ -28,6 +28,35 @@ export interface AudioLowpassOptions {
   readonly q?: number;
 }
 
+export interface AudioAutomationTarget {
+  /** Target value for a click-free frame-to-frame automation update. */
+  readonly target: number;
+}
+
+export type AudioAutomationNumber = number | AudioAutomationTarget;
+
+export interface AudioLowpassAutomationOptions {
+  /** Target cutoff frequency in Hz. */
+  readonly frequency?: AudioAutomationNumber;
+  /** Target resonance/Q. */
+  readonly q?: AudioAutomationNumber;
+}
+
+export interface AudioLoopAutomationOptions {
+  /** Target gain. The voice manager moves to this value click-free. */
+  readonly gain?: AudioAutomationNumber;
+  /** Target playback rate multiplier. */
+  readonly timeScale?: AudioAutomationNumber;
+  /** Mute/unmute via gain-to-zero while keeping loop playback phase alive. */
+  readonly muted?: boolean;
+  /** Target lowpass filter values, or false to open the authored lowpass. */
+  readonly lowpass?: AudioLowpassAutomationOptions | false;
+  /** Target lowpass cutoff in Hz. */
+  readonly lowpassFrequency?: AudioAutomationNumber;
+  /** Target lowpass resonance/Q. */
+  readonly lowpassQ?: AudioAutomationNumber;
+}
+
 export interface AudioEmitterControlOptions {
   readonly busId?: string;
   readonly gain?: number;
@@ -66,6 +95,10 @@ export interface AudioLoopUpdateOptions extends AudioEmitterControlOptions {
   readonly active?: boolean;
 }
 
+type MutableAudioLoopUpdateOptions = {
+  -readonly [TKey in keyof AudioLoopUpdateOptions]: AudioLoopUpdateOptions[TKey];
+};
+
 export interface AudioOneShotOptions extends AudioEmitterControlOptions {
   readonly clip: AudioClipDescriptorInput;
 }
@@ -74,6 +107,11 @@ export interface AudioLoopHandle {
   readonly id: string;
   readonly entity: Entity;
   set(options: AudioLoopUpdateOptions): AudioLoopHandle;
+  automate(options: AudioLoopAutomationOptions): AudioLoopHandle;
+  /** Silence the loop without tearing down its stable emitter. */
+  pause(): AudioLoopHandle;
+  /** Make a paused loop audible again. */
+  resume(): AudioLoopHandle;
   play(): number;
   stop(): number;
 }
@@ -85,6 +123,18 @@ export interface AudioAccess {
   loop(id: string, options: AudioLoopOptions): AudioLoopHandle;
   /** Patch a loop emitter if it exists. Returns null when the id is unknown. */
   set(id: string, options: AudioLoopUpdateOptions): AudioLoopHandle | null;
+  /** Patch common loop automation targets if the loop exists. */
+  automate(
+    id: string,
+    options: AudioLoopAutomationOptions,
+  ): AudioLoopHandle | null;
+  /**
+   * Silence a stable loop while preserving its emitter and loop phase. Returns
+   * false when the id is unknown.
+   */
+  pause(id: string): boolean;
+  /** Resume a previously paused stable loop. Returns false when unknown. */
+  resume(id: string): boolean;
   /** Request a click-free stop of a stable loop. */
   stop(id: string): boolean;
   /** Fire a stable one-shot emitter by bumping its play epoch. */
@@ -128,6 +178,25 @@ export function createAudioAccess(options: {
       }
       patchEmitter(entity, patch);
       return handleFor(access, id, entity);
+    },
+    automate(id, automation) {
+      return access.set(id, automationPatch(automation));
+    },
+    pause(id) {
+      const entity = loops.get(id);
+      if (entity === undefined) {
+        return false;
+      }
+      patchEmitter(entity, { active: true, muted: true });
+      return true;
+    },
+    resume(id) {
+      const entity = loops.get(id);
+      if (entity === undefined) {
+        return false;
+      }
+      patchEmitter(entity, { active: true, muted: false });
+      return true;
     },
     stop(id) {
       const entity = loops.get(id);
@@ -191,6 +260,17 @@ function handleFor(
     set(options) {
       return access.set(id, options) ?? this;
     },
+    automate(options) {
+      return access.automate(id, options) ?? this;
+    },
+    pause() {
+      access.pause(id);
+      return this;
+    },
+    resume() {
+      access.resume(id);
+      return this;
+    },
     play() {
       return bumpAudioPlayEpoch(entity);
     },
@@ -198,6 +278,38 @@ function handleFor(
       return stopAudioEmitter(entity);
     },
   };
+}
+
+function automationPatch(
+  options: AudioLoopAutomationOptions,
+): AudioLoopUpdateOptions {
+  const patch: MutableAudioLoopUpdateOptions = {};
+  assignAutomationIfDefined(patch, "gain", options.gain);
+  assignAutomationIfDefined(patch, "timeScale", options.timeScale);
+  if (options.muted !== undefined) {
+    patch.muted = options.muted;
+  }
+
+  if (options.lowpass === false) {
+    patch.lowpass = false;
+  } else if (options.lowpass !== undefined) {
+    patch.lowpass = {
+      ...(options.lowpass.frequency === undefined
+        ? {}
+        : { frequency: automationTarget(options.lowpass.frequency) }),
+      ...(options.lowpass.q === undefined
+        ? {}
+        : { q: automationTarget(options.lowpass.q) }),
+    };
+  }
+
+  assignAutomationIfDefined(
+    patch,
+    "lowpassFrequency",
+    options.lowpassFrequency,
+  );
+  assignAutomationIfDefined(patch, "lowpassQ", options.lowpassQ);
+  return patch;
 }
 
 function toEmitterInput(
@@ -357,6 +469,22 @@ function assignIfDefined<TKey extends keyof AudioEmitterInput>(
   if (value !== undefined) {
     target[key] = value;
   }
+}
+
+function assignAutomationIfDefined<
+  TKey extends keyof MutableAudioLoopUpdateOptions,
+>(
+  target: MutableAudioLoopUpdateOptions,
+  key: TKey,
+  value: AudioAutomationNumber | undefined,
+): void {
+  if (value !== undefined) {
+    target[key] = automationTarget(value) as never;
+  }
+}
+
+function automationTarget(value: AudioAutomationNumber): number {
+  return typeof value === "number" ? value : value.target;
 }
 
 function lowpassFrequency(options: AudioEmitterControlOptions): number {

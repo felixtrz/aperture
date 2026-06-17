@@ -393,17 +393,30 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 02:06 UTC</dd>
+            <dd>2026-06-17 02:29 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: generated browser audio now keeps ECS-authored
-              playback intent separate from Web Audio source starts while the
-              backend is suspended. Autoplay loops remain silent until unlock,
-              stale pre-unlock one-shot epochs are dropped, and fresh
-              post-unlock one-shots still play. Racing was cache-busted and
-              relaunched through managed Aperture; the fresh console had no new
+              Latest update: worker-safe audio loop handles now support
+              <code>automate(...)</code>, <code>pause()</code>, and
+              <code>resume()</code>, with stable-id methods on
+              <code>this.audio</code>. Racing now uses those shared handles for
+              generic engine/skid loop smoothing while keeping RPM/skid/impact
+              game logic in its worker system. The alarming live console error
+              was a stale-dist worker crash (<code
+                >engineLoop.automate is not a function</code
+              >); rebuilding <code>@aperture-engine/app</code>, clearing
+              racing's Vite cache, and relaunching through managed Aperture
+              fixed it. Held-input racing proof reached
+              <code>306</code> textured particle emitters, <code>906</code> live
+              particles, and zero frame diagnostics. Prior update: generated
+              browser audio now keeps ECS-authored playback intent separate from
+              Web Audio source starts while the backend is suspended. Autoplay
+              loops remain silent until unlock, stale pre-unlock one-shot epochs
+              are dropped, and fresh post-unlock one-shots still play. Racing
+              was cache-busted and relaunched through managed Aperture; the
+              fresh console had no new
               <code>AudioContext was not allowed to start</code> warning, and
               held-input smoke still reached hundreds of textured particles with
               no runtime error. Prior update: browser signal subscriptions now
@@ -1201,10 +1214,10 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue the racing library-gap plan by adding worker-safe audio
-              loop lifecycle controls and automation descriptors for generic
-              gain, rate, and filter ramps without exposing Web Audio nodes to
-              systems.
+              Continue the racing library-gap plan by adding a production
+              particle proof route and focused particle diagnostics, so agents
+              can verify textured burst particles without depending on racing's
+              vehicle drift setup.
             </dd>
           </dl>
         </aside>
@@ -2105,6 +2118,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">audio</span> Added worker-safe audio
+                loop lifecycle and automation controls. Stable loop handles now
+                expose <code>automate(...)</code>, <code>pause()</code>, and
+                <code>resume()</code>; racing uses those shared controls for
+                generic gain, playback-rate, and lowpass smoothing, and the
+                cache-busted managed racing proof fixed the stale-dist worker
+                crash while preserving live smoke particles.
+              </li>
               <li>
                 <span class="badge green">audio</span> Hardened generated audio
                 startup so worker-authored playback intent does not start buffer

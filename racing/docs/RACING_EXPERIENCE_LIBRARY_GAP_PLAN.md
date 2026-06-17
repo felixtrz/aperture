@@ -195,6 +195,16 @@ building blocks and default paths.
   clearing its Vite optimized cache; the fresh console had no new
   `AudioContext was not allowed to start` warning, and held input still rendered
   hundreds of textured smoke particles.
+- 2026-06-16: Worker-safe audio lifecycle and automation landed:
+  `this.audio` loop handles now expose `automate(...)`, `pause()`, and
+  `resume()`, while `this.audio.automate(...)` / `pause(...)` / `resume(...)`
+  provide the same stable-id control path from systems. Automation descriptors
+  normalize target values for gain, playback rate, and lowpass cutoff/Q into
+  JSON-safe snapshot fields; racing keeps only the vehicle-specific RPM/skid
+  model and uses the shared loop handles for generic audio smoothing. A
+  cache-busted managed racing relaunch fixed the stale-dist worker crash
+  (`engineLoop.automate is not a function`), and held input again rendered
+  hundreds of textured smoke particles with zero frame diagnostics.
 
 ## Genericity Audit - 2026-06-16
 
@@ -229,6 +239,11 @@ are broad Aperture V1 capabilities, not racing-only conveniences.
 - `this.audio.loop/set/stop/playOneShot(...)`: generic. The racing RPM/skid
   model remains app code, but stable loop voices, one-shots, gain/rate/lowpass
   intent, and clip handles are library-level audio mechanics.
+- `this.audio.automate/pause/resume(...)`: generic. Bevy's `AudioSink` exposes
+  runtime volume/speed/play/pause/stop control, and PlayCanvas sound slots expose
+  play/pause/resume plus live volume/pitch setters. Aperture's worker-safe
+  version must stay snapshot-authored and JSON-safe rather than returning Web
+  Audio nodes, but the capability itself belongs in the library.
 - `asset.particleEffect(...)`, `this.spawn.particles(...)`, and
   `this.particles.emit(...)`: generic. PlayCanvas exposes particle systems as a
   first-class component. Aperture's version keeps particle authoring
@@ -537,7 +552,8 @@ Current Aperture state:
 - Generated app config now exposes audio clip assets and generated audio
   enablement for config-authored clips.
 - `@aperture-engine/app/systems` exposes a worker-safe `this.audio` control
-  surface for stable loops, stop/set, and one-shot events.
+  surface for stable loops, stop/set, pause/resume, automation, and one-shot
+  events.
 - `AudioEmitter` packets carry `gain`, `timeScale`, loop, epochs, spatial
   settings, bus routing, authored lowpass cutoff/Q, and occlusion-compatible
   voice-manager filtering.
@@ -551,10 +567,9 @@ Library direction:
 
 - Keep ECS-authored audio intent as the primary path.
 - Treat the sound board API as a pragmatic main-thread escape hatch.
-- Continue hardening the snapshot-authored path toward richer worker-safe
-  `AudioSink`/`AudioVoiceHandle` style controls: pause/resume, richer parameter
-  automation descriptors, and reusable per-emitter or bus effect chains beyond
-  the current lowpass fields.
+- Continue hardening the snapshot-authored path toward reusable per-emitter or
+  bus effect chains beyond the current lowpass fields. Pause/resume and common
+  gain/rate/lowpass automation are now part of the worker-safe loop handle.
 
 ### 5. Smoke Particles Were Implemented As Dynamic Meshes In App Code
 
@@ -939,6 +954,12 @@ Current acceptance status:
   `@aperture-engine/audio` composes authored lowpass with occlusion lowpass, and
   racing represents engine loops, skid loop, and impact one-shot as ECS/snapshot
   audio intent from `src/systems/audio.system.ts`.
+- Done for the lifecycle/automation slice: stable loop handles expose
+  `automate(...)`, `pause()`, and `resume()`; missing loop ids return
+  deterministic `null`/`false`; automation descriptors for gain, playback rate,
+  and lowpass cutoff/Q extract as plain numeric snapshot fields; and the voice
+  manager applies those packets through click-free gain, playback-rate, and
+  filter ramps.
 
 Reference anchors:
 
@@ -1368,22 +1389,27 @@ Shadow-lab validation:
 
 ## Recommended Next Implementation Slice
 
-Continue the source-readability/library-gap work with RACE-LIB-20:
+Continue the source-readability/library-gap work with a production particle
+proof slice:
 
-1. Add a small app-level camera follow/control helper that packages the
-   reusable lead/deadzone/smoothing/look-at transform work currently open-coded
-   in `src/systems/camera-follow.system.ts`.
-2. Keep racing-specific tuning in `src/lib/tuning.ts`, but move the generic
-   camera basis, exponential smoothing, deadzone clamp, and transform writeback
-   into the Aperture system API or a focused helper module.
-3. Migrate racing camera follow to the helper without changing the camera feel.
-4. Validate with focused helper tests, racing typecheck/build, cache-busted
-   served-module probes, and Aperture MCP runtime status/visual checks.
+1. Add a compact public particle smoke/showcase route or example that uses only
+   `asset.texture(...)`, `asset.particleEffect(...)`, and
+   `this.particles.emit(...)` from a worker system.
+2. Expose focused particle budget/readiness diagnostics for burst effects so an
+   agent can distinguish "no emitters authored", "effect texture not ready",
+   "burst budget overflow", and "renderer drew live textured particles" without
+   dumping full frame/entity status.
+3. Add a browser proof that drives a burst effect, asserts nonzero live textured
+   particles and draw submission, and samples pixels or frame reports for
+   alpha/depth behavior.
+4. Re-run managed racing and Shadow Lab health checks to ensure the diagnostic
+   additions do not regress the racing smoke path or shadow-lab render path.
 
 Reason:
 
-- RACE-LIB-19 finishes the audio intent migration, so the next largest
-  readability win is the camera-follow system's low-level vector math and
-  transform mutation.
-- A focused helper keeps Aperture's API ergonomic for camera-driven experiences
-  without moving racing-specific game rules into the library.
+- Racing smoke is now working through the shared particle path, but the V1
+  library still needs a small, reusable particle proof outside racing so future
+  agents can verify particles without depending on vehicle drift setup.
+- PlayCanvas treats particle systems as a first-class component; Aperture should
+  offer the same confidence while preserving ECS authoring, worker-safe bursts,
+  and WebGPU-owned realization.
