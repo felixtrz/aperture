@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 12:21 UTC</dd>
+            <dd>2026-06-17 12:24 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
@@ -405,9 +405,14 @@
               <code>2.56</code> world-unit unscaled sprite; the port now spawns
               <code>effect.muzzle-burst</code> as <code>[2.56,2.56]</code>
               while preserving the source runtime scale range
-              <code>0.40..0.75</code>. Aperture MCP proof found
+              <code>0.40..0.75</code>. Because the source muzzle renders
+              through the transparent weapon subviewport, the port now disables
+              world-scene depth testing for <code>effect.muzzle-burst</code>.
+              Aperture MCP/CLI proof found
               <code>effect.muzzle-burst</code> width/height near
-              <code>2.56</code> and diagnostics <code>0</code>. Prior update:
+              <code>2.56</code>, <code>depthMode:"disabled"</code>, visible
+              alpha <code>1</code> after a shot, and diagnostics
+              <code>0</code>. Prior update:
               Starter Kit FPS shooting is hardened for fast
               click/release input. The player now buffers a generated
               <code>shoot</code> down edge for <code>0.08s</code> while keeping

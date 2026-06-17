@@ -1,9 +1,9 @@
 # Completed Tasks
 
-## FPS-PORT — Player muzzle sprite size
+## FPS-PORT — Player muzzle sprite
 
-Completed: 2026-06-17 05:21 PDT
-Commit: `815d6af6`
+Completed: 2026-06-17 05:24 PDT
+Commits: `815d6af6`, `69c929e8`
 
 ### Summary
 
@@ -16,6 +16,8 @@ Commit: `815d6af6`
 - Replaced the older non-square player muzzle sprite size `[0.75, 0.38]` with
   the derived `[2.56, 2.56]` size while preserving the source runtime scale
   range `0.40..0.75`.
+- Disabled world-scene depth testing for `effect.muzzle-burst` to match the
+  source weapon subviewport overlay behavior.
 
 ### Validation
 
@@ -32,10 +34,11 @@ Commit: `815d6af6`
   - `browser_wait_for_webgpu` passed in the managed FPS session with
     diagnostics `0`.
   - `ecs_find_entities {"key":"effect.muzzle-burst","limit":1}` reported
-    `renderSprite.width` and `renderSprite.height` approximately `2.56`.
+    `renderSprite.width` and `renderSprite.height` approximately `2.56` and
+    `depthMode:"disabled"`.
   - After one generated `shoot` step, the entity reported visible alpha `1`,
-    `localTransform.scale:[0.4137,0.4137,0.4137]`, and the same `2.56`
-    width/height base size.
+    `localTransform.scale:[0.4106,0.4106,0.4106]`, `depthMode:"disabled"`,
+    and the same `2.56` width/height base size.
 
 ## FPS-PORT — Shooting input buffer
 

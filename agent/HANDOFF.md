@@ -1,6 +1,6 @@
-# Handoff - Starter Kit FPS Player Muzzle Sprite Size
+# Handoff - Starter Kit FPS Player Muzzle Sprite
 
-**Updated:** 2026-06-17 05:21 PDT
+**Updated:** 2026-06-17 05:24 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
@@ -16,6 +16,9 @@ previous working state so the old state remains recoverable.
   - The port now spawns `effect.muzzle-burst` as a square `[2.56, 2.56]`
     sprite and keeps the existing source runtime scale range `0.40..0.75`
     from `references/Starter-Kit-FPS/objects/player.gd`.
+  - Because the source muzzle is rendered through the transparent weapon
+    subviewport on layer 2, the port now disables world-scene depth testing for
+    `effect.muzzle-burst`.
 - Focused coverage:
   - Added `SOURCE_PLAYER_MUZZLE_WORLD_SIZE` / sprite-size coverage beside the
     existing enemy muzzle and impact size tests.
@@ -25,11 +28,11 @@ previous working state so the old state remains recoverable.
     through Aperture CLI.
   - `ecs_find_entities {"key":"effect.muzzle-burst","limit":1}` reported
     `renderSprite.width` and `renderSprite.height` approximately `2.56`,
-    `localTransform.scale` approximately `[0.4,0.4,0.4]` while hidden, and
-    diagnostics `0`.
+    `localTransform.scale` approximately `[0.4,0.4,0.4]` while hidden,
+    `depthMode:"disabled"`, and diagnostics `0`.
   - After one generated `shoot` step, the same entity reported visible alpha
-    `1`, `localTransform.scale:[0.4137,0.4137,0.4137]`, and the same
-    `2.56` width/height base size.
+    `1`, `localTransform.scale:[0.4106,0.4106,0.4106]`, the same `2.56`
+    width/height base size, and `depthMode:"disabled"`.
 - Validation:
   - `pnpm exec vitest run test/app/fps-effects.test.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-input-config.test.ts`
     passed 28 tests.
@@ -42,6 +45,7 @@ previous working state so the old state remains recoverable.
   - `git diff --check`
 - Committed implementation:
   - `815d6af6` — `Align FPS player muzzle sprite size`
+  - `69c929e8` — `Align FPS player muzzle overlay depth`
 
 ## Previous Completed FPS/Tooling Slices
 
