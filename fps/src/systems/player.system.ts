@@ -19,8 +19,10 @@ import { Collider } from "@aperture-engine/physics";
 import { Sprite } from "@aperture-engine/render";
 import {
   SOURCE_FOOTSTEP_GAIN,
+  SOURCE_ONE_SHOT_GAIN,
   sourceEnemyDamageAudioEvents,
   sourceFootstepAudible,
+  sourceOneShotTimeScale,
 } from "../lib/fps-audio.js";
 import {
   ENEMIES,
@@ -302,7 +304,7 @@ export default class PlayerSystem extends createSystem({
 
     if (grounded) {
       if (!wasGrounded && verticalVelocity < -1) {
-        this.#playOneShot("land", 0.35);
+        this.#playOneShot("land");
         this.#triggerLandingBob();
       }
       verticalVelocity = 0;
@@ -346,7 +348,7 @@ export default class PlayerSystem extends createSystem({
       const nextWeaponIndex = (weaponIndex + 1) % WEAPONS.length;
       if (this.#startWeaponSwitch(weaponIndex, nextWeaponIndex)) {
         shotCooldown = 0;
-        this.#playOneShot("weapon-change", 0.35);
+        this.#playOneShot("weapon-change");
       }
     }
 
@@ -357,10 +359,7 @@ export default class PlayerSystem extends createSystem({
     if (didShoot) {
       shotCooldown = weapon.cooldown;
       shotsFired += 1;
-      this.#playOneShot(
-        weapon.soundId,
-        weapon.name === "Blaster" ? 0.45 : 0.28,
-      );
+      this.#playOneShot(weapon.soundId);
       const shot = this.#shoot(position, yaw, pitch, weapon, enemyHealth);
       enemyHealth = shot.enemyHealth;
       hits += shot.hits;
@@ -397,7 +396,7 @@ export default class PlayerSystem extends createSystem({
           attacker.position,
           position,
         );
-        this.#playOneShot("enemy-attack", 0.35);
+        this.#playOneShot("enemy-attack");
       }
     }
 
@@ -507,7 +506,7 @@ export default class PlayerSystem extends createSystem({
         currentHealth: current,
         damage: weapon.damage,
       })) {
-        this.#playOneShot(clipId, 0.4);
+        this.#playOneShot(clipId);
       }
     }
 
@@ -1084,17 +1083,18 @@ export default class PlayerSystem extends createSystem({
     }));
   }
 
-  #playOneShot(clipId: string, gain: number): void {
+  #playOneShot(clipId: string): void {
     this.audio.playOneShot(`fps.${clipId}.${Math.random()}`, {
       clip: this.audio.clip(clipId),
       busId: "sfx",
-      gain,
+      gain: SOURCE_ONE_SHOT_GAIN,
+      timeScale: sourceOneShotTimeScale(Math.random()),
       simulationSpace: AudioSimulationSpace.Local,
     });
   }
 
   #playJumpSound(): void {
-    this.#playOneShot(randomJumpSound(), 0.45);
+    this.#playOneShot(randomJumpSound());
   }
 
   #writePlayerBody(translation: Vec3): void {
