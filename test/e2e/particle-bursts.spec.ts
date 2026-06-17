@@ -12,7 +12,20 @@ interface ParticleBurstsStatus extends ExampleStatusBase {
   readonly state?: string;
   readonly assets?: {
     readonly texture?: { readonly ready: boolean } | null;
-    readonly effect?: { readonly ready: boolean } | null;
+    readonly effect?: {
+      readonly ready: boolean;
+      readonly runtimeFeatures?: {
+        readonly version: number;
+        readonly supportedFields: readonly string[];
+        readonly partiallySupportedFields: readonly string[];
+        readonly unsupportedFields: readonly string[];
+        readonly diagnostics: readonly {
+          readonly code: string;
+          readonly field: string;
+          readonly message: string;
+        }[];
+      };
+    } | null;
   };
   readonly worker?: {
     readonly snapshots?: number;
@@ -69,7 +82,32 @@ test("browser renders worker-emitted textured particle bursts", async ({
     phase: "rendered",
     assets: {
       texture: { ready: true },
-      effect: { ready: true },
+      effect: {
+        ready: true,
+        runtimeFeatures: {
+          version: 1,
+          supportedFields: expect.arrayContaining([
+            "capacity",
+            "startSize",
+            "blendMode",
+            "texture",
+            "sizeOverLifetime",
+            "colorOverLifetime",
+          ]),
+          partiallySupportedFields: ["gravity", "lifetime"],
+          unsupportedFields: ["duration", "emissionRate"],
+          diagnostics: expect.arrayContaining([
+            expect.objectContaining({
+              code: "particleEffect.unsupportedFeature",
+              field: "emissionRate",
+            }),
+            expect.objectContaining({
+              code: "particleEffect.partiallySupportedFeature",
+              field: "gravity",
+            }),
+          ]),
+        },
+      },
     },
     worker: {
       particles: {

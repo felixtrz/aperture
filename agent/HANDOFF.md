@@ -1,6 +1,6 @@
-# Handoff - Particle Proof Route And Diagnostics
+# Handoff - Particle Schema Runtime Feature Reporting
 
-**Updated:** 2026-06-16 20:19 PDT
+**Updated:** 2026-06-16 21:08 PDT
 
 Current user-directed work is executing
 `racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
@@ -8,71 +8,70 @@ slices while keeping racing and Shadow Lab working.
 
 ## Latest Completed Slice
 
-- Added `examples/particle-bursts.html`, a deterministic generated-app route
-  that declares a texture plus `asset.particleEffect(...)` and emits textured
-  worker-authored bursts through `this.particles.emit(...)`.
-- Extended `ParticleBurstQueue.summary()` with compact budget/readiness counters
-  for `pending`, `active`, `enqueued`, `promoted`, `dropped`,
-  `rejectedNotReady`, and `rejectedInvalid`.
-- Published worker particle summaries through generated worker snapshots and
-  surfaced particle queue state through the CLI render summary path.
-- Fixed generated-browser empty-frame diagnostics so particle-only routes count
-  as real draw activity.
-- Added focused tests for queue counters, generated-worker summary transport,
-  and browser-visible live textured burst particles with zero diagnostics.
-- Reproved racing smoke through Aperture MCP after a cache-busted managed
-  relaunch: held virtual `drive=[1,1]` reached hundreds of live textured smoke
-  particles with zero frame diagnostics and zero queue drops/rejections.
+- Added `ParticleEffectAsset.runtimeFeatures` and
+  `analyzeParticleEffectRuntimeFeatures(...)` so every accepted
+  `ParticleEffectAssetInput` field is classified as supported, partially
+  supported, or unsupported for current burst/continuous V1 runtime modes.
+- Added structured diagnostics for deferred particle semantics instead of
+  silently accepting broad authoring data. Unsupported fields now include
+  `duration`, `looping`, `prewarm`, `emissionRate`, authored `bursts`, and
+  atlas frame counts above one; partial fields include lifetime range, start
+  speed, and gravity where burst and continuous modes differ.
+- Published runtime feature reports through generated worker asset summaries
+  and through `examples/particle-bursts.html` status.
+- Hardened the independent particle-bursts browser proof so it keeps emitting
+  during Playwright observation and no longer adds a favicon console failure.
+- Updated the racing library-gap plan, particle audit, public tracker, render
+  pipeline comparison, backlog, and completed-task log. The recommended next
+  slice is automatic particle bounds.
 
 ## Latest Validation
 
-- `pnpm exec vitest run test/app/particle-spawn.test.ts`
-- `pnpm exec vitest run test/app/generated-worker-start.test.ts -t "particle burst queue summaries"`
-- `node --check examples/particle-bursts.shared.js && node --check examples/particle-bursts.worker.js && node --check examples/particle-bursts.main.js`
+- `pnpm exec prettier --check packages/render/src/assets/particles.ts packages/app/src/worker/assets.ts test/rendering/particle-emitter-extraction.test.ts test/app/generated-worker-start.test.ts examples/particle-bursts.main.js examples/particle-bursts.shared.js examples/particle-bursts.html test/e2e/particle-bursts.spec.ts racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md docs/research/PARTICLE_SYSTEM_AUDIT.md agent/BACKLOG.md agent/COMPLETED.md docs/index.html docs/render-pipeline-comparison.html`
+- `pnpm run check:progress`
+- `git diff --check`
+- `node --check examples/particle-bursts.main.js`
+- `node --check examples/particle-bursts.shared.js`
+- `node --check examples/particle-bursts.worker.js`
 - `pnpm --filter @aperture-engine/render run build`
 - `pnpm --filter @aperture-engine/app run build`
-- `pnpm --filter @aperture-engine/cli run build`
-- `pnpm run check:examples`
+- `pnpm exec vitest run test/rendering/particle-emitter-extraction.test.ts test/app/generated-worker-start.test.ts test/app/particle-effect-assets.test.ts`
+- `pnpm exec playwright test test/e2e/particle-bursts.spec.ts --reporter=line --timeout=60000`
 - `pnpm run typecheck:test`
-- `pnpm exec vitest run test/app/follow-camera-controller.test.ts`
-- `pnpm exec playwright test test/e2e/particle-bursts.spec.ts --reporter=line`
+- `pnpm run check:examples`
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir racing run build`
 - `pnpm --dir shadow-lab run typecheck`
 - `pnpm --dir shadow-lab run build`
 - Managed Aperture racing proof: `pnpm exec aperture dev down`, cleared
-  `racing/node_modules/.vite`, `pnpm exec aperture dev up --open --host
-127.0.0.1 --port 5173`, `browser_wait_for_webgpu`, held virtual
-  `drive=[1,1]`, and observed frame `4679` with `particleEmitters:306`,
-  `liveParticles:906`, `texturedEmitters:306`, and diagnostics `0`.
-  `browser_status` showed worker particle queue `active:306`,
-  `enqueued:2730`, `promoted:2730`, `dropped:0`, `rejectedNotReady:0`, and
-  `rejectedInvalid:0`. Inputs were reset after the proof.
+  `racing/node_modules/.vite`, relaunched with `pnpm exec aperture dev up
+--open --host 127.0.0.1 --port 5173`, and `browser_wait_for_webgpu` passed.
+  Fresh `browser_status` showed `smoke-effect.runtimeFeatures` in the generated
+  asset summary and no runtime `lastError`/`lastFailure`.
+- User verified racing smoke is still visible after the cache-busted relaunch.
+- Shadow Lab managed status remained isolated and running at
+  `http://127.0.0.1:8861/`, CDP `9861`.
 
 ## Current Notes
 
 - Managed racing is running at `http://127.0.0.1:5173/` through Aperture dev.
-  The append-only console still contains the older stale-dist
-  `engineLoop.automate` worker crash, but fresh post-restart timestamps show
-  only Vite connection logs plus the known Rapier deprecated init signature
-  warning.
+- Fresh console tail after relaunch shows only Vite connection logs and the
+  known Rapier deprecated initialization signature warning.
+- My attempted live smoke proof through MCP drive input was inconclusive because
+  the managed page reset input on `window-blur` before the car entered drift;
+  this was a tooling/focus issue, not a renderer failure. The user then verified
+  smoke is present.
 - Shadow Lab was not restarted and remains isolated from racing; it
   typechecks/builds against the rebuilt workspace packages.
-- The currently running MCP server may have been loaded before the CLI render
-  tool source change, so `render_get_frame_report` can omit the new
-  `particleQueue` field until the tool server is restarted. The generated app
-  itself is exposing the worker queue through `browser_status`.
 - Pre-existing untracked screenshot/parity artifacts remain outside the commit.
 
 ## Recommended Next Task
 
-Make the V1 particle asset schema truthful. Audit every accepted
-`ParticleEffectAssetInput` field, implement low-risk fields that map cleanly to
-current extraction/WebGPU execution, and report explicit unsupported-feature
-diagnostics for deferred fields. Use
-`references/engine/src/scene/particle-system/particle-emitter.js` and
-`references/three.quarks/packages/quarks.core/src/IParticleSystem.ts` as
-anchors.
+Make particle bounds automatic for common V1 effects so app code does not have
+to guess `boundsRadius` for normal billboard smoke/burst cases. Use
+`references/engine/src/scene/particle-system/particle-emitter.js` for
+PlayCanvas bounds estimation and `references/bevy/crates/bevy_sprite/src/lib.rs`
+for system-derived sprite bounds and culling opt-out precedent.
 
 ---
 

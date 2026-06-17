@@ -59,31 +59,32 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Make the V1 particle asset schema truthful so every accepted effect field either
-changes renderer packets/frame output or reports a structured unsupported
-feature.
+Make particle bounds automatic for common V1 effects so app code does not have
+to guess `boundsRadius` for normal billboard smoke/burst cases.
 
 Category: `runtime-orchestration`
 
 Reference anchor: `references/engine/src/scene/particle-system/particle-emitter.js`
-for PlayCanvas' particle emitter semantics, plus
-`references/three.quarks/packages/quarks.core/src/IParticleSystem.ts` for
-authoring vocabulary and unsupported/deferred feature shape.
+for PlayCanvas' particle bounds estimation, plus
+`references/bevy/crates/bevy_sprite/src/lib.rs` for system-derived sprite bounds
+and culling opt-out precedent.
 
 Acceptance criteria:
 
-- Audit every accepted `ParticleEffectAssetInput` field against extraction,
-  worker summaries, and WebGPU particle execution.
-- Implement low-risk missing V1 fields that map cleanly to the current runtime,
-  such as atlas frame count, lifetime range, start speed range, and burst
-  schedule basics.
-- Add structured unsupported-feature diagnostics for deferred fields instead of
-  silently accepting ignored authoring data.
-- Add focused tests proving each accepted V1 field either changes renderer
-  packets or frame output, or reports the documented unsupported feature.
+- Derive conservative default particle bounds from effect size, lifetime,
+  speed, gravity, position jitter, authored burst velocity, and emitter
+  transform.
+- Preserve `boundsRadius` and `boundsCenter` as explicit overrides for unusual
+  effects or performance tuning.
+- Add extraction diagnostics when bounds cannot be derived conservatively or are
+  unusually large.
+- Update racing smoke to rely on automatic bounds if the managed proof still
+  passes; document any remaining override as intentional.
+- Add focused tests for burst and continuous effects without app-supplied
+  bounds, plus culling behavior for off-screen effects.
 - Re-run the independent `examples/particle-bursts.html` proof, managed racing
   smoke proof through Aperture MCP, and Shadow Lab health checks after the
-  coherent schema slice.
+  coherent bounds slice.
 
 ## Historical M10 Physics Notes
 

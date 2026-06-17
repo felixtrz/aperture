@@ -393,12 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 03:19 UTC</dd>
+            <dd>2026-06-17 03:58 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the shared particle path now has an independent
+              Latest update: particle-effect assets now publish runtime feature
+              reports that classify every accepted V1 field as supported,
+              partially supported, or unsupported, with structured diagnostics
+              for deferred semantics such as emission rate, authored burst
+              schedules, lifecycle duration, prewarm, looping, and atlas
+              animation. Generated worker asset summaries and the independent
+              particle-bursts route expose the same report, so agents can see
+              whether authoring data is honored without guessing from pixels.
+              Prior update: the shared particle path now has an independent
               generated-app proof route at
               <code>examples/particle-bursts.html</code>. The route declares
               texture and particle-effect assets, emits worker-authored bursts
@@ -1226,10 +1234,10 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue the racing library-gap plan by making the V1 particle
-              asset schema truthful: every accepted effect field should either
-              change packets/frame output or report a structured unsupported
-              feature.
+              Continue the racing library-gap plan with automatic particle
+              bounds: derive conservative bounds for common burst and continuous
+              effects so racing smoke and normal billboard effects do not need
+              app-authored <code>boundsRadius</code> guesswork.
             </dd>
           </dl>
         </aside>
@@ -2131,6 +2139,14 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">particles</span> Added runtime feature
+                reports for <code>ParticleEffectAsset</code>. Generated worker
+                asset summaries and
+                <code>examples/particle-bursts.html</code> now expose supported,
+                partially supported, and unsupported V1 particle fields with
+                structured diagnostics for deferred behavior.
+              </li>
+              <li>
                 <span class="badge green">audio</span> Added worker-safe audio
                 loop lifecycle and automation controls. Stable loop handles now
                 expose <code>automate(...)</code>, <code>pause()</code>, and
@@ -2177,6 +2193,9 @@
                 are packed into WebGPU parameter LUTs, sampled in the compute
                 shader, surfaced in <code>gpu-particles</code> status, and
                 covered by focused WebGPU tests plus the browser particle E2E.
+                Particle effects also publish runtime feature reports so V1
+                authoring fields are explicit about supported, partial, and
+                unsupported semantics.
               </li>
               <li>
                 <span class="badge green">M6</span> Completed the required
@@ -5535,8 +5554,9 @@
                 Sprites, MSDF text, retained UI, UI hit testing, GPU particles,
                 and <code>content-showcase</code> are implemented and
                 browser-proven. GPU particle over-lifetime size/color curves now
-                feed the WebGPU compute path through packed LUTs; decals and
-                volumetrics stay deferred stretch work.
+                feed the WebGPU compute path through packed LUTs, and particle
+                effect assets now report supported/partial/unsupported runtime
+                features; decals and volumetrics stay deferred stretch work.
               </span>
             </div>
           </div>

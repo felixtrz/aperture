@@ -1,5 +1,38 @@
 # Completed Tasks
 
+## RACE-LIB-26 — Particle schema runtime feature reporting
+
+Completed: 2026-06-16 20:58 PDT
+Commit: current checkpoint commit
+
+### Summary
+
+- Added `ParticleEffectAsset.runtimeFeatures` and
+  `analyzeParticleEffectRuntimeFeatures(...)` so every accepted
+  `ParticleEffectAssetInput` field is reported as supported, partially
+  supported, or unsupported for V1 runtime modes.
+- Added structured diagnostics for deferred fields such as `emissionRate`,
+  `bursts`, `duration`, `looping`, `prewarm`, and sprite-sheet atlas counts
+  above one, plus partial diagnostics for lifetime range, start speed, and
+  gravity semantics that differ between burst and continuous modes.
+- Published the same runtime feature report through generated worker asset
+  summaries and through the independent `examples/particle-bursts.html` status
+  path.
+- Hardened the particle-bursts browser proof so the route keeps emitting during
+  Playwright observation and no longer adds a favicon console failure.
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/particle-emitter-extraction.test.ts`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts -t "particle burst queue summaries"`
+- `pnpm exec vitest run test/rendering/particle-emitter-extraction.test.ts test/app/generated-worker-start.test.ts -t "particle|V1 runtime support"`
+- `pnpm exec vitest run test/app/particle-effect-assets.test.ts`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/app run build`
+- `node --check examples/particle-bursts.main.js && node --check examples/particle-bursts.shared.js && node --check examples/particle-bursts.worker.js`
+- `pnpm exec prettier --check packages/render/src/assets/particles.ts packages/app/src/worker/assets.ts test/rendering/particle-emitter-extraction.test.ts test/app/generated-worker-start.test.ts examples/particle-bursts.main.js test/e2e/particle-bursts.spec.ts`
+- `pnpm exec playwright test test/e2e/particle-bursts.spec.ts --reporter=line --timeout=60000`
+
 ## RACE-LIB-25 — Particle proof route and diagnostics
 
 Completed: 2026-06-16 20:19 PDT

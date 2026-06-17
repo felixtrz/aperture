@@ -217,6 +217,12 @@ building blocks and default paths.
   queue drops/rejections independently of racing's drift setup. Managed racing
   was then reproved through Aperture MCP with held `drive=[1,1]`, reaching
   hundreds of live textured smoke particles and zero frame diagnostics.
+- 2026-06-16: Particle schema runtime feature reporting landed:
+  `ParticleEffectAsset.runtimeFeatures` now reports supported, partially
+  supported, and unsupported V1 fields with structured diagnostics instead of
+  silently accepting broad authoring data. Generated worker asset summaries and
+  the independent particle-bursts status surface the same report, so tooling can
+  distinguish implemented particle controls from deferred semantics.
 
 ## Genericity Audit - 2026-06-16
 
@@ -1401,25 +1407,27 @@ Shadow-lab validation:
 
 ## Recommended Next Implementation Slice
 
-Continue the particle V1 work with the truthful schema slice:
+Continue the particle V1 work with automatic particle bounds:
 
-1. Audit every accepted `ParticleEffectAssetInput` field against the extraction
-   packets, worker summaries, and WebGPU execution path.
-2. Implement the low-risk missing fields that can be mapped cleanly now, such
-   as atlas frame count, lifetime range, start speed range, and burst schedule
-   basics.
-3. Add structured unsupported-feature diagnostics for fields that remain
-   deferred instead of accepting silently ignored authoring data.
-4. Add focused tests proving each accepted V1 field either changes packets or
-   frame output, or reports a documented unsupported feature.
+1. Derive conservative default bounds from effect size, lifetime, speed,
+   gravity, burst position jitter, authored burst velocity, and emitter
+   transform.
+2. Keep `boundsRadius` and `boundsCenter` as deliberate overrides for unusual
+   effects or tuning.
+3. Add extraction diagnostics when an effect cannot be bounded conservatively or
+   produces an unusually large derived bound.
+4. Update racing smoke to rely on the automatic path if the proof still passes,
+   leaving any remaining override documented as an intentional art/performance
+   choice.
 5. Re-run the independent particle proof route, managed racing smoke proof, and
-   Shadow Lab health checks after each coherent particle semantics slice.
+   Shadow Lab health checks after the coherent bounds slice.
 
 Reason:
 
 - The independent proof route now makes particle regressions measurable. The
-  remaining V1 risk is schema truthfulness: PlayCanvas and three.quarks expose
-  broad particle controls, but Aperture should not accept a broad field set
-  unless every field either works or reports an explicit capability diagnostic.
-- This keeps racing smoke on the generic engine path while pushing the library
-  toward a smaller, honest V1 particle feature surface.
+  truthful schema report now makes deferred particle semantics explicit. The
+  next V1 risk is app-authored bounding guesswork: PlayCanvas derives common
+  particle bounds from emitter/effect data, and Bevy derives common sprite/mesh
+  bounds through systems with opt-outs.
+- This keeps racing smoke on the generic engine path while removing another
+  engine-shaped responsibility from app code.

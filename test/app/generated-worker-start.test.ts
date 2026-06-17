@@ -176,6 +176,30 @@ describe("generated simulation worker start messages", () => {
       rejectedNotReady: 0,
       rejectedInvalid: 0,
     });
+    expect(snapshot.workerSummary.assets).toContainEqual(
+      expect.objectContaining({
+        id: "spark",
+        kind: "particle-effect",
+        ready: true,
+        runtimeFeatures: expect.objectContaining({
+          version: 1,
+          supportedFields: expect.arrayContaining([
+            "capacity",
+            "lifetime",
+            "startSize",
+            "blendMode",
+          ]),
+          unsupportedFields: ["emissionRate"],
+          diagnostics: [
+            expect.objectContaining({
+              code: "particleEffect.unsupportedFeature",
+              field: "emissionRate",
+              message: expect.stringContaining("emissionRate"),
+            }),
+          ],
+        }),
+      }),
+    );
   });
 
   it("publishes generated-worker snapshots into supplied SharedArrayBuffer transport", async () => {
@@ -8178,6 +8202,7 @@ interface SimulationWorkerSnapshotMessage {
   };
   readonly frame?: number;
   readonly workerSummary: {
+    readonly assets?: readonly unknown[];
     readonly physics: unknown;
     readonly particles?: unknown;
   };

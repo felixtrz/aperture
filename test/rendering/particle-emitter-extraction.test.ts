@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   assetHandleKey,
   createParticleEffectHandle,
+  createSamplerHandle,
+  createTextureHandle,
 } from "@aperture-engine/simulation";
 import {
   createExtractionApp,
@@ -11,9 +13,11 @@ import {
 } from "@aperture-engine/runtime";
 import {
   ParticleSimulationSpace,
+  analyzeParticleEffectRuntimeFeatures,
   createParticleEffectAsset,
   packParticleEffectCurves,
   validateParticleEffectAsset,
+  type ParticleEffectAssetInput,
 } from "@aperture-engine/render";
 
 describe("particle effect assets and emitter extraction (M6-T7)", () => {
@@ -63,6 +67,129 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
     expect(
       validateParticleEffectAsset(invalid).diagnostics.map((d) => d.code),
     ).toContain("particleEffect.invalidCapacity");
+  });
+
+  it("reports V1 runtime support for every accepted particle effect field", () => {
+    const acceptedFields = [
+      "label",
+      "capacity",
+      "duration",
+      "looping",
+      "prewarm",
+      "emissionRate",
+      "bursts",
+      "lifetime",
+      "startSpeed",
+      "startSize",
+      "startColor",
+      "endColor",
+      "gravity",
+      "blendMode",
+      "texture",
+      "sampler",
+      "atlasFrameCount",
+      "sizeOverLifetime",
+      "colorOverLifetime",
+      "curveSampleCount",
+    ] satisfies readonly (keyof ParticleEffectAssetInput)[];
+    const report = analyzeParticleEffectRuntimeFeatures({
+      label: "Truthful particle schema",
+      capacity: 128,
+      duration: 2,
+      looping: true,
+      prewarm: true,
+      emissionRate: 12,
+      bursts: [{ time: 0.2, count: 5 }],
+      lifetime: { min: 0.5, max: 1.5 },
+      startSpeed: { min: 0.2, max: 1 },
+      startSize: { min: 0.1, max: 0.5 },
+      startColor: [1, 0, 0, 1],
+      endColor: [0, 0, 1, 0],
+      gravity: [0, -1, 0],
+      blendMode: "alpha",
+      texture: createTextureHandle("texture-placeholder"),
+      sampler: createSamplerHandle("sampler-placeholder"),
+      atlasFrameCount: 4,
+      sizeOverLifetime: [
+        { t: 0, value: 1 },
+        { t: 1, value: 0 },
+      ],
+      colorOverLifetime: [
+        { t: 0, color: [1, 1, 1, 1] },
+        { t: 1, color: [1, 1, 1, 0] },
+      ],
+      curveSampleCount: 8,
+    });
+    const coveredFields = new Set([
+      ...report.supportedFields,
+      ...report.partiallySupportedFields,
+      ...report.unsupportedFields,
+    ]);
+
+    expect(acceptedFields.every((field) => coveredFields.has(field))).toBe(
+      true,
+    );
+    expect(report.supportedFields).toEqual([
+      "blendMode",
+      "capacity",
+      "colorOverLifetime",
+      "curveSampleCount",
+      "endColor",
+      "label",
+      "sampler",
+      "sizeOverLifetime",
+      "startColor",
+      "startSize",
+      "texture",
+    ]);
+    expect(report.partiallySupportedFields).toEqual([
+      "gravity",
+      "lifetime",
+      "startSpeed",
+    ]);
+    expect(report.unsupportedFields).toEqual([
+      "atlasFrameCount",
+      "bursts",
+      "duration",
+      "emissionRate",
+      "looping",
+      "prewarm",
+    ]);
+    expect(report.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "particleEffect.unsupportedFeature",
+          field: "emissionRate",
+          unsupportedModes: ["burst", "continuous"],
+        }),
+        expect.objectContaining({
+          code: "particleEffect.unsupportedFeature",
+          field: "bursts",
+          message: expect.stringContaining("this.particles.emit"),
+        }),
+        expect.objectContaining({
+          code: "particleEffect.partiallySupportedFeature",
+          field: "gravity",
+          supportedModes: ["burst"],
+          unsupportedModes: ["continuous"],
+        }),
+        expect.objectContaining({
+          code: "particleEffect.partiallySupportedFeature",
+          field: "lifetime",
+          supportedModes: ["burst"],
+          unsupportedModes: ["continuous"],
+        }),
+      ]),
+    );
+
+    expect(
+      createParticleEffectAsset({
+        emissionRate: 0,
+        lifetime: { min: 1, max: 1 },
+        startSize: { min: 0.5, max: 1 },
+        blendMode: "alpha",
+      }).runtimeFeatures.unsupportedFields,
+    ).toEqual(["emissionRate"]);
   });
 
   it("extracts stable emitter packets keyed by effect version without live particles", () => {

@@ -4,7 +4,7 @@ export const particleBurstsTextureId = "particle-burst-checker";
 export const particleBurstsEffectId = "particle-burst-effect";
 export const particleBurstsExpected = {
   minEnqueuedBursts: 1,
-  burstCount: 24,
+  burstCount: 1000000,
   minLiveParticles: 1,
 };
 export const particleBurstsClearColor = [0.012, 0.014, 0.02, 1];

@@ -80,7 +80,39 @@ export interface ParticleEffectAsset {
   readonly sizeOverLifetime: readonly ParticleCurveKeyframe[];
   readonly colorOverLifetime: readonly ParticleGradientKeyframe[];
   readonly curves: ParticleEffectCurveTable;
+  readonly runtimeFeatures: ParticleEffectRuntimeFeatureReport;
 }
+
+export type ParticleEffectRuntimeMode = "burst" | "continuous";
+
+export type ParticleEffectRuntimeFeatureDiagnosticCode =
+  | "particleEffect.unsupportedFeature"
+  | "particleEffect.partiallySupportedFeature";
+
+export interface ParticleEffectRuntimeFeatureDiagnostic {
+  readonly code: ParticleEffectRuntimeFeatureDiagnosticCode;
+  readonly field: string;
+  readonly severity: "info" | "warning";
+  readonly supportedModes: readonly ParticleEffectRuntimeMode[];
+  readonly unsupportedModes: readonly ParticleEffectRuntimeMode[];
+  readonly message: string;
+}
+
+export interface ParticleEffectRuntimeFeatureReport {
+  readonly version: 1;
+  readonly supportedFields: readonly string[];
+  readonly partiallySupportedFields: readonly string[];
+  readonly unsupportedFields: readonly string[];
+  readonly diagnostics: readonly ParticleEffectRuntimeFeatureDiagnostic[];
+}
+
+export type ParticleEffectRuntimeFeatureInput = Omit<
+  ParticleEffectAssetInput,
+  "texture" | "sampler"
+> & {
+  readonly texture?: unknown;
+  readonly sampler?: unknown;
+};
 
 export type ParticleEffectDiagnosticCode =
   | "particleEffect.invalidCapacity"
@@ -120,7 +152,7 @@ export function createParticleEffectAsset(
       { t: 1, color: input.endColor ?? input.startColor ?? [1, 1, 1, 1] },
     ],
   );
-  const asset: Omit<ParticleEffectAsset, "curves"> = {
+  const asset: Omit<ParticleEffectAsset, "curves" | "runtimeFeatures"> = {
     kind: "particle-effect",
     label: input.label ?? "ParticleEffect",
     capacity: Math.trunc(input.capacity ?? 1024),
@@ -153,7 +185,197 @@ export function createParticleEffectAsset(
       colorOverLifetime,
       sampleCount: input.curveSampleCount ?? DEFAULT_CURVE_SAMPLE_COUNT,
     }),
+    runtimeFeatures: analyzeParticleEffectRuntimeFeatures(input),
   });
+}
+
+export function analyzeParticleEffectRuntimeFeatures(
+  input: ParticleEffectRuntimeFeatureInput = {},
+): ParticleEffectRuntimeFeatureReport {
+  const supportedFields = new Set<string>();
+  const partiallySupportedFields = new Set<string>();
+  const unsupportedFields = new Set<string>();
+  const diagnostics: ParticleEffectRuntimeFeatureDiagnostic[] = [];
+
+  for (const field of Object.keys(input)) {
+    switch (field) {
+      case "label":
+        supportedFields.add(field);
+        break;
+      case "capacity":
+      case "startSize":
+      case "startColor":
+      case "endColor":
+      case "blendMode":
+      case "texture":
+      case "sampler":
+      case "sizeOverLifetime":
+      case "colorOverLifetime":
+      case "curveSampleCount":
+        supportedFields.add(field);
+        break;
+      case "lifetime": {
+        const lifetime = input.lifetime;
+        const min = lifetime?.min;
+        const max = lifetime?.max;
+        if (
+          typeof min === "number" &&
+          typeof max === "number" &&
+          Number.isFinite(min) &&
+          Number.isFinite(max) &&
+          min !== max
+        ) {
+          partiallySupportedFields.add(field);
+          diagnostics.push(
+            runtimeFeatureDiagnostic({
+              code: "particleEffect.partiallySupportedFeature",
+              field,
+              severity: "info",
+              supportedModes: ["burst"],
+              unsupportedModes: ["continuous"],
+              message:
+                "Particle lifetime ranges are honored by worker-emitted bursts; continuous GPU emitters currently use lifetime.max only.",
+            }),
+          );
+        } else {
+          supportedFields.add(field);
+        }
+        break;
+      }
+      case "startSpeed":
+        partiallySupportedFields.add(field);
+        diagnostics.push(
+          runtimeFeatureDiagnostic({
+            code: "particleEffect.partiallySupportedFeature",
+            field,
+            severity: "info",
+            supportedModes: ["continuous"],
+            unsupportedModes: ["burst"],
+            message:
+              "Continuous GPU emitters currently use startSpeed.max as spawn spread radius; worker-emitted bursts use this.particles.emit(...).velocity instead.",
+          }),
+        );
+        break;
+      case "gravity":
+        partiallySupportedFields.add(field);
+        diagnostics.push(
+          runtimeFeatureDiagnostic({
+            code: "particleEffect.partiallySupportedFeature",
+            field,
+            severity: "info",
+            supportedModes: ["burst"],
+            unsupportedModes: ["continuous"],
+            message:
+              "Particle gravity is applied by worker-emitted bursts; continuous GPU emitters currently ignore gravity.",
+          }),
+        );
+        break;
+      case "atlasFrameCount": {
+        const frameCount = input.atlasFrameCount;
+        if (
+          typeof frameCount === "number" &&
+          Number.isFinite(frameCount) &&
+          Math.trunc(frameCount) <= 1
+        ) {
+          supportedFields.add(field);
+        } else {
+          unsupportedFields.add(field);
+          diagnostics.push(
+            runtimeFeatureDiagnostic({
+              code: "particleEffect.unsupportedFeature",
+              field,
+              severity: "warning",
+              supportedModes: [],
+              unsupportedModes: ["burst", "continuous"],
+              message:
+                "Particle texture atlas animation is not implemented yet; atlasFrameCount values above 1 are accepted for authoring but ignored by the renderer.",
+            }),
+          );
+        }
+        break;
+      }
+      case "duration":
+        unsupportedFields.add(field);
+        diagnostics.push(
+          runtimeFeatureDiagnostic({
+            code: "particleEffect.unsupportedFeature",
+            field,
+            severity: "warning",
+            supportedModes: [],
+            unsupportedModes: ["burst", "continuous"],
+            message:
+              "Particle effect duration is not implemented yet; burst lifetime is controlled by lifetime and continuous emitters do not stop by duration.",
+          }),
+        );
+        break;
+      case "looping":
+        unsupportedFields.add(field);
+        diagnostics.push(
+          runtimeFeatureDiagnostic({
+            code: "particleEffect.unsupportedFeature",
+            field,
+            severity: "warning",
+            supportedModes: [],
+            unsupportedModes: ["burst", "continuous"],
+            message:
+              "Particle looping lifecycle is not implemented yet; continuous emitters currently loop implicitly and bursts are explicitly queued by systems.",
+          }),
+        );
+        break;
+      case "prewarm":
+        unsupportedFields.add(field);
+        diagnostics.push(
+          runtimeFeatureDiagnostic({
+            code: "particleEffect.unsupportedFeature",
+            field,
+            severity: "warning",
+            supportedModes: [],
+            unsupportedModes: ["burst", "continuous"],
+            message:
+              "Particle prewarm is not implemented yet; emitters start cold.",
+          }),
+        );
+        break;
+      case "emissionRate":
+        unsupportedFields.add(field);
+        diagnostics.push(
+          runtimeFeatureDiagnostic({
+            code: "particleEffect.unsupportedFeature",
+            field,
+            severity: "warning",
+            supportedModes: [],
+            unsupportedModes: ["burst", "continuous"],
+            message:
+              "Particle emissionRate scheduling is not implemented yet; continuous emitters draw their active capacity and bursts are emitted explicitly from systems.",
+          }),
+        );
+        break;
+      case "bursts":
+        unsupportedFields.add(field);
+        diagnostics.push(
+          runtimeFeatureDiagnostic({
+            code: "particleEffect.unsupportedFeature",
+            field,
+            severity: "warning",
+            supportedModes: [],
+            unsupportedModes: ["burst", "continuous"],
+            message:
+              "Asset-authored particle burst schedules are not implemented yet; use this.particles.emit(...) for worker-authored bursts.",
+          }),
+        );
+        break;
+      default:
+        break;
+    }
+  }
+
+  return {
+    version: 1,
+    supportedFields: [...supportedFields].sort(),
+    partiallySupportedFields: [...partiallySupportedFields].sort(),
+    unsupportedFields: [...unsupportedFields].sort(),
+    diagnostics,
+  };
 }
 
 export function validateParticleEffectAsset(
@@ -398,6 +620,12 @@ function diagnostic(
     field,
     message: `${field} is not valid for a GPU particle effect.`,
   };
+}
+
+function runtimeFeatureDiagnostic(
+  diagnostic: ParticleEffectRuntimeFeatureDiagnostic,
+): ParticleEffectRuntimeFeatureDiagnostic {
+  return diagnostic;
 }
 
 function positiveInteger(value: number): boolean {

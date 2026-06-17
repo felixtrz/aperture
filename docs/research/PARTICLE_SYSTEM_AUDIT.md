@@ -387,10 +387,13 @@ Examples:
 
 Required fix:
 
-- Either implement the accepted fields or emit clear unsupported-field
-  diagnostics.
-- Prefer a smaller truthful V1 schema over a broad schema that behaves like a
-  demo.
+- The first truthful-schema slice is now implemented:
+  `ParticleEffectAsset.runtimeFeatures`, generated worker asset summaries, and
+  the `particle-bursts` example status report supported, partially supported,
+  and unsupported fields with structured diagnostics.
+- Remaining work is semantic, not visibility-related: implement deferred fields
+  only when they can be mapped cleanly to the runtime, and keep unsupported
+  fields explicit until then.
 
 ### P1: Burst Simulation Works But Is Not The Long-Term Engine Path
 
@@ -558,13 +561,17 @@ The parts that need tightening before V1:
 - Manual bounds in racing should become an override, not the common path.
 - Burst CPU simulation should be treated as a bridge, not the final engine
   architecture.
-- Public asset fields must be implemented or diagnosed.
+- Public asset fields are now diagnosed through runtime feature reports, but
+  deferred fields still need real semantics before they can move out of the
+  unsupported or partially-supported buckets.
 - Tooling must make particle readiness and budget state visible without full
   entity dumps.
 
 ## Recommended V1 Implementation Slices
 
 ### Slice 1: Particle Proof Route And Diagnostics
+
+Status: implemented 2026-06-16.
 
 Goal:
 
@@ -598,6 +605,10 @@ Reference anchors:
 
 ### Slice 2: Truthful V1 Particle Schema
 
+Status: implemented as runtime feature reporting 2026-06-16. Deferred particle
+semantics remain explicit unsupported or partially-supported diagnostics until
+they are implemented.
+
 Goal:
 
 Make every accepted particle asset field either work or produce a clear
@@ -624,6 +635,8 @@ Reference anchors:
 - PlayCanvas `references/engine/src/scene/particle-system/particle-emitter.js`
 
 ### Slice 3: Automatic Particle Bounds
+
+Status: recommended next slice.
 
 Goal:
 

@@ -159,5 +159,8 @@ function summarizeAsset(asset) {
     id: asset.id,
     kind: asset.kind,
     ready: asset.ready === true,
+    ...(asset.runtimeFeatures === undefined
+      ? {}
+      : { runtimeFeatures: asset.runtimeFeatures }),
   };
 }
