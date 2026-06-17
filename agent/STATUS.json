@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "4f44aa73",
+  "lastCommit": "ba516abc",
   "activePid": null,
-  "notes": "Completed FPS HUD damage/hit feedback slice on fps-starter-kit-port; FPS typecheck/build and Aperture CLI runtime checks passed; racing and shadow-lab validations remain green.",
-  "lastRunFinishedAt": "2026-06-17T06:22:53Z"
+  "notes": "Completed FPS sprite-sheet effects, sprite-summary tooling, and same-frame input edge fixes; app/FPS/root validations and CLI sprite proofs passed; racing and shadow-lab validations remain green.",
+  "lastRunFinishedAt": "2026-06-17T06:51:33Z"
 }

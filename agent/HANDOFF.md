@@ -1,49 +1,64 @@
-# Handoff - Starter Kit FPS HUD Feedback Slice
+# Handoff - Starter Kit FPS Sprite Effects Slice
 
-**Updated:** 2026-06-16 23:21 PDT
+**Updated:** 2026-06-16 23:42 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Added HUD feedback for the Starter Kit FPS port:
-  - `damagePulse` is now an Aperture signal driven by enemy physics-LOS damage.
-  - The browser HUD flashes a red damage overlay and pulses the health meter
-    when damage lands.
-  - Crosshair hit feedback pulses when the ECS hit count increases.
-  - Low health now gets a distinct HUD color treatment.
-- Preserved the previous physics/raycast slice:
-  - ECS-authored `player.body` kinematic capsule movement uses
-    `physics.moveCharacter(...)`.
-  - Shooting uses Aperture `physics.raycastAll(...)` and enemy attacks require
-    physics line of sight to the player capsule.
-  - Muzzle/impact sprite assets and ECS-authored shot effect sprites are in
-    place.
-  - Top-level `aperture tool physics_*` commands route to generated worker
-    physics devtools.
-- Re-exported `serializeEntityRef` from `@aperture-engine/app/systems` so app
-  systems can use keyed ECS entities with physics devtools/backend refs without
-  importing lower-level package internals.
+- Animated the FPS sprite effects using source-authored Starter Kit FPS atlas
+  frames:
+  - Player muzzle flashes use the two visible 256x256 `burst.png` frames plus
+    the source animation's final hidden/null frame.
+  - Impact flashes use the four 128x128 `hit.png` atlas frames from
+    `objects/impact.tscn`.
+  - Enemy physics-LOS attacks now trigger the two `MuzzleA`/`MuzzleB` burst
+    sprites at the offsets from `objects/enemy.tscn`; reset/death clears the
+    attack timer and hidden effects.
+- Fixed an Aperture tooling gap needed to prove the slice: ECS entity lookup
+  summaries now expose `renderSprite` fields, including texture id, color,
+  `uvRect`, `atlasFrame`, and sprite modes.
+- Added developer API regression coverage for the new sprite summary fields.
+- Preserved same-frame keyboard, pointer, and gamepad button edges so CLI/MCP
+  injected press/release pairs still drive generated button actions reliably.
 - Committed:
   - `aaa83107` — `Port Starter Kit FPS slice to Aperture`
   - `37bc0e5e` — `Add FPS pointer lock look bridge`
   - `bd85c5e4` — `Add FPS physics character and raycast gameplay`
   - `fc8dd87e` — `Update handoff for FPS physics slice`
   - `4f44aa73` — `Add FPS HUD damage and hit feedback`
+  - `40eb3bc3` — `Update handoff for FPS HUD feedback`
+  - `70959002` — `Animate FPS sprite effects and expose sprite summaries`
+  - `ba516abc` — `Preserve same-frame input button edges`
 
 ## Latest Validation
 
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts -t "publishes JSON-safe entity lookup summaries"`
+- `pnpm exec vitest run test/app/input-state-events.test.ts`
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
 - Aperture CLI runtime proof from `fps/`:
-  - `browser_wait_for_webgpu` succeeded against managed FPS at
-    `http://127.0.0.1:5174/`.
-  - After reset/resume with enemy line of sight, `browser_status` signals read
-    `health:90` and `damagePulse:2`.
-  - After repeated queued look input and one shot, `fps.state` read
-    `yaw:-0.5416666666666666`, `pitch:0.1625`, `shotsFired:1`, `hits:3`, and
-    `enemy.0` health `25`.
+  - Restarted managed FPS at `http://127.0.0.1:5174/`; `browser_wait_for_webgpu`
+    succeeded with no `lastError`/`lastFailure`.
+  - Player shot proof: paused CLI stepping from reset fired once and
+    `ecs_find_entities` read `effect.muzzle-burst` visible at atlas frame 0
+    with `texture:muzzle-burst`; an aimed-down shot read `effect.impact-hit`
+    visible at atlas frame 0 with `texture:impact-hit`.
+  - Additional stepped samples showed muzzle frame progression `0 -> 1 -> 2`
+    (hidden/null frame) and impact progression through frames `1 -> 2` with
+    changing `uvRect` values.
+  - Enemy attack proof: paused CLI stepping found damage on frame 46 with
+    `health:95` and `damagePulse:1`; both `effect.enemy-muzzle.0` and `.1`
+    were visible at world-space offsets, alpha `1`, atlas frame `0`, additive
+    blend, and `texture:muzzle-burst`.
+  - `render_get_diagnostics` after the enemy proof reported `spriteDraws:2`,
+    no worker failure, and no frame diagnostics.
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir racing run build`
 - `pnpm --dir shadow-lab run typecheck`
@@ -81,22 +96,26 @@ previous working state so the old state remains recoverable.
 
 ## Current Notes
 
-- Managed FPS is running at `http://127.0.0.1:5174/` through Aperture dev.
+- Managed FPS is running at `http://127.0.0.1:5174/` through Aperture dev and
+  was resumed after the final paused proof.
 - Pre-existing untracked screenshots,
   racing parity artifacts, and `racing/parity/` remain outside commits.
 - Use `value:0` rather than `pressed:false` for button-release CLI scripts when
   an immediate following `ecs_step` proof must be unambiguous.
 - For held look input through the CLI, queue `input_action_set` with `x`/`y`
   before each `ecs_step`; a single vector input is consumed by one frame.
+- `ecs_find_entities` now includes `renderSprite`, so future sprite effect
+  proofs should read `uvRect`, `atlasFrame`, and alpha directly instead of
+  depending on fragile pixel timing.
 - `render_readback_samples` / `browser_pick_pixel` still need follow-up if
   future FPS proofs require pixel samples; screenshot capture is reliable.
 
 ## Recommended Next Task
 
 Continue the FPS port with another visible gameplay slice: add enemy
-destroy/respawn/end-state feedback or animate the muzzle/impact sprite sheets,
-then prove the result through Aperture CLI runtime tools while keeping racing
-and Shadow Lab typecheck/build green.
+destroy/end-state feedback, then prove enemy health reaches 0, the enemy is
+hidden, and the HUD reports the remaining count through Aperture CLI runtime
+tools while keeping racing and Shadow Lab typecheck/build green.
 
 ---
 
