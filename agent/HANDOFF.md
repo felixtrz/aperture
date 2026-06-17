@@ -337,11 +337,9 @@ previous working state so the old state remains recoverable.
   before claiming `gameStatus:"cleared"`.
 - Pre-existing untracked screenshots,
   racing parity artifacts, and `racing/parity/` remain outside commits.
-- `fps/src/systems/setup.system.ts` has an unrelated uncommitted player-shadow
-  sprite experiment in the working tree. It was not staged in the control/range
-  commits; current MCP `render_explain_entity {"key":"player.shadow"}` still
-  reports the live shadow as a mesh draw, so treat that edit as in-progress
-  until it is investigated.
+- `fps/src/systems/setup.system.ts` has an unrelated uncommitted helper
+  extraction for the existing player-shadow mesh spawn. It was not staged in
+  the control/range commits because it does not change runtime behavior.
 - Use `value:0` rather than `pressed:false` for button-release CLI scripts when
   an immediate following `ecs_step` proof must be unambiguous.
 - For held look input through the CLI, queue `input_action_set` with `x`/`y`
@@ -355,10 +353,10 @@ previous working state so the old state remains recoverable.
 ## Recommended Next Task
 
 Continue the FPS port with another visible Starter Kit fidelity slice. Good
-next options are finishing the uncommitted player-shadow sprite experiment after
-a render-extraction proof, improving enemy attack/muzzle-flash fidelity, or
-packaging the platform-aware full-clear route into a reusable smoke script so
-future regressions can re-run the proof without retyping the route.
+next options are improving enemy attack/muzzle-flash fidelity, adding more
+source-like weapon/player detail parity, or packaging the platform-aware
+full-clear route into a reusable smoke script so future regressions can re-run
+the proof without retyping the route.
 
 ---
 
