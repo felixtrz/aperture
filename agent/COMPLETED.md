@@ -1,5 +1,31 @@
 # Completed Tasks
 
+## FPS-PORT — Control proof and CLI client cleanup coverage
+
+Completed: 2026-06-17 03:20 PDT
+
+### Summary
+
+- Reproved the reported FPS control paths through Aperture MCP/CLI tools:
+  generated shoot, canvas click shoot, camera-yaw-relative movement, browser
+  `KeyW` movement, browser `Space` jump, and aimed enemy hitbox damage all
+  worked in the current managed `fps/` build.
+- Added focused CLI-client coverage that browser-backed Aperture tools close
+  their Playwright CDP client after a tool call.
+- Confirmed `fps`, `racing`, and `shadow-lab` still typecheck and build.
+
+### Validation
+
+- `pnpm exec vitest run test/cli/tool-client.test.ts test/app/fps-controls.test.ts`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run build`
+
 ## FPS-PORT — Impact sprite depth mode
 
 Completed: 2026-06-17 03:17 PDT

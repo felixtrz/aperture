@@ -1,12 +1,43 @@
-# Handoff - Starter Kit FPS Impact Depth
+# Handoff - Starter Kit FPS Controls Proof
 
-**Updated:** 2026-06-17 03:17 PDT
+**Updated:** 2026-06-17 03:20 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
+- Reproved the latest reported FPS controls through Aperture MCP/CLI tools on
+  the managed `fps/` session:
+  - Generated `shoot` input from a paused deterministic step incremented
+    `shotsFired` by `1` and set `shotCooldown` to `0.25`.
+  - Canvas `input_pointer_click` on the running app incremented `shotsFired`
+    by `1`, proving the browser click path still drives shooting.
+  - Generated `move` and browser `KeyW` input at yaw `Math.PI / 2` moved the
+    player by `+0.083333` on X and `0` on Z, proving movement is relative to
+    camera yaw.
+  - Browser `Space` input raised the player by `0.127778`, set
+    `grounded:false`, `verticalVelocity:7.666667`, and `jumpsRemaining:1`.
+  - An aimed shot from spawn toward `enemy.0` registered `3` pellet hits and
+    changed enemy health `100 -> 25`, proving fired shots still damage hitboxes.
+- Investigated an apparent Aperture tool/browser cleanup concern. Playwright
+  `connectOverCDP` cleanup remained the existing `browser.close()` path; added
+  `test/cli/tool-client.test.ts` to cover that browser-backed CLI tools close
+  their Playwright CDP client after use.
+- Validation:
+  - `pnpm exec vitest run test/cli/tool-client.test.ts test/app/fps-controls.test.ts`
+  - `pnpm --filter @aperture-engine/cli run build`
+  - `pnpm --filter @aperture-engine/cli run typecheck`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run build`
+
+## Previous Completed FPS/Tooling Slices
+
+- Impact sprite depth:
 - Added first-class sprite depth-mode authoring so ECS-authored sprites can opt
   into source-style no-depth-test rendering without app-local WebGPU plumbing.
 - New render API/data path:
@@ -47,8 +78,6 @@ previous working state so the old state remains recoverable.
   - `git diff --check`
 - Committed implementation:
   - `81ab390e` — `Add sprite depth mode for FPS impacts`
-
-## Previous Completed FPS/Tooling Slices
 
 - Source-like HUD:
   - Aligned the visible FPS browser HUD with upstream `scenes/main.tscn` and

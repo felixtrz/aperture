@@ -393,22 +393,29 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 10:17 UTC</dd>
+            <dd>2026-06-17 10:20 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the Starter Kit FPS port now aligns impact sprite
-              depth behavior with upstream <code>objects/impact.tscn</code>.
-              Aperture sprites gained an ECS-authored <code>SpriteDepthMode</code>
-              path through authoring, extraction, packed snapshots, app
-              summaries, and WebGPU sprite pipeline specialization. The FPS
-              impact sprite now reports <code>renderSprite.depthMode:"disabled"</code>,
-              while the muzzle flash stays on the default
-              <code>"test"</code> path; managed WebGPU proof reported
-              diagnostics <code>0</code>. Prior update: the Starter Kit FPS
-              port now has a source-like browser HUD: only the crosshair and
-              large health percentage remain visible, matching upstream
+              Latest update: the reported Starter Kit FPS controls were
+              reproved through Aperture MCP/CLI tools. Generated shoot and
+              canvas click both incremented <code>shotsFired</code>, W at yaw
+              <code>Math.PI / 2</code> moved the player along +X, browser
+              <code>Space</code> produced a positive jump with
+              <code>grounded:false</code>, and an aimed shot damaged
+              <code>enemy.0</code> from <code>100</code> to
+              <code>25</code>. Prior update: the Starter Kit FPS port now
+              aligns impact sprite depth behavior with upstream
+              <code>objects/impact.tscn</code>. Aperture sprites gained an
+              ECS-authored <code>SpriteDepthMode</code> path through authoring,
+              extraction, packed snapshots, app summaries, and WebGPU sprite
+              pipeline specialization. The FPS impact sprite now reports
+              <code>renderSprite.depthMode:"disabled"</code>, while the muzzle
+              flash stays on the default <code>"test"</code> path; managed
+              WebGPU proof reported diagnostics <code>0</code>. Prior update:
+              the Starter Kit FPS port now has a source-like browser HUD: only
+              the crosshair and large health percentage remain visible, matching upstream
               <code>scenes/main.tscn</code> / <code>scripts/hud.gd</code>.
               Port-only weapon/enemy counters, clear banner, and flash overlays
               were removed while generated gameplay signals remain available for
@@ -2249,6 +2256,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Reproved the reported
+                controls with Aperture MCP/CLI tools: generated shoot and canvas
+                click increment <code>shotsFired</code>, W movement follows
+                camera yaw, browser <code>Space</code> jumps, and an aimed shot
+                damages <code>enemy.0</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Added ECS-authored sprite
                 depth modes and aligned FPS impact sprites with upstream

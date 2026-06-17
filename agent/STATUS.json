@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "81ab390e",
+  "lastCommit": "63ee0c44",
   "activePid": null,
-  "notes": "Added sprite depth mode and aligned FPS impact no-depth-test behavior; validation and Aperture proof passed.",
-  "lastRunFinishedAt": "2026-06-17T10:17:00Z"
+  "notes": "Reproved FPS shooting, camera-relative movement, jump, and enemy-hit damage through Aperture MCP/CLI tools; focused CLI client cleanup coverage added.",
+  "lastRunFinishedAt": "2026-06-17T10:20:00Z"
 }
