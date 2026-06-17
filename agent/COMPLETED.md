@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## WEBGPU-SHADOWS - Strict camera-backed default shadow fallback guard
+
+Completed: 2026-06-17 14:21 PDT
+
+### Summary
+
+- Camera-backed default directional shadows no longer forward fallback scene or
+  fixed matrix options into matrix computation.
+- Scene/light-space fallback remains no-camera fallback behavior; explicit
+  authored fixed `orthographicSize > 0` shadow requests still override auto-fit.
+- Added a regression proving a bogus fallback fixed matrix is byte-identical to
+  the no-fallback camera-fit result when a primary receiver camera exists.
+- Revalidated FPS, racing, and Shadow Lab through managed Aperture tooling with
+  submitted directional shadows and zero diagnostics.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/directional-shadow-matrix-computation.test.ts test/rendering/extraction.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- Managed Aperture CLI proof: FPS `http://127.0.0.1:5173/`, racing
+  `http://127.0.0.1:5174/`, and Shadow Lab `http://127.0.0.1:5175/` all
+  reported WebGPU ready, diagnostics `0`, and submitted directional shadows.
+- Screenshots captured: `/tmp/fps-shadow-default-guard.png`,
+  `/tmp/racing-shadow-default-guard.png`, and
+  `/tmp/shadow-lab-shadow-default-guard.png`.
+
 ## FPS-PORT - Source scene parity guard
 
 Completed: 2026-06-17 14:17 PDT

@@ -393,13 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 21:17 UTC</dd>
+            <dd>2026-06-17 21:21 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS now has executable source-scene
-              parity coverage. <code>test/app/fps-data.test.ts</code> parses
+              Latest update: camera-backed directional shadow defaults now
+              refuse to forward fallback scene/fixed matrix fields into matrix
+              computation, so a Three.js-style fixed box cannot affect the
+              out-of-box default. Fixed/static bounds remain explicit authored
+              overrides or no-camera fallback behavior only. Focused coverage
+              proves a bogus fallback matrix produces the same byte-for-byte
+              camera-fit matrix as no fallback, and managed Aperture proof kept
+              FPS, racing, and Shadow Lab at diagnostics <code>0</code> with
+              submitted directional shadows. Prior update: Starter Kit FPS now
+              has executable source-scene parity coverage.
+              <code>test/app/fps-data.test.ts</code> parses
               <code>references/Starter-Kit-FPS/scenes/main.tscn</code> and
               verifies all 13 platform/wall transforms plus all 4 enemy
               positions against the Aperture FPS constants. The managed
@@ -2798,7 +2807,11 @@
                 default-target view whose layer mask overlaps visible standard
                 shadow receivers, so overlay/viewmodel cameras cannot own the
                 automatic shadow footprint. Static scene bounds are now
-                documented as authored or no-camera fallback behavior only.
+                documented as authored or no-camera fallback behavior only, and
+                the shadow-frame assembly refuses to forward fallback matrix
+                fields whenever a receiver camera exists. Focused coverage
+                proves adding a bogus fixed fallback box leaves the computed
+                camera-fit matrix byte-for-byte unchanged.
               </li>
               <li>
                 <span class="badge green">fps</span> Fixed short FPS button-tap

@@ -1,3 +1,64 @@
+# Handoff - Strict Camera-Backed Shadow Fallback Guard
+
+**Updated:** 2026-06-17 14:21 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Committed `34b71d29` (`Guard camera shadow defaults from fixed fallback`).
+- Tightened the default directional shadow assembly so camera-backed shadows do
+  not forward fallback scene/fixed matrix options into matrix computation.
+- This makes the Three.js-style fixed box physically unable to influence the
+  out-of-box default. Fixed/static bounds remain explicit authored overrides or
+  no-camera fallback behavior only.
+- Added regression coverage proving a bogus fallback fixed matrix produces the
+  same byte-for-byte matrix computation as the camera-only fit when a primary
+  receiver camera exists.
+- Revalidated FPS, racing, and Shadow Lab through managed Aperture tooling with
+  submitted directional shadows and zero diagnostics.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/directional-shadow-matrix-computation.test.ts test/rendering/extraction.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- Managed Aperture CLI proof:
+  - FPS `http://127.0.0.1:5173/`: diagnostics `0`, shadow status
+    `submitted`, `views:2`, `meshDraws:21`, `shadowCasterDraws:44`,
+    `drawCalls:36`, screenshot `/tmp/fps-shadow-default-guard.png`.
+  - Racing `http://127.0.0.1:5174/`: diagnostics `0`, shadow status
+    `submitted`, `shadowCasterDraws:364`, screenshot
+    `/tmp/racing-shadow-default-guard.png`.
+  - Shadow Lab `http://127.0.0.1:5175/`: diagnostics `0`, shadow status
+    `submitted`, `shadowCasterDraws:364`, screenshot
+    `/tmp/shadow-lab-shadow-default-guard.png`.
+
+## Known Issues
+
+- The default directional shadow path is now guarded against fallback fixed-box
+  leakage, overlay-camera selection, off-frustum caster drops, and
+  off-footprint caster footprint expansion. Future quality work should move
+  toward proper cascades/per-view shadows rather than reintroducing static scene
+  boxes as defaults.
+- FPS viewmodel rear/stock visual parity remains a separate issue; do not fix
+  it by changing global culling/depth defaults without an isolated GLB/material
+  comparison.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+
+## Recommended Next Task
+
+Continue FPS-visible source parity if the user prioritizes the gun artifact:
+render the blaster side by side against source/three.js material state, then
+change only the narrow winding/culling/material path that differs. For shadow
+quality, the next renderer slice should be cascade/per-view shadow fit
+hardening, not fixed scene boxes.
+
+---
+
 # Handoff - FPS Source Scene Parity Guard
 
 **Updated:** 2026-06-17 14:17 PDT

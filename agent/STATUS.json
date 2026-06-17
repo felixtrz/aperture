@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "926ac0be",
+  "lastCommit": "34b71d29",
   "activePid": null,
-  "notes": "Added FPS source-scene parity coverage that parses references/Starter-Kit-FPS/scenes/main.tscn and compares level platform/wall transforms plus enemy positions against Aperture FPS constants. Full Aperture MCP route smoke cleared all jumps/enemies; FPS test/typecheck/build plus racing and shadow-lab typechecks passed.",
-  "lastRunFinishedAt": "2026-06-17T21:17:00Z"
+  "notes": "Guarded camera-backed directional shadow defaults from fixed fallback boxes by stripping fallback matrix fields before matrix computation when a primary receiver camera exists. Focused shadow tests, WebGPU/render/FPS/racing/shadow-lab typechecks, progress checks, and managed Aperture proof for FPS/racing/shadow-lab shadows passed.",
+  "lastRunFinishedAt": "2026-06-17T21:21:33Z"
 }
