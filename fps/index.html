@@ -31,18 +31,10 @@
       #game-shell {
         position: fixed;
         inset: 0;
-        width: min(
-          100vw,
-          calc(100vh * var(--fps-source-viewport-aspect, 1.7777777778))
-        );
-        height: min(
-          100vh,
-          calc(100vw / var(--fps-source-viewport-aspect, 1.7777777778))
-        );
-        margin: auto;
+        width: 100vw;
+        height: 100vh;
         overflow: hidden;
         background: #5c6476;
-        aspect-ratio: var(--fps-source-viewport-aspect-ratio, 16 / 9);
       }
 
       #aperture {

@@ -1,22 +1,23 @@
 # Handoff - FPS Responsive Canvas Without Splash
 
-**Updated:** 2026-06-17 14:54 PDT
+**Updated:** 2026-06-17 14:58 PDT
 
 User-directed work is on branch `fps-starter-kit-port`.
 
 ## Latest Completed Slice
 
 - Committed `dae7ec2b` (`Remove FPS splash and viewport cap`).
+- Follow-up correction makes the playable shell/canvas fully free-resize to the
+  browser viewport instead of preserving a 16:9 letterbox.
 - Removed the FPS splashscreen DOM/CSS and the now-unused HUD boot-complete
   hook.
-- Removed the source 1280x720 maximum size cap from `#game-shell`; the FPS
-  canvas now scales to the largest 16:9 rectangle that fits the current window.
-- Kept the source 1280x720 constants as source-aspect documentation only; they
-  no longer cap the playable viewport.
+- Removed the source 1280x720 maximum size cap and the source-aspect sizing
+  variables from `#game-shell`; source viewport constants remain documentation
+  only and do not affect layout.
 - Verified the live layout at `http://127.0.0.1:5173/` with Playwright:
   - 1600x900 viewport: shell/canvas `1600x900`;
-  - 1000x900 viewport: shell/canvas `1000x563`;
-  - 390x844 viewport: shell/canvas `390x219`;
+  - 1000x900 viewport: shell/canvas `1000x900`;
+  - 390x844 viewport: shell/canvas `390x844`;
   - `#boot-splash` count `0`.
 
 ## Validation
@@ -26,7 +27,7 @@ User-directed work is on branch `fps-starter-kit-port`.
 - `pnpm --dir fps run build`
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir shadow-lab run typecheck`
-- `git diff --check -- fps/index.html fps/src/hud.ts fps/src/lib/fps-hud.ts fps/src/weapon-three-compare.ts test/app/fps-hud.test.ts`
+- `git diff --check -- fps/index.html fps/src/lib/fps-hud.ts test/app/fps-hud.test.ts`
 - Playwright layout probe against `http://127.0.0.1:5173/`
 - `pnpm --dir fps exec aperture dev status`: daemon/server/browser/bridge alive
   at `http://127.0.0.1:5173/`.

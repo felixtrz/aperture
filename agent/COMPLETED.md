@@ -7,8 +7,8 @@ Completed: 2026-06-17 14:54 PDT
 ### Summary
 
 - Removed the FPS splashscreen markup/CSS and the unused HUD boot-complete hook.
-- Removed the 1280x720 source-size cap from the playable shell while preserving
-  the source 16:9 aspect fit.
+- Removed the 1280x720 source-size cap and the 16:9 aspect fit from the
+  playable shell so the FPS canvas fills the browser viewport freely.
 - Confirmed the canvas now scales with the browser window and no splash DOM is
   present.
 
@@ -19,10 +19,10 @@ Completed: 2026-06-17 14:54 PDT
 - `pnpm --dir fps run build`
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir shadow-lab run typecheck`
-- `git diff --check -- fps/index.html fps/src/hud.ts fps/src/lib/fps-hud.ts fps/src/weapon-three-compare.ts test/app/fps-hud.test.ts`
+- `git diff --check -- fps/index.html fps/src/lib/fps-hud.ts test/app/fps-hud.test.ts`
 - Playwright layout probe against `http://127.0.0.1:5173/`: 1600x900 viewport
-  produced a 1600x900 shell/canvas, tall/mobile viewports fit 16:9, and
-  `#boot-splash` count was `0`.
+  produced a 1600x900 shell/canvas, 1000x900 produced 1000x900, 390x844
+  produced 390x844, and `#boot-splash` count was `0`.
 
 ## FPS-PORT - Pointer-locked input proof
 

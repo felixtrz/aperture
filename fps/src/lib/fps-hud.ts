@@ -150,22 +150,6 @@ export function writeSourceHudCssVariables(style: HudCssVariableSink): void {
   style.setProperty("--fps-health-left", `${SOURCE_HEALTH_LEFT_PX}px`);
   style.setProperty("--fps-health-bottom", `${SOURCE_HEALTH_BOTTOM_PX}px`);
   style.setProperty("--fps-health-width", `${SOURCE_HEALTH_WIDTH_PX}px`);
-  style.setProperty(
-    "--fps-source-viewport-width",
-    `${SOURCE_VIEWPORT_WIDTH_PX}px`,
-  );
-  style.setProperty(
-    "--fps-source-viewport-height",
-    `${SOURCE_VIEWPORT_HEIGHT_PX}px`,
-  );
-  style.setProperty(
-    "--fps-source-viewport-aspect",
-    `${SOURCE_VIEWPORT_ASPECT}`,
-  );
-  style.setProperty(
-    "--fps-source-viewport-aspect-ratio",
-    `${SOURCE_VIEWPORT_WIDTH_PX} / ${SOURCE_VIEWPORT_HEIGHT_PX}`,
-  );
 }
 
 function clampAxis(value: number): number {

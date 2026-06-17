@@ -160,9 +160,9 @@ describe("Starter Kit FPS HUD", () => {
     expect(values.get("--fps-health-left")).toBe("48px");
     expect(values.get("--fps-health-bottom")).toBe("48px");
     expect(values.get("--fps-health-width")).toBe("90px");
-    expect(values.get("--fps-source-viewport-width")).toBe("1280px");
-    expect(values.get("--fps-source-viewport-height")).toBe("720px");
-    expect(values.get("--fps-source-viewport-aspect")).toBe(`${16 / 9}`);
-    expect(values.get("--fps-source-viewport-aspect-ratio")).toBe("1280 / 720");
+    expect(values.has("--fps-source-viewport-width")).toBe(false);
+    expect(values.has("--fps-source-viewport-height")).toBe(false);
+    expect(values.has("--fps-source-viewport-aspect")).toBe(false);
+    expect(values.has("--fps-source-viewport-aspect-ratio")).toBe(false);
   });
 });
