@@ -21,6 +21,7 @@ import {
   renderPackets,
   renderSnapshotSummary,
 } from "./render.js";
+import { readPngSamples } from "./png-readback.js";
 import { callGeneratedRuntimeTool, listGeneratedSystems } from "./runtime.js";
 
 export async function callBrowserBackedTool(
@@ -59,7 +60,7 @@ export async function callBrowserBackedTool(
       await page.reload({ waitUntil: "domcontentloaded" });
       return { ok: true, page: await readGeneratedStatus(page) };
     case "browser_pick_pixel":
-      return callGeneratedRuntimeTool(page, name, args);
+      return browserScreenshotPickPixel(page, args);
     case "ecs_find_entities":
     case "ecs_get_entity":
     case "ecs_snapshot":
@@ -138,11 +139,125 @@ export async function callBrowserBackedTool(
     case "render_set_post_effect_enabled":
       return callGeneratedRuntimeTool(page, name, args);
     case "render_readback_samples":
+      return browserScreenshotReadbackSamples(page, args);
     case "render_pick_entity":
       return callGeneratedRuntimeTool(page, name, args);
     default:
       return unsupportedTool(name, "Unknown Aperture MCP tool.");
   }
+}
+
+async function browserScreenshotPickPixel(
+  page: AperturePage,
+  args: Record<string, unknown>,
+): Promise<unknown> {
+  const readback = await browserScreenshotReadbackSamples(page, args);
+  const result = readback as {
+    readonly samples?: readonly unknown[];
+    readonly diagnostics?: readonly unknown[];
+    readonly ok?: boolean;
+  };
+
+  return {
+    ok: result.ok === true,
+    result: {
+      sample: result.samples?.[0] ?? null,
+      readback,
+    },
+    diagnostics: result.diagnostics ?? [],
+  };
+}
+
+async function browserScreenshotReadbackSamples(
+  page: AperturePage,
+  args: Record<string, unknown>,
+): Promise<unknown> {
+  const [png, region] = await Promise.all([
+    page.screenshot({ type: "png" }),
+    canvasScreenshotRegion(page),
+  ]);
+
+  return readPngSamples(png, args, { region });
+}
+
+interface CanvasScreenshotRegion {
+  readonly source: "canvas";
+  readonly left: number;
+  readonly top: number;
+  readonly width: number;
+  readonly height: number;
+  readonly viewportWidth: number;
+  readonly viewportHeight: number;
+}
+
+async function canvasScreenshotRegion(
+  page: AperturePage,
+): Promise<CanvasScreenshotRegion | null> {
+  const region = await page.evaluate(() => {
+    const canvas = document.querySelector("canvas");
+
+    if (!(canvas instanceof HTMLCanvasElement)) {
+      return null;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+
+    return {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+    };
+  });
+
+  if (!isFinitePositiveRegion(region)) {
+    return null;
+  }
+
+  return {
+    source: "canvas",
+    left: region.left,
+    top: region.top,
+    width: region.width,
+    height: region.height,
+    viewportWidth: region.viewportWidth,
+    viewportHeight: region.viewportHeight,
+  };
+}
+
+function isFinitePositiveRegion(
+  value: unknown,
+): value is Omit<CanvasScreenshotRegion, "source"> {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+  const left = record["left"];
+  const top = record["top"];
+  const width = record["width"];
+  const height = record["height"];
+  const viewportWidth = record["viewportWidth"];
+  const viewportHeight = record["viewportHeight"];
+
+  return (
+    isFiniteNumber(left) &&
+    isFiniteNumber(top) &&
+    isFiniteNumber(width) &&
+    isFiniteNumber(height) &&
+    isFiniteNumber(viewportWidth) &&
+    isFiniteNumber(viewportHeight) &&
+    width > 0 &&
+    height > 0 &&
+    viewportWidth > 0 &&
+    viewportHeight > 0
+  );
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
 }
 
 export function sessionSummary(session: ApertureDevSession): unknown {
