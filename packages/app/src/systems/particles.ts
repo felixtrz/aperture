@@ -23,6 +23,7 @@ export interface ParticleEmitOptions {
   readonly seed?: number;
   readonly timeScale?: number;
   readonly layerMask?: number;
+  readonly boundsCenter?: Vec3Like;
   readonly boundsRadius?: number;
 }
 

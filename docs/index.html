@@ -393,15 +393,24 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 03:58 UTC</dd>
+            <dd>2026-06-17 04:32 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: particle-effect assets now publish runtime feature
-              reports that classify every accepted V1 field as supported,
-              partially supported, or unsupported, with structured diagnostics
-              for deferred semantics such as emission rate, authored burst
+              Latest update: particle bounds are now automatic for common burst
+              and continuous billboard effects. A <code>boundsRadius</code> of
+              <code>0</code> selects derived bounds from effect size, lifetime,
+              speed, gravity, burst jitter, authored velocity, and emitter
+              transform scale, while positive radius and center overrides remain
+              available for unusual effects. Racing smoke now uses this generic
+              path instead of app-authored radius guesswork, and a managed
+              Aperture MCP proof stepped racing into drift and saw two smoke
+              particle emitters with zero diagnostics. Prior update:
+              particle-effect assets now publish runtime feature reports that
+              classify every accepted V1 field as supported, partially
+              supported, or unsupported, with structured diagnostics for
+              deferred semantics such as emission rate, authored burst
               schedules, lifecycle duration, prewarm, looping, and atlas
               animation. Generated worker asset summaries and the independent
               particle-bursts route expose the same report, so agents can see
@@ -1234,10 +1243,11 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue the racing library-gap plan with automatic particle
-              bounds: derive conservative bounds for common burst and continuous
-              effects so racing smoke and normal billboard effects do not need
-              app-authored <code>boundsRadius</code> guesswork.
+              Continue the racing library-gap plan with the post-port genericity
+              and cleanup audit: classify the landed APIs against
+              PlayCanvas/Bevy precedent, then fix small placement, naming, or
+              documentation issues while keeping racing and Shadow Lab on shared
+              Aperture paths.
             </dd>
           </dl>
         </aside>
@@ -2138,6 +2148,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">particles</span> Added automatic
+                bounds for common burst and continuous billboard effects. Racing
+                smoke now relies on the generic derived-bounds path, with
+                explicit bounds retained only as overrides for unusual effects.
+              </li>
               <li>
                 <span class="badge green">particles</span> Added runtime feature
                 reports for <code>ParticleEffectAsset</code>. Generated worker

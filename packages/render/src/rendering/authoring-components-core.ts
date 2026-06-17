@@ -106,10 +106,10 @@ export const ParticleEmitter = defineComponent(
       default: ParticleSimulationSpace.World,
     },
     boundsCenter: { type: EcsType.Vec3, default: [0, 0, 0] },
-    boundsRadius: { type: EcsType.Float32, default: 1 },
+    boundsRadius: { type: EcsType.Float32, default: 0 },
     visible: { type: EcsType.Boolean, default: true },
   },
-  "Renderer-independent GPU particle emitter authoring. ECS owns playback intent, seeds, reset epochs, bounds, and effect handles; live particle buffers remain WebGPU-owned.",
+  "Renderer-independent GPU particle emitter authoring. ECS owns playback intent, seeds, reset epochs, optional bounds overrides, and effect handles; live particle buffers remain WebGPU-owned.",
 );
 
 export const AudioEmitter = defineComponent(

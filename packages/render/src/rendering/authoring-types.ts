@@ -280,7 +280,9 @@ export interface ParticleEmitterInput {
   readonly resetEpoch?: number;
   readonly timeScale?: number;
   readonly simulationSpace?: ParticleSimulationSpace;
+  /** Local-space culling center override. Omit for the effect-derived center. */
   readonly boundsCenter?: Vec3Like;
+  /** Positive culling radius override. Omit or pass 0 for automatic bounds. */
   readonly boundsRadius?: number;
   readonly visible?: boolean;
 }

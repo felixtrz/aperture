@@ -251,4 +251,89 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
     expect("particles" in snapshot).toBe(false);
     expect(snapshot.diagnostics).toEqual([]);
   });
+
+  it("derives continuous emitter bounds from effect data when no radius is authored", () => {
+    const app = createExtractionApp();
+    const effect = createParticleEffectHandle("auto-bounds");
+    const asset = createParticleEffectAsset({
+      capacity: 64,
+      lifetime: { min: 2, max: 2 },
+      startSpeed: { min: 2, max: 3 },
+      startSize: { min: 0.5, max: 1 },
+      gravity: [0, -1, 0],
+      sizeOverLifetime: [
+        { t: 0, value: 1 },
+        { t: 1, value: 2 },
+      ],
+    });
+
+    app.assets.register(effect);
+    app.assets.markReady(effect, asset);
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({
+        near: 0.1,
+        far: 100,
+        layerMask: 1,
+        frustumCulling: false,
+      }),
+    );
+    app.spawn(
+      withTransform({ translation: [1, 2, 0] }),
+      withParticleEmitter({
+        effect,
+        capacity: 32,
+      }),
+    );
+
+    const snapshot = app.extract(1);
+    const bounds = snapshot.bounds[0];
+
+    expect(snapshot.report.particleEmitters).toBe(1);
+    expect(Array.from(bounds?.worldSphere.center ?? [])).toEqual([1, 2, 0]);
+    expect(bounds?.worldSphere.radius).toBeCloseTo(10, 5);
+    expect(bounds?.localAabb.min).toEqual([-10, -10, -10]);
+    expect(bounds?.localAabb.max).toEqual([10, 10, 10]);
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("culls off-screen particle emitters using automatic bounds", () => {
+    const app = createExtractionApp();
+    const effect = createParticleEffectHandle("culled-auto-bounds");
+
+    app.assets.register(effect);
+    app.assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        capacity: 16,
+        lifetime: { min: 1, max: 1 },
+        startSize: { min: 0.25, max: 0.25 },
+      }),
+    );
+    app.spawn(
+      withTransform({ translation: [0, 0, 0] }),
+      withCamera({
+        fovYRadians: Math.PI / 2,
+        near: 0.1,
+        far: 100,
+        layerMask: 1,
+        frustumCulling: true,
+      }),
+    );
+    app.spawn(
+      withTransform({ translation: [1000, 0, -5] }),
+      withParticleEmitter({ effect, capacity: 16 }),
+    );
+
+    const snapshot = app.extract(1);
+
+    expect(snapshot.report.particleEmitters).toBe(0);
+    expect(snapshot.bounds).toHaveLength(0);
+    expect(snapshot.report.cullStats?.[0]).toMatchObject({
+      tested: 1,
+      culled: 1,
+      included: 0,
+    });
+    expect(snapshot.diagnostics).toEqual([]);
+  });
 });

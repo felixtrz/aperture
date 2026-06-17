@@ -59,32 +59,29 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Make particle bounds automatic for common V1 effects so app code does not have
-to guess `boundsRadius` for normal billboard smoke/burst cases.
+Run the post-port genericity and cleanup audit for the racing library-gap plan,
+then fix any small API placement, naming, or documentation issues found while
+keeping racing and Shadow Lab on shared Aperture paths.
 
-Category: `runtime-orchestration`
+Category: `audit-refactor`
 
-Reference anchor: `references/engine/src/scene/particle-system/particle-emitter.js`
-for PlayCanvas' particle bounds estimation, plus
-`references/bevy/crates/bevy_sprite/src/lib.rs` for system-derived sprite bounds
-and culling opt-out precedent.
+Reference anchor: `references/engine/src/framework/components/particle-system/component.js`
+for PlayCanvas' engine-owned particle/audio/component surfaces, plus
+`references/bevy/crates/bevy_ecs/src/system/system_param.rs` and
+`references/bevy/crates/bevy_transform/src/components/transform.rs` for generic
+ECS resources/system params and transform helper precedent.
 
 Acceptance criteria:
 
-- Derive conservative default particle bounds from effect size, lifetime,
-  speed, gravity, position jitter, authored burst velocity, and emitter
-  transform.
-- Preserve `boundsRadius` and `boundsCenter` as explicit overrides for unusual
-  effects or performance tuning.
-- Add extraction diagnostics when bounds cannot be derived conservatively or are
-  unusually large.
-- Update racing smoke to rely on automatic bounds if the managed proof still
-  passes; document any remaining override as intentional.
-- Add focused tests for burst and continuous effects without app-supplied
-  bounds, plus culling behavior for off-screen effects.
+- Re-audit the APIs landed for racing and classify each as generic V1 engine
+  surface, app/template code, or questionable convenience.
+- Apply any small corrective edits discovered by the audit, without broad
+  rewrites or app-specific library hooks.
+- Keep PlayCanvas/Bevy evidence beside any claim that a capability belongs in
+  the library.
 - Re-run the independent `examples/particle-bursts.html` proof, managed racing
   smoke proof through Aperture MCP, and Shadow Lab health checks after the
-  coherent bounds slice.
+  cleanup slice.
 
 ## Historical M10 Physics Notes
 

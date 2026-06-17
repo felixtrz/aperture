@@ -98,7 +98,6 @@ describe("app particle emitter spawning", () => {
             min: [-0.1, 0.5, -0.1],
             max: [0.1, 1, 0.1],
           },
-          boundsRadius: 6,
         });
       }
     }
@@ -135,6 +134,12 @@ describe("app particle emitter spawning", () => {
         velocityMax: [0.1, 1, 0.1],
       },
     });
+    const bounds = snapshot.bounds[packet?.boundsIndex ?? -1];
+    expect(bounds?.worldSphere.center[0]).toBeCloseTo(1, 5);
+    expect(bounds?.worldSphere.center[1]).toBeCloseTo(2.6, 5);
+    expect(bounds?.worldSphere.center[2]).toBeCloseTo(3, 5);
+    expect(bounds?.worldSphere.radius).toBeGreaterThan(2);
+    expect(bounds?.worldSphere.radius).toBeLessThan(3);
     expect(app.context.particles.summary()).toMatchObject({
       maxActive: 1024,
       maxPerFrame: 64,

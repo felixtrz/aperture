@@ -223,6 +223,16 @@ building blocks and default paths.
   silently accepting broad authoring data. Generated worker asset summaries and
   the independent particle-bursts status surface the same report, so tooling can
   distinguish implemented particle controls from deferred semantics.
+- 2026-06-16: Automatic particle bounds landed for common V1 smoke/billboard
+  effects. `boundsRadius: 0` is now the default automatic path, with
+  `boundsRadius`/`boundsCenter` preserved as explicit overrides. Extraction
+  derives conservative burst and continuous bounds from effect size, lifetime,
+  speed, gravity, burst jitter, authored velocity, and emitter transform scale,
+  and reports unusually large or unavailable derived bounds. Racing smoke now
+  relies on automatic burst bounds instead of an app-authored radius; a managed
+  Aperture MCP proof paused racing, held `drive=[1,1]`, stepped deterministic
+  simulation into drift, and observed two smoke particle emitters with zero
+  diagnostics.
 
 ## Genericity Audit - 2026-06-16
 
@@ -313,6 +323,11 @@ are broad Aperture V1 capabilities, not racing-only conveniences.
   become a performance trap without clear reports.
 - Particle bursts: keep, but add public budget diagnostics and examples for
   burst overflow, emitter bounds, blend modes, and texture readiness.
+- Automatic particle bounds: keep. PlayCanvas derives particle bounds from
+  emitter/effect data, and Bevy derives common sprite/mesh bounds through
+  systems with opt-outs. Aperture's V1 default should therefore be automatic
+  conservative bounds, with explicit bounds kept as an override for unusual
+  effects or performance tuning.
 - Ground ribbons: keep, but consider a more general `trail.ribbon(...)` family
   over time with world-space, screen-space, and surface-projected variants. Do
   not let the V1 API hard-code "drift mark" semantics.
@@ -1265,6 +1280,8 @@ Work items:
 - RACE-LIB-11: Add particle burst/event emission API. Done 2026-06-16.
 - RACE-LIB-12: Add trail/ribbon or dynamic mesh builder. Done 2026-06-16.
 - RACE-LIB-13: Wire material depth bias / polygon offset. Done 2026-06-16.
+- RACE-LIB-27: Add automatic particle bounds for common burst and continuous
+  effects. Done 2026-06-16.
 
 Racing migration:
 
@@ -1407,27 +1424,24 @@ Shadow-lab validation:
 
 ## Recommended Next Implementation Slice
 
-Continue the particle V1 work with automatic particle bounds:
+Run the post-port cleanup and genericity audit:
 
-1. Derive conservative default bounds from effect size, lifetime, speed,
-   gravity, burst position jitter, authored burst velocity, and emitter
-   transform.
-2. Keep `boundsRadius` and `boundsCenter` as deliberate overrides for unusual
-   effects or tuning.
-3. Add extraction diagnostics when an effect cannot be bounded conservatively or
-   produces an unusually large derived bound.
-4. Update racing smoke to rely on the automatic path if the proof still passes,
-   leaving any remaining override documented as an intentional art/performance
-   choice.
-5. Re-run the independent particle proof route, managed racing smoke proof, and
-   Shadow Lab health checks after the coherent bounds slice.
+1. Re-audit the library APIs landed for racing and classify each as generic V1
+   engine surface, app/template code, or a questionable convenience.
+2. Use PlayCanvas and Bevy anchors when judging engine-owned behavior,
+   especially particles, audio intent, follow camera, resources, GLTF lookup,
+   dynamic trails, and generated-browser tooling.
+3. Fix any small naming, documentation, or API placement issues discovered
+   during the audit while keeping racing and Shadow Lab on the shared paths.
+4. Re-run the no-cache managed racing proof, independent particle proof route,
+   and Shadow Lab health checks before the final checkpoint.
 
 Reason:
 
-- The independent proof route now makes particle regressions measurable. The
-  truthful schema report now makes deferred particle semantics explicit. The
-  next V1 risk is app-authored bounding guesswork: PlayCanvas derives common
-  particle bounds from emitter/effect data, and Bevy derives common sprite/mesh
-  bounds through systems with opt-outs.
-- This keeps racing smoke on the generic engine path while removing another
-  engine-shaped responsibility from app code.
+- Racing now uses shared Aperture paths for the original heavy app-owned
+  systems: math, resources, signals, start options, dynamic meshes, texture
+  decode, audio, particles, trails, GLTF lookup, material overrides, spawn
+  batching, follow camera, and particle bounds.
+- The next risk is not one missing feature but API drift: some helpers landed
+  quickly to unblock the port, so they need a review pass against established
+  engine precedent before calling the library ready for V1.

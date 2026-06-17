@@ -23,7 +23,7 @@ export function createParticleEmitter(
       input.boundsCenter?.[1] ?? 0,
       input.boundsCenter?.[2] ?? 0,
     ],
-    boundsRadius: input.boundsRadius ?? 1,
+    boundsRadius: input.boundsRadius ?? 0,
     visible: input.visible ?? true,
   };
 }

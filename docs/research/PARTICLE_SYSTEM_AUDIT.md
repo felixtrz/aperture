@@ -207,10 +207,9 @@ This matches the intended Aperture architecture: ECS owns emitter intent,
 resource handles, seeds, playback controls, visibility, and bounds; WebGPU owns
 live particle buffers. No live particle objects are stored in ECS snapshots.
 
-The weak spot is `boundsRadius`. Racing currently supplies a manual burst
-radius. PlayCanvas and Bevy both suggest that common bounds should be
-renderer/system-derived, with manual overrides reserved for unusual effects or
-performance tuning.
+`boundsRadius: 0` now selects the automatic path. PlayCanvas and Bevy both
+suggest that common bounds should be renderer/system-derived, with manual
+overrides reserved for unusual effects or performance tuning.
 
 ### App API
 
@@ -229,11 +228,13 @@ performance tuning.
 - `seed`
 - `timeScale`
 - `layerMask`
+- `boundsCenter`
 - `boundsRadius`
 
 This is the right direction for racing: the app says "emit smoke here" and does
-not build dynamic meshes or billboard geometry. The current API is still
-burst-only and lacks lifecycle controls for persistent emitters.
+not build dynamic meshes or billboard geometry. The default automatic bounds
+path means normal smoke no longer needs an app-authored radius. The current API
+is still burst-only and lacks lifecycle controls for persistent emitters.
 
 ### Extraction
 
@@ -247,11 +248,12 @@ synthetic burst packets. Each burst packet has a stable synthetic render id,
 capacity equal to request count, start frame, seed, origin, jitter, velocity,
 effect handle, bounds, and layer mask.
 
-This preserves the render-extraction boundary. The main gaps are diagnostics
-and budget visibility: the queue knows why bursts were skipped, dropped, or
-kept pending, but the worker and renderer tooling do not expose enough compact
-state for an agent or test to distinguish "not emitting" from "asset not ready"
-from "culled" from "budget overflow" from "rendered but visually hidden."
+This preserves the render-extraction boundary. Recent proof tooling now exposes
+compact queue and renderer-owned live particle counts, which makes the common
+"not emitting" versus "rendered but visually hidden" distinction testable. The
+remaining gap is feature completeness: some fields accepted by the public schema
+are deliberately reported as deferred V1 semantics until the runtime executes
+them.
 
 ### WebGPU Simulation And Rendering
 
@@ -287,11 +289,10 @@ It is not yet a complete generic particle engine:
 count, live particle count, textured emitter count, state reuse, and dispatches.
 That is useful after particles reach the renderer.
 
-The worker snapshot currently does not include the app particle queue summary.
-This makes it harder to inspect pending/active/dropped burst state without
-dumping broader app internals. The app already has `this.particles.summary()`;
-the missing piece is carrying a compact particle block into worker summaries
-and/or the MCP-facing frame report.
+The worker snapshot and independent particle-bursts route now expose compact
+particle queue summaries, while renderer frame reports expose live textured
+particle counts. This is enough for routine MCP/Playwright proofs without
+dumping broad ECS state.
 
 During this audit, the managed racing session was healthy:
 
@@ -304,41 +305,44 @@ During this audit, the managed racing session was healthy:
   session. The alarming console history included older stale worker/render
   errors retained in append-only logs.
 
-The idle frame is not proof of a particle bug. It is also not proof of particle
-health. Racing smoke remains hard to verify because it depends on vehicle input
-and drift state unless a deterministic particle proof route or tool-driven
-emission path exists.
+The idle frame is not proof of a particle bug. Racing smoke still depends on
+vehicle drift for the in-game effect, but the independent particle-bursts route
+and managed Aperture ECS stepping make the production particle path
+deterministically provable.
 
 ## Reference Comparison
 
-| Capability                   | Aperture today                  | PlayCanvas                                     | Bevy                                     | three.quarks                        |
-| ---------------------------- | ------------------------------- | ---------------------------------------------- | ---------------------------------------- | ----------------------------------- |
-| ECS/source-of-truth boundary | Strong                          | Component/entity model, but scene-object based | Strong ECS/extraction model              | three.js object model               |
-| Config particle asset        | Partial                         | Broad component data                           | Not built-in as a generic particle asset | Broad parameters/behaviors          |
-| Worker-authored bursts       | Present                         | Engine component API, not this exact model     | ECS events/systems are idiomatic         | `emit` APIs                         |
-| Persistent emitter lifecycle | Minimal reset/time scale        | play/pause/stop/reset/autoPlay                 | Would be ECS/system authored             | play/pause/stop/restart/endEmit     |
-| Fixed-step simulation policy | Not unified for particles       | Explicit fixed timestep/substeps               | FixedUpdate exists generally             | Runtime update loop                 |
-| Automatic bounds             | Limited/manual for particles    | Strong computed bounds                         | Sprite/mesh bounds system-derived        | Has renderer/system bounds concepts |
-| GPU live buffers             | Present for persistent emitters | GPU path with CPU fallback/capability policy   | Renderer-owned resources                 | Batched dynamic render buffers      |
-| Burst simulation path        | Renderer CPU arrays             | Engine emitter path                            | App/system dependent                     | JS particle objects                 |
-| Texture sampling             | Present                         | Present                                        | Sprite/material texture handles          | Present                             |
-| Sprite-sheet animation       | Schema only                     | Present                                        | Sprite atlas support elsewhere           | Present                             |
-| Soft particles               | Missing                         | Present                                        | Render-graph/material concern            | Present                             |
-| Per-particle sorting         | Deferred/missing                | Present with CPU constraints                   | Renderer/material concern                | Present by renderer path            |
-| Trails/mesh particles        | Missing                         | Mesh particles present                         | Mesh entities possible                   | Present                             |
-| Sub-emission/behaviors       | Missing                         | Curves and behavior-like fields                | User systems/plugins                     | Present                             |
-| Tooling diagnostics          | Partial                         | Mature engine state/stats                      | ECS tooling friendly                     | Runtime events/stats                |
+| Capability                   | Aperture today                                                      | PlayCanvas                                     | Bevy                                     | three.quarks                        |
+| ---------------------------- | ------------------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------- | ----------------------------------- |
+| ECS/source-of-truth boundary | Strong                                                              | Component/entity model, but scene-object based | Strong ECS/extraction model              | three.js object model               |
+| Config particle asset        | Partial                                                             | Broad component data                           | Not built-in as a generic particle asset | Broad parameters/behaviors          |
+| Worker-authored bursts       | Present                                                             | Engine component API, not this exact model     | ECS events/systems are idiomatic         | `emit` APIs                         |
+| Persistent emitter lifecycle | Minimal reset/time scale                                            | play/pause/stop/reset/autoPlay                 | Would be ECS/system authored             | play/pause/stop/restart/endEmit     |
+| Fixed-step simulation policy | Not unified for particles                                           | Explicit fixed timestep/substeps               | FixedUpdate exists generally             | Runtime update loop                 |
+| Automatic bounds             | Common burst/continuous bounds derived, explicit overrides retained | Strong computed bounds                         | Sprite/mesh bounds system-derived        | Has renderer/system bounds concepts |
+| GPU live buffers             | Present for persistent emitters                                     | GPU path with CPU fallback/capability policy   | Renderer-owned resources                 | Batched dynamic render buffers      |
+| Burst simulation path        | Renderer CPU arrays                                                 | Engine emitter path                            | App/system dependent                     | JS particle objects                 |
+| Texture sampling             | Present                                                             | Present                                        | Sprite/material texture handles          | Present                             |
+| Sprite-sheet animation       | Schema only                                                         | Present                                        | Sprite atlas support elsewhere           | Present                             |
+| Soft particles               | Missing                                                             | Present                                        | Render-graph/material concern            | Present                             |
+| Per-particle sorting         | Deferred/missing                                                    | Present with CPU constraints                   | Renderer/material concern                | Present by renderer path            |
+| Trails/mesh particles        | Missing                                                             | Mesh particles present                         | Mesh entities possible                   | Present                             |
+| Sub-emission/behaviors       | Missing                                                             | Curves and behavior-like fields                | User systems/plugins                     | Present                             |
+| Tooling diagnostics          | Partial                                                             | Mature engine state/stats                      | ECS tooling friendly                     | Runtime events/stats                |
 
 ## Severity-Ranked Findings
 
 ### P0: There Is No Standalone Production Burst Proof
 
-Racing smoke now uses the shared particle path, but the only realistic
-app-level proof of `this.particles.emit(...)` is still tied to racing vehicle
-drift. That makes regression checks fragile. A particle system can be broken
-while an idle racing frame honestly reports zero live particles.
+Status: done for the current V1 burst path.
 
-Required fix:
+Racing smoke now uses the shared particle path, and
+`examples/particle-bursts.html` proves `this.particles.emit(...)` independently
+of racing vehicle drift. This keeps regression checks from depending on an
+interactive driving state where an idle frame can honestly report zero live
+particles.
+
+Completed fix:
 
 - Add a small production example or route that declares a texture and particle
   effect through config assets.
@@ -348,8 +352,13 @@ Required fix:
 
 ### P0: Particle Diagnostics Are Too Thin
 
-The renderer can report live particle counts after extraction succeeds, but
-there is not enough compact state to answer why no particles are visible.
+Status: largely addressed for burst visibility and schema truthfulness; still a
+watch area as new particle semantics land.
+
+The renderer can report live particle counts after extraction succeeds, and
+worker summaries now expose burst queue counters. The remaining diagnostics
+need to grow with each deferred particle semantic rather than silently accepting
+unsupported authored data.
 
 Missing distinctions:
 
@@ -363,11 +372,13 @@ Missing distinctions:
 - Renderer created state but drew zero live particles.
 - Renderer drew particles without a texture.
 
-Required fix:
+Completed and remaining fix:
 
-- Add compact worker particle summary to snapshots or MCP-visible summaries.
-- Extend particle frame reports with readiness and skip counters.
-- Keep reports small enough for routine MCP use.
+- Compact worker particle summaries are now available to generated snapshots
+  and MCP-facing reports.
+- Particle frame reports expose live renderer-owned particle counts.
+- Future work should extend readiness/skip counters as emitter lifecycle,
+  sprite-sheet animation, sorting, soft particles, and GPU burst execution land.
 
 ### P1: The Public Effect Schema Is Ahead Of Runtime Behavior
 
@@ -420,8 +431,11 @@ Required fix:
 
 ### P1: Bounds Should Be Derived For Common Effects
 
-Particles currently rely too much on authored or request-level bounding
-spheres. Racing manually supplies `boundsRadius: 8`.
+Status: done for common V1 burst and continuous billboard effects.
+
+Particles no longer require app-authored bounding spheres for common effects.
+`boundsRadius: 0` is the automatic default, and racing smoke no longer supplies
+an app-level radius.
 
 Reference lesson:
 
@@ -430,10 +444,11 @@ Reference lesson:
 - Bevy derives sprite/mesh bounds through systems and lets users opt out when
   needed.
 
-Required fix:
+Completed fix:
 
 - Compute conservative default bounds from effect descriptor and emission
-  request.
+  request, including size, lifetime, speed, gravity, burst position jitter,
+  authored burst velocity, and emitter transform scale.
 - Preserve manual bounds as an override for unusual effects.
 - Emit diagnostics when an effect cannot be bounded conservatively.
 

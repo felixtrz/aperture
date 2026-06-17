@@ -8,6 +8,7 @@ import {
   type EcsWorld,
   type Entity,
   type Mat4,
+  type Vec3Like,
   WorldTransform,
 } from "@aperture-engine/simulation";
 import {
@@ -37,6 +38,7 @@ import {
   type BoundsPacket,
   type ParticleEmitterPacket,
   type RenderDiagnostic,
+  type RenderEntityRef,
 } from "./snapshot.js";
 import {
   getParticleBurstQueue,
@@ -138,14 +140,23 @@ export function extractParticleEmitters(
       continue;
     }
 
-    const radius = finitePositive(
+    const authoredRadius = finiteNumber(
       entity.getValue(ParticleEmitter, "boundsRadius"),
-      1,
+      0,
     );
     const center = Array.from(
       entity.getVectorView(ParticleEmitter, "boundsCenter"),
     ) as [number, number, number];
     const worldMatrix = readWorldMatrix(entity);
+    const radius =
+      authoredRadius > 0
+        ? authoredRadius
+        : deriveContinuousParticleBoundsRadius({
+            effect: effectEntry.asset,
+            diagnostics,
+            entity: entityRef(entity),
+            effectKey: assetHandleKey(effect),
+          });
     const boundsPacket = createParticleBoundsPacket(
       bounds.length,
       entity,
@@ -291,15 +302,26 @@ function extractParticleBursts(input: {
       finiteNumber(burst.request.position[1], 0),
       finiteNumber(burst.request.position[2], 0),
     ] as const;
-    const radius = finitePositive(
-      burst.request.boundsRadius,
-      Math.max(1, effect.startSize.max * 2 + effect.lifetime.max),
-    );
-    const boundsPacket = createParticleBurstBoundsPacket(
-      input.bounds.length,
-      position,
-      radius,
-    );
+    const positionRange = particleBurstPositionRange(burst.request);
+    const velocityRange = particleBurstVelocityRange(burst.request);
+    const authoredRadius = finiteNumber(burst.request.boundsRadius, 0);
+    const boundsPacket =
+      authoredRadius > 0
+        ? createParticleBurstBoundsPacket(
+            input.bounds.length,
+            particleBurstBoundsCenter(position, burst.request.boundsCenter),
+            authoredRadius,
+          )
+        : createAutomaticParticleBurstBoundsPacket({
+            boundsId: input.bounds.length,
+            position,
+            positionRange,
+            velocityRange,
+            centerOverride: burst.request.boundsCenter,
+            effect,
+            diagnostics: input.diagnostics,
+            effectKey: assetHandleKey(burst.effect),
+          });
 
     if (
       !isVisibleInAnyMatchingView(
@@ -337,9 +359,6 @@ function extractParticleBursts(input: {
       meshKey: "particle-quad",
       stableId,
     });
-    const positionRange = particleBurstPositionRange(burst.request);
-    const velocityRange = particleBurstVelocityRange(burst.request);
-
     input.bounds.push(boundsPacket);
     packets.push({
       emitterId: stableId,
@@ -401,6 +420,72 @@ function createParticleBurstBoundsPacket(
   };
 }
 
+function createAutomaticParticleBurstBoundsPacket(input: {
+  readonly boundsId: number;
+  readonly position: readonly [number, number, number];
+  readonly positionRange: ReturnType<typeof particleBurstPositionRange>;
+  readonly velocityRange: ReturnType<typeof particleBurstVelocityRange>;
+  readonly centerOverride?: Vec3Like;
+  readonly effect: ParticleEffectAsset;
+  readonly diagnostics: RenderDiagnostic[];
+  readonly effectKey: string;
+}): BoundsPacket {
+  const lifetime = particleLifetimeMax(input.effect);
+  const particleRadius = maxParticleBillboardRadius(input.effect);
+  const x = particleDisplacementRange(
+    input.velocityRange.min[0],
+    input.velocityRange.max[0],
+    input.effect.gravity[0],
+    lifetime,
+  );
+  const y = particleDisplacementRange(
+    input.velocityRange.min[1],
+    input.velocityRange.max[1],
+    input.effect.gravity[1],
+    lifetime,
+  );
+  const z = particleDisplacementRange(
+    input.velocityRange.min[2],
+    input.velocityRange.max[2],
+    input.effect.gravity[2],
+    lifetime,
+  );
+  const worldAabb: Aabb = {
+    min: [
+      input.positionRange.min[0] + x.min - particleRadius,
+      input.positionRange.min[1] + y.min - particleRadius,
+      input.positionRange.min[2] + z.min - particleRadius,
+    ],
+    max: [
+      input.positionRange.max[0] + x.max + particleRadius,
+      input.positionRange.max[1] + y.max + particleRadius,
+      input.positionRange.max[2] + z.max + particleRadius,
+    ],
+  };
+  const center =
+    input.centerOverride === undefined
+      ? aabbCenter(worldAabb)
+      : particleBurstBoundsCenter(input.position, input.centerOverride);
+  const radius = checkedAutoParticleBoundsRadius(
+    farthestAabbCornerDistance(center, worldAabb),
+    input.diagnostics,
+    {
+      effectKey: input.effectKey,
+      mode: "burst",
+    },
+  );
+  const sphere: BoundingSphere = { center, radius };
+
+  return {
+    boundsId: input.boundsId,
+    entity: { index: -1, generation: 0 },
+    localAabb: worldAabb,
+    worldAabb: sphereAabb(center, radius),
+    localSphere: sphere,
+    worldSphere: sphere,
+  };
+}
+
 function particleBurstWorldMatrix(
   position: readonly [number, number, number],
 ): Mat4 {
@@ -432,20 +517,21 @@ function createParticleBoundsPacket(
   radius: number,
 ): BoundsPacket {
   const worldCenter = transformPoint(worldMatrix, center);
+  const worldRadius = radius * matrixMaxScale(worldMatrix);
   const localAabb: Aabb = {
     min: [center[0] - radius, center[1] - radius, center[2] - radius],
     max: [center[0] + radius, center[1] + radius, center[2] + radius],
   };
   const worldAabb: Aabb = {
     min: [
-      worldCenter[0] - radius,
-      worldCenter[1] - radius,
-      worldCenter[2] - radius,
+      worldCenter[0] - worldRadius,
+      worldCenter[1] - worldRadius,
+      worldCenter[2] - worldRadius,
     ],
     max: [
-      worldCenter[0] + radius,
-      worldCenter[1] + radius,
-      worldCenter[2] + radius,
+      worldCenter[0] + worldRadius,
+      worldCenter[1] + worldRadius,
+      worldCenter[2] + worldRadius,
     ],
   };
   const localSphere: BoundingSphere = { center, radius };
@@ -456,7 +542,192 @@ function createParticleBoundsPacket(
     localAabb,
     worldAabb,
     localSphere,
-    worldSphere: { center: worldCenter, radius },
+    worldSphere: { center: worldCenter, radius: worldRadius },
+  };
+}
+
+function matrixMaxScale(matrix: Mat4): number {
+  const sx = Math.hypot(matrix[0] ?? 1, matrix[1] ?? 0, matrix[2] ?? 0);
+  const sy = Math.hypot(matrix[4] ?? 0, matrix[5] ?? 1, matrix[6] ?? 0);
+  const sz = Math.hypot(matrix[8] ?? 0, matrix[9] ?? 0, matrix[10] ?? 1);
+  const scale = Math.max(sx, sy, sz);
+
+  return Number.isFinite(scale) && scale > 0 ? scale : 1;
+}
+
+const MIN_AUTO_PARTICLE_BOUNDS_RADIUS = 0.001;
+const LARGE_AUTO_PARTICLE_BOUNDS_RADIUS = 256;
+
+function deriveContinuousParticleBoundsRadius(input: {
+  readonly effect: ParticleEffectAsset;
+  readonly diagnostics: RenderDiagnostic[];
+  readonly entity: RenderEntityRef;
+  readonly effectKey: string;
+}): number {
+  const lifetime = particleLifetimeMax(input.effect);
+  const maxSpeed = Math.max(
+    Math.abs(input.effect.startSpeed.min),
+    Math.abs(input.effect.startSpeed.max),
+  );
+  const gravityTravel =
+    0.5 * Math.hypot(...input.effect.gravity) * lifetime * lifetime;
+  const radius =
+    maxParticleBillboardRadius(input.effect) +
+    maxSpeed * lifetime +
+    gravityTravel;
+
+  return checkedAutoParticleBoundsRadius(radius, input.diagnostics, {
+    entity: input.entity,
+    effectKey: input.effectKey,
+    mode: "continuous",
+  });
+}
+
+function checkedAutoParticleBoundsRadius(
+  radius: number,
+  diagnostics: RenderDiagnostic[],
+  context: {
+    readonly entity?: RenderEntityRef;
+    readonly effectKey: string;
+    readonly mode: "burst" | "continuous";
+  },
+): number {
+  if (!Number.isFinite(radius) || radius <= 0) {
+    diagnostics.push({
+      code: "render.particle.boundsUnavailable",
+      severity: "warning",
+      ...(context.entity === undefined ? {} : { entity: context.entity }),
+      assetKey: context.effectKey,
+      field: "boundsRadius",
+      message: `Could not derive conservative ${context.mode} particle bounds; using a 1 unit fallback radius.`,
+    });
+    return 1;
+  }
+
+  const result = Math.max(radius, MIN_AUTO_PARTICLE_BOUNDS_RADIUS);
+
+  if (result > LARGE_AUTO_PARTICLE_BOUNDS_RADIUS) {
+    diagnostics.push({
+      code: "render.particle.boundsLarge",
+      severity: "warning",
+      ...(context.entity === undefined ? {} : { entity: context.entity }),
+      assetKey: context.effectKey,
+      field: "boundsRadius",
+      message: `Derived ${context.mode} particle bounds radius ${result.toFixed(
+        2,
+      )} is unusually large; set boundsRadius/boundsCenter explicitly if this is intentional.`,
+    });
+  }
+
+  return result;
+}
+
+function particleLifetimeMax(effect: ParticleEffectAsset): number {
+  return Math.max(0, effect.lifetime.min, effect.lifetime.max);
+}
+
+function maxParticleBillboardRadius(effect: ParticleEffectAsset): number {
+  let maxCurve = 0;
+  for (const value of effect.curves.sizeOverLifetime) {
+    if (Number.isFinite(value)) {
+      maxCurve = Math.max(maxCurve, value);
+    }
+  }
+
+  return Math.max(
+    MIN_AUTO_PARTICLE_BOUNDS_RADIUS,
+    Math.max(0, effect.startSize.min, effect.startSize.max) *
+      Math.max(0, maxCurve),
+  );
+}
+
+function particleDisplacementRange(
+  velocityMin: number,
+  velocityMax: number,
+  gravity: number,
+  lifetime: number,
+): { readonly min: number; readonly max: number } {
+  const candidates = [
+    0,
+    particleDisplacement(velocityMin, gravity, lifetime),
+    particleDisplacement(velocityMax, gravity, lifetime),
+  ];
+
+  if (gravity !== 0) {
+    const turningMin = -velocityMin / gravity;
+    const turningMax = -velocityMax / gravity;
+    if (turningMin > 0 && turningMin < lifetime) {
+      candidates.push(particleDisplacement(velocityMin, gravity, turningMin));
+    }
+    if (turningMax > 0 && turningMax < lifetime) {
+      candidates.push(particleDisplacement(velocityMax, gravity, turningMax));
+    }
+  }
+
+  return {
+    min: Math.min(...candidates),
+    max: Math.max(...candidates),
+  };
+}
+
+function particleDisplacement(
+  velocity: number,
+  gravity: number,
+  time: number,
+): number {
+  return velocity * time + 0.5 * gravity * time * time;
+}
+
+function particleBurstBoundsCenter(
+  position: readonly [number, number, number],
+  centerOverride: Vec3Like | undefined,
+): [number, number, number] {
+  if (centerOverride === undefined) {
+    return [...position];
+  }
+
+  return [
+    position[0] + finiteNumber(centerOverride[0], 0),
+    position[1] + finiteNumber(centerOverride[1], 0),
+    position[2] + finiteNumber(centerOverride[2], 0),
+  ];
+}
+
+function aabbCenter(aabb: Aabb): [number, number, number] {
+  return [
+    (aabb.min[0] + aabb.max[0]) * 0.5,
+    (aabb.min[1] + aabb.max[1]) * 0.5,
+    (aabb.min[2] + aabb.max[2]) * 0.5,
+  ];
+}
+
+function farthestAabbCornerDistance(
+  center: readonly [number, number, number],
+  aabb: Aabb,
+): number {
+  const dx = Math.max(
+    Math.abs(aabb.min[0] - center[0]),
+    Math.abs(aabb.max[0] - center[0]),
+  );
+  const dy = Math.max(
+    Math.abs(aabb.min[1] - center[1]),
+    Math.abs(aabb.max[1] - center[1]),
+  );
+  const dz = Math.max(
+    Math.abs(aabb.min[2] - center[2]),
+    Math.abs(aabb.max[2] - center[2]),
+  );
+
+  return Math.hypot(dx, dy, dz);
+}
+
+function sphereAabb(
+  center: readonly [number, number, number],
+  radius: number,
+): Aabb {
+  return {
+    min: [center[0] - radius, center[1] - radius, center[2] - radius],
+    max: [center[0] + radius, center[1] + radius, center[2] + radius],
   };
 }
 

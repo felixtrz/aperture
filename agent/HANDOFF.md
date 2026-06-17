@@ -1,6 +1,6 @@
-# Handoff - Particle Schema Runtime Feature Reporting
+# Handoff - Automatic Particle Bounds
 
-**Updated:** 2026-06-16 21:08 PDT
+**Updated:** 2026-06-16 21:37 PDT
 
 Current user-directed work is executing
 `racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
@@ -8,34 +8,35 @@ slices while keeping racing and Shadow Lab working.
 
 ## Latest Completed Slice
 
-- Added `ParticleEffectAsset.runtimeFeatures` and
-  `analyzeParticleEffectRuntimeFeatures(...)` so every accepted
-  `ParticleEffectAssetInput` field is classified as supported, partially
-  supported, or unsupported for current burst/continuous V1 runtime modes.
-- Added structured diagnostics for deferred particle semantics instead of
-  silently accepting broad authoring data. Unsupported fields now include
-  `duration`, `looping`, `prewarm`, `emissionRate`, authored `bursts`, and
-  atlas frame counts above one; partial fields include lifetime range, start
-  speed, and gravity where burst and continuous modes differ.
-- Published runtime feature reports through generated worker asset summaries
-  and through `examples/particle-bursts.html` status.
-- Hardened the independent particle-bursts browser proof so it keeps emitting
-  during Playwright observation and no longer adds a favicon console failure.
+- Made `boundsRadius: 0` the default automatic particle-bounds path for
+  authored `ParticleEmitter` components and worker-authored burst requests,
+  while preserving positive `boundsRadius` plus `boundsCenter` as explicit
+  overrides.
+- Continuous emitter extraction now derives conservative bounds from effect
+  billboard size, lifetime, start speed, gravity travel, and emitter transform
+  scale.
+- Burst extraction now derives conservative world bounds from spawn position,
+  position jitter, authored velocity ranges, gravity, lifetime, and particle
+  billboard size. It recenters the sphere around the derived burst AABB unless
+  the app supplies an explicit center override.
+- Added extraction diagnostics for unavailable automatic bounds and unusually
+  large derived particle bounds.
+- Racing smoke no longer authors `boundsRadius`; it relies on automatic burst
+  bounds.
 - Updated the racing library-gap plan, particle audit, public tracker, render
   pipeline comparison, backlog, and completed-task log. The recommended next
-  slice is automatic particle bounds.
+  slice is the post-port genericity/cleanup audit.
 
 ## Latest Validation
 
-- `pnpm exec prettier --check packages/render/src/assets/particles.ts packages/app/src/worker/assets.ts test/rendering/particle-emitter-extraction.test.ts test/app/generated-worker-start.test.ts examples/particle-bursts.main.js examples/particle-bursts.shared.js examples/particle-bursts.html test/e2e/particle-bursts.spec.ts racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md docs/research/PARTICLE_SYSTEM_AUDIT.md agent/BACKLOG.md agent/COMPLETED.md docs/index.html docs/render-pipeline-comparison.html`
+- `pnpm exec vitest run test/rendering/particle-emitter-extraction.test.ts test/app/particle-spawn.test.ts`
+- `pnpm exec prettier --check packages/app/src/systems/particles.ts packages/render/src/rendering/authoring-components-core.ts packages/render/src/rendering/authoring-create-particles.ts packages/render/src/rendering/authoring-types.ts packages/render/src/rendering/authoring-validation-effects.ts packages/render/src/rendering/extraction-particles.ts packages/render/src/rendering/particle-burst-queue.ts racing/src/systems/particles.system.ts test/app/particle-spawn.test.ts test/rendering/particle-emitter-extraction.test.ts racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md docs/research/PARTICLE_SYSTEM_AUDIT.md agent/BACKLOG.md agent/HANDOFF.md agent/COMPLETED.md docs/index.html docs/render-pipeline-comparison.html`
 - `pnpm run check:progress`
 - `git diff --check`
-- `node --check examples/particle-bursts.main.js`
-- `node --check examples/particle-bursts.shared.js`
-- `node --check examples/particle-bursts.worker.js`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/app run typecheck`
 - `pnpm --filter @aperture-engine/render run build`
 - `pnpm --filter @aperture-engine/app run build`
-- `pnpm exec vitest run test/rendering/particle-emitter-extraction.test.ts test/app/generated-worker-start.test.ts test/app/particle-effect-assets.test.ts`
 - `pnpm exec playwright test test/e2e/particle-bursts.spec.ts --reporter=line --timeout=60000`
 - `pnpm run typecheck:test`
 - `pnpm run check:examples`
@@ -47,31 +48,28 @@ slices while keeping racing and Shadow Lab working.
   `racing/node_modules/.vite`, relaunched with `pnpm exec aperture dev up
 --open --host 127.0.0.1 --port 5173`, and `browser_wait_for_webgpu` passed.
   Fresh `browser_status` showed `smoke-effect.runtimeFeatures` in the generated
-  asset summary and no runtime `lastError`/`lastFailure`.
-- User verified racing smoke is still visible after the cache-busted relaunch.
-- Shadow Lab managed status remained isolated and running at
-  `http://127.0.0.1:8861/`, CDP `9861`.
+  asset summary and no runtime `lastError`/`lastFailure`. Aperture MCP then
+  paused racing, held generated `drive=[1,1]`, stepped deterministic simulation
+  until drift crossed the smoke threshold, and `render_get_snapshot_summary`
+  reported `particleEmitters:2` with zero diagnostics. Inputs were reset and
+  ECS was resumed afterward.
+- Post-build managed racing health check: `browser_status` reported
+  `webgpuOk:true`, `lastError:null`, `lastFailure:null`; render diagnostics
+  reported zero diagnostics. Console tail showed only Vite reconnect messages
+  and the known Rapier deprecated initialization signature warning.
 
 ## Current Notes
 
 - Managed racing is running at `http://127.0.0.1:5173/` through Aperture dev.
-- Fresh console tail after relaunch shows only Vite connection logs and the
-  known Rapier deprecated initialization signature warning.
-- My attempted live smoke proof through MCP drive input was inconclusive because
-  the managed page reset input on `window-blur` before the car entered drift;
-  this was a tooling/focus issue, not a renderer failure. The user then verified
-  smoke is present.
-- Shadow Lab was not restarted and remains isolated from racing; it
-  typechecks/builds against the rebuilt workspace packages.
+- Shadow Lab was not restarted and remains isolated from racing; it typechecks
+  and builds against the rebuilt workspace packages.
 - Pre-existing untracked screenshot/parity artifacts remain outside the commit.
 
 ## Recommended Next Task
 
-Make particle bounds automatic for common V1 effects so app code does not have
-to guess `boundsRadius` for normal billboard smoke/burst cases. Use
-`references/engine/src/scene/particle-system/particle-emitter.js` for
-PlayCanvas bounds estimation and `references/bevy/crates/bevy_sprite/src/lib.rs`
-for system-derived sprite bounds and culling opt-out precedent.
+Run the post-port genericity and cleanup audit for all library APIs landed
+during the racing port. Keep fixes small and evidence-backed by PlayCanvas or
+Bevy where a capability is claimed as a generic engine feature.
 
 ---
 

@@ -150,7 +150,7 @@ export function validateParticleEmitterInput(
   const seed = emitter.seed ?? 1;
   const resetEpoch = emitter.resetEpoch ?? 0;
   const timeScale = emitter.timeScale ?? 1;
-  const boundsRadius = emitter.boundsRadius ?? 1;
+  const boundsRadius = emitter.boundsRadius ?? 0;
 
   if ((emitter.effectId ?? "").trim().length === 0) {
     diagnostics.push({
@@ -201,13 +201,13 @@ export function validateParticleEmitterInput(
   if (
     !Array.from(boundsCenter).every(Number.isFinite) ||
     !Number.isFinite(boundsRadius) ||
-    boundsRadius <= 0
+    boundsRadius < 0
   ) {
     diagnostics.push({
       code: "particle.invalidBounds",
       field: "bounds",
       message:
-        "Particle emitter bounds require a finite center and positive radius.",
+        "Particle emitter bounds require a finite center and a non-negative radius; radius 0 enables automatic bounds.",
     });
   }
 

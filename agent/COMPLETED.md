@@ -1,5 +1,47 @@
 # Completed Tasks
 
+## RACE-LIB-27 — Automatic particle bounds
+
+Completed: 2026-06-16 21:32 PDT
+Commit: current checkpoint commit
+
+### Summary
+
+- Made `boundsRadius: 0` the default automatic particle-bounds path for
+  renderer-authored particle emitters and worker-authored burst requests.
+- Derived continuous emitter bounds from effect billboard size, lifetime, start
+  speed, gravity travel, and emitter transform scale.
+- Derived burst bounds from spawn position, position jitter, velocity ranges,
+  gravity, lifetime, and particle billboard size, with explicit center/radius
+  overrides preserved for unusual effects.
+- Added particle extraction diagnostics for unavailable automatic bounds and
+  unusually large derived bounds.
+- Removed racing smoke's app-authored `boundsRadius`, leaving the in-game smoke
+  effect on the generic automatic path.
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/particle-emitter-extraction.test.ts test/app/particle-spawn.test.ts`
+- `pnpm exec prettier --check packages/app/src/systems/particles.ts packages/render/src/rendering/authoring-components-core.ts packages/render/src/rendering/authoring-create-particles.ts packages/render/src/rendering/authoring-types.ts packages/render/src/rendering/authoring-validation-effects.ts packages/render/src/rendering/extraction-particles.ts packages/render/src/rendering/particle-burst-queue.ts racing/src/systems/particles.system.ts test/app/particle-spawn.test.ts test/rendering/particle-emitter-extraction.test.ts racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md docs/research/PARTICLE_SYSTEM_AUDIT.md agent/BACKLOG.md agent/HANDOFF.md agent/COMPLETED.md docs/index.html docs/render-pipeline-comparison.html`
+- `pnpm run check:progress`
+- `git diff --check`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm exec playwright test test/e2e/particle-bursts.spec.ts --reporter=line --timeout=60000`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Managed Aperture racing proof: cache-busted restart on `127.0.0.1:5173`,
+  `browser_wait_for_webgpu` passed, ECS paused, generated `drive=[1,1]` held,
+  fixed simulation stepped into drift, and `render_get_snapshot_summary`
+  reported `particleEmitters:2` with zero diagnostics. Inputs were reset and
+  ECS resumed afterward.
+
 ## RACE-LIB-26 — Particle schema runtime feature reporting
 
 Completed: 2026-06-16 20:58 PDT

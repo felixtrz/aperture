@@ -30,6 +30,7 @@ export interface ParticleBurstRequest {
   readonly seed?: number;
   readonly timeScale?: number;
   readonly layerMask?: number;
+  readonly boundsCenter?: Vec3Like;
   readonly boundsRadius?: number;
 }
 
@@ -276,6 +277,9 @@ function normalizeRequest(request: ParticleBurstRequest): ParticleBurstRequest {
             max: tuple3(request.velocity.max),
           },
         }),
+    ...(request.boundsCenter === undefined
+      ? {}
+      : { boundsCenter: tuple3(request.boundsCenter) }),
   };
 }
 

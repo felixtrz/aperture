@@ -54,7 +54,6 @@ export default class ParticlesSystem extends createSystem({ priority: 125 }) {
       position: [wheel[0], groundY, wheel[2]],
       positionJitter: POSITION_JITTER,
       velocity: VELOCITY,
-      boundsRadius: 8,
     });
   }
 }
