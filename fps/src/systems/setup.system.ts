@@ -80,7 +80,7 @@ const GLTF_FRONT_SIDE_MATERIALS = {
 };
 // Preserve the GLB material render state. The weapon camera/layer pass makes
 // the viewmodel draw over the world while keeping normal depth for self-occlusion.
-export const WEAPON_VIEWMODEL_MATERIALS = {};
+export const WEAPON_VIEWMODEL_MATERIALS = {} as const;
 
 const PLAYER_SHADOW_MATERIAL_ID = "player.blob-shadow.material";
 const PLAYER_SHADOW_SAMPLER_ID = "player.blob-shadow.sampler";
