@@ -393,12 +393,21 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 20:30 UTC</dd>
+            <dd>2026-06-17 21:02 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: directional shadow auto-fit now selects the
+              Latest update: Starter Kit FPS now has a focused
+              <code>smoke:mechanics</code> Aperture MCP proof for the recent
+              gameplay input reports. The smoke starts a fresh managed session,
+              pauses and steps the generated simulation, and verifies primary
+              browser left-click shooting (<code>shotsFired</code> increments),
+              camera-yaw-relative W movement at -90 degrees
+              (<code>dx:1.099</code>, <code>dz:-0.012</code>), and browser
+              Space-tap jump behavior (<code>verticalVelocity:7</code>,
+              <code>jumpsRemaining:1</code>, <code>grounded:false</code>).
+              Prior update: directional shadow auto-fit now selects the
               default-target camera that overlaps visible standard shadow
               receivers before fitting the shadow footprint. Overlay and
               viewmodel cameras can no longer accidentally drive the
@@ -2727,6 +2736,17 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Added
+                <code>pnpm --dir fps run smoke:mechanics</code>, a focused
+                Aperture MCP smoke for Starter Kit FPS input mechanics. It
+                drives the managed browser/session through
+                <code>input_pointer_click</code>, <code>input_key</code>,
+                <code>ecs_step</code>, and <code>resource_get</code>, proving
+                primary left-click shooting, camera-yaw-relative forward
+                movement, and Space-tap jump behavior without running the full
+                route-clear script.
+              </li>
               <li>
                 <span class="badge green">fps</span> Added engine-level
                 multi-button pointer input. Aperture now tracks

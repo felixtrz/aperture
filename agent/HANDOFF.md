@@ -1,3 +1,50 @@
+# Handoff - FPS Mechanics Smoke Proof
+
+**Updated:** 2026-06-17 14:02 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Committed `c6a737f4` (`Add FPS mechanics smoke`).
+- Added `fps/scripts/mechanics-smoke.mjs` and `pnpm --dir fps run smoke:mechanics`.
+- The smoke uses the Aperture MCP stdio bridge and managed browser/session
+  tools to prove the exact recent gameplay concerns:
+  - primary browser left-click increments `shotsFired`;
+  - yaw-relative forward input at -90 degrees moves the player along +X with
+    negligible Z drift;
+  - a browser `Space` tap produces upward velocity, consumes one jump, and
+    leaves the player airborne.
+- The script starts a fresh managed FPS session by default, pauses/steps the
+  generated simulation deterministically, and cleans up the owned session.
+
+## Validation
+
+- `pnpm --dir fps run smoke:mechanics`
+  - `shoot {"before":0,"after":1}`
+  - `camera-relative-forward {"yaw":-1.56,"dx":1.099,"dz":-0.012}`
+  - `jump {"verticalVelocity":7,"jumpsRemaining":1,"grounded":false}`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `git diff --check -- fps/package.json fps/scripts/mechanics-smoke.mjs`
+
+## Known Issues
+
+- The focused mechanics smoke proves the current input mechanics, but it does
+  not compare every platform jump trajectory against the upstream Godot scene.
+  Keep using `pnpm --dir fps run smoke:full-clear` for full route coverage.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+
+## Recommended Next Task
+
+Continue FPS-visible source parity. If the user still cannot reach a platform,
+compare the target platform spacing/collider geometry against the source scene
+using the new mechanics smoke plus the full-clear route as guardrails.
+
+---
+
 # Handoff - FPS Primary Shoot Coverage and Weapon Calibration Guard
 
 **Updated:** 2026-06-17 13:54 PDT

@@ -1,5 +1,28 @@
 # Completed Tasks
 
+## FPS-PORT - Mechanics smoke proof
+
+Completed: 2026-06-17 14:02 PDT
+
+### Summary
+
+- Added `pnpm --dir fps run smoke:mechanics`, a focused Aperture MCP smoke for
+  the recent FPS gameplay concerns.
+- The smoke proves primary browser left-click shooting, camera-yaw-relative
+  forward movement, and browser Space-tap jump behavior in the generated
+  simulation worker.
+- Kept the script deterministic by pausing the app, using `ecs_step`, and
+  reading `fps.state` through `resource_get`.
+
+### Validation
+
+- `pnpm --dir fps run smoke:mechanics`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `git diff --check -- fps/package.json fps/scripts/mechanics-smoke.mjs`
+
 ## FPS-PORT - Primary mouse shoot coverage
 
 Completed: 2026-06-17 13:54 PDT

@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "145a95bb",
+  "lastCommit": "c6a737f4",
   "activePid": null,
-  "notes": "Committed primary mouse shooting coverage and kept the weapon viewmodel material override readonly-empty. Rechecked source movement values and preserved the calibrated Aperture weapon runtime position instead of the source-literal transform, which moved the gun too close to center in a live screenshot. Focused tests, app typechecks, and managed FPS/racing/shadow-lab diagnostics passed.",
-  "lastRunFinishedAt": "2026-06-17T20:54:00Z"
+  "notes": "Added pnpm --dir fps run smoke:mechanics, a focused Aperture MCP smoke proving primary browser click shooting, camera-yaw-relative forward movement, and browser Space-tap jump behavior through paused ecs_step/resource_get. FPS typecheck/build plus racing and shadow-lab typechecks passed.",
+  "lastRunFinishedAt": "2026-06-17T21:02:00Z"
 }
