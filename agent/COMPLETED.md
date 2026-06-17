@@ -1,5 +1,67 @@
 # Completed Tasks
 
+## FPS-PORT — Input tap reliability
+
+Completed: 2026-06-17 11:45 PDT
+
+### Summary
+
+- Fixed short FPS button taps that could be missed when browser down/up events
+  landed before the worker consumed a gameplay frame.
+- Delayed HUD keyboard and instant pointer releases within a short tap window
+  below the fastest source weapon cooldown.
+- Promoted FPS `jump` and `shoot` press commands directly into the existing
+  gameplay buffers when the player system drains HUD commands.
+
+### Validation
+
+- Live Aperture proof: left-click canvas capture reported `shotsFired:1` on the
+  following worker status read.
+- Live Aperture proof: after yaw rotation to about `-5.57`, holding `KeyW`
+  moved the player to approximately `x:-2.22, z:-2.59`, proving camera-relative
+  movement.
+- Live Aperture proof: a standalone quick Space tap reported
+  `verticalVelocity:5`, `jumpsRemaining:1`, and `grounded:false`.
+- `pnpm exec vitest run test/app/fps-hud.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+
+## FPS-PORT — Weapon viewmodel placement calibration
+
+Completed: 2026-06-17 11:41 PDT
+
+### Summary
+
+- Recalibrated the Aperture runtime weapon overlay position against the Starter
+  Kit FPS source screenshot so the blaster is tucked into the lower-right
+  viewport corner.
+- Preserved the extracted source constants from
+  `objects/player.tscn`, `objects/player.gd`, and `weapons/blaster.tres`,
+  including `SOURCE_WEAPON_CONTAINER_OFFSET`, source weapon camera FOV, source
+  model rotation, and source muzzle position.
+- Updated focused source-data coverage for the runtime-calibrated
+  `FPS_WEAPON_VIEW_POSITION`.
+
+### Validation
+
+- Live Aperture proof: initial screenshot
+  `/tmp/fps-viewmodel-adjusted.png` showed the weapon in the lower-right overlay
+  corner.
+- Live Aperture proof: pointer-lock look-down screenshot
+  `/tmp/fps-viewmodel-look-down.png` kept the weapon in the overlay corner with
+  no render errors.
+- Live Aperture proof: `render_get_frame_report` reported `views:2`,
+  `meshDraws:21`, `shadowCasterDraws:44`, shadow caster draw list `44`, and
+  diagnostics `0`.
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-setup.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir fps run smoke:skybox-readback`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+
 ## FPS-PORT — Escape mouse-capture release
 
 Completed: 2026-06-17 11:22 PDT

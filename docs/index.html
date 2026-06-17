@@ -393,12 +393,30 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 18:22 UTC</dd>
+            <dd>2026-06-17 18:45 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS Escape now matches the source
+              Latest update: Starter Kit FPS short button taps now stay visible
+              to the worker frame loop. HUD keyboard and instant pointer
+              releases are delayed below the fastest source weapon cooldown,
+              and FPS jump/shoot press commands feed the existing gameplay
+              buffers directly. Live Aperture proof showed left-click shooting
+              incrementing <code>shotsFired</code>, yaw-relative
+              <code>KeyW</code> movement after a mouse-look rotation, and a
+              quick Space tap producing a positive jump state. Prior update:
+              Starter Kit FPS weapon viewmodel placement was
+              recalibrated against the source lower-right screenshot framing
+              while preserving the extracted Godot source offset constants. The
+              runtime overlay position now keeps the blaster tucked into the
+              lower-right viewport corner in both the initial view and a
+              pointer-lock look-down proof. Live Aperture proof reported
+              WebGPU OK, <code>views:2</code>, <code>meshDraws:21</code>,
+              <code>shadowCasterDraws:44</code>, shadow caster draw-list
+              consumption of <code>44</code>, and diagnostics
+              <code>0</code>. Prior update: Starter Kit FPS Escape now matches
+              the source
               <code>mouse_capture_exit</code> input. The HUD clears pointer-lock
               look state, releases active pointer-lock shooting, and exits
               pointer lock when the canvas is captured. Aperture CLI
@@ -2654,6 +2672,24 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Fixed short FPS
+                button-tap reliability. The HUD keeps tap releases visible long
+                enough for the worker to consume them, and player-system
+                command draining now buffers jump/shoot press commands
+                immediately. Live Aperture proof covered click shooting,
+                camera-relative movement after look rotation, and a quick Space
+                jump.
+              </li>
+              <li>
+                <span class="badge green">fps</span> Recalibrated the Starter
+                Kit FPS weapon overlay placement against the source screenshot
+                so the blaster stays tucked into the lower-right viewport
+                corner. Live Aperture proof captured the initial view and a
+                pointer-lock look-down view with WebGPU OK, two views,
+                <code>21</code> visible mesh draws, <code>44</code> shadow
+                caster draws, and zero diagnostics.
+              </li>
               <li>
                 <span class="badge green">fps</span> Added source Escape
                 mouse-capture release and CLI pointer-lock status proof. Left

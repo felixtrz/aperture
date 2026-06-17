@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "f69a4906",
+  "lastCommit": "5cbb4823",
   "activePid": null,
-  "notes": "Aligned FPS Escape mouse-capture exit with Starter Kit FPS project.godot, added pointer-lock state to browser_status for managed proof, and reproved click capture plus Escape release through Aperture CLI without extra shots.",
-  "lastRunFinishedAt": "2026-06-17T18:22:16Z"
+  "notes": "Fixed FPS short button taps by delaying HUD releases below the fastest source weapon cooldown and buffering HUD jump/shoot press commands in the player system; live Aperture proofs covered click shooting, yaw-relative W movement, and a quick Space jump.",
+  "lastRunFinishedAt": "2026-06-17T18:45:48Z"
 }

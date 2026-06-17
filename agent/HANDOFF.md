@@ -1,3 +1,114 @@
+# Handoff - FPS Input Tap Reliability
+
+**Updated:** 2026-06-17 11:45 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Fixed short FPS button taps that could be missed by the worker frame loop:
+  - Source anchors checked:
+    `references/Starter-Kit-FPS/objects/player.gd` and
+    `references/Starter-Kit-FPS/project.godot`.
+  - HUD keyboard and instant pointer actions now keep releases delayed for a
+    short tap window below the fastest source weapon cooldown, so browser
+    down/up pairs remain visible to the worker.
+  - FPS player command draining now promotes `jump` and `shoot` press commands
+    directly into the existing jump/shoot buffers, matching Godot-style
+    `is_action_just_pressed` behavior more closely.
+- Live Aperture CLI proof:
+  - `browser_wait_for_webgpu` passed at `http://127.0.0.1:5173/` with WebGPU OK,
+    no `lastError`, and no `lastFailure`.
+  - `input_pointer_click {"x":0.5,"y":0.5,"button":"left"}` locked the canvas;
+    the following worker status reported `shotsFired:1`.
+  - After virtual mouse-look rotation to yaw about `-5.57`, holding `KeyW`
+    moved the player to approximately `x:-2.22, z:-2.59`, proving movement is
+    relative to camera/player yaw instead of fixed world -Z.
+  - A standalone quick `input_key {"key":"Space","action":"press"}` after the
+    fix reported a positive jump state (`verticalVelocity:5`,
+    `jumpsRemaining:1`, `grounded:false`) through the managed CLI path. Later
+    clean-reset attempts were interrupted by the short-lived foreground daemon
+    session, so the successful jump proof is from the live grounded state rather
+    than a full reset script.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-hud.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+
+## Known Issues
+
+- In this command-runner environment, `aperture dev up` detached sessions and
+  foreground `aperture dev daemon` sessions were repeatedly terminated after a
+  short interval. Running `aperture dev daemon` foreground was still sufficient
+  for managed CLI proofs, but long scripted live proofs should keep diagnostics
+  visible and avoid filtering away tool failure wrappers.
+- Pre-existing untracked screenshot/parity artifacts remain outside the commit.
+
+## Recommended Next Task
+
+Continue the user-directed FPS parity stream with another visible source-facing
+slice, or return to the backlog's `task-3097` PMREM GGX/VNDF prefilter slice
+when the FPS/shadow interruptions are complete.
+
+---
+
+# Handoff - FPS Weapon Viewmodel Placement
+
+**Updated:** 2026-06-17 11:41 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Recalibrated the Starter Kit FPS weapon overlay runtime placement against the
+  source screenshot framing:
+  - Source anchors checked:
+    `references/Starter-Kit-FPS/objects/player.tscn`,
+    `references/Starter-Kit-FPS/objects/player.gd`,
+    `references/Starter-Kit-FPS/weapons/blaster.tres`, and
+    `references/Starter-Kit-FPS/screenshots/screenshot.png`.
+  - The extracted source transform constants remain intact:
+    `SOURCE_WEAPON_CONTAINER_OFFSET` is `[1.2, -1.1, -2.75]`, source weapon
+    camera FOV is `40`, and source weapon rotation remains `[0, 180, 0]`.
+  - Aperture's GLB/root-transform and WebGPU overlay projection path now uses a
+    runtime-calibrated `FPS_WEAPON_VIEW_POSITION` of `[2.75, -1.2, -2.75]`,
+    keeping the gun tucked farther into the lower-right viewport corner like the
+    source screenshot.
+- Live Aperture CLI proof:
+  - `browser_wait_for_webgpu` passed at `http://127.0.0.1:5173/` with WebGPU OK,
+    no `lastError`, and no `lastFailure`.
+  - Initial screenshot proof wrote `/tmp/fps-viewmodel-adjusted.png`; the
+    blaster appears in the lower-right overlay rather than near the center.
+  - Pointer-lock look-down proof wrote `/tmp/fps-viewmodel-look-down.png`; the
+    weapon stayed in the overlay corner while the camera rotated.
+  - `render_get_frame_report` after the look proof reported `views:2`,
+    `meshDraws:21`, `shadowCasterDraws:44`, one skybox, one sprite draw,
+    diagnostics `0`, and a shadow caster draw list consuming all `44` caster
+    draws with zero shadow diagnostics.
+  - The live app was reset afterward: `pointerLock.locked:false`,
+    `shotsFired:0`, `playerX:0`, and `playerZ:0`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-setup.test.ts`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir fps run smoke:skybox-readback`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+
+## Known Issues
+
+- Pre-existing untracked screenshot/parity artifacts remain outside the commit.
+
+## Recommended Next Task
+
+Continue the user-directed FPS parity stream with another visible source-facing
+slice, or return to the backlog's `task-3097` PMREM GGX/VNDF prefilter slice
+when the FPS/shadow interruptions are complete.
+
+---
+
 # Handoff - FPS Escape Mouse Release
 
 **Updated:** 2026-06-17 11:22 PDT
