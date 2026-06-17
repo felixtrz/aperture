@@ -297,6 +297,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       textureId: "muzzle-burst",
       size: SOURCE_PLAYER_MUZZLE_SPRITE_SIZE,
       blendMode: SpriteBlendMode.Additive,
+      depthMode: SpriteDepthMode.Disabled,
     });
 
     for (let index = 0; index < IMPACT_EFFECT_SLOT_COUNT; index += 1) {
