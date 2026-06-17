@@ -1,11 +1,50 @@
-# Handoff - Starter Kit FPS Player Muzzle Sprite
+# Handoff - Starter Kit FPS HUD Source Styling
 
-**Updated:** 2026-06-17 05:24 PDT
+**Updated:** 2026-06-17 05:35 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Aligned Starter Kit FPS HUD styling with source scene/script data:
+  - `references/Starter-Kit-FPS/scenes/main.tscn` scales the 128px crosshair
+    texture by `0.35`, so the source crosshair renders at `44.8px`.
+  - The source health label uses `font_size = 36`, `outline_size = 12`,
+    outline alpha `0.470588`, a `45px` line-height-sized rect, and `48px`
+    left/bottom offsets.
+  - The port now writes those values through explicit HUD source constants and
+    CSS variables, while keeping the generated app HUD as DOM overlay state
+    derived from ECS health.
+  - The health formatter now clamps negative health to `0%` and falls back to
+    `100%` for non-finite values.
+- Focused coverage:
+  - Added `test/app/fps-hud.test.ts` for source HUD constants, health text
+    formatting, and CSS variable emission.
+- Aperture proof:
+  - Reused the managed FPS app through
+    `pnpm --dir fps exec aperture dev up --headless` and waited for WebGPU
+    through Aperture CLI.
+  - Captured `.aperture/runtime/fps-hud-source-proof.png`, visually confirming
+    the source-sized centered crosshair and large outlined lower-left health
+    text.
+  - `render_get_frame_report {"summaryOnly":true}` and MCP
+    `render_get_frame_report` both reported one live view, 19 mesh draws,
+    `skyboxes:1`, `fogs:1`, 33 draw calls, and diagnostics `0`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-hud.test.ts test/app/fps-effects.test.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-input-config.test.ts`
+    passed 32 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - `b5496245` — `Align FPS HUD source styling`
+
+## Previous Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS player muzzle sprite sizing with source scene data:
   - `references/Starter-Kit-FPS/objects/player.tscn` uses an
@@ -47,7 +86,7 @@ previous working state so the old state remains recoverable.
   - `815d6af6` — `Align FPS player muzzle sprite size`
   - `69c929e8` — `Align FPS player muzzle overlay depth`
 
-## Previous Completed FPS/Tooling Slices
+## Earlier Completed FPS/Tooling Slices
 
 - Hardened Starter Kit FPS shooting input for fast click/release cases:
   - The player system now stores a short `0.08s` shoot buffer when the generated

@@ -393,12 +393,23 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 12:24 UTC</dd>
+            <dd>2026-06-17 12:35 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS player muzzle sprite size now
+              Latest update: Starter Kit FPS HUD styling now matches source
+              scene/script constants. The source 128px crosshair texture is
+              scaled by <code>0.35</code>, deriving a <code>44.8px</code>
+              rendered crosshair; the health label now uses source
+              <code>36px</code> text, <code>45px</code> line height,
+              <code>12px</code> black outline, <code>0.470588</code> outline
+              alpha, and <code>48px</code> left/bottom offsets. Focused HUD
+              tests cover the constants, health formatting, and CSS variable
+              emission. Aperture CLI/MCP proof reported one live WebGPU view,
+              19 mesh draws, <code>skyboxes:1</code>, <code>fogs:1</code>, 33
+              draw calls, and diagnostics <code>0</code>. Prior update:
+              Starter Kit FPS player muzzle sprite size now
               matches source scene data. The source player muzzle uses 256px
               <code>burst.png</code> atlas frames with default
               <code>SpriteBase3D.pixel_size = 0.01</code>, deriving a
@@ -2390,6 +2401,17 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned Starter Kit FPS
+                HUD styling with source scene/script constants: the crosshair
+                now uses the source-derived <code>44.8px</code> size, and the
+                health label uses source <code>36px</code> text,
+                <code>45px</code> line height, <code>12px</code> outline,
+                <code>0.470588</code> outline alpha, and <code>48px</code>
+                left/bottom offsets. Aperture CLI/MCP proof reported one live
+                WebGPU view, 19 mesh draws, 33 draw calls, and diagnostics
+                <code>0</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned player muzzle
                 sprite size and overlay depth with source behavior:

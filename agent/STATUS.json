@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "69c929e8",
+  "lastCommit": "b5496245",
   "activePid": null,
-  "notes": "Aligned Starter Kit FPS player muzzle sprite size and overlay depth with source, proved effect.muzzle-burst size/depth/runtime scale through Aperture CLI, and kept fps/racing/shadow-lab green.",
-  "lastRunFinishedAt": "2026-06-17T12:24:31Z"
+  "notes": "Aligned Starter Kit FPS HUD crosshair and health label styling with source scene/script constants, proved the live FPS route through Aperture CLI and MCP frame reports, and kept fps/racing/shadow-lab green.",
+  "lastRunFinishedAt": "2026-06-17T12:35:00Z"
 }

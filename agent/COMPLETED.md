@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## FPS-PORT — HUD source styling
+
+Completed: 2026-06-17 05:35 PDT
+Commit: `b5496245`
+
+### Summary
+
+- Matched upstream Starter Kit FPS HUD constants from
+  `references/Starter-Kit-FPS/scenes/main.tscn` and
+  `references/Starter-Kit-FPS/scripts/hud.gd`.
+- The source crosshair uses a 128px texture scaled by `0.35`, deriving a
+  `44.8px` rendered size.
+- The source health label uses `font_size = 36`, `outline_size = 12`, outline
+  alpha `0.470588`, `45px` line height, and `48px` left/bottom offsets.
+- Added explicit HUD source constants, wrote them through CSS variables, and
+  kept health text formatting derived from ECS health state.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-hud.test.ts test/app/fps-effects.test.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-input-config.test.ts`
+  passed 32 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture CLI/MCP proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed in the managed FPS session with
+    diagnostics `0`.
+  - `.aperture/runtime/fps-hud-source-proof.png` showed the source-sized
+    centered crosshair and outlined lower-left health text.
+  - CLI and MCP `render_get_frame_report {"summaryOnly":true}` reported one
+    view, 19 mesh draws, `skyboxes:1`, `fogs:1`, 33 draw calls, and
+    diagnostics `0`.
+
 ## FPS-PORT — Player muzzle sprite
 
 Completed: 2026-06-17 05:24 PDT
