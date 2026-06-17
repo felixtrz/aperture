@@ -18,6 +18,7 @@ import type {
   QuadBillboardMode,
   QuadBlendMode,
   QuadCoordinateMode,
+  QuadDepthMode,
   QuadPipelineVariant,
   QuadSizeMode,
 } from "./quad-snapshot.js";
@@ -104,6 +105,7 @@ export interface QuadBatchPacket {
   readonly billboardMode: QuadBillboardMode;
   readonly sizeMode: QuadSizeMode;
   readonly blendMode: QuadBlendMode;
+  readonly depthMode?: QuadDepthMode;
   readonly firstInstance: number;
   readonly instanceCount: number;
   readonly layerMask: number;

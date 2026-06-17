@@ -84,6 +84,14 @@ export const SpriteBlendMode = {
 export type SpriteBlendMode =
   (typeof SpriteBlendMode)[keyof typeof SpriteBlendMode];
 
+export const SpriteDepthMode = {
+  Test: "test",
+  Disabled: "disabled",
+} as const;
+
+export type SpriteDepthMode =
+  (typeof SpriteDepthMode)[keyof typeof SpriteDepthMode];
+
 export const ParticleSimulationSpace = {
   World: "world",
   Local: "local",
@@ -271,6 +279,7 @@ export interface SpriteInput {
   readonly billboardMode?: SpriteBillboardMode;
   readonly sizeMode?: SpriteSizeMode;
   readonly blendMode?: SpriteBlendMode;
+  readonly depthMode?: SpriteDepthMode;
 }
 
 export interface ParticleEmitterInput {
@@ -465,6 +474,7 @@ export type RenderAuthoringDiagnosticCode =
   | "sprite.invalidBillboardMode"
   | "sprite.invalidSizeMode"
   | "sprite.invalidBlendMode"
+  | "sprite.invalidDepthMode"
   | "particle.invalidEffect"
   | "particle.invalidCapacity"
   | "particle.invalidSeed"

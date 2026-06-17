@@ -41,6 +41,7 @@ export type {
   QuadBillboardMode,
   QuadBlendMode,
   QuadCoordinateMode,
+  QuadDepthMode,
   QuadInstanceFlagsInput,
   QuadPipelineVariant,
   QuadSizeMode,

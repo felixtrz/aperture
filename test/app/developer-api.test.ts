@@ -1891,6 +1891,7 @@ describe("developer-facing app API", () => {
         billboardMode: "cylindrical",
         sizeMode: "screen-pixels",
         blendMode: "additive",
+        depthMode: "disabled",
       }),
     );
     const sprite = runner.entities.find({
@@ -1925,6 +1926,7 @@ describe("developer-facing app API", () => {
         billboardMode: "cylindrical",
         sizeMode: "screen-pixels",
         blendMode: "additive",
+        depthMode: "disabled",
       },
     });
 

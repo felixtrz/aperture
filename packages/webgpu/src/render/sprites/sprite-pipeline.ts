@@ -142,10 +142,13 @@ export interface CreateSpriteRenderPipelineResourceOptions {
   readonly device: SpriteRenderPipelineDeviceLike;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly depthMode?: SpritePipelineDepthMode;
   readonly sampleCount?: number;
   readonly tonemap?: TonemapOperator;
   readonly outputColorSpace?: OutputColorSpace;
 }
+
+export type SpritePipelineDepthMode = "test" | "disabled";
 
 export type SpriteRenderPipelineDiagnosticCode =
   | "spriteRenderPipeline.shaderDiagnostic"
@@ -184,6 +187,7 @@ export async function createSpriteRenderPipelineResource(
   // non-HDR path).
   const tonemap = options.tonemap ?? "none";
   const outputColorSpace = options.outputColorSpace ?? "linear";
+  const depthMode = options.depthMode ?? "test";
   const shaderModule = await createWebGpuShaderModule({
     device: options.device,
     descriptor: {
@@ -238,6 +242,7 @@ export async function createSpriteRenderPipelineResource(
     ...(options.depthFormat === undefined
       ? {}
       : { depthFormat: options.depthFormat }),
+    depthMode,
   });
 
   try {
@@ -250,6 +255,7 @@ export async function createSpriteRenderPipelineResource(
           options.sampleCount ?? 1,
           tonemap,
           outputColorSpace,
+          depthMode,
         ),
         shaderModule: shaderModule.module,
         pipeline: options.device.createRenderPipeline(descriptor),
@@ -281,6 +287,7 @@ export function spritePipelineCacheKey(
   sampleCount = 1,
   tonemap: TonemapOperator = "none",
   outputColorSpace: OutputColorSpace = "linear",
+  depthMode: SpritePipelineDepthMode = "test",
 ): string {
   // Only differentiate the key when the output stage is actually applied. none +
   // linear is the no-op (HDR-scene-buffer) path — matching applyOutputStageToFragmentWgsl
@@ -290,13 +297,16 @@ export function spritePipelineCacheKey(
       ? ""
       : `:${createTonemapPipelineKey(tonemap)}:${createOutputColorSpacePipelineKey(outputColorSpace)}`;
 
-  return `${SPRITE_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}${outputStage}`;
+  const depthModeKey = depthMode === "test" ? "" : `:depth-${depthMode}`;
+
+  return `${SPRITE_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}${outputStage}${depthModeKey}`;
 }
 
 function createBrowserSpriteRenderPipelineDescriptor(input: {
   readonly shaderModule: unknown;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly depthMode?: SpritePipelineDepthMode;
   readonly sampleCount?: number;
 }): WebGpuRenderPipelineCreateDescriptor {
   return {
@@ -343,7 +353,8 @@ function createBrowserSpriteRenderPipelineDescriptor(input: {
           depthStencil: {
             format: input.depthFormat,
             depthWriteEnabled: false,
-            depthCompare: "less",
+            depthCompare:
+              input.depthMode === "disabled" ? "always" : "less",
           },
         }),
   };

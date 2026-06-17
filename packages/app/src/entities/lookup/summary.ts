@@ -25,6 +25,7 @@ import {
   SpriteBillboardMode,
   SpriteBlendMode,
   SpriteCoordinateMode,
+  SpriteDepthMode,
   SpriteSizeMode,
 } from "@aperture-engine/render";
 import type { EcsWorld, Entity } from "@aperture-engine/simulation";
@@ -237,6 +238,7 @@ function renderSpriteSummary(entity: Entity): ApertureRenderSpriteSummary {
   const billboardMode = entity.getValue(Sprite, "billboardMode");
   const sizeMode = entity.getValue(Sprite, "sizeMode");
   const blendMode = entity.getValue(Sprite, "blendMode");
+  const depthMode = entity.getValue(Sprite, "depthMode");
 
   return {
     textureId: entity.getValue(Sprite, "textureId") ?? "",
@@ -256,6 +258,7 @@ function renderSpriteSummary(entity: Entity): ApertureRenderSpriteSummary {
       : SpriteBillboardMode.Spherical,
     sizeMode: isSpriteSizeMode(sizeMode) ? sizeMode : SpriteSizeMode.WorldUnits,
     blendMode: isSpriteBlendMode(blendMode) ? blendMode : SpriteBlendMode.Alpha,
+    depthMode: isSpriteDepthMode(depthMode) ? depthMode : SpriteDepthMode.Test,
   };
 }
 
@@ -558,6 +561,10 @@ function isSpriteSizeMode(value: unknown): value is SpriteSizeMode {
 
 function isSpriteBlendMode(value: unknown): value is SpriteBlendMode {
   return typeof value === "string" && stringValueIn(value, SpriteBlendMode);
+}
+
+function isSpriteDepthMode(value: unknown): value is SpriteDepthMode {
+  return typeof value === "string" && stringValueIn(value, SpriteDepthMode);
 }
 
 function stringValueIn(

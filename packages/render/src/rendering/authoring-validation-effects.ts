@@ -4,6 +4,7 @@ import {
   SpriteBillboardMode,
   SpriteBlendMode,
   SpriteCoordinateMode,
+  SpriteDepthMode,
   SpriteSizeMode,
   type FogInput,
   type ParticleEmitterInput,
@@ -35,6 +36,7 @@ export function validateSpriteInput(
   const billboardMode = sprite.billboardMode ?? SpriteBillboardMode.Spherical;
   const sizeMode = sprite.sizeMode ?? SpriteSizeMode.WorldUnits;
   const blendMode = sprite.blendMode ?? SpriteBlendMode.Alpha;
+  const depthMode = sprite.depthMode ?? SpriteDepthMode.Test;
   const diagnostics: RenderAuthoringDiagnostic[] = [];
 
   if (textureId.trim().length === 0) {
@@ -134,6 +136,14 @@ export function validateSpriteInput(
       field: "blendMode",
       message:
         "Sprite blendMode must be 'opaque', 'alpha', 'additive', or 'multiply'.",
+    });
+  }
+
+  if (!Object.values(SpriteDepthMode).includes(depthMode as SpriteDepthMode)) {
+    diagnostics.push({
+      code: "sprite.invalidDepthMode",
+      field: "depthMode",
+      message: "Sprite depthMode must be 'test' or 'disabled'.",
     });
   }
 

@@ -3,6 +3,7 @@ import type {
   QuadBillboardMode,
   QuadBlendMode,
   QuadCoordinateMode,
+  QuadDepthMode,
   QuadPipelineVariant,
   QuadSizeMode,
 } from "./quad-snapshot.js";
@@ -46,7 +47,7 @@ export function writeQuadBatchPacket(
   words[offset + 19] = registry.stringId(packet.sortKey.meshKey);
   writeFloat64(words, offset + 20, packet.sortKey.depth);
   words[offset + 22] = packet.sortKey.stableId >>> 0;
-  words[offset + 23] = 0;
+  words[offset + 23] = quadDepthModeId(packet.depthMode ?? "test");
 }
 
 export function readQuadBatchPacket(
@@ -60,6 +61,7 @@ export function readQuadBatchPacket(
   const sampler = readNullableHandle(registry, words[offset + 3] ?? 0, [
     "sampler",
   ]);
+  const depthMode = quadDepthModeValue(words[offset + 23] ?? 0);
   const packet: QuadBatchPacket = {
     batchId: words[offset] ?? 0,
     kind: quadBatchKindValue(words[offset + 1] ?? 0),
@@ -69,6 +71,7 @@ export function readQuadBatchPacket(
     billboardMode: quadBillboardModeValue(words[offset + 7] ?? 0),
     sizeMode: quadSizeModeValue(words[offset + 8] ?? 0),
     blendMode: quadBlendModeValue(words[offset + 9] ?? 0),
+    ...(depthMode === "test" ? {} : { depthMode }),
     firstInstance: words[offset + 10] ?? 0,
     instanceCount: words[offset + 11] ?? 0,
     layerMask: words[offset + 12] ?? 0,
@@ -245,5 +248,26 @@ function quadBlendModeValue(id: number): QuadBlendMode {
       return "multiply";
     default:
       throw new RangeError(`Unknown quad blend mode id '${id}'.`);
+  }
+}
+
+function quadDepthModeId(mode: QuadDepthMode): number {
+  switch (mode) {
+    case "test":
+      return 1;
+    case "disabled":
+      return 2;
+  }
+}
+
+function quadDepthModeValue(id: number): QuadDepthMode {
+  switch (id) {
+    case 0:
+    case 1:
+      return "test";
+    case 2:
+      return "disabled";
+    default:
+      throw new RangeError(`Unknown quad depth mode id '${id}'.`);
   }
 }

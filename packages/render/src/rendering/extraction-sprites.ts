@@ -194,6 +194,7 @@ export function extractSpriteDraws(
       billboardMode: input.billboardMode ?? SpriteBillboardMode.Spherical,
       sizeMode: input.sizeMode ?? SpriteSizeMode.WorldUnits,
       blendMode: input.blendMode ?? SpriteBlendMode.Alpha,
+      depthMode: input.depthMode ?? "test",
       firstInstance,
       instanceCount: 1,
       layerMask,

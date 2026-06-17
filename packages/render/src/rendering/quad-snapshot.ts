@@ -22,6 +22,7 @@ export type QuadPipelineVariant =
   | "msdf-text"
   | "particle";
 export type QuadBlendMode = "opaque" | "alpha" | "additive" | "multiply";
+export type QuadDepthMode = "test" | "disabled";
 
 export interface QuadSnapshotBuffers {
   readonly version: typeof QUAD_SNAPSHOT_ABI_VERSION;

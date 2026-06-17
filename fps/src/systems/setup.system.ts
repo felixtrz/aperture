@@ -12,6 +12,7 @@ import {
 import {
   Sprite,
   SpriteBlendMode,
+  SpriteDepthMode,
   createDefaultRenderState,
   createSamplerAsset,
   createSprite,
@@ -277,6 +278,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       textureId: "impact-hit",
       size: [0.85, 0.85],
       blendMode: SpriteBlendMode.Alpha,
+      depthMode: SpriteDepthMode.Disabled,
     });
 
     for (const index of ENEMY_MUZZLE_OFFSETS.keys()) {
@@ -296,6 +298,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     readonly textureId: string;
     readonly size: readonly [number, number];
     readonly blendMode: SpriteBlendMode;
+    readonly depthMode?: SpriteDepthMode;
   }): void {
     const entity = this.createEntity();
     entity.addComponent(Enabled, { value: true });
@@ -315,6 +318,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         size: input.size,
         color: [1, 1, 1, 0],
         blendMode: input.blendMode,
+        ...(input.depthMode === undefined ? {} : { depthMode: input.depthMode }),
       }),
       );
   }

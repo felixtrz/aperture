@@ -7,6 +7,7 @@ import {
   SpriteBillboardMode,
   SpriteBlendMode,
   SpriteCoordinateMode,
+  SpriteDepthMode,
   SpriteSizeMode,
   type FogInput,
   type SkyboxInput,
@@ -37,6 +38,7 @@ export function createSprite(
     billboardMode: input.billboardMode ?? SpriteBillboardMode.Spherical,
     sizeMode: input.sizeMode ?? SpriteSizeMode.WorldUnits,
     blendMode: input.blendMode ?? SpriteBlendMode.Alpha,
+    depthMode: input.depthMode ?? SpriteDepthMode.Test,
   };
 }
 

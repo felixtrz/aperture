@@ -78,6 +78,47 @@ describe("sprite billboard WebGPU pipeline", () => {
       }),
     ]);
   });
+
+  it("can build a depth-disabled sprite pipeline for source-style overlay effects", async () => {
+    const renderPipelineDescriptors: unknown[] = [];
+    const device: SpriteRenderPipelineDeviceLike = {
+      createShaderModule: () => ({
+        compilationInfo: async () => ({ messages: [] }),
+      }),
+      createRenderPipeline: (descriptor) => {
+        renderPipelineDescriptors.push(descriptor);
+        return { getBindGroupLayout: (group: number) => ({ group }) };
+      },
+    };
+
+    const result = await createSpriteRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      depthMode: "disabled",
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.resource?.cacheKey).toBe(
+      spritePipelineCacheKey(
+        "bgra8unorm",
+        "depth24plus",
+        1,
+        "none",
+        "linear",
+        "disabled",
+      ),
+    );
+    expect(renderPipelineDescriptors).toEqual([
+      expect.objectContaining({
+        depthStencil: {
+          format: "depth24plus",
+          depthWriteEnabled: false,
+          depthCompare: "always",
+        },
+      }),
+    ]);
+  });
 });
 
 describe("sprite pipeline output-stage tonemap/encode (AI-17)", () => {

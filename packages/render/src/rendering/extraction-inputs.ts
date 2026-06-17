@@ -205,6 +205,9 @@ export function spriteInput(entity: Entity): SpriteInput {
       | "alpha"
       | "additive"
       | "multiply",
+    depthMode: (entity.getValue(Sprite, "depthMode") ?? "test") as
+      | "test"
+      | "disabled",
   };
 }
 

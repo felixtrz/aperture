@@ -5,6 +5,7 @@ import {
   type PackedSnapshotTransforms,
   type PackedSnapshotViewUniforms,
   type QuadBatchPacket,
+  type QuadDepthMode,
   type RenderSnapshot,
   type SpriteDrawPacket,
 } from "@aperture-engine/render";
@@ -68,6 +69,7 @@ interface SpriteRenderBatch {
   readonly renderId: number;
   readonly texture: SpriteDrawPacket["texture"];
   readonly sampler?: SpriteDrawPacket["sampler"];
+  readonly depthMode: QuadDepthMode;
   readonly firstInstance: number;
   readonly instanceCount: number;
 }
@@ -97,12 +99,46 @@ export async function prepareSpriteFrameResourcesForSnapshot(options: {
     };
   }
 
-  const pipeline = await getOrCreateWebGpuAppSpritePipeline(
-    options.app,
-    options.cache,
+  const pipelineResults = new Map<
+    QuadDepthMode,
+    CreateSpriteRenderPipelineResourceResult
+  >();
+
+  for (const depthMode of spriteDepthModesForSnapshot(
+    options.snapshot,
+    spriteDraws,
+  )) {
+    pipelineResults.set(
+      depthMode,
+      await getOrCreateWebGpuAppSpritePipeline(
+        options.app,
+        options.cache,
+        depthMode,
+      ),
+    );
+  }
+
+  const pipeline = pipelineResults.values().next().value ?? null;
+  const invalidPipelines = Array.from(pipelineResults.values()).filter(
+    (candidate) => !candidate.valid || candidate.resource === null,
   );
 
-  if (!pipeline.valid || pipeline.resource === null) {
+  if (pipeline === null || invalidPipelines.length > 0) {
+    return {
+      pipeline,
+      resources: {
+        valid: false,
+        commands: [],
+        diagnostics: invalidPipelines.flatMap(
+          (candidate) => candidate.diagnostics,
+        ),
+      },
+    };
+  }
+
+  const primaryPipelineResource = pipeline.resource;
+
+  if (primaryPipelineResource === null) {
     return {
       pipeline,
       resources: {
@@ -111,6 +147,17 @@ export async function prepareSpriteFrameResourcesForSnapshot(options: {
         diagnostics: pipeline.diagnostics,
       },
     };
+  }
+
+  const pipelineResourcesByDepthMode = new Map<
+    QuadDepthMode,
+    SpriteRenderPipelineResource
+  >();
+
+  for (const [depthMode, result] of pipelineResults) {
+    if (result.resource !== null) {
+      pipelineResourcesByDepthMode.set(depthMode, result.resource);
+    }
   }
 
   return {
@@ -123,7 +170,8 @@ export async function prepareSpriteFrameResourcesForSnapshot(options: {
       spriteDraws,
       viewUniforms: options.viewUniforms,
       worldTransforms: options.worldTransforms,
-      pipeline: pipeline.resource,
+      pipeline: primaryPipelineResource,
+      pipelinesByDepthMode: pipelineResourcesByDepthMode,
       reuse: options.reuse,
     }),
   };
@@ -138,6 +186,10 @@ export function createSpriteFrameResources(options: {
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly pipeline: SpriteRenderPipelineResource;
+  readonly pipelinesByDepthMode?: ReadonlyMap<
+    QuadDepthMode,
+    SpriteRenderPipelineResource
+  >;
   readonly reuse: WebGpuAppResourceReuseReport;
 }): SpriteFrameResources {
   const diagnostics: unknown[] = [];
@@ -145,9 +197,6 @@ export function createSpriteFrameResources(options: {
   const device = options.app.initialization.device as {
     readonly createBindGroup?: (descriptor: unknown) => unknown;
   } & Parameters<typeof createWebGpuBuffer>[0]["device"];
-  const pipeline = options.pipeline.pipeline as {
-    readonly getBindGroupLayout?: (group: number) => unknown;
-  };
   const packedViewUniformData = options.viewUniforms.data.subarray(
     0,
     options.viewUniforms.floatCount ?? options.viewUniforms.data.length,
@@ -162,19 +211,6 @@ export function createSpriteFrameResources(options: {
     0,
     options.worldTransforms.floatCount ?? options.worldTransforms.data.length,
   );
-
-  if (pipeline.getBindGroupLayout === undefined) {
-    return {
-      valid: false,
-      commands,
-      diagnostics: [
-        {
-          code: "spriteFrame.missingPipelineLayouts",
-          message: "Sprite pipeline does not expose bind group layouts.",
-        },
-      ],
-    };
-  }
 
   if (device.createBindGroup === undefined) {
     return {
@@ -261,18 +297,44 @@ export function createSpriteFrameResources(options: {
     return { valid: false, commands, diagnostics };
   }
 
-  const viewBindGroup = device.createBindGroup({
-    label: "Sprite/ViewBindGroup",
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [{ binding: 0, resource: { buffer: viewBuffer.buffer } }],
-  });
-  const transformBindGroup = device.createBindGroup({
-    label: "Sprite/TransformBindGroup",
-    layout: pipeline.getBindGroupLayout(1),
-    entries: [{ binding: 0, resource: { buffer: transformBuffer.buffer } }],
-  });
+  const viewBindGroups = new Map<string, unknown>();
+  const transformBindGroups = new Map<string, unknown>();
 
   for (const draw of spriteRenderInput.batches) {
+    const renderPipeline =
+      options.pipelinesByDepthMode?.get(draw.depthMode) ?? options.pipeline;
+    const pipeline = renderPipeline.pipeline as {
+      readonly getBindGroupLayout?: (group: number) => unknown;
+    };
+
+    if (pipeline.getBindGroupLayout === undefined) {
+      diagnostics.push({
+        code: "spriteFrame.missingPipelineLayouts",
+        message: "Sprite pipeline does not expose bind group layouts.",
+      });
+      continue;
+    }
+
+    const viewBindGroup =
+      viewBindGroups.get(renderPipeline.cacheKey) ??
+      device.createBindGroup({
+        label: `Sprite/ViewBindGroup/${renderPipeline.cacheKey}`,
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [{ binding: 0, resource: { buffer: viewBuffer.buffer } }],
+      });
+    viewBindGroups.set(renderPipeline.cacheKey, viewBindGroup);
+
+    const transformBindGroup =
+      transformBindGroups.get(renderPipeline.cacheKey) ??
+      device.createBindGroup({
+        label: `Sprite/TransformBindGroup/${renderPipeline.cacheKey}`,
+        layout: pipeline.getBindGroupLayout(1),
+        entries: [
+          { binding: 0, resource: { buffer: transformBuffer.buffer } },
+        ],
+      });
+    transformBindGroups.set(renderPipeline.cacheKey, transformBindGroup);
+
     const sampler =
       draw.sampler === undefined || draw.sampler === null
         ? {
@@ -323,8 +385,8 @@ export function createSpriteFrameResources(options: {
       {
         kind: "setPipeline",
         renderId: draw.renderId,
-        pipelineKey: options.pipeline.cacheKey,
-        pipeline: options.pipeline.pipeline,
+        pipelineKey: renderPipeline.cacheKey,
+        pipeline: renderPipeline.pipeline,
       },
       {
         kind: "setBindGroup",
@@ -368,6 +430,7 @@ export function createSpriteFrameResources(options: {
 export async function getOrCreateWebGpuAppSpritePipeline(
   app: WebGpuAppSpriteContext,
   cache: WebGpuAppResourceCache,
+  depthMode: QuadDepthMode = "test",
 ): Promise<CreateSpriteRenderPipelineResourceResult> {
   // On the HDR scene-buffer path the sprite renders into rgba16float and the post
   // stage encodes; otherwise the sprite encodes in-material via the output stage.
@@ -383,6 +446,7 @@ export async function getOrCreateWebGpuAppSpritePipeline(
     app.msaa.sampleCount,
     tonemap,
     outputColorSpace,
+    depthMode,
   );
   const cached = cache.spritePipelines.get(key);
 
@@ -396,6 +460,7 @@ export async function getOrCreateWebGpuAppSpritePipeline(
     >[0]["device"],
     colorFormat,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+    depthMode,
     sampleCount: app.msaa.sampleCount,
     tonemap,
     outputColorSpace,
@@ -431,6 +496,7 @@ function createSpriteRenderInput(
         renderId: batch.batchId,
         texture: batch.texture,
         ...(batch.sampler === undefined ? {} : { sampler: batch.sampler }),
+        depthMode: batch.depthMode ?? "test",
         firstInstance: batch.firstInstance,
         instanceCount: batch.instanceCount,
       });
@@ -523,6 +589,7 @@ function packLegacySpriteData(
       renderId: draw.renderId,
       texture: draw.texture,
       ...(draw.sampler === undefined ? {} : { sampler: draw.sampler }),
+      depthMode: "test",
       firstInstance: index,
       instanceCount: 1,
     });
@@ -573,6 +640,23 @@ function spriteQuadBatches(
   return (snapshot.quadBatches ?? []).filter(
     (batch) => batch.kind === "sprite",
   );
+}
+
+function spriteDepthModesForSnapshot(
+  snapshot: RenderSnapshot,
+  spriteDraws: readonly SpriteDrawPacket[],
+): ReadonlySet<QuadDepthMode> {
+  const modes = new Set<QuadDepthMode>();
+
+  for (const batch of spriteQuadBatches(snapshot)) {
+    modes.add(batch.depthMode ?? "test");
+  }
+
+  if (spriteDraws.length > 0) {
+    modes.add("test");
+  }
+
+  return modes;
 }
 
 function getOrCreateSpriteDefaultSampler(

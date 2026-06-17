@@ -68,6 +68,7 @@ describe("snapshot packed packet encoding", () => {
           billboardMode: "spherical",
           sizeMode: "world-units",
           blendMode: "alpha",
+          depthMode: "disabled",
           firstInstance: 4,
           instanceCount: 2,
           layerMask: 3,

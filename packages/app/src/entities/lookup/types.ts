@@ -12,6 +12,7 @@ import type {
   SpriteBillboardMode,
   SpriteBlendMode,
   SpriteCoordinateMode,
+  SpriteDepthMode,
   SpriteSizeMode,
 } from "@aperture-engine/render";
 import type { EcsEntityRef } from "../../config.js";
@@ -89,6 +90,7 @@ export interface ApertureRenderSpriteSummary {
   readonly billboardMode: SpriteBillboardMode;
   readonly sizeMode: SpriteSizeMode;
   readonly blendMode: SpriteBlendMode;
+  readonly depthMode: SpriteDepthMode;
 }
 
 export interface AperturePhysicsRigidBodySummary {

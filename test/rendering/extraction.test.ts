@@ -309,6 +309,7 @@ describe("render extraction", () => {
         billboardMode: "cylindrical",
         sizeMode: "screen-pixels",
         blendMode: "additive",
+        depthMode: "disabled",
       }),
     );
     entity.addComponent(RenderLayer, { mask: 0b01 });
@@ -379,6 +380,7 @@ describe("render extraction", () => {
         billboardMode: "cylindrical",
         sizeMode: "screen-pixels",
         blendMode: "additive",
+        depthMode: "disabled",
         firstInstance: 0,
         instanceCount: 1,
         layerMask: 0b01,
