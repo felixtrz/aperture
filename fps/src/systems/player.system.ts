@@ -287,7 +287,7 @@ export default class PlayerSystem extends createSystem({
       verticalVelocity = 0;
     }
 
-    if (position[1] < -10 || health <= 0) {
+    if (position[1] < -10 || health < 0) {
       position = [...PLAYER_START];
       yaw = 0;
       pitch = 0;
@@ -356,7 +356,7 @@ export default class PlayerSystem extends createSystem({
         distance(attacker.position, position) < ENEMY_ATTACK_DISTANCE &&
         this.#enemyHasLineOfSight(attacker.key, attacker.position, position)
       ) {
-        health = Math.max(0, health - ENEMY_ATTACK_DAMAGE);
+        health -= ENEMY_ATTACK_DAMAGE;
         this.#damagePulse += 1;
         this.#triggerEnemyMuzzleFlashes(attacker.position, position);
         this.#playOneShot("enemy-attack", 0.35);
