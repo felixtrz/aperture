@@ -45,11 +45,13 @@ import {
   cameraRecoilVelocityFromYaw,
   cameraRelativeMovementDelta,
   enemyLookAngles,
+  hasCeilingCollision,
   horizontalRightFromYaw,
   snapToGroundDistanceForMove,
   shouldConsumeBufferedJump,
   sourceChildPositionFromLook,
   sourceEnemyAttackers,
+  sourceGroundedAfterMove,
   weaponViewmodelOffsetTarget,
   type SourceEnemyAttackCandidate,
 } from "../lib/fps-controls.js";
@@ -277,7 +279,7 @@ export default class PlayerSystem extends createSystem({
       ? {
           position,
           grounded,
-          blockedVertical: false,
+          blockedUpward: false,
         }
       : this.#movePlayerBody(position, desiredTranslation, grounded);
     position = playerMove.position;
@@ -285,7 +287,11 @@ export default class PlayerSystem extends createSystem({
       footstepVelocityX = (position[0] - previousPosition[0]) / dt;
       footstepVelocityZ = (position[2] - previousPosition[2]) / dt;
     }
-    grounded = jumpedThisFrame ? false : playerMove.grounded;
+    grounded = sourceGroundedAfterMove({
+      jumpedThisFrame,
+      verticalVelocity,
+      controllerGrounded: playerMove.grounded,
+    });
 
     if (grounded) {
       if (!wasGrounded && verticalVelocity < -1) {
@@ -294,7 +300,7 @@ export default class PlayerSystem extends createSystem({
       }
       verticalVelocity = 0;
       jumpsRemaining = MAX_JUMPS;
-    } else if (playerMove.blockedVertical && verticalVelocity > 0) {
+    } else if (playerMove.blockedUpward && verticalVelocity > 0) {
       verticalVelocity = 0;
     }
 
@@ -520,11 +526,11 @@ export default class PlayerSystem extends createSystem({
   ): {
     readonly position: Vec3;
     readonly grounded: boolean;
-    readonly blockedVertical: boolean;
+    readonly blockedUpward: boolean;
   } {
     const body = this.#findByKey(PLAYER_BODY_KEY);
     if (body === null) {
-      return { position, grounded: fallbackGrounded, blockedVertical: false };
+      return { position, grounded: fallbackGrounded, blockedUpward: false };
     }
 
     const move = this.physics.moveCharacter({
@@ -540,7 +546,7 @@ export default class PlayerSystem extends createSystem({
     });
 
     if (move === null) {
-      return { position, grounded: fallbackGrounded, blockedVertical: false };
+      return { position, grounded: fallbackGrounded, blockedUpward: false };
     }
 
     const target = cloneVec3(move.targetTranslation);
@@ -549,8 +555,8 @@ export default class PlayerSystem extends createSystem({
     return {
       position: bodyToEye(target),
       grounded: move.grounded,
-      blockedVertical:
-        Math.abs(move.movement[1] - desiredTranslation[1]) > 0.001,
+      blockedUpward:
+        desiredTranslation[1] > 0 && hasCeilingCollision(move.collisions),
     };
   }
 

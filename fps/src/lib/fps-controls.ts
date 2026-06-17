@@ -44,6 +44,16 @@ export interface SourceEnemyAttackInput {
   readonly enemies: readonly SourceEnemyAttackCandidate[];
 }
 
+export interface CharacterCollisionLike {
+  readonly normal: readonly [number, number, number];
+}
+
+export interface SourceGroundedAfterMoveInput {
+  readonly jumpedThisFrame: boolean;
+  readonly verticalVelocity: number;
+  readonly controllerGrounded: boolean;
+}
+
 export function cameraForwardFromYawPitch(yaw: number, pitch: number): Vec3 {
   const cosPitch = Math.cos(pitch);
   return [
@@ -154,6 +164,20 @@ export function shouldConsumeBufferedJump(
   jumpsRemaining: number,
 ): boolean {
   return jumpBufferTimer > 0 && jumpsRemaining > 0;
+}
+
+export function hasCeilingCollision(
+  collisions: readonly CharacterCollisionLike[],
+): boolean {
+  return collisions.some((collision) => collision.normal[1] < -0.5);
+}
+
+export function sourceGroundedAfterMove(
+  input: SourceGroundedAfterMoveInput,
+): boolean {
+  return input.jumpedThisFrame || input.verticalVelocity > 0
+    ? false
+    : input.controllerGrounded;
 }
 
 export function sourceEnemyAttackers(

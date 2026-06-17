@@ -8,6 +8,7 @@ import {
   cameraRecoilVelocityFromYaw,
   cameraRelativeMovementDelta,
   enemyLookAngles,
+  hasCeilingCollision,
   horizontalBackwardFromYaw,
   horizontalForwardFromYaw,
   horizontalRightFromYaw,
@@ -16,6 +17,7 @@ import {
   shouldConsumeBufferedJump,
   sourceChildPositionFromLook,
   sourceEnemyAttackers,
+  sourceGroundedAfterMove,
   weaponViewmodelOffsetTarget,
 } from "../../fps/src/lib/fps-controls.js";
 
@@ -208,6 +210,51 @@ describe("Starter Kit FPS controls", () => {
     expect(shouldConsumeBufferedJump(0.08, 0)).toBe(false);
     expect(shouldConsumeBufferedJump(0.08, 2)).toBe(true);
     expect(shouldConsumeBufferedJump(0, 2)).toBe(false);
+  });
+
+  it("only treats overhead character collisions as upward jump blocks", () => {
+    expect(
+      hasCeilingCollision([
+        {
+          normal: [0, 1, 0],
+        },
+        {
+          normal: [1, 0, 0],
+        },
+      ]),
+    ).toBe(false);
+
+    expect(
+      hasCeilingCollision([
+        {
+          normal: [0, -0.75, 0],
+        },
+      ]),
+    ).toBe(true);
+  });
+
+  it("keeps source jumps airborne while upward velocity is active", () => {
+    expect(
+      sourceGroundedAfterMove({
+        jumpedThisFrame: true,
+        verticalVelocity: 7,
+        controllerGrounded: true,
+      }),
+    ).toBe(false);
+    expect(
+      sourceGroundedAfterMove({
+        jumpedThisFrame: false,
+        verticalVelocity: 2,
+        controllerGrounded: true,
+      }),
+    ).toBe(false);
+    expect(
+      sourceGroundedAfterMove({
+        jumpedThisFrame: false,
+        verticalVelocity: -1,
+        controllerGrounded: true,
+      }),
+    ).toBe(true);
   });
 
   it("keeps all source enemy timers that can raycast the player", () => {
