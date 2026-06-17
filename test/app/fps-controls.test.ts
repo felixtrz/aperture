@@ -20,6 +20,7 @@ import {
   sourceChildPositionFromLook,
   sourceControllerLookStep,
   sourceEnemyAttackers,
+  sourceEnemyHoverPosition,
   sourceEnemyLookTarget,
   sourceGroundedAfterMove,
   sourceMouseLookStep,
@@ -33,6 +34,9 @@ import {
 } from "../../fps/src/lib/fps-controls.js";
 import {
   SOURCE_GAMEPAD_LOOK_SENSITIVITY,
+  SOURCE_ENEMY_HOVER_AMPLITUDE,
+  SOURCE_ENEMY_HOVER_RATE,
+  SOURCE_ENEMY_HOVER_VELOCITY,
   SOURCE_LOOK_LERP_RATE,
   SOURCE_LOOK_PITCH_LIMIT,
   SOURCE_MOVEMENT_LERP_RATE,
@@ -591,5 +595,31 @@ describe("Starter Kit FPS controls", () => {
     expect(quarterCycle[0]).toBe(1);
     expect(quarterCycle[1]).toBeCloseTo(2 + 0.55 / 1.1, 10);
     expect(quarterCycle[2]).toBe(3);
+  });
+
+  it("integrates source enemy cosine hover into the scripted sine offset", () => {
+    const base: [number, number, number] = [-3.5, 2.5, -6];
+
+    expect(
+      sourceEnemyHoverPosition({
+        basePosition: base,
+        hoverVelocity: SOURCE_ENEMY_HOVER_VELOCITY,
+        hoverRate: SOURCE_ENEMY_HOVER_RATE,
+        time: 0,
+      }),
+    ).toEqual(base);
+
+    const quarterCycle = sourceEnemyHoverPosition({
+      basePosition: base,
+      hoverVelocity: SOURCE_ENEMY_HOVER_VELOCITY,
+      hoverRate: SOURCE_ENEMY_HOVER_RATE,
+      time: Math.PI / (2 * SOURCE_ENEMY_HOVER_RATE),
+    });
+    expect(quarterCycle[0]).toBe(base[0]);
+    expect(quarterCycle[1]).toBeCloseTo(
+      base[1] + SOURCE_ENEMY_HOVER_AMPLITUDE,
+      10,
+    );
+    expect(quarterCycle[2]).toBe(base[2]);
   });
 });

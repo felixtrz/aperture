@@ -81,6 +81,13 @@ export interface SourceCloudHoverInput {
   readonly time: number;
 }
 
+export interface SourceEnemyHoverInput {
+  readonly basePosition: Vec3;
+  readonly hoverVelocity: number;
+  readonly hoverRate: number;
+  readonly time: number;
+}
+
 export interface SourceEnemyAttackCandidate {
   readonly key: string;
   readonly position: Vec3;
@@ -275,6 +282,19 @@ export function sourceShotDirection(input: SourceShotDirectionInput): Vec3 {
 }
 
 export function sourceCloudHoverPosition(input: SourceCloudHoverInput): Vec3 {
+  return sourceIntegratedCosineHoverPosition(input);
+}
+
+export function sourceEnemyHoverPosition(input: SourceEnemyHoverInput): Vec3 {
+  return sourceIntegratedCosineHoverPosition(input);
+}
+
+function sourceIntegratedCosineHoverPosition(input: {
+  readonly basePosition: Vec3;
+  readonly hoverVelocity: number;
+  readonly hoverRate: number;
+  readonly time: number;
+}): Vec3 {
   const hoverOffset =
     Math.sin(input.time * input.hoverRate) *
     (input.hoverVelocity / input.hoverRate);

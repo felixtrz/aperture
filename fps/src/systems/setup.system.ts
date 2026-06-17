@@ -36,7 +36,6 @@ import {
 import {
   CLOUDS,
   ENEMIES,
-  ENEMY_HITBOX_OFFSET,
   ENEMY_MUZZLE_OFFSETS,
   FPS_ALL_RENDER_LAYER_MASK,
   FPS_WEAPON_LAYER_MASK,
@@ -54,6 +53,8 @@ import {
   PLAYER_SHADOW_KEY,
   PLAYER_SHADOW_SURFACE_OFFSET,
   PLAYER_START,
+  SOURCE_ENEMY_HITBOX_OFFSET,
+  SOURCE_ENEMY_HITBOX_RADIUS,
   SOURCE_PLAYER_CAMERA_FOV,
   SOURCE_WEAPON_CAMERA_ITEM_FOV,
   WEAPONS,
@@ -296,12 +297,12 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         name: `${enemy.key}.hitbox`,
         tags: ["enemy", "hitbox"],
         transform: {
-          translation: addVec3(enemy.position, ENEMY_HITBOX_OFFSET),
+          translation: addVec3(enemy.position, SOURCE_ENEMY_HITBOX_OFFSET),
         },
         physics: {
           rigidBody: { type: "static" },
           collider: {
-            shape: { kind: "sphere", radius: 0.75 },
+            shape: { kind: "sphere", radius: SOURCE_ENEMY_HITBOX_RADIUS },
             friction: 0,
             restitution: 0,
           },

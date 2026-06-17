@@ -26,7 +26,6 @@ import {
 } from "../lib/fps-audio.js";
 import {
   ENEMIES,
-  ENEMY_HITBOX_OFFSET,
   ENEMY_MUZZLE_OFFSETS,
   GRAVITY,
   IMPACT_EFFECT_SLOT_COUNT,
@@ -40,6 +39,13 @@ import {
   PLAYER_SHADOW_SURFACE_OFFSET,
   PLAYER_SPEED,
   PLAYER_START,
+  SOURCE_ENEMY_ATTACK_DAMAGE,
+  SOURCE_ENEMY_ATTACK_DISTANCE,
+  SOURCE_ENEMY_ATTACK_INTERVAL,
+  SOURCE_ENEMY_HITBOX_OFFSET,
+  SOURCE_ENEMY_HOVER_RATE,
+  SOURCE_ENEMY_HOVER_VELOCITY,
+  SOURCE_ENEMY_MUZZLE_ROLL_RANGE,
   SOURCE_GAMEPAD_LOOK_SENSITIVITY,
   SOURCE_LOOK_LERP_RATE,
   SOURCE_LOOK_PITCH_LIMIT,
@@ -64,6 +70,7 @@ import {
   shouldConsumeBufferedJump,
   sourceChildPositionFromLook,
   sourceControllerLookStep,
+  sourceEnemyHoverPosition,
   sourceEnemyLookTarget,
   sourceEnemyAttackers,
   sourceGroundedAfterMove,
@@ -90,15 +97,9 @@ import {
 } from "../lib/fps-effects.js";
 
 const LOOK_SPEED = Math.PI;
-const ENEMY_HOVER_AMPLITUDE = 0.2;
-const ENEMY_HOVER_RATE = 5;
-const ENEMY_ATTACK_INTERVAL = 0.25;
-const ENEMY_ATTACK_DISTANCE = 5;
-const ENEMY_ATTACK_DAMAGE = 5;
 const PLAYER_MUZZLE_ROLL_RANGE = Math.PI / 4;
 const PLAYER_MUZZLE_MIN_SCALE = 0.4;
 const PLAYER_MUZZLE_MAX_SCALE = 0.75;
-const ENEMY_MUZZLE_ROLL_RANGE = Math.PI / 4;
 const IMPACT_NORMAL_OFFSET = 0.1;
 const SPRITE_ANIMATION_FPS = 30;
 const PLAYER_CONTROLLER_SETTINGS: PhysicsCharacterControllerSettings = {
@@ -475,13 +476,16 @@ export default class PlayerSystem extends createSystem({
     this.#updateWeaponViewOffset(weaponMoveX, weaponMoveZ, dt);
     this.#enemyTime += dt;
     this.#enemyAttackTimer += dt;
-    if (!respawnedThisFrame && this.#enemyAttackTimer >= ENEMY_ATTACK_INTERVAL) {
+    if (
+      !respawnedThisFrame &&
+      this.#enemyAttackTimer >= SOURCE_ENEMY_ATTACK_INTERVAL
+    ) {
       this.#enemyAttackTimer = 0;
       for (const attacker of this.#livingEnemyAttackers(
         position,
         enemyHealth,
       )) {
-        health -= ENEMY_ATTACK_DAMAGE;
+        health -= SOURCE_ENEMY_ATTACK_DAMAGE;
         this.#damagePulse += 1;
         this.#triggerEnemyMuzzleFlashes(
           attacker.key,
@@ -894,7 +898,7 @@ export default class PlayerSystem extends createSystem({
           .getVectorView(LocalTransform, "translation")
           .set(
             key.endsWith(".hitbox")
-              ? addVec3(position, ENEMY_HITBOX_OFFSET)
+              ? addVec3(position, SOURCE_ENEMY_HITBOX_OFFSET)
               : position,
           );
         entity
@@ -963,8 +967,8 @@ export default class PlayerSystem extends createSystem({
         ENEMY_MUZZLE_OFFSETS[i]!,
       );
       this.#enemyMuzzleFlashRolls[slot] = randomBetween(
-        -ENEMY_MUZZLE_ROLL_RANGE,
-        ENEMY_MUZZLE_ROLL_RANGE,
+        -SOURCE_ENEMY_MUZZLE_ROLL_RANGE,
+        SOURCE_ENEMY_MUZZLE_ROLL_RANGE,
       );
       this.#enemyMuzzleFlashTimers[slot] = MUZZLE_FLASH_DURATION;
     }
@@ -1157,7 +1161,7 @@ export default class PlayerSystem extends createSystem({
       const enemyPos = enemyPosition(enemy.position, this.#enemyTime);
       const alive = (enemyHealth[enemy.key] ?? 0) > 0;
       const inRange =
-        alive && distance(enemyPos, target) < ENEMY_ATTACK_DISTANCE;
+        alive && distance(enemyPos, target) < SOURCE_ENEMY_ATTACK_DISTANCE;
       const hasLineOfSight =
         inRange && this.#enemyHasLineOfSight(enemy.key, enemyPos, target);
       candidates.push({
@@ -1170,7 +1174,7 @@ export default class PlayerSystem extends createSystem({
 
     return sourceEnemyAttackers({
       playerPosition: target,
-      attackDistance: ENEMY_ATTACK_DISTANCE,
+      attackDistance: SOURCE_ENEMY_ATTACK_DISTANCE,
       enemies: candidates,
     }).map((attacker) => ({
       key: attacker.key,
@@ -1357,11 +1361,12 @@ function weaponMuzzlePosition(
 }
 
 function enemyPosition(base: Vec3, time: number): Vec3 {
-  return [
-    base[0],
-    base[1] + Math.sin(time * ENEMY_HOVER_RATE) * ENEMY_HOVER_AMPLITUDE,
-    base[2],
-  ];
+  return sourceEnemyHoverPosition({
+    basePosition: base,
+    hoverVelocity: SOURCE_ENEMY_HOVER_VELOCITY,
+    hoverRate: SOURCE_ENEMY_HOVER_RATE,
+    time,
+  });
 }
 
 function countLivingEnemies(enemyHealth: Record<string, number>): number {

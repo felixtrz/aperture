@@ -59,10 +59,11 @@ export interface PlatformLargeGrassDecorationSpec {
   readonly tags: readonly string[];
 }
 
-export const ENEMY_MUZZLE_OFFSETS: readonly [Vec3, Vec3] = [
+export const SOURCE_ENEMY_MUZZLE_OFFSETS: readonly [Vec3, Vec3] = [
   [-0.45, 0.3, 0.4],
   [0.45, 0.3, 0.4],
 ];
+export const ENEMY_MUZZLE_OFFSETS = SOURCE_ENEMY_MUZZLE_OFFSETS;
 
 export function enemyMuzzleEffectKey(
   enemyKey: string,
@@ -71,7 +72,20 @@ export function enemyMuzzleEffectKey(
   return `effect.${enemyKey}.muzzle.${muzzleIndex}`;
 }
 
-export const ENEMY_HITBOX_OFFSET: Vec3 = [0, 0.25, 0];
+export const SOURCE_ENEMY_HITBOX_OFFSET: Vec3 = [0, 0.25, 0];
+export const SOURCE_ENEMY_HITBOX_RADIUS = 0.75;
+export const SOURCE_ENEMY_RAYCAST_TARGET: Vec3 = [0, 0, 5];
+export const SOURCE_ENEMY_ATTACK_DISTANCE = Math.hypot(
+  ...SOURCE_ENEMY_RAYCAST_TARGET,
+);
+export const SOURCE_ENEMY_ATTACK_INTERVAL = 0.25;
+export const SOURCE_ENEMY_ATTACK_DAMAGE = 5;
+export const SOURCE_ENEMY_HOVER_VELOCITY = 1;
+export const SOURCE_ENEMY_HOVER_RATE = 5;
+export const SOURCE_ENEMY_HOVER_AMPLITUDE =
+  SOURCE_ENEMY_HOVER_VELOCITY / SOURCE_ENEMY_HOVER_RATE;
+export const SOURCE_ENEMY_MUZZLE_ROLL_RANGE = Math.PI / 4;
+export const ENEMY_HITBOX_OFFSET = SOURCE_ENEMY_HITBOX_OFFSET;
 export const SOURCE_PLAYER_ROOT_Y = 0.5;
 export const SOURCE_PLAYER_HEAD_Y = 1.0;
 export const SOURCE_PLAYER_COLLIDER_CENTER_Y = 0.55;

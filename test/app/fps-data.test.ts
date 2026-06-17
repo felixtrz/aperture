@@ -12,9 +12,20 @@ import {
   PLAYER_EYE_HEIGHT,
   PLAYER_START,
   PLATFORM_LARGE_GRASS_DECORATIONS,
-  SOURCE_GAMEPAD_LOOK_SENSITIVITY,
   SOURCE_CLOUD_RANDOM_MAX,
   SOURCE_CLOUD_RANDOM_MIN,
+  SOURCE_ENEMY_ATTACK_DAMAGE,
+  SOURCE_ENEMY_ATTACK_DISTANCE,
+  SOURCE_ENEMY_ATTACK_INTERVAL,
+  SOURCE_ENEMY_HITBOX_OFFSET,
+  SOURCE_ENEMY_HITBOX_RADIUS,
+  SOURCE_ENEMY_HOVER_AMPLITUDE,
+  SOURCE_ENEMY_HOVER_RATE,
+  SOURCE_ENEMY_HOVER_VELOCITY,
+  SOURCE_ENEMY_MUZZLE_OFFSETS,
+  SOURCE_ENEMY_MUZZLE_ROLL_RANGE,
+  SOURCE_ENEMY_RAYCAST_TARGET,
+  SOURCE_GAMEPAD_LOOK_SENSITIVITY,
   SOURCE_LOOK_LERP_RATE,
   SOURCE_LOOK_PITCH_LIMIT,
   SOURCE_MOUSE_SENSITIVITY,
@@ -42,6 +53,7 @@ import {
   SOURCE_WEAPON_SWITCH_RAISE_RATE,
   SOURCE_WEAPON_VIEWMODEL_MOVE_SCALE,
   SOURCE_WEAPON_VIEW_POSITION,
+  ENEMY_MUZZLE_OFFSETS,
   WEAPONS,
   platformLargeGrassDecorationKey,
 } from "../../fps/src/lib/fps-data.js";
@@ -133,6 +145,24 @@ describe("Starter Kit FPS source data", () => {
       expect(cloud.hoverRate).toBeGreaterThanOrEqual(SOURCE_CLOUD_RANDOM_MIN);
       expect(cloud.hoverRate).toBeLessThanOrEqual(SOURCE_CLOUD_RANDOM_MAX);
     }
+  });
+
+  it("derives enemy scene and script constants from the source Enemy files", () => {
+    expect(SOURCE_ENEMY_HITBOX_OFFSET).toEqual([0, 0.25, 0]);
+    expect(SOURCE_ENEMY_HITBOX_RADIUS).toBe(0.75);
+    expect(SOURCE_ENEMY_RAYCAST_TARGET).toEqual([0, 0, 5]);
+    expect(SOURCE_ENEMY_ATTACK_DISTANCE).toBe(5);
+    expect(SOURCE_ENEMY_ATTACK_INTERVAL).toBe(0.25);
+    expect(SOURCE_ENEMY_ATTACK_DAMAGE).toBe(5);
+    expect(SOURCE_ENEMY_HOVER_VELOCITY).toBe(1);
+    expect(SOURCE_ENEMY_HOVER_RATE).toBe(5);
+    expect(SOURCE_ENEMY_HOVER_AMPLITUDE).toBeCloseTo(0.2, 10);
+    expect(SOURCE_ENEMY_MUZZLE_OFFSETS).toEqual([
+      [-0.45, 0.3, 0.4],
+      [0.45, 0.3, 0.4],
+    ]);
+    expect(ENEMY_MUZZLE_OFFSETS).toBe(SOURCE_ENEMY_MUZZLE_OFFSETS);
+    expect(SOURCE_ENEMY_MUZZLE_ROLL_RANGE).toBeCloseTo(Math.PI / 4, 10);
   });
 
   it("keeps platform-large-grass child decorations from the source packed scene", () => {
