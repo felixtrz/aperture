@@ -20,12 +20,16 @@ previous working state so the old state remains recoverable.
   - Added `SOURCE_PLAYER_MUZZLE_WORLD_SIZE` / sprite-size coverage beside the
     existing enemy muzzle and impact size tests.
 - Aperture proof:
-  - Started the managed FPS app through `pnpm exec aperture dev up --open` and
-    waited for WebGPU through Aperture MCP.
-  - MCP `ecs_query {"key":"effect.muzzle-burst","limit":1}` reported
+  - Started/reused the managed FPS app through
+    `pnpm --dir fps exec aperture dev up --headless` and waited for WebGPU
+    through Aperture CLI.
+  - `ecs_find_entities {"key":"effect.muzzle-burst","limit":1}` reported
     `renderSprite.width` and `renderSprite.height` approximately `2.56`,
     `localTransform.scale` approximately `[0.4,0.4,0.4]` while hidden, and
     diagnostics `0`.
+  - After one generated `shoot` step, the same entity reported visible alpha
+    `1`, `localTransform.scale:[0.4137,0.4137,0.4137]`, and the same
+    `2.56` width/height base size.
 - Validation:
   - `pnpm exec vitest run test/app/fps-effects.test.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-input-config.test.ts`
     passed 28 tests.

@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "815d6af6",
   "activePid": null,
-  "notes": "Aligned Starter Kit FPS player muzzle sprite size with source, proved effect.muzzle-burst size through Aperture MCP, and kept fps/racing/shadow-lab green.",
-  "lastRunFinishedAt": "2026-06-17T12:21:15Z"
+  "notes": "Aligned Starter Kit FPS player muzzle sprite size with source, proved effect.muzzle-burst base size and runtime scale through Aperture CLI, and kept fps/racing/shadow-lab green.",
+  "lastRunFinishedAt": "2026-06-17T12:23:31Z"
 }
