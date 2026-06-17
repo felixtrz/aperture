@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "bd85c5e4",
+  "lastCommit": "4f44aa73",
   "activePid": null,
-  "notes": "Completed FPS physics character/raycast gameplay slice; CLI physics tools route to worker; FPS, root, racing, and shadow-lab validations passed.",
-  "lastRunFinishedAt": "2026-06-17T06:11:21Z"
+  "notes": "Completed FPS HUD damage and hit feedback slice; damagePulse and hit flashes are proved through Aperture CLI; FPS, racing, and shadow-lab validations passed.",
+  "lastRunFinishedAt": "2026-06-17T06:21:01Z"
 }

@@ -1,23 +1,27 @@
-# Handoff - Starter Kit FPS Physics/Raycast Slice
+# Handoff - Starter Kit FPS HUD Feedback Slice
 
-**Updated:** 2026-06-16 23:10 PDT
+**Updated:** 2026-06-16 23:21 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Replaced the FPS app's hand-rolled player grounding/collision path with an
-  ECS-authored `player.body` kinematic capsule and Aperture
-  `physics.moveCharacter(...)` movement.
-- Replaced geometric enemy hit tests with Aperture `physics.raycastAll(...)`
-  shooting, using the first solid physics hit to decide enemy damage or level
-  obstruction. Enemy attacks now require physics line of sight to the player
-  capsule.
-- Added muzzle/impact sprite assets and ECS-authored shot effect sprites.
-- Fixed an Aperture CLI gap: top-level `aperture tool physics_*` commands now
-  route to the generated worker physics devtools instead of reporting
-  `toolUnsupported`.
+- Added HUD feedback for the Starter Kit FPS port:
+  - `damagePulse` is now an Aperture signal driven by enemy physics-LOS damage.
+  - The browser HUD flashes a red damage overlay and pulses the health meter
+    when damage lands.
+  - Crosshair hit feedback pulses when the ECS hit count increases.
+  - Low health now gets a distinct HUD color treatment.
+- Preserved the previous physics/raycast slice:
+  - ECS-authored `player.body` kinematic capsule movement uses
+    `physics.moveCharacter(...)`.
+  - Shooting uses Aperture `physics.raycastAll(...)` and enemy attacks require
+    physics line of sight to the player capsule.
+  - Muzzle/impact sprite assets and ECS-authored shot effect sprites are in
+    place.
+  - Top-level `aperture tool physics_*` commands route to generated worker
+    physics devtools.
 - Re-exported `serializeEntityRef` from `@aperture-engine/app/systems` so app
   systems can use keyed ECS entities with physics devtools/backend refs without
   importing lower-level package internals.
@@ -25,9 +29,25 @@ previous working state so the old state remains recoverable.
   - `aaa83107` — `Port Starter Kit FPS slice to Aperture`
   - `37bc0e5e` — `Add FPS pointer lock look bridge`
   - `bd85c5e4` — `Add FPS physics character and raycast gameplay`
+  - `4f44aa73` — `Add FPS HUD damage and hit feedback`
 
 ## Latest Validation
 
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- Aperture CLI runtime proof from `fps/`:
+  - `browser_wait_for_webgpu` succeeded against managed FPS at
+    `http://127.0.0.1:5174/`.
+  - After reset/resume with enemy line of sight, `browser_status` signals read
+    `health:90` and `damagePulse:2`.
+  - After repeated queued look input and one shot, `fps.state` read
+    `yaw:-0.5416666666666666`, `pitch:0.1625`, `shotsFired:1`, `hits:3`, and
+    `enemy.0` health `25`.
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Previous physics slice validation:
 - `pnpm run typecheck` from repo root
 - `pnpm run typecheck:test` from repo root
 - `pnpm --filter @aperture-engine/app typecheck && pnpm --filter @aperture-engine/app build`
@@ -65,14 +85,17 @@ previous working state so the old state remains recoverable.
   racing parity artifacts, and `racing/parity/` remain outside commits.
 - Use `value:0` rather than `pressed:false` for button-release CLI scripts when
   an immediate following `ecs_step` proof must be unambiguous.
+- For held look input through the CLI, queue `input_action_set` with `x`/`y`
+  before each `ecs_step`; a single vector input is consumed by one frame.
 - `render_readback_samples` / `browser_pick_pixel` still need follow-up if
   future FPS proofs require pixel samples; screenshot capture is reliable.
 
 ## Recommended Next Task
 
-Continue the FPS port with another visible gameplay slice: tune playable level
-collision/respawn flow and add health/impact feedback that proves enemy attacks
-and player damage are physics-LOS gated through Aperture CLI tools.
+Continue the FPS port with another visible gameplay slice: add enemy
+destroy/respawn/end-state feedback or animate the muzzle/impact sprite sheets,
+then prove the result through Aperture CLI runtime tools while keeping racing
+and Shadow Lab typecheck/build green.
 
 ---
 
