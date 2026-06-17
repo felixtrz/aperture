@@ -1,68 +1,78 @@
-# Handoff - Starter Kit FPS First Aperture Slice
+# Handoff - Starter Kit FPS Physics/Raycast Slice
 
-**Updated:** 2026-06-16 22:46 PDT
+**Updated:** 2026-06-16 23:10 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Added `fps/` as a workspace Aperture app and copied the Kenney Starter Kit FPS
-  assets into `fps/public/`.
-- Implemented the first playable ECS-first FPS slice: generated setup system,
-  GLTF level/enemy/weapon spawning, HUD, player state resource, movement,
-  jumping, weapon switching, shooting counters, enemy hover/attacks, audio
-  events, and pointer-lock mouselook bridge.
-- Fixed Aperture generated-worker devtools input so `input_action_set` queues
-  virtual input into the next simulation step instead of mutating input
-  immediately outside the app frame. This makes `.down()`/`.up()` button proofs
-  reliable through Aperture CLI/MCP tools.
-- Fixed `browser_screenshot` path captures so `includeData:false` no longer
-  dumps base64 image data to stdout.
+- Replaced the FPS app's hand-rolled player grounding/collision path with an
+  ECS-authored `player.body` kinematic capsule and Aperture
+  `physics.moveCharacter(...)` movement.
+- Replaced geometric enemy hit tests with Aperture `physics.raycastAll(...)`
+  shooting, using the first solid physics hit to decide enemy damage or level
+  obstruction. Enemy attacks now require physics line of sight to the player
+  capsule.
+- Added muzzle/impact sprite assets and ECS-authored shot effect sprites.
+- Fixed an Aperture CLI gap: top-level `aperture tool physics_*` commands now
+  route to the generated worker physics devtools instead of reporting
+  `toolUnsupported`.
+- Re-exported `serializeEntityRef` from `@aperture-engine/app/systems` so app
+  systems can use keyed ECS entities with physics devtools/backend refs without
+  importing lower-level package internals.
 - Committed:
   - `aaa83107` — `Port Starter Kit FPS slice to Aperture`
   - `37bc0e5e` — `Add FPS pointer lock look bridge`
+  - `bd85c5e4` — `Add FPS physics character and raycast gameplay`
 
 ## Latest Validation
 
-- `pnpm --dir .. run typecheck`
-- `pnpm --dir .. run typecheck:test`
-- `pnpm --dir .. exec vitest run test/app/generated-worker-start.test.ts`
-- `pnpm run typecheck` from `fps/`
-- `pnpm run build` from `fps/`
-- `pnpm run typecheck` and `pnpm run build` from `racing/`
-- `pnpm run typecheck` and `pnpm run build` from `shadow-lab/`
+- `pnpm run typecheck` from repo root
+- `pnpm run typecheck:test` from repo root
+- `pnpm --filter @aperture-engine/app typecheck && pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/cli typecheck && pnpm --filter @aperture-engine/cli build`
+- `pnpm --filter @aperture-engine/render typecheck && pnpm --filter @aperture-engine/render build`
+- `pnpm run typecheck && pnpm run build` from `fps/`
+- `pnpm run typecheck && pnpm run build` from `racing/`
+- `pnpm run typecheck && pnpm run build` from `shadow-lab/`
 - Aperture CLI runtime proof from `fps/`:
-  - `pnpm exec aperture dev up --open --host 127.0.0.1 --port 5174`
-  - `browser_wait_for_webgpu` reported running WebGPU with no startup failure.
-  - `asset_list` reported all 21 FPS GLTF/audio assets ready.
-  - `render_get_diagnostics` reported 1 view, 14 mesh draws, 0 diagnostics.
-  - Manual stepped input proof reset health to 100, moved the player, switched
-    to `weaponIndex:1`, and incremented `shotsFired`.
-  - Stepped `look` action proof changed yaw from `0` to `0.08333333333333333`.
+  - Restarted managed dev at `http://127.0.0.1:5174/`.
+  - `browser_status` reported `status:"running"`, `webgpuOk:true`, no
+    `lastError`/`lastFailure`.
+  - `asset_list` reported FPS GLTF/audio/texture assets ready, including
+    `muzzle-burst` and `impact-hit`.
+  - `render_get_diagnostics` reported no worker failure, no frame diagnostics,
+    and no last render error.
+  - `physics_summary` reported Rapier `simulation-worker`, 18 bodies, 18
+    colliders, and 0 unsupported features.
+  - `ecs_find_entities` confirmed `player.body` has `RigidBody`,
+    `Collider`, `KinematicTarget`, `PhysicsVelocity`,
+    `PhysicsCharacterController`, and `PhysicsBodyState`.
+  - `physics_move_character` on `player.body` returned grounded movement and a
+    target translation through Rapier.
+  - `physics_raycast_all` from the player eye toward `enemy.0` hit
+    `enemy.0.hitbox` first.
+  - Stepped input proof aimed at `enemy.0`, fired once, and read `fps.state`:
+    `shotsFired:1`, `hits:3`, `enemy.0` health `100 -> 25`.
   - `browser_screenshot` wrote
-    `fps/.aperture/runtime/fps-runtime-proof.png`; visual inspection showed the
-    FPS level, enemy, HUD, crosshair, and active Repeater weapon.
+    `fps/.aperture/runtime/fps-physics-raycast-proof.png`.
 
 ## Current Notes
 
 - Managed FPS is running at `http://127.0.0.1:5174/` through Aperture dev.
-- The worktree is clean for tracked files. Pre-existing untracked screenshots,
+- Pre-existing untracked screenshots,
   racing parity artifacts, and `racing/parity/` remain outside commits.
-- The current FPS slice is playable but still uses hand-rolled ground checks and
-  geometric enemy hit tests. A stronger follow-up should move player collision
-  and weapon hit/LOS checks onto Aperture physics queries/character movement.
-- `render_readback_samples` / `browser_pick_pixel` returned transparent pixels
-  in the paused proof even though the browser screenshot was visibly correct.
-  The screenshot path was sufficient for this slice, but the readback mismatch
-  is worth investigating if future proofs need pixel samples from this app.
+- Use `value:0` rather than `pressed:false` for button-release CLI scripts when
+  an immediate following `ecs_step` proof must be unambiguous.
+- `render_readback_samples` / `browser_pick_pixel` still need follow-up if
+  future FPS proofs require pixel samples; screenshot capture is reliable.
 
 ## Recommended Next Task
 
-Continue the FPS port with a visible gameplay slice: replace hand-rolled player
-grounding and enemy hit tests with Aperture physics-backed character movement,
-raycast shooting, and enemy line-of-sight checks, using the existing
-`physics_move_character` / raycast CLI tools for proof.
+Continue the FPS port with another visible gameplay slice: tune playable level
+collision/respawn flow and add health/impact feedback that proves enemy attacks
+and player damage are physics-LOS gated through Aperture CLI tools.
 
 ---
 
