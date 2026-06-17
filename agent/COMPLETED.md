@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## FPS-PORT — Enemy damage audio and impact sprite size
+
+Completed: 2026-06-17 04:53 PDT
+Commits: `71ce56f8`, `63aacbec`
+
+### Summary
+
+- Matched upstream enemy damage audio ordering from
+  `references/Starter-Kit-FPS/objects/enemy.gd`: valid hits now emit
+  `enemy-hurt`, and lethal hits then also emit `enemy-destroy`.
+- Matched upstream impact sprite world size from
+  `references/Starter-Kit-FPS/objects/impact.tscn`: 128px atlas frames at
+  `pixel_size = 0.0025` now derive a `[0.32, 0.32]` world-unit sprite size.
+- Replaced the older oversized impact hit sprite size `[0.85, 0.85]` with the
+  derived source size constant shared by setup and tests.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-audio.test.ts` passed 4 tests.
+- `pnpm exec vitest run test/app/fps-effects.test.ts` passed 4 tests.
+- `pnpm exec vitest run test/app/fps-effects.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts`
+  passed 25 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture MCP/CLI proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed in the managed FPS session.
+  - `ecs_find_entities {"key":"effect.impact-hit.0"}` reported
+    `renderSprite.width` and `renderSprite.height` as approximately `0.32`,
+    with `depthMode:"disabled"`.
+  - `render_get_frame_report {"summaryOnly":true}` reported frame `1056`,
+    `skyboxes:1`, `fogs:1`, 33 draw calls, and diagnostics `0`.
+
 ## FPS-PORT — Source ray targets and gamepad axes
 
 Completed: 2026-06-17 04:41 PDT

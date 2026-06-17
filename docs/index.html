@@ -393,28 +393,31 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 11:41 UTC</dd>
+            <dd>2026-06-17 11:53 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS ray targets now match source
-              semantics more closely. Player pellet spread uses the upstream
-              RayCast target vector <code>[spreadX, spreadY, -maxDistance]</code>
-              through the camera basis, enemies look/raycast at the source
-              upper-body target represented as <code>playerEye.y - 0.5</code>,
-              and browser-standard gamepad Y axes are inverted explicitly for
-              forward/look-up behavior. Aperture MCP/CLI proof found the live
-              <code>enemy.0</code> forward vector matched the source target with
-              dot product <code>1.0000000107</code>. Follow-up input proof
-              showed left-stick forward at
-              <code>playerPosition.z:-0.1667</code>, turn-then-forward movement
-              adding yaw-relative <code>x:-0.0139</code>, right trigger
-              producing <code>shotsFired:1</code>, south-button jump producing
-              <code>jumpsRemaining:1</code> and <code>grounded:false</code>, and
-              generated look+shoot still hitting <code>enemy.0</code> three
-              times. The managed frame report stayed at diagnostics
-              <code>0</code>. Prior update:
+              Latest update: Starter Kit FPS enemy damage audio and impact hit
+              sprite sizing now match source behavior more closely. Lethal
+              enemy hits emit upstream-style <code>enemy-hurt</code> before
+              <code>enemy-destroy</code>, and impact sprites derive their world
+              size from <code>objects/impact.tscn</code>
+              <code>pixel_size = 0.0025</code> times the 128px hit-atlas frame,
+              producing <code>0.32</code> world units instead of the older
+              oversized <code>0.85</code>. Aperture MCP proof found
+              <code>effect.impact-hit.0</code>
+              <code>renderSprite.width</code> and <code>height</code> at about
+              <code>0.32</code>, with the managed frame report still at
+              diagnostics <code>0</code>. Prior update: Starter Kit FPS ray
+              targets now match source semantics more closely: player pellet
+              spread uses
+              <code>[spreadX, spreadY, -maxDistance]</code> through the camera
+              basis, enemies target <code>playerEye.y - 0.5</code>, and
+              browser-standard gamepad Y axes are inverted explicitly.
+              Aperture MCP/CLI proof matched the live <code>enemy.0</code>
+              forward vector to the source target with dot product
+              <code>1.0000000107</code>. Earlier update:
               Starter Kit FPS shot impacts and large-platform grass details now
               match source scenes more closely. The blaster can show one impact
               animation per pellet instead of collapsing each volley to a single
@@ -1434,9 +1437,11 @@
             <dt>Next focus</dt>
             <dd>
               Continue Starter Kit FPS fidelity with a visible route such as
-              skybox orientation/readback hardening, impact animation/timing
-              parity, remaining player detail parity, projectile polish beyond
-              the current per-enemy attacker ownership, or packaging the
+              player body/capsule semantics after checking Godot capsule
+              height mapping, muzzle sprite world-size parity, skybox
+              orientation/readback hardening, remaining player detail parity,
+              projectile polish beyond the current per-enemy attacker
+              ownership, or packaging the
               platform-aware full-clear proof into a reusable smoke script while
               keeping racing and Shadow Lab green.
             </dd>
@@ -2339,6 +2344,17 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned enemy damage audio
+                and impact hit sprite size with source behavior: lethal enemy
+                hits now emit <code>enemy-hurt</code> before
+                <code>enemy-destroy</code>, and <code>effect.impact-hit.*</code>
+                sprites derive a <code>0.32</code> world-unit size from
+                <code>objects/impact.tscn</code> <code>pixel_size</code> and
+                the 128px hit-atlas frame. Aperture MCP proof reported
+                <code>effect.impact-hit.0</code> width/height near
+                <code>0.32</code> and frame diagnostics <code>0</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned source RayCast
                 target semantics and browser-standard gamepad axes: player
@@ -5495,10 +5511,12 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Continue Starter Kit FPS
-                fidelity with a visible slice such as impact animation/timing
-                parity, projectile polish beyond the current per-enemy attacker
-                ownership, player detail parity, or a reusable generated-input
-                full-clear smoke script.
+                fidelity with a visible slice such as player body/capsule
+                semantics after confirming Godot/Rapier capsule height mapping,
+                muzzle sprite world-size parity, skybox orientation/readback
+                hardening, projectile polish beyond the current per-enemy
+                attacker ownership, or a reusable generated-input full-clear
+                smoke script.
               </li>
               <li>
                 <span class="badge amber">next</span> Continue remaining M10

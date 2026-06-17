@@ -1,11 +1,51 @@
-# Handoff - Starter Kit FPS Source Ray Targets And Gamepad Axes
+# Handoff - Starter Kit FPS Audio And Impact Sprite Size
 
-**Updated:** 2026-06-17 04:41 PDT
+**Updated:** 2026-06-17 04:53 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Aligned two small Starter Kit FPS source-fidelity details:
+  - `references/Starter-Kit-FPS/objects/enemy.gd` plays the enemy hurt sound
+    before the destroy sound on lethal damage. The port now emits
+    `enemy-hurt` for every valid enemy hit and then `enemy-destroy` when the
+    hit is lethal.
+  - `references/Starter-Kit-FPS/objects/impact.tscn` sets
+    `AnimatedSprite3D.pixel_size = 0.0025` on 128px atlas frames from
+    `sprites/hit.png`, so the source world size is `0.32`. The port now spawns
+    impact hit sprites at `[0.32, 0.32]` instead of the older `[0.85, 0.85]`.
+- Focused coverage:
+  - Added `sourceEnemyDamageAudioEvents(...)` tests for nonlethal, lethal, and
+    already-destroyed enemy damage audio cases.
+  - Added source `AnimatedSprite3D` world-size conversion coverage for impact
+    sprites.
+- Aperture proof:
+  - Reused the managed FPS app through `pnpm exec aperture dev up --open` and
+    waited for WebGPU with Aperture MCP.
+  - `ecs_find_entities {"key":"effect.impact-hit.0"}` reported
+    `renderSprite.width` and `renderSprite.height` as approximately `0.32`,
+    `blendMode:"alpha"`, and `depthMode:"disabled"`.
+  - `render_get_frame_report {"summaryOnly":true}` reported frame `1056`,
+    one view, `skyboxes:1`, `fogs:1`, 33 draw calls, and diagnostics `0`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-audio.test.ts` passed 4 tests.
+  - `pnpm exec vitest run test/app/fps-effects.test.ts` passed 4 tests.
+  - `pnpm exec vitest run test/app/fps-effects.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts`
+    passed 25 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - `71ce56f8` — `Align FPS enemy damage audio`
+  - `63aacbec` — `Align FPS impact sprite size`
+
+## Previous Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS ray-target semantics with upstream
   `references/Starter-Kit-FPS/objects/player.gd` and
@@ -63,7 +103,7 @@ previous working state so the old state remains recoverable.
 - Committed implementation:
   - `0164f083` — `Align FPS ray targets and gamepad axes`
 
-## Previous Completed FPS/Tooling Slices
+## Earlier Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS shot impacts with upstream
   `references/Starter-Kit-FPS/objects/player.gd`:
