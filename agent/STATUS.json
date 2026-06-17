@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "285fa3dd",
+  "lastCommit": "a6c45fbb",
   "activePid": null,
-  "notes": "Restored the FPS source-style weapon overlay through post-processed same-swapchain views, added command-backed keyboard controls and click-to-shoot fallback, validated live jump/shoot/camera-relative movement, and kept FPS/racing/shadow-lab builds green.",
-  "lastRunFinishedAt": "2026-06-17T15:39:04Z"
+  "notes": "Calibrated FPS source sun and weapon viewmodel; verified WebGPU overlay pitch, source movement constants, and cross-app builds.",
+  "lastRunFinishedAt": "2026-06-17T15:47:06Z"
 }
