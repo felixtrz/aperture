@@ -35,9 +35,27 @@ export function viewPackets(
 export function meshDrawPackets(
   snapshot: RenderSnapshot | null | undefined,
 ): PacketSnapshot<MeshDrawPacket> {
+  return meshDrawPacketFamily(snapshot, snapshot?.meshDraws ?? [], "mesh-draw");
+}
+
+export function shadowCasterDrawPackets(
+  snapshot: RenderSnapshot | null | undefined,
+): PacketSnapshot<MeshDrawPacket> {
+  return meshDrawPacketFamily(
+    snapshot,
+    snapshot?.shadowCasterDraws ?? [],
+    "shadow-caster-draw",
+  );
+}
+
+function meshDrawPacketFamily(
+  snapshot: RenderSnapshot | null | undefined,
+  packets: readonly MeshDrawPacket[],
+  keyPrefix: string,
+): PacketSnapshot<MeshDrawPacket> {
   return {
-    packets: snapshot?.meshDraws ?? [],
-    key: (draw) => `mesh-draw:${draw.renderId}`,
+    packets,
+    key: (draw) => `${keyPrefix}:${draw.renderId}`,
     signature: (draw) =>
       stableStringify({
         draw: meshDrawSignaturePacket(draw),

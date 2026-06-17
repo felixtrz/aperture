@@ -6,6 +6,8 @@ import {
   type SnapshotPacketBundle,
 } from "@aperture-engine/render";
 import {
+  createMaterialHandle,
+  createMeshHandle,
   createSamplerHandle,
   createTextureHandle,
 } from "@aperture-engine/simulation";
@@ -101,9 +103,46 @@ describe("WebGPU app snapshot transport", () => {
     }
 
     const registry = createSnapshotPacketRegistry();
+    const casterMesh = createMeshHandle("off-camera-caster");
+    const casterMaterial = createMaterialHandle("caster");
     const packetBundle: SnapshotPacketBundle = {
       views: [],
       meshDraws: [],
+      shadowCasterDraws: [
+        {
+          renderId: 77,
+          entity: { index: 77, generation: 0 },
+          mesh: casterMesh,
+          material: casterMaterial,
+          submesh: 0,
+          materialSlot: 0,
+          worldTransformOffset: 0,
+          boundsIndex: 0,
+          layerMask: 1,
+          castsShadow: true,
+          receivesShadow: false,
+          sortKey: {
+            queue: "opaque",
+            viewId: 0,
+            layer: 0,
+            order: 0,
+            pipelineKey: "standard|opaque|back|less|none",
+            materialKey: "material:caster",
+            meshKey: "mesh:off-camera-caster",
+            depth: 0,
+            stableId: 77,
+          },
+          batchKey: {
+            pipelineKey: "standard|opaque|back|less|none",
+            materialKey: "material:caster",
+            meshLayoutKey: "POSITION",
+            topology: "triangle-list",
+            instanced: false,
+            skinned: false,
+            morphed: false,
+          },
+        },
+      ],
       lights: [],
       environments: [],
       shadowRequests: [],
@@ -164,7 +203,9 @@ describe("WebGPU app snapshot transport", () => {
     expect(snapshot?.quads?.instanceFloats).toEqual(sourceQuads.instanceFloats);
     expect(snapshot?.quads?.instanceWords).toEqual(sourceQuads.instanceWords);
     expect(snapshot?.quadBatches).toEqual(packetBundle.quadBatches);
+    expect(snapshot?.shadowCasterDraws).toEqual(packetBundle.shadowCasterDraws);
     expect(snapshot?.report).toMatchObject({
+      shadowCasterDraws: 1,
       quadInstances: 1,
       quadBatches: 1,
     });

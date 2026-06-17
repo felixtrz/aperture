@@ -322,6 +322,9 @@ export function renderReport(input: {
     counts: {
       views: input.snapshot.views.length,
       meshDraws: input.snapshot.meshDraws.length,
+      ...(input.snapshot.shadowCasterDraws === undefined
+        ? {}
+        : { shadowCasterDraws: input.snapshot.shadowCasterDraws.length }),
       spriteDraws: input.snapshot.spriteDraws?.length ?? 0,
       particleEmitters: input.snapshot.particleEmitters?.length ?? 0,
       quadInstances:

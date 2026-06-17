@@ -1,5 +1,34 @@
 # Completed Tasks
 
+## Shadow caster culling independence
+
+Completed: 2026-06-17 11:14 PDT
+
+### Summary
+
+- Added a separate optional `shadowCasterDraws` packet family to
+  `RenderSnapshot`.
+- Kept main-camera frustum culling scoped to visible `meshDraws`; shadow caster
+  extraction now runs caster-only and independent from the main camera frustum.
+- Routed the new packet family through packed snapshot encoding, shared
+  transport, change sets, app reports, auto-shadow fitting, and shadow draw-list
+  planning.
+- Updated architecture and public render-pipeline tracker docs.
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/snapshot-packed-encoding.test.ts test/rendering/snapshot-change-set.test.ts test/rendering/snapshot-update-scheduler.test.ts test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/app-snapshot-transport.test.ts`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- Aperture CLI racing proof: `meshDraws:36`, `shadowCasterDraws:364`, shadow
+  caster draw list `364`, diagnostics `0`, and nonblack screenshot/readback.
+
 ## FPS-PORT — Source gamepad weapon toggle
 
 Completed: 2026-06-17 11:14 PDT

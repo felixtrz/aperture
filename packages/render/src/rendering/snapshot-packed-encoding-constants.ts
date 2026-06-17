@@ -1,7 +1,7 @@
 export const SNAPSHOT_PACKET_ENCODING_MAGIC = 0x4150_5350; // "APSP"
-export const SNAPSHOT_PACKET_ENCODING_VERSION = 9;
+export const SNAPSHOT_PACKET_ENCODING_VERSION = 10;
 
-export const SNAPSHOT_PACKET_HEADER_WORDS = 9;
+export const SNAPSHOT_PACKET_HEADER_WORDS = 10;
 export const VIEW_PACKET_WORDS = 36;
 export const MESH_DRAW_PACKET_WORDS = 34;
 export const LIGHT_PACKET_WORDS = 31;
@@ -18,6 +18,7 @@ export const SNAPSHOT_PACKET_WORD_STRIDES = Object.freeze({
   header: SNAPSHOT_PACKET_HEADER_WORDS,
   view: VIEW_PACKET_WORDS,
   meshDraw: MESH_DRAW_PACKET_WORDS,
+  shadowCasterDraw: MESH_DRAW_PACKET_WORDS,
   light: LIGHT_PACKET_WORDS,
   environment: ENVIRONMENT_PACKET_WORDS,
   shadowRequest: SHADOW_REQUEST_PACKET_WORDS,
@@ -29,6 +30,7 @@ export const SNAPSHOT_PACKET_BYTE_STRIDES = Object.freeze({
   header: SNAPSHOT_PACKET_HEADER_WORDS * Uint32Array.BYTES_PER_ELEMENT,
   view: VIEW_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
   meshDraw: MESH_DRAW_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+  shadowCasterDraw: MESH_DRAW_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
   light: LIGHT_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
   environment: ENVIRONMENT_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
   shadowRequest: SHADOW_REQUEST_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
@@ -44,9 +46,10 @@ export const SNAPSHOT_PACKET_HEADER_WORD_INDEX = Object.freeze({
   Version: 1,
   Views: 2,
   MeshDraws: 3,
-  Lights: 4,
-  Environments: 5,
-  ShadowRequests: 6,
-  Bounds: 7,
-  QuadBatches: 8,
+  ShadowCasterDraws: 4,
+  Lights: 5,
+  Environments: 6,
+  ShadowRequests: 7,
+  Bounds: 8,
+  QuadBatches: 9,
 });

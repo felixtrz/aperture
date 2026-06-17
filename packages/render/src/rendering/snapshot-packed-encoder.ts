@@ -28,12 +28,14 @@ import type {
 export function snapshotPacketWordLength(
   packets: SnapshotPacketBundle,
 ): number {
+  const shadowCasterDraws = packets.shadowCasterDraws ?? [];
   const quadBatches = packets.quadBatches ?? [];
 
   return (
     SNAPSHOT_PACKET_HEADER_WORDS +
     packets.views.length * VIEW_PACKET_WORDS +
     packets.meshDraws.length * MESH_DRAW_PACKET_WORDS +
+    shadowCasterDraws.length * MESH_DRAW_PACKET_WORDS +
     packets.lights.length * LIGHT_PACKET_WORDS +
     packets.environments.length * ENVIRONMENT_PACKET_WORDS +
     packets.shadowRequests.length * SHADOW_REQUEST_PACKET_WORDS +
@@ -47,6 +49,7 @@ export function encodeSnapshotPackets(
   options: EncodeSnapshotPacketsOptions = {},
 ): EncodedSnapshotPackets {
   const registry = options.registry ?? createSnapshotPacketRegistry();
+  const shadowCasterDraws = packets.shadowCasterDraws ?? [];
   const quadBatches = packets.quadBatches ?? [];
   const wordLength = snapshotPacketWordLength(packets);
   const buffer = options.buffer ?? new Uint32Array(wordLength);
@@ -63,6 +66,7 @@ export function encodeSnapshotPackets(
   writeSnapshotPacketHeader(words, {
     views: packets.views.length,
     meshDraws: packets.meshDraws.length,
+    shadowCasterDraws: shadowCasterDraws.length,
     lights: packets.lights.length,
     environments: packets.environments.length,
     shadowRequests: packets.shadowRequests.length,
@@ -76,6 +80,11 @@ export function encodeSnapshotPackets(
   }
 
   for (const packet of packets.meshDraws) {
+    writeMeshDrawPacket(words, offset, packet, registry);
+    offset += MESH_DRAW_PACKET_WORDS;
+  }
+
+  for (const packet of shadowCasterDraws) {
     writeMeshDrawPacket(words, offset, packet, registry);
     offset += MESH_DRAW_PACKET_WORDS;
   }
@@ -111,6 +120,7 @@ export function encodeSnapshotPackets(
     counts: {
       views: packets.views.length,
       meshDraws: packets.meshDraws.length,
+      shadowCasterDraws: shadowCasterDraws.length,
       lights: packets.lights.length,
       environments: packets.environments.length,
       shadowRequests: packets.shadowRequests.length,

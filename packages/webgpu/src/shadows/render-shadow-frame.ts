@@ -343,7 +343,7 @@ export function createRenderShadowFrame(
   });
   const casterDrawList = createShadowCasterDrawListPlanReport({
     shadowRequests,
-    meshDraws: options.snapshot.meshDraws,
+    meshDraws: options.snapshot.shadowCasterDraws ?? options.snapshot.meshDraws,
     shadowPassPlan: passPlan,
     commandEncoding: "ready",
   });

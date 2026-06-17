@@ -38,6 +38,7 @@ describe("snapshot packed packet encoding", () => {
     expect(encoded.counts).toEqual({
       views: packets.views.length,
       meshDraws: packets.meshDraws.length,
+      shadowCasterDraws: 0,
       lights: packets.lights.length,
       environments: packets.environments.length,
       shadowRequests: packets.shadowRequests.length,
@@ -105,6 +106,42 @@ describe("snapshot packed packet encoding", () => {
     );
   });
 
+  it("round-trips shadow caster draws independently from visible mesh draws", () => {
+    const mesh = createMeshHandle("off-camera-caster");
+    const material = createMaterialHandle("caster-material");
+    const bundle: SnapshotPacketBundle = {
+      views: [],
+      meshDraws: [],
+      shadowCasterDraws: [
+        meshDraw({
+          seed: 5,
+          random: createRandom(0x505),
+          mesh,
+          material,
+          queue: "opaque",
+          topology: "triangle-list",
+          instanceTintOffset: undefined,
+          castsShadow: true,
+          receivesShadow: false,
+        }),
+      ],
+      lights: [],
+      environments: [],
+      shadowRequests: [],
+      bounds: [boundsPacket(5, createRandom(0x606))],
+    };
+
+    const encoded = encodeSnapshotPackets(bundle);
+    const decoded = decodeSnapshotPackets(encoded.words, encoded.registry);
+
+    expect(encoded.counts).toMatchObject({
+      meshDraws: 0,
+      shadowCasterDraws: 1,
+    });
+    expect(decoded.meshDraws).toEqual([]);
+    expect(decoded.shadowCasterDraws).toEqual(bundle.shadowCasterDraws);
+  });
+
   it("round-trips authored shadow params through the worker codec", () => {
     const bundle: SnapshotPacketBundle = {
       views: [],
@@ -154,6 +191,7 @@ describe("snapshot packed packet encoding", () => {
       header: SNAPSHOT_PACKET_HEADER_WORDS,
       view: VIEW_PACKET_WORDS,
       meshDraw: MESH_DRAW_PACKET_WORDS,
+      shadowCasterDraw: MESH_DRAW_PACKET_WORDS,
       light: LIGHT_PACKET_WORDS,
       environment: ENVIRONMENT_PACKET_WORDS,
       shadowRequest: SHADOW_REQUEST_PACKET_WORDS,
@@ -164,6 +202,7 @@ describe("snapshot packed packet encoding", () => {
       header: SNAPSHOT_PACKET_HEADER_WORDS * Uint32Array.BYTES_PER_ELEMENT,
       view: VIEW_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
       meshDraw: MESH_DRAW_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+      shadowCasterDraw: MESH_DRAW_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
       light: LIGHT_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
       environment: ENVIRONMENT_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
       shadowRequest:

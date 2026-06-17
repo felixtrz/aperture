@@ -35,6 +35,12 @@ export {
   type RenderExtractionCache,
 } from "./extraction-mesh-cache.js";
 
+export interface MeshDrawExtractionOptions {
+  readonly frustumCull?: boolean;
+  readonly requireShadowCaster?: boolean;
+  readonly diagnoseLayerMismatch?: boolean;
+}
+
 export function extractMeshDraws(
   world: EcsWorld,
   assets: AssetRegistry,
@@ -53,17 +59,21 @@ export function extractMeshDraws(
   viewCullContexts: readonly ViewCullContext[],
   viewCullSignature: number,
   cache: RenderExtractionCache | undefined,
+  options: MeshDrawExtractionOptions = {},
 ): MeshDrawPacket[] {
   const query = world.queryManager.registerQuery({
     required: [Mesh, Material],
   });
   const draws: MeshDrawPacket[] = [];
+  const frustumCull = options.frustumCull !== false;
+  const activeCache =
+    frustumCull && options.requireShadowCaster !== true ? cache : undefined;
 
   for (const entity of sortedEntities(query.entities)) {
     const cacheKey = entityCacheKey(entity);
     const entityVersion = world.entityVersion(entity);
     const transformVersion = world.entityTransformVersion(entity);
-    const cached = cache?.meshDrawEntities.get(cacheKey);
+    const cached = activeCache?.meshDrawEntities.get(cacheKey);
 
     if (
       cached !== undefined &&
@@ -82,10 +92,11 @@ export function extractMeshDraws(
           readWorldMatrix(entity),
           transformVersion,
         );
-        cache?.meshDrawEntities.set(cacheKey, entry);
+        activeCache?.meshDrawEntities.set(cacheKey, entry);
       }
 
       if (
+        frustumCull &&
         !isVisibleInAnyMatchingView(
           entry.bounds.worldAabb,
           entry.layerMask,
@@ -105,16 +116,23 @@ export function extractMeshDraws(
       continue;
     }
 
-    cache?.meshDrawEntities.delete(cacheKey);
+    activeCache?.meshDrawEntities.delete(cacheKey);
 
     const entityState = readMeshEntityExtractionState({
       entity,
       assets,
       diagnostics,
       cameraLayerMask,
+      ...(options.diagnoseLayerMismatch === undefined
+        ? {}
+        : { diagnoseLayerMismatch: options.diagnoseLayerMismatch }),
     });
 
     if (entityState === null) {
+      continue;
+    }
+
+    if (options.requireShadowCaster === true && !entityState.castsShadow) {
       continue;
     }
 
@@ -126,6 +144,7 @@ export function extractMeshDraws(
     );
 
     if (
+      frustumCull &&
       !isVisibleInAnyMatchingView(
         boundsPacket.worldAabb,
         entityState.layerMask,
@@ -232,7 +251,7 @@ export function extractMeshDraws(
     draws.push(...entityDraws);
 
     writeMeshDrawEntityCache({
-      cache,
+      cache: activeCache,
       cacheKey,
       entity,
       entityVersion,

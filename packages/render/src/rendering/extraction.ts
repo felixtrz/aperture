@@ -120,6 +120,37 @@ export function extractRenderSnapshot(
     viewCullSignature,
     options.cache,
   ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
+  const shadowCasterLayerMask = shadowRequests.reduce(
+    (mask, request) => mask | request.casterLayerMask,
+    0,
+  );
+  const shadowCasterDraws =
+    shadowRequests.length === 0
+      ? []
+      : extractMeshDraws(
+          world,
+          assets,
+          transforms,
+          bones,
+          morphTargetWeights,
+          morphTargetDeltas,
+          morphInstanceDescriptors,
+          instanceTints,
+          instanceAttributes,
+          instanceAttributePackets,
+          bounds,
+          diagnostics,
+          shadowCasterLayerMask,
+          fogs,
+          viewCullContexts,
+          viewCullSignature,
+          undefined,
+          {
+            frustumCull: false,
+            requireShadowCaster: true,
+            diagnoseLayerMismatch: false,
+          },
+        ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
   const spriteDraws = extractSpriteDraws(
     world,
     assets,
@@ -166,6 +197,7 @@ export function extractRenderSnapshot(
     frame: options.frame ?? 0,
     views,
     meshDraws,
+    ...(shadowCasterDraws.length === 0 ? {} : { shadowCasterDraws }),
     spriteDraws,
     ...(particleEmitters.length === 0 ? {} : { particleEmitters }),
     ...(audioEmitters.length === 0 ? {} : { audioEmitters }),
@@ -214,6 +246,9 @@ export function extractRenderSnapshot(
     report: {
       views: views.length,
       meshDraws: meshDraws.length,
+      ...(shadowCasterDraws.length === 0
+        ? {}
+        : { shadowCasterDraws: shadowCasterDraws.length }),
       spriteDraws: spriteDraws.length,
       particleEmitters: particleEmitters.length,
       audioEmitters: audioEmitters.length,

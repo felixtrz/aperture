@@ -36,6 +36,7 @@ export function readMeshEntityExtractionState(input: {
   readonly assets: AssetRegistry;
   readonly diagnostics: RenderDiagnostic[];
   readonly cameraLayerMask: number;
+  readonly diagnoseLayerMismatch?: boolean;
 }): MeshEntityExtractionState | null {
   if (
     input.entity.hasComponent(Enabled) &&
@@ -82,7 +83,9 @@ export function readMeshEntityExtractionState(input: {
     input.cameraLayerMask !== 0 &&
     (layerMask & input.cameraLayerMask) === 0
   ) {
-    input.diagnostics.push(diagnostic("render.layerMismatch", input.entity));
+    if (input.diagnoseLayerMismatch !== false) {
+      input.diagnostics.push(diagnostic("render.layerMismatch", input.entity));
+    }
     return null;
   }
 

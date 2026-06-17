@@ -8,6 +8,7 @@ import type {
 export interface RenderSnapshotInspectionCounts {
   readonly views: number;
   readonly meshDraws: number;
+  readonly shadowCasterDraws: number;
   readonly lights: number;
   readonly environments: number;
   readonly shadowRequests: number;
@@ -70,6 +71,7 @@ export function inspectRenderSnapshot(
     counts: {
       views: snapshot.views.length,
       meshDraws: snapshot.meshDraws.length,
+      shadowCasterDraws: snapshot.shadowCasterDraws?.length ?? 0,
       lights: snapshot.lights.length,
       environments: snapshot.environments.length,
       shadowRequests: snapshot.shadowRequests.length,
@@ -80,10 +82,14 @@ export function inspectRenderSnapshot(
     },
     handles: {
       meshKeys: uniqueSorted(
-        snapshot.meshDraws.map((draw) => assetHandleKey(draw.mesh)),
+        [...snapshot.meshDraws, ...(snapshot.shadowCasterDraws ?? [])].map(
+          (draw) => assetHandleKey(draw.mesh),
+        ),
       ),
       materialKeys: uniqueSorted(
-        snapshot.meshDraws.map((draw) => assetHandleKey(draw.material)),
+        [...snapshot.meshDraws, ...(snapshot.shadowCasterDraws ?? [])].map(
+          (draw) => assetHandleKey(draw.material),
+        ),
       ),
       renderTargetKeys: uniqueSorted(
         snapshot.views.flatMap((view) =>

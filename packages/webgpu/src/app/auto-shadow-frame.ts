@@ -184,7 +184,7 @@ function computeCasterShadowFit(
     maxZ = Math.max(maxZ, z);
   };
 
-  for (const draw of snapshot.meshDraws) {
+  for (const draw of shadowCasterDrawsForSnapshot(snapshot)) {
     if (!isShadowCasterDraw(draw, snapshot.shadowRequests)) {
       continue;
     }
@@ -453,7 +453,7 @@ function createAutoShadowCasterMeshViews(options: {
   const executableMeshes: ShadowCasterExecutableMeshResourceView[] = [];
   const preparedByMeshKey = new Set<string>();
 
-  for (const draw of options.snapshot.meshDraws) {
+  for (const draw of shadowCasterDrawsForSnapshot(options.snapshot)) {
     if (!isShadowCasterDraw(draw, options.snapshot.shadowRequests)) {
       continue;
     }
@@ -530,6 +530,12 @@ function snapshotHasStandardShadowReceiver(snapshot: RenderSnapshot): boolean {
       draw.receivesShadow !== false &&
       draw.batchKey.pipelineKey.startsWith("standard|"),
   );
+}
+
+function shadowCasterDrawsForSnapshot(
+  snapshot: RenderSnapshot,
+): readonly MeshDrawPacket[] {
+  return snapshot.shadowCasterDraws ?? snapshot.meshDraws;
 }
 
 function isShadowCasterDraw(

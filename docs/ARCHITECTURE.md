@@ -152,6 +152,9 @@ Responsibilities:
 - Produce render packets.
 - Produce render snapshots.
 - Generate diagnostics for skipped/invalid renderables.
+- Extract shadow caster draw packets separately from main-view mesh draw
+  packets, so main-camera frustum culling never determines whether an
+  off-screen caster can still contribute to a shadow map.
 
 This is the key boundary that allows future worker-thread simulation.
 

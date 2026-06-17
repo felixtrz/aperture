@@ -1037,6 +1037,7 @@ function createBuiltInOnlySnapshotForMixedCustomWgslRoute(
   snapshot: RenderSnapshot,
 ): RenderSnapshot | null {
   const builtInDraws: MeshDrawPacket[] = [];
+  const builtInShadowCasterDraws: MeshDrawPacket[] = [];
   let customDrawCount = 0;
 
   for (const draw of snapshot.meshDraws) {
@@ -1058,6 +1059,21 @@ function createBuiltInOnlySnapshotForMixedCustomWgslRoute(
     }
   }
 
+  for (const draw of snapshot.shadowCasterDraws ?? []) {
+    const material = assets.get<"material", SourceMaterialAsset>(
+      draw.material,
+    )?.asset;
+
+    if (
+      material !== null &&
+      material !== undefined &&
+      !isCustomWgslMaterialAsset(material) &&
+      isBuiltInMaterialQueueFamily(material.kind)
+    ) {
+      builtInShadowCasterDraws.push(draw);
+    }
+  }
+
   if (customDrawCount === 0 || builtInDraws.length === 0) {
     return null;
   }
@@ -1065,9 +1081,15 @@ function createBuiltInOnlySnapshotForMixedCustomWgslRoute(
   return {
     ...snapshot,
     meshDraws: builtInDraws,
+    ...(snapshot.shadowCasterDraws === undefined
+      ? {}
+      : { shadowCasterDraws: builtInShadowCasterDraws }),
     report: {
       ...snapshot.report,
       meshDraws: builtInDraws.length,
+      ...(snapshot.shadowCasterDraws === undefined
+        ? {}
+        : { shadowCasterDraws: builtInShadowCasterDraws.length }),
     },
   };
 }

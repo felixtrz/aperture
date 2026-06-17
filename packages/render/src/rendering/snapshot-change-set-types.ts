@@ -1,6 +1,7 @@
 export const RENDER_SNAPSHOT_CHANGE_SET_FAMILIES = [
   "views",
   "meshDraws",
+  "shadowCasterDraws",
   "lights",
   "environments",
   "shadowRequests",
@@ -31,6 +32,7 @@ export interface RenderSnapshotChangeSet {
   readonly frame: number;
   readonly views: RenderSnapshotFamilyChangeCounts;
   readonly meshDraws: RenderSnapshotFamilyChangeCounts;
+  readonly shadowCasterDraws: RenderSnapshotFamilyChangeCounts;
   readonly lights: RenderSnapshotFamilyChangeCounts;
   readonly environments: RenderSnapshotFamilyChangeCounts;
   readonly shadowRequests: RenderSnapshotFamilyChangeCounts;

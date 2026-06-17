@@ -1203,6 +1203,55 @@ describe("render extraction", () => {
     ]);
   });
 
+  it("extracts shadow casters outside the main camera frustum", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [0, 0, 5],
+    });
+    createLightEntity(world).addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({ enabled: true }),
+    );
+    const visibleReceiver = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [0, 0, 0],
+    });
+    visibleReceiver.addComponent(ShadowCaster, { enabled: false });
+    const offscreenCaster = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [120, 0, 0],
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws.map((draw) => draw.entity.index)).toEqual([
+      visibleReceiver.index,
+    ]);
+    expect(
+      snapshot.shadowCasterDraws?.map((draw) => draw.entity.index),
+    ).toEqual([offscreenCaster.index]);
+    expect(snapshot.report).toMatchObject({
+      meshDraws: 1,
+      shadowCasterDraws: 1,
+      shadowRequests: 1,
+    });
+    expect(snapshot.report.cullStats).toMatchObject([
+      {
+        tested: 2,
+        culled: 1,
+        included: 1,
+      },
+    ]);
+  });
+
   it("allows cameras to opt out of frustum culling", () => {
     const world = createRuntimeWorld();
 

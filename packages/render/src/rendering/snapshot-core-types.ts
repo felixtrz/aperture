@@ -29,6 +29,12 @@ export interface RenderSnapshot {
   readonly frame: number;
   readonly views: readonly ViewPacket[];
   readonly meshDraws: readonly MeshDrawPacket[];
+  /**
+   * Shadow-caster mesh packets extracted independently of main camera frustum
+   * culling. Main rendering uses `meshDraws`; shadow passes use this family
+   * when present so off-camera casters can still contribute to shadow maps.
+   */
+  readonly shadowCasterDraws?: readonly MeshDrawPacket[];
   readonly spriteDraws?: readonly SpriteDrawPacket[];
   readonly particleEmitters?: readonly ParticleEmitterPacket[];
   readonly audioEmitters?: readonly AudioEmitterPacket[];

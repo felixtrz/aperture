@@ -1,3 +1,58 @@
+# Handoff - Shadow Caster Culling Independence
+
+**Updated:** 2026-06-17 11:14 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Researched shadow caster visibility behavior in the local reference engines:
+  - three.js builds shadow render lists against the shadow camera path instead
+    of reusing the main render camera visible list.
+  - PlayCanvas performs directional shadow caster culling through its shadow
+    camera.
+  - Bevy keeps shadow-map visible entities separate from main-view visibility.
+- Added an optional `RenderSnapshot.shadowCasterDraws` packet family extracted
+  separately from visible `meshDraws`.
+  - Main `meshDraws` still use per-view camera frustum culling.
+  - Shadow caster extraction requires `castsShadow`, uses the union of shadow
+    caster layer masks, suppresses expected nonmatching layer diagnostics, and
+    does not use main-view frustum culling.
+  - The shadow auto-fit, shadow draw-list planning, mixed built-in/custom route,
+    app reports, packed snapshot codec, SharedArrayBuffer transport, and
+    snapshot change-set scheduler now carry the caster-only packet family.
+- Racing live proof through Aperture CLI at `http://127.0.0.1:5174/`:
+  - `browser_wait_for_webgpu` passed.
+  - `render_get_frame_report` reported `meshDraws:36`,
+    `shadowCasterDraws:364`, and a shadow caster draw list consuming all
+    `364` caster draws with zero diagnostics.
+  - `browser_screenshot` wrote `/tmp/racing-shadow-caster-live.png`; the image
+    was not black and showed track/arch/tree shadows.
+  - `render_readback_samples` returned opaque nonzero pixels for center,
+    track-shadow, and grass-lit samples.
+- Validation:
+  - `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/snapshot-packed-encoding.test.ts test/rendering/snapshot-change-set.test.ts test/rendering/snapshot-update-scheduler.test.ts test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/app-snapshot-transport.test.ts`
+  - `pnpm --filter @aperture-engine/render run build`
+  - `pnpm --filter @aperture-engine/render run typecheck`
+  - `pnpm --filter @aperture-engine/webgpu run typecheck`
+  - `pnpm --filter @aperture-engine/app run typecheck`
+  - `pnpm --filter @aperture-engine/webgpu run build`
+  - `pnpm --filter @aperture-engine/app run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+
+## Known Issues
+
+- Pre-existing untracked screenshot/parity artifacts remain outside the commit.
+
+## Recommended Next Task
+
+Continue the current user-directed FPS/racing validation stream, or return to
+the backlog's `task-3097` PMREM GGX/VNDF prefilter slice when the shadow/FPS
+interruptions are complete.
+
+---
+
 # Handoff - FPS Gamepad Toggle Parity
 
 **Updated:** 2026-06-17 11:14 PDT

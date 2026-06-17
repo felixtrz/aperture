@@ -32,6 +32,7 @@ export interface RenderDiagnostic {
 export interface RenderSnapshotReport {
   readonly views: number;
   readonly meshDraws: number;
+  readonly shadowCasterDraws?: number;
   readonly spriteDraws?: number;
   readonly particleEmitters?: number;
   readonly audioEmitters?: number;

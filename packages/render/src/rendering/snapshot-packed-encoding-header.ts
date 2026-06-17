@@ -8,6 +8,7 @@ import {
 export interface SnapshotPacketHeaderCounts {
   readonly views: number;
   readonly meshDraws: number;
+  readonly shadowCasterDraws: number;
   readonly lights: number;
   readonly environments: number;
   readonly shadowRequests: number;
@@ -25,6 +26,8 @@ export function writeSnapshotPacketHeader(
     SNAPSHOT_PACKET_ENCODING_VERSION;
   words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Views] = counts.views;
   words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.MeshDraws] = counts.meshDraws;
+  words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.ShadowCasterDraws] =
+    counts.shadowCasterDraws;
   words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Lights] = counts.lights;
   words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Environments] = counts.environments;
   words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.ShadowRequests] =
@@ -41,6 +44,8 @@ export function readSnapshotPacketHeaderCounts(
   return {
     views: words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Views] ?? 0,
     meshDraws: words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.MeshDraws] ?? 0,
+    shadowCasterDraws:
+      words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.ShadowCasterDraws] ?? 0,
     lights: words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Lights] ?? 0,
     environments: words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Environments] ?? 0,
     shadowRequests:

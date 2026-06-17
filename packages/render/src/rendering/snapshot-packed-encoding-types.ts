@@ -13,6 +13,7 @@ import type {
 export interface SnapshotPacketBundle {
   readonly views: readonly ViewPacket[];
   readonly meshDraws: readonly MeshDrawPacket[];
+  readonly shadowCasterDraws?: readonly MeshDrawPacket[];
   readonly lights: readonly LightPacket[];
   readonly environments: readonly EnvironmentPacket[];
   readonly shadowRequests: readonly ShadowRequestPacket[];
@@ -31,6 +32,7 @@ export interface EncodedSnapshotPackets {
   readonly counts: {
     readonly views: number;
     readonly meshDraws: number;
+    readonly shadowCasterDraws: number;
     readonly lights: number;
     readonly environments: number;
     readonly shadowRequests: number;
@@ -47,6 +49,7 @@ export type SnapshotPacketEncodingInput =
       RenderSnapshot,
       | "views"
       | "meshDraws"
+      | "shadowCasterDraws"
       | "lights"
       | "environments"
       | "shadowRequests"

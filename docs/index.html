@@ -393,26 +393,36 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 18:08 UTC</dd>
+            <dd>2026-06-17 18:13 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS reset now holds the source start
-              body pose through the Rapier character-controller sync boundary,
-              so shot knockback no longer leaves the player offset after
-              pressing <code>R</code>. Jump and shoot buffers wait through that
-              short hold; a paused-step proof queued Space during reset hold and
-              then jumped with <code>verticalVelocity:7.666666666666667</code>,
-              <code>grounded:false</code>, and <code>jumpsRemaining:1</code>
-              once the hold cleared. Live Aperture proof also rechecked left
-              click shooting, reset returning <code>playerX:0</code> /
-              <code>playerZ:0</code>, and camera-yaw-relative W movement. Prior
-              update: Starter Kit FPS input now separates primary and
-              non-primary pointer buttons. Source middle-click weapon toggle
-              switches to <code>weaponIndex:1</code> / Repeater without firing,
-              while left click still increments <code>shotsFired</code> with an
-              unlocked first-click fallback. First-press Space jumping and
+              Latest update: shadow caster extraction now publishes
+              <code>shadowCasterDraws</code> separately from visible
+              <code>meshDraws</code>, so main-camera frustum culling no longer
+              removes off-screen casters from shadow maps. Racing live proof at
+              <code>127.0.0.1:5174</code> reported <code>meshDraws:36</code>,
+              <code>shadowCasterDraws:364</code>, and a shadow caster draw list
+              consuming all <code>364</code> caster draws with zero diagnostics;
+              the managed screenshot/readback stayed nonblack with visible
+              shadows. Prior update: Starter Kit FPS reset now holds the source
+              start body pose through the Rapier character-controller sync
+              boundary, so shot knockback no longer leaves the player offset
+              after pressing <code>R</code>. Jump and shoot buffers wait through
+              that short hold; a paused-step proof queued Space during reset
+              hold and then jumped with
+              <code>verticalVelocity:7.666666666666667</code>,
+              <code>grounded:false</code>, and
+              <code>jumpsRemaining:1</code> once the hold cleared. Live Aperture
+              proof also rechecked left click shooting, reset returning
+              <code>playerX:0</code> / <code>playerZ:0</code>, and
+              camera-yaw-relative W movement. Prior update: Starter Kit FPS
+              input now separates primary and non-primary pointer buttons.
+              Source middle-click weapon toggle switches to
+              <code>weaponIndex:1</code> / Repeater without firing, while left
+              click still increments <code>shotsFired</code> with an unlocked
+              first-click fallback. First-press Space jumping and
               camera-yaw-relative W movement were reproved through the managed
               Aperture browser. The Aperture CLI
               <code>input_pointer_click</code> and <code>input_drag</code> tools
@@ -2637,12 +2647,20 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">render</span> Split shadow caster draw
+                extraction from visible mesh draw extraction. Off-screen shadow
+                casters now survive main-camera frustum culling, and racing
+                reports <code>36</code> visible mesh draws versus
+                <code>364</code> shadow caster draws consumed by the shadow
+                pass.
+              </li>
+              <li>
                 <span class="badge green">fps</span> Fixed FPS reset body
                 stabilization and jump buffering. After shot knockback,
                 <code>R</code> now returns the player to source reset X/Z, and
                 Space queued during the reset hold jumps once the hold clears.
-                Left click shooting and camera-relative W movement were
-                reproved through managed Aperture input.
+                Left click shooting and camera-relative W movement were reproved
+                through managed Aperture input.
               </li>
               <li>
                 <span class="badge green">fps</span> Added

@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "e5cc9183",
   "activePid": null,
-  "notes": "Aligned FPS gamepad weapon toggle with Starter Kit FPS project.godot: switchWeapon now uses standard leftStick/button index 10, right bumper no longer toggles, right trigger still shoots, and all were reproved through Aperture CLI.",
-  "lastRunFinishedAt": "2026-06-17T18:14:12Z"
+  "notes": "Fixed shadow caster culling independence by extracting shadowCasterDraws separately from visible meshDraws, routing the packet family through transport/change sets/reports, and reproving racing with meshDraws:36, shadowCasterDraws:364, shadow caster draw list:364, diagnostics:0, and nonblack screenshot/readback.",
+  "lastRunFinishedAt": "2026-06-17T18:17:33Z"
 }

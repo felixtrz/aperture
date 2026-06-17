@@ -39,6 +39,7 @@ export function decodeSnapshotPackets(
     SNAPSHOT_PACKET_HEADER_WORDS +
     counts.views * VIEW_PACKET_WORDS +
     counts.meshDraws * MESH_DRAW_PACKET_WORDS +
+    counts.shadowCasterDraws * MESH_DRAW_PACKET_WORDS +
     counts.lights * LIGHT_PACKET_WORDS +
     counts.environments * ENVIRONMENT_PACKET_WORDS +
     counts.shadowRequests * SHADOW_REQUEST_PACKET_WORDS +
@@ -53,6 +54,7 @@ export function decodeSnapshotPackets(
 
   const views: ViewPacket[] = [];
   const meshDraws: MeshDrawPacket[] = [];
+  const shadowCasterDraws: MeshDrawPacket[] = [];
   const lights: LightPacket[] = [];
   const environments: EnvironmentPacket[] = [];
   const shadowRequests: ShadowRequestPacket[] = [];
@@ -67,6 +69,11 @@ export function decodeSnapshotPackets(
 
   for (let index = 0; index < counts.meshDraws; index += 1) {
     meshDraws.push(readMeshDrawPacket(words, offset, registry));
+    offset += MESH_DRAW_PACKET_WORDS;
+  }
+
+  for (let index = 0; index < counts.shadowCasterDraws; index += 1) {
+    shadowCasterDraws.push(readMeshDrawPacket(words, offset, registry));
     offset += MESH_DRAW_PACKET_WORDS;
   }
 
@@ -98,6 +105,7 @@ export function decodeSnapshotPackets(
   return {
     views,
     meshDraws,
+    ...(shadowCasterDraws.length === 0 ? {} : { shadowCasterDraws }),
     lights,
     environments,
     shadowRequests,

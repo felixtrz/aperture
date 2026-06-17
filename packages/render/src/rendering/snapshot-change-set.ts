@@ -8,6 +8,7 @@ import {
   environmentPackets,
   lightPackets,
   meshDrawPackets,
+  shadowCasterDrawPackets,
   shadowRequestPackets,
   viewPackets,
 } from "./snapshot-change-set-packets.js";
@@ -31,6 +32,10 @@ export function createRenderSnapshotChangeSet(
     meshDrawPackets(previous),
     meshDrawPackets(next),
   );
+  const shadowCasterDraws = comparePacketFamily(
+    shadowCasterDrawPackets(previous),
+    shadowCasterDrawPackets(next),
+  );
   const lights = comparePacketFamily(
     lightPackets(previous),
     lightPackets(next),
@@ -53,6 +58,7 @@ export function createRenderSnapshotChangeSet(
     frame: next.frame,
     views: views.counts,
     meshDraws: meshDraws.counts,
+    shadowCasterDraws: shadowCasterDraws.counts,
     lights: lights.counts,
     environments: environments.counts,
     shadowRequests: shadowRequests.counts,
@@ -60,6 +66,7 @@ export function createRenderSnapshotChangeSet(
     total: totalCounts([
       views.counts,
       meshDraws.counts,
+      shadowCasterDraws.counts,
       lights.counts,
       environments.counts,
       shadowRequests.counts,
@@ -68,6 +75,7 @@ export function createRenderSnapshotChangeSet(
     keys: {
       views: views.keys,
       meshDraws: meshDraws.keys,
+      shadowCasterDraws: shadowCasterDraws.keys,
       lights: lights.keys,
       environments: environments.keys,
       shadowRequests: shadowRequests.keys,

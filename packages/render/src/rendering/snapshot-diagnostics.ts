@@ -9,6 +9,7 @@ export interface RenderSnapshotDiagnosticSummaryReport {
   readonly packets: {
     readonly views: number;
     readonly meshDraws: number;
+    readonly shadowCasterDraws: number;
     readonly lights: number;
     readonly environments: number;
     readonly shadowRequests: number;
@@ -25,6 +26,7 @@ export function summarizeRenderSnapshotDiagnostics(
     packets: {
       views: snapshot.views.length,
       meshDraws: snapshot.meshDraws.length,
+      shadowCasterDraws: snapshot.shadowCasterDraws?.length ?? 0,
       lights: snapshot.lights.length,
       environments: snapshot.environments.length,
       shadowRequests: snapshot.shadowRequests.length,

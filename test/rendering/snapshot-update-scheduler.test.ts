@@ -13,6 +13,7 @@ describe("render snapshot update scheduler", () => {
         frame: 11,
         views: { changed: 0, unchanged: 1, removed: 0 },
         meshDraws: { changed: 2, unchanged: 3, removed: 1 },
+        shadowCasterDraws: { changed: 1, unchanged: 0, removed: 0 },
         lights: { changed: 0, unchanged: 0, removed: 1 },
       }),
     );
@@ -36,15 +37,16 @@ describe("render snapshot update scheduler", () => {
         environments: { family: "environments", action: "skip" },
       },
       total: {
-        families: 6,
+        families: 7,
+        refreshFamilies: 1,
         reuseFamilies: 1,
         removeFamilies: 1,
         mixedFamilies: 1,
         skipFamilies: 3,
-        packetRefreshes: 2,
+        packetRefreshes: 3,
         packetReuses: 4,
         packetRemovals: 2,
-        packetWork: 4,
+        packetWork: 5,
       },
     });
   });
@@ -79,6 +81,7 @@ function changeSet(
       | "frame"
       | "views"
       | "meshDraws"
+      | "shadowCasterDraws"
       | "lights"
       | "environments"
       | "shadowRequests"
@@ -88,6 +91,7 @@ function changeSet(
 ): RenderSnapshotChangeSet {
   const views = input.views ?? emptyCounts();
   const meshDraws = input.meshDraws ?? emptyCounts();
+  const shadowCasterDraws = input.shadowCasterDraws ?? emptyCounts();
   const lights = input.lights ?? emptyCounts();
   const environments = input.environments ?? emptyCounts();
   const shadowRequests = input.shadowRequests ?? emptyCounts();
@@ -98,6 +102,7 @@ function changeSet(
     frame: input.frame ?? 0,
     views,
     meshDraws,
+    shadowCasterDraws,
     lights,
     environments,
     shadowRequests,
@@ -105,6 +110,7 @@ function changeSet(
     total: totalCounts([
       views,
       meshDraws,
+      shadowCasterDraws,
       lights,
       environments,
       shadowRequests,

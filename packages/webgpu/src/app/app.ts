@@ -113,6 +113,7 @@ export type { WebGpuAppPipelineResourceResult } from "./pipeline-resources.js";
 export interface WebGpuAppRenderCounts {
   readonly views: number;
   readonly meshDraws: number;
+  readonly shadowCasterDraws?: number;
   readonly spriteDraws: number;
   readonly particleEmitters: number;
   readonly quadInstances: number;

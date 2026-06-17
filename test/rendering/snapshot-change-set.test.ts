@@ -29,15 +29,21 @@ describe("render snapshot change set", () => {
       frame: 2,
       views: { changed: 0, unchanged: 1, removed: 0 },
       meshDraws: { changed: 0, unchanged: 1, removed: 0 },
+      shadowCasterDraws: { changed: 0, unchanged: 1, removed: 0 },
       lights: { changed: 0, unchanged: 1, removed: 0 },
       environments: { changed: 0, unchanged: 1, removed: 0 },
       shadowRequests: { changed: 0, unchanged: 1, removed: 0 },
       bounds: { changed: 0, unchanged: 1, removed: 0 },
-      total: { changed: 0, unchanged: 6, removed: 0 },
+      total: { changed: 0, unchanged: 7, removed: 0 },
     });
     expect(changeSet.keys?.meshDraws).toEqual({
       changed: [],
       unchanged: [`mesh-draw:${meshDrawPacket().renderId}`],
+      removed: [],
+    });
+    expect(changeSet.keys?.shadowCasterDraws).toEqual({
+      changed: [],
+      unchanged: [`shadow-caster-draw:${meshDrawPacket().renderId}`],
       removed: [],
     });
   });
@@ -56,6 +62,11 @@ describe("render snapshot change set", () => {
 
     expect(changeSet.views).toEqual({ changed: 0, unchanged: 1, removed: 0 });
     expect(changeSet.meshDraws).toEqual({
+      changed: 1,
+      unchanged: 0,
+      removed: 0,
+    });
+    expect(changeSet.shadowCasterDraws).toEqual({
       changed: 1,
       unchanged: 0,
       removed: 0,
@@ -81,7 +92,7 @@ describe("render snapshot change set", () => {
       removed: 1,
     });
     expect(changeSet.total).toEqual({
-      changed: 2,
+      changed: 3,
       unchanged: 1,
       removed: 3,
     });
@@ -95,7 +106,12 @@ describe("render snapshot change set", () => {
 
     expect(changeSet.previousFrame).toBeNull();
     expect(changeSet.total).toEqual({
-      changed: 6,
+      changed: 7,
+      unchanged: 0,
+      removed: 0,
+    });
+    expect(changeSet.shadowCasterDraws).toEqual({
+      changed: 1,
       unchanged: 0,
       removed: 0,
     });
@@ -130,6 +146,7 @@ function snapshot(input: {
     frame: input.frame,
     views: [viewPacket()],
     meshDraws: [meshDraw],
+    shadowCasterDraws: [meshDraw],
     lights: [light],
     environments,
     shadowRequests,
@@ -141,6 +158,7 @@ function snapshot(input: {
     report: {
       views: 1,
       meshDraws: 1,
+      shadowCasterDraws: 1,
       lights: 1,
       environments: environments.length,
       shadowRequests: shadowRequests.length,

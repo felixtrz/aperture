@@ -91,6 +91,58 @@ describe("WebGPU app auto-shadow frame", () => {
     expect(orthographicSize).toBeLessThan(23);
     expect(orthographicSize).toBeLessThan(oldWorldDiagonalSize);
   });
+
+  it("keeps shadow casters that are absent from the visible mesh draw list", () => {
+    const calls = createDeviceCalls();
+    const assets = new AssetRegistry();
+    const opaqueMesh = createMeshHandle("off-camera-caster");
+    const alphaMesh = createMeshHandle("off-camera-alpha-helper");
+
+    assets.register(opaqueMesh, { label: "Off-camera caster" });
+    assets.markReady(opaqueMesh, triangleMesh("Off-camera caster"));
+    assets.register(alphaMesh, { label: "Off-camera alpha helper" });
+    assets.markReady(alphaMesh, triangleMesh("Off-camera alpha helper"));
+
+    const source = snapshot({
+      opaqueMesh,
+      alphaMesh,
+      opaqueBounds: { min: [10, 0, 0], max: [12, 2, 2] },
+      receiverBounds: { min: [-4, 0, -4], max: [4, 0.1, 4] },
+    });
+    const visibleReceiver = source.meshDraws.filter(
+      (draw) => draw.renderId === 103,
+    );
+    const shadowCasterDraws = source.meshDraws.filter(
+      (draw) => draw.renderId === 101 || draw.renderId === 102,
+    );
+
+    const result = createWebGpuAppAutoShadowFrame({
+      app: app(device(calls)),
+      assets,
+      cache: createWebGpuAppResourceCache(),
+      reuse: createWebGpuAppResourceReuseReport(),
+      snapshot: {
+        ...source,
+        meshDraws: visibleReceiver,
+        shadowCasterDraws,
+        report: {
+          ...source.report,
+          meshDraws: visibleReceiver.length,
+          shadowCasterDraws: shadowCasterDraws.length,
+        },
+      },
+    });
+
+    expect(visibleReceiver.map((draw) => draw.renderId)).toEqual([103]);
+    expect(result).not.toBeNull();
+    expect(result?.casterDrawList.meshDrawCount).toBe(2);
+    expect(
+      result?.casterDrawList.lists[0]?.draws.map((draw) => draw.renderId),
+    ).toEqual([101]);
+    expect(
+      result?.casterDrawList.diagnostics.map((diagnostic) => diagnostic.code),
+    ).toEqual(["shadowCasterDrawList.unsupportedAlphaBlendCaster"]);
+  });
 });
 
 function app(device: RenderShadowFrameDeviceLike): WebGpuApp {

@@ -200,6 +200,9 @@ export function readWebGpuAppSharedSnapshot(
     frame: frame.frame,
     views: packets.views,
     meshDraws: packets.meshDraws,
+    ...(packets.shadowCasterDraws === undefined
+      ? {}
+      : { shadowCasterDraws: packets.shadowCasterDraws }),
     lights: packets.lights,
     environments: packets.environments,
     shadowRequests: packets.shadowRequests,
@@ -224,6 +227,9 @@ export function readWebGpuAppSharedSnapshot(
     report: {
       views: packets.views.length,
       meshDraws: packets.meshDraws.length,
+      ...(packets.shadowCasterDraws === undefined
+        ? {}
+        : { shadowCasterDraws: packets.shadowCasterDraws.length }),
       lights: packets.lights.length,
       environments: packets.environments.length,
       shadowRequests: packets.shadowRequests.length,
@@ -333,6 +339,7 @@ function defaultSharedSnapshotPacketWords(input: {
     SNAPSHOT_PACKET_HEADER_WORDS +
     input.maxViews * VIEW_PACKET_WORDS +
     input.maxEntities * MESH_DRAW_PACKET_WORDS +
+    input.maxEntities * MESH_DRAW_PACKET_WORDS +
     input.maxEntities * QUAD_BATCH_PACKET_WORDS +
     maxLights * LIGHT_PACKET_WORDS +
     maxEnvironments * ENVIRONMENT_PACKET_WORDS +
@@ -395,6 +402,7 @@ function isRenderSnapshotChangeSet(
     Number.isInteger(value.frame) &&
     isFamilyCounts(value.views) &&
     isFamilyCounts(value.meshDraws) &&
+    isFamilyCounts(value.shadowCasterDraws) &&
     isFamilyCounts(value.lights) &&
     isFamilyCounts(value.environments) &&
     isFamilyCounts(value.shadowRequests) &&
