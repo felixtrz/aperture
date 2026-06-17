@@ -8,6 +8,10 @@ import { STATUS_GLOBAL } from "./types.js";
 const MANAGED_GLOBAL = "__APERTURE_MCP_MANAGED__";
 
 export interface BrowserConnection {
+  // Keep the Playwright CDP browser object strongly referenced for the same
+  // lifetime as the page. Do not close it: Browser.close() can propagate to the
+  // managed browser process itself.
+  readonly browser: unknown;
   readonly page: AperturePage;
 }
 
@@ -54,7 +58,7 @@ export async function connectToManagedPage(
     throw new Error("The managed browser has no open pages.");
   }
 
-  return { page };
+  return { browser, page };
 }
 
 export async function readGeneratedStatus(

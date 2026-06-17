@@ -1,8 +1,13 @@
-import { readApertureDevSession } from "../session.js";
-import { connectToManagedPage } from "./browser.js";
+import { readApertureDevSession, type ApertureDevSession } from "../session.js";
+import { connectToManagedPage, type BrowserConnection } from "./browser.js";
 import { callBrowserBackedTool, sessionSummary } from "./dispatch.js";
 import { callReferenceTool } from "./reference.js";
 import type { ApertureToolCallOptions } from "./types.js";
+
+let cachedBrowserConnection: {
+  readonly key: string;
+  readonly connection: BrowserConnection;
+} | null = null;
 
 export async function callApertureTool(
   options: ApertureToolCallOptions,
@@ -38,7 +43,7 @@ export async function callApertureTool(
     };
   }
 
-  const connection = await connectToManagedPage(session).catch(() => null);
+  const connection = await managedBrowserConnection(session).catch(() => null);
 
   if (connection === null) {
     return {
@@ -59,5 +64,69 @@ export async function callApertureTool(
   // shutdown and tears down the active Aperture dev session. One-shot CLI tool
   // commands exit after printing, and MCP servers intentionally keep the
   // connection alive for their process lifetime.
-  return await callBrowserBackedTool(connection.page, session, options.name, args);
+  try {
+    return await callBrowserBackedTool(
+      connection.page,
+      session,
+      options.name,
+      args,
+    );
+  } catch (error: unknown) {
+    if (!isClosedTargetError(error)) {
+      throw error;
+    }
+
+    clearCachedBrowserConnection(session);
+    const retryConnection = await managedBrowserConnection(session).catch(
+      () => null,
+    );
+    if (retryConnection === null) {
+      throw error;
+    }
+
+    return await callBrowserBackedTool(
+      retryConnection.page,
+      session,
+      options.name,
+      args,
+    );
+  }
+}
+
+function managedBrowserConnection(
+  session: ApertureDevSession,
+): Promise<BrowserConnection> {
+  const key = browserConnectionKey(session);
+  if (cachedBrowserConnection?.key === key) {
+    return Promise.resolve(cachedBrowserConnection.connection);
+  }
+
+  return connectToManagedPage(session).then((connection) => {
+    cachedBrowserConnection = { key, connection };
+    return connection;
+  });
+}
+
+function clearCachedBrowserConnection(session: ApertureDevSession): void {
+  if (cachedBrowserConnection?.key === browserConnectionKey(session)) {
+    cachedBrowserConnection = null;
+  }
+}
+
+function browserConnectionKey(session: ApertureDevSession): string {
+  return [
+    session.appRoot,
+    session.url,
+    session.startedAt,
+    session.browser.cdpUrl ?? "",
+  ].join("\n");
+}
+
+function isClosedTargetError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes("Target page, context or browser has been closed") ||
+    message.includes("Target closed") ||
+    message.includes("has been closed")
+  );
 }

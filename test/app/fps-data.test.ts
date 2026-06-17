@@ -193,6 +193,24 @@ describe("Starter Kit FPS source data", () => {
     }
   });
 
+  it("keeps cloud transforms aligned with the source main scene", () => {
+    const sourceClouds = extractSourceSceneInstances(
+      readStarterKitSource("scenes/main.tscn"),
+      "Decoration",
+      SOURCE_CLOUD_KEY_BY_NODE,
+    );
+    expect(sourceClouds).toHaveLength(CLOUDS.length);
+
+    const apertureClouds = new Map(CLOUDS.map((cloud) => [cloud.key, cloud]));
+    for (const source of sourceClouds) {
+      const aperture = apertureClouds.get(source.key);
+      expect(aperture).toBeDefined();
+      expect(aperture?.assetId).toBe(source.assetId);
+      expectVec3Close(aperture?.position, source.position);
+      expectVec3Close(aperture?.scale, source.scale ?? [1, 1, 1]);
+    }
+  });
+
   it("derives enemy scene and script constants from the source Enemy files", () => {
     expect(SOURCE_ENEMY_HITBOX_OFFSET).toEqual([0, 0.25, 0]);
     expect(SOURCE_ENEMY_HITBOX_RADIUS).toBe(0.75);
@@ -346,6 +364,7 @@ interface SourceSceneInstance {
   readonly key: string;
   readonly assetId: string;
   readonly position: readonly [number, number, number];
+  readonly scale?: readonly [number, number, number] | undefined;
   readonly yawDegrees?: number | undefined;
 }
 
@@ -370,6 +389,20 @@ const SOURCE_ENEMY_KEY_BY_NODE: Readonly<Record<string, string>> = {
   "enemy-flying2": "enemy.1",
   "enemy-flying3": "enemy.2",
   "enemy-flying4": "enemy.3",
+};
+
+const SOURCE_CLOUD_KEY_BY_NODE: Readonly<Record<string, string>> = {
+  cube2: "deco.cloud.0",
+  cube9: "deco.cloud.1",
+  cube5: "deco.cloud.2",
+  cube3: "deco.cloud.3",
+  cube10: "deco.cloud.4",
+  cube11: "deco.cloud.5",
+  cube12: "deco.cloud.6",
+  cube6: "deco.cloud.7",
+  cube7: "deco.cloud.8",
+  cube8: "deco.cloud.9",
+  cube4: "deco.cloud.10",
 };
 
 const SOURCE_COLLIDER_HORIZONTAL_PADDING_TOLERANCE = 0.151;
@@ -512,6 +545,7 @@ function extractSourceSceneInstances(
       key,
       assetId: sourceAssetId(sourcePath),
       position: [transform[9] ?? 0, transform[10] ?? 0, transform[11] ?? 0],
+      scale: sourceTransformScale(transform),
       yawDegrees: sourceLevelYawDegrees(transform),
     });
   };
@@ -599,6 +633,20 @@ function normalizeYaw(value: number): number {
   if (Math.abs(normalized) < 0.001) return 0;
   if (Math.abs(Math.abs(normalized) - 180) < 0.001) return 180;
   return normalized;
+}
+
+function sourceTransformScale(
+  transform: readonly number[],
+): readonly [number, number, number] {
+  return [
+    vectorLength(transform[0] ?? 1, transform[1] ?? 0, transform[2] ?? 0),
+    vectorLength(transform[3] ?? 0, transform[4] ?? 1, transform[5] ?? 0),
+    vectorLength(transform[6] ?? 0, transform[7] ?? 0, transform[8] ?? 1),
+  ];
+}
+
+function vectorLength(x: number, y: number, z: number): number {
+  return Math.hypot(x, y, z);
 }
 
 function expectVec3Close(
