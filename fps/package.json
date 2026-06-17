@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "smoke:full-clear": "node scripts/full-clear-smoke.mjs --fresh-session",
+    "smoke:skybox-readback": "node scripts/skybox-readback-smoke.mjs --fresh-session",
     "aperture": "aperture"
   },
   "dependencies": {
