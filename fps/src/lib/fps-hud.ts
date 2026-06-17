@@ -14,6 +14,11 @@ export const SOURCE_HEALTH_BOTTOM_PX = 48;
 export const SOURCE_HEALTH_WIDTH_PX = 90;
 export const POINTER_LOCK_LOOK_PIXELS_PER_UNIT =
   SOURCE_POINTER_LOCK_LOOK_PIXELS_PER_UNIT;
+export const SOURCE_VIEWPORT_WIDTH_PX = 1280;
+export const SOURCE_VIEWPORT_HEIGHT_PX = 720;
+export const SOURCE_VIEWPORT_ASPECT =
+  SOURCE_VIEWPORT_WIDTH_PX / SOURCE_VIEWPORT_HEIGHT_PX;
+export const SOURCE_BOOT_SPLASH_BG_COLOR = "#ececf5";
 
 export interface HudCssVariableSink {
   setProperty(name: string, value: string): void;
@@ -83,10 +88,7 @@ export function sourcePointerLockLookAxis(
 }
 
 export function writeSourceHudCssVariables(style: HudCssVariableSink): void {
-  style.setProperty(
-    "--fps-crosshair-size",
-    `${SOURCE_CROSSHAIR_SIZE_PX}px`,
-  );
+  style.setProperty("--fps-crosshair-size", `${SOURCE_CROSSHAIR_SIZE_PX}px`);
   style.setProperty(
     "--fps-health-font-size",
     `${SOURCE_HEALTH_FONT_SIZE_PX}px`,
@@ -106,6 +108,26 @@ export function writeSourceHudCssVariables(style: HudCssVariableSink): void {
   style.setProperty("--fps-health-left", `${SOURCE_HEALTH_LEFT_PX}px`);
   style.setProperty("--fps-health-bottom", `${SOURCE_HEALTH_BOTTOM_PX}px`);
   style.setProperty("--fps-health-width", `${SOURCE_HEALTH_WIDTH_PX}px`);
+  style.setProperty(
+    "--fps-source-viewport-width",
+    `${SOURCE_VIEWPORT_WIDTH_PX}px`,
+  );
+  style.setProperty(
+    "--fps-source-viewport-height",
+    `${SOURCE_VIEWPORT_HEIGHT_PX}px`,
+  );
+  style.setProperty(
+    "--fps-source-viewport-aspect",
+    `${SOURCE_VIEWPORT_ASPECT}`,
+  );
+  style.setProperty(
+    "--fps-source-viewport-aspect-ratio",
+    `${SOURCE_VIEWPORT_WIDTH_PX} / ${SOURCE_VIEWPORT_HEIGHT_PX}`,
+  );
+  style.setProperty(
+    "--fps-boot-splash-background",
+    SOURCE_BOOT_SPLASH_BG_COLOR,
+  );
 }
 
 function clampAxis(value: number): number {

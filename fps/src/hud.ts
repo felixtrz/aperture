@@ -19,6 +19,7 @@ import {
 } from "./lib/fps-hud.js";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#aperture");
+const gameShellEl = document.querySelector<HTMLElement>("#game-shell");
 const healthEl = document.querySelector<HTMLElement>("#health");
 const crosshairEl = document.querySelector<HTMLImageElement>("#crosshair");
 
@@ -38,6 +39,10 @@ function writeText(el: HTMLElement | null, value: string): void {
 }
 
 function render(signals: GeneratedSignalSummary | null): void {
+  if (signals !== null) {
+    gameShellEl?.classList.add("boot-complete");
+  }
+
   const crosshair =
     typeof signals?.crosshair === "string" && signals.crosshair.length > 0
       ? signals.crosshair
