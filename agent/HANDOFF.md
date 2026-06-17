@@ -1,25 +1,39 @@
-# Handoff - Starter Kit FPS Enemy Destruction Slice
+# Handoff - Starter Kit FPS Cloud Hover Slice
 
-**Updated:** 2026-06-17 00:09 PDT
+**Updated:** 2026-06-17 00:23 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Added explicit enemy-destruction status for the Starter Kit FPS port,
-  following the upstream `objects/enemy.gd` `destroy()` behavior by making dead
-  enemies non-renderable/non-colliding instead of leaving active hitboxes.
-- `fps.state` now summarizes `enemyDestroyed`, `enemiesRemaining`,
-  `destroyedEnemies`, `enemyDestroyedPulse`, `lastDestroyedEnemy`, and
-  `gameStatus` so generated-worker tools can prove enemy death and HUD state.
-- The FPS HUD now flashes on enemy destruction, reports the remaining enemy
-  count from generated signals, and has a clear-state banner for the eventual
-  all-enemies-cleared state.
-- Fixed an Aperture tooling gap needed to prove the slice: ECS entity lookup
-  summaries now expose top-level `enabled` for entities with the `Enabled`
-  component, and snapshot diffs include enabled-state changes.
-- Added developer API regression coverage for the new `enabled` summary field.
+- Added the remaining authored cloud instances from upstream
+  `scenes/main.tscn`; the FPS port now spawns 11 cloud roots instead of the
+  previous 4.
+- Preserved source cloud transforms as ECS data by storing source-derived
+  quaternions and scale values in `CLOUDS`, with setup passing `rotation` into
+  `spawn.gltf(...)` instead of collapsing cloud orientation to yaw-only values.
+- Added `src/systems/clouds.system.ts`, an ECS system that applies deterministic
+  source-like hover motion equivalent to upstream `objects/cloud.gd`:
+  `position.y += cos(time * random_time) * random_velocity * delta`.
+- Committed:
+  - `d7323f3b` — `Add FPS authored cloud hover slice`
+
+## Previous Completed FPS Slices
+
+- Enemy destruction/status:
+  - Added explicit enemy-destruction status for the Starter Kit FPS port,
+    following the upstream `objects/enemy.gd` `destroy()` behavior by making
+    dead enemies non-renderable/non-colliding instead of leaving active hitboxes.
+  - `fps.state` now summarizes `enemyDestroyed`, `enemiesRemaining`,
+    `destroyedEnemies`, `enemyDestroyedPulse`, `lastDestroyedEnemy`, and
+    `gameStatus` so generated-worker tools can prove enemy death and HUD state.
+  - The FPS HUD now flashes on enemy destruction, reports the remaining enemy
+    count from generated signals, and has a clear-state banner for the eventual
+    all-enemies-cleared state.
+- Tooling support:
+  - ECS entity lookup summaries now expose top-level `enabled` for entities with
+    the `Enabled` component, and snapshot diffs include enabled-state changes.
 - Committed:
   - `aaa83107` — `Port Starter Kit FPS slice to Aperture`
   - `37bc0e5e` — `Add FPS pointer lock look bridge`
@@ -33,8 +47,6 @@ previous working state so the old state remains recoverable.
 
 ## Latest Validation
 
-- `pnpm exec vitest run test/app/developer-api.test.ts -t "publishes JSON-safe entity lookup summaries"`
-- `pnpm exec vitest run test/app/developer-api.test.ts`
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
 - `pnpm --filter @aperture-engine/app typecheck`
@@ -42,31 +54,25 @@ previous working state so the old state remains recoverable.
 - `pnpm run typecheck`
 - `pnpm run typecheck:test`
 - Aperture CLI runtime proof from `fps/`:
-  - Reused managed FPS at `http://127.0.0.1:5174/`; `browser_wait_for_webgpu`
+  - Restarted managed FPS at `http://127.0.0.1:5174/`; `browser_wait_for_webgpu`
     succeeded with `webgpuOk:true` and no `lastError`/`lastFailure`.
-  - Paused the generated worker, reset gameplay through Aperture input actions,
-    aimed at `enemy.0` with generated `look`, fired twice with cooldown waits,
-    and read `resource_get { id:"fps.state" }`.
-  - Proof state after two gameplay shots:
-    `shotsFired:2`, `hits:4`, `enemyHealth.enemy.0:0`,
-    `enemyDestroyed.enemy.0:true`, `enemiesRemaining:3`,
-    `destroyedEnemies:1`, `enemyDestroyedPulse:1`,
-    `lastDestroyedEnemy:"enemy.0"`, `gameStatus:"active"`.
-  - `ecs_find_entities { key:"enemy.0" }` reported `enabled:false` and
-    translation `[-3.5,-100,-6]`.
-  - `ecs_find_entities { key:"enemy.0.hitbox" }` reported `enabled:false`,
-    `physicsCollider.enabled:false`, and translation `[-3.5,-100,-6]`.
-  - `browser_status` reported generated signals with `enemiesRemaining:3`,
-    `destroyedEnemies:1`, and `lastDestroyedEnemy:"enemy.0"`.
+  - `ecs_list_systems` included `src/systems/clouds.system.ts`.
+  - Paused the generated worker and read `ecs_find_entities { tags:["cloud"] }`;
+    it returned 11 `deco.cloud.*` entities.
+  - After 90 `ecs_step` frames, all 11 cloud roots had changed Y translation
+    while X/Z, scale, and rotation stayed stable.
   - `browser_screenshot` wrote
-    `fps/.aperture/runtime/fps-enemy-destroy-proof.png`; the HUD displayed
-    the remaining enemy count `3`.
-  - Runtime status had `webgpuOk:true` and no `lastError`/`lastFailure` after
-    the enemy was hidden.
+    `fps/.aperture/runtime/fps-cloud-hover-proof.png`; the screenshot shows
+    additional visible clouds around the level.
+  - The live FPS session was reset through generated `reset` input afterward:
+    `health:100`, `enemiesRemaining:4`, `shotsFired:0`, `hits:0`, then resumed.
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir racing run build`
 - `pnpm --dir shadow-lab run typecheck`
 - `pnpm --dir shadow-lab run build`
+- Previous enemy-destruction validation:
+- `pnpm exec vitest run test/app/developer-api.test.ts -t "publishes JSON-safe entity lookup summaries"`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
 - Previous sprite/input validation:
 - `pnpm exec vitest run test/app/input-state-events.test.ts`
 - Previous physics slice validation:
@@ -103,9 +109,8 @@ previous working state so the old state remains recoverable.
 ## Current Notes
 
 - Managed FPS is running at `http://127.0.0.1:5174/` through Aperture dev and
-  was resumed after the final paused proof. The live session was left after the
-  one-enemy proof; press `R` or queue the generated `reset` action to return to
-  a fresh all-enemies state before a new runtime proof.
+  was resumed after the final cloud proof. The live session was reset to fresh
+  gameplay state after the proof.
 - Pre-existing untracked screenshots,
   racing parity artifacts, and `racing/parity/` remain outside commits.
 - Use `value:0` rather than `pressed:false` for button-release CLI scripts when
@@ -120,12 +125,11 @@ previous working state so the old state remains recoverable.
 
 ## Recommended Next Task
 
-Continue the FPS port with another visible Starter Kit fidelity slice. Good next
-options are either (1) add the remaining authored cloud instances and source-like
-cloud hover motion from upstream `scenes/main.tscn` and `objects/cloud.gd`, or
-(2) add a navigation-backed full-clear proof that kills all four enemies without
-debug mutation and verifies `gameStatus:"cleared"` plus the HUD `CLEAR` state
-through Aperture tools.
+Continue the FPS port with another visible Starter Kit fidelity slice. A good
+next task is a navigation-backed full-clear proof that kills all four enemies
+without debug mutation and verifies `gameStatus:"cleared"` plus the HUD `CLEAR`
+state through Aperture tools. Another visible option is improving the weapon
+switch animation toward upstream `objects/player.gd`'s tweened hide/show flow.
 
 ---
 

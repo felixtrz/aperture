@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## FPS-PORT — Authored cloud hover slice
+
+Completed: 2026-06-17 00:23 PDT
+Commit: `d7323f3b`
+
+### Summary
+
+- Added all 11 upstream-authored cloud instances from `scenes/main.tscn` to the
+  FPS port, preserving source positions, scale values, and source-derived
+  rotations as ECS spawn data.
+- Added `src/systems/clouds.system.ts`, which applies deterministic ECS-owned
+  vertical hover motion following upstream `objects/cloud.gd`.
+- Kept rendering derived from ECS state: setup spawns cloud GLB entities, and
+  the cloud system mutates only `LocalTransform` on keyed cloud roots.
+
+### Validation
+
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- Aperture CLI proof from `fps/`: `browser_wait_for_webgpu`, `ecs_list_systems`,
+  `ecs_pause`, `ecs_find_entities`, `ecs_step`, `browser_status`, and
+  `browser_screenshot` proved 11 `deco.cloud.*` entities, 11/11 moving Y
+  translations over 90 stepped frames, stable X/Z/scale/rotation, and no
+  runtime failure.
+- `browser_screenshot` wrote
+  `fps/.aperture/runtime/fps-cloud-hover-proof.png`.
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+
 ## FPS-PORT — Enemy destruction status feedback
 
 Completed: 2026-06-17 00:09 PDT
