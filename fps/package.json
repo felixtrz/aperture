@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
+    "smoke:full-clear": "node scripts/full-clear-smoke.mjs",
     "aperture": "aperture"
   },
   "dependencies": {
