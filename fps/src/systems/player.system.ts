@@ -134,6 +134,7 @@ const WEAPON_RECOIL_IMPULSE_SCALE = 0.12;
 const WEAPON_RECOIL_RECOVERY_RATE = 12;
 const WEAPON_RECOIL_EPSILON = 0.001;
 const JUMP_BUFFER_DURATION = 0.12;
+const SHOOT_BUFFER_DURATION = 0.08;
 
 interface ShotEnemyHit {
   readonly key: string;
@@ -170,6 +171,7 @@ export default class PlayerSystem extends createSystem({
   #landingPulse = 0;
   #weaponRecoilVelocity: Vec3 = [0, 0, 0];
   #jumpBufferTimer = 0;
+  #shootBufferTimer = 0;
 
   override update(delta: number): void {
     const dt = Math.min(Math.max(delta, 0), 1 / 30);
@@ -179,6 +181,7 @@ export default class PlayerSystem extends createSystem({
       this.#impactFlashTimers[i] = Math.max(0, timer - dt);
     }
     this.#jumpBufferTimer = Math.max(0, this.#jumpBufferTimer - dt);
+    this.#shootBufferTimer = Math.max(0, this.#shootBufferTimer - dt);
     for (let i = 0; i < this.#enemyMuzzleFlashTimers.length; i += 1) {
       const timer = this.#enemyMuzzleFlashTimers[i] ?? 0;
       this.#enemyMuzzleFlashTimers[i] = Math.max(0, timer - dt);
@@ -355,10 +358,16 @@ export default class PlayerSystem extends createSystem({
 
     weaponIndex = this.#advanceWeaponSwitch(weaponIndex, dt);
     const weapon = WEAPONS[weaponIndex] ?? WEAPONS[0]!;
+    const shoot = this.#button("shoot");
+    if (shoot?.down() === true) {
+      this.#shootBufferTimer = SHOOT_BUFFER_DURATION;
+    }
     const didShoot =
-      this.#button("shoot")?.pressed() === true && shotCooldown <= 0;
+      (shoot?.pressed() === true || this.#shootBufferTimer > 0) &&
+      shotCooldown <= 0;
     if (didShoot) {
       shotCooldown = weapon.cooldown;
+      this.#shootBufferTimer = 0;
       shotsFired += 1;
       this.#playOneShot(weapon.soundId);
       const shot = this.#shoot(position, yaw, pitch, weapon, enemyHealth);
@@ -893,6 +902,7 @@ export default class PlayerSystem extends createSystem({
     this.#landingPulse = 0;
     this.#weaponRecoilVelocity = [0, 0, 0];
     this.#jumpBufferTimer = 0;
+    this.#shootBufferTimer = 0;
   }
 
   #addWeaponRecoil(yaw: number, weapon: WeaponSpec): void {
