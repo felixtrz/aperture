@@ -1,11 +1,75 @@
-# Handoff - Starter Kit FPS Enemy Muzzle And One-Shot Audio
+# Handoff - Starter Kit FPS Shooting Input
 
-**Updated:** 2026-06-17 04:59 PDT
+**Updated:** 2026-06-17 05:14 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Hardened Starter Kit FPS shooting input for fast click/release cases:
+  - The player system now stores a short `0.08s` shoot buffer when the generated
+    `shoot` button reports a down edge.
+  - Held shooting still uses the upstream-style pressed state and weapon
+    cooldown, so repeater/held-fire behavior remains intact.
+  - The buffer is consumed after a shot and cleared on reset/respawn so stale
+    click edges cannot leak across gameplay resets.
+- Aperture proof:
+  - Reloaded the managed FPS app through `pnpm --dir fps exec aperture tool
+    browser_reload` and waited for WebGPU.
+  - Paused the generated worker, reset `fps.state`, queued `shoot` pressed
+    `true` then `false` before the next `ecs_step`, and read
+    `resource_get {"id":"fps.state"}`: `shotsFired:1` and
+    `shotCooldown:0.25`.
+  - Reproved camera-relative movement and jump on the patched worker: after yaw
+    `0.0833333333`, forward movement produced player displacement about
+    `[-0.006936, -0.083044]` on X/Z, and jump produced
+    `grounded:false`, `verticalVelocity:7.666666666`, `jumpsRemaining:1`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+    passed 20 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - `61684e3a` — `Harden FPS shooting input`
+
+## Previous Completed FPS/Tooling Slices
+
+- Aligned Starter Kit FPS enemy muzzle runtime scale with source script data:
+  - `references/Starter-Kit-FPS/objects/enemy.tscn` gives each enemy muzzle
+    `AnimatedSprite3D` node a transform scale of `0.5`.
+  - `references/Starter-Kit-FPS/objects/enemy.gd` only rewinds/plays the
+    muzzle animation and randomizes `rotation_degrees.z`; it does not apply a
+    second random scale at fire time.
+  - The port now keeps `effect.enemy.*.muzzle.*` sprite dimensions at the
+    previously derived `[1.28, 1.28]` source size and writes identity runtime
+    transform scale instead of multiplying by the old `0.72` factor.
+- Aperture proof:
+  - Reused the managed FPS app through `pnpm exec aperture dev up --open`.
+  - `browser_wait_for_webgpu` passed with WebGPU ready and diagnostics `0`.
+  - MCP `ecs_query {"key":"effect.enemy.0.muzzle.0","limit":1}` reported
+    `localTransform.scale:[1,1,1]`, `renderSprite.width` and
+    `renderSprite.height` approximately `1.28`, `blendMode:"additive"`, and
+    `depthMode:"test"`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-effects.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts`
+    passed 27 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - `1c56da13` — `Align FPS enemy muzzle runtime scale`
+
+## Earlier Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS enemy muzzle sprite sizing with source scene data:
   - `references/Starter-Kit-FPS/objects/enemy.tscn` uses two
@@ -52,7 +116,7 @@ previous working state so the old state remains recoverable.
   - `f5a2f3df` — `Align FPS enemy muzzle sprite size`
   - `d966ebe4` — `Align FPS one-shot audio pool`
 
-## Previous Completed FPS/Tooling Slices
+## Older Completed FPS/Tooling Slices
 
 - Aligned two small Starter Kit FPS source-fidelity details:
   - `references/Starter-Kit-FPS/objects/enemy.gd` plays the enemy hurt sound
@@ -92,7 +156,7 @@ previous working state so the old state remains recoverable.
   - `71ce56f8` — `Align FPS enemy damage audio`
   - `63aacbec` — `Align FPS impact sprite size`
 
-## Earlier Completed FPS/Tooling Slices
+## Historical Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS ray-target semantics with upstream
   `references/Starter-Kit-FPS/objects/player.gd` and
@@ -150,7 +214,7 @@ previous working state so the old state remains recoverable.
 - Committed implementation:
   - `0164f083` — `Align FPS ray targets and gamepad axes`
 
-## Older Completed FPS/Tooling Slices
+## Archived Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS shot impacts with upstream
   `references/Starter-Kit-FPS/objects/player.gd`:

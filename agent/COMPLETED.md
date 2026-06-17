@@ -1,5 +1,71 @@
 # Completed Tasks
 
+## FPS-PORT — Shooting input buffer
+
+Completed: 2026-06-17 05:14 PDT
+Commit: `61684e3a`
+
+### Summary
+
+- Hardened FPS shooting for fast click/release cases by buffering a generated
+  `shoot` down edge for `0.08s`.
+- Preserved held-fire behavior through the existing pressed-state and weapon
+  cooldown path.
+- Cleared the buffered shot after it fires and during reset/respawn cleanup.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+  passed 20 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture MCP/CLI proof against the live FPS route:
+  - Fast generated `shoot` press/release before the next `ecs_step` still
+    produced `shotsFired:1` and `shotCooldown:0.25`.
+  - Camera-relative movement proof after yaw `0.0833333333` moved X/Z by about
+    `[-0.006936, -0.083044]`.
+  - Jump proof reported `grounded:false`, `verticalVelocity:7.666666666`, and
+    `jumpsRemaining:1`.
+
+## FPS-PORT — Enemy muzzle runtime scale
+
+Completed: 2026-06-17 05:12 PDT
+Commit: `1c56da13`
+
+### Summary
+
+- Matched upstream enemy muzzle runtime behavior from
+  `references/Starter-Kit-FPS/objects/enemy.gd`: enemy attacks rewind/play each
+  muzzle animation and randomize roll, but do not apply an additional runtime
+  scale.
+- Kept the already source-derived enemy muzzle sprite size at `1.28` world
+  units and changed the runtime transform scale from the old `0.72` multiplier
+  to identity scale.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-effects.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts`
+  passed 27 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture MCP proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed in the managed FPS session with
+    diagnostics `0`.
+  - `ecs_query {"key":"effect.enemy.0.muzzle.0","limit":1}` reported
+    `localTransform.scale:[1,1,1]`, `renderSprite.width` and
+    `renderSprite.height` approximately `1.28`, `blendMode:"additive"`, and
+    `depthMode:"test"`.
+
 ## FPS-PORT — Enemy muzzle sprite size and one-shot audio
 
 Completed: 2026-06-17 04:59 PDT
