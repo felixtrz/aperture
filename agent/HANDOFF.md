@@ -1,11 +1,58 @@
-# Handoff - FPS Skybox Readback Smoke
+# Handoff - FPS Shot Ordering And Reset Input Fix
 
-**Updated:** 2026-06-17 10:04 PDT
+**Updated:** 2026-06-17 10:22 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Fixed the latest reported FPS playability issues around shooting, movement
+  confidence, and jump reliability:
+  - Source anchors checked:
+    `references/Starter-Kit-FPS/objects/player.gd` and
+    `references/Starter-Kit-FPS/project.godot`.
+  - Shooting input itself was live-proved through Aperture: virtual
+    `input_action_set` hold-to-fire increments `shotsFired`, and a managed
+    browser `input_pointer_click` increments `shotsFired`.
+  - Damage resolution now uses the nearest physics ray hit before checking
+    whether that hit is an enemy. This matches Godot `RayCast3D` nearest-hit
+    behavior and prevents unsorted `raycastAll` output from making closer
+    enemies unshootable or allowing hits through nearer blockers.
+  - FPS reset/respawn now clears all app-specific command bridge state:
+    movement, jump, shoot, weapon switch, and reset. Previously it only cleared
+    shoot command state, which could leave stale movement/button state around
+    after a reset path.
+  - Existing camera-yaw-relative movement math was rechecked against the source
+    `transform.basis * movement_velocity` path and reproved by the full-clear
+    route.
+  - Jump behavior was reproved through the full-clear route; held Space also
+    jumped in live Aperture input testing, and the reset-state cleanup removes a
+    concrete source of intermittent stale command behavior.
+- Live proof:
+  - `pnpm --dir fps run smoke:full-clear` passed from a fresh managed Aperture
+    session.
+  - Final state: `health:65`, `shotsFired:8`, `hits:16`,
+    `enemiesRemaining:0`, `destroyedEnemies:4`, and
+    `gameStatus:"cleared"`.
+  - The smoke route jumped across the west, southeast, northeast, and elevated
+    northeast platform transitions and destroyed all four enemies through
+    Aperture MCP/CLI generated input.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-hud.test.ts`
+  - `pnpm --dir fps run smoke:full-clear`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `pnpm run check:progress`
+  - `git diff --check`
+- Commit:
+  - `8fcc4542` — `Fix FPS shot ordering and reset inputs`
+
+## Previous Completed Slice - FPS Skybox Readback Smoke
 
 - Added a reusable Starter Kit FPS skybox orientation/readback proof:
   - Source/reference anchors checked:

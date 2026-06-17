@@ -1,5 +1,36 @@
 # Completed Tasks
 
+## FPS-PORT — Shot hit ordering and reset input cleanup
+
+Completed: 2026-06-17 10:22 PDT
+Commit: `8fcc4542`
+
+### Summary
+
+- Fixed Starter Kit FPS shot damage resolution to evaluate the nearest physics
+  ray hit before deciding whether the shot hit an enemy, matching the source
+  `RayCast3D` nearest-collision behavior.
+- Added `sourceNearestShotHit(...)` and focused coverage for unsorted ray hits,
+  closer enemies, closer blockers, and invalid distances.
+- Reset/respawn now clears all FPS app command bridge state: movement, jump,
+  shoot, weapon switch, and reset.
+- Live Aperture proof revalidated the gameplay route: shooting destroyed all
+  enemies, camera-relative movement carried the route across platforms, and
+  jump traversal still completed the source-like route.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-hud.test.ts`
+- `pnpm --dir fps run smoke:full-clear`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `pnpm run check:progress`
+- `git diff --check`
+
 ## FPS-PORT — Skybox orientation readback smoke
 
 Completed: 2026-06-17 10:04 PDT
