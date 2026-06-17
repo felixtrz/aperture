@@ -59,19 +59,22 @@ const MODEL_NAMES = [
   "decoration-tents",
 ] as const;
 
-const initialHorizontalDistance = Math.hypot(CAMERA.offset[0], CAMERA.offset[2]);
+const initialHorizontalDistance = Math.hypot(
+  CAMERA.offset[0],
+  CAMERA.offset[2],
+);
 const orbit = {
   azimuth: Math.atan2(CAMERA.offset[0], CAMERA.offset[2]),
   elevation: Math.atan2(CAMERA.offset[1], initialHorizontalDistance),
-  distance: 4,
+  distance: Math.hypot(CAMERA.offset[0], CAMERA.offset[1], CAMERA.offset[2]),
 };
 const POLE = Math.PI / 2 - 0.01;
 const target: Vec3 = [SPAWN_POS[0], 0.25, SPAWN_POS[2]];
 
 function runtime(): McpRuntime | null {
-  return (globalThis as Record<string, unknown>)["__APERTURE_MCP_RUNTIME__"] as
-    | McpRuntime
-    | null;
+  return (globalThis as Record<string, unknown>)[
+    "__APERTURE_MCP_RUNTIME__"
+  ] as McpRuntime | null;
 }
 
 async function waitForRuntime(timeoutMs = 15_000): Promise<McpRuntime | null> {
@@ -100,7 +103,9 @@ function layout(): {
   diffButton: HTMLButtonElement;
   bloomButton: HTMLButtonElement;
 } {
-  const aperture = document.getElementById("aperture") as HTMLCanvasElement | null;
+  const aperture = document.getElementById(
+    "aperture",
+  ) as HTMLCanvasElement | null;
   if (aperture === null) {
     throw new Error("Shadow Lab compare mode requires #aperture canvas.");
   }
@@ -238,7 +243,10 @@ async function buildScene(): Promise<{
   buildBloomProbe(scene);
 
   const shadowExtent = Math.max(bounds.halfWidth, bounds.halfDepth) + 10;
-  const sun = new THREE.DirectionalLight(DIR_LIGHT.colorHex, DIR_LIGHT.intensity);
+  const sun = new THREE.DirectionalLight(
+    DIR_LIGHT.colorHex,
+    DIR_LIGHT.intensity,
+  );
   sun.position.set(...DIR_LIGHT.position);
   sun.target.position.set(0, 0, 0);
   scene.add(sun.target);
@@ -294,9 +302,21 @@ function buildTrack(
 
   const decoGroup = new THREE.Group();
   const buckets = computeDecorationBuckets(cells, customMap);
-  createInstances(models.get("decoration-empty") ?? null, buckets.empty, decoGroup);
-  createInstances(models.get("decoration-forest") ?? null, buckets.forest, decoGroup);
-  createInstances(models.get("decoration-tents") ?? null, buckets.tents, decoGroup);
+  createInstances(
+    models.get("decoration-empty") ?? null,
+    buckets.empty,
+    decoGroup,
+  );
+  createInstances(
+    models.get("decoration-forest") ?? null,
+    buckets.forest,
+    decoGroup,
+  );
+  createInstances(
+    models.get("decoration-tents") ?? null,
+    buckets.tents,
+    decoGroup,
+  );
 
   trackGroup.add(trackPieceGroup);
   trackGroup.add(decoGroup);
@@ -409,7 +429,11 @@ function cloneObject(src: ThreeObject): ThreeObject {
   return src.clone(true) as ThreeObject;
 }
 
-function setShadowRecursive(object: ThreeObject, cast: boolean, receive: boolean): void {
+function setShadowRecursive(
+  object: ThreeObject,
+  cast: boolean,
+  receive: boolean,
+): void {
   object.traverse((child: unknown) => {
     const mesh = child as ThreeMesh & { isMesh?: boolean };
     if (mesh.isMesh === true) {
@@ -437,7 +461,9 @@ function makeDiffer(
   const apertureContext = apertureCopy.getContext("2d", {
     willReadFrequently: true,
   })!;
-  const threeContext = threeCopy.getContext("2d", { willReadFrequently: true })!;
+  const threeContext = threeCopy.getContext("2d", {
+    willReadFrequently: true,
+  })!;
   const diffContext = diffCanvas.getContext("2d")!;
   const output = diffContext.createImageData(width, height);
 
@@ -448,7 +474,12 @@ function makeDiffer(
     } catch {
       return;
     }
-    const aperturePixels = apertureContext.getImageData(0, 0, width, height).data;
+    const aperturePixels = apertureContext.getImageData(
+      0,
+      0,
+      width,
+      height,
+    ).data;
     const threePixels = threeContext.getImageData(0, 0, width, height).data;
     const outputPixels = output.data;
     for (let i = 0; i < aperturePixels.length; i += 4) {
@@ -474,7 +505,8 @@ export async function installThreeCompare(): Promise<void> {
     return;
   }
 
-  const { threeCanvas, diffCanvas, setLabel, diffButton, bloomButton } = layout();
+  const { threeCanvas, diffCanvas, setLabel, diffButton, bloomButton } =
+    layout();
   setLabel("THREE.js loading scene...");
   let sceneBundle: Awaited<ReturnType<typeof buildScene>>;
   try {
@@ -506,7 +538,12 @@ export async function installThreeCompare(): Promise<void> {
     return;
   }
 
-  const camera = new THREE.PerspectiveCamera(CAMERA.fovDeg, 1, CAMERA.near, CAMERA.far);
+  const camera = new THREE.PerspectiveCamera(
+    CAMERA.fovDeg,
+    1,
+    CAMERA.near,
+    CAMERA.far,
+  );
   const resize = (): void => {
     const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
     const width = Math.floor(window.innerWidth / 2);
@@ -533,10 +570,14 @@ export async function installThreeCompare(): Promise<void> {
     bloomPipeline.outputNode = scenePassColor.add(bloomPass);
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.warn("[three-compare] bloom pipeline unavailable; rendering direct.", err);
+    console.warn(
+      "[three-compare] bloom pipeline unavailable; rendering direct.",
+      err,
+    );
   }
 
-  let bloomOn = new URLSearchParams(window.location.search).get("bloom") !== "0";
+  let bloomOn =
+    new URLSearchParams(window.location.search).get("bloom") !== "0";
   let bloomToggleInFlight = false;
   const updateBloomButton = (): void => {
     bloomButton.textContent = `Bloom: ${bloomOn ? "ON" : "OFF"}`;
@@ -560,7 +601,10 @@ export async function installThreeCompare(): Promise<void> {
     if (!response.ok) {
       bloomOn = previous;
       // eslint-disable-next-line no-console
-      console.warn("[three-compare] failed to toggle Aperture bloom:", response);
+      console.warn(
+        "[three-compare] failed to toggle Aperture bloom:",
+        response,
+      );
     }
     updateBloomButton();
   };
@@ -646,7 +690,10 @@ export async function installThreeCompare(): Promise<void> {
     const dx = (event.clientX - prev[0]) / window.innerWidth;
     const dy = (event.clientY - prev[1]) / window.innerHeight;
     orbit.azimuth -= dx * 3.0;
-    orbit.elevation = Math.max(-POLE, Math.min(POLE, orbit.elevation - dy * 3.0));
+    orbit.elevation = Math.max(
+      -POLE,
+      Math.min(POLE, orbit.elevation - dy * 3.0),
+    );
     prev = [event.clientX, event.clientY];
     applyCameraPose();
   };
@@ -655,7 +702,10 @@ export async function installThreeCompare(): Promise<void> {
   };
   const onWheel = (event: WheelEvent): void => {
     if ((event.target as HTMLElement)?.closest?.("#sl-panel")) return;
-    orbit.distance = Math.max(2, Math.min(120, orbit.distance + event.deltaY * 0.02));
+    orbit.distance = Math.max(
+      2,
+      Math.min(120, orbit.distance + event.deltaY * 0.02),
+    );
     applyCameraPose();
   };
   window.addEventListener("pointerdown", onDown);
@@ -663,7 +713,9 @@ export async function installThreeCompare(): Promise<void> {
   window.addEventListener("pointerup", onUp);
   window.addEventListener("wheel", onWheel, { passive: true });
 
-  const apertureCanvas = document.getElementById("aperture") as HTMLCanvasElement;
+  const apertureCanvas = document.getElementById(
+    "aperture",
+  ) as HTMLCanvasElement;
   const differ = makeDiffer(apertureCanvas, threeCanvas, diffCanvas);
   let diffOn = false;
   diffButton.addEventListener("click", () => {
@@ -704,7 +756,10 @@ async function findEntityByName(
       res.result as {
         summaries?: {
           readonly name: string | null;
-          readonly entity: { readonly index: number; readonly generation: number };
+          readonly entity: {
+            readonly index: number;
+            readonly generation: number;
+          };
         }[];
       }
     )?.summaries ?? [];

@@ -131,6 +131,17 @@ function createWorkerScene(aperture, canvasSize) {
       frustumCulling: false,
     }),
   );
+  app.spawn(
+    aperture.withTransform({
+      translation: [2.2, -0.2, 0],
+      rotation: [0, 0, 0, 1],
+      scale: [1, 1, 1],
+    }),
+    aperture.withMesh(registered.mesh.mesh),
+    aperture.withMaterial(registered.mesh.material),
+    aperture.withRenderLayer(1),
+    aperture.withRenderOrder(0),
+  );
 
   let blockedDraw = null;
   for (const [index, proof] of contentShowcaseSpriteProofs().entries()) {

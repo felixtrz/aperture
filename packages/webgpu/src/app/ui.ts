@@ -41,6 +41,10 @@ import { webGpuAppCanvasDimensions } from "./canvas.js";
 import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
 import type { TonemapOperator } from "../output/output-stage-tonemap.js";
 import type { OutputColorSpace } from "../output/output-stage-color-space.js";
+import {
+  webGpuAppScenePassColorFormat,
+  webGpuAppUsesHdrScenePass,
+} from "./render-color-format.js";
 
 interface WebGpuAppUiContext {
   readonly canvas?: WebGpuCanvasLike;
@@ -64,9 +68,7 @@ function resolveUiOutputStage(app: WebGpuAppUiContext): {
   readonly tonemap: TonemapOperator;
   readonly outputColorSpace: OutputColorSpace;
 } {
-  const isHdr =
-    app.sceneRenderFormat !== undefined &&
-    app.sceneRenderFormat !== app.initialization.format;
+  const isHdr = webGpuAppUsesHdrScenePass(app);
   return {
     tonemap: isHdr ? "none" : (app.tonemap ?? "none"),
     outputColorSpace: isHdr ? "linear" : (app.outputColorSpace ?? "linear"),
@@ -288,8 +290,9 @@ export async function getOrCreateWebGpuAppUiPanelPipeline(
   cache: WebGpuAppResourceCache,
 ): Promise<CreateUiQuadRenderPipelineResourceResult> {
   const { tonemap, outputColorSpace } = resolveUiOutputStage(app);
+  const colorFormat = webGpuAppScenePassColorFormat(app);
   const key = uiPanelPipelineCacheKey(
-    app.initialization.format,
+    colorFormat,
     WEBGPU_APP_DEPTH_FORMAT,
     app.msaa.sampleCount,
     tonemap,
@@ -305,7 +308,7 @@ export async function getOrCreateWebGpuAppUiPanelPipeline(
     device: app.initialization.device as Parameters<
       typeof createUiPanelRenderPipelineResource
     >[0]["device"],
-    colorFormat: app.initialization.format,
+    colorFormat,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
     tonemap,
@@ -321,8 +324,9 @@ export async function getOrCreateWebGpuAppUiImagePipeline(
   cache: WebGpuAppResourceCache,
 ): Promise<CreateUiQuadRenderPipelineResourceResult> {
   const { tonemap, outputColorSpace } = resolveUiOutputStage(app);
+  const colorFormat = webGpuAppScenePassColorFormat(app);
   const key = uiImagePipelineCacheKey(
-    app.initialization.format,
+    colorFormat,
     WEBGPU_APP_DEPTH_FORMAT,
     app.msaa.sampleCount,
     tonemap,
@@ -338,7 +342,7 @@ export async function getOrCreateWebGpuAppUiImagePipeline(
     device: app.initialization.device as Parameters<
       typeof createUiImageRenderPipelineResource
     >[0]["device"],
-    colorFormat: app.initialization.format,
+    colorFormat,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
     tonemap,

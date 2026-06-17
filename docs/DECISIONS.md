@@ -811,8 +811,10 @@ Consequences:
 - The renderer still consumes snapshots and does not own gameplay transforms.
 - Camera and non-physics visual entities can be smoothed at render cadence while
   simulation remains fixed-step deterministic.
-- Interpolated child hierarchies must compose from interpolated parent local
-  samples when both parent and child opt in.
+- Interpolated child hierarchies must compose presentation world matrices from
+  any opted-in ancestor local samples. A non-opted child keeps its current local
+  transform, but a render packet beneath an interpolated parent still inherits
+  the parent's presentation pose through normal transform hierarchy composition.
 - Future shared snapshot and worker transports may move the interpolation write
   closer to packed snapshot publication, but they must preserve the
   presentation-only contract.

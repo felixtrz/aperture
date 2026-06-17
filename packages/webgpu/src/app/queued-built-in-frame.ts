@@ -43,6 +43,7 @@ import {
 } from "./queued-built-in-support.js";
 import { prepareSpriteFrameResourcesForSnapshot } from "./sprites.js";
 import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
+import { prepareParticleFrameResourcesForSnapshot } from "./particles.js";
 import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
 import { prepareQueuedBuiltInFrameResources } from "./queued-frame-resources.js";
 import { QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION } from "./queued-built-in-adapters.js";
@@ -376,6 +377,15 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     worldTransforms: packedTransforms,
     reuse: options.reuse,
   });
+  const particleFrame = await prepareParticleFrameResourcesForSnapshot({
+    app: options.app,
+    assets: options.assets,
+    cache: options.cache,
+    snapshot: options.snapshot,
+    viewUniforms: packedViews,
+    reuse: options.reuse,
+    time: options.snapshot.frame / 60,
+  });
   const uiFrame = await prepareUiFrameResourcesForSnapshot({
     app: options.app,
     assets: options.assets,
@@ -389,6 +399,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   if (
     !spriteFrame.resources.valid ||
     !textFrame.resources.valid ||
+    !particleFrame.valid ||
     !uiFrame.valid
   ) {
     return renderReport({
@@ -410,6 +421,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
         ...packedInstanceTints.diagnostics,
         ...spriteFrame.resources.diagnostics,
         ...textFrame.resources.diagnostics,
+        ...particleFrame.diagnostics,
         ...uiFrame.diagnostics,
       ],
     });
@@ -418,6 +430,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   const overlayCommands = [
     ...spriteFrame.resources.commands,
     ...textFrame.resources.commands,
+    ...particleFrame.commands,
   ];
   const frameCommands =
     overlayCommands.length === 0
@@ -505,6 +518,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     framePlan.commandPlan.valid &&
     spriteFrame.resources.diagnostics.length === 0 &&
     textFrame.resources.diagnostics.length === 0 &&
+    particleFrame.diagnostics.length === 0 &&
     uiFrame.diagnostics.length === 0 &&
     boundaries.valid &&
     (occlusionQueries === undefined ||
@@ -549,6 +563,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ? {}
       : { indirectDraws: indirectDraws.report }),
     localLightCookieResources: options.localLightCookieResources,
+    particles: particleFrame.report,
     resourceReuse: options.reuse,
     diagnosticsSummary: finalDiagnosticsSummary,
     drawPackages: framePlan.packages.packages.length,
@@ -569,6 +584,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ...framePlan.commandPlan.diagnostics,
       ...spriteFrame.resources.diagnostics,
       ...textFrame.resources.diagnostics,
+      ...particleFrame.diagnostics,
       ...uiFrame.diagnostics,
       ...boundaries.diagnostics,
       ...newOcclusionQueryDiagnostics(

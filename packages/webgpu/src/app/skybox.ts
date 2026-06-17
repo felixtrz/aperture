@@ -21,6 +21,7 @@ import {
   prepareAppSamplerResource,
   prepareAppTextureResource,
 } from "./app-texture-sampler-resources.js";
+import { webGpuAppScenePassColorFormat } from "./render-color-format.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import type { WebGpuAppResourceReuseReport } from "./app.js";
 
@@ -29,6 +30,7 @@ interface WebGpuAppSkyboxContext {
     readonly device: unknown;
     readonly format: string;
   };
+  readonly sceneRenderFormat?: string;
   readonly msaa: {
     readonly sampleCount: number;
   };
@@ -238,8 +240,9 @@ async function getOrCreateWebGpuAppSkyboxPipeline(
   cache: WebGpuAppResourceCache,
   reuse: WebGpuAppResourceReuseReport,
 ): Promise<CreateSkyboxRenderPipelineResourceResult> {
+  const colorFormat = webGpuAppScenePassColorFormat(app);
   const key = skyboxPipelineCacheKey(
-    app.initialization.format,
+    colorFormat,
     WEBGPU_APP_DEPTH_FORMAT,
     app.msaa.sampleCount,
   );
@@ -256,7 +259,7 @@ async function getOrCreateWebGpuAppSkyboxPipeline(
     device: app.initialization.device as Parameters<
       typeof createSkyboxRenderPipelineResource
     >[0]["device"],
-    colorFormat: app.initialization.format,
+    colorFormat,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
   });

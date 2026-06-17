@@ -96,7 +96,7 @@ test("browser route combines sprites, text, UI, interaction, and particles", asy
     renderingBackend: "webgpu-explicit",
     content: {
       expected: {
-        meshDraws: 0,
+        meshDraws: 1,
         spriteDraws: 2,
         uiNodes: 4,
         uiHitRegions: 1,
@@ -108,7 +108,7 @@ test("browser route combines sprites, text, UI, interaction, and particles", asy
     },
     frame: {
       counts: {
-        meshDraws: 0,
+        meshDraws: 1,
         spriteDraws: 2,
         quadInstances: 6,
         quadBatches: 2,

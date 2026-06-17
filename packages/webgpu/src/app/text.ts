@@ -27,6 +27,10 @@ import {
   prepareAppSamplerResource,
   prepareAppTextureResource,
 } from "./app-texture-sampler-resources.js";
+import {
+  webGpuAppScenePassColorFormat,
+  webGpuAppUsesHdrScenePass,
+} from "./render-color-format.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import type { WebGpuAppResourceReuseReport } from "./app.js";
 import { webGpuAppCanvasDimensions } from "./canvas.js";
@@ -357,15 +361,14 @@ export async function getOrCreateWebGpuAppMsdfTextPipeline(
   app: WebGpuAppTextContext,
   cache: WebGpuAppResourceCache,
 ): Promise<CreateMsdfTextRenderPipelineResourceResult> {
-  const isHdr =
-    app.sceneRenderFormat !== undefined &&
-    app.sceneRenderFormat !== app.initialization.format;
+  const colorFormat = webGpuAppScenePassColorFormat(app);
+  const isHdr = webGpuAppUsesHdrScenePass(app);
   const tonemap: TonemapOperator = isHdr ? "none" : (app.tonemap ?? "none");
   const outputColorSpace: OutputColorSpace = isHdr
     ? "linear"
     : (app.outputColorSpace ?? "linear");
   const key = msdfTextPipelineCacheKey(
-    app.initialization.format,
+    colorFormat,
     WEBGPU_APP_DEPTH_FORMAT,
     app.msaa.sampleCount,
     tonemap,
@@ -381,7 +384,7 @@ export async function getOrCreateWebGpuAppMsdfTextPipeline(
     device: app.initialization.device as Parameters<
       typeof createMsdfTextRenderPipelineResource
     >[0]["device"],
-    colorFormat: app.initialization.format,
+    colorFormat,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
     tonemap,

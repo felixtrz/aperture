@@ -141,6 +141,135 @@ building blocks and default paths.
   `AudioEmitter` snapshots now carry authored lowpass frequency/Q into the
   main-thread voice manager, and racing's RPM/skid/impact model moved to
   `src/systems/audio.system.ts`; `src/audio.ts` was deleted.
+- 2026-06-16: Fixed-step presentation interpolation was tightened for GLTF-style
+  hierarchies: render packets beneath an opted-in parent now compose their
+  outgoing snapshot world matrix from the parent's interpolated local sample
+  plus the child's current local transform. `this.gltf.node(s)` now filters out
+  hidden primitive render children and returns only authored GLTF scene/node
+  records. Racing and shadow-lab serve the rebuilt shared `@aperture-engine/app`
+  dist modules, and Shadow Lab compare mode now initializes orbit distance from
+  the authored racing camera offset instead of a hard-coded short radius.
+- 2026-06-16: Particle rendering now works through the queued built-in, mixed
+  custom WGSL, and custom WGSL frame routes, and scene-pass helpers use the
+  actual scene color target format in HDR apps. Racing smoke exposed the bug:
+  particle pipelines were keyed for the swapchain `bgra8unorm` target while the
+  active HDR scene pass expected `rgba16float`, so WebGPU rejected the command
+  buffer when smoke emitted.
+
+## Genericity Audit - 2026-06-16
+
+This audit checks whether the library APIs already landed for the racing port
+are broad Aperture V1 capabilities, not racing-only conveniences.
+
+### Clear V1 Library Fits
+
+- Math helpers: generic. Bevy exposes transform construction, look-at, axis, and
+  matrix helpers on `Transform`; PlayCanvas exposes broad `Vec3`/math helpers.
+  Aperture should keep these as shared, tested array-first helpers because every
+  app needs the same quaternion/vector correctness.
+- `defineResource(...)`, `resource.*`, and `this.resources`: generic. Bevy
+  resources are the direct ECS-first precedent for one-per-world simulation
+  state. Racing's `VehicleResource` is app-specific data, but the resource
+  mechanism belongs in the library.
+- `this.startOptions`: generic. Browser/app start parameters are a common
+  runtime concern. The current filtering of engine-reserved fields is the right
+  V1 boundary.
+- `this.meshes.dynamic(...)`: generic. Runtime-authored mesh assets are needed
+  for trails, debug geometry, procedural geometry, UI meshes, and editor tools.
+  The helper keeps source mesh assets in the registry and GPU buffers in the
+  renderer.
+- `asset.texture(...)`, `decodeImageUrlToTextureSource(...)`, and texture
+  validation: generic. PlayCanvas and Bevy both treat textures as engine asset
+  concerns. Apps should not hand-roll image decode into renderer-independent
+  texture source payloads.
+- `asset.audio(...)` plus the main-thread sound board: generic. Bevy separates
+  playback intent from sinks; PlayCanvas has sound components/slots. Aperture's
+  split between worker-authored intent and browser-owned Web Audio nodes is the
+  correct worker-boundary version of the same capability.
+- `this.audio.loop/set/stop/playOneShot(...)`: generic. The racing RPM/skid
+  model remains app code, but stable loop voices, one-shots, gain/rate/lowpass
+  intent, and clip handles are library-level audio mechanics.
+- `asset.particleEffect(...)`, `this.spawn.particles(...)`, and
+  `this.particles.emit(...)`: generic. PlayCanvas exposes particle systems as a
+  first-class component. Aperture's version keeps particle authoring
+  renderer-independent and leaves simulation/render realization to the library.
+- `this.trails.groundRibbon(...)`: generic enough for V1. It is a specific
+  helper, but ground-conforming ribbon/trail meshes are common for skid marks,
+  footprints, decals, paint strokes, path previews, and debug traces. It should
+  stay parameterized and not mention racing.
+- Built-in material `depthBias` render-state support: generic. Polygon offset is
+  a standard render-state feature used by decals, trails, coplanar overlays,
+  shadow tuning, and debug surfaces.
+- `this.gltf.node(...)` / `this.gltf.nodes(...)`: generic. Imported GLTF scene
+  hierarchy inspection is an engine facility. Filtering out primitive render
+  children is important because the API promise is "authored GLTF nodes", not
+  implementation details of Aperture's mesh-primitive replay.
+- Spawn-time GLTF material overrides: generic enough. Render-state patching at
+  spawn time is common for imported content policy, such as culling, shadow
+  participation, or transparency. The current implementation clones source
+  material assets and retargets spawned subtree entities instead of mutating
+  shared imported assets globally.
+- `this.spawn.gltfBatch(...)`: generic. Repeated scene/model instancing with
+  shared material overrides, shadow flags, tags, and per-instance transforms is
+  broadly useful for decoration fields, crowds, props, and level assembly.
+- Fixed-step `RenderInterpolation` snapshot rewrite: generic. Bevy stores
+  previous/current global transforms for renderable meshes in the render path;
+  Aperture's worker-friendly equivalent is an opt-in presentation rewrite of the
+  outgoing snapshot. The current hierarchy behavior is not a global smoothing
+  hack: only opted-in local samples are blended, and descendants inherit those
+  presentation matrices through ordinary transform composition.
+- Scene-pass render target format helpers: generic. HDR, post-processing, and
+  offscreen render targets mean built-in scene helpers cannot assume the
+  swapchain format. Centralizing scene-pass color format selection keeps
+  particles, sprites, text, UI, skybox, and custom WGSL helpers aligned with the
+  actual render pass.
+
+### Acceptable But Needs V1 Tightening
+
+- Generated browser signal readers: useful but incomplete. They solved racing
+  HUD polling, but V1 should offer a deliberate browser subscription/event API
+  rather than encouraging apps to poll generated status objects directly.
+- `this.meshes.dynamic(...)`: keep, but add examples and diagnostics for update
+  frequency, bounds correctness, and version churn. Dynamic mesh publication can
+  become a performance trap without clear reports.
+- Particle bursts: keep, but add public budget diagnostics and examples for
+  burst overflow, emitter bounds, blend modes, and texture readiness.
+- Ground ribbons: keep, but consider a more general `trail.ribbon(...)` family
+  over time with world-space, screen-space, and surface-projected variants. Do
+  not let the V1 API hard-code "drift mark" semantics.
+- Sound board: keep as the browser-owned implementation layer, but the
+  worker-facing `this.audio` API should remain the main app authoring path. Apps
+  should rarely need to import the low-level sound board directly.
+- GLTF material overrides: keep the current render-state patching. Do not expand
+  it into arbitrary per-material shader mutation until custom material source
+  contracts and validation cover that shape.
+- `RenderInterpolation`: keep opt-in. Add a higher-level helper such as
+  `enableRenderInterpolationSubtree(root, { authoredNodesOnly: true })` only if
+  multiple apps need it; the core behavior should remain component-driven and
+  presentation-only.
+
+### Not Library Responsibilities
+
+- Vehicle dynamics, lap rules, track cell data, spawn rules, racing audio RPM
+  curves, and smoke art direction remain racing app code.
+- The Shadow Lab camera radius fix is app harness cleanup, not a new library
+  API. A reusable follow/orbit integration helper can still be added later, but
+  the hard-coded compare radius was simply wrong for that experience.
+
+### Next Actions From This Audit
+
+- Finish RACE-LIB-20 with a reusable follow camera helper only if it remains
+  input-agnostic, writes ordinary ECS `LocalTransform`, and keeps racing-specific
+  tuning in racing.
+- Add focused devtool/entity inspection coverage for GLTF primitive children so
+  future agents can prove `this.gltf.nodes(...)` does not leak hidden render
+  primitives in live apps.
+- Add one particle rendering regression that drives a burst effect and asserts
+  draw count or particle packet count, so "no particles visible" is caught
+  without relying only on manual visual checks.
+- Add a short docs page for fixed-step render interpolation explaining the
+  hierarchy rule, opt-in boundaries, and why this stays a snapshot presentation
+  rewrite instead of renderer-owned transform state.
 
 ## Goals
 

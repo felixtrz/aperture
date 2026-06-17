@@ -29,6 +29,10 @@ import {
   prepareAppSamplerResource,
   prepareAppTextureResource,
 } from "./app-texture-sampler-resources.js";
+import {
+  webGpuAppScenePassColorFormat,
+  webGpuAppUsesHdrScenePass,
+} from "./render-color-format.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import type { WebGpuAppResourceReuseReport } from "./app.js";
 import { webGpuAppCanvasDimensions } from "./canvas.js";
@@ -367,15 +371,14 @@ export async function getOrCreateWebGpuAppSpritePipeline(
 ): Promise<CreateSpriteRenderPipelineResourceResult> {
   // On the HDR scene-buffer path the sprite renders into rgba16float and the post
   // stage encodes; otherwise the sprite encodes in-material via the output stage.
-  const isHdr =
-    app.sceneRenderFormat !== undefined &&
-    app.sceneRenderFormat !== app.initialization.format;
+  const colorFormat = webGpuAppScenePassColorFormat(app);
+  const isHdr = webGpuAppUsesHdrScenePass(app);
   const tonemap: TonemapOperator = isHdr ? "none" : (app.tonemap ?? "none");
   const outputColorSpace: OutputColorSpace = isHdr
     ? "linear"
     : (app.outputColorSpace ?? "linear");
   const key = spritePipelineCacheKey(
-    app.initialization.format,
+    colorFormat,
     WEBGPU_APP_DEPTH_FORMAT,
     app.msaa.sampleCount,
     tonemap,
@@ -391,7 +394,7 @@ export async function getOrCreateWebGpuAppSpritePipeline(
     device: app.initialization.device as Parameters<
       typeof createSpriteRenderPipelineResource
     >[0]["device"],
-    colorFormat: app.initialization.format,
+    colorFormat,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
     tonemap,

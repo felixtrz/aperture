@@ -266,12 +266,21 @@ function nodeRecord(entity: Entity): GltfNodeRecord | null {
     typeof name !== "string" ||
     typeof assetId !== "string" ||
     typeof nodeIndex !== "number" ||
-    typeof nodePath !== "string"
+    typeof nodePath !== "string" ||
+    !isAuthoredGltfNodePath(nodePath)
   ) {
     return null;
   }
 
   return { entity, name, assetId, nodeIndex, nodePath };
+}
+
+function isAuthoredGltfNodePath(nodePath: string): boolean {
+  return (
+    nodePath.startsWith("scene:") ||
+    /^scene\[\d+\]$/u.test(nodePath) ||
+    /^nodes\[\d+\]$/u.test(nodePath)
+  );
 }
 
 function matchesFilter(

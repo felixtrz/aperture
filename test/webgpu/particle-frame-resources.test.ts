@@ -286,6 +286,71 @@ describe("GPU particle app frame resources", () => {
       }),
     );
   });
+
+  it("builds particle render pipelines for the HDR scene pass format", async () => {
+    const effect = createParticleEffectHandle("smoke-burst");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect, {
+      mode: "burst",
+      capacity: 2,
+      resetEpoch: 1,
+      burst: {
+        burstId: 1,
+        startFrame: 1,
+        count: 2,
+        position: [0, 0, 0],
+        positionJitterMin: [0, 0, 0],
+        positionJitterMax: [0, 0, 0],
+        velocityMin: [0, 1, 0],
+        velocityMax: [0, 1, 0],
+      },
+    });
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        label: "HdrSmokeBurst",
+        capacity: 2,
+        emissionRate: 0,
+        lifetime: { min: 1, max: 1 },
+        startSize: { min: 0.5, max: 1 },
+        blendMode: "alpha",
+      }),
+    );
+
+    const result = await prepareParticleFrameResourcesForSnapshot({
+      app: {
+        ...createParticleAppContext(fixture.device),
+        sceneRenderFormat: "rgba16float",
+        tonemap: "aces",
+        outputColorSpace: "srgb",
+      },
+      assets,
+      cache,
+      snapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 1 / 60,
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.commands).toContainEqual(
+      expect.objectContaining({
+        kind: "setPipeline",
+        pipelineKey:
+          "aperture/gpu-particles-render:rgba16float:depth24plus:samples-1:blend-alpha",
+      }),
+    );
+    expect([...cache.particleRenderPipelines.keys()]).toEqual([
+      "aperture/gpu-particles-render:rgba16float:depth24plus:samples-1:blend-alpha",
+    ]);
+  });
 });
 
 interface BufferWriteRecord {

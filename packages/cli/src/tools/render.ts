@@ -14,10 +14,28 @@ export async function renderFrameReport(page: AperturePage): Promise<unknown> {
         readonly lastWorkerSummary?: {
           readonly entities?: unknown;
         };
+        readonly lastFrame?: number | null;
       } | null;
+      const isRecord = (value: unknown): value is Record<string, unknown> =>
+        typeof value === "object" && value !== null;
+      const lastFrame = status?.diagnostics?.lastFrame ?? null;
+      const frameRecord = isRecord(lastFrame) ? lastFrame : null;
 
       return {
-        lastFrame: status?.diagnostics?.lastFrame ?? null,
+        summary: {
+          frame:
+            typeof frameRecord?.["frame"] === "number"
+              ? frameRecord["frame"]
+              : (status?.lastFrame ?? null),
+          ok:
+            typeof frameRecord?.["ok"] === "boolean" ? frameRecord["ok"] : null,
+          counts: frameRecord?.["counts"] ?? null,
+          particles: frameRecord?.["particles"] ?? null,
+          renderTargets: frameRecord?.["renderTargets"] ?? null,
+          postEffects: frameRecord?.["postEffects"] ?? null,
+          diagnostics: frameRecord?.["diagnostics"] ?? [],
+        },
+        lastFrame,
         entities: status?.lastWorkerSummary?.entities ?? null,
       };
     },

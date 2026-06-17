@@ -3,7 +3,9 @@ import { createApertureApp, defineApertureConfig } from "@aperture-engine/app";
 import type { Entity } from "@aperture-engine/simulation";
 import {
   LocalTransform,
+  Parent,
   RenderInterpolation,
+  WorldTransform,
   createSystem,
   material,
   mesh,
@@ -116,6 +118,63 @@ describe("app fixed-step scheduling", () => {
     expect(view).toBeDefined();
     expect(snapshot.transforms[draw!.worldTransformOffset + 12]).toBeCloseTo(
       2.5,
+      5,
+    );
+    expect(snapshot.viewMatrices[view!.viewMatrixOffset + 12]).toBeCloseTo(
+      -2.5,
+      5,
+    );
+  });
+
+  it("interpolates child render packets through opted-in transform ancestors", async () => {
+    class MovingRigSystem extends createSystem({ priority: 10 }) {
+      #rig: Entity | null = null;
+
+      override init(): void {
+        this.#rig = this.createEntity();
+        this.#rig.addComponent(LocalTransform, {
+          translation: [0, 0, 0],
+          rotation: [0, 0, 0, 1],
+          scale: [1, 1, 1],
+        });
+        this.#rig.addComponent(Parent, { entity: null });
+        this.#rig.addComponent(WorldTransform);
+        this.#rig.addComponent(RenderInterpolation);
+
+        this.spawn.mesh({
+          key: "child-mesh",
+          mesh: mesh.box({ size: 1 }),
+          material: material.standard(),
+          transform: { parent: this.#rig, translation: [1, 0, 0] },
+        });
+        this.spawn.camera({
+          key: "camera.main",
+          transform: { parent: this.#rig, translation: [0, 0, 5] },
+        });
+      }
+
+      override fixedUpdate(): void {
+        this.#rig?.getVectorView(LocalTransform, "translation").set([10, 0, 0]);
+      }
+    }
+
+    const app = await createApertureApp({
+      config: defineApertureConfig({ mode: "headless", systems: [] }),
+      systems: [{ default: MovingRigSystem }],
+      fixedStep: { fixedDelta: 1 },
+    });
+
+    app.step(1.25, 1.25);
+    const snapshot = app.extract(1);
+    const draw = snapshot.meshDraws[0];
+    const view = snapshot.views[0];
+
+    expect(draw).toBeDefined();
+    expect(view).toBeDefined();
+    // Parent rig is blended from x=0 to x=10 at alpha 0.25, while the child
+    // mesh keeps its unsmoothed local x=1.
+    expect(snapshot.transforms[draw!.worldTransformOffset + 12]).toBeCloseTo(
+      3.5,
       5,
     );
     expect(snapshot.viewMatrices[view!.viewMatrixOffset + 12]).toBeCloseTo(

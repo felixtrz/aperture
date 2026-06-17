@@ -448,10 +448,13 @@ systems that implement `fixedUpdate(context)` are registered in system-priority
 order on the runtime fixed-step scheduler. Entities that opt into
 `RenderInterpolation` keep previous/current fixed-step transform samples in ECS;
 after extraction, the app rewrites only the outgoing `RenderSnapshot`
-transforms and view matrices using the current fixed-step overstep alpha. The
-authoritative ECS `LocalTransform` and `WorldTransform` values remain the fixed
-simulation state, and render interpolation does not introduce a renderer-owned
-scene graph.
+transforms and view matrices using the current fixed-step overstep alpha.
+Interpolated local samples compose through the normal ECS transform hierarchy:
+a render packet under an interpolated parent uses that parent's presentation
+matrix plus the child's current local transform unless the child also opted into
+interpolation. The authoritative ECS `LocalTransform` and `WorldTransform`
+values remain the fixed simulation state, and render interpolation does not
+introduce a renderer-owned scene graph.
 
 The canonical submitted-frame diagnostics taxonomy lives in
 `packages/webgpu/src/render/frame/render-frame-phases.ts` and is:

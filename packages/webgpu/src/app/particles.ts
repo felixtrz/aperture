@@ -49,6 +49,10 @@ import type {
   ParticleEmitterGpuStateResource,
   WebGpuAppResourceCache,
 } from "./resource-cache.js";
+import {
+  webGpuAppScenePassColorFormat,
+  webGpuAppUsesHdrScenePass,
+} from "./render-color-format.js";
 import { webGpuAppCanvasDimensions } from "./canvas.js";
 
 interface WebGpuAppParticleContext {
@@ -178,15 +182,14 @@ export async function getOrCreateWebGpuAppParticleRenderPipeline(
   cache: WebGpuAppResourceCache,
   blendMode: ParticleEffectAsset["blendMode"],
 ): Promise<CreateParticleRenderPipelineResourceResult> {
-  const isHdr =
-    app.sceneRenderFormat !== undefined &&
-    app.sceneRenderFormat !== app.initialization.format;
+  const colorFormat = webGpuAppScenePassColorFormat(app);
+  const isHdr = webGpuAppUsesHdrScenePass(app);
   const tonemap: TonemapOperator = isHdr ? "none" : (app.tonemap ?? "none");
   const outputColorSpace: OutputColorSpace = isHdr
     ? "linear"
     : (app.outputColorSpace ?? "linear");
   const key = particleRenderPipelineCacheKey(
-    app.initialization.format,
+    colorFormat,
     WEBGPU_APP_DEPTH_FORMAT,
     app.msaa.sampleCount,
     blendMode,
@@ -203,7 +206,7 @@ export async function getOrCreateWebGpuAppParticleRenderPipeline(
     device: app.initialization.device as Parameters<
       typeof createParticleRenderPipelineResource
     >[0]["device"],
-    colorFormat: app.initialization.format,
+    colorFormat,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
     blendMode,

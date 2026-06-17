@@ -150,6 +150,36 @@ function createVehicleFixture(
     nodeIndex: 5,
     nodePath: "nodes[5]",
   });
+  const bodyPrimitive = makeGltfNode(world, {
+    name: "body.Primitive0",
+    assetId: "vehicle",
+    nodeIndex: 1,
+    nodePath: "nodes[1].mesh[0].primitives[0]",
+  });
+  const frontLeftPrimitive = makeGltfNode(world, {
+    name: "wheel-front.Primitive0",
+    assetId: "vehicle",
+    nodeIndex: 2,
+    nodePath: "nodes[2].mesh[0].primitives[0]",
+  });
+  const frontRightPrimitive = makeGltfNode(world, {
+    name: "wheel-front.Primitive0",
+    assetId: "vehicle",
+    nodeIndex: 3,
+    nodePath: "nodes[3].mesh[0].primitives[0]",
+  });
+  const backLeftPrimitive = makeGltfNode(world, {
+    name: "wheel-back-left.Primitive0",
+    assetId: "vehicle",
+    nodeIndex: 4,
+    nodePath: "nodes[4].mesh[0].primitives[0]",
+  });
+  const backRightPrimitive = makeGltfNode(world, {
+    name: "wheel-back-right.Primitive0",
+    assetId: "vehicle",
+    nodeIndex: 5,
+    nodePath: "nodes[5].mesh[0].primitives[0]",
+  });
   const npcWheel = makeGltfNode(world, {
     name: "wheel-front",
     assetId: "npc",
@@ -181,6 +211,11 @@ function createVehicleFixture(
   ]) {
     parentChild(world, child, root, useSetParent);
   }
+  parentChild(world, bodyPrimitive, body, useSetParent);
+  parentChild(world, frontLeftPrimitive, frontLeft, useSetParent);
+  parentChild(world, frontRightPrimitive, frontRight, useSetParent);
+  parentChild(world, backLeftPrimitive, backLeft, useSetParent);
+  parentChild(world, backRightPrimitive, backRight, useSetParent);
   parentChild(world, otherBody, otherRoot, useSetParent);
   resolveWorldTransforms(world);
 

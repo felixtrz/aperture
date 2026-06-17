@@ -48,6 +48,7 @@ import {
 } from "./queued-built-in-support.js";
 import { prepareSpriteFrameResourcesForSnapshot } from "./sprites.js";
 import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
+import { prepareParticleFrameResourcesForSnapshot } from "./particles.js";
 import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
 import { prepareQueuedBuiltInFrameResources } from "./queued-frame-resources.js";
 import { QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION } from "./queued-built-in-adapters.js";
@@ -65,6 +66,7 @@ import {
   frameBoundariesNeedGpuDrain,
   waitForSubmittedWork,
 } from "./report.js";
+import { webGpuAppScenePassColorFormat } from "./render-color-format.js";
 import { createWebGpuAppAutoShadowFrame } from "./auto-shadow-frame.js";
 import type { WebGpuAppRenderPhaseTimer } from "./app-phase-timing.js";
 import type {
@@ -420,6 +422,15 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     worldTransforms: packedTransforms,
     reuse: options.reuse,
   });
+  const particleFrame = await prepareParticleFrameResourcesForSnapshot({
+    app: options.app,
+    assets: options.assets,
+    cache: options.cache,
+    snapshot: options.snapshot,
+    viewUniforms: packedViews,
+    reuse: options.reuse,
+    time: options.snapshot.frame / 60,
+  });
   const uiFrame = await prepareUiFrameResourcesForSnapshot({
     app: options.app,
     assets: options.assets,
@@ -433,6 +444,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
   if (
     !spriteFrame.resources.valid ||
     !textFrame.resources.valid ||
+    !particleFrame.valid ||
     !uiFrame.valid
   ) {
     return renderReport({
@@ -454,6 +466,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
         ...packedInstanceTints.diagnostics,
         ...spriteFrame.resources.diagnostics,
         ...textFrame.resources.diagnostics,
+        ...particleFrame.diagnostics,
         ...uiFrame.diagnostics,
       ],
     });
@@ -462,6 +475,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
   const overlayCommands = [
     ...spriteFrame.resources.commands,
     ...textFrame.resources.commands,
+    ...particleFrame.commands,
   ];
   const frameCommands =
     overlayCommands.length === 0
@@ -527,6 +541,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     framePlan.commandPlan.valid &&
     spriteFrame.resources.diagnostics.length === 0 &&
     textFrame.resources.diagnostics.length === 0 &&
+    particleFrame.diagnostics.length === 0 &&
     uiFrame.diagnostics.length === 0 &&
     boundaries.valid &&
     (occlusionQueries === undefined ||
@@ -570,6 +585,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
       ? {}
       : { indirectDraws: indirectDraws.report }),
     localLightCookieResources: options.localLightCookieResources,
+    particles: particleFrame.report,
     resourceReuse: options.reuse,
     diagnosticsSummary: finalDiagnosticsSummary,
     drawPackages: framePlan.packages.packages.length,
@@ -588,6 +604,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
       ...framePlan.commandPlan.diagnostics,
       ...spriteFrame.resources.diagnostics,
       ...textFrame.resources.diagnostics,
+      ...particleFrame.diagnostics,
       ...uiFrame.diagnostics,
       ...boundaries.diagnostics,
       ...newOcclusionQueryDiagnostics(
@@ -735,7 +752,7 @@ async function prepareCustomDrawResourceSet(options: {
     };
   }
 
-  const colorFormat = options.app.initialization.format;
+  const colorFormat = webGpuAppScenePassColorFormat(options.app);
   const depthFormat = "depth24plus";
   const sampleCount = options.app.msaa.sampleCount;
   const pipelineCacheKey = customWgslMaterialRenderPipelineCacheKey({

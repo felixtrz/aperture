@@ -1,5 +1,63 @@
 # Completed Tasks
 
+## User-directed stabilization — interpolation, GLTF lookup, particles
+
+Completed: 2026-06-16 17:38 PDT
+Commit: current checkpoint commit
+
+### Summary
+
+- Fixed hierarchical render interpolation so opted-in child transforms compose
+  against interpolated parent transforms, resolving the racing body/wheel
+  stagger the user reported.
+- Tightened app GLTF node lookup to return authored nodes only, excluding
+  internal primitive render children from app-facing node queries.
+- Fixed Shadow Lab's three.js comparison orbit camera radius so it orbits around
+  the target instead of presenting as a pan.
+- Fixed WebGPU queued, mixed custom WGSL, and custom WGSL frame routes to
+  prepare and submit particle commands and include particle reports/diagnostics.
+- Fixed scene-pass helper pipeline formats for HDR apps: particles, sprites,
+  text, UI, skybox, and custom WGSL helpers now resolve the scene color format
+  instead of assuming the swapchain format. This fixes the racing smoke
+  validation failure where `aperture/gpu-particles-render:bgra8unorm` was bound
+  into an `rgba16float` HDR scene pass.
+- Added content-showcase coverage pressure for the queued built-in route by
+  rendering a mesh alongside the smoke particle check.
+- Added an inline empty favicon to racing's HTML so the managed browser console
+  stays free of a reload-time `/favicon.ico` 404.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fixed-step-app.test.ts test/app/gltf-instance-lookup.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm exec vitest run test/webgpu/particle-frame-resources.test.ts test/webgpu/particle-pipeline.test.ts`
+- `pnpm exec prettier --write packages/webgpu/src/app/render-color-format.ts packages/webgpu/src/app/particles.ts packages/webgpu/src/app/sprites.ts packages/webgpu/src/app/text.ts packages/webgpu/src/app/ui.ts packages/webgpu/src/app/skybox.ts packages/webgpu/src/app/custom-wgsl-frame.ts packages/webgpu/src/app/mixed-custom-wgsl-frame.ts test/webgpu/particle-frame-resources.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Aperture MCP racing proof while ECS was paused after the HDR fix: deterministic
+  `KeyW` + `KeyD` stepping drove `racing.vehicle.driftIntensity` to `0.758`;
+  snapshot frame 3367 reported two `ParticleEmitter` entries with no
+  diagnostics, and the frame report submitted a healthy frame with two particle
+  emitters, six live particles, two textured emitters, one created smoke texture
+  resource, bloom/tonemap post effects, and no diagnostics. Inputs were reset
+  and ECS resumed.
+- Post-restart console review showed no new particle attachment-state WebGPU
+  validation errors after smoke emitted. The visible validation spam is from the
+  previous broken session and remains in the append-only browser log.
+- After the favicon cleanup, a managed-browser reload showed WebGPU ready with
+  no fresh 404 console entry.
+- `pnpm exec playwright test test/e2e/content-showcase.spec.ts --reporter=line`
+  did not complete; it produced no useful output for more than two minutes and
+  was interrupted.
+
 ## RACE-LIB-19 — Worker-authored racing audio intent
 
 Completed: 2026-06-16 16:10 PDT
