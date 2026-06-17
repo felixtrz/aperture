@@ -52,7 +52,10 @@ import {
   impactEffectKey,
   platformLargeGrassDecorationKey,
 } from "../lib/fps-data.js";
-import { SOURCE_IMPACT_SPRITE_SIZE } from "../lib/fps-effects.js";
+import {
+  SOURCE_ENEMY_MUZZLE_SPRITE_SIZE,
+  SOURCE_IMPACT_SPRITE_SIZE,
+} from "../lib/fps-effects.js";
 
 const GLTF_FRONT_SIDE_MATERIALS = {
   renderState: { cullMode: "back" as const },
@@ -312,7 +315,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
           key: enemyMuzzleEffectKey(enemy.key, index),
           name: `${enemy.key} Muzzle ${index + 1}`,
           textureId: "muzzle-burst",
-          size: [0.42, 0.42],
+          size: SOURCE_ENEMY_MUZZLE_SPRITE_SIZE,
           blendMode: SpriteBlendMode.Additive,
         });
       }
