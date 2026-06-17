@@ -1,5 +1,32 @@
 # Completed Tasks
 
+## FPS-PORT — Source gamepad weapon toggle
+
+Completed: 2026-06-17 11:14 PDT
+Commit: `e5cc9183`
+
+### Summary
+
+- Aligned Starter Kit FPS gamepad weapon toggle with
+  `references/Starter-Kit-FPS/project.godot`.
+- Changed `switchWeapon` from standard gamepad `rightBumper` to `leftStick`,
+  matching Godot joypad `button_index:10`.
+- Added focused input-config coverage proving right trigger shoots, left-stick
+  toggles weapons, and right bumper no longer toggles.
+
+### Validation
+
+- Live Aperture proof: right bumper left `weaponIndex:0`,
+  `weaponName:"Blaster"`, and `shotsFired:0`.
+- Live Aperture proof: right trigger fired while held, reaching
+  `shotsFired:4`.
+- Live Aperture proof: left-stick button switched to `weaponIndex:1`,
+  `weaponName:"Repeater"`, with `shotsFired:0`.
+- `pnpm exec vitest run test/app/fps-input-config.test.ts test/app/fps-hud.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `git diff --check -- fps/aperture.config.ts test/app/fps-input-config.test.ts`
+
 ## FPS-PORT — Reset body hold and jump buffering
 
 Completed: 2026-06-17 11:08 PDT

@@ -1,11 +1,38 @@
-# Handoff - FPS Reset Body Hold
+# Handoff - FPS Gamepad Toggle Parity
 
-**Updated:** 2026-06-17 11:08 PDT
+**Updated:** 2026-06-17 11:14 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Aligned FPS gamepad weapon toggle with the source project input map:
+  - Source anchor checked: `references/Starter-Kit-FPS/project.godot`.
+  - Godot `weapon_toggle` has joypad `button_index:10`; Aperture's standard
+    gamepad name for that index is `leftStick`.
+  - `fps/aperture.config.ts` now binds `switchWeapon` to
+    `input.gamepadButton("leftStick")` instead of `rightBumper`.
+  - Added focused input-config coverage proving source right trigger shooting
+    (`button_index:7`) and left-stick weapon toggle (`button_index:10`) both
+    drive the expected actions, while right bumper does not toggle weapons.
+- Live Aperture CLI proof:
+  - After app reload/reset, `input_gamepad_set {"button":"rightBumper"}` left
+    `weaponIndex:0`, `weaponName:"Blaster"`, and `shotsFired:0`.
+  - `input_gamepad_set {"button":"rightTrigger","pressed":true,"value":1}`
+    fired the weapon; the status read showed `shotsFired:4` while held.
+  - After reset, `input_gamepad_set {"button":"leftStick","pressed":true}`
+    switched to `weaponIndex:1`, `weaponName:"Repeater"`, with
+    `shotsFired:0`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-input-config.test.ts test/app/fps-hud.test.ts`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `git diff --check -- fps/aperture.config.ts test/app/fps-input-config.test.ts`
+- Commit:
+  - `e5cc9183` — `Align FPS gamepad weapon toggle`
+
+## Previous Completed Slice - FPS Reset Body Hold
 
 - Fixed FPS reset and jump buffering around the Rapier character controller:
   - Source anchors checked:

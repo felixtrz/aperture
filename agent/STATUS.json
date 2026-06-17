@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "68c0a0c7",
+  "lastCommit": "e5cc9183",
   "activePid": null,
-  "notes": "Fixed FPS reset after shot knockback by holding the source start body pose through Rapier character-controller sync, delayed jump/shoot buffer consumption during that hold, and reproved reset, Space during reset hold, left click shooting, and camera-relative W movement through Aperture CLI.",
-  "lastRunFinishedAt": "2026-06-17T18:08:09Z"
+  "notes": "Aligned FPS gamepad weapon toggle with Starter Kit FPS project.godot: switchWeapon now uses standard leftStick/button index 10, right bumper no longer toggles, right trigger still shoots, and all were reproved through Aperture CLI.",
+  "lastRunFinishedAt": "2026-06-17T18:14:12Z"
 }
