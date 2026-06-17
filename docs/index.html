@@ -2391,6 +2391,17 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">fps</span> Aligned player muzzle
+                sprite size and overlay depth with source behavior:
+                <code>effect.muzzle-burst</code> now uses the source-derived
+                <code>2.56</code> world-unit square base size, preserves the
+                <code>0.40..0.75</code> runtime scale range, and disables
+                world-scene depth testing to match the transparent weapon
+                subviewport. Aperture CLI proof reported width/height near
+                <code>2.56</code>, <code>depthMode:"disabled"</code>, and
+                visible alpha after a generated shot.
+              </li>
+              <li>
                 <span class="badge green">fps</span> Hardened shooting input
                 for fast click/release cases: the player buffers a generated
                 <code>shoot</code> down edge for <code>0.08s</code>, consumes
