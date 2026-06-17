@@ -14,6 +14,14 @@ const sound = (name: string, durationHint: number) =>
     durationHint,
   });
 
+const sprite = (name: string) =>
+  asset.texture(`/sprites/${name}.png`, {
+    preload: "blocking",
+    colorSpace: "srgb",
+    semantic: "base-color",
+    mimeType: "image/png",
+  });
+
 export default defineApertureConfig({
   mode: "browser",
   canvas: "#aperture",
@@ -31,6 +39,8 @@ export default defineApertureConfig({
     "blaster-repeater": model("blaster-repeater"),
     "blaster-shot": sound("blaster", 0.35),
     "blaster-repeater-shot": sound("blaster_repeater", 0.16),
+    "muzzle-burst": sprite("burst"),
+    "impact-hit": sprite("hit"),
     "enemy-hurt": sound("enemy_hurt", 0.2),
     "enemy-destroy": sound("enemy_destroy", 0.45),
     "enemy-attack": sound("enemy_attack", 0.22),

@@ -78,6 +78,26 @@ export async function callBrowserBackedTool(
     case "asset_list":
     case "resource_get":
       return callGeneratedRuntimeTool(page, name, args);
+    case "physics_summary":
+    case "physics_events":
+    case "physics_joint_status":
+    case "physics_apply_force":
+    case "physics_apply_impulse":
+    case "physics_set_linear_velocity":
+    case "physics_set_angular_velocity":
+    case "physics_set_kinematic_target":
+    case "physics_break_joint":
+    case "physics_sleep_body":
+    case "physics_wake_body":
+    case "physics_raycast_first":
+    case "physics_raycast_all":
+    case "physics_overlap_shape":
+    case "physics_cast_shape_first":
+    case "physics_project_point":
+    case "physics_move_character":
+    case "physics_debug_geometry":
+    case "physics_debug_summary":
+      return callGeneratedRuntimeTool(page, name, args);
     case "input_key":
       return inputKey(page, args);
     case "input_pointer_move":

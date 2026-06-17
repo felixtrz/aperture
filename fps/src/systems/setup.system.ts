@@ -1,15 +1,44 @@
-import { createSystem, hexColor } from "@aperture-engine/app/systems";
+import {
+  AppEntityKey,
+  Enabled,
+  LocalTransform,
+  Name,
+  Parent,
+  WorldTransform,
+  createSystem,
+  hexColor,
+} from "@aperture-engine/app/systems";
+import { Sprite, SpriteBlendMode, createSprite } from "@aperture-engine/render";
 import {
   CLOUDS,
   ENEMIES,
   LEVEL_COLLIDERS,
   LEVEL_INSTANCES,
+  PLAYER_BODY_HALF_HEIGHT,
+  PLAYER_BODY_KEY,
+  PLAYER_BODY_RADIUS,
+  PLAYER_BODY_START,
   PLAYER_START,
   WEAPONS,
 } from "../lib/fps-data.js";
 
 const GLTF_FRONT_SIDE_MATERIALS = {
   renderState: { cullMode: "back" as const },
+};
+
+const HIDDEN_EFFECT_POSITION: [number, number, number] = [0, -100, 0];
+const IDENTITY_ROTATION: [number, number, number, number] = [0, 0, 0, 1];
+const IDENTITY_SCALE: [number, number, number] = [1, 1, 1];
+const HIDDEN_EFFECT_WORLD: {
+  readonly col0: [number, number, number, number];
+  readonly col1: [number, number, number, number];
+  readonly col2: [number, number, number, number];
+  readonly col3: [number, number, number, number];
+} = {
+  col0: [1, 0, 0, 0],
+  col1: [0, 1, 0, 0],
+  col2: [0, 0, 1, 0],
+  col3: [0, -100, 0, 1],
 };
 
 export default class SetupSystem extends createSystem({ priority: 0 }) {
@@ -27,6 +56,49 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         near: 0.05,
         far: 80,
         clearColor: [0.36, 0.39, 0.46, 1],
+      },
+    });
+
+    this.spawn.physics({
+      key: PLAYER_BODY_KEY,
+      name: "Player Physics Body",
+      tags: ["player", "physics", "character"],
+      transform: {
+        translation: PLAYER_BODY_START,
+      },
+      physics: {
+        rigidBody: {
+          type: "kinematicPosition",
+          canSleep: false,
+          lockRotationX: true,
+          lockRotationY: true,
+          lockRotationZ: true,
+        },
+        collider: {
+          shape: {
+            kind: "capsule",
+            radius: PLAYER_BODY_RADIUS,
+            halfHeight: PLAYER_BODY_HALF_HEIGHT,
+          },
+          friction: 0.2,
+          restitution: 0,
+        },
+        velocity: true,
+        kinematicTarget: {
+          enabled: true,
+          translation: PLAYER_BODY_START,
+        },
+        characterController: {
+          offset: 0.02,
+          slide: true,
+          snapToGroundDistance: 0.18,
+          maxSlopeClimbAngle: Math.PI / 4,
+          minSlopeSlideAngle: Math.PI / 3,
+          autostep: {
+            maxHeight: 0.35,
+            minWidth: 0.2,
+          },
+        },
       },
     });
 
@@ -164,5 +236,50 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         },
       });
     }
+
+    this.#spawnSpriteEffect({
+      key: "effect.muzzle-burst",
+      name: "Muzzle Burst",
+      textureId: "muzzle-burst",
+      size: [0.75, 0.38],
+      blendMode: SpriteBlendMode.Additive,
+    });
+
+    this.#spawnSpriteEffect({
+      key: "effect.impact-hit",
+      name: "Impact Hit",
+      textureId: "impact-hit",
+      size: [0.85, 0.85],
+      blendMode: SpriteBlendMode.Alpha,
+    });
+  }
+
+  #spawnSpriteEffect(input: {
+    readonly key: string;
+    readonly name: string;
+    readonly textureId: string;
+    readonly size: readonly [number, number];
+    readonly blendMode: SpriteBlendMode;
+  }): void {
+    const entity = this.createEntity();
+    entity.addComponent(Enabled, { value: true });
+    entity.addComponent(Name, { value: input.name });
+    entity.addComponent(AppEntityKey, { value: input.key });
+    entity.addComponent(LocalTransform, {
+      translation: HIDDEN_EFFECT_POSITION,
+      rotation: IDENTITY_ROTATION,
+      scale: IDENTITY_SCALE,
+    });
+    entity.addComponent(Parent, { entity: null });
+    entity.addComponent(WorldTransform, HIDDEN_EFFECT_WORLD);
+    entity.addComponent(
+      Sprite,
+      createSprite({
+        texture: this.assets.texture(input.textureId).renderHandle,
+        size: input.size,
+        color: [1, 1, 1, 0],
+        blendMode: input.blendMode,
+      }),
+    );
   }
 }
