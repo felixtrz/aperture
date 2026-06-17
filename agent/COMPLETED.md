@@ -3,7 +3,7 @@
 ## FPS-PORT — Platform-aware full-clear proof
 
 Completed: 2026-06-17 01:03 PDT
-Commit: `2402684b`
+Commit: `85eadde4`
 
 ### Summary
 
