@@ -29,6 +29,7 @@ let pendingLookX = 0;
 let pendingLookY = 0;
 let lookActionActive = false;
 let shootActionActive = false;
+let unlockedClickShootFallbackPending = false;
 const keyboardMoveKeys = new Set<SourceKeyboardMoveKey>();
 const keyboardButtonActions = new Set<SourceKeyboardButtonAction>();
 
@@ -64,6 +65,11 @@ subscribeGeneratedSignals(render);
 canvas?.addEventListener("click", () => {
   if (document.pointerLockElement !== canvas) {
     requestPointerLock(canvas);
+  }
+
+  if (unlockedClickShootFallbackPending) {
+    unlockedClickShootFallbackPending = false;
+    dispatchInstantButtonAction("shoot", "fps-pointer");
   }
 });
 
@@ -101,7 +107,10 @@ window.addEventListener("mousedown", (event) => {
   if (!pointerLocked && !isCanvasPointerEvent(event)) return;
 
   event.preventDefault();
-  if (!pointerLocked && canvas !== null) requestPointerLock(canvas);
+  if (!pointerLocked && canvas !== null) {
+    unlockedClickShootFallbackPending = true;
+    requestPointerLock(canvas);
+  }
   pressPointerLockShoot();
 });
 
@@ -126,6 +135,7 @@ window.addEventListener("keyup", (event) => {
 });
 
 window.addEventListener("blur", () => {
+  unlockedClickShootFallbackPending = false;
   releaseKeyboardActions();
   releasePointerLockShoot();
 });
