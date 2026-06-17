@@ -17,6 +17,8 @@ Commit: `68d0ab80`
   `J`/`K` for left/down.
 - Pointer-lock mouse X dispatch is inverted so mouse movement and generated
   action input share the same source yaw direction.
+- Live browser proof also covered camera-relative forward movement after the
+  corrected look signs, normalized center-click shooting, and Space jump input.
 
 ### Validation
 
@@ -31,10 +33,15 @@ Commit: `68d0ab80`
 - `git diff --check`
 - Aperture MCP/CLI proof against the live FPS route:
   - `browser_wait_for_webgpu` passed after reloading the managed FPS app.
-  - From `yaw:0,pitch:0`, `input_key down KeyL`, `input_key down KeyI`, and
-    one `ecs_step` produced
-    `yaw:-0.041666666666666664,pitch:0.041666666666666664`, matching source
-    right/up camera vector signs.
+  - `input_gamepad_set` with right-stick right/up and forward movement resolved
+    to `look.x:-1`, `look.y:1`, moved `fps.state` to
+    `yaw:-0.041666666666666664,pitch:0.041666666666666664`, and advanced the
+    player to positive X/negative Z, proving camera-relative movement still
+    follows the corrected camera heading.
+  - Normalized center `input_pointer_click` plus one `ecs_step` produced
+    `shotsFired:1` and `shotCooldown:0.23333333333333334`.
+  - `input_key Space press` plus one `ecs_step` produced `grounded:false`,
+    `jumpsRemaining:1`, and `verticalVelocity:7.666666666666667`.
 
 ## FPS-PORT — HUD source styling
 

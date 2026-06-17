@@ -1,6 +1,6 @@
 # Handoff - Starter Kit FPS Look Input Direction
 
-**Updated:** 2026-06-17 05:39 PDT
+**Updated:** 2026-06-17 05:42 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
@@ -24,12 +24,23 @@ previous working state so the old state remains recoverable.
 - Focused coverage:
   - Expanded `test/app/fps-input-config.test.ts` to cover browser-standard
     gamepad X/Y look axes and keyboard IJKL look helpers.
+  - Expanded `test/app/fps-hud.test.ts` to cover pointer-lock mouse delta
+    conversion through the shared source action-vector helper.
 - Aperture proof:
-  - Reloaded the managed FPS app through Aperture CLI and waited for WebGPU.
-  - Through Aperture MCP, `input_key down KeyL`, `input_key down KeyI`, and one
-    `ecs_step` moved `fps.state` from `yaw:0,pitch:0` to
-    `yaw:-0.041666666666666664,pitch:0.041666666666666664`, matching the
-    source `camera_right`/`camera_up` vector signs.
+  - Reloaded the managed FPS app through Aperture CLI/MCP and waited for
+    WebGPU.
+  - `input_gamepad_set` with right-stick right/up and forward movement resolved
+    to `look.x:-1`, `look.y:1`, moved `fps.state` to
+    `yaw:-0.041666666666666664,pitch:0.041666666666666664`, and advanced the
+    player to positive X/negative Z, proving movement is still camera-relative
+    under the corrected look signs.
+  - A normalized center `input_pointer_click` followed by one `ecs_step`
+    produced `shotsFired:1` and `shotCooldown:0.23333333333333334`, proving
+    browser pointer shooting works through the managed app.
+  - `input_key Space press` followed by one `ecs_step` produced
+    `grounded:false`, `jumpsRemaining:1`, and
+    `verticalVelocity:7.666666666666667`, proving browser Space jump input
+    reaches the player system.
 - Validation:
   - `pnpm exec vitest run test/app/fps-input-config.test.ts test/app/fps-controls.test.ts test/app/fps-hud.test.ts test/app/fps-effects.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts`
     passed 34 tests.

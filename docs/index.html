@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 12:39 UTC</dd>
+            <dd>2026-06-17 12:42 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
@@ -405,11 +405,16 @@
               negative generated axes and left/up look are positive axes.
               Browser-standard gamepad right-stick X, keyboard IJKL helpers,
               and pointer-lock mouse X dispatch now use those signs. Aperture
-              MCP proof drove <code>KeyL</code> plus <code>KeyI</code> through
-              the managed FPS app and one <code>ecs_step</code> moved
-              <code>fps.state</code> from <code>yaw:0,pitch:0</code> to
+              CLI/MCP proof drove right/up look plus forward movement through
+              the managed FPS app, resolved generated input to
+              <code>look.x:-1</code> and <code>look.y:1</code>, moved
+              <code>fps.state</code> to
               <code>yaw:-0.041666666666666664</code> and
-              <code>pitch:0.041666666666666664</code>. Prior update:
+              <code>pitch:0.041666666666666664</code>, and advanced the player
+              to positive X/negative Z. The same live app proof confirmed
+              normalized center-click shooting with <code>shotsFired:1</code>
+              and Space jump with
+              <code>verticalVelocity:7.666666666666667</code>. Prior update:
               Starter Kit FPS HUD styling now matches source
               scene/script constants. The source 128px crosshair texture is
               scaled by <code>0.35</code>, deriving a <code>44.8px</code>
