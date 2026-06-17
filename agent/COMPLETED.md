@@ -1,5 +1,41 @@
 # Completed Tasks
 
+## FPS-PORT — Look input direction
+
+Completed: 2026-06-17 05:39 PDT
+Commit: `68d0ab80`
+
+### Summary
+
+- Matched upstream look action-vector signs from
+  `references/Starter-Kit-FPS/objects/player.gd`, where controller look reads
+  `Input.get_vector("camera_right", "camera_left", "camera_down",
+  "camera_up")`.
+- Browser-standard gamepad right-stick X now maps right-look to negative
+  generated `look.x`, matching source yaw direction.
+- Keyboard IJKL look helpers now follow source signs: `L`/`I` for right/up and
+  `J`/`K` for left/down.
+- Pointer-lock mouse X dispatch is inverted so mouse movement and generated
+  action input share the same source yaw direction.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-input-config.test.ts test/app/fps-controls.test.ts test/app/fps-hud.test.ts test/app/fps-effects.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts`
+  passed 34 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture MCP/CLI proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed after reloading the managed FPS app.
+  - From `yaw:0,pitch:0`, `input_key down KeyL`, `input_key down KeyI`, and
+    one `ecs_step` produced
+    `yaw:-0.041666666666666664,pitch:0.041666666666666664`, matching source
+    right/up camera vector signs.
+
 ## FPS-PORT — HUD source styling
 
 Completed: 2026-06-17 05:35 PDT

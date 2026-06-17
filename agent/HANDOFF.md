@@ -1,11 +1,49 @@
-# Handoff - Starter Kit FPS HUD Source Styling
+# Handoff - Starter Kit FPS Look Input Direction
 
-**Updated:** 2026-06-17 05:35 PDT
+**Updated:** 2026-06-17 05:39 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Aligned Starter Kit FPS look input direction with source action-vector
+  semantics:
+  - `references/Starter-Kit-FPS/objects/player.gd` reads controller look with
+    `Input.get_vector("camera_right", "camera_left", "camera_down",
+    "camera_up")`.
+  - The port now maps right-look input to negative generated `look.x`, left-look
+    input to positive `look.x`, down-look input to negative `look.y`, and
+    up-look input to positive `look.y`.
+  - Browser-standard gamepad right-stick X is inverted to match the source
+    camera action vector.
+  - Keyboard look helpers now follow the same IJKL semantics: `L`/`I` map to
+    source right/up and `J`/`K` map to source left/down.
+  - Pointer-lock mouse X dispatch is inverted so mouse movement and generated
+    action input drive the same source yaw direction.
+- Focused coverage:
+  - Expanded `test/app/fps-input-config.test.ts` to cover browser-standard
+    gamepad X/Y look axes and keyboard IJKL look helpers.
+- Aperture proof:
+  - Reloaded the managed FPS app through Aperture CLI and waited for WebGPU.
+  - Through Aperture MCP, `input_key down KeyL`, `input_key down KeyI`, and one
+    `ecs_step` moved `fps.state` from `yaw:0,pitch:0` to
+    `yaw:-0.041666666666666664,pitch:0.041666666666666664`, matching the
+    source `camera_right`/`camera_up` vector signs.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-input-config.test.ts test/app/fps-controls.test.ts test/app/fps-hud.test.ts test/app/fps-effects.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts`
+    passed 34 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - `68d0ab80` — `Align FPS look input direction`
+
+## Previous Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS HUD styling with source scene/script data:
   - `references/Starter-Kit-FPS/scenes/main.tscn` scales the 128px crosshair
@@ -44,7 +82,7 @@ previous working state so the old state remains recoverable.
 - Committed implementation:
   - `b5496245` — `Align FPS HUD source styling`
 
-## Previous Completed FPS/Tooling Slices
+## Earlier Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS player muzzle sprite sizing with source scene data:
   - `references/Starter-Kit-FPS/objects/player.tscn` uses an

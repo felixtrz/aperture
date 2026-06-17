@@ -393,12 +393,24 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 12:35 UTC</dd>
+            <dd>2026-06-17 12:39 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS HUD styling now matches source
+              Latest update: Starter Kit FPS look input direction now matches
+              source camera action-vector signs. The source player script reads
+              <code>Input.get_vector("camera_right", "camera_left",
+              "camera_down", "camera_up")</code>, so right/down look are
+              negative generated axes and left/up look are positive axes.
+              Browser-standard gamepad right-stick X, keyboard IJKL helpers,
+              and pointer-lock mouse X dispatch now use those signs. Aperture
+              MCP proof drove <code>KeyL</code> plus <code>KeyI</code> through
+              the managed FPS app and one <code>ecs_step</code> moved
+              <code>fps.state</code> from <code>yaw:0,pitch:0</code> to
+              <code>yaw:-0.041666666666666664</code> and
+              <code>pitch:0.041666666666666664</code>. Prior update:
+              Starter Kit FPS HUD styling now matches source
               scene/script constants. The source 128px crosshair texture is
               scaled by <code>0.35</code>, deriving a <code>44.8px</code>
               rendered crosshair; the health label now uses source
@@ -2401,6 +2413,17 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned look input
+                direction with source camera action-vector signs: gamepad
+                right-stick X, keyboard IJKL helpers, and pointer-lock mouse X
+                now drive right/left yaw with the same signs as
+                <code>Input.get_vector("camera_right", "camera_left",
+                "camera_down", "camera_up")</code>. Aperture MCP proof drove
+                <code>KeyL</code> plus <code>KeyI</code> and observed
+                <code>fps.state</code> advance to negative yaw and positive
+                pitch after one worker step.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned Starter Kit FPS
                 HUD styling with source scene/script constants: the crosshair
