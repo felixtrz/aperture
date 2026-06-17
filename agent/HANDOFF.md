@@ -1,81 +1,72 @@
-# Handoff - Starter Kit FPS World Visibility
+# Handoff - Starter Kit FPS Overlay And Controls
 
-**Updated:** 2026-06-17 07:43 PDT
+**Updated:** 2026-06-17 08:35 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Fixed the latest reported Starter Kit FPS control issues:
+- Restored the source-style Starter Kit FPS weapon overlay path and fixed the
+  latest reported control issues:
   - Source anchors:
     `references/Starter-Kit-FPS/objects/player.gd` and
     `references/Starter-Kit-FPS/project.godot`.
-  - Added `sourceButtonPressedThisFrame(...)` and persistent button-edge latches
-    in `PlayerSystem` so generated/browser input that reports `pressed:true`
-    after its built-in `down()` edge is no longer missed. This fixes the
-    intermittent Space jump path and also hardens shoot buffering.
-  - Added `sourcePointerDragLookStep(...)` and routed the raw pointer-drag
-    fallback through the same horizontal sign as source/pointer-lock mouse look.
-    A rightward drag now produces negative yaw, so forward movement follows the
-    same camera basis users see when pointer lock is unavailable.
-- Stabilized the previous environment slice:
-  - Kept the exact exported source environment constants, but added explicit
-    `FPS_RENDER_*` runtime mapping constants for Aperture's current directional
-    light/ambient convention.
-  - Runtime setup now uses the prior proven FPS clear/fog/ambient/sun values
-    while preserving source anchors for later engine-convention work.
-- Made shooting feedback visible in the main world view:
-  - Removed the temporary second weapon camera from setup and assigned weapon
-    viewmodels plus player muzzle sprites to the world render layer.
-  - This keeps the live app on one swapchain view until the renderer has a
-    source-like weapon subviewport/compositing path.
+  - Reference anchors for the renderer slice:
+    `references/three.js/src/renderers/WebGLRenderer.js`,
+    `references/three.js/src/renderers/webgl/WebGLBackground.js`, and
+    `references/engine/src/scene/renderer/frame-pass-postprocessing.js`.
+  - Renderer frame-boundary assembly now supports post-processed same-swapchain
+    overlay views by loading scene color for later views, clearing depth for
+    transparent/disjoint-layer overlays, preserving MSAA color when another view
+    still targets the same surface, and presenting post effects only after the
+    final same-target view.
+  - FPS setup now spawns `camera.main` for world content and `camera.weapon`
+    for weapon-layer content, with source FOVs `80` and `40` respectively.
+    Weapon meshes and the player muzzle flash render on the weapon layer,
+    parented under the weapon camera with transparent clear.
+  - Added an app-level `fps.input` command channel from the browser HUD to the
+    simulation worker. Keyboard movement, jump, switch-weapon, and reset now
+    have a narrow command fallback in addition to generated input actions.
+  - Canvas click now emits a short pointer-lock shoot action as a fallback, so
+    unlocked click-to-shoot works even when pointer-lock acquisition and pointer
+    action forwarding race.
+  - Movement remains camera-relative through the existing yaw-based movement
+    math; live proof showed W at yaw `0` moved Z negative, and W at yaw
+    `0.148571...` produced both negative X and negative Z velocity.
 - Aperture tooling proof:
   - Started the managed FPS app with
     `pnpm --dir fps exec aperture dev up --headless --host 127.0.0.1 --port 5173`.
-  - MCP transport was closed, so the same Aperture tools were used through the
-    CLI.
-  - CLI `browser_wait_for_webgpu` passed with WebGPU ready.
-  - A fast `input_key {"key":"Space","action":"press"}` now makes the player
-    airborne with `jumpsRemaining:1`.
-  - Holding Space for 80ms moved the player Y from the grounded value to
-    `1.158048...`, set `grounded:false`, and left `jumpsRemaining:1`.
-  - `input_pointer_click {"x":0.5,"y":0.5}` increments `shotsFired` to `1`.
-  - A rightward `input_drag` over the canvas produced live yaw
-    `-0.222957...`, proving the fallback drag sign now matches source mouse
-    look.
-  - After the weapon-view setup change, `render_get_snapshot_summary` reported
-    one view, one skybox, one fog, 33 draw calls, and diagnostics `0`.
+  - Direct MCP calls still failed with `Transport closed`; the same Aperture
+    tools were used through the CLI, and the managed browser's CDP port was
+    used only for tight per-frame state sampling.
+  - Space jump proof: per-frame sampling around a keyboard event moved player Y
+    from `0.970100...` to `1.655889...`, set `grounded:false`, and reduced
+    `jumpsRemaining` to `1`.
+  - Shoot proof: a canvas click produced `virtualAction: shoot` and incremented
+    `shotsFired` from `1` to `2`.
+  - Movement proof: W at yaw `0` produced
+    `movementVelocity:[0,0,-4.7794...]`; after camera yaw changed to
+    `0.148571...`, W produced
+    `movementVelocity:[-0.7083...,0,-4.7326...]`.
+  - Render proof: `render_get_frame_report` reported two swapchain views, draw
+    calls `19` world plus `4` weapon, total draw calls `36`, diagnostics `0`,
+    and bloom plus HDR tonemap running once on final view `1`.
 - Validation:
-  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts`
-    passed 34 tests.
-  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-effects.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
-    passed 65 tests.
+  - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-hud.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+    passed 45 tests.
+  - `pnpm exec vitest run test/webgpu/app-frame-boundaries.test.ts test/webgpu/post-graph-parity.test.ts test/webgpu/post-tonemap.test.ts`
+    passed 24 tests.
   - `pnpm --dir fps run typecheck`
   - `pnpm --dir fps run build`
+  - `pnpm --dir packages/webgpu run build`
   - `pnpm --dir racing run typecheck`
   - `pnpm --dir racing run build`
   - `pnpm --dir shadow-lab run typecheck`
   - `pnpm --dir shadow-lab run build`
-  - After the setup change:
-    `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
-    passed 38 tests.
-  - After the dark-screen fix:
-    `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-effects.test.ts`
-    passed 12 tests.
-  - After the dark-screen fix:
-    `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/fps-hud.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
-    passed 70 tests.
-  - After the setup change: `pnpm --dir fps run typecheck`
-  - After the setup change: `pnpm --dir fps run build`
-  - After the dark-screen fix: `pnpm --dir racing run typecheck`
-  - After the dark-screen fix: `pnpm --dir racing run build`
-  - After the dark-screen fix: `pnpm --dir shadow-lab run typecheck`
-  - After the dark-screen fix: `pnpm --dir shadow-lab run build`
+  - `git diff --check`
 - Commit:
-  - `b4a70a49` — `Stabilize FPS runtime environment mapping`
-  - `240d43a8` — `Fix FPS input edge handling`
-  - `a6a8c421` — `Render FPS weapon effects in world view`
+  - `285fa3dd` — `Restore FPS weapon overlay controls`
 
 ## Previous Completed FPS/Tooling Slices
 

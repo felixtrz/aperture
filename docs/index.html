@@ -393,29 +393,32 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 14:45 UTC</dd>
+            <dd>2026-06-17 15:35 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS jump/shoot/look input is hardened.
-              The player system now recovers source-style button edges when
-              generated input reports <code>pressed:true</code> after the
-              built-in <code>down()</code> edge, fixing fast Space presses and
-              hardening shoot buffering. The raw pointer-drag fallback now uses
-              the source mouse horizontal sign, so a rightward drag produces
-              negative yaw and movement follows the visible camera basis when
-              pointer lock is unavailable. Aperture CLI proof showed a fast
-              <code>Space</code> press and an 80ms hold both make the player
-              airborne with <code>jumpsRemaining:1</code>, a canvas click
-              produces <code>shotsFired:1</code>, and a rightward drag produces
-              yaw <code>-0.222957...</code>. Weapon viewmodels and player
-              muzzle sprites now render in the main world view so shooting
-              feedback is visible without the temporary second swapchain camera;
-              render summary reports one view, one skybox, one fog, 33 draw
-              calls, and diagnostics <code>0</code>. Supporting update: the
+              Latest update: Starter Kit FPS now uses the source-style weapon
+              overlay path with post effects enabled. The renderer preserves
+              same-swapchain world color, clears depth for the transparent
+              weapon-layer overlay, stores MSAA color until the final same-target
+              view, and runs bloom/HDR tonemap only after the final overlay
+              camera. The FPS route now has <code>camera.main</code> for world
+              content and transparent <code>camera.weapon</code> for weapon
+              viewmodels and muzzle flash. Keyboard movement, jump,
+              switch-weapon, and reset also flow through a narrow
+              <code>fps.input</code> command channel, and canvas click emits a
+              short shoot fallback. Live proof showed Space moving player Y from
+              <code>0.970100...</code> to <code>1.655889...</code>, canvas
+              click incrementing <code>shotsFired</code>, W moving along the
+              camera-forward basis after yaw changed, and
+              <code>render_get_frame_report</code> reporting two swapchain
+              views, diagnostics <code>0</code>, and post effects only on final
+              view <code>1</code>. Prior update: Starter Kit FPS
+              jump/shoot/look input was hardened through source-style button
+              edge recovery and matching fallback drag yaw. Prior update: the
               prior source environment constants remain exported, while
-              setup/config now use explicit <code>FPS_RENDER_*</code> runtime
+              setup/config use explicit <code>FPS_RENDER_*</code> runtime
               mapping constants for the current Aperture light convention.
               Prior update: Starter Kit FPS environment values now derive from
               <code>scenes/main-environment.tres</code> and
@@ -1674,13 +1677,11 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue Starter Kit FPS fidelity with a visible route such as
-              skybox orientation/readback hardening, projectile polish beyond
-              the current per-enemy attacker ownership,
-              enemy movement/attack timing polish, weapon subviewport/camera-FOV
-              overlay fidelity, or packaging the
-              platform-aware full-clear proof into a reusable smoke script while
-              keeping racing and Shadow Lab green.
+              Replace placeholder PMREM with GGX/VNDF prefilter sampling, then
+              continue FPS-visible follow-ups such as a generated-input
+              full-clear smoke route or skybox orientation/readback hardening.
+              Keep racing and Shadow Lab green while touching shared renderer
+              paths.
             </dd>
           </dl>
         </aside>
@@ -2582,19 +2583,18 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">fps</span> Fixed Starter Kit FPS
-                input edge handling for jump and shoot. Fast Space presses now
-                make the player airborne, click-to-shoot still increments
-                <code>shotsFired</code>, and fallback pointer drag now matches
-                the source mouse yaw sign so movement remains camera-relative
-                when pointer lock is unavailable.
+                <span class="badge green">fps</span> Restored the Starter Kit
+                FPS source-style weapon overlay path. The app now renders world
+                and weapon cameras into the same swapchain target while the
+                renderer preserves base color, clears transparent overlay depth,
+                and runs post effects once on the final view.
               </li>
               <li>
-                <span class="badge green">fps</span> Moved FPS weapon
-                viewmodels and player muzzle sprites into the main world view,
-                removing the temporary second weapon camera and keeping live
-                shooting feedback visible while a true source-style weapon
-                subviewport remains future fidelity work.
+                <span class="badge green">fps</span> Added command-backed FPS
+                keyboard controls and canvas click-to-shoot fallback. Live proof
+                showed Space jumping, canvas click incrementing
+                <code>shotsFired</code>, and W movement following the camera
+                forward vector after yaw changes.
               </li>
               <li>
                 <span class="badge green">fps</span> Stabilized the previous
@@ -5938,11 +5938,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Continue Starter Kit FPS
-                fidelity with a visible slice such as enemy movement/attack
-                timing polish, skybox orientation/readback hardening,
-                level-complete/full-clear smoke, source enemy attack damage
-                proof, or a reusable generated-input full-clear smoke script.
+                <span class="badge amber">next</span> Replace placeholder PMREM
+                with GGX/VNDF prefilter sampling. The visible proof should make
+                roughness-dependent specular IBL changes observable in pixels
+                while keeping the implementation WebGPU-only and
+                renderer-owned.
+              </li>
+              <li>
+                <span class="badge amber">next</span> FPS-visible follow-ups:
+                add a generated-input full-clear smoke route, or harden skybox
+                orientation/readback with named view-direction samples.
               </li>
               <li>
                 <span class="badge amber">next</span> Continue remaining M10

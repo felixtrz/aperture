@@ -1,5 +1,48 @@
 # Completed Tasks
 
+## FPS-PORT — Source-style weapon overlay and command-backed controls
+
+Completed: 2026-06-17 08:35 PDT
+Commit: `285fa3dd`
+
+### Summary
+
+- Restored a source-style two-camera FPS setup: world content renders through
+  `camera.main`, weapon viewmodels and the player muzzle flash render through
+  transparent `camera.weapon`, and post effects present only after the final
+  same-swapchain view.
+- Added renderer support for post-processed transparent overlay cameras,
+  including same-target color load, transparent/disjoint-layer depth clear, and
+  MSAA color preservation until the final overlay submission.
+- Added a narrow `fps.input` command channel from the browser HUD to the
+  simulation worker for keyboard movement, jump, switch-weapon, and reset.
+- Added canvas click-to-shoot fallback so unlocked clicks produce the expected
+  short shoot action.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-hud.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+  passed 45 tests.
+- `pnpm exec vitest run test/webgpu/app-frame-boundaries.test.ts test/webgpu/post-graph-parity.test.ts test/webgpu/post-tonemap.test.ts`
+  passed 24 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir packages/webgpu run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture CLI/CDP proof against the live FPS route:
+  - Space moved player Y from `0.970100...` to `1.655889...`, set
+    `grounded:false`, and left `jumpsRemaining:1`.
+  - Canvas click produced `virtualAction: shoot` and incremented
+    `shotsFired`.
+  - W at yaw `0` moved Z negative; W at yaw `0.148571...` moved both X and Z
+    along the camera-forward basis.
+  - `render_get_frame_report` reported two swapchain views, diagnostics `0`,
+    and bloom/HDR tonemap running once on final view `1`.
+
 ## FPS-PORT — World-view weapon effects
 
 Completed: 2026-06-17 07:43 PDT

@@ -78,25 +78,40 @@ Acceptance criteria:
 
 ## Ready Follow-Up
 
-`task-fps-overlay-post` — Support transparent post-processed overlay cameras.
+`task-fps-full-clear-smoke` — Add a generated-input FPS full-clear smoke route.
 
-Category: `webgpu-render`
+Category: `runtime-orchestration`
 
-Reference anchor: `references/three.js/src/renderers/WebGLRenderer.js`,
-`references/three.js/src/renderers/webgl/WebGLBackground.js`,
-`references/engine/src/scene/renderer/frame-pass-postprocessing.js`.
+Reference anchor: `references/bevy/examples/input/keyboard_input_events.rs`,
+`references/engine/src/extras/input/sources/keyboard-mouse-source.js`.
 
 Acceptance criteria:
 
-- Add renderer support for a higher-priority transparent camera/view to preserve
-  the already-rendered lower-priority world view when post effects are enabled.
-- Add a visible route or FPS proof that renders a base world camera plus a
-  transparent weapon/overlay camera through the post stack without blacking the
-  base image.
-- Add pixel coverage for clear-only, world-only, overlay-only, and composited
-  regions.
-- Restore the FPS source-style weapon camera/subviewport path only after the
-  renderer proof passes.
+- Add a reusable smoke route or script that drives the Starter Kit FPS app
+  through generated input and the narrow `fps.input` command channel.
+- The proof should move/look/shoot enough to clear the level or a deterministic
+  fixture subset and report `gameStatus:"cleared"` or an equivalent visible
+  completion signal.
+- Include live WebGPU pixel/readback or resource proof that shots, hits, and
+  player movement changed through the same route.
+- Keep the app state ECS-owned; do not add browser-only gameplay state.
+
+`task-fps-skybox-readback` — Harden FPS skybox orientation and readback proof.
+
+Category: `webgpu-render`
+
+Reference anchor: `references/bevy/examples/3d/skybox.rs`,
+`references/engine/src/scene/skybox/sky.js`,
+`references/three.js/src/textures/CubeTexture.js`.
+
+Acceptance criteria:
+
+- Add a visible proof that the Starter Kit FPS skybox orientation matches the
+  intended source-facing directions after cube projection.
+- Add named pixel/readback samples for at least three view directions and record
+  expected color relationships.
+- Keep skybox extraction renderer-derived from ECS state and the existing
+  renderer-owned cube texture asset path.
 
 ## Historical M10 Physics Notes
 

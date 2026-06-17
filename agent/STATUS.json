@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "a6a8c421",
+  "lastCommit": "285fa3dd",
   "activePid": null,
-  "notes": "Fixed FPS input edge handling for jump/shoot, aligned fallback drag yaw with source mouse look, moved weapon/muzzle effects into the world view, stabilized runtime environment mapping, and validated FPS/racing/shadow-lab plus Aperture CLI proofs.",
-  "lastRunFinishedAt": "2026-06-17T14:45:00Z"
+  "notes": "Restored the FPS source-style weapon overlay through post-processed same-swapchain views, added command-backed keyboard controls and click-to-shoot fallback, validated live jump/shoot/camera-relative movement, and kept FPS/racing/shadow-lab builds green.",
+  "lastRunFinishedAt": "2026-06-17T15:39:04Z"
 }
