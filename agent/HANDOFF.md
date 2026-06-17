@@ -1,43 +1,80 @@
-# Handoff - Starter Kit FPS Muzzle Flash Style
+# Handoff - Starter Kit FPS Resource Set Proof Tooling
 
-**Updated:** 2026-06-17 01:59 PDT
+**Updated:** 2026-06-17 02:10 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Added source-style muzzle flash randomization from upstream
-  `objects/player.gd` and `objects/enemy.gd`.
-- Player shots now sample the authored `randf_range(-45,45)` sprite roll and
-  `randf_range(0.40,0.75)` sprite scale for `effect.muzzle-burst`.
-- Enemy attacks now sample independent source-like Z rolls for both
-  `effect.enemy-muzzle.0` and `effect.enemy-muzzle.1`.
-- Kept the effect state ECS-owned by writing `Sprite.rotation` and
-  `LocalTransform.scale`; no renderer-owned effect objects or gameplay state
-  were introduced.
+- Added schema-validated generated-worker `resource_set` support so Aperture
+  CLI/MCP tools can patch initialized app resources by id during deterministic
+  proof setup.
+- Kept mutation behind resource schemas: primitive, tuple, nullable vec3, and
+  quat fields are validated before state changes; unknown fields produce
+  actionable diagnostics; custom value fields are cloned.
+- Registered `resource_set` in the CLI/MCP tool surface and documented the
+  now-current resource get/set decision.
+- Used the new tool in the FPS proof instead of app-specific debug hooks:
+  `resource_set` fixed the player yaw for deterministic setup, generated
+  `move` input drove the real character controller into enemy range, health
+  changed `100 -> 95`, and `ecs_find_entities` read enemy muzzle sprite
+  rotations `-0.363` and `-0.516` radians, both inside the upstream `±45°`
+  roll range.
+- Reset the managed FPS page afterward; fresh state was back to
+  `health:100`, `enemiesRemaining:4`, `shotsFired:0`, `hits:0`,
+  `gameStatus:"active"`.
 - Validation:
-  - `pnpm exec vitest run test/app/fps-controls.test.ts`
+  - `pnpm exec vitest run test/app/resources.test.ts test/app/generated-worker-start.test.ts test/cli/dev-session.test.ts`
+  - `pnpm --filter @aperture-engine/app run typecheck`
+  - `pnpm --filter @aperture-engine/cli run typecheck`
+  - `pnpm --filter @aperture-engine/app run build`
+  - `pnpm --filter @aperture-engine/cli run build`
   - `pnpm --dir fps run typecheck`
   - `pnpm --dir fps run build`
-  - `pnpm run typecheck`
-  - `pnpm run typecheck:test`
-  - `pnpm --dir racing run typecheck`
-  - `pnpm --dir racing run build`
-  - `pnpm --dir shadow-lab run typecheck`
-  - `pnpm --dir shadow-lab run build`
+  - `pnpm run check:diagnostics`
+  - `pnpm run check:progress`
   - Aperture CLI/runtime proof from `fps/`: `browser_reload`,
-    `browser_wait_for_webgpu`, generated `input_action_set`, `ecs_step`,
-    `ecs_find_entities`, `ecs_get_entity`, and `resource_get`.
-  - Proof observed player muzzle `shotsFired:1`, sprite scale
-    `[0.4168,0.4168,0.4168]`, `Sprite.rotation:-0.2156`, and alpha `0.8333`.
-  - Proof observed enemy range still gated correctly (`farHealthDelta:0`,
-    `nearHealthDelta:-5`) and both enemy muzzle sprites had source-like roll:
-    `0.213` and `-0.0584`.
-- Committed implementation:
-  - `861368bd` — `Randomize FPS muzzle flash style`
+    `browser_wait_for_webgpu`, `ecs_pause`, `resource_set`,
+    `input_action_set`, `ecs_step`, `resource_get`, `ecs_find_entities`, and
+    `browser_status`.
+- Committed implementation/tooling:
+  - `2f4773e7` — `Add generated resource set tool`
 
 ## Previous Completed FPS Slices
+
+- Muzzle flash random style:
+  - Added source-style muzzle flash randomization from upstream
+    `objects/player.gd` and `objects/enemy.gd`.
+  - Player shots now sample the authored `randf_range(-45,45)` sprite roll and
+    `randf_range(0.40,0.75)` sprite scale for `effect.muzzle-burst`.
+  - Enemy attacks now sample independent source-like Z rolls for both
+    `effect.enemy-muzzle.0` and `effect.enemy-muzzle.1`.
+  - Kept the effect state ECS-owned by writing `Sprite.rotation` and
+    `LocalTransform.scale`; no renderer-owned effect objects or gameplay state
+    were introduced.
+  - Validation:
+    - `pnpm exec vitest run test/app/fps-controls.test.ts`
+    - `pnpm --dir fps run typecheck`
+    - `pnpm --dir fps run build`
+    - `pnpm run typecheck`
+    - `pnpm run typecheck:test`
+    - `pnpm --dir racing run typecheck`
+    - `pnpm --dir racing run build`
+    - `pnpm --dir shadow-lab run typecheck`
+    - `pnpm --dir shadow-lab run build`
+    - Aperture CLI/runtime proof from `fps/`: `browser_reload`,
+      `browser_wait_for_webgpu`, generated `input_action_set`, `ecs_step`,
+      `ecs_find_entities`, `ecs_get_entity`, and `resource_get`.
+    - Proof observed player muzzle `shotsFired:1`, sprite scale
+      `[0.4168,0.4168,0.4168]`, `Sprite.rotation:-0.2156`, and alpha `0.8333`.
+    - Proof observed enemy range still gated correctly (`farHealthDelta:0`,
+      `nearHealthDelta:-5`) and both enemy muzzle sprites had source-like roll:
+      `0.213` and `-0.0584`.
+  - Committed implementation:
+    - `861368bd` — `Randomize FPS muzzle flash style`
+
+## Earlier Completed FPS Slices
 
 - Player shadow proof cleanup:
   - Extracted FPS `player.shadow` setup into `#spawnPlayerShadow()` while

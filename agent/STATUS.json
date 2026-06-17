@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "861368bd",
+  "lastCommit": "2f4773e7",
   "activePid": null,
-  "notes": "Added source-like FPS muzzle flash random style: player shots now randomize sprite roll and 0.40-0.75 scale, enemy attacks randomize both muzzle rolls, and Aperture entity proof observed live Sprite.rotation/scale values. FPS/racing/shadow-lab validation passed.",
-  "lastRunFinishedAt": "2026-06-17T08:59:00Z"
+  "notes": "Added schema-validated generated-worker resource_set support, registered it in CLI/MCP tooling, regenerated diagnostics docs, and used it to prove FPS enemy muzzle random roll through real generated movement into attack range. Focused tests, app/cli typechecks/builds, FPS typecheck/build, diagnostics check, and progress check passed.",
+  "lastRunFinishedAt": "2026-06-17T09:10:32Z"
 }

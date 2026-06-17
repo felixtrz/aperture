@@ -1,5 +1,33 @@
 # Completed Tasks
 
+## TOOLING/FPS-PORT — Generated resource_set proof support
+
+Completed: 2026-06-17 02:10 PDT
+Commit: `2f4773e7`
+
+### Summary
+
+- Added schema-validated generated-worker `resource_set` support to the
+  Aperture CLI/MCP tool surface.
+- Resource patches now validate typed schema fields before mutating initialized
+  resource state and return the same summary shape as `resource_get`.
+- Used `resource_set` in the FPS proof to set deterministic yaw, then drove the
+  real character controller with generated input into enemy attack range.
+
+### Validation
+
+- `pnpm exec vitest run test/app/resources.test.ts test/app/generated-worker-start.test.ts test/cli/dev-session.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm run check:diagnostics`
+- `pnpm run check:progress`
+- Aperture CLI proof observed `health:100->95` and enemy muzzle rotations
+  `-0.363` / `-0.516` radians after generated movement into attack range.
+
 ## FPS-PORT — Muzzle flash random style
 
 Completed: 2026-06-17 01:59 PDT
