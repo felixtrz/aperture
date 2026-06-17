@@ -140,6 +140,7 @@ function changedSummaryFields(
     "parent",
     "localTransform",
     "worldTransform",
+    "renderLayer",
     "physicsRigidBody",
     "physicsCollider",
     "physicsVelocity",

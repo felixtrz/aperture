@@ -319,6 +319,7 @@ describe("validateApertureConfig", () => {
             grab: input.button([
               input.gamepadButton("home", { gamepadIndex: 0 }),
             ]),
+            scriptedLook: input.axis2d([input.virtual()]),
           }),
         ),
       ).not.toThrow();

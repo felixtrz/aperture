@@ -61,7 +61,11 @@ document.addEventListener("pointerlockchange", () => {
   if (document.pointerLockElement !== canvas) {
     pendingLookX = 0;
     pendingLookY = 0;
-    dispatchApertureInputAction("look", { x: 0, y: 0, source: "pointer-lock" });
+    dispatchApertureInputAction("mouseLook", {
+      x: 0,
+      y: 0,
+      source: "pointer-lock",
+    });
     lookActionActive = false;
     releasePointerLockShoot({ immediate: true });
   }
@@ -102,7 +106,7 @@ window.addEventListener("pointerup", (event) => {
 function dispatchPendingLook(): void {
   if (pendingLookX !== 0 || pendingLookY !== 0) {
     const [x, y] = sourcePointerLockLookAxis(pendingLookX, pendingLookY);
-    dispatchApertureInputAction("look", {
+    dispatchApertureInputAction("mouseLook", {
       x,
       y,
       source: "pointer-lock",
@@ -111,7 +115,7 @@ function dispatchPendingLook(): void {
     pendingLookY = 0;
     lookActionActive = true;
   } else if (lookActionActive) {
-    dispatchApertureInputAction("look", {
+    dispatchApertureInputAction("mouseLook", {
       x: 0,
       y: 0,
       source: "pointer-lock",

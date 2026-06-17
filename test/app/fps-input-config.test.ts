@@ -74,6 +74,19 @@ describe("Starter Kit FPS input config", () => {
     expect(axis2d(input.actions.look).x.value).toBe(1);
     expect(axis2d(input.actions.look).y.value).toBe(-1);
   });
+
+  it("keeps pointer-lock mouse look on a virtual-only source action", () => {
+    const input = createInputResource(fpsConfig);
+
+    advanceInputResource(input, [
+      { kind: "virtualAction", action: "mouseLook", x: -0.5, y: 0.25 },
+    ]);
+
+    expect(axis2d(input.actions.look).x.value).toBe(0);
+    expect(axis2d(input.actions.look).y.value).toBe(0);
+    expect(axis2d(input.actions.mouseLook).x.value).toBe(-0.5);
+    expect(axis2d(input.actions.mouseLook).y.value).toBe(0.25);
+  });
 });
 
 function axis2d(action: InputAction | undefined): InputAxis2dAction {

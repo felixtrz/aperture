@@ -25,10 +25,13 @@ function createResource(): InputResourceBase {
           click: input.button([input.pointer("primary")]),
           padJump: input.button([input.gamepadButton("south")]),
           fire: [input.key("KeyF")],
+          virtualFire: input.button([input.virtual()]),
           throttle: input.axis1d([input.keyboard1d({ positive: ["KeyW"] })]),
+          virtualThrottle: input.axis1d([input.virtual()]),
           move: input.axis2d([
             input.keyboard2d({ negativeX: ["KeyA"], positiveX: ["KeyD"] }),
           ]),
+          virtualMove: input.axis2d([input.virtual()]),
         },
       },
     }),
@@ -400,6 +403,24 @@ describe("input state event handling", () => {
 
     expect(move.x.value).toBe(1);
     expect(move.y.value).toBe(-1);
+  });
+
+  it("drives actions declared with virtual-only bindings", () => {
+    const resource = createResource();
+    const fire = requireButton(resource.actions.virtualFire);
+    const throttle = requireAxis1d(resource.actions.virtualThrottle);
+    const move = requireAxis2d(resource.actions.virtualMove);
+
+    advanceInputResource(resource, [
+      { kind: "virtualAction", action: "virtualFire", pressed: true },
+      { kind: "virtualAction", action: "virtualThrottle", value: 0.5 },
+      { kind: "virtualAction", action: "virtualMove", x: -0.25, y: 0.75 },
+    ]);
+
+    expect(fire.down()).toBe(true);
+    expect(throttle.read()).toBe(0.5);
+    expect(move.x.value).toBe(-0.25);
+    expect(move.y.value).toBe(0.75);
   });
 
   it("resolves raw binding-array actions as buttons", () => {

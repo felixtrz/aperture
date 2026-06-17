@@ -80,6 +80,36 @@ export interface SourcePlayerRespawnInput {
   readonly health: number;
 }
 
+export interface SourceLookStateInput {
+  readonly yaw: number;
+  readonly pitch: number;
+  readonly targetYaw: number;
+  readonly targetPitch: number;
+}
+
+export interface SourceControllerLookInput extends SourceLookStateInput {
+  readonly axisX: number;
+  readonly axisY: number;
+  readonly sensitivity: number;
+  readonly lerpRate: number;
+  readonly dt: number;
+  readonly pitchLimit: number;
+}
+
+export interface SourceMouseLookInput extends SourceLookStateInput {
+  readonly axisX: number;
+  readonly axisY: number;
+  readonly radiansPerUnit: number;
+  readonly pitchLimit: number;
+}
+
+export interface SourceLookStep {
+  readonly yaw: number;
+  readonly pitch: number;
+  readonly targetYaw: number;
+  readonly targetPitch: number;
+}
+
 export function cameraForwardFromYawPitch(yaw: number, pitch: number): Vec3 {
   const cosPitch = Math.cos(pitch);
   return [
@@ -136,6 +166,44 @@ export function cameraRelativeMovementDelta(
       input.speed *
       input.dt,
   ];
+}
+
+export function sourceControllerLookStep(
+  input: SourceControllerLookInput,
+): SourceLookStep {
+  const [axisX, axisY] = normalizedMoveAxis(input.axisX, input.axisY);
+  const targetYaw = input.targetYaw + axisX * input.sensitivity;
+  const targetPitch = clampSourceLookPitch(
+    input.targetPitch + axisY * input.sensitivity,
+    input.pitchLimit,
+  );
+  const alpha = clamp01(input.dt * input.lerpRate);
+
+  return {
+    yaw: lerpAngle(input.yaw, targetYaw, alpha),
+    pitch: lerpAngle(input.pitch, targetPitch, alpha),
+    targetYaw,
+    targetPitch,
+  };
+}
+
+export function sourceMouseLookStep(input: SourceMouseLookInput): SourceLookStep {
+  const targetYaw = input.targetYaw + input.axisX * input.radiansPerUnit;
+  const targetPitch = clampSourceLookPitch(
+    input.targetPitch + input.axisY * input.radiansPerUnit,
+    input.pitchLimit,
+  );
+
+  return {
+    yaw: targetYaw,
+    pitch: targetPitch,
+    targetYaw,
+    targetPitch,
+  };
+}
+
+export function clampSourceLookPitch(value: number, limit: number): number {
+  return Math.max(-limit, Math.min(limit, value));
 }
 
 export function sourceShotDirection(input: SourceShotDirectionInput): Vec3 {
@@ -288,4 +356,14 @@ function normalize3(value: Vec3): Vec3 {
   const length = Math.hypot(value[0], value[1], value[2]);
   if (length <= Number.EPSILON) return [0, 0, -1];
   return [value[0] / length, value[1] / length, value[2] / length];
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
+function lerpAngle(from: number, to: number, alpha: number): number {
+  const t = clamp01(alpha);
+  const delta = Math.atan2(Math.sin(to - from), Math.cos(to - from));
+  return from + delta * t;
 }

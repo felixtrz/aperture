@@ -7,6 +7,7 @@ import {
   cameraForwardFromYawPitch,
   cameraRecoilVelocityFromYaw,
   cameraRelativeMovementDelta,
+  clampSourceLookPitch,
   enemyLookAngles,
   hasCeilingCollision,
   horizontalBackwardFromYaw,
@@ -17,9 +18,11 @@ import {
   shouldConsumeBufferedJump,
   shouldConsumeBufferedShot,
   sourceChildPositionFromLook,
+  sourceControllerLookStep,
   sourceEnemyAttackers,
   sourceEnemyLookTarget,
   sourceGroundedAfterMove,
+  sourceMouseLookStep,
   sourcePlayerShouldRespawn,
   sourceShotDirection,
   sourceWeaponMuzzleLocalPosition,
@@ -27,6 +30,10 @@ import {
   weaponViewmodelOffsetTarget,
 } from "../../fps/src/lib/fps-controls.js";
 import {
+  SOURCE_GAMEPAD_LOOK_SENSITIVITY,
+  SOURCE_LOOK_LERP_RATE,
+  SOURCE_LOOK_PITCH_LIMIT,
+  SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT,
   SOURCE_WEAPON_CONTAINER_OFFSET,
   WEAPONS,
 } from "../../fps/src/lib/fps-data.js";
@@ -106,6 +113,82 @@ describe("Starter Kit FPS controls", () => {
     expect(lookingUp[0]).toBeCloseTo(0, 10);
     expect(lookingUp[1]).toBeCloseTo(Math.SQRT1_2, 10);
     expect(lookingUp[2]).toBeCloseTo(-Math.SQRT1_2, 10);
+  });
+
+  it("matches source controller look target accumulation and lerp", () => {
+    const look = sourceControllerLookStep({
+      yaw: 0,
+      pitch: 0,
+      targetYaw: 0,
+      targetPitch: 0,
+      axisX: 1,
+      axisY: 0,
+      sensitivity: SOURCE_GAMEPAD_LOOK_SENSITIVITY,
+      lerpRate: SOURCE_LOOK_LERP_RATE,
+      pitchLimit: SOURCE_LOOK_PITCH_LIMIT,
+      dt: 1 / 60,
+    });
+
+    expect(look.targetYaw).toBeCloseTo(0.075, 10);
+    expect(look.targetPitch).toBe(0);
+    expect(look.yaw).toBeCloseTo(0.075 * (25 / 60), 10);
+    expect(look.pitch).toBe(0);
+  });
+
+  it("limits source controller diagonal look before sensitivity is applied", () => {
+    const look = sourceControllerLookStep({
+      yaw: 0,
+      pitch: 0,
+      targetYaw: 0,
+      targetPitch: 0,
+      axisX: 1,
+      axisY: 1,
+      sensitivity: SOURCE_GAMEPAD_LOOK_SENSITIVITY,
+      lerpRate: SOURCE_LOOK_LERP_RATE,
+      pitchLimit: SOURCE_LOOK_PITCH_LIMIT,
+      dt: 1 / 60,
+    });
+
+    expect(look.targetYaw).toBeCloseTo(0.075 / Math.SQRT2, 10);
+    expect(look.targetPitch).toBeCloseTo(0.075 / Math.SQRT2, 10);
+  });
+
+  it("applies source pointer-lock mouse look immediately through the rotation target", () => {
+    const look = sourceMouseLookStep({
+      yaw: 0,
+      pitch: 0,
+      targetYaw: 0,
+      targetPitch: 0,
+      axisX: -1,
+      axisY: 0.5,
+      radiansPerUnit: SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT,
+      pitchLimit: SOURCE_LOOK_PITCH_LIMIT,
+    });
+
+    expect(look.targetYaw).toBeCloseTo(-26 / 700, 10);
+    expect(look.targetPitch).toBeCloseTo(13 / 700, 10);
+    expect(look.yaw).toBe(look.targetYaw);
+    expect(look.pitch).toBe(look.targetPitch);
+  });
+
+  it("clamps source look pitch to the source +/-90 degree limit", () => {
+    expect(
+      clampSourceLookPitch(Math.PI, SOURCE_LOOK_PITCH_LIMIT),
+    ).toBeCloseTo(Math.PI / 2, 10);
+    expect(
+      sourceControllerLookStep({
+        yaw: 0,
+        pitch: 0,
+        targetYaw: 0,
+        targetPitch: SOURCE_LOOK_PITCH_LIMIT - 0.01,
+        axisX: 0,
+        axisY: 1,
+        sensitivity: SOURCE_GAMEPAD_LOOK_SENSITIVITY,
+        lerpRate: SOURCE_LOOK_LERP_RATE,
+        pitchLimit: SOURCE_LOOK_PITCH_LIMIT,
+        dt: 1,
+      }).targetPitch,
+    ).toBeCloseTo(Math.PI / 2, 10);
   });
 
   it("matches source RayCast target spread for pellet directions", () => {

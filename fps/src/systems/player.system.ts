@@ -40,6 +40,10 @@ import {
   PLAYER_SHADOW_SURFACE_OFFSET,
   PLAYER_SPEED,
   PLAYER_START,
+  SOURCE_GAMEPAD_LOOK_SENSITIVITY,
+  SOURCE_LOOK_LERP_RATE,
+  SOURCE_LOOK_PITCH_LIMIT,
+  SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT,
   SOURCE_WEAPON_CONTAINER_OFFSET,
   SOURCE_WEAPON_SHOT_KICK,
   SOURCE_WEAPON_SWITCH_DROP_OFFSET,
@@ -52,14 +56,17 @@ import {
 import {
   cameraRecoilVelocityFromYaw,
   cameraRelativeMovementDelta,
+  clampSourceLookPitch,
   enemyLookAngles,
   hasCeilingCollision,
   snapToGroundDistanceForMove,
   shouldConsumeBufferedJump,
   sourceChildPositionFromLook,
+  sourceControllerLookStep,
   sourceEnemyLookTarget,
   sourceEnemyAttackers,
   sourceGroundedAfterMove,
+  sourceMouseLookStep,
   sourcePlayerShouldRespawn,
   sourceShotDirection,
   sourceWeaponMuzzleWorldPosition,
@@ -81,7 +88,6 @@ import {
 } from "../lib/fps-effects.js";
 
 const LOOK_SPEED = Math.PI;
-const GAMEPAD_LOOK_SPEED = 2.5;
 const ENEMY_HOVER_AMPLITUDE = 0.2;
 const ENEMY_HOVER_RATE = 5;
 const ENEMY_ATTACK_INTERVAL = 0.25;
@@ -174,6 +180,10 @@ export default class PlayerSystem extends createSystem({
   #weaponRecoilVelocity: Vec3 = [0, 0, 0];
   #jumpBufferTimer = 0;
   #shootBufferTimer = 0;
+  #lookTargetYaw = 0;
+  #lookTargetPitch = 0;
+  #lastAuthoredYaw = 0;
+  #lastAuthoredPitch = 0;
 
   override update(delta: number): void {
     const dt = Math.min(Math.max(delta, 0), 1 / 30);
@@ -217,10 +227,18 @@ export default class PlayerSystem extends createSystem({
     let footstepVelocityZ = 0;
     let respawnedThisFrame = false;
 
+    if (
+      !nearlyEqual(yaw, this.#lastAuthoredYaw) ||
+      !nearlyEqual(pitch, this.#lastAuthoredPitch)
+    ) {
+      this.#setLookTargets(yaw, pitch);
+    }
+
     const resetFromSourceReload = (): void => {
       position = [...PLAYER_START];
       yaw = 0;
       pitch = 0;
+      this.#setLookTargets(yaw, pitch);
       verticalVelocity = 0;
       jumpsRemaining = MAX_JUMPS;
       grounded = true;
@@ -245,6 +263,7 @@ export default class PlayerSystem extends createSystem({
       position = [...PLAYER_START];
       yaw = 0;
       pitch = 0;
+      this.#setLookTargets(yaw, pitch);
       verticalVelocity = 0;
       jumpsRemaining = MAX_JUMPS;
       grounded = true;
@@ -265,8 +284,43 @@ export default class PlayerSystem extends createSystem({
 
     const lookAction = this.actions.look as InputAxis2dAction | undefined;
     if (lookAction?.kind === "axis2d") {
-      yaw += lookAction.x.value * GAMEPAD_LOOK_SPEED * dt;
-      pitch = clampPitch(pitch + lookAction.y.value * GAMEPAD_LOOK_SPEED * dt);
+      const look = sourceControllerLookStep({
+        yaw,
+        pitch,
+        targetYaw: this.#lookTargetYaw,
+        targetPitch: this.#lookTargetPitch,
+        axisX: lookAction.x.value,
+        axisY: lookAction.y.value,
+        sensitivity: SOURCE_GAMEPAD_LOOK_SENSITIVITY,
+        lerpRate: SOURCE_LOOK_LERP_RATE,
+        pitchLimit: SOURCE_LOOK_PITCH_LIMIT,
+        dt,
+      });
+      yaw = look.yaw;
+      pitch = look.pitch;
+      this.#setLookTargets(look.targetYaw, look.targetPitch);
+    }
+
+    const mouseLookAction = this.actions.mouseLook as
+      | InputAxis2dAction
+      | undefined;
+    if (
+      mouseLookAction?.kind === "axis2d" &&
+      (mouseLookAction.x.value !== 0 || mouseLookAction.y.value !== 0)
+    ) {
+      const look = sourceMouseLookStep({
+        yaw,
+        pitch,
+        targetYaw: this.#lookTargetYaw,
+        targetPitch: this.#lookTargetPitch,
+        axisX: mouseLookAction.x.value,
+        axisY: mouseLookAction.y.value,
+        radiansPerUnit: SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT,
+        pitchLimit: SOURCE_LOOK_PITCH_LIMIT,
+      });
+      yaw = look.yaw;
+      pitch = look.pitch;
+      this.#setLookTargets(look.targetYaw, look.targetPitch);
     }
 
     const pointer = this.input.pointer.primary;
@@ -276,7 +330,11 @@ export default class PlayerSystem extends createSystem({
         const dx = pointerPosition[0] - this.#previousPointer[0];
         const dy = pointerPosition[1] - this.#previousPointer[1];
         yaw += dx * LOOK_SPEED;
-        pitch = clampPitch(pitch - dy * LOOK_SPEED);
+        pitch = clampSourceLookPitch(
+          pitch - dy * LOOK_SPEED,
+          SOURCE_LOOK_PITCH_LIMIT,
+        );
+        this.#setLookTargets(yaw, pitch);
       }
       this.#previousPointer = [pointerPosition[0], pointerPosition[1]];
     } else {
@@ -398,8 +456,15 @@ export default class PlayerSystem extends createSystem({
       this.#triggerMuzzleFlash(position, yaw, pitch, weapon);
       this.#triggerImpactFlashes(shot.impacts);
       const kick = randomWeaponKick(weapon);
-      pitch = clampPitch(pitch + kick.pitch);
+      pitch = clampSourceLookPitch(pitch + kick.pitch, SOURCE_LOOK_PITCH_LIMIT);
       yaw += kick.yaw;
+      this.#setLookTargets(
+        this.#lookTargetYaw + kick.yaw,
+        clampSourceLookPitch(
+          this.#lookTargetPitch + kick.pitch,
+          SOURCE_LOOK_PITCH_LIMIT,
+        ),
+      );
       this.#addWeaponRecoil(yaw, weapon);
       this.#weaponViewOffset[2] += SOURCE_WEAPON_SHOT_KICK;
     }
@@ -480,6 +545,8 @@ export default class PlayerSystem extends createSystem({
       next.lastDestroyedEnemy = lastDestroyedEnemy;
       next.gameStatus = gameStatus;
     });
+    this.#lastAuthoredYaw = yaw;
+    this.#lastAuthoredPitch = pitch;
   }
 
   #shoot(
@@ -925,6 +992,15 @@ export default class PlayerSystem extends createSystem({
     this.#weaponRecoilVelocity = [0, 0, 0];
     this.#jumpBufferTimer = 0;
     this.#shootBufferTimer = 0;
+    this.#setLookTargets(0, 0);
+  }
+
+  #setLookTargets(yaw: number, pitch: number): void {
+    this.#lookTargetYaw = yaw;
+    this.#lookTargetPitch = clampSourceLookPitch(
+      pitch,
+      SOURCE_LOOK_PITCH_LIMIT,
+    );
   }
 
   #addWeaponRecoil(yaw: number, weapon: WeaponSpec): void {
@@ -1183,13 +1259,12 @@ function clampInt(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, Math.round(value)));
 }
 
-function clampPitch(value: number): number {
-  const limit = Math.PI / 2 - 0.01;
-  return Math.max(-limit, Math.min(limit, value));
-}
-
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
+}
+
+function nearlyEqual(a: number, b: number): boolean {
+  return Math.abs(a - b) <= 1e-6;
 }
 
 function lerpNumber(from: number, to: number, alpha: number): number {

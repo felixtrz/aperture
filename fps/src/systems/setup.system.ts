@@ -11,6 +11,7 @@ import {
   type Entity,
 } from "@aperture-engine/app/systems";
 import {
+  RenderLayer,
   Sprite,
   SpriteBlendMode,
   SpriteDepthMode,
@@ -24,8 +25,10 @@ import {
 } from "@aperture-engine/render";
 import {
   createMaterialHandle,
+  getChildren,
   createSamplerHandle,
   createTextureHandle,
+  type EcsWorld,
   type MaterialHandle,
   type SamplerHandle,
   type TextureHandle,
@@ -35,6 +38,9 @@ import {
   ENEMIES,
   ENEMY_HITBOX_OFFSET,
   ENEMY_MUZZLE_OFFSETS,
+  FPS_ALL_RENDER_LAYER_MASK,
+  FPS_WEAPON_LAYER_MASK,
+  FPS_WORLD_LAYER_MASK,
   IMPACT_EFFECT_SLOT_COUNT,
   LEVEL_COLLIDERS,
   LEVEL_INSTANCES,
@@ -48,7 +54,10 @@ import {
   PLAYER_SHADOW_KEY,
   PLAYER_SHADOW_SURFACE_OFFSET,
   PLAYER_START,
+  SOURCE_PLAYER_CAMERA_FOV,
+  SOURCE_WEAPON_CAMERA_ITEM_FOV,
   WEAPONS,
+  WEAPON_CAMERA_KEY,
   enemyMuzzleEffectKey,
   impactEffectKey,
   platformLargeGrassDecorationKey,
@@ -94,11 +103,30 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         translation: PLAYER_START,
         rotationEulerDegrees: [0, 0, 0],
       },
-      fovYDegrees: 80,
+      fovYDegrees: SOURCE_PLAYER_CAMERA_FOV,
       camera: {
         near: 0.05,
         far: 80,
+        layerMask: FPS_WORLD_LAYER_MASK,
         clearColor: [0.36, 0.39, 0.46, 1],
+      },
+    });
+
+    this.spawn.camera({
+      key: WEAPON_CAMERA_KEY,
+      name: "Weapon Camera",
+      tags: ["player", "camera", "weapon-camera"],
+      transform: {
+        parent: camera,
+      },
+      fovYDegrees: SOURCE_WEAPON_CAMERA_ITEM_FOV,
+      camera: {
+        near: 0.05,
+        far: 20,
+        priority: 1,
+        layerMask: FPS_WEAPON_LAYER_MASK,
+        clearColor: [0, 0, 0, 0],
+        frustumCulling: false,
       },
     });
 
@@ -156,6 +184,9 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       kind: "directional",
       color: hexColor(0xffffff),
       illuminance: 3.6,
+      light: {
+        layerMask: FPS_ALL_RENDER_LAYER_MASK,
+      },
       transform: {
         rotationEulerDegrees: [-50, -110, 0],
       },
@@ -174,6 +205,9 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       kind: "ambient",
       color: [0.66, 0.69, 0.77, 1],
       intensity: 1.1,
+      light: {
+        layerMask: FPS_ALL_RENDER_LAYER_MASK,
+      },
     });
 
     this.spawn.fog({
@@ -276,7 +310,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     }
 
     for (const [index, weapon] of WEAPONS.entries()) {
-      this.spawn.gltf(this.assets.gltf(weapon.assetId), {
+      const weaponRoot = this.spawn.gltf(this.assets.gltf(weapon.assetId), {
         key: `weapon.${index}`,
         name: weapon.name,
         tags: ["weapon", index === 0 ? "active-weapon" : "inactive-weapon"],
@@ -288,9 +322,10 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
           translation:
             index === 0 ? weapon.position : [weapon.position[0], -100, 0],
           rotationEulerDegrees: weapon.rotationEulerDegrees,
-          scale: [0.65, 0.65, 0.65],
+          scale: weapon.scale,
         },
       });
+      this.#assignRenderLayerToSubtree(weaponRoot, FPS_WEAPON_LAYER_MASK);
     }
 
     this.#spawnSpriteEffect({
@@ -300,6 +335,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       size: SOURCE_PLAYER_MUZZLE_SPRITE_SIZE,
       blendMode: SpriteBlendMode.Additive,
       depthMode: SpriteDepthMode.Disabled,
+      layerMask: FPS_WEAPON_LAYER_MASK,
     });
 
     for (let index = 0; index < IMPACT_EFFECT_SLOT_COUNT; index += 1) {
@@ -333,6 +369,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     readonly size: readonly [number, number];
     readonly blendMode: SpriteBlendMode;
     readonly depthMode?: SpriteDepthMode;
+    readonly layerMask?: number;
   }): void {
     const entity = this.createEntity();
     entity.addComponent(Enabled, { value: true });
@@ -345,6 +382,9 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     });
     entity.addComponent(Parent, { entity: null });
     entity.addComponent(WorldTransform, HIDDEN_EFFECT_WORLD);
+    if (input.layerMask !== undefined) {
+      entity.addComponent(RenderLayer, { mask: input.layerMask });
+    }
     entity.addComponent(
       Sprite,
       createSprite({
@@ -357,6 +397,94 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
           : { depthMode: input.depthMode }),
       }),
     );
+  }
+
+  #assignRenderLayerToSubtree(root: Entity, mask: number): void {
+    const world = this.world as EcsWorld;
+    const childrenByParent = this.#childrenByParent();
+    const visited = new Set<string>();
+    const stack = [root];
+
+    while (stack.length > 0) {
+      const entity = stack.pop()!;
+      const key = this.#entityKey(entity);
+      if (!entity.active || visited.has(key)) {
+        continue;
+      }
+
+      visited.add(key);
+      this.#setRenderLayer(entity, mask);
+
+      for (const child of this.#subtreeChildren(
+        world,
+        entity,
+        childrenByParent,
+      )) {
+        stack.push(child);
+      }
+    }
+  }
+
+  #setRenderLayer(entity: Entity, mask: number): void {
+    if (entity.hasComponent(RenderLayer)) {
+      entity.setValue(RenderLayer, "mask", mask);
+      return;
+    }
+
+    entity.addComponent(RenderLayer, { mask });
+  }
+
+  #childrenByParent(): ReadonlyMap<string, readonly Entity[]> {
+    const world = this.world as EcsWorld;
+    const byParent = new Map<string, Entity[]>();
+    const query = world.queryManager.registerQuery({ required: [Parent] });
+
+    for (const entity of query.entities) {
+      if (!entity.active) {
+        continue;
+      }
+
+      const parent = entity.getValue(Parent, "entity");
+      if (parent === null || parent === undefined || !parent.active) {
+        continue;
+      }
+
+      const key = this.#entityKey(parent);
+      const children = byParent.get(key) ?? [];
+      children.push(entity);
+      byParent.set(key, children);
+    }
+
+    return byParent;
+  }
+
+  #subtreeChildren(
+    world: EcsWorld,
+    entity: Entity,
+    childrenByParent: ReadonlyMap<string, readonly Entity[]>,
+  ): readonly Entity[] {
+    const indexed = getChildren(world, entity);
+    const parentLinked = childrenByParent.get(this.#entityKey(entity)) ?? [];
+
+    if (indexed.length === 0) {
+      return parentLinked;
+    }
+    if (parentLinked.length === 0) {
+      return indexed;
+    }
+
+    const merged = [...indexed];
+    const seen = new Set(indexed.map((child) => this.#entityKey(child)));
+    for (const child of parentLinked) {
+      if (!seen.has(this.#entityKey(child))) {
+        merged.push(child);
+      }
+    }
+    return merged;
+  }
+
+  #entityKey(entity: Entity): string {
+    return `${entity.index}:${entity.generation}`;
   }
 
   #spawnPlatformLargeGrassDecorations(

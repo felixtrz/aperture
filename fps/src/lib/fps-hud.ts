@@ -1,3 +1,5 @@
+import { SOURCE_POINTER_LOCK_LOOK_PIXELS_PER_UNIT } from "./fps-data.js";
+
 export const SOURCE_CROSSHAIR_TEXTURE_PIXELS = 128;
 export const SOURCE_CROSSHAIR_SCALE = 0.35;
 export const SOURCE_CROSSHAIR_SIZE_PX =
@@ -10,7 +12,8 @@ export const SOURCE_HEALTH_OUTLINE_ALPHA = 0.470588;
 export const SOURCE_HEALTH_LEFT_PX = 48;
 export const SOURCE_HEALTH_BOTTOM_PX = 48;
 export const SOURCE_HEALTH_WIDTH_PX = 90;
-export const POINTER_LOCK_LOOK_PIXELS_PER_UNIT = 26;
+export const POINTER_LOCK_LOOK_PIXELS_PER_UNIT =
+  SOURCE_POINTER_LOCK_LOOK_PIXELS_PER_UNIT;
 
 export interface HudCssVariableSink {
   setProperty(name: string, value: string): void;

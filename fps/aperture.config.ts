@@ -95,6 +95,7 @@ export default defineApertureConfig({
           positiveY: ["KeyI"],
         }),
       ]),
+      mouseLook: input.axis2d([input.virtual()]),
       jump: input.button([input.key("Space"), input.gamepadButton("south")]),
       shoot: input.button([
         input.pointer("primary"),

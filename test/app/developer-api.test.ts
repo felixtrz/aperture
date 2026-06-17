@@ -47,6 +47,7 @@ import {
 } from "@aperture-engine/simulation";
 import {
   Mesh,
+  RenderLayer,
   ShadowCaster,
   ShadowReceiver,
   Sprite,
@@ -1894,6 +1895,7 @@ describe("developer-facing app API", () => {
         depthMode: "disabled",
       }),
     );
+    spriteEntity.addComponent(RenderLayer, { mask: 2 });
     const sprite = runner.entities.find({
       key: "effect.summary-sprite",
       withComponents: [Sprite.id],
@@ -1902,6 +1904,9 @@ describe("developer-facing app API", () => {
     expect(sprite.summaries[0]).toMatchObject({
       enabled: false,
       componentIds: expect.arrayContaining([Sprite.id]),
+      renderLayer: {
+        mask: 2,
+      },
       renderSprite: {
         textureId: "texture:entity-summary-sprite",
         samplerId: "",

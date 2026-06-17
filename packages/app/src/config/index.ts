@@ -180,6 +180,10 @@ export interface InputPointerBinding {
   readonly pointer: "primary" | "secondary" | "middle";
 }
 
+export interface InputVirtualBinding {
+  readonly kind: "virtual";
+}
+
 export interface InputKeyboard1dBinding {
   readonly kind: "keyboard1d";
   readonly negative?: readonly string[];
@@ -222,6 +226,7 @@ export type InputActionBinding =
   | GamepadBinding
   | InputKeyBinding
   | InputPointerBinding
+  | InputVirtualBinding
   | InputKeyboard1dBinding
   | InputKeyboard2dBinding
   | InputGamepadButtonBinding
@@ -259,6 +264,7 @@ export interface ApertureInputConfig {
 export interface InputConfigHelpers {
   key(code: string): InputKeyBinding;
   pointer(pointer?: InputPointerBinding["pointer"]): InputPointerBinding;
+  virtual(): InputVirtualBinding;
   keyboard1d(options: {
     readonly negative?: readonly string[];
     readonly positive?: readonly string[];
@@ -510,6 +516,9 @@ export const input: InputConfigHelpers = Object.freeze({
   },
   pointer(pointer: InputPointerBinding["pointer"] = "primary") {
     return Object.freeze({ kind: "pointer", pointer });
+  },
+  virtual(): InputVirtualBinding {
+    return Object.freeze({ kind: "virtual" });
   },
   keyboard1d(options: {
     readonly negative?: readonly string[];

@@ -18,6 +18,7 @@ export interface WeaponSpec {
   readonly maxKnockback: readonly [number, number];
   readonly position: Vec3;
   readonly rotationEulerDegrees: Vec3;
+  readonly scale: Vec3;
   readonly muzzlePosition: Vec3;
 }
 
@@ -78,6 +79,13 @@ export const SOURCE_PLAYER_CAPSULE_RADIUS = 0.3;
 export const SOURCE_PLAYER_CAPSULE_HEIGHT = 1.0;
 export const SOURCE_PLAYER_CAPSULE_HALF_HEIGHT =
   (SOURCE_PLAYER_CAPSULE_HEIGHT - SOURCE_PLAYER_CAPSULE_RADIUS * 2) / 2;
+export const SOURCE_PLAYER_CAMERA_FOV = 80;
+export const SOURCE_PLAYER_CAMERA_CULL_MASK = 1_048_573;
+export const SOURCE_WEAPON_CAMERA_CULL_MASK = 1_047_554;
+export const FPS_WORLD_LAYER_MASK = 1;
+export const FPS_WEAPON_LAYER_MASK = 2;
+export const FPS_ALL_RENDER_LAYER_MASK =
+  FPS_WORLD_LAYER_MASK | FPS_WEAPON_LAYER_MASK;
 export const PLAYER_EYE_HEIGHT = SOURCE_PLAYER_ROOT_Y + SOURCE_PLAYER_HEAD_Y;
 export const PLAYER_BODY_KEY = "player.body";
 export const PLAYER_SHADOW_KEY = "player.shadow";
@@ -96,11 +104,19 @@ export const PLAYER_SPEED = 5;
 export const JUMP_STRENGTH = 8;
 export const GRAVITY = 20;
 export const MAX_JUMPS = 2;
+export const SOURCE_MOUSE_SENSITIVITY = 700;
+export const SOURCE_GAMEPAD_LOOK_SENSITIVITY = 0.075;
+export const SOURCE_LOOK_LERP_RATE = 25;
+export const SOURCE_LOOK_PITCH_LIMIT = Math.PI / 2;
+export const SOURCE_POINTER_LOCK_LOOK_PIXELS_PER_UNIT = 26;
+export const SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT =
+  SOURCE_POINTER_LOCK_LOOK_PIXELS_PER_UNIT / SOURCE_MOUSE_SENSITIVITY;
 export const SOURCE_WEAPON_CONTAINER_INITIAL_POSITION: Vec3 = [
   1.2, -1, -2.25,
 ];
 export const SOURCE_WEAPON_CONTAINER_OFFSET: Vec3 = [1.2, -1.1, -2.75];
 export const SOURCE_WEAPON_MODEL_POSITION: Vec3 = [0, 0, 0];
+export const SOURCE_WEAPON_MODEL_SCALE: Vec3 = [1, 1, 1];
 export const SOURCE_WEAPON_VIEW_POSITION: Vec3 = [
   SOURCE_WEAPON_CONTAINER_OFFSET[0] + SOURCE_WEAPON_MODEL_POSITION[0],
   SOURCE_WEAPON_CONTAINER_OFFSET[1] + SOURCE_WEAPON_MODEL_POSITION[1],
@@ -108,6 +124,7 @@ export const SOURCE_WEAPON_VIEW_POSITION: Vec3 = [
 ];
 export const SOURCE_WEAPON_MUZZLE_POSITION: Vec3 = [0.1, -0.4, 1.5];
 export const SOURCE_WEAPON_CAMERA_ITEM_FOV = 40;
+export const WEAPON_CAMERA_KEY = "camera.weapon";
 export const SOURCE_WEAPON_VIEWMODEL_MOVE_SCALE = 1 / 30;
 export const SOURCE_WEAPON_SHOT_KICK = 0.25;
 export const SOURCE_WEAPON_SWITCH_DROP_OFFSET = 1;
@@ -128,6 +145,7 @@ export const WEAPONS: readonly WeaponSpec[] = [
     maxKnockback: [0.045, 0.04],
     position: [...SOURCE_WEAPON_VIEW_POSITION],
     rotationEulerDegrees: [0, 180, 0],
+    scale: [...SOURCE_WEAPON_MODEL_SCALE],
     muzzlePosition: [...SOURCE_WEAPON_MUZZLE_POSITION],
   },
   {
@@ -145,6 +163,7 @@ export const WEAPONS: readonly WeaponSpec[] = [
     maxKnockback: [0.0025, 0.002],
     position: [...SOURCE_WEAPON_VIEW_POSITION],
     rotationEulerDegrees: [0, 180, 0],
+    scale: [...SOURCE_WEAPON_MODEL_SCALE],
     muzzlePosition: [...SOURCE_WEAPON_MUZZLE_POSITION],
   },
 ];

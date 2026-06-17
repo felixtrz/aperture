@@ -34,6 +34,7 @@ export interface ApertureEntitySummary {
   readonly parent?: EcsEntityRef;
   readonly localTransform?: ApertureLocalTransformSummary;
   readonly worldTransform?: ApertureWorldTransformSummary;
+  readonly renderLayer?: ApertureRenderLayerSummary;
   readonly renderSprite?: ApertureRenderSpriteSummary;
   readonly physicsRigidBody?: AperturePhysicsRigidBodySummary;
   readonly physicsCollider?: AperturePhysicsColliderSummary;
@@ -74,6 +75,10 @@ export interface ApertureWorldTransformSummary {
     number,
     number,
   ];
+}
+
+export interface ApertureRenderLayerSummary {
+  readonly mask: number;
 }
 
 export interface ApertureRenderSpriteSummary {

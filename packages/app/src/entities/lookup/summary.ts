@@ -21,6 +21,7 @@ import {
   PhysicsRigidBodyType,
 } from "@aperture-engine/physics";
 import {
+  RenderLayer,
   Sprite,
   SpriteBillboardMode,
   SpriteBlendMode,
@@ -46,6 +47,7 @@ import type {
   AperturePhysicsMaterialSummary,
   AperturePhysicsRigidBodySummary,
   AperturePhysicsVelocitySummary,
+  ApertureRenderLayerSummary,
   ApertureRenderSpriteSummary,
   ApertureWorldTransformSummary,
 } from "./types.js";
@@ -86,6 +88,9 @@ export function entitySummary(entity: Entity): ApertureEntitySummary {
     : null;
   const worldTransform = entity.hasComponent(WorldTransform)
     ? worldTransformSummary(entity)
+    : null;
+  const renderLayer = entityHasComponentId(entity, RenderLayer.id)
+    ? renderLayerSummary(entity)
     : null;
   const renderSprite = entityHasComponentId(entity, Sprite.id)
     ? renderSpriteSummary(entity)
@@ -156,6 +161,7 @@ export function entitySummary(entity: Entity): ApertureEntitySummary {
     ...(parent === null ? {} : { parent }),
     ...(localTransform === null ? {} : { localTransform }),
     ...(worldTransform === null ? {} : { worldTransform }),
+    ...(renderLayer === null ? {} : { renderLayer }),
     ...(renderSprite === null ? {} : { renderSprite }),
     ...(physicsRigidBody === null ? {} : { physicsRigidBody }),
     ...(physicsCollider === null ? {} : { physicsCollider }),
@@ -230,6 +236,12 @@ function worldTransformSummary(entity: Entity): ApertureWorldTransformSummary {
       ...tuple4FromView(entity.getVectorView(WorldTransform, "col2")),
       ...tuple4FromView(entity.getVectorView(WorldTransform, "col3")),
     ],
+  };
+}
+
+function renderLayerSummary(entity: Entity): ApertureRenderLayerSummary {
+  return {
+    mask: entity.getValue(RenderLayer, "mask") ?? 1,
   };
 }
 

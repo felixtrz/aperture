@@ -27,6 +27,7 @@ export type {
   ApertureEntitySourceSummary,
   ApertureEntitySummary,
   ApertureLocalTransformSummary,
+  ApertureRenderLayerSummary,
   ApertureWorldTransformSummary,
 } from "./types.js";
 export { createApertureEntityHierarchy } from "./hierarchy.js";

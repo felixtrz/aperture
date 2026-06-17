@@ -581,6 +581,8 @@ function validateInputBinding(
   }
 
   switch (binding.kind) {
+    case "virtual":
+      return;
     case "key":
       validateInputCode(actionName, binding.code);
       return;
