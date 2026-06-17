@@ -1,5 +1,44 @@
 # Completed Tasks
 
+## FPS-PORT — Canvas shooting and enemy attack range
+
+Completed: 2026-06-17 01:40 PDT
+Commits: `ba78c09e`, `e9e94c9c`
+
+### Summary
+
+- Fixed browser-facing shooting so primary mouse down on the FPS canvas drives
+  the generated `shoot` action even when pointer lock has not yet succeeded.
+- Kept pointer-lock behavior for look input, but removed the shoot dependency on
+  pointer lock being active before the first mouse press.
+- Aligned enemy attack timing/range with upstream `objects/enemy.tscn` /
+  `objects/enemy.gd`: 0.25-second attack checks and 5-unit line-of-sight
+  damage range.
+- Reproved camera-relative movement and jump reliability through the generated
+  worker.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Aperture CLI/runtime proof from `fps/`: managed app at
+  `http://127.0.0.1:5173/`, `browser_wait_for_webgpu` passed, browser canvas
+  mouse down/up changed `shotsFired:0 -> 1`, and generated stepping proved
+  camera-relative movement (`dx:1.8504`, `dz:-1.681`) plus jump
+  (`grounded:false`, `verticalVelocity:7`, `jumpsRemaining:1`).
+- Enemy range proof: 80 spawn frames kept `healthDelta:0`; a 44-frame forward
+  approach reached `position:[0.3033,1.0505,-3.5072]` and took one 5-point hit.
+- MCP `resource_get {"id":"fps.state"}` after reset reported fresh gameplay,
+  and `render_explain_entity {"key":"player.shadow"}` reported zero
+  diagnostics.
+
 ## FPS-PORT — Weapon recoil kick
 
 Completed: 2026-06-17 01:23 PDT

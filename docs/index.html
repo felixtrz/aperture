@@ -393,13 +393,23 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 08:23 UTC</dd>
+            <dd>2026-06-17 08:40 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the Starter Kit FPS port now has source-style
-              weapon recoil. Authored min/max knockback ranges from the
+              Latest update: the Starter Kit FPS port now shoots from an
+              unlocked canvas click before pointer lock succeeds, and enemy
+              attack timing/range now matches the upstream 0.25 second timer
+              and 5-unit raycast distance. Aperture proof observed browser
+              canvas shooting <code>shotsFired:0-&gt;1</code>, camera-relative
+              W movement <code>dx:1.8504</code> /
+              <code>dz:-1.681</code>, jump
+              <code>grounded:false</code> with
+              <code>verticalVelocity:7</code>, and enemy range damage only
+              after the near approach <code>healthDelta:-5</code>. Prior
+              update: the Starter Kit FPS port gained source-style weapon
+              recoil. Authored min/max knockback ranges from the
               upstream weapon resources now drive random camera pitch/yaw kick
               plus a transient backward movement impulse through the
               character-controller path; Aperture CLI proof observed
@@ -1279,9 +1289,11 @@
             <dt>Next focus</dt>
             <dd>
               Continue Starter Kit FPS fidelity with a visible route such as
-              enemy attack/projectile polish, source-like weapon/player detail
-              parity, or packaging the platform-aware full-clear proof into a
-              reusable smoke script while keeping racing and Shadow Lab green.
+              finishing the current player-shadow sprite experiment with a
+              render-extraction proof, enemy attack/projectile polish,
+              source-like weapon/player detail parity, or packaging the
+              platform-aware full-clear proof into a reusable smoke script
+              while keeping racing and Shadow Lab green.
             </dd>
           </dl>
         </aside>
@@ -2182,6 +2194,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Fixed browser-facing
+                shooting before pointer lock and aligned enemy attack range:
+                canvas mouse down/up now changes
+                <code>shotsFired:0-&gt;1</code>, generated stepping reproved
+                camera-relative movement and jump, and enemy damage now occurs
+                only after the near 5-unit approach
+                <code>healthDelta:-5</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Added source-style weapon
                 recoil: authored weapon knockback ranges now kick pitch/yaw and

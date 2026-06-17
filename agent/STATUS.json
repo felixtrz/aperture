@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "6ea8464a",
+  "lastCommit": "e9e94c9c",
   "activePid": null,
-  "notes": "Added source-style FPS weapon recoil kick: authored min/max camera knockback ranges now drive random pitch/yaw kick and a transient backward movement impulse through character-controller movement. Reproved recoil, WebGPU readiness, racing, and shadow-lab validation.",
-  "lastRunFinishedAt": "2026-06-17T08:23:00Z"
+  "notes": "Fixed FPS canvas shooting before pointer lock and aligned enemy attack timing/range to upstream 0.25s/5-unit values. Reproved browser click shooting, camera-relative movement, jump, enemy range damage, WebGPU readiness, racing, and shadow-lab validation.",
+  "lastRunFinishedAt": "2026-06-17T08:40:00Z"
 }

@@ -1,24 +1,39 @@
-# Handoff - Starter Kit FPS Weapon Recoil
+# Handoff - Starter Kit FPS Controls And Enemy Range
 
-**Updated:** 2026-06-17 01:23 PDT
+**Updated:** 2026-06-17 01:40 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Added source-style weapon recoil from upstream `objects/player.gd` /
-  `weapons/*.tres`: each shot now samples the weapon's authored min/max camera
-  kick, nudges pitch/yaw, and adds a short backwards movement impulse.
-- Kept recoil ECS/simulation-owned by feeding the transient impulse through the
-  existing character-controller movement path; no renderer-owned weapon or
-  camera state was introduced.
-- Added focused control-helper coverage proving recoil points backward relative
-  to camera yaw.
-- Committed implementation: `6ea8464a` — `Add FPS weapon recoil kick`.
+- Fixed the browser-facing shoot path: primary mouse down on the FPS canvas now
+  drives the generated `shoot` action even before pointer lock succeeds, while
+  still requesting pointer lock for look input. This covers managed-browser and
+  browser-denied pointer-lock cases where a click previously left
+  `shotsFired` unchanged.
+- Aligned enemy attack cadence/range with upstream `objects/enemy.tscn` /
+  `objects/enemy.gd`: attack interval is now `0.25` seconds and the source
+  raycast range is represented as a 5-unit line-of-sight damage gate.
+- Reproved the reported controls through Aperture runtime tools: generated
+  shoot increments `shotsFired`, W after yaw moves relative to camera direction,
+  and jump leaves the ground with positive vertical velocity.
+- Committed implementation:
+  - `ba78c09e` — `Fix FPS canvas shooting before pointer lock`
+  - `e9e94c9c` — `Align FPS enemy attack range`
 
 ## Previous Completed FPS Slices
 
+- Weapon recoil:
+  - Added source-style weapon recoil from upstream `objects/player.gd` /
+    `weapons/*.tres`: each shot now samples the weapon's authored min/max
+    camera kick, nudges pitch/yaw, and adds a short backwards movement impulse.
+  - Kept recoil ECS/simulation-owned by feeding the transient impulse through
+    the existing character-controller movement path; no renderer-owned weapon or
+    camera state was introduced.
+  - Added focused control-helper coverage proving recoil points backward
+    relative to camera yaw.
+  - Committed implementation: `6ea8464a` — `Add FPS weapon recoil kick`.
 - Player blob shadow:
   - Added a source-like player blob shadow as ECS-authored render data. Setup
     now registers the upstream `blob_shadow` sprite, creates an unlit
@@ -118,7 +133,6 @@ previous working state so the old state remains recoverable.
 - `pnpm exec vitest run test/app/fps-controls.test.ts`
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
-- `pnpm run check:progress`
 - `pnpm run typecheck`
 - `pnpm run typecheck:test`
 - `pnpm --dir racing run typecheck`
@@ -126,21 +140,29 @@ previous working state so the old state remains recoverable.
 - `pnpm --dir shadow-lab run typecheck`
 - `pnpm --dir shadow-lab run build`
 - Aperture CLI/runtime proof from `fps/`:
-  - Reloaded managed FPS at `http://127.0.0.1:5174/`;
-    `browser_wait_for_webgpu` succeeded with `webgpuOk:true` and no runtime
-    failure.
-  - Paused/reset the generated worker and stepped one generated `shoot` input.
-  - Proof state before shot: `position:[0,1.4946,0]`, `yaw:0`, `pitch:0`,
-    `shotsFired:0`.
-  - Proof state after shot: `shotsFired:1`, `shotCooldown:0.2333`,
-    `yaw:0.0347`, `pitch:0.0378`.
-  - After 12 recoil recovery steps, player displacement was `recoilX:-0.0131`,
-    `recoilZ:0.3778`, proving the shot kicked the player backward relative to
-    the camera direction.
+  - Restarted managed FPS at `http://127.0.0.1:5173/`;
+    `browser_wait_for_webgpu` succeeded with no diagnostics.
+  - Browser canvas mouse proof: before click `shotsFired:0`; after primary
+    mouse down/up on the unlocked canvas, `shotsFired:1`,
+    `shotCooldown:0.2333`, `yaw:0.0262`, `pitch:0.0372`.
+  - Generated control proof: one generated `shoot` produced
+    `shotsFired:1`; after yaw `0.8333`, held W moved by
+    `dx:1.8504`, `dz:-1.681`; generated jump produced
+    `grounded:false`, `verticalVelocity:7`, `jumpsRemaining:1`,
+    `playerY:1.8613`.
+  - Enemy attack proof: standing at spawn for 80 frames kept
+    `healthDelta:0`; moving forward for 44 frames reached
+    `position:[0.3033,1.0505,-3.5072]` and took one source-sized hit
+    (`healthDelta:-5`).
   - The live FPS session was reset afterward to fresh gameplay.
 - MCP sanity check:
+  - `resource_get {"id":"fps.state"}` after reset reported
+    `health:100`, `enemiesRemaining:4`, `shotsFired:0`, `hits:0`,
+    `gameStatus:"active"`.
   - `render_explain_entity {"key":"player.shadow"}` returned zero diagnostics
-    and stable render/bounds packet keys after the recoil edit.
+    and stable render/bounds packet keys after the control/range edits.
+  - `browser_console_logs {"lines":40}` showed the current reload ended with
+    only Vite connect messages plus the known deprecated-parameter warning.
 - Previous player-shadow Aperture CLI/runtime proof from `fps/`:
   - Active managed session: `http://127.0.0.1:5174/`, WebGPU healthy.
   - `resource_get {"id":"fps.state"}` after reset reported fresh gameplay:
@@ -306,15 +328,20 @@ previous working state so the old state remains recoverable.
 
 ## Current Notes
 
-- Managed FPS is running at `http://127.0.0.1:5174/` through Aperture dev and
-  is paused after a clean reset: `health:100`, `enemiesRemaining:4`,
-  `shotsFired:0`, `hits:0`, `landingBob:0`, `landingPulse:0`.
+- Managed FPS is running at `http://127.0.0.1:5173/` through Aperture dev and
+  was reset to fresh gameplay after proof: `health:100`,
+  `enemiesRemaining:4`, `shotsFired:0`, `hits:0`, `gameStatus:"active"`.
 - The generated-input full-clear proof now has a working platform-aware route.
   The earlier failed straight-line route fell below the level after `enemy.2`;
   the successful proof instead uses explicit platform waypoints and jump arcs
   before claiming `gameStatus:"cleared"`.
 - Pre-existing untracked screenshots,
   racing parity artifacts, and `racing/parity/` remain outside commits.
+- `fps/src/systems/setup.system.ts` has an unrelated uncommitted player-shadow
+  sprite experiment in the working tree. It was not staged in the control/range
+  commits; current MCP `render_explain_entity {"key":"player.shadow"}` still
+  reports the live shadow as a mesh draw, so treat that edit as in-progress
+  until it is investigated.
 - Use `value:0` rather than `pressed:false` for button-release CLI scripts when
   an immediate following `ecs_step` proof must be unambiguous.
 - For held look input through the CLI, queue `input_action_set` with `x`/`y`
@@ -328,10 +355,10 @@ previous working state so the old state remains recoverable.
 ## Recommended Next Task
 
 Continue the FPS port with another visible Starter Kit fidelity slice. Good
-next options are adding the upstream player blob shadow detail from
-`objects/player.tscn`, improving enemy attack/projectile fidelity, or packaging
-the platform-aware full-clear route into a reusable smoke script so future
-regressions can re-run the proof without retyping the route.
+next options are finishing the uncommitted player-shadow sprite experiment after
+a render-extraction proof, improving enemy attack/muzzle-flash fidelity, or
+packaging the platform-aware full-clear route into a reusable smoke script so
+future regressions can re-run the proof without retyping the route.
 
 ---
 
