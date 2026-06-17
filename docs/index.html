@@ -393,12 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 09:07 UTC</dd>
+            <dd>2026-06-17 09:23 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the Starter Kit FPS port now has source-like enemy
+              Latest update: the Starter Kit FPS port now has hardened pointer
+              click shooting, buffered jump input, and source-like impact
+              placement using raycast hit normal <code>/ 10</code>. Aperture
+              proof observed canvas pointer click <code>shotsFired:1</code>
+              and a paused-step jump with
+              <code>verticalVelocity:7.6667</code>,
+              <code>jumpsRemaining:1</code>, and
+              <code>grounded:false</code>. Prior update: the Starter Kit FPS
+              port now has source-like enemy
               muzzle flash random roll, and generated-worker devtools now expose
               schema-validated <code>resource_set</code> for deterministic proof
               setup. Aperture CLI proof drove the real character controller into
@@ -2205,6 +2213,17 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Hardened FPS input and
+                impact polish: primary pointer clicks now drive the generated
+                <code>shoot</code> action, jump input has a short buffer with
+                the jump frame protected from lingering grounded contact, and
+                impact sprites spawn at hit point plus normal
+                <code>/ 10</code>. Aperture proof observed
+                <code>shotsFired:1</code> and paused-step jump
+                <code>grounded:false</code> with
+                <code>verticalVelocity:7.6667</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Added source-like muzzle
                 flash randomization. Player shots now write random

@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "2f4773e7",
+  "lastCommit": "f64cb627",
   "activePid": null,
-  "notes": "Added schema-validated generated-worker resource_set support, registered it in CLI/MCP tooling, regenerated diagnostics docs, and used it to prove FPS enemy muzzle random roll through real generated movement into attack range. Focused tests, app/cli typechecks/builds, FPS typecheck/build, diagnostics check, and progress check passed.",
-  "lastRunFinishedAt": "2026-06-17T09:10:32Z"
+  "notes": "Hardened FPS pointer-click shooting, added a short jump buffer, and offset impact sprites by hit normal / 10. Aperture proof observed canvas pointer click shotsFired:1 and paused-step jump verticalVelocity:7.6667 with grounded:false; a later paused movement proof was interrupted by managed CDP/session death. FPS/racing/shadow-lab builds and typechecks plus fps-controls test passed.",
+  "lastRunFinishedAt": "2026-06-17T09:23:00Z"
 }

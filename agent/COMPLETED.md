@@ -1,5 +1,36 @@
 # Completed Tasks
 
+## FPS-PORT — Input hardening and impact placement
+
+Completed: 2026-06-17 02:23 PDT
+Commit: `f64cb627`
+
+### Summary
+
+- Forwarded primary `pointerdown` / `pointerup` from the FPS HUD into the
+  generated `shoot` action so canvas pointer clicks use the same gameplay path
+  as pointer-lock mouse shooting.
+- Added a short jump input buffer and prevented the jump frame from being
+  cancelled by lingering grounded contact.
+- Offset impact sprites by raycast normal `/ 10`, matching the upstream
+  Starter Kit impact placement.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Aperture proof observed canvas pointer click `shotsFired:1` and paused-step
+  jump state `verticalVelocity:7.6667`, `jumpsRemaining:1`,
+  `grounded:false`. A later paused movement proof was interrupted by the
+  managed dev session CDP/daemon state dying with stale browser/server PIDs.
+
 ## TOOLING/FPS-PORT — Generated resource_set proof support
 
 Completed: 2026-06-17 02:10 PDT

@@ -1,47 +1,63 @@
-# Handoff - Starter Kit FPS Resource Set Proof Tooling
+# Handoff - Starter Kit FPS Input Hardening
 
-**Updated:** 2026-06-17 02:10 PDT
+**Updated:** 2026-06-17 02:23 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Added schema-validated generated-worker `resource_set` support so Aperture
-  CLI/MCP tools can patch initialized app resources by id during deterministic
-  proof setup.
-- Kept mutation behind resource schemas: primitive, tuple, nullable vec3, and
-  quat fields are validated before state changes; unknown fields produce
-  actionable diagnostics; custom value fields are cloned.
-- Registered `resource_set` in the CLI/MCP tool surface and documented the
-  now-current resource get/set decision.
-- Used the new tool in the FPS proof instead of app-specific debug hooks:
-  `resource_set` fixed the player yaw for deterministic setup, generated
-  `move` input drove the real character controller into enemy range, health
-  changed `100 -> 95`, and `ecs_find_entities` read enemy muzzle sprite
-  rotations `-0.363` and `-0.516` radians, both inside the upstream `±45°`
-  roll range.
-- Reset the managed FPS page afterward; fresh state was back to
-  `health:100`, `enemiesRemaining:4`, `shotsFired:0`, `hits:0`,
-  `gameStatus:"active"`.
+- Hardened the browser-facing FPS shoot path by forwarding primary
+  `pointerdown` / `pointerup` events through the same generated `shoot` action
+  used for pointer-lock mouse input. This keeps canvas clicks, touch/pen
+  primary pointers, and managed-browser pointer clicks on the same gameplay
+  path.
+- Added a short `0.12s` jump buffer. Jump input is now recorded on the button
+  edge, consumed when a jump is available, and the jump frame ignores lingering
+  grounded contact so the upward impulse cannot be cancelled immediately.
+- Added source-like impact placement from upstream `objects/player.gd`: impact
+  sprites now use the nearest raycast hit point plus `normal / 10`, while the
+  existing billboard sprite path keeps the impact facing the camera.
+- Aperture proof:
+  - Fresh managed FPS session at `http://127.0.0.1:5173/`.
+  - `input_pointer_click` followed by `resource_get` observed
+    `shotsFired:1`.
+  - Paused `input_action_set` jump plus one `ecs_step` observed
+    `playerPosition:[0,1.6222,0]`, `verticalVelocity:7.6667`,
+    `jumpsRemaining:1`, and `grounded:false`.
+  - Camera-relative movement remains covered by
+    `test/app/fps-controls.test.ts`; a later paused movement proof was cut
+    short when the managed dev session's CDP/daemon state died and reported
+    stale browser/server PIDs.
 - Validation:
-  - `pnpm exec vitest run test/app/resources.test.ts test/app/generated-worker-start.test.ts test/cli/dev-session.test.ts`
-  - `pnpm --filter @aperture-engine/app run typecheck`
-  - `pnpm --filter @aperture-engine/cli run typecheck`
-  - `pnpm --filter @aperture-engine/app run build`
-  - `pnpm --filter @aperture-engine/cli run build`
+  - `pnpm exec vitest run test/app/fps-controls.test.ts`
   - `pnpm --dir fps run typecheck`
   - `pnpm --dir fps run build`
-  - `pnpm run check:diagnostics`
-  - `pnpm run check:progress`
-  - Aperture CLI/runtime proof from `fps/`: `browser_reload`,
-    `browser_wait_for_webgpu`, `ecs_pause`, `resource_set`,
-    `input_action_set`, `ecs_step`, `resource_get`, `ecs_find_entities`, and
-    `browser_status`.
-- Committed implementation/tooling:
-  - `2f4773e7` — `Add generated resource set tool`
+  - `pnpm run typecheck`
+  - `pnpm run typecheck:test`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+- Committed implementation:
+  - `f64cb627` — `Harden FPS input handling`
 
-## Previous Completed FPS Slices
+## Previous Completed FPS/Tooling Slices
+
+- Generated `resource_set` proof tooling:
+  - Added schema-validated generated-worker `resource_set` support so Aperture
+    CLI/MCP tools can patch initialized app resources by id during deterministic
+    proof setup.
+  - Registered `resource_set` in the CLI/MCP tool surface and documented the
+    now-current resource get/set decision.
+  - Used the new tool in the FPS proof instead of app-specific debug hooks:
+    `resource_set` fixed the player yaw for deterministic setup, generated
+    `move` input drove the real character controller into enemy range, health
+    changed `100 -> 95`, and `ecs_find_entities` read enemy muzzle sprite
+    rotations `-0.363` and `-0.516` radians, both inside the upstream `±45°`
+    roll range.
+  - Committed implementation/tooling:
+    - `2f4773e7` — `Add generated resource set tool`
 
 - Muzzle flash random style:
   - Added source-style muzzle flash randomization from upstream
