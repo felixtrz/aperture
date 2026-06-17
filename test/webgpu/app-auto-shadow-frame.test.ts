@@ -170,6 +170,44 @@ describe("WebGPU app auto-shadow frame", () => {
       receiverOnlyResult?.matrixComputation.matrices[0]?.far ?? Infinity,
     );
   });
+
+  it("fits default shadows from the receiver camera instead of an overlay camera", () => {
+    const calls = createDeviceCalls();
+    const assets = new AssetRegistry();
+    const opaqueMesh = createMeshHandle("receiver-camera-caster");
+    const alphaMesh = createMeshHandle("receiver-camera-alpha-helper");
+
+    assets.register(opaqueMesh, { label: "Receiver camera caster" });
+    assets.markReady(opaqueMesh, triangleMesh("Receiver camera caster"));
+    assets.register(alphaMesh, { label: "Receiver camera alpha helper" });
+    assets.markReady(alphaMesh, triangleMesh("Receiver camera alpha helper"));
+
+    const result = createWebGpuAppAutoShadowFrame({
+      app: app(device(calls)),
+      assets,
+      cache: createWebGpuAppResourceCache(),
+      reuse: createWebGpuAppResourceReuseReport(),
+      snapshot: snapshot({
+        opaqueMesh,
+        alphaMesh,
+        viewSetup: overlayThenWorldCameraView(),
+      }),
+    });
+
+    expect(result).not.toBeNull();
+    expect(result?.viewProjection.plans[0]?.cascadeFarDistance).toBeGreaterThan(
+      199,
+    );
+    expect(result?.viewProjection.plans[0]?.cascadeFarDistance).toBeLessThan(
+      201,
+    );
+    expect(
+      result?.matrixComputation.matrices[0]?.orthographicSize,
+    ).toBeGreaterThan(7);
+    expect(
+      result?.matrixComputation.matrices[0]?.orthographicSize,
+    ).toBeLessThan(9);
+  });
 });
 
 function app(device: RenderShadowFrameDeviceLike): WebGpuApp {
@@ -189,8 +227,9 @@ function snapshot(input: {
   };
   readonly transforms?: Float32Array;
   readonly includeView?: boolean;
+  readonly viewSetup?: Pick<RenderSnapshot, "views" | "viewMatrices">;
 }): RenderSnapshot {
-  const view = primaryCameraView();
+  const view = input.viewSetup ?? primaryCameraView();
   return {
     frame: 1,
     views: input.includeView === false ? [] : view.views,
@@ -273,7 +312,7 @@ function snapshot(input: {
       input.includeView === false ? new Float32Array(0) : view.viewMatrices,
     diagnostics: [],
     report: {
-      views: input.includeView === false ? 0 : 1,
+      views: input.includeView === false ? 0 : view.views.length,
       meshDraws: 3,
       lights: 1,
       environments: 0,
@@ -373,6 +412,68 @@ function primaryCameraView(): Pick<RenderSnapshot, "views" | "viewMatrices"> {
         viewMatrixOffset: 0,
         projectionMatrixOffset: 16,
         viewProjectionMatrixOffset: 32,
+        viewport: [0, 0, 1, 1],
+        scissor: [0, 0, 1, 1],
+        clearColor: [0, 0, 0, 1],
+        clearDepth: 1,
+        clearStencil: 0,
+        renderTarget: null,
+      },
+    ],
+    viewMatrices,
+  };
+}
+
+function overlayThenWorldCameraView(): Pick<
+  RenderSnapshot,
+  "views" | "viewMatrices"
+> {
+  const overlayViewMatrix = translationView(0, 0, 0);
+  const overlayProjectionMatrix = makePerspective(0.5, 1, 0.1, 2);
+  const overlayViewProjectionMatrix = multiplyMat4(
+    overlayProjectionMatrix,
+    overlayViewMatrix,
+  );
+  const worldViewMatrix = translationView(80, 40, 120);
+  const worldProjectionMatrix = makePerspective(1, 1.5, 0.1, 200);
+  const worldViewProjectionMatrix = multiplyMat4(
+    worldProjectionMatrix,
+    worldViewMatrix,
+  );
+  const viewMatrices = new Float32Array(96);
+
+  viewMatrices.set(overlayViewMatrix, 0);
+  viewMatrices.set(overlayProjectionMatrix, 16);
+  viewMatrices.set(overlayViewProjectionMatrix, 32);
+  viewMatrices.set(worldViewMatrix, 48);
+  viewMatrices.set(worldProjectionMatrix, 64);
+  viewMatrices.set(worldViewProjectionMatrix, 80);
+
+  return {
+    views: [
+      {
+        viewId: 2,
+        camera: { index: 102, generation: 0 },
+        priority: -1,
+        layerMask: 2,
+        viewMatrixOffset: 0,
+        projectionMatrixOffset: 16,
+        viewProjectionMatrixOffset: 32,
+        viewport: [0, 0, 1, 1],
+        scissor: [0, 0, 1, 1],
+        clearColor: [0, 0, 0, 0],
+        clearDepth: 1,
+        clearStencil: 0,
+        renderTarget: null,
+      },
+      {
+        viewId: 1,
+        camera: { index: 101, generation: 0 },
+        priority: 0,
+        layerMask: 1,
+        viewMatrixOffset: 48,
+        projectionMatrixOffset: 64,
+        viewProjectionMatrixOffset: 80,
         viewport: [0, 0, 1, 1],
         scissor: [0, 0, 1, 1],
         clearColor: [0, 0, 0, 1],

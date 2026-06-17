@@ -393,12 +393,24 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 19:53 UTC</dd>
+            <dd>2026-06-17 20:30 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Aperture pointer input now models
+              Latest update: directional shadow auto-fit now selects the
+              default-target camera that overlaps visible standard shadow
+              receivers before fitting the shadow footprint. Overlay and
+              viewmodel cameras can no longer accidentally drive the
+              out-of-box directional shadow default, and fixed/static bounds
+              remain explicit authored or no-camera fallback behavior only.
+              Focused coverage now proves overlay-first multi-camera
+              selection, off-frustum caster extraction, and off-footprint
+              caster guards. Managed Aperture proof kept FPS, racing, and
+              Shadow Lab at diagnostics <code>0</code> with submitted shadow
+              passes; racing and Shadow Lab each consumed
+              <code>364</code> shadow-caster draws, and FPS consumed
+              <code>44</code>. Prior update: Aperture pointer input now models
               <code>primary</code>, <code>secondary</code>, and
               <code>middle</code> button state end-to-end. Browser forwarding
               maps left/middle/right canvas clicks into named pointer events,
@@ -2753,8 +2765,11 @@
                 independently extracted <code>shadowCasterDraws</code> still
                 drive the caster pass and depth range so off-camera platforms
                 can keep casting after their visible mesh draw is main-frustum
-                culled. Static scene bounds are now documented as authored or
-                no-camera fallback behavior only.
+                culled. The default camera selector now prefers the
+                default-target view whose layer mask overlaps visible standard
+                shadow receivers, so overlay/viewmodel cameras cannot own the
+                automatic shadow footprint. Static scene bounds are now
+                documented as authored or no-camera fallback behavior only.
               </li>
               <li>
                 <span class="badge green">fps</span> Fixed short FPS button-tap

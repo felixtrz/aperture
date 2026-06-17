@@ -856,10 +856,72 @@ function resolvePrimaryShadowCamera(
 function selectPrimaryShadowView(
   snapshot: RenderSnapshot,
 ): RenderSnapshot["views"][number] | undefined {
-  return (
-    snapshot.views.find((view) => view.renderTarget === null) ??
-    snapshot.views[0]
+  const defaultTargetViews = snapshot.views.filter(
+    (view) => view.renderTarget === null,
   );
+  const candidates =
+    defaultTargetViews.length === 0 ? snapshot.views : defaultTargetViews;
+
+  if (candidates.length === 0) {
+    return undefined;
+  }
+
+  const receiverLayerMask = directionalShadowReceiverLayerMask(
+    snapshot.shadowRequests,
+  );
+  const visibleReceiverLayerMask = visibleStandardReceiverLayerMask(
+    snapshot.meshDraws,
+    receiverLayerMask,
+  );
+  const targetLayerMask =
+    visibleReceiverLayerMask === 0
+      ? receiverLayerMask
+      : visibleReceiverLayerMask;
+
+  if (targetLayerMask !== 0) {
+    const receiverView = candidates.find(
+      (view) => (view.layerMask & targetLayerMask) !== 0,
+    );
+
+    if (receiverView !== undefined) {
+      return receiverView;
+    }
+  }
+
+  return candidates[0];
+}
+
+function directionalShadowReceiverLayerMask(
+  shadowRequests: readonly ShadowRequestPacket[],
+): number {
+  return shadowRequests.reduce(
+    (mask, request) =>
+      isDirectionalShadowRequest(request)
+        ? mask | request.receiverLayerMask
+        : mask,
+    0,
+  );
+}
+
+function visibleStandardReceiverLayerMask(
+  meshDraws: RenderSnapshot["meshDraws"],
+  receiverLayerMask: number,
+): number {
+  if (receiverLayerMask === 0) {
+    return 0;
+  }
+
+  return meshDraws.reduce((mask, draw) => {
+    if (
+      draw.receivesShadow === false ||
+      !draw.batchKey.pipelineKey.startsWith("standard|") ||
+      (draw.layerMask & receiverLayerMask) === 0
+    ) {
+      return mask;
+    }
+
+    return mask | draw.layerMask;
+  }, 0);
 }
 
 function readSnapshotMatrix(
