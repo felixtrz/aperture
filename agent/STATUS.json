@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "d6a59208",
+  "lastCommit": "c8c7f977",
   "activePid": null,
-  "notes": "Corrected default directional shadow auto-fit back to camera-backed receiver/frustum fitting while preserving independent shadow caster extraction/depth expansion; validated focused shadow tests, WebGPU build/typecheck, progress tracker, managed racing/Shadow Lab/FPS frame reports, and FPS full-clear smoke.",
-  "lastRunFinishedAt": "2026-06-17T19:29:32Z"
+  "notes": "Fixed Aperture CLI browser tool session stability and FPS keyboard tap reliability; live proof covered Space jump, click shooting, yaw-relative W movement, and FPS full-clear smoke; racing and shadow-lab typecheck/build passed.",
+  "lastRunFinishedAt": "2026-06-17T19:40:25Z"
 }
