@@ -8,9 +8,6 @@ import { STATUS_GLOBAL } from "./types.js";
 const MANAGED_GLOBAL = "__APERTURE_MCP_MANAGED__";
 
 export interface BrowserConnection {
-  readonly browser: {
-    close(): Promise<void>;
-  };
   readonly page: AperturePage;
 }
 
@@ -57,7 +54,7 @@ export async function connectToManagedPage(
     throw new Error("The managed browser has no open pages.");
   }
 
-  return { browser, page };
+  return { page };
 }
 
 export async function readGeneratedStatus(

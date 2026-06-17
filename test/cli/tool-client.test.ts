@@ -18,16 +18,10 @@ const browserAdapter = vi.hoisted(() => {
       webgpuOk: true,
     },
   };
-  const browser = {
-    close: vi.fn(async () => undefined),
-  };
-
   return {
-    browser,
     page: {},
     pageStatus,
     connectToManagedPage: vi.fn(async () => ({
-      browser,
       page: {},
     })),
     readGeneratedStatus: vi.fn(async () => pageStatus),
@@ -46,7 +40,6 @@ const tempRoots: string[] = [];
 
 describe("Aperture CLI tool client", () => {
   afterEach(async () => {
-    browserAdapter.browser.close.mockClear();
     browserAdapter.connectToManagedPage.mockClear();
     browserAdapter.readGeneratedStatus.mockClear();
 
@@ -55,7 +48,7 @@ describe("Aperture CLI tool client", () => {
     }
   });
 
-  it("closes the Playwright CDP client after browser-backed tools", async () => {
+  it("keeps the managed browser connection alive after browser-backed tools", async () => {
     const root = await tempRoot();
     const runtimeDir = apertureRuntimeDir(root);
     const { callApertureTool } = await import(
@@ -95,7 +88,6 @@ describe("Aperture CLI tool client", () => {
       page: browserAdapter.pageStatus,
     });
     expect(browserAdapter.connectToManagedPage).toHaveBeenCalledTimes(1);
-    expect(browserAdapter.browser.close).toHaveBeenCalledTimes(1);
   });
 });
 

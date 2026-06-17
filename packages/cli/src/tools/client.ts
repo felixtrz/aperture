@@ -54,14 +54,10 @@ export async function callApertureTool(
     };
   }
 
-  try {
-    return await callBrowserBackedTool(
-      connection.page,
-      session,
-      options.name,
-      args,
-    );
-  } finally {
-    await connection.browser.close();
-  }
+  // Do not call Browser.close() here. For Playwright CDP connections to the
+  // managed Chrome instance, explicit close propagates as a remote browser
+  // shutdown and tears down the active Aperture dev session. One-shot CLI tool
+  // commands exit after printing, and MCP servers intentionally keep the
+  // connection alive for their process lifetime.
+  return await callBrowserBackedTool(connection.page, session, options.name, args);
 }
