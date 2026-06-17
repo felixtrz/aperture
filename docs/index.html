@@ -393,12 +393,24 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 13:40 UTC</dd>
+            <dd>2026-06-17 13:56 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS now separates pointer-lock mouse
+              Latest update: Starter Kit FPS shot body knockback now follows
+              the source movement path: the player resource carries
+              <code>movementVelocity</code>, horizontal body movement lerps
+              toward the source target at <code>delta * 10</code>, and shots
+              fold <code>weapon.knockback</code> into the local positive-Z
+              target before translation. Aperture CLI proof reset the live FPS
+              route, fired one generated <code>shoot</code> step, and read
+              <code>shotsFired:1</code>, <code>shotCooldown:0.25</code>,
+              <code>movementVelocity.z:6.664248772464203</code>, and
+              <code>playerPosition.z:0.11107081174850464</code>, matching the
+              source blaster knockback path <code>40 * 10 / 60</code> with the
+              source random yaw kick. Prior update: Starter Kit FPS now
+              separates pointer-lock mouse
               look from controller/keyboard look through a virtual-only
               <code>mouseLook</code> action, backed by a new
               <code>input.virtual()</code> binding for generated actions with
@@ -2518,6 +2530,18 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned Starter Kit FPS
+                source shot body knockback. The port now stores
+                <code>fps.state.movementVelocity</code>, exposes
+                <code>SOURCE_MOVEMENT_LERP_RATE = 10</code>, and uses
+                source-style target velocity plus smoothed movement helpers so
+                a shot folds local positive-Z <code>weapon.knockback</code>
+                into the same-frame body movement target. Aperture CLI proof
+                fired one generated shot and read <code>shotsFired:1</code>,
+                <code>shotCooldown:0.25</code>, and
+                <code>movementVelocity.z:6.664248772464203</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned Starter Kit FPS
                 source look and weapon-camera layering. Pointer-lock mouse
@@ -5804,11 +5828,10 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Continue Starter Kit FPS
-                fidelity with a visible slice such as skybox
-                orientation/readback hardening, projectile polish beyond the
-                current per-enemy attacker ownership, enemy movement/attack
-                timing polish, weapon subviewport/camera-FOV overlay fidelity,
-                or a reusable generated-input full-clear smoke script.
+                fidelity with a visible slice such as enemy movement/attack
+                timing polish, skybox orientation/readback hardening,
+                level-complete/full-clear smoke, source weapon switching timing
+                polish, or a reusable generated-input full-clear smoke script.
               </li>
               <li>
                 <span class="badge amber">next</span> Continue remaining M10

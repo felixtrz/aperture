@@ -1,5 +1,45 @@
 # Completed Tasks
 
+## FPS-PORT — Source shot body knockback
+
+Completed: 2026-06-17 06:56 PDT
+Commit: `1f1ebf66`
+
+### Summary
+
+- Matched the upstream shot-body knockback path from
+  `references/Starter-Kit-FPS/objects/player.gd` and the source weapon
+  knockback values in `blaster.tres` / `blaster-repeater.tres`.
+- Added `SOURCE_MOVEMENT_LERP_RATE = 10`, carried
+  `fps.state.movementVelocity`, and moved FPS horizontal movement onto
+  `sourceMovementTargetVelocity(...)` plus `sourceSmoothedMovementStep(...)`.
+- Replaced the prior separate recoil impulse/recovery approximation with
+  source-style local positive-Z body knockback folded into the shot frame's
+  movement target before the body translation step.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts`
+  passed 26 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+  passed 58 tests.
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture CLI proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed with WebGPU ready, generated FPS input
+    actions present, and render diagnostics `[]`.
+  - Pre-shot `resource_get {"id":"fps.state"}` reported
+    `movementVelocity:[0,0,0]`, `shotsFired:0`, and `shotCooldown:0`.
+  - Paused reset plus one generated `shoot` step produced `shotsFired:1`,
+    `shotCooldown:0.25`,
+    `movementVelocity:[-0.17953479649859896,0,6.664248772464203]`, and
+    `playerPosition.z:0.11107081174850464`.
+
 ## FPS-PORT — Source look and weapon camera layering
 
 Completed: 2026-06-17 06:40 PDT

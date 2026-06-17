@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "9b5b6206",
+  "lastCommit": "1f1ebf66",
   "activePid": null,
-  "notes": "Aligned Starter Kit FPS source look, virtual-only pointer-lock mouse look, layered source-FOV weapon camera, and render-layer entity summaries; proved WebGPU two-view rendering and generated input through Aperture CLI/MCP while keeping fps/racing/shadow-lab green.",
-  "lastRunFinishedAt": "2026-06-17T13:43:02Z"
+  "notes": "Aligned Starter Kit FPS source shot body knockback with source smoothed movement velocity; proved one generated shoot step through Aperture CLI and kept fps, racing, and shadow-lab green.",
+  "lastRunFinishedAt": "2026-06-17T13:58:06Z"
 }
