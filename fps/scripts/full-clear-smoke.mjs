@@ -34,9 +34,19 @@ const ROUTE = [
     jump: true,
     jumpDistance: 2.5,
   },
-  { kind: "move", name: "west grass firing point", target: [-6.0, 2.4], radius: 0.55 },
+  {
+    kind: "move",
+    name: "west grass firing point",
+    target: [-6.0, 2.4],
+    radius: 0.55,
+  },
   { kind: "shoot", enemy: "enemy.1", maxShots: 9 },
-  { kind: "move", name: "west grass east edge", target: [-3.7, 2.5], radius: 0.45 },
+  {
+    kind: "move",
+    name: "west grass east edge",
+    target: [-3.7, 2.5],
+    radius: 0.45,
+  },
   {
     kind: "move",
     name: "jump back to start grass",
@@ -54,9 +64,19 @@ const ROUTE = [
     jump: true,
     jumpDistance: 4.0,
   },
-  { kind: "move", name: "southeast grass center", target: [5.0, 5.5], radius: 0.55 },
+  {
+    kind: "move",
+    name: "southeast grass center",
+    target: [5.0, 5.5],
+    radius: 0.55,
+  },
   { kind: "shoot", enemy: "enemy.2", maxShots: 9 },
-  { kind: "move", name: "return center north edge", target: [2.1, 0.7], radius: 0.65 },
+  {
+    kind: "move",
+    name: "return center north edge",
+    target: [2.1, 0.7],
+    radius: 0.65,
+  },
   {
     kind: "move",
     name: "jump to northeast platform",
@@ -81,10 +101,18 @@ const ROUTE = [
 const argv = parseArgs(process.argv.slice(2));
 const port = numberArg(argv, "port", DEFAULT_PORT);
 const keepRunning = booleanArg(argv, "keep-running", false);
+const freshSession = booleanArg(argv, "fresh-session", false);
 const screenshotPath = stringArg(argv, "screenshot", DEFAULT_SCREENSHOT);
 const verbose = booleanArg(argv, "verbose", false);
 
 async function startDevSession(portValue) {
+  if (freshSession) {
+    await runCommand("pnpm", ["exec", "aperture", "dev", "down"], {
+      cwd: FPS_ROOT,
+      timeoutMs: 30_000,
+    }).catch(() => {});
+  }
+
   const result = await runCommand(
     "pnpm",
     [
@@ -106,7 +134,11 @@ async function startDevSession(portValue) {
     process.stderr.write(result.stderr);
   }
 
-  return { started: result.stdout.includes("Started Aperture dev session") };
+  return {
+    started: result.stdout.includes("Started Aperture dev session"),
+    owned:
+      freshSession || result.stdout.includes("Started Aperture dev session"),
+  };
 }
 
 async function resetGame(mcpClient) {
@@ -139,7 +171,9 @@ async function moveTo(mcpClient, step) {
     const distance = Math.hypot(dx, dz);
 
     if (position[1] < -5) {
-      throw new Error(`${step.name} fell below the level at ${formatVec(position)}`);
+      throw new Error(
+        `${step.name} fell below the level at ${formatVec(position)}`,
+      );
     }
 
     if (distance <= step.radius) {
@@ -148,7 +182,10 @@ async function moveTo(mcpClient, step) {
         await waitForGrounded(mcpClient, step.name);
       }
       await stepFrames(mcpClient, 4);
-      logProgress(`move:${step.name}`, summarizeState(await readFpsState(mcpClient)));
+      logProgress(
+        `move:${step.name}`,
+        summarizeState(await readFpsState(mcpClient)),
+      );
       return;
     }
 
@@ -181,7 +218,11 @@ async function moveTo(mcpClient, step) {
       y: move[1],
     });
 
-    if (step.jump === true && !jumped && distance < (step.jumpDistance ?? 2.8)) {
+    if (
+      step.jump === true &&
+      !jumped &&
+      distance < (step.jumpDistance ?? 2.8)
+    ) {
       jumped = true;
       framesSinceFirstJump = 0;
       await pulseButton(mcpClient, "jump", 2);
@@ -215,7 +256,9 @@ async function waitForGrounded(mcpClient, label) {
   for (let frame = 0; frame < 240; frame += 1) {
     const state = await readFpsState(mcpClient);
     if (state.playerPosition[1] < -5) {
-      throw new Error(`${label} fell before landing at ${formatVec(state.playerPosition)}`);
+      throw new Error(
+        `${label} fell before landing at ${formatVec(state.playerPosition)}`,
+      );
     }
     if (state.grounded === true) {
       return;
@@ -224,7 +267,9 @@ async function waitForGrounded(mcpClient, label) {
   }
 
   const state = await readFpsState(mcpClient);
-  throw new Error(`${label} did not land; final=${formatVec(state.playerPosition)}`);
+  throw new Error(
+    `${label} did not land; final=${formatVec(state.playerPosition)}`,
+  );
 }
 
 async function shootEnemy(mcpClient, step) {
@@ -441,7 +486,9 @@ function summarizeState(state) {
 }
 
 function logProgress(label, payload) {
-  process.stderr.write(`[fps-full-clear] ${label} ${JSON.stringify(payload)}\n`);
+  process.stderr.write(
+    `[fps-full-clear] ${label} ${JSON.stringify(payload)}\n`,
+  );
 }
 
 function formatVec(vec) {
@@ -677,7 +724,7 @@ async function main() {
   } finally {
     await releaseInputs(mcp).catch(() => {});
     await mcp.stop();
-    if (!keepRunning && devSession.started) {
+    if (!keepRunning && devSession.owned) {
       await runCommand("pnpm", ["exec", "aperture", "dev", "down"], {
         cwd: FPS_ROOT,
         timeoutMs: 30_000,
