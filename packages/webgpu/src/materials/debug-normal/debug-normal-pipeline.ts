@@ -235,7 +235,7 @@ export function createBrowserDebugNormalRenderPipelineDescriptor(
     },
     primitive: {
       topology: "triangle-list",
-      frontFace: "ccw",
+      frontFace: renderState.frontFace,
       cullMode: renderState.cullMode,
     },
     multisample: {

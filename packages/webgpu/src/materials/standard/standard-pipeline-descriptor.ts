@@ -209,7 +209,7 @@ export function createStandardPipelineDescriptorPlan(
     primitive: {
       topology: resolvedTopology,
       cullMode: renderState.cullMode,
-      frontFace: "ccw",
+      frontFace: renderState.frontFace,
       stripIndexFormat: null,
     },
     depthStencil,
@@ -250,7 +250,7 @@ export function createStandardPipelineDescriptorPlan(
     primitive: {
       topology: resolvedTopology,
       cullMode: renderState.cullMode,
-      frontFace: "ccw",
+      frontFace: renderState.frontFace,
     },
     multisample: {
       count: sampleCount,

@@ -53,6 +53,7 @@ export interface StandardMaterialRenderStatePipelineSummary {
   readonly resolved: {
     readonly alphaMode: string;
     readonly cullMode: string;
+    readonly frontFace: string;
     readonly depthCompare: string;
     readonly depthWriteEnabled: boolean;
     readonly blendPreset: string;
@@ -124,6 +125,7 @@ export function createStandardMaterialRenderStateSummary(
       resolved: {
         alphaMode: resolved.alphaMode,
         cullMode: resolved.cullMode,
+        frontFace: resolved.frontFace,
         depthCompare: resolved.depthCompare,
         depthWriteEnabled: resolved.depthWriteEnabled,
         blendPreset: tokens.blendPreset ?? "none",

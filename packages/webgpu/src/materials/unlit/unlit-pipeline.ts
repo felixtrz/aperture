@@ -316,7 +316,7 @@ export function createBrowserUnlitRenderPipelineDescriptor(
     },
     primitive: {
       topology,
-      frontFace: "ccw",
+      frontFace: renderState.frontFace,
       cullMode: renderState.cullMode,
     },
     multisample: {

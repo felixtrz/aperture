@@ -81,4 +81,23 @@ describe("material pipeline key format contract (audit A4 / #11)", () => {
 
     expect(key).toBe("unlit|depth-bias:-2:1.5|blend|none|less|alpha");
   });
+
+  it("encodes only non-default front-face state as a pipeline feature token", () => {
+    const baseInput = {
+      shaderFamily: "standard",
+      features: ["baseColorTexture"],
+      alphaMode: "opaque",
+      cullMode: "back",
+      depth: { compare: "less" },
+      blend: { preset: "none" },
+      colorWriteMask: "all",
+    } as unknown as Omit<MaterialPipelineKeyInput, "frontFace">;
+
+    expect(
+      materialPipelineKeyInputToKey({ ...baseInput, frontFace: "ccw" }),
+    ).toBe("standard|baseColorTexture|opaque|back|less|none");
+    expect(
+      materialPipelineKeyInputToKey({ ...baseInput, frontFace: "cw" }),
+    ).toBe("standard|baseColorTexture|front-face:cw|opaque|back|less|none");
+  });
 });

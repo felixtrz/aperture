@@ -103,6 +103,7 @@ export function materialPipelineKeyInputToKey(
 ): string {
   const features = [
     ...input.features,
+    ...materialFrontFacePipelineFeatures(input.frontFace),
     ...materialDepthBiasPipelineFeatures(input.depth),
   ].sort();
 
@@ -114,6 +115,12 @@ export function materialPipelineKeyInputToKey(
     input.depth.compare,
     input.blend.preset,
   ].join("|");
+}
+
+function materialFrontFacePipelineFeatures(
+  frontFace: MaterialPipelineKeyInput["frontFace"],
+): readonly string[] {
+  return frontFace === "cw" ? ["front-face:cw"] : [];
 }
 
 function materialDepthBiasPipelineFeatures(

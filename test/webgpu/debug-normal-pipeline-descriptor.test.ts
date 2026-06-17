@@ -96,6 +96,35 @@ describe("debug-normal material pipeline descriptor planning", () => {
     expect(bgra).not.toBe(rgba);
   });
 
+  it("honors authored cw front-face state in debug-normal descriptors and cache keys", () => {
+    const batchKey = {
+      ...DEBUG_NORMAL_BATCH_KEY,
+      pipelineKey: "debug-normal|front-face:cw|opaque|back|less|none",
+    };
+    const result = createDebugNormalPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey,
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.plan?.descriptor.primitive).toMatchObject({
+      cullMode: "back",
+      frontFace: "cw",
+    });
+    expect(JSON.parse(required(result.plan).cacheKey) as unknown).toMatchObject(
+      {
+        primitive: {
+          cullMode: "back",
+          frontFace: "cw",
+        },
+        material: {
+          pipelineKey: "debug-normal|front-face:cw|opaque|back|less|none",
+        },
+      },
+    );
+  });
+
   it("accepts padded source stream layout keys", () => {
     const result = createDebugNormalPipelineDescriptorPlan({
       colorFormat: "bgra8unorm",

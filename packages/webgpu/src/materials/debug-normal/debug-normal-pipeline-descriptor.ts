@@ -147,7 +147,7 @@ export function createDebugNormalPipelineDescriptorPlan(
     primitive: {
       topology: resolvedTopology,
       cullMode: renderState.cullMode,
-      frontFace: "ccw",
+      frontFace: renderState.frontFace,
       stripIndexFormat: null,
     },
     depthStencil,
@@ -189,7 +189,7 @@ export function createDebugNormalPipelineDescriptorPlan(
     primitive: {
       topology: resolvedTopology,
       cullMode: renderState.cullMode,
-      frontFace: "ccw",
+      frontFace: renderState.frontFace,
     },
     multisample: {
       count: sampleCount,
@@ -238,13 +238,19 @@ function validateDebugNormalPipelineTokens(
     });
   }
 
-  for (const feature of tokens.features) {
+  for (const feature of tokens.features.filter(
+    (feature) => !isRenderStateFeatureToken(feature),
+  )) {
     diagnostics.push({
       code: "debugNormalPipeline.unsupportedFeature",
       field: `batchKey.pipelineKey.${feature}`,
       message: `DebugNormalMaterial pipeline does not support feature '${feature}'.`,
     });
   }
+}
+
+function isRenderStateFeatureToken(feature: string): boolean {
+  return feature === "front-face:cw" || feature.startsWith("depth-bias:");
 }
 
 function validateDebugNormalVertexLayout(

@@ -140,6 +140,35 @@ describe("standard material pipeline descriptor planning", () => {
     });
   });
 
+  it("honors authored cw front-face state in standard descriptors and cache keys", () => {
+    const batchKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: "standard|front-face:cw|opaque|back|less|none",
+    };
+    const result = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey,
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.plan?.descriptor.primitive).toMatchObject({
+      cullMode: "back",
+      frontFace: "cw",
+    });
+    expect(JSON.parse(required(result.plan).cacheKey) as unknown).toMatchObject(
+      {
+        primitive: {
+          cullMode: "back",
+          frontFace: "cw",
+        },
+        material: {
+          pipelineKey: "standard|front-face:cw|opaque|back|less|none",
+        },
+      },
+    );
+  });
+
   it("recognizes the instance tint StandardMaterial pipeline feature", () => {
     const featurePlan = createStandardPipelineShaderFeaturePlan({
       ...STANDARD_BATCH_KEY,

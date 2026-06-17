@@ -95,6 +95,36 @@ describe("matcap material pipeline descriptor planning", () => {
     expect(bgra).not.toBe(rgba);
   });
 
+  it("honors authored cw front-face state in matcap descriptors and cache keys", () => {
+    const batchKey = {
+      ...MATCAP_BATCH_KEY,
+      pipelineKey: "matcap|matcapTexture|front-face:cw|opaque|back|less|none",
+    };
+    const result = createMatcapPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey,
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.plan?.descriptor.primitive).toMatchObject({
+      cullMode: "back",
+      frontFace: "cw",
+    });
+    expect(JSON.parse(required(result.plan).cacheKey) as unknown).toMatchObject(
+      {
+        primitive: {
+          cullMode: "back",
+          frontFace: "cw",
+        },
+        material: {
+          pipelineKey:
+            "matcap|matcapTexture|front-face:cw|opaque|back|less|none",
+        },
+      },
+    );
+  });
+
   it("diagnoses invalid metadata, missing color format, and non-matcap batch keys", () => {
     const invalidShader: BuiltInShaderSourceModule = {
       label: "",

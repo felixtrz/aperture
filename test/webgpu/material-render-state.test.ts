@@ -61,4 +61,19 @@ describe("WebGPU material render-state descriptors", () => {
       depthBiasSlopeScale: 1.5,
     });
   });
+
+  it("resolves omitted front-face tokens to ccw and authored cw tokens to cw", () => {
+    expect(
+      resolveWebGpuPipelineRenderState(
+        "standard|opaque|back|less|none",
+        "depth24plus",
+      ).frontFace,
+    ).toBe("ccw");
+    expect(
+      resolveWebGpuPipelineRenderState(
+        "standard|front-face:cw|opaque|back|less|none",
+        "depth24plus",
+      ).frontFace,
+    ).toBe("cw");
+  });
 });

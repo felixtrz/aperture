@@ -1,6 +1,7 @@
 export interface MaterialPipelineRenderStateTokens {
   readonly alphaMode: string | null;
   readonly cullMode: string | null;
+  readonly frontFace: string | null;
   readonly depthCompare: string | null;
   readonly depthBias: number | null;
   readonly depthBiasSlopeScale: number | null;
@@ -21,6 +22,7 @@ export interface WebGpuBlendState {
 export interface WebGpuPipelineRenderState {
   readonly alphaMode: string;
   readonly cullMode: string;
+  readonly frontFace: "ccw" | "cw";
   readonly depthCompare: string;
   readonly depthWriteEnabled: boolean;
   readonly depthBias: number;
@@ -35,6 +37,7 @@ export function parseMaterialPipelineRenderStateTokens(
     return {
       alphaMode: null,
       cullMode: null,
+      frontFace: null,
       depthCompare: null,
       depthBias: null,
       depthBiasSlopeScale: null,
@@ -44,11 +47,13 @@ export function parseMaterialPipelineRenderStateTokens(
 
   const parts = pipelineKey.split("|");
   const renderStateStart = Math.max(1, parts.length - 4);
-  const depthBias = parseDepthBiasToken(parts.slice(1, renderStateStart));
+  const featureTokens = parts.slice(1, renderStateStart);
+  const depthBias = parseDepthBiasToken(featureTokens);
 
   return {
     alphaMode: parts[renderStateStart] ?? null,
     cullMode: parts[renderStateStart + 1] ?? null,
+    frontFace: parseFrontFaceToken(featureTokens),
     depthCompare: parts[renderStateStart + 2] ?? null,
     depthBias: depthBias.depthBias,
     depthBiasSlopeScale: depthBias.depthBiasSlopeScale,
@@ -67,6 +72,7 @@ export function resolveWebGpuPipelineRenderState(
   return {
     alphaMode,
     cullMode: tokens.cullMode ?? "back",
+    frontFace: tokens.frontFace === "cw" ? "cw" : "ccw",
     depthCompare,
     depthBias: tokens.depthBias ?? 0,
     depthBiasSlopeScale: tokens.depthBiasSlopeScale ?? 0,
@@ -200,6 +206,10 @@ function createBlendState(preset: string): WebGpuBlendState | null {
     default:
       return null;
   }
+}
+
+function parseFrontFaceToken(features: readonly string[]): "cw" | null {
+  return features.includes("front-face:cw") ? "cw" : null;
 }
 
 function parseDepthBiasToken(features: readonly string[]): {

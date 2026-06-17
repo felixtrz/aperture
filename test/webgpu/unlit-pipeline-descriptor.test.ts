@@ -132,6 +132,35 @@ describe("unlit pipeline descriptor planning", () => {
     );
   });
 
+  it("honors authored cw front-face state in unlit descriptors and cache keys", () => {
+    const batchKey = {
+      ...BATCH_KEY,
+      pipelineKey: "unlit|front-face:cw|opaque|back|less|none",
+    };
+    const result = createUnlitPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey,
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.plan?.descriptor.primitive).toMatchObject({
+      cullMode: "back",
+      frontFace: "cw",
+    });
+    expect(JSON.parse(required(result.plan).cacheKey) as unknown).toMatchObject(
+      {
+        primitive: {
+          cullMode: "back",
+          frontFace: "cw",
+        },
+        material: {
+          pipelineKey: "unlit|front-face:cw|opaque|back|less|none",
+        },
+      },
+    );
+  });
+
   it("selects a textured shader and distinct cache key for base-color textures", () => {
     const factorOnly = createUnlitPipelineDescriptorPlan({
       colorFormat: "bgra8unorm",
