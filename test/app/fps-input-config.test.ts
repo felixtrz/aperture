@@ -6,6 +6,7 @@ import {
   createInputResource,
   type InputAction,
   type InputAxis2dAction,
+  type InputButtonAction,
 } from "../../packages/app/src/input/state.js";
 
 describe("Starter Kit FPS input config", () => {
@@ -53,6 +54,59 @@ describe("Starter Kit FPS input config", () => {
     expect(axis2d(input.actions.look).y.value).toBe(-1);
   });
 
+  it("maps source gamepad shoot and weapon-toggle inputs", () => {
+    const input = createInputResource(fpsConfig);
+    const buttons = Array.from({ length: 11 }, () => ({
+      pressed: false,
+      value: 0,
+    }));
+    buttons[7] = { pressed: true, value: 1 };
+    buttons[10] = { pressed: true, value: 1 };
+
+    advanceInputResource(input, [
+      {
+        kind: "gamepad",
+        gamepads: [
+          {
+            index: 0,
+            id: "Standard Pad",
+            mapping: "standard",
+            connected: true,
+            buttons,
+            axes: [0, 0, 0, 0],
+          },
+        ],
+      },
+    ]);
+
+    expect(button(input.actions.shoot).down()).toBe(true);
+    expect(button(input.actions.switchWeapon).down()).toBe(true);
+
+    const rightBumperOnly = Array.from({ length: 11 }, () => ({
+      pressed: false,
+      value: 0,
+    }));
+    rightBumperOnly[5] = { pressed: true, value: 1 };
+
+    advanceInputResource(input, [
+      {
+        kind: "gamepad",
+        gamepads: [
+          {
+            index: 0,
+            id: "Standard Pad",
+            mapping: "standard",
+            connected: true,
+            buttons: rightBumperOnly,
+            axes: [0, 0, 0, 0],
+          },
+        ],
+      },
+    ]);
+
+    expect(button(input.actions.switchWeapon).pressed()).toBe(false);
+  });
+
   it("maps keyboard look helpers to the source camera action vector", () => {
     const input = createInputResource(fpsConfig);
 
@@ -92,6 +146,14 @@ describe("Starter Kit FPS input config", () => {
 function axis2d(action: InputAction | undefined): InputAxis2dAction {
   if (action?.kind !== "axis2d") {
     throw new Error("expected axis2d action");
+  }
+
+  return action;
+}
+
+function button(action: InputAction | undefined): InputButtonAction {
+  if (action?.kind !== "button") {
+    throw new Error("expected button action");
   }
 
   return action;
