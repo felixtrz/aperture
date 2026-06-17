@@ -59,32 +59,31 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Add a production particle proof route and focused particle diagnostics so agents
-can verify textured burst particles without depending on the racing vehicle
-drift setup.
+Make the V1 particle asset schema truthful so every accepted effect field either
+changes renderer packets/frame output or reports a structured unsupported
+feature.
 
 Category: `runtime-orchestration`
 
-Reference anchor: `references/engine/src/framework/components/particle-system/component.js`
-for first-class particle component behavior, plus
-`references/bevy/crates/bevy_sprite/src/sprite_mesh.rs` for ECS-authored
-renderable effect assets.
+Reference anchor: `references/engine/src/scene/particle-system/particle-emitter.js`
+for PlayCanvas' particle emitter semantics, plus
+`references/three.quarks/packages/quarks.core/src/IParticleSystem.ts` for
+authoring vocabulary and unsupported/deferred feature shape.
 
 Acceptance criteria:
 
-- Add a small public browser route or example that declares a texture,
-  declares a particle effect, and emits textured burst particles from a worker
-  system through `this.particles.emit(...)`.
-- Surface compact particle readiness/budget diagnostics that distinguish no
-  authored emitters, not-ready effect assets, burst budget overflow, and
-  renderer-owned live textured particles without requiring a full entity dump.
-- Add focused browser or WebGPU proof coverage that drives the burst effect and
-  verifies nonzero live textured particles, draw submission, and alpha/depth
-  behavior.
-- Re-run managed racing through Aperture MCP and confirm racing smoke still
-  reports hundreds of live textured particles with zero frame diagnostics.
-- Verify Shadow Lab still typechecks/builds and its managed session remains
-  healthy if left running.
+- Audit every accepted `ParticleEffectAssetInput` field against extraction,
+  worker summaries, and WebGPU particle execution.
+- Implement low-risk missing V1 fields that map cleanly to the current runtime,
+  such as atlas frame count, lifetime range, start speed range, and burst
+  schedule basics.
+- Add structured unsupported-feature diagnostics for deferred fields instead of
+  silently accepting ignored authoring data.
+- Add focused tests proving each accepted V1 field either changes renderer
+  packets or frame output, or reports the documented unsupported feature.
+- Re-run the independent `examples/particle-bursts.html` proof, managed racing
+  smoke proof through Aperture MCP, and Shadow Lab health checks after the
+  coherent schema slice.
 
 ## Historical M10 Physics Notes
 

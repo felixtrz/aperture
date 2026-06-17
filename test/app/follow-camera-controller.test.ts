@@ -10,6 +10,7 @@ import {
   vec3Dot,
   vec3Normalize,
   type FollowCameraPose,
+  type QuatTuple,
   type Vec3Tuple,
 } from "@aperture-engine/app/systems";
 import {
@@ -210,7 +211,7 @@ function createLegacyRacingCameraState(): {
         smoothedTarget: [...smoothed],
         lookPoint,
         eye,
-        rotation: [...quatLookAt(eye, lookPoint)],
+        rotation: Array.from(quatLookAt(eye, lookPoint)) as QuatTuple,
         lead: [leadX, leadY],
       };
     },

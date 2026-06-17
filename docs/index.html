@@ -393,13 +393,25 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 02:29 UTC</dd>
+            <dd>2026-06-17 03:19 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: worker-safe audio loop handles now support
-              <code>automate(...)</code>, <code>pause()</code>, and
+              Latest update: the shared particle path now has an independent
+              generated-app proof route at
+              <code>examples/particle-bursts.html</code>. The route declares
+              texture and particle-effect assets, emits worker-authored bursts
+              through <code>this.particles.emit(...)</code>, and reports compact
+              worker queue counters plus renderer-owned live textured particle
+              counts. Focused Playwright coverage proves live textured
+              particles, draw submission, zero diagnostics, and no queue
+              drops/rejections without depending on racing vehicle input.
+              Managed racing was cache-busted and reproved through Aperture MCP:
+              held <code>drive=[1,1]</code> reached <code>306</code> textured
+              particle emitters, <code>906</code> live particles, and zero frame
+              diagnostics. Prior update: worker-safe audio loop handles now
+              support <code>automate(...)</code>, <code>pause()</code>, and
               <code>resume()</code>, with stable-id methods on
               <code>this.audio</code>. Racing now uses those shared handles for
               generic engine/skid loop smoothing while keeping RPM/skid/impact
@@ -1214,10 +1226,10 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue the racing library-gap plan by adding a production
-              particle proof route and focused particle diagnostics, so agents
-              can verify textured burst particles without depending on racing's
-              vehicle drift setup.
+              Continue the racing library-gap plan by making the V1 particle
+              asset schema truthful: every accepted effect field should either
+              change packets/frame output or report a structured unsupported
+              feature.
             </dd>
           </dl>
         </aside>

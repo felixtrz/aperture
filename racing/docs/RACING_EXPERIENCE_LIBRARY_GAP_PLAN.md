@@ -205,6 +205,18 @@ building blocks and default paths.
   cache-busted managed racing relaunch fixed the stale-dist worker crash
   (`engineLoop.automate is not a function`), and held input again rendered
   hundreds of textured smoke particles with zero frame diagnostics.
+- 2026-06-16: Production particle proof diagnostics landed:
+  `examples/particle-bursts.html` declares a texture plus
+  `asset.particleEffect(...)`, emits textured bursts from a generated worker
+  system through `this.particles.emit(...)`, and reports worker queue counters
+  plus renderer-owned live textured particle counts. Generated app diagnostics
+  now treat particle-only frames as real draw activity, worker snapshots expose
+  `this.particles.summary()`, and the CLI/MCP render summary can surface the
+  queue state without a full entity dump. Focused Playwright coverage proves
+  nonzero live textured particles, draw submission, zero diagnostics, and no
+  queue drops/rejections independently of racing's drift setup. Managed racing
+  was then reproved through Aperture MCP with held `drive=[1,1]`, reaching
+  hundreds of live textured smoke particles and zero frame diagnostics.
 
 ## Genericity Audit - 2026-06-16
 
@@ -1389,27 +1401,25 @@ Shadow-lab validation:
 
 ## Recommended Next Implementation Slice
 
-Continue the source-readability/library-gap work with a production particle
-proof slice:
+Continue the particle V1 work with the truthful schema slice:
 
-1. Add a compact public particle smoke/showcase route or example that uses only
-   `asset.texture(...)`, `asset.particleEffect(...)`, and
-   `this.particles.emit(...)` from a worker system.
-2. Expose focused particle budget/readiness diagnostics for burst effects so an
-   agent can distinguish "no emitters authored", "effect texture not ready",
-   "burst budget overflow", and "renderer drew live textured particles" without
-   dumping full frame/entity status.
-3. Add a browser proof that drives a burst effect, asserts nonzero live textured
-   particles and draw submission, and samples pixels or frame reports for
-   alpha/depth behavior.
-4. Re-run managed racing and Shadow Lab health checks to ensure the diagnostic
-   additions do not regress the racing smoke path or shadow-lab render path.
+1. Audit every accepted `ParticleEffectAssetInput` field against the extraction
+   packets, worker summaries, and WebGPU execution path.
+2. Implement the low-risk missing fields that can be mapped cleanly now, such
+   as atlas frame count, lifetime range, start speed range, and burst schedule
+   basics.
+3. Add structured unsupported-feature diagnostics for fields that remain
+   deferred instead of accepting silently ignored authoring data.
+4. Add focused tests proving each accepted V1 field either changes packets or
+   frame output, or reports a documented unsupported feature.
+5. Re-run the independent particle proof route, managed racing smoke proof, and
+   Shadow Lab health checks after each coherent particle semantics slice.
 
 Reason:
 
-- Racing smoke is now working through the shared particle path, but the V1
-  library still needs a small, reusable particle proof outside racing so future
-  agents can verify particles without depending on vehicle drift setup.
-- PlayCanvas treats particle systems as a first-class component; Aperture should
-  offer the same confidence while preserving ECS authoring, worker-safe bursts,
-  and WebGPU-owned realization.
+- The independent proof route now makes particle regressions measurable. The
+  remaining V1 risk is schema truthfulness: PlayCanvas and three.quarks expose
+  broad particle controls, but Aperture should not accept a broad field set
+  unless every field either works or reports an explicit capability diagnostic.
+- This keeps racing smoke on the generic engine path while pushing the library
+  toward a smaller, honest V1 particle feature surface.

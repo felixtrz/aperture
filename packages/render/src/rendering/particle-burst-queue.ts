@@ -48,9 +48,15 @@ export interface ParticleBurstQueueOptions {
 }
 
 export interface ParticleBurstQueueSummary {
+  readonly maxActive: number;
+  readonly maxPerFrame: number;
   readonly pending: number;
   readonly active: number;
+  readonly enqueued: number;
+  readonly promoted: number;
   readonly dropped: number;
+  readonly rejectedNotReady: number;
+  readonly rejectedInvalid: number;
 }
 
 export interface ParticleBurstQueue {
@@ -82,8 +88,12 @@ export function createParticleBurstQueue(
   const pending: ParticleBurstRequest[] = [];
   const active: ActiveParticleBurst[] = [];
   let seqCounter = 1;
+  let enqueued = 0;
+  let promotedTotal = 0;
   let dropped = 0;
   let droppedSinceDrain = 0;
+  let rejectedNotReady = 0;
+  let rejectedInvalid = 0;
 
   return {
     enqueue(request) {
@@ -94,6 +104,7 @@ export function createParticleBurstQueue(
       }
 
       pending.push(normalizeRequest(request));
+      enqueued += 1;
       return true;
     },
     drain(input) {
@@ -121,6 +132,7 @@ export function createParticleBurstQueue(
             assetKey: assetHandleKey(request.effect),
             message: `Dropped particle burst: effect '${assetHandleKey(request.effect)}' is not ready.`,
           });
+          rejectedNotReady += 1;
           continue;
         }
 
@@ -132,6 +144,7 @@ export function createParticleBurstQueue(
             assetKey: assetHandleKey(request.effect),
             message: `Dropped particle burst: effect '${assetHandleKey(request.effect)}' is invalid.`,
           });
+          rejectedInvalid += 1;
           continue;
         }
 
@@ -149,6 +162,7 @@ export function createParticleBurstQueue(
           ),
         });
         promoted += 1;
+        promotedTotal += 1;
       }
 
       for (let index = active.length - 1; index >= 0; index -= 1) {
@@ -171,9 +185,15 @@ export function createParticleBurstQueue(
     },
     summary() {
       return {
+        maxActive,
+        maxPerFrame,
         pending: pending.length,
         active: active.length,
+        enqueued,
+        promoted: promotedTotal,
         dropped,
+        rejectedNotReady,
+        rejectedInvalid,
       };
     },
   };

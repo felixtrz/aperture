@@ -59,9 +59,11 @@ export function syncGeneratedDiagnostics(
       const views = numberAt(counts["views"]) ?? 0;
       const meshDraws = numberAt(counts["meshDraws"]) ?? 0;
       const spriteDraws = numberAt(counts["spriteDraws"]) ?? 0;
+      const particleEmitters = numberAt(counts["particleEmitters"]) ?? 0;
       const quadInstances = numberAt(counts["quadInstances"]) ?? 0;
       const uiNodes = numberAt(counts["uiNodes"]) ?? 0;
-      const anyDraws = meshDraws + spriteDraws + quadInstances + uiNodes;
+      const anyDraws =
+        meshDraws + spriteDraws + particleEmitters + quadInstances + uiNodes;
       if (views > 0 && anyDraws === 0) {
         if (!emptyWarned) {
           emptyWarned = true;
@@ -97,7 +99,9 @@ export function syncGeneratedDiagnostics(
         if (seenFrameDiags.has(sig)) continue;
         seenFrameDiags.add(sig);
         const log = severity === "error" ? console.error : console.warn;
-        log(`[aperture] render ${severity}${code ? ` (${code})` : ""}: ${message}`);
+        log(
+          `[aperture] render ${severity}${code ? ` (${code})` : ""}: ${message}`,
+        );
       }
     }
   };

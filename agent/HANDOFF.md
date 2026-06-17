@@ -1,6 +1,6 @@
-# Handoff - Worker-Safe Audio Loop Lifecycle
+# Handoff - Particle Proof Route And Diagnostics
 
-**Updated:** 2026-06-16 19:29 PDT
+**Updated:** 2026-06-16 20:19 PDT
 
 Current user-directed work is executing
 `racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
@@ -8,43 +8,46 @@ slices while keeping racing and Shadow Lab working.
 
 ## Latest Completed Slice
 
-- Added worker-safe audio loop lifecycle/automation controls to
-  `@aperture-engine/app/systems`: loop handles now expose `automate(...)`,
-  `pause()`, and `resume()`, and `this.audio` exposes matching stable-id
-  methods.
-- Automation descriptors accept either numbers or `{ target }` values and
-  normalize gain, playback rate, and lowpass cutoff/Q into ordinary JSON-safe
-  `AudioEmitter` snapshot fields. Pause/resume mute/unmute stable loops without
-  tearing down their emitters or losing loop phase.
-- Migrated racing's generic loop smoothing to the shared API while keeping the
-  vehicle-specific RPM/skid/impact model in
-  `racing/src/systems/audio.system.ts`.
-- Added app extraction coverage proving lifecycle/automation packets survive
-  JSON serialization, plus voice-manager coverage proving gain, playback-rate,
-  and lowpass updates apply through click-free ramps.
-- Rebuilt `@aperture-engine/app`, typechecked/built racing and Shadow Lab, then
-  cache-busted and relaunched only managed racing on `127.0.0.1:5173`.
-- The alarming current console error was
-  `TypeError: engineLoop.automate is not a function`; root cause was racing
-  source calling the new API while the worker still imported stale
-  `packages/app/dist`. Rebuilding the app package and clearing
-  `racing/node_modules/.vite` fixed it.
+- Added `examples/particle-bursts.html`, a deterministic generated-app route
+  that declares a texture plus `asset.particleEffect(...)` and emits textured
+  worker-authored bursts through `this.particles.emit(...)`.
+- Extended `ParticleBurstQueue.summary()` with compact budget/readiness counters
+  for `pending`, `active`, `enqueued`, `promoted`, `dropped`,
+  `rejectedNotReady`, and `rejectedInvalid`.
+- Published worker particle summaries through generated worker snapshots and
+  surfaced particle queue state through the CLI render summary path.
+- Fixed generated-browser empty-frame diagnostics so particle-only routes count
+  as real draw activity.
+- Added focused tests for queue counters, generated-worker summary transport,
+  and browser-visible live textured burst particles with zero diagnostics.
+- Reproved racing smoke through Aperture MCP after a cache-busted managed
+  relaunch: held virtual `drive=[1,1]` reached hundreds of live textured smoke
+  particles with zero frame diagnostics and zero queue drops/rejections.
 
 ## Latest Validation
 
-- `pnpm exec vitest run test/app/audio-access.test.ts test/audio/voice-manager.test.ts`
-- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec vitest run test/app/particle-spawn.test.ts`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts -t "particle burst queue summaries"`
+- `node --check examples/particle-bursts.shared.js && node --check examples/particle-bursts.worker.js && node --check examples/particle-bursts.main.js`
+- `pnpm --filter @aperture-engine/render run build`
 - `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm run check:examples`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/app/follow-camera-controller.test.ts`
+- `pnpm exec playwright test test/e2e/particle-bursts.spec.ts --reporter=line`
 - `pnpm --dir racing run typecheck`
-- `pnpm --dir shadow-lab run typecheck`
 - `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
 - `pnpm --dir shadow-lab run build`
-- Managed Aperture racing proof: `pnpm exec aperture dev down`, clear
+- Managed Aperture racing proof: `pnpm exec aperture dev down`, cleared
   `racing/node_modules/.vite`, `pnpm exec aperture dev up --open --host
-127.0.0.1 --port 5173`, `browser_wait_for_webgpu`, console/status/frame
-  checks, forced `drive=[-1,1]`, and observed frame `3321` with
-  `particleEmitters:306`, `liveParticles:906`, `texturedEmitters:306`, and
-  diagnostics `0`. Inputs were reset after the proof.
+127.0.0.1 --port 5173`, `browser_wait_for_webgpu`, held virtual
+  `drive=[1,1]`, and observed frame `4679` with `particleEmitters:306`,
+  `liveParticles:906`, `texturedEmitters:306`, and diagnostics `0`.
+  `browser_status` showed worker particle queue `active:306`,
+  `enqueued:2730`, `promoted:2730`, `dropped:0`, `rejectedNotReady:0`, and
+  `rejectedInvalid:0`. Inputs were reset after the proof.
 
 ## Current Notes
 
@@ -53,16 +56,23 @@ slices while keeping racing and Shadow Lab working.
   `engineLoop.automate` worker crash, but fresh post-restart timestamps show
   only Vite connection logs plus the known Rapier deprecated init signature
   warning.
-- Shadow Lab was not restarted and remains isolated from racing; it was
-  typechecked/built against the rebuilt workspace packages.
+- Shadow Lab was not restarted and remains isolated from racing; it
+  typechecks/builds against the rebuilt workspace packages.
+- The currently running MCP server may have been loaded before the CLI render
+  tool source change, so `render_get_frame_report` can omit the new
+  `particleQueue` field until the tool server is restarted. The generated app
+  itself is exposing the worker queue through `browser_status`.
 - Pre-existing untracked screenshot/parity artifacts remain outside the commit.
 
 ## Recommended Next Task
 
-Add a production particle proof route and focused particle diagnostics so agents
-can verify textured burst particles without depending on the racing vehicle
-drift setup. Use `references/engine/src/framework/components/particle-system/component.js`
-and `references/bevy/crates/bevy_sprite/src/sprite_mesh.rs` as anchors.
+Make the V1 particle asset schema truthful. Audit every accepted
+`ParticleEffectAssetInput` field, implement low-risk fields that map cleanly to
+current extraction/WebGPU execution, and report explicit unsupported-feature
+diagnostics for deferred fields. Use
+`references/engine/src/scene/particle-system/particle-emitter.js` and
+`references/three.quarks/packages/quarks.core/src/IParticleSystem.ts` as
+anchors.
 
 ---
 

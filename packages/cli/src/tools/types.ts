@@ -49,6 +49,7 @@ export interface GeneratedStatusLike {
   };
   readonly lastWorkerSummary?: {
     readonly diagnostics?: readonly unknown[];
+    readonly particles?: unknown;
     readonly entities?: {
       readonly summaries?: readonly unknown[];
     };

@@ -1,5 +1,51 @@
 # Completed Tasks
 
+## RACE-LIB-25 — Particle proof route and diagnostics
+
+Completed: 2026-06-16 20:19 PDT
+Commit: current checkpoint commit
+
+### Summary
+
+- Added `examples/particle-bursts.html`, a deterministic generated-app route
+  that declares a texture and `asset.particleEffect(...)`, then emits textured
+  worker-authored bursts through `this.particles.emit(...)`.
+- Extended particle burst queue summaries with budget/readiness counters for
+  pending, active, enqueued, promoted, dropped, not-ready, and invalid requests.
+- Published worker particle summaries through generated worker snapshots and
+  surfaced particle queue data through the CLI render summary path.
+- Fixed generated-browser empty-frame diagnostics so particle-only routes count
+  as real draw activity.
+- Added focused app/generated-worker/browser tests proving queue counters,
+  worker summary transport, nonzero renderer-owned live textured particles, draw
+  submission, and zero particle diagnostics.
+- Reproved racing smoke through Aperture MCP with held `drive=[1,1]`:
+  `particleEmitters:306`, `liveParticles:906`, `texturedEmitters:306`, zero
+  diagnostics, and no queue drops or rejections.
+
+### Validation
+
+- `pnpm exec vitest run test/app/particle-spawn.test.ts`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts -t "particle burst queue summaries"`
+- `node --check examples/particle-bursts.shared.js && node --check examples/particle-bursts.worker.js && node --check examples/particle-bursts.main.js`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm run check:examples`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/app/follow-camera-controller.test.ts`
+- `pnpm exec playwright test test/e2e/particle-bursts.spec.ts --reporter=line`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Managed Aperture racing proof: cache-busted restart on `127.0.0.1:5173`,
+  WebGPU ready, held virtual `drive=[1,1]`, frame `4679` reported
+  `particleEmitters:306`, `liveParticles:906`, `texturedEmitters:306`, and
+  diagnostics `0`; `browser_status` reported worker particle queue
+  `active:306`, `enqueued:2730`, `promoted:2730`, `dropped:0`,
+  `rejectedNotReady:0`, and `rejectedInvalid:0`. Inputs were reset afterward.
+
 ## RACE-LIB-24 — Worker-safe audio loop lifecycle and automation
 
 Completed: 2026-06-16 19:29 PDT

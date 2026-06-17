@@ -16,6 +16,7 @@ export async function renderFrameReport(
           readonly lastFrame?: unknown;
         };
         readonly lastWorkerSummary?: {
+          readonly particles?: unknown;
           readonly entities?: unknown;
         };
         readonly lastFrame?: number | null;
@@ -33,6 +34,7 @@ export async function renderFrameReport(
         ok: typeof frameRecord?.["ok"] === "boolean" ? frameRecord["ok"] : null,
         counts: frameRecord?.["counts"] ?? null,
         particles: frameRecord?.["particles"] ?? null,
+        particleQueue: status?.lastWorkerSummary?.particles ?? null,
         renderTargets: frameRecord?.["renderTargets"] ?? null,
         postEffects: frameRecord?.["postEffects"] ?? null,
         diagnostics: frameRecord?.["diagnostics"] ?? [],
@@ -69,6 +71,7 @@ export async function renderSnapshotSummary(
         snapshots: status?.snapshots ?? 0,
         counts: lastFrame?.counts ?? null,
         renderChangeSet: lastFrame?.renderChangeSet ?? null,
+        particleQueue: status?.lastWorkerSummary?.particles ?? null,
         entities: status?.lastWorkerSummary?.entities ?? null,
         diagnostics: lastFrame?.diagnostics ?? [],
       };

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createApertureDevtoolsRequest } from "@aperture-engine/app/commands";
-import { defineApertureConfig } from "@aperture-engine/app/config";
+import { asset, defineApertureConfig } from "@aperture-engine/app/config";
 import {
   createSystem,
   defineResource,
@@ -69,6 +69,26 @@ class GeneratedWorkerResourceProofSystem extends GeneratedWorkerResourceProofBas
   }
 }
 
+const GeneratedWorkerParticleSummaryProofBase = createSystem();
+
+class GeneratedWorkerParticleSummaryProofSystem extends GeneratedWorkerParticleSummaryProofBase {
+  override init(): void {
+    this.spawn.camera({
+      key: "camera.particle-summary",
+      transform: { translation: [0, 0, 6], lookAt: [0, 0, 0] },
+      camera: { frustumCulling: false },
+    });
+  }
+
+  override update(): void {
+    this.particles.emit(this.particles.effect("spark"), {
+      count: 5,
+      position: [0, 0, 0],
+      boundsRadius: 2,
+    });
+  }
+}
+
 describe("generated simulation worker start messages", () => {
   it("unwraps start options nested by createSimulationWorker", async () => {
     const port = new TestGeneratedWorkerPort();
@@ -113,6 +133,49 @@ describe("generated simulation worker start messages", () => {
     expect(port.posted.filter(isSimulationWorkerSnapshotMessage)).toHaveLength(
       1,
     );
+  });
+
+  it("publishes particle burst queue summaries in generated-worker snapshots", async () => {
+    const port = new TestGeneratedWorkerPort();
+
+    startGeneratedSimulationWorker({
+      config: defineApertureConfig({
+        mode: "headless",
+        systems: [],
+        assets: {
+          spark: asset.particleEffect({
+            preload: "blocking",
+            capacity: 32,
+            emissionRate: 0,
+            lifetime: { min: 1, max: 1 },
+            startSize: { min: 0.2, max: 0.4 },
+            blendMode: "alpha",
+          }),
+        },
+      }),
+      systems: [{ default: GeneratedWorkerParticleSummaryProofSystem }],
+      port,
+    });
+    port.dispatch({
+      type: SIMULATION_WORKER_PROTOCOL.start,
+      options: { stop: true },
+    });
+
+    const snapshot = (await port.nextPostedMessage(
+      isSimulationWorkerSnapshotMessage,
+    )) as SimulationWorkerSnapshotMessage;
+
+    expect(snapshot.workerSummary.particles).toMatchObject({
+      maxActive: 1024,
+      maxPerFrame: 64,
+      pending: 0,
+      active: 1,
+      enqueued: 1,
+      promoted: 1,
+      dropped: 0,
+      rejectedNotReady: 0,
+      rejectedInvalid: 0,
+    });
   });
 
   it("publishes generated-worker snapshots into supplied SharedArrayBuffer transport", async () => {
@@ -8116,6 +8179,7 @@ interface SimulationWorkerSnapshotMessage {
   readonly frame?: number;
   readonly workerSummary: {
     readonly physics: unknown;
+    readonly particles?: unknown;
   };
 }
 

@@ -107,6 +107,7 @@ export function publishGeneratedWorkerSnapshot(options: {
     commands: options.app.context.commands.summary(),
     diagnostics: options.app.context.diagnostics.list(),
     physics: options.app.context.physics.summary(),
+    particles: options.app.context.particles.summary(),
     entities: createApertureEntityLookupSnapshot(options.app.lowLevel.world, {
       label: "generated-worker",
     }),

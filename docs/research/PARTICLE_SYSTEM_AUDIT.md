@@ -730,23 +730,31 @@ Reference anchors:
 
 ## Recommended Next Task
 
-Implement Slice 1 first.
+Slice 1 is implemented: `examples/particle-bursts.html` now proves the shared
+worker-authored burst path independently of racing vehicle input, worker
+snapshots expose particle queue summaries, and focused browser coverage verifies
+live textured particles, draw submission, zero particle diagnostics, and no
+queue drops or rejections.
 
-This is the highest-leverage next step because it makes the rest of the
-particle work measurable. It also directly addresses the racing smoke debugging
-pain: agents should be able to prove the shared particle path independently of
-vehicle input, then separately prove racing's drift system calls into that path.
+Implement Slice 2 next.
+
+This is now the highest-leverage step because the proof route makes particle
+regressions measurable. The remaining V1 risk is that accepted particle asset
+fields may imply behavior the renderer does not actually execute. Aperture
+should keep the public V1 surface small and truthful: each accepted field should
+either affect packets/frame output or produce an explicit unsupported-feature
+diagnostic.
 
 Proposed task text:
 
-> Add a deterministic particle proof route and compact particle diagnostics.
-> The route must declare a textured particle effect through config assets and
-> emit bursts from a worker system through `this.particles.emit(...)`. MCP or
-> Playwright validation must prove nonzero live textured particles, draw
-> submission, no particle diagnostics, and non-clear pixels without requiring
-> racing vehicle input. The frame/worker summaries must distinguish no emission,
-> pending bursts, dropped bursts, not-ready effects, and renderer-owned live
-> particles.
+> Make the V1 particle asset schema truthful. Audit every accepted
+> `ParticleEffectAssetInput` field, implement the low-risk missing fields that
+> map cleanly to current extraction/WebGPU execution, and add structured
+> unsupported-feature diagnostics for deferred fields. Focused tests must prove
+> every accepted V1 field either changes renderer packets or frame output, or
+> reports a documented unsupported feature. Re-run the independent particle
+> proof route, managed racing smoke proof, and Shadow Lab health checks after
+> the slice.
 
 ## Non-Goals For The Next Slice
 

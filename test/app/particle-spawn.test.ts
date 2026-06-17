@@ -135,7 +135,17 @@ describe("app particle emitter spawning", () => {
         velocityMax: [0.1, 1, 0.1],
       },
     });
-    expect(app.context.particles.summary().active).toBe(1);
+    expect(app.context.particles.summary()).toMatchObject({
+      maxActive: 1024,
+      maxPerFrame: 64,
+      pending: 0,
+      active: 1,
+      enqueued: 1,
+      promoted: 1,
+      dropped: 0,
+      rejectedNotReady: 0,
+      rejectedInvalid: 0,
+    });
     expect(snapshot.diagnostics).toEqual([]);
   });
 
@@ -189,6 +199,10 @@ describe("app particle emitter spawning", () => {
 
     const summary = app.context.particles.summary();
     expect(summary.dropped).toBe(0);
+    expect(summary.enqueued).toBe(360);
+    expect(summary.promoted).toBe(360);
+    expect(summary.rejectedNotReady).toBe(0);
+    expect(summary.rejectedInvalid).toBe(0);
     expect(summary.active).toBeGreaterThan(256);
     expect(snapshot.report.particleEmitters).toBeGreaterThan(256);
   });
