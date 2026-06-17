@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   cameraForwardFromYawPitch,
+  cameraRecoilVelocityFromYaw,
   cameraRelativeMovementDelta,
+  horizontalBackwardFromYaw,
   normalizedMoveAxis,
   snapToGroundDistanceForMove,
 } from "../../fps/src/lib/fps-controls.js";
@@ -58,6 +60,23 @@ describe("Starter Kit FPS controls", () => {
     expect(lookingUp[0]).toBeCloseTo(0, 10);
     expect(lookingUp[1]).toBeCloseTo(Math.SQRT1_2, 10);
     expect(lookingUp[2]).toBeCloseTo(-Math.SQRT1_2, 10);
+  });
+
+  it("applies weapon recoil backward relative to camera yaw", () => {
+    const facingForward = horizontalBackwardFromYaw(0);
+    expect(facingForward[0]).toBeCloseTo(0, 10);
+    expect(facingForward[1]).toBe(0);
+    expect(facingForward[2]).toBeCloseTo(1, 10);
+
+    const turnedRight = horizontalBackwardFromYaw(Math.PI / 2);
+    expect(turnedRight[0]).toBeCloseTo(-1, 10);
+    expect(turnedRight[1]).toBe(0);
+    expect(turnedRight[2]).toBeCloseTo(0, 10);
+
+    const recoil = cameraRecoilVelocityFromYaw(Math.PI / 2, 40, 0.12);
+    expect(recoil[0]).toBeCloseTo(-4.8, 10);
+    expect(recoil[1]).toBe(0);
+    expect(recoil[2]).toBeCloseTo(0, 10);
   });
 
   it("disables snap-to-ground for upward character movement", () => {

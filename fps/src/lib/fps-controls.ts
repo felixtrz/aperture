@@ -22,6 +22,21 @@ export function horizontalRightFromYaw(yaw: number): Vec3 {
   return [Math.cos(yaw), 0, Math.sin(yaw)];
 }
 
+export function horizontalBackwardFromYaw(yaw: number): Vec3 {
+  const forward = horizontalForwardFromYaw(yaw);
+  return [-forward[0], 0, -forward[2]];
+}
+
+export function cameraRecoilVelocityFromYaw(
+  yaw: number,
+  knockback: number,
+  impulseScale: number,
+): Vec3 {
+  const backward = horizontalBackwardFromYaw(yaw);
+  const impulse = knockback * impulseScale;
+  return [backward[0] * impulse, 0, backward[2] * impulse];
+}
+
 export function normalizedMoveAxis(
   moveX: number,
   moveY: number,

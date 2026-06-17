@@ -36,6 +36,7 @@ import {
 } from "../lib/fps-data.js";
 import {
   cameraForwardFromYawPitch,
+  cameraRecoilVelocityFromYaw,
   cameraRelativeMovementDelta,
   horizontalRightFromYaw,
   normalizedMoveAxis,
@@ -95,6 +96,9 @@ const WEAPON_SWITCH_RAISE_RATE = 10;
 const WEAPON_SWITCH_COMPLETE_EPSILON = 0.01;
 const LANDING_CAMERA_BOB_OFFSET = -0.1;
 const LANDING_CAMERA_BOB_RECOVERY_RATE = 5;
+const WEAPON_RECOIL_IMPULSE_SCALE = 0.12;
+const WEAPON_RECOIL_RECOVERY_RATE = 12;
+const WEAPON_RECOIL_EPSILON = 0.001;
 
 interface ShotEnemyHit {
   readonly key: string;
@@ -138,6 +142,7 @@ export default class PlayerSystem extends createSystem({
   #weaponSwitchActive = false;
   #landingBobOffset = 0;
   #landingPulse = 0;
+  #weaponRecoilVelocity: Vec3 = [0, 0, 0];
 
   override update(delta: number): void {
     const dt = Math.min(Math.max(delta, 0), 1 / 30);
@@ -235,6 +240,10 @@ export default class PlayerSystem extends createSystem({
       dt,
       verticalVelocity,
     });
+    desiredTranslation[0] += this.#weaponRecoilVelocity[0] * dt;
+    desiredTranslation[2] += this.#weaponRecoilVelocity[2] * dt;
+    this.#recoverWeaponRecoil(dt);
+
     const wasGrounded = grounded;
     const playerMove = skipPhysicsMove
       ? {
@@ -308,7 +317,10 @@ export default class PlayerSystem extends createSystem({
       if (shot.impact !== null) {
         this.#triggerImpactFlash(shot.impact);
       }
-      pitch = clampPitch(pitch + 0.012 + weapon.knockback * 0.00035);
+      const kick = randomWeaponKick(weapon);
+      pitch = clampPitch(pitch + kick.pitch);
+      yaw += kick.yaw;
+      this.#addWeaponRecoil(yaw, weapon);
     }
 
     this.#enemyTime += dt;
@@ -771,6 +783,30 @@ export default class PlayerSystem extends createSystem({
     this.#resetWeaponSwitch();
     this.#landingBobOffset = 0;
     this.#landingPulse = 0;
+    this.#weaponRecoilVelocity = [0, 0, 0];
+  }
+
+  #addWeaponRecoil(yaw: number, weapon: WeaponSpec): void {
+    const recoil = cameraRecoilVelocityFromYaw(
+      yaw,
+      weapon.knockback,
+      WEAPON_RECOIL_IMPULSE_SCALE,
+    );
+    this.#weaponRecoilVelocity = [
+      this.#weaponRecoilVelocity[0] + recoil[0],
+      0,
+      this.#weaponRecoilVelocity[2] + recoil[2],
+    ];
+  }
+
+  #recoverWeaponRecoil(dt: number): void {
+    const retain = Math.max(0, 1 - dt * WEAPON_RECOIL_RECOVERY_RATE);
+    const nextX = this.#weaponRecoilVelocity[0] * retain;
+    const nextZ = this.#weaponRecoilVelocity[2] * retain;
+    this.#weaponRecoilVelocity =
+      Math.hypot(nextX, nextZ) <= WEAPON_RECOIL_EPSILON
+        ? [0, 0, 0]
+        : [nextX, 0, nextZ];
   }
 
   #triggerLandingBob(): void {
@@ -986,6 +1022,26 @@ function lerpNumber(from: number, to: number, alpha: number): number {
 function smoothstep(value: number): number {
   const t = clamp01(value);
   return t * t * (3 - 2 * t);
+}
+
+function randomWeaponKick(weapon: WeaponSpec): {
+  readonly pitch: number;
+  readonly yaw: number;
+} {
+  return {
+    pitch: randomBetween(weapon.minKnockback[0], weapon.maxKnockback[0]),
+    yaw:
+      randomBetween(weapon.minKnockback[1], weapon.maxKnockback[1]) *
+      randomSign(),
+  };
+}
+
+function randomBetween(min: number, max: number): number {
+  return min + (max - min) * Math.random();
+}
+
+function randomSign(): 1 | -1 {
+  return Math.random() < 0.5 ? -1 : 1;
 }
 
 function spriteFrameForLife(

@@ -14,6 +14,8 @@ export interface WeaponSpec {
   readonly spread: number;
   readonly shotCount: number;
   readonly knockback: number;
+  readonly minKnockback: readonly [number, number];
+  readonly maxKnockback: readonly [number, number];
   readonly position: Vec3;
   readonly rotationEulerDegrees: Vec3;
   readonly muzzlePosition: Vec3;
@@ -83,6 +85,8 @@ export const WEAPONS: readonly WeaponSpec[] = [
     spread: 1,
     shotCount: 3,
     knockback: 40,
+    minKnockback: [0.025, 0.025],
+    maxKnockback: [0.045, 0.04],
     position: [0.58, -0.48, -1.2],
     rotationEulerDegrees: [0, 180, 0],
     muzzlePosition: [0.1, -0.4, 1.5],
@@ -98,6 +102,8 @@ export const WEAPONS: readonly WeaponSpec[] = [
     spread: 0.5,
     shotCount: 1,
     knockback: 10,
+    minKnockback: [0.001, 0.001],
+    maxKnockback: [0.0025, 0.002],
     position: [0.58, -0.48, -1.2],
     rotationEulerDegrees: [0, 180, 0],
     muzzlePosition: [0.1, -0.4, 1.5],
