@@ -1,11 +1,55 @@
-# Handoff - FPS Click Shoot And Rapid Jump Fix
+# Handoff - CLI Screenshot Pixel Readback
 
-**Updated:** 2026-06-17 09:41 PDT
+**Updated:** 2026-06-17 09:52 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Hardened the Aperture CLI pixel-readback tooling used for FPS visual proof:
+  - `browser_pick_pixel` and `render_readback_samples` now sample the managed
+    browser screenshot instead of the in-page WebGPU canvas copy path, avoiding
+    transparent/black readback after presentation on the current macOS browser
+    stack.
+  - Added a typed PNG decoder for 8-bit RGB/RGBA screenshots, including PNG
+    scanline filter reconstruction.
+  - The screenshot sampler resolves the active canvas DOM rect and maps
+    normalized/pixel requests from canvas coordinates into screenshot pixels.
+    Results report `region.source:"canvas"`, canvas-region size, and
+    per-sample screenshot coordinates. If no canvas exists, it falls back to
+    whole-screenshot sampling.
+  - Added focused CLI tests covering canvas-region sampling for
+    `render_readback_samples` / `browser_pick_pixel` and whole-screenshot
+    fallback.
+- Live Aperture CLI proof against the FPS app at `http://127.0.0.1:5173/`:
+  - `browser_wait_for_webgpu` passed with the 960x640 FPS canvas ready.
+  - `render_readback_samples` returned opaque nonzero canvas-region pixels:
+    `sky-top` `{r:152,g:149,b:195,a:255}`,
+    `crosshair-center` `{r:255,g:255,b:255,a:255}`, and
+    `weapon-lower-right` `{r:42,g:146,b:106,a:255}` with
+    `region.source:"canvas"`.
+  - `browser_pick_pixel` at normalized center returned the same opaque
+    center sample and embedded screenshot-backed readback metadata.
+  - Direct `mcp__aperture.render_readback_samples` in this Codex session
+    returned `Transport closed`; the CLI-backed Aperture tools remained usable
+    and exercise the same committed dispatch path.
+- Validation:
+  - `pnpm exec vitest run test/cli/png-readback.test.ts`
+  - `pnpm --filter @aperture-engine/cli run typecheck`
+  - `pnpm --filter @aperture-engine/cli run build`
+  - `pnpm exec prettier --check packages/cli/src/tools/dispatch.ts packages/cli/src/tools/png-readback.ts test/cli/png-readback.test.ts`
+  - `git diff --check -- packages/cli/src/tools/dispatch.ts packages/cli/src/tools/png-readback.ts test/cli/png-readback.test.ts`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+- Commit:
+  - `e1ca148b` — `Use screenshot sampling for CLI pixel readback`
+
+## Previous Completed Slice - FPS Click Shoot And Rapid Jump Fix
 
 - Fixed the latest reported FPS controls issues:
   - Source anchors checked:

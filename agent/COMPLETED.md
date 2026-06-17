@@ -1,5 +1,49 @@
 # Completed Tasks
 
+## FPS-PORT — CLI screenshot pixel readback
+
+Completed: 2026-06-17 09:52 PDT
+Commit: `e1ca148b`
+
+### Summary
+
+- Routed CLI `render_readback_samples` and `browser_pick_pixel` through
+  managed-browser screenshots instead of the in-page WebGPU canvas-copy
+  readback path, avoiding transparent/black samples after presentation on the
+  current browser stack.
+- Added a typed PNG decoder for 8-bit RGB/RGBA screenshots, including scanline
+  filter reconstruction.
+- Mapped requested pixel/normalized coordinates through the active canvas DOM
+  region, so the tools still behave like canvas/render readback APIs while
+  reading from screenshot pixels. Results now include canvas-region metadata
+  and per-sample screenshot coordinates.
+- Added focused CLI tests for canvas-region sampling and whole-screenshot
+  fallback.
+
+### Validation
+
+- Live Aperture CLI proof against the FPS app:
+  - `browser_wait_for_webgpu` passed with a 960x640 canvas.
+  - `render_readback_samples` returned opaque nonzero samples for
+    `sky-top`, `crosshair-center`, and `weapon-lower-right` with
+    `region.source:"canvas"`.
+  - `browser_pick_pixel` returned an opaque center sample with the same
+    screenshot-backed readback metadata.
+- Direct `mcp__aperture.render_readback_samples` in this Codex session returned
+  `Transport closed`; the CLI-backed Aperture tools remained usable and prove
+  the same dispatch path.
+- `pnpm exec vitest run test/cli/png-readback.test.ts`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm exec prettier --check packages/cli/src/tools/dispatch.ts packages/cli/src/tools/png-readback.ts test/cli/png-readback.test.ts`
+- `git diff --check -- packages/cli/src/tools/dispatch.ts packages/cli/src/tools/png-readback.ts test/cli/png-readback.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+
 ## FPS-PORT — Click shoot and rapid jump controls
 
 Completed: 2026-06-17 09:40 PDT
