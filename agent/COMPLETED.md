@@ -2,7 +2,7 @@
 
 ## FPS-PORT — Input tap reliability
 
-Completed: 2026-06-17 11:45 PDT
+Completed: 2026-06-17 11:49 PDT
 
 ### Summary
 
@@ -22,9 +22,20 @@ Completed: 2026-06-17 11:45 PDT
   movement.
 - Live Aperture proof: a standalone quick Space tap reported
   `verticalVelocity:5`, `jumpsRemaining:1`, and `grounded:false`.
+- Live Aperture proof: after clearing a stale unmanaged Vite listener on port
+  `5173`, clean-session `pnpm --dir fps run smoke:full-clear` passed with
+  `shotsFired:8`, `hits:16`, `destroyedEnemies:4`, `enemiesRemaining:0`, and
+  `gameStatus:"cleared"`.
 - `pnpm exec vitest run test/app/fps-hud.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts`
+- `pnpm exec vitest run test/app/fps-hud.test.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-setup.test.ts`
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
+- `pnpm --dir fps run smoke:skybox-readback`
+- `pnpm --dir fps run smoke:full-clear`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
 
 ## FPS-PORT — Weapon viewmodel placement calibration
 

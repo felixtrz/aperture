@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 18:45 UTC</dd>
+            <dd>2026-06-17 18:49 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
@@ -405,8 +405,13 @@
               buffers directly. Live Aperture proof showed left-click shooting
               incrementing <code>shotsFired</code>, yaw-relative
               <code>KeyW</code> movement after a mouse-look rotation, and a
-              quick Space tap producing a positive jump state. Prior update:
-              Starter Kit FPS weapon viewmodel placement was
+              quick Space tap producing a positive jump state. After clearing a
+              stale unmanaged Vite listener on port <code>5173</code>, a clean
+              <code>pnpm --dir fps run smoke:full-clear</code> run reached
+              <code>shotsFired:8</code>, <code>hits:16</code>,
+              <code>destroyedEnemies:4</code>, and
+              <code>gameStatus:"cleared"</code>. Prior update: Starter Kit FPS
+              weapon viewmodel placement was
               recalibrated against the source lower-right screenshot framing
               while preserving the extracted Godot source offset constants. The
               runtime overlay position now keeps the blaster tucked into the
@@ -2679,7 +2684,9 @@
                 command draining now buffers jump/shoot press commands
                 immediately. Live Aperture proof covered click shooting,
                 camera-relative movement after look rotation, and a quick Space
-                jump.
+                jump; a clean-session <code>smoke:full-clear</code> run cleared
+                all four enemies with <code>shotsFired:8</code>,
+                <code>hits:16</code>, and <code>gameStatus:"cleared"</code>.
               </li>
               <li>
                 <span class="badge green">fps</span> Recalibrated the Starter

@@ -1,6 +1,6 @@
 # Handoff - FPS Input Tap Reliability
 
-**Updated:** 2026-06-17 11:45 PDT
+**Updated:** 2026-06-17 11:49 PDT
 
 User-directed work is on branch `fps-starter-kit-port`.
 
@@ -27,21 +27,28 @@ User-directed work is on branch `fps-starter-kit-port`.
   - A standalone quick `input_key {"key":"Space","action":"press"}` after the
     fix reported a positive jump state (`verticalVelocity:5`,
     `jumpsRemaining:1`, `grounded:false`) through the managed CLI path. Later
-    clean-reset attempts were interrupted by the short-lived foreground daemon
-    session, so the successful jump proof is from the live grounded state rather
-    than a full reset script.
+    clean-reset attempts were interrupted by a stale unmanaged Vite listener on
+    port `5173`; after clearing that Node/Vite process without touching Brave,
+    a fresh managed smoke run was stable.
+  - Clean-session `pnpm --dir fps run smoke:full-clear` passed after the stale
+    listener cleanup, proving platform traversal, jumps, shots, and generated
+    input through the managed Aperture path with `shotsFired:8`, `hits:16`,
+    `destroyedEnemies:4`, `enemiesRemaining:0`, and
+    `gameStatus:"cleared"`.
 - Validation:
   - `pnpm exec vitest run test/app/fps-hud.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts`
+  - `pnpm exec vitest run test/app/fps-hud.test.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-setup.test.ts`
   - `pnpm --dir fps run typecheck`
   - `pnpm --dir fps run build`
+  - `pnpm --dir fps run smoke:skybox-readback`
+  - `pnpm --dir fps run smoke:full-clear`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
 
 ## Known Issues
 
-- In this command-runner environment, `aperture dev up` detached sessions and
-  foreground `aperture dev daemon` sessions were repeatedly terminated after a
-  short interval. Running `aperture dev daemon` foreground was still sufficient
-  for managed CLI proofs, but long scripted live proofs should keep diagnostics
-  visible and avoid filtering away tool failure wrappers.
 - Pre-existing untracked screenshot/parity artifacts remain outside the commit.
 
 ## Recommended Next Task
