@@ -38,7 +38,6 @@ import {
   ENEMIES,
   ENEMY_MUZZLE_OFFSETS,
   FPS_ALL_RENDER_LAYER_MASK,
-  FPS_WEAPON_LAYER_MASK,
   FPS_WORLD_LAYER_MASK,
   IMPACT_EFFECT_SLOT_COUNT,
   LEVEL_COLLIDERS,
@@ -62,9 +61,7 @@ import {
   SOURCE_PLAYER_CAMERA_FOV,
   SOURCE_SKY_ENERGY_MULTIPLIER,
   SOURCE_SUN_SHADOW_STRENGTH,
-  SOURCE_WEAPON_CAMERA_ITEM_FOV,
   WEAPONS,
-  WEAPON_CAMERA_KEY,
   enemyMuzzleEffectKey,
   impactEffectKey,
   platformLargeGrassDecorationKey,
@@ -116,24 +113,6 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         far: 80,
         layerMask: FPS_WORLD_LAYER_MASK,
         clearColor: FPS_RENDER_BACKGROUND_COLOR,
-      },
-    });
-
-    this.spawn.camera({
-      key: WEAPON_CAMERA_KEY,
-      name: "Weapon Camera",
-      tags: ["player", "camera", "weapon-camera"],
-      transform: {
-        parent: camera,
-      },
-      fovYDegrees: SOURCE_WEAPON_CAMERA_ITEM_FOV,
-      camera: {
-        near: 0.05,
-        far: 20,
-        priority: 1,
-        layerMask: FPS_WEAPON_LAYER_MASK,
-        clearColor: [0, 0, 0, 0],
-        frustumCulling: false,
       },
     });
 
@@ -333,7 +312,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
           scale: weapon.scale,
         },
       });
-      this.#assignRenderLayerToSubtree(weaponRoot, FPS_WEAPON_LAYER_MASK);
+      this.#assignRenderLayerToSubtree(weaponRoot, FPS_WORLD_LAYER_MASK);
     }
 
     this.#spawnSpriteEffect({
@@ -343,7 +322,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       size: SOURCE_PLAYER_MUZZLE_SPRITE_SIZE,
       blendMode: SpriteBlendMode.Additive,
       depthMode: SpriteDepthMode.Disabled,
-      layerMask: FPS_WEAPON_LAYER_MASK,
+      layerMask: FPS_WORLD_LAYER_MASK,
     });
 
     for (let index = 0; index < IMPACT_EFFECT_SLOT_COUNT; index += 1) {
