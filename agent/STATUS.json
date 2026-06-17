@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "29712108",
+  "lastCommit": "4c1e36c2",
   "activePid": null,
-  "notes": "Recorded FPS full-clear proof after free-resize: managed Aperture smoke cleared all four enemies with health 60, shotsFired 8, hits 16, enemiesRemaining 0, destroyedEnemies 4, and gameStatus cleared; tracker and handoff updated; managed session stopped.",
-  "lastRunFinishedAt": "2026-06-17T22:00:33Z"
+  "notes": "FPS port completion audit is green: source mechanics/data/scene/layout parity covered, Aperture mechanics/skybox/full-clear smokes passed, racing and shadow-lab live CLI checks stayed WebGPU-ready with diagnostics 0, CLI browser-backed tool client hardened, compare probe follows free-resize layout, and managed sessions were stopped.",
+  "lastRunFinishedAt": "2026-06-17T22:12:32Z"
 }

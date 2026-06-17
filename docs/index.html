@@ -393,12 +393,28 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 21:59 UTC</dd>
+            <dd>2026-06-17 22:08 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS now free-resizes the playable
+              Latest update: the Starter Kit FPS port completion audit is
+              green. Source player, weapon, enemy, HUD, audio, level, enemy,
+              and cloud data are anchored by focused tests against
+              <code>references/Starter-Kit-FPS</code>, and managed Aperture
+              smokes now prove mechanics, skybox readback, and full route clear.
+              The latest <code>smoke:full-clear</code> run cleared all 4
+              enemies with <code>health:60</code>,
+              <code>shotsFired:8</code>, <code>hits:16</code>, and
+              <code>gameStatus:"cleared"</code>. The CLI tool client was also
+              hardened to keep managed browser-backed tool calls attached and to
+              reconnect once after closed-page errors. Racing and Shadow Lab
+              were rechecked through managed Aperture CLI with WebGPU ready,
+              diagnostics <code>0</code>, and healthy shadow frame reports. The
+              <code>?compare=weapon</code> three.js/Aperture probe also follows
+              the final free-resize layout, with a focused layout guard covering
+              the no-splash shell and compare panes.
+              Prior update: Starter Kit FPS now free-resizes the playable
               shell/canvas to the full browser viewport, with the boot splash
               DOM removed and the 1280x720 source cap/aspect sizing retired.
               Playwright layout proof covered 1600x900, 1000x900, and 390x844
@@ -6631,6 +6647,25 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">FPS-PORT</div>
+            <div>
+              <strong>Starter Kit FPS completion audit is green.</strong>
+              <span>
+                Source mechanics, scene data, HUD, audio, effects, and cloud
+                transforms are covered by focused tests against
+                <code>references/Starter-Kit-FPS</code>. Managed Aperture smokes
+                prove primary shooting, middle-click weapon switching,
+                camera-relative movement, jump, skybox readback, and full route
+                clear with <code>health:60</code>, <code>shotsFired:8</code>,
+                <code>hits:16</code>, and <code>gameStatus:"cleared"</code>.
+                The Aperture CLI tool client now keeps managed browser-backed
+                calls attached and reconnects once after closed-page errors,
+                and the <code>?compare=weapon</code> probe follows the final
+                free-resize layout with a focused no-splash/free-resize guard.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">FPS-PORT</div>
             <div>

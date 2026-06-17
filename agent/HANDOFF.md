@@ -1,11 +1,33 @@
-# Handoff - FPS Responsive Canvas Without Splash
+# Handoff - FPS Completion Audit and Tool Client Hardening
 
-**Updated:** 2026-06-17 14:58 PDT
+**Updated:** 2026-06-17 15:08 PDT
 
 User-directed work is on branch `fps-starter-kit-port`.
 
 ## Latest Completed Slice
 
+- Committed `d5126caf` (`Harden Aperture tool client for FPS audit`).
+- Committed `f1334b20` (`Make FPS weapon compare free resize`).
+- Committed `4c1e36c2` (`Cover FPS free resize layout`).
+- Hardened the Aperture CLI browser-backed tool client:
+  - retains the Playwright browser connection strongly for the page lifetime;
+  - reuses a managed browser connection for repeated browser-backed tool calls
+    in one process;
+  - reconnects once if a cached page/context/browser has closed.
+- Added source-scene parity coverage for all 11 Starter Kit FPS cloud
+  transforms by parsing `references/Starter-Kit-FPS/scenes/main.tscn` and
+  comparing cloud asset IDs, positions, and scales against `CLOUDS`.
+- Kept the `?compare=weapon` three.js/Aperture visual probe aligned with the
+  final FPS resize behavior: the Aperture and three.js panes now each fill half
+  the viewport height instead of preserving a 16:9 box.
+- Added a free-resize layout guard proving `fps/index.html` has no splash chrome
+  or source-aspect box and the `?compare=weapon` panes stay full-height.
+- Final FPS completion audit found no remaining required FPS port blocker:
+  source player/weapon/enemy/HUD/audio constants are covered by focused tests,
+  the source scene level/enemy/cloud transforms are source-anchored, the
+  generated-input full-clear route clears all four enemies, and the live visual
+  viewmodel caveat is closed by three.js comparison evidence plus user
+  inspection acceptance.
 - Committed `dae7ec2b` (`Remove FPS splash and viewport cap`).
 - Committed `29712108` (`Make FPS canvas free resize`).
 - Follow-up correction makes the playable shell/canvas fully free-resize to the
@@ -23,9 +45,21 @@ User-directed work is on branch `fps-starter-kit-port`.
 
 ## Validation
 
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts test/app/fps-hud.test.ts test/app/fps-audio.test.ts test/app/fps-effects.test.ts test/app/fps-setup.test.ts test/cli/tool-client.test.ts`
+  - 8 files, 75 tests passed.
+- `pnpm exec vitest run test/cli/tool-client.test.ts test/app/fps-data.test.ts`
+  - 2 files, 14 tests passed after formatting.
+- `pnpm exec vitest run test/app/fps-layout.test.ts`
+  - 1 file, 2 tests passed.
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm exec prettier --check packages/cli/src/tools/browser.ts packages/cli/src/tools/client.ts test/cli/tool-client.test.ts test/app/fps-data.test.ts`
 - `pnpm exec vitest run test/app/fps-hud.test.ts`
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
+- `pnpm exec prettier --check fps/src/weapon-three-compare.ts`
+- `pnpm exec prettier --check test/app/fps-layout.test.ts`
+- `git diff --check -- fps/src/weapon-three-compare.ts`
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir shadow-lab run typecheck`
 - `git diff --check -- fps/index.html fps/src/lib/fps-hud.ts test/app/fps-hud.test.ts`
@@ -36,22 +70,34 @@ User-directed work is on branch `fps-starter-kit-port`.
     `enemiesRemaining:0`, `destroyedEnemies:4`, `gameStatus:"cleared"`;
   - screenshot:
     `fps/.aperture/runtime/fps-full-clear-smoke.png`.
+- `pnpm --dir fps run smoke:mechanics`
+  - proved primary mouse shooting, middle mouse weapon switch, camera-relative
+    W movement, and Space jumping through managed Aperture MCP/CLI.
+- `pnpm --dir fps run smoke:skybox-readback`
+  - proved one diagnostic-free source skybox, two render views, and the named
+    source-facing color relationships.
+- `pnpm --dir fps run smoke:full-clear`
+  - fresh managed session cleared all 4 enemies with `health:60`,
+    `shotsFired:8`, `hits:16`, `enemiesRemaining:0`, `destroyedEnemies:4`,
+    `gameStatus:"cleared"`.
+- Managed Aperture CLI regression checks:
+  - Racing `http://127.0.0.1:5174/`: WebGPU ready, frame diagnostics `0`,
+    `views:1`, `meshDraws:36`, `shadowCasterDraws:364`, `drawCalls:46`.
+  - Shadow Lab `http://127.0.0.1:5175/`: WebGPU ready, render diagnostics `0`,
+    shadow diagnostics `0`, shadow status `submitted`, `views:1`,
+    `meshDraws:25`, `shadowCasterDraws:364`, `drawCalls:38`.
 - `pnpm --dir fps exec aperture dev down`
+- `pnpm --dir racing exec aperture dev down`
+- `pnpm --dir shadow-lab exec aperture dev down`
 
 ## Known Issues
 
-- FPS viewmodel placement/material parity remains the main visible open FPS
-  port decision, although the user just reported the current live experience is
-  very good and they cannot find a problem with it.
-- The earlier pointer-input handoff caveat about the long full-clear smoke
-  lifecycle is superseded by the 2026-06-17 14:57 PDT pass above.
 - Pre-existing untracked screenshot/parity artifacts remain outside commits.
 
 ## Recommended Next Task
 
-Do a final FPS completion audit against the Starter-Kit-FPS source controls,
-visuals, smoke coverage, and live Aperture diagnostics, then either close the
-goal or address any remaining concrete mismatch found by that audit.
+The FPS port goal has enough current evidence to close. After closing it, resume
+the normal engine backlog at `task-3097` unless the user asks for FPS polish.
 
 ---
 

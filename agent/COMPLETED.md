@@ -1,5 +1,50 @@
 # Completed Tasks
 
+## FPS-PORT - Completion audit and tool client hardening
+
+Completed: 2026-06-17 15:08 PDT
+
+### Summary
+
+- Hardened Aperture CLI browser-backed tool calls by keeping the managed
+  Playwright browser connection strongly referenced, reusing the connection for
+  repeated calls in one process, and reconnecting once when a cached page has
+  closed.
+- Added source-scene cloud transform parity coverage for all 11 Starter Kit FPS
+  clouds, comparing `references/Starter-Kit-FPS/scenes/main.tscn` against
+  `CLOUDS`.
+- Kept the `?compare=weapon` three.js/Aperture probe aligned with the final
+  free-resize FPS layout by making both comparison panes fill half the viewport
+  height.
+- Added a focused layout guard for the no-splash free-resize FPS shell and the
+  free-resize `?compare=weapon` panes.
+- Completed the FPS port audit with no remaining required FPS blocker: source
+  mechanics/data are test-anchored, the managed mechanics/skybox/full-clear
+  smokes pass, the source GLB viewmodel caveat is closed by the three.js compare
+  evidence plus user visual acceptance, and racing/shadow-lab live checks still
+  pass.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts test/app/fps-hud.test.ts test/app/fps-audio.test.ts test/app/fps-effects.test.ts test/app/fps-setup.test.ts test/cli/tool-client.test.ts`
+- `pnpm exec vitest run test/cli/tool-client.test.ts test/app/fps-data.test.ts`
+- `pnpm exec vitest run test/app/fps-layout.test.ts`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm exec prettier --check packages/cli/src/tools/browser.ts packages/cli/src/tools/client.ts test/cli/tool-client.test.ts test/app/fps-data.test.ts`
+- `pnpm --dir fps run smoke:mechanics`
+- `pnpm --dir fps run smoke:skybox-readback`
+- `pnpm --dir fps run smoke:full-clear`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm exec prettier --check fps/src/weapon-three-compare.ts`
+- `pnpm exec prettier --check test/app/fps-layout.test.ts`
+- `git diff --check -- fps/src/weapon-three-compare.ts`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- Managed Aperture CLI checks for racing and Shadow Lab: WebGPU ready,
+  diagnostics `0`, submitted/healthy directional shadow frame reports.
+
 ## FPS-PORT - Responsive canvas without splash
 
 Completed: 2026-06-17 14:54 PDT
