@@ -41,13 +41,17 @@ import {
   composeTrsMatrix,
   createMeshBvh,
   createShaderHandle,
+  createTextureHandle,
+  type EcsWorld,
   type Entity,
 } from "@aperture-engine/simulation";
 import {
   Mesh,
   ShadowCaster,
   ShadowReceiver,
+  Sprite,
   createPlaneMeshAsset,
+  createSprite,
   createSpatialTriangleMeshFromMeshAsset,
 } from "@aperture-engine/render";
 import {
@@ -62,6 +66,7 @@ import {
   EcsType,
   LocalTransform,
   Name,
+  Parent,
   createSystem,
   material,
   mesh,
@@ -1675,19 +1680,18 @@ describe("developer-facing app API", () => {
       ...secondRoot.getVectorView(LocalTransform, "translation"),
     ]).toEqual([1.5, 0, 0]);
 
-    const firstMeshNodes = app.context.gltf
-      .nodes(firstRoot)
-      .filter((node) => node.entity.hasComponent(Mesh));
-    const secondMeshNodes = app.context.gltf
-      .nodes(secondRoot)
-      .filter((node) => node.entity.hasComponent(Mesh));
-    expect(firstMeshNodes.length).toBeGreaterThan(0);
-    expect(secondMeshNodes.length).toBeGreaterThan(0);
-    for (const node of [...firstMeshNodes, ...secondMeshNodes]) {
-      expect(node.entity.hasComponent(ShadowCaster)).toBe(true);
-      expect(node.entity.getValue(ShadowCaster, "enabled")).toBe(false);
-      expect(node.entity.hasComponent(ShadowReceiver)).toBe(true);
-      expect(node.entity.getValue(ShadowReceiver, "enabled")).toBe(true);
+    const firstMeshEntities = meshEntitiesInSubtree(app.lowLevel.world, firstRoot);
+    const secondMeshEntities = meshEntitiesInSubtree(
+      app.lowLevel.world,
+      secondRoot,
+    );
+    expect(firstMeshEntities.length).toBeGreaterThan(0);
+    expect(secondMeshEntities.length).toBeGreaterThan(0);
+    for (const entity of [...firstMeshEntities, ...secondMeshEntities]) {
+      expect(entity.hasComponent(ShadowCaster)).toBe(true);
+      expect(entity.getValue(ShadowCaster, "enabled")).toBe(false);
+      expect(entity.hasComponent(ShadowReceiver)).toBe(true);
+      expect(entity.getValue(ShadowReceiver, "enabled")).toBe(true);
     }
 
     const sourceMaterialCount =
@@ -1707,7 +1711,7 @@ describe("developer-facing app API", () => {
 
     const snapshot = app.stepAndExtract(1 / 60, 0.5, 0);
     expect(snapshot.meshDraws.length).toBeGreaterThanOrEqual(
-      firstMeshNodes.length + secondMeshNodes.length,
+      firstMeshEntities.length + secondMeshEntities.length,
     );
   });
 
@@ -1865,6 +1869,59 @@ describe("developer-facing app API", () => {
         assetId: "robot",
         gltfNodeIndex: expect.any(Number),
         gltfNodePath: expect.stringContaining("nodes["),
+      },
+    });
+
+    const spriteEntity = runner.app.lowLevel.world.createEntity();
+    spriteEntity.addComponent(AppEntityKey, { value: "effect.summary-sprite" });
+    spriteEntity.addComponent(Name, { value: "Summary Sprite" });
+    spriteEntity.addComponent(
+      Sprite,
+      createSprite({
+        texture: createTextureHandle("entity-summary-sprite"),
+        size: [2, 3],
+        color: [0.25, 0.5, 0.75, 0.9],
+        uvRect: [0.25, 0.5, 0.5, 0.25],
+        pivot: [0.2, 0.8],
+        rotation: 0.5,
+        atlasFrame: 2,
+        coordinateMode: "screen",
+        billboardMode: "cylindrical",
+        sizeMode: "screen-pixels",
+        blendMode: "additive",
+      }),
+    );
+    const sprite = runner.entities.find({
+      key: "effect.summary-sprite",
+      withComponents: [Sprite.id],
+    });
+    expect(sprite.summaries).toHaveLength(1);
+    expect(sprite.summaries[0]).toMatchObject({
+      componentIds: expect.arrayContaining([Sprite.id]),
+      renderSprite: {
+        textureId: "texture:entity-summary-sprite",
+        samplerId: "",
+        color: [
+          expect.closeTo(0.25),
+          expect.closeTo(0.5),
+          expect.closeTo(0.75),
+          expect.closeTo(0.9),
+        ],
+        width: 2,
+        height: 3,
+        uvRect: [
+          expect.closeTo(0.25),
+          expect.closeTo(0.5),
+          expect.closeTo(0.5),
+          expect.closeTo(0.25),
+        ],
+        pivot: [expect.closeTo(0.2), expect.closeTo(0.8)],
+        rotation: expect.closeTo(0.5),
+        atlasFrame: 2,
+        coordinateMode: "screen",
+        billboardMode: "cylindrical",
+        sizeMode: "screen-pixels",
+        blendMode: "additive",
       },
     });
 
@@ -2461,6 +2518,46 @@ function materialCullMode(entry: { readonly asset: unknown } | undefined) {
   const renderState = readRecord(asset?.renderState);
   const cullMode = renderState?.cullMode;
   return typeof cullMode === "string" ? cullMode : undefined;
+}
+
+function meshEntitiesInSubtree(world: EcsWorld, root: Entity): Entity[] {
+  const childrenByParent = new Map<string, Entity[]>();
+  const parentQuery = world.queryManager.registerQuery({
+    required: [Parent],
+  });
+
+  for (const entity of parentQuery.entities) {
+    const parent = entity.getValue(Parent, "entity");
+    if (parent === null || parent === undefined || !parent.active) continue;
+    const key = entityKey(parent);
+    const children = childrenByParent.get(key) ?? [];
+    children.push(entity);
+    childrenByParent.set(key, children);
+  }
+
+  const result: Entity[] = [];
+  const stack = [root];
+  const visited = new Set<string>();
+  while (stack.length > 0) {
+    const entity = stack.pop()!;
+    const key = entityKey(entity);
+    if (!entity.active || visited.has(key)) continue;
+    visited.add(key);
+
+    if (entity.hasComponent(Mesh)) {
+      result.push(entity);
+    }
+
+    for (const child of childrenByParent.get(key) ?? []) {
+      stack.push(child);
+    }
+  }
+
+  return result;
+}
+
+function entityKey(entity: Entity): string {
+  return `${entity.index}:${entity.generation}`;
 }
 
 function readAppTags(entity: Entity): readonly string[] {

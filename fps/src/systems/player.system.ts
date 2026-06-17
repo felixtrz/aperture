@@ -17,6 +17,7 @@ import type {
 import { Sprite } from "@aperture-engine/render";
 import {
   ENEMIES,
+  ENEMY_MUZZLE_OFFSETS,
   GRAVITY,
   JUMP_STRENGTH,
   MAX_JUMPS,
@@ -37,6 +38,7 @@ const ENEMY_HOVER_RATE = 5;
 const ENEMY_ATTACK_INTERVAL = 0.8;
 const ENEMY_ATTACK_DISTANCE = 14;
 const ENEMY_ATTACK_DAMAGE = 5;
+const SPRITE_ANIMATION_FPS = 30;
 const PLAYER_CONTROLLER_SETTINGS: PhysicsCharacterControllerSettings = {
   offset: 0.02,
   slide: true,
@@ -48,14 +50,37 @@ const PLAYER_CONTROLLER_SETTINGS: PhysicsCharacterControllerSettings = {
     minWidth: 0.2,
   },
 };
-const MUZZLE_FLASH_DURATION = 0.25;
-const IMPACT_FLASH_DURATION = 0.35;
+const FULL_SPRITE_UV: SpriteUvRect = [0, 0, 1, 1];
+const MUZZLE_FLASH_FRAMES: readonly SpriteAnimationFrame[] = [
+  [0, 0, 0.5, 1],
+  [0.5, 0, 0.5, 1],
+  null,
+];
+const IMPACT_FLASH_FRAMES: readonly SpriteAnimationFrame[] = [
+  [0, 0, 0.5, 0.5],
+  [0.5, 0, 0.5, 0.5],
+  [0, 0.5, 0.5, 0.5],
+  [0.5, 0.5, 0.5, 0.5],
+];
+const MUZZLE_FLASH_DURATION =
+  MUZZLE_FLASH_FRAMES.length / SPRITE_ANIMATION_FPS;
+const IMPACT_FLASH_DURATION =
+  IMPACT_FLASH_FRAMES.length / SPRITE_ANIMATION_FPS;
 const HIDDEN_EFFECT_POSITION: Vec3 = [0, -100, 0];
 
 interface ShotEnemyHit {
   readonly key: string;
   readonly point: Vec3;
   readonly distance: number;
+}
+
+type SpriteUvRect = readonly [number, number, number, number];
+type SpriteAnimationFrame = SpriteUvRect | null;
+
+interface SpriteFrameSelection {
+  readonly atlasFrame: number;
+  readonly visible: boolean;
+  readonly uvRect: SpriteUvRect;
 }
 
 export default class PlayerSystem extends createSystem({
@@ -72,12 +97,21 @@ export default class PlayerSystem extends createSystem({
   #impactFlashTimer = 0;
   #muzzleFlashPosition: Vec3 = HIDDEN_EFFECT_POSITION;
   #impactFlashPosition: Vec3 = HIDDEN_EFFECT_POSITION;
+  #enemyMuzzleFlashTimers: [number, number] = [0, 0];
+  #enemyMuzzleFlashPositions: [Vec3, Vec3] = [
+    HIDDEN_EFFECT_POSITION,
+    HIDDEN_EFFECT_POSITION,
+  ];
   #damagePulse = 0;
 
   override update(delta: number): void {
     const dt = Math.min(Math.max(delta, 0), 1 / 30);
     this.#muzzleFlashTimer = Math.max(0, this.#muzzleFlashTimer - dt);
     this.#impactFlashTimer = Math.max(0, this.#impactFlashTimer - dt);
+    for (let i = 0; i < this.#enemyMuzzleFlashTimers.length; i += 1) {
+      const timer = this.#enemyMuzzleFlashTimers[i] ?? 0;
+      this.#enemyMuzzleFlashTimers[i] = Math.max(0, timer - dt);
+    }
 
     const state = this.resources.read(FpsResource);
 
@@ -109,8 +143,7 @@ export default class PlayerSystem extends createSystem({
       hits = 0;
       enemyHealth = createEnemyHealth();
       skipPhysicsMove = true;
-      this.#muzzleFlashTimer = 0;
-      this.#impactFlashTimer = 0;
+      this.#resetTransientGameplayState();
       this.#damagePulse = 0;
       this.#writePlayerBody(PLAYER_BODY_START);
     }
@@ -185,8 +218,7 @@ export default class PlayerSystem extends createSystem({
       grounded = true;
       health = 100;
       enemyHealth = createEnemyHealth();
-      this.#muzzleFlashTimer = 0;
-      this.#impactFlashTimer = 0;
+      this.#resetTransientGameplayState();
       this.#damagePulse = 0;
       this.#writePlayerBody(PLAYER_BODY_START);
     }
@@ -229,6 +261,7 @@ export default class PlayerSystem extends createSystem({
       ) {
         health = Math.max(0, health - ENEMY_ATTACK_DAMAGE);
         this.#damagePulse += 1;
+        this.#triggerEnemyMuzzleFlashes(attacker.position, position);
         this.#playOneShot("enemy-attack", 0.35);
       }
     }
@@ -493,13 +526,24 @@ export default class PlayerSystem extends createSystem({
       this.#muzzleFlashPosition,
       this.#muzzleFlashTimer / MUZZLE_FLASH_DURATION,
       1,
+      MUZZLE_FLASH_FRAMES,
     );
     this.#writeEffectSprite(
       "effect.impact-hit",
       this.#impactFlashPosition,
       this.#impactFlashTimer / IMPACT_FLASH_DURATION,
       1,
+      IMPACT_FLASH_FRAMES,
     );
+    for (let i = 0; i < this.#enemyMuzzleFlashTimers.length; i += 1) {
+      this.#writeEffectSprite(
+        `effect.enemy-muzzle.${i}`,
+        this.#enemyMuzzleFlashPositions[i]!,
+        (this.#enemyMuzzleFlashTimers[i] ?? 0) / MUZZLE_FLASH_DURATION,
+        0.72,
+        MUZZLE_FLASH_FRAMES,
+      );
+    }
   }
 
   #writeEffectSprite(
@@ -507,11 +551,13 @@ export default class PlayerSystem extends createSystem({
     position: Vec3,
     normalizedLife: number,
     scale: number,
+    frames: readonly SpriteAnimationFrame[],
   ): void {
     const entity = this.#findByKey(key);
     if (entity === null) return;
 
-    const alpha = clamp01(normalizedLife);
+    const frame = spriteFrameForLife(frames, normalizedLife);
+    const alpha = frame.visible ? clamp01(normalizedLife) : 0;
     entity
       .getVectorView(LocalTransform, "translation")
       .set(alpha > 0 ? position : HIDDEN_EFFECT_POSITION);
@@ -519,6 +565,8 @@ export default class PlayerSystem extends createSystem({
 
     if (entity.hasComponent(Sprite)) {
       entity.getVectorView(Sprite, "color").set([1, 1, 1, alpha]);
+      entity.getVectorView(Sprite, "uvRect").set(frame.uvRect);
+      entity.setValue(Sprite, "atlasFrame", frame.atlasFrame);
     }
   }
 
@@ -568,6 +616,37 @@ export default class PlayerSystem extends createSystem({
     setSignal(this.signals.playerY, Number(input.position[1].toFixed(2)));
     setSignal(this.signals.playerZ, Number(input.position[2].toFixed(2)));
     setSignal(this.signals.lastShotFrame, input.shotsFired);
+  }
+
+  #triggerEnemyMuzzleFlashes(enemyPosition: Vec3, playerPosition: Vec3): void {
+    const yaw = enemyYaw(enemyPosition, playerPosition);
+    for (let i = 0; i < ENEMY_MUZZLE_OFFSETS.length; i += 1) {
+      this.#enemyMuzzleFlashPositions[i] = enemyMuzzlePosition(
+        enemyPosition,
+        yaw,
+        ENEMY_MUZZLE_OFFSETS[i]!,
+      );
+      this.#enemyMuzzleFlashTimers[i] = MUZZLE_FLASH_DURATION;
+    }
+  }
+
+  #clearEnemyMuzzleFlashes(): void {
+    this.#enemyMuzzleFlashTimers = [0, 0];
+    this.#enemyMuzzleFlashPositions = [
+      HIDDEN_EFFECT_POSITION,
+      HIDDEN_EFFECT_POSITION,
+    ];
+  }
+
+  #resetTransientGameplayState(): void {
+    this.#enemyTime = 0;
+    this.#enemyAttackTimer = 0;
+    this.#footstepLoop = false;
+    this.#muzzleFlashTimer = 0;
+    this.#impactFlashTimer = 0;
+    this.#muzzleFlashPosition = HIDDEN_EFFECT_POSITION;
+    this.#impactFlashPosition = HIDDEN_EFFECT_POSITION;
+    this.#clearEnemyMuzzleFlashes();
   }
 
   #updateFootsteps(grounded: boolean, moving: boolean): void {
@@ -666,6 +745,32 @@ function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
 }
 
+function spriteFrameForLife(
+  frames: readonly SpriteAnimationFrame[],
+  normalizedLife: number,
+): SpriteFrameSelection {
+  if (frames.length === 0 || normalizedLife <= 0) {
+    return {
+      atlasFrame: 0,
+      visible: false,
+      uvRect: FULL_SPRITE_UV,
+    };
+  }
+
+  const elapsed = 1 - clamp01(normalizedLife);
+  const atlasFrame = Math.min(
+    frames.length - 1,
+    Math.max(0, Math.floor(elapsed * frames.length)),
+  );
+  const uvRect = frames[atlasFrame] ?? null;
+
+  return {
+    atlasFrame,
+    visible: uvRect !== null,
+    uvRect: uvRect ?? FULL_SPRITE_UV,
+  };
+}
+
 function horizontalForward(yaw: number): Vec3 {
   return [Math.sin(yaw), 0, -Math.cos(yaw)];
 }
@@ -741,6 +846,16 @@ function enemyPosition(base: Vec3, time: number): Vec3 {
 
 function enemyYaw(enemy: Vec3, player: Vec3): number {
   return Math.atan2(player[0] - enemy[0], player[2] - enemy[2]);
+}
+
+function enemyMuzzlePosition(enemy: Vec3, yaw: number, offset: Vec3): Vec3 {
+  const right: Vec3 = [Math.cos(yaw), 0, -Math.sin(yaw)];
+  const forward: Vec3 = [Math.sin(yaw), 0, Math.cos(yaw)];
+  return [
+    enemy[0] + right[0] * offset[0] + forward[0] * offset[2],
+    enemy[1] + offset[1],
+    enemy[2] + right[2] * offset[0] + forward[2] * offset[2],
+  ];
 }
 
 function countLivingEnemies(enemyHealth: Record<string, number>): number {

@@ -20,6 +20,13 @@ import {
   RigidBody,
   PhysicsRigidBodyType,
 } from "@aperture-engine/physics";
+import {
+  Sprite,
+  SpriteBillboardMode,
+  SpriteBlendMode,
+  SpriteCoordinateMode,
+  SpriteSizeMode,
+} from "@aperture-engine/render";
 import type { EcsWorld, Entity } from "@aperture-engine/simulation";
 import type { EcsEntityRef } from "../../config.js";
 import type {
@@ -38,6 +45,7 @@ import type {
   AperturePhysicsMaterialSummary,
   AperturePhysicsRigidBodySummary,
   AperturePhysicsVelocitySummary,
+  ApertureRenderSpriteSummary,
   ApertureWorldTransformSummary,
 } from "./types.js";
 import {
@@ -73,6 +81,9 @@ export function entitySummary(entity: Entity): ApertureEntitySummary {
     : null;
   const worldTransform = entity.hasComponent(WorldTransform)
     ? worldTransformSummary(entity)
+    : null;
+  const renderSprite = entityHasComponentId(entity, Sprite.id)
+    ? renderSpriteSummary(entity)
     : null;
   const physicsRigidBody = entityHasComponentId(entity, RigidBody.id)
     ? physicsRigidBodySummary(entity)
@@ -139,6 +150,7 @@ export function entitySummary(entity: Entity): ApertureEntitySummary {
     ...(parent === null ? {} : { parent }),
     ...(localTransform === null ? {} : { localTransform }),
     ...(worldTransform === null ? {} : { worldTransform }),
+    ...(renderSprite === null ? {} : { renderSprite }),
     ...(physicsRigidBody === null ? {} : { physicsRigidBody }),
     ...(physicsCollider === null ? {} : { physicsCollider }),
     ...(physicsVelocity === null ? {} : { physicsVelocity }),
@@ -212,6 +224,33 @@ function worldTransformSummary(entity: Entity): ApertureWorldTransformSummary {
       ...tuple4FromView(entity.getVectorView(WorldTransform, "col2")),
       ...tuple4FromView(entity.getVectorView(WorldTransform, "col3")),
     ],
+  };
+}
+
+function renderSpriteSummary(entity: Entity): ApertureRenderSpriteSummary {
+  const coordinateMode = entity.getValue(Sprite, "coordinateMode");
+  const billboardMode = entity.getValue(Sprite, "billboardMode");
+  const sizeMode = entity.getValue(Sprite, "sizeMode");
+  const blendMode = entity.getValue(Sprite, "blendMode");
+
+  return {
+    textureId: entity.getValue(Sprite, "textureId") ?? "",
+    samplerId: entity.getValue(Sprite, "samplerId") ?? "",
+    color: tuple4FromView(entity.getVectorView(Sprite, "color")),
+    width: entity.getValue(Sprite, "width") ?? 1,
+    height: entity.getValue(Sprite, "height") ?? 1,
+    uvRect: tuple4FromView(entity.getVectorView(Sprite, "uvRect")),
+    pivot: tuple2FromView(entity.getVectorView(Sprite, "pivot")),
+    rotation: entity.getValue(Sprite, "rotation") ?? 0,
+    atlasFrame: entity.getValue(Sprite, "atlasFrame") ?? 0,
+    coordinateMode: isSpriteCoordinateMode(coordinateMode)
+      ? coordinateMode
+      : SpriteCoordinateMode.World,
+    billboardMode: isSpriteBillboardMode(billboardMode)
+      ? billboardMode
+      : SpriteBillboardMode.Spherical,
+    sizeMode: isSpriteSizeMode(sizeMode) ? sizeMode : SpriteSizeMode.WorldUnits,
+    blendMode: isSpriteBlendMode(blendMode) ? blendMode : SpriteBlendMode.Alpha,
   };
 }
 
@@ -500,6 +539,22 @@ function isPhysicsJointMotorModel(
   );
 }
 
+function isSpriteCoordinateMode(value: unknown): value is SpriteCoordinateMode {
+  return typeof value === "string" && stringValueIn(value, SpriteCoordinateMode);
+}
+
+function isSpriteBillboardMode(value: unknown): value is SpriteBillboardMode {
+  return typeof value === "string" && stringValueIn(value, SpriteBillboardMode);
+}
+
+function isSpriteSizeMode(value: unknown): value is SpriteSizeMode {
+  return typeof value === "string" && stringValueIn(value, SpriteSizeMode);
+}
+
+function isSpriteBlendMode(value: unknown): value is SpriteBlendMode {
+  return typeof value === "string" && stringValueIn(value, SpriteBlendMode);
+}
+
 function stringValueIn(
   value: string,
   allowed: Readonly<Record<string, string>>,
@@ -536,6 +591,10 @@ function entityRefFromEntity(entity: Entity | null): EcsEntityRef | null {
   return entity === null
     ? null
     : { index: entity.index, generation: entity.generation };
+}
+
+function tuple2FromView(view: ArrayLike<number>): readonly [number, number] {
+  return [view[0] ?? 0, view[1] ?? 0];
 }
 
 function tuple3FromView(

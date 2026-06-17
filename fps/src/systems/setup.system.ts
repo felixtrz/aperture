@@ -12,6 +12,7 @@ import { Sprite, SpriteBlendMode, createSprite } from "@aperture-engine/render";
 import {
   CLOUDS,
   ENEMIES,
+  ENEMY_MUZZLE_OFFSETS,
   LEVEL_COLLIDERS,
   LEVEL_INSTANCES,
   PLAYER_BODY_HALF_HEIGHT,
@@ -252,6 +253,16 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       size: [0.85, 0.85],
       blendMode: SpriteBlendMode.Alpha,
     });
+
+    for (const index of ENEMY_MUZZLE_OFFSETS.keys()) {
+      this.#spawnSpriteEffect({
+        key: `effect.enemy-muzzle.${index}`,
+        name: `Enemy Muzzle ${index + 1}`,
+        textureId: "muzzle-burst",
+        size: [0.42, 0.42],
+        blendMode: SpriteBlendMode.Additive,
+      });
+    }
   }
 
   #spawnSpriteEffect(input: {

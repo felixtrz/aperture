@@ -8,6 +8,12 @@ import type {
   PhysicsMaterialCombineRule,
   PhysicsRigidBodyType,
 } from "@aperture-engine/physics";
+import type {
+  SpriteBillboardMode,
+  SpriteBlendMode,
+  SpriteCoordinateMode,
+  SpriteSizeMode,
+} from "@aperture-engine/render";
 import type { EcsEntityRef } from "../../config.js";
 
 export interface ApertureEntitySourceSummary {
@@ -26,6 +32,7 @@ export interface ApertureEntitySummary {
   readonly parent?: EcsEntityRef;
   readonly localTransform?: ApertureLocalTransformSummary;
   readonly worldTransform?: ApertureWorldTransformSummary;
+  readonly renderSprite?: ApertureRenderSpriteSummary;
   readonly physicsRigidBody?: AperturePhysicsRigidBodySummary;
   readonly physicsCollider?: AperturePhysicsColliderSummary;
   readonly physicsVelocity?: AperturePhysicsVelocitySummary;
@@ -65,6 +72,22 @@ export interface ApertureWorldTransformSummary {
     number,
     number,
   ];
+}
+
+export interface ApertureRenderSpriteSummary {
+  readonly textureId: string;
+  readonly samplerId: string;
+  readonly color: readonly [number, number, number, number];
+  readonly width: number;
+  readonly height: number;
+  readonly uvRect: readonly [number, number, number, number];
+  readonly pivot: readonly [number, number];
+  readonly rotation: number;
+  readonly atlasFrame: number;
+  readonly coordinateMode: SpriteCoordinateMode;
+  readonly billboardMode: SpriteBillboardMode;
+  readonly sizeMode: SpriteSizeMode;
+  readonly blendMode: SpriteBlendMode;
 }
 
 export interface AperturePhysicsRigidBodySummary {

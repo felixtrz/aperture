@@ -39,6 +39,10 @@ export interface EnemySpec {
   readonly yawDegrees?: number | undefined;
 }
 
+export const ENEMY_MUZZLE_OFFSETS: readonly [Vec3, Vec3] = [
+  [-0.45, 0.3, 0.4],
+  [0.45, 0.3, 0.4],
+];
 export const PLAYER_EYE_HEIGHT = 1.5;
 export const PLAYER_BODY_KEY = "player.body";
 export const PLAYER_BODY_RADIUS = 0.35;
