@@ -1,5 +1,43 @@
 # Completed Tasks
 
+## FPS-PORT — Click shoot and rapid jump controls
+
+Completed: 2026-06-17 09:40 PDT
+Commit: `2d010e61`
+
+### Summary
+
+- Removed delayed HUD button releases for pointer-lock shoot and keyboard
+  buttons. The generated input resource already preserves same-frame
+  press/release edges, and the delay could keep Space virtually held long
+  enough to swallow fast second jump presses.
+- Added `shoot` to the `fps.input` command payload and consumed that command in
+  `PlayerSystem`, matching the existing command fallback path used for
+  movement, jump, switch weapon, and reset.
+- Pointer-lock/canvas shooting now dispatches both the generated input action
+  and the command fallback on press/release.
+- Added focused control tests for the source mouse-look-right yaw convention,
+  `shoot` command typing, and same-frame button edge recovery.
+
+### Validation
+
+- Live Aperture CLI proof:
+  - `input_pointer_click {"x":0.5,"y":0.5}` incremented `shotsFired` to `1`.
+  - Two quick Space presses across adjacent paused `ecs_step` frames consumed
+    both jumps (`jumpsRemaining:1` then `0`).
+  - Forward movement at `yaw:-PI/2` produced positive X movement velocity.
+- `pnpm --dir fps run smoke:full-clear` succeeded with final `fps.state`:
+  `health:60`, `shotsFired:9`, `hits:16`, `enemiesRemaining:0`,
+  `destroyedEnemies:4`, and `gameStatus:"cleared"`.
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/input-state-events.test.ts`
+  passed 52 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+
 ## FPS-PORT — Full-clear smoke fresh-session hardening
 
 Completed: 2026-06-17 09:30 PDT
@@ -14,7 +52,7 @@ Commit: `5fda9117`
   after the run unless `--keep-running` is passed.
 - Reproduced the stale-session failure mode first: the route reached the final
   elevated platform, then CDP returned `Target page, context or browser has
-  been closed` after reusing an older managed browser.
+been closed` after reusing an older managed browser.
 - Re-ran the package command from a clean session and proved the full route
   clears the game through generated input/MCP state only.
 
@@ -663,7 +701,7 @@ Commit: `68d0ab80`
 - Matched upstream look action-vector signs from
   `references/Starter-Kit-FPS/objects/player.gd`, where controller look reads
   `Input.get_vector("camera_right", "camera_left", "camera_down",
-  "camera_up")`.
+"camera_up")`.
 - Browser-standard gamepad right-stick X now maps right-look to negative
   generated `look.x`, matching source yaw direction.
 - Keyboard IJKL look helpers now follow source signs: `L`/`I` for right/up and

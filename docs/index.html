@@ -393,50 +393,62 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 16:30 UTC</dd>
+            <dd>2026-06-17 16:40 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS now has a reusable generated-input
-              full-clear smoke route at
+              Latest update: Starter Kit FPS click-shoot and rapid jump input
+              are fixed. The HUD no longer holds artificial delayed releases for
+              pointer-lock shoot or keyboard buttons, and
+              <code>shoot</code> now flows through the same
+              <code>fps.input</code> command fallback as movement and jump. Live
+              Aperture CLI proof showed a real canvas click incrementing
+              <code>shotsFired</code> to <code>1</code>, two rapid Space presses
+              consuming both jumps across adjacent paused
+              <code>ecs_step</code> frames, forward movement at
+              <code>yaw:-PI/2</code> producing positive X velocity, and the full
+              <code>pnpm --dir fps run smoke:full-clear</code> route still
+              reaching <code>gameStatus:"cleared"</code> with
+              <code>shotsFired:9</code>, <code>hits:16</code>, and
+              <code>destroyedEnemies:4</code>. Prior update: Starter Kit FPS now
+              has a reusable generated-input full-clear smoke route at
               <code>pnpm --dir fps run smoke:full-clear</code>. The script
               starts or reuses the managed Aperture app, drives gameplay through
               MCP-backed generated input actions, proves platform movement,
               shots, hits, grounded jumps, and double jumps through
               <code>fps.state</code>, and reached
-              <code>gameStatus:"cleared"</code> with
-              <code>health:60</code>, <code>shotsFired:8</code>,
-              <code>hits:16</code>, <code>enemiesRemaining:0</code>, and
+              <code>gameStatus:"cleared"</code> with <code>health:60</code>,
+              <code>shotsFired:8</code>, <code>hits:16</code>,
+              <code>enemiesRemaining:0</code>, and
               <code>destroyedEnemies:4</code>. Screenshot proof was written to
-              <code>fps/.aperture/runtime/fps-full-clear-smoke.png</code>.
-              Prior update: Starter Kit FPS now uses the source-style weapon
-              overlay path with post effects enabled. The renderer preserves
+              <code>fps/.aperture/runtime/fps-full-clear-smoke.png</code>. Prior
+              update: Starter Kit FPS now uses the source-style weapon overlay
+              path with post effects enabled. The renderer preserves
               same-swapchain world color, clears depth for the transparent
-              weapon-layer overlay, stores MSAA color until the final same-target
-              view, and runs bloom/HDR tonemap only after the final overlay
-              camera. The FPS route now has <code>camera.main</code> for world
-              content and transparent <code>camera.weapon</code> for weapon
-              viewmodels and muzzle flash. Keyboard movement, jump,
+              weapon-layer overlay, stores MSAA color until the final
+              same-target view, and runs bloom/HDR tonemap only after the final
+              overlay camera. The FPS route now has <code>camera.main</code> for
+              world content and transparent <code>camera.weapon</code> for
+              weapon viewmodels and muzzle flash. Keyboard movement, jump,
               switch-weapon, and reset also flow through a narrow
               <code>fps.input</code> command channel, and canvas click emits a
               short shoot fallback. Live proof showed Space moving player Y from
-              <code>0.970100...</code> to <code>1.655889...</code>, canvas
-              click incrementing <code>shotsFired</code>, W moving along the
+              <code>0.970100...</code> to <code>1.655889...</code>, canvas click
+              incrementing <code>shotsFired</code>, W moving along the
               camera-forward basis after yaw changed, and
               <code>render_get_frame_report</code> reporting two swapchain
               views, diagnostics <code>0</code>, and post effects only on final
-              view <code>1</code>. Prior update: Starter Kit FPS
-              jump/shoot/look input was hardened through source-style button
-              edge recovery and matching fallback drag yaw. Prior update: the
-              prior source environment constants remain exported, while
-              setup/config use explicit <code>FPS_RENDER_*</code> runtime
-              mapping constants for the current Aperture light convention.
-              Prior update: Starter Kit FPS environment values now derive from
+              view <code>1</code>. Prior update: Starter Kit FPS jump/shoot/look
+              input was hardened through source-style button edge recovery and
+              matching fallback drag yaw. Prior update: the prior source
+              environment constants remain exported, while setup/config use
+              explicit <code>FPS_RENDER_*</code> runtime mapping constants for
+              the current Aperture light convention. Prior update: Starter Kit
+              FPS environment values now derive from
               <code>scenes/main-environment.tres</code> and
               <code>scenes/main.tscn</code>. Prior update: Starter Kit FPS enemy
-              constants now derive from
-              <code>objects/enemy.tscn</code> and
+              constants now derive from <code>objects/enemy.tscn</code> and
               <code>objects/enemy.gd</code>. The port exports source hitbox,
               raycast, attack, hover, muzzle-offset, and muzzle-roll constants
               and routes setup/player systems through them. Aperture CLI proof
@@ -448,39 +460,36 @@
               <code>[0,0.030605,0]</code>. Prior update: Starter Kit FPS cloud
               hover now uses a shared source formula derived from
               <code>objects/cloud.gd</code>, keeps deterministic cloud values
-              inside the source <code>[0.1, 2.0]</code> random range, and
-              proves live cloud Y-only movement through Aperture CLI. Prior
-              update:
-              Starter Kit FPS weapon switching now follows the
-              source shoot-before-toggle ordering and preserves the shared
-              source cooldown timer. Switching no longer clears
-              <code>shotCooldown</code>; Aperture CLI proof fired one shot,
-              then pressed generated <code>switchWeapon</code> and
+              inside the source <code>[0.1, 2.0]</code> random range, and proves
+              live cloud Y-only movement through Aperture CLI. Prior update:
+              Starter Kit FPS weapon switching now follows the source
+              shoot-before-toggle ordering and preserves the shared source
+              cooldown timer. Switching no longer clears
+              <code>shotCooldown</code>; Aperture CLI proof fired one shot, then
+              pressed generated <code>switchWeapon</code> and
               <code>shoot</code> together while cooldown was active and read
               <code>weaponSwitchPhase:"hiding"</code>,
               <code>shotsFired:1</code>, and
-              <code>shotCooldown:0.21666666666666667</code>. After crossing
-              the source <code>0.1</code>s hide duration, the live resource
-              reported <code>weaponIndex:1</code>,
-              <code>weaponVisualIndex:1</code>, and
+              <code>shotCooldown:0.21666666666666667</code>. After crossing the
+              source <code>0.1</code>s hide duration, the live resource reported
+              <code>weaponIndex:1</code>, <code>weaponVisualIndex:1</code>, and
               <code>weaponSwitchPhase:"raising"</code>. Prior update: Starter
-              Kit FPS shot body knockback now follows
-              the source movement path: the player resource carries
-              <code>movementVelocity</code>, horizontal body movement lerps
-              toward the source target at <code>delta * 10</code>, and shots
-              fold <code>weapon.knockback</code> into the local positive-Z
-              target before translation. Aperture CLI proof reset the live FPS
-              route, fired one generated <code>shoot</code> step, and read
+              Kit FPS shot body knockback now follows the source movement path:
+              the player resource carries <code>movementVelocity</code>,
+              horizontal body movement lerps toward the source target at
+              <code>delta * 10</code>, and shots fold
+              <code>weapon.knockback</code> into the local positive-Z target
+              before translation. Aperture CLI proof reset the live FPS route,
+              fired one generated <code>shoot</code> step, and read
               <code>shotsFired:1</code>, <code>shotCooldown:0.25</code>,
               <code>movementVelocity.z:6.664248772464203</code>, and
               <code>playerPosition.z:0.11107081174850464</code>, matching the
               source blaster knockback path <code>40 * 10 / 60</code> with the
               source random yaw kick. Prior update: Starter Kit FPS now
-              separates pointer-lock mouse
-              look from controller/keyboard look through a virtual-only
-              <code>mouseLook</code> action, backed by a new
-              <code>input.virtual()</code> binding for generated actions with
-              no physical binding. The player system now keeps the source
+              separates pointer-lock mouse look from controller/keyboard look
+              through a virtual-only <code>mouseLook</code> action, backed by a
+              new <code>input.virtual()</code> binding for generated actions
+              with no physical binding. The player system now keeps the source
               <code>rotation_target</code> model: controller/keyboard look uses
               <code>gamepad_sensitivity=0.075</code>, diagonal input limiting,
               and <code>lerp_angle(..., delta * 25)</code>, while pointer-lock
@@ -497,12 +506,11 @@
               <code>drawCalls:4</code> weapon), and both the live blaster mesh
               primitive and muzzle sprite on render layer <code>2</code> with
               diagnostics <code>0</code>; <code>mouseLook</code> produced
-              <code>yaw:-0.037142857</code> and
-              <code>pitch:0.018571428</code>, controller
-              <code>look.x=1</code> produced <code>yaw:0.03125</code> for one
-              1/60s step, forward movement at nonzero yaw moved to
-              <code>x:-0.0041,z:-0.0832</code>, canvas click produced
-              <code>shotsFired:1</code>, and jump produced
+              <code>yaw:-0.037142857</code> and <code>pitch:0.018571428</code>,
+              controller <code>look.x=1</code> produced
+              <code>yaw:0.03125</code> for one 1/60s step, forward movement at
+              nonzero yaw moved to <code>x:-0.0041,z:-0.0832</code>, canvas
+              click produced <code>shotsFired:1</code>, and jump produced
               <code>verticalVelocity:7.666666666666667</code>,
               <code>jumpsRemaining:1</code>, and <code>grounded:false</code>.
               Prior update: Starter Kit FPS weapon view placement now derives
@@ -512,11 +520,10 @@
               <code>Container</code> initial position to
               <code>[1.2,-1,-2.25]</code>; source
               <code>objects/player.gd</code> drives
-              <code>container_offset</code> at
-              <code>[1.2,-1.1,-2.75]</code>, movement sway at
-              <code>velocity/30</code>, shot kick <code>0.25</code>, and switch
-              drop <code>1.0</code>. Source weapon resources keep model
-              position at <code>[0,0,0]</code> and set
+              <code>container_offset</code> at <code>[1.2,-1.1,-2.75]</code>,
+              movement sway at <code>velocity/30</code>, shot kick
+              <code>0.25</code>, and switch drop <code>1.0</code>. Source weapon
+              resources keep model position at <code>[0,0,0]</code> and set
               <code>muzzle_position</code> to <code>[0.1,-0.4,1.5]</code>. The
               port now places weapon GLB roots at
               <code>[1.2,-1.1,-2.75]</code> and derives muzzle flashes from
@@ -527,12 +534,14 @@
               generated a center click with <code>shotsFired:1</code>, and read
               <code>effect.muzzle-burst</code> at source-derived translation
               around
-              <code>[0.9220132231712341,0.27010002732276917,-4.292131423950195]</code>
+              <code
+                >[0.9220132231712341,0.27010002732276917,-4.292131423950195]</code
+              >
               with alpha <code>1</code>, sprite size near <code>2.56</code>,
-              <code>depthMode:"disabled"</code>, and diagnostics
-              <code>0</code>. The same run hardened generated pointer capture
-              forwarding so synthetic or pointer-lock-transition events cannot
-              block input delivery; a fresh managed-browser click changed
+              <code>depthMode:"disabled"</code>, and diagnostics <code>0</code>.
+              The same run hardened generated pointer capture forwarding so
+              synthetic or pointer-lock-transition events cannot block input
+              delivery; a fresh managed-browser click changed
               <code>shotsFired</code> from <code>0</code> to <code>1</code>,
               produced <code>spriteDraws:2</code> and
               <code>quadInstances:2</code> with diagnostics <code>0</code>,
@@ -540,11 +549,12 @@
               <code>verticalVelocity:7.666666666666667</code>,
               <code>jumpsRemaining:1</code>, and <code>grounded:false</code>,
               and forward movement after generated look input moved to
-              <code>[0.02215035724262293,0.9701670107679092,0.08033558259526785]</code>
+              <code
+                >[0.02215035724262293,0.9701670107679092,0.08033558259526785]</code
+              >
               at <code>yaw:15.977000000029802</code>, proving movement follows
-              camera yaw. Prior update: Starter Kit FPS player capsule/body
-              data now
-              derives directly from source scene data. Source
+              camera yaw. Prior update: Starter Kit FPS player capsule/body data
+              now derives directly from source scene data. Source
               <code>objects/player.tscn</code> positions the
               <code>CharacterBody3D</code> at <code>y=0.5</code>, the
               <code>Head</code> at local <code>y=1</code>, and the
@@ -558,35 +568,34 @@
               CLI/MCP proof read <code>player.body</code> with radius
               <code>0.30000001192092896</code>, half-height
               <code>0.20000000298023224</code>, the source collider offset, and
-              diagnostics <code>0</code>; a generated shot plus Space jump
-              still reported <code>shotsFired:1</code>,
-              <code>grounded:false</code>, <code>jumpsRemaining:1</code>, and
-              diagnostics <code>0</code>. Prior update: Starter Kit FPS source
-              reload/respawn now matches
+              diagnostics <code>0</code>; a generated shot plus Space jump still
+              reported <code>shotsFired:1</code>, <code>grounded:false</code>,
+              <code>jumpsRemaining:1</code>, and diagnostics <code>0</code>.
+              Prior update: Starter Kit FPS source reload/respawn now matches
               source thresholds. The source player script reloads the current
               scene when <code>position.y &lt; -10</code> or
               <code>health &lt; 0</code>, and enemy attacks apply
               <code>collider.damage(5)</code>. The port now shares
               <code>sourcePlayerShouldRespawn(...)</code> across falling,
               health, and immediate post-enemy-damage checks, and the reload
-              reset restores player/camera state, health, weapon state,
-              enemies, pulses, transient gameplay timers, and the player
-              physics body. Aperture CLI/MCP proof set
-              <code>fps.state.health</code> to <code>-1</code>, stepped the
-              worker once, and read back <code>health:100</code>,
-              <code>yaw:0</code>, <code>pitch:0</code>,
+              reset restores player/camera state, health, weapon state, enemies,
+              pulses, transient gameplay timers, and the player physics body.
+              Aperture CLI/MCP proof set <code>fps.state.health</code> to
+              <code>-1</code>, stepped the worker once, and read back
+              <code>health:100</code>, <code>yaw:0</code>, <code>pitch:0</code>,
               <code>enemiesRemaining:4</code>, <code>destroyedEnemies:0</code>,
-              and diagnostics <code>0</code>. Prior update: Starter Kit FPS
-              look input direction now matches source camera action-vector
-              signs. The source player script reads
-              <code>Input.get_vector("camera_right", "camera_left",
-              "camera_down", "camera_up")</code>, so right/down look are
-              negative generated axes and left/up look are positive axes.
-              Browser-standard gamepad right-stick X, keyboard IJKL helpers,
-              and pointer-lock mouse X dispatch now use those signs. Aperture
-              CLI/MCP proof drove right/up look plus forward movement through
-              the managed FPS app, resolved generated input to
-              <code>look.x:-1</code> and <code>look.y:1</code>, moved
+              and diagnostics <code>0</code>. Prior update: Starter Kit FPS look
+              input direction now matches source camera action-vector signs. The
+              source player script reads
+              <code
+                >Input.get_vector("camera_right", "camera_left", "camera_down",
+                "camera_up")</code
+              >, so right/down look are negative generated axes and left/up look
+              are positive axes. Browser-standard gamepad right-stick X,
+              keyboard IJKL helpers, and pointer-lock mouse X dispatch now use
+              those signs. Aperture CLI/MCP proof drove right/up look plus
+              forward movement through the managed FPS app, resolved generated
+              input to <code>look.x:-1</code> and <code>look.y:1</code>, moved
               <code>fps.state</code> to
               <code>yaw:-0.041666666666666664</code> and
               <code>pitch:0.041666666666666664</code>, and advanced the player
@@ -594,33 +603,32 @@
               normalized center-click shooting with <code>shotsFired:1</code>
               and Space jump with
               <code>verticalVelocity:7.666666666666667</code>. Prior update:
-              Starter Kit FPS HUD styling now matches source
-              scene/script constants. The source 128px crosshair texture is
-              scaled by <code>0.35</code>, deriving a <code>44.8px</code>
+              Starter Kit FPS HUD styling now matches source scene/script
+              constants. The source 128px crosshair texture is scaled by
+              <code>0.35</code>, deriving a <code>44.8px</code>
               rendered crosshair; the health label now uses source
               <code>36px</code> text, <code>45px</code> line height,
               <code>12px</code> black outline, <code>0.470588</code> outline
               alpha, and <code>48px</code> left/bottom offsets. Focused HUD
               tests cover the constants, health formatting, and CSS variable
-              emission. Aperture CLI/MCP proof reported one live WebGPU view,
-              19 mesh draws, <code>skyboxes:1</code>, <code>fogs:1</code>, 33
-              draw calls, and diagnostics <code>0</code>. Prior update:
-              Starter Kit FPS player muzzle sprite size now
-              matches source scene data. The source player muzzle uses 256px
-              <code>burst.png</code> atlas frames with default
-              <code>SpriteBase3D.pixel_size = 0.01</code>, deriving a
-              <code>2.56</code> world-unit unscaled sprite; the port now spawns
-              <code>effect.muzzle-burst</code> as <code>[2.56,2.56]</code>
+              emission. Aperture CLI/MCP proof reported one live WebGPU view, 19
+              mesh draws, <code>skyboxes:1</code>, <code>fogs:1</code>, 33 draw
+              calls, and diagnostics <code>0</code>. Prior update: Starter Kit
+              FPS player muzzle sprite size now matches source scene data. The
+              source player muzzle uses 256px <code>burst.png</code> atlas
+              frames with default <code>SpriteBase3D.pixel_size = 0.01</code>,
+              deriving a <code>2.56</code> world-unit unscaled sprite; the port
+              now spawns <code>effect.muzzle-burst</code> as
+              <code>[2.56,2.56]</code>
               while preserving the source runtime scale range
-              <code>0.40..0.75</code>. Because the source muzzle renders
-              through the transparent weapon subviewport, the port now disables
+              <code>0.40..0.75</code>. Because the source muzzle renders through
+              the transparent weapon subviewport, the port now disables
               world-scene depth testing for <code>effect.muzzle-burst</code>.
               Aperture MCP/CLI proof found
               <code>effect.muzzle-burst</code> width/height near
               <code>2.56</code>, <code>depthMode:"disabled"</code>, visible
-              alpha <code>1</code> after a shot, and diagnostics
-              <code>0</code>. Prior update:
-              Starter Kit FPS shooting is hardened for fast
+              alpha <code>1</code> after a shot, and diagnostics <code>0</code>.
+              Prior update: Starter Kit FPS shooting is hardened for fast
               click/release input. The player now buffers a generated
               <code>shoot</code> down edge for <code>0.08s</code> while keeping
               held-fire cooldown behavior intact; the behavior is covered by
@@ -655,49 +663,47 @@
               behavior more closely. Lethal enemy hits emit upstream-style
               <code>enemy-hurt</code> before <code>enemy-destroy</code>, and
               impact sprites derive their world size from
-              <code>objects/impact.tscn</code> <code>pixel_size = 0.0025</code>
-              times the 128px hit-atlas frame, producing <code>0.32</code>
-              world units instead of the older oversized <code>0.85</code>.
-              Aperture MCP proof found
+              <code>objects/impact.tscn</code>
+              <code>pixel_size = 0.0025</code> times the 128px hit-atlas frame,
+              producing <code>0.32</code> world units instead of the older
+              oversized <code>0.85</code>. Aperture MCP proof found
               <code>effect.impact-hit.0</code>
               <code>renderSprite.width</code> and <code>height</code> at about
               <code>0.32</code>, with the managed frame report still at
               diagnostics <code>0</code>. Earlier update: Starter Kit FPS ray
               targets now match source semantics more closely: player pellet
-              spread uses
-              <code>[spreadX, spreadY, -maxDistance]</code> through the camera
-              basis, enemies target <code>playerEye.y - 0.5</code>, and
-              browser-standard gamepad Y axes are inverted explicitly.
+              spread uses <code>[spreadX, spreadY, -maxDistance]</code> through
+              the camera basis, enemies target <code>playerEye.y - 0.5</code>,
+              and browser-standard gamepad Y axes are inverted explicitly.
               Aperture MCP/CLI proof matched the live <code>enemy.0</code>
               forward vector to the source target with dot product
-              <code>1.0000000107</code>. Earlier update:
-              Starter Kit FPS shot impacts and large-platform grass details now
-              match source scenes more closely. The blaster can show one impact
-              animation per pellet instead of collapsing each volley to a single
-              nearest impact, and every <code>platform-large-grass</code> root
-              now carries the three grass children from
-              <code>objects/platform_large_grass.tscn</code>. Aperture CLI
-              proof used generated <code>look</code> and <code>shoot</code>
-              input against <code>enemy.0</code>; <code>fps.state</code>
-              reported <code>shotsFired:1</code>, <code>hits:3</code>, and enemy
-              health <code>100-&gt;25</code>, while
-              <code>effect.impact-hit.0</code>, <code>.1</code>, and
-              <code>.2</code> each reported alpha <code>1</code>. Entity lookup
-              also returned 15 source grass children across the five large grass
-              platforms. The managed frame report stayed at diagnostics
-              <code>0</code>. Prior update:
-              Starter Kit FPS jump handling now matches upstream
+              <code>1.0000000107</code>. Earlier update: Starter Kit FPS shot
+              impacts and large-platform grass details now match source scenes
+              more closely. The blaster can show one impact animation per pellet
+              instead of collapsing each volley to a single nearest impact, and
+              every <code>platform-large-grass</code> root now carries the three
+              grass children from
+              <code>objects/platform_large_grass.tscn</code>. Aperture CLI proof
+              used generated <code>look</code> and <code>shoot</code> input
+              against <code>enemy.0</code>; <code>fps.state</code> reported
+              <code>shotsFired:1</code>, <code>hits:3</code>, and enemy health
+              <code>100-&gt;25</code>, while <code>effect.impact-hit.0</code>,
+              <code>.1</code>, and <code>.2</code> each reported alpha
+              <code>1</code>. Entity lookup also returned 15 source grass
+              children across the five large grass platforms. The managed frame
+              report stayed at diagnostics <code>0</code>. Prior update: Starter
+              Kit FPS jump handling now matches upstream
               <code>objects/player.gd</code> more closely: upward motion stays
               airborne while source-style upward velocity is active, and jump
               impulse is cancelled only by ceiling-like character-controller
               collision normals. Prior update: Starter Kit FPS source fidelity
-              now includes
-              upstream footstep audio gain/threshold behavior and the source
-              panorama skybox. The port converts <code>sprites/skybox.png</code>
-              into a cube texture asset, spawns <code>skybox.main</code> at
-              source intensity <code>0.5</code>, and exposes the route through
-              <code>spawn.skybox(...)</code> plus a render asset helper.
-              Aperture MCP proof found <code>skybox.main</code> with
+              now includes upstream footstep audio gain/threshold behavior and
+              the source panorama skybox. The port converts
+              <code>sprites/skybox.png</code> into a cube texture asset, spawns
+              <code>skybox.main</code> at source intensity <code>0.5</code>, and
+              exposes the route through <code>spawn.skybox(...)</code> plus a
+              render asset helper. Aperture MCP proof found
+              <code>skybox.main</code> with
               <code>aperture.render.skybox</code> and reported frame
               <code>1570</code>, <code>skyboxes:1</code>, diagnostics
               <code>0</code>. Prior update: Starter Kit FPS enemy attack
@@ -707,21 +713,22 @@
               instead of the port selecting only the nearest attacker. The
               attacker filter is covered by a focused
               <code>sourceEnemyAttackers(...)</code> unit test. Aperture MCP
-              proof confirmed WebGPU readiness, found the per-enemy muzzle
-              keys, and reported frame <code>1177</code> diagnostics
-              <code>0</code>. Prior update: Starter Kit FPS camera
-              forward/right helpers now match the actual
-              <code>quatFromEulerYXZ</code> camera basis, buffered jump
-              consumption is covered after grounded refresh, and enemy muzzle
-              flashes now use source-shaped per-enemy effect entities such as
-              <code>effect.enemy.0.muzzle.0</code> through
+              proof confirmed WebGPU readiness, found the per-enemy muzzle keys,
+              and reported frame <code>1177</code> diagnostics <code>0</code>.
+              Prior update: Starter Kit FPS camera forward/right helpers now
+              match the actual <code>quatFromEulerYXZ</code> camera basis,
+              buffered jump consumption is covered after grounded refresh, and
+              enemy muzzle flashes now use source-shaped per-enemy effect
+              entities such as <code>effect.enemy.0.muzzle.0</code> through
               <code>effect.enemy.3.muzzle.1</code>. Aperture MCP proof found the
               new per-enemy muzzle keys, confirmed the old global
               <code>effect.enemy-muzzle.0</code> key is gone, and reported frame
               diagnostics <code>0</code>. Prior update: Starter Kit FPS enemy
               muzzle flashes now inherit the same source-style yaw+pitch child
               transform as the visible enemy root, matching upstream
-              <code>objects/enemy.tscn</code> <code>MuzzleA</code>/<code>MuzzleB</code>
+              <code>objects/enemy.tscn</code> <code>MuzzleA</code>/<code
+                >MuzzleB</code
+              >
               placement instead of yaw-only offsets. Aperture MCP/CLI proof
               drove generated movement toward <code>enemy.0</code>; enemy attack
               reduced health to <code>90</code>, enemy muzzle rotations stayed
@@ -743,8 +750,8 @@
               the player along +X, browser <code>Space</code> produced a
               positive jump with <code>grounded:false</code>, and an aimed shot
               damaged <code>enemy.0</code> from <code>100</code> to
-              <code>25</code>. Prior update: the Starter Kit FPS port now
-              aligns impact sprite depth behavior with upstream
+              <code>25</code>. Prior update: the Starter Kit FPS port now aligns
+              impact sprite depth behavior with upstream
               <code>objects/impact.tscn</code>. Aperture sprites gained an
               ECS-authored <code>SpriteDepthMode</code> path through authoring,
               extraction, packed snapshots, app summaries, and WebGPU sprite
@@ -753,27 +760,25 @@
               flash stays on the default <code>"test"</code> path; managed
               WebGPU proof reported diagnostics <code>0</code>. Prior update:
               the Starter Kit FPS port now has a source-like browser HUD: only
-              the crosshair and large health percentage remain visible, matching upstream
-              <code>scenes/main.tscn</code> / <code>scripts/hud.gd</code>.
-              Port-only weapon/enemy counters, clear banner, and flash overlays
-              were removed while generated gameplay signals remain available for
-              Aperture proof. Aperture proof reported WebGPU healthy, frame
-              diagnostics <code>0</code>, and screenshot
-              <code>/tmp/fps-source-like-hud.png</code> showing the simplified
-              HUD. Prior update: the Starter Kit FPS port now aligns enemy
-              hitboxes and look targets with upstream. Enemy physics hitboxes
-              track the visible root at source local <code>y + 0.25</code>, and
-              enemies pitch/yaw toward the source upper-body target. Aperture
-              proof observed <code>enemy.0</code> visual Y
-              near <code>2.698770</code> and
-              <code>enemy.0.hitbox</code> physics Y near
-              <code>2.948770</code>. Prior update: the Starter Kit FPS
-              port now matches the upstream player damage reload threshold:
-              health <code>0</code> no longer reloads, while health below
-              <code>0</code> resets the scene state. Prior update: the Starter
-              Kit FPS port now has
-              source-like weapon viewmodel motion. The active ECS weapon
-              transform lerps toward
+              the crosshair and large health percentage remain visible, matching
+              upstream <code>scenes/main.tscn</code> /
+              <code>scripts/hud.gd</code>. Port-only weapon/enemy counters,
+              clear banner, and flash overlays were removed while generated
+              gameplay signals remain available for Aperture proof. Aperture
+              proof reported WebGPU healthy, frame diagnostics <code>0</code>,
+              and screenshot <code>/tmp/fps-source-like-hud.png</code> showing
+              the simplified HUD. Prior update: the Starter Kit FPS port now
+              aligns enemy hitboxes and look targets with upstream. Enemy
+              physics hitboxes track the visible root at source local
+              <code>y + 0.25</code>, and enemies pitch/yaw toward the source
+              upper-body target. Aperture proof observed
+              <code>enemy.0</code> visual Y near <code>2.698770</code> and
+              <code>enemy.0.hitbox</code> physics Y near <code>2.948770</code>.
+              Prior update: the Starter Kit FPS port now matches the upstream
+              player damage reload threshold: health <code>0</code> no longer
+              reloads, while health below <code>0</code> resets the scene state.
+              Prior update: the Starter Kit FPS port now has source-like weapon
+              viewmodel motion. The active ECS weapon transform lerps toward
               <code>-localVelocity / 30</code>, and shooting adds a transient
               <code>+0.25</code> local-Z kick. Aperture proof observed
               <code>weapon.0</code> Z <code>-1.200000</code> at baseline,
@@ -785,9 +790,8 @@
               <code>/ 10</code>. Aperture proof observed canvas pointer click
               <code>shotsFired:1</code> and a paused-step jump with
               <code>verticalVelocity:7.6667</code>,
-              <code>jumpsRemaining:1</code>, and
-              <code>grounded:false</code>. Prior update: the Starter Kit FPS
-              port now has source-like enemy
+              <code>jumpsRemaining:1</code>, and <code>grounded:false</code>.
+              Prior update: the Starter Kit FPS port now has source-like enemy
               muzzle flash random roll, and generated-worker devtools now expose
               schema-validated <code>resource_set</code> for deterministic proof
               setup. Aperture CLI proof drove the real character controller into
@@ -2058,11 +2062,12 @@
             <div class="bar"><span style="width: 98%"></span></div>
             <p>
               ECS state produces serializable render snapshots with draw, view,
-              sprite/quad, light, environment, shadow request, bounds, and diagnostic
-              packets, now proven across module Worker structured-clone and
-              opt-in SharedArrayBuffer boundaries. Entity versions now increment
-              on component writes, and cached extraction can reuse unchanged
-              mesh packet templates with fresh snapshot offsets. Per-entity
+              sprite/quad, light, environment, shadow request, bounds, and
+              diagnostic packets, now proven across module Worker
+              structured-clone and opt-in SharedArrayBuffer boundaries. Entity
+              versions now increment on component writes, and cached extraction
+              can reuse unchanged mesh packet templates with fresh snapshot
+              offsets. Per-entity
               <code>InstanceTint</code> components now extract into a snapshot
               tint buffer and annotate mesh draw packets with tint offsets.
               Named <code>InstanceData</code> values now extract into custom
@@ -2596,9 +2601,9 @@
               <li>
                 <span class="badge green">fps</span> Added
                 <code>pnpm --dir fps run smoke:full-clear</code>, a reusable
-                Aperture MCP generated-input smoke route that clears the
-                Starter Kit FPS level, validates grounded platform jumps and
-                double jumps, and reports final
+                Aperture MCP generated-input smoke route that clears the Starter
+                Kit FPS level, validates grounded platform jumps and double
+                jumps, and reports final
                 <code>gameStatus:"cleared"</code> through ECS-owned
                 <code>fps.state</code>.
               </li>
@@ -2626,12 +2631,12 @@
               <li>
                 <span class="badge green">fps</span> Anchored Starter Kit FPS
                 supported environment values to
-                <code>main-environment.tres</code> and
-                <code>main.tscn</code>. The port now uses exact source
-                background and ambient colors, source sky energy, source Sun
-                rotation, and source <code>shadow_opacity</code> as Aperture
-                shadow strength, with CLI proof for the live Sun quaternion and
-                clean skybox/fog render summary.
+                <code>main-environment.tres</code> and <code>main.tscn</code>.
+                The port now uses exact source background and ambient colors,
+                source sky energy, source Sun rotation, and source
+                <code>shadow_opacity</code> as Aperture shadow strength, with
+                CLI proof for the live Sun quaternion and clean skybox/fog
+                render summary.
               </li>
               <li>
                 <span class="badge green">fps</span> Anchored Starter Kit FPS
@@ -2645,8 +2650,8 @@
               <li>
                 <span class="badge green">fps</span> Anchored Starter Kit FPS
                 cloud hover math to the source <code>cloud.gd</code> formula.
-                The port exposes the source <code>[0.1, 2.0]</code> cloud
-                random range, uses a shared
+                The port exposes the source <code>[0.1, 2.0]</code> cloud random
+                range, uses a shared
                 <code>sourceCloudHoverPosition</code> helper, and proves a live
                 cloud moves only on Y through Aperture CLI paused stepping.
               </li>
@@ -2655,9 +2660,9 @@
                 source weapon-switch ordering and cooldown behavior. The port
                 now handles shooting before a new switch edge, preserves shared
                 <code>shotCooldown</code> through switches, and exports source
-                switch timing constants for the <code>0.1</code>s hide tween
-                and <code>delta * 10</code> raise lerp. Aperture CLI proof
-                showed switch-plus-shoot during cooldown starts
+                switch timing constants for the <code>0.1</code>s hide tween and
+                <code>delta * 10</code> raise lerp. Aperture CLI proof showed
+                switch-plus-shoot during cooldown starts
                 <code>weaponSwitchPhase:"hiding"</code> while keeping
                 <code>shotsFired:1</code>.
               </li>
@@ -2666,28 +2671,27 @@
                 source shot body knockback. The port now stores
                 <code>fps.state.movementVelocity</code>, exposes
                 <code>SOURCE_MOVEMENT_LERP_RATE = 10</code>, and uses
-                source-style target velocity plus smoothed movement helpers so
-                a shot folds local positive-Z <code>weapon.knockback</code>
-                into the same-frame body movement target. Aperture CLI proof
-                fired one generated shot and read <code>shotsFired:1</code>,
+                source-style target velocity plus smoothed movement helpers so a
+                shot folds local positive-Z <code>weapon.knockback</code> into
+                the same-frame body movement target. Aperture CLI proof fired
+                one generated shot and read <code>shotsFired:1</code>,
                 <code>shotCooldown:0.25</code>, and
                 <code>movementVelocity.z:6.664248772464203</code>.
               </li>
               <li>
                 <span class="badge green">fps</span> Aligned Starter Kit FPS
-                source look and weapon-camera layering. Pointer-lock mouse
-                look now uses a virtual-only <code>mouseLook</code> action at
+                source look and weapon-camera layering. Pointer-lock mouse look
+                now uses a virtual-only <code>mouseLook</code> action at
                 <code>26/700</code> radians per unit, controller/keyboard look
                 follows the source rotation-target lerp, and recoil updates the
                 same target. The port now spawns source-FOV
-                <code>camera.weapon</code> parented to
-                <code>camera.main</code>, routes world content to render layer
-                <code>1</code>, routes weapon meshes and the muzzle sprite to
-                layer <code>2</code>, and keeps lights visible to both layers.
-                Aperture CLI proof found two WebGPU swapchain views with
-                diagnostics <code>0</code>, the weapon camera at
-                <code>fov=40</code>, and the live blaster primitive plus muzzle
-                sprite on render layer <code>2</code>.
+                <code>camera.weapon</code> parented to <code>camera.main</code>,
+                routes world content to render layer <code>1</code>, routes
+                weapon meshes and the muzzle sprite to layer <code>2</code>, and
+                keeps lights visible to both layers. Aperture CLI proof found
+                two WebGPU swapchain views with diagnostics <code>0</code>, the
+                weapon camera at <code>fov=40</code>, and the live blaster
+                primitive plus muzzle sprite on render layer <code>2</code>.
               </li>
               <li>
                 <span class="badge green">tooling</span> Added
@@ -2706,8 +2710,8 @@
                 <code>0.3</code> and full height <code>1.0</code>. The port now
                 derives Rapier/Aperture half-height <code>0.2</code>, writes
                 <code>offsetTranslation:[0,0.55,0]</code>, and keeps the eye
-                height at <code>1.5</code>. Aperture CLI/MCP proof read the
-                live <code>player.body</code> collider values and then verified
+                height at <code>1.5</code>. Aperture CLI/MCP proof read the live
+                <code>player.body</code> collider values and then verified
                 generated shot plus Space jump state with diagnostics
                 <code>0</code>.
               </li>
@@ -2722,27 +2726,28 @@
                 set <code>fps.state.health</code> to <code>-1</code>, stepped
                 the worker, and read back <code>health:100</code>,
                 <code>yaw:0</code>, <code>pitch:0</code>,
-                <code>enemiesRemaining:4</code>, <code>destroyedEnemies:0</code>,
-                and diagnostics <code>0</code>.
+                <code>enemiesRemaining:4</code>,
+                <code>destroyedEnemies:0</code>, and diagnostics <code>0</code>.
               </li>
               <li>
                 <span class="badge green">fps</span> Aligned look input
                 direction with source camera action-vector signs: gamepad
                 right-stick X, keyboard IJKL helpers, and pointer-lock mouse X
                 now drive right/left yaw with the same signs as
-                <code>Input.get_vector("camera_right", "camera_left",
-                "camera_down", "camera_up")</code>. Aperture MCP proof drove
-                <code>KeyL</code> plus <code>KeyI</code> and observed
-                <code>fps.state</code> advance to negative yaw and positive
-                pitch after one worker step.
+                <code
+                  >Input.get_vector("camera_right", "camera_left",
+                  "camera_down", "camera_up")</code
+                >. Aperture MCP proof drove <code>KeyL</code> plus
+                <code>KeyI</code> and observed <code>fps.state</code> advance to
+                negative yaw and positive pitch after one worker step.
               </li>
               <li>
-                <span class="badge green">fps</span> Aligned Starter Kit FPS
-                HUD styling with source scene/script constants: the crosshair
-                now uses the source-derived <code>44.8px</code> size, and the
-                health label uses source <code>36px</code> text,
-                <code>45px</code> line height, <code>12px</code> outline,
-                <code>0.470588</code> outline alpha, and <code>48px</code>
+                <span class="badge green">fps</span> Aligned Starter Kit FPS HUD
+                styling with source scene/script constants: the crosshair now
+                uses the source-derived <code>44.8px</code> size, and the health
+                label uses source <code>36px</code> text, <code>45px</code> line
+                height, <code>12px</code> outline, <code>0.470588</code> outline
+                alpha, and <code>48px</code>
                 left/bottom offsets. Aperture CLI/MCP proof reported one live
                 WebGPU view, 19 mesh draws, 33 draw calls, and diagnostics
                 <code>0</code>.
@@ -2759,10 +2764,10 @@
                 visible alpha after a generated shot.
               </li>
               <li>
-                <span class="badge green">fps</span> Hardened shooting input
-                for fast click/release cases: the player buffers a generated
-                <code>shoot</code> down edge for <code>0.08s</code>, consumes
-                it after firing, and clears it during reset/respawn cleanup.
+                <span class="badge green">fps</span> Hardened shooting input for
+                fast click/release cases: the player buffers a generated
+                <code>shoot</code> down edge for <code>0.08s</code>, consumes it
+                after firing, and clears it during reset/respawn cleanup.
                 Aperture CLI proof queued press and release before the next
                 worker step and still observed <code>shotsFired:1</code>, then
                 reproved camera-relative movement and jump state on the patched
@@ -2779,27 +2784,26 @@
                 <code>1.28</code>, and diagnostics <code>0</code>.
               </li>
               <li>
-                <span class="badge green">fps</span> Aligned enemy muzzle
-                sprite world size and one-shot SFX behavior with source data:
-                256px
+                <span class="badge green">fps</span> Aligned enemy muzzle sprite
+                world size and one-shot SFX behavior with source data: 256px
                 <code>burst.png</code> atlas frames, default
                 <code>SpriteBase3D.pixel_size</code>, and enemy muzzle node
                 scale <code>0.5</code> now derive <code>1.28</code> world units
-                for <code>effect.enemy.*.muzzle.*</code> sprites, while
-                one-shot SFX use source <code>-10 dB</code> gain and
-                <code>0.9</code> to <code>1.1</code> pitch scaling. Aperture
-                MCP proof reported <code>effect.enemy.0.muzzle.0</code>
-                width/height near <code>1.28</code> and frame diagnostics
-                <code>0</code>.
+                for <code>effect.enemy.*.muzzle.*</code> sprites, while one-shot
+                SFX use source <code>-10 dB</code> gain and <code>0.9</code> to
+                <code>1.1</code> pitch scaling. Aperture MCP proof reported
+                <code>effect.enemy.0.muzzle.0</code> width/height near
+                <code>1.28</code> and frame diagnostics <code>0</code>.
               </li>
               <li>
                 <span class="badge green">fps</span> Aligned enemy damage audio
                 and impact hit sprite size with source behavior: lethal enemy
                 hits now emit <code>enemy-hurt</code> before
-                <code>enemy-destroy</code>, and <code>effect.impact-hit.*</code>
-                sprites derive a <code>0.32</code> world-unit size from
-                <code>objects/impact.tscn</code> <code>pixel_size</code> and
-                the 128px hit-atlas frame. Aperture MCP proof reported
+                <code>enemy-destroy</code>, and
+                <code>effect.impact-hit.*</code> sprites derive a
+                <code>0.32</code> world-unit size from
+                <code>objects/impact.tscn</code> <code>pixel_size</code> and the
+                128px hit-atlas frame. Aperture MCP proof reported
                 <code>effect.impact-hit.0</code> width/height near
                 <code>0.32</code> and frame diagnostics <code>0</code>.
               </li>
@@ -2830,12 +2834,12 @@
                 entities.
               </li>
               <li>
-                <span class="badge green">fps</span> Aligned source jump
-                ceiling handling: upward motion remains airborne while source
-                upward velocity is active, and upward velocity is cancelled only
-                by ceiling-like character-controller collision normals. Live
-                Aperture CLI proof observed <code>normal[1]</code> values
-                around <code>-0.57</code> against
+                <span class="badge green">fps</span> Aligned source jump ceiling
+                handling: upward motion remains airborne while source upward
+                velocity is active, and upward velocity is cancelled only by
+                ceiling-like character-controller collision normals. Live
+                Aperture CLI proof observed <code>normal[1]</code> values around
+                <code>-0.57</code> against
                 <code>level.platform.2.collider</code>.
               </li>
               <li>
@@ -2897,16 +2901,17 @@
                 <code>enemy.gd</code>. The ECS physics hitbox now tracks the
                 visible enemy root at source local <code>y + 0.25</code>, and
                 enemies pitch/yaw toward the source upper-body target. Aperture
-                proof observed the expected
-                <code>enemy.0</code> to <code>enemy.0.hitbox</code> offset.
+                proof observed the expected <code>enemy.0</code> to
+                <code>enemy.0.hitbox</code> offset.
               </li>
               <li>
                 <span class="badge green">fps</span> Aligned player damage
                 reload semantics with upstream <code>player.gd</code>: health
                 <code>0</code> no longer reloads, enemy damage is not clamped at
                 zero, and health below <code>0</code> resets back to
-                <code>100</code>. Aperture proof used <code>resource_set</code>
-                and <code>resource_get</code> on <code>fps.state.health</code>.
+                <code>100</code>. Aperture proof used
+                <code>resource_set</code> and <code>resource_get</code> on
+                <code>fps.state.health</code>.
               </li>
               <li>
                 <span class="badge green">fps</span> Added source-like weapon
@@ -2914,18 +2919,18 @@
                 <code>-localVelocity / 30</code>, shooting adds a transient
                 <code>+0.25</code> local-Z kick, and Aperture proof observed
                 <code>weapon.0</code> Z move from <code>-1.200000</code> to
-                <code>-1.172222</code> on W input and <code>-0.968518</code>
-                after a shot with <code>shotsFired:1</code>.
+                <code>-1.172222</code> on W input and
+                <code>-0.968518</code> after a shot with
+                <code>shotsFired:1</code>.
               </li>
               <li>
                 <span class="badge green">fps</span> Hardened FPS input and
                 impact polish: primary pointer clicks now drive the generated
                 <code>shoot</code> action, jump input has a short buffer with
                 the jump frame protected from lingering grounded contact, and
-                impact sprites spawn at hit point plus normal
-                <code>/ 10</code>. Aperture proof observed
-                <code>shotsFired:1</code> and paused-step jump
-                <code>grounded:false</code> with
+                impact sprites spawn at hit point plus normal <code>/ 10</code>.
+                Aperture proof observed <code>shotsFired:1</code> and
+                paused-step jump <code>grounded:false</code> with
                 <code>verticalVelocity:7.6667</code>.
               </li>
               <li>
@@ -5961,8 +5966,7 @@
                 <span class="badge amber">next</span> Replace placeholder PMREM
                 with GGX/VNDF prefilter sampling. The visible proof should make
                 roughness-dependent specular IBL changes observable in pixels
-                while keeping the implementation WebGPU-only and
-                renderer-owned.
+                while keeping the implementation WebGPU-only and renderer-owned.
               </li>
               <li>
                 <span class="badge amber">next</span> FPS-visible follow-up:
@@ -6357,7 +6361,9 @@
           <div class="timeline-item">
             <div class="task-id">FPS-PORT</div>
             <div>
-              <strong>Generated-input full-clear smoke route is hardened.</strong>
+              <strong
+                >Generated-input full-clear smoke route is hardened.</strong
+              >
               <span>
                 <code>pnpm --dir fps run smoke:full-clear</code> now drives the
                 Starter Kit FPS route through a fresh managed Aperture MCP

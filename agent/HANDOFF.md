@@ -1,11 +1,56 @@
-# Handoff - FPS Full-Clear Smoke Route Hardening
+# Handoff - FPS Click Shoot And Rapid Jump Fix
 
-**Updated:** 2026-06-17 09:30 PDT
+**Updated:** 2026-06-17 09:41 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Fixed the latest reported FPS controls issues:
+  - Source anchors checked:
+    `references/Starter-Kit-FPS/objects/player.gd` and
+    `references/Starter-Kit-FPS/project.godot`.
+  - Removed the HUD's artificial delayed button releases. Aperture input state
+    already preserves same-frame press/release edges, so the delay could keep a
+    virtual button held long enough to swallow fast second Space presses.
+  - Added `shoot` to the app-specific `fps.input` command channel and consumed
+    it in `PlayerSystem`, so pointer-lock/click shooting has the same reliable
+    command fallback as keyboard movement and jump.
+  - Pointer-lock shoot now dispatches both the generated input action and the
+    `fps.input` command fallback on press/release.
+  - Added focused tests for the source mouse-look-right yaw convention,
+    command-backed `shoot`, and same-frame button edge recovery.
+- Live Aperture CLI proof against `http://127.0.0.1:5173/`:
+  - Real `input_pointer_click {"x":0.5,"y":0.5}` incremented
+    `shotsFired` to `1` and set `shotCooldown` to
+    `0.23333333333333334`.
+  - Two rapid `input_key {"key":"Space","action":"press"}` calls across
+    adjacent paused `ecs_step` frames consumed both jumps:
+    after the first step `jumpsRemaining:1`, after the second
+    `jumpsRemaining:0`, with `verticalVelocity:7.666666666666667`.
+  - At `yaw:-PI/2`, generated forward movement produced positive X movement
+    velocity (`movementVelocity:[3.699347...,0,~0]`), proving forward remains
+    camera-yaw-relative for the source mouse-look-right sign.
+  - `pnpm --dir fps run smoke:full-clear` still completed the full route with
+    `health:60`, `shotsFired:9`, `hits:16`, `enemiesRemaining:0`,
+    `destroyedEnemies:4`, and `gameStatus:"cleared"`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/input-state-events.test.ts`
+    passed 52 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir fps run smoke:full-clear`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `pnpm exec prettier --check fps/src/hud.ts fps/src/lib/fps-data.ts fps/src/systems/player.system.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts`
+  - `git diff --check -- fps/src/hud.ts fps/src/lib/fps-data.ts fps/src/systems/player.system.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts`
+- Commit:
+  - `2d010e61` — `Fix FPS click shoot and rapid jumps`
+
+## Previous Completed Slice - FPS Full-Clear Smoke Route Hardening
 
 - Hardened the packaged generated-input full-clear smoke proof:
   - `pnpm --dir fps run smoke:full-clear` now runs
@@ -312,7 +357,7 @@ previous working state so the old state remains recoverable.
   - Source anchor: `references/Starter-Kit-FPS/objects/cloud.gd`.
   - The source randomizes `random_velocity` and `random_time` in `[0.1, 2.0]`
     and integrates `position.y += cos(time * random_time) * random_velocity *
-    delta`, which yields a sine offset of `random_velocity / random_time`.
+delta`, which yields a sine offset of `random_velocity / random_time`.
   - The port now exposes `SOURCE_CLOUD_RANDOM_MIN = 0.1` and
     `SOURCE_CLOUD_RANDOM_MAX = 2.0`, uses `sourceCloudHoverPosition(...)` as
     the shared source formula, and keeps deterministic per-cloud hover values
@@ -522,7 +567,7 @@ previous working state so the old state remains recoverable.
   - The port now exposes source weapon-view constants, places both weapon GLB
     roots at `[1.2,-1.1,-2.75]` relative to the player camera, and derives
     muzzle flash placement from source `container.position -
-    weapon.muzzle_position`, including movement sway offset.
+weapon.muzzle_position`, including movement sway offset.
 - Hardened generated browser input forwarding:
   - `packages/app/src/browser/input.ts` now treats pointer capture/release as
     best-effort so synthetic or pointer-lock-transition events cannot prevent
@@ -666,7 +711,7 @@ previous working state so the old state remains recoverable.
   semantics:
   - `references/Starter-Kit-FPS/objects/player.gd` reads controller look with
     `Input.get_vector("camera_right", "camera_left", "camera_down",
-    "camera_up")`.
+"camera_up")`.
   - The port now maps right-look input to negative generated `look.x`, left-look
     input to positive `look.x`, down-look input to negative `look.y`, and
     up-look input to positive `look.y`.
@@ -806,7 +851,7 @@ previous working state so the old state remains recoverable.
     and cooldown blocking.
 - Aperture proof:
   - Reloaded the managed FPS app through `pnpm --dir fps exec aperture tool
-    browser_reload` and waited for WebGPU.
+browser_reload` and waited for WebGPU.
   - Paused the generated worker, reset `fps.state`, queued `shoot` pressed
     `true` then `false` before the next `ecs_step`, and read
     `resource_get {"id":"fps.state"}`: `shotsFired:1` and
@@ -964,7 +1009,7 @@ previous working state so the old state remains recoverable.
     forward/look-up mapping.
 - Aperture proof:
   - Restarted/reused the managed FPS app through `pnpm --dir fps exec aperture
-    dev up --headless --host 127.0.0.1 --port 5173`, waited for WebGPU, and
+dev up --headless --host 127.0.0.1 --port 5173`, waited for WebGPU, and
     paused/stepped the generated worker through Aperture MCP/CLI tools.
   - `resource_get {"id":"fps.state"}` and
     `ecs_find_entities {"key":"enemy.0"}` showed the live enemy forward vector
@@ -1027,7 +1072,7 @@ previous working state so the old state remains recoverable.
   - Added platform-large-grass child decoration key/transform coverage.
 - Aperture proof:
   - Restarted the managed FPS app through `pnpm exec aperture dev up
-    --headless --host 127.0.0.1 --port 5173` and waited for WebGPU.
+--headless --host 127.0.0.1 --port 5173` and waited for WebGPU.
   - Used generated `look` input to aim at `enemy.0`, generated `shoot` once,
     and read `fps.state`: `shotsFired:1`, `hits:3`, and `enemy.0` health
     `100 -> 25`.
@@ -1068,7 +1113,7 @@ previous working state so the old state remains recoverable.
   - Added `hasCeilingCollision(...)` and `sourceGroundedAfterMove(...)` tests.
 - Aperture proof:
   - Restarted the managed FPS app through `pnpm --dir fps exec aperture dev up
-    --headless --port 5173` and waited for WebGPU.
+--headless --port 5173` and waited for WebGPU.
   - Confirmed pause behavior held by reading `fps.state` at version `1371`,
     waiting one second, and reading version `1371` again.
   - Used Aperture CLI `physics_move_character` against live `player.body` with
@@ -1116,7 +1161,7 @@ previous working state so the old state remains recoverable.
     virtual edge is cleared.
 - Aperture proof:
   - Restarted the managed FPS app through `pnpm --dir fps exec aperture dev up
-    --open --port 5173` and waited for WebGPU.
+--open --port 5173` and waited for WebGPU.
   - `ecs_find_entities {"key":"skybox.main"}` returned one enabled entity with
     `aperture.render.skybox`.
   - `render_get_frame_report {"summaryOnly":true}` reported frame `1570`,
@@ -1155,7 +1200,7 @@ previous working state so the old state remains recoverable.
     helper with unit coverage for alive/range/line-of-sight filtering.
 - Aperture proof:
   - Restarted the managed FPS app through `pnpm --dir fps exec aperture dev up
-    --open --port 5173` and waited for WebGPU.
+--open --port 5173` and waited for WebGPU.
   - `ecs_find_entities {"key":"effect.enemy.0.muzzle.0"}` and
     `ecs_find_entities {"key":"effect.enemy.3.muzzle.1"}` each returned one
     sprite entity with hidden baseline alpha `0`.
@@ -1191,7 +1236,7 @@ previous working state so the old state remains recoverable.
     `effect.enemy.3.muzzle.1`) instead of one global enemy muzzle pair.
 - Aperture proof:
   - Restarted the managed FPS app through `pnpm --dir fps exec aperture dev up
-    --open --port 5173` and waited for WebGPU.
+--open --port 5173` and waited for WebGPU.
   - `ecs_find_entities {"key":"effect.enemy.0.muzzle.0"}` and
     `ecs_find_entities {"key":"effect.enemy.3.muzzle.1"}` each returned one
     sprite entity with hidden baseline alpha `0`.
@@ -1225,11 +1270,11 @@ previous working state so the old state remains recoverable.
     placement.
 - Aperture proof:
   - Restarted the managed FPS app through `pnpm --dir fps exec aperture dev up
-    --open --port 5173`, waited for WebGPU, and used generated movement toward
+--open --port 5173`, waited for WebGPU, and used generated movement toward
     `enemy.0`.
   - The enemy attack path still fired through normal generated input; `fps.state`
     reported health dropping to `90`, and `render_get_frame_report
-    {"summaryOnly":true}` reported diagnostics `0`.
+{"summaryOnly":true}` reported diagnostics `0`.
   - `ecs_find_entities` read `effect.enemy-muzzle.0` and
     `effect.enemy-muzzle.1`; their random source-style rotations remained in the
     upstream `+/-45 degree` range. The live read missed the short visible muzzle frame

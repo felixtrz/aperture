@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "5fda9117",
+  "lastCommit": "2d010e61",
   "activePid": null,
-  "notes": "Hardened FPS full-clear smoke to own a fresh Aperture session; package smoke reached gameStatus:cleared with shotsFired 9, hits 16, destroyedEnemies 4, and no session left running.",
-  "lastRunFinishedAt": "2026-06-17T16:30:00Z"
+  "notes": "Fixed FPS click shooting and rapid jump input; live Aperture proof verified pointer click shooting, two quick Space jumps, camera-relative forward movement, and full-clear smoke success.",
+  "lastRunFinishedAt": "2026-06-17T16:41:43Z"
 }
