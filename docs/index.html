@@ -393,12 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 18:13 UTC</dd>
+            <dd>2026-06-17 18:22 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: shadow caster extraction now publishes
+              Latest update: Starter Kit FPS Escape now matches the source
+              <code>mouse_capture_exit</code> input. The HUD clears pointer-lock
+              look state, releases active pointer-lock shooting, and exits
+              pointer lock when the canvas is captured. Aperture CLI
+              <code>browser_status</code> now reports
+              <code>page.dom.pointerLock</code>, and live proof showed left
+              click locking the canvas and firing once, then Escape returning
+              <code>pointerLock.locked:false</code> without another shot. Prior
+              update: shadow caster extraction now publishes
               <code>shadowCasterDraws</code> separately from visible
               <code>meshDraws</code>, so main-camera frustum culling no longer
               removes off-screen casters from shadow maps. Racing live proof at
@@ -2646,6 +2654,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Added source Escape
+                mouse-capture release and CLI pointer-lock status proof. Left
+                click locks the FPS canvas and fires once; Escape exits pointer
+                lock without firing again.
+              </li>
               <li>
                 <span class="badge green">render</span> Split shadow caster draw
                 extraction from visible mesh draw extraction. Off-screen shadow

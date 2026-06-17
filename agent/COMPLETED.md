@@ -1,5 +1,38 @@
 # Completed Tasks
 
+## FPS-PORT — Escape mouse-capture release
+
+Completed: 2026-06-17 11:22 PDT
+Commit: `f69a4906`
+
+### Summary
+
+- Aligned Starter Kit FPS mouse-capture exit with
+  `references/Starter-Kit-FPS/project.godot`.
+- Added source Escape handling in the FPS HUD to clear pointer-lock look state,
+  release active pointer-lock shooting, and exit pointer lock when the canvas is
+  captured.
+- Extended Aperture CLI `browser_status` with `page.dom.pointerLock` so capture
+  and release behavior can be proved through the managed CLI path.
+
+### Validation
+
+- Live Aperture proof: after reload, `browser_status` reported
+  `pointerLock.locked:false`.
+- Live Aperture proof: left click locked the canvas and fired once, reporting
+  `pointerLock.locked:true`, `canvasLocked:true`, and `shotsFired:1`.
+- Live Aperture proof: Escape released pointer lock, returning
+  `pointerLock.locked:false` without another shot.
+- `pnpm exec vitest run test/app/fps-hud.test.ts test/cli/browser-status.test.ts test/cli/input-tools.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+
 ## Shadow caster culling independence
 
 Completed: 2026-06-17 11:14 PDT

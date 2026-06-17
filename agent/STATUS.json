@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "39a60454",
+  "lastCommit": "f69a4906",
   "activePid": null,
-  "notes": "Fixed shadow caster culling independence by extracting shadowCasterDraws separately from visible meshDraws, routing the packet family through transport/change sets/reports, and reproving racing with meshDraws:36, shadowCasterDraws:364, shadow caster draw list:364, diagnostics:0, and nonblack screenshot/readback.",
-  "lastRunFinishedAt": "2026-06-17T18:18:40Z"
+  "notes": "Aligned FPS Escape mouse-capture exit with Starter Kit FPS project.godot, added pointer-lock state to browser_status for managed proof, and reproved click capture plus Escape release through Aperture CLI without extra shots.",
+  "lastRunFinishedAt": "2026-06-17T18:22:16Z"
 }

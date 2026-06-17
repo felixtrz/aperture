@@ -1,3 +1,45 @@
+# Handoff - FPS Escape Mouse Release
+
+**Updated:** 2026-06-17 11:22 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Aligned FPS mouse-capture exit with the source project input map:
+  - Source anchor checked: `references/Starter-Kit-FPS/project.godot`.
+  - Godot `mouse_capture_exit` is Escape (`physical_keycode:4194305`).
+  - The FPS HUD now maps Escape to `releaseMouse`, clears pending pointer-lock
+    look deltas, releases active pointer-lock shooting, and calls
+    `document.exitPointerLock()` when the canvas owns pointer lock.
+  - Aperture CLI `browser_status` now reports `page.dom.pointerLock` with
+    locked state, canvas ownership, and a small target summary so agents can
+    prove capture/release behavior through the managed tool path.
+- Live Aperture CLI proof:
+  - After app reload, `browser_status` reported
+    `pointerLock.locked:false`.
+  - `input_pointer_click {"x":0.5,"y":0.5,"button":"left"}` locked the canvas
+    (`pointerLock.locked:true`, `canvasLocked:true`,
+    `target:{tagName:"canvas",id:"aperture"}`) and fired once
+    (`shotsFired:1`).
+  - `input_key {"key":"Escape","action":"press"}` released pointer lock
+    (`pointerLock.locked:false`, `canvasLocked:false`) without incrementing
+    shots again.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-hud.test.ts test/cli/browser-status.test.ts test/cli/input-tools.test.ts`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --filter @aperture-engine/cli run typecheck`
+  - `pnpm --filter @aperture-engine/cli run build`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+- Commit:
+  - `f69a4906` — `Add FPS Escape mouse release proof`
+
+---
+
 # Handoff - Shadow Caster Culling Independence
 
 **Updated:** 2026-06-17 11:14 PDT
