@@ -10,6 +10,7 @@ import {
 import {
   sourceKeyboardButtonAction,
   sourceKeyboardButtonPressDispatches,
+  sourceKeyboardMouseCaptureAction,
   sourceKeyboardMoveAxis,
   sourceKeyboardMoveKey,
   sourcePointerButtonAction,
@@ -166,6 +167,13 @@ function dispatchPendingLook(): void {
 function handleKeyboardInput(event: KeyboardEvent, pressed: boolean): void {
   if (isEditableKeyboardTarget(event.target)) return;
 
+  const mouseCaptureAction = sourceKeyboardMouseCaptureAction(event.code);
+  if (mouseCaptureAction !== null) {
+    event.preventDefault();
+    if (pressed) releaseMouseCapture();
+    return;
+  }
+
   const moveKey = sourceKeyboardMoveKey(event.code);
   if (moveKey !== null) {
     event.preventDefault();
@@ -269,6 +277,29 @@ function releasePointerLockShoot(): void {
     source: "pointer-lock",
   });
   dispatchFpsInputCommand({ kind: "button", action: "shoot", pressed: false });
+}
+
+function releaseMouseCapture(): void {
+  unlockedClickShootFallbackPending = false;
+  pendingLookX = 0;
+  pendingLookY = 0;
+
+  if (lookActionActive) {
+    dispatchApertureInputAction("mouseLook", {
+      x: 0,
+      y: 0,
+      source: "pointer-lock",
+    });
+    lookActionActive = false;
+  }
+
+  releasePointerLockShoot();
+
+  try {
+    if (document.pointerLockElement === canvas) document.exitPointerLock();
+  } catch {
+    // Browser automation can reject capture state changes outside normal input.
+  }
 }
 
 function requestPointerLock(target: HTMLCanvasElement): void {

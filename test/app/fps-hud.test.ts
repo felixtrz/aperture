@@ -11,6 +11,7 @@ import {
   SOURCE_HEALTH_OUTLINE_SIZE_PX,
   SOURCE_HEALTH_WIDTH_PX,
   SOURCE_BOOT_SPLASH_BG_COLOR,
+  SOURCE_MOUSE_CAPTURE_EXIT_KEY_CODE,
   SOURCE_VIEWPORT_ASPECT,
   SOURCE_VIEWPORT_HEIGHT_PX,
   SOURCE_VIEWPORT_WIDTH_PX,
@@ -18,6 +19,7 @@ import {
   BROWSER_MIDDLE_MOUSE_BUTTON,
   POINTER_LOCK_LOOK_PIXELS_PER_UNIT,
   sourceKeyboardButtonAction,
+  sourceKeyboardMouseCaptureAction,
   sourceKeyboardButtonPressDispatches,
   sourceKeyboardMoveAxis,
   sourceKeyboardMoveKey,
@@ -76,6 +78,12 @@ describe("Starter Kit FPS HUD", () => {
     expect(sourceKeyboardButtonAction("KeyE")).toBe("switchWeapon");
     expect(sourceKeyboardButtonAction("KeyR")).toBe("reset");
     expect(sourceKeyboardButtonAction("KeyW")).toBeNull();
+  });
+
+  it("maps source mouse capture exit to Escape", () => {
+    expect(SOURCE_MOUSE_CAPTURE_EXIT_KEY_CODE).toBe("Escape");
+    expect(sourceKeyboardMouseCaptureAction("Escape")).toBe("releaseMouse");
+    expect(sourceKeyboardMouseCaptureAction("KeyR")).toBeNull();
   });
 
   it("maps the source middle mouse weapon toggle into browser buttons", () => {

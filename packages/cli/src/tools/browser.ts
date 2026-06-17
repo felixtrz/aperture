@@ -64,15 +64,37 @@ export async function readGeneratedStatus(
   page: AperturePage,
 ): Promise<unknown> {
   return page.evaluate(
-    ({ statusGlobal, managedGlobal }) => ({
-      url: globalThis.location?.href ?? "",
-      managed:
-        (globalThis as unknown as Record<string, unknown>)[managedGlobal] ===
-        true,
-      status:
-        (globalThis as unknown as Record<string, unknown>)[statusGlobal] ??
-        null,
-    }),
+    ({ statusGlobal, managedGlobal }) => {
+      const elementSummary = (element: Element | null) =>
+        element === null
+          ? null
+          : {
+              tagName: element.tagName.toLowerCase(),
+              id: element.id,
+            };
+      const pointerLockElement = document.pointerLockElement;
+      const canvas = document.querySelector("canvas");
+
+      return {
+        url: globalThis.location?.href ?? "",
+        managed:
+          (globalThis as unknown as Record<string, unknown>)[managedGlobal] ===
+          true,
+        status:
+          (globalThis as unknown as Record<string, unknown>)[statusGlobal] ??
+          null,
+        dom: {
+          pointerLock: {
+            locked: pointerLockElement !== null,
+            canvasLocked:
+              canvas !== null && pointerLockElement !== null
+                ? pointerLockElement === canvas
+                : false,
+            target: elementSummary(pointerLockElement),
+          },
+        },
+      };
+    },
     { statusGlobal: STATUS_GLOBAL, managedGlobal: MANAGED_GLOBAL },
   );
 }
