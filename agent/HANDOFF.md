@@ -6,6 +6,7 @@ User-directed work is on branch `fps-starter-kit-port`.
 
 ## Latest Completed Slice
 
+- Committed `dae7ec2b` (`Remove FPS splash and viewport cap`).
 - Removed the FPS splashscreen DOM/CSS and the now-unused HUD boot-complete
   hook.
 - Removed the source 1280x720 maximum size cap from `#game-shell`; the FPS

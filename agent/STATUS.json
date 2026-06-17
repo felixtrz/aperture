@@ -4,7 +4,7 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "pending-responsive-canvas",
+  "lastCommit": "dae7ec2b",
   "activePid": null,
   "notes": "Removed the FPS splashscreen and 1280x720 viewport cap; Playwright layout probe shows the live canvas scales to 1600x900 on a 1600x900 window, fits tall/mobile windows at source 16:9, and has no boot-splash DOM. FPS, racing, and shadow-lab typechecks/builds passed.",
   "lastRunFinishedAt": "2026-06-17T21:54:00Z"
