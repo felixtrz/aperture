@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "3dadd9ab",
   "activePid": null,
-  "notes": "Anchored Starter Kit FPS cloud hover to the source cloud.gd integrated cosine formula; proved live cloud Y-only movement through Aperture CLI and kept fps, racing, and shadow-lab green.",
-  "lastRunFinishedAt": "2026-06-17T14:12:36Z"
+  "notes": "Anchored Starter Kit FPS cloud hover to source cloud.gd math; reproved shoot, camera-relative movement, jump, and live cloud Y-only hover through Aperture CLI; fps, racing, and shadow-lab validation passed.",
+  "lastRunFinishedAt": "2026-06-17T14:14:11Z"
 }
