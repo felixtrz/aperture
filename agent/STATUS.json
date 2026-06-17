@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "20866fb3",
   "activePid": null,
-  "notes": "Fixed FPS control reliability: source-style jump ascent ignores transient grounded contact, upward motion only cancels on ceiling collision, and Aperture stepping reproved same-frame shoot plus camera-relative movement.",
-  "lastRunFinishedAt": "2026-06-17T11:16:42Z"
+  "notes": "Aligned FPS jump ceiling handling with upstream player.gd, proved live ceiling collision normals through Aperture CLI, and kept fps/racing/shadow-lab validation green.",
+  "lastRunFinishedAt": "2026-06-17T11:20:30Z"
 }
