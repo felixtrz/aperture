@@ -76,25 +76,6 @@ Acceptance criteria:
 - Keep the implementation WebGPU-only and renderer-owned; do not introduce a
   mutable scene graph or WebGL fallback.
 
-## Ready Follow-Up
-
-`task-fps-skybox-readback` — Harden FPS skybox orientation and readback proof.
-
-Category: `webgpu-render`
-
-Reference anchor: `references/bevy/examples/3d/skybox.rs`,
-`references/engine/src/scene/skybox/sky.js`,
-`references/three.js/src/textures/CubeTexture.js`.
-
-Acceptance criteria:
-
-- Add a visible proof that the Starter Kit FPS skybox orientation matches the
-  intended source-facing directions after cube projection.
-- Add named pixel/readback samples for at least three view directions and record
-  expected color relationships.
-- Keep skybox extraction renderer-derived from ECS state and the existing
-  renderer-owned cube texture asset path.
-
 ## Historical M10 Physics Notes
 
 Active goal override is currently pursuing M10 physics. `M10-T1` and `M10-T2`

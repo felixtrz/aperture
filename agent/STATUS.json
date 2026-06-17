@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "e1ca148b",
+  "lastCommit": "3d05527f",
   "activePid": null,
-  "notes": "Hardened Aperture CLI pixel readback to sample managed-browser screenshots through the active canvas region; live FPS CLI proof returned opaque nonzero samples for render_readback_samples and browser_pick_pixel.",
-  "lastRunFinishedAt": "2026-06-17T16:52:31Z"
+  "notes": "Added pnpm --dir fps run smoke:skybox-readback, proving the Starter Kit FPS source panorama skybox through Aperture MCP/CLI with one extracted skybox and source-facing live readback color relationships.",
+  "lastRunFinishedAt": "2026-06-17T17:04:54Z"
 }

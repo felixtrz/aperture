@@ -393,23 +393,29 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 16:40 UTC</dd>
+            <dd>2026-06-17 17:04 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS click-shoot and rapid jump input
-              are fixed. The HUD no longer holds artificial delayed releases for
-              pointer-lock shoot or keyboard buttons, and
-              <code>shoot</code> now flows through the same
-              <code>fps.input</code> command fallback as movement and jump. Live
-              Aperture CLI proof showed a real canvas click incrementing
-              <code>shotsFired</code> to <code>1</code>, two rapid Space presses
-              consuming both jumps across adjacent paused
-              <code>ecs_step</code> frames, forward movement at
-              <code>yaw:-PI/2</code> producing positive X velocity, and the full
+              Latest update: Starter Kit FPS now has a reusable source-facing
+              skybox readback proof at
+              <code>pnpm --dir fps run smoke:skybox-readback</code>. The smoke
+              starts a fresh managed Aperture session, drives the app through
+              <code>aperture mcp stdio</code>, verifies one diagnostic-free
+              extracted skybox, aims the real player camera to
+              <code>source-forward-u050</code>, <code>source-left-u025</code>,
+              <code>source-right-u075</code>, and <code>source-back-seam</code>,
+              and records named <code>render_readback_samples</code>. Live
+              upper-center pixels preserved the source-derived ordering:
+              <code>{152,149,195}</code>, <code>{180,176,195}</code>,
+              <code>{129,129,194}</code>, and <code>{129,129,194}</code>.
+              Screenshot proof was written to
+              <code>fps/.aperture/runtime/fps-skybox-readback.png</code>. Prior
+              update: Starter Kit FPS click-shoot and rapid jump input are
+              fixed; the full
               <code>pnpm --dir fps run smoke:full-clear</code> route still
-              reaching <code>gameStatus:"cleared"</code> with
+              reaches <code>gameStatus:"cleared"</code> with
               <code>shotsFired:9</code>, <code>hits:16</code>, and
               <code>destroyedEnemies:4</code>. Prior update: Starter Kit FPS now
               has a reusable generated-input full-clear smoke route at
@@ -1694,9 +1700,8 @@
             <dt>Next focus</dt>
             <dd>
               Replace placeholder PMREM with GGX/VNDF prefilter sampling, then
-              continue FPS-visible follow-ups such as skybox
-              orientation/readback hardening. Keep racing and Shadow Lab green
-              while touching shared renderer paths.
+              continue FPS-visible source-parity follow-ups. Keep racing and
+              Shadow Lab green while touching shared renderer paths.
             </dd>
           </dl>
         </aside>
@@ -2598,6 +2603,14 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Added
+                <code>pnpm --dir fps run smoke:skybox-readback</code>, a fresh
+                managed-session Aperture MCP proof that verifies one
+                diagnostic-free extracted skybox and records named source-facing
+                skybox samples for forward, left, right, and back view
+                directions.
+              </li>
               <li>
                 <span class="badge green">fps</span> Added
                 <code>pnpm --dir fps run smoke:full-clear</code>, a reusable

@@ -1,11 +1,62 @@
-# Handoff - CLI Screenshot Pixel Readback
+# Handoff - FPS Skybox Readback Smoke
 
-**Updated:** 2026-06-17 09:52 PDT
+**Updated:** 2026-06-17 10:04 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Added a reusable Starter Kit FPS skybox orientation/readback proof:
+  - Source/reference anchors checked:
+    `references/Starter-Kit-FPS/scenes/main-environment.tres`,
+    `references/Starter-Kit-FPS/sprites/skybox.png`,
+    `references/bevy/examples/3d/skybox.rs`,
+    `references/engine/src/scene/skybox/sky.js`, and
+    `references/three.js/src/textures/CubeTexture.js`.
+  - `fps/public/sprites/skybox.png` is byte-identical to the upstream source
+    panorama and remains imported as the `skybox` texture asset.
+  - Added `pnpm --dir fps run smoke:skybox-readback`, backed by
+    `fps/scripts/skybox-readback-smoke.mjs`.
+  - The smoke starts a fresh managed Aperture dev session, connects through
+    `pnpm exec aperture mcp stdio`, pauses/resets the ECS worker, verifies the
+    frame report has one diagnostic-free extracted skybox, then aims the real
+    player camera to `source-forward-u050`, `source-left-u025`,
+    `source-right-u075`, and `source-back-seam`.
+  - For each view it records named `render_readback_samples` at upper-center
+    and upper-left sky pixels, then asserts the source-derived upper-center
+    ordering: source-left is warmer/brighter than source-forward,
+    source-forward is warmer/brighter than source-right, and source-right plus
+    source-back both land in the darker blue band.
+  - The proof keeps skybox authoring ECS-derived through the existing
+    `spawn.skybox(...)` / equirectangular cube texture asset path.
+- Live proof:
+  - `pnpm --dir fps run smoke:skybox-readback` passed.
+  - Frame summary: `skyboxes:1`, `diagnostics:0`, `views:2`,
+    `drawCalls:36`.
+  - Upper-center samples:
+    `source-forward-u050` `{r:152,g:149,b:195,a:255}`,
+    `source-left-u025` `{r:180,g:176,b:195,a:255}`,
+    `source-right-u075` `{r:129,g:129,b:194,a:255}`, and
+    `source-back-seam` `{r:129,g:129,b:194,a:255}`.
+  - Screenshot proof:
+    `fps/.aperture/runtime/fps-skybox-readback.png`.
+- Validation:
+  - `node --check fps/scripts/skybox-readback-smoke.mjs`
+  - `pnpm --dir fps run smoke:skybox-readback`
+  - `pnpm exec vitest run test/rendering/equirect-cubemap.test.ts test/app/skybox-spawn.test.ts test/app/fps-data.test.ts`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `pnpm exec prettier --check fps/package.json fps/scripts/skybox-readback-smoke.mjs`
+  - `git diff --check -- fps/package.json fps/scripts/skybox-readback-smoke.mjs`
+- Commit:
+  - `3d05527f` — `Add FPS skybox readback smoke`
+
+## Previous Completed Slice - CLI Screenshot Pixel Readback
 
 - Hardened the Aperture CLI pixel-readback tooling used for FPS visual proof:
   - `browser_pick_pixel` and `render_readback_samples` now sample the managed

@@ -1,5 +1,44 @@
 # Completed Tasks
 
+## FPS-PORT — Skybox orientation readback smoke
+
+Completed: 2026-06-17 10:04 PDT
+Commit: `3d05527f`
+
+### Summary
+
+- Added `pnpm --dir fps run smoke:skybox-readback`, a reusable Aperture
+  MCP-backed proof for the Starter Kit FPS panorama skybox.
+- The smoke starts a fresh managed Aperture dev session, connects through
+  `pnpm exec aperture mcp stdio`, pauses/resets the ECS worker, verifies the
+  frame report contains one diagnostic-free extracted skybox, then aims the real
+  player camera to source-facing yaw directions.
+- The proof records named upper-sky readback samples for
+  `source-forward-u050`, `source-left-u025`, `source-right-u075`, and
+  `source-back-seam`, then asserts source-derived color relationships across
+  those directions.
+- The implementation leaves skybox ownership on the existing ECS-derived
+  `spawn.skybox(...)` and equirectangular cube texture asset path.
+
+### Validation
+
+- `fps/public/sprites/skybox.png` is byte-identical to
+  `references/Starter-Kit-FPS/sprites/skybox.png`.
+- `pnpm --dir fps run smoke:skybox-readback` passed with
+  `skyboxes:1`, `diagnostics:0`, and upper-center samples:
+  `source-forward-u050` `{r:152,g:149,b:195,a:255}`,
+  `source-left-u025` `{r:180,g:176,b:195,a:255}`,
+  `source-right-u075` `{r:129,g:129,b:194,a:255}`, and
+  `source-back-seam` `{r:129,g:129,b:194,a:255}`.
+- `node --check fps/scripts/skybox-readback-smoke.mjs`
+- `pnpm exec vitest run test/rendering/equirect-cubemap.test.ts test/app/skybox-spawn.test.ts test/app/fps-data.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+
 ## FPS-PORT — CLI screenshot pixel readback
 
 Completed: 2026-06-17 09:52 PDT
