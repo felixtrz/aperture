@@ -1,12 +1,68 @@
-# Handoff - Starter Kit FPS Enemy Attack Ownership
+# Handoff - Starter Kit FPS Source Skybox, Footsteps, And Input Edge
 
-**Updated:** 2026-06-17 03:49 PDT
+**Updated:** 2026-06-17 04:05 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
+- Aligned two more Starter Kit FPS source fidelity gaps:
+  - `references/Starter-Kit-FPS/objects/player.tscn` keeps
+    `SoundFootsteps` autoplaying at `volume_db = -5`, while
+    `objects/player.gd` pauses/unpauses it based on grounded horizontal
+    velocity components exceeding `1`. The port now computes actual horizontal
+    velocity after character movement, keeps the walking loop owned by the
+    audio facade, and mutes/unmutes it using the source threshold and gain.
+  - `references/Starter-Kit-FPS/scenes/main-environment.tres` uses
+    `sprites/skybox.png` as a panorama sky with `energy_multiplier = 0.5`.
+    The port now loads that texture, derives an ECS cube texture asset through
+    a renderer-independent equirectangular-to-cubemap helper, and spawns
+    `skybox.main` at source intensity `0.5`.
+- Aperture/library work:
+  - Added `spawn.skybox(...)` to `@aperture-engine/app/systems`, so generated
+    app systems can author skyboxes through the same app spawn facade as
+    cameras, lights, fog, meshes, particles, physics, GLTFs, and prefabs.
+  - Added `createEquirectangularCubeTextureAsset(...)` in
+    `@aperture-engine/render` for byte-backed RGBA 2D panorama sources. The
+    helper uses the same +Z-centered equirect UV convention as the existing
+    WebGPU equirect-to-cube compute path, but outputs a renderer-independent
+    cube `TextureAsset`.
+  - Checkpointed a small app input hardening fix: same-frame virtual press plus
+    release events now remain visible for one simulation frame before the
+    virtual edge is cleared.
+- Aperture proof:
+  - Restarted the managed FPS app through `pnpm --dir fps exec aperture dev up
+    --open --port 5173` and waited for WebGPU.
+  - `ecs_find_entities {"key":"skybox.main"}` returned one enabled entity with
+    `aperture.render.skybox`.
+  - `render_get_frame_report {"summaryOnly":true}` reported frame `1570`,
+    one view, 16 mesh draws, `skyboxes:1`, 30 draw calls, and diagnostics `0`.
+- Validation:
+  - `pnpm exec vitest run test/rendering/equirect-cubemap.test.ts test/app/skybox-spawn.test.ts test/rendering/extraction.test.ts`
+    passed 70 tests.
+  - `pnpm exec vitest run test/app/fps-audio.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+    passed 15 tests.
+  - `pnpm exec vitest run test/app/input-state-events.test.ts` passed 17 tests.
+  - `pnpm --filter @aperture-engine/render run typecheck`
+  - `pnpm --filter @aperture-engine/app run typecheck`
+  - `pnpm --filter @aperture-engine/render run build`
+  - `pnpm --filter @aperture-engine/app run build`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - `79136c79` — `Align FPS footstep audio with source`
+  - `05c40843` — `Add FPS source panorama skybox`
+  - `bec7cb87` — `Preserve same-frame virtual input presses`
+
+## Previous Completed FPS/Tooling Slices
+
+- Enemy attack ownership:
 - Aligned FPS enemy attack ownership with the upstream per-enemy attack model:
   - `references/Starter-Kit-FPS/objects/enemy.gd` gives each enemy its own
     timer/raycast attack path. The port no longer selects only the nearest
@@ -37,8 +93,6 @@ previous working state so the old state remains recoverable.
 - Committed implementation:
   - `5bb6b7cb` — `Align FPS enemy attack ownership`
   - `f3c31dc8` — `Extract FPS enemy attacker selection`
-
-## Previous Completed FPS/Tooling Slices
 
 - Source basis and enemy muzzle ownership:
 - Aligned FPS source-basis control helpers and enemy muzzle ownership with the

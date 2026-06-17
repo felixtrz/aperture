@@ -1,5 +1,49 @@
 # Completed Tasks
 
+## FPS-PORT — Source skybox, footsteps, and input edge
+
+Completed: 2026-06-17 04:05 PDT
+Commits: `79136c79`, `05c40843`, `bec7cb87`
+
+### Summary
+
+- Matched upstream footstep audio behavior from
+  `references/Starter-Kit-FPS/objects/player.tscn` and
+  `objects/player.gd`: the walking loop uses source `volume_db = -5` and
+  mutes/unmutes from grounded post-move horizontal velocity components
+  exceeding `1`.
+- Matched upstream sky environment from
+  `references/Starter-Kit-FPS/scenes/main-environment.tres`: the FPS port now
+  loads `sprites/skybox.png`, converts it into a renderer-independent cube
+  texture asset, and spawns `skybox.main` at source intensity `0.5`.
+- Added app/library support for this slice through
+  `spawn.skybox(...)` and `createEquirectangularCubeTextureAsset(...)`.
+- Preserved same-frame virtual input press/release edges for one simulation
+  frame before clearing them, keeping generated controls reliable for
+  press-like actions.
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/equirect-cubemap.test.ts test/app/skybox-spawn.test.ts test/rendering/extraction.test.ts`
+  passed 70 tests.
+- `pnpm exec vitest run test/app/fps-audio.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+  passed 15 tests.
+- `pnpm exec vitest run test/app/input-state-events.test.ts` passed 17 tests.
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture MCP proof in a fresh managed FPS session found `skybox.main` with
+  `aperture.render.skybox`, and `render_get_frame_report {"summaryOnly":true}`
+  reported frame `1570`, `skyboxes:1`, and diagnostics `0`.
+
 ## FPS-PORT — Enemy attack ownership
 
 Completed: 2026-06-17 03:47 PDT

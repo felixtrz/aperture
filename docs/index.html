@@ -393,16 +393,26 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 10:49 UTC</dd>
+            <dd>2026-06-17 11:05 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS enemy attack ownership now follows
-              the upstream per-enemy timer/raycast model: every living enemy in
-              range and line of sight can apply damage/audio and trigger its own
-              per-enemy muzzle effect keys instead of the port selecting only
-              the nearest attacker. The attacker filter is covered by a focused
+              Latest update: Starter Kit FPS source fidelity now includes
+              upstream footstep audio gain/threshold behavior and the source
+              panorama skybox. The port converts <code>sprites/skybox.png</code>
+              into a cube texture asset, spawns <code>skybox.main</code> at
+              source intensity <code>0.5</code>, and exposes the route through
+              <code>spawn.skybox(...)</code> plus a render asset helper.
+              Aperture MCP proof found <code>skybox.main</code> with
+              <code>aperture.render.skybox</code> and reported frame
+              <code>1570</code>, <code>skyboxes:1</code>, diagnostics
+              <code>0</code>. Prior update: Starter Kit FPS enemy attack
+              ownership now follows the upstream per-enemy timer/raycast model:
+              every living enemy in range and line of sight can apply
+              damage/audio and trigger its own per-enemy muzzle effect keys
+              instead of the port selecting only the nearest attacker. The
+              attacker filter is covered by a focused
               <code>sourceEnemyAttackers(...)</code> unit test. Aperture MCP
               proof confirmed WebGPU readiness, found the per-enemy muzzle
               keys, and reported frame <code>1177</code> diagnostics
@@ -1387,10 +1397,11 @@
             <dt>Next focus</dt>
             <dd>
               Continue Starter Kit FPS fidelity with a visible route such as
-              impact animation/timing parity, remaining player detail parity,
-              projectile polish beyond the current per-enemy attacker ownership,
-              or packaging the platform-aware full-clear proof into a reusable
-              smoke script while keeping racing and Shadow Lab green.
+              skybox orientation/readback hardening, impact animation/timing
+              parity, remaining player detail parity, projectile polish beyond
+              the current per-enemy attacker ownership, or packaging the
+              platform-aware full-clear proof into a reusable smoke script while
+              keeping racing and Shadow Lab green.
             </dd>
           </dl>
         </aside>
@@ -2291,6 +2302,18 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span>
+                <span class="badge blue">app</span>
+                <span class="badge blue">render</span> Aligned source footstep
+                audio and panorama skybox behavior: footsteps now use upstream
+                <code>-5 dB</code> gain plus grounded velocity threshold
+                semantics, <code>sprites/skybox.png</code> becomes a cube
+                texture asset, and <code>skybox.main</code> renders through the
+                app spawn facade. Aperture MCP proof reported frame
+                <code>1570</code>, <code>skyboxes:1</code>, diagnostics
+                <code>0</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned enemy attack
                 ownership with upstream <code>objects/enemy.gd</code>: every

@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "f3c31dc8",
+  "lastCommit": "bec7cb87",
   "activePid": null,
-  "notes": "Aligned FPS enemy attacks with upstream per-enemy attacker ownership, added focused attacker-selection coverage, proved the managed FPS app through Aperture MCP, and kept fps/racing/shadow-lab validation green.",
-  "lastRunFinishedAt": "2026-06-17T10:50:03Z"
+  "notes": "Aligned FPS source footstep audio and panorama skybox behavior, added app/render helpers for source skybox authoring, preserved same-frame virtual input edges, proved skybox.main through Aperture MCP, and kept fps/racing/shadow-lab validation green.",
+  "lastRunFinishedAt": "2026-06-17T11:05:00Z"
 }
