@@ -1,11 +1,40 @@
-# Handoff - FPS Shadow Fit Tightening
+# Handoff - FPS Weapon Culling
 
-**Updated:** 2026-06-17 09:10 PDT
+**Updated:** 2026-06-17 09:18 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Fixed the FPS weapon stock/back-end rendering inside-out:
+  - Source anchors checked:
+    `references/Starter-Kit-FPS/models/blaster.glb`,
+    `references/Starter-Kit-FPS/models/blaster-repeater.glb`,
+    `references/Starter-Kit-FPS/objects/player.tscn`, and
+    `references/Starter-Kit-FPS/objects/player.gd`.
+  - The source GLB materials are `doubleSided: true`, and the source player
+    instantiates the same weapon model at `rotation = Vector3(0, 180, 0)`.
+    The Aperture transform matched the source; the bug was the local
+    `WEAPON_VIEWMODEL_MATERIALS` override forcing `cullMode: "back"`, which
+    overrode the GLB's double-sided culling.
+  - `WEAPON_VIEWMODEL_MATERIALS` now only disables depth for the weapon overlay
+    and leaves the source material cull state intact.
+  - Live Aperture CLI proof:
+    `render_get_frame_report` reported `diagnostics: 0` and the weapon overlay
+    pipeline `standard|baseColorTexture|opaque|none|always|none` with
+    `itemCount: 3`. Screenshot saved at `/tmp/fps-weapon-cull-fix.png`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-setup.test.ts test/app/fps-data.test.ts`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir fps exec aperture tool browser_wait_for_webgpu --json '{"timeoutMs":10000}'`
+  - `pnpm --dir fps exec aperture tool render_get_frame_report --json '{"summaryOnly":false}'`
+  - `pnpm --dir fps exec aperture tool browser_screenshot --json '{"outputPath":"/tmp/fps-weapon-cull-fix.png"}'`
+- Commit:
+  - `7993b007` — `Preserve FPS weapon double-sided materials`
+
+## Previous Completed Slice - FPS Shadow Fit Tightening
 
 - Fixed the soft FPS directional shadows by tightening the default single-cascade
   auto-fit:

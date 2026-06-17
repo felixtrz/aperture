@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "2a60c0d8",
+  "lastCommit": "7993b007",
   "activePid": null,
-  "notes": "Tightened single-cascade directional shadow fit to receiver bounds; FPS live ortho dropped from 243 to 8-13, WebGPU/FPS/racing/shadow-lab validations passed.",
-  "lastRunFinishedAt": "2026-06-17T16:10:00Z"
+  "notes": "Preserved FPS weapon GLB double-sided culling while keeping the depthless viewmodel overlay; live frame report showed opaque|none|always weapon pipeline with diagnostics 0.",
+  "lastRunFinishedAt": "2026-06-17T16:18:00Z"
 }
