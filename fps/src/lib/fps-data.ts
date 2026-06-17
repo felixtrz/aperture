@@ -147,6 +147,21 @@ export const SOURCE_WEAPON_SWITCH_HIDE_DURATION = 0.1;
 export const SOURCE_WEAPON_SWITCH_RAISE_RATE = 10;
 export const SOURCE_CLOUD_RANDOM_MIN = 0.1;
 export const SOURCE_CLOUD_RANDOM_MAX = 2.0;
+export const SOURCE_ENV_BACKGROUND_COLOR: readonly [number, number, number, number] =
+  [0x5c / 0xff, 0x64 / 0xff, 0x76 / 0xff, 1];
+export const SOURCE_ENV_AMBIENT_COLOR: readonly [number, number, number, number] =
+  [0xa9 / 0xff, 0xb1 / 0xff, 0xc5 / 0xff, 1];
+export const SOURCE_ENV_AMBIENT_INTENSITY = 1;
+export const SOURCE_SKY_ENERGY_MULTIPLIER = 0.5;
+// From scenes/main.tscn Sun Transform3D basis, converted from Godot basis
+// columns to an Aperture quaternion.
+export const SOURCE_SUN_ROTATION: Quat = [
+  0.22707267,
+  -0.76437232,
+  -0.35643233,
+  0.48695873,
+];
+export const SOURCE_SUN_SHADOW_STRENGTH = 0.75;
 
 export const WEAPONS: readonly WeaponSpec[] = [
   {

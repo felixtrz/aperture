@@ -25,6 +25,9 @@ import {
   SOURCE_ENEMY_MUZZLE_OFFSETS,
   SOURCE_ENEMY_MUZZLE_ROLL_RANGE,
   SOURCE_ENEMY_RAYCAST_TARGET,
+  SOURCE_ENV_AMBIENT_COLOR,
+  SOURCE_ENV_AMBIENT_INTENSITY,
+  SOURCE_ENV_BACKGROUND_COLOR,
   SOURCE_GAMEPAD_LOOK_SENSITIVITY,
   SOURCE_LOOK_LERP_RATE,
   SOURCE_LOOK_PITCH_LIMIT,
@@ -40,6 +43,9 @@ import {
   SOURCE_PLAYER_ROOT_Y,
   SOURCE_POINTER_LOCK_LOOK_PIXELS_PER_UNIT,
   SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT,
+  SOURCE_SKY_ENERGY_MULTIPLIER,
+  SOURCE_SUN_ROTATION,
+  SOURCE_SUN_SHADOW_STRENGTH,
   SOURCE_WEAPON_CAMERA_CULL_MASK,
   SOURCE_WEAPON_CAMERA_ITEM_FOV,
   SOURCE_WEAPON_CONTAINER_INITIAL_POSITION,
@@ -163,6 +169,28 @@ describe("Starter Kit FPS source data", () => {
     ]);
     expect(ENEMY_MUZZLE_OFFSETS).toBe(SOURCE_ENEMY_MUZZLE_OFFSETS);
     expect(SOURCE_ENEMY_MUZZLE_ROLL_RANGE).toBeCloseTo(Math.PI / 4, 10);
+  });
+
+  it("derives supported environment and sun values from the source main scene", () => {
+    expect(SOURCE_ENV_BACKGROUND_COLOR).toEqual([
+      0x5c / 0xff,
+      0x64 / 0xff,
+      0x76 / 0xff,
+      1,
+    ]);
+    expect(SOURCE_ENV_AMBIENT_COLOR).toEqual([
+      0xa9 / 0xff,
+      0xb1 / 0xff,
+      0xc5 / 0xff,
+      1,
+    ]);
+    expect(SOURCE_ENV_AMBIENT_INTENSITY).toBe(1);
+    expect(SOURCE_SKY_ENERGY_MULTIPLIER).toBe(0.5);
+    expect(SOURCE_SUN_SHADOW_STRENGTH).toBe(0.75);
+    expect(SOURCE_SUN_ROTATION[0]).toBeCloseTo(0.22707267, 8);
+    expect(SOURCE_SUN_ROTATION[1]).toBeCloseTo(-0.76437232, 8);
+    expect(SOURCE_SUN_ROTATION[2]).toBeCloseTo(-0.35643233, 8);
+    expect(SOURCE_SUN_ROTATION[3]).toBeCloseTo(0.48695873, 8);
   });
 
   it("keeps platform-large-grass child decorations from the source packed scene", () => {

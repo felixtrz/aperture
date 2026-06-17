@@ -55,7 +55,13 @@ import {
   PLAYER_START,
   SOURCE_ENEMY_HITBOX_OFFSET,
   SOURCE_ENEMY_HITBOX_RADIUS,
+  SOURCE_ENV_AMBIENT_COLOR,
+  SOURCE_ENV_AMBIENT_INTENSITY,
+  SOURCE_ENV_BACKGROUND_COLOR,
   SOURCE_PLAYER_CAMERA_FOV,
+  SOURCE_SKY_ENERGY_MULTIPLIER,
+  SOURCE_SUN_ROTATION,
+  SOURCE_SUN_SHADOW_STRENGTH,
   SOURCE_WEAPON_CAMERA_ITEM_FOV,
   WEAPONS,
   WEAPON_CAMERA_KEY,
@@ -109,7 +115,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         near: 0.05,
         far: 80,
         layerMask: FPS_WORLD_LAYER_MASK,
-        clearColor: [0.36, 0.39, 0.46, 1],
+        clearColor: SOURCE_ENV_BACKGROUND_COLOR,
       },
     });
 
@@ -189,12 +195,13 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         layerMask: FPS_ALL_RENDER_LAYER_MASK,
       },
       transform: {
-        rotationEulerDegrees: [-50, -110, 0],
+        rotation: SOURCE_SUN_ROTATION,
       },
       shadow: {
         mapSize: 2048,
         cascadeCount: 1,
         shadowType: 1,
+        strength: SOURCE_SUN_SHADOW_STRENGTH,
         filterRadius: 2,
         normalBias: 0.04,
       },
@@ -204,8 +211,8 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       key: "light.ambient",
       name: "Sky Ambient",
       kind: "ambient",
-      color: [0.66, 0.69, 0.77, 1],
-      intensity: 1.1,
+      color: SOURCE_ENV_AMBIENT_COLOR,
+      intensity: SOURCE_ENV_AMBIENT_INTENSITY,
       light: {
         layerMask: FPS_ALL_RENDER_LAYER_MASK,
       },
@@ -215,7 +222,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       key: "fog.main",
       name: "Sky Fog",
       mode: "linear",
-      color: [0.36, 0.39, 0.46, 1],
+      color: SOURCE_ENV_BACKGROUND_COLOR,
       start: 28,
       end: 60,
     });
@@ -526,7 +533,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       name: "Source Panorama Skybox",
       texture,
       sampler: this.#ensureSkyboxSampler(),
-      intensity: 0.5,
+      intensity: SOURCE_SKY_ENERGY_MULTIPLIER,
     });
   }
 
