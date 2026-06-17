@@ -1,4 +1,3 @@
-import type { Signal } from "@preact/signals-core";
 import type {
   GamepadButtonName,
   InputActionBinding,
@@ -15,17 +14,13 @@ import type {
   InputVec2Like,
   StatefulGamepadsState,
   StatefulKeyboardState,
+  StatefulPointerState,
 } from "./types.js";
 
 export interface InputBindingResource {
   readonly keyboard: StatefulKeyboardState;
   readonly gamepads: StatefulGamepadsState;
-  readonly pointer: {
-    readonly primary: {
-      readonly pressed: Signal<boolean>;
-      readonly pressedThisFrame: Signal<boolean>;
-    };
-  };
+  readonly pointer: StatefulPointerState;
 }
 
 export function bindingPressed(
@@ -40,11 +35,7 @@ export function bindingPressed(
   }
 
   if (bindingHasKind(binding, "pointer")) {
-    return (
-      binding.pointer === "primary" &&
-      (resource.pointer.primary.pressed.value ||
-        resource.pointer.primary.pressedThisFrame.value)
-    );
+    return pointerPressed(resource.pointer, binding.pointer);
   }
 
   if (bindingHasKind(binding, "gamepad-button")) {
@@ -59,11 +50,7 @@ export function bindingPressed(
   }
 
   if (isLegacyPointerBinding(binding)) {
-    return (
-      binding.pointer === "primary" &&
-      (resource.pointer.primary.pressed.value ||
-        resource.pointer.primary.pressedThisFrame.value)
-    );
+    return pointerPressed(resource.pointer, binding.pointer);
   }
 
   if (isLegacyGamepadBinding(binding)) {
@@ -162,6 +149,13 @@ function gamepadButtonPressed(
       : resource.gamepads.byIndex(index);
 
   return device?.pressed(button) === true || device?.down(button) === true;
+}
+
+function pointerPressed(
+  pointer: StatefulPointerState,
+  name: PointerBinding["pointer"],
+): boolean {
+  return pointer[name].pressed.value || pointer[name].pressedThisFrame.value;
 }
 
 function gamepadButtonValue(

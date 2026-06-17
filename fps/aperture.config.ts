@@ -103,6 +103,7 @@ export default defineApertureConfig({
       ]),
       switchWeapon: input.button([
         input.key("KeyE"),
+        input.pointer("middle"),
         input.gamepadButton("leftStick"),
       ]),
       reset: input.button([input.key("KeyR")]),

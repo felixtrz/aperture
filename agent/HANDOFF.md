@@ -1,3 +1,71 @@
+# Handoff - FPS Multi-Button Pointer Input
+
+**Updated:** 2026-06-17 12:53 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Added engine-level multi-button pointer input:
+  - `InputResourceBase.pointer` now models `primary`, `secondary`, and `middle`
+    with shared position, pressed, and same-frame edge state.
+  - Browser forwarding maps DOM button `0` to `primary`, `1` to `middle`, and
+    `2` to `secondary`, while cancel/leave/lost-capture releases all modeled
+    pointer buttons.
+  - Config validation now accepts `input.pointer("secondary")` and
+    `input.pointer("middle")` instead of rejecting them as undelivered.
+  - Input summaries expose all three pointer button states for tools.
+- Bound Starter Kit FPS `switchWeapon` to `input.pointer("middle")`, matching
+  the source `weapon_toggle` mouse button mapping from
+  `references/Starter-Kit-FPS/project.godot`.
+- Adjusted the FPS HUD middle-mouse handler to prevent default browser
+  aux-click behavior without synthesizing a duplicate `switchWeapon` action.
+- Live Aperture CLI proof after rebuilding `@aperture-engine/app`:
+  - FPS status reported WebGPU OK and `pointer.middle`/`pointer.secondary`
+    in the worker input summary.
+  - `input_pointer_click {"button":"middle"}` forwarded
+    `lastInputEvent.pointer:"middle"` and switched from
+    `weaponIndex:0` / `weaponName:"Blaster"` to
+    `weaponIndex:1` / `weaponName:"Repeater"`.
+  - A following left click still incremented `shotsFired` to `1`.
+  - `pnpm --dir fps run smoke:full-clear` passed with `shotsFired:8`,
+    `hits:16`, `destroyedEnemies:4`, `enemiesRemaining:0`, and
+    `gameStatus:"cleared"`, covering jump traversal and camera-relative
+    movement through the full route.
+
+## Validation
+
+- `pnpm exec vitest run test/app/input-state-events.test.ts test/app/browser-input-forwarding.test.ts test/app/config-validation.test.ts test/app/fps-input-config.test.ts test/app/fps-hud.test.ts test/cli/input-tools.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir fps run smoke:full-clear`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `pnpm run check:progress`
+- `git diff --check`
+
+## Known Issues
+
+- Aperture MCP transport reported `Transport closed`; equivalent Aperture CLI
+  tools were used successfully for live proof.
+- Starter Kit FPS is running at `http://127.0.0.1:5173/` for user testing.
+- A local unrelated change to `fps/src/lib/fps-data.ts` was present after
+  validation and was intentionally left out of this commit because it appears to
+  undo the prior calibrated weapon placement.
+- Pre-existing untracked screenshot/parity artifacts remain outside the commit.
+
+## Recommended Next Task
+
+Continue the user-directed FPS parity stream. A good next visible slice is to
+harden the source skybox orientation/readback with named direction samples,
+using `references/Starter-Kit-FPS/scenes/main.tscn` as the source anchor.
+
+---
+
 # Handoff - FPS Keyboard Tap Reliability and Tool Session Stability
 
 **Updated:** 2026-06-17 12:39 PDT

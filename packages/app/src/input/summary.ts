@@ -43,6 +43,14 @@ export function createInputResourceSummary(
         position: input.pointer.primary.position.value,
         pressed: input.pointer.primary.pressed.value,
       },
+      secondary: {
+        position: input.pointer.secondary.position.value,
+        pressed: input.pointer.secondary.pressed.value,
+      },
+      middle: {
+        position: input.pointer.middle.position.value,
+        pressed: input.pointer.middle.pressed.value,
+      },
     },
     wheel: {
       deltaX: input.wheel.deltaX.value,

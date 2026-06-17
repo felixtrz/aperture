@@ -71,7 +71,7 @@ describe("generated browser input forwarding", () => {
     expect(status.forwardedInputEvents).toBe(2);
   });
 
-  it("does not forward non-primary mouse buttons as primary pointer presses", () => {
+  it("forwards middle and secondary mouse buttons as named pointer presses", () => {
     const canvas = new FakeCanvas();
     const windowTarget = new FakeEventTarget();
     const documentTarget = new FakeEventTarget();
@@ -112,12 +112,51 @@ describe("generated browser input forwarding", () => {
       clientX: 50,
       clientY: 25,
     });
+    canvas.dispatch("pointerdown", {
+      pointerId: 8,
+      button: 2,
+      clientX: 25,
+      clientY: 75,
+    });
+    canvas.dispatch("pointerup", {
+      pointerId: 8,
+      button: 2,
+      clientX: 25,
+      clientY: 75,
+    });
 
-    expect(canvas.focus).not.toHaveBeenCalled();
-    expect(canvas.setPointerCapture).not.toHaveBeenCalled();
-    expect(canvas.releasePointerCapture).not.toHaveBeenCalled();
-    expect(messages).toEqual([]);
-    expect(status.forwardedInputEvents).toBe(0);
+    expect(canvas.focus).toHaveBeenCalledTimes(2);
+    expect(canvas.setPointerCapture).toHaveBeenCalledWith(7);
+    expect(canvas.setPointerCapture).toHaveBeenCalledWith(8);
+    expect(canvas.releasePointerCapture).toHaveBeenCalledWith(7);
+    expect(canvas.releasePointerCapture).toHaveBeenCalledWith(8);
+    expect(messages.map((message) => eventFromMessage(message))).toEqual([
+      {
+        kind: "pointer",
+        pointer: "middle",
+        position: [0.5, 0.25],
+        pressed: true,
+      },
+      {
+        kind: "pointer",
+        pointer: "middle",
+        position: [0.5, 0.25],
+        pressed: false,
+      },
+      {
+        kind: "pointer",
+        pointer: "secondary",
+        position: [0.25, 0.75],
+        pressed: true,
+      },
+      {
+        kind: "pointer",
+        pointer: "secondary",
+        position: [0.25, 0.75],
+        pressed: false,
+      },
+    ]);
+    expect(status.forwardedInputEvents).toBe(4);
   });
 });
 

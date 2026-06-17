@@ -393,25 +393,28 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 19:39 UTC</dd>
+            <dd>2026-06-17 19:53 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS keyboard taps are reliable on the
-              current managed build, and Aperture CLI browser-backed tool calls
-              no longer close the managed Chrome session after each call.
-              Keyboard button releases now remain visible for slower worker
-              frames, while instant pointer/button releases stay below the
-              fastest source weapon cooldown. Live Aperture proof showed a
-              quick Space tap after reset producing <code>grounded:false</code>
-              and <code>playerY:1.07</code>, left click producing
-              <code>shotsFired:1</code>, and yaw-relative <code>KeyW</code>
-              movement after a virtual look pulse. A clean
-              <code>pnpm --dir fps run smoke:full-clear</code> run reached
-              <code>shotsFired:8</code>, <code>hits:16</code>,
-              <code>destroyedEnemies:4</code>, and
-              <code>gameStatus:"cleared"</code>. Prior update: directional
+              Latest update: Aperture pointer input now models
+              <code>primary</code>, <code>secondary</code>, and
+              <code>middle</code> button state end-to-end. Browser forwarding
+              maps left/middle/right canvas clicks into named pointer events,
+              config validation accepts <code>input.pointer("middle")</code>,
+              and Starter Kit FPS binds source <code>weapon_toggle</code> to
+              middle mouse without HUD double-dispatch. Live Aperture proof
+              showed <code>lastInputEvent.pointer:"middle"</code> switching FPS
+              from <code>weaponName:"Blaster"</code> to
+              <code>weaponName:"Repeater"</code>, and a following left click
+              still incremented <code>shotsFired</code> to <code>1</code>.
+              The full-clear smoke still reached <code>shotsFired:8</code>,
+              <code>hits:16</code>, <code>destroyedEnemies:4</code>, and
+              <code>gameStatus:"cleared"</code>. Prior update: Starter Kit FPS
+              keyboard taps are reliable on the current managed build, and
+              Aperture CLI browser-backed tool calls no longer close the
+              managed Chrome session after each call. Prior update: directional
               shadow defaults have been corrected
               after the temporary scene-fit regression. Camera-backed app
               frames now fit the shadow footprint to the primary camera
@@ -1808,8 +1811,9 @@
             <dt>Next focus</dt>
             <dd>
               Replace placeholder PMREM with GGX/VNDF prefilter sampling, then
-              continue FPS-visible source-parity follow-ups. Keep racing and
-              Shadow Lab green while touching shared renderer paths.
+              continue FPS-visible source-parity follow-ups such as source
+              skybox orientation/readback. Keep racing and Shadow Lab green
+              when touching shared runtime or renderer paths.
             </dd>
           </dl>
         </aside>
@@ -2711,6 +2715,22 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Added engine-level
+                multi-button pointer input. Aperture now tracks
+                <code>primary</code>, <code>secondary</code>, and
+                <code>middle</code> pointer button state with shared same-frame
+                edge behavior, forwards left/middle/right browser clicks as
+                named pointer events, and exposes all three states in input
+                summaries. Starter Kit FPS binds source
+                <code>weapon_toggle</code> to <code>input.pointer("middle")</code>.
+                Live Aperture proof switched from
+                <code>weaponName:"Blaster"</code> to
+                <code>weaponName:"Repeater"</code> via middle click, then
+                verified left-click shooting with <code>shotsFired:1</code>.
+                The full-clear smoke still ended at
+                <code>gameStatus:"cleared"</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Replaced Starter Kit FPS
                 level box-collider approximations with asset-backed triangle
@@ -6546,6 +6566,22 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">FPS-PORT</div>
+            <div>
+              <strong>Multi-button pointer input drives source middle-click weapon toggle.</strong>
+              <span>
+                Aperture now models and forwards <code>primary</code>,
+                <code>secondary</code>, and <code>middle</code> pointer buttons,
+                and Starter Kit FPS binds <code>switchWeapon</code> to the
+                source middle-mouse mapping. Live Aperture proof switched to
+                <code>weaponName:"Repeater"</code> with middle click, verified
+                left-click shooting still reaches <code>shotsFired:1</code>,
+                and reran the full-clear smoke to
+                <code>gameStatus:"cleared"</code>.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">FPS-PORT</div>
             <div>

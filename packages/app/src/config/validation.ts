@@ -681,20 +681,8 @@ function validatePointerName(
   actionName: string,
   pointer: PointerBinding["pointer"],
 ): void {
-  if (pointer === "primary") {
+  if (pointer === "primary" || pointer === "secondary" || pointer === "middle") {
     return;
-  }
-
-  // 'secondary' and 'middle' type-check but are dead at runtime: the browser
-  // forwarder emits only the primary pointer and the input state models only
-  // `pointer.primary`, so such a binding would silently never fire. Reject it
-  // loudly at config time instead of accepting a no-op. Lift this once
-  // per-button/multi-pointer forwarding lands (see AI-44/AI-48).
-  if (pointer === "secondary" || pointer === "middle") {
-    throw invalidBinding(
-      actionName,
-      `Pointer binding '${pointer}' is not delivered yet: only the primary pointer is forwarded and modeled, so a '${pointer}' binding would never fire. Use 'primary' until multi-button pointer input is supported.`,
-    );
   }
 
   throw invalidBinding(actionName, `Unsupported pointer binding '${pointer}'.`);

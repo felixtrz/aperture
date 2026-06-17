@@ -11,6 +11,7 @@ import type {
   ApertureInputDiagnostic,
   InputAction,
   InputResourceBase,
+  StatefulPointerButtonState,
 } from "./types.js";
 import {
   beginActionFrame,
@@ -52,6 +53,9 @@ export type {
   StatefulGamepadsSummary,
   StatefulKeyboardState,
   StatefulKeyboardSummary,
+  StatefulPointerButtonState,
+  StatefulPointerState,
+  StatefulPointerSummary,
 } from "./types.js";
 
 export function createInputResource(
@@ -70,12 +74,9 @@ export function advanceInputResource(
 class InputResourceImpl implements InputResourceBase {
   readonly actions: Record<string, InputAction>;
   readonly pointer = {
-    primary: {
-      position: createSignal<readonly [number, number]>([0, 0]),
-      pressed: createSignal(false),
-      pressedThisFrame: createSignal(false),
-      releasedThisFrame: createSignal(false),
-    },
+    primary: createPointerButtonState(),
+    secondary: createPointerButtonState(),
+    middle: createPointerButtonState(),
   };
   readonly wheel = {
     deltaX: createSignal(0),
@@ -107,8 +108,10 @@ class InputResourceImpl implements InputResourceBase {
     this.wheel.deltaY.value = 0;
     // Pointer press/release edges are reset-frame state too: a slow frame can
     // drain a complete down+up pair at once, which `pressed` alone never shows.
-    this.pointer.primary.pressedThisFrame.value = false;
-    this.pointer.primary.releasedThisFrame.value = false;
+    for (const pointer of pointerButtons(this.pointer)) {
+      pointer.pressedThisFrame.value = false;
+      pointer.releasedThisFrame.value = false;
+    }
     this.#diagnostics = [];
 
     for (const action of Object.values(this.actions)) {
@@ -136,24 +139,22 @@ class InputResourceImpl implements InputResourceBase {
     }
 
     if (event.kind === "pointer") {
-      if (event.pointer !== "primary") {
-        return;
-      }
+      const pointer = this.pointer[event.pointer];
 
       if (event.position !== undefined) {
-        this.pointer.primary.position.value = [
+        pointer.position.value = [
           clamp01(event.position[0]),
           clamp01(event.position[1]),
         ];
       }
 
       if (event.pressed !== undefined) {
-        this.pointer.primary.pressed.value = event.pressed;
+        pointer.pressed.value = event.pressed;
 
         if (event.pressed) {
-          this.pointer.primary.pressedThisFrame.value = true;
+          pointer.pressedThisFrame.value = true;
         } else {
-          this.pointer.primary.releasedThisFrame.value = true;
+          pointer.releasedThisFrame.value = true;
         }
       }
       return;
@@ -257,7 +258,9 @@ class InputResourceImpl implements InputResourceBase {
   #reset(_reason: string): void {
     this.keyboard.releaseAll();
     this.gamepads.releaseAll();
-    this.pointer.primary.pressed.value = false;
+    for (const pointer of pointerButtons(this.pointer)) {
+      pointer.pressed.value = false;
+    }
     this.wheel.deltaX.value = 0;
     this.wheel.deltaY.value = 0;
     this.#virtualActions.clear();
@@ -348,6 +351,21 @@ class InputResourceImpl implements InputResourceBase {
       signal.value = value;
     }
   }
+}
+
+function createPointerButtonState(): StatefulPointerButtonState {
+  return {
+    position: createSignal<readonly [number, number]>([0, 0]),
+    pressed: createSignal(false),
+    pressedThisFrame: createSignal(false),
+    releasedThisFrame: createSignal(false),
+  };
+}
+
+function pointerButtons(
+  pointer: InputResourceBase["pointer"],
+): readonly StatefulPointerButtonState[] {
+  return [pointer.primary, pointer.secondary, pointer.middle];
 }
 
 interface VirtualActionState {

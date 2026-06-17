@@ -106,7 +106,6 @@ window.addEventListener("mousedown", (event) => {
   if (pointerAction !== null) {
     if (!isCanvasPointerEvent(event)) return;
     event.preventDefault();
-    dispatchInstantButtonAction(pointerAction, "fps-pointer");
     return;
   }
 

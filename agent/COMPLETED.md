@@ -1,5 +1,43 @@
 # Completed Tasks
 
+## FPS-PORT - Multi-button pointer input and source middle-click toggle
+
+Completed: 2026-06-17 12:53 PDT
+
+### Summary
+
+- Promoted Aperture pointer input from primary-only to modeled
+  `primary`/`secondary`/`middle` button state with shared same-frame edge
+  semantics and browser forwarding.
+- Config validation now accepts `input.pointer("secondary")` and
+  `input.pointer("middle")`, and input summaries expose all three pointer
+  button states to tools.
+- Starter Kit FPS now binds `switchWeapon` to `input.pointer("middle")` to
+  match the source Godot `weapon_toggle` middle-mouse mapping. The HUD prevents
+  default middle-click browser behavior without dispatching a duplicate action.
+
+### Validation
+
+- Live Aperture proof: `input_pointer_click {"button":"middle"}` forwarded
+  `lastInputEvent.pointer:"middle"` and switched FPS from
+  `weaponIndex:0` / `weaponName:"Blaster"` to
+  `weaponIndex:1` / `weaponName:"Repeater"`.
+- Live Aperture proof: left click still produced `shotsFired:1` after the
+  pointer changes.
+- `pnpm --dir fps run smoke:full-clear` passed with `shotsFired:8`, `hits:16`,
+  `destroyedEnemies:4`, `enemiesRemaining:0`, and `gameStatus:"cleared"`.
+- `pnpm exec vitest run test/app/input-state-events.test.ts test/app/browser-input-forwarding.test.ts test/app/config-validation.test.ts test/app/fps-input-config.test.ts test/app/fps-hud.test.ts test/cli/input-tools.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `pnpm run check:progress`
+- `git diff --check`
+
 ## FPS-PORT - Keyboard tap reliability and tool session stability
 
 Completed: 2026-06-17 12:39 PDT

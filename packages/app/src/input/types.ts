@@ -200,23 +200,36 @@ export interface StatefulGamepadsSummary {
   readonly diagnostics: readonly ApertureInputDiagnostic[];
 }
 
+export interface StatefulPointerButtonState {
+  readonly position: Signal<readonly [number, number]>;
+  readonly pressed: Signal<boolean>;
+  /**
+   * Reset-frame edges: true when this frame's events contained a press /
+   * release for this pointer button. A slow frame can drain a full down+up pair
+   * at once, so edge consumers and button bindings read these instead of
+   * relying only on the end-of-frame sample.
+   */
+  readonly pressedThisFrame: Signal<boolean>;
+  readonly releasedThisFrame: Signal<boolean>;
+}
+
+export type StatefulPointerState = Readonly<
+  Record<ApertureGeneratedPointerName, StatefulPointerButtonState>
+>;
+
+export type StatefulPointerSummary = Readonly<
+  Record<
+    ApertureGeneratedPointerName,
+    {
+      readonly position: readonly [number, number];
+      readonly pressed: boolean;
+    }
+  >
+>;
+
 export interface InputResourceBase {
   readonly actions: Record<string, InputAction>;
-  readonly pointer: {
-    readonly primary: {
-      readonly position: Signal<readonly [number, number]>;
-      readonly pressed: Signal<boolean>;
-      /**
-       * Reset-frame edges: true when this frame's events contained a press /
-       * release for the primary pointer. A slow frame can drain a full
-       * down+up pair at once — `pressed` then never samples true — so edge
-       * consumers (the interaction click state machine) read these instead
-       * of relying on the end-of-frame sample.
-       */
-      readonly pressedThisFrame: Signal<boolean>;
-      readonly releasedThisFrame: Signal<boolean>;
-    };
-  };
+  readonly pointer: StatefulPointerState;
   /**
    * Per-frame wheel travel in canvas pixels, accumulated from the wheel
    * events applied this frame and reset to zero by the next advanceFrame()
@@ -259,12 +272,7 @@ export interface ApertureInputSummary {
         readonly previous: readonly [number, number];
       }
   >;
-  readonly pointer: {
-    readonly primary: {
-      readonly position: readonly [number, number];
-      readonly pressed: boolean;
-    };
-  };
+  readonly pointer: StatefulPointerSummary;
   readonly wheel: {
     readonly deltaX: number;
     readonly deltaY: number;

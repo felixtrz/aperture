@@ -23,6 +23,8 @@ function createResource(): InputResourceBase {
         actions: {
           jump: input.button([input.key("Space")]),
           click: input.button([input.pointer("primary")]),
+          secondaryClick: input.button([input.pointer("secondary")]),
+          middleClick: input.button([input.pointer("middle")]),
           padJump: input.button([input.gamepadButton("south")]),
           fire: [input.key("KeyF")],
           virtualFire: input.button([input.virtual()]),
@@ -111,8 +113,10 @@ describe("input state event handling", () => {
     expect(resource.pointer.primary.pressed.value).toBe(true);
   });
 
-  it("ignores non-primary pointer events", () => {
+  it("models secondary and middle pointer events", () => {
     const resource = createResource();
+    const secondaryClick = requireButton(resource.actions.secondaryClick);
+    const middleClick = requireButton(resource.actions.middleClick);
 
     advanceInputResource(resource, [
       {
@@ -121,10 +125,22 @@ describe("input state event handling", () => {
         position: [0.5, 0.5],
         pressed: true,
       },
+      {
+        kind: "pointer",
+        pointer: "middle",
+        position: [0.25, 0.75],
+        pressed: true,
+      },
     ]);
 
     expect(resource.pointer.primary.position.value).toEqual([0, 0]);
     expect(resource.pointer.primary.pressed.value).toBe(false);
+    expect(resource.pointer.secondary.position.value).toEqual([0.5, 0.5]);
+    expect(resource.pointer.secondary.pressed.value).toBe(true);
+    expect(resource.pointer.middle.position.value).toEqual([0.25, 0.75]);
+    expect(resource.pointer.middle.pressed.value).toBe(true);
+    expect(secondaryClick.down()).toBe(true);
+    expect(middleClick.down()).toBe(true);
   });
 
   it("drives button actions from same-frame press and release edges", () => {
@@ -471,6 +487,18 @@ describe("input state event handling", () => {
         pressed: true,
       },
       {
+        kind: "pointer",
+        pointer: "secondary",
+        position: [0.25, 0.25],
+        pressed: true,
+      },
+      {
+        kind: "pointer",
+        pointer: "middle",
+        position: [0.75, 0.75],
+        pressed: true,
+      },
+      {
         kind: "gamepad",
         gamepads: [
           {
@@ -495,6 +523,10 @@ describe("input state event handling", () => {
     expect(resource.keyboard.pressed("Space")).toBe(false);
     expect(resource.pointer.primary.pressed.value).toBe(false);
     expect(resource.pointer.primary.position.value).toEqual([0.5, 0.5]);
+    expect(resource.pointer.secondary.pressed.value).toBe(false);
+    expect(resource.pointer.secondary.position.value).toEqual([0.25, 0.25]);
+    expect(resource.pointer.middle.pressed.value).toBe(false);
+    expect(resource.pointer.middle.position.value).toEqual([0.75, 0.75]);
     expect(resource.gamepads.primary).toBeNull();
     expect(jump.pressed()).toBe(false);
     expect(fire.pressed()).toBe(false);

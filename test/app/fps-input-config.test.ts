@@ -107,6 +107,22 @@ describe("Starter Kit FPS input config", () => {
     expect(button(input.actions.switchWeapon).pressed()).toBe(false);
   });
 
+  it("maps the source middle mouse weapon-toggle input", () => {
+    const input = createInputResource(fpsConfig);
+
+    advanceInputResource(input, [
+      {
+        kind: "pointer",
+        pointer: "middle",
+        position: [0.5, 0.5],
+        pressed: true,
+      },
+    ]);
+
+    expect(button(input.actions.shoot).down()).toBe(false);
+    expect(button(input.actions.switchWeapon).down()).toBe(true);
+  });
+
   it("maps keyboard look helpers to the source camera action vector", () => {
     const input = createInputResource(fpsConfig);
 

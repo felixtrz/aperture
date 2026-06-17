@@ -334,6 +334,10 @@ describe("validateApertureConfig", () => {
             jump: input.button([input.key("Space"), { keyboard: "KeyE" }]),
             fire: [{ pointer: "primary" }, { gamepad: "south" }],
             aim: input.button([input.pointer()]),
+            altFire: input.button([
+              input.pointer("secondary"),
+              input.pointer("middle"),
+            ]),
             throttle: input.axis1d([
               input.keyboard1d({ positive: ["KeyW"], negative: ["KeyS"] }),
               input.gamepadAxis("left", "y", {

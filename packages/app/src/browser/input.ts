@@ -4,6 +4,7 @@ import {
   createGeneratedInputEventMessage,
   type ApertureGeneratedInputEvent,
 } from "../input.js";
+import type { ApertureGeneratedPointerName } from "../input/state.js";
 import type { GeneratedBrowserAppStatus } from "./status.js";
 
 export const APERTURE_GENERATED_VIRTUAL_INPUT_EVENT =
@@ -55,7 +56,8 @@ export function installGeneratedInputForwarding(
   });
 
   canvas.addEventListener("pointerdown", (event) => {
-    if (!isPrimaryPointerButton(event)) {
+    const pointer = pointerNameFromButton(event.button);
+    if (pointer === null) {
       return;
     }
 
@@ -63,33 +65,37 @@ export function installGeneratedInputForwarding(
     safelySetPointerCapture(canvas, event.pointerId);
     forwardInput(worker, status, {
       kind: "pointer",
-      pointer: "primary",
+      pointer,
       position: pointerPosition(canvas, event),
       pressed: true,
     });
   });
 
   canvas.addEventListener("pointerup", (event) => {
-    if (!isPrimaryPointerButton(event)) {
+    const pointer = pointerNameFromButton(event.button);
+    if (pointer === null) {
       return;
     }
 
     safelyReleasePointerCapture(canvas, event.pointerId);
     forwardInput(worker, status, {
       kind: "pointer",
-      pointer: "primary",
+      pointer,
       position: pointerPosition(canvas, event),
       pressed: false,
     });
   });
 
   const releasePointer = (event: PointerEvent): void => {
-    forwardInput(worker, status, {
-      kind: "pointer",
-      pointer: "primary",
-      position: pointerPosition(canvas, event),
-      pressed: false,
-    });
+    const position = pointerPosition(canvas, event);
+    for (const pointer of GENERATED_POINTER_BUTTONS) {
+      forwardInput(worker, status, {
+        kind: "pointer",
+        pointer,
+        position,
+        pressed: false,
+      });
+    }
   };
 
   canvas.addEventListener("pointercancel", releasePointer);
@@ -179,8 +185,25 @@ function safelyReleasePointerCapture(
   }
 }
 
-function isPrimaryPointerButton(event: PointerEvent): boolean {
-  return event.button === 0;
+const GENERATED_POINTER_BUTTONS = [
+  "primary",
+  "secondary",
+  "middle",
+] as const satisfies readonly ApertureGeneratedPointerName[];
+
+function pointerNameFromButton(
+  button: number,
+): ApertureGeneratedPointerName | null {
+  switch (button) {
+    case 0:
+      return "primary";
+    case 1:
+      return "middle";
+    case 2:
+      return "secondary";
+    default:
+      return null;
+  }
 }
 
 function forwardInput(

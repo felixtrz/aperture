@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "c8c7f977",
   "activePid": null,
-  "notes": "Fixed Aperture CLI browser tool session stability and FPS keyboard tap reliability; live proof covered Space jump, click shooting, yaw-relative W movement, and FPS full-clear smoke; racing and shadow-lab typecheck/build passed.",
-  "lastRunFinishedAt": "2026-06-17T19:40:25Z"
+  "notes": "Added engine-level primary/secondary/middle pointer input and bound FPS middle-click weapon toggle; live Aperture CLI proof switched weapon via middle click, left click still shot, full-clear smoke passed; racing and shadow-lab typecheck/build passed.",
+  "lastRunFinishedAt": "2026-06-17T19:55:50Z"
 }
