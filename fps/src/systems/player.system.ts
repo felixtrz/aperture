@@ -26,6 +26,9 @@ import {
   PLAYER_BODY_EYE_OFFSET,
   PLAYER_BODY_KEY,
   PLAYER_BODY_START,
+  PLAYER_EYE_HEIGHT,
+  PLAYER_SHADOW_KEY,
+  PLAYER_SHADOW_SURFACE_OFFSET,
   PLAYER_SPEED,
   PLAYER_START,
   WEAPONS,
@@ -326,6 +329,7 @@ export default class PlayerSystem extends createSystem({
     }
 
     this.#writeCamera(position, yaw, pitch, this.#landingBobOffset);
+    this.#writePlayerShadow(position);
     this.#writeWeapons(weaponIndex, weapon, moveX, moveZ, shotCooldown);
     this.#writeShotEffects();
     this.#writeEnemies(position, enemyHealth);
@@ -562,6 +566,17 @@ export default class PlayerSystem extends createSystem({
     camera
       .getVectorView(LocalTransform, "rotation")
       .set(quatFromEulerYXZ(pitch, yaw, 0));
+  }
+
+  #writePlayerShadow(position: Vec3): void {
+    const shadow = this.#findByKey(PLAYER_SHADOW_KEY);
+    if (shadow === null) return;
+
+    shadow.getVectorView(LocalTransform, "translation").set([
+      position[0],
+      position[1] - PLAYER_EYE_HEIGHT + PLAYER_SHADOW_SURFACE_OFFSET,
+      position[2],
+    ]);
   }
 
   #writeWeapons(

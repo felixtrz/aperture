@@ -54,10 +54,12 @@ export const ENEMY_MUZZLE_OFFSETS: readonly [Vec3, Vec3] = [
 ];
 export const PLAYER_EYE_HEIGHT = 1.5;
 export const PLAYER_BODY_KEY = "player.body";
+export const PLAYER_SHADOW_KEY = "player.shadow";
 export const PLAYER_BODY_RADIUS = 0.35;
 export const PLAYER_BODY_HALF_HEIGHT = 0.55;
 export const PLAYER_BODY_EYE_OFFSET =
   PLAYER_EYE_HEIGHT - (PLAYER_BODY_RADIUS + PLAYER_BODY_HALF_HEIGHT);
+export const PLAYER_SHADOW_SURFACE_OFFSET = 0.02;
 export const PLAYER_START: Vec3 = [0, PLAYER_EYE_HEIGHT, 0];
 export const PLAYER_BODY_START: Vec3 = [
   PLAYER_START[0],

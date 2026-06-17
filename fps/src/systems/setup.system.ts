@@ -7,8 +7,23 @@ import {
   WorldTransform,
   createSystem,
   hexColor,
+  mesh,
 } from "@aperture-engine/app/systems";
-import { Sprite, SpriteBlendMode, createSprite } from "@aperture-engine/render";
+import {
+  Sprite,
+  SpriteBlendMode,
+  createDefaultRenderState,
+  createSamplerAsset,
+  createSprite,
+  createUnlitMaterialAsset,
+  materialAssetDependencies,
+} from "@aperture-engine/render";
+import {
+  createMaterialHandle,
+  createSamplerHandle,
+  type MaterialHandle,
+  type SamplerHandle,
+} from "@aperture-engine/simulation";
 import {
   CLOUDS,
   ENEMIES,
@@ -19,6 +34,9 @@ import {
   PLAYER_BODY_KEY,
   PLAYER_BODY_RADIUS,
   PLAYER_BODY_START,
+  PLAYER_EYE_HEIGHT,
+  PLAYER_SHADOW_KEY,
+  PLAYER_SHADOW_SURFACE_OFFSET,
   PLAYER_START,
   WEAPONS,
 } from "../lib/fps-data.js";
@@ -27,6 +45,8 @@ const GLTF_FRONT_SIDE_MATERIALS = {
   renderState: { cullMode: "back" as const },
 };
 
+const PLAYER_SHADOW_MATERIAL_ID = "player.blob-shadow.material";
+const PLAYER_SHADOW_SAMPLER_ID = "player.blob-shadow.sampler";
 const HIDDEN_EFFECT_POSITION: [number, number, number] = [0, -100, 0];
 const IDENTITY_ROTATION: [number, number, number, number] = [0, 0, 0, 1];
 const IDENTITY_SCALE: [number, number, number] = [1, 1, 1];
@@ -100,6 +120,24 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
             minWidth: 0.2,
           },
         },
+      },
+    });
+
+    this.spawn.mesh({
+      key: PLAYER_SHADOW_KEY,
+      name: "Player Blob Shadow",
+      tags: ["player", "shadow"],
+      mesh: mesh.plane({ size: [1, 1] }),
+      material: this.#ensurePlayerShadowMaterial(),
+      castShadow: false,
+      receiveShadow: false,
+      transform: {
+        translation: [
+          PLAYER_START[0],
+          PLAYER_START[1] - PLAYER_EYE_HEIGHT + PLAYER_SHADOW_SURFACE_OFFSET,
+          PLAYER_START[2],
+        ],
+        rotationEulerDegrees: [-90, 0, 0],
       },
     });
 
@@ -293,6 +331,60 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         color: [1, 1, 1, 0],
         blendMode: input.blendMode,
       }),
+      );
+  }
+
+  #ensurePlayerShadowMaterial(): MaterialHandle {
+    const texture = this.assets.texture("blob-shadow").renderHandle;
+    const sampler = this.#ensurePlayerShadowSampler();
+    const materialHandle = createMaterialHandle(PLAYER_SHADOW_MATERIAL_ID);
+    const material = createUnlitMaterialAsset({
+      label: "Player Blob Shadow",
+      baseColorFactor: new Float32Array([1, 1, 1, 0.705882]),
+      baseColorTexture: { texture, sampler },
+      renderState: createDefaultRenderState({
+        alphaMode: "blend",
+        cullMode: "none",
+        depth: {
+          test: true,
+          write: false,
+          compare: "less-equal",
+        },
+        blend: { preset: "alpha" },
+      }),
+    });
+
+    if (!this.assetsRegistry.has(materialHandle)) {
+      this.assetsRegistry.register(materialHandle, {
+        label: "Player Blob Shadow",
+        dependencies: materialAssetDependencies(material),
+      });
+    }
+
+    this.assetsRegistry.markReady(materialHandle, material);
+    return materialHandle;
+  }
+
+  #ensurePlayerShadowSampler(): SamplerHandle {
+    const samplerHandle = createSamplerHandle(PLAYER_SHADOW_SAMPLER_ID);
+    if (!this.assetsRegistry.has(samplerHandle)) {
+      this.assetsRegistry.register(samplerHandle, {
+        label: "Player Blob Shadow Sampler",
+      });
+    }
+
+    this.assetsRegistry.markReady(
+      samplerHandle,
+      createSamplerAsset({
+        label: "Player Blob Shadow Sampler",
+        addressModeU: "clamp-to-edge",
+        addressModeV: "clamp-to-edge",
+        addressModeW: "clamp-to-edge",
+        magFilter: "linear",
+        minFilter: "linear",
+        mipmapFilter: "linear",
+      }),
     );
+    return samplerHandle;
   }
 }

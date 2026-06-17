@@ -41,6 +41,7 @@ export default defineApertureConfig({
     "blaster-repeater-shot": sound("blaster_repeater", 0.16),
     "muzzle-burst": sprite("burst"),
     "impact-hit": sprite("hit"),
+    "blob-shadow": sprite("blob_shadow"),
     "enemy-hurt": sound("enemy_hurt", 0.2),
     "enemy-destroy": sound("enemy_destroy", 0.45),
     "enemy-attack": sound("enemy_attack", 0.22),
