@@ -39,8 +39,8 @@
         position: fixed;
         left: 50%;
         top: 50%;
-        width: 45px;
-        height: 45px;
+        width: var(--fps-crosshair-size, 44.8px);
+        height: var(--fps-crosshair-size, 44.8px);
         transform: translate(-50%, -50%);
         image-rendering: pixelated;
         pointer-events: none;
@@ -49,21 +49,24 @@
 
       #hud {
         position: fixed;
-        left: 48px;
-        bottom: 28px;
+        left: var(--fps-health-left, 48px);
+        bottom: var(--fps-health-bottom, 48px);
         color: white;
         font:
-          400 clamp(40px, 7vw, 72px) / 1 "Lilita One",
+          400 var(--fps-health-font-size, 36px) /
+            var(--fps-health-line-height, 45px) "Lilita One",
           system-ui,
           sans-serif;
-        text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+        -webkit-text-stroke: var(--fps-health-outline-size, 12px)
+          rgba(0, 0, 0, var(--fps-health-outline-alpha, 0.470588));
+        paint-order: stroke fill;
         user-select: none;
         pointer-events: none;
         z-index: 5;
       }
 
       #health {
-        min-width: 110px;
+        min-width: var(--fps-health-width, 90px);
       }
     </style>
   </head>

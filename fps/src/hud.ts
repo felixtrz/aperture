@@ -3,6 +3,10 @@ import {
   type GeneratedSignalSummary,
   subscribeGeneratedSignals,
 } from "@aperture-engine/app/browser";
+import {
+  sourceHealthText,
+  writeSourceHudCssVariables,
+} from "./lib/fps-hud.js";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#aperture");
 const healthEl = document.querySelector<HTMLElement>("#health");
@@ -25,19 +29,19 @@ function writeText(el: HTMLElement | null, value: string): void {
 }
 
 function render(signals: GeneratedSignalSummary | null): void {
-  const health = Math.max(0, Math.round(readNumber(signals?.health, 100)));
   const crosshair =
     typeof signals?.crosshair === "string" && signals.crosshair.length > 0
       ? signals.crosshair
       : "/sprites/crosshair.png";
 
-  writeText(healthEl, `${health}%`);
+  writeText(healthEl, sourceHealthText(readNumber(signals?.health, 100)));
 
   if (crosshairEl !== null && crosshairEl.getAttribute("src") !== crosshair) {
     crosshairEl.setAttribute("src", crosshair);
   }
 }
 
+writeSourceHudCssVariables(document.documentElement.style);
 render(null);
 subscribeGeneratedSignals(render);
 
