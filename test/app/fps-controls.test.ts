@@ -16,6 +16,7 @@ import {
   snapToGroundDistanceForMove,
   shouldConsumeBufferedJump,
   shouldConsumeBufferedShot,
+  sourceCloudHoverPosition,
   sourceChildPositionFromLook,
   sourceControllerLookStep,
   sourceEnemyAttackers,
@@ -567,5 +568,28 @@ describe("Starter Kit FPS controls", () => {
       "enemy.near-a",
       "enemy.near-b",
     ]);
+  });
+
+  it("integrates source cloud cosine hover into a sine position offset", () => {
+    const base: [number, number, number] = [1, 2, 3];
+
+    expect(
+      sourceCloudHoverPosition({
+        basePosition: base,
+        hoverVelocity: 0.55,
+        hoverRate: 1.1,
+        time: 0,
+      }),
+    ).toEqual(base);
+
+    const quarterCycle = sourceCloudHoverPosition({
+      basePosition: base,
+      hoverVelocity: 0.55,
+      hoverRate: 1.1,
+      time: Math.PI / (2 * 1.1),
+    });
+    expect(quarterCycle[0]).toBe(1);
+    expect(quarterCycle[1]).toBeCloseTo(2 + 0.55 / 1.1, 10);
+    expect(quarterCycle[2]).toBe(3);
   });
 });

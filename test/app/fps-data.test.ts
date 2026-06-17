@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  CLOUDS,
   FPS_ALL_RENDER_LAYER_MASK,
   FPS_WEAPON_LAYER_MASK,
   FPS_WORLD_LAYER_MASK,
@@ -12,6 +13,8 @@ import {
   PLAYER_START,
   PLATFORM_LARGE_GRASS_DECORATIONS,
   SOURCE_GAMEPAD_LOOK_SENSITIVITY,
+  SOURCE_CLOUD_RANDOM_MAX,
+  SOURCE_CLOUD_RANDOM_MIN,
   SOURCE_LOOK_LERP_RATE,
   SOURCE_LOOK_PITCH_LIMIT,
   SOURCE_MOUSE_SENSITIVITY,
@@ -114,6 +117,22 @@ describe("Starter Kit FPS source data", () => {
       [0.1, -0.4, 1.5],
       [0.1, -0.4, 1.5],
     ]);
+  });
+
+  it("keeps cloud hover data inside the source cloud random range", () => {
+    expect(SOURCE_CLOUD_RANDOM_MIN).toBe(0.1);
+    expect(SOURCE_CLOUD_RANDOM_MAX).toBe(2);
+    expect(CLOUDS).toHaveLength(11);
+    expect(new Set(CLOUDS.map((cloud) => cloud.key)).size).toBe(CLOUDS.length);
+
+    for (const cloud of CLOUDS) {
+      expect(cloud.hoverVelocity).toBeGreaterThanOrEqual(
+        SOURCE_CLOUD_RANDOM_MIN,
+      );
+      expect(cloud.hoverVelocity).toBeLessThanOrEqual(SOURCE_CLOUD_RANDOM_MAX);
+      expect(cloud.hoverRate).toBeGreaterThanOrEqual(SOURCE_CLOUD_RANDOM_MIN);
+      expect(cloud.hoverRate).toBeLessThanOrEqual(SOURCE_CLOUD_RANDOM_MAX);
+    }
   });
 
   it("keeps platform-large-grass child decorations from the source packed scene", () => {

@@ -4,7 +4,8 @@ import {
   createSystem,
   type Entity,
 } from "@aperture-engine/app/systems";
-import { CLOUDS, type CloudSpec } from "../lib/fps-data.js";
+import { sourceCloudHoverPosition } from "../lib/fps-controls.js";
+import { CLOUDS } from "../lib/fps-data.js";
 
 export default class CloudsSystem extends createSystem({
   priority: 10,
@@ -23,7 +24,14 @@ export default class CloudsSystem extends createSystem({
       if (entity === null) continue;
       entity
         .getVectorView(LocalTransform, "translation")
-        .set(cloudPosition(cloud, this.#time));
+        .set(
+          sourceCloudHoverPosition({
+            basePosition: cloud.position,
+            hoverVelocity: cloud.hoverVelocity,
+            hoverRate: cloud.hoverRate,
+            time: this.#time,
+          }),
+        );
     }
   }
 
@@ -33,18 +41,4 @@ export default class CloudsSystem extends createSystem({
     }
     return null;
   }
-}
-
-function cloudPosition(cloud: CloudSpec, time: number): readonly [
-  number,
-  number,
-  number,
-] {
-  const hoverOffset =
-    Math.sin(time * cloud.hoverRate) * (cloud.hoverVelocity / cloud.hoverRate);
-  return [
-    cloud.position[0],
-    cloud.position[1] + hoverOffset,
-    cloud.position[2],
-  ];
 }

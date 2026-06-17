@@ -74,6 +74,13 @@ export interface SourceShotDirectionInput {
   readonly spreadOffsetY: number;
 }
 
+export interface SourceCloudHoverInput {
+  readonly basePosition: Vec3;
+  readonly hoverVelocity: number;
+  readonly hoverRate: number;
+  readonly time: number;
+}
+
 export interface SourceEnemyAttackCandidate {
   readonly key: string;
   readonly position: Vec3;
@@ -265,6 +272,17 @@ export function sourceShotDirection(input: SourceShotDirectionInput): Vec3 {
       quatFromEulerYXZ(input.pitch, input.yaw, 0),
     ),
   );
+}
+
+export function sourceCloudHoverPosition(input: SourceCloudHoverInput): Vec3 {
+  const hoverOffset =
+    Math.sin(input.time * input.hoverRate) *
+    (input.hoverVelocity / input.hoverRate);
+  return [
+    input.basePosition[0],
+    input.basePosition[1] + hoverOffset,
+    input.basePosition[2],
+  ];
 }
 
 export function weaponViewmodelOffsetTarget(

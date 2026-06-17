@@ -131,6 +131,8 @@ export const SOURCE_WEAPON_SHOT_KICK = 0.25;
 export const SOURCE_WEAPON_SWITCH_DROP_OFFSET = 1;
 export const SOURCE_WEAPON_SWITCH_HIDE_DURATION = 0.1;
 export const SOURCE_WEAPON_SWITCH_RAISE_RATE = 10;
+export const SOURCE_CLOUD_RANDOM_MIN = 0.1;
+export const SOURCE_CLOUD_RANDOM_MAX = 2.0;
 
 export const WEAPONS: readonly WeaponSpec[] = [
   {
