@@ -16,6 +16,17 @@ export interface WeaponViewmodelOffsetInput {
   readonly scale: number;
 }
 
+export interface EnemyLookAnglesInput {
+  readonly enemy: Vec3;
+  readonly player: Vec3;
+  readonly targetYOffset: number;
+}
+
+export interface EnemyLookAngles {
+  readonly pitch: number;
+  readonly yaw: number;
+}
+
 export function cameraForwardFromYawPitch(yaw: number, pitch: number): Vec3 {
   const cosPitch = Math.cos(pitch);
   return [cosPitch * Math.sin(yaw), Math.sin(pitch), -cosPitch * Math.cos(yaw)];
@@ -79,9 +90,30 @@ export function weaponViewmodelOffsetTarget(
   return [x === 0 ? 0 : x, 0, z === 0 ? 0 : z];
 }
 
+export function enemyLookAngles(input: EnemyLookAnglesInput): EnemyLookAngles {
+  const dx = input.player[0] - input.enemy[0];
+  const dz = input.player[2] - input.enemy[2];
+  const dy = input.player[1] + input.targetYOffset - input.enemy[1];
+  const horizontalDistance = Math.hypot(dx, dz);
+
+  return {
+    yaw: Math.atan2(dx, dz),
+    pitch:
+      horizontalDistance <= Number.EPSILON
+        ? verticalLookPitch(dy)
+        : -Math.atan2(dy, horizontalDistance),
+  };
+}
+
 export function snapToGroundDistanceForMove(
   configuredDistance: number,
   desiredVerticalTranslation: number,
 ): number {
   return desiredVerticalTranslation > 0 ? 0 : configuredDistance;
+}
+
+function verticalLookPitch(dy: number): number {
+  if (dy > 0) return -Math.PI / 2;
+  if (dy < 0) return Math.PI / 2;
+  return 0;
 }

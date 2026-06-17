@@ -27,6 +27,7 @@ import {
 import {
   CLOUDS,
   ENEMIES,
+  ENEMY_HITBOX_OFFSET,
   ENEMY_MUZZLE_OFFSETS,
   LEVEL_COLLIDERS,
   LEVEL_INSTANCES,
@@ -232,7 +233,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         key: `${enemy.key}.hitbox`,
         name: `${enemy.key}.hitbox`,
         tags: ["enemy", "hitbox"],
-        transform: { translation: enemy.position },
+        transform: { translation: addVec3(enemy.position, ENEMY_HITBOX_OFFSET) },
         physics: {
           rigidBody: { type: "static" },
           collider: {
@@ -391,4 +392,11 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     );
     return samplerHandle;
   }
+}
+
+function addVec3(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+): [number, number, number] {
+  return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 }

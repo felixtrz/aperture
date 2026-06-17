@@ -19,6 +19,7 @@ import { Collider } from "@aperture-engine/physics";
 import { Sprite } from "@aperture-engine/render";
 import {
   ENEMIES,
+  ENEMY_HITBOX_OFFSET,
   ENEMY_MUZZLE_OFFSETS,
   GRAVITY,
   JUMP_STRENGTH,
@@ -38,6 +39,7 @@ import {
   cameraForwardFromYawPitch,
   cameraRecoilVelocityFromYaw,
   cameraRelativeMovementDelta,
+  enemyLookAngles,
   horizontalRightFromYaw,
   normalizedMoveAxis,
   snapToGroundDistanceForMove,
@@ -53,6 +55,7 @@ const LOOK_SPEED = Math.PI;
 const GAMEPAD_LOOK_SPEED = 2.5;
 const ENEMY_HOVER_AMPLITUDE = 0.2;
 const ENEMY_HOVER_RATE = 5;
+const ENEMY_LOOK_TARGET_Y_OFFSET = 0.5;
 const ENEMY_ATTACK_INTERVAL = 0.25;
 const ENEMY_ATTACK_DISTANCE = 5;
 const ENEMY_ATTACK_DAMAGE = 5;
@@ -738,16 +741,26 @@ export default class PlayerSystem extends createSystem({
       const position = alive
         ? enemyPosition(enemy.position, this.#enemyTime)
         : ([enemy.position[0], -100, enemy.position[2]] as Vec3);
-      const yaw = enemyYaw(position, playerPosition);
+      const look = enemyLookAngles({
+        enemy: position,
+        player: playerPosition,
+        targetYOffset: ENEMY_LOOK_TARGET_Y_OFFSET,
+      });
 
       for (const key of [enemy.key, `${enemy.key}.hitbox`]) {
         const entity = this.#findByKey(key);
         if (entity === null) continue;
         this.#setEnabled(entity, alive);
-        entity.getVectorView(LocalTransform, "translation").set(position);
+        entity
+          .getVectorView(LocalTransform, "translation")
+          .set(
+            key.endsWith(".hitbox")
+              ? addVec3(position, ENEMY_HITBOX_OFFSET)
+              : position,
+          );
         entity
           .getVectorView(LocalTransform, "rotation")
-          .set(quatFromEulerYXZ(0, yaw, 0));
+          .set(quatFromEulerYXZ(look.pitch, look.yaw, 0));
         if (key.endsWith(".hitbox") && entity.hasComponent(Collider)) {
           entity.setValue(Collider, "enabled", alive);
         }
@@ -790,7 +803,11 @@ export default class PlayerSystem extends createSystem({
   }
 
   #triggerEnemyMuzzleFlashes(enemyPosition: Vec3, playerPosition: Vec3): void {
-    const yaw = enemyYaw(enemyPosition, playerPosition);
+    const { yaw } = enemyLookAngles({
+      enemy: enemyPosition,
+      player: playerPosition,
+      targetYOffset: ENEMY_LOOK_TARGET_Y_OFFSET,
+    });
     for (let i = 0; i < ENEMY_MUZZLE_OFFSETS.length; i += 1) {
       this.#enemyMuzzleFlashPositions[i] = enemyMuzzlePosition(
         enemyPosition,
@@ -1137,6 +1154,10 @@ function cloneVec3(value: readonly [number, number, number]): Vec3 {
   return [value[0], value[1], value[2]];
 }
 
+function addVec3(a: Vec3, b: Vec3): Vec3 {
+  return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+}
+
 function offsetImpactPoint(point: Vec3, normal: Vec3): Vec3 {
   return [
     point[0] + normal[0] * IMPACT_NORMAL_OFFSET,
@@ -1194,10 +1215,6 @@ function enemyPosition(base: Vec3, time: number): Vec3 {
     base[1] + Math.sin(time * ENEMY_HOVER_RATE) * ENEMY_HOVER_AMPLITUDE,
     base[2],
   ];
-}
-
-function enemyYaw(enemy: Vec3, player: Vec3): number {
-  return Math.atan2(player[0] - enemy[0], player[2] - enemy[2]);
 }
 
 function enemyMuzzlePosition(enemy: Vec3, yaw: number, offset: Vec3): Vec3 {

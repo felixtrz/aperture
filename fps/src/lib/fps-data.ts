@@ -54,6 +54,7 @@ export const ENEMY_MUZZLE_OFFSETS: readonly [Vec3, Vec3] = [
   [-0.45, 0.3, 0.4],
   [0.45, 0.3, 0.4],
 ];
+export const ENEMY_HITBOX_OFFSET: Vec3 = [0, 0.25, 0];
 export const PLAYER_EYE_HEIGHT = 1.5;
 export const PLAYER_BODY_KEY = "player.body";
 export const PLAYER_SHADOW_KEY = "player.shadow";

@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  quatFromEulerYXZ,
+  rotateVec3ByQuat,
+} from "@aperture-engine/app/systems";
+import {
   cameraForwardFromYawPitch,
   cameraRecoilVelocityFromYaw,
   cameraRelativeMovementDelta,
+  enemyLookAngles,
   horizontalBackwardFromYaw,
   normalizedMoveAxis,
   snapToGroundDistanceForMove,
@@ -114,6 +119,31 @@ describe("Starter Kit FPS controls", () => {
     expect(diagonal[0]).toBeCloseTo(-1 / (6 * Math.SQRT2), 10);
     expect(diagonal[1]).toBe(0);
     expect(diagonal[2]).toBeCloseTo(1 / (6 * Math.SQRT2), 10);
+  });
+
+  it("pitches enemies toward the player's upper-body look target", () => {
+    const enemy: [number, number, number] = [0, 3, 0];
+    const player: [number, number, number] = [0, 1.5, 5];
+    const look = enemyLookAngles({
+      enemy,
+      player,
+      targetYOffset: 0.5,
+    });
+    const expectedDirection: [number, number, number] = [
+      0,
+      -1 / Math.sqrt(26),
+      5 / Math.sqrt(26),
+    ];
+    const forward = rotateVec3ByQuat(
+      [0, 0, 1],
+      quatFromEulerYXZ(look.pitch, look.yaw, 0),
+    );
+
+    expect(look.yaw).toBeCloseTo(0, 10);
+    expect(look.pitch).toBeGreaterThan(0);
+    expect(forward[0]).toBeCloseTo(expectedDirection[0], 5);
+    expect(forward[1]).toBeCloseTo(expectedDirection[1], 5);
+    expect(forward[2]).toBeCloseTo(expectedDirection[2], 5);
   });
 
   it("disables snap-to-ground for upward character movement", () => {
