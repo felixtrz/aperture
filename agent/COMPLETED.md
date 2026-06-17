@@ -28,7 +28,7 @@ Completed: 2026-06-17 15:08 PDT
 
 - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts test/app/fps-hud.test.ts test/app/fps-audio.test.ts test/app/fps-effects.test.ts test/app/fps-setup.test.ts test/cli/tool-client.test.ts`
 - `pnpm exec vitest run test/cli/tool-client.test.ts test/app/fps-data.test.ts`
-- `pnpm exec vitest run test/app/fps-layout.test.ts`
+- `pnpm exec vitest run test/app/fps-layout.test.ts test/app/fps-hud.test.ts test/app/fps-setup.test.ts`
 - `pnpm --filter @aperture-engine/cli run typecheck`
 - `pnpm --filter @aperture-engine/cli run build`
 - `pnpm exec prettier --check packages/cli/src/tools/browser.ts packages/cli/src/tools/client.ts test/cli/tool-client.test.ts test/app/fps-data.test.ts`
@@ -37,8 +37,7 @@ Completed: 2026-06-17 15:08 PDT
 - `pnpm --dir fps run smoke:full-clear`
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
-- `pnpm exec prettier --check fps/src/weapon-three-compare.ts`
-- `pnpm exec prettier --check test/app/fps-layout.test.ts`
+- `pnpm exec prettier --check fps/src/weapon-three-compare.ts test/app/fps-layout.test.ts`
 - `git diff --check -- fps/src/weapon-three-compare.ts`
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir shadow-lab run typecheck`

@@ -1,6 +1,6 @@
 # Handoff - FPS Completion Audit and Tool Client Hardening
 
-**Updated:** 2026-06-17 15:08 PDT
+**Updated:** 2026-06-17 15:12 PDT
 
 User-directed work is on branch `fps-starter-kit-port`.
 
@@ -49,21 +49,28 @@ User-directed work is on branch `fps-starter-kit-port`.
   - 8 files, 75 tests passed.
 - `pnpm exec vitest run test/cli/tool-client.test.ts test/app/fps-data.test.ts`
   - 2 files, 14 tests passed after formatting.
-- `pnpm exec vitest run test/app/fps-layout.test.ts`
-  - 1 file, 2 tests passed.
+- `pnpm exec vitest run test/app/fps-layout.test.ts test/app/fps-hud.test.ts test/app/fps-setup.test.ts`
+  - 3 files, 18 tests passed.
 - `pnpm --filter @aperture-engine/cli run typecheck`
 - `pnpm --filter @aperture-engine/cli run build`
 - `pnpm exec prettier --check packages/cli/src/tools/browser.ts packages/cli/src/tools/client.ts test/cli/tool-client.test.ts test/app/fps-data.test.ts`
 - `pnpm exec vitest run test/app/fps-hud.test.ts`
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
-- `pnpm exec prettier --check fps/src/weapon-three-compare.ts`
-- `pnpm exec prettier --check test/app/fps-layout.test.ts`
+- `pnpm exec prettier --check fps/src/weapon-three-compare.ts test/app/fps-layout.test.ts`
 - `git diff --check -- fps/src/weapon-three-compare.ts`
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir shadow-lab run typecheck`
 - `git diff --check -- fps/index.html fps/src/lib/fps-hud.ts test/app/fps-hud.test.ts`
+- `pnpm --dir fps exec aperture tool browser_canvas_status`
+  - managed canvas/render target matched the managed viewport at `1920x1280`
+    with aspect `1.5`; no 16:9 engine clamp.
 - Playwright layout probe against `http://127.0.0.1:5173/`
+  - normal route: `1000x900` viewport produced `1000x900` shell/canvas;
+    `390x844` viewport produced `390x844` shell/canvas; `#boot-splash` count
+    `0`;
+  - `?compare=weapon`: `1000x900` viewport produced two `500x900` panes;
+    `390x844` viewport produced two `195x844` panes.
 - `pnpm --dir fps run smoke:full-clear -- --fresh-session --keep-running --verbose`
   - cleared all 4 enemies through managed Aperture CLI input;
   - final state: `health:60`, `shotsFired:8`, `hits:16`,
