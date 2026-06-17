@@ -4,7 +4,7 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "pending-free-resize",
+  "lastCommit": "29712108",
   "activePid": null,
   "notes": "Corrected FPS resize behavior to true free resize: the playable shell/canvas now fills 1600x900, 1000x900, and 390x844 viewports exactly, with no boot-splash DOM. FPS build/typecheck, fps-hud test, racing typecheck, and shadow-lab typecheck passed.",
   "lastRunFinishedAt": "2026-06-17T21:58:00Z"

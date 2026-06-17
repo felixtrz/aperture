@@ -7,6 +7,7 @@ User-directed work is on branch `fps-starter-kit-port`.
 ## Latest Completed Slice
 
 - Committed `dae7ec2b` (`Remove FPS splash and viewport cap`).
+- Committed `29712108` (`Make FPS canvas free resize`).
 - Follow-up correction makes the playable shell/canvas fully free-resize to the
   browser viewport instead of preserving a 16:9 letterbox.
 - Removed the FPS splashscreen DOM/CSS and the now-unused HUD boot-complete
