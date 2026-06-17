@@ -393,12 +393,23 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 14:21 UTC</dd>
+            <dd>2026-06-17 14:32 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS enemy constants now derive from
+              Latest update: Starter Kit FPS environment values now derive from
+              <code>scenes/main-environment.tres</code> and
+              <code>scenes/main.tscn</code>. The port routes exact source
+              background/ambient colors, ambient intensity, panorama sky
+              energy, Sun rotation, and <code>shadow_opacity:0.75</code>
+              through setup/config. Aperture CLI proof read the live
+              <code>light.sun</code> quaternion as
+              <code>[0.22707267105579376,-0.7643723487854004,-0.35643231868743896,0.48695874214172363]</code>
+              and reported two views, one skybox, one fog, 49 draw calls, and
+              render diagnostics <code>0</code>. Godot SSAO/glow-level parity
+              remains an explicit engine/visual gap. Prior update: Starter Kit
+              FPS enemy constants now derive from
               <code>objects/enemy.tscn</code> and
               <code>objects/enemy.gd</code>. The port exports source hitbox,
               raycast, attack, hover, muzzle-offset, and muzzle-roll constants
@@ -2559,6 +2570,16 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Anchored Starter Kit FPS
+                supported environment values to
+                <code>main-environment.tres</code> and
+                <code>main.tscn</code>. The port now uses exact source
+                background and ambient colors, source sky energy, source Sun
+                rotation, and source <code>shadow_opacity</code> as Aperture
+                shadow strength, with CLI proof for the live Sun quaternion and
+                clean skybox/fog render summary.
+              </li>
               <li>
                 <span class="badge green">fps</span> Anchored Starter Kit FPS
                 enemy scene/script constants to <code>enemy.tscn</code> and

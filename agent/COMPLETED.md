@@ -1,5 +1,44 @@
 # Completed Tasks
 
+## FPS-PORT — Source environment values
+
+Completed: 2026-06-17 07:32 PDT
+Commit: `d7b01926`
+
+### Summary
+
+- Anchored supported environment values to
+  `references/Starter-Kit-FPS/scenes/main-environment.tres` and
+  `references/Starter-Kit-FPS/scenes/main.tscn`.
+- Exported source background/ambient colors, ambient intensity, panorama sky
+  energy, Sun Transform3D-derived quaternion, and shadow opacity as source
+  constants.
+- Routed FPS setup/config through those constants for camera clear color, fog,
+  ambient light, skybox intensity, sun rotation, and shadow strength.
+- Left Godot SSAO/glow-level parity as an explicit remaining engine/visual gap
+  rather than claiming unsupported parity.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-effects.test.ts`
+  passed 12 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/fps-hud.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+  passed 68 tests.
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `pnpm run check:progress`
+- `git diff --check`
+- Aperture CLI proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed with WebGPU ready and diagnostics `[]`.
+  - `light.sun` reported source rotation
+    `[0.22707267105579376,-0.7643723487854004,-0.35643231868743896,0.48695874214172363]`.
+  - `render_get_snapshot_summary` reported two views, one skybox, one fog, 49
+    draw calls, and render diagnostics `0`.
+
 ## FPS-PORT — Source enemy constants and hitbox
 
 Completed: 2026-06-17 07:21 PDT

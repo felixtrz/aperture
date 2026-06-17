@@ -1,11 +1,55 @@
-# Handoff - Starter Kit FPS Source Enemy Constants
+# Handoff - Starter Kit FPS Source Environment Values
 
-**Updated:** 2026-06-17 07:21 PDT
+**Updated:** 2026-06-17 07:32 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Aligned supported Starter Kit FPS source environment values:
+  - Source anchors:
+    `references/Starter-Kit-FPS/scenes/main-environment.tres` and
+    `references/Starter-Kit-FPS/scenes/main.tscn`.
+  - The port now exports and uses source background color
+    `[0x5c/255, 0x64/255, 0x76/255, 1]`, ambient color
+    `[0xa9/255, 0xb1/255, 0xc5/255, 1]`, ambient intensity `1`, panorama sky
+    energy `0.5`, the Sun Transform3D-derived quaternion
+    `[0.22707267,-0.76437232,-0.35643233,0.48695873]`, and source
+    `shadow_opacity = 0.75` as Aperture shadow strength.
+  - FPS setup now routes camera clear color, fog color, ambient light, skybox
+    intensity, sun rotation, and sun shadow strength through those source
+    constants. `fps/aperture.config.ts` also uses the exact source clear color.
+  - Godot SSAO/glow-level parity is still not claimed as complete; Aperture
+    bloom remains the existing approximation and SSAO remains an honest engine
+    gap.
+- Aperture tooling proof:
+  - Started the managed FPS app with
+    `pnpm --dir fps exec aperture dev up --headless --host 127.0.0.1 --port 5173`.
+  - CLI `browser_wait_for_webgpu` passed with WebGPU ready, `lastError:null`,
+    `lastFailure:null`, and render diagnostics `[]`.
+  - CLI `ecs_find_entities {"key":"light.sun","limit":1}` reported the live
+    sun rotation as
+    `[0.22707267105579376,-0.7643723487854004,-0.35643231868743896,0.48695874214172363]`.
+  - CLI `render_get_snapshot_summary` reported two views, one skybox, one fog,
+    49 draw calls, and diagnostics `0`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-effects.test.ts`
+    passed 12 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/fps-hud.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+    passed 68 tests.
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `pnpm run check:progress`
+  - `git diff --check`
+- Commit:
+  - `d7b01926` — `Align FPS source environment values`
+
+## Previous Completed FPS/Tooling Slices
 
 - Anchored Starter Kit FPS enemy scene/script constants:
   - Source anchors:
@@ -50,8 +94,6 @@ previous working state so the old state remains recoverable.
   - `git diff --check`
 - Commit:
   - `25825757` — `Anchor FPS enemy source constants`
-
-## Previous Completed FPS/Tooling Slices
 
 - Anchored Starter Kit FPS cloud hover math:
   - Source anchor: `references/Starter-Kit-FPS/objects/cloud.gd`.
