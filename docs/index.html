@@ -393,12 +393,23 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-16 23:10 UTC</dd>
+            <dd>2026-06-17 01:06 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: racing audio intent now runs from
+              Latest update: <code>@aperture-engine/app</code> now exposes
+              <code>createFollowCameraController(...)</code> for ECS-authored
+              lead/deadzone/smoothing camera follow behavior. Racing migrated
+              <code>src/systems/camera-follow.system.ts</code> to the shared
+              helper while preserving fixed-step
+              <code>RenderInterpolation</code>. A headless racing regression now
+              proves textured smoke bursts emit when drift crosses the reference
+              threshold, and the managed Aperture MCP proof rendered live smoke
+              with zero render diagnostics.
+              <code>render_get_frame_report</code> also gained a
+              <code>summaryOnly</code> option for compact future agent checks.
+              Prior update: racing audio intent now runs from
               <code>src/systems/audio.system.ts</code> through a worker-authored
               <code>this.audio</code> control surface. Aperture owns
               <code>AudioEmitter</code> extraction, authored lowpass fields,

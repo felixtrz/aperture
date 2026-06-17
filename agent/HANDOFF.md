@@ -1,12 +1,81 @@
 # Handoff - Racing Particle/Interpolation Stabilization
 
-**Updated:** 2026-06-16 17:38 PDT
+**Updated:** 2026-06-16 18:06 PDT
 
 Current user-directed work is executing
 `racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
 slices while keeping racing and Shadow Lab working.
 
 ## Latest Completed Slice
+
+- Added `createFollowCameraController(...)` and `writeFollowCameraPose(...)` to
+  `@aperture-engine/app` controller/system exports. The helper owns generic
+  lead projection, deadzone clamping, exponential smoothing, look-at pose
+  generation, and optional camera `RenderInterpolation` writes over ordinary
+  ECS `LocalTransform`.
+- Migrated racing `src/systems/camera-follow.system.ts` to the shared follow
+  camera controller. Racing now keeps only its tuning constants and vehicle
+  lead velocity calculation in app code; the app no longer hand-rolls camera
+  basis/deadzone/smoothing math.
+- Added a focused racing smoke regression at
+  `racing/test/racing/particles-system.test.ts`. It uses the real
+  `ParticlesSystem`, config-authored `asset.texture(...)` +
+  `asset.particleEffect(...)`, and `VehicleResource` to prove two textured smoke
+  bursts emit when drift exceeds the Starter-Kit threshold.
+- Improved Aperture MCP/CLI render tooling: `render_get_frame_report` now
+  accepts `summaryOnly: true` so future agent checks can read compact frame
+  counts/particles/diagnostics instead of the full frame report and entity dump.
+  The active MCP server in this session did not pick up the rebuilt CLI without
+  a restart, but the source and `@aperture-engine/cli` build are updated.
+- Investigated the user's alarming console report. Current post-reload racing
+  status is healthy (`webgpuOk:true`, `lastError:null`, `lastFailure:null`);
+  the red worker-transport/WebGPU particle errors in the console are retained
+  append-only history from earlier broken sessions. The only fresh post-reload
+  console entry is the non-fatal Rapier/WASM deprecated-parameter warning.
+- Reproved live racing smoke entirely through Aperture MCP: reloaded the managed
+  page, paused ECS, set virtual `drive` input to `[1, 1]`, stepped fixed
+  simulation through the worker, and read the render report after smoke
+  rendered. Frame 3791 reported `ok:true`, `counts.particleEmitters:10`,
+  `particles.liveParticles:30`, `particles.texturedEmitters:10`, and
+  diagnostics `[]`. Inputs were reset and ECS was resumed afterward.
+
+## Latest Validation
+
+- `pnpm exec prettier --write racing/test/racing/particles-system.test.ts`
+- `pnpm exec vitest run racing/test/racing/particles-system.test.ts test/app/particle-spawn.test.ts test/webgpu/particle-frame-resources.test.ts`
+- `pnpm exec prettier --write packages/cli/src/tools/render.ts packages/cli/src/tools/dispatch.ts packages/cli/src/mcp.ts`
+- `pnpm exec vitest run test/app/follow-camera-controller.test.ts test/app/fly-camera-controller.test.ts test/app/orbit-camera-controller.test.ts racing/test/racing/particles-system.test.ts test/app/particle-spawn.test.ts test/webgpu/particle-frame-resources.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Managed Aperture MCP racing proof described above; console check after smoke
+  showed no new WebGPU/worker errors.
+
+## Current Notes
+
+- The managed racing app is running at `http://127.0.0.1:5173/` and was left
+  resumed with inputs reset.
+- The active MCP server still returns the verbose render frame report even when
+  `summaryOnly:true` is supplied. Restarting the managed Aperture MCP session
+  after the committed CLI build should activate the compact path.
+- Pre-existing untracked screenshot/parity artifacts remain outside the commit.
+
+## Recommended Next Task
+
+Continue the racing library-gap plan with the next generic app-level cleanup,
+preferably one that removes app-local math/control code only where an established
+engine precedent supports the library abstraction. A good candidate is a focused
+resource/devtools ergonomics slice: add compact generated-worker resource
+summary tooling so agents can inspect `VehicleResource`-style app resources
+without dumping the full browser status.
+
+---
+
+## Previous Completed Slice
 
 - Fixed hierarchical render interpolation in `@aperture-engine/app` so opted-in
   child objects compose against interpolated parent transforms instead of
@@ -34,7 +103,7 @@ slices while keeping racing and Shadow Lab working.
 - Updated the racing library-gap plan with a genericity audit for the landed
   app/library work.
 
-## Latest Validation
+## Previous Validation
 
 - `pnpm exec prettier --write packages/webgpu/src/app/queued-built-in-frame.ts packages/webgpu/src/app/mixed-custom-wgsl-frame.ts packages/webgpu/src/app/custom-wgsl-frame.ts examples/content-showcase-scene.js examples/content-showcase.worker.js test/e2e/content-showcase.spec.ts`
 - `pnpm exec vitest run test/app/fixed-step-app.test.ts test/app/gltf-instance-lookup.test.ts`
@@ -68,7 +137,7 @@ slices while keeping racing and Shadow Lab working.
   remaining WebGPU warnings are timestamped before the restart.
 - Inputs were reset and ECS resumed after the paused particle proof.
 
-## Current Notes
+## Previous Notes
 
 - `pnpm exec playwright test test/e2e/content-showcase.spec.ts --reporter=line`
   was started after the content-showcase queued-route coverage change but
@@ -82,7 +151,7 @@ slices while keeping racing and Shadow Lab working.
   `lastError:null`, `lastFailure:null`.
 - Pre-existing untracked screenshot/parity artifacts remain outside the commit.
 
-## Recommended Next Task
+## Previous Recommended Next Task
 
 Either rerun/debug the content-showcase Playwright smoke proof for the queued
 particle route, or continue RACE-LIB-20 by adding a reusable app-level camera

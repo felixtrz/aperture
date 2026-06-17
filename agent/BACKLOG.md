@@ -59,27 +59,29 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Add a reusable app-level camera follow/control helper and migrate racing's
-camera-follow system to it.
+Add compact generated-worker app resource summaries to the Aperture MCP/devtools
+route, then use them to prove racing vehicle/smoke state without full
+`browser_status` dumps.
 
-Category: `runtime-orchestration`
+Category: `docs-tooling`
 
-Reference anchor: `references/bevy/crates/bevy_transform/src/components/transform.rs`
-for look-at/transform helper ergonomics and
-`references/engine/src/framework/components/camera/component.js` for
-camera component state that app code should not hand-wire repeatedly.
+Reference anchor: `references/bevy/crates/bevy_ecs/src/system/system_param.rs`
+for resource inspection as a first-class ECS/devtools concern and
+`references/engine/src/framework/components/script/system.js` for runtime
+component/system inspection patterns.
 
 Acceptance criteria:
 
-- Add a public helper or app-system control surface for lead/deadzone/smoothing
-  camera follow math that writes ordinary ECS camera transforms.
-- Migrate racing `src/systems/camera-follow.system.ts` to that helper while
-  preserving the existing camera feel and `RenderInterpolation` behavior.
-- Keep racing-specific offsets, smoothing constants, and screen-shift tuning in
-  racing config/tuning code.
-- Racing typecheck/build pass, managed Aperture runtime visual/status checks
-  stay healthy, cache-busted served-module probes confirm current code, and no
-  raw CDP is used.
+- Add a compact MCP/devtools tool or filter that returns generated app resources
+  by id with JSON-safe values and field metadata, without embedding the full
+  browser status or entity dump.
+- Use the tool against managed racing to read `racing.vehicle` while paused and
+  after deterministic `drive=[1,1]` stepping, proving drift/smoke trigger state
+  alongside `render_get_frame_report`.
+- Keep the route generic for any `defineResource(...)` app resource; do not bake
+  racing-specific ids or fields into the library.
+- Add focused CLI/devtools tests, rebuild `@aperture-engine/cli`, and verify
+  racing remains healthy through Aperture MCP with no raw CDP.
 
 ## Historical M10 Physics Notes
 

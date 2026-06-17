@@ -211,9 +211,7 @@ async function callTool(params: unknown, cwd: string): Promise<unknown> {
   };
 }
 
-function isImageToolResult(
-  value: unknown,
-): value is {
+function isImageToolResult(value: unknown): value is {
   ok?: boolean;
   mimeType: string;
   encoding?: string;
@@ -348,6 +346,7 @@ function toolDefinitions(): readonly McpToolDefinition[] {
     tool(
       "render_get_frame_report",
       "Read the latest render frame report from generated diagnostics.",
+      { summaryOnly: { type: "boolean" } },
     ),
     tool(
       "render_get_snapshot_summary",

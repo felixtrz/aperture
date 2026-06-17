@@ -1,14 +1,10 @@
 import {
   LocalTransform,
   Name,
-  RenderInterpolation,
+  createFollowCameraController,
   createSystem,
-  expSmoothingAlpha,
-  lerp,
-  quatLookAt,
-  vec3Dot,
-  vec3Normalize,
   type ApertureQuery,
+  type FollowCameraController,
   type SimulationFixedStepContext,
   type Vec3Tuple as Vec3,
 } from "@aperture-engine/app/systems";
@@ -20,19 +16,12 @@ import {
 
 type QueryEntity = ApertureQuery["entities"] extends Set<infer T> ? T : never;
 
-// Camera-aligned ground basis derived from the fixed offset (Camera.js):
-// camRightXZ = normalize(offset.z, 0, -offset.x); camForwardXZ = normalize(-offset.x, 0, -offset.z)
-const OFF = CAMERA.offset;
-const RIGHT_XZ = vec3Normalize([OFF[2], 0, -OFF[0]]);
-const FWD_XZ = vec3Normalize([-OFF[0], 0, -OFF[2]]);
-
 export default class CameraFollowSystem extends createSystem({
   priority: 120,
   queries: { cams: { required: [Name, LocalTransform] } },
 }) {
   #camera: QueryEntity | null = null;
-  #smoothed: Vec3 = [...VEHICLE_INITIAL_SPHERE];
-  #initialized = false;
+  #follow: FollowCameraController | null = null;
 
   override fixedUpdate(context: SimulationFixedStepContext): void {
     this.#step(context.fixedDelta);
@@ -44,11 +33,17 @@ export default class CameraFollowSystem extends createSystem({
     if (!vehicle.ready) return;
     if (this.#camera === null) this.#camera = this.#findNamed("main-camera");
     if (this.#camera === null) return;
-    if (!this.#camera.hasComponent(RenderInterpolation)) {
-      this.#camera.addComponent(RenderInterpolation);
+    if (this.#follow === null) {
+      this.#follow = createFollowCameraController({
+        offset: CAMERA.offset,
+        initialTarget: VEHICLE_INITIAL_SPHERE,
+        leadFactor: CAMERA.leadFactor,
+        smoothing: CAMERA.smoothing,
+        deadzoneRadius: CAMERA.deadzoneRadius,
+        screenShiftUp: CAMERA.screenShiftUp,
+      });
     }
 
-    const dt = delta;
     const target = vehicle.sphere;
 
     // Lead = forward * horizontal speed (main.js _camLead).
@@ -60,68 +55,11 @@ export default class CameraFollowSystem extends createSystem({
       vehicle.forward[2] * horizSpeed,
     ];
 
-    const radius = CAMERA.deadzoneRadius;
-    const radiusSq = radius * radius;
-
-    let leadX = vec3Dot(velocity, RIGHT_XZ) * CAMERA.leadFactor;
-    let leadY = vec3Dot(velocity, FWD_XZ) * CAMERA.leadFactor;
-    const leadLenSq = leadX * leadX + leadY * leadY;
-    if (leadLenSq > radiusSq) {
-      const k = radius / Math.sqrt(leadLenSq);
-      leadX *= k;
-      leadY *= k;
-    }
-
-    const desired: Vec3 = [
-      target[0] + RIGHT_XZ[0] * leadX + FWD_XZ[0] * leadY,
-      target[1] + RIGHT_XZ[1] * leadX + FWD_XZ[1] * leadY,
-      target[2] + RIGHT_XZ[2] * leadX + FWD_XZ[2] * leadY,
-    ];
-
-    const alpha = this.#initialized
-      ? expSmoothingAlpha(dt, CAMERA.smoothing)
-      : 1;
-    this.#smoothed = [
-      lerp(this.#smoothed[0], desired[0], alpha),
-      lerp(this.#smoothed[1], desired[1], alpha),
-      lerp(this.#smoothed[2], desired[2], alpha),
-    ];
-    this.#initialized = true;
-
-    // Hard clamp: car stays within the deadzone disk.
-    const dx = target[0] - this.#smoothed[0];
-    const dy = target[1] - this.#smoothed[1];
-    const dz = target[2] - this.#smoothed[2];
-    const delta3: Vec3 = [dx, dy, dz];
-    const offX = vec3Dot(delta3, RIGHT_XZ);
-    const offY = vec3Dot(delta3, FWD_XZ);
-    const offLenSq = offX * offX + offY * offY;
-    if (offLenSq > radiusSq) {
-      const offLen = Math.sqrt(offLenSq);
-      const k = (offLen - radius) / offLen;
-      this.#smoothed = [
-        this.#smoothed[0] + RIGHT_XZ[0] * offX * k + FWD_XZ[0] * offY * k,
-        this.#smoothed[1] + RIGHT_XZ[1] * offX * k + FWD_XZ[1] * offY * k,
-        this.#smoothed[2] + RIGHT_XZ[2] * offX * k + FWD_XZ[2] * offY * k,
-      ];
-    }
-
-    // Shift the whole view up-screen, then place camera at lookPoint + offset.
-    const lookPoint: Vec3 = [
-      this.#smoothed[0] - FWD_XZ[0] * CAMERA.screenShiftUp,
-      this.#smoothed[1] - FWD_XZ[1] * CAMERA.screenShiftUp,
-      this.#smoothed[2] - FWD_XZ[2] * CAMERA.screenShiftUp,
-    ];
-    const eye: Vec3 = [
-      lookPoint[0] + OFF[0],
-      lookPoint[1] + OFF[1],
-      lookPoint[2] + OFF[2],
-    ];
-
-    this.#camera.getVectorView(LocalTransform, "translation").set(eye);
-    this.#camera
-      .getVectorView(LocalTransform, "rotation")
-      .set(quatLookAt(eye, lookPoint));
+    this.#follow.writeTo(this.#camera, {
+      delta,
+      target,
+      leadVelocity: velocity,
+    });
   }
 
   #findNamed(name: string): QueryEntity | null {

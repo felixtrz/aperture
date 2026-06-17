@@ -4,6 +4,14 @@ export {
   type FlyCameraControllerOptions,
 } from "./fly-camera.js";
 export {
+  createFollowCameraController,
+  writeFollowCameraPose,
+  type FollowCameraController,
+  type FollowCameraControllerOptions,
+  type FollowCameraPose,
+  type FollowCameraUpdateInput,
+} from "./follow-camera.js";
+export {
   createOrbitCameraController,
   type OrbitCameraController,
   type OrbitCameraControllerOptions,

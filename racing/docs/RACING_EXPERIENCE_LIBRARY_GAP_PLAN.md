@@ -155,6 +155,20 @@ building blocks and default paths.
   particle pipelines were keyed for the swapchain `bgra8unorm` target while the
   active HDR scene pass expected `rgba16float`, so WebGPU rejected the command
   buffer when smoke emitted.
+- 2026-06-16: Public follow-camera control landed:
+  `createFollowCameraController(...)` now owns lead projection, deadzone
+  clamping, exponential smoothing, look-at pose generation, and optional
+  `RenderInterpolation` opt-in for ECS camera entities. Racing's
+  `camera-follow.system.ts` now keeps only racing tuning data and vehicle lead
+  velocity calculation in app code.
+- 2026-06-16: Racing smoke received focused regression/proof coverage:
+  `racing/test/racing/particles-system.test.ts` drives the real racing
+  `ParticlesSystem` over config-authored textured particle-effect assets and
+  asserts two smoke bursts when `VehicleResource.driftIntensity` exceeds the
+  Starter-Kit threshold. A managed Aperture MCP proof then paused racing, drove
+  `drive=[1,1]` through worker input, stepped fixed simulation until live smoke
+  rendered, and observed `particleEmitters: 10`, `liveParticles: 30`,
+  `texturedEmitters: 10`, and zero diagnostics.
 
 ## Genericity Audit - 2026-06-16
 
@@ -218,6 +232,12 @@ are broad Aperture V1 capabilities, not racing-only conveniences.
   outgoing snapshot. The current hierarchy behavior is not a global smoothing
   hack: only opted-in local samples are blended, and descendants inherit those
   presentation matrices through ordinary transform composition.
+- `createFollowCameraController(...)`: generic. Bevy's transform helpers and
+  PlayCanvas camera component/controller patterns both support engine-level
+  camera pose ownership instead of app-local repeated vector math. Aperture's
+  helper stays input-agnostic and ECS-authoritative: apps provide target,
+  optional lead velocity, and tuning, while the library writes ordinary camera
+  `LocalTransform` and optional `RenderInterpolation`.
 - Scene-pass render target format helpers: generic. HDR, post-processing, and
   offscreen render targets mean built-in scene helpers cannot assume the
   swapchain format. Centralizing scene-pass color format selection keeps

@@ -88,6 +88,16 @@ import {
   type InputActions,
   type InputSignals,
 } from "./systems/context.js";
+export {
+  createFollowCameraController,
+  writeFollowCameraPose,
+} from "./controllers/follow-camera.js";
+export type {
+  FollowCameraController,
+  FollowCameraControllerOptions,
+  FollowCameraPose,
+  FollowCameraUpdateInput,
+} from "./controllers/follow-camera.js";
 
 export { createSpatialQueries } from "./spatial/index.js";
 export type {

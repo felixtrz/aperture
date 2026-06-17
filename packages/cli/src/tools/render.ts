@@ -2,9 +2,13 @@ import { nestedRecord, renderPacketFamiliesArg, stringArg } from "./args.js";
 import type { AperturePage } from "./browser.js";
 import { STATUS_GLOBAL, type GeneratedStatusLike } from "./types.js";
 
-export async function renderFrameReport(page: AperturePage): Promise<unknown> {
+export async function renderFrameReport(
+  page: AperturePage,
+  args: Record<string, unknown> = {},
+): Promise<unknown> {
+  const summaryOnly = args["summaryOnly"] === true;
   const report = await page.evaluate(
-    ({ statusGlobal }) => {
+    ({ statusGlobal, summaryOnly }) => {
       const status = (globalThis as unknown as Record<string, unknown>)[
         statusGlobal
       ] as {
@@ -21,25 +25,30 @@ export async function renderFrameReport(page: AperturePage): Promise<unknown> {
       const lastFrame = status?.diagnostics?.lastFrame ?? null;
       const frameRecord = isRecord(lastFrame) ? lastFrame : null;
 
+      const summary = {
+        frame:
+          typeof frameRecord?.["frame"] === "number"
+            ? frameRecord["frame"]
+            : (status?.lastFrame ?? null),
+        ok: typeof frameRecord?.["ok"] === "boolean" ? frameRecord["ok"] : null,
+        counts: frameRecord?.["counts"] ?? null,
+        particles: frameRecord?.["particles"] ?? null,
+        renderTargets: frameRecord?.["renderTargets"] ?? null,
+        postEffects: frameRecord?.["postEffects"] ?? null,
+        diagnostics: frameRecord?.["diagnostics"] ?? [],
+      };
+
+      if (summaryOnly) {
+        return { summary };
+      }
+
       return {
-        summary: {
-          frame:
-            typeof frameRecord?.["frame"] === "number"
-              ? frameRecord["frame"]
-              : (status?.lastFrame ?? null),
-          ok:
-            typeof frameRecord?.["ok"] === "boolean" ? frameRecord["ok"] : null,
-          counts: frameRecord?.["counts"] ?? null,
-          particles: frameRecord?.["particles"] ?? null,
-          renderTargets: frameRecord?.["renderTargets"] ?? null,
-          postEffects: frameRecord?.["postEffects"] ?? null,
-          diagnostics: frameRecord?.["diagnostics"] ?? [],
-        },
+        summary,
         lastFrame,
         entities: status?.lastWorkerSummary?.entities ?? null,
       };
     },
-    { statusGlobal: STATUS_GLOBAL },
+    { statusGlobal: STATUS_GLOBAL, summaryOnly },
   );
 
   return { ok: true, report };

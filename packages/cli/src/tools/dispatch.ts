@@ -104,7 +104,7 @@ export async function callBrowserBackedTool(
     case "camera_use_agent_view":
       return callGeneratedRuntimeTool(page, name, args);
     case "render_get_frame_report":
-      return renderFrameReport(page);
+      return renderFrameReport(page, args);
     case "render_get_snapshot_summary":
       return renderSnapshotSummary(page);
     case "render_get_packets":

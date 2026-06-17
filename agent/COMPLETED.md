@@ -1,5 +1,45 @@
 # Completed Tasks
 
+## RACE-LIB-20 — Shared follow camera controller and racing smoke proof
+
+Completed: 2026-06-16 18:06 PDT
+Commit: current checkpoint commit
+
+### Summary
+
+- Added `createFollowCameraController(...)` and `writeFollowCameraPose(...)` to
+  `@aperture-engine/app` controller/system exports. The helper owns
+  offset-derived follow basis, lead projection, deadzone clamping, exponential
+  smoothing, look-at pose generation, and optional `RenderInterpolation`.
+- Migrated racing `src/systems/camera-follow.system.ts` to the shared helper,
+  preserving the existing camera feel while removing app-local camera math.
+- Added `racing/test/racing/particles-system.test.ts` to prove the real racing
+  `ParticlesSystem` emits two textured smoke bursts through config-authored
+  `asset.texture(...)` and `asset.particleEffect(...)` when
+  `VehicleResource.driftIntensity` exceeds the Starter-Kit threshold.
+- Added `summaryOnly` support to the CLI/MCP `render_get_frame_report` tool so
+  future agent checks can avoid full frame/entity dumps after the MCP server is
+  restarted on the rebuilt CLI.
+- Rechecked the alarming console report through Aperture MCP. The current page
+  is healthy; old red WebGPU/worker errors are retained console history, not
+  fresh post-reload failures.
+
+### Validation
+
+- `pnpm exec vitest run test/app/follow-camera-controller.test.ts test/app/fly-camera-controller.test.ts test/app/orbit-camera-controller.test.ts racing/test/racing/particles-system.test.ts test/app/particle-spawn.test.ts test/webgpu/particle-frame-resources.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Managed Aperture MCP racing proof: after reload, paused ECS, virtual
+  `drive=[1,1]`, and fixed-step worker stepping, render frame 3791 reported
+  `ok:true`, `counts.particleEmitters:10`, `particles.liveParticles:30`,
+  `particles.texturedEmitters:10`, and diagnostics `[]`. Inputs were reset and
+  ECS was resumed.
+
 ## User-directed stabilization — interpolation, GLTF lookup, particles
 
 Completed: 2026-06-16 17:38 PDT
