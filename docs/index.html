@@ -393,18 +393,27 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 10:20 UTC</dd>
+            <dd>2026-06-17 10:27 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the reported Starter Kit FPS controls were
-              reproved through Aperture MCP/CLI tools. Generated shoot and
-              canvas click both incremented <code>shotsFired</code>, W at yaw
-              <code>Math.PI / 2</code> moved the player along +X, browser
-              <code>Space</code> produced a positive jump with
-              <code>grounded:false</code>, and an aimed shot damaged
-              <code>enemy.0</code> from <code>100</code> to
+              Latest update: the Starter Kit FPS shot effects now match
+              upstream <code>AnimatedSprite3D</code> opacity behavior. Impact,
+              player muzzle, and enemy muzzle sprites play discrete source
+              frames at full alpha while visible, then hide at the end/null
+              frame instead of fading over their lifetime. Aperture CLI proof
+              fired at <code>enemy.0</code> and observed
+              <code>effect.impact-hit</code> frame <code>0</code>,
+              <code>color:[1,1,1,1]</code>, and
+              <code>renderSprite.depthMode:"disabled"</code>, then alpha
+              <code>0</code> after the animation elapsed. Prior update: the
+              reported Starter Kit FPS controls were reproved through Aperture
+              MCP/CLI tools. Generated shoot and canvas click both incremented
+              <code>shotsFired</code>, W at yaw <code>Math.PI / 2</code> moved
+              the player along +X, browser <code>Space</code> produced a
+              positive jump with <code>grounded:false</code>, and an aimed shot
+              damaged <code>enemy.0</code> from <code>100</code> to
               <code>25</code>. Prior update: the Starter Kit FPS port now
               aligns impact sprite depth behavior with upstream
               <code>objects/impact.tscn</code>. Aperture sprites gained an
@@ -2256,6 +2265,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned impact and muzzle
+                animated sprite opacity with upstream
+                <code>AnimatedSprite3D</code> behavior: source frames render at
+                full alpha while visible, then hide at the end/null frame.
+              </li>
               <li>
                 <span class="badge green">fps</span> Reproved the reported
                 controls with Aperture MCP/CLI tools: generated shoot and canvas

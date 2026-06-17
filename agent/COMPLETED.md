@@ -1,5 +1,34 @@
 # Completed Tasks
 
+## FPS-PORT — Source-style sprite effect opacity
+
+Completed: 2026-06-17 03:27 PDT
+Commit: `99aa7fbf`
+
+### Summary
+
+- Added a small `fps/src/lib/fps-effects.ts` helper for source-style
+  non-looping animated sprite frame selection.
+- Aligned player muzzle, enemy muzzle, and impact sprites with upstream
+  `AnimatedSprite3D` opacity behavior: visible frames render at alpha `1`
+  instead of fading over the animation lifetime, then hide on the null/end
+  frame.
+- Kept the existing source frame timing and impact no-depth-test behavior.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-effects.test.ts test/app/fps-controls.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Aperture CLI proof fired at `enemy.0`; `effect.impact-hit` reported
+  `color:[1,1,1,1]`, frame `0`, source UVs, and
+  `renderSprite.depthMode:"disabled"` immediately after the shot, then
+  `[0,-100,0]` and alpha `0` after the animation elapsed.
+
 ## FPS-PORT — Control proof and CLI client cleanup coverage
 
 Completed: 2026-06-17 03:20 PDT

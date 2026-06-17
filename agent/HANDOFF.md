@@ -1,12 +1,47 @@
-# Handoff - Starter Kit FPS Controls Proof
+# Handoff - Starter Kit FPS Sprite Effect Opacity
 
-**Updated:** 2026-06-17 03:20 PDT
+**Updated:** 2026-06-17 03:27 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
+- Aligned FPS shot-effect opacity with upstream Godot `AnimatedSprite3D`
+  behavior:
+  - `references/Starter-Kit-FPS/objects/impact.tscn` plays a four-frame
+    non-looping `shot` animation at `30fps` and queues the node free on
+    `animation_finished`; it does not fade modulate alpha over lifetime.
+  - `references/Starter-Kit-FPS/sprites/burst_animation.tres` does the same
+    source-style discrete frame playback for muzzle flashes, with a final null
+    frame for the hidden/resting state.
+  - The port now uses a testable `fps/src/lib/fps-effects.ts` helper for
+    source-style frame selection and constant visible-frame opacity. Impact,
+    player muzzle, and enemy muzzle sprites stay at alpha `1` while their
+    current source frame is visible, then hide at the end/null frame.
+- Aperture proof:
+  - Reloaded the managed FPS app, waited for WebGPU, paused simulation, aimed
+    at `enemy.0`, and fired through generated `shoot`.
+  - The shot reported `shotsFired:1`, `hits:3`, and `enemy.0` health `25`.
+  - Immediate `ecs_find_entities {"key":"effect.impact-hit"}` reported
+    `atlasFrame:0`, `uvRect:[0,0,0.5,0.5]`, `color:[1,1,1,1]`, and
+    `renderSprite.depthMode:"disabled"`.
+  - After the animation elapsed, `effect.impact-hit` reported translation
+    `[0,-100,0]`, full fallback UVs, and `color:[1,1,1,0]`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-effects.test.ts test/app/fps-controls.test.ts`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+- Committed implementation:
+  - `99aa7fbf` — `Align FPS sprite effect opacity`
+
+## Previous Completed FPS/Tooling Slices
+
+- Control proof and CLI client cleanup coverage:
 - Reproved the latest reported FPS controls through Aperture MCP/CLI tools on
   the managed `fps/` session:
   - Generated `shoot` input from a paused deterministic step incremented
@@ -34,8 +69,6 @@ previous working state so the old state remains recoverable.
   - `pnpm --dir fps run build`
   - `pnpm --dir racing run build`
   - `pnpm --dir shadow-lab run build`
-
-## Previous Completed FPS/Tooling Slices
 
 - Impact sprite depth:
 - Added first-class sprite depth-mode authoring so ECS-authored sprites can opt
