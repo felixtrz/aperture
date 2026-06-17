@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "34b71d29",
+  "lastCommit": "541fb3b4",
   "activePid": null,
-  "notes": "Guarded camera-backed directional shadow defaults from fixed fallback boxes; focused shadow tests, typechecks, progress checks, and managed Aperture FPS/racing/shadow-lab proof passed.",
-  "lastRunFinishedAt": "2026-06-17T21:22:35Z"
+  "notes": "Added a query-gated FPS weapon three.js compare probe; evidence shows the blaster rear stock shape matches the source GLB in three.js, while current calibrated Aperture placement is outside a vanilla weapon camera. FPS, racing, and shadow-lab managed checks are WebGPU-ready with diagnostics 0 and submitted shadows.",
+  "lastRunFinishedAt": "2026-06-17T21:44:00Z"
 }
