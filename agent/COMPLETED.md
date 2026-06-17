@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## FPS-PORT — Muzzle flash random style
+
+Completed: 2026-06-17 01:59 PDT
+Commit: `861368bd`
+
+### Summary
+
+- Added source-style muzzle flash randomization from upstream
+  `objects/player.gd` and `objects/enemy.gd`.
+- Player shots now sample a random Z roll in `[-45,45]` degrees and random
+  sprite scale in `[0.40,0.75]` for `effect.muzzle-burst`.
+- Enemy attacks now sample independent source-like Z rolls for both enemy
+  muzzle sprites.
+- Kept the effect state in ECS by writing `Sprite.rotation` and
+  `LocalTransform.scale` on the existing sprite entities.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Aperture CLI/runtime proof from `fps/`: managed app at
+  `http://127.0.0.1:5173/`, `browser_wait_for_webgpu` passed, one generated
+  shot produced `effect.muzzle-burst` scale `[0.4168,0.4168,0.4168]` and
+  `Sprite.rotation:-0.2156`, and one near enemy attack produced independent
+  enemy muzzle rotations `0.213` and `-0.0584`.
+- MCP `resource_get`, `ecs_find_entities`, and `browser_console_logs` sanity
+  checks reported fresh reset gameplay/effect entities and no new diagnostics.
+
 ## FPS-PORT — Player shadow proof cleanup
 
 Completed: 2026-06-17 01:46 PDT

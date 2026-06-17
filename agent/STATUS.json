@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "d3c59211",
+  "lastCommit": "861368bd",
   "activePid": null,
-  "notes": "Fixed FPS canvas shooting before pointer lock, aligned enemy attack timing/range to upstream 0.25s/5-unit behavior, reproved camera-relative movement and jump, and preserved the player-shadow proof cleanup. FPS/racing/shadow-lab validation and Aperture runtime proofs passed.",
-  "lastRunFinishedAt": "2026-06-17T08:50:19Z"
+  "notes": "Added source-like FPS muzzle flash random style: player shots now randomize sprite roll and 0.40-0.75 scale, enemy attacks randomize both muzzle rolls, and Aperture entity proof observed live Sprite.rotation/scale values. FPS/racing/shadow-lab validation passed.",
+  "lastRunFinishedAt": "2026-06-17T08:59:00Z"
 }

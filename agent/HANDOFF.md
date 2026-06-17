@@ -1,36 +1,59 @@
-# Handoff - Starter Kit FPS Player Shadow Proof Cleanup
+# Handoff - Starter Kit FPS Muzzle Flash Style
 
-**Updated:** 2026-06-17 01:46 PDT
+**Updated:** 2026-06-17 01:59 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Extracted FPS `player.shadow` setup into `#spawnPlayerShadow()` while keeping
-  the existing upstream-textured blob material/sampler path intact.
-- Reproved the textured blob after an explicit Aperture `browser_reload`.
-  Important tooling note: proof screenshots written under `fps/.aperture/`
-  triggered Vite reloads during this run; write inspection screenshots to
-  `/tmp` when the app must stay stable.
-- Close inspection proof used a low-priority Aperture agent camera fitted to
-  `player.shadow`, disabled frustum culling only on that proof camera, and
-  compared normal scale against a temporary scale-zero shadow. The visible and
-  hidden captures differed (`43825` vs `35395` bytes), with local PNG analysis
-  reporting `207995` changed pixels and max channel-distance `26`. The shadow
-  scale was restored to `[1,1,1]` afterward.
+- Added source-style muzzle flash randomization from upstream
+  `objects/player.gd` and `objects/enemy.gd`.
+- Player shots now sample the authored `randf_range(-45,45)` sprite roll and
+  `randf_range(0.40,0.75)` sprite scale for `effect.muzzle-burst`.
+- Enemy attacks now sample independent source-like Z rolls for both
+  `effect.enemy-muzzle.0` and `effect.enemy-muzzle.1`.
+- Kept the effect state ECS-owned by writing `Sprite.rotation` and
+  `LocalTransform.scale`; no renderer-owned effect objects or gameplay state
+  were introduced.
 - Validation:
+  - `pnpm exec vitest run test/app/fps-controls.test.ts`
   - `pnpm --dir fps run typecheck`
   - `pnpm --dir fps run build`
+  - `pnpm run typecheck`
+  - `pnpm run typecheck:test`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
   - Aperture CLI/runtime proof from `fps/`: `browser_reload`,
-    `browser_wait_for_webgpu`, `camera_create_agent`, `camera_fit_entity`,
-    `ecs_set_component_field`, `ecs_step`, `browser_screenshot`, and
-    `resource_get`.
-- Committed implementation cleanup:
-  - `e884df65` — `Extract FPS player shadow setup helper`
+    `browser_wait_for_webgpu`, generated `input_action_set`, `ecs_step`,
+    `ecs_find_entities`, `ecs_get_entity`, and `resource_get`.
+  - Proof observed player muzzle `shotsFired:1`, sprite scale
+    `[0.4168,0.4168,0.4168]`, `Sprite.rotation:-0.2156`, and alpha `0.8333`.
+  - Proof observed enemy range still gated correctly (`farHealthDelta:0`,
+    `nearHealthDelta:-5`) and both enemy muzzle sprites had source-like roll:
+    `0.213` and `-0.0584`.
+- Committed implementation:
+  - `861368bd` — `Randomize FPS muzzle flash style`
 
 ## Previous Completed FPS Slices
 
+- Player shadow proof cleanup:
+  - Extracted FPS `player.shadow` setup into `#spawnPlayerShadow()` while
+    keeping the existing upstream-textured blob material/sampler path intact.
+  - Reproved the textured blob after an explicit Aperture `browser_reload`.
+    Important tooling note: proof screenshots written under `fps/.aperture/`
+    triggered Vite reloads during this run; write inspection screenshots to
+    `/tmp` when the app must stay stable.
+  - Close inspection proof used a low-priority Aperture agent camera fitted to
+    `player.shadow`, disabled frustum culling only on that proof camera, and
+    compared normal scale against a temporary scale-zero shadow. The visible and
+    hidden captures differed (`43825` vs `35395` bytes), with local PNG
+    analysis reporting `207995` changed pixels and max channel-distance `26`.
+    The shadow scale was restored to `[1,1,1]` afterward.
+  - Committed implementation cleanup:
+    - `e884df65` — `Extract FPS player shadow setup helper`
 - Canvas shooting and enemy attack range:
 - Fixed the browser-facing shoot path: primary mouse down on the FPS canvas now
   drives the generated `shoot` action even before pointer lock succeeds, while
@@ -165,26 +188,25 @@ previous working state so the old state remains recoverable.
 - Aperture CLI/runtime proof from `fps/`:
   - Restarted managed FPS at `http://127.0.0.1:5173/`;
     `browser_wait_for_webgpu` succeeded with no diagnostics.
-  - Browser canvas mouse proof: before click `shotsFired:0`; after primary
-    mouse down/up on the unlocked canvas, `shotsFired:1`,
-    `shotCooldown:0.2333`, `yaw:0.0262`, `pitch:0.0372`.
-  - Generated control proof: one generated `shoot` produced
-    `shotsFired:1`; after yaw `0.8333`, held W moved by
-    `dx:1.8504`, `dz:-1.681`; generated jump produced
-    `grounded:false`, `verticalVelocity:7`, `jumpsRemaining:1`,
-    `playerY:1.8613`.
-  - Enemy attack proof: standing at spawn for 80 frames kept
-    `healthDelta:0`; moving forward for 44 frames reached
-    `position:[0.3033,1.0505,-3.5072]` and took one source-sized hit
-    (`healthDelta:-5`).
+  - Generated player shot proof: `shotsFired:0 -> 1`,
+    `shotCooldown:0.2333`, `effect.muzzle-burst` translation
+    `[0.1,1.0947,-0.7]`, scale `[0.4168,0.4168,0.4168]`,
+    alpha `0.8333`, `Sprite.rotation:-0.2156`, atlas frame `0`, and UV
+    `[0,0,0.5,1]`.
+  - Enemy attack/muzzle proof: standing at spawn for 80 frames kept
+    `farHealthDelta:0`; moving forward for 44 frames reached
+    `position:[0.3033,1.0505,-3.5072]`, took one 5-point hit
+    (`nearHealthDelta:-5`), and wrote independent enemy muzzle rotations
+    `0.213` and `-0.0584` with alpha `0.8333`.
   - The live FPS session was reset afterward to fresh gameplay.
 - MCP sanity check:
   - `resource_get {"id":"fps.state"}` after reset reported
     `health:100`, `enemiesRemaining:4`, `shotsFired:0`, `hits:0`,
     `gameStatus:"active"`.
-  - `render_explain_entity {"key":"player.shadow"}` returned zero diagnostics
-    and stable render/bounds packet keys after the control/range edits.
-  - `browser_console_logs {"lines":40}` showed the current reload ended with
+  - `ecs_find_entities {"key":"effect.muzzle-burst"}` and
+    `ecs_find_entities {"key":"effect.enemy-muzzle.0"}` reported hidden reset
+    effect sprites with `renderSprite` summaries and zero diagnostics.
+  - `browser_console_logs {"lines":30}` showed the current reload ended with
     only Vite connect messages plus the known deprecated-parameter warning.
 - Previous player-shadow Aperture CLI/runtime proof from `fps/`:
   - Active managed session: `http://127.0.0.1:5174/`, WebGPU healthy.
@@ -360,14 +382,9 @@ previous working state so the old state remains recoverable.
   before claiming `gameStatus:"cleared"`.
 - Pre-existing untracked screenshots,
   racing parity artifacts, and `racing/parity/` remain outside commits.
-- `fps/src/systems/setup.system.ts` has an unrelated uncommitted helper
-  extraction for the existing player-shadow mesh spawn. It was not staged in
-  the control/range commits because it does not change runtime behavior.
-- Quick upstream check for the next enemy-fidelity slice: `objects/enemy.tscn`
-  has two `AnimatedSprite3D` muzzle flashes at local offsets
-  `[-0.45,0.3,0.4]` and `[0.45,0.3,0.4]`; the port already uses those offsets
-  and only triggers them on line-of-sight damage. The remaining visible gap is
-  source-like random Z roll per flash from `objects/enemy.gd`.
+- Muzzle flash proof reads should use `ecs_find_entities` / `ecs_get_entity`
+  immediately after the shot/attack frame; reset correctly hides the effect
+  sprites and restores baseline scale/rotation.
 - Use `value:0` rather than `pressed:false` for button-release CLI scripts when
   an immediate following `ecs_step` proof must be unambiguous.
 - For held look input through the CLI, queue `input_action_set` with `x`/`y`
@@ -381,7 +398,8 @@ previous working state so the old state remains recoverable.
 ## Recommended Next Task
 
 Continue the FPS port with another visible Starter Kit fidelity slice. Good
-next options are improving enemy attack/muzzle-flash fidelity, adding more
+next options are adding source-like impact orientation (`objects/player.gd`
+looks impact sprites at the camera), improving enemy attack polish, adding more
 source-like weapon/player detail parity, or packaging the platform-aware
 full-clear route into a reusable smoke script so future regressions can re-run
 the proof without retyping the route.

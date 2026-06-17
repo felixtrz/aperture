@@ -393,12 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 08:40 UTC</dd>
+            <dd>2026-06-17 08:59 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the Starter Kit FPS port now shoots from an
+              Latest update: the Starter Kit FPS port now has source-like
+              muzzle flash random style. Player shots sample the upstream
+              random Z roll and <code>0.40-0.75</code> scale range, while enemy
+              attacks randomize both muzzle sprite rolls. Aperture entity proof
+              observed player muzzle scale <code>0.4168</code> and rotation
+              <code>-0.2156</code>, plus enemy muzzle rotations
+              <code>0.213</code> and <code>-0.0584</code>. Prior update: the
+              Starter Kit FPS port now shoots from an
               unlocked canvas click before pointer lock succeeds, and enemy
               attack timing/range now matches the upstream 0.25 second timer
               and 5-unit raycast distance. Aperture proof observed browser
@@ -1289,9 +1296,10 @@
             <dt>Next focus</dt>
             <dd>
               Continue Starter Kit FPS fidelity with a visible route such as
-              enemy attack/projectile polish, source-like weapon/player detail
-              parity, or packaging the platform-aware full-clear proof into a
-              reusable smoke script while keeping racing and Shadow Lab green.
+              source-like impact orientation, enemy attack/projectile polish,
+              source-like weapon/player detail parity, or packaging the
+              platform-aware full-clear proof into a reusable smoke script while
+              keeping racing and Shadow Lab green.
             </dd>
           </dl>
         </aside>
@@ -2192,6 +2200,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Added source-like muzzle
+                flash randomization. Player shots now write random
+                <code>Sprite.rotation</code> and <code>0.40-0.75</code> scale
+                to <code>effect.muzzle-burst</code>, and enemy attacks randomize
+                both enemy muzzle sprite rolls; Aperture proof observed
+                <code>-0.2156</code>, <code>0.213</code>, and
+                <code>-0.0584</code> rotations.
+              </li>
               <li>
                 <span class="badge green">fps</span> Fixed browser-facing
                 shooting before pointer lock and aligned enemy attack range:
