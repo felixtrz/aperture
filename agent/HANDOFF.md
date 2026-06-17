@@ -1,12 +1,46 @@
-# Handoff - Starter Kit FPS Source Basis And Enemy Muzzle Ownership
+# Handoff - Starter Kit FPS Enemy Attack Ownership
 
-**Updated:** 2026-06-17 03:42 PDT
+**Updated:** 2026-06-17 03:49 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
+- Aligned FPS enemy attack ownership with the upstream per-enemy attack model:
+  - `references/Starter-Kit-FPS/objects/enemy.gd` gives each enemy its own
+    timer/raycast attack path. The port no longer selects only the nearest
+    living enemy on each shared attack tick.
+  - `PlayerSystem` now iterates every living enemy within
+    `ENEMY_ATTACK_DISTANCE` and line of sight, applying damage/audio and
+    triggering that attacker's own per-enemy muzzle effect entities.
+  - The attacker filter is exposed as a focused `sourceEnemyAttackers(...)`
+    helper with unit coverage for alive/range/line-of-sight filtering.
+- Aperture proof:
+  - Restarted the managed FPS app through `pnpm --dir fps exec aperture dev up
+    --open --port 5173` and waited for WebGPU.
+  - `ecs_find_entities {"key":"effect.enemy.0.muzzle.0"}` and
+    `ecs_find_entities {"key":"effect.enemy.3.muzzle.1"}` each returned one
+    sprite entity with hidden baseline alpha `0`.
+  - `render_get_frame_report {"summaryOnly":true}` reported frame `1177`,
+    one view, 16 mesh draws, 29 draw calls, and diagnostics `0`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+    passed 13 tests after the helper extraction.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - `5bb6b7cb` — `Align FPS enemy attack ownership`
+  - `f3c31dc8` — `Extract FPS enemy attacker selection`
+
+## Previous Completed FPS/Tooling Slices
+
+- Source basis and enemy muzzle ownership:
 - Aligned FPS source-basis control helpers and enemy muzzle ownership with the
   upstream scene model:
   - Camera forward/right helpers now match `quatFromEulerYXZ(...)` rotation of
@@ -41,8 +75,6 @@ previous working state so the old state remains recoverable.
   - `git diff --check`
 - Committed implementation:
   - `85cb569d` — `Align FPS source basis and enemy muzzle ownership`
-
-## Previous Completed FPS/Tooling Slices
 
 - Enemy muzzle source-child placement:
 - Aligned FPS enemy muzzle flash placement with upstream Godot child-transform

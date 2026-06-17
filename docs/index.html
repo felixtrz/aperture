@@ -393,16 +393,25 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 10:42 UTC</dd>
+            <dd>2026-06-17 10:49 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS camera forward/right helpers now
-              match the actual <code>quatFromEulerYXZ</code> camera basis,
-              buffered jump consumption is covered after grounded refresh, and
-              enemy muzzle flashes now use source-shaped per-enemy effect
-              entities such as <code>effect.enemy.0.muzzle.0</code> through
+              Latest update: Starter Kit FPS enemy attack ownership now follows
+              the upstream per-enemy timer/raycast model: every living enemy in
+              range and line of sight can apply damage/audio and trigger its own
+              per-enemy muzzle effect keys instead of the port selecting only
+              the nearest attacker. The attacker filter is covered by a focused
+              <code>sourceEnemyAttackers(...)</code> unit test. Aperture MCP
+              proof confirmed WebGPU readiness, found the per-enemy muzzle
+              keys, and reported frame <code>1177</code> diagnostics
+              <code>0</code>. Prior update: Starter Kit FPS camera
+              forward/right helpers now match the actual
+              <code>quatFromEulerYXZ</code> camera basis, buffered jump
+              consumption is covered after grounded refresh, and enemy muzzle
+              flashes now use source-shaped per-enemy effect entities such as
+              <code>effect.enemy.0.muzzle.0</code> through
               <code>effect.enemy.3.muzzle.1</code>. Aperture MCP proof found the
               new per-enemy muzzle keys, confirmed the old global
               <code>effect.enemy-muzzle.0</code> key is gone, and reported frame
@@ -1378,10 +1387,10 @@
             <dt>Next focus</dt>
             <dd>
               Continue Starter Kit FPS fidelity with a visible route such as
-              enemy attack/projectile polish, remaining impact-rendering
-              differences such as depth behavior, more source-like player detail
-              parity, or packaging the platform-aware full-clear proof into a
-              reusable smoke script while keeping racing and Shadow Lab green.
+              impact animation/timing parity, remaining player detail parity,
+              projectile polish beyond the current per-enemy attacker ownership,
+              or packaging the platform-aware full-clear proof into a reusable
+              smoke script while keeping racing and Shadow Lab green.
             </dd>
           </dl>
         </aside>
@@ -2282,6 +2291,16 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned enemy attack
+                ownership with upstream <code>objects/enemy.gd</code>: every
+                living enemy in range and line of sight can now apply damage,
+                audio, and its own per-enemy muzzle flash instead of only the
+                nearest living enemy attacking on the shared tick. The focused
+                helper test covers alive/range/line-of-sight filtering, and
+                Aperture MCP proof reported frame <code>1177</code> with
+                diagnostics <code>0</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned impact and muzzle
                 animated sprite opacity with upstream
@@ -5382,8 +5401,9 @@
               <li>
                 <span class="badge amber">next</span> Continue Starter Kit FPS
                 fidelity with a visible slice such as impact animation/timing
-                parity, enemy attack/projectile polish, player detail parity, or
-                a reusable generated-input full-clear smoke script.
+                parity, projectile polish beyond the current per-enemy attacker
+                ownership, player detail parity, or a reusable generated-input
+                full-clear smoke script.
               </li>
               <li>
                 <span class="badge amber">next</span> Continue remaining M10

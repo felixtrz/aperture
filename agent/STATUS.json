@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "85cb569d",
+  "lastCommit": "f3c31dc8",
   "activePid": null,
-  "notes": "Aligned FPS camera basis helpers, buffered jump consumption, and per-enemy muzzle effect ownership with upstream source behavior; Aperture proof and fps/racing/shadow-lab validation passed.",
-  "lastRunFinishedAt": "2026-06-17T10:42:00Z"
+  "notes": "Aligned FPS enemy attack ownership with upstream per-enemy timer/raycast behavior and added focused helper coverage; Aperture proof and fps/racing/shadow-lab validation passed.",
+  "lastRunFinishedAt": "2026-06-17T10:49:00Z"
 }

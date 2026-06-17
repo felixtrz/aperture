@@ -1,5 +1,36 @@
 # Completed Tasks
 
+## FPS-PORT — Enemy attack ownership
+
+Completed: 2026-06-17 03:47 PDT
+Commits: `5bb6b7cb`, `f3c31dc8`
+
+### Summary
+
+- Aligned enemy attack ownership with upstream `objects/enemy.gd`, where each
+  enemy owns its timer/raycast attack path.
+- Replaced the single nearest-living-enemy attack selection with iteration over
+  every living enemy in range and line of sight.
+- Routed each attack through that enemy key so damage, audio, and per-enemy
+  muzzle effects are triggered by the actual attacker.
+- Extracted `sourceEnemyAttackers(...)` with focused coverage for alive,
+  range, and line-of-sight filtering.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+  passed 13 tests after the helper extraction.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture MCP proof confirmed WebGPU readiness, new per-enemy muzzle keys still
+  exist, and `render_get_frame_report {"summaryOnly":true}` reported frame
+  `1177` with diagnostics `0`.
+
 ## FPS-PORT — Source basis and enemy muzzle ownership
 
 Completed: 2026-06-17 03:42 PDT
