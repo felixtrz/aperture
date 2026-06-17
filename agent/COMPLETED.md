@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## FPS-PORT — Enemy destruction status feedback
+
+Completed: 2026-06-17 00:09 PDT
+Commit: `35f50305`
+
+### Summary
+
+- Added FPS enemy-destruction state, generated signals, HUD destroy feedback,
+  and resource summaries for remaining/destroyed enemies.
+- Disabled dead enemy render roots and hitbox colliders, matching the upstream
+  `objects/enemy.gd` destroy behavior without keeping live hitboxes.
+- Exposed top-level `enabled` in Aperture ECS entity summaries so generated
+  worker tools can prove hidden/disabled gameplay entities directly.
+
+### Validation
+
+- `pnpm exec vitest run test/app/developer-api.test.ts -t "publishes JSON-safe entity lookup summaries"`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- Aperture MCP proof: two gameplay shots killed `enemy.0`, `fps.state`
+  reported `enemyHealth.enemy.0:0`, `enemyDestroyed.enemy.0:true`,
+  `enemiesRemaining:3`, and entity summaries reported `enemy.0.enabled:false`
+  plus `enemy.0.hitbox.physicsCollider.enabled:false`.
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+
 ## RACE-LIB-29 — Final no-cache racing verification
 
 Completed: 2026-06-16 21:56 PDT

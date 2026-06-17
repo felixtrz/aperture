@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "ba516abc",
+  "lastCommit": "35f50305",
   "activePid": null,
-  "notes": "Completed FPS sprite-sheet effects, sprite-summary tooling, and same-frame input edge fixes; app/FPS/root validations and CLI sprite proofs passed; racing and shadow-lab validations remain green.",
-  "lastRunFinishedAt": "2026-06-17T06:51:33Z"
+  "notes": "Completed FPS enemy-destruction status feedback and enabled-summary tooling; app/FPS/root validations and CLI enemy-destroy proof passed; racing and shadow-lab validations remain green.",
+  "lastRunFinishedAt": "2026-06-17T07:11:55Z"
 }
