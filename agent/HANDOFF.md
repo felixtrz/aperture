@@ -1,3 +1,58 @@
+# Handoff - FPS Pointer-Locked Input Proof
+
+**Updated:** 2026-06-17 14:50 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Committed `3e0130ed` (`Harden FPS pointer-locked input proof`).
+- Fixed the FPS HUD bridge so source middle mouse weapon-toggle commands still
+  dispatch while the canvas owns pointer lock.
+- Fixed the Aperture CLI `input_pointer_click` tool for pointer-locked canvas
+  sessions by dispatching canvas pointer/mouse events instead of relying on
+  coordinate clicks that Chromium may not route under pointer lock.
+- Extended `pnpm --dir fps run smoke:mechanics` to prove, through managed
+  Aperture MCP/CLI:
+  - primary mouse shooting increments `shotsFired`;
+  - middle mouse switches weapons without firing;
+  - W movement follows camera yaw;
+  - Space produces a real jump.
+
+## Validation
+
+- `pnpm exec vitest run test/cli/input-tools.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts test/app/fps-controls.test.ts`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir fps run smoke:mechanics -- --fresh-session`
+  - `shoot {"before":0,"after":1}`
+  - `middle-switch {"before":0,"after":1,"phase":"raising","shotsFired":0}`
+  - `camera-relative-forward {"yaw":-1.56,"dx":1.099,"dz":-0.012}`
+  - `jump {"verticalVelocity":7,"jumpsRemaining":1,"grounded":false}`
+- `git diff --check`
+
+## Known Issues
+
+- `pnpm --dir fps run smoke:full-clear -- --fresh-session` reached the final
+  northeast-platform traversal with three enemies destroyed, then the managed
+  page/browser closed before the final enemy clear. Treat this as a remaining
+  long-smoke/tool lifecycle issue, not a gameplay assertion failure.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- FPS viewmodel placement/material parity remains the main visible open FPS
+  port decision.
+
+## Recommended Next Task
+
+Continue the final FPS viewmodel parity decision using the committed
+`?compare=weapon` probe, or harden the long full-clear smoke lifecycle so the
+route can finish without the managed browser closing near the final target.
+
+---
+
 # Handoff - FPS Weapon Three.js Compare Evidence
 
 **Updated:** 2026-06-17 14:44 PDT

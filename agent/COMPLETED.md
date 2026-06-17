@@ -1,5 +1,32 @@
 # Completed Tasks
 
+## FPS-PORT - Pointer-locked input proof
+
+Completed: 2026-06-17 14:50 PDT
+
+### Summary
+
+- Fixed the FPS HUD bridge so source middle mouse weapon toggles dispatch while
+  the canvas owns pointer lock.
+- Fixed Aperture CLI `input_pointer_click` for pointer-locked canvas sessions by
+  dispatching canvas pointer/mouse events when coordinate clicks are not routed
+  by Chromium.
+- Extended the managed FPS mechanics smoke to prove primary shooting,
+  pointer-locked middle weapon switching, camera-relative movement, and Space
+  jumping in one fresh Aperture session.
+
+### Validation
+
+- `pnpm exec vitest run test/cli/input-tools.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts test/app/fps-controls.test.ts`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir fps run smoke:mechanics -- --fresh-session`
+- `git diff --check`
+
 ## FPS-PORT - Weapon three.js compare probe
 
 Completed: 2026-06-17 14:44 PDT
