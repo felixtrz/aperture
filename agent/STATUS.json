@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "4f44aa73",
   "activePid": null,
-  "notes": "Completed FPS HUD damage and hit feedback slice; damagePulse and hit flashes are proved through Aperture CLI; FPS, racing, and shadow-lab validations passed.",
-  "lastRunFinishedAt": "2026-06-17T06:21:01Z"
+  "notes": "Completed FPS HUD damage/hit feedback slice on fps-starter-kit-port; FPS typecheck/build and Aperture CLI runtime checks passed; racing and shadow-lab validations remain green.",
+  "lastRunFinishedAt": "2026-06-17T06:22:53Z"
 }

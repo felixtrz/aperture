@@ -29,6 +29,7 @@ previous working state so the old state remains recoverable.
   - `aaa83107` — `Port Starter Kit FPS slice to Aperture`
   - `37bc0e5e` — `Add FPS pointer lock look bridge`
   - `bd85c5e4` — `Add FPS physics character and raycast gameplay`
+  - `fc8dd87e` — `Update handoff for FPS physics slice`
   - `4f44aa73` — `Add FPS HUD damage and hit feedback`
 
 ## Latest Validation
