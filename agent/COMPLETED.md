@@ -1,5 +1,33 @@
 # Completed Tasks
 
+## FPS-PORT - Primary mouse shoot coverage
+
+Completed: 2026-06-17 13:54 PDT
+
+### Summary
+
+- Added focused input coverage proving primary pointer press maps to `shoot`
+  without also triggering weapon switching.
+- Kept the FPS weapon material override empty and readonly, preserving source
+  GLB material render state after the weapon self-depth fix.
+- Rechecked source movement constants and guarded the prior runtime weapon
+  placement calibration from being replaced by the source-literal transform.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-setup.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- Managed Aperture CLI proof:
+  - FPS `http://127.0.0.1:5173/`: diagnostics `0`, `views:2`,
+    `meshDraws:18`, `shadowCasterDraws:44`, `drawCalls:33`, screenshot
+    `/tmp/fps-weapon-calibration-restored.png`.
+  - Racing `http://127.0.0.1:5174/`: diagnostics `0`, `views:1`,
+    `meshDraws:36`, `shadowCasterDraws:364`, `drawCalls:46`.
+  - Shadow Lab `http://127.0.0.1:5175/`: diagnostics `0`, `views:1`,
+    `meshDraws:25`, `shadowCasterDraws:364`, `drawCalls:38`.
+
 ## FPS-PORT - Weapon viewmodel self-depth restored
 
 Completed: 2026-06-17 13:45 PDT

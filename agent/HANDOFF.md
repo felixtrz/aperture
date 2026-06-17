@@ -1,3 +1,58 @@
+# Handoff - FPS Primary Shoot Coverage and Weapon Calibration Guard
+
+**Updated:** 2026-06-17 13:54 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Committed `145a95bb` (`Cover FPS primary mouse shooting`).
+- Added focused input coverage proving the source primary mouse input maps to
+  `shoot` and does not also trigger `switchWeapon`.
+- Made the empty weapon-viewmodel material override readonly so the app keeps
+  preserving the GLB material render state after the self-depth fix.
+- Rechecked `references/Starter-Kit-FPS/objects/player.gd`: movement remains
+  source-matched (`movement_speed = 5`, `jump_strength = 8`,
+  `number_of_jumps = 2`) and the source has no sprint mechanic.
+- Audited the pending source-literal weapon transform against prior decisions:
+  `SOURCE_WEAPON_VIEW_POSITION` remains `[1.2, -1.1, -2.75]`, but the
+  Aperture runtime must keep the calibrated `FPS_WEAPON_VIEW_POSITION`
+  `[2.75, -1.2, -2.75]`. A live screenshot with the source-literal position
+  (`/tmp/fps-source-weapon-position.png`) put the gun too near center; the
+  restored calibration screenshot (`/tmp/fps-weapon-calibration-restored.png`)
+  keeps it tucked into the lower-right corner.
+
+## Validation
+
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-setup.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `git diff --check -- fps/src/lib/fps-data.ts fps/src/systems/setup.system.ts test/app/fps-data.test.ts test/app/fps-input-config.test.ts`
+- Managed Aperture CLI proof:
+  - FPS `http://127.0.0.1:5173/`: WebGPU ready, diagnostics `0`,
+    `views:2`, `meshDraws:18`, `shadowCasterDraws:44`, `drawCalls:33`;
+    screenshot `/tmp/fps-weapon-calibration-restored.png`.
+  - Racing `http://127.0.0.1:5174/`: WebGPU ready, diagnostics `0`,
+    `views:1`, `meshDraws:36`, `shadowCasterDraws:364`, `drawCalls:46`.
+  - Shadow Lab `http://127.0.0.1:5175/`: WebGPU ready, diagnostics `0`,
+    `views:1`, `meshDraws:25`, `shadowCasterDraws:364`, `drawCalls:38`.
+
+## Known Issues
+
+- The platform-reach complaint is not explained by movement constants: they
+  already match the source. If it persists, inspect collision/platform spacing
+  and character-controller movement proof rather than adding a sprint mechanic.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+
+## Recommended Next Task
+
+Create a deterministic movement/jump reach proof for FPS using Aperture CLI
+input/resource tools, then compare player trajectory against the source level
+geometry if the user still cannot reach adjacent platforms.
+
+---
+
 # Handoff - FPS Weapon Self Depth and Shadow Default Audit
 
 **Updated:** 2026-06-17 13:45 PDT

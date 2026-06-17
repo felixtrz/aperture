@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "e189f61a",
+  "lastCommit": "145a95bb",
   "activePid": null,
-  "notes": "Committed FPS weapon self-depth restoration by preserving the source GLB material render state and relying on the weapon camera/layer overlay for world-overdraw. Audited the directional shadow default: camera-backed frames still use camera/receiver/frustum auto-fit; fixed boxes are explicit authored overrides or no-camera fallback only. Focused tests, app typechecks, and managed FPS/racing/shadow-lab diagnostics/screenshots passed.",
-  "lastRunFinishedAt": "2026-06-17T20:45:00Z"
+  "notes": "Committed primary mouse shooting coverage and kept the weapon viewmodel material override readonly-empty. Rechecked source movement values and preserved the calibrated Aperture weapon runtime position instead of the source-literal transform, which moved the gun too close to center in a live screenshot. Focused tests, app typechecks, and managed FPS/racing/shadow-lab diagnostics passed.",
+  "lastRunFinishedAt": "2026-06-17T20:54:00Z"
 }
