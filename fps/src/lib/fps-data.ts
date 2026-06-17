@@ -101,6 +101,7 @@ export const PLAYER_SHADOW_SURFACE_OFFSET = 0.02;
 export const PLAYER_START: Vec3 = [0, PLAYER_EYE_HEIGHT, 0];
 export const PLAYER_BODY_START: Vec3 = [0, SOURCE_PLAYER_ROOT_Y, 0];
 export const PLAYER_SPEED = 5;
+export const SOURCE_MOVEMENT_LERP_RATE = 10;
 export const JUMP_STRENGTH = 8;
 export const GRAVITY = 20;
 export const MAX_JUMPS = 2;

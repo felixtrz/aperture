@@ -6,6 +6,7 @@ export type EnemyDestroyedByKey = Record<string, boolean>;
 
 export const FpsResource = defineResource("fps.state", {
   playerPosition: resource.vec3(PLAYER_START),
+  movementVelocity: resource.vec3([0, 0, 0]),
   yaw: resource.number(0),
   pitch: resource.number(0),
   verticalVelocity: resource.number(0),

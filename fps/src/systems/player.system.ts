@@ -43,6 +43,7 @@ import {
   SOURCE_GAMEPAD_LOOK_SENSITIVITY,
   SOURCE_LOOK_LERP_RATE,
   SOURCE_LOOK_PITCH_LIMIT,
+  SOURCE_MOVEMENT_LERP_RATE,
   SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT,
   SOURCE_WEAPON_CONTAINER_OFFSET,
   SOURCE_WEAPON_SHOT_KICK,
@@ -54,8 +55,6 @@ import {
   type WeaponSpec,
 } from "../lib/fps-data.js";
 import {
-  cameraRecoilVelocityFromYaw,
-  cameraRelativeMovementDelta,
   clampSourceLookPitch,
   enemyLookAngles,
   hasCeilingCollision,
@@ -69,6 +68,7 @@ import {
   sourceMouseLookStep,
   sourcePlayerShouldRespawn,
   sourceShotDirection,
+  sourceSmoothedMovementStep,
   sourceWeaponMuzzleWorldPosition,
   shouldConsumeBufferedShot,
   weaponViewmodelOffsetTarget,
@@ -138,9 +138,6 @@ const WEAPON_SWITCH_COMPLETE_EPSILON = 0.01;
 const WEAPON_VIEWMODEL_LERP_RATE = 10;
 const LANDING_CAMERA_BOB_OFFSET = -0.1;
 const LANDING_CAMERA_BOB_RECOVERY_RATE = 5;
-const WEAPON_RECOIL_IMPULSE_SCALE = 0.12;
-const WEAPON_RECOIL_RECOVERY_RATE = 12;
-const WEAPON_RECOIL_EPSILON = 0.001;
 const JUMP_BUFFER_DURATION = 0.12;
 const SHOOT_BUFFER_DURATION = 0.08;
 
@@ -177,7 +174,6 @@ export default class PlayerSystem extends createSystem({
   #weaponViewOffset: Vec3 = [0, 0, 0];
   #landingBobOffset = 0;
   #landingPulse = 0;
-  #weaponRecoilVelocity: Vec3 = [0, 0, 0];
   #jumpBufferTimer = 0;
   #shootBufferTimer = 0;
   #lookTargetYaw = 0;
@@ -207,6 +203,7 @@ export default class PlayerSystem extends createSystem({
     const state = this.resources.read(FpsResource);
 
     let position: Vec3 = [...state.playerPosition];
+    let movementVelocity: Vec3 = [...state.movementVelocity];
     let yaw = state.yaw;
     let pitch = state.pitch;
     let verticalVelocity = state.verticalVelocity;
@@ -236,6 +233,7 @@ export default class PlayerSystem extends createSystem({
 
     const resetFromSourceReload = (): void => {
       position = [...PLAYER_START];
+      movementVelocity = [0, 0, 0];
       yaw = 0;
       pitch = 0;
       this.#setLookTargets(yaw, pitch);
@@ -261,6 +259,7 @@ export default class PlayerSystem extends createSystem({
 
     if (this.#button("reset")?.down()) {
       position = [...PLAYER_START];
+      movementVelocity = [0, 0, 0];
       yaw = 0;
       pitch = 0;
       this.#setLookTargets(yaw, pitch);
@@ -358,66 +357,7 @@ export default class PlayerSystem extends createSystem({
       this.#jumpBufferTimer = 0;
     }
 
-    verticalVelocity -= GRAVITY * dt;
-    const desiredTranslation = cameraRelativeMovementDelta({
-      moveX,
-      moveY: moveZ,
-      yaw,
-      speed: PLAYER_SPEED,
-      dt,
-      verticalVelocity,
-    });
-    desiredTranslation[0] += this.#weaponRecoilVelocity[0] * dt;
-    desiredTranslation[2] += this.#weaponRecoilVelocity[2] * dt;
-    this.#recoverWeaponRecoil(dt);
-
-    const wasGrounded = grounded;
-    const previousPosition: Vec3 = [...position];
-    const playerMove = skipPhysicsMove
-      ? {
-          position,
-          grounded,
-          blockedUpward: false,
-        }
-      : this.#movePlayerBody(position, desiredTranslation, grounded);
-    position = playerMove.position;
-    if (dt > Number.EPSILON) {
-      footstepVelocityX = (position[0] - previousPosition[0]) / dt;
-      footstepVelocityZ = (position[2] - previousPosition[2]) / dt;
-    }
-    grounded = sourceGroundedAfterMove({
-      jumpedThisFrame,
-      verticalVelocity,
-      controllerGrounded: playerMove.grounded,
-    });
-
-    if (grounded) {
-      if (!wasGrounded && verticalVelocity < -1) {
-        this.#playOneShot("land");
-        this.#triggerLandingBob();
-      }
-      verticalVelocity = 0;
-      jumpsRemaining = MAX_JUMPS;
-    } else if (playerMove.blockedUpward && verticalVelocity > 0) {
-      verticalVelocity = 0;
-    }
-
-    if (
-      !jumpedThisFrame &&
-      shouldConsumeBufferedJump(this.#jumpBufferTimer, jumpsRemaining)
-    ) {
-      this.#playJumpSound();
-      verticalVelocity = JUMP_STRENGTH;
-      jumpsRemaining -= 1;
-      grounded = false;
-      jumpedThisFrame = true;
-      this.#jumpBufferTimer = 0;
-    }
-
-    if (sourcePlayerShouldRespawn({ positionY: position[1], health })) {
-      resetFromSourceReload();
-    }
-
+    let shotBodyKnockback = 0;
     if (!respawnedThisFrame && this.#button("switchWeapon")?.down()) {
       const nextWeaponIndex = (weaponIndex + 1) % WEAPONS.length;
       if (this.#startWeaponSwitch(weaponIndex, nextWeaponIndex)) {
@@ -465,8 +405,70 @@ export default class PlayerSystem extends createSystem({
           SOURCE_LOOK_PITCH_LIMIT,
         ),
       );
-      this.#addWeaponRecoil(yaw, weapon);
+      shotBodyKnockback = weapon.knockback;
       this.#weaponViewOffset[2] += SOURCE_WEAPON_SHOT_KICK;
+    }
+
+    verticalVelocity -= GRAVITY * dt;
+    const movement = sourceSmoothedMovementStep({
+      moveX,
+      moveY: moveZ,
+      yaw,
+      speed: PLAYER_SPEED,
+      dt,
+      verticalVelocity,
+      currentVelocity: movementVelocity,
+      lerpRate: SOURCE_MOVEMENT_LERP_RATE,
+      bodyKnockback: shotBodyKnockback,
+    });
+    movementVelocity = movement.velocity;
+    const desiredTranslation: Vec3 = [...movement.translation];
+
+    const wasGrounded = grounded;
+    const previousPosition: Vec3 = [...position];
+    const playerMove = skipPhysicsMove
+      ? {
+          position,
+          grounded,
+          blockedUpward: false,
+        }
+      : this.#movePlayerBody(position, desiredTranslation, grounded);
+    position = playerMove.position;
+    if (dt > Number.EPSILON) {
+      footstepVelocityX = (position[0] - previousPosition[0]) / dt;
+      footstepVelocityZ = (position[2] - previousPosition[2]) / dt;
+    }
+    grounded = sourceGroundedAfterMove({
+      jumpedThisFrame,
+      verticalVelocity,
+      controllerGrounded: playerMove.grounded,
+    });
+
+    if (grounded) {
+      if (!wasGrounded && verticalVelocity < -1) {
+        this.#playOneShot("land");
+        this.#triggerLandingBob();
+      }
+      verticalVelocity = 0;
+      jumpsRemaining = MAX_JUMPS;
+    } else if (playerMove.blockedUpward && verticalVelocity > 0) {
+      verticalVelocity = 0;
+    }
+
+    if (
+      !jumpedThisFrame &&
+      shouldConsumeBufferedJump(this.#jumpBufferTimer, jumpsRemaining)
+    ) {
+      this.#playJumpSound();
+      verticalVelocity = JUMP_STRENGTH;
+      jumpsRemaining -= 1;
+      grounded = false;
+      jumpedThisFrame = true;
+      this.#jumpBufferTimer = 0;
+    }
+
+    if (sourcePlayerShouldRespawn({ positionY: position[1], health })) {
+      resetFromSourceReload();
     }
 
     const weaponMoveX = respawnedThisFrame ? 0 : moveX;
@@ -522,6 +524,7 @@ export default class PlayerSystem extends createSystem({
 
     this.resources.write(FpsResource, (next) => {
       next.playerPosition = position;
+      next.movementVelocity = movementVelocity;
       next.yaw = yaw;
       next.pitch = pitch;
       next.verticalVelocity = verticalVelocity;
@@ -989,7 +992,6 @@ export default class PlayerSystem extends createSystem({
     this.#weaponViewOffset = [0, 0, 0];
     this.#landingBobOffset = 0;
     this.#landingPulse = 0;
-    this.#weaponRecoilVelocity = [0, 0, 0];
     this.#jumpBufferTimer = 0;
     this.#shootBufferTimer = 0;
     this.#setLookTargets(0, 0);
@@ -1001,29 +1003,6 @@ export default class PlayerSystem extends createSystem({
       pitch,
       SOURCE_LOOK_PITCH_LIMIT,
     );
-  }
-
-  #addWeaponRecoil(yaw: number, weapon: WeaponSpec): void {
-    const recoil = cameraRecoilVelocityFromYaw(
-      yaw,
-      weapon.knockback,
-      WEAPON_RECOIL_IMPULSE_SCALE,
-    );
-    this.#weaponRecoilVelocity = [
-      this.#weaponRecoilVelocity[0] + recoil[0],
-      0,
-      this.#weaponRecoilVelocity[2] + recoil[2],
-    ];
-  }
-
-  #recoverWeaponRecoil(dt: number): void {
-    const retain = Math.max(0, 1 - dt * WEAPON_RECOIL_RECOVERY_RATE);
-    const nextX = this.#weaponRecoilVelocity[0] * retain;
-    const nextZ = this.#weaponRecoilVelocity[2] * retain;
-    this.#weaponRecoilVelocity =
-      Math.hypot(nextX, nextZ) <= WEAPON_RECOIL_EPSILON
-        ? [0, 0, 0]
-        : [nextX, 0, nextZ];
   }
 
   #updateWeaponViewOffset(moveX: number, moveZ: number, dt: number): void {

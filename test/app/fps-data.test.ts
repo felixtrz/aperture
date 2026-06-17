@@ -15,6 +15,7 @@ import {
   SOURCE_LOOK_LERP_RATE,
   SOURCE_LOOK_PITCH_LIMIT,
   SOURCE_MOUSE_SENSITIVITY,
+  SOURCE_MOVEMENT_LERP_RATE,
   SOURCE_PLAYER_CAPSULE_HALF_HEIGHT,
   SOURCE_PLAYER_CAPSULE_HEIGHT,
   SOURCE_PLAYER_CAPSULE_RADIUS,
@@ -73,6 +74,7 @@ describe("Starter Kit FPS source data", () => {
 
   it("derives player look constants from the source Player script", () => {
     expect(SOURCE_MOUSE_SENSITIVITY).toBe(700);
+    expect(SOURCE_MOVEMENT_LERP_RATE).toBe(10);
     expect(SOURCE_GAMEPAD_LOOK_SENSITIVITY).toBe(0.075);
     expect(SOURCE_LOOK_LERP_RATE).toBe(25);
     expect(SOURCE_LOOK_PITCH_LIMIT).toBeCloseTo(Math.PI / 2, 10);

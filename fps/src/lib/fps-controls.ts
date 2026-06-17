@@ -13,6 +13,28 @@ export interface CameraRelativeMoveInput {
   readonly verticalVelocity: number;
 }
 
+export interface SourceMovementTargetInput {
+  readonly moveX: number;
+  readonly moveY: number;
+  readonly yaw: number;
+  readonly speed: number;
+  readonly bodyKnockback?: number | undefined;
+}
+
+export interface SourceSmoothedMovementInput
+  extends SourceMovementTargetInput {
+  readonly currentVelocity: Vec3;
+  readonly verticalVelocity: number;
+  readonly dt: number;
+  readonly lerpRate: number;
+}
+
+export interface SourceSmoothedMovementStep {
+  readonly targetVelocity: Vec3;
+  readonly velocity: Vec3;
+  readonly translation: Vec3;
+}
+
 export interface WeaponViewmodelOffsetInput {
   readonly moveX: number;
   readonly moveY: number;
@@ -132,16 +154,6 @@ export function horizontalBackwardFromYaw(yaw: number): Vec3 {
   return [-forward[0], 0, -forward[2]];
 }
 
-export function cameraRecoilVelocityFromYaw(
-  yaw: number,
-  knockback: number,
-  impulseScale: number,
-): Vec3 {
-  const backward = horizontalBackwardFromYaw(yaw);
-  const impulse = knockback * impulseScale;
-  return [backward[0] * impulse, 0, backward[2] * impulse];
-}
-
 export function normalizedMoveAxis(
   moveX: number,
   moveY: number,
@@ -153,19 +165,59 @@ export function normalizedMoveAxis(
 export function cameraRelativeMovementDelta(
   input: CameraRelativeMoveInput,
 ): Vec3 {
+  const velocity = sourceMovementTargetVelocity(input);
+
+  return [
+    velocity[0] * input.dt,
+    input.verticalVelocity * input.dt,
+    velocity[2] * input.dt,
+  ];
+}
+
+export function sourceMovementTargetVelocity(
+  input: SourceMovementTargetInput,
+): Vec3 {
   const forward = horizontalForwardFromYaw(input.yaw);
   const right = horizontalRightFromYaw(input.yaw);
+  const backward = horizontalBackwardFromYaw(input.yaw);
   const movement = normalizedMoveAxis(input.moveX, input.moveY);
+  const bodyKnockback = input.bodyKnockback ?? 0;
 
   return [
     (right[0] * movement[0] + forward[0] * movement[1]) *
-      input.speed *
-      input.dt,
-    input.verticalVelocity * input.dt,
+      input.speed +
+      backward[0] * bodyKnockback,
+    0,
     (right[2] * movement[0] + forward[2] * movement[1]) *
-      input.speed *
-      input.dt,
+      input.speed +
+      backward[2] * bodyKnockback,
   ];
+}
+
+export function sourceSmoothedMovementStep(
+  input: SourceSmoothedMovementInput,
+): SourceSmoothedMovementStep {
+  const targetVelocity = sourceMovementTargetVelocity(input);
+  const alpha = clamp01(input.dt * input.lerpRate);
+  const velocity: Vec3 = [
+    lerpNumber(input.currentVelocity[0], targetVelocity[0], alpha),
+    0,
+    lerpNumber(input.currentVelocity[2], targetVelocity[2], alpha),
+  ];
+
+  return {
+    targetVelocity,
+    velocity,
+    translation: [
+      velocity[0] * input.dt,
+      input.verticalVelocity * input.dt,
+      velocity[2] * input.dt,
+    ],
+  };
+}
+
+function lerpNumber(from: number, to: number, alpha: number): number {
+  return from + (to - from) * clamp01(alpha);
 }
 
 export function sourceControllerLookStep(

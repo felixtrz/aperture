@@ -5,7 +5,6 @@ import {
 } from "@aperture-engine/app/systems";
 import {
   cameraForwardFromYawPitch,
-  cameraRecoilVelocityFromYaw,
   cameraRelativeMovementDelta,
   clampSourceLookPitch,
   enemyLookAngles,
@@ -23,8 +22,10 @@ import {
   sourceEnemyLookTarget,
   sourceGroundedAfterMove,
   sourceMouseLookStep,
+  sourceMovementTargetVelocity,
   sourcePlayerShouldRespawn,
   sourceShotDirection,
+  sourceSmoothedMovementStep,
   sourceWeaponMuzzleLocalPosition,
   sourceWeaponMuzzleWorldPosition,
   weaponViewmodelOffsetTarget,
@@ -33,6 +34,7 @@ import {
   SOURCE_GAMEPAD_LOOK_SENSITIVITY,
   SOURCE_LOOK_LERP_RATE,
   SOURCE_LOOK_PITCH_LIMIT,
+  SOURCE_MOVEMENT_LERP_RATE,
   SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT,
   SOURCE_WEAPON_CONTAINER_OFFSET,
   WEAPONS,
@@ -239,7 +241,22 @@ describe("Starter Kit FPS controls", () => {
     expect(direction[2]).toBeCloseTo(expected[2] / expectedLength, 10);
   });
 
-  it("applies weapon recoil backward relative to camera yaw", () => {
+  it("applies source shot body knockback through the movement lerp", () => {
+    const forwardRamp = sourceSmoothedMovementStep({
+      moveX: 0,
+      moveY: 1,
+      yaw: 0,
+      speed: 5,
+      dt: 1 / 60,
+      verticalVelocity: -1,
+      currentVelocity: [0, 0, 0],
+      lerpRate: SOURCE_MOVEMENT_LERP_RATE,
+    });
+    expect(forwardRamp.targetVelocity).toEqual([0, 0, -5]);
+    expect(forwardRamp.velocity[2]).toBeCloseTo(-5 * (10 / 60), 10);
+    expect(forwardRamp.translation[1]).toBeCloseTo(-1 / 60, 10);
+    expect(forwardRamp.translation[2]).toBeCloseTo((-5 * (10 / 60)) / 60, 10);
+
     const facingForward = horizontalBackwardFromYaw(0);
     expect(facingForward[0]).toBeCloseTo(0, 10);
     expect(facingForward[1]).toBe(0);
@@ -250,10 +267,57 @@ describe("Starter Kit FPS controls", () => {
     expect(turnedRight[1]).toBe(0);
     expect(turnedRight[2]).toBeCloseTo(0, 10);
 
-    const recoil = cameraRecoilVelocityFromYaw(Math.PI / 2, 40, 0.12);
-    expect(recoil[0]).toBeCloseTo(4.8, 10);
-    expect(recoil[1]).toBe(0);
-    expect(recoil[2]).toBeCloseTo(0, 10);
+    const target = sourceMovementTargetVelocity({
+      moveX: 0,
+      moveY: 0,
+      yaw: Math.PI / 2,
+      speed: 5,
+      bodyKnockback: 40,
+    });
+    expect(target[0]).toBeCloseTo(40, 10);
+    expect(target[1]).toBe(0);
+    expect(target[2]).toBeCloseTo(0, 10);
+
+    const forwardWithShot = sourceMovementTargetVelocity({
+      moveX: 0,
+      moveY: 1,
+      yaw: 0,
+      speed: 5,
+      bodyKnockback: 40,
+    });
+    expect(forwardWithShot[0]).toBeCloseTo(0, 10);
+    expect(forwardWithShot[1]).toBe(0);
+    expect(forwardWithShot[2]).toBeCloseTo(35, 10);
+
+    const recoil = sourceSmoothedMovementStep({
+      moveX: 0,
+      moveY: 0,
+      yaw: Math.PI / 2,
+      speed: 5,
+      dt: 1 / 60,
+      verticalVelocity: 0,
+      currentVelocity: [0, 0, 0],
+      lerpRate: SOURCE_MOVEMENT_LERP_RATE,
+      bodyKnockback: 40,
+    });
+    expect(recoil.targetVelocity[0]).toBeCloseTo(40, 10);
+    expect(recoil.velocity[0]).toBeCloseTo(40 * (10 / 60), 10);
+    expect(recoil.velocity[1]).toBe(0);
+    expect(recoil.velocity[2]).toBeCloseTo(0, 10);
+    expect(recoil.translation[0]).toBeCloseTo((40 * (10 / 60)) / 60, 10);
+
+    const clamped = sourceSmoothedMovementStep({
+      moveX: 0,
+      moveY: 0,
+      yaw: 0,
+      speed: 5,
+      dt: 1,
+      verticalVelocity: 0,
+      currentVelocity: [0, 0, 0],
+      lerpRate: SOURCE_MOVEMENT_LERP_RATE,
+      bodyKnockback: 40,
+    });
+    expect(clamped.velocity[2]).toBeCloseTo(40, 10);
   });
 
   it("moves the weapon viewmodel opposite local movement like the source container", () => {
