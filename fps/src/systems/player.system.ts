@@ -72,6 +72,7 @@ export default class PlayerSystem extends createSystem({
   #impactFlashTimer = 0;
   #muzzleFlashPosition: Vec3 = HIDDEN_EFFECT_POSITION;
   #impactFlashPosition: Vec3 = HIDDEN_EFFECT_POSITION;
+  #damagePulse = 0;
 
   override update(delta: number): void {
     const dt = Math.min(Math.max(delta, 0), 1 / 30);
@@ -110,6 +111,7 @@ export default class PlayerSystem extends createSystem({
       skipPhysicsMove = true;
       this.#muzzleFlashTimer = 0;
       this.#impactFlashTimer = 0;
+      this.#damagePulse = 0;
       this.#writePlayerBody(PLAYER_BODY_START);
     }
 
@@ -185,6 +187,7 @@ export default class PlayerSystem extends createSystem({
       enemyHealth = createEnemyHealth();
       this.#muzzleFlashTimer = 0;
       this.#impactFlashTimer = 0;
+      this.#damagePulse = 0;
       this.#writePlayerBody(PLAYER_BODY_START);
     }
 
@@ -225,6 +228,7 @@ export default class PlayerSystem extends createSystem({
         this.#enemyHasLineOfSight(attacker.key, attacker.position, position)
       ) {
         health = Math.max(0, health - ENEMY_ATTACK_DAMAGE);
+        this.#damagePulse += 1;
         this.#playOneShot("enemy-attack", 0.35);
       }
     }
@@ -242,6 +246,7 @@ export default class PlayerSystem extends createSystem({
       hits,
       grounded,
       position,
+      damagePulse: this.#damagePulse,
     });
     this.#updateFootsteps(grounded, movement[0] !== 0 || movement[1] !== 0);
 
@@ -274,8 +279,10 @@ export default class PlayerSystem extends createSystem({
   } {
     let hitCount = 0;
     let nextHealth = enemyHealth;
-    let nearestImpact: { readonly point: Vec3; readonly distance: number } | null =
-      null;
+    let nearestImpact: {
+      readonly point: Vec3;
+      readonly distance: number;
+    } | null = null;
 
     for (let i = 0; i < weapon.shotCount; i += 1) {
       const direction = spreadDirection(yaw, pitch, weapon.spread);
@@ -290,17 +297,15 @@ export default class PlayerSystem extends createSystem({
       const nearestRayHit = nearestPhysicsHit(rayHits);
       if (
         nearestRayHit !== null &&
-        (nearestImpact === null || nearestRayHit.distance < nearestImpact.distance)
+        (nearestImpact === null ||
+          nearestRayHit.distance < nearestImpact.distance)
       ) {
         nearestImpact = {
           point: cloneVec3(nearestRayHit.point),
           distance: nearestRayHit.distance,
         };
       }
-      const hit = this.#firstShotEnemyHit(
-        rayHits,
-        nextHealth,
-      );
+      const hit = this.#firstShotEnemyHit(rayHits, nextHealth);
 
       if (hit === null) {
         continue;
@@ -351,7 +356,8 @@ export default class PlayerSystem extends createSystem({
     return {
       position: bodyToEye(target),
       grounded: move.grounded,
-      blockedVertical: Math.abs(move.movement[1] - desiredTranslation[1]) > 0.001,
+      blockedVertical:
+        Math.abs(move.movement[1] - desiredTranslation[1]) > 0.001,
     };
   }
 
@@ -415,7 +421,9 @@ export default class PlayerSystem extends createSystem({
       this.#queryExcluding(`${enemyKey}.hitbox`),
     );
 
-    return hit !== null && (hit.entity === playerRef || hit.collider === playerRef);
+    return (
+      hit !== null && (hit.entity === playerRef || hit.collider === playerRef)
+    );
   }
 
   #writeCamera(position: Vec3, yaw: number, pitch: number): void {
@@ -465,7 +473,12 @@ export default class PlayerSystem extends createSystem({
     pitch: number,
     weapon: WeaponSpec,
   ): void {
-    this.#muzzleFlashPosition = weaponMuzzlePosition(position, yaw, pitch, weapon);
+    this.#muzzleFlashPosition = weaponMuzzlePosition(
+      position,
+      yaw,
+      pitch,
+      weapon,
+    );
     this.#muzzleFlashTimer = MUZZLE_FLASH_DURATION;
   }
 
@@ -540,6 +553,7 @@ export default class PlayerSystem extends createSystem({
     readonly hits: number;
     readonly grounded: boolean;
     readonly position: Vec3;
+    readonly damagePulse: number;
   }): void {
     setSignal(this.signals.health, Math.round(input.health));
     setSignal(this.signals.weaponIndex, input.weaponIndex);
@@ -549,6 +563,7 @@ export default class PlayerSystem extends createSystem({
     setSignal(this.signals.shotsFired, input.shotsFired);
     setSignal(this.signals.hits, input.hits);
     setSignal(this.signals.grounded, input.grounded);
+    setSignal(this.signals.damagePulse, input.damagePulse);
     setSignal(this.signals.playerX, Number(input.position[0].toFixed(2)));
     setSignal(this.signals.playerY, Number(input.position[1].toFixed(2)));
     setSignal(this.signals.playerZ, Number(input.position[2].toFixed(2)));
@@ -608,9 +623,7 @@ export default class PlayerSystem extends createSystem({
     });
   }
 
-  #queryExcluding(
-    key: string,
-  ): { readonly excludeEntity: string } | undefined {
+  #queryExcluding(key: string): { readonly excludeEntity: string } | undefined {
     const ref = this.#entityRefForKey(key);
     return ref === null ? undefined : { excludeEntity: ref };
   }

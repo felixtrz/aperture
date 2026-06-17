@@ -42,9 +42,37 @@
         width: 45px;
         height: 45px;
         transform: translate(-50%, -50%);
+        transition:
+          transform 110ms ease,
+          filter 110ms ease;
         image-rendering: pixelated;
         pointer-events: none;
         z-index: 4;
+      }
+
+      body[data-hit-flash="true"] #crosshair {
+        transform: translate(-50%, -50%) scale(1.28);
+        filter: drop-shadow(0 0 10px rgba(255, 245, 160, 0.95));
+      }
+
+      #damage-flash {
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(
+            circle,
+            rgba(255, 65, 48, 0) 42%,
+            rgba(255, 65, 48, 0.34) 100%
+          ),
+          rgba(255, 32, 24, 0.12);
+        opacity: 0;
+        transition: opacity 180ms ease;
+        pointer-events: none;
+        z-index: 3;
+      }
+
+      body[data-damage-flash="true"] #damage-flash {
+        opacity: 1;
       }
 
       #hud {
@@ -69,6 +97,17 @@
 
       #health {
         font-size: clamp(40px, 7vw, 72px);
+        transition:
+          color 150ms ease,
+          transform 150ms ease;
+      }
+
+      body[data-low-health="true"] #health {
+        color: #ff6b5f;
+      }
+
+      body[data-damage-flash="true"] #health {
+        transform: scale(1.08);
       }
 
       #status {
@@ -87,6 +126,7 @@
   </head>
   <body>
     <canvas id="aperture"></canvas>
+    <div id="damage-flash"></div>
     <img id="crosshair" src="/sprites/crosshair.png" alt="" />
     <div id="hud">
       <div id="health">100%</div>

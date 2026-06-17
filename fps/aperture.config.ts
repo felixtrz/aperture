@@ -60,6 +60,7 @@ export default defineApertureConfig({
     shotsFired: signal.number(0),
     hits: signal.number(0),
     grounded: signal.boolean(false),
+    damagePulse: signal.number(0),
     playerX: signal.number(0),
     playerY: signal.number(1.5),
     playerZ: signal.number(0),
