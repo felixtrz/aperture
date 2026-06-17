@@ -1,5 +1,43 @@
 # Completed Tasks
 
+## FPS-PORT — Control input reliability
+
+Completed: 2026-06-17 00:33 PDT
+Commit: `3c223296`
+
+### Summary
+
+- Fixed pointer-lock shooting by forwarding locked primary mouse down/up events
+  from `fps/src/hud.ts` into the generated `shoot` action.
+- Held pointer-lock shoot release for 40 ms so fast clicks cannot collapse into
+  a same-frame virtual down/up pair before the worker observes the press.
+- Moved FPS camera-forward, strafe, diagonal-normalization, and shooting
+  direction math into `fps/src/lib/fps-controls.ts` with focused unit coverage.
+- Kept W/A/S/D movement explicitly relative to camera yaw while keeping pitch
+  reserved for shot direction.
+- Fixed unreliable jumps by disabling character-controller snap-to-ground only
+  for upward movement frames.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- Aperture CLI proof from `fps/`: fresh managed FPS at
+  `http://127.0.0.1:5174/`, `browser_wait_for_webgpu` passed, stepped jump
+  proof reported `grounded:false`, `verticalVelocity:7.6667`,
+  `jumpsRemaining:1`, and `playerY:1.6225`.
+- The same Aperture CLI proof rotated camera yaw to `1.6667`, held W, and
+  reported camera-relative movement `dx:2.4885`, `dz:0.2393`.
+- The same Aperture CLI proof reported `generatedShots:1`,
+  `browserClickShots:1`, `webgpuOk:true`, and no `lastError`/`lastFailure`.
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+
 ## FPS-PORT — Authored cloud hover slice
 
 Completed: 2026-06-17 00:23 PDT

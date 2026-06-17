@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "d7323f3b",
+  "lastCommit": "3c223296",
   "activePid": null,
-  "notes": "Completed FPS authored cloud slice with 11 source cloud instances and ECS hover motion; FPS/app/root validations and CLI cloud-hover proof passed; racing and shadow-lab validations remain green.",
-  "lastRunFinishedAt": "2026-06-17T07:23:38Z"
+  "notes": "Completed FPS controls fix for pointer-lock shooting, camera-relative movement proof, and jump snap reliability; FPS/root validations and Aperture CLI controls proof passed; racing and shadow-lab validations remain green.",
+  "lastRunFinishedAt": "2026-06-17T07:33:00Z"
 }

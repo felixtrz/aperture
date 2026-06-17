@@ -1,26 +1,41 @@
-# Handoff - Starter Kit FPS Cloud Hover Slice
+# Handoff - Starter Kit FPS Controls Fix
 
-**Updated:** 2026-06-17 00:23 PDT
+**Updated:** 2026-06-17 00:33 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Added the remaining authored cloud instances from upstream
-  `scenes/main.tscn`; the FPS port now spawns 11 cloud roots instead of the
-  previous 4.
-- Preserved source cloud transforms as ECS data by storing source-derived
-  quaternions and scale values in `CLOUDS`, with setup passing `rotation` into
-  `spawn.gltf(...)` instead of collapsing cloud orientation to yaw-only values.
-- Added `src/systems/clouds.system.ts`, an ECS system that applies deterministic
-  source-like hover motion equivalent to upstream `objects/cloud.gd`:
-  `position.y += cos(time * random_time) * random_velocity * delta`.
+- Fixed pointer-lock shooting in the browser HUD. While the canvas is locked,
+  primary mouse down/up now drives the generated `shoot` action directly, and
+  release is delayed by 40 ms so a fast click cannot collapse into an
+  unobservable same-frame virtual down/up pair.
+- Moved FPS control math into `fps/src/lib/fps-controls.ts` and added
+  `test/app/fps-controls.test.ts` to lock camera-relative movement, diagonal
+  normalization, pitch-aware shot direction, and upward-move snap behavior.
+- Kept movement relative to camera yaw: after a rightward look, W moves mostly
+  along +X instead of world -Z.
+- Fixed unreliable jumps by using the no-snap character-controller settings
+  only while desired vertical movement is upward. Normal grounded movement still
+  uses the configured snap-to-ground distance.
 - Committed:
+  - `3c223296` — `Fix FPS control input reliability`
   - `d7323f3b` — `Add FPS authored cloud hover slice`
 
 ## Previous Completed FPS Slices
 
+- Authored clouds:
+  - Added the remaining authored cloud instances from upstream
+    `scenes/main.tscn`; the FPS port now spawns 11 cloud roots instead of the
+    previous 4.
+  - Preserved source cloud transforms as ECS data by storing source-derived
+    quaternions and scale values in `CLOUDS`, with setup passing `rotation`
+    into `spawn.gltf(...)` instead of collapsing cloud orientation to yaw-only
+    values.
+  - Added `src/systems/clouds.system.ts`, an ECS system that applies
+    deterministic source-like hover motion equivalent to upstream
+    `objects/cloud.gd`.
 - Enemy destruction/status:
   - Added explicit enemy-destruction status for the Starter Kit FPS port,
     following the upstream `objects/enemy.gd` `destroy()` behavior by making
@@ -47,29 +62,41 @@ previous working state so the old state remains recoverable.
 
 ## Latest Validation
 
+- `pnpm exec vitest run test/app/fps-controls.test.ts`
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
-- `pnpm --filter @aperture-engine/app typecheck`
-- `pnpm --filter @aperture-engine/app build`
 - `pnpm run typecheck`
 - `pnpm run typecheck:test`
 - Aperture CLI runtime proof from `fps/`:
   - Restarted managed FPS at `http://127.0.0.1:5174/`; `browser_wait_for_webgpu`
     succeeded with `webgpuOk:true` and no `lastError`/`lastFailure`.
-  - `ecs_list_systems` included `src/systems/clouds.system.ts`.
-  - Paused the generated worker and read `ecs_find_entities { tags:["cloud"] }`;
-    it returned 11 `deco.cloud.*` entities.
-  - After 90 `ecs_step` frames, all 11 cloud roots had changed Y translation
-    while X/Z, scale, and rotation stayed stable.
-  - `browser_screenshot` wrote
-    `fps/.aperture/runtime/fps-cloud-hover-proof.png`; the screenshot shows
-    additional visible clouds around the level.
-  - The live FPS session was reset through generated `reset` input afterward:
+  - Paused/reset the generated worker and stepped a jump input:
+    `grounded:false`, `verticalVelocity:7.6667`, `jumpsRemaining:1`,
+    `playerY:1.6225`.
+  - Stepped 40 frames of generated look input, then held W for 30 frames:
+    `yaw:1.6667`, `dx:2.4885`, `dz:0.2393`, proving movement follows camera
+    yaw.
+  - Stepped generated `shoot` and browser pointer-click input:
+    `generatedShots:1`, `browserClickShots:1`.
+  - Final runtime status remained `webgpuOk:true` with no `lastError` or
+    `lastFailure`.
+  - The live FPS session was reset to fresh gameplay afterward:
     `health:100`, `enemiesRemaining:4`, `shotsFired:0`, `hits:0`, then resumed.
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir racing run build`
 - `pnpm --dir shadow-lab run typecheck`
 - `pnpm --dir shadow-lab run build`
+- Previous cloud validation:
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm --filter @aperture-engine/app build`
+- Previous cloud Aperture CLI proof:
+  - `ecs_list_systems` included `src/systems/clouds.system.ts`.
+  - `ecs_find_entities { tags:["cloud"] }` returned 11 `deco.cloud.*`
+    entities.
+  - After 90 `ecs_step` frames, all 11 cloud roots had changed Y translation
+    while X/Z, scale, and rotation stayed stable.
+  - `browser_screenshot` wrote
+    `fps/.aperture/runtime/fps-cloud-hover-proof.png`.
 - Previous enemy-destruction validation:
 - `pnpm exec vitest run test/app/developer-api.test.ts -t "publishes JSON-safe entity lookup summaries"`
 - `pnpm exec vitest run test/app/developer-api.test.ts`
@@ -109,8 +136,9 @@ previous working state so the old state remains recoverable.
 ## Current Notes
 
 - Managed FPS is running at `http://127.0.0.1:5174/` through Aperture dev and
-  was resumed after the final cloud proof. The live session was reset to fresh
-  gameplay state after the proof.
+  was resumed after the controls proof. The live session was reset to fresh
+  gameplay state: `health:100`, `enemiesRemaining:4`, `shotsFired:0`,
+  `hits:0`, `grounded:true`.
 - Pre-existing untracked screenshots,
   racing parity artifacts, and `racing/parity/` remain outside commits.
 - Use `value:0` rather than `pressed:false` for button-release CLI scripts when
