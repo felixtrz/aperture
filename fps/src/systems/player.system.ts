@@ -50,6 +50,12 @@ import {
   createEnemyDestroyed,
   createEnemyHealth,
 } from "../lib/fps-resource.js";
+import {
+  sourceSpriteAlphaForFrame,
+  sourceSpriteFrameForLife,
+  type SpriteAnimationFrame,
+  type SpriteUvRect,
+} from "../lib/fps-effects.js";
 
 const LOOK_SPEED = Math.PI;
 const GAMEPAD_LOOK_SPEED = 2.5;
@@ -81,7 +87,6 @@ const PLAYER_ASCENDING_CONTROLLER_SETTINGS: PhysicsCharacterControllerSettings =
     ...PLAYER_CONTROLLER_SETTINGS,
     snapToGroundDistance: 0,
   };
-const FULL_SPRITE_UV: SpriteUvRect = [0, 0, 1, 1];
 const MUZZLE_FLASH_FRAMES: readonly SpriteAnimationFrame[] = [
   [0, 0, 0.5, 1],
   [0.5, 0, 0.5, 1],
@@ -115,15 +120,6 @@ interface ShotEnemyHit {
   readonly key: string;
   readonly point: Vec3;
   readonly distance: number;
-}
-
-type SpriteUvRect = readonly [number, number, number, number];
-type SpriteAnimationFrame = SpriteUvRect | null;
-
-interface SpriteFrameSelection {
-  readonly atlasFrame: number;
-  readonly visible: boolean;
-  readonly uvRect: SpriteUvRect;
 }
 
 export default class PlayerSystem extends createSystem({
@@ -717,8 +713,8 @@ export default class PlayerSystem extends createSystem({
     const entity = this.#findByKey(key);
     if (entity === null) return;
 
-    const frame = spriteFrameForLife(frames, normalizedLife);
-    const alpha = frame.visible ? clamp01(normalizedLife) : 0;
+    const frame = sourceSpriteFrameForLife(frames, normalizedLife);
+    const alpha = sourceSpriteAlphaForFrame(frame);
     entity
       .getVectorView(LocalTransform, "translation")
       .set(alpha > 0 ? position : HIDDEN_EFFECT_POSITION);
@@ -1122,32 +1118,6 @@ function randomBetween(min: number, max: number): number {
 
 function randomSign(): 1 | -1 {
   return Math.random() < 0.5 ? -1 : 1;
-}
-
-function spriteFrameForLife(
-  frames: readonly SpriteAnimationFrame[],
-  normalizedLife: number,
-): SpriteFrameSelection {
-  if (frames.length === 0 || normalizedLife <= 0) {
-    return {
-      atlasFrame: 0,
-      visible: false,
-      uvRect: FULL_SPRITE_UV,
-    };
-  }
-
-  const elapsed = 1 - clamp01(normalizedLife);
-  const atlasFrame = Math.min(
-    frames.length - 1,
-    Math.max(0, Math.floor(elapsed * frames.length)),
-  );
-  const uvRect = frames[atlasFrame] ?? null;
-
-  return {
-    atlasFrame,
-    visible: uvRect !== null,
-    uvRect: uvRect ?? FULL_SPRITE_UV,
-  };
 }
 
 function cloneVec3(value: readonly [number, number, number]): Vec3 {
