@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "684ccc2f",
   "activePid": null,
-  "notes": "Aligned Starter Kit FPS enemy hitboxes and look target with upstream: hitbox spheres now track the visible enemy root at local y +0.25, and enemies pitch/yaw toward player position +0.5y. Aperture proof observed enemy.0 visual Y near 2.698770 and enemy.0.hitbox physics current Y near 2.948770 with WebGPU healthy. FPS/root/racing/shadow-lab validation passed for this slice.",
-  "lastRunFinishedAt": "2026-06-17T09:51:00Z"
+  "notes": "Aligned Starter Kit FPS enemy hitbox and look target; validated with Aperture MCP and kept racing/shadow-lab green.",
+  "lastRunFinishedAt": "2026-06-17T09:53:35Z"
 }
