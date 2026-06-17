@@ -113,13 +113,17 @@ document.addEventListener("pointerlockchange", () => {
 });
 
 window.addEventListener("mousedown", (event) => {
-  if (document.pointerLockElement !== canvas || event.button !== 0) return;
+  if (event.button !== 0) return;
+  const pointerLocked = document.pointerLockElement === canvas;
+  if (!pointerLocked && !isCanvasPointerEvent(event)) return;
+
   event.preventDefault();
+  if (!pointerLocked && canvas !== null) requestPointerLock(canvas);
   pressPointerLockShoot();
 });
 
 window.addEventListener("mouseup", (event) => {
-  if (document.pointerLockElement !== canvas || event.button !== 0) return;
+  if (event.button !== 0 || !shootActionActive) return;
   event.preventDefault();
   releasePointerLockShoot();
 });
@@ -200,6 +204,10 @@ function requestPointerLock(target: HTMLCanvasElement): void {
   } catch {
     // Older browser implementations can throw synchronously here.
   }
+}
+
+function isCanvasPointerEvent(event: MouseEvent): boolean {
+  return canvas !== null && event.composedPath().includes(canvas);
 }
 
 function clampAxis(value: number): number {
