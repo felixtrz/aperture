@@ -1,7 +1,7 @@
 import {
   dispatchApertureInputAction,
-  readGeneratedBrowserAppStatus,
-  readGeneratedSignals,
+  type GeneratedSignalSummary,
+  subscribeGeneratedSignals,
 } from "@aperture-engine/app/browser";
 import { clamp } from "@aperture-engine/simulation";
 
@@ -25,10 +25,7 @@ function writeText(el: HTMLElement | null, value: string): void {
   if (el && el.textContent !== value) el.textContent = value;
 }
 
-function render(): void {
-  const status = readGeneratedBrowserAppStatus();
-  const signals = readGeneratedSignals();
-
+function renderSignals(signals: GeneratedSignalSummary | null): void {
   const lap = readNumber(signals?.lap, 1);
   const current = readNumber(signals?.currentLapTime, 0);
   const last = readNumber(signals?.lastLapTime, -1);
@@ -39,17 +36,13 @@ function render(): void {
   writeText(lastEl, formatTime(last));
   writeText(bestEl, formatTime(best));
 
-  document.body.dataset.apertureStatus = status?.status ?? "starting";
-  document.body.dataset.apertureSnapshots = String(status?.snapshots ?? 0);
-  document.body.dataset.webgpuOk = String(status?.webgpuOk ?? false);
   document.body.dataset.speed = String(
     readNumber(signals?.speed, 0).toFixed(2),
   );
-
-  requestAnimationFrame(render);
 }
 
-render();
+renderSignals(null);
+subscribeGeneratedSignals(renderSignals);
 
 // ── Touch / pointer drive controls (Controls.js touch path) ──────────────────
 // A virtual joystick: press anywhere, drag to steer (x) + throttle (y). Forwards

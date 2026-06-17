@@ -1,6 +1,6 @@
-# Handoff - Generated Resource Inspection And Racing Console Proof
+# Handoff - Generated Signal Subscription HUD Migration
 
-**Updated:** 2026-06-16 18:32 PDT
+**Updated:** 2026-06-16 18:56 PDT
 
 Current user-directed work is executing
 `racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
@@ -8,68 +8,66 @@ slices while keeping racing and Shadow Lab working.
 
 ## Latest Completed Slice
 
-- Added generic generated-worker resource inspection through
-  `resource_get` in the devtools bridge, CLI dispatch, and MCP tool metadata.
-  Calling it without an id lists initialized app resources; calling it with an
-  id returns JSON-safe field metadata and values for that resource only.
-- Added focused tests proving `resource_get` can list resources, read a concrete
-  generated-worker resource by id, and return structured not-found diagnostics.
-  The CLI MCP `tools/list` coverage now includes `resource_get`.
-- Verified racing through Aperture tooling after a fresh reload. The alarming
-  console particle attachment mismatch is old append-only browser history from
-  the broken HDR particle pipeline session, not a current failure. After reload,
-  the only fresh console warning is the non-fatal Rapier/WASM deprecated
-  initialization signature warning.
-- Reproved smoke with deterministic generated-worker controls: paused racing,
-  set virtual `drive=[1,1]`, stepped fixed simulation until
-  `racing.vehicle.driftIntensity` reached `0.8058`, then read the compact frame
-  report. Frame 1092 reported `ok:true`, `counts.particleEmitters:2`,
-  `particles.liveParticles:6`, `particles.texturedEmitters:2`, and diagnostics
-  `[]`. Inputs were reset and ECS was resumed afterward.
-- Confirmed the existing HDR particle regression test still passes: particles
-  under an HDR scene pass build the `rgba16float` pipeline variant rather than
-  the old `bgra8unorm` swapchain variant.
+- Added focused coverage for the existing
+  `subscribeGeneratedSignals(...)` browser helper, proving immediate delivery,
+  subsequent signal updates, and unsubscribe behavior without depending on full
+  generated status dumps.
+- Migrated `racing/src/hud.ts` from generated status polling to
+  `subscribeGeneratedSignals(...)` for lap, speed, last, and best timing UI.
+  The HUD no longer runs its own `requestAnimationFrame` loop just to read
+  worker signal snapshots.
+- Removed the unused HUD `document.body.dataset.apertureStatus`,
+  `apertureSnapshots`, and `webgpuOk` writes. Generated diagnostic status
+  remains available to Aperture tools; app UI now uses the signal surface.
+- Rechecked the alarming browser console through Aperture tooling. After a
+  clean managed reload at `2026-06-17T01:52:45Z`, the only fresh console warning
+  was the existing non-fatal Rapier/WASM deprecated initialization signature
+  warning. Older `workerSnapshotRenderFailed` and `AudioContext was not allowed`
+  entries remain in append-only console history but did not reproduce on this
+  reload.
+- Reproved live racing smoke with Aperture input tooling, not raw CDP. Holding
+  `KeyW` + `KeyA` with the documented `input_key` payload shape
+  (`action:"down"`) produced render diagnostics with `emitters:306`,
+  `liveParticles:906`, and `texturedEmitters:306` while the app stayed
+  `running`, `webgpuOk:true`, `lastError:null`, and `lastFailure:null`.
 
 ## Latest Validation
 
-- `pnpm exec prettier --write packages/app/src/worker/devtools/bridge.ts packages/cli/src/tools/dispatch.ts packages/cli/src/mcp.ts test/app/generated-worker-start.test.ts test/cli/dev-session.test.ts`
-- `pnpm exec vitest run test/app/generated-worker-start.test.ts test/cli/dev-session.test.ts`
-- `git diff --check`
+- `pnpm exec prettier --write racing/src/hud.ts test/app/browser-signals.test.ts`
+- `pnpm exec vitest run test/app/browser-signals.test.ts`
 - `pnpm --filter @aperture-engine/app run typecheck`
-- `pnpm --filter @aperture-engine/cli run typecheck`
 - `pnpm --filter @aperture-engine/app run build`
-- `pnpm --filter @aperture-engine/cli run build`
-- `pnpm exec vitest run test/webgpu/particle-frame-resources.test.ts`
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir racing run build`
 - `pnpm --dir shadow-lab run typecheck`
 - `pnpm --dir shadow-lab run build`
-- Managed Aperture racing proof described above. `pnpm exec aperture mcp stdio`
-  was also used to prove a fresh rebuilt MCP server advertises and serves
-  `resource_get`, because this Codex session's already-loaded MCP metadata did
-  not expose the new tool name.
+- `git diff --check`
+- Managed Aperture racing proof described above: reload, WebGPU wait, console
+  tail, held-input smoke proof, and post-drive status.
+- Managed Shadow Lab proof before this handoff: typecheck/build stayed green,
+  and the existing managed session reported `running`, `webgpuOk:true`,
+  `lastError:null`, and `lastFailure:null`.
 
 ## Current Notes
 
 - The managed racing app is running at `http://127.0.0.1:5173/` and was left
-  resumed with inputs reset.
+  resumed. Inputs were released after the live smoke check.
 - Shadow Lab remains alive at `http://127.0.0.1:8861/`; it was validated by
-  typecheck/build during this slice and was not restarted.
-- The active Codex MCP tool list may remain stale until the session reconnects.
-  The rebuilt CLI/MCP server itself has `resource_get`, proven through
-  `pnpm exec aperture tool resource_get ...` and `pnpm exec aperture mcp stdio`.
-- Racing console history still contains old WebGPU particle validation spam and
-  a worker-transport error from earlier broken sessions. After the fresh
-  2026-06-17T01:28:42Z reload and the smoke proof, no new particle/WebGPU
-  attachment warnings appeared.
+  typecheck/build and by runtime status during this slice and was not restarted.
+- Racing console history still contains older `AudioContext was not allowed`
+  warnings and one older worker transport error. The fresh reload after the
+  console check did not reproduce either; the next generic library slice should
+  still harden generated audio startup so autoplay loop intent never attempts to
+  start Web Audio voices while the browser context is locked.
 - Pre-existing untracked screenshot/parity artifacts remain outside the commit.
 
 ## Recommended Next Task
 
-Add a typed generated signal subscription API for browser/HUD consumers and
-migrate racing HUD reads to it. This should be generic browser runtime
-orchestration, not a racing-specific status parser: diagnostics status remains
-for tools, while app UI should receive stable signal snapshots/events.
+Fix generated browser audio first-gesture startup so worker-authored
+`this.audio.loop(...)` intent stays queued/silent while the browser audio context
+is locked, starts correctly after the first user gesture, and does not replay
+stale one-shots. Use Bevy audio playback intent and PlayCanvas sound component
+autoplay/slot behavior as references.
 
 ---
 

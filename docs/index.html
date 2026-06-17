@@ -393,16 +393,26 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 01:32 UTC</dd>
+            <dd>2026-06-17 01:56 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: generated-worker devtools, CLI dispatch, and MCP
-              metadata now expose <code>resource_get</code> so agents can read
-              app resources such as <code>racing.vehicle</code> without dumping
-              full browser/entity status. Racing was reproved through managed
-              Aperture controls after a fresh reload: deterministic
+              Latest update: browser signal subscriptions now have focused
+              coverage, and racing HUD reads lap timing and speed through
+              <code>subscribeGeneratedSignals(...)</code> instead of polling
+              full generated diagnostic status. A clean managed racing reload
+              showed no fresh worker/render errors; the only fresh console
+              warning was the existing non-fatal Rapier initialization signature
+              warning. Held-input Aperture tooling then drove live smoke to
+              hundreds of textured particles while the app stayed
+              <code>running</code> with no <code>lastError</code> or
+              <code>lastFailure</code>. Prior update: generated-worker devtools,
+              CLI dispatch, and MCP metadata now expose
+              <code>resource_get</code> so agents can read app resources such as
+              <code>racing.vehicle</code> without dumping full browser/entity
+              status. Racing was reproved through managed Aperture controls
+              after a fresh reload: deterministic
               <code>drive=[1,1]</code> stepping reached smoke threshold,
               rendered two textured particle bursts with zero diagnostics, and
               showed no fresh WebGPU attachment warnings; the alarming console
@@ -1183,9 +1193,10 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue the racing library-gap plan with a typed generated signal
-              subscription API for browser/HUD consumers, then migrate racing
-              HUD reads away from polling generated status snapshots.
+              Continue the racing library-gap plan by hardening generated
+              browser audio startup: worker-authored loop intent should stay
+              queued and silent while Web Audio is locked, then start after the
+              first user gesture without replaying stale one-shots.
             </dd>
           </dl>
         </aside>
@@ -2087,13 +2098,13 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">app</span> Added compact
-                generated-worker resource inspection through
-                <code>resource_get</code>. The tool lists initialized app
-                resources or reads one resource by id with JSON-safe field
-                metadata and values, and racing proof now samples
-                <code>racing.vehicle</code> alongside compact render frame
-                reports during deterministic smoke checks.
+                <span class="badge green">app</span> Added focused browser
+                signal subscription coverage and migrated racing HUD reads to
+                <code>subscribeGeneratedSignals(...)</code>. App UI now receives
+                typed worker signal snapshots directly, while generated
+                diagnostic status remains the tooling surface. Managed Aperture
+                checks also reproved clean reload, healthy runtime status, and
+                live smoke particles under held input.
               </li>
               <li>
                 <span class="badge green">app</span> Added
@@ -5036,11 +5047,10 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add typed generated signal
-                subscriptions for browser/HUD consumers and migrate racing HUD
-                reads to that public API. Keep diagnostics status for tools, but
-                app UI should not parse full generated status snapshots to read
-                lap timing and speed.
+                <span class="badge amber">next</span> Harden generated browser
+                audio first-gesture startup so worker-authored loop intent does
+                not start Web Audio voices while locked, starts correctly after
+                unlock, and does not replay stale one-shots.
               </li>
               <li>
                 <span class="badge amber">next</span> Continue remaining M10

@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## RACE-LIB-22 — Generated signal subscription HUD migration
+
+Completed: 2026-06-16 18:56 PDT
+Commit: current checkpoint commit
+
+### Summary
+
+- Added focused coverage for `subscribeGeneratedSignals(...)`, including
+  immediate delivery, changed-signal delivery, and unsubscribe behavior.
+- Migrated racing HUD lap/speed/timing updates to
+  `subscribeGeneratedSignals(...)` instead of polling generated diagnostic
+  status every animation frame.
+- Kept generated browser diagnostics as a tooling surface while moving app UI
+  to the typed signal surface.
+- Rechecked the alarming console history through Aperture tools: after a clean
+  racing reload, no fresh worker/render error appeared, and the only fresh
+  warning was the existing Rapier deprecated initialization signature warning.
+- Reproved live racing smoke through Aperture input tooling; held input reached
+  `emitters:306`, `liveParticles:906`, and `texturedEmitters:306` while the
+  app stayed healthy.
+
+### Validation
+
+- `pnpm exec vitest run test/app/browser-signals.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Managed Aperture proof: reload racing, wait for WebGPU, check console tail,
+  hold `KeyW` + `KeyA` with `input_key action:"down"`, observe hundreds of live
+  textured smoke particles and no `lastError`/`lastFailure`, then release input.
+
 ## RACE-LIB-21 — Generated resource inspection and racing smoke console proof
 
 Completed: 2026-06-16 18:32 PDT

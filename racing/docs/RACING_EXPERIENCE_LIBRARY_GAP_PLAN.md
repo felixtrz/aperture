@@ -178,6 +178,13 @@ building blocks and default paths.
   report showed two textured smoke bursts with zero diagnostics. A fresh
   post-reload console check confirmed the old particle attachment mismatch logs
   are retained console history, not a current WebGPU failure.
+- 2026-06-16: Typed generated signal subscriptions landed:
+  `@aperture-engine/app/browser` now exposes `subscribeGeneratedSignals(...)`
+  with unsubscribe semantics, and racing HUD uses it for lap timing and speed
+  instead of polling generated diagnostic status each animation frame. Managed
+  racing and Shadow Lab builds stayed healthy; a clean racing reload plus live
+  input proof showed no fresh worker/render errors, and smoke particles reached
+  hundreds of live textured emitters while input was held.
 
 ## Genericity Audit - 2026-06-16
 
@@ -465,22 +472,28 @@ Original evidence:
 
 Current status:
 
-- `@aperture-engine/app/browser` now exposes `readGeneratedSignals()`.
-- Racing HUD/audio read signals through that public helper instead of parsing
-  generated diagnostics.
+- `@aperture-engine/app/browser` now exposes `readGeneratedSignals()` and
+  `subscribeGeneratedSignals(...)`.
+- Racing HUD reads lap timing and speed through `subscribeGeneratedSignals(...)`
+  instead of polling full generated diagnostics.
+- Racing audio intent is worker-authored through `this.audio`, so it no longer
+  has a browser-side status polling loop.
 
 Current Aperture state:
 
 - Worker signals exist and are still summarized through generated status for
   tooling.
-- `readGeneratedSignals()` is the current app-facing read path.
+- `readGeneratedSignals()` is the current app-facing pull path, and
+  `subscribeGeneratedSignals(...)` is the current app-facing push path.
 
 Library direction:
 
-- Add `subscribeGeneratedSignals` and typed generated signal accessors when the
-  browser/HUD API needs push-style updates.
 - Keep diagnostics status available, but app HUD/audio code should continue to
   avoid parsing it.
+- Next audio work should tighten generated browser audio unlock behavior so
+  worker-authored autoplay loops do not start Web Audio voices before the first
+  user gesture, while still preserving queued loop intent after unlock and
+  suppressing stale one-shots.
 
 ### 4. Audio Has A Good Low-Level Base But Missing Racing-Level Control
 
@@ -1144,14 +1157,16 @@ Work items:
 - RACE-LIB-01: Complete and export math helpers.
 - RACE-LIB-02: Add transform read/write/lookAt helpers.
 - RACE-LIB-03: Add ECS resources/singletons.
-- RACE-LIB-04: Add browser signal subscription/read API.
+- RACE-LIB-04: Add browser signal subscription/read API. Done for HUD signal
+  snapshots via `readGeneratedSignals()` and `subscribeGeneratedSignals(...)`.
 - RACE-LIB-05: Add public worker start options.
 
 Racing migration:
 
 - Delete `src/lib/math.ts`.
 - Replace `vehicleState` module singleton with `VehicleStateResource`.
-- Replace HUD/audio status parsing with signal subscriptions.
+- Replace HUD/audio status parsing with signal subscriptions. HUD is migrated;
+  audio now uses worker-authored intent instead of browser-side status polling.
 - Replace private map-param global access with `this.startOptions`.
 
 Validation:

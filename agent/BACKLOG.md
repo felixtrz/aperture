@@ -59,29 +59,30 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Add a typed generated signal subscription API for browser/HUD consumers, then
-migrate racing HUD reads from polling generated status snapshots to the new
-subscription/read surface.
+Fix generated browser audio first-gesture startup so worker-authored audio
+intent does not create or start Web Audio voices before the browser unlock
+gesture, while preserving loop intent after unlock and stale one-shot
+suppression.
 
 Category: `runtime-orchestration`
 
-Reference anchor: `references/bevy/crates/bevy_ecs/src/event/mod.rs` for
-first-class event flow and `references/engine/src/core/event-handler.js` for
-browser/runtime event subscription ergonomics.
+Reference anchor: `references/bevy/crates/bevy_audio/src/audio.rs` for playback
+intent/lifecycle and `references/engine/src/framework/components/sound/component.js`
+for sound component autoplay/slot behavior.
 
 Acceptance criteria:
 
-- Add `subscribeGeneratedSignals(...)` and any needed typed read helper in the
-  generated browser app surface, with unsubscribe semantics and no dependency on
-  full diagnostics/entity status dumps.
-- Migrate racing HUD signal reads to the public subscription/read API while
-  keeping lap timing, speed, and best/last/current time display behavior
-  unchanged.
-- Keep worker signals generic and JSON-safe; do not bake racing signal names
-  into the library.
-- Add focused browser/signal tests and verify managed racing still runs through
-  Aperture tools with WebGPU ready, no last error/failure, and no fresh console
-  errors after reload.
+- Generated browser audio no longer emits fresh Chrome
+  `AudioContext was not allowed to start` warnings on a clean racing reload
+  before a user gesture.
+- Worker-authored `this.audio.loop(...)` autoplay loops remain silent/queued
+  while locked and begin correctly after the first pointer/key gesture.
+- One-shot audio intents authored while locked do not replay stale sounds after
+  unlock; new one-shots authored after unlock still play.
+- Add focused audio tests using the fake backend for suspended-before-unlock
+  behavior and resumed-frame behavior.
+- Verify managed racing and Shadow Lab stay healthy through Aperture tooling;
+  racing smoke particles still render under held input.
 
 ## Historical M10 Physics Notes
 

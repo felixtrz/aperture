@@ -1,12 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   APERTURE_GENERATED_STATUS_GLOBAL,
   readGeneratedSignal,
   readGeneratedSignals,
+  subscribeGeneratedSignals,
   type GeneratedBrowserAppStatus,
+  type GeneratedSignalSummary,
 } from "@aperture-engine/app/browser";
 
 describe("generated browser signals", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("reads the generated worker signal summary without exposing status shape", () => {
     const scope: Record<string, unknown> = {
       [APERTURE_GENERATED_STATUS_GLOBAL]: statusWithSignals({
@@ -30,6 +36,40 @@ describe("generated browser signals", () => {
         [APERTURE_GENERATED_STATUS_GLOBAL]: statusWithSignals(null),
       }),
     ).toBeNull();
+  });
+
+  it("subscribes to signal summaries and stops after unsubscribe", () => {
+    vi.useFakeTimers();
+    const scope: Record<string, unknown> = {
+      [APERTURE_GENERATED_STATUS_GLOBAL]: statusWithSignals({
+        speed: 0.75,
+      }),
+    };
+    const updates: GeneratedSignalSummary[] = [];
+    const unsubscribe = subscribeGeneratedSignals(
+      (signals) => {
+        updates.push(signals);
+      },
+      { scope },
+    );
+
+    expect(updates).toEqual([{ speed: 0.75 }]);
+
+    scope[APERTURE_GENERATED_STATUS_GLOBAL] = statusWithSignals({
+      speed: 1.25,
+      started: true,
+    });
+    vi.advanceTimersByTime(16);
+
+    expect(updates).toEqual([{ speed: 0.75 }, { speed: 1.25, started: true }]);
+
+    unsubscribe();
+    scope[APERTURE_GENERATED_STATUS_GLOBAL] = statusWithSignals({
+      speed: 2,
+    });
+    vi.advanceTimersByTime(16);
+
+    expect(updates).toEqual([{ speed: 0.75 }, { speed: 1.25, started: true }]);
   });
 });
 
