@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## FPS-PORT — Player muzzle sprite size
+
+Completed: 2026-06-17 05:21 PDT
+Commit: `815d6af6`
+
+### Summary
+
+- Matched upstream player muzzle sprite sizing from
+  `references/Starter-Kit-FPS/objects/player.tscn` and
+  `references/Starter-Kit-FPS/sprites/burst_animation.tres`.
+- The source uses 256px burst atlas frames and default
+  `SpriteBase3D.pixel_size = 0.01`, deriving a `2.56` world-unit unscaled
+  sprite size.
+- Replaced the older non-square player muzzle sprite size `[0.75, 0.38]` with
+  the derived `[2.56, 2.56]` size while preserving the source runtime scale
+  range `0.40..0.75`.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-effects.test.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-input-config.test.ts`
+  passed 28 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture MCP proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed in the managed FPS session with
+    diagnostics `0`.
+  - `ecs_query {"key":"effect.muzzle-burst","limit":1}` reported
+    `renderSprite.width` and `renderSprite.height` approximately `2.56`.
+
 ## FPS-PORT — Shooting input buffer
 
 Completed: 2026-06-17 05:16 PDT

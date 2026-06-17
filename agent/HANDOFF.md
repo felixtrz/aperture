@@ -1,11 +1,45 @@
-# Handoff - Starter Kit FPS Shooting Input Buffer
+# Handoff - Starter Kit FPS Player Muzzle Sprite Size
 
-**Updated:** 2026-06-17 05:16 PDT
+**Updated:** 2026-06-17 05:21 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Aligned Starter Kit FPS player muzzle sprite sizing with source scene data:
+  - `references/Starter-Kit-FPS/objects/player.tscn` uses an
+    `AnimatedSprite3D` muzzle node with default `SpriteBase3D.pixel_size`.
+  - `references/Starter-Kit-FPS/sprites/burst_animation.tres` uses 256px atlas
+    frames from `sprites/burst.png`, so the unscaled player muzzle world size
+    is `256 * 0.01 = 2.56`.
+  - The port now spawns `effect.muzzle-burst` as a square `[2.56, 2.56]`
+    sprite and keeps the existing source runtime scale range `0.40..0.75`
+    from `references/Starter-Kit-FPS/objects/player.gd`.
+- Focused coverage:
+  - Added `SOURCE_PLAYER_MUZZLE_WORLD_SIZE` / sprite-size coverage beside the
+    existing enemy muzzle and impact size tests.
+- Aperture proof:
+  - Started the managed FPS app through `pnpm exec aperture dev up --open` and
+    waited for WebGPU through Aperture MCP.
+  - MCP `ecs_query {"key":"effect.muzzle-burst","limit":1}` reported
+    `renderSprite.width` and `renderSprite.height` approximately `2.56`,
+    `localTransform.scale` approximately `[0.4,0.4,0.4]` while hidden, and
+    diagnostics `0`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-effects.test.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-input-config.test.ts`
+    passed 28 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - `815d6af6` — `Align FPS player muzzle sprite size`
+
+## Previous Completed FPS/Tooling Slices
 
 - Hardened Starter Kit FPS shooting input for fast click/release cases:
   - The player system now stores a short `0.08s` shoot buffer when the generated
@@ -40,7 +74,7 @@ previous working state so the old state remains recoverable.
   - `61684e3a` — `Harden FPS shooting input`
   - `8c5d8bf6` — `Cover FPS shooting input buffer`
 
-## Previous Completed FPS/Tooling Slices
+## Earlier Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS enemy muzzle runtime scale with source script data:
   - `references/Starter-Kit-FPS/objects/enemy.tscn` gives each enemy muzzle
@@ -71,7 +105,7 @@ previous working state so the old state remains recoverable.
 - Committed implementation:
   - `1c56da13` — `Align FPS enemy muzzle runtime scale`
 
-## Earlier Completed FPS/Tooling Slices
+## Older Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS enemy muzzle sprite sizing with source scene data:
   - `references/Starter-Kit-FPS/objects/enemy.tscn` uses two

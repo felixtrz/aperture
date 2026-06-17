@@ -393,12 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 12:16 UTC</dd>
+            <dd>2026-06-17 12:21 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS shooting is hardened for fast
+              Latest update: Starter Kit FPS player muzzle sprite size now
+              matches source scene data. The source player muzzle uses 256px
+              <code>burst.png</code> atlas frames with default
+              <code>SpriteBase3D.pixel_size = 0.01</code>, deriving a
+              <code>2.56</code> world-unit unscaled sprite; the port now spawns
+              <code>effect.muzzle-burst</code> as <code>[2.56,2.56]</code>
+              while preserving the source runtime scale range
+              <code>0.40..0.75</code>. Aperture MCP proof found
+              <code>effect.muzzle-burst</code> width/height near
+              <code>2.56</code> and diagnostics <code>0</code>. Prior update:
+              Starter Kit FPS shooting is hardened for fast
               click/release input. The player now buffers a generated
               <code>shoot</code> down edge for <code>0.08s</code> while keeping
               held-fire cooldown behavior intact; the behavior is covered by
