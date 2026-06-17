@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## FPS-PORT — Reset body hold and jump buffering
+
+Completed: 2026-06-17 11:08 PDT
+Commit: `68c0a0c7`
+
+### Summary
+
+- Fixed FPS reset after shot knockback so `R` returns the player body, resource
+  position, movement velocity, yaw/pitch, and shot count to the source reset
+  state.
+- Added a short source reset-body hold so Rapier receives the reset kinematic
+  target before the next `moveCharacter(...)` call can re-author the stale body
+  offset.
+- Delayed jump/shoot buffer consumption during that hold, so Space pressed
+  during reset stabilization jumps as soon as the hold clears.
+- Added `SOURCE_RESET_BODY_HOLD_FRAMES` coverage in the FPS source-data test.
+
+### Validation
+
+- Live Aperture proof: left click still fired and moved the body with shot
+  knockback; pressing `R` then returned `shotsFired:0`, `playerX:0`,
+  `playerZ:0`, `yaw:0`, `pitch:0`, zero movement velocity, zero vertical
+  velocity, and `jumpsRemaining:2`.
+- Live Aperture proof: `player.body` local transform, kinematic target, and
+  physics body state all returned to near-zero X/Z after reset.
+- Paused-step proof: Space queued during reset hold stayed buffered, then
+  jumped after the hold cleared with `verticalVelocity:7.666666666666667`,
+  `grounded:false`, and `jumpsRemaining:1`.
+- Live Aperture proof: W after yaw `-4.271428571428585` moved along the
+  camera-derived horizontal forward vector.
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-hud.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `git diff --check -- fps/src/lib/fps-data.ts fps/src/systems/player.system.ts test/app/fps-data.test.ts`
+
 ## FPS-PORT — Pointer input and middle-click weapon toggle
 
 Completed: 2026-06-17 10:53 PDT

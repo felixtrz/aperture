@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "e98bc98d",
+  "lastCommit": "68c0a0c7",
   "activePid": null,
-  "notes": "Fixed FPS pointer/button controls: middle-click weapon toggle no longer fires primary shoot, left click still shoots with an unlocked first-click fallback, first clean Space press jumps, W movement was reproved camera-yaw-relative, and Aperture CLI pointer tools now accept explicit left/middle/right buttons.",
-  "lastRunFinishedAt": "2026-06-17T17:53:51Z"
+  "notes": "Fixed FPS reset after shot knockback by holding the source start body pose through Rapier character-controller sync, delayed jump/shoot buffer consumption during that hold, and reproved reset, Space during reset hold, left click shooting, and camera-relative W movement through Aperture CLI.",
+  "lastRunFinishedAt": "2026-06-17T18:08:09Z"
 }

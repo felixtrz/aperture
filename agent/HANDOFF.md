@@ -1,11 +1,51 @@
-# Handoff - FPS Pointer Input Controls
+# Handoff - FPS Reset Body Hold
 
-**Updated:** 2026-06-17 10:53 PDT
+**Updated:** 2026-06-17 11:08 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Fixed FPS reset and jump buffering around the Rapier character controller:
+  - Source anchors checked:
+    `references/Starter-Kit-FPS/objects/player.gd` and
+    `references/Starter-Kit-FPS/project.godot`.
+  - `R` reset now holds the player body at the source start pose for three
+    simulation frames so the kinematic target reaches Rapier before
+    `moveCharacter(...)` can re-author the prior shot-knockback body offset.
+  - Jump and shoot button buffers are not consumed during that short reset-body
+    hold. A Space press that arrives while the hold is active is consumed as
+    soon as the hold clears instead of being canceled by reset stabilization.
+  - Added `SOURCE_RESET_BODY_HOLD_FRAMES` to the FPS source data constants and
+    covered it in the source-data test.
+- Live Aperture CLI proof:
+  - Before the fix, a left click moved the live player to roughly
+    `playerZ:0.11`; pressing `R` cleared `shotsFired` and yaw but left the
+    player at the offset.
+  - After the fix, left click still fired (`shotsFired:1`, `playerZ:0.15`), and
+    pressing `R` returned `shotsFired:0`, `playerX:0`, `playerZ:0`,
+    `yaw:0`, `pitch:0`, zero movement velocity, zero vertical velocity, and
+    `jumpsRemaining:2`.
+  - `ecs_get_entity {"entity":{"index":3,"generation":0}}` read
+    `player.body` local transform, kinematic target, and physics body state all
+    back at near-zero X/Z after reset.
+  - Paused-step proof queued Space during the reset hold. During the hold the
+    player stayed at `[0,1.5,0]`; after the hold cleared, one fixed step
+    reported `playerY:1.62777778506279`, `verticalVelocity:7.666666666666667`,
+    `grounded:false`, and `jumpsRemaining:1`.
+  - Camera-relative W movement was reproved after yaw `-4.271428571428585`:
+    W moved to `x:-2.369220235626244,z:1.1181099567436377`, matching the
+    yaw-derived horizontal forward vector.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-hud.test.ts`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `git diff --check -- fps/src/lib/fps-data.ts fps/src/systems/player.system.ts test/app/fps-data.test.ts`
+- Commit:
+  - `68c0a0c7` — `Fix FPS reset body hold and jump buffering`
+
+## Previous Completed Slice - FPS Pointer Input Controls
 
 - Fixed the latest reported FPS control issues around shooting, middle-click
   weapon toggling, jump reliability, and camera-relative movement proof:

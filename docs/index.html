@@ -393,12 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 17:53 UTC</dd>
+            <dd>2026-06-17 18:08 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS input now separates primary and
+              Latest update: Starter Kit FPS reset now holds the source start
+              body pose through the Rapier character-controller sync boundary,
+              so shot knockback no longer leaves the player offset after
+              pressing <code>R</code>. Jump and shoot buffers wait through that
+              short hold; a paused-step proof queued Space during reset hold and
+              then jumped with <code>verticalVelocity:7.666666666666667</code>,
+              <code>grounded:false</code>, and <code>jumpsRemaining:1</code>
+              once the hold cleared. Live Aperture proof also rechecked left
+              click shooting, reset returning <code>playerX:0</code> /
+              <code>playerZ:0</code>, and camera-yaw-relative W movement. Prior
+              update: Starter Kit FPS input now separates primary and
               non-primary pointer buttons. Source middle-click weapon toggle
               switches to <code>weaponIndex:1</code> / Repeater without firing,
               while left click still increments <code>shotsFired</code> with an
@@ -2627,13 +2637,12 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">fps</span> Fixed FPS pointer/button
-                control reliability. Middle click now follows the source
-                <code>weapon_toggle</code> binding without also firing the
-                primary pointer shoot action, left click still shoots with an
-                unlocked first-click fallback, Space/W were reproved through
-                managed Aperture input, and the CLI pointer tools now expose
-                explicit left/middle/right buttons.
+                <span class="badge green">fps</span> Fixed FPS reset body
+                stabilization and jump buffering. After shot knockback,
+                <code>R</code> now returns the player to source reset X/Z, and
+                Space queued during the reset hold jumps once the hold clears.
+                Left click shooting and camera-relative W movement were
+                reproved through managed Aperture input.
               </li>
               <li>
                 <span class="badge green">fps</span> Added
