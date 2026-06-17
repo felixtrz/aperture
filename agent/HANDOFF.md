@@ -26,10 +26,6 @@ previous working state so the old state remains recoverable.
     `true` then `false` before the next `ecs_step`, and read
     `resource_get {"id":"fps.state"}`: `shotsFired:1` and
     `shotCooldown:0.25`.
-  - Reproved camera-relative movement and jump on the patched worker: after yaw
-    `0.0833333333`, forward movement produced player displacement about
-    `[-0.006936, -0.083044]` on X/Z, and jump produced
-    `grounded:false`, `verticalVelocity:7.666666666`, `jumpsRemaining:1`.
 - Validation:
   - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-effects.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-input-config.test.ts`
     passed 28 tests.

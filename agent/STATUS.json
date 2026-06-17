@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "61684e3a",
+  "lastCommit": "8c5d8bf6",
   "activePid": null,
-  "notes": "Hardened Starter Kit FPS shooting input for fast click/release cases, aligned enemy muzzle runtime scale, reproved shoot/movement/jump through Aperture CLI, and kept fps/racing/shadow-lab green.",
+  "notes": "Hardened Starter Kit FPS shooting input for fast click/release cases, added focused shot-buffer coverage, aligned enemy muzzle runtime scale, reproved fast-click shooting through Aperture CLI, and kept fps/racing/shadow-lab green.",
   "lastRunFinishedAt": "2026-06-17T12:18:07Z"
 }

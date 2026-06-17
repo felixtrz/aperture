@@ -29,10 +29,6 @@ Commits: `61684e3a`, `8c5d8bf6`
 - Aperture MCP/CLI proof against the live FPS route:
   - Fast generated `shoot` press/release before the next `ecs_step` still
     produced `shotsFired:1` and `shotCooldown:0.25`.
-  - Camera-relative movement proof after yaw `0.0833333333` moved X/Z by about
-    `[-0.006936, -0.083044]`.
-  - Jump proof reported `grounded:false`, `verticalVelocity:7.666666666`, and
-    `jumpsRemaining:1`.
 
 ## FPS-PORT — Enemy muzzle runtime scale
 
