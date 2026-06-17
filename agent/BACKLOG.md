@@ -59,29 +59,29 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Add compact generated-worker app resource summaries to the Aperture MCP/devtools
-route, then use them to prove racing vehicle/smoke state without full
-`browser_status` dumps.
+Add a typed generated signal subscription API for browser/HUD consumers, then
+migrate racing HUD reads from polling generated status snapshots to the new
+subscription/read surface.
 
-Category: `docs-tooling`
+Category: `runtime-orchestration`
 
-Reference anchor: `references/bevy/crates/bevy_ecs/src/system/system_param.rs`
-for resource inspection as a first-class ECS/devtools concern and
-`references/engine/src/framework/components/script/system.js` for runtime
-component/system inspection patterns.
+Reference anchor: `references/bevy/crates/bevy_ecs/src/event/mod.rs` for
+first-class event flow and `references/engine/src/core/event-handler.js` for
+browser/runtime event subscription ergonomics.
 
 Acceptance criteria:
 
-- Add a compact MCP/devtools tool or filter that returns generated app resources
-  by id with JSON-safe values and field metadata, without embedding the full
-  browser status or entity dump.
-- Use the tool against managed racing to read `racing.vehicle` while paused and
-  after deterministic `drive=[1,1]` stepping, proving drift/smoke trigger state
-  alongside `render_get_frame_report`.
-- Keep the route generic for any `defineResource(...)` app resource; do not bake
-  racing-specific ids or fields into the library.
-- Add focused CLI/devtools tests, rebuild `@aperture-engine/cli`, and verify
-  racing remains healthy through Aperture MCP with no raw CDP.
+- Add `subscribeGeneratedSignals(...)` and any needed typed read helper in the
+  generated browser app surface, with unsubscribe semantics and no dependency on
+  full diagnostics/entity status dumps.
+- Migrate racing HUD signal reads to the public subscription/read API while
+  keeping lap timing, speed, and best/last/current time display behavior
+  unchanged.
+- Keep worker signals generic and JSON-safe; do not bake racing signal names
+  into the library.
+- Add focused browser/signal tests and verify managed racing still runs through
+  Aperture tools with WebGPU ready, no last error/failure, and no fresh console
+  errors after reload.
 
 ## Historical M10 Physics Notes
 

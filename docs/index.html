@@ -393,14 +393,24 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 01:06 UTC</dd>
+            <dd>2026-06-17 01:32 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: <code>@aperture-engine/app</code> now exposes
-              <code>createFollowCameraController(...)</code> for ECS-authored
-              lead/deadzone/smoothing camera follow behavior. Racing migrated
+              Latest update: generated-worker devtools, CLI dispatch, and MCP
+              metadata now expose <code>resource_get</code> so agents can read
+              app resources such as <code>racing.vehicle</code> without dumping
+              full browser/entity status. Racing was reproved through managed
+              Aperture controls after a fresh reload: deterministic
+              <code>drive=[1,1]</code> stepping reached smoke threshold,
+              rendered two textured particle bursts with zero diagnostics, and
+              showed no fresh WebGPU attachment warnings; the alarming console
+              particle logs are old retained history from the earlier HDR
+              pipeline bug. Prior update: <code>@aperture-engine/app</code> now
+              exposes <code>createFollowCameraController(...)</code> for
+              ECS-authored lead/deadzone/smoothing camera follow behavior.
+              Racing migrated
               <code>src/systems/camera-follow.system.ts</code> to the shared
               helper while preserving fixed-step
               <code>RenderInterpolation</code>. A headless racing regression now
@@ -1173,10 +1183,9 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue the racing library-gap plan with
-              <code>RACE-LIB-20</code>: add a reusable camera follow/control
-              helper and migrate racing's camera-follow system to it while
-              preserving current camera feel.
+              Continue the racing library-gap plan with a typed generated signal
+              subscription API for browser/HUD consumers, then migrate racing
+              HUD reads away from polling generated status snapshots.
             </dd>
           </dl>
         </aside>
@@ -2077,6 +2086,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">app</span> Added compact
+                generated-worker resource inspection through
+                <code>resource_get</code>. The tool lists initialized app
+                resources or reads one resource by id with JSON-safe field
+                metadata and values, and racing proof now samples
+                <code>racing.vehicle</code> alongside compact render frame
+                reports during deterministic smoke checks.
+              </li>
               <li>
                 <span class="badge green">app</span> Added
                 <code>asset.audio(...)</code> and config-level generated audio
@@ -5017,6 +5035,13 @@
           <article class="card task-list">
             <h3>Recommended next tasks</h3>
             <ul>
+              <li>
+                <span class="badge amber">next</span> Add typed generated signal
+                subscriptions for browser/HUD consumers and migrate racing HUD
+                reads to that public API. Keep diagnostics status for tools, but
+                app UI should not parse full generated status snapshots to read
+                lap timing and speed.
+              </li>
               <li>
                 <span class="badge amber">next</span> Continue remaining M10
                 physics semantics: enforceable motor force caps, automatic

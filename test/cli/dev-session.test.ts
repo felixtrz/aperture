@@ -224,6 +224,7 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       "ecs_set_component_field",
       "ecs_get_hierarchy",
       "asset_list",
+      "resource_get",
       "input_key",
       "input_pointer_move",
       "input_pointer_click",

@@ -169,6 +169,15 @@ building blocks and default paths.
   `drive=[1,1]` through worker input, stepped fixed simulation until live smoke
   rendered, and observed `particleEmitters: 10`, `liveParticles: 30`,
   `texturedEmitters: 10`, and zero diagnostics.
+- 2026-06-16: Compact generated-worker resource inspection landed:
+  the generated devtools bridge, CLI dispatch, and MCP tool list now expose
+  `resource_get` for listing app resources or reading one resource by id
+  without dumping full browser status/entity reports. Racing proof used it to
+  read `racing.vehicle` while paused, then deterministically stepped
+  `drive=[1,1]` until `driftIntensity` exceeded the smoke threshold and frame
+  report showed two textured smoke bursts with zero diagnostics. A fresh
+  post-reload console check confirmed the old particle attachment mismatch logs
+  are retained console history, not a current WebGPU failure.
 
 ## Genericity Audit - 2026-06-16
 

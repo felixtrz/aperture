@@ -168,6 +168,10 @@ function callGeneratedDevtoolsTool(
     };
   }
 
+  if (request.tool === "resource_get") {
+    return callResourceGetTool(bridge.app, request.payload);
+  }
+
   if (request.tool === "physics_summary") {
     return {
       ok: true,
@@ -288,6 +292,80 @@ function devtoolsStepDelta(payload: unknown): number {
   const delta = numberFromValue(record["delta"]);
 
   return delta === undefined || delta < 0 ? 1 / 60 : delta;
+}
+
+function callResourceGetTool(
+  app: ApertureApp,
+  payload: unknown,
+): GeneratedDevtoolsToolResult {
+  const record = isRecord(payload) ? payload : {};
+  const rawId = record["id"];
+  const id = stringFromValue(rawId);
+
+  if (Object.prototype.hasOwnProperty.call(record, "id")) {
+    if (id === undefined || id.trim().length === 0) {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.resource.invalidDevtoolsId",
+            severity: "error",
+            message: "resource_get id must be a non-empty string.",
+            suggestedFix:
+              "Pass { id: 'your.resource.id' }, or omit id to list all generated app resources.",
+          },
+        ],
+      };
+    }
+  }
+
+  const summary = app.context.resources.summary();
+
+  if (id === undefined) {
+    return {
+      ok: true,
+      result: {
+        resources: summary,
+      },
+    };
+  }
+
+  const resource = summary.entries.find((entry) => entry.id === id) ?? null;
+
+  if (resource === null) {
+    return {
+      ok: false,
+      result: {
+        id,
+        resource: null,
+        resources: {
+          count: 0,
+          entries: [],
+        },
+      },
+      diagnostics: [
+        {
+          code: "aperture.resource.notFound",
+          severity: "warning",
+          message: `Generated app resource '${id}' was not found.`,
+          suggestedFix:
+            "Call resource_get without an id to list resources currently initialized by generated worker systems.",
+        },
+      ],
+    };
+  }
+
+  return {
+    ok: true,
+    result: {
+      id,
+      resource,
+      resources: {
+        count: 1,
+        entries: [resource],
+      },
+    },
+  };
 }
 
 function physicsEntityFromPayload(

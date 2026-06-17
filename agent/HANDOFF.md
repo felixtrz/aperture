@@ -1,6 +1,6 @@
-# Handoff - Racing Particle/Interpolation Stabilization
+# Handoff - Generated Resource Inspection And Racing Console Proof
 
-**Updated:** 2026-06-16 18:06 PDT
+**Updated:** 2026-06-16 18:32 PDT
 
 Current user-directed work is executing
 `racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
@@ -8,70 +8,68 @@ slices while keeping racing and Shadow Lab working.
 
 ## Latest Completed Slice
 
-- Added `createFollowCameraController(...)` and `writeFollowCameraPose(...)` to
-  `@aperture-engine/app` controller/system exports. The helper owns generic
-  lead projection, deadzone clamping, exponential smoothing, look-at pose
-  generation, and optional camera `RenderInterpolation` writes over ordinary
-  ECS `LocalTransform`.
-- Migrated racing `src/systems/camera-follow.system.ts` to the shared follow
-  camera controller. Racing now keeps only its tuning constants and vehicle
-  lead velocity calculation in app code; the app no longer hand-rolls camera
-  basis/deadzone/smoothing math.
-- Added a focused racing smoke regression at
-  `racing/test/racing/particles-system.test.ts`. It uses the real
-  `ParticlesSystem`, config-authored `asset.texture(...)` +
-  `asset.particleEffect(...)`, and `VehicleResource` to prove two textured smoke
-  bursts emit when drift exceeds the Starter-Kit threshold.
-- Improved Aperture MCP/CLI render tooling: `render_get_frame_report` now
-  accepts `summaryOnly: true` so future agent checks can read compact frame
-  counts/particles/diagnostics instead of the full frame report and entity dump.
-  The active MCP server in this session did not pick up the rebuilt CLI without
-  a restart, but the source and `@aperture-engine/cli` build are updated.
-- Investigated the user's alarming console report. Current post-reload racing
-  status is healthy (`webgpuOk:true`, `lastError:null`, `lastFailure:null`);
-  the red worker-transport/WebGPU particle errors in the console are retained
-  append-only history from earlier broken sessions. The only fresh post-reload
-  console entry is the non-fatal Rapier/WASM deprecated-parameter warning.
-- Reproved live racing smoke entirely through Aperture MCP: reloaded the managed
-  page, paused ECS, set virtual `drive` input to `[1, 1]`, stepped fixed
-  simulation through the worker, and read the render report after smoke
-  rendered. Frame 3791 reported `ok:true`, `counts.particleEmitters:10`,
-  `particles.liveParticles:30`, `particles.texturedEmitters:10`, and
-  diagnostics `[]`. Inputs were reset and ECS was resumed afterward.
+- Added generic generated-worker resource inspection through
+  `resource_get` in the devtools bridge, CLI dispatch, and MCP tool metadata.
+  Calling it without an id lists initialized app resources; calling it with an
+  id returns JSON-safe field metadata and values for that resource only.
+- Added focused tests proving `resource_get` can list resources, read a concrete
+  generated-worker resource by id, and return structured not-found diagnostics.
+  The CLI MCP `tools/list` coverage now includes `resource_get`.
+- Verified racing through Aperture tooling after a fresh reload. The alarming
+  console particle attachment mismatch is old append-only browser history from
+  the broken HDR particle pipeline session, not a current failure. After reload,
+  the only fresh console warning is the non-fatal Rapier/WASM deprecated
+  initialization signature warning.
+- Reproved smoke with deterministic generated-worker controls: paused racing,
+  set virtual `drive=[1,1]`, stepped fixed simulation until
+  `racing.vehicle.driftIntensity` reached `0.8058`, then read the compact frame
+  report. Frame 1092 reported `ok:true`, `counts.particleEmitters:2`,
+  `particles.liveParticles:6`, `particles.texturedEmitters:2`, and diagnostics
+  `[]`. Inputs were reset and ECS was resumed afterward.
+- Confirmed the existing HDR particle regression test still passes: particles
+  under an HDR scene pass build the `rgba16float` pipeline variant rather than
+  the old `bgra8unorm` swapchain variant.
 
 ## Latest Validation
 
-- `pnpm exec prettier --write racing/test/racing/particles-system.test.ts`
-- `pnpm exec vitest run racing/test/racing/particles-system.test.ts test/app/particle-spawn.test.ts test/webgpu/particle-frame-resources.test.ts`
-- `pnpm exec prettier --write packages/cli/src/tools/render.ts packages/cli/src/tools/dispatch.ts packages/cli/src/mcp.ts`
-- `pnpm exec vitest run test/app/follow-camera-controller.test.ts test/app/fly-camera-controller.test.ts test/app/orbit-camera-controller.test.ts racing/test/racing/particles-system.test.ts test/app/particle-spawn.test.ts test/webgpu/particle-frame-resources.test.ts`
+- `pnpm exec prettier --write packages/app/src/worker/devtools/bridge.ts packages/cli/src/tools/dispatch.ts packages/cli/src/mcp.ts test/app/generated-worker-start.test.ts test/cli/dev-session.test.ts`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts test/cli/dev-session.test.ts`
+- `git diff --check`
 - `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/cli run typecheck`
 - `pnpm --filter @aperture-engine/app run build`
 - `pnpm --filter @aperture-engine/cli run build`
+- `pnpm exec vitest run test/webgpu/particle-frame-resources.test.ts`
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir racing run build`
 - `pnpm --dir shadow-lab run typecheck`
 - `pnpm --dir shadow-lab run build`
-- Managed Aperture MCP racing proof described above; console check after smoke
-  showed no new WebGPU/worker errors.
+- Managed Aperture racing proof described above. `pnpm exec aperture mcp stdio`
+  was also used to prove a fresh rebuilt MCP server advertises and serves
+  `resource_get`, because this Codex session's already-loaded MCP metadata did
+  not expose the new tool name.
 
 ## Current Notes
 
 - The managed racing app is running at `http://127.0.0.1:5173/` and was left
   resumed with inputs reset.
-- The active MCP server still returns the verbose render frame report even when
-  `summaryOnly:true` is supplied. Restarting the managed Aperture MCP session
-  after the committed CLI build should activate the compact path.
+- Shadow Lab remains alive at `http://127.0.0.1:8861/`; it was validated by
+  typecheck/build during this slice and was not restarted.
+- The active Codex MCP tool list may remain stale until the session reconnects.
+  The rebuilt CLI/MCP server itself has `resource_get`, proven through
+  `pnpm exec aperture tool resource_get ...` and `pnpm exec aperture mcp stdio`.
+- Racing console history still contains old WebGPU particle validation spam and
+  a worker-transport error from earlier broken sessions. After the fresh
+  2026-06-17T01:28:42Z reload and the smoke proof, no new particle/WebGPU
+  attachment warnings appeared.
 - Pre-existing untracked screenshot/parity artifacts remain outside the commit.
 
 ## Recommended Next Task
 
-Continue the racing library-gap plan with the next generic app-level cleanup,
-preferably one that removes app-local math/control code only where an established
-engine precedent supports the library abstraction. A good candidate is a focused
-resource/devtools ergonomics slice: add compact generated-worker resource
-summary tooling so agents can inspect `VehicleResource`-style app resources
-without dumping the full browser status.
+Add a typed generated signal subscription API for browser/HUD consumers and
+migrate racing HUD reads to it. This should be generic browser runtime
+orchestration, not a racing-specific status parser: diagnostics status remains
+for tools, while app UI should receive stable signal snapshots/events.
 
 ---
 

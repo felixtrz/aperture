@@ -286,6 +286,13 @@ function toolDefinitions(): readonly McpToolDefinition[] {
     ),
     tool("ecs_get_hierarchy", "Return a derived ECS parent/child hierarchy."),
     tool("asset_list", "List configured Aperture assets and readiness state."),
+    tool(
+      "resource_get",
+      "Read generated app resources by id, or list all initialized resources.",
+      {
+        id: { type: "string" },
+      },
+    ),
     tool("input_key", "Send keyboard input through the managed browser.", {
       key: { type: "string" },
       action: { enum: ["press", "down", "up"] },

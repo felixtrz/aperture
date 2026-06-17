@@ -1,5 +1,41 @@
 # Completed Tasks
 
+## RACE-LIB-21 — Generated resource inspection and racing smoke console proof
+
+Completed: 2026-06-16 18:32 PDT
+Commit: current checkpoint commit
+
+### Summary
+
+- Added generic `resource_get` generated-worker devtools support, CLI dispatch,
+  and MCP metadata for compact app resource inspection.
+- Added focused generated-worker and CLI/MCP tests for resource listing,
+  by-id reads, not-found diagnostics, and MCP tool advertisement.
+- Verified racing with a fresh managed reload: old particle WebGPU attachment
+  mismatch logs are retained console history, while current smoke rendering
+  reports a healthy frame with two textured emitters and no diagnostics.
+- Confirmed the existing HDR particle regression remains green so particles use
+  the scene pass `rgba16float` pipeline in HDR apps.
+
+### Validation
+
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts test/cli/dev-session.test.ts`
+- `git diff --check`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm exec vitest run test/webgpu/particle-frame-resources.test.ts`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Managed Aperture proof: after reload, paused ECS, virtual `drive=[1,1]`, and
+  fixed-step worker stepping, `resource_get` reported
+  `racing.vehicle.driftIntensity: 0.8058` and frame 1092 reported
+  `ok:true`, `counts.particleEmitters:2`, `particles.liveParticles:6`,
+  `particles.texturedEmitters:2`, and diagnostics `[]`.
+
 ## RACE-LIB-20 — Shared follow camera controller and racing smoke proof
 
 Completed: 2026-06-16 18:06 PDT

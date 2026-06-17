@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import { createApertureDevtoolsRequest } from "@aperture-engine/app/commands";
 import { defineApertureConfig } from "@aperture-engine/app/config";
-import { createSystem, material, mesh } from "@aperture-engine/app/systems";
+import {
+  createSystem,
+  defineResource,
+  material,
+  mesh,
+  resource,
+} from "@aperture-engine/app/systems";
 import { startGeneratedSimulationWorker } from "@aperture-engine/app/worker";
 import { Pickable, createPickable } from "@aperture-engine/render";
 import {
@@ -42,6 +48,26 @@ import {
   createSharedSnapshotTransport,
 } from "@aperture-engine/runtime";
 import { createGeneratedInputEventMessage } from "../../packages/app/src/input.js";
+
+const GeneratedWorkerResourceProof = defineResource("test.generated.resource", {
+  ready: resource.boolean(false),
+  speed: resource.number(0),
+  position: resource.vec3([1, 2, 3]),
+});
+
+const GeneratedWorkerResourceProofBase = createSystem();
+
+class GeneratedWorkerResourceProofSystem extends GeneratedWorkerResourceProofBase {
+  override init(): void {
+    this.resources.write(GeneratedWorkerResourceProof, (state) => {
+      state.ready = true;
+      state.speed = 12.5;
+      state.position[0] = 4;
+      state.position[1] = 5;
+      state.position[2] = 6;
+    });
+  }
+}
 
 describe("generated simulation worker start messages", () => {
   it("unwraps start options nested by createSimulationWorker", async () => {
@@ -196,6 +222,117 @@ describe("generated simulation worker start messages", () => {
     expect(response.result.fixedStep.fixedStepEnd).toBeGreaterThan(
       response.result.fixedStep.fixedStepStart,
     );
+  });
+
+  it("returns generated app resources through devtools resource_get", async () => {
+    const port = new TestGeneratedWorkerPort();
+
+    startGeneratedSimulationWorker({
+      config: defineApertureConfig({ mode: "headless", systems: [] }),
+      systems: [{ default: GeneratedWorkerResourceProofSystem }],
+      port,
+    });
+    port.dispatch({
+      type: SIMULATION_WORKER_PROTOCOL.start,
+      options: { stop: true },
+    });
+
+    await port.nextPostedMessage(isSimulationWorkerSnapshotMessage);
+    port.dispatch(
+      createApertureDevtoolsRequest({
+        requestId: "resource-list",
+        tool: "resource_get",
+      }),
+    );
+    const list = await port.nextPostedMessage(
+      devtoolsResponseWithId("resource-list"),
+    );
+
+    expect(list).toMatchObject({
+      requestId: "resource-list",
+      ok: true,
+      result: {
+        resources: {
+          count: 1,
+          entries: [
+            {
+              id: "test.generated.resource",
+              version: 1,
+              fields: [
+                { name: "position", kind: "vec3" },
+                { name: "ready", kind: "boolean" },
+                { name: "speed", kind: "number" },
+              ],
+              values: {
+                ready: true,
+                speed: 12.5,
+                position: [4, 5, 6],
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    port.dispatch(
+      createApertureDevtoolsRequest({
+        requestId: "resource-by-id",
+        tool: "resource_get",
+        payload: { id: "test.generated.resource" },
+      }),
+    );
+    const byId = await port.nextPostedMessage(
+      devtoolsResponseWithId("resource-by-id"),
+    );
+
+    expect(byId).toMatchObject({
+      requestId: "resource-by-id",
+      ok: true,
+      result: {
+        id: "test.generated.resource",
+        resource: {
+          id: "test.generated.resource",
+          values: {
+            ready: true,
+            speed: 12.5,
+            position: [4, 5, 6],
+          },
+        },
+        resources: {
+          count: 1,
+        },
+      },
+    });
+
+    port.dispatch(
+      createApertureDevtoolsRequest({
+        requestId: "resource-missing",
+        tool: "resource_get",
+        payload: { id: "test.missing" },
+      }),
+    );
+    const missing = await port.nextPostedMessage(
+      devtoolsResponseWithId("resource-missing"),
+    );
+
+    expect(missing).toMatchObject({
+      requestId: "resource-missing",
+      ok: false,
+      result: {
+        id: "test.missing",
+        resource: null,
+        resources: {
+          count: 0,
+          entries: [],
+        },
+      },
+      diagnostics: [
+        {
+          code: "aperture.resource.notFound",
+          severity: "warning",
+        },
+      ],
+    });
   });
 
   it("steps and diffs ECS physics state in one generated-worker devtools call", async () => {
