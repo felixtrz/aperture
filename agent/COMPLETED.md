@@ -17,6 +17,7 @@ Commit: `35f50305`
 ### Validation
 
 - `pnpm exec vitest run test/app/developer-api.test.ts -t "publishes JSON-safe entity lookup summaries"`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
 - `pnpm --filter @aperture-engine/app typecheck`
@@ -27,6 +28,9 @@ Commit: `35f50305`
   reported `enemyHealth.enemy.0:0`, `enemyDestroyed.enemy.0:true`,
   `enemiesRemaining:3`, and entity summaries reported `enemy.0.enabled:false`
   plus `enemy.0.hitbox.physicsCollider.enabled:false`.
+- `browser_screenshot` wrote
+  `fps/.aperture/runtime/fps-enemy-destroy-proof.png`, showing the HUD enemy
+  count at `3`.
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir racing run build`
 - `pnpm --dir shadow-lab run typecheck`

@@ -13,8 +13,9 @@ previous working state so the old state remains recoverable.
 - `fps.state` now summarizes `enemyDestroyed`, `enemiesRemaining`,
   `destroyedEnemies`, `enemyDestroyedPulse`, `lastDestroyedEnemy`, and
   `gameStatus` so generated-worker tools can prove enemy death and HUD state.
-- The FPS HUD now flashes on enemy destruction and shows the existing area-clear
-  banner/count state from generated signals.
+- The FPS HUD now flashes on enemy destruction, reports the remaining enemy
+  count from generated signals, and has a clear-state banner for the eventual
+  all-enemies-cleared state.
 - Fixed an Aperture tooling gap needed to prove the slice: ECS entity lookup
   summaries now expose top-level `enabled` for entities with the `Enabled`
   component, and snapshot diffs include enabled-state changes.
@@ -33,6 +34,7 @@ previous working state so the old state remains recoverable.
 ## Latest Validation
 
 - `pnpm exec vitest run test/app/developer-api.test.ts -t "publishes JSON-safe entity lookup summaries"`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
 - `pnpm --filter @aperture-engine/app typecheck`
@@ -56,14 +58,16 @@ previous working state so the old state remains recoverable.
     `physicsCollider.enabled:false`, and translation `[-3.5,-100,-6]`.
   - `browser_status` reported generated signals with `enemiesRemaining:3`,
     `destroyedEnemies:1`, and `lastDestroyedEnemy:"enemy.0"`.
-  - `render_get_diagnostics` reported `diagnostics:0`, no worker failure, and
-    no last render error after the enemy was hidden.
+  - `browser_screenshot` wrote
+    `fps/.aperture/runtime/fps-enemy-destroy-proof.png`; the HUD displayed
+    the remaining enemy count `3`.
+  - Runtime status had `webgpuOk:true` and no `lastError`/`lastFailure` after
+    the enemy was hidden.
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir racing run build`
 - `pnpm --dir shadow-lab run typecheck`
 - `pnpm --dir shadow-lab run build`
 - Previous sprite/input validation:
-- `pnpm exec vitest run test/app/developer-api.test.ts`
 - `pnpm exec vitest run test/app/input-state-events.test.ts`
 - Previous physics slice validation:
 - `pnpm run typecheck` from repo root
@@ -118,10 +122,10 @@ previous working state so the old state remains recoverable.
 
 Continue the FPS port with another visible Starter Kit fidelity slice. Good next
 options are either (1) add the remaining authored cloud instances and source-like
-cloud hover motion from `references/Starter-Kit-FPS/scenes/main.tscn` and
-`objects/cloud.gd`, or (2) add a navigation-backed full-clear proof that kills
-all four enemies without debug mutation and verifies `gameStatus:"cleared"` plus
-the HUD `CLEAR` state through Aperture tools.
+cloud hover motion from upstream `scenes/main.tscn` and `objects/cloud.gd`, or
+(2) add a navigation-backed full-clear proof that kills all four enemies without
+debug mutation and verifies `gameStatus:"cleared"` plus the HUD `CLEAR` state
+through Aperture tools.
 
 ---
 
