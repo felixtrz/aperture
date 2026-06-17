@@ -304,11 +304,12 @@ class StatefulGamepadButtonStateImpl {
   }
 
   set(pressed: boolean, touched: boolean, value: number): void {
+    const wasPressed = this.pressed;
     this.pressed = pressed;
     this.touched = touched;
     this.value = value;
-    this.down = !this.#previous && pressed;
-    this.up = this.#previous && !pressed;
+    this.down = this.down || (!this.#previous && pressed);
+    this.up = this.up || ((this.#previous || wasPressed) && !pressed);
   }
 
   snapshot(): GamepadButtonState {

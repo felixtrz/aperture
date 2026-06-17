@@ -22,6 +22,8 @@ function createResource(): InputResourceBase {
       input: {
         actions: {
           jump: input.button([input.key("Space")]),
+          click: input.button([input.pointer("primary")]),
+          padJump: input.button([input.gamepadButton("south")]),
           fire: [input.key("KeyF")],
           throttle: input.axis1d([input.keyboard1d({ positive: ["KeyW"] })]),
           move: input.axis2d([
@@ -120,6 +122,69 @@ describe("input state event handling", () => {
 
     expect(resource.pointer.primary.position.value).toEqual([0, 0]);
     expect(resource.pointer.primary.pressed.value).toBe(false);
+  });
+
+  it("drives button actions from same-frame press and release edges", () => {
+    const resource = createResource();
+    const jump = requireButton(resource.actions.jump);
+    const click = requireButton(resource.actions.click);
+    const padJump = requireButton(resource.actions.padJump);
+
+    advanceInputResource(resource, [
+      { kind: "keyboard", code: "Space", pressed: true },
+      { kind: "keyboard", code: "Space", pressed: false },
+      {
+        kind: "pointer",
+        pointer: "primary",
+        position: [0.5, 0.5],
+        pressed: true,
+      },
+      {
+        kind: "pointer",
+        pointer: "primary",
+        position: [0.5, 0.5],
+        pressed: false,
+      },
+      {
+        kind: "gamepad",
+        gamepads: [
+          {
+            index: 0,
+            id: "Pad",
+            mapping: "standard",
+            connected: true,
+            buttons: [{ pressed: true, value: 1 }],
+            axes: [0, 0, 0, 0],
+          },
+        ],
+      },
+      {
+        kind: "gamepad",
+        gamepads: [
+          {
+            index: 0,
+            id: "Pad",
+            mapping: "standard",
+            connected: true,
+            buttons: [{ pressed: false, value: 0 }],
+            axes: [0, 0, 0, 0],
+          },
+        ],
+      },
+    ]);
+
+    expect(resource.keyboard.down("Space")).toBe(true);
+    expect(resource.pointer.primary.pressedThisFrame.value).toBe(true);
+    expect(resource.gamepads.primary?.down("south")).toBe(true);
+    expect(jump.down()).toBe(true);
+    expect(click.down()).toBe(true);
+    expect(padJump.down()).toBe(true);
+
+    advanceInputResource(resource);
+
+    expect(jump.up()).toBe(true);
+    expect(click.up()).toBe(true);
+    expect(padJump.up()).toBe(true);
   });
 
   it("falls back to the keyboard key field and ignores empty codes", () => {

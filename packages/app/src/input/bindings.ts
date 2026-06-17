@@ -23,6 +23,7 @@ export interface InputBindingResource {
   readonly pointer: {
     readonly primary: {
       readonly pressed: Signal<boolean>;
+      readonly pressedThisFrame: Signal<boolean>;
     };
   };
 }
@@ -32,12 +33,17 @@ export function bindingPressed(
   resource: InputBindingResource,
 ): boolean {
   if (bindingHasKind(binding, "key")) {
-    return resource.keyboard.pressed(binding.code);
+    return (
+      resource.keyboard.pressed(binding.code) ||
+      resource.keyboard.down(binding.code)
+    );
   }
 
   if (bindingHasKind(binding, "pointer")) {
     return (
-      binding.pointer === "primary" && resource.pointer.primary.pressed.value
+      binding.pointer === "primary" &&
+      (resource.pointer.primary.pressed.value ||
+        resource.pointer.primary.pressedThisFrame.value)
     );
   }
 
@@ -46,12 +52,17 @@ export function bindingPressed(
   }
 
   if (isLegacyKeyboardBinding(binding)) {
-    return resource.keyboard.pressed(binding.keyboard);
+    return (
+      resource.keyboard.pressed(binding.keyboard) ||
+      resource.keyboard.down(binding.keyboard)
+    );
   }
 
   if (isLegacyPointerBinding(binding)) {
     return (
-      binding.pointer === "primary" && resource.pointer.primary.pressed.value
+      binding.pointer === "primary" &&
+      (resource.pointer.primary.pressed.value ||
+        resource.pointer.primary.pressedThisFrame.value)
     );
   }
 
@@ -150,7 +161,7 @@ function gamepadButtonPressed(
       ? resource.gamepads.primary
       : resource.gamepads.byIndex(index);
 
-  return device?.pressed(button) === true;
+  return device?.pressed(button) === true || device?.down(button) === true;
 }
 
 function gamepadButtonValue(
