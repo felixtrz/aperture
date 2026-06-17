@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "c6a737f4",
+  "lastCommit": "926ac0be",
   "activePid": null,
-  "notes": "Added pnpm --dir fps run smoke:mechanics, a focused Aperture MCP smoke proving primary browser click shooting, camera-yaw-relative forward movement, and browser Space-tap jump behavior through paused ecs_step/resource_get. FPS typecheck/build plus racing and shadow-lab typechecks passed.",
-  "lastRunFinishedAt": "2026-06-17T21:02:00Z"
+  "notes": "Added FPS source-scene parity coverage that parses references/Starter-Kit-FPS/scenes/main.tscn and compares level platform/wall transforms plus enemy positions against Aperture FPS constants. Full Aperture MCP route smoke cleared all jumps/enemies; FPS test/typecheck/build plus racing and shadow-lab typechecks passed.",
+  "lastRunFinishedAt": "2026-06-17T21:17:00Z"
 }

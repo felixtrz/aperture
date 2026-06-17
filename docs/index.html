@@ -393,12 +393,21 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 21:02 UTC</dd>
+            <dd>2026-06-17 21:17 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS now has a focused
+              Latest update: Starter Kit FPS now has executable source-scene
+              parity coverage. <code>test/app/fps-data.test.ts</code> parses
+              <code>references/Starter-Kit-FPS/scenes/main.tscn</code> and
+              verifies all 13 platform/wall transforms plus all 4 enemy
+              positions against the Aperture FPS constants. The managed
+              <code>smoke:full-clear</code> route was re-run after the platform
+              reach concern and cleared the northeast double-jump route, all 4
+              enemies, <code>shotsFired:8</code>, <code>hits:16</code>, and
+              <code>gameStatus:"cleared"</code>. Prior update: Starter Kit FPS
+              now has a focused
               <code>smoke:mechanics</code> Aperture MCP proof for the recent
               gameplay input reports. The smoke starts a fresh managed session,
               pauses and steps the generated simulation, and verifies primary

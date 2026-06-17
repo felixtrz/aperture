@@ -1,3 +1,59 @@
+# Handoff - FPS Source Scene Parity Guard
+
+**Updated:** 2026-06-17 14:17 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Committed `926ac0be` (`Add FPS source scene parity guard`).
+- Extended `test/app/fps-data.test.ts` with a small Godot `.tscn` parser that
+  reads `references/Starter-Kit-FPS/scenes/main.tscn` at test time.
+- The new coverage compares all 13 source level platform/wall entries against
+  Aperture's typed `LEVEL_INSTANCES`, including asset ids, positions, and
+  Y-axis rotations, and compares all 4 source enemy positions against
+  `ENEMIES`.
+- Re-ran the full Aperture MCP route smoke after the user's platform-reach
+  concern. The generated route cleared all platform transfers, including the
+  northeast double-jump path, and ended with `gameStatus:"cleared"`.
+
+## Validation
+
+- `pnpm --dir fps run smoke:full-clear -- --fresh-session`
+  - Final state: `health:65`, `shotsFired:8`, `hits:16`,
+    `destroyedEnemies:4`, `gameStatus:"cleared"`.
+  - Screenshot:
+    `fps/.aperture/runtime/fps-full-clear-smoke.png`.
+- `pnpm exec vitest run test/app/fps-data.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `git diff --check -- test/app/fps-data.test.ts`
+
+## Known Issues
+
+- Platform/enemy scene placement now has executable source-scene parity
+  coverage, and the full route can be cleared through Aperture MCP input.
+  Collider-shape equivalence is still inferred from GLB primitive collider
+  cooking rather than directly compared against Godot's concave polygon data.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- Existing tracked shadow fallback diffs are present in the worktree:
+  `packages/webgpu/src/app/auto-shadow-frame.ts`,
+  `packages/webgpu/src/shadows/render-shadow-frame.ts`, and
+  `test/webgpu/shadows/render-shadow-frame.spec.ts`. They were not part of this
+  FPS source-parity slice and were left unstaged.
+
+## Recommended Next Task
+
+Continue FPS-visible source parity. The strongest next slice is to directly
+compare platform collider footprints/top surfaces against the source
+`ConcavePolygonShape3D` data, then keep `smoke:full-clear` as the runtime guard.
+If the visual issue is higher priority, return to the blaster rear/stock
+artifact with a GLB/material/source weapon comparison.
+
+---
+
 # Handoff - FPS Mechanics Smoke Proof
 
 **Updated:** 2026-06-17 14:02 PDT

@@ -1,5 +1,28 @@
 # Completed Tasks
 
+## FPS-PORT - Source scene parity guard
+
+Completed: 2026-06-17 14:17 PDT
+
+### Summary
+
+- Added executable source-scene parity coverage to `test/app/fps-data.test.ts`.
+- The test parses `references/Starter-Kit-FPS/scenes/main.tscn` and compares
+  the 13 source level platform/wall transforms against `LEVEL_INSTANCES`.
+- The same parser compares all 4 source enemy positions against `ENEMIES`.
+- Revalidated the Aperture full-clear route after the platform-reach concern;
+  it cleared all jumps and enemies through managed Aperture MCP/CLI input.
+
+### Validation
+
+- `pnpm --dir fps run smoke:full-clear -- --fresh-session`
+- `pnpm exec vitest run test/app/fps-data.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `git diff --check -- test/app/fps-data.test.ts`
+
 ## FPS-PORT - Mechanics smoke proof
 
 Completed: 2026-06-17 14:02 PDT
