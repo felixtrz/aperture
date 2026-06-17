@@ -1,27 +1,34 @@
-# Handoff - Starter Kit FPS Weapon Switch Animation
+# Handoff - Starter Kit FPS Landing Camera Bob
 
-**Updated:** 2026-06-17 00:41 PDT
+**Updated:** 2026-06-17 00:50 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Added source-like weapon switch animation from upstream
-  `objects/player.gd`: the current weapon lowers, the active model swaps, then
-  the new weapon raises back to its authored on-screen position.
-- Kept the implementation ECS-first by animating `LocalTransform` on the keyed
-  weapon entities (`weapon.0` and `weapon.1`) rather than adding a mutable
-  renderer-owned weapon container.
-- Added `weaponVisualIndex`, `weaponSwitchProgress`, and `weaponSwitchPhase` to
-  `fps.state` for generated-worker proof and future HUD/tooling inspection.
+- Added upstream-style landing camera bob from `objects/player.gd`: landing
+  after a jump dips the first-person camera by `-0.1`, then lerps it back toward
+  the neutral player eye position at the upstream recovery rate.
+- Kept the effect ECS-owned by writing the bobbed `LocalTransform` on
+  `camera.main`; no renderer-owned camera object was introduced.
+- Added `landingBob` and `landingPulse` to `fps.state` so Aperture tools can
+  prove both the landing pulse and recovery.
 - Committed:
+  - `57c48500` — `Add FPS landing camera bob`
   - `bff2a66f` — `Add FPS weapon switch animation`
-  - `3c223296` — `Fix FPS control input reliability`
-  - `d7323f3b` — `Add FPS authored cloud hover slice`
 
 ## Previous Completed FPS Slices
 
+- Weapon switch:
+  - Added source-like weapon switch animation from upstream
+    `objects/player.gd`: the current weapon lowers, the active model swaps, then
+    the new weapon raises back to its authored on-screen position.
+  - Kept the implementation ECS-first by animating `LocalTransform` on the keyed
+    weapon entities (`weapon.0` and `weapon.1`) rather than adding a mutable
+    renderer-owned weapon container.
+  - Added `weaponVisualIndex`, `weaponSwitchProgress`, and `weaponSwitchPhase`
+    to `fps.state` for generated-worker proof and future HUD/tooling inspection.
 - Controls:
   - Fixed pointer-lock shooting in the browser HUD. While the canvas is locked,
     primary mouse down/up now drives the generated `shoot` action directly, and
@@ -72,6 +79,31 @@ previous working state so the old state remains recoverable.
 
 ## Latest Validation
 
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- Aperture CLI runtime proof from `fps/`:
+  - Restarted managed FPS at `http://127.0.0.1:5174/`; `browser_wait_for_webgpu`
+    succeeded with `webgpuOk:true` and no `lastError`/`lastFailure`.
+  - Paused/reset the generated worker and stepped generated jump/landing input.
+  - Initial proof state: `landingBob:0`, `landingPulse:0`, `cameraY:1.4945`.
+  - Airborne proof state: `grounded:false`, `verticalVelocity:7.6667`,
+    `playerY:1.6223`.
+  - Landing proof state: `grounded:true`, `landingBob:-0.1`,
+    `landingPulse:1`, `playerY:1.5201`, `cameraY:1.4201`, proving camera Y
+    includes the landing dip.
+  - Recovery proof state: `landingBob:-0.0175`, `landingPulse:1`,
+    `cameraY:1.5026`.
+  - Reset proof state: `health:100`, `enemiesRemaining:4`, `landingBob:0`,
+    `landingPulse:0`.
+  - Final runtime status remained `webgpuOk:true` with no `lastError` or
+    `lastFailure`.
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Previous weapon-switch validation:
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
 - Aperture CLI runtime proof from `fps/`:
@@ -172,10 +204,14 @@ previous working state so the old state remains recoverable.
 ## Current Notes
 
 - Managed FPS is running at `http://127.0.0.1:5174/` through Aperture dev and
-  was resumed after the weapon-switch proof. The live session was reset to
-  fresh gameplay state: `health:100`, `enemiesRemaining:4`, `shotsFired:0`,
-  `hits:0`, `weaponIndex:0`, `weaponVisualIndex:0`,
-  `weaponSwitchPhase:"ready"`.
+  was resumed after a clean reset: `health:100`, `enemiesRemaining:4`,
+  `shotsFired:0`, `hits:0`, `landingBob:0`, `landingPulse:0`.
+- A generated-input full-clear attempt killed `enemy.0` and `enemy.1`, then
+  partially damaged `enemy.2`, but the straight-line movement route fell below
+  the level during the `enemy.2` approach and triggered the existing respawn
+  reset, wiping destroyed-enemy state. Do not repeat the same naive route for
+  the next full-clear proof; use a platform-aware route or add a proper
+  gameplay affordance before claiming `gameStatus:"cleared"`.
 - Pre-existing untracked screenshots,
   racing parity artifacts, and `racing/parity/` remain outside commits.
 - Use `value:0` rather than `pressed:false` for button-release CLI scripts when
@@ -193,9 +229,9 @@ previous working state so the old state remains recoverable.
 Continue the FPS port with another visible Starter Kit fidelity slice. A good
 next task is a navigation-backed full-clear proof that kills all four enemies
 without debug mutation and verifies `gameStatus:"cleared"` plus the HUD `CLEAR`
-state through Aperture tools. Another visible option is adding the upstream
-player landing camera bob/shadow detail from `objects/player.gd` /
-`objects/player.tscn`.
+state through Aperture tools. The proof route needs to avoid the failed
+straight-line path that falls after `enemy.2`. Another visible option is adding
+the upstream player blob shadow detail from `objects/player.tscn`.
 
 ---
 

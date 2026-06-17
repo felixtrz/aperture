@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## FPS-PORT — Landing camera bob
+
+Completed: 2026-06-17 00:50 PDT
+Commit: `57c48500`
+
+### Summary
+
+- Added upstream-style landing camera bob from `objects/player.gd`: landing from
+  a jump dips the first-person camera by `-0.1` and lerps it back to neutral.
+- Kept the effect ECS-owned by writing the bobbed `LocalTransform` on
+  `camera.main`.
+- Added `landingBob` and `landingPulse` to `fps.state` so Aperture tools can
+  prove the landing pulse and recovery directly.
+
+### Validation
+
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- Aperture CLI proof from `fps/`: fresh managed FPS at
+  `http://127.0.0.1:5174/`, `browser_wait_for_webgpu` passed, and a generated
+  jump/landing proof observed:
+  - initial `landingBob:0`, `landingPulse:0`, `cameraY:1.4945`
+  - airborne `grounded:false`, `verticalVelocity:7.6667`, `playerY:1.6223`
+  - landing `grounded:true`, `landingBob:-0.1`, `landingPulse:1`,
+    `playerY:1.5201`, `cameraY:1.4201`
+  - recovery `landingBob:-0.0175`, `landingPulse:1`, `cameraY:1.5026`
+  - reset `health:100`, `enemiesRemaining:4`, `landingBob:0`,
+    `landingPulse:0`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+
 ## FPS-PORT — Weapon switch animation
 
 Completed: 2026-06-17 00:41 PDT
