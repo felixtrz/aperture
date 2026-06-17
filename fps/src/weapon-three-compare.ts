@@ -5,8 +5,10 @@ import {
   WEAPONS,
 } from "./lib/fps-data.js";
 
-type ThreeModule = typeof import("../../shadow-lab/src/compare/three.webgpu.js");
-type GltfLoaderModule = typeof import("../../shadow-lab/src/compare/loaders/GLTFLoader.js");
+type ThreeModule =
+  typeof import("../../shadow-lab/src/compare/three.webgpu.js");
+type GltfLoaderModule =
+  typeof import("../../shadow-lab/src/compare/loaders/GLTFLoader.js");
 
 type ThreeObject = {
   position: { set(x: number, y: number, z: number): void };
@@ -33,8 +35,9 @@ const CENTERED_WEAPON_POSITION = [0, -1.1, -2.75] as const;
 type WeaponPositionMode = "source" | "current" | "center";
 
 export function shouldInstallWeaponThreeCompare(): boolean {
-  return new URLSearchParams(window.location.search).get("compare") ===
-    COMPARE_PARAM;
+  return (
+    new URLSearchParams(window.location.search).get("compare") === COMPARE_PARAM
+  );
 }
 
 export async function installWeaponThreeCompare(): Promise<void> {
@@ -86,9 +89,8 @@ export async function installWeaponThreeCompare(): Promise<void> {
 
   let root: ThreeObject;
   try {
-    root = (await new GLTFLoader().loadAsync(
-      `/models/${weapon.assetId}.glb`,
-    )).scene as ThreeObject;
+    root = (await new GLTFLoader().loadAsync(`/models/${weapon.assetId}.glb`))
+      .scene as ThreeObject;
   } catch (err) {
     ui.setStatus("THREE blaster load failed");
     // eslint-disable-next-line no-console
@@ -175,8 +177,7 @@ function createLayout(shell: HTMLElement): {
   document.body.classList.add("weapon-three-compare");
   document.body.style.background = "#20242f";
   shell.style.cssText =
-    "position:fixed;left:0;top:50%;width:min(50vw, calc(100vh * 16 / 9));" +
-    "height:min(100vh, calc(50vw * 9 / 16));transform:translateY(-50%);" +
+    "position:fixed;left:0;top:0;width:50vw;height:100vh;" +
     "margin:0;max-width:none;max-height:none;overflow:hidden;background:#5c6476;";
 
   for (const selector of ["#hud", "#crosshair"]) {
@@ -189,8 +190,7 @@ function createLayout(shell: HTMLElement): {
   const threeCanvas = document.createElement("canvas");
   threeCanvas.id = "weapon-three";
   threeCanvas.style.cssText =
-    "position:fixed;right:0;top:50%;width:min(50vw, calc(100vh * 16 / 9));" +
-    "height:min(100vh, calc(50vw * 9 / 16));transform:translateY(-50%);" +
+    "position:fixed;right:0;top:0;width:50vw;height:100vh;" +
     "touch-action:none;";
   document.body.append(threeCanvas);
 
