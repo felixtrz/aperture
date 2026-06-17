@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "c8c7f977",
+  "lastCommit": "cdaa4122",
   "activePid": null,
   "notes": "Added engine-level primary/secondary/middle pointer input and bound FPS middle-click weapon toggle; live Aperture CLI proof switched weapon via middle click, left click still shot, full-clear smoke passed; racing and shadow-lab typecheck/build passed.",
-  "lastRunFinishedAt": "2026-06-17T19:55:50Z"
+  "lastRunFinishedAt": "2026-06-17T19:56:30Z"
 }
