@@ -133,6 +133,7 @@ function changedSummaryFields(
   for (const field of [
     "key",
     "name",
+    "enabled",
     "componentIds",
     "tags",
     "source",

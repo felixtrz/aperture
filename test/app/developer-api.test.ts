@@ -64,6 +64,7 @@ import {
   AppEntityTags,
   DebugMetadata,
   EcsType,
+  Enabled,
   LocalTransform,
   Name,
   Parent,
@@ -1874,6 +1875,7 @@ describe("developer-facing app API", () => {
 
     const spriteEntity = runner.app.lowLevel.world.createEntity();
     spriteEntity.addComponent(AppEntityKey, { value: "effect.summary-sprite" });
+    spriteEntity.addComponent(Enabled, { value: false });
     spriteEntity.addComponent(Name, { value: "Summary Sprite" });
     spriteEntity.addComponent(
       Sprite,
@@ -1897,6 +1899,7 @@ describe("developer-facing app API", () => {
     });
     expect(sprite.summaries).toHaveLength(1);
     expect(sprite.summaries[0]).toMatchObject({
+      enabled: false,
       componentIds: expect.arrayContaining([Sprite.id]),
       renderSprite: {
         textureId: "texture:entity-summary-sprite",

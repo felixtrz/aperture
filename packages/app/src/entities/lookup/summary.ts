@@ -52,6 +52,7 @@ import {
   AppEntityKey,
   AppEntitySource,
   AppEntityTags,
+  Enabled,
   LocalTransform,
   Name,
   Parent,
@@ -66,6 +67,9 @@ export function entitySummary(entity: Entity): ApertureEntitySummary {
     : null;
   const name = entity.hasComponent(Name)
     ? entity.getValue(Name, "value")
+    : null;
+  const enabled = entity.hasComponent(Enabled)
+    ? entity.getValue(Enabled, "value") === true
     : null;
   const tags = entity.hasComponent(AppEntityTags)
     ? parseTags(entity.getValue(AppEntityTags, "valuesJson"))
@@ -141,6 +145,7 @@ export function entitySummary(entity: Entity): ApertureEntitySummary {
       typeof name === "string" && name.length > 0
         ? name
         : `Entity ${entity.index}`,
+    ...(enabled === null ? {} : { enabled }),
     componentIds: entity
       .getComponents()
       .map((component) => component.id)

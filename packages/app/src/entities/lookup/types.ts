@@ -26,6 +26,7 @@ export interface ApertureEntitySummary {
   readonly entity: EcsEntityRef;
   readonly key?: string;
   readonly name: string;
+  readonly enabled?: boolean;
   readonly componentIds: readonly string[];
   readonly tags?: readonly string[];
   readonly source?: ApertureEntitySourceSummary;

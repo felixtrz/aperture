@@ -1,6 +1,7 @@
 import {
   AppEntityKey,
   AudioSimulationSpace,
+  Enabled,
   LocalTransform,
   createSystem,
   quatFromEulerYXZ,
@@ -14,6 +15,7 @@ import type {
   PhysicsCharacterControllerSettings,
   PhysicsRaycastHit,
 } from "@aperture-engine/physics";
+import { Collider } from "@aperture-engine/physics";
 import { Sprite } from "@aperture-engine/render";
 import {
   ENEMIES,
@@ -29,7 +31,11 @@ import {
   WEAPONS,
   type WeaponSpec,
 } from "../lib/fps-data.js";
-import { FpsResource, createEnemyHealth } from "../lib/fps-resource.js";
+import {
+  FpsResource,
+  createEnemyDestroyed,
+  createEnemyHealth,
+} from "../lib/fps-resource.js";
 
 const LOOK_SPEED = Math.PI;
 const GAMEPAD_LOOK_SPEED = 2.5;
@@ -127,6 +133,9 @@ export default class PlayerSystem extends createSystem({
     let shotsFired = state.shotsFired;
     let hits = state.hits;
     let enemyHealth = { ...state.enemyHealth };
+    let enemyDestroyed = { ...state.enemyDestroyed };
+    let enemyDestroyedPulse = state.enemyDestroyedPulse;
+    let lastDestroyedEnemy = state.lastDestroyedEnemy;
     let skipPhysicsMove = false;
 
     if (this.#button("reset")?.down()) {
@@ -142,6 +151,9 @@ export default class PlayerSystem extends createSystem({
       shotsFired = 0;
       hits = 0;
       enemyHealth = createEnemyHealth();
+      enemyDestroyed = createEnemyDestroyed();
+      enemyDestroyedPulse = 0;
+      lastDestroyedEnemy = "";
       skipPhysicsMove = true;
       this.#resetTransientGameplayState();
       this.#damagePulse = 0;
@@ -218,6 +230,9 @@ export default class PlayerSystem extends createSystem({
       grounded = true;
       health = 100;
       enemyHealth = createEnemyHealth();
+      enemyDestroyed = createEnemyDestroyed();
+      enemyDestroyedPulse = 0;
+      lastDestroyedEnemy = "";
       this.#resetTransientGameplayState();
       this.#damagePulse = 0;
       this.#writePlayerBody(PLAYER_BODY_START);
@@ -242,6 +257,14 @@ export default class PlayerSystem extends createSystem({
       const shot = this.#shoot(position, yaw, pitch, weapon, enemyHealth);
       enemyHealth = shot.enemyHealth;
       hits += shot.hits;
+      if (shot.destroyedEnemies.length > 0) {
+        enemyDestroyed = { ...enemyDestroyed };
+        for (const key of shot.destroyedEnemies) {
+          enemyDestroyed[key] = true;
+          lastDestroyedEnemy = key;
+        }
+        enemyDestroyedPulse += shot.destroyedEnemies.length;
+      }
       this.#triggerMuzzleFlash(position, yaw, pitch, weapon);
       if (shot.impact !== null) {
         this.#triggerImpactFlash(shot.impact);
@@ -270,16 +293,23 @@ export default class PlayerSystem extends createSystem({
     this.#writeWeapons(weaponIndex, weapon, dt, moveX, moveZ, shotCooldown);
     this.#writeShotEffects();
     this.#writeEnemies(position, enemyHealth);
+    const enemiesRemaining = countLivingEnemies(enemyHealth);
+    const destroyedEnemies = countDestroyedEnemies(enemyDestroyed);
+    const gameStatus = enemiesRemaining === 0 ? "cleared" : "active";
     this.#writeSignals({
       health,
       weaponIndex,
       weapon,
-      enemiesRemaining: countLivingEnemies(enemyHealth),
+      enemiesRemaining,
+      destroyedEnemies,
+      enemyDestroyedPulse,
+      lastDestroyedEnemy,
       shotsFired,
       hits,
       grounded,
       position,
       damagePulse: this.#damagePulse,
+      gameStatus,
     });
     this.#updateFootsteps(grounded, movement[0] !== 0 || movement[1] !== 0);
 
@@ -296,6 +326,12 @@ export default class PlayerSystem extends createSystem({
       next.shotsFired = shotsFired;
       next.hits = hits;
       next.enemyHealth = enemyHealth;
+      next.enemyDestroyed = enemyDestroyed;
+      next.enemiesRemaining = enemiesRemaining;
+      next.destroyedEnemies = destroyedEnemies;
+      next.enemyDestroyedPulse = enemyDestroyedPulse;
+      next.lastDestroyedEnemy = lastDestroyedEnemy;
+      next.gameStatus = gameStatus;
     });
   }
 
@@ -309,9 +345,11 @@ export default class PlayerSystem extends createSystem({
     readonly enemyHealth: Record<string, number>;
     readonly hits: number;
     readonly impact: Vec3 | null;
+    readonly destroyedEnemies: readonly string[];
   } {
     let hitCount = 0;
     let nextHealth = enemyHealth;
+    const destroyedEnemies: string[] = [];
     let nearestImpact: {
       readonly point: Vec3;
       readonly distance: number;
@@ -349,6 +387,9 @@ export default class PlayerSystem extends createSystem({
       const remaining = Math.max(0, current - weapon.damage);
       nextHealth[hit.key] = remaining;
       hitCount += 1;
+      if (remaining === 0 && current > 0) {
+        destroyedEnemies.push(hit.key);
+      }
       this.#playOneShot(remaining === 0 ? "enemy-destroy" : "enemy-hurt", 0.4);
     }
 
@@ -356,6 +397,7 @@ export default class PlayerSystem extends createSystem({
       enemyHealth: nextHealth,
       hits: hitCount,
       impact: nearestImpact?.point ?? null,
+      destroyedEnemies,
     };
   }
 
@@ -584,10 +626,14 @@ export default class PlayerSystem extends createSystem({
       for (const key of [enemy.key, `${enemy.key}.hitbox`]) {
         const entity = this.#findByKey(key);
         if (entity === null) continue;
+        this.#setEnabled(entity, alive);
         entity.getVectorView(LocalTransform, "translation").set(position);
         entity
           .getVectorView(LocalTransform, "rotation")
           .set(quatFromEulerYXZ(0, yaw, 0));
+        if (key.endsWith(".hitbox") && entity.hasComponent(Collider)) {
+          entity.setValue(Collider, "enabled", alive);
+        }
       }
     }
   }
@@ -597,17 +643,25 @@ export default class PlayerSystem extends createSystem({
     readonly weaponIndex: number;
     readonly weapon: WeaponSpec;
     readonly enemiesRemaining: number;
+    readonly destroyedEnemies: number;
+    readonly enemyDestroyedPulse: number;
+    readonly lastDestroyedEnemy: string;
     readonly shotsFired: number;
     readonly hits: number;
     readonly grounded: boolean;
     readonly position: Vec3;
     readonly damagePulse: number;
+    readonly gameStatus: "active" | "cleared";
   }): void {
     setSignal(this.signals.health, Math.round(input.health));
     setSignal(this.signals.weaponIndex, input.weaponIndex);
     setSignal(this.signals.weaponName, input.weapon.name);
     setSignal(this.signals.crosshair, input.weapon.crosshairUrl);
     setSignal(this.signals.enemiesRemaining, input.enemiesRemaining);
+    setSignal(this.signals.destroyedEnemies, input.destroyedEnemies);
+    setSignal(this.signals.enemyDestroyedPulse, input.enemyDestroyedPulse);
+    setSignal(this.signals.lastDestroyedEnemy, input.lastDestroyedEnemy);
+    setSignal(this.signals.gameStatus, input.gameStatus);
     setSignal(this.signals.shotsFired, input.shotsFired);
     setSignal(this.signals.hits, input.hits);
     setSignal(this.signals.grounded, input.grounded);
@@ -722,6 +776,12 @@ export default class PlayerSystem extends createSystem({
       if (entity.getValue(AppEntityKey, "value") === key) return entity;
     }
     return null;
+  }
+
+  #setEnabled(entity: Entity, enabled: boolean): void {
+    if (entity.hasComponent(Enabled)) {
+      entity.setValue(Enabled, "value", enabled);
+    }
   }
 }
 
@@ -861,6 +921,13 @@ function enemyMuzzlePosition(enemy: Vec3, yaw: number, offset: Vec3): Vec3 {
 function countLivingEnemies(enemyHealth: Record<string, number>): number {
   return ENEMIES.reduce(
     (count, enemy) => count + ((enemyHealth[enemy.key] ?? 0) > 0 ? 1 : 0),
+    0,
+  );
+}
+
+function countDestroyedEnemies(enemyDestroyed: Record<string, boolean>): number {
+  return ENEMIES.reduce(
+    (count, enemy) => count + (enemyDestroyed[enemy.key] === true ? 1 : 0),
     0,
   );
 }
