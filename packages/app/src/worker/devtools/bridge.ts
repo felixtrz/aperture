@@ -31,6 +31,7 @@ import {
   createApertureDevtoolsResponse,
   type ApertureDevtoolsRequest,
 } from "../../commands.js";
+import type { ApertureGeneratedInputEvent } from "../../input.js";
 import { createAssetSummary } from "../assets.js";
 import { resolveActiveEntity } from "../../entities/lookup/resolve.js";
 import { entityRefKey, entitySummary } from "../../entities/lookup/summary.js";
@@ -67,6 +68,7 @@ export function createGeneratedDevtoolsBridge(options: {
   readonly app: ApertureApp;
   readonly entityTools: GeneratedEntityToolBridge;
   readonly port: SimulationMessagePort;
+  readonly enqueueInputEvent: (event: ApertureGeneratedInputEvent) => void;
   readonly setPaused: (paused: boolean) => void;
   readonly step: (delta: number) => Readonly<Record<string, unknown>>;
   readonly getSimulationState: () => Readonly<Record<string, unknown>>;
@@ -119,6 +121,7 @@ function callGeneratedDevtoolsTool(
   bridge: {
     readonly app: ApertureApp;
     readonly entityTools: GeneratedEntityToolBridge;
+    readonly enqueueInputEvent: (event: ApertureGeneratedInputEvent) => void;
     readonly setPaused: (paused: boolean) => void;
     readonly step: (delta: number) => Readonly<Record<string, unknown>>;
     readonly getSimulationState: () => Readonly<Record<string, unknown>>;
@@ -152,6 +155,7 @@ function callGeneratedDevtoolsTool(
       bridge.app,
       request.tool,
       request.payload,
+      { enqueueInputEvent: bridge.enqueueInputEvent },
     );
 
     if (result !== null) {

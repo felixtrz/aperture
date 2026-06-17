@@ -1,5 +1,9 @@
 import type { ApertureApp } from "../../advanced.js";
-import { applyGeneratedInputEvent, createInputSummary } from "../../input.js";
+import {
+  applyGeneratedInputEvent,
+  createInputSummary,
+  type ApertureGeneratedInputEvent,
+} from "../../input.js";
 import type { GeneratedDevtoolsToolResult } from "./types.js";
 import {
   booleanFromValue,
@@ -15,13 +19,16 @@ export function callInputDevtoolsTool(
   app: ApertureApp,
   tool: string,
   payload: unknown,
+  options: {
+    readonly enqueueInputEvent?: (event: ApertureGeneratedInputEvent) => void;
+  } = {},
 ): GeneratedDevtoolsToolResult | null {
   if (tool === "input_action_set") {
-    return callInputActionTool(app, payload);
+    return callInputActionTool(app, payload, options);
   }
 
   if (tool === "input_gamepad_set") {
-    return callInputGamepadTool(app, payload);
+    return callInputGamepadTool(app, payload, options);
   }
 
   if (tool === "input_get_state") {
@@ -32,11 +39,11 @@ export function callInputDevtoolsTool(
   }
 
   if (tool === "input_reset") {
-    applyGeneratedInputEvent({
-      signals: app.context.input,
-      config: app.config,
-      event: { kind: "reset", reason: "devtools" },
-    });
+    applyOrEnqueueInputEvent(
+      app,
+      { kind: "reset", reason: "devtools" },
+      options,
+    );
 
     return {
       ok: true,
@@ -50,6 +57,9 @@ export function callInputDevtoolsTool(
 function callInputActionTool(
   app: ApertureApp,
   payload: unknown,
+  options: {
+    readonly enqueueInputEvent?: (event: ApertureGeneratedInputEvent) => void;
+  },
 ): GeneratedDevtoolsToolResult {
   const record = isRecord(payload) ? payload : {};
   const actionName =
@@ -98,10 +108,9 @@ function callInputActionTool(
   const x = numberFromValue(record["x"]);
   const y = numberFromValue(record["y"]);
 
-  applyGeneratedInputEvent({
-    signals: app.context.input,
-    config: app.config,
-    event: {
+  applyOrEnqueueInputEvent(
+    app,
+    {
       kind: "virtualAction",
       action: actionName,
       source: "devtools",
@@ -110,12 +119,14 @@ function callInputActionTool(
       ...(x === undefined ? {} : { x }),
       ...(y === undefined ? {} : { y }),
     },
-  });
+    options,
+  );
 
   return {
     ok: true,
     result: {
       action: actionName,
+      queued: options.enqueueInputEvent !== undefined,
       ...(action.kind === "button"
         ? {
             pressed: action.pressed.value,
@@ -132,6 +143,9 @@ function callInputActionTool(
 function callInputGamepadTool(
   app: ApertureApp,
   payload: unknown,
+  options: {
+    readonly enqueueInputEvent?: (event: ApertureGeneratedInputEvent) => void;
+  },
 ): GeneratedDevtoolsToolResult {
   const record = isRecord(payload) ? payload : {};
   const index = Math.max(0, Math.floor(numberFromValue(record["index"]) ?? 0));
@@ -174,10 +188,9 @@ function callInputGamepadTool(
     };
   }
 
-  applyGeneratedInputEvent({
-    signals: app.context.input,
-    config: app.config,
-    event: {
+  applyOrEnqueueInputEvent(
+    app,
+    {
       kind: "gamepad",
       replace: false,
       gamepads: [
@@ -191,7 +204,8 @@ function callInputGamepadTool(
         },
       ],
     },
-  });
+    options,
+  );
 
   const summary = createInputSummary(app.context.input);
 
@@ -205,4 +219,23 @@ function callInputGamepadTool(
     },
     diagnostics: summary.diagnostics,
   };
+}
+
+function applyOrEnqueueInputEvent(
+  app: ApertureApp,
+  event: ApertureGeneratedInputEvent,
+  options: {
+    readonly enqueueInputEvent?: (event: ApertureGeneratedInputEvent) => void;
+  },
+): void {
+  if (options.enqueueInputEvent !== undefined) {
+    options.enqueueInputEvent(event);
+    return;
+  }
+
+  applyGeneratedInputEvent({
+    signals: app.context.input,
+    config: app.config,
+    event,
+  });
 }

@@ -15,7 +15,10 @@ import { createDefaultSystemGltfAssetDecoderProvider } from "../systems.js";
 import { createSourceAssetSerializationState } from "../asset-mirror.js";
 import type { ApertureConfig } from "../config.js";
 import { errorToApertureDiagnostic } from "../diagnostics.js";
-import type { ApertureGeneratedInputEventMessage } from "../input.js";
+import type {
+  ApertureGeneratedInputEvent,
+  ApertureGeneratedInputEventMessage,
+} from "../input.js";
 import type { ApertureSystemModule } from "../advanced.js";
 import {
   createGeneratedDevtoolsBridge,
@@ -86,17 +89,20 @@ export async function runGeneratedWorkerLoop(options: {
     let running = true;
     let paused = false;
     let previousTime = performance.now();
+    const pendingDevtoolsInput: ApertureGeneratedInputEvent[] = [];
 
     const publishSnapshot = (
       delta: number,
       time: number,
     ): GeneratedWorkerSnapshotPublishReport => {
+      const immediateInputEvents = pendingDevtoolsInput.splice(0);
       const report = publishGeneratedWorkerSnapshot({
         app,
         config: options.config,
         port: options.port,
         transport: snapshotTransport,
         pendingInput: options.pendingInput,
+        immediateInputEvents,
         sourceAssetState,
         entityTools,
         delta,
@@ -111,6 +117,9 @@ export async function runGeneratedWorkerLoop(options: {
       app,
       entityTools,
       port: options.port,
+      enqueueInputEvent(event) {
+        pendingDevtoolsInput.push(event);
+      },
       setPaused(nextPaused) {
         paused = nextPaused;
       },

@@ -142,6 +142,7 @@ export async function screenshot(
 ): Promise<unknown> {
   const bytes = await page.screenshot({ type: "png" });
   const outputPath = screenshotOutputPath(options);
+  const includeData = outputPath === null || options.includeData === true;
 
   if (outputPath !== null) {
     await mkdir(path.dirname(outputPath), { recursive: true });
@@ -155,7 +156,7 @@ export async function screenshot(
     byteLength: bytes.byteLength,
     ...(outputPath === null ? {} : { path: outputPath }),
     ...(options.includeData === true ? { includeData: true } : {}),
-    data: bytes.toString("base64"),
+    ...(includeData ? { data: bytes.toString("base64") } : {}),
   };
 }
 

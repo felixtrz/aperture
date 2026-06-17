@@ -23,6 +23,7 @@ import {
   advanceGeneratedInputFrame,
   createInputSummary,
   drainGeneratedInputEventMessagesForFrame,
+  type ApertureGeneratedInputEvent,
   type ApertureGeneratedInputEventMessage,
 } from "../input.js";
 import { createSignalSummary } from "../systems.js";
@@ -67,6 +68,7 @@ export function publishGeneratedWorkerSnapshot(options: {
   readonly port: SimulationMessagePort;
   readonly transport: GeneratedWorkerSnapshotTransport;
   readonly pendingInput: ApertureGeneratedInputEventMessage[];
+  readonly immediateInputEvents?: readonly ApertureGeneratedInputEvent[];
   readonly sourceAssetState: SourceAssetSerializationState;
   readonly entityTools: GeneratedEntityToolBridge;
   readonly delta: number;
@@ -76,13 +78,20 @@ export function publishGeneratedWorkerSnapshot(options: {
   // Deterministic per-frame drain (AI-56 frame-stamping half): unstamped live
   // events apply now; frame-stamped events apply at exactly their frame, so a
   // recorded sequence replays identically.
+  const drainedInputEvents = drainGeneratedInputEventMessagesForFrame(
+    options.pendingInput,
+    options.frame,
+  );
+  const inputEvents =
+    options.immediateInputEvents === undefined ||
+    options.immediateInputEvents.length === 0
+      ? drainedInputEvents
+      : [...drainedInputEvents, ...options.immediateInputEvents];
+
   advanceGeneratedInputFrame({
     signals: options.app.context.input,
     config: options.config,
-    events: drainGeneratedInputEventMessagesForFrame(
-      options.pendingInput,
-      options.frame,
-    ),
+    events: inputEvents,
   });
   const step = options.app.step(options.delta, options.time);
   const snapshot = options.app.extract(options.frame);

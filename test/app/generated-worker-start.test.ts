@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { createApertureDevtoolsRequest } from "@aperture-engine/app/commands";
-import { asset, defineApertureConfig } from "@aperture-engine/app/config";
+import {
+  asset,
+  defineApertureConfig,
+  input,
+} from "@aperture-engine/app/config";
 import {
   createSystem,
   defineResource,
@@ -66,6 +70,24 @@ class GeneratedWorkerResourceProofSystem extends GeneratedWorkerResourceProofBas
       state.position[1] = 5;
       state.position[2] = 6;
     });
+  }
+}
+
+const GeneratedWorkerInputProof = defineResource("test.generated.input", {
+  fireDownCount: resource.number(0),
+});
+
+const GeneratedWorkerInputProofBase = createSystem();
+
+class GeneratedWorkerInputProofSystem extends GeneratedWorkerInputProofBase {
+  override update(): void {
+    const fire = this.actions.fire;
+
+    if (fire?.kind === "button" && fire.down()) {
+      this.resources.write(GeneratedWorkerInputProof, (state) => {
+        state.fireDownCount += 1;
+      });
+    }
   }
 }
 
@@ -419,6 +441,148 @@ describe("generated simulation worker start messages", () => {
           severity: "warning",
         },
       ],
+    });
+  });
+
+  it("queues devtools virtual button input for the next simulation step", async () => {
+    const port = new TestGeneratedWorkerPort();
+
+    startGeneratedSimulationWorker({
+      config: defineApertureConfig({
+        mode: "headless",
+        systems: [],
+        input: {
+          actions: {
+            fire: input.button([input.key("KeyF")]),
+          },
+        },
+      }),
+      systems: [{ default: GeneratedWorkerInputProofSystem }],
+      port,
+    });
+    port.dispatch({
+      type: SIMULATION_WORKER_PROTOCOL.start,
+      options: { stop: true },
+    });
+
+    await port.nextPostedMessage(isSimulationWorkerSnapshotMessage);
+    port.dispatch(
+      createApertureDevtoolsRequest({
+        requestId: "input-press",
+        tool: "input_action_set",
+        payload: { action: "fire", pressed: true },
+      }),
+    );
+    expect(
+      await port.nextPostedMessage(devtoolsResponseWithId("input-press")),
+    ).toMatchObject({
+      ok: true,
+      result: {
+        action: "fire",
+        queued: true,
+      },
+    });
+
+    port.dispatch(
+      createApertureDevtoolsRequest({
+        requestId: "input-step-press",
+        tool: "ecs_step",
+        payload: { delta: 1 / 60 },
+      }),
+    );
+    await port.nextPostedMessage(devtoolsResponseWithId("input-step-press"));
+
+    port.dispatch(
+      createApertureDevtoolsRequest({
+        requestId: "input-after-press",
+        tool: "resource_get",
+        payload: { id: "test.generated.input" },
+      }),
+    );
+    expect(
+      await port.nextPostedMessage(devtoolsResponseWithId("input-after-press")),
+    ).toMatchObject({
+      ok: true,
+      result: {
+        resource: {
+          values: {
+            fireDownCount: 1,
+          },
+        },
+      },
+    });
+
+    port.dispatch(
+      createApertureDevtoolsRequest({
+        requestId: "input-step-held",
+        tool: "ecs_step",
+        payload: { delta: 1 / 60 },
+      }),
+    );
+    await port.nextPostedMessage(devtoolsResponseWithId("input-step-held"));
+
+    port.dispatch(
+      createApertureDevtoolsRequest({
+        requestId: "input-after-held",
+        tool: "resource_get",
+        payload: { id: "test.generated.input" },
+      }),
+    );
+    expect(
+      await port.nextPostedMessage(devtoolsResponseWithId("input-after-held")),
+    ).toMatchObject({
+      ok: true,
+      result: {
+        resource: {
+          values: {
+            fireDownCount: 1,
+          },
+        },
+      },
+    });
+
+    for (const [requestId, pressed] of [
+      ["input-release", false],
+      ["input-second-press", true],
+    ] as const) {
+      port.dispatch(
+        createApertureDevtoolsRequest({
+          requestId,
+          tool: "input_action_set",
+          payload: { action: "fire", pressed },
+        }),
+      );
+      await port.nextPostedMessage(devtoolsResponseWithId(requestId));
+      port.dispatch(
+        createApertureDevtoolsRequest({
+          requestId: `${requestId}-step`,
+          tool: "ecs_step",
+          payload: { delta: 1 / 60 },
+        }),
+      );
+      await port.nextPostedMessage(devtoolsResponseWithId(`${requestId}-step`));
+    }
+
+    port.dispatch(
+      createApertureDevtoolsRequest({
+        requestId: "input-after-second-press",
+        tool: "resource_get",
+        payload: { id: "test.generated.input" },
+      }),
+    );
+    expect(
+      await port.nextPostedMessage(
+        devtoolsResponseWithId("input-after-second-press"),
+      ),
+    ).toMatchObject({
+      ok: true,
+      result: {
+        resource: {
+          values: {
+            fireDownCount: 2,
+          },
+        },
+      },
     });
   });
 
