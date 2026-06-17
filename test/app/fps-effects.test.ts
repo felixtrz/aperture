@@ -7,6 +7,7 @@ import {
   SOURCE_IMPACT_PIXEL_SIZE,
   SOURCE_IMPACT_WORLD_SIZE,
   SOURCE_MUZZLE_FRAME_PIXELS,
+  SOURCE_PLAYER_MUZZLE_WORLD_SIZE,
   SOURCE_SPRITE_DEFAULT_PIXEL_SIZE,
   sourceAnimatedSpriteWorldSize,
   sourceSpriteAlphaForFrame,
@@ -45,9 +46,10 @@ describe("Starter Kit FPS sprite effects", () => {
     ).toBeCloseTo(SOURCE_IMPACT_WORLD_SIZE);
   });
 
-  it("derives enemy muzzle sprite size from default source pixel_size and node scale", () => {
+  it("derives player and enemy muzzle sprite sizes from source pixel_size and scale", () => {
     expect(SOURCE_MUZZLE_FRAME_PIXELS).toBe(256);
     expect(SOURCE_SPRITE_DEFAULT_PIXEL_SIZE).toBe(0.01);
+    expect(SOURCE_PLAYER_MUZZLE_WORLD_SIZE).toBeCloseTo(2.56);
     expect(SOURCE_ENEMY_MUZZLE_SCALE).toBe(0.5);
     expect(SOURCE_ENEMY_MUZZLE_RUNTIME_SCALE).toBe(1);
     expect(SOURCE_ENEMY_MUZZLE_WORLD_SIZE).toBeCloseTo(1.28);

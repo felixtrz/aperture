@@ -55,6 +55,7 @@ import {
 import {
   SOURCE_ENEMY_MUZZLE_SPRITE_SIZE,
   SOURCE_IMPACT_SPRITE_SIZE,
+  SOURCE_PLAYER_MUZZLE_SPRITE_SIZE,
 } from "../lib/fps-effects.js";
 
 const GLTF_FRONT_SIDE_MATERIALS = {
@@ -294,7 +295,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       key: "effect.muzzle-burst",
       name: "Muzzle Burst",
       textureId: "muzzle-burst",
-      size: [0.75, 0.38],
+      size: SOURCE_PLAYER_MUZZLE_SPRITE_SIZE,
       blendMode: SpriteBlendMode.Additive,
     });
 

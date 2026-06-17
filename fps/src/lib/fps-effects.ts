@@ -9,6 +9,17 @@ export interface SpriteFrameSelection {
 
 const FULL_SPRITE_UV: SpriteUvRect = [0, 0, 1, 1];
 export const SOURCE_SPRITE_DEFAULT_PIXEL_SIZE = 0.01;
+export const SOURCE_MUZZLE_FRAME_PIXELS = 256;
+
+// player.tscn uses default SpriteBase3D pixel_size and random runtime scale.
+export const SOURCE_PLAYER_MUZZLE_WORLD_SIZE = sourceAnimatedSpriteWorldSize(
+  SOURCE_MUZZLE_FRAME_PIXELS,
+  SOURCE_SPRITE_DEFAULT_PIXEL_SIZE,
+);
+export const SOURCE_PLAYER_MUZZLE_SPRITE_SIZE: readonly [number, number] = [
+  SOURCE_PLAYER_MUZZLE_WORLD_SIZE,
+  SOURCE_PLAYER_MUZZLE_WORLD_SIZE,
+];
 
 // Starter-Kit-FPS impact.tscn uses 128px atlas frames at pixel_size 0.0025.
 export const SOURCE_IMPACT_FRAME_PIXELS = 128;
@@ -23,7 +34,6 @@ export const SOURCE_IMPACT_SPRITE_SIZE: readonly [number, number] = [
 ];
 
 // enemy.tscn uses default SpriteBase3D pixel_size and 0.5 node scale.
-export const SOURCE_MUZZLE_FRAME_PIXELS = 256;
 export const SOURCE_ENEMY_MUZZLE_SCALE = 0.5;
 export const SOURCE_ENEMY_MUZZLE_WORLD_SIZE = sourceAnimatedSpriteWorldSize(
   SOURCE_MUZZLE_FRAME_PIXELS,
