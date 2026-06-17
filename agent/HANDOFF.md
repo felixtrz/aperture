@@ -1,73 +1,63 @@
-# Handoff - Post-Port Genericity Cleanup
+# Handoff - Racing Library-Gap Plan Complete
 
-**Updated:** 2026-06-16 21:50 PDT
+**Updated:** 2026-06-16 21:56 PDT
 
-Current user-directed work is executing
+Current user-directed work executed
 `racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
-slices while keeping racing and Shadow Lab working.
+slices while keeping racing and Shadow Lab working. The plan is complete for
+this pass.
 
 ## Latest Completed Slice
 
-- Re-audited the racing port APIs against PlayCanvas and Bevy precedent. The
-  APIs landed for racing still fit the library direction: ECS resources,
-  generated signals/status helpers, start options, dynamic mesh/trails,
-  particles, audio intent, GLTF lookup/overrides/batching, follow camera, and
-  automatic particle bounds all remain generic engine surfaces rather than
-  racing-only hooks.
-- Added `subscribeGeneratedBrowserAppStatus(...)` to
-  `@aperture-engine/app/browser` as the status-side counterpart to
-  `subscribeGeneratedSignals(...)`. It observes meaningful generated-status
-  mutations without app code hand-rolling another `requestAnimationFrame` loop
-  over the status global.
-- Migrated Shadow Lab's `main.ts` status attributes and debug-panel render
-  readout to `subscribeGeneratedBrowserAppStatus(...)`.
-- Updated the racing library-gap plan, public tracker, backlog, and
-  completed-task log. The recommended next slice is final no-cache E2E
-  verification.
+- Finished the final no-cache racing verification slice after the post-port
+  genericity cleanup commit.
+- Stopped the racing managed dev session, removed `racing/node_modules/.vite`,
+  and relaunched racing with
+  `pnpm exec aperture dev up --open --host 127.0.0.1 --port 5173`.
+- Verified fresh racing runtime through Aperture MCP: managed browser running
+  on `127.0.0.1:5173` / CDP `6173`, `webgpuOk:true`, no
+  `lastError`/`lastFailure`, submitted directional shadows, clean baseline
+  render snapshot, and console tail with only Vite logs plus the known
+  deprecated-parameter warning.
+- Proved fresh-session smoke/HUD by pausing ECS, applying `drive=[1,1]`,
+  resuming briefly, pausing, and reading MCP status:
+  `particleEmitters:306`, `liveParticles:906`, `texturedEmitters:306`,
+  `diagnostics:0`, `started:true`, `throttle:1`, `speed:0.937`, and
+  `driftIntensity:1.057`.
+- Verified Shadow Lab stayed isolated on its own Aperture session at
+  `127.0.0.1:8861` / CDP `9861`; typecheck/build still pass.
 
 ## Latest Validation
 
-- `pnpm exec vitest run test/app/browser-signals.test.ts`
-- `pnpm exec prettier --check packages/app/src/browser/status.ts packages/app/src/browser.ts test/app/browser-signals.test.ts shadow-lab/src/main.ts shadow-lab/src/debug-panel.ts racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md agent/BACKLOG.md agent/COMPLETED.md agent/HANDOFF.md docs/index.html`
-- `pnpm run check:progress`
-- `pnpm run typecheck:test`
-- `pnpm run check:examples`
-- `git diff --check`
-- `pnpm --filter @aperture-engine/app run typecheck`
-- `pnpm --filter @aperture-engine/app run build`
-- `pnpm exec playwright test test/e2e/particle-bursts.spec.ts --reporter=line --timeout=60000`
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir racing run build`
 - `pnpm --dir shadow-lab run typecheck`
 - `pnpm --dir shadow-lab run build`
-- Managed Aperture racing proof: browser status reported the managed
-  `127.0.0.1:5173` app `running` with `webgpuOk:true`; console tail had Vite
-  logs plus the known deprecated-parameter warning but no render/worker error;
-  baseline render diagnostics were `ok:true`, zero diagnostics, and submitted
-  directional shadow. After `ecs_pause`, `input_action_set` with
-  `drive=[1,1]`, `ecs_resume`, and a short controlled run, `ecs_pause` plus
-  `render_get_snapshot_summary` reported `particleEmitters:306` and
-  `diagnostics:0`. Inputs were reset and ECS was resumed afterward.
-- Source scan confirms racing and Shadow Lab app source no longer imports
-  `readGeneratedBrowserAppStatus`; only the browser helper itself and bundled
-  third-party three.js comparison files contain raw status/browser-loader
-  internals.
+- `pnpm exec aperture dev down` from `racing/`
+- `rm -rf racing/node_modules/.vite`
+- `pnpm exec aperture dev up --open --host 127.0.0.1 --port 5173` from
+  `racing/`
+- Aperture MCP `browser_status`, `browser_console_logs`,
+  `render_get_snapshot_summary`, `input_reset`, `ecs_pause`,
+  `input_action_set`, and `ecs_resume` for the racing proof described above.
+- `pnpm exec aperture dev status` from `shadow-lab/` confirmed Shadow Lab's
+  separate managed session remained alive on `127.0.0.1:8861` / CDP `9861`.
 
 ## Current Notes
 
 - Managed racing is running at `http://127.0.0.1:5173/` through Aperture dev
-  and was left resumed after the smoke proof with virtual inputs reset.
-- Shadow Lab was not restarted in this cleanup slice; it typechecks/builds
-  against the rebuilt workspace app package.
+  and was left resumed after the fresh no-cache smoke proof with virtual inputs
+  reset.
+- Shadow Lab remains alive at `http://127.0.0.1:8861/`; it was not restarted or
+  attached through racing's MCP tools.
 - Pre-existing untracked screenshot/parity artifacts remain outside the commit.
 
 ## Recommended Next Task
 
-Run the final no-cache end-to-end verification: rebuild touched workspace
-packages and both experiences, clear racing's Vite optimized cache, relaunch
-racing through managed Aperture on `127.0.0.1:5173`, prove WebGPU/console/HUD
-signals/smoke/render diagnostics through Aperture MCP, and verify Shadow Lab
-remains isolated and healthy.
+Return to the broader visible-feature queue. The first ready task is
+`task-3097 — Replace placeholder PMREM with GGX/VNDF prefilter sampling`
+anchored to `references/three.js/src/extras/PMREMGenerator.js` and
+`references/engine/src/scene/graphics/reproject-texture.js`.
 
 ---
 

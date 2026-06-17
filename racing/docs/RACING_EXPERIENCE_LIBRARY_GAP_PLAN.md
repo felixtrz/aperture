@@ -1,7 +1,7 @@
 # Racing Experience Source Audit And Aperture V1 Library Plan
 
 Date: 2026-06-16
-Status: in progress
+Status: completed
 
 ## Executive Summary
 
@@ -240,8 +240,19 @@ building blocks and default paths.
   of hand-rolling another `requestAnimationFrame` status polling loop. The audit
   kept the landed racing APIs classified against PlayCanvas/Bevy precedent and
   reproved the already-running managed racing app through Aperture MCP at
-  `particleEmitters:306` with zero diagnostics. The remaining work is final
-  no-cache E2E verification.
+  `particleEmitters:306` with zero diagnostics.
+- 2026-06-16: Final no-cache E2E verification completed. Racing was restarted
+  through `pnpm exec aperture dev up --open --host 127.0.0.1 --port 5173` after
+  clearing `racing/node_modules/.vite`; Aperture MCP reported the managed app
+  `running`, `webgpuOk:true`, no `lastError`/`lastFailure`, submitted
+  directional shadows, and a clean console tail aside from the known
+  deprecated-parameter warning. The fresh smoke proof paused ECS, held
+  `drive=[1,1]`, resumed briefly, and observed `particleEmitters:306`,
+  `liveParticles:906`, `texturedEmitters:306`, HUD signals
+  `started:true`/`throttle:1`/`speed:0.937`/`driftIntensity:1.057`, and zero
+  diagnostics. Shadow Lab stayed isolated on `127.0.0.1:8861` / CDP `9861`,
+  with its own Aperture session alive, and both racing and Shadow Lab
+  typechecked/built from current workspace code.
 
 ## Genericity Audit - 2026-06-16
 
@@ -1431,27 +1442,16 @@ Shadow-lab validation:
 - API placement: core math/resources belong in `simulation`/`app`; racing-style
   camera/joystick helpers should start in `app/controllers` or templates.
 
-## Recommended Next Implementation Slice
+## Completion State
 
-Run the final no-cache end-to-end verification:
-
-1. Rebuild the touched library packages and both experiences from workspace
-   dependencies.
-2. Clear racing's Vite optimized cache and relaunch with
-   `pnpm exec aperture dev up --open --host 127.0.0.1 --port 5173`.
-3. Use Aperture MCP, not raw CDP, to verify WebGPU status, console tail, smoke
-   while drifting, shadow/frame diagnostics, and HUD signal updates.
-4. Verify Shadow Lab remains isolated and healthy after the shared browser API
-   and prior shadow/GLTF/follow-camera changes.
-5. Commit the final docs/handoff update only after the no-cache runtime proof is
-   complete.
-
-Reason:
+The racing experience source audit and library-gap execution plan is complete
+for this pass.
 
 - Racing now uses shared Aperture paths for the original heavy app-owned
   systems: math, resources, signals, start options, dynamic meshes, texture
   decode, audio, particles, trails, GLTF lookup, material overrides, spawn
   batching, follow camera, and particle bounds.
-- The remaining risk is stale optimized output or a browser/runtime regression
-  after many library slices. The last slice should prove the deployed current
-  code path end to end rather than adding another feature.
+- The final no-cache verification proved the deployed current code path end to
+  end rather than relying on stale optimized output.
+- Further work should now come from the broader Aperture V1 renderer/runtime
+  ready queue, not from this racing port plan.

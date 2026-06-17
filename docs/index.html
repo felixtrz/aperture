@@ -393,12 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 04:43 UTC</dd>
+            <dd>2026-06-17 04:56 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: generated browser status now has a public
+              Latest update: the racing library-gap plan completed its final
+              no-cache end-to-end verification. Racing was relaunched through
+              managed Aperture on <code>127.0.0.1:5173</code> after clearing its
+              Vite optimized cache, and Aperture MCP reproved WebGPU, shadows,
+              HUD signals, and smoke particles from the fresh session:
+              <code>particleEmitters:306</code>, <code>liveParticles:906</code>,
+              <code>texturedEmitters:306</code>, and zero diagnostics. Shadow
+              Lab stayed isolated and alive on <code>127.0.0.1:8861</code>.
+              Prior update: generated browser status now has a public
               subscription helper,
               <code>subscribeGeneratedBrowserAppStatus(...)</code>, matching the
               existing generated signal subscription path. Shadow Lab uses it
@@ -1249,11 +1257,10 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Run the final no-cache end-to-end racing verification: rebuild
-              current workspace packages and both experiences, relaunch racing
-              through managed Aperture with its Vite optimized cache cleared,
-              prove smoke/HUD/shadows/render diagnostics through MCP, and verify
-              Shadow Lab remains isolated and healthy.
+              Resume the broader renderer queue with
+              <code>task-3097</code>: replace the placeholder PMREM path with
+              GGX/VNDF prefilter sampling, anchored to three.js PMREM and
+              PlayCanvas reproject-texture references.
             </dd>
           </dl>
         </aside>
@@ -2154,6 +2161,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">racing</span> Completed the final
+                no-cache racing verification. The fresh managed session on
+                <code>127.0.0.1:5173</code> proved WebGPU, submitted shadows,
+                HUD signals, and smoke particles through Aperture MCP, while
+                Shadow Lab stayed isolated on <code>127.0.0.1:8861</code>.
+              </li>
               <li>
                 <span class="badge green">browser</span> Added
                 <code>subscribeGeneratedBrowserAppStatus(...)</code> and moved

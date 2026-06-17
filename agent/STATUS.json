@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "ff39884c",
+  "lastCommit": "7a41996a",
   "activePid": null,
-  "notes": "Completed worker-safe audio loop lifecycle and automation controls; rebuilt app dist, cache-busted managed racing, fixed stale automate crash, and verified smoke particles plus zero frame diagnostics.",
-  "lastRunFinishedAt": "2026-06-17T02:34:58Z"
+  "notes": "Completed racing library-gap final no-cache verification; racing and Shadow Lab verified on isolated managed sessions.",
+  "lastRunFinishedAt": "2026-06-17T05:00:36Z"
 }

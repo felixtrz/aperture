@@ -1,5 +1,44 @@
 # Completed Tasks
 
+## RACE-LIB-29 — Final no-cache racing verification
+
+Completed: 2026-06-16 21:56 PDT
+Commit: current checkpoint commit
+
+### Summary
+
+- Finished the final no-cache verification slice for
+  `racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md`.
+- Stopped racing's managed Aperture session, cleared
+  `racing/node_modules/.vite`, and relaunched racing with
+  `pnpm exec aperture dev up --open --host 127.0.0.1 --port 5173`.
+- Verified the fresh managed racing app through Aperture MCP: `webgpuOk:true`,
+  no `lastError`/`lastFailure`, clean render diagnostics, submitted directional
+  shadow, and a console tail containing only Vite logs plus the known
+  deprecated-parameter warning.
+- Proved fresh-session smoke/HUD updates by pausing ECS, holding virtual
+  `drive=[1,1]`, resuming briefly, pausing again, and reading MCP status:
+  `particleEmitters:306`, `liveParticles:906`, `texturedEmitters:306`,
+  `diagnostics:0`, `started:true`, `throttle:1`, `speed:0.937`, and
+  `driftIntensity:1.057`.
+- Verified Shadow Lab stayed isolated on its own managed Aperture session at
+  `127.0.0.1:8861` / CDP `9861`.
+
+### Validation
+
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `pnpm exec aperture dev down` from `racing/`
+- `rm -rf racing/node_modules/.vite`
+- `pnpm exec aperture dev up --open --host 127.0.0.1 --port 5173` from
+  `racing/`
+- Aperture MCP `browser_status`, `browser_console_logs`,
+  `render_get_snapshot_summary`, `input_reset`, `ecs_pause`,
+  `input_action_set`, and `ecs_resume` for the fresh racing runtime proof.
+- `pnpm exec aperture dev status` from `shadow-lab/`
+
 ## RACE-LIB-28 — Post-port genericity cleanup
 
 Completed: 2026-06-16 21:50 PDT

@@ -59,28 +59,22 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Run the final no-cache end-to-end verification for the racing library-gap plan
-and checkpoint the result.
+`task-3097` — Replace placeholder PMREM with GGX/VNDF prefilter sampling.
 
-Category: `runtime-orchestration`
+Category: `webgpu-render`
 
-Reference anchor: `references/engine/src/framework/app-base.js` for
-PlayCanvas-style app lifecycle ownership, plus
-`references/bevy/crates/bevy_app/src/main_schedule.rs` for explicit app schedule
-orchestration and validation-friendly run phases.
+Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`,
+`references/engine/src/scene/graphics/reproject-texture.js`.
 
 Acceptance criteria:
 
-- Rebuild touched workspace packages, racing, and Shadow Lab from current
-  source.
-- Clear racing's Vite optimized cache and relaunch racing through
-  `pnpm exec aperture dev up --open --host 127.0.0.1 --port 5173`.
-- Use Aperture MCP to verify WebGPU health, console tail, smoke while drifting,
-  render diagnostics, and HUD signal updates in racing.
-- Verify Shadow Lab remains isolated and healthy after the shared browser/status
-  and shadow/follow-camera changes.
-- Update the plan/handoff/completed logs with final evidence and leave
-  pre-existing screenshot/parity artifacts uncommitted.
+- Replace the current placeholder prefilter path with a GGX/VNDF importance
+  sampling path appropriate for PMREM-style specular IBL.
+- Add focused unit coverage for the sampling distribution/resource metadata.
+- Add or update a visible render route so roughness-dependent specular
+  reflection changes are observable in pixels.
+- Keep the implementation WebGPU-only and renderer-owned; do not introduce a
+  mutable scene graph or WebGL fallback.
 
 ## Historical M10 Physics Notes
 
