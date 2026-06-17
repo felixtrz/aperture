@@ -1,5 +1,45 @@
 # Completed Tasks
 
+## FPS-PORT — Packaged generated-input full-clear smoke route
+
+Completed: 2026-06-17 09:21 PDT
+Commit: `0ed3e278`
+
+### Summary
+
+- Added `pnpm --dir fps run smoke:full-clear`, a reusable Node smoke driver
+  that starts/reuses the managed Aperture FPS app, connects to
+  `pnpm exec aperture mcp stdio`, pauses the ECS worker, resets the game, and
+  drives only generated input actions through the Aperture tool path.
+- Captured the previously manual platform-aware route in source control:
+  `enemy.0` from spawn, jump to west grass for `enemy.1`, jump back through the
+  start platform, jump to southeast grass for `enemy.2`, then double-jump across
+  the northeast platforms for `enemy.3`.
+- Added grounded landing checks after jump waypoints and explicit double-jump
+  support for the long northeast transitions, so the proof validates that jump
+  input is consumed and lands before continuing.
+- The route keeps gameplay state ECS-owned; it does not write player transforms
+  or enemy health directly.
+
+### Validation
+
+- `node --check fps/scripts/full-clear-smoke.mjs`
+- `pnpm --dir fps run smoke:full-clear -- --keep-running --verbose`
+  succeeded against a fresh managed Aperture session with final
+  `fps.state`: `health:60`, `shotsFired:8`, `hits:16`,
+  `enemiesRemaining:0`, `destroyedEnemies:4`, and
+  `gameStatus:"cleared"`. Screenshot:
+  `fps/.aperture/runtime/fps-full-clear-smoke.png`.
+- `git diff --check -- fps/package.json fps/scripts/full-clear-smoke.mjs`
+- `pnpm --dir fps run typecheck`
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-hud.test.ts`
+  passed 40 tests.
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+
 ## FPS-PORT — Source sun and weapon viewmodel calibration
 
 Completed: 2026-06-17 08:44 PDT

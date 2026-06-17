@@ -78,24 +78,6 @@ Acceptance criteria:
 
 ## Ready Follow-Up
 
-`task-fps-full-clear-smoke` — Add a generated-input FPS full-clear smoke route.
-
-Category: `runtime-orchestration`
-
-Reference anchor: `references/bevy/examples/input/keyboard_input_events.rs`,
-`references/engine/src/extras/input/sources/keyboard-mouse-source.js`.
-
-Acceptance criteria:
-
-- Add a reusable smoke route or script that drives the Starter Kit FPS app
-  through generated input and the narrow `fps.input` command channel.
-- The proof should move/look/shoot enough to clear the level or a deterministic
-  fixture subset and report `gameStatus:"cleared"` or an equivalent visible
-  completion signal.
-- Include live WebGPU pixel/readback or resource proof that shots, hits, and
-  player movement changed through the same route.
-- Keep the app state ECS-owned; do not add browser-only gameplay state.
-
 `task-fps-skybox-readback` — Harden FPS skybox orientation and readback proof.
 
 Category: `webgpu-render`

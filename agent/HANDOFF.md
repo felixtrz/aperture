@@ -1,11 +1,49 @@
-# Handoff - FPS Weapon Culling
+# Handoff - FPS Full-Clear Smoke Route
 
-**Updated:** 2026-06-17 09:18 PDT
+**Updated:** 2026-06-17 09:21 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Packaged the generated-input Starter Kit FPS full-clear proof:
+  - Added `pnpm --dir fps run smoke:full-clear`, backed by
+    `fps/scripts/full-clear-smoke.mjs`.
+  - The script starts/reuses the managed Aperture dev session, connects through
+    `pnpm exec aperture mcp stdio`, waits for WebGPU, pauses/resets the ECS
+    worker, and drives only generated input actions (`move`, `mouseLook`,
+    `jump`, `shoot`, `reset`) through the Aperture tool path.
+  - The route captures the previous manual platform-aware proof in source:
+    spawn kill for `enemy.0`, jump to west grass for `enemy.1`, return through
+    start grass, jump to southeast grass for `enemy.2`, and double-jump across
+    northeast platforms for `enemy.3`.
+  - Added landing checks after jump waypoints plus explicit double-jump support
+    for the long northeast transitions, which directly revalidates jump
+    consumption and camera-relative movement through live gameplay.
+  - Final live proof state from a fresh managed Aperture session:
+    `health:60`, `shotsFired:8`, `hits:16`, `enemiesRemaining:0`,
+    `destroyedEnemies:4`, every `enemyDestroyed.*:true`,
+    `gameStatus:"cleared"`. Screenshot:
+    `fps/.aperture/runtime/fps-full-clear-smoke.png`.
+  - The proof does not mutate player transforms or enemy health directly;
+    gameplay state remains ECS-owned.
+- Validation:
+  - `node --check fps/scripts/full-clear-smoke.mjs`
+  - `pnpm --dir fps run smoke:full-clear -- --keep-running --verbose`
+  - `git diff --check -- fps/package.json fps/scripts/full-clear-smoke.mjs`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-hud.test.ts`
+    passed 40 tests.
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+- Commit:
+  - `0ed3e278` — `Add FPS full-clear smoke route`
+
+## Previous Completed Slice - FPS Weapon Culling
 
 - Fixed the FPS weapon stock/back-end rendering inside-out:
   - Source anchors checked:
@@ -1730,10 +1768,10 @@ previous working state so the old state remains recoverable.
   elements, but generated `fps.state` values and signal summaries still expose
   `weaponName`, `enemiesRemaining`, `gameStatus`, hit/damage pulses, and related
   proof data to Aperture tools.
-- The generated-input full-clear proof now has a working platform-aware route.
-  The earlier failed straight-line route fell below the level after `enemy.2`;
-  the successful proof instead uses explicit platform waypoints and jump arcs
-  before claiming `gameStatus:"cleared"`.
+- The generated-input full-clear proof is now packaged as
+  `pnpm --dir fps run smoke:full-clear`. The script uses explicit platform
+  waypoints, grounded landing checks, and double-jump steps before claiming
+  `gameStatus:"cleared"`.
 - Pre-existing untracked screenshots,
   racing parity artifacts, and `racing/parity/` remain outside commits.
 - Muzzle flash proof reads should use `ecs_find_entities` / `ecs_get_entity`
@@ -1754,9 +1792,8 @@ previous working state so the old state remains recoverable.
 Continue the FPS port with another visible Starter Kit fidelity slice. Good
 next options are improving enemy attack polish, adding more source-like
 weapon/player detail parity, filling any remaining impact-rendering differences
-such as depth behavior, or packaging the platform-aware full-clear route into a
-reusable smoke script so future regressions can re-run the proof without
-retyping the route.
+such as depth behavior, or hardening the skybox orientation/readback proof now
+that the reusable full-clear smoke route exists.
 
 ---
 

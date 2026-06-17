@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "7993b007",
+  "lastCommit": "0ed3e278",
   "activePid": null,
-  "notes": "Preserved FPS weapon GLB double-sided culling while keeping the depthless viewmodel overlay; live frame report showed opaque|none|always weapon pipeline with diagnostics 0.",
-  "lastRunFinishedAt": "2026-06-17T16:18:00Z"
+  "notes": "Packaged FPS full-clear smoke route; live Aperture MCP proof reached gameStatus:cleared with shotsFired 8, hits 16, destroyedEnemies 4.",
+  "lastRunFinishedAt": "2026-06-17T16:23:44Z"
 }

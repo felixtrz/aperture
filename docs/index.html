@@ -393,12 +393,24 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 15:35 UTC</dd>
+            <dd>2026-06-17 16:21 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS now uses the source-style weapon
+              Latest update: Starter Kit FPS now has a reusable generated-input
+              full-clear smoke route at
+              <code>pnpm --dir fps run smoke:full-clear</code>. The script
+              starts or reuses the managed Aperture app, drives gameplay through
+              MCP-backed generated input actions, proves platform movement,
+              shots, hits, grounded jumps, and double jumps through
+              <code>fps.state</code>, and reached
+              <code>gameStatus:"cleared"</code> with
+              <code>health:60</code>, <code>shotsFired:8</code>,
+              <code>hits:16</code>, <code>enemiesRemaining:0</code>, and
+              <code>destroyedEnemies:4</code>. Screenshot proof was written to
+              <code>fps/.aperture/runtime/fps-full-clear-smoke.png</code>.
+              Prior update: Starter Kit FPS now uses the source-style weapon
               overlay path with post effects enabled. The renderer preserves
               same-swapchain world color, clears depth for the transparent
               weapon-layer overlay, stores MSAA color until the final same-target
@@ -1678,10 +1690,9 @@
             <dt>Next focus</dt>
             <dd>
               Replace placeholder PMREM with GGX/VNDF prefilter sampling, then
-              continue FPS-visible follow-ups such as a generated-input
-              full-clear smoke route or skybox orientation/readback hardening.
-              Keep racing and Shadow Lab green while touching shared renderer
-              paths.
+              continue FPS-visible follow-ups such as skybox
+              orientation/readback hardening. Keep racing and Shadow Lab green
+              while touching shared renderer paths.
             </dd>
           </dl>
         </aside>
@@ -2582,6 +2593,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Added
+                <code>pnpm --dir fps run smoke:full-clear</code>, a reusable
+                Aperture MCP generated-input smoke route that clears the
+                Starter Kit FPS level, validates grounded platform jumps and
+                double jumps, and reports final
+                <code>gameStatus:"cleared"</code> through ECS-owned
+                <code>fps.state</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Restored the Starter Kit
                 FPS source-style weapon overlay path. The app now renders world
@@ -6334,6 +6354,22 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">FPS-PORT</div>
+            <div>
+              <strong>Generated-input full-clear smoke route is packaged.</strong>
+              <span>
+                <code>pnpm --dir fps run smoke:full-clear</code> now drives the
+                Starter Kit FPS route through managed Aperture MCP input,
+                including platform movement, shooting, grounded jump landings,
+                and long double-jump transitions. The fresh-session proof ended
+                at <code>gameStatus:"cleared"</code> with
+                <code>shotsFired:8</code>, <code>hits:16</code>,
+                <code>destroyedEnemies:4</code>, and a screenshot at
+                <code>fps/.aperture/runtime/fps-full-clear-smoke.png</code>.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">M10-T2</div>
             <div>
