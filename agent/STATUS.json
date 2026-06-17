@@ -4,7 +4,7 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "63ee0c44",
+  "lastCommit": "1d6cc446",
   "activePid": null,
   "notes": "Reproved FPS shooting, camera-relative movement, jump, and enemy-hit damage through Aperture MCP/CLI tools; focused CLI client cleanup coverage added.",
   "lastRunFinishedAt": "2026-06-17T10:20:00Z"
