@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "694d60a1",
+  "lastCommit": "6ea8464a",
   "activePid": null,
-  "notes": "Added ECS-authored FPS player blob shadow using the upstream blob_shadow sprite and transparent unlit material. Reproved camera-relative movement, jump, shoot, and player.shadow rendering through Aperture CLI/runtime tools; FPS session reset clean afterward.",
-  "lastRunFinishedAt": "2026-06-17T08:14:00Z"
+  "notes": "Added source-style FPS weapon recoil kick: authored min/max camera knockback ranges now drive random pitch/yaw kick and a transient backward movement impulse through character-controller movement. Reproved recoil, WebGPU readiness, racing, and shadow-lab validation.",
+  "lastRunFinishedAt": "2026-06-17T08:23:00Z"
 }

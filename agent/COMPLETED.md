@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## FPS-PORT — Weapon recoil kick
+
+Completed: 2026-06-17 01:23 PDT
+Commit: `6ea8464a`
+
+### Summary
+
+- Added source-style shooting recoil from upstream `objects/player.gd` and
+  `weapons/*.tres`.
+- Weapon data now carries the authored min/max camera knockback ranges.
+- Each shot samples a pitch/yaw kick and adds a transient backward movement
+  impulse through the existing character-controller movement path.
+- Added focused control-helper coverage for recoil direction relative to camera
+  yaw.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Aperture CLI proof from `fps/`: `browser_reload`,
+  `browser_wait_for_webgpu`, generated `input_action_set`, `ecs_step`, and
+  `resource_get`.
+- Proof observed one shot changing `shotsFired:0 -> 1`, `pitch:0 -> 0.0378`,
+  `yaw:0 -> 0.0347`, then recoil displacement
+  `recoilX:-0.0131`, `recoilZ:0.3778` after 12 recovery steps.
+- MCP `render_explain_entity {"key":"player.shadow"}` still reported zero
+  diagnostics after the recoil edit.
+
 ## FPS-PORT — Player blob shadow
 
 Completed: 2026-06-17 01:10 PDT

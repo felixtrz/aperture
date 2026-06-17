@@ -1,25 +1,36 @@
-# Handoff - Starter Kit FPS Player Shadow + Control Reproof
+# Handoff - Starter Kit FPS Weapon Recoil
 
-**Updated:** 2026-06-17 01:14 PDT
+**Updated:** 2026-06-17 01:23 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Added a source-like player blob shadow as ECS-authored render data. Setup now
-  registers the upstream `blob_shadow` sprite, creates an unlit transparent
-  material/sampler asset, and spawns `player.shadow` as a non-casting,
-  non-receiving mesh plane at the player's feet.
-- `PlayerSystem` keeps `player.shadow` aligned with `fps.state.playerPosition`
-  without adding a renderer-owned player scene graph or hidden gameplay state.
-- Re-ran the reported control concerns through Aperture CLI stepping:
-  camera-relative movement follows yaw, jump leaves the ground with positive
-  vertical velocity, and generated shoot input increments `shotsFired`.
-- Committed implementation: `694d60a1` — `Add FPS player blob shadow`.
+- Added source-style weapon recoil from upstream `objects/player.gd` /
+  `weapons/*.tres`: each shot now samples the weapon's authored min/max camera
+  kick, nudges pitch/yaw, and adds a short backwards movement impulse.
+- Kept recoil ECS/simulation-owned by feeding the transient impulse through the
+  existing character-controller movement path; no renderer-owned weapon or
+  camera state was introduced.
+- Added focused control-helper coverage proving recoil points backward relative
+  to camera yaw.
+- Committed implementation: `6ea8464a` — `Add FPS weapon recoil kick`.
 
 ## Previous Completed FPS Slices
 
+- Player blob shadow:
+  - Added a source-like player blob shadow as ECS-authored render data. Setup
+    now registers the upstream `blob_shadow` sprite, creates an unlit
+    transparent material/sampler asset, and spawns `player.shadow` as a
+    non-casting, non-receiving mesh plane at the player's feet.
+  - `PlayerSystem` keeps `player.shadow` aligned with
+    `fps.state.playerPosition` without adding a renderer-owned player scene
+    graph or hidden gameplay state.
+  - Re-ran the reported control concerns through Aperture CLI stepping:
+    camera-relative movement follows yaw, jump leaves the ground with positive
+    vertical velocity, and generated shoot input increments `shotsFired`.
+  - Committed implementation: `694d60a1` — `Add FPS player blob shadow`.
 - Full-clear proof:
   - Proved the Starter Kit FPS port can reach the all-enemies-cleared gameplay
     state through generated gameplay input only. The proof drove configured
@@ -115,6 +126,22 @@ previous working state so the old state remains recoverable.
 - `pnpm --dir shadow-lab run typecheck`
 - `pnpm --dir shadow-lab run build`
 - Aperture CLI/runtime proof from `fps/`:
+  - Reloaded managed FPS at `http://127.0.0.1:5174/`;
+    `browser_wait_for_webgpu` succeeded with `webgpuOk:true` and no runtime
+    failure.
+  - Paused/reset the generated worker and stepped one generated `shoot` input.
+  - Proof state before shot: `position:[0,1.4946,0]`, `yaw:0`, `pitch:0`,
+    `shotsFired:0`.
+  - Proof state after shot: `shotsFired:1`, `shotCooldown:0.2333`,
+    `yaw:0.0347`, `pitch:0.0378`.
+  - After 12 recoil recovery steps, player displacement was `recoilX:-0.0131`,
+    `recoilZ:0.3778`, proving the shot kicked the player backward relative to
+    the camera direction.
+  - The live FPS session was reset afterward to fresh gameplay.
+- MCP sanity check:
+  - `render_explain_entity {"key":"player.shadow"}` returned zero diagnostics
+    and stable render/bounds packet keys after the recoil edit.
+- Previous player-shadow Aperture CLI/runtime proof from `fps/`:
   - Active managed session: `http://127.0.0.1:5174/`, WebGPU healthy.
   - `resource_get {"id":"fps.state"}` after reset reported fresh gameplay:
     `health:100`, `enemiesRemaining:4`, `shotsFired:0`, `hits:0`,

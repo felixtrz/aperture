@@ -393,12 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 08:14 UTC</dd>
+            <dd>2026-06-17 08:23 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the Starter Kit FPS port now has an ECS-authored
+              Latest update: the Starter Kit FPS port now has source-style
+              weapon recoil. Authored min/max knockback ranges from the
+              upstream weapon resources now drive random camera pitch/yaw kick
+              plus a transient backward movement impulse through the
+              character-controller path; Aperture CLI proof observed
+              <code>shotsFired:1</code>, <code>pitch:0.0378</code>,
+              <code>yaw:0.0347</code>, and <code>recoilZ:0.3778</code>.
+              Prior update: the Starter Kit FPS port gained an ECS-authored
               player blob shadow using the upstream <code>blob_shadow</code>
               sprite and a transparent unlit material. Aperture tools reproved
               <code>player.shadow</code> render extraction, camera-relative
@@ -2175,6 +2182,14 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Added source-style weapon
+                recoil: authored weapon knockback ranges now kick pitch/yaw and
+                push the player backward through the character-controller path.
+                Aperture CLI proof observed <code>shotsFired:1</code>,
+                <code>pitch:0.0378</code>, <code>yaw:0.0347</code>, and
+                <code>recoilZ:0.3778</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Added an ECS-authored
                 player blob shadow from the upstream
