@@ -393,12 +393,25 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 13:56 UTC</dd>
+            <dd>2026-06-17 14:03 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS shot body knockback now follows
+              Latest update: Starter Kit FPS weapon switching now follows the
+              source shoot-before-toggle ordering and preserves the shared
+              source cooldown timer. Switching no longer clears
+              <code>shotCooldown</code>; Aperture CLI proof fired one shot,
+              then pressed generated <code>switchWeapon</code> and
+              <code>shoot</code> together while cooldown was active and read
+              <code>weaponSwitchPhase:"hiding"</code>,
+              <code>shotsFired:1</code>, and
+              <code>shotCooldown:0.21666666666666667</code>. After crossing
+              the source <code>0.1</code>s hide duration, the live resource
+              reported <code>weaponIndex:1</code>,
+              <code>weaponVisualIndex:1</code>, and
+              <code>weaponSwitchPhase:"raising"</code>. Prior update: Starter
+              Kit FPS shot body knockback now follows
               the source movement path: the player resource carries
               <code>movementVelocity</code>, horizontal body movement lerps
               toward the source target at <code>delta * 10</code>, and shots
@@ -2530,6 +2543,17 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned Starter Kit FPS
+                source weapon-switch ordering and cooldown behavior. The port
+                now handles shooting before a new switch edge, preserves shared
+                <code>shotCooldown</code> through switches, and exports source
+                switch timing constants for the <code>0.1</code>s hide tween
+                and <code>delta * 10</code> raise lerp. Aperture CLI proof
+                showed switch-plus-shoot during cooldown starts
+                <code>weaponSwitchPhase:"hiding"</code> while keeping
+                <code>shotsFired:1</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned Starter Kit FPS
                 source shot body knockback. The port now stores

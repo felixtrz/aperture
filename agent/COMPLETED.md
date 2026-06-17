@@ -1,5 +1,47 @@
 # Completed Tasks
 
+## FPS-PORT — Source weapon switch cooldown
+
+Completed: 2026-06-17 07:03 PDT
+Commit: `f3128229`
+
+### Summary
+
+- Matched the upstream `handle_controls(delta)` order from
+  `references/Starter-Kit-FPS/objects/player.gd`: shooting is evaluated before
+  a new weapon-toggle edge.
+- Preserved the source shared `$Cooldown` behavior by removing the port's
+  cooldown reset from weapon switching.
+- Exported source weapon-switch timing constants for the 0.1s hide tween and
+  `delta * 10` raise lerp.
+- Same-frame switch-plus-shoot during cooldown now starts the switch hide phase
+  without firing an extra shot.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts`
+  passed 26 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+  passed 58 tests.
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture CLI proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed with WebGPU ready, generated FPS input
+    actions present, and render diagnostics `[]`.
+  - One generated shot produced `shotsFired:1` and
+    `shotCooldown:0.23333333333333334` after one release step.
+  - Same-frame generated `switchWeapon` plus `shoot` while cooldown was active
+    produced `weaponSwitchPhase:"hiding"`, `shotsFired:1`, and
+    `shotCooldown:0.21666666666666667`.
+  - After crossing the 0.1s hide duration, the live resource reported
+    `weaponIndex:1`, `weaponVisualIndex:1`, and
+    `weaponSwitchPhase:"raising"`.
+
 ## FPS-PORT — Source shot body knockback
 
 Completed: 2026-06-17 06:56 PDT

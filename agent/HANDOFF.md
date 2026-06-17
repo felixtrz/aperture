@@ -1,11 +1,57 @@
-# Handoff - Starter Kit FPS Source Shot Body Knockback
+# Handoff - Starter Kit FPS Source Weapon Switch Cooldown
 
-**Updated:** 2026-06-17 06:56 PDT
+**Updated:** 2026-06-17 07:03 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Aligned Starter Kit FPS weapon-switch ordering and shared cooldown:
+  - Source anchor: `references/Starter-Kit-FPS/objects/player.gd`.
+  - The source `handle_controls(delta)` calls `action_shoot()` before
+    `action_weapon_toggle()`, and `action_weapon_toggle()` only starts the
+    weapon tween and weapon-change sound; it does not reset the shared
+    `$Cooldown` timer.
+  - The port now advances active switch animation first, resolves the currently
+    usable weapon for shooting, processes shooting, and only then handles a new
+    `switchWeapon` edge.
+  - Switching no longer clears `shotCooldown`, so same-frame
+    switch-plus-shoot during cooldown starts the source hide animation but does
+    not fire an extra shot.
+  - Source weapon-switch timing constants are now exported as
+    `SOURCE_WEAPON_SWITCH_HIDE_DURATION = 0.1` and
+    `SOURCE_WEAPON_SWITCH_RAISE_RATE = 10`.
+- Aperture tooling proof:
+  - Started/reused the managed FPS app with
+    `pnpm --dir fps exec aperture dev up --headless --host 127.0.0.1 --port 5173`.
+  - CLI `browser_wait_for_webgpu` passed with WebGPU ready, generated FPS input
+    actions present, and render diagnostics `[]`.
+  - Paused/reset the live worker, fired once, then released for one step:
+    `shotsFired:1`, `shotCooldown:0.23333333333333334`,
+    `weaponSwitchPhase:"ready"`.
+  - Pressed `switchWeapon` and `shoot` together while cooldown was active and
+    stepped once: `weaponSwitchPhase:"hiding"`, `weaponSwitchProgress:0`,
+    `shotsFired:1`, and `shotCooldown:0.21666666666666667`.
+  - After crossing the source 0.1s hide duration, resource state reported
+    `weaponIndex:1`, `weaponVisualIndex:1`,
+    `weaponSwitchPhase:"raising"`, and `weaponSwitchProgress:0.5833333333333333`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts`
+    passed 26 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+    passed 58 tests.
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Commit:
+  - `f3128229` — `Align FPS source weapon switch cooldown`
+
+## Previous Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS source shot body knockback and movement smoothing:
   - Source anchors:
