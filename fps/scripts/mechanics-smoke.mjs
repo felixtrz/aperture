@@ -87,6 +87,46 @@ async function provePrimaryMouseShoot(mcpClient) {
   });
 }
 
+async function proveMiddleMouseWeaponToggle(mcpClient) {
+  await resetGame(mcpClient);
+
+  const before = await readFpsState(mcpClient);
+  const click = await mcpClient.call("input_pointer_click", {
+    x: 0.5,
+    y: 0.5,
+    button: "middle",
+  });
+  const expectedWeaponIndex = (before.weaponIndex + 1) % 2;
+  let after = await readFpsState(mcpClient);
+  for (let frame = 0; frame < 30; frame += 1) {
+    await stepFrames(mcpClient, 1);
+    after = await readFpsState(mcpClient);
+    if (after.weaponIndex === expectedWeaponIndex) {
+      break;
+    }
+  }
+
+  if (
+    after.weaponIndex !== expectedWeaponIndex ||
+    after.shotsFired !== before.shotsFired
+  ) {
+    throw new Error(
+      `middle mouse did not toggle weapon exactly once: ${JSON.stringify({
+        before: summarizeState(before),
+        after: summarizeState(after),
+        click,
+      })}`,
+    );
+  }
+
+  logProgress("middle-switch", {
+    before: before.weaponIndex,
+    after: after.weaponIndex,
+    phase: after.weaponSwitchPhase,
+    shotsFired: after.shotsFired,
+  });
+}
+
 async function proveCameraRelativeForward(mcpClient) {
   await resetGame(mcpClient);
   await aimAtYaw(mcpClient, -Math.PI / 2);
@@ -186,13 +226,17 @@ async function waitForGrounded(mcpClient, label) {
     const state = await readFpsState(mcpClient);
     if (state.grounded === true) return;
     if (state.playerPosition[1] < -5) {
-      throw new Error(`${label} fell before grounding: ${formatVec(state.playerPosition)}`);
+      throw new Error(
+        `${label} fell before grounding: ${formatVec(state.playerPosition)}`,
+      );
     }
     await stepFrames(mcpClient, 1);
   }
 
   const state = await readFpsState(mcpClient);
-  throw new Error(`${label} did not ground: ${formatVec(state.playerPosition)}`);
+  throw new Error(
+    `${label} did not ground: ${formatVec(state.playerPosition)}`,
+  );
 }
 
 async function stepFrames(mcpClient, count) {
@@ -232,6 +276,9 @@ function summarizeState(state) {
     verticalVelocity: Number(state.verticalVelocity?.toFixed(3)),
     jumpsRemaining: state.jumpsRemaining,
     grounded: state.grounded,
+    weaponIndex: state.weaponIndex,
+    weaponName: state.weaponName,
+    weaponSwitchPhase: state.weaponSwitchPhase,
     shotsFired: state.shotsFired,
   };
 }
@@ -437,6 +484,7 @@ async function main() {
     await mcp.call("browser_wait_for_webgpu", { timeoutMs: 30_000 });
     await resetGame(mcp);
     await provePrimaryMouseShoot(mcp);
+    await proveMiddleMouseWeaponToggle(mcp);
     await proveCameraRelativeForward(mcp);
     await proveSpaceJumpTap(mcp);
     await releaseInputs(mcp);

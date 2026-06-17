@@ -27,6 +27,7 @@ import {
   sourceKeyboardMoveKey,
   sourceHealthText,
   sourcePointerButtonAction,
+  sourcePointerButtonCommand,
   sourcePointerLockLookAxis,
   sourcePointerLockLookCommand,
   writeSourceHudCssVariables,
@@ -100,6 +101,20 @@ describe("Starter Kit FPS HUD", () => {
     expect(sourcePointerButtonAction(0)).toBeNull();
     expect(sourcePointerButtonAction(1)).toBe("switchWeapon");
     expect(sourcePointerButtonAction(2)).toBeNull();
+  });
+
+  it("emits a source middle mouse weapon-toggle command", () => {
+    expect(sourcePointerButtonCommand(1, true)).toEqual({
+      kind: "button",
+      action: "switchWeapon",
+      pressed: true,
+    });
+    expect(sourcePointerButtonCommand(1, false)).toEqual({
+      kind: "button",
+      action: "switchWeapon",
+      pressed: false,
+    });
+    expect(sourcePointerButtonCommand(0, true)).toBeNull();
   });
 
   it("keeps non-repeat keyboard button edges recoverable after stale latches", () => {

@@ -39,9 +39,23 @@ export async function inputPointerClick(
 ): Promise<unknown> {
   const point = await canvasPoint(page, args);
   const button = pointerButtonFromArgs(args);
+  const pointerLockDispatch = await dispatchPointerLockedCanvasClick(
+    page,
+    point,
+    button,
+  );
 
-  await page.mouse.click(point.x, point.y, { button });
-  return { ok: true, point, button, page: await readGeneratedStatus(page) };
+  if (!pointerLockDispatch.dispatched) {
+    await page.mouse.click(point.x, point.y, { button });
+  }
+
+  return {
+    ok: true,
+    point,
+    button,
+    pointerLockDispatch,
+    page: await readGeneratedStatus(page),
+  };
 }
 
 export async function inputDrag(
@@ -78,6 +92,91 @@ export function pointerButtonFromArgs(
     default:
       return "left";
   }
+}
+
+export function domButtonFromPointerButton(
+  button: AperturePointerButton,
+): 0 | 1 | 2 {
+  switch (button) {
+    case "middle":
+      return 1;
+    case "right":
+      return 2;
+    case "left":
+      return 0;
+  }
+}
+
+export function mouseButtonsMaskFromDomButton(button: 0 | 1 | 2): 1 | 2 | 4 {
+  switch (button) {
+    case 1:
+      return 4;
+    case 2:
+      return 2;
+    case 0:
+      return 1;
+  }
+}
+
+async function dispatchPointerLockedCanvasClick(
+  page: AperturePage,
+  point: { readonly x: number; readonly y: number },
+  button: AperturePointerButton,
+): Promise<{ readonly dispatched: boolean; readonly reason?: string }> {
+  const domButton = domButtonFromPointerButton(button);
+  const buttons = mouseButtonsMaskFromDomButton(domButton);
+
+  return page.evaluate(
+    ({ x, y, button, buttons }) => {
+      const canvas = document.querySelector("canvas");
+      if (!(canvas instanceof HTMLCanvasElement)) {
+        return { dispatched: false, reason: "missing-canvas" };
+      }
+
+      if (document.pointerLockElement !== canvas) {
+        return { dispatched: false, reason: "not-pointer-locked" };
+      }
+
+      const eventInit = {
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        button,
+        buttons,
+        clientX: x,
+        clientY: y,
+        screenX: x,
+        screenY: y,
+      };
+      const pointerInit = {
+        ...eventInit,
+        pointerId: 1,
+        pointerType: "mouse",
+        isPrimary: true,
+      };
+      const PointerEventCtor = globalThis.PointerEvent;
+
+      if (PointerEventCtor !== undefined) {
+        canvas.dispatchEvent(new PointerEventCtor("pointerdown", pointerInit));
+      }
+      canvas.dispatchEvent(new MouseEvent("mousedown", eventInit));
+
+      const releaseEventInit = { ...eventInit, buttons: 0 };
+      const releasePointerInit = { ...pointerInit, buttons: 0 };
+      if (PointerEventCtor !== undefined) {
+        canvas.dispatchEvent(
+          new PointerEventCtor("pointerup", releasePointerInit),
+        );
+      }
+      canvas.dispatchEvent(new MouseEvent("mouseup", releaseEventInit));
+
+      const clickType = button === 1 ? "auxclick" : "click";
+      canvas.dispatchEvent(new MouseEvent(clickType, releaseEventInit));
+
+      return { dispatched: true };
+    },
+    { x: point.x, y: point.y, button: domButton, buttons },
+  );
 }
 
 async function canvasPoint(

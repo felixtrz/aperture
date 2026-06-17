@@ -18,6 +18,7 @@ import {
   sourceKeyboardMoveAxis,
   sourceKeyboardMoveKey,
   sourcePointerButtonAction,
+  sourcePointerButtonCommand,
   sourcePointerLockLookCommand,
   sourcePointerLockLookAxis,
   SOURCE_INSTANT_BUTTON_TAP_RELEASE_DELAY_MS,
@@ -111,15 +112,16 @@ document.addEventListener("pointerlockchange", () => {
 });
 
 window.addEventListener("mousedown", (event) => {
-  const pointerAction = sourcePointerButtonAction(event.button);
-  if (pointerAction !== null) {
-    if (!isCanvasPointerEvent(event)) return;
+  const pointerLocked = document.pointerLockElement === canvas;
+  const pointerCommand = sourcePointerButtonCommand(event.button, true);
+  if (pointerCommand !== null) {
+    if (!pointerLocked && !isCanvasPointerEvent(event)) return;
     event.preventDefault();
+    dispatchInstantButtonAction(pointerCommand.action, "fps-pointer");
     return;
   }
 
   if (event.button !== 0) return;
-  const pointerLocked = document.pointerLockElement === canvas;
   if (!pointerLocked && !isCanvasPointerEvent(event)) return;
 
   event.preventDefault();

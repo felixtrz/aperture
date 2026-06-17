@@ -1,4 +1,7 @@
-import { SOURCE_POINTER_LOCK_LOOK_PIXELS_PER_UNIT } from "./fps-data.js";
+import {
+  SOURCE_POINTER_LOCK_LOOK_PIXELS_PER_UNIT,
+  type FpsInputCommand,
+} from "./fps-data.js";
 
 export const SOURCE_CROSSHAIR_TEXTURE_PIXELS = 128;
 export const SOURCE_CROSSHAIR_SCALE = 0.35;
@@ -81,6 +84,14 @@ export function sourcePointerButtonAction(
   button: number,
 ): SourcePointerButtonAction | null {
   return button === BROWSER_MIDDLE_MOUSE_BUTTON ? "switchWeapon" : null;
+}
+
+export function sourcePointerButtonCommand(
+  button: number,
+  pressed: boolean,
+): Extract<FpsInputCommand, { readonly kind: "button" }> | null {
+  const action = sourcePointerButtonAction(button);
+  return action === null ? null : { kind: "button", action, pressed };
 }
 
 export function sourceKeyboardButtonPressDispatches(repeat: boolean): boolean {
