@@ -1,5 +1,41 @@
 # Completed Tasks
 
+## FPS-PORT - Keyboard tap reliability and tool session stability
+
+Completed: 2026-06-17 12:39 PDT
+
+### Summary
+
+- Fixed the Aperture CLI browser-backed tool client so one-shot
+  `aperture tool ...` calls no longer close the managed Chrome CDP browser and
+  tear down the active dev session.
+- Added stdout/stderr flushing before CLI process exit so large tool responses
+  such as `browser_status` are not truncated.
+- Split FPS HUD tap release timing: keyboard button taps now stay visible for
+  slower worker frames, while instant pointer/button taps remain below the
+  fastest source weapon cooldown.
+
+### Validation
+
+- Live Aperture proof: quick Space tap after reset produced `grounded:false`
+  and `playerY:1.07`.
+- Live Aperture proof: left-click after reset produced `shotsFired:1`.
+- Live Aperture proof: after a virtual look pulse to yaw about `-3.31`, holding
+  `KeyW` moved the player to approximately `x:-0.36, z:2.17`.
+- `pnpm --dir fps run smoke:full-clear` passed with `shotsFired:8`, `hits:16`,
+  `destroyedEnemies:4`, `enemiesRemaining:0`, and `gameStatus:"cleared"`.
+- `pnpm exec vitest run test/cli/tool-client.test.ts`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec vitest run test/app/fps-hud.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+
 ## WEBGPU-SHADOWS - Default camera-backed auto-fit restored
 
 Completed: 2026-06-17 12:17 PDT

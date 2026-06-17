@@ -11,7 +11,8 @@ import {
   SOURCE_HEALTH_OUTLINE_SIZE_PX,
   SOURCE_HEALTH_WIDTH_PX,
   SOURCE_BOOT_SPLASH_BG_COLOR,
-  SOURCE_BUTTON_TAP_RELEASE_DELAY_MS,
+  SOURCE_INSTANT_BUTTON_TAP_RELEASE_DELAY_MS,
+  SOURCE_KEYBOARD_BUTTON_TAP_RELEASE_DELAY_MS,
   SOURCE_MOUSE_CAPTURE_EXIT_KEY_CODE,
   SOURCE_VIEWPORT_ASPECT,
   SOURCE_VIEWPORT_HEIGHT_PX,
@@ -100,9 +101,18 @@ describe("Starter Kit FPS HUD", () => {
     expect(sourceKeyboardButtonPressDispatches(true)).toBe(false);
   });
 
-  it("keeps quick source button taps visible below the fastest fire cooldown", () => {
-    expect(SOURCE_BUTTON_TAP_RELEASE_DELAY_MS).toBeGreaterThanOrEqual(16);
-    expect(SOURCE_BUTTON_TAP_RELEASE_DELAY_MS).toBeLessThan(100);
+  it("keeps pointer taps below the fastest fire cooldown", () => {
+    expect(SOURCE_INSTANT_BUTTON_TAP_RELEASE_DELAY_MS).toBeGreaterThanOrEqual(
+      16,
+    );
+    expect(SOURCE_INSTANT_BUTTON_TAP_RELEASE_DELAY_MS).toBeLessThan(100);
+  });
+
+  it("keeps keyboard taps visible across slower worker frames", () => {
+    expect(SOURCE_KEYBOARD_BUTTON_TAP_RELEASE_DELAY_MS).toBeGreaterThanOrEqual(
+      150,
+    );
+    expect(SOURCE_KEYBOARD_BUTTON_TAP_RELEASE_DELAY_MS).toBeLessThan(250);
   });
 
   it("keeps keyboard move axes aligned with the source local move vector", () => {

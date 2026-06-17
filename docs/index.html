@@ -393,12 +393,26 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 19:17 UTC</dd>
+            <dd>2026-06-17 19:39 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: directional shadow defaults have been corrected
+              Latest update: Starter Kit FPS keyboard taps are reliable on the
+              current managed build, and Aperture CLI browser-backed tool calls
+              no longer close the managed Chrome session after each call.
+              Keyboard button releases now remain visible for slower worker
+              frames, while instant pointer/button releases stay below the
+              fastest source weapon cooldown. Live Aperture proof showed a
+              quick Space tap after reset producing <code>grounded:false</code>
+              and <code>playerY:1.07</code>, left click producing
+              <code>shotsFired:1</code>, and yaw-relative <code>KeyW</code>
+              movement after a virtual look pulse. A clean
+              <code>pnpm --dir fps run smoke:full-clear</code> run reached
+              <code>shotsFired:8</code>, <code>hits:16</code>,
+              <code>destroyedEnemies:4</code>, and
+              <code>gameStatus:"cleared"</code>. Prior update: directional
+              shadow defaults have been corrected
               after the temporary scene-fit regression. Camera-backed app
               frames now fit the shadow footprint to the primary camera
               receiver/frustum region for sharp out-of-box shadows, while

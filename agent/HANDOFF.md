@@ -1,3 +1,60 @@
+# Handoff - FPS Keyboard Tap Reliability and Tool Session Stability
+
+**Updated:** 2026-06-17 12:39 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Fixed Aperture CLI browser-backed tool calls so `aperture tool ...` no longer
+  explicitly closes the managed Chrome CDP browser after every call:
+  - One-shot CLI commands now flush stdout/stderr before process exit.
+  - Browser-backed tools keep the CDP connection alive for the process lifetime,
+    avoiding managed-session teardown during live validation.
+- Split Starter Kit FPS HUD tap release timing:
+  - Keyboard button releases now stay pressed for `160ms`, long enough for slow
+    worker frames to observe quick Space taps.
+  - Instant pointer/button releases remain `80ms`, below the fastest repeater
+    cooldown, so click-shoot does not gain accidental extra shots.
+- Live Aperture CLI proof after the fix:
+  - Quick Space tap from the source start produced an airborne state
+    (`grounded:false`, `playerY:1.07`) instead of being dropped.
+  - Left click after reset incremented `shotsFired` from `0` to `1`.
+  - After a virtual mouse-look pulse to yaw about `-3.31`, holding `KeyW` moved
+    the player to approximately `x:-0.36, z:2.17`, proving yaw-relative forward
+    movement on the current build.
+  - `pnpm --dir fps run smoke:full-clear` passed with `shotsFired:8`,
+    `hits:16`, `destroyedEnemies:4`, `enemiesRemaining:0`, and
+    `gameStatus:"cleared"`.
+
+## Validation
+
+- `pnpm exec vitest run test/cli/tool-client.test.ts`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec vitest run test/app/fps-hud.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir fps run smoke:full-clear`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+
+## Known Issues
+
+- Starter Kit FPS is running at `http://127.0.0.1:5173/` for user testing.
+- Pre-existing untracked screenshot/parity artifacts remain outside the commit.
+
+## Recommended Next Task
+
+Continue the user-directed FPS parity stream. A good next visible slice is
+source middle-mouse weapon toggle through engine-level multi-button pointer
+input, using `references/Starter-Kit-FPS/project.godot` as the source anchor.
+
+---
+
 # Handoff - Shadow Default Auto-Fit Correction
 
 **Updated:** 2026-06-17 12:17 PDT

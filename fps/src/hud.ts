@@ -15,7 +15,8 @@ import {
   sourceKeyboardMoveKey,
   sourcePointerButtonAction,
   sourcePointerLockLookAxis,
-  SOURCE_BUTTON_TAP_RELEASE_DELAY_MS,
+  SOURCE_INSTANT_BUTTON_TAP_RELEASE_DELAY_MS,
+  SOURCE_KEYBOARD_BUTTON_TAP_RELEASE_DELAY_MS,
   sourceHealthText,
   type SourceKeyboardButtonAction,
   type SourceKeyboardMoveKey,
@@ -286,7 +287,7 @@ function scheduleKeyboardButtonRelease(
     window.setTimeout(() => {
       keyboardButtonReleaseTimers.delete(action);
       releaseKeyboardButtonActionNow(action);
-    }, SOURCE_BUTTON_TAP_RELEASE_DELAY_MS),
+    }, SOURCE_KEYBOARD_BUTTON_TAP_RELEASE_DELAY_MS),
   );
 }
 
@@ -313,7 +314,7 @@ function scheduleInstantButtonRelease(
         source,
       });
       dispatchFpsInputCommand({ kind: "button", action, pressed: false });
-    }, SOURCE_BUTTON_TAP_RELEASE_DELAY_MS),
+    }, SOURCE_INSTANT_BUTTON_TAP_RELEASE_DELAY_MS),
   );
 }
 
