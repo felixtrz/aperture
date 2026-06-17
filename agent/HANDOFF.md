@@ -1,3 +1,71 @@
+# Handoff - Starter Kit FPS First Aperture Slice
+
+**Updated:** 2026-06-16 22:46 PDT
+
+User-directed work is now on branch `fps-starter-kit-port`, created from the
+previous working state so the old state remains recoverable.
+
+## Latest Completed Slice
+
+- Added `fps/` as a workspace Aperture app and copied the Kenney Starter Kit FPS
+  assets into `fps/public/`.
+- Implemented the first playable ECS-first FPS slice: generated setup system,
+  GLTF level/enemy/weapon spawning, HUD, player state resource, movement,
+  jumping, weapon switching, shooting counters, enemy hover/attacks, audio
+  events, and pointer-lock mouselook bridge.
+- Fixed Aperture generated-worker devtools input so `input_action_set` queues
+  virtual input into the next simulation step instead of mutating input
+  immediately outside the app frame. This makes `.down()`/`.up()` button proofs
+  reliable through Aperture CLI/MCP tools.
+- Fixed `browser_screenshot` path captures so `includeData:false` no longer
+  dumps base64 image data to stdout.
+- Committed:
+  - `aaa83107` — `Port Starter Kit FPS slice to Aperture`
+  - `37bc0e5e` — `Add FPS pointer lock look bridge`
+
+## Latest Validation
+
+- `pnpm --dir .. run typecheck`
+- `pnpm --dir .. run typecheck:test`
+- `pnpm --dir .. exec vitest run test/app/generated-worker-start.test.ts`
+- `pnpm run typecheck` from `fps/`
+- `pnpm run build` from `fps/`
+- `pnpm run typecheck` and `pnpm run build` from `racing/`
+- `pnpm run typecheck` and `pnpm run build` from `shadow-lab/`
+- Aperture CLI runtime proof from `fps/`:
+  - `pnpm exec aperture dev up --open --host 127.0.0.1 --port 5174`
+  - `browser_wait_for_webgpu` reported running WebGPU with no startup failure.
+  - `asset_list` reported all 21 FPS GLTF/audio assets ready.
+  - `render_get_diagnostics` reported 1 view, 14 mesh draws, 0 diagnostics.
+  - Manual stepped input proof reset health to 100, moved the player, switched
+    to `weaponIndex:1`, and incremented `shotsFired`.
+  - Stepped `look` action proof changed yaw from `0` to `0.08333333333333333`.
+  - `browser_screenshot` wrote
+    `fps/.aperture/runtime/fps-runtime-proof.png`; visual inspection showed the
+    FPS level, enemy, HUD, crosshair, and active Repeater weapon.
+
+## Current Notes
+
+- Managed FPS is running at `http://127.0.0.1:5174/` through Aperture dev.
+- The worktree is clean for tracked files. Pre-existing untracked screenshots,
+  racing parity artifacts, and `racing/parity/` remain outside commits.
+- The current FPS slice is playable but still uses hand-rolled ground checks and
+  geometric enemy hit tests. A stronger follow-up should move player collision
+  and weapon hit/LOS checks onto Aperture physics queries/character movement.
+- `render_readback_samples` / `browser_pick_pixel` returned transparent pixels
+  in the paused proof even though the browser screenshot was visibly correct.
+  The screenshot path was sufficient for this slice, but the readback mismatch
+  is worth investigating if future proofs need pixel samples from this app.
+
+## Recommended Next Task
+
+Continue the FPS port with a visible gameplay slice: replace hand-rolled player
+grounding and enemy hit tests with Aperture physics-backed character movement,
+raycast shooting, and enemy line-of-sight checks, using the existing
+`physics_move_character` / raycast CLI tools for proof.
+
+---
+
 # Handoff - Racing Library-Gap Plan Complete
 
 **Updated:** 2026-06-16 21:56 PDT

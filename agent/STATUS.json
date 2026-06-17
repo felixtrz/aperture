@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "7a41996a",
+  "lastCommit": "37bc0e5e",
   "activePid": null,
-  "notes": "Completed racing library-gap final no-cache verification; racing and Shadow Lab verified on isolated managed sessions.",
-  "lastRunFinishedAt": "2026-06-17T05:00:36Z"
+  "notes": "Started Starter Kit FPS port on fps-starter-kit-port; first playable Aperture slice, pointer-lock look bridge, and devtools input fixes committed. FPS, racing, and shadow-lab validated.",
+  "lastRunFinishedAt": "2026-06-17T05:46:55Z"
 }
