@@ -55,6 +55,10 @@ const ENEMY_HOVER_RATE = 5;
 const ENEMY_ATTACK_INTERVAL = 0.25;
 const ENEMY_ATTACK_DISTANCE = 5;
 const ENEMY_ATTACK_DAMAGE = 5;
+const PLAYER_MUZZLE_ROLL_RANGE = Math.PI / 4;
+const PLAYER_MUZZLE_MIN_SCALE = 0.4;
+const PLAYER_MUZZLE_MAX_SCALE = 0.75;
+const ENEMY_MUZZLE_ROLL_RANGE = Math.PI / 4;
 const SPRITE_ANIMATION_FPS = 30;
 const PLAYER_CONTROLLER_SETTINGS: PhysicsCharacterControllerSettings = {
   offset: 0.02,
@@ -128,12 +132,15 @@ export default class PlayerSystem extends createSystem({
   #muzzleFlashTimer = 0;
   #impactFlashTimer = 0;
   #muzzleFlashPosition: Vec3 = HIDDEN_EFFECT_POSITION;
+  #muzzleFlashRoll = 0;
+  #muzzleFlashScale = PLAYER_MUZZLE_MIN_SCALE;
   #impactFlashPosition: Vec3 = HIDDEN_EFFECT_POSITION;
   #enemyMuzzleFlashTimers: [number, number] = [0, 0];
   #enemyMuzzleFlashPositions: [Vec3, Vec3] = [
     HIDDEN_EFFECT_POSITION,
     HIDDEN_EFFECT_POSITION,
   ];
+  #enemyMuzzleFlashRolls: [number, number] = [0, 0];
   #damagePulse = 0;
   #weaponVisualIndex = 0;
   #weaponSwitchTargetIndex = 0;
@@ -633,6 +640,14 @@ export default class PlayerSystem extends createSystem({
       pitch,
       weapon,
     );
+    this.#muzzleFlashRoll = randomBetween(
+      -PLAYER_MUZZLE_ROLL_RANGE,
+      PLAYER_MUZZLE_ROLL_RANGE,
+    );
+    this.#muzzleFlashScale = randomBetween(
+      PLAYER_MUZZLE_MIN_SCALE,
+      PLAYER_MUZZLE_MAX_SCALE,
+    );
     this.#muzzleFlashTimer = MUZZLE_FLASH_DURATION;
   }
 
@@ -646,8 +661,9 @@ export default class PlayerSystem extends createSystem({
       "effect.muzzle-burst",
       this.#muzzleFlashPosition,
       this.#muzzleFlashTimer / MUZZLE_FLASH_DURATION,
-      1,
+      this.#muzzleFlashScale,
       MUZZLE_FLASH_FRAMES,
+      this.#muzzleFlashRoll,
     );
     this.#writeEffectSprite(
       "effect.impact-hit",
@@ -663,6 +679,7 @@ export default class PlayerSystem extends createSystem({
         (this.#enemyMuzzleFlashTimers[i] ?? 0) / MUZZLE_FLASH_DURATION,
         0.72,
         MUZZLE_FLASH_FRAMES,
+        this.#enemyMuzzleFlashRolls[i] ?? 0,
       );
     }
   }
@@ -673,6 +690,7 @@ export default class PlayerSystem extends createSystem({
     normalizedLife: number,
     scale: number,
     frames: readonly SpriteAnimationFrame[],
+    rotation = 0,
   ): void {
     const entity = this.#findByKey(key);
     if (entity === null) return;
@@ -688,6 +706,7 @@ export default class PlayerSystem extends createSystem({
       entity.getVectorView(Sprite, "color").set([1, 1, 1, alpha]);
       entity.getVectorView(Sprite, "uvRect").set(frame.uvRect);
       entity.setValue(Sprite, "atlasFrame", frame.atlasFrame);
+      entity.setValue(Sprite, "rotation", rotation);
     }
   }
 
@@ -759,6 +778,10 @@ export default class PlayerSystem extends createSystem({
         yaw,
         ENEMY_MUZZLE_OFFSETS[i]!,
       );
+      this.#enemyMuzzleFlashRolls[i] = randomBetween(
+        -ENEMY_MUZZLE_ROLL_RANGE,
+        ENEMY_MUZZLE_ROLL_RANGE,
+      );
       this.#enemyMuzzleFlashTimers[i] = MUZZLE_FLASH_DURATION;
     }
   }
@@ -769,6 +792,7 @@ export default class PlayerSystem extends createSystem({
       HIDDEN_EFFECT_POSITION,
       HIDDEN_EFFECT_POSITION,
     ];
+    this.#enemyMuzzleFlashRolls = [0, 0];
   }
 
   #resetTransientGameplayState(): void {
@@ -778,6 +802,8 @@ export default class PlayerSystem extends createSystem({
     this.#muzzleFlashTimer = 0;
     this.#impactFlashTimer = 0;
     this.#muzzleFlashPosition = HIDDEN_EFFECT_POSITION;
+    this.#muzzleFlashRoll = 0;
+    this.#muzzleFlashScale = PLAYER_MUZZLE_MIN_SCALE;
     this.#impactFlashPosition = HIDDEN_EFFECT_POSITION;
     this.#clearEnemyMuzzleFlashes();
     this.#resetWeaponSwitch();
