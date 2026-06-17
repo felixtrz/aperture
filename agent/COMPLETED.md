@@ -2,15 +2,16 @@
 
 ## FPS-PORT — Pointer input and middle-click weapon toggle
 
-Completed: 2026-06-17 10:49 PDT
-Commit: `48ca7eec`
+Completed: 2026-06-17 10:53 PDT
+Commit: `e98bc98d`
 
 ### Summary
 
 - Fixed Starter Kit FPS browser control reliability for the latest reported
   shooting, jumping, and camera-relative movement concerns.
 - Simplified left-click shooting to a single `mousedown`/`mouseup` HUD command
-  path and released active shoot state on browser blur.
+  path with an unlocked first-click fallback, and released active shoot state on
+  browser blur.
 - Added source middle-mouse weapon toggle handling for Godot
   `weapon_toggle` mouse `button_index:3`.
 - Fixed generated browser input forwarding so middle/right mouse buttons no

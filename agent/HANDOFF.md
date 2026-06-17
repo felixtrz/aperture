@@ -1,6 +1,6 @@
 # Handoff - FPS Pointer Input Controls
 
-**Updated:** 2026-06-17 10:49 PDT
+**Updated:** 2026-06-17 10:53 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
@@ -13,8 +13,8 @@ previous working state so the old state remains recoverable.
     `references/Starter-Kit-FPS/project.godot` and
     `references/Starter-Kit-FPS/objects/player.gd`.
   - Removed the HUD's duplicate click/pointer shoot path. Left mouse now uses a
-    single held `mousedown`/`mouseup` command path, while `click` only requests
-    pointer lock.
+    held `mousedown`/`mouseup` command path, with a one-shot unlocked-click
+    fallback for the first pointer-lock click.
   - Browser blur now releases active pointer-lock shooting.
   - Non-repeat keyboard button presses now always dispatch a fresh app command
     edge, so a stale browser-side latch cannot swallow the next Space/E/R press.
@@ -54,6 +54,7 @@ previous working state so the old state remains recoverable.
   - `git diff --check`
 - Commit:
   - `48ca7eec` — `Fix FPS pointer input controls`
+  - `e98bc98d` — `Add FPS unlocked click fallback`
 
 ## Previous Completed Slice - FPS Source Viewport Shell
 

@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "48ca7eec",
+  "lastCommit": "e98bc98d",
   "activePid": null,
-  "notes": "Fixed FPS pointer/button controls: middle-click weapon toggle no longer fires primary shoot, left click still shoots, first clean Space press jumps, W movement was reproved camera-yaw-relative, and Aperture CLI pointer tools now accept explicit left/middle/right buttons.",
-  "lastRunFinishedAt": "2026-06-17T17:49:53Z"
+  "notes": "Fixed FPS pointer/button controls: middle-click weapon toggle no longer fires primary shoot, left click still shoots with an unlocked first-click fallback, first clean Space press jumps, W movement was reproved camera-yaw-relative, and Aperture CLI pointer tools now accept explicit left/middle/right buttons.",
+  "lastRunFinishedAt": "2026-06-17T17:53:51Z"
 }

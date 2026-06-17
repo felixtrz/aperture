@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 17:48 UTC</dd>
+            <dd>2026-06-17 17:53 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
@@ -401,9 +401,10 @@
               Latest update: Starter Kit FPS input now separates primary and
               non-primary pointer buttons. Source middle-click weapon toggle
               switches to <code>weaponIndex:1</code> / Repeater without firing,
-              while left click still increments <code>shotsFired</code>.
-              First-press Space jumping and camera-yaw-relative W movement were
-              reproved through the managed Aperture browser. The Aperture CLI
+              while left click still increments <code>shotsFired</code> with an
+              unlocked first-click fallback. First-press Space jumping and
+              camera-yaw-relative W movement were reproved through the managed
+              Aperture browser. The Aperture CLI
               <code>input_pointer_click</code> and <code>input_drag</code> tools
               now accept <code>button:"left"|"middle"|"right"</code> for these
               proofs. Prior update: Starter Kit FPS now uses the source project
@@ -2629,9 +2630,10 @@
                 <span class="badge green">fps</span> Fixed FPS pointer/button
                 control reliability. Middle click now follows the source
                 <code>weapon_toggle</code> binding without also firing the
-                primary pointer shoot action, left click still shoots, and
-                Space/W were reproved through managed Aperture input. The CLI
-                pointer tools now expose explicit left/middle/right buttons.
+                primary pointer shoot action, left click still shoots with an
+                unlocked first-click fallback, Space/W were reproved through
+                managed Aperture input, and the CLI pointer tools now expose
+                explicit left/middle/right buttons.
               </li>
               <li>
                 <span class="badge green">fps</span> Added
