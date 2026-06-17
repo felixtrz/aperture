@@ -225,6 +225,45 @@ describe("directional shadow matrix computation", () => {
     );
   });
 
+  it("does not let off-footprint casters expand the default frustum-fit footprint or depth", () => {
+    const request = { ...shadowRequest(), cascadeCount: 1 };
+    const baseInput = {
+      viewProjection: frustumFitPlan(request),
+      transforms: directionalDownTransform(),
+      cameraViewMatrix: translationView(0, 0, 0),
+      cameraProjectionMatrix: makePerspective(1.0, 1, 1, 200),
+    } as const;
+
+    const withoutCasterBounds =
+      createDirectionalShadowMatrixComputationReport(baseInput);
+    const withOffFootprintCaster =
+      createDirectionalShadowMatrixComputationReport({
+        ...baseInput,
+        casterBounds: [
+          {
+            passKey: "shadow-pass:7:light:11",
+            bounds: [{ min: [1000, 500, -20], max: [1010, 510, -10] }],
+          },
+        ],
+      });
+
+    expect(withOffFootprintCaster.matrices[0]?.center).toEqual(
+      withoutCasterBounds.matrices[0]?.center,
+    );
+    expect(withOffFootprintCaster.matrices[0]?.orthographicSize).toBe(
+      withoutCasterBounds.matrices[0]?.orthographicSize,
+    );
+    expect(withOffFootprintCaster.matrices[0]?.near).toBe(
+      withoutCasterBounds.matrices[0]?.near,
+    );
+    expect(withOffFootprintCaster.matrices[0]?.far).toBe(
+      withoutCasterBounds.matrices[0]?.far,
+    );
+    expect(withOffFootprintCaster.matrices[0]?.lightPosition).toEqual(
+      withoutCasterBounds.matrices[0]?.lightPosition,
+    );
+  });
+
   it("honors explicit static fallback bounds when frustum fitting is disabled", () => {
     const request = { ...shadowRequest(), cascadeCount: 1 };
     const report = createDirectionalShadowMatrixComputationReport({
