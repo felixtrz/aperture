@@ -1,6 +1,6 @@
 # Handoff - Starter Kit FPS Multi-Impact Effects And Grass Children
 
-**Updated:** 2026-06-17 04:29 PDT
+**Updated:** 2026-06-17 04:31 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
@@ -38,9 +38,9 @@ previous working state so the old state remains recoverable.
   - Immediately read `effect.impact-hit.0`, `.1`, and `.2`; each reported
     `renderSprite.color[3] = 1`, `atlasFrame:0`, and distinct impact
     translations around the enemy hitbox.
-  - `render_get_frame_report {"summaryOnly":true}` reported frame `4544`,
-    one view, 17 mesh draws, `spriteDraws:4`, `skyboxes:1`, 34 draw calls, and
-    diagnostics `0`.
+  - `render_get_frame_report {"summaryOnly":true}` reported frame `6462`,
+    one view, 20 mesh draws, `spriteDraws:4`, `skyboxes:1`, `fogs:1`, 37 draw
+    calls, and diagnostics `0`.
   - `ecs_find_entities {"tags":["decoration","grass"]}` returned 15 grass
     child entities, including `level.platform-large-grass.0.grass.0` and
     `level.platform-large-grass.4.grass-small.0` with source local transforms.

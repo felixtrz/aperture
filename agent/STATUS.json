@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "f14a3e1d",
   "activePid": null,
-  "notes": "Aligned FPS source impact slots and platform grass children, proved three pellet impact sprites plus 15 grass child entities through Aperture CLI, and kept fps/racing/shadow-lab validation green.",
-  "lastRunFinishedAt": "2026-06-17T11:29:08Z"
+  "notes": "Aligned FPS source multi-impact pellet effects and platform-large-grass child decorations, proved through Aperture CLI/MCP, kept fps/racing/shadow-lab green.",
+  "lastRunFinishedAt": "2026-06-17T11:32:12Z"
 }
