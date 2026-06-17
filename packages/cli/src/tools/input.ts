@@ -5,6 +5,8 @@ import {
   type AperturePointerButton,
 } from "./browser.js";
 
+export const RESET_POINTER_BUTTONS = ["left", "middle", "right"] as const;
+
 export async function inputKey(
   page: AperturePage,
   args: Record<string, unknown>,
@@ -72,6 +74,14 @@ export async function inputDrag(
   await page.mouse.up({ button });
 
   return { ok: true, from, to, button, page: await readGeneratedStatus(page) };
+}
+
+export async function releaseAllPointerButtons(
+  page: Pick<AperturePage, "mouse">,
+): Promise<void> {
+  for (const button of RESET_POINTER_BUTTONS) {
+    await page.mouse.up({ button });
+  }
 }
 
 export function pointerButtonFromArgs(

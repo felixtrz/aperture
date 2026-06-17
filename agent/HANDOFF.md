@@ -1,3 +1,84 @@
+# Handoff - FPS Audit Batch 1 Resource Lifecycle Fixes
+
+**Updated:** 2026-06-17 17:02 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 1 from `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Cached directional baked caster matrix buffers and baked caster bind groups
+  across frames, with buffer destruction and bind-group invalidation when baked
+  matrix byte size changes.
+- Added a size guard for cached receiver shadow matrix buffers. Count/byte-size
+  changes now destroy and recreate the buffer instead of writing new data into
+  the wrong-sized allocation, and the stale caster bind group is invalidated.
+- Destroyed particle emitter GPU state buffers when inactive particle states are
+  evicted from the WebGPU app resource cache.
+- Fixed partial audio lowpass patches so q-only automation preserves the
+  authored frequency and frequency-only automation preserves the authored q.
+- Fixed Aperture CLI `input_reset` to release left, middle, and right synthetic
+  mouse buttons before forwarding the runtime reset.
+- Marked Batch 1 implemented in
+  `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`; Batches 2 and 3 remain pending.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/shadow-matrix-buffer-resource.test.ts test/webgpu/particle-frame-resources.test.ts test/app/audio-access.test.ts test/cli/input-tools.test.ts`
+  - 5 files, 21 tests passed.
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Managed FPS at `http://127.0.0.1:5173/`:
+  - `browser_wait_for_webgpu`: `webgpuOk:true`, no `lastError` or
+    `lastFailure`;
+  - canvas status: swapchain render target `ok:true`, draw calls present,
+    render diagnostics `[]`;
+  - render diagnostics: frame `ok:true`, diagnostics `0`, auto-shadow
+    submission `submitted`, shadow diagnostics `[]`;
+  - `input_reset` returned primary/secondary/middle pointer state unpressed.
+- Managed Racing at `http://127.0.0.1:5173/`:
+  - `browser_wait_for_webgpu`: `webgpuOk:true`, no `lastError` or
+    `lastFailure`;
+  - canvas status: swapchain render target `ok:true`, `drawCalls:33`, render
+    diagnostics `[]`;
+  - render diagnostics: frame `ok:true`, diagnostics `0`, `meshDraws:36`,
+    `shadowCasterDraws:364`, auto-shadow submission `submitted`, shadow
+    diagnostics `[]`;
+  - serial `input_reset` cleared `drive` to `[0,0]` and all pointer buttons to
+    unpressed.
+- `pnpm exec prettier --check` on touched files
+- `git diff --check`
+
+## Known Issues
+
+- `pnpm run typecheck:test` still fails on unrelated existing test typing drift
+  outside this Batch 1 slice, including stale generated-worker snapshot helper
+  types, partial `AperturePage` test fakes, missing `occlusionQuery` in a
+  packed snapshot test fixture, and missing `shadowCasterDraws` in renderer
+  assembly test inspection counts.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- Managed FPS and Racing sessions were stopped after validation.
+
+## Recommended Next Task
+
+Continue `docs/FPS_STARTER_AUDIT_FIX_PLAN.md` with Batch 2: protect intentional
+visual baselines, fix bloom mip texel sizing, Vite worker HMR staleness,
+sprite-only depth mode, particle burst TTL time scale, particle runtime feature
+analysis caching, and render-interpolation characterization/allocation cleanup.
+
+---
+
 # Handoff - Racing Shadow Interpolation Lag Fix
 
 **Updated:** 2026-06-17 15:46 PDT

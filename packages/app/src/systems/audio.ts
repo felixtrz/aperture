@@ -438,14 +438,22 @@ function patchEmitter(entity: Entity, options: AudioLoopUpdateOptions): void {
   }
   setIfDefined(entity, "audibilityRadius", options.audibilityRadius);
   setIfDefined(entity, "occlusion", options.occlusion);
-  if (options.lowpass !== undefined || options.lowpassFrequency !== undefined) {
+  if (
+    options.lowpass === false ||
+    options.lowpass?.frequency !== undefined ||
+    options.lowpassFrequency !== undefined
+  ) {
     entity.setValue(
       AudioEmitter,
       "lowpassFrequency",
       lowpassFrequency(options),
     );
   }
-  if (options.lowpass !== undefined || options.lowpassQ !== undefined) {
+  if (
+    options.lowpass === false ||
+    options.lowpass?.q !== undefined ||
+    options.lowpassQ !== undefined
+  ) {
     entity.setValue(AudioEmitter, "lowpassQ", lowpassQ(options));
   }
   setIfDefined(entity, "active", options.active);

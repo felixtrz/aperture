@@ -3,7 +3,7 @@
 **Created:** 2026-06-17
 **Updated:** 2026-06-17
 **Source:** Multi-agent audit of `b80e8a43b61e9b6a234e443c05ff8448c7bc471b` through `fps-starter-kit-port`.
-**Status:** proposed
+**Status:** Batch 1 implemented; Batches 2 and 3 pending.
 
 This plan converts the confirmed audit findings from the FPS starter-kit branch
 into reviewable remediation batches. The goal is to fix the steady-state
@@ -33,6 +33,8 @@ that work. Do not use this plan as a rollback queue.
    synthetic input can corrupt later browser validation.
 
 ## Batch 1 - Shippability Fixes
+
+**Status:** implemented 2026-06-17 on `fix/audit-resource-lifecycle`.
 
 **Recommended branch:** `fix/audit-resource-lifecycle`
 

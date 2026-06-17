@@ -213,7 +213,60 @@ describe("render shadow frame", () => {
     expect(calls.textures).toHaveLength(1);
     expect(calls.samplers).toHaveLength(1);
     expect(calls.pipelines).toHaveLength(1);
+    expect(calls.buffers).toHaveLength(2);
+    expect(calls.bindGroups).toHaveLength(2);
     expect(calls.submissions).toHaveLength(2);
+    expect(calls.destroyedBuffers).toHaveLength(0);
+    expect(
+      calls.bufferWrites.filter((write) =>
+        writeTargetsBufferLabel(
+          write,
+          "DirectionalShadowCasterBakedMatrices/storage",
+        ),
+      ),
+    ).toHaveLength(2);
+  });
+
+  it("recreates baked caster resources when the caster matrix count changes", () => {
+    const calls = createDeviceCalls();
+    const cache = createWebGpuEnvironmentResourceCache();
+    const base = {
+      device: device(calls),
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache,
+      matrix: { center: [0, 0, -2], orthographicSize: 16 },
+    } as const;
+
+    const first = createRenderShadowFrame({
+      ...base,
+      snapshot: snapshot({ shadowRequest: { cascadeCount: 1 } }),
+      shadowMap: { cascadeCount: 1, mapSize: 512 },
+    });
+    const second = createRenderShadowFrame({
+      ...base,
+      snapshot: snapshot({ shadowRequest: { cascadeCount: 3 } }),
+      shadowMap: { cascadeCount: 3, mapSize: 512 },
+    });
+
+    expect(first.report.status).toBe("submitted");
+    expect(second.report.status).toBe("submitted");
+    expect(
+      calls.buffers.filter((buffer) =>
+        bufferHasLabel(buffer, "DirectionalShadowCasterBakedMatrices/storage"),
+      ),
+    ).toHaveLength(2);
+    expect(
+      calls.destroyedBuffers.filter((buffer) =>
+        bufferHasLabel(buffer, "DirectionalShadowCasterBakedMatrices/storage"),
+      ),
+    ).toHaveLength(1);
+    expect(
+      calls.destroyedBuffers.filter((buffer) =>
+        bufferHasLabel(buffer, "DirectionalShadowMatrices/storage"),
+      ),
+    ).toHaveLength(1);
+    expect(calls.bindGroups).toHaveLength(4);
   });
 
   it("honors authored shadow request bias, filter radius, and map size", () => {
@@ -511,6 +564,7 @@ interface DeviceCalls {
   readonly textureViews: unknown[];
   readonly samplers: unknown[];
   readonly buffers: unknown[];
+  readonly destroyedBuffers: unknown[];
   readonly bufferWrites: unknown[];
   readonly shaderModules: unknown[];
   readonly bindGroupLayouts: unknown[];
@@ -527,6 +581,7 @@ function createDeviceCalls(): DeviceCalls {
     textureViews: [],
     samplers: [],
     buffers: [],
+    destroyedBuffers: [],
     bufferWrites: [],
     shaderModules: [],
     bindGroupLayouts: [],
@@ -554,8 +609,14 @@ function device(calls: DeviceCalls): RenderShadowFrameDeviceLike {
       return { descriptor };
     },
     createBuffer(descriptor) {
-      calls.buffers.push(descriptor);
-      return { descriptor };
+      const buffer = {
+        descriptor,
+        destroy: () => {
+          calls.destroyedBuffers.push(buffer);
+        },
+      };
+      calls.buffers.push(buffer);
+      return buffer;
     },
     createShaderModule(descriptor) {
       calls.shaderModules.push(descriptor);
@@ -597,6 +658,19 @@ function device(calls: DeviceCalls): RenderShadowFrameDeviceLike {
       },
     },
   };
+}
+
+function bufferHasLabel(buffer: unknown, label: string): boolean {
+  return (
+    typeof buffer === "object" &&
+    buffer !== null &&
+    (buffer as { readonly descriptor?: { readonly label?: string } }).descriptor
+      ?.label === label
+  );
+}
+
+function writeTargetsBufferLabel(write: unknown, label: string): boolean {
+  return Array.isArray(write) && bufferHasLabel(write[0], label);
 }
 
 function renderPassEncoder() {

@@ -1,5 +1,6 @@
 import {
   createWebGpuBuffer,
+  destroyWebGpuBuffer,
   type WebGpuBufferDeviceLike,
   type WebGpuBufferFailure,
 } from "../gpu/buffer.js";
@@ -140,31 +141,6 @@ export function createShadowMatrixBufferResourceReport(
   }
 
   const descriptor = options.descriptor.descriptor;
-  const cached = options.cache?.get(descriptor.resourceKey);
-
-  if (cached !== undefined) {
-    // Re-upload the CURRENT matrices into the reused buffer. The cache key is the
-    // stable resourceKey, so a plain cache hit would keep serving the light-VP
-    // matrices captured on the first frame. The light-space ortho is recomputed
-    // every frame (it tracks the light + camera-derived shadow center) and the
-    // CASTER re-bakes lightVP*world every frame — so without this re-upload the
-    // receiver samples a STALE light-VP and the shadow desyncs from its caster
-    // the moment the camera or light moves.
-    const refreshed = packShadowMatrices(options.descriptor, options.matrices);
-    if (!("diagnostics" in refreshed)) {
-      options.device.queue?.writeBuffer?.(cached.buffer, 0, refreshed.data);
-    }
-    return report({
-      status: "available",
-      matrixCount: cached.matrixCount,
-      byteSize: cached.byteSize,
-      createdBufferCount: 0,
-      reusedBufferCount: 1,
-      resource: cached,
-      diagnostics: deferredDiagnostics(),
-    });
-  }
-
   const packed = packShadowMatrices(options.descriptor, options.matrices);
 
   if ("diagnostics" in packed) {
@@ -177,6 +153,41 @@ export function createShadowMatrixBufferResourceReport(
       resource: null,
       diagnostics: packed.diagnostics,
     });
+  }
+
+  const cached = options.cache?.get(descriptor.resourceKey);
+
+  if (cached !== undefined) {
+    if (cached.byteSize !== descriptor.byteSize) {
+      destroyWebGpuBuffer(cached.buffer);
+      options.cache?.delete(descriptor.resourceKey);
+    } else {
+      const resource: ShadowMatrixBufferResource = {
+        ...cached,
+        label: descriptor.label,
+        byteSize: descriptor.byteSize,
+        matrixCount: descriptor.matrixCount,
+        entryMatrixKeys: descriptor.entries.map((entry) => entry.matrixKey),
+      };
+      // Re-upload the CURRENT matrices into the reused buffer. The cache key is the
+      // stable resourceKey, so a plain cache hit would keep serving the light-VP
+      // matrices captured on the first frame. The light-space ortho is recomputed
+      // every frame (it tracks the light + camera-derived shadow center) and the
+      // CASTER re-bakes lightVP*world every frame — so without this re-upload the
+      // receiver samples a STALE light-VP and the shadow desyncs from its caster
+      // the moment the camera or light moves.
+      options.device.queue?.writeBuffer?.(resource.buffer, 0, packed.data);
+      options.cache?.set(descriptor.resourceKey, resource);
+      return report({
+        status: "available",
+        matrixCount: resource.matrixCount,
+        byteSize: resource.byteSize,
+        createdBufferCount: 0,
+        reusedBufferCount: 1,
+        resource,
+        diagnostics: deferredDiagnostics(),
+      });
+    }
   }
 
   const buffer = createWebGpuBuffer({

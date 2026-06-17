@@ -109,6 +109,17 @@ export function createWebGpuBuffer(
   return { ok: true, buffer };
 }
 
+export function destroyWebGpuBuffer(buffer: unknown): void {
+  if (typeof buffer !== "object" || buffer === null) {
+    return;
+  }
+
+  const destroy = (buffer as { readonly destroy?: unknown }).destroy;
+  if (typeof destroy === "function") {
+    destroy.call(buffer);
+  }
+}
+
 function createDescriptor(
   descriptor: WebGpuBufferDescriptor,
 ): WebGpuBufferCreateDescriptor {

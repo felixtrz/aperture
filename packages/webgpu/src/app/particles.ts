@@ -10,7 +10,7 @@ import {
   type RenderSnapshot,
 } from "@aperture-engine/render";
 import type { WebGpuCanvasLike } from "../gpu/initialize-webgpu.js";
-import { createWebGpuBuffer } from "../gpu/buffer.js";
+import { createWebGpuBuffer, destroyWebGpuBuffer } from "../gpu/buffer.js";
 import { createCommandEncoderResource } from "../gpu/command-encoder.js";
 import { finishCommandEncoder } from "../gpu/command-buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
@@ -1257,6 +1257,7 @@ function cleanupParticleStates(
 
   for (const key of cache.particleEmitterStates.keys()) {
     if (!activeKeys.has(key)) {
+      destroyWebGpuBuffer(cache.particleEmitterStates.get(key)?.particleBuffer);
       cache.particleEmitterStates.delete(key);
       removed += 1;
     }

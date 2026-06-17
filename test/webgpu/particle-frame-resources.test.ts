@@ -211,6 +211,11 @@ describe("GPU particle app frame resources", () => {
 
     expect(empty.report.staleStatesRemoved).toBe(1);
     expect(cache.particleEmitterStates).toHaveLength(0);
+    expect(
+      fixture.destroyedBuffers.filter(
+        (buffer) => buffer.label === "Particle/State/99",
+      ),
+    ).toHaveLength(1);
   });
 
   it("uploads burst particle state without running the continuous compute pass", async () => {
@@ -376,6 +381,7 @@ function createParticleDeviceFixture(): {
   readonly textureWrites: unknown[];
   readonly dispatches: [number, number, number][];
   readonly submissions: readonly unknown[][];
+  readonly destroyedBuffers: { readonly label: string }[];
 } {
   const writes: BufferWriteRecord[] = [];
   const createdTextures: unknown[] = [];
@@ -383,6 +389,7 @@ function createParticleDeviceFixture(): {
   const textureWrites: unknown[] = [];
   const dispatches: [number, number, number][] = [];
   const submissions: unknown[][] = [];
+  const destroyedBuffers: { readonly label: string }[] = [];
   const device = {
     createShaderModule: () => ({
       compilationInfo: async () => ({ messages: [] }),
@@ -403,10 +410,16 @@ function createParticleDeviceFixture(): {
       createdSamplers.push(descriptor);
       return { label: "particle-sampler" };
     },
-    createBuffer: (descriptor: { readonly label?: string }) => ({
-      label: descriptor.label ?? "buffer",
-      descriptor,
-    }),
+    createBuffer: (descriptor: { readonly label?: string }) => {
+      const buffer = {
+        label: descriptor.label ?? "buffer",
+        descriptor,
+        destroy: () => {
+          destroyedBuffers.push(buffer);
+        },
+      };
+      return buffer;
+    },
     createBindGroup: (descriptor: unknown) => ({ descriptor }),
     createCommandEncoder: () => ({
       beginComputePass: () => ({
@@ -456,6 +469,7 @@ function createParticleDeviceFixture(): {
     textureWrites,
     dispatches,
     submissions,
+    destroyedBuffers,
   };
 }
 
