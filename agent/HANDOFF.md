@@ -1,3 +1,59 @@
+# Handoff - Racing Shadow Interpolation Lag Fix
+
+**Updated:** 2026-06-17 15:46 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Fixed a Racing regression where the car shadow and the shadow cast by the car
+  lagged behind the visible car during fixed-step interpolation.
+- Root cause: the presentation-only interpolation passes rewrote
+  `snapshot.meshDraws` transforms, sprites, particles, and camera views, but did
+  not rewrite independently extracted `snapshot.shadowCasterDraws`. Shadow
+  fitting also reads `snapshot.bounds[draw.boundsIndex].worldAabb`, so stale
+  shadow-caster bounds could still trail even after matrix interpolation.
+- Added `snapshot-interpolation-bounds.ts` and wired both physics interpolation
+  and app `RenderInterpolation` to rewrite packet bounds from each packet's
+  local bounds plus the interpolated world matrix.
+- Extended tests so app render interpolation and generated-worker physics
+  interpolation assert visible mesh packets, shadow-caster packets, and both
+  bounds entries share the interpolated pose.
+
+## Validation
+
+- `pnpm exec vitest run test/app/fixed-step-app.test.ts test/app/generated-worker-start.test.ts -t "interpolat"`
+- `pnpm exec vitest run test/app/fixed-step-app.test.ts test/app/generated-worker-start.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `pnpm exec prettier --check packages/app/src/physics-interpolation.ts packages/app/src/render-interpolation.ts packages/app/src/snapshot-interpolation-bounds.ts test/app/fixed-step-app.test.ts test/app/generated-worker-start.test.ts`
+- Managed Racing at `http://127.0.0.1:5173/`:
+  - `browser_wait_for_webgpu`: `webgpuOk:true`, no `lastError` or
+    `lastFailure`;
+  - short `drive=[1,1]` smoke moved the vehicle with
+    `linearSpeed:1.260`, `driftIntensity:0.798`, and render diagnostics `0`;
+  - post-smoke frame diagnostics: `frameOk:true`, diagnostics `0`,
+    shadow status `submitted`, shadow diagnostics `0`;
+  - input was reset afterward.
+
+## Known Issues
+
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- Managed Racing remains running at `http://127.0.0.1:5173/`.
+
+## Recommended Next Task
+
+If the user is satisfied with Racing, continue with the previously recommended
+engine backlog task `task-3097 — Replace placeholder PMREM with GGX/VNDF
+prefilter sampling`; otherwise keep using managed Racing to inspect any
+remaining shadow/camera feel issues.
+
+---
+
 # Handoff - FPS Completion Audit and Tool Client Hardening
 
 **Updated:** 2026-06-17 15:12 PDT

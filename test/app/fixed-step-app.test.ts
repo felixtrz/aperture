@@ -81,6 +81,8 @@ describe("app fixed-step scheduling", () => {
           key: "moving",
           mesh: mesh.box({ size: 1 }),
           material: material.standard(),
+          castShadow: true,
+          receiveShadow: true,
         });
         this.#mesh.addComponent(RenderInterpolation);
 
@@ -89,6 +91,11 @@ describe("app fixed-step scheduling", () => {
           transform: { translation: [0, 0, 5] },
         });
         this.#camera.addComponent(RenderInterpolation);
+        this.spawn.light({
+          key: "light.sun",
+          shadow: true,
+          transform: { translation: [0, 5, 0] },
+        });
       }
 
       override fixedUpdate(): void {
@@ -112,14 +119,28 @@ describe("app fixed-step scheduling", () => {
     app.step(1.25, 1.25);
     const snapshot = app.extract(1);
     const draw = snapshot.meshDraws[0];
+    const shadowDraw = snapshot.shadowCasterDraws?.find(
+      (packet) => packet.entity.index === draw?.entity.index,
+    );
     const view = snapshot.views[0];
 
     expect(draw).toBeDefined();
+    expect(shadowDraw).toBeDefined();
     expect(view).toBeDefined();
     expect(snapshot.transforms[draw!.worldTransformOffset + 12]).toBeCloseTo(
       2.5,
       5,
     );
+    expect(
+      snapshot.transforms[shadowDraw!.worldTransformOffset + 12],
+    ).toBeCloseTo(2.5, 5);
+    expect(snapshot.bounds[draw!.boundsIndex]?.worldAabb.min[0]).toBeCloseTo(
+      2,
+      5,
+    );
+    expect(
+      snapshot.bounds[shadowDraw!.boundsIndex]?.worldAabb.min[0],
+    ).toBeCloseTo(2, 5);
     expect(snapshot.viewMatrices[view!.viewMatrixOffset + 12]).toBeCloseTo(
       -2.5,
       5,

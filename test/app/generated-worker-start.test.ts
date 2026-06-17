@@ -4428,6 +4428,36 @@ describe("generated simulation worker start messages", () => {
     expect(renderMatrix[12]).toBeCloseTo(1.5, 3);
     expect(renderMatrix[13]).toBeCloseTo(0, 6);
     expect(renderMatrix[14]).toBeCloseTo(-5, 6);
+    expect(
+      rendered.snapshot.bounds[draw.boundsIndex]?.worldAabb.min[0],
+    ).toBeCloseTo(1, 3);
+
+    const shadowDraw = rendered.snapshot.shadowCasterDraws?.find(
+      (packet) =>
+        packet.entity.index === draw.entity.index &&
+        packet.entity.generation === draw.entity.generation,
+    );
+
+    expect(shadowDraw).toBeDefined();
+    if (shadowDraw === undefined) {
+      throw new Error(
+        "Expected interpolated physics proof to render a shadow caster.",
+      );
+    }
+
+    const shadowMatrix = Array.from(
+      rendered.snapshot.transforms.slice(
+        shadowDraw.worldTransformOffset,
+        shadowDraw.worldTransformOffset + 16,
+      ),
+    );
+
+    expect(shadowMatrix[12]).toBeCloseTo(1.5, 3);
+    expect(shadowMatrix[13]).toBeCloseTo(0, 6);
+    expect(shadowMatrix[14]).toBeCloseTo(-5, 6);
+    expect(
+      rendered.snapshot.bounds[shadowDraw.boundsIndex]?.worldAabb.min[0],
+    ).toBeCloseTo(1, 3);
 
     port.dispatch(
       createApertureDevtoolsRequest({
@@ -7907,12 +7937,19 @@ class GeneratedWorkerPhysicsInterpolationProofSystem extends GeneratedWorkerPhys
       key: "physics.interpolate.camera",
       transform: { translation: [0, 0, 0] },
     });
+    this.spawn.light({
+      key: "physics.interpolate.light",
+      shadow: true,
+      transform: { translation: [0, 5, 0] },
+    });
     this.spawn.mesh({
       key: "physics.interpolate.body",
       name: "Physics Interpolation Body",
       transform: { translation: [0, 0, -5] },
       mesh: mesh.box({ size: [1, 1, 1] }),
       material: material.standard(),
+      castShadow: true,
+      receiveShadow: true,
       physics: {
         rigidBody: { type: PhysicsRigidBodyType.Dynamic },
         collider: { shape: { kind: "box", halfExtents: [0.5, 0.5, 0.5] } },

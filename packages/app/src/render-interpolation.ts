@@ -16,6 +16,7 @@ import {
 import { slerpQuat } from "@aperture-engine/physics";
 import { RenderInterpolation } from "./systems/components.js";
 import type { FixedStepTaskRegistrar } from "./systems/fixed-step.js";
+import { rewriteInterpolatedPacketBounds } from "./snapshot-interpolation-bounds.js";
 
 export const RENDER_INTERPOLATION_PRE_PRIORITY = -1_000_000_000;
 export const RENDER_INTERPOLATION_POST_PRIORITY = 1_000_000_000;
@@ -24,6 +25,7 @@ export interface RenderSnapshotInterpolationReport {
   readonly enabled: boolean;
   readonly alpha: number;
   readonly transformWrites: number;
+  readonly boundsWrites: number;
   readonly viewWrites: number;
 }
 
@@ -88,46 +90,81 @@ export function applyRenderSnapshotInterpolation(options: {
   const matrixCache = new Map<string, Mat4 | null>();
   const affectedCache = new Map<string, boolean>();
   const writtenOffsets = new Set<number>();
+  const writtenBounds = new Set<number>();
   let transformWrites = 0;
+  let boundsWrites = 0;
   let viewWrites = 0;
 
   for (const draw of options.snapshot.meshDraws) {
-    transformWrites += writeInterpolatedPacketTransform({
+    const writes = writeInterpolatedPacketTransform({
+      snapshot: options.snapshot,
       world: options.world,
       transforms: options.snapshot.transforms,
       entityRef: draw.entity,
       offset: draw.worldTransformOffset,
+      boundsIndex: draw.boundsIndex,
       alpha,
       matrixCache,
       affectedCache,
       writtenOffsets,
+      writtenBounds,
     });
+    transformWrites += writes.transformWrites;
+    boundsWrites += writes.boundsWrites;
+  }
+
+  for (const draw of options.snapshot.shadowCasterDraws ?? []) {
+    const writes = writeInterpolatedPacketTransform({
+      snapshot: options.snapshot,
+      world: options.world,
+      transforms: options.snapshot.transforms,
+      entityRef: draw.entity,
+      offset: draw.worldTransformOffset,
+      boundsIndex: draw.boundsIndex,
+      alpha,
+      matrixCache,
+      affectedCache,
+      writtenOffsets,
+      writtenBounds,
+    });
+    transformWrites += writes.transformWrites;
+    boundsWrites += writes.boundsWrites;
   }
 
   for (const draw of options.snapshot.spriteDraws ?? []) {
-    transformWrites += writeInterpolatedPacketTransform({
+    const writes = writeInterpolatedPacketTransform({
+      snapshot: options.snapshot,
       world: options.world,
       transforms: options.snapshot.transforms,
       entityRef: draw.entity,
       offset: draw.worldTransformOffset,
+      boundsIndex: draw.boundsIndex,
       alpha,
       matrixCache,
       affectedCache,
       writtenOffsets,
+      writtenBounds,
     });
+    transformWrites += writes.transformWrites;
+    boundsWrites += writes.boundsWrites;
   }
 
   for (const emitter of options.snapshot.particleEmitters ?? []) {
-    transformWrites += writeInterpolatedPacketTransform({
+    const writes = writeInterpolatedPacketTransform({
+      snapshot: options.snapshot,
       world: options.world,
       transforms: options.snapshot.transforms,
       entityRef: emitter.entity,
       offset: emitter.worldTransformOffset,
+      boundsIndex: emitter.boundsIndex,
       alpha,
       matrixCache,
       affectedCache,
       writtenOffsets,
+      writtenBounds,
     });
+    transformWrites += writes.transformWrites;
+    boundsWrites += writes.boundsWrites;
   }
 
   for (const view of options.snapshot.views) {
@@ -148,25 +185,38 @@ export function applyRenderSnapshotInterpolation(options: {
     enabled: true,
     alpha,
     transformWrites,
+    boundsWrites,
     viewWrites,
   };
 }
 
+interface PacketInterpolationWrites {
+  readonly transformWrites: number;
+  readonly boundsWrites: number;
+}
+
 function writeInterpolatedPacketTransform(options: {
+  readonly snapshot: RenderSnapshot;
   readonly world: EcsWorld;
   readonly transforms: Float32Array;
   readonly entityRef: { readonly index: number; readonly generation: number };
   readonly offset: number;
+  readonly boundsIndex: number;
   readonly alpha: number;
   readonly matrixCache: Map<string, Mat4 | null>;
   readonly affectedCache: Map<string, boolean>;
   readonly writtenOffsets: Set<number>;
-}): number {
-  if (
-    options.writtenOffsets.has(options.offset) ||
-    !matrixOffsetValid(options.transforms, options.offset)
-  ) {
-    return 0;
+  readonly writtenBounds: Set<number>;
+}): PacketInterpolationWrites {
+  if (!matrixOffsetValid(options.transforms, options.offset)) {
+    return noPacketWrites();
+  }
+
+  const offsetWritten = options.writtenOffsets.has(options.offset);
+  const boundsWritten = options.writtenBounds.has(options.boundsIndex);
+
+  if (offsetWritten && boundsWritten) {
+    return noPacketWrites();
   }
 
   const entity = resolveSnapshotEntity(options.world, options.entityRef);
@@ -175,7 +225,7 @@ function writeInterpolatedPacketTransform(options: {
     entity === null ||
     !interpolationAffectsWorldMatrix(entity, options.affectedCache, new Set())
   ) {
-    return 0;
+    return noPacketWrites();
   }
 
   const matrix = interpolatedWorldMatrix(
@@ -187,12 +237,30 @@ function writeInterpolatedPacketTransform(options: {
   );
 
   if (matrix === null) {
-    return 0;
+    return noPacketWrites();
   }
 
-  options.transforms.set(matrix, options.offset);
-  options.writtenOffsets.add(options.offset);
-  return 1;
+  let transformWrites = 0;
+
+  if (!offsetWritten) {
+    options.transforms.set(matrix, options.offset);
+    options.writtenOffsets.add(options.offset);
+    transformWrites = 1;
+  }
+
+  return {
+    transformWrites,
+    boundsWrites: rewriteInterpolatedPacketBounds({
+      snapshot: options.snapshot,
+      boundsIndex: options.boundsIndex,
+      worldMatrix: matrix,
+      writtenBounds: options.writtenBounds,
+    }),
+  };
+}
+
+function noPacketWrites(): PacketInterpolationWrites {
+  return { transformWrites: 0, boundsWrites: 0 };
 }
 
 function writeInterpolatedViewMatrices(options: {
