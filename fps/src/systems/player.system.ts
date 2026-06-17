@@ -184,6 +184,8 @@ export default class PlayerSystem extends createSystem({
   #commandMoveZ = 0;
   #commandJumpPressed = false;
   #commandJumpDown = false;
+  #commandShootPressed = false;
+  #commandShootDown = false;
   #commandSwitchWeaponDown = false;
   #commandResetDown = false;
   #lookTargetYaw = 0;
@@ -368,8 +370,7 @@ export default class PlayerSystem extends createSystem({
     const moveZ = clampNumber(actionMoveZ + this.#commandMoveZ, -1, 1);
 
     const jump = this.#button("jump");
-    const jumpPressed =
-      jump?.pressed() === true || this.#commandJumpPressed;
+    const jumpPressed = jump?.pressed() === true || this.#commandJumpPressed;
     const jumpPressedThisFrame =
       sourceButtonPressedThisFrame({
         pressed: jumpPressed,
@@ -393,11 +394,11 @@ export default class PlayerSystem extends createSystem({
     weaponIndex = this.#advanceWeaponSwitch(weaponIndex, dt);
     const weapon = WEAPONS[weaponIndex] ?? WEAPONS[0]!;
     const shoot = respawnedThisFrame ? undefined : this.#button("shoot");
-    const shootPressed = shoot?.pressed() === true;
+    const shootPressed = shoot?.pressed() === true || this.#commandShootPressed;
     if (
       sourceButtonPressedThisFrame({
         pressed: shootPressed,
-        down: shoot?.down() === true,
+        down: shoot?.down() === true || this.#commandShootDown,
         wasPressed: this.#shootPressedLastFrame,
       })
     ) {
@@ -442,8 +443,7 @@ export default class PlayerSystem extends createSystem({
 
     if (
       !respawnedThisFrame &&
-      (this.#button("switchWeapon")?.down() ||
-        this.#commandSwitchWeaponDown)
+      (this.#button("switchWeapon")?.down() || this.#commandSwitchWeaponDown)
     ) {
       const nextWeaponIndex = (weaponIndex + 1) % WEAPONS.length;
       if (this.#startWeaponSwitch(weaponIndex, nextWeaponIndex)) {
@@ -615,6 +615,9 @@ export default class PlayerSystem extends createSystem({
       if (command.action === "jump") {
         this.#commandJumpPressed = command.pressed;
         if (command.pressed) this.#commandJumpDown = true;
+      } else if (command.action === "shoot") {
+        this.#commandShootPressed = command.pressed;
+        if (command.pressed) this.#commandShootDown = true;
       } else if (command.action === "switchWeapon") {
         if (command.pressed) this.#commandSwitchWeaponDown = true;
       } else if (command.action === "reset" && command.pressed) {
@@ -625,6 +628,7 @@ export default class PlayerSystem extends createSystem({
 
   #clearCommandButtonEdges(): void {
     this.#commandJumpDown = false;
+    this.#commandShootDown = false;
     this.#commandSwitchWeaponDown = false;
     this.#commandResetDown = false;
   }
@@ -1063,6 +1067,8 @@ export default class PlayerSystem extends createSystem({
     this.#landingPulse = 0;
     this.#jumpBufferTimer = 0;
     this.#shootBufferTimer = 0;
+    this.#commandShootPressed = false;
+    this.#commandShootDown = false;
     this.#jumpPressedLastFrame = false;
     this.#shootPressedLastFrame = false;
     this.#setLookTargets(0, 0);
@@ -1415,10 +1421,7 @@ function spreadDirection(yaw: number, pitch: number, weapon: WeaponSpec): Vec3 {
   });
 }
 
-function weaponMuzzlePosition(
-  weapon: WeaponSpec,
-  viewOffset: Vec3,
-): Vec3 {
+function weaponMuzzlePosition(weapon: WeaponSpec, viewOffset: Vec3): Vec3 {
   return sourceWeaponMuzzleLocalPosition({
     containerOffset: weapon.position,
     weaponMuzzlePosition: weapon.muzzlePosition,

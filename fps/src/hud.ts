@@ -22,19 +22,12 @@ const canvas = document.querySelector<HTMLCanvasElement>("#aperture");
 const healthEl = document.querySelector<HTMLElement>("#health");
 const crosshairEl = document.querySelector<HTMLImageElement>("#crosshair");
 
-const POINTER_LOCK_SHOOT_RELEASE_DELAY_MS = 40;
-const KEYBOARD_BUTTON_RELEASE_DELAY_MS = 60;
 let pendingLookX = 0;
 let pendingLookY = 0;
 let lookActionActive = false;
 let shootActionActive = false;
-let shootReleaseTimer: number | undefined;
 const keyboardMoveKeys = new Set<SourceKeyboardMoveKey>();
 const keyboardButtonActions = new Set<SourceKeyboardButtonAction>();
-const keyboardButtonReleaseTimers = new Map<
-  SourceKeyboardButtonAction,
-  number
->();
 
 function readNumber(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
@@ -86,7 +79,7 @@ document.addEventListener("pointerlockchange", () => {
       source: "pointer-lock",
     });
     lookActionActive = false;
-    releasePointerLockShoot({ immediate: true });
+    releasePointerLockShoot();
   }
 });
 
@@ -199,13 +192,8 @@ function releaseKeyboardActions(): void {
     dispatchKeyboardMove();
   }
 
-  for (const timer of keyboardButtonReleaseTimers.values()) {
-    window.clearTimeout(timer);
-  }
-  keyboardButtonReleaseTimers.clear();
-
   for (const action of [...keyboardButtonActions]) {
-    releaseKeyboardButtonAction(action, { immediate: true });
+    releaseKeyboardButtonAction(action);
   }
 }
 
@@ -213,12 +201,6 @@ function pressKeyboardButtonAction(
   action: SourceKeyboardButtonAction,
   repeat: boolean,
 ): void {
-  const releaseTimer = keyboardButtonReleaseTimers.get(action);
-  if (releaseTimer !== undefined) {
-    window.clearTimeout(releaseTimer);
-    keyboardButtonReleaseTimers.delete(action);
-  }
-
   if (keyboardButtonActions.has(action)) return;
   if (repeat) return;
 
@@ -230,79 +212,36 @@ function pressKeyboardButtonAction(
   dispatchFpsInputCommand({ kind: "button", action, pressed: true });
 }
 
-function releaseKeyboardButtonAction(
-  action: SourceKeyboardButtonAction,
-  options: { readonly immediate?: boolean } = {},
-): void {
+function releaseKeyboardButtonAction(action: SourceKeyboardButtonAction): void {
   if (!keyboardButtonActions.has(action)) return;
 
-  if (options.immediate === true) {
-    const releaseTimer = keyboardButtonReleaseTimers.get(action);
-    if (releaseTimer !== undefined) {
-      window.clearTimeout(releaseTimer);
-      keyboardButtonReleaseTimers.delete(action);
-    }
-    keyboardButtonActions.delete(action);
-    dispatchApertureInputAction(action, {
-      pressed: false,
-      source: "fps-keyboard",
-    });
-    dispatchFpsInputCommand({ kind: "button", action, pressed: false });
-    return;
-  }
-
-  if (keyboardButtonReleaseTimers.has(action)) return;
-  keyboardButtonReleaseTimers.set(
-    action,
-    window.setTimeout(() => {
-      keyboardButtonReleaseTimers.delete(action);
-      releaseKeyboardButtonAction(action, { immediate: true });
-    }, KEYBOARD_BUTTON_RELEASE_DELAY_MS),
-  );
+  keyboardButtonActions.delete(action);
+  dispatchApertureInputAction(action, {
+    pressed: false,
+    source: "fps-keyboard",
+  });
+  dispatchFpsInputCommand({ kind: "button", action, pressed: false });
 }
 
 function pressPointerLockShoot(): void {
-  if (shootReleaseTimer !== undefined) {
-    window.clearTimeout(shootReleaseTimer);
-    shootReleaseTimer = undefined;
-  }
-
   if (shootActionActive) return;
   shootActionActive = true;
   dispatchApertureInputAction("shoot", {
     pressed: true,
     source: "pointer-lock",
   });
+  dispatchFpsInputCommand({ kind: "button", action: "shoot", pressed: true });
 }
 
-function releasePointerLockShoot(
-  options: { readonly immediate?: boolean } = {},
-): void {
+function releasePointerLockShoot(): void {
   if (!shootActionActive) return;
 
-  if (options.immediate === true) {
-    if (shootReleaseTimer !== undefined) {
-      window.clearTimeout(shootReleaseTimer);
-      shootReleaseTimer = undefined;
-    }
-    dispatchPointerLockShootRelease();
-    return;
-  }
-
-  if (shootReleaseTimer !== undefined) return;
-  shootReleaseTimer = window.setTimeout(() => {
-    shootReleaseTimer = undefined;
-    dispatchPointerLockShootRelease();
-  }, POINTER_LOCK_SHOOT_RELEASE_DELAY_MS);
-}
-
-function dispatchPointerLockShootRelease(): void {
-  if (!shootActionActive) return;
   shootActionActive = false;
   dispatchApertureInputAction("shoot", {
     pressed: false,
     source: "pointer-lock",
   });
+  dispatchFpsInputCommand({ kind: "button", action: "shoot", pressed: false });
 }
 
 function requestPointerLock(target: HTMLCanvasElement): void {

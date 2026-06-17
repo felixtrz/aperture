@@ -69,6 +69,7 @@ import {
   WEAPONS,
   platformLargeGrassDecorationKey,
 } from "../../fps/src/lib/fps-data.js";
+import type { FpsInputCommand } from "../../fps/src/lib/fps-data.js";
 
 describe("Starter Kit FPS source data", () => {
   it("derives player body/capsule data from the source Player scene", () => {
@@ -88,6 +89,17 @@ describe("Starter Kit FPS source data", () => {
     expect(FPS_WEAPON_LAYER_MASK).toBe(2);
     expect(FPS_ALL_RENDER_LAYER_MASK).toBe(3);
     expect(FPS_INPUT_COMMAND_CHANNEL).toBe("fps.input");
+
+    const shootCommand = {
+      kind: "button",
+      action: "shoot",
+      pressed: true,
+    } satisfies FpsInputCommand;
+    expect(shootCommand).toEqual({
+      kind: "button",
+      action: "shoot",
+      pressed: true,
+    });
 
     expect(SOURCE_PLAYER_CAPSULE_HALF_HEIGHT).toBeCloseTo(0.2, 10);
     expect(PLAYER_BODY_RADIUS).toBe(SOURCE_PLAYER_CAPSULE_RADIUS);

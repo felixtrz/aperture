@@ -74,6 +74,27 @@ describe("Starter Kit FPS controls", () => {
     expect(turnedRight[2]).toBeCloseTo(0, 10);
   });
 
+  it("keeps source mouse-look-right yaw relative for forward movement", () => {
+    const mouseLookRightYaw = -Math.PI / 2;
+    const forward = sourceMovementTargetVelocity({
+      moveX: 0,
+      moveY: 1,
+      yaw: mouseLookRightYaw,
+      speed: 5,
+    });
+    const strafeRight = sourceMovementTargetVelocity({
+      moveX: 1,
+      moveY: 0,
+      yaw: mouseLookRightYaw,
+      speed: 5,
+    });
+
+    expect(forward[0]).toBeCloseTo(5, 10);
+    expect(forward[2]).toBeCloseTo(0, 10);
+    expect(strafeRight[0]).toBeCloseTo(0, 10);
+    expect(strafeRight[2]).toBeCloseTo(5, 10);
+  });
+
   it("keeps strafing relative to camera yaw and normalizes diagonals", () => {
     expect(normalizedMoveAxis(1, 1)).toEqual([1 / Math.SQRT2, 1 / Math.SQRT2]);
 
@@ -208,9 +229,10 @@ describe("Starter Kit FPS controls", () => {
   });
 
   it("clamps source look pitch to the source +/-90 degree limit", () => {
-    expect(
-      clampSourceLookPitch(Math.PI, SOURCE_LOOK_PITCH_LIMIT),
-    ).toBeCloseTo(Math.PI / 2, 10);
+    expect(clampSourceLookPitch(Math.PI, SOURCE_LOOK_PITCH_LIMIT)).toBeCloseTo(
+      Math.PI / 2,
+      10,
+    );
     expect(
       sourceControllerLookStep({
         yaw: 0,
@@ -513,6 +535,13 @@ describe("Starter Kit FPS controls", () => {
         wasPressed: true,
       }),
     ).toBe(true);
+    expect(
+      sourceButtonPressedThisFrame({
+        pressed: false,
+        down: true,
+        wasPressed: false,
+      }),
+    ).toBe(true);
   });
 
   it("keeps fast shoot clicks eligible until the weapon can consume them", () => {
@@ -569,9 +598,9 @@ describe("Starter Kit FPS controls", () => {
   });
 
   it("matches source player reload thresholds for falling and damage", () => {
-    expect(
-      sourcePlayerShouldRespawn({ positionY: -10.01, health: 100 }),
-    ).toBe(true);
+    expect(sourcePlayerShouldRespawn({ positionY: -10.01, health: 100 })).toBe(
+      true,
+    );
     expect(sourcePlayerShouldRespawn({ positionY: -10, health: 100 })).toBe(
       false,
     );
