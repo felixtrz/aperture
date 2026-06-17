@@ -41,6 +41,7 @@ import {
   horizontalRightFromYaw,
   normalizedMoveAxis,
   snapToGroundDistanceForMove,
+  weaponViewmodelOffsetTarget,
 } from "../lib/fps-controls.js";
 import {
   FpsResource,
@@ -344,7 +345,7 @@ export default class PlayerSystem extends createSystem({
       this.#weaponViewOffset[2] += WEAPON_VIEWMODEL_SHOT_KICK;
     }
 
-    this.#updateWeaponViewOffset(movement, dt);
+    this.#updateWeaponViewOffset(moveX, moveZ, dt);
     this.#enemyTime += dt;
     this.#enemyAttackTimer += dt;
     if (this.#enemyAttackTimer >= ENEMY_ATTACK_INTERVAL) {
@@ -855,15 +856,13 @@ export default class PlayerSystem extends createSystem({
         : [nextX, 0, nextZ];
   }
 
-  #updateWeaponViewOffset(
-    movement: readonly [number, number],
-    dt: number,
-  ): void {
-    const target: Vec3 = [
-      -movement[0] * PLAYER_SPEED * WEAPON_VIEWMODEL_MOVE_SCALE,
-      0,
-      movement[1] * PLAYER_SPEED * WEAPON_VIEWMODEL_MOVE_SCALE,
-    ];
+  #updateWeaponViewOffset(moveX: number, moveZ: number, dt: number): void {
+    const target = weaponViewmodelOffsetTarget({
+      moveX,
+      moveY: moveZ,
+      speed: PLAYER_SPEED,
+      scale: WEAPON_VIEWMODEL_MOVE_SCALE,
+    });
     const alpha = Math.min(1, dt * WEAPON_VIEWMODEL_LERP_RATE);
     this.#weaponViewOffset = [
       lerpNumber(this.#weaponViewOffset[0], target[0], alpha),

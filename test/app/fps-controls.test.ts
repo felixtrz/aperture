@@ -6,6 +6,7 @@ import {
   horizontalBackwardFromYaw,
   normalizedMoveAxis,
   snapToGroundDistanceForMove,
+  weaponViewmodelOffsetTarget,
 } from "../../fps/src/lib/fps-controls.js";
 
 describe("Starter Kit FPS controls", () => {
@@ -77,6 +78,42 @@ describe("Starter Kit FPS controls", () => {
     expect(recoil[0]).toBeCloseTo(-4.8, 10);
     expect(recoil[1]).toBe(0);
     expect(recoil[2]).toBeCloseTo(0, 10);
+  });
+
+  it("moves the weapon viewmodel opposite local movement like the source container", () => {
+    const scale = 1 / 30;
+    const forward = weaponViewmodelOffsetTarget({
+      moveX: 0,
+      moveY: 1,
+      speed: 5,
+      scale,
+    });
+
+    expect(forward[0]).toBe(0);
+    expect(forward[1]).toBe(0);
+    expect(forward[2]).toBeCloseTo(1 / 6, 10);
+
+    const strafeRight = weaponViewmodelOffsetTarget({
+      moveX: 1,
+      moveY: 0,
+      speed: 5,
+      scale,
+    });
+
+    expect(strafeRight[0]).toBeCloseTo(-1 / 6, 10);
+    expect(strafeRight[1]).toBe(0);
+    expect(strafeRight[2]).toBe(0);
+
+    const diagonal = weaponViewmodelOffsetTarget({
+      moveX: 1,
+      moveY: 1,
+      speed: 5,
+      scale,
+    });
+
+    expect(diagonal[0]).toBeCloseTo(-1 / (6 * Math.SQRT2), 10);
+    expect(diagonal[1]).toBe(0);
+    expect(diagonal[2]).toBeCloseTo(1 / (6 * Math.SQRT2), 10);
   });
 
   it("disables snap-to-ground for upward character movement", () => {

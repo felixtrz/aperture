@@ -9,6 +9,13 @@ export interface CameraRelativeMoveInput {
   readonly verticalVelocity: number;
 }
 
+export interface WeaponViewmodelOffsetInput {
+  readonly moveX: number;
+  readonly moveY: number;
+  readonly speed: number;
+  readonly scale: number;
+}
+
 export function cameraForwardFromYawPitch(yaw: number, pitch: number): Vec3 {
   const cosPitch = Math.cos(pitch);
   return [cosPitch * Math.sin(yaw), Math.sin(pitch), -cosPitch * Math.cos(yaw)];
@@ -61,6 +68,15 @@ export function cameraRelativeMovementDelta(
       input.speed *
       input.dt,
   ];
+}
+
+export function weaponViewmodelOffsetTarget(
+  input: WeaponViewmodelOffsetInput,
+): Vec3 {
+  const movement = normalizedMoveAxis(input.moveX, input.moveY);
+  const x = -movement[0] * input.speed * input.scale;
+  const z = movement[1] * input.speed * input.scale;
+  return [x === 0 ? 0 : x, 0, z === 0 ? 0 : z];
 }
 
 export function snapToGroundDistanceForMove(
