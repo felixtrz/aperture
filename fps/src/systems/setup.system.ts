@@ -78,9 +78,10 @@ import {
 const GLTF_FRONT_SIDE_MATERIALS = {
   renderState: { cullMode: "back" as const },
 };
-const WEAPON_VIEWMODEL_MATERIALS = {
+export const WEAPON_VIEWMODEL_MATERIALS = {
   renderState: {
-    cullMode: "back" as const,
+    // Preserve the GLB material's double-sided culling; the viewmodel override
+    // only makes the weapon render over the world camera layer.
     depth: { test: false, write: false, compare: "always" as const },
   },
 };
