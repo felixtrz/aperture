@@ -40,6 +40,7 @@ import {
   PLAYER_SHADOW_SURFACE_OFFSET,
   PLAYER_SPEED,
   PLAYER_START,
+  SOURCE_RESET_BODY_HOLD_FRAMES,
   SOURCE_ENEMY_ATTACK_DAMAGE,
   SOURCE_ENEMY_ATTACK_DISTANCE,
   SOURCE_ENEMY_ATTACK_INTERVAL,
@@ -195,6 +196,7 @@ export default class PlayerSystem extends createSystem({
   #lastAuthoredPitch = 0;
   #jumpPressedLastFrame = false;
   #shootPressedLastFrame = false;
+  #resetBodyHoldFrames = 0;
 
   override update(delta: number): void {
     const dt = Math.min(Math.max(delta, 0), 1 / 30);
@@ -238,8 +240,21 @@ export default class PlayerSystem extends createSystem({
     let footstepVelocityX = 0;
     let footstepVelocityZ = 0;
     let respawnedThisFrame = false;
+    let resetBodyHoldActive = false;
 
     this.#drainInputCommands();
+
+    const holdSourceStartBody = (): void => {
+      position = [...PLAYER_START];
+      movementVelocity = [0, 0, 0];
+      verticalVelocity = 0;
+      jumpsRemaining = MAX_JUMPS;
+      grounded = true;
+      skipPhysicsMove = true;
+      this.#writePlayerBody(PLAYER_BODY_START);
+      footstepVelocityX = 0;
+      footstepVelocityZ = 0;
+    };
 
     if (
       !nearlyEqual(yaw, this.#lastAuthoredYaw) ||
@@ -268,9 +283,8 @@ export default class PlayerSystem extends createSystem({
       lastDestroyedEnemy = "";
       this.#resetTransientGameplayState();
       this.#damagePulse = 0;
-      this.#writePlayerBody(PLAYER_BODY_START);
-      footstepVelocityX = 0;
-      footstepVelocityZ = 0;
+      this.#resetBodyHoldFrames = SOURCE_RESET_BODY_HOLD_FRAMES;
+      holdSourceStartBody();
       respawnedThisFrame = true;
     };
 
@@ -295,7 +309,14 @@ export default class PlayerSystem extends createSystem({
       skipPhysicsMove = true;
       this.#resetTransientGameplayState();
       this.#damagePulse = 0;
-      this.#writePlayerBody(PLAYER_BODY_START);
+      this.#resetBodyHoldFrames = SOURCE_RESET_BODY_HOLD_FRAMES;
+      holdSourceStartBody();
+    }
+
+    if (this.#resetBodyHoldFrames > 0) {
+      this.#resetBodyHoldFrames -= 1;
+      holdSourceStartBody();
+      resetBodyHoldActive = true;
     }
 
     const lookAction = this.actions.look as InputAxis2dAction | undefined;
@@ -382,7 +403,10 @@ export default class PlayerSystem extends createSystem({
     if (jumpPressedThisFrame) {
       this.#jumpBufferTimer = JUMP_BUFFER_DURATION;
     }
-    if (shouldConsumeBufferedJump(this.#jumpBufferTimer, jumpsRemaining)) {
+    if (
+      !resetBodyHoldActive &&
+      shouldConsumeBufferedJump(this.#jumpBufferTimer, jumpsRemaining)
+    ) {
       this.#playJumpSound();
       verticalVelocity = JUMP_STRENGTH;
       jumpsRemaining -= 1;
@@ -405,11 +429,13 @@ export default class PlayerSystem extends createSystem({
     ) {
       this.#shootBufferTimer = SHOOT_BUFFER_DURATION;
     }
-    const didShoot = shouldConsumeBufferedShot(
-      shootPressed,
-      this.#shootBufferTimer,
-      shotCooldown,
-    );
+    const didShoot =
+      !resetBodyHoldActive &&
+      shouldConsumeBufferedShot(
+        shootPressed,
+        this.#shootBufferTimer,
+        shotCooldown,
+      );
     if (didShoot) {
       shotCooldown = weapon.cooldown;
       this.#shootBufferTimer = 0;
@@ -500,6 +526,7 @@ export default class PlayerSystem extends createSystem({
 
     if (
       !jumpedThisFrame &&
+      !resetBodyHoldActive &&
       shouldConsumeBufferedJump(this.#jumpBufferTimer, jumpsRemaining)
     ) {
       this.#playJumpSound();

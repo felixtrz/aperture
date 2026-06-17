@@ -133,6 +133,7 @@ export const SOURCE_MOVEMENT_LERP_RATE = 10;
 export const JUMP_STRENGTH = 8;
 export const GRAVITY = 20;
 export const MAX_JUMPS = 2;
+export const SOURCE_RESET_BODY_HOLD_FRAMES = 3;
 export const SOURCE_MOUSE_SENSITIVITY = 700;
 export const SOURCE_GAMEPAD_LOOK_SENSITIVITY = 0.075;
 export const SOURCE_LOOK_LERP_RATE = 25;

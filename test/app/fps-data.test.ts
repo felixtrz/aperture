@@ -49,6 +49,7 @@ import {
   SOURCE_PLAYER_ROOT_Y,
   SOURCE_POINTER_LOCK_LOOK_PIXELS_PER_UNIT,
   SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT,
+  SOURCE_RESET_BODY_HOLD_FRAMES,
   SOURCE_SKY_ENERGY_MULTIPLIER,
   SOURCE_SUN_ROTATION,
   SOURCE_SUN_SHADOW_STRENGTH,
@@ -122,6 +123,7 @@ describe("Starter Kit FPS source data", () => {
     expect(SOURCE_LOOK_PITCH_LIMIT).toBeCloseTo(Math.PI / 2, 10);
     expect(SOURCE_POINTER_LOCK_LOOK_PIXELS_PER_UNIT).toBe(26);
     expect(SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT).toBeCloseTo(26 / 700, 10);
+    expect(SOURCE_RESET_BODY_HOLD_FRAMES).toBe(3);
   });
 
   it("derives player weapon view data from the source Player scene and Weapon resources", () => {
