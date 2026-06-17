@@ -393,13 +393,28 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 12:42 UTC</dd>
+            <dd>2026-06-17 12:53 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS look input direction now matches
-              source camera action-vector signs. The source player script reads
+              Latest update: Starter Kit FPS source reload/respawn now matches
+              source thresholds. The source player script reloads the current
+              scene when <code>position.y &lt; -10</code> or
+              <code>health &lt; 0</code>, and enemy attacks apply
+              <code>collider.damage(5)</code>. The port now shares
+              <code>sourcePlayerShouldRespawn(...)</code> across falling,
+              health, and immediate post-enemy-damage checks, and the reload
+              reset restores player/camera state, health, weapon state,
+              enemies, pulses, transient gameplay timers, and the player
+              physics body. Aperture CLI/MCP proof set
+              <code>fps.state.health</code> to <code>-1</code>, stepped the
+              worker once, and read back <code>health:100</code>,
+              <code>yaw:0</code>, <code>pitch:0</code>,
+              <code>enemiesRemaining:4</code>, <code>destroyedEnemies:0</code>,
+              and diagnostics <code>0</code>. Prior update: Starter Kit FPS
+              look input direction now matches source camera action-vector
+              signs. The source player script reads
               <code>Input.get_vector("camera_right", "camera_left",
               "camera_down", "camera_up")</code>, so right/down look are
               negative generated axes and left/up look are positive axes.
@@ -2418,6 +2433,20 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned source
+                reload/respawn semantics with Starter Kit FPS:
+                <code>position.y &lt; -10</code> and <code>health &lt; 0</code>
+                now trigger the same reset path, enemy
+                <code>collider.damage(5)</code> checks that path immediately
+                after damage, and the reload reset restores player, weapon,
+                enemy, effect, and physics-body state. Aperture CLI/MCP proof
+                set <code>fps.state.health</code> to <code>-1</code>, stepped
+                the worker, and read back <code>health:100</code>,
+                <code>yaw:0</code>, <code>pitch:0</code>,
+                <code>enemiesRemaining:4</code>, <code>destroyedEnemies:0</code>,
+                and diagnostics <code>0</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned look input
                 direction with source camera action-vector signs: gamepad

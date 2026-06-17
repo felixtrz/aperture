@@ -1,5 +1,45 @@
 # Completed Tasks
 
+## FPS-PORT — Source respawn reset
+
+Completed: 2026-06-17 05:50 PDT
+Commit: `76e885d0`
+
+### Summary
+
+- Matched upstream reload thresholds from
+  `references/Starter-Kit-FPS/objects/player.gd`: reload when
+  `position.y < -10` or `health < 0`.
+- Kept enemy damage aligned with
+  `references/Starter-Kit-FPS/objects/enemy.gd`, where enemy attacks call
+  `collider.damage(5)`.
+- Added `sourcePlayerShouldRespawn(...)` and used it after falling/health
+  checks and immediately after enemy attack damage.
+- Source reload reset now clears player transform/camera, vertical movement,
+  jump state, health, weapon/cooldown/shots/hits, enemy health/destroyed state,
+  pulses, transient gameplay timers, and the player physics body.
+- The respawn frame suppresses weapon switch, shooting, enemy attacks, and
+  weapon sway so post-reload state is stable.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts`
+  passed 35 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture CLI/MCP proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed in the managed FPS session.
+  - CLI `resource_set {"id":"fps.state","values":{"health":-1}}` followed by
+    one `ecs_step` reset `health` to `100`, `yaw` to `0`, `pitch` to `0`,
+    `enemiesRemaining` to `4`, and `destroyedEnemies` to `0`.
+  - MCP `resource_get {"id":"fps.state"}` read back the same reset state with
+    diagnostics `0`.
+
 ## FPS-PORT — Look input direction
 
 Completed: 2026-06-17 05:39 PDT

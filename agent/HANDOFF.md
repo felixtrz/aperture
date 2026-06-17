@@ -1,11 +1,57 @@
-# Handoff - Starter Kit FPS Look Input Direction
+# Handoff - Starter Kit FPS Source Respawn Reset
 
-**Updated:** 2026-06-17 05:42 PDT
+**Updated:** 2026-06-17 05:53 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Aligned Starter Kit FPS source reload/respawn semantics:
+  - `references/Starter-Kit-FPS/objects/player.gd` reloads the current scene
+    when `position.y < -10` or `health < 0`.
+  - `references/Starter-Kit-FPS/objects/enemy.gd` applies
+    `collider.damage(5)` from enemy attack raycasts, which can trip the same
+    reload path.
+  - The port now extracts `sourcePlayerShouldRespawn(...)` and uses it both
+    after fall/health checks and immediately after enemy attack damage.
+  - Source reload reset now restores player position, yaw, pitch, vertical
+    velocity, jumps, grounded state, health, weapon index, cooldown,
+    shots/hits, enemy health/destroyed state, pulses, last destroyed enemy, the
+    player physics body, and transient gameplay visual/audio timers.
+  - The respawn frame suppresses weapon switch, shooting, enemy attacks, and
+    weapon movement sway so post-reload state is stable.
+- Focused coverage:
+  - Added `sourcePlayerShouldRespawn(...)` threshold tests for the source
+    `position.y < -10` and `health < 0` reload conditions.
+- Aperture proof:
+  - Started the managed FPS app through
+    `pnpm --dir fps exec aperture dev up --headless --host 127.0.0.1 --port 5173`
+    and waited for WebGPU through Aperture CLI.
+  - CLI `resource_set {"id":"fps.state","values":{"health":-1}}` followed by
+    one `ecs_step` proved the live worker resets `health` to `100`, `yaw` to
+    `0`, `pitch` to `0`, `enemiesRemaining` to `4`, and `destroyedEnemies` to
+    `0`.
+  - MCP `resource_get {"id":"fps.state"}` read back the same reset state after
+    the proof, with diagnostics `0`.
+  - Direct lethal enemy-attack proof was not performed because the current MCP
+    shortcut set does not expose a safe direct physics-body teleport; the live
+    proof exercises the shared predicate and the enemy damage path calls that
+    predicate immediately after applying damage.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts`
+    passed 35 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - `76e885d0` — `Align FPS source respawn reset`
+
+## Previous Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS look input direction with source action-vector
   semantics:
@@ -54,7 +100,7 @@ previous working state so the old state remains recoverable.
 - Committed implementation:
   - `68d0ab80` — `Align FPS look input direction`
 
-## Previous Completed FPS/Tooling Slices
+## Earlier Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS HUD styling with source scene/script data:
   - `references/Starter-Kit-FPS/scenes/main.tscn` scales the 128px crosshair

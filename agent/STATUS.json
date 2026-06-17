@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "68d0ab80",
+  "lastCommit": "76e885d0",
   "activePid": null,
-  "notes": "Aligned Starter Kit FPS look input direction with source camera action-vector signs, proved gamepad/mouse/key input, center-click shooting, Space jump, and camera-relative movement through Aperture CLI/MCP, and kept fps/racing/shadow-lab green.",
-  "lastRunFinishedAt": "2026-06-17T12:44:05Z"
+  "notes": "Aligned Starter Kit FPS source reload/respawn thresholds and reset state, proved live FPS health reset through Aperture CLI/MCP, and kept fps/racing/shadow-lab green.",
+  "lastRunFinishedAt": "2026-06-17T12:52:09Z"
 }
