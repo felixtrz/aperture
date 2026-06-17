@@ -191,6 +191,14 @@ export function shouldConsumeBufferedJump(
   return jumpBufferTimer > 0 && jumpsRemaining > 0;
 }
 
+export function shouldConsumeBufferedShot(
+  shootPressed: boolean,
+  shootBufferTimer: number,
+  shotCooldown: number,
+): boolean {
+  return (shootPressed || shootBufferTimer > 0) && shotCooldown <= 0;
+}
+
 export function hasCeilingCollision(
   collisions: readonly CharacterCollisionLike[],
 ): boolean {

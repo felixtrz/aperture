@@ -59,6 +59,7 @@ import {
   sourceEnemyAttackers,
   sourceGroundedAfterMove,
   sourceShotDirection,
+  shouldConsumeBufferedShot,
   weaponViewmodelOffsetTarget,
   type SourceEnemyAttackCandidate,
 } from "../lib/fps-controls.js";
@@ -362,9 +363,11 @@ export default class PlayerSystem extends createSystem({
     if (shoot?.down() === true) {
       this.#shootBufferTimer = SHOOT_BUFFER_DURATION;
     }
-    const didShoot =
-      (shoot?.pressed() === true || this.#shootBufferTimer > 0) &&
-      shotCooldown <= 0;
+    const didShoot = shouldConsumeBufferedShot(
+      shoot?.pressed() === true,
+      this.#shootBufferTimer,
+      shotCooldown,
+    );
     if (didShoot) {
       shotCooldown = weapon.cooldown;
       this.#shootBufferTimer = 0;

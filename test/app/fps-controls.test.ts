@@ -15,6 +15,7 @@ import {
   normalizedMoveAxis,
   snapToGroundDistanceForMove,
   shouldConsumeBufferedJump,
+  shouldConsumeBufferedShot,
   sourceChildPositionFromLook,
   sourceEnemyAttackers,
   sourceEnemyLookTarget,
@@ -259,6 +260,14 @@ describe("Starter Kit FPS controls", () => {
     expect(shouldConsumeBufferedJump(0.08, 0)).toBe(false);
     expect(shouldConsumeBufferedJump(0.08, 2)).toBe(true);
     expect(shouldConsumeBufferedJump(0, 2)).toBe(false);
+  });
+
+  it("keeps fast shoot clicks eligible until the weapon can consume them", () => {
+    expect(shouldConsumeBufferedShot(false, 0.04, 0)).toBe(true);
+    expect(shouldConsumeBufferedShot(true, 0, 0)).toBe(true);
+    expect(shouldConsumeBufferedShot(false, 0, 0)).toBe(false);
+    expect(shouldConsumeBufferedShot(false, 0.04, 0.1)).toBe(false);
+    expect(shouldConsumeBufferedShot(true, 0, 0.1)).toBe(false);
   });
 
   it("only treats overhead character collisions as upward jump blocks", () => {
