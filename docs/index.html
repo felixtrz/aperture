@@ -393,12 +393,31 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 12:53 UTC</dd>
+            <dd>2026-06-17 13:04 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS source reload/respawn now matches
+              Latest update: Starter Kit FPS player capsule/body data now
+              derives directly from source scene data. Source
+              <code>objects/player.tscn</code> positions the
+              <code>CharacterBody3D</code> at <code>y=0.5</code>, the
+              <code>Head</code> at local <code>y=1</code>, and the
+              <code>Collider</code> at local <code>y=0.55</code>, with a
+              <code>CapsuleShape3D</code> radius <code>0.3</code> and full
+              height <code>1.0</code>. Since Godot capsule height includes both
+              hemispheres, the port now derives the Rapier/Aperture capsule
+              half-height as <code>0.2</code>, starts
+              <code>player.body</code> at <code>[0,0.5,0]</code>, and writes
+              collider <code>offsetTranslation:[0,0.55,0]</code>. Aperture
+              CLI/MCP proof read <code>player.body</code> with radius
+              <code>0.30000001192092896</code>, half-height
+              <code>0.20000000298023224</code>, the source collider offset, and
+              diagnostics <code>0</code>; a generated shot plus Space jump
+              still reported <code>shotsFired:1</code>,
+              <code>grounded:false</code>, <code>jumpsRemaining:1</code>, and
+              diagnostics <code>0</code>. Prior update: Starter Kit FPS source
+              reload/respawn now matches
               source thresholds. The source player script reloads the current
               scene when <code>position.y &lt; -10</code> or
               <code>health &lt; 0</code>, and enemy attacks apply
@@ -2433,6 +2452,20 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned player capsule
+                source data with Starter Kit FPS: source
+                <code>objects/player.tscn</code> places the body at
+                <code>y=0.5</code>, head at <code>y=1</code>, collider at
+                <code>y=0.55</code>, and defines a capsule with radius
+                <code>0.3</code> and full height <code>1.0</code>. The port now
+                derives Rapier/Aperture half-height <code>0.2</code>, writes
+                <code>offsetTranslation:[0,0.55,0]</code>, and keeps the eye
+                height at <code>1.5</code>. Aperture CLI/MCP proof read the
+                live <code>player.body</code> collider values and then verified
+                generated shot plus Space jump state with diagnostics
+                <code>0</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned source
                 reload/respawn semantics with Starter Kit FPS:
@@ -5681,12 +5714,11 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Continue Starter Kit FPS
-                fidelity with a visible slice such as player body/capsule
-                semantics after confirming Godot/Rapier capsule height mapping,
-                weapon-camera muzzle sprite parity, skybox orientation/readback
-                hardening, projectile polish beyond the current per-enemy
-                attacker ownership, or a reusable generated-input full-clear
-                smoke script.
+                fidelity with a visible slice such as weapon-camera muzzle
+                sprite parity, skybox orientation/readback hardening,
+                projectile polish beyond the current per-enemy attacker
+                ownership, enemy movement/attack timing polish, or a reusable
+                generated-input full-clear smoke script.
               </li>
               <li>
                 <span class="badge amber">next</span> Continue remaining M10

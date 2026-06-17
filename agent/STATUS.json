@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "76e885d0",
+  "lastCommit": "70726167",
   "activePid": null,
-  "notes": "Aligned Starter Kit FPS source reload/respawn thresholds and reset state, proved live FPS health reset through Aperture CLI/MCP, and kept fps/racing/shadow-lab green.",
-  "lastRunFinishedAt": "2026-06-17T12:53:51Z"
+  "notes": "Aligned Starter Kit FPS player capsule source data, proved live player.body collider through Aperture CLI/MCP, and kept fps/racing/shadow-lab green.",
+  "lastRunFinishedAt": "2026-06-17T13:06:02Z"
 }

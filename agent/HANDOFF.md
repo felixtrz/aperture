@@ -1,11 +1,52 @@
-# Handoff - Starter Kit FPS Source Respawn Reset
+# Handoff - Starter Kit FPS Player Capsule Source Data
 
-**Updated:** 2026-06-17 05:53 PDT
+**Updated:** 2026-06-17 06:04 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Aligned Starter Kit FPS source player capsule/body data:
+  - `references/Starter-Kit-FPS/objects/player.tscn` positions the
+    `CharacterBody3D` at `y = 0.5`, the `Head` at local `y = 1`, and the
+    `Collider` at local `y = 0.55`.
+  - The source `CapsuleShape3D` uses `radius = 0.3` and `height = 1.0`.
+    Godot 4.6 documents `height` as the full capsule height including both
+    hemispheres, so the Rapier/Aperture capsule half-height is derived as
+    `(1.0 - 2 * 0.3) / 2 = 0.2`.
+  - The port now exposes explicit source player constants, keeps
+    `PLAYER_EYE_HEIGHT` at `1.5`, starts the player physics body at
+    `[0, 0.5, 0]`, and writes the source collider offset `[0, 0.55, 0]` onto
+    `player.body`.
+- Focused coverage:
+  - Added `fps-data` coverage for the source root/head/collider/capsule values,
+    the derived capsule half-height, player body start, and eye height.
+- Aperture proof:
+  - Started the managed FPS app through
+    `pnpm --dir fps exec aperture dev up --headless --host 127.0.0.1 --port 5173`
+    and waited for WebGPU through Aperture CLI.
+  - CLI and MCP entity reads for `player.body` reported capsule
+    `radius:0.30000001192092896`, `halfHeight:0.20000000298023224`,
+    `offsetTranslation:[0,0.550000011920929,0]`, and diagnostics `0`.
+  - CLI and MCP `resource_get {"id":"fps.state"}` after a generated shot and
+    Space jump reported `shotsFired:1`, `grounded:false`,
+    `jumpsRemaining:1`, `verticalVelocity:7.333333333333334`, and diagnostics
+    `0`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts`
+    passed 36 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - `70726167` — `Align FPS player capsule source data`
+
+## Previous Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS source reload/respawn semantics:
   - `references/Starter-Kit-FPS/objects/player.gd` reloads the current scene
@@ -51,7 +92,7 @@ previous working state so the old state remains recoverable.
 - Committed implementation:
   - `76e885d0` — `Align FPS source respawn reset`
 
-## Previous Completed FPS/Tooling Slices
+## Earlier Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS look input direction with source action-vector
   semantics:

@@ -1,5 +1,44 @@
 # Completed Tasks
 
+## FPS-PORT — Player capsule source data
+
+Completed: 2026-06-17 06:04 PDT
+Commit: `70726167`
+
+### Summary
+
+- Matched upstream player body/collider scene data from
+  `references/Starter-Kit-FPS/objects/player.tscn`.
+- The source `CharacterBody3D` starts at `y = 0.5`, the `Head` is at local
+  `y = 1`, and the `Collider` is at local `y = 0.55`.
+- The source `CapsuleShape3D` uses `radius = 0.3` and full `height = 1.0`.
+  Because Godot capsule height includes both hemispheres, the Aperture/Rapier
+  capsule half-height is now derived as `0.2`.
+- Added explicit source player constants, kept `PLAYER_EYE_HEIGHT` at `1.5`,
+  starts the player physics body at `[0, 0.5, 0]`, and writes
+  `offsetTranslation:[0,0.55,0]` onto `player.body`.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts`
+  passed 36 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture CLI/MCP proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed in the managed FPS session.
+  - CLI and MCP entity reads for `player.body` reported capsule
+    `radius:0.30000001192092896`, `halfHeight:0.20000000298023224`,
+    `offsetTranslation:[0,0.550000011920929,0]`, and diagnostics `0`.
+  - CLI and MCP `resource_get {"id":"fps.state"}` after a generated shot and
+    Space jump reported `shotsFired:1`, `grounded:false`,
+    `jumpsRemaining:1`, `verticalVelocity:7.333333333333334`, and diagnostics
+    `0`.
+
 ## FPS-PORT — Source respawn reset
 
 Completed: 2026-06-17 05:50 PDT
