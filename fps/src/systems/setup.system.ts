@@ -52,6 +52,7 @@ import {
   impactEffectKey,
   platformLargeGrassDecorationKey,
 } from "../lib/fps-data.js";
+import { SOURCE_IMPACT_SPRITE_SIZE } from "../lib/fps-effects.js";
 
 const GLTF_FRONT_SIDE_MATERIALS = {
   renderState: { cullMode: "back" as const },
@@ -299,7 +300,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         key: impactEffectKey(index),
         name: `Impact Hit ${index + 1}`,
         textureId: "impact-hit",
-        size: [0.85, 0.85],
+        size: SOURCE_IMPACT_SPRITE_SIZE,
         blendMode: SpriteBlendMode.Alpha,
         depthMode: SpriteDepthMode.Disabled,
       });

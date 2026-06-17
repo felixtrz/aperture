@@ -9,6 +9,26 @@ export interface SpriteFrameSelection {
 
 const FULL_SPRITE_UV: SpriteUvRect = [0, 0, 1, 1];
 
+// Starter-Kit-FPS impact.tscn uses 128px atlas frames at pixel_size 0.0025.
+export const SOURCE_IMPACT_FRAME_PIXELS = 128;
+export const SOURCE_IMPACT_PIXEL_SIZE = 0.0025;
+export const SOURCE_IMPACT_WORLD_SIZE = sourceAnimatedSpriteWorldSize(
+  SOURCE_IMPACT_FRAME_PIXELS,
+  SOURCE_IMPACT_PIXEL_SIZE,
+);
+export const SOURCE_IMPACT_SPRITE_SIZE: readonly [number, number] = [
+  SOURCE_IMPACT_WORLD_SIZE,
+  SOURCE_IMPACT_WORLD_SIZE,
+];
+
+export function sourceAnimatedSpriteWorldSize(
+  framePixels: number,
+  pixelSize: number,
+  scale = 1,
+): number {
+  return framePixels * pixelSize * scale;
+}
+
 export function sourceSpriteFrameForLife(
   frames: readonly SpriteAnimationFrame[],
   normalizedLife: number,

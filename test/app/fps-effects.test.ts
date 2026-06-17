@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  SOURCE_IMPACT_FRAME_PIXELS,
+  SOURCE_IMPACT_PIXEL_SIZE,
+  SOURCE_IMPACT_WORLD_SIZE,
+  sourceAnimatedSpriteWorldSize,
   sourceSpriteAlphaForFrame,
   sourceSpriteFrameForLife,
   type SpriteAnimationFrame,
@@ -24,6 +28,18 @@ const MUZZLE_FRAMES: readonly SpriteAnimationFrame[] = [
 ];
 
 describe("Starter Kit FPS sprite effects", () => {
+  it("derives impact sprite size from source pixel_size and atlas frame pixels", () => {
+    expect(SOURCE_IMPACT_FRAME_PIXELS).toBe(128);
+    expect(SOURCE_IMPACT_PIXEL_SIZE).toBe(0.0025);
+    expect(SOURCE_IMPACT_WORLD_SIZE).toBeCloseTo(0.32);
+    expect(
+      sourceAnimatedSpriteWorldSize(
+        SOURCE_IMPACT_FRAME_PIXELS,
+        SOURCE_IMPACT_PIXEL_SIZE,
+      ),
+    ).toBeCloseTo(SOURCE_IMPACT_WORLD_SIZE);
+  });
+
   it("selects the four source impact frames across the 30fps shot animation", () => {
     expect(sourceSpriteFrameForLife(IMPACT_FRAMES, 1).atlasFrame).toBe(0);
     expect(sourceSpriteFrameForLife(IMPACT_FRAMES, 0.74).atlasFrame).toBe(1);
