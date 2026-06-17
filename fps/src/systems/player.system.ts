@@ -85,6 +85,11 @@ const MUZZLE_FLASH_DURATION =
 const IMPACT_FLASH_DURATION =
   IMPACT_FLASH_FRAMES.length / SPRITE_ANIMATION_FPS;
 const HIDDEN_EFFECT_POSITION: Vec3 = [0, -100, 0];
+const HIDDEN_WEAPON_Y = -100;
+const WEAPON_SWITCH_HIDE_DURATION = 0.1;
+const WEAPON_SWITCH_DROP_OFFSET = 1;
+const WEAPON_SWITCH_RAISE_RATE = 10;
+const WEAPON_SWITCH_COMPLETE_EPSILON = 0.01;
 
 interface ShotEnemyHit {
   readonly key: string;
@@ -121,6 +126,11 @@ export default class PlayerSystem extends createSystem({
     HIDDEN_EFFECT_POSITION,
   ];
   #damagePulse = 0;
+  #weaponVisualIndex = 0;
+  #weaponSwitchTargetIndex = 0;
+  #weaponSwitchTimer = 0;
+  #weaponSwitchRaiseOffset = 0;
+  #weaponSwitchActive = false;
 
   override update(delta: number): void {
     const dt = Math.min(Math.max(delta, 0), 1 / 30);
@@ -252,11 +262,14 @@ export default class PlayerSystem extends createSystem({
     }
 
     if (this.#button("switchWeapon")?.down()) {
-      weaponIndex = (weaponIndex + 1) % WEAPONS.length;
-      shotCooldown = 0;
-      this.#playOneShot("weapon-change", 0.35);
+      const nextWeaponIndex = (weaponIndex + 1) % WEAPONS.length;
+      if (this.#startWeaponSwitch(weaponIndex, nextWeaponIndex)) {
+        shotCooldown = 0;
+        this.#playOneShot("weapon-change", 0.35);
+      }
     }
 
+    weaponIndex = this.#advanceWeaponSwitch(weaponIndex, dt);
     const weapon = WEAPONS[weaponIndex] ?? WEAPONS[0]!;
     const didShoot =
       this.#button("shoot")?.pressed() === true && shotCooldown <= 0;
@@ -303,7 +316,7 @@ export default class PlayerSystem extends createSystem({
     }
 
     this.#writeCamera(position, yaw, pitch);
-    this.#writeWeapons(weaponIndex, weapon, dt, moveX, moveZ, shotCooldown);
+    this.#writeWeapons(weaponIndex, weapon, moveX, moveZ, shotCooldown);
     this.#writeShotEffects();
     this.#writeEnemies(position, enemyHealth);
     const enemiesRemaining = countLivingEnemies(enemyHealth);
@@ -335,6 +348,9 @@ export default class PlayerSystem extends createSystem({
       next.grounded = grounded;
       next.health = health;
       next.weaponIndex = weaponIndex;
+      next.weaponVisualIndex = this.#weaponVisualIndex;
+      next.weaponSwitchProgress = this.#weaponSwitchProgress();
+      next.weaponSwitchPhase = this.#weaponSwitchPhase();
       next.shotCooldown = shotCooldown;
       next.shotsFired = shotsFired;
       next.hits = hits;
@@ -532,7 +548,6 @@ export default class PlayerSystem extends createSystem({
   #writeWeapons(
     weaponIndex: number,
     weapon: WeaponSpec,
-    dt: number,
     moveX: number,
     moveZ: number,
     shotCooldown: number,
@@ -548,17 +563,16 @@ export default class PlayerSystem extends createSystem({
       if (entity === null || spec === undefined) continue;
       const translation = entity.getVectorView(LocalTransform, "translation");
       if (i === weaponIndex) {
+        const switchOffset = this.#weaponSwitchYOffset(i);
         translation.set([
           spec.position[0],
-          spec.position[1] + walkBob,
+          spec.position[1] + walkBob - switchOffset,
           spec.position[2] + recoil,
         ]);
       } else {
-        translation.set([spec.position[0], -100, 0]);
+        translation.set([spec.position[0], HIDDEN_WEAPON_Y, 0]);
       }
     }
-
-    void dt;
   }
 
   #triggerMuzzleFlash(
@@ -720,6 +734,106 @@ export default class PlayerSystem extends createSystem({
     this.#muzzleFlashPosition = HIDDEN_EFFECT_POSITION;
     this.#impactFlashPosition = HIDDEN_EFFECT_POSITION;
     this.#clearEnemyMuzzleFlashes();
+    this.#resetWeaponSwitch();
+  }
+
+  #startWeaponSwitch(currentIndex: number, targetIndex: number): boolean {
+    if (
+      this.#weaponSwitchActive ||
+      targetIndex === currentIndex ||
+      WEAPONS.length <= 1
+    ) {
+      return false;
+    }
+
+    this.#weaponVisualIndex = currentIndex;
+    this.#weaponSwitchTargetIndex = targetIndex;
+    this.#weaponSwitchTimer = 0;
+    this.#weaponSwitchRaiseOffset = 0;
+    this.#weaponSwitchActive = true;
+    return true;
+  }
+
+  #advanceWeaponSwitch(activeIndex: number, dt: number): number {
+    if (!this.#weaponSwitchActive) {
+      this.#weaponVisualIndex = activeIndex;
+      this.#weaponSwitchTargetIndex = activeIndex;
+      this.#weaponSwitchTimer = 0;
+      this.#weaponSwitchRaiseOffset = 0;
+      return activeIndex;
+    }
+
+    this.#weaponSwitchTimer += dt;
+
+    if (
+      this.#weaponVisualIndex !== this.#weaponSwitchTargetIndex &&
+      this.#weaponSwitchTimer >= WEAPON_SWITCH_HIDE_DURATION
+    ) {
+      this.#weaponVisualIndex = this.#weaponSwitchTargetIndex;
+      this.#weaponSwitchRaiseOffset = WEAPON_SWITCH_DROP_OFFSET;
+    }
+
+    if (this.#weaponVisualIndex !== this.#weaponSwitchTargetIndex) {
+      return this.#weaponVisualIndex;
+    }
+
+    const decay = Math.min(1, dt * WEAPON_SWITCH_RAISE_RATE);
+    this.#weaponSwitchRaiseOffset *= 1 - decay;
+
+    if (this.#weaponSwitchRaiseOffset <= WEAPON_SWITCH_COMPLETE_EPSILON) {
+      this.#weaponSwitchRaiseOffset = 0;
+      this.#weaponSwitchActive = false;
+      this.#weaponSwitchTimer = 0;
+    }
+
+    return this.#weaponVisualIndex;
+  }
+
+  #weaponSwitchYOffset(index: number): number {
+    if (!this.#weaponSwitchActive) return 0;
+
+    if (this.#weaponVisualIndex !== this.#weaponSwitchTargetIndex) {
+      if (index !== this.#weaponVisualIndex) return 0;
+      return (
+        WEAPON_SWITCH_DROP_OFFSET *
+        smoothstep(
+          Math.min(1, this.#weaponSwitchTimer / WEAPON_SWITCH_HIDE_DURATION),
+        )
+      );
+    }
+
+    return index === this.#weaponVisualIndex ? this.#weaponSwitchRaiseOffset : 0;
+  }
+
+  #weaponSwitchProgress(): number {
+    if (!this.#weaponSwitchActive) return 1;
+
+    if (this.#weaponVisualIndex !== this.#weaponSwitchTargetIndex) {
+      return (
+        0.5 *
+        Math.min(1, this.#weaponSwitchTimer / WEAPON_SWITCH_HIDE_DURATION)
+      );
+    }
+
+    return (
+      0.5 +
+      0.5 * (1 - this.#weaponSwitchRaiseOffset / WEAPON_SWITCH_DROP_OFFSET)
+    );
+  }
+
+  #weaponSwitchPhase(): string {
+    if (!this.#weaponSwitchActive) return "ready";
+    return this.#weaponVisualIndex === this.#weaponSwitchTargetIndex
+      ? "raising"
+      : "hiding";
+  }
+
+  #resetWeaponSwitch(): void {
+    this.#weaponVisualIndex = 0;
+    this.#weaponSwitchTargetIndex = 0;
+    this.#weaponSwitchTimer = 0;
+    this.#weaponSwitchRaiseOffset = 0;
+    this.#weaponSwitchActive = false;
   }
 
   #updateFootsteps(grounded: boolean, moving: boolean): void {
@@ -822,6 +936,11 @@ function clampPitch(value: number): number {
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
+}
+
+function smoothstep(value: number): number {
+  const t = clamp01(value);
+  return t * t * (3 - 2 * t);
 }
 
 function spriteFrameForLife(
