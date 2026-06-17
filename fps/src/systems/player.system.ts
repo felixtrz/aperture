@@ -69,6 +69,7 @@ import {
   snapToGroundDistanceForMove,
   shouldConsumeBufferedJump,
   sourceChildPositionFromLook,
+  sourceButtonPressedThisFrame,
   sourceControllerLookStep,
   sourceEnemyHoverPosition,
   sourceEnemyLookTarget,
@@ -76,6 +77,7 @@ import {
   sourceGroundedAfterMove,
   sourceMouseLookStep,
   sourcePlayerShouldRespawn,
+  sourcePointerDragLookStep,
   sourceShotDirection,
   sourceSmoothedMovementStep,
   sourceWeaponMuzzleWorldPosition,
@@ -181,6 +183,8 @@ export default class PlayerSystem extends createSystem({
   #lookTargetPitch = 0;
   #lastAuthoredYaw = 0;
   #lastAuthoredPitch = 0;
+  #jumpPressedLastFrame = false;
+  #shootPressedLastFrame = false;
 
   override update(delta: number): void {
     const dt = Math.min(Math.max(delta, 0), 1 / 30);
@@ -329,12 +333,19 @@ export default class PlayerSystem extends createSystem({
       if (this.#previousPointer !== null) {
         const dx = pointerPosition[0] - this.#previousPointer[0];
         const dy = pointerPosition[1] - this.#previousPointer[1];
-        yaw += dx * LOOK_SPEED;
-        pitch = clampSourceLookPitch(
-          pitch - dy * LOOK_SPEED,
-          SOURCE_LOOK_PITCH_LIMIT,
-        );
-        this.#setLookTargets(yaw, pitch);
+        const look = sourcePointerDragLookStep({
+          yaw,
+          pitch,
+          targetYaw: yaw,
+          targetPitch: pitch,
+          deltaX: dx,
+          deltaY: dy,
+          radiansPerUnit: LOOK_SPEED,
+          pitchLimit: SOURCE_LOOK_PITCH_LIMIT,
+        });
+        yaw = look.yaw;
+        pitch = look.pitch;
+        this.#setLookTargets(look.targetYaw, look.targetPitch);
       }
       this.#previousPointer = [pointerPosition[0], pointerPosition[1]];
     } else {
@@ -345,7 +356,15 @@ export default class PlayerSystem extends createSystem({
     const moveX = move?.kind === "axis2d" ? move.x.value : 0;
     const moveZ = move?.kind === "axis2d" ? move.y.value : 0;
 
-    if (this.#button("jump")?.down()) {
+    const jump = this.#button("jump");
+    const jumpPressed = jump?.pressed() === true;
+    if (
+      sourceButtonPressedThisFrame({
+        pressed: jumpPressed,
+        down: jump?.down() === true,
+        wasPressed: this.#jumpPressedLastFrame,
+      })
+    ) {
       this.#jumpBufferTimer = JUMP_BUFFER_DURATION;
     }
 
@@ -362,11 +381,18 @@ export default class PlayerSystem extends createSystem({
     weaponIndex = this.#advanceWeaponSwitch(weaponIndex, dt);
     const weapon = WEAPONS[weaponIndex] ?? WEAPONS[0]!;
     const shoot = respawnedThisFrame ? undefined : this.#button("shoot");
-    if (shoot?.down() === true) {
+    const shootPressed = shoot?.pressed() === true;
+    if (
+      sourceButtonPressedThisFrame({
+        pressed: shootPressed,
+        down: shoot?.down() === true,
+        wasPressed: this.#shootPressedLastFrame,
+      })
+    ) {
       this.#shootBufferTimer = SHOOT_BUFFER_DURATION;
     }
     const didShoot = shouldConsumeBufferedShot(
-      shoot?.pressed() === true,
+      shootPressed,
       this.#shootBufferTimer,
       shotCooldown,
     );
@@ -553,6 +579,8 @@ export default class PlayerSystem extends createSystem({
     });
     this.#lastAuthoredYaw = yaw;
     this.#lastAuthoredPitch = pitch;
+    this.#jumpPressedLastFrame = jumpPressed;
+    this.#shootPressedLastFrame = shootPressed;
   }
 
   #shoot(
@@ -997,6 +1025,8 @@ export default class PlayerSystem extends createSystem({
     this.#landingPulse = 0;
     this.#jumpBufferTimer = 0;
     this.#shootBufferTimer = 0;
+    this.#jumpPressedLastFrame = false;
+    this.#shootPressedLastFrame = false;
     this.#setLookTargets(0, 0);
   }
 

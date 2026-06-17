@@ -14,6 +14,7 @@ import {
   horizontalRightFromYaw,
   normalizedMoveAxis,
   snapToGroundDistanceForMove,
+  sourceButtonPressedThisFrame,
   shouldConsumeBufferedJump,
   shouldConsumeBufferedShot,
   sourceCloudHoverPosition,
@@ -26,6 +27,7 @@ import {
   sourceMouseLookStep,
   sourceMovementTargetVelocity,
   sourcePlayerShouldRespawn,
+  sourcePointerDragLookStep,
   sourceShotDirection,
   sourceSmoothedMovementStep,
   sourceWeaponMuzzleLocalPosition,
@@ -176,6 +178,33 @@ describe("Starter Kit FPS controls", () => {
     expect(look.targetPitch).toBeCloseTo(13 / 700, 10);
     expect(look.yaw).toBe(look.targetYaw);
     expect(look.pitch).toBe(look.targetPitch);
+  });
+
+  it("keeps fallback pointer drag yaw aligned with source mouse look", () => {
+    const look = sourcePointerDragLookStep({
+      yaw: 0,
+      pitch: 0,
+      targetYaw: 0,
+      targetPitch: 0,
+      deltaX: 0.25,
+      deltaY: 0.125,
+      radiansPerUnit: Math.PI,
+      pitchLimit: SOURCE_LOOK_PITCH_LIMIT,
+    });
+
+    expect(look.yaw).toBeCloseTo(-Math.PI / 4, 10);
+    expect(look.pitch).toBeCloseTo(-Math.PI / 8, 10);
+    expect(look.targetYaw).toBe(look.yaw);
+    expect(look.targetPitch).toBe(look.pitch);
+
+    const forward = sourceMovementTargetVelocity({
+      moveX: 0,
+      moveY: 1,
+      yaw: look.yaw,
+      speed: 5,
+    });
+    expect(forward[0]).toBeGreaterThan(0);
+    expect(forward[2]).toBeLessThan(0);
   });
 
   it("clamps source look pitch to the source +/-90 degree limit", () => {
@@ -460,6 +489,30 @@ describe("Starter Kit FPS controls", () => {
     expect(shouldConsumeBufferedJump(0.08, 0)).toBe(false);
     expect(shouldConsumeBufferedJump(0.08, 2)).toBe(true);
     expect(shouldConsumeBufferedJump(0, 2)).toBe(false);
+  });
+
+  it("recovers button edges when generated input already reports pressed", () => {
+    expect(
+      sourceButtonPressedThisFrame({
+        pressed: true,
+        down: false,
+        wasPressed: false,
+      }),
+    ).toBe(true);
+    expect(
+      sourceButtonPressedThisFrame({
+        pressed: true,
+        down: false,
+        wasPressed: true,
+      }),
+    ).toBe(false);
+    expect(
+      sourceButtonPressedThisFrame({
+        pressed: false,
+        down: true,
+        wasPressed: true,
+      }),
+    ).toBe(true);
   });
 
   it("keeps fast shoot clicks eligible until the weapon can consume them", () => {

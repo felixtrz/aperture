@@ -146,6 +146,19 @@ export interface SourceLookStep {
   readonly targetPitch: number;
 }
 
+export interface SourceButtonEdgeInput {
+  readonly pressed: boolean;
+  readonly down: boolean;
+  readonly wasPressed: boolean;
+}
+
+export interface SourcePointerDragLookInput extends SourceLookStateInput {
+  readonly deltaX: number;
+  readonly deltaY: number;
+  readonly radiansPerUnit: number;
+  readonly pitchLimit: number;
+}
+
 export function cameraForwardFromYawPitch(yaw: number, pitch: number): Vec3 {
   const cosPitch = Math.cos(pitch);
   return [
@@ -266,6 +279,27 @@ export function sourceMouseLookStep(input: SourceMouseLookInput): SourceLookStep
     targetYaw,
     targetPitch,
   };
+}
+
+export function sourcePointerDragLookStep(
+  input: SourcePointerDragLookInput,
+): SourceLookStep {
+  return sourceMouseLookStep({
+    yaw: input.yaw,
+    pitch: input.pitch,
+    targetYaw: input.targetYaw,
+    targetPitch: input.targetPitch,
+    axisX: -input.deltaX,
+    axisY: -input.deltaY,
+    radiansPerUnit: input.radiansPerUnit,
+    pitchLimit: input.pitchLimit,
+  });
+}
+
+export function sourceButtonPressedThisFrame(
+  input: SourceButtonEdgeInput,
+): boolean {
+  return input.down || (input.pressed && !input.wasPressed);
 }
 
 export function clampSourceLookPitch(value: number, limit: number): number {
