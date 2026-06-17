@@ -42,98 +42,18 @@
         width: 45px;
         height: 45px;
         transform: translate(-50%, -50%);
-        transition:
-          transform 110ms ease,
-          filter 110ms ease;
         image-rendering: pixelated;
         pointer-events: none;
         z-index: 4;
       }
 
-      body[data-hit-flash="true"] #crosshair {
-        transform: translate(-50%, -50%) scale(1.28);
-        filter: drop-shadow(0 0 10px rgba(255, 245, 160, 0.95));
-      }
-
-      #damage-flash {
-        position: fixed;
-        inset: 0;
-        background:
-          radial-gradient(
-            circle,
-            rgba(255, 65, 48, 0) 42%,
-            rgba(255, 65, 48, 0.34) 100%
-          ),
-          rgba(255, 32, 24, 0.12);
-        opacity: 0;
-        transition: opacity 180ms ease;
-        pointer-events: none;
-        z-index: 3;
-      }
-
-      body[data-damage-flash="true"] #damage-flash {
-        opacity: 1;
-      }
-
-      #destroy-flash {
-        position: fixed;
-        inset: 0;
-        background:
-          radial-gradient(
-            circle,
-            rgba(255, 232, 132, 0.22) 0%,
-            rgba(255, 232, 132, 0) 42%
-          ),
-          rgba(255, 204, 96, 0.08);
-        opacity: 0;
-        transition: opacity 220ms ease;
-        pointer-events: none;
-        z-index: 3;
-      }
-
-      body[data-enemy-destroyed-flash="true"] #destroy-flash {
-        opacity: 1;
-      }
-
-      #clear-banner {
-        position: fixed;
-        left: 50%;
-        top: 11vh;
-        transform: translate(-50%, -16px);
-        opacity: 0;
-        color: white;
-        font:
-          400 clamp(34px, 6vw, 76px) / 0.9 "Lilita One",
-          system-ui,
-          sans-serif;
-        text-shadow:
-          0 4px 0 rgba(0, 0, 0, 0.36),
-          0 0 18px rgba(255, 230, 128, 0.46);
-        transition:
-          opacity 240ms ease,
-          transform 240ms ease;
-        user-select: none;
-        pointer-events: none;
-        z-index: 5;
-      }
-
-      body[data-game-status="cleared"] #clear-banner {
-        opacity: 1;
-        transform: translate(-50%, 0);
-      }
-
       #hud {
         position: fixed;
-        left: 32px;
-        right: 32px;
-        bottom: 24px;
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 20px;
+        left: 48px;
+        bottom: 28px;
         color: white;
         font:
-          400 20px/1 "Lilita One",
+          400 clamp(40px, 7vw, 72px) / 1 "Lilita One",
           system-ui,
           sans-serif;
         text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
@@ -143,57 +63,15 @@
       }
 
       #health {
-        font-size: clamp(40px, 7vw, 72px);
-        transition:
-          color 150ms ease,
-          transform 150ms ease;
-      }
-
-      body[data-low-health="true"] #health {
-        color: #ff6b5f;
-      }
-
-      body[data-damage-flash="true"] #health {
-        transform: scale(1.08);
-      }
-
-      #status {
-        display: flex;
-        gap: 22px;
-        align-items: center;
-        justify-content: flex-end;
-        font-size: clamp(18px, 3vw, 30px);
-      }
-
-      .chip {
         min-width: 110px;
-        text-align: right;
-      }
-
-      body[data-enemy-destroyed-flash="true"] #enemies {
-        color: #ffe884;
-        transform: scale(1.12);
-      }
-
-      #enemies {
-        transition:
-          color 180ms ease,
-          transform 180ms ease;
       }
     </style>
   </head>
   <body>
     <canvas id="aperture"></canvas>
-    <div id="damage-flash"></div>
-    <div id="destroy-flash"></div>
-    <div id="clear-banner">AREA CLEAR</div>
     <img id="crosshair" src="/sprites/crosshair.png" alt="" />
     <div id="hud">
       <div id="health">100%</div>
-      <div id="status">
-        <div class="chip" id="weapon">Blaster</div>
-        <div class="chip" id="enemies">4</div>
-      </div>
     </div>
     <script type="module" src="/src/hud.ts"></script>
   </body>
