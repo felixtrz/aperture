@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "63aacbec",
+  "lastCommit": "d966ebe4",
   "activePid": null,
-  "notes": "Aligned Starter Kit FPS enemy damage audio and impact sprite sizing with source, proved via Aperture MCP, and kept fps/racing/shadow-lab green.",
-  "lastRunFinishedAt": "2026-06-17T11:55:06Z"
+  "notes": "Aligned Starter Kit FPS enemy muzzle sprite sizing and one-shot audio pool behavior with source, proved via Aperture MCP, and kept fps/racing/shadow-lab green.",
+  "lastRunFinishedAt": "2026-06-17T12:02:26Z"
 }

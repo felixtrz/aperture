@@ -1,5 +1,47 @@
 # Completed Tasks
 
+## FPS-PORT — Enemy muzzle sprite size and one-shot audio
+
+Completed: 2026-06-17 04:59 PDT
+Commits: `f5a2f3df`, `d966ebe4`
+
+### Summary
+
+- Matched upstream enemy muzzle sprite world size from
+  `references/Starter-Kit-FPS/objects/enemy.tscn` and
+  `references/Starter-Kit-FPS/sprites/burst_animation.tres`.
+- The source uses 256px burst atlas frames, default
+  `SpriteBase3D.pixel_size = 0.01`, and enemy muzzle node scale `0.5`, deriving
+  a `1.28` world-unit sprite size.
+- Replaced the older enemy muzzle sprite size `[0.42, 0.42]` with the derived
+  `[1.28, 1.28]` source size constant shared by setup and tests.
+- Matched upstream one-shot audio pool behavior from
+  `references/Starter-Kit-FPS/scripts/audio.gd`: pooled SFX now use source
+  `volume_db = -10` gain and random `pitch_scale` in `[0.9, 1.1]`.
+- Routed landing, weapon switch, shooting, jump, enemy attack, enemy hurt, and
+  enemy destroy one-shots through the shared source gain and pitch-scale helper.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-audio.test.ts` passed 5 tests.
+- `pnpm exec vitest run test/app/fps-effects.test.ts` passed 5 tests.
+- `pnpm exec vitest run test/app/fps-effects.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts`
+  passed 26 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture MCP/CLI proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed in the managed FPS session.
+  - `ecs_find_entities {"key":"effect.enemy.0.muzzle.0"}` reported
+    `renderSprite.width` and `renderSprite.height` as approximately `1.28`,
+    with `blendMode:"additive"` and `depthMode:"test"`.
+  - `render_get_frame_report {"summaryOnly":true}` reported frame `1577`,
+    `skyboxes:1`, `fogs:1`, 33 draw calls, and diagnostics `0`.
+
 ## FPS-PORT — Enemy damage audio and impact sprite size
 
 Completed: 2026-06-17 04:53 PDT

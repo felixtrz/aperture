@@ -393,23 +393,34 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 11:53 UTC</dd>
+            <dd>2026-06-17 11:59 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS enemy damage audio and impact hit
-              sprite sizing now match source behavior more closely. Lethal
-              enemy hits emit upstream-style <code>enemy-hurt</code> before
-              <code>enemy-destroy</code>, and impact sprites derive their world
-              size from <code>objects/impact.tscn</code>
-              <code>pixel_size = 0.0025</code> times the 128px hit-atlas frame,
-              producing <code>0.32</code> world units instead of the older
-              oversized <code>0.85</code>. Aperture MCP proof found
+              Latest update: Starter Kit FPS enemy muzzle sprites and one-shot
+              SFX now match source behavior more closely. Enemy muzzle sprites
+              derive <code>1.28</code> world units from 256px
+              <code>burst.png</code> atlas frames, default
+              <code>SpriteBase3D.pixel_size = 0.01</code>, and node scale
+              <code>0.5</code>; shared one-shots use source
+              <code>volume_db = -10</code> gain plus pitch scaling in
+              <code>[0.9, 1.1]</code>. Aperture MCP proof found
+              <code>effect.enemy.0.muzzle.0</code> width/height near
+              <code>1.28</code>, with the managed frame report still at
+              diagnostics <code>0</code>. Prior update: Starter Kit FPS enemy
+              damage audio and impact hit sprite sizing now match source
+              behavior more closely. Lethal enemy hits emit upstream-style
+              <code>enemy-hurt</code> before <code>enemy-destroy</code>, and
+              impact sprites derive their world size from
+              <code>objects/impact.tscn</code> <code>pixel_size = 0.0025</code>
+              times the 128px hit-atlas frame, producing <code>0.32</code>
+              world units instead of the older oversized <code>0.85</code>.
+              Aperture MCP proof found
               <code>effect.impact-hit.0</code>
               <code>renderSprite.width</code> and <code>height</code> at about
               <code>0.32</code>, with the managed frame report still at
-              diagnostics <code>0</code>. Prior update: Starter Kit FPS ray
+              diagnostics <code>0</code>. Earlier update: Starter Kit FPS ray
               targets now match source semantics more closely: player pellet
               spread uses
               <code>[spreadX, spreadY, -maxDistance]</code> through the camera
@@ -1438,7 +1449,7 @@
             <dd>
               Continue Starter Kit FPS fidelity with a visible route such as
               player body/capsule semantics after checking Godot capsule
-              height mapping, muzzle sprite world-size parity, skybox
+              height mapping, weapon-camera muzzle sprite parity, skybox
               orientation/readback hardening, remaining player detail parity,
               projectile polish beyond the current per-enemy attacker
               ownership, or packaging the
@@ -2344,6 +2355,20 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned enemy muzzle
+                sprite world size and one-shot SFX behavior with source data:
+                256px
+                <code>burst.png</code> atlas frames, default
+                <code>SpriteBase3D.pixel_size</code>, and enemy muzzle node
+                scale <code>0.5</code> now derive <code>1.28</code> world units
+                for <code>effect.enemy.*.muzzle.*</code> sprites, while
+                one-shot SFX use source <code>-10 dB</code> gain and
+                <code>0.9</code> to <code>1.1</code> pitch scaling. Aperture
+                MCP proof reported <code>effect.enemy.0.muzzle.0</code>
+                width/height near <code>1.28</code> and frame diagnostics
+                <code>0</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned enemy damage audio
                 and impact hit sprite size with source behavior: lethal enemy
@@ -5513,7 +5538,7 @@
                 <span class="badge amber">next</span> Continue Starter Kit FPS
                 fidelity with a visible slice such as player body/capsule
                 semantics after confirming Godot/Rapier capsule height mapping,
-                muzzle sprite world-size parity, skybox orientation/readback
+                weapon-camera muzzle sprite parity, skybox orientation/readback
                 hardening, projectile polish beyond the current per-enemy
                 attacker ownership, or a reusable generated-input full-clear
                 smoke script.

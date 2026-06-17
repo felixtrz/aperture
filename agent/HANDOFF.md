@@ -1,11 +1,58 @@
-# Handoff - Starter Kit FPS Audio And Impact Sprite Size
+# Handoff - Starter Kit FPS Enemy Muzzle And One-Shot Audio
 
-**Updated:** 2026-06-17 04:53 PDT
+**Updated:** 2026-06-17 04:59 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Aligned Starter Kit FPS enemy muzzle sprite sizing with source scene data:
+  - `references/Starter-Kit-FPS/objects/enemy.tscn` uses two
+    `AnimatedSprite3D` muzzle nodes with `transform` scale `0.5`.
+  - `references/Starter-Kit-FPS/sprites/burst_animation.tres` uses 256px atlas
+    frames from `sprites/burst.png`.
+  - Godot `SpriteBase3D.pixel_size` defaults to `0.01`, so the source enemy
+    muzzle world size is `256 * 0.01 * 0.5 = 1.28`.
+  - The port now spawns `effect.enemy.*.muzzle.*` sprites at `[1.28, 1.28]`
+    instead of `[0.42, 0.42]`.
+- Aligned Starter Kit FPS one-shot audio pool behavior with
+  `references/Starter-Kit-FPS/scripts/audio.gd`:
+  - Source pooled `AudioStreamPlayer` instances use `volume_db = -10`.
+  - Each queued one-shot randomizes `pitch_scale` with
+    `randf_range(0.9, 1.1)`.
+  - The port now routes landing, weapon switch, shooting, jump, enemy attack,
+    enemy hurt, and enemy destroy one-shots through source gain and pitch
+    scaling.
+- Focused coverage:
+  - Added source enemy muzzle world-size conversion coverage alongside the
+    existing impact sprite size tests.
+  - Added source one-shot gain and pitch-scale range coverage.
+- Aperture proof:
+  - Started the managed FPS app through `pnpm exec aperture dev up --open` and
+    waited for WebGPU with Aperture MCP.
+  - `ecs_find_entities {"key":"effect.enemy.0.muzzle.0"}` reported
+    `renderSprite.width` and `renderSprite.height` as approximately `1.28`,
+    `blendMode:"additive"`, and `depthMode:"test"`.
+  - `render_get_frame_report {"summaryOnly":true}` reported frame `1577`,
+    one view, `skyboxes:1`, `fogs:1`, 33 draw calls, and diagnostics `0`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-audio.test.ts` passed 5 tests.
+  - `pnpm exec vitest run test/app/fps-effects.test.ts` passed 5 tests.
+  - `pnpm exec vitest run test/app/fps-effects.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-controls.test.ts test/app/fps-input-config.test.ts`
+    passed 26 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - `f5a2f3df` — `Align FPS enemy muzzle sprite size`
+  - `d966ebe4` — `Align FPS one-shot audio pool`
+
+## Previous Completed FPS/Tooling Slices
 
 - Aligned two small Starter Kit FPS source-fidelity details:
   - `references/Starter-Kit-FPS/objects/enemy.gd` plays the enemy hurt sound
@@ -45,7 +92,7 @@ previous working state so the old state remains recoverable.
   - `71ce56f8` — `Align FPS enemy damage audio`
   - `63aacbec` — `Align FPS impact sprite size`
 
-## Previous Completed FPS/Tooling Slices
+## Earlier Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS ray-target semantics with upstream
   `references/Starter-Kit-FPS/objects/player.gd` and
@@ -103,7 +150,7 @@ previous working state so the old state remains recoverable.
 - Committed implementation:
   - `0164f083` — `Align FPS ray targets and gamepad axes`
 
-## Earlier Completed FPS/Tooling Slices
+## Older Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS shot impacts with upstream
   `references/Starter-Kit-FPS/objects/player.gd`:
