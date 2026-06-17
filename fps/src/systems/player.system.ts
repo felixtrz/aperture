@@ -33,6 +33,7 @@ import {
   PLAYER_SPEED,
   PLAYER_START,
   WEAPONS,
+  enemyMuzzleEffectKey,
   type WeaponSpec,
 } from "../lib/fps-data.js";
 import {
@@ -43,6 +44,7 @@ import {
   horizontalRightFromYaw,
   normalizedMoveAxis,
   snapToGroundDistanceForMove,
+  shouldConsumeBufferedJump,
   sourceChildPositionFromLook,
   weaponViewmodelOffsetTarget,
 } from "../lib/fps-controls.js";
@@ -103,6 +105,8 @@ const MUZZLE_FLASH_DURATION = MUZZLE_FLASH_FRAMES.length / SPRITE_ANIMATION_FPS;
 const IMPACT_FLASH_DURATION = IMPACT_FLASH_FRAMES.length / SPRITE_ANIMATION_FPS;
 const HIDDEN_EFFECT_POSITION: Vec3 = [0, -100, 0];
 const HIDDEN_WEAPON_Y = -100;
+const ENEMY_MUZZLE_FLASH_SLOT_COUNT =
+  ENEMIES.length * ENEMY_MUZZLE_OFFSETS.length;
 const WEAPON_SWITCH_HIDE_DURATION = 0.1;
 const WEAPON_SWITCH_DROP_OFFSET = 1;
 const WEAPON_SWITCH_RAISE_RATE = 10;
@@ -139,12 +143,9 @@ export default class PlayerSystem extends createSystem({
   #muzzleFlashRoll = 0;
   #muzzleFlashScale = PLAYER_MUZZLE_MIN_SCALE;
   #impactFlashPosition: Vec3 = HIDDEN_EFFECT_POSITION;
-  #enemyMuzzleFlashTimers: [number, number] = [0, 0];
-  #enemyMuzzleFlashPositions: [Vec3, Vec3] = [
-    HIDDEN_EFFECT_POSITION,
-    HIDDEN_EFFECT_POSITION,
-  ];
-  #enemyMuzzleFlashRolls: [number, number] = [0, 0];
+  #enemyMuzzleFlashTimers = createEnemyMuzzleNumberSlots();
+  #enemyMuzzleFlashPositions = createEnemyMuzzlePositionSlots();
+  #enemyMuzzleFlashRolls = createEnemyMuzzleNumberSlots();
   #damagePulse = 0;
   #weaponVisualIndex = 0;
   #weaponSwitchTargetIndex = 0;
@@ -243,8 +244,8 @@ export default class PlayerSystem extends createSystem({
       this.#jumpBufferTimer = JUMP_BUFFER_DURATION;
     }
 
-    if (this.#jumpBufferTimer > 0 && jumpsRemaining > 0) {
-      this.#playOneShot(randomJumpSound(), 0.45);
+    if (shouldConsumeBufferedJump(this.#jumpBufferTimer, jumpsRemaining)) {
+      this.#playJumpSound();
       verticalVelocity = JUMP_STRENGTH;
       jumpsRemaining -= 1;
       grounded = false;
@@ -285,6 +286,18 @@ export default class PlayerSystem extends createSystem({
       jumpsRemaining = MAX_JUMPS;
     } else if (playerMove.blockedVertical && verticalVelocity > 0) {
       verticalVelocity = 0;
+    }
+
+    if (
+      !jumpedThisFrame &&
+      shouldConsumeBufferedJump(this.#jumpBufferTimer, jumpsRemaining)
+    ) {
+      this.#playJumpSound();
+      verticalVelocity = JUMP_STRENGTH;
+      jumpsRemaining -= 1;
+      grounded = false;
+      jumpedThisFrame = true;
+      this.#jumpBufferTimer = 0;
     }
 
     if (position[1] < -10 || health < 0) {
@@ -358,7 +371,11 @@ export default class PlayerSystem extends createSystem({
       ) {
         health -= ENEMY_ATTACK_DAMAGE;
         this.#damagePulse += 1;
-        this.#triggerEnemyMuzzleFlashes(attacker.position, position);
+        this.#triggerEnemyMuzzleFlashes(
+          attacker.key,
+          attacker.position,
+          position,
+        );
         this.#playOneShot("enemy-attack", 0.35);
       }
     }
@@ -621,11 +638,7 @@ export default class PlayerSystem extends createSystem({
       ]);
   }
 
-  #writeWeapons(
-    weaponIndex: number,
-    moveX: number,
-    moveZ: number,
-  ): void {
+  #writeWeapons(weaponIndex: number, moveX: number, moveZ: number): void {
     const walkBob =
       Math.sin(this.#enemyTime * 10) * 0.025 * Math.hypot(moveX, moveZ);
 
@@ -691,15 +704,22 @@ export default class PlayerSystem extends createSystem({
       1,
       IMPACT_FLASH_FRAMES,
     );
-    for (let i = 0; i < this.#enemyMuzzleFlashTimers.length; i += 1) {
-      this.#writeEffectSprite(
-        `effect.enemy-muzzle.${i}`,
-        this.#enemyMuzzleFlashPositions[i]!,
-        (this.#enemyMuzzleFlashTimers[i] ?? 0) / MUZZLE_FLASH_DURATION,
-        0.72,
-        MUZZLE_FLASH_FRAMES,
-        this.#enemyMuzzleFlashRolls[i] ?? 0,
-      );
+    for (const [enemyIndex, enemy] of ENEMIES.entries()) {
+      for (
+        let muzzleIndex = 0;
+        muzzleIndex < ENEMY_MUZZLE_OFFSETS.length;
+        muzzleIndex += 1
+      ) {
+        const slot = enemyMuzzleSlotIndex(enemyIndex, muzzleIndex);
+        this.#writeEffectSprite(
+          enemyMuzzleEffectKey(enemy.key, muzzleIndex),
+          this.#enemyMuzzleFlashPositions[slot] ?? HIDDEN_EFFECT_POSITION,
+          (this.#enemyMuzzleFlashTimers[slot] ?? 0) / MUZZLE_FLASH_DURATION,
+          0.72,
+          MUZZLE_FLASH_FRAMES,
+          this.#enemyMuzzleFlashRolls[slot] ?? 0,
+        );
+      }
     }
   }
 
@@ -799,33 +819,38 @@ export default class PlayerSystem extends createSystem({
     setSignal(this.signals.lastShotFrame, input.shotsFired);
   }
 
-  #triggerEnemyMuzzleFlashes(enemyPosition: Vec3, playerPosition: Vec3): void {
+  #triggerEnemyMuzzleFlashes(
+    enemyKey: string,
+    enemyPosition: Vec3,
+    playerPosition: Vec3,
+  ): void {
+    const enemyIndex = ENEMIES.findIndex((enemy) => enemy.key === enemyKey);
+    if (enemyIndex < 0) return;
+
     const look = enemyLookAngles({
       enemy: enemyPosition,
       player: playerPosition,
       targetYOffset: ENEMY_LOOK_TARGET_Y_OFFSET,
     });
     for (let i = 0; i < ENEMY_MUZZLE_OFFSETS.length; i += 1) {
-      this.#enemyMuzzleFlashPositions[i] = sourceChildPositionFromLook(
+      const slot = enemyMuzzleSlotIndex(enemyIndex, i);
+      this.#enemyMuzzleFlashPositions[slot] = sourceChildPositionFromLook(
         enemyPosition,
         look,
         ENEMY_MUZZLE_OFFSETS[i]!,
       );
-      this.#enemyMuzzleFlashRolls[i] = randomBetween(
+      this.#enemyMuzzleFlashRolls[slot] = randomBetween(
         -ENEMY_MUZZLE_ROLL_RANGE,
         ENEMY_MUZZLE_ROLL_RANGE,
       );
-      this.#enemyMuzzleFlashTimers[i] = MUZZLE_FLASH_DURATION;
+      this.#enemyMuzzleFlashTimers[slot] = MUZZLE_FLASH_DURATION;
     }
   }
 
   #clearEnemyMuzzleFlashes(): void {
-    this.#enemyMuzzleFlashTimers = [0, 0];
-    this.#enemyMuzzleFlashPositions = [
-      HIDDEN_EFFECT_POSITION,
-      HIDDEN_EFFECT_POSITION,
-    ];
-    this.#enemyMuzzleFlashRolls = [0, 0];
+    this.#enemyMuzzleFlashTimers = createEnemyMuzzleNumberSlots();
+    this.#enemyMuzzleFlashPositions = createEnemyMuzzlePositionSlots();
+    this.#enemyMuzzleFlashRolls = createEnemyMuzzleNumberSlots();
   }
 
   #resetTransientGameplayState(): void {
@@ -1031,6 +1056,10 @@ export default class PlayerSystem extends createSystem({
     });
   }
 
+  #playJumpSound(): void {
+    this.#playOneShot(randomJumpSound(), 0.45);
+  }
+
   #writePlayerBody(translation: Vec3): void {
     const body = this.#findByKey(PLAYER_BODY_KEY);
     if (body === null) return;
@@ -1119,6 +1148,21 @@ function randomBetween(min: number, max: number): number {
 
 function randomSign(): 1 | -1 {
   return Math.random() < 0.5 ? -1 : 1;
+}
+
+function createEnemyMuzzleNumberSlots(): number[] {
+  return Array.from({ length: ENEMY_MUZZLE_FLASH_SLOT_COUNT }, () => 0);
+}
+
+function createEnemyMuzzlePositionSlots(): Vec3[] {
+  return Array.from(
+    { length: ENEMY_MUZZLE_FLASH_SLOT_COUNT },
+    () => HIDDEN_EFFECT_POSITION,
+  );
+}
+
+function enemyMuzzleSlotIndex(enemyIndex: number, muzzleIndex: number): number {
+  return enemyIndex * ENEMY_MUZZLE_OFFSETS.length + muzzleIndex;
 }
 
 function cloneVec3(value: readonly [number, number, number]): Vec3 {

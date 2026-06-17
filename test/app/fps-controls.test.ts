@@ -9,8 +9,11 @@ import {
   cameraRelativeMovementDelta,
   enemyLookAngles,
   horizontalBackwardFromYaw,
+  horizontalForwardFromYaw,
+  horizontalRightFromYaw,
   normalizedMoveAxis,
   snapToGroundDistanceForMove,
+  shouldConsumeBufferedJump,
   sourceChildPositionFromLook,
   weaponViewmodelOffsetTarget,
 } from "../../fps/src/lib/fps-controls.js";
@@ -37,7 +40,7 @@ describe("Starter Kit FPS controls", () => {
       verticalVelocity: 0,
     });
 
-    expect(turnedRight[0]).toBeCloseTo(0.5, 10);
+    expect(turnedRight[0]).toBeCloseTo(-0.5, 10);
     expect(turnedRight[1]).toBe(0);
     expect(turnedRight[2]).toBeCloseTo(0, 10);
   });
@@ -58,7 +61,33 @@ describe("Starter Kit FPS controls", () => {
     });
 
     expect(strafeRightAfterTurn[0]).toBeCloseTo(0, 10);
-    expect(strafeRightAfterTurn[2]).toBeCloseTo(0.5, 10);
+    expect(strafeRightAfterTurn[2]).toBeCloseTo(-0.5, 10);
+  });
+
+  it("matches the camera quaternion forward and right vectors", () => {
+    const yaw = Math.PI / 2;
+    const pitch = Math.PI / 4;
+    const rotation = quatFromEulerYXZ(pitch, yaw, 0);
+    const cameraForward = rotateVec3ByQuat([0, 0, -1], rotation);
+    const horizontalForward = rotateVec3ByQuat(
+      [0, 0, -1],
+      quatFromEulerYXZ(0, yaw, 0),
+    );
+    const cameraRight = rotateVec3ByQuat([1, 0, 0], rotation);
+
+    const helperForward = cameraForwardFromYawPitch(yaw, pitch);
+    const helperHorizontalForward = horizontalForwardFromYaw(yaw);
+    const helperRight = horizontalRightFromYaw(yaw);
+
+    expect(helperForward[0]).toBeCloseTo(cameraForward[0], 5);
+    expect(helperForward[1]).toBeCloseTo(cameraForward[1], 5);
+    expect(helperForward[2]).toBeCloseTo(cameraForward[2], 5);
+    expect(helperHorizontalForward[0]).toBeCloseTo(horizontalForward[0], 5);
+    expect(helperHorizontalForward[1]).toBeCloseTo(horizontalForward[1], 5);
+    expect(helperHorizontalForward[2]).toBeCloseTo(horizontalForward[2], 5);
+    expect(helperRight[0]).toBeCloseTo(cameraRight[0], 5);
+    expect(helperRight[1]).toBeCloseTo(cameraRight[1], 5);
+    expect(helperRight[2]).toBeCloseTo(cameraRight[2], 5);
   });
 
   it("uses pitch for shooting direction without pulling movement downward", () => {
@@ -76,12 +105,12 @@ describe("Starter Kit FPS controls", () => {
     expect(facingForward[2]).toBeCloseTo(1, 10);
 
     const turnedRight = horizontalBackwardFromYaw(Math.PI / 2);
-    expect(turnedRight[0]).toBeCloseTo(-1, 10);
+    expect(turnedRight[0]).toBeCloseTo(1, 10);
     expect(turnedRight[1]).toBe(0);
     expect(turnedRight[2]).toBeCloseTo(0, 10);
 
     const recoil = cameraRecoilVelocityFromYaw(Math.PI / 2, 40, 0.12);
-    expect(recoil[0]).toBeCloseTo(-4.8, 10);
+    expect(recoil[0]).toBeCloseTo(4.8, 10);
     expect(recoil[1]).toBe(0);
     expect(recoil[2]).toBeCloseTo(0, 10);
   });
@@ -172,5 +201,11 @@ describe("Starter Kit FPS controls", () => {
     expect(snapToGroundDistanceForMove(0.18, 0.12)).toBe(0);
     expect(snapToGroundDistanceForMove(0.18, 0)).toBe(0.18);
     expect(snapToGroundDistanceForMove(0.18, -0.12)).toBe(0.18);
+  });
+
+  it("keeps buffered jumps eligible after ground contact refreshes jump count", () => {
+    expect(shouldConsumeBufferedJump(0.08, 0)).toBe(false);
+    expect(shouldConsumeBufferedJump(0.08, 2)).toBe(true);
+    expect(shouldConsumeBufferedJump(0, 2)).toBe(false);
   });
 });

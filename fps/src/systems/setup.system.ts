@@ -41,6 +41,7 @@ import {
   PLAYER_SHADOW_SURFACE_OFFSET,
   PLAYER_START,
   WEAPONS,
+  enemyMuzzleEffectKey,
 } from "../lib/fps-data.js";
 
 const GLTF_FRONT_SIDE_MATERIALS = {
@@ -234,7 +235,9 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         key: `${enemy.key}.hitbox`,
         name: `${enemy.key}.hitbox`,
         tags: ["enemy", "hitbox"],
-        transform: { translation: addVec3(enemy.position, ENEMY_HITBOX_OFFSET) },
+        transform: {
+          translation: addVec3(enemy.position, ENEMY_HITBOX_OFFSET),
+        },
         physics: {
           rigidBody: { type: "static" },
           collider: {
@@ -281,14 +284,16 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       depthMode: SpriteDepthMode.Disabled,
     });
 
-    for (const index of ENEMY_MUZZLE_OFFSETS.keys()) {
-      this.#spawnSpriteEffect({
-        key: `effect.enemy-muzzle.${index}`,
-        name: `Enemy Muzzle ${index + 1}`,
-        textureId: "muzzle-burst",
-        size: [0.42, 0.42],
-        blendMode: SpriteBlendMode.Additive,
-      });
+    for (const enemy of ENEMIES) {
+      for (const index of ENEMY_MUZZLE_OFFSETS.keys()) {
+        this.#spawnSpriteEffect({
+          key: enemyMuzzleEffectKey(enemy.key, index),
+          name: `${enemy.key} Muzzle ${index + 1}`,
+          textureId: "muzzle-burst",
+          size: [0.42, 0.42],
+          blendMode: SpriteBlendMode.Additive,
+        });
+      }
     }
   }
 
@@ -318,9 +323,11 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         size: input.size,
         color: [1, 1, 1, 0],
         blendMode: input.blendMode,
-        ...(input.depthMode === undefined ? {} : { depthMode: input.depthMode }),
+        ...(input.depthMode === undefined
+          ? {}
+          : { depthMode: input.depthMode }),
       }),
-      );
+    );
   }
 
   #spawnPlayerShadow(): void {

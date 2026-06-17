@@ -33,15 +33,19 @@ export interface EnemyLookAngles {
 
 export function cameraForwardFromYawPitch(yaw: number, pitch: number): Vec3 {
   const cosPitch = Math.cos(pitch);
-  return [cosPitch * Math.sin(yaw), Math.sin(pitch), -cosPitch * Math.cos(yaw)];
+  return [
+    -cosPitch * Math.sin(yaw),
+    Math.sin(pitch),
+    -cosPitch * Math.cos(yaw),
+  ];
 }
 
 export function horizontalForwardFromYaw(yaw: number): Vec3 {
-  return [Math.sin(yaw), 0, -Math.cos(yaw)];
+  return [-Math.sin(yaw), 0, -Math.cos(yaw)];
 }
 
 export function horizontalRightFromYaw(yaw: number): Vec3 {
-  return [Math.cos(yaw), 0, Math.sin(yaw)];
+  return [Math.cos(yaw), 0, -Math.sin(yaw)];
 }
 
 export function horizontalBackwardFromYaw(yaw: number): Vec3 {
@@ -130,6 +134,13 @@ export function snapToGroundDistanceForMove(
   desiredVerticalTranslation: number,
 ): number {
   return desiredVerticalTranslation > 0 ? 0 : configuredDistance;
+}
+
+export function shouldConsumeBufferedJump(
+  jumpBufferTimer: number,
+  jumpsRemaining: number,
+): boolean {
+  return jumpBufferTimer > 0 && jumpsRemaining > 0;
 }
 
 function verticalLookPitch(dy: number): number {
