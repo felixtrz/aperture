@@ -55,25 +55,6 @@ Commits: `15b3cacf`, `75c4ac57`
   - Latest fresh-session console entries contained no new pointer-capture
     `InvalidStateError`.
 
-## TOOLING — Generated pointer capture forwarding
-
-Completed: 2026-06-17 06:09 PDT
-Commit: `15b3cacf`
-
-### Summary
-
-- Hardened generated browser pointer input forwarding so `setPointerCapture`
-  and `releasePointerCapture` are best-effort.
-- Synthetic, already-released, or pointer-lock-transition events can no longer
-  throw before the input event is forwarded to the generated simulation worker.
-- Added focused browser-input forwarding coverage.
-
-### Validation
-
-- `pnpm exec vitest run test/app/browser-input-forwarding.test.ts`
-- `pnpm --filter @aperture-engine/app run typecheck`
-- `git diff --check`
-
 ## FPS-PORT — Player capsule source data
 
 Completed: 2026-06-17 06:04 PDT

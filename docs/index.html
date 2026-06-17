@@ -425,8 +425,18 @@
               <code>depthMode:"disabled"</code>, and diagnostics
               <code>0</code>. The same run hardened generated pointer capture
               forwarding so synthetic or pointer-lock-transition events cannot
-              block input delivery. Prior update: Starter Kit FPS player
-              capsule/body data now
+              block input delivery; a fresh managed-browser click changed
+              <code>shotsFired</code> from <code>0</code> to <code>1</code>,
+              produced <code>spriteDraws:2</code> and
+              <code>quadInstances:2</code> with diagnostics <code>0</code>,
+              Space jump produced
+              <code>verticalVelocity:7.666666666666667</code>,
+              <code>jumpsRemaining:1</code>, and <code>grounded:false</code>,
+              and forward movement after generated look input moved to
+              <code>[0.02215035724262293,0.9701670107679092,0.08033558259526785]</code>
+              at <code>yaw:15.977000000029802</code>, proving movement follows
+              camera yaw. Prior update: Starter Kit FPS player capsule/body
+              data now
               derives directly from source scene data. Source
               <code>objects/player.tscn</code> positions the
               <code>CharacterBody3D</code> at <code>y=0.5</code>, the
