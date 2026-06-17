@@ -59,29 +59,28 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Run the post-port genericity and cleanup audit for the racing library-gap plan,
-then fix any small API placement, naming, or documentation issues found while
-keeping racing and Shadow Lab on shared Aperture paths.
+Run the final no-cache end-to-end verification for the racing library-gap plan
+and checkpoint the result.
 
-Category: `audit-refactor`
+Category: `runtime-orchestration`
 
-Reference anchor: `references/engine/src/framework/components/particle-system/component.js`
-for PlayCanvas' engine-owned particle/audio/component surfaces, plus
-`references/bevy/crates/bevy_ecs/src/system/system_param.rs` and
-`references/bevy/crates/bevy_transform/src/components/transform.rs` for generic
-ECS resources/system params and transform helper precedent.
+Reference anchor: `references/engine/src/framework/app-base.js` for
+PlayCanvas-style app lifecycle ownership, plus
+`references/bevy/crates/bevy_app/src/main_schedule.rs` for explicit app schedule
+orchestration and validation-friendly run phases.
 
 Acceptance criteria:
 
-- Re-audit the APIs landed for racing and classify each as generic V1 engine
-  surface, app/template code, or questionable convenience.
-- Apply any small corrective edits discovered by the audit, without broad
-  rewrites or app-specific library hooks.
-- Keep PlayCanvas/Bevy evidence beside any claim that a capability belongs in
-  the library.
-- Re-run the independent `examples/particle-bursts.html` proof, managed racing
-  smoke proof through Aperture MCP, and Shadow Lab health checks after the
-  cleanup slice.
+- Rebuild touched workspace packages, racing, and Shadow Lab from current
+  source.
+- Clear racing's Vite optimized cache and relaunch racing through
+  `pnpm exec aperture dev up --open --host 127.0.0.1 --port 5173`.
+- Use Aperture MCP to verify WebGPU health, console tail, smoke while drifting,
+  render diagnostics, and HUD signal updates in racing.
+- Verify Shadow Lab remains isolated and healthy after the shared browser/status
+  and shadow/follow-camera changes.
+- Update the plan/handoff/completed logs with final evidence and leave
+  pre-existing screenshot/parity artifacts uncommitted.
 
 ## Historical M10 Physics Notes
 

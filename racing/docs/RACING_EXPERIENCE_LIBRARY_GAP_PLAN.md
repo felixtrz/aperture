@@ -233,6 +233,15 @@ building blocks and default paths.
   Aperture MCP proof paused racing, held `drive=[1,1]`, stepped deterministic
   simulation into drift, and observed two smoke particle emitters with zero
   diagnostics.
+- 2026-06-16: The post-port genericity audit landed a small browser tooling
+  cleanup: `@aperture-engine/app/browser` now exposes
+  `subscribeGeneratedBrowserAppStatus(...)` for generated app status updates,
+  and Shadow Lab uses it for harness status/debug-panel render readout instead
+  of hand-rolling another `requestAnimationFrame` status polling loop. The audit
+  kept the landed racing APIs classified against PlayCanvas/Bevy precedent and
+  reproved the already-running managed racing app through Aperture MCP at
+  `particleEmitters:306` with zero diagnostics. The remaining work is final
+  no-cache E2E verification.
 
 ## Genericity Audit - 2026-06-16
 
@@ -315,9 +324,11 @@ are broad Aperture V1 capabilities, not racing-only conveniences.
 
 ### Acceptable But Needs V1 Tightening
 
-- Generated browser signal readers: useful but incomplete. They solved racing
-  HUD polling, but V1 should offer a deliberate browser subscription/event API
-  rather than encouraging apps to poll generated status objects directly.
+- Generated browser signal/status readers: generic. Racing HUD uses
+  `subscribeGeneratedSignals(...)`, and Shadow Lab status/debug-panel readout
+  now uses `subscribeGeneratedBrowserAppStatus(...)`. The raw generated status
+  reader remains a diagnostics escape hatch, while app code should prefer the
+  subscription helpers.
 - `this.meshes.dynamic(...)`: keep, but add examples and diagnostics for update
   frequency, bounds correctness, and version churn. Dynamic mesh publication can
   become a performance trap without clear reports.
@@ -352,18 +363,16 @@ are broad Aperture V1 capabilities, not racing-only conveniences.
 
 ### Next Actions From This Audit
 
-- Finish RACE-LIB-20 with a reusable follow camera helper only if it remains
-  input-agnostic, writes ordinary ECS `LocalTransform`, and keeps racing-specific
-  tuning in racing.
-- Add focused devtool/entity inspection coverage for GLTF primitive children so
-  future agents can prove `this.gltf.nodes(...)` does not leak hidden render
-  primitives in live apps.
-- Add one particle rendering regression that drives a burst effect and asserts
-  draw count or particle packet count, so "no particles visible" is caught
-  without relying only on manual visual checks.
-- Add a short docs page for fixed-step render interpolation explaining the
-  hierarchy rule, opt-in boundaries, and why this stays a snapshot presentation
-  rewrite instead of renderer-owned transform state.
+- Run the final no-cache E2E verification slice: rebuild the library packages,
+  clear racing's optimized cache, relaunch racing through managed Aperture, and
+  prove smoke/shadows/HUD/runtime health through Aperture MCP.
+- Recheck Shadow Lab after the browser-status subscription migration, including
+  typecheck/build and managed status if its existing isolated session is still
+  available.
+- Leave remaining feature work as future V1 tasks rather than app-specific
+  cleanup: richer particle lifecycle semantics, broader dynamic-mesh/trail
+  diagnostics, and a possible higher-level render-interpolation subtree helper
+  only if another app needs it.
 
 ## Goals
 
@@ -1424,17 +1433,18 @@ Shadow-lab validation:
 
 ## Recommended Next Implementation Slice
 
-Run the post-port cleanup and genericity audit:
+Run the final no-cache end-to-end verification:
 
-1. Re-audit the library APIs landed for racing and classify each as generic V1
-   engine surface, app/template code, or a questionable convenience.
-2. Use PlayCanvas and Bevy anchors when judging engine-owned behavior,
-   especially particles, audio intent, follow camera, resources, GLTF lookup,
-   dynamic trails, and generated-browser tooling.
-3. Fix any small naming, documentation, or API placement issues discovered
-   during the audit while keeping racing and Shadow Lab on the shared paths.
-4. Re-run the no-cache managed racing proof, independent particle proof route,
-   and Shadow Lab health checks before the final checkpoint.
+1. Rebuild the touched library packages and both experiences from workspace
+   dependencies.
+2. Clear racing's Vite optimized cache and relaunch with
+   `pnpm exec aperture dev up --open --host 127.0.0.1 --port 5173`.
+3. Use Aperture MCP, not raw CDP, to verify WebGPU status, console tail, smoke
+   while drifting, shadow/frame diagnostics, and HUD signal updates.
+4. Verify Shadow Lab remains isolated and healthy after the shared browser API
+   and prior shadow/GLTF/follow-camera changes.
+5. Commit the final docs/handoff update only after the no-cache runtime proof is
+   complete.
 
 Reason:
 
@@ -1442,6 +1452,6 @@ Reason:
   systems: math, resources, signals, start options, dynamic meshes, texture
   decode, audio, particles, trails, GLTF lookup, material overrides, spawn
   batching, follow camera, and particle bounds.
-- The next risk is not one missing feature but API drift: some helpers landed
-  quickly to unblock the port, so they need a review pass against established
-  engine precedent before calling the library ready for V1.
+- The remaining risk is stale optimized output or a browser/runtime regression
+  after many library slices. The last slice should prove the deployed current
+  code path end to end rather than adding another feature.

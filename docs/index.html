@@ -393,13 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 04:32 UTC</dd>
+            <dd>2026-06-17 04:43 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: particle bounds are now automatic for common burst
-              and continuous billboard effects. A <code>boundsRadius</code> of
+              Latest update: generated browser status now has a public
+              subscription helper,
+              <code>subscribeGeneratedBrowserAppStatus(...)</code>, matching the
+              existing generated signal subscription path. Shadow Lab uses it
+              for harness status attributes and debug-panel render readout
+              instead of polling the generated status global in app code. Prior
+              update: particle bounds are now automatic for common burst and
+              continuous billboard effects. A <code>boundsRadius</code> of
               <code>0</code> selects derived bounds from effect size, lifetime,
               speed, gravity, burst jitter, authored velocity, and emitter
               transform scale, while positive radius and center overrides remain
@@ -1243,11 +1249,11 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue the racing library-gap plan with the post-port genericity
-              and cleanup audit: classify the landed APIs against
-              PlayCanvas/Bevy precedent, then fix small placement, naming, or
-              documentation issues while keeping racing and Shadow Lab on shared
-              Aperture paths.
+              Run the final no-cache end-to-end racing verification: rebuild
+              current workspace packages and both experiences, relaunch racing
+              through managed Aperture with its Vite optimized cache cleared,
+              prove smoke/HUD/shadows/render diagnostics through MCP, and verify
+              Shadow Lab remains isolated and healthy.
             </dd>
           </dl>
         </aside>
@@ -2148,6 +2154,11 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">browser</span> Added
+                <code>subscribeGeneratedBrowserAppStatus(...)</code> and moved
+                Shadow Lab's status/debug readout to the shared browser API.
+              </li>
               <li>
                 <span class="badge green">particles</span> Added automatic
                 bounds for common burst and continuous billboard effects. Racing

@@ -1,5 +1,46 @@
 # Completed Tasks
 
+## RACE-LIB-28 — Post-port genericity cleanup
+
+Completed: 2026-06-16 21:50 PDT
+Commit: current checkpoint commit
+
+### Summary
+
+- Re-audited the racing port APIs against PlayCanvas and Bevy precedent and
+  kept the next work scoped to final no-cache verification rather than another
+  feature slice.
+- Added `subscribeGeneratedBrowserAppStatus(...)` to
+  `@aperture-engine/app/browser` so apps and harnesses can subscribe to
+  generated status changes without hand-rolled status-global polling loops.
+- Migrated Shadow Lab's main harness status attributes and debug-panel render
+  readout onto the new browser status subscription API.
+- Confirmed app-level generated-status parsing is gone from racing and Shadow
+  Lab source, except for the raw status helper itself and bundled third-party
+  three.js comparison files.
+
+### Validation
+
+- `pnpm exec vitest run test/app/browser-signals.test.ts`
+- `pnpm exec prettier --check packages/app/src/browser/status.ts packages/app/src/browser.ts test/app/browser-signals.test.ts shadow-lab/src/main.ts shadow-lab/src/debug-panel.ts racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md agent/BACKLOG.md agent/COMPLETED.md agent/HANDOFF.md docs/index.html`
+- `pnpm run check:progress`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm exec playwright test test/e2e/particle-bursts.spec.ts --reporter=line --timeout=60000`
+- `git diff --check`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Managed Aperture racing proof: managed browser status was `running` with
+  `webgpuOk:true`; baseline render diagnostics were `ok:true`, zero
+  diagnostics, and submitted directional shadow; after `ecs_pause`,
+  `input_action_set drive=[1,1]`, `ecs_resume`, and a short controlled run,
+  `render_get_snapshot_summary` reported `particleEmitters:306` and
+  `diagnostics:0`. Inputs were reset and ECS resumed afterward.
+
 ## RACE-LIB-27 — Automatic particle bounds
 
 Completed: 2026-06-16 21:32 PDT

@@ -10,7 +10,7 @@
 //   • Transform editor — pick any named entity and scrub its translation/scale;
 //                        the change is written straight into the ECS component.
 //   • Snapshot         — dump the full entity-lookup snapshot to the console.
-import { readGeneratedBrowserAppStatus } from "@aperture-engine/app/browser";
+import { subscribeGeneratedBrowserAppStatus } from "@aperture-engine/app/browser";
 
 interface EntityRef {
   readonly index: number;
@@ -43,9 +43,9 @@ const SCALE_MIN = 0.05;
 const SCALE_MAX = 12;
 
 function runtime(): McpRuntime | null {
-  return (globalThis as Record<string, unknown>)["__APERTURE_MCP_RUNTIME__"] as
-    | McpRuntime
-    | null;
+  return (globalThis as Record<string, unknown>)[
+    "__APERTURE_MCP_RUNTIME__"
+  ] as McpRuntime | null;
 }
 
 async function waitForRuntime(timeoutMs = 15_000): Promise<McpRuntime | null> {
@@ -62,11 +62,16 @@ async function waitForRuntime(timeoutMs = 15_000): Promise<McpRuntime | null> {
 
 function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
-  props: Partial<Omit<HTMLElementTagNameMap[K], "style">> & { style?: string } = {},
+  props: Partial<Omit<HTMLElementTagNameMap[K], "style">> & {
+    style?: string;
+  } = {},
   children: readonly (Node | string)[] = [],
 ): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
-  const { style, ...rest } = props as { style?: string } & Record<string, unknown>;
+  const { style, ...rest } = props as { style?: string } & Record<
+    string,
+    unknown
+  >;
   Object.assign(node, rest);
   if (style !== undefined) node.style.cssText = style;
   for (const child of children) {
@@ -253,6 +258,7 @@ function buildRenderSection(body: HTMLElement): void {
   const draws = el("span", { textContent: "—" });
   const frameNo = el("span", { textContent: "—" });
   const err = el("div", { className: "sl-err" });
+  const dot = document.querySelector<HTMLElement>("#sl-head .sl-dot");
   body.append(
     el("div", { className: "sl-section" }, [
       el("div", { className: "sl-label", textContent: "Render" }),
@@ -268,8 +274,30 @@ function buildRenderSection(body: HTMLElement): void {
     ]),
   );
 
-  // FPS via rAF; render counts mirrored onto the status global each frame.
-  const dot = document.querySelector<HTMLElement>("#sl-head .sl-dot");
+  subscribeGeneratedBrowserAppStatus((status) => {
+    const diag = (status.diagnostics as RenderDiagnostics | null) ?? {};
+    const frame = diag.lastFrame;
+    const meshes = frame?.counts?.meshDraws;
+    const calls = frame?.counts?.drawCalls;
+    draws.textContent =
+      meshes === undefined ? "—" : `${meshes} / ${calls ?? "—"}`;
+    frameNo.textContent =
+      frame?.frame === undefined ? "—" : String(frame.frame);
+
+    const lastError = status.lastError ?? diag.lastError;
+    const ok = frame?.ok !== false && !lastError;
+    dot?.classList.toggle("bad", !ok);
+    if (lastError) {
+      err.style.display = "block";
+      err.textContent = String(
+        (lastError as { message?: string }).message ?? lastError,
+      );
+    } else {
+      err.style.display = "none";
+    }
+  });
+
+  // FPS via rAF; render counts are supplied by the status subscription above.
   const fpsEl = document.querySelector<HTMLElement>("#sl-head .sl-fps");
   let frames = 0;
   let last = performance.now();
@@ -281,29 +309,6 @@ function buildRenderSection(body: HTMLElement): void {
       if (fpsEl) fpsEl.textContent = `${value} fps`;
       frames = 0;
       last = now;
-
-      const status = readGeneratedBrowserAppStatus() as
-        | { diagnostics?: RenderDiagnostics }
-        | null;
-      const diag = status?.diagnostics ?? {};
-      const frame = diag.lastFrame;
-      const meshes = frame?.counts?.meshDraws;
-      const calls = frame?.counts?.drawCalls;
-      draws.textContent =
-        meshes === undefined ? "—" : `${meshes} / ${calls ?? "—"}`;
-      frameNo.textContent = frame?.frame === undefined ? "—" : String(frame.frame);
-
-      const lastError = diag.lastError;
-      const ok = frame?.ok !== false && !lastError;
-      dot?.classList.toggle("bad", !ok);
-      if (lastError) {
-        err.style.display = "block";
-        err.textContent = String(
-          (lastError as { message?: string }).message ?? lastError,
-        );
-      } else {
-        err.style.display = "none";
-      }
     }
     requestAnimationFrame(tick);
   };
@@ -346,7 +351,9 @@ async function fetchEntities(rt: McpRuntime): Promise<EntitySummary[]> {
   const res = await rt.callTool("ecs_find_entities", { query: { limit: 100 } });
   const summaries = (res.result as { summaries?: EntitySummary[] } | undefined)
     ?.summaries;
-  return (summaries ?? []).filter((s) => s.componentIds?.includes(LOCAL_TRANSFORM) ?? true);
+  return (summaries ?? []).filter(
+    (s) => s.componentIds?.includes(LOCAL_TRANSFORM) ?? true,
+  );
 }
 
 async function buildTransformSection(
@@ -427,7 +434,10 @@ async function buildTransformSection(
     return btn;
   };
 
-  const snapshot = el("div", { className: "sl-btn", textContent: "⤓ Snapshot" });
+  const snapshot = el("div", {
+    className: "sl-btn",
+    textContent: "⤓ Snapshot",
+  });
   snapshot.addEventListener("click", async () => {
     const res = await rt.callTool("ecs_snapshot");
     // eslint-disable-next-line no-console

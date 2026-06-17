@@ -3,6 +3,7 @@ import {
   APERTURE_GENERATED_STATUS_GLOBAL,
   readGeneratedSignal,
   readGeneratedSignals,
+  subscribeGeneratedBrowserAppStatus,
   subscribeGeneratedSignals,
   type GeneratedBrowserAppStatus,
   type GeneratedSignalSummary,
@@ -70,6 +71,62 @@ describe("generated browser signals", () => {
     vi.advanceTimersByTime(16);
 
     expect(updates).toEqual([{ speed: 0.75 }, { speed: 1.25, started: true }]);
+  });
+
+  it("subscribes to generated browser status mutation and stops after unsubscribe", () => {
+    vi.useFakeTimers();
+    const status = statusWithSignals({ speed: 0.75 });
+    const scope: Record<string, unknown> = {
+      [APERTURE_GENERATED_STATUS_GLOBAL]: status,
+    };
+    const updates: number[] = [];
+    const unsubscribe = subscribeGeneratedBrowserAppStatus(
+      (next) => {
+        updates.push(next.snapshots);
+      },
+      { scope },
+    );
+
+    expect(updates).toEqual([1]);
+
+    status.snapshots = 2;
+    vi.advanceTimersByTime(16);
+
+    expect(updates).toEqual([1, 2]);
+
+    unsubscribe();
+    status.snapshots = 3;
+    vi.advanceTimersByTime(16);
+
+    expect(updates).toEqual([1, 2]);
+  });
+
+  it("notifies when generated browser status errors mutate in place", () => {
+    vi.useFakeTimers();
+    const status = statusWithSignals({ speed: 0.75 });
+    const scope: Record<string, unknown> = {
+      [APERTURE_GENERATED_STATUS_GLOBAL]: status,
+    };
+    const updates: string[] = [];
+    subscribeGeneratedBrowserAppStatus(
+      (next) => {
+        updates.push(
+          String(
+            (next.lastError as { message?: string } | null)?.message ?? "",
+          ),
+        );
+      },
+      { scope },
+    );
+
+    expect(updates).toEqual([""]);
+
+    status.lastError = { message: "first" };
+    vi.advanceTimersByTime(16);
+    status.lastError = { message: "second" };
+    vi.advanceTimersByTime(16);
+
+    expect(updates).toEqual(["", "first", "second"]);
   });
 });
 
