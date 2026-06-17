@@ -16,6 +16,8 @@ export const FpsResource = defineResource("fps.state", {
   weaponVisualIndex: resource.number(0),
   weaponSwitchProgress: resource.number(1),
   weaponSwitchPhase: resource.string("ready"),
+  landingBob: resource.number(0),
+  landingPulse: resource.number(0),
   shotCooldown: resource.number(0),
   shotsFired: resource.number(0),
   hits: resource.number(0),

@@ -90,6 +90,8 @@ const WEAPON_SWITCH_HIDE_DURATION = 0.1;
 const WEAPON_SWITCH_DROP_OFFSET = 1;
 const WEAPON_SWITCH_RAISE_RATE = 10;
 const WEAPON_SWITCH_COMPLETE_EPSILON = 0.01;
+const LANDING_CAMERA_BOB_OFFSET = -0.1;
+const LANDING_CAMERA_BOB_RECOVERY_RATE = 5;
 
 interface ShotEnemyHit {
   readonly key: string;
@@ -131,6 +133,8 @@ export default class PlayerSystem extends createSystem({
   #weaponSwitchTimer = 0;
   #weaponSwitchRaiseOffset = 0;
   #weaponSwitchActive = false;
+  #landingBobOffset = 0;
+  #landingPulse = 0;
 
   override update(delta: number): void {
     const dt = Math.min(Math.max(delta, 0), 1 / 30);
@@ -140,6 +144,11 @@ export default class PlayerSystem extends createSystem({
       const timer = this.#enemyMuzzleFlashTimers[i] ?? 0;
       this.#enemyMuzzleFlashTimers[i] = Math.max(0, timer - dt);
     }
+    this.#landingBobOffset = lerpNumber(
+      this.#landingBobOffset,
+      0,
+      Math.min(1, dt * LANDING_CAMERA_BOB_RECOVERY_RATE),
+    );
 
     const state = this.resources.read(FpsResource);
 
@@ -237,6 +246,7 @@ export default class PlayerSystem extends createSystem({
     if (grounded) {
       if (!wasGrounded && verticalVelocity < -1) {
         this.#playOneShot("land", 0.35);
+        this.#triggerLandingBob();
       }
       verticalVelocity = 0;
       jumpsRemaining = MAX_JUMPS;
@@ -315,7 +325,7 @@ export default class PlayerSystem extends createSystem({
       }
     }
 
-    this.#writeCamera(position, yaw, pitch);
+    this.#writeCamera(position, yaw, pitch, this.#landingBobOffset);
     this.#writeWeapons(weaponIndex, weapon, moveX, moveZ, shotCooldown);
     this.#writeShotEffects();
     this.#writeEnemies(position, enemyHealth);
@@ -351,6 +361,8 @@ export default class PlayerSystem extends createSystem({
       next.weaponVisualIndex = this.#weaponVisualIndex;
       next.weaponSwitchProgress = this.#weaponSwitchProgress();
       next.weaponSwitchPhase = this.#weaponSwitchPhase();
+      next.landingBob = this.#landingBobOffset;
+      next.landingPulse = this.#landingPulse;
       next.shotCooldown = shotCooldown;
       next.shotsFired = shotsFired;
       next.hits = hits;
@@ -536,10 +548,17 @@ export default class PlayerSystem extends createSystem({
     );
   }
 
-  #writeCamera(position: Vec3, yaw: number, pitch: number): void {
+  #writeCamera(
+    position: Vec3,
+    yaw: number,
+    pitch: number,
+    landingBobOffset: number,
+  ): void {
     const camera = this.#findByKey("camera.main");
     if (camera === null) return;
-    camera.getVectorView(LocalTransform, "translation").set(position);
+    camera
+      .getVectorView(LocalTransform, "translation")
+      .set([position[0], position[1] + landingBobOffset, position[2]]);
     camera
       .getVectorView(LocalTransform, "rotation")
       .set(quatFromEulerYXZ(pitch, yaw, 0));
@@ -735,6 +754,13 @@ export default class PlayerSystem extends createSystem({
     this.#impactFlashPosition = HIDDEN_EFFECT_POSITION;
     this.#clearEnemyMuzzleFlashes();
     this.#resetWeaponSwitch();
+    this.#landingBobOffset = 0;
+    this.#landingPulse = 0;
+  }
+
+  #triggerLandingBob(): void {
+    this.#landingBobOffset = LANDING_CAMERA_BOB_OFFSET;
+    this.#landingPulse += 1;
   }
 
   #startWeaponSwitch(currentIndex: number, targetIndex: number): boolean {
@@ -936,6 +962,10 @@ function clampPitch(value: number): number {
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
+}
+
+function lerpNumber(from: number, to: number, alpha: number): number {
+  return from + (to - from) * alpha;
 }
 
 function smoothstep(value: number): number {
