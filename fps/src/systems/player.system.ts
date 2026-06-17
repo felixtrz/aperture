@@ -18,6 +18,10 @@ import type {
 import { Collider } from "@aperture-engine/physics";
 import { Sprite } from "@aperture-engine/render";
 import {
+  SOURCE_FOOTSTEP_GAIN,
+  sourceFootstepAudible,
+} from "../lib/fps-audio.js";
+import {
   ENEMIES,
   ENEMY_HITBOX_OFFSET,
   ENEMY_MUZZLE_OFFSETS,
@@ -42,7 +46,6 @@ import {
   cameraRelativeMovementDelta,
   enemyLookAngles,
   horizontalRightFromYaw,
-  normalizedMoveAxis,
   snapToGroundDistanceForMove,
   shouldConsumeBufferedJump,
   sourceChildPositionFromLook,
@@ -138,7 +141,6 @@ export default class PlayerSystem extends createSystem({
   #previousPointer: readonly [number, number] | null = null;
   #enemyTime = 0;
   #enemyAttackTimer = 0;
-  #footstepLoop = false;
   #muzzleFlashTimer = 0;
   #impactFlashTimer = 0;
   #muzzleFlashPosition: Vec3 = HIDDEN_EFFECT_POSITION;
@@ -194,6 +196,8 @@ export default class PlayerSystem extends createSystem({
     let lastDestroyedEnemy = state.lastDestroyedEnemy;
     let skipPhysicsMove = false;
     let jumpedThisFrame = false;
+    let footstepVelocityX = 0;
+    let footstepVelocityZ = 0;
 
     if (this.#button("reset")?.down()) {
       position = [...PLAYER_START];
@@ -240,7 +244,6 @@ export default class PlayerSystem extends createSystem({
     const move = this.actions.move as InputAxis2dAction | undefined;
     const moveX = move?.kind === "axis2d" ? move.x.value : 0;
     const moveZ = move?.kind === "axis2d" ? move.y.value : 0;
-    const movement = normalizedMoveAxis(moveX, moveZ);
 
     if (this.#button("jump")?.down()) {
       this.#jumpBufferTimer = JUMP_BUFFER_DURATION;
@@ -269,6 +272,7 @@ export default class PlayerSystem extends createSystem({
     this.#recoverWeaponRecoil(dt);
 
     const wasGrounded = grounded;
+    const previousPosition: Vec3 = [...position];
     const playerMove = skipPhysicsMove
       ? {
           position,
@@ -277,6 +281,10 @@ export default class PlayerSystem extends createSystem({
         }
       : this.#movePlayerBody(position, desiredTranslation, grounded);
     position = playerMove.position;
+    if (dt > Number.EPSILON) {
+      footstepVelocityX = (position[0] - previousPosition[0]) / dt;
+      footstepVelocityZ = (position[2] - previousPosition[2]) / dt;
+    }
     grounded = jumpedThisFrame ? false : playerMove.grounded;
 
     if (grounded) {
@@ -317,6 +325,8 @@ export default class PlayerSystem extends createSystem({
       this.#resetTransientGameplayState();
       this.#damagePulse = 0;
       this.#writePlayerBody(PLAYER_BODY_START);
+      footstepVelocityX = 0;
+      footstepVelocityZ = 0;
     }
 
     if (this.#button("switchWeapon")?.down()) {
@@ -403,7 +413,7 @@ export default class PlayerSystem extends createSystem({
       damagePulse: this.#damagePulse,
       gameStatus,
     });
-    this.#updateFootsteps(grounded, movement[0] !== 0 || movement[1] !== 0);
+    this.#updateFootsteps(grounded, footstepVelocityX, footstepVelocityZ);
 
     this.resources.write(FpsResource, (next) => {
       next.playerPosition = position;
@@ -856,7 +866,6 @@ export default class PlayerSystem extends createSystem({
   #resetTransientGameplayState(): void {
     this.#enemyTime = 0;
     this.#enemyAttackTimer = 0;
-    this.#footstepLoop = false;
     this.#muzzleFlashTimer = 0;
     this.#impactFlashTimer = 0;
     this.#muzzleFlashPosition = HIDDEN_EFFECT_POSITION;
@@ -1015,20 +1024,19 @@ export default class PlayerSystem extends createSystem({
     this.#weaponSwitchActive = false;
   }
 
-  #updateFootsteps(grounded: boolean, moving: boolean): void {
-    const shouldLoop = grounded && moving;
-    if (shouldLoop === this.#footstepLoop) return;
-    this.#footstepLoop = shouldLoop;
-    if (shouldLoop) {
-      this.audio.loop("fps.walking", {
-        clip: this.audio.clip("walking"),
-        busId: "sfx",
-        gain: 0.18,
-        simulationSpace: AudioSimulationSpace.Local,
-      });
-    } else {
-      this.audio.stop("fps.walking");
-    }
+  #updateFootsteps(
+    grounded: boolean,
+    velocityX: number,
+    velocityZ: number,
+  ): void {
+    const audible = sourceFootstepAudible({ grounded, velocityX, velocityZ });
+    this.audio.loop("fps.walking", {
+      clip: this.audio.clip("walking"),
+      busId: "sfx",
+      gain: SOURCE_FOOTSTEP_GAIN,
+      muted: !audible,
+      simulationSpace: AudioSimulationSpace.Local,
+    });
   }
 
   #livingEnemyAttackers(
