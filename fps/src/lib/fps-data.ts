@@ -59,6 +59,20 @@ export interface PlatformLargeGrassDecorationSpec {
   readonly tags: readonly string[];
 }
 
+export const FPS_INPUT_COMMAND_CHANNEL = "fps.input";
+
+export type FpsInputCommand =
+  | {
+      readonly kind: "move";
+      readonly x: number;
+      readonly y: number;
+    }
+  | {
+      readonly kind: "button";
+      readonly action: "jump" | "switchWeapon" | "reset";
+      readonly pressed: boolean;
+    };
+
 export const SOURCE_ENEMY_MUZZLE_OFFSETS: readonly [Vec3, Vec3] = [
   [-0.45, 0.3, 0.4],
   [0.45, 0.3, 0.4],
@@ -137,6 +151,11 @@ export const SOURCE_WEAPON_VIEW_POSITION: Vec3 = [
   SOURCE_WEAPON_CONTAINER_OFFSET[1] + SOURCE_WEAPON_MODEL_POSITION[1],
   SOURCE_WEAPON_CONTAINER_OFFSET[2] + SOURCE_WEAPON_MODEL_POSITION[2],
 ];
+// Aperture mirrors the Godot transparent SubViewport with a weapon-only camera
+// rigged to the player camera alongside its viewmodel. Keep the extracted source
+// transform above intact; this runtime position is calibrated for Aperture's
+// WebGPU projection and the app canvas aspect.
+export const FPS_WEAPON_VIEW_POSITION: Vec3 = [1.7, -0.65, -2.75];
 export const SOURCE_WEAPON_MUZZLE_POSITION: Vec3 = [0.1, -0.4, 1.5];
 export const SOURCE_WEAPON_CAMERA_ITEM_FOV = 40;
 export const WEAPON_CAMERA_KEY = "camera.weapon";
@@ -193,7 +212,7 @@ export const WEAPONS: readonly WeaponSpec[] = [
     knockback: 40,
     minKnockback: [0.025, 0.025],
     maxKnockback: [0.045, 0.04],
-    position: [...SOURCE_WEAPON_VIEW_POSITION],
+    position: [...FPS_WEAPON_VIEW_POSITION],
     rotationEulerDegrees: [0, 180, 0],
     scale: [...SOURCE_WEAPON_MODEL_SCALE],
     muzzlePosition: [...SOURCE_WEAPON_MUZZLE_POSITION],
@@ -211,7 +230,7 @@ export const WEAPONS: readonly WeaponSpec[] = [
     knockback: 10,
     minKnockback: [0.001, 0.001],
     maxKnockback: [0.0025, 0.002],
-    position: [...SOURCE_WEAPON_VIEW_POSITION],
+    position: [...FPS_WEAPON_VIEW_POSITION],
     rotationEulerDegrees: [0, 180, 0],
     scale: [...SOURCE_WEAPON_MODEL_SCALE],
     muzzlePosition: [...SOURCE_WEAPON_MUZZLE_POSITION],

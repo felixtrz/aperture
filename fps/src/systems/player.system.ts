@@ -27,6 +27,7 @@ import {
 import {
   ENEMIES,
   ENEMY_MUZZLE_OFFSETS,
+  FPS_INPUT_COMMAND_CHANNEL,
   GRAVITY,
   IMPACT_EFFECT_SLOT_COUNT,
   JUMP_STRENGTH,
@@ -51,7 +52,6 @@ import {
   SOURCE_LOOK_PITCH_LIMIT,
   SOURCE_MOVEMENT_LERP_RATE,
   SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT,
-  SOURCE_WEAPON_CONTAINER_OFFSET,
   SOURCE_WEAPON_SHOT_KICK,
   SOURCE_WEAPON_SWITCH_DROP_OFFSET,
   SOURCE_WEAPON_SWITCH_HIDE_DURATION,
@@ -60,6 +60,7 @@ import {
   WEAPONS,
   enemyMuzzleEffectKey,
   impactEffectKey,
+  type FpsInputCommand,
   type WeaponSpec,
 } from "../lib/fps-data.js";
 import {
@@ -80,7 +81,7 @@ import {
   sourcePointerDragLookStep,
   sourceShotDirection,
   sourceSmoothedMovementStep,
-  sourceWeaponMuzzleWorldPosition,
+  sourceWeaponMuzzleLocalPosition,
   shouldConsumeBufferedShot,
   weaponViewmodelOffsetTarget,
   type SourceEnemyAttackCandidate,
@@ -134,7 +135,7 @@ const IMPACT_FLASH_FRAMES: readonly SpriteAnimationFrame[] = [
 const MUZZLE_FLASH_DURATION = MUZZLE_FLASH_FRAMES.length / SPRITE_ANIMATION_FPS;
 const IMPACT_FLASH_DURATION = IMPACT_FLASH_FRAMES.length / SPRITE_ANIMATION_FPS;
 const HIDDEN_EFFECT_POSITION: Vec3 = [0, -100, 0];
-const HIDDEN_WEAPON_Y = -100;
+const HIDDEN_WEAPON_POSITION: Vec3 = [0, -100, -100];
 const ENEMY_MUZZLE_FLASH_SLOT_COUNT =
   ENEMIES.length * ENEMY_MUZZLE_OFFSETS.length;
 const WEAPON_SWITCH_COMPLETE_EPSILON = 0.01;
@@ -179,6 +180,12 @@ export default class PlayerSystem extends createSystem({
   #landingPulse = 0;
   #jumpBufferTimer = 0;
   #shootBufferTimer = 0;
+  #commandMoveX = 0;
+  #commandMoveZ = 0;
+  #commandJumpPressed = false;
+  #commandJumpDown = false;
+  #commandSwitchWeaponDown = false;
+  #commandResetDown = false;
   #lookTargetYaw = 0;
   #lookTargetPitch = 0;
   #lastAuthoredYaw = 0;
@@ -229,6 +236,8 @@ export default class PlayerSystem extends createSystem({
     let footstepVelocityZ = 0;
     let respawnedThisFrame = false;
 
+    this.#drainInputCommands();
+
     if (
       !nearlyEqual(yaw, this.#lastAuthoredYaw) ||
       !nearlyEqual(pitch, this.#lastAuthoredPitch)
@@ -262,7 +271,7 @@ export default class PlayerSystem extends createSystem({
       respawnedThisFrame = true;
     };
 
-    if (this.#button("reset")?.down()) {
+    if (this.#button("reset")?.down() || this.#commandResetDown) {
       position = [...PLAYER_START];
       movementVelocity = [0, 0, 0];
       yaw = 0;
@@ -353,21 +362,24 @@ export default class PlayerSystem extends createSystem({
     }
 
     const move = this.actions.move as InputAxis2dAction | undefined;
-    const moveX = move?.kind === "axis2d" ? move.x.value : 0;
-    const moveZ = move?.kind === "axis2d" ? move.y.value : 0;
+    const actionMoveX = move?.kind === "axis2d" ? move.x.value : 0;
+    const actionMoveZ = move?.kind === "axis2d" ? move.y.value : 0;
+    const moveX = clampNumber(actionMoveX + this.#commandMoveX, -1, 1);
+    const moveZ = clampNumber(actionMoveZ + this.#commandMoveZ, -1, 1);
 
     const jump = this.#button("jump");
-    const jumpPressed = jump?.pressed() === true;
-    if (
+    const jumpPressed =
+      jump?.pressed() === true || this.#commandJumpPressed;
+    const jumpPressedThisFrame =
       sourceButtonPressedThisFrame({
         pressed: jumpPressed,
-        down: jump?.down() === true,
+        down: jump?.down() === true || this.#commandJumpDown,
         wasPressed: this.#jumpPressedLastFrame,
-      })
-    ) {
+      }) ||
+      (jumpPressed && grounded && jumpsRemaining > 0);
+    if (jumpPressedThisFrame) {
       this.#jumpBufferTimer = JUMP_BUFFER_DURATION;
     }
-
     if (shouldConsumeBufferedJump(this.#jumpBufferTimer, jumpsRemaining)) {
       this.#playJumpSound();
       verticalVelocity = JUMP_STRENGTH;
@@ -412,7 +424,7 @@ export default class PlayerSystem extends createSystem({
         }
         enemyDestroyedPulse += shot.destroyedEnemies.length;
       }
-      this.#triggerMuzzleFlash(position, yaw, pitch, weapon);
+      this.#triggerMuzzleFlash(weapon);
       this.#triggerImpactFlashes(shot.impacts);
       const kick = randomWeaponKick(weapon);
       pitch = clampSourceLookPitch(pitch + kick.pitch, SOURCE_LOOK_PITCH_LIMIT);
@@ -428,7 +440,11 @@ export default class PlayerSystem extends createSystem({
       this.#weaponViewOffset[2] += SOURCE_WEAPON_SHOT_KICK;
     }
 
-    if (!respawnedThisFrame && this.#button("switchWeapon")?.down()) {
+    if (
+      !respawnedThisFrame &&
+      (this.#button("switchWeapon")?.down() ||
+        this.#commandSwitchWeaponDown)
+    ) {
       const nextWeaponIndex = (weaponIndex + 1) % WEAPONS.length;
       if (this.#startWeaponSwitch(weaponIndex, nextWeaponIndex)) {
         this.#playOneShot("weapon-change");
@@ -581,6 +597,36 @@ export default class PlayerSystem extends createSystem({
     this.#lastAuthoredPitch = pitch;
     this.#jumpPressedLastFrame = jumpPressed;
     this.#shootPressedLastFrame = shootPressed;
+    this.#clearCommandButtonEdges();
+  }
+
+  #drainInputCommands(): void {
+    for (const command of this.commands.drain<FpsInputCommand>(
+      FPS_INPUT_COMMAND_CHANNEL,
+    )) {
+      if (command.kind === "move") {
+        this.#commandMoveX = clampNumber(command.x, -1, 1);
+        this.#commandMoveZ = clampNumber(command.y, -1, 1);
+        continue;
+      }
+
+      if (command.kind !== "button") continue;
+
+      if (command.action === "jump") {
+        this.#commandJumpPressed = command.pressed;
+        if (command.pressed) this.#commandJumpDown = true;
+      } else if (command.action === "switchWeapon") {
+        if (command.pressed) this.#commandSwitchWeaponDown = true;
+      } else if (command.action === "reset" && command.pressed) {
+        this.#commandResetDown = true;
+      }
+    }
+  }
+
+  #clearCommandButtonEdges(): void {
+    this.#commandJumpDown = false;
+    this.#commandSwitchWeaponDown = false;
+    this.#commandResetDown = false;
   }
 
   #shoot(
@@ -801,21 +847,13 @@ export default class PlayerSystem extends createSystem({
           spec.position[2] + this.#weaponViewOffset[2],
         ]);
       } else {
-        translation.set([spec.position[0], HIDDEN_WEAPON_Y, 0]);
+        translation.set(HIDDEN_WEAPON_POSITION);
       }
     }
   }
 
-  #triggerMuzzleFlash(
-    position: Vec3,
-    yaw: number,
-    pitch: number,
-    weapon: WeaponSpec,
-  ): void {
+  #triggerMuzzleFlash(weapon: WeaponSpec): void {
     this.#muzzleFlashPosition = weaponMuzzlePosition(
-      position,
-      yaw,
-      pitch,
       weapon,
       this.#weaponViewOffset,
     );
@@ -1278,6 +1316,10 @@ function clampInt(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, Math.round(value)));
 }
 
+function clampNumber(value: number, min: number, max: number): number {
+  return Number.isFinite(value) ? Math.max(min, Math.min(max, value)) : 0;
+}
+
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
 }
@@ -1374,17 +1416,11 @@ function spreadDirection(yaw: number, pitch: number, weapon: WeaponSpec): Vec3 {
 }
 
 function weaponMuzzlePosition(
-  position: Vec3,
-  yaw: number,
-  pitch: number,
   weapon: WeaponSpec,
   viewOffset: Vec3,
 ): Vec3 {
-  return sourceWeaponMuzzleWorldPosition({
-    playerEyePosition: position,
-    yaw,
-    pitch,
-    containerOffset: SOURCE_WEAPON_CONTAINER_OFFSET,
+  return sourceWeaponMuzzleLocalPosition({
+    containerOffset: weapon.position,
     weaponMuzzlePosition: weapon.muzzlePosition,
     viewOffset,
   });

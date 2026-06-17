@@ -19,6 +19,54 @@ export interface HudCssVariableSink {
   setProperty(name: string, value: string): void;
 }
 
+export type SourceKeyboardMoveKey = "left" | "right" | "forward" | "backward";
+export type SourceKeyboardButtonAction = "jump" | "switchWeapon" | "reset";
+
+export function sourceKeyboardMoveKey(
+  code: string,
+): SourceKeyboardMoveKey | null {
+  switch (code) {
+    case "KeyA":
+    case "ArrowLeft":
+      return "left";
+    case "KeyD":
+    case "ArrowRight":
+      return "right";
+    case "KeyW":
+    case "ArrowUp":
+      return "forward";
+    case "KeyS":
+    case "ArrowDown":
+      return "backward";
+    default:
+      return null;
+  }
+}
+
+export function sourceKeyboardButtonAction(
+  code: string,
+): SourceKeyboardButtonAction | null {
+  switch (code) {
+    case "Space":
+      return "jump";
+    case "KeyE":
+      return "switchWeapon";
+    case "KeyR":
+      return "reset";
+    default:
+      return null;
+  }
+}
+
+export function sourceKeyboardMoveAxis(
+  pressed: ReadonlySet<SourceKeyboardMoveKey>,
+): readonly [number, number] {
+  return [
+    (pressed.has("right") ? 1 : 0) - (pressed.has("left") ? 1 : 0),
+    (pressed.has("forward") ? 1 : 0) - (pressed.has("backward") ? 1 : 0),
+  ];
+}
+
 export function sourceHealthText(value: number): string {
   const health = Number.isFinite(value) ? value : 100;
   return `${Math.max(0, Math.round(health))}%`;

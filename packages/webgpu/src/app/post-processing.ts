@@ -14,6 +14,10 @@ import {
   type FrameGraphResources,
 } from "../render/graph/frame-graph-execute.js";
 import type { RenderPassCommand } from "../render/passes/render-pass-commands.js";
+import type {
+  RenderPassAttachmentLoadOp,
+  RenderPassAttachmentStoreOp,
+} from "../render/passes/render-pass-attachments.js";
 import type { CachedWebGpuDepthTextureResource } from "../resources/textures/depth-texture-resource.js";
 import {
   createOrReuseWebGpuPostPassTexture,
@@ -70,6 +74,10 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   readonly effects: readonly WebGpuPostEffect[];
   readonly label: string;
   readonly clearColor?: readonly number[];
+  readonly sceneColorLoadOp?: RenderPassAttachmentLoadOp;
+  readonly sceneDepthLoadOp?: RenderPassAttachmentLoadOp;
+  readonly sceneMsaaColorStoreOp?: RenderPassAttachmentStoreOp;
+  readonly present?: boolean;
   readonly motionVectorColorFormat?: string | null;
   readonly indirectColorFormat?: string | null;
   readonly msaaColorTarget?: Parameters<
@@ -263,29 +271,38 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
           },
         ]
       : undefined;
+  const sceneColorLoadOp = options.sceneColorLoadOp ?? "clear";
+  const sceneDepthLoadOp = options.sceneDepthLoadOp ?? "clear";
+  const present = options.present ?? true;
   const sceneBoundary = assembleFrameBoundary({
     context,
     device,
     queue,
     commands: options.commands,
     label: `${options.label}:swapchain:scene`,
+    colorLoadOp: sceneColorLoadOp,
     colorTarget: {
       source: "offscreen-target",
       texture: sceneTexture.resource.texture,
     },
-    ...(options.clearColor === undefined
+    ...(sceneColorLoadOp !== "clear" || options.clearColor === undefined
       ? {}
       : { clearColor: options.clearColor }),
     ...(options.msaaColorTarget === undefined
       ? {}
       : { msaaColorTarget: options.msaaColorTarget }),
+    ...(options.sceneMsaaColorStoreOp === undefined
+      ? {}
+      : { msaaColorStoreOp: options.sceneMsaaColorStoreOp }),
     ...(sceneAdditionalColorTargets === undefined
       ? {}
       : { additionalColorTargets: sceneAdditionalColorTargets }),
     depthTarget: {
       view: options.depthAttachment.view,
-      depthClearValue: options.target.view.clearDepth,
-      depthLoadOp: "clear",
+      ...(sceneDepthLoadOp === "clear"
+        ? { depthClearValue: options.target.view.clearDepth }
+        : {}),
+      depthLoadOp: sceneDepthLoadOp,
       depthStoreOp: "store",
     },
     ...(options.gpuTiming === undefined
@@ -303,6 +320,32 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
 
   boundaries.push(sceneBoundary);
   appendFrameBoundaryDiagnostics(diagnostics, sceneBoundary);
+
+  if (!present) {
+    return {
+      valid,
+      boundaries,
+      renderTarget: {
+        viewId: options.target.view.viewId,
+        source: "swapchain",
+        renderTargetKey: null,
+        width: options.target.width,
+        height: options.target.height,
+        format: options.target.format,
+        ok: valid,
+        drawCalls: sceneBoundary.execution?.drawCalls ?? 0,
+        ...(options.msaaColorTarget === undefined ||
+        options.msaaColorTarget === null
+          ? {}
+          : { msaaSampleCount: options.msaaColorTarget.sampleCount }),
+      },
+      postEffects,
+      readbackBoundary,
+      plannedCommands,
+      drawCalls,
+      diagnostics,
+    };
+  }
 
   if (requiresMotionVectors) {
     if (motionVectorTexture === undefined) {
@@ -605,6 +648,10 @@ interface PostGraphEffectMeta {
 export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
   options: PostProcessedSwapchainTargetOptions,
 ): WebGpuAppPostProcessedSwapchainTargetResult | null {
+  if (options.present === false) {
+    return null;
+  }
+
   if ((options.overlayCommands ?? []).length > 0) {
     return null;
   }
@@ -743,6 +790,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     readonly name: string;
     readonly reads: readonly string[];
     readonly writeHandle: string;
+    readonly writeAttachment?: RenderPassAttachmentLoadOp;
     readonly planOptions: Parameters<typeof buildFrameBoundaryTargetPlan>[0];
     readonly commands: readonly RenderPassCommand[];
     readonly colorTargetSource: "current-texture" | "offscreen-target";
@@ -765,7 +813,12 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     ) {
       graph.declareTransient(args.writeHandle, colorHandleDescriptor);
     }
-    const writes = [{ handle: args.writeHandle, attachment: "clear" as const }];
+    const writes = [
+      {
+        handle: args.writeHandle,
+        attachment: args.writeAttachment ?? ("clear" as const),
+      },
+    ];
     for (const extra of args.additionalWriteHandles ?? []) {
       if (graph.handle(extra) === undefined) {
         graph.declareTransient(extra, colorHandleDescriptor);
@@ -798,26 +851,35 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
 
   // ---- scene node ----
   const sceneNodeName = `${options.label}:swapchain:scene`;
+  const sceneColorLoadOp = options.sceneColorLoadOp ?? "clear";
+  const sceneDepthLoadOp = options.sceneDepthLoadOp ?? "clear";
   registerNode({
     name: sceneNodeName,
     reads: [],
     writeHandle: sceneColorHandle,
+    writeAttachment: sceneColorLoadOp,
     planOptions: {
       context,
       colorTarget: {
         source: "offscreen-target",
         texture: sceneTexture.resource.texture,
       },
-      ...(options.clearColor === undefined
+      colorLoadOp: sceneColorLoadOp,
+      ...(sceneColorLoadOp !== "clear" || options.clearColor === undefined
         ? {}
         : { clearColor: options.clearColor }),
+      ...(options.sceneMsaaColorStoreOp === undefined
+        ? {}
+        : { msaaColorStoreOp: options.sceneMsaaColorStoreOp }),
       ...(motionVectorAttachment === undefined
         ? {}
         : { additionalColorTargets: [motionVectorAttachment] }),
       depthTarget: {
         view: options.depthAttachment.view,
-        depthClearValue: options.target.view.clearDepth,
-        depthLoadOp: "clear",
+        ...(sceneDepthLoadOp === "clear"
+          ? { depthClearValue: options.target.view.clearDepth }
+          : {}),
+        depthLoadOp: sceneDepthLoadOp,
         depthStoreOp: "store",
       },
     },

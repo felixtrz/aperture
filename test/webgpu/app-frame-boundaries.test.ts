@@ -24,7 +24,10 @@ interface RenderPassDescriptorLike {
     readonly view?: { readonly label?: string };
     readonly loadOp?: string;
   }[];
-  readonly depthStencilAttachment?: { readonly view?: unknown };
+  readonly depthStencilAttachment?: {
+    readonly view?: unknown;
+    readonly depthLoadOp?: string;
+  };
 }
 
 describe("WebGPU app frame boundary assembly", () => {
@@ -324,6 +327,177 @@ describe("WebGPU app frame boundary assembly", () => {
     expect(events).toContain("resolveQuerySet:1");
   });
 
+  it("runs post effects once after the final same-swapchain camera view", async () => {
+    const events: string[] = [];
+    const harness = appHarness(events, {
+      postEffects: [createWebGpuCopyPostEffect({ id: "copy" })],
+    });
+    const result = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets: new AssetRegistry(),
+      cache: createWebGpuAppResourceCache(),
+      snapshot: appSnapshot([appView({ viewId: 1 }), appView({ viewId: 2 })]),
+      commands: [drawCommand(1)],
+      label: "frame",
+      reuse: resourceReuseReport(),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.boundaries).toHaveLength(3);
+    expect(result.renderTargets).toMatchObject([
+      { viewId: 1, source: "swapchain", ok: true, drawCalls: 1 },
+      { viewId: 2, source: "swapchain", ok: true, drawCalls: 1 },
+    ]);
+    expect(result.postEffects).toMatchObject([
+      { effectId: "copy", viewId: 2, output: "swapchain", ok: true },
+    ]);
+    expect(result.plannedCommands).toBe(5);
+    expect(result.drawCalls).toBe(3);
+    expect(harness.passDescriptors).toHaveLength(3);
+    expect(harness.passDescriptors[0]?.colorAttachments[0]).toMatchObject({
+      view: { label: "view:frame:post:scene" },
+      loadOp: "clear",
+    });
+    expect(harness.passDescriptors[0]?.depthStencilAttachment).toMatchObject({
+      depthLoadOp: "clear",
+    });
+    expect(harness.passDescriptors[1]?.colorAttachments[0]).toMatchObject({
+      view: { label: "view:frame:post:scene" },
+      loadOp: "load",
+    });
+    expect(harness.passDescriptors[1]?.depthStencilAttachment).toMatchObject({
+      depthLoadOp: "load",
+    });
+    expect(harness.passDescriptors[2]?.colorAttachments[0]).toMatchObject({
+      view: { label: "swapchain-view" },
+      loadOp: "clear",
+    });
+    expect(events.filter((event) => event === "encoder")).toHaveLength(3);
+    expect(events.filter((event) => event.startsWith("submit:"))).toEqual([
+      "submit:1",
+      "submit:1",
+      "submit:1",
+    ]);
+  });
+
+  it("clears depth for transparent post-processed overlay camera views", async () => {
+    const events: string[] = [];
+    const harness = appHarness(events, {
+      postEffects: [createWebGpuCopyPostEffect({ id: "copy" })],
+    });
+    const result = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets: new AssetRegistry(),
+      cache: createWebGpuAppResourceCache(),
+      snapshot: appSnapshot([
+        appView({ viewId: 1 }),
+        appView({ viewId: 2, clearColor: [0, 0, 0, 0] }),
+      ]),
+      commands: [drawCommand(1)],
+      label: "frame",
+      reuse: resourceReuseReport(),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.boundaries).toHaveLength(3);
+    expect(result.postEffects).toMatchObject([
+      { effectId: "copy", viewId: 2, output: "swapchain", ok: true },
+    ]);
+    expect(harness.passDescriptors[1]?.colorAttachments[0]).toMatchObject({
+      view: { label: "view:frame:post:scene" },
+      loadOp: "load",
+    });
+    expect(harness.passDescriptors[1]?.depthStencilAttachment).toMatchObject({
+      depthLoadOp: "clear",
+    });
+  });
+
+  it("clears depth for transparent frame-graph overlay camera views", async () => {
+    const events: string[] = [];
+    const harness = appHarness(events, {
+      postEffects: [createWebGpuCopyPostEffect({ id: "copy" })],
+      useFrameGraph: true,
+    });
+    const result = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets: new AssetRegistry(),
+      cache: createWebGpuAppResourceCache(),
+      snapshot: appSnapshot([
+        appView({ viewId: 1 }),
+        appView({ viewId: 2, clearColor: [0, 0, 0, 0] }),
+      ]),
+      commands: [drawCommand(1)],
+      label: "frame",
+      reuse: resourceReuseReport(),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.postEffects).toMatchObject([
+      { effectId: "copy", viewId: 2, output: "swapchain", ok: true },
+    ]);
+    expect(harness.passDescriptors[1]?.colorAttachments[0]).toMatchObject({
+      view: { label: "view:frame:post:scene" },
+      loadOp: "load",
+    });
+    expect(harness.passDescriptors[1]?.depthStencilAttachment).toMatchObject({
+      depthLoadOp: "clear",
+    });
+  });
+
+  it("clears depth for disjoint-layer post-processed overlay camera views", async () => {
+    const events: string[] = [];
+    const harness = appHarness(events, {
+      postEffects: [createWebGpuCopyPostEffect({ id: "copy" })],
+      useFrameGraph: true,
+    });
+    const result = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets: new AssetRegistry(),
+      cache: createWebGpuAppResourceCache(),
+      snapshot: appSnapshot([
+        appView({ viewId: 1, layerMask: 1 }),
+        appView({ viewId: 2, layerMask: 2 }),
+      ]),
+      commands: [drawCommand(1)],
+      label: "frame",
+      reuse: resourceReuseReport(),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(harness.passDescriptors[1]?.colorAttachments[0]).toMatchObject({
+      view: { label: "view:frame:post:scene" },
+      loadOp: "load",
+    });
+    expect(harness.passDescriptors[1]?.depthStencilAttachment).toMatchObject({
+      depthLoadOp: "clear",
+    });
+  });
+
+  it("loads depth for overlapping-layer post-processed camera views", async () => {
+    const events: string[] = [];
+    const harness = appHarness(events, {
+      postEffects: [createWebGpuCopyPostEffect({ id: "copy" })],
+      useFrameGraph: true,
+    });
+    const result = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets: new AssetRegistry(),
+      cache: createWebGpuAppResourceCache(),
+      snapshot: appSnapshot([
+        appView({ viewId: 1, layerMask: 1 }),
+        appView({ viewId: 2, layerMask: 1 }),
+      ]),
+      commands: [drawCommand(1)],
+      label: "frame",
+      reuse: resourceReuseReport(),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(harness.passDescriptors[1]?.depthStencilAttachment).toMatchObject({
+      depthLoadOp: "load",
+    });
+  });
+
   it("encodes shadow caster passes before forward targets in the shared encoder", async () => {
     const events: string[] = [];
     const harness = appHarness(events, { useFrameGraph: true });
@@ -612,18 +786,20 @@ function appSnapshot(views: RenderSnapshot["views"]): RenderSnapshot {
 function appView(options: {
   readonly viewId: number;
   readonly renderTarget?: RenderSnapshot["views"][number]["renderTarget"];
+  readonly clearColor?: readonly [number, number, number, number];
+  readonly layerMask?: number;
 }): RenderSnapshot["views"][number] {
   return {
     viewId: options.viewId,
     camera: { index: 0, generation: 1 },
     priority: 0,
-    layerMask: 1,
+    layerMask: options.layerMask ?? 1,
     viewMatrixOffset: 0,
     projectionMatrixOffset: 16,
     viewProjectionMatrixOffset: 32,
     viewport: [0, 0, 1, 1],
     scissor: [0, 0, 1, 1],
-    clearColor: [0, 0, 0, 1],
+    clearColor: options.clearColor ?? [0, 0, 0, 1],
     clearDepth: 1,
     clearStencil: 0,
     renderTarget: options.renderTarget ?? null,

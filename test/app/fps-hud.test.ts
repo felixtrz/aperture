@@ -11,6 +11,9 @@ import {
   SOURCE_HEALTH_OUTLINE_SIZE_PX,
   SOURCE_HEALTH_WIDTH_PX,
   POINTER_LOCK_LOOK_PIXELS_PER_UNIT,
+  sourceKeyboardButtonAction,
+  sourceKeyboardMoveAxis,
+  sourceKeyboardMoveKey,
   sourceHealthText,
   sourcePointerLockLookAxis,
   writeSourceHudCssVariables,
@@ -45,6 +48,28 @@ describe("Starter Kit FPS HUD", () => {
     expect(sourcePointerLockLookAxis(26, -26)).toEqual([-1, 1]);
     expect(sourcePointerLockLookAxis(-13, 13)).toEqual([0.5, -0.5]);
     expect(sourcePointerLockLookAxis(260, -260)).toEqual([-1, 1]);
+  });
+
+  it("maps keyboard codes into source FPS virtual actions", () => {
+    expect(sourceKeyboardMoveKey("KeyW")).toBe("forward");
+    expect(sourceKeyboardMoveKey("ArrowLeft")).toBe("left");
+    expect(sourceKeyboardMoveKey("KeyD")).toBe("right");
+    expect(sourceKeyboardMoveKey("KeyS")).toBe("backward");
+    expect(sourceKeyboardMoveKey("Space")).toBeNull();
+
+    expect(sourceKeyboardButtonAction("Space")).toBe("jump");
+    expect(sourceKeyboardButtonAction("KeyE")).toBe("switchWeapon");
+    expect(sourceKeyboardButtonAction("KeyR")).toBe("reset");
+    expect(sourceKeyboardButtonAction("KeyW")).toBeNull();
+  });
+
+  it("keeps keyboard move axes aligned with the source local move vector", () => {
+    expect(sourceKeyboardMoveAxis(new Set(["forward"]))).toEqual([0, 1]);
+    expect(sourceKeyboardMoveAxis(new Set(["backward"]))).toEqual([0, -1]);
+    expect(sourceKeyboardMoveAxis(new Set(["left", "forward"]))).toEqual([
+      -1, 1,
+    ]);
+    expect(sourceKeyboardMoveAxis(new Set(["left", "right"]))).toEqual([0, 0]);
   });
 
   it("writes source-derived HUD CSS variables", () => {

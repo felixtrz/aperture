@@ -38,6 +38,7 @@ import {
   ENEMIES,
   ENEMY_MUZZLE_OFFSETS,
   FPS_ALL_RENDER_LAYER_MASK,
+  FPS_WEAPON_LAYER_MASK,
   FPS_WORLD_LAYER_MASK,
   IMPACT_EFFECT_SLOT_COUNT,
   LEVEL_COLLIDERS,
@@ -61,7 +62,9 @@ import {
   SOURCE_PLAYER_CAMERA_FOV,
   SOURCE_SKY_ENERGY_MULTIPLIER,
   SOURCE_SUN_SHADOW_STRENGTH,
+  SOURCE_WEAPON_CAMERA_ITEM_FOV,
   WEAPONS,
+  WEAPON_CAMERA_KEY,
   enemyMuzzleEffectKey,
   impactEffectKey,
   platformLargeGrassDecorationKey,
@@ -75,6 +78,12 @@ import {
 const GLTF_FRONT_SIDE_MATERIALS = {
   renderState: { cullMode: "back" as const },
 };
+const WEAPON_VIEWMODEL_MATERIALS = {
+  renderState: {
+    cullMode: "back" as const,
+    depth: { test: false, write: false, compare: "always" as const },
+  },
+};
 
 const PLAYER_SHADOW_MATERIAL_ID = "player.blob-shadow.material";
 const PLAYER_SHADOW_SAMPLER_ID = "player.blob-shadow.sampler";
@@ -83,6 +92,7 @@ const SKYBOX_SAMPLER_ID = "fps.skybox.sampler";
 const SKYBOX_SOURCE_ASSET_ID = "skybox";
 const SKYBOX_FACE_SIZE = 512;
 const HIDDEN_EFFECT_POSITION: [number, number, number] = [0, -100, 0];
+const HIDDEN_WEAPON_POSITION: [number, number, number] = [0, -100, -100];
 const IDENTITY_ROTATION: [number, number, number, number] = [0, 0, 0, 1];
 const IDENTITY_SCALE: [number, number, number] = [1, 1, 1];
 const HIDDEN_EFFECT_WORLD: {
@@ -113,6 +123,24 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         far: 80,
         layerMask: FPS_WORLD_LAYER_MASK,
         clearColor: FPS_RENDER_BACKGROUND_COLOR,
+      },
+    });
+
+    const weaponCamera = this.spawn.camera({
+      key: WEAPON_CAMERA_KEY,
+      name: "Weapon Camera",
+      tags: ["player", "camera", "weapon-camera"],
+      transform: {
+        parent: camera,
+      },
+      fovYDegrees: SOURCE_WEAPON_CAMERA_ITEM_FOV,
+      camera: {
+        near: 0.05,
+        far: 20,
+        priority: 1,
+        layerMask: FPS_WEAPON_LAYER_MASK,
+        clearColor: [0, 0, 0, 0],
+        frustumCulling: false,
       },
     });
 
@@ -301,18 +329,17 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         key: `weapon.${index}`,
         name: weapon.name,
         tags: ["weapon", index === 0 ? "active-weapon" : "inactive-weapon"],
-        materials: GLTF_FRONT_SIDE_MATERIALS,
+        materials: WEAPON_VIEWMODEL_MATERIALS,
         castShadow: false,
         receiveShadow: false,
         transform: {
-          parent: camera,
-          translation:
-            index === 0 ? weapon.position : [weapon.position[0], -100, 0],
+          parent: weaponCamera,
+          translation: index === 0 ? weapon.position : HIDDEN_WEAPON_POSITION,
           rotationEulerDegrees: weapon.rotationEulerDegrees,
           scale: weapon.scale,
         },
       });
-      this.#assignRenderLayerToSubtree(weaponRoot, FPS_WORLD_LAYER_MASK);
+      this.#assignRenderLayerToSubtree(weaponRoot, FPS_WEAPON_LAYER_MASK);
     }
 
     this.#spawnSpriteEffect({
@@ -322,7 +349,8 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       size: SOURCE_PLAYER_MUZZLE_SPRITE_SIZE,
       blendMode: SpriteBlendMode.Additive,
       depthMode: SpriteDepthMode.Disabled,
-      layerMask: FPS_WORLD_LAYER_MASK,
+      layerMask: FPS_WEAPON_LAYER_MASK,
+      parent: weaponCamera,
     });
 
     for (let index = 0; index < IMPACT_EFFECT_SLOT_COUNT; index += 1) {
@@ -357,6 +385,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     readonly blendMode: SpriteBlendMode;
     readonly depthMode?: SpriteDepthMode;
     readonly layerMask?: number;
+    readonly parent?: Entity;
   }): void {
     const entity = this.createEntity();
     entity.addComponent(Enabled, { value: true });
@@ -367,7 +396,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       rotation: IDENTITY_ROTATION,
       scale: IDENTITY_SCALE,
     });
-    entity.addComponent(Parent, { entity: null });
+    entity.addComponent(Parent, { entity: input.parent ?? null });
     entity.addComponent(WorldTransform, HIDDEN_EFFECT_WORLD);
     if (input.layerMask !== undefined) {
       entity.addComponent(RenderLayer, { mask: input.layerMask });

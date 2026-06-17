@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   CLOUDS,
   FPS_ALL_RENDER_LAYER_MASK,
+  FPS_INPUT_COMMAND_CHANNEL,
   FPS_RENDER_AMBIENT_COLOR,
   FPS_RENDER_AMBIENT_INTENSITY,
   FPS_RENDER_BACKGROUND_COLOR,
   FPS_RENDER_SUN_ROTATION_EULER_DEGREES,
+  FPS_WEAPON_VIEW_POSITION,
   FPS_WEAPON_LAYER_MASK,
   FPS_WORLD_LAYER_MASK,
   PLAYER_BODY_COLLIDER_OFFSET,
@@ -85,6 +87,7 @@ describe("Starter Kit FPS source data", () => {
     expect(FPS_WORLD_LAYER_MASK).toBe(1);
     expect(FPS_WEAPON_LAYER_MASK).toBe(2);
     expect(FPS_ALL_RENDER_LAYER_MASK).toBe(3);
+    expect(FPS_INPUT_COMMAND_CHANNEL).toBe("fps.input");
 
     expect(SOURCE_PLAYER_CAPSULE_HALF_HEIGHT).toBeCloseTo(0.2, 10);
     expect(PLAYER_BODY_RADIUS).toBe(SOURCE_PLAYER_CAPSULE_RADIUS);
@@ -115,6 +118,7 @@ describe("Starter Kit FPS source data", () => {
     expect(SOURCE_WEAPON_MODEL_POSITION).toEqual([0, 0, 0]);
     expect(SOURCE_WEAPON_MODEL_SCALE).toEqual([1, 1, 1]);
     expect(SOURCE_WEAPON_VIEW_POSITION).toEqual([1.2, -1.1, -2.75]);
+    expect(FPS_WEAPON_VIEW_POSITION).toEqual([1.7, -0.65, -2.75]);
     expect(SOURCE_WEAPON_MUZZLE_POSITION).toEqual([0.1, -0.4, 1.5]);
     expect(SOURCE_WEAPON_CAMERA_ITEM_FOV).toBe(40);
     expect(SOURCE_WEAPON_VIEWMODEL_MOVE_SCALE).toBeCloseTo(1 / 30, 10);
@@ -124,8 +128,8 @@ describe("Starter Kit FPS source data", () => {
     expect(SOURCE_WEAPON_SWITCH_RAISE_RATE).toBe(10);
 
     expect(WEAPONS.map((weapon) => weapon.position)).toEqual([
-      [1.2, -1.1, -2.75],
-      [1.2, -1.1, -2.75],
+      [1.7, -0.65, -2.75],
+      [1.7, -0.65, -2.75],
     ]);
     expect(WEAPONS.map((weapon) => weapon.rotationEulerDegrees)).toEqual([
       [0, 180, 0],

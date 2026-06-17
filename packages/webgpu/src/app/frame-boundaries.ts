@@ -29,7 +29,10 @@ import {
 import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
 import type { StandardFrameTransmissionSceneColorResources } from "../materials/standard/standard-frame-resources.js";
 import type { RenderPassCommand } from "../render/passes/render-pass-commands.js";
-import type { RenderPassAttachmentLoadOp } from "../render/passes/render-pass-attachments.js";
+import type {
+  RenderPassAttachmentLoadOp,
+  RenderPassAttachmentStoreOp,
+} from "../render/passes/render-pass-attachments.js";
 import {
   type WebGpuApp,
   type WebGpuAppDepthAttachmentReport,
@@ -178,6 +181,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   let msaaColorTexturesReused = 0;
   let allTargetsValid = true;
   const submittedTargetCounts = new Map<string, number>();
+  const submittedTargetLayerMasks = new Map<string, number>();
   const targetSubmissionTotals = countWebGpuAppFrameBoundaryTargetSubmissions(
     targetPlan.targets,
   );
@@ -370,15 +374,28 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     const targetSubmissionTotal =
       targetSubmissionTotals.get(targetSubmissionKey) ?? 0;
     const loadExistingTarget = previousTargetSubmissions > 0;
+    const previousTargetLayerMask =
+      submittedTargetLayerMasks.get(targetSubmissionKey);
+    const canLoadExistingTargetDepth =
+      previousTargetLayerMask === undefined ||
+      renderLayerMasksOverlap(previousTargetLayerMask, target.view.layerMask);
     const storeMsaaColorForLaterLoad =
       msaaColorTarget.resource !== null &&
       previousTargetSubmissions + 1 < targetSubmissionTotal;
+    const targetClearColor = options.clearColor ?? target.view.clearColor;
     const colorLoadOp: RenderPassAttachmentLoadOp = loadExistingTarget
       ? "load"
       : "clear";
-    const depthLoadOp: RenderPassAttachmentLoadOp = loadExistingTarget
-      ? "load"
-      : "clear";
+    const depthLoadOp: RenderPassAttachmentLoadOp =
+      loadExistingTarget &&
+      canLoadExistingTargetDepth &&
+      !isTransparentOverlayClearColor(targetClearColor)
+        ? "load"
+        : "clear";
+    const colorStoreOp: RenderPassAttachmentStoreOp =
+      storeMsaaColorForLaterLoad ? "store" : "discard";
+    const finalTargetSubmission =
+      previousTargetSubmissions + 1 >= targetSubmissionTotal;
 
     const includeReadback =
       options.readbackSamples !== undefined &&
@@ -421,7 +438,11 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         depthAttachment,
         effects: activePostEffects,
         label: options.label,
-        clearColor: options.clearColor ?? target.view.clearColor,
+        sceneColorLoadOp: colorLoadOp,
+        sceneDepthLoadOp: depthLoadOp,
+        sceneMsaaColorStoreOp: colorStoreOp,
+        present: finalTargetSubmission,
+        ...(colorLoadOp === "clear" ? { clearColor: targetClearColor } : {}),
         useFrameGraph: options.app.useFrameGraph,
         ...(options.motionVectorColorFormat === undefined
           ? {}
@@ -498,6 +519,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
           targetSubmissionKey,
           previousTargetSubmissions + 1,
         );
+        submittedTargetLayerMasks.set(targetSubmissionKey, target.view.layerMask);
       }
       diagnostics.push(...postTarget.diagnostics);
       continue;
@@ -622,9 +644,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
             },
           }
         : {}),
-      ...(colorLoadOp === "clear"
-        ? { clearColor: options.clearColor ?? target.view.clearColor }
-        : {}),
+      ...(colorLoadOp === "clear" ? { clearColor: targetClearColor } : {}),
       depthTarget: {
         view: depthAttachment.view,
         ...(depthLoadOp === "clear"
@@ -721,6 +741,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         targetSubmissionKey,
         previousTargetSubmissions + 1,
       );
+      submittedTargetLayerMasks.set(targetSubmissionKey, target.view.layerMask);
       continue;
     }
 
@@ -743,6 +764,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         targetSubmissionKey,
         previousTargetSubmissions + 1,
       );
+      submittedTargetLayerMasks.set(targetSubmissionKey, target.view.layerMask);
     }
     occlusionQueryDiagnostics.push(
       ...(boundary.occlusionQueries?.diagnostics ?? []),
@@ -1452,4 +1474,15 @@ function registerForwardGraphUserPasses(args: {
     plannedCommands,
     drawCalls,
   };
+}
+
+function isTransparentOverlayClearColor(
+  clearColor: readonly number[] | undefined,
+): boolean {
+  const alpha = clearColor?.[3];
+  return typeof alpha === "number" && Number.isFinite(alpha) && alpha < 1;
+}
+
+function renderLayerMasksOverlap(a: number, b: number): boolean {
+  return (a & b) !== 0;
 }

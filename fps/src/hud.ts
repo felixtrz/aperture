@@ -4,8 +4,17 @@ import {
   subscribeGeneratedSignals,
 } from "@aperture-engine/app/browser";
 import {
+  FPS_INPUT_COMMAND_CHANNEL,
+  type FpsInputCommand,
+} from "./lib/fps-data.js";
+import {
+  sourceKeyboardButtonAction,
+  sourceKeyboardMoveAxis,
+  sourceKeyboardMoveKey,
   sourcePointerLockLookAxis,
   sourceHealthText,
+  type SourceKeyboardButtonAction,
+  type SourceKeyboardMoveKey,
   writeSourceHudCssVariables,
 } from "./lib/fps-hud.js";
 
@@ -14,11 +23,18 @@ const healthEl = document.querySelector<HTMLElement>("#health");
 const crosshairEl = document.querySelector<HTMLImageElement>("#crosshair");
 
 const POINTER_LOCK_SHOOT_RELEASE_DELAY_MS = 40;
+const KEYBOARD_BUTTON_RELEASE_DELAY_MS = 60;
 let pendingLookX = 0;
 let pendingLookY = 0;
 let lookActionActive = false;
 let shootActionActive = false;
 let shootReleaseTimer: number | undefined;
+const keyboardMoveKeys = new Set<SourceKeyboardMoveKey>();
+const keyboardButtonActions = new Set<SourceKeyboardButtonAction>();
+const keyboardButtonReleaseTimers = new Map<
+  SourceKeyboardButtonAction,
+  number
+>();
 
 function readNumber(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
@@ -49,6 +65,9 @@ canvas?.addEventListener("click", () => {
   if (document.pointerLockElement !== canvas) {
     requestPointerLock(canvas);
   }
+
+  pressPointerLockShoot();
+  releasePointerLockShoot();
 });
 
 window.addEventListener("mousemove", (event) => {
@@ -103,6 +122,18 @@ window.addEventListener("pointerup", (event) => {
   releasePointerLockShoot();
 });
 
+window.addEventListener("keydown", (event) => {
+  handleKeyboardInput(event, true);
+});
+
+window.addEventListener("keyup", (event) => {
+  handleKeyboardInput(event, false);
+});
+
+window.addEventListener("blur", () => {
+  releaseKeyboardActions();
+});
+
 function dispatchPendingLook(): void {
   if (pendingLookX !== 0 || pendingLookY !== 0) {
     const [x, y] = sourcePointerLockLookAxis(pendingLookX, pendingLookY);
@@ -124,6 +155,110 @@ function dispatchPendingLook(): void {
   }
 
   requestAnimationFrame(dispatchPendingLook);
+}
+
+function handleKeyboardInput(event: KeyboardEvent, pressed: boolean): void {
+  if (isEditableKeyboardTarget(event.target)) return;
+
+  const moveKey = sourceKeyboardMoveKey(event.code);
+  if (moveKey !== null) {
+    event.preventDefault();
+    if (pressed) {
+      keyboardMoveKeys.add(moveKey);
+    } else {
+      keyboardMoveKeys.delete(moveKey);
+    }
+    dispatchKeyboardMove();
+    return;
+  }
+
+  const action = sourceKeyboardButtonAction(event.code);
+  if (action === null) return;
+  event.preventDefault();
+
+  if (pressed) {
+    pressKeyboardButtonAction(action, event.repeat);
+  } else {
+    releaseKeyboardButtonAction(action);
+  }
+}
+
+function dispatchKeyboardMove(): void {
+  const [x, y] = sourceKeyboardMoveAxis(keyboardMoveKeys);
+  dispatchApertureInputAction("move", {
+    x,
+    y,
+    source: "fps-keyboard",
+  });
+  dispatchFpsInputCommand({ kind: "move", x, y });
+}
+
+function releaseKeyboardActions(): void {
+  if (keyboardMoveKeys.size > 0) {
+    keyboardMoveKeys.clear();
+    dispatchKeyboardMove();
+  }
+
+  for (const timer of keyboardButtonReleaseTimers.values()) {
+    window.clearTimeout(timer);
+  }
+  keyboardButtonReleaseTimers.clear();
+
+  for (const action of [...keyboardButtonActions]) {
+    releaseKeyboardButtonAction(action, { immediate: true });
+  }
+}
+
+function pressKeyboardButtonAction(
+  action: SourceKeyboardButtonAction,
+  repeat: boolean,
+): void {
+  const releaseTimer = keyboardButtonReleaseTimers.get(action);
+  if (releaseTimer !== undefined) {
+    window.clearTimeout(releaseTimer);
+    keyboardButtonReleaseTimers.delete(action);
+  }
+
+  if (keyboardButtonActions.has(action)) return;
+  if (repeat) return;
+
+  keyboardButtonActions.add(action);
+  dispatchApertureInputAction(action, {
+    pressed: true,
+    source: "fps-keyboard",
+  });
+  dispatchFpsInputCommand({ kind: "button", action, pressed: true });
+}
+
+function releaseKeyboardButtonAction(
+  action: SourceKeyboardButtonAction,
+  options: { readonly immediate?: boolean } = {},
+): void {
+  if (!keyboardButtonActions.has(action)) return;
+
+  if (options.immediate === true) {
+    const releaseTimer = keyboardButtonReleaseTimers.get(action);
+    if (releaseTimer !== undefined) {
+      window.clearTimeout(releaseTimer);
+      keyboardButtonReleaseTimers.delete(action);
+    }
+    keyboardButtonActions.delete(action);
+    dispatchApertureInputAction(action, {
+      pressed: false,
+      source: "fps-keyboard",
+    });
+    dispatchFpsInputCommand({ kind: "button", action, pressed: false });
+    return;
+  }
+
+  if (keyboardButtonReleaseTimers.has(action)) return;
+  keyboardButtonReleaseTimers.set(
+    action,
+    window.setTimeout(() => {
+      keyboardButtonReleaseTimers.delete(action);
+      releaseKeyboardButtonAction(action, { immediate: true });
+    }, KEYBOARD_BUTTON_RELEASE_DELAY_MS),
+  );
 }
 
 function pressPointerLockShoot(): void {
@@ -184,6 +319,28 @@ function requestPointerLock(target: HTMLCanvasElement): void {
 
 function isCanvasPointerEvent(event: Event): boolean {
   return canvas !== null && event.composedPath().includes(canvas);
+}
+
+function dispatchFpsInputCommand(payload: FpsInputCommand): void {
+  window.dispatchEvent(
+    new CustomEvent("aperture:command", {
+      detail: {
+        channel: FPS_INPUT_COMMAND_CHANNEL,
+        payload,
+      },
+    }),
+  );
+}
+
+function isEditableKeyboardTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  const tagName = target.tagName;
+  return (
+    target.isContentEditable ||
+    tagName === "INPUT" ||
+    tagName === "TEXTAREA" ||
+    tagName === "SELECT"
+  );
 }
 
 requestAnimationFrame(dispatchPendingLook);
