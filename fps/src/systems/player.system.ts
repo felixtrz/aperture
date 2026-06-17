@@ -363,12 +363,10 @@ export default class PlayerSystem extends createSystem({
     this.#enemyAttackTimer += dt;
     if (this.#enemyAttackTimer >= ENEMY_ATTACK_INTERVAL) {
       this.#enemyAttackTimer = 0;
-      const attacker = this.#nearestLivingEnemy(position, enemyHealth);
-      if (
-        attacker !== null &&
-        distance(attacker.position, position) < ENEMY_ATTACK_DISTANCE &&
-        this.#enemyHasLineOfSight(attacker.key, attacker.position, position)
-      ) {
+      for (const attacker of this.#livingEnemyAttackers(
+        position,
+        enemyHealth,
+      )) {
         health -= ENEMY_ATTACK_DAMAGE;
         this.#damagePulse += 1;
         this.#triggerEnemyMuzzleFlashes(
@@ -1031,20 +1029,22 @@ export default class PlayerSystem extends createSystem({
     }
   }
 
-  #nearestLivingEnemy(
+  #livingEnemyAttackers(
     position: Vec3,
     enemyHealth: Record<string, number>,
-  ): { readonly key: string; readonly position: Vec3 } | null {
-    let best: { key: string; position: Vec3; distance: number } | null = null;
+  ): Array<{ readonly key: string; readonly position: Vec3 }> {
+    const attackers: Array<{ key: string; position: Vec3 }> = [];
     for (const enemy of ENEMIES) {
       if ((enemyHealth[enemy.key] ?? 0) <= 0) continue;
       const enemyPos = enemyPosition(enemy.position, this.#enemyTime);
-      const d = distance(position, enemyPos);
-      if (best === null || d < best.distance) {
-        best = { key: enemy.key, position: enemyPos, distance: d };
+      if (
+        distance(enemyPos, position) < ENEMY_ATTACK_DISTANCE &&
+        this.#enemyHasLineOfSight(enemy.key, enemyPos, position)
+      ) {
+        attackers.push({ key: enemy.key, position: enemyPos });
       }
     }
-    return best;
+    return attackers;
   }
 
   #playOneShot(clipId: string, gain: number): void {
