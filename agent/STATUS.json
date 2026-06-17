@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "8fcc4542",
+  "lastCommit": "a5c4ab49",
   "activePid": null,
-  "notes": "Fixed Starter Kit FPS shot damage ordering to use the nearest physics ray hit and cleared all FPS command bridge state on reset/respawn. Full-clear Aperture smoke passed with shotsFired:8, hits:16, destroyedEnemies:4, and gameStatus:cleared.",
-  "lastRunFinishedAt": "2026-06-17T17:22:41Z"
+  "notes": "Ported Starter Kit FPS source browser shell metadata: source icon, splash image/background, 1280x720 viewport constants, and centered 16:9 game shell. Aperture canvas proof reported 960x540 inside the default 960x640 managed tab, and skybox readback smoke still passed.",
+  "lastRunFinishedAt": "2026-06-17T17:29:03Z"
 }

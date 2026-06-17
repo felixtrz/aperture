@@ -1,11 +1,55 @@
-# Handoff - FPS Shot Ordering And Reset Input Fix
+# Handoff - FPS Source Viewport Shell
 
-**Updated:** 2026-06-17 10:22 PDT
+**Updated:** 2026-06-17 10:29 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Ported the source project browser shell metadata into the FPS app:
+  - Source anchor checked: `references/Starter-Kit-FPS/project.godot`.
+  - Added byte-identical `fps/public/icon.png` and
+    `fps/public/splash-screen.png` from the upstream Starter Kit FPS project.
+  - Replaced the blank favicon with the source icon.
+  - Added source project constants for the 1280x720 viewport, 16:9 aspect, and
+    `boot_splash/bg_color` (`#ececf5`).
+  - Wrapped the generated Aperture canvas, crosshair, HUD, and boot splash in a
+    centered fixed-ratio `#game-shell`. At the default managed browser size,
+    the canvas now measures `960x540` inside the `960x640` tab instead of
+    stretching to `960x640`.
+  - Added a source splash overlay that is visible until the first generated
+    signal update, then dismissed by the HUD bridge.
+  - HUD and crosshair coordinates are now absolute inside the source game shell
+    instead of fixed to the whole browser window.
+- Live Aperture CLI proof:
+  - `browser_wait_for_webgpu` passed with no `lastError`/`lastFailure`.
+  - `browser_canvas_status` reported canvas `width:960`, `height:540`,
+    `displayWidth:960`, `displayHeight:540`, and
+    `aspect:1.7777777777777777`.
+  - `render_readback_samples` reported canvas screenshot region
+    `left:0`, `top:50`, `width:960`, `height:540`,
+    `screenshotWidth:960`, and `screenshotHeight:640`, confirming the
+    source-aspect shell and non-splash rendered pixels.
+  - Screenshot proof: `/tmp/fps-source-viewport-shell.png`.
+  - `pnpm --dir fps run smoke:skybox-readback` still passed under the new shell.
+- Validation:
+  - `cmp -s references/Starter-Kit-FPS/icon.png fps/public/icon.png`
+  - `cmp -s references/Starter-Kit-FPS/splash-screen.png fps/public/splash-screen.png`
+  - `pnpm exec vitest run test/app/fps-hud.test.ts test/app/fps-controls.test.ts`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir fps run smoke:skybox-readback`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `pnpm run check:progress`
+  - `git diff --check`
+- Commit:
+  - `a5c4ab49` — `Add FPS source viewport shell`
+
+## Previous Completed Slice - FPS Shot Ordering And Reset Input Fix
 
 - Fixed the latest reported FPS playability issues around shooting, movement
   confidence, and jump reliability:

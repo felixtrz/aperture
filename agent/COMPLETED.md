@@ -1,5 +1,41 @@
 # Completed Tasks
 
+## FPS-PORT — Source viewport shell and boot branding
+
+Completed: 2026-06-17 10:29 PDT
+Commit: `a5c4ab49`
+
+### Summary
+
+- Ported source project display/boot metadata from
+  `references/Starter-Kit-FPS/project.godot`.
+- Added byte-identical source `icon.png` and `splash-screen.png` to
+  `fps/public/`.
+- Added source viewport constants for 1280x720, 16:9 aspect, and boot splash
+  background color.
+- Wrapped the FPS canvas/HUD/crosshair in a centered source-aspect game shell
+  and added a splash overlay that hides after the first generated signal update.
+- HUD and crosshair positions are now relative to the source game viewport
+  rather than the full browser window.
+
+### Validation
+
+- Source asset byte checks passed for `icon.png` and `splash-screen.png`.
+- Live Aperture canvas proof reported `width:960`, `height:540`,
+  `aspect:1.7777777777777777` inside the default `960x640` managed tab.
+- Screenshot-backed readback reported canvas region `top:50`, `width:960`,
+  `height:540`, and non-splash pixels.
+- `pnpm exec vitest run test/app/fps-hud.test.ts test/app/fps-controls.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir fps run smoke:skybox-readback`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `pnpm run check:progress`
+- `git diff --check`
+
 ## FPS-PORT — Shot hit ordering and reset input cleanup
 
 Completed: 2026-06-17 10:22 PDT
