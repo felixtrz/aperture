@@ -40,7 +40,7 @@ previous working state so the old state remains recoverable.
   - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts test/webgpu/app-frame-boundaries.test.ts test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/directional-shadow-matrix-computation.test.ts`
     passed 73 tests.
 - Commit:
-  - pending in this handoff update.
+  - `2a60c0d8` — `Tighten directional shadow receiver fit`
 
 ## Previous Completed Slice - Starter Kit FPS Source Sun And Viewmodel
 

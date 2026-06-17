@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "a6c45fbb",
+  "lastCommit": "2a60c0d8",
   "activePid": null,
-  "notes": "Calibrated FPS source sun and weapon viewmodel; rechecked pointer click shooting, held jump, camera-relative movement, focused tests, typecheck, and progress tracker.",
-  "lastRunFinishedAt": "2026-06-17T15:56:16Z"
+  "notes": "Tightened single-cascade directional shadow fit to receiver bounds; FPS live ortho dropped from 243 to 8-13, WebGPU/FPS/racing/shadow-lab validations passed.",
+  "lastRunFinishedAt": "2026-06-17T16:10:00Z"
 }
