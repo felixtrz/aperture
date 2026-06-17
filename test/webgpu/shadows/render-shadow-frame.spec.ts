@@ -88,9 +88,16 @@ describe("render shadow frame", () => {
   });
 
   it("uses matrix options as fallback without suppressing primary camera frustum fit", () => {
-    const calls = createDeviceCalls();
+    const baseResult = createRenderShadowFrame({
+      device: device(createDeviceCalls()),
+      snapshot: snapshot({ view: primaryCameraView() }),
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache: createWebGpuEnvironmentResourceCache(),
+      shadowMap: { cascadeCount: 1, mapSize: 1024 },
+    });
     const result = createRenderShadowFrame({
-      device: device(calls),
+      device: device(createDeviceCalls()),
       snapshot: snapshot({ view: primaryCameraView() }),
       preparedMeshes: preparedMeshes(),
       executableMeshes: executableMeshes(),
@@ -109,6 +116,9 @@ describe("render shadow frame", () => {
     expect(
       result.matrixComputation.matrices[0]?.orthographicSize,
     ).toBeGreaterThan(20);
+    expect(result.matrixComputation.matrices[0]).toEqual(
+      baseResult.matrixComputation.matrices[0],
+    );
     expect(result.matrixComputation.matrices[0]?.center).not.toEqual([
       0, 0, -2,
     ]);

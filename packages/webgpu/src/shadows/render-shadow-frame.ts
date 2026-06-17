@@ -329,6 +329,7 @@ export function createRenderShadowFrame(
   });
   const shadowCamera = resolvePrimaryShadowCamera(options.snapshot);
   const useCameraFrustumFit = shadowCamera !== null;
+  const fallbackMatrix = useCameraFrustumFit ? undefined : options.matrix;
   const viewProjection = createDirectionalShadowViewProjectionPlanReport({
     shadowRequests,
     lights: options.snapshot.lights,
@@ -367,19 +368,19 @@ export function createRenderShadowFrame(
       bounds: options.snapshot.bounds,
     }),
     frustumFit: useCameraFrustumFit,
-    ...(options.matrix?.center === undefined
+    ...(fallbackMatrix?.center === undefined
       ? {}
-      : { center: options.matrix.center }),
-    ...(options.matrix?.orthographicSize === undefined
+      : { center: fallbackMatrix.center }),
+    ...(fallbackMatrix?.orthographicSize === undefined
       ? {}
-      : { orthographicSize: options.matrix.orthographicSize }),
-    ...(options.matrix?.near === undefined
+      : { orthographicSize: fallbackMatrix.orthographicSize }),
+    ...(fallbackMatrix?.near === undefined
       ? {}
-      : { near: options.matrix.near }),
-    ...(options.matrix?.far === undefined ? {} : { far: options.matrix.far }),
-    ...(options.matrix?.lightDistance === undefined
+      : { near: fallbackMatrix.near }),
+    ...(fallbackMatrix?.far === undefined ? {} : { far: fallbackMatrix.far }),
+    ...(fallbackMatrix?.lightDistance === undefined
       ? {}
-      : { lightDistance: options.matrix.lightDistance }),
+      : { lightDistance: fallbackMatrix.lightDistance }),
   });
   const matrixBuffer = createShadowMatrixBufferDescriptorReport({
     viewProjection,

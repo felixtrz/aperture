@@ -61,7 +61,7 @@ export function createWebGpuAppAutoShadowFrame(options: {
 
   // The render-shadow frame uses the active render camera for PlayCanvas-style
   // automatic directional fitting when a primary view exists. The scene matrix
-  // is passed only as a fallback for no-camera/degenerate snapshots.
+  // is a no-camera fallback, not a default fixed shadow box.
   const sceneMatrix = computeShadowSceneMatrix(options.snapshot);
 
   return createRenderShadowFrame({
