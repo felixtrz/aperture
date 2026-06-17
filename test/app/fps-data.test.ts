@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
+import { createNoFetchGlbSourceLoaderReport } from "@aperture-engine/render";
 import {
   CLOUDS,
   ENEMIES,
@@ -328,6 +329,17 @@ describe("Starter Kit FPS source data", () => {
       meshId: "mesh:platform-large-grass:mesh:0:primitive:0",
     });
   });
+
+  it("keeps cooked platform collider mesh bounds covering source collision shapes", () => {
+    expectAssetColliderBoundsMatchSourceShape({
+      assetId: "platform",
+      sourceScene: "objects/platform.tscn",
+    });
+    expectAssetColliderBoundsMatchSourceShape({
+      assetId: "platform-large-grass",
+      sourceScene: "objects/platform_large_grass.tscn",
+    });
+  });
 });
 
 interface SourceSceneInstance {
@@ -360,6 +372,8 @@ const SOURCE_ENEMY_KEY_BY_NODE: Readonly<Record<string, string>> = {
   "enemy-flying4": "enemy.3",
 };
 
+const SOURCE_COLLIDER_HORIZONTAL_PADDING_TOLERANCE = 0.151;
+
 function readStarterKitSource(relativePath: string): string {
   return readFileSync(
     new URL(
@@ -368,6 +382,101 @@ function readStarterKitSource(relativePath: string): string {
     ),
     "utf8",
   );
+}
+
+function readFpsAssetBytes(relativePath: string): Uint8Array {
+  return readFileSync(
+    new URL(`../../fps/public/${relativePath}`, import.meta.url),
+  );
+}
+
+function expectAssetColliderBoundsMatchSourceShape(input: {
+  readonly assetId: string;
+  readonly sourceScene: string;
+}): void {
+  const sourceBounds = extractPackedVector3ArrayBounds(
+    readStarterKitSource(input.sourceScene),
+  );
+  const report = createNoFetchGlbSourceLoaderReport({
+    source: readFpsAssetBytes(`models/${input.assetId}.glb`),
+    createMeshAssets: true,
+  });
+  const meshConstruction =
+    report.glbImportReport.importReport?.meshConstruction;
+  const mesh = meshConstruction?.meshes[0]?.mesh;
+
+  expect(meshConstruction?.valid).toBe(true);
+  expect(mesh?.label).toBe("mesh:gltf:mesh:0:primitive:0");
+  expectRuntimeColliderBoundsCoverSourceShape(mesh?.localAabb, sourceBounds);
+}
+
+function extractPackedVector3ArrayBounds(sceneSource: string): {
+  readonly min: readonly [number, number, number];
+  readonly max: readonly [number, number, number];
+} {
+  const packed = sceneSource.match(/data = PackedVector3Array\(([^)]+)\)/)?.[1];
+  if (packed === undefined) {
+    throw new Error("Missing PackedVector3Array collision shape data.");
+  }
+  const values = packed.split(",").map((value) => Number(value.trim()));
+  if (
+    values.length === 0 ||
+    values.length % 3 !== 0 ||
+    values.some((value) => !Number.isFinite(value))
+  ) {
+    throw new Error("Invalid PackedVector3Array collision shape data.");
+  }
+
+  const min: [number, number, number] = [
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+  ];
+  const max: [number, number, number] = [
+    Number.NEGATIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+  ];
+  for (let i = 0; i < values.length; i += 3) {
+    for (const axis of [0, 1, 2] as const) {
+      const value = values[i + axis]!;
+      min[axis] = Math.min(min[axis], value);
+      max[axis] = Math.max(max[axis], value);
+    }
+  }
+
+  return { min, max };
+}
+
+function expectRuntimeColliderBoundsCoverSourceShape(
+  runtime:
+    | {
+        readonly min: readonly [number, number, number];
+        readonly max: readonly [number, number, number];
+      }
+    | undefined,
+  source: {
+    readonly min: readonly [number, number, number];
+    readonly max: readonly [number, number, number];
+  },
+): void {
+  expect(runtime).toBeDefined();
+
+  for (const axis of [0, 2] as const) {
+    expect(runtime?.min[axis]).toBeLessThanOrEqual(source.min[axis] + 0.0001);
+    expect(runtime?.max[axis]).toBeGreaterThanOrEqual(
+      source.max[axis] - 0.0001,
+    );
+    expect(source.min[axis] - (runtime?.min[axis] ?? 0)).toBeLessThanOrEqual(
+      SOURCE_COLLIDER_HORIZONTAL_PADDING_TOLERANCE,
+    );
+    expect((runtime?.max[axis] ?? 0) - source.max[axis]).toBeLessThanOrEqual(
+      SOURCE_COLLIDER_HORIZONTAL_PADDING_TOLERANCE,
+    );
+  }
+
+  expect(runtime?.min[1]).toBeCloseTo(source.min[1], 4);
+  expect(runtime?.max[1]).toBeCloseTo(source.max[1], 4);
 }
 
 function extractSourceSceneInstances(
