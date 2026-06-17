@@ -1,5 +1,52 @@
 # Completed Tasks
 
+## FPS-PORT — Source ray targets and gamepad axes
+
+Completed: 2026-06-17 04:41 PDT
+Commit: `0164f083`
+
+### Summary
+
+- Aligned player pellet spread with upstream `objects/player.gd`: each shot now
+  derives direction from the source RayCast target vector
+  `[spreadX, spreadY, -maxDistance]` rotated through the camera basis instead
+  of the old hard-coded narrow spread scale.
+- Aligned enemy look, attack range, and line-of-sight ray target with upstream
+  `objects/enemy.gd`: the port now targets the player's source upper body,
+  represented from the Aperture eye position as `playerEye.y - 0.5`, instead of
+  aiming above the camera eye.
+- Hardened FPS gamepad input mapping by replacing stick shortcuts with explicit
+  browser-standard gamepad axes, including Y-axis inversion for forward and
+  look-up behavior.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-input-config.test.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts`
+  passed 22 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture MCP/CLI proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed in the managed headless session.
+  - `resource_get {"id":"fps.state"}` and `ecs_find_entities {"key":"enemy.0"}`
+    showed the live enemy forward vector matching the source target
+    `playerEye.y - 0.5`; computed dot product with the source target was
+    `1.0000000107`, versus `0.9897974997` for the old eye-plus target.
+  - Follow-up control proof showed left-stick forward moving to
+    `playerPosition.z:-0.16666670143604279`, turn-then-forward movement adding
+    yaw-relative `x:-0.013872818771099915`, right trigger producing
+    `shotsFired:1`, and south button jump producing
+    `verticalVelocity:7.666666666`, `jumpsRemaining:1`, and `grounded:false`.
+  - Generated look+shoot against `enemy.0` still produced `shotsFired:1`,
+    `hits:3`, and enemy health `100 -> 25`.
+  - `render_get_frame_report {"summaryOnly":true}` reported frame `123`, one
+    view, 18 mesh draws, `skyboxes:1`, `fogs:1`, 32 draw calls, and diagnostics
+    `0`.
+
 ## FPS-PORT — Source multi-impact effects and grass children
 
 Completed: 2026-06-17 04:25 PDT

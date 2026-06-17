@@ -1,11 +1,69 @@
-# Handoff - Starter Kit FPS Multi-Impact Effects And Grass Children
+# Handoff - Starter Kit FPS Source Ray Targets And Gamepad Axes
 
-**Updated:** 2026-06-17 04:31 PDT
+**Updated:** 2026-06-17 04:41 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Aligned Starter Kit FPS ray-target semantics with upstream
+  `references/Starter-Kit-FPS/objects/player.gd` and
+  `references/Starter-Kit-FPS/objects/enemy.gd`:
+  - Player pellet spread now uses the source RayCast target vector
+    `[spreadX, spreadY, -maxDistance]` rotated through the camera basis, rather
+    than a hard-coded `spread * 0.035` offset.
+  - Enemy look, attack range, and line-of-sight raycasts now target the source
+    upper-body point. Because Aperture stores `playerPosition` as the camera eye
+    position, that target is represented as `playerEye.y - 0.5`.
+  - FPS gamepad input now maps browser-standard gamepad axes explicitly, with
+    Y-axis inversion for forward movement and look-up behavior.
+- Focused coverage:
+  - Added source pellet spread direction tests for centered, corner, and pitched
+    camera-basis cases.
+  - Updated enemy look/muzzle tests to use the source upper-body target.
+  - Added `test/app/fps-input-config.test.ts` for standard gamepad Y-axis
+    forward/look-up mapping.
+- Aperture proof:
+  - Restarted/reused the managed FPS app through `pnpm --dir fps exec aperture
+    dev up --headless --host 127.0.0.1 --port 5173`, waited for WebGPU, and
+    paused/stepped the generated worker through Aperture MCP/CLI tools.
+  - `resource_get {"id":"fps.state"}` and
+    `ecs_find_entities {"key":"enemy.0"}` showed the live enemy forward vector
+    matching the source target `playerEye.y - 0.5`; computed dot product was
+    `1.0000000107` for the source target versus `0.9897974997` for the old
+    eye-plus target.
+  - Reproved the reported gamepad controls after the implementation commit:
+    left-stick forward (`y:-1`) moved to
+    `playerPosition.z:-0.16666670143604279`; turn-then-forward movement
+    produced `yaw:0.08333333333333333`, `x:-0.013872818771099915`, and
+    `z:-0.1660883559553863`; right trigger produced `shotsFired:1`; and south
+    button jump produced `verticalVelocity:7.666666666`, `jumpsRemaining:1`,
+    and `grounded:false`.
+  - Reproved aimed shooting after the combined changes: generated look+shoot
+    against `enemy.0` reported `shotsFired:1`, `hits:3`, and enemy health
+    `100 -> 25`.
+  - `render_get_frame_report {"summaryOnly":true}` reported frame `123`, one
+    view, 18 mesh draws, `skyboxes:1`, `fogs:1`, 32 draw calls, and diagnostics
+    `0`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-input-config.test.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts`
+    passed 22 tests.
+  - `pnpm exec vitest run test/app/fps-input-config.test.ts test/app/fps-controls.test.ts test/app/fps-audio.test.ts test/app/fps-effects.test.ts`
+    passed 21 tests.
+  - `pnpm exec vitest run test/app/fps-input-config.test.ts test/app/fps-controls.test.ts test/app/input-state-events.test.ts`
+    passed 33 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - `0164f083` — `Align FPS ray targets and gamepad axes`
+
+## Previous Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS shot impacts with upstream
   `references/Starter-Kit-FPS/objects/player.gd`:
@@ -56,8 +114,6 @@ previous working state so the old state remains recoverable.
   - `git diff --check`
 - Committed implementation:
   - `f14a3e1d` — `Align FPS impact and grass details with source`
-
-## Previous Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS jump/ceiling handling with upstream
   `references/Starter-Kit-FPS/objects/player.gd`:

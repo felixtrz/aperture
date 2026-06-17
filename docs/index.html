@@ -393,22 +393,38 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 11:29 UTC</dd>
+            <dd>2026-06-17 11:41 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS shot impacts and large-platform
-              grass details now match source scenes more closely. The blaster
-              can show one impact animation per pellet instead of collapsing
-              each volley to a single nearest impact, and every
-              <code>platform-large-grass</code> root now carries the three
-              grass children from <code>objects/platform_large_grass.tscn</code>.
-              Aperture CLI proof used generated <code>look</code> and
-              <code>shoot</code> input against <code>enemy.0</code>;
-              <code>fps.state</code> reported
-              <code>shotsFired:1</code>, <code>hits:3</code>, and enemy health
-              <code>100-&gt;25</code>, while
+              Latest update: Starter Kit FPS ray targets now match source
+              semantics more closely. Player pellet spread uses the upstream
+              RayCast target vector <code>[spreadX, spreadY, -maxDistance]</code>
+              through the camera basis, enemies look/raycast at the source
+              upper-body target represented as <code>playerEye.y - 0.5</code>,
+              and browser-standard gamepad Y axes are inverted explicitly for
+              forward/look-up behavior. Aperture MCP/CLI proof found the live
+              <code>enemy.0</code> forward vector matched the source target with
+              dot product <code>1.0000000107</code>. Follow-up input proof
+              showed left-stick forward at
+              <code>playerPosition.z:-0.1667</code>, turn-then-forward movement
+              adding yaw-relative <code>x:-0.0139</code>, right trigger
+              producing <code>shotsFired:1</code>, south-button jump producing
+              <code>jumpsRemaining:1</code> and <code>grounded:false</code>, and
+              generated look+shoot still hitting <code>enemy.0</code> three
+              times. The managed frame report stayed at diagnostics
+              <code>0</code>. Prior update:
+              Starter Kit FPS shot impacts and large-platform grass details now
+              match source scenes more closely. The blaster can show one impact
+              animation per pellet instead of collapsing each volley to a single
+              nearest impact, and every <code>platform-large-grass</code> root
+              now carries the three grass children from
+              <code>objects/platform_large_grass.tscn</code>. Aperture CLI
+              proof used generated <code>look</code> and <code>shoot</code>
+              input against <code>enemy.0</code>; <code>fps.state</code>
+              reported <code>shotsFired:1</code>, <code>hits:3</code>, and enemy
+              health <code>100-&gt;25</code>, while
               <code>effect.impact-hit.0</code>, <code>.1</code>, and
               <code>.2</code> each reported alpha <code>1</code>. Entity lookup
               also returned 15 source grass children across the five large grass
@@ -491,8 +507,8 @@
               HUD. Prior update: the Starter Kit FPS port now aligns enemy
               hitboxes and look targets with upstream. Enemy physics hitboxes
               track the visible root at source local <code>y + 0.25</code>, and
-              enemies pitch/yaw toward the player's <code>+0.5</code> height
-              target. Aperture proof observed <code>enemy.0</code> visual Y
+              enemies pitch/yaw toward the source upper-body target. Aperture
+              proof observed <code>enemy.0</code> visual Y
               near <code>2.698770</code> and
               <code>enemy.0.hitbox</code> physics Y near
               <code>2.948770</code>. Prior update: the Starter Kit FPS
@@ -2324,6 +2340,21 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">fps</span> Aligned source RayCast
+                target semantics and browser-standard gamepad axes: player
+                pellet spread now uses
+                <code>[spreadX, spreadY, -maxDistance]</code> through the camera
+                basis, enemies target <code>playerEye.y - 0.5</code> for source
+                upper-body look/raycast behavior, and Y-axis gamepad input maps
+                forward/look-up correctly. Live Aperture MCP/CLI proof matched
+                <code>enemy.0</code>'s forward vector to the source target with
+                dot product <code>1.0000000107</code>; follow-up proof showed
+                left-stick forward movement, right-trigger
+                <code>shotsFired:1</code>, south-button
+                <code>jumpsRemaining:1</code>, and an aimed shot still hitting
+                <code>enemy.0</code> three times.
+              </li>
+              <li>
                 <span class="badge green">fps</span> Aligned source shot impact
                 behavior and large-platform grass children: a blaster volley now
                 drives three <code>effect.impact-hit.*</code> sprite slots, and
@@ -2401,8 +2432,8 @@
                 look targets with upstream <code>enemy.tscn</code> /
                 <code>enemy.gd</code>. The ECS physics hitbox now tracks the
                 visible enemy root at source local <code>y + 0.25</code>, and
-                enemies pitch/yaw toward the player's <code>+0.5</code> height
-                target. Aperture proof observed the expected
+                enemies pitch/yaw toward the source upper-body target. Aperture
+                proof observed the expected
                 <code>enemy.0</code> to <code>enemy.0.hitbox</code> offset.
               </li>
               <li>
