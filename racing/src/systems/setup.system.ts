@@ -140,8 +140,8 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         lookAt: [0, 0, 0],
       },
       shadow: {
-        // Aperture auto-fits the directional shadow camera from the active
-        // render camera frustum; these remain quality/filtering knobs only.
+        // Aperture scene-fits the single directional shadow camera from
+        // extracted casters/receivers; these remain quality/filtering knobs.
         mapSize: 4096,
         cascadeCount: 1,
         shadowType: 1,

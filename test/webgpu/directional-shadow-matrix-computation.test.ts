@@ -225,6 +225,31 @@ describe("directional shadow matrix computation", () => {
     );
   });
 
+  it("honors explicit single-cascade scene fit when frustum fitting is disabled", () => {
+    const request = { ...shadowRequest(), cascadeCount: 1 };
+    const report = createDirectionalShadowMatrixComputationReport({
+      viewProjection: frustumFitPlan(request),
+      transforms: directionalDownTransform(),
+      cameraViewMatrix: translationView(80, 40, 120),
+      cameraProjectionMatrix: makePerspective(1.0, 1, 1, 200),
+      center: [9, 1, 0],
+      orthographicSize: 4,
+      near: 0.2,
+      far: 12,
+      lightDistance: 8,
+      frustumFit: false,
+    });
+
+    expect(report.matrixCount).toBe(1);
+    expect(report.matrices[0]).toMatchObject({
+      center: [9, 1, 0],
+      orthographicSize: 4,
+      near: 0.2,
+      far: 12,
+      lightPosition: [9, 9, 0],
+    });
+  });
+
   it("falls back to the static-center behavior byte-identically when no camera frustum is supplied", () => {
     const request = { ...shadowRequest(), cascadeCount: 3 };
     const baseInput = {

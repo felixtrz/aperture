@@ -183,9 +183,9 @@ export interface RenderShadowFrameShadowMapOptions {
 }
 
 export interface RenderShadowFrameMatrixOptions {
-  /** Fallback center used only when no primary render camera can drive auto-fit. */
+  /** Scene-fit center used by single-cascade shadows, or fallback for no-camera snapshots. */
   readonly center?: readonly [number, number, number];
-  /** Fallback span used only when no primary render camera can drive auto-fit. */
+  /** Scene-fit span used by single-cascade shadows, or fallback for no-camera snapshots. */
   readonly orthographicSize?: number;
   readonly near?: number;
   readonly far?: number;
@@ -327,7 +327,13 @@ export function createRenderShadowFrame(
     shadowPassPlan: passPlan,
     depthTextureResources,
   });
-  const shadowCamera = resolvePrimaryShadowCamera(options.snapshot);
+  const useCameraFrustumFit = shouldUseCameraFrustumFit(
+    shadowRequests,
+    options.matrix,
+  );
+  const shadowCamera = useCameraFrustumFit
+    ? resolvePrimaryShadowCamera(options.snapshot)
+    : null;
   const viewProjection = createDirectionalShadowViewProjectionPlanReport({
     shadowRequests,
     lights: options.snapshot.lights,
@@ -365,6 +371,7 @@ export function createRenderShadowFrame(
       meshDraws: options.snapshot.meshDraws,
       bounds: options.snapshot.bounds,
     }),
+    frustumFit: useCameraFrustumFit,
     ...(options.matrix?.center === undefined
       ? {}
       : { center: options.matrix.center }),
@@ -1270,6 +1277,20 @@ function resolveShadowKind(
   return descriptor.descriptors.some((entry) => entry.cascadeCount > 1)
     ? "directional-cascaded"
     : "directional";
+}
+
+function shouldUseCameraFrustumFit(
+  shadowRequests: readonly ShadowRequestPacket[],
+  matrix: CreateRenderShadowFrameOptions["matrix"] | undefined,
+): boolean {
+  if (matrix === undefined) {
+    return true;
+  }
+
+  return shadowRequests.some(
+    (request) =>
+      isDirectionalShadowRequest(request) && (request.cascadeCount ?? 1) > 1,
+  );
 }
 
 function isDirectionalShadowRequest(request: ShadowRequestPacket): boolean {

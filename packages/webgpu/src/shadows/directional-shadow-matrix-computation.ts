@@ -118,6 +118,12 @@ export interface DirectionalShadowMatrixComputationInput {
    * these to avoid spending the map on empty camera-frustum sky/background.
    */
   readonly receiverBounds?: readonly DirectionalShadowReceiverBoundsInput[];
+  /**
+   * Enables camera-frustum fitting when camera matrices and cascade distances
+   * are available. Single-cascade scene-fit callers disable this so the shadow
+   * camera remains caster/receiver driven instead of main-camera driven.
+   */
+  readonly frustumFit?: boolean | undefined;
 }
 
 const DEFAULT_CENTER = [0, 0, 0] as const;
@@ -288,9 +294,10 @@ function computeDirectionalShadowMatrix(
 
   const hasAuthoredFixedCamera =
     plan.orthographicSize !== undefined && plan.orthographicSize > 0;
-  const fit = hasAuthoredFixedCamera
-    ? null
-    : tryFrustumFit(input, plan, direction);
+  const fit =
+    hasAuthoredFixedCamera || input.frustumFit === false
+      ? null
+      : tryFrustumFit(input, plan, direction);
 
   const center =
     fit?.center ?? tuple3(plan.center ?? input.center ?? DEFAULT_CENTER);

@@ -1,3 +1,82 @@
+# Handoff - Single-Cascade Shadow Scene Fit
+
+**Updated:** 2026-06-17 12:01 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Fixed the shadow regression where a platform could stop casting a shadow once
+  the main render camera frustum-culled its visible mesh draw.
+- Research anchors checked:
+  - `references/three.js/src/renderers/webgl/WebGLShadowMap.js` culls shadow
+    submissions against the shadow camera frustum, not the main visible list.
+  - `references/engine/src/scene/renderer/shadow-renderer.js` and
+    `references/engine/src/scene/renderer/shadow-renderer-directional.js` build
+    a directional shadow camera, update that camera's frustum, then cull shadow
+    casters for the shadow pass.
+  - `references/bevy/crates/bevy_render/src/view/visibility/mod.rs` keeps
+    `RenderShadowMapVisibleEntities` separate from normal render-visible
+    entities; `references/bevy/crates/bevy_pbr/src/render/light.rs` consumes
+    that shadow-visible set while queueing shadows.
+- Root cause: the renderer already extracted `shadowCasterDraws` separately from
+  visible `meshDraws`, but single-cascade shadow matrix computation still
+  preferred active render-camera frustum fitting whenever camera matrices were
+  present. That could crop off-camera caster bounds even though the caster packet
+  made it into the shadow frame.
+- Fix: single-cascade shadows now disable camera-frustum fitting and use the
+  scene-fit matrix options derived from extracted casters/receivers. Cascaded
+  shadows still use the camera-frustum fitting path, and no-camera snapshots
+  continue to use scene-fit fallback data.
+- Updated the stale racing setup comment and public tracker pages so the default
+  shadow path documents scene-fit single-cascade behavior.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/directional-shadow-matrix-computation.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- Managed Aperture CLI proof:
+  - Racing at `http://127.0.0.1:5173/`: WebGPU ready,
+    `meshDraws:36`, `shadowCasterDraws:364`, `drawCalls:46`, diagnostics `0`,
+    and nonblack screenshot/readback with visible track shadows.
+  - Shadow Lab at `http://127.0.0.1:5173/`: WebGPU ready,
+    `meshDraws:25`, `shadowCasterDraws:364`, `drawCalls:38`, diagnostics `0`,
+    and nonblack screenshot/readback.
+  - Starter Kit FPS at `http://127.0.0.1:5173/`: WebGPU ready, `views:2`,
+    `meshDraws:21`, `shadowCasterDraws:44`, `drawCalls:36`, diagnostics `0`,
+    and nonblack screenshot/readback.
+
+## Known Issues
+
+- The Aperture MCP transport was closed during live validation, so the same
+  managed app checks were run through `pnpm exec aperture tool ...`.
+- Starter Kit FPS is intentionally still running at `http://127.0.0.1:5173/` for
+  user testing.
+- Unrelated modified files remain unstaged from the asset-backed collider slice:
+  `fps/aperture.config.ts`, `fps/src/lib/fps-data.ts`,
+  `fps/src/systems/setup.system.ts`, `packages/app/src/config/index.ts`,
+  `packages/app/src/config/validation.ts`, `packages/app/src/worker/loop.ts`,
+  `test/app/config-validation.test.ts`, `test/app/fps-data.test.ts`, and
+  `test/app/generated-worker-start.test.ts`.
+- Pre-existing untracked screenshot/parity artifacts remain outside the commit.
+
+## Recommended Next Task
+
+Exercise the FPS app interactively from the still-running managed dev server,
+then continue the user-directed FPS/shadow parity stream or return to the
+backlog's `task-3097` PMREM GGX/VNDF prefilter slice when the interruption is
+complete.
+
+---
+
 # Handoff - FPS Input Tap Reliability
 
 **Updated:** 2026-06-17 11:49 PDT

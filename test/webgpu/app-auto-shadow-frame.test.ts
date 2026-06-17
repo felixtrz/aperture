@@ -17,7 +17,7 @@ import { createWebGpuAppAutoShadowFrame } from "../../packages/webgpu/src/app/au
 import { createWebGpuAppResourceReuseReport } from "../../packages/webgpu/src/app/report.js";
 
 describe("WebGPU app auto-shadow frame", () => {
-  it("tightens single directional auto-shadows to receiver bounds when a primary camera exists", () => {
+  it("uses single-cascade scene fit even when a primary camera exists", () => {
     const calls = createDeviceCalls();
     const assets = new AssetRegistry();
     const opaqueMesh = createMeshHandle("opaque-caster");
@@ -47,13 +47,11 @@ describe("WebGPU app auto-shadow frame", () => {
     ).toEqual(["shadowCasterDrawList.unsupportedAlphaBlendCaster"]);
     expect(
       result?.matrixComputation.matrices[0]?.orthographicSize,
-    ).toBeGreaterThan(7);
+    ).toBeGreaterThan(3);
     expect(
       result?.matrixComputation.matrices[0]?.orthographicSize,
-    ).toBeLessThan(9);
-    expect(result?.matrixComputation.matrices[0]?.center).not.toEqual([
-      0, 0, 0,
-    ]);
+    ).toBeLessThan(5);
+    expect(result?.matrixComputation.matrices[0]?.center).toEqual([0, 1, 0]);
   });
 
   it("uses light-space scene fit as the no-camera fallback", () => {
@@ -125,6 +123,7 @@ describe("WebGPU app auto-shadow frame", () => {
         ...source,
         meshDraws: visibleReceiver,
         shadowCasterDraws,
+        transforms: directionalLightTransform([-3, -1, 0]),
         report: {
           ...source.report,
           meshDraws: visibleReceiver.length,
@@ -142,6 +141,11 @@ describe("WebGPU app auto-shadow frame", () => {
     expect(
       result?.casterDrawList.diagnostics.map((diagnostic) => diagnostic.code),
     ).toEqual(["shadowCasterDrawList.unsupportedAlphaBlendCaster"]);
+    expect(result?.matrixComputation.matrices[0]?.center[0]).toBeGreaterThan(3);
+    expect(result?.matrixComputation.matrices[0]?.center[0]).toBeLessThan(13);
+    expect(
+      result?.matrixComputation.matrices[0]?.orthographicSize,
+    ).toBeLessThan(6);
   });
 });
 

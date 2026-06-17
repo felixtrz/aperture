@@ -393,39 +393,52 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 18:49 UTC</dd>
+            <dd>2026-06-17 19:01 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS short button taps now stay visible
-              to the worker frame loop. HUD keyboard and instant pointer
-              releases are delayed below the fastest source weapon cooldown,
-              and FPS jump/shoot press commands feed the existing gameplay
-              buffers directly. Live Aperture proof showed left-click shooting
-              incrementing <code>shotsFired</code>, yaw-relative
-              <code>KeyW</code> movement after a mouse-look rotation, and a
-              quick Space tap producing a positive jump state. After clearing a
-              stale unmanaged Vite listener on port <code>5173</code>, a clean
+              Latest update: single-cascade directional shadows now scene-fit
+              from extracted casters/receivers even when a primary render camera
+              exists, so off-camera platforms can continue casting shadows after
+              main-view frustum culling removes their visible mesh draw.
+              Cascaded shadows keep the camera-frustum fitting path. Focused
+              WebGPU tests cover the explicit no-frustum-fit branch and an
+              off-camera caster packet that is absent from
+              <code>meshDraws</code> but retained in
+              <code>shadowCasterDraws</code>. Managed Aperture proof rechecked
+              racing (<code>meshDraws:36</code>,
+              <code>shadowCasterDraws:364</code>), Shadow Lab
+              (<code>meshDraws:25</code>, <code>shadowCasterDraws:364</code>),
+              and Starter Kit FPS (<code>views:2</code>,
+              <code>meshDraws:21</code>, <code>shadowCasterDraws:44</code>) with
+              zero diagnostics and nonblack screenshots. Prior update: Starter
+              Kit FPS short button taps now stay visible to the worker frame
+              loop. HUD keyboard and instant pointer releases are delayed below
+              the fastest source weapon cooldown, and FPS jump/shoot press
+              commands feed the existing gameplay buffers directly. Live
+              Aperture proof showed left-click shooting incrementing
+              <code>shotsFired</code>, yaw-relative <code>KeyW</code> movement
+              after a mouse-look rotation, and a quick Space tap producing a
+              positive jump state. After clearing a stale unmanaged Vite
+              listener on port <code>5173</code>, a clean
               <code>pnpm --dir fps run smoke:full-clear</code> run reached
               <code>shotsFired:8</code>, <code>hits:16</code>,
               <code>destroyedEnemies:4</code>, and
               <code>gameStatus:"cleared"</code>. Prior update: Starter Kit FPS
-              weapon viewmodel placement was
-              recalibrated against the source lower-right screenshot framing
-              while preserving the extracted Godot source offset constants. The
-              runtime overlay position now keeps the blaster tucked into the
-              lower-right viewport corner in both the initial view and a
-              pointer-lock look-down proof. Live Aperture proof reported
-              WebGPU OK, <code>views:2</code>, <code>meshDraws:21</code>,
-              <code>shadowCasterDraws:44</code>, shadow caster draw-list
-              consumption of <code>44</code>, and diagnostics
-              <code>0</code>. Prior update: Starter Kit FPS Escape now matches
-              the source
-              <code>mouse_capture_exit</code> input. The HUD clears pointer-lock
-              look state, releases active pointer-lock shooting, and exits
-              pointer lock when the canvas is captured. Aperture CLI
-              <code>browser_status</code> now reports
+              weapon viewmodel placement was recalibrated against the source
+              lower-right screenshot framing while preserving the extracted
+              Godot source offset constants. The runtime overlay position now
+              keeps the blaster tucked into the lower-right viewport corner in
+              both the initial view and a pointer-lock look-down proof. Live
+              Aperture proof reported WebGPU OK, <code>views:2</code>,
+              <code>meshDraws:21</code>, <code>shadowCasterDraws:44</code>,
+              shadow caster draw-list consumption of <code>44</code>, and
+              diagnostics <code>0</code>. Prior update: Starter Kit FPS Escape
+              now matches the source <code>mouse_capture_exit</code> input. The
+              HUD clears pointer-lock look state, releases active pointer-lock
+              shooting, and exits pointer lock when the canvas is captured.
+              Aperture CLI <code>browser_status</code> now reports
               <code>page.dom.pointerLock</code>, and live proof showed left
               click locking the canvas and firing once, then Escape returning
               <code>pointerLock.locked:false</code> without another shot. Prior
@@ -2678,15 +2691,25 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">fps</span> Fixed short FPS
-                button-tap reliability. The HUD keeps tap releases visible long
-                enough for the worker to consume them, and player-system
-                command draining now buffers jump/shoot press commands
-                immediately. Live Aperture proof covered click shooting,
-                camera-relative movement after look rotation, and a quick Space
-                jump; a clean-session <code>smoke:full-clear</code> run cleared
-                all four enemies with <code>shotsFired:8</code>,
-                <code>hits:16</code>, and <code>gameStatus:"cleared"</code>.
+                <span class="badge green">render</span> Fixed single-cascade
+                directional shadow fitting so off-camera platforms can continue
+                casting shadows after their visible mesh draw is main-frustum
+                culled. The default one-cascade path now scene-fits from
+                extracted caster/receiver bounds, while cascaded shadows keep
+                camera-frustum fitting. Managed Aperture proof rechecked racing,
+                Shadow Lab, and Starter Kit FPS with zero diagnostics and
+                retained <code>shadowCasterDraws</code>.
+              </li>
+              <li>
+                <span class="badge green">fps</span> Fixed short FPS button-tap
+                reliability. The HUD keeps tap releases visible long enough for
+                the worker to consume them, and player-system command draining
+                now buffers jump/shoot press commands immediately. Live Aperture
+                proof covered click shooting, camera-relative movement after
+                look rotation, and a quick Space jump; a clean-session
+                <code>smoke:full-clear</code> run cleared all four enemies with
+                <code>shotsFired:8</code>, <code>hits:16</code>, and
+                <code>gameStatus:"cleared"</code>.
               </li>
               <li>
                 <span class="badge green">fps</span> Recalibrated the Starter

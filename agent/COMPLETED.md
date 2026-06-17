@@ -1,5 +1,46 @@
 # Completed Tasks
 
+## WEBGPU-SHADOWS - Single-cascade scene-fit independence
+
+Completed: 2026-06-17 12:01 PDT
+
+### Summary
+
+- Fixed the default single-cascade directional shadow path so off-camera shadow
+  casters are not cropped by the active render-camera frustum.
+- Added an explicit `frustumFit:false` branch to directional shadow matrix
+  computation and routed single-cascade auto-shadow frames through scene-fit
+  matrix options derived from extracted caster/receiver bounds.
+- Preserved camera-frustum fitting for cascaded directional shadows and explicit
+  authored shadow-camera overrides.
+- Updated racing's setup comment and the public tracker docs to match the
+  default behavior.
+
+### Research
+
+- three.js `WebGLShadowMap` traverses shadow casters and culls against the
+  shadow camera frustum.
+- PlayCanvas builds a directional shadow camera and culls shadow casters against
+  that camera.
+- Bevy keeps shadow-map visible entities separate from normal render-visible
+  entities.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/directional-shadow-matrix-computation.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- Managed Aperture proof for racing, Shadow Lab, and Starter Kit FPS showed
+  WebGPU ready, nonblack screenshots/readbacks, zero diagnostics, and retained
+  `shadowCasterDraws` (`364`, `364`, and `44` respectively).
+
 ## FPS-PORT — Input tap reliability
 
 Completed: 2026-06-17 11:49 PDT
