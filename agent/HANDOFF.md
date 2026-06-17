@@ -451,11 +451,11 @@ previous working state so the old state remains recoverable.
 ## Recommended Next Task
 
 Continue the FPS port with another visible Starter Kit fidelity slice. Good
-next options are adding source-like impact orientation (`objects/player.gd`
-looks impact sprites at the camera), improving enemy attack polish, adding more
-source-like weapon/player detail parity, or packaging the platform-aware
-full-clear route into a reusable smoke script so future regressions can re-run
-the proof without retyping the route.
+next options are improving enemy attack polish, adding more source-like
+weapon/player detail parity, filling any remaining impact-rendering differences
+such as depth behavior, or packaging the platform-aware full-clear route into a
+reusable smoke script so future regressions can re-run the proof without
+retyping the route.
 
 ---
 
