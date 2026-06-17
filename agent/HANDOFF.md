@@ -1,53 +1,71 @@
-# Handoff - Starter Kit FPS Source Environment Values
+# Handoff - Starter Kit FPS Input Edge Handling
 
-**Updated:** 2026-06-17 07:32 PDT
+**Updated:** 2026-06-17 07:41 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Aligned supported Starter Kit FPS source environment values:
+- Fixed the latest reported Starter Kit FPS control issues:
   - Source anchors:
-    `references/Starter-Kit-FPS/scenes/main-environment.tres` and
-    `references/Starter-Kit-FPS/scenes/main.tscn`.
-  - The port now exports and uses source background color
-    `[0x5c/255, 0x64/255, 0x76/255, 1]`, ambient color
-    `[0xa9/255, 0xb1/255, 0xc5/255, 1]`, ambient intensity `1`, panorama sky
-    energy `0.5`, the Sun Transform3D-derived quaternion
-    `[0.22707267,-0.76437232,-0.35643233,0.48695873]`, and source
-    `shadow_opacity = 0.75` as Aperture shadow strength.
-  - FPS setup now routes camera clear color, fog color, ambient light, skybox
-    intensity, sun rotation, and sun shadow strength through those source
-    constants. `fps/aperture.config.ts` also uses the exact source clear color.
-  - Godot SSAO/glow-level parity is still not claimed as complete; Aperture
-    bloom remains the existing approximation and SSAO remains an honest engine
-    gap.
+    `references/Starter-Kit-FPS/objects/player.gd` and
+    `references/Starter-Kit-FPS/project.godot`.
+  - Added `sourceButtonPressedThisFrame(...)` and persistent button-edge latches
+    in `PlayerSystem` so generated/browser input that reports `pressed:true`
+    after its built-in `down()` edge is no longer missed. This fixes the
+    intermittent Space jump path and also hardens shoot buffering.
+  - Added `sourcePointerDragLookStep(...)` and routed the raw pointer-drag
+    fallback through the same horizontal sign as source/pointer-lock mouse look.
+    A rightward drag now produces negative yaw, so forward movement follows the
+    same camera basis users see when pointer lock is unavailable.
+- Stabilized the previous environment slice:
+  - Kept the exact exported source environment constants, but added explicit
+    `FPS_RENDER_*` runtime mapping constants for Aperture's current directional
+    light/ambient convention.
+  - Runtime setup now uses the prior proven FPS clear/fog/ambient/sun values
+    while preserving source anchors for later engine-convention work.
+- Made shooting feedback visible in the main world view:
+  - Removed the temporary second weapon camera from setup and assigned weapon
+    viewmodels plus player muzzle sprites to the world render layer.
+  - This keeps the live app on one swapchain view until the renderer has a
+    source-like weapon subviewport/compositing path.
 - Aperture tooling proof:
   - Started the managed FPS app with
     `pnpm --dir fps exec aperture dev up --headless --host 127.0.0.1 --port 5173`.
-  - CLI `browser_wait_for_webgpu` passed with WebGPU ready, `lastError:null`,
-    `lastFailure:null`, and render diagnostics `[]`.
-  - CLI `ecs_find_entities {"key":"light.sun","limit":1}` reported the live
-    sun rotation as
-    `[0.22707267105579376,-0.7643723487854004,-0.35643231868743896,0.48695874214172363]`.
-  - CLI `render_get_snapshot_summary` reported two views, one skybox, one fog,
-    49 draw calls, and diagnostics `0`.
+  - MCP transport was closed, so the same Aperture tools were used through the
+    CLI.
+  - CLI `browser_wait_for_webgpu` passed with WebGPU ready.
+  - A fast `input_key {"key":"Space","action":"press"}` now makes the player
+    airborne with `jumpsRemaining:1`.
+  - Holding Space for 80ms moved the player Y from the grounded value to
+    `1.158048...`, set `grounded:false`, and left `jumpsRemaining:1`.
+  - `input_pointer_click {"x":0.5,"y":0.5}` increments `shotsFired` to `1`.
+  - A rightward `input_drag` over the canvas produced live yaw
+    `-0.222957...`, proving the fallback drag sign now matches source mouse
+    look.
+  - After the weapon-view setup change, `render_get_snapshot_summary` reported
+    one view, one skybox, one fog, 33 draw calls, and diagnostics `0`.
 - Validation:
-  - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-effects.test.ts`
-    passed 12 tests.
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts`
+    passed 34 tests.
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-effects.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+    passed 65 tests.
   - `pnpm --dir fps run typecheck`
-  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/fps-hud.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
-    passed 68 tests.
   - `pnpm --dir fps run build`
   - `pnpm --dir racing run typecheck`
   - `pnpm --dir racing run build`
   - `pnpm --dir shadow-lab run typecheck`
   - `pnpm --dir shadow-lab run build`
-  - `pnpm run check:progress`
-  - `git diff --check`
+  - After the setup change:
+    `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+    passed 38 tests.
+  - After the setup change: `pnpm --dir fps run typecheck`
+  - After the setup change: `pnpm --dir fps run build`
 - Commit:
-  - `d7b01926` — `Align FPS source environment values`
+  - `b4a70a49` — `Stabilize FPS runtime environment mapping`
+  - `240d43a8` — `Fix FPS input edge handling`
+  - `a6a8c421` — `Render FPS weapon effects in world view`
 
 ## Previous Completed FPS/Tooling Slices
 

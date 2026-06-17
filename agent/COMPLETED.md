@@ -1,5 +1,58 @@
 # Completed Tasks
 
+## FPS-PORT — Input edge handling and fallback look sign
+
+Completed: 2026-06-17 07:41 PDT
+Commit: `240d43a8`
+
+### Summary
+
+- Added source-style button edge recovery for FPS actions so generated input
+  that reports `pressed:true` after its built-in `down()` edge is still
+  consumed by gameplay.
+- Routed jump and shoot buffering through the recovered edge path in
+  `PlayerSystem`.
+- Fixed the raw pointer-drag fallback yaw sign to match the source mouse path,
+  so camera-relative movement follows the look direction when pointer lock is
+  unavailable.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts`
+  passed 34 tests.
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-effects.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+  passed 65 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Aperture CLI proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed with WebGPU ready.
+  - A fast `Space` press and an 80ms Space hold both made the player airborne
+    with `jumpsRemaining:1`.
+  - A canvas click produced `shotsFired:1`.
+  - A rightward fallback drag produced negative yaw.
+
+## FPS-PORT — Runtime environment mapping
+
+Completed: 2026-06-17 07:41 PDT
+Commit: `b4a70a49`
+
+### Summary
+
+- Kept exact source environment constants from the previous slice.
+- Added explicit `FPS_RENDER_*` runtime constants for the current Aperture
+  directional-light and ambient-light convention.
+- Routed live setup/config through the runtime constants while keeping source
+  constants available for later engine-convention parity work.
+
+### Validation
+
+- Covered by the same FPS focused tests, FPS build/typecheck, and racing plus
+  shadow-lab build/typecheck listed above.
+
 ## FPS-PORT — Source environment values
 
 Completed: 2026-06-17 07:32 PDT

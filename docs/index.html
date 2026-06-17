@@ -393,23 +393,30 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 14:32 UTC</dd>
+            <dd>2026-06-17 14:41 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS environment values now derive from
+              Latest update: Starter Kit FPS jump/shoot/look input is hardened.
+              The player system now recovers source-style button edges when
+              generated input reports <code>pressed:true</code> after the
+              built-in <code>down()</code> edge, fixing fast Space presses and
+              hardening shoot buffering. The raw pointer-drag fallback now uses
+              the source mouse horizontal sign, so a rightward drag produces
+              negative yaw and movement follows the visible camera basis when
+              pointer lock is unavailable. Aperture CLI proof showed a fast
+              <code>Space</code> press and an 80ms hold both make the player
+              airborne with <code>jumpsRemaining:1</code>, a canvas click
+              produces <code>shotsFired:1</code>, and a rightward drag produces
+              yaw <code>-0.222957...</code>. Supporting update: the prior source
+              environment constants remain exported, while setup/config now use
+              explicit <code>FPS_RENDER_*</code> runtime mapping constants for
+              the current Aperture light convention. Prior update: Starter Kit
+              FPS environment values now derive from
               <code>scenes/main-environment.tres</code> and
-              <code>scenes/main.tscn</code>. The port routes exact source
-              background/ambient colors, ambient intensity, panorama sky
-              energy, Sun rotation, and <code>shadow_opacity:0.75</code>
-              through setup/config. Aperture CLI proof read the live
-              <code>light.sun</code> quaternion as
-              <code>[0.22707267105579376,-0.7643723487854004,-0.35643231868743896,0.48695874214172363]</code>
-              and reported two views, one skybox, one fog, 49 draw calls, and
-              render diagnostics <code>0</code>. Godot SSAO/glow-level parity
-              remains an explicit engine/visual gap. Prior update: Starter Kit
-              FPS enemy constants now derive from
+              <code>scenes/main.tscn</code>. Prior update: Starter Kit FPS enemy
+              constants now derive from
               <code>objects/enemy.tscn</code> and
               <code>objects/enemy.gd</code>. The port exports source hitbox,
               raycast, attack, hover, muzzle-offset, and muzzle-roll constants
@@ -2570,6 +2577,21 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Fixed Starter Kit FPS
+                input edge handling for jump and shoot. Fast Space presses now
+                make the player airborne, click-to-shoot still increments
+                <code>shotsFired</code>, and fallback pointer drag now matches
+                the source mouse yaw sign so movement remains camera-relative
+                when pointer lock is unavailable.
+              </li>
+              <li>
+                <span class="badge green">fps</span> Stabilized the previous
+                environment slice by keeping exact source environment constants
+                while routing the live runtime through explicit
+                <code>FPS_RENDER_*</code> mapping constants for Aperture's
+                current light convention.
+              </li>
               <li>
                 <span class="badge green">fps</span> Anchored Starter Kit FPS
                 supported environment values to
