@@ -135,6 +135,38 @@ function validatePhysicsConfig(physics: ApertureConfig["physics"]): void {
       );
     }
   }
+
+  validatePhysicsColliderGeometryConfig(physics.colliderGeometry);
+}
+
+function validatePhysicsColliderGeometryConfig(
+  colliderGeometry: NonNullable<
+    Exclude<ApertureConfig["physics"], boolean>
+  >["colliderGeometry"],
+): void {
+  if (colliderGeometry === undefined) {
+    return;
+  }
+
+  if (
+    typeof colliderGeometry !== "object" ||
+    colliderGeometry === null ||
+    Array.isArray(colliderGeometry)
+  ) {
+    throw new ApertureConfigError(
+      "aperture.config.invalidPhysics",
+      "Aperture physics.colliderGeometry must be an options object.",
+      "Use physics: { colliderGeometry: { kind: 'assets' } } or omit colliderGeometry.",
+    );
+  }
+
+  if (colliderGeometry.kind !== "none" && colliderGeometry.kind !== "assets") {
+    throw new ApertureConfigError(
+      "aperture.config.invalidPhysics",
+      `Unsupported physics.colliderGeometry kind '${String(colliderGeometry.kind)}'.`,
+      "Use physics: { colliderGeometry: { kind: 'assets' } } for mesh-backed colliders, or { kind: 'none' }.",
+    );
+  }
 }
 
 export function isPreloadPolicy(value: unknown): value is AssetPreloadPolicy {

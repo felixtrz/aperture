@@ -153,11 +153,56 @@ function adaptAttribute(
   stream: MeshVertexStreamDescriptor,
   attribute: MeshVertexAttributeDescriptor,
 ): SpatialMeshAttribute {
+  const componentBytes = bytesPerComponent(attribute.format);
+  const data = attributeDataView(stream, attribute, componentBytes);
+
   return {
-    data: stream.data,
-    offset: attribute.offset / bytesPerComponent(attribute.format),
-    stride: stream.arrayStride / bytesPerComponent(attribute.format),
+    data,
+    offset: data === stream.data ? attribute.offset / componentBytes : 0,
+    stride: stream.arrayStride / componentBytes,
   };
+}
+
+function attributeDataView(
+  stream: MeshVertexStreamDescriptor,
+  attribute: MeshVertexAttributeDescriptor,
+  componentBytes: number,
+): ArrayLike<number> {
+  const componentCount = componentsPerFormat(attribute.format);
+  const stride = stream.arrayStride / componentBytes;
+  const byteOffset = stream.data.byteOffset + attribute.offset;
+
+  if (
+    stream.arrayStride % componentBytes !== 0 ||
+    attribute.offset % componentBytes !== 0 ||
+    byteOffset % componentBytes !== 0
+  ) {
+    return stream.data;
+  }
+
+  const byteLength =
+    stream.vertexCount === 0
+      ? 0
+      : (stream.vertexCount - 1) * stream.arrayStride +
+        componentCount * componentBytes;
+
+  if (attribute.offset + byteLength > stream.data.byteLength) {
+    return stream.data;
+  }
+
+  const length = byteLength / componentBytes;
+
+  if (attribute.format.startsWith("float32")) {
+    return new Float32Array(stream.data.buffer, byteOffset, length);
+  }
+  if (
+    attribute.format.startsWith("uint16") ||
+    attribute.format.startsWith("unorm16")
+  ) {
+    return new Uint16Array(stream.data.buffer, byteOffset, length);
+  }
+
+  return new Uint8Array(stream.data.buffer, byteOffset, length);
 }
 
 function adaptIndexBuffer(
@@ -199,5 +244,14 @@ function adaptSubmesh(
 }
 
 function bytesPerComponent(format: MeshVertexFormat): number {
-  return format.startsWith("float32") ? 4 : format.startsWith("uint16") ? 2 : 1;
+  if (format.startsWith("float32")) return 4;
+  if (format.startsWith("uint16") || format.startsWith("unorm16")) return 2;
+  return 1;
+}
+
+function componentsPerFormat(format: MeshVertexFormat): number {
+  if (format.endsWith("x2")) return 2;
+  if (format.endsWith("x3")) return 3;
+  if (format.endsWith("x4")) return 4;
+  return 1;
 }

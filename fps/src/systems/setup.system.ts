@@ -285,7 +285,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         physics: {
           rigidBody: { type: "static" },
           collider: {
-            shape: { kind: "box", halfExtents: collider.halfExtents },
+            shape: { kind: "trimesh", meshId: collider.meshId },
             friction: 1,
             restitution: 0,
           },

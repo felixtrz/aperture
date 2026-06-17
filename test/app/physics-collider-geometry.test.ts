@@ -36,6 +36,22 @@ describe("asset-backed physics collider geometry provider", () => {
     expect(Math.max(...Array.from(second.positions))).toBeCloseTo(4);
   });
 
+  it("adapts byte-backed source vertex streams into numeric triangle geometry", () => {
+    const registry = new AssetRegistry();
+    const mesh = createMeshHandle("byte-backed");
+
+    registry.register(mesh);
+    registry.markReady(mesh, byteBackedTriangleMesh());
+
+    const provider = createAssetBackedPhysicsColliderGeometryProvider({
+      assets: registry,
+    });
+    const geometry = unwrapTriangleMesh(provider.triangleMesh("byte-backed"));
+
+    expect(geometry.triangleCount).toBe(1);
+    expect(Array.from(geometry.positions)).toEqual([0, 0, 0, 2, 0, 0, 0, 3, 0]);
+  });
+
   it("reports missing, loading, and invalid mesh assets as structured diagnostics", () => {
     const registry = new AssetRegistry();
     const loading = createMeshHandle("loading");
@@ -153,6 +169,46 @@ function invalidTopologyMesh(): MeshAsset {
       ...submesh,
       topology: "line-list",
     })),
+  };
+}
+
+function byteBackedTriangleMesh(): MeshAsset {
+  const source = new Float32Array([0, 0, 0, 2, 0, 0, 0, 3, 0]);
+
+  return {
+    kind: "mesh",
+    label: "Byte-backed Triangle",
+    vertexStreams: [
+      {
+        id: "source-buffer-view",
+        arrayStride: 12,
+        vertexCount: 3,
+        attributes: [
+          {
+            semantic: "POSITION",
+            format: "float32x3",
+            offset: 0,
+          },
+        ],
+        data: new Uint8Array(source.buffer),
+      },
+    ],
+    indexBuffer: {
+      format: "uint16",
+      data: new Uint16Array([0, 1, 2]),
+    },
+    submeshes: [
+      {
+        label: "triangle",
+        topology: "triangle-list",
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount: 3,
+        indexStart: 0,
+        indexCount: 3,
+      },
+    ],
+    materialSlots: [{ index: 0, label: "default" }],
   };
 }
 

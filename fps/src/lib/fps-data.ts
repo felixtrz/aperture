@@ -40,7 +40,7 @@ export interface CloudSpec extends LevelInstance {
 export interface LevelCollider {
   readonly key: string;
   readonly position: Vec3;
-  readonly halfExtents: Vec3;
+  readonly meshId: string;
   readonly yawDegrees?: number | undefined;
   readonly surface?: boolean;
 }
@@ -499,24 +499,16 @@ export const LEVEL_COLLIDERS: readonly LevelCollider[] = [
     instance.assetId.startsWith("platform-large-grass"),
   ).map((instance) =>
     levelCollider(instance, {
-      position: [
-        instance.position[0],
-        instance.position[1] + 0.25,
-        instance.position[2],
-      ],
-      halfExtents: [2.5, 0.25, 2.5],
+      position: instance.position,
+      meshId: sourceLevelColliderMeshId(instance.assetId),
       surface: true,
     }),
   ),
   ...LEVEL_INSTANCES.filter((instance) => instance.assetId === "platform").map(
     (instance) =>
       levelCollider(instance, {
-        position: [
-          instance.position[0],
-          instance.position[1] + 0.25,
-          instance.position[2],
-        ],
-        halfExtents: [1, 0.25, 1],
+        position: instance.position,
+        meshId: sourceLevelColliderMeshId(instance.assetId),
         surface: true,
       }),
   ),
@@ -524,7 +516,7 @@ export const LEVEL_COLLIDERS: readonly LevelCollider[] = [
     (instance) =>
       levelCollider(instance, {
         position: instance.position,
-        halfExtents: [1.1, 0.45, 0.35],
+        meshId: sourceLevelColliderMeshId(instance.assetId),
         surface: false,
       }),
   ),
@@ -532,11 +524,15 @@ export const LEVEL_COLLIDERS: readonly LevelCollider[] = [
     (instance) =>
       levelCollider(instance, {
         position: instance.position,
-        halfExtents: [0.75, 0.85, 0.35],
+        meshId: sourceLevelColliderMeshId(instance.assetId),
         surface: false,
       }),
   ),
 ];
+
+export function sourceLevelColliderMeshId(assetId: string): string {
+  return `mesh:${assetId}:mesh:0:primitive:0`;
+}
 
 function levelCollider(
   instance: LevelInstance,

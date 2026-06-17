@@ -111,6 +111,7 @@ export default defineApertureConfig({
   physics: {
     backend: "rapier",
     gravity: [0, -20, 0],
+    colliderGeometry: { kind: "assets" },
   },
   render: {
     clearColor: [0.36, 0.39, 0.46, 1],

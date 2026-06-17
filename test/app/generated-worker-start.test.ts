@@ -14,9 +14,15 @@ import {
   resource,
 } from "@aperture-engine/app/systems";
 import { startGeneratedSimulationWorker } from "@aperture-engine/app/worker";
-import { Pickable, createPickable } from "@aperture-engine/render";
+import {
+  Pickable,
+  createPickable,
+  createPlaneMeshAsset,
+} from "@aperture-engine/render";
 import {
   LocalTransform,
+  assetHandleKey,
+  createMeshHandle,
   serializeEntityRef,
   type Entity,
 } from "@aperture-engine/simulation";
@@ -111,6 +117,33 @@ class GeneratedWorkerParticleSummaryProofSystem extends GeneratedWorkerParticleS
   }
 }
 
+const GeneratedWorkerConfigAssetColliderProofBase = createSystem();
+
+class GeneratedWorkerConfigAssetColliderProofSystem extends GeneratedWorkerConfigAssetColliderProofBase {
+  override init(): void {
+    const terrain = createMeshHandle("config-level");
+
+    this.assetsRegistry.register(terrain);
+    this.assetsRegistry.markReady(
+      terrain,
+      createPlaneMeshAsset({ width: 4, height: 4 }),
+    );
+    this.spawn.physics({
+      key: "physics.config.asset-ground",
+      name: "Config Asset Collider Ground",
+      physics: {
+        rigidBody: { type: PhysicsRigidBodyType.Static },
+        collider: {
+          shape: {
+            kind: "trimesh",
+            meshId: assetHandleKey(terrain),
+          },
+        },
+      },
+    });
+  }
+}
+
 describe("generated simulation worker start messages", () => {
   it("unwraps start options nested by createSimulationWorker", async () => {
     const port = new TestGeneratedWorkerPort();
@@ -155,6 +188,60 @@ describe("generated simulation worker start messages", () => {
     expect(port.posted.filter(isSimulationWorkerSnapshotMessage)).toHaveLength(
       1,
     );
+  });
+
+  it("threads asset-backed collider geometry from generated physics config", async () => {
+    const port = new TestGeneratedWorkerPort();
+
+    startGeneratedSimulationWorker({
+      config: defineApertureConfig({
+        mode: "headless",
+        systems: [],
+        physics: {
+          backend: "rapier",
+          gravity: [0, 0, 0],
+          colliderGeometry: { kind: "assets" },
+        },
+      }),
+      systems: [{ default: GeneratedWorkerConfigAssetColliderProofSystem }],
+      port,
+    });
+    port.dispatch({
+      type: SIMULATION_WORKER_PROTOCOL.start,
+      options: {
+        fixedStep: { fixedDelta: 1 / 60, maxSubsteps: 2 },
+        stop: true,
+      },
+    });
+
+    await port.nextPostedMessage(isSimulationWorkerSnapshotMessage);
+    port.dispatch(
+      createApertureDevtoolsRequest({
+        requestId: "config-asset-collider-step",
+        tool: "ecs_step",
+        payload: { delta: 1 / 60 },
+      }),
+    );
+    const step = await port.nextPostedMessage(
+      devtoolsResponseWithId("config-asset-collider-step"),
+    );
+
+    expect(step).toMatchObject({
+      ok: true,
+      result: {
+        physics: {
+          backend: {
+            kind: "rapier",
+            execution: "simulation-worker",
+          },
+          sync: {
+            bodyCount: 1,
+            colliderCount: 1,
+            unsupportedFeatureCount: 0,
+          },
+        },
+      },
+    });
   });
 
   it("publishes particle burst queue summaries in generated-worker snapshots", async () => {

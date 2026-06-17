@@ -236,6 +236,43 @@ describe("validateApertureConfig", () => {
     });
   });
 
+  describe("physics", () => {
+    it("accepts generated app asset-backed collider geometry config", () => {
+      expect(() =>
+        validateApertureConfig({
+          mode: "headless",
+          physics: {
+            backend: "rapier",
+            gravity: [0, -20, 0],
+            colliderGeometry: { kind: "assets" },
+          },
+        }),
+      ).not.toThrow();
+      expect(() =>
+        validateApertureConfig({
+          mode: "headless",
+          physics: {
+            colliderGeometry: { kind: "none" },
+          },
+        }),
+      ).not.toThrow();
+    });
+
+    it("rejects unsupported generated app collider geometry config", () => {
+      const error = configError(() =>
+        validateApertureConfig({
+          mode: "headless",
+          physics: {
+            colliderGeometry: { kind: "provider" },
+          } as unknown as ApertureConfig["physics"],
+        }),
+      );
+
+      expect(error.code).toBe("aperture.config.invalidPhysics");
+      expect(error.message).toContain("colliderGeometry");
+    });
+  });
+
   describe("systems and asset decoders", () => {
     it("accepts non-empty system globs", () => {
       expect(() =>

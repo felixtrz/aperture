@@ -393,35 +393,37 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 19:01 UTC</dd>
+            <dd>2026-06-17 19:07 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: single-cascade directional shadows now scene-fit
-              from extracted casters/receivers even when a primary render camera
-              exists, so off-camera platforms can continue casting shadows after
-              main-view frustum culling removes their visible mesh draw.
-              Cascaded shadows keep the camera-frustum fitting path. Focused
-              WebGPU tests cover the explicit no-frustum-fit branch and an
-              off-camera caster packet that is absent from
-              <code>meshDraws</code> but retained in
-              <code>shadowCasterDraws</code>. Managed Aperture proof rechecked
-              racing (<code>meshDraws:36</code>,
-              <code>shadowCasterDraws:364</code>), Shadow Lab
-              (<code>meshDraws:25</code>, <code>shadowCasterDraws:364</code>),
-              and Starter Kit FPS (<code>views:2</code>,
-              <code>meshDraws:21</code>, <code>shadowCasterDraws:44</code>) with
-              zero diagnostics and nonblack screenshots. Prior update: Starter
-              Kit FPS short button taps now stay visible to the worker frame
-              loop. HUD keyboard and instant pointer releases are delayed below
-              the fastest source weapon cooldown, and FPS jump/shoot press
-              commands feed the existing gameplay buffers directly. Live
-              Aperture proof showed left-click shooting incrementing
-              <code>shotsFired</code>, yaw-relative <code>KeyW</code> movement
-              after a mouse-look rotation, and a quick Space tap producing a
-              positive jump state. After clearing a stale unmanaged Vite
-              listener on port <code>5173</code>, a clean
+              Latest update: Starter Kit FPS level collision now uses
+              asset-backed triangle mesh colliders sourced from the imported
+              platform and wall GLB primitives instead of hand-authored box
+              approximations. Generated app config can opt into
+              <code>physics.colliderGeometry:{kind:"assets"}</code>, and the
+              mesh spatial adapter now decodes byte-backed GLB vertex streams
+              into numeric CPU geometry before Rapier cooks static trimesh
+              shapes. Managed Aperture proof reported <code>18</code> bodies,
+              <code>18</code> colliders, zero unsupported physics features,
+              grounded player state, sane debug bounds, and a clean
+              <code>smoke:full-clear</code> run with <code>shotsFired:8</code>,
+              <code>hits:16</code>, <code>destroyedEnemies:4</code>, and
+              <code>gameStatus:"cleared"</code>. Prior update: single-cascade
+              directional shadows now scene-fit from extracted casters/receivers
+              even when a primary render camera exists, so off-camera platforms
+              can continue casting shadows after main-view frustum culling
+              removes their visible mesh draw. Prior update: Starter Kit FPS
+              short button taps now stay visible to the worker frame loop. HUD
+              keyboard and instant pointer releases are delayed below the
+              fastest source weapon cooldown, and FPS jump/shoot press commands
+              feed the existing gameplay buffers directly. Live Aperture proof
+              showed left-click shooting incrementing <code>shotsFired</code>,
+              yaw-relative <code>KeyW</code> movement after a mouse-look
+              rotation, and a quick Space tap producing a positive jump state.
+              After clearing a stale unmanaged Vite listener on port
+              <code>5173</code>, a clean
               <code>pnpm --dir fps run smoke:full-clear</code> run reached
               <code>shotsFired:8</code>, <code>hits:16</code>,
               <code>destroyedEnemies:4</code>, and
@@ -2690,6 +2692,20 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Replaced Starter Kit FPS
+                level box-collider approximations with asset-backed triangle
+                mesh colliders sourced from the imported platform and wall GLB
+                primitives. Generated app config now forwards
+                <code>physics.colliderGeometry:{kind:"assets"}</code>, and the
+                mesh spatial adapter decodes byte-backed GLB vertex streams
+                before Rapier cooks static trimesh colliders. Managed Aperture
+                proof reported <code>18</code> bodies, <code>18</code>
+                colliders, zero unsupported physics features, grounded player
+                state, sane debug bounds, and a full-clear smoke result of
+                <code>shotsFired:8</code>, <code>hits:16</code>, and
+                <code>gameStatus:"cleared"</code>.
+              </li>
               <li>
                 <span class="badge green">render</span> Fixed single-cascade
                 directional shadow fitting so off-camera platforms can continue
@@ -6513,18 +6529,18 @@
           <div class="timeline-item">
             <div class="task-id">FPS-PORT</div>
             <div>
-              <strong
-                >Generated-input full-clear smoke route is hardened.</strong
-              >
+              <strong>Source mesh level colliders are live in FPS.</strong>
               <span>
-                <code>pnpm --dir fps run smoke:full-clear</code> now drives the
-                Starter Kit FPS route through a fresh managed Aperture MCP
-                session, including platform movement, shooting, grounded jump
-                landings, and long double-jump transitions. The latest proof
-                ended at <code>gameStatus:"cleared"</code> with
-                <code>shotsFired:9</code>, <code>hits:16</code>,
-                <code>destroyedEnemies:4</code>, then tore the owned session
-                down after saving
+                Starter Kit FPS now opts into asset-backed physics collider
+                geometry and cooks static level triangle meshes from the
+                imported platform/wall GLB primitives. Live Aperture physics
+                proof reported <code>18</code> bodies, <code>18</code>
+                colliders, zero unsupported features, grounded player state, and
+                sane collider debug bounds. The latest
+                <code>pnpm --dir fps run smoke:full-clear</code> proof ended at
+                <code>gameStatus:"cleared"</code> with
+                <code>shotsFired:8</code>, <code>hits:16</code>, and
+                <code>destroyedEnemies:4</code>, saving
                 <code>fps/.aperture/runtime/fps-full-clear-smoke.png</code>.
               </span>
             </div>

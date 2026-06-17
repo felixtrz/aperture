@@ -260,6 +260,9 @@ function resolveConfigPhysicsOption(
   return {
     ...(physics.backend === undefined ? {} : { backend: physics.backend }),
     ...(physics.gravity === undefined ? {} : { gravity: physics.gravity }),
+    ...(physics.colliderGeometry === undefined
+      ? {}
+      : { colliderGeometry: physics.colliderGeometry }),
   };
 }
 

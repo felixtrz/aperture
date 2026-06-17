@@ -10,6 +10,7 @@ import {
   FPS_WEAPON_VIEW_POSITION,
   FPS_WEAPON_LAYER_MASK,
   FPS_WORLD_LAYER_MASK,
+  LEVEL_COLLIDERS,
   PLAYER_BODY_COLLIDER_OFFSET,
   PLAYER_BODY_EYE_OFFSET,
   PLAYER_BODY_HALF_HEIGHT,
@@ -69,6 +70,7 @@ import {
   ENEMY_MUZZLE_OFFSETS,
   WEAPONS,
   platformLargeGrassDecorationKey,
+  sourceLevelColliderMeshId,
 } from "../../fps/src/lib/fps-data.js";
 import type { FpsInputCommand } from "../../fps/src/lib/fps-data.js";
 
@@ -241,6 +243,38 @@ describe("Starter Kit FPS source data", () => {
     expect(PLATFORM_LARGE_GRASS_DECORATIONS[2]).toMatchObject({
       assetId: "grass",
       yawDegrees: -38.5,
+    });
+  });
+
+  it("uses source GLB mesh primitives for static level colliders", () => {
+    expect(LEVEL_COLLIDERS).toHaveLength(13);
+    expect(sourceLevelColliderMeshId("platform")).toBe(
+      "mesh:platform:mesh:0:primitive:0",
+    );
+    expect(new Set(LEVEL_COLLIDERS.map((collider) => collider.meshId))).toEqual(
+      new Set([
+        "mesh:platform-large-grass:mesh:0:primitive:0",
+        "mesh:platform:mesh:0:primitive:0",
+        "mesh:wall-low:mesh:0:primitive:0",
+        "mesh:wall-high:mesh:0:primitive:0",
+      ]),
+    );
+
+    expect(
+      LEVEL_COLLIDERS.find(
+        (collider) => collider.key === "level.platform.0.collider",
+      ),
+    ).toMatchObject({
+      position: [-2.5, 0, 6.5],
+      meshId: "mesh:platform:mesh:0:primitive:0",
+    });
+    expect(
+      LEVEL_COLLIDERS.find(
+        (collider) => collider.key === "level.platform-large-grass.0.collider",
+      ),
+    ).toMatchObject({
+      position: [0, -0.5, 0],
+      meshId: "mesh:platform-large-grass:mesh:0:primitive:0",
     });
   });
 });

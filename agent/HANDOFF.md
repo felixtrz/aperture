@@ -1,3 +1,62 @@
+# Handoff - FPS Source Mesh Level Colliders
+
+**Updated:** 2026-06-17 12:07 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Replaced Starter Kit FPS level box-collider approximations with source-facing
+  asset-backed triangle mesh colliders:
+  - FPS level collider data now references the imported GLB primitive mesh ids
+    for `platform`, `platform-large-grass`, `wall-low`, and `wall-high`.
+  - Generated app config validation now accepts
+    `physics.colliderGeometry:{kind:"assets"}` and forwards it into
+    `createApertureApp(...)`.
+  - The render mesh spatial adapter now decodes byte-backed GLB vertex streams
+    into typed numeric views before CPU spatial/physics geometry conversion, so
+    Rapier cooks real static trimesh shapes instead of garbage byte values.
+- Live Aperture CLI proof:
+  - Fresh FPS dev session at `http://127.0.0.1:5173/`.
+  - `physics_summary` reported Rapier simulation-worker physics with
+    `bodyCount:18`, `colliderCount:18`, and `unsupportedFeatureCount:0`.
+  - `browser_status` reported `grounded:true` at the source start state.
+  - `physics_debug_summary {"colliderWireframes":true}` reported finite
+    collider lines with bounds around the actual level
+    `min:[-10.237,-0.5,-9.111]`, `max:[16.23,5.045,9.727]`.
+  - Clean-session `pnpm --dir fps run smoke:full-clear` passed with
+    `shotsFired:8`, `hits:16`, `destroyedEnemies:4`, `enemiesRemaining:0`, and
+    `gameStatus:"cleared"`.
+
+## Validation
+
+- `pnpm exec vitest run test/app/physics-collider-geometry.test.ts test/app/spatial-queries.test.ts test/app/config-validation.test.ts test/app/generated-worker-start.test.ts test/app/fps-data.test.ts test/app/fps-setup.test.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --dir fps run build`
+- `pnpm --dir fps run smoke:full-clear`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+
+## Known Issues
+
+- Starter Kit FPS is intentionally still running at `http://127.0.0.1:5173/` for
+  user testing.
+- Pre-existing untracked screenshot/parity artifacts remain outside the commit.
+
+## Recommended Next Task
+
+Continue the user-directed FPS parity stream with another visible source-facing
+slice, or return to the backlog's `task-3097` PMREM GGX/VNDF prefilter slice
+when the FPS/shadow interruptions are complete.
+
+---
+
 # Handoff - Single-Cascade Shadow Scene Fit
 
 **Updated:** 2026-06-17 12:01 PDT

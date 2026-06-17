@@ -373,6 +373,12 @@ export interface AperturePhysicsAppConfig {
   readonly backend?: "rapier";
   /** World gravity vector (m/s²). Defaults to the backend default. */
   readonly gravity?: readonly [number, number, number];
+  /**
+   * Worker-safe collider geometry provider mode. Use `assets` to cook
+   * mesh-backed `convexHull`/`trimesh` colliders from registered render mesh
+   * assets in generated apps.
+   */
+  readonly colliderGeometry?: { readonly kind: "none" | "assets" };
 }
 
 export interface ApertureAssetDecoderConfig {
