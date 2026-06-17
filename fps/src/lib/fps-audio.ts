@@ -9,6 +9,8 @@ export interface SourceFootstepAudibleInput {
   readonly threshold?: number;
 }
 
+export type SourceEnemyDamageAudioEvent = "enemy-hurt" | "enemy-destroy";
+
 export function dbToLinearGain(db: number): number {
   return 10 ** (db / 20);
 }
@@ -22,4 +24,16 @@ export function sourceFootstepAudible(
     (Math.abs(input.velocityX) > threshold ||
       Math.abs(input.velocityZ) > threshold)
   );
+}
+
+export function sourceEnemyDamageAudioEvents(input: {
+  readonly currentHealth: number;
+  readonly damage: number;
+}): readonly SourceEnemyDamageAudioEvent[] {
+  if (input.currentHealth <= 0) return [];
+
+  const remaining = input.currentHealth - input.damage;
+  return remaining <= 0
+    ? ["enemy-hurt", "enemy-destroy"]
+    : ["enemy-hurt"];
 }

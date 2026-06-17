@@ -3,6 +3,7 @@ import {
   SOURCE_FOOTSTEP_GAIN,
   SOURCE_FOOTSTEP_VOLUME_DB,
   dbToLinearGain,
+  sourceEnemyDamageAudioEvents,
   sourceFootstepAudible,
 } from "../../fps/src/lib/fps-audio.js";
 
@@ -42,5 +43,37 @@ describe("Starter Kit FPS audio", () => {
         velocityZ: 0,
       }),
     ).toBe(false);
+  });
+
+  it("plays source enemy hurt before destroy on lethal damage", () => {
+    expect(
+      sourceEnemyDamageAudioEvents({
+        currentHealth: 100,
+        damage: 25,
+      }),
+    ).toEqual(["enemy-hurt"]);
+
+    expect(
+      sourceEnemyDamageAudioEvents({
+        currentHealth: 25,
+        damage: 25,
+      }),
+    ).toEqual(["enemy-hurt", "enemy-destroy"]);
+
+    expect(
+      sourceEnemyDamageAudioEvents({
+        currentHealth: 10,
+        damage: 25,
+      }),
+    ).toEqual(["enemy-hurt", "enemy-destroy"]);
+  });
+
+  it("does not emit enemy damage audio for already destroyed enemies", () => {
+    expect(
+      sourceEnemyDamageAudioEvents({
+        currentHealth: 0,
+        damage: 25,
+      }),
+    ).toEqual([]);
   });
 });

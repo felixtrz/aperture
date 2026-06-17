@@ -19,6 +19,7 @@ import { Collider } from "@aperture-engine/physics";
 import { Sprite } from "@aperture-engine/render";
 import {
   SOURCE_FOOTSTEP_GAIN,
+  sourceEnemyDamageAudioEvents,
   sourceFootstepAudible,
 } from "../lib/fps-audio.js";
 import {
@@ -502,7 +503,12 @@ export default class PlayerSystem extends createSystem({
       if (remaining === 0 && current > 0) {
         destroyedEnemies.push(hit.key);
       }
-      this.#playOneShot(remaining === 0 ? "enemy-destroy" : "enemy-hurt", 0.4);
+      for (const clipId of sourceEnemyDamageAudioEvents({
+        currentHealth: current,
+        damage: weapon.damage,
+      })) {
+        this.#playOneShot(clipId, 0.4);
+      }
     }
 
     return {
