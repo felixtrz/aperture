@@ -1,40 +1,85 @@
-# Handoff - Starter Kit FPS Source-Like HUD
+# Handoff - Starter Kit FPS Impact Depth
 
-**Updated:** 2026-06-17 03:00 PDT
+**Updated:** 2026-06-17 03:17 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Aligned the visible FPS browser HUD with upstream `scenes/main.tscn` and
-  `scripts/hud.gd`: only the crosshair image and large health percentage remain
-  visible.
-- Removed the port-only weapon counter, enemy counter, clear banner, hit flash,
-  damage flash, and enemy-destroyed overlay from the DOM/CSS/browser HUD layer.
-- Kept generated gameplay signals/resources intact for proof and future tooling;
-  this is only a visible HUD parity change, not a simulation-state removal.
+- Added first-class sprite depth-mode authoring so ECS-authored sprites can opt
+  into source-style no-depth-test rendering without app-local WebGPU plumbing.
+- New render API/data path:
+  - `SpriteDepthMode.Test` remains the default and preserves existing sprite
+    behavior.
+  - `SpriteDepthMode.Disabled` validates through authoring, extracts into quad
+    batches, survives packed snapshot encoding, and specializes WebGPU sprite
+    pipelines with `depthCompare: "always"` while keeping depth writes disabled.
+  - App/entity summaries now expose `renderSprite.depthMode` so Aperture tools
+    can prove authored depth behavior.
+- Aligned FPS `effect.impact-hit` with upstream
+  `references/Starter-Kit-FPS/objects/impact.tscn`, where the source
+  `AnimatedSprite3D` sets `no_depth_test = true`.
 - Aperture proof:
-  - Fresh managed FPS session at `http://127.0.0.1:5173/`, WebGPU healthy.
-  - `render_get_frame_report {"summaryOnly":true}` reported one view, 16 mesh
-    draws, 29 total draw calls, and `diagnostics:0`.
-  - `browser_screenshot` wrote `/tmp/fps-source-like-hud.png`; visual inspection
-    showed only crosshair plus bottom-left `100%` health over the WebGPU scene.
-  - `browser_console_logs {"lines":20}` showed only Vite reconnect/debug lines
-    plus the known deprecated-parameter warning.
+  - Reused the managed FPS session at `http://127.0.0.1:5173/`; WebGPU
+    readiness returned `webgpuOk:true`.
+  - `ecs_find_entities {"key":"effect.impact-hit"}` reported
+    `renderSprite.depthMode:"disabled"`.
+  - `ecs_find_entities {"key":"effect.muzzle-burst"}` reported the default
+    `renderSprite.depthMode:"test"`.
+  - `render_get_frame_report {"summaryOnly":true}` reported frame `357`,
+    one view, 16 mesh draws, 29 total draw calls, and `diagnostics:0`.
 - Validation:
-  - `git diff --check -- fps/index.html fps/src/hud.ts`
-  - `pnpm exec vitest run test/app/fps-controls.test.ts`
+  - `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/snapshot-packed-encoding.test.ts test/webgpu/sprite-pipeline.test.ts test/app/developer-api.test.ts`
+  - `pnpm --filter @aperture-engine/render run typecheck`
+  - `pnpm --filter @aperture-engine/webgpu run typecheck`
+  - `pnpm --filter @aperture-engine/app run typecheck`
+  - `pnpm --filter @aperture-engine/render run build`
+  - `pnpm --filter @aperture-engine/webgpu run build`
+  - `pnpm --filter @aperture-engine/app run build`
+  - `pnpm --filter @aperture-engine/cli run typecheck`
   - `pnpm --dir fps run typecheck`
   - `pnpm --dir fps run build`
   - `pnpm --dir racing run typecheck`
   - `pnpm --dir racing run build`
   - `pnpm --dir shadow-lab run typecheck`
   - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
 - Committed implementation:
-  - `f293ecdf` — `Align FPS HUD with source`
+  - `81ab390e` — `Add sprite depth mode for FPS impacts`
 
 ## Previous Completed FPS/Tooling Slices
+
+- Source-like HUD:
+  - Aligned the visible FPS browser HUD with upstream `scenes/main.tscn` and
+    `scripts/hud.gd`: only the crosshair image and large health percentage
+    remain visible.
+  - Removed the port-only weapon counter, enemy counter, clear banner, hit
+    flash, damage flash, and enemy-destroyed overlay from the DOM/CSS/browser
+    HUD layer.
+  - Kept generated gameplay signals/resources intact for proof and future
+    tooling; this is only a visible HUD parity change, not a simulation-state
+    removal.
+  - Aperture proof:
+    - Fresh managed FPS session at `http://127.0.0.1:5173/`, WebGPU healthy.
+    - `render_get_frame_report {"summaryOnly":true}` reported one view, 16 mesh
+      draws, 29 total draw calls, and `diagnostics:0`.
+    - `browser_screenshot` wrote `/tmp/fps-source-like-hud.png`; visual
+      inspection showed only crosshair plus bottom-left `100%` health over the
+      WebGPU scene.
+    - `browser_console_logs {"lines":20}` showed only Vite reconnect/debug lines
+      plus the known deprecated-parameter warning.
+  - Validation:
+    - `git diff --check -- fps/index.html fps/src/hud.ts`
+    - `pnpm exec vitest run test/app/fps-controls.test.ts`
+    - `pnpm --dir fps run typecheck`
+    - `pnpm --dir fps run build`
+    - `pnpm --dir racing run typecheck`
+    - `pnpm --dir racing run build`
+    - `pnpm --dir shadow-lab run typecheck`
+    - `pnpm --dir shadow-lab run build`
+  - Committed implementation:
+    - `f293ecdf` — `Align FPS HUD with source`
 
 - Enemy hitbox and look target:
   - Aligned enemy hitboxes with upstream `objects/enemy.tscn`: the source

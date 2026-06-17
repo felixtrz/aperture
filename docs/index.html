@@ -393,19 +393,27 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 10:00 UTC</dd>
+            <dd>2026-06-17 10:17 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the Starter Kit FPS port now has a source-like
-              browser HUD: only the crosshair and large health percentage remain
-              visible, matching upstream <code>scenes/main.tscn</code> /
-              <code>scripts/hud.gd</code>. Port-only weapon/enemy counters,
-              clear banner, and flash overlays were removed while generated
-              gameplay signals remain available for Aperture proof. Aperture
-              proof reported WebGPU healthy, frame diagnostics
-              <code>0</code>, and screenshot
+              Latest update: the Starter Kit FPS port now aligns impact sprite
+              depth behavior with upstream <code>objects/impact.tscn</code>.
+              Aperture sprites gained an ECS-authored <code>SpriteDepthMode</code>
+              path through authoring, extraction, packed snapshots, app
+              summaries, and WebGPU sprite pipeline specialization. The FPS
+              impact sprite now reports <code>renderSprite.depthMode:"disabled"</code>,
+              while the muzzle flash stays on the default
+              <code>"test"</code> path; managed WebGPU proof reported
+              diagnostics <code>0</code>. Prior update: the Starter Kit FPS
+              port now has a source-like browser HUD: only the crosshair and
+              large health percentage remain visible, matching upstream
+              <code>scenes/main.tscn</code> / <code>scripts/hud.gd</code>.
+              Port-only weapon/enemy counters, clear banner, and flash overlays
+              were removed while generated gameplay signals remain available for
+              Aperture proof. Aperture proof reported WebGPU healthy, frame
+              diagnostics <code>0</code>, and screenshot
               <code>/tmp/fps-source-like-hud.png</code> showing the simplified
               HUD. Prior update: the Starter Kit FPS port now aligns enemy
               hitboxes and look targets with upstream. Enemy physics hitboxes
@@ -1706,7 +1714,7 @@
             <div class="bar"><span style="width: 98%"></span></div>
             <p>
               ECS state produces serializable render snapshots with draw, view,
-              light, environment, shadow request, bounds, and diagnostic
+              sprite/quad, light, environment, shadow request, bounds, and diagnostic
               packets, now proven across module Worker structured-clone and
               opt-in SharedArrayBuffer boundaries. Entity versions now increment
               on component writes, and cached extraction can reuse unchanged
@@ -2241,6 +2249,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Added ECS-authored sprite
+                depth modes and aligned FPS impact sprites with upstream
+                <code>objects/impact.tscn</code> <code>no_depth_test</code>.
+                Aperture proof reported <code>effect.impact-hit</code>
+                <code>renderSprite.depthMode:"disabled"</code>, the default
+                muzzle sprite still reports <code>"test"</code>, and the frame
+                report stayed at zero diagnostics.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned the visible FPS
                 browser HUD with upstream <code>scenes/main.tscn</code> /
@@ -5318,9 +5335,9 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Continue Starter Kit FPS
-                fidelity with a visible slice such as enemy attack/projectile
-                polish, remaining impact depth behavior, player detail parity,
-                or a reusable generated-input full-clear smoke script.
+                fidelity with a visible slice such as impact animation/timing
+                parity, enemy attack/projectile polish, player detail parity, or
+                a reusable generated-input full-clear smoke script.
               </li>
               <li>
                 <span class="badge amber">next</span> Continue remaining M10

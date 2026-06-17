@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## FPS-PORT — Impact sprite depth mode
+
+Completed: 2026-06-17 03:17 PDT
+Commit: `81ab390e`
+
+### Summary
+
+- Added `SpriteDepthMode` to Aperture sprite authoring, extraction, packed
+  snapshot encoding, app summaries, and the WebGPU sprite pipeline.
+- Preserved `test` as the default sprite depth behavior and added a
+  `disabled` mode that uses no-depth-write, depth-compare-always sprite
+  pipelines.
+- Aligned FPS `effect.impact-hit` with upstream
+  `objects/impact.tscn` `no_depth_test = true` while keeping
+  `effect.muzzle-burst` on the default depth-tested path.
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/snapshot-packed-encoding.test.ts test/webgpu/sprite-pipeline.test.ts test/app/developer-api.test.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture MCP proof reported WebGPU healthy, `effect.impact-hit`
+  `renderSprite.depthMode:"disabled"`, `effect.muzzle-burst`
+  `renderSprite.depthMode:"test"`, and render frame diagnostics `0`.
+
 ## FPS-PORT — Source-like HUD
 
 Completed: 2026-06-17 03:00 PDT

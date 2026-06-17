@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "f293ecdf",
+  "lastCommit": "81ab390e",
   "activePid": null,
-  "notes": "Aligned FPS HUD with source crosshair/health-only UI; validation and Aperture proof passed.",
-  "lastRunFinishedAt": "2026-06-17T10:02:10Z"
+  "notes": "Added sprite depth mode and aligned FPS impact no-depth-test behavior; validation and Aperture proof passed.",
+  "lastRunFinishedAt": "2026-06-17T10:17:00Z"
 }
