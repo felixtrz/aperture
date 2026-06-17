@@ -82,10 +82,12 @@ export default defineApertureConfig({
           negativeY: ["KeyS", "ArrowDown"],
           positiveY: ["KeyW", "ArrowUp"],
         }),
-        input.gamepadStick("left"),
+        input.gamepadAxis("left", "x"),
+        input.gamepadAxis("left", "y", { scale: -1 }),
       ]),
       look: input.axis2d([
-        input.gamepadStick("right", { deadzone: 0.12 }),
+        input.gamepadAxis("right", "x", { deadzone: 0.12 }),
+        input.gamepadAxis("right", "y", { deadzone: 0.12, scale: -1 }),
         input.keyboard2d({
           negativeX: ["KeyJ"],
           positiveX: ["KeyL"],

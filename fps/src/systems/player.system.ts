@@ -52,8 +52,10 @@ import {
   snapToGroundDistanceForMove,
   shouldConsumeBufferedJump,
   sourceChildPositionFromLook,
+  sourceEnemyLookTarget,
   sourceEnemyAttackers,
   sourceGroundedAfterMove,
+  sourceShotDirection,
   weaponViewmodelOffsetTarget,
   type SourceEnemyAttackCandidate,
 } from "../lib/fps-controls.js";
@@ -73,7 +75,6 @@ const LOOK_SPEED = Math.PI;
 const GAMEPAD_LOOK_SPEED = 2.5;
 const ENEMY_HOVER_AMPLITUDE = 0.2;
 const ENEMY_HOVER_RATE = 5;
-const ENEMY_LOOK_TARGET_Y_OFFSET = 0.5;
 const ENEMY_ATTACK_INTERVAL = 0.25;
 const ENEMY_ATTACK_DISTANCE = 5;
 const ENEMY_ATTACK_DAMAGE = 5;
@@ -469,7 +470,7 @@ export default class PlayerSystem extends createSystem({
     const impacts: Vec3[] = [];
 
     for (let i = 0; i < weapon.shotCount; i += 1) {
-      const direction = spreadDirection(yaw, pitch, weapon.spread);
+      const direction = spreadDirection(yaw, pitch, weapon);
       const rayHits = this.physics.raycastAll(
         {
           origin: position,
@@ -591,12 +592,12 @@ export default class PlayerSystem extends createSystem({
   #enemyHasLineOfSight(
     enemyKey: string,
     enemyPosition: Vec3,
-    playerPosition: Vec3,
+    playerTargetPosition: Vec3,
   ): boolean {
     const playerRef = this.#entityRefForKey(PLAYER_BODY_KEY);
     if (playerRef === null) return false;
 
-    const toPlayer = subtractVec3(playerPosition, enemyPosition);
+    const toPlayer = subtractVec3(playerTargetPosition, enemyPosition);
     const maxDistance = Math.hypot(toPlayer[0], toPlayer[1], toPlayer[2]);
     if (maxDistance <= Number.EPSILON) return true;
 
@@ -767,6 +768,8 @@ export default class PlayerSystem extends createSystem({
     playerPosition: Vec3,
     enemyHealth: Record<string, number>,
   ): void {
+    const target = sourceEnemyLookTarget(playerPosition);
+
     for (const enemy of ENEMIES) {
       const alive = (enemyHealth[enemy.key] ?? 0) > 0;
       const position = alive
@@ -774,8 +777,8 @@ export default class PlayerSystem extends createSystem({
         : ([enemy.position[0], -100, enemy.position[2]] as Vec3);
       const look = enemyLookAngles({
         enemy: position,
-        player: playerPosition,
-        targetYOffset: ENEMY_LOOK_TARGET_Y_OFFSET,
+        player: target,
+        targetYOffset: 0,
       });
 
       for (const key of [enemy.key, `${enemy.key}.hitbox`]) {
@@ -841,10 +844,11 @@ export default class PlayerSystem extends createSystem({
     const enemyIndex = ENEMIES.findIndex((enemy) => enemy.key === enemyKey);
     if (enemyIndex < 0) return;
 
+    const target = sourceEnemyLookTarget(playerPosition);
     const look = enemyLookAngles({
       enemy: enemyPosition,
-      player: playerPosition,
-      targetYOffset: ENEMY_LOOK_TARGET_Y_OFFSET,
+      player: target,
+      targetYOffset: 0,
     });
     for (let i = 0; i < ENEMY_MUZZLE_OFFSETS.length; i += 1) {
       const slot = enemyMuzzleSlotIndex(enemyIndex, i);
@@ -1047,14 +1051,15 @@ export default class PlayerSystem extends createSystem({
     position: Vec3,
     enemyHealth: Record<string, number>,
   ): Array<{ readonly key: string; readonly position: Vec3 }> {
+    const target = sourceEnemyLookTarget(position);
     const candidates: SourceEnemyAttackCandidate[] = [];
     for (const enemy of ENEMIES) {
       const enemyPos = enemyPosition(enemy.position, this.#enemyTime);
       const alive = (enemyHealth[enemy.key] ?? 0) > 0;
       const inRange =
-        alive && distance(enemyPos, position) < ENEMY_ATTACK_DISTANCE;
+        alive && distance(enemyPos, target) < ENEMY_ATTACK_DISTANCE;
       const hasLineOfSight =
-        inRange && this.#enemyHasLineOfSight(enemy.key, enemyPos, position);
+        inRange && this.#enemyHasLineOfSight(enemy.key, enemyPos, target);
       candidates.push({
         key: enemy.key,
         position: enemyPos,
@@ -1064,7 +1069,7 @@ export default class PlayerSystem extends createSystem({
     }
 
     return sourceEnemyAttackers({
-      playerPosition: position,
+      playerPosition: target,
       attackDistance: ENEMY_ATTACK_DISTANCE,
       enemies: candidates,
     }).map((attacker) => ({
@@ -1224,18 +1229,14 @@ function subtractVec3(a: Vec3, b: Vec3): Vec3 {
   return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 }
 
-function spreadDirection(yaw: number, pitch: number, spread: number): Vec3 {
-  const forward = cameraForwardFromYawPitch(yaw, pitch);
-  const right = horizontalRightFromYaw(yaw);
-  const up: Vec3 = [0, 1, 0];
-  const spreadScale = spread * 0.035;
-  const rx = (Math.random() * 2 - 1) * spreadScale;
-  const ry = (Math.random() * 2 - 1) * spreadScale;
-  return normalize3([
-    forward[0] + right[0] * rx + up[0] * ry,
-    forward[1] + right[1] * rx + up[1] * ry,
-    forward[2] + right[2] * rx + up[2] * ry,
-  ]);
+function spreadDirection(yaw: number, pitch: number, weapon: WeaponSpec): Vec3 {
+  return sourceShotDirection({
+    yaw,
+    pitch,
+    maxDistance: weapon.maxDistance,
+    spreadOffsetX: randomBetween(-weapon.spread, weapon.spread),
+    spreadOffsetY: randomBetween(-weapon.spread, weapon.spread),
+  });
 }
 
 function weaponMuzzlePosition(
@@ -1293,12 +1294,6 @@ function nearestPhysicsHit(
     }
   }
   return nearest;
-}
-
-function normalize3(value: Vec3): Vec3 {
-  const length = Math.hypot(value[0], value[1], value[2]);
-  if (length <= Number.EPSILON) return [0, 0, -1];
-  return [value[0] / length, value[1] / length, value[2] / length];
 }
 
 function randomJumpSound(): string {

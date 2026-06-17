@@ -31,6 +31,14 @@ export interface EnemyLookAngles {
   readonly yaw: number;
 }
 
+export interface SourceShotDirectionInput {
+  readonly yaw: number;
+  readonly pitch: number;
+  readonly maxDistance: number;
+  readonly spreadOffsetX: number;
+  readonly spreadOffsetY: number;
+}
+
 export interface SourceEnemyAttackCandidate {
   readonly key: string;
   readonly position: Vec3;
@@ -112,6 +120,15 @@ export function cameraRelativeMovementDelta(
   ];
 }
 
+export function sourceShotDirection(input: SourceShotDirectionInput): Vec3 {
+  return normalize3(
+    rotateVec3ByQuat(
+      [input.spreadOffsetX, input.spreadOffsetY, -input.maxDistance],
+      quatFromEulerYXZ(input.pitch, input.yaw, 0),
+    ),
+  );
+}
+
 export function weaponViewmodelOffsetTarget(
   input: WeaponViewmodelOffsetInput,
 ): Vec3 {
@@ -134,6 +151,14 @@ export function enemyLookAngles(input: EnemyLookAnglesInput): EnemyLookAngles {
         ? verticalLookPitch(dy)
         : -Math.atan2(dy, horizontalDistance),
   };
+}
+
+export function sourceEnemyLookTarget(playerEyePosition: Vec3): Vec3 {
+  return [
+    playerEyePosition[0],
+    playerEyePosition[1] - 0.5,
+    playerEyePosition[2],
+  ];
 }
 
 export function sourceChildPositionFromLook(
@@ -199,4 +224,10 @@ function verticalLookPitch(dy: number): number {
 
 function distance3(a: Vec3, b: Vec3): number {
   return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+}
+
+function normalize3(value: Vec3): Vec3 {
+  const length = Math.hypot(value[0], value[1], value[2]);
+  if (length <= Number.EPSILON) return [0, 0, -1];
+  return [value[0] / length, value[1] / length, value[2] / length];
 }

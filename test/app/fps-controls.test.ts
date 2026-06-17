@@ -17,7 +17,9 @@ import {
   shouldConsumeBufferedJump,
   sourceChildPositionFromLook,
   sourceEnemyAttackers,
+  sourceEnemyLookTarget,
   sourceGroundedAfterMove,
+  sourceShotDirection,
   weaponViewmodelOffsetTarget,
 } from "../../fps/src/lib/fps-controls.js";
 
@@ -49,10 +51,7 @@ describe("Starter Kit FPS controls", () => {
   });
 
   it("keeps strafing relative to camera yaw and normalizes diagonals", () => {
-    expect(normalizedMoveAxis(1, 1)).toEqual([
-      1 / Math.SQRT2,
-      1 / Math.SQRT2,
-    ]);
+    expect(normalizedMoveAxis(1, 1)).toEqual([1 / Math.SQRT2, 1 / Math.SQRT2]);
 
     const strafeRightAfterTurn = cameraRelativeMovementDelta({
       moveX: 1,
@@ -99,6 +98,54 @@ describe("Starter Kit FPS controls", () => {
     expect(lookingUp[0]).toBeCloseTo(0, 10);
     expect(lookingUp[1]).toBeCloseTo(Math.SQRT1_2, 10);
     expect(lookingUp[2]).toBeCloseTo(-Math.SQRT1_2, 10);
+  });
+
+  it("matches source RayCast target spread for pellet directions", () => {
+    const centered = sourceShotDirection({
+      yaw: 0,
+      pitch: 0,
+      maxDistance: 10,
+      spreadOffsetX: 0,
+      spreadOffsetY: 0,
+    });
+
+    expect(centered[0]).toBeCloseTo(0, 10);
+    expect(centered[1]).toBeCloseTo(0, 10);
+    expect(centered[2]).toBeCloseTo(-1, 10);
+
+    const corner = sourceShotDirection({
+      yaw: 0,
+      pitch: 0,
+      maxDistance: 10,
+      spreadOffsetX: 1,
+      spreadOffsetY: 1,
+    });
+    const length = Math.sqrt(102);
+
+    expect(corner[0]).toBeCloseTo(1 / length, 10);
+    expect(corner[1]).toBeCloseTo(1 / length, 10);
+    expect(corner[2]).toBeCloseTo(-10 / length, 10);
+  });
+
+  it("rotates source pellet spread through the camera basis", () => {
+    const yaw = Math.PI / 2;
+    const pitch = Math.PI / 6;
+    const direction = sourceShotDirection({
+      yaw,
+      pitch,
+      maxDistance: 10,
+      spreadOffsetX: 0.5,
+      spreadOffsetY: -0.25,
+    });
+    const expected = rotateVec3ByQuat(
+      [0.5, -0.25, -10],
+      quatFromEulerYXZ(pitch, yaw, 0),
+    );
+    const expectedLength = Math.hypot(expected[0], expected[1], expected[2]);
+
+    expect(direction[0]).toBeCloseTo(expected[0] / expectedLength, 10);
+    expect(direction[1]).toBeCloseTo(expected[1] / expectedLength, 10);
+    expect(direction[2]).toBeCloseTo(expected[2] / expectedLength, 10);
   });
 
   it("applies weapon recoil backward relative to camera yaw", () => {
@@ -154,18 +201,19 @@ describe("Starter Kit FPS controls", () => {
     expect(diagonal[2]).toBeCloseTo(1 / (6 * Math.SQRT2), 10);
   });
 
-  it("pitches enemies toward the player's upper-body look target", () => {
+  it("pitches enemies toward the source upper-body look target", () => {
     const enemy: [number, number, number] = [0, 3, 0];
-    const player: [number, number, number] = [0, 1.5, 5];
+    const playerEye: [number, number, number] = [0, 1.5, 5];
+    const target = sourceEnemyLookTarget(playerEye);
     const look = enemyLookAngles({
       enemy,
-      player,
-      targetYOffset: 0.5,
+      player: target,
+      targetYOffset: 0,
     });
     const expectedDirection: [number, number, number] = [
       0,
-      -1 / Math.sqrt(26),
-      5 / Math.sqrt(26),
+      -2 / Math.sqrt(29),
+      5 / Math.sqrt(29),
     ];
     const forward = rotateVec3ByQuat(
       [0, 0, 1],
@@ -181,12 +229,13 @@ describe("Starter Kit FPS controls", () => {
 
   it("places enemy muzzle child offsets through the source look transform", () => {
     const enemy: [number, number, number] = [0, 3, 0];
-    const player: [number, number, number] = [0, 1.5, 5];
+    const playerEye: [number, number, number] = [0, 1.5, 5];
     const localOffset: [number, number, number] = [-0.45, 0.3, 0.4];
+    const target = sourceEnemyLookTarget(playerEye);
     const look = enemyLookAngles({
       enemy,
-      player,
-      targetYOffset: 0.5,
+      player: target,
+      targetYOffset: 0,
     });
     const muzzle = sourceChildPositionFromLook(enemy, look, localOffset);
     const expectedOffset = rotateVec3ByQuat(
