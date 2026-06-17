@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "5cbb4823",
+  "lastCommit": "25edbe67",
   "activePid": null,
-  "notes": "Fixed FPS short button taps by delaying HUD releases below the fastest source weapon cooldown and buffering HUD jump/shoot press commands in the player system; live Aperture proofs covered click shooting, yaw-relative W movement, and a quick Space jump.",
-  "lastRunFinishedAt": "2026-06-17T18:45:48Z"
+  "notes": "Fixed single-cascade shadow scene fit so off-camera casters retained in shadowCasterDraws are not clipped by main-camera frustum fitting; validated focused shadow tests plus racing, shadow-lab, and FPS managed Aperture smoke reports.",
+  "lastRunFinishedAt": "2026-06-17T19:03:44Z"
 }
