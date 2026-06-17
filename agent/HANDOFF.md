@@ -1,12 +1,50 @@
-# Handoff - Starter Kit FPS Enemy Muzzle Placement
+# Handoff - Starter Kit FPS Source Basis And Enemy Muzzle Ownership
 
-**Updated:** 2026-06-17 03:36 PDT
+**Updated:** 2026-06-17 03:42 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
+- Aligned FPS source-basis control helpers and enemy muzzle ownership with the
+  upstream scene model:
+  - Camera forward/right helpers now match `quatFromEulerYXZ(...)` rotation of
+    local camera axes. The focused tests now prove `yaw = Math.PI / 2` moves
+    forward along negative X and strafes right along negative Z, matching the
+    camera quaternion basis.
+  - Buffered jump consumption is now a testable helper and is checked again
+    after ground contact refreshes `jumpsRemaining`, so a just-before-landing
+    jump buffer can still consume after the source-style grounded refresh.
+  - `references/Starter-Kit-FPS/objects/enemy.tscn` owns two muzzle
+    `AnimatedSprite3D` children per enemy. The port now spawns per-enemy muzzle
+    effect entities (`effect.enemy.0.muzzle.0` ...
+    `effect.enemy.3.muzzle.1`) instead of one global enemy muzzle pair.
+- Aperture proof:
+  - Restarted the managed FPS app through `pnpm --dir fps exec aperture dev up
+    --open --port 5173` and waited for WebGPU.
+  - `ecs_find_entities {"key":"effect.enemy.0.muzzle.0"}` and
+    `ecs_find_entities {"key":"effect.enemy.3.muzzle.1"}` each returned one
+    sprite entity with hidden baseline alpha `0`.
+  - `ecs_find_entities {"key":"effect.enemy-muzzle.0"}` returned zero
+    summaries, proving the old global enemy muzzle key is gone.
+  - `render_get_frame_report {"summaryOnly":true}` reported frame `245`,
+    one view, 16 mesh draws, 29 draw calls, and diagnostics `0`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - `85cb569d` — `Align FPS source basis and enemy muzzle ownership`
+
+## Previous Completed FPS/Tooling Slices
+
+- Enemy muzzle source-child placement:
 - Aligned FPS enemy muzzle flash placement with upstream Godot child-transform
   behavior:
   - `references/Starter-Kit-FPS/objects/enemy.tscn` places `MuzzleA` and
@@ -27,7 +65,7 @@ previous working state so the old state remains recoverable.
     {"summaryOnly":true}` reported diagnostics `0`.
   - `ecs_find_entities` read `effect.enemy-muzzle.0` and
     `effect.enemy-muzzle.1`; their random source-style rotations remained in the
-    upstream `±45°` range. The live read missed the short visible muzzle frame
+    upstream `+/-45 degree` range. The live read missed the short visible muzzle frame
     after pausing, so exact placement is pinned by the focused unit test.
 - Validation:
   - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
@@ -40,8 +78,6 @@ previous working state so the old state remains recoverable.
   - `git diff --check`
 - Committed implementation:
   - `c6b0fa33` — `Align FPS enemy muzzle placement`
-
-## Previous Completed FPS/Tooling Slices
 
 - Sprite effect opacity:
 - Aligned FPS shot-effect opacity with upstream Godot `AnimatedSprite3D`

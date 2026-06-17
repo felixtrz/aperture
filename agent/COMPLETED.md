@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## FPS-PORT — Source basis and enemy muzzle ownership
+
+Completed: 2026-06-17 03:42 PDT
+Commit: `85cb569d`
+
+### Summary
+
+- Aligned FPS camera forward/right helpers with the actual
+  `quatFromEulerYXZ(...)` camera basis and updated movement/recoil tests for
+  the corrected yaw sign.
+- Made buffered jump consumption a testable helper and checked it again after
+  grounded contact refreshes `jumpsRemaining`.
+- Replaced the old global enemy muzzle sprite pair with source-shaped
+  per-enemy muzzle effect entities (`effect.enemy.N.muzzle.M`), matching the
+  two muzzle children on each upstream enemy scene.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture MCP proof confirmed new per-enemy muzzle keys exist, the old global
+  `effect.enemy-muzzle.0` key is gone, and render frame diagnostics remained
+  `0`.
+
 ## FPS-PORT — Enemy muzzle source-child placement
 
 Completed: 2026-06-17 03:36 PDT

@@ -393,21 +393,29 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 10:36 UTC</dd>
+            <dd>2026-06-17 10:42 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS enemy muzzle flashes now inherit
-              the same source-style yaw+pitch child transform as the visible
-              enemy root, matching upstream <code>objects/enemy.tscn</code>
-              <code>MuzzleA</code>/<code>MuzzleB</code> placement instead of
-              yaw-only offsets. Aperture MCP/CLI proof drove generated
-              movement toward <code>enemy.0</code>; enemy attack reduced health
-              to <code>90</code>, enemy muzzle rotations stayed inside the
-              upstream <code>&plusmn;45&deg;</code> range, and the render frame report
-              stayed at diagnostics <code>0</code>. Prior update: the Starter
-              Kit FPS shot effects now match upstream
+              Latest update: Starter Kit FPS camera forward/right helpers now
+              match the actual <code>quatFromEulerYXZ</code> camera basis,
+              buffered jump consumption is covered after grounded refresh, and
+              enemy muzzle flashes now use source-shaped per-enemy effect
+              entities such as <code>effect.enemy.0.muzzle.0</code> through
+              <code>effect.enemy.3.muzzle.1</code>. Aperture MCP proof found the
+              new per-enemy muzzle keys, confirmed the old global
+              <code>effect.enemy-muzzle.0</code> key is gone, and reported frame
+              diagnostics <code>0</code>. Prior update: Starter Kit FPS enemy
+              muzzle flashes now inherit the same source-style yaw+pitch child
+              transform as the visible enemy root, matching upstream
+              <code>objects/enemy.tscn</code> <code>MuzzleA</code>/<code>MuzzleB</code>
+              placement instead of yaw-only offsets. Aperture MCP/CLI proof
+              drove generated movement toward <code>enemy.0</code>; enemy attack
+              reduced health to <code>90</code>, enemy muzzle rotations stayed
+              inside the upstream <code>&plusmn;45&deg;</code> range, and the
+              render frame report stayed at diagnostics <code>0</code>. Prior
+              update: the Starter Kit FPS shot effects now match upstream
               <code>AnimatedSprite3D</code> opacity behavior. Impact, player
               muzzle, and enemy muzzle sprites play discrete source frames at
               full alpha while visible, then hide at the end/null frame instead

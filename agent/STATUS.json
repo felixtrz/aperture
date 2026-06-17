@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "c6b0fa33",
+  "lastCommit": "85cb569d",
   "activePid": null,
-  "notes": "Aligned FPS enemy muzzle placement with upstream child-transform behavior; Aperture proof and fps/racing/shadow-lab validation passed.",
-  "lastRunFinishedAt": "2026-06-17T10:36:00Z"
+  "notes": "Aligned FPS camera basis helpers, buffered jump consumption, and per-enemy muzzle effect ownership with upstream source behavior; Aperture proof and fps/racing/shadow-lab validation passed.",
+  "lastRunFinishedAt": "2026-06-17T10:42:00Z"
 }
