@@ -4,6 +4,7 @@ import {
   subscribeGeneratedSignals,
 } from "@aperture-engine/app/browser";
 import {
+  sourcePointerLockLookAxis,
   sourceHealthText,
   writeSourceHudCssVariables,
 } from "./lib/fps-hud.js";
@@ -12,7 +13,6 @@ const canvas = document.querySelector<HTMLCanvasElement>("#aperture");
 const healthEl = document.querySelector<HTMLElement>("#health");
 const crosshairEl = document.querySelector<HTMLImageElement>("#crosshair");
 
-const MOUSE_LOOK_PIXELS_PER_UNIT = 26;
 const POINTER_LOCK_SHOOT_RELEASE_DELAY_MS = 40;
 let pendingLookX = 0;
 let pendingLookY = 0;
@@ -101,9 +101,10 @@ window.addEventListener("pointerup", (event) => {
 
 function dispatchPendingLook(): void {
   if (pendingLookX !== 0 || pendingLookY !== 0) {
+    const [x, y] = sourcePointerLockLookAxis(pendingLookX, pendingLookY);
     dispatchApertureInputAction("look", {
-      x: clampAxis(pendingLookX / MOUSE_LOOK_PIXELS_PER_UNIT),
-      y: clampAxis(-pendingLookY / MOUSE_LOOK_PIXELS_PER_UNIT),
+      x,
+      y,
       source: "pointer-lock",
     });
     pendingLookX = 0;
@@ -179,10 +180,6 @@ function requestPointerLock(target: HTMLCanvasElement): void {
 
 function isCanvasPointerEvent(event: Event): boolean {
   return canvas !== null && event.composedPath().includes(canvas);
-}
-
-function clampAxis(value: number): number {
-  return Math.max(-1, Math.min(1, value));
 }
 
 requestAnimationFrame(dispatchPendingLook);

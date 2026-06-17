@@ -10,7 +10,9 @@ import {
   SOURCE_HEALTH_OUTLINE_ALPHA,
   SOURCE_HEALTH_OUTLINE_SIZE_PX,
   SOURCE_HEALTH_WIDTH_PX,
+  POINTER_LOCK_LOOK_PIXELS_PER_UNIT,
   sourceHealthText,
+  sourcePointerLockLookAxis,
   writeSourceHudCssVariables,
 } from "../../fps/src/lib/fps-hud.js";
 
@@ -36,6 +38,13 @@ describe("Starter Kit FPS HUD", () => {
     expect(sourceHealthText(62.4)).toBe("62%");
     expect(sourceHealthText(-5)).toBe("0%");
     expect(sourceHealthText(Number.NaN)).toBe("100%");
+  });
+
+  it("maps pointer-lock mouse deltas to the source look action vector", () => {
+    expect(POINTER_LOCK_LOOK_PIXELS_PER_UNIT).toBe(26);
+    expect(sourcePointerLockLookAxis(26, -26)).toEqual([-1, 1]);
+    expect(sourcePointerLockLookAxis(-13, 13)).toEqual([0.5, -0.5]);
+    expect(sourcePointerLockLookAxis(260, -260)).toEqual([-1, 1]);
   });
 
   it("writes source-derived HUD CSS variables", () => {
