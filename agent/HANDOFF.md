@@ -1,28 +1,39 @@
-# Handoff - Starter Kit FPS Full-Clear Proof
+# Handoff - Starter Kit FPS Player Shadow + Control Reproof
 
-**Updated:** 2026-06-17 01:03 PDT
+**Updated:** 2026-06-17 01:14 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Proved the Starter Kit FPS port can reach the all-enemies-cleared gameplay
-  state through generated gameplay input only. The proof drove configured
-  `move`, `look`, `jump`, and `shoot` actions through Aperture tools; it did
-  not mutate enemy health, player transforms, or ECS gameplay state.
-- Replaced the failed straight-line route with a platform-aware path: start
-  platform -> enemy.1 perch -> southeast grass platform for `enemy.2` -> center
-  platform edge -> elevated northeast platform for `enemy.3`.
-- Final proof state: `health:55`, `shotsFired:12`, `hits:16`,
-  `enemiesRemaining:0`, `destroyedEnemies:4`, every `enemyDestroyed.*:true`,
-  `gameStatus:"cleared"`, HUD enemies text `CLEAR`, and
-  `body[data-game-status="cleared"]`.
-- `browser_screenshot` wrote
-  `fps/.aperture/runtime/fps-full-clear-proof.png`.
+- Added a source-like player blob shadow as ECS-authored render data. Setup now
+  registers the upstream `blob_shadow` sprite, creates an unlit transparent
+  material/sampler asset, and spawns `player.shadow` as a non-casting,
+  non-receiving mesh plane at the player's feet.
+- `PlayerSystem` keeps `player.shadow` aligned with `fps.state.playerPosition`
+  without adding a renderer-owned player scene graph or hidden gameplay state.
+- Re-ran the reported control concerns through Aperture CLI stepping:
+  camera-relative movement follows yaw, jump leaves the ground with positive
+  vertical velocity, and generated shoot input increments `shotsFired`.
+- Committed implementation: `694d60a1` — `Add FPS player blob shadow`.
 
 ## Previous Completed FPS Slices
 
+- Full-clear proof:
+  - Proved the Starter Kit FPS port can reach the all-enemies-cleared gameplay
+    state through generated gameplay input only. The proof drove configured
+    `move`, `look`, `jump`, and `shoot` actions through Aperture tools; it did
+    not mutate enemy health, player transforms, or ECS gameplay state.
+  - Replaced the failed straight-line route with a platform-aware path: start
+    platform -> enemy.1 perch -> southeast grass platform for `enemy.2` ->
+    center platform edge -> elevated northeast platform for `enemy.3`.
+  - Final proof state: `health:55`, `shotsFired:12`, `hits:16`,
+    `enemiesRemaining:0`, `destroyedEnemies:4`, every `enemyDestroyed.*:true`,
+    `gameStatus:"cleared"`, HUD enemies text `CLEAR`, and
+    `body[data-game-status="cleared"]`.
+  - `browser_screenshot` wrote
+    `fps/.aperture/runtime/fps-full-clear-proof.png`.
 - Landing camera bob:
 - Added upstream-style landing camera bob from `objects/player.gd`: landing
   after a jump dips the first-person camera by `-0.1`, then lerps it back toward
@@ -93,7 +104,31 @@ previous working state so the old state remains recoverable.
 
 ## Latest Validation
 
+- `pnpm exec vitest run test/app/fps-controls.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm run check:progress`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
 - Aperture CLI/runtime proof from `fps/`:
+  - Active managed session: `http://127.0.0.1:5174/`, WebGPU healthy.
+  - `resource_get {"id":"fps.state"}` after reset reported fresh gameplay:
+    `health:100`, `enemiesRemaining:4`, `shotsFired:0`, `hits:0`,
+    `gameStatus:"active"`.
+  - `render_explain_entity {"key":"player.shadow"}` reported
+    `rendered:true`, `hasBounds:true`, `renderKey:"mesh-draw:2"`,
+    `boundsKey:"bounds:2:0"`, and zero diagnostics.
+  - Deterministic paused stepping with generated actions reproved the reported
+    controls: after yaw `0.8333`, forward movement produced `dx:1.8504`,
+    `dz:-1.681`; jump produced `grounded:false`, `verticalVelocity:7`,
+    `jumpsRemaining:1`, `deltaY:0.3667`; shoot produced `shotsFired:1` and
+    `shotCooldown:0.2333`.
+  - The live FPS session was reset afterward to fresh gameplay.
+- Previous full-clear Aperture CLI/runtime proof from `fps/`:
   - Restarted managed FPS at `http://127.0.0.1:5174/`; `browser_wait_for_webgpu`
     succeeded with `webgpuOk:true` and no `lastError`/`lastFailure`.
   - Paused/reset the generated worker and drove only configured generated

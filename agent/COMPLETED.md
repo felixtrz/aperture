@@ -1,5 +1,43 @@
 # Completed Tasks
 
+## FPS-PORT — Player blob shadow
+
+Completed: 2026-06-17 01:10 PDT
+Commit: `694d60a1`
+
+### Summary
+
+- Added the upstream `blob_shadow` sprite to the FPS asset manifest and spawned
+  `player.shadow` as ECS-authored render data.
+- Registered a transparent unlit blob-shadow material and sampler during setup,
+  with depth test enabled, depth writes disabled, and alpha blending.
+- Kept the shadow aligned from `PlayerSystem` by writing the keyed entity's
+  `LocalTransform` from the player eye position; no renderer-owned player scene
+  graph or gameplay state was introduced.
+- Re-ran the reported control concerns through Aperture CLI stepping:
+  camera-relative movement follows yaw, jump leaves ground reliably, and
+  generated shooting increments `shotsFired`.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm run check:progress`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Aperture CLI proof from `fps/`: `resource_get`, `render_explain_entity`,
+  generated `input_action_set`, and `ecs_step`.
+- Shadow proof: `player.shadow` reported `rendered:true`, `hasBounds:true`,
+  `renderKey:"mesh-draw:2"`, `boundsKey:"bounds:2:0"`, and zero diagnostics.
+- Control reproof: after yaw `0.8333`, forward movement produced `dx:1.8504`,
+  `dz:-1.681`; jump produced `grounded:false`, `verticalVelocity:7`,
+  `jumpsRemaining:1`; shoot produced `shotsFired:1`.
+
 ## FPS-PORT — Platform-aware full-clear proof
 
 Completed: 2026-06-17 01:03 PDT

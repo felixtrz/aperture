@@ -393,13 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 08:03 UTC</dd>
+            <dd>2026-06-17 08:14 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the Starter Kit FPS port now has a platform-aware
-              generated-input clear proof. Aperture tools drove only configured
+              Latest update: the Starter Kit FPS port now has an ECS-authored
+              player blob shadow using the upstream <code>blob_shadow</code>
+              sprite and a transparent unlit material. Aperture tools reproved
+              <code>player.shadow</code> render extraction, camera-relative
+              movement, jump, and shoot input with WebGPU healthy and zero
+              render diagnostics. Prior update: the Starter Kit FPS port gained
+              a platform-aware generated-input clear proof. Aperture tools
+              drove only configured
               <code>move</code>, <code>look</code>, <code>jump</code>, and
               <code>shoot</code> actions across authored platforms, destroyed
               all four enemies, reached <code>gameStatus:"cleared"</code>,
@@ -1266,9 +1272,9 @@
             <dt>Next focus</dt>
             <dd>
               Continue Starter Kit FPS fidelity with a visible route such as
-              enemy attack/projectile polish, player shadow/detail parity, or
-              packaging the platform-aware full-clear proof into a reusable
-              smoke script while keeping racing and Shadow Lab green.
+              enemy attack/projectile polish, source-like weapon/player detail
+              parity, or packaging the platform-aware full-clear proof into a
+              reusable smoke script while keeping racing and Shadow Lab green.
             </dd>
           </dl>
         </aside>
@@ -2169,6 +2175,14 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Added an ECS-authored
+                player blob shadow from the upstream
+                <code>blob_shadow</code> sprite. Aperture proof reported
+                <code>player.shadow</code> rendered with bounds and zero
+                diagnostics, and generated input stepping reproved
+                camera-relative movement, jump, and shoot.
+              </li>
               <li>
                 <span class="badge green">fps</span> Proved the Starter Kit FPS
                 clear state with Aperture tools and generated gameplay input
