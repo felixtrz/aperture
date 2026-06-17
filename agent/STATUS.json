@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "e884df65",
+  "lastCommit": "d3c59211",
   "activePid": null,
-  "notes": "Extracted FPS player.shadow setup into a helper and reproved the textured blob shadow through Aperture CLI after explicit browser reload. Close visible-vs-scale-zero captures differed by 207995 pixels; fps typecheck/build passed.",
-  "lastRunFinishedAt": "2026-06-17T08:46:22Z"
+  "notes": "Fixed FPS canvas shooting before pointer lock, aligned enemy attack timing/range to upstream 0.25s/5-unit behavior, reproved camera-relative movement and jump, and preserved the player-shadow proof cleanup. FPS/racing/shadow-lab validation and Aperture runtime proofs passed.",
+  "lastRunFinishedAt": "2026-06-17T08:50:19Z"
 }
