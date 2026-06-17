@@ -162,6 +162,22 @@ export const SOURCE_SUN_ROTATION: Quat = [
   0.48695873,
 ];
 export const SOURCE_SUN_SHADOW_STRENGTH = 0.75;
+// Runtime mapping for Aperture's current directional-light convention. Keep the
+// source quaternion above so the Godot basis conversion can be fixed directly.
+export const FPS_RENDER_BACKGROUND_COLOR: readonly [
+  number,
+  number,
+  number,
+  number,
+] = [0.36, 0.39, 0.46, 1];
+export const FPS_RENDER_AMBIENT_COLOR: readonly [
+  number,
+  number,
+  number,
+  number,
+] = [0.66, 0.69, 0.77, 1];
+export const FPS_RENDER_SUN_ROTATION_EULER_DEGREES: Vec3 = [-50, -110, 0];
+export const FPS_RENDER_AMBIENT_INTENSITY = 1.1;
 
 export const WEAPONS: readonly WeaponSpec[] = [
   {

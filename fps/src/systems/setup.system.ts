@@ -53,14 +53,14 @@ import {
   PLAYER_SHADOW_KEY,
   PLAYER_SHADOW_SURFACE_OFFSET,
   PLAYER_START,
+  FPS_RENDER_AMBIENT_COLOR,
+  FPS_RENDER_AMBIENT_INTENSITY,
+  FPS_RENDER_BACKGROUND_COLOR,
+  FPS_RENDER_SUN_ROTATION_EULER_DEGREES,
   SOURCE_ENEMY_HITBOX_OFFSET,
   SOURCE_ENEMY_HITBOX_RADIUS,
-  SOURCE_ENV_AMBIENT_COLOR,
-  SOURCE_ENV_AMBIENT_INTENSITY,
-  SOURCE_ENV_BACKGROUND_COLOR,
   SOURCE_PLAYER_CAMERA_FOV,
   SOURCE_SKY_ENERGY_MULTIPLIER,
-  SOURCE_SUN_ROTATION,
   SOURCE_SUN_SHADOW_STRENGTH,
   SOURCE_WEAPON_CAMERA_ITEM_FOV,
   WEAPONS,
@@ -115,7 +115,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         near: 0.05,
         far: 80,
         layerMask: FPS_WORLD_LAYER_MASK,
-        clearColor: SOURCE_ENV_BACKGROUND_COLOR,
+        clearColor: FPS_RENDER_BACKGROUND_COLOR,
       },
     });
 
@@ -195,7 +195,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         layerMask: FPS_ALL_RENDER_LAYER_MASK,
       },
       transform: {
-        rotation: SOURCE_SUN_ROTATION,
+        rotationEulerDegrees: FPS_RENDER_SUN_ROTATION_EULER_DEGREES,
       },
       shadow: {
         mapSize: 2048,
@@ -211,8 +211,8 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       key: "light.ambient",
       name: "Sky Ambient",
       kind: "ambient",
-      color: SOURCE_ENV_AMBIENT_COLOR,
-      intensity: SOURCE_ENV_AMBIENT_INTENSITY,
+      color: FPS_RENDER_AMBIENT_COLOR,
+      intensity: FPS_RENDER_AMBIENT_INTENSITY,
       light: {
         layerMask: FPS_ALL_RENDER_LAYER_MASK,
       },
@@ -222,7 +222,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       key: "fog.main",
       name: "Sky Fog",
       mode: "linear",
-      color: SOURCE_ENV_BACKGROUND_COLOR,
+      color: FPS_RENDER_BACKGROUND_COLOR,
       start: 28,
       end: 60,
     });

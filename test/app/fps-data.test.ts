@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   CLOUDS,
   FPS_ALL_RENDER_LAYER_MASK,
+  FPS_RENDER_AMBIENT_COLOR,
+  FPS_RENDER_AMBIENT_INTENSITY,
+  FPS_RENDER_BACKGROUND_COLOR,
+  FPS_RENDER_SUN_ROTATION_EULER_DEGREES,
   FPS_WEAPON_LAYER_MASK,
   FPS_WORLD_LAYER_MASK,
   PLAYER_BODY_COLLIDER_OFFSET,
@@ -191,6 +195,10 @@ describe("Starter Kit FPS source data", () => {
     expect(SOURCE_SUN_ROTATION[1]).toBeCloseTo(-0.76437232, 8);
     expect(SOURCE_SUN_ROTATION[2]).toBeCloseTo(-0.35643233, 8);
     expect(SOURCE_SUN_ROTATION[3]).toBeCloseTo(0.48695873, 8);
+    expect(FPS_RENDER_BACKGROUND_COLOR).toEqual([0.36, 0.39, 0.46, 1]);
+    expect(FPS_RENDER_AMBIENT_COLOR).toEqual([0.66, 0.69, 0.77, 1]);
+    expect(FPS_RENDER_SUN_ROTATION_EULER_DEGREES).toEqual([-50, -110, 0]);
+    expect(FPS_RENDER_AMBIENT_INTENSITY).toBe(1.1);
   });
 
   it("keeps platform-large-grass child decorations from the source packed scene", () => {

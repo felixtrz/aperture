@@ -113,7 +113,7 @@ export default defineApertureConfig({
     gravity: [0, -20, 0],
   },
   render: {
-    clearColor: [0x5c / 0xff, 0x64 / 0xff, 0x76 / 0xff, 1],
+    clearColor: [0.36, 0.39, 0.46, 1],
     defaultCamera: false,
     defaultLight: false,
     sampleCount: 4,
