@@ -128,6 +128,22 @@ window.addEventListener("mouseup", (event) => {
   releasePointerLockShoot();
 });
 
+window.addEventListener("pointerdown", (event) => {
+  if (!event.isPrimary || event.button !== 0) return;
+  const pointerLocked = document.pointerLockElement === canvas;
+  if (!pointerLocked && !isCanvasPointerEvent(event)) return;
+
+  event.preventDefault();
+  if (!pointerLocked && canvas !== null) requestPointerLock(canvas);
+  pressPointerLockShoot();
+});
+
+window.addEventListener("pointerup", (event) => {
+  if (!event.isPrimary || event.button !== 0 || !shootActionActive) return;
+  event.preventDefault();
+  releasePointerLockShoot();
+});
+
 function dispatchPendingLook(): void {
   if (pendingLookX !== 0 || pendingLookY !== 0) {
     dispatchApertureInputAction("look", {
@@ -206,7 +222,7 @@ function requestPointerLock(target: HTMLCanvasElement): void {
   }
 }
 
-function isCanvasPointerEvent(event: MouseEvent): boolean {
+function isCanvasPointerEvent(event: Event): boolean {
   return canvas !== null && event.composedPath().includes(canvas);
 }
 

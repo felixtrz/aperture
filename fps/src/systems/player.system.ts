@@ -59,6 +59,7 @@ const PLAYER_MUZZLE_ROLL_RANGE = Math.PI / 4;
 const PLAYER_MUZZLE_MIN_SCALE = 0.4;
 const PLAYER_MUZZLE_MAX_SCALE = 0.75;
 const ENEMY_MUZZLE_ROLL_RANGE = Math.PI / 4;
+const IMPACT_NORMAL_OFFSET = 0.1;
 const SPRITE_ANIMATION_FPS = 30;
 const PLAYER_CONTROLLER_SETTINGS: PhysicsCharacterControllerSettings = {
   offset: 0.02,
@@ -88,10 +89,8 @@ const IMPACT_FLASH_FRAMES: readonly SpriteAnimationFrame[] = [
   [0, 0.5, 0.5, 0.5],
   [0.5, 0.5, 0.5, 0.5],
 ];
-const MUZZLE_FLASH_DURATION =
-  MUZZLE_FLASH_FRAMES.length / SPRITE_ANIMATION_FPS;
-const IMPACT_FLASH_DURATION =
-  IMPACT_FLASH_FRAMES.length / SPRITE_ANIMATION_FPS;
+const MUZZLE_FLASH_DURATION = MUZZLE_FLASH_FRAMES.length / SPRITE_ANIMATION_FPS;
+const IMPACT_FLASH_DURATION = IMPACT_FLASH_FRAMES.length / SPRITE_ANIMATION_FPS;
 const HIDDEN_EFFECT_POSITION: Vec3 = [0, -100, 0];
 const HIDDEN_WEAPON_Y = -100;
 const WEAPON_SWITCH_HIDE_DURATION = 0.1;
@@ -103,6 +102,7 @@ const LANDING_CAMERA_BOB_RECOVERY_RATE = 5;
 const WEAPON_RECOIL_IMPULSE_SCALE = 0.12;
 const WEAPON_RECOIL_RECOVERY_RATE = 12;
 const WEAPON_RECOIL_EPSILON = 0.001;
+const JUMP_BUFFER_DURATION = 0.12;
 
 interface ShotEnemyHit {
   readonly key: string;
@@ -150,11 +150,13 @@ export default class PlayerSystem extends createSystem({
   #landingBobOffset = 0;
   #landingPulse = 0;
   #weaponRecoilVelocity: Vec3 = [0, 0, 0];
+  #jumpBufferTimer = 0;
 
   override update(delta: number): void {
     const dt = Math.min(Math.max(delta, 0), 1 / 30);
     this.#muzzleFlashTimer = Math.max(0, this.#muzzleFlashTimer - dt);
     this.#impactFlashTimer = Math.max(0, this.#impactFlashTimer - dt);
+    this.#jumpBufferTimer = Math.max(0, this.#jumpBufferTimer - dt);
     for (let i = 0; i < this.#enemyMuzzleFlashTimers.length; i += 1) {
       const timer = this.#enemyMuzzleFlashTimers[i] ?? 0;
       this.#enemyMuzzleFlashTimers[i] = Math.max(0, timer - dt);
@@ -183,6 +185,7 @@ export default class PlayerSystem extends createSystem({
     let enemyDestroyedPulse = state.enemyDestroyedPulse;
     let lastDestroyedEnemy = state.lastDestroyedEnemy;
     let skipPhysicsMove = false;
+    let jumpedThisFrame = false;
 
     if (this.#button("reset")?.down()) {
       position = [...PLAYER_START];
@@ -231,11 +234,17 @@ export default class PlayerSystem extends createSystem({
     const moveZ = move?.kind === "axis2d" ? move.y.value : 0;
     const movement = normalizedMoveAxis(moveX, moveZ);
 
-    if (this.#button("jump")?.down() && jumpsRemaining > 0) {
+    if (this.#button("jump")?.down()) {
+      this.#jumpBufferTimer = JUMP_BUFFER_DURATION;
+    }
+
+    if (this.#jumpBufferTimer > 0 && jumpsRemaining > 0) {
       this.#playOneShot(randomJumpSound(), 0.45);
       verticalVelocity = JUMP_STRENGTH;
       jumpsRemaining -= 1;
       grounded = false;
+      jumpedThisFrame = true;
+      this.#jumpBufferTimer = 0;
     }
 
     verticalVelocity -= GRAVITY * dt;
@@ -260,7 +269,7 @@ export default class PlayerSystem extends createSystem({
         }
       : this.#movePlayerBody(position, desiredTranslation, grounded);
     position = playerMove.position;
-    grounded = playerMove.grounded;
+    grounded = jumpedThisFrame ? false : playerMove.grounded;
 
     if (grounded) {
       if (!wasGrounded && verticalVelocity < -1) {
@@ -416,6 +425,7 @@ export default class PlayerSystem extends createSystem({
     const destroyedEnemies: string[] = [];
     let nearestImpact: {
       readonly point: Vec3;
+      readonly normal: Vec3;
       readonly distance: number;
     } | null = null;
 
@@ -437,6 +447,7 @@ export default class PlayerSystem extends createSystem({
       ) {
         nearestImpact = {
           point: cloneVec3(nearestRayHit.point),
+          normal: cloneVec3(nearestRayHit.normal),
           distance: nearestRayHit.distance,
         };
       }
@@ -460,7 +471,10 @@ export default class PlayerSystem extends createSystem({
     return {
       enemyHealth: nextHealth,
       hits: hitCount,
-      impact: nearestImpact?.point ?? null,
+      impact:
+        nearestImpact === null
+          ? null
+          : offsetImpactPoint(nearestImpact.point, nearestImpact.normal),
       destroyedEnemies,
     };
   }
@@ -591,11 +605,13 @@ export default class PlayerSystem extends createSystem({
     const shadow = this.#findByKey(PLAYER_SHADOW_KEY);
     if (shadow === null) return;
 
-    shadow.getVectorView(LocalTransform, "translation").set([
-      position[0],
-      position[1] - PLAYER_EYE_HEIGHT + PLAYER_SHADOW_SURFACE_OFFSET,
-      position[2],
-    ]);
+    shadow
+      .getVectorView(LocalTransform, "translation")
+      .set([
+        position[0],
+        position[1] - PLAYER_EYE_HEIGHT + PLAYER_SHADOW_SURFACE_OFFSET,
+        position[2],
+      ]);
   }
 
   #writeWeapons(
@@ -810,6 +826,7 @@ export default class PlayerSystem extends createSystem({
     this.#landingBobOffset = 0;
     this.#landingPulse = 0;
     this.#weaponRecoilVelocity = [0, 0, 0];
+    this.#jumpBufferTimer = 0;
   }
 
   #addWeaponRecoil(yaw: number, weapon: WeaponSpec): void {
@@ -905,7 +922,9 @@ export default class PlayerSystem extends createSystem({
       );
     }
 
-    return index === this.#weaponVisualIndex ? this.#weaponSwitchRaiseOffset : 0;
+    return index === this.#weaponVisualIndex
+      ? this.#weaponSwitchRaiseOffset
+      : 0;
   }
 
   #weaponSwitchProgress(): number {
@@ -913,8 +932,7 @@ export default class PlayerSystem extends createSystem({
 
     if (this.#weaponVisualIndex !== this.#weaponSwitchTargetIndex) {
       return (
-        0.5 *
-        Math.min(1, this.#weaponSwitchTimer / WEAPON_SWITCH_HIDE_DURATION)
+        0.5 * Math.min(1, this.#weaponSwitchTimer / WEAPON_SWITCH_HIDE_DURATION)
       );
     }
 
@@ -1100,6 +1118,14 @@ function cloneVec3(value: readonly [number, number, number]): Vec3 {
   return [value[0], value[1], value[2]];
 }
 
+function offsetImpactPoint(point: Vec3, normal: Vec3): Vec3 {
+  return [
+    point[0] + normal[0] * IMPACT_NORMAL_OFFSET,
+    point[1] + normal[1] * IMPACT_NORMAL_OFFSET,
+    point[2] + normal[2] * IMPACT_NORMAL_OFFSET,
+  ];
+}
+
 function bodyToEye(bodyPosition: Vec3): Vec3 {
   return [
     bodyPosition[0],
@@ -1172,7 +1198,9 @@ function countLivingEnemies(enemyHealth: Record<string, number>): number {
   );
 }
 
-function countDestroyedEnemies(enemyDestroyed: Record<string, boolean>): number {
+function countDestroyedEnemies(
+  enemyDestroyed: Record<string, boolean>,
+): number {
   return ENEMIES.reduce(
     (count, enemy) => count + (enemyDestroyed[enemy.key] === true ? 1 : 0),
     0,
