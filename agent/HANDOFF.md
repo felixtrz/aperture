@@ -1,48 +1,55 @@
-# Handoff - Starter Kit FPS Input Hardening
+# Handoff - Starter Kit FPS Viewmodel Motion
 
-**Updated:** 2026-06-17 02:23 PDT
+**Updated:** 2026-06-17 02:38 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Hardened the browser-facing FPS shoot path by forwarding primary
-  `pointerdown` / `pointerup` events through the same generated `shoot` action
-  used for pointer-lock mouse input. This keeps canvas clicks, touch/pen
-  primary pointers, and managed-browser pointer clicks on the same gameplay
-  path.
-- Added a short `0.12s` jump buffer. Jump input is now recorded on the button
-  edge, consumed when a jump is available, and the jump frame ignores lingering
-  grounded contact so the upward impulse cannot be cancelled immediately.
-- Added source-like impact placement from upstream `objects/player.gd`: impact
-  sprites now use the nearest raycast hit point plus `normal / 10`, while the
-  existing billboard sprite path keeps the impact facing the camera.
+- Replaced the FPS weapon-view cooldown recoil approximation with a source-like
+  viewmodel offset from upstream `objects/player.gd`: the active weapon now
+  lerps toward `-localVelocity / 30`, and shooting adds a transient `+0.25`
+  local-Z kick before smoothing back.
+- Kept this ECS-owned by writing `LocalTransform` on the keyed weapon entities
+  (`weapon.0`, `weapon.1`). No renderer-owned first-person weapon container was
+  introduced.
+- Extracted `weaponViewmodelOffsetTarget(...)` into `fps/src/lib/fps-controls.ts`
+  and covered forward, strafe, and diagonal normalization in
+  `test/app/fps-controls.test.ts`.
 - Aperture proof:
-  - Fresh managed FPS session at `http://127.0.0.1:5173/`.
-  - `input_pointer_click` followed by `resource_get` observed
-    `shotsFired:1`.
-  - Paused `input_action_set` jump plus one `ecs_step` observed
-    `playerPosition:[0,1.6222,0]`, `verticalVelocity:7.6667`,
-    `jumpsRemaining:1`, and `grounded:false`.
-  - Camera-relative movement remains covered by
-    `test/app/fps-controls.test.ts`; a later paused movement proof was cut
-    short when the managed dev session's CDP/daemon state died and reported
-    stale browser/server PIDs.
+  - Fresh managed FPS session at `http://127.0.0.1:5173/`, WebGPU healthy,
+    paused through `ecs_pause`.
+  - Baseline `weapon.0.localTransform.translation` was
+    `[0.58,-0.48,-1.200000]`.
+  - Paused generated `move` action with W for one `ecs_step` moved the weapon Z
+    to `-1.172222`, matching the source-style positive local-Z offset from
+    forward movement.
+  - Paused generated `shoot` action then moved weapon Z to `-0.968518` and
+    `resource_get fps.state` observed `shotsFired:1`.
 - Validation:
   - `pnpm exec vitest run test/app/fps-controls.test.ts`
   - `pnpm --dir fps run typecheck`
   - `pnpm --dir fps run build`
-  - `pnpm run typecheck`
-  - `pnpm run typecheck:test`
-  - `pnpm --dir racing run typecheck`
   - `pnpm --dir racing run build`
   - `pnpm --dir shadow-lab run typecheck`
   - `pnpm --dir shadow-lab run build`
 - Committed implementation:
-  - `f64cb627` — `Harden FPS input handling`
+  - `582cfed3` — `Add FPS weapon viewmodel kick`
+  - `60df8919` — `Cover FPS weapon viewmodel offset`
 
 ## Previous Completed FPS/Tooling Slices
+
+- Input hardening and impact placement:
+  - Hardened the browser-facing FPS shoot path by forwarding primary
+    `pointerdown` / `pointerup` events through the same generated `shoot`
+    action used for pointer-lock mouse input.
+  - Added a short `0.12s` jump buffer and prevented lingering grounded contact
+    from cancelling the jump frame.
+  - Added source-like impact placement from upstream `objects/player.gd`:
+    impact sprites now use nearest raycast hit point plus `normal / 10`.
+  - Committed implementation:
+    - `f64cb627` — `Harden FPS input handling`
 
 - Generated `resource_set` proof tooling:
   - Added schema-validated generated-worker `resource_set` support so Aperture

@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "f64cb627",
+  "lastCommit": "60df8919",
   "activePid": null,
-  "notes": "Hardened FPS pointer-click shooting, added a short jump buffer, and offset impact sprites by hit normal / 10. Aperture proof observed canvas pointer click shotsFired:1 and paused-step jump verticalVelocity:7.6667 with grounded:false; a later paused movement proof was interrupted by managed CDP/session death. FPS/racing/shadow-lab builds and typechecks plus fps-controls test passed.",
-  "lastRunFinishedAt": "2026-06-17T09:23:00Z"
+  "notes": "Starter Kit FPS weapon viewmodel now lerps toward -localVelocity / 30 and adds a transient +0.25 local-Z shot kick on the ECS-owned weapon LocalTransform. Aperture proof observed weapon.0 Z -1.200000 baseline, -1.172222 after one paused W step, and -0.968518 after one paused shoot step with shotsFired:1. FPS/racing/shadow-lab validation passed for this slice.",
+  "lastRunFinishedAt": "2026-06-17T09:38:00Z"
 }

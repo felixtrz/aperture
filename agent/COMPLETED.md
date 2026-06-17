@@ -1,5 +1,34 @@
 # Completed Tasks
 
+## FPS-PORT — Weapon viewmodel motion
+
+Completed: 2026-06-17 02:35 PDT
+Commits: `582cfed3`, `60df8919`
+
+### Summary
+
+- Replaced the FPS weapon-view cooldown recoil approximation with source-like
+  viewmodel motion: the active weapon lerps toward `-localVelocity / 30`, and
+  shooting adds a transient `+0.25` local-Z kick before smoothing back.
+- Kept the behavior ECS-owned by writing `LocalTransform` on keyed weapon
+  entities (`weapon.0`, `weapon.1`) instead of adding a renderer-owned
+  first-person weapon container.
+- Extracted `weaponViewmodelOffsetTarget(...)` into `fps/src/lib/fps-controls.ts`
+  and covered forward, strafe, and diagonal normalization.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Aperture proof in a managed FPS session observed baseline
+  `weapon.0.localTransform.translation` Z `-1.200000`, one paused W movement
+  step moving Z to `-1.172222`, and one paused `shoot` action moving Z to
+  `-0.968518` with `shotsFired:1`.
+
 ## FPS-PORT — Input hardening and impact placement
 
 Completed: 2026-06-17 02:23 PDT

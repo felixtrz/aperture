@@ -393,16 +393,23 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 09:23 UTC</dd>
+            <dd>2026-06-17 09:38 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the Starter Kit FPS port now has hardened pointer
-              click shooting, buffered jump input, and source-like impact
-              placement using raycast hit normal <code>/ 10</code>. Aperture
-              proof observed canvas pointer click <code>shotsFired:1</code>
-              and a paused-step jump with
+              Latest update: the Starter Kit FPS port now has source-like weapon
+              viewmodel motion. The active ECS weapon transform lerps toward
+              <code>-localVelocity / 30</code>, and shooting adds a transient
+              <code>+0.25</code> local-Z kick. Aperture proof observed
+              <code>weapon.0</code> Z <code>-1.200000</code> at baseline,
+              <code>-1.172222</code> after one paused W step, and
+              <code>-0.968518</code> after one paused shoot step with
+              <code>shotsFired:1</code>. Prior update: the Starter Kit FPS port
+              now has hardened pointer click shooting, buffered jump input, and
+              source-like impact placement using raycast hit normal
+              <code>/ 10</code>. Aperture proof observed canvas pointer click
+              <code>shotsFired:1</code> and a paused-step jump with
               <code>verticalVelocity:7.6667</code>,
               <code>jumpsRemaining:1</code>, and
               <code>grounded:false</code>. Prior update: the Starter Kit FPS
@@ -1309,9 +1316,9 @@
             <dt>Next focus</dt>
             <dd>
               Continue Starter Kit FPS fidelity with a visible route such as
-              enemy attack/projectile polish, source-like weapon/player detail
-              parity, remaining impact-rendering differences such as depth
-              behavior, or packaging the platform-aware full-clear proof into a
+              enemy attack/projectile polish, remaining impact-rendering
+              differences such as depth behavior, more source-like player detail
+              parity, or packaging the platform-aware full-clear proof into a
               reusable smoke script while keeping racing and Shadow Lab green.
             </dd>
           </dl>
@@ -2213,6 +2220,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Added source-like weapon
+                viewmodel motion. The active weapon entity now lerps toward
+                <code>-localVelocity / 30</code>, shooting adds a transient
+                <code>+0.25</code> local-Z kick, and Aperture proof observed
+                <code>weapon.0</code> Z move from <code>-1.200000</code> to
+                <code>-1.172222</code> on W input and <code>-0.968518</code>
+                after a shot with <code>shotsFired:1</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Hardened FPS input and
                 impact polish: primary pointer clicks now drive the generated
@@ -5254,10 +5270,10 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add worker-safe audio loop
-                lifecycle controls and automation descriptors so systems can
-                pause/resume stable loops and schedule generic gain/rate/filter
-                ramps without browser-side app audio code.
+                <span class="badge amber">next</span> Continue Starter Kit FPS
+                fidelity with a visible slice such as enemy attack/projectile
+                polish, remaining impact depth behavior, player detail parity,
+                or a reusable generated-input full-clear smoke script.
               </li>
               <li>
                 <span class="badge amber">next</span> Continue remaining M10
