@@ -1,6 +1,9 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 import {
   CLOUDS,
+  ENEMIES,
   FPS_ALL_RENDER_LAYER_MASK,
   FPS_INPUT_COMMAND_CHANNEL,
   FPS_RENDER_AMBIENT_COLOR,
@@ -10,6 +13,7 @@ import {
   FPS_WEAPON_VIEW_POSITION,
   FPS_WEAPON_LAYER_MASK,
   FPS_WORLD_LAYER_MASK,
+  LEVEL_INSTANCES,
   LEVEL_COLLIDERS,
   PLAYER_BODY_COLLIDER_OFFSET,
   PLAYER_BODY_EYE_OFFSET,
@@ -257,6 +261,42 @@ describe("Starter Kit FPS source data", () => {
     });
   });
 
+  it("keeps level platform and wall transforms aligned with the source main scene", () => {
+    const sourceInstances = extractSourceSceneInstances(
+      readStarterKitSource("scenes/main.tscn"),
+      "Level",
+      SOURCE_LEVEL_KEY_BY_NODE,
+    );
+    expect(sourceInstances).toHaveLength(LEVEL_INSTANCES.length);
+
+    const apertureInstances = new Map(
+      LEVEL_INSTANCES.map((instance) => [instance.key, instance]),
+    );
+    for (const source of sourceInstances) {
+      const aperture = apertureInstances.get(source.key);
+      expect(aperture).toBeDefined();
+      expect(aperture?.assetId).toBe(source.assetId);
+      expectVec3Close(aperture?.position, source.position);
+      expectYawClose(aperture?.yawDegrees, source.yawDegrees);
+    }
+  });
+
+  it("keeps enemy positions aligned with the source main scene", () => {
+    const sourceEnemies = extractSourceSceneInstances(
+      readStarterKitSource("scenes/main.tscn"),
+      "Enemies",
+      SOURCE_ENEMY_KEY_BY_NODE,
+    );
+    expect(sourceEnemies).toHaveLength(ENEMIES.length);
+
+    const apertureEnemies = new Map(ENEMIES.map((enemy) => [enemy.key, enemy]));
+    for (const source of sourceEnemies) {
+      const aperture = apertureEnemies.get(source.key);
+      expect(aperture).toBeDefined();
+      expectVec3Close(aperture?.position, source.position);
+    }
+  });
+
   it("uses source GLB mesh primitives for static level colliders", () => {
     expect(LEVEL_COLLIDERS).toHaveLength(13);
     expect(sourceLevelColliderMeshId("platform")).toBe(
@@ -289,3 +329,187 @@ describe("Starter Kit FPS source data", () => {
     });
   });
 });
+
+interface SourceSceneInstance {
+  readonly key: string;
+  readonly assetId: string;
+  readonly position: readonly [number, number, number];
+  readonly yawDegrees?: number | undefined;
+}
+
+const SOURCE_LEVEL_KEY_BY_NODE: Readonly<Record<string, string>> = {
+  "wall-low": "level.wall-low.0",
+  "wall-low3": "level.wall-low.1",
+  platform: "level.platform.0",
+  platform2: "level.platform.1",
+  platform3: "level.platform.2",
+  platform4: "level.platform.3",
+  "wall-high": "level.wall-high.0",
+  "wall-high2": "level.wall-high.1",
+  "platform-large-grass": "level.platform-large-grass.0",
+  "platform-large-grass2": "level.platform-large-grass.1",
+  "platform-large-grass3": "level.platform-large-grass.2",
+  "platform-large-grass5": "level.platform-large-grass.3",
+  "platform-large-grass4": "level.platform-large-grass.4",
+};
+
+const SOURCE_ENEMY_KEY_BY_NODE: Readonly<Record<string, string>> = {
+  "enemy-flying": "enemy.0",
+  "enemy-flying2": "enemy.1",
+  "enemy-flying3": "enemy.2",
+  "enemy-flying4": "enemy.3",
+};
+
+function readStarterKitSource(relativePath: string): string {
+  return readFileSync(
+    new URL(
+      `../../references/Starter-Kit-FPS/${relativePath}`,
+      import.meta.url,
+    ),
+    "utf8",
+  );
+}
+
+function extractSourceSceneInstances(
+  sceneSource: string,
+  parent: string,
+  keyByNodeName: Readonly<Record<string, string>>,
+): readonly SourceSceneInstance[] {
+  const resources = extractExtResources(sceneSource);
+  const instances: SourceSceneInstance[] = [];
+  let current:
+    | {
+        readonly name: string;
+        readonly parent: string;
+        readonly resourceId: string;
+        transform: readonly number[] | undefined;
+      }
+    | undefined;
+
+  const flushCurrent = () => {
+    if (current === undefined) return;
+    if (current.parent !== parent) return;
+
+    const key = keyByNodeName[current.name];
+    if (key === undefined) return;
+
+    const sourcePath = resources.get(current.resourceId);
+    if (sourcePath === undefined) {
+      throw new Error(`Missing source resource '${current.resourceId}'.`);
+    }
+
+    const transform = current.transform ?? IDENTITY_TRANSFORM_3D;
+    instances.push({
+      key,
+      assetId: sourceAssetId(sourcePath),
+      position: [transform[9] ?? 0, transform[10] ?? 0, transform[11] ?? 0],
+      yawDegrees: sourceLevelYawDegrees(transform),
+    });
+  };
+
+  for (const line of sceneSource.split(/\r?\n/)) {
+    const header = parseNodeHeader(line);
+    if (header !== undefined) {
+      flushCurrent();
+      current = header;
+      continue;
+    }
+
+    const transform = parseTransform3d(line);
+    if (transform !== undefined && current !== undefined) {
+      current.transform = transform;
+    }
+  }
+  flushCurrent();
+
+  return instances;
+}
+
+function extractExtResources(sceneSource: string): ReadonlyMap<string, string> {
+  const resources = new Map<string, string>();
+  const resourcePattern =
+    /^\[ext_resource [^\]]*path="([^"]+)"[^\]]* id="([^"]+)"[^\]]*\]$/gm;
+  for (const match of sceneSource.matchAll(resourcePattern)) {
+    const [, sourcePath, id] = match;
+    if (sourcePath !== undefined && id !== undefined) {
+      resources.set(id, sourcePath);
+    }
+  }
+  return resources;
+}
+
+function parseNodeHeader(line: string):
+  | {
+      readonly name: string;
+      readonly parent: string;
+      readonly resourceId: string;
+      transform: readonly number[] | undefined;
+    }
+  | undefined {
+  if (!line.startsWith("[node ")) return undefined;
+  const name = line.match(/\bname="([^"]+)"/)?.[1];
+  const parent = line.match(/\bparent="([^"]+)"/)?.[1];
+  const resourceId = line.match(/\binstance=ExtResource\("([^"]+)"\)/)?.[1];
+  if (name === undefined || parent === undefined || resourceId === undefined) {
+    return undefined;
+  }
+  return { name, parent, resourceId, transform: undefined };
+}
+
+function parseTransform3d(line: string): readonly number[] | undefined {
+  const transform = line.match(/^transform = Transform3D\(([^)]+)\)$/)?.[1];
+  if (transform === undefined) return undefined;
+  const values = transform.split(",").map((value) => Number(value.trim()));
+  if (values.length !== 12 || values.some((value) => !Number.isFinite(value))) {
+    throw new Error(`Invalid Transform3D line: ${line}`);
+  }
+  return values;
+}
+
+function sourceAssetId(sourcePath: string): string {
+  const fileName = sourcePath.split("/").pop();
+  if (fileName === undefined) {
+    throw new Error(`Invalid source path '${sourcePath}'.`);
+  }
+  return fileName.replace(/\.tscn$/, "").replaceAll("_", "-");
+}
+
+function sourceLevelYawDegrees(
+  transform: readonly number[],
+): number | undefined {
+  const degrees = normalizeYaw(
+    (-Math.atan2(transform[2] ?? 0, transform[0] ?? 1) * 180) / Math.PI,
+  );
+  return Math.abs(degrees) < 0.001 ? undefined : degrees;
+}
+
+function normalizeYaw(value: number): number {
+  let normalized = value;
+  while (normalized <= -180) normalized += 360;
+  while (normalized > 180) normalized -= 360;
+  if (Math.abs(normalized) < 0.001) return 0;
+  if (Math.abs(Math.abs(normalized) - 180) < 0.001) return 180;
+  return normalized;
+}
+
+function expectVec3Close(
+  actual: readonly number[] | undefined,
+  expected: readonly [number, number, number],
+): void {
+  expect(actual).toBeDefined();
+  expect(actual).toHaveLength(3);
+  expect(actual?.[0]).toBeCloseTo(expected[0], 4);
+  expect(actual?.[1]).toBeCloseTo(expected[1], 4);
+  expect(actual?.[2]).toBeCloseTo(expected[2], 4);
+}
+
+function expectYawClose(
+  actual: number | undefined,
+  expected: number | undefined,
+): void {
+  expect(normalizeYaw(actual ?? 0)).toBeCloseTo(normalizeYaw(expected ?? 0), 4);
+}
+
+const IDENTITY_TRANSFORM_3D = Object.freeze([
+  1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+]);
