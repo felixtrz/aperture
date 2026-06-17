@@ -1,5 +1,62 @@
 # Completed Tasks
 
+## FPS-PORT — Source look and weapon camera layering
+
+Completed: 2026-06-17 06:40 PDT
+Commit: `9b5b6206`
+
+### Summary
+
+- Added `input.virtual()` so generated virtual actions can declare intentional
+  virtual-only action slots without fake physical bindings.
+- Split Starter Kit FPS pointer-lock mouse look into a virtual-only
+  `mouseLook` action, keeping controller/keyboard source action-vector look on
+  `look`.
+- Matched upstream player look semantics from
+  `references/Starter-Kit-FPS/objects/player.gd`: source mouse sensitivity
+  `700`, gamepad sensitivity `0.075`, source rotation-target state, controller
+  diagonal limiting, `lerp_angle(..., delta * 25)`, and recoil updates to both
+  current rotation and rotation target.
+- Spawned a source-FOV `camera.weapon` view parented to `camera.main`, routed
+  world and weapon content to separate render layers, and assigned weapon GLBs
+  plus player muzzle flash to the weapon layer.
+- Extended entity summaries with `renderLayer.mask`, then used the Aperture CLI
+  to verify the live blaster mesh primitive and muzzle sprite really sit on the
+  weapon layer.
+
+### Validation
+
+- `pnpm exec vitest run test/app/config-validation.test.ts test/app/input-state-events.test.ts test/app/developer-api.test.ts test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/browser-input-forwarding.test.ts`
+  passed 134 tests.
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --dir packages/app run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture CLI/MCP proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed with WebGPU ready and `mouseLook` present.
+  - `render_get_frame_report` reported two swapchain views with diagnostics
+    `0`: world view `drawCalls:19`, weapon view `drawCalls:4`.
+  - `camera_list` reported `camera.main` at `fov=80`, layer mask `1`, and
+    `camera.weapon` at `fov=40`, priority `1`, layer mask `2`, transparent
+    clear color, and frustum culling disabled.
+  - `ecs_find_entities {"key":"camera.weapon","limit":1}` found
+    `camera.weapon` parented to `camera.main`.
+  - `ecs_find_entities` for the live `blaster` mesh primitive and
+    `effect.muzzle-burst` both reported `renderLayer.mask:2`.
+  - `mouseLook` input `x:-1,y:0.5` plus one step produced
+    `yaw:-0.037142857142857144` and `pitch:0.018571428571428572`.
+  - Controller `look.x=1` plus one 1/60s step produced `yaw:0.03125`.
+  - Forward movement at nonzero yaw moved to
+    `x:-0.004134966501879944,z:-0.08322144762976791`.
+  - Canvas click shooting produced `shotsFired:1` and `shotCooldown:0.25`.
+  - Jump input produced `verticalVelocity:7.666666666666667`,
+    `jumpsRemaining:1`, and `grounded:false`.
+
 ## FPS-PORT — Input and weapon view source placement
 
 Completed: 2026-06-17 06:17 PDT

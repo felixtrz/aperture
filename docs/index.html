@@ -393,12 +393,41 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 13:18 UTC</dd>
+            <dd>2026-06-17 13:40 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS weapon view placement now derives
+              Latest update: Starter Kit FPS now separates pointer-lock mouse
+              look from controller/keyboard look through a virtual-only
+              <code>mouseLook</code> action, backed by a new
+              <code>input.virtual()</code> binding for generated actions with
+              no physical binding. The player system now keeps the source
+              <code>rotation_target</code> model: controller/keyboard look uses
+              <code>gamepad_sensitivity=0.075</code>, diagonal input limiting,
+              and <code>lerp_angle(..., delta * 25)</code>, while pointer-lock
+              mouse applies the source immediate mouse path at
+              <code>26/700</code> radians per virtual unit. The FPS setup also
+              now spawns a source-FOV <code>camera.weapon</code> view parented
+              to <code>camera.main</code>, routes world and weapon content onto
+              separate render layers, and gives the weapon overlay the source
+              <code>fov=40</code>. Aperture CLI proof found
+              <code>camera.main</code> at <code>fov=80</code> on layer
+              <code>1</code>, <code>camera.weapon</code> at
+              <code>fov=40</code> on layer <code>2</code>, a WebGPU frame with
+              two swapchain views (<code>drawCalls:19</code> world and
+              <code>drawCalls:4</code> weapon), and both the live blaster mesh
+              primitive and muzzle sprite on render layer <code>2</code> with
+              diagnostics <code>0</code>; <code>mouseLook</code> produced
+              <code>yaw:-0.037142857</code> and
+              <code>pitch:0.018571428</code>, controller
+              <code>look.x=1</code> produced <code>yaw:0.03125</code> for one
+              1/60s step, forward movement at nonzero yaw moved to
+              <code>x:-0.0041,z:-0.0832</code>, canvas click produced
+              <code>shotsFired:1</code>, and jump produced
+              <code>verticalVelocity:7.666666666666667</code>,
+              <code>jumpsRemaining:1</code>, and <code>grounded:false</code>.
+              Prior update: Starter Kit FPS weapon view placement now derives
               from source scene, script, and weapon-resource data. Source
               <code>objects/player.tscn</code> sets the weapon subviewport
               <code>CameraItem</code> to <code>fov=40</code> and the
@@ -2491,29 +2520,27 @@
             <ul>
               <li>
                 <span class="badge green">fps</span> Aligned Starter Kit FPS
-                weapon view placement from source
-                <code>objects/player.tscn</code>, <code>objects/player.gd</code>,
-                and weapon resources. The port now exposes source constants for
-                the weapon-camera FOV, container initial/target positions,
-                movement sway scale, shot kick, switch drop, model position,
-                rotation, and muzzle position. Active weapon roots now sit at
-                <code>[1.2,-1.1,-2.75]</code> relative to the player camera,
-                and muzzle flashes derive from
-                <code>container.position - weapon.muzzle_position</code> with
-                current sway. Aperture CLI/MCP proof read the live
-                <code>weapon.0</code> transform, generated a click with
-                <code>shotsFired:1</code>, and read the visible
-                <code>effect.muzzle-burst</code> at source-derived placement
-                with diagnostics <code>0</code>.
+                source look and weapon-camera layering. Pointer-lock mouse
+                look now uses a virtual-only <code>mouseLook</code> action at
+                <code>26/700</code> radians per unit, controller/keyboard look
+                follows the source rotation-target lerp, and recoil updates the
+                same target. The port now spawns source-FOV
+                <code>camera.weapon</code> parented to
+                <code>camera.main</code>, routes world content to render layer
+                <code>1</code>, routes weapon meshes and the muzzle sprite to
+                layer <code>2</code>, and keeps lights visible to both layers.
+                Aperture CLI proof found two WebGPU swapchain views with
+                diagnostics <code>0</code>, the weapon camera at
+                <code>fov=40</code>, and the live blaster primitive plus muzzle
+                sprite on render layer <code>2</code>.
               </li>
               <li>
-                <span class="badge green">tooling</span> Hardened generated
-                pointer capture forwarding in the browser runtime so
-                <code>setPointerCapture</code> and
-                <code>releasePointerCapture</code> are best-effort. Synthetic,
-                already-released, or pointer-lock-transition events can no
-                longer throw before generated input reaches the simulation
-                worker, with focused browser-input coverage.
+                <span class="badge green">tooling</span> Added
+                <code>input.virtual()</code> for generated virtual-only actions
+                and extended entity summaries with
+                <code>renderLayer.mask</code>, so Aperture CLI/MCP proofs can
+                inspect layer routing on real ECS entities instead of inferring
+                it from draw counts alone.
               </li>
               <li>
                 <span class="badge green">fps</span> Aligned player capsule

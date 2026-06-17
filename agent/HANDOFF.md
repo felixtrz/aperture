@@ -1,11 +1,78 @@
-# Handoff - Starter Kit FPS Input and Weapon View Source Placement
+# Handoff - Starter Kit FPS Source Look and Weapon Camera
 
-**Updated:** 2026-06-17 06:17 PDT
+**Updated:** 2026-06-17 06:40 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Aligned Starter Kit FPS source look and weapon-camera layering:
+  - `references/Starter-Kit-FPS/objects/player.gd` uses
+    `mouse_sensitivity = 700`, `gamepad_sensitivity = 0.075`, a persistent
+    `rotation_target`, source controller diagonal limiting, and
+    `lerp_angle(..., delta * 25)`.
+  - The port now keeps pointer-lock mouse look separate from
+    controller/keyboard look through a virtual-only `mouseLook` generated
+    action backed by a new `input.virtual()` config binding.
+  - Pointer-lock mouse look applies the source immediate path at `26/700`
+    radians per virtual unit; controller/keyboard `look` advances the source
+    rotation target and lerps the camera/player yaw and pitch toward it.
+  - Shot recoil now updates both the current camera rotation and the source
+    rotation target.
+  - FPS setup now spawns `camera.weapon` parented to `camera.main`, uses the
+    source weapon `CameraItem` `fov = 40`, renders world and weapon content on
+    separate render layers, and keeps lights visible to both layers.
+  - Weapon GLB roots, actual GLB mesh primitive descendants, and the player
+    muzzle flash are assigned to the weapon render layer; the main player
+    camera keeps world content on the world layer.
+  - Devtools entity summaries now expose `renderLayer.mask`, which made the
+    layer proof direct instead of inferred from draw counts.
+- Aperture tooling proof:
+  - Started the managed FPS app with
+    `pnpm --dir fps exec aperture dev up --headless --host 127.0.0.1 --port 5173`.
+  - CLI `browser_wait_for_webgpu` passed; `mouseLook` was present in generated
+    input actions and WebGPU was ready.
+  - CLI `render_get_frame_report` reported two swapchain views with diagnostics
+    `0`: world view `drawCalls:19`, weapon view `drawCalls:4`.
+  - CLI `camera_list` reported `camera.main` at `fov=80`, priority `0`, layer
+    mask `1`; `camera.weapon` at `fov=40`, priority `1`, layer mask `2`,
+    transparent clear color, and frustum culling disabled.
+  - CLI `ecs_find_entities {"key":"camera.weapon","limit":1}` found
+    `camera.weapon` parented to `camera.main`.
+  - CLI `ecs_find_entities` for the live `blaster` mesh primitive reported
+    `componentIds` including `aperture.render.layer` and `renderLayer.mask:2`.
+  - CLI `ecs_find_entities {"key":"effect.muzzle-burst","limit":1}` reported
+    `renderLayer.mask:2`, additive blend, disabled depth, and alpha `0` at
+    idle.
+  - After reset, MCP `input_action_set {"action":"mouseLook","x":-1,"y":0.5}`
+    plus one `ecs_step` produced `yaw:-0.037142857142857144` and
+    `pitch:0.018571428571428572`, matching `-26/700` and `13/700`.
+  - MCP `input_action_set {"action":"look","x":1,"y":0}` plus one 1/60s
+    `ecs_step` produced `yaw:0.03125`, matching `0.075 * 25 / 60`.
+  - Forward movement at nonzero yaw moved the player to
+    `x:-0.004134966501879944,z:-0.08322144762976791`, proving movement remains
+    camera-relative.
+  - MCP `input_pointer_click {"x":0.5,"y":0.5}` plus one `ecs_step` produced
+    `shotsFired:1` and `shotCooldown:0.25`.
+  - MCP jump input produced `verticalVelocity:7.666666666666667`,
+    `jumpsRemaining:1`, and `grounded:false`.
+- Validation:
+  - `pnpm exec vitest run test/app/config-validation.test.ts test/app/input-state-events.test.ts test/app/developer-api.test.ts test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/browser-input-forwarding.test.ts`
+    passed 134 tests.
+  - `pnpm --filter @aperture-engine/app run typecheck`
+  - `pnpm --dir packages/app run build`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Commit:
+  - `9b5b6206` — `Align FPS source look and weapon camera`
+
+## Previous Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS player weapon view placement:
   - `references/Starter-Kit-FPS/objects/player.tscn` authors the weapon
