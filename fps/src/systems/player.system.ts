@@ -48,6 +48,8 @@ import {
   SOURCE_WEAPON_CONTAINER_OFFSET,
   SOURCE_WEAPON_SHOT_KICK,
   SOURCE_WEAPON_SWITCH_DROP_OFFSET,
+  SOURCE_WEAPON_SWITCH_HIDE_DURATION,
+  SOURCE_WEAPON_SWITCH_RAISE_RATE,
   SOURCE_WEAPON_VIEWMODEL_MOVE_SCALE,
   WEAPONS,
   enemyMuzzleEffectKey,
@@ -132,8 +134,6 @@ const HIDDEN_EFFECT_POSITION: Vec3 = [0, -100, 0];
 const HIDDEN_WEAPON_Y = -100;
 const ENEMY_MUZZLE_FLASH_SLOT_COUNT =
   ENEMIES.length * ENEMY_MUZZLE_OFFSETS.length;
-const WEAPON_SWITCH_HIDE_DURATION = 0.1;
-const WEAPON_SWITCH_RAISE_RATE = 10;
 const WEAPON_SWITCH_COMPLETE_EPSILON = 0.01;
 const WEAPON_VIEWMODEL_LERP_RATE = 10;
 const LANDING_CAMERA_BOB_OFFSET = -0.1;
@@ -358,14 +358,6 @@ export default class PlayerSystem extends createSystem({
     }
 
     let shotBodyKnockback = 0;
-    if (!respawnedThisFrame && this.#button("switchWeapon")?.down()) {
-      const nextWeaponIndex = (weaponIndex + 1) % WEAPONS.length;
-      if (this.#startWeaponSwitch(weaponIndex, nextWeaponIndex)) {
-        shotCooldown = 0;
-        this.#playOneShot("weapon-change");
-      }
-    }
-
     weaponIndex = this.#advanceWeaponSwitch(weaponIndex, dt);
     const weapon = WEAPONS[weaponIndex] ?? WEAPONS[0]!;
     const shoot = respawnedThisFrame ? undefined : this.#button("shoot");
@@ -407,6 +399,13 @@ export default class PlayerSystem extends createSystem({
       );
       shotBodyKnockback = weapon.knockback;
       this.#weaponViewOffset[2] += SOURCE_WEAPON_SHOT_KICK;
+    }
+
+    if (!respawnedThisFrame && this.#button("switchWeapon")?.down()) {
+      const nextWeaponIndex = (weaponIndex + 1) % WEAPONS.length;
+      if (this.#startWeaponSwitch(weaponIndex, nextWeaponIndex)) {
+        this.#playOneShot("weapon-change");
+      }
     }
 
     verticalVelocity -= GRAVITY * dt;
@@ -1055,7 +1054,7 @@ export default class PlayerSystem extends createSystem({
 
     if (
       this.#weaponVisualIndex !== this.#weaponSwitchTargetIndex &&
-      this.#weaponSwitchTimer >= WEAPON_SWITCH_HIDE_DURATION
+      this.#weaponSwitchTimer >= SOURCE_WEAPON_SWITCH_HIDE_DURATION
     ) {
       this.#weaponVisualIndex = this.#weaponSwitchTargetIndex;
       this.#weaponSwitchRaiseOffset = SOURCE_WEAPON_SWITCH_DROP_OFFSET;
@@ -1065,7 +1064,7 @@ export default class PlayerSystem extends createSystem({
       return this.#weaponVisualIndex;
     }
 
-    const decay = Math.min(1, dt * WEAPON_SWITCH_RAISE_RATE);
+    const decay = Math.min(1, dt * SOURCE_WEAPON_SWITCH_RAISE_RATE);
     this.#weaponSwitchRaiseOffset *= 1 - decay;
 
     if (this.#weaponSwitchRaiseOffset <= WEAPON_SWITCH_COMPLETE_EPSILON) {
@@ -1085,7 +1084,10 @@ export default class PlayerSystem extends createSystem({
       return (
         SOURCE_WEAPON_SWITCH_DROP_OFFSET *
         smoothstep(
-          Math.min(1, this.#weaponSwitchTimer / WEAPON_SWITCH_HIDE_DURATION),
+          Math.min(
+            1,
+            this.#weaponSwitchTimer / SOURCE_WEAPON_SWITCH_HIDE_DURATION,
+          ),
         )
       );
     }
@@ -1100,7 +1102,11 @@ export default class PlayerSystem extends createSystem({
 
     if (this.#weaponVisualIndex !== this.#weaponSwitchTargetIndex) {
       return (
-        0.5 * Math.min(1, this.#weaponSwitchTimer / WEAPON_SWITCH_HIDE_DURATION)
+        0.5 *
+        Math.min(
+          1,
+          this.#weaponSwitchTimer / SOURCE_WEAPON_SWITCH_HIDE_DURATION,
+        )
       );
     }
 

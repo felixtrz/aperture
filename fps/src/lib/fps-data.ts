@@ -129,6 +129,8 @@ export const WEAPON_CAMERA_KEY = "camera.weapon";
 export const SOURCE_WEAPON_VIEWMODEL_MOVE_SCALE = 1 / 30;
 export const SOURCE_WEAPON_SHOT_KICK = 0.25;
 export const SOURCE_WEAPON_SWITCH_DROP_OFFSET = 1;
+export const SOURCE_WEAPON_SWITCH_HIDE_DURATION = 0.1;
+export const SOURCE_WEAPON_SWITCH_RAISE_RATE = 10;
 
 export const WEAPONS: readonly WeaponSpec[] = [
   {
