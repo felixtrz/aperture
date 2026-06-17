@@ -1,3 +1,56 @@
+# Handoff - FPS Source Input Fidelity
+
+**Updated:** 2026-06-17 13:21 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Committed `966186a5` (`Improve FPS input command fidelity`).
+- Preserved raw pointer-lock look deltas through the FPS command channel:
+  - The generated `mouseLook` action still receives clamped values for normal
+    input summary compatibility.
+  - The FPS system now consumes unclamped `look` commands when available, so
+    source mouse motion can exceed the generated axis range.
+- Added a short player-system jump tap grace window so quick command taps
+  survive slow worker frames.
+- Brought the remaining pointer-binding validation test in line with the
+  committed multi-button pointer input behavior.
+
+## Validation
+
+- `pnpm exec vitest run test/app/fps-hud.test.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/input-pointer-binding-validation.test.ts`
+- `pnpm --dir fps run typecheck`
+- `git diff --check -- fps/src/hud.ts fps/src/lib/fps-data.ts fps/src/lib/fps-hud.ts fps/src/systems/player.system.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-hud.test.ts test/app/input-pointer-binding-validation.test.ts`
+- Managed Aperture CLI proof:
+  - `pnpm --dir fps exec aperture dev status` shows the FPS dev session running
+    at `http://127.0.0.1:5173/`.
+  - `browser_status` reported WebGPU ready and no app failure.
+  - `render_get_diagnostics` reported diagnostics `0`, `views:2`,
+    `meshDraws:21`, `shadowCasterDraws:44`, `drawCalls:36`, and the
+    `auto-shadow` command buffer submitted.
+
+## Known Issues
+
+- FPS viewmodel rear/stock still shows the user-reported artifact in the
+  screenshot. Commit `7465fe16` fixed authored front-face pipeline state, but
+  the current blaster material still resolves through the default CCW,
+  double-sided path.
+- The shadow default must remain camera/receiver auto-fit. Fixed/static bounds
+  are acceptable only as explicit authored overrides or no-camera fallback, not
+  as an out-of-box solution.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+
+## Recommended Next Task
+
+Continue the user-directed shadow/default and FPS viewmodel parity stream. The
+next focused slice is to replace any remaining fixed-box thinking in the
+directional shadow default with a robust camera/receiver fit plus independent
+shadow-caster extraction, then validate FPS, racing, and shadow-lab through
+Aperture CLI.
+
+---
+
 # Handoff - Shadow Auto-Fit Default Guard
 
 **Updated:** 2026-06-17 13:16 PDT

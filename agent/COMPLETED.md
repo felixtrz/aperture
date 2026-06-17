@@ -1,5 +1,27 @@
 # Completed Tasks
 
+## FPS-PORT - Source input command fidelity
+
+Completed: 2026-06-17 13:21 PDT
+
+### Summary
+
+- Preserved raw pointer-lock look deltas through the FPS command channel so
+  source mouse motion is no longer clamped by generated axis limits.
+- Added a short jump tap grace window in the player system so quick jump
+  commands survive slow worker frames.
+- Aligned the remaining pointer-binding validation test with the committed
+  `primary`/`secondary`/`middle` pointer support.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-hud.test.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/input-pointer-binding-validation.test.ts`
+- `pnpm --dir fps run typecheck`
+- `git diff --check -- fps/src/hud.ts fps/src/lib/fps-data.ts fps/src/lib/fps-hud.ts fps/src/systems/player.system.ts test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-hud.test.ts test/app/input-pointer-binding-validation.test.ts`
+- Managed Aperture CLI proof: FPS dev session at `http://127.0.0.1:5173/`
+  reported WebGPU ready, diagnostics `0`, `views:2`, `meshDraws:21`,
+  `shadowCasterDraws:44`, and `drawCalls:36`.
+
 ## WEBGPU-SHADOWS - Off-footprint casters cannot soften default auto-fit
 
 Completed: 2026-06-17 13:16 PDT
