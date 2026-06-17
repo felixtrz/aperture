@@ -8,6 +8,7 @@ import {
   createSystem,
   hexColor,
   mesh,
+  type Entity,
 } from "@aperture-engine/app/systems";
 import {
   Sprite,
@@ -34,8 +35,10 @@ import {
   ENEMIES,
   ENEMY_HITBOX_OFFSET,
   ENEMY_MUZZLE_OFFSETS,
+  IMPACT_EFFECT_SLOT_COUNT,
   LEVEL_COLLIDERS,
   LEVEL_INSTANCES,
+  PLATFORM_LARGE_GRASS_DECORATIONS,
   PLAYER_BODY_HALF_HEIGHT,
   PLAYER_BODY_KEY,
   PLAYER_BODY_RADIUS,
@@ -46,6 +49,8 @@ import {
   PLAYER_START,
   WEAPONS,
   enemyMuzzleEffectKey,
+  impactEffectKey,
+  platformLargeGrassDecorationKey,
 } from "../lib/fps-data.js";
 
 const GLTF_FRONT_SIDE_MATERIALS = {
@@ -174,7 +179,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     });
 
     for (const instance of LEVEL_INSTANCES) {
-      this.spawn.gltf(this.assets.gltf(instance.assetId), {
+      const root = this.spawn.gltf(this.assets.gltf(instance.assetId), {
         key: instance.key,
         name: instance.key,
         tags: instance.tags,
@@ -187,6 +192,10 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
           scale: instance.scale ?? [1, 1, 1],
         },
       });
+
+      if (instance.assetId === "platform-large-grass") {
+        this.#spawnPlatformLargeGrassDecorations(root, instance.key);
+      }
     }
 
     for (const cloud of CLOUDS) {
@@ -285,14 +294,16 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       blendMode: SpriteBlendMode.Additive,
     });
 
-    this.#spawnSpriteEffect({
-      key: "effect.impact-hit",
-      name: "Impact Hit",
-      textureId: "impact-hit",
-      size: [0.85, 0.85],
-      blendMode: SpriteBlendMode.Alpha,
-      depthMode: SpriteDepthMode.Disabled,
-    });
+    for (let index = 0; index < IMPACT_EFFECT_SLOT_COUNT; index += 1) {
+      this.#spawnSpriteEffect({
+        key: impactEffectKey(index),
+        name: `Impact Hit ${index + 1}`,
+        textureId: "impact-hit",
+        size: [0.85, 0.85],
+        blendMode: SpriteBlendMode.Alpha,
+        depthMode: SpriteDepthMode.Disabled,
+      });
+    }
 
     for (const enemy of ENEMIES) {
       for (const index of ENEMY_MUZZLE_OFFSETS.keys()) {
@@ -338,6 +349,35 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
           : { depthMode: input.depthMode }),
       }),
     );
+  }
+
+  #spawnPlatformLargeGrassDecorations(
+    parent: Entity,
+    platformKey: string,
+  ): void {
+    for (const decoration of PLATFORM_LARGE_GRASS_DECORATIONS) {
+      this.spawn.gltf(this.assets.gltf(decoration.assetId), {
+        key: platformLargeGrassDecorationKey(platformKey, decoration),
+        name: platformLargeGrassDecorationKey(platformKey, decoration),
+        tags: decoration.tags,
+        materials: GLTF_FRONT_SIDE_MATERIALS,
+        castShadow: true,
+        receiveShadow: true,
+        transform: {
+          parent,
+          translation: decoration.position,
+          ...(decoration.yawDegrees === undefined
+            ? {}
+            : {
+                rotationEulerDegrees: [0, decoration.yawDegrees, 0] as [
+                  number,
+                  number,
+                  number,
+                ],
+              }),
+        },
+      });
+    }
   }
 
   #spawnSourceSkybox(): void {

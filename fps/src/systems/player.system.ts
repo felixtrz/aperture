@@ -26,6 +26,7 @@ import {
   ENEMY_HITBOX_OFFSET,
   ENEMY_MUZZLE_OFFSETS,
   GRAVITY,
+  IMPACT_EFFECT_SLOT_COUNT,
   JUMP_STRENGTH,
   MAX_JUMPS,
   PLAYER_BODY_EYE_OFFSET,
@@ -38,6 +39,7 @@ import {
   PLAYER_START,
   WEAPONS,
   enemyMuzzleEffectKey,
+  impactEffectKey,
   type WeaponSpec,
 } from "../lib/fps-data.js";
 import {
@@ -144,11 +146,11 @@ export default class PlayerSystem extends createSystem({
   #enemyTime = 0;
   #enemyAttackTimer = 0;
   #muzzleFlashTimer = 0;
-  #impactFlashTimer = 0;
   #muzzleFlashPosition: Vec3 = HIDDEN_EFFECT_POSITION;
   #muzzleFlashRoll = 0;
   #muzzleFlashScale = PLAYER_MUZZLE_MIN_SCALE;
-  #impactFlashPosition: Vec3 = HIDDEN_EFFECT_POSITION;
+  #impactFlashTimers = createNumberSlots(IMPACT_EFFECT_SLOT_COUNT);
+  #impactFlashPositions = createPositionSlots(IMPACT_EFFECT_SLOT_COUNT);
   #enemyMuzzleFlashTimers = createEnemyMuzzleNumberSlots();
   #enemyMuzzleFlashPositions = createEnemyMuzzlePositionSlots();
   #enemyMuzzleFlashRolls = createEnemyMuzzleNumberSlots();
@@ -167,7 +169,10 @@ export default class PlayerSystem extends createSystem({
   override update(delta: number): void {
     const dt = Math.min(Math.max(delta, 0), 1 / 30);
     this.#muzzleFlashTimer = Math.max(0, this.#muzzleFlashTimer - dt);
-    this.#impactFlashTimer = Math.max(0, this.#impactFlashTimer - dt);
+    for (let i = 0; i < this.#impactFlashTimers.length; i += 1) {
+      const timer = this.#impactFlashTimers[i] ?? 0;
+      this.#impactFlashTimers[i] = Math.max(0, timer - dt);
+    }
     this.#jumpBufferTimer = Math.max(0, this.#jumpBufferTimer - dt);
     for (let i = 0; i < this.#enemyMuzzleFlashTimers.length; i += 1) {
       const timer = this.#enemyMuzzleFlashTimers[i] ?? 0;
@@ -366,9 +371,7 @@ export default class PlayerSystem extends createSystem({
         enemyDestroyedPulse += shot.destroyedEnemies.length;
       }
       this.#triggerMuzzleFlash(position, yaw, pitch, weapon);
-      if (shot.impact !== null) {
-        this.#triggerImpactFlash(shot.impact);
-      }
+      this.#triggerImpactFlashes(shot.impacts);
       const kick = randomWeaponKick(weapon);
       pitch = clampPitch(pitch + kick.pitch);
       yaw += kick.yaw;
@@ -457,17 +460,13 @@ export default class PlayerSystem extends createSystem({
   ): {
     readonly enemyHealth: Record<string, number>;
     readonly hits: number;
-    readonly impact: Vec3 | null;
+    readonly impacts: readonly Vec3[];
     readonly destroyedEnemies: readonly string[];
   } {
     let hitCount = 0;
     let nextHealth = enemyHealth;
     const destroyedEnemies: string[] = [];
-    let nearestImpact: {
-      readonly point: Vec3;
-      readonly normal: Vec3;
-      readonly distance: number;
-    } | null = null;
+    const impacts: Vec3[] = [];
 
     for (let i = 0; i < weapon.shotCount; i += 1) {
       const direction = spreadDirection(yaw, pitch, weapon.spread);
@@ -480,16 +479,13 @@ export default class PlayerSystem extends createSystem({
         this.#queryExcluding(PLAYER_BODY_KEY),
       );
       const nearestRayHit = nearestPhysicsHit(rayHits);
-      if (
-        nearestRayHit !== null &&
-        (nearestImpact === null ||
-          nearestRayHit.distance < nearestImpact.distance)
-      ) {
-        nearestImpact = {
-          point: cloneVec3(nearestRayHit.point),
-          normal: cloneVec3(nearestRayHit.normal),
-          distance: nearestRayHit.distance,
-        };
+      if (nearestRayHit !== null) {
+        impacts.push(
+          offsetImpactPoint(
+            cloneVec3(nearestRayHit.point),
+            cloneVec3(nearestRayHit.normal),
+          ),
+        );
       }
       const hit = this.#firstShotEnemyHit(rayHits, nextHealth);
 
@@ -511,10 +507,7 @@ export default class PlayerSystem extends createSystem({
     return {
       enemyHealth: nextHealth,
       hits: hitCount,
-      impact:
-        nearestImpact === null
-          ? null
-          : offsetImpactPoint(nearestImpact.point, nearestImpact.normal),
+      impacts,
       destroyedEnemies,
     };
   }
@@ -699,9 +692,12 @@ export default class PlayerSystem extends createSystem({
     this.#muzzleFlashTimer = MUZZLE_FLASH_DURATION;
   }
 
-  #triggerImpactFlash(position: Vec3): void {
-    this.#impactFlashPosition = position;
-    this.#impactFlashTimer = IMPACT_FLASH_DURATION;
+  #triggerImpactFlashes(positions: readonly Vec3[]): void {
+    const count = Math.min(positions.length, IMPACT_EFFECT_SLOT_COUNT);
+    for (let i = 0; i < count; i += 1) {
+      this.#impactFlashPositions[i] = positions[i] ?? HIDDEN_EFFECT_POSITION;
+      this.#impactFlashTimers[i] = IMPACT_FLASH_DURATION;
+    }
   }
 
   #writeShotEffects(): void {
@@ -713,13 +709,15 @@ export default class PlayerSystem extends createSystem({
       MUZZLE_FLASH_FRAMES,
       this.#muzzleFlashRoll,
     );
-    this.#writeEffectSprite(
-      "effect.impact-hit",
-      this.#impactFlashPosition,
-      this.#impactFlashTimer / IMPACT_FLASH_DURATION,
-      1,
-      IMPACT_FLASH_FRAMES,
-    );
+    for (let index = 0; index < IMPACT_EFFECT_SLOT_COUNT; index += 1) {
+      this.#writeEffectSprite(
+        impactEffectKey(index),
+        this.#impactFlashPositions[index] ?? HIDDEN_EFFECT_POSITION,
+        (this.#impactFlashTimers[index] ?? 0) / IMPACT_FLASH_DURATION,
+        1,
+        IMPACT_FLASH_FRAMES,
+      );
+    }
     for (const [enemyIndex, enemy] of ENEMIES.entries()) {
       for (
         let muzzleIndex = 0;
@@ -873,11 +871,11 @@ export default class PlayerSystem extends createSystem({
     this.#enemyTime = 0;
     this.#enemyAttackTimer = 0;
     this.#muzzleFlashTimer = 0;
-    this.#impactFlashTimer = 0;
     this.#muzzleFlashPosition = HIDDEN_EFFECT_POSITION;
     this.#muzzleFlashRoll = 0;
     this.#muzzleFlashScale = PLAYER_MUZZLE_MIN_SCALE;
-    this.#impactFlashPosition = HIDDEN_EFFECT_POSITION;
+    this.#impactFlashTimers = createNumberSlots(IMPACT_EFFECT_SLOT_COUNT);
+    this.#impactFlashPositions = createPositionSlots(IMPACT_EFFECT_SLOT_COUNT);
     this.#clearEnemyMuzzleFlashes();
     this.#resetWeaponSwitch();
     this.#weaponViewOffset = [0, 0, 0];
@@ -1178,15 +1176,20 @@ function randomSign(): 1 | -1 {
   return Math.random() < 0.5 ? -1 : 1;
 }
 
+function createNumberSlots(length: number): number[] {
+  return Array.from({ length }, () => 0);
+}
+
+function createPositionSlots(length: number): Vec3[] {
+  return Array.from({ length }, () => HIDDEN_EFFECT_POSITION);
+}
+
 function createEnemyMuzzleNumberSlots(): number[] {
-  return Array.from({ length: ENEMY_MUZZLE_FLASH_SLOT_COUNT }, () => 0);
+  return createNumberSlots(ENEMY_MUZZLE_FLASH_SLOT_COUNT);
 }
 
 function createEnemyMuzzlePositionSlots(): Vec3[] {
-  return Array.from(
-    { length: ENEMY_MUZZLE_FLASH_SLOT_COUNT },
-    () => HIDDEN_EFFECT_POSITION,
-  );
+  return createPositionSlots(ENEMY_MUZZLE_FLASH_SLOT_COUNT);
 }
 
 function enemyMuzzleSlotIndex(enemyIndex: number, muzzleIndex: number): number {

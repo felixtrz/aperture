@@ -1,5 +1,47 @@
 # Completed Tasks
 
+## FPS-PORT — Source multi-impact effects and grass children
+
+Completed: 2026-06-17 04:25 PDT
+Commit: pending
+
+### Summary
+
+- Aligned FPS shot impacts with upstream `objects/player.gd`: the source creates
+  an `impact.tscn` animation inside the weapon pellet loop, so a blaster shot
+  can show one impact per pellet instead of one collapsed nearest impact.
+- Added impact effect slots derived from the largest source weapon
+  `shot_count`; the blaster now has three `effect.impact-hit.*` sprite slots
+  while the repeater still uses one slot.
+- Kept the impact sprites source-style: four 30fps atlas frames, alpha `1`
+  while visible, hidden afterward, and depth disabled.
+- Preserved `objects/platform_large_grass.tscn` child grass models by spawning
+  three local grass children under every `platform-large-grass` instance instead
+  of only the three decorations on the first platform.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-effects.test.ts test/app/fps-controls.test.ts test/app/fps-audio.test.ts`
+  passed 19 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture CLI proof against the live FPS route:
+  - generated look aimed at `enemy.0`, generated `shoot` fired once, and
+    `fps.state` reported `shotsFired:1`, `hits:3`, and
+    `enemy.0` health `100 -> 25`.
+  - `effect.impact-hit.0`, `.1`, and `.2` each reported alpha `1`,
+    `atlasFrame:0`, and distinct world translations immediately after the shot.
+  - `render_get_frame_report {"summaryOnly":true}` reported frame `4544`,
+    `spriteDraws:4`, `skyboxes:1`, `fogs:1`, 34 draw calls, and diagnostics
+    `0`.
+  - `ecs_find_entities {"tags":["decoration","grass"]}` returned 15 source
+    grass child entities across the five large grass platforms.
+
 ## FPS-PORT — Jump ceiling handling
 
 Completed: 2026-06-17 04:15 PDT

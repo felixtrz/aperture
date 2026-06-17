@@ -50,6 +50,14 @@ export interface EnemySpec {
   readonly yawDegrees?: number | undefined;
 }
 
+export interface PlatformLargeGrassDecorationSpec {
+  readonly keySuffix: string;
+  readonly assetId: "grass" | "grass-small";
+  readonly position: Vec3;
+  readonly yawDegrees?: number | undefined;
+  readonly tags: readonly string[];
+}
+
 export const ENEMY_MUZZLE_OFFSETS: readonly [Vec3, Vec3] = [
   [-0.45, 0.3, 0.4],
   [0.45, 0.3, 0.4],
@@ -118,6 +126,21 @@ export const WEAPONS: readonly WeaponSpec[] = [
     muzzlePosition: [0.1, -0.4, 1.5],
   },
 ];
+
+export const IMPACT_EFFECT_SLOT_COUNT = Math.max(
+  ...WEAPONS.map((weapon) => weapon.shotCount),
+);
+
+export function impactEffectKey(slotIndex: number): string {
+  return `effect.impact-hit.${slotIndex}`;
+}
+
+export function platformLargeGrassDecorationKey(
+  platformKey: string,
+  decoration: PlatformLargeGrassDecorationSpec,
+): string {
+  return `${platformKey}.${decoration.keySuffix}`;
+}
 
 export const ENEMIES: readonly EnemySpec[] = [
   { key: "enemy.0", position: [-3.5, 2.5, -6], yawDegrees: 0 },
@@ -213,26 +236,30 @@ export const LEVEL_INSTANCES: readonly LevelInstance[] = [
     yawDegrees: -15,
     tags: ["level", "ground"],
   },
-  {
-    key: "deco.grass.0",
-    assetId: "grass",
-    position: [-1.58, 0, 1.72],
-    tags: ["decoration", "grass"],
-  },
-  {
-    key: "deco.grass-small.0",
-    assetId: "grass-small",
-    position: [1.89, 0, -1.6],
-    tags: ["decoration", "grass"],
-  },
-  {
-    key: "deco.grass.1",
-    assetId: "grass",
-    position: [1.46, 0, -1.52],
-    yawDegrees: -38.5,
-    tags: ["decoration", "grass"],
-  },
 ];
+
+export const PLATFORM_LARGE_GRASS_DECORATIONS: readonly PlatformLargeGrassDecorationSpec[] =
+  [
+    {
+      keySuffix: "grass.0",
+      assetId: "grass",
+      position: [-1.57788, 0.5, 1.72158],
+      tags: ["decoration", "grass"],
+    },
+    {
+      keySuffix: "grass-small.0",
+      assetId: "grass-small",
+      position: [1.88646, 0.5, -1.59607],
+      tags: ["decoration", "grass"],
+    },
+    {
+      keySuffix: "grass.1",
+      assetId: "grass",
+      position: [1.46331, 0.5, -1.52249],
+      yawDegrees: -38.5,
+      tags: ["decoration", "grass"],
+    },
+  ];
 
 export const CLOUDS: readonly CloudSpec[] = [
   {

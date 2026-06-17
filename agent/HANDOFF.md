@@ -1,11 +1,63 @@
-# Handoff - Starter Kit FPS Jump Ceiling Handling
+# Handoff - Starter Kit FPS Multi-Impact Effects And Grass Children
 
-**Updated:** 2026-06-17 04:20 PDT
+**Updated:** 2026-06-17 04:25 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Aligned Starter Kit FPS shot impacts with upstream
+  `references/Starter-Kit-FPS/objects/player.gd`:
+  - Source `action_shoot()` instantiates and plays `objects/impact.tscn`
+    inside the `for n in weapon.shot_count` pellet loop whenever a raycast
+    collides.
+  - The port now creates `effect.impact-hit.0`, `.1`, and `.2` from the maximum
+    source weapon `shot_count` instead of collapsing a blaster volley to one
+    nearest impact sprite.
+  - Impact sprites keep the existing source-style four-frame 30fps atlas
+    playback, alpha `1` on visible frames, hidden reset state, and disabled
+    depth behavior.
+- Preserved Starter Kit FPS `objects/platform_large_grass.tscn` child
+  decorations:
+  - The source packed scene has `grass`, `grass-small`, and `grass2` child
+    models under each `platform-large-grass` instance.
+  - The port now spawns those three local children under every large grass
+    platform root, so all five authored platforms carry the same source grass
+    detail.
+- Focused coverage:
+  - Added `IMPACT_EFFECT_SLOT_COUNT` / `impactEffectKey(...)` coverage so the
+    visible impact slot count stays tied to source weapon pellet counts.
+  - Added platform-large-grass child decoration key/transform coverage.
+- Aperture proof:
+  - Restarted the managed FPS app through `pnpm exec aperture dev up
+    --headless --host 127.0.0.1 --port 5173` and waited for WebGPU.
+  - Used generated `look` input to aim at `enemy.0`, generated `shoot` once,
+    and read `fps.state`: `shotsFired:1`, `hits:3`, and `enemy.0` health
+    `100 -> 25`.
+  - Immediately read `effect.impact-hit.0`, `.1`, and `.2`; each reported
+    `renderSprite.color[3] = 1`, `atlasFrame:0`, and distinct impact
+    translations around the enemy hitbox.
+  - `render_get_frame_report {"summaryOnly":true}` reported frame `4544`,
+    one view, 17 mesh draws, `spriteDraws:4`, `skyboxes:1`, 34 draw calls, and
+    diagnostics `0`.
+  - `ecs_find_entities {"tags":["decoration","grass"]}` returned 15 grass
+    child entities, including `level.platform-large-grass.0.grass.0` and
+    `level.platform-large-grass.4.grass-small.0` with source local transforms.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-effects.test.ts test/app/fps-controls.test.ts test/app/fps-audio.test.ts`
+    passed 19 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - pending — `Align FPS impact and grass details with source`
+
+## Previous Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS jump/ceiling handling with upstream
   `references/Starter-Kit-FPS/objects/player.gd`:
@@ -43,8 +95,6 @@ previous working state so the old state remains recoverable.
   - `git diff --check`
 - Committed implementation:
   - `20866fb3` — `Align FPS jump ceiling handling`
-
-## Previous Completed FPS/Tooling Slices
 
 - Aligned two more Starter Kit FPS source fidelity gaps:
   - `references/Starter-Kit-FPS/objects/player.tscn` keeps

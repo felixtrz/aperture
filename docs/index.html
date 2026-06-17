@@ -393,21 +393,33 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 11:19 UTC</dd>
+            <dd>2026-06-17 11:25 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS jump handling now matches upstream
+              Latest update: Starter Kit FPS shot impacts and large-platform
+              grass details now match source scenes more closely. The blaster
+              can show one impact animation per pellet instead of collapsing
+              each volley to a single nearest impact, and every
+              <code>platform-large-grass</code> root now carries the three
+              grass children from <code>objects/platform_large_grass.tscn</code>.
+              Aperture CLI proof used generated <code>look</code> and
+              <code>shoot</code> input against <code>enemy.0</code>;
+              <code>fps.state</code> reported
+              <code>shotsFired:1</code>, <code>hits:3</code>, and enemy health
+              <code>100-&gt;25</code>, while
+              <code>effect.impact-hit.0</code>, <code>.1</code>, and
+              <code>.2</code> each reported alpha <code>1</code>. Entity lookup
+              also returned 15 source grass children across the five large grass
+              platforms. The managed frame report stayed at diagnostics
+              <code>0</code>. Prior update:
+              Starter Kit FPS jump handling now matches upstream
               <code>objects/player.gd</code> more closely: upward motion stays
               airborne while source-style upward velocity is active, and jump
               impulse is cancelled only by ceiling-like character-controller
-              collision normals. Aperture CLI proof used live
-              <code>physics_move_character</code> against
-              <code>level.platform.2.collider</code> and observed collision
-              normals with <code>normal[1]</code> around <code>-0.57</code>;
-              the managed frame report stayed at diagnostics <code>0</code>.
-              Prior update: Starter Kit FPS source fidelity now includes
+              collision normals. Prior update: Starter Kit FPS source fidelity
+              now includes
               upstream footstep audio gain/threshold behavior and the source
               panorama skybox. The port converts <code>sprites/skybox.png</code>
               into a cube texture asset, spawns <code>skybox.main</code> at
@@ -2311,6 +2323,17 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned source shot impact
+                behavior and large-platform grass children: a blaster volley now
+                drives three <code>effect.impact-hit.*</code> sprite slots, and
+                every <code>platform-large-grass</code> instance owns the three
+                grass children from the source packed scene. Live Aperture CLI
+                proof reported <code>shotsFired:1</code>, <code>hits:3</code>,
+                enemy health <code>100-&gt;25</code>, all three impact slots
+                visible at alpha <code>1</code>, and 15 source grass child
+                entities.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned source jump
                 ceiling handling: upward motion remains airborne while source

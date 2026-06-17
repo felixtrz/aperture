@@ -4,6 +4,11 @@ import {
   sourceSpriteFrameForLife,
   type SpriteAnimationFrame,
 } from "../../fps/src/lib/fps-effects.js";
+import {
+  IMPACT_EFFECT_SLOT_COUNT,
+  WEAPONS,
+  impactEffectKey,
+} from "../../fps/src/lib/fps-data.js";
 
 const IMPACT_FRAMES: readonly SpriteAnimationFrame[] = [
   [0, 0, 0.5, 0.5],
@@ -38,5 +43,21 @@ describe("Starter Kit FPS sprite effects", () => {
       uvRect: [0, 0, 1, 1],
     });
     expect(sourceSpriteAlphaForFrame(muzzleHiddenFrame)).toBe(0);
+  });
+
+  it("allocates one impact effect slot for each source blaster pellet", () => {
+    const maxShotCount = Math.max(...WEAPONS.map((weapon) => weapon.shotCount));
+
+    expect(IMPACT_EFFECT_SLOT_COUNT).toBe(maxShotCount);
+    expect(IMPACT_EFFECT_SLOT_COUNT).toBe(3);
+    expect(
+      Array.from({ length: IMPACT_EFFECT_SLOT_COUNT }, (_, index) =>
+        impactEffectKey(index),
+      ),
+    ).toEqual([
+      "effect.impact-hit.0",
+      "effect.impact-hit.1",
+      "effect.impact-hit.2",
+    ]);
   });
 });
