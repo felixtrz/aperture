@@ -1,5 +1,79 @@
 # Completed Tasks
 
+## FPS-PORT — Input and weapon view source placement
+
+Completed: 2026-06-17 06:17 PDT
+Commits: `15b3cacf`, `75c4ac57`
+
+### Summary
+
+- Matched upstream weapon view placement from
+  `references/Starter-Kit-FPS/objects/player.tscn`,
+  `references/Starter-Kit-FPS/objects/player.gd`, and the source weapon
+  resources.
+- Added explicit source constants for the weapon subviewport camera FOV,
+  container initial/target positions, weapon model position, muzzle position,
+  movement sway scale, shot kick, and switch drop offset.
+- Active weapon GLB roots now sit at the source container target
+  `[1.2,-1.1,-2.75]` relative to the player camera.
+- Player muzzle flashes now derive from source
+  `container.position - weapon.muzzle_position` and include the current
+  movement sway offset.
+- Generated browser pointer capture/release is now best-effort, so browser or
+  synthetic pointer-capture failures cannot prevent pointer down/up forwarding
+  from reaching the simulation worker.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+  passed 56 tests.
+- `pnpm --dir packages/app run typecheck`
+- `pnpm --dir packages/app run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture CLI/MCP proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed after reloading the managed FPS session.
+  - CLI and MCP entity reads for `weapon.0` reported local translation
+    `[1.2000000476837158,-1.100000023841858,-2.75]` and diagnostics `0`.
+  - Generated center click produced `shotsFired:1`; CLI and MCP reads for
+    `effect.muzzle-burst` reported visible alpha `1`, source sprite size near
+    `2.56`, `depthMode:"disabled"`, and source-derived muzzle translation
+    around `[0.9220132231712341,0.27010002732276917,-4.292131423950195]`.
+  - Fresh managed-browser `input_pointer_click` changed `shotsFired` from `0`
+    to `1` and produced a render frame with `spriteDraws:2`,
+    `quadInstances:2`, diagnostics `0`.
+  - `input_key Space press` produced `verticalVelocity:7.666666666666667`,
+    `jumpsRemaining:1`, and `grounded:false`.
+  - Forward movement after generated look input moved to
+    `[0.02215035724262293,0.9701670107679092,0.08033558259526785]` at
+    `yaw:15.977000000029802`, proving camera-relative movement.
+  - Latest fresh-session console entries contained no new pointer-capture
+    `InvalidStateError`.
+
+## TOOLING — Generated pointer capture forwarding
+
+Completed: 2026-06-17 06:09 PDT
+Commit: `15b3cacf`
+
+### Summary
+
+- Hardened generated browser pointer input forwarding so `setPointerCapture`
+  and `releasePointerCapture` are best-effort.
+- Synthetic, already-released, or pointer-lock-transition events can no longer
+  throw before the input event is forwarded to the generated simulation worker.
+- Added focused browser-input forwarding coverage.
+
+### Validation
+
+- `pnpm exec vitest run test/app/browser-input-forwarding.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `git diff --check`
+
 ## FPS-PORT — Player capsule source data
 
 Completed: 2026-06-17 06:04 PDT

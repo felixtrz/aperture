@@ -1,11 +1,76 @@
-# Handoff - Starter Kit FPS Player Capsule Source Data
+# Handoff - Starter Kit FPS Input and Weapon View Source Placement
 
-**Updated:** 2026-06-17 06:04 PDT
+**Updated:** 2026-06-17 06:17 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Aligned Starter Kit FPS player weapon view placement:
+  - `references/Starter-Kit-FPS/objects/player.tscn` authors the weapon
+    subviewport `CameraItem` at `fov = 40.0`, the `Container` at
+    `[1.2, -1, -2.25]`, and the runtime `container_offset` in
+    `references/Starter-Kit-FPS/objects/player.gd` is `[1.2, -1.1, -2.75]`.
+  - `references/Starter-Kit-FPS/weapons/blaster.tres` and
+    `blaster-repeater.tres` leave weapon model position at the `Weapon`
+    script default `[0,0,0]`, set rotation `[0,180,0]`, and set
+    `muzzle_position = [0.1,-0.4,1.5]`.
+  - The port now exposes source weapon-view constants, places both weapon GLB
+    roots at `[1.2,-1.1,-2.75]` relative to the player camera, and derives
+    muzzle flash placement from source `container.position -
+    weapon.muzzle_position`, including movement sway offset.
+- Hardened generated browser input forwarding:
+  - `packages/app/src/browser/input.ts` now treats pointer capture/release as
+    best-effort so synthetic or pointer-lock-transition events cannot prevent
+    generated input from reaching the simulation worker.
+  - Added focused coverage in `test/app/browser-input-forwarding.test.ts`.
+- Focused coverage:
+  - Added `fps-data` tests for source weapon container, weapon-camera,
+    switch/drop, shot-kick, model position, rotation, and muzzle data.
+  - Added `fps-controls` tests for source weapon muzzle local/world placement
+    and movement sway offset.
+- Aperture proof:
+  - Reloaded the managed FPS app through Aperture CLI and waited for WebGPU.
+  - CLI and MCP `ecs_find_entities {"key":"weapon.0","limit":1}` reported
+    active weapon local translation
+    `[1.2000000476837158,-1.100000023841858,-2.75]` and diagnostics `0`.
+  - A generated center click reported `shotsFired:1`; CLI and MCP
+    `ecs_find_entities {"key":"effect.muzzle-burst","limit":1}` then reported
+    visible sprite alpha `1`, source sprite width/height near `2.56`,
+    `depthMode:"disabled"`, and source-derived muzzle translation around
+    `[0.9220132231712341,0.27010002732276917,-4.292131423950195]` with
+    diagnostics `0`.
+  - A fresh managed-browser click through `input_pointer_click` changed
+    `fps.state.shotsFired` from `0` to `1`, set `shotCooldown:0.25`, and the
+    frame report showed `spriteDraws:2`, `quadInstances:2`, diagnostics `0`.
+  - `input_key Space press` plus one `ecs_step` produced
+    `verticalVelocity:7.666666666666667`, `jumpsRemaining:1`, and
+    `grounded:false`.
+  - After generated look input, forward movement changed position from near the
+    origin to `[0.02215035724262293,0.9701670107679092,0.08033558259526785]`
+    at `yaw:15.977000000029802`, proving movement follows camera yaw instead
+    of fixed world `-Z`.
+  - Latest post-proof render frame report had diagnostics `0`; latest console
+    entries after the fresh session contained no new pointer-capture
+    `InvalidStateError`.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-hud.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+    passed 56 tests.
+  - `pnpm --dir packages/app run typecheck`
+  - `pnpm --dir packages/app run build`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Commits:
+  - `15b3cacf` — `Harden generated pointer capture forwarding`
+  - `75c4ac57` — `Align FPS weapon view source placement`
+
+## Previous Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS source player capsule/body data:
   - `references/Starter-Kit-FPS/objects/player.tscn` positions the
@@ -46,7 +111,7 @@ previous working state so the old state remains recoverable.
 - Committed implementation:
   - `70726167` — `Align FPS player capsule source data`
 
-## Previous Completed FPS/Tooling Slices
+## Earlier Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS source reload/respawn semantics:
   - `references/Starter-Kit-FPS/objects/player.gd` reloads the current scene

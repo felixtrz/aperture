@@ -393,12 +393,40 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 13:04 UTC</dd>
+            <dd>2026-06-17 13:18 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS player capsule/body data now
+              Latest update: Starter Kit FPS weapon view placement now derives
+              from source scene, script, and weapon-resource data. Source
+              <code>objects/player.tscn</code> sets the weapon subviewport
+              <code>CameraItem</code> to <code>fov=40</code> and the
+              <code>Container</code> initial position to
+              <code>[1.2,-1,-2.25]</code>; source
+              <code>objects/player.gd</code> drives
+              <code>container_offset</code> at
+              <code>[1.2,-1.1,-2.75]</code>, movement sway at
+              <code>velocity/30</code>, shot kick <code>0.25</code>, and switch
+              drop <code>1.0</code>. Source weapon resources keep model
+              position at <code>[0,0,0]</code> and set
+              <code>muzzle_position</code> to <code>[0.1,-0.4,1.5]</code>. The
+              port now places weapon GLB roots at
+              <code>[1.2,-1.1,-2.75]</code> and derives muzzle flashes from
+              source <code>container.position - weapon.muzzle_position</code>
+              with current movement sway. Aperture CLI/MCP proof read
+              <code>weapon.0</code> local translation
+              <code>[1.2000000476837158,-1.100000023841858,-2.75]</code>,
+              generated a center click with <code>shotsFired:1</code>, and read
+              <code>effect.muzzle-burst</code> at source-derived translation
+              around
+              <code>[0.9220132231712341,0.27010002732276917,-4.292131423950195]</code>
+              with alpha <code>1</code>, sprite size near <code>2.56</code>,
+              <code>depthMode:"disabled"</code>, and diagnostics
+              <code>0</code>. The same run hardened generated pointer capture
+              forwarding so synthetic or pointer-lock-transition events cannot
+              block input delivery. Prior update: Starter Kit FPS player
+              capsule/body data now
               derives directly from source scene data. Source
               <code>objects/player.tscn</code> positions the
               <code>CharacterBody3D</code> at <code>y=0.5</code>, the
@@ -1545,11 +1573,10 @@
             <dt>Next focus</dt>
             <dd>
               Continue Starter Kit FPS fidelity with a visible route such as
-              player body/capsule semantics after checking Godot capsule
-              height mapping, weapon-camera muzzle sprite parity, skybox
-              orientation/readback hardening, remaining player detail parity,
-              projectile polish beyond the current per-enemy attacker
-              ownership, or packaging the
+              skybox orientation/readback hardening, projectile polish beyond
+              the current per-enemy attacker ownership,
+              enemy movement/attack timing polish, weapon subviewport/camera-FOV
+              overlay fidelity, or packaging the
               platform-aware full-clear proof into a reusable smoke script while
               keeping racing and Shadow Lab green.
             </dd>
@@ -2452,6 +2479,32 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned Starter Kit FPS
+                weapon view placement from source
+                <code>objects/player.tscn</code>, <code>objects/player.gd</code>,
+                and weapon resources. The port now exposes source constants for
+                the weapon-camera FOV, container initial/target positions,
+                movement sway scale, shot kick, switch drop, model position,
+                rotation, and muzzle position. Active weapon roots now sit at
+                <code>[1.2,-1.1,-2.75]</code> relative to the player camera,
+                and muzzle flashes derive from
+                <code>container.position - weapon.muzzle_position</code> with
+                current sway. Aperture CLI/MCP proof read the live
+                <code>weapon.0</code> transform, generated a click with
+                <code>shotsFired:1</code>, and read the visible
+                <code>effect.muzzle-burst</code> at source-derived placement
+                with diagnostics <code>0</code>.
+              </li>
+              <li>
+                <span class="badge green">tooling</span> Hardened generated
+                pointer capture forwarding in the browser runtime so
+                <code>setPointerCapture</code> and
+                <code>releasePointerCapture</code> are best-effort. Synthetic,
+                already-released, or pointer-lock-transition events can no
+                longer throw before generated input reaches the simulation
+                worker, with focused browser-input coverage.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned player capsule
                 source data with Starter Kit FPS: source
@@ -5714,11 +5767,11 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Continue Starter Kit FPS
-                fidelity with a visible slice such as weapon-camera muzzle
-                sprite parity, skybox orientation/readback hardening,
-                projectile polish beyond the current per-enemy attacker
-                ownership, enemy movement/attack timing polish, or a reusable
-                generated-input full-clear smoke script.
+                fidelity with a visible slice such as skybox
+                orientation/readback hardening, projectile polish beyond the
+                current per-enemy attacker ownership, enemy movement/attack
+                timing polish, weapon subviewport/camera-FOV overlay fidelity,
+                or a reusable generated-input full-clear smoke script.
               </li>
               <li>
                 <span class="badge amber">next</span> Continue remaining M10
