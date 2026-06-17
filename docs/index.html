@@ -409,11 +409,15 @@
               <code>Space</code> press and an 80ms hold both make the player
               airborne with <code>jumpsRemaining:1</code>, a canvas click
               produces <code>shotsFired:1</code>, and a rightward drag produces
-              yaw <code>-0.222957...</code>. Supporting update: the prior source
-              environment constants remain exported, while setup/config now use
-              explicit <code>FPS_RENDER_*</code> runtime mapping constants for
-              the current Aperture light convention. Prior update: Starter Kit
-              FPS environment values now derive from
+              yaw <code>-0.222957...</code>. Weapon viewmodels and player
+              muzzle sprites now render in the main world view so shooting
+              feedback is visible without the temporary second swapchain camera;
+              render summary reports one view, one skybox, one fog, 33 draw
+              calls, and diagnostics <code>0</code>. Supporting update: the
+              prior source environment constants remain exported, while
+              setup/config now use explicit <code>FPS_RENDER_*</code> runtime
+              mapping constants for the current Aperture light convention.
+              Prior update: Starter Kit FPS environment values now derive from
               <code>scenes/main-environment.tres</code> and
               <code>scenes/main.tscn</code>. Prior update: Starter Kit FPS enemy
               constants now derive from
@@ -2584,6 +2588,13 @@
                 <code>shotsFired</code>, and fallback pointer drag now matches
                 the source mouse yaw sign so movement remains camera-relative
                 when pointer lock is unavailable.
+              </li>
+              <li>
+                <span class="badge green">fps</span> Moved FPS weapon
+                viewmodels and player muzzle sprites into the main world view,
+                removing the temporary second weapon camera and keeping live
+                shooting feedback visible while a true source-style weapon
+                subviewport remains future fidelity work.
               </li>
               <li>
                 <span class="badge green">fps</span> Stabilized the previous

@@ -1,5 +1,29 @@
 # Completed Tasks
 
+## FPS-PORT — World-view weapon effects
+
+Completed: 2026-06-17 07:43 PDT
+Commit: `a6a8c421`
+
+### Summary
+
+- Removed the temporary second weapon camera from FPS setup.
+- Assigned weapon viewmodels and player muzzle sprites to the world render
+  layer so click-to-shoot feedback is visible in the main view.
+- Left a source-like weapon subviewport/camera-FOV overlay as future fidelity
+  work rather than relying on a second swapchain view.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+  passed 38 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- Aperture CLI proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed with WebGPU ready.
+  - `render_get_snapshot_summary` reported one view, one skybox, one fog, 33
+    draw calls, and diagnostics `0`.
+
 ## FPS-PORT — Input edge handling and fallback look sign
 
 Completed: 2026-06-17 07:41 PDT
