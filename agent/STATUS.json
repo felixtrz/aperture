@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "20866fb3",
+  "lastCommit": "f14a3e1d",
   "activePid": null,
-  "notes": "Aligned FPS jump ceiling handling with upstream player.gd, proved live ceiling collision normals through Aperture CLI, and kept fps/racing/shadow-lab validation green.",
-  "lastRunFinishedAt": "2026-06-17T11:20:30Z"
+  "notes": "Aligned FPS source impact slots and platform grass children, proved three pellet impact sprites plus 15 grass child entities through Aperture CLI, and kept fps/racing/shadow-lab validation green.",
+  "lastRunFinishedAt": "2026-06-17T11:29:08Z"
 }

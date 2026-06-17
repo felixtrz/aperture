@@ -3,7 +3,7 @@
 ## FPS-PORT — Source multi-impact effects and grass children
 
 Completed: 2026-06-17 04:25 PDT
-Commit: pending
+Commit: `f14a3e1d`
 
 ### Summary
 

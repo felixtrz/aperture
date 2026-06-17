@@ -1,6 +1,6 @@
 # Handoff - Starter Kit FPS Multi-Impact Effects And Grass Children
 
-**Updated:** 2026-06-17 04:25 PDT
+**Updated:** 2026-06-17 04:29 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
@@ -55,7 +55,7 @@ previous working state so the old state remains recoverable.
   - `pnpm --dir shadow-lab run build`
   - `git diff --check`
 - Committed implementation:
-  - pending — `Align FPS impact and grass details with source`
+  - `f14a3e1d` — `Align FPS impact and grass details with source`
 
 ## Previous Completed FPS/Tooling Slices
 
