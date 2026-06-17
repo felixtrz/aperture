@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 12:14 UTC</dd>
+            <dd>2026-06-17 12:16 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
@@ -401,16 +401,13 @@
               Latest update: Starter Kit FPS shooting is hardened for fast
               click/release input. The player now buffers a generated
               <code>shoot</code> down edge for <code>0.08s</code> while keeping
-              held-fire cooldown behavior intact. Aperture CLI proof queued
-              <code>shoot:true</code> then <code>shoot:false</code> before the
-              next <code>ecs_step</code> and still observed
+              held-fire cooldown behavior intact; the behavior is covered by
+              <code>shouldConsumeBufferedShot(...)</code> tests. Aperture CLI
+              proof queued <code>shoot:true</code> then
+              <code>shoot:false</code> before the next <code>ecs_step</code>
+              and still observed
               <code>shotsFired:1</code> plus <code>shotCooldown:0.25</code>.
-              The same patched-worker proof rechecked camera-relative movement
-              after yaw <code>0.0833333333</code> and jump state
-              <code>grounded:false</code>,
-              <code>verticalVelocity:7.666666666</code>,
-              <code>jumpsRemaining:1</code>. Prior update: Starter Kit FPS
-              enemy muzzle runtime scale now
+              Prior update: Starter Kit FPS enemy muzzle runtime scale now
               matches source behavior more closely. The source enemy script
               rewinds/plays muzzle animations and randomizes roll, but does not
               apply a second fire-time scale after the node's authored

@@ -2,8 +2,8 @@
 
 ## FPS-PORT — Shooting input buffer
 
-Completed: 2026-06-17 05:14 PDT
-Commit: `61684e3a`
+Completed: 2026-06-17 05:16 PDT
+Commits: `61684e3a`, `8c5d8bf6`
 
 ### Summary
 
@@ -12,11 +12,13 @@ Commit: `61684e3a`
 - Preserved held-fire behavior through the existing pressed-state and weapon
   cooldown path.
 - Cleared the buffered shot after it fires and during reset/respawn cleanup.
+- Extracted `shouldConsumeBufferedShot(...)` and added focused coverage for the
+  held, buffered, empty-input, and cooldown-blocked cases.
 
 ### Validation
 
-- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
-  passed 20 tests.
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-effects.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-input-config.test.ts`
+  passed 28 tests.
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
 - `pnpm --dir racing run typecheck`

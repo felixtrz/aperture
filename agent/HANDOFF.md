@@ -1,6 +1,6 @@
-# Handoff - Starter Kit FPS Shooting Input
+# Handoff - Starter Kit FPS Shooting Input Buffer
 
-**Updated:** 2026-06-17 05:14 PDT
+**Updated:** 2026-06-17 05:16 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
@@ -14,6 +14,11 @@ previous working state so the old state remains recoverable.
     cooldown, so repeater/held-fire behavior remains intact.
   - The buffer is consumed after a shot and cleared on reset/respawn so stale
     click edges cannot leak across gameplay resets.
+- Focused coverage:
+  - Extracted `shouldConsumeBufferedShot(...)` beside the existing jump-buffer
+    helper.
+  - Added coverage for held shooting, buffered click consumption, empty input,
+    and cooldown blocking.
 - Aperture proof:
   - Reloaded the managed FPS app through `pnpm --dir fps exec aperture tool
     browser_reload` and waited for WebGPU.
@@ -26,8 +31,8 @@ previous working state so the old state remains recoverable.
     `[-0.006936, -0.083044]` on X/Z, and jump produced
     `grounded:false`, `verticalVelocity:7.666666666`, `jumpsRemaining:1`.
 - Validation:
-  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
-    passed 20 tests.
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-effects.test.ts test/app/fps-data.test.ts test/app/fps-audio.test.ts test/app/fps-input-config.test.ts`
+    passed 28 tests.
   - `pnpm --dir fps run typecheck`
   - `pnpm --dir fps run build`
   - `pnpm --dir racing run typecheck`
@@ -37,6 +42,7 @@ previous working state so the old state remains recoverable.
   - `git diff --check`
 - Committed implementation:
   - `61684e3a` — `Harden FPS shooting input`
+  - `8c5d8bf6` — `Cover FPS shooting input buffer`
 
 ## Previous Completed FPS/Tooling Slices
 
