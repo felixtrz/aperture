@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## FPS-PORT - Weapon three.js compare probe
+
+Completed: 2026-06-17 14:44 PDT
+
+### Summary
+
+- Added a query-gated `?compare=weapon` browser probe for FPS.
+- The probe renders the live Aperture canvas beside the blaster GLB in the
+  vendored Shadow Lab three.js WebGPU reference renderer.
+- It lazy-loads three.js and GLTFLoader only when the compare URL is active.
+- The source-position three.js render shows the same filled yellow rear/stock
+  shape, so the visible stock form is likely source GLB/model data rather than
+  an Aperture-wide inside-out render bug.
+- The current calibrated Aperture weapon position is outside the vanilla
+  three.js weapon camera, so final weapon placement remains an intentional
+  viewmodel-calibration decision.
+
+### Validation
+
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-setup.test.ts`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- Playwright screenshots:
+  `/tmp/fps-weapon-three-compare.png`,
+  `/tmp/fps-weapon-three-compare-current-pos.png`
+- Managed Aperture live checks for FPS, racing, and Shadow Lab: WebGPU ready,
+  diagnostics `0`, submitted directional shadows.
+
 ## WEBGPU-SHADOWS - Strict camera-backed default shadow fallback guard
 
 Completed: 2026-06-17 14:21 PDT

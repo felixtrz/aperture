@@ -3,9 +3,11 @@
 // exported surface intentionally loose instead of maintaining local Three types.
 export const ACESFilmicToneMapping: any;
 export const AmbientLight: any;
+export const BackSide: any;
 export const BoxGeometry: any;
 export const Color: any;
 export const DirectionalLight: any;
+export const DoubleSide: any;
 export const Fog: any;
 export const FrontSide: any;
 export const Group: any;

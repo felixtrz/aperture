@@ -1,3 +1,74 @@
+# Handoff - FPS Weapon Three.js Compare Evidence
+
+**Updated:** 2026-06-17 14:44 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Added a query-gated FPS weapon comparison harness at `?compare=weapon`.
+- The harness reuses the Shadow Lab vendored three.js WebGPU reference renderer
+  through dynamic imports so the normal FPS path does not eagerly load three.js.
+- It renders `/models/blaster.glb` beside the live Aperture canvas with source,
+  current Aperture, and centered weapon-position modes plus GLB/FrontSide/BackSide
+  material-side modes.
+- Evidence captured:
+  - `/tmp/fps-weapon-three-compare.png`: three.js with the source weapon
+    position renders the same filled yellow rear/stock shape, pointing away
+    from a global Aperture culling bug.
+  - `/tmp/fps-weapon-three-compare-current-pos.png`: the current calibrated
+    Aperture weapon position is outside a vanilla three.js 40-degree weapon
+    camera, so placement remains a viewmodel-calibration decision rather than
+    source-literal transform parity.
+- Normal FPS, racing, and Shadow Lab managed sessions were rechecked after the
+  probe; all reported WebGPU ready, diagnostics `0`, and submitted directional
+  shadows.
+
+## Validation
+
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-setup.test.ts`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- Plain Vite + Playwright probe for `http://127.0.0.1:5183/?compare=weapon`
+  captured `/tmp/fps-weapon-three-compare.png` and
+  `/tmp/fps-weapon-three-compare-current-pos.png`.
+- Managed Aperture CLI proof:
+  - FPS `http://127.0.0.1:5173/`: WebGPU ready, diagnostics `0`, counts
+    `views:2`, `meshDraws:21`, `shadowCasterDraws:44`, `drawCalls:36`, shadow
+    status `submitted`, shadow diagnostics `0`; screenshot
+    `/tmp/fps-normal-after-weapon-compare.png`.
+  - Racing `http://127.0.0.1:5174/`: WebGPU ready, diagnostics `0`, counts
+    `views:1`, `meshDraws:36`, `shadowCasterDraws:364`, `drawCalls:46`, shadow
+    status `submitted`, shadow diagnostics `0`.
+  - Shadow Lab `http://127.0.0.1:5175/`: WebGPU ready, diagnostics `0`, counts
+    `views:1`, `meshDraws:25`, `shadowCasterDraws:364`, `drawCalls:38`, shadow
+    status `submitted`, shadow diagnostics `0`.
+
+## Known Issues
+
+- The blaster rear/stock appearance appears to come from the source GLB as
+  rendered by three.js, not from a renderer-wide Aperture inside-out/culling bug.
+- The weapon placement is still not source-literal: source position renders in
+  the three weapon camera, while the calibrated Aperture position tucks the gun
+  lower-right for the FPS screenshot but is outside a vanilla source-aspect
+  three.js weapon camera.
+- The FPS Aperture CLI has no `browser_navigate` tool; direct CDP navigation of
+  a managed session destabilized the FPS dev daemon. The compare URL was
+  verified through a plain Vite server and Playwright instead.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- Additional unstaged FPS input/smoke/CLI changes are present in the worktree
+  and were intentionally left out of this compare slice.
+
+## Recommended Next Task
+
+Decide the final FPS viewmodel strategy: keep the calibrated lower-right weapon
+placement, or align more closely with the source SubViewport/camera transform.
+Use `?compare=weapon` as the visual probe before changing material/culling code.
+
+---
+
 # Handoff - Strict Camera-Backed Shadow Fallback Guard
 
 **Updated:** 2026-06-17 14:21 PDT

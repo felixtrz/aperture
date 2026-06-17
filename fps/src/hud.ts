@@ -8,6 +8,10 @@ import {
   type FpsInputCommand,
 } from "./lib/fps-data.js";
 import {
+  installWeaponThreeCompare,
+  shouldInstallWeaponThreeCompare,
+} from "./weapon-three-compare.js";
+import {
   sourceKeyboardButtonAction,
   sourceKeyboardButtonPressDispatches,
   sourceKeyboardMouseCaptureAction,
@@ -70,6 +74,10 @@ function render(signals: GeneratedSignalSummary | null): void {
 writeSourceHudCssVariables(document.documentElement.style);
 render(null);
 subscribeGeneratedSignals(render);
+
+if (shouldInstallWeaponThreeCompare()) {
+  void installWeaponThreeCompare();
+}
 
 canvas?.addEventListener("click", () => {
   if (document.pointerLockElement !== canvas) {
