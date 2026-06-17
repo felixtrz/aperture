@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## FPS-PORT — Control reliability follow-up
+
+Completed: 2026-06-17 04:13 PDT
+Commit: `20866fb3`
+
+### Summary
+
+- Fixed the latest reported FPS control reliability issue by keeping jumps
+  source-style airborne while upward velocity is active, even if the character
+  controller transiently reports grounded contact during ascent.
+- Replaced the old "any clipped vertical movement blocks upward velocity"
+  behavior with ceiling-normal detection, so ground/side controller adjustment
+  does not kill the jump impulse.
+- Reproved camera-relative movement and same-frame generated shoot
+  press/release through deterministic Aperture stepping.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-audio.test.ts test/app/input-state-events.test.ts`
+  passed 32 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm run check:progress`
+- `git diff --check`
+- Aperture stepped proof:
+  - same-frame generated `shoot` press/release changed `shotsFired:0 -> 1`
+    and set `shotCooldown:0.25`.
+  - generated `jump` produced `playerPosition.y = 1.6222221910953523`,
+    `grounded:false`, `jumpsRemaining:1`, and
+    `verticalVelocity:7.666666666666667` after one frame.
+  - generated forward movement at yaw `0.3333333333333333` moved the player to
+    approximately `[-0.21813, 1.49624, -0.62997]`, matching the
+    camera-forward yaw basis.
+
 ## FPS-PORT — Source skybox, footsteps, and input edge
 
 Completed: 2026-06-17 04:05 PDT

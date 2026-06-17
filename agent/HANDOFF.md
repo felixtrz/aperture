@@ -1,11 +1,45 @@
-# Handoff - Starter Kit FPS Source Skybox, Footsteps, And Input Edge
+# Handoff - Starter Kit FPS Control Reliability
 
-**Updated:** 2026-06-17 04:05 PDT
+**Updated:** 2026-06-17 04:16 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Fixed the latest reported Starter Kit FPS control issues:
+  - Shooting: deterministic paused Aperture stepping now proves a same-frame
+    generated `shoot` press/release increments `shotsFired` from `0` to `1`
+    and sets `shotCooldown` to `0.25`.
+  - Movement: generated forward movement at yaw `0.3333333333333333` moved
+    the player from near `[0, 1.495, 0]` to approximately
+    `[-0.21813, 1.49624, -0.62997]`, matching the camera-forward horizontal
+    basis `[-sin(yaw), 0, -cos(yaw)]`.
+  - Jumping: the port no longer treats any clipped upward character-controller
+    movement as a jump block. It only cancels upward velocity on a ceiling-like
+    collision normal and ignores transient controller-grounded reports while
+    source-style upward velocity is active.
+  - Deterministic paused Aperture stepping proved jump state after one frame:
+    `playerPosition.y = 1.6222221910953523`, `grounded:false`,
+    `jumpsRemaining:1`, and `verticalVelocity:7.666666666666667`; after the
+    follow-up stepped sample it remained airborne at
+    `playerPosition.y = 1.7444443836808206`.
+- Focused coverage:
+  - Added `hasCeilingCollision(...)` and `sourceGroundedAfterMove(...)` tests
+    to keep jump cancellation tied to overhead collisions and source-style
+    upward motion.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-audio.test.ts test/app/input-state-events.test.ts`
+    passed 32 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --filter @aperture-engine/app build`
+  - `pnpm run check:progress`
+  - `git diff --check`
+- Committed implementation:
+  - `20866fb3` — `Align FPS jump ceiling handling`
+
+## Previous Completed FPS/Tooling Slices
 
 - Aligned two more Starter Kit FPS source fidelity gaps:
   - `references/Starter-Kit-FPS/objects/player.tscn` keeps
@@ -59,8 +93,6 @@ previous working state so the old state remains recoverable.
   - `79136c79` — `Align FPS footstep audio with source`
   - `05c40843` — `Add FPS source panorama skybox`
   - `bec7cb87` — `Preserve same-frame virtual input presses`
-
-## Previous Completed FPS/Tooling Slices
 
 - Enemy attack ownership:
 - Aligned FPS enemy attack ownership with the upstream per-enemy attack model:

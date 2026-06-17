@@ -393,12 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 11:05 UTC</dd>
+            <dd>2026-06-17 11:16 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS source fidelity now includes
+              Latest update: Starter Kit FPS controls now keep source-style
+              jumps airborne while upward velocity is active and cancel upward
+              movement only on ceiling-like character-controller collisions.
+              Deterministic Aperture stepping proved same-frame generated
+              <code>shoot</code> press/release increments
+              <code>shotsFired:0-&gt;1</code>, jump reaches
+              <code>y:1.622</code> with <code>grounded:false</code>,
+              <code>jumpsRemaining:1</code>, and
+              <code>verticalVelocity:7.6667</code>, and forward movement at
+              yaw <code>0.3333</code> moves along the camera-forward horizontal
+              basis. Prior update: Starter Kit FPS source fidelity now includes
               upstream footstep audio gain/threshold behavior and the source
               panorama skybox. The port converts <code>sprites/skybox.png</code>
               into a cube texture asset, spawns <code>skybox.main</code> at
@@ -2302,6 +2312,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Fixed the reported control
+                issues: quick generated <code>shoot</code> press/release now
+                fires in a stepped proof, jump ignores transient grounded
+                contact while upward velocity is active, and movement was
+                reproved against the camera-forward yaw basis.
+              </li>
               <li>
                 <span class="badge green">fps</span>
                 <span class="badge blue">app</span>
