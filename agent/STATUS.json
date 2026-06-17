@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "f3ed9e1f",
+  "lastCommit": "684ccc2f",
   "activePid": null,
-  "notes": "Aligned Starter Kit FPS player damage threshold with upstream: health 0 no longer reloads, health below 0 still resets, and enemy attack damage is no longer clamped at zero. Aperture proof observed resource_set health:0 persist and health:-1 reset to 100. FPS/root/racing/shadow-lab validation passed for this slice.",
-  "lastRunFinishedAt": "2026-06-17T09:45:00Z"
+  "notes": "Aligned Starter Kit FPS enemy hitboxes and look target with upstream: hitbox spheres now track the visible enemy root at local y +0.25, and enemies pitch/yaw toward player position +0.5y. Aperture proof observed enemy.0 visual Y near 2.698770 and enemy.0.hitbox physics current Y near 2.948770 with WebGPU healthy. FPS/root/racing/shadow-lab validation passed for this slice.",
+  "lastRunFinishedAt": "2026-06-17T09:51:00Z"
 }

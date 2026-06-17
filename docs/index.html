@@ -393,18 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 09:45 UTC</dd>
+            <dd>2026-06-17 09:51 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the Starter Kit FPS port now matches the upstream
-              player damage reload threshold: health <code>0</code> no longer
-              reloads, while health below <code>0</code> resets the scene
-              state. Aperture proof patched <code>fps.state.health</code> to
-              <code>0</code> and observed it persist, then patched
-              <code>-1</code> and observed reset back to
-              <code>100</code>. Prior update: the Starter Kit FPS port now has
+              Latest update: the Starter Kit FPS port now aligns enemy hitboxes
+              and look targets with upstream. Enemy physics hitboxes track the
+              visible root at source local <code>y + 0.25</code>, and enemies
+              pitch/yaw toward the player's <code>+0.5</code> height target.
+              Aperture proof observed <code>enemy.0</code> visual Y near
+              <code>2.698770</code> and <code>enemy.0.hitbox</code> physics Y
+              near <code>2.948770</code>. Prior update: the Starter Kit FPS
+              port now matches the upstream player damage reload threshold:
+              health <code>0</code> no longer reloads, while health below
+              <code>0</code> resets the scene state. Prior update: the Starter
+              Kit FPS port now has
               source-like weapon viewmodel motion. The active ECS weapon
               transform lerps toward
               <code>-localVelocity / 30</code>, and shooting adds a transient
@@ -2227,6 +2231,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned enemy hitboxes and
+                look targets with upstream <code>enemy.tscn</code> /
+                <code>enemy.gd</code>. The ECS physics hitbox now tracks the
+                visible enemy root at source local <code>y + 0.25</code>, and
+                enemies pitch/yaw toward the player's <code>+0.5</code> height
+                target. Aperture proof observed the expected
+                <code>enemy.0</code> to <code>enemy.0.hitbox</code> offset.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned player damage
                 reload semantics with upstream <code>player.gd</code>: health

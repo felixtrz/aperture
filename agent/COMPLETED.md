@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## FPS-PORT — Enemy hitbox and look target
+
+Completed: 2026-06-17 02:51 PDT
+Commit: `684ccc2f`
+
+### Summary
+
+- Aligned enemy hitboxes with upstream `objects/enemy.tscn`: the source
+  collision sphere is offset by local `y=0.25`, and the port now applies the
+  same offset to the ECS physics hitbox entities.
+- Aligned enemy facing with upstream `objects/enemy.gd`: enemies pitch/yaw
+  toward `player.position + Vector3(0, 0.5, 0)` instead of yaw-only look.
+- Kept the behavior ECS-owned by writing `LocalTransform` on visible enemy
+  roots and `${enemy}.hitbox` physics entities.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Aperture proof in a fresh managed FPS session observed `enemy.0` visual Y
+  near `2.698770` and `enemy.0.hitbox` physics current Y near `2.948770`, the
+  source `+0.25` offset, with WebGPU healthy.
+
 ## FPS-PORT — Player damage reload threshold
 
 Completed: 2026-06-17 02:45 PDT

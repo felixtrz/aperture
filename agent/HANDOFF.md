@@ -1,27 +1,28 @@
-# Handoff - Starter Kit FPS Damage Threshold
+# Handoff - Starter Kit FPS Enemy Hitbox And Look Target
 
-**Updated:** 2026-06-17 02:45 PDT
+**Updated:** 2026-06-17 02:51 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Aligned player damage/reload semantics with upstream
-  `objects/player.gd::damage(amount)`: player health now reaches exactly `0`
-  without resetting, and the scene-style reset only happens once health drops
-  below `0`.
-- Removed the enemy attack damage clamp, so source-style repeated
-  `collider.damage(5)` calls can move health from `0` to `-5` instead of
-  sticking at zero.
-- Kept the behavior in the ECS-owned `fps.state` resource and existing
-  `PlayerSystem` reset path; no renderer-owned gameplay state was added.
+- Aligned enemy hitboxes with upstream `objects/enemy.tscn`: the source
+  `CollisionShape3D` sphere is offset by local `y=0.25`, and the port now
+  applies the same offset to each keyed ECS hitbox entity at spawn time and
+  during per-frame enemy hover updates.
+- Aligned enemy facing with upstream `objects/enemy.gd`: enemies now pitch/yaw
+  toward `player.position + Vector3(0, 0.5, 0)` instead of yaw-only look.
+- Kept gameplay authority in ECS by writing `LocalTransform` on the visible
+  enemy roots and `${enemy}.hitbox` physics entities; no renderer-owned
+  collision or aim state was introduced.
 - Aperture proof:
   - Fresh managed FPS session at `http://127.0.0.1:5173/`, WebGPU healthy.
-  - `resource_set fps.state.health=0` followed by `resource_get` observed
-    `health:0`, confirming zero health no longer reloads.
-  - `resource_set fps.state.health=-1`, a short live wait, and `resource_get`
-    observed `health:100`, confirming below-zero health still resets.
+  - `ecs_find_entities enemy.0` observed visual root Y near `2.698770`.
+  - `ecs_find_entities enemy.0.hitbox` observed physics current Y near
+    `2.948770`, confirming the source `+0.25` hitbox offset.
+  - The same readback showed the hitbox carries the enemy look rotation while
+    the app status remained `webgpuOk:true`, `lastError:null`.
 - Validation:
   - `pnpm exec vitest run test/app/fps-controls.test.ts`
   - `pnpm --dir fps run typecheck`
@@ -33,9 +34,20 @@ previous working state so the old state remains recoverable.
   - `pnpm --dir shadow-lab run typecheck`
   - `pnpm --dir shadow-lab run build`
 - Committed implementation:
-  - `f3ed9e1f` — `Align FPS player damage threshold`
+  - `684ccc2f` — `Align FPS enemy hitbox and look target`
 
 ## Previous Completed FPS/Tooling Slices
+
+- Player damage threshold:
+  - Aligned player damage/reload semantics with upstream
+    `objects/player.gd::damage(amount)`: player health now reaches exactly `0`
+    without resetting, and the scene-style reset only happens once health drops
+    below `0`.
+  - Removed the enemy attack damage clamp, so source-style repeated
+    `collider.damage(5)` calls can move health from `0` to `-5` instead of
+    sticking at zero.
+  - Committed implementation:
+    - `f3ed9e1f` — `Align FPS player damage threshold`
 
 - Weapon viewmodel motion:
   - Replaced the FPS weapon-view cooldown recoil approximation with a source-like
