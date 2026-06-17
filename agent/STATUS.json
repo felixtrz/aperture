@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "f3c31dc8",
   "activePid": null,
-  "notes": "Aligned FPS enemy attack ownership with upstream per-enemy timer/raycast behavior and added focused helper coverage; Aperture proof and fps/racing/shadow-lab validation passed.",
-  "lastRunFinishedAt": "2026-06-17T10:49:00Z"
+  "notes": "Aligned FPS enemy attacks with upstream per-enemy attacker ownership, added focused attacker-selection coverage, proved the managed FPS app through Aperture MCP, and kept fps/racing/shadow-lab validation green.",
+  "lastRunFinishedAt": "2026-06-17T10:50:03Z"
 }
