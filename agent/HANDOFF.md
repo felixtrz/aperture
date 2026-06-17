@@ -1,12 +1,29 @@
-# Handoff - Starter Kit FPS Landing Camera Bob
+# Handoff - Starter Kit FPS Full-Clear Proof
 
-**Updated:** 2026-06-17 00:50 PDT
+**Updated:** 2026-06-17 01:03 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
+- Proved the Starter Kit FPS port can reach the all-enemies-cleared gameplay
+  state through generated gameplay input only. The proof drove configured
+  `move`, `look`, `jump`, and `shoot` actions through Aperture tools; it did
+  not mutate enemy health, player transforms, or ECS gameplay state.
+- Replaced the failed straight-line route with a platform-aware path: start
+  platform -> enemy.1 perch -> southeast grass platform for `enemy.2` -> center
+  platform edge -> elevated northeast platform for `enemy.3`.
+- Final proof state: `health:55`, `shotsFired:12`, `hits:16`,
+  `enemiesRemaining:0`, `destroyedEnemies:4`, every `enemyDestroyed.*:true`,
+  `gameStatus:"cleared"`, HUD enemies text `CLEAR`, and
+  `body[data-game-status="cleared"]`.
+- `browser_screenshot` wrote
+  `fps/.aperture/runtime/fps-full-clear-proof.png`.
+
+## Previous Completed FPS Slices
+
+- Landing camera bob:
 - Added upstream-style landing camera bob from `objects/player.gd`: landing
   after a jump dips the first-person camera by `-0.1`, then lerps it back toward
   the neutral player eye position at the upstream recovery rate.
@@ -17,9 +34,6 @@ previous working state so the old state remains recoverable.
 - Committed:
   - `57c48500` — `Add FPS landing camera bob`
   - `bff2a66f` — `Add FPS weapon switch animation`
-
-## Previous Completed FPS Slices
-
 - Weapon switch:
   - Added source-like weapon switch animation from upstream
     `objects/player.gd`: the current weapon lowers, the active model swaps, then
@@ -79,6 +93,33 @@ previous working state so the old state remains recoverable.
 
 ## Latest Validation
 
+- Aperture CLI/runtime proof from `fps/`:
+  - Restarted managed FPS at `http://127.0.0.1:5174/`; `browser_wait_for_webgpu`
+    succeeded with `webgpuOk:true` and no `lastError`/`lastFailure`.
+  - Paused/reset the generated worker and drove only configured generated
+    actions: `move`, `look`, `jump`, and `shoot`.
+  - Killed `enemy.0` from spawn: `shotsBefore:0`, `shotsAfter:2`,
+    `health:0`, `dist:7.02`.
+  - Moved to a safe west perch on the start platform and killed `enemy.1`:
+    `shotsBefore:2`, `shotsAfter:5`, `health:0`, `dist:7.86`.
+  - Routed over the southeast platform gap through `center edge`,
+    `jump to ground4 corner`, and `ground4 center` without falling, then killed
+    `enemy.2`: `shotsBefore:5`, `shotsAfter:8`, `health:0`, `dist:3.92`.
+  - Routed back through the center/north edge, jumped to `platform3`, jumped to
+    the elevated northeast grass platform, and killed `enemy.3`:
+    `shotsBefore:8`, `shotsAfter:12`, `health:0`, `dist:4.81`.
+  - Final `fps.state`: `health:55`, `enemiesRemaining:0`,
+    `destroyedEnemies:4`, every `enemyDestroyed.*:true`,
+    `gameStatus:"cleared"`, `shotsFired:12`, `hits:16`.
+  - HUD/browser proof: `#enemies` text was `CLEAR` and
+    `document.body.dataset.gameStatus` was `cleared`.
+  - `browser_screenshot` wrote
+    `fps/.aperture/runtime/fps-full-clear-proof.png`.
+  - The live FPS session was reset afterward and left paused at fresh gameplay:
+    `health:100`, `enemiesRemaining:4`, `shotsFired:0`, `hits:0`,
+    `gameStatus:"active"`.
+- `pnpm run check:progress`
+- Previous landing-bob validation:
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
 - Aperture CLI runtime proof from `fps/`:
@@ -206,12 +247,10 @@ previous working state so the old state remains recoverable.
 - Managed FPS is running at `http://127.0.0.1:5174/` through Aperture dev and
   is paused after a clean reset: `health:100`, `enemiesRemaining:4`,
   `shotsFired:0`, `hits:0`, `landingBob:0`, `landingPulse:0`.
-- A generated-input full-clear attempt killed `enemy.0` and `enemy.1`, then
-  partially damaged `enemy.2`, but the straight-line movement route fell below
-  the level during the `enemy.2` approach and triggered the existing respawn
-  reset, wiping destroyed-enemy state. Do not repeat the same naive route for
-  the next full-clear proof; use a platform-aware route or add a proper
-  gameplay affordance before claiming `gameStatus:"cleared"`.
+- The generated-input full-clear proof now has a working platform-aware route.
+  The earlier failed straight-line route fell below the level after `enemy.2`;
+  the successful proof instead uses explicit platform waypoints and jump arcs
+  before claiming `gameStatus:"cleared"`.
 - Pre-existing untracked screenshots,
   racing parity artifacts, and `racing/parity/` remain outside commits.
 - Use `value:0` rather than `pressed:false` for button-release CLI scripts when
@@ -226,12 +265,11 @@ previous working state so the old state remains recoverable.
 
 ## Recommended Next Task
 
-Continue the FPS port with another visible Starter Kit fidelity slice. A good
-next task is a navigation-backed full-clear proof that kills all four enemies
-without debug mutation and verifies `gameStatus:"cleared"` plus the HUD `CLEAR`
-state through Aperture tools. The proof route needs to avoid the failed
-straight-line path that falls after `enemy.2`. Another visible option is adding
-the upstream player blob shadow detail from `objects/player.tscn`.
+Continue the FPS port with another visible Starter Kit fidelity slice. Good
+next options are adding the upstream player blob shadow detail from
+`objects/player.tscn`, improving enemy attack/projectile fidelity, or packaging
+the platform-aware full-clear route into a reusable smoke script so future
+regressions can re-run the proof without retyping the route.
 
 ---
 

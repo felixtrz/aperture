@@ -393,12 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 04:56 UTC</dd>
+            <dd>2026-06-17 08:03 UTC</dd>
             <dt>Branch</dt>
-            <dd>main</dd>
+            <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the racing library-gap plan completed its final
+              Latest update: the Starter Kit FPS port now has a platform-aware
+              generated-input clear proof. Aperture tools drove only configured
+              <code>move</code>, <code>look</code>, <code>jump</code>, and
+              <code>shoot</code> actions across authored platforms, destroyed
+              all four enemies, reached <code>gameStatus:"cleared"</code>,
+              showed HUD <code>CLEAR</code>, and captured
+              <code>fps/.aperture/runtime/fps-full-clear-proof.png</code> with
+              WebGPU healthy and no runtime failure. Prior update: the racing
+              library-gap plan completed its final
               no-cache end-to-end verification. Racing was relaunched through
               managed Aperture on <code>127.0.0.1:5173</code> after clearing its
               Vite optimized cache, and Aperture MCP reproved WebGPU, shadows,
@@ -1257,10 +1265,10 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Resume the broader renderer queue with
-              <code>task-3097</code>: replace the placeholder PMREM path with
-              GGX/VNDF prefilter sampling, anchored to three.js PMREM and
-              PlayCanvas reproject-texture references.
+              Continue Starter Kit FPS fidelity with a visible route such as
+              enemy attack/projectile polish, player shadow/detail parity, or
+              packaging the platform-aware full-clear proof into a reusable
+              smoke script while keeping racing and Shadow Lab green.
             </dd>
           </dl>
         </aside>
@@ -2161,6 +2169,16 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Proved the Starter Kit FPS
+                clear state with Aperture tools and generated gameplay input
+                only. The platform-aware route killed all four enemies, produced
+                <code>enemiesRemaining:0</code>,
+                <code>destroyedEnemies:4</code>,
+                <code>gameStatus:"cleared"</code>, HUD <code>CLEAR</code>, and
+                saved
+                <code>fps/.aperture/runtime/fps-full-clear-proof.png</code>.
+              </li>
               <li>
                 <span class="badge green">racing</span> Completed the final
                 no-cache racing verification. The fresh managed session on

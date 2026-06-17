@@ -1,5 +1,33 @@
 # Completed Tasks
 
+## FPS-PORT — Platform-aware full-clear proof
+
+Completed: 2026-06-17 01:03 PDT
+Commit: `2402684b`
+
+### Summary
+
+- Proved the FPS port can reach the all-enemies-cleared state using generated
+  gameplay input only: `move`, `look`, `jump`, and `shoot` through Aperture
+  tools.
+- Replaced the earlier failed straight-line route with a platform-aware route
+  across authored platforms and jump arcs.
+- Final proof reached `enemiesRemaining:0`, `destroyedEnemies:4`,
+  `gameStatus:"cleared"`, HUD text `CLEAR`, and all four `enemyDestroyed`
+  flags set to `true`.
+- `browser_screenshot` wrote
+  `fps/.aperture/runtime/fps-full-clear-proof.png`.
+
+### Validation
+
+- Aperture CLI/runtime proof from `fps/`: `browser_wait_for_webgpu`,
+  generated `input_action_set`, `ecs_step`, `resource_get`,
+  `browser_status`, and `browser_screenshot`.
+- Proof final state: `health:55`, `shotsFired:12`, `hits:16`,
+  `enemiesRemaining:0`, `destroyedEnemies:4`, `gameStatus:"cleared"`,
+  HUD text `CLEAR`, and no `lastError`/`lastFailure`.
+- `pnpm run check:progress`
+
 ## FPS-PORT — Landing camera bob
 
 Completed: 2026-06-17 00:50 PDT
