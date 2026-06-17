@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## FPS-PORT - Weapon viewmodel self-depth restored
+
+Completed: 2026-06-17 13:45 PDT
+
+### Summary
+
+- Removed the FPS weapon viewmodel material render-state override that disabled
+  depth testing/writes and forced `compare: "always"`.
+- Preserved the source GLB material render state while relying on the
+  weapon camera/layer overlay to draw the viewmodel over the world.
+- Audited the directional shadow default after the user's fixed-box concern:
+  camera-backed defaults still use camera/receiver/frustum auto-fit; fixed
+  boxes are explicit authored overrides or no-camera fallback only.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-setup.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm exec vitest run test/app/fps-setup.test.ts test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/directional-shadow-matrix-computation.test.ts test/rendering/extraction.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir racing run typecheck`
+- Managed Aperture CLI proof:
+  - FPS `http://127.0.0.1:5173/`: diagnostics `0`, `views:2`,
+    `meshDraws:21`, `shadowCasterDraws:44`, `drawCalls:36`, screenshot
+    `/tmp/fps-weapon-depth-restored.png`.
+  - Racing `http://127.0.0.1:5174/`: diagnostics `0`, `views:1`,
+    `meshDraws:36`, `shadowCasterDraws:364`, `drawCalls:46`, screenshot
+    `/tmp/racing-after-weapon-depth.png`.
+  - Shadow Lab `http://127.0.0.1:5175/`: diagnostics `0`, `views:1`,
+    `meshDraws:25`, `shadowCasterDraws:364`, `drawCalls:38`, screenshot
+    `/tmp/shadow-lab-after-weapon-depth.png`.
+
 ## WEBGPU-SHADOWS - Receiver-aware default shadow camera selection
 
 Completed: 2026-06-17 13:30 PDT

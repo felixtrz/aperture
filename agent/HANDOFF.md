@@ -1,3 +1,62 @@
+# Handoff - FPS Weapon Self Depth and Shadow Default Audit
+
+**Updated:** 2026-06-17 13:45 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Committed `e189f61a` (`Preserve FPS weapon self depth`).
+- Removed the FPS weapon viewmodel material override that made the GLB render
+  with `depth.compare = "always"` and depth writes disabled.
+- The weapon still renders through the source-style weapon camera/layer overlay,
+  but it now preserves the source GLB material render state so the gun can
+  self-occlude normally.
+- Audited the default directional shadow path after the user clarified that a
+  fixed three.js-style shadow camera box is not acceptable as the default:
+  - Camera-backed app frames keep using camera/receiver/frustum auto-fit.
+  - `matrix` scene-fit options passed by the app layer are fallback-only and do
+    not suppress primary-camera frustum fit.
+  - Fixed/static boxes are only explicit authored overrides
+    (`orthographicSize > 0`) or no-camera fallback behavior.
+
+## Validation
+
+- `pnpm exec vitest run test/app/fps-setup.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm exec vitest run test/app/fps-setup.test.ts test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/directional-shadow-matrix-computation.test.ts test/rendering/extraction.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir racing run typecheck`
+- `git diff --check -- fps/src/systems/setup.system.ts test/app/fps-setup.test.ts`
+- Managed Aperture CLI proof:
+  - FPS `http://127.0.0.1:5173/`: WebGPU ready, diagnostics `0`,
+    `views:2`, `meshDraws:21`, `shadowCasterDraws:44`, `drawCalls:36`;
+    screenshot `/tmp/fps-weapon-depth-restored.png`.
+  - Racing `http://127.0.0.1:5174/`: WebGPU ready, diagnostics `0`,
+    `views:1`, `meshDraws:36`, `shadowCasterDraws:364`, `drawCalls:46`;
+    screenshot `/tmp/racing-after-weapon-depth.png`.
+  - Shadow Lab `http://127.0.0.1:5175/`: WebGPU ready, diagnostics `0`,
+    `views:1`, `meshDraws:25`, `shadowCasterDraws:364`, `drawCalls:38`;
+    screenshot `/tmp/shadow-lab-after-weapon-depth.png`.
+
+## Known Issues
+
+- Default directional shadow behavior must remain camera/receiver auto-fit.
+  Fixed/static boxes are not an acceptable out-of-the-box solution; future
+  improvements should move toward cascades/per-view shadows rather than
+  reintroducing static scene boxes as the default.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+
+## Recommended Next Task
+
+Let the user inspect FPS at `http://127.0.0.1:5173/`. If any gun parity issue
+remains, compare the blaster against the source GLB/Godot setup and a three.js
+render in isolation before changing engine material behavior.
+
+---
+
 # Handoff - Receiver-Aware Shadow Camera Default
 
 **Updated:** 2026-06-17 13:30 PDT
