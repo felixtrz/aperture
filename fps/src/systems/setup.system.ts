@@ -78,13 +78,9 @@ import {
 const GLTF_FRONT_SIDE_MATERIALS = {
   renderState: { cullMode: "back" as const },
 };
-export const WEAPON_VIEWMODEL_MATERIALS = {
-  renderState: {
-    // Preserve the GLB material's double-sided culling; the viewmodel override
-    // only makes the weapon render over the world camera layer.
-    depth: { test: false, write: false, compare: "always" as const },
-  },
-};
+// Preserve the GLB material render state. The weapon camera/layer pass makes
+// the viewmodel draw over the world while keeping normal depth for self-occlusion.
+export const WEAPON_VIEWMODEL_MATERIALS = {};
 
 const PLAYER_SHADOW_MATERIAL_ID = "player.blob-shadow.material";
 const PLAYER_SHADOW_SAMPLER_ID = "player.blob-shadow.sampler";
