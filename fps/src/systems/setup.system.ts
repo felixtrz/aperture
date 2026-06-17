@@ -56,7 +56,7 @@ import {
   FPS_RENDER_AMBIENT_COLOR,
   FPS_RENDER_AMBIENT_INTENSITY,
   FPS_RENDER_BACKGROUND_COLOR,
-  FPS_RENDER_SUN_ROTATION_EULER_DEGREES,
+  FPS_RENDER_SUN_ROTATION,
   SOURCE_ENEMY_HITBOX_OFFSET,
   SOURCE_ENEMY_HITBOX_RADIUS,
   SOURCE_PLAYER_CAMERA_FOV,
@@ -202,7 +202,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         layerMask: FPS_ALL_RENDER_LAYER_MASK,
       },
       transform: {
-        rotationEulerDegrees: FPS_RENDER_SUN_ROTATION_EULER_DEGREES,
+        rotation: FPS_RENDER_SUN_ROTATION,
       },
       shadow: {
         mapSize: 2048,

@@ -1,11 +1,59 @@
-# Handoff - Starter Kit FPS Overlay And Controls
+# Handoff - Starter Kit FPS Source Sun And Viewmodel
 
-**Updated:** 2026-06-17 08:35 PDT
+**Updated:** 2026-06-17 08:44 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Followed up the source-style FPS weapon overlay with lighting and viewmodel
+  parity fixes:
+  - Source anchors:
+    `references/Starter-Kit-FPS/scenes/main.tscn`,
+    `references/Starter-Kit-FPS/scenes/main-environment.tres`,
+    `references/Starter-Kit-FPS/objects/player.tscn`, and
+    `references/Starter-Kit-FPS/objects/player.gd`.
+  - The FPS sun now uses `SOURCE_SUN_ROTATION` directly. The earlier temporary
+    Euler runtime mapping produced live light travel with positive Y, so
+    up-facing platform surfaces were mostly shade-side. Live
+    `ecs_find_entities {"key":"light.sun"}` now reports the source quaternion
+    and the source basis matrix from `main.tscn`.
+  - The source movement values are `movement_speed = 5`, `jump_strength = 8`,
+    and `number_of_jumps = 2`; there is no sprint mechanic in the source. The
+    port already matches those constants with `PLAYER_SPEED = 5`,
+    `JUMP_STRENGTH = 8`, and `MAX_JUMPS = 2`.
+  - The weapon viewmodel calibration is now `[2.05, -1.05, -2.75]` for
+    Aperture's weapon camera while preserving
+    `SOURCE_WEAPON_VIEW_POSITION = [1.2, -1.1, -2.75]`. The screenshot
+    `/tmp/fps-weapon-calibrated-205-105.png` shows the weapon tucked lower/right
+    like the source reference; `/tmp/fps-weapon-calibrated-look-down-platform.png`
+    shows the weapon remains visible over the platform at pitch `-PI/2`.
+- Aperture tooling proof:
+  - Started the managed FPS app at `http://127.0.0.1:5173/` with
+    `pnpm --dir fps exec aperture dev up --headless --host 127.0.0.1 --port 5173 --strict-port`.
+  - `browser_wait_for_webgpu` passed with WebGPU ready, 94 mirrored source
+    assets, `pitch:0`, `yaw:0`, and no last error/failure after reset.
+  - Note: keep Aperture CLI browser-tool calls serial. A parallel batch of
+    browser/render/ECS tool calls tore down this managed session once during
+    validation.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-data.test.ts`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts test/webgpu/app-frame-boundaries.test.ts`
+    passed 55 tests.
+  - `pnpm --dir fps run build`
+  - `pnpm --filter @aperture-engine/webgpu run typecheck`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `pnpm run check:progress`
+  - `git diff --check`
+- Commit:
+  - current checkpoint commit — `Calibrate FPS source sun and weapon view`
+
+## Previous Completed FPS/Tooling Slices
 
 - Restored the source-style Starter Kit FPS weapon overlay path and fixed the
   latest reported control issues:
@@ -67,8 +115,6 @@ previous working state so the old state remains recoverable.
   - `git diff --check`
 - Commit:
   - `285fa3dd` — `Restore FPS weapon overlay controls`
-
-## Previous Completed FPS/Tooling Slices
 
 - Anchored Starter Kit FPS enemy scene/script constants:
   - Source anchors:

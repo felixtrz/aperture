@@ -155,7 +155,7 @@ export const SOURCE_WEAPON_VIEW_POSITION: Vec3 = [
 // rigged to the player camera alongside its viewmodel. Keep the extracted source
 // transform above intact; this runtime position is calibrated for Aperture's
 // WebGPU projection and the app canvas aspect.
-export const FPS_WEAPON_VIEW_POSITION: Vec3 = [1.7, -0.65, -2.75];
+export const FPS_WEAPON_VIEW_POSITION: Vec3 = [2.05, -1.05, -2.75];
 export const SOURCE_WEAPON_MUZZLE_POSITION: Vec3 = [0.1, -0.4, 1.5];
 export const SOURCE_WEAPON_CAMERA_ITEM_FOV = 40;
 export const WEAPON_CAMERA_KEY = "camera.weapon";
@@ -181,8 +181,14 @@ export const SOURCE_SUN_ROTATION: Quat = [
   0.48695873,
 ];
 export const SOURCE_SUN_SHADOW_STRENGTH = 0.75;
-// Runtime mapping for Aperture's current directional-light convention. Keep the
-// source quaternion above so the Godot basis conversion can be fixed directly.
+// Aperture packs directional-light travel from the authored -Z basis, matching
+// Godot's DirectionalLight3D orientation convention for this source transform.
+export const FPS_RENDER_SUN_ROTATION: Quat = [
+  SOURCE_SUN_ROTATION[0],
+  SOURCE_SUN_ROTATION[1],
+  SOURCE_SUN_ROTATION[2],
+  SOURCE_SUN_ROTATION[3],
+];
 export const FPS_RENDER_BACKGROUND_COLOR: readonly [
   number,
   number,
@@ -195,7 +201,6 @@ export const FPS_RENDER_AMBIENT_COLOR: readonly [
   number,
   number,
 ] = [0.66, 0.69, 0.77, 1];
-export const FPS_RENDER_SUN_ROTATION_EULER_DEGREES: Vec3 = [-50, -110, 0];
 export const FPS_RENDER_AMBIENT_INTENSITY = 1.1;
 
 export const WEAPONS: readonly WeaponSpec[] = [

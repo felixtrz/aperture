@@ -1,5 +1,51 @@
 # Completed Tasks
 
+## FPS-PORT — Source sun and weapon viewmodel calibration
+
+Completed: 2026-06-17 08:44 PDT
+Commit: current checkpoint commit
+
+### Summary
+
+- Fixed the Starter Kit FPS sun orientation to use the extracted Godot
+  `Sun` quaternion from `references/Starter-Kit-FPS/scenes/main.tscn` directly.
+  The temporary Euler runtime mapping had inverted the directional light's Y
+  travel, so platform tops were mostly shade-side; the live sun matrix now
+  matches the source basis and lights up-facing platform surfaces.
+- Calibrated the Aperture weapon viewmodel position to `[2.05, -1.05, -2.75]`
+  while keeping `SOURCE_WEAPON_VIEW_POSITION = [1.2, -1.1, -2.75]` intact.
+  This places the blaster lower/right like the source screenshot while keeping
+  it on the source-style transparent weapon camera.
+- Rechecked the movement source details in
+  `references/Starter-Kit-FPS/objects/player.gd`: the source uses
+  `movement_speed = 5`, `jump_strength = 8`, and `number_of_jumps = 2`, with no
+  sprint mechanic. The port's `PLAYER_SPEED`, `JUMP_STRENGTH`, and `MAX_JUMPS`
+  already match those values.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-data.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts test/webgpu/app-frame-boundaries.test.ts`
+  passed 55 tests.
+- `pnpm --dir fps run build`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `pnpm run check:progress`
+- `git diff --check`
+- Aperture CLI proof against `http://127.0.0.1:5173/`:
+  - `browser_wait_for_webgpu` passed with WebGPU ready, 94 mirrored source
+    assets, and no last error/failure.
+  - `ecs_find_entities {"key":"light.sun"}` reported the source quaternion and
+    source basis matrix.
+  - `/tmp/fps-weapon-calibrated-205-105.png` shows the weapon tucked into the
+    lower-right corner and platform tops brightly lit.
+  - `/tmp/fps-weapon-calibrated-look-down-platform.png` shows the weapon still
+    visible over the platform when looking down at pitch `-PI/2`.
+
 ## FPS-PORT — Source-style weapon overlay and command-backed controls
 
 Completed: 2026-06-17 08:35 PDT
