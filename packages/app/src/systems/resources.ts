@@ -69,11 +69,17 @@ export interface ResourceStore {
   reset<TState extends ApertureResourceState>(
     descriptor: ApertureResourceDescriptor<TState>,
   ): Readonly<TState>;
+  patchById(
+    id: string,
+    values: Readonly<Record<string, unknown>>,
+  ): ApertureResourceSummaryEntry | null;
   summary(): ApertureResourceStoreSummary;
 }
 
 export function defineResource<
-  const TSchema extends Readonly<Record<string, ApertureResourceField<unknown>>>,
+  const TSchema extends Readonly<
+    Record<string, ApertureResourceField<unknown>>
+  >,
 >(
   id: string,
   schema: TSchema,
@@ -100,9 +106,7 @@ export const resource = Object.freeze({
   vec2(defaultValue: Vec2Tuple = [0, 0]): ApertureResourceField<Vec2Tuple> {
     return createTupleResourceField("vec2", defaultValue, 2);
   },
-  vec3(
-    defaultValue: Vec3Tuple = [0, 0, 0],
-  ): ApertureResourceField<Vec3Tuple> {
+  vec3(defaultValue: Vec3Tuple = [0, 0, 0]): ApertureResourceField<Vec3Tuple> {
     return createTupleResourceField("vec3", defaultValue, 3);
   },
   nullableVec3(
@@ -197,6 +201,40 @@ class DefaultResourceStore implements ResourceStore {
     entry.version += 1;
 
     return entry.state;
+  }
+
+  patchById(
+    id: string,
+    values: Readonly<Record<string, unknown>>,
+  ): ApertureResourceSummaryEntry | null {
+    const entry = this.#entries.get(id);
+    if (entry === undefined) return null;
+
+    const updates: Array<readonly [string, unknown]> = [];
+    for (const [name, value] of Object.entries(values)) {
+      const field = entry.descriptor.schema[name];
+      if (field === undefined) {
+        throw new ApertureSystemError(
+          "aperture.resource.fieldNotFound",
+          `Resource '${id}' has no field '${name}'.`,
+          "Pass a field name from resource_get for the target resource.",
+          {
+            id,
+            field: name,
+            availableFields: Object.keys(entry.descriptor.schema).sort(),
+          },
+        );
+      }
+
+      updates.push([name, resourceValueFromUnknown(id, name, field, value)]);
+    }
+
+    for (const [name, value] of updates) {
+      entry.state[name] = value;
+    }
+
+    entry.version += 1;
+    return createResourceSummaryEntry(entry);
   }
 
   summary(): ApertureResourceStoreSummary {
@@ -400,4 +438,94 @@ function cloneResourceValue<TValue>(value: TValue): TValue {
   }
 
   return JSON.parse(JSON.stringify(value)) as TValue;
+}
+
+function resourceValueFromUnknown(
+  id: string,
+  name: string,
+  field: ApertureResourceField<unknown>,
+  value: unknown,
+): unknown {
+  switch (field.kind) {
+    case "boolean":
+      if (typeof value === "boolean") return value;
+      break;
+    case "number":
+      if (typeof value === "number" && Number.isFinite(value)) return value;
+      break;
+    case "string":
+      if (typeof value === "string") return value;
+      break;
+    case "vec2":
+      return tupleResourceValue(id, name, field.kind, value, 2);
+    case "vec3":
+      return tupleResourceValue(id, name, field.kind, value, 3);
+    case "vec4":
+      return tupleResourceValue(id, name, field.kind, value, 4);
+    case "quat":
+      return quatResourceValue(id, name, value);
+    case "nullableVec3":
+      return value === null
+        ? null
+        : tupleResourceValue(id, name, field.kind, value, 3);
+    default:
+      return cloneResourceValue(value);
+  }
+
+  throw invalidResourceFieldValueError(id, name, field.kind, value);
+}
+
+function tupleResourceValue(
+  id: string,
+  name: string,
+  kind: string,
+  value: unknown,
+  length: number,
+): readonly number[] {
+  if (
+    Array.isArray(value) &&
+    value.length === length &&
+    value.every((item) => typeof item === "number" && Number.isFinite(item))
+  ) {
+    return [...value];
+  }
+
+  throw invalidResourceFieldValueError(id, name, kind, value, {
+    expectedLength: length,
+  });
+}
+
+function quatResourceValue(
+  id: string,
+  name: string,
+  value: unknown,
+): readonly number[] {
+  const tuple = tupleResourceValue(id, name, "quat", value, 4);
+  if (Math.hypot(...tuple) > Number.EPSILON) return tuple;
+
+  throw invalidResourceFieldValueError(id, name, "quat", value, {
+    expectedLength: 4,
+    expectedNonZero: true,
+  });
+}
+
+function invalidResourceFieldValueError(
+  id: string,
+  name: string,
+  kind: string,
+  value: unknown,
+  extra: Readonly<Record<string, unknown>> = {},
+): ApertureSystemError {
+  return new ApertureSystemError(
+    "aperture.resource.invalidFieldValue",
+    `Resource '${id}' field '${name}' expects a ${kind} value.`,
+    "Pass a JSON value matching the field kind reported by resource_get.",
+    {
+      id,
+      field: name,
+      kind,
+      value: jsonSafeValue(value),
+      ...extra,
+    },
+  );
 }

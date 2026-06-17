@@ -77,6 +77,48 @@ describe("Aperture system resources", () => {
     expect(store.read(Vehicle).sphere).not.toBe(initial);
   });
 
+  it("patches initialized resources by id with typed value validation", () => {
+    const Vehicle = defineResource("test.vehicle.patch", {
+      ready: resource.boolean(false),
+      speed: resource.number(0),
+      sphere: resource.vec3([1, 2, 3]),
+      facing: resource.quat(),
+    });
+    const store = createResourceStore();
+
+    store.read(Vehicle);
+    const entry = store.patchById("test.vehicle.patch", {
+      ready: true,
+      speed: 4.5,
+      sphere: [9, 8, 7],
+      facing: [0, 0.707, 0, 0.707],
+    });
+
+    expect(entry).toMatchObject({
+      id: "test.vehicle.patch",
+      version: 1,
+      values: {
+        ready: true,
+        speed: 4.5,
+        sphere: [9, 8, 7],
+        facing: [0, 0.707, 0, 0.707],
+      },
+    });
+    expect(store.read(Vehicle)).toEqual({
+      ready: true,
+      speed: 4.5,
+      sphere: [9, 8, 7],
+      facing: [0, 0.707, 0, 0.707],
+    });
+    expect(store.patchById("test.vehicle.missing", { speed: 1 })).toBeNull();
+    expect(() =>
+      store.patchById("test.vehicle.patch", { sphere: [1, 2] }),
+    ).toThrow(/expects a vec3 value/);
+    expect(() =>
+      store.patchById("test.vehicle.patch", { missing: true }),
+    ).toThrow(/has no field 'missing'/);
+  });
+
   it("rejects incompatible descriptors with the same id", () => {
     const First = defineResource("test.conflict", {
       value: resource.number(1),

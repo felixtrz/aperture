@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1215
+Every structured diagnostic code the engine can emit (1236
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -37,15 +37,19 @@ suggestedFix accompanies it, and where it is emitted.
 | -------------------------- | --------------------------------------- | ---- | ---------------------------------------------- |
 | `aperture.config.notFound` | Aperture config file '…' was not found. | yes  | `packages/vite-plugin/src/system-discovery.ts` |
 
-## aperture.devtools (5)
+## aperture.devtools (9)
 
-| Code                                           | Message                                                           | Fix? | Emitted from                                   |
-| ---------------------------------------------- | ----------------------------------------------------------------- | ---- | ---------------------------------------------- |
-| `aperture.devtools.componentSchemaNotFound`    | No active component schema was found for '…'.                     | yes  | `packages/app/src/worker/devtools/entities.ts` |
-| `aperture.devtools.runtimeMissing`             | The managed Aperture runtime bridge is not installed in this tab. | —    | `packages/cli/src/tools/runtime.ts`            |
-| `aperture.devtools.stepAndDiffMissingSnapshot` | ecs_step_and_diff requires a previous ECS snapshot.               | yes  | `packages/app/src/worker/devtools/bridge.ts`   |
-| `aperture.devtools.toolFailed`                 | (message composed at runtime)                                     | yes  | `packages/app/src/worker/devtools/bridge.ts`   |
-| `aperture.devtools.unsupportedEntityTool`      | Unsupported generated entity devtools tool '…'.                   | yes  | `packages/app/src/worker/devtools/entities.ts` |
+| Code                                           | Message                                                                                                       | Fix? | Emitted from                                    |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------- |
+| `aperture.devtools.componentSchemaNotFound`    | No active component schema was found for '…'.                                                                 | yes  | `packages/app/src/worker/devtools/entities.ts`  |
+| `aperture.devtools.invalidPostEffectToggle`    | render_set_post_effect_enabled expects { effectId: string, enabled: boolean }.                                | —    | `packages/app/src/browser/devtools/dispatch.ts` |
+| `aperture.devtools.postEffectNotFound`         | No generated WebGPU post effect with id '…' is registered.                                                    | —    | `packages/app/src/browser/devtools/dispatch.ts` |
+| `aperture.devtools.runtimeMissing`             | The managed Aperture runtime bridge is not installed in this tab.                                             | —    | `packages/cli/src/tools/runtime.ts`             |
+| `aperture.devtools.stepAndDiffMissingSnapshot` | ecs_step_and_diff requires a previous ECS snapshot.                                                           | yes  | `packages/app/src/worker/devtools/bridge.ts`    |
+| `aperture.devtools.toolFailed`                 | (message composed at runtime)                                                                                 | yes  | `packages/app/src/worker/devtools/bridge.ts`    |
+| `aperture.devtools.unsupportedEntityTool`      | Unsupported generated entity devtools tool '…'.                                                               | yes  | `packages/app/src/worker/devtools/entities.ts`  |
+| `aperture.devtools.webgpuFailed`               | The generated WebGPU app failed to initialize; post effects cannot be changed.                                | —    | `packages/app/src/browser/devtools/dispatch.ts` |
+| `aperture.devtools.webgpuUnavailable`          | The generated WebGPU app is not available yet; wait for browser_status.webgpuOk before changing post effects. | —    | `packages/app/src/browser/devtools/dispatch.ts` |
 
 ## aperture.diagnostic (1)
 
@@ -86,6 +90,15 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                              | Message                                                     | Fix? | Emitted from                      |
 | --------------------------------- | ----------------------------------------------------------- | ---- | --------------------------------- |
 | `aperture.generatedWorker.failed` | Generated Aperture simulation worker failed during startup. | yes  | `packages/app/src/worker/loop.ts` |
+
+## aperture.gltf (4)
+
+| Code                            | Message                                                    | Fix? | Emitted from                       |
+| ------------------------------- | ---------------------------------------------------------- | ---- | ---------------------------------- |
+| `aperture.gltf.invalidNodeName` | GLTF node lookup requires a non-empty node name.           | yes  | `packages/app/src/systems/gltf.ts` |
+| `aperture.gltf.nodeDuplicate`   | Found … GLTF nodes named '…' in the spawned root subtree.  | yes  | `packages/app/src/systems/gltf.ts` |
+| `aperture.gltf.nodeMissing`     | No GLTF node named '…' exists in the spawned root subtree. | yes  | `packages/app/src/systems/gltf.ts` |
+| `aperture.gltf.rootInactive`    | Cannot look up a GLTF node from an inactive root entity.   | yes  | `packages/app/src/systems/gltf.ts` |
 
 ## aperture.headless (2)
 
@@ -183,6 +196,14 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.render.sampleCount.invalid`       | Generated app render.sampleCount must be a finite positive number; using the default 4x MSAA.                         | yes  | `packages/app/src/browser/render.ts`                   |
 | `aperture.render.webgpuNotReady`            | WebGPU has not finished initializing in this managed tab.                                                             | —    | `packages/app/src/browser/devtools/picking.ts`         |
 | `aperture.render.webgpuUnavailable`         | WebGPU initialization failed, so entity picking is unavailable.                                                       | —    | `packages/app/src/browser/devtools/picking.ts`         |
+
+## aperture.resource (3)
+
+| Code                                      | Message                                         | Fix? | Emitted from                                 |
+| ----------------------------------------- | ----------------------------------------------- | ---- | -------------------------------------------- |
+| `aperture.resource.invalidDevtoolsId`     | resource_get id must be a non-empty string.     | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.resource.invalidDevtoolsValues` | resource_set values must be a non-empty object. | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.resource.notFound`              | resource_set id must be a non-empty string.     | yes  | `packages/app/src/worker/devtools/bridge.ts` |
 
 ## aperture.scene (1)
 
@@ -3311,9 +3332,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## particle.invalidBounds (1)
 
-| Code                     | Message                                                              | Fix? | Emitted from                                                    |
-| ------------------------ | -------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
-| `particle.invalidBounds` | Particle emitter bounds require a finite center and positive radius. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                     | Message                                                                                                       | Fix? | Emitted from                                                    |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `particle.invalidBounds` | Particle emitter bounds require a finite center and a non-negative radius; radius 0 enables automatic bounds. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## particle.invalidCapacity (1)
 
@@ -3351,17 +3372,41 @@ suggestedFix accompanies it, and where it is emitted.
 | --------------------------- | --------------------------------------------------------- | ---- | --------------------------------------------------------------- |
 | `particle.invalidTimeScale` | Particle emitter timeScale must be a non-negative number. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
+## particleEffect.partiallySupportedFeature (1)
+
+| Code                                       | Message                                                                                                                 | Fix? | Emitted from                              |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------- |
+| `particleEffect.partiallySupportedFeature` | Particle lifetime ranges are honored by worker-emitted bursts; continuous GPU emitters currently use lifetime.max only. | —    | `packages/render/src/assets/particles.ts` |
+
+## particleEffect.unsupportedFeature (1)
+
+| Code                                | Message                                                                                                                                         | Fix? | Emitted from                              |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------- |
+| `particleEffect.unsupportedFeature` | Particle texture atlas animation is not implemented yet; atlasFrameCount values above 1 are accepted for authoring but ignored by the renderer. | —    | `packages/render/src/assets/particles.ts` |
+
 ## particleFrame.beginComputeFailed (1)
 
 | Code                               | Message                                | Fix? | Emitted from                           |
 | ---------------------------------- | -------------------------------------- | ---- | -------------------------------------- |
 | `particleFrame.beginComputeFailed` | Particle compute pass could not begin. | —    | `packages/webgpu/src/app/particles.ts` |
 
+## particleFrame.burstStateMissing (1)
+
+| Code                              | Message                                              | Fix? | Emitted from                           |
+| --------------------------------- | ---------------------------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.burstStateMissing` | Particle burst packet is missing renderer CPU state. | —    | `packages/webgpu/src/app/particles.ts` |
+
+## particleFrame.burstWriteBufferUnavailable (1)
+
+| Code                                        | Message                                               | Fix? | Emitted from                           |
+| ------------------------------------------- | ----------------------------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.burstWriteBufferUnavailable` | Particle burst simulation requires queue.writeBuffer. | —    | `packages/webgpu/src/app/particles.ts` |
+
 ## particleFrame.effectNotReady (1)
 
-| Code                           | Message                           | Fix? | Emitted from                           |
-| ------------------------------ | --------------------------------- | ---- | -------------------------------------- |
-| `particleFrame.effectNotReady` | Particle effect '…' is not ready. | —    | `packages/webgpu/src/app/particles.ts` |
+| Code                           | Message                                                      | Fix? | Emitted from                           |
+| ------------------------------ | ------------------------------------------------------------ | ---- | -------------------------------------- |
+| `particleFrame.effectNotReady` | Particle render pipeline does not expose bind-group layouts. | —    | `packages/webgpu/src/app/particles.ts` |
 
 ## particleFrame.missingBindGroupSupport (1)
 
@@ -3772,6 +3817,16 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------ | --------------------------------------------- | ---- | ------------------------------------------------------- |
 | `render.audio.oneShotOverflow` | Dropped … one-shot(s): queue at capacity (…). | —    | `packages/render/src/rendering/audio-one-shot-queue.ts` |
 
+## render.particle (5)
+
+| Code                                  | Message                                                                                                                 | Fix? | Emitted from                                            |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------- |
+| `render.particle.boundsLarge`         | Derived … particle bounds radius … is unusually large; set boundsRadius/boundsCenter explicitly if this is intentional. | —    | `packages/render/src/rendering/extraction-particles.ts` |
+| `render.particle.boundsUnavailable`   | Could not derive conservative … particle bounds; using a 1 unit fallback radius.                                        | —    | `packages/render/src/rendering/extraction-particles.ts` |
+| `render.particle.burstEffectInvalid`  | Dropped particle burst: effect '…' is invalid.                                                                          | —    | `packages/render/src/rendering/particle-burst-queue.ts` |
+| `render.particle.burstEffectNotReady` | Dropped particle burst: effect '…' is not ready.                                                                        | —    | `packages/render/src/rendering/particle-burst-queue.ts` |
+| `render.particle.burstOverflow`       | Dropped … particle burst(s): queue at capacity (…).                                                                     | —    | `packages/render/src/rendering/particle-burst-queue.ts` |
+
 ## render.standardMaterialTexture (1)
 
 | Code                                              | Message                                                                                                      | Fix? | Emitted from                                                               |
@@ -3951,23 +4006,11 @@ suggestedFix accompanies it, and where it is emitted.
 | ----------------------------------------- | ------------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
 | `renderPassAttachment.missingColorTarget` | Render pass attachment planning requires at least one color target. | —    | `packages/webgpu/src/render/passes/render-pass-attachments.ts` |
 
-## renderPassCommand.invalidIndexCount (1)
-
-| Code                                  | Message                                         | Fix? | Emitted from                                                |
-| ------------------------------------- | ----------------------------------------------- | ---- | ----------------------------------------------------------- |
-| `renderPassCommand.invalidIndexCount` | Render id … has invalid indexed draw count '…'. | —    | `packages/webgpu/src/render/passes/render-pass-commands.ts` |
-
 ## renderPassCommand.invalidTransformOffset (1)
 
 | Code                                       | Message                                              | Fix? | Emitted from                                                |
 | ------------------------------------------ | ---------------------------------------------------- | ---- | ----------------------------------------------------------- |
 | `renderPassCommand.invalidTransformOffset` | Render id … has invalid transform packed offset '…'. | —    | `packages/webgpu/src/render/passes/render-pass-commands.ts` |
-
-## renderPassCommand.invalidVertexCount (1)
-
-| Code                                   | Message                                        | Fix? | Emitted from                                                |
-| -------------------------------------- | ---------------------------------------------- | ---- | ----------------------------------------------------------- |
-| `renderPassCommand.invalidVertexCount` | Render id … has invalid vertex draw count '…'. | —    | `packages/webgpu/src/render/passes/render-pass-commands.ts` |
 
 ## renderPassCommandExecutor.missingMethod (1)
 
@@ -4185,11 +4228,23 @@ suggestedFix accompanies it, and where it is emitted.
 | ---------------------------- | ----------------------------------------------- | ---- | -------------------------------------------------------------- |
 | `shadow.invalidFilterRadius` | Light shadow filterRadius must be non-negative. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
+## shadow.invalidFixedCamera (1)
+
+| Code                        | Message                                                                       | Fix? | Emitted from                                                   |
+| --------------------------- | ----------------------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `shadow.invalidFixedCamera` | Light shadow near, far, and lightDistance must be non-negative when authored. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
+
 ## shadow.invalidMapSize (1)
 
 | Code                    | Message                                          | Fix? | Emitted from                                                   |
 | ----------------------- | ------------------------------------------------ | ---- | -------------------------------------------------------------- |
 | `shadow.invalidMapSize` | Light shadow mapSize must be a positive integer. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
+
+## shadow.invalidOrthographicSize (1)
+
+| Code                             | Message                                             | Fix? | Emitted from                                                   |
+| -------------------------------- | --------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `shadow.invalidOrthographicSize` | Light shadow orthographicSize must be non-negative. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## shadow.invalidShadowType (1)
 
@@ -4346,6 +4401,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                             | Message                                                                                   | Fix? | Emitted from                                                  |
 | -------------------------------- | ----------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------- |
 | `shadowCasterDrawList.noCasters` | Shadow caster draw lists are planned, but shadow command encoding is not implemented yet. | —    | `packages/webgpu/src/shadows/shadow-caster-draw-list-plan.ts` |
+
+## shadowCasterDrawList.unsupportedAlphaBlendCaster (1)
+
+| Code                                               | Message                                                                                                                              | Fix? | Emitted from                                                  |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---- | ------------------------------------------------------------- |
+| `shadowCasterDrawList.unsupportedAlphaBlendCaster` | Shadow request '…' skipped alpha-blended render object '…' because the depth-only shadow caster pass cannot evaluate material alpha. | —    | `packages/webgpu/src/shadows/shadow-caster-draw-list-plan.ts` |
 
 ## shadowCasterFrameResource.missingMatrixBuffer (1)
 
@@ -6662,9 +6723,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## webGpuApp.unsupportedMaterialQueueBlendPreset (1)
 
-| Code                                            | Message                                                                                                                  | Fix? | Emitted from                                                          |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ---- | --------------------------------------------------------------------- |
-| `webGpuApp.unsupportedMaterialQueueBlendPreset` | WebGPU app material queue routing supports StandardMaterial transparent draws with alpha blending, not blend preset '…'. | —    | `packages/webgpu/src/materials/core/built-in-material-queue-phase.ts` |
+| Code                                            | Message                                                                                                   | Fix? | Emitted from                                                          |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------- |
+| `webGpuApp.unsupportedMaterialQueueBlendPreset` | WebGPU app material queue routing supports transparent … draws with alpha blending, not blend preset '…'. | —    | `packages/webgpu/src/materials/core/built-in-material-queue-phase.ts` |
 
 ## webGpuApp.unsupportedMaterialQueueFamily (1)
 
@@ -6680,9 +6741,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## webGpuApp.unsupportedMaterialQueueTransparentFamily (1)
 
-| Code                                                  | Message                                                                                     | Fix? | Emitted from                                                          |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------- |
-| `webGpuApp.unsupportedMaterialQueueTransparentFamily` | WebGPU app material queue routing supports transparent draws for StandardMaterial, not '…'. | —    | `packages/webgpu/src/materials/core/built-in-material-queue-phase.ts` |
+| Code                                                  | Message                                                                                                       | Fix? | Emitted from                                                          |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------- |
+| `webGpuApp.unsupportedMaterialQueueTransparentFamily` | WebGPU app material queue routing supports transparent draws for StandardMaterial and UnlitMaterial, not '…'. | —    | `packages/webgpu/src/materials/core/built-in-material-queue-phase.ts` |
 
 ## webGpuApp.workerSnapshotRenderFailed (1)
 

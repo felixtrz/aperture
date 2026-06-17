@@ -50,6 +50,7 @@ import {
   type GeneratedEntityToolBridge,
 } from "./entities.js";
 import { callInputDevtoolsTool } from "./input.js";
+import { ApertureSystemError } from "../../systems/errors.js";
 import type { GeneratedDevtoolsToolResult } from "./types.js";
 
 type MutablePhysicsCharacterControllerSettings = {
@@ -101,15 +102,7 @@ export function createGeneratedDevtoolsBridge(options: {
           createApertureDevtoolsResponse({
             requestId: request.requestId,
             ok: false,
-            diagnostics: [
-              {
-                code: "aperture.devtools.toolFailed",
-                severity: "error",
-                message: error instanceof Error ? error.message : String(error),
-                suggestedFix:
-                  "Inspect the tool payload and generated worker diagnostics.",
-              },
-            ],
+            diagnostics: [devtoolsErrorDiagnostic(error)],
           }),
         );
       }
@@ -174,6 +167,10 @@ function callGeneratedDevtoolsTool(
 
   if (request.tool === "resource_get") {
     return callResourceGetTool(bridge.app, request.payload);
+  }
+
+  if (request.tool === "resource_set") {
+    return callResourceSetTool(bridge.app, request.payload);
   }
 
   if (request.tool === "physics_summary") {
@@ -369,6 +366,118 @@ function callResourceGetTool(
         entries: [resource],
       },
     },
+  };
+}
+
+function callResourceSetTool(
+  app: ApertureApp,
+  payload: unknown,
+): GeneratedDevtoolsToolResult {
+  const record = isRecord(payload) ? payload : {};
+  const id = stringFromValue(record["id"]);
+
+  if (id === undefined || id.trim().length === 0) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "aperture.resource.invalidDevtoolsId",
+          severity: "error",
+          message: "resource_set id must be a non-empty string.",
+          suggestedFix:
+            "Pass { id: 'your.resource.id', values: { fieldName: value } }.",
+        },
+      ],
+    };
+  }
+
+  const values = record["values"] ?? record["fields"];
+  if (!isRecord(values) || Object.keys(values).length === 0) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "aperture.resource.invalidDevtoolsValues",
+          severity: "error",
+          message: "resource_set values must be a non-empty object.",
+          suggestedFix:
+            "Pass { values: { fieldName: value } } using fields reported by resource_get.",
+        },
+      ],
+    };
+  }
+
+  try {
+    const resource = app.context.resources.patchById(id, values);
+
+    if (resource === null) {
+      return {
+        ok: false,
+        result: {
+          id,
+          resource: null,
+          resources: {
+            count: 0,
+            entries: [],
+          },
+        },
+        diagnostics: [resourceNotFoundDiagnostic(id)],
+      };
+    }
+
+    return {
+      ok: true,
+      result: {
+        id,
+        resource,
+        resources: {
+          count: 1,
+          entries: [resource],
+        },
+      },
+    };
+  } catch (error: unknown) {
+    if (error instanceof ApertureSystemError) {
+      return {
+        ok: false,
+        diagnostics: [devtoolsErrorDiagnostic(error)],
+      };
+    }
+
+    throw error;
+  }
+}
+
+function resourceNotFoundDiagnostic(
+  id: string,
+): Readonly<Record<string, unknown>> {
+  return {
+    code: "aperture.resource.notFound",
+    severity: "warning",
+    message: `Generated app resource '${id}' was not found.`,
+    suggestedFix:
+      "Call resource_get without an id to list resources currently initialized by generated worker systems.",
+  };
+}
+
+function devtoolsErrorDiagnostic(
+  error: unknown,
+): Readonly<Record<string, unknown>> {
+  if (error instanceof ApertureSystemError) {
+    return {
+      code: error.code,
+      severity: "error",
+      message: error.message,
+      suggestedFix: error.suggestedFix,
+      ...(error.detail === undefined ? {} : { data: error.detail }),
+    };
+  }
+
+  return {
+    code: "aperture.devtools.toolFailed",
+    severity: "error",
+    message: error instanceof Error ? error.message : String(error),
+    suggestedFix: "Inspect the tool payload and generated worker diagnostics.",
   };
 }
 

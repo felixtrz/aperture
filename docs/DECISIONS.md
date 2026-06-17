@@ -857,7 +857,7 @@ Consequences:
 - App systems can share one-per-world state without module singletons.
 - Tooling can inspect resource values through worker/headless summaries.
 - Resource schemas should remain structured-clone friendly and field-typed.
-- Future devtools may add resource get/set/diff commands over the same summary
-  contract.
+- Devtools expose `resource_get` and schema-validated `resource_set` over the
+  same summary contract; future tooling may add resource diffs.
 - Experiences such as racing should migrate shared simulation state onto
   resources before adding higher-level particle/audio helpers.

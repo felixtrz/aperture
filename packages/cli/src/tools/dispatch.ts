@@ -77,6 +77,7 @@ export async function callBrowserBackedTool(
       return callGeneratedRuntimeTool(page, name, args);
     case "asset_list":
     case "resource_get":
+    case "resource_set":
       return callGeneratedRuntimeTool(page, name, args);
     case "physics_summary":
     case "physics_events":

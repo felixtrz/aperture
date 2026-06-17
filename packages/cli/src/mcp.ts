@@ -293,6 +293,10 @@ function toolDefinitions(): readonly McpToolDefinition[] {
         id: { type: "string" },
       },
     ),
+    tool("resource_set", "Patch an initialized generated app resource by id.", {
+      id: { type: "string" },
+      values: { type: "object" },
+    }),
     tool("input_key", "Send keyboard input through the managed browser.", {
       key: { type: "string" },
       action: { enum: ["press", "down", "up"] },

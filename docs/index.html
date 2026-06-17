@@ -393,54 +393,58 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 08:59 UTC</dd>
+            <dd>2026-06-17 09:07 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the Starter Kit FPS port now has source-like
-              muzzle flash random style. Player shots sample the upstream
-              random Z roll and <code>0.40-0.75</code> scale range, while enemy
-              attacks randomize both muzzle sprite rolls. Aperture entity proof
-              observed player muzzle scale <code>0.4168</code> and rotation
-              <code>-0.2156</code>, plus enemy muzzle rotations
+              Latest update: the Starter Kit FPS port now has source-like enemy
+              muzzle flash random roll, and generated-worker devtools now expose
+              schema-validated <code>resource_set</code> for deterministic proof
+              setup. Aperture CLI proof drove the real character controller into
+              enemy range, observed <code>health:100-&gt;95</code>, and read
+              enemy muzzle rotations <code>-0.363</code> and
+              <code>-0.516</code> radians, both inside the upstream
+              <code>±45°</code> range. Prior update: player shots sample the
+              upstream random Z roll and <code>0.40-0.75</code> scale range,
+              while enemy attacks randomize both muzzle sprite rolls. Aperture
+              entity proof observed player muzzle scale <code>0.4168</code> and
+              rotation <code>-0.2156</code>, plus enemy muzzle rotations
               <code>0.213</code> and <code>-0.0584</code>. Prior update: the
-              Starter Kit FPS port now shoots from an
-              unlocked canvas click before pointer lock succeeds, and enemy
-              attack timing/range now matches the upstream 0.25 second timer
-              and 5-unit raycast distance. Aperture proof observed browser
-              canvas shooting <code>shotsFired:0-&gt;1</code>, camera-relative
-              W movement <code>dx:1.8504</code> /
-              <code>dz:-1.681</code>, jump
-              <code>grounded:false</code> with
-              <code>verticalVelocity:7</code>, and enemy range damage only
-              after the near approach <code>healthDelta:-5</code>. Prior
-              update: the Starter Kit FPS port gained source-style weapon
-              recoil. Authored min/max knockback ranges from the
-              upstream weapon resources now drive random camera pitch/yaw kick
-              plus a transient backward movement impulse through the
-              character-controller path; Aperture CLI proof observed
+              Starter Kit FPS port now shoots from an unlocked canvas click
+              before pointer lock succeeds, and enemy attack timing/range now
+              matches the upstream 0.25 second timer and 5-unit raycast
+              distance. Aperture proof observed browser canvas shooting
+              <code>shotsFired:0-&gt;1</code>, camera-relative W movement
+              <code>dx:1.8504</code> / <code>dz:-1.681</code>, jump
+              <code>grounded:false</code> with <code>verticalVelocity:7</code>,
+              and enemy range damage only after the near approach
+              <code>healthDelta:-5</code>. Prior update: the Starter Kit FPS
+              port gained source-style weapon recoil. Authored min/max knockback
+              ranges from the upstream weapon resources now drive random camera
+              pitch/yaw kick plus a transient backward movement impulse through
+              the character-controller path; Aperture CLI proof observed
               <code>shotsFired:1</code>, <code>pitch:0.0378</code>,
-              <code>yaw:0.0347</code>, and <code>recoilZ:0.3778</code>.
-              Prior update: the Starter Kit FPS port gained an ECS-authored
-              player blob shadow using the upstream <code>blob_shadow</code>
+              <code>yaw:0.0347</code>, and <code>recoilZ:0.3778</code>. Prior
+              update: the Starter Kit FPS port gained an ECS-authored player
+              blob shadow using the upstream <code>blob_shadow</code>
               sprite and a transparent unlit material. Aperture tools reproved
               <code>player.shadow</code> render extraction, camera-relative
               movement, jump, and shoot input with WebGPU healthy and zero
               render diagnostics. Prior update: the Starter Kit FPS port gained
-              a platform-aware generated-input clear proof. Aperture tools
-              drove only configured
-              <code>move</code>, <code>look</code>, <code>jump</code>, and
-              <code>shoot</code> actions across authored platforms, destroyed
-              all four enemies, reached <code>gameStatus:"cleared"</code>,
-              showed HUD <code>CLEAR</code>, and captured
+              a platform-aware generated-input clear proof. Aperture tools drove
+              only configured <code>move</code>, <code>look</code>,
+              <code>jump</code>, and <code>shoot</code> actions across authored
+              platforms, destroyed all four enemies, reached
+              <code>gameStatus:"cleared"</code>, showed HUD <code>CLEAR</code>,
+              and captured
               <code>fps/.aperture/runtime/fps-full-clear-proof.png</code> with
               WebGPU healthy and no runtime failure. Prior update: the racing
-              library-gap plan completed its final
-              no-cache end-to-end verification. Racing was relaunched through
-              managed Aperture on <code>127.0.0.1:5173</code> after clearing its
-              Vite optimized cache, and Aperture MCP reproved WebGPU, shadows,
-              HUD signals, and smoke particles from the fresh session:
+              library-gap plan completed its final no-cache end-to-end
+              verification. Racing was relaunched through managed Aperture on
+              <code>127.0.0.1:5173</code> after clearing its Vite optimized
+              cache, and Aperture MCP reproved WebGPU, shadows, HUD signals, and
+              smoke particles from the fresh session:
               <code>particleEmitters:306</code>, <code>liveParticles:906</code>,
               <code>texturedEmitters:306</code>, and zero diagnostics. Shadow
               Lab stayed isolated and alive on <code>127.0.0.1:8861</code>.
@@ -511,7 +515,8 @@
               <code>running</code> with no <code>lastError</code> or
               <code>lastFailure</code>. Prior update: generated-worker devtools,
               CLI dispatch, and MCP metadata now expose
-              <code>resource_get</code> so agents can read app resources such as
+              <code>resource_get</code> / <code>resource_set</code> so agents
+              can read and patch initialized app resources such as
               <code>racing.vehicle</code> without dumping full browser/entity
               status. Racing was reproved through managed Aperture controls
               after a fresh reload: deterministic
@@ -2203,8 +2208,8 @@
               <li>
                 <span class="badge green">fps</span> Added source-like muzzle
                 flash randomization. Player shots now write random
-                <code>Sprite.rotation</code> and <code>0.40-0.75</code> scale
-                to <code>effect.muzzle-burst</code>, and enemy attacks randomize
+                <code>Sprite.rotation</code> and <code>0.40-0.75</code> scale to
+                <code>effect.muzzle-burst</code>, and enemy attacks randomize
                 both enemy muzzle sprite rolls; Aperture proof observed
                 <code>-0.2156</code>, <code>0.213</code>, and
                 <code>-0.0584</code> rotations.
@@ -2215,8 +2220,7 @@
                 canvas mouse down/up now changes
                 <code>shotsFired:0-&gt;1</code>, generated stepping reproved
                 camera-relative movement and jump, and enemy damage now occurs
-                only after the near 5-unit approach
-                <code>healthDelta:-5</code>.
+                only after the near 5-unit approach <code>healthDelta:-5</code>.
               </li>
               <li>
                 <span class="badge green">fps</span> Added source-style weapon

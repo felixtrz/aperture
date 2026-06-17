@@ -442,6 +442,68 @@ describe("generated simulation worker start messages", () => {
         },
       ],
     });
+
+    port.dispatch(
+      createApertureDevtoolsRequest({
+        requestId: "resource-set",
+        tool: "resource_set",
+        payload: {
+          id: "test.generated.resource",
+          values: {
+            ready: false,
+            speed: 22,
+            position: [7, 8, 9],
+          },
+        },
+      }),
+    );
+    const set = await port.nextPostedMessage(
+      devtoolsResponseWithId("resource-set"),
+    );
+
+    expect(set).toMatchObject({
+      requestId: "resource-set",
+      ok: true,
+      result: {
+        id: "test.generated.resource",
+        resource: {
+          id: "test.generated.resource",
+          version: 2,
+          values: {
+            ready: false,
+            speed: 22,
+            position: [7, 8, 9],
+          },
+        },
+      },
+    });
+
+    port.dispatch(
+      createApertureDevtoolsRequest({
+        requestId: "resource-set-invalid",
+        tool: "resource_set",
+        payload: {
+          id: "test.generated.resource",
+          values: {
+            position: [1, 2],
+          },
+        },
+      }),
+    );
+    expect(
+      await port.nextPostedMessage(
+        devtoolsResponseWithId("resource-set-invalid"),
+      ),
+    ).toMatchObject({
+      requestId: "resource-set-invalid",
+      ok: false,
+      diagnostics: [
+        {
+          code: "aperture.resource.invalidFieldValue",
+          severity: "error",
+        },
+      ],
+    });
   });
 
   it("queues devtools virtual button input for the next simulation step", async () => {
