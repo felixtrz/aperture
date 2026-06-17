@@ -97,6 +97,9 @@ const WEAPON_SWITCH_HIDE_DURATION = 0.1;
 const WEAPON_SWITCH_DROP_OFFSET = 1;
 const WEAPON_SWITCH_RAISE_RATE = 10;
 const WEAPON_SWITCH_COMPLETE_EPSILON = 0.01;
+const WEAPON_VIEWMODEL_MOVE_SCALE = 1 / 30;
+const WEAPON_VIEWMODEL_LERP_RATE = 10;
+const WEAPON_VIEWMODEL_SHOT_KICK = 0.25;
 const LANDING_CAMERA_BOB_OFFSET = -0.1;
 const LANDING_CAMERA_BOB_RECOVERY_RATE = 5;
 const WEAPON_RECOIL_IMPULSE_SCALE = 0.12;
@@ -147,6 +150,7 @@ export default class PlayerSystem extends createSystem({
   #weaponSwitchTimer = 0;
   #weaponSwitchRaiseOffset = 0;
   #weaponSwitchActive = false;
+  #weaponViewOffset: Vec3 = [0, 0, 0];
   #landingBobOffset = 0;
   #landingPulse = 0;
   #weaponRecoilVelocity: Vec3 = [0, 0, 0];
@@ -337,8 +341,10 @@ export default class PlayerSystem extends createSystem({
       pitch = clampPitch(pitch + kick.pitch);
       yaw += kick.yaw;
       this.#addWeaponRecoil(yaw, weapon);
+      this.#weaponViewOffset[2] += WEAPON_VIEWMODEL_SHOT_KICK;
     }
 
+    this.#updateWeaponViewOffset(movement, dt);
     this.#enemyTime += dt;
     this.#enemyAttackTimer += dt;
     if (this.#enemyAttackTimer >= ENEMY_ATTACK_INTERVAL) {
@@ -358,7 +364,7 @@ export default class PlayerSystem extends createSystem({
 
     this.#writeCamera(position, yaw, pitch, this.#landingBobOffset);
     this.#writePlayerShadow(position);
-    this.#writeWeapons(weaponIndex, weapon, moveX, moveZ, shotCooldown);
+    this.#writeWeapons(weaponIndex, moveX, moveZ);
     this.#writeShotEffects();
     this.#writeEnemies(position, enemyHealth);
     const enemiesRemaining = countLivingEnemies(enemyHealth);
@@ -616,15 +622,11 @@ export default class PlayerSystem extends createSystem({
 
   #writeWeapons(
     weaponIndex: number,
-    weapon: WeaponSpec,
     moveX: number,
     moveZ: number,
-    shotCooldown: number,
   ): void {
     const walkBob =
       Math.sin(this.#enemyTime * 10) * 0.025 * Math.hypot(moveX, moveZ);
-    const recoil =
-      Math.max(0, Math.min(0.22, shotCooldown / weapon.cooldown)) * 0.18;
 
     for (let i = 0; i < WEAPONS.length; i += 1) {
       const entity = this.#findByKey(`weapon.${i}`);
@@ -634,9 +636,9 @@ export default class PlayerSystem extends createSystem({
       if (i === weaponIndex) {
         const switchOffset = this.#weaponSwitchYOffset(i);
         translation.set([
-          spec.position[0],
-          spec.position[1] + walkBob - switchOffset,
-          spec.position[2] + recoil,
+          spec.position[0] + this.#weaponViewOffset[0],
+          spec.position[1] + this.#weaponViewOffset[1] + walkBob - switchOffset,
+          spec.position[2] + this.#weaponViewOffset[2],
         ]);
       } else {
         translation.set([spec.position[0], HIDDEN_WEAPON_Y, 0]);
@@ -823,6 +825,7 @@ export default class PlayerSystem extends createSystem({
     this.#impactFlashPosition = HIDDEN_EFFECT_POSITION;
     this.#clearEnemyMuzzleFlashes();
     this.#resetWeaponSwitch();
+    this.#weaponViewOffset = [0, 0, 0];
     this.#landingBobOffset = 0;
     this.#landingPulse = 0;
     this.#weaponRecoilVelocity = [0, 0, 0];
@@ -850,6 +853,23 @@ export default class PlayerSystem extends createSystem({
       Math.hypot(nextX, nextZ) <= WEAPON_RECOIL_EPSILON
         ? [0, 0, 0]
         : [nextX, 0, nextZ];
+  }
+
+  #updateWeaponViewOffset(
+    movement: readonly [number, number],
+    dt: number,
+  ): void {
+    const target: Vec3 = [
+      -movement[0] * PLAYER_SPEED * WEAPON_VIEWMODEL_MOVE_SCALE,
+      0,
+      movement[1] * PLAYER_SPEED * WEAPON_VIEWMODEL_MOVE_SCALE,
+    ];
+    const alpha = Math.min(1, dt * WEAPON_VIEWMODEL_LERP_RATE);
+    this.#weaponViewOffset = [
+      lerpNumber(this.#weaponViewOffset[0], target[0], alpha),
+      lerpNumber(this.#weaponViewOffset[1], target[1], alpha),
+      lerpNumber(this.#weaponViewOffset[2], target[2], alpha),
+    ];
   }
 
   #triggerLandingBob(): void {
