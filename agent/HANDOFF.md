@@ -363,6 +363,11 @@ previous working state so the old state remains recoverable.
 - `fps/src/systems/setup.system.ts` has an unrelated uncommitted helper
   extraction for the existing player-shadow mesh spawn. It was not staged in
   the control/range commits because it does not change runtime behavior.
+- Quick upstream check for the next enemy-fidelity slice: `objects/enemy.tscn`
+  has two `AnimatedSprite3D` muzzle flashes at local offsets
+  `[-0.45,0.3,0.4]` and `[0.45,0.3,0.4]`; the port already uses those offsets
+  and only triggers them on line-of-sight damage. The remaining visible gap is
+  source-like random Z roll per flash from `objects/enemy.gd`.
 - Use `value:0` rather than `pressed:false` for button-release CLI scripts when
   an immediate following `ecs_step` proof must be unambiguous.
 - For held look input through the CLI, queue `input_action_set` with `x`/`y`
