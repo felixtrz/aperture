@@ -17,12 +17,23 @@ Commit: `a6a8c421`
 
 - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
   passed 38 tests.
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-effects.test.ts`
+  passed 12 tests after the dark-screen fix.
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/fps-hud.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+  passed 70 tests after the dark-screen fix.
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
 - Aperture CLI proof against the live FPS route:
   - `browser_wait_for_webgpu` passed with WebGPU ready.
   - `render_get_snapshot_summary` reported one view, one skybox, one fog, 33
     draw calls, and diagnostics `0`.
+  - `browser_screenshot` wrote `/tmp/fps-shot-single-camera.png`; direct PNG
+    samples included center crosshair `(255,255,255,255)` and sky/world samples
+    such as `(119,123,141,255)` and `(156,134,195,255)`.
 
 ## FPS-PORT — Input edge handling and fallback look sign
 

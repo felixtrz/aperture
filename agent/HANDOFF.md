@@ -1,6 +1,6 @@
-# Handoff - Starter Kit FPS Input Edge Handling
+# Handoff - Starter Kit FPS World Visibility
 
-**Updated:** 2026-06-17 07:41 PDT
+**Updated:** 2026-06-17 07:43 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
@@ -60,8 +60,18 @@ previous working state so the old state remains recoverable.
   - After the setup change:
     `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
     passed 38 tests.
+  - After the dark-screen fix:
+    `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-effects.test.ts`
+    passed 12 tests.
+  - After the dark-screen fix:
+    `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/fps-hud.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+    passed 70 tests.
   - After the setup change: `pnpm --dir fps run typecheck`
   - After the setup change: `pnpm --dir fps run build`
+  - After the dark-screen fix: `pnpm --dir racing run typecheck`
+  - After the dark-screen fix: `pnpm --dir racing run build`
+  - After the dark-screen fix: `pnpm --dir shadow-lab run typecheck`
+  - After the dark-screen fix: `pnpm --dir shadow-lab run build`
 - Commit:
   - `b4a70a49` — `Stabilize FPS runtime environment mapping`
   - `240d43a8` — `Fix FPS input edge handling`

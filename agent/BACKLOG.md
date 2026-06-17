@@ -76,6 +76,28 @@ Acceptance criteria:
 - Keep the implementation WebGPU-only and renderer-owned; do not introduce a
   mutable scene graph or WebGL fallback.
 
+## Ready Follow-Up
+
+`task-fps-overlay-post` — Support transparent post-processed overlay cameras.
+
+Category: `webgpu-render`
+
+Reference anchor: `references/three.js/src/renderers/WebGLRenderer.js`,
+`references/three.js/src/renderers/webgl/WebGLBackground.js`,
+`references/engine/src/scene/renderer/frame-pass-postprocessing.js`.
+
+Acceptance criteria:
+
+- Add renderer support for a higher-priority transparent camera/view to preserve
+  the already-rendered lower-priority world view when post effects are enabled.
+- Add a visible route or FPS proof that renders a base world camera plus a
+  transparent weapon/overlay camera through the post stack without blacking the
+  base image.
+- Add pixel coverage for clear-only, world-only, overlay-only, and composited
+  regions.
+- Restore the FPS source-style weapon camera/subviewport path only after the
+  renderer proof passes.
+
 ## Historical M10 Physics Notes
 
 Active goal override is currently pursuing M10 physics. `M10-T1` and `M10-T2`
