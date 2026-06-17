@@ -77,6 +77,7 @@ import {
   sourceEnemyAttackers,
   sourceGroundedAfterMove,
   sourceMouseLookStep,
+  sourceNearestShotHit,
   sourcePlayerShouldRespawn,
   sourcePointerDragLookStep,
   sourceShotDirection,
@@ -660,7 +661,7 @@ export default class PlayerSystem extends createSystem({
         },
         this.#queryExcluding(PLAYER_BODY_KEY),
       );
-      const nearestRayHit = nearestPhysicsHit(rayHits);
+      const nearestRayHit = sourceNearestShotHit(rayHits);
       if (nearestRayHit !== null) {
         impacts.push(
           offsetImpactPoint(
@@ -744,18 +745,19 @@ export default class PlayerSystem extends createSystem({
     hits: readonly PhysicsRaycastHit[],
     enemyHealth: Record<string, number>,
   ): ShotEnemyHit | null {
-    for (const hit of hits) {
-      const enemyKey = this.#enemyKeyForHit(hit, enemyHealth);
-      if (enemyKey !== null) {
-        return {
-          key: enemyKey,
-          point: cloneVec3(hit.point),
-          distance: hit.distance,
-        };
-      }
+    const hit = sourceNearestShotHit(hits);
+    if (hit === null) {
       return null;
     }
-    return null;
+
+    const enemyKey = this.#enemyKeyForHit(hit, enemyHealth);
+    if (enemyKey === null) return null;
+
+    return {
+      key: enemyKey,
+      point: cloneVec3(hit.point),
+      distance: hit.distance,
+    };
   }
 
   #enemyKeyForHit(
@@ -1067,11 +1069,21 @@ export default class PlayerSystem extends createSystem({
     this.#landingPulse = 0;
     this.#jumpBufferTimer = 0;
     this.#shootBufferTimer = 0;
-    this.#commandShootPressed = false;
-    this.#commandShootDown = false;
+    this.#resetCommandState();
     this.#jumpPressedLastFrame = false;
     this.#shootPressedLastFrame = false;
     this.#setLookTargets(0, 0);
+  }
+
+  #resetCommandState(): void {
+    this.#commandMoveX = 0;
+    this.#commandMoveZ = 0;
+    this.#commandJumpPressed = false;
+    this.#commandJumpDown = false;
+    this.#commandShootPressed = false;
+    this.#commandShootDown = false;
+    this.#commandSwitchWeaponDown = false;
+    this.#commandResetDown = false;
   }
 
   #setLookTargets(yaw: number, pitch: number): void {
@@ -1456,18 +1468,6 @@ function countDestroyedEnemies(
 
 function distance(a: Vec3, b: Vec3): number {
   return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
-}
-
-function nearestPhysicsHit(
-  hits: readonly PhysicsRaycastHit[],
-): PhysicsRaycastHit | null {
-  let nearest: PhysicsRaycastHit | null = null;
-  for (const hit of hits) {
-    if (nearest === null || hit.distance < nearest.distance) {
-      nearest = hit;
-    }
-  }
-  return nearest;
 }
 
 function randomJumpSound(): string {

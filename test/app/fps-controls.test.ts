@@ -26,6 +26,7 @@ import {
   sourceGroundedAfterMove,
   sourceMouseLookStep,
   sourceMovementTargetVelocity,
+  sourceNearestShotHit,
   sourcePlayerShouldRespawn,
   sourcePointerDragLookStep,
   sourceShotDirection,
@@ -295,6 +296,28 @@ describe("Starter Kit FPS controls", () => {
     expect(direction[0]).toBeCloseTo(expected[0] / expectedLength, 10);
     expect(direction[1]).toBeCloseTo(expected[1] / expectedLength, 10);
     expect(direction[2]).toBeCloseTo(expected[2] / expectedLength, 10);
+  });
+
+  it("uses the nearest physics hit as the source raycast collision", () => {
+    const enemyBehindUnsortedWall = sourceNearestShotHit([
+      { id: "wall", distance: 6, enemyKey: null },
+      { id: "enemy.0", distance: 2, enemyKey: "enemy.0" },
+    ]);
+    expect(enemyBehindUnsortedWall?.id).toBe("enemy.0");
+
+    const blockedEnemy = sourceNearestShotHit([
+      { id: "enemy.0", distance: 8, enemyKey: "enemy.0" },
+      { id: "wall", distance: 3, enemyKey: null },
+    ]);
+    expect(blockedEnemy?.id).toBe("wall");
+    expect(blockedEnemy?.enemyKey).toBeNull();
+
+    expect(
+      sourceNearestShotHit([
+        { id: "invalid", distance: Number.NaN },
+        { id: "behind", distance: -1 },
+      ]),
+    ).toBeNull();
   });
 
   it("applies source shot body knockback through the movement lerp", () => {

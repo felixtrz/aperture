@@ -393,12 +393,21 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 17:04 UTC</dd>
+            <dd>2026-06-17 17:21 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS now has a reusable source-facing
+              Latest update: Starter Kit FPS shooting now resolves damage from
+              the nearest physics ray hit, so unsorted
+              <code>raycastAll</code> results cannot hide closer enemies or hit
+              through nearer blockers. FPS reset/respawn also clears all
+              app-specific movement and button command state. The live
+              <code>pnpm --dir fps run smoke:full-clear</code> route cleared
+              all four enemies with <code>shotsFired:8</code>,
+              <code>hits:16</code>, and
+              <code>gameStatus:"cleared"</code>. Prior update: Starter Kit FPS
+              now has a reusable source-facing
               skybox readback proof at
               <code>pnpm --dir fps run smoke:skybox-readback</code>. The smoke
               starts a fresh managed Aperture session, drives the app through

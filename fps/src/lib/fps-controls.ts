@@ -21,8 +21,7 @@ export interface SourceMovementTargetInput {
   readonly bodyKnockback?: number | undefined;
 }
 
-export interface SourceSmoothedMovementInput
-  extends SourceMovementTargetInput {
+export interface SourceSmoothedMovementInput extends SourceMovementTargetInput {
   readonly currentVelocity: Vec3;
   readonly verticalVelocity: number;
   readonly dt: number;
@@ -48,8 +47,7 @@ export interface SourceWeaponMuzzleLocalInput {
   readonly viewOffset?: Vec3 | undefined;
 }
 
-export interface SourceWeaponMuzzleWorldInput
-  extends SourceWeaponMuzzleLocalInput {
+export interface SourceWeaponMuzzleWorldInput extends SourceWeaponMuzzleLocalInput {
   readonly playerEyePosition: Vec3;
   readonly yaw: number;
   readonly pitch: number;
@@ -72,6 +70,10 @@ export interface SourceShotDirectionInput {
   readonly maxDistance: number;
   readonly spreadOffsetX: number;
   readonly spreadOffsetY: number;
+}
+
+export interface SourceShotHitCandidate {
+  readonly distance: number;
 }
 
 export interface SourceCloudHoverInput {
@@ -211,12 +213,10 @@ export function sourceMovementTargetVelocity(
   const bodyKnockback = input.bodyKnockback ?? 0;
 
   return [
-    (right[0] * movement[0] + forward[0] * movement[1]) *
-      input.speed +
+    (right[0] * movement[0] + forward[0] * movement[1]) * input.speed +
       backward[0] * bodyKnockback,
     0,
-    (right[2] * movement[0] + forward[2] * movement[1]) *
-      input.speed +
+    (right[2] * movement[0] + forward[2] * movement[1]) * input.speed +
       backward[2] * bodyKnockback,
   ];
 }
@@ -266,7 +266,9 @@ export function sourceControllerLookStep(
   };
 }
 
-export function sourceMouseLookStep(input: SourceMouseLookInput): SourceLookStep {
+export function sourceMouseLookStep(
+  input: SourceMouseLookInput,
+): SourceLookStep {
   const targetYaw = input.targetYaw + input.axisX * input.radiansPerUnit;
   const targetPitch = clampSourceLookPitch(
     input.targetPitch + input.axisY * input.radiansPerUnit,
@@ -313,6 +315,19 @@ export function sourceShotDirection(input: SourceShotDirectionInput): Vec3 {
       quatFromEulerYXZ(input.pitch, input.yaw, 0),
     ),
   );
+}
+
+export function sourceNearestShotHit<THit extends SourceShotHitCandidate>(
+  hits: readonly THit[],
+): THit | null {
+  let nearest: THit | null = null;
+  for (const hit of hits) {
+    if (!Number.isFinite(hit.distance) || hit.distance < 0) continue;
+    if (nearest === null || hit.distance < nearest.distance) {
+      nearest = hit;
+    }
+  }
+  return nearest;
 }
 
 export function sourceCloudHoverPosition(input: SourceCloudHoverInput): Vec3 {
