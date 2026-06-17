@@ -62,6 +62,11 @@ export interface SourceGroundedAfterMoveInput {
   readonly controllerGrounded: boolean;
 }
 
+export interface SourcePlayerRespawnInput {
+  readonly positionY: number;
+  readonly health: number;
+}
+
 export function cameraForwardFromYawPitch(yaw: number, pitch: number): Vec3 {
   const cosPitch = Math.cos(pitch);
   return [
@@ -211,6 +216,12 @@ export function sourceGroundedAfterMove(
   return input.jumpedThisFrame || input.verticalVelocity > 0
     ? false
     : input.controllerGrounded;
+}
+
+export function sourcePlayerShouldRespawn(
+  input: SourcePlayerRespawnInput,
+): boolean {
+  return input.positionY < -10 || input.health < 0;
 }
 
 export function sourceEnemyAttackers(

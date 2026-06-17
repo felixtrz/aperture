@@ -58,6 +58,7 @@ import {
   sourceEnemyLookTarget,
   sourceEnemyAttackers,
   sourceGroundedAfterMove,
+  sourcePlayerShouldRespawn,
   sourceShotDirection,
   shouldConsumeBufferedShot,
   weaponViewmodelOffsetTarget,
@@ -214,6 +215,31 @@ export default class PlayerSystem extends createSystem({
     let jumpedThisFrame = false;
     let footstepVelocityX = 0;
     let footstepVelocityZ = 0;
+    let respawnedThisFrame = false;
+
+    const resetFromSourceReload = (): void => {
+      position = [...PLAYER_START];
+      yaw = 0;
+      pitch = 0;
+      verticalVelocity = 0;
+      jumpsRemaining = MAX_JUMPS;
+      grounded = true;
+      health = 100;
+      weaponIndex = 0;
+      shotCooldown = 0;
+      shotsFired = 0;
+      hits = 0;
+      enemyHealth = createEnemyHealth();
+      enemyDestroyed = createEnemyDestroyed();
+      enemyDestroyedPulse = 0;
+      lastDestroyedEnemy = "";
+      this.#resetTransientGameplayState();
+      this.#damagePulse = 0;
+      this.#writePlayerBody(PLAYER_BODY_START);
+      footstepVelocityX = 0;
+      footstepVelocityZ = 0;
+      respawnedThisFrame = true;
+    };
 
     if (this.#button("reset")?.down()) {
       position = [...PLAYER_START];
@@ -330,26 +356,11 @@ export default class PlayerSystem extends createSystem({
       this.#jumpBufferTimer = 0;
     }
 
-    if (position[1] < -10 || health < 0) {
-      position = [...PLAYER_START];
-      yaw = 0;
-      pitch = 0;
-      verticalVelocity = 0;
-      jumpsRemaining = MAX_JUMPS;
-      grounded = true;
-      health = 100;
-      enemyHealth = createEnemyHealth();
-      enemyDestroyed = createEnemyDestroyed();
-      enemyDestroyedPulse = 0;
-      lastDestroyedEnemy = "";
-      this.#resetTransientGameplayState();
-      this.#damagePulse = 0;
-      this.#writePlayerBody(PLAYER_BODY_START);
-      footstepVelocityX = 0;
-      footstepVelocityZ = 0;
+    if (sourcePlayerShouldRespawn({ positionY: position[1], health })) {
+      resetFromSourceReload();
     }
 
-    if (this.#button("switchWeapon")?.down()) {
+    if (!respawnedThisFrame && this.#button("switchWeapon")?.down()) {
       const nextWeaponIndex = (weaponIndex + 1) % WEAPONS.length;
       if (this.#startWeaponSwitch(weaponIndex, nextWeaponIndex)) {
         shotCooldown = 0;
@@ -359,7 +370,7 @@ export default class PlayerSystem extends createSystem({
 
     weaponIndex = this.#advanceWeaponSwitch(weaponIndex, dt);
     const weapon = WEAPONS[weaponIndex] ?? WEAPONS[0]!;
-    const shoot = this.#button("shoot");
+    const shoot = respawnedThisFrame ? undefined : this.#button("shoot");
     if (shoot?.down() === true) {
       this.#shootBufferTimer = SHOOT_BUFFER_DURATION;
     }
@@ -393,10 +404,12 @@ export default class PlayerSystem extends createSystem({
       this.#weaponViewOffset[2] += WEAPON_VIEWMODEL_SHOT_KICK;
     }
 
-    this.#updateWeaponViewOffset(moveX, moveZ, dt);
+    const weaponMoveX = respawnedThisFrame ? 0 : moveX;
+    const weaponMoveZ = respawnedThisFrame ? 0 : moveZ;
+    this.#updateWeaponViewOffset(weaponMoveX, weaponMoveZ, dt);
     this.#enemyTime += dt;
     this.#enemyAttackTimer += dt;
-    if (this.#enemyAttackTimer >= ENEMY_ATTACK_INTERVAL) {
+    if (!respawnedThisFrame && this.#enemyAttackTimer >= ENEMY_ATTACK_INTERVAL) {
       this.#enemyAttackTimer = 0;
       for (const attacker of this.#livingEnemyAttackers(
         position,
@@ -410,12 +423,16 @@ export default class PlayerSystem extends createSystem({
           position,
         );
         this.#playOneShot("enemy-attack");
+        if (sourcePlayerShouldRespawn({ positionY: position[1], health })) {
+          resetFromSourceReload();
+          break;
+        }
       }
     }
 
     this.#writeCamera(position, yaw, pitch, this.#landingBobOffset);
     this.#writePlayerShadow(position);
-    this.#writeWeapons(weaponIndex, moveX, moveZ);
+    this.#writeWeapons(weaponIndex, weaponMoveX, weaponMoveZ);
     this.#writeShotEffects();
     this.#writeEnemies(position, enemyHealth);
     const enemiesRemaining = countLivingEnemies(enemyHealth);
@@ -890,6 +907,7 @@ export default class PlayerSystem extends createSystem({
   }
 
   #resetTransientGameplayState(): void {
+    this.#previousPointer = null;
     this.#enemyTime = 0;
     this.#enemyAttackTimer = 0;
     this.#muzzleFlashTimer = 0;

@@ -20,6 +20,7 @@ import {
   sourceEnemyAttackers,
   sourceEnemyLookTarget,
   sourceGroundedAfterMove,
+  sourcePlayerShouldRespawn,
   sourceShotDirection,
   weaponViewmodelOffsetTarget,
 } from "../../fps/src/lib/fps-controls.js";
@@ -313,6 +314,21 @@ describe("Starter Kit FPS controls", () => {
         controllerGrounded: true,
       }),
     ).toBe(true);
+  });
+
+  it("matches source player reload thresholds for falling and damage", () => {
+    expect(
+      sourcePlayerShouldRespawn({ positionY: -10.01, health: 100 }),
+    ).toBe(true);
+    expect(sourcePlayerShouldRespawn({ positionY: -10, health: 100 })).toBe(
+      false,
+    );
+    expect(sourcePlayerShouldRespawn({ positionY: 1.5, health: -1 })).toBe(
+      true,
+    );
+    expect(sourcePlayerShouldRespawn({ positionY: 1.5, health: 0 })).toBe(
+      false,
+    );
   });
 
   it("keeps all source enemy timers that can raycast the player", () => {
