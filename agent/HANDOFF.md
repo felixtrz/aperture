@@ -1,40 +1,45 @@
-# Handoff - Starter Kit FPS Control Reliability
+# Handoff - Starter Kit FPS Jump Ceiling Handling
 
-**Updated:** 2026-06-17 04:16 PDT
+**Updated:** 2026-06-17 04:20 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Fixed the latest reported Starter Kit FPS control issues:
-  - Shooting: deterministic paused Aperture stepping now proves a same-frame
-    generated `shoot` press/release increments `shotsFired` from `0` to `1`
-    and sets `shotCooldown` to `0.25`.
-  - Movement: generated forward movement at yaw `0.3333333333333333` moved
-    the player from near `[0, 1.495, 0]` to approximately
-    `[-0.21813, 1.49624, -0.62997]`, matching the camera-forward horizontal
-    basis `[-sin(yaw), 0, -cos(yaw)]`.
-  - Jumping: the port no longer treats any clipped upward character-controller
-    movement as a jump block. It only cancels upward velocity on a ceiling-like
-    collision normal and ignores transient controller-grounded reports while
-    source-style upward velocity is active.
-  - Deterministic paused Aperture stepping proved jump state after one frame:
-    `playerPosition.y = 1.6222221910953523`, `grounded:false`,
-    `jumpsRemaining:1`, and `verticalVelocity:7.666666666666667`; after the
-    follow-up stepped sample it remained airborne at
-    `playerPosition.y = 1.7444443836808206`.
+- Aligned Starter Kit FPS jump/ceiling handling with upstream
+  `references/Starter-Kit-FPS/objects/player.gd`:
+  - Source `handle_gravity(...)` only clears upward gravity when
+    `is_on_ceiling()` is true, and only refreshes jumps on floor contact after
+    downward gravity.
+  - The port no longer treats any clipped upward character-controller movement
+    as a jump block. It cancels upward velocity only when the Rapier character
+    controller reports a ceiling-like collision normal.
+  - The port now ignores transient controller-grounded reports while
+    source-style upward velocity is active, preventing an ascent frame from
+    immediately restoring jump count.
 - Focused coverage:
-  - Added `hasCeilingCollision(...)` and `sourceGroundedAfterMove(...)` tests
-    to keep jump cancellation tied to overhead collisions and source-style
-    upward motion.
+  - Added `hasCeilingCollision(...)` and `sourceGroundedAfterMove(...)` tests.
+- Aperture proof:
+  - Restarted the managed FPS app through `pnpm --dir fps exec aperture dev up
+    --headless --port 5173` and waited for WebGPU.
+  - Confirmed pause behavior held by reading `fps.state` at version `1371`,
+    waiting one second, and reading version `1371` again.
+  - Used Aperture CLI `physics_move_character` against live `player.body` with
+    upward/forward motion into `level.platform.2.collider`; the Rapier
+    character route returned three collisions with `normal[1]` approximately
+    `-0.571`, `-0.572`, and `-0.574`, matching the helper's ceiling threshold.
+  - `render_get_frame_report {"summaryOnly":true}` reported frame `1891`, one
+    view, 16 mesh draws, `skyboxes:1`, 30 draw calls, and diagnostics `0`.
 - Validation:
-  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-audio.test.ts test/app/input-state-events.test.ts`
-    passed 32 tests.
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-audio.test.ts test/app/fps-effects.test.ts`
+    passed 17 tests.
   - `pnpm --dir fps run typecheck`
   - `pnpm --dir fps run build`
-  - `pnpm --filter @aperture-engine/app build`
-  - `pnpm run check:progress`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
   - `git diff --check`
 - Committed implementation:
   - `20866fb3` — `Align FPS jump ceiling handling`
