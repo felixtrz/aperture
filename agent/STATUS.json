@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "a5c4ab49",
+  "lastCommit": "48ca7eec",
   "activePid": null,
-  "notes": "Ported Starter Kit FPS source browser shell metadata: source icon, splash image/background, 1280x720 viewport constants, and centered 16:9 game shell. Aperture canvas proof reported 960x540 inside the default 960x640 managed tab, and skybox readback smoke still passed.",
-  "lastRunFinishedAt": "2026-06-17T17:29:03Z"
+  "notes": "Fixed FPS pointer/button controls: middle-click weapon toggle no longer fires primary shoot, left click still shoots, first clean Space press jumps, W movement was reproved camera-yaw-relative, and Aperture CLI pointer tools now accept explicit left/middle/right buttons.",
+  "lastRunFinishedAt": "2026-06-17T17:49:53Z"
 }

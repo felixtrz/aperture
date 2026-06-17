@@ -1,11 +1,61 @@
-# Handoff - FPS Source Viewport Shell
+# Handoff - FPS Pointer Input Controls
 
-**Updated:** 2026-06-17 10:29 PDT
+**Updated:** 2026-06-17 10:49 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Fixed the latest reported FPS control issues around shooting, middle-click
+  weapon toggling, jump reliability, and camera-relative movement proof:
+  - Source anchors checked:
+    `references/Starter-Kit-FPS/project.godot` and
+    `references/Starter-Kit-FPS/objects/player.gd`.
+  - Removed the HUD's duplicate click/pointer shoot path. Left mouse now uses a
+    single held `mousedown`/`mouseup` command path, while `click` only requests
+    pointer lock.
+  - Browser blur now releases active pointer-lock shooting.
+  - Non-repeat keyboard button presses now always dispatch a fresh app command
+    edge, so a stale browser-side latch cannot swallow the next Space/E/R press.
+  - Added source middle-mouse weapon toggle handling in the FPS HUD bridge,
+    matching Godot `weapon_toggle` mouse `button_index:3`.
+  - Fixed the shared generated browser input forwarder so non-primary mouse
+    buttons are not forwarded as `input.pointer("primary")` presses. This
+    prevents middle click from also firing the weapon.
+  - Extended Aperture CLI/MCP `input_pointer_click` and `input_drag` with an
+    explicit `button:"left"|"middle"|"right"` option, then used it for live
+    middle-click proof.
+- Live Aperture CLI proof:
+  - `input_pointer_click {"x":0.5,"y":0.5,"button":"middle"}` returned
+    `button:"middle"`, dispatched only `switchWeapon`, and after a short worker
+    tick reported `weaponIndex:1`, `weaponName:"Repeater"`, and
+    `shotsFired:0`.
+  - Left click still fired: after `input_pointer_click {"button":"left"}`,
+    `shotsFired` advanced to `1`.
+  - First clean Space press jumped: a short-delay status read showed
+    `grounded:false`, `playerY:1.33`, and `jumpsRemaining:1`.
+  - Camera-relative W movement was reproved after yaw `-0.111`: position moved
+    from roughly `x:-0.004,z:0.111` to `x:0.212,z:-1.821`, matching the
+    yaw-derived forward vector.
+- Validation:
+  - `pnpm exec vitest run test/app/browser-input-forwarding.test.ts test/app/fps-hud.test.ts test/app/fps-controls.test.ts test/cli/input-tools.test.ts test/cli/dev-session.test.ts`
+  - `pnpm --filter @aperture-engine/app run typecheck`
+  - `pnpm --filter @aperture-engine/cli run typecheck`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --filter @aperture-engine/app run build`
+  - `pnpm --filter @aperture-engine/cli run build`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `pnpm run check:progress`
+  - `git diff --check`
+- Commit:
+  - `48ca7eec` — `Fix FPS pointer input controls`
+
+## Previous Completed Slice - FPS Source Viewport Shell
 
 - Ported the source project browser shell metadata into the FPS app:
   - Source anchor checked: `references/Starter-Kit-FPS/project.godot`.

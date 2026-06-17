@@ -1,5 +1,44 @@
 # Completed Tasks
 
+## FPS-PORT — Pointer input and middle-click weapon toggle
+
+Completed: 2026-06-17 10:49 PDT
+Commit: `48ca7eec`
+
+### Summary
+
+- Fixed Starter Kit FPS browser control reliability for the latest reported
+  shooting, jumping, and camera-relative movement concerns.
+- Simplified left-click shooting to a single `mousedown`/`mouseup` HUD command
+  path and released active shoot state on browser blur.
+- Added source middle-mouse weapon toggle handling for Godot
+  `weapon_toggle` mouse `button_index:3`.
+- Fixed generated browser input forwarding so middle/right mouse buttons no
+  longer masquerade as `input.pointer("primary")` and accidentally shoot.
+- Extended Aperture CLI/MCP pointer tools with explicit
+  `button:"left"|"middle"|"right"` support.
+
+### Validation
+
+- Live Aperture proof: middle click switched to
+  `weaponIndex:1` / `weaponName:"Repeater"` while `shotsFired` stayed `0`.
+- Live Aperture proof: left click still incremented `shotsFired`.
+- Live Aperture proof: first clean Space press jumped, and W movement after
+  yaw `-0.111` moved along the camera-derived forward vector.
+- `pnpm exec vitest run test/app/browser-input-forwarding.test.ts test/app/fps-hud.test.ts test/app/fps-controls.test.ts test/cli/input-tools.test.ts test/cli/dev-session.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `pnpm run check:progress`
+- `git diff --check`
+
 ## FPS-PORT — Source viewport shell and boot branding
 
 Completed: 2026-06-17 10:29 PDT
