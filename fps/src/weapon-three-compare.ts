@@ -179,7 +179,7 @@ function createLayout(shell: HTMLElement): {
     "height:min(100vh, calc(50vw * 9 / 16));transform:translateY(-50%);" +
     "margin:0;max-width:none;max-height:none;overflow:hidden;background:#5c6476;";
 
-  for (const selector of ["#hud", "#crosshair", "#boot-splash"]) {
+  for (const selector of ["#hud", "#crosshair"]) {
     const el = document.querySelector<HTMLElement>(selector);
     if (el !== null) {
       el.style.display = "none";

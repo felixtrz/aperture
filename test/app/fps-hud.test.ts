@@ -10,7 +10,6 @@ import {
   SOURCE_HEALTH_OUTLINE_ALPHA,
   SOURCE_HEALTH_OUTLINE_SIZE_PX,
   SOURCE_HEALTH_WIDTH_PX,
-  SOURCE_BOOT_SPLASH_BG_COLOR,
   SOURCE_INSTANT_BUTTON_TAP_RELEASE_DELAY_MS,
   SOURCE_KEYBOARD_BUTTON_TAP_RELEASE_DELAY_MS,
   SOURCE_MOUSE_CAPTURE_EXIT_KEY_CODE,
@@ -50,11 +49,10 @@ describe("Starter Kit FPS HUD", () => {
     expect(SOURCE_HEALTH_WIDTH_PX).toBe(90);
   });
 
-  it("keeps source project viewport and boot splash constants", () => {
+  it("keeps source project viewport constants", () => {
     expect(SOURCE_VIEWPORT_WIDTH_PX).toBe(1280);
     expect(SOURCE_VIEWPORT_HEIGHT_PX).toBe(720);
     expect(SOURCE_VIEWPORT_ASPECT).toBeCloseTo(16 / 9, 10);
-    expect(SOURCE_BOOT_SPLASH_BG_COLOR).toBe("#ececf5");
   });
 
   it("formats health like the source HUD signal handler", () => {
@@ -166,6 +164,5 @@ describe("Starter Kit FPS HUD", () => {
     expect(values.get("--fps-source-viewport-height")).toBe("720px");
     expect(values.get("--fps-source-viewport-aspect")).toBe(`${16 / 9}`);
     expect(values.get("--fps-source-viewport-aspect-ratio")).toBe("1280 / 720");
-    expect(values.get("--fps-boot-splash-background")).toBe("#ececf5");
   });
 });

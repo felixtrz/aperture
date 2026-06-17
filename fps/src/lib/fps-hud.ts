@@ -23,7 +23,6 @@ export const SOURCE_VIEWPORT_WIDTH_PX = 1280;
 export const SOURCE_VIEWPORT_HEIGHT_PX = 720;
 export const SOURCE_VIEWPORT_ASPECT =
   SOURCE_VIEWPORT_WIDTH_PX / SOURCE_VIEWPORT_HEIGHT_PX;
-export const SOURCE_BOOT_SPLASH_BG_COLOR = "#ececf5";
 
 export interface HudCssVariableSink {
   setProperty(name: string, value: string): void;
@@ -166,10 +165,6 @@ export function writeSourceHudCssVariables(style: HudCssVariableSink): void {
   style.setProperty(
     "--fps-source-viewport-aspect-ratio",
     `${SOURCE_VIEWPORT_WIDTH_PX} / ${SOURCE_VIEWPORT_HEIGHT_PX}`,
-  );
-  style.setProperty(
-    "--fps-boot-splash-background",
-    SOURCE_BOOT_SPLASH_BG_COLOR,
   );
 }
 

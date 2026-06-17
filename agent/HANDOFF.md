@@ -1,3 +1,50 @@
+# Handoff - FPS Responsive Canvas Without Splash
+
+**Updated:** 2026-06-17 14:54 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Removed the FPS splashscreen DOM/CSS and the now-unused HUD boot-complete
+  hook.
+- Removed the source 1280x720 maximum size cap from `#game-shell`; the FPS
+  canvas now scales to the largest 16:9 rectangle that fits the current window.
+- Kept the source 1280x720 constants as source-aspect documentation only; they
+  no longer cap the playable viewport.
+- Verified the live layout at `http://127.0.0.1:5173/` with Playwright:
+  - 1600x900 viewport: shell/canvas `1600x900`;
+  - 1000x900 viewport: shell/canvas `1000x563`;
+  - 390x844 viewport: shell/canvas `390x219`;
+  - `#boot-splash` count `0`.
+
+## Validation
+
+- `pnpm exec vitest run test/app/fps-hud.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `git diff --check -- fps/index.html fps/src/hud.ts fps/src/lib/fps-hud.ts fps/src/weapon-three-compare.ts test/app/fps-hud.test.ts`
+- Playwright layout probe against `http://127.0.0.1:5173/`
+- `pnpm --dir fps exec aperture dev status`: daemon/server/browser/bridge alive
+  at `http://127.0.0.1:5173/`.
+
+## Known Issues
+
+- FPS viewmodel placement/material parity remains the main visible open FPS
+  port decision, although the user just reported the current live experience is
+  very good and they cannot find a problem with it.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+
+## Recommended Next Task
+
+Do a final FPS completion audit against the Starter-Kit-FPS source controls,
+visuals, smoke coverage, and live Aperture diagnostics, then either close the
+goal or address any remaining concrete mismatch found by that audit.
+
+---
+
 # Handoff - FPS Pointer-Locked Input Proof
 
 **Updated:** 2026-06-17 14:50 PDT
