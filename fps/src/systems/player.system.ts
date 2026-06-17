@@ -32,6 +32,13 @@ import {
   type WeaponSpec,
 } from "../lib/fps-data.js";
 import {
+  cameraForwardFromYawPitch,
+  cameraRelativeMovementDelta,
+  horizontalRightFromYaw,
+  normalizedMoveAxis,
+  snapToGroundDistanceForMove,
+} from "../lib/fps-controls.js";
+import {
   FpsResource,
   createEnemyDestroyed,
   createEnemyHealth,
@@ -56,6 +63,11 @@ const PLAYER_CONTROLLER_SETTINGS: PhysicsCharacterControllerSettings = {
     minWidth: 0.2,
   },
 };
+const PLAYER_ASCENDING_CONTROLLER_SETTINGS: PhysicsCharacterControllerSettings =
+  {
+    ...PLAYER_CONTROLLER_SETTINGS,
+    snapToGroundDistance: 0,
+  };
 const FULL_SPRITE_UV: SpriteUvRect = [0, 0, 1, 1];
 const MUZZLE_FLASH_FRAMES: readonly SpriteAnimationFrame[] = [
   [0, 0, 0.5, 1],
@@ -183,9 +195,7 @@ export default class PlayerSystem extends createSystem({
     const move = this.actions.move as InputAxis2dAction | undefined;
     const moveX = move?.kind === "axis2d" ? move.x.value : 0;
     const moveZ = move?.kind === "axis2d" ? move.y.value : 0;
-    const forward = horizontalForward(yaw);
-    const right = horizontalRight(yaw);
-    const movement = normalize2(moveX, moveZ);
+    const movement = normalizedMoveAxis(moveX, moveZ);
 
     if (this.#button("jump")?.down() && jumpsRemaining > 0) {
       this.#playOneShot(randomJumpSound(), 0.45);
@@ -195,11 +205,14 @@ export default class PlayerSystem extends createSystem({
     }
 
     verticalVelocity -= GRAVITY * dt;
-    const desiredTranslation: Vec3 = [
-      (right[0] * movement[0] + forward[0] * movement[1]) * PLAYER_SPEED * dt,
-      verticalVelocity * dt,
-      (right[2] * movement[0] + forward[2] * movement[1]) * PLAYER_SPEED * dt,
-    ];
+    const desiredTranslation = cameraRelativeMovementDelta({
+      moveX,
+      moveY: moveZ,
+      yaw,
+      speed: PLAYER_SPEED,
+      dt,
+      verticalVelocity,
+    });
     const wasGrounded = grounded;
     const playerMove = skipPhysicsMove
       ? {
@@ -418,7 +431,13 @@ export default class PlayerSystem extends createSystem({
     const move = this.physics.moveCharacter({
       entity: serializeEntityRef(body),
       desiredTranslation,
-      settings: PLAYER_CONTROLLER_SETTINGS,
+      settings:
+        snapToGroundDistanceForMove(
+          PLAYER_CONTROLLER_SETTINGS.snapToGroundDistance ?? 0,
+          desiredTranslation[1],
+        ) === 0
+          ? PLAYER_ASCENDING_CONTROLLER_SETTINGS
+          : PLAYER_CONTROLLER_SETTINGS,
     });
 
     if (move === null) {
@@ -831,19 +850,6 @@ function spriteFrameForLife(
   };
 }
 
-function horizontalForward(yaw: number): Vec3 {
-  return [Math.sin(yaw), 0, -Math.cos(yaw)];
-}
-
-function horizontalRight(yaw: number): Vec3 {
-  return [Math.cos(yaw), 0, Math.sin(yaw)];
-}
-
-function normalize2(x: number, z: number): readonly [number, number] {
-  const length = Math.hypot(x, z);
-  return length > 1 ? [x / length, z / length] : [x, z];
-}
-
 function cloneVec3(value: readonly [number, number, number]): Vec3 {
   return [value[0], value[1], value[2]];
 }
@@ -861,8 +867,8 @@ function subtractVec3(a: Vec3, b: Vec3): Vec3 {
 }
 
 function spreadDirection(yaw: number, pitch: number, spread: number): Vec3 {
-  const forward = cameraForward(yaw, pitch);
-  const right = horizontalRight(yaw);
+  const forward = cameraForwardFromYawPitch(yaw, pitch);
+  const right = horizontalRightFromYaw(yaw);
   const up: Vec3 = [0, 1, 0];
   const spreadScale = spread * 0.035;
   const rx = (Math.random() * 2 - 1) * spreadScale;
@@ -874,19 +880,14 @@ function spreadDirection(yaw: number, pitch: number, spread: number): Vec3 {
   ]);
 }
 
-function cameraForward(yaw: number, pitch: number): Vec3 {
-  const cosPitch = Math.cos(pitch);
-  return [cosPitch * Math.sin(yaw), Math.sin(pitch), -cosPitch * Math.cos(yaw)];
-}
-
 function weaponMuzzlePosition(
   position: Vec3,
   yaw: number,
   pitch: number,
   weapon: WeaponSpec,
 ): Vec3 {
-  const forward = cameraForward(yaw, pitch);
-  const right = horizontalRight(yaw);
+  const forward = cameraForwardFromYawPitch(yaw, pitch);
+  const right = horizontalRightFromYaw(yaw);
   const local = weapon.muzzlePosition;
   const forwardOffset = Math.max(0.7, Math.abs(local[2]) * 0.45);
   return [

@@ -11,12 +11,15 @@ const enemiesEl = document.querySelector<HTMLElement>("#enemies");
 const crosshairEl = document.querySelector<HTMLImageElement>("#crosshair");
 
 const MOUSE_LOOK_PIXELS_PER_UNIT = 26;
+const POINTER_LOCK_SHOOT_RELEASE_DELAY_MS = 40;
 const DAMAGE_FLASH_MS = 180;
 const HIT_FLASH_MS = 130;
 const DESTROY_FLASH_MS = 240;
 let pendingLookX = 0;
 let pendingLookY = 0;
 let lookActionActive = false;
+let shootActionActive = false;
+let shootReleaseTimer: number | undefined;
 let lastDamagePulse = 0;
 let lastHits = 0;
 let lastEnemyDestroyedPulse = 0;
@@ -89,7 +92,7 @@ subscribeGeneratedSignals(render);
 
 canvas?.addEventListener("click", () => {
   if (document.pointerLockElement !== canvas) {
-    void canvas.requestPointerLock();
+    requestPointerLock(canvas);
   }
 });
 
@@ -105,7 +108,20 @@ document.addEventListener("pointerlockchange", () => {
     pendingLookY = 0;
     dispatchApertureInputAction("look", { x: 0, y: 0, source: "pointer-lock" });
     lookActionActive = false;
+    releasePointerLockShoot({ immediate: true });
   }
+});
+
+window.addEventListener("mousedown", (event) => {
+  if (document.pointerLockElement !== canvas || event.button !== 0) return;
+  event.preventDefault();
+  pressPointerLockShoot();
+});
+
+window.addEventListener("mouseup", (event) => {
+  if (document.pointerLockElement !== canvas || event.button !== 0) return;
+  event.preventDefault();
+  releasePointerLockShoot();
 });
 
 function dispatchPendingLook(): void {
@@ -128,6 +144,62 @@ function dispatchPendingLook(): void {
   }
 
   requestAnimationFrame(dispatchPendingLook);
+}
+
+function pressPointerLockShoot(): void {
+  if (shootReleaseTimer !== undefined) {
+    window.clearTimeout(shootReleaseTimer);
+    shootReleaseTimer = undefined;
+  }
+
+  if (shootActionActive) return;
+  shootActionActive = true;
+  dispatchApertureInputAction("shoot", {
+    pressed: true,
+    source: "pointer-lock",
+  });
+}
+
+function releasePointerLockShoot(
+  options: { readonly immediate?: boolean } = {},
+): void {
+  if (!shootActionActive) return;
+
+  if (options.immediate === true) {
+    if (shootReleaseTimer !== undefined) {
+      window.clearTimeout(shootReleaseTimer);
+      shootReleaseTimer = undefined;
+    }
+    dispatchPointerLockShootRelease();
+    return;
+  }
+
+  if (shootReleaseTimer !== undefined) return;
+  shootReleaseTimer = window.setTimeout(() => {
+    shootReleaseTimer = undefined;
+    dispatchPointerLockShootRelease();
+  }, POINTER_LOCK_SHOOT_RELEASE_DELAY_MS);
+}
+
+function dispatchPointerLockShootRelease(): void {
+  if (!shootActionActive) return;
+  shootActionActive = false;
+  dispatchApertureInputAction("shoot", {
+    pressed: false,
+    source: "pointer-lock",
+  });
+}
+
+function requestPointerLock(target: HTMLCanvasElement): void {
+  try {
+    const result = target.requestPointerLock() as Promise<void> | void;
+    void result?.catch(() => {
+      // Some managed-browser automation paths reject pointer lock; raw pointer
+      // and generated action input still keep the port controllable.
+    });
+  } catch {
+    // Older browser implementations can throw synchronously here.
+  }
 }
 
 function clampAxis(value: number): number {
