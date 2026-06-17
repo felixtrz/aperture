@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "3c223296",
+  "lastCommit": "bff2a66f",
   "activePid": null,
-  "notes": "Completed FPS controls fix for pointer-lock shooting, camera-relative movement proof, and jump snap reliability; FPS/root validations and Aperture CLI controls proof passed; racing and shadow-lab validations remain green.",
-  "lastRunFinishedAt": "2026-06-17T07:33:00Z"
+  "notes": "Completed FPS weapon switch animation with ECS weapon transform hide/swap/raise state; FPS/root validations and Aperture CLI weapon-switch proof passed; racing and shadow-lab validations remain green.",
+  "lastRunFinishedAt": "2026-06-17T07:41:00Z"
 }

@@ -1,30 +1,40 @@
-# Handoff - Starter Kit FPS Controls Fix
+# Handoff - Starter Kit FPS Weapon Switch Animation
 
-**Updated:** 2026-06-17 00:33 PDT
+**Updated:** 2026-06-17 00:41 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Fixed pointer-lock shooting in the browser HUD. While the canvas is locked,
-  primary mouse down/up now drives the generated `shoot` action directly, and
-  release is delayed by 40 ms so a fast click cannot collapse into an
-  unobservable same-frame virtual down/up pair.
-- Moved FPS control math into `fps/src/lib/fps-controls.ts` and added
-  `test/app/fps-controls.test.ts` to lock camera-relative movement, diagonal
-  normalization, pitch-aware shot direction, and upward-move snap behavior.
-- Kept movement relative to camera yaw: after a rightward look, W moves mostly
-  along +X instead of world -Z.
-- Fixed unreliable jumps by using the no-snap character-controller settings
-  only while desired vertical movement is upward. Normal grounded movement still
-  uses the configured snap-to-ground distance.
+- Added source-like weapon switch animation from upstream
+  `objects/player.gd`: the current weapon lowers, the active model swaps, then
+  the new weapon raises back to its authored on-screen position.
+- Kept the implementation ECS-first by animating `LocalTransform` on the keyed
+  weapon entities (`weapon.0` and `weapon.1`) rather than adding a mutable
+  renderer-owned weapon container.
+- Added `weaponVisualIndex`, `weaponSwitchProgress`, and `weaponSwitchPhase` to
+  `fps.state` for generated-worker proof and future HUD/tooling inspection.
 - Committed:
+  - `bff2a66f` — `Add FPS weapon switch animation`
   - `3c223296` — `Fix FPS control input reliability`
   - `d7323f3b` — `Add FPS authored cloud hover slice`
 
 ## Previous Completed FPS Slices
 
+- Controls:
+  - Fixed pointer-lock shooting in the browser HUD. While the canvas is locked,
+    primary mouse down/up now drives the generated `shoot` action directly, and
+    release is delayed by 40 ms so a fast click cannot collapse into an
+    unobservable same-frame virtual down/up pair.
+  - Moved FPS control math into `fps/src/lib/fps-controls.ts` and added
+    `test/app/fps-controls.test.ts` to lock camera-relative movement, diagonal
+    normalization, pitch-aware shot direction, and upward-move snap behavior.
+  - Kept movement relative to camera yaw: after a rightward look, W moves mostly
+    along +X instead of world -Z.
+  - Fixed unreliable jumps by using the no-snap character-controller settings
+    only while desired vertical movement is upward. Normal grounded movement
+    still uses the configured snap-to-ground distance.
 - Authored clouds:
   - Added the remaining authored cloud instances from upstream
     `scenes/main.tscn`; the FPS port now spawns 11 cloud roots instead of the
@@ -62,6 +72,36 @@ previous working state so the old state remains recoverable.
 
 ## Latest Validation
 
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- Aperture CLI runtime proof from `fps/`:
+  - Restarted managed FPS at `http://127.0.0.1:5174/`; `browser_wait_for_webgpu`
+    succeeded with `webgpuOk:true` and no `lastError`/`lastFailure`.
+  - Paused/reset the generated worker and stepped generated `switchWeapon`.
+  - Initial proof state: `weaponIndex:0`, `weaponVisualIndex:0`,
+    `weaponSwitchPhase:"ready"`, `weapon0Y:-0.48`, `weapon1Y:-100`.
+  - Hiding proof state: `weaponIndex:0`, `weaponVisualIndex:0`,
+    `weaponSwitchPhase:"hiding"`, `weaponSwitchProgress:0.25`,
+    `weapon0Y:-1.2207`, `weapon1Y:-100`.
+  - Raising proof state: `weaponIndex:1`, `weaponVisualIndex:1`,
+    `weaponSwitchPhase:"raising"`, `weaponSwitchProgress:0.6528`,
+    `weapon0Y:-100`, `weapon1Y:-1.1744`.
+  - Finished proof state: `weaponIndex:1`, `weaponVisualIndex:1`,
+    `weaponSwitchPhase:"ready"`, `weaponSwitchProgress:1`,
+    `weapon1Y:-0.48`.
+  - Final runtime status remained `webgpuOk:true` with no `lastError` or
+    `lastFailure`.
+  - The live FPS session was reset to fresh gameplay afterward:
+    `health:100`, `enemiesRemaining:4`, `shotsFired:0`, `hits:0`,
+    `weaponIndex:0`, `weaponVisualIndex:0`, `weaponSwitchPhase:"ready"`,
+    then resumed.
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Previous controls validation:
 - `pnpm exec vitest run test/app/fps-controls.test.ts`
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
@@ -82,10 +122,6 @@ previous working state so the old state remains recoverable.
     `lastFailure`.
   - The live FPS session was reset to fresh gameplay afterward:
     `health:100`, `enemiesRemaining:4`, `shotsFired:0`, `hits:0`, then resumed.
-- `pnpm --dir racing run typecheck`
-- `pnpm --dir racing run build`
-- `pnpm --dir shadow-lab run typecheck`
-- `pnpm --dir shadow-lab run build`
 - Previous cloud validation:
 - `pnpm --filter @aperture-engine/app typecheck`
 - `pnpm --filter @aperture-engine/app build`
@@ -136,9 +172,10 @@ previous working state so the old state remains recoverable.
 ## Current Notes
 
 - Managed FPS is running at `http://127.0.0.1:5174/` through Aperture dev and
-  was resumed after the controls proof. The live session was reset to fresh
-  gameplay state: `health:100`, `enemiesRemaining:4`, `shotsFired:0`,
-  `hits:0`, `grounded:true`.
+  was resumed after the weapon-switch proof. The live session was reset to
+  fresh gameplay state: `health:100`, `enemiesRemaining:4`, `shotsFired:0`,
+  `hits:0`, `weaponIndex:0`, `weaponVisualIndex:0`,
+  `weaponSwitchPhase:"ready"`.
 - Pre-existing untracked screenshots,
   racing parity artifacts, and `racing/parity/` remain outside commits.
 - Use `value:0` rather than `pressed:false` for button-release CLI scripts when
@@ -156,8 +193,9 @@ previous working state so the old state remains recoverable.
 Continue the FPS port with another visible Starter Kit fidelity slice. A good
 next task is a navigation-backed full-clear proof that kills all four enemies
 without debug mutation and verifies `gameStatus:"cleared"` plus the HUD `CLEAR`
-state through Aperture tools. Another visible option is improving the weapon
-switch animation toward upstream `objects/player.gd`'s tweened hide/show flow.
+state through Aperture tools. Another visible option is adding the upstream
+player landing camera bob/shadow detail from `objects/player.gd` /
+`objects/player.tscn`.
 
 ---
 

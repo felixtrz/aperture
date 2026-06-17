@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## FPS-PORT — Weapon switch animation
+
+Completed: 2026-06-17 00:41 PDT
+Commit: `bff2a66f`
+
+### Summary
+
+- Added source-like Starter Kit FPS weapon switch animation: the current weapon
+  lowers during a hide phase, the model swaps, then the new weapon raises back
+  to its authored on-screen transform.
+- Kept weapon visuals ECS-owned by animating `LocalTransform` on `weapon.0` and
+  `weapon.1`; no renderer-owned weapon scene graph was introduced.
+- Added `weaponVisualIndex`, `weaponSwitchProgress`, and `weaponSwitchPhase` to
+  `fps.state` so Aperture tools can prove the transition state directly.
+
+### Validation
+
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- Aperture CLI proof from `fps/`: fresh managed FPS at
+  `http://127.0.0.1:5174/`, `browser_wait_for_webgpu` passed, and a stepped
+  switch proof observed:
+  - initial `weaponIndex:0`, `weaponVisualIndex:0`, `phase:"ready"`,
+    `weapon0Y:-0.48`, `weapon1Y:-100`
+  - hiding `weaponIndex:0`, `weaponVisualIndex:0`, `phase:"hiding"`,
+    `weapon0Y:-1.2207`, `weapon1Y:-100`
+  - raising `weaponIndex:1`, `weaponVisualIndex:1`, `phase:"raising"`,
+    `weapon0Y:-100`, `weapon1Y:-1.1744`
+  - finished `weaponIndex:1`, `weaponVisualIndex:1`, `phase:"ready"`,
+    `weapon1Y:-0.48`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+
 ## FPS-PORT — Control input reliability
 
 Completed: 2026-06-17 00:33 PDT
