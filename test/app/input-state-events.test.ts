@@ -316,6 +316,24 @@ describe("input state event handling", () => {
     expect(jump.pressed()).toBe(false);
   });
 
+  it("keeps same-frame virtual press and release visible for one frame", () => {
+    const resource = createResource();
+    const jump = requireButton(resource.actions.jump);
+
+    advanceInputResource(resource, [
+      { kind: "virtualAction", action: "jump", pressed: true },
+      { kind: "virtualAction", action: "jump", pressed: false },
+    ]);
+
+    expect(jump.pressed()).toBe(true);
+    expect(jump.down()).toBe(true);
+
+    advanceInputResource(resource);
+
+    expect(jump.pressed()).toBe(false);
+    expect(jump.up()).toBe(true);
+  });
+
   it("drives axis1d actions from virtual values and pressed shorthands", () => {
     const resource = createResource();
     const throttle = requireAxis1d(resource.actions.throttle);

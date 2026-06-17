@@ -225,6 +225,9 @@ class InputResourceImpl implements InputResourceBase {
 
       if (pressed !== undefined) {
         next.pressed = pressed;
+        if (pressed) {
+          next.pressedThisFrame = true;
+        }
       }
     } else if (action.kind === "axis1d") {
       const value =
@@ -273,7 +276,9 @@ class InputResourceImpl implements InputResourceBase {
         const pressed =
           descriptor.bindings.some((binding) =>
             bindingPressed(binding, this),
-          ) || virtual?.pressed === true;
+          ) ||
+          virtual?.pressed === true ||
+          virtual?.pressedThisFrame === true;
         setButtonActionPressed(action, pressed);
         continue;
       }
@@ -307,6 +312,21 @@ class InputResourceImpl implements InputResourceBase {
         );
       }
     }
+
+    this.#clearVirtualActionEdges();
+  }
+
+  #clearVirtualActionEdges(): void {
+    for (const [name, state] of this.#virtualActions.entries()) {
+      if (state.pressedThisFrame !== true) {
+        continue;
+      }
+
+      this.#virtualActions.set(name, {
+        ...state,
+        pressedThisFrame: false,
+      });
+    }
   }
 
   #syncLegacyGamepadSignals(): void {
@@ -332,6 +352,7 @@ class InputResourceImpl implements InputResourceBase {
 
 interface VirtualActionState {
   pressed?: boolean;
+  pressedThisFrame?: boolean;
   value?: number;
   x?: number;
   y?: number;
