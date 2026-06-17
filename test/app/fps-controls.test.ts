@@ -15,6 +15,7 @@ import {
   snapToGroundDistanceForMove,
   shouldConsumeBufferedJump,
   sourceChildPositionFromLook,
+  sourceEnemyAttackers,
   weaponViewmodelOffsetTarget,
 } from "../../fps/src/lib/fps-controls.js";
 
@@ -207,5 +208,49 @@ describe("Starter Kit FPS controls", () => {
     expect(shouldConsumeBufferedJump(0.08, 0)).toBe(false);
     expect(shouldConsumeBufferedJump(0.08, 2)).toBe(true);
     expect(shouldConsumeBufferedJump(0, 2)).toBe(false);
+  });
+
+  it("keeps all source enemy timers that can raycast the player", () => {
+    const attackers = sourceEnemyAttackers({
+      playerPosition: [0, 1.5, 0],
+      attackDistance: 5,
+      enemies: [
+        {
+          key: "enemy.near-a",
+          position: [0, 1.5, 4.9],
+          alive: true,
+          hasLineOfSight: true,
+        },
+        {
+          key: "enemy.near-b",
+          position: [3, 1.5, 0],
+          alive: true,
+          hasLineOfSight: true,
+        },
+        {
+          key: "enemy.dead",
+          position: [0, 1.5, 2],
+          alive: false,
+          hasLineOfSight: true,
+        },
+        {
+          key: "enemy.blocked",
+          position: [0, 1.5, 3],
+          alive: true,
+          hasLineOfSight: false,
+        },
+        {
+          key: "enemy.far",
+          position: [0, 1.5, 5],
+          alive: true,
+          hasLineOfSight: true,
+        },
+      ],
+    });
+
+    expect(attackers.map((enemy) => enemy.key)).toEqual([
+      "enemy.near-a",
+      "enemy.near-b",
+    ]);
   });
 });

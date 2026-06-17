@@ -31,6 +31,19 @@ export interface EnemyLookAngles {
   readonly yaw: number;
 }
 
+export interface SourceEnemyAttackCandidate {
+  readonly key: string;
+  readonly position: Vec3;
+  readonly alive: boolean;
+  readonly hasLineOfSight: boolean;
+}
+
+export interface SourceEnemyAttackInput {
+  readonly playerPosition: Vec3;
+  readonly attackDistance: number;
+  readonly enemies: readonly SourceEnemyAttackCandidate[];
+}
+
 export function cameraForwardFromYawPitch(yaw: number, pitch: number): Vec3 {
   const cosPitch = Math.cos(pitch);
   return [
@@ -143,8 +156,23 @@ export function shouldConsumeBufferedJump(
   return jumpBufferTimer > 0 && jumpsRemaining > 0;
 }
 
+export function sourceEnemyAttackers(
+  input: SourceEnemyAttackInput,
+): SourceEnemyAttackCandidate[] {
+  return input.enemies.filter(
+    (enemy) =>
+      enemy.alive &&
+      enemy.hasLineOfSight &&
+      distance3(enemy.position, input.playerPosition) < input.attackDistance,
+  );
+}
+
 function verticalLookPitch(dy: number): number {
   if (dy > 0) return -Math.PI / 2;
   if (dy < 0) return Math.PI / 2;
   return 0;
+}
+
+function distance3(a: Vec3, b: Vec3): number {
+  return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 }

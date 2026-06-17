@@ -46,7 +46,9 @@ import {
   snapToGroundDistanceForMove,
   shouldConsumeBufferedJump,
   sourceChildPositionFromLook,
+  sourceEnemyAttackers,
   weaponViewmodelOffsetTarget,
+  type SourceEnemyAttackCandidate,
 } from "../lib/fps-controls.js";
 import {
   FpsResource,
@@ -1033,18 +1035,30 @@ export default class PlayerSystem extends createSystem({
     position: Vec3,
     enemyHealth: Record<string, number>,
   ): Array<{ readonly key: string; readonly position: Vec3 }> {
-    const attackers: Array<{ key: string; position: Vec3 }> = [];
+    const candidates: SourceEnemyAttackCandidate[] = [];
     for (const enemy of ENEMIES) {
-      if ((enemyHealth[enemy.key] ?? 0) <= 0) continue;
       const enemyPos = enemyPosition(enemy.position, this.#enemyTime);
-      if (
-        distance(enemyPos, position) < ENEMY_ATTACK_DISTANCE &&
-        this.#enemyHasLineOfSight(enemy.key, enemyPos, position)
-      ) {
-        attackers.push({ key: enemy.key, position: enemyPos });
-      }
+      const alive = (enemyHealth[enemy.key] ?? 0) > 0;
+      const inRange =
+        alive && distance(enemyPos, position) < ENEMY_ATTACK_DISTANCE;
+      const hasLineOfSight =
+        inRange && this.#enemyHasLineOfSight(enemy.key, enemyPos, position);
+      candidates.push({
+        key: enemy.key,
+        position: enemyPos,
+        alive,
+        hasLineOfSight,
+      });
     }
-    return attackers;
+
+    return sourceEnemyAttackers({
+      playerPosition: position,
+      attackDistance: ENEMY_ATTACK_DISTANCE,
+      enemies: candidates,
+    }).map((attacker) => ({
+      key: attacker.key,
+      position: attacker.position,
+    }));
   }
 
   #playOneShot(clipId: string, gain: number): void {
