@@ -1,11 +1,48 @@
-# Handoff - FPS Full-Clear Smoke Route
+# Handoff - FPS Full-Clear Smoke Route Hardening
 
-**Updated:** 2026-06-17 09:21 PDT
+**Updated:** 2026-06-17 09:30 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Hardened the packaged generated-input full-clear smoke proof:
+  - `pnpm --dir fps run smoke:full-clear` now runs
+    `node scripts/full-clear-smoke.mjs --fresh-session`, so the package-level
+    proof starts from a clean owned headless Aperture dev session instead of
+    inheriting a stale managed browser. Manual script users can still omit
+    `--fresh-session` to reuse an existing session.
+  - The script tracks session ownership and tears down the fresh session after
+    completion unless `--keep-running` is passed.
+  - This addresses a reproduced failure where the game route reached the final
+    elevated platform, then CDP returned
+    `Target page, context or browser has been closed` after reusing an older
+    dev session.
+  - Latest package-script proof from a fresh managed session:
+    `health:60`, `shotsFired:9`, `hits:16`, `enemiesRemaining:0`,
+    `destroyedEnemies:4`, `gameStatus:"cleared"`. Screenshot:
+    `fps/.aperture/runtime/fps-full-clear-smoke.png`.
+  - The proof continues to drive only generated input actions plus `fps.state`
+    reads through Aperture MCP/CLI tooling; it does not directly mutate player
+    transforms or enemy health.
+- Validation:
+  - `pnpm --dir fps run smoke:full-clear`
+  - `node --check fps/scripts/full-clear-smoke.mjs`
+  - `pnpm exec prettier --check fps/package.json fps/scripts/full-clear-smoke.mjs`
+  - `git diff --check -- fps/package.json fps/scripts/full-clear-smoke.mjs`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts test/app/fps-setup.test.ts`
+    passed 39 tests.
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+- Commit:
+  - `5fda9117` — `Harden FPS full-clear smoke session`
+
+## Previous Completed Slice - FPS Full-Clear Smoke Route
 
 - Packaged the generated-input Starter Kit FPS full-clear proof:
   - Added `pnpm --dir fps run smoke:full-clear`, backed by

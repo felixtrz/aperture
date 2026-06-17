@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 16:21 UTC</dd>
+            <dd>2026-06-17 16:30 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
@@ -5965,9 +5965,9 @@
                 renderer-owned.
               </li>
               <li>
-                <span class="badge amber">next</span> FPS-visible follow-ups:
-                add a generated-input full-clear smoke route, or harden skybox
-                orientation/readback with named view-direction samples.
+                <span class="badge amber">next</span> FPS-visible follow-up:
+                harden skybox orientation/readback with named view-direction
+                samples after the generated-input full-clear smoke route.
               </li>
               <li>
                 <span class="badge amber">next</span> Continue remaining M10
@@ -6357,15 +6357,16 @@
           <div class="timeline-item">
             <div class="task-id">FPS-PORT</div>
             <div>
-              <strong>Generated-input full-clear smoke route is packaged.</strong>
+              <strong>Generated-input full-clear smoke route is hardened.</strong>
               <span>
                 <code>pnpm --dir fps run smoke:full-clear</code> now drives the
-                Starter Kit FPS route through managed Aperture MCP input,
-                including platform movement, shooting, grounded jump landings,
-                and long double-jump transitions. The fresh-session proof ended
-                at <code>gameStatus:"cleared"</code> with
-                <code>shotsFired:8</code>, <code>hits:16</code>,
-                <code>destroyedEnemies:4</code>, and a screenshot at
+                Starter Kit FPS route through a fresh managed Aperture MCP
+                session, including platform movement, shooting, grounded jump
+                landings, and long double-jump transitions. The latest proof
+                ended at <code>gameStatus:"cleared"</code> with
+                <code>shotsFired:9</code>, <code>hits:16</code>,
+                <code>destroyedEnemies:4</code>, then tore the owned session
+                down after saving
                 <code>fps/.aperture/runtime/fps-full-clear-smoke.png</code>.
               </span>
             </div>

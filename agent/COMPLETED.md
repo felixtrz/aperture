@@ -1,5 +1,41 @@
 # Completed Tasks
 
+## FPS-PORT — Full-clear smoke fresh-session hardening
+
+Completed: 2026-06-17 09:30 PDT
+Commit: `5fda9117`
+
+### Summary
+
+- Hardened `pnpm --dir fps run smoke:full-clear` to pass
+  `--fresh-session`, so package-level smoke validation starts from a clean owned
+  Aperture headless dev session.
+- The smoke runner now tracks fresh-session ownership and tears the session down
+  after the run unless `--keep-running` is passed.
+- Reproduced the stale-session failure mode first: the route reached the final
+  elevated platform, then CDP returned `Target page, context or browser has
+  been closed` after reusing an older managed browser.
+- Re-ran the package command from a clean session and proved the full route
+  clears the game through generated input/MCP state only.
+
+### Validation
+
+- `pnpm --dir fps run smoke:full-clear` succeeded with final `fps.state`:
+  `health:60`, `shotsFired:9`, `hits:16`, `enemiesRemaining:0`,
+  `destroyedEnemies:4`, and `gameStatus:"cleared"`. Screenshot:
+  `fps/.aperture/runtime/fps-full-clear-smoke.png`.
+- `node --check fps/scripts/full-clear-smoke.mjs`
+- `pnpm exec prettier --check fps/package.json fps/scripts/full-clear-smoke.mjs`
+- `git diff --check -- fps/package.json fps/scripts/full-clear-smoke.mjs`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts test/app/fps-setup.test.ts`
+  passed 39 tests.
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+
 ## FPS-PORT — Packaged generated-input full-clear smoke route
 
 Completed: 2026-06-17 09:21 PDT
