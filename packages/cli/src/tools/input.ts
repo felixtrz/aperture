@@ -1,5 +1,9 @@
 import { nestedRecord, numberArg, stringArg } from "./args.js";
-import { readGeneratedStatus, type AperturePage } from "./browser.js";
+import {
+  readGeneratedStatus,
+  type AperturePage,
+  type AperturePointerButton,
+} from "./browser.js";
 
 export async function inputKey(
   page: AperturePage,
@@ -34,9 +38,10 @@ export async function inputPointerClick(
   args: Record<string, unknown>,
 ): Promise<unknown> {
   const point = await canvasPoint(page, args);
+  const button = pointerButtonFromArgs(args);
 
-  await page.mouse.click(point.x, point.y);
-  return { ok: true, point, page: await readGeneratedStatus(page) };
+  await page.mouse.click(point.x, point.y, { button });
+  return { ok: true, point, button, page: await readGeneratedStatus(page) };
 }
 
 export async function inputDrag(
@@ -45,13 +50,34 @@ export async function inputDrag(
 ): Promise<unknown> {
   const from = await canvasPoint(page, nestedRecord(args, "from") ?? args);
   const to = await canvasPoint(page, nestedRecord(args, "to") ?? args);
+  const button = pointerButtonFromArgs(args);
 
   await page.mouse.move(from.x, from.y);
-  await page.mouse.down();
+  await page.mouse.down({ button });
   await page.mouse.move(to.x, to.y);
-  await page.mouse.up();
+  await page.mouse.up({ button });
 
-  return { ok: true, from, to, page: await readGeneratedStatus(page) };
+  return { ok: true, from, to, button, page: await readGeneratedStatus(page) };
+}
+
+export function pointerButtonFromArgs(
+  args: Record<string, unknown>,
+): AperturePointerButton {
+  const value = stringArg(args, "button")?.toLowerCase();
+  switch (value) {
+    case "left":
+    case "primary":
+      return "left";
+    case "middle":
+    case "aux":
+    case "auxiliary":
+      return "middle";
+    case "right":
+    case "secondary":
+      return "right";
+    default:
+      return "left";
+  }
 }
 
 async function canvasPoint(

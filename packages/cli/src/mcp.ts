@@ -308,10 +308,12 @@ function toolDefinitions(): readonly McpToolDefinition[] {
     tool("input_pointer_click", "Click the Aperture canvas.", {
       x: { type: "number" },
       y: { type: "number" },
+      button: { enum: ["left", "middle", "right"] },
     }),
     tool("input_drag", "Drag across the Aperture canvas.", {
       from: { type: "object" },
       to: { type: "object" },
+      button: { enum: ["left", "middle", "right"] },
     }),
     tool("input_action_set", "Set a generated Aperture input action.", {
       action: { type: "string" },

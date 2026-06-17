@@ -14,6 +14,8 @@ export interface BrowserConnection {
   readonly page: AperturePage;
 }
 
+export type AperturePointerButton = "left" | "middle" | "right";
+
 export interface AperturePage {
   url(): string;
   reload(options?: {
@@ -31,9 +33,13 @@ export interface AperturePage {
   };
   mouse: {
     move(x: number, y: number): Promise<void>;
-    down(): Promise<void>;
-    up(): Promise<void>;
-    click(x: number, y: number): Promise<void>;
+    down(options?: { readonly button?: AperturePointerButton }): Promise<void>;
+    up(options?: { readonly button?: AperturePointerButton }): Promise<void>;
+    click(
+      x: number,
+      y: number,
+      options?: { readonly button?: AperturePointerButton },
+    ): Promise<void>;
   };
 }
 

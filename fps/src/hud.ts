@@ -9,8 +9,10 @@ import {
 } from "./lib/fps-data.js";
 import {
   sourceKeyboardButtonAction,
+  sourceKeyboardButtonPressDispatches,
   sourceKeyboardMoveAxis,
   sourceKeyboardMoveKey,
+  sourcePointerButtonAction,
   sourcePointerLockLookAxis,
   sourceHealthText,
   type SourceKeyboardButtonAction,
@@ -63,9 +65,6 @@ canvas?.addEventListener("click", () => {
   if (document.pointerLockElement !== canvas) {
     requestPointerLock(canvas);
   }
-
-  pressPointerLockShoot();
-  releasePointerLockShoot();
 });
 
 window.addEventListener("mousemove", (event) => {
@@ -89,6 +88,14 @@ document.addEventListener("pointerlockchange", () => {
 });
 
 window.addEventListener("mousedown", (event) => {
+  const pointerAction = sourcePointerButtonAction(event.button);
+  if (pointerAction !== null) {
+    if (!isCanvasPointerEvent(event)) return;
+    event.preventDefault();
+    dispatchInstantButtonAction(pointerAction, "fps-pointer");
+    return;
+  }
+
   if (event.button !== 0) return;
   const pointerLocked = document.pointerLockElement === canvas;
   if (!pointerLocked && !isCanvasPointerEvent(event)) return;
@@ -104,20 +111,10 @@ window.addEventListener("mouseup", (event) => {
   releasePointerLockShoot();
 });
 
-window.addEventListener("pointerdown", (event) => {
-  if (!event.isPrimary || event.button !== 0) return;
-  const pointerLocked = document.pointerLockElement === canvas;
-  if (!pointerLocked && !isCanvasPointerEvent(event)) return;
-
+window.addEventListener("auxclick", (event) => {
+  if (sourcePointerButtonAction(event.button) === null) return;
+  if (!isCanvasPointerEvent(event)) return;
   event.preventDefault();
-  if (!pointerLocked && canvas !== null) requestPointerLock(canvas);
-  pressPointerLockShoot();
-});
-
-window.addEventListener("pointerup", (event) => {
-  if (!event.isPrimary || event.button !== 0 || !shootActionActive) return;
-  event.preventDefault();
-  releasePointerLockShoot();
 });
 
 window.addEventListener("keydown", (event) => {
@@ -130,6 +127,7 @@ window.addEventListener("keyup", (event) => {
 
 window.addEventListener("blur", () => {
   releaseKeyboardActions();
+  releasePointerLockShoot();
 });
 
 function dispatchPendingLook(): void {
@@ -206,8 +204,7 @@ function pressKeyboardButtonAction(
   action: SourceKeyboardButtonAction,
   repeat: boolean,
 ): void {
-  if (keyboardButtonActions.has(action)) return;
-  if (repeat) return;
+  if (!sourceKeyboardButtonPressDispatches(repeat)) return;
 
   keyboardButtonActions.add(action);
   dispatchApertureInputAction(action, {
@@ -228,8 +225,23 @@ function releaseKeyboardButtonAction(action: SourceKeyboardButtonAction): void {
   dispatchFpsInputCommand({ kind: "button", action, pressed: false });
 }
 
+function dispatchInstantButtonAction(
+  action: Extract<FpsInputCommand, { readonly kind: "button" }>["action"],
+  source: string,
+): void {
+  dispatchApertureInputAction(action, {
+    pressed: true,
+    source,
+  });
+  dispatchFpsInputCommand({ kind: "button", action, pressed: true });
+  dispatchApertureInputAction(action, {
+    pressed: false,
+    source,
+  });
+  dispatchFpsInputCommand({ kind: "button", action, pressed: false });
+}
+
 function pressPointerLockShoot(): void {
-  if (shootActionActive) return;
   shootActionActive = true;
   dispatchApertureInputAction("shoot", {
     pressed: true,

@@ -26,6 +26,10 @@ export interface HudCssVariableSink {
 
 export type SourceKeyboardMoveKey = "left" | "right" | "forward" | "backward";
 export type SourceKeyboardButtonAction = "jump" | "switchWeapon" | "reset";
+export type SourcePointerButtonAction = "switchWeapon";
+
+export const SOURCE_WEAPON_TOGGLE_MOUSE_BUTTON_INDEX = 3;
+export const BROWSER_MIDDLE_MOUSE_BUTTON = 1;
 
 export function sourceKeyboardMoveKey(
   code: string,
@@ -61,6 +65,16 @@ export function sourceKeyboardButtonAction(
     default:
       return null;
   }
+}
+
+export function sourcePointerButtonAction(
+  button: number,
+): SourcePointerButtonAction | null {
+  return button === BROWSER_MIDDLE_MOUSE_BUTTON ? "switchWeapon" : null;
+}
+
+export function sourceKeyboardButtonPressDispatches(repeat: boolean): boolean {
+  return !repeat;
 }
 
 export function sourceKeyboardMoveAxis(

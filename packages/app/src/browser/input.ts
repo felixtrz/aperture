@@ -55,6 +55,10 @@ export function installGeneratedInputForwarding(
   });
 
   canvas.addEventListener("pointerdown", (event) => {
+    if (!isPrimaryPointerButton(event)) {
+      return;
+    }
+
     canvas.focus();
     safelySetPointerCapture(canvas, event.pointerId);
     forwardInput(worker, status, {
@@ -66,6 +70,10 @@ export function installGeneratedInputForwarding(
   });
 
   canvas.addEventListener("pointerup", (event) => {
+    if (!isPrimaryPointerButton(event)) {
+      return;
+    }
+
     safelyReleasePointerCapture(canvas, event.pointerId);
     forwardInput(worker, status, {
       kind: "pointer",
@@ -169,6 +177,10 @@ function safelyReleasePointerCapture(
   } catch {
     // Release is best-effort for the same browser paths as capture.
   }
+}
+
+function isPrimaryPointerButton(event: PointerEvent): boolean {
+  return event.button === 0;
 }
 
 function forwardInput(

@@ -14,11 +14,15 @@ import {
   SOURCE_VIEWPORT_ASPECT,
   SOURCE_VIEWPORT_HEIGHT_PX,
   SOURCE_VIEWPORT_WIDTH_PX,
+  SOURCE_WEAPON_TOGGLE_MOUSE_BUTTON_INDEX,
+  BROWSER_MIDDLE_MOUSE_BUTTON,
   POINTER_LOCK_LOOK_PIXELS_PER_UNIT,
   sourceKeyboardButtonAction,
+  sourceKeyboardButtonPressDispatches,
   sourceKeyboardMoveAxis,
   sourceKeyboardMoveKey,
   sourceHealthText,
+  sourcePointerButtonAction,
   sourcePointerLockLookAxis,
   writeSourceHudCssVariables,
 } from "../../fps/src/lib/fps-hud.js";
@@ -72,6 +76,19 @@ describe("Starter Kit FPS HUD", () => {
     expect(sourceKeyboardButtonAction("KeyE")).toBe("switchWeapon");
     expect(sourceKeyboardButtonAction("KeyR")).toBe("reset");
     expect(sourceKeyboardButtonAction("KeyW")).toBeNull();
+  });
+
+  it("maps the source middle mouse weapon toggle into browser buttons", () => {
+    expect(SOURCE_WEAPON_TOGGLE_MOUSE_BUTTON_INDEX).toBe(3);
+    expect(BROWSER_MIDDLE_MOUSE_BUTTON).toBe(1);
+    expect(sourcePointerButtonAction(0)).toBeNull();
+    expect(sourcePointerButtonAction(1)).toBe("switchWeapon");
+    expect(sourcePointerButtonAction(2)).toBeNull();
+  });
+
+  it("keeps non-repeat keyboard button edges recoverable after stale latches", () => {
+    expect(sourceKeyboardButtonPressDispatches(false)).toBe(true);
+    expect(sourceKeyboardButtonPressDispatches(true)).toBe(false);
   });
 
   it("keeps keyboard move axes aligned with the source local move vector", () => {

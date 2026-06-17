@@ -40,11 +40,13 @@ describe("generated browser input forwarding", () => {
 
     canvas.dispatch("pointerdown", {
       pointerId: 7,
+      button: 0,
       clientX: 50,
       clientY: 25,
     });
     canvas.dispatch("pointerup", {
       pointerId: 7,
+      button: 0,
       clientX: 50,
       clientY: 25,
     });
@@ -67,6 +69,55 @@ describe("generated browser input forwarding", () => {
       },
     ]);
     expect(status.forwardedInputEvents).toBe(2);
+  });
+
+  it("does not forward non-primary mouse buttons as primary pointer presses", () => {
+    const canvas = new FakeCanvas();
+    const windowTarget = new FakeEventTarget();
+    const documentTarget = new FakeEventTarget();
+    const messages: unknown[] = [];
+    const status = createStatus();
+
+    vi.stubGlobal("window", windowTarget);
+    vi.stubGlobal("document", {
+      addEventListener: documentTarget.addEventListener.bind(documentTarget),
+      visibilityState: "visible",
+    });
+    vi.stubGlobal("navigator", {});
+    vi.stubGlobal("WheelEvent", {
+      DOM_DELTA_LINE: 1,
+      DOM_DELTA_PAGE: 2,
+    });
+
+    installGeneratedInputForwarding(
+      canvas as unknown as HTMLCanvasElement,
+      {
+        postMessage(message: unknown) {
+          messages.push(message);
+        },
+      } as never,
+      status,
+      defineApertureConfig({ mode: "browser", canvas: "#aperture" }),
+    );
+
+    canvas.dispatch("pointerdown", {
+      pointerId: 7,
+      button: 1,
+      clientX: 50,
+      clientY: 25,
+    });
+    canvas.dispatch("pointerup", {
+      pointerId: 7,
+      button: 1,
+      clientX: 50,
+      clientY: 25,
+    });
+
+    expect(canvas.focus).not.toHaveBeenCalled();
+    expect(canvas.setPointerCapture).not.toHaveBeenCalled();
+    expect(canvas.releasePointerCapture).not.toHaveBeenCalled();
+    expect(messages).toEqual([]);
+    expect(status.forwardedInputEvents).toBe(0);
   });
 });
 
