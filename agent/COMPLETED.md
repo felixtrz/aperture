@@ -2,7 +2,7 @@
 
 ## FPS-PORT — Source cloud hover math
 
-Completed: 2026-06-17 07:11 PDT
+Completed: 2026-06-17 07:12 PDT
 Commit: `3dadd9ab`
 
 ### Summary
@@ -32,10 +32,15 @@ Commit: `3dadd9ab`
 - Aperture CLI proof against the live FPS route:
   - `browser_wait_for_webgpu` passed with WebGPU ready, generated FPS input
     actions present, and render diagnostics `[]`.
-  - One explicit paused `ecs_step {"frames":1}` moved `deco.cloud.0` only on
-    the Y axis, from
-    `[-9.485090255737305,8.66634464263916,20.555400848388672]` to
-    `[-9.485090255737305,8.657685279846191,20.555400848388672]`.
+  - One generated `shoot` step produced `shotsFired:1`,
+    `shotCooldown:0.25`, and `movementVelocity.z:6.664182862170411`.
+  - Yaw `1.5707963267948966` plus forward movement produced
+    `movementVelocity:[-0.8333333333333333,0,-5.102694996447305e-17]`.
+  - A grounded generated `jump` step moved Y from `0.97009998762951` to
+    `1.0978777594864368`, set `verticalVelocity:7.666666666666667`, and left
+    `jumpsRemaining:1`.
+  - Paused `ecs_step {"delta":0.25}` moved `deco.cloud.0` only on the Y axis
+    with translation delta `[0,-0.01747608184814453,0]`.
 
 ## FPS-PORT — Source weapon switch cooldown
 

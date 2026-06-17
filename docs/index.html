@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 14:11 UTC</dd>
+            <dd>2026-06-17 14:12 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
@@ -404,11 +404,12 @@
               stay inside the source <code>[0.1, 2.0]</code> random range, and
               the integrated cosine hover resolves to a sine offset of
               <code>random_velocity / random_time</code>. Aperture CLI proof
-              paused the live route and one explicit
-              <code>ecs_step {"frames":1}</code> moved
-              <code>deco.cloud.0</code> only on Y, from
-              <code>8.66634464263916</code> to
-              <code>8.657685279846191</code>, with X/Z fixed. Prior update:
+              reproved generated <code>shoot</code>, yaw-relative movement,
+              and grounded <code>jump</code>, then paused the live route and
+              stepped <code>deco.cloud.0</code> by <code>0.25</code>s; the
+              cloud translation delta was
+              <code>[0,-0.01747608184814453,0]</code>, with X/Z fixed. Prior
+              update:
               Starter Kit FPS weapon switching now follows the
               source shoot-before-toggle ordering and preserves the shared
               source cooldown timer. Switching no longer clears
@@ -5873,8 +5874,9 @@
                 <span class="badge amber">next</span> Continue Starter Kit FPS
                 fidelity with a visible slice such as enemy movement/attack
                 timing polish, skybox orientation/readback hardening,
-                level-complete/full-clear smoke, source weapon switching timing
-                polish, or a reusable generated-input full-clear smoke script.
+                level-complete/full-clear smoke, enemy hitbox/source collider
+                anchoring, or a reusable generated-input full-clear smoke
+                script.
               </li>
               <li>
                 <span class="badge amber">next</span> Continue remaining M10
