@@ -1,0 +1,146 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { defineApertureConfig } from "@aperture-engine/app/config";
+import { installGeneratedInputForwarding } from "../../packages/app/src/browser/input.js";
+import type { GeneratedBrowserAppStatus } from "../../packages/app/src/browser/status.js";
+
+describe("generated browser input forwarding", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("forwards pointer events even when pointer capture throws", () => {
+    const canvas = new FakeCanvas();
+    const windowTarget = new FakeEventTarget();
+    const documentTarget = new FakeEventTarget();
+    const messages: unknown[] = [];
+    const status = createStatus();
+
+    vi.stubGlobal("window", windowTarget);
+    vi.stubGlobal("document", {
+      addEventListener: documentTarget.addEventListener.bind(documentTarget),
+      visibilityState: "visible",
+    });
+    vi.stubGlobal("navigator", {});
+    vi.stubGlobal("WheelEvent", {
+      DOM_DELTA_LINE: 1,
+      DOM_DELTA_PAGE: 2,
+    });
+
+    installGeneratedInputForwarding(
+      canvas as unknown as HTMLCanvasElement,
+      {
+        postMessage(message: unknown) {
+          messages.push(message);
+        },
+      } as never,
+      status,
+      defineApertureConfig({ mode: "browser", canvas: "#aperture" }),
+    );
+
+    canvas.dispatch("pointerdown", {
+      pointerId: 7,
+      clientX: 50,
+      clientY: 25,
+    });
+    canvas.dispatch("pointerup", {
+      pointerId: 7,
+      clientX: 50,
+      clientY: 25,
+    });
+
+    expect(canvas.focus).toHaveBeenCalledOnce();
+    expect(canvas.setPointerCapture).toHaveBeenCalledWith(7);
+    expect(canvas.releasePointerCapture).toHaveBeenCalledWith(7);
+    expect(messages.map((message) => eventFromMessage(message))).toEqual([
+      {
+        kind: "pointer",
+        pointer: "primary",
+        position: [0.5, 0.25],
+        pressed: true,
+      },
+      {
+        kind: "pointer",
+        pointer: "primary",
+        position: [0.5, 0.25],
+        pressed: false,
+      },
+    ]);
+    expect(status.forwardedInputEvents).toBe(2);
+  });
+});
+
+class FakeEventTarget {
+  readonly #listeners = new Map<string, ((event: never) => void)[]>();
+
+  addEventListener(type: string, listener: (event: never) => void): void {
+    const listeners = this.#listeners.get(type) ?? [];
+    listeners.push(listener);
+    this.#listeners.set(type, listeners);
+  }
+
+  dispatch(type: string, event: object): void {
+    for (const listener of this.#listeners.get(type) ?? []) {
+      listener(event as never);
+    }
+  }
+}
+
+class FakeCanvas extends FakeEventTarget {
+  tabIndex = -1;
+  readonly focus = vi.fn();
+  readonly setPointerCapture = vi.fn(() => {
+    throw new Error("synthetic pointer cannot be captured");
+  });
+  readonly releasePointerCapture = vi.fn(() => {
+    throw new Error("synthetic pointer cannot be released");
+  });
+
+  hasAttribute(name: string): boolean {
+    return name === "tabindex" && this.tabIndex >= 0;
+  }
+
+  getBoundingClientRect(): DOMRect {
+    return {
+      left: 0,
+      top: 0,
+      width: 100,
+      height: 100,
+      right: 100,
+      bottom: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    };
+  }
+}
+
+function createStatus(): GeneratedBrowserAppStatus {
+  return {
+    status: "running",
+    webgpuOk: false,
+    snapshots: 0,
+    mirroredSourceAssets: 0,
+    skippedSourceAssets: 0,
+    forwardedInputEvents: 0,
+    forwardedInputFrames: 0,
+    connectedGamepads: 0,
+    lastInputReset: null,
+    lastInputEvent: null,
+    forwardedCommandEvents: 0,
+    lastCommandEvent: null,
+    lastFrame: 0,
+    lastError: null,
+    lastFailure: null,
+    lastWorkerSummary: null,
+    diagnostics: null,
+    render: null,
+    canvas: null,
+    systems: [],
+  };
+}
+
+function eventFromMessage(message: unknown): unknown {
+  if (typeof message !== "object" || message === null) return null;
+  return (message as { readonly event?: unknown }).event;
+}

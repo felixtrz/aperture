@@ -56,7 +56,7 @@ export function installGeneratedInputForwarding(
 
   canvas.addEventListener("pointerdown", (event) => {
     canvas.focus();
-    canvas.setPointerCapture?.(event.pointerId);
+    safelySetPointerCapture(canvas, event.pointerId);
     forwardInput(worker, status, {
       kind: "pointer",
       pointer: "primary",
@@ -66,7 +66,7 @@ export function installGeneratedInputForwarding(
   });
 
   canvas.addEventListener("pointerup", (event) => {
-    canvas.releasePointerCapture?.(event.pointerId);
+    safelyReleasePointerCapture(canvas, event.pointerId);
     forwardInput(worker, status, {
       kind: "pointer",
       pointer: "primary",
@@ -146,6 +146,29 @@ export function installGeneratedInputForwarding(
   });
 
   installGeneratedGamepadPolling(worker, status, config);
+}
+
+function safelySetPointerCapture(
+  canvas: HTMLCanvasElement,
+  pointerId: number,
+): void {
+  try {
+    canvas.setPointerCapture?.(pointerId);
+  } catch {
+    // Pointer capture can be rejected for synthetic, already-released, or
+    // pointer-lock-transition events. Input forwarding must still continue.
+  }
+}
+
+function safelyReleasePointerCapture(
+  canvas: HTMLCanvasElement,
+  pointerId: number,
+): void {
+  try {
+    canvas.releasePointerCapture?.(pointerId);
+  } catch {
+    // Release is best-effort for the same browser paths as capture.
+  }
 }
 
 function forwardInput(
