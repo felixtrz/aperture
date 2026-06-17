@@ -1,42 +1,53 @@
-# Handoff - Starter Kit FPS Enemy Hitbox And Look Target
+# Handoff - Starter Kit FPS Source-Like HUD
 
-**Updated:** 2026-06-17 02:51 PDT
+**Updated:** 2026-06-17 03:00 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Aligned enemy hitboxes with upstream `objects/enemy.tscn`: the source
-  `CollisionShape3D` sphere is offset by local `y=0.25`, and the port now
-  applies the same offset to each keyed ECS hitbox entity at spawn time and
-  during per-frame enemy hover updates.
-- Aligned enemy facing with upstream `objects/enemy.gd`: enemies now pitch/yaw
-  toward `player.position + Vector3(0, 0.5, 0)` instead of yaw-only look.
-- Kept gameplay authority in ECS by writing `LocalTransform` on the visible
-  enemy roots and `${enemy}.hitbox` physics entities; no renderer-owned
-  collision or aim state was introduced.
+- Aligned the visible FPS browser HUD with upstream `scenes/main.tscn` and
+  `scripts/hud.gd`: only the crosshair image and large health percentage remain
+  visible.
+- Removed the port-only weapon counter, enemy counter, clear banner, hit flash,
+  damage flash, and enemy-destroyed overlay from the DOM/CSS/browser HUD layer.
+- Kept generated gameplay signals/resources intact for proof and future tooling;
+  this is only a visible HUD parity change, not a simulation-state removal.
 - Aperture proof:
   - Fresh managed FPS session at `http://127.0.0.1:5173/`, WebGPU healthy.
-  - `ecs_find_entities enemy.0` observed visual root Y near `2.698770`.
-  - `ecs_find_entities enemy.0.hitbox` observed physics current Y near
-    `2.948770`, confirming the source `+0.25` hitbox offset.
-  - The same readback showed the hitbox carries the enemy look rotation while
-    the app status remained `webgpuOk:true`, `lastError:null`.
+  - `render_get_frame_report {"summaryOnly":true}` reported one view, 16 mesh
+    draws, 29 total draw calls, and `diagnostics:0`.
+  - `browser_screenshot` wrote `/tmp/fps-source-like-hud.png`; visual inspection
+    showed only crosshair plus bottom-left `100%` health over the WebGPU scene.
+  - `browser_console_logs {"lines":20}` showed only Vite reconnect/debug lines
+    plus the known deprecated-parameter warning.
 - Validation:
+  - `git diff --check -- fps/index.html fps/src/hud.ts`
   - `pnpm exec vitest run test/app/fps-controls.test.ts`
   - `pnpm --dir fps run typecheck`
   - `pnpm --dir fps run build`
-  - `pnpm run typecheck`
-  - `pnpm run typecheck:test`
   - `pnpm --dir racing run typecheck`
   - `pnpm --dir racing run build`
   - `pnpm --dir shadow-lab run typecheck`
   - `pnpm --dir shadow-lab run build`
 - Committed implementation:
-  - `684ccc2f` — `Align FPS enemy hitbox and look target`
+  - `f293ecdf` — `Align FPS HUD with source`
 
 ## Previous Completed FPS/Tooling Slices
+
+- Enemy hitbox and look target:
+  - Aligned enemy hitboxes with upstream `objects/enemy.tscn`: the source
+    `CollisionShape3D` sphere is offset by local `y=0.25`, and the port now
+    applies the same offset to each keyed ECS hitbox entity at spawn time and
+    during per-frame enemy hover updates.
+  - Aligned enemy facing with upstream `objects/enemy.gd`: enemies now pitch/yaw
+    toward `player.position + Vector3(0, 0.5, 0)` instead of yaw-only look.
+  - Kept gameplay authority in ECS by writing `LocalTransform` on the visible
+    enemy roots and `${enemy}.hitbox` physics entities; no renderer-owned
+    collision or aim state was introduced.
+  - Committed implementation:
+    - `684ccc2f` — `Align FPS enemy hitbox and look target`
 
 - Player damage threshold:
   - Aligned player damage/reload semantics with upstream
@@ -260,38 +271,23 @@ previous working state so the old state remains recoverable.
 
 ## Latest Validation
 
+- `git diff --check -- fps/index.html fps/src/hud.ts`
 - `pnpm exec vitest run test/app/fps-controls.test.ts`
 - `pnpm --dir fps run typecheck`
 - `pnpm --dir fps run build`
-- `pnpm run typecheck`
-- `pnpm run typecheck:test`
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir racing run build`
 - `pnpm --dir shadow-lab run typecheck`
 - `pnpm --dir shadow-lab run build`
 - Aperture CLI/runtime proof from `fps/`:
   - Restarted managed FPS at `http://127.0.0.1:5173/`;
-    `browser_wait_for_webgpu` succeeded with no diagnostics.
-  - Generated player shot proof: `shotsFired:0 -> 1`,
-    `shotCooldown:0.2333`, `effect.muzzle-burst` translation
-    `[0.1,1.0947,-0.7]`, scale `[0.4168,0.4168,0.4168]`,
-    alpha `0.8333`, `Sprite.rotation:-0.2156`, atlas frame `0`, and UV
-    `[0,0,0.5,1]`.
-  - Enemy attack/muzzle proof: standing at spawn for 80 frames kept
-    `farHealthDelta:0`; moving forward for 44 frames reached
-    `position:[0.3033,1.0505,-3.5072]`, took one 5-point hit
-    (`nearHealthDelta:-5`), and wrote independent enemy muzzle rotations
-    `0.213` and `-0.0584` with alpha `0.8333`.
-  - The live FPS session was reset afterward to fresh gameplay.
-- MCP sanity check:
-  - `resource_get {"id":"fps.state"}` after reset reported
-    `health:100`, `enemiesRemaining:4`, `shotsFired:0`, `hits:0`,
-    `gameStatus:"active"`.
-  - `ecs_find_entities {"key":"effect.muzzle-burst"}` and
-    `ecs_find_entities {"key":"effect.enemy-muzzle.0"}` reported hidden reset
-    effect sprites with `renderSprite` summaries and zero diagnostics.
-  - `browser_console_logs {"lines":30}` showed the current reload ended with
-    only Vite connect messages plus the known deprecated-parameter warning.
+    `browser_wait_for_webgpu` succeeded with `webgpuOk:true`.
+  - `render_get_frame_report {"summaryOnly":true}` reported `diagnostics:0`.
+  - `browser_screenshot` wrote `/tmp/fps-source-like-hud.png`; visual
+    inspection confirmed the source-like visible HUD: crosshair plus bottom-left
+    health only.
+  - `browser_console_logs {"lines":20}` showed only Vite reconnect/debug lines
+    plus the known deprecated-parameter warning.
 - Previous player-shadow Aperture CLI/runtime proof from `fps/`:
   - Active managed session: `http://127.0.0.1:5174/`, WebGPU healthy.
   - `resource_get {"id":"fps.state"}` after reset reported fresh gameplay:
@@ -457,9 +453,13 @@ previous working state so the old state remains recoverable.
 
 ## Current Notes
 
-- Managed FPS is running at `http://127.0.0.1:5173/` through Aperture dev and
-  was reset to fresh gameplay after proof: `health:100`,
-  `enemiesRemaining:4`, `shotsFired:0`, `hits:0`, `gameStatus:"active"`.
+- No managed FPS session should be left running after final cleanup. If a future
+  proof needs the app, start it with
+  `pnpm --dir fps exec aperture dev up --headless --port 5173`.
+- The latest HUD slice deliberately removed browser-only visible status
+  elements, but generated `fps.state` values and signal summaries still expose
+  `weaponName`, `enemiesRemaining`, `gameStatus`, hit/damage pulses, and related
+  proof data to Aperture tools.
 - The generated-input full-clear proof now has a working platform-aware route.
   The earlier failed straight-line route fell below the level after `enemy.2`;
   the successful proof instead uses explicit platform waypoints and jump arcs

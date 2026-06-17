@@ -1,5 +1,33 @@
 # Completed Tasks
 
+## FPS-PORT — Source-like HUD
+
+Completed: 2026-06-17 03:00 PDT
+Commit: `f293ecdf`
+
+### Summary
+
+- Aligned the visible FPS browser HUD with upstream `scenes/main.tscn` /
+  `scripts/hud.gd`: only the crosshair and large health percentage remain.
+- Removed port-only weapon/enemy counters, the clear banner, and hit/damage/
+  enemy-destroyed browser overlays.
+- Kept generated gameplay signals and `fps.state` proof resources intact for
+  Aperture tooling.
+
+### Validation
+
+- `git diff --check -- fps/index.html fps/src/hud.ts`
+- `pnpm exec vitest run test/app/fps-controls.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Aperture proof in a fresh managed FPS session reported WebGPU healthy,
+  `render_get_frame_report` `diagnostics:0`, and screenshot
+  `/tmp/fps-source-like-hud.png` showing only crosshair plus bottom-left health.
+
 ## FPS-PORT — Enemy hitbox and look target
 
 Completed: 2026-06-17 02:51 PDT

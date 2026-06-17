@@ -393,18 +393,28 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 09:51 UTC</dd>
+            <dd>2026-06-17 10:00 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the Starter Kit FPS port now aligns enemy hitboxes
-              and look targets with upstream. Enemy physics hitboxes track the
-              visible root at source local <code>y + 0.25</code>, and enemies
-              pitch/yaw toward the player's <code>+0.5</code> height target.
-              Aperture proof observed <code>enemy.0</code> visual Y near
-              <code>2.698770</code> and <code>enemy.0.hitbox</code> physics Y
-              near <code>2.948770</code>. Prior update: the Starter Kit FPS
+              Latest update: the Starter Kit FPS port now has a source-like
+              browser HUD: only the crosshair and large health percentage remain
+              visible, matching upstream <code>scenes/main.tscn</code> /
+              <code>scripts/hud.gd</code>. Port-only weapon/enemy counters,
+              clear banner, and flash overlays were removed while generated
+              gameplay signals remain available for Aperture proof. Aperture
+              proof reported WebGPU healthy, frame diagnostics
+              <code>0</code>, and screenshot
+              <code>/tmp/fps-source-like-hud.png</code> showing the simplified
+              HUD. Prior update: the Starter Kit FPS port now aligns enemy
+              hitboxes and look targets with upstream. Enemy physics hitboxes
+              track the visible root at source local <code>y + 0.25</code>, and
+              enemies pitch/yaw toward the player's <code>+0.5</code> height
+              target. Aperture proof observed <code>enemy.0</code> visual Y
+              near <code>2.698770</code> and
+              <code>enemy.0.hitbox</code> physics Y near
+              <code>2.948770</code>. Prior update: the Starter Kit FPS
               port now matches the upstream player damage reload threshold:
               health <code>0</code> no longer reloads, while health below
               <code>0</code> resets the scene state. Prior update: the Starter
@@ -2231,6 +2241,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned the visible FPS
+                browser HUD with upstream <code>scenes/main.tscn</code> /
+                <code>scripts/hud.gd</code>. The page now shows only the
+                crosshair and large health percentage while generated gameplay
+                signals remain available for Aperture proof; the managed
+                screenshot at <code>/tmp/fps-source-like-hud.png</code> confirms
+                the source-like HUD.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned enemy hitboxes and
                 look targets with upstream <code>enemy.tscn</code> /
