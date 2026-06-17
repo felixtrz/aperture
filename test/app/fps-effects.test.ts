@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   SOURCE_ENEMY_MUZZLE_SCALE,
+  SOURCE_ENEMY_MUZZLE_RUNTIME_SCALE,
   SOURCE_ENEMY_MUZZLE_WORLD_SIZE,
   SOURCE_IMPACT_FRAME_PIXELS,
   SOURCE_IMPACT_PIXEL_SIZE,
@@ -48,6 +49,7 @@ describe("Starter Kit FPS sprite effects", () => {
     expect(SOURCE_MUZZLE_FRAME_PIXELS).toBe(256);
     expect(SOURCE_SPRITE_DEFAULT_PIXEL_SIZE).toBe(0.01);
     expect(SOURCE_ENEMY_MUZZLE_SCALE).toBe(0.5);
+    expect(SOURCE_ENEMY_MUZZLE_RUNTIME_SCALE).toBe(1);
     expect(SOURCE_ENEMY_MUZZLE_WORLD_SIZE).toBeCloseTo(1.28);
     expect(
       sourceAnimatedSpriteWorldSize(

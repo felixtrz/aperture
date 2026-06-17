@@ -68,6 +68,7 @@ import {
   createEnemyHealth,
 } from "../lib/fps-resource.js";
 import {
+  SOURCE_ENEMY_MUZZLE_RUNTIME_SCALE,
   sourceSpriteAlphaForFrame,
   sourceSpriteFrameForLife,
   type SpriteAnimationFrame,
@@ -735,7 +736,7 @@ export default class PlayerSystem extends createSystem({
           enemyMuzzleEffectKey(enemy.key, muzzleIndex),
           this.#enemyMuzzleFlashPositions[slot] ?? HIDDEN_EFFECT_POSITION,
           (this.#enemyMuzzleFlashTimers[slot] ?? 0) / MUZZLE_FLASH_DURATION,
-          0.72,
+          SOURCE_ENEMY_MUZZLE_RUNTIME_SCALE,
           MUZZLE_FLASH_FRAMES,
           this.#enemyMuzzleFlashRolls[slot] ?? 0,
         );

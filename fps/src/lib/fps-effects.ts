@@ -34,6 +34,7 @@ export const SOURCE_ENEMY_MUZZLE_SPRITE_SIZE: readonly [number, number] = [
   SOURCE_ENEMY_MUZZLE_WORLD_SIZE,
   SOURCE_ENEMY_MUZZLE_WORLD_SIZE,
 ];
+export const SOURCE_ENEMY_MUZZLE_RUNTIME_SCALE = 1;
 
 export function sourceAnimatedSpriteWorldSize(
   framePixels: number,
