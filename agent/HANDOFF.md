@@ -204,7 +204,7 @@ previous working state so the old state remains recoverable.
 ## Current Notes
 
 - Managed FPS is running at `http://127.0.0.1:5174/` through Aperture dev and
-  was resumed after a clean reset: `health:100`, `enemiesRemaining:4`,
+  is paused after a clean reset: `health:100`, `enemiesRemaining:4`,
   `shotsFired:0`, `hits:0`, `landingBob:0`, `landingPulse:0`.
 - A generated-input full-clear attempt killed `enemy.0` and `enemy.1`, then
   partially damaged `enemy.2`, but the straight-line movement route fell below
