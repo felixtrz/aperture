@@ -225,7 +225,7 @@ describe("directional shadow matrix computation", () => {
     );
   });
 
-  it("honors explicit single-cascade scene fit when frustum fitting is disabled", () => {
+  it("honors explicit static fallback bounds when frustum fitting is disabled", () => {
     const request = { ...shadowRequest(), cascadeCount: 1 };
     const report = createDirectionalShadowMatrixComputationReport({
       viewProjection: frustumFitPlan(request),

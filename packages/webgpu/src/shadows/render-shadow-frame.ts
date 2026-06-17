@@ -183,9 +183,9 @@ export interface RenderShadowFrameShadowMapOptions {
 }
 
 export interface RenderShadowFrameMatrixOptions {
-  /** Scene-fit center used by single-cascade shadows, or fallback for no-camera snapshots. */
+  /** Fallback center used when no primary render camera can drive auto-fit. */
   readonly center?: readonly [number, number, number];
-  /** Scene-fit span used by single-cascade shadows, or fallback for no-camera snapshots. */
+  /** Fallback span used when no primary render camera can drive auto-fit. */
   readonly orthographicSize?: number;
   readonly near?: number;
   readonly far?: number;
@@ -327,13 +327,8 @@ export function createRenderShadowFrame(
     shadowPassPlan: passPlan,
     depthTextureResources,
   });
-  const useCameraFrustumFit = shouldUseCameraFrustumFit(
-    shadowRequests,
-    options.matrix,
-  );
-  const shadowCamera = useCameraFrustumFit
-    ? resolvePrimaryShadowCamera(options.snapshot)
-    : null;
+  const shadowCamera = resolvePrimaryShadowCamera(options.snapshot);
+  const useCameraFrustumFit = shadowCamera !== null;
   const viewProjection = createDirectionalShadowViewProjectionPlanReport({
     shadowRequests,
     lights: options.snapshot.lights,
@@ -1277,20 +1272,6 @@ function resolveShadowKind(
   return descriptor.descriptors.some((entry) => entry.cascadeCount > 1)
     ? "directional-cascaded"
     : "directional";
-}
-
-function shouldUseCameraFrustumFit(
-  shadowRequests: readonly ShadowRequestPacket[],
-  matrix: CreateRenderShadowFrameOptions["matrix"] | undefined,
-): boolean {
-  if (matrix === undefined) {
-    return true;
-  }
-
-  return shadowRequests.some(
-    (request) =>
-      isDirectionalShadowRequest(request) && (request.cascadeCount ?? 1) > 1,
-  );
 }
 
 function isDirectionalShadowRequest(request: ShadowRequestPacket): boolean {

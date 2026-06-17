@@ -17,7 +17,7 @@ import { createWebGpuAppAutoShadowFrame } from "../../packages/webgpu/src/app/au
 import { createWebGpuAppResourceReuseReport } from "../../packages/webgpu/src/app/report.js";
 
 describe("WebGPU app auto-shadow frame", () => {
-  it("uses single-cascade scene fit even when a primary camera exists", () => {
+  it("uses primary-camera receiver fit when a primary camera exists", () => {
     const calls = createDeviceCalls();
     const assets = new AssetRegistry();
     const opaqueMesh = createMeshHandle("opaque-caster");
@@ -47,11 +47,10 @@ describe("WebGPU app auto-shadow frame", () => {
     ).toEqual(["shadowCasterDrawList.unsupportedAlphaBlendCaster"]);
     expect(
       result?.matrixComputation.matrices[0]?.orthographicSize,
-    ).toBeGreaterThan(3);
+    ).toBeGreaterThan(7);
     expect(
       result?.matrixComputation.matrices[0]?.orthographicSize,
-    ).toBeLessThan(5);
-    expect(result?.matrixComputation.matrices[0]?.center).toEqual([0, 1, 0]);
+    ).toBeLessThan(9);
   });
 
   it("uses light-space scene fit as the no-camera fallback", () => {
@@ -131,6 +130,22 @@ describe("WebGPU app auto-shadow frame", () => {
         },
       },
     });
+    const receiverOnlyResult = createWebGpuAppAutoShadowFrame({
+      app: app(device(createDeviceCalls())),
+      assets,
+      cache: createWebGpuAppResourceCache(),
+      reuse: createWebGpuAppResourceReuseReport(),
+      snapshot: {
+        ...source,
+        meshDraws: visibleReceiver,
+        transforms: directionalLightTransform([-3, -1, 0]),
+        report: {
+          ...source.report,
+          meshDraws: visibleReceiver.length,
+          shadowCasterDraws: 0,
+        },
+      },
+    });
 
     expect(visibleReceiver.map((draw) => draw.renderId)).toEqual([103]);
     expect(result).not.toBeNull();
@@ -141,11 +156,19 @@ describe("WebGPU app auto-shadow frame", () => {
     expect(
       result?.casterDrawList.diagnostics.map((diagnostic) => diagnostic.code),
     ).toEqual(["shadowCasterDrawList.unsupportedAlphaBlendCaster"]);
-    expect(result?.matrixComputation.matrices[0]?.center[0]).toBeGreaterThan(3);
-    expect(result?.matrixComputation.matrices[0]?.center[0]).toBeLessThan(13);
+    expect(result?.matrixComputation.matrices[0]?.center[0]).toBeGreaterThan(
+      -1,
+    );
+    expect(result?.matrixComputation.matrices[0]?.center[0]).toBeLessThan(1);
     expect(
       result?.matrixComputation.matrices[0]?.orthographicSize,
-    ).toBeLessThan(6);
+    ).toBeGreaterThan(7);
+    expect(
+      result?.matrixComputation.matrices[0]?.orthographicSize,
+    ).toBeLessThan(9);
+    expect(result?.matrixComputation.matrices[0]?.far).toBeGreaterThan(
+      receiverOnlyResult?.matrixComputation.matrices[0]?.far ?? Infinity,
+    );
   });
 });
 

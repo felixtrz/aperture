@@ -1,3 +1,74 @@
+# Handoff - Shadow Default Auto-Fit Correction
+
+**Updated:** 2026-06-17 12:17 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Corrected the temporary directional-shadow scene-fit regression:
+  - Camera-backed app frames again use primary-camera receiver/frustum fitting
+    as the out-of-box default, preserving sharp shadow-map footprint coverage.
+  - `shadowCasterDraws` remain extracted independently from visible
+    `meshDraws`, so main-camera frustum culling does not remove a caster from
+    the shadow pass.
+  - Off-camera caster bounds still feed the shadow depth range when they can
+    affect the fitted receiver footprint.
+  - Fixed/static scene bounds are now documented as explicit authored settings
+    or no-camera fallback behavior only.
+- Research anchors checked:
+  - Unity shadow-cascade docs, Unreal shadowing docs, and Microsoft CSM
+    guidance all frame directional shadow quality around camera/cascade-relative
+    coverage rather than one static whole-scene box.
+  - `references/three.js/src/renderers/webgl/WebGLShadowMap.js` uses a
+    shadow-camera pass for casters; three.js fixed orthographic settings are an
+    authored control, not a good automatic default.
+  - `references/engine/src/scene/renderer/shadow-renderer-directional.js`
+    builds directional shadow cameras, culls against the shadow camera, and
+    tightens depth from caster bounds.
+  - `references/bevy/crates/bevy_render/src/view/visibility/mod.rs` keeps
+    shadow-map visibility separate from normal render visibility.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/directional-shadow-matrix-computation.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm run check:progress`
+- Managed Aperture CLI proof:
+  - Racing: WebGPU ready, screenshot
+    `/tmp/racing-shadow-autofit-correction.png`, `meshDraws:36`,
+    `shadowCasterDraws:364`, `drawCalls:46`, diagnostics `0`.
+  - Shadow Lab: screenshot `/tmp/shadow-lab-autofit-correction.png`,
+    `meshDraws:25`, `shadowCasterDraws:364`, `drawCalls:38`, diagnostics `0`,
+    and the Aperture/Three.js split view remained visually aligned.
+  - Starter Kit FPS: frame summary reported `views:2`, `meshDraws:21`,
+    `shadowCasterDraws:44`, `drawCalls:36`, diagnostics `0`; filtered status
+    reported `webgpuOk:true`, `playerY:0.97`, `grounded:true`, and no
+    `lastError`/`lastFailure`; screenshot `/tmp/fps-autofit-correction.png`
+    showed a nonblack scene with lit platforms/shadows.
+  - `pnpm --dir fps run smoke:full-clear` passed through MCP with
+    `shotsFired:8`, `hits:16`, `destroyedEnemies:4`, `enemiesRemaining:0`,
+    and `gameStatus:"cleared"`, proving platform traversal after the shadow
+    correction.
+
+## Known Issues
+
+- Starter Kit FPS is running at `http://127.0.0.1:5173/` for user testing.
+- Pre-existing untracked screenshot/parity artifacts remain outside the commit.
+
+## Recommended Next Task
+
+Run managed Aperture validation for racing, Shadow Lab, and Starter Kit FPS,
+then continue the user-directed FPS/shadow parity stream or return to
+`task-3097` when the interruption is complete.
+
+---
+
 # Handoff - FPS Source Mesh Level Colliders
 
 **Updated:** 2026-06-17 12:07 PDT
@@ -57,11 +128,16 @@ when the FPS/shadow interruptions are complete.
 
 ---
 
-# Handoff - Single-Cascade Shadow Scene Fit
+# Handoff - Superseded Single-Cascade Shadow Scene Fit
 
 **Updated:** 2026-06-17 12:01 PDT
 
 User-directed work is on branch `fps-starter-kit-port`.
+
+**Superseded:** the default scene-fit behavior described below was corrected by
+the 2026-06-17 12:17 PDT shadow auto-fit slice because it made default shadows
+too soft. The durable part of this slice is the independent
+`shadowCasterDraws` extraction and shadow-pass caster submission.
 
 ## Latest Completed Slice
 
@@ -78,17 +154,15 @@ User-directed work is on branch `fps-starter-kit-port`.
     `RenderShadowMapVisibleEntities` separate from normal render-visible
     entities; `references/bevy/crates/bevy_pbr/src/render/light.rs` consumes
     that shadow-visible set while queueing shadows.
-- Root cause: the renderer already extracted `shadowCasterDraws` separately from
-  visible `meshDraws`, but single-cascade shadow matrix computation still
-  preferred active render-camera frustum fitting whenever camera matrices were
-  present. That could crop off-camera caster bounds even though the caster packet
-  made it into the shadow frame.
-- Fix: single-cascade shadows now disable camera-frustum fitting and use the
-  scene-fit matrix options derived from extracted casters/receivers. Cascaded
-  shadows still use the camera-frustum fitting path, and no-camera snapshots
-  continue to use scene-fit fallback data.
-- Updated the stale racing setup comment and public tracker pages so the default
-  shadow path documents scene-fit single-cascade behavior.
+- Root cause identified in this slice: the renderer already extracted
+  `shadowCasterDraws` separately from visible `meshDraws`, but caster inclusion
+  and shadow depth fitting still needed to consume that caster packet so
+  main-view frustum culling could not remove shadow contribution.
+- Superseded fix attempt: this slice disabled camera-frustum fitting for
+  single-cascade shadows and routed them through broad scene-fit matrix options.
+  That preserved off-camera casters but made default shadows too soft. The later
+  12:17 PDT correction restores camera-backed receiver/frustum fitting as the
+  default while keeping independent caster submission/depth expansion.
 
 ## Validation
 

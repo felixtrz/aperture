@@ -1,5 +1,48 @@
 # Completed Tasks
 
+## WEBGPU-SHADOWS - Default camera-backed auto-fit restored
+
+Completed: 2026-06-17 12:17 PDT
+
+### Summary
+
+- Corrected the temporary single-cascade scene-fit regression: camera-backed
+  app shadows now use primary-camera receiver/frustum fitting by default again.
+- Kept the separate `shadowCasterDraws` path for off-camera casters and proved
+  those casters still feed the shadow pass and expand the shadow depth range
+  without inflating the shadow map footprint.
+- Reframed fixed/static scene bounds as explicit authored settings or
+  no-camera fallback behavior, not the out-of-box default.
+
+### Research
+
+- Unity, Unreal, Microsoft CSM guidance, Bevy, and PlayCanvas all point toward
+  camera/cascade-relative directional shadow coverage as the quality default,
+  with independent shadow-caster submission/culling from the light's view.
+- three.js-style fixed orthographic boxes are useful authored controls, but not
+  sufficient as Aperture's default automatic behavior.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/directional-shadow-matrix-computation.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm run check:progress`
+- Managed Aperture CLI proof rechecked racing, Shadow Lab, and Starter Kit FPS:
+  - Racing: `meshDraws:36`, `shadowCasterDraws:364`, `drawCalls:46`,
+    diagnostics `0`, screenshot `/tmp/racing-shadow-autofit-correction.png`.
+  - Shadow Lab: `meshDraws:25`, `shadowCasterDraws:364`, `drawCalls:38`,
+    diagnostics `0`, screenshot `/tmp/shadow-lab-autofit-correction.png`.
+  - FPS: `views:2`, `meshDraws:21`, `shadowCasterDraws:44`, `drawCalls:36`,
+    diagnostics `0`, `webgpuOk:true`, `playerY:0.97`, `grounded:true`,
+    screenshot `/tmp/fps-autofit-correction.png`.
+- `pnpm --dir fps run smoke:full-clear` passed with `shotsFired:8`, `hits:16`,
+  `destroyedEnemies:4`, `enemiesRemaining:0`, and `gameStatus:"cleared"`.
+
 ## FPS-PORT — Source mesh level colliders
 
 Completed: 2026-06-17 12:07 PDT
@@ -38,21 +81,23 @@ Completed: 2026-06-17 12:07 PDT
 - `pnpm --dir shadow-lab run typecheck`
 - `pnpm --dir shadow-lab run build`
 
-## WEBGPU-SHADOWS - Single-cascade scene-fit independence
+## WEBGPU-SHADOWS - Superseded single-cascade scene-fit attempt
 
 Completed: 2026-06-17 12:01 PDT
 
 ### Summary
 
-- Fixed the default single-cascade directional shadow path so off-camera shadow
-  casters are not cropped by the active render-camera frustum.
+- Superseded by `WEBGPU-SHADOWS - Default camera-backed auto-fit restored`.
+  This slice correctly separated shadow caster extraction from visible mesh
+  frustum culling, but its scene-fit default caused overly soft shadows and is
+  no longer the intended default behavior.
+- Attempted to fix the single-cascade off-camera caster path by preventing
+  active-camera frustum fitting from cropping caster contribution.
 - Added an explicit `frustumFit:false` branch to directional shadow matrix
-  computation and routed single-cascade auto-shadow frames through scene-fit
-  matrix options derived from extracted caster/receiver bounds.
+  computation and routed single-cascade auto-shadow frames through broad
+  scene-fit matrix options; this part is superseded for default app shadows.
 - Preserved camera-frustum fitting for cascaded directional shadows and explicit
   authored shadow-camera overrides.
-- Updated racing's setup comment and the public tracker docs to match the
-  default behavior.
 
 ### Research
 

@@ -120,8 +120,8 @@ export interface DirectionalShadowMatrixComputationInput {
   readonly receiverBounds?: readonly DirectionalShadowReceiverBoundsInput[];
   /**
    * Enables camera-frustum fitting when camera matrices and cascade distances
-   * are available. Single-cascade scene-fit callers disable this so the shadow
-   * camera remains caster/receiver driven instead of main-camera driven.
+   * are available. No-camera/static fallback callers can disable this to honor
+   * the supplied center/orthographic settings exactly.
    */
   readonly frustumFit?: boolean | undefined;
 }

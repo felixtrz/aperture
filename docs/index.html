@@ -393,12 +393,21 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 19:07 UTC</dd>
+            <dd>2026-06-17 19:17 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS level collision now uses
+              Latest update: directional shadow defaults have been corrected
+              after the temporary scene-fit regression. Camera-backed app
+              frames now fit the shadow footprint to the primary camera
+              receiver/frustum region for sharp out-of-box shadows, while
+              independently extracted <code>shadowCasterDraws</code> still feed
+              the shadow pass and caster depth range, so off-camera casters can
+              keep contributing without inflating the whole map. Fixed/static
+              scene bounds remain explicit authored or no-camera fallback
+              behavior only. Prior update: Starter Kit FPS level collision now
+              uses
               asset-backed triangle mesh colliders sourced from the imported
               platform and wall GLB primitives instead of hand-authored box
               approximations. Generated app config can opt into
@@ -410,11 +419,7 @@
               grounded player state, sane debug bounds, and a clean
               <code>smoke:full-clear</code> run with <code>shotsFired:8</code>,
               <code>hits:16</code>, <code>destroyedEnemies:4</code>, and
-              <code>gameStatus:"cleared"</code>. Prior update: single-cascade
-              directional shadows now scene-fit from extracted casters/receivers
-              even when a primary render camera exists, so off-camera platforms
-              can continue casting shadows after main-view frustum culling
-              removes their visible mesh draw. Prior update: Starter Kit FPS
+              <code>gameStatus:"cleared"</code>. Prior update: Starter Kit FPS
               short button taps now stay visible to the worker frame loop. HUD
               keyboard and instant pointer releases are delayed below the
               fastest source weapon cooldown, and FPS jump/shoot press commands
@@ -2707,14 +2712,15 @@
                 <code>gameStatus:"cleared"</code>.
               </li>
               <li>
-                <span class="badge green">render</span> Fixed single-cascade
-                directional shadow fitting so off-camera platforms can continue
-                casting shadows after their visible mesh draw is main-frustum
-                culled. The default one-cascade path now scene-fits from
-                extracted caster/receiver bounds, while cascaded shadows keep
-                camera-frustum fitting. Managed Aperture proof rechecked racing,
-                Shadow Lab, and Starter Kit FPS with zero diagnostics and
-                retained <code>shadowCasterDraws</code>.
+                <span class="badge green">render</span> Corrected the
+                directional shadow default after the temporary scene-fit
+                regression. Camera-backed shadows fit the receiver/frustum
+                footprint by default for sharper out-of-box results, while
+                independently extracted <code>shadowCasterDraws</code> still
+                drive the caster pass and depth range so off-camera platforms
+                can keep casting after their visible mesh draw is main-frustum
+                culled. Static scene bounds are now documented as authored or
+                no-camera fallback behavior only.
               </li>
               <li>
                 <span class="badge green">fps</span> Fixed short FPS button-tap

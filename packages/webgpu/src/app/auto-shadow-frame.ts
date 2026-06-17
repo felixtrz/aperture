@@ -60,8 +60,8 @@ export function createWebGpuAppAutoShadowFrame(options: {
   const meshViews = createAutoShadowCasterMeshViews(options);
 
   // The render-shadow frame uses the active render camera for PlayCanvas-style
-  // automatic directional fitting when a primary view exists. This scene fit is
-  // retained only as the no-camera fallback for headless/simple snapshots.
+  // automatic directional fitting when a primary view exists. The scene matrix
+  // is passed only as a fallback for no-camera/degenerate snapshots.
   const sceneMatrix = computeShadowSceneMatrix(options.snapshot);
 
   return createRenderShadowFrame({
@@ -89,20 +89,18 @@ const SHADOW_NEAR_MIN = 0.1;
 const SHADOW_DEPTH_SLACK = 1;
 
 /**
- * Derive the directional shadow ortho by fitting a light-space ortho to the
- * world-space region the shadow map must cover: the shadow CASTERS plus where
- * their shadows land (see computeCasterShadowFit). This is the single,
- * camera-INDEPENDENT path — there is no camera-following heuristic, so shadows
- * never swim, detach, or change behavior as the camera orbits/zooms/pans. It
- * mirrors hand-authoring a three.js `DirectionalLight.shadow.camera` to fit the
- * scene.
+ * Derive the no-camera fallback directional shadow ortho by fitting a
+ * light-space ortho to the world-space region the shadow map must cover: the
+ * shadow CASTERS plus where their shadows land (see computeCasterShadowFit).
+ * Primary camera snapshots do not use this as their default footprint; they use
+ * receiver/frustum fitting in createRenderShadowFrame and keep this result as a
+ * fallback for headless/simple snapshots.
  *
  * One shadow map necessarily trades resolution for coverage, so very large
- * (open-world) scenes get coarse shadows from this auto-fit — the answer there
- * is cascaded shadow maps (`cascadeCount > 1`), which fit the camera frustum
- * per cascade. We deliberately do NOT switch to a camera-followed region past
- * some size threshold: that would reintroduce camera-dependence and a magic
- * cutoff. Returns null when the scene has no casters (nothing to shadow).
+ * no-camera scenes get coarse shadows from this fallback. Camera-backed frames
+ * should prefer the automatic receiver/frustum fit, and larger worlds should
+ * use cascaded shadow maps (`cascadeCount > 1`). Returns null when the scene
+ * has no casters (nothing to shadow).
  */
 function computeShadowSceneMatrix(
   snapshot: RenderSnapshot,
