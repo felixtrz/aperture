@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## FPS-PORT — Player damage reload threshold
+
+Completed: 2026-06-17 02:45 PDT
+Commit: `f3ed9e1f`
+
+### Summary
+
+- Aligned player damage/reload semantics with upstream
+  `objects/player.gd::damage(amount)`: health `0` no longer reloads, while
+  health below `0` still resets the scene state.
+- Removed the enemy attack damage clamp so repeated source-style
+  `collider.damage(5)` calls can move health from `0` to `-5`.
+- Kept the behavior in the ECS-owned `fps.state` resource and existing
+  `PlayerSystem` reset path.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Aperture proof in a fresh managed FPS session observed `resource_set`
+  `health:0` persist through `resource_get`, then `health:-1` reset back to
+  `health:100`.
+
 ## FPS-PORT — Weapon viewmodel motion
 
 Completed: 2026-06-17 02:35 PDT

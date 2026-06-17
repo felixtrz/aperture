@@ -1,44 +1,56 @@
-# Handoff - Starter Kit FPS Viewmodel Motion
+# Handoff - Starter Kit FPS Damage Threshold
 
-**Updated:** 2026-06-17 02:38 PDT
+**Updated:** 2026-06-17 02:45 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
-- Replaced the FPS weapon-view cooldown recoil approximation with a source-like
-  viewmodel offset from upstream `objects/player.gd`: the active weapon now
-  lerps toward `-localVelocity / 30`, and shooting adds a transient `+0.25`
-  local-Z kick before smoothing back.
-- Kept this ECS-owned by writing `LocalTransform` on the keyed weapon entities
-  (`weapon.0`, `weapon.1`). No renderer-owned first-person weapon container was
-  introduced.
-- Extracted `weaponViewmodelOffsetTarget(...)` into `fps/src/lib/fps-controls.ts`
-  and covered forward, strafe, and diagonal normalization in
-  `test/app/fps-controls.test.ts`.
+- Aligned player damage/reload semantics with upstream
+  `objects/player.gd::damage(amount)`: player health now reaches exactly `0`
+  without resetting, and the scene-style reset only happens once health drops
+  below `0`.
+- Removed the enemy attack damage clamp, so source-style repeated
+  `collider.damage(5)` calls can move health from `0` to `-5` instead of
+  sticking at zero.
+- Kept the behavior in the ECS-owned `fps.state` resource and existing
+  `PlayerSystem` reset path; no renderer-owned gameplay state was added.
 - Aperture proof:
-  - Fresh managed FPS session at `http://127.0.0.1:5173/`, WebGPU healthy,
-    paused through `ecs_pause`.
-  - Baseline `weapon.0.localTransform.translation` was
-    `[0.58,-0.48,-1.200000]`.
-  - Paused generated `move` action with W for one `ecs_step` moved the weapon Z
-    to `-1.172222`, matching the source-style positive local-Z offset from
-    forward movement.
-  - Paused generated `shoot` action then moved weapon Z to `-0.968518` and
-    `resource_get fps.state` observed `shotsFired:1`.
+  - Fresh managed FPS session at `http://127.0.0.1:5173/`, WebGPU healthy.
+  - `resource_set fps.state.health=0` followed by `resource_get` observed
+    `health:0`, confirming zero health no longer reloads.
+  - `resource_set fps.state.health=-1`, a short live wait, and `resource_get`
+    observed `health:100`, confirming below-zero health still resets.
 - Validation:
   - `pnpm exec vitest run test/app/fps-controls.test.ts`
   - `pnpm --dir fps run typecheck`
   - `pnpm --dir fps run build`
+  - `pnpm run typecheck`
+  - `pnpm run typecheck:test`
+  - `pnpm --dir racing run typecheck`
   - `pnpm --dir racing run build`
   - `pnpm --dir shadow-lab run typecheck`
   - `pnpm --dir shadow-lab run build`
 - Committed implementation:
-  - `582cfed3` — `Add FPS weapon viewmodel kick`
-  - `60df8919` — `Cover FPS weapon viewmodel offset`
+  - `f3ed9e1f` — `Align FPS player damage threshold`
 
 ## Previous Completed FPS/Tooling Slices
+
+- Weapon viewmodel motion:
+  - Replaced the FPS weapon-view cooldown recoil approximation with a source-like
+    viewmodel offset from upstream `objects/player.gd`: the active weapon now
+    lerps toward `-localVelocity / 30`, and shooting adds a transient `+0.25`
+    local-Z kick before smoothing back.
+  - Kept this ECS-owned by writing `LocalTransform` on the keyed weapon entities
+    (`weapon.0`, `weapon.1`). No renderer-owned first-person weapon container was
+    introduced.
+  - Extracted `weaponViewmodelOffsetTarget(...)` into `fps/src/lib/fps-controls.ts`
+    and covered forward, strafe, and diagonal normalization in
+    `test/app/fps-controls.test.ts`.
+  - Committed implementation:
+    - `582cfed3` — `Add FPS weapon viewmodel kick`
+    - `60df8919` — `Cover FPS weapon viewmodel offset`
 
 - Input hardening and impact placement:
   - Hardened the browser-facing FPS shoot path by forwarding primary

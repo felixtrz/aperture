@@ -393,13 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 09:38 UTC</dd>
+            <dd>2026-06-17 09:45 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the Starter Kit FPS port now has source-like weapon
-              viewmodel motion. The active ECS weapon transform lerps toward
+              Latest update: the Starter Kit FPS port now matches the upstream
+              player damage reload threshold: health <code>0</code> no longer
+              reloads, while health below <code>0</code> resets the scene
+              state. Aperture proof patched <code>fps.state.health</code> to
+              <code>0</code> and observed it persist, then patched
+              <code>-1</code> and observed reset back to
+              <code>100</code>. Prior update: the Starter Kit FPS port now has
+              source-like weapon viewmodel motion. The active ECS weapon
+              transform lerps toward
               <code>-localVelocity / 30</code>, and shooting adds a transient
               <code>+0.25</code> local-Z kick. Aperture proof observed
               <code>weapon.0</code> Z <code>-1.200000</code> at baseline,
@@ -2220,6 +2227,14 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Aligned player damage
+                reload semantics with upstream <code>player.gd</code>: health
+                <code>0</code> no longer reloads, enemy damage is not clamped at
+                zero, and health below <code>0</code> resets back to
+                <code>100</code>. Aperture proof used <code>resource_set</code>
+                and <code>resource_get</code> on <code>fps.state.health</code>.
+              </li>
               <li>
                 <span class="badge green">fps</span> Added source-like weapon
                 viewmodel motion. The active weapon entity now lerps toward
