@@ -164,7 +164,9 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         receiveShadow: false,
         transform: {
           translation: cloud.position,
-          rotationEulerDegrees: [0, cloud.yawDegrees ?? 0, 0],
+          ...(cloud.rotation === undefined
+            ? { rotationEulerDegrees: [0, cloud.yawDegrees ?? 0, 0] }
+            : { rotation: cloud.rotation }),
           scale: cloud.scale ?? [1, 1, 1],
         },
       });

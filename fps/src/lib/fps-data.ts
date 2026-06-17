@@ -1,4 +1,7 @@
-import type { Vec3Tuple as Vec3 } from "@aperture-engine/app/systems";
+import type {
+  QuatTuple as Quat,
+  Vec3Tuple as Vec3,
+} from "@aperture-engine/app/systems";
 
 export interface WeaponSpec {
   readonly name: string;
@@ -20,9 +23,15 @@ export interface LevelInstance {
   readonly key: string;
   readonly assetId: string;
   readonly position: Vec3;
+  readonly rotation?: Quat | undefined;
   readonly yawDegrees?: number | undefined;
   readonly scale?: Vec3 | undefined;
   readonly tags: readonly string[];
+}
+
+export interface CloudSpec extends LevelInstance {
+  readonly hoverVelocity: number;
+  readonly hoverRate: number;
 }
 
 export interface LevelCollider {
@@ -208,37 +217,115 @@ export const LEVEL_INSTANCES: readonly LevelInstance[] = [
   },
 ];
 
-export const CLOUDS: readonly LevelInstance[] = [
+export const CLOUDS: readonly CloudSpec[] = [
   {
     key: "deco.cloud.0",
     assetId: "cloud",
-    position: [-9.49, 8.5, 20.56],
-    yawDegrees: -40,
+    position: [-9.48509, 8.49799, 20.5554],
+    rotation: [-0.23999, -0.54459, -0.12815, 0.79335],
     scale: [4, 4, 4],
+    hoverVelocity: 0.55,
+    hoverRate: 1.1,
     tags: ["decoration", "cloud"],
   },
   {
     key: "deco.cloud.1",
     assetId: "cloud",
-    position: [25.56, 6.35, -12.12],
-    yawDegrees: 35,
+    position: [25.5597, 6.35221, -12.1167],
+    rotation: [0.23999, 0.54459, 0.12815, 0.79335],
     scale: [4, 4, 4],
+    hoverVelocity: 0.95,
+    hoverRate: 1.45,
     tags: ["decoration", "cloud"],
   },
   {
     key: "deco.cloud.2",
     assetId: "cloud",
-    position: [6.41, 6.35, -28.66],
-    yawDegrees: 130,
+    position: [6.4111, 6.35221, -28.6551],
+    rotation: [0.20916, 0.33042, 0.07863, 0.917],
     scale: [4, 4, 4],
+    hoverVelocity: 0.7,
+    hoverRate: 0.85,
     tags: ["decoration", "cloud"],
   },
   {
     key: "deco.cloud.3",
     assetId: "cloud",
-    position: [-2.75, 2.43, 25.4],
-    yawDegrees: 45,
+    position: [-2.75413, 2.42683, 25.3984],
+    rotation: [0, -0.38268, 0, 0.92388],
     scale: [3, 3, 3],
+    hoverVelocity: 0.35,
+    hoverRate: 1.75,
+    tags: ["decoration", "cloud"],
+  },
+  {
+    key: "deco.cloud.4",
+    assetId: "cloud",
+    position: [27.5131, 12.0265, -5.37209],
+    rotation: [-0.39668, 0.30438, -0.5272, 0.68706],
+    scale: [3, 3, 3],
+    hoverVelocity: 1.25,
+    hoverRate: 1.6,
+    tags: ["decoration", "cloud"],
+  },
+  {
+    key: "deco.cloud.5",
+    assetId: "cloud",
+    position: [-28.6125, 16.2998, -4.89238],
+    rotation: [0.15756, 0.20533, 0.58802, 0.76632],
+    scale: [3, 3, 3],
+    hoverVelocity: 0.8,
+    hoverRate: 0.95,
+    tags: ["decoration", "cloud"],
+  },
+  {
+    key: "deco.cloud.6",
+    assetId: "cloud",
+    position: [-25.14, 8.80719, -24.2564],
+    rotation: [0.15756, 0.20533, 0.58802, 0.76632],
+    scale: [3, 3, 3],
+    hoverVelocity: 1.45,
+    hoverRate: 1.25,
+    tags: ["decoration", "cloud"],
+  },
+  {
+    key: "deco.cloud.7",
+    assetId: "cloud",
+    position: [14.1295, 10.1139, 17.5347],
+    rotation: [0.03378, -0.12608, 0.95766, 0.25661],
+    scale: [2, 2, 2],
+    hoverVelocity: 0.45,
+    hoverRate: 1.9,
+    tags: ["decoration", "cloud"],
+  },
+  {
+    key: "deco.cloud.8",
+    assetId: "cloud",
+    position: [-5.11081, 2.42683, -36.641],
+    rotation: [0.35355, 0.35355, -0.14645, 0.85355],
+    scale: [2, 2, 2],
+    hoverVelocity: 1.05,
+    hoverRate: 1.35,
+    tags: ["decoration", "cloud"],
+  },
+  {
+    key: "deco.cloud.9",
+    assetId: "cloud",
+    position: [-30.1261, 2.42683, -13.7339],
+    rotation: [0, -0.25882, 0, 0.96593],
+    scale: [2, 2, 2],
+    hoverVelocity: 0.62,
+    hoverRate: 0.72,
+    tags: ["decoration", "cloud"],
+  },
+  {
+    key: "deco.cloud.10",
+    assetId: "cloud",
+    position: [-0.8815, 13.0297, -30.1859],
+    rotation: [0.43715, 0.5592, -0.01716, 0.70421],
+    scale: [3, 3, 3],
+    hoverVelocity: 1.65,
+    hoverRate: 1.8,
     tags: ["decoration", "cloud"],
   },
 ];
