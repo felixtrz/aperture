@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "02841113",
+  "lastCommit": "d6a59208",
   "activePid": null,
-  "notes": "Replaced FPS level box colliders with source mesh-backed Rapier trimesh colliders; validated asset collider config, GLB byte-stream geometry adaptation, fresh Aperture physics summary, and full-clear FPS smoke after rebuild.",
-  "lastRunFinishedAt": "2026-06-17T19:12:45Z"
+  "notes": "Corrected default directional shadow auto-fit back to camera-backed receiver/frustum fitting while preserving independent shadow caster extraction/depth expansion; validated focused shadow tests, WebGPU build/typecheck, progress tracker, managed racing/Shadow Lab/FPS frame reports, and FPS full-clear smoke.",
+  "lastRunFinishedAt": "2026-06-17T19:29:32Z"
 }
