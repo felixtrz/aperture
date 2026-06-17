@@ -123,23 +123,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       },
     });
 
-    this.spawn.mesh({
-      key: PLAYER_SHADOW_KEY,
-      name: "Player Blob Shadow",
-      tags: ["player", "shadow"],
-      mesh: mesh.plane({ size: [1, 1] }),
-      material: this.#ensurePlayerShadowMaterial(),
-      castShadow: false,
-      receiveShadow: false,
-      transform: {
-        translation: [
-          PLAYER_START[0],
-          PLAYER_START[1] - PLAYER_EYE_HEIGHT + PLAYER_SHADOW_SURFACE_OFFSET,
-          PLAYER_START[2],
-        ],
-        rotationEulerDegrees: [-90, 0, 0],
-      },
-    });
+    this.#spawnPlayerShadow();
 
     this.spawn.light({
       key: "light.sun",
@@ -332,6 +316,26 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         blendMode: input.blendMode,
       }),
       );
+  }
+
+  #spawnPlayerShadow(): void {
+    this.spawn.mesh({
+      key: PLAYER_SHADOW_KEY,
+      name: "Player Blob Shadow",
+      tags: ["player", "shadow"],
+      mesh: mesh.plane({ size: [1, 1] }),
+      material: this.#ensurePlayerShadowMaterial(),
+      castShadow: false,
+      receiveShadow: false,
+      transform: {
+        translation: [
+          PLAYER_START[0],
+          PLAYER_START[1] - PLAYER_EYE_HEIGHT + PLAYER_SHADOW_SURFACE_OFFSET,
+          PLAYER_START[2],
+        ],
+        rotationEulerDegrees: [-90, 0, 0],
+      },
+    });
   }
 
   #ensurePlayerShadowMaterial(): MaterialHandle {
