@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "966186a5",
+  "lastCommit": "e72fa6f3",
   "activePid": null,
-  "notes": "Committed FPS input command fidelity: raw pointer-lock look deltas now flow through the FPS command channel, jump taps have a short grace window for slow frames, and focused FPS input tests plus FPS typecheck and managed render diagnostics passed.",
-  "lastRunFinishedAt": "2026-06-17T20:21:00Z"
+  "notes": "Committed receiver-aware directional shadow camera selection: the default auto-fit now chooses the default-target view overlapping visible standard shadow receivers, keeping overlay/viewmodel cameras from driving the out-of-box shadow footprint. Focused tests, app typechecks, progress tracker check, and managed FPS/racing/shadow-lab diagnostics/screenshots passed.",
+  "lastRunFinishedAt": "2026-06-17T20:30:00Z"
 }

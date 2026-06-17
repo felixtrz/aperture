@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## WEBGPU-SHADOWS - Receiver-aware default shadow camera selection
+
+Completed: 2026-06-17 13:30 PDT
+
+### Summary
+
+- Updated the default directional shadow camera selector to choose the
+  default-target view whose layer mask overlaps visible standard shadow
+  receivers.
+- This keeps overlay/HUD/viewmodel cameras from owning the out-of-box shadow
+  footprint while preserving camera/receiver auto-fit as the default.
+- Added a regression test with an overlay camera sorted before the world camera,
+  proving the world receiver camera drives the default fit.
+- Updated the public progress tracker and render pipeline comparison page.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/directional-shadow-matrix-computation.test.ts test/rendering/extraction.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm run check:progress`
+- Managed Aperture CLI proof:
+  - FPS `http://127.0.0.1:5173/`: diagnostics `0`, shadow status
+    `submitted`, `views:2`, `meshDraws:21`, `shadowCasterDraws:44`,
+    `drawCalls:36`, screenshot `/tmp/fps-shadow-camera-selector.png`.
+  - Racing `http://127.0.0.1:5174/`: diagnostics `0`, shadow status
+    `submitted`, `views:1`, `meshDraws:36`, `shadowCasterDraws:364`,
+    `drawCalls:46`, screenshot `/tmp/racing-shadow-camera-selector.png`.
+  - Shadow Lab `http://127.0.0.1:5175/`: diagnostics `0`, shadow status
+    `submitted`, `views:1`, `meshDraws:25`, `shadowCasterDraws:364`,
+    `drawCalls:38`, screenshot `/tmp/shadow-lab-shadow-camera-selector.png`.
+
 ## FPS-PORT - Source input command fidelity
 
 Completed: 2026-06-17 13:21 PDT

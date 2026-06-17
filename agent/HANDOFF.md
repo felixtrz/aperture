@@ -1,3 +1,69 @@
+# Handoff - Receiver-Aware Shadow Camera Default
+
+**Updated:** 2026-06-17 13:30 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Committed `e72fa6f3` (`Select receiver camera for shadow auto-fit`).
+- Kept the default directional shadow solution camera/receiver/frustum based:
+  - The selector now filters to default-target views and prefers a view whose
+    layer mask overlaps visible standard shadow receivers.
+  - Overlay/HUD/viewmodel cameras can no longer accidentally own the automatic
+    shadow footprint when a world receiver camera is present.
+  - Fixed/static bounds remain explicit authored overrides or no-camera fallback
+    behavior only.
+- Added a regression test where an overlay camera sorts before the world camera;
+  the shadow fit still uses the world receiver camera.
+- Updated `docs/index.html` and `docs/render-pipeline-comparison.html`, then
+  ran the tracker checker.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/directional-shadow-matrix-computation.test.ts test/rendering/extraction.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm run check:progress`
+- `git diff --check -- packages/webgpu/src/shadows/render-shadow-frame.ts test/webgpu/app-auto-shadow-frame.test.ts docs/index.html docs/render-pipeline-comparison.html`
+- Managed Aperture CLI proof:
+  - FPS `http://127.0.0.1:5173/`: WebGPU ready, diagnostics `0`, shadow
+    status `submitted`, `views:2`, `meshDraws:21`,
+    `shadowCasterDraws:44`, `drawCalls:36`; screenshot
+    `/tmp/fps-shadow-camera-selector.png`; sampled pixels nonblack.
+  - Racing `http://127.0.0.1:5174/`: WebGPU ready, diagnostics `0`, shadow
+    status `submitted`, `views:1`, `meshDraws:36`,
+    `shadowCasterDraws:364`, `drawCalls:46`; screenshot
+    `/tmp/racing-shadow-camera-selector.png`; sampled pixels nonblack.
+  - Shadow Lab `http://127.0.0.1:5175/`: WebGPU ready, diagnostics `0`,
+    shadow status `submitted`, `views:1`, `meshDraws:25`,
+    `shadowCasterDraws:364`, `drawCalls:38`; screenshot
+    `/tmp/shadow-lab-shadow-camera-selector.png`; sampled pixels nonblack.
+
+## Known Issues
+
+- FPS viewmodel rear/stock still shows the user-reported artifact. Commit
+  `7465fe16` fixed authored front-face pipeline state, but the current blaster
+  material still resolves through the default CCW, double-sided path.
+- The default shadow path is now guarded against static-box defaults,
+  off-footprint caster footprint expansion, main-frustum shadow-caster drops,
+  and overlay-camera selection. Future work should continue toward proper
+  cascades/per-view shadows rather than reintroducing static scene boxes as the
+  default.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+
+## Recommended Next Task
+
+Continue the user-directed FPS viewmodel parity stream. The next focused slice
+is to diagnose the remaining blaster rear/stock artifact against GLB material
+data, winding/front-face state, and source Godot weapon/camera setup, without
+changing the shadow default or regressing racing/shadow-lab.
+
+---
+
 # Handoff - FPS Source Input Fidelity
 
 **Updated:** 2026-06-17 13:21 PDT
