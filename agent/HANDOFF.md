@@ -31,11 +31,11 @@ User-directed work is on branch `fps-starter-kit-port`.
     `submitted`, `views:2`, `meshDraws:21`, `shadowCasterDraws:44`,
     `drawCalls:36`, screenshot `/tmp/fps-shadow-default-guard.png`.
   - Racing `http://127.0.0.1:5174/`: diagnostics `0`, shadow status
-    `submitted`, `shadowCasterDraws:364`, screenshot
-    `/tmp/racing-shadow-default-guard.png`.
+    `submitted`, `views:1`, `meshDraws:36`, `shadowCasterDraws:364`,
+    `drawCalls:46`, screenshot `/tmp/racing-shadow-default-guard.png`.
   - Shadow Lab `http://127.0.0.1:5175/`: diagnostics `0`, shadow status
-    `submitted`, `shadowCasterDraws:364`, screenshot
-    `/tmp/shadow-lab-shadow-default-guard.png`.
+    `submitted`, `views:1`, `meshDraws:25`, `shadowCasterDraws:364`,
+    `drawCalls:38`, screenshot `/tmp/shadow-lab-shadow-default-guard.png`.
 
 ## Known Issues
 
