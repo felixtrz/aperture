@@ -59,30 +59,30 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Fix generated browser audio first-gesture startup so worker-authored audio
-intent does not create or start Web Audio voices before the browser unlock
-gesture, while preserving loop intent after unlock and stale one-shot
-suppression.
+Add worker-safe audio loop lifecycle controls and automation descriptors so
+systems can pause/resume stable loops and schedule generic gain/rate/filter
+ramps without app-local browser audio code.
 
 Category: `runtime-orchestration`
 
 Reference anchor: `references/bevy/crates/bevy_audio/src/audio.rs` for playback
 intent/lifecycle and `references/engine/src/framework/components/sound/component.js`
-for sound component autoplay/slot behavior.
+for sound component slot playback/control behavior.
 
 Acceptance criteria:
 
-- Generated browser audio no longer emits fresh Chrome
-  `AudioContext was not allowed to start` warnings on a clean racing reload
-  before a user gesture.
-- Worker-authored `this.audio.loop(...)` autoplay loops remain silent/queued
-  while locked and begin correctly after the first pointer/key gesture.
-- One-shot audio intents authored while locked do not replay stale sounds after
-  unlock; new one-shots authored after unlock still play.
-- Add focused audio tests using the fake backend for suspended-before-unlock
-  behavior and resumed-frame behavior.
-- Verify managed racing and Shadow Lab stay healthy through Aperture tooling;
-  racing smoke particles still render under held input.
+- Extend the worker-safe `this.audio` loop handle with generic pause/resume or
+  equivalent lifecycle intent that survives the simulation-worker snapshot
+  boundary.
+- Add typed automation descriptors for common loop parameters already supported
+  by the voice manager, such as gain, playback rate, and lowpass cutoff/Q,
+  without exposing Web Audio nodes to systems.
+- Add extraction/voice-manager tests proving lifecycle and automation packets
+  remain JSON-safe and apply deterministically.
+- Migrate any remaining racing audio smoothing that is generic loop automation
+  to the shared API while keeping the vehicle-specific RPM/skid model in
+  `racing/src/systems/audio.system.ts`.
+- Verify managed racing and Shadow Lab stay healthy through Aperture tooling.
 
 ## Historical M10 Physics Notes
 

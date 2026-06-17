@@ -55,8 +55,8 @@ function snap(e: AudioEmitterPacket[]): RenderSnapshot {
   } as unknown as RenderSnapshot;
 }
 
-function engine() {
-  const backend = new FakeAudioBackend({ state: "running" });
+function engine(state: AudioContextState = "running") {
+  const backend = new FakeAudioBackend({ state });
   const eng = createAudioEngineOrThrow({
     backend,
     resolveClip: (): ResolvedClip => ({
@@ -73,6 +73,47 @@ function tick(): Promise<void> {
 }
 
 describe("suspend/resume reconciliation (AU-17)", () => {
+  it("keeps autoplay loops silent while initially suspended and starts them after unlock", async () => {
+    const { backend, eng } = engine("suspended");
+
+    eng.applySnapshot(snap([emitter({ loop: true, autoplay: true })]), 0.016);
+    await tick();
+
+    expect(eng.activeVoiceCount).toBe(1);
+    expect(eng.activeSourceCount).toBe(0);
+    expect(backend.created.sources.length).toBe(0);
+
+    await eng.unlock();
+    eng.applySnapshot(snap([emitter({ loop: true, autoplay: true })]), 0.016);
+    await tick();
+
+    expect(eng.activeSourceCount).toBe(1);
+    expect(backend.created.sources[0]?.started).toBe(true);
+    expect(backend.created.sources[0]?.loop).toBe(true);
+  });
+
+  it("drops pre-unlock one-shot epochs and plays fresh post-unlock triggers", async () => {
+    const { backend, eng } = engine("suspended");
+
+    eng.applySnapshot(snap([emitter({ playEpoch: 0 })]), 0.016);
+    eng.applySnapshot(snap([emitter({ playEpoch: 3 })]), 0.016);
+    await tick();
+
+    expect(eng.activeVoiceCount).toBe(1);
+    expect(eng.activeSourceCount).toBe(0);
+    expect(backend.created.sources.length).toBe(0);
+
+    await eng.unlock();
+    eng.applySnapshot(snap([emitter({ playEpoch: 3 })]), 0.016);
+    await tick();
+    expect(backend.created.sources.length).toBe(0);
+
+    eng.applySnapshot(snap([emitter({ playEpoch: 4 })]), 0.016);
+    await tick();
+    expect(backend.created.sources.length).toBe(1);
+    expect(backend.created.sources[0]?.started).toBe(true);
+  });
+
   it("drops a one-shot epoch backlog accumulated while suspended", async () => {
     const { backend, eng } = engine();
     eng.applySnapshot(snap([emitter({ playEpoch: 0 })]), 0.016); // seed the voice

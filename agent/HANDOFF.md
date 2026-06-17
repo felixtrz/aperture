@@ -1,6 +1,6 @@
-# Handoff - Generated Signal Subscription HUD Migration
+# Handoff - Generated Audio Unlock Startup
 
-**Updated:** 2026-06-16 18:56 PDT
+**Updated:** 2026-06-16 19:06 PDT
 
 Current user-directed work is executing
 `racing/docs/RACING_EXPERIENCE_LIBRARY_GAP_PLAN.md` in validated, committed
@@ -8,66 +8,64 @@ slices while keeping racing and Shadow Lab working.
 
 ## Latest Completed Slice
 
-- Added focused coverage for the existing
-  `subscribeGeneratedSignals(...)` browser helper, proving immediate delivery,
-  subsequent signal updates, and unsubscribe behavior without depending on full
-  generated status dumps.
-- Migrated `racing/src/hud.ts` from generated status polling to
-  `subscribeGeneratedSignals(...)` for lap, speed, last, and best timing UI.
-  The HUD no longer runs its own `requestAnimationFrame` loop just to read
-  worker signal snapshots.
-- Removed the unused HUD `document.body.dataset.apertureStatus`,
-  `apertureSnapshots`, and `webgpuOk` writes. Generated diagnostic status
-  remains available to Aperture tools; app UI now uses the signal surface.
-- Rechecked the alarming browser console through Aperture tooling. After a
-  clean managed reload at `2026-06-17T01:52:45Z`, the only fresh console warning
-  was the existing non-fatal Rapier/WASM deprecated initialization signature
-  warning. Older `workerSnapshotRenderFailed` and `AudioContext was not allowed`
-  entries remain in append-only console history but did not reproduce on this
-  reload.
-- Reproved live racing smoke with Aperture input tooling, not raw CDP. Holding
-  `KeyW` + `KeyA` with the documented `input_key` payload shape
-  (`action:"down"`) produced render diagnostics with `emitters:306`,
-  `liveParticles:906`, and `texturedEmitters:306` while the app stayed
-  `running`, `webgpuOk:true`, `lastError:null`, and `lastFailure:null`.
+- Hardened `@aperture-engine/audio` voice realization so snapshot-authored
+  playback intent is distinct from Web Audio source starts. While the backend is
+  suspended, voices can track loop/one-shot epochs, but buffer sources and
+  streaming sources are not created or started.
+- Autoplay loops now start after `unlock()`/resume when the backend is running.
+  Pre-unlock one-shot epoch bumps are treated as stale and dropped; fresh
+  post-unlock one-shots still play. Running-context ducking still responds to
+  pending decode intent, preserving existing mixer behavior.
+- Added engine-level tests for initially suspended autoplay loops and stale
+  pre-unlock one-shot suppression, plus generated-browser integration coverage
+  proving `installGeneratedAudio(...)` keeps worker-authored loop intent silent
+  until unlock.
+- Rebuilt `@aperture-engine/audio` and `@aperture-engine/app`, then restarted
+  only racing through Aperture after clearing `racing/node_modules/.vite`.
+  Shadow Lab stayed on its existing `8861` managed session.
+- Fresh racing console after the cold-cache relaunch had no new
+  `AudioContext was not allowed to start` warning. Held `KeyW` + `KeyA` through
+  Aperture input tooling and reproved smoke at `emitters:306`,
+  `liveParticles:906`, `texturedEmitters:306`, with no runtime
+  `lastError`/`lastFailure`.
 
 ## Latest Validation
 
-- `pnpm exec prettier --write racing/src/hud.ts test/app/browser-signals.test.ts`
-- `pnpm exec vitest run test/app/browser-signals.test.ts`
+- `pnpm exec vitest run test/audio/resume.test.ts test/app/audio-integration.test.ts`
+- `pnpm exec vitest run test/audio/voice-manager.test.ts test/audio/streaming.test.ts test/audio/fixes.test.ts`
+- `pnpm exec vitest run test/audio`
+- `pnpm --filter @aperture-engine/audio run typecheck`
+- `pnpm --filter @aperture-engine/audio run build`
 - `pnpm --filter @aperture-engine/app run typecheck`
 - `pnpm --filter @aperture-engine/app run build`
 - `pnpm --dir racing run typecheck`
 - `pnpm --dir racing run build`
 - `pnpm --dir shadow-lab run typecheck`
 - `pnpm --dir shadow-lab run build`
-- `git diff --check`
-- Managed Aperture racing proof described above: reload, WebGPU wait, console
-  tail, held-input smoke proof, and post-drive status.
-- Managed Shadow Lab proof before this handoff: typecheck/build stayed green,
-  and the existing managed session reported `running`, `webgpuOk:true`,
-  `lastError:null`, and `lastFailure:null`.
+- Managed Aperture racing proof described above: `dev down`, cache clear,
+  `dev up --open --host 127.0.0.1 --port 5173`, WebGPU wait, console tail,
+  held-input smoke proof, post-drive status.
+- Managed Shadow Lab proof: existing session reported `running`,
+  `webgpuOk:true`, `lastError:null`, `lastFailure:null`; console tail only had
+  Vite connection logs.
 
 ## Current Notes
 
 - The managed racing app is running at `http://127.0.0.1:5173/` and was left
-  resumed. Inputs were released after the live smoke check.
+  resumed after a cache-busted restart. Inputs were released after the live
+  smoke check.
 - Shadow Lab remains alive at `http://127.0.0.1:8861/`; it was validated by
   typecheck/build and by runtime status during this slice and was not restarted.
 - Racing console history still contains older `AudioContext was not allowed`
-  warnings and one older worker transport error. The fresh reload after the
-  console check did not reproduce either; the next generic library slice should
-  still harden generated audio startup so autoplay loop intent never attempts to
-  start Web Audio voices while the browser context is locked.
+  warnings and one older worker transport error, but no new AudioContext warning
+  appeared after the cold-cache restart or the held-input proof.
 - Pre-existing untracked screenshot/parity artifacts remain outside the commit.
 
 ## Recommended Next Task
 
-Fix generated browser audio first-gesture startup so worker-authored
-`this.audio.loop(...)` intent stays queued/silent while the browser audio context
-is locked, starts correctly after the first user gesture, and does not replay
-stale one-shots. Use Bevy audio playback intent and PlayCanvas sound component
-autoplay/slot behavior as references.
+Add worker-safe audio loop lifecycle controls and automation descriptors so
+systems can pause/resume stable loops and schedule generic gain/rate/filter
+ramps without exposing Web Audio nodes or adding browser-side app audio code.
 
 ---
 

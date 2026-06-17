@@ -185,6 +185,16 @@ building blocks and default paths.
   racing and Shadow Lab builds stayed healthy; a clean racing reload plus live
   input proof showed no fresh worker/render errors, and smoke particles reached
   hundreds of live textured emitters while input was held.
+- 2026-06-16: Generated audio first-gesture startup was hardened in
+  `@aperture-engine/audio`: snapshot-authored voices now track loop/one-shot
+  intent while the backend is suspended, but buffer/stream sources do not start
+  until the backend is running. Autoplay loops start after unlock, pre-unlock
+  one-shot epochs are treated as stale and dropped, and running-context ducking
+  still reacts to pending decode intent. Racing was relaunched through
+  `pnpm exec aperture dev up --open --host 127.0.0.1 --port 5173` after
+  clearing its Vite optimized cache; the fresh console had no new
+  `AudioContext was not allowed to start` warning, and held input still rendered
+  hundreds of textured smoke particles.
 
 ## Genericity Audit - 2026-06-16
 
@@ -531,15 +541,20 @@ Current Aperture state:
 - `AudioEmitter` packets carry `gain`, `timeScale`, loop, epochs, spatial
   settings, bus routing, authored lowpass cutoff/Q, and occlusion-compatible
   voice-manager filtering.
+- Generated browser audio now keeps worker-authored playback intent separate
+  from realized Web Audio sources while the backend is suspended. This matches
+  Bevy's playback-intent/sink split and PlayCanvas' slot/autoplay behavior:
+  intent can exist before playback is legal, but source nodes are started only
+  when the audio backend is running.
 
 Library direction:
 
 - Keep ECS-authored audio intent as the primary path.
 - Treat the sound board API as a pragmatic main-thread escape hatch.
-- Continue hardening the snapshot-authored path toward richer
-  `AudioSink`/`AudioVoiceHandle` style controls where they remain
-  worker-safe: pause/resume, richer parameter automation descriptors, and
-  reusable per-emitter or bus effect chains beyond the current lowpass fields.
+- Continue hardening the snapshot-authored path toward richer worker-safe
+  `AudioSink`/`AudioVoiceHandle` style controls: pause/resume, richer parameter
+  automation descriptors, and reusable per-emitter or bus effect chains beyond
+  the current lowpass fields.
 
 ### 5. Smoke Particles Were Implemented As Dynamic Meshes In App Code
 

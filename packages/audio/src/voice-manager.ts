@@ -233,6 +233,9 @@ export function createVoiceManager(
         virtual.delete(v.key);
       }
     }
+    if (resumedFrame && canStartSources()) {
+      flushPending();
+    }
   }
 
   function score(packet: AudioEmitterPacket, transforms: Float32Array): number {
@@ -411,6 +414,9 @@ export function createVoiceManager(
     // On resume, re-seed epochs so a backlog of triggers accumulated while
     // suspended doesn't blast a burst of stale one-shots; playing loops keep
     // running with the resumed context clock.
+    if (resumedFrame) {
+      voice.pendingOneShots = 0;
+    }
     if (resumedFrame && !firstSight) {
       voice.realizedEpoch = packet.playEpoch;
       voice.realizedStopEpoch = packet.stopEpoch;
@@ -435,14 +441,18 @@ export function createVoiceManager(
     const streamUrl = clips.streamingUrl(voice.clipId);
     if (streamUrl !== undefined) {
       const shouldStartStream =
-        (firstSight && (packet.autoplay || promotion !== undefined)) ||
-        playDelta > 0;
+        canStartSources() &&
+        ((firstSight && (packet.autoplay || promotion !== undefined)) ||
+          (resumedFrame && packet.autoplay) ||
+          playDelta > 0);
       if (shouldStartStream && voice.stream === null) {
         startStreaming(voice, streamUrl, packet.loop);
       }
     } else if (voice.loop) {
       const wantLoop =
+        canStartSources() &&
         ((firstSight && (packet.autoplay || promotion !== undefined)) ||
+          (resumedFrame && packet.autoplay) ||
           playDelta > 0) &&
         voice.looping === null &&
         !voice.pendingLoop;
@@ -598,6 +608,9 @@ export function createVoiceManager(
   }
 
   function startLoop(voice: Voice, resume: boolean): void {
+    if (!canStartSources()) {
+      return;
+    }
     const buffer = clips.acquire(voice.clipId, voice.clipVersion);
     if (buffer === undefined) {
       voice.pendingLoop = true;
@@ -620,6 +633,9 @@ export function createVoiceManager(
   }
 
   function startStreaming(voice: Voice, url: string, loop: boolean): void {
+    if (!canStartSources()) {
+      return;
+    }
     const stream = backend.createStreamingSource(url);
     stream.node.connect(voice.occluder);
     stream.setLoop(loop);
@@ -628,6 +644,9 @@ export function createVoiceManager(
   }
 
   function startOneShot(voice: Voice): void {
+    if (!canStartSources()) {
+      return;
+    }
     const buffer = clips.acquire(voice.clipId, voice.clipVersion);
     if (buffer === undefined) {
       voice.pendingOneShots = Math.min(voice.pendingOneShots + 1, maxBurst);
@@ -670,7 +689,7 @@ export function createVoiceManager(
   }
 
   function flushPending(): void {
-    if (disposed) {
+    if (disposed || !canStartSources()) {
       return;
     }
     for (const voice of real.values()) {
@@ -851,7 +870,11 @@ export function createVoiceManager(
     },
     busActive(bus) {
       for (const voice of real.values()) {
-        if (voice.busId === bus && !voice.fadingOut) {
+        if (
+          voice.busId === bus &&
+          !voice.fadingOut &&
+          (canStartSources() || voice.sources.size > 0 || voice.stream !== null)
+        ) {
           return true;
         }
       }
@@ -882,6 +905,10 @@ export function createVoiceManager(
       flatPool.length = 0;
     },
   };
+
+  function canStartSources(): boolean {
+    return backend.state === "running";
+  }
 }
 
 function byScoreDesc(a: Candidate, b: Candidate): number {

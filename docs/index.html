@@ -393,19 +393,27 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 01:56 UTC</dd>
+            <dd>2026-06-17 02:06 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: browser signal subscriptions now have focused
-              coverage, and racing HUD reads lap timing and speed through
-              <code>subscribeGeneratedSignals(...)</code> instead of polling
-              full generated diagnostic status. A clean managed racing reload
-              showed no fresh worker/render errors; the only fresh console
-              warning was the existing non-fatal Rapier initialization signature
-              warning. Held-input Aperture tooling then drove live smoke to
-              hundreds of textured particles while the app stayed
+              Latest update: generated browser audio now keeps ECS-authored
+              playback intent separate from Web Audio source starts while the
+              backend is suspended. Autoplay loops remain silent until unlock,
+              stale pre-unlock one-shot epochs are dropped, and fresh
+              post-unlock one-shots still play. Racing was cache-busted and
+              relaunched through managed Aperture; the fresh console had no new
+              <code>AudioContext was not allowed to start</code> warning, and
+              held-input smoke still reached hundreds of textured particles with
+              no runtime error. Prior update: browser signal subscriptions now
+              have focused coverage, and racing HUD reads lap timing and speed
+              through <code>subscribeGeneratedSignals(...)</code> instead of
+              polling full generated diagnostic status. A clean managed racing
+              reload showed no fresh worker/render errors; the only fresh
+              console warning was the existing non-fatal Rapier initialization
+              signature warning. Held-input Aperture tooling then drove live
+              smoke to hundreds of textured particles while the app stayed
               <code>running</code> with no <code>lastError</code> or
               <code>lastFailure</code>. Prior update: generated-worker devtools,
               CLI dispatch, and MCP metadata now expose
@@ -1193,10 +1201,10 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue the racing library-gap plan by hardening generated
-              browser audio startup: worker-authored loop intent should stay
-              queued and silent while Web Audio is locked, then start after the
-              first user gesture without replaying stale one-shots.
+              Continue the racing library-gap plan by adding worker-safe audio
+              loop lifecycle controls and automation descriptors for generic
+              gain, rate, and filter ramps without exposing Web Audio nodes to
+              systems.
             </dd>
           </dl>
         </aside>
@@ -2098,13 +2106,12 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">app</span> Added focused browser
-                signal subscription coverage and migrated racing HUD reads to
-                <code>subscribeGeneratedSignals(...)</code>. App UI now receives
-                typed worker signal snapshots directly, while generated
-                diagnostic status remains the tooling surface. Managed Aperture
-                checks also reproved clean reload, healthy runtime status, and
-                live smoke particles under held input.
+                <span class="badge green">audio</span> Hardened generated audio
+                startup so worker-authored playback intent does not start buffer
+                or stream sources while the backend is suspended. Autoplay loops
+                now realize after unlock, stale pre-unlock one-shots are
+                suppressed, and the cache-busted managed racing proof showed no
+                fresh AudioContext autoplay warning.
               </li>
               <li>
                 <span class="badge green">app</span> Added
@@ -5047,10 +5054,10 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Harden generated browser
-                audio first-gesture startup so worker-authored loop intent does
-                not start Web Audio voices while locked, starts correctly after
-                unlock, and does not replay stale one-shots.
+                <span class="badge amber">next</span> Add worker-safe audio loop
+                lifecycle controls and automation descriptors so systems can
+                pause/resume stable loops and schedule generic gain/rate/filter
+                ramps without browser-side app audio code.
               </li>
               <li>
                 <span class="badge amber">next</span> Continue remaining M10

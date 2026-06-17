@@ -1,5 +1,43 @@
 # Completed Tasks
 
+## RACE-LIB-23 — Generated audio unlock startup hardening
+
+Completed: 2026-06-16 19:06 PDT
+Commit: current checkpoint commit
+
+### Summary
+
+- Hardened `@aperture-engine/audio` so snapshot-authored voice intent can exist
+  while the backend is suspended, but buffer and streaming sources do not start
+  until the backend is running.
+- Preserved autoplay loop intent across unlock and dropped stale pre-unlock
+  one-shot epochs, while keeping fresh post-unlock one-shot playback working.
+- Preserved running-context ducking behavior for pending decode intent.
+- Added focused engine and generated-browser integration tests for suspended
+  autoplay loops, stale pre-unlock one-shots, and unlock/resume realization.
+- Cache-busted and relaunched managed racing through Aperture; no fresh
+  AudioContext autoplay warning appeared, and live smoke still rendered under
+  held input.
+
+### Validation
+
+- `pnpm exec vitest run test/audio/resume.test.ts test/app/audio-integration.test.ts`
+- `pnpm exec vitest run test/audio/voice-manager.test.ts test/audio/streaming.test.ts test/audio/fixes.test.ts`
+- `pnpm exec vitest run test/audio`
+- `pnpm --filter @aperture-engine/audio run typecheck`
+- `pnpm --filter @aperture-engine/audio run build`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Managed Aperture proof: restarted racing with `node_modules/.vite` cleared,
+  waited for WebGPU, confirmed no fresh AudioContext warning, held `KeyW` +
+  `KeyA`, observed `emitters:306`, `liveParticles:906`,
+  `texturedEmitters:306`, then confirmed post-drive runtime health.
+- Shadow Lab managed session stayed healthy with only Vite connection logs.
+
 ## RACE-LIB-22 — Generated signal subscription HUD migration
 
 Completed: 2026-06-16 18:56 PDT

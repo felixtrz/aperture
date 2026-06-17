@@ -130,6 +130,32 @@ describe("installGeneratedAudio (main-thread integration)", () => {
     audio.dispose();
   });
 
+  it("keeps worker-authored autoplay loops silent until unlock", async () => {
+    const backend = new FakeAudioBackend({ state: "suspended" });
+    const { worker, emit } = fakeWorker();
+    const audio = installGeneratedAudio(worker, registryWithClip(), {
+      backend,
+      autoUnlock: false,
+    });
+    if (audio === null) throw new Error("expected audio to install");
+
+    emit(snap([emitter({ autoplay: true, loop: true })]));
+    await tick();
+
+    expect(audio.engine.activeVoiceCount).toBe(1);
+    expect(audio.engine.activeSourceCount).toBe(0);
+    expect(backend.created.sources.length).toBe(0);
+
+    await audio.engine.unlock();
+    emit(snap([emitter({ autoplay: true, loop: true })]));
+    await tick();
+
+    expect(audio.engine.activeSourceCount).toBe(1);
+    expect(backend.created.sources[0]?.started).toBe(true);
+
+    audio.dispose();
+  });
+
   it("stops driving after dispose() and tears the engine down", async () => {
     const backend = new FakeAudioBackend({ state: "running" });
     const probe = fakeWorker();
