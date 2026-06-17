@@ -152,9 +152,10 @@ export const SOURCE_WEAPON_VIEW_POSITION: Vec3 = [
 ];
 // Aperture mirrors the Godot transparent SubViewport with a weapon-only camera
 // rigged to the player camera alongside its viewmodel. Keep the extracted source
-// transform above intact; this runtime position is calibrated for Aperture's
-// WebGPU projection and the app canvas aspect.
-export const FPS_WEAPON_VIEW_POSITION: Vec3 = [2.05, -1.05, -2.75];
+// transform above intact; this runtime position is calibrated against the
+// source screenshot so the weapon stays tucked into the lower-right viewport
+// corner after Aperture's GLB/root transform and WebGPU projection path.
+export const FPS_WEAPON_VIEW_POSITION: Vec3 = [2.75, -1.2, -2.75];
 export const SOURCE_WEAPON_MUZZLE_POSITION: Vec3 = [0.1, -0.4, 1.5];
 export const SOURCE_WEAPON_CAMERA_ITEM_FOV = 40;
 export const WEAPON_CAMERA_KEY = "camera.weapon";

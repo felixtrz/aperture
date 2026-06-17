@@ -132,7 +132,7 @@ describe("Starter Kit FPS source data", () => {
     expect(SOURCE_WEAPON_MODEL_POSITION).toEqual([0, 0, 0]);
     expect(SOURCE_WEAPON_MODEL_SCALE).toEqual([1, 1, 1]);
     expect(SOURCE_WEAPON_VIEW_POSITION).toEqual([1.2, -1.1, -2.75]);
-    expect(FPS_WEAPON_VIEW_POSITION).toEqual([2.05, -1.05, -2.75]);
+    expect(FPS_WEAPON_VIEW_POSITION).toEqual([2.75, -1.2, -2.75]);
     expect(SOURCE_WEAPON_MUZZLE_POSITION).toEqual([0.1, -0.4, 1.5]);
     expect(SOURCE_WEAPON_CAMERA_ITEM_FOV).toBe(40);
     expect(SOURCE_WEAPON_VIEWMODEL_MOVE_SCALE).toBeCloseTo(1 / 30, 10);
@@ -142,8 +142,8 @@ describe("Starter Kit FPS source data", () => {
     expect(SOURCE_WEAPON_SWITCH_RAISE_RATE).toBe(10);
 
     expect(WEAPONS.map((weapon) => weapon.position)).toEqual([
-      [2.05, -1.05, -2.75],
-      [2.05, -1.05, -2.75],
+      [2.75, -1.2, -2.75],
+      [2.75, -1.2, -2.75],
     ]);
     expect(WEAPONS.map((weapon) => weapon.rotationEulerDegrees)).toEqual([
       [0, 180, 0],
