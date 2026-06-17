@@ -32,6 +32,7 @@ import {
   directionalShadowMatrixComputationReportToJsonValue,
   type DirectionalShadowCasterBoundsInput,
   type DirectionalShadowMatrixComputationReport,
+  type DirectionalShadowReceiverBoundsInput,
 } from "./directional-shadow-matrix-computation.js";
 import {
   createDirectionalShadowViewProjectionPlanReport,
@@ -237,6 +238,10 @@ export interface RenderShadowFrameReport {
   readonly requestCount: number;
   readonly passCount: number;
   readonly drawCalls: number;
+  readonly descriptor: ShadowMapDescriptorReport;
+  readonly viewProjection: DirectionalShadowViewProjectionPlanReport;
+  readonly matrixComputation: DirectionalShadowMatrixComputationReport;
+  readonly casterDrawList: ShadowCasterDrawListPlanReport;
   readonly depthTextureKeys: readonly string[];
   readonly matrixBufferResourceKey: string | null;
   readonly sections: {
@@ -353,6 +358,11 @@ export function createRenderShadowFrame(
         }),
     casterBounds: createDirectionalShadowCasterBounds({
       casterDrawList,
+      bounds: options.snapshot.bounds,
+    }),
+    receiverBounds: createDirectionalShadowReceiverBounds({
+      passPlan,
+      meshDraws: options.snapshot.meshDraws,
       bounds: options.snapshot.bounds,
     }),
     ...(options.matrix?.center === undefined
@@ -593,6 +603,45 @@ function createDirectionalShadowCasterBounds(input: {
   return input.casterDrawList.lists.map((list) => ({
     passKey: list.passKey,
     bounds: list.draws.flatMap((draw) => {
+      const bounds = input.bounds[draw.boundsIndex];
+
+      if (bounds === undefined) {
+        return [];
+      }
+
+      return [
+        {
+          min: bounds.worldAabb.min,
+          max: bounds.worldAabb.max,
+        },
+      ];
+    }),
+  }));
+}
+
+function createDirectionalShadowReceiverBounds(input: {
+  readonly passPlan: ShadowPassPlanReport;
+  readonly meshDraws: RenderSnapshot["meshDraws"];
+  readonly bounds: readonly BoundsPacket[];
+}): readonly DirectionalShadowReceiverBoundsInput[] {
+  if (
+    input.passPlan.status === "not-required" ||
+    input.passPlan.passCount === 0
+  ) {
+    return [];
+  }
+
+  return input.passPlan.passes.map((pass) => ({
+    passKey: pass.passKey,
+    bounds: input.meshDraws.flatMap((draw) => {
+      if (
+        draw.receivesShadow === false ||
+        !draw.batchKey.pipelineKey.startsWith("standard|") ||
+        (draw.layerMask & pass.receiverLayerMask) === 0
+      ) {
+        return [];
+      }
+
       const bounds = input.bounds[draw.boundsIndex];
 
       if (bounds === undefined) {
@@ -1000,6 +1049,16 @@ function createRenderShadowFrameReport(input: {
     requestCount: input.shadowRequests.length,
     passCount: input.commandBufferSubmission.counts.assembledPasses,
     drawCalls: input.commandBufferSubmission.counts.drawCalls,
+    descriptor: shadowMapDescriptorReportToJsonValue(input.stages.descriptor),
+    viewProjection: directionalShadowViewProjectionPlanReportToJsonValue(
+      input.stages.viewProjection,
+    ),
+    matrixComputation: directionalShadowMatrixComputationReportToJsonValue(
+      input.stages.matrixComputation,
+    ),
+    casterDrawList: shadowCasterDrawListPlanReportToJsonValue(
+      input.stages.casterDrawList,
+    ),
     depthTextureKeys: input.depthTextureResources.resources.map(
       (resource) => resource.textureKey,
     ),

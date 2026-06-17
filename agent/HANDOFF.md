@@ -1,11 +1,48 @@
-# Handoff - Starter Kit FPS Source Sun And Viewmodel
+# Handoff - FPS Shadow Fit Tightening
 
-**Updated:** 2026-06-17 08:57 PDT
+**Updated:** 2026-06-17 09:10 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Fixed the soft FPS directional shadows by tightening the default single-cascade
+  auto-fit:
+  - Live Aperture CLI diagnostics showed FPS was using `mapSize: 2048` and
+    `filterRadiusTexels: 2`, but the shadow matrix had
+    `orthographicSize: 243` because the fit covered the full `far=80`,
+    `fov=80` camera frustum, including empty sky/background.
+  - `DirectionalShadowMatrixComputationInput` now accepts receiver bounds.
+    Single-cascade camera fitting intersects the camera-frustum light-space AABB
+    with standard-material receiver bounds, then uses existing caster bounds to
+    tighten depth. Cascaded shadows keep the previous Bevy-style frustum path.
+  - `RenderShadowFrameReport` now publishes compact shadow `descriptor`,
+    `viewProjection`, `matrixComputation`, and `casterDrawList` reports, so
+    `render_get_frame_report` can expose the actual fit numbers through the
+    Aperture CLI/tooling path.
+  - Live FPS verification after rebuild/reload:
+    `browser_wait_for_webgpu` passed, `render_get_frame_report` reported no
+    shadow diagnostics, and the FPS shadow ortho dropped from `243` to `13`
+    at start-position inspection, then `8` from the later moved camera sample.
+    Screenshot saved at `/tmp/fps-shadow-tight.png`.
+- Validation:
+  - `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts`
+  - `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/directional-shadow-matrix-computation.test.ts`
+  - `pnpm --filter @aperture-engine/webgpu run typecheck`
+  - `pnpm --filter @aperture-engine/webgpu run build`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts test/webgpu/app-frame-boundaries.test.ts test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/directional-shadow-matrix-computation.test.ts`
+    passed 73 tests.
+- Commit:
+  - pending in this handoff update.
+
+## Previous Completed Slice - Starter Kit FPS Source Sun And Viewmodel
 
 - Followed up the source-style FPS weapon overlay with lighting and viewmodel
   parity fixes:

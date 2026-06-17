@@ -76,6 +76,9 @@ export interface DirectionalShadowCasterBoundsInput {
   readonly bounds: readonly DirectionalShadowCasterWorldAabb[];
 }
 
+export type DirectionalShadowReceiverBoundsInput =
+  DirectionalShadowCasterBoundsInput;
+
 export interface DirectionalShadowCasterWorldAabb {
   readonly min: Vec3Like;
   readonly max: Vec3Like;
@@ -110,6 +113,11 @@ export interface DirectionalShadowMatrixComputationInput {
    * tighten the depth range like PlayCanvas does after culling visible casters.
    */
   readonly casterBounds?: readonly DirectionalShadowCasterBoundsInput[];
+  /**
+   * Optional receiver bounds grouped by shadow pass. Single-cascade fitting uses
+   * these to avoid spending the map on empty camera-frustum sky/background.
+   */
+  readonly receiverBounds?: readonly DirectionalShadowReceiverBoundsInput[];
 }
 
 const DEFAULT_CENTER = [0, 0, 0] as const;
@@ -485,15 +493,46 @@ function tryFrustumFit(
     maxW = Math.max(maxW, w);
   }
 
+  const frustumFit = { minU, maxU, minV, maxV, minW, maxW };
+  const receiverFit =
+    (plan.cascadeCount ?? 1) <= 1
+      ? fitReceiverInPlaneRange({
+          receiverBounds: input.receiverBounds,
+          passKey: plan.passKey,
+          xAxis,
+          yAxis,
+          zAxis,
+          minU,
+          maxU,
+          minV,
+          maxV,
+        })
+      : null;
+
+  const inPlaneFit = receiverFit ?? frustumFit;
+
   // Diameter from the largest world-space diagonal (body vs far-plane). Using
   // the original world corners (not the projected coords) for precision, and
   // ceil() for floating-point stability, exactly as bevy does. This is what
   // makes the extent depend only on the frustum shape (position-invariant).
   const bodyDiagonalSq = distanceSquared(corners[0]!, corners[6]!);
   const farDiagonalSq = distanceSquared(corners[4]!, corners[6]!);
-  const diameter = Math.ceil(
+  const frustumDiameter = Math.ceil(
     Math.sqrt(Math.max(bodyDiagonalSq, farDiagonalSq)),
   );
+  const receiverDiameter =
+    receiverFit === null
+      ? null
+      : Math.ceil(
+          Math.max(
+            receiverFit.maxU - receiverFit.minU,
+            receiverFit.maxV - receiverFit.minV,
+          ),
+        );
+  const diameter =
+    receiverDiameter !== null && receiverDiameter > EPSILON
+      ? receiverDiameter
+      : frustumDiameter;
   if (!(diameter > EPSILON)) {
     return null;
   }
@@ -504,9 +543,13 @@ function tryFrustumFit(
 
   // Snap the in-plane center to integer texel multiples for stability; the
   // depth (w) center is not snapped (it only shifts the ortho near/far range).
-  const centerU = Math.floor((0.5 * (minU + maxU)) / texelSize) * texelSize;
-  const centerV = Math.floor((0.5 * (minV + maxV)) / texelSize) * texelSize;
-  const centerW = 0.5 * (minW + maxW);
+  const centerU =
+    Math.floor((0.5 * (inPlaneFit.minU + inPlaneFit.maxU)) / texelSize) *
+    texelSize;
+  const centerV =
+    Math.floor((0.5 * (inPlaneFit.minV + inPlaneFit.maxV)) / texelSize) *
+    texelSize;
+  const centerW = 0.5 * (inPlaneFit.minW + inPlaneFit.maxW);
   const center: readonly [number, number, number] = [
     centerU * xAxis[0] + centerV * yAxis[0] + centerW * zAxis[0],
     centerU * xAxis[1] + centerV * yAxis[1] + centerW * zAxis[1],
@@ -524,8 +567,14 @@ function tryFrustumFit(
     minV: centerV - halfSize,
     maxV: centerV + halfSize,
   });
-  const depthMinW = Math.min(minW, casterDepth?.minW ?? minW);
-  const depthMaxW = Math.max(maxW, casterDepth?.maxW ?? maxW);
+  const depthMinW = Math.min(
+    inPlaneFit.minW,
+    casterDepth?.minW ?? inPlaneFit.minW,
+  );
+  const depthMaxW = Math.max(
+    inPlaneFit.maxW,
+    casterDepth?.maxW ?? inPlaneFit.maxW,
+  );
   const towardLight = Math.max(depthMaxW - centerW, EPSILON);
   const awayFromLight = Math.max(centerW - depthMinW, EPSILON);
 
@@ -648,6 +697,69 @@ function fitCasterDepthRange(input: {
   }
 
   return found ? { minW, maxW } : null;
+}
+
+function fitReceiverInPlaneRange(input: {
+  readonly receiverBounds:
+    | readonly DirectionalShadowReceiverBoundsInput[]
+    | undefined;
+  readonly passKey: string;
+  readonly xAxis: readonly [number, number, number];
+  readonly yAxis: readonly [number, number, number];
+  readonly zAxis: readonly [number, number, number];
+  readonly minU: number;
+  readonly maxU: number;
+  readonly minV: number;
+  readonly maxV: number;
+}): {
+  readonly minU: number;
+  readonly maxU: number;
+  readonly minV: number;
+  readonly maxV: number;
+  readonly minW: number;
+  readonly maxW: number;
+} | null {
+  const passBounds = input.receiverBounds?.find(
+    (entry) => entry.passKey === input.passKey,
+  );
+
+  if (passBounds === undefined || passBounds.bounds.length === 0) {
+    return null;
+  }
+
+  let found = false;
+  let minU = Infinity;
+  let maxU = -Infinity;
+  let minV = Infinity;
+  let maxV = -Infinity;
+  let minW = Infinity;
+  let maxW = -Infinity;
+
+  for (const bounds of passBounds.bounds) {
+    const projected = projectAabbToLightSpace(bounds, {
+      xAxis: input.xAxis,
+      yAxis: input.yAxis,
+      zAxis: input.zAxis,
+    });
+    const overlapMinU = Math.max(projected.minU, input.minU);
+    const overlapMaxU = Math.min(projected.maxU, input.maxU);
+    const overlapMinV = Math.max(projected.minV, input.minV);
+    const overlapMaxV = Math.min(projected.maxV, input.maxV);
+
+    if (overlapMaxU < overlapMinU || overlapMaxV < overlapMinV) {
+      continue;
+    }
+
+    found = true;
+    minU = Math.min(minU, overlapMinU);
+    maxU = Math.max(maxU, overlapMaxU);
+    minV = Math.min(minV, overlapMinV);
+    maxV = Math.max(maxV, overlapMaxV);
+    minW = Math.min(minW, projected.minW);
+    maxW = Math.max(maxW, projected.maxW);
+  }
+
+  return found ? { minU, maxU, minV, maxV, minW, maxW } : null;
 }
 
 function projectAabbToLightSpace(

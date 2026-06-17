@@ -73,8 +73,17 @@ describe("render shadow frame", () => {
       2,
     );
     expect(
+      result.report.viewProjection.plans[0]?.cascadeFarDistance,
+    ).toBeCloseTo(60, 2);
+    expect(
       result.matrixComputation.matrices[0]?.orthographicSize,
     ).toBeGreaterThan(20);
+    expect(
+      result.report.matrixComputation.matrices[0]?.orthographicSize,
+    ).toBeGreaterThan(20);
+    expect(result.report.casterDrawList.includedDrawCount).toBe(
+      result.casterDrawList.includedDrawCount,
+    );
     expect(result.matrixComputation.matrices[0]?.center).not.toEqual([0, 0, 0]);
   });
 
@@ -103,6 +112,51 @@ describe("render shadow frame", () => {
     expect(result.matrixComputation.matrices[0]?.center).not.toEqual([
       0, 0, -2,
     ]);
+  });
+
+  it("tightens single-cascade frustum fit to receiver bounds", () => {
+    const wideCamera = primaryCameraView();
+    const loose = createRenderShadowFrame({
+      device: device(createDeviceCalls()),
+      snapshot: snapshot({
+        view: wideCamera,
+        shadowRequest: { cascadeCount: 1 },
+      }),
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache: createWebGpuEnvironmentResourceCache(),
+      shadowMap: { cascadeCount: 1, mapSize: 1024 },
+    });
+    const tight = createRenderShadowFrame({
+      device: device(createDeviceCalls()),
+      snapshot: snapshot({
+        view: wideCamera,
+        shadowRequest: { cascadeCount: 1 },
+        bounds: [
+          boundsPacket(0, {
+            min: [-2, 0, -2],
+            max: [2, 2, 2],
+          }),
+        ],
+      }),
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache: createWebGpuEnvironmentResourceCache(),
+      shadowMap: { cascadeCount: 1, mapSize: 1024 },
+    });
+
+    const looseSize =
+      loose.matrixComputation.matrices[0]?.orthographicSize ?? 0;
+    const tightSize =
+      tight.matrixComputation.matrices[0]?.orthographicSize ?? 0;
+
+    expect(looseSize).toBeGreaterThan(100);
+    expect(tightSize).toBeGreaterThan(0);
+    expect(tightSize).toBeLessThan(10);
+    expect(tightSize).toBeLessThan(looseSize * 0.1);
+    expect(tight.report.matrixComputation.matrices[0]?.orthographicSize).toBe(
+      tightSize,
+    );
   });
 
   it("reuses cached shadow resources across identical frames", () => {
@@ -261,6 +315,7 @@ function snapshot(
   options: {
     readonly shadowRequest?: Partial<RenderSnapshot["shadowRequests"][number]>;
     readonly view?: Pick<RenderSnapshot, "views" | "viewMatrices">;
+    readonly bounds?: RenderSnapshot["bounds"];
   } = {},
 ): RenderSnapshot {
   return {
@@ -327,7 +382,7 @@ function snapshot(
         ...options.shadowRequest,
       },
     ],
-    bounds: [],
+    bounds: options.bounds ?? [],
     transforms: identityTransform(),
     viewMatrices: options.view?.viewMatrices ?? new Float32Array(0),
     diagnostics: [],
@@ -337,9 +392,34 @@ function snapshot(
       lights: 1,
       environments: 0,
       shadowRequests: 1,
-      bounds: 0,
+      bounds: options.bounds?.length ?? 0,
       diagnostics: 0,
     },
+  };
+}
+
+function boundsPacket(
+  boundsId: number,
+  worldAabb: RenderSnapshot["bounds"][number]["worldAabb"],
+): RenderSnapshot["bounds"][number] {
+  const center: readonly [number, number, number] = [
+    (worldAabb.min[0] + worldAabb.max[0]) * 0.5,
+    (worldAabb.min[1] + worldAabb.max[1]) * 0.5,
+    (worldAabb.min[2] + worldAabb.max[2]) * 0.5,
+  ];
+  const radius = Math.hypot(
+    worldAabb.max[0] - center[0],
+    worldAabb.max[1] - center[1],
+    worldAabb.max[2] - center[2],
+  );
+
+  return {
+    boundsId,
+    entity: { index: boundsId, generation: 0 },
+    localAabb: worldAabb,
+    worldAabb,
+    localSphere: { center, radius },
+    worldSphere: { center, radius },
   };
 }
 

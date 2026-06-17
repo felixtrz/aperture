@@ -17,7 +17,7 @@ import { createWebGpuAppAutoShadowFrame } from "../../packages/webgpu/src/app/au
 import { createWebGpuAppResourceReuseReport } from "../../packages/webgpu/src/app/report.js";
 
 describe("WebGPU app auto-shadow frame", () => {
-  it("frustum-fits single directional auto-shadows when a primary camera exists", () => {
+  it("tightens single directional auto-shadows to receiver bounds when a primary camera exists", () => {
     const calls = createDeviceCalls();
     const assets = new AssetRegistry();
     const opaqueMesh = createMeshHandle("opaque-caster");
@@ -47,7 +47,10 @@ describe("WebGPU app auto-shadow frame", () => {
     ).toEqual(["shadowCasterDrawList.unsupportedAlphaBlendCaster"]);
     expect(
       result?.matrixComputation.matrices[0]?.orthographicSize,
-    ).toBeGreaterThan(100);
+    ).toBeGreaterThan(7);
+    expect(
+      result?.matrixComputation.matrices[0]?.orthographicSize,
+    ).toBeLessThan(9);
     expect(result?.matrixComputation.matrices[0]?.center).not.toEqual([
       0, 0, 0,
     ]);
