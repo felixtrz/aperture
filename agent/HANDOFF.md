@@ -1,6 +1,6 @@
 # Handoff - Starter Kit FPS Source Sun And Viewmodel
 
-**Updated:** 2026-06-17 08:44 PDT
+**Updated:** 2026-06-17 08:57 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
@@ -50,8 +50,15 @@ previous working state so the old state remains recoverable.
   - `pnpm --dir shadow-lab run build`
   - `pnpm run check:progress`
   - `git diff --check`
+  - Additional live control recheck after reset:
+    - normalized `input_pointer_click {"x":0.5,"y":0.5}` incremented
+      `shotsFired` from `0` to `1`;
+    - held Space moved player Y from `0.9699` to `1.1608`, set
+      `grounded:false`, and reduced `jumpsRemaining` to `1` before landing;
+    - setting yaw to `PI/2` and pressing forward moved X from `0` to
+      `-2.0643` while Z stayed near `0`, matching camera-relative forward.
 - Commit:
-  - current checkpoint commit — `Calibrate FPS source sun and weapon view`
+  - `a6c45fbb` — `Calibrate FPS source sun and weapon view`
 
 ## Previous Completed FPS/Tooling Slices
 

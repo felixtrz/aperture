@@ -3,7 +3,7 @@
 ## FPS-PORT — Source sun and weapon viewmodel calibration
 
 Completed: 2026-06-17 08:44 PDT
-Commit: current checkpoint commit
+Commit: `a6c45fbb`
 
 ### Summary
 
@@ -36,6 +36,13 @@ Commit: current checkpoint commit
 - `pnpm --dir shadow-lab run build`
 - `pnpm run check:progress`
 - `git diff --check`
+- Additional live control recheck after reset:
+  - normalized `input_pointer_click {"x":0.5,"y":0.5}` incremented
+    `shotsFired` from `0` to `1`;
+  - held Space moved player Y from `0.9699` to `1.1608`, set
+    `grounded:false`, and reduced `jumpsRemaining` to `1` before landing;
+  - setting yaw to `PI/2` and pressing forward moved X from `0` to `-2.0643`
+    while Z stayed near `0`, matching camera-relative forward.
 - Aperture CLI proof against `http://127.0.0.1:5173/`:
   - `browser_wait_for_webgpu` passed with WebGPU ready, 94 mirrored source
     assets, and no last error/failure.
