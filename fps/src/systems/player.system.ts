@@ -40,18 +40,20 @@ import {
   PLAYER_SHADOW_SURFACE_OFFSET,
   PLAYER_SPEED,
   PLAYER_START,
+  SOURCE_WEAPON_CONTAINER_OFFSET,
+  SOURCE_WEAPON_SHOT_KICK,
+  SOURCE_WEAPON_SWITCH_DROP_OFFSET,
+  SOURCE_WEAPON_VIEWMODEL_MOVE_SCALE,
   WEAPONS,
   enemyMuzzleEffectKey,
   impactEffectKey,
   type WeaponSpec,
 } from "../lib/fps-data.js";
 import {
-  cameraForwardFromYawPitch,
   cameraRecoilVelocityFromYaw,
   cameraRelativeMovementDelta,
   enemyLookAngles,
   hasCeilingCollision,
-  horizontalRightFromYaw,
   snapToGroundDistanceForMove,
   shouldConsumeBufferedJump,
   sourceChildPositionFromLook,
@@ -60,6 +62,7 @@ import {
   sourceGroundedAfterMove,
   sourcePlayerShouldRespawn,
   sourceShotDirection,
+  sourceWeaponMuzzleWorldPosition,
   shouldConsumeBufferedShot,
   weaponViewmodelOffsetTarget,
   type SourceEnemyAttackCandidate,
@@ -124,12 +127,9 @@ const HIDDEN_WEAPON_Y = -100;
 const ENEMY_MUZZLE_FLASH_SLOT_COUNT =
   ENEMIES.length * ENEMY_MUZZLE_OFFSETS.length;
 const WEAPON_SWITCH_HIDE_DURATION = 0.1;
-const WEAPON_SWITCH_DROP_OFFSET = 1;
 const WEAPON_SWITCH_RAISE_RATE = 10;
 const WEAPON_SWITCH_COMPLETE_EPSILON = 0.01;
-const WEAPON_VIEWMODEL_MOVE_SCALE = 1 / 30;
 const WEAPON_VIEWMODEL_LERP_RATE = 10;
-const WEAPON_VIEWMODEL_SHOT_KICK = 0.25;
 const LANDING_CAMERA_BOB_OFFSET = -0.1;
 const LANDING_CAMERA_BOB_RECOVERY_RATE = 5;
 const WEAPON_RECOIL_IMPULSE_SCALE = 0.12;
@@ -401,7 +401,7 @@ export default class PlayerSystem extends createSystem({
       pitch = clampPitch(pitch + kick.pitch);
       yaw += kick.yaw;
       this.#addWeaponRecoil(yaw, weapon);
-      this.#weaponViewOffset[2] += WEAPON_VIEWMODEL_SHOT_KICK;
+      this.#weaponViewOffset[2] += SOURCE_WEAPON_SHOT_KICK;
     }
 
     const weaponMoveX = respawnedThisFrame ? 0 : moveX;
@@ -716,6 +716,7 @@ export default class PlayerSystem extends createSystem({
       yaw,
       pitch,
       weapon,
+      this.#weaponViewOffset,
     );
     this.#muzzleFlashRoll = randomBetween(
       -PLAYER_MUZZLE_ROLL_RANGE,
@@ -954,7 +955,7 @@ export default class PlayerSystem extends createSystem({
       moveX,
       moveY: moveZ,
       speed: PLAYER_SPEED,
-      scale: WEAPON_VIEWMODEL_MOVE_SCALE,
+      scale: SOURCE_WEAPON_VIEWMODEL_MOVE_SCALE,
     });
     const alpha = Math.min(1, dt * WEAPON_VIEWMODEL_LERP_RATE);
     this.#weaponViewOffset = [
@@ -1002,7 +1003,7 @@ export default class PlayerSystem extends createSystem({
       this.#weaponSwitchTimer >= WEAPON_SWITCH_HIDE_DURATION
     ) {
       this.#weaponVisualIndex = this.#weaponSwitchTargetIndex;
-      this.#weaponSwitchRaiseOffset = WEAPON_SWITCH_DROP_OFFSET;
+      this.#weaponSwitchRaiseOffset = SOURCE_WEAPON_SWITCH_DROP_OFFSET;
     }
 
     if (this.#weaponVisualIndex !== this.#weaponSwitchTargetIndex) {
@@ -1027,7 +1028,7 @@ export default class PlayerSystem extends createSystem({
     if (this.#weaponVisualIndex !== this.#weaponSwitchTargetIndex) {
       if (index !== this.#weaponVisualIndex) return 0;
       return (
-        WEAPON_SWITCH_DROP_OFFSET *
+        SOURCE_WEAPON_SWITCH_DROP_OFFSET *
         smoothstep(
           Math.min(1, this.#weaponSwitchTimer / WEAPON_SWITCH_HIDE_DURATION),
         )
@@ -1050,7 +1051,8 @@ export default class PlayerSystem extends createSystem({
 
     return (
       0.5 +
-      0.5 * (1 - this.#weaponSwitchRaiseOffset / WEAPON_SWITCH_DROP_OFFSET)
+      0.5 *
+        (1 - this.#weaponSwitchRaiseOffset / SOURCE_WEAPON_SWITCH_DROP_OFFSET)
     );
   }
 
@@ -1282,16 +1284,16 @@ function weaponMuzzlePosition(
   yaw: number,
   pitch: number,
   weapon: WeaponSpec,
+  viewOffset: Vec3,
 ): Vec3 {
-  const forward = cameraForwardFromYawPitch(yaw, pitch);
-  const right = horizontalRightFromYaw(yaw);
-  const local = weapon.muzzlePosition;
-  const forwardOffset = Math.max(0.7, Math.abs(local[2]) * 0.45);
-  return [
-    position[0] + right[0] * local[0] + forward[0] * forwardOffset,
-    position[1] + local[1] + forward[1] * forwardOffset,
-    position[2] + right[2] * local[0] + forward[2] * forwardOffset,
-  ];
+  return sourceWeaponMuzzleWorldPosition({
+    playerEyePosition: position,
+    yaw,
+    pitch,
+    containerOffset: SOURCE_WEAPON_CONTAINER_OFFSET,
+    weaponMuzzlePosition: weapon.muzzlePosition,
+    viewOffset,
+  });
 }
 
 function enemyPosition(base: Vec3, time: number): Vec3 {

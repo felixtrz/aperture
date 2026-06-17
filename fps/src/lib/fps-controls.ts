@@ -20,6 +20,19 @@ export interface WeaponViewmodelOffsetInput {
   readonly scale: number;
 }
 
+export interface SourceWeaponMuzzleLocalInput {
+  readonly containerOffset: Vec3;
+  readonly weaponMuzzlePosition: Vec3;
+  readonly viewOffset?: Vec3 | undefined;
+}
+
+export interface SourceWeaponMuzzleWorldInput
+  extends SourceWeaponMuzzleLocalInput {
+  readonly playerEyePosition: Vec3;
+  readonly yaw: number;
+  readonly pitch: number;
+}
+
 export interface EnemyLookAnglesInput {
   readonly enemy: Vec3;
   readonly player: Vec3;
@@ -141,6 +154,32 @@ export function weaponViewmodelOffsetTarget(
   const x = -movement[0] * input.speed * input.scale;
   const z = movement[1] * input.speed * input.scale;
   return [x === 0 ? 0 : x, 0, z === 0 ? 0 : z];
+}
+
+export function sourceWeaponMuzzleLocalPosition(
+  input: SourceWeaponMuzzleLocalInput,
+): Vec3 {
+  const viewOffset = input.viewOffset ?? [0, 0, 0];
+  return [
+    input.containerOffset[0] + viewOffset[0] - input.weaponMuzzlePosition[0],
+    input.containerOffset[1] + viewOffset[1] - input.weaponMuzzlePosition[1],
+    input.containerOffset[2] + viewOffset[2] - input.weaponMuzzlePosition[2],
+  ];
+}
+
+export function sourceWeaponMuzzleWorldPosition(
+  input: SourceWeaponMuzzleWorldInput,
+): Vec3 {
+  const local = sourceWeaponMuzzleLocalPosition(input);
+  const rotated = rotateVec3ByQuat(
+    local,
+    quatFromEulerYXZ(input.pitch, input.yaw, 0),
+  );
+  return [
+    input.playerEyePosition[0] + rotated[0],
+    input.playerEyePosition[1] + rotated[1],
+    input.playerEyePosition[2] + rotated[2],
+  ];
 }
 
 export function enemyLookAngles(input: EnemyLookAnglesInput): EnemyLookAngles {

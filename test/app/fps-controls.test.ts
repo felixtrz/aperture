@@ -22,8 +22,14 @@ import {
   sourceGroundedAfterMove,
   sourcePlayerShouldRespawn,
   sourceShotDirection,
+  sourceWeaponMuzzleLocalPosition,
+  sourceWeaponMuzzleWorldPosition,
   weaponViewmodelOffsetTarget,
 } from "../../fps/src/lib/fps-controls.js";
+import {
+  SOURCE_WEAPON_CONTAINER_OFFSET,
+  WEAPONS,
+} from "../../fps/src/lib/fps-data.js";
 
 describe("Starter Kit FPS controls", () => {
   it("moves W relative to the camera yaw on the horizontal plane", () => {
@@ -201,6 +207,47 @@ describe("Starter Kit FPS controls", () => {
     expect(diagonal[0]).toBeCloseTo(-1 / (6 * Math.SQRT2), 10);
     expect(diagonal[1]).toBe(0);
     expect(diagonal[2]).toBeCloseTo(1 / (6 * Math.SQRT2), 10);
+  });
+
+  it("derives player muzzle position from the source weapon container", () => {
+    const weapon = WEAPONS[0]!;
+    const local = sourceWeaponMuzzleLocalPosition({
+      containerOffset: SOURCE_WEAPON_CONTAINER_OFFSET,
+      weaponMuzzlePosition: weapon.muzzlePosition,
+    });
+
+    expect(local[0]).toBeCloseTo(1.1, 10);
+    expect(local[1]).toBeCloseTo(-0.7, 10);
+    expect(local[2]).toBeCloseTo(-4.25, 10);
+
+    const movedLocal = sourceWeaponMuzzleLocalPosition({
+      containerOffset: SOURCE_WEAPON_CONTAINER_OFFSET,
+      weaponMuzzlePosition: weapon.muzzlePosition,
+      viewOffset: [-1 / 6, 0, 1 / 6],
+    });
+
+    expect(movedLocal[0]).toBeCloseTo(1.1 - 1 / 6, 10);
+    expect(movedLocal[1]).toBeCloseTo(-0.7, 10);
+    expect(movedLocal[2]).toBeCloseTo(-4.25 + 1 / 6, 10);
+
+    const yaw = Math.PI / 2;
+    const pitch = Math.PI / 6;
+    const eye: [number, number, number] = [0, 1.5, 0];
+    const world = sourceWeaponMuzzleWorldPosition({
+      playerEyePosition: eye,
+      yaw,
+      pitch,
+      containerOffset: SOURCE_WEAPON_CONTAINER_OFFSET,
+      weaponMuzzlePosition: weapon.muzzlePosition,
+    });
+    const expectedOffset = rotateVec3ByQuat(
+      local,
+      quatFromEulerYXZ(pitch, yaw, 0),
+    );
+
+    expect(world[0]).toBeCloseTo(eye[0] + expectedOffset[0], 10);
+    expect(world[1]).toBeCloseTo(eye[1] + expectedOffset[1], 10);
+    expect(world[2]).toBeCloseTo(eye[2] + expectedOffset[2], 10);
   });
 
   it("pitches enemies toward the source upper-body look target", () => {

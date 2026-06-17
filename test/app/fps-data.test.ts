@@ -14,6 +14,16 @@ import {
   SOURCE_PLAYER_COLLIDER_CENTER_Y,
   SOURCE_PLAYER_HEAD_Y,
   SOURCE_PLAYER_ROOT_Y,
+  SOURCE_WEAPON_CAMERA_ITEM_FOV,
+  SOURCE_WEAPON_CONTAINER_INITIAL_POSITION,
+  SOURCE_WEAPON_CONTAINER_OFFSET,
+  SOURCE_WEAPON_MODEL_POSITION,
+  SOURCE_WEAPON_MUZZLE_POSITION,
+  SOURCE_WEAPON_SHOT_KICK,
+  SOURCE_WEAPON_SWITCH_DROP_OFFSET,
+  SOURCE_WEAPON_VIEWMODEL_MOVE_SCALE,
+  SOURCE_WEAPON_VIEW_POSITION,
+  WEAPONS,
   platformLargeGrassDecorationKey,
 } from "../../fps/src/lib/fps-data.js";
 
@@ -36,6 +46,31 @@ describe("Starter Kit FPS source data", () => {
     expect(PLAYER_BODY_START).toEqual([0, 0.5, 0]);
     expect(PLAYER_EYE_HEIGHT).toBe(1.5);
     expect(PLAYER_START).toEqual([0, 1.5, 0]);
+  });
+
+  it("derives player weapon view data from the source Player scene and Weapon resources", () => {
+    expect(SOURCE_WEAPON_CONTAINER_INITIAL_POSITION).toEqual([1.2, -1, -2.25]);
+    expect(SOURCE_WEAPON_CONTAINER_OFFSET).toEqual([1.2, -1.1, -2.75]);
+    expect(SOURCE_WEAPON_MODEL_POSITION).toEqual([0, 0, 0]);
+    expect(SOURCE_WEAPON_VIEW_POSITION).toEqual([1.2, -1.1, -2.75]);
+    expect(SOURCE_WEAPON_MUZZLE_POSITION).toEqual([0.1, -0.4, 1.5]);
+    expect(SOURCE_WEAPON_CAMERA_ITEM_FOV).toBe(40);
+    expect(SOURCE_WEAPON_VIEWMODEL_MOVE_SCALE).toBeCloseTo(1 / 30, 10);
+    expect(SOURCE_WEAPON_SHOT_KICK).toBe(0.25);
+    expect(SOURCE_WEAPON_SWITCH_DROP_OFFSET).toBe(1);
+
+    expect(WEAPONS.map((weapon) => weapon.position)).toEqual([
+      [1.2, -1.1, -2.75],
+      [1.2, -1.1, -2.75],
+    ]);
+    expect(WEAPONS.map((weapon) => weapon.rotationEulerDegrees)).toEqual([
+      [0, 180, 0],
+      [0, 180, 0],
+    ]);
+    expect(WEAPONS.map((weapon) => weapon.muzzlePosition)).toEqual([
+      [0.1, -0.4, 1.5],
+      [0.1, -0.4, 1.5],
+    ]);
   });
 
   it("keeps platform-large-grass child decorations from the source packed scene", () => {

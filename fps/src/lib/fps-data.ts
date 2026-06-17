@@ -96,6 +96,21 @@ export const PLAYER_SPEED = 5;
 export const JUMP_STRENGTH = 8;
 export const GRAVITY = 20;
 export const MAX_JUMPS = 2;
+export const SOURCE_WEAPON_CONTAINER_INITIAL_POSITION: Vec3 = [
+  1.2, -1, -2.25,
+];
+export const SOURCE_WEAPON_CONTAINER_OFFSET: Vec3 = [1.2, -1.1, -2.75];
+export const SOURCE_WEAPON_MODEL_POSITION: Vec3 = [0, 0, 0];
+export const SOURCE_WEAPON_VIEW_POSITION: Vec3 = [
+  SOURCE_WEAPON_CONTAINER_OFFSET[0] + SOURCE_WEAPON_MODEL_POSITION[0],
+  SOURCE_WEAPON_CONTAINER_OFFSET[1] + SOURCE_WEAPON_MODEL_POSITION[1],
+  SOURCE_WEAPON_CONTAINER_OFFSET[2] + SOURCE_WEAPON_MODEL_POSITION[2],
+];
+export const SOURCE_WEAPON_MUZZLE_POSITION: Vec3 = [0.1, -0.4, 1.5];
+export const SOURCE_WEAPON_CAMERA_ITEM_FOV = 40;
+export const SOURCE_WEAPON_VIEWMODEL_MOVE_SCALE = 1 / 30;
+export const SOURCE_WEAPON_SHOT_KICK = 0.25;
+export const SOURCE_WEAPON_SWITCH_DROP_OFFSET = 1;
 
 export const WEAPONS: readonly WeaponSpec[] = [
   {
@@ -111,9 +126,9 @@ export const WEAPONS: readonly WeaponSpec[] = [
     knockback: 40,
     minKnockback: [0.025, 0.025],
     maxKnockback: [0.045, 0.04],
-    position: [0.58, -0.48, -1.2],
+    position: [...SOURCE_WEAPON_VIEW_POSITION],
     rotationEulerDegrees: [0, 180, 0],
-    muzzlePosition: [0.1, -0.4, 1.5],
+    muzzlePosition: [...SOURCE_WEAPON_MUZZLE_POSITION],
   },
   {
     name: "Repeater",
@@ -128,9 +143,9 @@ export const WEAPONS: readonly WeaponSpec[] = [
     knockback: 10,
     minKnockback: [0.001, 0.001],
     maxKnockback: [0.0025, 0.002],
-    position: [0.58, -0.48, -1.2],
+    position: [...SOURCE_WEAPON_VIEW_POSITION],
     rotationEulerDegrees: [0, 180, 0],
-    muzzlePosition: [0.1, -0.4, 1.5],
+    muzzlePosition: [...SOURCE_WEAPON_MUZZLE_POSITION],
   },
 ];
 
