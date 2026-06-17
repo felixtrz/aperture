@@ -393,17 +393,26 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 10:27 UTC</dd>
+            <dd>2026-06-17 10:36 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the Starter Kit FPS shot effects now match
-              upstream <code>AnimatedSprite3D</code> opacity behavior. Impact,
-              player muzzle, and enemy muzzle sprites play discrete source
-              frames at full alpha while visible, then hide at the end/null
-              frame instead of fading over their lifetime. Aperture CLI proof
-              fired at <code>enemy.0</code> and observed
+              Latest update: Starter Kit FPS enemy muzzle flashes now inherit
+              the same source-style yaw+pitch child transform as the visible
+              enemy root, matching upstream <code>objects/enemy.tscn</code>
+              <code>MuzzleA</code>/<code>MuzzleB</code> placement instead of
+              yaw-only offsets. Aperture MCP/CLI proof drove generated
+              movement toward <code>enemy.0</code>; enemy attack reduced health
+              to <code>90</code>, enemy muzzle rotations stayed inside the
+              upstream <code>&plusmn;45&deg;</code> range, and the render frame report
+              stayed at diagnostics <code>0</code>. Prior update: the Starter
+              Kit FPS shot effects now match upstream
+              <code>AnimatedSprite3D</code> opacity behavior. Impact, player
+              muzzle, and enemy muzzle sprites play discrete source frames at
+              full alpha while visible, then hide at the end/null frame instead
+              of fading over their lifetime. Aperture CLI proof fired at
+              <code>enemy.0</code> and observed
               <code>effect.impact-hit</code> frame <code>0</code>,
               <code>color:[1,1,1,1]</code>, and
               <code>renderSprite.depthMode:"disabled"</code>, then alpha

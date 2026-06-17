@@ -1,12 +1,49 @@
-# Handoff - Starter Kit FPS Sprite Effect Opacity
+# Handoff - Starter Kit FPS Enemy Muzzle Placement
 
-**Updated:** 2026-06-17 03:27 PDT
+**Updated:** 2026-06-17 03:36 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
+- Aligned FPS enemy muzzle flash placement with upstream Godot child-transform
+  behavior:
+  - `references/Starter-Kit-FPS/objects/enemy.tscn` places `MuzzleA` and
+    `MuzzleB` as `AnimatedSprite3D` children of the enemy root at local offsets
+    `[-0.45, 0.3, 0.4]` and `[0.45, 0.3, 0.4]`.
+  - `references/Starter-Kit-FPS/objects/enemy.gd` rotates the enemy root with
+    `look_at(player.position + Vector3(0, 0.5, 0), Vector3.UP, true)`, so
+    muzzle offsets inherit both yaw and pitch.
+  - The port now routes enemy muzzle offsets through the same source-style look
+    quaternion used for the visible enemy root instead of applying yaw-only
+    placement.
+- Aperture proof:
+  - Restarted the managed FPS app through `pnpm --dir fps exec aperture dev up
+    --open --port 5173`, waited for WebGPU, and used generated movement toward
+    `enemy.0`.
+  - The enemy attack path still fired through normal generated input; `fps.state`
+    reported health dropping to `90`, and `render_get_frame_report
+    {"summaryOnly":true}` reported diagnostics `0`.
+  - `ecs_find_entities` read `effect.enemy-muzzle.0` and
+    `effect.enemy-muzzle.1`; their random source-style rotations remained in the
+    upstream `±45°` range. The live read missed the short visible muzzle frame
+    after pausing, so exact placement is pinned by the focused unit test.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Committed implementation:
+  - `c6b0fa33` — `Align FPS enemy muzzle placement`
+
+## Previous Completed FPS/Tooling Slices
+
+- Sprite effect opacity:
 - Aligned FPS shot-effect opacity with upstream Godot `AnimatedSprite3D`
   behavior:
   - `references/Starter-Kit-FPS/objects/impact.tscn` plays a four-frame
@@ -38,8 +75,6 @@ previous working state so the old state remains recoverable.
   - `pnpm --dir shadow-lab run build`
 - Committed implementation:
   - `99aa7fbf` — `Align FPS sprite effect opacity`
-
-## Previous Completed FPS/Tooling Slices
 
 - Control proof and CLI client cleanup coverage:
 - Reproved the latest reported FPS controls through Aperture MCP/CLI tools on

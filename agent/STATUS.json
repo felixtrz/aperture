@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "99aa7fbf",
+  "lastCommit": "c6b0fa33",
   "activePid": null,
-  "notes": "Aligned FPS impact and muzzle animated sprite opacity with upstream source behavior; Aperture proof and fps/racing/shadow-lab validation passed.",
-  "lastRunFinishedAt": "2026-06-17T10:27:00Z"
+  "notes": "Aligned FPS enemy muzzle placement with upstream child-transform behavior; Aperture proof and fps/racing/shadow-lab validation passed.",
+  "lastRunFinishedAt": "2026-06-17T10:36:00Z"
 }

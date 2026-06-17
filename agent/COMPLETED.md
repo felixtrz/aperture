@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## FPS-PORT — Enemy muzzle source-child placement
+
+Completed: 2026-06-17 03:36 PDT
+Commit: `c6b0fa33`
+
+### Summary
+
+- Aligned enemy muzzle flash placement with upstream `objects/enemy.tscn`:
+  `MuzzleA` and `MuzzleB` now use the same yaw+pitch source child transform as
+  the visible enemy root.
+- Replaced yaw-only enemy muzzle offset math with the shared
+  `sourceChildPositionFromLook(...)` helper.
+- Added focused FPS control coverage that proves source child offsets move
+  through the enemy look quaternion instead of keeping the old yaw-only Y
+  placement.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture MCP/CLI proof used generated movement toward `enemy.0`; enemy attack
+  reduced health to `90`, muzzle rotations remained within source bounds, and
+  the render frame report had diagnostics `0`.
+
 ## FPS-PORT — Source-style sprite effect opacity
 
 Completed: 2026-06-17 03:27 PDT
