@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## WEBGPU-MATERIALS - Material front-face render state honored
+
+Completed: 2026-06-17 13:13 PDT
+
+### Summary
+
+- Fixed built-in WebGPU material pipelines so authored `renderState.frontFace`
+  participates in the material pipeline key and generated primitive state.
+- Kept existing default CCW keys stable while adding `front-face:cw` only for
+  non-default CW materials.
+- Updated standard render-state summaries and debug-normal validation so
+  front-face/depth-bias tokens are treated as render-state tokens, not shader
+  feature drift.
+
+### Validation
+
+- `pnpm exec vitest run test/materials/key-format-contract.test.ts test/webgpu/material-render-state.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/unlit-pipeline-descriptor.test.ts test/webgpu/matcap-pipeline-descriptor.test.ts test/webgpu/debug-normal-pipeline-descriptor.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- Managed Aperture CLI proof:
+  - FPS: `views:2`, `meshDraws:21`, `shadowCasterDraws:44`,
+    `drawCalls:36`, diagnostics `0`.
+  - Racing: `views:1`, `meshDraws:36`, `shadowCasterDraws:364`,
+    `drawCalls:46`, diagnostics `0`.
+  - Shadow Lab: `views:1`, `meshDraws:25`, `shadowCasterDraws:364`,
+    `drawCalls:38`, diagnostics `0`.
+
 ## FPS-PORT - Multi-button pointer input and source middle-click toggle
 
 Completed: 2026-06-17 12:53 PDT

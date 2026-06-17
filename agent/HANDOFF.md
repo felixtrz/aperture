@@ -1,3 +1,71 @@
+# Handoff - Material Front-Face Pipeline State
+
+**Updated:** 2026-06-17 13:13 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Committed `7465fe16` (`Honor material front-face render state`).
+- Fixed a built-in material pipeline-state bug found while investigating the
+  FPS viewmodel "inside out" report:
+  - `MaterialPipelineKeyInput.frontFace` now affects the pipeline key as
+    `front-face:cw` for non-default CW materials; default CCW keys are
+    unchanged.
+  - WebGPU material render-state parsing resolves `frontFace` and exposes it in
+    standard material render-state summaries.
+  - Built-in standard, unlit, matcap, and debug-normal WebGPU pipelines now use
+    the resolved material `frontFace` instead of hardcoding `ccw`.
+  - Debug-normal descriptor validation treats `front-face:*` and `depth-bias:*`
+    as render-state tokens rather than unsupported shader features.
+- This does not replace the shadow default. Fixed directional shadow boxes
+  remain only authored overrides/no-camera fallback; the default path is still
+  camera/receiver auto-fit with independent shadow-caster extraction.
+
+## Validation
+
+- `pnpm exec vitest run test/materials/key-format-contract.test.ts test/webgpu/material-render-state.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/unlit-pipeline-descriptor.test.ts test/webgpu/matcap-pipeline-descriptor.test.ts test/webgpu/debug-normal-pipeline-descriptor.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir shadow-lab run typecheck`
+- `git diff --check -- <front-face slice files>`
+- Managed Aperture CLI proof:
+  - FPS `http://127.0.0.1:5173/`: WebGPU ready, screenshot
+    `/tmp/fps-frontface-check.png`, `views:2`, `meshDraws:21`,
+    `shadowCasterDraws:44`, `drawCalls:36`, diagnostics `0`,
+    `shadowDiagnostics:[]`.
+  - Racing `http://127.0.0.1:5174/`: WebGPU ready, screenshot
+    `/tmp/racing-frontface-regression.png`, `views:1`, `meshDraws:36`,
+    `shadowCasterDraws:364`, `drawCalls:46`, diagnostics `0`,
+    `shadowDiagnostics:[]`.
+  - Shadow Lab `http://127.0.0.1:5175/`: WebGPU ready, screenshot
+    `/tmp/shadow-lab-frontface-regression.png`, `views:1`, `meshDraws:25`,
+    `shadowCasterDraws:364`, `drawCalls:38`, diagnostics `0`,
+    `shadowDiagnostics:[]`; Aperture/Three split remains visually aligned.
+
+## Known Issues
+
+- FPS viewmodel rear/stock still shows the user-reported artifact in the
+  screenshot. The committed fix makes authored `frontFace` work correctly, but
+  the current blaster material still resolves through the default CCW,
+  double-sided path.
+- Local FPS/input edits are still unstaged and were intentionally left out of
+  `7465fe16`: `fps/src/hud.ts`, `fps/src/lib/fps-data.ts`,
+  `fps/src/lib/fps-hud.ts`, `fps/src/systems/player.system.ts`, and related
+  `test/app/*` files.
+- Pre-existing untracked screenshot/parity artifacts remain outside the commit.
+
+## Recommended Next Task
+
+Continue the user-directed FPS/shadow parity stream. The next focused slice is
+to diagnose the remaining FPS viewmodel rear-face artifact against the GLB
+asset/material data and source Godot weapon/camera setup, without changing the
+shadow auto-fit default or regressing racing/shadow-lab.
+
+---
+
 # Handoff - FPS Multi-Button Pointer Input
 
 **Updated:** 2026-06-17 12:53 PDT
