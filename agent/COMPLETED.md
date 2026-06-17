@@ -1,5 +1,32 @@
 # Completed Tasks
 
+## FPS-PORT — Player shadow proof cleanup
+
+Completed: 2026-06-17 01:46 PDT
+Commit: `e884df65`
+
+### Summary
+
+- Extracted the existing textured `player.shadow` spawn path into
+  `#spawnPlayerShadow()` for a smaller setup-system surface.
+- Reproved the upstream-style blob shadow through Aperture CLI tools after an
+  explicit browser reload.
+- Recorded that proof screenshots should be written outside `fps/` during live
+  inspection; writing under `fps/.aperture/` can trigger Vite reloads.
+
+### Validation
+
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- Aperture CLI/runtime proof from `fps/`: `browser_reload`,
+  `browser_wait_for_webgpu`, `camera_create_agent`, `camera_fit_entity`,
+  `ecs_set_component_field`, `ecs_step`, `browser_screenshot`, and
+  `resource_get`.
+- Shadow proof compared normal-scale `player.shadow` with a temporary
+  scale-zero capture from a close agent-camera view. Captures differed
+  (`43825` vs `35395` bytes), local PNG analysis found `207995` changed pixels,
+  and `player.shadow` scale was restored to `[1,1,1]`.
+
 ## FPS-PORT — Canvas shooting and enemy attack range
 
 Completed: 2026-06-17 01:40 PDT

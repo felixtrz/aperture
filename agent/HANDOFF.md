@@ -1,12 +1,37 @@
-# Handoff - Starter Kit FPS Controls And Enemy Range
+# Handoff - Starter Kit FPS Player Shadow Proof Cleanup
 
-**Updated:** 2026-06-17 01:40 PDT
+**Updated:** 2026-06-17 01:46 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
 
+- Extracted FPS `player.shadow` setup into `#spawnPlayerShadow()` while keeping
+  the existing upstream-textured blob material/sampler path intact.
+- Reproved the textured blob after an explicit Aperture `browser_reload`.
+  Important tooling note: proof screenshots written under `fps/.aperture/`
+  triggered Vite reloads during this run; write inspection screenshots to
+  `/tmp` when the app must stay stable.
+- Close inspection proof used a low-priority Aperture agent camera fitted to
+  `player.shadow`, disabled frustum culling only on that proof camera, and
+  compared normal scale against a temporary scale-zero shadow. The visible and
+  hidden captures differed (`43825` vs `35395` bytes), with local PNG analysis
+  reporting `207995` changed pixels and max channel-distance `26`. The shadow
+  scale was restored to `[1,1,1]` afterward.
+- Validation:
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - Aperture CLI/runtime proof from `fps/`: `browser_reload`,
+    `browser_wait_for_webgpu`, `camera_create_agent`, `camera_fit_entity`,
+    `ecs_set_component_field`, `ecs_step`, `browser_screenshot`, and
+    `resource_get`.
+- Committed implementation cleanup:
+  - `e884df65` — `Extract FPS player shadow setup helper`
+
+## Previous Completed FPS Slices
+
+- Canvas shooting and enemy attack range:
 - Fixed the browser-facing shoot path: primary mouse down on the FPS canvas now
   drives the generated `shoot` action even before pointer lock succeeds, while
   still requesting pointer lock for look input. This covers managed-browser and
@@ -21,8 +46,6 @@ previous working state so the old state remains recoverable.
 - Committed implementation:
   - `ba78c09e` — `Fix FPS canvas shooting before pointer lock`
   - `e9e94c9c` — `Align FPS enemy attack range`
-
-## Previous Completed FPS Slices
 
 - Weapon recoil:
   - Added source-style weapon recoil from upstream `objects/player.gd` /
