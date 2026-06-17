@@ -1,5 +1,24 @@
 # Completed Tasks
 
+## WEBGPU-SHADOWS - Off-footprint casters cannot soften default auto-fit
+
+Completed: 2026-06-17 13:16 PDT
+
+### Summary
+
+- Added a regression test that keeps directional shadow defaults camera/receiver
+  fitted instead of whole-scene/static-box fitted.
+- Proved a caster far outside the in-plane fitted footprint does not alter the
+  default shadow center, orthographic size, near/far, or light position.
+- Kept the existing depth-expansion behavior for in-plane casters, so relevant
+  off-camera casters can still affect depth without widening the shadow map
+  footprint.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/directional-shadow-matrix-computation.test.ts test/webgpu/app-auto-shadow-frame.test.ts`
+- `git diff --check -- test/webgpu/directional-shadow-matrix-computation.test.ts`
+
 ## WEBGPU-MATERIALS - Material front-face render state honored
 
 Completed: 2026-06-17 13:13 PDT

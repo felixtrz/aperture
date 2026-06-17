@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "7465fe16",
+  "lastCommit": "c4bcca20",
   "activePid": null,
-  "notes": "Committed material front-face render-state support for built-in WebGPU pipelines; focused vitest suites and render/webgpu/fps/racing/shadow-lab typechecks passed; managed Aperture FPS/racing/shadow-lab sessions are WebGPU-ready with diagnostics 0 and shadow diagnostics empty.",
-  "lastRunFinishedAt": "2026-06-17T20:13:00Z"
+  "notes": "Committed a shadow auto-fit regression guard proving off-footprint casters do not expand the default camera/receiver fitted directional shadow footprint; targeted shadow tests passed. Previous front-face fix and managed FPS/racing/shadow-lab validation remain recorded in handoff.",
+  "lastRunFinishedAt": "2026-06-17T20:16:00Z"
 }

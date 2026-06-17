@@ -1,3 +1,59 @@
+# Handoff - Shadow Auto-Fit Default Guard
+
+**Updated:** 2026-06-17 13:16 PDT
+
+User-directed work is on branch `fps-starter-kit-port`.
+
+## Latest Completed Slice
+
+- Committed `c4bcca20` (`Guard shadow fit against off-footprint casters`).
+- Added a matrix-level regression test proving the out-of-box directional
+  shadow default does not behave like a static Three-style fixed box:
+  - Camera/frustum fit owns the in-plane orthographic footprint.
+  - A caster far outside that footprint does not change center, ortho size,
+    near/far, or light position.
+  - The existing in-plane caster test still proves overlapping casters can
+    expand depth only, preserving correct shadow reach without softening the
+    map footprint.
+- This reinforces the intended default: camera/receiver auto-fit first,
+  independent shadow-caster extraction for the shadow pass, fixed/static bounds
+  only for explicit authored settings or no-camera fallback.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/directional-shadow-matrix-computation.test.ts test/webgpu/app-auto-shadow-frame.test.ts`
+- `git diff --check -- test/webgpu/directional-shadow-matrix-computation.test.ts`
+- Prior same-run managed Aperture regression proof remains valid after no
+  runtime code changes:
+  - FPS `http://127.0.0.1:5173/`: WebGPU ready, diagnostics `0`,
+    `shadowDiagnostics:[]`, screenshot `/tmp/fps-frontface-check.png`.
+  - Racing `http://127.0.0.1:5174/`: WebGPU ready, diagnostics `0`,
+    `shadowDiagnostics:[]`, screenshot `/tmp/racing-frontface-regression.png`.
+  - Shadow Lab `http://127.0.0.1:5175/`: WebGPU ready, diagnostics `0`,
+    `shadowDiagnostics:[]`, screenshot
+    `/tmp/shadow-lab-frontface-regression.png`.
+
+## Known Issues
+
+- FPS viewmodel rear/stock still shows the user-reported artifact in the
+  screenshot. Commit `7465fe16` fixed authored front-face pipeline state, but
+  the current blaster material still resolves through the default CCW,
+  double-sided path.
+- Local FPS/input edits are still unstaged and were intentionally left out of
+  `7465fe16` and `c4bcca20`: `fps/src/hud.ts`, `fps/src/lib/fps-data.ts`,
+  `fps/src/lib/fps-hud.ts`, `fps/src/systems/player.system.ts`, and related
+  `test/app/*` files.
+- Pre-existing untracked screenshot/parity artifacts remain outside the commit.
+
+## Recommended Next Task
+
+Continue the user-directed FPS/shadow parity stream. The next focused slice is
+to diagnose the remaining FPS viewmodel rear-face artifact against the GLB
+asset/material data and source Godot weapon/camera setup, without changing the
+shadow auto-fit default or regressing racing/shadow-lab.
+
+---
+
 # Handoff - Material Front-Face Pipeline State
 
 **Updated:** 2026-06-17 13:13 PDT
