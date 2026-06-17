@@ -28,6 +28,7 @@ import {
   sourceHealthText,
   sourcePointerButtonAction,
   sourcePointerLockLookAxis,
+  sourcePointerLockLookCommand,
   writeSourceHudCssVariables,
 } from "../../fps/src/lib/fps-hud.js";
 
@@ -67,6 +68,11 @@ describe("Starter Kit FPS HUD", () => {
     expect(sourcePointerLockLookAxis(26, -26)).toEqual([-1, 1]);
     expect(sourcePointerLockLookAxis(-13, 13)).toEqual([0.5, -0.5]);
     expect(sourcePointerLockLookAxis(260, -260)).toEqual([-1, 1]);
+  });
+
+  it("keeps raw pointer-lock look commands unclamped for source mouse motion", () => {
+    expect(sourcePointerLockLookCommand(260, -260)).toEqual([-10, 10]);
+    expect(sourcePointerLockLookCommand(-39, 13)).toEqual([1.5, -0.5]);
   });
 
   it("maps keyboard codes into source FPS virtual actions", () => {

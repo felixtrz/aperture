@@ -68,6 +68,11 @@ export type FpsInputCommand =
       readonly y: number;
     }
   | {
+      readonly kind: "look";
+      readonly x: number;
+      readonly y: number;
+    }
+  | {
       readonly kind: "button";
       readonly action: "jump" | "shoot" | "switchWeapon" | "reset";
       readonly pressed: boolean;

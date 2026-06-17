@@ -16,22 +16,22 @@ describe("input pointer-binding validation", () => {
     ).not.toThrow();
   });
 
-  it("rejects a secondary pointer binding as not-yet-delivered", () => {
+  it("accepts a secondary pointer binding", () => {
     expect(() =>
       validateApertureConfig(configWithPointer("secondary")),
-    ).toThrowError(/'secondary' is not delivered yet/);
+    ).not.toThrow();
   });
 
-  it("rejects a middle pointer binding as not-yet-delivered", () => {
+  it("accepts a middle pointer binding", () => {
     expect(() =>
       validateApertureConfig(configWithPointer("middle")),
-    ).toThrowError(/'middle' is not delivered yet/);
+    ).not.toThrow();
   });
 
-  it("surfaces the rejection through the invalid-input-binding config error code", () => {
+  it("still rejects unsupported pointer bindings with the invalid-input-binding config error code", () => {
     try {
-      validateApertureConfig(configWithPointer("secondary"));
-      expect.unreachable("secondary pointer binding should have thrown");
+      validateApertureConfig(configWithPointer("tertiary" as "primary"));
+      expect.unreachable("unsupported pointer binding should have thrown");
     } catch (error) {
       expect((error as { code?: string }).code).toBe(
         "aperture.config.invalidInputBinding",

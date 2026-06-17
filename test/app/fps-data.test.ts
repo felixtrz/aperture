@@ -104,6 +104,17 @@ describe("Starter Kit FPS source data", () => {
       pressed: true,
     });
 
+    const lookCommand = {
+      kind: "look",
+      x: -10,
+      y: 3,
+    } satisfies FpsInputCommand;
+    expect(lookCommand).toEqual({
+      kind: "look",
+      x: -10,
+      y: 3,
+    });
+
     expect(SOURCE_PLAYER_CAPSULE_HALF_HEIGHT).toBeCloseTo(0.2, 10);
     expect(PLAYER_BODY_RADIUS).toBe(SOURCE_PLAYER_CAPSULE_RADIUS);
     expect(PLAYER_BODY_HALF_HEIGHT).toBeCloseTo(

@@ -145,6 +145,7 @@ const WEAPON_VIEWMODEL_LERP_RATE = 10;
 const LANDING_CAMERA_BOB_OFFSET = -0.1;
 const LANDING_CAMERA_BOB_RECOVERY_RATE = 5;
 const JUMP_BUFFER_DURATION = 0.12;
+const JUMP_TAP_GRACE_DURATION = 0.25;
 const SHOOT_BUFFER_DURATION = 0.08;
 
 interface ShotEnemyHit {
@@ -181,9 +182,12 @@ export default class PlayerSystem extends createSystem({
   #landingBobOffset = 0;
   #landingPulse = 0;
   #jumpBufferTimer = 0;
+  #jumpTapGraceTimer = 0;
   #shootBufferTimer = 0;
   #commandMoveX = 0;
   #commandMoveZ = 0;
+  #commandLookX = 0;
+  #commandLookY = 0;
   #commandJumpPressed = false;
   #commandJumpDown = false;
   #commandShootPressed = false;
@@ -206,6 +210,7 @@ export default class PlayerSystem extends createSystem({
       this.#impactFlashTimers[i] = Math.max(0, timer - dt);
     }
     this.#jumpBufferTimer = Math.max(0, this.#jumpBufferTimer - dt);
+    this.#jumpTapGraceTimer = Math.max(0, this.#jumpTapGraceTimer - dt);
     this.#shootBufferTimer = Math.max(0, this.#shootBufferTimer - dt);
     for (let i = 0; i < this.#enemyMuzzleFlashTimers.length; i += 1) {
       const timer = this.#enemyMuzzleFlashTimers[i] ?? 0;
@@ -242,6 +247,8 @@ export default class PlayerSystem extends createSystem({
     let respawnedThisFrame = false;
     let resetBodyHoldActive = false;
 
+    this.#commandLookX = 0;
+    this.#commandLookY = 0;
     this.#drainInputCommands();
 
     const holdSourceStartBody = (): void => {
@@ -338,10 +345,13 @@ export default class PlayerSystem extends createSystem({
       this.#setLookTargets(look.targetYaw, look.targetPitch);
     }
 
+    const hasCommandLook =
+      this.#commandLookX !== 0 || this.#commandLookY !== 0;
     const mouseLookAction = this.actions.mouseLook as
       | InputAxis2dAction
       | undefined;
     if (
+      !hasCommandLook &&
       mouseLookAction?.kind === "axis2d" &&
       (mouseLookAction.x.value !== 0 || mouseLookAction.y.value !== 0)
     ) {
@@ -352,6 +362,21 @@ export default class PlayerSystem extends createSystem({
         targetPitch: this.#lookTargetPitch,
         axisX: mouseLookAction.x.value,
         axisY: mouseLookAction.y.value,
+        radiansPerUnit: SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT,
+        pitchLimit: SOURCE_LOOK_PITCH_LIMIT,
+      });
+      yaw = look.yaw;
+      pitch = look.pitch;
+      this.#setLookTargets(look.targetYaw, look.targetPitch);
+    }
+    if (hasCommandLook) {
+      const look = sourceMouseLookStep({
+        yaw,
+        pitch,
+        targetYaw: this.#lookTargetYaw,
+        targetPitch: this.#lookTargetPitch,
+        axisX: this.#commandLookX,
+        axisY: this.#commandLookY,
         radiansPerUnit: SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT,
         pitchLimit: SOURCE_LOOK_PITCH_LIMIT,
       });
@@ -392,7 +417,10 @@ export default class PlayerSystem extends createSystem({
     const moveZ = clampNumber(actionMoveZ + this.#commandMoveZ, -1, 1);
 
     const jump = this.#button("jump");
-    const jumpPressed = jump?.pressed() === true || this.#commandJumpPressed;
+    const jumpPressed =
+      jump?.pressed() === true ||
+      this.#commandJumpPressed ||
+      this.#jumpTapGraceTimer > 0;
     const jumpPressedThisFrame =
       sourceButtonPressedThisFrame({
         pressed: jumpPressed,
@@ -413,6 +441,7 @@ export default class PlayerSystem extends createSystem({
       grounded = false;
       jumpedThisFrame = true;
       this.#jumpBufferTimer = 0;
+      this.#jumpTapGraceTimer = 0;
     }
 
     let shotBodyKnockback = 0;
@@ -535,6 +564,7 @@ export default class PlayerSystem extends createSystem({
       grounded = false;
       jumpedThisFrame = true;
       this.#jumpBufferTimer = 0;
+      this.#jumpTapGraceTimer = 0;
     }
 
     if (sourcePlayerShouldRespawn({ positionY: position[1], health })) {
@@ -638,12 +668,22 @@ export default class PlayerSystem extends createSystem({
         continue;
       }
 
+      if (command.kind === "look") {
+        this.#commandLookX += finiteNumber(command.x);
+        this.#commandLookY += finiteNumber(command.y);
+        continue;
+      }
+
       if (command.kind !== "button") continue;
 
       if (command.action === "jump") {
         this.#commandJumpPressed = command.pressed;
         if (command.pressed) {
           this.#commandJumpDown = true;
+          this.#jumpTapGraceTimer = Math.max(
+            this.#jumpTapGraceTimer,
+            JUMP_TAP_GRACE_DURATION,
+          );
           this.#jumpBufferTimer = Math.max(
             this.#jumpBufferTimer,
             JUMP_BUFFER_DURATION,
@@ -1107,6 +1147,7 @@ export default class PlayerSystem extends createSystem({
     this.#landingBobOffset = 0;
     this.#landingPulse = 0;
     this.#jumpBufferTimer = 0;
+    this.#jumpTapGraceTimer = 0;
     this.#shootBufferTimer = 0;
     this.#resetCommandState();
     this.#jumpPressedLastFrame = false;
@@ -1117,6 +1158,8 @@ export default class PlayerSystem extends createSystem({
   #resetCommandState(): void {
     this.#commandMoveX = 0;
     this.#commandMoveZ = 0;
+    this.#commandLookX = 0;
+    this.#commandLookY = 0;
     this.#commandJumpPressed = false;
     this.#commandJumpDown = false;
     this.#commandShootPressed = false;
@@ -1375,6 +1418,10 @@ function clampInt(value: number, min: number, max: number): number {
 
 function clampNumber(value: number, min: number, max: number): number {
   return Number.isFinite(value) ? Math.max(min, Math.min(max, value)) : 0;
+}
+
+function finiteNumber(value: number): number {
+  return Number.isFinite(value) ? value : 0;
 }
 
 function clamp01(value: number): number {

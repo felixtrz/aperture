@@ -14,6 +14,7 @@ import {
   sourceKeyboardMoveAxis,
   sourceKeyboardMoveKey,
   sourcePointerButtonAction,
+  sourcePointerLockLookCommand,
   sourcePointerLockLookAxis,
   SOURCE_INSTANT_BUTTON_TAP_RELEASE_DELAY_MS,
   SOURCE_KEYBOARD_BUTTON_TAP_RELEASE_DELAY_MS,
@@ -150,11 +151,16 @@ window.addEventListener("blur", () => {
 function dispatchPendingLook(): void {
   if (pendingLookX !== 0 || pendingLookY !== 0) {
     const [x, y] = sourcePointerLockLookAxis(pendingLookX, pendingLookY);
+    const [rawX, rawY] = sourcePointerLockLookCommand(
+      pendingLookX,
+      pendingLookY,
+    );
     dispatchApertureInputAction("mouseLook", {
       x,
       y,
       source: "pointer-lock",
     });
+    dispatchFpsInputCommand({ kind: "look", x: rawX, y: rawY });
     pendingLookX = 0;
     pendingLookY = 0;
     lookActionActive = true;

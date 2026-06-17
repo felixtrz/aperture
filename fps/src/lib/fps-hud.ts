@@ -105,9 +105,17 @@ export function sourcePointerLockLookAxis(
   movementX: number,
   movementY: number,
 ): readonly [number, number] {
+  const [x, y] = sourcePointerLockLookCommand(movementX, movementY);
+  return [clampAxis(x), clampAxis(y)];
+}
+
+export function sourcePointerLockLookCommand(
+  movementX: number,
+  movementY: number,
+): readonly [number, number] {
   return [
-    clampAxis(-movementX / POINTER_LOCK_LOOK_PIXELS_PER_UNIT),
-    clampAxis(-movementY / POINTER_LOCK_LOOK_PIXELS_PER_UNIT),
+    -movementX / POINTER_LOCK_LOOK_PIXELS_PER_UNIT,
+    -movementY / POINTER_LOCK_LOOK_PIXELS_PER_UNIT,
   ];
 }
 

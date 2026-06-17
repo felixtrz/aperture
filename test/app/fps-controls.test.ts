@@ -202,6 +202,22 @@ describe("Starter Kit FPS controls", () => {
     expect(look.pitch).toBe(look.targetPitch);
   });
 
+  it("preserves raw pointer-lock deltas beyond generated axis limits", () => {
+    const look = sourceMouseLookStep({
+      yaw: 0,
+      pitch: 0,
+      targetYaw: 0,
+      targetPitch: 0,
+      axisX: -10,
+      axisY: 2,
+      radiansPerUnit: SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT,
+      pitchLimit: SOURCE_LOOK_PITCH_LIMIT,
+    });
+
+    expect(look.yaw).toBeCloseTo((-10 * 26) / 700, 10);
+    expect(look.pitch).toBeCloseTo((2 * 26) / 700, 10);
+  });
+
   it("keeps fallback pointer drag yaw aligned with source mouse look", () => {
     const look = sourcePointerDragLookStep({
       yaw: 0,
