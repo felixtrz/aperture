@@ -23,7 +23,10 @@ export type {
   SpawnParticlesOptions,
   SpawnPhysicsOptions,
   SpawnPrefabOptions,
+  SpawnSkyboxOptions,
   StandardMaterialDescriptor,
   StandardMaterialOptions,
   SystemTransformInput,
+  SkyboxSamplerDescriptorInput,
+  SkyboxTextureDescriptorInput,
 } from "./types.js";

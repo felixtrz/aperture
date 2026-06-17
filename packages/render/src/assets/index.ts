@@ -52,3 +52,4 @@ export * from "./gltf-root.js";
 export * from "./preparation.js";
 export * from "./particles.js";
 export * from "./audio-clip.js";
+export * from "./equirect-cubemap.js";

@@ -5,6 +5,7 @@ import type {
   LightShadowSettingsInput,
   ParticleEmitterInput,
   RenderStateDescriptor,
+  SkyboxInput,
 } from "@aperture-engine/render";
 import type {
   ColliderInput,
@@ -40,6 +41,7 @@ import type {
   SystemGltfAssetHandle,
   SystemParticleEffectAssetHandle,
   SystemShaderAssetHandle,
+  SystemTextureAssetHandle,
 } from "../assets.js";
 
 export interface SpawnMetadata {
@@ -85,6 +87,18 @@ export interface SpawnLightOptions extends SpawnMetadata {
 }
 
 export interface SpawnFogOptions extends SpawnMetadata, FogInput {
+  readonly transform?: SystemTransformInput;
+}
+
+export type SkyboxTextureDescriptorInput =
+  | TextureHandle
+  | SystemTextureAssetHandle;
+export type SkyboxSamplerDescriptorInput = SamplerHandle;
+
+export interface SpawnSkyboxOptions
+  extends SpawnMetadata, Omit<SkyboxInput, "texture" | "sampler"> {
+  readonly texture: SkyboxTextureDescriptorInput;
+  readonly sampler?: SkyboxSamplerDescriptorInput | null;
   readonly transform?: SystemTransformInput;
 }
 
@@ -263,6 +277,8 @@ export interface SpawnCommands {
   light(options?: SpawnLightOptions): Entity;
   /** Spawn a distance-fog entity (linear/exp/exp2) consumed by render extraction. */
   fog(options?: SpawnFogOptions): Entity;
+  /** Spawn an ECS-authored skybox consumed by render extraction. */
+  skybox(options: SpawnSkyboxOptions): Entity;
   mesh(options: SpawnMeshOptions): Entity;
   /** Spawn a renderer-independent particle emitter entity. */
   particles(options: SpawnParticlesOptions): Entity;

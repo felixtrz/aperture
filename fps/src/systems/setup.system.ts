@@ -14,16 +14,20 @@ import {
   SpriteBlendMode,
   SpriteDepthMode,
   createDefaultRenderState,
+  createEquirectangularCubeTextureAsset,
   createSamplerAsset,
   createSprite,
   createUnlitMaterialAsset,
   materialAssetDependencies,
+  type TextureAsset,
 } from "@aperture-engine/render";
 import {
   createMaterialHandle,
   createSamplerHandle,
+  createTextureHandle,
   type MaterialHandle,
   type SamplerHandle,
+  type TextureHandle,
 } from "@aperture-engine/simulation";
 import {
   CLOUDS,
@@ -50,6 +54,10 @@ const GLTF_FRONT_SIDE_MATERIALS = {
 
 const PLAYER_SHADOW_MATERIAL_ID = "player.blob-shadow.material";
 const PLAYER_SHADOW_SAMPLER_ID = "player.blob-shadow.sampler";
+const SKYBOX_TEXTURE_ID = "fps.skybox.cube";
+const SKYBOX_SAMPLER_ID = "fps.skybox.sampler";
+const SKYBOX_SOURCE_ASSET_ID = "skybox";
+const SKYBOX_FACE_SIZE = 512;
 const HIDDEN_EFFECT_POSITION: [number, number, number] = [0, -100, 0];
 const IDENTITY_ROTATION: [number, number, number, number] = [0, 0, 0, 1];
 const IDENTITY_SCALE: [number, number, number] = [1, 1, 1];
@@ -82,6 +90,8 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         clearColor: [0.36, 0.39, 0.46, 1],
       },
     });
+
+    this.#spawnSourceSkybox();
 
     this.spawn.physics({
       key: PLAYER_BODY_KEY,
@@ -328,6 +338,71 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
           : { depthMode: input.depthMode }),
       }),
     );
+  }
+
+  #spawnSourceSkybox(): void {
+    const texture = this.#ensureSkyboxTexture();
+    if (texture === null) return;
+
+    this.spawn.skybox({
+      key: "skybox.main",
+      name: "Source Panorama Skybox",
+      texture,
+      sampler: this.#ensureSkyboxSampler(),
+      intensity: 0.5,
+    });
+  }
+
+  #ensureSkyboxTexture(): TextureHandle | null {
+    const sourceHandle = this.assets.texture(
+      SKYBOX_SOURCE_ASSET_ID,
+    ).renderHandle;
+    const sourceEntry = this.assetsRegistry.get<"texture", TextureAsset>(
+      sourceHandle,
+    );
+
+    if (sourceEntry?.status !== "ready" || sourceEntry.asset === null) {
+      return null;
+    }
+
+    const textureHandle = createTextureHandle(SKYBOX_TEXTURE_ID);
+    if (!this.assetsRegistry.has(textureHandle)) {
+      this.assetsRegistry.register(textureHandle, {
+        label: "Source Panorama Skybox",
+      });
+    }
+    this.assetsRegistry.markReady(
+      textureHandle,
+      createEquirectangularCubeTextureAsset(sourceEntry.asset, {
+        label: "Source Panorama Skybox",
+        faceSize: SKYBOX_FACE_SIZE,
+      }),
+    );
+    return textureHandle;
+  }
+
+  #ensureSkyboxSampler(): SamplerHandle {
+    const samplerHandle = createSamplerHandle(SKYBOX_SAMPLER_ID);
+    if (!this.assetsRegistry.has(samplerHandle)) {
+      this.assetsRegistry.register(samplerHandle, {
+        label: "Source Panorama Skybox Sampler",
+      });
+    }
+
+    this.assetsRegistry.markReady(
+      samplerHandle,
+      createSamplerAsset({
+        label: "Source Panorama Skybox Sampler",
+        addressModeU: "clamp-to-edge",
+        addressModeV: "clamp-to-edge",
+        addressModeW: "clamp-to-edge",
+        magFilter: "linear",
+        minFilter: "linear",
+        mipmapFilter: "linear",
+        lodMaxClamp: 0,
+      }),
+    );
+    return samplerHandle;
   }
 
   #spawnPlayerShadow(): void {

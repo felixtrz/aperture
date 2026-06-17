@@ -9,11 +9,13 @@ import {
   ParticleEmitter,
   ShadowCaster,
   ShadowReceiver,
+  Skybox,
   createCamera,
   createFog,
   createLight,
   createLightShadowSettings,
   createParticleEmitter,
+  createSkybox,
 } from "@aperture-engine/render";
 import {
   DebugMetadata,
@@ -23,6 +25,8 @@ import {
   type ApertureSceneDocument,
   type AssetRegistry,
   type EcsWorld,
+  type SamplerHandle,
+  type TextureHandle,
 } from "@aperture-engine/simulation";
 import {
   Animation,
@@ -55,6 +59,7 @@ import type {
   SpawnGltfBatchInstance,
   SpawnGltfBatchOptions,
   SpawnGltfOptions,
+  SkyboxTextureDescriptorInput,
 } from "./types.js";
 
 export function createSpawnCommands(options: {
@@ -109,6 +114,23 @@ export function createSpawnCommands(options: {
       const entity = createEntityWithMetadata(options.world, input, "fog");
       addTransform(entity, input.transform);
       entity.addComponent(Fog, createFog(input));
+      return entity;
+    },
+    skybox(input) {
+      const entity = createEntityWithMetadata(options.world, input, "skybox");
+      addTransform(entity, input.transform);
+      entity.addComponent(
+        Skybox,
+        createSkybox({
+          texture: resolveSkyboxTexture(input.texture),
+          ...(input.sampler === undefined
+            ? {}
+            : { sampler: input.sampler as SamplerHandle | null }),
+          ...(input.intensity === undefined
+            ? {}
+            : { intensity: input.intensity }),
+        }),
+      );
       return entity;
     },
     mesh(input) {
@@ -301,6 +323,16 @@ export function createSpawnCommands(options: {
 }
 
 function resolveParticleEffectHandle(input: ParticleEffectDescriptorInput) {
+  if ("renderHandle" in input) {
+    return input.renderHandle;
+  }
+
+  return input;
+}
+
+function resolveSkyboxTexture(
+  input: SkyboxTextureDescriptorInput,
+): TextureHandle {
   if ("renderHandle" in input) {
     return input.renderHandle;
   }
