@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "f293ecdf",
   "activePid": null,
-  "notes": "Aligned Starter Kit FPS browser HUD with source crosshair/health-only UI; validated with Aperture MCP and kept racing/shadow-lab green.",
-  "lastRunFinishedAt": "2026-06-17T10:00:32Z"
+  "notes": "Aligned FPS HUD with source crosshair/health-only UI; validation and Aperture proof passed.",
+  "lastRunFinishedAt": "2026-06-17T10:02:10Z"
 }
