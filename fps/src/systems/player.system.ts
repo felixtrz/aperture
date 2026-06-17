@@ -642,10 +642,22 @@ export default class PlayerSystem extends createSystem({
 
       if (command.action === "jump") {
         this.#commandJumpPressed = command.pressed;
-        if (command.pressed) this.#commandJumpDown = true;
+        if (command.pressed) {
+          this.#commandJumpDown = true;
+          this.#jumpBufferTimer = Math.max(
+            this.#jumpBufferTimer,
+            JUMP_BUFFER_DURATION,
+          );
+        }
       } else if (command.action === "shoot") {
         this.#commandShootPressed = command.pressed;
-        if (command.pressed) this.#commandShootDown = true;
+        if (command.pressed) {
+          this.#commandShootDown = true;
+          this.#shootBufferTimer = Math.max(
+            this.#shootBufferTimer,
+            SHOOT_BUFFER_DURATION,
+          );
+        }
       } else if (command.action === "switchWeapon") {
         if (command.pressed) this.#commandSwitchWeaponDown = true;
       } else if (command.action === "reset" && command.pressed) {

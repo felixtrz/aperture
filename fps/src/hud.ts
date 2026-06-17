@@ -15,6 +15,7 @@ import {
   sourceKeyboardMoveKey,
   sourcePointerButtonAction,
   sourcePointerLockLookAxis,
+  SOURCE_BUTTON_TAP_RELEASE_DELAY_MS,
   sourceHealthText,
   type SourceKeyboardButtonAction,
   type SourceKeyboardMoveKey,
@@ -33,6 +34,11 @@ let shootActionActive = false;
 let unlockedClickShootFallbackPending = false;
 const keyboardMoveKeys = new Set<SourceKeyboardMoveKey>();
 const keyboardButtonActions = new Set<SourceKeyboardButtonAction>();
+const keyboardButtonReleaseTimers = new Map<
+  SourceKeyboardButtonAction,
+  number
+>();
+const instantButtonReleaseTimers = new Map<string, number>();
 
 function readNumber(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
@@ -214,8 +220,13 @@ function releaseKeyboardActions(): void {
   }
 
   for (const action of [...keyboardButtonActions]) {
-    releaseKeyboardButtonAction(action);
+    releaseKeyboardButtonActionNow(action);
   }
+
+  for (const timer of keyboardButtonReleaseTimers.values()) {
+    window.clearTimeout(timer);
+  }
+  keyboardButtonReleaseTimers.clear();
 }
 
 function pressKeyboardButtonAction(
@@ -224,6 +235,7 @@ function pressKeyboardButtonAction(
 ): void {
   if (!sourceKeyboardButtonPressDispatches(repeat)) return;
 
+  cancelKeyboardButtonRelease(action);
   keyboardButtonActions.add(action);
   dispatchApertureInputAction(action, {
     pressed: true,
@@ -233,6 +245,15 @@ function pressKeyboardButtonAction(
 }
 
 function releaseKeyboardButtonAction(action: SourceKeyboardButtonAction): void {
+  if (!keyboardButtonActions.has(action)) return;
+
+  scheduleKeyboardButtonRelease(action);
+}
+
+function releaseKeyboardButtonActionNow(
+  action: SourceKeyboardButtonAction,
+): void {
+  cancelKeyboardButtonRelease(action);
   if (!keyboardButtonActions.has(action)) return;
 
   keyboardButtonActions.delete(action);
@@ -247,16 +268,72 @@ function dispatchInstantButtonAction(
   action: Extract<FpsInputCommand, { readonly kind: "button" }>["action"],
   source: string,
 ): void {
+  cancelInstantButtonRelease(action, source);
   dispatchApertureInputAction(action, {
     pressed: true,
     source,
   });
   dispatchFpsInputCommand({ kind: "button", action, pressed: true });
-  dispatchApertureInputAction(action, {
-    pressed: false,
-    source,
-  });
-  dispatchFpsInputCommand({ kind: "button", action, pressed: false });
+  scheduleInstantButtonRelease(action, source);
+}
+
+function scheduleKeyboardButtonRelease(
+  action: SourceKeyboardButtonAction,
+): void {
+  cancelKeyboardButtonRelease(action);
+  keyboardButtonReleaseTimers.set(
+    action,
+    window.setTimeout(() => {
+      keyboardButtonReleaseTimers.delete(action);
+      releaseKeyboardButtonActionNow(action);
+    }, SOURCE_BUTTON_TAP_RELEASE_DELAY_MS),
+  );
+}
+
+function cancelKeyboardButtonRelease(action: SourceKeyboardButtonAction): void {
+  const timer = keyboardButtonReleaseTimers.get(action);
+  if (timer === undefined) return;
+
+  window.clearTimeout(timer);
+  keyboardButtonReleaseTimers.delete(action);
+}
+
+function scheduleInstantButtonRelease(
+  action: Extract<FpsInputCommand, { readonly kind: "button" }>["action"],
+  source: string,
+): void {
+  const key = instantButtonReleaseKey(action, source);
+  cancelInstantButtonRelease(action, source);
+  instantButtonReleaseTimers.set(
+    key,
+    window.setTimeout(() => {
+      instantButtonReleaseTimers.delete(key);
+      dispatchApertureInputAction(action, {
+        pressed: false,
+        source,
+      });
+      dispatchFpsInputCommand({ kind: "button", action, pressed: false });
+    }, SOURCE_BUTTON_TAP_RELEASE_DELAY_MS),
+  );
+}
+
+function cancelInstantButtonRelease(
+  action: Extract<FpsInputCommand, { readonly kind: "button" }>["action"],
+  source: string,
+): void {
+  const key = instantButtonReleaseKey(action, source);
+  const timer = instantButtonReleaseTimers.get(key);
+  if (timer === undefined) return;
+
+  window.clearTimeout(timer);
+  instantButtonReleaseTimers.delete(key);
+}
+
+function instantButtonReleaseKey(
+  action: Extract<FpsInputCommand, { readonly kind: "button" }>["action"],
+  source: string,
+): string {
+  return `${source}:${action}`;
 }
 
 function pressPointerLockShoot(): void {
