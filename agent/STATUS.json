@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "f3128229",
+  "lastCommit": "3dadd9ab",
   "activePid": null,
-  "notes": "Aligned Starter Kit FPS source weapon switching with shoot-before-toggle ordering and shared cooldown behavior; proved switch-plus-shoot during cooldown through Aperture CLI and kept fps, racing, and shadow-lab green.",
-  "lastRunFinishedAt": "2026-06-17T14:04:42Z"
+  "notes": "Anchored Starter Kit FPS cloud hover to the source cloud.gd integrated cosine formula; proved live cloud Y-only movement through Aperture CLI and kept fps, racing, and shadow-lab green.",
+  "lastRunFinishedAt": "2026-06-17T14:12:36Z"
 }

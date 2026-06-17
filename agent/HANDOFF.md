@@ -1,11 +1,55 @@
-# Handoff - Starter Kit FPS Source Weapon Switch Cooldown
+# Handoff - Starter Kit FPS Source Cloud Hover
 
-**Updated:** 2026-06-17 07:03 PDT
+**Updated:** 2026-06-17 07:12 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Anchored Starter Kit FPS cloud hover math:
+  - Source anchor: `references/Starter-Kit-FPS/objects/cloud.gd`.
+  - The source randomizes `random_velocity` and `random_time` in `[0.1, 2.0]`
+    and integrates `position.y += cos(time * random_time) * random_velocity *
+    delta`, which yields a sine offset of `random_velocity / random_time`.
+  - The port now exposes `SOURCE_CLOUD_RANDOM_MIN = 0.1` and
+    `SOURCE_CLOUD_RANDOM_MAX = 2.0`, uses `sourceCloudHoverPosition(...)` as
+    the shared source formula, and keeps deterministic per-cloud hover values
+    inside the source random range.
+- Aperture tooling proof:
+  - Started/reused the managed FPS app with
+    `pnpm --dir fps exec aperture dev up --headless --host 127.0.0.1 --port 5173`.
+  - CLI `browser_wait_for_webgpu` passed with WebGPU ready, generated FPS input
+    actions present, and render diagnostics `[]`.
+  - Reproved the user-reported control paths through the live generated worker:
+    one generated `shoot` step produced `shotsFired:1`,
+    `shotCooldown:0.25`, and `movementVelocity.z:6.664182862170411`;
+    yaw `1.5707963267948966` plus forward movement produced
+    `movementVelocity:[-0.8333333333333333,0,-5.102694996447305e-17]`;
+    a grounded generated `jump` step moved Y from `0.97009998762951` to
+    `1.0978777594864368`, set `verticalVelocity:7.666666666666667`, and left
+    `jumpsRemaining:1`.
+  - `render_get_frame_report --summaryOnly` reported two views, 49 draw calls,
+    and render diagnostics `0`.
+  - With the worker paused, `ecs_find_entities {"key":"deco.cloud.0"}` before
+    and after `ecs_step {"delta":0.25}` showed translation delta
+    `[0,-0.01747608184814453,0]`; X/Z stayed fixed and only Y hovered.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts`
+    passed 28 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+    passed 60 tests.
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `git diff --check`
+- Commit:
+  - `3dadd9ab` — `Anchor FPS cloud hover source math`
+
+## Previous Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS weapon-switch ordering and shared cooldown:
   - Source anchor: `references/Starter-Kit-FPS/objects/player.gd`.

@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## FPS-PORT — Source cloud hover math
+
+Completed: 2026-06-17 07:11 PDT
+Commit: `3dadd9ab`
+
+### Summary
+
+- Matched the source cloud hover formula from
+  `references/Starter-Kit-FPS/objects/cloud.gd` in a shared
+  `sourceCloudHoverPosition(...)` helper.
+- Exposed the source cloud randomization range
+  `SOURCE_CLOUD_RANDOM_MIN = 0.1` and `SOURCE_CLOUD_RANDOM_MAX = 2.0`.
+- Kept the deterministic port cloud hover values inside the source random
+  range while making the integrated cosine-to-sine position formula explicit
+  and covered.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts`
+  passed 28 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+  passed 60 tests.
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `git diff --check`
+- Aperture CLI proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed with WebGPU ready, generated FPS input
+    actions present, and render diagnostics `[]`.
+  - One explicit paused `ecs_step {"frames":1}` moved `deco.cloud.0` only on
+    the Y axis, from
+    `[-9.485090255737305,8.66634464263916,20.555400848388672]` to
+    `[-9.485090255737305,8.657685279846191,20.555400848388672]`.
+
 ## FPS-PORT — Source weapon switch cooldown
 
 Completed: 2026-06-17 07:03 PDT

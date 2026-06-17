@@ -393,12 +393,23 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 14:03 UTC</dd>
+            <dd>2026-06-17 14:11 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS weapon switching now follows the
+              Latest update: Starter Kit FPS cloud hover now uses a shared
+              source formula derived from
+              <code>objects/cloud.gd</code>: deterministic port cloud values
+              stay inside the source <code>[0.1, 2.0]</code> random range, and
+              the integrated cosine hover resolves to a sine offset of
+              <code>random_velocity / random_time</code>. Aperture CLI proof
+              paused the live route and one explicit
+              <code>ecs_step {"frames":1}</code> moved
+              <code>deco.cloud.0</code> only on Y, from
+              <code>8.66634464263916</code> to
+              <code>8.657685279846191</code>, with X/Z fixed. Prior update:
+              Starter Kit FPS weapon switching now follows the
               source shoot-before-toggle ordering and preserves the shared
               source cooldown timer. Switching no longer clears
               <code>shotCooldown</code>; Aperture CLI proof fired one shot,
@@ -2543,6 +2554,14 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">fps</span> Anchored Starter Kit FPS
+                cloud hover math to the source <code>cloud.gd</code> formula.
+                The port now exposes the source <code>[0.1, 2.0]</code> cloud
+                random range, uses a shared <code>sourceCloudHoverPosition</code>
+                helper, and proves a live cloud moves only on Y through
+                Aperture CLI paused stepping.
+              </li>
               <li>
                 <span class="badge green">fps</span> Aligned Starter Kit FPS
                 source weapon-switch ordering and cooldown behavior. The port
