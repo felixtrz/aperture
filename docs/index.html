@@ -393,22 +393,26 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 14:12 UTC</dd>
+            <dd>2026-06-17 14:21 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Starter Kit FPS cloud hover now uses a shared
-              source formula derived from
-              <code>objects/cloud.gd</code>: deterministic port cloud values
-              stay inside the source <code>[0.1, 2.0]</code> random range, and
-              the integrated cosine hover resolves to a sine offset of
-              <code>random_velocity / random_time</code>. Aperture CLI proof
-              reproved generated <code>shoot</code>, yaw-relative movement,
-              and grounded <code>jump</code>, then paused the live route and
-              stepped <code>deco.cloud.0</code> by <code>0.25</code>s; the
-              cloud translation delta was
-              <code>[0,-0.01747608184814453,0]</code>, with X/Z fixed. Prior
+              Latest update: Starter Kit FPS enemy constants now derive from
+              <code>objects/enemy.tscn</code> and
+              <code>objects/enemy.gd</code>. The port exports source hitbox,
+              raycast, attack, hover, muzzle-offset, and muzzle-roll constants
+              and routes setup/player systems through them. Aperture CLI proof
+              read <code>enemy.0.hitbox</code> as a sphere collider with
+              <code>radius:0.75</code> and offset <code>[0,0.25,0]</code> from
+              <code>enemy.0</code>; after a paused
+              <code>ecs_step {"delta":0.25}</code>, the hitbox offset stayed
+              fixed and <code>enemy.0</code> moved only on Y with delta
+              <code>[0,0.030605,0]</code>. Prior update: Starter Kit FPS cloud
+              hover now uses a shared source formula derived from
+              <code>objects/cloud.gd</code>, keeps deterministic cloud values
+              inside the source <code>[0.1, 2.0]</code> random range, and
+              proves live cloud Y-only movement through Aperture CLI. Prior
               update:
               Starter Kit FPS weapon switching now follows the
               source shoot-before-toggle ordering and preserves the shared
@@ -2557,11 +2561,20 @@
             <ul>
               <li>
                 <span class="badge green">fps</span> Anchored Starter Kit FPS
+                enemy scene/script constants to <code>enemy.tscn</code> and
+                <code>enemy.gd</code>. The port now exports source hitbox
+                radius/offset, raycast distance, attack timer/damage, hover
+                velocity/rate, muzzle offsets, and muzzle roll range, then
+                proves the live enemy hitbox radius/offset and Y-only hover
+                through Aperture CLI paused stepping.
+              </li>
+              <li>
+                <span class="badge green">fps</span> Anchored Starter Kit FPS
                 cloud hover math to the source <code>cloud.gd</code> formula.
-                The port now exposes the source <code>[0.1, 2.0]</code> cloud
-                random range, uses a shared <code>sourceCloudHoverPosition</code>
-                helper, and proves a live cloud moves only on Y through
-                Aperture CLI paused stepping.
+                The port exposes the source <code>[0.1, 2.0]</code> cloud
+                random range, uses a shared
+                <code>sourceCloudHoverPosition</code> helper, and proves a live
+                cloud moves only on Y through Aperture CLI paused stepping.
               </li>
               <li>
                 <span class="badge green">fps</span> Aligned Starter Kit FPS
@@ -5874,9 +5887,8 @@
                 <span class="badge amber">next</span> Continue Starter Kit FPS
                 fidelity with a visible slice such as enemy movement/attack
                 timing polish, skybox orientation/readback hardening,
-                level-complete/full-clear smoke, enemy hitbox/source collider
-                anchoring, or a reusable generated-input full-clear smoke
-                script.
+                level-complete/full-clear smoke, source enemy attack damage
+                proof, or a reusable generated-input full-clear smoke script.
               </li>
               <li>
                 <span class="badge amber">next</span> Continue remaining M10

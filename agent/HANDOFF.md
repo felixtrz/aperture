@@ -1,11 +1,57 @@
-# Handoff - Starter Kit FPS Source Cloud Hover
+# Handoff - Starter Kit FPS Source Enemy Constants
 
-**Updated:** 2026-06-17 07:12 PDT
+**Updated:** 2026-06-17 07:21 PDT
 
 User-directed work is now on branch `fps-starter-kit-port`, created from the
 previous working state so the old state remains recoverable.
 
 ## Latest Completed Slice
+
+- Anchored Starter Kit FPS enemy scene/script constants:
+  - Source anchors:
+    `references/Starter-Kit-FPS/objects/enemy.tscn` and
+    `references/Starter-Kit-FPS/objects/enemy.gd`.
+  - The source enemy scene authors a sphere hitbox with `radius = 0.75`, a
+    `CollisionShape3D` offset of `[0, 0.25, 0]`, a raycast target
+    `[0, 0, 5]`, two muzzle offsets `[-0.45, 0.3, 0.4]` and
+    `[0.45, 0.3, 0.4]`, and a `Timer.wait_time = 0.25`.
+  - The source enemy script applies `damage(5)`, rolls muzzle flashes in the
+    `[-45, 45]` degree range, and integrates
+    `target_position.y += cos(time * 5) * 1 * delta`.
+  - The port now exports the corresponding `SOURCE_ENEMY_*` constants, derives
+    attack distance from `SOURCE_ENEMY_RAYCAST_TARGET`, routes setup/player
+    systems through those constants, and uses `sourceEnemyHoverPosition(...)`
+    for the closed-form enemy hover position.
+- Aperture tooling proof:
+  - Started/reused the managed FPS app with
+    `pnpm --dir fps exec aperture dev up --headless --host 127.0.0.1 --port 5173`.
+  - CLI `browser_wait_for_webgpu` passed with WebGPU ready and diagnostics
+    `[]`.
+  - With the worker paused, `ecs_find_entities {"key":"enemy.0.hitbox"}` read
+    `physicsCollider.shapeKind:"sphere"`, `physicsCollider.radius:0.75`, and
+    an offset from `enemy.0` of `[0,0.25,0]` both before and after a paused
+    `ecs_step {"delta":0.25}`.
+  - The same paused step moved `enemy.0` from
+    `[-3.5,2.56318,-6]` to `[-3.5,2.593785,-6]`, delta
+    `[0,0.030605,0]`, proving only source hover Y changed while X/Z stayed
+    anchored.
+- Validation:
+  - `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+    passed 35 tests.
+  - `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+    passed 62 tests.
+  - `pnpm --dir fps run typecheck`
+  - `pnpm --dir fps run build`
+  - `pnpm --dir racing run typecheck`
+  - `pnpm --dir racing run build`
+  - `pnpm --dir shadow-lab run typecheck`
+  - `pnpm --dir shadow-lab run build`
+  - `pnpm run check:progress`
+  - `git diff --check`
+- Commit:
+  - `25825757` — `Anchor FPS enemy source constants`
+
+## Previous Completed FPS/Tooling Slices
 
 - Anchored Starter Kit FPS cloud hover math:
   - Source anchor: `references/Starter-Kit-FPS/objects/cloud.gd`.
@@ -48,8 +94,6 @@ previous working state so the old state remains recoverable.
   - `git diff --check`
 - Commit:
   - `3dadd9ab` — `Anchor FPS cloud hover source math`
-
-## Previous Completed FPS/Tooling Slices
 
 - Aligned Starter Kit FPS weapon-switch ordering and shared cooldown:
   - Source anchor: `references/Starter-Kit-FPS/objects/player.gd`.

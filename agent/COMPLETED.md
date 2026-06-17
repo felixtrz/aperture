@@ -1,5 +1,44 @@
 # Completed Tasks
 
+## FPS-PORT — Source enemy constants and hitbox
+
+Completed: 2026-06-17 07:21 PDT
+Commit: `25825757`
+
+### Summary
+
+- Anchored enemy hitbox, raycast, attack, hover, and muzzle data to
+  `references/Starter-Kit-FPS/objects/enemy.tscn` and
+  `references/Starter-Kit-FPS/objects/enemy.gd`.
+- Exported source `SOURCE_ENEMY_*` constants, including hitbox radius/offset,
+  raycast target/distance, attack timer/damage, hover velocity/rate/amplitude,
+  muzzle offsets, and muzzle roll range.
+- Replaced remaining player/setup hard-coded enemy constants with shared source
+  data and `sourceEnemyHoverPosition(...)`.
+
+### Validation
+
+- `pnpm exec vitest run test/app/fps-data.test.ts test/app/fps-controls.test.ts test/app/fps-effects.test.ts`
+  passed 35 tests.
+- `pnpm exec vitest run test/app/fps-controls.test.ts test/app/fps-data.test.ts test/app/fps-input-config.test.ts test/app/fps-effects.test.ts test/app/fps-audio.test.ts test/app/browser-input-forwarding.test.ts test/app/input-state-events.test.ts`
+  passed 62 tests.
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `pnpm run check:progress`
+- `git diff --check`
+- Aperture CLI proof against the live FPS route:
+  - `browser_wait_for_webgpu` passed with WebGPU ready and diagnostics `[]`.
+  - `enemy.0.hitbox` reported `physicsCollider.shapeKind:"sphere"` and
+    `physicsCollider.radius:0.75`.
+  - The hitbox offset from `enemy.0` was `[0,0.25,0]` both before and after a
+    paused `ecs_step {"delta":0.25}`.
+  - The same step moved `enemy.0` by `[0,0.030605,0]`, proving source hover
+    changes only Y while X/Z stay anchored.
+
 ## FPS-PORT — Source cloud hover math
 
 Completed: 2026-06-17 07:12 PDT
