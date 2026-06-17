@@ -393,12 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 21:21 UTC</dd>
+            <dd>2026-06-17 21:59 UTC</dd>
             <dt>Branch</dt>
             <dd>fps-starter-kit-port</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: camera-backed directional shadow defaults now
+              Latest update: Starter Kit FPS now free-resizes the playable
+              shell/canvas to the full browser viewport, with the boot splash
+              DOM removed and the 1280x720 source cap/aspect sizing retired.
+              Playwright layout proof covered 1600x900, 1000x900, and 390x844
+              viewports, and the managed Aperture
+              <code>smoke:full-clear</code> route cleared all 4 enemies with
+              <code>health:60</code>, <code>shotsFired:8</code>,
+              <code>hits:16</code>, and <code>gameStatus:"cleared"</code>.
+              Prior update: camera-backed directional shadow defaults now
               refuse to forward fallback scene/fixed matrix fields into matrix
               computation, so a Three.js-style fixed box cannot affect the
               out-of-box default. Fixed/static bounds remain explicit authored
@@ -6623,6 +6631,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">FPS-PORT</div>
+            <div>
+              <strong>FPS canvas free-resizes without splash.</strong>
+              <span>
+                Starter Kit FPS removed the boot splash and source viewport cap,
+                then corrected the shell/canvas to fill 1600x900, 1000x900, and
+                390x844 browser viewports exactly. The managed Aperture
+                <code>smoke:full-clear</code> route was re-run after the layout
+                change and cleared all 4 enemies with <code>health:60</code>,
+                <code>shotsFired:8</code>, <code>hits:16</code>, and
+                <code>gameStatus:"cleared"</code>.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">FPS-PORT</div>
             <div>

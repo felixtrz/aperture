@@ -23,6 +23,11 @@ Completed: 2026-06-17 14:54 PDT
 - Playwright layout probe against `http://127.0.0.1:5173/`: 1600x900 viewport
   produced a 1600x900 shell/canvas, 1000x900 produced 1000x900, 390x844
   produced 390x844, and `#boot-splash` count was `0`.
+- `pnpm --dir fps run smoke:full-clear -- --fresh-session --keep-running --verbose`
+  passed with `health:60`, `shotsFired:8`, `hits:16`,
+  `enemiesRemaining:0`, `destroyedEnemies:4`, and
+  `gameStatus:"cleared"`.
+- `pnpm --dir fps exec aperture dev down`
 
 ## FPS-PORT - Pointer-locked input proof
 

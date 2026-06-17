@@ -30,14 +30,21 @@ User-directed work is on branch `fps-starter-kit-port`.
 - `pnpm --dir shadow-lab run typecheck`
 - `git diff --check -- fps/index.html fps/src/lib/fps-hud.ts test/app/fps-hud.test.ts`
 - Playwright layout probe against `http://127.0.0.1:5173/`
-- `pnpm --dir fps exec aperture dev status`: daemon/server/browser/bridge alive
-  at `http://127.0.0.1:5173/`.
+- `pnpm --dir fps run smoke:full-clear -- --fresh-session --keep-running --verbose`
+  - cleared all 4 enemies through managed Aperture CLI input;
+  - final state: `health:60`, `shotsFired:8`, `hits:16`,
+    `enemiesRemaining:0`, `destroyedEnemies:4`, `gameStatus:"cleared"`;
+  - screenshot:
+    `fps/.aperture/runtime/fps-full-clear-smoke.png`.
+- `pnpm --dir fps exec aperture dev down`
 
 ## Known Issues
 
 - FPS viewmodel placement/material parity remains the main visible open FPS
   port decision, although the user just reported the current live experience is
   very good and they cannot find a problem with it.
+- The earlier pointer-input handoff caveat about the long full-clear smoke
+  lifecycle is superseded by the 2026-06-17 14:57 PDT pass above.
 - Pre-existing untracked screenshot/parity artifacts remain outside commits.
 
 ## Recommended Next Task

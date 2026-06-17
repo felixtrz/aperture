@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "29712108",
   "activePid": null,
-  "notes": "Corrected FPS resize behavior to true free resize: the playable shell/canvas now fills 1600x900, 1000x900, and 390x844 viewports exactly, with no boot-splash DOM. FPS build/typecheck, fps-hud test, racing typecheck, and shadow-lab typecheck passed.",
-  "lastRunFinishedAt": "2026-06-17T21:58:00Z"
+  "notes": "Recorded FPS full-clear proof after free-resize: managed Aperture smoke cleared all four enemies with health 60, shotsFired 8, hits 16, enemiesRemaining 0, destroyedEnemies 4, and gameStatus cleared; tracker and handoff updated; managed session stopped.",
+  "lastRunFinishedAt": "2026-06-17T22:00:33Z"
 }
