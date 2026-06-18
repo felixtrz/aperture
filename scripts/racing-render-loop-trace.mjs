@@ -781,6 +781,11 @@ function bucketProfileUrl(url) {
 
 function printSummary(summary, summaryPath) {
   console.log(`racing render-loop trace summary: ${summaryPath}`);
+  if (summary.apertureGpuTimings === true) {
+    console.log(
+      "note: --aperture-gpu-timings enables WebGPU timestamp readbacks and can distort Aperture CPU phase/cadence measurements; use a separate run without it for fair frame-time comparison.",
+    );
+  }
   for (const run of summary.runs) {
     const interval = run.raf.intervalMs;
     const callback = run.raf.callbackMs;

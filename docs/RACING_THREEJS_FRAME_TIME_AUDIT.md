@@ -69,20 +69,27 @@ pipeline cache-hit returns, and conditional queued pipeline awaits.
   `.cpuprofile` self-time buckets, aggregates Aperture phase timings, and can
   optionally enable deeper three.js WebGL method counting with
   `--three-gl-diagnostics`.
-- Latest instrumentation-refresh headed paired run:
-  `/tmp/racing-paired-instrumentation-refresh/summary.json` (`2026-06-18`,
-  command: `node scripts/racing-render-loop-trace.mjs ... --headed --no-trace
---aperture-gpu-timings`). Aperture idle RAF was `p50 16.66 ms /
-p95 18.57 ms / p99 18.60 ms / max 32.73 ms`; three.js idle was
-  `p50 16.70 ms / p95 18.50 ms / p99 18.65 ms / max 34.50 ms`.
-  Aperture drive was `p50 16.67 ms / p95 18.38 ms / p99 18.57 ms /
-max 33.34 ms`; three.js drive was `p50 16.70 ms / p95 18.50 ms /
-p99 18.65 ms / max 32.00 ms`. Aperture reported `25` idle and `32-38`
-  drive draws; three.js reported `93` idle and `93-98` drive GL draws.
-  Three.js headed WebGL GPU timer p50 was `4.97 ms` idle / `4.13 ms` drive.
-  Aperture's current opt-in WebGPU timestamp report remains boundary-scoped
-  (`main` pass only), so its `~0.02-0.04 ms` p50 values are not a full-frame
-  GPU comparison.
+- Latest fair headed paired run:
+  `/tmp/racing-paired-fair-no-aperture-gpu-timing/summary.json`
+  (`2026-06-18`, command: `node scripts/racing-render-loop-trace.mjs ...
+--headed --no-trace`, with Aperture GPU timings intentionally off). Aperture
+  idle RAF was `p50 16.66 ms / p95 17.66 ms / p99 17.67 ms / max 17.69 ms`;
+  three.js idle was `p50 16.70 ms / p95 17.55 ms / p99 17.70 ms /
+max 33.30 ms`. Aperture drive was `p50 16.67 ms / p95 17.66 ms /
+p99 17.68 ms / max 33.31 ms`; three.js drive was `p50 16.70 ms /
+p95 17.50 ms / p99 17.70 ms / max 33.40 ms`. Aperture reported `25` idle
+  and `32-38` drive draws; three.js reported `93` idle and `93-98` drive GL
+  draws. Three.js headed WebGL GPU timer p50 was `5.59 ms` idle / `5.32 ms`
+  drive. Aperture's current opt-in WebGPU timestamp report is boundary-scoped
+  and not enabled in this fair CPU/cadence run.
+- Aperture GPU-timing distortion check:
+  `/tmp/racing-paired-instrumentation-refresh/summary.json` and
+  `/tmp/racing-aperture-no-gpu-timing-phase-check/summary.json` show that
+  `--aperture-gpu-timings` currently changes the CPU phase profile by forcing
+  timestamp/readback safety work. With GPU timings on, Aperture `submit` p50 was
+  about `5.3 ms`; with GPU timings off, `submit` p50 was about `0.33-0.35 ms`.
+  Use Aperture GPU-timing runs only to inspect timestamp support/pass values,
+  not for fair CPU phase or cadence comparisons.
 - Latest headed three.js deep-GL diagnostic run:
   `/tmp/racing-three-deep-gl-headed/summary.json` (`2026-06-18`, command:
   `node scripts/racing-render-loop-trace.mjs --target=three ...
@@ -156,9 +163,12 @@ p99 18.65 ms / max 32.00 ms`. Aperture reported `25` idle and `32-38`
   `/tmp/racing-aperture-gpu-timing-drive-smoke/summary.json` show the existing
   WebGPU report is boundary-scoped (`main` pass only, tens of microseconds in
   this scene). Treat that as proof the opt-in path works, not as a complete
-  full-frame GPU comparison against three.js. The remaining tooling gap is a
-  whole-command-buffer or whole-frame WebGPU timestamp pair covering shadow,
-  forward, and post work together.
+  full-frame GPU comparison against three.js, and do not use
+  `--aperture-gpu-timings` runs for fair CPU phase/cadence comparisons because
+  timestamp readback safety currently distorts the app `submit` phase. The
+  remaining tooling gap is a whole-command-buffer or whole-frame WebGPU
+  timestamp pair covering shadow, forward, and post work together without
+  changing the measured CPU frame.
 - Previous clean headed render-loop harness run:
   `/tmp/racing-trace-headed-pair/summary.json` (`2026-06-18`, command:
   `pnpm run trace:racing ... --headed`). This was the prior valid cadence
@@ -352,15 +362,18 @@ reported `25` idle draw calls and `32-38` while driving. A separate opt-in
 three.js deep-GL diagnostic measured `~452` total wrapped WebGL calls per idle
 frame and `~481` while driving, but three.js still kept its JS render section
 around `0.5 ms` p50. The current Aperture gap is therefore not "too many draw
-calls"; it is CPU prepare/submit/reporting overhead and frame cadence/tail work.
+calls"; it is CPU render preparation/collection/reporting overhead and
+frame-cadence/tail work.
 
 The new Aperture phase summary makes that concrete. In the latest headed paired
-run, Aperture's measured render phases totaled about `8.1 ms` p50 idle and
-`9.7 ms` p50 drive. `submit` dominated at about `5.3 ms` p50 in both scenarios
-and reached about `7.5 ms` p95 while driving; `prepare` was about `1.9 ms` p50
-idle and `2.6 ms` p50 drive. Three.js's injected JS `render` section stayed
-around `0.5 ms` p50 / `<0.7 ms` p95. That phase gap is the next primary
-diagnosis target.
+run with Aperture GPU timings off, Aperture's measured render phases totaled
+about `3.1 ms` p50 idle and `4.3 ms` p50 drive. `prepare` was the largest
+normal bucket (`2.0 ms` p50 idle, `2.5 ms` p50 drive), followed by drive
+`collect`/`sort`; normal `submit` was only about `0.33-0.35 ms` p50. Three.js's
+injected JS `render` section stayed around `0.5 ms` p50 / `<0.7 ms` p95. A
+previous run with `--aperture-gpu-timings` made `submit` look like a `~5 ms`
+bucket because timestamp readbacks force submitted-work safety; that is a
+tooling distortion, not the normal render-loop profile.
 
 Headless Chrome still shows browser WebGL `ReadPixels` GPU-stall warnings and
 severe three.js RAF throttling in this environment. Source inspection did not
@@ -512,10 +525,10 @@ latest accepted changes remove real per-frame GPU allocation/write pressure,
 stabilize more main-draw identity, reuse render bundles on unchanged post-graph
 scene prefixes, reduce app-facing diagnostics churn, remove the unbounded
 worker snapshot publication bug, and rate-limit heavy full worker summaries by
-elapsed time. In the latest instrumentation-refresh headed run, Aperture is
-roughly display-cadence tied with three.js, slightly behind at idle p95, slightly
-ahead at drive p95/p99, and still much higher heap. The latest write probe
-removes the idle `WorldTransforms/storage` hot spot and keeps drive write
+elapsed time. In the latest fair headed run, Aperture is roughly
+display-cadence tied with three.js, slightly behind at p95 in both
+scenarios, similar at p99/max, and still much higher heap. The latest write
+probe removes the idle `WorldTransforms/storage` hot spot and keeps drive write
 pressure near `2 KB/frame` display-normalized; the latest status probe cuts the
 app-facing `diagnostics.lastFrame.renderChangeSet` copy from roughly `16.8 KB`
 to `2.1 KB` while preserving the full `16.4 KB` change-set through an explicit
@@ -567,20 +580,21 @@ one submit per rendered frame.
 ## Latest Render-Loop Harness Summary
 
 Latest headed trace harness artifact:
-`/tmp/racing-paired-instrumentation-refresh/summary.json`.
+`/tmp/racing-paired-fair-no-aperture-gpu-timing/summary.json`.
 
-| Scenario | Aperture RAF p50 / p95 / p99 / max | three.js RAF p50 / p95 / p99 / max | Aperture draws | three.js GL draws | Aperture phase total p50 / p95 | Aperture submit p50 / p95 | three.js JS render p50 / p95 | three.js GPU p50 / p95 |
-| -------- | ---------------------------------: | ---------------------------------: | -------------: | ----------------: | -----------------------------: | ------------------------: | ---------------------------: | ---------------------: |
-| Idle     | `16.66 / 18.57 / 18.60 / 32.73 ms` | `16.70 / 18.50 / 18.65 / 34.50 ms` |           `25` |              `93` |               `8.11 / 8.72 ms` |          `5.28 / 5.95 ms` |             `0.50 / 0.65 ms` |       `4.97 / 8.45 ms` |
-| Drive    | `16.67 / 18.38 / 18.57 / 33.34 ms` | `16.70 / 18.50 / 18.65 / 32.00 ms` |        `32-38` |           `93-98` |              `9.69 / 11.79 ms` |          `5.29 / 7.50 ms` |             `0.50 / 0.64 ms` |       `4.13 / 6.78 ms` |
+| Scenario | Aperture RAF p50 / p95 / p99 / max | three.js RAF p50 / p95 / p99 / max | Aperture draws | three.js GL draws | Aperture phase total p50 / p95 | Aperture prepare p50 / p95 | Aperture submit p50 / p95 | three.js JS render p50 / p95 | three.js GPU p50 / p95 |
+| -------- | ---------------------------------: | ---------------------------------: | -------------: | ----------------: | -----------------------------: | -------------------------: | ------------------------: | ---------------------------: | ---------------------: |
+| Idle     | `16.66 / 17.66 / 17.67 / 17.69 ms` | `16.70 / 17.55 / 17.70 / 33.30 ms` |           `25` |              `93` |               `3.14 / 3.34 ms` |           `2.04 / 2.18 ms` |          `0.33 / 0.39 ms` |             `0.50 / 0.65 ms` |       `5.59 / 7.00 ms` |
+| Drive    | `16.67 / 17.66 / 17.68 / 33.31 ms` | `16.70 / 17.50 / 17.70 / 33.40 ms` |        `32-38` |           `93-98` |               `4.26 / 5.03 ms` |           `2.47 / 3.26 ms` |          `0.35 / 0.49 ms` |             `0.50 / 0.65 ms` |       `5.32 / 6.69 ms` |
 
 Interpretation: headline RAF cadence is close enough that short-run display
 tails are mixed. The actionable delta is the app-side CPU phase profile:
-Aperture spends several milliseconds in render `submit` and `prepare` even
+Aperture spends several milliseconds in render preparation/collection even
 though it emits fewer draw calls than three.js. The three.js GPU timer shows
 real WebGL GPU work, but the comparable Aperture full-frame GPU timing path is
-not yet available; current Aperture GPU numbers are only per-boundary/pass
-timestamps.
+not yet available. Current Aperture GPU timestamp runs are useful for checking
+pass-level support, but they are not fair CPU/cadence runs because timestamp
+readbacks currently distort `submit`.
 
 ## Latest Isolated Benchmark Summary
 
