@@ -1119,6 +1119,10 @@ function summarizeWorkerMessageDeliveryWindow(first, last, rafSamples = []) {
     byReason: diffCountRecords(first.byReason, last.byReason),
     intervalMs: summarizeWorkerMessageIntervals(messageSamples),
     rafWindow: summarizeWorkerMessagesPerRafWindow(messageSamples, rafSamples),
+    framePacingImpact: summarizeWorkerMessageFramePacingImpact(
+      messageSamples,
+      rafSamples,
+    ),
     latest: last.latest ?? null,
   };
 }
@@ -1234,6 +1238,177 @@ function summarizeWorkerMessagesPerRafWindow(messageSamples, rafSamples) {
       frameWindowCount > 0 ? nonEmptyFrameCount / frameWindowCount : null,
     multiMessageFrameRatio:
       frameWindowCount > 0 ? multiMessageFrameCount / frameWindowCount : null,
+  };
+}
+
+function summarizeWorkerMessageFramePacingImpact(messageSamples, rafSamples) {
+  const frameSamples = rafSamples
+    .filter(
+      (sample) =>
+        sample?.kind === "probe" &&
+        isFiniteNumber(sample.timestamp) &&
+        isFiniteNumber(sample.intervalMs),
+    )
+    .map((sample) => ({
+      timestamp: sample.timestamp,
+      intervalMs: sample.intervalMs,
+    }))
+    .sort((a, b) => a.timestamp - b.timestamp);
+
+  if (frameSamples.length < 2) {
+    return emptyWorkerMessageFramePacingImpact(messageSamples.length);
+  }
+
+  const expectedIntervalMs = quantiles(
+    frameSamples.map((sample) => sample.intervalMs),
+  ).p50;
+  if (!isFiniteNumber(expectedIntervalMs) || expectedIntervalMs <= 0) {
+    return emptyWorkerMessageFramePacingImpact(messageSamples.length);
+  }
+
+  const sortedMessages = messageSamples
+    .filter((sample) => isFiniteNumber(sample?.timestamp))
+    .slice()
+    .sort((a, b) => a.timestamp - b.timestamp);
+  const groups = {
+    withMessages: createFramePacingImpactGroup(),
+    withoutMessages: createFramePacingImpactGroup(),
+    multiMessageFrames: createFramePacingImpactGroup(),
+  };
+  let messageIndex = 0;
+  let messageFrameCount = 0;
+  let multiMessageFrameCount = 0;
+
+  while (
+    messageIndex < sortedMessages.length &&
+    sortedMessages[messageIndex].timestamp <= frameSamples[0].timestamp
+  ) {
+    messageIndex += 1;
+  }
+
+  for (let index = 1; index < frameSamples.length; index += 1) {
+    const previous = frameSamples[index - 1];
+    const current = frameSamples[index];
+    let count = 0;
+
+    while (
+      messageIndex < sortedMessages.length &&
+      sortedMessages[messageIndex].timestamp <= current.timestamp
+    ) {
+      count += 1;
+      messageIndex += 1;
+    }
+
+    const adjacentDeltaMs = Math.abs(current.intervalMs - previous.intervalMs);
+    const group = count > 0 ? groups.withMessages : groups.withoutMessages;
+    pushFramePacingImpactGroupSample(group, {
+      intervalMs: current.intervalMs,
+      absoluteDeviationMs: Math.abs(current.intervalMs - expectedIntervalMs),
+      adjacentDeltaMs,
+    });
+
+    if (count > 0) {
+      messageFrameCount += 1;
+    }
+    if (count > 1) {
+      multiMessageFrameCount += 1;
+      pushFramePacingImpactGroupSample(groups.multiMessageFrames, {
+        intervalMs: current.intervalMs,
+        absoluteDeviationMs: Math.abs(current.intervalMs - expectedIntervalMs),
+        adjacentDeltaMs,
+      });
+    }
+  }
+
+  const frameWindowCount = frameSamples.length - 1;
+  const withMessages = summarizeFramePacingImpactGroup(groups.withMessages);
+  const withoutMessages = summarizeFramePacingImpactGroup(
+    groups.withoutMessages,
+  );
+  const multiMessageFrames = summarizeFramePacingImpactGroup(
+    groups.multiMessageFrames,
+  );
+
+  return {
+    frameWindowCount,
+    messageCount: sortedMessages.length,
+    expectedIntervalMs,
+    messageFrameCount,
+    noMessageFrameCount: frameWindowCount - messageFrameCount,
+    multiMessageFrameCount,
+    messageFrameRatio:
+      frameWindowCount > 0 ? messageFrameCount / frameWindowCount : null,
+    multiMessageFrameRatio:
+      frameWindowCount > 0 ? multiMessageFrameCount / frameWindowCount : null,
+    withMessages,
+    withoutMessages,
+    multiMessageFrames,
+    withMessagesMinusWithoutMessages: compareFramePacingImpactGroups(
+      withMessages,
+      withoutMessages,
+    ),
+  };
+}
+
+function emptyWorkerMessageFramePacingImpact(messageCount) {
+  const empty = summarizeFramePacingImpactGroup(createFramePacingImpactGroup());
+  return {
+    frameWindowCount: 0,
+    messageCount,
+    expectedIntervalMs: null,
+    messageFrameCount: 0,
+    noMessageFrameCount: 0,
+    multiMessageFrameCount: 0,
+    messageFrameRatio: null,
+    multiMessageFrameRatio: null,
+    withMessages: empty,
+    withoutMessages: empty,
+    multiMessageFrames: empty,
+    withMessagesMinusWithoutMessages: {
+      intervalP95Ms: null,
+      absoluteDeviationP95Ms: null,
+      adjacentDeltaP95Ms: null,
+    },
+  };
+}
+
+function createFramePacingImpactGroup() {
+  return {
+    intervalMs: [],
+    absoluteDeviationMs: [],
+    adjacentDeltaMs: [],
+  };
+}
+
+function pushFramePacingImpactGroupSample(group, sample) {
+  group.intervalMs.push(sample.intervalMs);
+  group.absoluteDeviationMs.push(sample.absoluteDeviationMs);
+  group.adjacentDeltaMs.push(sample.adjacentDeltaMs);
+}
+
+function summarizeFramePacingImpactGroup(group) {
+  return {
+    frameCount: group.intervalMs.length,
+    intervalMs: quantiles(group.intervalMs),
+    absoluteDeviationMs: quantiles(group.absoluteDeviationMs),
+    adjacentDeltaMs: quantiles(group.adjacentDeltaMs),
+  };
+}
+
+function compareFramePacingImpactGroups(withMessages, withoutMessages) {
+  return {
+    intervalP95Ms: subtractFinite(
+      withMessages.intervalMs.p95,
+      withoutMessages.intervalMs.p95,
+    ),
+    absoluteDeviationP95Ms: subtractFinite(
+      withMessages.absoluteDeviationMs.p95,
+      withoutMessages.absoluteDeviationMs.p95,
+    ),
+    adjacentDeltaP95Ms: subtractFinite(
+      withMessages.adjacentDeltaMs.p95,
+      withoutMessages.adjacentDeltaMs.p95,
+    ),
   };
 }
 
@@ -1945,6 +2120,13 @@ function printSummary(summary, summaryPath) {
         parts.push(
           `workerMsgInt95=${formatMs(deliveryWindow.intervalMs?.p95)} msg/frame95=${formatNumber(deliveryWindow.rafWindow?.messagesPerFrame?.p95)} msgFrame=${formatRatio(deliveryWindow.rafWindow?.nonEmptyFrameRatio)}`,
         );
+        const messageImpact =
+          deliveryWindow.framePacingImpact?.withMessagesMinusWithoutMessages;
+        if (messageImpact !== undefined && messageImpact !== null) {
+          parts.push(
+            `msgImpact int95=${formatSignedMs(messageImpact.intervalP95Ms)} dev95=${formatSignedMs(messageImpact.absoluteDeviationP95Ms)} adj95=${formatSignedMs(messageImpact.adjacentDeltaP95Ms)}`,
+          );
+        }
       }
     }
     if (run.target === "three" || (gpuTimer?.count ?? 0) > 0) {
@@ -2101,6 +2283,10 @@ function topCountKey(counts) {
     }
   }
   return best;
+}
+
+function subtractFinite(left, right) {
+  return isFiniteNumber(left) && isFiniteNumber(right) ? left - right : null;
 }
 
 function isFiniteNumber(value) {
