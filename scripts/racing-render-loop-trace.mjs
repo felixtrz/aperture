@@ -69,8 +69,12 @@ async function main() {
       root: DEFAULT_THREE_ROOT,
       preferredPort: numberArg(args["three-port"], 5204),
       transforms: {
+        "/index.html": transformThreeIndex,
         "/js/main.js": instrumentThreeMain,
         "/js/Particles.js": instrumentThreeParticles,
+      },
+      extraRoots: {
+        "/__three__/": path.join(ROOT, "references", "three.js"),
       },
     });
     servers.push(server);
@@ -105,6 +109,7 @@ async function main() {
     driveSettleMs,
     captureTrace,
     captureCpuProfile,
+    headless: args.headed === true ? false : true,
     targets: targets.map((target) => ({
       id: target.id,
       label: target.label,
@@ -690,6 +695,18 @@ function createFrameSamplerInitScript() {
 `;
 }
 
+function transformThreeIndex(source) {
+  return source
+    .replace(
+      '"three": "https://cdn.jsdelivr.net/npm/three@0.184.0/build/three.module.js"',
+      '"three": "/__three__/build/three.module.js"',
+    )
+    .replace(
+      '"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.184.0/examples/jsm/"',
+      '"three/addons/": "/__three__/examples/jsm/"',
+    );
+}
+
 function instrumentThreeMain(source) {
   let output = source;
   const rendererNeedle = "const renderer = new THREE.WebGLRenderer";
@@ -1159,6 +1176,7 @@ async function serveStatic({
   root,
   preferredPort,
   transforms = {},
+  extraRoots = {},
   headers = {},
 }) {
   const rootStat = await stat(root).catch(() => null);
@@ -1171,8 +1189,9 @@ async function serveStatic({
       const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
       const pathname = decodeURIComponent(requestUrl.pathname);
       const normalized = pathname === "/" ? "/index.html" : pathname;
-      const filePath = path.resolve(root, `.${normalized}`);
-      if (!filePath.startsWith(root + path.sep)) {
+      const staticPath = resolveStaticPath(root, normalized, extraRoots);
+      const filePath = staticPath.filePath;
+      if (!isPathInside(filePath, staticPath.root)) {
         response.writeHead(403);
         response.end("Forbidden");
         return;
@@ -1214,6 +1233,26 @@ async function serveStatic({
         server.close((error) => (error ? reject(error) : resolve()));
       }),
   };
+}
+
+function resolveStaticPath(root, normalized, extraRoots) {
+  for (const [prefix, extraRoot] of Object.entries(extraRoots)) {
+    if (!normalized.startsWith(prefix)) continue;
+    const relativePath = normalized.slice(prefix.length);
+    return {
+      root: extraRoot,
+      filePath: path.resolve(extraRoot, relativePath),
+    };
+  }
+
+  return {
+    root,
+    filePath: path.resolve(root, `.${normalized}`),
+  };
+}
+
+function isPathInside(filePath, root) {
+  return filePath === root || filePath.startsWith(root + path.sep);
 }
 
 function listenOnAvailablePort(server, preferredPort) {
@@ -1299,14 +1338,6 @@ function parseArgs(rawArgs) {
     }
     if (arg === "--trace") {
       parsed.trace = true;
-      continue;
-    }
-    if (arg === "--cpu-profile") {
-      parsed["cpu-profile"] = true;
-      continue;
-    }
-    if (arg === "--no-cpu-profile") {
-      parsed["cpu-profile"] = false;
       continue;
     }
     if (arg === "--cpu-profile") {
