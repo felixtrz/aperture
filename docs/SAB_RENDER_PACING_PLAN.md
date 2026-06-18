@@ -198,6 +198,43 @@ Latest paired trace evidence after this slice:
     callback p95 in all three trials, and source0 remains better on several
     jitter metrics. Next step is still a pollable/coalesced dynamic-asset
     mailbox/data plane, not more payload trimming alone.
+- Message-window pacing traces with delivered-message timestamps:
+  `/tmp/racing-poll-metrics-default/summary.json`,
+  `/tmp/racing-poll-metrics-source0/summary.json`,
+  `/tmp/racing-poll-metrics-heartbeat60/summary.json`, and
+  `/tmp/racing-poll-metrics-heartbeat60-source0/summary.json`
+  - The trace harness now stores a bounded browser-side sample of delivered
+    worker-message timestamps and reports worker-message interval p95,
+    message-delivery Hz, and messages-per-RAF-window. This is the more useful
+    metric for the poll-model question than cumulative worker counters.
+  - Current default native-RAF SAB drive won the 3-trial aggregate versus
+    three.js on interval p95, deviation p95, adjacent jitter p95, RMS, pacing
+    score, within-1ms ratio, and jitter-over-2ms ratio. Aperture still lost
+    callback p95 in all three trials. Aperture medians: `18.05 ms` interval
+    p95, `1.65 ms` dev95, `2.71 ms` adj95, `2.01 ms` pacing score, `81.3%`
+    within1, `11.3%` jitter2, `3.35 ms` callback p95. Delivered worker
+    messages were still about `15.7 Hz`, touching `25.9%` of RAF windows,
+    mostly `aperture.simulation.sourceAssets`.
+  - `--aperture-source-assets-message-rate=0` reduced delivered worker
+    messages to about `2.0 Hz` and touched only `3.3%` of RAF windows. It
+    improved some Aperture-only medians (`84.6%` within1, `9.7%` jitter2,
+    `3.82 ms` render p95) but did not dominate default on every pacing metric
+    (`18.14 ms` interval p95, `2.11 ms` pacing score). This remains proof that
+    the source-asset notification stream has main-thread pacing cost, not proof
+    that stale dynamic assets are acceptable.
+  - Forcing `--aperture-shared-message-rate=60` was not a clean loss in this
+    sample: it delivered about `52.9 Hz` snapshot messages into `87.0%` of RAF
+    windows and had the strongest median pacing score (`1.90 ms`) and interval
+    p95 (`17.86 ms`). The likely explanation is not that message-driven
+    rendering is architecturally better; the native RAF loop still owns
+    presentation. Rather, a regular heartbeat changes how source-asset changes
+    piggyback and may produce less irregular sideband work than sparse dynamic
+    asset notifications. Treat this as a control that keeps us honest.
+  - Combining heartbeat60 with source0 was mixed and worse than heartbeat60 with
+    source assets on most Aperture medians (`2.26 ms` score, `78.7%` within1,
+    `3.49 ms` callback p95), despite the same `~53 Hz` delivered-message rate.
+    That reinforces the current direction: measure message shape/timing, and
+    make dynamic geometry pollable/coalesced before changing defaults again.
 
 Racing still authors dynamic drift-mark mesh assets while driving. Therefore,
 simply lowering the generic source-asset sideband can improve this benchmark,

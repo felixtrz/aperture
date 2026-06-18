@@ -778,6 +778,22 @@ function summarizeRun(target, scenario, trialIndex, snapshot, profileFiles) {
   const apertureSamples = statusSamples
     .map((sample) => sample.aperture)
     .filter((sample) => sample !== null);
+  const messageStatusSamples = [
+    snapshot.raf?.baselineStatus,
+    ...statusSamples,
+    snapshot.raf?.snapshotStatus,
+  ].filter((sample) => sample !== undefined && sample !== null);
+  const apertureStatusSamples = messageStatusSamples
+    .filter((sample) => sample.aperture !== null)
+    .map((sample) => ({
+      timestamp: sample.timestamp,
+      aperture: sample.aperture,
+    }));
+  const workerDeliveryWindow = summarizeWorkerMessageDeliveryWindow(
+    snapshot.raf?.baselineWorkerMessages,
+    snapshot.raf?.snapshotWorkerMessages,
+    rafSamples,
+  );
   const threeSamples = statusSamples
     .map((sample) => sample.three)
     .filter((sample) => sample !== null);
@@ -798,7 +814,12 @@ function summarizeRun(target, scenario, trialIndex, snapshot, profileFiles) {
       callbackMs: quantiles(callbacks),
       pacing: summarizeFramePacing(intervals),
     },
-    aperture: summarizeApertureSamples(apertureSamples, snapshot.aperture),
+    aperture: summarizeApertureSamples(
+      apertureSamples,
+      snapshot.aperture,
+      apertureStatusSamples,
+      workerDeliveryWindow,
+    ),
     three: summarizeThreeSamples(threeSamples, snapshot.three),
     visual: summarizeVisualDiagnostics(snapshot.visual),
     profileFiles,
@@ -836,7 +857,12 @@ function summarizeVisualDiagnostics(visual) {
   };
 }
 
-function summarizeApertureSamples(samples, latest) {
+function summarizeApertureSamples(
+  samples,
+  latest,
+  statusSamples = [],
+  workerDeliveryWindow = null,
+) {
   if (latest === null && samples.length === 0) return null;
   const drawCounts = samples
     .map((sample) => sample?.counts?.draw ?? sample?.counts?.drawCalls)
@@ -847,7 +873,12 @@ function summarizeApertureSamples(samples, latest) {
     phaseTimings: summarizeAperturePhaseTimings(samples, latest),
     cadence: summarizeApertureCadence(samples, latest),
     gpuTimings: summarizeApertureGpuTimings(samples, latest),
-    workerMessages: summarizeApertureWorkerMessages(samples, latest),
+    workerMessages: summarizeApertureWorkerMessages(
+      samples,
+      latest,
+      statusSamples,
+      workerDeliveryWindow,
+    ),
     performanceTransport:
       latest?.performance?.latest?.transport ??
       latest?.performance?.transport ??
@@ -980,7 +1011,14 @@ function summarizeApertureGpuTimings(samples, latest) {
   };
 }
 
-function summarizeApertureWorkerMessages(samples, latest) {
+function summarizeApertureWorkerMessages(
+  samples,
+  latest,
+  statusSamples = [],
+  workerDeliveryWindow = null,
+) {
+  const measuredWindow =
+    summarizeApertureWorkerMessageMeasuredWindow(statusSamples);
   const snapshotDecisions = latest?.workerMessages?.snapshotDecisions;
   if (snapshotDecisions !== undefined && snapshotDecisions !== null) {
     const sidebandDecisions = latest?.workerMessages?.sidebandDecisions;
@@ -998,6 +1036,8 @@ function summarizeApertureWorkerMessages(samples, latest) {
               postMessageReasons: sidebandDecisions.postMessageReasons ?? {},
               latest: sidebandDecisions.latest ?? null,
             },
+      measuredWindow,
+      deliveryWindow: workerDeliveryWindow,
       source: "browser-status-counter",
     };
   }
@@ -1037,8 +1077,247 @@ function summarizeApertureWorkerMessages(samples, latest) {
     postedMessages,
     postMessageReasons,
     latest: timings.at(-1) ?? null,
+    measuredWindow,
+    deliveryWindow: workerDeliveryWindow,
     source: "sampled-status",
   };
+}
+
+function summarizeWorkerMessageDeliveryWindow(first, last, rafSamples = []) {
+  if (
+    first === undefined ||
+    first === null ||
+    last === undefined ||
+    last === null
+  ) {
+    return null;
+  }
+
+  const elapsedMilliseconds =
+    isFiniteNumber(first.timestamp) && isFiniteNumber(last.timestamp)
+      ? Math.max(0, last.timestamp - first.timestamp)
+      : null;
+  const firstTotal = isFiniteNumber(first.total) ? first.total : 0;
+  const lastTotal = isFiniteNumber(last.total) ? last.total : firstTotal;
+  const totalDelta = Math.max(0, lastTotal - firstTotal);
+
+  const messageSamples = readWorkerMessageSamplesBetween(
+    first.samples,
+    last.samples,
+    first.timestamp,
+    last.timestamp,
+  );
+
+  return {
+    elapsedMilliseconds,
+    totalDelta,
+    rateHz:
+      elapsedMilliseconds !== null && elapsedMilliseconds > 0
+        ? (totalDelta * 1000) / elapsedMilliseconds
+        : null,
+    byType: diffCountRecords(first.byType, last.byType),
+    byReason: diffCountRecords(first.byReason, last.byReason),
+    intervalMs: summarizeWorkerMessageIntervals(messageSamples),
+    rafWindow: summarizeWorkerMessagesPerRafWindow(messageSamples, rafSamples),
+    latest: last.latest ?? null,
+  };
+}
+
+function readWorkerMessageSamplesBetween(
+  firstSamples,
+  lastSamples,
+  startedAtMilliseconds,
+  endedAtMilliseconds,
+) {
+  const samples = Array.isArray(lastSamples) ? lastSamples : [];
+  const firstSampleTotal =
+    Array.isArray(firstSamples) && firstSamples.length > 0
+      ? firstSamples[firstSamples.length - 1]?.total
+      : null;
+
+  return samples.filter((sample) => {
+    if (!isFiniteNumber(sample?.timestamp)) return false;
+    if (
+      isFiniteNumber(startedAtMilliseconds) &&
+      sample.timestamp < startedAtMilliseconds
+    ) {
+      return false;
+    }
+    if (
+      isFiniteNumber(endedAtMilliseconds) &&
+      sample.timestamp > endedAtMilliseconds
+    ) {
+      return false;
+    }
+    if (
+      isFiniteNumber(firstSampleTotal) &&
+      isFiniteNumber(sample.total) &&
+      sample.total <= firstSampleTotal
+    ) {
+      return false;
+    }
+    return true;
+  });
+}
+
+function summarizeWorkerMessageIntervals(samples) {
+  const intervals = [];
+  for (let index = 1; index < samples.length; index += 1) {
+    const previous = samples[index - 1]?.timestamp;
+    const current = samples[index]?.timestamp;
+    if (isFiniteNumber(previous) && isFiniteNumber(current)) {
+      intervals.push(Math.max(0, current - previous));
+    }
+  }
+
+  return quantiles(intervals);
+}
+
+function summarizeWorkerMessagesPerRafWindow(messageSamples, rafSamples) {
+  const frameTimestamps = rafSamples
+    .filter((sample) => sample?.kind === "probe")
+    .map((sample) => sample.timestamp)
+    .filter(isFiniteNumber)
+    .sort((a, b) => a - b);
+
+  if (frameTimestamps.length < 2) {
+    return {
+      frameWindowCount: 0,
+      messageCount: messageSamples.length,
+      messagesPerFrame: quantiles([]),
+      nonEmptyFrameRatio: null,
+      multiMessageFrameRatio: null,
+    };
+  }
+
+  const messagesPerFrame = [];
+  let messageIndex = 0;
+  let nonEmptyFrameCount = 0;
+  let multiMessageFrameCount = 0;
+
+  while (
+    messageIndex < messageSamples.length &&
+    messageSamples[messageIndex].timestamp < frameTimestamps[0]
+  ) {
+    messageIndex += 1;
+  }
+
+  for (
+    let frameIndex = 1;
+    frameIndex < frameTimestamps.length;
+    frameIndex += 1
+  ) {
+    const windowEnd = frameTimestamps[frameIndex];
+    let count = 0;
+    while (
+      messageIndex < messageSamples.length &&
+      messageSamples[messageIndex].timestamp <= windowEnd
+    ) {
+      count += 1;
+      messageIndex += 1;
+    }
+    messagesPerFrame.push(count);
+    if (count > 0) {
+      nonEmptyFrameCount += 1;
+    }
+    if (count > 1) {
+      multiMessageFrameCount += 1;
+    }
+  }
+
+  const frameWindowCount = messagesPerFrame.length;
+  return {
+    frameWindowCount,
+    messageCount: messagesPerFrame.reduce((total, count) => total + count, 0),
+    messagesPerFrame: quantiles(messagesPerFrame),
+    nonEmptyFrameRatio:
+      frameWindowCount > 0 ? nonEmptyFrameCount / frameWindowCount : null,
+    multiMessageFrameRatio:
+      frameWindowCount > 0 ? multiMessageFrameCount / frameWindowCount : null,
+  };
+}
+
+function summarizeApertureWorkerMessageMeasuredWindow(statusSamples) {
+  const samples = statusSamples.filter(
+    (sample) =>
+      isFiniteNumber(sample?.timestamp) &&
+      sample?.aperture?.workerMessages !== undefined &&
+      sample.aperture.workerMessages !== null,
+  );
+
+  if (samples.length < 2) {
+    return null;
+  }
+
+  const first = samples[0];
+  const last = samples[samples.length - 1];
+  const elapsedMilliseconds = Math.max(0, last.timestamp - first.timestamp);
+  const snapshot = summarizeWorkerMessageCounterDelta(
+    first.aperture.workerMessages.snapshotDecisions,
+    last.aperture.workerMessages.snapshotDecisions,
+    elapsedMilliseconds,
+  );
+  const sideband = summarizeWorkerMessageCounterDelta(
+    first.aperture.workerMessages.sidebandDecisions,
+    last.aperture.workerMessages.sidebandDecisions,
+    elapsedMilliseconds,
+  );
+
+  return {
+    sampleCount: samples.length,
+    elapsedMilliseconds,
+    snapshot,
+    sideband,
+    combined: {
+      totalDelta: snapshot.totalDelta + sideband.totalDelta,
+      rateHz:
+        elapsedMilliseconds > 0
+          ? ((snapshot.totalDelta + sideband.totalDelta) * 1000) /
+            elapsedMilliseconds
+          : null,
+    },
+  };
+}
+
+function summarizeWorkerMessageCounterDelta(first, last, elapsedMilliseconds) {
+  const firstTotal = isFiniteNumber(first?.total) ? first.total : 0;
+  const lastTotal = isFiniteNumber(last?.total) ? last.total : firstTotal;
+  const totalDelta = Math.max(0, lastTotal - firstTotal);
+
+  return {
+    totalDelta,
+    rateHz:
+      elapsedMilliseconds > 0
+        ? (totalDelta * 1000) / elapsedMilliseconds
+        : null,
+    postedMessages: diffCountRecords(
+      first?.postedMessages,
+      last?.postedMessages,
+    ),
+    postMessageReasons: diffCountRecords(
+      first?.postMessageReasons,
+      last?.postMessageReasons,
+    ),
+  };
+}
+
+function diffCountRecords(first, last) {
+  const result = {};
+  const keys = new Set([
+    ...Object.keys(first ?? {}),
+    ...Object.keys(last ?? {}),
+  ]);
+
+  for (const key of keys) {
+    const firstValue = isFiniteNumber(first?.[key]) ? first[key] : 0;
+    const lastValue = isFiniteNumber(last?.[key]) ? last[key] : 0;
+    const delta = Math.max(0, lastValue - firstValue);
+    if (delta > 0) {
+      result[key] = delta;
+    }
+  }
+
+  return result;
 }
 
 function summarizeThreeSamples(samples, latest) {
@@ -1154,11 +1433,15 @@ function summarizeFramePacing(intervals) {
       withinHalfMsRatio: null,
       withinOneMsRatio: null,
       adjacentJitterOverOneMsCount: 0,
+      adjacentJitterOverOneMsRatio: null,
       adjacentJitterOverTwoMsCount: 0,
+      adjacentJitterOverTwoMsRatio: null,
       longFrameCount: 0,
       longFrameRatio: null,
       veryLongFrameCount: 0,
       estimatedMissedVsyncs: 0,
+      missedVsyncsPerSecond: null,
+      pacingInstabilityScoreMs: null,
     };
   }
 
@@ -1175,11 +1458,15 @@ function summarizeFramePacing(intervals) {
       withinHalfMsRatio: null,
       withinOneMsRatio: null,
       adjacentJitterOverOneMsCount: 0,
+      adjacentJitterOverOneMsRatio: null,
       adjacentJitterOverTwoMsCount: 0,
+      adjacentJitterOverTwoMsRatio: null,
       longFrameCount: 0,
       longFrameRatio: null,
       veryLongFrameCount: 0,
       estimatedMissedVsyncs: 0,
+      missedVsyncsPerSecond: null,
+      pacingInstabilityScoreMs: null,
     };
   }
 
@@ -1213,6 +1500,7 @@ function summarizeFramePacing(intervals) {
   const adjacentJitterOverTwoMsCount = adjacentDeltas.filter(
     (delta) => delta >= 2,
   ).length;
+  const adjacentSampleCount = adjacentDeltas.length;
   const longFrameThreshold = expectedIntervalMs * 1.5;
   const veryLongFrameThreshold = expectedIntervalMs * 2.5;
   const longFrameCount = cleanIntervals.filter(
@@ -1228,6 +1516,18 @@ function summarizeFramePacing(intervals) {
     );
     return total + displayedIntervals - 1;
   }, 0);
+  const elapsedSeconds =
+    cleanIntervals.reduce((total, interval) => total + interval, 0) / 1000;
+  const rootMeanSquareDeviationMs = Math.sqrt(
+    squaredDeviationSum / cleanIntervals.length,
+  );
+  const adjacentDeltaP95 = quantiles(adjacentDeltas).p95;
+  const missedVsyncPenaltyMs =
+    (estimatedMissedVsyncs / cleanIntervals.length) * expectedIntervalMs;
+  const pacingInstabilityScoreMs =
+    rootMeanSquareDeviationMs +
+    (isFiniteNumber(adjacentDeltaP95) ? adjacentDeltaP95 * 0.5 : 0) +
+    missedVsyncPenaltyMs;
 
   return {
     expectedIntervalMs,
@@ -1235,17 +1535,26 @@ function summarizeFramePacing(intervals) {
     absoluteDeviationMs: quantiles(absoluteDeviations),
     adjacentDeltaMs: quantiles(adjacentDeltas),
     standardDeviationMs: Math.sqrt(signedDeviationSum / cleanIntervals.length),
-    rootMeanSquareDeviationMs: Math.sqrt(
-      squaredDeviationSum / cleanIntervals.length,
-    ),
+    rootMeanSquareDeviationMs,
     withinHalfMsRatio: withinHalfMsCount / cleanIntervals.length,
     withinOneMsRatio: withinOneMsCount / cleanIntervals.length,
     adjacentJitterOverOneMsCount,
+    adjacentJitterOverOneMsRatio:
+      adjacentSampleCount > 0
+        ? adjacentJitterOverOneMsCount / adjacentSampleCount
+        : null,
     adjacentJitterOverTwoMsCount,
+    adjacentJitterOverTwoMsRatio:
+      adjacentSampleCount > 0
+        ? adjacentJitterOverTwoMsCount / adjacentSampleCount
+        : null,
     longFrameCount,
     longFrameRatio: longFrameCount / cleanIntervals.length,
     veryLongFrameCount,
     estimatedMissedVsyncs,
+    missedVsyncsPerSecond:
+      elapsedSeconds > 0 ? estimatedMissedVsyncs / elapsedSeconds : null,
+    pacingInstabilityScoreMs,
   };
 }
 
@@ -1301,9 +1610,17 @@ function compareFramePacing(runs) {
           aperture.raf?.pacing?.rootMeanSquareDeviationMs,
           three.raf?.pacing?.rootMeanSquareDeviationMs,
         ),
+        pacingInstabilityScoreMs: compareLowerIsBetter(
+          aperture.raf?.pacing?.pacingInstabilityScoreMs,
+          three.raf?.pacing?.pacingInstabilityScoreMs,
+        ),
         withinOneMsRatio: compareHigherIsBetter(
           aperture.raf?.pacing?.withinOneMsRatio,
           three.raf?.pacing?.withinOneMsRatio,
+        ),
+        adjacentJitterOverTwoMsRatio: compareLowerIsBetter(
+          aperture.raf?.pacing?.adjacentJitterOverTwoMsRatio,
+          three.raf?.pacing?.adjacentJitterOverTwoMsRatio,
         ),
         adjacentJitterOverTwoMsCount: compareLowerIsBetter(
           aperture.raf?.pacing?.adjacentJitterOverTwoMsCount,
@@ -1587,7 +1904,7 @@ function printSummary(summary, summaryPath) {
     const parts = [
       `${run.label} ${run.scenario} trial=${run.trial ?? 1}`,
       `raf p50=${formatMs(interval.p50)} p95=${formatMs(interval.p95)} p99=${formatMs(interval.p99)} max=${formatMs(interval.max)}`,
-      `pacing dev95=${formatMs(pacing?.absoluteDeviationMs?.p95)} adj95=${formatMs(pacing?.adjacentDeltaMs?.p95)} rms=${formatMs(pacing?.rootMeanSquareDeviationMs)} within1=${formatRatio(pacing?.withinOneMsRatio)} jitter2=${formatNumber(pacing?.adjacentJitterOverTwoMsCount)} missed=${formatNumber(pacing?.estimatedMissedVsyncs)}`,
+      `pacing dev95=${formatMs(pacing?.absoluteDeviationMs?.p95)} adj95=${formatMs(pacing?.adjacentDeltaMs?.p95)} rms=${formatMs(pacing?.rootMeanSquareDeviationMs)} score=${formatMs(pacing?.pacingInstabilityScoreMs)} within1=${formatRatio(pacing?.withinOneMsRatio)} jitter2=${formatRatio(pacing?.adjacentJitterOverTwoMsRatio)} missed/s=${formatNumber(pacing?.missedVsyncsPerSecond)}`,
       `callback p95=${formatMs(callback.p95)} max=${formatMs(callback.max)}`,
       `draw/calls p50=${formatNumber(drawCalls?.p50)} max=${formatNumber(drawCalls?.max)}`,
     ];
@@ -1607,6 +1924,26 @@ function printSummary(summary, summaryPath) {
       if (topSidebandReason !== null) {
         parts.push(
           `sideband top=${topSidebandReason.key}:${topSidebandReason.count}`,
+        );
+      }
+      const messageWindow = run.aperture?.workerMessages?.measuredWindow;
+      if (messageWindow !== null && messageWindow !== undefined) {
+        parts.push(
+          `msgHz=${formatNumber(messageWindow.combined?.rateHz)} sideHz=${formatNumber(messageWindow.sideband?.rateHz)}`,
+        );
+      }
+      const deliveryWindow = run.aperture?.workerMessages?.deliveryWindow;
+      if (deliveryWindow !== null && deliveryWindow !== undefined) {
+        const topDeliveredType = topCountKey(deliveryWindow.byType);
+        parts.push(
+          `workerMsgHz=${formatNumber(deliveryWindow.rateHz)}${
+            topDeliveredType === null
+              ? ""
+              : ` workerTop=${topDeliveredType.key}:${topDeliveredType.count}`
+          }`,
+        );
+        parts.push(
+          `workerMsgInt95=${formatMs(deliveryWindow.intervalMs?.p95)} msg/frame95=${formatNumber(deliveryWindow.rafWindow?.messagesPerFrame?.p95)} msgFrame=${formatRatio(deliveryWindow.rafWindow?.nonEmptyFrameRatio)}`,
         );
       }
     }
@@ -1641,7 +1978,9 @@ function printSummary(summary, summaryPath) {
         `dev95 ${formatComparison(metrics.absoluteDeviationP95Ms)}`,
         `adj95 ${formatComparison(metrics.adjacentDeltaP95Ms)}`,
         `rms ${formatComparison(metrics.rootMeanSquareDeviationMs)}`,
+        `score ${formatComparison(metrics.pacingInstabilityScoreMs)}`,
         `within1 ${formatComparison(metrics.withinOneMsRatio, { ratio: true })}`,
+        `jitter2 ${formatComparison(metrics.adjacentJitterOverTwoMsRatio, { ratio: true })}`,
         `callback95 ${formatComparison(metrics.callbackP95Ms)}`,
       ].join(" | "),
     );
@@ -1655,7 +1994,9 @@ function printSummary(summary, summaryPath) {
         `dev95 ${formatAggregateComparison(metrics.absoluteDeviationP95Ms)}`,
         `adj95 ${formatAggregateComparison(metrics.adjacentDeltaP95Ms)}`,
         `rms ${formatAggregateComparison(metrics.rootMeanSquareDeviationMs)}`,
+        `score ${formatAggregateComparison(metrics.pacingInstabilityScoreMs)}`,
         `within1 ${formatAggregateComparison(metrics.withinOneMsRatio, { ratio: true })}`,
+        `jitter2 ${formatAggregateComparison(metrics.adjacentJitterOverTwoMsRatio, { ratio: true })}`,
         `callback95 ${formatAggregateComparison(metrics.callbackP95Ms)}`,
       ].join(" | "),
     );
@@ -1773,8 +2114,101 @@ function createFrameSamplerInitScript() {
   const samples = [];
   const statusSamples = [];
   const maxSamples = 2400;
+  const maxWorkerMessageSamples = 10000;
+  const workerMessageSamples = [];
+  const workerMessageStats = {
+    total: 0,
+    byType: {},
+    byReason: {},
+    latest: null
+  };
   let lastTimestamp = null;
   let probeGeneration = 0;
+  let baselineStatus = null;
+  let baselineWorkerMessages = null;
+
+  function countRecord(record, key) {
+    record[key] = (record[key] ?? 0) + 1;
+  }
+
+  function classifyWorkerMessage(data) {
+    if (data === undefined || data === null) return "null";
+    if (typeof data !== "object") return typeof data;
+    const type = data.type ?? data.kind ?? data.messageType;
+    return typeof type === "string" && type.length > 0 ? type : "object";
+  }
+
+  function extractWorkerMessageReasons(data) {
+    if (data === undefined || data === null || typeof data !== "object") return [];
+    const candidates = [
+      data.postMessageReasons,
+      data.postMessageDecision?.postMessageReasons,
+      data.publishTiming?.postMessageReasons,
+      data.previousPublishTiming?.postMessageReasons
+    ];
+    for (const value of candidates) {
+      if (Array.isArray(value)) return value.map((reason) => String(reason));
+    }
+    return [];
+  }
+
+  function recordWorkerMessage(data) {
+    const type = classifyWorkerMessage(data);
+    const reasons = extractWorkerMessageReasons(data);
+    workerMessageStats.total ++;
+    countRecord(workerMessageStats.byType, type);
+    for (const reason of reasons) {
+      countRecord(workerMessageStats.byReason, reason);
+    }
+    workerMessageStats.latest = {
+      type,
+      reasons,
+      total: workerMessageStats.total,
+      timestamp: performance.now()
+    };
+    workerMessageSamples.push(workerMessageStats.latest);
+    if (workerMessageSamples.length > maxWorkerMessageSamples) {
+      workerMessageSamples.shift();
+    }
+  }
+
+  function snapshotWorkerMessageStats() {
+    return {
+      timestamp: performance.now(),
+      total: workerMessageStats.total,
+      byType: { ...workerMessageStats.byType },
+      byReason: { ...workerMessageStats.byReason },
+      samples: workerMessageSamples.slice(),
+      latest: workerMessageStats.latest
+    };
+  }
+
+  if (typeof Worker === "function") {
+    const OriginalWorker = Worker;
+    window.Worker = new Proxy(OriginalWorker, {
+      construct(target, constructorArgs, newTarget) {
+        const worker = Reflect.construct(target, constructorArgs, newTarget);
+        worker.addEventListener("message", (event) => {
+          recordWorkerMessage(event.data);
+        });
+        return worker;
+      }
+    });
+  }
+
+  if (typeof MessageChannel === "function") {
+    const OriginalMessageChannel = MessageChannel;
+    window.MessageChannel = new Proxy(OriginalMessageChannel, {
+      construct(target, constructorArgs, newTarget) {
+        const channel = Reflect.construct(target, constructorArgs, newTarget);
+        channel.port1?.addEventListener?.("message", (event) => {
+          recordWorkerMessage(event.data);
+        });
+        channel.port1?.start?.();
+        return channel;
+      }
+    });
+  }
 
   function compactApertureStatus(status) {
     if (status === undefined || status === null) return null;
@@ -1858,15 +2292,19 @@ function createFrameSamplerInitScript() {
     });
   };
 
-  function sampleStatus() {
-    pushBounded(statusSamples, {
+  function readStatusSample() {
+    return {
       timestamp: performance.now(),
       aperture: compactApertureStatus(
         window.__APERTURE_EXAMPLE_STATUS__ ??
           window.__APERTURE_GENERATED_APP__
       ),
       three: compactThreeStatus(window.__THREE_RACING_STATUS__)
-    });
+    };
+  }
+
+  function sampleStatus() {
+    pushBounded(statusSamples, readStatusSample());
   }
 
   scheduleFrameProbe();
@@ -1879,13 +2317,19 @@ function createFrameSamplerInitScript() {
       statusSamples.length = 0;
       lastTimestamp = null;
       probeGeneration ++;
+      baselineStatus = readStatusSample();
+      baselineWorkerMessages = snapshotWorkerMessageStats();
       scheduleFrameProbe();
       sampleStatus();
     },
     snapshot() {
       return {
+        baselineStatus,
+        baselineWorkerMessages,
         samples: samples.slice(),
-        statusSamples: statusSamples.slice()
+        statusSamples: statusSamples.slice(),
+        snapshotStatus: readStatusSample(),
+        snapshotWorkerMessages: snapshotWorkerMessageStats()
       };
     }
   };
