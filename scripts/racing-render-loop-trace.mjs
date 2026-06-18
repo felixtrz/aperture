@@ -5,6 +5,7 @@ import { readFile, stat, mkdir, writeFile } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { inflateSync } from "node:zlib";
 import { chromium } from "playwright";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -499,7 +500,7 @@ async function collectVisualDiagnostics(page) {
     return null;
   }
 
-  return await page.evaluate(async () => {
+  const canvasInfo = await page.evaluate(() => {
     const canvas = document.querySelector("canvas");
     if (!(canvas instanceof HTMLCanvasElement)) {
       return {
@@ -509,114 +510,237 @@ async function collectVisualDiagnostics(page) {
       };
     }
 
-    if (typeof createImageBitmap !== "function") {
-      return {
-        ok: false,
-        reason: "create-image-bitmap-missing",
-        message: "createImageBitmap is unavailable for canvas sampling.",
-      };
-    }
-
     const rect = canvas.getBoundingClientRect();
-    const width = canvas.width;
-    const height = canvas.height;
-    const requested = [
-      { id: "upper-left", x: 0.2, y: 0.25 },
-      { id: "upper-center", x: 0.5, y: 0.25 },
-      { id: "upper-right", x: 0.8, y: 0.25 },
-      { id: "center-left", x: 0.2, y: 0.5 },
-      { id: "center", x: 0.5, y: 0.5 },
-      { id: "center-right", x: 0.8, y: 0.5 },
-      { id: "lower-left", x: 0.2, y: 0.75 },
-      { id: "lower-center", x: 0.5, y: 0.75 },
-      { id: "lower-right", x: 0.8, y: 0.75 },
-    ];
 
-    try {
-      const bitmap = await createImageBitmap(canvas);
-      try {
-        const readbackCanvas =
-          typeof OffscreenCanvas === "function"
-            ? new OffscreenCanvas(bitmap.width, bitmap.height)
-            : document.createElement("canvas");
-        readbackCanvas.width = bitmap.width;
-        readbackCanvas.height = bitmap.height;
-        const context = readbackCanvas.getContext("2d", {
-          willReadFrequently: true,
-        });
-        if (context === null) {
-          return {
-            ok: false,
-            reason: "context-missing",
-            width,
-            height,
-            clientWidth: rect.width,
-            clientHeight: rect.height,
-            message: "Could not create a 2D readback context.",
-          };
-        }
-
-        context.drawImage(bitmap, 0, 0);
-        const samples = requested.map((sample) => {
-          const x = Math.min(
-            bitmap.width - 1,
-            Math.max(0, Math.floor(sample.x * bitmap.width)),
-          );
-          const y = Math.min(
-            bitmap.height - 1,
-            Math.max(0, Math.floor(sample.y * bitmap.height)),
-          );
-          const rgba = context.getImageData(x, y, 1, 1).data;
-          const r = rgba[0] ?? 0;
-          const g = rgba[1] ?? 0;
-          const b = rgba[2] ?? 0;
-          const a = rgba[3] ?? 0;
-          return {
-            id: sample.id,
-            x,
-            y,
-            pixel: { r, g, b, a },
-            luminance: 0.2126 * r + 0.7152 * g + 0.0722 * b,
-          };
-        });
-        const nonTransparentSamples = samples.filter(
-          (sample) => sample.pixel.a > 8,
-        ).length;
-        const nonBlackSamples = samples.filter(
-          (sample) =>
-            sample.pixel.r > 8 || sample.pixel.g > 8 || sample.pixel.b > 8,
-        ).length;
-
-        return {
-          ok: true,
-          visibilityState: document.visibilityState,
-          width,
-          height,
-          bitmapWidth: bitmap.width,
-          bitmapHeight: bitmap.height,
-          clientWidth: rect.width,
-          clientHeight: rect.height,
-          sampleCount: samples.length,
-          nonTransparentSamples,
-          nonBlackSamples,
-          likelyBlank: nonTransparentSamples === 0 || nonBlackSamples === 0,
-          samples,
-        };
-      } finally {
-        bitmap.close();
-      }
-    } catch (error) {
-      return {
-        ok: false,
-        reason: "readback-failed",
-        width,
-        height,
-        clientWidth: rect.width,
-        clientHeight: rect.height,
-        message: String(error?.message ?? error),
-      };
-    }
+    return {
+      ok: true,
+      visibilityState: document.visibilityState,
+      width: canvas.width,
+      height: canvas.height,
+      clientWidth: rect.width,
+      clientHeight: rect.height,
+    };
   });
+
+  if (canvasInfo.ok !== true) {
+    return canvasInfo;
+  }
+
+  const requested = [
+    { id: "upper-left", x: 0.2, y: 0.25 },
+    { id: "upper-center", x: 0.5, y: 0.25 },
+    { id: "upper-right", x: 0.8, y: 0.25 },
+    { id: "center-left", x: 0.2, y: 0.5 },
+    { id: "center", x: 0.5, y: 0.5 },
+    { id: "center-right", x: 0.8, y: 0.5 },
+    { id: "lower-left", x: 0.2, y: 0.75 },
+    { id: "lower-center", x: 0.5, y: 0.75 },
+    { id: "lower-right", x: 0.8, y: 0.75 },
+  ];
+
+  try {
+    const png = await page.locator("canvas").first().screenshot({
+      type: "png",
+    });
+    const image = readPngImage(png);
+    const samples = requested.map((sample) => {
+      const x = clampIndex(Math.floor(sample.x * image.width), image.width);
+      const y = clampIndex(Math.floor(sample.y * image.height), image.height);
+      const pixel = readImagePixel(image, x, y);
+
+      return {
+        id: sample.id,
+        x,
+        y,
+        pixel,
+        luminance: pixelLuminance(pixel),
+      };
+    });
+    const nonTransparentSamples = samples.filter(
+      (sample) => sample.pixel.a > 8,
+    ).length;
+    const nonBlackSamples = samples.filter(
+      (sample) =>
+        sample.pixel.r > 8 || sample.pixel.g > 8 || sample.pixel.b > 8,
+    ).length;
+
+    return {
+      ok: true,
+      source: "screenshot",
+      visibilityState: canvasInfo.visibilityState,
+      width: canvasInfo.width,
+      height: canvasInfo.height,
+      screenshotWidth: image.width,
+      screenshotHeight: image.height,
+      clientWidth: canvasInfo.clientWidth,
+      clientHeight: canvasInfo.clientHeight,
+      sampleCount: samples.length,
+      nonTransparentSamples,
+      nonBlackSamples,
+      likelyBlank: nonTransparentSamples === 0 || nonBlackSamples === 0,
+      samples,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      reason: "screenshot-readback-failed",
+      width: canvasInfo.width,
+      height: canvasInfo.height,
+      clientWidth: canvasInfo.clientWidth,
+      clientHeight: canvasInfo.clientHeight,
+      message: String(error?.message ?? error),
+    };
+  }
+}
+
+function readPngImage(png) {
+  if (!isPng(png)) {
+    throw new Error("Screenshot is not a PNG.");
+  }
+
+  const idatChunks = [];
+  let offset = 8;
+  let width = 0;
+  let height = 0;
+  let bitDepth = 0;
+  let colorType = 0;
+
+  while (offset < png.length) {
+    const chunkLength = png.readUInt32BE(offset);
+    offset += 4;
+
+    const chunkType = png.subarray(offset, offset + 4).toString("ascii");
+    offset += 4;
+
+    const chunkData = png.subarray(offset, offset + chunkLength);
+    offset += chunkLength + 4;
+
+    if (chunkType === "IHDR") {
+      width = chunkData.readUInt32BE(0);
+      height = chunkData.readUInt32BE(4);
+      bitDepth = chunkData[8] ?? 0;
+      colorType = chunkData[9] ?? 0;
+    } else if (chunkType === "IDAT") {
+      idatChunks.push(chunkData);
+    } else if (chunkType === "IEND") {
+      break;
+    }
+  }
+
+  if (width <= 0 || height <= 0 || idatChunks.length === 0) {
+    throw new Error("PNG screenshot is missing image data.");
+  }
+
+  if (bitDepth !== 8 || (colorType !== 2 && colorType !== 6)) {
+    throw new Error(
+      `Unsupported PNG screenshot format: bitDepth=${bitDepth}, colorType=${colorType}.`,
+    );
+  }
+
+  const bytesPerPixel = colorType === 6 ? 4 : 3;
+  const pixels = unfilterPngScanlines(
+    inflateSync(Buffer.concat(idatChunks)),
+    width,
+    height,
+    bytesPerPixel,
+  );
+
+  return {
+    width,
+    height,
+    bytesPerPixel,
+    pixels,
+  };
+}
+
+function readImagePixel(image, x, y) {
+  const pixelOffset = (y * image.width + x) * image.bytesPerPixel;
+
+  return {
+    r: image.pixels[pixelOffset] ?? 0,
+    g: image.pixels[pixelOffset + 1] ?? 0,
+    b: image.pixels[pixelOffset + 2] ?? 0,
+    a: image.bytesPerPixel === 4 ? (image.pixels[pixelOffset + 3] ?? 0) : 255,
+  };
+}
+
+function unfilterPngScanlines(data, width, height, bytesPerPixel) {
+  const rowBytes = width * bytesPerPixel;
+  const pixels = new Uint8Array(rowBytes * height);
+  let sourceOffset = 0;
+
+  for (let y = 0; y < height; y += 1) {
+    const filter = data[sourceOffset] ?? -1;
+    sourceOffset += 1;
+    const rowOffset = y * rowBytes;
+
+    for (let x = 0; x < rowBytes; x += 1) {
+      const raw = data[sourceOffset] ?? 0;
+      sourceOffset += 1;
+      const left =
+        x >= bytesPerPixel ? (pixels[rowOffset + x - bytesPerPixel] ?? 0) : 0;
+      const up = y > 0 ? (pixels[rowOffset - rowBytes + x] ?? 0) : 0;
+      const upLeft =
+        y > 0 && x >= bytesPerPixel
+          ? (pixels[rowOffset - rowBytes + x - bytesPerPixel] ?? 0)
+          : 0;
+
+      pixels[rowOffset + x] =
+        (raw + reconstructedPngByte(filter, left, up, upLeft)) & 0xff;
+    }
+  }
+
+  return pixels;
+}
+
+function reconstructedPngByte(filter, left, up, upLeft) {
+  switch (filter) {
+    case 0:
+      return 0;
+    case 1:
+      return left;
+    case 2:
+      return up;
+    case 3:
+      return Math.floor((left + up) / 2);
+    case 4:
+      return paethPredictor(left, up, upLeft);
+    default:
+      throw new Error(`Unsupported PNG filter: ${filter}.`);
+  }
+}
+
+function paethPredictor(left, up, upLeft) {
+  const estimate = left + up - upLeft;
+  const leftDistance = Math.abs(estimate - left);
+  const upDistance = Math.abs(estimate - up);
+  const upLeftDistance = Math.abs(estimate - upLeft);
+
+  if (leftDistance <= upDistance && leftDistance <= upLeftDistance) {
+    return left;
+  }
+
+  return upDistance <= upLeftDistance ? up : upLeft;
+}
+
+function isPng(buffer) {
+  return (
+    Buffer.isBuffer(buffer) &&
+    buffer.length > 8 &&
+    buffer
+      .subarray(0, 8)
+      .equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
+  );
+}
+
+function clampIndex(index, size) {
+  if (size <= 0) return 0;
+
+  return Math.min(size - 1, Math.max(0, index));
+}
+
+function pixelLuminance(pixel) {
+  return 0.2126 * pixel.r + 0.7152 * pixel.g + 0.0722 * pixel.b;
 }
 
 function summarizeRun(target, scenario, snapshot, profileFiles) {
@@ -668,9 +792,12 @@ function summarizeVisualDiagnostics(visual) {
 
   return {
     ok: true,
+    source: visual.source ?? null,
     visibilityState: visual.visibilityState ?? null,
     width: visual.width,
     height: visual.height,
+    screenshotWidth: visual.screenshotWidth ?? null,
+    screenshotHeight: visual.screenshotHeight ?? null,
     sampleCount: visual.sampleCount,
     nonTransparentSamples: visual.nonTransparentSamples,
     nonBlackSamples: visual.nonBlackSamples,
