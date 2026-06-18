@@ -6,6 +6,7 @@ export const SIMULATION_WORKER_PROTOCOL = {
   start: "aperture.simulation.start",
   ready: "aperture.simulation.ready",
   snapshot: "aperture.simulation.snapshot",
+  audioSnapshot: "aperture.simulation.audioSnapshot",
   error: "aperture.simulation.error",
 } as const;
 
@@ -33,6 +34,13 @@ export interface SimulationWorkerReadyMessage {
 
 export interface SimulationWorkerSnapshotMessage {
   readonly type: typeof SIMULATION_WORKER_PROTOCOL.snapshot;
+  readonly snapshot: RenderSnapshot;
+  readonly frame?: number;
+  readonly [key: string]: unknown;
+}
+
+export interface SimulationWorkerAudioSnapshotMessage {
+  readonly type: typeof SIMULATION_WORKER_PROTOCOL.audioSnapshot;
   readonly snapshot: RenderSnapshot;
   readonly frame?: number;
   readonly [key: string]: unknown;

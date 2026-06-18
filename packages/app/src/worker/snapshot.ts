@@ -69,6 +69,7 @@ export type GeneratedWorkerSnapshotTransport =
       readonly shared: SharedSnapshotTransport;
       readonly registry: SnapshotPacketEncodingRegistry;
       lastPostedMessageTimeMilliseconds: number | null;
+      lastPostedAudioMessageTimeMilliseconds: number | null;
       lastPostedRegistryHandles: number;
       lastPostedRegistryStrings: number;
     };
@@ -83,7 +84,8 @@ export interface GeneratedWorkerSummaryCadenceOptions {
 }
 
 export const DEFAULT_GENERATED_WORKER_FULL_SUMMARY_INTERVAL_MS = 500;
-export const DEFAULT_GENERATED_WORKER_SHARED_SNAPSHOT_MESSAGE_RATE_HZ = 60;
+export const DEFAULT_GENERATED_WORKER_SHARED_SNAPSHOT_MESSAGE_RATE_HZ = 30;
+export const DEFAULT_GENERATED_WORKER_AUDIO_SNAPSHOT_MESSAGE_RATE_HZ = 60;
 const MIN_GENERATED_WORKER_FULL_SUMMARY_INTERVAL_MS = 16;
 
 export function createGeneratedWorkerSummaryCadence(
@@ -130,6 +132,7 @@ export function createGeneratedWorkerSnapshotTransport(
     shared: createSharedSnapshotTransportViews(transport),
     registry: createSnapshotPacketRegistry(),
     lastPostedMessageTimeMilliseconds: null,
+    lastPostedAudioMessageTimeMilliseconds: null,
     lastPostedRegistryHandles: 0,
     lastPostedRegistryStrings: 0,
   };
@@ -238,6 +241,38 @@ export function publishGeneratedWorkerSnapshot(options: {
     markSharedSnapshotMessagePosted(
       options.transport,
       sharedSnapshot,
+      timingStartedAt,
+    );
+    markSharedSnapshotAudioMessagePosted(
+      options.transport,
+      snapshot,
+      timingStartedAt,
+    );
+  } else if (
+    sharedSnapshot !== null &&
+    shouldPostSharedAudioSnapshotMessage({
+      transport: options.transport,
+      snapshot,
+      nowMilliseconds: timingStartedAt,
+    })
+  ) {
+    const placeholder = createSharedSnapshotPlaceholder(snapshot);
+    const transfer =
+      placeholder.transforms.byteLength === 0
+        ? []
+        : [placeholder.transforms.buffer as ArrayBuffer];
+
+    options.port.postMessage(
+      {
+        type: SIMULATION_WORKER_PROTOCOL.audioSnapshot,
+        snapshot: placeholder,
+        frame: options.frame,
+      },
+      transfer,
+    );
+    markSharedSnapshotAudioMessagePosted(
+      options.transport,
+      snapshot,
       timingStartedAt,
     );
   } else if (sharedSnapshot === null) {
@@ -423,6 +458,26 @@ function shouldPostSharedSnapshotMessage(options: {
   );
 }
 
+function shouldPostSharedAudioSnapshotMessage(options: {
+  readonly transport: GeneratedWorkerSnapshotTransport;
+  readonly snapshot: RenderSnapshot;
+  readonly nowMilliseconds: number;
+}): boolean {
+  if (
+    options.transport.mode !== "shared-array-buffer" ||
+    !hasSharedSnapshotAudioSideband(options.snapshot)
+  ) {
+    return false;
+  }
+
+  return (
+    options.transport.lastPostedAudioMessageTimeMilliseconds === null ||
+    options.nowMilliseconds -
+      options.transport.lastPostedAudioMessageTimeMilliseconds >=
+      1000 / DEFAULT_GENERATED_WORKER_AUDIO_SNAPSHOT_MESSAGE_RATE_HZ
+  );
+}
+
 function markSharedSnapshotMessagePosted(
   transport: GeneratedWorkerSnapshotTransport,
   sharedSnapshot: NonNullable<ReturnType<typeof createSharedSnapshotMessage>>,
@@ -437,6 +492,21 @@ function markSharedSnapshotMessagePosted(
     sharedSnapshot.message.registry.strings.length;
   transport.lastPostedRegistryHandles =
     sharedSnapshot.message.registry.handles.length;
+}
+
+function markSharedSnapshotAudioMessagePosted(
+  transport: GeneratedWorkerSnapshotTransport,
+  snapshot: RenderSnapshot,
+  nowMilliseconds: number,
+): void {
+  if (
+    transport.mode !== "shared-array-buffer" ||
+    !hasSharedSnapshotAudioSideband(snapshot)
+  ) {
+    return;
+  }
+
+  transport.lastPostedAudioMessageTimeMilliseconds = nowMilliseconds;
 }
 
 function readWorkerSummaryFullFlag(
@@ -514,10 +584,7 @@ function createSharedSnapshotAudioSideband(snapshot: RenderSnapshot): {
   readonly audioEmitters?: RenderSnapshot["audioEmitters"];
   readonly audioListener?: RenderSnapshot["audioListener"];
 } {
-  if (
-    !hasItems(snapshot.audioEmitters) &&
-    snapshot.audioListener === undefined
-  ) {
+  if (!hasSharedSnapshotAudioSideband(snapshot)) {
     return { transforms: new Float32Array(0) };
   }
 
@@ -559,6 +626,12 @@ function createSharedSnapshotAudioSideband(snapshot: RenderSnapshot): {
     ...(audioEmitters === undefined ? {} : { audioEmitters }),
     ...(audioListener === undefined ? {} : { audioListener }),
   };
+}
+
+function hasSharedSnapshotAudioSideband(snapshot: RenderSnapshot): boolean {
+  return (
+    hasItems(snapshot.audioEmitters) || snapshot.audioListener !== undefined
+  );
 }
 
 function readSharedSnapshotTransportBuffers(

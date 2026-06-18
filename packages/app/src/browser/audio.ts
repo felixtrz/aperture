@@ -4,7 +4,7 @@ import {
   type AudioEngineOptions,
   type ResolvedClip,
 } from "@aperture-engine/audio";
-import type { AudioClipAsset } from "@aperture-engine/render";
+import type { AudioClipAsset, RenderSnapshot } from "@aperture-engine/render";
 import {
   createAudioClipHandle,
   type AssetRegistry,
@@ -13,6 +13,7 @@ import type {
   SimulationWorker,
   SimulationWorkerSnapshotEvent,
 } from "@aperture-engine/runtime";
+import { SIMULATION_WORKER_PROTOCOL } from "@aperture-engine/runtime";
 
 const AUDIO_CLIP_PREFIX = "audio-clip:";
 /** Gestures that satisfy the browser autoplay policy and unlock the context. */
@@ -67,25 +68,62 @@ export function installGeneratedAudio(
   const engine = created.engine;
 
   let previousTime = monotonicNow();
-  const unsubscribe = worker.onSnapshot(
+  const applySnapshot = (
+    snapshot: SimulationWorkerSnapshotEvent["snapshot"],
+  ) => {
+    const now = monotonicNow();
+    const frameDelta = (now - previousTime) / 1000;
+    previousTime = now;
+    engine.applySnapshot(snapshot, frameDelta);
+  };
+  const unsubscribeSnapshot = worker.onSnapshot(
     (event: SimulationWorkerSnapshotEvent) => {
-      const now = monotonicNow();
-      const frameDelta = (now - previousTime) / 1000;
-      previousTime = now;
-      engine.applySnapshot(event.snapshot, frameDelta);
+      applySnapshot(event.snapshot);
     },
   );
+  const unsubscribeAudioSnapshot = worker.onMessage((message) => {
+    const snapshot = readAudioSnapshotMessage(message);
+
+    if (snapshot !== null) {
+      applySnapshot(snapshot);
+    }
+  });
 
   const detachUnlock = autoUnlock ? installAutoUnlock(engine) : null;
 
   return {
     engine,
     dispose() {
-      unsubscribe();
+      unsubscribeSnapshot();
+      unsubscribeAudioSnapshot();
       detachUnlock?.();
       engine.dispose();
     },
   };
+}
+
+function readAudioSnapshotMessage(message: unknown): RenderSnapshot | null {
+  if (typeof message !== "object" || message === null) {
+    return null;
+  }
+
+  const record = message as {
+    readonly type?: unknown;
+    readonly snapshot?: unknown;
+  };
+
+  return record.type === SIMULATION_WORKER_PROTOCOL.audioSnapshot &&
+    isRenderSnapshotLike(record.snapshot)
+    ? record.snapshot
+    : null;
+}
+
+function isRenderSnapshotLike(value: unknown): value is RenderSnapshot {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as { readonly frame?: unknown }).frame === "number"
+  );
 }
 
 /** Resolve an `audio-clip:<id>` key to its encoded source from the mirror. */

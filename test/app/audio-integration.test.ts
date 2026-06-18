@@ -12,8 +12,10 @@ import type {
 } from "@aperture-engine/render";
 import type {
   SimulationWorker,
+  SimulationWorkerMessageCallback,
   SimulationWorkerSnapshotEvent,
 } from "@aperture-engine/runtime";
+import { SIMULATION_WORKER_PROTOCOL } from "@aperture-engine/runtime";
 import { FakeAudioBackend } from "@aperture-engine/audio/test-support";
 
 import { installGeneratedAudio } from "../../packages/app/src/browser/audio.js";
@@ -24,13 +26,20 @@ const CLIP = createAudioClipHandle("boom");
 function fakeWorker(): {
   worker: SimulationWorker;
   emit(snapshot: RenderSnapshot): void;
+  emitMessage(message: unknown): void;
   listeners: number;
+  messageListeners: number;
 } {
   const subs = new Set<(event: SimulationWorkerSnapshotEvent) => void>();
+  const messageSubs = new Set<SimulationWorkerMessageCallback>();
   const worker = {
     onSnapshot(callback: (event: SimulationWorkerSnapshotEvent) => void) {
       subs.add(callback);
       return () => subs.delete(callback);
+    },
+    onMessage(callback: SimulationWorkerMessageCallback) {
+      messageSubs.add(callback);
+      return () => messageSubs.delete(callback);
     },
   } as unknown as SimulationWorker;
   return {
@@ -44,8 +53,16 @@ function fakeWorker(): {
         sub(event);
       }
     },
+    emitMessage(message) {
+      for (const sub of messageSubs) {
+        sub(message);
+      }
+    },
     get listeners() {
       return subs.size;
+    },
+    get messageListeners() {
+      return messageSubs.size;
     },
   };
 }
@@ -156,6 +173,31 @@ describe("installGeneratedAudio (main-thread integration)", () => {
     audio.dispose();
   });
 
+  it("drives the engine from audio-only sideband messages", async () => {
+    const backend = new FakeAudioBackend({ state: "running" });
+    const probe = fakeWorker();
+    const audio = installGeneratedAudio(probe.worker, registryWithClip(), {
+      backend,
+      autoUnlock: false,
+    });
+    if (audio === null) throw new Error("expected audio to install");
+
+    expect(probe.listeners).toBe(1);
+    expect(probe.messageListeners).toBe(1);
+
+    probe.emitMessage({
+      type: SIMULATION_WORKER_PROTOCOL.audioSnapshot,
+      frame: 2,
+      snapshot: { ...snap([emitter({ autoplay: true })]), frame: 2 },
+    });
+    await tick();
+
+    expect(audio.engine.activeVoiceCount).toBe(1);
+    expect(audio.engine.activeSourceCount).toBe(1);
+
+    audio.dispose();
+  });
+
   it("stops driving after dispose() and tears the engine down", async () => {
     const backend = new FakeAudioBackend({ state: "running" });
     const probe = fakeWorker();
@@ -166,8 +208,10 @@ describe("installGeneratedAudio (main-thread integration)", () => {
     if (audio === null) throw new Error("expected audio to install");
 
     expect(probe.listeners).toBe(1);
+    expect(probe.messageListeners).toBe(1);
     audio.dispose();
     expect(probe.listeners).toBe(0);
+    expect(probe.messageListeners).toBe(0);
 
     // A snapshot after dispose must not resurrect a voice.
     probe.emit(snap([emitter({ autoplay: true })]));

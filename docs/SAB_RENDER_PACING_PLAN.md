@@ -70,6 +70,20 @@ Latest paired trace evidence after this slice:
     (`18.22/18.45/18.61 ms`) versus three.js (`18.10/18.40/18.80 ms`).
   - Net: RAF-direct reduces the bad pre-change drive p99/max tail, but does not
     by itself prove consistent outperformance.
+- Audio-sideband split traces, 8s samples:
+  `/tmp/racing-paired-audio-sideband-long-1/summary.json` and
+  `/tmp/racing-paired-audio-sideband-long-2/summary.json`
+  - Run 1: Aperture idle won p95/p99/max (`16.68/17.23/17.66 ms`) versus
+    three.js (`17.10/17.60/17.60 ms`) except a negligible `0.06 ms` max tie;
+    Aperture drive won p95/p99/max (`17.19/17.50/17.64 ms`) versus three.js
+    (`17.50/17.70/17.70 ms`).
+  - Run 2: Aperture idle won p95/p99/max (`16.94/17.47/17.63 ms`) versus
+    three.js (`17.30/17.60/17.70 ms`); Aperture drive won p95/p99/max
+    (`17.26/17.67/17.67 ms`) versus three.js (`17.70/17.70/17.80 ms`).
+  - Idle render-side snapshot messages dropped to about `29 Hz` while render
+    stayed at `60 Hz` with `sharedUnavailable: 0`. Drive still reports about
+    `62 Hz` render snapshot messages, so another drive-only sideband reason
+    remains to identify.
 
 Racing does author audio every frame. Therefore, simply lowering the generic
 sideband heartbeat below `60 Hz` would either not affect this benchmark or would
@@ -412,26 +426,32 @@ Racing benchmark checks:
    messages only on the heartbeat or when registry/assets/diagnostics/full
    summaries require it.
 
-5. **Next: separate render sideband from audio sideband.**
+5. **Done: separate render sideband from audio sideband.**
    Racing carries audio packets, so display-rate sideband messages are still
-   justified for audio freshness. Add either a compact audio SAB sideband or an
-   audio-delta message path so render registry/diagnostic sideband can be
-   reduced independently.
+   justified for audio freshness. Audio now has an audio-only worker message
+   path, so render registry/diagnostic sideband can run at a lower heartbeat
+   while audio keeps display-rate updates.
 
-6. **Next: slot ownership / triple buffering.**
+6. **Next: identify remaining drive-side render sideband reason.**
+   Drive still receives render snapshot messages around display cadence even
+   after audio splitting. Add reason counters for registry/source-asset/full
+   summary/diagnostic/heartbeat sideband posts, then remove avoidable drive
+   churn.
+
+7. **Next: slot ownership / triple buffering.**
    Replace double-buffer seqlock views with an acquirable ring, or add a
    conservative copy-on-acquire layer as an interim correctness step.
 
-7. **Next: registry epoch sideband.**
+8. **Next: registry epoch sideband.**
    Tag slots and registry payloads by epoch. Decode only when the matching
    registry is available. Then reduce per-message registry clone cost with
    deltas.
 
-8. **Next: transferable latest-snapshot queue.**
+9. **Next: transferable latest-snapshot queue.**
    Make transferable fallback follow the same RAF sampling policy, dropping
    stale messages before render.
 
-9. **Next: smoothing and interpolation pass.**
+10. **Next: smoothing and interpolation pass.**
    Use the new pose-cadence diagnostics to tune interpolation alpha and camera
    smoothness in racing without changing the ECS authority boundary.
 
