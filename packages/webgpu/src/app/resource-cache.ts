@@ -138,6 +138,12 @@ export interface WebGpuAppResourceCache {
     CreateParticleRenderPipelineResourceResult
   >;
   readonly particleEmitterStates: Map<string, ParticleEmitterGpuStateResource>;
+  readonly particleBurstCpuStates: Map<string, ParticleEmitterCpuStateResource>;
+  readonly particleBurstBatchStates: Map<
+    string,
+    ParticleBurstBatchGpuStateResource
+  >;
+  particleViewUniformBuffer: ParticleViewUniformBufferResource | null;
   readonly skyboxPipelines: Map<
     string,
     CreateSkyboxRenderPipelineResourceResult
@@ -195,8 +201,39 @@ export interface ParticleEmitterCpuStateResource {
   readonly baseSizes: Float32Array;
   readonly bufferData: Float32Array;
   initialized: boolean;
+  startTime: number;
   lastTime: number;
   liveCount: number;
+}
+
+export interface ParticleBurstBatchSlot {
+  readonly key: string;
+  readonly offset: number;
+  readonly capacity: number;
+}
+
+export interface ParticleBurstBatchFreeSlot {
+  readonly offset: number;
+  readonly capacity: number;
+}
+
+export interface ParticleBurstBatchGpuStateResource {
+  readonly key: string;
+  readonly capacity: number;
+  readonly particleBuffer: unknown;
+  readonly byteLength: number;
+  readonly bufferData: Float32Array;
+  readonly slotsByBurstKey: Map<string, ParticleBurstBatchSlot>;
+  readonly freeSlots: ParticleBurstBatchFreeSlot[];
+  nextParticleSlot: number;
+  paramBuffer: unknown | null;
+  paramByteLength: number;
+  paramData: Float32Array | null;
+}
+
+export interface ParticleViewUniformBufferResource {
+  readonly buffer: unknown;
+  readonly byteLength: number;
 }
 
 export interface WebGpuAppPostPassCache {
@@ -287,6 +324,9 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     particleComputePipelines: new Map(),
     particleRenderPipelines: new Map(),
     particleEmitterStates: new Map(),
+    particleBurstCpuStates: new Map(),
+    particleBurstBatchStates: new Map(),
+    particleViewUniformBuffer: null,
     skyboxPipelines: new Map(),
     layouts: new Map(),
     textures: new Map(),

@@ -24,6 +24,8 @@ import {
 
 export const PARTICLE_COMPUTE_PIPELINE_KEY = "aperture/gpu-particles-compute";
 export const PARTICLE_RENDER_PIPELINE_KEY = "aperture/gpu-particles-render";
+export const PARTICLE_BURST_RENDER_PIPELINE_KEY =
+  "aperture/gpu-particles-burst-render";
 
 export const PARTICLE_COMPUTE_WGSL = `
 const PARTICLE_CURVE_SAMPLE_COUNT: u32 = 16u;
@@ -204,6 +206,124 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
 }
 `.trim();
 
+export const PARTICLE_BURST_RENDER_WGSL = `
+const PARTICLE_CURVE_SAMPLE_COUNT: u32 = 16u;
+
+struct ViewProjectionUniform {
+  viewProjection: mat4x4f,
+  cameraPosition: vec4f,
+  viewport: vec4f,
+};
+
+struct ParticleBurstData {
+  originBirthTime: vec4f,
+  velocityLifetime: vec4f,
+  baseSizeTimeScale: vec4f,
+};
+
+struct ParticleBurstParams {
+  timeGravity: vec4f,
+  sizeCurve: array<vec4f, 4>,
+  colorCurve: array<vec4f, 16>,
+};
+
+struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) color: vec4f,
+  @location(1) uv: vec2f,
+};
+
+@group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
+@group(1) @binding(0) var<storage, read> particles: array<ParticleBurstData>;
+@group(2) @binding(0) var particleTexture: texture_2d<f32>;
+@group(2) @binding(1) var particleSampler: sampler;
+@group(3) @binding(0) var<uniform> params: ParticleBurstParams;
+
+fn quadPosition(vertexIndex: u32) -> vec2f {
+  let x = array<f32, 6>(-0.5, 0.5, 0.5, -0.5, 0.5, -0.5);
+  let y = array<f32, 6>(-0.5, -0.5, 0.5, -0.5, 0.5, 0.5);
+  return vec2f(x[vertexIndex], y[vertexIndex]);
+}
+
+fn quadUv(vertexIndex: u32) -> vec2f {
+  let u = array<f32, 6>(0.0, 1.0, 1.0, 0.0, 1.0, 0.0);
+  let v = array<f32, 6>(1.0, 1.0, 0.0, 1.0, 0.0, 0.0);
+  return vec2f(u[vertexIndex], v[vertexIndex]);
+}
+
+fn sizeCurveValue(index: u32) -> f32 {
+  let packed = params.sizeCurve[index / 4u];
+  let component = index % 4u;
+
+  if (component == 0u) {
+    return packed.x;
+  }
+  if (component == 1u) {
+    return packed.y;
+  }
+  if (component == 2u) {
+    return packed.z;
+  }
+  return packed.w;
+}
+
+fn sampleSizeCurve(life: f32) -> f32 {
+  let maxIndex = PARTICLE_CURVE_SAMPLE_COUNT - 1u;
+  let scaled = clamp(life, 0.0, 1.0) * f32(maxIndex);
+  let lower = u32(floor(scaled));
+  let upper = min(lower + 1u, maxIndex);
+  return mix(sizeCurveValue(lower), sizeCurveValue(upper), fract(scaled));
+}
+
+fn sampleColorCurve(life: f32) -> vec4f {
+  let maxIndex = PARTICLE_CURVE_SAMPLE_COUNT - 1u;
+  let scaled = clamp(life, 0.0, 1.0) * f32(maxIndex);
+  let lower = u32(floor(scaled));
+  let upper = min(lower + 1u, maxIndex);
+  return mix(params.colorCurve[lower], params.colorCurve[upper], fract(scaled));
+}
+
+@vertex
+fn vs_main(
+  @builtin(vertex_index) vertexIndex: u32,
+  @builtin(instance_index) instanceIndex: u32,
+) -> VertexOutput {
+  let particle = particles[instanceIndex];
+  let lifetime = max(particle.velocityLifetime.w, 0.001);
+  let age = max(0.0, params.timeGravity.x - particle.originBirthTime.w) * particle.baseSizeTimeScale.y;
+  let lifeT = clamp(age / lifetime, 0.0, 1.0);
+  let alive = select(0.0, 1.0, age < lifetime);
+  let position = particle.originBirthTime.xyz + particle.velocityLifetime.xyz * age + 0.5 * params.timeGravity.yzw * age * age;
+  let size = max(0.0, particle.baseSizeTimeScale.x * sampleSizeCurve(lifeT) * alive);
+  let local = quadPosition(vertexIndex) * size;
+  let forwardRaw = view.cameraPosition.xyz - position;
+  let forwardLength = max(length(forwardRaw), 0.0001);
+  let forward = forwardRaw / forwardLength;
+  let rightRaw = cross(vec3f(0.0, 1.0, 0.0), forward);
+  let rightLength = length(rightRaw);
+  var right = rightRaw / max(rightLength, 0.0001);
+
+  if (rightLength < 0.0001) {
+    right = vec3f(1.0, 0.0, 0.0);
+  }
+
+  let up = normalize(cross(forward, right));
+  let world = position + right * local.x + up * local.y;
+  var output: VertexOutput;
+
+  output.position = view.viewProjection * vec4f(world, 1.0);
+  output.color = sampleColorCurve(lifeT) * alive;
+  output.uv = quadUv(vertexIndex);
+  return output;
+}
+
+@fragment
+fn fs_main(input: VertexOutput) -> @location(0) vec4f {
+  let texel = textureSample(particleTexture, particleSampler, input.uv);
+  return input.color * texel;
+}
+`.trim();
+
 export interface ParticleComputePipelineResource {
   readonly cacheKey: string;
   readonly shaderModule: unknown;
@@ -267,6 +387,22 @@ export function particleRenderPipelineCacheKey(
       : `:${createTonemapPipelineKey(tonemap)}:${createOutputColorSpacePipelineKey(outputColorSpace)}`;
 
   return `${PARTICLE_RENDER_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}:blend-${blendMode}${outputStage}`;
+}
+
+export function particleBurstRenderPipelineCacheKey(
+  colorFormat: string,
+  depthFormat: string | null = null,
+  sampleCount = 1,
+  blendMode: SpriteBlendModeValue = SpriteBlendMode.Additive,
+  tonemap: TonemapOperator = "none",
+  outputColorSpace: OutputColorSpace = "linear",
+): string {
+  const outputStage =
+    tonemap === "none" && outputColorSpace === "linear"
+      ? ""
+      : `:${createTonemapPipelineKey(tonemap)}:${createOutputColorSpacePipelineKey(outputColorSpace)}`;
+
+  return `${PARTICLE_BURST_RENDER_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}:blend-${blendMode}${outputStage}`;
 }
 
 export async function createParticleComputePipelineResource(options: {
@@ -356,21 +492,27 @@ export async function createParticleRenderPipelineResource(options: {
   readonly blendMode?: SpriteBlendModeValue;
   readonly tonemap?: TonemapOperator;
   readonly outputColorSpace?: OutputColorSpace;
+  readonly variant?: "computed" | "burst";
 }): Promise<CreateParticleRenderPipelineResourceResult> {
   // AI-17: no-op by default (none + linear) so the pipeline is byte-identical
   // unless the caller opts into the output stage.
   const tonemap = options.tonemap ?? "none";
   const outputColorSpace = options.outputColorSpace ?? "linear";
   const blendMode = options.blendMode ?? SpriteBlendMode.Additive;
+  const burst = options.variant === "burst";
   const shaderModule = await createWebGpuShaderModule({
     device: options.device,
     descriptor: {
-      label: PARTICLE_RENDER_PIPELINE_KEY,
+      label: burst
+        ? PARTICLE_BURST_RENDER_PIPELINE_KEY
+        : PARTICLE_RENDER_PIPELINE_KEY,
       code: applyOutputStageToFragmentWgsl(
-        PARTICLE_RENDER_WGSL,
+        burst ? PARTICLE_BURST_RENDER_WGSL : PARTICLE_RENDER_WGSL,
         tonemap,
         outputColorSpace,
-        PARTICLE_RENDER_PIPELINE_KEY,
+        burst
+          ? PARTICLE_BURST_RENDER_PIPELINE_KEY
+          : PARTICLE_RENDER_PIPELINE_KEY,
       ),
     },
   });
@@ -406,6 +548,9 @@ export async function createParticleRenderPipelineResource(options: {
   }
 
   const descriptor = createParticleRenderPipelineDescriptor({
+    label: burst
+      ? PARTICLE_BURST_RENDER_PIPELINE_KEY
+      : PARTICLE_RENDER_PIPELINE_KEY,
     shaderModule: shaderModule.module,
     colorFormat: options.colorFormat,
     ...(options.depthFormat === undefined
@@ -421,14 +566,23 @@ export async function createParticleRenderPipelineResource(options: {
     return {
       valid: true,
       resource: {
-        cacheKey: particleRenderPipelineCacheKey(
-          options.colorFormat,
-          options.depthFormat ?? null,
-          options.sampleCount ?? 1,
-          blendMode,
-          tonemap,
-          outputColorSpace,
-        ),
+        cacheKey: burst
+          ? particleBurstRenderPipelineCacheKey(
+              options.colorFormat,
+              options.depthFormat ?? null,
+              options.sampleCount ?? 1,
+              blendMode,
+              tonemap,
+              outputColorSpace,
+            )
+          : particleRenderPipelineCacheKey(
+              options.colorFormat,
+              options.depthFormat ?? null,
+              options.sampleCount ?? 1,
+              blendMode,
+              tonemap,
+              outputColorSpace,
+            ),
         shaderModule: shaderModule.module,
         pipeline: options.device.createRenderPipeline(descriptor),
         descriptor,
@@ -454,6 +608,7 @@ export async function createParticleRenderPipelineResource(options: {
 }
 
 function createParticleRenderPipelineDescriptor(input: {
+  readonly label: string;
   readonly shaderModule: unknown;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
@@ -461,7 +616,7 @@ function createParticleRenderPipelineDescriptor(input: {
   readonly blendMode: SpriteBlendModeValue;
 }): WebGpuRenderPipelineCreateDescriptor {
   return {
-    label: `${PARTICLE_RENDER_PIPELINE_KEY}:${input.colorFormat}`,
+    label: `${input.label}:${input.colorFormat}`,
     layout: "auto",
     vertex: {
       module: input.shaderModule,

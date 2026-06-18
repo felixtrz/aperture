@@ -32,6 +32,7 @@ import {
 import {
   createParticleComputePipelineResource,
   createParticleRenderPipelineResource,
+  particleBurstRenderPipelineCacheKey,
   particleComputePipelineCacheKey,
   particleRenderPipelineCacheKey,
   type CreateParticleComputePipelineResourceResult,
@@ -45,8 +46,11 @@ import {
   type AppTextureSamplerResourceReuseReport,
 } from "./app-texture-sampler-resources.js";
 import type {
+  ParticleBurstBatchSlot,
+  ParticleBurstBatchGpuStateResource,
   ParticleEmitterCpuStateResource,
   ParticleEmitterGpuStateResource,
+  ParticleViewUniformBufferResource,
   WebGpuAppResourceCache,
 } from "./resource-cache.js";
 import {
@@ -94,6 +98,7 @@ export interface ParticleFrameReport {
 
 const PARTICLE_VIEWPORT_FLOAT_OFFSET = 20;
 const PARTICLE_DATA_FLOAT_STRIDE = 8;
+const PARTICLE_BURST_DATA_FLOAT_STRIDE = 12;
 const PARTICLE_CURVE_SAMPLE_COUNT = 16;
 const PARTICLE_SIZE_CURVE_FLOAT_OFFSET = 16;
 const PARTICLE_COLOR_CURVE_FLOAT_OFFSET =
@@ -101,8 +106,44 @@ const PARTICLE_COLOR_CURVE_FLOAT_OFFSET =
 const PARTICLE_PARAM_BYTE_LENGTH =
   16 +
   (PARTICLE_COLOR_CURVE_FLOAT_OFFSET + PARTICLE_CURVE_SAMPLE_COUNT * 4) * 4;
+const PARTICLE_BURST_RENDER_PARAM_FLOAT_COUNT = 4 + 4 * 4 + 16 * 4;
+const PARTICLE_BURST_SIZE_CURVE_FLOAT_OFFSET = 4;
+const PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET =
+  PARTICLE_BURST_SIZE_CURVE_FLOAT_OFFSET + PARTICLE_CURVE_SAMPLE_COUNT;
 const PARTICLE_DEFAULT_TEXTURE_CACHE_KEY = "particle:default-white-texture";
 const PARTICLE_DEFAULT_SAMPLER_CACHE_KEY = "particle:default-linear-sampler";
+
+interface ParticleTextureSampler {
+  readonly texture: TextureGpuResource;
+  readonly sampler: SamplerGpuResource;
+  readonly textureKey: string;
+  readonly samplerKey: string;
+}
+
+interface PreparedParticleEmitterRecord {
+  readonly emitter: ParticleEmitterPacket;
+  readonly effect: ParticleEffectAsset;
+  readonly renderPipeline: {
+    readonly getBindGroupLayout: (group: number) => unknown;
+  };
+  readonly renderPipelineResource: NonNullable<
+    CreateParticleRenderPipelineResourceResult["resource"]
+  >;
+  readonly textureSampler: ParticleTextureSampler;
+}
+
+interface ParticleBurstBatchUnit {
+  readonly kind: "burstBatch";
+  readonly key: string;
+  readonly records: PreparedParticleEmitterRecord[];
+}
+
+type ParticleFrameUnit =
+  | ParticleBurstBatchUnit
+  | {
+      readonly kind: "single";
+      readonly record: PreparedParticleEmitterRecord;
+    };
 
 export async function prepareParticleFrameResourcesForSnapshot(options: {
   readonly app: WebGpuAppParticleContext;
@@ -116,7 +157,11 @@ export async function prepareParticleFrameResourcesForSnapshot(options: {
   const emitters = options.snapshot.particleEmitters ?? [];
 
   if (emitters.length === 0) {
-    const staleStatesRemoved = cleanupParticleStates(options.cache, new Set());
+    const activeKeys = new Set<string>();
+    const staleStatesRemoved =
+      cleanupParticleStates(options.cache, activeKeys) +
+      cleanupParticleBurstCpuStates(options.cache, activeKeys) +
+      cleanupParticleBurstBatchStates(options.cache, activeKeys);
     const report = emptyParticleFrameReport();
 
     return {
@@ -130,10 +175,13 @@ export async function prepareParticleFrameResourcesForSnapshot(options: {
     };
   }
 
-  const computePipeline = await getOrCreateWebGpuAppParticleComputePipeline(
+  const computePipelineResult = getOrCreateWebGpuAppParticleComputePipeline(
     options.app,
     options.cache,
   );
+  const computePipeline = isPromiseLike(computePipelineResult)
+    ? await computePipelineResult
+    : computePipelineResult;
 
   if (!computePipeline.valid || computePipeline.resource === null) {
     return {
@@ -156,10 +204,10 @@ export async function prepareParticleFrameResourcesForSnapshot(options: {
   });
 }
 
-export async function getOrCreateWebGpuAppParticleComputePipeline(
+export function getOrCreateWebGpuAppParticleComputePipeline(
   app: WebGpuAppParticleContext,
   cache: WebGpuAppResourceCache,
-): Promise<CreateParticleComputePipelineResourceResult> {
+): MaybePromise<CreateParticleComputePipelineResourceResult> {
   const key = particleComputePipelineCacheKey();
   const cached = cache.particleComputePipelines.get(key);
 
@@ -167,21 +215,21 @@ export async function getOrCreateWebGpuAppParticleComputePipeline(
     return cached;
   }
 
-  const result = await createParticleComputePipelineResource({
+  return createParticleComputePipelineResource({
     device: app.initialization.device as Parameters<
       typeof createParticleComputePipelineResource
     >[0]["device"],
+  }).then((result) => {
+    cache.particleComputePipelines.set(key, result);
+    return result;
   });
-
-  cache.particleComputePipelines.set(key, result);
-  return result;
 }
 
-export async function getOrCreateWebGpuAppParticleRenderPipeline(
+export function getOrCreateWebGpuAppParticleRenderPipeline(
   app: WebGpuAppParticleContext,
   cache: WebGpuAppResourceCache,
   blendMode: ParticleEffectAsset["blendMode"],
-): Promise<CreateParticleRenderPipelineResourceResult> {
+): MaybePromise<CreateParticleRenderPipelineResourceResult> {
   const colorFormat = webGpuAppScenePassColorFormat(app);
   const isHdr = webGpuAppUsesHdrScenePass(app);
   const tonemap: TonemapOperator = isHdr ? "none" : (app.tonemap ?? "none");
@@ -202,7 +250,7 @@ export async function getOrCreateWebGpuAppParticleRenderPipeline(
     return cached;
   }
 
-  const result = await createParticleRenderPipelineResource({
+  return createParticleRenderPipelineResource({
     device: app.initialization.device as Parameters<
       typeof createParticleRenderPipelineResource
     >[0]["device"],
@@ -212,10 +260,127 @@ export async function getOrCreateWebGpuAppParticleRenderPipeline(
     blendMode,
     tonemap,
     outputColorSpace,
+  }).then((result) => {
+    cache.particleRenderPipelines.set(key, result);
+    return result;
+  });
+}
+
+export function getOrCreateWebGpuAppParticleBurstRenderPipeline(
+  app: WebGpuAppParticleContext,
+  cache: WebGpuAppResourceCache,
+  blendMode: ParticleEffectAsset["blendMode"],
+): MaybePromise<CreateParticleRenderPipelineResourceResult> {
+  const colorFormat = webGpuAppScenePassColorFormat(app);
+  const isHdr = webGpuAppUsesHdrScenePass(app);
+  const tonemap: TonemapOperator = isHdr ? "none" : (app.tonemap ?? "none");
+  const outputColorSpace: OutputColorSpace = isHdr
+    ? "linear"
+    : (app.outputColorSpace ?? "linear");
+  const key = particleBurstRenderPipelineCacheKey(
+    colorFormat,
+    WEBGPU_APP_DEPTH_FORMAT,
+    app.msaa.sampleCount,
+    blendMode,
+    tonemap,
+    outputColorSpace,
+  );
+  const cached = cache.particleRenderPipelines.get(key);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  return createParticleRenderPipelineResource({
+    device: app.initialization.device as Parameters<
+      typeof createParticleRenderPipelineResource
+    >[0]["device"],
+    colorFormat,
+    depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+    sampleCount: app.msaa.sampleCount,
+    blendMode,
+    tonemap,
+    outputColorSpace,
+    variant: "burst",
+  }).then((result) => {
+    cache.particleRenderPipelines.set(key, result);
+    return result;
+  });
+}
+
+type MaybePromise<T> = T | Promise<T>;
+
+function isPromiseLike<T>(value: MaybePromise<T>): value is Promise<T> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "then" in value &&
+    typeof (value as { readonly then?: unknown }).then === "function"
+  );
+}
+
+type ParticleViewUniformBufferResult =
+  | {
+      readonly ok: true;
+      readonly resource: ParticleViewUniformBufferResource;
+    }
+  | {
+      readonly ok: false;
+      readonly message: string;
+    };
+
+function getOrCreateParticleViewUniformBuffer(options: {
+  readonly cache: WebGpuAppResourceCache;
+  readonly device: Parameters<typeof createWebGpuBuffer>[0]["device"];
+  readonly data: Float32Array;
+}): ParticleViewUniformBufferResult {
+  const cached = options.cache.particleViewUniformBuffer;
+
+  if (cached !== null && cached.byteLength >= options.data.byteLength) {
+    if (options.device.queue?.writeBuffer === undefined) {
+      return {
+        ok: false,
+        message:
+          "Particle view uniform buffer updates require queue.writeBuffer.",
+      };
+    }
+
+    options.device.queue.writeBuffer(
+      cached.buffer,
+      0,
+      options.data.buffer,
+      options.data.byteOffset,
+      options.data.byteLength,
+    );
+    return { ok: true, resource: cached };
+  }
+
+  if (cached !== null) {
+    destroyWebGpuBuffer(cached.buffer);
+  }
+
+  const created = createWebGpuBuffer({
+    device: options.device,
+    descriptor: {
+      label: "Particle/ViewUniforms",
+      size: options.data.byteLength,
+      usage:
+        WEBGPU_BUFFER_USAGE_FLAGS.UNIFORM | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
+      initialData: options.data,
+    },
   });
 
-  cache.particleRenderPipelines.set(key, result);
-  return result;
+  if (!created.ok) {
+    return { ok: false, message: created.message };
+  }
+
+  const resource: ParticleViewUniformBufferResource = {
+    buffer: created.buffer,
+    byteLength: options.data.byteLength,
+  };
+
+  options.cache.particleViewUniformBuffer = resource;
+  return { ok: true, resource };
 }
 
 async function createParticleFrameResources(options: {
@@ -266,15 +431,10 @@ async function createParticleFrameResources(options: {
   const reuse = options.reuse ?? createParticleTextureSamplerReuseReport();
   const reuseStart = particleTextureSamplerReuseSnapshot(reuse);
   const viewData = viewUniformData(options);
-  const viewBuffer = createWebGpuBuffer({
+  const viewBuffer = getOrCreateParticleViewUniformBuffer({
+    cache: options.cache,
     device,
-    descriptor: {
-      label: "Particle/ViewUniforms",
-      size: viewData.byteLength,
-      usage:
-        WEBGPU_BUFFER_USAGE_FLAGS.UNIFORM | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
-      initialData: viewData,
-    },
+    data: viewData,
   });
 
   if (!viewBuffer.ok) {
@@ -292,6 +452,15 @@ async function createParticleFrameResources(options: {
   }
 
   const activeStateKeys = new Set<string>();
+  const activeBurstCpuStateKeys = new Set<string>();
+  const activeBurstBatchKeys = new Set<string>();
+  const textureSamplerFrameCache = new Map<string, ParticleTextureSampler>();
+  const renderPipelineFrameCache = new Map<
+    string,
+    CreateParticleRenderPipelineResourceResult
+  >();
+  const units: ParticleFrameUnit[] = [];
+  let activeBurstGroup: ParticleBurstBatchUnit | null = null;
 
   for (const emitter of options.snapshot.particleEmitters ?? []) {
     const effectEntry = options.assets.get<
@@ -312,12 +481,32 @@ async function createParticleFrameResources(options: {
       continue;
     }
 
-    const renderPipelineResult =
-      await getOrCreateWebGpuAppParticleRenderPipeline(
-        options.app,
-        options.cache,
-        effect.blendMode,
+    const burstBatchable = isBatchableParticleBurst(emitter);
+    const renderPipelineFrameKey = `${effect.blendMode}:${burstBatchable ? "burst" : "computed"}`;
+    let renderPipelineResult = renderPipelineFrameCache.get(
+      renderPipelineFrameKey,
+    );
+
+    if (renderPipelineResult === undefined) {
+      const pipelineResult = burstBatchable
+        ? getOrCreateWebGpuAppParticleBurstRenderPipeline(
+            options.app,
+            options.cache,
+            effect.blendMode,
+          )
+        : getOrCreateWebGpuAppParticleRenderPipeline(
+            options.app,
+            options.cache,
+            effect.blendMode,
+          );
+      renderPipelineResult = isPromiseLike(pipelineResult)
+        ? await pipelineResult
+        : pipelineResult;
+      renderPipelineFrameCache.set(
+        renderPipelineFrameKey,
+        renderPipelineResult,
       );
+    }
 
     if (!renderPipelineResult.valid || renderPipelineResult.resource === null) {
       diagnostics.push(...renderPipelineResult.diagnostics);
@@ -336,15 +525,28 @@ async function createParticleFrameResources(options: {
       });
       continue;
     }
+    const renderPipelineWithLayouts = renderPipeline as {
+      readonly getBindGroupLayout: (group: number) => unknown;
+    };
 
-    const textureSampler = prepareParticleTextureSamplerResources({
-      assets: options.assets,
-      cache: options.cache,
-      device,
-      effect,
-      reuse,
-      diagnostics,
-    });
+    const textureSamplerCacheKey = particleTextureSamplerFrameCacheKey(effect);
+    let textureSampler: ParticleTextureSampler | null =
+      textureSamplerFrameCache.get(textureSamplerCacheKey) ?? null;
+
+    if (textureSampler === null) {
+      textureSampler = prepareParticleTextureSamplerResources({
+        assets: options.assets,
+        cache: options.cache,
+        device,
+        effect,
+        reuse,
+        diagnostics,
+      });
+
+      if (textureSampler !== null) {
+        textureSamplerFrameCache.set(textureSamplerCacheKey, textureSampler);
+      }
+    }
 
     if (textureSampler === null) {
       continue;
@@ -354,10 +556,61 @@ async function createParticleFrameResources(options: {
       mutableReport.texturedEmitters += 1;
     }
 
+    const record: PreparedParticleEmitterRecord = {
+      emitter,
+      effect,
+      renderPipeline: renderPipelineWithLayouts,
+      renderPipelineResource,
+      textureSampler,
+    };
+
+    if (burstBatchable) {
+      const key = particleBurstBatchUnitKey(record);
+
+      if (activeBurstGroup !== null && activeBurstGroup.key === key) {
+        activeBurstGroup.records.push(record);
+      } else {
+        activeBurstGroup = {
+          kind: "burstBatch",
+          key,
+          records: [record],
+        };
+        units.push(activeBurstGroup);
+      }
+      continue;
+    }
+
+    activeBurstGroup = null;
+    units.push({ kind: "single", record });
+  }
+
+  for (const unit of units) {
+    if (unit.kind === "burstBatch") {
+      const batchReport = writeParticleBurstBatchCommands({
+        cache: options.cache,
+        device,
+        viewBuffer: viewBuffer.resource.buffer,
+        frame: options.snapshot.frame,
+        time: options.time,
+        unit,
+        activeBurstCpuStateKeys,
+        activeBurstBatchKeys,
+        commands,
+      });
+
+      diagnostics.push(...batchReport.diagnostics);
+      mutableReport.liveParticles += batchReport.liveParticles;
+      mutableReport.statesCreated += batchReport.statesCreated;
+      mutableReport.statesReused += batchReport.statesReused;
+      continue;
+    }
+
+    const record = unit.record;
+
     const stateResult = getOrCreateParticleEmitterGpuState({
       cache: options.cache,
       device,
-      emitter,
+      emitter: record.emitter,
     });
 
     if (!stateResult.valid || stateResult.state === null) {
@@ -369,14 +622,14 @@ async function createParticleFrameResources(options: {
     mutableReport.statesCreated += stateResult.created ? 1 : 0;
     mutableReport.statesReused += stateResult.created ? 0 : 1;
 
-    let drawInstanceCount = emitter.capacity;
+    let drawInstanceCount = record.emitter.capacity;
 
-    if (emitter.mode === "burst" && emitter.burst !== undefined) {
+    if (record.emitter.mode === "burst" && record.emitter.burst !== undefined) {
       const burstReport = updateParticleBurstCpuState({
         device,
         state: stateResult.state,
-        emitter,
-        effect,
+        emitter: record.emitter,
+        effect: record.effect,
         time: options.time,
       });
 
@@ -384,8 +637,8 @@ async function createParticleFrameResources(options: {
       drawInstanceCount = burstReport.liveParticles;
     } else {
       const params = createParticleParamData({
-        emitter,
-        effect,
+        emitter: record.emitter,
+        effect: record.effect,
         snapshot: options.snapshot,
         frame: options.snapshot.frame,
         time: options.time,
@@ -393,7 +646,7 @@ async function createParticleFrameResources(options: {
       const paramBuffer = createWebGpuBuffer({
         device,
         descriptor: {
-          label: `Particle/Params/${emitter.emitterId}`,
+          label: `Particle/Params/${record.emitter.emitterId}`,
           size: params.byteLength,
           usage:
             WEBGPU_BUFFER_USAGE_FLAGS.UNIFORM |
@@ -411,7 +664,7 @@ async function createParticleFrameResources(options: {
       }
 
       const computeBindGroup = device.createBindGroup({
-        label: `Particle/ComputeBindGroup/${emitter.emitterId}`,
+        label: `Particle/ComputeBindGroup/${record.emitter.emitterId}`,
         layout: computePipeline.getBindGroupLayout(0),
         entries: [
           { binding: 0, resource: { buffer: paramBuffer.buffer } },
@@ -425,7 +678,7 @@ async function createParticleFrameResources(options: {
         device,
         pipeline: options.computePipeline,
         bindGroup: computeBindGroup,
-        emitter,
+        emitter: record.emitter,
       });
 
       diagnostics.push(...computeReport.diagnostics);
@@ -437,59 +690,61 @@ async function createParticleFrameResources(options: {
     }
 
     const viewBindGroup = device.createBindGroup({
-      label: `Particle/ViewBindGroup/${emitter.emitterId}`,
-      layout: renderPipeline.getBindGroupLayout(0),
-      entries: [{ binding: 0, resource: { buffer: viewBuffer.buffer } }],
+      label: `Particle/ViewBindGroup/${record.emitter.emitterId}`,
+      layout: record.renderPipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: viewBuffer.resource.buffer } },
+      ],
     });
     mutableReport.liveParticles += drawInstanceCount;
 
     const particleBindGroup = device.createBindGroup({
-      label: `Particle/RenderBindGroup/${emitter.emitterId}`,
-      layout: renderPipeline.getBindGroupLayout(1),
+      label: `Particle/RenderBindGroup/${record.emitter.emitterId}`,
+      layout: record.renderPipeline.getBindGroupLayout(1),
       entries: [
         { binding: 0, resource: { buffer: stateResult.state.particleBuffer } },
       ],
     });
     const textureBindGroup = device.createBindGroup({
-      label: `Particle/TextureBindGroup/${emitter.emitterId}`,
-      layout: renderPipeline.getBindGroupLayout(2),
+      label: `Particle/TextureBindGroup/${record.emitter.emitterId}`,
+      layout: record.renderPipeline.getBindGroupLayout(2),
       entries: [
-        { binding: 0, resource: textureSampler.texture.view },
-        { binding: 1, resource: textureSampler.sampler.sampler },
+        { binding: 0, resource: record.textureSampler.texture.view },
+        { binding: 1, resource: record.textureSampler.sampler.sampler },
       ],
     });
 
     commands.push(
       {
         kind: "setPipeline",
-        renderId: emitter.emitterId,
-        pipelineKey: renderPipelineResource.cacheKey,
-        pipeline: renderPipelineResource.pipeline,
+        renderId: record.emitter.emitterId,
+        pipelineKey: record.renderPipelineResource.cacheKey,
+        pipeline: record.renderPipelineResource.pipeline,
       },
       {
         kind: "setBindGroup",
-        renderId: emitter.emitterId,
+        renderId: record.emitter.emitterId,
         index: 0,
         resourceKey: `particle:view:${options.snapshot.frame}`,
         bindGroup: viewBindGroup,
       },
       {
         kind: "setBindGroup",
-        renderId: emitter.emitterId,
+        renderId: record.emitter.emitterId,
         index: 1,
         resourceKey: stateResult.state.key,
         bindGroup: particleBindGroup,
       },
       {
         kind: "setBindGroup",
-        renderId: emitter.emitterId,
+        renderId: record.emitter.emitterId,
         index: 2,
-        resourceKey: `${textureSampler.textureKey}:${textureSampler.samplerKey}`,
+        resourceKey: `${record.textureSampler.textureKey}:${record.textureSampler.samplerKey}`,
         bindGroup: textureBindGroup,
       },
       {
         kind: "draw",
-        renderId: emitter.emitterId,
+        renderId: record.emitter.emitterId,
         vertexCount: 6,
         instanceCount: drawInstanceCount,
         firstVertex: 0,
@@ -510,6 +765,14 @@ async function createParticleFrameResources(options: {
     options.cache,
     activeStateKeys,
   );
+  mutableReport.staleStatesRemoved += cleanupParticleBurstCpuStates(
+    options.cache,
+    activeBurstCpuStateKeys,
+  );
+  mutableReport.staleStatesRemoved += cleanupParticleBurstBatchStates(
+    options.cache,
+    activeBurstBatchKeys,
+  );
 
   return {
     valid: diagnostics.length === 0,
@@ -519,6 +782,410 @@ async function createParticleFrameResources(options: {
   };
 }
 
+function isBatchableParticleBurst(emitter: ParticleEmitterPacket): boolean {
+  return (
+    emitter.mode === "burst" &&
+    emitter.burst !== undefined &&
+    emitter.simulationSpace === "world" &&
+    emitter.capacity > 0
+  );
+}
+
+function particleTextureSamplerFrameCacheKey(
+  effect: ParticleEffectAsset,
+): string {
+  const textureKey =
+    effect.texture === undefined || effect.texture === null
+      ? PARTICLE_DEFAULT_TEXTURE_CACHE_KEY
+      : assetHandleKey(effect.texture);
+  const samplerKey =
+    effect.sampler === undefined || effect.sampler === null
+      ? PARTICLE_DEFAULT_SAMPLER_CACHE_KEY
+      : assetHandleKey(effect.sampler);
+
+  return `${textureKey}:${samplerKey}`;
+}
+
+function particleBurstBatchUnitKey(
+  record: PreparedParticleEmitterRecord,
+): string {
+  const { emitter, textureSampler } = record;
+
+  return [
+    "particle-burst-batch",
+    `effect:${assetHandleKey(emitter.effect)}@${emitter.effectVersion}`,
+    `pipeline:${record.renderPipelineResource.cacheKey}`,
+    `texture:${textureSampler.textureKey}`,
+    `sampler:${textureSampler.samplerKey}`,
+    `view:${emitter.sortKey.viewId}`,
+    `layer-mask:${emitter.layerMask}`,
+    `sort-layer:${emitter.sortKey.layer}`,
+    `order:${emitter.sortKey.order}`,
+  ].join("|");
+}
+
+function writeParticleBurstBatchCommands(options: {
+  readonly cache: WebGpuAppResourceCache;
+  readonly device: Parameters<typeof createWebGpuBuffer>[0]["device"] & {
+    readonly createBindGroup?: (descriptor: unknown) => unknown;
+    readonly queue?: {
+      readonly writeBuffer?: (
+        buffer: unknown,
+        bufferOffset: number,
+        data: ArrayBufferLike | ArrayBufferView,
+        dataOffset?: number,
+        size?: number,
+      ) => void;
+    };
+  };
+  readonly viewBuffer: unknown;
+  readonly frame: number;
+  readonly time: number;
+  readonly unit: ParticleBurstBatchUnit;
+  readonly activeBurstCpuStateKeys: Set<string>;
+  readonly activeBurstBatchKeys: Set<string>;
+  readonly commands: RenderPassCommand[];
+}): {
+  readonly liveParticles: number;
+  readonly statesCreated: number;
+  readonly statesReused: number;
+  readonly diagnostics: readonly unknown[];
+} {
+  const first = options.unit.records[0];
+
+  if (first === undefined) {
+    return {
+      liveParticles: 0,
+      statesCreated: 0,
+      statesReused: 0,
+      diagnostics: [],
+    };
+  }
+
+  if (
+    options.device.createBindGroup === undefined ||
+    options.device.queue?.writeBuffer === undefined
+  ) {
+    return {
+      liveParticles: 0,
+      statesCreated: 0,
+      statesReused: 0,
+      diagnostics: [
+        {
+          code: "particleFrame.burstBatchUnavailable",
+          message:
+            "Particle burst batching requires bind groups and queue.writeBuffer.",
+        },
+      ],
+    };
+  }
+
+  const diagnostics: unknown[] = [];
+  const liveSlices: {
+    readonly key: string;
+    readonly cpu: ParticleEmitterCpuStateResource;
+    readonly emitter: ParticleEmitterPacket;
+    readonly effect: ParticleEffectAsset;
+    readonly liveParticles: number;
+    readonly capacity: number;
+  }[] = [];
+  const activeSlotKeys = new Set<string>();
+  let totalCapacity = 0;
+  let totalLiveParticles = 0;
+  let statesCreated = 0;
+  let statesReused = 0;
+
+  for (const record of options.unit.records) {
+    const capacity = Math.max(0, Math.trunc(record.emitter.capacity));
+    totalCapacity += capacity;
+    const cpuState = getOrCreateParticleBurstCpuState({
+      cache: options.cache,
+      emitter: record.emitter,
+    });
+    const slotKey = cpuState.key;
+
+    options.activeBurstCpuStateKeys.add(cpuState.key);
+    activeSlotKeys.add(slotKey);
+    statesCreated += cpuState.created ? 1 : 0;
+    statesReused += cpuState.created ? 0 : 1;
+
+    const update = updateParticleBurstAnalyticCpuData({
+      cpu: cpuState.cpu,
+      emitter: record.emitter,
+      effect: record.effect,
+      time: options.time,
+    });
+
+    diagnostics.push(...update.diagnostics);
+
+    if (update.liveParticles <= 0) {
+      continue;
+    }
+
+    totalLiveParticles += update.liveParticles;
+    liveSlices.push({
+      key: slotKey,
+      cpu: cpuState.cpu,
+      emitter: record.emitter,
+      effect: record.effect,
+      liveParticles: update.liveParticles,
+      capacity,
+    });
+  }
+
+  if (totalLiveParticles <= 0) {
+    return {
+      liveParticles: 0,
+      statesCreated,
+      statesReused,
+      diagnostics,
+    };
+  }
+
+  const batchState = getOrCreateParticleBurstBatchGpuState({
+    cache: options.cache,
+    device: options.device,
+    key: options.unit.key,
+    capacity: Math.max(totalCapacity, totalLiveParticles),
+  });
+
+  if (!batchState.valid || batchState.state === null) {
+    return {
+      liveParticles: 0,
+      statesCreated,
+      statesReused,
+      diagnostics: [...diagnostics, ...batchState.diagnostics],
+    };
+  }
+
+  options.activeBurstBatchKeys.add(batchState.state.key);
+  statesCreated += batchState.created ? 1 : 0;
+  statesReused += batchState.created ? 0 : 1;
+
+  releaseInactiveParticleBurstBatchSlots(batchState.state, activeSlotKeys);
+
+  const activeDrawRanges: {
+    readonly firstInstance: number;
+    readonly instanceCount: number;
+  }[] = [];
+  const uploadRanges: { byteOffset: number; byteLength: number }[] = [];
+  for (const slice of liveSlices) {
+    const slot = acquireParticleBurstBatchSlot(
+      batchState.state,
+      slice.key,
+      slice.capacity,
+    );
+
+    if (slot === null) {
+      diagnostics.push({
+        code: "particleFrame.burstBatchSlotUnavailable",
+        message:
+          "Particle burst batch did not have enough contiguous slot capacity.",
+      });
+      continue;
+    }
+
+    if (slot.created) {
+      const upload = writeParticleBurstInitialSlotData({
+        state: batchState.state,
+        slot: slot.slot,
+        cpu: slice.cpu,
+        emitter: slice.emitter,
+      });
+
+      uploadRanges.push(upload);
+    }
+
+    activeDrawRanges.push({
+      firstInstance: slot.slot.offset,
+      instanceCount: slot.slot.capacity,
+    });
+  }
+
+  const drawRanges = mergeParticleBurstDrawRanges(activeDrawRanges);
+
+  if (drawRanges.length === 0) {
+    return {
+      liveParticles: totalLiveParticles,
+      statesCreated,
+      statesReused,
+      diagnostics,
+    };
+  }
+
+  for (const upload of mergeParticleBurstUploadRanges(uploadRanges)) {
+    options.device.queue.writeBuffer(
+      batchState.state.particleBuffer,
+      upload.byteOffset,
+      batchState.state.bufferData.buffer,
+      batchState.state.bufferData.byteOffset + upload.byteOffset,
+      upload.byteLength,
+    );
+  }
+
+  const params = getOrUpdateParticleBurstRenderParams({
+    device: options.device,
+    state: batchState.state,
+    effect: first.effect,
+    time: options.time,
+  });
+
+  if (!params.valid) {
+    return {
+      liveParticles: 0,
+      statesCreated,
+      statesReused,
+      diagnostics: [...diagnostics, ...params.diagnostics],
+    };
+  }
+
+  if (params.buffer === null) {
+    return {
+      liveParticles: 0,
+      statesCreated,
+      statesReused,
+      diagnostics: [
+        ...diagnostics,
+        {
+          code: "particleFrame.burstParamBufferMissing",
+          message: "Particle burst render params did not return a buffer.",
+        },
+      ],
+    };
+  }
+
+  const viewBindGroup = options.device.createBindGroup({
+    label: `Particle/BurstBatchViewBindGroup/${first.emitter.emitterId}`,
+    layout: first.renderPipeline.getBindGroupLayout(0),
+    entries: [{ binding: 0, resource: { buffer: options.viewBuffer } }],
+  });
+  const particleBindGroup = options.device.createBindGroup({
+    label: `Particle/BurstBatchRenderBindGroup/${first.emitter.emitterId}`,
+    layout: first.renderPipeline.getBindGroupLayout(1),
+    entries: [
+      { binding: 0, resource: { buffer: batchState.state.particleBuffer } },
+    ],
+  });
+  const textureBindGroup = options.device.createBindGroup({
+    label: `Particle/BurstBatchTextureBindGroup/${first.emitter.emitterId}`,
+    layout: first.renderPipeline.getBindGroupLayout(2),
+    entries: [
+      { binding: 0, resource: first.textureSampler.texture.view },
+      { binding: 1, resource: first.textureSampler.sampler.sampler },
+    ],
+  });
+  const paramsBindGroup = options.device.createBindGroup({
+    label: `Particle/BurstBatchParamsBindGroup/${first.emitter.emitterId}`,
+    layout: first.renderPipeline.getBindGroupLayout(3),
+    entries: [{ binding: 0, resource: { buffer: params.buffer } }],
+  });
+
+  options.commands.push(
+    {
+      kind: "setPipeline",
+      renderId: first.emitter.emitterId,
+      pipelineKey: first.renderPipelineResource.cacheKey,
+      pipeline: first.renderPipelineResource.pipeline,
+    },
+    {
+      kind: "setBindGroup",
+      renderId: first.emitter.emitterId,
+      index: 0,
+      resourceKey: `particle:view:${options.frame}`,
+      bindGroup: viewBindGroup,
+    },
+    {
+      kind: "setBindGroup",
+      renderId: first.emitter.emitterId,
+      index: 1,
+      resourceKey: batchState.state.key,
+      bindGroup: particleBindGroup,
+    },
+    {
+      kind: "setBindGroup",
+      renderId: first.emitter.emitterId,
+      index: 2,
+      resourceKey: `${first.textureSampler.textureKey}:${first.textureSampler.samplerKey}`,
+      bindGroup: textureBindGroup,
+    },
+    {
+      kind: "setBindGroup",
+      renderId: first.emitter.emitterId,
+      index: 3,
+      resourceKey: `${batchState.state.key}:params`,
+      bindGroup: paramsBindGroup,
+    },
+  );
+
+  for (const range of drawRanges) {
+    options.commands.push({
+      kind: "draw",
+      renderId: first.emitter.emitterId,
+      vertexCount: 6,
+      instanceCount: range.instanceCount,
+      firstVertex: 0,
+      firstInstance: range.firstInstance,
+    });
+  }
+
+  return {
+    liveParticles: totalLiveParticles,
+    statesCreated,
+    statesReused,
+    diagnostics,
+  };
+}
+
+function mergeParticleBurstDrawRanges(
+  ranges: readonly {
+    readonly firstInstance: number;
+    readonly instanceCount: number;
+  }[],
+): readonly {
+  readonly firstInstance: number;
+  readonly instanceCount: number;
+}[] {
+  if (ranges.length <= 1) {
+    return ranges;
+  }
+
+  const sorted = [...ranges].sort((a, b) => a.firstInstance - b.firstInstance);
+  const merged: { firstInstance: number; instanceCount: number }[] = [];
+  let currentStart = sorted[0]?.firstInstance ?? 0;
+  let currentEnd = currentStart + Math.max(0, sorted[0]?.instanceCount ?? 0);
+
+  for (let index = 1; index < sorted.length; index += 1) {
+    const range = sorted[index];
+
+    if (range === undefined || range.instanceCount <= 0) {
+      continue;
+    }
+
+    const rangeEnd = range.firstInstance + range.instanceCount;
+
+    if (range.firstInstance <= currentEnd) {
+      currentEnd = Math.max(currentEnd, rangeEnd);
+      continue;
+    }
+
+    merged.push({
+      firstInstance: currentStart,
+      instanceCount: currentEnd - currentStart,
+    });
+    currentStart = range.firstInstance;
+    currentEnd = rangeEnd;
+  }
+
+  if (currentEnd > currentStart) {
+    merged.push({
+      firstInstance: currentStart,
+      instanceCount: currentEnd - currentStart,
+    });
+  }
+
+  return merged;
+}
+
 function prepareParticleTextureSamplerResources(options: {
   readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
@@ -526,12 +1193,7 @@ function prepareParticleTextureSamplerResources(options: {
   readonly effect: ParticleEffectAsset;
   readonly reuse: AppTextureSamplerResourceReuseReport;
   readonly diagnostics: unknown[];
-}): {
-  readonly texture: TextureGpuResource;
-  readonly sampler: SamplerGpuResource;
-  readonly textureKey: string;
-  readonly samplerKey: string;
-} | null {
+}): ParticleTextureSampler | null {
   const texture =
     options.effect.texture === undefined || options.effect.texture === null
       ? getOrCreateDefaultParticleTexture({
@@ -755,6 +1417,348 @@ function getOrCreateParticleEmitterGpuState(options: {
   return { valid: true, state, created: true, diagnostics: [] };
 }
 
+function getOrCreateParticleBurstCpuState(options: {
+  readonly cache: WebGpuAppResourceCache;
+  readonly emitter: ParticleEmitterPacket;
+}): {
+  readonly key: string;
+  readonly cpu: ParticleEmitterCpuStateResource;
+  readonly created: boolean;
+} {
+  const key = particleEmitterStateKey(options.emitter);
+  const cached = options.cache.particleBurstCpuStates.get(key);
+
+  if (cached !== undefined) {
+    return { key, cpu: cached, created: false };
+  }
+
+  const cpu = createParticleEmitterCpuState(options.emitter.capacity);
+
+  options.cache.particleBurstCpuStates.set(key, cpu);
+  return { key, cpu, created: true };
+}
+
+function getOrCreateParticleBurstBatchGpuState(options: {
+  readonly cache: WebGpuAppResourceCache;
+  readonly device: Parameters<typeof createWebGpuBuffer>[0]["device"];
+  readonly key: string;
+  readonly capacity: number;
+}): {
+  readonly valid: boolean;
+  readonly state: ParticleBurstBatchGpuStateResource | null;
+  readonly created: boolean;
+  readonly diagnostics: readonly unknown[];
+} {
+  const capacity = nextPowerOfTwo(Math.max(1, Math.trunc(options.capacity)));
+  const cached = options.cache.particleBurstBatchStates.get(options.key);
+
+  if (cached !== undefined && cached.capacity >= capacity) {
+    return { valid: true, state: cached, created: false, diagnostics: [] };
+  }
+
+  if (cached !== undefined) {
+    destroyWebGpuBuffer(cached.particleBuffer);
+  }
+
+  const byteLength = capacity * PARTICLE_BURST_DATA_FLOAT_STRIDE * 4;
+  const buffer = createWebGpuBuffer({
+    device: options.device,
+    descriptor: {
+      label: `Particle/BurstBatch/${options.key}`,
+      size: byteLength,
+      usage:
+        WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
+    },
+  });
+
+  if (!buffer.ok) {
+    return {
+      valid: false,
+      state: null,
+      created: false,
+      diagnostics: [
+        {
+          code: "particleFrame.burstBatchBufferFailed",
+          message: buffer.message,
+        },
+      ],
+    };
+  }
+
+  const state: ParticleBurstBatchGpuStateResource = {
+    key: options.key,
+    capacity,
+    particleBuffer: buffer.buffer,
+    byteLength,
+    bufferData: new Float32Array(capacity * PARTICLE_BURST_DATA_FLOAT_STRIDE),
+    slotsByBurstKey: new Map(),
+    freeSlots: [],
+    nextParticleSlot: 0,
+    paramBuffer: null,
+    paramByteLength: 0,
+    paramData: null,
+  };
+
+  options.cache.particleBurstBatchStates.set(options.key, state);
+  return { valid: true, state, created: true, diagnostics: [] };
+}
+
+function releaseInactiveParticleBurstBatchSlots(
+  state: ParticleBurstBatchGpuStateResource,
+  activeKeys: ReadonlySet<string>,
+): void {
+  for (const [key, slot] of state.slotsByBurstKey) {
+    if (activeKeys.has(key)) {
+      continue;
+    }
+
+    state.slotsByBurstKey.delete(key);
+    state.freeSlots.push({ offset: slot.offset, capacity: slot.capacity });
+  }
+}
+
+function acquireParticleBurstBatchSlot(
+  state: ParticleBurstBatchGpuStateResource,
+  key: string,
+  capacity: number,
+): { readonly slot: ParticleBurstBatchSlot; readonly created: boolean } | null {
+  const cached = state.slotsByBurstKey.get(key);
+
+  if (cached !== undefined) {
+    return { slot: cached, created: false };
+  }
+
+  const requestedCapacity = Math.max(1, Math.trunc(capacity));
+
+  for (let index = 0; index < state.freeSlots.length; index += 1) {
+    const free = state.freeSlots[index];
+
+    if (free === undefined || free.capacity < requestedCapacity) {
+      continue;
+    }
+
+    state.freeSlots.splice(index, 1);
+
+    if (free.capacity > requestedCapacity) {
+      state.freeSlots.push({
+        offset: free.offset + requestedCapacity,
+        capacity: free.capacity - requestedCapacity,
+      });
+    }
+
+    const slot: ParticleBurstBatchSlot = {
+      key,
+      offset: free.offset,
+      capacity: requestedCapacity,
+    };
+
+    state.slotsByBurstKey.set(key, slot);
+    return { slot, created: true };
+  }
+
+  if (state.nextParticleSlot + requestedCapacity > state.capacity) {
+    return null;
+  }
+
+  const slot: ParticleBurstBatchSlot = {
+    key,
+    offset: state.nextParticleSlot,
+    capacity: requestedCapacity,
+  };
+
+  state.nextParticleSlot += requestedCapacity;
+  state.slotsByBurstKey.set(key, slot);
+  return { slot, created: true };
+}
+
+function writeParticleBurstInitialSlotData(options: {
+  readonly state: ParticleBurstBatchGpuStateResource;
+  readonly slot: ParticleBurstBatchSlot;
+  readonly cpu: ParticleEmitterCpuStateResource;
+  readonly emitter: ParticleEmitterPacket;
+}): { readonly byteOffset: number; readonly byteLength: number } {
+  const startFloat = options.slot.offset * PARTICLE_BURST_DATA_FLOAT_STRIDE;
+  const particleCount = Math.min(
+    options.slot.capacity,
+    options.cpu.ages.length,
+  );
+
+  for (let index = 0; index < particleCount; index += 1) {
+    const sourceOffset = index * 3;
+    const outputOffset = startFloat + index * PARTICLE_BURST_DATA_FLOAT_STRIDE;
+
+    options.state.bufferData[outputOffset] =
+      options.cpu.positions[sourceOffset] ?? 0;
+    options.state.bufferData[outputOffset + 1] =
+      options.cpu.positions[sourceOffset + 1] ?? 0;
+    options.state.bufferData[outputOffset + 2] =
+      options.cpu.positions[sourceOffset + 2] ?? 0;
+    options.state.bufferData[outputOffset + 3] = options.cpu.startTime;
+    options.state.bufferData[outputOffset + 4] =
+      options.cpu.velocities[sourceOffset] ?? 0;
+    options.state.bufferData[outputOffset + 5] =
+      options.cpu.velocities[sourceOffset + 1] ?? 0;
+    options.state.bufferData[outputOffset + 6] =
+      options.cpu.velocities[sourceOffset + 2] ?? 0;
+    options.state.bufferData[outputOffset + 7] =
+      options.cpu.lifetimes[index] ?? 0.001;
+    options.state.bufferData[outputOffset + 8] =
+      options.cpu.baseSizes[index] ?? 1;
+    options.state.bufferData[outputOffset + 9] = options.emitter.timeScale;
+    options.state.bufferData[outputOffset + 10] = 0;
+    options.state.bufferData[outputOffset + 11] = 0;
+  }
+
+  const byteOffset = startFloat * Float32Array.BYTES_PER_ELEMENT;
+  const byteLength =
+    particleCount *
+    PARTICLE_BURST_DATA_FLOAT_STRIDE *
+    Float32Array.BYTES_PER_ELEMENT;
+
+  return { byteOffset, byteLength };
+}
+
+function mergeParticleBurstUploadRanges(
+  ranges: readonly {
+    readonly byteOffset: number;
+    readonly byteLength: number;
+  }[],
+): readonly { readonly byteOffset: number; readonly byteLength: number }[] {
+  if (ranges.length <= 1) {
+    return ranges;
+  }
+
+  const sorted = [...ranges].sort((a, b) => a.byteOffset - b.byteOffset);
+  const merged: { byteOffset: number; byteLength: number }[] = [];
+  let currentOffset = sorted[0]?.byteOffset ?? 0;
+  let currentEnd = currentOffset + (sorted[0]?.byteLength ?? 0);
+
+  for (let index = 1; index < sorted.length; index += 1) {
+    const range = sorted[index];
+
+    if (range === undefined) {
+      continue;
+    }
+
+    const rangeEnd = range.byteOffset + range.byteLength;
+
+    if (range.byteOffset <= currentEnd) {
+      currentEnd = Math.max(currentEnd, rangeEnd);
+      continue;
+    }
+
+    merged.push({
+      byteOffset: currentOffset,
+      byteLength: currentEnd - currentOffset,
+    });
+    currentOffset = range.byteOffset;
+    currentEnd = rangeEnd;
+  }
+
+  merged.push({
+    byteOffset: currentOffset,
+    byteLength: currentEnd - currentOffset,
+  });
+  return merged;
+}
+
+function getOrUpdateParticleBurstRenderParams(options: {
+  readonly device: Parameters<typeof createWebGpuBuffer>[0]["device"] & {
+    readonly queue?: {
+      readonly writeBuffer?: (
+        buffer: unknown,
+        bufferOffset: number,
+        data: ArrayBufferLike | ArrayBufferView,
+        dataOffset?: number,
+        size?: number,
+      ) => void;
+    };
+  };
+  readonly state: ParticleBurstBatchGpuStateResource;
+  readonly effect: ParticleEffectAsset;
+  readonly time: number;
+}): {
+  readonly valid: boolean;
+  readonly buffer: unknown | null;
+  readonly diagnostics: readonly unknown[];
+} {
+  if (options.device.queue?.writeBuffer === undefined) {
+    return {
+      valid: false,
+      buffer: null,
+      diagnostics: [
+        {
+          code: "particleFrame.burstParamWriteUnavailable",
+          message: "Particle burst render params require queue.writeBuffer.",
+        },
+      ],
+    };
+  }
+
+  const data =
+    options.state.paramData?.length === PARTICLE_BURST_RENDER_PARAM_FLOAT_COUNT
+      ? options.state.paramData
+      : new Float32Array(PARTICLE_BURST_RENDER_PARAM_FLOAT_COUNT);
+
+  data[0] = options.time;
+  data[1] = options.effect.gravity[0];
+  data[2] = options.effect.gravity[1];
+  data[3] = options.effect.gravity[2];
+  writeParticleBurstRenderCurveData(data, options.effect);
+
+  if (
+    options.state.paramBuffer !== null &&
+    options.state.paramByteLength === data.byteLength
+  ) {
+    options.device.queue.writeBuffer(
+      options.state.paramBuffer,
+      0,
+      data.buffer,
+      data.byteOffset,
+      data.byteLength,
+    );
+    options.state.paramData = data;
+    return {
+      valid: true,
+      buffer: options.state.paramBuffer,
+      diagnostics: [],
+    };
+  }
+
+  if (options.state.paramBuffer !== null) {
+    destroyWebGpuBuffer(options.state.paramBuffer);
+  }
+
+  const buffer = createWebGpuBuffer({
+    device: options.device,
+    descriptor: {
+      label: `Particle/BurstBatchParams/${options.state.key}`,
+      size: data.byteLength,
+      usage:
+        WEBGPU_BUFFER_USAGE_FLAGS.UNIFORM | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
+      initialData: data,
+    },
+  });
+
+  if (!buffer.ok) {
+    return {
+      valid: false,
+      buffer: null,
+      diagnostics: [
+        {
+          code: "particleFrame.burstParamBufferFailed",
+          message: buffer.message,
+        },
+      ],
+    };
+  }
+
+  options.state.paramBuffer = buffer.buffer;
+  options.state.paramByteLength = data.byteLength;
+  options.state.paramData = data;
+  return { valid: true, buffer: buffer.buffer, diagnostics: [] };
+}
+
 function createParticleEmitterCpuState(
   capacity: number,
 ): ParticleEmitterCpuStateResource {
@@ -766,9 +1770,47 @@ function createParticleEmitterCpuState(
     baseSizes: new Float32Array(capacity),
     bufferData: new Float32Array(capacity * PARTICLE_DATA_FLOAT_STRIDE),
     initialized: false,
+    startTime: 0,
     lastTime: 0,
     liveCount: 0,
   };
+}
+
+function updateParticleBurstAnalyticCpuData(options: {
+  readonly cpu: ParticleEmitterCpuStateResource;
+  readonly emitter: ParticleEmitterPacket;
+  readonly effect: ParticleEffectAsset;
+  readonly time: number;
+}): {
+  readonly liveParticles: number;
+  readonly diagnostics: readonly unknown[];
+} {
+  if (options.emitter.burst === undefined) {
+    return {
+      liveParticles: 0,
+      diagnostics: [
+        {
+          code: "particleFrame.burstStateMissing",
+          message: "Particle burst packet is missing burst parameters.",
+        },
+      ],
+    };
+  }
+
+  ensureParticleBurstCpuInitialized(options);
+
+  const elapsed = Math.max(0, options.time - options.cpu.startTime);
+  const scaledElapsed = elapsed * options.emitter.timeScale;
+  let live = 0;
+
+  for (let index = 0; index < options.cpu.lifetimes.length; index += 1) {
+    if (scaledElapsed < (options.cpu.lifetimes[index] ?? 0)) {
+      live += 1;
+    }
+  }
+
+  options.cpu.liveCount = live;
+  return { liveParticles: live, diagnostics: [] };
 }
 
 function updateParticleBurstCpuState(options: {
@@ -791,10 +1833,9 @@ function updateParticleBurstCpuState(options: {
   readonly liveParticles: number;
   readonly diagnostics: readonly unknown[];
 } {
-  const burst = options.emitter.burst;
   const cpu = options.state.cpu;
 
-  if (burst === undefined || cpu === undefined) {
+  if (cpu === undefined) {
     return {
       liveParticles: 0,
       diagnostics: [
@@ -818,40 +1859,83 @@ function updateParticleBurstCpuState(options: {
     };
   }
 
-  if (!cpu.initialized) {
-    initializeParticleBurstCpuState({
-      cpu,
-      emitter: options.emitter,
-      effect: options.effect,
-    });
-    cpu.initialized = true;
-    cpu.lastTime = options.time;
-  }
-
-  const rawDelta = options.time - cpu.lastTime;
-  const delta =
-    !Number.isFinite(rawDelta) || rawDelta <= 0
-      ? 0
-      : Math.min(rawDelta, 1 / 15) * options.emitter.timeScale;
-  cpu.lastTime = options.time;
-
-  const liveParticles = writeParticleBurstCpuBuffer({
+  const update = updateParticleBurstCpuData({
     cpu,
+    emitter: options.emitter,
     effect: options.effect,
-    delta,
+    time: options.time,
   });
 
-  if (liveParticles > 0) {
+  if (update.liveParticles > 0) {
     options.device.queue.writeBuffer(
       options.state.particleBuffer,
       0,
       cpu.bufferData.buffer,
       cpu.bufferData.byteOffset,
-      liveParticles * PARTICLE_DATA_FLOAT_STRIDE * 4,
+      update.liveParticles * PARTICLE_DATA_FLOAT_STRIDE * 4,
     );
   }
 
+  return update;
+}
+
+function updateParticleBurstCpuData(options: {
+  readonly cpu: ParticleEmitterCpuStateResource;
+  readonly emitter: ParticleEmitterPacket;
+  readonly effect: ParticleEffectAsset;
+  readonly time: number;
+}): {
+  readonly liveParticles: number;
+  readonly diagnostics: readonly unknown[];
+} {
+  if (options.emitter.burst === undefined) {
+    return {
+      liveParticles: 0,
+      diagnostics: [
+        {
+          code: "particleFrame.burstStateMissing",
+          message: "Particle burst packet is missing burst parameters.",
+        },
+      ],
+    };
+  }
+
+  ensureParticleBurstCpuInitialized(options);
+
+  const rawDelta = options.time - options.cpu.lastTime;
+  const delta =
+    !Number.isFinite(rawDelta) || rawDelta <= 0
+      ? 0
+      : Math.min(rawDelta, 1 / 15) * options.emitter.timeScale;
+  options.cpu.lastTime = options.time;
+
+  const liveParticles = writeParticleBurstCpuBuffer({
+    cpu: options.cpu,
+    effect: options.effect,
+    delta,
+  });
+
   return { liveParticles, diagnostics: [] };
+}
+
+function ensureParticleBurstCpuInitialized(options: {
+  readonly cpu: ParticleEmitterCpuStateResource;
+  readonly emitter: ParticleEmitterPacket;
+  readonly effect: ParticleEffectAsset;
+  readonly time: number;
+}): void {
+  if (options.cpu.initialized) {
+    return;
+  }
+
+  initializeParticleBurstCpuState({
+    cpu: options.cpu,
+    emitter: options.emitter,
+    effect: options.effect,
+  });
+  options.cpu.initialized = true;
+  options.cpu.startTime = options.time;
+  options.cpu.lastTime = options.time;
 }
 
 function initializeParticleBurstCpuState(options: {
@@ -1125,6 +2209,23 @@ function writeParticleCurveData(
   }
 }
 
+function writeParticleBurstRenderCurveData(
+  floats: Float32Array,
+  effect: ParticleEffectAsset,
+): void {
+  for (let index = 0; index < PARTICLE_CURVE_SAMPLE_COUNT; index += 1) {
+    const t = index / (PARTICLE_CURVE_SAMPLE_COUNT - 1);
+    const color = samplePackedParticleColorCurve(effect, t);
+
+    floats[PARTICLE_BURST_SIZE_CURVE_FLOAT_OFFSET + index] =
+      samplePackedParticleSizeCurve(effect, t);
+    floats[PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET + index * 4] = color[0];
+    floats[PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET + index * 4 + 1] = color[1];
+    floats[PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET + index * 4 + 2] = color[2];
+    floats[PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET + index * 4 + 3] = color[3];
+  }
+}
+
 function samplePackedParticleSizeCurve(
   effect: ParticleEffectAsset,
   t: number,
@@ -1269,6 +2370,50 @@ function cleanupParticleStates(
   }
 
   return removed;
+}
+
+function cleanupParticleBurstCpuStates(
+  cache: WebGpuAppResourceCache,
+  activeKeys: Set<string>,
+): number {
+  let removed = 0;
+
+  for (const key of cache.particleBurstCpuStates.keys()) {
+    if (!activeKeys.has(key)) {
+      cache.particleBurstCpuStates.delete(key);
+      removed += 1;
+    }
+  }
+
+  return removed;
+}
+
+function cleanupParticleBurstBatchStates(
+  cache: WebGpuAppResourceCache,
+  activeKeys: Set<string>,
+): number {
+  let removed = 0;
+
+  for (const key of cache.particleBurstBatchStates.keys()) {
+    if (!activeKeys.has(key)) {
+      const state = cache.particleBurstBatchStates.get(key);
+
+      destroyWebGpuBuffer(state?.particleBuffer);
+      destroyWebGpuBuffer(state?.paramBuffer);
+      cache.particleBurstBatchStates.delete(key);
+      removed += 1;
+    }
+  }
+
+  return removed;
+}
+
+function nextPowerOfTwo(value: number): number {
+  if (!Number.isFinite(value) || value <= 1) {
+    return 1;
+  }
+
+  return 2 ** Math.ceil(Math.log2(value));
 }
 
 function emptyParticleFrameReport(emitters = 0): ParticleFrameReport {

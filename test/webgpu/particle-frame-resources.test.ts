@@ -196,6 +196,57 @@ describe("GPU particle app frame resources", () => {
     expect(
       fixture.writes.filter((write) => write.label === "Particle/State/99"),
     ).toHaveLength(1);
+    expect(
+      fixture.createdBuffers.filter(
+        (buffer) => buffer.label === "Particle/ViewUniforms",
+      ),
+    ).toHaveLength(1);
+    expect(
+      fixture.writes.filter((write) => write.label === "Particle/ViewUniforms"),
+    ).toHaveLength(2);
+
+    const expandedSnapshot = {
+      ...snapshot,
+      frame: 5,
+      views: [
+        snapshot.views[0]!,
+        {
+          ...snapshot.views[0]!,
+          viewId: 2,
+        },
+      ],
+      report: {
+        ...snapshot.report,
+        views: 2,
+      },
+    };
+    const expanded = await prepareParticleFrameResourcesForSnapshot({
+      app: {
+        canvas: { width: 320, height: 180 } as never,
+        initialization: { device: fixture.device, format: "bgra8unorm" },
+        msaa: { sampleCount: 1 },
+      },
+      assets,
+      cache,
+      snapshot: expandedSnapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        expandedSnapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 3.25,
+    });
+
+    expect(expanded.valid).toBe(true);
+    expect(
+      fixture.createdBuffers.filter(
+        (buffer) => buffer.label === "Particle/ViewUniforms",
+      ),
+    ).toHaveLength(2);
+    expect(
+      fixture.destroyedBuffers.filter(
+        (buffer) => buffer.label === "Particle/ViewUniforms",
+      ),
+    ).toHaveLength(1);
 
     const empty = await prepareParticleFrameResourcesForSnapshot({
       app: {
@@ -205,7 +256,7 @@ describe("GPU particle app frame resources", () => {
       },
       assets,
       cache,
-      snapshot: { ...snapshot, frame: 5, particleEmitters: [] },
+      snapshot: { ...snapshot, frame: 6, particleEmitters: [] },
       viewUniforms,
     });
 
@@ -274,14 +325,19 @@ describe("GPU particle app frame resources", () => {
       emitters: 1,
       liveParticles: 3,
       dispatches: 0,
-      statesCreated: 1,
+      statesCreated: 2,
       textureResourcesCreated: 1,
       samplerResourcesCreated: 1,
     });
     expect(fixture.dispatches).toEqual([]);
     expect(
       fixture.writes.filter((write) => write.label === "Particle/State/99"),
-    ).toHaveLength(2);
+    ).toEqual([]);
+    expect(
+      fixture.writes.filter((write) =>
+        write.label.startsWith("Particle/BurstBatch/"),
+      ),
+    ).toMatchObject([{ size: 3 * 12 * 4 }]);
     expect(burst.commands).toContainEqual(
       expect.objectContaining({
         kind: "draw",
@@ -290,6 +346,305 @@ describe("GPU particle app frame resources", () => {
         instanceCount: 3,
       }),
     );
+  });
+
+  it("batches adjacent compatible burst emitters into one shared draw", async () => {
+    const effect = createParticleEffectHandle("batched-smoke-burst");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const baseSnapshot = createParticleSnapshot(effect, {
+      mode: "burst",
+      capacity: 3,
+      resetEpoch: 12,
+      burst: {
+        burstId: 1,
+        startFrame: 12,
+        count: 3,
+        position: [1, 2, 3],
+        positionJitterMin: [-0.1, 0, -0.1],
+        positionJitterMax: [0.1, 0.2, 0.1],
+        velocityMin: [-0.1, 0.5, -0.1],
+        velocityMax: [0.1, 1, 0.1],
+      },
+    });
+    const firstEmitter = baseSnapshot.particleEmitters?.[0];
+
+    expect(firstEmitter).toBeDefined();
+
+    const snapshot: RenderSnapshot = {
+      ...baseSnapshot,
+      particleEmitters: [
+        firstEmitter as NonNullable<RenderSnapshot["particleEmitters"]>[number],
+        {
+          ...(firstEmitter as NonNullable<
+            RenderSnapshot["particleEmitters"]
+          >[number]),
+          emitterId: 100,
+          seed: 8,
+          resetEpoch: 13,
+          burst: {
+            ...(
+              firstEmitter as NonNullable<
+                RenderSnapshot["particleEmitters"]
+              >[number]
+            ).burst!,
+            burstId: 2,
+            startFrame: 13,
+            position: [2, 2, 3],
+          },
+        },
+      ],
+      report: {
+        ...baseSnapshot.report,
+        particleEmitters: 2,
+      },
+    };
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        label: "BatchedSmokeBurst",
+        capacity: 16,
+        emissionRate: 0,
+        lifetime: { min: 1, max: 1 },
+        startSize: { min: 0.5, max: 1 },
+        blendMode: "alpha",
+        colorOverLifetime: [
+          { t: 0, color: [0.4, 0.4, 0.45, 0.25] },
+          { t: 1, color: [0.4, 0.4, 0.45, 0] },
+        ],
+      }),
+    );
+
+    const batched = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 13 / 60,
+    });
+
+    const draws = batched.commands.filter((command) => command.kind === "draw");
+    const batchWrites = fixture.writes.filter((write) =>
+      write.label.startsWith("Particle/BurstBatch/"),
+    );
+    const emitterStateWrites = fixture.writes.filter((write) =>
+      write.label.startsWith("Particle/State/"),
+    );
+
+    expect(batched.valid).toBe(true);
+    expect(batched.diagnostics).toEqual([]);
+    expect(batched.report).toMatchObject({
+      emitters: 2,
+      liveParticles: 6,
+      dispatches: 0,
+      statesCreated: 3,
+    });
+    expect(draws).toEqual([
+      {
+        kind: "draw",
+        renderId: 99,
+        vertexCount: 6,
+        instanceCount: 6,
+        firstVertex: 0,
+        firstInstance: 0,
+      },
+    ]);
+    expect(batchWrites).toHaveLength(1);
+    expect(batchWrites[0]?.size).toBe(6 * 12 * 4);
+    expect(emitterStateWrites).toEqual([]);
+    expect(cache.particleEmitterStates).toHaveLength(0);
+    expect(cache.particleBurstCpuStates).toHaveLength(2);
+    expect(cache.particleBurstBatchStates).toHaveLength(1);
+
+    const reused = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot: { ...snapshot, frame: 14 },
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 14 / 60,
+    });
+    const reusedBatchWrites = fixture.writes.filter((write) =>
+      write.label.startsWith("Particle/BurstBatch/"),
+    );
+    const paramWrites = fixture.writes.filter((write) =>
+      write.label.startsWith("Particle/BurstBatchParams/"),
+    );
+
+    expect(reused.valid).toBe(true);
+    expect(reused.report.statesReused).toBeGreaterThanOrEqual(3);
+    expect(reusedBatchWrites).toHaveLength(1);
+    expect(paramWrites).toMatchObject([{ size: 84 * 4 }, { size: 84 * 4 }]);
+
+    const empty = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot: { ...snapshot, frame: 14, particleEmitters: [] },
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+    });
+
+    expect(empty.report.staleStatesRemoved).toBe(3);
+    expect(cache.particleBurstCpuStates).toHaveLength(0);
+    expect(cache.particleBurstBatchStates).toHaveLength(0);
+    expect(
+      fixture.destroyedBuffers.some((buffer) =>
+        buffer.label.startsWith("Particle/BurstBatch/"),
+      ),
+    ).toBe(true);
+  });
+
+  it("splits burst batch draws around freed slot gaps", async () => {
+    const effect = createParticleEffectHandle("gapped-smoke-burst");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const baseSnapshot = createParticleSnapshot(effect, {
+      mode: "burst",
+      capacity: 3,
+      resetEpoch: 12,
+      burst: {
+        burstId: 1,
+        startFrame: 12,
+        count: 3,
+        position: [1, 2, 3],
+        positionJitterMin: [-0.1, 0, -0.1],
+        positionJitterMax: [0.1, 0.2, 0.1],
+        velocityMin: [-0.1, 0.5, -0.1],
+        velocityMax: [0.1, 1, 0.1],
+      },
+    });
+    const emitter = baseSnapshot.particleEmitters?.[0] as NonNullable<
+      RenderSnapshot["particleEmitters"]
+    >[number];
+    const middleEmitter = {
+      ...emitter,
+      emitterId: 100,
+      seed: 8,
+      resetEpoch: 13,
+      burst: {
+        ...emitter.burst!,
+        burstId: 2,
+        startFrame: 13,
+        position: [2, 2, 3],
+      },
+    };
+    const lastEmitter = {
+      ...emitter,
+      emitterId: 101,
+      seed: 9,
+      resetEpoch: 14,
+      burst: {
+        ...emitter.burst!,
+        burstId: 3,
+        startFrame: 14,
+        position: [3, 2, 3],
+      },
+    };
+    const initialSnapshot: RenderSnapshot = {
+      ...baseSnapshot,
+      particleEmitters: [emitter, middleEmitter, lastEmitter],
+      report: {
+        ...baseSnapshot.report,
+        particleEmitters: 3,
+      },
+    };
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        label: "GappedSmokeBurst",
+        capacity: 16,
+        emissionRate: 0,
+        lifetime: { min: 1, max: 1 },
+        startSize: { min: 0.5, max: 1 },
+        blendMode: "alpha",
+      }),
+    );
+
+    const initial = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot: initialSnapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        initialSnapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 14 / 60,
+    });
+
+    expect(initial.valid).toBe(true);
+    expect(
+      initial.commands.filter((command) => command.kind === "draw"),
+    ).toEqual([
+      {
+        kind: "draw",
+        renderId: 99,
+        vertexCount: 6,
+        instanceCount: 9,
+        firstVertex: 0,
+        firstInstance: 0,
+      },
+    ]);
+
+    const gappedSnapshot: RenderSnapshot = {
+      ...initialSnapshot,
+      frame: 15,
+      particleEmitters: [emitter, lastEmitter],
+      report: {
+        ...initialSnapshot.report,
+        particleEmitters: 2,
+      },
+    };
+    const gapped = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot: gappedSnapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        gappedSnapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 15 / 60,
+    });
+
+    expect(gapped.valid).toBe(true);
+    expect(gapped.diagnostics).toEqual([]);
+    expect(
+      gapped.commands.filter((command) => command.kind === "draw"),
+    ).toEqual([
+      {
+        kind: "draw",
+        renderId: 99,
+        vertexCount: 6,
+        instanceCount: 3,
+        firstVertex: 0,
+        firstInstance: 0,
+      },
+      {
+        kind: "draw",
+        renderId: 99,
+        vertexCount: 6,
+        instanceCount: 3,
+        firstVertex: 0,
+        firstInstance: 6,
+      },
+    ]);
   });
 
   it("reports per-frame particle texture and sampler reuse deltas", async () => {
@@ -401,11 +756,11 @@ describe("GPU particle app frame resources", () => {
       expect.objectContaining({
         kind: "setPipeline",
         pipelineKey:
-          "aperture/gpu-particles-render:rgba16float:depth24plus:samples-1:blend-alpha",
+          "aperture/gpu-particles-burst-render:rgba16float:depth24plus:samples-1:blend-alpha",
       }),
     );
     expect([...cache.particleRenderPipelines.keys()]).toEqual([
-      "aperture/gpu-particles-render:rgba16float:depth24plus:samples-1:blend-alpha",
+      "aperture/gpu-particles-burst-render:rgba16float:depth24plus:samples-1:blend-alpha",
     ]);
   });
 });
@@ -428,6 +783,7 @@ function createParticleAppContext(device: unknown) {
 function createParticleDeviceFixture(): {
   readonly device: unknown;
   readonly writes: BufferWriteRecord[];
+  readonly createdBuffers: { readonly label: string }[];
   readonly createdTextures: unknown[];
   readonly createdSamplers: unknown[];
   readonly textureWrites: unknown[];
@@ -436,6 +792,7 @@ function createParticleDeviceFixture(): {
   readonly destroyedBuffers: { readonly label: string }[];
 } {
   const writes: BufferWriteRecord[] = [];
+  const createdBuffers: { readonly label: string }[] = [];
   const createdTextures: unknown[] = [];
   const createdSamplers: unknown[] = [];
   const textureWrites: unknown[] = [];
@@ -470,6 +827,7 @@ function createParticleDeviceFixture(): {
           destroyedBuffers.push(buffer);
         },
       };
+      createdBuffers.push(buffer);
       return buffer;
     },
     createBindGroup: (descriptor: unknown) => ({ descriptor }),
@@ -516,6 +874,7 @@ function createParticleDeviceFixture(): {
   return {
     device,
     writes,
+    createdBuffers,
     createdTextures,
     createdSamplers,
     textureWrites,
