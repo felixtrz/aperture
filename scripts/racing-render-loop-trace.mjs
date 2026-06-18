@@ -633,6 +633,8 @@ function summarizeRun(target, scenario, snapshot, profileFiles) {
     memory: snapshot.memory,
     raf: {
       sampleCount: rafSamples.length,
+      intervalSampleCount: intervals.length,
+      callbackSampleCount: callbacks.length,
       intervalMs: quantiles(intervals),
       callbackMs: quantiles(callbacks),
     },
@@ -1012,6 +1014,7 @@ function printSummary(summary, summaryPath) {
     const callback = run.raf.callbackMs;
     const drawCalls =
       run.target === "three" ? run.three?.renderCalls : run.aperture?.drawCalls;
+    const apertureRenderTotal = run.aperture?.phaseTimings?.totalMs;
     const gpuTimer =
       run.target === "three"
         ? run.three?.gpuTimer?.renderMs
@@ -1025,6 +1028,11 @@ function printSummary(summary, summaryPath) {
       `callback p95=${formatMs(callback.p95)} max=${formatMs(callback.max)}`,
       `draw/calls p50=${formatNumber(drawCalls?.p50)} max=${formatNumber(drawCalls?.max)}`,
     ];
+    if (run.target === "aperture") {
+      parts.push(
+        `render p50=${formatMs(apertureRenderTotal?.p50)} p95=${formatMs(apertureRenderTotal?.p95)} max=${formatMs(apertureRenderTotal?.max)}`,
+      );
+    }
     if (run.target === "three" || (gpuTimer?.count ?? 0) > 0) {
       parts.push(
         `gpu p50=${formatMs(gpuTimer?.p50)} p95=${formatMs(gpuTimer?.p95)} max=${formatMs(gpuTimer?.max)}`,
@@ -1161,6 +1169,7 @@ function createFrameSamplerInitScript() {
     const intervalMs = lastTimestamp === null ? null : timestamp - lastTimestamp;
     lastTimestamp = timestamp;
     pushBounded(samples, {
+      kind: "probe",
       timestamp,
       intervalMs,
       callbackMs: null,
@@ -1168,6 +1177,24 @@ function createFrameSamplerInitScript() {
     });
     scheduleFrameProbe();
   }
+
+  window.requestAnimationFrame = function requestAnimationFrameWithTrace(callback) {
+    return originalRequestAnimationFrame((timestamp) => {
+      const startedAt = performance.now();
+      try {
+        return callback(timestamp);
+      } finally {
+        const endedAt = performance.now();
+        pushBounded(samples, {
+          kind: "callback",
+          timestamp,
+          intervalMs: null,
+          callbackMs: endedAt - startedAt,
+          endedAt
+        });
+      }
+    });
+  };
 
   function sampleStatus() {
     pushBounded(statusSamples, {
