@@ -3,8 +3,8 @@
 **Created:** 2026-06-17
 **Updated:** 2026-06-17
 **Source:** Multi-agent audit of `b80e8a43b61e9b6a234e443c05ff8448c7bc471b` through `fps-starter-kit-port`.
-**Status:** Batch 1 implemented; Batch 2 particle items implemented; remaining
-Batch 2 and Batch 3 pending.
+**Status:** Batch 1 implemented; Batch 2 particle and render-interpolation
+items implemented; remaining Batch 2 and Batch 3 pending.
 
 This plan converts the confirmed audit findings from the FPS starter-kit branch
 into reviewable remediation batches. The goal is to fix the steady-state
@@ -147,7 +147,7 @@ pnpm --dir shadow-lab run build
 
 ## Batch 2 - Confirmed Mediums
 
-**Status:** partial. Items 4 and 5 implemented 2026-06-17 on
+**Status:** partial. Items 4, 5, and 6 implemented 2026-06-17 on
 `fix/audit-resource-lifecycle`.
 
 **Recommended branch:** `fix/audit-render-dev-mediums`
@@ -247,6 +247,8 @@ the resource leaks and API-contract bug.
   - Descriptor changes invalidate the cached analysis.
 
 ### 6. Render Interpolation Allocation And Characterization
+
+**Status:** implemented 2026-06-17 on `fix/audit-resource-lifecycle`.
 
 - File: `packages/app/src/render-interpolation.ts`
 - Problem:

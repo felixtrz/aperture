@@ -1,3 +1,62 @@
+# Handoff - FPS Audit Batch 2 Render Interpolation Fixes
+
+**Updated:** 2026-06-17 17:09 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 2 item 6 from `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Replaced per-packet `new Set()` cycle-guard allocation in render snapshot
+  interpolation with reusable affected/matrix visiting sets scoped to one
+  interpolation pass.
+- Added direct characterization tests for the zero-interpolated-entity fast
+  path, parent-chain interpolation, cyclic parent guards, and camera
+  view/view-projection matrix rewriting.
+- Kept existing fixed-step integration coverage green for mesh, camera, bounds,
+  and shadow-caster interpolation.
+- Marked Batch 2 item 6 implemented in the audit plan; Batch 2 items 0-3
+  remain pending.
+
+## Validation
+
+- `pnpm exec vitest run test/app/render-interpolation.test.ts test/app/fixed-step-app.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm exec prettier --check packages/app/src/render-interpolation.ts test/app/render-interpolation.test.ts`
+- `git diff --check`
+- `pnpm run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- Managed Racing through Aperture CLI:
+  - `pnpm --dir racing exec aperture dev up --headless --host 127.0.0.1 --port 5173 --strict-port`
+  - `browser_wait_for_webgpu`: `webgpuOk:true`, no `lastError`/`lastFailure`
+    in the managed status.
+  - Static frame report: `frameOk:true`, diagnostics `0`, `meshDraws:36`,
+    `shadowCasterDraws:364`, swapchain `drawCalls:33`.
+  - Moving smoke after `drive` input: frame report `frameOk:true`,
+    diagnostics `0`, `meshDraws:37`, `shadowCasterDraws:364`,
+    `particleEmitters:306`, `drawCalls:350`.
+  - Input was reset and the managed Racing session was stopped with
+    `pnpm --dir racing exec aperture dev down`.
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- No managed browser sessions are expected to remain from this slice.
+
+## Recommended Next Task
+
+Continue Batch 2 with Vite worker-entry HMR staleness or sprite-only depth mode.
+Keep bloom/golden baseline work separate so the intentional visual changes do
+not get mixed with infrastructure fixes.
+
+---
+
 # Handoff - FPS Audit Batch 2 Particle Runtime Fixes
 
 **Updated:** 2026-06-17 17:01 PDT
