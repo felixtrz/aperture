@@ -21,14 +21,18 @@ const captureTrace = args.trace !== false;
 const captureCpuProfile = args["cpu-profile"] !== false;
 const apertureGpuTimings = args["aperture-gpu-timings"] === true;
 const threeGlDiagnostics = args["three-gl-diagnostics"] === true;
+const visualDiagnostics =
+  args["visual-diagnostics"] !== false &&
+  args["no-visual-diagnostics"] !== true;
+const requestedBrowserChannel = normalizeBrowserChannel(
+  args["browser-channel"],
+);
 const scenarios = String(args.scenario ?? "idle,drive")
   .split(",")
   .map((value) => value.trim())
   .filter(Boolean);
 
-const browserArgs = [
-  "--enable-unsafe-webgpu",
-  "--ignore-gpu-blocklist",
+const commonBrowserArgs = [
   "--disable-background-timer-throttling",
   "--disable-backgrounding-occluded-windows",
   "--disable-renderer-backgrounding",
@@ -38,6 +42,12 @@ const browserArgs = [
   "--enable-webgl-draft-extensions",
   "--enable-precise-memory-info",
   "--js-flags=--expose-gc",
+];
+
+const bundledChromiumGpuArgs = [
+  "--enable-unsafe-webgpu",
+  "--ignore-gpu-blocklist",
+  "--use-angle=metal",
 ];
 
 const traceCategories = [
@@ -102,10 +112,8 @@ async function main() {
     );
   }
 
-  const browser = await chromium.launch({
-    headless: args.headed === true ? false : true,
-    args: browserArgs,
-  });
+  const browserLaunch = await launchTraceBrowser();
+  const browser = browserLaunch.browser;
   const summary = {
     createdAt: new Date().toISOString(),
     durationMs,
@@ -115,8 +123,10 @@ async function main() {
     captureCpuProfile,
     apertureGpuTimings,
     threeGlDiagnostics,
+    visualDiagnostics,
     headless: args.headed === true ? false : true,
-    browserArgs,
+    browser: browserLaunch.summary,
+    browserArgs: browserLaunch.summary.args,
     targets: targets.map((target) => ({
       id: target.id,
       label: target.label,
@@ -395,7 +405,7 @@ async function clearSamplers(page) {
 }
 
 async function collectSnapshot(page) {
-  return await page.evaluate(() => {
+  const snapshot = await page.evaluate(() => {
     globalThis.gc?.();
     return {
       href: location.href,
@@ -469,6 +479,133 @@ async function collectSnapshot(page) {
       };
     }
   });
+  snapshot.visual = await collectVisualDiagnostics(page);
+  return snapshot;
+}
+
+async function collectVisualDiagnostics(page) {
+  if (visualDiagnostics !== true) {
+    return null;
+  }
+
+  return await page.evaluate(async () => {
+    const canvas = document.querySelector("canvas");
+    if (!(canvas instanceof HTMLCanvasElement)) {
+      return {
+        ok: false,
+        reason: "canvas-missing",
+        message: "No canvas element was found for visual diagnostics.",
+      };
+    }
+
+    if (typeof createImageBitmap !== "function") {
+      return {
+        ok: false,
+        reason: "create-image-bitmap-missing",
+        message: "createImageBitmap is unavailable for canvas sampling.",
+      };
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const width = canvas.width;
+    const height = canvas.height;
+    const requested = [
+      { id: "upper-left", x: 0.2, y: 0.25 },
+      { id: "upper-center", x: 0.5, y: 0.25 },
+      { id: "upper-right", x: 0.8, y: 0.25 },
+      { id: "center-left", x: 0.2, y: 0.5 },
+      { id: "center", x: 0.5, y: 0.5 },
+      { id: "center-right", x: 0.8, y: 0.5 },
+      { id: "lower-left", x: 0.2, y: 0.75 },
+      { id: "lower-center", x: 0.5, y: 0.75 },
+      { id: "lower-right", x: 0.8, y: 0.75 },
+    ];
+
+    try {
+      const bitmap = await createImageBitmap(canvas);
+      try {
+        const readbackCanvas =
+          typeof OffscreenCanvas === "function"
+            ? new OffscreenCanvas(bitmap.width, bitmap.height)
+            : document.createElement("canvas");
+        readbackCanvas.width = bitmap.width;
+        readbackCanvas.height = bitmap.height;
+        const context = readbackCanvas.getContext("2d", {
+          willReadFrequently: true,
+        });
+        if (context === null) {
+          return {
+            ok: false,
+            reason: "context-missing",
+            width,
+            height,
+            clientWidth: rect.width,
+            clientHeight: rect.height,
+            message: "Could not create a 2D readback context.",
+          };
+        }
+
+        context.drawImage(bitmap, 0, 0);
+        const samples = requested.map((sample) => {
+          const x = Math.min(
+            bitmap.width - 1,
+            Math.max(0, Math.floor(sample.x * bitmap.width)),
+          );
+          const y = Math.min(
+            bitmap.height - 1,
+            Math.max(0, Math.floor(sample.y * bitmap.height)),
+          );
+          const rgba = context.getImageData(x, y, 1, 1).data;
+          const r = rgba[0] ?? 0;
+          const g = rgba[1] ?? 0;
+          const b = rgba[2] ?? 0;
+          const a = rgba[3] ?? 0;
+          return {
+            id: sample.id,
+            x,
+            y,
+            pixel: { r, g, b, a },
+            luminance: 0.2126 * r + 0.7152 * g + 0.0722 * b,
+          };
+        });
+        const nonTransparentSamples = samples.filter(
+          (sample) => sample.pixel.a > 8,
+        ).length;
+        const nonBlackSamples = samples.filter(
+          (sample) =>
+            sample.pixel.r > 8 || sample.pixel.g > 8 || sample.pixel.b > 8,
+        ).length;
+
+        return {
+          ok: true,
+          visibilityState: document.visibilityState,
+          width,
+          height,
+          bitmapWidth: bitmap.width,
+          bitmapHeight: bitmap.height,
+          clientWidth: rect.width,
+          clientHeight: rect.height,
+          sampleCount: samples.length,
+          nonTransparentSamples,
+          nonBlackSamples,
+          likelyBlank: nonTransparentSamples === 0 || nonBlackSamples === 0,
+          samples,
+        };
+      } finally {
+        bitmap.close();
+      }
+    } catch (error) {
+      return {
+        ok: false,
+        reason: "readback-failed",
+        width,
+        height,
+        clientWidth: rect.width,
+        clientHeight: rect.height,
+        message: String(error?.message ?? error),
+      };
+    }
+  });
 }
 
 function summarizeRun(target, scenario, snapshot, profileFiles) {
@@ -501,7 +638,31 @@ function summarizeRun(target, scenario, snapshot, profileFiles) {
     },
     aperture: summarizeApertureSamples(apertureSamples, snapshot.aperture),
     three: summarizeThreeSamples(threeSamples, snapshot.three),
+    visual: summarizeVisualDiagnostics(snapshot.visual),
     profileFiles,
+  };
+}
+
+function summarizeVisualDiagnostics(visual) {
+  if (visual === null || visual === undefined) return null;
+  if (visual.ok !== true) {
+    return {
+      ok: false,
+      reason: visual.reason ?? "unknown",
+      message: visual.message ?? null,
+    };
+  }
+
+  return {
+    ok: true,
+    visibilityState: visual.visibilityState ?? null,
+    width: visual.width,
+    height: visual.height,
+    sampleCount: visual.sampleCount,
+    nonTransparentSamples: visual.nonTransparentSamples,
+    nonBlackSamples: visual.nonBlackSamples,
+    likelyBlank: visual.likelyBlank === true,
+    samples: visual.samples,
   };
 }
 
@@ -779,8 +940,68 @@ function bucketProfileUrl(url) {
   return "other";
 }
 
+async function launchTraceBrowser() {
+  const preferred = createBrowserLaunchOptions(requestedBrowserChannel);
+  try {
+    return {
+      browser: await chromium.launch(preferred.options),
+      summary: {
+        requestedChannel: requestedBrowserChannel,
+        actualChannel: preferred.channel,
+        fallback: false,
+        headless: preferred.options.headless,
+        args: preferred.options.args,
+      },
+    };
+  } catch (error) {
+    if (requestedBrowserChannel === "bundled") {
+      throw error;
+    }
+
+    const fallback = createBrowserLaunchOptions("bundled");
+    return {
+      browser: await chromium.launch(fallback.options),
+      summary: {
+        requestedChannel: requestedBrowserChannel,
+        actualChannel: fallback.channel,
+        fallback: true,
+        fallbackReason: String(error?.message ?? error),
+        headless: fallback.options.headless,
+        args: fallback.options.args,
+      },
+    };
+  }
+}
+
+function createBrowserLaunchOptions(channel) {
+  const headless = args.headed === true ? false : true;
+  if (channel === "bundled") {
+    return {
+      channel,
+      options: {
+        headless,
+        args: [...bundledChromiumGpuArgs, ...commonBrowserArgs],
+      },
+    };
+  }
+
+  return {
+    channel,
+    options: {
+      headless,
+      channel,
+      args: [...commonBrowserArgs],
+    },
+  };
+}
+
 function printSummary(summary, summaryPath) {
   console.log(`racing render-loop trace summary: ${summaryPath}`);
+  if (summary.browser?.fallback === true) {
+    console.log(
+      `note: requested browser channel '${summary.browser.requestedChannel}' failed; fell back to '${summary.browser.actualChannel}'.`,
+    );
+  }
   if (summary.apertureGpuTimings === true) {
     console.log(
       "note: --aperture-gpu-timings enables WebGPU timestamp readbacks and can distort Aperture CPU phase/cadence measurements; use a separate run without it for fair frame-time comparison.",
@@ -816,6 +1037,11 @@ function printSummary(summary, summaryPath) {
       parts.push(
         `gl total p50=${formatNumber(run.three.glCalls.totalCalls?.p50)} state p50=${formatNumber(run.three.glCalls.stateCalls?.p50)}`,
       );
+    }
+    if (run.visual?.likelyBlank === true) {
+      parts.push("visual=blank-canvas");
+    } else if (run.visual?.ok === false) {
+      parts.push(`visual=${run.visual.reason ?? "unavailable"}`);
     }
     parts.push(`heap=${heapMb}MB`);
     console.log(parts.join(" | "));
@@ -2021,12 +2247,21 @@ function parseArgs(rawArgs) {
       parsed["cpu-profile"] = false;
       continue;
     }
+    if (arg === "--no-visual-diagnostics") {
+      parsed["visual-diagnostics"] = false;
+      parsed["no-visual-diagnostics"] = true;
+      continue;
+    }
     if (arg === "--trace") {
       parsed.trace = true;
       continue;
     }
     if (arg === "--cpu-profile") {
       parsed["cpu-profile"] = true;
+      continue;
+    }
+    if (arg === "--visual-diagnostics") {
+      parsed["visual-diagnostics"] = true;
       continue;
     }
     if (!arg.startsWith("--")) continue;
@@ -2059,4 +2294,19 @@ function numberArg(value, fallback) {
 function stringArg(value) {
   if (value === undefined || value === null || value === false) return null;
   return String(value);
+}
+
+function normalizeBrowserChannel(value) {
+  const channel = stringArg(value);
+  if (channel === null || channel.length === 0) {
+    return args.headed === true ? "chrome" : "bundled";
+  }
+  if (
+    channel === "bundled" ||
+    channel === "chromium" ||
+    channel === "playwright"
+  ) {
+    return "bundled";
+  }
+  return channel;
 }
