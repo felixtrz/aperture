@@ -88,6 +88,7 @@ export function createParticleBurstQueue(
   );
   const pending: ParticleBurstRequest[] = [];
   const active: ActiveParticleBurst[] = [];
+  let pendingHead = 0;
   let seqCounter = 1;
   let enqueued = 0;
   let promotedTotal = 0;
@@ -98,7 +99,7 @@ export function createParticleBurstQueue(
 
   return {
     enqueue(request) {
-      if (active.length + pending.length >= maxActive) {
+      if (active.length + pendingCount() >= maxActive) {
         dropped += 1;
         droppedSinceDrain += 1;
         return false;
@@ -112,10 +113,11 @@ export function createParticleBurstQueue(
       let promoted = 0;
       while (
         promoted < maxPerFrame &&
-        pending.length > 0 &&
+        pendingHead < pending.length &&
         active.length < maxActive
       ) {
-        const request = pending.shift() as ParticleBurstRequest;
+        const request = pending[pendingHead] as ParticleBurstRequest;
+        pendingHead += 1;
         const effectEntry = input.assets.get<
           "particle-effect",
           ParticleEffectAsset
@@ -160,13 +162,17 @@ export function createParticleBurstQueue(
         promoted += 1;
         promotedTotal += 1;
       }
+      compactPendingRequests();
 
-      for (let index = active.length - 1; index >= 0; index -= 1) {
-        const burst = active[index] as ActiveParticleBurst;
-        if (input.frame - burst.startFrame > burst.ttlFrames) {
-          active.splice(index, 1);
+      let writeIndex = 0;
+      for (let readIndex = 0; readIndex < active.length; readIndex += 1) {
+        const burst = active[readIndex] as ActiveParticleBurst;
+        if (input.frame - burst.startFrame <= burst.ttlFrames) {
+          active[writeIndex] = burst;
+          writeIndex += 1;
         }
       }
+      active.length = writeIndex;
 
       if (droppedSinceDrain > 0) {
         input.diagnostics.push({
@@ -183,7 +189,7 @@ export function createParticleBurstQueue(
       return {
         maxActive,
         maxPerFrame,
-        pending: pending.length,
+        pending: pendingCount(),
         active: active.length,
         enqueued,
         promoted: promotedTotal,
@@ -193,6 +199,29 @@ export function createParticleBurstQueue(
       };
     },
   };
+
+  function pendingCount(): number {
+    return pending.length - pendingHead;
+  }
+
+  function compactPendingRequests(): void {
+    if (pendingHead === 0) {
+      return;
+    }
+
+    if (pendingHead >= pending.length) {
+      pending.length = 0;
+      pendingHead = 0;
+      return;
+    }
+
+    if (pendingHead < 64 && pendingHead * 2 < pending.length) {
+      return;
+    }
+
+    pending.splice(0, pendingHead);
+    pendingHead = 0;
+  }
 }
 
 export function installParticleBurstQueue(

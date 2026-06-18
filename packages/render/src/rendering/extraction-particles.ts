@@ -31,7 +31,11 @@ import {
 import { diagnostic, entityRef } from "./extraction-diagnostics.js";
 import { sortedEntities } from "./extraction-entities.js";
 import { parseParticleEffectHandle } from "./extraction-inputs.js";
-import { pushMatrix, readWorldMatrix } from "./extraction-matrices.js";
+import {
+  pushMatrix,
+  pushTranslationMatrix,
+  readWorldMatrix,
+} from "./extraction-matrices.js";
 import {
   createRenderSortKey,
   createStableRenderId,
@@ -238,8 +242,8 @@ export function extractParticleEmitters(
 
   const burstQueue = getParticleBurstQueue(world);
   if (burstQueue !== null) {
-    packets.push(
-      ...extractParticleBursts({
+    extractParticleBursts(
+      {
         assets,
         frame,
         transforms,
@@ -248,25 +252,27 @@ export function extractParticleEmitters(
         cameraLayerMask,
         viewCullContexts,
         bursts: burstQueue.drain({ frame, assets, diagnostics }),
-      }),
+      },
+      packets,
     );
   }
 
   return packets;
 }
 
-function extractParticleBursts(input: {
-  readonly assets: AssetRegistry;
-  readonly frame: number;
-  readonly transforms: number[];
-  readonly bounds: BoundsPacket[];
-  readonly diagnostics: RenderDiagnostic[];
-  readonly cameraLayerMask: number;
-  readonly viewCullContexts: readonly ViewCullContext[];
-  readonly bursts: readonly ActiveParticleBurst[];
-}): ParticleEmitterPacket[] {
-  const packets: ParticleEmitterPacket[] = [];
-
+function extractParticleBursts(
+  input: {
+    readonly assets: AssetRegistry;
+    readonly frame: number;
+    readonly transforms: number[];
+    readonly bounds: BoundsPacket[];
+    readonly diagnostics: RenderDiagnostic[];
+    readonly cameraLayerMask: number;
+    readonly viewCullContexts: readonly ViewCullContext[];
+    readonly bursts: readonly ActiveParticleBurst[];
+  },
+  packets: ParticleEmitterPacket[],
+): void {
   for (const burst of input.bursts) {
     if (burst.request.count <= 0) {
       continue;
@@ -336,9 +342,9 @@ function extractParticleBursts(input: {
     const stableId = 0x4000_0000 + (burst.seq & 0x0fff_ffff);
     const effectKey = assetHandleKey(burst.effect);
     const boundsIndex = input.bounds.length;
-    const worldTransformOffset = pushMatrix(
+    const worldTransformOffset = pushTranslationMatrix(
       input.transforms,
-      particleBurstWorldMatrix(position),
+      position,
     );
     const sortView = firstMatchingSortView(layerMask, input.viewCullContexts);
     const sortViewId = sortView?.viewId ?? 0;
@@ -395,8 +401,6 @@ function extractParticleBursts(input: {
       },
     });
   }
-
-  return packets;
 }
 
 function createParticleBurstBoundsPacket(
@@ -484,29 +488,6 @@ function createAutomaticParticleBurstBoundsPacket(input: {
     localSphere: sphere,
     worldSphere: sphere,
   };
-}
-
-function particleBurstWorldMatrix(
-  position: readonly [number, number, number],
-): Mat4 {
-  return [
-    1,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    position[0],
-    position[1],
-    position[2],
-    1,
-  ];
 }
 
 function createParticleBoundsPacket(

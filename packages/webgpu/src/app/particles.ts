@@ -1149,7 +1149,9 @@ function mergeParticleBurstDrawRanges(
     return ranges;
   }
 
-  const sorted = [...ranges].sort((a, b) => a.firstInstance - b.firstInstance);
+  const sorted = particleBurstDrawRangesAreOrdered(ranges)
+    ? ranges
+    : [...ranges].sort((a, b) => a.firstInstance - b.firstInstance);
   const merged: { firstInstance: number; instanceCount: number }[] = [];
   let currentStart = sorted[0]?.firstInstance ?? 0;
   let currentEnd = currentStart + Math.max(0, sorted[0]?.instanceCount ?? 0);
@@ -1184,6 +1186,27 @@ function mergeParticleBurstDrawRanges(
   }
 
   return merged;
+}
+
+function particleBurstDrawRangesAreOrdered(
+  ranges: readonly {
+    readonly firstInstance: number;
+    readonly instanceCount: number;
+  }[],
+): boolean {
+  let previous = ranges[0]?.firstInstance ?? 0;
+
+  for (let index = 1; index < ranges.length; index += 1) {
+    const current = ranges[index]?.firstInstance ?? previous;
+
+    if (current < previous) {
+      return false;
+    }
+
+    previous = current;
+  }
+
+  return true;
 }
 
 function prepareParticleTextureSamplerResources(options: {
@@ -1628,7 +1651,9 @@ function mergeParticleBurstUploadRanges(
     return ranges;
   }
 
-  const sorted = [...ranges].sort((a, b) => a.byteOffset - b.byteOffset);
+  const sorted = particleBurstUploadRangesAreOrdered(ranges)
+    ? ranges
+    : [...ranges].sort((a, b) => a.byteOffset - b.byteOffset);
   const merged: { byteOffset: number; byteLength: number }[] = [];
   let currentOffset = sorted[0]?.byteOffset ?? 0;
   let currentEnd = currentOffset + (sorted[0]?.byteLength ?? 0);
@@ -1660,6 +1685,27 @@ function mergeParticleBurstUploadRanges(
     byteLength: currentEnd - currentOffset,
   });
   return merged;
+}
+
+function particleBurstUploadRangesAreOrdered(
+  ranges: readonly {
+    readonly byteOffset: number;
+    readonly byteLength: number;
+  }[],
+): boolean {
+  let previous = ranges[0]?.byteOffset ?? 0;
+
+  for (let index = 1; index < ranges.length; index += 1) {
+    const current = ranges[index]?.byteOffset ?? previous;
+
+    if (current < previous) {
+      return false;
+    }
+
+    previous = current;
+  }
+
+  return true;
 }
 
 function getOrUpdateParticleBurstRenderParams(options: {

@@ -20,3 +20,30 @@ export function pushMatrix(values: number[], matrix: Mat4): number {
   values.push(...matrix);
   return offset;
 }
+
+export function pushTranslationMatrix(
+  values: number[],
+  position: readonly [number, number, number],
+): number {
+  const offset = values.length;
+
+  values.push(
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    position[0],
+    position[1],
+    position[2],
+    1,
+  );
+  return offset;
+}
