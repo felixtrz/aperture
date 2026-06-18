@@ -11,14 +11,15 @@ import {
   writePreparedMeshGpuResourceCacheSummary,
   type WebGpuBufferDeviceLike,
 } from "@aperture-engine/webgpu/test-support";
+import type { MeshAsset } from "@aperture-engine/render";
 
 describe("prepared mesh GPU resource cache", () => {
-  it("creates, reuses, and invalidates mesh GPU resources by source version", () => {
-    const createdBuffers: unknown[] = [];
+  it("creates, reuses, and updates same-layout mesh GPU resources by source version", () => {
+    const gpu = createGpuBufferLog();
     const cache = createPreparedMeshGpuResourceCache();
     const handle = createMeshHandle("cube");
     const mesh = createBoxMeshAsset({ label: "Cube" });
-    const device = deviceWithBuffers(createdBuffers);
+    const device = deviceWithBufferLog(gpu);
 
     const first = prepareMeshGpuResource({
       device,
@@ -27,7 +28,8 @@ describe("prepared mesh GPU resource cache", () => {
       mesh,
       sourceVersion: 1,
     });
-    const buffersAfterFirst = createdBuffers.length;
+    const writesAfterFirst = gpu.writes.length;
+    const buffersAfterFirst = gpu.buffers.length;
     const second = prepareMeshGpuResource({
       device,
       cache,
@@ -35,7 +37,8 @@ describe("prepared mesh GPU resource cache", () => {
       mesh,
       sourceVersion: 1,
     });
-    const buffersAfterSecond = createdBuffers.length;
+    const writesAfterSecond = gpu.writes.length;
+    const buffersAfterSecond = gpu.buffers.length;
     const third = prepareMeshGpuResource({
       device,
       cache,
@@ -54,11 +57,88 @@ describe("prepared mesh GPU resource cache", () => {
     expect(first.resource?.mesh.vertexBuffers.length).toBeGreaterThan(0);
     expect(second.status).toBe("reused");
     expect(second.resource).toBe(first.resource);
+    expect(writesAfterSecond).toBe(writesAfterFirst);
     expect(buffersAfterSecond).toBe(buffersAfterFirst);
-    expect(third.status).toBe("created");
+    expect(third.status).toBe("reused");
     expect(third.resource).not.toBe(first.resource);
     expect(third.resource?.sourceVersion).toBe(2);
-    expect(createdBuffers.length).toBeGreaterThan(buffersAfterFirst);
+    expect(third.resource?.mesh.resourceKey).toBe("mesh-buffer:mesh:cube@v2");
+    expect(third.resource?.mesh.vertexBuffers[0]?.buffer).toBe(
+      first.resource?.mesh.vertexBuffers[0]?.buffer,
+    );
+    expect(third.resource?.mesh.indexBuffer?.buffer).toBe(
+      first.resource?.mesh.indexBuffer?.buffer,
+    );
+    expect(gpu.buffers.length).toBe(buffersAfterFirst);
+    expect(gpu.writes.length).toBeGreaterThan(writesAfterFirst);
+  });
+
+  it("creates a new mesh GPU resource when a version bump changes layout", () => {
+    const gpu = createGpuBufferLog();
+    const cache = createPreparedMeshGpuResourceCache();
+    const handle = createMeshHandle("dynamic");
+    const device = deviceWithBufferLog(gpu);
+
+    const first = prepareMeshGpuResource({
+      device,
+      cache,
+      handle,
+      mesh: createPlaneMeshAsset({ label: "Dynamic" }),
+      sourceVersion: 1,
+    });
+    const buffersAfterFirst = gpu.buffers.length;
+    const second = prepareMeshGpuResource({
+      device,
+      cache,
+      handle,
+      mesh: createBoxMeshAsset({ label: "Dynamic" }),
+      sourceVersion: 2,
+    });
+
+    expect(first.status).toBe("created");
+    expect(second.status).toBe("created");
+    expect(second.resource?.mesh.vertexBuffers[0]?.buffer).not.toBe(
+      first.resource?.mesh.vertexBuffers[0]?.buffer,
+    );
+    expect(gpu.buffers.length).toBeGreaterThan(buffersAfterFirst);
+  });
+
+  it("writes only declared update ranges when reusing same-layout mesh GPU resources", () => {
+    const gpu = createGpuBufferLog();
+    const cache = createPreparedMeshGpuResourceCache();
+    const handle = createMeshHandle("dynamic.range");
+    const device = deviceWithBufferLog(gpu);
+    const first = prepareMeshGpuResource({
+      device,
+      cache,
+      handle,
+      mesh: rangeMesh(new Float32Array(8)),
+      sourceVersion: 1,
+    });
+    const writesAfterFirst = gpu.writes.length;
+    const buffersAfterFirst = gpu.buffers.length;
+    const changed = new Float32Array(8);
+    changed[4] = 10;
+    const second = prepareMeshGpuResource({
+      device,
+      cache,
+      handle,
+      mesh: rangeMesh(changed, [{ byteOffset: 16, byteLength: 16 }]),
+      sourceVersion: 2,
+    });
+
+    expect(first.status).toBe("created");
+    expect(second.status).toBe("reused");
+    expect(gpu.buffers.length).toBe(buffersAfterFirst);
+    expect(gpu.writes.slice(writesAfterFirst)).toEqual([
+      {
+        buffer: first.resource?.mesh.vertexBuffers[0]?.buffer,
+        bufferOffset: 16,
+        data: changed.buffer,
+        dataOffset: changed.byteOffset + 16,
+        size: 16,
+      },
+    ]);
   });
 
   it("tracks last-used frames for prepared mesh backend cache entries", () => {
@@ -96,7 +176,7 @@ describe("prepared mesh GPU resource cache", () => {
     expect(second.status).toBe("reused");
     expect(second.resource).toBe(first.resource);
     expect(first.resource?.lastUsedFrame).toBe(12);
-    expect(third.status).toBe("created");
+    expect(third.status).toBe("reused");
     expect(third.resource).not.toBe(first.resource);
     expect(third.resource?.lastUsedFrame).toBe(14);
     expect(
@@ -310,5 +390,66 @@ function deviceWithBuffers(created: unknown[]): WebGpuBufferDeviceLike {
       },
     },
     createBuffer: (descriptor) => ({ descriptor }),
+  };
+}
+
+function rangeMesh(
+  data: Float32Array,
+  updateRanges?: readonly { readonly byteOffset: number; readonly byteLength: number }[],
+): MeshAsset {
+  return {
+    kind: "mesh",
+    label: "Range mesh",
+    vertexStreams: [
+      {
+        id: "positions",
+        arrayStride: 16,
+        vertexCount: 2,
+        attributes: [{ semantic: "POSITION", format: "float32x3", offset: 0 }],
+        data,
+        ...(updateRanges === undefined ? {} : { updateRanges }),
+      },
+    ],
+    indexBuffer: {
+      format: "uint16",
+      data: new Uint16Array([0, 1]),
+      updateRanges: [],
+    },
+    submeshes: [
+      {
+        label: "default",
+        topology: "line-list",
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount: 2,
+        indexStart: 0,
+        indexCount: 2,
+      },
+    ],
+    materialSlots: [{ index: 0, label: "default" }],
+  };
+}
+
+interface GpuBufferLog {
+  readonly buffers: unknown[];
+  readonly writes: unknown[];
+}
+
+function createGpuBufferLog(): GpuBufferLog {
+  return { buffers: [], writes: [] };
+}
+
+function deviceWithBufferLog(log: GpuBufferLog): WebGpuBufferDeviceLike {
+  return {
+    queue: {
+      writeBuffer: (buffer, bufferOffset, data, dataOffset, size) => {
+        log.writes.push({ buffer, bufferOffset, data, dataOffset, size });
+      },
+    },
+    createBuffer: (descriptor) => {
+      const buffer = { descriptor };
+      log.buffers.push(buffer);
+      return buffer;
+    },
   };
 }

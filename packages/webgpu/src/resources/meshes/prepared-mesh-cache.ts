@@ -15,6 +15,15 @@ import {
   type MeshGpuBufferResource,
 } from "./mesh-buffer-resources.js";
 import type { WebGpuBufferDeviceLike } from "../../gpu/buffer.js";
+import {
+  writeWebGpuBufferData,
+  writeWebGpuBufferSubData,
+} from "../../gpu/buffer.js";
+import {
+  meshBufferResourceKey,
+  meshIndexBufferResourceKey,
+  meshVertexBufferResourceKey,
+} from "../core/resource-keys.js";
 
 export type PreparedMeshGpuResourceCacheStatus =
   | "created"
@@ -193,6 +202,45 @@ export function prepareMeshGpuResource(
     };
   }
 
+  const reusable = findReusableSameLayoutResource(
+    options.cache,
+    sourceMeshKey,
+    layoutKey,
+    options.sourceVersion,
+  );
+
+  if (
+    reusable !== null &&
+    updateReusableMeshGpuResource({
+      device: options.device,
+      plan: descriptors.plan,
+      mesh: reusable.mesh,
+    })
+  ) {
+    const resource: PreparedMeshGpuResource = {
+      cacheKey,
+      sourceMeshKey,
+      sourceVersion: options.sourceVersion,
+      layoutKey,
+      lastUsedFrame: options.frame ?? 0,
+      mesh: aliasMeshGpuBufferResource(
+        descriptors.plan,
+        sourceMeshKey,
+        options.sourceVersion,
+        reusable.mesh,
+      ),
+    };
+
+    options.cache.resources.set(cacheKey, resource);
+
+    return {
+      valid: true,
+      status: "reused",
+      resource,
+      diagnostics: [],
+    };
+  }
+
   const mesh = createMeshGpuBuffers({
     device: options.device,
     plan: withPreparedMeshResourceLabel(
@@ -277,4 +325,156 @@ export function preparedMeshGpuResourceLayoutKey(
         ].join(":");
 
   return ["mesh-upload-layout", ...vertexSegments, indexSegment].join("|");
+}
+
+function findReusableSameLayoutResource(
+  cache: PreparedMeshGpuResourceCache,
+  sourceMeshKey: string,
+  layoutKey: string,
+  sourceVersion: number,
+): PreparedMeshGpuResource | null {
+  let best: PreparedMeshGpuResource | null = null;
+
+  for (const resource of cache.resources.values()) {
+    if (
+      resource.sourceMeshKey !== sourceMeshKey ||
+      resource.layoutKey !== layoutKey ||
+      resource.sourceVersion === sourceVersion
+    ) {
+      continue;
+    }
+
+    if (best === null || resource.sourceVersion > best.sourceVersion) {
+      best = resource;
+    }
+  }
+
+  return best;
+}
+
+function updateReusableMeshGpuResource(options: {
+  readonly device: WebGpuBufferDeviceLike;
+  readonly plan: MeshUploadBufferDescriptorPlan;
+  readonly mesh: MeshGpuBufferResource;
+}): boolean {
+  if (options.device.queue?.writeBuffer === undefined) {
+    return false;
+  }
+
+  for (const vertex of options.plan.vertexBuffers) {
+    const resource = options.mesh.vertexBuffers.find(
+      (buffer) => buffer.streamId === vertex.streamId,
+    );
+
+    if (resource === undefined) {
+      return false;
+    }
+
+    if (
+      !writeMeshBufferDataOrRanges(
+        options.device,
+        resource.buffer,
+        vertex.source,
+        vertex.updateRanges,
+      )
+    ) {
+      return false;
+    }
+  }
+
+  if (options.plan.indexBuffer === undefined) {
+    return true;
+  }
+
+  const indexBuffer = options.mesh.indexBuffer;
+
+  return (
+    indexBuffer !== undefined &&
+    writeMeshBufferDataOrRanges(
+      options.device,
+      indexBuffer.buffer,
+      options.plan.indexBuffer.source,
+      options.plan.indexBuffer.updateRanges,
+    )
+  );
+}
+
+function writeMeshBufferDataOrRanges(
+  device: WebGpuBufferDeviceLike,
+  buffer: unknown,
+  source: ArrayBufferView,
+  ranges: readonly { readonly byteOffset: number; readonly byteLength: number }[]
+    | undefined,
+): boolean {
+  if (ranges === undefined) {
+    return writeWebGpuBufferData(device, buffer, source);
+  }
+
+  for (const range of ranges) {
+    if (
+      !writeWebGpuBufferSubData(device, buffer, source, {
+        bufferOffset: range.byteOffset,
+        dataByteOffset: range.byteOffset,
+        byteLength: range.byteLength,
+      })
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function aliasMeshGpuBufferResource(
+  plan: MeshUploadBufferDescriptorPlan,
+  sourceMeshKey: string,
+  sourceVersion: number,
+  source: MeshGpuBufferResource,
+): MeshGpuBufferResource {
+  const label = `${sourceMeshKey}@v${sourceVersion}`;
+  const vertexBuffers = plan.vertexBuffers.flatMap((vertex) => {
+    const existing = source.vertexBuffers.find(
+      (buffer) => buffer.streamId === vertex.streamId,
+    );
+
+    return existing === undefined
+      ? []
+      : [
+          {
+            streamId: vertex.streamId,
+            resourceKey: meshVertexBufferResourceKey(label, vertex.streamId),
+            buffer: existing.buffer,
+            vertexCount: vertex.vertexCount,
+          },
+        ];
+  });
+  const base: MeshGpuBufferResource = {
+    resourceKey: meshBufferResourceKey(label),
+    vertexCount: meshVertexCount(vertexBuffers),
+    vertexBuffers,
+  };
+
+  if (plan.indexBuffer === undefined || source.indexBuffer === undefined) {
+    return base;
+  }
+
+  return {
+    ...base,
+    indexBuffer: {
+      resourceKey: meshIndexBufferResourceKey(label),
+      buffer: source.indexBuffer.buffer,
+      format: plan.indexBuffer.format,
+      indexCount: plan.indexBuffer.indexCount,
+    },
+  };
+}
+
+function meshVertexCount(
+  vertexBuffers: MeshGpuBufferResource["vertexBuffers"],
+): number {
+  if (vertexBuffers.length === 0) {
+    return 0;
+  }
+
+  return Math.min(...vertexBuffers.map((buffer) => buffer.vertexCount));
 }

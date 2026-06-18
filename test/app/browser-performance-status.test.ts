@@ -1,9 +1,11 @@
 import { AssetRegistry } from "@aperture-engine/simulation";
 import type {
   SimulationWorker,
+  SimulationWorkerMessageCallback,
   SimulationWorkerSnapshotCallback,
   SimulationWorkerSnapshotEvent,
 } from "@aperture-engine/runtime";
+import { SIMULATION_WORKER_PROTOCOL } from "@aperture-engine/runtime";
 import type { RenderSnapshot } from "@aperture-engine/render";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { mirrorSimulationWorkerSourceAssets } from "../../packages/app/src/browser/assets.js";
@@ -135,6 +137,69 @@ describe("generated browser performance status", () => {
         },
       },
     });
+  });
+
+  it("mirrors source asset sideband messages without counting render snapshots", () => {
+    let messageCallback: SimulationWorkerMessageCallback | null = null;
+    const worker: SimulationWorker = {
+      worker: {
+        postMessage() {},
+        terminate() {},
+      },
+      start() {},
+      postMessage() {},
+      onMessage(callback) {
+        messageCallback = callback;
+        return () => {
+          messageCallback = null;
+        };
+      },
+      onSnapshot() {
+        return () => {};
+      },
+      onError() {
+        return () => {};
+      },
+      terminate() {},
+    };
+    const status = createStatus();
+    const sourceAssets = new AssetRegistry();
+
+    mirrorSimulationWorkerSourceAssets(worker, sourceAssets, status);
+    messageCallback?.({
+      type: SIMULATION_WORKER_PROTOCOL.sourceAssets,
+      frame: 2,
+      sourceAssets: {
+        entries: [
+          {
+            handle: { kind: "mesh", id: "dynamic.trail" },
+            label: "Dynamic Trail",
+            status: "ready",
+            version: 3,
+            asset: { kind: "mesh", label: "Dynamic Trail" },
+            dependencies: [],
+            diagnostics: [],
+          },
+        ],
+      },
+      workerSummary: {
+        postMessageDecision: {
+          frame: 2,
+          postedMessage: "sourceAssets",
+          postMessageReasons: ["sourceAssetsChanged"],
+        },
+      },
+    });
+
+    expect(status.snapshots).toBe(0);
+    expect(status.mirroredSourceAssets).toBe(1);
+    expect(status.workerMessages.snapshotDecisions.total).toBe(0);
+    expect(status.workerMessages.sidebandDecisions).toMatchObject({
+      total: 1,
+      postedMessages: { sourceAssets: 1 },
+      postMessageReasons: { sourceAssetsChanged: 1 },
+    });
+    expect(sourceAssets.list({ kind: "mesh" })).toHaveLength(1);
   });
 
   it("publishes browser performance status on a telemetry cadence while retaining samples", () => {
@@ -390,6 +455,20 @@ function createStatus(): GeneratedBrowserAppStatus {
     lastError: null,
     lastFailure: null,
     lastWorkerSummary: null,
+    workerMessages: {
+      snapshotDecisions: {
+        total: 0,
+        latest: null,
+        postedMessages: {},
+        postMessageReasons: {},
+      },
+      sidebandDecisions: {
+        total: 0,
+        latest: null,
+        postedMessages: {},
+        postMessageReasons: {},
+      },
+    },
     performance: null,
     diagnostics: null,
     render: null,

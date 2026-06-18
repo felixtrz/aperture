@@ -92,8 +92,9 @@ class GroundRibbonTrailImpl implements GroundRibbonTrail {
   readonly #maxSegments: number;
   readonly #label: string;
   readonly #vertices: Float32Array;
-  readonly #compactVertices: Float32Array;
   readonly #indices: Uint16Array | Uint32Array;
+  readonly #dirtyVertexRanges: { byteOffset: number; byteLength: number }[] =
+    [];
   #segmentIndex = 0;
   #drawSegments = 0;
   #prev: readonly [number, number, number] = [0, 0, 0];
@@ -119,9 +120,6 @@ class GroundRibbonTrailImpl implements GroundRibbonTrail {
     this.#minSegmentLength = finitePositive(options.minSegmentLength, 0.001);
     this.#color = tuple3(options.color ?? [1, 1, 1]);
     this.#vertices = new Float32Array(this.#maxSegments * FLOATS_PER_SEGMENT);
-    this.#compactVertices = new Float32Array(
-      this.#maxSegments * FLOATS_PER_SEGMENT,
-    );
     this.#indices = createSequentialIndexBuffer(
       this.#maxSegments * VERTS_PER_SEGMENT,
     );
@@ -178,7 +176,8 @@ class GroundRibbonTrailImpl implements GroundRibbonTrail {
     const cR = [curr[0] - sx, curr[1], curr[2] - sz] as const;
     const quad = [pL, pR, cL, pR, cR, cL] as const;
 
-    let offset = this.#segmentIndex * FLOATS_PER_SEGMENT;
+    const dirtyFloatOffset = this.#segmentIndex * FLOATS_PER_SEGMENT;
+    let offset = dirtyFloatOffset;
     for (const point of quad) {
       this.#vertices[offset] = point[0];
       this.#vertices[offset + 1] = point[1];
@@ -195,6 +194,10 @@ class GroundRibbonTrailImpl implements GroundRibbonTrail {
       offset += FLOATS_PER_VERTEX;
     }
 
+    this.#dirtyVertexRanges.push({
+      byteOffset: dirtyFloatOffset * Float32Array.BYTES_PER_ELEMENT,
+      byteLength: FLOATS_PER_SEGMENT * Float32Array.BYTES_PER_ELEMENT,
+    });
     this.#segmentIndex = (this.#segmentIndex + 1) % this.#maxSegments;
     if (this.#drawSegments < this.#maxSegments) {
       this.#drawSegments += 1;
@@ -227,25 +230,24 @@ class GroundRibbonTrailImpl implements GroundRibbonTrail {
     }
 
     this.#dirty = false;
-    return this.mesh.publish(this.getMeshAsset());
+    const result = this.mesh.publish(this.getMeshAsset());
+    this.#dirtyVertexRanges.length = 0;
+    return result;
   }
 
   getMeshAsset(): MeshAsset {
     const drawVertexCount = this.#drawSegments * VERTS_PER_SEGMENT;
-    const vertexCount = Math.max(1, drawVertexCount);
+    const vertexCount = this.#maxSegments * VERTS_PER_SEGMENT;
     const indexCount = drawVertexCount;
     const indexFormat =
       this.#indices instanceof Uint16Array ? "uint16" : "uint32";
-    const indexBuffer: MeshAsset["indexBuffer"] =
-      indexCount === 0
-        ? undefined
-        : {
-            format: indexFormat,
-            data: this.#indices.subarray(0, indexCount),
-            indexCount,
-          };
-    const vertexData = this.#activeVertexData();
-    const bounds = computeVertexBounds(vertexData, drawVertexCount);
+    const indexBuffer: MeshAsset["indexBuffer"] = {
+      format: indexFormat,
+      data: this.#indices,
+      indexCount: this.#indices.length,
+      updateRanges: [],
+    };
+    const bounds = computeVertexBounds(this.#vertices, drawVertexCount);
     const center = [
       (bounds.min[0] + bounds.max[0]) * 0.5,
       (bounds.min[1] + bounds.max[1]) * 0.5,
@@ -272,10 +274,11 @@ class GroundRibbonTrailImpl implements GroundRibbonTrail {
             { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
             { semantic: "COLOR_0", format: "float32x4", offset: 32 },
           ],
-          data: vertexData,
+          data: this.#vertices,
+          updateRanges: this.#dirtyVertexRanges.map((range) => ({ ...range })),
         },
       ],
-      ...(indexBuffer === undefined ? {} : { indexBuffer }),
+      indexBuffer,
       submeshes: [
         {
           label: "default",
@@ -291,32 +294,6 @@ class GroundRibbonTrailImpl implements GroundRibbonTrail {
       localAabb: { min: [...bounds.min], max: [...bounds.max] },
       localSphere: { center, radius },
     };
-  }
-
-  #activeVertexData(): Float32Array {
-    const floatCount = this.#drawSegments * FLOATS_PER_SEGMENT;
-
-    if (floatCount === 0) {
-      return this.#vertices.subarray(0, FLOATS_PER_VERTEX);
-    }
-
-    if (this.#drawSegments < this.#maxSegments || this.#segmentIndex === 0) {
-      return this.#vertices.subarray(0, floatCount);
-    }
-
-    const firstFloat = this.#segmentIndex * FLOATS_PER_SEGMENT;
-    const firstLength =
-      (this.#maxSegments - this.#segmentIndex) * FLOATS_PER_SEGMENT;
-    this.#compactVertices.set(
-      this.#vertices.subarray(firstFloat, firstFloat + firstLength),
-      0,
-    );
-    this.#compactVertices.set(
-      this.#vertices.subarray(0, this.#segmentIndex * FLOATS_PER_SEGMENT),
-      firstLength,
-    );
-
-    return this.#compactVertices.subarray(0, floatCount);
   }
 }
 

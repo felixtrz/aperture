@@ -38,12 +38,15 @@ export interface GeneratedBrowserAppStatus {
 }
 
 export interface GeneratedBrowserWorkerMessageStatus {
-  snapshotDecisions: {
-    total: number;
-    latest: unknown;
-    postedMessages: Record<string, number>;
-    postMessageReasons: Record<string, number>;
-  };
+  snapshotDecisions: GeneratedBrowserWorkerMessageDecisionCounters;
+  sidebandDecisions: GeneratedBrowserWorkerMessageDecisionCounters;
+}
+
+export interface GeneratedBrowserWorkerMessageDecisionCounters {
+  total: number;
+  latest: unknown;
+  postedMessages: Record<string, number>;
+  postMessageReasons: Record<string, number>;
 }
 
 export interface GeneratedBrowserPerformanceTimingStats {
@@ -158,12 +161,8 @@ export function installGeneratedStatus(): GeneratedBrowserAppStatus {
     lastFailure: null,
     lastWorkerSummary: null,
     workerMessages: {
-      snapshotDecisions: {
-        total: 0,
-        latest: null,
-        postedMessages: {},
-        postMessageReasons: {},
-      },
+      snapshotDecisions: emptyWorkerMessageDecisionCounters(),
+      sidebandDecisions: emptyWorkerMessageDecisionCounters(),
     },
     performance: null,
     diagnostics: null,
@@ -191,6 +190,15 @@ export function installGeneratedRenderDiagnosticsAccessor(
       configurable: true,
     },
   );
+}
+
+function emptyWorkerMessageDecisionCounters(): GeneratedBrowserWorkerMessageDecisionCounters {
+  return {
+    total: 0,
+    latest: null,
+    postedMessages: {},
+    postMessageReasons: {},
+  };
 }
 
 function generatedStatusStamp(status: GeneratedBrowserAppStatus): string {

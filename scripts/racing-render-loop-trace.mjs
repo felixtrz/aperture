@@ -955,11 +955,21 @@ function summarizeApertureGpuTimings(samples, latest) {
 function summarizeApertureWorkerMessages(samples, latest) {
   const snapshotDecisions = latest?.workerMessages?.snapshotDecisions;
   if (snapshotDecisions !== undefined && snapshotDecisions !== null) {
+    const sidebandDecisions = latest?.workerMessages?.sidebandDecisions;
     return {
       sampleCount: snapshotDecisions.total ?? 0,
       postedMessages: snapshotDecisions.postedMessages ?? {},
       postMessageReasons: snapshotDecisions.postMessageReasons ?? {},
       latest: snapshotDecisions.latest ?? null,
+      sideband:
+        sidebandDecisions === undefined || sidebandDecisions === null
+          ? null
+          : {
+              sampleCount: sidebandDecisions.total ?? 0,
+              postedMessages: sidebandDecisions.postedMessages ?? {},
+              postMessageReasons: sidebandDecisions.postMessageReasons ?? {},
+              latest: sidebandDecisions.latest ?? null,
+            },
       source: "browser-status-counter",
     };
   }
@@ -1362,6 +1372,14 @@ function printSummary(summary, summaryPath) {
       );
       if (topReason !== null) {
         parts.push(`msg top=${topReason.key}:${topReason.count}`);
+      }
+      const topSidebandReason = topCountKey(
+        run.aperture?.workerMessages?.sideband?.postMessageReasons,
+      );
+      if (topSidebandReason !== null) {
+        parts.push(
+          `sideband top=${topSidebandReason.key}:${topSidebandReason.count}`,
+        );
       }
     }
     if (run.target === "three" || (gpuTimer?.count ?? 0) > 0) {

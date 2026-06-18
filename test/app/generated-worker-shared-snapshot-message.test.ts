@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   AssetRegistry,
   createAudioClipHandle,
+  createMeshHandle,
 } from "@aperture-engine/simulation";
 import {
   SIMULATION_WORKER_PROTOCOL,
@@ -12,6 +13,7 @@ import type {
   AudioEmitterPacket,
   RenderSnapshot,
 } from "@aperture-engine/render";
+import { createPlaneMeshAsset } from "@aperture-engine/render";
 import type { ApertureApp } from "../../packages/app/src/advanced.js";
 import type { ApertureConfig } from "../../packages/app/src/config.js";
 import { createSourceAssetSerializationState } from "../../packages/app/src/asset-mirror.js";
@@ -201,14 +203,198 @@ describe("generated worker shared snapshot message cadence", () => {
     expect(audioReport.timing.postMessageReasons).toEqual(["sharedAudio"]);
     expect(transport.shared.reader.readLatestFrame()?.frame).toBe(2);
   });
+
+  it("sends changed source assets through sideband without forcing render snapshot messages", () => {
+    let now = 0;
+    vi.stubGlobal("performance", {
+      now: () => now,
+    });
+
+    const shared = createSharedSnapshotTransport({
+      maxEntities: 4,
+      maxViews: 1,
+      maxPacketWords: 128,
+      requireCrossOriginIsolated: false,
+    });
+    const transport = createGeneratedWorkerSnapshotTransport({
+      transport: {
+        mode: "shared-array-buffer",
+        layout: shared.layout,
+        headerBuffer: shared.headerBuffer,
+        transformBuffer: shared.transformBuffer,
+        instanceTintBuffer: shared.instanceTintBuffer,
+        viewMatrixBuffer: shared.viewMatrixBuffer,
+        quadInstanceFloatBuffer: shared.quadInstanceFloatBuffer,
+        quadInstanceWordBuffer: shared.quadInstanceWordBuffer,
+        packetBuffer: shared.packetBuffer,
+      },
+    });
+    expect(transport.mode).toBe("shared-array-buffer");
+    if (transport.mode !== "shared-array-buffer") {
+      throw new Error("expected shared transport");
+    }
+
+    const mesh = createMeshHandle("dynamic.trail");
+    const messages: unknown[] = [];
+    const app = createFakeApp(undefined, (assets, frame) => {
+      if (!assets.has(mesh)) {
+        assets.register(mesh, { label: "Dynamic Trail" });
+      }
+      assets.markReady(mesh, createPlaneMeshAsset({ label: `Trail ${frame}` }));
+    });
+    const options = {
+      app,
+      config: { mode: "browser" } as ApertureConfig,
+      port: createMessagePort(messages),
+      transport,
+      pendingInput: [],
+      sourceAssetState: createSourceAssetSerializationState(),
+      entityTools: { summary: () => ({ available: true }) },
+      summaryCadence: thinSummaryCadence(),
+      delta: 1 / 60,
+      previousPublishTiming: null,
+    };
+
+    const initialReport = publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 1,
+      time: 1,
+    });
+    expect(messages).toHaveLength(1);
+    expect(readMessageType(messages[0])).toBe(
+      SIMULATION_WORKER_PROTOCOL.snapshot,
+    );
+    expect(initialReport.timing.postedMessage).toBe("snapshot");
+    expect(initialReport.timing.postMessageReasons).toEqual([
+      "sharedInitial",
+      "sourceAssetsChanged",
+    ]);
+
+    now = 1;
+    const throttledReport = publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 2,
+      time: 1 + 1 / 60,
+    });
+    expect(messages).toHaveLength(1);
+    expect(throttledReport.timing.postedMessage).toBe("none");
+    expect(throttledReport.timing.postMessageReasons).toEqual([]);
+    expect(transport.shared.reader.readLatestFrame()?.frame).toBe(2);
+
+    now = 20;
+    const sidebandReport = publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 3,
+      time: 1 + 2 / 60,
+    });
+    expect(messages).toHaveLength(2);
+    expect(readMessageType(messages[1])).toBe(
+      SIMULATION_WORKER_PROTOCOL.sourceAssets,
+    );
+    expect(readMessageFrame(messages[1])).toBe(3);
+    expect(sidebandReport.timing.postedMessage).toBe("sourceAssets");
+    expect(sidebandReport.timing.postMessageReasons).toEqual([
+      "sourceAssetsChanged",
+    ]);
+    expect(readSourceAssetCount(messages[1])).toBe(1);
+    expect(transport.shared.reader.readLatestFrame()?.frame).toBe(3);
+  });
+
+  it("piggybacks changed source assets on due audio sideband messages", () => {
+    let now = 0;
+    vi.stubGlobal("performance", {
+      now: () => now,
+    });
+
+    const shared = createSharedSnapshotTransport({
+      maxEntities: 4,
+      maxViews: 1,
+      maxPacketWords: 128,
+      requireCrossOriginIsolated: false,
+    });
+    const transport = createGeneratedWorkerSnapshotTransport({
+      transport: {
+        mode: "shared-array-buffer",
+        layout: shared.layout,
+        headerBuffer: shared.headerBuffer,
+        transformBuffer: shared.transformBuffer,
+        instanceTintBuffer: shared.instanceTintBuffer,
+        viewMatrixBuffer: shared.viewMatrixBuffer,
+        quadInstanceFloatBuffer: shared.quadInstanceFloatBuffer,
+        quadInstanceWordBuffer: shared.quadInstanceWordBuffer,
+        packetBuffer: shared.packetBuffer,
+      },
+    });
+    expect(transport.mode).toBe("shared-array-buffer");
+    if (transport.mode !== "shared-array-buffer") {
+      throw new Error("expected shared transport");
+    }
+
+    const mesh = createMeshHandle("dynamic.audio-trail");
+    const messages: unknown[] = [];
+    const app = createFakeApp(
+      (frame) =>
+        baseSnapshot({
+          frame,
+          audioEmitters: [audioEmitter()],
+        }),
+      (assets, frame) => {
+        if (!assets.has(mesh)) {
+          assets.register(mesh, { label: "Dynamic Audio Trail" });
+        }
+        assets.markReady(
+          mesh,
+          createPlaneMeshAsset({ label: `Audio Trail ${frame}` }),
+        );
+      },
+    );
+    const options = {
+      app,
+      config: { mode: "browser" } as ApertureConfig,
+      port: createMessagePort(messages),
+      transport,
+      pendingInput: [],
+      sourceAssetState: createSourceAssetSerializationState(),
+      entityTools: { summary: () => ({ available: true }) },
+      summaryCadence: thinSummaryCadence(),
+      delta: 1 / 60,
+      previousPublishTiming: null,
+    };
+
+    publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 1,
+      time: 1,
+    });
+    expect(messages).toHaveLength(1);
+
+    now = 20;
+    const audioReport = publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 2,
+      time: 1 + 1 / 60,
+    });
+    expect(messages).toHaveLength(2);
+    expect(readMessageType(messages[1])).toBe(
+      SIMULATION_WORKER_PROTOCOL.audioSnapshot,
+    );
+    expect(audioReport.timing.postedMessage).toBe("audioSnapshot");
+    expect(audioReport.timing.postMessageReasons).toEqual([
+      "sharedAudio",
+      "sourceAssetsChanged",
+    ]);
+    expect(readSourceAssetCount(messages[1])).toBe(1);
+  });
 });
 
 function createFakeApp(
   snapshotForFrame: (frame: number) => RenderSnapshot = (frame) =>
     baseSnapshot({ frame }),
+  stepFrame?: (assets: AssetRegistry, frame: number) => void,
 ): ApertureApp {
   const assets = new AssetRegistry();
   const input = createInputResource(undefined);
+  let stepIndex = 0;
   const app = {
     context: {
       signals: {},
@@ -218,7 +404,11 @@ function createFakeApp(
       particles: { summary: () => ({ active: 0 }) },
     },
     lowLevel: { assets },
-    step: () => ({ timing: {} }),
+    step: () => {
+      stepIndex += 1;
+      stepFrame?.(assets, stepIndex);
+      return { timing: {} };
+    },
     extract: snapshotForFrame,
   };
 
@@ -234,6 +424,18 @@ function readMessageType(message: unknown): unknown {
 function readMessageFrame(message: unknown): unknown {
   return typeof message === "object" && message !== null
     ? (message as { readonly frame?: unknown }).frame
+    : undefined;
+}
+
+function readSourceAssetCount(message: unknown): unknown {
+  if (typeof message !== "object" || message === null) {
+    return undefined;
+  }
+
+  const sourceAssets = (message as { readonly sourceAssets?: unknown })
+    .sourceAssets;
+  return typeof sourceAssets === "object" && sourceAssets !== null
+    ? (sourceAssets as { readonly entries?: unknown[] }).entries?.length
     : undefined;
 }
 

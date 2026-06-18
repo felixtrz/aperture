@@ -96,6 +96,17 @@ Latest paired trace evidence after this slice:
     `mesh:racing.driftMarks.bl` and `mesh:racing.driftMarks.br`; their versions
     advance while driving, forcing source-asset mirror messages even though SAB
     render data itself is current.
+- Source-asset sideband split / latest-wins throttle trace:
+  `/tmp/racing-source-sideband-throttle-check/summary.json`
+  - Drive render snapshot messages are back near heartbeat cadence:
+    `snapshotsReceived.estimatedHz ~= 28.1`, while renders remain `60 Hz` with
+    `sharedUnavailable: 0`.
+  - Dynamic drift-mark source asset updates now piggyback on the already-needed
+    audio sideband or render heartbeat instead of forcing their own render
+    snapshot events. The drive sideband top reason became `sharedAudio`.
+  - Frame pacing improved enough to tie/edge three.js in some metrics
+    (`p95 18.35 ms` vs `18.40 ms`, pacing `dev95 1.75 ms` vs `1.80 ms`) but
+    did not prove a consistent win (`p99/max` and `within1` still trailed).
 
 Racing does author audio every frame. Therefore, simply lowering the generic
 sideband heartbeat below `60 Hz` would either not affect this benchmark or would
@@ -450,10 +461,11 @@ Racing benchmark checks:
    meshes.
 
 7. **Next: dynamic geometry transport.**
-   Dynamic mesh updates should not travel as full source asset registry changes
-   every frame. Add a render-data update path for dynamic geometry, ideally
-   reusing the existing mesh `updateRanges` upload path after the bytes arrive
-   on the render side. For SAB mode this should be a shared/ring-buffered
+   The current sideband split keeps dynamic mesh updates out of the render
+   snapshot queue, but it still structured-clones drift-mark mesh bytes through
+   sideband messages. Add a render-data update path for dynamic geometry,
+   ideally reusing the existing mesh `updateRanges` upload path after the bytes
+   arrive on the render side. For SAB mode this should be a shared/ring-buffered
    dynamic-geometry stream; for transferable fallback, use latest-update wins
    and drop stale dynamic mesh updates before render.
 

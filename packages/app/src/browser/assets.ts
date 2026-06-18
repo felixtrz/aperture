@@ -22,36 +22,29 @@ export function mirrorSimulationWorkerSourceAssets(
   const performanceState = createGeneratedBrowserPerformanceState(
     options.performanceStatusIntervalMilliseconds,
   );
+  const unsubscribeSidebandAssets = worker.onMessage((message) => {
+    mirrorWorkerMessage({
+      message,
+      sourceAssets,
+      status,
+      performanceState,
+      decisionBucket: "sideband",
+    });
+  });
 
   return {
     ...worker,
     onSnapshot(callback) {
       return worker.onSnapshot((event: SimulationWorkerSnapshotEvent) => {
-        const mirror = mirrorSourceAssetRegistryFromMessage(
+        mirrorWorkerMessage({
+          message: event.message,
           sourceAssets,
-          event.message,
-        );
+          status,
+          performanceState,
+          decisionBucket: "snapshot",
+        });
         status.snapshots += 1;
         status.lastFrame = event.frame;
-        status.mirroredSourceAssets += mirror.mirrored;
-        status.skippedSourceAssets += mirror.skipped;
-        const workerSummary =
-          typeof event.message === "object" && event.message !== null
-            ? ((event.message as { readonly workerSummary?: unknown })
-                .workerSummary ?? null)
-            : null;
-        status.lastWorkerSummary = mergeWorkerSummary(
-          status.lastWorkerSummary,
-          workerSummary,
-        );
-        recordWorkerPostMessageDecision(status.workerMessages, workerSummary);
-        const performanceStatus = updateGeneratedBrowserPerformanceStatus(
-          performanceState,
-          workerSummary,
-        );
-        if (performanceStatus !== undefined) {
-          status.performance = performanceStatus;
-        }
         callback(event);
       });
     },
@@ -74,6 +67,10 @@ export function mirrorSimulationWorkerSourceAssets(
         status.lastError = status.lastFailure;
         callback(event);
       });
+    },
+    terminate() {
+      unsubscribeSidebandAssets();
+      worker.terminate();
     },
   };
 }
@@ -133,6 +130,45 @@ const LOW_LEVEL_TIMING_FIELDS = [
   "transformMilliseconds",
   "skeletonMilliseconds",
 ] as const;
+
+function mirrorWorkerMessage(options: {
+  readonly message: unknown;
+  readonly sourceAssets: AssetRegistry;
+  readonly status: GeneratedBrowserAppStatus;
+  readonly performanceState: GeneratedBrowserPerformanceState;
+  readonly decisionBucket: "snapshot" | "sideband";
+}): void {
+  const mirror = mirrorSourceAssetRegistryFromMessage(
+    options.sourceAssets,
+    options.message,
+  );
+  options.status.mirroredSourceAssets += mirror.mirrored;
+  options.status.skippedSourceAssets += mirror.skipped;
+
+  const workerSummary = readWorkerSummary(options.message);
+  options.status.lastWorkerSummary = mergeWorkerSummary(
+    options.status.lastWorkerSummary,
+    workerSummary,
+  );
+  recordWorkerPostMessageDecision(
+    options.status.workerMessages,
+    workerSummary,
+    options.decisionBucket,
+  );
+  const performanceStatus = updateGeneratedBrowserPerformanceStatus(
+    options.performanceState,
+    workerSummary,
+  );
+  if (performanceStatus !== undefined) {
+    options.status.performance = performanceStatus;
+  }
+}
+
+function readWorkerSummary(message: unknown): unknown {
+  return typeof message === "object" && message !== null
+    ? ((message as { readonly workerSummary?: unknown }).workerSummary ?? null)
+    : null;
+}
 
 const TRANSIENT_FULL_WORKER_SUMMARY_FIELDS = [
   "resources",
@@ -399,6 +435,7 @@ function mergeWorkerSummary(previous: unknown, next: unknown): unknown {
 function recordWorkerPostMessageDecision(
   status: GeneratedBrowserWorkerMessageStatus,
   workerSummary: unknown,
+  bucketName: "snapshot" | "sideband",
 ): void {
   const decision = readRecord(workerSummary)?.["postMessageDecision"];
   const decisionRecord = readRecord(decision);
@@ -406,7 +443,10 @@ function recordWorkerPostMessageDecision(
     return;
   }
 
-  const bucket = status.snapshotDecisions;
+  const bucket =
+    bucketName === "snapshot"
+      ? status.snapshotDecisions
+      : status.sidebandDecisions;
   bucket.total += 1;
   bucket.latest = decision;
 
