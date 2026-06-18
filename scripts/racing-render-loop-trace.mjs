@@ -442,12 +442,17 @@ async function collectSnapshot(page) {
 
     function compactApertureStatus(status) {
       if (status === undefined || status === null) return null;
+      const fullDiagnostics =
+        status.__apertureRenderDiagnostics?.getDiagnostics?.({
+          detail: "full",
+        }) ?? null;
       const diagnostics = status.diagnostics ?? null;
       const lastFrame =
         diagnostics?.lastFrame ??
         diagnostics?.frame ??
         status.render?.lastFrame ??
         null;
+      const fullLastFrame = fullDiagnostics?.lastFrame ?? null;
       const counts = lastFrame?.counts ?? diagnostics?.counts ?? null;
       return {
         frame: status.frame ?? status.lastFrame ?? null,
@@ -457,6 +462,7 @@ async function collectSnapshot(page) {
         render: status.render ?? null,
         diagnostics: {
           counts,
+          cadence: diagnostics?.cadence ?? fullDiagnostics?.cadence ?? null,
           changeSet:
             lastFrame?.changeSet ??
             lastFrame?.renderChangeSet ??
@@ -467,6 +473,11 @@ async function collectSnapshot(page) {
           gpuTimings: lastFrame?.gpuTimings ?? diagnostics?.gpuTimings ?? null,
           shadow: lastFrame?.shadow ?? diagnostics?.shadow ?? null,
           particles: lastFrame?.particles ?? diagnostics?.particles ?? null,
+          resourceReuse:
+            lastFrame?.resourceReuse ??
+            fullLastFrame?.resourceReuse ??
+            diagnostics?.resourceReuse ??
+            null,
         },
         lastWorkerSummary: status.lastWorkerSummary
           ? {
@@ -677,11 +688,50 @@ function summarizeApertureSamples(samples, latest) {
     latest,
     drawCalls: quantiles(drawCounts),
     phaseTimings: summarizeAperturePhaseTimings(samples, latest),
+    cadence: summarizeApertureCadence(samples, latest),
     gpuTimings: summarizeApertureGpuTimings(samples, latest),
     performanceTransport:
       latest?.performance?.latest?.transport ??
       latest?.performance?.transport ??
       null,
+  };
+}
+
+function summarizeApertureCadence(samples, latest) {
+  const queueAgeMs = [];
+  const pendingAgeMs = [];
+  const frameGaps = [];
+  const skippedFrames = [];
+
+  for (const source of [
+    ...samples.map((sample) => sample?.cadence),
+    latest?.diagnostics?.cadence,
+  ]) {
+    if (source === undefined || source === null) continue;
+    const pacing = source.pacing ?? null;
+    const queueAge = pacing?.snapshotQueueAgeMilliseconds;
+    const frameGap = pacing?.renderedFrameGap;
+
+    if (isFiniteNumber(queueAge?.latest)) {
+      queueAgeMs.push(queueAge.latest);
+    }
+    if (isFiniteNumber(pacing?.pendingSnapshotAgeMilliseconds)) {
+      pendingAgeMs.push(pacing.pendingSnapshotAgeMilliseconds);
+    }
+    if (isFiniteNumber(frameGap?.latest)) {
+      frameGaps.push(frameGap.latest);
+    }
+    if (isFiniteNumber(pacing?.skippedSnapshotFrames)) {
+      skippedFrames.push(pacing.skippedSnapshotFrames);
+    }
+  }
+
+  return {
+    latest: latest?.diagnostics?.cadence ?? null,
+    snapshotQueueAgeMs: quantiles(queueAgeMs),
+    pendingSnapshotAgeMs: quantiles(pendingAgeMs),
+    renderedFrameGap: quantiles(frameGaps),
+    skippedSnapshotFrames: quantiles(skippedFrames),
   };
 }
 
@@ -701,6 +751,18 @@ function summarizeAperturePhaseTimings(samples, latest) {
     for (const phase of phases) {
       const name = String(phase?.phase ?? "unknown");
       const milliseconds = phase?.latestMilliseconds;
+      if (!isFiniteNumber(milliseconds)) continue;
+      let values = phaseMsByName.get(name);
+      if (values === undefined) {
+        values = [];
+        phaseMsByName.set(name, values);
+      }
+      values.push(milliseconds);
+    }
+    const details = Array.isArray(source.details) ? source.details : [];
+    for (const detail of details) {
+      const name = String(detail?.detail ?? "unknown");
+      const milliseconds = detail?.latestMilliseconds;
       if (!isFiniteNumber(milliseconds)) continue;
       let values = phaseMsByName.get(name);
       if (values === undefined) {
@@ -1129,6 +1191,7 @@ function createFrameSamplerInitScript() {
       status: status.status ?? null,
       webgpuOk: status.webgpuOk ?? null,
       performance: status.performance?.latest ?? status.performance ?? null,
+      cadence: diagnostics?.cadence ?? null,
       counts: lastFrame?.counts ?? diagnostics?.counts ?? null,
       changeSet:
         lastFrame?.changeSet ??

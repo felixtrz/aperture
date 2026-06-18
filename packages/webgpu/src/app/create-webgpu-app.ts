@@ -37,6 +37,7 @@ import type {
   WebGpuApp,
   WebGpuAppCadenceCounterReport,
   WebGpuAppCadenceReport,
+  WebGpuAppCadenceValueReport,
   WebGpuAppDiagnosticsOptions,
   WebGpuAppPickReport,
   WebGpuAppPickReportJsonValue,
@@ -45,6 +46,11 @@ import type {
   WebGpuAppSimulationWorkerSnapshotEvent,
   WebGpuAppWorkerRenderErrorDiagnostic,
 } from "./app.js";
+
+interface PendingSnapshotEventRecord {
+  readonly event: WebGpuAppSimulationWorkerSnapshotEvent;
+  readonly receivedAtMilliseconds: number;
+}
 
 export async function createWebGpuApp(
   options: CreateWebGpuAppOptions,
@@ -99,8 +105,7 @@ export async function createWebGpuApp(
   let unsubscribeSnapshot: (() => void) | null = null;
   let unsubscribeError: (() => void) | null = null;
   let renderQueue: Promise<void> = Promise.resolve();
-  let pendingSnapshotEvent: WebGpuAppSimulationWorkerSnapshotEvent | null =
-    null;
+  let pendingSnapshotEvent: PendingSnapshotEventRecord | null = null;
   let autoRenderScheduled = false;
   let autoRenderInFlight = false;
   let presentationMissedWhileInFlight = false;
@@ -118,22 +123,31 @@ export async function createWebGpuApp(
   const defaultGpuTimings =
     options.gpuTimings === true || options.timestampQuery === true;
 
-  const requestPresentationFrame =
-    typeof requestAnimationFrame === "function"
-      ? requestAnimationFrame
-      : (callback: FrameRequestCallback): number =>
-          setTimeout(() => callback(Date.now()), 0) as unknown as number;
+  const hasNativePresentationFrame =
+    typeof requestAnimationFrame === "function";
+  const requestPresentationFrame = hasNativePresentationFrame
+    ? requestAnimationFrame
+    : (callback: FrameRequestCallback): number =>
+        setTimeout(() => callback(Date.now()), 0) as unknown as number;
+  const cancelPresentationFrame =
+    hasNativePresentationFrame && typeof cancelAnimationFrame === "function"
+      ? cancelAnimationFrame
+      : (handle: number): void => {
+          clearTimeout(handle);
+        };
+  let autoRenderRequest: number | null = null;
 
   const renderPendingSnapshot = (): void => {
     if (!running || pendingSnapshotEvent === null || autoRenderInFlight) {
       return;
     }
 
-    const event = pendingSnapshotEvent;
+    const pending = pendingSnapshotEvent;
     pendingSnapshotEvent = null;
     autoRenderInFlight = true;
     renderQueue = renderQueue
       .then(async () => {
+        const event = pending.event;
         const hasSharedSnapshotPayload = hasWebGpuAppSharedSnapshotPayload(
           event.message,
         );
@@ -147,8 +161,14 @@ export async function createWebGpuApp(
 
         const snapshot = sharedSnapshot ?? event.snapshot;
         const snapshotChangeSet = readWebGpuAppSnapshotChangeSet(event.message);
+        const snapshotQueueAgeMilliseconds = Math.max(
+          0,
+          nowMilliseconds() - pending.receivedAtMilliseconds,
+        );
 
-        cadence.recordRenderStarted(snapshot.frame);
+        cadence.recordRenderStarted(snapshot.frame, {
+          snapshotQueueAgeMilliseconds,
+        });
         await app.renderSnapshot(snapshot, {
           frame: snapshot.frame,
           ...(snapshotChangeSet === null ? {} : { snapshotChangeSet }),
@@ -168,7 +188,7 @@ export async function createWebGpuApp(
       })
       .finally(() => {
         autoRenderInFlight = false;
-        if (pendingSnapshotEvent !== null) {
+        if (pendingSnapshotEvent !== null && !hasNativePresentationFrame) {
           if (presentationMissedWhileInFlight) {
             presentationMissedWhileInFlight = false;
             cadence.recordRenderCompletionDrain();
@@ -186,22 +206,37 @@ export async function createWebGpuApp(
     }
 
     autoRenderScheduled = true;
-    requestPresentationFrame(() => {
+    autoRenderRequest = requestPresentationFrame(() => {
       autoRenderScheduled = false;
+      autoRenderRequest = null;
       cadence.recordPresentationCallback(null);
 
-      if (!running || pendingSnapshotEvent === null) {
-        cadence.recordPresentationCallbackWithoutSnapshot();
+      if (!running) {
         return;
       }
 
       if (autoRenderInFlight) {
         presentationMissedWhileInFlight = true;
         cadence.recordPresentationCallbackWhileInFlight();
+        if (hasNativePresentationFrame) {
+          scheduleAutoRender();
+        }
         return;
       }
 
+      if (pendingSnapshotEvent === null) {
+        cadence.recordPresentationCallbackWithoutSnapshot();
+        if (hasNativePresentationFrame) {
+          scheduleAutoRender();
+        }
+        return;
+      }
+
+      presentationMissedWhileInFlight = false;
       renderPendingSnapshot();
+      if (hasNativePresentationFrame) {
+        scheduleAutoRender();
+      }
     });
   };
 
@@ -245,12 +280,16 @@ export async function createWebGpuApp(
       }
 
       running = true;
+      if (hasNativePresentationFrame) {
+        scheduleAutoRender();
+      }
       unsubscribeSnapshot = options.simulationWorker.onSnapshot((event) => {
+        const receivedAtMilliseconds = nowMilliseconds();
         cadence.recordSnapshotReceived(event.frame);
         if (pendingSnapshotEvent !== null) {
           cadence.recordPendingSnapshotReplaced();
         }
-        pendingSnapshotEvent = event;
+        pendingSnapshotEvent = { event, receivedAtMilliseconds };
         scheduleAutoRender();
       });
       unsubscribeError = options.simulationWorker.onError((event) => {
@@ -281,6 +320,10 @@ export async function createWebGpuApp(
 
       running = false;
       pendingSnapshotEvent = null;
+      if (autoRenderRequest !== null) {
+        cancelPresentationFrame(autoRenderRequest);
+        autoRenderRequest = null;
+      }
       autoRenderScheduled = false;
       presentationMissedWhileInFlight = false;
       unsubscribeSnapshot?.();
@@ -296,6 +339,8 @@ export async function createWebGpuApp(
         transport: snapshotTransport.diagnostics,
         cadence: cadence.report({
           pendingSnapshot: pendingSnapshotEvent !== null,
+          pendingSnapshotReceivedAtMilliseconds:
+            pendingSnapshotEvent?.receivedAtMilliseconds ?? null,
           scheduled: autoRenderScheduled,
           inFlight: autoRenderInFlight,
         }),
@@ -445,7 +490,10 @@ export async function createWebGpuApp(
 interface WebGpuAppCadenceDiagnostics {
   recordSnapshotReceived(frame: number | null): void;
   recordPresentationCallback(frame: number | null): void;
-  recordRenderStarted(frame: number | null): void;
+  recordRenderStarted(
+    frame: number | null,
+    details?: { readonly snapshotQueueAgeMilliseconds?: number | null },
+  ): void;
   recordRenderCompleted(frame: number | null): void;
   recordRenderFailed(): void;
   recordPendingSnapshotReplaced(): void;
@@ -454,6 +502,7 @@ interface WebGpuAppCadenceDiagnostics {
   recordPresentationCallbackWithoutSnapshot(): void;
   report(state: {
     readonly pendingSnapshot: boolean;
+    readonly pendingSnapshotReceivedAtMilliseconds: number | null;
     readonly scheduled: boolean;
     readonly inFlight: boolean;
   }): WebGpuAppCadenceReport;
@@ -467,6 +516,14 @@ interface WebGpuAppCadenceCounter {
   readonly intervals: number[];
 }
 
+interface WebGpuAppCadenceValueCounter {
+  total: number;
+  latest: number | null;
+  sum: number;
+  minimum: number;
+  maximum: number;
+}
+
 function createWebGpuAppCadenceDiagnostics(
   sampleWindow = 120,
 ): WebGpuAppCadenceDiagnostics {
@@ -475,11 +532,15 @@ function createWebGpuAppCadenceDiagnostics(
   const presentationCallbacks = createCadenceCounter();
   const rendersStarted = createCadenceCounter();
   const rendersCompleted = createCadenceCounter();
+  const snapshotQueueAgeMilliseconds = createCadenceValueCounter();
+  const renderedFrameGap = createCadenceValueCounter();
   let pendingSnapshotsReplaced = 0;
   let renderCompletionDrains = 0;
   let presentationCallbacksWhileInFlight = 0;
   let presentationCallbacksWithoutSnapshot = 0;
   let renderFailures = 0;
+  let skippedSnapshotFrames = 0;
+  let lastRenderedStartedFrame: number | null = null;
 
   return {
     recordSnapshotReceived(frame) {
@@ -492,7 +553,24 @@ function createWebGpuAppCadenceDiagnostics(
         frame,
       );
     },
-    recordRenderStarted(frame) {
+    recordRenderStarted(frame, details = {}) {
+      if (details.snapshotQueueAgeMilliseconds !== undefined) {
+        recordCadenceValue(
+          snapshotQueueAgeMilliseconds,
+          details.snapshotQueueAgeMilliseconds,
+        );
+      }
+
+      if (frame !== null && lastRenderedStartedFrame !== null) {
+        const gap = frame - lastRenderedStartedFrame;
+
+        recordCadenceValue(renderedFrameGap, gap);
+        if (gap > 1) {
+          skippedSnapshotFrames += gap - 1;
+        }
+      }
+
+      lastRenderedStartedFrame = frame;
       recordCadenceCounter(rendersStarted, normalizedSampleWindow, frame);
     },
     recordRenderCompleted(frame) {
@@ -525,6 +603,21 @@ function createWebGpuAppCadenceDiagnostics(
         presentationCallbacksWhileInFlight,
         presentationCallbacksWithoutSnapshot,
         renderFailures,
+        pacing: {
+          snapshotQueueAgeMilliseconds: cadenceValueReport(
+            snapshotQueueAgeMilliseconds,
+          ),
+          pendingSnapshotAgeMilliseconds:
+            state.pendingSnapshotReceivedAtMilliseconds === null
+              ? null
+              : Math.max(
+                  0,
+                  nowMilliseconds() -
+                    state.pendingSnapshotReceivedAtMilliseconds,
+                ),
+          renderedFrameGap: cadenceValueReport(renderedFrameGap),
+          skippedSnapshotFrames,
+        },
         pendingSnapshot: state.pendingSnapshot,
         scheduled: state.scheduled,
         inFlight: state.inFlight,
@@ -540,6 +633,53 @@ function createCadenceCounter(): WebGpuAppCadenceCounter {
     lastTimestampMilliseconds: null,
     latestIntervalMilliseconds: null,
     intervals: [],
+  };
+}
+
+function createCadenceValueCounter(): WebGpuAppCadenceValueCounter {
+  return {
+    total: 0,
+    latest: null,
+    sum: 0,
+    minimum: Number.POSITIVE_INFINITY,
+    maximum: 0,
+  };
+}
+
+function recordCadenceValue(
+  counter: WebGpuAppCadenceValueCounter,
+  value: number | null,
+): void {
+  if (value === null || !Number.isFinite(value)) {
+    return;
+  }
+
+  counter.total += 1;
+  counter.latest = value;
+  counter.sum += value;
+  counter.minimum = Math.min(counter.minimum, value);
+  counter.maximum = Math.max(counter.maximum, value);
+}
+
+function cadenceValueReport(
+  counter: WebGpuAppCadenceValueCounter,
+): WebGpuAppCadenceValueReport {
+  if (counter.total === 0) {
+    return {
+      count: 0,
+      latest: null,
+      average: null,
+      minimum: null,
+      maximum: null,
+    };
+  }
+
+  return {
+    count: counter.total,
+    latest: counter.latest,
+    average: counter.sum / counter.total,
+    minimum: counter.minimum,
+    maximum: counter.maximum,
   };
 }
 

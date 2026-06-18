@@ -310,6 +310,21 @@ export interface WebGpuAppCadenceCounterReport {
   readonly latestFrame: number | null;
 }
 
+export interface WebGpuAppCadenceValueReport {
+  readonly count: number;
+  readonly latest: number | null;
+  readonly average: number | null;
+  readonly minimum: number | null;
+  readonly maximum: number | null;
+}
+
+export interface WebGpuAppCadencePacingReport {
+  readonly snapshotQueueAgeMilliseconds: WebGpuAppCadenceValueReport;
+  readonly pendingSnapshotAgeMilliseconds: number | null;
+  readonly renderedFrameGap: WebGpuAppCadenceValueReport;
+  readonly skippedSnapshotFrames: number;
+}
+
 export interface WebGpuAppCadenceReport {
   readonly sampleWindow: number;
   readonly snapshotsReceived: WebGpuAppCadenceCounterReport;
@@ -321,6 +336,7 @@ export interface WebGpuAppCadenceReport {
   readonly presentationCallbacksWhileInFlight: number;
   readonly presentationCallbacksWithoutSnapshot: number;
   readonly renderFailures: number;
+  readonly pacing: WebGpuAppCadencePacingReport;
   readonly pendingSnapshot: boolean;
   readonly scheduled: boolean;
   readonly inFlight: boolean;

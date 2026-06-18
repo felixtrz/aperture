@@ -326,6 +326,16 @@ function createPlaceholderSnapshot(frame: number): RenderSnapshot {
   };
 }
 
+function runNextScheduledRaf(scheduledRafs: FrameRequestCallback[]): void {
+  const callback = scheduledRafs.shift();
+
+  if (callback === undefined) {
+    throw new Error("Expected a scheduled requestAnimationFrame callback.");
+  }
+
+  callback(performance.now());
+}
+
 async function waitForCondition(
   predicate: () => boolean,
   timeoutMs = 100,
@@ -388,15 +398,188 @@ describe("WebGPU app facade", () => {
     );
 
     app.start();
-    worker.emitSnapshot(simulation.stepAndExtract(1 / 60, 1, 7));
-    await waitForCondition(() => app.getDiagnostics().lastFrame !== null);
+    worker.emitSnapshot(simulation.stepAndExtract(1 / 60, 1, 6));
+    worker.emitSnapshot(simulation.stepAndExtract(1 / 60, 1 + 1 / 60, 7));
+    await waitForCondition(() => {
+      const diagnostics = app.getDiagnostics();
+
+      return (
+        diagnostics.lastFrame?.frame === 7 &&
+        diagnostics.cadence.rendersCompleted.total === 1
+      );
+    });
 
     const diagnostics = app.getDiagnostics();
 
     expect(diagnostics.lastError).toBeNull();
     expect(diagnostics.lastFrame?.ok).toBe(true);
     expect(diagnostics.lastFrame?.frame).toBe(7);
+    expect(app.getDiagnostics().lastFrame).toBe(diagnostics.lastFrame);
+    expect(diagnostics.cadence).toMatchObject({
+      sampleWindow: 120,
+      pendingSnapshotsReplaced: 1,
+      renderCompletionDrains: 0,
+      renderFailures: 0,
+      pendingSnapshot: false,
+      scheduled: false,
+      inFlight: false,
+      snapshotsReceived: {
+        total: 2,
+        intervalSamples: 1,
+        latestFrame: 7,
+      },
+      presentationCallbacks: {
+        total: 1,
+      },
+      rendersStarted: {
+        total: 1,
+        latestFrame: 7,
+      },
+      rendersCompleted: {
+        total: 1,
+        latestFrame: 7,
+      },
+      pacing: {
+        snapshotQueueAgeMilliseconds: {
+          count: 1,
+        },
+        renderedFrameGap: {
+          count: 0,
+        },
+        skippedSnapshotFrames: 0,
+      },
+    });
+    expect(
+      diagnostics.cadence.pacing.snapshotQueueAgeMilliseconds.latest,
+    ).toBeGreaterThanOrEqual(0);
     app.stop();
+  });
+
+  it("renders a pending worker snapshot on the next RAF after a presentation tick is missed in flight", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const simulation = createExtractionApp({
+      worldOptions: { entityCapacity: 8 },
+    });
+    const sourceAssets = createRenderAssetCollections({
+      registry: simulation.assets,
+    });
+    const mesh = sourceAssets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = sourceAssets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "White" }),
+    );
+    const worker = createManualSimulationWorker();
+    const rafScope = globalThis as typeof globalThis & {
+      requestAnimationFrame?: (callback: FrameRequestCallback) => number;
+    };
+    const previousRequestAnimationFrame = rafScope.requestAnimationFrame;
+    const scheduledRafs: FrameRequestCallback[] = [];
+
+    rafScope.requestAnimationFrame = (callback) => {
+      scheduledRafs.push(callback);
+      return scheduledRafs.length;
+    };
+
+    try {
+      const created = await createRendererOnlyWebGpuApp({
+        canvas,
+        environment,
+        simulationWorker: worker,
+        sourceAssets: simulation.assets,
+      });
+
+      expect(created.ok).toBe(true);
+
+      if (!created.ok) {
+        return;
+      }
+
+      const app = created.app;
+      const originalRenderSnapshot = app.renderSnapshot.bind(app);
+      let releaseFirstRender: (() => void) | null = null;
+      const firstRenderGate = new Promise<void>((resolve) => {
+        releaseFirstRender = resolve;
+      });
+      let resolveFirstRenderStarted: (() => void) | null = null;
+      const firstRenderStarted = new Promise<void>((resolve) => {
+        resolveFirstRenderStarted = resolve;
+      });
+      let renderCalls = 0;
+
+      app.renderSnapshot = async (snapshot, renderOptions = {}) => {
+        renderCalls += 1;
+        if (renderCalls === 1) {
+          resolveFirstRenderStarted?.();
+          await firstRenderGate;
+        }
+
+        return originalRenderSnapshot(snapshot, renderOptions);
+      };
+
+      simulation.spawn(
+        withTransform({ translation: [0, 0, 5] }),
+        withCamera({ priority: 0, layerMask: 1 }),
+      );
+      simulation.spawn(
+        withTransform(),
+        withMesh(mesh),
+        withMaterial(material),
+        withRenderLayer(1),
+        withVisibility(true),
+      );
+
+      const firstSnapshot = simulation.stepAndExtract(1 / 60, 1, 1);
+      const secondSnapshot = simulation.stepAndExtract(1 / 60, 1 + 1 / 60, 2);
+
+      app.start();
+      worker.emitSnapshot(firstSnapshot);
+      runNextScheduledRaf(scheduledRafs);
+      await firstRenderStarted;
+
+      worker.emitSnapshot(secondSnapshot);
+      expect(scheduledRafs).toHaveLength(1);
+      runNextScheduledRaf(scheduledRafs);
+
+      releaseFirstRender?.();
+      await waitForCondition(() => {
+        const diagnostics = app.getDiagnostics();
+
+        return (
+          diagnostics.lastFrame?.frame === 1 &&
+          diagnostics.cadence.rendersCompleted.total === 1
+        );
+      }, 500);
+      expect(scheduledRafs).toHaveLength(1);
+      runNextScheduledRaf(scheduledRafs);
+
+      await waitForCondition(() => {
+        const diagnostics = app.getDiagnostics();
+
+        return (
+          diagnostics.lastFrame?.frame === 2 &&
+          diagnostics.cadence.rendersCompleted.total === 2
+        );
+      }, 500);
+
+      const diagnostics = app.getDiagnostics();
+
+      expect(renderCalls).toBe(2);
+      expect(diagnostics.cadence.presentationCallbacks.total).toBe(3);
+      expect(diagnostics.cadence.presentationCallbacksWhileInFlight).toBe(1);
+      expect(diagnostics.cadence.renderCompletionDrains).toBe(0);
+      expect(diagnostics.cadence.rendersCompleted.latestFrame).toBe(2);
+      expect(diagnostics.cadence.pacing.renderedFrameGap.latest).toBe(1);
+      expect(diagnostics.cadence.pacing.skippedSnapshotFrames).toBe(0);
+      expect(diagnostics.cadence.pendingSnapshot).toBe(false);
+      expect(diagnostics.cadence.renderFailures).toBe(0);
+      app.stop();
+    } finally {
+      if (previousRequestAnimationFrame === undefined) {
+        delete rafScope.requestAnimationFrame;
+      } else {
+        rafScope.requestAnimationFrame = previousRequestAnimationFrame;
+      }
+    }
   });
 
   it("consumes opt-in SharedArrayBuffer snapshots through createWebGpuApp", async () => {
