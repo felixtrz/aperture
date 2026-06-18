@@ -17,6 +17,7 @@ const args = parseArgs(process.argv.slice(2));
 const durationMs = numberArg(args.duration, 8000);
 const warmupMs = numberArg(args.warmup, 2000);
 const driveSettleMs = numberArg(args["drive-settle"], 1000);
+const repeatCount = Math.max(1, Math.floor(numberArg(args.repeat, 1)));
 const outDir = path.resolve(String(args.out ?? DEFAULT_OUT_DIR));
 const captureTrace = args.trace !== false;
 const captureCpuProfile = args["cpu-profile"] !== false;
@@ -122,6 +123,7 @@ async function main() {
     durationMs,
     warmupMs,
     driveSettleMs,
+    repeatCount,
     captureTrace,
     captureCpuProfile,
     apertureGpuTimings,
@@ -147,13 +149,18 @@ async function main() {
         );
       }
 
-      for (const target of targets) {
-        const run = await runScenario(browser, target, scenario);
-        summary.runs.push(run.summary);
-        await writeFile(
-          path.join(outDir, `${target.id}-${scenario}-snapshot.json`),
-          JSON.stringify(run.snapshot, null, 2),
-        );
+      for (let trialIndex = 0; trialIndex < repeatCount; trialIndex += 1) {
+        for (const target of targets) {
+          const run = await runScenario(browser, target, scenario, trialIndex);
+          summary.runs.push(run.summary);
+          await writeFile(
+            path.join(
+              outDir,
+              `${runFileBase(target.id, scenario, trialIndex)}-snapshot.json`,
+            ),
+            JSON.stringify(run.snapshot, null, 2),
+          );
+        }
       }
     }
   } finally {
@@ -162,11 +169,15 @@ async function main() {
   }
 
   const summaryPath = path.join(outDir, "summary.json");
+  summary.framePacingComparisons = compareFramePacing(summary.runs);
+  summary.framePacingAggregateComparisons = aggregateFramePacingComparisons(
+    summary.framePacingComparisons,
+  );
   await writeFile(summaryPath, JSON.stringify(summary, null, 2));
   printSummary(summary, summaryPath);
 }
 
-async function runScenario(browser, target, scenario) {
+async function runScenario(browser, target, scenario, trialIndex) {
   const context = await browser.newContext({
     viewport: { width: 1280, height: 720 },
     deviceScaleFactor: 1,
@@ -247,7 +258,10 @@ async function runScenario(browser, target, scenario) {
   }
 
   await clearSamplers(page);
-  const profiler = await startProfiling(page, `${target.id}-${scenario}`);
+  const profiler = await startProfiling(
+    page,
+    runFileBase(target.id, scenario, trialIndex),
+  );
   await page.waitForTimeout(durationMs);
   const profileFiles = await profiler.stop();
   const snapshot = await collectSnapshot(page);
@@ -262,7 +276,7 @@ async function runScenario(browser, target, scenario) {
 
   return {
     snapshot,
-    summary: summarizeRun(target, scenario, snapshot, profileFiles),
+    summary: summarizeRun(target, scenario, trialIndex, snapshot, profileFiles),
   };
 }
 
@@ -752,7 +766,7 @@ function pixelLuminance(pixel) {
   return 0.2126 * pixel.r + 0.7152 * pixel.g + 0.0722 * pixel.b;
 }
 
-function summarizeRun(target, scenario, snapshot, profileFiles) {
+function summarizeRun(target, scenario, trialIndex, snapshot, profileFiles) {
   const rafSamples = snapshot.raf?.samples ?? [];
   const statusSamples = snapshot.raf?.statusSamples ?? [];
   const intervals = rafSamples
@@ -772,6 +786,7 @@ function summarizeRun(target, scenario, snapshot, profileFiles) {
     target: target.id,
     label: target.label,
     scenario,
+    trial: trialIndex + 1,
     url: snapshot.href,
     crossOriginIsolated: snapshot.crossOriginIsolated,
     memory: snapshot.memory,
@@ -788,6 +803,11 @@ function summarizeRun(target, scenario, snapshot, profileFiles) {
     visual: summarizeVisualDiagnostics(snapshot.visual),
     profileFiles,
   };
+}
+
+function runFileBase(targetId, scenario, trialIndex) {
+  const base = `${targetId}-${scenario}`;
+  return repeatCount === 1 ? base : `${base}-trial${trialIndex + 1}`;
 }
 
 function summarizeVisualDiagnostics(visual) {
@@ -1129,8 +1149,12 @@ function summarizeFramePacing(intervals) {
       expectedHz: null,
       absoluteDeviationMs: quantiles([]),
       adjacentDeltaMs: quantiles([]),
+      standardDeviationMs: null,
+      rootMeanSquareDeviationMs: null,
       withinHalfMsRatio: null,
       withinOneMsRatio: null,
+      adjacentJitterOverOneMsCount: 0,
+      adjacentJitterOverTwoMsCount: 0,
       longFrameCount: 0,
       longFrameRatio: null,
       veryLongFrameCount: 0,
@@ -1146,8 +1170,12 @@ function summarizeFramePacing(intervals) {
       expectedHz: null,
       absoluteDeviationMs: quantiles([]),
       adjacentDeltaMs: quantiles([]),
+      standardDeviationMs: null,
+      rootMeanSquareDeviationMs: null,
       withinHalfMsRatio: null,
       withinOneMsRatio: null,
+      adjacentJitterOverOneMsCount: 0,
+      adjacentJitterOverTwoMsCount: 0,
       longFrameCount: 0,
       longFrameRatio: null,
       veryLongFrameCount: 0,
@@ -1171,6 +1199,20 @@ function summarizeFramePacing(intervals) {
   const withinOneMsCount = absoluteDeviations.filter(
     (deviation) => deviation <= 1,
   ).length;
+  const squaredDeviationSum = absoluteDeviations.reduce(
+    (total, deviation) => total + deviation * deviation,
+    0,
+  );
+  const signedDeviationSum = cleanIntervals.reduce(
+    (total, interval) => total + (interval - expectedIntervalMs) ** 2,
+    0,
+  );
+  const adjacentJitterOverOneMsCount = adjacentDeltas.filter(
+    (delta) => delta >= 1,
+  ).length;
+  const adjacentJitterOverTwoMsCount = adjacentDeltas.filter(
+    (delta) => delta >= 2,
+  ).length;
   const longFrameThreshold = expectedIntervalMs * 1.5;
   const veryLongFrameThreshold = expectedIntervalMs * 2.5;
   const longFrameCount = cleanIntervals.filter(
@@ -1192,12 +1234,190 @@ function summarizeFramePacing(intervals) {
     expectedHz: 1000 / expectedIntervalMs,
     absoluteDeviationMs: quantiles(absoluteDeviations),
     adjacentDeltaMs: quantiles(adjacentDeltas),
+    standardDeviationMs: Math.sqrt(signedDeviationSum / cleanIntervals.length),
+    rootMeanSquareDeviationMs: Math.sqrt(
+      squaredDeviationSum / cleanIntervals.length,
+    ),
     withinHalfMsRatio: withinHalfMsCount / cleanIntervals.length,
     withinOneMsRatio: withinOneMsCount / cleanIntervals.length,
+    adjacentJitterOverOneMsCount,
+    adjacentJitterOverTwoMsCount,
     longFrameCount,
     longFrameRatio: longFrameCount / cleanIntervals.length,
     veryLongFrameCount,
     estimatedMissedVsyncs,
+  };
+}
+
+function compareFramePacing(runs) {
+  const comparisons = [];
+  const runsByTrial = new Map();
+
+  for (const run of runs) {
+    const trial = isFiniteNumber(run.trial) ? run.trial : 1;
+    const key = `${run.scenario}:${trial}`;
+    let trialRuns = runsByTrial.get(key);
+    if (trialRuns === undefined) {
+      trialRuns = {
+        scenario: run.scenario,
+        trial,
+        targets: new Map(),
+      };
+      runsByTrial.set(key, trialRuns);
+    }
+    trialRuns.targets.set(run.target, run);
+  }
+
+  for (const trialRuns of runsByTrial.values()) {
+    const aperture = trialRuns.targets.get("aperture");
+    const three = trialRuns.targets.get("three");
+    if (aperture === undefined || three === undefined) continue;
+
+    comparisons.push({
+      scenario: trialRuns.scenario,
+      trial: trialRuns.trial,
+      metrics: {
+        intervalP95Ms: compareLowerIsBetter(
+          aperture.raf?.intervalMs?.p95,
+          three.raf?.intervalMs?.p95,
+        ),
+        intervalP99Ms: compareLowerIsBetter(
+          aperture.raf?.intervalMs?.p99,
+          three.raf?.intervalMs?.p99,
+        ),
+        intervalMaxMs: compareLowerIsBetter(
+          aperture.raf?.intervalMs?.max,
+          three.raf?.intervalMs?.max,
+        ),
+        absoluteDeviationP95Ms: compareLowerIsBetter(
+          aperture.raf?.pacing?.absoluteDeviationMs?.p95,
+          three.raf?.pacing?.absoluteDeviationMs?.p95,
+        ),
+        adjacentDeltaP95Ms: compareLowerIsBetter(
+          aperture.raf?.pacing?.adjacentDeltaMs?.p95,
+          three.raf?.pacing?.adjacentDeltaMs?.p95,
+        ),
+        rootMeanSquareDeviationMs: compareLowerIsBetter(
+          aperture.raf?.pacing?.rootMeanSquareDeviationMs,
+          three.raf?.pacing?.rootMeanSquareDeviationMs,
+        ),
+        withinOneMsRatio: compareHigherIsBetter(
+          aperture.raf?.pacing?.withinOneMsRatio,
+          three.raf?.pacing?.withinOneMsRatio,
+        ),
+        adjacentJitterOverTwoMsCount: compareLowerIsBetter(
+          aperture.raf?.pacing?.adjacentJitterOverTwoMsCount,
+          three.raf?.pacing?.adjacentJitterOverTwoMsCount,
+        ),
+        longFrameCount: compareLowerIsBetter(
+          aperture.raf?.pacing?.longFrameCount,
+          three.raf?.pacing?.longFrameCount,
+        ),
+        callbackP95Ms: compareLowerIsBetter(
+          aperture.raf?.callbackMs?.p95,
+          three.raf?.callbackMs?.p95,
+        ),
+      },
+    });
+  }
+
+  return comparisons;
+}
+
+function aggregateFramePacingComparisons(comparisons) {
+  const aggregatesByScenario = new Map();
+
+  for (const comparison of comparisons) {
+    let aggregate = aggregatesByScenario.get(comparison.scenario);
+    if (aggregate === undefined) {
+      aggregate = {
+        scenario: comparison.scenario,
+        trialCount: 0,
+        metrics: new Map(),
+      };
+      aggregatesByScenario.set(comparison.scenario, aggregate);
+    }
+    aggregate.trialCount += 1;
+
+    for (const [name, metric] of Object.entries(comparison.metrics ?? {})) {
+      let metricAggregate = aggregate.metrics.get(name);
+      if (metricAggregate === undefined) {
+        metricAggregate = {
+          deltas: [],
+          apertureWins: 0,
+          threeWins: 0,
+          ties: 0,
+        };
+        aggregate.metrics.set(name, metricAggregate);
+      }
+      if (isFiniteNumber(metric?.delta)) {
+        metricAggregate.deltas.push(metric.delta);
+      }
+      if (metric?.winner === "aperture") {
+        metricAggregate.apertureWins += 1;
+      } else if (metric?.winner === "three") {
+        metricAggregate.threeWins += 1;
+      } else if (metric?.winner === "tie") {
+        metricAggregate.ties += 1;
+      }
+    }
+  }
+
+  return Array.from(aggregatesByScenario.values()).map((aggregate) => {
+    const metrics = {};
+    for (const [name, metric] of aggregate.metrics.entries()) {
+      metrics[name] = {
+        delta: quantiles(metric.deltas),
+        apertureWins: metric.apertureWins,
+        threeWins: metric.threeWins,
+        ties: metric.ties,
+        winner:
+          metric.apertureWins === metric.threeWins
+            ? "tie"
+            : metric.apertureWins > metric.threeWins
+              ? "aperture"
+              : "three",
+      };
+    }
+    return {
+      scenario: aggregate.scenario,
+      trialCount: aggregate.trialCount,
+      metrics,
+    };
+  });
+}
+
+function compareLowerIsBetter(apertureValue, threeValue) {
+  return compareMetric(apertureValue, threeValue, "lower");
+}
+
+function compareHigherIsBetter(apertureValue, threeValue) {
+  return compareMetric(apertureValue, threeValue, "higher");
+}
+
+function compareMetric(apertureValue, threeValue, betterDirection) {
+  const apertureNumber = isFiniteNumber(apertureValue) ? apertureValue : null;
+  const threeNumber = isFiniteNumber(threeValue) ? threeValue : null;
+  const delta =
+    apertureNumber === null || threeNumber === null
+      ? null
+      : apertureNumber - threeNumber;
+  let winner = null;
+  if (delta !== null) {
+    if (delta === 0) {
+      winner = "tie";
+    } else if (betterDirection === "lower") {
+      winner = delta < 0 ? "aperture" : "three";
+    } else {
+      winner = delta > 0 ? "aperture" : "three";
+    }
+  }
+
+  return {
+    aperture: apertureNumber,
+    three: threeNumber,
+    delta,
+    winner,
   };
 }
 
@@ -1365,9 +1585,9 @@ function printSummary(summary, summaryPath) {
       ? (run.memory.usedJSHeapSize / (1024 * 1024)).toFixed(1)
       : "n/a";
     const parts = [
-      `${run.label} ${run.scenario}`,
+      `${run.label} ${run.scenario} trial=${run.trial ?? 1}`,
       `raf p50=${formatMs(interval.p50)} p95=${formatMs(interval.p95)} p99=${formatMs(interval.p99)} max=${formatMs(interval.max)}`,
-      `pacing dev95=${formatMs(pacing?.absoluteDeviationMs?.p95)} within1=${formatRatio(pacing?.withinOneMsRatio)} missed=${formatNumber(pacing?.estimatedMissedVsyncs)}`,
+      `pacing dev95=${formatMs(pacing?.absoluteDeviationMs?.p95)} adj95=${formatMs(pacing?.adjacentDeltaMs?.p95)} rms=${formatMs(pacing?.rootMeanSquareDeviationMs)} within1=${formatRatio(pacing?.withinOneMsRatio)} jitter2=${formatNumber(pacing?.adjacentJitterOverTwoMsCount)} missed=${formatNumber(pacing?.estimatedMissedVsyncs)}`,
       `callback p95=${formatMs(callback.p95)} max=${formatMs(callback.max)}`,
       `draw/calls p50=${formatNumber(drawCalls?.p50)} max=${formatNumber(drawCalls?.max)}`,
     ];
@@ -1410,6 +1630,35 @@ function printSummary(summary, summaryPath) {
     }
     parts.push(`heap=${heapMb}MB`);
     console.log(parts.join(" | "));
+  }
+  for (const comparison of summary.framePacingComparisons ?? []) {
+    const metrics = comparison.metrics ?? {};
+    console.log(
+      [
+        `pacing comparison ${comparison.scenario} trial=${comparison.trial ?? 1}`,
+        `interval95 ${formatComparison(metrics.intervalP95Ms)}`,
+        `interval99 ${formatComparison(metrics.intervalP99Ms)}`,
+        `dev95 ${formatComparison(metrics.absoluteDeviationP95Ms)}`,
+        `adj95 ${formatComparison(metrics.adjacentDeltaP95Ms)}`,
+        `rms ${formatComparison(metrics.rootMeanSquareDeviationMs)}`,
+        `within1 ${formatComparison(metrics.withinOneMsRatio, { ratio: true })}`,
+        `callback95 ${formatComparison(metrics.callbackP95Ms)}`,
+      ].join(" | "),
+    );
+  }
+  for (const aggregate of summary.framePacingAggregateComparisons ?? []) {
+    const metrics = aggregate.metrics ?? {};
+    console.log(
+      [
+        `pacing aggregate ${aggregate.scenario} trials=${aggregate.trialCount}`,
+        `interval95 ${formatAggregateComparison(metrics.intervalP95Ms)}`,
+        `dev95 ${formatAggregateComparison(metrics.absoluteDeviationP95Ms)}`,
+        `adj95 ${formatAggregateComparison(metrics.adjacentDeltaP95Ms)}`,
+        `rms ${formatAggregateComparison(metrics.rootMeanSquareDeviationMs)}`,
+        `within1 ${formatAggregateComparison(metrics.withinOneMsRatio, { ratio: true })}`,
+        `callback95 ${formatAggregateComparison(metrics.callbackP95Ms)}`,
+      ].join(" | "),
+    );
   }
 }
 
@@ -1463,6 +1712,42 @@ function formatRatio(value) {
   return value === null || value === undefined
     ? "n/a"
     : `${(value * 100).toFixed(1)}%`;
+}
+
+function formatComparison(comparison, options = {}) {
+  if (comparison === undefined || comparison === null) return "n/a";
+  const formatValue = options.ratio === true ? formatRatio : formatMs;
+  const aperture = formatValue(comparison.aperture);
+  const three = formatValue(comparison.three);
+  const delta =
+    comparison.delta === null || comparison.delta === undefined
+      ? "n/a"
+      : options.ratio === true
+        ? `${(comparison.delta * 100).toFixed(1)}pp`
+        : formatSignedMs(comparison.delta);
+  return `A=${aperture} T=${three} d=${delta} win=${comparison.winner ?? "n/a"}`;
+}
+
+function formatAggregateComparison(comparison, options = {}) {
+  if (comparison === undefined || comparison === null) return "n/a";
+  const delta = comparison.delta ?? {};
+  const deltaText =
+    options.ratio === true
+      ? formatSignedPercentagePoint(delta.p50)
+      : formatSignedMs(delta.p50);
+  return `d50=${deltaText} wins A/T/tie=${comparison.apertureWins ?? 0}/${comparison.threeWins ?? 0}/${comparison.ties ?? 0} win=${comparison.winner ?? "n/a"}`;
+}
+
+function formatSignedPercentagePoint(value) {
+  if (value === null || value === undefined) return "n/a";
+  const prefix = value > 0 ? "+" : "";
+  return `${prefix}${(value * 100).toFixed(1)}pp`;
+}
+
+function formatSignedMs(value) {
+  if (value === null || value === undefined) return "n/a";
+  const prefix = value > 0 ? "+" : "";
+  return `${prefix}${value.toFixed(2)}ms`;
 }
 
 function topCountKey(counts) {
@@ -2653,6 +2938,11 @@ function collectApertureStartOptionQueryParams(parsedArgs) {
     "aperture-source-assets-rate",
     "sourceAssetsMessageRateHz",
   ]);
+  const workerFullSummaryIntervalMilliseconds = firstStringArg(parsedArgs, [
+    "aperture-full-summary-interval",
+    "aperture-worker-full-summary-interval",
+    "workerFullSummaryIntervalMilliseconds",
+  ]);
 
   if (sharedSnapshotMessageRateHz !== null) {
     options.sharedSnapshotMessageRateHz = sharedSnapshotMessageRateHz;
@@ -2662,6 +2952,10 @@ function collectApertureStartOptionQueryParams(parsedArgs) {
   }
   if (sourceAssetsMessageRateHz !== null) {
     options.sourceAssetsMessageRateHz = sourceAssetsMessageRateHz;
+  }
+  if (workerFullSummaryIntervalMilliseconds !== null) {
+    options.workerFullSummaryIntervalMilliseconds =
+      workerFullSummaryIntervalMilliseconds;
   }
 
   return options;
