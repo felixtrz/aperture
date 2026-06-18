@@ -138,8 +138,10 @@ describe("app particle emitter spawning", () => {
     expect(bounds?.worldSphere.center[0]).toBeCloseTo(1, 5);
     expect(bounds?.worldSphere.center[1]).toBeCloseTo(2.6, 5);
     expect(bounds?.worldSphere.center[2]).toBeCloseTo(3, 5);
-    expect(bounds?.worldSphere.radius).toBeGreaterThan(2);
-    expect(bounds?.worldSphere.radius).toBeLessThan(3);
+    expect(bounds?.worldSphere.radius).toBeCloseTo(
+      Math.hypot(0.2 + Math.SQRT1_2, 0.6 + Math.SQRT1_2, 0.2 + Math.SQRT1_2),
+      5,
+    );
     expect(app.context.particles.summary()).toMatchObject({
       maxActive: 1024,
       maxPerFrame: 64,

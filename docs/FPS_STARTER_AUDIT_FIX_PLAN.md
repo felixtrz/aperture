@@ -3,7 +3,7 @@
 **Created:** 2026-06-17
 **Updated:** 2026-06-17
 **Source:** Multi-agent audit of `b80e8a43b61e9b6a234e443c05ff8448c7bc471b` through `fps-starter-kit-port`.
-**Status:** Batch 1 and Batch 2 implemented; Batch 3 item 1 implemented; Batch 3 items 2-3 pending.
+**Status:** Batch 1 and Batch 2 implemented; Batch 3 items 1-2 implemented; Batch 3 item 3 pending.
 
 This plan converts the confirmed audit findings from the FPS starter-kit branch
 into reviewable remediation batches. The goal is to fix the steady-state
@@ -308,6 +308,8 @@ Use this batch only after Batch 1 and Batch 2 are green.
 
 ### 2. Continuous Particle Auto-Bounds Parity
 
+**Status:** implemented 2026-06-17 on `fix/audit-resource-lifecycle`.
+
 - File: `packages/render/src/rendering/extraction-particles.ts`
 - Problem:
   - Continuous auto-bounds are larger than the shader behavior, causing wasted
@@ -361,5 +363,4 @@ fixed and verified. Candidates include:
 
 ## Recommended Next Step
 
-Continue Batch 3 with continuous particle auto-bounds parity, then handle
-diagnostic double-counting/report inflation.
+Continue Batch 3 with diagnostic double-counting/report inflation.

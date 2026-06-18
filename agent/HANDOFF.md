@@ -1,3 +1,57 @@
+# Handoff - FPS Audit Batch 3 Particle Auto-Bounds Fix
+
+**Updated:** 2026-06-17 17:50 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 3 item 2 from
+  `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Aligned continuous particle auto-bounds with the current GPU compute shader:
+  `startSpeed.max` is the spawn spread radius, gravity and lifetime no longer
+  inflate spatial bounds for continuous emitters, and the shader's `0.18`
+  vertical drift term is included.
+- Tightened billboard expansion to the quad half-diagonal (`Math.SQRT1_2`)
+  instead of full particle size. This also tightens automatic burst bounds while
+  remaining conservative for the rendered billboard corners.
+- Updated extraction and app particle tests to assert the shader-matched
+  continuous and burst bound radii.
+- Marked Batch 3 item 2 implemented in the audit plan; Batch 3 item 3 remains
+  pending.
+
+## Validation
+
+- `pnpm exec vitest run test/rendering/particle-emitter-extraction.test.ts`
+- `pnpm exec vitest run test/rendering/particle-emitter-extraction.test.ts test/rendering/particle-burst-queue.test.ts test/app/particle-spawn.test.ts test/webgpu/particle-frame-resources.test.ts test/webgpu/particle-pipeline.test.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction-particles.ts test/rendering/particle-emitter-extraction.test.ts test/app/particle-spawn.test.ts`
+- `git diff --check`
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- No managed browser sessions were started for this slice.
+
+## Recommended Next Task
+
+Continue Batch 3 with diagnostic double-counting/report inflation in
+`packages/render/src/rendering/extraction-meshes.ts` and
+`packages/webgpu/src/app/particles.ts`.
+
+---
+
 # Handoff - FPS Audit Batch 3 Trail Bounds And Upload Fix
 
 **Updated:** 2026-06-17 17:43 PDT

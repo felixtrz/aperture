@@ -557,6 +557,8 @@ function matrixMaxScale(matrix: Mat4): number {
 
 const MIN_AUTO_PARTICLE_BOUNDS_RADIUS = 0.001;
 const LARGE_AUTO_PARTICLE_BOUNDS_RADIUS = 256;
+// Matches the continuous GPU particle drift term in PARTICLE_COMPUTE_WGSL.
+const CONTINUOUS_PARTICLE_DRIFT_AMPLITUDE = 0.18;
 
 function deriveContinuousParticleBoundsRadius(input: {
   readonly effect: ParticleEffectAsset;
@@ -564,17 +566,11 @@ function deriveContinuousParticleBoundsRadius(input: {
   readonly entity: RenderEntityRef;
   readonly effectKey: string;
 }): number {
-  const lifetime = particleLifetimeMax(input.effect);
-  const maxSpeed = Math.max(
-    Math.abs(input.effect.startSpeed.min),
-    Math.abs(input.effect.startSpeed.max),
-  );
-  const gravityTravel =
-    0.5 * Math.hypot(...input.effect.gravity) * lifetime * lifetime;
+  const spawnRadius = Math.max(0.01, input.effect.startSpeed.max);
   const radius =
     maxParticleBillboardRadius(input.effect) +
-    maxSpeed * lifetime +
-    gravityTravel;
+    spawnRadius +
+    CONTINUOUS_PARTICLE_DRIFT_AMPLITUDE;
 
   return checkedAutoParticleBoundsRadius(radius, input.diagnostics, {
     entity: input.entity,
@@ -637,7 +633,8 @@ function maxParticleBillboardRadius(effect: ParticleEffectAsset): number {
   return Math.max(
     MIN_AUTO_PARTICLE_BOUNDS_RADIUS,
     Math.max(0, effect.startSize.min, effect.startSize.max) *
-      Math.max(0, maxCurve),
+      Math.max(0, maxCurve) *
+      Math.SQRT1_2,
   );
 }
 
