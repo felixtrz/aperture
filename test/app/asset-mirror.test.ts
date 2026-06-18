@@ -4,7 +4,7 @@ import {
   createMeshHandle,
   createShaderHandle,
 } from "@aperture-engine/simulation";
-import { createWgslShaderAsset } from "@aperture-engine/render";
+import { createWgslShaderAsset, type MeshAsset } from "@aperture-engine/render";
 import {
   commitSerializedSourceAssets,
   mirrorSourceAssetRegistryFromMessage,
@@ -137,6 +137,102 @@ describe("generated app source asset mirroring", () => {
     ).toEqual([]);
   });
 
+  it("serializes same-layout mesh revisions as byte-range patches", () => {
+    const workerRegistry = new AssetRegistry();
+    const mainRegistry = new AssetRegistry();
+    const state = createSourceAssetSerializationState();
+    const mesh = createMeshHandle("trail");
+    const firstMesh = createTestMeshAsset(new Float32Array([0, 1, 2, 3]));
+
+    workerRegistry.register(mesh, { label: "Trail" });
+    workerRegistry.markReady(mesh, firstMesh);
+
+    const firstSerialized = serializeSourceAssetRegistry(workerRegistry, {
+      state,
+    });
+    expect(firstSerialized.entries[0]?.asset).toMatchObject({
+      kind: "mesh",
+      label: "Trail",
+    });
+    commitSerializedSourceAssets(state, firstSerialized);
+    expect(
+      mirrorSourceAssetRegistryFromMessage(mainRegistry, {
+        sourceAssets: firstSerialized,
+      }),
+    ).toEqual({ mirrored: 1, skipped: 0 });
+    const firstMirroredData = mainRegistry.get<"mesh", MeshAsset>(mesh)?.asset
+      ?.vertexStreams[0]?.data;
+
+    workerRegistry.markReady(
+      mesh,
+      createTestMeshAsset(new Float32Array([0, 1, 20, 30]), {
+        updateRanges: [{ byteOffset: 8, byteLength: 8 }],
+        vertexCount: 4,
+      }),
+    );
+
+    const secondSerialized = serializeSourceAssetRegistry(workerRegistry, {
+      state,
+    });
+    const patch = secondSerialized.entries[0]?.asset as
+      | {
+          readonly kind?: string;
+          readonly vertexStreams?: readonly {
+            readonly updates?: readonly {
+              readonly byteOffset: number;
+              readonly byteLength: number;
+              readonly data: Uint8Array;
+            }[];
+          }[];
+        }
+      | undefined;
+
+    expect(patch).toMatchObject({
+      kind: "aperture.meshAssetPatch.v1",
+    });
+    expect(patch?.vertexStreams?.[0]?.updates).toHaveLength(1);
+    expect(patch?.vertexStreams?.[0]?.updates?.[0]).toMatchObject({
+      byteOffset: 8,
+      byteLength: 8,
+    });
+    expect(patch?.vertexStreams?.[0]?.updates?.[0]?.data.byteLength).toBe(8);
+
+    commitSerializedSourceAssets(state, secondSerialized);
+    expect(
+      mirrorSourceAssetRegistryFromMessage(mainRegistry, {
+        sourceAssets: secondSerialized,
+      }),
+    ).toEqual({ mirrored: 1, skipped: 0 });
+
+    const mirrored = mainRegistry.get<"mesh", MeshAsset>(mesh);
+    const stream = mirrored?.asset?.vertexStreams[0];
+
+    expect(mirrored?.version).toBe(2);
+    expect(stream?.data).toBe(firstMirroredData);
+    expect(stream?.updateRanges).toEqual([{ byteOffset: 8, byteLength: 8 }]);
+    expect(Array.from((stream?.data as Float32Array) ?? [])).toEqual([
+      0, 1, 20, 30,
+    ]);
+    expect(mirrored?.asset?.submeshes[0]?.vertexCount).toBe(4);
+
+    workerRegistry.markReady(
+      mesh,
+      createTestMeshAsset(new Float32Array([0, 1, 20, 30, 40]), {
+        updateRanges: [{ byteOffset: 16, byteLength: 4 }],
+        vertexCount: 5,
+      }),
+    );
+
+    const layoutChange = serializeSourceAssetRegistry(workerRegistry, {
+      state,
+    });
+
+    expect(layoutChange.entries[0]?.asset).toMatchObject({
+      kind: "mesh",
+      label: "Trail",
+    });
+  });
+
   it("treats an absent or empty sourceAssets field as a no-op (AI-70 send-on-change contract)", () => {
     const registry = new AssetRegistry();
 
@@ -158,3 +254,47 @@ describe("generated app source asset mirroring", () => {
     ).toEqual({ mirrored: 0, skipped: 0 });
   });
 });
+
+function createTestMeshAsset(
+  data: Float32Array,
+  options: {
+    readonly updateRanges?: readonly {
+      readonly byteOffset: number;
+      readonly byteLength: number;
+    }[];
+    readonly vertexCount?: number;
+  } = {},
+): MeshAsset {
+  const vertexCount = options.vertexCount ?? data.length;
+
+  return {
+    kind: "mesh",
+    label: "Trail",
+    vertexStreams: [
+      {
+        id: "positions",
+        arrayStride: 4,
+        vertexCount: data.length,
+        attributes: [{ semantic: "POSITION", format: "float32x3", offset: 0 }],
+        data,
+        ...(options.updateRanges === undefined
+          ? {}
+          : { updateRanges: options.updateRanges }),
+      },
+    ],
+    submeshes: [
+      {
+        label: "default",
+        topology: "point-list",
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount,
+        indexStart: 0,
+        indexCount: vertexCount,
+      },
+    ],
+    materialSlots: [{ index: 0, label: "default" }],
+    localAabb: { min: [0, 0, 0], max: [1, 1, 1] },
+    localSphere: { center: [0, 0, 0], radius: 1 },
+  };
+}

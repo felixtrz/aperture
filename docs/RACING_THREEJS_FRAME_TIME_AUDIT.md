@@ -36,6 +36,20 @@ SAB source-asset sideband cadence defaulting to `15 Hz`.
 
 **Sources:**
 
+- Latest dynamic mesh source-asset patch trace:
+  `/tmp/racing-pacing-repeat3-mesh-patch-inplace-default/summary.json`
+  (`2026-06-18`, 3 paired idle+drive trials, 4 second samples, no
+  trace/profile). This keeps source-asset update freshness and the same measured
+  drive worker message rate (`~16 Hz`), but serializes same-layout dynamic mesh
+  revisions as byte-range patches after the first full mesh. Direct Aperture
+  medians versus the pre-patch explicit `15 Hz` source-asset run improved drive
+  render p95 by about `0.32 ms`, callback p95 by about `0.03 ms`, RMS by about
+  `0.09 ms`, pacing score by about `0.17 ms`, within-1ms ratio by about
+  `0.9 pp`, and heap by about `2.4 MB`. Aperture still lost drive callback p95
+  to three.js in all three trials (`d50 +0.57 ms`), so payload slimming is a
+  useful general fix but not the end state. Source0 remains the proof that the
+  remaining source-asset `postMessage` wake stream itself should become
+  pollable/coalesced.
 - Latest source-asset poll-pressure repeats:
   `/tmp/racing-pacing-repeat3-current-default/summary.json`,
   `/tmp/racing-pacing-repeat3-source15-current/summary.json`, and

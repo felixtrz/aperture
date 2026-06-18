@@ -184,6 +184,20 @@ Latest paired trace evidence after this slice:
     notification stream is costly but also delays high-frequency visual
     freshness. The durable fix is a pollable/coalesced dynamic-asset data plane,
     especially for dynamic mesh update ranges.
+- Dynamic mesh range-patch trace:
+  `/tmp/racing-pacing-repeat3-mesh-patch-inplace-default/summary.json`
+  - Same-layout mesh source-asset revisions now serialize byte-range patches
+    after the first full mesh and apply them in place on the browser mirror.
+  - This keeps update freshness and the same measured drive worker message rate
+    (`~16 Hz`), but reduces payload pressure. Direct Aperture medians versus the
+    pre-patch explicit `15 Hz` run improved drive render p95 by about `0.32 ms`,
+    callback p95 by about `0.03 ms`, RMS by about `0.09 ms`, pacing score by
+    about `0.17 ms`, within-1ms ratio by about `0.9 pp`, and heap by about
+    `2.4 MB`.
+  - The remaining loss is still callback/message pacing: Aperture lost drive
+    callback p95 in all three trials, and source0 remains better on several
+    jitter metrics. Next step is still a pollable/coalesced dynamic-asset
+    mailbox/data plane, not more payload trimming alone.
 
 Racing still authors dynamic drift-mark mesh assets while driving. Therefore,
 simply lowering the generic source-asset sideband can improve this benchmark,
