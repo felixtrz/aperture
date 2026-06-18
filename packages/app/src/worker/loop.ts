@@ -87,7 +87,13 @@ export async function runGeneratedWorkerLoop(options: {
     publishWorkerStartOptions(app.lowLevel.world, options.start);
     const entityTools = options.createEntityTools(app.lowLevel.world);
     const sourceAssetState = createSourceAssetSerializationState();
-    const workerSummaryCadence = createGeneratedWorkerSummaryCadence();
+    const workerFullSummaryIntervalMilliseconds =
+      readWorkerFullSummaryIntervalMilliseconds(options.start);
+    const workerSummaryCadence = createGeneratedWorkerSummaryCadence(
+      workerFullSummaryIntervalMilliseconds === undefined
+        ? {}
+        : { intervalMilliseconds: workerFullSummaryIntervalMilliseconds },
+    );
     let frame = 0;
     let running = true;
     let paused = false;
@@ -317,6 +323,24 @@ function nextGeneratedWorkerTickDeadline(
 
 function readWorkerTickRateHz(start: SimulationWorkerStartOptions): number {
   return normalizeGeneratedWorkerTickRateHz(start["workerTickRateHz"]);
+}
+
+function readWorkerFullSummaryIntervalMilliseconds(
+  start: SimulationWorkerStartOptions,
+): number | undefined {
+  const value = start["workerFullSummaryIntervalMilliseconds"];
+
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  }
+
+  return undefined;
 }
 
 function normalizeGeneratedWorkerTickRateHz(value: unknown): number {

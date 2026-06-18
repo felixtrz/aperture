@@ -26,6 +26,7 @@ const RESERVED_START_OPTION_KEYS = new Set([
   "stop",
   "transport",
   "type",
+  "workerFullSummaryIntervalMilliseconds",
 ]);
 
 export function createStartOptionsAccess(

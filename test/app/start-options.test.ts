@@ -15,6 +15,7 @@ describe("Aperture system start options", () => {
         sharedSnapshotMessageRateHz: "0",
         audioSnapshotMessageRateHz: "30",
         sourceAssetsMessageRateHz: "30",
+        workerFullSummaryIntervalMilliseconds: "1000",
         fixedStep: { timestep: 1 / 60 },
         entityCapacity: 1024,
         map: "abc123",

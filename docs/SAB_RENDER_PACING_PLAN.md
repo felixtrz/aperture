@@ -46,6 +46,12 @@ The first pacing slice is implemented and validated:
   in-flight guard.
 - A regression test proves the key contract: frame 2 can be visible in SAB while
   the worker has still posted only the frame-1 sideband message.
+- The trace harness now records first-class frame-pacing metrics and paired
+  Aperture-vs-three.js comparisons: RAF deviation p95, adjacent jitter p95, RMS
+  deviation, within-1ms ratio, estimated missed vsyncs, and callback p95.
+- `workerFullSummaryIntervalMilliseconds` is available as a worker start option
+  for trace experiments. It is reserved from app-system `startOptions`, so it
+  can tune diagnostic/summary cadence without leaking into gameplay settings.
 
 Latest paired trace evidence after this slice:
 
@@ -107,11 +113,32 @@ Latest paired trace evidence after this slice:
   - Frame pacing improved enough to tie/edge three.js in some metrics
     (`p95 18.35 ms` vs `18.40 ms`, pacing `dev95 1.75 ms` vs `1.80 ms`) but
     did not prove a consistent win (`p99/max` and `within1` still trailed).
+- Source-asset notification cadence traces:
+  `/tmp/racing-pacing-default-repeat/summary.json`,
+  `/tmp/racing-pacing-source-assets-15/summary.json`,
+  `/tmp/racing-pacing-source-assets-0-repeat/summary.json`, and
+  `/tmp/racing-pacing-poll-source-assets-summary1000-paired/summary.json`
+  - Default repeat drive still posted `448` dedicated `sourceAssetsChanged`
+    sideband messages and lost several pacing metrics to three.js.
+  - Lowering the dedicated source-asset sideband to `15 Hz` cut the sideband
+    count to `122` and improved drive pacing (`dev95 1.80 ms`, `within1 70.7%`
+    in the Aperture-only sample).
+  - Disabling the dedicated source-asset sideband removed that wake stream; the
+    dirty drift-mark meshes still arrived on full worker-summary messages. With
+    full summaries at `1000 ms`, the paired drive run beat three.js on p95
+    interval, deviation p95, adjacent jitter p95, and within-1ms ratio, but
+    still lost callback p95 and RMS deviation.
+  - Conclusion: per-frame source-asset notifications are not necessary for the
+    Racing render loop, but source-asset payloads are not yet truly pollable.
+    The next general fix is a shared/ring-buffered dynamic asset data plane,
+    especially for dynamic mesh update ranges, not a blanket suppression of
+    asset messages.
 
-Racing does author audio every frame. Therefore, simply lowering the generic
-sideband heartbeat below `60 Hz` would either not affect this benchmark or would
-risk stale audio state. The correct follow-up is to split render cadence from
-audio/diagnostic sideband cadence, not to add a Racing-specific heartbeat hack.
+Racing still authors dynamic drift-mark mesh assets while driving. Therefore,
+simply lowering the generic source-asset sideband can improve this benchmark,
+but it trades against dynamic-asset freshness and is not a complete poll model.
+The correct follow-up is to split dynamic asset payload delivery from
+main-thread wakeups, not to add a Racing-specific source-asset throttle.
 
 ## Confirmed Current Behavior
 
