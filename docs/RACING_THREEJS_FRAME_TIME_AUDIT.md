@@ -100,6 +100,15 @@ p95 17.50 ms / p99 17.70 ms / max 33.40 ms`. Aperture reported `25` idle
   `4.97 ms` p95, with `prepare` at `2.44 ms` p50 / `3.13 ms` p95.
   Headline RAF cadence in this short run was at least tied with three.js in
   both scenarios, but heap remained materially higher.
+- Post-cache repeat checks:
+  `/tmp/racing-paired-render-state-cache-repeat-a/summary.json` and
+  `/tmp/racing-paired-render-state-cache-repeat-b/summary.json` (`2026-06-18`,
+  4 second headed samples, no trace/profile, Aperture GPU timings off). Repeat A
+  still lost idle p95 (`18.66 ms` Aperture vs `18.40 ms` three.js) while winning
+  drive p95/p99/max. Repeat B lost idle p95 (`18.66 ms` vs `18.31 ms`) and was
+  essentially tied/slightly worse at drive p95 (`18.66 ms` vs `18.60 ms`) while
+  matching or slightly beating p99/max. This confirms the parser cache is useful
+  but not sufficient for the active "consistently outperforms" goal.
 - Latest headed three.js deep-GL diagnostic run:
   `/tmp/racing-three-deep-gl-headed/summary.json` (`2026-06-18`, command:
   `node scripts/racing-render-loop-trace.mjs --target=three ...
