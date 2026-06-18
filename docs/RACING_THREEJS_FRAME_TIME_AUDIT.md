@@ -22,7 +22,7 @@ transient worker-summary retention cleanup, CLI/runtime entity explain fallback,
 compact app-facing retained resource diagnostics, browser performance status
 cadence throttling, status-only render-change-set key compaction with a full
 tooling accessor, generated-worker tick-rate pacing, and time-based full worker
-summary cadence.
+summary cadence, plus bounds change-set key disambiguation.
 
 **Sources:**
 
@@ -36,6 +36,12 @@ summary cadence.
   `full: false` with `fullSummaryIntervalMilliseconds: 500`; idle snapshot
   cadence measured about `239 Hz`, and a drive quick probe measured snapshot
   cadence about `240 Hz` with render-complete cadence about `214 Hz`.
+- Latest live Racing bounds change-set probe on `http://127.0.0.1:5173/`
+  after bounds keys were disambiguated by `boundsId`: idle reported
+  `2 changed / 402 unchanged` bounds and drive reported
+  `300 changed / 414 unchanged` bounds, replacing the previous
+  `709 changed / 0 unchanged` false-churn pattern. This was not a full paired
+  three.js benchmark.
 - Rejected particle burst bind-group cache experiment saved at
   `/tmp/racing-frame-audit-particle-bindgroup-cache.json`
   (`2026-06-18T15:18:50.801Z`). It worsened the paired audit drive tail
@@ -196,6 +202,8 @@ hacks.
   harmful for every app, not just this scene.
 - Snapshot change-set comparison and report serialization now avoid broad JSON
   signature/deep-clone work on the hot path.
+- Bounds change-set keys now include `boundsId`, so multiple bounds records for
+  the same entity no longer overwrite each other before equality checks run.
 - Worker summary publishing no longer sends a full entity lookup every snapshot;
   the browser merges retained fields for tooling.
 - MSAA + bloom/tonemap now stays on the post FrameGraph path instead of falling
@@ -1231,8 +1239,10 @@ much narrower than the previous extraction-cache-only run: the latest aggregate
 final drive frame reported `6 / 42` changed mesh draws and `6 / 364` changed
 shadow caster draws. The earlier 7 second live drive distribution saw broad
 main-mesh change sets in only `5 / 219` samples, down from `98 / 222`; broad
-shadow-caster churn was `21 / 219` samples. Bounds are still broad at `386`
-changed and `326` unchanged in the latest final drive frame.
+shadow-caster churn was `21 / 219` samples. A later bounds-key fix removed a
+false duplicate-key churn path: the newest quick drive probe reported
+`300 changed` and `414 unchanged` bounds instead of the earlier all-changed
+`709 / 0` pattern.
 
 Remaining target: stable static scenery should stay unchanged under active
 vehicle motion unless shadow/light state genuinely invalidates it, and bounds
@@ -1241,9 +1251,10 @@ changed.
 
 ### 6. Bounds Churn Remains Visible
 
-Idle still reports `76` changed bounds per sampled frame. That is no longer the
-dominant frame-time issue, but it is a clean follow-up because static idle
-scenery should not need repeated bounds changes.
+Idle now reports only a small number of changed bounds in the latest quick
+probe (`2 changed / 402 unchanged`), but active-drive bounds churn remains
+large enough to keep as a follow-up. It is no longer the dominant frame-time
+issue, but static scenery should not need repeated bounds changes.
 
 ### 7. Shared Snapshot Transport Needs A Local/Dev Header Story
 
@@ -1362,6 +1373,9 @@ Updated status:
   tick-rate scheduler, defaulting to `240 Hz`.
 - Frame-count-based heavy worker summaries: fixed with elapsed-time cadence,
   defaulting to `500 ms`.
+- Bounds change-set duplicate-key churn: fixed by including `boundsId` in bounds
+  change-set keys; latest quick drive probe reports `300 / 414` changed versus
+  unchanged bounds instead of `709 / 0`.
 - Particle burst bind-group cache experiment: tested and backed out after the
   paired audit worsened drive p99/max.
 - High-DPR backing-store mismatch: still open.
@@ -1372,8 +1386,9 @@ Updated status:
 - Particle burst write count/slot fragmentation: still open, but no longer the
   top byte-pressure target.
 - Active-drive main-mesh/change-set broadness: still open but much narrower.
-  The latest aggregate final drive frame was `6 / 42` changed mesh draws;
-  bounds churn remains broad at `386` changed bounds.
+  The latest aggregate final drive frame was `6 / 42` changed mesh draws; after
+  the bounds-key fix, the latest quick drive probe still shows `300` changed
+  bounds.
 - Physics/writeback broadness from the first audit was not directly remeasured
   in the latest pass; do not treat the old `88` writes count as current without
   a fresh worker-side measurement.
@@ -1402,7 +1417,7 @@ Updated status:
    without a one-off static server.
 8. Fix DPR/backing-store sizing for `device-pixel-content-box` and DPR `2`.
 9. Reduce remaining bounds/change-set churn, especially active-drive bounds
-   churn and idle bounds churn.
+   churn.
 10. Reduce particle burst slot fragmentation/tiny initial-slot write count if
     it shows up in count-dominant probes after the larger cadence and transform
     work.

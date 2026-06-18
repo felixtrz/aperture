@@ -5,25 +5,38 @@ import type {
 
 export interface PacketSnapshot<TPacket> {
   readonly packets: readonly TPacket[];
-  readonly signature: (packet: TPacket) => string;
+  readonly signature?: (packet: TPacket) => string;
+  readonly equals?: (
+    previous: TPacket,
+    next: TPacket,
+    previousState: unknown,
+    nextState: unknown,
+  ) => boolean;
   readonly key: (packet: TPacket) => string;
+  readonly state?: unknown;
 }
 
 export interface PacketFamilyComparison {
   readonly counts: RenderSnapshotFamilyChangeCounts;
-  readonly keys: RenderSnapshotFamilyChangeKeys;
+  readonly keys?: RenderSnapshotFamilyChangeKeys;
+}
+
+export interface ComparePacketFamilyOptions {
+  readonly includeKeys?: boolean;
 }
 
 export function comparePacketFamily<TPacket>(
   previous: PacketSnapshot<TPacket>,
   next: PacketSnapshot<TPacket>,
+  options: ComparePacketFamilyOptions = {},
 ): PacketFamilyComparison {
-  const previousSignatures = new Map<string, string>();
-  const changedKeys: string[] = [];
-  const unchangedKeys: string[] = [];
+  const previousPackets = new Map<string, TPacket>();
+  const includeKeys = options.includeKeys !== false;
+  const changedKeys: string[] | null = includeKeys ? [] : null;
+  const unchangedKeys: string[] | null = includeKeys ? [] : null;
 
   for (const packet of previous.packets) {
-    previousSignatures.set(previous.key(packet), previous.signature(packet));
+    previousPackets.set(previous.key(packet), packet);
   }
 
   let changed = 0;
@@ -31,34 +44,55 @@ export function comparePacketFamily<TPacket>(
 
   for (const packet of next.packets) {
     const key = next.key(packet);
-    const previousSignature = previousSignatures.get(key);
+    const previousPacket = previousPackets.get(key);
 
     if (
-      previousSignature !== undefined &&
-      previousSignature === next.signature(packet)
+      previousPacket !== undefined &&
+      packetsEqual(previous, next, previousPacket, packet)
     ) {
       unchanged += 1;
-      unchangedKeys.push(key);
+      unchangedKeys?.push(key);
     } else {
       changed += 1;
-      changedKeys.push(key);
+      changedKeys?.push(key);
     }
 
-    previousSignatures.delete(key);
+    previousPackets.delete(key);
   }
 
   return {
     counts: {
       changed,
       unchanged,
-      removed: previousSignatures.size,
+      removed: previousPackets.size,
     },
-    keys: {
-      changed: changedKeys,
-      unchanged: unchangedKeys,
-      removed: [...previousSignatures.keys()],
-    },
+    ...(includeKeys
+      ? {
+          keys: {
+            changed: changedKeys ?? [],
+            unchanged: unchangedKeys ?? [],
+            removed: [...previousPackets.keys()],
+          },
+        }
+      : {}),
   };
+}
+
+function packetsEqual<TPacket>(
+  previous: PacketSnapshot<TPacket>,
+  next: PacketSnapshot<TPacket>,
+  previousPacket: TPacket,
+  nextPacket: TPacket,
+): boolean {
+  if (next.equals !== undefined) {
+    return next.equals(previousPacket, nextPacket, previous.state, next.state);
+  }
+
+  if (previous.signature === undefined || next.signature === undefined) {
+    return Object.is(previousPacket, nextPacket);
+  }
+
+  return previous.signature(previousPacket) === next.signature(nextPacket);
 }
 
 export function totalCounts(

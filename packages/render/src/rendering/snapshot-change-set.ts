@@ -2,6 +2,7 @@ import type { RenderSnapshot } from "./snapshot.js";
 import {
   comparePacketFamily,
   totalCounts,
+  type ComparePacketFamilyOptions,
 } from "./snapshot-change-set-compare.js";
 import {
   boundsPackets,
@@ -26,32 +27,61 @@ export type {
 export function createRenderSnapshotChangeSet(
   previous: RenderSnapshot | null | undefined,
   next: RenderSnapshot,
+  options: ComparePacketFamilyOptions = {},
 ): RenderSnapshotChangeSet {
-  const views = comparePacketFamily(viewPackets(previous), viewPackets(next));
+  const views = comparePacketFamily(
+    viewPackets(previous),
+    viewPackets(next),
+    options,
+  );
   const meshDraws = comparePacketFamily(
     meshDrawPackets(previous),
     meshDrawPackets(next),
+    options,
   );
   const shadowCasterDraws = comparePacketFamily(
     shadowCasterDrawPackets(previous),
     shadowCasterDrawPackets(next),
+    options,
   );
   const lights = comparePacketFamily(
     lightPackets(previous),
     lightPackets(next),
+    options,
   );
   const environments = comparePacketFamily(
     environmentPackets(previous),
     environmentPackets(next),
+    options,
   );
   const shadowRequests = comparePacketFamily(
     shadowRequestPackets(previous),
     shadowRequestPackets(next),
+    options,
   );
   const bounds = comparePacketFamily(
     boundsPackets(previous),
     boundsPackets(next),
+    options,
   );
+  const keys =
+    views.keys === undefined ||
+    meshDraws.keys === undefined ||
+    shadowCasterDraws.keys === undefined ||
+    lights.keys === undefined ||
+    environments.keys === undefined ||
+    shadowRequests.keys === undefined ||
+    bounds.keys === undefined
+      ? undefined
+      : {
+          views: views.keys,
+          meshDraws: meshDraws.keys,
+          shadowCasterDraws: shadowCasterDraws.keys,
+          lights: lights.keys,
+          environments: environments.keys,
+          shadowRequests: shadowRequests.keys,
+          bounds: bounds.keys,
+        };
 
   return {
     previousFrame: previous?.frame ?? null,
@@ -72,14 +102,6 @@ export function createRenderSnapshotChangeSet(
       shadowRequests.counts,
       bounds.counts,
     ]),
-    keys: {
-      views: views.keys,
-      meshDraws: meshDraws.keys,
-      shadowCasterDraws: shadowCasterDraws.keys,
-      lights: lights.keys,
-      environments: environments.keys,
-      shadowRequests: shadowRequests.keys,
-      bounds: bounds.keys,
-    },
+    ...(keys === undefined ? {} : { keys }),
   };
 }

@@ -8,11 +8,13 @@ import {
   createRenderSnapshotChangeSet,
   createRenderSortKey,
   createStableRenderId,
+  createRenderSnapshotUpdateSchedule,
   type BatchCompatibilityKey,
   type BoundsPacket,
   type EnvironmentPacket,
   type LightPacket,
   type MeshDrawPacket,
+  type RenderQueue,
   type RenderSnapshot,
   type ShadowRequestPacket,
   type ViewPacket,
@@ -116,12 +118,78 @@ describe("render snapshot change set", () => {
       removed: 0,
     });
   });
+
+  it("does not collapse duplicate entity bounds packets", () => {
+    const previous = snapshotWithBounds(11, [
+      boundsPacket({ boundsId: 0 }),
+      boundsPacket({ boundsId: 1 }),
+    ]);
+    const next = snapshotWithBounds(12, [
+      boundsPacket({ boundsId: 0 }),
+      boundsPacket({ boundsId: 1 }),
+    ]);
+    const changeSet = createRenderSnapshotChangeSet(previous, next);
+
+    expect(changeSet.bounds).toEqual({
+      changed: 0,
+      unchanged: 2,
+      removed: 0,
+    });
+    expect(changeSet.keys?.bounds).toEqual({
+      changed: [],
+      unchanged: ["bounds:20:0:0", "bounds:20:0:1"],
+      removed: [],
+    });
+  });
+
+  it("treats non-transparent depth-only mesh sort changes as unchanged resource identity", () => {
+    const previous = snapshot({ frame: 13, meshDepth: 4 });
+    const next = snapshot({ frame: 14, meshDepth: 9 });
+    const changeSet = createRenderSnapshotChangeSet(previous, next);
+    const schedule = createRenderSnapshotUpdateSchedule(changeSet);
+
+    expect(changeSet.meshDraws).toEqual({
+      changed: 0,
+      unchanged: 1,
+      removed: 0,
+    });
+    expect(changeSet.keys?.meshDraws).toEqual({
+      changed: [],
+      unchanged: [`mesh-draw:${meshDrawPacket().renderId}`],
+      removed: [],
+    });
+    expect(schedule.byFamily.meshDraws.action).toBe("reuse");
+  });
+
+  it("keeps transparent depth-only mesh sort changes invalidating order-dependent draws", () => {
+    const previous = snapshot({
+      frame: 15,
+      meshQueue: "transparent",
+      meshDepth: 4,
+    });
+    const next = snapshot({
+      frame: 16,
+      meshQueue: "transparent",
+      meshDepth: 9,
+    });
+    const changeSet = createRenderSnapshotChangeSet(previous, next);
+    const schedule = createRenderSnapshotUpdateSchedule(changeSet);
+
+    expect(changeSet.meshDraws).toEqual({
+      changed: 1,
+      unchanged: 0,
+      removed: 0,
+    });
+    expect(schedule.byFamily.meshDraws.action).toBe("refresh");
+  });
 });
 
 function snapshot(input: {
   readonly frame: number;
   readonly meshTransformSeed?: number;
   readonly lightTransformSeed?: number;
+  readonly meshQueue?: RenderQueue;
+  readonly meshDepth?: number;
   readonly environment?: boolean;
   readonly shadowRequest?: boolean;
   readonly bounds?: boolean;
@@ -135,7 +203,10 @@ function snapshot(input: {
   writeMatrix(viewMatrices, 16, 4);
   writeMatrix(viewMatrices, 32, 5);
 
-  const meshDraw = meshDrawPacket();
+  const meshDraw = meshDrawPacket({
+    queue: input.meshQueue,
+    depth: input.meshDepth,
+  });
   const light = lightPacket();
   const environments = input.environment === false ? [] : [environmentPacket()];
   const shadowRequests =
@@ -188,7 +259,12 @@ function viewPacket(): ViewPacket {
   };
 }
 
-function meshDrawPacket(): MeshDrawPacket {
+function meshDrawPacket(
+  input: {
+    readonly queue?: RenderQueue;
+    readonly depth?: number;
+  } = {},
+): MeshDrawPacket {
   const entity = { index: 20, generation: 0 };
   const stableId = createStableRenderId(entity);
 
@@ -205,7 +281,11 @@ function meshDrawPacket(): MeshDrawPacket {
     layerMask: 1,
     castsShadow: true,
     receivesShadow: true,
-    sortKey: createRenderSortKey({ stableId }),
+    sortKey: createRenderSortKey({
+      stableId,
+      ...(input.queue === undefined ? {} : { queue: input.queue }),
+      ...(input.depth === undefined ? {} : { depth: input.depth }),
+    }),
     batchKey: batchKey(),
   };
 }
@@ -247,11 +327,31 @@ function shadowRequestPacket(): ShadowRequestPacket {
   };
 }
 
-function boundsPacket(): BoundsPacket {
+function snapshotWithBounds(
+  frame: number,
+  bounds: readonly BoundsPacket[],
+): RenderSnapshot {
+  const base = snapshot({ frame });
+
+  return {
+    ...base,
+    bounds,
+    report: {
+      ...base.report,
+      bounds: bounds.length,
+    },
+  };
+}
+
+function boundsPacket(
+  input: {
+    readonly boundsId?: number;
+  } = {},
+): BoundsPacket {
   const entity = { index: 20, generation: 0 };
 
   return {
-    boundsId: 0,
+    boundsId: input.boundsId ?? 0,
     entity,
     localAabb: {
       min: [-0.5, -0.5, -0.5],

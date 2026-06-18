@@ -45,7 +45,7 @@ describe("render CLI tools", () => {
                   },
                   bounds: {
                     changed: [],
-                    unchanged: ["bounds:12:0"],
+                    unchanged: ["bounds:12:1:0"],
                   },
                 },
               },
@@ -103,7 +103,7 @@ describe("render CLI tools", () => {
         rendered: true,
         hasBounds: true,
         renderKey: "mesh-draw:12",
-        boundsKey: "bounds:12:0",
+        boundsKey: "bounds:12:1:0",
         frame: 7,
         counts: { meshDraws: 1 },
         diagnostics: [],
