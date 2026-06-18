@@ -61,7 +61,25 @@ change-set keys.
   It serves an instrumented copy of `references/Starter-Kit-Racing` without
   mutating the ignored reference checkout, injects three.js user-timing phase
   marks, exposes `__THREE_RACING_STATUS__`, wraps WebGL draw methods for actual
-  GL draw-call counts, and records Chrome trace/CPU-profile artifacts.
+  GL draw-call counts, rewrites the import map to use the pinned local
+  `references/three.js` checkout for three.js itself, and records Chrome
+  trace/CPU-profile artifacts.
+- Latest clean headed render-loop harness run:
+  `/tmp/racing-trace-headed-pair/summary.json` (`2026-06-18`, command:
+  `pnpm run trace:racing ... --headed`). This is the current valid cadence
+  comparison: Aperture idle RAF
+  `p50 16.66 ms / p95 18.33 ms / p99 18.58 ms`, three.js idle
+  `p50 16.70 ms / p95 18.00 ms / p99 18.59 ms`; Aperture drive
+  `p50 16.66 ms / p95 18.05 ms / p99 18.44 ms`, three.js drive
+  `p50 16.70 ms / p95 18.12 ms / p99 18.59 ms`. Aperture reported SAB
+  transport and `25` idle / `32-38` drive draw calls; the instrumented three.js
+  WebGL counter reported `93` idle / `89-98` drive GL draw calls.
+- Headless Chrome throttles the local three.js/WebGL reference RAF in this
+  environment even after local three.js serving and long post-ready warmup
+  (`~150-285 ms` RAF intervals while the instrumented three.js JS frame work is
+  still around `1-2 ms`). Therefore headless trace artifacts are useful for CPU
+  stacks, user-timing sections, draw-call shape, and browser WebGL warnings, but
+  **not** for headline three.js cadence comparisons.
 - Latest trace artifact run:
   `/tmp/racing-render-loop-trace-full/summary.json` (`2026-06-18T16:20Z`),
   with `*.trace.json` and `*.cpuprofile` files for Aperture/three.js idle and
@@ -71,8 +89,9 @@ change-set keys.
   `/tmp/racing-render-loop-trace-clean/summary.json` (`2026-06-18T16:23Z`).
   Aperture p50/p95 RAF stayed near 16.7/18.5 ms in both idle and drive, while
   the three.js reference presented at roughly 183/200 ms in the same headless
-  Chrome run. The three.js page emitted repeated WebGL `ReadPixels` GPU-stall
-  warnings; the trace places the measured stalls under WebGL
+  Chrome run. This is now classified as a headless WebGL RAF throttling artifact,
+  not a valid cadence win. The three.js page emitted repeated WebGL `ReadPixels`
+  GPU-stall warnings; the trace places the measured stalls under WebGL
   commit/presentation rather than app JS.
 - Rejected particle burst bind-group cache experiment saved at
   `/tmp/racing-frame-audit-particle-bindgroup-cache.json`
@@ -221,20 +240,28 @@ obvious engine quality gaps.
 The fixes pursued here are generalized engine fixes, not Racing-only benchmark
 hacks.
 
-The new render-loop harness changes the diagnosis picture: three.js
-`renderer.info.render.calls` reported only `1` in this reference because the
-post/effects path hides the real submission shape. The WebGL method wrapper
-measured `93` actual GL draw calls in idle and about `92-98` while driving
-(`68` `drawElements`, `19` `drawArrays`, and `6` instanced draws in the latest
-idle trace). Aperture's app-facing frame diagnostics reported `25` draw calls
-idle and about `32-38` while driving. That means the remaining comparison is not
-"basically the same draw calls"; Aperture is now issuing fewer draw submissions
-in this benchmark, while three.js is doing more WebGL pass/draw work and is
-showing browser GPU-stall warnings in headless Chrome. Source inspection did
-not find a per-frame app-level `readRenderTargetPixels` call in the reference
-loop; `LightProbeGrid.bake()` is documented and implemented as GPU-resident.
-The measured `GLES2::ReadPixels` events are browser/driver-side WebGL commit
-work in the headless trace.
+The new render-loop harness changes the diagnosis picture. In the valid headed
+comparison, both apps sustain normal 60 Hz RAF cadence, and Aperture is slightly
+better on the drive tail in the short sample (`p95 18.05 ms` / `p99 18.44 ms`
+versus three.js `p95 18.12 ms` / `p99 18.59 ms`). The difference is small enough
+that it should be treated as "roughly tied but no longer behind" until longer
+headed runs confirm it.
+
+The draw-shape comparison is clearer: three.js `renderer.info.render.calls`
+reported only `1` in this reference because the post/effects path hides the real
+submission shape. The injected WebGL method wrapper measured `93` actual GL draw
+calls in idle and `89-98` while driving (`68` `drawElements`, `19` `drawArrays`,
+and `6` instanced draws in the latest idle headed sample). Aperture's
+app-facing frame diagnostics reported `25` draw calls idle and `32-38` while
+driving. That means the remaining comparison is not "basically the same draw
+calls"; Aperture is now issuing fewer draw submissions in this benchmark.
+
+Headless Chrome still shows browser WebGL `ReadPixels` GPU-stall warnings and
+severe three.js RAF throttling in this environment. Source inspection did not
+find a per-frame app-level `readRenderTargetPixels` call in the reference loop;
+`LightProbeGrid.bake()` is a startup/probe bake path. Treat the measured
+`GLES2::ReadPixels` events as browser/driver-side WebGL commit or startup work,
+and do not use headless three.js RAF cadence as a benchmark verdict.
 
 - Opaque rigid mesh batching is now implemented as render-phase grouping plus a
   separate draw-order transform buffer. It is keyed by real render

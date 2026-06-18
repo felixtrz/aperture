@@ -393,6 +393,20 @@ async function collectSnapshot(page) {
             jsHeapSizeLimit: globalThis.performance.memory.jsHeapSizeLimit,
           }
         : null,
+      resources: Array.from(
+        globalThis.performance?.getEntriesByType?.("resource") ?? [],
+      )
+        .map((entry) => entry.name)
+        .filter(
+          (name) =>
+            name.includes("__three__") ||
+            name.includes("cdn.jsdelivr.net") ||
+            name.includes("esm.sh") ||
+            name.endsWith(".glb") ||
+            name.endsWith(".png") ||
+            name.endsWith(".ogg"),
+        )
+        .slice(0, 200),
       raf: globalThis.__RACING_TRACE_RAF__?.snapshot?.() ?? null,
       aperture: compactApertureStatus(
         globalThis.__APERTURE_EXAMPLE_STATUS__ ??
