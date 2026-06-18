@@ -226,6 +226,43 @@ importers:
         specifier: workspace:^
         version: link:../simulation
 
+  platformer:
+    dependencies:
+      '@aperture-engine/app':
+        specifier: workspace:*
+        version: link:../packages/app
+      '@aperture-engine/audio':
+        specifier: workspace:*
+        version: link:../packages/audio
+      '@aperture-engine/physics':
+        specifier: workspace:*
+        version: link:../packages/physics
+      '@aperture-engine/physics-rapier':
+        specifier: workspace:*
+        version: link:../packages/physics-rapier
+      '@aperture-engine/render':
+        specifier: workspace:*
+        version: link:../packages/render
+      '@aperture-engine/simulation':
+        specifier: workspace:*
+        version: link:../packages/simulation
+      '@aperture-engine/vite-plugin':
+        specifier: workspace:*
+        version: link:../packages/vite-plugin
+      '@aperture-engine/webgpu':
+        specifier: workspace:*
+        version: link:../packages/webgpu
+    devDependencies:
+      '@aperture-engine/cli':
+        specifier: workspace:*
+        version: link:../packages/cli
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^8.0.13
+        version: 8.0.16(@types/node@25.8.0)(jiti@2.7.0)(yaml@2.9.0)
+
   playground:
     dependencies:
       "@aperture-engine/app":
