@@ -154,7 +154,11 @@ export function getChildren(world: EcsWorld, entity: Entity): Entity[] {
 }
 
 /**
- * Depth-first destroy `entity` and its entire subtree (via the Children index).
+ * Depth-first destroy `entity` and its entire subtree. Children are discovered
+ * from the authoritative `Parent` relationship (unioned with the derived
+ * `Children` index), so subtrees parented *outside* setParent — e.g. glTF scene
+ * replay, which writes `Parent` directly and never populates `Children` — are
+ * still fully torn down instead of leaking detached roots at the world origin.
  * Detaches the subtree root from its parent's Children first so no live entity
  * is left pointing at a destroyed one. Returns the number of entities destroyed.
  */
@@ -166,13 +170,59 @@ export function despawnRecursive(world: EcsWorld, entity: Entity): number {
   if (parent !== null) {
     removeChildRef(parent, entity);
   }
-  return destroySubtree(world, entity);
+  return destroySubtree(world, entity, collectChildrenByParent(world));
 }
 
-function destroySubtree(world: EcsWorld, entity: Entity): number {
+/**
+ * Index every live entity by its authoritative `Parent`, so a recursive despawn
+ * can find children regardless of whether the `Children` index was maintained.
+ */
+function collectChildrenByParent(world: EcsWorld): Map<string, Entity[]> {
+  const byParent = new Map<string, Entity[]>();
+  const query = world.queryManager.registerQuery({ required: [Parent] });
+  for (const child of query.entities) {
+    const parent = readParentEntity(child);
+    if (parent === null) {
+      continue;
+    }
+    const key = refKey(parent);
+    const siblings = byParent.get(key);
+    if (siblings === undefined) {
+      byParent.set(key, [child]);
+    } else {
+      siblings.push(child);
+    }
+  }
+  return byParent;
+}
+
+function destroySubtree(
+  world: EcsWorld,
+  entity: Entity,
+  childrenByParent: Map<string, Entity[]>,
+): number {
+  if (!entity.active) {
+    return 0;
+  }
+
+  const seen = new Set<number>();
+  const children: Entity[] = [];
+  for (const child of getChildren(world, entity)) {
+    if (!seen.has(child.index)) {
+      seen.add(child.index);
+      children.push(child);
+    }
+  }
+  for (const child of childrenByParent.get(refKey(entity)) ?? []) {
+    if (child.active && !seen.has(child.index)) {
+      seen.add(child.index);
+      children.push(child);
+    }
+  }
+
   let destroyed = 0;
-  for (const childEntity of getChildren(world, entity)) {
-    destroyed += destroySubtree(world, childEntity);
+  for (const childEntity of children) {
+    destroyed += destroySubtree(world, childEntity, childrenByParent);
   }
   entity.destroy();
   return destroyed + 1;
