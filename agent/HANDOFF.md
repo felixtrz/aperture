@@ -1,3 +1,507 @@
+# Handoff - FPS Audit Batch 3 Diagnostics And Particle Report Fix
+
+**Updated:** 2026-06-17 17:55 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 3 item 3 from
+  `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Split shadow-caster extraction diagnostics into a pass-local array and merged
+  only unique diagnostics into the snapshot report, preventing duplicate
+  primary mesh/material authoring diagnostics while preserving shadow-only
+  diagnostics.
+- Changed particle frame reporting to snapshot texture/sampler reuse counters
+  at entry and report only the per-call delta. The shared app-wide reuse object
+  still accumulates normally.
+- Added focused coverage for duplicate mesh diagnostics under a shadow pass and
+  for particle reports with pre-seeded app-wide reuse counters.
+- Marked all planned confirmed-finding batches implemented in the audit plan.
+
+## Validation
+
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/webgpu/particle-frame-resources.test.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/webgpu/particle-frame-resources.test.ts test/rendering/particle-emitter-extraction.test.ts test/app/particle-spawn.test.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction.ts packages/webgpu/src/app/particles.ts test/rendering/extraction.test.ts test/webgpu/particle-frame-resources.test.ts`
+- `git diff --check`
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- No managed browser sessions were started for this slice.
+
+## Recommended Next Task
+
+Review the accumulated branch diff as a whole, then decide whether to continue
+with deferred low-severity cleanup or prepare this branch for review.
+
+---
+
+# Handoff - FPS Audit Batch 3 Particle Auto-Bounds Fix
+
+**Updated:** 2026-06-17 17:50 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 3 item 2 from
+  `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Aligned continuous particle auto-bounds with the current GPU compute shader:
+  `startSpeed.max` is the spawn spread radius, gravity and lifetime no longer
+  inflate spatial bounds for continuous emitters, and the shader's `0.18`
+  vertical drift term is included.
+- Tightened billboard expansion to the quad half-diagonal (`Math.SQRT1_2`)
+  instead of full particle size. This also tightens automatic burst bounds while
+  remaining conservative for the rendered billboard corners.
+- Updated extraction and app particle tests to assert the shader-matched
+  continuous and burst bound radii.
+- Marked Batch 3 item 2 implemented in the audit plan; Batch 3 item 3 remains
+  pending.
+
+## Validation
+
+- `pnpm exec vitest run test/rendering/particle-emitter-extraction.test.ts`
+- `pnpm exec vitest run test/rendering/particle-emitter-extraction.test.ts test/rendering/particle-burst-queue.test.ts test/app/particle-spawn.test.ts test/webgpu/particle-frame-resources.test.ts test/webgpu/particle-pipeline.test.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction-particles.ts test/rendering/particle-emitter-extraction.test.ts test/app/particle-spawn.test.ts`
+- `git diff --check`
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- No managed browser sessions were started for this slice.
+
+## Recommended Next Task
+
+Continue Batch 3 with diagnostic double-counting/report inflation in
+`packages/render/src/rendering/extraction-meshes.ts` and
+`packages/webgpu/src/app/particles.ts`.
+
+---
+
+# Handoff - FPS Audit Batch 3 Trail Bounds And Upload Fix
+
+**Updated:** 2026-06-17 17:43 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 3 item 1 from
+  `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Changed ground ribbon trails to publish only active vertex/index ranges
+  instead of the full max-capacity buffers on every flush.
+- Replaced monotonic trail bounds with bounds recomputed from the active
+  ring-buffer window, so wrapped trails can shrink after old samples are
+  overwritten.
+- Preserved render validity for empty trail meshes by publishing one unused
+  zeroed vertex with a zero-count submesh and no index buffer; this avoids
+  zero-byte WebGPU buffer creation while still drawing nothing.
+- Added focused trail tests for empty mesh upload shape, active upload sizing,
+  wrapped bounds shrinkage, and large-trail `uint32` index selection.
+- Marked Batch 3 item 1 implemented in the audit plan; Batch 3 items 2 and 3
+  remain pending.
+
+## Validation
+
+- `pnpm exec vitest run test/app/trails.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm exec prettier --check packages/app/src/systems/trails.ts test/app/trails.test.ts`
+- `git diff --check`
+- Managed Racing smoke through Aperture CLI:
+  - fresh `pnpm --dir racing exec aperture dev up --headless --host 127.0.0.1 --port 5173 --strict-port`
+  - `browser_wait_for_webgpu` succeeded
+  - initial render diagnostics: `frameOk: true`, `drawPackages: 36`, `drawCalls: 46`, `diagnostics: 0`
+  - after holding `KeyW` + `KeyD` for 3 seconds: vehicle `hadInput: true`, frame report included `mesh:racing.driftMarks.bl` and `mesh:racing.driftMarks.br`, `meshDraws: 41`, `drawCalls: 53`, `diagnostics: 0`
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- The managed Racing dev session was stopped after validation.
+
+## Recommended Next Task
+
+Continue Batch 3 with continuous particle auto-bounds parity in
+`packages/render/src/rendering/extraction-particles.ts`.
+
+---
+
+# Handoff - FPS Audit Batch 2 Bloom And Visual Baselines
+
+**Updated:** 2026-06-17 17:29 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 2 items 0 and 1 from
+  `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Matched the three.js `UnrealBloomPass`/`BloomNode` blur sizing model by
+  supplying a per-mip `invSize` uniform based on the blur pass output target,
+  not the sampled input texture.
+- Cached one tiny bloom blur parameter buffer per mip level inside the bloom
+  effect, updating it only when that mip's dimensions change instead of baking
+  dimensions into pipeline keys.
+- Added diagnostics for devices that cannot create or upload bloom blur
+  parameter buffers.
+- Added focused post-pass coverage for the per-mip blur texel sizes and for the
+  intentional BloomNode-style default threshold of `0`.
+- Strengthened the standard shader test covering cascaded shadows plus IBL so
+  ambient/diffuse/specular indirect terms are not shadow-attenuated.
+- Marked Batch 2 complete in the audit plan; Batch 3 remains pending.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts`
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `pnpm exec prettier --check packages/webgpu/src/post/post-pass.ts packages/webgpu/src/post/post-bloom.ts test/webgpu/post-pass.test.ts test/webgpu/standard-shader.test.ts`
+- `git diff --check`
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- No managed browser sessions were started for this slice.
+
+## Recommended Next Task
+
+Continue Batch 3 with trail bounds shrinkage and active-range upload behavior.
+Validate Racing after that slice because the trail path is visible there.
+
+---
+
+# Handoff - FPS Audit Batch 2 Sprite Depth Fix
+
+**Updated:** 2026-06-17 17:22 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 2 item 3 from `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Routed the sprite-only WebGPU frame path through
+  `prepareSpriteFrameResourcesForSnapshot`, so mesh-less sprite frames use the
+  same per-depth-mode pipeline selection as mixed render paths.
+- Added `depthMode` to legacy `SpriteDrawPacket` and extraction output, then
+  preserved that field when packing legacy sprite draw data.
+- Exposed sprite frame resource helpers through the WebGPU test-support barrel.
+- Added a focused mesh-less legacy sprite resource test proving default and
+  `depthMode: "disabled"` sprites create/select distinct depth-tested and
+  depth-disabled pipelines.
+- Marked Batch 2 item 3 implemented in the audit plan; Batch 2 items 0 and 1
+  remain pending.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/sprite-frame-resources.test.ts`
+- `pnpm exec vitest run test/webgpu/sprite-pipeline.test.ts test/rendering/extraction.test.ts`
+- `pnpm exec vitest run test/webgpu/sprite-frame-resources.test.ts test/webgpu/sprite-pipeline.test.ts test/rendering/extraction.test.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm exec prettier --check packages/render/src/rendering/snapshot-packet-types.ts packages/render/src/rendering/extraction-sprites.ts packages/webgpu/src/app/sprites.ts packages/webgpu/src/app/sprite-frame.ts packages/webgpu/src/test-support.ts test/webgpu/sprite-frame-resources.test.ts`
+- `git diff --check`
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- No managed browser sessions were started for this slice.
+
+## Recommended Next Task
+
+Continue Batch 2 with visual baseline protection or bloom mip texel sizing.
+Keep the bloom radius fix separate from intentional threshold/golden baseline
+changes.
+
+---
+
+# Handoff - FPS Audit Batch 2 Vite Worker HMR Fix
+
+**Updated:** 2026-06-17 17:14 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 2 item 2 from `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Added system graph HMR handling in the Vite plugin: config/system add,
+  change, and unlink events now rewrite `.aperture/generated/aperture-worker-entry.js`
+  and invalidate Aperture virtual modules.
+- Exposed internal system-glob parse/match helpers and the generated worker
+  entry writer/path for the HMR path.
+- Added focused Vite plugin tests proving worker entry contents update after
+  adding and removing `*.system.ts` files, and unrelated file changes are
+  ignored.
+- Marked Batch 2 item 2 implemented in the audit plan; Batch 2 items 0, 1, and
+  3 remain pending.
+
+## Validation
+
+- `pnpm exec vitest run test/vite-plugin/system-graph-hmr.test.ts`
+- `pnpm --filter @aperture-engine/vite-plugin run typecheck`
+- `pnpm --filter @aperture-engine/vite-plugin run build`
+- `pnpm exec prettier --check packages/vite-plugin/src/index.ts packages/vite-plugin/src/system-discovery.ts packages/vite-plugin/src/system-graph-hmr.ts packages/vite-plugin/src/virtual-modules.ts test/vite-plugin/system-graph-hmr.test.ts`
+- `git diff --check`
+- `pnpm run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- No managed browser sessions were started for this slice.
+
+## Recommended Next Task
+
+Continue Batch 2 with sprite-only depth mode or bloom mip texel sizing. Keep
+visual baseline protection explicit when opening bloom or lighting files.
+
+---
+
+# Handoff - FPS Audit Batch 2 Render Interpolation Fixes
+
+**Updated:** 2026-06-17 17:09 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 2 item 6 from `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Replaced per-packet `new Set()` cycle-guard allocation in render snapshot
+  interpolation with reusable affected/matrix visiting sets scoped to one
+  interpolation pass.
+- Added direct characterization tests for the zero-interpolated-entity fast
+  path, parent-chain interpolation, cyclic parent guards, and camera
+  view/view-projection matrix rewriting.
+- Kept existing fixed-step integration coverage green for mesh, camera, bounds,
+  and shadow-caster interpolation.
+- Marked Batch 2 item 6 implemented in the audit plan; Batch 2 items 0-3
+  remain pending.
+
+## Validation
+
+- `pnpm exec vitest run test/app/render-interpolation.test.ts test/app/fixed-step-app.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm exec prettier --check packages/app/src/render-interpolation.ts test/app/render-interpolation.test.ts`
+- `git diff --check`
+- `pnpm run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- Managed Racing through Aperture CLI:
+  - `pnpm --dir racing exec aperture dev up --headless --host 127.0.0.1 --port 5173 --strict-port`
+  - `browser_wait_for_webgpu`: `webgpuOk:true`, no `lastError`/`lastFailure`
+    in the managed status.
+  - Static frame report: `frameOk:true`, diagnostics `0`, `meshDraws:36`,
+    `shadowCasterDraws:364`, swapchain `drawCalls:33`.
+  - Moving smoke after `drive` input: frame report `frameOk:true`,
+    diagnostics `0`, `meshDraws:37`, `shadowCasterDraws:364`,
+    `particleEmitters:306`, `drawCalls:350`.
+  - Input was reset and the managed Racing session was stopped with
+    `pnpm --dir racing exec aperture dev down`.
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- No managed browser sessions are expected to remain from this slice.
+
+## Recommended Next Task
+
+Continue Batch 2 with Vite worker-entry HMR staleness or sprite-only depth mode.
+Keep bloom/golden baseline work separate so the intentional visual changes do
+not get mixed with infrastructure fixes.
+
+---
+
+# Handoff - FPS Audit Batch 2 Particle Runtime Fixes
+
+**Updated:** 2026-06-17 17:01 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented the Batch 2 particle items from
+  `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Cached worker asset-summary particle runtime feature analysis by
+  `SystemParticleEffectAssetHandle`, invalidating only when the descriptor
+  object changes.
+- Updated particle burst queue TTL to scale by `request.timeScale`, so
+  slow-motion bursts remain active longer and faster-time bursts expire sooner.
+- Added focused tests covering runtime-feature cache reuse/invalidation and
+  slow/fast burst TTL behavior.
+- Marked Batch 2 items 4 and 5 implemented in the audit plan; the rest of
+  Batch 2 remains pending.
+
+## Validation
+
+- `pnpm exec vitest run test/rendering/particle-burst-queue.test.ts test/app/worker-asset-summary.test.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm exec prettier --check packages/app/src/worker/assets.ts packages/render/src/rendering/particle-burst-queue.ts test/rendering/particle-burst-queue.test.ts test/app/worker-asset-summary.test.ts`
+- `git diff --check`
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- No managed browser sessions are expected to remain from this slice.
+
+## Recommended Next Task
+
+Continue Batch 2 with the render-interpolation characterization/allocation fix
+or the Vite worker-entry HMR staleness fix. Keep the remaining visual work
+separate from the already-protected Batch 2 particle changes.
+
+---
+
+# Handoff - FPS Audit Batch 1 Resource Lifecycle Fixes
+
+**Updated:** 2026-06-17 17:02 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 1 from `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Cached directional baked caster matrix buffers and baked caster bind groups
+  across frames, with buffer destruction and bind-group invalidation when baked
+  matrix byte size changes.
+- Added a size guard for cached receiver shadow matrix buffers. Count/byte-size
+  changes now destroy and recreate the buffer instead of writing new data into
+  the wrong-sized allocation, and the stale caster bind group is invalidated.
+- Destroyed particle emitter GPU state buffers when inactive particle states are
+  evicted from the WebGPU app resource cache.
+- Fixed partial audio lowpass patches so q-only automation preserves the
+  authored frequency and frequency-only automation preserves the authored q.
+- Fixed Aperture CLI `input_reset` to release left, middle, and right synthetic
+  mouse buttons before forwarding the runtime reset.
+- Marked Batch 1 implemented in
+  `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`; Batches 2 and 3 remain pending.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/shadow-matrix-buffer-resource.test.ts test/webgpu/particle-frame-resources.test.ts test/app/audio-access.test.ts test/cli/input-tools.test.ts`
+  - 5 files, 21 tests passed.
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- Managed FPS at `http://127.0.0.1:5173/`:
+  - `browser_wait_for_webgpu`: `webgpuOk:true`, no `lastError` or
+    `lastFailure`;
+  - canvas status: swapchain render target `ok:true`, draw calls present,
+    render diagnostics `[]`;
+  - render diagnostics: frame `ok:true`, diagnostics `0`, auto-shadow
+    submission `submitted`, shadow diagnostics `[]`;
+  - `input_reset` returned primary/secondary/middle pointer state unpressed.
+- Managed Racing at `http://127.0.0.1:5173/`:
+  - `browser_wait_for_webgpu`: `webgpuOk:true`, no `lastError` or
+    `lastFailure`;
+  - canvas status: swapchain render target `ok:true`, `drawCalls:33`, render
+    diagnostics `[]`;
+  - render diagnostics: frame `ok:true`, diagnostics `0`, `meshDraws:36`,
+    `shadowCasterDraws:364`, auto-shadow submission `submitted`, shadow
+    diagnostics `[]`;
+  - serial `input_reset` cleared `drive` to `[0,0]` and all pointer buttons to
+    unpressed.
+- `pnpm exec prettier --check` on touched files
+- `git diff --check`
+
+## Known Issues
+
+- `pnpm run typecheck:test` still fails on unrelated existing test typing drift
+  outside this Batch 1 slice, including stale generated-worker snapshot helper
+  types, partial `AperturePage` test fakes, missing `occlusionQuery` in a
+  packed snapshot test fixture, and missing `shadowCasterDraws` in renderer
+  assembly test inspection counts.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- Managed FPS and Racing sessions were stopped after validation.
+
+## Recommended Next Task
+
+Continue `docs/FPS_STARTER_AUDIT_FIX_PLAN.md` with Batch 2: protect intentional
+visual baselines, fix bloom mip texel sizing, Vite worker HMR staleness,
+sprite-only depth mode, particle burst TTL time scale, particle runtime feature
+analysis caching, and render-interpolation characterization/allocation cleanup.
+
+---
+
 # Handoff - Racing Shadow Interpolation Lag Fix
 
 **Updated:** 2026-06-17 15:46 PDT

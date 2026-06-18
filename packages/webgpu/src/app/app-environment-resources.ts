@@ -62,6 +62,10 @@ import type { ShadowCasterMatrixBindGroupResource } from "../shadows/shadow-cast
 import type { ShadowDepthTextureResourceCache } from "../shadows/shadow-depth-texture-resource.js";
 import type { ShadowMatrixBufferResource } from "../shadows/shadow-matrix-buffer-resource.js";
 import type { StandardFrameIblResources } from "../materials/standard/standard-frame-resources.js";
+import type {
+  BakedShadowCasterMatrixBindGroupResource,
+  BakedShadowCasterMatrixBufferResource,
+} from "../shadows/render-shadow-frame.js";
 
 export interface WebGpuEnvironmentResourceCache {
   readonly diffuseTextures: Map<string, TextureGpuResource>;
@@ -83,6 +87,14 @@ export interface WebGpuEnvironmentResourceCache {
   >;
   readonly shadowDepthTextures: ShadowDepthTextureResourceCache;
   readonly shadowMatrixBuffers: Map<string, ShadowMatrixBufferResource>;
+  readonly bakedShadowCasterMatrixBuffers: Map<
+    string,
+    BakedShadowCasterMatrixBufferResource
+  >;
+  readonly bakedShadowCasterMatrixBindGroups: Map<
+    string,
+    BakedShadowCasterMatrixBindGroupResource
+  >;
 }
 
 interface WebGpuEnvironmentBindGroupDeviceLike extends TextureGpuDeviceLike {
@@ -227,6 +239,8 @@ export function createWebGpuEnvironmentResourceCache(): WebGpuEnvironmentResourc
     shadowCasterMatrixBindGroups: new Map(),
     shadowDepthTextures: new Map(),
     shadowMatrixBuffers: new Map(),
+    bakedShadowCasterMatrixBuffers: new Map(),
+    bakedShadowCasterMatrixBindGroups: new Map(),
   };
 }
 

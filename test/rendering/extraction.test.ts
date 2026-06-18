@@ -1252,6 +1252,39 @@ describe("render extraction", () => {
     ]);
   });
 
+  it("does not duplicate primary mesh diagnostics from the shadow-caster pass", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [0, 0, 5],
+    });
+    createLightEntity(world).addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({ enabled: true }),
+    );
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:missing",
+      layerMask: 1,
+      translation: [0, 0, 0],
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.shadowCasterDraws).toBeUndefined();
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.missingMaterialHandle",
+    ]);
+    expect(snapshot.report).toMatchObject({
+      meshDraws: 0,
+      diagnostics: 1,
+    });
+  });
+
   it("allows cameras to opt out of frustum culling", () => {
     const world = createRuntimeWorld();
 

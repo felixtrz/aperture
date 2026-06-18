@@ -10,7 +10,7 @@ import {
   transformPoint,
   type Mat4Like,
 } from "@aperture-engine/simulation";
-import { createWebGpuBuffer } from "../gpu/buffer.js";
+import { createWebGpuBuffer, destroyWebGpuBuffer } from "../gpu/buffer.js";
 import type { WebGpuBufferDeviceLike } from "../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
 import type { CommandEncoderFinishLike } from "../gpu/command-buffer.js";
@@ -64,6 +64,7 @@ import {
 import {
   createShadowCasterMatrixBindGroupResourceReport,
   createShadowCasterMatrixBindGroupLayoutDescriptor,
+  shadowCasterMatrixBindGroupResourceKey,
   type ShadowCasterMatrixBindGroupResource,
   type ShadowCasterMatrixBindGroupResourceReport,
   type ShadowCasterMatrixBindGroupDeviceLike,
@@ -170,6 +171,14 @@ export interface RenderShadowFrameCache {
   readonly shadowCasterMatrixBindGroups?: Map<
     string,
     ShadowCasterMatrixBindGroupResource
+  >;
+  readonly bakedShadowCasterMatrixBuffers?: Map<
+    string,
+    BakedShadowCasterMatrixBufferResource
+  >;
+  readonly bakedShadowCasterMatrixBindGroups?: Map<
+    string,
+    BakedShadowCasterMatrixBindGroupResource
   >;
 }
 
@@ -284,6 +293,22 @@ export interface RenderShadowFrameDiagnostic {
   readonly message: string;
 }
 
+export interface BakedShadowCasterMatrixBufferResource {
+  readonly resourceKey: string;
+  readonly label: string;
+  readonly buffer: unknown;
+  readonly byteSize: number;
+  readonly matrixCount: number;
+}
+
+export interface BakedShadowCasterMatrixBindGroupResource {
+  readonly matrixResourceKey: string;
+  readonly resourceKey: string;
+  readonly group: 0;
+  readonly bindGroup: unknown;
+  readonly matrixBuffer: unknown;
+}
+
 const DEFAULT_SHADOW_MAP_SIZE = 1024;
 const DEFAULT_DEPTH_BIAS = 0.001;
 const MATRIX_FLOAT_COUNT = 16;
@@ -396,6 +421,12 @@ export function createRenderShadowFrame(
       ? {}
       : { cache: options.cache.shadowMatrixBuffers }),
   });
+  if (matrixBufferResource.createdBufferCount > 0) {
+    invalidateShadowCasterMatrixBindGroup(
+      options.cache?.shadowCasterMatrixBindGroups,
+      matrixBufferResource.resource?.resourceKey,
+    );
+  }
   const commandPlan = createShadowCasterCommandPlanReadinessReport({
     shadowPassPlan: passPlan,
     viewProjection,
@@ -461,11 +492,18 @@ export function createRenderShadowFrame(
     casterDrawList,
     matrices: matrixComputation,
     transforms: options.snapshot.transforms,
+    ...(options.cache?.bakedShadowCasterMatrixBuffers === undefined
+      ? {}
+      : { cache: options.cache.bakedShadowCasterMatrixBuffers }),
+    ...(options.cache?.bakedShadowCasterMatrixBindGroups === undefined
+      ? {}
+      : { bindGroupCache: options.cache.bakedShadowCasterMatrixBindGroups }),
   });
   const bakedCasterBindGroup = createBakedCasterBindGroup(
     options.device,
     bakedCaster,
     pipelineResource.resource?.matrixBindGroupLayout,
+    options.cache?.bakedShadowCasterMatrixBindGroups,
   );
 
   const commandRecords = createShadowCasterCommandRecordPlanReport({
@@ -685,6 +723,11 @@ function buildBakedCasterMatrices(input: {
   readonly casterDrawList: ShadowCasterDrawListPlanReport;
   readonly matrices: DirectionalShadowMatrixComputationReport;
   readonly transforms: Float32Array;
+  readonly cache?: Map<string, BakedShadowCasterMatrixBufferResource>;
+  readonly bindGroupCache?: Map<
+    string,
+    BakedShadowCasterMatrixBindGroupResource
+  >;
 }): BakedCasterMatrices | null {
   if (
     input.casterDrawList.status === "not-required" ||
@@ -739,6 +782,22 @@ function buildBakedCasterMatrices(input: {
   }
 
   const resourceKey = "shadow-caster-baked-matrix-buffer:directional";
+  const cached = input.cache?.get(resourceKey);
+
+  if (cached !== undefined) {
+    if (cached.byteSize === data.byteLength) {
+      if (input.device.queue?.writeBuffer === undefined) {
+        return null;
+      }
+      input.device.queue.writeBuffer(cached.buffer, 0, data);
+      return { buffer: cached.buffer, resourceKey, indexByPassDraw };
+    }
+
+    destroyWebGpuBuffer(cached.buffer);
+    input.cache?.delete(resourceKey);
+    input.bindGroupCache?.delete(bakedCasterBindGroupResourceKey(resourceKey));
+  }
+
   const buffer = createWebGpuBuffer({
     device: input.device,
     descriptor: {
@@ -753,6 +812,14 @@ function buildBakedCasterMatrices(input: {
   if (!buffer.ok) {
     return null;
   }
+
+  input.cache?.set(resourceKey, {
+    resourceKey,
+    label: "DirectionalShadowCasterBakedMatrices/storage",
+    buffer: buffer.buffer,
+    byteSize: data.byteLength,
+    matrixCount: entryCount,
+  });
 
   return { buffer: buffer.buffer, resourceKey, indexByPassDraw };
 }
@@ -776,14 +843,21 @@ function createBakedCasterBindGroup(
   device: RenderShadowFrameDeviceLike,
   baked: BakedCasterMatrices | null,
   layout: unknown,
-): {
-  readonly matrixResourceKey: string;
-  readonly resourceKey: string;
-  readonly group: number;
-  readonly bindGroup: unknown;
-} | null {
+  cache?: Map<string, BakedShadowCasterMatrixBindGroupResource>,
+): BakedShadowCasterMatrixBindGroupResource | null {
   if (baked === null || device.createBindGroup === undefined) {
     return null;
+  }
+
+  const resourceKey = bakedCasterBindGroupResourceKey(baked.resourceKey);
+  const cached = cache?.get(resourceKey);
+
+  if (cached !== undefined && cached.matrixBuffer === baked.buffer) {
+    return cached;
+  }
+
+  if (cached !== undefined) {
+    cache?.delete(resourceKey);
   }
 
   const resolvedLayout =
@@ -796,19 +870,37 @@ function createBakedCasterBindGroup(
     return null;
   }
 
-  const resourceKey = `bind-group:shadow-caster/baked-matrices/${baked.resourceKey}`;
   const bindGroup = device.createBindGroup({
     label: resourceKey,
     layout: resolvedLayout,
     entries: [{ binding: 0, resource: { buffer: baked.buffer } }],
   });
 
-  return {
+  const resource: BakedShadowCasterMatrixBindGroupResource = {
     matrixResourceKey: baked.resourceKey,
     resourceKey,
     group: 0,
     bindGroup,
+    matrixBuffer: baked.buffer,
   };
+
+  cache?.set(resourceKey, resource);
+  return resource;
+}
+
+function bakedCasterBindGroupResourceKey(matrixResourceKey: string): string {
+  return `bind-group:shadow-caster/baked-matrices/${matrixResourceKey}`;
+}
+
+function invalidateShadowCasterMatrixBindGroup(
+  cache: Map<string, ShadowCasterMatrixBindGroupResource> | undefined,
+  matrixResourceKey: string | undefined,
+): void {
+  if (matrixResourceKey === undefined) {
+    return;
+  }
+
+  cache?.delete(shadowCasterMatrixBindGroupResourceKey(matrixResourceKey));
 }
 
 interface PrimaryShadowCamera {

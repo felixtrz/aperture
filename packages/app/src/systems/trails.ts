@@ -92,15 +92,13 @@ class GroundRibbonTrailImpl implements GroundRibbonTrail {
   readonly #maxSegments: number;
   readonly #label: string;
   readonly #vertices: Float32Array;
+  readonly #compactVertices: Float32Array;
   readonly #indices: Uint16Array | Uint32Array;
   #segmentIndex = 0;
   #drawSegments = 0;
   #prev: readonly [number, number, number] = [0, 0, 0];
   #active = false;
   #dirty = false;
-  #min: readonly [number, number, number] = [0, 0, 0];
-  #max: readonly [number, number, number] = [0, 0, 0];
-  #boundsInit = false;
 
   constructor(
     access: {
@@ -121,6 +119,9 @@ class GroundRibbonTrailImpl implements GroundRibbonTrail {
     this.#minSegmentLength = finitePositive(options.minSegmentLength, 0.001);
     this.#color = tuple3(options.color ?? [1, 1, 1]);
     this.#vertices = new Float32Array(this.#maxSegments * FLOATS_PER_SEGMENT);
+    this.#compactVertices = new Float32Array(
+      this.#maxSegments * FLOATS_PER_SEGMENT,
+    );
     this.#indices = createSequentialIndexBuffer(
       this.#maxSegments * VERTS_PER_SEGMENT,
     );
@@ -191,7 +192,6 @@ class GroundRibbonTrailImpl implements GroundRibbonTrail {
       this.#vertices[offset + 9] = color[1];
       this.#vertices[offset + 10] = color[2];
       this.#vertices[offset + 11] = alpha;
-      this.#expandBounds(point);
       offset += FLOATS_PER_VERTEX;
     }
 
@@ -231,18 +231,31 @@ class GroundRibbonTrailImpl implements GroundRibbonTrail {
   }
 
   getMeshAsset(): MeshAsset {
-    const vertexCount = this.#maxSegments * VERTS_PER_SEGMENT;
-    const indexCount = this.#drawSegments * VERTS_PER_SEGMENT;
+    const drawVertexCount = this.#drawSegments * VERTS_PER_SEGMENT;
+    const vertexCount = Math.max(1, drawVertexCount);
+    const indexCount = drawVertexCount;
+    const indexFormat =
+      this.#indices instanceof Uint16Array ? "uint16" : "uint32";
+    const indexBuffer: MeshAsset["indexBuffer"] =
+      indexCount === 0
+        ? undefined
+        : {
+            format: indexFormat,
+            data: this.#indices.subarray(0, indexCount),
+            indexCount,
+          };
+    const vertexData = this.#activeVertexData();
+    const bounds = computeVertexBounds(vertexData, drawVertexCount);
     const center = [
-      (this.#min[0] + this.#max[0]) * 0.5,
-      (this.#min[1] + this.#max[1]) * 0.5,
-      (this.#min[2] + this.#max[2]) * 0.5,
+      (bounds.min[0] + bounds.max[0]) * 0.5,
+      (bounds.min[1] + bounds.max[1]) * 0.5,
+      (bounds.min[2] + bounds.max[2]) * 0.5,
     ] as const;
     const radius =
       Math.hypot(
-        this.#max[0] - center[0],
-        this.#max[1] - center[1],
-        this.#max[2] - center[2],
+        bounds.max[0] - center[0],
+        bounds.max[1] - center[1],
+        bounds.max[2] - center[2],
       ) || 0.001;
 
     return {
@@ -259,50 +272,93 @@ class GroundRibbonTrailImpl implements GroundRibbonTrail {
             { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
             { semantic: "COLOR_0", format: "float32x4", offset: 32 },
           ],
-          data: this.#vertices,
+          data: vertexData,
         },
       ],
-      indexBuffer: {
-        format: this.#indices instanceof Uint16Array ? "uint16" : "uint32",
-        data: this.#indices,
-        indexCount,
-      },
+      ...(indexBuffer === undefined ? {} : { indexBuffer }),
       submeshes: [
         {
           label: "default",
           topology: "triangle-list",
           materialSlot: 0,
           vertexStart: 0,
-          vertexCount,
+          vertexCount: drawVertexCount,
           indexStart: 0,
           indexCount,
         },
       ],
       materialSlots: [{ index: 0, label: "default" }],
-      localAabb: { min: [...this.#min], max: [...this.#max] },
+      localAabb: { min: [...bounds.min], max: [...bounds.max] },
       localSphere: { center, radius },
     };
   }
 
-  #expandBounds(point: readonly [number, number, number]): void {
-    if (!this.#boundsInit) {
-      this.#min = point;
-      this.#max = point;
-      this.#boundsInit = true;
-      return;
+  #activeVertexData(): Float32Array {
+    const floatCount = this.#drawSegments * FLOATS_PER_SEGMENT;
+
+    if (floatCount === 0) {
+      return this.#vertices.subarray(0, FLOATS_PER_VERTEX);
     }
 
-    this.#min = [
-      Math.min(this.#min[0], point[0]),
-      Math.min(this.#min[1], point[1]),
-      Math.min(this.#min[2], point[2]),
-    ];
-    this.#max = [
-      Math.max(this.#max[0], point[0]),
-      Math.max(this.#max[1], point[1]),
-      Math.max(this.#max[2], point[2]),
-    ];
+    if (this.#drawSegments < this.#maxSegments || this.#segmentIndex === 0) {
+      return this.#vertices.subarray(0, floatCount);
+    }
+
+    const firstFloat = this.#segmentIndex * FLOATS_PER_SEGMENT;
+    const firstLength =
+      (this.#maxSegments - this.#segmentIndex) * FLOATS_PER_SEGMENT;
+    this.#compactVertices.set(
+      this.#vertices.subarray(firstFloat, firstFloat + firstLength),
+      0,
+    );
+    this.#compactVertices.set(
+      this.#vertices.subarray(0, this.#segmentIndex * FLOATS_PER_SEGMENT),
+      firstLength,
+    );
+
+    return this.#compactVertices.subarray(0, floatCount);
   }
+}
+
+function computeVertexBounds(
+  vertices: Float32Array,
+  vertexCount: number,
+): {
+  readonly min: readonly [number, number, number];
+  readonly max: readonly [number, number, number];
+} {
+  if (vertexCount <= 0) {
+    return { min: [0, 0, 0], max: [0, 0, 0] };
+  }
+
+  let minX = Number.POSITIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let minZ = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+  let maxZ = Number.NEGATIVE_INFINITY;
+
+  for (
+    let vertex = 0, offset = 0;
+    vertex < vertexCount;
+    vertex += 1, offset += FLOATS_PER_VERTEX
+  ) {
+    const x = vertices[offset] ?? 0;
+    const y = vertices[offset + 1] ?? 0;
+    const z = vertices[offset + 2] ?? 0;
+
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    minZ = Math.min(minZ, z);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+    maxZ = Math.max(maxZ, z);
+  }
+
+  return {
+    min: [minX, minY, minZ],
+    max: [maxX, maxY, maxZ],
+  };
 }
 
 function ensureTrailMaterial(

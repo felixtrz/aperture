@@ -1,10 +1,24 @@
-import { analyzeParticleEffectRuntimeFeatures } from "@aperture-engine/render";
+import {
+  analyzeParticleEffectRuntimeFeatures,
+  type ParticleEffectRuntimeFeatureReport,
+} from "@aperture-engine/render";
+import type { ApertureParticleEffectAssetDescriptor } from "../config/index.js";
 import {
   systemAssetReadyMetadata,
   type SystemAssetHandle,
   type SystemAssetKind,
   type SystemParticleEffectAssetHandle,
 } from "../systems.js";
+
+interface CachedParticleRuntimeFeatures {
+  readonly descriptor: ApertureParticleEffectAssetDescriptor;
+  readonly runtimeFeatures: ParticleEffectRuntimeFeatureReport;
+}
+
+const PARTICLE_RUNTIME_FEATURE_CACHE = new WeakMap<
+  SystemParticleEffectAssetHandle,
+  CachedParticleRuntimeFeatures
+>();
 
 export function createAssetSummary(
   handles: readonly SystemAssetHandle<SystemAssetKind>[],
@@ -13,8 +27,8 @@ export function createAssetSummary(
     const particleEffectRuntime =
       handle.kind === "particle-effect"
         ? {
-            runtimeFeatures: analyzeParticleEffectRuntimeFeatures(
-              (handle as SystemParticleEffectAssetHandle).descriptor,
+            runtimeFeatures: particleRuntimeFeatures(
+              handle as SystemParticleEffectAssetHandle,
             ),
           }
         : {};
@@ -30,4 +44,23 @@ export function createAssetSummary(
       ...particleEffectRuntime,
     };
   });
+}
+
+function particleRuntimeFeatures(
+  handle: SystemParticleEffectAssetHandle,
+): ParticleEffectRuntimeFeatureReport {
+  const cached = PARTICLE_RUNTIME_FEATURE_CACHE.get(handle);
+
+  if (cached !== undefined && cached.descriptor === handle.descriptor) {
+    return cached.runtimeFeatures;
+  }
+
+  const runtimeFeatures = analyzeParticleEffectRuntimeFeatures(
+    handle.descriptor,
+  );
+  PARTICLE_RUNTIME_FEATURE_CACHE.set(handle, {
+    descriptor: handle.descriptor,
+    runtimeFeatures,
+  });
+  return runtimeFeatures;
 }

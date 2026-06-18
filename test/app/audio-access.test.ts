@@ -203,4 +203,63 @@ describe("app audio access", () => {
     expect(resumedPacket?.lowpassQ).toBeCloseTo(0.7);
     expect(resumedSnapshot.diagnostics).toEqual([]);
   });
+
+  it("preserves lowpass sibling fields for partial automation patches", async () => {
+    const refs: { loop: Entity | null } = { loop: null };
+
+    class PartialLowpassAutomationSystem extends createSystem({ priority: 0 }) {
+      #stage = 0;
+
+      override update(): void {
+        if (this.#stage === 0) {
+          const loop = this.audio.loop("engine", {
+            clip: this.audio.clip("engine"),
+            lowpass: { frequency: 1200, q: 0.8 },
+            simulationSpace: AudioSimulationSpace.Local,
+          });
+          refs.loop = loop.entity;
+          loop.automate({
+            lowpass: { q: { target: 0.95 } },
+          });
+        } else {
+          this.audio.automate("engine", {
+            lowpass: { frequency: { target: 900 } },
+          });
+        }
+
+        this.#stage += 1;
+      }
+    }
+
+    const app = await createApertureApp({
+      config: defineApertureConfig({
+        mode: "headless",
+        assets: {
+          engine: asset.audio("data:audio/ogg;base64,AQIDBA==", {
+            preload: "blocking",
+            durationHint: 2,
+          }),
+        },
+        audio: true,
+      }),
+      systems: [{ default: PartialLowpassAutomationSystem }],
+    });
+
+    const qOnlySnapshot = app.stepAndExtract(1 / 60, 0, 1);
+    const qOnlyPacket = qOnlySnapshot.audioEmitters?.find(
+      (packet) => packet.entity.index === refs.loop?.index,
+    );
+
+    expect(qOnlyPacket?.lowpassFrequency).toBeCloseTo(1200);
+    expect(qOnlyPacket?.lowpassQ).toBeCloseTo(0.95);
+
+    const frequencyOnlySnapshot = app.stepAndExtract(1 / 60, 1 / 60, 2);
+    const frequencyOnlyPacket = frequencyOnlySnapshot.audioEmitters?.find(
+      (packet) => packet.entity.index === refs.loop?.index,
+    );
+
+    expect(frequencyOnlyPacket?.lowpassFrequency).toBeCloseTo(900);
+    expect(frequencyOnlyPacket?.lowpassQ).toBeCloseTo(0.95);
+    expect(frequencyOnlySnapshot.diagnostics).toEqual([]);
+  });
 });

@@ -124,6 +124,7 @@ export function extractRenderSnapshot(
     (mask, request) => mask | request.casterLayerMask,
     0,
   );
+  const shadowDiagnostics: RenderDiagnostic[] = [];
   const shadowCasterDraws =
     shadowRequests.length === 0
       ? []
@@ -139,7 +140,7 @@ export function extractRenderSnapshot(
           instanceAttributes,
           instanceAttributePackets,
           bounds,
-          diagnostics,
+          shadowDiagnostics,
           shadowCasterLayerMask,
           fogs,
           viewCullContexts,
@@ -151,6 +152,7 @@ export function extractRenderSnapshot(
             diagnoseLayerMismatch: false,
           },
         ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
+  appendUniqueDiagnostics(diagnostics, shadowDiagnostics);
   const spriteDraws = extractSpriteDraws(
     world,
     assets,
@@ -277,4 +279,42 @@ function resetScratch(scratch: number[] | undefined): number[] {
 
   scratch.length = 0;
   return scratch;
+}
+
+function appendUniqueDiagnostics(
+  target: RenderDiagnostic[],
+  source: readonly RenderDiagnostic[],
+): void {
+  if (source.length === 0) {
+    return;
+  }
+
+  const existing = new Set(target.map(diagnosticKey));
+
+  for (const diagnostic of source) {
+    const key = diagnosticKey(diagnostic);
+
+    if (existing.has(key)) {
+      continue;
+    }
+
+    existing.add(key);
+    target.push(diagnostic);
+  }
+}
+
+function diagnosticKey(diagnostic: RenderDiagnostic): string {
+  const entity = diagnostic.entity;
+
+  return [
+    diagnostic.code,
+    diagnostic.severity,
+    entity === undefined ? "" : `${entity.index}:${entity.generation}`,
+    diagnostic.assetKey ?? "",
+    diagnostic.materialKey ?? "",
+    diagnostic.meshKey ?? "",
+    diagnostic.textureKey ?? "",
+    diagnostic.samplerKey ?? "",
+    diagnostic.field ?? "",
+  ].join("|");
 }

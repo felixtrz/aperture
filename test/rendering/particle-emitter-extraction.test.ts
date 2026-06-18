@@ -288,12 +288,17 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
 
     const snapshot = app.extract(1);
     const bounds = snapshot.bounds[0];
+    const expectedRadius = 3 + 0.18 + Math.SQRT2;
 
     expect(snapshot.report.particleEmitters).toBe(1);
     expect(Array.from(bounds?.worldSphere.center ?? [])).toEqual([1, 2, 0]);
-    expect(bounds?.worldSphere.radius).toBeCloseTo(10, 5);
-    expect(bounds?.localAabb.min).toEqual([-10, -10, -10]);
-    expect(bounds?.localAabb.max).toEqual([10, 10, 10]);
+    expect(bounds?.worldSphere.radius).toBeCloseTo(expectedRadius, 5);
+    expect(bounds?.localAabb.min[0]).toBeCloseTo(-expectedRadius, 5);
+    expect(bounds?.localAabb.min[1]).toBeCloseTo(-expectedRadius, 5);
+    expect(bounds?.localAabb.min[2]).toBeCloseTo(-expectedRadius, 5);
+    expect(bounds?.localAabb.max[0]).toBeCloseTo(expectedRadius, 5);
+    expect(bounds?.localAabb.max[1]).toBeCloseTo(expectedRadius, 5);
+    expect(bounds?.localAabb.max[2]).toBeCloseTo(expectedRadius, 5);
     expect(snapshot.diagnostics).toEqual([]);
   });
 

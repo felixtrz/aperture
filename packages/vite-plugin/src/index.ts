@@ -24,6 +24,7 @@ import {
   loadApertureVirtualModule,
   resolveApertureVirtualId,
 } from "./virtual-modules.js";
+import { installApertureSystemGraphHmr } from "./system-graph-hmr.js";
 
 export interface ApertureVitePluginOptions {
   readonly configFile?: string;
@@ -80,7 +81,18 @@ export function aperture(
       });
     },
     configureServer(server) {
-      if (!aiDevtoolsEnabled || command === "build") {
+      if (command === "build") {
+        return;
+      }
+
+      installApertureSystemGraphHmr(server, {
+        root: server.config.root,
+        ...(options.configFile === undefined
+          ? {}
+          : { configFile: options.configFile }),
+      });
+
+      if (!aiDevtoolsEnabled) {
         return;
       }
 

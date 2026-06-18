@@ -13,6 +13,7 @@ import {
   inputKey,
   inputPointerClick,
   inputPointerMove,
+  releaseAllPointerButtons,
 } from "./input.js";
 import {
   renderDiagnostics,
@@ -113,7 +114,7 @@ export async function callBrowserBackedTool(
     case "input_get_state":
       return callGeneratedRuntimeTool(page, name, args);
     case "input_reset":
-      await page.mouse.up();
+      await releaseAllPointerButtons(page);
       return callGeneratedRuntimeTool(page, name, args);
     case "camera_list":
     case "camera_get":

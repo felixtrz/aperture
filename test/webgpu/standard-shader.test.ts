@@ -198,7 +198,9 @@ describe("built-in standard material WGSL shader metadata", () => {
     composer.setAlphaExpression(
       "baseColorSample.a * material.baseColorFactor.a",
     );
-    composer.setNormalExpression("sampleTangentSpaceNormal(input, frontFacing)");
+    composer.setNormalExpression(
+      "sampleTangentSpaceNormal(input, frontFacing)",
+    );
     composer.addMetallicRoughnessStatement(
       "  let metallicRoughnessSample = textureSample(metallicRoughnessTexture, metallicRoughnessSampler, input.uv);",
     );
@@ -224,8 +226,7 @@ describe("built-in standard material WGSL shader metadata", () => {
       baseColorAlphaStatements: [
         "  let baseColorSample = textureSample(baseColorTexture, baseColorSampler, input.uv);",
       ],
-      baseColorExpression:
-        "baseColorSample.rgb * material.baseColorFactor.rgb",
+      baseColorExpression: "baseColorSample.rgb * material.baseColorFactor.rgb",
       alphaExpression: "baseColorSample.a * material.baseColorFactor.a",
       normalExpression: "sampleTangentSpaceNormal(input, frontFacing)",
       metallicRoughnessStatements: [
@@ -1601,8 +1602,10 @@ describe("built-in standard material WGSL shader metadata", () => {
       ["cascaded directional", STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL],
       [
         "point",
-        createStandardTextureVariantShader({ ...noTextures, pointShadowMap: true })
-          .code,
+        createStandardTextureVariantShader({
+          ...noTextures,
+          pointShadowMap: true,
+        }).code,
       ],
       [
         "directional+point (multi)",
@@ -1617,10 +1620,12 @@ describe("built-in standard material WGSL shader metadata", () => {
     for (const [label, code] of variants) {
       // The depth convention is declared exactly ONCE per shader (a second
       // declaration would be a WGSL duplicate-symbol compile error)...
-      const helperCount = code.split(
-        "fn shadowDepthFromClip(shadowClip: vec3f) -> f32",
-      ).length - 1;
-      expect(helperCount, `${label}: one shadowDepthFromClip declaration`).toBe(1);
+      const helperCount =
+        code.split("fn shadowDepthFromClip(shadowClip: vec3f) -> f32").length -
+        1;
+      expect(helperCount, `${label}: one shadowDepthFromClip declaration`).toBe(
+        1,
+      );
       // ...every sampler site reads its depth through that helper...
       expect(code, `${label}: sites use the helper`).toContain(
         "let shadowDepth = shadowDepthFromClip(shadowClip);",
@@ -1833,6 +1838,12 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "let standardIndirectColor = ambientDiffuse + diffuseIbl + specularIblProof;",
     );
+    expect(shader.code).not.toMatch(
+      /let standardIndirectColor = .*shadowFactor/,
+    );
+    expect(shader.code).not.toMatch(/ambientDiffuse \* shadowFactor/);
+    expect(shader.code).not.toMatch(/diffuseIbl \* shadowFactor/);
+    expect(shader.code).not.toMatch(/specularIblProof \* shadowFactor/);
     expect(shader.code).toContain("let standardDirectColor = direct;");
     expect(shader.code).toContain(
       "let standardEmissiveColor = material.emissiveFactor;",
@@ -2962,9 +2973,7 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "material.emissiveFactor * emissiveSample.rgb",
     );
-    expect(shader.code).toContain(
-      "let standardEmissiveColor = emissive;",
-    );
+    expect(shader.code).toContain("let standardEmissiveColor = emissive;");
     expect(shader.code).toContain(
       "var color = standardIndirectColor + standardDirectColor + standardEmissiveColor;",
     );
@@ -3017,9 +3026,7 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "textureSample(emissiveTexture, emissiveSampler, emissiveTextureUv)",
     );
-    expect(shader.code).toContain(
-      "let standardEmissiveColor = emissive;",
-    );
+    expect(shader.code).toContain("let standardEmissiveColor = emissive;");
     expect(shader.code).toContain(
       "var color = standardIndirectColor + standardDirectColor + standardEmissiveColor;",
     );
@@ -3077,9 +3084,7 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "textureSample(emissiveTexture, emissiveSampler, emissiveTextureUv)",
     );
-    expect(shader.code).toContain(
-      "let standardEmissiveColor = emissive;",
-    );
+    expect(shader.code).toContain("let standardEmissiveColor = emissive;");
     expect(shader.code).toContain(
       "var color = standardIndirectColor + standardDirectColor + standardEmissiveColor;",
     );
@@ -3237,9 +3242,7 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "textureSample(emissiveTexture, emissiveSampler, emissiveTextureUv)",
     );
-    expect(shader.code).toContain(
-      "let standardEmissiveColor = emissive;",
-    );
+    expect(shader.code).toContain("let standardEmissiveColor = emissive;");
     expect(shader.code).toContain(
       "var color = standardIndirectColor + standardDirectColor + standardEmissiveColor;",
     );

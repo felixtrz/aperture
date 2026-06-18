@@ -91,6 +91,8 @@ export function applyRenderSnapshotInterpolation(options: {
   const affectedCache = new Map<string, boolean>();
   const writtenOffsets = new Set<number>();
   const writtenBounds = new Set<number>();
+  const affectedVisiting = new Set<string>();
+  const matrixVisiting = new Set<string>();
   let transformWrites = 0;
   let boundsWrites = 0;
   let viewWrites = 0;
@@ -106,6 +108,8 @@ export function applyRenderSnapshotInterpolation(options: {
       alpha,
       matrixCache,
       affectedCache,
+      affectedVisiting,
+      matrixVisiting,
       writtenOffsets,
       writtenBounds,
     });
@@ -124,6 +128,8 @@ export function applyRenderSnapshotInterpolation(options: {
       alpha,
       matrixCache,
       affectedCache,
+      affectedVisiting,
+      matrixVisiting,
       writtenOffsets,
       writtenBounds,
     });
@@ -142,6 +148,8 @@ export function applyRenderSnapshotInterpolation(options: {
       alpha,
       matrixCache,
       affectedCache,
+      affectedVisiting,
+      matrixVisiting,
       writtenOffsets,
       writtenBounds,
     });
@@ -160,6 +168,8 @@ export function applyRenderSnapshotInterpolation(options: {
       alpha,
       matrixCache,
       affectedCache,
+      affectedVisiting,
+      matrixVisiting,
       writtenOffsets,
       writtenBounds,
     });
@@ -178,6 +188,8 @@ export function applyRenderSnapshotInterpolation(options: {
       alpha,
       matrixCache,
       affectedCache,
+      affectedVisiting,
+      matrixVisiting,
     });
   }
 
@@ -205,6 +217,8 @@ function writeInterpolatedPacketTransform(options: {
   readonly alpha: number;
   readonly matrixCache: Map<string, Mat4 | null>;
   readonly affectedCache: Map<string, boolean>;
+  readonly affectedVisiting: Set<string>;
+  readonly matrixVisiting: Set<string>;
   readonly writtenOffsets: Set<number>;
   readonly writtenBounds: Set<number>;
 }): PacketInterpolationWrites {
@@ -221,20 +235,31 @@ function writeInterpolatedPacketTransform(options: {
 
   const entity = resolveSnapshotEntity(options.world, options.entityRef);
 
+  options.affectedVisiting.clear();
   if (
     entity === null ||
-    !interpolationAffectsWorldMatrix(entity, options.affectedCache, new Set())
+    !interpolationAffectsWorldMatrix(
+      entity,
+      options.affectedCache,
+      options.affectedVisiting,
+    )
   ) {
+    options.affectedVisiting.clear();
     return noPacketWrites();
   }
+  options.affectedVisiting.clear();
 
+  options.matrixVisiting.clear();
   const matrix = interpolatedWorldMatrix(
     entity,
     options.alpha,
     options.matrixCache,
     options.affectedCache,
-    new Set(),
+    options.affectedVisiting,
+    options.matrixVisiting,
   );
+  options.affectedVisiting.clear();
+  options.matrixVisiting.clear();
 
   if (matrix === null) {
     return noPacketWrites();
@@ -273,6 +298,8 @@ function writeInterpolatedViewMatrices(options: {
   readonly alpha: number;
   readonly matrixCache: Map<string, Mat4 | null>;
   readonly affectedCache: Map<string, boolean>;
+  readonly affectedVisiting: Set<string>;
+  readonly matrixVisiting: Set<string>;
 }): number {
   if (
     !matrixOffsetValid(options.viewMatrices, options.viewOffset) ||
@@ -284,20 +311,31 @@ function writeInterpolatedViewMatrices(options: {
 
   const entity = resolveSnapshotEntity(options.world, options.entityRef);
 
+  options.affectedVisiting.clear();
   if (
     entity === null ||
-    !interpolationAffectsWorldMatrix(entity, options.affectedCache, new Set())
+    !interpolationAffectsWorldMatrix(
+      entity,
+      options.affectedCache,
+      options.affectedVisiting,
+    )
   ) {
+    options.affectedVisiting.clear();
     return 0;
   }
+  options.affectedVisiting.clear();
 
+  options.matrixVisiting.clear();
   const worldMatrix = interpolatedWorldMatrix(
     entity,
     options.alpha,
     options.matrixCache,
     options.affectedCache,
-    new Set(),
+    options.affectedVisiting,
+    options.matrixVisiting,
   );
+  options.affectedVisiting.clear();
+  options.matrixVisiting.clear();
   const viewMatrix = worldMatrix === null ? null : invertMat4(worldMatrix);
 
   if (viewMatrix === null) {
@@ -320,7 +358,8 @@ function interpolatedWorldMatrix(
   alpha: number,
   cache: Map<string, Mat4 | null>,
   affectedCache: Map<string, boolean>,
-  visiting: Set<string>,
+  affectedVisiting: Set<string>,
+  matrixVisiting: Set<string>,
 ): Mat4 | null {
   const key = entityKey(entity);
   const cached = cache.get(key);
@@ -328,12 +367,12 @@ function interpolatedWorldMatrix(
     return cached;
   }
 
-  if (visiting.has(key)) {
+  if (matrixVisiting.has(key)) {
     cache.set(key, null);
     return null;
   }
 
-  visiting.add(key);
+  matrixVisiting.add(key);
   const localMatrix = renderInterpolationReady(entity)
     ? interpolatedLocalMatrix(entity, alpha)
     : currentLocalMatrix(entity);
@@ -342,13 +381,22 @@ function interpolatedWorldMatrix(
   if (localMatrix !== null) {
     const parent = parentEntity(entity);
     if (parent !== null) {
+      affectedVisiting.clear();
       const parentMatrix = interpolationAffectsWorldMatrix(
         parent,
         affectedCache,
-        new Set(),
+        affectedVisiting,
       )
-        ? interpolatedWorldMatrix(parent, alpha, cache, affectedCache, visiting)
+        ? interpolatedWorldMatrix(
+            parent,
+            alpha,
+            cache,
+            affectedCache,
+            affectedVisiting,
+            matrixVisiting,
+          )
         : readWorldMatrix(parent);
+      affectedVisiting.clear();
       worldMatrix =
         parentMatrix === null ? null : multiplyMat4(parentMatrix, localMatrix);
     } else {
@@ -356,7 +404,7 @@ function interpolatedWorldMatrix(
     }
   }
 
-  visiting.delete(key);
+  matrixVisiting.delete(key);
   cache.set(key, worldMatrix);
   return worldMatrix;
 }

@@ -109,6 +109,53 @@ describe("shadow matrix buffer resources", () => {
     expect(JSON.stringify(json)).not.toMatch(/GPUBuffer|writeBuffer|"raw"/);
   });
 
+  it("destroys and recreates the cached buffer when matrix count changes", () => {
+    const createdBuffers: unknown[] = [];
+    const destroyedBuffers: unknown[] = [];
+    const writes: unknown[] = [];
+    const device = deviceWithBuffers(createdBuffers, writes, destroyedBuffers);
+    const cache = new Map();
+
+    const firstViewProjection = viewProjectionFor([shadowRequest()]);
+    const first = createShadowMatrixBufferResourceReport({
+      device,
+      descriptor: createShadowMatrixBufferDescriptorReport({
+        viewProjection: firstViewProjection,
+        upload: "ready",
+      }),
+      matrices: createDirectionalShadowMatrixComputationReport({
+        viewProjection: firstViewProjection,
+        transforms: identityTransform(),
+      }),
+      cache,
+    });
+    const secondViewProjection = viewProjectionFor([
+      shadowRequest(),
+      shadowRequest({ shadowId: 8 }),
+    ]);
+    const second = createShadowMatrixBufferResourceReport({
+      device,
+      descriptor: createShadowMatrixBufferDescriptorReport({
+        viewProjection: secondViewProjection,
+        upload: "ready",
+      }),
+      matrices: createDirectionalShadowMatrixComputationReport({
+        viewProjection: secondViewProjection,
+        transforms: identityTransform(),
+      }),
+      cache,
+    });
+
+    expect(first.createdBufferCount).toBe(1);
+    expect(first.byteSize).toBe(64);
+    expect(second.createdBufferCount).toBe(1);
+    expect(second.reusedBufferCount).toBe(0);
+    expect(second.byteSize).toBe(128);
+    expect(createdBuffers).toHaveLength(2);
+    expect(destroyedBuffers).toHaveLength(1);
+    expect(cache.get("shadow-matrix-buffer:directional")?.byteSize).toBe(128);
+  });
+
   it("reports missing matrix data and unavailable buffer upload support", () => {
     const viewProjection = createDirectionalShadowViewProjectionPlanReport({
       shadowRequests: [shadowRequest()],
@@ -162,12 +209,36 @@ describe("shadow matrix buffer resources", () => {
   });
 });
 
-function shadowRequest(): ShadowRequestPacket {
+function viewProjectionFor(shadowRequests: readonly ShadowRequestPacket[]) {
+  return createDirectionalShadowViewProjectionPlanReport({
+    shadowRequests,
+    lights: [light()],
+    shadowPassPlan: createShadowPassPlanReport({
+      shadowRequests,
+      textures: createShadowTextureResourceReport({
+        descriptors: createShadowMapDescriptorReport({
+          shadowRequests,
+          descriptors: shadowRequests.map((request) => ({
+            shadowId: request.shadowId,
+            lightId: request.lightId,
+            mapSize: 1024,
+            depthBias: 0.001,
+          })),
+        }),
+      }),
+    }),
+  });
+}
+
+function shadowRequest(
+  overrides: Partial<ShadowRequestPacket> = {},
+): ShadowRequestPacket {
   return {
     shadowId: 7,
     lightId: 11,
     casterLayerMask: 1,
     receiverLayerMask: 2,
+    ...overrides,
   };
 }
 
@@ -193,11 +264,18 @@ function identityTransform(): Float32Array {
 function deviceWithBuffers(
   createdBuffers: unknown[],
   writes: unknown[],
+  destroyedBuffers: unknown[] = [],
 ): WebGpuBufferDeviceLike {
   return {
     createBuffer: (descriptor) => {
-      createdBuffers.push(descriptor);
-      return { descriptor };
+      const buffer = {
+        descriptor,
+        destroy: () => {
+          destroyedBuffers.push(buffer);
+        },
+      };
+      createdBuffers.push(buffer);
+      return buffer;
     },
     queue: {
       writeBuffer: (...args) => {

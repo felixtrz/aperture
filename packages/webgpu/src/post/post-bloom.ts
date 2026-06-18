@@ -11,6 +11,7 @@ import {
   type WebGpuPreparedPostEffectPass,
 } from "./post-pass.js";
 import type { RenderPassCommand } from "../render/passes/render-pass-commands.js";
+import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
 
 export interface CreateWebGpuBloomPostEffectOptions {
   readonly id?: string;
@@ -38,7 +39,36 @@ interface CachedBloomPostPipeline {
   readonly pipeline: unknown;
 }
 
+interface BloomBlurParameterBuffer {
+  readonly buffer: unknown;
+  width: number;
+  height: number;
+}
+
+interface BloomBlurParameterBufferSlot {
+  current: BloomBlurParameterBuffer | null;
+}
+
+interface BloomPostBufferDeviceLike extends WebGpuPostPassDeviceLike {
+  readonly createBuffer?: (descriptor: {
+    readonly label?: string;
+    readonly size: number;
+    readonly usage: number;
+    readonly mappedAtCreation?: boolean;
+  }) => unknown;
+  readonly queue?: {
+    readonly writeBuffer?: (
+      buffer: unknown,
+      bufferOffset: number,
+      data: ArrayBufferLike | ArrayBufferView,
+      dataOffset?: number,
+      size?: number,
+    ) => void;
+  };
+}
+
 const BLOOM_KERNEL_SIZES = [6, 10, 14, 18, 22, 26] as const;
+const BLOOM_BLUR_PARAMETER_BUFFER_BYTES = 16;
 
 export function createWebGpuBloomPostEffect(
   options: CreateWebGpuBloomPostEffectOptions = {},
@@ -53,7 +83,11 @@ export function createWebGpuBloomPostEffect(
     0,
     1,
   );
-  const levelCount = clampInteger(options.levels ?? 5, 1, BLOOM_KERNEL_SIZES.length);
+  const levelCount = clampInteger(
+    options.levels ?? 5,
+    1,
+    BLOOM_KERNEL_SIZES.length,
+  );
   const pipelines = new Map<string, CachedBloomPostPipeline>();
   const brightpassSlot = createWebGpuPostPassTextureCacheSlot();
   const horizontalSlots = Array.from({ length: levelCount }, () =>
@@ -61,6 +95,10 @@ export function createWebGpuBloomPostEffect(
   );
   const verticalSlots = Array.from({ length: levelCount }, () =>
     createWebGpuPostPassTextureCacheSlot(),
+  );
+  const blurParameterSlots = Array.from(
+    { length: levelCount },
+    (): BloomBlurParameterBufferSlot => ({ current: null }),
   );
   let sampler: unknown | null = null;
 
@@ -128,6 +166,7 @@ export function createWebGpuBloomPostEffect(
         brightpassResource: brightpassTexture.resource,
         horizontalResources: mipResources.horizontal,
         verticalResources: mipResources.vertical,
+        blurParameterSlots,
         ...(prepareOptions.output === undefined
           ? {}
           : { output: prepareOptions.output }),
@@ -219,6 +258,7 @@ function prepareBloomGraph(options: {
   readonly brightpassResource: WebGpuPostPassTextureResource;
   readonly horizontalResources: readonly WebGpuPostPassTextureResource[];
   readonly verticalResources: readonly WebGpuPostPassTextureResource[];
+  readonly blurParameterSlots: readonly BloomBlurParameterBufferSlot[];
 }): WebGpuPreparedPostEffectGraph {
   const passes: WebGpuPreparedPostEffectGraphPass[] = [];
 
@@ -245,9 +285,14 @@ function prepareBloomGraph(options: {
   for (let level = 0; level < options.horizontalResources.length; level += 1) {
     const horizontalOutput = options.horizontalResources[level];
     const verticalOutput = options.verticalResources[level];
+    const blurParameterSlot = options.blurParameterSlots[level];
     const kernelSize = bloomKernelSize(level);
 
-    if (horizontalOutput === undefined || verticalOutput === undefined) {
+    if (
+      horizontalOutput === undefined ||
+      verticalOutput === undefined ||
+      blurParameterSlot === undefined
+    ) {
       continue;
     }
 
@@ -266,6 +311,7 @@ function prepareBloomGraph(options: {
         intensity: options.intensity,
         radius: options.radius,
         kernelSize,
+        blurParameterSlot,
       }),
     );
     passes.push(
@@ -283,6 +329,7 @@ function prepareBloomGraph(options: {
         intensity: options.intensity,
         radius: options.radius,
         kernelSize,
+        blurParameterSlot,
       }),
     );
     input = verticalOutput;
@@ -312,7 +359,9 @@ function prepareBloomGraph(options: {
       topology: "unreal-bloom",
       passCount: passes.length,
       resourceCount:
-        1 + options.horizontalResources.length + options.verticalResources.length,
+        1 +
+        options.horizontalResources.length +
+        options.verticalResources.length,
       brightpassPasses: 1,
       downsamplePasses: 0,
       upsamplePasses: 0,
@@ -345,8 +394,22 @@ function prepareSingleInputBloomGraphPass(options: {
   readonly intensity: number;
   readonly radius: number;
   readonly kernelSize: number | null;
+  readonly blurParameterSlot?: BloomBlurParameterBufferSlot;
 }): WebGpuPreparedPostEffectGraphPass {
   const diagnostics: WebGpuPostPassDiagnostic[] = [];
+  const blurParameters =
+    options.kind === "brightpass"
+      ? null
+      : prepareBloomBlurParameterBuffer({
+          device: options.device,
+          effectId: options.effectId,
+          label: options.label,
+          output: options.output,
+          ...(options.blurParameterSlot === undefined
+            ? {}
+            : { slot: options.blurParameterSlot }),
+          diagnostics,
+        });
   const pipelineResult = getOrCreateBloomPostPipeline({
     device: options.device,
     pipelines: options.pipelines,
@@ -363,7 +426,8 @@ function prepareSingleInputBloomGraphPass(options: {
   });
 
   const commands =
-    pipelineResult === null
+    pipelineResult === null ||
+    (options.kind !== "brightpass" && blurParameters === null)
       ? []
       : createSingleInputBloomCommands({
           device: options.device,
@@ -373,6 +437,7 @@ function prepareSingleInputBloomGraphPass(options: {
           effectId: options.effectId,
           label: options.label,
           input: options.input,
+          ...(blurParameters === null ? {} : { blurParameters }),
           diagnostics,
         });
 
@@ -506,6 +571,7 @@ function createSingleInputBloomCommands(options: {
   readonly effectId: string;
   readonly label: string;
   readonly input: WebGpuPostPassTextureResource;
+  readonly blurParameters?: BloomBlurParameterBuffer;
   readonly diagnostics: WebGpuPostPassDiagnostic[];
 }): readonly RenderPassCommand[] {
   const inputView = options.input.texture.createView?.();
@@ -549,15 +615,121 @@ function createSingleInputBloomCommands(options: {
     entries: [
       { binding: 0, resource: options.sampler },
       { binding: 1, resource: inputView },
+      ...(options.blurParameters === undefined
+        ? []
+        : [
+            {
+              binding: 2,
+              resource: { buffer: options.blurParameters.buffer },
+            },
+          ]),
     ],
   });
 
   return bloomDrawCommands({
     pipelineKey: options.pipelineKey,
     pipeline: options.pipeline,
-    resourceKey: `${options.effectId}:input:${options.input.label}`,
+    resourceKey:
+      options.blurParameters === undefined
+        ? `${options.effectId}:input:${options.input.label}`
+        : `${options.effectId}:input:${options.input.label}:blur:${options.blurParameters.width}x${options.blurParameters.height}`,
     bindGroup,
   });
+}
+
+function prepareBloomBlurParameterBuffer(options: {
+  readonly device: WebGpuPostPassDeviceLike;
+  readonly effectId: string;
+  readonly label: string;
+  readonly output: WebGpuPostPassTextureResource;
+  readonly slot?: BloomBlurParameterBufferSlot;
+  readonly diagnostics: WebGpuPostPassDiagnostic[];
+}): BloomBlurParameterBuffer | null {
+  if (options.slot === undefined) {
+    options.diagnostics.push({
+      code: "webGpuPostPass.createBufferUnavailable",
+      effectId: options.effectId,
+      message: `Bloom post effect '${options.effectId}' cannot allocate blur parameters without a mip slot.`,
+    });
+    return null;
+  }
+
+  const device = options.device as BloomPostBufferDeviceLike;
+
+  if (device.createBuffer === undefined) {
+    options.diagnostics.push({
+      code: "webGpuPostPass.createBufferUnavailable",
+      effectId: options.effectId,
+      message: `Bloom post effect '${options.effectId}' cannot create blur parameter buffers.`,
+    });
+    return null;
+  }
+
+  if (device.queue?.writeBuffer === undefined) {
+    options.diagnostics.push({
+      code: "webGpuPostPass.writeBufferUnavailable",
+      effectId: options.effectId,
+      message: `Bloom post effect '${options.effectId}' cannot upload blur parameter buffers.`,
+    });
+    return null;
+  }
+
+  const width = Math.max(1, options.output.width);
+  const height = Math.max(1, options.output.height);
+  const current = options.slot.current;
+
+  if (current !== null) {
+    if (current.width !== width || current.height !== height) {
+      const upload = new Float32Array([1 / width, 1 / height, 0, 0]);
+
+      try {
+        device.queue.writeBuffer(current.buffer, 0, upload);
+      } catch (error) {
+        options.diagnostics.push({
+          code: "webGpuPostPass.writeBufferUnavailable",
+          effectId: options.effectId,
+          message:
+            error instanceof Error
+              ? error.message
+              : `Bloom post effect '${options.effectId}' could not update blur parameters.`,
+        });
+        return null;
+      }
+
+      current.width = width;
+      current.height = height;
+    }
+
+    return current;
+  }
+
+  let buffer: unknown;
+  const upload = new Float32Array([1 / width, 1 / height, 0, 0]);
+
+  try {
+    buffer = device.createBuffer({
+      label: `${options.label}:blur-params:${width}x${height}`,
+      size: BLOOM_BLUR_PARAMETER_BUFFER_BYTES,
+      usage:
+        WEBGPU_BUFFER_USAGE_FLAGS.UNIFORM | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
+      mappedAtCreation: false,
+    });
+    device.queue.writeBuffer(buffer, 0, upload);
+  } catch (error) {
+    options.diagnostics.push({
+      code: "webGpuPostPass.createBufferUnavailable",
+      effectId: options.effectId,
+      message:
+        error instanceof Error
+          ? error.message
+          : `Bloom post effect '${options.effectId}' could not create blur parameters.`,
+    });
+    return null;
+  }
+
+  const next = { buffer, width, height };
+  options.slot.current = next;
+  return next;
 }
 
 function createCompositeBloomCommands(options: {
@@ -572,7 +744,9 @@ function createCompositeBloomCommands(options: {
   readonly diagnostics: WebGpuPostPassDiagnostic[];
 }): readonly RenderPassCommand[] {
   const baseView = options.base.texture.createView?.();
-  const bloomViews = options.bloomLevels.map((level) => level.texture.createView?.());
+  const bloomViews = options.bloomLevels.map((level) =>
+    level.texture.createView?.(),
+  );
 
   if (baseView === undefined || bloomViews.some((view) => view === undefined)) {
     options.diagnostics.push({
@@ -797,7 +971,9 @@ function bloomKernelSize(index: number): number {
 function gaussianCoefficients(kernelSize: number): readonly number[] {
   const sigma = kernelSize / 3;
   return Array.from({ length: kernelSize }, (_, index) => {
-    return (0.39894 * Math.exp((-0.5 * index * index) / (sigma * sigma))) / sigma;
+    return (
+      (0.39894 * Math.exp((-0.5 * index * index) / (sigma * sigma))) / sigma
+    );
   });
 }
 
@@ -820,9 +996,7 @@ function bloomPostEffectWgsl(options: {
         ? bloomBrightpassFragmentWgsl({ threshold: options.threshold })
         : bloomGaussianBlurFragmentWgsl({
             direction:
-              options.kind === "blur-horizontal"
-                ? [1, 0]
-                : ([0, 1] as const),
+              options.kind === "blur-horizontal" ? [1, 0] : ([0, 1] as const),
             kernelSize: options.kernelSize ?? BLOOM_KERNEL_SIZES[0],
           });
 
@@ -893,6 +1067,13 @@ function bloomGaussianBlurFragmentWgsl(options: {
 @group(0) @binding(0) var inputSampler: sampler;
 @group(0) @binding(1) var inputTexture: texture_2d<f32>;
 
+struct BloomBlurParameters {
+  invSize: vec2f,
+  _padding: vec2f,
+}
+
+@group(0) @binding(2) var<uniform> blurParams: BloomBlurParameters;
+
 const KERNEL_SIZE: i32 = ${kernelSize};
 const BLUR_DIRECTION = vec2f(${wgslNumber(options.direction[0])}, ${wgslNumber(options.direction[1])});
 const GAUSSIAN_COEFFICIENTS = array<f32, ${kernelSize}>(${coefficients});
@@ -903,8 +1084,7 @@ fn sampleColor(uv: vec2f) -> vec3f {
 
 @fragment
 fn fs(input: VertexOutput) -> @location(0) vec4f {
-  let dimensions = vec2f(textureDimensions(inputTexture, 0));
-  let texel = 1.0 / max(dimensions, vec2f(1.0));
+  let texel = blurParams.invSize;
   let uv = input.uv;
   var color = sampleColor(uv) * GAUSSIAN_COEFFICIENTS[0];
   for (var i: i32 = 1; i < KERNEL_SIZE; i = i + 1) {
@@ -923,7 +1103,11 @@ function bloomCompositeFragmentWgsl(options: {
   readonly kernelSize: number | null;
   readonly levelCount: number;
 }): string {
-  const levelCount = clampInteger(options.levelCount, 1, BLOOM_KERNEL_SIZES.length);
+  const levelCount = clampInteger(
+    options.levelCount,
+    1,
+    BLOOM_KERNEL_SIZES.length,
+  );
   const textureBindings = Array.from(
     { length: levelCount },
     (_, index) =>
