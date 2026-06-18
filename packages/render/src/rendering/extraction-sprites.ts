@@ -205,6 +205,7 @@ export function extractSpriteDraws(
       entity: entityRef(entity),
       texture: input.texture,
       ...(input.sampler === undefined ? {} : { sampler: input.sampler }),
+      depthMode: input.depthMode ?? "test",
       color: Array.from(entity.getVectorView(Sprite, "color")) as [
         number,
         number,

@@ -127,6 +127,7 @@ export * from "./shadows/point-shadow-view-projection-plan.js";
 export * from "./shadows/spot-shadow-matrix-computation.js";
 export * from "./shadows/spot-shadow-view-projection-plan.js";
 export * from "./render/sprites/sprite-pipeline.js";
+export * from "./app/sprites.js";
 export * from "./render/text/msdf-text-pipeline.js";
 export * from "./app/text.js";
 export * from "./render/ui/ui-quad-pipeline.js";

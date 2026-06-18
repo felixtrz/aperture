@@ -329,9 +329,7 @@ export function createSpriteFrameResources(options: {
       device.createBindGroup({
         label: `Sprite/TransformBindGroup/${renderPipeline.cacheKey}`,
         layout: pipeline.getBindGroupLayout(1),
-        entries: [
-          { binding: 0, resource: { buffer: transformBuffer.buffer } },
-        ],
+        entries: [{ binding: 0, resource: { buffer: transformBuffer.buffer } }],
       });
     transformBindGroups.set(renderPipeline.cacheKey, transformBindGroup);
 
@@ -589,7 +587,7 @@ function packLegacySpriteData(
       renderId: draw.renderId,
       texture: draw.texture,
       ...(draw.sampler === undefined ? {} : { sampler: draw.sampler }),
-      depthMode: "test",
+      depthMode: draw.depthMode ?? "test",
       firstInstance: index,
       instanceCount: 1,
     });
@@ -652,8 +650,8 @@ function spriteDepthModesForSnapshot(
     modes.add(batch.depthMode ?? "test");
   }
 
-  if (spriteDraws.length > 0) {
-    modes.add("test");
+  for (const draw of spriteDraws) {
+    modes.add(draw.depthMode ?? "test");
   }
 
   return modes;

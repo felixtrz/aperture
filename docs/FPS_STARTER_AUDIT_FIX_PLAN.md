@@ -3,7 +3,7 @@
 **Created:** 2026-06-17
 **Updated:** 2026-06-17
 **Source:** Multi-agent audit of `b80e8a43b61e9b6a234e443c05ff8448c7bc471b` through `fps-starter-kit-port`.
-**Status:** Batch 1 implemented; Batch 2 Vite HMR, particle, and
+**Status:** Batch 1 implemented; Batch 2 Vite HMR, sprite depth, particle, and
 render-interpolation items implemented; remaining Batch 2 and Batch 3 pending.
 
 This plan converts the confirmed audit findings from the FPS starter-kit branch
@@ -147,7 +147,7 @@ pnpm --dir shadow-lab run build
 
 ## Batch 2 - Confirmed Mediums
 
-**Status:** partial. Items 2, 4, 5, and 6 implemented 2026-06-17 on
+**Status:** partial. Items 2, 3, 4, 5, and 6 implemented 2026-06-17 on
 `fix/audit-resource-lifecycle`.
 
 **Recommended branch:** `fix/audit-render-dev-mediums`
@@ -205,6 +205,8 @@ the resource leaks and API-contract bug.
   - Dev HMR stops serving a removed system after invalidation.
 
 ### 3. Sprite-Only Depth Mode
+
+**Status:** implemented 2026-06-17 on `fix/audit-resource-lifecycle`.
 
 - File: `packages/webgpu/src/app/sprite-frame.ts`
 - Problem:

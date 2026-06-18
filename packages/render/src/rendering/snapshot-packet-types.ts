@@ -85,6 +85,7 @@ export interface SpriteDrawPacket {
   readonly entity: RenderEntityRef;
   readonly texture: TextureHandle;
   readonly sampler?: SamplerHandle | null;
+  readonly depthMode?: QuadDepthMode;
   readonly color: Vec4Like;
   readonly width: number;
   readonly height: number;

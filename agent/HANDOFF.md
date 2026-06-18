@@ -1,3 +1,56 @@
+# Handoff - FPS Audit Batch 2 Sprite Depth Fix
+
+**Updated:** 2026-06-17 17:22 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 2 item 3 from `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Routed the sprite-only WebGPU frame path through
+  `prepareSpriteFrameResourcesForSnapshot`, so mesh-less sprite frames use the
+  same per-depth-mode pipeline selection as mixed render paths.
+- Added `depthMode` to legacy `SpriteDrawPacket` and extraction output, then
+  preserved that field when packing legacy sprite draw data.
+- Exposed sprite frame resource helpers through the WebGPU test-support barrel.
+- Added a focused mesh-less legacy sprite resource test proving default and
+  `depthMode: "disabled"` sprites create/select distinct depth-tested and
+  depth-disabled pipelines.
+- Marked Batch 2 item 3 implemented in the audit plan; Batch 2 items 0 and 1
+  remain pending.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/sprite-frame-resources.test.ts`
+- `pnpm exec vitest run test/webgpu/sprite-pipeline.test.ts test/rendering/extraction.test.ts`
+- `pnpm exec vitest run test/webgpu/sprite-frame-resources.test.ts test/webgpu/sprite-pipeline.test.ts test/rendering/extraction.test.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm exec prettier --check packages/render/src/rendering/snapshot-packet-types.ts packages/render/src/rendering/extraction-sprites.ts packages/webgpu/src/app/sprites.ts packages/webgpu/src/app/sprite-frame.ts packages/webgpu/src/test-support.ts test/webgpu/sprite-frame-resources.test.ts`
+- `git diff --check`
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- No managed browser sessions were started for this slice.
+
+## Recommended Next Task
+
+Continue Batch 2 with visual baseline protection or bloom mip texel sizing.
+Keep the bloom radius fix separate from intentional threshold/golden baseline
+changes.
+
+---
+
 # Handoff - FPS Audit Batch 2 Vite Worker HMR Fix
 
 **Updated:** 2026-06-17 17:14 PDT

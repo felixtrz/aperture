@@ -7,8 +7,7 @@ import {
 import { mapFrameBoundaryReadbackSamples } from "../render/frame/frame-boundary.js";
 import type { CreateSpriteRenderPipelineResourceResult } from "../render/sprites/sprite-pipeline.js";
 import {
-  createSpriteFrameResources,
-  getOrCreateWebGpuAppSpritePipeline,
+  prepareSpriteFrameResourcesForSnapshot,
   type SpriteFrameResources,
 } from "./sprites.js";
 import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
@@ -65,9 +64,20 @@ export async function renderSpriteOnlyWebGpuAppFrame(
   };
 
   if (spriteDraws.length > 0 || hasQuadSpriteBatches) {
-    pipeline = await getOrCreateWebGpuAppSpritePipeline(app, resourceCache);
+    const spriteFrame = await prepareSpriteFrameResourcesForSnapshot({
+      app,
+      assets: sourceAssets,
+      cache: resourceCache,
+      snapshot: options.snapshot,
+      viewUniforms: packedViews,
+      worldTransforms: packedTransforms,
+      reuse,
+    });
 
-    if (!pipeline.valid || pipeline.resource === null) {
+    pipeline = spriteFrame.pipeline;
+    spriteResources = spriteFrame.resources;
+
+    if (!spriteResources.valid) {
       return renderReport({
         ok: false,
         snapshot: options.snapshot,
@@ -77,22 +87,10 @@ export async function renderSpriteOnlyWebGpuAppFrame(
           ...options.snapshot.diagnostics,
           ...packedViews.diagnostics,
           ...packedTransforms.diagnostics,
-          ...pipeline.diagnostics,
+          ...spriteResources.diagnostics,
         ],
       });
     }
-
-    spriteResources = createSpriteFrameResources({
-      app,
-      assets: sourceAssets,
-      cache: resourceCache,
-      snapshot: options.snapshot,
-      spriteDraws,
-      viewUniforms: packedViews,
-      worldTransforms: packedTransforms,
-      pipeline: pipeline.resource,
-      reuse,
-    });
   }
 
   if (!spriteResources.valid) {
