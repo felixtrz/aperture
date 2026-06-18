@@ -11,7 +11,10 @@ import type {
   ShadowRequestPacket,
   ViewPacket,
 } from "./snapshot.js";
-import type { PacketSnapshot } from "./snapshot-change-set-compare.js";
+import type {
+  PacketSnapshot,
+  PacketSnapshotKey,
+} from "./snapshot-change-set-compare.js";
 
 export function viewPackets(
   snapshot: RenderSnapshot | null | undefined,
@@ -19,7 +22,8 @@ export function viewPackets(
   return {
     packets: snapshot?.views ?? [],
     state: snapshot ?? null,
-    key: (view) => `view:${view.viewId}`,
+    key: (view) => view.viewId,
+    formatKey: (key) => `view:${String(key)}`,
     equals: viewPacketsEqual,
     signature: (view) =>
       stableStringify({
@@ -61,7 +65,8 @@ function meshDrawPacketFamily(
   return {
     packets,
     state: snapshot ?? null,
-    key: (draw) => `${keyPrefix}:${draw.renderId}`,
+    key: (draw) => draw.renderId,
+    formatKey: (key) => `${keyPrefix}:${String(key)}`,
     equals: meshDrawPacketsEqual,
     signature: (draw) =>
       stableStringify({
@@ -84,7 +89,8 @@ export function lightPackets(
   return {
     packets: snapshot?.lights ?? [],
     state: snapshot ?? null,
-    key: (light) => `light:${light.lightId}`,
+    key: (light) => light.lightId,
+    formatKey: (key) => `light:${String(key)}`,
     equals: lightPacketsEqual,
     signature: (light) =>
       stableStringify({
@@ -102,7 +108,8 @@ export function environmentPackets(
 ): PacketSnapshot<EnvironmentPacket> {
   return {
     packets: snapshot?.environments ?? [],
-    key: (environment) => `environment:${environment.environmentId}`,
+    key: (environment) => environment.environmentId,
+    formatKey: (key) => `environment:${String(key)}`,
     equals: environmentPacketsEqual,
     signature: (environment) =>
       stableStringify({
@@ -120,7 +127,8 @@ export function shadowRequestPackets(
 ): PacketSnapshot<ShadowRequestPacket> {
   return {
     packets: snapshot?.shadowRequests ?? [],
-    key: (request) => `shadow-request:${request.shadowId}`,
+    key: (request) => request.shadowId,
+    formatKey: (key) => `shadow-request:${String(key)}`,
     equals: shadowRequestPacketsEqual,
     signature: stableStringify,
   };
@@ -132,21 +140,47 @@ export function boundsPackets(
   return {
     packets: snapshot?.bounds ?? [],
     key: boundsPacketKey,
+    formatKey: formatBoundsPacketKey,
     equals: boundsPacketsEqual,
     signature: stableStringify,
   };
 }
 
-function boundsPacketKey(bounds: BoundsPacket): string {
-  const entityKey = `bounds:${bounds.entity.index}:${bounds.entity.generation}`;
+const BOUNDS_ENTITY_KEY_GENERATION_STRIDE = 1_000_000;
 
+function boundsPacketKey(bounds: BoundsPacket): PacketSnapshotKey {
   // Particle burst bounds currently use a synthetic entity with no stable
   // source id. Keep those slot-qualified until burst bounds carry emitter
   // identity; normal ECS entity bounds need stable keys because culling can
   // shift boundsId between snapshots.
-  return bounds.entity.index < 0
-    ? `${entityKey}:${bounds.boundsId}`
-    : entityKey;
+  if (bounds.entity.index < 0) {
+    return `bounds:${bounds.entity.index}:${bounds.entity.generation}:${bounds.boundsId}`;
+  }
+
+  const packed =
+    bounds.entity.index * BOUNDS_ENTITY_KEY_GENERATION_STRIDE +
+    bounds.entity.generation;
+
+  if (
+    bounds.entity.generation >= 0 &&
+    bounds.entity.generation < BOUNDS_ENTITY_KEY_GENERATION_STRIDE &&
+    Number.isSafeInteger(packed)
+  ) {
+    return packed;
+  }
+
+  return `bounds:${bounds.entity.index}:${bounds.entity.generation}`;
+}
+
+function formatBoundsPacketKey(key: PacketSnapshotKey): string {
+  if (typeof key !== "number") {
+    return key;
+  }
+
+  const entityIndex = Math.trunc(key / BOUNDS_ENTITY_KEY_GENERATION_STRIDE);
+  const entityGeneration = key % BOUNDS_ENTITY_KEY_GENERATION_STRIDE;
+
+  return `bounds:${entityIndex}:${entityGeneration}`;
 }
 
 function viewPacketsEqual(

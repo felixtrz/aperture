@@ -3,6 +3,8 @@ import type {
   RenderSnapshotFamilyChangeKeys,
 } from "./snapshot-change-set-types.js";
 
+export type PacketSnapshotKey = string | number;
+
 export interface PacketSnapshot<TPacket> {
   readonly packets: readonly TPacket[];
   readonly signature?: (packet: TPacket) => string;
@@ -12,7 +14,8 @@ export interface PacketSnapshot<TPacket> {
     previousState: unknown,
     nextState: unknown,
   ) => boolean;
-  readonly key: (packet: TPacket) => string;
+  readonly key: (packet: TPacket) => PacketSnapshotKey;
+  readonly formatKey?: (key: PacketSnapshotKey) => string;
   readonly state?: unknown;
 }
 
@@ -30,7 +33,7 @@ export function comparePacketFamily<TPacket>(
   next: PacketSnapshot<TPacket>,
   options: ComparePacketFamilyOptions = {},
 ): PacketFamilyComparison {
-  const previousPackets = new Map<string, TPacket[]>();
+  const previousPackets = new Map<PacketSnapshotKey, TPacket[]>();
   const includeKeys = options.includeKeys !== false;
   const changedKeys: string[] | null = includeKeys ? [] : null;
   const unchangedKeys: string[] | null = includeKeys ? [] : null;
@@ -60,15 +63,15 @@ export function comparePacketFamily<TPacket>(
 
     if (previousPacketIndex !== -1) {
       unchanged += 1;
-      unchangedKeys?.push(key);
+      unchangedKeys?.push(formatPacketKey(next, key));
       removePreviousPacket(previousPackets, key, previousPacketIndex);
     } else if (bucket !== undefined && bucket.length > 0) {
       changed += 1;
-      changedKeys?.push(key);
+      changedKeys?.push(formatPacketKey(next, key));
       removePreviousPacket(previousPackets, key, 0);
     } else {
       changed += 1;
-      changedKeys?.push(key);
+      changedKeys?.push(formatPacketKey(next, key));
     }
   }
 
@@ -83,7 +86,7 @@ export function comparePacketFamily<TPacket>(
           keys: {
             changed: changedKeys ?? [],
             unchanged: unchangedKeys ?? [],
-            removed: remainingPacketKeys(previousPackets),
+            removed: remainingPacketKeys(previous, previousPackets),
           },
         }
       : {}),
@@ -106,8 +109,8 @@ function findEqualPreviousPacketIndex<TPacket>(
 }
 
 function removePreviousPacket<TPacket>(
-  previousPackets: Map<string, TPacket[]>,
-  key: string,
+  previousPackets: Map<PacketSnapshotKey, TPacket[]>,
+  key: PacketSnapshotKey,
   index: number,
 ): void {
   const bucket = previousPackets.get(key);
@@ -122,7 +125,7 @@ function removePreviousPacket<TPacket>(
 }
 
 function countRemainingPackets<TPacket>(
-  packets: ReadonlyMap<string, readonly TPacket[]>,
+  packets: ReadonlyMap<PacketSnapshotKey, readonly TPacket[]>,
 ): number {
   let count = 0;
   for (const bucket of packets.values()) {
@@ -133,16 +136,24 @@ function countRemainingPackets<TPacket>(
 }
 
 function remainingPacketKeys<TPacket>(
-  packets: ReadonlyMap<string, readonly TPacket[]>,
+  snapshot: PacketSnapshot<TPacket>,
+  packets: ReadonlyMap<PacketSnapshotKey, readonly TPacket[]>,
 ): string[] {
   const keys: string[] = [];
   for (const [key, bucket] of packets) {
     for (let index = 0; index < bucket.length; index += 1) {
-      keys.push(key);
+      keys.push(formatPacketKey(snapshot, key));
     }
   }
 
   return keys;
+}
+
+function formatPacketKey<TPacket>(
+  snapshot: PacketSnapshot<TPacket>,
+  key: PacketSnapshotKey,
+): string {
+  return snapshot.formatKey?.(key) ?? String(key);
 }
 
 function packetsEqual<TPacket>(

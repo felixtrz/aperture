@@ -23,7 +23,8 @@ compact app-facing retained resource diagnostics, browser performance status
 cadence throttling, status-only render-change-set key compaction with a full
 tooling accessor, generated-worker tick-rate pacing, and time-based full worker
 summary cadence, plus bounds change-set duplicate-key handling and app-facing
-shadow/direct-light status compaction.
+shadow/direct-light status compaction, plus numeric internal snapshot
+change-set keys.
 
 **Sources:**
 
@@ -49,6 +50,12 @@ shadow/direct-light status compaction.
   `25.7 KB` to `17.3 KB`, and last-frame status from `24.0 KB` to `15.5 KB`.
   Short forced-GC heap remained about `59-60 MB`, so this is a
   status/payload fix, not the full heap-retention answer.
+- Latest heap allocation sample after numeric internal snapshot change-set
+  keys: generic packet `key` allocation dropped out of the top sampled
+  allocations, while `boundsPacketKey` dropped from about `0.47 MB` to
+  `0.25 MB` in the comparable 6 second keyboard-drive sample. Forced-GC heap
+  remained about `65-66 MB`, so this is allocation-churn reduction, not a
+  retained-heap fix.
 - Rejected particle burst bind-group cache experiment saved at
   `/tmp/racing-frame-audit-particle-bindgroup-cache.json`
   (`2026-06-18T15:18:50.801Z`). It worsened the paired audit drive tail
@@ -212,6 +219,9 @@ hacks.
 - Snapshot change-set comparison now consumes duplicate-key buckets instead of
   overwriting previous packets. Entity bounds use stable entity keys, while
   synthetic particle bounds remain slot-qualified until they carry a source id.
+- Snapshot change-set comparison now uses numeric internal keys for normal
+  packet identities and formats strings only for diagnostic key arrays, reducing
+  per-snapshot key string churn while preserving full explicit reports.
 - App-facing shadow and direct-light diagnostics now keep compact readiness,
   counts, sections, and resource-presence booleans while full explicit reports
   retain detailed matrices, draw samples, and pipeline-derived resource keys.
@@ -1391,6 +1401,9 @@ Updated status:
 - App-facing shadow/direct-light status bloat: fixed for browser status; latest
   live status probe reports generated app status around `26.9 KB` and last-frame
   status around `15.5 KB`, while full reports retain detailed diagnostics.
+- Snapshot change-set key string churn: partially fixed with numeric internal
+  comparison keys; latest sample removed generic packet key formatting from the
+  top allocation list, though bounds/particle key churn still remains visible.
 - Particle burst bind-group cache experiment: tested and backed out after the
   paired audit worsened drive p99/max.
 - High-DPR backing-store mismatch: still open.
