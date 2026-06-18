@@ -459,7 +459,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly renderUpdateSchedule?: WebGpuAppJsonValue;
   readonly counts: WebGpuAppRenderCounts;
   readonly diagnostics: readonly WebGpuAppJsonValue[];
-  readonly diagnosticsSummary?: WebGpuAppDiagnosticsSummary;
+  readonly diagnosticsSummary?: WebGpuAppJsonValue;
   readonly resourceReuse: WebGpuAppResourceReuseReport;
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];

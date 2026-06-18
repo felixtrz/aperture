@@ -58,6 +58,52 @@ describe("WebGPU app report serialization", () => {
       removed: 0,
     });
   });
+
+  it("compacts heavy shadow and diagnostics summary fields for status reports", () => {
+    const report = renderReport({
+      ok: true,
+      snapshot: emptySnapshot(3),
+      diagnostics: [],
+      diagnosticsSummary: diagnosticsSummaryWithDirectLighting() as never,
+      shadow: shadowReportWithDetails() as never,
+    });
+    const full = webGpuAppRenderReportToJsonValue(report);
+    const status = webGpuAppRenderReportToJsonValue(report, {
+      detail: "status",
+    });
+
+    expect(full.shadow?.["matrixComputation"]?.["matrices"]).toHaveLength(1);
+    expect(
+      full.shadow?.["casterDrawList"]?.["lists"]?.[0]?.["drawSample"],
+    ).toHaveLength(8);
+    expect(status.shadow?.["matrixComputation"]).not.toHaveProperty("matrices");
+    expect(status.shadow?.["casterDrawList"]).toMatchObject({
+      includedDrawCount: 9,
+      diagnosticCount: 0,
+    });
+    expect(status.shadow?.["casterDrawList"]).not.toHaveProperty("lists");
+    expect(
+      full.diagnosticsSummary?.["directLighting"]?.["shaderMetadata"]?.[
+        "diagnostics"
+      ],
+    ).toHaveLength(1);
+    expect(
+      status.diagnosticsSummary?.["directLighting"]?.["shaderMetadata"],
+    ).toEqual({
+      valid: false,
+      diagnosticCount: 1,
+    });
+    expect(
+      status.diagnosticsSummary?.["directLighting"]?.["resources"],
+    ).toEqual({
+      lightGpuBuffer: true,
+      lightBindGroupLayout: true,
+      lightBindGroup: true,
+    });
+    expect(status.diagnosticsSummary?.["directLighting"]).not.toHaveProperty(
+      "diagnostics",
+    );
+  });
 });
 
 const noChanges: RenderSnapshotFamilyChangeCounts = {
@@ -124,6 +170,187 @@ function emptyKeys(): {
     changed: [],
     unchanged: [],
     removed: [],
+  };
+}
+
+function diagnosticsSummaryWithDirectLighting(): unknown {
+  return {
+    sectionCount: 1,
+    directLighting: {
+      ready: false,
+      lightCounts: {
+        total: 1,
+        direct: 1,
+        ambient: 0,
+        directional: 1,
+        point: 0,
+        spot: 0,
+        rectArea: 0,
+        environment: 0,
+        areaShapes: {
+          rect: 0,
+          disk: 0,
+          sphere: 0,
+        },
+      },
+      sections: {
+        lightGpuBuffers: true,
+        lightBindGroupLayout: true,
+        lightBindGroup: true,
+        shaderMetadata: false,
+      },
+      resources: {
+        lightGpuBufferResourceKey: "light-buffer",
+        lightBindGroupLayoutKey: "light-layout",
+        lightBindGroupResourceKey: "light-bind-group",
+      },
+      shaderMetadata: {
+        valid: false,
+        diagnostics: [
+          {
+            code: "shader.missingBinding",
+            severity: "error",
+            message: "Missing light binding.",
+          },
+        ],
+      },
+      diagnostics: [
+        {
+          code: "light.notReady",
+          severity: "error",
+          message: "Light resources are not ready.",
+        },
+      ],
+    },
+  };
+}
+
+function shadowReportWithDetails(): unknown {
+  return {
+    ready: true,
+    status: "ready",
+    shadowKind: "directional",
+    requestCount: 1,
+    passCount: 1,
+    drawCalls: 2,
+    descriptor: {
+      ready: true,
+      requestCount: 1,
+      descriptorCount: 1,
+      sections: {
+        shadowRequests: true,
+        shadowMapDescriptors: true,
+        shadowPassSubmission: false,
+      },
+      descriptors: [{ shadowId: 1, mapSize: 1024 }],
+      diagnostics: [],
+    },
+    viewProjection: {
+      ready: true,
+      status: "ready",
+      requestCount: 1,
+      passCount: 1,
+      planCount: 1,
+      sections: {
+        shadowRequests: true,
+        lightPackets: true,
+        passPlans: true,
+        matrixPlanning: true,
+        gpuResources: false,
+      },
+      plans: [{ shadowId: 1, planKey: "shadow-plan" }],
+      diagnostics: [],
+    },
+    matrixComputation: {
+      ready: true,
+      status: "ready",
+      planCount: 1,
+      matrixCount: 1,
+      sections: {
+        viewProjectionPlanning: true,
+        transformData: true,
+        matrixComputation: true,
+        gpuBufferAllocation: false,
+        upload: false,
+        passSubmission: false,
+      },
+      matrices: [{ matrixKey: "shadow-matrix", viewProjectionMatrix: [1] }],
+      diagnostics: [],
+    },
+    casterDrawList: {
+      ready: true,
+      status: "ready",
+      requestCount: 1,
+      meshDrawCount: 9,
+      listCount: 1,
+      includedDrawCount: 9,
+      skippedDrawCount: 0,
+      sections: {
+        shadowRequests: true,
+        passPlans: true,
+        casterFiltering: true,
+        commandEncoding: true,
+      },
+      lists: [
+        {
+          shadowId: 1,
+          lightId: 1,
+          passKey: "shadow-pass",
+          casterLayerMask: -1,
+          receiverLayerMask: -1,
+          includedDrawCount: 9,
+          skippedDrawCount: 0,
+          commandEncoding: "ready",
+          draws: Array.from({ length: 9 }, (_, index) => ({
+            renderId: index,
+            meshKey: `mesh:${index}`,
+            materialKey: "material",
+            meshLayoutKey: "POSITION",
+            casterCullMode: "front",
+            submesh: 0,
+          })),
+        },
+      ],
+      diagnostics: [],
+    },
+    depthTextureKeys: ["shadow-depth"],
+    matrixBufferResourceKey: "shadow-matrix-buffer",
+    sections: {
+      shadowRequests: true,
+      depthTextureResources: true,
+      matrixBufferResource: true,
+      samplerResource: true,
+      pipelineResource: true,
+      matrixBindGroupResource: true,
+      commandBufferSubmission: false,
+      receiverResources: true,
+    },
+    resourceReuse: {
+      depthTexturesCreated: 0,
+      depthTexturesReused: 1,
+      matrixBuffersCreated: 0,
+      matrixBuffersReused: 1,
+      samplersCreated: 0,
+      samplersReused: 1,
+      pipelinesCreated: 0,
+      pipelinesReused: 1,
+      matrixBindGroupsCreated: 0,
+      matrixBindGroupsReused: 1,
+    },
+    commandBufferSubmission: {
+      status: "ready",
+      assembledPasses: 1,
+      commandBuffers: 0,
+      submittedCommandBuffers: 0,
+      commandBufferKeys: ["shadow-command"],
+      sections: {
+        encoderAssembly: false,
+        commandBufferFinish: false,
+        queueSubmission: false,
+        shaderSampling: false,
+      },
+    },
+    diagnostics: [],
   };
 }
 

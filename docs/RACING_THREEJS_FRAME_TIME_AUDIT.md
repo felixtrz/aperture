@@ -22,7 +22,8 @@ transient worker-summary retention cleanup, CLI/runtime entity explain fallback,
 compact app-facing retained resource diagnostics, browser performance status
 cadence throttling, status-only render-change-set key compaction with a full
 tooling accessor, generated-worker tick-rate pacing, and time-based full worker
-summary cadence, plus bounds change-set key disambiguation.
+summary cadence, plus bounds change-set duplicate-key handling and app-facing
+shadow/direct-light status compaction.
 
 **Sources:**
 
@@ -42,6 +43,12 @@ summary cadence, plus bounds change-set key disambiguation.
   `318 changed / 391 unchanged / 2 removed` bounds, replacing the previous
   all-changed/all-removed false-churn pattern. This was not a full paired
   three.js benchmark.
+- Latest live Racing status-size probe on `http://127.0.0.1:5173/` after
+  compact app-facing shadow/direct-light status serialization: generated app
+  status dropped from about `35.2 KB` to `26.9 KB`, diagnostics from
+  `25.7 KB` to `17.3 KB`, and last-frame status from `24.0 KB` to `15.5 KB`.
+  Short forced-GC heap remained about `59-60 MB`, so this is a
+  status/payload fix, not the full heap-retention answer.
 - Rejected particle burst bind-group cache experiment saved at
   `/tmp/racing-frame-audit-particle-bindgroup-cache.json`
   (`2026-06-18T15:18:50.801Z`). It worsened the paired audit drive tail
@@ -205,6 +212,9 @@ hacks.
 - Snapshot change-set comparison now consumes duplicate-key buckets instead of
   overwriting previous packets. Entity bounds use stable entity keys, while
   synthetic particle bounds remain slot-qualified until they carry a source id.
+- App-facing shadow and direct-light diagnostics now keep compact readiness,
+  counts, sections, and resource-presence booleans while full explicit reports
+  retain detailed matrices, draw samples, and pipeline-derived resource keys.
 - Worker summary publishing no longer sends a full entity lookup every snapshot;
   the browser merges retained fields for tooling.
 - MSAA + bloom/tonemap now stays on the post FrameGraph path instead of falling
@@ -1378,6 +1388,9 @@ Updated status:
   comparison and stable entity bounds keys; latest quick drive probe reports
   `318 / 391 / 2` changed, unchanged, and removed bounds instead of an
   all-changed/all-removed pattern.
+- App-facing shadow/direct-light status bloat: fixed for browser status; latest
+  live status probe reports generated app status around `26.9 KB` and last-frame
+  status around `15.5 KB`, while full reports retain detailed diagnostics.
 - Particle burst bind-group cache experiment: tested and backed out after the
   paired audit worsened drive p99/max.
 - High-DPR backing-store mismatch: still open.

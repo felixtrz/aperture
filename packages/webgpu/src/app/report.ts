@@ -123,6 +123,18 @@ export function webGpuAppRenderReportToJsonValue(
       : options.detail === "status"
         ? compactRenderSnapshotChangeSet(report.snapshotChangeSet)
         : toWebGpuAppJsonValue(report.snapshotChangeSet);
+  const diagnosticsSummary =
+    report.diagnosticsSummary === undefined
+      ? undefined
+      : options.detail === "status"
+        ? compactWebGpuAppDiagnosticsSummary(report.diagnosticsSummary)
+        : toWebGpuAppJsonValue(report.diagnosticsSummary);
+  const shadow =
+    report.shadow === undefined
+      ? undefined
+      : options.detail === "status"
+        ? compactRenderShadowFrameReport(report.shadow)
+        : renderShadowFrameReportToJsonValue(report.shadow);
 
   return {
     ok: report.ok,
@@ -139,9 +151,7 @@ export function webGpuAppRenderReportToJsonValue(
     diagnostics: report.diagnostics.map((diagnostic) =>
       toWebGpuAppJsonValue(diagnostic),
     ),
-    ...(report.diagnosticsSummary === undefined
-      ? {}
-      : { diagnosticsSummary: report.diagnosticsSummary }),
+    ...(diagnosticsSummary === undefined ? {} : { diagnosticsSummary }),
     resourceReuse,
     ...(report.depthAttachment === undefined
       ? {}
@@ -177,9 +187,7 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.motionVectors === undefined
       ? {}
       : { motionVectors: report.motionVectors }),
-    ...(report.shadow === undefined
-      ? {}
-      : { shadow: renderShadowFrameReportToJsonValue(report.shadow) }),
+    ...(shadow === undefined ? {} : { shadow }),
     ...(report.localLightClusters === undefined
       ? {}
       : { localLightClusters: report.localLightClusters }),
@@ -268,6 +276,128 @@ function compactWebGpuAppResourceReuseReport(
       entries: [],
     },
   };
+}
+
+function compactWebGpuAppDiagnosticsSummary(
+  summary: WebGpuAppDiagnosticsSummary,
+): WebGpuAppJsonValue {
+  return toWebGpuAppJsonValue({
+    sectionCount: summary.sectionCount,
+    ...(summary.materialQueue === undefined
+      ? {}
+      : { materialQueue: summary.materialQueue }),
+    ...(summary.materialQueueRoute === undefined
+      ? {}
+      : { materialQueueRoute: summary.materialQueueRoute }),
+    ...(summary.routedResourceSet === undefined
+      ? {}
+      : { routedResourceSet: summary.routedResourceSet }),
+    ...(summary.builtInAppResourceAdapters === undefined
+      ? {}
+      : { builtInAppResourceAdapters: summary.builtInAppResourceAdapters }),
+    ...(summary.renderFrameQueue === undefined
+      ? {}
+      : { renderFrameQueue: summary.renderFrameQueue }),
+    ...(summary.renderQueueSortPhases === undefined
+      ? {}
+      : {
+          renderQueueSortPhases: summary.renderQueueSortPhases.map((phase) => ({
+            ...phase,
+          })),
+        }),
+    ...(summary.gpuTimings === undefined
+      ? {}
+      : { gpuTimings: summary.gpuTimings }),
+    ...(summary.directLighting === undefined
+      ? {}
+      : {
+          directLighting: {
+            ready: summary.directLighting.ready,
+            lightCounts: { ...summary.directLighting.lightCounts },
+            sections: { ...summary.directLighting.sections },
+            resources: {
+              lightGpuBuffer:
+                summary.directLighting.resources.lightGpuBufferResourceKey !==
+                null,
+              lightBindGroupLayout:
+                summary.directLighting.resources.lightBindGroupLayoutKey !==
+                null,
+              lightBindGroup:
+                summary.directLighting.resources.lightBindGroupResourceKey !==
+                null,
+            },
+            shaderMetadata: {
+              valid: summary.directLighting.shaderMetadata.valid,
+              diagnosticCount:
+                summary.directLighting.shaderMetadata.diagnostics.length,
+            },
+            diagnosticCount: summary.directLighting.diagnostics.length,
+          },
+        }),
+  });
+}
+
+function compactRenderShadowFrameReport(
+  shadow: NonNullable<WebGpuAppRenderReport["shadow"]>,
+): WebGpuAppJsonValue {
+  return toWebGpuAppJsonValue({
+    ready: shadow.ready,
+    status: shadow.status,
+    shadowKind: shadow.shadowKind,
+    requestCount: shadow.requestCount,
+    passCount: shadow.passCount,
+    drawCalls: shadow.drawCalls,
+    descriptor: {
+      ready: shadow.descriptor.ready,
+      requestCount: shadow.descriptor.requestCount,
+      descriptorCount: shadow.descriptor.descriptorCount,
+      sections: { ...shadow.descriptor.sections },
+      diagnosticCount: shadow.descriptor.diagnostics.length,
+    },
+    viewProjection: {
+      ready: shadow.viewProjection.ready,
+      status: shadow.viewProjection.status,
+      requestCount: shadow.viewProjection.requestCount,
+      passCount: shadow.viewProjection.passCount,
+      planCount: shadow.viewProjection.planCount,
+      sections: { ...shadow.viewProjection.sections },
+      diagnosticCount: shadow.viewProjection.diagnostics.length,
+    },
+    matrixComputation: {
+      ready: shadow.matrixComputation.ready,
+      status: shadow.matrixComputation.status,
+      planCount: shadow.matrixComputation.planCount,
+      matrixCount: shadow.matrixComputation.matrixCount,
+      sections: { ...shadow.matrixComputation.sections },
+      diagnosticCount: shadow.matrixComputation.diagnostics.length,
+    },
+    casterDrawList: {
+      ready: shadow.casterDrawList.ready,
+      status: shadow.casterDrawList.status,
+      requestCount: shadow.casterDrawList.requestCount,
+      meshDrawCount: shadow.casterDrawList.meshDrawCount,
+      listCount: shadow.casterDrawList.listCount,
+      includedDrawCount: shadow.casterDrawList.includedDrawCount,
+      skippedDrawCount: shadow.casterDrawList.skippedDrawCount,
+      sections: { ...shadow.casterDrawList.sections },
+      diagnosticCount: shadow.casterDrawList.diagnostics.length,
+    },
+    depthTextureKeyCount: shadow.depthTextureKeys.length,
+    matrixBufferResourceKey: shadow.matrixBufferResourceKey,
+    sections: { ...shadow.sections },
+    resourceReuse: { ...shadow.resourceReuse },
+    commandBufferSubmission: {
+      status: shadow.commandBufferSubmission.status,
+      assembledPasses: shadow.commandBufferSubmission.assembledPasses,
+      commandBuffers: shadow.commandBufferSubmission.commandBuffers,
+      submittedCommandBuffers:
+        shadow.commandBufferSubmission.submittedCommandBuffers,
+      commandBufferKeyCount:
+        shadow.commandBufferSubmission.commandBufferKeys.length,
+      sections: { ...shadow.commandBufferSubmission.sections },
+    },
+    diagnosticCount: shadow.diagnostics.length,
+  });
 }
 
 function renderShadowFrameReportToJsonValue(
