@@ -77,6 +77,17 @@ change-set keys.
   The page also emitted repeated WebGL `ReadPixels` GPU-stall warnings. This
   confirms the headless three.js path is dominated by browser/driver WebGL
   GPU/presentation work, not app JS.
+- Latest headed three.js GPU-timer repeat:
+  `/tmp/racing-trace-headed-long-2/summary.json` (`2026-06-18`, command:
+  `pnpm run trace:racing ... --headed`). In headed Chrome, the same
+  non-blocking timer query path reported three.js idle GPU render section
+  `p50 4.56 ms / p95 5.99 ms / max 8.73 ms` and drive
+  `p50 4.73 ms / p95 6.20 ms / max 10.62 ms`, while the injected JS
+  `render` section stayed near `1.0-1.3 ms` and actual WebGL draw calls were
+  `93` idle / `87-98` drive. This supports the current diagnosis that
+  three.js is CPU-lean but still spends real GPU time on many WebGL draws, while
+  Aperture's remaining gap is mostly main-thread render preparation/cadence
+  overhead rather than draw-call count.
 - Latest clean headed render-loop harness run:
   `/tmp/racing-trace-headed-pair/summary.json` (`2026-06-18`, command:
   `pnpm run trace:racing ... --headed`). This is the current valid cadence
