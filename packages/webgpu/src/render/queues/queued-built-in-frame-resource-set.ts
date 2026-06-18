@@ -115,6 +115,12 @@ export interface PrepareQueuedBuiltInFrameResourceSetCallbacks<
   getPipeline(
     item: QueuedBuiltInAppResourceItem,
   ): Promise<TPipelineResult> | TPipelineResult;
+  onPipelineLookupReuse?(input: {
+    readonly item: QueuedBuiltInAppResourceItem;
+    readonly pipeline: TPipelineResult;
+    readonly pipelineKey: string;
+    readonly pipelineLookupKey: string;
+  }): void;
   getPipelineView(pipeline: TPipelineResult): QueuedBuiltInPipelineResourceView;
   getPipelineResourceKey?(input: {
     readonly item: QueuedBuiltInAppResourceItem;
@@ -240,6 +246,12 @@ export async function prepareQueuedBuiltInFrameResourceSet<
     scratch,
     callbacks: {
       getPipelineKey: (item) => item.draw.batchKey.pipelineKey,
+      getPipelineLookupKey: (item) =>
+        [
+          item.adapter.kind,
+          item.draw.batchKey.pipelineKey,
+          item.draw.batchKey.meshLayoutKey,
+        ].join("|"),
       ...(options.callbacks.getPipelineResourceKey === undefined
         ? {}
         : {
@@ -249,6 +261,9 @@ export async function prepareQueuedBuiltInFrameResourceSet<
       getSourceMeshKey: (item) => item.sourceMeshKey,
       getSourceMaterialKey: (item) => item.sourceMaterialKey,
       getPipeline: options.callbacks.getPipeline,
+      ...(options.callbacks.onPipelineLookupReuse === undefined
+        ? {}
+        : { onPipelineLookupReuse: options.callbacks.onPipelineLookupReuse }),
       getPipelineView: options.callbacks.getPipelineView,
       createPipelinePlanResult: options.callbacks.createPipelinePlanResult,
       getPipelineLayouts: options.callbacks.getPipelineLayouts,

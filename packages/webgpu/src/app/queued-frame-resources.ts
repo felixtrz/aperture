@@ -144,6 +144,11 @@ export async function prepareQueuedBuiltInFrameResources(
       : { instanceTints: options.instanceTints }),
     callbacks: {
       getPipeline: options.getPipeline,
+      onPipelineLookupReuse: ({ pipeline }) => {
+        if (pipeline.valid && pipeline.resource !== null) {
+          options.reuse.pipelineHits += 1;
+        }
+      },
       getPipelineView: (pipeline) => pipeline,
       getPipelineResourceKey: ({ item, pipeline }) =>
         pipeline.resource?.cacheKey ?? item.draw.batchKey.pipelineKey,

@@ -32,7 +32,7 @@ export type WebGpuAppPipelineResourceResult =
   | CreateSpriteRenderPipelineResourceResult
   | CreateCustomWgslMaterialRenderPipelineResourceResult;
 
-export async function getOrCreateWebGpuAppPipeline(options: {
+export function getOrCreateWebGpuAppPipeline(options: {
   readonly app: WebGpuApp;
   readonly cache: WebGpuAppResourceCache;
   readonly reuse: WebGpuAppResourceReuseReport;
@@ -41,7 +41,7 @@ export async function getOrCreateWebGpuAppPipeline(options: {
   readonly batchKey: RenderSnapshot["meshDraws"][number]["batchKey"];
   readonly motionVectorColorFormat?: string | null;
   readonly indirectColorFormat?: string | null;
-}): Promise<WebGpuAppPipelineResourceResult> {
+}): WebGpuAppPipelineResourceResult | Promise<WebGpuAppPipelineResourceResult> {
   // HDR scene-buffer path (M5-T4): the lit pass renders into rgba16float and the
   // material does NOT tonemap (tonemap+exposure+sRGB run in the final post
   // stage). Default path: sceneRenderFormat === the swapchain format -> unchanged.
@@ -92,7 +92,7 @@ export async function getOrCreateWebGpuAppPipeline(options: {
 
   const pipeline =
     options.kind === "standard"
-      ? await createStandardRenderPipelineResource({
+      ? createStandardRenderPipelineResource({
           device: options.app.initialization.device as Parameters<
             typeof createStandardRenderPipelineResource
           >[0]["device"],
@@ -111,7 +111,7 @@ export async function getOrCreateWebGpuAppPipeline(options: {
           outputColorSpace: meshOutputColorSpace,
         })
       : options.kind === "debug-normal"
-        ? await createDebugNormalRenderPipelineResource({
+        ? createDebugNormalRenderPipelineResource({
             device: options.app.initialization.device as Parameters<
               typeof createDebugNormalRenderPipelineResource
             >[0]["device"],
@@ -126,7 +126,7 @@ export async function getOrCreateWebGpuAppPipeline(options: {
             outputColorSpace: meshOutputColorSpace,
           })
         : options.kind === "matcap"
-          ? await createMatcapRenderPipelineResource({
+          ? createMatcapRenderPipelineResource({
               device: options.app.initialization.device as Parameters<
                 typeof createMatcapRenderPipelineResource
               >[0]["device"],
@@ -140,7 +140,7 @@ export async function getOrCreateWebGpuAppPipeline(options: {
               tonemap: meshTonemap,
               outputColorSpace: meshOutputColorSpace,
             })
-          : await createUnlitRenderPipelineResource({
+          : createUnlitRenderPipelineResource({
               device: options.app.initialization.device as Parameters<
                 typeof createUnlitRenderPipelineResource
               >[0]["device"],
@@ -155,9 +155,42 @@ export async function getOrCreateWebGpuAppPipeline(options: {
               outputColorSpace: meshOutputColorSpace,
             });
 
+  return cacheWebGpuAppPipelineWhenReady(options.cache, key, pipeline);
+}
+
+function cacheWebGpuAppPipelineWhenReady(
+  cache: WebGpuAppResourceCache,
+  key: string,
+  pipeline:
+    | WebGpuAppPipelineResourceResult
+    | Promise<WebGpuAppPipelineResourceResult>,
+): WebGpuAppPipelineResourceResult | Promise<WebGpuAppPipelineResourceResult> {
+  if (isPromiseLike(pipeline)) {
+    return pipeline.then((resolved) =>
+      cacheWebGpuAppPipelineResult(cache, key, resolved),
+    );
+  }
+
+  return cacheWebGpuAppPipelineResult(cache, key, pipeline);
+}
+
+function cacheWebGpuAppPipelineResult(
+  cache: WebGpuAppResourceCache,
+  key: string,
+  pipeline: WebGpuAppPipelineResourceResult,
+): WebGpuAppPipelineResourceResult {
   if (pipeline.valid && pipeline.resource !== null) {
-    options.cache.pipelines.set(key, pipeline);
+    cache.pipelines.set(key, pipeline);
   }
 
   return pipeline;
+}
+
+function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "then" in value &&
+    typeof (value as { readonly then?: unknown }).then === "function"
+  );
 }

@@ -435,6 +435,7 @@ describe("queued material frame-resource set preparation", () => {
       BindGroup
     >();
     let pipelinePlanCalls = 0;
+    let pipelineLookupCalls = 0;
     let appendCalls = 0;
     const result = await prepareQueuedMaterialFrameResourceSet<
       Item,
@@ -465,13 +466,16 @@ describe("queued material frame-resource set preparation", () => {
         getPipelineKey: (item) => item.pipelineKey,
         getSourceMeshKey: (item) => item.sourceMeshKey,
         getSourceMaterialKey: (item) => item.sourceMaterialKey,
-        getPipeline: () => ({
-          valid: true,
-          resource: {
-            pipeline: { getBindGroupLayout: (group: number) => ({ group }) },
-          },
-          diagnostics: [],
-        }),
+        getPipeline: () => {
+          pipelineLookupCalls += 1;
+          return {
+            valid: true,
+            resource: {
+              pipeline: { getBindGroupLayout: (group: number) => ({ group }) },
+            },
+            diagnostics: [],
+          };
+        },
         getPipelineView: (pipeline) => pipeline,
         createPipelinePlanResult: ({ item }) => {
           pipelinePlanCalls += 1;
@@ -518,6 +522,7 @@ describe("queued material frame-resource set preparation", () => {
 
     expect(result.valid).toBe(true);
     expect(result.diagnostics).toEqual([]);
+    expect(pipelineLookupCalls).toBe(1);
     expect(pipelinePlanCalls).toBe(1);
     expect(appendCalls).toBe(2);
     expect(result.pipelineResults).toEqual([{ key: "custom|shared" }]);

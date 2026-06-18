@@ -517,6 +517,7 @@ function summarizeApertureSamples(samples, latest) {
 
 function summarizeApertureGpuTimings(samples, latest) {
   const frameMs = [];
+  const summedPassFrameMs = [];
   const passMsByName = new Map();
 
   for (const sample of samples) {
@@ -524,10 +525,14 @@ function summarizeApertureGpuTimings(samples, latest) {
     if (!Array.isArray(passes) || passes.length === 0) continue;
 
     let totalMicroseconds = 0;
+    let frameMicroseconds = null;
     for (const pass of passes) {
       if (!isFiniteNumber(pass?.microseconds)) continue;
       totalMicroseconds += pass.microseconds;
       const name = String(pass.pass ?? "unknown");
+      if (name === "frame") {
+        frameMicroseconds = pass.microseconds;
+      }
       let values = passMsByName.get(name);
       if (values === undefined) {
         values = [];
@@ -536,8 +541,11 @@ function summarizeApertureGpuTimings(samples, latest) {
       values.push(pass.microseconds / 1000);
     }
 
+    if (frameMicroseconds !== null && frameMicroseconds > 0) {
+      frameMs.push(frameMicroseconds / 1000);
+    }
     if (totalMicroseconds > 0) {
-      frameMs.push(totalMicroseconds / 1000);
+      summedPassFrameMs.push(totalMicroseconds / 1000);
     }
   }
 
@@ -547,7 +555,8 @@ function summarizeApertureGpuTimings(samples, latest) {
   }
 
   return {
-    frameMs: quantiles(frameMs),
+    frameMs: quantiles(frameMs.length > 0 ? frameMs : summedPassFrameMs),
+    summedPassFrameMs: quantiles(summedPassFrameMs),
     passes,
     latest: latest?.diagnostics?.gpuTimings ?? null,
   };
@@ -1674,7 +1683,11 @@ function addQueryFlag(rawUrl, flag) {
 
 function parseArgs(rawArgs) {
   const parsed = {};
-  for (const arg of rawArgs) {
+  for (let index = 0; index < rawArgs.length; index += 1) {
+    const arg = rawArgs[index];
+    if (arg === "--") {
+      continue;
+    }
     if (arg === "--no-trace") {
       parsed.trace = false;
       continue;
@@ -1695,7 +1708,13 @@ function parseArgs(rawArgs) {
     const body = arg.slice(2);
     const eq = body.indexOf("=");
     if (eq === -1) {
-      parsed[body] = true;
+      const next = rawArgs[index + 1];
+      if (next !== undefined && !next.startsWith("--")) {
+        parsed[body] = next;
+        index += 1;
+      } else {
+        parsed[body] = true;
+      }
     } else {
       parsed[body.slice(0, eq)] = body.slice(eq + 1);
     }

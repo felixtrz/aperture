@@ -24,7 +24,8 @@ cadence throttling, status-only render-change-set key compaction with a full
 tooling accessor, generated-worker tick-rate pacing, and time-based full worker
 summary cadence, plus bounds change-set duplicate-key handling and app-facing
 shadow/direct-light status compaction, plus numeric internal snapshot
-change-set keys.
+change-set keys, plus per-frame queued pipeline lookup reuse, synchronous
+pipeline cache-hit returns, and conditional queued pipeline awaits.
 
 **Sources:**
 
@@ -88,6 +89,19 @@ change-set keys.
   three.js is CPU-lean but still spends real GPU time on many WebGL draws, while
   Aperture's remaining gap is mostly main-thread render preparation/cadence
   overhead rather than draw-call count.
+- Latest headed render-loop runs after queued pipeline lookup reuse:
+  `/tmp/racing-trace-pipeline-lookup/summary.json` and
+  `/tmp/racing-trace-pipeline-lookup-2/summary.json` (`2026-06-18`, command:
+  `pnpm run trace:racing -- --headed --no-trace --no-cpu-profile ...`). The
+  internal Aperture phase history improved from the previous headed repeat's
+  `prepare` averages of about `1.86 ms` idle / `2.53 ms` drive to
+  `1.69-1.70 ms` idle / `2.33-2.36 ms` drive. Total measured app render phase
+  time dropped from about `3.22 ms` idle / `3.98 ms` drive to
+  `2.72-2.90 ms` idle / `3.51-3.74 ms` drive. Headline RAF cadence is still
+  mixed across repeats: Aperture won p50/max in both scenarios and some p95/p99
+  samples, but still lost idle/drive p95 in the second repeat. This is a real
+  generalized render-prep improvement from avoiding repeated cached pipeline
+  lookups and Promise hops, not completion of the active benchmark goal.
 - Latest clean headed render-loop harness run:
   `/tmp/racing-trace-headed-gpu-timer/summary.json` (`2026-06-18`, command:
   `node scripts/racing-render-loop-trace.mjs ... --headed`). This is the
@@ -606,6 +620,12 @@ Interpretation:
 - The narrower presentation catch-up scheduler and the worker tick-rate cap are
   useful in focused tests, but the latest drive cadence remains below display
   cadence when particles are active.
+- The queued pipeline lookup reuse slice reduced main-thread render preparation
+  by avoiding repeated cached pipeline Promise hops for compatible draw items.
+  It moved the headed trace `prepare` average by roughly `0.17-0.20 ms` in both
+  idle and drive and cut total measured render phase time by about
+  `0.25-0.50 ms`, but browser RAF p95 remains noisy enough that this is not yet
+  a consistent benchmark win.
 - An immediate scheduled-snapshot drain experiment was measured and rejected:
   it raised submit count, but the paired audit regressed p95/p99/max
   (`/tmp/racing-frame-audit-idle-drain.json`). It was not left as the active

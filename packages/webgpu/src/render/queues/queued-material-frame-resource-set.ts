@@ -28,6 +28,7 @@ export interface QueuedMaterialFrameResourceScratch<
   TMeshResource,
   TBindGroup extends PipelineScopedBindGroupResource,
 > {
+  readonly pipelineLookups: Map<string, unknown>;
   readonly pipelineResults: Map<string, TPipelinePlanResult>;
   readonly pipelineResultList: TPipelinePlanResult[];
   readonly pipelineKeysByRenderId: Map<number, string>;
@@ -54,6 +55,7 @@ export interface QueuedMaterialFrameResourceSetCallbacks<
   TBindGroup extends PipelineScopedBindGroupResource,
 > {
   getPipelineKey(item: TItem): string;
+  getPipelineLookupKey?(item: TItem): string;
   getPipelineResourceKey?(input: {
     readonly item: TItem;
     readonly pipeline: TPipelineResult;
@@ -62,6 +64,12 @@ export interface QueuedMaterialFrameResourceSetCallbacks<
   getSourceMeshKey(item: TItem): string;
   getSourceMaterialKey(item: TItem): string;
   getPipeline(item: TItem): Promise<TPipelineResult> | TPipelineResult;
+  onPipelineLookupReuse?(input: {
+    readonly item: TItem;
+    readonly pipeline: TPipelineResult;
+    readonly pipelineKey: string;
+    readonly pipelineLookupKey: string;
+  }): void;
   getPipelineView(
     pipeline: TPipelineResult,
   ): QueuedMaterialPipelineResourceView;
@@ -164,6 +172,7 @@ export function createQueuedMaterialFrameResourceScratch<
   TBindGroup
 > {
   return {
+    pipelineLookups: new Map(),
     pipelineResults: new Map(),
     pipelineResultList: [],
     pipelineKeysByRenderId: new Map(),
@@ -218,7 +227,27 @@ export async function prepareQueuedMaterialFrameResourceSet<
 
   for (const item of options.items) {
     const pipelineKey = options.callbacks.getPipelineKey(item);
-    const pipeline = await options.callbacks.getPipeline(item);
+    const pipelineLookupKey =
+      options.callbacks.getPipelineLookupKey?.(item) ?? pipelineKey;
+    let pipeline = scratch.pipelineLookups.get(pipelineLookupKey) as
+      | TPipelineResult
+      | undefined;
+
+    if (pipeline === undefined) {
+      const pipelineResult = options.callbacks.getPipeline(item);
+      pipeline = isPromiseLike(pipelineResult)
+        ? await pipelineResult
+        : pipelineResult;
+      scratch.pipelineLookups.set(pipelineLookupKey, pipeline);
+    } else {
+      options.callbacks.onPipelineLookupReuse?.({
+        item,
+        pipeline,
+        pipelineKey,
+        pipelineLookupKey,
+      });
+    }
+
     const pipelineView = options.callbacks.getPipelineView(pipeline);
 
     firstPipeline ??= pipeline;
@@ -364,6 +393,7 @@ export function resetQueuedMaterialFrameResourceScratch<
   TBindGroup
 > {
   scratch.pipelineResults.clear();
+  scratch.pipelineLookups.clear();
   scratch.pipelineResultList.length = 0;
   scratch.pipelineKeysByRenderId.clear();
   scratch.meshResources.clear();
@@ -374,4 +404,13 @@ export function resetQueuedMaterialFrameResourceScratch<
   resetPipelineScopedBindGroupScratch(scratch.pipelineScopedBindGroups);
 
   return scratch;
+}
+
+function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "then" in value &&
+    typeof (value as { readonly then?: unknown }).then === "function"
+  );
 }
