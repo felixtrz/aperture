@@ -89,9 +89,31 @@ change-set keys.
   Aperture's remaining gap is mostly main-thread render preparation/cadence
   overhead rather than draw-call count.
 - Latest clean headed render-loop harness run:
+  `/tmp/racing-trace-headed-gpu-timer/summary.json` (`2026-06-18`, command:
+  `node scripts/racing-render-loop-trace.mjs ... --headed`). This is the
+  current fair cadence + three.js GPU comparison: Aperture idle RAF
+  `p50 16.66 ms / p95 18.40 ms / p99 18.49 ms`, three.js idle
+  `p50 16.60 ms / p95 18.40 ms / p99 18.50 ms`; Aperture drive
+  `p50 16.66 ms / p95 18.35 ms / p99 18.44 ms`, three.js drive
+  `p50 16.70 ms / p95 18.30 ms / p99 18.40 ms`. Aperture reported `25`
+  idle / `32-38` drive draw calls; instrumented three.js reported `93` idle /
+  `89-98` drive GL draw calls and headed WebGL GPU timer query results around
+  `4.87 ms` idle p50 / `6.18 ms` idle p95 and `4.72 ms` drive p50 /
+  `6.19 ms` drive p95.
+- Aperture GPU timing can now be enabled for generated browser apps with the
+  URL flag `?gpuTimings=1`; the trace harness exposes this as
+  `--aperture-gpu-timings`. Current smokes
+  `/tmp/racing-aperture-gpu-timing-smoke/summary.json` and
+  `/tmp/racing-aperture-gpu-timing-drive-smoke/summary.json` show the existing
+  WebGPU report is boundary-scoped (`main` pass only, tens of microseconds in
+  this scene). Treat that as proof the opt-in path works, not as a complete
+  full-frame GPU comparison against three.js. The remaining tooling gap is a
+  whole-command-buffer or whole-frame WebGPU timestamp pair covering shadow,
+  forward, and post work together.
+- Previous clean headed render-loop harness run:
   `/tmp/racing-trace-headed-pair/summary.json` (`2026-06-18`, command:
-  `pnpm run trace:racing ... --headed`). This is the current valid cadence
-  comparison: Aperture idle RAF
+  `pnpm run trace:racing ... --headed`). This was the prior valid cadence
+  comparison before headed WebGL GPU timer instrumentation: Aperture idle RAF
   `p50 16.66 ms / p95 18.33 ms / p99 18.58 ms`, three.js idle
   `p50 16.70 ms / p95 18.00 ms / p99 18.59 ms`; Aperture drive
   `p50 16.66 ms / p95 18.05 ms / p99 18.44 ms`, three.js drive

@@ -19,6 +19,7 @@ const driveSettleMs = numberArg(args["drive-settle"], 1000);
 const outDir = path.resolve(String(args.out ?? DEFAULT_OUT_DIR));
 const captureTrace = args.trace !== false;
 const captureCpuProfile = args["cpu-profile"] !== false;
+const apertureGpuTimings = args["aperture-gpu-timings"] === true;
 const scenarios = String(args.scenario ?? "idle,drive")
   .split(",")
   .map((value) => value.trim())
@@ -111,6 +112,7 @@ async function main() {
     driveSettleMs,
     captureTrace,
     captureCpuProfile,
+    apertureGpuTimings,
     headless: args.headed === true ? false : true,
     browserArgs,
     targets: targets.map((target) => ({
@@ -184,10 +186,13 @@ async function runScenario(browser, target, scenario) {
     }
   });
 
-  const url = addQueryFlag(
+  let url = addQueryFlag(
     target.url,
     target.kind === "three" ? "perf=1" : "trace=1",
   );
+  if (target.kind === "aperture" && apertureGpuTimings) {
+    url = addQueryFlag(url, "gpuTimings=1");
+  }
   await page.goto(url, { waitUntil: "domcontentloaded" });
   try {
     await waitForTargetReady(page, target.kind);
@@ -443,6 +448,7 @@ async function collectSnapshot(page) {
             null,
           phaseTimings:
             lastFrame?.phaseTimings ?? diagnostics?.phaseTimings ?? null,
+          gpuTimings: lastFrame?.gpuTimings ?? diagnostics?.gpuTimings ?? null,
           shadow: lastFrame?.shadow ?? diagnostics?.shadow ?? null,
           particles: lastFrame?.particles ?? diagnostics?.particles ?? null,
         },
@@ -501,10 +507,49 @@ function summarizeApertureSamples(samples, latest) {
   return {
     latest,
     drawCalls: quantiles(drawCounts),
+    gpuTimings: summarizeApertureGpuTimings(samples, latest),
     performanceTransport:
       latest?.performance?.latest?.transport ??
       latest?.performance?.transport ??
       null,
+  };
+}
+
+function summarizeApertureGpuTimings(samples, latest) {
+  const frameMs = [];
+  const passMsByName = new Map();
+
+  for (const sample of samples) {
+    const passes = sample?.gpuTimings?.passes ?? [];
+    if (!Array.isArray(passes) || passes.length === 0) continue;
+
+    let totalMicroseconds = 0;
+    for (const pass of passes) {
+      if (!isFiniteNumber(pass?.microseconds)) continue;
+      totalMicroseconds += pass.microseconds;
+      const name = String(pass.pass ?? "unknown");
+      let values = passMsByName.get(name);
+      if (values === undefined) {
+        values = [];
+        passMsByName.set(name, values);
+      }
+      values.push(pass.microseconds / 1000);
+    }
+
+    if (totalMicroseconds > 0) {
+      frameMs.push(totalMicroseconds / 1000);
+    }
+  }
+
+  const passes = {};
+  for (const [name, values] of passMsByName) {
+    passes[name] = quantiles(values);
+  }
+
+  return {
+    frameMs: quantiles(frameMs),
+    passes,
+    latest: latest?.diagnostics?.gpuTimings ?? null,
   };
 }
 
@@ -555,7 +600,9 @@ function printSummary(summary, summaryPath) {
     const drawCalls =
       run.target === "three" ? run.three?.renderCalls : run.aperture?.drawCalls;
     const gpuTimer =
-      run.target === "three" ? run.three?.gpuTimer?.renderMs : null;
+      run.target === "three"
+        ? run.three?.gpuTimer?.renderMs
+        : run.aperture?.gpuTimings?.frameMs;
     const heapMb = run.memory
       ? (run.memory.usedJSHeapSize / (1024 * 1024)).toFixed(1)
       : "n/a";
@@ -565,7 +612,7 @@ function printSummary(summary, summaryPath) {
       `callback p95=${formatMs(callback.p95)} max=${formatMs(callback.max)}`,
       `draw/calls p50=${formatNumber(drawCalls?.p50)} max=${formatNumber(drawCalls?.max)}`,
     ];
-    if (run.target === "three") {
+    if (run.target === "three" || (gpuTimer?.count ?? 0) > 0) {
       parts.push(
         `gpu p50=${formatMs(gpuTimer?.p50)} p95=${formatMs(gpuTimer?.p95)} max=${formatMs(gpuTimer?.max)}`,
       );
@@ -655,6 +702,7 @@ function createFrameSamplerInitScript() {
         diagnostics?.changeSet ??
         null,
       phaseTimings: lastFrame?.phaseTimings ?? diagnostics?.phaseTimings ?? null,
+      gpuTimings: lastFrame?.gpuTimings ?? diagnostics?.gpuTimings ?? null,
       workerPublish:
         status.lastWorkerSummary?.previousPublishTiming ??
         status.lastWorkerSummary?.publishTiming ??

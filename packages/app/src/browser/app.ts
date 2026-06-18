@@ -23,6 +23,7 @@ import { installGeneratedCommandForwarding } from "./commands.js";
 import { syncGeneratedDiagnostics } from "./diagnostics.js";
 import { installGeneratedDevtoolsRuntime } from "./devtools/index.js";
 import { resolveUseFrameGraph } from "./frame-graph-route.js";
+import { resolveGpuTimings } from "./gpu-timings-route.js";
 import { installGeneratedInputForwarding } from "./input.js";
 import { resolveGeneratedRenderSettings } from "./render.js";
 import {
@@ -108,12 +109,12 @@ export async function startGeneratedBrowserApp(
   // parity. render.frameGraph: false (or the ?graph=0 per-load override)
   // forces the legacy multi-submit route; the flag is passed explicitly so
   // `false` really forces legacy instead of deferring to the renderer default.
-  const useFrameGraph = resolveUseFrameGraph(
-    config.render,
+  const browserSearch =
     typeof window !== "undefined"
       ? new URLSearchParams(window.location.search)
-      : null,
-  );
+      : null;
+  const useFrameGraph = resolveUseFrameGraph(config.render, browserSearch);
+  const gpuTimings = resolveGpuTimings(browserSearch);
   const postEffects = resolveGeneratedPostEffects(config.render);
   // Bloom needs the HDR scene-buffer path; opting into bloom implies exposure.
   const bloomEnabled = postEffects.length > 0;
@@ -125,6 +126,7 @@ export async function startGeneratedBrowserApp(
     autoStart: true,
     msaaSampleCount: status.render.requestedSampleCount,
     useFrameGraph,
+    ...(gpuTimings === undefined ? {} : { gpuTimings }),
     ...(options.workerStartOptions === undefined
       ? {}
       : { workerStartOptions: options.workerStartOptions }),
