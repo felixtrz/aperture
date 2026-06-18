@@ -68,6 +68,9 @@ export type GeneratedWorkerSnapshotTransport =
       readonly mode: "shared-array-buffer";
       readonly shared: SharedSnapshotTransport;
       readonly registry: SnapshotPacketEncodingRegistry;
+      lastPostedMessageTimeMilliseconds: number | null;
+      lastPostedRegistryHandles: number;
+      lastPostedRegistryStrings: number;
     };
 
 export interface GeneratedWorkerSummaryCadence {
@@ -80,6 +83,7 @@ export interface GeneratedWorkerSummaryCadenceOptions {
 }
 
 export const DEFAULT_GENERATED_WORKER_FULL_SUMMARY_INTERVAL_MS = 500;
+export const DEFAULT_GENERATED_WORKER_SHARED_SNAPSHOT_MESSAGE_RATE_HZ = 60;
 const MIN_GENERATED_WORKER_FULL_SUMMARY_INTERVAL_MS = 16;
 
 export function createGeneratedWorkerSummaryCadence(
@@ -125,6 +129,9 @@ export function createGeneratedWorkerSnapshotTransport(
     mode: "shared-array-buffer",
     shared: createSharedSnapshotTransportViews(transport),
     registry: createSnapshotPacketRegistry(),
+    lastPostedMessageTimeMilliseconds: null,
+    lastPostedRegistryHandles: 0,
+    lastPostedRegistryStrings: 0,
   };
 }
 
@@ -199,7 +206,18 @@ export function publishGeneratedWorkerSnapshot(options: {
   const transportMode =
     sharedSnapshot === null ? "transferable" : "shared-array-buffer";
 
-  if (sharedSnapshot !== null) {
+  const shouldPostSharedSnapshot =
+    sharedSnapshot !== null &&
+    shouldPostSharedSnapshotMessage({
+      transport: options.transport,
+      sharedSnapshot,
+      sourceAssetsChanged: sourceAssets.entries.length > 0,
+      workerSummary,
+      snapshot,
+      nowMilliseconds: timingStartedAt,
+    });
+
+  if (sharedSnapshot !== null && shouldPostSharedSnapshot) {
     const placeholder = createSharedSnapshotPlaceholder(snapshot);
     const transfer =
       placeholder.transforms.byteLength === 0
@@ -213,11 +231,16 @@ export function publishGeneratedWorkerSnapshot(options: {
         ...sourceAssetsMessage,
         workerSummary,
         frame: options.frame,
-        transport: sharedSnapshot,
+        transport: sharedSnapshot.message,
       },
       transfer,
     );
-  } else {
+    markSharedSnapshotMessagePosted(
+      options.transport,
+      sharedSnapshot,
+      timingStartedAt,
+    );
+  } else if (sharedSnapshot === null) {
     options.port.postMessage(
       {
         type: SIMULATION_WORKER_PROTOCOL.snapshot,
@@ -313,9 +336,12 @@ function createSharedSnapshotMessage(
   transport: GeneratedWorkerSnapshotTransport,
   snapshot: RenderSnapshot,
 ): {
-  readonly mode: "shared-array-buffer";
-  readonly registry: ReturnType<SnapshotPacketEncodingRegistry["snapshot"]>;
-  readonly diagnostics: RenderSnapshot["diagnostics"];
+  readonly message: {
+    readonly mode: "shared-array-buffer";
+    readonly registry: ReturnType<SnapshotPacketEncodingRegistry["snapshot"]>;
+    readonly diagnostics: RenderSnapshot["diagnostics"];
+  };
+  readonly registryChanged: boolean;
 } | null {
   if (
     transport.mode !== "shared-array-buffer" ||
@@ -345,10 +371,17 @@ function createSharedSnapshotMessage(
       packetWords: encoded.words,
     });
 
+    const registry = transport.registry.snapshot();
+
     return {
-      mode: "shared-array-buffer",
-      registry: transport.registry.snapshot(),
-      diagnostics: snapshot.diagnostics,
+      message: {
+        mode: "shared-array-buffer",
+        registry,
+        diagnostics: snapshot.diagnostics,
+      },
+      registryChanged:
+        registry.strings.length !== transport.lastPostedRegistryStrings ||
+        registry.handles.length !== transport.lastPostedRegistryHandles,
     };
   } catch (error) {
     if (error instanceof RangeError) {
@@ -357,6 +390,59 @@ function createSharedSnapshotMessage(
 
     throw error;
   }
+}
+
+function shouldPostSharedSnapshotMessage(options: {
+  readonly transport: GeneratedWorkerSnapshotTransport;
+  readonly sharedSnapshot: NonNullable<
+    ReturnType<typeof createSharedSnapshotMessage>
+  >;
+  readonly sourceAssetsChanged: boolean;
+  readonly workerSummary: ReturnType<typeof createGeneratedWorkerSummary>;
+  readonly snapshot: RenderSnapshot;
+  readonly nowMilliseconds: number;
+}): boolean {
+  if (options.transport.mode !== "shared-array-buffer") {
+    return true;
+  }
+
+  if (
+    options.transport.lastPostedMessageTimeMilliseconds === null ||
+    options.sharedSnapshot.registryChanged ||
+    options.sourceAssetsChanged ||
+    options.snapshot.diagnostics.length > 0 ||
+    readWorkerSummaryFullFlag(options.workerSummary)
+  ) {
+    return true;
+  }
+
+  return (
+    options.nowMilliseconds -
+      options.transport.lastPostedMessageTimeMilliseconds >=
+    1000 / DEFAULT_GENERATED_WORKER_SHARED_SNAPSHOT_MESSAGE_RATE_HZ
+  );
+}
+
+function markSharedSnapshotMessagePosted(
+  transport: GeneratedWorkerSnapshotTransport,
+  sharedSnapshot: NonNullable<ReturnType<typeof createSharedSnapshotMessage>>,
+  nowMilliseconds: number,
+): void {
+  if (transport.mode !== "shared-array-buffer") {
+    return;
+  }
+
+  transport.lastPostedMessageTimeMilliseconds = nowMilliseconds;
+  transport.lastPostedRegistryStrings =
+    sharedSnapshot.message.registry.strings.length;
+  transport.lastPostedRegistryHandles =
+    sharedSnapshot.message.registry.handles.length;
+}
+
+function readWorkerSummaryFullFlag(
+  summary: ReturnType<typeof createGeneratedWorkerSummary>,
+): boolean {
+  return summary.summaryCadence.full === true;
 }
 
 /**

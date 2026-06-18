@@ -1,6 +1,6 @@
 # SAB Render Pacing Plan
 
-**Status:** proposed
+**Status:** partially implemented, remaining work planned
 **Date:** 2026-06-18
 **Context:** racing frame pacing audit against the three.js starter-kit racing reference
 
@@ -24,6 +24,43 @@ main requestAnimationFrame -> sample latest complete shared frame -> render
 `postMessage` should remain for setup, wakeup, source-asset deltas, debug
 summaries, audio sideband, registry updates, errors, and transferable fallback.
 It should not be the frame clock in steady-state SAB mode.
+
+## Current State
+
+The first pacing slice is implemented and validated:
+
+- `createWebGpuApp()` now keeps the browser-native RAF loop continuous instead
+  of stopping when a RAF has no pending worker message.
+- RAF reads the latest complete shared frame with the strict message-frame gate
+  disabled. This lets an already-delivered sideband message decode a newer SAB
+  frame when the registry has not changed.
+- The generated worker still writes every supported render snapshot to SAB, but
+  it now suppresses unchanged sideband `postMessage` traffic until a sideband
+  heartbeat is due.
+- Sideband messages remain immediate when the registry changes, source assets
+  change, diagnostics appear, or a full worker summary is due.
+- A regression test proves the key contract: frame 2 can be visible in SAB while
+  the worker has still posted only the frame-1 sideband message.
+
+Latest paired trace evidence after this slice:
+
+- Short headed sanity trace, 2.5s samples:
+  `/tmp/racing-paired-sab-plan-check/summary.json`
+  - Aperture idle RAF p95 `18.06 ms`; three.js idle p95 `18.20 ms`.
+  - Aperture drive RAF p95 `17.99 ms`; three.js drive p95 `18.01 ms`.
+  - Aperture `renderStartHz` stayed at about `60 Hz`; `sharedUnavailable` was
+    `0`; visual diagnostics were nonblank.
+- Longer headed trace, 8s samples:
+  - Aperture idle clearly led at p95/p99/max.
+  - Aperture drive was effectively tied: p95 `18.655 ms` versus three.js
+    `18.605 ms`, while Aperture was better at p99/max.
+  - This is not yet a consistent win because the drive p95 delta is small and
+    within run noise.
+
+Racing does author audio every frame. Therefore, simply lowering the generic
+sideband heartbeat below `60 Hz` would either not affect this benchmark or would
+risk stale audio state. The correct follow-up is to split render cadence from
+audio/diagnostic sideband cadence, not to add a Racing-specific heartbeat hack.
 
 ## Confirmed Current Behavior
 
@@ -84,6 +121,11 @@ Even on the shared path, worker messages still carry:
 - optional change-set sidebands;
 - audio packets with copied transform slices.
 
+The first pacing slice reduces unchanged shared-frame sideband messages, but
+Racing still needs fresh audio sideband data. That keeps steady-state message
+pressure relevant until audio has its own shared-memory sideband or a smaller
+event/delta protocol.
+
 Unsupported payload families currently force transferable fallback:
 
 - sprites;
@@ -123,17 +165,16 @@ Browser constraints also point this way:
 
 External references:
 
-- MDN `SharedArrayBuffer`: shared data block is visible across agents, but
-  synchronization requires Atomics and cross-origin isolation.
-- MDN `Atomics.wait()`: blocking waits cannot be used on the main thread.
-- V8 `Atomics.waitAsync`: non-blocking wait is possible on the main thread in
-  supporting engines, but the presentation loop should not depend on it.
-- MDN `Window.requestAnimationFrame()`: callbacks run before repaint and are
-  one-shot, making RAF the display-cadence owner.
-- MDN transferable objects / `Worker.postMessage()`: transfer fallback is
-  event-loop delivered and cannot be polled like shared memory.
-- MDN WebGPU / `GPUCanvasContext`: main-thread canvas presentation should remain
-  feature-detected and secure-context gated.
+- MDN `SharedArrayBuffer`:
+  <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer>
+- MDN `Atomics.wait()`:
+  <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics/wait>
+- MDN `Atomics.waitAsync()`:
+  <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics/waitAsync>
+- MDN `Window.requestAnimationFrame()`:
+  <https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame>
+- V8 `Atomics.wait`, `Atomics.notify`, `Atomics.waitAsync`:
+  <https://v8.dev/features/atomics>
 
 ## Main Risk In The Current SAB Transport
 
@@ -145,6 +186,11 @@ later while the async render path still references them.
 That is manageable only if the renderer copies/upload-consumes the shared data
 before the writer can reuse the slot. The safer general fix is a small shared
 ring with explicit slot ownership.
+
+This is still the largest correctness issue in the SAB path. The current racing
+trace improvements should not be treated as proof that double-buffer aliases are
+safe under heavier scenes, slower GPU upload paths, or future worker rates above
+display cadence.
 
 ## Target SAB Transport
 
@@ -217,6 +263,17 @@ Initial slice may keep sending full registry snapshots per shared message, but
 it must store them by epoch and remove the current expected-frame gate. A later
 slice should replace full registry snapshots with deltas or a shared append-only
 registry table.
+
+Audio sideband needs the same treatment:
+
+- Short term: keep audio sideband messages at display cadence when a snapshot
+  carries audio packets, while render sampling is allowed to reuse sideband and
+  read newer SAB frames.
+- Medium term: move audio listener/emitter packets into a compact shared-memory
+  sideband with its own sequence number, or send audio deltas/events separately
+  from render-frame sideband.
+- Do not use a lower sideband heartbeat for audio-heavy apps unless audio has a
+  separate freshness guarantee.
 
 ## Main-Thread Presentation Plan
 
@@ -320,33 +377,46 @@ Racing benchmark checks:
 
 ## Implementation Sequence
 
-1. **Instrumentation first.**
-   Add snapshot age, sequence, skip/repeat, and in-flight pacing counters to
-   WebGPU app diagnostics and the racing trace script.
+1. **Done: instrumentation first.**
+   Cadence diagnostics and the racing trace script now report RAF/render start
+   cadence, pending replacement, skipped shared-frame gaps, queue age, visual
+   nonblank checks, and summary comparisons.
 
-2. **RAF-owned presentation loop.**
-   Refactor `createWebGpuApp()` so both SAB and transferable modes use RAF as
-   the render clock. Keep existing behavior behind tests where needed, but make
-   RAF sampling the default for browser apps.
+2. **Done: SAB latest-frame reader without expected-message frame gate.**
+   `readWebGpuAppSharedSnapshot(..., { requireMessageFrame: false })` lets RAF
+   sample the latest complete shared frame while keeping strict reads available
+   for protocol tests.
 
-3. **SAB latest-frame reader without expected-message frame gate.**
-   Add an API that reads latest shared frame using latest available registry
-   sideband rather than a specific message frame. Keep current strict reader for
-   protocol tests and fallback compatibility.
+3. **Done: browser-native RAF keeps running.**
+   Native presentation mode no longer depends on receiving a worker message for
+   every render callback. It can reuse the latest shared sideband and render a
+   newer SAB frame.
 
-4. **Slot ownership / triple buffering.**
+4. **Done: throttle unchanged shared sideband messages.**
+   The worker still writes every shared frame, but it posts unchanged sideband
+   messages only on the heartbeat or when registry/assets/diagnostics/full
+   summaries require it.
+
+5. **Next: separate render sideband from audio sideband.**
+   Racing carries audio packets, so display-rate sideband messages are still
+   justified for audio freshness. Add either a compact audio SAB sideband or an
+   audio-delta message path so render registry/diagnostic sideband can be
+   reduced independently.
+
+6. **Next: slot ownership / triple buffering.**
    Replace double-buffer seqlock views with an acquirable ring, or add a
    conservative copy-on-acquire layer as an interim correctness step.
 
-5. **Registry epoch sideband.**
+7. **Next: registry epoch sideband.**
    Tag slots and registry payloads by epoch. Decode only when the matching
-   registry is available. Then reduce per-frame registry clone cost with deltas.
+   registry is available. Then reduce per-message registry clone cost with
+   deltas.
 
-6. **Transferable latest-snapshot queue.**
+8. **Next: transferable latest-snapshot queue.**
    Make transferable fallback follow the same RAF sampling policy, dropping
    stale messages before render.
 
-7. **Smoothing and interpolation pass.**
+9. **Next: smoothing and interpolation pass.**
    Use the new pose-cadence diagnostics to tune interpolation alpha and camera
    smoothness in racing without changing the ECS authority boundary.
 

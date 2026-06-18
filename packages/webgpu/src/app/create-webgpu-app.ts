@@ -106,6 +106,8 @@ export async function createWebGpuApp(
   let unsubscribeError: (() => void) | null = null;
   let renderQueue: Promise<void> = Promise.resolve();
   let pendingSnapshotEvent: PendingSnapshotEventRecord | null = null;
+  let latestSharedSnapshotEvent: PendingSnapshotEventRecord | null = null;
+  let latestRenderedSharedSnapshotFrame: number | null = null;
   let autoRenderScheduled = false;
   let autoRenderInFlight = false;
   let presentationMissedWhileInFlight = false;
@@ -138,12 +140,15 @@ export async function createWebGpuApp(
   let autoRenderRequest: number | null = null;
 
   const renderPendingSnapshot = (): void => {
-    if (!running || pendingSnapshotEvent === null || autoRenderInFlight) {
+    const pending = nextRenderableSnapshotEvent();
+
+    if (!running || pending === null || autoRenderInFlight) {
       return;
     }
 
-    const pending = pendingSnapshotEvent;
-    pendingSnapshotEvent = null;
+    if (pendingSnapshotEvent === pending) {
+      pendingSnapshotEvent = null;
+    }
     autoRenderInFlight = true;
     renderQueue = renderQueue
       .then(async () => {
@@ -165,6 +170,13 @@ export async function createWebGpuApp(
         }
 
         const snapshot = sharedSnapshot ?? event.snapshot;
+        if (
+          hasSharedSnapshotPayload &&
+          snapshot.frame === latestRenderedSharedSnapshotFrame
+        ) {
+          return;
+        }
+
         const snapshotChangeSet = readWebGpuAppSnapshotChangeSet(event.message);
         const snapshotQueueAgeMilliseconds = Math.max(
           0,
@@ -178,6 +190,9 @@ export async function createWebGpuApp(
           frame: snapshot.frame,
           ...(snapshotChangeSet === null ? {} : { snapshotChangeSet }),
         });
+        if (hasSharedSnapshotPayload) {
+          latestRenderedSharedSnapshotFrame = snapshot.frame;
+        }
         cadence.recordRenderCompleted(snapshot.frame);
       })
       .catch((error: unknown) => {
@@ -193,7 +208,10 @@ export async function createWebGpuApp(
       })
       .finally(() => {
         autoRenderInFlight = false;
-        if (pendingSnapshotEvent !== null && !hasNativePresentationFrame) {
+        if (
+          nextRenderableSnapshotEvent() !== null &&
+          !hasNativePresentationFrame
+        ) {
           if (presentationMissedWhileInFlight) {
             presentationMissedWhileInFlight = false;
             cadence.recordRenderCompletionDrain();
@@ -229,7 +247,7 @@ export async function createWebGpuApp(
         return;
       }
 
-      if (pendingSnapshotEvent === null) {
+      if (nextRenderableSnapshotEvent() === null) {
         cadence.recordPresentationCallbackWithoutSnapshot();
         if (hasNativePresentationFrame) {
           scheduleAutoRender();
@@ -290,11 +308,18 @@ export async function createWebGpuApp(
       }
       unsubscribeSnapshot = options.simulationWorker.onSnapshot((event) => {
         const receivedAtMilliseconds = nowMilliseconds();
+        const pending = { event, receivedAtMilliseconds };
+        const hasSharedSnapshotPayload = hasWebGpuAppSharedSnapshotPayload(
+          event.message,
+        );
         cadence.recordSnapshotReceived(event.frame);
         if (pendingSnapshotEvent !== null) {
           cadence.recordPendingSnapshotReplaced();
         }
-        pendingSnapshotEvent = { event, receivedAtMilliseconds };
+        if (hasSharedSnapshotPayload) {
+          latestSharedSnapshotEvent = pending;
+        }
+        pendingSnapshotEvent = pending;
         scheduleAutoRender();
       });
       unsubscribeError = options.simulationWorker.onError((event) => {
@@ -325,6 +350,8 @@ export async function createWebGpuApp(
 
       running = false;
       pendingSnapshotEvent = null;
+      latestSharedSnapshotEvent = null;
+      latestRenderedSharedSnapshotFrame = null;
       if (autoRenderRequest !== null) {
         cancelPresentationFrame(autoRenderRequest);
         autoRenderRequest = null;
@@ -433,6 +460,13 @@ export async function createWebGpuApp(
   }
 
   return { ok: true, app, initialization };
+
+  function nextRenderableSnapshotEvent(): PendingSnapshotEventRecord | null {
+    return (
+      pendingSnapshotEvent ??
+      (hasNativePresentationFrame ? latestSharedSnapshotEvent : null)
+    );
+  }
 
   function readLatestRenderReportJson(
     detail: "full" | "status",
