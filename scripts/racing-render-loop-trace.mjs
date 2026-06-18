@@ -20,6 +20,7 @@ const outDir = path.resolve(String(args.out ?? DEFAULT_OUT_DIR));
 const captureTrace = args.trace !== false;
 const captureCpuProfile = args["cpu-profile"] !== false;
 const apertureGpuTimings = args["aperture-gpu-timings"] === true;
+const threeGlDiagnostics = args["three-gl-diagnostics"] === true;
 const scenarios = String(args.scenario ?? "idle,drive")
   .split(",")
   .map((value) => value.trim())
@@ -113,6 +114,7 @@ async function main() {
     captureTrace,
     captureCpuProfile,
     apertureGpuTimings,
+    threeGlDiagnostics,
     headless: args.headed === true ? false : true,
     browserArgs,
     targets: targets.map((target) => ({
@@ -192,6 +194,9 @@ async function runScenario(browser, target, scenario) {
   );
   if (target.kind === "aperture" && apertureGpuTimings) {
     url = addQueryFlag(url, "gpuTimings=1");
+  }
+  if (target.kind === "three" && threeGlDiagnostics) {
+    url = addQueryFlag(url, "glDiagnostics=1");
   }
   await page.goto(url, { waitUntil: "domcontentloaded" });
   try {
@@ -282,6 +287,7 @@ async function startProfiling(page, fileBase) {
         const profilePath = path.join(outDir, `${fileBase}.cpuprofile`);
         await writeFile(profilePath, JSON.stringify(profile));
         files.cpuProfile = profilePath;
+        files.cpuProfileSummary = analyzeCpuProfile(profile);
       }
 
       if (captureTrace) {
@@ -507,6 +513,7 @@ function summarizeApertureSamples(samples, latest) {
   return {
     latest,
     drawCalls: quantiles(drawCounts),
+    phaseTimings: summarizeAperturePhaseTimings(samples, latest),
     gpuTimings: summarizeApertureGpuTimings(samples, latest),
     performanceTransport:
       latest?.performance?.latest?.transport ??
@@ -515,9 +522,45 @@ function summarizeApertureSamples(samples, latest) {
   };
 }
 
+function summarizeAperturePhaseTimings(samples, latest) {
+  const totalMs = [];
+  const phaseMsByName = new Map();
+
+  for (const source of [
+    ...samples.map((sample) => sample?.phaseTimings),
+    latest?.diagnostics?.phaseTimings,
+  ]) {
+    if (source === undefined || source === null) continue;
+    if (isFiniteNumber(source.totalMilliseconds)) {
+      totalMs.push(source.totalMilliseconds);
+    }
+    const phases = Array.isArray(source.phases) ? source.phases : [];
+    for (const phase of phases) {
+      const name = String(phase?.phase ?? "unknown");
+      const milliseconds = phase?.latestMilliseconds;
+      if (!isFiniteNumber(milliseconds)) continue;
+      let values = phaseMsByName.get(name);
+      if (values === undefined) {
+        values = [];
+        phaseMsByName.set(name, values);
+      }
+      values.push(milliseconds);
+    }
+  }
+
+  const phases = {};
+  for (const [name, values] of phaseMsByName) {
+    phases[name] = quantiles(values);
+  }
+
+  return {
+    totalMs: quantiles(totalMs),
+    phases,
+  };
+}
+
 function summarizeApertureGpuTimings(samples, latest) {
   const frameMs = [];
-  const summedPassFrameMs = [];
   const passMsByName = new Map();
 
   for (const sample of samples) {
@@ -525,14 +568,10 @@ function summarizeApertureGpuTimings(samples, latest) {
     if (!Array.isArray(passes) || passes.length === 0) continue;
 
     let totalMicroseconds = 0;
-    let frameMicroseconds = null;
     for (const pass of passes) {
       if (!isFiniteNumber(pass?.microseconds)) continue;
       totalMicroseconds += pass.microseconds;
       const name = String(pass.pass ?? "unknown");
-      if (name === "frame") {
-        frameMicroseconds = pass.microseconds;
-      }
       let values = passMsByName.get(name);
       if (values === undefined) {
         values = [];
@@ -541,11 +580,8 @@ function summarizeApertureGpuTimings(samples, latest) {
       values.push(pass.microseconds / 1000);
     }
 
-    if (frameMicroseconds !== null && frameMicroseconds > 0) {
-      frameMs.push(frameMicroseconds / 1000);
-    }
     if (totalMicroseconds > 0) {
-      summedPassFrameMs.push(totalMicroseconds / 1000);
+      frameMs.push(totalMicroseconds / 1000);
     }
   }
 
@@ -555,8 +591,7 @@ function summarizeApertureGpuTimings(samples, latest) {
   }
 
   return {
-    frameMs: quantiles(frameMs.length > 0 ? frameMs : summedPassFrameMs),
-    summedPassFrameMs: quantiles(summedPassFrameMs),
+    frameMs: quantiles(frameMs),
     passes,
     latest: latest?.diagnostics?.gpuTimings ?? null,
   };
@@ -594,11 +629,154 @@ function summarizeThreeSamples(samples, latest) {
     latest,
     renderCalls: quantiles(renderCalls),
     timings: timingSummary,
+    glCalls: summarizeThreeGlCalls(samples, latest),
     gpuTimer: {
       renderMs: quantiles(gpuTimerResults),
       latest: latest?.renderer?.gpuTimer ?? null,
     },
   };
+}
+
+function summarizeThreeGlCalls(samples, latest) {
+  const glSamples = (latest?.samples ?? [])
+    .map((sample) => sample?.gl)
+    .filter((sample) => sample !== undefined && sample !== null);
+  if (glSamples.length === 0) {
+    glSamples.push(
+      ...samples
+        .map((sample) => sample?.renderer?.glDrawCalls)
+        .filter((sample) => sample !== undefined && sample !== null),
+    );
+  }
+
+  const fieldNames = [
+    "calls",
+    "totalCalls",
+    "stateCalls",
+    "drawArrays",
+    "drawElements",
+    "drawArraysInstanced",
+    "drawElementsInstanced",
+    "multiDrawArrays",
+    "multiDrawElements",
+  ];
+  const summary = {};
+
+  for (const field of fieldNames) {
+    summary[field] = quantiles(
+      glSamples.map((sample) => sample?.[field]).filter(isFiniteNumber),
+    );
+  }
+
+  const methodValues = new Map();
+  for (const sample of glSamples) {
+    const methods = sample?.methods ?? {};
+    for (const [name, value] of Object.entries(methods)) {
+      if (!isFiniteNumber(value)) continue;
+      let values = methodValues.get(name);
+      if (values === undefined) {
+        values = [];
+        methodValues.set(name, values);
+      }
+      values.push(value);
+    }
+  }
+
+  const methodSummaries = Array.from(methodValues.entries())
+    .map(([name, values]) => ({ name, ...quantiles(values) }))
+    .sort((a, b) => (b.avg ?? 0) - (a.avg ?? 0))
+    .slice(0, 24);
+
+  return {
+    sampleCount: glSamples.length,
+    diagnosticsEnabled: glSamples.some(
+      (sample) => sample?.diagnosticsEnabled === true,
+    ),
+    ...summary,
+    topMethods: methodSummaries,
+  };
+}
+
+function analyzeCpuProfile(profile) {
+  const nodes = Array.isArray(profile?.nodes) ? profile.nodes : [];
+  const samples = Array.isArray(profile?.samples) ? profile.samples : [];
+  const timeDeltas = Array.isArray(profile?.timeDeltas)
+    ? profile.timeDeltas
+    : [];
+  const nodesById = new Map(nodes.map((node) => [node.id, node]));
+  const selfMsById = new Map();
+  const fallbackDeltaMs =
+    samples.length > 0 &&
+    isFiniteNumber(profile?.startTime) &&
+    isFiniteNumber(profile?.endTime)
+      ? Math.max(0, profile.endTime - profile.startTime) / samples.length / 1000
+      : 0;
+
+  for (let index = 0; index < samples.length; index += 1) {
+    const nodeId = samples[index];
+    const node = nodesById.get(nodeId);
+    if (node === undefined) continue;
+    const deltaMs = isFiniteNumber(timeDeltas[index])
+      ? timeDeltas[index] / 1000
+      : fallbackDeltaMs;
+    selfMsById.set(nodeId, (selfMsById.get(nodeId) ?? 0) + deltaMs);
+  }
+
+  const entries = Array.from(selfMsById.entries())
+    .map(([nodeId, selfMs]) => {
+      const node = nodesById.get(nodeId);
+      const callFrame = node?.callFrame ?? {};
+      const url = String(callFrame.url ?? "");
+      return {
+        functionName: normalizeProfileFunctionName(callFrame.functionName),
+        url,
+        urlBucket: bucketProfileUrl(url),
+        lineNumber: isFiniteNumber(callFrame.lineNumber)
+          ? callFrame.lineNumber + 1
+          : null,
+        columnNumber: isFiniteNumber(callFrame.columnNumber)
+          ? callFrame.columnNumber + 1
+          : null,
+        selfMs,
+      };
+    })
+    .sort((a, b) => b.selfMs - a.selfMs);
+
+  const bucketMs = {};
+  for (const entry of entries) {
+    bucketMs[entry.urlBucket] = (bucketMs[entry.urlBucket] ?? 0) + entry.selfMs;
+  }
+
+  return {
+    sampleCount: samples.length,
+    totalSelfMs: entries.reduce((total, entry) => total + entry.selfMs, 0),
+    topSelfTime: entries.slice(0, 30),
+    topAppSelfTime: entries
+      .filter((entry) => entry.urlBucket !== "browser/internal")
+      .slice(0, 30),
+    bucketMs,
+  };
+}
+
+function normalizeProfileFunctionName(value) {
+  const text = String(value ?? "");
+  return text.length === 0 ? "(anonymous)" : text;
+}
+
+function bucketProfileUrl(url) {
+  if (url.length === 0) return "browser/internal";
+  if (url.includes("/__three__/")) return "three.js";
+  if (url.includes("Starter-Kit-Racing") || /\/js\/[^/?#]+\.js/.test(url)) {
+    return "three-app";
+  }
+  if (url.includes("/assets/") || url.includes("/src/")) return "aperture-app";
+  if (url.includes("localhost") || url.includes("127.0.0.1")) {
+    return "local-app";
+  }
+  if (url.includes("extensions::") || url.includes("chrome://")) {
+    return "browser/internal";
+  }
+  return "other";
 }
 
 function printSummary(summary, summaryPath) {
@@ -624,6 +802,14 @@ function printSummary(summary, summaryPath) {
     if (run.target === "three" || (gpuTimer?.count ?? 0) > 0) {
       parts.push(
         `gpu p50=${formatMs(gpuTimer?.p50)} p95=${formatMs(gpuTimer?.p95)} max=${formatMs(gpuTimer?.max)}`,
+      );
+    }
+    if (
+      run.target === "three" &&
+      (run.three?.glCalls?.stateCalls?.max ?? 0) > 0
+    ) {
+      parts.push(
+        `gl total p50=${formatNumber(run.three.glCalls.totalCalls?.p50)} state p50=${formatNumber(run.three.glCalls.stateCalls?.p50)}`,
       );
     }
     parts.push(`heap=${heapMb}MB`);
@@ -817,9 +1003,9 @@ function instrumentThreeMain(source) {
   }
   output = output.replace(
     "const renderer = new THREE.WebGLRenderer( { antialias: true, outputBufferType: THREE.HalfFloatType } );\n",
-    "const renderer = new THREE.WebGLRenderer( { antialias: true, outputBufferType: THREE.HalfFloatType } );\ninstallThreeRacingGlDrawCounter( renderer );\ninstallThreeRacingGpuTimer( renderer );\n",
+    "const renderer = new THREE.WebGLRenderer( { antialias: true, outputBufferType: THREE.HalfFloatType } );\ninstallThreeRacingGlDrawCounter( renderer, new URLSearchParams( location.search ).has( 'glDiagnostics' ) );\ninstallThreeRacingGpuTimer( renderer );\n",
   );
-  if (!output.includes("installThreeRacingGlDrawCounter( renderer );")) {
+  if (!output.includes("installThreeRacingGlDrawCounter( renderer")) {
     throw new Error("Could not install three.js WebGL draw-call counter.");
   }
   if (!output.includes("installThreeRacingGpuTimer( renderer );")) {
@@ -935,6 +1121,7 @@ function instrumentThreeMain(source) {
 \t\t\tspeed: vehicle.linearSpeed,
 \t\t\tdriftIntensity: vehicle.driftIntensity,
 \t\t\tgpuTimer,
+\t\t\tgl: snapshotThreeRacingGlCounter(),
 \t\t\tparticles: particles.lastStats ?? null,
 \t\t\tvehiclePosition: {
 \t\t\t\tx: vehicle.spherePos.x,
@@ -1116,10 +1303,12 @@ function resetThreeRacingPerfSamples() {
 
 }
 
-function installThreeRacingGlDrawCounter( renderer ) {
+function installThreeRacingGlDrawCounter( renderer, deepDiagnostics = false ) {
 
 \tconst gl = renderer.getContext?.();
 \tconst counter = {
+\t\tdiagnosticsEnabled: deepDiagnostics === true,
+\t\ttotalCalls: 0,
 \t\tcalls: 0,
 \t\tdrawArrays: 0,
 \t\tdrawElements: 0,
@@ -1127,7 +1316,9 @@ function installThreeRacingGlDrawCounter( renderer ) {
 \t\tdrawElementsInstanced: 0,
 \t\tmultiDrawArrays: 0,
 \t\tmultiDrawElements: 0,
+\t\tmethods: Object.create( null ),
 \t\treset() {
+\t\t\tthis.totalCalls = 0;
 \t\t\tthis.calls = 0;
 \t\t\tthis.drawArrays = 0;
 \t\t\tthis.drawElements = 0;
@@ -1135,19 +1326,35 @@ function installThreeRacingGlDrawCounter( renderer ) {
 \t\t\tthis.drawElementsInstanced = 0;
 \t\t\tthis.multiDrawArrays = 0;
 \t\t\tthis.multiDrawElements = 0;
+\t\t\tthis.methods = Object.create( null );
 \t\t},
 \t\tsnapshot() {
 \t\t\treturn {
+\t\t\t\tdiagnosticsEnabled: this.diagnosticsEnabled,
+\t\t\t\ttotalCalls: this.totalCalls,
 \t\t\t\tcalls: this.calls,
+\t\t\t\tstateCalls: Math.max( 0, this.totalCalls - this.calls ),
 \t\t\t\tdrawArrays: this.drawArrays,
 \t\t\t\tdrawElements: this.drawElements,
 \t\t\t\tdrawArraysInstanced: this.drawArraysInstanced,
 \t\t\t\tdrawElementsInstanced: this.drawElementsInstanced,
 \t\t\t\tmultiDrawArrays: this.multiDrawArrays,
 \t\t\t\tmultiDrawElements: this.multiDrawElements,
+\t\t\t\tmethods: { ...this.methods },
 \t\t\t};
 \t\t},
 \t};
+
+\tfunction increment( method, field ) {
+
+\t\tcounter.totalCalls ++;
+\t\tcounter.methods[ method ] = ( counter.methods[ method ] ?? 0 ) + 1;
+\t\tif ( field !== null && field !== undefined ) {
+\t\t\tcounter.calls ++;
+\t\t\tcounter[ field ] ++;
+\t\t}
+
+\t}
 
 \tfunction wrap( target, method, field ) {
 
@@ -1155,8 +1362,7 @@ function installThreeRacingGlDrawCounter( renderer ) {
 \t\tconst original = target[ method ].bind( target );
 \t\ttarget[ method ] = ( ...args ) => {
 
-\t\t\tcounter.calls ++;
-\t\t\tcounter[ field ] ++;
+\t\t\tincrement( method, field );
 \t\t\treturn original( ...args );
 
 \t\t};
@@ -1178,8 +1384,122 @@ function installThreeRacingGlDrawCounter( renderer ) {
 \twrap( multiDraw, 'multiDrawArraysInstancedWEBGL', 'multiDrawArrays' );
 \twrap( multiDraw, 'multiDrawElementsInstancedWEBGL', 'multiDrawElements' );
 
+\tif ( deepDiagnostics === true ) {
+\t\tfor ( const method of [
+\t\t\t'activeTexture',
+\t\t\t'attachShader',
+\t\t\t'bindAttribLocation',
+\t\t\t'bindBuffer',
+\t\t\t'bindBufferBase',
+\t\t\t'bindBufferRange',
+\t\t\t'bindFramebuffer',
+\t\t\t'bindRenderbuffer',
+\t\t\t'bindSampler',
+\t\t\t'bindTexture',
+\t\t\t'bindVertexArray',
+\t\t\t'blendColor',
+\t\t\t'blendEquation',
+\t\t\t'blendEquationSeparate',
+\t\t\t'blendFunc',
+\t\t\t'blendFuncSeparate',
+\t\t\t'bufferData',
+\t\t\t'bufferSubData',
+\t\t\t'clear',
+\t\t\t'clearColor',
+\t\t\t'clearDepth',
+\t\t\t'clearStencil',
+\t\t\t'colorMask',
+\t\t\t'compileShader',
+\t\t\t'compressedTexImage2D',
+\t\t\t'compressedTexSubImage2D',
+\t\t\t'copyTexImage2D',
+\t\t\t'copyTexSubImage2D',
+\t\t\t'cullFace',
+\t\t\t'depthFunc',
+\t\t\t'depthMask',
+\t\t\t'depthRange',
+\t\t\t'disable',
+\t\t\t'disableVertexAttribArray',
+\t\t\t'enable',
+\t\t\t'enableVertexAttribArray',
+\t\t\t'framebufferRenderbuffer',
+\t\t\t'framebufferTexture2D',
+\t\t\t'frontFace',
+\t\t\t'generateMipmap',
+\t\t\t'linkProgram',
+\t\t\t'pixelStorei',
+\t\t\t'polygonOffset',
+\t\t\t'renderbufferStorage',
+\t\t\t'samplerParameteri',
+\t\t\t'scissor',
+\t\t\t'stencilFunc',
+\t\t\t'stencilFuncSeparate',
+\t\t\t'stencilMask',
+\t\t\t'stencilMaskSeparate',
+\t\t\t'stencilOp',
+\t\t\t'stencilOpSeparate',
+\t\t\t'texImage2D',
+\t\t\t'texImage3D',
+\t\t\t'texParameteri',
+\t\t\t'texParameterf',
+\t\t\t'texStorage2D',
+\t\t\t'texStorage3D',
+\t\t\t'texSubImage2D',
+\t\t\t'texSubImage3D',
+\t\t\t'uniform1f',
+\t\t\t'uniform1fv',
+\t\t\t'uniform1i',
+\t\t\t'uniform1iv',
+\t\t\t'uniform1ui',
+\t\t\t'uniform1uiv',
+\t\t\t'uniform2f',
+\t\t\t'uniform2fv',
+\t\t\t'uniform2i',
+\t\t\t'uniform2iv',
+\t\t\t'uniform2ui',
+\t\t\t'uniform2uiv',
+\t\t\t'uniform3f',
+\t\t\t'uniform3fv',
+\t\t\t'uniform3i',
+\t\t\t'uniform3iv',
+\t\t\t'uniform3ui',
+\t\t\t'uniform3uiv',
+\t\t\t'uniform4f',
+\t\t\t'uniform4fv',
+\t\t\t'uniform4i',
+\t\t\t'uniform4iv',
+\t\t\t'uniform4ui',
+\t\t\t'uniform4uiv',
+\t\t\t'uniformMatrix2fv',
+\t\t\t'uniformMatrix2x3fv',
+\t\t\t'uniformMatrix2x4fv',
+\t\t\t'uniformMatrix3fv',
+\t\t\t'uniformMatrix3x2fv',
+\t\t\t'uniformMatrix3x4fv',
+\t\t\t'uniformMatrix4fv',
+\t\t\t'uniformMatrix4x2fv',
+\t\t\t'uniformMatrix4x3fv',
+\t\t\t'useProgram',
+\t\t\t'vertexAttrib1f',
+\t\t\t'vertexAttrib2f',
+\t\t\t'vertexAttrib3f',
+\t\t\t'vertexAttrib4f',
+\t\t\t'vertexAttribDivisor',
+\t\t\t'vertexAttribPointer',
+\t\t\t'viewport',
+\t\t] ) {
+\t\t\twrap( gl, method, null );
+\t\t}
+\t}
+
 \tglobalThis.__THREE_RACING_GL_DRAW_COUNTER__ = counter;
 \treturn counter;
+
+}
+
+function snapshotThreeRacingGlCounter() {
+
+\treturn globalThis.__THREE_RACING_GL_DRAW_COUNTER__?.snapshot?.() ?? null;
 
 }
 
