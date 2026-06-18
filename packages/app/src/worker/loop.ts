@@ -27,7 +27,9 @@ import {
 import type { GeneratedEntityToolBridge } from "./devtools/entities.js";
 import {
   createGeneratedWorkerSnapshotTransport,
+  createGeneratedWorkerSummaryCadence,
   publishGeneratedWorkerSnapshot,
+  type GeneratedWorkerSnapshotPublishTiming,
   type GeneratedWorkerSnapshotPublishReport,
 } from "./snapshot.js";
 
@@ -85,11 +87,17 @@ export async function runGeneratedWorkerLoop(options: {
     publishWorkerStartOptions(app.lowLevel.world, options.start);
     const entityTools = options.createEntityTools(app.lowLevel.world);
     const sourceAssetState = createSourceAssetSerializationState();
+    const workerSummaryCadence = createGeneratedWorkerSummaryCadence();
     let frame = 0;
     let running = true;
     let paused = false;
     let previousTime = performance.now();
     const pendingDevtoolsInput: ApertureGeneratedInputEvent[] = [];
+    let previousPublishTiming: GeneratedWorkerSnapshotPublishTiming | null =
+      null;
+    const tickScheduler = createGeneratedWorkerTickScheduler({
+      tickRateHz: readWorkerTickRateHz(options.start),
+    });
 
     const publishSnapshot = (
       delta: number,
@@ -105,11 +113,14 @@ export async function runGeneratedWorkerLoop(options: {
         immediateInputEvents,
         sourceAssetState,
         entityTools,
+        summaryCadence: workerSummaryCadence,
         delta,
         time,
         frame,
+        previousPublishTiming,
       });
       frame = report.nextFrame;
+      previousPublishTiming = report.timing;
 
       return report;
     };
@@ -144,6 +155,7 @@ export async function runGeneratedWorkerLoop(options: {
 
     const tick = () => {
       if (!running) {
+        tickScheduler.dispose();
         return;
       }
 
@@ -155,7 +167,7 @@ export async function runGeneratedWorkerLoop(options: {
         publishSnapshot(delta, now / 1000);
       }
 
-      setTimeout(tick, 0);
+      tickScheduler.schedule(tick);
     };
 
     options.port.postMessage({ type: SIMULATION_WORKER_PROTOCOL.ready });
@@ -181,6 +193,148 @@ export async function runGeneratedWorkerLoop(options: {
       diagnostics: [diagnostic],
     });
   }
+}
+
+export interface GeneratedWorkerTickScheduler {
+  schedule(callback: () => void): void;
+  dispose(): void;
+}
+
+export interface GeneratedWorkerTickSchedulerOptions {
+  readonly tickRateHz?: number;
+}
+
+export const DEFAULT_GENERATED_WORKER_TICK_RATE_HZ = 240;
+const MIN_GENERATED_WORKER_TICK_RATE_HZ = 1;
+const MAX_GENERATED_WORKER_TICK_RATE_HZ = 1000;
+
+export function createGeneratedWorkerTickScheduler(
+  options: GeneratedWorkerTickSchedulerOptions = {},
+): GeneratedWorkerTickScheduler {
+  const tickRateHz = normalizeGeneratedWorkerTickRateHz(options.tickRateHz);
+  const intervalMilliseconds = 1000 / tickRateHz;
+  let nextTickMilliseconds = nowMilliseconds() + intervalMilliseconds;
+
+  if (typeof MessageChannel === "function") {
+    const channel = new MessageChannel();
+    let pending: (() => void) | null = null;
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    let disposed = false;
+
+    channel.port1.onmessage = () => {
+      const callback = pending;
+
+      pending = null;
+      if (disposed || callback === null) {
+        return;
+      }
+
+      nextTickMilliseconds = nextGeneratedWorkerTickDeadline(
+        nextTickMilliseconds,
+        intervalMilliseconds,
+      );
+      callback?.();
+    };
+    channel.port1.start?.();
+
+    return {
+      schedule(callback) {
+        if (disposed) {
+          return;
+        }
+
+        const delayMilliseconds = Math.max(
+          0,
+          nextTickMilliseconds - nowMilliseconds(),
+        );
+        const postCallback = () => {
+          timeout = null;
+          if (disposed) {
+            return;
+          }
+
+          pending = callback;
+          channel.port2.postMessage(null);
+        };
+
+        if (delayMilliseconds > 0.25) {
+          timeout = setTimeout(postCallback, delayMilliseconds);
+        } else {
+          postCallback();
+        }
+      },
+      dispose() {
+        disposed = true;
+        pending = null;
+        if (timeout !== null) {
+          clearTimeout(timeout);
+          timeout = null;
+        }
+        channel.port1.close();
+        channel.port2.close();
+      },
+    };
+  }
+
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+
+  return {
+    schedule(callback) {
+      const delayMilliseconds = Math.max(
+        0,
+        nextTickMilliseconds - nowMilliseconds(),
+      );
+
+      timeout = setTimeout(() => {
+        timeout = null;
+        nextTickMilliseconds = nextGeneratedWorkerTickDeadline(
+          nextTickMilliseconds,
+          intervalMilliseconds,
+        );
+        callback();
+      }, delayMilliseconds);
+    },
+    dispose() {
+      if (timeout !== null) {
+        clearTimeout(timeout);
+        timeout = null;
+      }
+    },
+  };
+}
+
+function nextGeneratedWorkerTickDeadline(
+  previousDeadlineMilliseconds: number,
+  intervalMilliseconds: number,
+): number {
+  const now = nowMilliseconds();
+  const next = previousDeadlineMilliseconds + intervalMilliseconds;
+
+  return now - next > intervalMilliseconds * 4
+    ? now + intervalMilliseconds
+    : next;
+}
+
+function readWorkerTickRateHz(start: SimulationWorkerStartOptions): number {
+  return normalizeGeneratedWorkerTickRateHz(start["workerTickRateHz"]);
+}
+
+function normalizeGeneratedWorkerTickRateHz(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return DEFAULT_GENERATED_WORKER_TICK_RATE_HZ;
+  }
+
+  return Math.min(
+    MAX_GENERATED_WORKER_TICK_RATE_HZ,
+    Math.max(MIN_GENERATED_WORKER_TICK_RATE_HZ, Math.floor(value)),
+  );
+}
+
+function nowMilliseconds(): number {
+  return typeof performance === "undefined" ||
+    typeof performance.now !== "function"
+    ? Date.now()
+    : performance.now();
 }
 
 /**

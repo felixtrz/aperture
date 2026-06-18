@@ -29,10 +29,39 @@ export interface GeneratedBrowserAppStatus {
   lastError: unknown;
   lastFailure: ApertureGeneratedDiagnosticsStatus | null;
   lastWorkerSummary: unknown;
+  performance: GeneratedBrowserPerformanceStatus | null;
   diagnostics: unknown;
   render: GeneratedBrowserRenderSettings | null;
   canvas: GeneratedCanvasResizeMeasurement | null;
   systems: readonly GeneratedBrowserSystemManifestEntry[];
+}
+
+export interface GeneratedBrowserPerformanceTimingStats {
+  readonly count: number;
+  readonly latest: number | null;
+  readonly average: number | null;
+  readonly min: number | null;
+  readonly p50: number | null;
+  readonly p95: number | null;
+  readonly p99: number | null;
+  readonly max: number | null;
+}
+
+export interface GeneratedBrowserPerformanceStatus {
+  readonly sampleWindow: number;
+  readonly latest: {
+    readonly frame: number;
+    readonly transport: "shared-array-buffer" | "transferable";
+    readonly preStepWorldChanged: boolean;
+    readonly publish: Record<string, number>;
+    readonly step: Record<string, number>;
+    readonly lowLevel: Record<string, number>;
+  } | null;
+  readonly rolling: {
+    readonly publish: Record<string, GeneratedBrowserPerformanceTimingStats>;
+    readonly step: Record<string, GeneratedBrowserPerformanceTimingStats>;
+    readonly lowLevel: Record<string, GeneratedBrowserPerformanceTimingStats>;
+  };
 }
 
 export type GeneratedBrowserStatusListener = (
@@ -45,6 +74,12 @@ export interface GeneratedBrowserStatusSubscriptionOptions {
 }
 
 export const APERTURE_GENERATED_STATUS_GLOBAL = "__APERTURE_GENERATED_APP__";
+export const APERTURE_GENERATED_RENDER_DIAGNOSTICS_PROPERTY =
+  "__apertureRenderDiagnostics";
+
+export interface GeneratedBrowserRenderDiagnosticsAccessor {
+  getDiagnostics(options?: { readonly detail?: "full" | "status" }): unknown;
+}
 
 export function readGeneratedBrowserAppStatus(
   scope: object = globalThis,
@@ -112,6 +147,7 @@ export function installGeneratedStatus(): GeneratedBrowserAppStatus {
     lastError: null,
     lastFailure: null,
     lastWorkerSummary: null,
+    performance: null,
     diagnostics: null,
     render: null,
     canvas: null,
@@ -122,6 +158,21 @@ export function installGeneratedStatus(): GeneratedBrowserAppStatus {
     status;
 
   return status;
+}
+
+export function installGeneratedRenderDiagnosticsAccessor(
+  status: GeneratedBrowserAppStatus,
+  accessor: GeneratedBrowserRenderDiagnosticsAccessor,
+): void {
+  Object.defineProperty(
+    status,
+    APERTURE_GENERATED_RENDER_DIAGNOSTICS_PROPERTY,
+    {
+      value: accessor,
+      enumerable: false,
+      configurable: true,
+    },
+  );
 }
 
 function generatedStatusStamp(status: GeneratedBrowserAppStatus): string {

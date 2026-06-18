@@ -5,6 +5,7 @@ import {
 
 export const STATUS_GLOBAL = APERTURE_STATUS_GLOBAL;
 export const RUNTIME_GLOBAL = APERTURE_MCP_RUNTIME_GLOBAL;
+export const RENDER_DIAGNOSTICS_PROPERTY = "__apertureRenderDiagnostics";
 
 export interface ApertureToolCallOptions {
   readonly cwd: string;

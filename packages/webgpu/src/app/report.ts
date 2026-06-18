@@ -3,9 +3,11 @@ import {
   createPreparedMeshStore,
   preparedMaterialStoreSummaryToJsonValue,
   preparedMeshStoreSummaryToJsonValue,
+  RENDER_SNAPSHOT_CHANGE_SET_FAMILIES,
   type RenderEntityRef,
   type RenderSnapshot,
   type RenderSnapshotChangeSet,
+  type RenderSnapshotFamilyChangeKeys,
   type RenderSnapshotUpdateSchedule,
 } from "@aperture-engine/render";
 import {
@@ -105,16 +107,27 @@ export function createWebGpuAppPickReport(input: {
 
 export function webGpuAppRenderReportToJsonValue(
   report: WebGpuAppRenderReport,
+  options: {
+    readonly detail?: "full" | "status";
+  } = {},
 ): WebGpuAppRenderReportJsonValue {
   const materialDependencyReadiness =
     collectWebGpuAppMaterialDependencyReadiness(report.diagnostics);
+  const resourceReuse =
+    options.detail === "status"
+      ? compactWebGpuAppResourceReuseReport(report.resourceReuse)
+      : { ...report.resourceReuse };
+  const renderChangeSet =
+    report.snapshotChangeSet === undefined
+      ? undefined
+      : options.detail === "status"
+        ? compactRenderSnapshotChangeSet(report.snapshotChangeSet)
+        : toWebGpuAppJsonValue(report.snapshotChangeSet);
 
   return {
     ok: report.ok,
     frame: report.frame,
-    ...(report.snapshotChangeSet === undefined
-      ? {}
-      : { renderChangeSet: toWebGpuAppJsonValue(report.snapshotChangeSet) }),
+    ...(renderChangeSet === undefined ? {} : { renderChangeSet }),
     ...(report.snapshotUpdateSchedule === undefined
       ? {}
       : {
@@ -129,7 +142,7 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.diagnosticsSummary === undefined
       ? {}
       : { diagnosticsSummary: report.diagnosticsSummary }),
-    resourceReuse: { ...report.resourceReuse },
+    resourceReuse,
     ...(report.depthAttachment === undefined
       ? {}
       : { depthAttachment: report.depthAttachment }),
@@ -166,7 +179,7 @@ export function webGpuAppRenderReportToJsonValue(
       : { motionVectors: report.motionVectors }),
     ...(report.shadow === undefined
       ? {}
-      : { shadow: toWebGpuAppJsonValue(report.shadow) }),
+      : { shadow: renderShadowFrameReportToJsonValue(report.shadow) }),
     ...(report.localLightClusters === undefined
       ? {}
       : { localLightClusters: report.localLightClusters }),
@@ -182,6 +195,166 @@ export function webGpuAppRenderReportToJsonValue(
     ...(materialDependencyReadiness.length === 0
       ? {}
       : { materialDependencyReadiness }),
+  };
+}
+
+const STATUS_CHANGE_SET_KEY_SAMPLE_LIMIT = 8;
+
+function compactRenderSnapshotChangeSet(
+  changeSet: RenderSnapshotChangeSet,
+): WebGpuAppJsonValue {
+  return {
+    previousFrame: changeSet.previousFrame,
+    frame: changeSet.frame,
+    views: { ...changeSet.views },
+    meshDraws: { ...changeSet.meshDraws },
+    shadowCasterDraws: { ...changeSet.shadowCasterDraws },
+    lights: { ...changeSet.lights },
+    environments: { ...changeSet.environments },
+    shadowRequests: { ...changeSet.shadowRequests },
+    bounds: { ...changeSet.bounds },
+    total: { ...changeSet.total },
+    ...(changeSet.keys === undefined
+      ? {}
+      : {
+          keys: Object.fromEntries(
+            RENDER_SNAPSHOT_CHANGE_SET_FAMILIES.map((family) => [
+              family,
+              compactRenderSnapshotFamilyChangeKeys(changeSet.keys?.[family]),
+            ]),
+          ),
+        }),
+  };
+}
+
+function compactRenderSnapshotFamilyChangeKeys(
+  keys: RenderSnapshotFamilyChangeKeys | undefined,
+): WebGpuAppJsonValue {
+  if (keys === undefined) {
+    return null;
+  }
+
+  return {
+    changed: compactStringList(keys.changed),
+    unchanged: compactStringList(keys.unchanged),
+    removed: compactStringList(keys.removed),
+  };
+}
+
+function compactStringList(values: readonly string[]): WebGpuAppJsonValue {
+  return {
+    count: values.length,
+    sample: values.slice(0, STATUS_CHANGE_SET_KEY_SAMPLE_LIMIT),
+    omitted: Math.max(0, values.length - STATUS_CHANGE_SET_KEY_SAMPLE_LIMIT),
+  };
+}
+
+function compactWebGpuAppResourceReuseReport(
+  report: WebGpuAppResourceReuseReport,
+): WebGpuAppResourceReuseReport {
+  return {
+    ...report,
+    preparedMeshCache: {
+      totalEntries: report.preparedMeshCache.totalEntries,
+      layouts: [],
+    },
+    preparedMeshFacade: {
+      totalEntries: report.preparedMeshFacade.totalEntries,
+      entries: [],
+    },
+    preparedMaterialFacade: {
+      totalEntries: report.preparedMaterialFacade.totalEntries,
+      families: report.preparedMaterialFacade.families,
+      entries: [],
+    },
+  };
+}
+
+function renderShadowFrameReportToJsonValue(
+  shadow: NonNullable<WebGpuAppRenderReport["shadow"]>,
+): WebGpuAppJsonValue {
+  return {
+    ready: shadow.ready,
+    status: shadow.status,
+    shadowKind: shadow.shadowKind,
+    requestCount: shadow.requestCount,
+    passCount: shadow.passCount,
+    drawCalls: shadow.drawCalls,
+    descriptor: toWebGpuAppJsonValue(shadow.descriptor),
+    viewProjection: toWebGpuAppJsonValue(shadow.viewProjection),
+    matrixComputation: toWebGpuAppJsonValue(shadow.matrixComputation),
+    casterDrawList: shadowCasterDrawListReportToJsonValue(
+      shadow.casterDrawList,
+    ),
+    depthTextureKeys: [...shadow.depthTextureKeys],
+    matrixBufferResourceKey: shadow.matrixBufferResourceKey,
+    sections: { ...shadow.sections },
+    resourceReuse: { ...shadow.resourceReuse },
+    commandBufferSubmission: {
+      status: shadow.commandBufferSubmission.status,
+      assembledPasses: shadow.commandBufferSubmission.assembledPasses,
+      commandBuffers: shadow.commandBufferSubmission.commandBuffers,
+      submittedCommandBuffers:
+        shadow.commandBufferSubmission.submittedCommandBuffers,
+      commandBufferKeys: [...shadow.commandBufferSubmission.commandBufferKeys],
+      sections: { ...shadow.commandBufferSubmission.sections },
+    },
+    diagnostics: shadow.diagnostics.map((diagnostic) =>
+      toWebGpuAppJsonValue(diagnostic),
+    ),
+  };
+}
+
+function shadowCasterDrawListReportToJsonValue(
+  report: NonNullable<WebGpuAppRenderReport["shadow"]>["casterDrawList"],
+): WebGpuAppJsonValue {
+  return {
+    ready: report.ready,
+    status: report.status,
+    requestCount: report.requestCount,
+    meshDrawCount: report.meshDrawCount,
+    listCount: report.listCount,
+    includedDrawCount: report.includedDrawCount,
+    skippedDrawCount: report.skippedDrawCount,
+    sections: { ...report.sections },
+    lists: report.lists.map((list) => {
+      const drawSample = list.draws.slice(0, 8);
+
+      return {
+        shadowId: list.shadowId,
+        lightId: list.lightId,
+        passKey: list.passKey,
+        casterLayerMask: list.casterLayerMask,
+        receiverLayerMask: list.receiverLayerMask,
+        includedDrawCount: list.includedDrawCount,
+        skippedDrawCount: list.skippedDrawCount,
+        commandEncoding: list.commandEncoding,
+        omittedDrawCount: Math.max(0, list.draws.length - drawSample.length),
+        drawSample: drawSample.map((draw) => ({
+          renderId: draw.renderId,
+          meshKey: draw.meshKey,
+          materialKey: draw.materialKey,
+          meshLayoutKey: draw.meshLayoutKey,
+          casterCullMode: draw.casterCullMode,
+          submesh: draw.submesh,
+          ...(draw.vertexStart === undefined
+            ? {}
+            : { vertexStart: draw.vertexStart }),
+          ...(draw.vertexCount === undefined
+            ? {}
+            : { vertexCount: draw.vertexCount }),
+          ...(draw.indexStart === undefined
+            ? {}
+            : { indexStart: draw.indexStart }),
+          ...(draw.indexCount === undefined
+            ? {}
+            : { indexCount: draw.indexCount }),
+        })),
+      };
+    }),
+    diagnostics: report.diagnostics.map((diagnostic) =>
+      toWebGpuAppJsonValue(diagnostic),
+    ),
   };
 }
 

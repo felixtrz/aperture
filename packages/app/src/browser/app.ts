@@ -26,6 +26,7 @@ import { resolveUseFrameGraph } from "./frame-graph-route.js";
 import { installGeneratedInputForwarding } from "./input.js";
 import { resolveGeneratedRenderSettings } from "./render.js";
 import {
+  installGeneratedRenderDiagnosticsAccessor,
   installGeneratedStatus,
   type GeneratedBrowserSystemManifestEntry,
 } from "./status.js";
@@ -139,6 +140,9 @@ export async function startGeneratedBrowserApp(
   status.status = webgpu.ok ? "running" : "webgpu-failed";
   status.diagnostics = webgpu.ok ? webgpu.app.getDiagnostics() : webgpu;
   if (webgpu.ok) {
+    installGeneratedRenderDiagnosticsAccessor(status, {
+      getDiagnostics: webgpu.app.getDiagnostics,
+    });
     syncGeneratedDiagnostics(webgpu.app.getDiagnostics, status);
   }
 

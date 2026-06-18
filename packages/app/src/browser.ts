@@ -23,12 +23,14 @@ export {
 } from "./browser/devtools/index.js";
 export type { ApertureMcpRuntime } from "./browser/devtools/index.js";
 export {
+  APERTURE_GENERATED_RENDER_DIAGNOSTICS_PROPERTY,
   APERTURE_GENERATED_STATUS_GLOBAL,
   readGeneratedBrowserAppStatus,
   subscribeGeneratedBrowserAppStatus,
 } from "./browser/status.js";
 export type {
   GeneratedBrowserAppStatus,
+  GeneratedBrowserRenderDiagnosticsAccessor,
   GeneratedBrowserStatusListener,
   GeneratedBrowserStatusSubscriptionOptions,
   GeneratedBrowserSystemManifestEntry,

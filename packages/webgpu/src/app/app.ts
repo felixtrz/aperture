@@ -86,6 +86,12 @@ export interface WebGpuAppRenderOptions {
   readonly clearColor?: readonly number[];
   readonly label?: string;
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
+  /**
+   * Collect GPU timestamp timings for this frame. This is intentionally opt-in:
+   * reading timestamp buffers requires a queue drain, which serializes normal
+   * rendering against the GPU.
+   */
+  readonly gpuTimings?: boolean;
   readonly autoStandardMaterialShadowReceiverResources?: boolean;
   readonly standardMaterialShadowReceiverResources?: StandardFrameShadowReceiverResources;
   readonly standardMaterialIblResources?: StandardFrameIblResources;
@@ -293,11 +299,43 @@ export interface WebGpuAppWorkerRenderErrorDiagnostic {
   readonly reason: string;
 }
 
+export interface WebGpuAppCadenceCounterReport {
+  readonly total: number;
+  readonly intervalSamples: number;
+  readonly latestIntervalMilliseconds: number | null;
+  readonly averageIntervalMilliseconds: number | null;
+  readonly minimumIntervalMilliseconds: number | null;
+  readonly maximumIntervalMilliseconds: number | null;
+  readonly estimatedHz: number | null;
+  readonly latestFrame: number | null;
+}
+
+export interface WebGpuAppCadenceReport {
+  readonly sampleWindow: number;
+  readonly snapshotsReceived: WebGpuAppCadenceCounterReport;
+  readonly presentationCallbacks: WebGpuAppCadenceCounterReport;
+  readonly rendersStarted: WebGpuAppCadenceCounterReport;
+  readonly rendersCompleted: WebGpuAppCadenceCounterReport;
+  readonly pendingSnapshotsReplaced: number;
+  readonly renderCompletionDrains: number;
+  readonly presentationCallbacksWhileInFlight: number;
+  readonly presentationCallbacksWithoutSnapshot: number;
+  readonly renderFailures: number;
+  readonly pendingSnapshot: boolean;
+  readonly scheduled: boolean;
+  readonly inFlight: boolean;
+}
+
 export interface WebGpuAppDiagnostics {
   readonly lastFrame: WebGpuAppRenderReportJsonValue | null;
   readonly lastPick: WebGpuAppPickReportJsonValue | null;
   readonly lastError: WebGpuAppWorkerRenderErrorDiagnostic | null;
   readonly transport: WebGpuAppSnapshotTransportDiagnostics;
+  readonly cadence: WebGpuAppCadenceReport;
+}
+
+export interface WebGpuAppDiagnosticsOptions {
+  readonly detail?: "full" | "status";
 }
 
 export interface WebGpuAppPickReport {
@@ -470,6 +508,8 @@ export interface WebGpuAppRenderBundleFrameReport {
   readonly valid: boolean;
   readonly status: RenderBundleExecutionReport["status"];
   readonly key: string | null;
+  readonly keyHash: string | null;
+  readonly keyLength: number | null;
   readonly commandCount: number;
   readonly encodedCommands: number;
   readonly executedBundles: number;
@@ -520,7 +560,7 @@ export interface WebGpuApp {
   readonly userPassRegistry: WebGpuAppUserPassRegistry;
   start(options?: WebGpuAppStartOptions): void;
   stop(): void;
-  getDiagnostics(): WebGpuAppDiagnostics;
+  getDiagnostics(options?: WebGpuAppDiagnosticsOptions): WebGpuAppDiagnostics;
   pick(x: number, y: number): Promise<RenderEntityRef | null>;
   renderSnapshot(
     snapshot: RenderSnapshot,
@@ -558,6 +598,11 @@ export interface CreateWebGpuAppOptions extends Omit<
   // omitted the legacy 8-bit-swapchain in-material tonemap path is unchanged.
   readonly exposure?: number;
   readonly postEffects?: readonly WebGpuPostEffect[];
+  /**
+   * Collect per-frame GPU timestamp timings by default. Leave this disabled for
+   * normal apps; enable it only for diagnostics/profiling captures.
+   */
+  readonly gpuTimings?: boolean;
   // M3-T3 + AI-25: the single-encoder FrameGraph path, ON by default at parity.
   // Set false to force the legacy multi-submit path.
   readonly useFrameGraph?: boolean;
