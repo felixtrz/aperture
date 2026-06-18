@@ -292,6 +292,58 @@ describe("GPU particle app frame resources", () => {
     );
   });
 
+  it("reports per-frame particle texture and sampler reuse deltas", async () => {
+    const effect = createParticleEffectHandle("spark-delta");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect);
+    const reuse = {
+      textureResourcesCreated: 7,
+      textureResourcesReused: 11,
+      samplerResourcesCreated: 13,
+      samplerResourcesReused: 17,
+    };
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        label: "SparkDelta",
+        capacity: 4,
+        blendMode: "alpha",
+      }),
+    );
+
+    const result = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      reuse,
+      time: 0,
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.report).toMatchObject({
+      textureResourcesCreated: 1,
+      textureResourcesReused: 0,
+      samplerResourcesCreated: 1,
+      samplerResourcesReused: 0,
+    });
+    expect(reuse).toEqual({
+      textureResourcesCreated: 8,
+      textureResourcesReused: 11,
+      samplerResourcesCreated: 14,
+      samplerResourcesReused: 17,
+    });
+  });
+
   it("builds particle render pipelines for the HDR scene pass format", async () => {
     const effect = createParticleEffectHandle("smoke-burst");
     const assets = new AssetRegistry();

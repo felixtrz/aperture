@@ -1,3 +1,54 @@
+# Handoff - FPS Audit Batch 3 Diagnostics And Particle Report Fix
+
+**Updated:** 2026-06-17 17:55 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 3 item 3 from
+  `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Split shadow-caster extraction diagnostics into a pass-local array and merged
+  only unique diagnostics into the snapshot report, preventing duplicate
+  primary mesh/material authoring diagnostics while preserving shadow-only
+  diagnostics.
+- Changed particle frame reporting to snapshot texture/sampler reuse counters
+  at entry and report only the per-call delta. The shared app-wide reuse object
+  still accumulates normally.
+- Added focused coverage for duplicate mesh diagnostics under a shadow pass and
+  for particle reports with pre-seeded app-wide reuse counters.
+- Marked all planned confirmed-finding batches implemented in the audit plan.
+
+## Validation
+
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/webgpu/particle-frame-resources.test.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/webgpu/particle-frame-resources.test.ts test/rendering/particle-emitter-extraction.test.ts test/app/particle-spawn.test.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction.ts packages/webgpu/src/app/particles.ts test/rendering/extraction.test.ts test/webgpu/particle-frame-resources.test.ts`
+- `git diff --check`
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- No managed browser sessions were started for this slice.
+
+## Recommended Next Task
+
+Review the accumulated branch diff as a whole, then decide whether to continue
+with deferred low-severity cleanup or prepare this branch for review.
+
+---
+
 # Handoff - FPS Audit Batch 3 Particle Auto-Bounds Fix
 
 **Updated:** 2026-06-17 17:50 PDT

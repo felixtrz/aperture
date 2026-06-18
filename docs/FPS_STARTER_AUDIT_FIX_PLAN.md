@@ -3,7 +3,7 @@
 **Created:** 2026-06-17
 **Updated:** 2026-06-17
 **Source:** Multi-agent audit of `b80e8a43b61e9b6a234e443c05ff8448c7bc471b` through `fps-starter-kit-port`.
-**Status:** Batch 1 and Batch 2 implemented; Batch 3 items 1-2 implemented; Batch 3 item 3 pending.
+**Status:** Batch 1, Batch 2, and Batch 3 implemented.
 
 This plan converts the confirmed audit findings from the FPS starter-kit branch
 into reviewable remediation batches. The goal is to fix the steady-state
@@ -322,6 +322,8 @@ Use this batch only after Batch 1 and Batch 2 are green.
 
 ### 3. Diagnostic Double Counting And Report Inflation
 
+**Status:** implemented 2026-06-17 on `fix/audit-resource-lifecycle`.
+
 - Files:
   - `packages/render/src/rendering/extraction-meshes.ts`
   - `packages/webgpu/src/app/particles.ts`
@@ -363,4 +365,5 @@ fixed and verified. Candidates include:
 
 ## Recommended Next Step
 
-Continue Batch 3 with diagnostic double-counting/report inflation.
+All planned confirmed-finding batches are implemented. Continue with deferred
+low-severity cleanup only after reviewing the accumulated branch diff.

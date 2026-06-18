@@ -264,6 +264,7 @@ async function createParticleFrameResources(options: {
   }
 
   const reuse = options.reuse ?? createParticleTextureSamplerReuseReport();
+  const reuseStart = particleTextureSamplerReuseSnapshot(reuse);
   const viewData = viewUniformData(options);
   const viewBuffer = createWebGpuBuffer({
     device,
@@ -497,10 +498,14 @@ async function createParticleFrameResources(options: {
     );
   }
 
-  mutableReport.textureResourcesCreated += reuse.textureResourcesCreated;
-  mutableReport.textureResourcesReused += reuse.textureResourcesReused;
-  mutableReport.samplerResourcesCreated += reuse.samplerResourcesCreated;
-  mutableReport.samplerResourcesReused += reuse.samplerResourcesReused;
+  mutableReport.textureResourcesCreated +=
+    reuse.textureResourcesCreated - reuseStart.textureResourcesCreated;
+  mutableReport.textureResourcesReused +=
+    reuse.textureResourcesReused - reuseStart.textureResourcesReused;
+  mutableReport.samplerResourcesCreated +=
+    reuse.samplerResourcesCreated - reuseStart.samplerResourcesCreated;
+  mutableReport.samplerResourcesReused +=
+    reuse.samplerResourcesReused - reuseStart.samplerResourcesReused;
   mutableReport.staleStatesRemoved = cleanupParticleStates(
     options.cache,
     activeStateKeys,
@@ -1288,6 +1293,17 @@ function createParticleTextureSamplerReuseReport(): AppTextureSamplerResourceReu
     textureResourcesReused: 0,
     samplerResourcesCreated: 0,
     samplerResourcesReused: 0,
+  };
+}
+
+function particleTextureSamplerReuseSnapshot(
+  reuse: AppTextureSamplerResourceReuseReport,
+): AppTextureSamplerResourceReuseReport {
+  return {
+    textureResourcesCreated: reuse.textureResourcesCreated,
+    textureResourcesReused: reuse.textureResourcesReused,
+    samplerResourcesCreated: reuse.samplerResourcesCreated,
+    samplerResourcesReused: reuse.samplerResourcesReused,
   };
 }
 
