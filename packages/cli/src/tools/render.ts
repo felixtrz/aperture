@@ -291,35 +291,42 @@ export async function renderExplainEntity(
       ];
       const renderKey =
         entityIndex === null ? null : `mesh-draw:${String(entityIndex)}`;
-      const boundsKeyPrefix =
+      const entityBoundsKey =
         entityIndex === null
           ? null
-          : `bounds:${String(entityIndex)}:${String(entityGeneration)}:`;
+          : `bounds:${String(entityIndex)}:${String(entityGeneration)}`;
       const legacyBoundsKey =
         entityIndex === null ? null : `bounds:${String(entityIndex)}:0`;
       const boundsKey =
-        boundsKeyPrefix === null
+        entityBoundsKey === null
           ? null
           : (boundsKeys.find(
               (key): key is string =>
-                typeof key === "string" && key.startsWith(boundsKeyPrefix),
+                typeof key === "string" && key === entityBoundsKey,
             ) ??
+              boundsKeys.find(
+                (key): key is string =>
+                  typeof key === "string" &&
+                  key.startsWith(`${entityBoundsKey}:`),
+              ) ??
               boundsKeys.find(
                 (key): key is string =>
                   typeof key === "string" && key === legacyBoundsKey,
               )) ||
-            `${boundsKeyPrefix}0`;
+            entityBoundsKey;
 
       return {
         entity: entitySummary,
         rendered: renderKey === null ? false : meshDrawKeys.includes(renderKey),
         hasBounds:
-          boundsKeyPrefix === null
+          entityBoundsKey === null
             ? false
             : boundsKeys.some(
                 (key) =>
                   typeof key === "string" &&
-                  (key.startsWith(boundsKeyPrefix) || key === legacyBoundsKey),
+                  (key === entityBoundsKey ||
+                    key.startsWith(`${entityBoundsKey}:`) ||
+                    key === legacyBoundsKey),
               ),
         renderKey,
         boundsKey,

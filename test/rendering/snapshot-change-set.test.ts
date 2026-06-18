@@ -137,14 +137,31 @@ describe("render snapshot change set", () => {
     });
     expect(changeSet.keys?.bounds).toEqual({
       changed: [],
-      unchanged: ["bounds:20:0:0", "bounds:20:0:1"],
+      unchanged: ["bounds:20:0", "bounds:20:0"],
+      removed: [],
+    });
+  });
+
+  it("treats entity bounds slot changes as unchanged resource identity", () => {
+    const previous = snapshotWithBounds(13, [boundsPacket({ boundsId: 4 })]);
+    const next = snapshotWithBounds(14, [boundsPacket({ boundsId: 9 })]);
+    const changeSet = createRenderSnapshotChangeSet(previous, next);
+
+    expect(changeSet.bounds).toEqual({
+      changed: 0,
+      unchanged: 1,
+      removed: 0,
+    });
+    expect(changeSet.keys?.bounds).toEqual({
+      changed: [],
+      unchanged: ["bounds:20:0"],
       removed: [],
     });
   });
 
   it("treats non-transparent depth-only mesh sort changes as unchanged resource identity", () => {
-    const previous = snapshot({ frame: 13, meshDepth: 4 });
-    const next = snapshot({ frame: 14, meshDepth: 9 });
+    const previous = snapshot({ frame: 15, meshDepth: 4 });
+    const next = snapshot({ frame: 16, meshDepth: 9 });
     const changeSet = createRenderSnapshotChangeSet(previous, next);
     const schedule = createRenderSnapshotUpdateSchedule(changeSet);
 
@@ -163,12 +180,12 @@ describe("render snapshot change set", () => {
 
   it("keeps transparent depth-only mesh sort changes invalidating order-dependent draws", () => {
     const previous = snapshot({
-      frame: 15,
+      frame: 17,
       meshQueue: "transparent",
       meshDepth: 4,
     });
     const next = snapshot({
-      frame: 16,
+      frame: 18,
       meshQueue: "transparent",
       meshDepth: 9,
     });

@@ -131,11 +131,22 @@ export function boundsPackets(
 ): PacketSnapshot<BoundsPacket> {
   return {
     packets: snapshot?.bounds ?? [],
-    key: (bounds) =>
-      `bounds:${bounds.entity.index}:${bounds.entity.generation}:${bounds.boundsId}`,
+    key: boundsPacketKey,
     equals: boundsPacketsEqual,
     signature: stableStringify,
   };
+}
+
+function boundsPacketKey(bounds: BoundsPacket): string {
+  const entityKey = `bounds:${bounds.entity.index}:${bounds.entity.generation}`;
+
+  // Particle burst bounds currently use a synthetic entity with no stable
+  // source id. Keep those slot-qualified until burst bounds carry emitter
+  // identity; normal ECS entity bounds need stable keys because culling can
+  // shift boundsId between snapshots.
+  return bounds.entity.index < 0
+    ? `${entityKey}:${bounds.boundsId}`
+    : entityKey;
 }
 
 function viewPacketsEqual(
@@ -312,7 +323,6 @@ function boundsPacketsEqual(
   next: BoundsPacket,
 ): boolean {
   return (
-    previous.boundsId === next.boundsId &&
     entityRefsEqual(previous.entity, next.entity) &&
     vecEqual(previous.localAabb.min, next.localAabb.min, 3) &&
     vecEqual(previous.localAabb.max, next.localAabb.max, 3) &&
