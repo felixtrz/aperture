@@ -154,8 +154,13 @@ export async function createWebGpuApp(
         const sharedSnapshot = readWebGpuAppSharedSnapshot(
           snapshotTransport,
           event.message,
+          { requireMessageFrame: !hasNativePresentationFrame },
         );
         if (hasSharedSnapshotPayload && sharedSnapshot === null) {
+          cadence.recordSharedSnapshotUnavailable();
+          if (hasNativePresentationFrame && pendingSnapshotEvent === null) {
+            pendingSnapshotEvent = pending;
+          }
           return;
         }
 
@@ -500,6 +505,7 @@ interface WebGpuAppCadenceDiagnostics {
   recordRenderCompletionDrain(): void;
   recordPresentationCallbackWhileInFlight(): void;
   recordPresentationCallbackWithoutSnapshot(): void;
+  recordSharedSnapshotUnavailable(): void;
   report(state: {
     readonly pendingSnapshot: boolean;
     readonly pendingSnapshotReceivedAtMilliseconds: number | null;
@@ -538,6 +544,7 @@ function createWebGpuAppCadenceDiagnostics(
   let renderCompletionDrains = 0;
   let presentationCallbacksWhileInFlight = 0;
   let presentationCallbacksWithoutSnapshot = 0;
+  let sharedSnapshotUnavailable = 0;
   let renderFailures = 0;
   let skippedSnapshotFrames = 0;
   let lastRenderedStartedFrame: number | null = null;
@@ -591,6 +598,9 @@ function createWebGpuAppCadenceDiagnostics(
     recordPresentationCallbackWithoutSnapshot() {
       presentationCallbacksWithoutSnapshot += 1;
     },
+    recordSharedSnapshotUnavailable() {
+      sharedSnapshotUnavailable += 1;
+    },
     report(state) {
       return {
         sampleWindow: normalizedSampleWindow,
@@ -602,6 +612,7 @@ function createWebGpuAppCadenceDiagnostics(
         renderCompletionDrains,
         presentationCallbacksWhileInFlight,
         presentationCallbacksWithoutSnapshot,
+        sharedSnapshotUnavailable,
         renderFailures,
         pacing: {
           snapshotQueueAgeMilliseconds: cadenceValueReport(

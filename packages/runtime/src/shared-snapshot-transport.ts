@@ -364,7 +364,6 @@ function createWriter(
       const sequence = Atomics.load(header, HeaderIndex.Sequence);
       const writeSequence = sequence % 2 === 0 ? sequence + 1 : sequence + 2;
 
-      Atomics.store(header, HeaderIndex.Sequence, writeSequence);
       writeSharedFrameBuffers(
         layout,
         transforms,
@@ -376,6 +375,7 @@ function createWriter(
         nextBuffer,
         frame,
       );
+      Atomics.store(header, HeaderIndex.Sequence, writeSequence);
       Atomics.store(header, HeaderIndex.Frame, frame.frame);
       Atomics.store(header, HeaderIndex.ActiveBuffer, nextBuffer);
       Atomics.store(

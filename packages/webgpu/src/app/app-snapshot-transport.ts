@@ -1,8 +1,10 @@
 import {
   BOUNDS_PACKET_WORDS,
   ENVIRONMENT_PACKET_WORDS,
+  FOG_PACKET_WORDS,
   LIGHT_PACKET_WORDS,
   MESH_DRAW_PACKET_WORDS,
+  PARTICLE_EMITTER_PACKET_WORDS,
   QUAD_BATCH_PACKET_WORDS,
   QUAD_INSTANCE_FLOAT_STRIDE,
   SHADOW_REQUEST_PACKET_WORDS,
@@ -85,6 +87,14 @@ export interface WebGpuAppSharedSnapshotFramePayload {
   readonly mode: "shared-array-buffer";
   readonly registry: SnapshotPacketRegistrySnapshot;
   readonly diagnostics?: readonly RenderDiagnostic[];
+}
+
+export interface ReadWebGpuAppSharedSnapshotOptions {
+  /**
+   * Strict message-frame reads are useful for protocol tests and event-driven
+   * fallback. RAF presentation should sample the latest complete shared frame.
+   */
+  readonly requireMessageFrame?: boolean;
 }
 
 export function createWebGpuAppSnapshotTransport(options: {
@@ -173,6 +183,7 @@ export function createWebGpuAppSnapshotTransportStartPayload(
 export function readWebGpuAppSharedSnapshot(
   transport: WebGpuAppSnapshotTransport,
   message: unknown,
+  options: ReadWebGpuAppSharedSnapshotOptions = {},
 ): RenderSnapshot | null {
   if (transport.mode !== "shared-array-buffer") {
     return null;
@@ -187,9 +198,19 @@ export function readWebGpuAppSharedSnapshot(
   const frame = transport.shared.reader.readLatestFrame();
 
   if (frame === null) {
-    throw new Error(
-      "SharedArrayBuffer snapshot event arrived before a complete frame was published.",
-    );
+    return null;
+  }
+
+  const expectedFrame = readSharedSnapshotMessageFrame(message);
+
+  const requireMessageFrame = options.requireMessageFrame ?? true;
+
+  if (
+    requireMessageFrame &&
+    expectedFrame !== null &&
+    frame.frame !== expectedFrame
+  ) {
+    return null;
   }
 
   const registry = createSnapshotPacketRegistry(payload.registry);
@@ -205,6 +226,10 @@ export function readWebGpuAppSharedSnapshot(
       : { shadowCasterDraws: packets.shadowCasterDraws }),
     lights: packets.lights,
     environments: packets.environments,
+    ...(packets.fogs === undefined ? {} : { fogs: packets.fogs }),
+    ...(packets.particleEmitters === undefined
+      ? {}
+      : { particleEmitters: packets.particleEmitters }),
     shadowRequests: packets.shadowRequests,
     bounds: packets.bounds,
     ...(packets.quadBatches === undefined
@@ -232,6 +257,8 @@ export function readWebGpuAppSharedSnapshot(
         : { shadowCasterDraws: packets.shadowCasterDraws.length }),
       lights: packets.lights.length,
       environments: packets.environments.length,
+      fogs: packets.fogs?.length ?? 0,
+      particleEmitters: packets.particleEmitters?.length ?? 0,
       shadowRequests: packets.shadowRequests.length,
       bounds: packets.bounds.length,
       quadBatches: packets.quadBatches?.length ?? 0,
@@ -240,6 +267,10 @@ export function readWebGpuAppSharedSnapshot(
       diagnostics: diagnostics.length,
     },
   };
+}
+
+export function hasWebGpuAppSharedSnapshotPayload(message: unknown): boolean {
+  return readSharedSnapshotFramePayload(message) !== null;
 }
 
 export function readWebGpuAppSnapshotChangeSet(
@@ -333,6 +364,7 @@ function defaultSharedSnapshotPacketWords(input: {
 }): number {
   const maxLights = 64;
   const maxEnvironments = 16;
+  const maxFogs = 16;
   const maxShadowRequests = 64;
 
   return (
@@ -340,9 +372,11 @@ function defaultSharedSnapshotPacketWords(input: {
     input.maxViews * VIEW_PACKET_WORDS +
     input.maxEntities * MESH_DRAW_PACKET_WORDS +
     input.maxEntities * MESH_DRAW_PACKET_WORDS +
+    input.maxEntities * PARTICLE_EMITTER_PACKET_WORDS +
     input.maxEntities * QUAD_BATCH_PACKET_WORDS +
     maxLights * LIGHT_PACKET_WORDS +
     maxEnvironments * ENVIRONMENT_PACKET_WORDS +
+    maxFogs * FOG_PACKET_WORDS +
     maxShadowRequests * SHADOW_REQUEST_PACKET_WORDS +
     input.maxEntities * BOUNDS_PACKET_WORDS
   );
@@ -374,6 +408,28 @@ function readSharedSnapshotFramePayload(
       ? { diagnostics: transport.diagnostics as readonly RenderDiagnostic[] }
       : {}),
   };
+}
+
+function readSharedSnapshotMessageFrame(message: unknown): number | null {
+  if (!isRecord(message)) {
+    return null;
+  }
+
+  if (typeof message.frame === "number" && Number.isFinite(message.frame)) {
+    return message.frame;
+  }
+
+  const snapshot = message.snapshot;
+
+  if (
+    isRecord(snapshot) &&
+    typeof snapshot.frame === "number" &&
+    Number.isFinite(snapshot.frame)
+  ) {
+    return snapshot.frame;
+  }
+
+  return null;
 }
 
 function isRegistrySnapshot(

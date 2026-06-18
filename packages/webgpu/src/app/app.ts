@@ -335,6 +335,7 @@ export interface WebGpuAppCadenceReport {
   readonly renderCompletionDrains: number;
   readonly presentationCallbacksWhileInFlight: number;
   readonly presentationCallbacksWithoutSnapshot: number;
+  readonly sharedSnapshotUnavailable: number;
   readonly renderFailures: number;
   readonly pacing: WebGpuAppCadencePacingReport;
   readonly pendingSnapshot: boolean;

@@ -3,16 +3,19 @@ import {
   createQuadSnapshotBuffers,
   createSnapshotPacketRegistry,
   encodeSnapshotPackets,
+  FogMode,
   type SnapshotPacketBundle,
 } from "@aperture-engine/render";
 import {
   createMaterialHandle,
   createMeshHandle,
+  createParticleEffectHandle,
   createSamplerHandle,
   createTextureHandle,
 } from "@aperture-engine/simulation";
 import {
   createWebGpuAppSnapshotTransport,
+  hasWebGpuAppSharedSnapshotPayload,
   readWebGpuAppSharedSnapshot,
 } from "@aperture-engine/webgpu/test-support";
 
@@ -91,7 +94,7 @@ describe("WebGPU app snapshot transport", () => {
         maxEntities: 1,
         maxViews: 1,
         maxQuadInstances: 1,
-        maxPacketWords: 128,
+        maxPacketWords: 192,
         requireCrossOriginIsolated: false,
       },
     });
@@ -105,6 +108,7 @@ describe("WebGPU app snapshot transport", () => {
     const registry = createSnapshotPacketRegistry();
     const casterMesh = createMeshHandle("off-camera-caster");
     const casterMaterial = createMaterialHandle("caster");
+    const particleEffect = createParticleEffectHandle("smoke");
     const packetBundle: SnapshotPacketBundle = {
       views: [],
       meshDraws: [],
@@ -145,6 +149,56 @@ describe("WebGPU app snapshot transport", () => {
       ],
       lights: [],
       environments: [],
+      fogs: [
+        {
+          fogId: 3,
+          entity: { index: 3, generation: 1 },
+          mode: FogMode.Exp,
+          color: [0.4, 0.5, 0.6, 1],
+          density: 0.025,
+          start: 12,
+          end: 48,
+          layerMask: 1,
+        },
+      ],
+      particleEmitters: [
+        {
+          emitterId: 9,
+          entity: { index: -1, generation: 0 },
+          effect: particleEffect,
+          effectVersion: 2,
+          capacity: 16,
+          seed: -3,
+          resetEpoch: 4,
+          timeScale: 1,
+          simulationSpace: "world",
+          worldTransformOffset: 0,
+          boundsIndex: 0,
+          layerMask: 1,
+          sortKey: {
+            queue: "transparent",
+            viewId: 0,
+            layer: 0,
+            order: 0,
+            pipelineKey: "gpu-particles",
+            materialKey: "particle-effect:smoke",
+            meshKey: "particle-quad",
+            depth: 2,
+            stableId: 9,
+          },
+          mode: "burst",
+          burst: {
+            burstId: 4,
+            startFrame: 4,
+            count: 16,
+            position: [1, 2, 3],
+            positionJitterMin: [-0.5, 0, -0.5],
+            positionJitterMax: [0.5, 1, 0.5],
+            velocityMin: [0, 1, 0],
+            velocityMax: [1, 2, 1],
+          },
+        },
+      ],
       shadowRequests: [],
       bounds: [],
       quadBatches: [
@@ -203,11 +257,114 @@ describe("WebGPU app snapshot transport", () => {
     expect(snapshot?.quads?.instanceFloats).toEqual(sourceQuads.instanceFloats);
     expect(snapshot?.quads?.instanceWords).toEqual(sourceQuads.instanceWords);
     expect(snapshot?.quadBatches).toEqual(packetBundle.quadBatches);
+    expect(snapshot?.fogs).toEqual(packetBundle.fogs);
+    expect(snapshot?.particleEmitters).toEqual(packetBundle.particleEmitters);
     expect(snapshot?.shadowCasterDraws).toEqual(packetBundle.shadowCasterDraws);
     expect(snapshot?.report).toMatchObject({
+      fogs: 1,
+      particleEmitters: 1,
       shadowCasterDraws: 1,
       quadInstances: 1,
       quadBatches: 1,
     });
+  });
+
+  it("reports a shared payload without rendering before the first complete frame", () => {
+    const transport = createWebGpuAppSnapshotTransport({
+      mode: "shared-array-buffer",
+      sharedSnapshotTransport: {
+        maxEntities: 1,
+        maxViews: 1,
+        maxPacketWords: 32,
+        requireCrossOriginIsolated: false,
+      },
+    });
+    const registry = createSnapshotPacketRegistry();
+    const message = {
+      transport: {
+        mode: "shared-array-buffer",
+        registry: registry.snapshot(),
+        diagnostics: [],
+      },
+    };
+
+    expect(hasWebGpuAppSharedSnapshotPayload(message)).toBe(true);
+    expect(readWebGpuAppSharedSnapshot(transport, message)).toBeNull();
+  });
+
+  it("skips stale shared messages when the readable buffer has a newer frame", () => {
+    const transport = createWebGpuAppSnapshotTransport({
+      mode: "shared-array-buffer",
+      sharedSnapshotTransport: {
+        maxEntities: 1,
+        maxViews: 1,
+        maxPacketWords: 32,
+        requireCrossOriginIsolated: false,
+      },
+    });
+
+    expect(transport.mode).toBe("shared-array-buffer");
+
+    if (transport.mode !== "shared-array-buffer") {
+      return;
+    }
+
+    const registry = createSnapshotPacketRegistry();
+    const encoded = encodeSnapshotPackets(
+      {
+        views: [],
+        meshDraws: [],
+        lights: [],
+        environments: [],
+        shadowRequests: [],
+        bounds: [],
+      },
+      { registry },
+    );
+
+    transport.shared.writer.writeFrame({
+      frame: 4,
+      transforms: new Float32Array(0),
+      viewMatrices: new Float32Array(0),
+      packetWords: encoded.words,
+    });
+
+    expect(
+      readWebGpuAppSharedSnapshot(transport, {
+        frame: 3,
+        snapshot: { frame: 3 },
+        transport: {
+          mode: "shared-array-buffer",
+          registry: registry.snapshot(),
+          diagnostics: [],
+        },
+      }),
+    ).toBeNull();
+    expect(
+      readWebGpuAppSharedSnapshot(
+        transport,
+        {
+          frame: 3,
+          snapshot: { frame: 3 },
+          transport: {
+            mode: "shared-array-buffer",
+            registry: registry.snapshot(),
+            diagnostics: [],
+          },
+        },
+        { requireMessageFrame: false },
+      )?.frame,
+    ).toBe(4);
+    expect(
+      readWebGpuAppSharedSnapshot(transport, {
+        frame: 4,
+        snapshot: { frame: 4 },
+        transport: {
+          mode: "shared-array-buffer",
+          registry: registry.snapshot(),
+          diagnostics: [],
+        },
+      })?.frame,
+    ).toBe(4);
   });
 });
