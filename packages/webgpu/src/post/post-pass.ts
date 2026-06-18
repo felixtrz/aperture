@@ -8,6 +8,8 @@ export type WebGpuPostPassDiagnosticCode =
   | "webGpuPostPass.createShaderModuleUnavailable"
   | "webGpuPostPass.createRenderPipelineUnavailable"
   | "webGpuPostPass.createSamplerUnavailable"
+  | "webGpuPostPass.createBufferUnavailable"
+  | "webGpuPostPass.writeBufferUnavailable"
   | "webGpuPostPass.createBindGroupUnavailable"
   | "webGpuPostPass.inputTextureViewUnavailable"
   | "webGpuPostPass.pipelineLayoutUnavailable"

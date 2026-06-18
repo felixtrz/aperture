@@ -128,6 +128,7 @@ describe("WebGPU post-pass helpers", () => {
 
   it("prepares bloom as a BloomNode-style Gaussian mip graph", () => {
     const events: string[] = [];
+    const bufferWrites: BufferWriteRecord[] = [];
     const effect = createWebGpuBloomPostEffect({
       threshold: 0.7,
       intensity: 1.25,
@@ -147,7 +148,7 @@ describe("WebGPU post-pass helpers", () => {
       label: "bright-input",
     };
     const prepared = effect.prepare({
-      device: postGraphDevice(events),
+      device: postGraphDevice(events, bufferWrites),
       input,
       outputFormat: "rgba8unorm",
       width: 32,
@@ -207,9 +208,17 @@ describe("WebGPU post-pass helpers", () => {
         pipelineKey:
           "webgpu-post-bloom|blur-horizontal|rgba8unorm|0.7000|1.2500|0.2500|kernel:6|levels:0",
       },
-      { kind: "setBindGroup", index: 0 },
+      {
+        kind: "setBindGroup",
+        index: 0,
+        resourceKey: expect.stringContaining(":blur:16x8"),
+      },
       { kind: "draw", vertexCount: 3 },
     ]);
+    expect(prepared.graph?.passes[3]?.commands[1]).toMatchObject({
+      kind: "setBindGroup",
+      resourceKey: expect.stringContaining(":blur:8x4"),
+    });
     expect(prepared.graph?.passes[5]?.commands).toMatchObject([
       {
         kind: "setPipeline",
@@ -228,6 +237,36 @@ describe("WebGPU post-pass helpers", () => {
     expect(events).toContain(
       "device:pipeline:test-bloom:bloom:composite:pipeline",
     );
+    expect(
+      bufferWrites
+        .filter((write) => write.label.includes(":blur-params:"))
+        .map((write) => Array.from(floatUpload(write).slice(0, 2))),
+    ).toEqual([
+      [1 / 16, 1 / 8],
+      [1 / 8, 1 / 4],
+    ]);
+  });
+
+  it("keeps the intentional BloomNode-style default threshold at zero", () => {
+    const effect = createWebGpuBloomPostEffect({ levels: 1 });
+    const prepared = effect.prepare({
+      device: postGraphDevice([]),
+      input: postTexture("default-bloom-input", []),
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 1,
+      passIndex: 0,
+      isLast: true,
+      label: "test-default-bloom",
+    });
+
+    expect(prepared.diagnostics).toEqual([]);
+    expect(prepared.graph?.passes[0]?.commands[0]).toMatchObject({
+      kind: "setPipeline",
+      pipelineKey:
+        "webgpu-post-bloom|brightpass|rgba8unorm|0.0000|0.7500|0.0000|no-kernel|levels:0",
+    });
   });
 
   it("prepares TAA with persistent alternating history output", () => {
@@ -717,7 +756,14 @@ function postDepthTexture(label: string, events: string[], sampleCount = 1) {
   };
 }
 
-function postDevice(events: string[]) {
+interface BufferWriteRecord {
+  readonly label: string;
+  readonly data: ArrayBufferLike | ArrayBufferView;
+  readonly dataOffset?: number;
+  readonly size?: number;
+}
+
+function postDevice(events: string[], bufferWrites: BufferWriteRecord[] = []) {
   return {
     createShaderModule: (descriptor: unknown) => {
       const input = descriptor as { readonly label?: string };
@@ -743,18 +789,47 @@ function postDevice(events: string[]) {
       events.push(`device:sampler:${input.label ?? "unlabeled"}`);
       return { descriptor: input };
     },
+    createBuffer: (descriptor: unknown) => {
+      const input = descriptor as { readonly label?: string };
+      const label = input.label ?? "unlabeled";
+
+      events.push(`device:buffer:${label}`);
+      return { label, descriptor: input };
+    },
     createBindGroup: (descriptor: unknown) => {
       const input = descriptor as { readonly label?: string };
 
       events.push(`device:bindGroup:${input.label ?? "unlabeled"}`);
       return { descriptor: input };
     },
+    queue: {
+      writeBuffer: (
+        buffer: { readonly label?: string },
+        _bufferOffset: number,
+        data: ArrayBufferLike | ArrayBufferView,
+        dataOffset?: number,
+        size?: number,
+      ) => {
+        const label = buffer.label ?? "unlabeled";
+
+        events.push(`device:writeBuffer:${label}`);
+        bufferWrites.push({
+          label,
+          data,
+          ...(dataOffset === undefined ? {} : { dataOffset }),
+          ...(size === undefined ? {} : { size }),
+        });
+      },
+    },
   };
 }
 
-function postGraphDevice(events: string[]) {
+function postGraphDevice(
+  events: string[],
+  bufferWrites: BufferWriteRecord[] = [],
+) {
   return {
-    ...postDevice(events),
+    ...postDevice(events, bufferWrites),
     ...textureDevice(events),
   };
 }
@@ -768,4 +843,20 @@ function textureDevice(events: string[]) {
       return { descriptor: input, createView: () => ({ descriptor: input }) };
     },
   };
+}
+
+function floatUpload(record: BufferWriteRecord): Float32Array {
+  if (ArrayBuffer.isView(record.data)) {
+    return new Float32Array(
+      record.data.buffer,
+      record.data.byteOffset + (record.dataOffset ?? 0),
+      (record.size ?? record.data.byteLength) / Float32Array.BYTES_PER_ELEMENT,
+    );
+  }
+
+  return new Float32Array(
+    record.data,
+    record.dataOffset ?? 0,
+    (record.size ?? record.data.byteLength) / Float32Array.BYTES_PER_ELEMENT,
+  );
 }

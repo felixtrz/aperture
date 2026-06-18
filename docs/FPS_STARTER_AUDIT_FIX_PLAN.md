@@ -3,8 +3,7 @@
 **Created:** 2026-06-17
 **Updated:** 2026-06-17
 **Source:** Multi-agent audit of `b80e8a43b61e9b6a234e443c05ff8448c7bc471b` through `fps-starter-kit-port`.
-**Status:** Batch 1 implemented; Batch 2 Vite HMR, sprite depth, particle, and
-render-interpolation items implemented; remaining Batch 2 and Batch 3 pending.
+**Status:** Batch 1 and Batch 2 implemented; Batch 3 pending.
 
 This plan converts the confirmed audit findings from the FPS starter-kit branch
 into reviewable remediation batches. The goal is to fix the steady-state
@@ -147,8 +146,7 @@ pnpm --dir shadow-lab run build
 
 ## Batch 2 - Confirmed Mediums
 
-**Status:** partial. Items 2, 3, 4, 5, and 6 implemented 2026-06-17 on
-`fix/audit-resource-lifecycle`.
+**Status:** implemented 2026-06-17 on `fix/audit-resource-lifecycle`.
 
 **Recommended branch:** `fix/audit-render-dev-mediums`
 
@@ -156,6 +154,8 @@ Handle confirmed medium-risk defects that are important but less urgent than
 the resource leaks and API-contract bug.
 
 ### 0. Protect Intentional Visual Baselines
+
+**Status:** implemented 2026-06-17 on `fix/audit-resource-lifecycle`.
 
 - Files:
   - `packages/webgpu/src/materials/standard/standard-shader.ts`
@@ -175,6 +175,8 @@ the resource leaks and API-contract bug.
   - Bloom blur-radius fixes do not alter the intended threshold default.
 
 ### 1. Bloom Blur Mip Texel Size
+
+**Status:** implemented 2026-06-17 on `fix/audit-resource-lifecycle`.
 
 - File: `packages/webgpu/src/post/post-bloom.ts`
 - Problem:
@@ -357,7 +359,5 @@ fixed and verified. Candidates include:
 
 ## Recommended Next Step
 
-Start with Batch 1. The shadow resource lifecycle fixes and particle buffer
-destroy path directly protect FPS and Racing steady-state behavior, while the
-audio patch restores the documented incremental update contract with low
-implementation risk.
+Continue with Batch 3. Start with trail bounds/upload behavior, then validate
+Racing visually because trails are most visible there.

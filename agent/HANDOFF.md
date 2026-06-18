@@ -1,3 +1,57 @@
+# Handoff - FPS Audit Batch 2 Bloom And Visual Baselines
+
+**Updated:** 2026-06-17 17:29 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 2 items 0 and 1 from
+  `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Matched the three.js `UnrealBloomPass`/`BloomNode` blur sizing model by
+  supplying a per-mip `invSize` uniform based on the blur pass output target,
+  not the sampled input texture.
+- Cached one tiny bloom blur parameter buffer per mip level inside the bloom
+  effect, updating it only when that mip's dimensions change instead of baking
+  dimensions into pipeline keys.
+- Added diagnostics for devices that cannot create or upload bloom blur
+  parameter buffers.
+- Added focused post-pass coverage for the per-mip blur texel sizes and for the
+  intentional BloomNode-style default threshold of `0`.
+- Strengthened the standard shader test covering cascaded shadows plus IBL so
+  ambient/diffuse/specular indirect terms are not shadow-attenuated.
+- Marked Batch 2 complete in the audit plan; Batch 3 remains pending.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts`
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir shadow-lab run typecheck`
+- `pnpm --dir shadow-lab run build`
+- `pnpm exec prettier --check packages/webgpu/src/post/post-pass.ts packages/webgpu/src/post/post-bloom.ts test/webgpu/post-pass.test.ts test/webgpu/standard-shader.test.ts`
+- `git diff --check`
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- No managed browser sessions were started for this slice.
+
+## Recommended Next Task
+
+Continue Batch 3 with trail bounds shrinkage and active-range upload behavior.
+Validate Racing after that slice because the trail path is visible there.
+
+---
+
 # Handoff - FPS Audit Batch 2 Sprite Depth Fix
 
 **Updated:** 2026-06-17 17:22 PDT
