@@ -3368,18 +3368,31 @@ function addQueryFlag(rawUrl, flag) {
 function collectApertureStartOptionQueryParams(parsedArgs) {
   const options = {};
   const sharedSnapshotMessageRateHz = firstStringArg(parsedArgs, [
+    "shared-snapshot-message-rate-hz",
+    "shared-snapshot-message-rate",
     "aperture-shared-message-rate",
+    "aperture-shared-message-rate-hz",
     "aperture-shared-snapshot-message-rate",
+    "aperture-shared-snapshot-message-rate-hz",
     "sharedSnapshotMessageRateHz",
   ]);
   const audioSnapshotMessageRateHz = firstStringArg(parsedArgs, [
+    "audio-snapshot-message-rate-hz",
+    "audio-snapshot-message-rate",
     "aperture-audio-message-rate",
+    "aperture-audio-message-rate-hz",
     "aperture-audio-snapshot-message-rate",
+    "aperture-audio-snapshot-message-rate-hz",
     "audioSnapshotMessageRateHz",
   ]);
   const sourceAssetsMessageRateHz = firstStringArg(parsedArgs, [
+    "source-assets-message-rate-hz",
+    "source-assets-message-rate",
+    "source-assets-rate",
     "aperture-source-assets-message-rate",
+    "aperture-source-assets-message-rate-hz",
     "aperture-source-assets-rate",
+    "aperture-source-assets-rate-hz",
     "sourceAssetsMessageRateHz",
   ]);
   const workerFullSummaryIntervalMilliseconds = firstStringArg(parsedArgs, [
