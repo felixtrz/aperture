@@ -24,20 +24,28 @@ export type {
   RenderSnapshotFamilyChangeKeys,
 } from "./snapshot-change-set-types.js";
 
+export interface CreateRenderSnapshotChangeSetOptions extends ComparePacketFamilyOptions {
+  readonly includeUnchangedMeshDrawRenderIds?: boolean;
+}
+
 export function createRenderSnapshotChangeSet(
   previous: RenderSnapshot | null | undefined,
   next: RenderSnapshot,
-  options: ComparePacketFamilyOptions = {},
+  options: CreateRenderSnapshotChangeSetOptions = {},
 ): RenderSnapshotChangeSet {
   const views = comparePacketFamily(
     viewPackets(previous),
     viewPackets(next),
     options,
   );
+  const meshDrawOptions =
+    options.includeUnchangedMeshDrawRenderIds === true
+      ? { ...options, includeRawUnchangedKeys: true }
+      : options;
   const meshDraws = comparePacketFamily(
     meshDrawPackets(previous),
     meshDrawPackets(next),
-    options,
+    meshDrawOptions,
   );
   const shadowCasterDraws = comparePacketFamily(
     shadowCasterDrawPackets(previous),
@@ -102,6 +110,21 @@ export function createRenderSnapshotChangeSet(
       shadowRequests.counts,
       bounds.counts,
     ]),
+    ...(options.includeUnchangedMeshDrawRenderIds !== true
+      ? {}
+      : {
+          unchangedMeshDrawRenderIds: rawNumberKeys(meshDraws.rawUnchangedKeys),
+        }),
     ...(keys === undefined ? {} : { keys }),
   };
+}
+
+function rawNumberKeys(
+  keys: readonly unknown[] | undefined,
+): readonly number[] {
+  if (keys === undefined || keys.length === 0) {
+    return [];
+  }
+
+  return keys.filter((key): key is number => typeof key === "number");
 }

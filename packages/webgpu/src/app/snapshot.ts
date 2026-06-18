@@ -53,6 +53,10 @@ export function createWebGpuAppSnapshotUpdateMetadata(
       : createRenderSnapshotChangeSet(
           options.previousSnapshotForUpdate ?? null,
           snapshot,
+          {
+            includeKeys: false,
+            includeUnchangedMeshDrawRenderIds: true,
+          },
         );
 
   return {

@@ -79,6 +79,15 @@ function unchangedMeshDrawRenderIds(
   changeSet: RenderSnapshotChangeSet | undefined,
   frame: number,
 ): ReadonlySet<number> {
+  if (
+    changeSet?.frame === frame &&
+    changeSet.unchangedMeshDrawRenderIds !== undefined
+  ) {
+    return changeSet.unchangedMeshDrawRenderIds.length === 0
+      ? EMPTY_RENDER_IDS
+      : new Set(changeSet.unchangedMeshDrawRenderIds);
+  }
+
   const keys = changeSet?.frame === frame ? changeSet.keys?.meshDraws : null;
 
   if (keys === null || keys === undefined || keys.unchanged.length === 0) {

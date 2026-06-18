@@ -178,6 +178,27 @@ describe("render snapshot change set", () => {
     expect(schedule.byFamily.meshDraws.action).toBe("reuse");
   });
 
+  it("can skip formatted keys while retaining unchanged mesh draw render ids", () => {
+    const previous = snapshot({ frame: 17, meshDepth: 4 });
+    const next = snapshot({ frame: 18, meshDepth: 9 });
+    const changeSet = createRenderSnapshotChangeSet(previous, next, {
+      includeKeys: false,
+      includeUnchangedMeshDrawRenderIds: true,
+    });
+    const schedule = createRenderSnapshotUpdateSchedule(changeSet);
+
+    expect(changeSet.keys).toBeUndefined();
+    expect(changeSet.unchangedMeshDrawRenderIds).toEqual([
+      meshDrawPacket().renderId,
+    ]);
+    expect(changeSet.meshDraws).toEqual({
+      changed: 0,
+      unchanged: 1,
+      removed: 0,
+    });
+    expect(schedule.byFamily.meshDraws.action).toBe("reuse");
+  });
+
   it("keeps transparent depth-only mesh sort changes invalidating order-dependent draws", () => {
     const previous = snapshot({
       frame: 17,

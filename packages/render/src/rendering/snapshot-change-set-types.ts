@@ -38,5 +38,6 @@ export interface RenderSnapshotChangeSet {
   readonly shadowRequests: RenderSnapshotFamilyChangeCounts;
   readonly bounds: RenderSnapshotFamilyChangeCounts;
   readonly total: RenderSnapshotFamilyChangeCounts;
+  readonly unchangedMeshDrawRenderIds?: readonly number[];
   readonly keys?: RenderSnapshotChangeSetKeys;
 }

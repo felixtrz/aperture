@@ -1,5 +1,6 @@
 import { AssetRegistry } from "@aperture-engine/simulation";
 import {
+  createRenderSnapshotChangeSet,
   createKtx2TextureCompressionSupportFromFeatures,
   RenderWorld,
   type RenderSnapshot,
@@ -109,6 +110,7 @@ export async function createWebGpuApp(
   let latestStatusReportJson: WebGpuAppRenderReportJsonValue | null = null;
   let latestStatusReportJsonSource: WebGpuAppRenderReport | null = null;
   let previousSnapshotForUpdate: RenderSnapshot | null = null;
+  let latestPreviousSnapshotForUpdate: RenderSnapshot | null = null;
   let latestPickReport: WebGpuAppPickReport | null = null;
   let latestPickReportJson: WebGpuAppPickReportJsonValue | null = null;
   let latestWorkerError: WebGpuAppWorkerRenderErrorDiagnostic | null = null;
@@ -332,6 +334,7 @@ export async function createWebGpuApp(
       return report.entity;
     },
     async renderSnapshot(snapshot, renderOptions = {}) {
+      const previousSnapshotForReport = previousSnapshotForUpdate;
       const report = await renderWebGpuAppFrame(
         { app, sourceAssets },
         resourceCache,
@@ -359,6 +362,7 @@ export async function createWebGpuApp(
       }
 
       latestReport = report;
+      latestPreviousSnapshotForUpdate = previousSnapshotForReport;
       latestFullReportJson = null;
       latestFullReportJsonSource = null;
       latestStatusReportJson = null;
@@ -396,7 +400,9 @@ export async function createWebGpuApp(
         latestFullReportJsonSource !== latestReport ||
         latestFullReportJson === null
       ) {
-        latestFullReportJson = webGpuAppRenderReportToJsonValue(latestReport);
+        latestFullReportJson = webGpuAppRenderReportToJsonValue(
+          reportWithFullChangeSetKeys(latestReport),
+        );
         latestFullReportJsonSource = latestReport;
       }
 
@@ -414,6 +420,25 @@ export async function createWebGpuApp(
     }
 
     return latestStatusReportJson;
+  }
+
+  function reportWithFullChangeSetKeys(
+    report: WebGpuAppRenderReport,
+  ): WebGpuAppRenderReport {
+    if (
+      report.snapshotChangeSet === undefined ||
+      report.snapshotChangeSet.keys !== undefined
+    ) {
+      return report;
+    }
+
+    return {
+      ...report,
+      snapshotChangeSet: createRenderSnapshotChangeSet(
+        latestPreviousSnapshotForUpdate,
+        report.snapshot,
+      ),
+    };
   }
 }
 
