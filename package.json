@@ -51,6 +51,7 @@
     "examples:build": "pnpm run build",
     "examples:serve": "node scripts/serve-examples.mjs",
     "render-control": "node scripts/render-control.mjs",
+    "trace:racing": "node scripts/racing-render-loop-trace.mjs",
     "render-control:proofs": "node scripts/render-control.mjs proofs",
     "render-control:smoke-all": "node scripts/render-control.mjs smoke-all",
     "publish:dry-run": "pnpm run build && pnpm run check:publish:pack",
