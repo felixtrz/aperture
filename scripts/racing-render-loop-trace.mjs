@@ -32,6 +32,8 @@ const browserArgs = [
   "--disable-renderer-backgrounding",
   "--disable-ipc-flooding-protection",
   "--disable-features=CalculateNativeWinOcclusion,IntensiveWakeUpThrottling",
+  "--enable-webgl-developer-extensions",
+  "--enable-webgl-draft-extensions",
   "--enable-precise-memory-info",
   "--js-flags=--expose-gc",
 ];
@@ -110,6 +112,7 @@ async function main() {
     captureTrace,
     captureCpuProfile,
     headless: args.headed === true ? false : true,
+    browserArgs,
     targets: targets.map((target) => ({
       id: target.id,
       label: target.label,
@@ -375,6 +378,7 @@ async function setDriving(page, kind, enabled) {
 async function clearSamplers(page) {
   await page.evaluate(() => {
     globalThis.gc?.();
+    globalThis.__THREE_RACING_CONTROL__?.clearPerfSamples?.();
     globalThis.__RACING_TRACE_RAF__?.clear?.();
   });
 }
@@ -525,10 +529,21 @@ function summarizeThreeSamples(samples, latest) {
     timingSummary[name] = quantiles(values);
   }
 
+  const gpuTimerResults = [];
+  for (const frame of latest?.samples ?? []) {
+    for (const result of frame?.gpuTimer?.resolved ?? []) {
+      if (isFiniteNumber(result?.gpuMs)) gpuTimerResults.push(result.gpuMs);
+    }
+  }
+
   return {
     latest,
     renderCalls: quantiles(renderCalls),
     timings: timingSummary,
+    gpuTimer: {
+      renderMs: quantiles(gpuTimerResults),
+      latest: latest?.renderer?.gpuTimer ?? null,
+    },
   };
 }
 
@@ -539,18 +554,24 @@ function printSummary(summary, summaryPath) {
     const callback = run.raf.callbackMs;
     const drawCalls =
       run.target === "three" ? run.three?.renderCalls : run.aperture?.drawCalls;
+    const gpuTimer =
+      run.target === "three" ? run.three?.gpuTimer?.renderMs : null;
     const heapMb = run.memory
       ? (run.memory.usedJSHeapSize / (1024 * 1024)).toFixed(1)
       : "n/a";
-    console.log(
-      [
-        `${run.label} ${run.scenario}`,
-        `raf p50=${formatMs(interval.p50)} p95=${formatMs(interval.p95)} p99=${formatMs(interval.p99)} max=${formatMs(interval.max)}`,
-        `callback p95=${formatMs(callback.p95)} max=${formatMs(callback.max)}`,
-        `draw/calls p50=${formatNumber(drawCalls?.p50)} max=${formatNumber(drawCalls?.max)}`,
-        `heap=${heapMb}MB`,
-      ].join(" | "),
-    );
+    const parts = [
+      `${run.label} ${run.scenario}`,
+      `raf p50=${formatMs(interval.p50)} p95=${formatMs(interval.p95)} p99=${formatMs(interval.p99)} max=${formatMs(interval.max)}`,
+      `callback p95=${formatMs(callback.p95)} max=${formatMs(callback.max)}`,
+      `draw/calls p50=${formatNumber(drawCalls?.p50)} max=${formatNumber(drawCalls?.max)}`,
+    ];
+    if (run.target === "three") {
+      parts.push(
+        `gpu p50=${formatMs(gpuTimer?.p50)} p95=${formatMs(gpuTimer?.p95)} max=${formatMs(gpuTimer?.max)}`,
+      );
+    }
+    parts.push(`heap=${heapMb}MB`);
+    console.log(parts.join(" | "));
   }
 }
 
@@ -739,10 +760,13 @@ function instrumentThreeMain(source) {
   }
   output = output.replace(
     "const renderer = new THREE.WebGLRenderer( { antialias: true, outputBufferType: THREE.HalfFloatType } );\n",
-    "const renderer = new THREE.WebGLRenderer( { antialias: true, outputBufferType: THREE.HalfFloatType } );\ninstallThreeRacingGlDrawCounter( renderer );\n",
+    "const renderer = new THREE.WebGLRenderer( { antialias: true, outputBufferType: THREE.HalfFloatType } );\ninstallThreeRacingGlDrawCounter( renderer );\ninstallThreeRacingGpuTimer( renderer );\n",
   );
   if (!output.includes("installThreeRacingGlDrawCounter( renderer );")) {
     throw new Error("Could not install three.js WebGL draw-call counter.");
+  }
+  if (!output.includes("installThreeRacingGpuTimer( renderer );")) {
+    throw new Error("Could not install three.js WebGL GPU timer.");
   }
   output = output.replace(
     timerNeedle,
@@ -840,7 +864,9 @@ function instrumentThreeMain(source) {
 
 \t\tsectionStart = beginThreeRacingPerfSection( 'render' );
 \t\tresetThreeRacingGlDrawCounter();
+\t\tconst gpuTimerQuery = beginThreeRacingGpuTimer( threeRacingPerfState.frame + 1 );
 \t\trenderer.render( scene, cam.camera );
+\t\tconst gpuTimer = endThreeRacingGpuTimer( gpuTimerQuery, threeRacingPerfState.frame + 1 );
 \t\ttimings.render = endThreeRacingPerfSection( 'render', sectionStart );
 
 \t\tconst frameMs = endThreeRacingPerfSection( 'frame', frameStart );
@@ -851,6 +877,7 @@ function instrumentThreeMain(source) {
 \t\t\tinput: { x: input.x, z: input.z, touchActive: input.touchActive === true },
 \t\t\tspeed: vehicle.linearSpeed,
 \t\t\tdriftIntensity: vehicle.driftIntensity,
+\t\t\tgpuTimer,
 \t\t\tparticles: particles.lastStats ?? null,
 \t\t\tvehiclePosition: {
 \t\t\t\tx: vehicle.spherePos.x,
@@ -908,6 +935,7 @@ function cloneThreeRacingRendererInfo( renderer ) {
 \trenderer.getSize( size );
 \treturn {
 \t\tglDrawCalls: globalThis.__THREE_RACING_GL_DRAW_COUNTER__?.snapshot?.() ?? null,
+\t\tgpuTimer: globalThis.__THREE_RACING_GPU_TIMER__?.snapshot?.() ?? null,
 \t\trender: {
 \t\t\tcalls: info.render.calls,
 \t\t\ttriangles: info.render.triangles,
@@ -1020,6 +1048,17 @@ function pushThreeRacingPerfFrame( latest, renderer, sceneStats ) {
 
 }
 
+function resetThreeRacingPerfSamples() {
+
+\tthreeRacingPerfState.frame = 0;
+\tthreeRacingPerfState.startedAt = performance.now();
+\tthreeRacingPerfState.samples.length = 0;
+\tthreeRacingPerfState.latest = null;
+\tglobalThis.__THREE_RACING_GL_DRAW_COUNTER__?.reset?.();
+\tglobalThis.__THREE_RACING_GPU_TIMER__?.reset?.();
+
+}
+
 function installThreeRacingGlDrawCounter( renderer ) {
 
 \tconst gl = renderer.getContext?.();
@@ -1093,6 +1132,249 @@ function resetThreeRacingGlDrawCounter() {
 
 }
 
+function installThreeRacingGpuTimer( renderer ) {
+
+\tconst gl = renderer.getContext?.();
+\tconst ext = gl?.getExtension?.( 'EXT_disjoint_timer_query_webgl2' ) ?? gl?.getExtension?.( 'EXT_disjoint_timer_query' );
+\tconst usesCoreQuery = typeof gl?.createQuery === 'function' && typeof gl?.beginQuery === 'function';
+\tconst canMeasure = gl !== undefined && ext !== null && ext !== undefined;
+\tconst state = {
+\t\tavailable: canMeasure,
+\t\textension: canMeasure ? ( usesCoreQuery ? 'EXT_disjoint_timer_query_webgl2' : 'EXT_disjoint_timer_query' ) : null,
+\t\tsubmitted: 0,
+\t\tresolved: 0,
+\t\tdisjoint: 0,
+\t\tdropped: 0,
+\t\tpending: [],
+\t\tlatest: null,
+\t\terrors: [],
+\t\tmaxPending: 24,
+\t};
+
+\tfunction pushError( error ) {
+
+\t\tif ( state.errors.length < 8 ) {
+\t\t\tstate.errors.push( String( error?.message ?? error ) );
+\t\t}
+
+\t}
+
+\tfunction deleteQuery( query ) {
+
+\t\ttry {
+\t\t\tif ( usesCoreQuery ) {
+\t\t\t\tgl.deleteQuery( query );
+\t\t\t} else {
+\t\t\t\text.deleteQueryEXT( query );
+\t\t\t}
+\t\t} catch ( error ) {
+\t\t\tpushError( error );
+\t\t}
+
+\t}
+
+\tfunction createQuery() {
+
+\t\treturn usesCoreQuery ? gl.createQuery() : ext.createQueryEXT();
+
+\t}
+
+\tfunction beginQuery( query ) {
+
+\t\tif ( usesCoreQuery ) {
+\t\t\tgl.beginQuery( ext.TIME_ELAPSED_EXT, query );
+\t\t} else {
+\t\t\text.beginQueryEXT( ext.TIME_ELAPSED_EXT, query );
+\t\t}
+
+\t}
+
+\tfunction endQuery() {
+
+\t\tif ( usesCoreQuery ) {
+\t\t\tgl.endQuery( ext.TIME_ELAPSED_EXT );
+\t\t} else {
+\t\t\text.endQueryEXT( ext.TIME_ELAPSED_EXT );
+\t\t}
+
+\t}
+
+\tfunction isQueryAvailable( query ) {
+
+\t\treturn usesCoreQuery
+\t\t\t? gl.getQueryParameter( query, gl.QUERY_RESULT_AVAILABLE )
+\t\t\t: ext.getQueryObjectEXT( query, ext.QUERY_RESULT_AVAILABLE_EXT );
+
+\t}
+
+\tfunction readQueryNanoseconds( query ) {
+
+\t\treturn usesCoreQuery
+\t\t\t? gl.getQueryParameter( query, gl.QUERY_RESULT )
+\t\t\t: ext.getQueryObjectEXT( query, ext.QUERY_RESULT_EXT );
+
+\t}
+
+\tfunction poll( currentFrame ) {
+
+\t\tif ( ! state.available ) return [];
+\t\tconst resolved = [];
+\t\tconst gpuDisjoint = gl.getParameter( ext.GPU_DISJOINT_EXT ) === true;
+\t\tif ( gpuDisjoint ) {
+\t\t\tfor ( const pending of state.pending ) {
+\t\t\t\tdeleteQuery( pending.query );
+\t\t\t}
+\t\t\tstate.disjoint += state.pending.length;
+\t\t\tstate.pending.length = 0;
+\t\t\treturn resolved;
+\t\t}
+
+\t\tlet writeIndex = 0;
+\t\tfor ( const pending of state.pending ) {
+\t\t\tlet available = false;
+\t\t\ttry {
+\t\t\t\tavailable = isQueryAvailable( pending.query ) === true;
+\t\t\t} catch ( error ) {
+\t\t\t\tpushError( error );
+\t\t\t\tstate.dropped ++;
+\t\t\t\tdeleteQuery( pending.query );
+\t\t\t\tcontinue;
+\t\t\t}
+
+\t\t\tif ( ! available ) {
+\t\t\t\tstate.pending[ writeIndex ++ ] = pending;
+\t\t\t\tcontinue;
+\t\t\t}
+
+\t\t\ttry {
+\t\t\t\tconst gpuMs = Number( readQueryNanoseconds( pending.query ) ) / 1000000;
+\t\t\t\tconst result = {
+\t\t\t\t\tframe: pending.frame,
+\t\t\t\t\tresolvedAtFrame: currentFrame,
+\t\t\t\t\tlatencyFrames: Number.isFinite( currentFrame ) ? currentFrame - pending.frame : null,
+\t\t\t\t\tresolveDelayMs: performance.now() - pending.submittedAt,
+\t\t\t\t\tgpuMs,
+\t\t\t\t};
+\t\t\t\tstate.latest = result;
+\t\t\t\tstate.resolved ++;
+\t\t\t\tresolved.push( result );
+\t\t\t} catch ( error ) {
+\t\t\t\tpushError( error );
+\t\t\t\tstate.dropped ++;
+\t\t\t} finally {
+\t\t\t\tdeleteQuery( pending.query );
+\t\t\t}
+\t\t}
+\t\tstate.pending.length = writeIndex;
+\t\treturn resolved;
+
+\t}
+
+\tconst timer = {
+\t\tbegin( frame ) {
+\t\t\tconst resolved = poll( frame );
+\t\t\tif ( ! state.available ) return { query: null, started: false, resolved };
+\t\t\twhile ( state.pending.length >= state.maxPending ) {
+\t\t\t\tconst stale = state.pending.shift();
+\t\t\t\tif ( stale !== undefined ) {
+\t\t\t\t\tdeleteQuery( stale.query );
+\t\t\t\t\tstate.dropped ++;
+\t\t\t\t}
+\t\t\t}
+\t\t\ttry {
+\t\t\t\tconst query = createQuery();
+\t\t\t\tbeginQuery( query );
+\t\t\t\treturn { query, started: true, resolved };
+\t\t\t} catch ( error ) {
+\t\t\t\tpushError( error );
+\t\t\t\treturn { query: null, started: false, resolved };
+\t\t\t}
+\t\t},
+\t\tend( handle, frame ) {
+\t\t\tconst resolved = [ ...( handle?.resolved ?? [] ) ];
+\t\t\tlet submitted = false;
+\t\t\tif ( handle?.query !== null && handle?.query !== undefined ) {
+\t\t\t\ttry {
+\t\t\t\t\tendQuery();
+\t\t\t\t\tstate.submitted ++;
+\t\t\t\t\tsubmitted = true;
+\t\t\t\t\tstate.pending.push( {
+\t\t\t\t\t\tquery: handle.query,
+\t\t\t\t\t\tframe,
+\t\t\t\t\t\tsubmittedAt: performance.now(),
+\t\t\t\t\t} );
+\t\t\t\t} catch ( error ) {
+\t\t\t\t\tpushError( error );
+\t\t\t\t\tdeleteQuery( handle.query );
+\t\t\t\t}
+\t\t\t}
+\t\t\tresolved.push( ...poll( frame ) );
+\t\t\treturn {
+\t\t\t\tavailable: state.available,
+\t\t\t\textension: state.extension,
+\t\t\t\tsubmitted,
+\t\t\t\tpending: state.pending.length,
+\t\t\t\tresolved,
+\t\t\t\tlatest: state.latest,
+\t\t\t\tdisjoint: state.disjoint,
+\t\t\t\tdropped: state.dropped,
+\t\t\t\terrors: state.errors.slice(),
+\t\t\t};
+\t\t},
+\t\tsnapshot() {
+\t\t\treturn {
+\t\t\t\tavailable: state.available,
+\t\t\t\textension: state.extension,
+\t\t\t\tsubmitted: state.submitted,
+\t\t\t\tresolved: state.resolved,
+\t\t\t\tpending: state.pending.length,
+\t\t\t\tdisjoint: state.disjoint,
+\t\t\t\tdropped: state.dropped,
+\t\t\t\tlatest: state.latest,
+\t\t\t\terrors: state.errors.slice(),
+\t\t\t};
+\t\t},
+\t\treset() {
+\t\t\tfor ( const pending of state.pending ) {
+\t\t\t\tdeleteQuery( pending.query );
+\t\t\t}
+\t\t\tstate.submitted = 0;
+\t\t\tstate.resolved = 0;
+\t\t\tstate.disjoint = 0;
+\t\t\tstate.dropped = 0;
+\t\t\tstate.pending.length = 0;
+\t\t\tstate.latest = null;
+\t\t\tstate.errors.length = 0;
+\t\t},
+\t};
+
+\tglobalThis.__THREE_RACING_GPU_TIMER__ = timer;
+\treturn timer;
+
+}
+
+function beginThreeRacingGpuTimer( frame ) {
+
+\treturn globalThis.__THREE_RACING_GPU_TIMER__?.begin?.( frame ) ?? { query: null, started: false, resolved: [] };
+
+}
+
+function endThreeRacingGpuTimer( handle, frame ) {
+
+\treturn globalThis.__THREE_RACING_GPU_TIMER__?.end?.( handle, frame ) ?? {
+\t\tavailable: false,
+\t\textension: null,
+\t\tsubmitted: false,
+\t\tpending: 0,
+\t\tresolved: [],
+\t\tlatest: null,
+\t\tdisjoint: 0,
+\t\tdropped: 0,
+\t\terrors: [],
+\t};
+
+}
+
 function installThreeRacingPerfControl( controls, vehicle ) {
 
 \tglobalThis.__THREE_RACING_CONTROL__ = {
@@ -1115,6 +1397,9 @@ function installThreeRacingPerfControl( controls, vehicle ) {
 \t\t},
 \t\tgetStatus() {
 \t\t\treturn globalThis.__THREE_RACING_STATUS__ ?? null;
+\t\t},
+\t\tclearPerfSamples() {
+\t\t\tresetThreeRacingPerfSamples();
 \t\t},
 \t\tgetVehicle() {
 \t\t\treturn {

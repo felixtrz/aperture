@@ -62,8 +62,21 @@ change-set keys.
   mutating the ignored reference checkout, injects three.js user-timing phase
   marks, exposes `__THREE_RACING_STATUS__`, wraps WebGL draw methods for actual
   GL draw-call counts, rewrites the import map to use the pinned local
-  `references/three.js` checkout for three.js itself, and records Chrome
-  trace/CPU-profile artifacts.
+  `references/three.js` checkout for three.js itself, exposes non-blocking
+  `EXT_disjoint_timer_query` GPU elapsed samples when Chrome allows the
+  extension, and records Chrome trace/CPU-profile artifacts.
+- Latest three.js GPU-timer smokes:
+  `/tmp/racing-three-gpu-timer-smoke-reset/summary.json` and
+  `/tmp/racing-three-gpu-timer-drive-smoke/summary.json` (`2026-06-18`).
+  With WebGL developer/draft extension flags enabled, headless Chrome exposes
+  `EXT_disjoint_timer_query_webgl2`; the measured idle window resolved `5`
+  GPU samples at about `277.86 ms` p50 / `283.56 ms` p95, and the measured
+  drive window resolved `6` GPU samples at about `270.06 ms` p50 /
+  `312.31 ms` p95. The injected three.js JS `render` section stayed below
+  `1 ms` p95 in both smokes, and actual WebGL draw calls stayed at `93`.
+  The page also emitted repeated WebGL `ReadPixels` GPU-stall warnings. This
+  confirms the headless three.js path is dominated by browser/driver WebGL
+  GPU/presentation work, not app JS.
 - Latest clean headed render-loop harness run:
   `/tmp/racing-trace-headed-pair/summary.json` (`2026-06-18`, command:
   `pnpm run trace:racing ... --headed`). This is the current valid cadence
