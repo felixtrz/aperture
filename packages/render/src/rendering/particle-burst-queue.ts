@@ -155,12 +155,7 @@ export function createParticleBurstQueue(
           effect: request.effect,
           effectVersion: effectEntry.version,
           startFrame: input.frame,
-          ttlFrames: Math.max(
-            1,
-            Math.ceil(
-              Math.max(effect.lifetime.max, 0.001) * DEFAULT_FRAME_RATE,
-            ) + 2,
-          ),
+          ttlFrames: particleBurstTtlFrames(effect, request),
         });
         promoted += 1;
         promotedTotal += 1;
@@ -256,11 +251,27 @@ export function particleBurstVelocityRange(
   };
 }
 
+function particleBurstTtlFrames(
+  effect: ParticleEffectAsset,
+  request: ParticleBurstRequest,
+): number {
+  const lifetimeSeconds = Math.max(effect.lifetime.max, 0.001);
+  const timeScale = Math.max(0.001, finite(request.timeScale ?? 1));
+
+  return Math.max(
+    1,
+    Math.ceil((lifetimeSeconds / timeScale) * DEFAULT_FRAME_RATE) + 2,
+  );
+}
+
 function normalizeRequest(request: ParticleBurstRequest): ParticleBurstRequest {
   return {
     ...request,
     count: Math.max(0, Math.trunc(request.count)),
     position: tuple3(request.position),
+    ...(request.timeScale === undefined
+      ? {}
+      : { timeScale: Math.max(0, finite(request.timeScale)) }),
     ...(request.positionJitter === undefined
       ? {}
       : {

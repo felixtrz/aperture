@@ -3,7 +3,8 @@
 **Created:** 2026-06-17
 **Updated:** 2026-06-17
 **Source:** Multi-agent audit of `b80e8a43b61e9b6a234e443c05ff8448c7bc471b` through `fps-starter-kit-port`.
-**Status:** Batch 1 implemented; Batches 2 and 3 pending.
+**Status:** Batch 1 implemented; Batch 2 particle items implemented; remaining
+Batch 2 and Batch 3 pending.
 
 This plan converts the confirmed audit findings from the FPS starter-kit branch
 into reviewable remediation batches. The goal is to fix the steady-state
@@ -146,6 +147,9 @@ pnpm --dir shadow-lab run build
 
 ## Batch 2 - Confirmed Mediums
 
+**Status:** partial. Items 4 and 5 implemented 2026-06-17 on
+`fix/audit-resource-lifecycle`.
+
 **Recommended branch:** `fix/audit-render-dev-mediums`
 
 Handle confirmed medium-risk defects that are important but less urgent than
@@ -214,6 +218,8 @@ the resource leaks and API-contract bug.
 
 ### 4. Particle Burst TTL Time Scale
 
+**Status:** implemented 2026-06-17 on `fix/audit-resource-lifecycle`.
+
 - File: `packages/render/src/rendering/particle-burst-queue.ts`
 - Problem:
   - Burst expiration uses fixed-frame TTL and ignores `request.timeScale`.
@@ -225,6 +231,8 @@ the resource leaks and API-contract bug.
   - Slow-motion and faster-time tests verify burst TTL scales as expected.
 
 ### 5. Particle Runtime Feature Analysis Cache
+
+**Status:** implemented 2026-06-17 on `fix/audit-resource-lifecycle`.
 
 - File: `packages/app/src/worker/assets.ts`
 - Problem:

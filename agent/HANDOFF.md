@@ -1,3 +1,53 @@
+# Handoff - FPS Audit Batch 2 Particle Runtime Fixes
+
+**Updated:** 2026-06-17 17:01 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented the Batch 2 particle items from
+  `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Cached worker asset-summary particle runtime feature analysis by
+  `SystemParticleEffectAssetHandle`, invalidating only when the descriptor
+  object changes.
+- Updated particle burst queue TTL to scale by `request.timeScale`, so
+  slow-motion bursts remain active longer and faster-time bursts expire sooner.
+- Added focused tests covering runtime-feature cache reuse/invalidation and
+  slow/fast burst TTL behavior.
+- Marked Batch 2 items 4 and 5 implemented in the audit plan; the rest of
+  Batch 2 remains pending.
+
+## Validation
+
+- `pnpm exec vitest run test/rendering/particle-burst-queue.test.ts test/app/worker-asset-summary.test.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm exec prettier --check packages/app/src/worker/assets.ts packages/render/src/rendering/particle-burst-queue.ts test/rendering/particle-burst-queue.test.ts test/app/worker-asset-summary.test.ts`
+- `git diff --check`
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- No managed browser sessions are expected to remain from this slice.
+
+## Recommended Next Task
+
+Continue Batch 2 with the render-interpolation characterization/allocation fix
+or the Vite worker-entry HMR staleness fix. Keep the remaining visual work
+separate from the already-protected Batch 2 particle changes.
+
+---
+
 # Handoff - FPS Audit Batch 1 Resource Lifecycle Fixes
 
 **Updated:** 2026-06-17 17:02 PDT
