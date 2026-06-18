@@ -9,7 +9,6 @@ import {
   type RenderSnapshot,
 } from "@aperture-engine/render";
 import { webGpuAppCanvasDimensions } from "./canvas.js";
-import { createWebGpuAppDepthAttachmentForTarget } from "./attachments.js";
 import { prepareWebGpuAppSourceAssetFacades } from "./source-assets.js";
 import {
   collectInstanceTintResources,
@@ -45,6 +44,11 @@ import {
 import type { QueuedBuiltInFrameResources } from "../render/queues/queued-built-in-frame-resource-set.js";
 import { assembleFrameBoundary } from "../render/frame/frame-boundary.js";
 import type { CurrentTextureLike } from "./presentation/current-texture-view.js";
+import {
+  createOrReuseWebGpuDepthTexture,
+  createWebGpuDepthTextureCacheSlot,
+  WEBGPU_APP_DEPTH_FORMAT,
+} from "../resources/textures/depth-texture-resource.js";
 import {
   createWebGpuIdBufferEntries,
   findWebGpuIdBufferEntry,
@@ -300,21 +304,23 @@ export async function pickWebGpuAppEntity(
     });
   }
 
+  let pickDepthTexture:
+    | ReturnType<typeof createOrReuseWebGpuDepthTexture>["resource"]
+    | null = null;
   try {
     pushWebGpuPickErrorScope(context.app.initialization.device);
-    const target = {
-      source: "swapchain" as const,
-      view: snapshot.views[0] as RenderSnapshot["views"][number],
-      renderTargetKey: null,
+    pickDepthTexture = createOrReuseWebGpuDepthTexture({
+      device: context.app.initialization.device as Parameters<
+        typeof createOrReuseWebGpuDepthTexture
+      >[0]["device"],
+      cache: createWebGpuDepthTextureCacheSlot(),
       width: dimensions.width,
       height: dimensions.height,
-      format: context.app.initialization.format,
-    };
-    const depthAttachment = createWebGpuAppDepthAttachmentForTarget(
-      context.app,
-      resourceCache,
-      target,
-    );
+      format: WEBGPU_APP_DEPTH_FORMAT,
+      sampleCount: 1,
+      label: "aperture/webgpu-app/pick-depth",
+    }).resource;
+
     const boundary = assembleFrameBoundary({
       context: context.app.initialization.context as Parameters<
         typeof assembleFrameBoundary
@@ -332,7 +338,7 @@ export async function pickWebGpuAppEntity(
       },
       clearColor: [WEBGPU_ID_BUFFER_EMPTY_ID, 0, 0, 0],
       depthTarget: {
-        view: depthAttachment.view,
+        view: pickDepthTexture.view,
         depthClearValue: snapshot.views[0]?.clearDepth ?? 1,
         depthLoadOp: "clear",
         depthStoreOp: "store",
@@ -442,6 +448,7 @@ export async function pickWebGpuAppEntity(
       diagnostics: [],
     });
   } finally {
+    pickDepthTexture?.texture.destroy?.();
     texture.resource.destroy?.();
   }
 }
