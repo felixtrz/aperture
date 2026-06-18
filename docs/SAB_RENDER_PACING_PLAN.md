@@ -39,6 +39,11 @@ The first pacing slice is implemented and validated:
   heartbeat is due.
 - Sideband messages remain immediate when the registry changes, source assets
   change, diagnostics appear, or a full worker summary is due.
+- Browser-native RAF now starts render work directly from the RAF callback
+  instead of inserting an extra resolved-Promise hop. This makes Aperture's
+  presentation work visible to the browser frame callback in the same way as
+  three.js/PlayCanvas-style render loops, while preserving the single-render
+  in-flight guard.
 - A regression test proves the key contract: frame 2 can be visible in SAB while
   the worker has still posted only the frame-1 sideband message.
 
@@ -56,6 +61,15 @@ Latest paired trace evidence after this slice:
     `18.605 ms`, while Aperture was better at p99/max.
   - This is not yet a consistent win because the drive p95 delta is small and
     within run noise.
+- RAF-direct traces, 8s samples:
+  `/tmp/racing-paired-raf-direct-long-1/summary.json` and
+  `/tmp/racing-paired-raf-direct-long-2/summary.json`
+  - Run 1: Aperture drive won p95/p99/max (`18.13/18.49/18.65 ms`) versus
+    three.js (`18.30/18.50/18.70 ms`).
+  - Run 2: Aperture drive won max but trailed p95/p99
+    (`18.22/18.45/18.61 ms`) versus three.js (`18.10/18.40/18.80 ms`).
+  - Net: RAF-direct reduces the bad pre-change drive p99/max tail, but does not
+    by itself prove consistent outperformance.
 
 Racing does author audio every frame. Therefore, simply lowering the generic
 sideband heartbeat below `60 Hz` would either not affect this benchmark or would
@@ -387,10 +401,11 @@ Racing benchmark checks:
    sample the latest complete shared frame while keeping strict reads available
    for protocol tests.
 
-3. **Done: browser-native RAF keeps running.**
+3. **Done: browser-native RAF keeps running and starts render directly.**
    Native presentation mode no longer depends on receiving a worker message for
    every render callback. It can reuse the latest shared sideband and render a
-   newer SAB frame.
+   newer SAB frame. Render work now starts from the RAF callback instead of a
+   follow-up microtask.
 
 4. **Done: throttle unchanged shared sideband messages.**
    The worker still writes every shared frame, but it posts unchanged sideband

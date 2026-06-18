@@ -104,7 +104,6 @@ export async function createWebGpuApp(
   let running = false;
   let unsubscribeSnapshot: (() => void) | null = null;
   let unsubscribeError: (() => void) | null = null;
-  let renderQueue: Promise<void> = Promise.resolve();
   let pendingSnapshotEvent: PendingSnapshotEventRecord | null = null;
   let latestSharedSnapshotEvent: PendingSnapshotEventRecord | null = null;
   let latestRenderedSharedSnapshotFrame: number | null = null;
@@ -150,77 +149,80 @@ export async function createWebGpuApp(
       pendingSnapshotEvent = null;
     }
     autoRenderInFlight = true;
-    renderQueue = renderQueue
-      .then(async () => {
-        const event = pending.event;
-        const hasSharedSnapshotPayload = hasWebGpuAppSharedSnapshotPayload(
-          event.message,
-        );
-        const sharedSnapshot = readWebGpuAppSharedSnapshot(
-          snapshotTransport,
-          event.message,
-          { requireMessageFrame: !hasNativePresentationFrame },
-        );
-        if (hasSharedSnapshotPayload && sharedSnapshot === null) {
-          cadence.recordSharedSnapshotUnavailable();
-          if (hasNativePresentationFrame && pendingSnapshotEvent === null) {
-            pendingSnapshotEvent = pending;
-          }
-          return;
-        }
+    void renderSnapshotEvent(pending);
+  };
 
-        const snapshot = sharedSnapshot ?? event.snapshot;
-        if (
-          hasSharedSnapshotPayload &&
-          snapshot.frame === latestRenderedSharedSnapshotFrame
-        ) {
-          return;
+  const renderSnapshotEvent = async (
+    pending: PendingSnapshotEventRecord,
+  ): Promise<void> => {
+    try {
+      const event = pending.event;
+      const hasSharedSnapshotPayload = hasWebGpuAppSharedSnapshotPayload(
+        event.message,
+      );
+      const sharedSnapshot = readWebGpuAppSharedSnapshot(
+        snapshotTransport,
+        event.message,
+        { requireMessageFrame: !hasNativePresentationFrame },
+      );
+      if (hasSharedSnapshotPayload && sharedSnapshot === null) {
+        cadence.recordSharedSnapshotUnavailable();
+        if (hasNativePresentationFrame && pendingSnapshotEvent === null) {
+          pendingSnapshotEvent = pending;
         }
+        return;
+      }
 
-        const snapshotChangeSet = readWebGpuAppSnapshotChangeSet(event.message);
-        const snapshotQueueAgeMilliseconds = Math.max(
-          0,
-          nowMilliseconds() - pending.receivedAtMilliseconds,
-        );
+      const snapshot = sharedSnapshot ?? event.snapshot;
+      if (
+        hasSharedSnapshotPayload &&
+        snapshot.frame === latestRenderedSharedSnapshotFrame
+      ) {
+        return;
+      }
 
-        cadence.recordRenderStarted(snapshot.frame, {
-          snapshotQueueAgeMilliseconds,
-        });
-        await app.renderSnapshot(snapshot, {
-          frame: snapshot.frame,
-          ...(snapshotChangeSet === null ? {} : { snapshotChangeSet }),
-        });
-        if (hasSharedSnapshotPayload) {
-          latestRenderedSharedSnapshotFrame = snapshot.frame;
-        }
-        cadence.recordRenderCompleted(snapshot.frame);
-      })
-      .catch((error: unknown) => {
-        cadence.recordRenderFailed();
-        latestWorkerError = {
-          code: "webGpuApp.workerSnapshotRenderFailed",
-          reason: "webgpu-app.render-snapshot-failed",
-          message:
-            error instanceof Error
-              ? error.message
-              : "Rendering a worker-produced snapshot failed.",
-        };
-      })
-      .finally(() => {
-        autoRenderInFlight = false;
-        if (
-          nextRenderableSnapshotEvent() !== null &&
-          !hasNativePresentationFrame
-        ) {
-          if (presentationMissedWhileInFlight) {
-            presentationMissedWhileInFlight = false;
-            cadence.recordRenderCompletionDrain();
-            renderPendingSnapshot();
-          } else {
-            scheduleAutoRender();
-          }
-        }
+      const snapshotChangeSet = readWebGpuAppSnapshotChangeSet(event.message);
+      const snapshotQueueAgeMilliseconds = Math.max(
+        0,
+        nowMilliseconds() - pending.receivedAtMilliseconds,
+      );
+
+      cadence.recordRenderStarted(snapshot.frame, {
+        snapshotQueueAgeMilliseconds,
       });
+      await app.renderSnapshot(snapshot, {
+        frame: snapshot.frame,
+        ...(snapshotChangeSet === null ? {} : { snapshotChangeSet }),
+      });
+      if (hasSharedSnapshotPayload) {
+        latestRenderedSharedSnapshotFrame = snapshot.frame;
+      }
+      cadence.recordRenderCompleted(snapshot.frame);
+    } catch (error: unknown) {
+      cadence.recordRenderFailed();
+      latestWorkerError = {
+        code: "webGpuApp.workerSnapshotRenderFailed",
+        reason: "webgpu-app.render-snapshot-failed",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Rendering a worker-produced snapshot failed.",
+      };
+    } finally {
+      autoRenderInFlight = false;
+      if (
+        nextRenderableSnapshotEvent() !== null &&
+        !hasNativePresentationFrame
+      ) {
+        if (presentationMissedWhileInFlight) {
+          presentationMissedWhileInFlight = false;
+          cadence.recordRenderCompletionDrain();
+          renderPendingSnapshot();
+        } else {
+          scheduleAutoRender();
+        }
+      }
+    }
   };
 
   const scheduleAutoRender = (): void => {

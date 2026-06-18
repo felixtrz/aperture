@@ -505,9 +505,28 @@ describe("WebGPU app facade", () => {
         resolveFirstRenderStarted = resolve;
       });
       let renderCalls = 0;
+      let rafCallbackRunning = false;
+      const renderStartedDuringRaf: boolean[] = [];
+      const runRaf = (): void => {
+        const callback = scheduledRafs.shift();
+
+        if (callback === undefined) {
+          throw new Error(
+            "Expected a scheduled requestAnimationFrame callback.",
+          );
+        }
+
+        rafCallbackRunning = true;
+        try {
+          callback(performance.now());
+        } finally {
+          rafCallbackRunning = false;
+        }
+      };
 
       app.renderSnapshot = async (snapshot, renderOptions = {}) => {
         renderCalls += 1;
+        renderStartedDuringRaf.push(rafCallbackRunning);
         if (renderCalls === 1) {
           resolveFirstRenderStarted?.();
           await firstRenderGate;
@@ -533,12 +552,12 @@ describe("WebGPU app facade", () => {
 
       app.start();
       worker.emitSnapshot(firstSnapshot);
-      runNextScheduledRaf(scheduledRafs);
+      runRaf();
       await firstRenderStarted;
 
       worker.emitSnapshot(secondSnapshot);
       expect(scheduledRafs).toHaveLength(1);
-      runNextScheduledRaf(scheduledRafs);
+      runRaf();
 
       releaseFirstRender?.();
       await waitForCondition(() => {
@@ -550,7 +569,7 @@ describe("WebGPU app facade", () => {
         );
       }, 500);
       expect(scheduledRafs).toHaveLength(1);
-      runNextScheduledRaf(scheduledRafs);
+      runRaf();
 
       await waitForCondition(() => {
         const diagnostics = app.getDiagnostics();
@@ -564,6 +583,7 @@ describe("WebGPU app facade", () => {
       const diagnostics = app.getDiagnostics();
 
       expect(renderCalls).toBe(2);
+      expect(renderStartedDuringRaf).toEqual([true, true]);
       expect(diagnostics.cadence.presentationCallbacks.total).toBe(3);
       expect(diagnostics.cadence.presentationCallbacksWhileInFlight).toBe(1);
       expect(diagnostics.cadence.renderCompletionDrains).toBe(0);
