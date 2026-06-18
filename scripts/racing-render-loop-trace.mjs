@@ -22,6 +22,8 @@ const captureTrace = args.trace !== false;
 const captureCpuProfile = args["cpu-profile"] !== false;
 const apertureGpuTimings = args["aperture-gpu-timings"] === true;
 const threeGlDiagnostics = args["three-gl-diagnostics"] === true;
+const apertureStartOptionQueryParams =
+  collectApertureStartOptionQueryParams(args);
 const visualDiagnostics =
   args["visual-diagnostics"] !== false &&
   args["no-visual-diagnostics"] !== true;
@@ -124,6 +126,7 @@ async function main() {
     captureCpuProfile,
     apertureGpuTimings,
     threeGlDiagnostics,
+    apertureStartOptions: apertureStartOptionQueryParams,
     visualDiagnostics,
     headless: args.headed === true ? false : true,
     browser: browserLaunch.summary,
@@ -205,6 +208,11 @@ async function runScenario(browser, target, scenario) {
   );
   if (target.kind === "aperture" && apertureGpuTimings) {
     url = addQueryFlag(url, "gpuTimings=1");
+  }
+  if (target.kind === "aperture") {
+    for (const [key, value] of Object.entries(apertureStartOptionQueryParams)) {
+      url = addQueryFlag(url, `${key}=${encodeURIComponent(value)}`);
+    }
   }
   if (target.kind === "three" && threeGlDiagnostics) {
     url = addQueryFlag(url, "glDiagnostics=1");
@@ -2626,6 +2634,49 @@ function addQueryFlag(rawUrl, flag) {
   const [key, value] = flag.split("=");
   url.searchParams.set(key, value ?? "1");
   return url.toString();
+}
+
+function collectApertureStartOptionQueryParams(parsedArgs) {
+  const options = {};
+  const sharedSnapshotMessageRateHz = firstStringArg(parsedArgs, [
+    "aperture-shared-message-rate",
+    "aperture-shared-snapshot-message-rate",
+    "sharedSnapshotMessageRateHz",
+  ]);
+  const audioSnapshotMessageRateHz = firstStringArg(parsedArgs, [
+    "aperture-audio-message-rate",
+    "aperture-audio-snapshot-message-rate",
+    "audioSnapshotMessageRateHz",
+  ]);
+  const sourceAssetsMessageRateHz = firstStringArg(parsedArgs, [
+    "aperture-source-assets-message-rate",
+    "aperture-source-assets-rate",
+    "sourceAssetsMessageRateHz",
+  ]);
+
+  if (sharedSnapshotMessageRateHz !== null) {
+    options.sharedSnapshotMessageRateHz = sharedSnapshotMessageRateHz;
+  }
+  if (audioSnapshotMessageRateHz !== null) {
+    options.audioSnapshotMessageRateHz = audioSnapshotMessageRateHz;
+  }
+  if (sourceAssetsMessageRateHz !== null) {
+    options.sourceAssetsMessageRateHz = sourceAssetsMessageRateHz;
+  }
+
+  return options;
+}
+
+function firstStringArg(parsedArgs, keys) {
+  for (const key of keys) {
+    const value = stringArg(parsedArgs[key]);
+
+    if (value !== null) {
+      return value;
+    }
+  }
+
+  return null;
 }
 
 function parseArgs(rawArgs) {

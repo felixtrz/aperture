@@ -15,11 +15,14 @@ export interface StartOptionsAccess {
 }
 
 const RESERVED_START_OPTION_KEYS = new Set([
+  "audioSnapshotMessageRateHz",
   "assetDecoders",
   "entityCapacity",
   "fixedStep",
   "options",
   "physicsInterpolation",
+  "sharedSnapshotMessageRateHz",
+  "sourceAssetsMessageRateHz",
   "stop",
   "transport",
   "type",

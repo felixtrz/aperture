@@ -204,6 +204,117 @@ describe("generated worker shared snapshot message cadence", () => {
     expect(transport.shared.reader.readLatestFrame()?.frame).toBe(2);
   });
 
+  it("can throttle audio sideband without blocking SAB frame publication", () => {
+    let now = 0;
+    vi.stubGlobal("performance", {
+      now: () => now,
+    });
+
+    const transport = createSharedWorkerSnapshotTransport({
+      sharedSnapshotMessageRateHz: 0,
+      audioSnapshotMessageRateHz: 30,
+    });
+    const messages: unknown[] = [];
+    const app = createFakeApp((frame) =>
+      baseSnapshot({
+        frame,
+        audioEmitters: [audioEmitter()],
+      }),
+    );
+    const options = {
+      app,
+      config: { mode: "browser" } as ApertureConfig,
+      port: createMessagePort(messages),
+      transport,
+      pendingInput: [],
+      sourceAssetState: createSourceAssetSerializationState(),
+      entityTools: { summary: () => ({ available: true }) },
+      summaryCadence: thinSummaryCadence(),
+      delta: 1 / 60,
+      previousPublishTiming: null,
+    };
+
+    publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 1,
+      time: 1,
+    });
+    expect(messages).toHaveLength(1);
+
+    now = 20;
+    const throttledReport = publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 2,
+      time: 1 + 1 / 60,
+    });
+    expect(messages).toHaveLength(1);
+    expect(throttledReport.timing.postedMessage).toBe("none");
+    expect(transport.shared.reader.readLatestFrame()?.frame).toBe(2);
+
+    now = 40;
+    const audioReport = publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 3,
+      time: 1 + 2 / 60,
+    });
+    expect(messages).toHaveLength(2);
+    expect(readMessageType(messages[1])).toBe(
+      SIMULATION_WORKER_PROTOCOL.audioSnapshot,
+    );
+    expect(audioReport.timing.postedMessage).toBe("audioSnapshot");
+    expect(audioReport.timing.postMessageReasons).toEqual(["sharedAudio"]);
+    expect(transport.shared.reader.readLatestFrame()?.frame).toBe(3);
+  });
+
+  it("can disable periodic heartbeat and audio sideband while polling the latest SAB frame", () => {
+    let now = 0;
+    vi.stubGlobal("performance", {
+      now: () => now,
+    });
+
+    const transport = createSharedWorkerSnapshotTransport({
+      sharedSnapshotMessageRateHz: "off",
+      audioSnapshotMessageRateHz: 0,
+    });
+    const messages: unknown[] = [];
+    const app = createFakeApp((frame) =>
+      baseSnapshot({
+        frame,
+        audioEmitters: [audioEmitter()],
+      }),
+    );
+    const options = {
+      app,
+      config: { mode: "browser" } as ApertureConfig,
+      port: createMessagePort(messages),
+      transport,
+      pendingInput: [],
+      sourceAssetState: createSourceAssetSerializationState(),
+      entityTools: { summary: () => ({ available: true }) },
+      summaryCadence: thinSummaryCadence(),
+      delta: 1 / 60,
+      previousPublishTiming: null,
+    };
+
+    publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 1,
+      time: 1,
+    });
+    expect(messages).toHaveLength(1);
+
+    now = 100;
+    const pollOnlyReport = publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 2,
+      time: 1 + 1 / 60,
+    });
+    expect(messages).toHaveLength(1);
+    expect(pollOnlyReport.timing.postedMessage).toBe("none");
+    expect(pollOnlyReport.timing.postMessageReasons).toEqual([]);
+    expect(transport.shared.reader.readLatestFrame()?.frame).toBe(2);
+  });
+
   it("sends changed source assets through sideband without forcing render snapshot messages", () => {
     let now = 0;
     vi.stubGlobal("performance", {
@@ -385,6 +496,73 @@ describe("generated worker shared snapshot message cadence", () => {
     ]);
     expect(readSourceAssetCount(messages[1])).toBe(1);
   });
+
+  it("sends source asset sideband when audio sideband is disabled", () => {
+    let now = 0;
+    vi.stubGlobal("performance", {
+      now: () => now,
+    });
+
+    const transport = createSharedWorkerSnapshotTransport({
+      sharedSnapshotMessageRateHz: 0,
+      audioSnapshotMessageRateHz: 0,
+      sourceAssetsMessageRateHz: 60,
+    });
+    const mesh = createMeshHandle("dynamic.audio-off-trail");
+    const messages: unknown[] = [];
+    const app = createFakeApp(
+      (frame) =>
+        baseSnapshot({
+          frame,
+          audioEmitters: [audioEmitter()],
+        }),
+      (assets, frame) => {
+        if (!assets.has(mesh)) {
+          assets.register(mesh, { label: "Dynamic Audio-Off Trail" });
+        }
+        assets.markReady(
+          mesh,
+          createPlaneMeshAsset({ label: `Audio-Off Trail ${frame}` }),
+        );
+      },
+    );
+    const options = {
+      app,
+      config: { mode: "browser" } as ApertureConfig,
+      port: createMessagePort(messages),
+      transport,
+      pendingInput: [],
+      sourceAssetState: createSourceAssetSerializationState(),
+      entityTools: { summary: () => ({ available: true }) },
+      summaryCadence: thinSummaryCadence(),
+      delta: 1 / 60,
+      previousPublishTiming: null,
+    };
+
+    publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 1,
+      time: 1,
+    });
+    expect(messages).toHaveLength(1);
+
+    now = 20;
+    const sourceAssetsReport = publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 2,
+      time: 1 + 1 / 60,
+    });
+    expect(messages).toHaveLength(2);
+    expect(readMessageType(messages[1])).toBe(
+      SIMULATION_WORKER_PROTOCOL.sourceAssets,
+    );
+    expect(sourceAssetsReport.timing.postedMessage).toBe("sourceAssets");
+    expect(sourceAssetsReport.timing.postMessageReasons).toEqual([
+      "sourceAssetsChanged",
+    ]);
+    expect(readSourceAssetCount(messages[1])).toBe(1);
+    expect(transport.shared.reader.readLatestFrame()?.frame).toBe(2);
+  });
 });
 
 function createFakeApp(
@@ -447,6 +625,40 @@ function createMessagePort(messages: unknown[]): SimulationMessagePort {
     addEventListener() {},
     removeEventListener() {},
   };
+}
+
+function createSharedWorkerSnapshotTransport(
+  startOptions: Record<string, unknown> = {},
+): Extract<
+  ReturnType<typeof createGeneratedWorkerSnapshotTransport>,
+  { readonly mode: "shared-array-buffer" }
+> {
+  const shared = createSharedSnapshotTransport({
+    maxEntities: 4,
+    maxViews: 1,
+    maxPacketWords: 128,
+    requireCrossOriginIsolated: false,
+  });
+  const transport = createGeneratedWorkerSnapshotTransport({
+    ...startOptions,
+    transport: {
+      mode: "shared-array-buffer",
+      layout: shared.layout,
+      headerBuffer: shared.headerBuffer,
+      transformBuffer: shared.transformBuffer,
+      instanceTintBuffer: shared.instanceTintBuffer,
+      viewMatrixBuffer: shared.viewMatrixBuffer,
+      quadInstanceFloatBuffer: shared.quadInstanceFloatBuffer,
+      quadInstanceWordBuffer: shared.quadInstanceWordBuffer,
+      packetBuffer: shared.packetBuffer,
+    },
+  });
+  expect(transport.mode).toBe("shared-array-buffer");
+  if (transport.mode !== "shared-array-buffer") {
+    throw new Error("expected shared transport");
+  }
+
+  return transport;
 }
 
 function audioEmitter(

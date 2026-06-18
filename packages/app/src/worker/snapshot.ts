@@ -104,6 +104,9 @@ export type GeneratedWorkerSnapshotTransport =
       readonly mode: "shared-array-buffer";
       readonly shared: SharedSnapshotTransport;
       readonly registry: SnapshotPacketEncodingRegistry;
+      readonly sharedSnapshotMessageIntervalMilliseconds: number | null;
+      readonly audioSnapshotMessageIntervalMilliseconds: number | null;
+      readonly sourceAssetsMessageIntervalMilliseconds: number | null;
       lastPostedMessageTimeMilliseconds: number | null;
       lastPostedAudioMessageTimeMilliseconds: number | null;
       lastPostedSourceAssetsMessageTimeMilliseconds: number | null;
@@ -125,6 +128,7 @@ export const DEFAULT_GENERATED_WORKER_SHARED_SNAPSHOT_MESSAGE_RATE_HZ = 30;
 export const DEFAULT_GENERATED_WORKER_AUDIO_SNAPSHOT_MESSAGE_RATE_HZ = 60;
 export const DEFAULT_GENERATED_WORKER_SOURCE_ASSETS_MESSAGE_RATE_HZ = 60;
 const MIN_GENERATED_WORKER_FULL_SUMMARY_INTERVAL_MS = 16;
+const MAX_GENERATED_WORKER_SIDE_BAND_MESSAGE_RATE_HZ = 240;
 
 export function createGeneratedWorkerSummaryCadence(
   options: GeneratedWorkerSummaryCadenceOptions = {},
@@ -169,6 +173,21 @@ export function createGeneratedWorkerSnapshotTransport(
     mode: "shared-array-buffer",
     shared: createSharedSnapshotTransportViews(transport),
     registry: createSnapshotPacketRegistry(),
+    sharedSnapshotMessageIntervalMilliseconds:
+      readGeneratedWorkerMessageIntervalMilliseconds(
+        start["sharedSnapshotMessageRateHz"],
+        DEFAULT_GENERATED_WORKER_SHARED_SNAPSHOT_MESSAGE_RATE_HZ,
+      ),
+    audioSnapshotMessageIntervalMilliseconds:
+      readGeneratedWorkerMessageIntervalMilliseconds(
+        start["audioSnapshotMessageRateHz"],
+        DEFAULT_GENERATED_WORKER_AUDIO_SNAPSHOT_MESSAGE_RATE_HZ,
+      ),
+    sourceAssetsMessageIntervalMilliseconds:
+      readGeneratedWorkerMessageIntervalMilliseconds(
+        start["sourceAssetsMessageRateHz"],
+        DEFAULT_GENERATED_WORKER_SOURCE_ASSETS_MESSAGE_RATE_HZ,
+      ),
     lastPostedMessageTimeMilliseconds: null,
     lastPostedAudioMessageTimeMilliseconds: null,
     lastPostedSourceAssetsMessageTimeMilliseconds: null,
@@ -554,9 +573,10 @@ function collectSharedSnapshotPostReasons(options: {
 
   if (
     lastPostedMessageTimeMilliseconds !== null &&
+    options.transport.sharedSnapshotMessageIntervalMilliseconds !== null &&
     reasons.length === 0 &&
     options.nowMilliseconds - lastPostedMessageTimeMilliseconds >=
-      1000 / DEFAULT_GENERATED_WORKER_SHARED_SNAPSHOT_MESSAGE_RATE_HZ
+      options.transport.sharedSnapshotMessageIntervalMilliseconds
   ) {
     reasons.push("sharedHeartbeat");
   }
@@ -666,6 +686,7 @@ function shouldPostSharedAudioSnapshotMessage(options: {
 }): boolean {
   if (
     options.transport.mode !== "shared-array-buffer" ||
+    options.transport.audioSnapshotMessageIntervalMilliseconds === null ||
     !hasSharedSnapshotAudioSideband(options.snapshot)
   ) {
     return false;
@@ -675,7 +696,7 @@ function shouldPostSharedAudioSnapshotMessage(options: {
     options.transport.lastPostedAudioMessageTimeMilliseconds === null ||
     options.nowMilliseconds -
       options.transport.lastPostedAudioMessageTimeMilliseconds >=
-      1000 / DEFAULT_GENERATED_WORKER_AUDIO_SNAPSHOT_MESSAGE_RATE_HZ
+      options.transport.audioSnapshotMessageIntervalMilliseconds
   );
 }
 
@@ -684,11 +705,17 @@ function shouldPostSharedSourceAssetsMessage(options: {
   readonly snapshot: RenderSnapshot;
   readonly nowMilliseconds: number;
 }): boolean {
-  if (options.transport.mode !== "shared-array-buffer") {
+  if (
+    options.transport.mode !== "shared-array-buffer" ||
+    options.transport.sourceAssetsMessageIntervalMilliseconds === null
+  ) {
     return false;
   }
 
-  if (hasSharedSnapshotAudioSideband(options.snapshot)) {
+  if (
+    options.transport.audioSnapshotMessageIntervalMilliseconds !== null &&
+    hasSharedSnapshotAudioSideband(options.snapshot)
+  ) {
     return false;
   }
 
@@ -696,7 +723,73 @@ function shouldPostSharedSourceAssetsMessage(options: {
     options.transport.lastPostedSourceAssetsMessageTimeMilliseconds === null ||
     options.nowMilliseconds -
       options.transport.lastPostedSourceAssetsMessageTimeMilliseconds >=
-      1000 / DEFAULT_GENERATED_WORKER_SOURCE_ASSETS_MESSAGE_RATE_HZ
+      options.transport.sourceAssetsMessageIntervalMilliseconds
+  );
+}
+
+function readGeneratedWorkerMessageIntervalMilliseconds(
+  value: unknown,
+  defaultRateHz: number,
+): number | null {
+  const rateHz = readGeneratedWorkerMessageRateHz(value, defaultRateHz);
+
+  return rateHz === null ? null : 1000 / rateHz;
+}
+
+function readGeneratedWorkerMessageRateHz(
+  value: unknown,
+  defaultRateHz: number,
+): number | null {
+  if (value === undefined || value === null || value === "") {
+    return defaultRateHz;
+  }
+
+  if (value === false) {
+    return null;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+
+    if (
+      normalized === "0" ||
+      normalized === "false" ||
+      normalized === "off" ||
+      normalized === "none" ||
+      normalized === "disabled"
+    ) {
+      return null;
+    }
+
+    const parsed = Number(normalized);
+
+    return Number.isFinite(parsed)
+      ? normalizeGeneratedWorkerMessageRateHz(parsed, defaultRateHz)
+      : defaultRateHz;
+  }
+
+  if (typeof value === "number") {
+    return normalizeGeneratedWorkerMessageRateHz(value, defaultRateHz);
+  }
+
+  return defaultRateHz;
+}
+
+function normalizeGeneratedWorkerMessageRateHz(
+  value: number,
+  defaultRateHz: number,
+): number | null {
+  if (!Number.isFinite(value)) {
+    return defaultRateHz;
+  }
+
+  if (value <= 0) {
+    return null;
+  }
+
+  return Math.min(
+    MAX_GENERATED_WORKER_SIDE_BAND_MESSAGE_RATE_HZ,
+    Math.max(1, value),
   );
 }
 

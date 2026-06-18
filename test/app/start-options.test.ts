@@ -12,6 +12,9 @@ describe("Aperture system start options", () => {
       filterSystemStartOptions({
         type: "start",
         transport: { shared: true },
+        sharedSnapshotMessageRateHz: "0",
+        audioSnapshotMessageRateHz: "30",
+        sourceAssetsMessageRateHz: "30",
         fixedStep: { timestep: 1 / 60 },
         entityCapacity: 1024,
         map: "abc123",

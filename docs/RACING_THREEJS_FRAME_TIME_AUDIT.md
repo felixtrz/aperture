@@ -26,10 +26,29 @@ summary cadence, plus bounds change-set duplicate-key handling and app-facing
 shadow/direct-light status compaction, plus numeric internal snapshot
 change-set keys, plus per-frame queued pipeline lookup reuse, synchronous
 pipeline cache-hit returns, conditional queued pipeline awaits, and cached
-material render-state token parsing.
+material render-state token parsing, plus render/audio/source sideband cadence
+controls and RAF frame-pacing metrics in the racing trace harness.
 
 **Sources:**
 
+- Latest SAB message-cadence and frame-pacing matrix:
+  `/tmp/racing-pacing-default/summary.json`,
+  `/tmp/racing-pacing-heartbeat-off/summary.json`,
+  `/tmp/racing-pacing-heartbeat-off-audio30/summary.json`, and
+  `/tmp/racing-pacing-heartbeat-audio-off-source30/summary.json`
+  (`2026-06-18`, 6 second Aperture-only samples, no trace/profile). The trace
+  harness now records `raf.pacing.absoluteDeviationMs`,
+  `withinOneMsRatio`, and estimated missed vsyncs beside the existing RAF
+  quantiles. Results did **not** justify a default cadence change: disabling
+  shared heartbeat removed render snapshot messages, but audio sideband became
+  the wake stream (`~376` idle / `~429` drive messages); lowering audio sideband
+  to `30 Hz` cut sideband traffic roughly in half and improved drive render p95
+  in that sample (`~3.35 ms` vs default `~4.55 ms`), but RAF pacing worsened
+  (`within1` drive `~80.8%` vs default `~89.7%`). Disabling audio sideband
+  entirely improved idle pacing (`dev95 ~1.39 ms`, `within1 ~85.8%`) but drive
+  shifted to source-asset sideband (`178` messages) and remained mixed. Treat
+  this as evidence for a real audio/source poll transport, not for blindly
+  reducing defaults.
 - Latest current-source isolated-header headed Playwright benchmark saved at
   `/tmp/racing-frame-audit-worker-summary-cadence.json`
   (`2026-06-18T15:06:55.712Z`, after generated worker full-summary cadence
@@ -372,6 +391,15 @@ previous repeats were noisy enough that this is not yet proof of a consistent
 benchmark win. Remaining Aperture CPU work is still visible in the app phase
 report.
 
+Frame pacing is now tracked explicitly in the trace summary, not inferred from
+RAF p95 alone. The current metric set includes absolute deviation from the
+median RAF interval, the ratio of intervals within 1 ms of that median, and an
+estimated missed-vsync count. The first SAB message-cadence matrix shows that
+message count and pacing are correlated but not identical: fewer messages can
+reduce Aperture render CPU p95 while still worsening RAF interval regularity.
+That argues against a quick default-rate tweak and for moving the remaining
+audio/source sideband payloads into pollable shared transport where practical.
+
 The draw-shape comparison is clear and no longer supports the idea that both
 apps are "basically the same draw calls." Three.js `renderer.info.render.calls`
 reported only `1` in this reference because the post/effects path hides the real
@@ -451,6 +479,11 @@ and do not use headless three.js RAF cadence as a benchmark verdict.
   packets stay in SAB. The sideband copies only the audio-referenced matrices
   and rewrites their offsets, preserving the main-thread audio contract without
   transferring the full render snapshot.
+- Shared snapshot, audio sideband, and source-asset sideband message rates can
+  now be controlled through generated-worker start options and the racing trace
+  harness (`--aperture-shared-message-rate`,
+  `--aperture-audio-message-rate`, `--aperture-source-assets-message-rate`) so
+  poll-model claims can be tested without source edits.
 - Shared snapshot decode now requires the readable SAB frame to match the worker
   message frame. Stale messages are skipped instead of decoding newer packet
   words with an older registry, which eliminated the intermittent handle-id and
@@ -1055,6 +1088,16 @@ This preserves the existing audio subscriber contract while keeping the bulky
 render packet families in SAB. It applies to any generated browser app with
 audio enabled.
 
+The latest cadence matrix challenges whether this sideband should exist as a
+message stream at all. Audio sideband rate controls prove the worker can keep
+publishing render frames to SAB while the main thread receives fewer or no audio
+messages, but a no-audio-message run is diagnostic only because the current SAB
+packet codec does not carry audio packets. A correct poll-model fix should add
+audio emitter/listener packets to the shared fixed-stride packet stream and let
+the main-thread audio engine consume the same RAF-polled snapshot as the
+renderer, instead of relying on `SimulationWorker.onSnapshot` sideband
+messages.
+
 ### 16. Shared Frame/Registry Matching
 
 The SAB reader now decodes only when the readable shared frame number matches
@@ -1637,8 +1680,10 @@ Updated status:
 - High-DPR backing-store mismatch: still open.
 - Memory pressure: still open; latest isolated run shows Aperture at
   `43.50-67.05 MB` used heap versus three.js at `18.05-18.97 MB`.
-- Frame pacing/render cadence: still open. Snapshot publication is capped, but
-  drive render-complete cadence still falls below display cadence.
+- Frame pacing/render cadence: still open. Snapshot publication is capped and
+  RAF pacing is now measured directly, but the message-cadence matrix is mixed:
+  fewer worker messages reduce some render CPU tails without consistently
+  improving RAF interval regularity.
 - Particle burst write count/slot fragmentation: still open, but no longer the
   top byte-pressure target.
 - Active-drive main-mesh/change-set broadness: still open but much narrower.
@@ -1651,33 +1696,37 @@ Updated status:
 
 ## Recommended Fix Order
 
-1. Check in the browser benchmark runner. The latest ad hoc runner now separates
-   display RAF intervals, WebGPU submit intervals, worker publish timings,
-   cadence diagnostics, counts, particles, and compact phase timings, but it is
-   still not versioned.
-2. Diagnose drive-frame render cadence and particle-heavy work together. The
+1. Add audio emitter/listener packets to the shared snapshot codec and drive
+   generated audio from the same RAF-polled snapshot stream as rendering. This
+   is the non-hacky poll-model fix suggested by the message-cadence matrix; do
+   not merely disable audio sideband messages unless the app has explicitly
+   disabled audio.
+2. Move dynamic source-asset payloads toward shared/ring-buffered binary
+   transport. The source-asset sideband becomes dominant when audio sideband is
+   disabled, and Racing drift marks are the current proof case.
+3. Diagnose drive-frame render cadence and particle-heavy work together. The
    worker is no longer flooding snapshots, so remaining drive loss should be
    attributed to actual render/simulation pressure, scheduler policy, or heap
    churn.
-3. Audit heap retention directly. The latest drive run retained `67.05 MB`,
+4. Audit heap retention directly. The latest drive run retained `67.05 MB`,
    far above the three.js reference and high enough to explain tail spikes or
    GC-sensitive variance.
-4. Expose dynamic-buffer upload diagnostics in frame reports so future probes
+5. Expose dynamic-buffer upload diagnostics in frame reports so future probes
    show full writes, range writes, skipped writes, and fallback reasons.
-5. Reduce broader render `prepare`/resource planning cost. Submit cadence
+6. Reduce broader render `prepare`/resource planning cost. Submit cadence
    remains below display cadence even after the write-byte reductions.
-6. Define the high-refresh simulation/render policy: fixed-step interpolation,
+7. Define the high-refresh simulation/render policy: fixed-step interpolation,
    render-on-display using latest snapshots, or a documented lower render
    cadence. Then benchmark against three.js using the same concept of "frame."
-7. Add a local/dev COOP/COEP serving path so SAB transport can be enabled
+8. Add a local/dev COOP/COEP serving path so SAB transport can be enabled
    without a one-off static server.
-8. Fix DPR/backing-store sizing for `device-pixel-content-box` and DPR `2`.
-9. Reduce remaining bounds/change-set churn, especially active-drive bounds
-   churn.
-10. Reduce particle burst slot fragmentation/tiny initial-slot write count if
+9. Fix DPR/backing-store sizing for `device-pixel-content-box` and DPR `2`.
+10. Reduce remaining bounds/change-set churn, especially active-drive bounds
+    churn.
+11. Reduce particle burst slot fragmentation/tiny initial-slot write count if
     it shows up in count-dominant probes after the larger cadence and transform
     work.
-11. Keep render batching counters as regression gates: main resolved draws
+12. Keep render batching counters as regression gates: main resolved draws
     should remain around `14-20`, shadow `364` caster records should remain
     grouped to about `30` shadow draws, and drive draw calls should stay near the
     current `32` rather than regressing to the old `300+` range.
