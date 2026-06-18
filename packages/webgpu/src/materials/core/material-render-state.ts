@@ -30,27 +30,41 @@ export interface WebGpuPipelineRenderState {
   readonly blend: WebGpuBlendState | null;
 }
 
+const EMPTY_MATERIAL_PIPELINE_RENDER_STATE_TOKENS: MaterialPipelineRenderStateTokens =
+  {
+    alphaMode: null,
+    cullMode: null,
+    frontFace: null,
+    depthCompare: null,
+    depthBias: null,
+    depthBiasSlopeScale: null,
+    blendPreset: null,
+  };
+
+const MATERIAL_PIPELINE_RENDER_STATE_TOKEN_CACHE_LIMIT = 2048;
+const materialPipelineRenderStateTokenCache = new Map<
+  string,
+  MaterialPipelineRenderStateTokens
+>();
+
 export function parseMaterialPipelineRenderStateTokens(
   pipelineKey: string | undefined,
 ): MaterialPipelineRenderStateTokens {
   if (pipelineKey === undefined || pipelineKey.trim().length === 0) {
-    return {
-      alphaMode: null,
-      cullMode: null,
-      frontFace: null,
-      depthCompare: null,
-      depthBias: null,
-      depthBiasSlopeScale: null,
-      blendPreset: null,
-    };
+    return EMPTY_MATERIAL_PIPELINE_RENDER_STATE_TOKENS;
+  }
+
+  const cached = materialPipelineRenderStateTokenCache.get(pipelineKey);
+
+  if (cached !== undefined) {
+    return cached;
   }
 
   const parts = pipelineKey.split("|");
   const renderStateStart = Math.max(1, parts.length - 4);
   const featureTokens = parts.slice(1, renderStateStart);
   const depthBias = parseDepthBiasToken(featureTokens);
-
-  return {
+  const tokens = {
     alphaMode: parts[renderStateStart] ?? null,
     cullMode: parts[renderStateStart + 1] ?? null,
     frontFace: parseFrontFaceToken(featureTokens),
@@ -59,6 +73,16 @@ export function parseMaterialPipelineRenderStateTokens(
     depthBiasSlopeScale: depthBias.depthBiasSlopeScale,
     blendPreset: parts[renderStateStart + 3] ?? null,
   };
+
+  if (
+    materialPipelineRenderStateTokenCache.size >=
+    MATERIAL_PIPELINE_RENDER_STATE_TOKEN_CACHE_LIMIT
+  ) {
+    materialPipelineRenderStateTokenCache.clear();
+  }
+
+  materialPipelineRenderStateTokenCache.set(pipelineKey, tokens);
+  return tokens;
 }
 
 export function resolveWebGpuPipelineRenderState(

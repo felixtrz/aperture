@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createWebGpuDepthStencilDescriptor,
+  parseMaterialPipelineRenderStateTokens,
   resolveWebGpuPipelineRenderState,
 } from "../../packages/webgpu/src/materials/core/material-render-state.js";
 
@@ -75,5 +76,16 @@ describe("WebGPU material render-state descriptors", () => {
         "depth24plus",
       ).frontFace,
     ).toBe("cw");
+  });
+
+  it("reuses parsed render-state tokens for stable pipeline keys", () => {
+    const pipelineKey = "standard|front-face:cw|opaque|back|less|none";
+    const first = parseMaterialPipelineRenderStateTokens(pipelineKey);
+    const second = parseMaterialPipelineRenderStateTokens(pipelineKey);
+
+    expect(second).toBe(first);
+    expect(parseMaterialPipelineRenderStateTokens(undefined)).toBe(
+      parseMaterialPipelineRenderStateTokens(""),
+    );
   });
 });
