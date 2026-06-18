@@ -146,13 +146,15 @@ function mirrorWorkerMessage(options: {
   options.status.skippedSourceAssets += mirror.skipped;
 
   const workerSummary = readWorkerSummary(options.message);
-  options.status.lastWorkerSummary = mergeWorkerSummary(
-    options.status.lastWorkerSummary,
-    workerSummary,
-  );
+  if (workerSummary !== null) {
+    options.status.lastWorkerSummary = mergeWorkerSummary(
+      options.status.lastWorkerSummary,
+      workerSummary,
+    );
+  }
   recordWorkerPostMessageDecision(
     options.status.workerMessages,
-    workerSummary,
+    readPostMessageDecision(options.message, workerSummary),
     options.decisionBucket,
   );
   const performanceStatus = updateGeneratedBrowserPerformanceStatus(
@@ -168,6 +170,15 @@ function readWorkerSummary(message: unknown): unknown {
   return typeof message === "object" && message !== null
     ? ((message as { readonly workerSummary?: unknown }).workerSummary ?? null)
     : null;
+}
+
+function readPostMessageDecision(
+  message: unknown,
+  workerSummary: unknown,
+): unknown {
+  const messageDecision = readRecord(message)?.["postMessageDecision"];
+
+  return messageDecision ?? readRecord(workerSummary)?.["postMessageDecision"];
 }
 
 const TRANSIENT_FULL_WORKER_SUMMARY_FIELDS = [
@@ -434,10 +445,9 @@ function mergeWorkerSummary(previous: unknown, next: unknown): unknown {
 
 function recordWorkerPostMessageDecision(
   status: GeneratedBrowserWorkerMessageStatus,
-  workerSummary: unknown,
+  decision: unknown,
   bucketName: "snapshot" | "sideband",
 ): void {
-  const decision = readRecord(workerSummary)?.["postMessageDecision"];
   const decisionRecord = readRecord(decision);
   if (decisionRecord === null) {
     return;

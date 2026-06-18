@@ -126,7 +126,7 @@ export interface GeneratedWorkerSummaryCadenceOptions {
 export const DEFAULT_GENERATED_WORKER_FULL_SUMMARY_INTERVAL_MS = 500;
 export const DEFAULT_GENERATED_WORKER_SHARED_SNAPSHOT_MESSAGE_RATE_HZ = 30;
 export const DEFAULT_GENERATED_WORKER_AUDIO_SNAPSHOT_MESSAGE_RATE_HZ = 60;
-export const DEFAULT_GENERATED_WORKER_SOURCE_ASSETS_MESSAGE_RATE_HZ = 60;
+export const DEFAULT_GENERATED_WORKER_SOURCE_ASSETS_MESSAGE_RATE_HZ = 15;
 const MIN_GENERATED_WORKER_FULL_SUMMARY_INTERVAL_MS = 16;
 const MAX_GENERATED_WORKER_SIDE_BAND_MESSAGE_RATE_HZ = 240;
 
@@ -375,7 +375,7 @@ export function publishGeneratedWorkerSnapshot(options: {
     options.port.postMessage({
       type: SIMULATION_WORKER_PROTOCOL.sourceAssets,
       ...sourceAssetsMessage,
-      workerSummary: workerSummaryMessage,
+      postMessageDecision,
       frame: options.frame,
     });
     markSharedSnapshotSourceAssetsMessagePosted(
@@ -847,9 +847,9 @@ function readWorkerSummaryFullFlag(
  * (sprites, UI, skyboxes, skinning/morph buffers). Such a frame falls back to
  * the transferable path, preserving every packet.
  *
- * Audio packets are not render packets; they ride the placeholder snapshot sent
- * alongside a shared render frame so main-thread audio subscribers keep their
- * existing RenderSnapshot contract without forcing render data off SAB.
+ * Audio packets are part of the SAB packet stream; the placeholder sideband
+ * remains as a compatibility/fallback path for callers that still subscribe to
+ * worker audio messages directly.
  * Exported for the transport-fallback test (AU-2).
  */
 export function hasUnsupportedSharedSnapshotPayload(

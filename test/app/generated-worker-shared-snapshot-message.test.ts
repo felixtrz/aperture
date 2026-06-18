@@ -139,6 +139,7 @@ describe("generated worker shared snapshot message cadence", () => {
       requireCrossOriginIsolated: false,
     });
     const transport = createGeneratedWorkerSnapshotTransport({
+      sharedSnapshotMessageRateHz: 0,
       transport: {
         mode: "shared-array-buffer",
         layout: shared.layout,
@@ -186,7 +187,10 @@ describe("generated worker shared snapshot message cadence", () => {
       SIMULATION_WORKER_PROTOCOL.snapshot,
     );
     expect(initialReport.timing.postedMessage).toBe("snapshot");
-    expect(initialReport.timing.postMessageReasons).toEqual(["sharedInitial"]);
+    expect(initialReport.timing.postMessageReasons).toEqual([
+      "sharedInitial",
+      "sharedRegistryChanged",
+    ]);
 
     now = 20;
     const audioReport = publishGeneratedWorkerSnapshot({
@@ -321,29 +325,9 @@ describe("generated worker shared snapshot message cadence", () => {
       now: () => now,
     });
 
-    const shared = createSharedSnapshotTransport({
-      maxEntities: 4,
-      maxViews: 1,
-      maxPacketWords: 128,
-      requireCrossOriginIsolated: false,
+    const transport = createSharedWorkerSnapshotTransport({
+      sharedSnapshotMessageRateHz: 0,
     });
-    const transport = createGeneratedWorkerSnapshotTransport({
-      transport: {
-        mode: "shared-array-buffer",
-        layout: shared.layout,
-        headerBuffer: shared.headerBuffer,
-        transformBuffer: shared.transformBuffer,
-        instanceTintBuffer: shared.instanceTintBuffer,
-        viewMatrixBuffer: shared.viewMatrixBuffer,
-        quadInstanceFloatBuffer: shared.quadInstanceFloatBuffer,
-        quadInstanceWordBuffer: shared.quadInstanceWordBuffer,
-        packetBuffer: shared.packetBuffer,
-      },
-    });
-    expect(transport.mode).toBe("shared-array-buffer");
-    if (transport.mode !== "shared-array-buffer") {
-      throw new Error("expected shared transport");
-    }
 
     const mesh = createMeshHandle("dynamic.trail");
     const messages: unknown[] = [];
@@ -393,22 +377,53 @@ describe("generated worker shared snapshot message cadence", () => {
     expect(transport.shared.reader.readLatestFrame()?.frame).toBe(2);
 
     now = 20;
-    const sidebandReport = publishGeneratedWorkerSnapshot({
+    const defaultCadenceReport = publishGeneratedWorkerSnapshot({
       ...options,
       frame: 3,
       time: 1 + 2 / 60,
+    });
+    expect(messages).toHaveLength(1);
+    expect(defaultCadenceReport.timing.postedMessage).toBe("none");
+    expect(defaultCadenceReport.timing.postMessageReasons).toEqual([]);
+    expect(transport.shared.reader.readLatestFrame()?.frame).toBe(3);
+
+    now = 40;
+    const defaultCadenceStillThrottledReport = publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 4,
+      time: 1 + 3 / 60,
+    });
+    expect(messages).toHaveLength(1);
+    expect(defaultCadenceStillThrottledReport.timing.postedMessage).toBe(
+      "none",
+    );
+    expect(
+      defaultCadenceStillThrottledReport.timing.postMessageReasons,
+    ).toEqual([]);
+    expect(transport.shared.reader.readLatestFrame()?.frame).toBe(4);
+
+    now = 70;
+    const sidebandReport = publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 5,
+      time: 1 + 4 / 60,
     });
     expect(messages).toHaveLength(2);
     expect(readMessageType(messages[1])).toBe(
       SIMULATION_WORKER_PROTOCOL.sourceAssets,
     );
-    expect(readMessageFrame(messages[1])).toBe(3);
+    expect(readMessageFrame(messages[1])).toBe(5);
     expect(sidebandReport.timing.postedMessage).toBe("sourceAssets");
     expect(sidebandReport.timing.postMessageReasons).toEqual([
       "sourceAssetsChanged",
     ]);
     expect(readSourceAssetCount(messages[1])).toBe(1);
-    expect(transport.shared.reader.readLatestFrame()?.frame).toBe(3);
+    expect(readWorkerSummary(messages[1])).toBeUndefined();
+    expect(readPostMessageDecision(messages[1])).toMatchObject({
+      postedMessage: "sourceAssets",
+      postMessageReasons: ["sourceAssetsChanged"],
+    });
+    expect(transport.shared.reader.readLatestFrame()?.frame).toBe(5);
   });
 
   it("piggybacks changed source assets on due audio sideband messages", () => {
@@ -561,6 +576,11 @@ describe("generated worker shared snapshot message cadence", () => {
       "sourceAssetsChanged",
     ]);
     expect(readSourceAssetCount(messages[1])).toBe(1);
+    expect(readWorkerSummary(messages[1])).toBeUndefined();
+    expect(readPostMessageDecision(messages[1])).toMatchObject({
+      postedMessage: "sourceAssets",
+      postMessageReasons: ["sourceAssetsChanged"],
+    });
     expect(transport.shared.reader.readLatestFrame()?.frame).toBe(2);
   });
 });
@@ -614,6 +634,19 @@ function readSourceAssetCount(message: unknown): unknown {
     .sourceAssets;
   return typeof sourceAssets === "object" && sourceAssets !== null
     ? (sourceAssets as { readonly entries?: unknown[] }).entries?.length
+    : undefined;
+}
+
+function readWorkerSummary(message: unknown): unknown {
+  return typeof message === "object" && message !== null
+    ? (message as { readonly workerSummary?: unknown }).workerSummary
+    : undefined;
+}
+
+function readPostMessageDecision(message: unknown): unknown {
+  return typeof message === "object" && message !== null
+    ? (message as { readonly postMessageDecision?: unknown })
+        .postMessageDecision
     : undefined;
 }
 

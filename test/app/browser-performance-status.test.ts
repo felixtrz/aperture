@@ -182,12 +182,10 @@ describe("generated browser performance status", () => {
           },
         ],
       },
-      workerSummary: {
-        postMessageDecision: {
-          frame: 2,
-          postedMessage: "sourceAssets",
-          postMessageReasons: ["sourceAssetsChanged"],
-        },
+      postMessageDecision: {
+        frame: 2,
+        postedMessage: "sourceAssets",
+        postMessageReasons: ["sourceAssetsChanged"],
       },
     });
 

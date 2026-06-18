@@ -27,10 +27,162 @@ shadow/direct-light status compaction, plus numeric internal snapshot
 change-set keys, plus per-frame queued pipeline lookup reuse, synchronous
 pipeline cache-hit returns, conditional queued pipeline awaits, and cached
 material render-state token parsing, plus render/audio/source sideband cadence
-controls and RAF frame-pacing metrics in the racing trace harness.
+controls and repeatable RAF frame-pacing metrics in the racing trace harness,
+plus SAB audio emitter/listener packet transport, generated-audio consumption
+from the RAF-polled presentation snapshot, and native-RAF SAB poll-only
+heartbeat defaults, plus explicit frame-pacing comparison metrics and
+configurable worker full-summary cadence for trace experiments, and native-RAF
+SAB source-asset sideband cadence defaulting to `15 Hz`.
 
 **Sources:**
 
+- Latest source-asset poll-pressure repeats:
+  `/tmp/racing-pacing-repeat3-current-default/summary.json`,
+  `/tmp/racing-pacing-repeat3-source15-current/summary.json`, and
+  `/tmp/racing-pacing-repeat3-source0/summary.json` (`2026-06-18`, 3 paired
+  idle+drive trials per config, 4 second samples, no trace/profile). The
+  current default run still delivered about `16 Hz` of worker messages during
+  drive, mostly `aperture.simulation.sourceAssets`, and lost the drive
+  aggregate on interval p95, adjacent jitter p95, RMS, pacing score, and
+  within-1ms ratio. Explicit `--aperture-source-assets-message-rate=15` kept
+  the measured source-asset delivery rate near `16 Hz` and won the drive
+  aggregate on interval p95 (`d50 -0.13 ms`), deviation p95 (`d50 -0.12 ms`),
+  adjacent jitter p95 (`d50 -0.29 ms`), RMS (`d50 -0.13 ms`), pacing score
+  (`d50 -0.27 ms`), within-1ms ratio (`d50 +4.5 pp`), and jitter-over-2ms
+  ratio (`d50 -9.6 pp`), while still losing callback p95 (`d50 +0.54 ms`).
+  Disabling the dedicated source-asset sideband with
+  `--aperture-source-assets-message-rate=0` removed the source-asset worker
+  delivery stream and produced the strongest pacing sample: drive aggregate
+  interval p95 `d50 -0.47 ms`, deviation p95 `d50 -0.15 ms`, adjacent jitter
+  p95 `d50 -0.70 ms`, RMS `d50 -0.19 ms`, pacing score `d50 -0.54 ms`,
+  within-1ms ratio `d50 +8.4 pp`, and jitter-over-2ms ratio `d50 -8.3 pp`;
+  callback p95 still lost by `d50 +0.51 ms`. Direct Aperture-only medians
+  between source0 and the current default improved drive interval p95 by about
+  `0.60 ms`, adjacent jitter p95 by about `0.93 ms`, render p95 by about
+  `0.48 ms`, and removed roughly `56` source-asset worker deliveries in the
+  measured 4 second drive window. Treat source0 as proof that the notification
+  stream is costly, not as the default behavior: the changing assets are the
+  dynamic `racing.driftMarks.*` mesh assets, so the generalized fix is a
+  pollable/coalesced dynamic-asset data plane that preserves freshness without a
+  `postMessage` wakeup per asset update.
+- Latest channel-instrumented frame-pacing traces:
+  `/tmp/racing-pacing-channel-default-drive-repeat3/summary.json` and
+  `/tmp/racing-pacing-channel-heartbeat60-drive-repeat3/summary.json`
+  (`2026-06-18`, 3 paired drive trials per config, 3 second samples, no
+  trace/profile). The trace harness now reports `pacingInstabilityScoreMs`,
+  `adjacentJitterOverTwoMsRatio`, missed-vsyncs/second, and measured
+  `workerMsgHz` from the actual `MessageChannel.port1` receive path. This
+  corrects an earlier interpretation gap: cumulative `msg top` /
+  `sideband top` counters include startup and pre-sample traffic; use
+  `workerMsgHz` for the sampled RAF window. Default native-RAF SAB drive
+  delivered about `16 Hz` of worker messages, almost entirely
+  `aperture.simulation.sourceAssets`; forced `--aperture-shared-message-rate=60`
+  delivered about `52 Hz` of `aperture.simulation.snapshot` messages. Direct
+  default-vs-heartbeat medians do **not** justify restoring heartbeat: heartbeat
+  worsened interval p95 by `+0.16 ms`, deviation p95 by `+0.09 ms`, RMS by
+  `+0.03 ms`, within-1ms ratio by `-2.3 pp`, jitter-over-2ms ratio by
+  `+1.1 pp`, callback p95 by `+0.11 ms`, and render p95 by `+0.44 ms`.
+  Adjacent-jitter p95 improved by `0.07 ms`, while the composite pacing score
+  was effectively tied (`-0.003 ms`). The current conclusion is sharper:
+  steady-state render heartbeat messages are unnecessary for SAB/native-RAF
+  presentation; the remaining message stream to challenge is source-asset
+  delivery, which still posts at about `16 Hz` in the Racing drive window.
+- Latest default native-RAF SAB source-asset cadence trace:
+  `/tmp/racing-pacing-default-source15-drive-repeat3/summary.json`
+  (`2026-06-18`, 3 paired drive trials, 4 second samples, no trace/profile).
+  This run used the current default settings, with no explicit
+  `--aperture-source-assets-message-rate` override. The default now keeps
+  render heartbeat poll-only (`sharedSnapshotMessageRateHz: 0`) but lowers the
+  dedicated source-asset sideband to `15 Hz`. The cumulative sideband top reason
+  was `sourceAssetsChanged:59` in each 4 second drive trial, versus the previous
+  old-default repeat at `448` messages over 8 seconds; the newer
+  channel-instrumented traces above should be used for measured-window message
+  rates. Aperture drive won the
+  3-trial aggregate on interval p95 (`d50 -0.11 ms`, `2/3` wins), deviation p95
+  (`d50 -0.19 ms`, `3/3` wins), adjacent jitter p95 (`d50 -0.12 ms`, `3/3`
+  wins), RMS deviation (`d50 -0.04 ms`, `2/3` wins), and within-1ms ratio
+  (`d50 +0.8 pp`, `3/3` wins). Aperture still lost callback p95 in all three
+  trials (`d50 +0.83 ms`), so the active goal is not complete.
+- Latest repeated frame-pacing transport matrix:
+  `/tmp/racing-pacing-repeat3-default/summary.json` and
+  `/tmp/racing-pacing-repeat3-heartbeat60/summary.json` (`2026-06-18`,
+  3 paired trials per config, 4 second samples, no trace/profile). The trace
+  harness now accepts `--repeat=N`, writes per-trial snapshots/profiles without
+  overwriting them, records `raf.pacing.rootMeanSquareDeviationMs`,
+  `standardDeviationMs`, adjacent-frame jitter counts, and emits per-trial plus
+  aggregate Aperture-vs-three.js frame-pacing comparisons. Default native-RAF
+  SAB poll mode remained competitive: in the 3-trial aggregate, Aperture drive
+  beat three.js on interval p95 in `2/3` trials, RMS deviation in `3/3`, and
+  within-1 ms ratio in `2/3`, but lost callback p95 in `3/3`. Forcing the
+  shared heartbeat back on at `60 Hz` improved the drive aggregate in this
+  sample: Aperture beat three.js on interval p95, deviation p95, adjacent-jitter
+  p95, RMS deviation, and within-1 ms ratio while still losing callback p95.
+  Direct transport-to-transport medians show heartbeat was not a pure message
+  win: it improved drive adjacent-jitter p95 by about `0.21 ms`, RMS by about
+  `0.02 ms`, callback p95 by about `0.07 ms`, and render p95 by about
+  `0.28 ms`, but worsened drive interval p99 by about `0.11 ms`, deviation p95
+  by about `0.04 ms`, and within-1 ms ratio by about `3.4 pp`.
+  The important mechanism is delivery shape: default poll mode saw roughly
+  `221` median `sourceAssetsChanged` sideband messages during drive, while
+  heartbeat mode carried roughly the same `215-223` source-asset changes on
+  scheduled snapshot messages and left only `~9` median dedicated sideband
+  messages. This does **not** justify restoring render heartbeat as the default;
+  it says the next generalized transport fix should make dynamic source assets
+  pollable/coalesced instead of emitting irregular sideband bursts.
+- Latest poll-model default and A/B traces:
+  `/tmp/racing-pacing-poll-default-final/summary.json`,
+  `/tmp/racing-pacing-audio-sab-default/summary.json`,
+  `/tmp/racing-pacing-audio-sideband-60/summary.json`, and
+  `/tmp/racing-pacing-audio-sab-heartbeat-off/summary.json` (`2026-06-18`,
+  6 second paired samples, no trace/profile). The new default feeds generated
+  audio from the same RAF-sampled render snapshot, encodes audio
+  emitters/listener into the SAB packet area, and disables shared snapshot
+  heartbeat messages when native RAF polling plus SAB are active. In the final
+  default run, Aperture idle RAF was `p50 16.67 ms / p95 17.92 ms /
+p99 18.41 ms / max 18.58 ms`, versus three.js `p50 16.70 ms /
+p95 18.30 ms / p99 18.60 ms / max 18.70 ms`; Aperture drive was
+  `p50 16.66 ms / p95 18.07 ms / p99 18.25 ms / max 18.61 ms`, versus
+  three.js `p50 16.70 ms / p95 18.30 ms / p99 18.60 ms / max 18.70 ms`.
+  Frame-pacing metrics also favored Aperture in that sample: idle
+  `dev95 1.59 ms / within1 79.0%` versus three.js
+  `1.80 ms / 72.1%`, and drive `dev95 1.47 ms / within1 83.5%`
+  versus `1.80 ms / 70.1%`. The message mix confirms the poll model:
+  default idle top reason is now `fullSummary:20` with no sideband reasons;
+  default drive still reports `sourceAssetsChanged:440` sideband messages.
+  Re-enabling audio sideband at `60 Hz` produced `sharedAudio:275` idle /
+  `306` drive sideband messages and slightly worse drive render p95
+  (`3.65 ms` vs final default `3.38 ms`), but one idle pacing sample was
+  better with sideband (`within1 83.7%` vs final default `79.0%`), so the
+  claim is not "all messages are always bad"; the actionable claim is that
+  render heartbeat and audio sideband are unnecessary for native-RAF SAB
+  presentation and source assets are now the next sideband to move.
+- Latest source-asset notification cadence traces:
+  `/tmp/racing-pacing-default-repeat/summary.json`,
+  `/tmp/racing-pacing-source-assets-30/summary.json`,
+  `/tmp/racing-pacing-source-assets-15/summary.json`,
+  `/tmp/racing-pacing-source-assets-0-repeat/summary.json`,
+  `/tmp/racing-pacing-source-assets-0-summary1000-valid/summary.json`,
+  `/tmp/racing-pacing-source-assets-0-summary2000/summary.json`, and
+  `/tmp/racing-pacing-poll-source-assets-summary1000-paired/summary.json`
+  (`2026-06-18`, 8 second samples, no trace/profile). The trace harness now
+  writes `framePacingComparisons` and prints per-scenario Aperture-vs-three.js
+  deltas for RAF p95/p99, deviation p95, adjacent jitter p95, RMS deviation,
+  within-1ms ratio, and callback p95. Default repeat drive was noisy and lost
+  pacing to three.js (`dev95 1.92 ms` vs `1.80 ms`, `within1 61.7%` vs
+  `70.3%`) while still sending `448` dedicated `sourceAssetsChanged` sideband
+  messages. Lowering the source-asset sideband to `15 Hz` improved Aperture
+  drive pacing in an Aperture-only run (`dev95 1.80 ms`, `within1 70.7%`,
+  `122` sideband messages). Disabling the dedicated sideband and letting dirty
+  dynamic meshes ride on full summaries improved the same run class further
+  (`dev95 1.78 ms`, `within1 71.9%`, no sideband messages). With dedicated
+  source-asset sideband off and full summaries at `1000 ms`, the paired run
+  beat three.js on most pacing metrics in both idle and drive: drive
+  `dev95 1.78 ms` vs `1.80 ms`, `within1 77.8%` vs `69.8%`, and adjacent
+  jitter p95 `2.98 ms` vs `3.00 ms`; it still lost callback p95
+  (`2.96 ms` vs `2.40 ms`) and drive RMS (`1.14 ms` vs `0.93 ms`). This is
+  strong evidence that per-frame source-asset wakeups hurt Racing pacing, but
+  not yet proof that arbitrary source assets can become poll-only without a
+  shared dynamic-asset data plane.
 - Latest SAB message-cadence and frame-pacing matrix:
   `/tmp/racing-pacing-default/summary.json`,
   `/tmp/racing-pacing-heartbeat-off/summary.json`,
@@ -146,6 +298,14 @@ p95 17.50 ms / p99 17.70 ms / max 33.40 ms`. Aperture reported `25` idle
   GPU work is near zero. The trustworthy Aperture GPU timing path remains the
   per-boundary/pass timestamp report until a browser-validated full-frame method
   lands.
+- Rejected graph-shadow timestamp attempt:
+  `/tmp/racing-trace-aperture-gpu-post-shadow-compare/` (`2026-06-18`) wrote
+  partial snapshots where the graph-folded shadow pass appeared as
+  `shadow:shadow-pass:1:light:1`, but both that pass and `main` reported only
+  the `0.001 us` placeholder floor. The run also failed to complete summary
+  emission in normal time and was interrupted. The graph-shadow timestamp
+  wiring was removed; current Aperture GPU timing still does not provide a
+  trustworthy full-frame GPU comparison for Racing's graph-folded shadow path.
 - Latest three.js GPU-timer smokes:
   `/tmp/racing-three-gpu-timer-smoke-reset/summary.json` and
   `/tmp/racing-three-gpu-timer-drive-smoke/summary.json` (`2026-06-18`).
@@ -182,6 +342,17 @@ p95 17.50 ms / p99 17.70 ms / max 33.40 ms`. Aperture reported `25` idle
   samples, but still lost idle/drive p95 in the second repeat. This is a real
   generalized render-prep improvement from avoiding repeated cached pipeline
   lookups and Promise hops, not completion of the active benchmark goal.
+- Empty overlay frame-prep fast path check:
+  `/tmp/racing-trace-empty-overlay-skip/summary.json` (`2026-06-18`, command:
+  `pnpm run trace:racing -- --headed --no-trace --no-cpu-profile ...`). The
+  engine now avoids calling sprite, MSDF text, and UI frame-resource helpers
+  when the snapshot contains no matching overlay work; particle prep remains
+  unconditional because the empty particle path owns stale emitter cleanup.
+  This is a safe generalized CPU cleanup, but it was not a meaningful Racing
+  benchmark mover: Aperture idle RAF p95 was `18.27 ms` vs three.js
+  `18.20 ms`, drive p95 was `18.30 ms` vs `18.10 ms`, and internal Aperture
+  `prepare` stayed within the previous pipeline-lookup run noise
+  (`~1.69 ms` idle, `~2.40 ms` drive).
 - Latest clean headed render-loop harness run:
   `/tmp/racing-trace-headed-gpu-timer/summary.json` (`2026-06-18`, command:
   `node scripts/racing-render-loop-trace.mjs ... --headed`). This is the
@@ -383,22 +554,36 @@ obvious engine quality gaps.
 The fixes pursued here are generalized engine fixes, not Racing-only benchmark
 hacks.
 
-The latest headed render-loop harness keeps the diagnosis focused on CPU
-render-loop work, not draw-count parity. Both apps sustain normal display-paced
-RAF cadence in short headed samples. In the latest post-cache run Aperture's
-RAF p50/p95/p99/max was at least tied with three.js in both idle and drive, but
-previous repeats were noisy enough that this is not yet proof of a consistent
-benchmark win. Remaining Aperture CPU work is still visible in the app phase
-report.
+The latest render-loop harness keeps the diagnosis focused on CPU render-loop
+work, not draw-count parity. Both apps sustain normal display-paced RAF cadence
+in short headed samples. The latest repeatable trace output shows Aperture is
+now competitive with or ahead of three.js on several frame-pacing distribution
+metrics while submitting far fewer draw calls, but it still loses app callback
+p95, especially while driving. Native-RAF SAB polling remains the right default
+for render/audio because those consumers can read the latest shared frame
+directly, but the newer repeat matrix also disproves the overly broad claim that
+all worker messages are harmful: scheduled heartbeat messages sometimes improve
+drive pacing by coalescing source-asset delivery. The general fix is to make
+dynamic source assets pollable/coalesced too, not to reintroduce heartbeat as a
+benchmark-specific workaround. As an immediate general improvement, native-RAF
+SAB apps now default source-asset sideband messages to `15 Hz` instead of `60 Hz`.
 
 Frame pacing is now tracked explicitly in the trace summary, not inferred from
 RAF p95 alone. The current metric set includes absolute deviation from the
-median RAF interval, the ratio of intervals within 1 ms of that median, and an
-estimated missed-vsync count. The first SAB message-cadence matrix shows that
-message count and pacing are correlated but not identical: fewer messages can
-reduce Aperture render CPU p95 while still worsening RAF interval regularity.
-That argues against a quick default-rate tweak and for moving the remaining
-audio/source sideband payloads into pollable shared transport where practical.
+median RAF interval, adjacent-frame jitter, RMS deviation, ratios within
+0.5/1 ms of the median, long-frame and missed-vsync estimates,
+`pacingInstabilityScoreMs`, measured `workerMsgHz`, and
+`framePacingComparisons`/aggregate console output for paired Aperture vs
+three.js runs. The first SAB message-cadence matrix showed that message count
+and pacing are correlated but not identical: fewer messages can reduce
+Aperture render CPU p95 while still worsening RAF interval regularity. The
+follow-up implementation moved audio into the pollable shared snapshot and made
+native-RAF SAB heartbeat poll-only by default. The latest channel-instrumented
+repeat keeps that decision: restoring `60 Hz` render heartbeat raises measured
+worker message delivery from about `16 Hz` to about `52 Hz` and worsens several
+direct Aperture medians, even though individual jitter metrics remain noisy.
+A truly general fix still needs pollable/shared dynamic asset payloads, not just
+a lower notification cadence.
 
 The draw-shape comparison is clear and no longer supports the idea that both
 apps are "basically the same draw calls." Three.js `renderer.info.render.calls`
@@ -475,15 +660,24 @@ and do not use headless three.js RAF cadence as a benchmark verdict.
   shadow `queue.submit` without changing Racing scene content.
 - Particle emitter packets are now supported by the packed shared-snapshot ABI,
   so Racing drive/smoke frames no longer force the transferable path.
-- Audio packets now ride a compact placeholder snapshot sideband while render
-  packets stay in SAB. The sideband copies only the audio-referenced matrices
-  and rewrites their offsets, preserving the main-thread audio contract without
-  transferring the full render snapshot.
+- Audio packets now ride the fixed-stride SAB packet stream with render
+  packets. Generated browser audio consumes the same RAF-polled presentation
+  snapshot as rendering, so native-RAF SAB apps no longer need a per-frame
+  audio sideband message; the compact placeholder sideband remains only as a
+  compatibility/fallback path for direct worker audio subscribers.
 - Shared snapshot, audio sideband, and source-asset sideband message rates can
   now be controlled through generated-worker start options and the racing trace
   harness (`--aperture-shared-message-rate`,
   `--aperture-audio-message-rate`, `--aperture-source-assets-message-rate`) so
   poll-model claims can be tested without source edits.
+- The racing trace harness supports repeated paired trials with `--repeat=N`
+  and reports per-trial plus aggregate frame-pacing comparisons. Treat this as
+  the baseline for future pacing changes; single samples are too noisy at the
+  current sub-millisecond deltas.
+- Native-RAF SAB presentation defaults to polling the latest shared frame
+  instead of sending periodic shared-heartbeat messages. Explicit
+  `sharedSnapshotMessageRateHz` start options still override this, and non-RAF
+  fallback mode keeps the event-driven path.
 - Shared snapshot decode now requires the readable SAB frame to match the worker
   message frame. Stale messages are skipped instead of decoding newer packet
   words with an older registry, which eliminated the intermittent handle-id and
@@ -1080,23 +1274,24 @@ full transferable snapshot solely because they contain particle emitters.
 ### 15. Audio Sideband For SAB Render Frames
 
 Audio packets are consumed by the main-thread audio engine, not by the WebGPU
-renderer. The shared render path now sends a compact placeholder snapshot that
-contains audio emitters/listener plus only the matrices referenced by those
-audio packets, with `worldTransformOffset` rewritten into that compact buffer.
+renderer. They now encode into the shared fixed-stride packet stream alongside
+render packets, and generated browser audio is driven manually from
+`createWebGpuApp`'s presentation-sampled snapshot callback. That means audio
+sees the same SAB/transferable snapshot the renderer selected on RAF, without a
+separate per-frame `audioSnapshot` message.
 
-This preserves the existing audio subscriber contract while keeping the bulky
-render packet families in SAB. It applies to any generated browser app with
-audio enabled.
+The old compact placeholder sideband still exists for compatibility with direct
+worker audio subscribers and for explicit A/B experiments, but generated
+browser apps with native RAF + SAB disable it by default. The latest default
+trace has no `sharedAudio` sideband messages; re-enabling the sideband with
+`--aperture-audio-message-rate=60` produced `275` idle / `306` drive
+`sharedAudio` sideband messages on the same codebase.
 
-The latest cadence matrix challenges whether this sideband should exist as a
-message stream at all. Audio sideband rate controls prove the worker can keep
-publishing render frames to SAB while the main thread receives fewer or no audio
-messages, but a no-audio-message run is diagnostic only because the current SAB
-packet codec does not carry audio packets. A correct poll-model fix should add
-audio emitter/listener packets to the shared fixed-stride packet stream and let
-the main-thread audio engine consume the same RAF-polled snapshot as the
-renderer, instead of relying on `SimulationWorker.onSnapshot` sideband
-messages.
+This is a generalized fix, not a Racing shortcut: any audio-enabled generated
+browser app can use the poll model as long as its snapshot fits the shared
+packet layout. The current follow-up is source assets, not audio: Racing drive
+still posts hundreds of `sourceAssetsChanged` sideband messages for dynamic
+ground-ribbon/drift-mark updates.
 
 ### 16. Shared Frame/Registry Matching
 
@@ -1680,10 +1875,14 @@ Updated status:
 - High-DPR backing-store mismatch: still open.
 - Memory pressure: still open; latest isolated run shows Aperture at
   `43.50-67.05 MB` used heap versus three.js at `18.05-18.97 MB`.
-- Frame pacing/render cadence: still open. Snapshot publication is capped and
-  RAF pacing is now measured directly, but the message-cadence matrix is mixed:
-  fewer worker messages reduce some render CPU tails without consistently
-  improving RAF interval regularity.
+- Frame pacing/render cadence: improved but still open. Snapshot publication is
+  capped, RAF pacing is measured directly, native-RAF SAB heartbeat is now
+  poll-only by default, and generated audio no longer needs a sideband message.
+  Native-RAF SAB source-asset sideband cadence is now `15 Hz` by default, and
+  the latest repeated default drive trace beats three.js on most frame-pacing
+  metrics. The trace harness now also reports a composite pacing score and
+  measured `MessageChannel` delivery rate for the sampled RAF window. App
+  callback p95 remains worse while driving.
 - Particle burst write count/slot fragmentation: still open, but no longer the
   top byte-pressure target.
 - Active-drive main-mesh/change-set broadness: still open but much narrower.
@@ -1696,40 +1895,40 @@ Updated status:
 
 ## Recommended Fix Order
 
-1. Add audio emitter/listener packets to the shared snapshot codec and drive
-   generated audio from the same RAF-polled snapshot stream as rendering. This
-   is the non-hacky poll-model fix suggested by the message-cadence matrix; do
-   not merely disable audio sideband messages unless the app has explicitly
-   disabled audio.
-2. Move dynamic source-asset payloads toward shared/ring-buffered binary
-   transport. The source-asset sideband becomes dominant when audio sideband is
-   disabled, and Racing drift marks are the current proof case.
-3. Diagnose drive-frame render cadence and particle-heavy work together. The
-   worker is no longer flooding snapshots, so remaining drive loss should be
-   attributed to actual render/simulation pressure, scheduler policy, or heap
-   churn.
-4. Audit heap retention directly. The latest drive run retained `67.05 MB`,
+1. Move dynamic source-asset payloads toward shared/ring-buffered binary
+   transport or another pollable/coalesced path. Racing drift marks are the
+   current proof case: the current channel-instrumented default still delivers
+   about `16 Hz` of source-asset messages during the sampled drive window,
+   while forced render heartbeat jumps to about `52 Hz` of snapshot messages
+   without a clear pacing win. The fix should preserve correctness for
+   arbitrary dynamic assets without relying on worker messages as a presentation
+   pacer.
+2. Diagnose drive-frame render cadence and particle-heavy work together. The
+   worker is no longer flooding snapshots or source-asset sideband messages, so
+   remaining drive loss should be attributed to app callback/render preparation
+   tail, actual simulation pressure, scheduler policy, or heap churn.
+3. Audit heap retention directly. The latest drive run retained `67.05 MB`,
    far above the three.js reference and high enough to explain tail spikes or
    GC-sensitive variance.
-5. Expose dynamic-buffer upload diagnostics in frame reports so future probes
+4. Expose dynamic-buffer upload diagnostics in frame reports so future probes
    show full writes, range writes, skipped writes, and fallback reasons.
-6. Reduce broader render `prepare`/resource planning cost. Submit cadence
+5. Reduce broader render `prepare`/resource planning cost. Submit cadence
    remains below display cadence even after the write-byte reductions.
-7. Define the high-refresh simulation/render policy: fixed-step interpolation,
+6. Define the high-refresh simulation/render policy: fixed-step interpolation,
    render-on-display using latest snapshots, or a documented lower render
    cadence. Then benchmark against three.js using the same concept of "frame."
-8. Add a local/dev COOP/COEP serving path so SAB transport can be enabled
+7. Add a local/dev COOP/COEP serving path so SAB transport can be enabled
    without a one-off static server.
-9. Fix DPR/backing-store sizing for `device-pixel-content-box` and DPR `2`.
-10. Reduce remaining bounds/change-set churn, especially active-drive bounds
-    churn.
-11. Reduce particle burst slot fragmentation/tiny initial-slot write count if
+8. Fix DPR/backing-store sizing for `device-pixel-content-box` and DPR `2`.
+9. Reduce remaining bounds/change-set churn, especially active-drive bounds
+   churn.
+10. Reduce particle burst slot fragmentation/tiny initial-slot write count if
     it shows up in count-dominant probes after the larger cadence and transform
     work.
-12. Keep render batching counters as regression gates: main resolved draws
+11. Keep render batching counters as regression gates: main resolved draws
     should remain around `14-20`, shadow `364` caster records should remain
-    grouped to about `30` shadow draws, and drive draw calls should stay near the
-    current `32` rather than regressing to the old `300+` range.
+    grouped to about `30` shadow draws, and drive draw calls should stay near
+    the current `32` rather than regressing to the old `300+` range.
 
 ## Follow-Up Links
 

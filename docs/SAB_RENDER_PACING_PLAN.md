@@ -48,10 +48,14 @@ The first pacing slice is implemented and validated:
   the worker has still posted only the frame-1 sideband message.
 - The trace harness now records first-class frame-pacing metrics and paired
   Aperture-vs-three.js comparisons: RAF deviation p95, adjacent jitter p95, RMS
-  deviation, within-1ms ratio, estimated missed vsyncs, and callback p95.
+  deviation, within-1ms ratio, estimated missed vsyncs, callback p95,
+  `pacingInstabilityScoreMs`, and measured `MessageChannel` delivery rate
+  (`workerMsgHz`) for the sampled RAF window.
 - `workerFullSummaryIntervalMilliseconds` is available as a worker start option
   for trace experiments. It is reserved from app-system `startOptions`, so it
   can tune diagnostic/summary cadence without leaking into gameplay settings.
+- Native-RAF SAB startup now defaults source-asset sideband cadence to `15 Hz`.
+  Explicit `sourceAssetsMessageRateHz` worker start options still override it.
 
 Latest paired trace evidence after this slice:
 
@@ -133,6 +137,53 @@ Latest paired trace evidence after this slice:
     The next general fix is a shared/ring-buffered dynamic asset data plane,
     especially for dynamic mesh update ranges, not a blanket suppression of
     asset messages.
+- Current default source-asset cadence trace:
+  `/tmp/racing-pacing-default-source15-drive-repeat3/summary.json`
+  - With no explicit source-asset override, the default drive run now posts
+    cumulative `sourceAssetsChanged:59` sideband messages per 4 second trial.
+  - Aperture won the 3-trial drive aggregate on interval p95, deviation p95,
+    adjacent jitter p95, RMS deviation, and within-1ms ratio. It still lost
+    callback p95 in all trials, so this is progress, not completion.
+- Channel-instrumented message/pacing traces:
+  `/tmp/racing-pacing-channel-default-drive-repeat3/summary.json` and
+  `/tmp/racing-pacing-channel-heartbeat60-drive-repeat3/summary.json`
+  - The older `msg top` / `sideband top` counters are cumulative browser status
+    counters and can include startup or pre-sample traffic. The new
+    `workerMsgHz` field instruments the actual `MessageChannel.port1` receive
+    path and reports the message rate for the measured RAF window.
+  - Default native-RAF SAB drive delivered about `16 Hz` of worker messages,
+    mostly `aperture.simulation.sourceAssets`.
+  - Forcing `--aperture-shared-message-rate=60` delivered about `52 Hz` of
+    `aperture.simulation.snapshot` messages.
+  - Direct default-vs-heartbeat medians do not justify restoring render
+    heartbeat: heartbeat worsened interval p95 (`+0.16 ms`), deviation p95
+    (`+0.09 ms`), RMS (`+0.03 ms`), within-1ms ratio (`-2.3 pp`),
+    jitter-over-2ms ratio (`+1.1 pp`), callback p95 (`+0.11 ms`), and render
+    p95 (`+0.44 ms`). Adjacent-jitter p95 improved by `0.07 ms`, and the
+    composite pacing score was effectively tied. Keep the render heartbeat
+    poll-only; keep challenging the remaining source-asset message stream.
+- Fresh source-asset poll-pressure repeats:
+  `/tmp/racing-pacing-repeat3-current-default/summary.json`,
+  `/tmp/racing-pacing-repeat3-source15-current/summary.json`, and
+  `/tmp/racing-pacing-repeat3-source0/summary.json`
+  - Current default drive still delivered about `16 Hz` of worker messages,
+    mostly `aperture.simulation.sourceAssets`, and lost the aggregate on
+    interval p95, adjacent jitter p95, RMS, score, and within-1ms ratio.
+  - Explicit `--aperture-source-assets-message-rate=15` won the 3-trial drive
+    aggregate on interval p95, deviation p95, adjacent jitter p95, RMS, score,
+    within-1ms ratio, and jitter-over-2ms ratio, while still losing callback
+    p95.
+  - `--aperture-source-assets-message-rate=0` removed the dedicated
+    source-asset delivery stream and produced the strongest pacing sample:
+    direct Aperture-only medians versus current default improved drive interval
+    p95 by about `0.60 ms`, adjacent jitter p95 by about `0.93 ms`, render p95
+    by about `0.48 ms`, and removed roughly `56` source-asset worker deliveries
+    in the measured 4 second drive window.
+  - Do not turn source0 into the default. The changing assets are
+    `racing.driftMarks.*` dynamic mesh assets, so source0 proves the
+    notification stream is costly but also delays high-frequency visual
+    freshness. The durable fix is a pollable/coalesced dynamic-asset data plane,
+    especially for dynamic mesh update ranges.
 
 Racing still authors dynamic drift-mark mesh assets while driving. Therefore,
 simply lowering the generic source-asset sideband can improve this benchmark,
