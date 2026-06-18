@@ -46,7 +46,7 @@ export async function createApertureSystemManifest(options: {
   const diagnostics: ApertureVitePluginDiagnostic[] = [];
   const globs =
     options.systemGlobs ??
-    parseSystemGlobs(configSource).map((glob) => normalizePath(glob));
+    parseApertureSystemGlobs(configSource).map((glob) => normalizePath(glob));
 
   if (configSource === null && options.systemGlobs === undefined) {
     diagnostics.push({
@@ -119,7 +119,7 @@ export async function createApertureSystemManifest(options: {
   };
 }
 
-function parseSystemGlobs(source: string | null): string[] {
+export function parseApertureSystemGlobs(source: string | null): string[] {
   if (source === null) {
     return [];
   }
@@ -142,6 +142,20 @@ function parseSystemGlobs(source: string | null): string[] {
   }
 
   return globs;
+}
+
+export function apertureSystemFileMatchesGlobs(
+  root: string,
+  file: string,
+  globs: readonly string[],
+): boolean {
+  const relative = normalizePath(path.relative(root, file));
+
+  return globs.some((glob) => globToRegExp(normalizePath(glob)).test(relative));
+}
+
+export function apertureSystemGlobBase(root: string, glob: string): string {
+  return globBase(root, normalizePath(glob));
 }
 
 function parseSystemDescriptorPriority(

@@ -13,6 +13,13 @@ const VIRTUAL_WORKER_SYSTEMS = "virtual:aperture/worker-systems";
 const VIRTUAL_WORKER_ENTRY = "virtual:aperture/worker-entry";
 const VIRTUAL_BROWSER_ENTRY = "virtual:aperture/browser-entry";
 const RESOLVED_PREFIX = "\0";
+export const APERTURE_VIRTUAL_MODULE_IDS = [
+  VIRTUAL_CONFIG,
+  VIRTUAL_SYSTEM_MANIFEST,
+  VIRTUAL_WORKER_SYSTEMS,
+  VIRTUAL_WORKER_ENTRY,
+  VIRTUAL_BROWSER_ENTRY,
+] as const;
 
 export function resolveApertureVirtualId(id: string): string | null {
   if (isVirtualId(virtualBaseId(id))) {
@@ -98,7 +105,11 @@ export async function loadApertureVirtualModule(
   return null;
 }
 
-async function writeApertureGeneratedWorkerEntry(options: {
+export function apertureGeneratedWorkerEntryFile(root: string): string {
+  return path.join(root, ".aperture", "generated", "aperture-worker-entry.js");
+}
+
+export async function writeApertureGeneratedWorkerEntry(options: {
   readonly root: string;
   readonly configFile: string;
 }): Promise<string> {
@@ -115,8 +126,8 @@ async function writeApertureGeneratedWorkerEntry(options: {
   const systems = manifest.systems
     .map((_system, index) => `{ default: SystemModule${index}.default }`)
     .join(",\n  ");
-  const directory = path.join(options.root, ".aperture", "generated");
-  const file = path.join(directory, "aperture-worker-entry.js");
+  const file = apertureGeneratedWorkerEntryFile(options.root);
+  const directory = path.dirname(file);
   const contents = [
     `import config from ${JSON.stringify(toModuleUrl(options.configFile))};`,
     systemImports,

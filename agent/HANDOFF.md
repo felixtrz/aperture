@@ -1,3 +1,50 @@
+# Handoff - FPS Audit Batch 2 Vite Worker HMR Fix
+
+**Updated:** 2026-06-17 17:14 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 2 item 2 from `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Added system graph HMR handling in the Vite plugin: config/system add,
+  change, and unlink events now rewrite `.aperture/generated/aperture-worker-entry.js`
+  and invalidate Aperture virtual modules.
+- Exposed internal system-glob parse/match helpers and the generated worker
+  entry writer/path for the HMR path.
+- Added focused Vite plugin tests proving worker entry contents update after
+  adding and removing `*.system.ts` files, and unrelated file changes are
+  ignored.
+- Marked Batch 2 item 2 implemented in the audit plan; Batch 2 items 0, 1, and
+  3 remain pending.
+
+## Validation
+
+- `pnpm exec vitest run test/vite-plugin/system-graph-hmr.test.ts`
+- `pnpm --filter @aperture-engine/vite-plugin run typecheck`
+- `pnpm --filter @aperture-engine/vite-plugin run build`
+- `pnpm exec prettier --check packages/vite-plugin/src/index.ts packages/vite-plugin/src/system-discovery.ts packages/vite-plugin/src/system-graph-hmr.ts packages/vite-plugin/src/virtual-modules.ts test/vite-plugin/system-graph-hmr.test.ts`
+- `git diff --check`
+- `pnpm run typecheck`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- No managed browser sessions were started for this slice.
+
+## Recommended Next Task
+
+Continue Batch 2 with sprite-only depth mode or bloom mip texel sizing. Keep
+visual baseline protection explicit when opening bloom or lighting files.
+
+---
+
 # Handoff - FPS Audit Batch 2 Render Interpolation Fixes
 
 **Updated:** 2026-06-17 17:09 PDT
