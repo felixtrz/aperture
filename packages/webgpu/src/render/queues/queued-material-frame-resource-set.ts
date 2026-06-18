@@ -31,6 +31,7 @@ export interface QueuedMaterialFrameResourceScratch<
   readonly pipelineLookups: Map<string, unknown>;
   readonly pipelineResults: Map<string, TPipelinePlanResult>;
   readonly pipelineResultList: TPipelinePlanResult[];
+  readonly textureSamplerDependencies: Map<string, unknown>;
   readonly pipelineKeysByRenderId: Map<number, string>;
   readonly meshResources: Map<string, TMeshResource>;
   readonly meshResourceList: TMeshResource[];
@@ -85,6 +86,12 @@ export interface QueuedMaterialFrameResourceSetCallbacks<
   prepareTextureSamplerDependencies(input: {
     readonly item: TItem;
   }): TTextureSamplerDependencies;
+  getTextureSamplerDependenciesLookupKey?(item: TItem): string | null;
+  onTextureSamplerDependenciesReuse?(input: {
+    readonly item: TItem;
+    readonly dependencies: TTextureSamplerDependencies;
+    readonly lookupKey: string;
+  }): void;
   createFrameResourceOptions(input: {
     readonly item: TItem;
     readonly textureSamplerDependencies: TTextureSamplerDependencies;
@@ -175,6 +182,7 @@ export function createQueuedMaterialFrameResourceScratch<
     pipelineLookups: new Map(),
     pipelineResults: new Map(),
     pipelineResultList: [],
+    textureSamplerDependencies: new Map(),
     pipelineKeysByRenderId: new Map(),
     meshResources: new Map(),
     meshResourceList: [],
@@ -294,8 +302,34 @@ export async function prepareQueuedMaterialFrameResourceSet<
       getBindGroupLayout:
         pipelineHandle.getBindGroupLayout.bind(pipelineHandle),
     });
-    const textureSamplerDependencies =
-      options.callbacks.prepareTextureSamplerDependencies({ item });
+    const textureSamplerDependenciesLookupKey =
+      options.callbacks.getTextureSamplerDependenciesLookupKey?.(item) ?? null;
+    let textureSamplerDependencies =
+      textureSamplerDependenciesLookupKey === null
+        ? undefined
+        : (scratch.textureSamplerDependencies.get(
+            textureSamplerDependenciesLookupKey,
+          ) as TTextureSamplerDependencies | undefined);
+
+    if (textureSamplerDependencies === undefined) {
+      textureSamplerDependencies =
+        options.callbacks.prepareTextureSamplerDependencies({ item });
+
+      if (textureSamplerDependenciesLookupKey !== null) {
+        scratch.textureSamplerDependencies.set(
+          textureSamplerDependenciesLookupKey,
+          textureSamplerDependencies,
+        );
+      }
+    } else {
+      if (textureSamplerDependenciesLookupKey !== null) {
+        options.callbacks.onTextureSamplerDependenciesReuse?.({
+          item,
+          dependencies: textureSamplerDependencies,
+          lookupKey: textureSamplerDependenciesLookupKey,
+        });
+      }
+    }
 
     if (!textureSamplerDependencies.valid) {
       diagnostics.push(...textureSamplerDependencies.diagnostics);
@@ -395,6 +429,7 @@ export function resetQueuedMaterialFrameResourceScratch<
   scratch.pipelineResults.clear();
   scratch.pipelineLookups.clear();
   scratch.pipelineResultList.length = 0;
+  scratch.textureSamplerDependencies.clear();
   scratch.pipelineKeysByRenderId.clear();
   scratch.meshResources.clear();
   scratch.meshResourceList.length = 0;

@@ -165,6 +165,12 @@ export async function prepareQueuedBuiltInFrameResources(
             reuse: options.reuse,
           }),
         ),
+      getTextureSamplerDependenciesLookupKey: (item) =>
+        [item.adapter.kind, item.materialKey].join("|"),
+      onTextureSamplerDependenciesReuse: ({ dependencies }) => {
+        options.reuse.textureResourcesReused += dependencies.textureKeys.length;
+        options.reuse.samplerResourcesReused += dependencies.samplerKeys.length;
+      },
       createFrameResourceOptions: ({
         item,
         textureSamplerDependencies,

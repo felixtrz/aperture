@@ -138,6 +138,14 @@ export interface PrepareQueuedBuiltInFrameResourceSetCallbacks<
   prepareTextureSamplerDependencies(input: {
     readonly item: QueuedBuiltInAppResourceItem;
   }): PreparedMaterialTextureSamplerDependencies;
+  getTextureSamplerDependenciesLookupKey?(
+    item: QueuedBuiltInAppResourceItem,
+  ): string | null;
+  onTextureSamplerDependenciesReuse?(input: {
+    readonly item: QueuedBuiltInAppResourceItem;
+    readonly dependencies: PreparedMaterialTextureSamplerDependencies;
+    readonly lookupKey: string;
+  }): void;
   createFrameResourceOptions(input: {
     readonly item: QueuedBuiltInAppResourceItem;
     readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
@@ -269,6 +277,18 @@ export async function prepareQueuedBuiltInFrameResourceSet<
       getPipelineLayouts: options.callbacks.getPipelineLayouts,
       prepareTextureSamplerDependencies:
         options.callbacks.prepareTextureSamplerDependencies,
+      ...(options.callbacks.getTextureSamplerDependenciesLookupKey === undefined
+        ? {}
+        : {
+            getTextureSamplerDependenciesLookupKey:
+              options.callbacks.getTextureSamplerDependenciesLookupKey,
+          }),
+      ...(options.callbacks.onTextureSamplerDependenciesReuse === undefined
+        ? {}
+        : {
+            onTextureSamplerDependenciesReuse:
+              options.callbacks.onTextureSamplerDependenciesReuse,
+          }),
       createFrameResourceOptions: (input) =>
         options.callbacks.createFrameResourceOptions({
           ...input,

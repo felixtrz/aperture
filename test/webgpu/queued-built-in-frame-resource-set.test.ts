@@ -348,6 +348,80 @@ describe("queued built-in frame-resource set preparation", () => {
     expect(serialized).not.toContain("White B");
     expect(serialized).not.toContain("Matcap Preview");
   });
+
+  it("reuses texture sampler dependencies for repeated material keys", async () => {
+    const pipeline = fakePipeline();
+    const scratch = createQueuedBuiltInFrameResourceScratch();
+    const items = [
+      queuedItem({
+        meshId: "cube-a",
+        materialId: "shared",
+        frameResources: {
+          valid: true,
+          resources: fakeFrameResources("first"),
+          diagnostics: [],
+        },
+      }),
+      queuedItem({
+        meshId: "cube-b",
+        materialId: "shared",
+        frameResources: {
+          valid: true,
+          resources: fakeFrameResources("second"),
+          diagnostics: [],
+        },
+      }),
+    ];
+    let dependencyPrepareCalls = 0;
+    let dependencyReuseCalls = 0;
+    let reusedTextures = 0;
+    let frameResourceOptionsCalls = 0;
+
+    const result = await prepareQueuedBuiltInFrameResourceSet({
+      resourceSet: { items },
+      scratch,
+      viewUniforms: fakeFrameResources("view").viewUniform as never,
+      worldTransforms: fakeFrameResources("world").worldTransforms as never,
+      callbacks: {
+        getPipeline: () => pipeline,
+        getPipelineView: (value) => value,
+        createPipelinePlanResult: ({ item: routedItem, pipeline }) => ({
+          key: routedItem.draw.batchKey.pipelineKey,
+          pipeline: pipeline.resource?.pipeline,
+        }),
+        getPipelineLayouts: ({ getBindGroupLayout }) => ({
+          sharedLayouts: [getBindGroupLayout(0)],
+        }),
+        prepareTextureSamplerDependencies: () => {
+          dependencyPrepareCalls += 1;
+          return preparedDependencies({
+            textureKeys: ["texture:shared@1"],
+            samplerKeys: ["sampler:shared@1"],
+          });
+        },
+        getTextureSamplerDependenciesLookupKey: (item) => item.materialKey,
+        onTextureSamplerDependenciesReuse: ({ dependencies }) => {
+          dependencyReuseCalls += 1;
+          reusedTextures += dependencies.textureKeys.length;
+        },
+        createFrameResourceOptions: ({ item: routedItem, layouts }) => {
+          frameResourceOptionsCalls += 1;
+          return {
+            item: routedItem,
+            layouts,
+          };
+        },
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(dependencyPrepareCalls).toBe(1);
+    expect(dependencyReuseCalls).toBe(1);
+    expect(reusedTextures).toBe(1);
+    expect(frameResourceOptionsCalls).toBe(2);
+    expect(result.resources?.unlit).toHaveLength(2);
+  });
 });
 
 function queuedItem(options: {
@@ -420,7 +494,14 @@ function createMaterialAssetForFamily(
   }
 }
 
-function preparedDependencies() {
+function preparedDependencies(
+  overrides: Partial<{
+    readonly textures: readonly unknown[];
+    readonly samplers: readonly unknown[];
+    readonly textureKeys: readonly string[];
+    readonly samplerKeys: readonly string[];
+  }> = {},
+) {
   return {
     valid: true,
     textures: [],
@@ -428,6 +509,7 @@ function preparedDependencies() {
     textureKeys: [],
     samplerKeys: [],
     diagnostics: [],
+    ...overrides,
   };
 }
 
