@@ -3,7 +3,7 @@
 **Created:** 2026-06-17
 **Updated:** 2026-06-17
 **Source:** Multi-agent audit of `b80e8a43b61e9b6a234e443c05ff8448c7bc471b` through `fps-starter-kit-port`.
-**Status:** Batch 1 and Batch 2 implemented; Batch 3 pending.
+**Status:** Batch 1 and Batch 2 implemented; Batch 3 item 1 implemented; Batch 3 items 2-3 pending.
 
 This plan converts the confirmed audit findings from the FPS starter-kit branch
 into reviewable remediation batches. The goal is to fix the steady-state
@@ -289,6 +289,8 @@ Use this batch only after Batch 1 and Batch 2 are green.
 
 ### 1. Trail Bounds Shrinkage
 
+**Status:** implemented 2026-06-17 on `fix/audit-resource-lifecycle`.
+
 - File: `packages/app/src/systems/trails.ts`
 - Problem:
   - Ribbon bounds grow monotonically and never shrink, permanently defeating
@@ -359,5 +361,5 @@ fixed and verified. Candidates include:
 
 ## Recommended Next Step
 
-Continue with Batch 3. Start with trail bounds/upload behavior, then validate
-Racing visually because trails are most visible there.
+Continue Batch 3 with continuous particle auto-bounds parity, then handle
+diagnostic double-counting/report inflation.

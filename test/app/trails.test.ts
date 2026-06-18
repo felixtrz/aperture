@@ -36,7 +36,12 @@ describe("Aperture system trail access", () => {
     expect(materialAsset?.renderState.depth.biasSlopeScale).toBe(1.25);
     expect(trail.material).toEqual(createMaterialHandle("test.skid.material"));
     expect(trail.entity).toBeDefined();
-    expect(trail.getMeshAsset().indexBuffer?.indexCount).toBe(0);
+
+    const initialMesh = trail.getMeshAsset();
+    expect(initialMesh.vertexStreams[0]?.vertexCount).toBe(1);
+    expect(initialMesh.vertexStreams[0]?.data).toHaveLength(12);
+    expect(initialMesh.submeshes[0]?.vertexCount).toBe(0);
+    expect(initialMesh.indexBuffer).toBeUndefined();
   });
 
   it("tracks and publishes faded ground-ribbon segments", () => {
@@ -60,12 +65,45 @@ describe("Aperture system trail access", () => {
     const data = asset?.vertexStreams[0]?.data as Float32Array | undefined;
 
     expect(result?.version).toBe(2);
+    expect(asset?.vertexStreams[0]?.vertexCount).toBe(6);
+    expect(data?.length).toBe(6 * 12);
     expect(asset?.indexBuffer?.indexCount).toBe(6);
+    expect(asset?.indexBuffer?.data).toHaveLength(6);
+    expect(asset?.submeshes[0]?.vertexCount).toBe(6);
     expect(asset?.localAabb?.min).toEqual([0, 0, -0.5]);
     expect(asset?.localAabb?.max).toEqual([1, 0, 0.5]);
     expect(Array.from(data?.slice(8, 12) ?? [])).toEqual([
       0.25, 0.5, 0.75, 0.25,
     ]);
+  });
+
+  it("shrinks wrapped trail bounds to the active segment window", () => {
+    const registry = new AssetRegistry();
+    const context = createApertureSystemContext({
+      world: createWorld(),
+      assetsRegistry: registry,
+    });
+    const trail = context.trails.groundRibbon("test.wrapped-trail", {
+      width: 0.5,
+      maxSegments: 2,
+      minSegmentLength: 0.01,
+    });
+
+    expect(trail.addSegment([100, 0, 0], [101, 0, 0])).toBe(true);
+    expect(trail.addSegment([0, 0, 0], [1, 0, 0])).toBe(true);
+    expect(trail.getMeshAsset().localAabb?.max[0]).toBe(101);
+
+    expect(trail.addSegment([1, 0, 0], [2, 0, 0])).toBe(true);
+
+    const asset = trail.getMeshAsset();
+    const data = asset.vertexStreams[0]?.data as Float32Array | undefined;
+
+    expect(asset.vertexStreams[0]?.vertexCount).toBe(12);
+    expect(data?.length).toBe(12 * 12);
+    expect(asset.indexBuffer?.data).toHaveLength(12);
+    expect(asset.localAabb?.min).toEqual([0, 0, -0.5]);
+    expect(asset.localAabb?.max).toEqual([2, 0, 0.5]);
+    expect(Array.from(data?.slice(0, 3) ?? [])).toEqual([0, 0, -0.5]);
   });
 
   it("uses uint32 indices when a trail exceeds uint16 vertex capacity", () => {
@@ -78,6 +116,7 @@ describe("Aperture system trail access", () => {
       maxSegments: 11_000,
     });
 
+    expect(trail.addSegment([0, 0, 0], [1, 0, 0])).toBe(true);
     expect(trail.getMeshAsset().indexBuffer?.format).toBe("uint32");
   });
 });

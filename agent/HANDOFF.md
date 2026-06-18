@@ -1,3 +1,58 @@
+# Handoff - FPS Audit Batch 3 Trail Bounds And Upload Fix
+
+**Updated:** 2026-06-17 17:43 PDT
+
+User-directed work is on branch `fix/audit-resource-lifecycle`.
+
+## Latest Completed Slice
+
+- Implemented Batch 3 item 1 from
+  `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`.
+- Changed ground ribbon trails to publish only active vertex/index ranges
+  instead of the full max-capacity buffers on every flush.
+- Replaced monotonic trail bounds with bounds recomputed from the active
+  ring-buffer window, so wrapped trails can shrink after old samples are
+  overwritten.
+- Preserved render validity for empty trail meshes by publishing one unused
+  zeroed vertex with a zero-count submesh and no index buffer; this avoids
+  zero-byte WebGPU buffer creation while still drawing nothing.
+- Added focused trail tests for empty mesh upload shape, active upload sizing,
+  wrapped bounds shrinkage, and large-trail `uint32` index selection.
+- Marked Batch 3 item 1 implemented in the audit plan; Batch 3 items 2 and 3
+  remain pending.
+
+## Validation
+
+- `pnpm exec vitest run test/app/trails.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- `pnpm exec prettier --check packages/app/src/systems/trails.ts test/app/trails.test.ts`
+- `git diff --check`
+- Managed Racing smoke through Aperture CLI:
+  - fresh `pnpm --dir racing exec aperture dev up --headless --host 127.0.0.1 --port 5173 --strict-port`
+  - `browser_wait_for_webgpu` succeeded
+  - initial render diagnostics: `frameOk: true`, `drawPackages: 36`, `drawCalls: 46`, `diagnostics: 0`
+  - after holding `KeyW` + `KeyD` for 3 seconds: vehicle `hadInput: true`, frame report included `mesh:racing.driftMarks.bl` and `mesh:racing.driftMarks.br`, `meshDraws: 41`, `drawCalls: 53`, `diagnostics: 0`
+
+## Known Issues
+
+- `pnpm run typecheck:test` was not rerun for this slice because it is already
+  documented as failing on unrelated existing test typing drift.
+- Pre-existing untracked screenshot/parity artifacts remain outside commits.
+- The managed Racing dev session was stopped after validation.
+
+## Recommended Next Task
+
+Continue Batch 3 with continuous particle auto-bounds parity in
+`packages/render/src/rendering/extraction-particles.ts`.
+
+---
+
 # Handoff - FPS Audit Batch 2 Bloom And Visual Baselines
 
 **Updated:** 2026-06-17 17:29 PDT
