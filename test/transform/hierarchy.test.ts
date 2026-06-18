@@ -122,6 +122,38 @@ describe("transform hierarchy (M7-T1)", () => {
     expect(report.diagnostics).toEqual([]);
   });
 
+  it("despawnRecursive tears down a subtree parented via direct Parent writes (glTF replay) without leaking orphans", () => {
+    const world = createWorld({ entityCapacity: 16 });
+    registerTransformComponents(world);
+    // Mirror glTF scene replay: children get their `Parent` set directly (the
+    // `parent` option = addComponent(Parent, ...)), so the root's derived
+    // `Children` index is never populated.
+    const root = createTransformEntity(world, { translation: [7, 0, -3] });
+    const node = createTransformEntity(world, { translation: [0, 0, 0], parent: root });
+    const primitive = createTransformEntity(world, {
+      translation: [0, 0, 0],
+      parent: node,
+    });
+    const survivor = createTransformEntity(world, { translation: [1, 0, 0] });
+    resolveWorldTransforms(world);
+
+    // The Children index is empty because nothing went through setParent.
+    expect(getChildren(world, root)).toEqual([]);
+
+    // Before the fix this returned 1 and node/primitive survived as detached
+    // roots at the world origin; now the whole subtree is destroyed.
+    const destroyed = despawnRecursive(world, root);
+    expect(destroyed).toBe(3); // root, node, primitive
+
+    expect(root.active).toBe(false);
+    expect(node.active).toBe(false);
+    expect(primitive.active).toBe(false);
+    expect(survivor.active).toBe(true);
+
+    const report = resolveWorldTransforms(world);
+    expect(report.diagnostics).toEqual([]);
+  });
+
   it("rejects a setParent that would create a cycle without mutating Parent", () => {
     const world = createWorld({ entityCapacity: 8 });
     registerTransformComponents(world);
