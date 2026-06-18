@@ -8,6 +8,7 @@ import { mirrorSourceAssetRegistryFromMessage } from "../asset-mirror.js";
 import { createApertureGeneratedDiagnosticsStatus } from "../diagnostics.js";
 import type {
   GeneratedBrowserAppStatus,
+  GeneratedBrowserWorkerMessageStatus,
   GeneratedBrowserPerformanceStatus,
   GeneratedBrowserPerformanceTimingStats,
 } from "./status.js";
@@ -43,6 +44,7 @@ export function mirrorSimulationWorkerSourceAssets(
           status.lastWorkerSummary,
           workerSummary,
         );
+        recordWorkerPostMessageDecision(status.workerMessages, workerSummary);
         const performanceStatus = updateGeneratedBrowserPerformanceStatus(
           performanceState,
           workerSummary,
@@ -392,6 +394,41 @@ function mergeWorkerSummary(previous: unknown, next: unknown): unknown {
   }
 
   return merged;
+}
+
+function recordWorkerPostMessageDecision(
+  status: GeneratedBrowserWorkerMessageStatus,
+  workerSummary: unknown,
+): void {
+  const decision = readRecord(workerSummary)?.["postMessageDecision"];
+  const decisionRecord = readRecord(decision);
+  if (decisionRecord === null) {
+    return;
+  }
+
+  const bucket = status.snapshotDecisions;
+  bucket.total += 1;
+  bucket.latest = decision;
+
+  const postedMessage =
+    typeof decisionRecord["postedMessage"] === "string"
+      ? decisionRecord["postedMessage"]
+      : "unknown";
+  bucket.postedMessages[postedMessage] =
+    (bucket.postedMessages[postedMessage] ?? 0) + 1;
+
+  const reasons = Array.isArray(decisionRecord["postMessageReasons"])
+    ? decisionRecord["postMessageReasons"]
+    : [];
+  if (reasons.length === 0) {
+    bucket.postMessageReasons.none = (bucket.postMessageReasons.none ?? 0) + 1;
+    return;
+  }
+
+  for (const reason of reasons) {
+    const key = typeof reason === "string" ? reason : "unknown";
+    bucket.postMessageReasons[key] = (bucket.postMessageReasons[key] ?? 0) + 1;
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

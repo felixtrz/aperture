@@ -15,6 +15,7 @@ import {
 import {
   commitSerializedSourceAssets,
   serializeSourceAssetRegistry,
+  type SerializedSourceAssetRegistry,
   type SourceAssetSerializationState,
 } from "../asset-mirror.js";
 import type { ApertureConfig } from "../config.js";
@@ -39,6 +40,8 @@ export interface GeneratedWorkerSnapshotPublishReport {
 export interface GeneratedWorkerSnapshotPublishTiming {
   readonly frame: number;
   readonly transport: "shared-array-buffer" | "transferable";
+  readonly postedMessage: GeneratedWorkerPostMessageKind;
+  readonly postMessageReasons: readonly GeneratedWorkerPostMessageReason[];
   readonly totalMilliseconds: number;
   readonly inputMilliseconds: number;
   readonly stepMilliseconds: number;
@@ -49,6 +52,38 @@ export interface GeneratedWorkerSnapshotPublishTiming {
   readonly postMessageMilliseconds: number;
   readonly commitMilliseconds: number;
   readonly stepTiming: ReturnType<ApertureApp["step"]>["timing"];
+}
+
+export type GeneratedWorkerPostMessageKind =
+  | "snapshot"
+  | "audioSnapshot"
+  | "none"
+  | "transferableSnapshot";
+
+export type GeneratedWorkerPostMessageReason =
+  | "sharedInitial"
+  | "sharedRegistryChanged"
+  | "sourceAssetsChanged"
+  | "snapshotDiagnostics"
+  | "fullSummary"
+  | "sharedHeartbeat"
+  | "sharedAudio"
+  | "transferableSnapshot";
+
+export interface GeneratedWorkerPostMessageDecision {
+  readonly frame: number;
+  readonly postedMessage: GeneratedWorkerPostMessageKind;
+  readonly postMessageReasons: readonly GeneratedWorkerPostMessageReason[];
+  readonly sourceAssetChanges?: {
+    readonly count: number;
+    readonly samples: readonly {
+      readonly kind: string;
+      readonly id: string;
+      readonly label: string;
+      readonly status: string;
+      readonly version: number;
+    }[];
+  };
 }
 
 interface GeneratedWorkerSummaryOptions {
@@ -209,18 +244,38 @@ export function publishGeneratedWorkerSnapshot(options: {
   const transportMode =
     sharedSnapshot === null ? "transferable" : "shared-array-buffer";
 
-  const shouldPostSharedSnapshot =
+  const sharedSnapshotPostReasons =
+    sharedSnapshot === null
+      ? []
+      : collectSharedSnapshotPostReasons({
+          transport: options.transport,
+          sharedSnapshot,
+          sourceAssetsChanged: sourceAssets.entries.length > 0,
+          workerSummary,
+          snapshot,
+          nowMilliseconds: timingStartedAt,
+        });
+  const shouldPostSharedAudioSnapshot =
     sharedSnapshot !== null &&
-    shouldPostSharedSnapshotMessage({
+    sharedSnapshotPostReasons.length === 0 &&
+    shouldPostSharedAudioSnapshotMessage({
       transport: options.transport,
-      sharedSnapshot,
-      sourceAssetsChanged: sourceAssets.entries.length > 0,
-      workerSummary,
       snapshot,
       nowMilliseconds: timingStartedAt,
     });
+  const postMessageDecision = createGeneratedWorkerPostMessageDecision({
+    frame: options.frame,
+    sharedSnapshot,
+    sharedSnapshotPostReasons,
+    sourceAssetEntries: sourceAssets.entries,
+    shouldPostSharedAudioSnapshot,
+  });
+  const workerSummaryMessage = {
+    ...workerSummary,
+    postMessageDecision,
+  };
 
-  if (sharedSnapshot !== null && shouldPostSharedSnapshot) {
+  if (sharedSnapshot !== null && sharedSnapshotPostReasons.length > 0) {
     const placeholder = createSharedSnapshotPlaceholder(snapshot);
     const transfer =
       placeholder.transforms.byteLength === 0
@@ -232,7 +287,7 @@ export function publishGeneratedWorkerSnapshot(options: {
         type: SIMULATION_WORKER_PROTOCOL.snapshot,
         snapshot: placeholder,
         ...sourceAssetsMessage,
-        workerSummary,
+        workerSummary: workerSummaryMessage,
         frame: options.frame,
         transport: sharedSnapshot.message,
       },
@@ -248,14 +303,7 @@ export function publishGeneratedWorkerSnapshot(options: {
       snapshot,
       timingStartedAt,
     );
-  } else if (
-    sharedSnapshot !== null &&
-    shouldPostSharedAudioSnapshotMessage({
-      transport: options.transport,
-      snapshot,
-      nowMilliseconds: timingStartedAt,
-    })
-  ) {
+  } else if (sharedSnapshot !== null && shouldPostSharedAudioSnapshot) {
     const placeholder = createSharedSnapshotPlaceholder(snapshot);
     const transfer =
       placeholder.transforms.byteLength === 0
@@ -281,7 +329,7 @@ export function publishGeneratedWorkerSnapshot(options: {
         type: SIMULATION_WORKER_PROTOCOL.snapshot,
         snapshot,
         ...sourceAssetsMessage,
-        workerSummary,
+        workerSummary: workerSummaryMessage,
         frame: options.frame,
       },
       renderSnapshotTransferList(snapshot),
@@ -297,6 +345,8 @@ export function publishGeneratedWorkerSnapshot(options: {
   const timing: GeneratedWorkerSnapshotPublishTiming = {
     frame: options.frame,
     transport: transportMode,
+    postedMessage: postMessageDecision.postedMessage,
+    postMessageReasons: postMessageDecision.postMessageReasons,
     totalMilliseconds: Math.max(0, nowMilliseconds() - timingStartedAt),
     inputMilliseconds,
     stepMilliseconds,
@@ -427,7 +477,7 @@ function createSharedSnapshotMessage(
   }
 }
 
-function shouldPostSharedSnapshotMessage(options: {
+function collectSharedSnapshotPostReasons(options: {
   readonly transport: GeneratedWorkerSnapshotTransport;
   readonly sharedSnapshot: NonNullable<
     ReturnType<typeof createSharedSnapshotMessage>
@@ -436,26 +486,106 @@ function shouldPostSharedSnapshotMessage(options: {
   readonly workerSummary: ReturnType<typeof createGeneratedWorkerSummary>;
   readonly snapshot: RenderSnapshot;
   readonly nowMilliseconds: number;
-}): boolean {
+}): readonly GeneratedWorkerPostMessageReason[] {
   if (options.transport.mode !== "shared-array-buffer") {
-    return true;
+    return ["transferableSnapshot"];
+  }
+
+  const lastPostedMessageTimeMilliseconds =
+    options.transport.lastPostedMessageTimeMilliseconds;
+  const reasons: GeneratedWorkerPostMessageReason[] = [];
+  if (lastPostedMessageTimeMilliseconds === null) {
+    reasons.push("sharedInitial");
+  }
+  if (options.sharedSnapshot.registryChanged) {
+    reasons.push("sharedRegistryChanged");
+  }
+  if (options.sourceAssetsChanged) {
+    reasons.push("sourceAssetsChanged");
+  }
+  if (options.snapshot.diagnostics.length > 0) {
+    reasons.push("snapshotDiagnostics");
+  }
+  if (readWorkerSummaryFullFlag(options.workerSummary)) {
+    reasons.push("fullSummary");
   }
 
   if (
-    options.transport.lastPostedMessageTimeMilliseconds === null ||
-    options.sharedSnapshot.registryChanged ||
-    options.sourceAssetsChanged ||
-    options.snapshot.diagnostics.length > 0 ||
-    readWorkerSummaryFullFlag(options.workerSummary)
+    lastPostedMessageTimeMilliseconds !== null &&
+    reasons.length === 0 &&
+    options.nowMilliseconds - lastPostedMessageTimeMilliseconds >=
+      1000 / DEFAULT_GENERATED_WORKER_SHARED_SNAPSHOT_MESSAGE_RATE_HZ
   ) {
-    return true;
+    reasons.push("sharedHeartbeat");
   }
 
-  return (
-    options.nowMilliseconds -
-      options.transport.lastPostedMessageTimeMilliseconds >=
-    1000 / DEFAULT_GENERATED_WORKER_SHARED_SNAPSHOT_MESSAGE_RATE_HZ
+  return reasons;
+}
+
+function createGeneratedWorkerPostMessageDecision(options: {
+  readonly frame: number;
+  readonly sharedSnapshot: ReturnType<typeof createSharedSnapshotMessage>;
+  readonly sharedSnapshotPostReasons: readonly GeneratedWorkerPostMessageReason[];
+  readonly sourceAssetEntries: SerializedSourceAssetRegistry["entries"];
+  readonly shouldPostSharedAudioSnapshot: boolean;
+}): GeneratedWorkerPostMessageDecision {
+  const sourceAssetChanges = createSourceAssetChangeDecisionSummary(
+    options.sourceAssetEntries,
   );
+
+  if (options.sharedSnapshot === null) {
+    return {
+      frame: options.frame,
+      postedMessage: "transferableSnapshot",
+      postMessageReasons: ["transferableSnapshot"],
+      ...sourceAssetChanges,
+    };
+  }
+
+  if (options.sharedSnapshotPostReasons.length > 0) {
+    return {
+      frame: options.frame,
+      postedMessage: "snapshot",
+      postMessageReasons: options.sharedSnapshotPostReasons,
+      ...sourceAssetChanges,
+    };
+  }
+
+  if (options.shouldPostSharedAudioSnapshot) {
+    return {
+      frame: options.frame,
+      postedMessage: "audioSnapshot",
+      postMessageReasons: ["sharedAudio"],
+    };
+  }
+
+  return {
+    frame: options.frame,
+    postedMessage: "none",
+    postMessageReasons: [],
+    ...sourceAssetChanges,
+  };
+}
+
+function createSourceAssetChangeDecisionSummary(
+  entries: SerializedSourceAssetRegistry["entries"],
+): Pick<GeneratedWorkerPostMessageDecision, "sourceAssetChanges"> {
+  if (entries.length === 0) {
+    return {};
+  }
+
+  return {
+    sourceAssetChanges: {
+      count: entries.length,
+      samples: entries.slice(0, 12).map((entry) => ({
+        kind: entry.handle.kind,
+        id: entry.handle.id,
+        label: entry.label,
+        status: entry.status,
+        version: entry.version,
+      })),
+    },
+  };
 }
 
 function shouldPostSharedAudioSnapshotMessage(options: {

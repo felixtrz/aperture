@@ -72,7 +72,7 @@ describe("generated worker shared snapshot message cadence", () => {
       previousPublishTiming: null,
     };
 
-    publishGeneratedWorkerSnapshot({
+    const initialReport = publishGeneratedWorkerSnapshot({
       ...options,
       frame: 1,
       time: 1,
@@ -81,28 +81,34 @@ describe("generated worker shared snapshot message cadence", () => {
     expect(readMessageType(messages[0])).toBe(
       SIMULATION_WORKER_PROTOCOL.snapshot,
     );
+    expect(initialReport.timing.postedMessage).toBe("snapshot");
+    expect(initialReport.timing.postMessageReasons).toEqual(["sharedInitial"]);
     expect(transport.shared.reader.readLatestFrame()?.frame).toBe(1);
 
     now = 1;
-    publishGeneratedWorkerSnapshot({
+    const secondReport = publishGeneratedWorkerSnapshot({
       ...options,
       frame: 2,
       time: 1 + 1 / 60,
     });
     expect(messages).toHaveLength(1);
+    expect(secondReport.timing.postedMessage).toBe("none");
+    expect(secondReport.timing.postMessageReasons).toEqual([]);
     expect(transport.shared.reader.readLatestFrame()?.frame).toBe(2);
 
     now = 20;
-    publishGeneratedWorkerSnapshot({
+    const thirdReport = publishGeneratedWorkerSnapshot({
       ...options,
       frame: 3,
       time: 1 + 2 / 60,
     });
     expect(messages).toHaveLength(1);
+    expect(thirdReport.timing.postedMessage).toBe("none");
+    expect(thirdReport.timing.postMessageReasons).toEqual([]);
     expect(transport.shared.reader.readLatestFrame()?.frame).toBe(3);
 
     now = 40;
-    publishGeneratedWorkerSnapshot({
+    const heartbeatReport = publishGeneratedWorkerSnapshot({
       ...options,
       frame: 4,
       time: 1 + 3 / 60,
@@ -111,6 +117,10 @@ describe("generated worker shared snapshot message cadence", () => {
     expect(readMessageType(messages[1])).toBe(
       SIMULATION_WORKER_PROTOCOL.snapshot,
     );
+    expect(heartbeatReport.timing.postedMessage).toBe("snapshot");
+    expect(heartbeatReport.timing.postMessageReasons).toEqual([
+      "sharedHeartbeat",
+    ]);
     expect(transport.shared.reader.readLatestFrame()?.frame).toBe(4);
   });
 
@@ -164,7 +174,7 @@ describe("generated worker shared snapshot message cadence", () => {
       previousPublishTiming: null,
     };
 
-    publishGeneratedWorkerSnapshot({
+    const initialReport = publishGeneratedWorkerSnapshot({
       ...options,
       frame: 1,
       time: 1,
@@ -173,9 +183,11 @@ describe("generated worker shared snapshot message cadence", () => {
     expect(readMessageType(messages[0])).toBe(
       SIMULATION_WORKER_PROTOCOL.snapshot,
     );
+    expect(initialReport.timing.postedMessage).toBe("snapshot");
+    expect(initialReport.timing.postMessageReasons).toEqual(["sharedInitial"]);
 
     now = 20;
-    publishGeneratedWorkerSnapshot({
+    const audioReport = publishGeneratedWorkerSnapshot({
       ...options,
       frame: 2,
       time: 1 + 1 / 60,
@@ -185,6 +197,8 @@ describe("generated worker shared snapshot message cadence", () => {
       SIMULATION_WORKER_PROTOCOL.audioSnapshot,
     );
     expect(readMessageFrame(messages[1])).toBe(2);
+    expect(audioReport.timing.postedMessage).toBe("audioSnapshot");
+    expect(audioReport.timing.postMessageReasons).toEqual(["sharedAudio"]);
     expect(transport.shared.reader.readLatestFrame()?.frame).toBe(2);
   });
 });

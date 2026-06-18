@@ -84,6 +84,18 @@ Latest paired trace evidence after this slice:
     stayed at `60 Hz` with `sharedUnavailable: 0`. Drive still reports about
     `62 Hz` render snapshot messages, so another drive-only sideband reason
     remains to identify.
+- Message-reason traces with frame-pacing metrics:
+  `/tmp/racing-message-reasons-check-2/summary.json` and
+  `/tmp/racing-source-asset-reason-check/summary.json`
+  - The trace summary now reports RAF pacing deviation, adjacent-frame jitter,
+    within-1ms ratio, estimated missed vsyncs, and Aperture render-message
+    reasons.
+  - Idle render messages are mostly the shared heartbeat. Drive render messages
+    are dominated by `sourceAssetsChanged`.
+  - The changing source assets are the dynamic drift-mark meshes
+    `mesh:racing.driftMarks.bl` and `mesh:racing.driftMarks.br`; their versions
+    advance while driving, forcing source-asset mirror messages even though SAB
+    render data itself is current.
 
 Racing does author audio every frame. Therefore, simply lowering the generic
 sideband heartbeat below `60 Hz` would either not affect this benchmark or would
@@ -432,28 +444,35 @@ Racing benchmark checks:
    path, so render registry/diagnostic sideband can run at a lower heartbeat
    while audio keeps display-rate updates.
 
-6. **Next: identify remaining drive-side render sideband reason.**
-   Drive still receives render snapshot messages around display cadence even
-   after audio splitting. Add reason counters for registry/source-asset/full
-   summary/diagnostic/heartbeat sideband posts, then remove avoidable drive
-   churn.
+6. **Done: identify remaining drive-side render sideband reason.**
+   Render-message reason counters show that idle is heartbeat-bound, while
+   drive is source-asset-bound. The source assets are the two dynamic drift-mark
+   meshes.
 
-7. **Next: slot ownership / triple buffering.**
+7. **Next: dynamic geometry transport.**
+   Dynamic mesh updates should not travel as full source asset registry changes
+   every frame. Add a render-data update path for dynamic geometry, ideally
+   reusing the existing mesh `updateRanges` upload path after the bytes arrive
+   on the render side. For SAB mode this should be a shared/ring-buffered
+   dynamic-geometry stream; for transferable fallback, use latest-update wins
+   and drop stale dynamic mesh updates before render.
+
+8. **Next: slot ownership / triple buffering.**
    Replace double-buffer seqlock views with an acquirable ring, or add a
    conservative copy-on-acquire layer as an interim correctness step.
 
-8. **Next: registry epoch sideband.**
+9. **Next: registry epoch sideband.**
    Tag slots and registry payloads by epoch. Decode only when the matching
    registry is available. Then reduce per-message registry clone cost with
    deltas.
 
-9. **Next: transferable latest-snapshot queue.**
-   Make transferable fallback follow the same RAF sampling policy, dropping
-   stale messages before render.
+10. **Next: transferable latest-snapshot queue.**
+    Make transferable fallback follow the same RAF sampling policy, dropping
+    stale messages before render.
 
-10. **Next: smoothing and interpolation pass.**
-   Use the new pose-cadence diagnostics to tune interpolation alpha and camera
-   smoothness in racing without changing the ECS authority boundary.
+11. **Next: smoothing and interpolation pass.**
+    Use the new pose-cadence diagnostics to tune interpolation alpha and camera
+    smoothness in racing without changing the ECS authority boundary.
 
 ## Non-Goals
 

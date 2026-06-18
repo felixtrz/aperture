@@ -461,6 +461,7 @@ async function collectSnapshot(page) {
         webgpuOk: status.webgpuOk ?? null,
         performance: status.performance ?? null,
         render: status.render ?? null,
+        workerMessages: status.workerMessages ?? null,
         diagnostics: {
           counts,
           cadence: diagnostics?.cadence ?? fullDiagnostics?.cadence ?? null,
@@ -772,6 +773,7 @@ function summarizeRun(target, scenario, snapshot, profileFiles) {
       callbackSampleCount: callbacks.length,
       intervalMs: quantiles(intervals),
       callbackMs: quantiles(callbacks),
+      pacing: summarizeFramePacing(intervals),
     },
     aperture: summarizeApertureSamples(apertureSamples, snapshot.aperture),
     three: summarizeThreeSamples(threeSamples, snapshot.three),
@@ -817,6 +819,7 @@ function summarizeApertureSamples(samples, latest) {
     phaseTimings: summarizeAperturePhaseTimings(samples, latest),
     cadence: summarizeApertureCadence(samples, latest),
     gpuTimings: summarizeApertureGpuTimings(samples, latest),
+    workerMessages: summarizeApertureWorkerMessages(samples, latest),
     performanceTransport:
       latest?.performance?.latest?.transport ??
       latest?.performance?.transport ??
@@ -949,6 +952,57 @@ function summarizeApertureGpuTimings(samples, latest) {
   };
 }
 
+function summarizeApertureWorkerMessages(samples, latest) {
+  const snapshotDecisions = latest?.workerMessages?.snapshotDecisions;
+  if (snapshotDecisions !== undefined && snapshotDecisions !== null) {
+    return {
+      sampleCount: snapshotDecisions.total ?? 0,
+      postedMessages: snapshotDecisions.postedMessages ?? {},
+      postMessageReasons: snapshotDecisions.postMessageReasons ?? {},
+      latest: snapshotDecisions.latest ?? null,
+      source: "browser-status-counter",
+    };
+  }
+
+  const timings = [
+    ...samples.map(
+      (sample) => sample?.workerMessages?.snapshotDecisions?.latest,
+    ),
+    ...samples.map((sample) => sample?.workerPublish),
+    latest?.lastWorkerSummary?.postMessageDecision,
+    latest?.lastWorkerSummary?.previousPublishTiming,
+    latest?.lastWorkerSummary?.publishTiming,
+  ].filter((timing) => timing !== undefined && timing !== null);
+  const postedMessages = {};
+  const postMessageReasons = {};
+
+  for (const timing of timings) {
+    const postedMessage = String(timing?.postedMessage ?? "unknown");
+    postedMessages[postedMessage] = (postedMessages[postedMessage] ?? 0) + 1;
+
+    const reasons = Array.isArray(timing?.postMessageReasons)
+      ? timing.postMessageReasons
+      : [];
+    if (reasons.length === 0) {
+      postMessageReasons.none = (postMessageReasons.none ?? 0) + 1;
+      continue;
+    }
+
+    for (const reason of reasons) {
+      const key = String(reason);
+      postMessageReasons[key] = (postMessageReasons[key] ?? 0) + 1;
+    }
+  }
+
+  return {
+    sampleCount: timings.length,
+    postedMessages,
+    postMessageReasons,
+    latest: timings.at(-1) ?? null,
+    source: "sampled-status",
+  };
+}
+
 function summarizeThreeSamples(samples, latest) {
   if (latest === null && samples.length === 0) return null;
   const renderCalls = samples
@@ -1046,6 +1100,86 @@ function summarizeThreeGlCalls(samples, latest) {
     ),
     ...summary,
     topMethods: methodSummaries,
+  };
+}
+
+function summarizeFramePacing(intervals) {
+  const cleanIntervals = intervals.filter(isFiniteNumber);
+  if (cleanIntervals.length === 0) {
+    return {
+      expectedIntervalMs: null,
+      expectedHz: null,
+      absoluteDeviationMs: quantiles([]),
+      adjacentDeltaMs: quantiles([]),
+      withinHalfMsRatio: null,
+      withinOneMsRatio: null,
+      longFrameCount: 0,
+      longFrameRatio: null,
+      veryLongFrameCount: 0,
+      estimatedMissedVsyncs: 0,
+    };
+  }
+
+  const intervalStats = quantiles(cleanIntervals);
+  const expectedIntervalMs = intervalStats.p50;
+  if (!isFiniteNumber(expectedIntervalMs) || expectedIntervalMs <= 0) {
+    return {
+      expectedIntervalMs: null,
+      expectedHz: null,
+      absoluteDeviationMs: quantiles([]),
+      adjacentDeltaMs: quantiles([]),
+      withinHalfMsRatio: null,
+      withinOneMsRatio: null,
+      longFrameCount: 0,
+      longFrameRatio: null,
+      veryLongFrameCount: 0,
+      estimatedMissedVsyncs: 0,
+    };
+  }
+
+  const absoluteDeviations = cleanIntervals.map((interval) =>
+    Math.abs(interval - expectedIntervalMs),
+  );
+  const adjacentDeltas = [];
+  for (let index = 1; index < cleanIntervals.length; index += 1) {
+    adjacentDeltas.push(
+      Math.abs(cleanIntervals[index] - cleanIntervals[index - 1]),
+    );
+  }
+
+  const withinHalfMsCount = absoluteDeviations.filter(
+    (deviation) => deviation <= 0.5,
+  ).length;
+  const withinOneMsCount = absoluteDeviations.filter(
+    (deviation) => deviation <= 1,
+  ).length;
+  const longFrameThreshold = expectedIntervalMs * 1.5;
+  const veryLongFrameThreshold = expectedIntervalMs * 2.5;
+  const longFrameCount = cleanIntervals.filter(
+    (interval) => interval >= longFrameThreshold,
+  ).length;
+  const veryLongFrameCount = cleanIntervals.filter(
+    (interval) => interval >= veryLongFrameThreshold,
+  ).length;
+  const estimatedMissedVsyncs = cleanIntervals.reduce((total, interval) => {
+    const displayedIntervals = Math.max(
+      1,
+      Math.round(interval / expectedIntervalMs),
+    );
+    return total + displayedIntervals - 1;
+  }, 0);
+
+  return {
+    expectedIntervalMs,
+    expectedHz: 1000 / expectedIntervalMs,
+    absoluteDeviationMs: quantiles(absoluteDeviations),
+    adjacentDeltaMs: quantiles(adjacentDeltas),
+    withinHalfMsRatio: withinHalfMsCount / cleanIntervals.length,
+    withinOneMsRatio: withinOneMsCount / cleanIntervals.length,
+    longFrameCount,
+    longFrameRatio: longFrameCount / cleanIntervals.length,
+    veryLongFrameCount,
+    estimatedMissedVsyncs,
   };
 }
 
@@ -1201,6 +1335,7 @@ function printSummary(summary, summaryPath) {
   for (const run of summary.runs) {
     const interval = run.raf.intervalMs;
     const callback = run.raf.callbackMs;
+    const pacing = run.raf.pacing;
     const drawCalls =
       run.target === "three" ? run.three?.renderCalls : run.aperture?.drawCalls;
     const apertureRenderTotal = run.aperture?.phaseTimings?.totalMs;
@@ -1214,6 +1349,7 @@ function printSummary(summary, summaryPath) {
     const parts = [
       `${run.label} ${run.scenario}`,
       `raf p50=${formatMs(interval.p50)} p95=${formatMs(interval.p95)} p99=${formatMs(interval.p99)} max=${formatMs(interval.max)}`,
+      `pacing dev95=${formatMs(pacing?.absoluteDeviationMs?.p95)} within1=${formatRatio(pacing?.withinOneMsRatio)} missed=${formatNumber(pacing?.estimatedMissedVsyncs)}`,
       `callback p95=${formatMs(callback.p95)} max=${formatMs(callback.max)}`,
       `draw/calls p50=${formatNumber(drawCalls?.p50)} max=${formatNumber(drawCalls?.max)}`,
     ];
@@ -1221,6 +1357,12 @@ function printSummary(summary, summaryPath) {
       parts.push(
         `render p50=${formatMs(apertureRenderTotal?.p50)} p95=${formatMs(apertureRenderTotal?.p95)} max=${formatMs(apertureRenderTotal?.max)}`,
       );
+      const topReason = topCountKey(
+        run.aperture?.workerMessages?.postMessageReasons,
+      );
+      if (topReason !== null) {
+        parts.push(`msg top=${topReason.key}:${topReason.count}`);
+      }
     }
     if (run.target === "three" || (gpuTimer?.count ?? 0) > 0) {
       parts.push(
@@ -1291,6 +1433,24 @@ function formatNumber(value) {
   return value === null || value === undefined ? "n/a" : `${value.toFixed(1)}`;
 }
 
+function formatRatio(value) {
+  return value === null || value === undefined
+    ? "n/a"
+    : `${(value * 100).toFixed(1)}%`;
+}
+
+function topCountKey(counts) {
+  if (counts === undefined || counts === null) return null;
+  let best = null;
+  for (const [key, count] of Object.entries(counts)) {
+    if (!isFiniteNumber(count)) continue;
+    if (best === null || count > best.count) {
+      best = { key, count };
+    }
+  }
+  return best;
+}
+
 function isFiniteNumber(value) {
   return typeof value === "number" && Number.isFinite(value);
 }
@@ -1319,6 +1479,7 @@ function createFrameSamplerInitScript() {
       webgpuOk: status.webgpuOk ?? null,
       performance: status.performance?.latest ?? status.performance ?? null,
       cadence: diagnostics?.cadence ?? null,
+      workerMessages: status.workerMessages ?? null,
       counts: lastFrame?.counts ?? diagnostics?.counts ?? null,
       changeSet:
         lastFrame?.changeSet ??

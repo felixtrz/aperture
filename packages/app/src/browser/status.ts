@@ -29,11 +29,21 @@ export interface GeneratedBrowserAppStatus {
   lastError: unknown;
   lastFailure: ApertureGeneratedDiagnosticsStatus | null;
   lastWorkerSummary: unknown;
+  workerMessages: GeneratedBrowserWorkerMessageStatus;
   performance: GeneratedBrowserPerformanceStatus | null;
   diagnostics: unknown;
   render: GeneratedBrowserRenderSettings | null;
   canvas: GeneratedCanvasResizeMeasurement | null;
   systems: readonly GeneratedBrowserSystemManifestEntry[];
+}
+
+export interface GeneratedBrowserWorkerMessageStatus {
+  snapshotDecisions: {
+    total: number;
+    latest: unknown;
+    postedMessages: Record<string, number>;
+    postMessageReasons: Record<string, number>;
+  };
 }
 
 export interface GeneratedBrowserPerformanceTimingStats {
@@ -147,6 +157,14 @@ export function installGeneratedStatus(): GeneratedBrowserAppStatus {
     lastError: null,
     lastFailure: null,
     lastWorkerSummary: null,
+    workerMessages: {
+      snapshotDecisions: {
+        total: 0,
+        latest: null,
+        postedMessages: {},
+        postMessageReasons: {},
+      },
+    },
     performance: null,
     diagnostics: null,
     render: null,
