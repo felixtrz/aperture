@@ -1,11 +1,4 @@
-import {
-  mat4 as wgpuMat4,
-  quat as wgpuQuat,
-  vec2 as wgpuVec2,
-  vec3 as wgpuVec3,
-  vec4 as wgpuVec4,
-} from "wgpu-matrix";
-
+import { mat4 as kmat4, quat as kquat, vec3 as kvec3 } from "./kernel/index.js";
 import { read } from "./scalars.js";
 import type {
   Color,
@@ -19,19 +12,27 @@ import type {
 } from "./types.js";
 
 export function vec2(x = 0, y = 0): Vec2 {
-  return wgpuVec2.create(x, y);
+  const out = new Float32Array(2);
+  out[0] = x;
+  out[1] = y;
+  return out;
 }
 
 export function vec3(x = 0, y = 0, z = 0): Vec3 {
-  return wgpuVec3.create(x, y, z);
+  return kvec3.create(x, y, z);
 }
 
 export function vec4(x = 0, y = 0, z = 0, w = 0): Vec4 {
-  return wgpuVec4.create(x, y, z, w);
+  const out = new Float32Array(4);
+  out[0] = x;
+  out[1] = y;
+  out[2] = z;
+  out[3] = w;
+  return out;
 }
 
 export function quat(x = 0, y = 0, z = 0, w = 1): Quat {
-  return wgpuQuat.create(x, y, z, w);
+  return kquat.create(x, y, z, w);
 }
 
 export function color(r = 1, g = 1, b = 1, a = 1): Color {
@@ -39,36 +40,25 @@ export function color(r = 1, g = 1, b = 1, a = 1): Color {
 }
 
 export function mat4(values?: Mat4Like): Mat4 {
+  const out = kmat4.create();
+
   if (values === undefined) {
-    return wgpuMat4.create();
+    return out;
   }
 
-  return wgpuMat4.set(
-    read(values, 0, "Mat4Like"),
-    read(values, 1, "Mat4Like"),
-    read(values, 2, "Mat4Like"),
-    read(values, 3, "Mat4Like"),
-    read(values, 4, "Mat4Like"),
-    read(values, 5, "Mat4Like"),
-    read(values, 6, "Mat4Like"),
-    read(values, 7, "Mat4Like"),
-    read(values, 8, "Mat4Like"),
-    read(values, 9, "Mat4Like"),
-    read(values, 10, "Mat4Like"),
-    read(values, 11, "Mat4Like"),
-    read(values, 12, "Mat4Like"),
-    read(values, 13, "Mat4Like"),
-    read(values, 14, "Mat4Like"),
-    read(values, 15, "Mat4Like"),
-  );
+  for (let index = 0; index < 16; index += 1) {
+    out[index] = read(values, index, "Mat4Like");
+  }
+
+  return out;
 }
 
 export function quatIdentity(): Quat {
-  return wgpuQuat.identity();
+  return kquat.identity();
 }
 
 export function identityMat4(out: Mat4 = mat4()): Mat4 {
-  return wgpuMat4.identity(out);
+  return kmat4.identity(out);
 }
 
 export function identityTransformValues(): TransformValues {

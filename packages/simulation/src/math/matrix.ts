@@ -1,12 +1,4 @@
-import {
-  mat4 as wgpuMat4,
-  quat as wgpuQuat,
-  vec3 as wgpuVec3,
-  type Mat4Arg as WgpuMat4Arg,
-  type QuatArg as WgpuQuatArg,
-  type Vec3Arg as WgpuVec3Arg,
-} from "wgpu-matrix";
-
+import { mat4 as kmat4, quat as kquat, vec3 as kvec3 } from "./kernel/index.js";
 import { EPSILON } from "./constants.js";
 import { mat4, quat, vec3 } from "./constructors.js";
 import type {
@@ -35,9 +27,7 @@ export function composeTrsMatrix(
   scale: Vec3Like = [1, 1, 1],
   out: Mat4 = mat4(),
 ): Mat4 {
-  wgpuMat4.fromQuat(asWgpuQuatArg(rotation), out);
-  wgpuMat4.scale(out, asWgpuVec3Arg(scale), out);
-  return wgpuMat4.setTranslation(out, asWgpuVec3Arg(translation), out);
+  return kmat4.composeTRS(translation, rotation, scale, out);
 }
 
 export function multiplyMat4(
@@ -45,7 +35,7 @@ export function multiplyMat4(
   b: Mat4Like,
   out: Mat4 = mat4(),
 ): Mat4 {
-  return wgpuMat4.multiply(asWgpuMat4Arg(a), asWgpuMat4Arg(b), out);
+  return kmat4.multiply(a, b, out);
 }
 
 export function decomposeTrsMatrix(matrix: Mat4Like): TransformValues | null {
@@ -61,7 +51,7 @@ export function decomposeTrsMatrix(matrix: Mat4Like): TransformValues | null {
     return null;
   }
 
-  const determinant = wgpuMat4.determinant(asWgpuMat4Arg(matrix));
+  const determinant = kmat4.determinant(matrix);
   const signedScaleX = determinant < 0 ? -scaleX : scaleX;
   const rotationMatrix = mat4();
 
@@ -77,8 +67,8 @@ export function decomposeTrsMatrix(matrix: Mat4Like): TransformValues | null {
   const rotation = quat();
   const scale = vec3(signedScaleX, scaleY, scaleZ);
 
-  wgpuQuat.fromMat(asWgpuMat4Arg(rotationMatrix), rotation);
-  wgpuQuat.normalize(rotation, rotation);
+  kquat.fromMat(rotationMatrix, rotation);
+  kquat.normalize(rotation, rotation);
 
   if (
     !matrixApproximatelyEqual(
@@ -93,14 +83,13 @@ export function decomposeTrsMatrix(matrix: Mat4Like): TransformValues | null {
 }
 
 export function invertMat4(matrix: Mat4Like, out: Mat4 = mat4()): Mat4 | null {
-  const matrixArg = asWgpuMat4Arg(matrix);
-  const determinant = wgpuMat4.determinant(matrixArg);
+  const determinant = kmat4.determinant(matrix);
 
   if (Math.abs(determinant) <= EPSILON) {
     return null;
   }
 
-  return wgpuMat4.inverse(matrixArg, out);
+  return kmat4.inverse(matrix, out);
 }
 
 export function transformPoint(
@@ -108,11 +97,7 @@ export function transformPoint(
   point: Vec3Like,
   out: Vec3 = vec3(),
 ): Vec3 {
-  return wgpuVec3.transformMat4(
-    asWgpuVec3Arg(point),
-    asWgpuMat4Arg(matrix),
-    out,
-  );
+  return kvec3.transformMat4(point, matrix, out);
 }
 
 export function transformVector(
@@ -120,23 +105,7 @@ export function transformVector(
   vector: Vec3Like,
   out: Vec3 = vec3(),
 ): Vec3 {
-  return wgpuVec3.transformMat4Upper3x3(
-    asWgpuVec3Arg(vector),
-    asWgpuMat4Arg(matrix),
-    out,
-  );
-}
-
-function asWgpuMat4Arg(value: Mat4Like): WgpuMat4Arg {
-  return value as WgpuMat4Arg;
-}
-
-function asWgpuQuatArg(value: QuatLike): WgpuQuatArg {
-  return value as WgpuQuatArg;
-}
-
-function asWgpuVec3Arg(value: Vec3Like): WgpuVec3Arg {
-  return value as WgpuVec3Arg;
+  return kvec3.transformMat4Upper3x3(vector, matrix, out);
 }
 
 function isAffineMat4(matrix: Mat4Like): boolean {

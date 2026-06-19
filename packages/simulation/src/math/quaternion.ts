@@ -1,10 +1,8 @@
 import {
-  quat as wgpuQuat,
-  vec3 as wgpuVec3,
-  type RotationOrder as WgpuRotationOrder,
-  type Vec3Arg as WgpuVec3Arg,
-} from "wgpu-matrix";
-
+  quat as kquat,
+  vec3 as kvec3,
+  type RotationOrder as KernelRotationOrder,
+} from "./kernel/index.js";
 import { EPSILON } from "./constants.js";
 import { quat } from "./constructors.js";
 import { v3 } from "./scalars.js";
@@ -32,15 +30,12 @@ export function quatFromAxisAngle(
   const axisLength = Math.hypot(v3(axis, 0), v3(axis, 1), v3(axis, 2));
 
   if (axisLength <= EPSILON) {
-    return quatIdentityTo(out);
+    return kquat.identity(out);
   }
 
-  return wgpuQuat.fromAxisAngle(
-    [
-      v3(axis, 0) / axisLength,
-      v3(axis, 1) / axisLength,
-      v3(axis, 2) / axisLength,
-    ] as WgpuVec3Arg,
+  const inv = 1 / axisLength;
+  return kquat.fromAxisAngle(
+    [v3(axis, 0) * inv, v3(axis, 1) * inv, v3(axis, 2) * inv],
     radians,
     out,
   );
@@ -68,7 +63,7 @@ export function quatMultiply(
 }
 
 export function quatNormalize(value: QuatLike, out: Quat = quat()): Quat {
-  return wgpuQuat.normalize(value, out);
+  return kquat.normalize(value, out);
 }
 
 export function quatFromEuler(
@@ -78,7 +73,7 @@ export function quatFromEuler(
   order: EulerRotationOrder = "YXZ",
   out: Quat = quat(),
 ): Quat {
-  return wgpuQuat.fromEuler(x, y, z, toWgpuRotationOrder(order), out);
+  return kquat.fromEuler(x, y, z, toKernelRotationOrder(order), out);
 }
 
 export function quatFromEulerYXZ(
@@ -97,9 +92,9 @@ export function quatFromEulerYXZ(
 export function rotateVec3ByQuat(
   value: Vec3Like,
   rotation: QuatLike,
-  out: Vec3 = wgpuVec3.create(),
+  out: Vec3 = kvec3.create(),
 ): Vec3 {
-  return wgpuVec3.transformQuat(value, rotation, out);
+  return kvec3.transformQuat(value, rotation, out);
 }
 
 export function quatLookAt(
@@ -114,7 +109,7 @@ export function quatLookAt(
   let zl = Math.hypot(zx, zy, zz);
 
   if (zl <= EPSILON) {
-    return quatIdentityTo(out);
+    return kquat.identity(out);
   }
 
   zx /= zl;
@@ -145,12 +140,8 @@ export function quatLookAt(
   return quatFromBasis(xx, xy, xz, yx, yy, yz, zx, zy, zz, out);
 }
 
-function quatIdentityTo(out: Quat): Quat {
-  return wgpuQuat.identity(out);
-}
-
-function toWgpuRotationOrder(order: EulerRotationOrder): WgpuRotationOrder {
-  return order.toLowerCase() as WgpuRotationOrder;
+function toKernelRotationOrder(order: EulerRotationOrder): KernelRotationOrder {
+  return order.toLowerCase() as KernelRotationOrder;
 }
 
 function q(values: QuatLike, index: number): number {

@@ -1,5 +1,4 @@
-import { vec3 as wgpuVec3, type Vec3Arg as WgpuVec3Arg } from "wgpu-matrix";
-
+import { vec3 as kvec3 } from "./kernel/index.js";
 import { EPSILON } from "./constants.js";
 import { vec3 } from "./constructors.js";
 import { v3 } from "./scalars.js";
@@ -52,19 +51,16 @@ export function intersectRaySphere(
   sphere: BoundingSphere,
   maxDistance = Number.POSITIVE_INFINITY,
 ): RayHit | null {
-  const offset = wgpuVec3.subtract(
-    asWgpuVec3Arg(ray.origin),
-    asWgpuVec3Arg(sphere.center),
-  );
-  const direction = asWgpuVec3Arg(ray.direction);
-  const a = wgpuVec3.dot(direction, direction);
+  const offset = kvec3.subtract(ray.origin, sphere.center);
+  const direction = ray.direction;
+  const a = kvec3.dot(direction, direction);
 
   if (a <= EPSILON) {
     return null;
   }
 
-  const b = 2 * wgpuVec3.dot(offset, direction);
-  const c = wgpuVec3.dot(offset, offset) - sphere.radius * sphere.radius;
+  const b = 2 * kvec3.dot(offset, direction);
+  const c = kvec3.dot(offset, offset) - sphere.radius * sphere.radius;
   const discriminant = b * b - 4 * a * c;
 
   if (discriminant < 0) {
@@ -87,15 +83,6 @@ export function intersectRaySphere(
 function rayHitAt(ray: Ray, distance: number): RayHit {
   return {
     distance,
-    point: wgpuVec3.addScaled(
-      asWgpuVec3Arg(ray.origin),
-      asWgpuVec3Arg(ray.direction),
-      distance,
-      vec3(),
-    ),
+    point: kvec3.addScaled(ray.origin, ray.direction, distance, vec3()),
   };
-}
-
-function asWgpuVec3Arg(value: Ray["origin"]): WgpuVec3Arg {
-  return value as WgpuVec3Arg;
 }

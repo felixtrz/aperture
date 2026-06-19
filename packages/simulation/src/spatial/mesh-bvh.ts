@@ -2334,14 +2334,14 @@ function optionalUv(
     return {};
   }
 
+  const w0 = v3(barycentric, 0);
+  const w1 = v3(barycentric, 1);
+  const w2 = v3(barycentric, 2);
+
   return {
     uv: vec2(
-      v3(barycentric, 0) * a[0] +
-        v3(barycentric, 1) * b[0] +
-        v3(barycentric, 2) * c[0],
-      v3(barycentric, 0) * a[1] +
-        v3(barycentric, 1) * b[1] +
-        v3(barycentric, 2) * c[1],
+      w0 * read(a, 0, "uv") + w1 * read(b, 0, "uv") + w2 * read(c, 0, "uv"),
+      w0 * read(a, 1, "uv") + w1 * read(b, 1, "uv") + w2 * read(c, 1, "uv"),
     ),
   };
 }

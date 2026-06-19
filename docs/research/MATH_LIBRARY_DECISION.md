@@ -1,5 +1,44 @@
 # Math Library Decision Research
 
+> **Addendum — 2026-06-19: superseded by an in-house kernel.**
+>
+> The MVP recommendation below (adopt `wgpu-matrix` as the internal kernel) has
+> been **reversed**. `wgpu-matrix` is small and not widely battle-tested, and we
+> want to own the most important performance surface in the engine. Aperture now
+> ships its own zero-dependency math kernel at
+> `packages/simulation/src/math/kernel/` (TypeScript, `Float32Array`-native,
+> WebGPU conventions). The curated wrapper API is unchanged, so this was a
+> drop-in backend swap; `wgpu-matrix` is now a dev-only dependency used as a
+> test oracle and benchmark baseline.
+>
+> The kernel keeps bit-compatible (to f32) parity with the previous backend on
+> primitives and adds fused fast paths for the engine's transform workload:
+> `mat4.composeTRS`, `mat4.mulAffine`, `mat4.invertAffine`.
+>
+> **Verified performance** (`pnpm run bench:math`, standalone Node, median
+> ops/s; all libraries loaded as native modules for a fair comparison):
+>
+> | Operation | aperture | wgpu-matrix | gl-matrix |
+> |---|---|---|---|
+> | `mat4.multiply` | **20.9M (fastest)** | 19.2M | 20.3M |
+> | `mat4.inverse` (general) | 19.2M (≈tied) | 15.4M | 19.7M |
+> | compose TRS → mat4 | **45.1M (fastest)** | 35.0M (1.29× slower) | 45.0M |
+> | `mat4 × vec3` | **45.4M (fastest)** | 44.7M | 44.7M |
+> | `quat.multiply` | 58.5M (≈tied) | 58.6M | 57.4M |
+> | `quat.fromEuler` | **21.6M (fastest)** | 20.9M | — |
+> | `perspective` (z 0..1) | 70.0M (≈tied) | 69.9M | 69.9M |
+> | `vec3.normalize` | 76.4M | 81.3M (fastest) | 70.7M |
+> | `mulAffine` vs general multiply | **26.4M** | 19.5M (1.35× slower) | — |
+> | `invertAffine` vs general inverse | **29.6M** | 14.9M (~2× slower) | — |
+> | **transform propagation (4096 entities)** | **fastest** | 1.30× slower | 1.09× slower |
+>
+> Net: fastest-or-tied on every core primitive, and decisively fastest on the
+> fused ops and the real per-entity transform-propagation workload — the
+> use case that actually dominates engine frame time. Benchmark source:
+> `scripts/bench-math.mjs`; correctness/parity tests: `test/math/kernel.test.ts`.
+
+---
+
 Date: 2026-05-15
 
 ## Recommendation

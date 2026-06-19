@@ -1,5 +1,4 @@
-import { vec3 as wgpuVec3 } from "wgpu-matrix";
-
+import { vec3 as kvec3 } from "./kernel/index.js";
 import { vec3 } from "./constructors.js";
 import { v3 } from "./scalars.js";
 import type { Vec3, Vec3Like } from "./types.js";
@@ -73,7 +72,7 @@ export function vec3Distance(a: Vec3Like, b: Vec3Like): number {
 }
 
 export function vec3Normalize(value: Vec3Like, out: Vec3 = vec3()): Vec3 {
-  return wgpuVec3.normalize(value, out);
+  return kvec3.normalize(value, out);
 }
 
 export function vec3ProjectOnPlane(
