@@ -2,7 +2,9 @@ import {
   invertMat4,
   makeOrthographic,
   multiplyMat4,
+  toVec3Tuple,
   transformPoint,
+  vec3Dot,
   type Mat4Like,
   type Vec3Like,
 } from "@aperture-engine/simulation";
@@ -300,12 +302,12 @@ function computeDirectionalShadowMatrix(
       : tryFrustumFit(input, plan, direction);
 
   const center =
-    fit?.center ?? tuple3(plan.center ?? input.center ?? DEFAULT_CENTER);
+    fit?.center ?? toVec3Tuple(plan.center ?? input.center ?? DEFAULT_CENTER);
   const distance =
     plan.lightDistance ?? input.lightDistance ?? DEFAULT_LIGHT_DISTANCE;
   const lightPosition =
     fit?.lightPosition ??
-    tuple3([
+    toVec3Tuple([
       center[0] - direction[0] * distance,
       center[1] - direction[1] * distance,
       center[2] - direction[2] * distance,
@@ -406,7 +408,7 @@ function tryFrustumFit(
   // the light source (+zAxis = -direction), matching makeLookAt's basis so the
   // fitted center/eye stay consistent with the view matrix we hand back.
   const zAxis = negate(direction);
-  const requestedUp = input.up ? tuple3(input.up) : ([0, 1, 0] as const);
+  const requestedUp = input.up ? toVec3Tuple(input.up) : ([0, 1, 0] as const);
   let up = requestedUp;
   let xAxis = normalize(cross(up, zAxis));
   if (xAxis === null) {
@@ -459,8 +461,8 @@ function tryFrustumFit(
   const nearCenter = asTuple3(transformPoint(inverseViewProjection, [0, 0, 0]));
   const farCenter = asTuple3(transformPoint(inverseViewProjection, [0, 0, 1]));
 
-  const cameraNear = dot(forward, sub(nearCenter, cameraPosition));
-  const cameraFar = dot(forward, sub(farCenter, cameraPosition));
+  const cameraNear = vec3Dot(forward, sub(nearCenter, cameraPosition));
+  const cameraFar = vec3Dot(forward, sub(farCenter, cameraPosition));
   const depthRange = cameraFar - cameraNear;
   if (!(depthRange > EPSILON)) {
     return null;
@@ -489,9 +491,9 @@ function tryFrustumFit(
   let minW = Infinity;
   let maxW = -Infinity;
   for (const corner of corners) {
-    const u = dot(xAxis, corner);
-    const v = dot(yAxis, corner);
-    const w = dot(zAxis, corner);
+    const u = vec3Dot(xAxis, corner);
+    const v = vec3Dot(yAxis, corner);
+    const w = vec3Dot(zAxis, corner);
     minU = Math.min(minU, u);
     maxU = Math.max(maxU, u);
     minV = Math.min(minV, v);
@@ -630,7 +632,8 @@ function makeLookAt(
     eye[1] - target[1],
     eye[2] - target[2],
   ]);
-  const xAxis = zAxis === null ? null : normalize(cross(tuple3(up), zAxis));
+  const xAxis =
+    zAxis === null ? null : normalize(cross(toVec3Tuple(up), zAxis));
   const yAxis = xAxis === null || zAxis === null ? null : cross(zAxis, xAxis);
 
   if (xAxis === null || yAxis === null || zAxis === null) {
@@ -650,9 +653,9 @@ function makeLookAt(
     yAxis[2],
     zAxis[2],
     0,
-    -dot(xAxis, eye),
-    -dot(yAxis, eye),
-    -dot(zAxis, eye),
+    -vec3Dot(xAxis, eye),
+    -vec3Dot(yAxis, eye),
+    -vec3Dot(zAxis, eye),
     1,
   ];
 }
@@ -784,8 +787,8 @@ function projectAabbToLightSpace(
   readonly minW: number;
   readonly maxW: number;
 } {
-  const min = tuple3(bounds.min);
-  const max = tuple3(bounds.max);
+  const min = toVec3Tuple(bounds.min);
+  const max = toVec3Tuple(bounds.max);
   let minU = Infinity;
   let maxU = -Infinity;
   let minV = Infinity;
@@ -801,9 +804,9 @@ function projectAabbToLightSpace(
           cy === 0 ? min[1] : max[1],
           cz === 0 ? min[2] : max[2],
         ];
-        const u = dot(basis.xAxis, point);
-        const v = dot(basis.yAxis, point);
-        const w = dot(basis.zAxis, point);
+        const u = vec3Dot(basis.xAxis, point);
+        const v = vec3Dot(basis.yAxis, point);
+        const w = vec3Dot(basis.zAxis, point);
         minU = Math.min(minU, u);
         maxU = Math.max(maxU, u);
         minV = Math.min(minV, v);
@@ -832,11 +835,7 @@ function normalize(
     return null;
   }
 
-  return tuple3([value[0] / length, value[1] / length, value[2] / length]);
-}
-
-function tuple3(value: Vec3Like): readonly [number, number, number] {
-  return [value[0], value[1], value[2]];
+  return toVec3Tuple([value[0] / length, value[1] / length, value[2] / length]);
 }
 
 function sanitizeTuple3(
@@ -862,13 +861,6 @@ function cross(
     a[2] * b[0] - a[0] * b[2],
     a[0] * b[1] - a[1] * b[0],
   ];
-}
-
-function dot(
-  a: readonly [number, number, number],
-  b: readonly [number, number, number],
-): number {
-  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
 function negate(

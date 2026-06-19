@@ -1,5 +1,6 @@
 import {
   assetHandleKey,
+  toVec4Tuple,
   type ComponentInitialData,
 } from "@aperture-engine/simulation";
 import {
@@ -17,7 +18,6 @@ import type {
   LightCookie,
   LightShadowSettings,
 } from "./authoring-components.js";
-import { toTuple4 } from "./authoring-utils.js";
 
 export function createCamera(
   input: CameraInput = {},
@@ -30,9 +30,9 @@ export function createCamera(
     near: input.near ?? 0.1,
     far: input.far ?? 1000,
     orthographicHeight: input.orthographicHeight ?? 10,
-    viewport: toTuple4(input.viewport ?? [0, 0, 1, 1]),
-    scissor: toTuple4(input.scissor ?? [0, 0, 1, 1]),
-    clearColor: toTuple4(input.clearColor ?? [0, 0, 0, 1]),
+    viewport: toVec4Tuple(input.viewport ?? [0, 0, 1, 1]),
+    scissor: toVec4Tuple(input.scissor ?? [0, 0, 1, 1]),
+    clearColor: toVec4Tuple(input.clearColor ?? [0, 0, 0, 1]),
     clearDepth: input.clearDepth ?? 1,
     clearStencil: input.clearStencil ?? 0,
     clearFlags: input.clearFlags ?? 3,
@@ -51,7 +51,7 @@ export function createLight(
   return {
     kind: input.kind ?? LightKind.Directional,
     shape: input.shape ?? AreaLightShape.Rect,
-    color: toTuple4(input.color ?? [1, 1, 1, 1]),
+    color: toVec4Tuple(input.color ?? [1, 1, 1, 1]),
     intensity: input.intensity ?? 1,
     range: input.range ?? 10,
     innerConeAngle: input.innerConeAngle ?? Math.PI / 8,

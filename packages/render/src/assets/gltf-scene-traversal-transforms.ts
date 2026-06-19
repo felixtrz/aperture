@@ -1,4 +1,8 @@
-import { decomposeTrsMatrix } from "@aperture-engine/simulation";
+import {
+  decomposeTrsMatrix,
+  toVec3Tuple,
+  toVec4Tuple,
+} from "@aperture-engine/simulation";
 import type {
   GltfNodeLocalTransform,
   GltfSceneTraversalState,
@@ -62,9 +66,9 @@ export function readLocalTransform(input: {
 
     return {
       kind: "trs",
-      translation: tuple3FromArray(decomposed.translation),
-      rotation: tuple4FromArray(decomposed.rotation),
-      scale: tuple3FromArray(decomposed.scale),
+      translation: toVec3Tuple(decomposed.translation),
+      rotation: toVec4Tuple(decomposed.rotation),
+      scale: toVec3Tuple(decomposed.scale),
     };
   }
 
@@ -178,37 +182,6 @@ function tuple16(
     value[14] as number,
     value[15] as number,
   ];
-}
-
-function tuple3FromArray(
-  value: ArrayLike<number>,
-): readonly [number, number, number] {
-  return [
-    readArrayNumber(value, 0),
-    readArrayNumber(value, 1),
-    readArrayNumber(value, 2),
-  ];
-}
-
-function tuple4FromArray(
-  value: ArrayLike<number>,
-): readonly [number, number, number, number] {
-  return [
-    readArrayNumber(value, 0),
-    readArrayNumber(value, 1),
-    readArrayNumber(value, 2),
-    readArrayNumber(value, 3),
-  ];
-}
-
-function readArrayNumber(value: ArrayLike<number>, index: number): number {
-  const item = value[index];
-
-  if (item === undefined) {
-    throw new RangeError(`Expected numeric value at index ${index}.`);
-  }
-
-  return item;
 }
 
 function isFiniteNumber(value: unknown): value is number {
