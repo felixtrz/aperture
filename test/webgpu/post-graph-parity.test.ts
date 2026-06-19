@@ -200,6 +200,7 @@ function postOptions(
   sceneRenderFormat = "rgba8unorm",
   options: {
     readonly msaa?: boolean;
+    readonly overlayCommands?: readonly RenderPassCommand[];
   } = {},
 ): PostOptions {
   const device = fakeDevice(recorder);
@@ -232,6 +233,9 @@ function postOptions(
       format: "rgba8unorm",
     },
     commands: [drawCommand(1)],
+    ...(options.overlayCommands === undefined
+      ? {}
+      : { overlayCommands: options.overlayCommands }),
     depthAttachment: {
       texture: fakeTexture("depth"),
       width: 4,
@@ -363,6 +367,47 @@ describe("post processing graph-vs-legacy parity (M3-T3)", () => {
     expect(recorder.passDescriptors?.[0]).toMatchObject({
       colorAttachments: [],
       depthStencilAttachment: { view: shadowDepthView },
+    });
+  });
+
+  it("folds shadow caster and overlay passes into the post graph", () => {
+    const recorder: Recorder = { submits: 0, encoders: 0, passDescriptors: [] };
+    const shadowDepthView = { label: "shadow-depth-view" };
+    const shadowPass: ShadowCasterGraphPass = {
+      key: "sun:cascade:0",
+      depthView: shadowDepthView,
+      depthLoadOp: "clear",
+      depthStoreOp: "store",
+      depthClearValue: 1,
+      width: 64,
+      height: 64,
+      depthFormat: "depth24plus",
+      commands: [drawCommand(99)],
+    };
+    const result = assembleWebGpuAppPostProcessedSwapchainTarget({
+      ...postOptions(true, recorder, [simpleEffect("fxaa", 10)], "rgba8unorm", {
+        overlayCommands: [drawCommand(200)],
+      }),
+      shadowCasterGraphPasses: [shadowPass],
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).not.toContainEqual(
+      expect.objectContaining({
+        code: "webgpu.postGraph.shadowCasterGraphDeclined",
+      }),
+    );
+    expect(result.graph?.order).toEqual([
+      "post:shadow:sun:cascade:0:post-fg",
+      "post:swapchain:scene",
+      "post:post:0:fxaa",
+      "post:post:ui-overlay",
+    ]);
+    expect(recorder.submits).toBe(1);
+    expect(recorder.encoders).toBe(1);
+    expect(recorder.passDescriptors).toHaveLength(4);
+    expect(recorder.passDescriptors?.[3]).toMatchObject({
+      colorAttachments: [{ loadOp: "load" }],
     });
   });
 

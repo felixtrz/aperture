@@ -7,7 +7,9 @@ import {
 import type { RenderSnapshot } from "@aperture-engine/render";
 import {
   createWebGpuAppResourceCache,
+  createWebGpuBloomPostEffect,
   createWebGpuCopyPostEffect,
+  createWebGpuTonemapPostEffect,
   type RenderPassCommand,
   type WebGpuPostEffect,
 } from "@aperture-engine/webgpu/test-support";
@@ -324,6 +326,91 @@ describe("WebGPU app frame boundary assembly", () => {
     expect(result.occlusionQueryReadbacks).toMatchObject([
       { passName: "main", viewId: 5, renderIds: [6] },
     ]);
+    expect(events).toContain("resolveQuerySet:1");
+  });
+
+  it("keeps post-graph shadows, occlusion, and overlays on the graph route", async () => {
+    const events: string[] = [];
+    const harness = appHarness(events, {
+      occlusionQuerySets: true,
+      postEffects: [
+        createWebGpuBloomPostEffect({
+          id: "bloom",
+          threshold: 0.7,
+          intensity: 0.06,
+          radiusPixels: 2,
+        }),
+        createWebGpuTonemapPostEffect({
+          operator: "aces",
+          exposure: 1,
+        }),
+      ],
+      useFrameGraph: true,
+      sceneRenderFormat: "rgba16float",
+    });
+    const shadowDepthView = { label: "shadow-depth-view" };
+    const shadowPass: ShadowCasterGraphPass = {
+      key: "sun:cascade:0",
+      depthView: shadowDepthView,
+      depthLoadOp: "clear",
+      depthStoreOp: "store",
+      depthClearValue: 1,
+      width: 64,
+      height: 64,
+      depthFormat: "depth24plus",
+      commands: [drawCommand(11)],
+    };
+    const result = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets: new AssetRegistry(),
+      cache: createWebGpuAppResourceCache(),
+      snapshot: appSnapshot([appView({ viewId: 5 }), appView({ viewId: 6 })]),
+      commands: [
+        { kind: "beginOcclusionQuery", renderId: 6, queryIndex: 0 },
+        drawCommand(6),
+        { kind: "endOcclusionQuery", renderId: 6, queryIndex: 0 },
+      ],
+      overlayCommands: [drawCommand(7)],
+      label: "frame",
+      reuse: resourceReuseReport(),
+      shadowCasterGraphPasses: [shadowPass],
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.postEffects).toMatchObject([
+      { effectId: "bloom", ok: true },
+      { effectId: "hdr-tonemap", ok: true },
+    ]);
+    expect(result.occlusionQueryCount).toBe(2);
+    expect(result.occlusionQueryReadbacks).toMatchObject([
+      { passName: "main", viewId: 5, renderIds: [6] },
+      { passName: "main", viewId: 6, renderIds: [6] },
+    ]);
+    expect(result.diagnostics).not.toContainEqual(
+      expect.objectContaining({
+        code: "webgpu.postGraph.shadowCasterGraphDeclined",
+      }),
+    );
+    expect(harness.passDescriptors).toHaveLength(18);
+    expect(harness.passDescriptors[0]).toMatchObject({
+      colorAttachments: [],
+      depthStencilAttachment: { view: shadowDepthView },
+    });
+    expect(harness.passDescriptors[1]).toMatchObject({
+      occlusionQuerySet: expect.anything(),
+    });
+    expect(harness.passDescriptors[2]).toMatchObject({
+      colorAttachments: [],
+      depthStencilAttachment: { view: shadowDepthView },
+    });
+    expect(harness.passDescriptors[3]).toMatchObject({
+      occlusionQuerySet: expect.anything(),
+    });
+    expect(harness.passDescriptors[17]).toMatchObject({
+      colorAttachments: [{ loadOp: "load" }],
+    });
+    expect(events.filter((event) => event === "encoder")).toHaveLength(2);
+    expect(events).toContain("beginOcclusionQuery:0");
     expect(events).toContain("resolveQuerySet:1");
   });
 
@@ -675,6 +762,7 @@ function appHarness(
     readonly useFrameGraph?: boolean;
     readonly postEffects?: readonly WebGpuPostEffect[];
     readonly renderBundles?: boolean;
+    readonly sceneRenderFormat?: string;
   } = {},
 ): {
   readonly app: WebGpuApp;
@@ -799,7 +887,7 @@ function appHarness(
       clamped: false,
       supportedSampleCounts: [1, 4],
     },
-    sceneRenderFormat: "bgra8unorm",
+    sceneRenderFormat: options.sceneRenderFormat ?? "bgra8unorm",
   } as unknown as WebGpuApp;
 
   return { app, passDescriptors };

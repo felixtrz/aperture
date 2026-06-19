@@ -785,14 +785,6 @@ interface PostGraphEffectMeta {
 export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
   options: PostProcessedSwapchainTargetOptions,
 ): WebGpuAppPostProcessedSwapchainTargetResult | null {
-  if (options.present === false) {
-    return null;
-  }
-
-  if ((options.overlayCommands ?? []).length > 0) {
-    return null;
-  }
-
   const requiresMotionVectors = options.effects.some(
     (effect) => effect.requiresMotionVectors === true,
   );
@@ -804,7 +796,6 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
   if (
     (options.indirectColorFormat !== undefined &&
       options.indirectColorFormat !== null) ||
-    options.occlusionQueries !== undefined ||
     options.effects.length === 0 ||
     // M3-T6: the graph path produces motion vectors only as a scene attachment
     // (motionVectorColorFormat set). When motion vectors are required but fall
@@ -920,6 +911,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
 
   const records: PostGraphNodeRecord[] = [];
   const payloads = new Map<string, FrameGraphRenderNodeBoundary>();
+  const overlayCommands = options.overlayCommands ?? [];
 
   const registerNode = (args: {
     readonly name: string;
@@ -930,6 +922,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     readonly commands: readonly RenderPassCommand[];
     readonly colorTargetSource: "current-texture" | "offscreen-target";
     readonly readback?: FrameGraphRenderNodeBoundary["readback"];
+    readonly occlusionQueries?: FrameGraphRenderNodeBoundary["occlusionQueries"];
     // M3-T7: GPU timestamp queries for this node's pass (the scene node carries
     // them, matching the legacy path which times the scene pass) — lets the graph
     // path preserve the gpuTiming diagnostic instead of bailing to legacy.
@@ -976,6 +969,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       colorTargetSource: args.colorTargetSource,
       readbackTexture: plan.texture.texture,
       ...(args.readback === undefined ? {} : { readback: args.readback }),
+      ...(args.occlusionQueries === undefined
+        ? {}
+        : { occlusionQueries: args.occlusionQueries }),
       ...(args.gpuTiming === undefined ? {} : { gpuTiming: args.gpuTiming }),
       ...(args.renderBundle === undefined
         ? {}
@@ -1065,9 +1061,17 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         depthLoadOp: sceneDepthLoadOp,
         depthStoreOp: "store",
       },
+      ...(options.occlusionQueries === undefined
+        ? {}
+        : {
+            occlusionQuerySet: options.occlusionQueries.resources.querySet,
+          }),
     },
     commands: options.commands,
     colorTargetSource: "offscreen-target",
+    ...(options.occlusionQueries === undefined
+      ? {}
+      : { occlusionQueries: options.occlusionQueries }),
     ...(options.gpuTiming === undefined
       ? {}
       : { gpuTiming: options.gpuTiming }),
@@ -1188,247 +1192,285 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     }
   }
 
-  for (
-    let effectIndex = 0;
-    effectIndex < options.effects.length;
-    effectIndex += 1
-  ) {
-    const effect = options.effects[effectIndex];
-    if (effect === undefined) {
-      continue;
-    }
-    const isLast = effectIndex === options.effects.length - 1;
-    const usesColorHistory = effect.requiresColorHistory === true;
-    const effectOutputFormat = isLast ? options.target.format : input.format;
+  if (options.present !== false) {
+    for (
+      let effectIndex = 0;
+      effectIndex < options.effects.length;
+      effectIndex += 1
+    ) {
+      const effect = options.effects[effectIndex];
+      if (effect === undefined) {
+        continue;
+      }
+      const isLast = effectIndex === options.effects.length - 1;
+      const usesColorHistory = effect.requiresColorHistory === true;
+      const effectOutputFormat = isLast ? options.target.format : input.format;
 
-    // A history effect must write its accumulation buffer off-screen (the pool's
-    // current buffer) so the next frame can sample it; it cannot be the final
-    // swapchain write. The graph path declines such a chain to the legacy path.
-    if (usesColorHistory && isLast) {
-      return null;
-    }
-
-    let outputTexture: WebGpuPostPassTextureResource | null = null;
-    let historyForEffect: WebGpuPostPassTextureResource | undefined;
-    let effectHistoryHandle: string | null = null;
-    if (usesColorHistory) {
-      // M3-T6: source this frame's write target (current) and last frame's
-      // history (previous) from the persistent double-buffered pool, replacing
-      // the per-effect ping/pong + closure. The graph owns history.
-      const resolved = resolveWebGpuAppPostPassColorHistory({
-        device: options.app.initialization.device as Parameters<
-          typeof resolveWebGpuAppPostPassColorHistory
-        >[0]["device"],
-        slot: options.cache.postPasses.taaColorHistory,
-        width: options.target.width,
-        height: options.target.height,
-        format: effectOutputFormat,
-        label: `${options.label}:post:${effectIndex}`,
-      });
-      diagnostics.push(...resolved.diagnostics);
-      if (resolved.history === null) {
+      // A history effect must write its accumulation buffer off-screen (the pool's
+      // current buffer) so the next frame can sample it; it cannot be the final
+      // swapchain write. The graph path declines such a chain to the legacy path.
+      if (usesColorHistory && isLast) {
         return null;
       }
-      taaColorHistory = resolved.history;
-      outputTexture = resolved.history.pool.current();
-      historyForEffect = resolved.history.pool.hasPrevious()
-        ? resolved.history.pool.previous()
-        : undefined;
-      effectHistoryHandle = `post:${effectIndex}:color-history`;
-      graph.declareHistory(effectHistoryHandle, {
-        width: options.target.width,
-        height: options.target.height,
-        format: effectOutputFormat,
-        sampleCount: 1,
-      });
-    } else if (!isLast) {
-      const intermediate = createOrReuseWebGpuPostPassTexture({
-        device: options.app.initialization.device as Parameters<
-          typeof createOrReuseWebGpuPostPassTexture
-        >[0]["device"],
-        slot:
-          (effectIndex + options.snapshot.frame) % 2 === 0
-            ? options.cache.postPasses.ping
-            : options.cache.postPasses.pong,
-        width: options.target.width,
-        height: options.target.height,
-        format: effectOutputFormat,
-        label: `${options.label}:post:${effectIndex}:intermediate`,
-      });
-      diagnostics.push(...intermediate.diagnostics);
-      if (!intermediate.valid || intermediate.resource === null) {
-        return null;
-      }
-      outputTexture = intermediate.resource;
-    }
 
-    const prepared = effect.prepare({
-      device: options.app.initialization.device as Parameters<
-        WebGpuPostEffect["prepare"]
-      >[0]["device"],
-      input,
-      outputFormat: effectOutputFormat,
-      width: options.target.width,
-      height: options.target.height,
-      frame: options.snapshot.frame,
-      passIndex: effectIndex,
-      isLast,
-      ...(depthTexture === undefined ? {} : { depth: depthTexture }),
-      ...(motionVectorTexture === null
-        ? {}
-        : { motionVector: motionVectorTexture }),
-      ...(historyForEffect === undefined ? {} : { history: historyForEffect }),
-      ...(outputTexture === null ? {} : { output: outputTexture }),
-      label: `${options.label}:post:${effect.id}`,
-    });
-    diagnostics.push(...prepared.diagnostics);
-
-    const readback =
-      isLast && options.readbackSamples !== undefined
-        ? {
-            format: options.target.format,
-            width: options.target.width,
-            height: options.target.height,
-            samples: options.readbackSamples,
-          }
-        : undefined;
-
-    if (prepared.graph !== undefined) {
-      const passes = prepared.graph.passes;
-      if (passes.length === 0) {
-        return null;
-      }
-      const nodeNames: string[] = [];
-      let passInputHandle = inputHandle;
-      let plannedDrawCalls = 0;
-      let lastOutputResource: WebGpuPostPassTextureResource | null = null;
-      let lastOutput: "swapchain" | "offscreen" = "offscreen";
-
-      for (let passIndex = 0; passIndex < passes.length; passIndex += 1) {
-        const graphPass = passes[passIndex];
-        if (graphPass === undefined) {
-          continue;
-        }
-        diagnostics.push(...graphPass.diagnostics);
-        const isSwapchainPass = graphPass.output === "swapchain";
-        if (!isSwapchainPass && graphPass.outputResource === undefined) {
+      let outputTexture: WebGpuPostPassTextureResource | null = null;
+      let historyForEffect: WebGpuPostPassTextureResource | undefined;
+      let effectHistoryHandle: string | null = null;
+      if (usesColorHistory) {
+        // M3-T6: source this frame's write target (current) and last frame's
+        // history (previous) from the persistent double-buffered pool, replacing
+        // the per-effect ping/pong + closure. The graph owns history.
+        const resolved = resolveWebGpuAppPostPassColorHistory({
+          device: options.app.initialization.device as Parameters<
+            typeof resolveWebGpuAppPostPassColorHistory
+          >[0]["device"],
+          slot: options.cache.postPasses.taaColorHistory,
+          width: options.target.width,
+          height: options.target.height,
+          format: effectOutputFormat,
+          label: `${options.label}:post:${effectIndex}`,
+        });
+        diagnostics.push(...resolved.diagnostics);
+        if (resolved.history === null) {
           return null;
         }
-        const writeHandle = isSwapchainPass
-          ? "swapchain"
-          : `post:${effectIndex}:gp:${passIndex}`;
-        const nodeName = `${options.label}:post:${effectIndex}:${effect.id}:${passIndex}:${graphPass.kind}`;
-        const graphPassOutput = graphPass.outputResource;
-        registerNode({
-          name: nodeName,
-          reads: [passInputHandle],
-          writeHandle,
-          planOptions: {
-            context,
-            ...(isSwapchainPass || graphPassOutput === undefined
-              ? {}
-              : {
-                  colorTarget: {
-                    source: "offscreen-target",
-                    texture: graphPassOutput.texture,
-                  },
-                }),
-            clearColor: [0, 0, 0, 1],
-          },
-          commands: graphPass.commands,
-          colorTargetSource: isSwapchainPass
-            ? "current-texture"
-            : "offscreen-target",
-          ...(isSwapchainPass && readback !== undefined ? { readback } : {}),
+        taaColorHistory = resolved.history;
+        outputTexture = resolved.history.pool.current();
+        historyForEffect = resolved.history.pool.hasPrevious()
+          ? resolved.history.pool.previous()
+          : undefined;
+        effectHistoryHandle = `post:${effectIndex}:color-history`;
+        graph.declareHistory(effectHistoryHandle, {
+          width: options.target.width,
+          height: options.target.height,
+          format: effectOutputFormat,
+          sampleCount: 1,
         });
-        nodeNames.push(nodeName);
-        plannedDrawCalls += countDrawCommands(graphPass.commands);
-        plannedCommands += graphPass.commands.length;
-        drawCalls += countDrawCommands(graphPass.commands);
-        passInputHandle = writeHandle;
-        lastOutput = graphPass.output;
-        lastOutputResource = isSwapchainPass
-          ? null
-          : (graphPass.outputResource ?? null);
+      } else if (!isLast) {
+        const intermediate = createOrReuseWebGpuPostPassTexture({
+          device: options.app.initialization.device as Parameters<
+            typeof createOrReuseWebGpuPostPassTexture
+          >[0]["device"],
+          slot:
+            (effectIndex + options.snapshot.frame) % 2 === 0
+              ? options.cache.postPasses.ping
+              : options.cache.postPasses.pong,
+          width: options.target.width,
+          height: options.target.height,
+          format: effectOutputFormat,
+          label: `${options.label}:post:${effectIndex}:intermediate`,
+        });
+        diagnostics.push(...intermediate.diagnostics);
+        if (!intermediate.valid || intermediate.resource === null) {
+          return null;
+        }
+        outputTexture = intermediate.resource;
       }
 
-      const outputPresent = isLast || lastOutputResource !== null;
+      const prepared = effect.prepare({
+        device: options.app.initialization.device as Parameters<
+          WebGpuPostEffect["prepare"]
+        >[0]["device"],
+        input,
+        outputFormat: effectOutputFormat,
+        width: options.target.width,
+        height: options.target.height,
+        frame: options.snapshot.frame,
+        passIndex: effectIndex,
+        isLast,
+        ...(depthTexture === undefined ? {} : { depth: depthTexture }),
+        ...(motionVectorTexture === null
+          ? {}
+          : { motionVector: motionVectorTexture }),
+        ...(historyForEffect === undefined
+          ? {}
+          : { history: historyForEffect }),
+        ...(outputTexture === null ? {} : { output: outputTexture }),
+        label: `${options.label}:post:${effect.id}`,
+      });
+      diagnostics.push(...prepared.diagnostics);
+
+      const readback =
+        isLast &&
+        overlayCommands.length === 0 &&
+        options.readbackSamples !== undefined
+          ? {
+              format: options.target.format,
+              width: options.target.width,
+              height: options.target.height,
+              samples: options.readbackSamples,
+            }
+          : undefined;
+
+      if (prepared.graph !== undefined) {
+        const passes = prepared.graph.passes;
+        if (passes.length === 0) {
+          return null;
+        }
+        const nodeNames: string[] = [];
+        let passInputHandle = inputHandle;
+        let plannedDrawCalls = 0;
+        let lastOutputResource: WebGpuPostPassTextureResource | null = null;
+        let lastOutput: "swapchain" | "offscreen" = "offscreen";
+
+        for (let passIndex = 0; passIndex < passes.length; passIndex += 1) {
+          const graphPass = passes[passIndex];
+          if (graphPass === undefined) {
+            continue;
+          }
+          diagnostics.push(...graphPass.diagnostics);
+          const isSwapchainPass = graphPass.output === "swapchain";
+          if (!isSwapchainPass && graphPass.outputResource === undefined) {
+            return null;
+          }
+          const writeHandle = isSwapchainPass
+            ? "swapchain"
+            : `post:${effectIndex}:gp:${passIndex}`;
+          const nodeName = `${options.label}:post:${effectIndex}:${effect.id}:${passIndex}:${graphPass.kind}`;
+          const graphPassOutput = graphPass.outputResource;
+          registerNode({
+            name: nodeName,
+            reads: [passInputHandle],
+            writeHandle,
+            planOptions: {
+              context,
+              ...(isSwapchainPass || graphPassOutput === undefined
+                ? {}
+                : {
+                    colorTarget: {
+                      source: "offscreen-target",
+                      texture: graphPassOutput.texture,
+                    },
+                  }),
+              clearColor: [0, 0, 0, 1],
+            },
+            commands: graphPass.commands,
+            colorTargetSource: isSwapchainPass
+              ? "current-texture"
+              : "offscreen-target",
+            ...(isSwapchainPass && readback !== undefined ? { readback } : {}),
+          });
+          nodeNames.push(nodeName);
+          plannedDrawCalls += countDrawCommands(graphPass.commands);
+          plannedCommands += graphPass.commands.length;
+          drawCalls += countDrawCommands(graphPass.commands);
+          passInputHandle = writeHandle;
+          lastOutput = graphPass.output;
+          lastOutputResource = isSwapchainPass
+            ? null
+            : (graphPass.outputResource ?? null);
+        }
+
+        const outputPresent = isLast || lastOutputResource !== null;
+        effectMetas.push({
+          kind: "graph",
+          effectId: prepared.effectId,
+          label: prepared.label,
+          inputLabel: input.label,
+          isLast,
+          nodeNames,
+          preparedOk: prepared.diagnostics.length === 0,
+          outputPresent,
+          output: lastOutput,
+          plannedDrawCalls,
+          graphReport: prepared.graph.report,
+        });
+
+        if (!isLast) {
+          if (lastOutputResource === null) {
+            return null;
+          }
+          input = lastOutputResource;
+          inputHandle = passInputHandle;
+        }
+        continue;
+      }
+
+      // ---- single-boundary effect ----
+      // A history effect writes the pool's 'current' buffer (its declareHistory
+      // handle); other non-last effects write a transient intermediate.
+      const writeHandle = isLast
+        ? "swapchain"
+        : (effectHistoryHandle ?? `post:${effectIndex}`);
+      // A motion-vector consumer reads the scene node's motion target, ordering it
+      // after the scene pass. The history 'previous' buffer is last frame's data,
+      // so it needs no intra-frame read edge.
+      const effectReads =
+        motionVectorHandle !== null && effect.requiresMotionVectors === true
+          ? [inputHandle, motionVectorHandle]
+          : [inputHandle];
+      const nodeName = `${options.label}:post:${effectIndex}:${effect.id}`;
+      registerNode({
+        name: nodeName,
+        reads: effectReads,
+        writeHandle,
+        planOptions: {
+          context,
+          ...(isLast || outputTexture === null
+            ? {}
+            : {
+                colorTarget: {
+                  source: "offscreen-target",
+                  texture: outputTexture.texture,
+                },
+              }),
+          clearColor: [0, 0, 0, 1],
+        },
+        commands: prepared.commands,
+        colorTargetSource: isLast ? "current-texture" : "offscreen-target",
+        ...(isLast && readback !== undefined ? { readback } : {}),
+      });
       effectMetas.push({
-        kind: "graph",
+        kind: "single",
         effectId: prepared.effectId,
         label: prepared.label,
         inputLabel: input.label,
         isLast,
-        nodeNames,
+        nodeNames: [nodeName],
         preparedOk: prepared.diagnostics.length === 0,
-        outputPresent,
-        output: lastOutput,
-        plannedDrawCalls,
-        graphReport: prepared.graph.report,
+        outputPresent: isLast || outputTexture !== null,
+        output: isLast ? "swapchain" : "offscreen",
+        plannedDrawCalls: null,
       });
-
-      if (!isLast) {
-        if (lastOutputResource === null) {
-          return null;
-        }
-        input = lastOutputResource;
-        inputHandle = passInputHandle;
+      plannedCommands += prepared.commands.length;
+      drawCalls += countDrawCommands(prepared.commands);
+      if (!isLast && outputTexture !== null) {
+        input = outputTexture;
+        inputHandle = writeHandle;
       }
-      continue;
     }
+  }
 
-    // ---- single-boundary effect ----
-    // A history effect writes the pool's 'current' buffer (its declareHistory
-    // handle); other non-last effects write a transient intermediate.
-    const writeHandle = isLast
-      ? "swapchain"
-      : (effectHistoryHandle ?? `post:${effectIndex}`);
-    // A motion-vector consumer reads the scene node's motion target, ordering it
-    // after the scene pass. The history 'previous' buffer is last frame's data,
-    // so it needs no intra-frame read edge.
-    const effectReads =
-      motionVectorHandle !== null && effect.requiresMotionVectors === true
-        ? [inputHandle, motionVectorHandle]
-        : [inputHandle];
-    const nodeName = `${options.label}:post:${effectIndex}:${effect.id}`;
+  const overlayNodeName =
+    options.present === false || overlayCommands.length === 0
+      ? null
+      : `${options.label}:post:ui-overlay`;
+
+  if (overlayNodeName !== null) {
     registerNode({
-      name: nodeName,
-      reads: effectReads,
-      writeHandle,
+      name: overlayNodeName,
+      reads: ["swapchain"],
+      writeHandle: "swapchain",
+      writeAttachment: "load",
       planOptions: {
         context,
-        ...(isLast || outputTexture === null
-          ? {}
-          : {
-              colorTarget: {
-                source: "offscreen-target",
-                texture: outputTexture.texture,
-              },
-            }),
-        clearColor: [0, 0, 0, 1],
+        colorLoadOp: "load",
       },
-      commands: prepared.commands,
-      colorTargetSource: isLast ? "current-texture" : "offscreen-target",
-      ...(isLast && readback !== undefined ? { readback } : {}),
+      commands: overlayCommands,
+      colorTargetSource: "current-texture",
+      ...(options.readbackSamples === undefined
+        ? {}
+        : {
+            readback: {
+              format: options.target.format,
+              width: options.target.width,
+              height: options.target.height,
+              samples: options.readbackSamples,
+            },
+          }),
     });
-    effectMetas.push({
-      kind: "single",
-      effectId: prepared.effectId,
-      label: prepared.label,
-      inputLabel: input.label,
-      isLast,
-      nodeNames: [nodeName],
-      preparedOk: prepared.diagnostics.length === 0,
-      outputPresent: isLast || outputTexture !== null,
-      output: isLast ? "swapchain" : "offscreen",
-      plannedDrawCalls: null,
-    });
-    plannedCommands += prepared.commands.length;
-    drawCalls += countDrawCommands(prepared.commands);
-    if (!isLast && outputTexture !== null) {
-      input = outputTexture;
-      inputHandle = writeHandle;
-    }
+    plannedCommands += overlayCommands.length;
+    drawCalls += countDrawCommands(overlayCommands);
   }
 
   // ---- execute the whole post stack in ONE encoder ----
@@ -1511,6 +1553,15 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       ...(shadowEncode?.begin?.diagnostics ?? []),
       ...(shadowEncode?.execution?.diagnostics ?? []),
       ...(shadowEncode?.end?.diagnostics ?? []),
+    );
+  }
+  if (overlayNodeName !== null) {
+    const overlayEncode = encodeByName.get(overlayNodeName);
+    valid &&= (overlayEncode?.valid ?? false) && frameOk;
+    diagnostics.push(
+      ...(overlayEncode?.begin?.diagnostics ?? []),
+      ...(overlayEncode?.execution?.diagnostics ?? []),
+      ...(overlayEncode?.end?.diagnostics ?? []),
     );
   }
 
