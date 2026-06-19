@@ -1,0 +1,25 @@
+{
+  "name": "hero-city",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "aperture": "aperture"
+  },
+  "dependencies": {
+    "@aperture-engine/app": "workspace:*",
+    "@aperture-engine/render": "workspace:*",
+    "@aperture-engine/simulation": "workspace:*",
+    "@aperture-engine/vite-plugin": "workspace:*",
+    "@aperture-engine/webgpu": "workspace:*"
+  },
+  "devDependencies": {
+    "@aperture-engine/cli": "workspace:*",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.13"
+  }
+}
