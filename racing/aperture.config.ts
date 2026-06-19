@@ -8,6 +8,10 @@ import {
 const gltf = (name: string) =>
   asset.gltf(`/models/${name}.glb`, { preload: "blocking" });
 
+const SMOKE_POINT_SIZE_TO_WORLD_SCALE = Math.tan((40 * Math.PI) / 360);
+const smokeColor = hexSrgbToLinearRgba(0x5e5f6b, 0.25);
+const smokeFadeColor = hexSrgbToLinearRgba(0x5e5f6b, 0);
+
 export default defineApertureConfig({
   mode: "browser",
   canvas: "#aperture",
@@ -39,15 +43,22 @@ export default defineApertureConfig({
       duration: 2.5,
       emissionRate: 0,
       lifetime: { min: 2.5, max: 2.5 },
-      startSize: { min: 0.5, max: 1 },
+      // Starter-Kit-Racing authors smoke as THREE.Points. Aperture particles are
+      // world-space billboards, so convert Three's perspective point size to
+      // equivalent world units for the shared 40 degree camera FOV.
+      startSize: {
+        min: 0.5 * SMOKE_POINT_SIZE_TO_WORLD_SCALE,
+        max: 1 * SMOKE_POINT_SIZE_TO_WORLD_SCALE,
+      },
+      linearDamping: 1,
       blendMode: "alpha",
       sizeOverLifetime: [
         { t: 0, value: 0.5 },
         { t: 1, value: 3 },
       ],
       colorOverLifetime: [
-        { t: 0, color: [0x5e / 0xff, 0x5f / 0xff, 0x6b / 0xff, 0.25] },
-        { t: 1, color: [0x5e / 0xff, 0x5f / 0xff, 0x6b / 0xff, 0] },
+        { t: 0, color: smokeColor },
+        { t: 1, color: smokeFadeColor },
       ],
     }),
     engine: asset.audio("/audio/engine.ogg", {
@@ -109,3 +120,21 @@ export default defineApertureConfig({
     level: "info",
   },
 });
+
+function hexSrgbToLinearRgba(
+  hex: number,
+  alpha: number,
+): [number, number, number, number] {
+  return [
+    srgbToLinear(((hex >> 16) & 0xff) / 0xff),
+    srgbToLinear(((hex >> 8) & 0xff) / 0xff),
+    srgbToLinear((hex & 0xff) / 0xff),
+    alpha,
+  ];
+}
+
+function srgbToLinear(value: number): number {
+  return value <= 0.04045
+    ? value / 12.92
+    : ((value + 0.055) / 1.055) ** 2.4;
+}

@@ -41,6 +41,7 @@ export interface ParticleEffectAssetInput {
   readonly startColor?: Vec4Like;
   readonly endColor?: Vec4Like;
   readonly gravity?: Vec3Like;
+  readonly linearDamping?: number;
   readonly blendMode?: SpriteBlendMode;
   readonly texture?: TextureHandle | null;
   readonly sampler?: SamplerHandle | null;
@@ -73,6 +74,7 @@ export interface ParticleEffectAsset {
   readonly startColor: readonly [number, number, number, number];
   readonly endColor: readonly [number, number, number, number];
   readonly gravity: readonly [number, number, number];
+  readonly linearDamping: number;
   readonly blendMode: SpriteBlendMode;
   readonly texture?: TextureHandle | null;
   readonly sampler?: SamplerHandle | null;
@@ -118,6 +120,7 @@ export type ParticleEffectDiagnosticCode =
   | "particleEffect.invalidCapacity"
   | "particleEffect.invalidDuration"
   | "particleEffect.invalidEmissionRate"
+  | "particleEffect.invalidLinearDamping"
   | "particleEffect.invalidBurst"
   | "particleEffect.invalidRange"
   | "particleEffect.invalidAtlasFrameCount"
@@ -170,6 +173,7 @@ export function createParticleEffectAsset(
     startColor: tuple4(input.startColor ?? [1, 1, 1, 1]),
     endColor: tuple4(input.endColor ?? input.startColor ?? [1, 1, 1, 1]),
     gravity: tuple3(input.gravity ?? [0, 0, 0]),
+    linearDamping: input.linearDamping ?? 0,
     blendMode: input.blendMode ?? SpriteBlendMode.Additive,
     ...(input.texture === undefined ? {} : { texture: input.texture }),
     ...(input.sampler === undefined ? {} : { sampler: input.sampler }),
@@ -267,6 +271,20 @@ export function analyzeParticleEffectRuntimeFeatures(
             unsupportedModes: ["continuous"],
             message:
               "Particle gravity is applied by worker-emitted bursts; continuous GPU emitters currently ignore gravity.",
+          }),
+        );
+        break;
+      case "linearDamping":
+        partiallySupportedFields.add(field);
+        diagnostics.push(
+          runtimeFeatureDiagnostic({
+            code: "particleEffect.partiallySupportedFeature",
+            field,
+            severity: "info",
+            supportedModes: ["burst"],
+            unsupportedModes: ["continuous"],
+            message:
+              "Particle linearDamping is applied by worker-emitted bursts; continuous GPU emitters currently ignore damping.",
           }),
         );
         break;
@@ -397,6 +415,11 @@ export function validateParticleEffectAsset(
   validateRange(asset.lifetime, "lifetime", diagnostics);
   validateRange(asset.startSpeed, "startSpeed", diagnostics);
   validateRange(asset.startSize, "startSize", diagnostics);
+  if (!nonNegativeFinite(asset.linearDamping)) {
+    diagnostics.push(
+      diagnostic("particleEffect.invalidLinearDamping", "linearDamping"),
+    );
+  }
   if (!positiveInteger(asset.atlasFrameCount)) {
     diagnostics.push(
       diagnostic("particleEffect.invalidAtlasFrameCount", "atlasFrameCount"),

@@ -299,6 +299,7 @@ describe("GPU particle app frame resources", () => {
         emissionRate: 0,
         lifetime: { min: 1, max: 1 },
         startSize: { min: 0.5, max: 1 },
+        linearDamping: 0.75,
         blendMode: "alpha",
         colorOverLifetime: [
           { t: 0, color: [0.4, 0.4, 0.45, 0.25] },
@@ -410,6 +411,7 @@ describe("GPU particle app frame resources", () => {
         emissionRate: 0,
         lifetime: { min: 1, max: 1 },
         startSize: { min: 0.5, max: 1 },
+        linearDamping: 0.75,
         blendMode: "alpha",
         colorOverLifetime: [
           { t: 0, color: [0.4, 0.4, 0.45, 0.25] },
@@ -484,7 +486,14 @@ describe("GPU particle app frame resources", () => {
     expect(reused.valid).toBe(true);
     expect(reused.report.statesReused).toBeGreaterThanOrEqual(3);
     expect(reusedBatchWrites).toHaveLength(1);
-    expect(paramWrites).toMatchObject([{ size: 84 * 4 }, { size: 84 * 4 }]);
+    expect(paramWrites).toMatchObject([{ size: 88 * 4 }, { size: 88 * 4 }]);
+    const firstParamBytes = bytesUpload(paramWrites[0]);
+    const firstParams = new Float32Array(
+      firstParamBytes.buffer,
+      firstParamBytes.byteOffset,
+      firstParamBytes.byteLength / 4,
+    );
+    expect(firstParams[4]).toBeCloseTo(0.75, 6);
 
     const empty = await prepareParticleFrameResourcesForSnapshot({
       app: createParticleAppContext(fixture.device),

@@ -40,7 +40,8 @@ export interface ActiveParticleBurst {
   readonly effect: ParticleEffectHandle;
   readonly effectVersion: number;
   readonly startFrame: number;
-  readonly ttlFrames: number;
+  readonly startTime: number;
+  readonly ttlSeconds: number;
 }
 
 export interface ParticleBurstQueueOptions {
@@ -64,6 +65,7 @@ export interface ParticleBurstQueue {
   enqueue(request: ParticleBurstRequest): boolean;
   drain(input: {
     readonly frame: number;
+    readonly time: number;
     readonly assets: AssetRegistry;
     readonly diagnostics: RenderDiagnostic[];
   }): readonly ActiveParticleBurst[];
@@ -157,7 +159,8 @@ export function createParticleBurstQueue(
           effect: request.effect,
           effectVersion: effectEntry.version,
           startFrame: input.frame,
-          ttlFrames: particleBurstTtlFrames(effect, request),
+          startTime: input.time,
+          ttlSeconds: particleBurstTtlSeconds(effect, request),
         });
         promoted += 1;
         promotedTotal += 1;
@@ -167,7 +170,7 @@ export function createParticleBurstQueue(
       let writeIndex = 0;
       for (let readIndex = 0; readIndex < active.length; readIndex += 1) {
         const burst = active[readIndex] as ActiveParticleBurst;
-        if (input.frame - burst.startFrame <= burst.ttlFrames) {
+        if (input.time - burst.startTime <= burst.ttlSeconds) {
           active[writeIndex] = burst;
           writeIndex += 1;
         }
@@ -280,17 +283,14 @@ export function particleBurstVelocityRange(
   };
 }
 
-function particleBurstTtlFrames(
+function particleBurstTtlSeconds(
   effect: ParticleEffectAsset,
   request: ParticleBurstRequest,
 ): number {
   const lifetimeSeconds = Math.max(effect.lifetime.max, 0.001);
   const timeScale = Math.max(0.001, finite(request.timeScale ?? 1));
 
-  return Math.max(
-    1,
-    Math.ceil((lifetimeSeconds / timeScale) * DEFAULT_FRAME_RATE) + 2,
-  );
+  return lifetimeSeconds / timeScale + 2 / DEFAULT_FRAME_RATE;
 }
 
 function normalizeRequest(request: ParticleBurstRequest): ParticleBurstRequest {

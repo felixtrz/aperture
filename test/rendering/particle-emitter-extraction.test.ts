@@ -60,6 +60,7 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
     const invalid = createParticleEffectAsset({
       capacity: 0,
       lifetime: { min: 2, max: 1 },
+      linearDamping: -1,
       colorOverLifetime: [],
     });
 
@@ -67,6 +68,9 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
     expect(
       validateParticleEffectAsset(invalid).diagnostics.map((d) => d.code),
     ).toContain("particleEffect.invalidCapacity");
+    expect(
+      validateParticleEffectAsset(invalid).diagnostics.map((d) => d.code),
+    ).toContain("particleEffect.invalidLinearDamping");
   });
 
   it("reports V1 runtime support for every accepted particle effect field", () => {
@@ -84,6 +88,7 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
       "startColor",
       "endColor",
       "gravity",
+      "linearDamping",
       "blendMode",
       "texture",
       "sampler",
@@ -106,6 +111,7 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
       startColor: [1, 0, 0, 1],
       endColor: [0, 0, 1, 0],
       gravity: [0, -1, 0],
+      linearDamping: 0.5,
       blendMode: "alpha",
       texture: createTextureHandle("texture-placeholder"),
       sampler: createSamplerHandle("sampler-placeholder"),
@@ -145,6 +151,7 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
     expect(report.partiallySupportedFields).toEqual([
       "gravity",
       "lifetime",
+      "linearDamping",
       "startSpeed",
     ]);
     expect(report.unsupportedFields).toEqual([

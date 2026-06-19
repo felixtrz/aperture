@@ -480,6 +480,9 @@ export const asset: ApertureConfigAssetHelpers = Object.freeze({
         : { startColor: options.startColor }),
       ...(options.endColor === undefined ? {} : { endColor: options.endColor }),
       ...(options.gravity === undefined ? {} : { gravity: options.gravity }),
+      ...(options.linearDamping === undefined
+        ? {}
+        : { linearDamping: options.linearDamping }),
       ...(options.blendMode === undefined
         ? {}
         : { blendMode: options.blendMode }),

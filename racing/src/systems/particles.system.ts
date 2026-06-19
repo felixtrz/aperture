@@ -1,6 +1,6 @@
 import {
-  clamp,
   createSystem,
+  type SimulationFixedStepContext,
   type SystemParticleEffectAssetHandle,
   type Vec3Tuple as Vec3,
 } from "@aperture-engine/app/systems";
@@ -29,8 +29,8 @@ export default class ParticlesSystem extends createSystem({ priority: 125 }) {
     this.#smoke = this.particles.effect("smoke-effect");
   }
 
-  override update(delta: number): void {
-    if (this.#smoke === null || clampDt(delta) <= 0) {
+  override fixedUpdate(context: SimulationFixedStepContext): void {
+    if (this.#smoke === null || context.fixedDelta <= 0) {
       return;
     }
 
@@ -56,9 +56,4 @@ export default class ParticlesSystem extends createSystem({ priority: 125 }) {
       velocity: VELOCITY,
     });
   }
-}
-
-function clampDt(delta: number): number {
-  if (!Number.isFinite(delta) || delta <= 0) return 0;
-  return clamp(delta, 0, 1 / 30);
 }

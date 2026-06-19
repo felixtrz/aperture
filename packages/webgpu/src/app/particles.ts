@@ -106,8 +106,8 @@ const PARTICLE_COLOR_CURVE_FLOAT_OFFSET =
 const PARTICLE_PARAM_BYTE_LENGTH =
   16 +
   (PARTICLE_COLOR_CURVE_FLOAT_OFFSET + PARTICLE_CURVE_SAMPLE_COUNT * 4) * 4;
-const PARTICLE_BURST_RENDER_PARAM_FLOAT_COUNT = 4 + 4 * 4 + 16 * 4;
-const PARTICLE_BURST_SIZE_CURVE_FLOAT_OFFSET = 4;
+const PARTICLE_BURST_RENDER_PARAM_FLOAT_COUNT = 4 + 4 + 4 * 4 + 16 * 4;
+const PARTICLE_BURST_SIZE_CURVE_FLOAT_OFFSET = 8;
 const PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET =
   PARTICLE_BURST_SIZE_CURVE_FLOAT_OFFSET + PARTICLE_CURVE_SAMPLE_COUNT;
 const PARTICLE_DEFAULT_TEXTURE_CACHE_KEY = "particle:default-white-texture";
@@ -1834,6 +1834,10 @@ function getOrUpdateParticleBurstRenderParams(options: {
   data[1] = options.effect.gravity[0];
   data[2] = options.effect.gravity[1];
   data[3] = options.effect.gravity[2];
+  data[4] = options.effect.linearDamping;
+  data[5] = 0;
+  data[6] = 0;
+  data[7] = 0;
   writeParticleBurstRenderCurveData(data, options.effect);
 
   if (
@@ -1903,6 +1907,8 @@ function createParticleEmitterCpuState(
     startTime: 0,
     lastTime: 0,
     liveCount: 0,
+    maxLifetime: 0,
+    uniformLifetime: false,
   };
 }
 
@@ -1931,6 +1937,15 @@ function updateParticleBurstAnalyticCpuData(options: {
 
   const elapsed = Math.max(0, options.time - options.cpu.startTime);
   const scaledElapsed = elapsed * options.emitter.timeScale;
+  const maxLifetime = Math.max(options.cpu.maxLifetime, 0.001);
+
+  if (options.cpu.uniformLifetime) {
+    const live = scaledElapsed < maxLifetime ? options.cpu.lifetimes.length : 0;
+
+    options.cpu.liveCount = live;
+    return { liveParticles: live, diagnostics: [] };
+  }
+
   let live = 0;
 
   for (let index = 0; index < options.cpu.lifetimes.length; index += 1) {
@@ -2078,6 +2093,10 @@ function initializeParticleBurstCpuState(options: {
     return;
   }
 
+  let maxLifetime = 0;
+  const uniformLifetime =
+    options.effect.lifetime.min === options.effect.lifetime.max;
+
   for (let index = 0; index < options.emitter.capacity; index += 1) {
     const offset = index * 3;
     const r0 = hashUnit(options.emitter.seed ^ (index * 747796405));
@@ -2111,15 +2130,20 @@ function initializeParticleBurstCpuState(options: {
       r4,
     );
     options.cpu.ages[index] = 0;
-    options.cpu.lifetimes[index] = Math.max(
+    const lifetime = Math.max(
       0.001,
       lerp(options.effect.lifetime.min, options.effect.lifetime.max, r3),
     );
+    options.cpu.lifetimes[index] = lifetime;
+    maxLifetime = Math.max(maxLifetime, lifetime);
     options.cpu.baseSizes[index] = Math.max(
       0.001,
       lerp(options.effect.startSize.min, options.effect.startSize.max, r4),
     );
   }
+
+  options.cpu.maxLifetime = maxLifetime;
+  options.cpu.uniformLifetime = uniformLifetime;
 }
 
 function writeParticleBurstCpuBuffer(options: {
@@ -2128,6 +2152,10 @@ function writeParticleBurstCpuBuffer(options: {
   readonly delta: number;
 }): number {
   let live = 0;
+  const dampingFactor =
+    options.effect.linearDamping <= 0
+      ? 1
+      : Math.exp(-options.effect.linearDamping * options.delta);
 
   for (let index = 0; index < options.cpu.ages.length; index += 1) {
     const lifetime = options.cpu.lifetimes[index] ?? 0;
@@ -2149,6 +2177,12 @@ function writeParticleBurstCpuBuffer(options: {
     options.cpu.velocities[sourceOffset + 2] =
       (options.cpu.velocities[sourceOffset + 2] ?? 0) +
       options.effect.gravity[2] * options.delta;
+    options.cpu.velocities[sourceOffset] =
+      (options.cpu.velocities[sourceOffset] ?? 0) * dampingFactor;
+    options.cpu.velocities[sourceOffset + 1] =
+      (options.cpu.velocities[sourceOffset + 1] ?? 0) * dampingFactor;
+    options.cpu.velocities[sourceOffset + 2] =
+      (options.cpu.velocities[sourceOffset + 2] ?? 0) * dampingFactor;
     options.cpu.positions[sourceOffset] =
       (options.cpu.positions[sourceOffset] ?? 0) +
       (options.cpu.velocities[sourceOffset] ?? 0) * options.delta;

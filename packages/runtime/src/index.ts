@@ -240,6 +240,16 @@ export class SpinSystem extends SpinSystemBase {
 export interface SimulationStepResult {
   readonly transform: TransformResolutionReport;
   readonly fixedStep: SimulationFixedStepFrameReport;
+  readonly timing: SimulationStepTimingReport;
+}
+
+export interface SimulationStepTimingReport {
+  readonly totalMilliseconds: number;
+  readonly worldUpdateMilliseconds: number;
+  readonly animationMilliseconds: number;
+  readonly fixedStepMilliseconds: number;
+  readonly transformMilliseconds: number;
+  readonly skeletonMilliseconds: number;
 }
 
 export interface SimulationApp {
@@ -315,23 +325,53 @@ export function createSimulationApp(
       fixedStep.reset();
     },
     step(delta = 0, time = 0) {
+      const timingStartedAt = nowMilliseconds();
+      let timingCursor = timingStartedAt;
+      const markTiming = (): number => {
+        const now = nowMilliseconds();
+        const elapsed = Math.max(0, now - timingCursor);
+
+        timingCursor = now;
+        return elapsed;
+      };
+
       world.update(delta, time);
+      const worldUpdateMilliseconds = markTiming();
       // Advance animation drivers (write joint/node LocalTransforms from the
       // mixer) AFTER user systems and BEFORE world-transform resolution (M2-T8).
       updateAnimationDrivers(world, delta);
+      const animationMilliseconds = markTiming();
       // Fixed-step work runs after frame-rate ECS updates and animation writes,
       // then before transform resolution so physics writeback can affect the
       // extracted render snapshot in the same frame.
       const fixedStepResult = fixedStep.step(delta, time);
+      const fixedStepMilliseconds = markTiming();
       const transform = resolveWorldTransforms(world);
+      const transformMilliseconds = markTiming();
       // Compute skin joint palettes from same-frame resolved world transforms,
       // after resolution and before any extraction (M2-T6).
       updateSkeletonPalettes(world);
-      return { transform, fixedStep: fixedStepResult };
+      const skeletonMilliseconds = markTiming();
+      return {
+        transform,
+        fixedStep: fixedStepResult,
+        timing: {
+          totalMilliseconds: Math.max(0, nowMilliseconds() - timingStartedAt),
+          worldUpdateMilliseconds,
+          animationMilliseconds,
+          fixedStepMilliseconds,
+          transformMilliseconds,
+          skeletonMilliseconds,
+        },
+      };
     },
   };
 
   return app;
+}
+
+function nowMilliseconds(): number {
+  return typeof performance === "undefined" ? Date.now() : performance.now();
 }
 
 export function createExtractionApp(
@@ -346,15 +386,29 @@ export function createExtractionApp(
   // Output stays byte-identical to a cold extraction (writeback tracks entity
   // versions); the cache stores derived packet data only, never live ECS refs.
   const cache = createRenderExtractionCache();
+  let currentTime = 0;
 
   return {
     ...app,
+    step(delta = 0, time = 0) {
+      currentTime = time;
+      return app.step(delta, time);
+    },
     extract(frame = 0) {
-      return extractRenderSnapshot(app.world, app.assets, { frame, cache });
+      return extractRenderSnapshot(app.world, app.assets, {
+        frame,
+        time: currentTime,
+        cache,
+      });
     },
     stepAndExtract(delta = 0, time = 0, frame = 0) {
+      currentTime = time;
       app.step(delta, time);
-      return extractRenderSnapshot(app.world, app.assets, { frame, cache });
+      return extractRenderSnapshot(app.world, app.assets, {
+        frame,
+        time,
+        cache,
+      });
     },
   };
 }

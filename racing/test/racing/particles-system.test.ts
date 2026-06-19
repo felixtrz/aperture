@@ -47,10 +47,12 @@ describe("racing smoke particles", () => {
               emissionRate: 0,
               lifetime: { min: 2.5, max: 2.5 },
               startSize: { min: 0.5, max: 1 },
+              linearDamping: 1,
               blendMode: "alpha",
             }),
           },
         }),
+        fixedStep: { fixedDelta: 1 / 60 },
         systems: [{ default: DriftSetupSystem }, { default: ParticlesSystem }],
       });
 

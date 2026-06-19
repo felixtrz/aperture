@@ -44,6 +44,7 @@ export {
 
 export interface RenderExtractionOptions {
   readonly frame?: number;
+  readonly time?: number;
   readonly cache?: RenderExtractionCache;
 }
 
@@ -145,7 +146,7 @@ export function extractRenderSnapshot(
           fogs,
           viewCullContexts,
           viewCullSignature,
-          undefined,
+          options.cache,
           {
             frustumCull: false,
             requireShadowCaster: true,
@@ -169,6 +170,7 @@ export function extractRenderSnapshot(
     world,
     assets,
     options.frame ?? 0,
+    options.time ?? 0,
     transforms,
     bounds,
     diagnostics,

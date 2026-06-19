@@ -223,6 +223,7 @@ struct ParticleBurstData {
 
 struct ParticleBurstParams {
   timeGravity: vec4f,
+  motion: vec4f,
   sizeCurve: array<vec4f, 4>,
   colorCurve: array<vec4f, 16>,
 };
@@ -283,6 +284,23 @@ fn sampleColorCurve(life: f32) -> vec4f {
   return mix(params.colorCurve[lower], params.colorCurve[upper], fract(scaled));
 }
 
+fn particleDisplacement(
+  velocity: vec3f,
+  gravity: vec3f,
+  age: f32,
+  damping: f32,
+) -> vec3f {
+  if (damping <= 0.0001) {
+    return velocity * age + 0.5 * gravity * age * age;
+  }
+
+  let decay = exp(-damping * age);
+  let invDamping = 1.0 / damping;
+  let velocityTerm = velocity * ((1.0 - decay) * invDamping);
+  let gravityTerm = gravity * (age * invDamping - (1.0 - decay) * invDamping * invDamping);
+  return velocityTerm + gravityTerm;
+}
+
 @vertex
 fn vs_main(
   @builtin(vertex_index) vertexIndex: u32,
@@ -293,7 +311,12 @@ fn vs_main(
   let age = max(0.0, params.timeGravity.x - particle.originBirthTime.w) * particle.baseSizeTimeScale.y;
   let lifeT = clamp(age / lifetime, 0.0, 1.0);
   let alive = select(0.0, 1.0, age < lifetime);
-  let position = particle.originBirthTime.xyz + particle.velocityLifetime.xyz * age + 0.5 * params.timeGravity.yzw * age * age;
+  let position = particle.originBirthTime.xyz + particleDisplacement(
+    particle.velocityLifetime.xyz,
+    params.timeGravity.yzw,
+    age,
+    params.motion.x
+  );
   let size = max(0.0, particle.baseSizeTimeScale.x * sampleSizeCurve(lifeT) * alive);
   let local = quadPosition(vertexIndex) * size;
   let forwardRaw = view.cameraPosition.xyz - position;

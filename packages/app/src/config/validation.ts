@@ -322,6 +322,9 @@ function validateParticleEffectAssetDescriptor(
       ...(descriptor.gravity === undefined
         ? {}
         : { gravity: descriptor.gravity }),
+      ...(descriptor.linearDamping === undefined
+        ? {}
+        : { linearDamping: descriptor.linearDamping }),
       ...(descriptor.blendMode === undefined
         ? {}
         : { blendMode: descriptor.blendMode }),

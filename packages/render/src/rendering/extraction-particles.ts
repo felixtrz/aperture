@@ -55,6 +55,7 @@ export function extractParticleEmitters(
   world: EcsWorld,
   assets: AssetRegistry,
   frame: number,
+  time: number,
   transforms: number[],
   bounds: BoundsPacket[],
   diagnostics: RenderDiagnostic[],
@@ -246,12 +247,13 @@ export function extractParticleEmitters(
       {
         assets,
         frame,
+        time,
         transforms,
         bounds,
         diagnostics,
         cameraLayerMask,
         viewCullContexts,
-        bursts: burstQueue.drain({ frame, assets, diagnostics }),
+        bursts: burstQueue.drain({ frame, time, assets, diagnostics }),
       },
       packets,
     );
@@ -264,6 +266,7 @@ function extractParticleBursts(
   input: {
     readonly assets: AssetRegistry;
     readonly frame: number;
+    readonly time: number;
     readonly transforms: number[];
     readonly bounds: BoundsPacket[];
     readonly diagnostics: RenderDiagnostic[];
@@ -440,18 +443,21 @@ function createAutomaticParticleBurstBoundsPacket(input: {
     input.velocityRange.min[0],
     input.velocityRange.max[0],
     input.effect.gravity[0],
+    input.effect.linearDamping,
     lifetime,
   );
   const y = particleDisplacementRange(
     input.velocityRange.min[1],
     input.velocityRange.max[1],
     input.effect.gravity[1],
+    input.effect.linearDamping,
     lifetime,
   );
   const z = particleDisplacementRange(
     input.velocityRange.min[2],
     input.velocityRange.max[2],
     input.effect.gravity[2],
+    input.effect.linearDamping,
     lifetime,
   );
   const worldAabb: Aabb = {
@@ -623,22 +629,48 @@ function particleDisplacementRange(
   velocityMin: number,
   velocityMax: number,
   gravity: number,
+  damping: number,
   lifetime: number,
 ): { readonly min: number; readonly max: number } {
   const candidates = [
     0,
-    particleDisplacement(velocityMin, gravity, lifetime),
-    particleDisplacement(velocityMax, gravity, lifetime),
+    particleDisplacement(velocityMin, gravity, damping, lifetime),
+    particleDisplacement(velocityMax, gravity, damping, lifetime),
   ];
 
-  if (gravity !== 0) {
+  if (damping <= 0 && gravity !== 0) {
     const turningMin = -velocityMin / gravity;
     const turningMax = -velocityMax / gravity;
     if (turningMin > 0 && turningMin < lifetime) {
-      candidates.push(particleDisplacement(velocityMin, gravity, turningMin));
+      candidates.push(
+        particleDisplacement(velocityMin, gravity, damping, turningMin),
+      );
     }
     if (turningMax > 0 && turningMax < lifetime) {
-      candidates.push(particleDisplacement(velocityMax, gravity, turningMax));
+      candidates.push(
+        particleDisplacement(velocityMax, gravity, damping, turningMax),
+      );
+    }
+  } else if (damping > 0) {
+    const turningMin = particleDampedTurningTime(
+      velocityMin,
+      gravity,
+      damping,
+    );
+    const turningMax = particleDampedTurningTime(
+      velocityMax,
+      gravity,
+      damping,
+    );
+    if (turningMin > 0 && turningMin < lifetime) {
+      candidates.push(
+        particleDisplacement(velocityMin, gravity, damping, turningMin),
+      );
+    }
+    if (turningMax > 0 && turningMax < lifetime) {
+      candidates.push(
+        particleDisplacement(velocityMax, gravity, damping, turningMax),
+      );
     }
   }
 
@@ -651,9 +683,41 @@ function particleDisplacementRange(
 function particleDisplacement(
   velocity: number,
   gravity: number,
+  damping: number,
   time: number,
 ): number {
-  return velocity * time + 0.5 * gravity * time * time;
+  if (damping <= 0) {
+    return velocity * time + 0.5 * gravity * time * time;
+  }
+
+  const decay = Math.exp(-damping * time);
+  const invDamping = 1 / damping;
+  return (
+    velocity * (1 - decay) * invDamping +
+    gravity * (time * invDamping - (1 - decay) * invDamping * invDamping)
+  );
+}
+
+function particleDampedTurningTime(
+  velocity: number,
+  gravity: number,
+  damping: number,
+): number {
+  if (damping <= 0 || gravity === 0) {
+    return Number.NaN;
+  }
+
+  const denominator = gravity - damping * velocity;
+  if (denominator === 0) {
+    return Number.NaN;
+  }
+
+  const ratio = gravity / denominator;
+  if (ratio <= 0 || ratio >= 1) {
+    return Number.NaN;
+  }
+
+  return -Math.log(ratio) / damping;
 }
 
 function particleBurstBoundsCenter(

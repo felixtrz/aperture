@@ -30,12 +30,16 @@ describe("particle burst queue", () => {
       timeScale: 0.5,
     });
 
-    const slowBursts = queue.drain({ frame: 0, assets, diagnostics });
+    const slowBursts = queue.drain({ frame: 0, time: 0, assets, diagnostics });
     expect(slowBursts).toHaveLength(1);
-    expect(slowBursts[0]?.ttlFrames).toBe(122);
+    expect(slowBursts[0]?.ttlSeconds).toBeCloseTo(2 + 2 / 60, 6);
 
-    expect(queue.drain({ frame: 122, assets, diagnostics })).toHaveLength(1);
-    expect(queue.drain({ frame: 123, assets, diagnostics })).toHaveLength(0);
+    expect(
+      queue.drain({ frame: 122, time: 2 + 2 / 60, assets, diagnostics }),
+    ).toHaveLength(1);
+    expect(
+      queue.drain({ frame: 123, time: 2.04, assets, diagnostics }),
+    ).toHaveLength(0);
 
     queue.enqueue({
       effect,
@@ -44,11 +48,20 @@ describe("particle burst queue", () => {
       timeScale: 2,
     });
 
-    const fastBursts = queue.drain({ frame: 200, assets, diagnostics });
+    const fastBursts = queue.drain({
+      frame: 200,
+      time: 10,
+      assets,
+      diagnostics,
+    });
     expect(fastBursts).toHaveLength(1);
-    expect(fastBursts[0]?.ttlFrames).toBe(32);
-    expect(queue.drain({ frame: 232, assets, diagnostics })).toHaveLength(1);
-    expect(queue.drain({ frame: 233, assets, diagnostics })).toHaveLength(0);
+    expect(fastBursts[0]?.ttlSeconds).toBeCloseTo(0.5 + 2 / 60, 6);
+    expect(
+      queue.drain({ frame: 232, time: 10.5 + 2 / 60, assets, diagnostics }),
+    ).toHaveLength(1);
+    expect(
+      queue.drain({ frame: 233, time: 10.54, assets, diagnostics }),
+    ).toHaveLength(0);
     expect(diagnostics).toEqual([]);
   });
 });
