@@ -7,6 +7,9 @@ import {
   cameraOffset,
 } from "../lib/city-data.js";
 
+const CITY_SHADOW_MAP_SIZE = 2048;
+const CITY_SHADOW_ORTHOGRAPHIC_SIZE = GRID_HALF_EXTENT * 2 * Math.SQRT2 + 4;
+
 // Static scene: the isometric camera (driven each frame by camera.system), the
 // sun + ambient fill (main.tscn Sun + main-environment.tres), and the ground
 // plane the placement ray intersects.
@@ -33,7 +36,24 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       name: "Sun",
       kind: "directional",
       illuminance: 2.2,
-      shadow: true,
+      // The city tiles are large, flat shadow receivers. The `shadow: true`
+      // shorthand uses zero bias, which produces receiver acne as long bands on
+      // grass/road tops. Author a fixed city-sized shadow box and modest bias
+      // instead, matching how this Godot scene treats shadows as a soft accent.
+      shadow: {
+        enabled: true,
+        mapSize: CITY_SHADOW_MAP_SIZE,
+        bias: 0.0005,
+        normalBias: 0.055,
+        slopeBias: 1.5,
+        strength: 0.75,
+        filterRadius: 1.5,
+        center: [0, 0, 0],
+        orthographicSize: CITY_SHADOW_ORTHOGRAPHIC_SIZE,
+        near: 1,
+        far: 90,
+        lightDistance: 45,
+      },
       transform: {
         rotationEulerDegrees: [-55, -35, 0],
       },
