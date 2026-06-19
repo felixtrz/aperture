@@ -11,6 +11,7 @@ import {
   DIR_LIGHT,
   FOG_HEX,
   HEMI_LIGHT,
+  POINT_LIGHT,
   SPAWN_POS,
   VEHICLE_ROOT_SCALE,
 } from "../lib/tuning.js";
@@ -71,7 +72,19 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     });
   }
 
+  // One shadow-casting light at a time keeps the shadow shape unambiguous.
+  // `?light=point` swaps the directional sun for a cube-map point light; the
+  // page-URL param is forwarded into startOptions by the generated bootstrap.
   #spawnLights(): void {
+    if (this.startOptions.string("light") === "point") {
+      this.#spawnPointLight();
+    } else {
+      this.#spawnDirectionalLight();
+    }
+    this.#spawnAmbient();
+  }
+
+  #spawnDirectionalLight(): void {
     this.spawn.light({
       key: "light.sun",
       name: "sun",
@@ -87,7 +100,30 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         normalBias: 0.05,
       },
     });
+  }
 
+  #spawnPointLight(): void {
+    this.spawn.light({
+      key: "light.point",
+      name: "point-light",
+      kind: "point",
+      color: hexColor(POINT_LIGHT.colorHex),
+      intensity: POINT_LIGHT.intensity,
+      // `range` lives on LightInput (controls falloff + cube-shadow far plane).
+      light: { range: POINT_LIGHT.range },
+      transform: { translation: POINT_LIGHT.position },
+      shadow: {
+        // Cube-map shadow: near/far are derived from the light range by the
+        // renderer, so only resolution + filtering are authored here.
+        mapSize: POINT_LIGHT.shadowMapSize,
+        shadowType: 1,
+        filterRadius: POINT_LIGHT.shadowRadius,
+        normalBias: 0.05,
+      },
+    });
+  }
+
+  #spawnAmbient(): void {
     const sky = hexColor(HEMI_LIGHT.skyHex);
     const ground = hexColor(HEMI_LIGHT.groundHex);
     const skyBias = 0.85;

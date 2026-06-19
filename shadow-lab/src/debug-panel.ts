@@ -450,10 +450,13 @@ async function buildTransformSection(
     el("div", { className: "sl-section" }, [
       el("div", { className: "sl-label", textContent: "Transform" }),
       select,
+      // Quick-jumps for the racing static scene. "sun" exists in directional
+      // mode and "point-light" in `?light=point`; the missing one harmlessly
+      // falls back to the first entity.
       el("div", { className: "sl-btnrow", style: "margin-bottom:8px" }, [
-        quick("cube"),
+        quick("player"),
         quick("sun"),
-        quick("ground"),
+        quick("point-light"),
       ]),
       tx.row,
       ty.row,
@@ -470,5 +473,5 @@ async function buildTransformSection(
     ]),
   );
 
-  await populate("cube");
+  await populate("player");
 }

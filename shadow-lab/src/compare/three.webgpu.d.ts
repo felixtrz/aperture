@@ -19,6 +19,7 @@ export const MeshStandardMaterial: any;
 export const Object3D: any;
 export const PCFSoftShadowMap: any;
 export const PerspectiveCamera: any;
+export const PointLight: any;
 export const RenderPipeline: any;
 export const Scene: any;
 export const SphereGeometry: any;

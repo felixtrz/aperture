@@ -17,6 +17,7 @@ import {
   DIR_LIGHT,
   FOG_HEX,
   HEMI_LIGHT,
+  POINT_LIGHT,
   SPAWN_POS,
   VEHICLE_ROOT_SCALE,
 } from "../lib/tuning.js";
@@ -31,6 +32,7 @@ import {
   decodeCells,
   type DecorationInstance,
   type GridCell,
+  type TrackBounds,
 } from "../lib/track.js";
 
 interface DevtoolsResponse {
@@ -181,6 +183,14 @@ function layout(): {
   };
 }
 
+type LightMode = "directional" | "point";
+
+function resolveLightMode(): LightMode {
+  return new URLSearchParams(window.location.search).get("light") === "point"
+    ? "point"
+    : "directional";
+}
+
 function resolvePageTrack(): {
   readonly cells: readonly GridCell[];
   readonly customMap: boolean;
@@ -242,6 +252,37 @@ async function buildScene(): Promise<{
   const playerRoot = buildPlayer(scene, models);
   buildBloomProbe(scene);
 
+  if (resolveLightMode() === "point") {
+    buildPointLight(scene);
+  } else {
+    buildSun(scene, bounds);
+  }
+
+  // Aperture currently approximates the reference HemisphereLight as a single
+  // sky-biased ambient light. Keep the reference pane on the same fill model so
+  // this view isolates render/shadow/post differences instead of light-model drift.
+  const skyBias = 0.85;
+  const sky = new THREE.Color(HEMI_LIGHT.skyHex);
+  const ground = new THREE.Color(HEMI_LIGHT.groundHex);
+  const ambient = new THREE.AmbientLight(
+    new THREE.Color(
+      sky.r * skyBias + ground.r * (1 - skyBias),
+      sky.g * skyBias + ground.g * (1 - skyBias),
+      sky.b * skyBias + ground.b * (1 - skyBias),
+    ),
+    HEMI_LIGHT.intensity,
+  );
+  scene.add(ambient);
+
+  return { scene, playerRoot };
+}
+
+// Mirrors SetupSystem.#spawnDirectionalLight: a shadow-casting sun with a
+// fixed ortho box sized to the track bounds.
+function buildSun(
+  scene: typeof THREE.Scene.prototype,
+  bounds: TrackBounds,
+): void {
   const shadowExtent = Math.max(bounds.halfWidth, bounds.halfDepth) + 10;
   const sun = new THREE.DirectionalLight(
     DIR_LIGHT.colorHex,
@@ -262,24 +303,27 @@ async function buildScene(): Promise<{
   shadowCamera.updateProjectionMatrix();
   sun.shadow.radius = DIR_LIGHT.shadowRadius;
   scene.add(sun);
+}
 
-  // Aperture currently approximates the reference HemisphereLight as a single
-  // sky-biased ambient light. Keep the reference pane on the same fill model so
-  // this view isolates render/shadow/post differences instead of light-model drift.
-  const skyBias = 0.85;
-  const sky = new THREE.Color(HEMI_LIGHT.skyHex);
-  const ground = new THREE.Color(HEMI_LIGHT.groundHex);
-  const ambient = new THREE.AmbientLight(
-    new THREE.Color(
-      sky.r * skyBias + ground.r * (1 - skyBias),
-      sky.g * skyBias + ground.g * (1 - skyBias),
-      sky.b * skyBias + ground.b * (1 - skyBias),
-    ),
-    HEMI_LIGHT.intensity,
+// Mirrors SetupSystem.#spawnPointLight: a cube-map shadow point light. decay 0
+// + distance = range matches Aperture's range-window falloff zero-crossing so
+// the diff isolates the shadow, not the (model-divergent) brightness curve.
+function buildPointLight(scene: typeof THREE.Scene.prototype): void {
+  const point = new THREE.PointLight(
+    POINT_LIGHT.colorHex,
+    POINT_LIGHT.intensity,
+    POINT_LIGHT.range,
+    0,
   );
-  scene.add(ambient);
-
-  return { scene, playerRoot };
+  point.position.set(...POINT_LIGHT.position);
+  point.castShadow = true;
+  point.shadow.mapSize.setScalar(POINT_LIGHT.shadowMapSize);
+  // Aperture derives the cube-face near/far from the light range; match it.
+  point.shadow.camera.near = Math.max(POINT_LIGHT.range / 1000, 0.01);
+  point.shadow.camera.far = POINT_LIGHT.range;
+  point.shadow.camera.updateProjectionMatrix();
+  point.shadow.radius = POINT_LIGHT.shadowRadius;
+  scene.add(point);
 }
 
 function buildTrack(
