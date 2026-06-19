@@ -4,12 +4,7 @@ import {
   quat as wgpuQuat,
   vec3 as wgpuVec3,
 } from "wgpu-matrix";
-import {
-  mat4,
-  quat,
-  vec3,
-  vec4,
-} from "../../packages/simulation/src/math/kernel/index.js";
+import { mat4, quat, vec3, vec4 } from "@aperture-engine/math/kernel";
 
 // Parity tolerance: kernel and wgpu-matrix both compute in f32, so results match
 // to well within 5 decimal places. The fused ops are checked against the same
@@ -181,10 +176,7 @@ describe("math kernel — fused fast paths", () => {
       expect(inv).not.toBeNull();
       expectArrayClose(inv as Float32Array, mat4.inverse(m));
       // Round-trip: m * m⁻¹ ≈ identity.
-      expectArrayClose(
-        mat4.multiply(m, inv as Float32Array),
-        mat4.identity(),
-      );
+      expectArrayClose(mat4.multiply(m, inv as Float32Array), mat4.identity());
     }
   });
 

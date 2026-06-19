@@ -12,11 +12,17 @@ This package is part of the [Aperture](https://github.com/felixtrz/aperture) eng
 
 ## What it does
 
-`@aperture-engine/simulation` is the headless, DOM-free heart of Aperture. It wraps the [`elics`](https://www.npmjs.com/package/elics) ECS with change-version tracking and adds the engine's authoritative data model: transform components (local/world matrices, parent/child hierarchy), an asset registry with handles and collections, an in-house WebGPU-first 3D math kernel (zero third-party dependencies; see below), spatial acceleration (BVH), scene/prefab serialization, and diagnostics. Because it has no rendering or browser dependencies, it runs identically on the main thread, in a worker, or in tests.
+`@aperture-engine/simulation` is the headless, DOM-free heart of Aperture. It wraps the [`elics`](https://www.npmjs.com/package/elics) ECS with change-version tracking and adds the engine's authoritative data model: transform components (local/world matrices, parent/child hierarchy), an asset registry with handles and collections, spatial acceleration (BVH), scene/prefab serialization, and diagnostics. Because it has no rendering or browser dependencies, it runs identically on the main thread, in a worker, or in tests.
 
-### Math kernel
+### Math
 
-The math layer is a zero-dependency, `Float32Array`-native kernel (`src/math/kernel/`) plus a curated, ergonomic wrapper. It targets WebGPU conventions by default (column-major matrices, clip-space depth `0..1`, `[x, y, z, w]` quaternions) and is allocation-free on hot paths via output-parameter ops. It ships fused fast paths tuned for the engine's transform workload — `composeTRS`, `mulAffine`, `invertAffine` — and is benchmarked against `wgpu-matrix` and `gl-matrix` (run `pnpm run bench:math`). On the per-entity transform-propagation workload it is ~1.3× faster than the `wgpu-matrix` backend it replaced, and fastest-or-tied across the core primitives.
+3D math lives in its own zero-dependency package, [`@aperture-engine/math`](../math) — a `Float32Array`-native, WebGPU-first kernel with fused transform fast paths (`composeTRS`, `mulAffine`, `invertAffine`), benchmarked as the fastest option for the engine's transform workload. For convenience the entire math surface is **re-exported** from `@aperture-engine/simulation`, so existing imports keep working:
+
+```ts
+import { composeTrsMatrix, makePerspective, Vec3 } from "@aperture-engine/simulation";
+// …or import it directly:
+import { composeTrsMatrix } from "@aperture-engine/math";
+```
 
 ## Usage
 

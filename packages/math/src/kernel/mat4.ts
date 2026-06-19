@@ -274,13 +274,7 @@ export function inverse(mIn: NumArray, dst?: Mat4): Mat4 {
   const b11 = a22 * a33 - a23 * a32;
 
   const det =
-    1 /
-    (b00 * b11 -
-      b01 * b10 +
-      b02 * b09 +
-      b03 * b08 -
-      b04 * b07 +
-      b05 * b06);
+    1 / (b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06);
 
   d[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;
   d[1] = (a02 * b10 - a01 * b11 - a03 * b09) * det;

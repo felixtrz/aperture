@@ -1,18 +1,20 @@
-import { vec2, vec3 } from "../math/constructors.js";
-import { transformAabb } from "../math/bounds.js";
-import { EPSILON } from "../math/constants.js";
-import { intersectRayAabb } from "../math/ray.js";
-import { read, v3 } from "../math/scalars.js";
-import type {
-  Aabb,
-  BoundingSphere,
-  Frustum,
-  Mat4Like,
-  Ray,
-  Vec2,
-  Vec3,
-  Vec3Like,
-} from "../math/types.js";
+import {
+  EPSILON,
+  intersectRayAabb,
+  read,
+  transformAabb,
+  v3,
+  vec2,
+  vec3,
+  type Aabb,
+  type BoundingSphere,
+  type Frustum,
+  type Mat4Like,
+  type Ray,
+  type Vec2,
+  type Vec3,
+  type Vec3Like,
+} from "@aperture-engine/math";
 
 export type MeshBvhBuildStrategy = "center" | "average" | "sah";
 export type BvhShapeIntersection =

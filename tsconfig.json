@@ -1,6 +1,7 @@
 {
   "files": [],
   "references": [
+    { "path": "./packages/math" },
     { "path": "./packages/simulation" },
     { "path": "./packages/render" },
     { "path": "./packages/runtime" },

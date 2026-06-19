@@ -6,6 +6,7 @@
   "commit": false,
   "fixed": [
     [
+      "@aperture-engine/math",
       "@aperture-engine/simulation",
       "@aperture-engine/physics",
       "@aperture-engine/physics-rapier",

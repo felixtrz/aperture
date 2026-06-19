@@ -106,7 +106,7 @@ export function quatLookAt(
   let zx = v3(eye, 0) - v3(target, 0);
   let zy = v3(eye, 1) - v3(target, 1);
   let zz = v3(eye, 2) - v3(target, 2);
-  let zl = Math.hypot(zx, zy, zz);
+  const zl = Math.hypot(zx, zy, zz);
 
   if (zl <= EPSILON) {
     return kquat.identity(out);

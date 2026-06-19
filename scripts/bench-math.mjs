@@ -15,12 +15,8 @@ import {
   mat4 as amat4,
   quat as aquat,
   vec3 as avec3,
-} from "../packages/simulation/dist/math/kernel/index.js";
-import {
-  mat4 as wmat4,
-  quat as wquat,
-  vec3 as wvec3,
-} from "wgpu-matrix";
+} from "../packages/math/dist/kernel/index.js";
+import { mat4 as wmat4, quat as wquat, vec3 as wvec3 } from "wgpu-matrix";
 import { mat4 as gmat4, quat as gquat, vec3 as gvec3 } from "gl-matrix";
 
 const MICRO_ITERS = 2_000_000;
@@ -122,7 +118,10 @@ group("quat.fromEuler", [
 group("perspective (WebGPU z 0..1)", [
   ["aperture", () => amat4.perspective(1.2, 1.7778, 0.1, 1000, m4)],
   ["wgpu-matrix", () => wmat4.perspective(1.2, 1.7778, 0.1, 1000, m4)],
-  ["gl-matrix (perspectiveZO)", () => gmat4.perspectiveZO(m4, 1.2, 1.7778, 0.1, 1000)],
+  [
+    "gl-matrix (perspectiveZO)",
+    () => gmat4.perspectiveZO(m4, 1.2, 1.7778, 0.1, 1000),
+  ],
 ]);
 
 group("vec3.normalize", [
@@ -153,7 +152,7 @@ const world = new Float32Array(N * 16);
 const root = amat4.composeTRS([2, 0, -1], qa, [1, 1, 1]);
 {
   let s = 0x12345 >>> 0;
-  const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 0xffffffff);
+  const rand = () => (s = (s * 1664525 + 1013904223) >>> 0) / 0xffffffff;
   for (let i = 0; i < N; i += 1) {
     translations[i * 3] = rand() * 20 - 10;
     translations[i * 3 + 1] = rand() * 20 - 10;
@@ -237,8 +236,11 @@ for (const g of groups) {
   const best = g.results[0].hz;
   for (const r of g.results) {
     const rel = best / r.hz;
-    const tag = r === g.results[0] ? "  ← fastest" : `  ${rel.toFixed(2)}× slower`;
-    console.log(`  ${r.label.padEnd(46)} ${fmt(r.hz).padStart(14)} ops/s${tag}`);
+    const tag =
+      r === g.results[0] ? "  ← fastest" : `  ${rel.toFixed(2)}× slower`;
+    console.log(
+      `  ${r.label.padEnd(46)} ${fmt(r.hz).padStart(14)} ops/s${tag}`,
+    );
   }
 }
 console.log("");

@@ -5,10 +5,11 @@
 > The MVP recommendation below (adopt `wgpu-matrix` as the internal kernel) has
 > been **reversed**. `wgpu-matrix` is small and not widely battle-tested, and we
 > want to own the most important performance surface in the engine. Aperture now
-> ships its own zero-dependency math kernel at
-> `packages/simulation/src/math/kernel/` (TypeScript, `Float32Array`-native,
-> WebGPU conventions). The curated wrapper API is unchanged, so this was a
-> drop-in backend swap; `wgpu-matrix` is now a dev-only dependency used as a
+> ships its own zero-dependency math package, **`@aperture-engine/math`** at
+> `packages/math/` (TypeScript, `Float32Array`-native, WebGPU conventions), with
+> a raw kernel subpath at `@aperture-engine/math/kernel`. The curated wrapper API
+> is unchanged and is re-exported from `@aperture-engine/simulation`, so this was
+> a drop-in backend swap; `wgpu-matrix` is now a dev-only dependency used as a
 > test oracle and benchmark baseline.
 >
 > The kernel keeps bit-compatible (to f32) parity with the previous backend on

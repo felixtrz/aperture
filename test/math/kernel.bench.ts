@@ -5,11 +5,7 @@ import {
   vec3 as wgpuVec3,
 } from "wgpu-matrix";
 import { mat4 as glMat4, quat as glQuat, vec3 as glVec3 } from "gl-matrix";
-import {
-  mat4,
-  quat,
-  vec3,
-} from "../../packages/simulation/src/math/kernel/index.js";
+import { mat4, quat, vec3 } from "@aperture-engine/math/kernel";
 
 // Concrete, reproducible benchmarks behind the "fastest 3D math for aperture's
 // use case" claim. Each `describe` group races the aperture kernel against
@@ -46,7 +42,7 @@ const P = vec3.create(0.7, -1.3, 2.6);
 const m4 = new Float32Array(16);
 const v3 = new Float32Array(3);
 const q4 = new Float32Array(4);
-let sink = 0;
+const sink = 0;
 
 describe("mat4.multiply", () => {
   bench("aperture", () => void mat4.multiply(A, B, m4), BENCH);
@@ -62,15 +58,27 @@ describe("mat4.inverse (general)", () => {
 
 describe("compose TRS → mat4", () => {
   // aperture: single fused pass.
-  bench("aperture (fused composeTRS)", () => void mat4.composeTRS(ta, qa, sa, m4), BENCH);
+  bench(
+    "aperture (fused composeTRS)",
+    () => void mat4.composeTRS(ta, qa, sa, m4),
+    BENCH,
+  );
   // wgpu-matrix: the three-call sequence the fused op replaces.
-  bench("wgpu-matrix (fromQuat+scale+setTranslation)", () => {
-    wgpuMat4.fromQuat(qa, m4);
-    wgpuMat4.scale(m4, sa, m4);
-    wgpuMat4.setTranslation(m4, ta, m4);
-  }, BENCH);
+  bench(
+    "wgpu-matrix (fromQuat+scale+setTranslation)",
+    () => {
+      wgpuMat4.fromQuat(qa, m4);
+      wgpuMat4.scale(m4, sa, m4);
+      wgpuMat4.setTranslation(m4, ta, m4);
+    },
+    BENCH,
+  );
   // gl-matrix: its dedicated fused helper.
-  bench("gl-matrix (fromRotationTranslationScale)", () => void glMat4.fromRotationTranslationScale(m4, qa, ta, sa), BENCH);
+  bench(
+    "gl-matrix (fromRotationTranslationScale)",
+    () => void glMat4.fromRotationTranslationScale(m4, qa, ta, sa),
+    BENCH,
+  );
 });
 
 describe("mat4 × vec3 (transform point)", () => {
@@ -86,14 +94,34 @@ describe("quat.multiply", () => {
 });
 
 describe("quat.fromEuler", () => {
-  bench("aperture", () => void quat.fromEuler(0.3, -0.7, 1.1, "xyz", q4), BENCH);
-  bench("wgpu-matrix", () => void wgpuQuat.fromEuler(0.3, -0.7, 1.1, "xyz", q4), BENCH);
+  bench(
+    "aperture",
+    () => void quat.fromEuler(0.3, -0.7, 1.1, "xyz", q4),
+    BENCH,
+  );
+  bench(
+    "wgpu-matrix",
+    () => void wgpuQuat.fromEuler(0.3, -0.7, 1.1, "xyz", q4),
+    BENCH,
+  );
 });
 
 describe("perspective (WebGPU z 0..1)", () => {
-  bench("aperture", () => void mat4.perspective(1.2, 1.7778, 0.1, 1000, m4), BENCH);
-  bench("wgpu-matrix", () => void wgpuMat4.perspective(1.2, 1.7778, 0.1, 1000, m4), BENCH);
-  bench("gl-matrix (perspectiveZO)", () => void glMat4.perspectiveZO(m4, 1.2, 1.7778, 0.1, 1000), BENCH);
+  bench(
+    "aperture",
+    () => void mat4.perspective(1.2, 1.7778, 0.1, 1000, m4),
+    BENCH,
+  );
+  bench(
+    "wgpu-matrix",
+    () => void wgpuMat4.perspective(1.2, 1.7778, 0.1, 1000, m4),
+    BENCH,
+  );
+  bench(
+    "gl-matrix (perspectiveZO)",
+    () => void glMat4.perspectiveZO(m4, 1.2, 1.7778, 0.1, 1000),
+    BENCH,
+  );
 });
 
 describe("vec3.normalize", () => {
@@ -105,13 +133,25 @@ describe("vec3.normalize", () => {
 // --- Aperture-specific fused fast paths (the use-case win) -------------------
 
 describe("affine multiply: fused vs general", () => {
-  bench("aperture mulAffine (fast path)", () => void mat4.mulAffine(A, B, m4), BENCH);
-  bench("aperture multiply (general)", () => void mat4.multiply(A, B, m4), BENCH);
+  bench(
+    "aperture mulAffine (fast path)",
+    () => void mat4.mulAffine(A, B, m4),
+    BENCH,
+  );
+  bench(
+    "aperture multiply (general)",
+    () => void mat4.multiply(A, B, m4),
+    BENCH,
+  );
   bench("wgpu-matrix multiply", () => void wgpuMat4.multiply(A, B, m4), BENCH);
 });
 
 describe("affine inverse: fused vs general", () => {
-  bench("aperture invertAffine (fast path)", () => void mat4.invertAffine(A, m4), BENCH);
+  bench(
+    "aperture invertAffine (fast path)",
+    () => void mat4.invertAffine(A, m4),
+    BENCH,
+  );
   bench("aperture inverse (general)", () => void mat4.inverse(A, m4), BENCH);
   bench("wgpu-matrix inverse", () => void wgpuMat4.inverse(A, m4), BENCH);
 });
@@ -131,7 +171,7 @@ const root = mat4.composeTRS([2, 0, -1], qa, [1, 1, 1]);
 {
   // Seed deterministic per-entity transforms.
   let s = 0x12345 >>> 0;
-  const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 0xffffffff);
+  const rand = () => (s = (s * 1664525 + 1013904223) >>> 0) / 0xffffffff;
   for (let i = 0; i < N; i += 1) {
     translations[i * 3] = rand() * 20 - 10;
     translations[i * 3 + 1] = rand() * 20 - 10;
@@ -172,31 +212,56 @@ function loadEntity(i: number): void {
 }
 
 describe(`transform propagation (${N} entities: compose TRS + parent multiply)`, () => {
-  bench("aperture (composeTRS + mulAffine)", () => {
-    for (let i = 0; i < N; i += 1) {
-      loadEntity(i);
-      mat4.composeTRS(tScratch, qScratch, sScratch, localScratch);
-      mat4.mulAffine(root, localScratch, world.subarray(i * 16, i * 16 + 16));
-    }
-  }, BENCH);
+  bench(
+    "aperture (composeTRS + mulAffine)",
+    () => {
+      for (let i = 0; i < N; i += 1) {
+        loadEntity(i);
+        mat4.composeTRS(tScratch, qScratch, sScratch, localScratch);
+        mat4.mulAffine(root, localScratch, world.subarray(i * 16, i * 16 + 16));
+      }
+    },
+    BENCH,
+  );
 
-  bench("wgpu-matrix (fromQuat+scale+setTranslation + multiply)", () => {
-    for (let i = 0; i < N; i += 1) {
-      loadEntity(i);
-      wgpuMat4.fromQuat(qScratch, localScratch);
-      wgpuMat4.scale(localScratch, sScratch, localScratch);
-      wgpuMat4.setTranslation(localScratch, tScratch, localScratch);
-      wgpuMat4.multiply(root, localScratch, world.subarray(i * 16, i * 16 + 16));
-    }
-  }, BENCH);
+  bench(
+    "wgpu-matrix (fromQuat+scale+setTranslation + multiply)",
+    () => {
+      for (let i = 0; i < N; i += 1) {
+        loadEntity(i);
+        wgpuMat4.fromQuat(qScratch, localScratch);
+        wgpuMat4.scale(localScratch, sScratch, localScratch);
+        wgpuMat4.setTranslation(localScratch, tScratch, localScratch);
+        wgpuMat4.multiply(
+          root,
+          localScratch,
+          world.subarray(i * 16, i * 16 + 16),
+        );
+      }
+    },
+    BENCH,
+  );
 
-  bench("gl-matrix (fromRotationTranslationScale + multiply)", () => {
-    for (let i = 0; i < N; i += 1) {
-      loadEntity(i);
-      glMat4.fromRotationTranslationScale(localScratch, qScratch, tScratch, sScratch);
-      glMat4.multiply(world.subarray(i * 16, i * 16 + 16), root, localScratch);
-    }
-  }, BENCH);
+  bench(
+    "gl-matrix (fromRotationTranslationScale + multiply)",
+    () => {
+      for (let i = 0; i < N; i += 1) {
+        loadEntity(i);
+        glMat4.fromRotationTranslationScale(
+          localScratch,
+          qScratch,
+          tScratch,
+          sScratch,
+        );
+        glMat4.multiply(
+          world.subarray(i * 16, i * 16 + 16),
+          root,
+          localScratch,
+        );
+      }
+    },
+    BENCH,
+  );
 });
 
 // Keep `sink` observable so nothing is dead-code-eliminated.

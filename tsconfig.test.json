@@ -30,6 +30,8 @@
         "packages/render/src/test-support.ts"
       ],
       "@aperture-engine/runtime": ["packages/runtime/src/index.ts"],
+      "@aperture-engine/math": ["packages/math/src/index.ts"],
+      "@aperture-engine/math/kernel": ["packages/math/src/kernel/index.ts"],
       "@aperture-engine/simulation": ["packages/simulation/src/index.ts"],
       "@aperture-engine/vite-plugin": ["packages/vite-plugin/src/index.ts"],
       "@aperture-engine/webgpu/test-support": [

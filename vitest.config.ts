@@ -4,6 +4,18 @@ export default defineConfig({
   resolve: {
     alias: [
       {
+        find: "@aperture-engine/math/kernel",
+        replacement: new URL(
+          "./packages/math/src/kernel/index.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
+        find: "@aperture-engine/math",
+        replacement: new URL("./packages/math/src/index.ts", import.meta.url)
+          .pathname,
+      },
+      {
         find: "@aperture-engine/app/config",
         replacement: new URL("./packages/app/src/config.ts", import.meta.url)
           .pathname,
