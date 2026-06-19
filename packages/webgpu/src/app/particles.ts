@@ -122,6 +122,19 @@ interface ParticleTextureSampler {
 
 interface PreparedParticleEmitterRecord {
   readonly emitter: ParticleEmitterPacket;
+  readonly effectKey: string;
+  readonly effect: ParticleEffectAsset;
+  readonly renderPipeline: {
+    readonly getBindGroupLayout: (group: number) => unknown;
+  };
+  readonly renderPipelineResource: NonNullable<
+    CreateParticleRenderPipelineResourceResult["resource"]
+  >;
+  readonly textureSampler: ParticleTextureSampler;
+}
+
+interface PreparedParticleEmitterFrameResources {
+  readonly effectKey: string;
   readonly effect: ParticleEffectAsset;
   readonly renderPipeline: {
     readonly getBindGroupLayout: (group: number) => unknown;
@@ -459,109 +472,47 @@ async function createParticleFrameResources(options: {
     string,
     CreateParticleRenderPipelineResourceResult
   >();
+  const emitterResourceFrameCache = new Map<
+    string,
+    PreparedParticleEmitterFrameResources | null
+  >();
   const units: ParticleFrameUnit[] = [];
   let activeBurstGroup: ParticleBurstBatchUnit | null = null;
 
   for (const emitter of options.snapshot.particleEmitters ?? []) {
-    const effectEntry = options.assets.get<
-      "particle-effect",
-      ParticleEffectAsset
-    >(emitter.effect);
-    const effect = effectEntry?.asset;
+    const burstBatchable = isBatchableParticleBurst(emitter);
+    const prepared = await prepareParticleEmitterFrameResources({
+      app: options.app,
+      assets: options.assets,
+      cache: options.cache,
+      device,
+      emitter,
+      burstBatchable,
+      reuse,
+      diagnostics,
+      renderPipelineFrameCache,
+      textureSamplerFrameCache,
+      emitterResourceFrameCache,
+    });
+
+    if (prepared === null) {
+      continue;
+    }
 
     if (
-      effectEntry?.status !== "ready" ||
-      effect === undefined ||
-      effect === null
+      prepared.effect.texture !== undefined &&
+      prepared.effect.texture !== null
     ) {
-      diagnostics.push({
-        code: "particleFrame.effectNotReady",
-        message: `Particle effect '${assetHandleKey(emitter.effect)}' is not ready.`,
-      });
-      continue;
-    }
-
-    const burstBatchable = isBatchableParticleBurst(emitter);
-    const renderPipelineFrameKey = `${effect.blendMode}:${burstBatchable ? "burst" : "computed"}`;
-    let renderPipelineResult = renderPipelineFrameCache.get(
-      renderPipelineFrameKey,
-    );
-
-    if (renderPipelineResult === undefined) {
-      const pipelineResult = burstBatchable
-        ? getOrCreateWebGpuAppParticleBurstRenderPipeline(
-            options.app,
-            options.cache,
-            effect.blendMode,
-          )
-        : getOrCreateWebGpuAppParticleRenderPipeline(
-            options.app,
-            options.cache,
-            effect.blendMode,
-          );
-      renderPipelineResult = isPromiseLike(pipelineResult)
-        ? await pipelineResult
-        : pipelineResult;
-      renderPipelineFrameCache.set(
-        renderPipelineFrameKey,
-        renderPipelineResult,
-      );
-    }
-
-    if (!renderPipelineResult.valid || renderPipelineResult.resource === null) {
-      diagnostics.push(...renderPipelineResult.diagnostics);
-      continue;
-    }
-
-    const renderPipelineResource = renderPipelineResult.resource;
-    const renderPipeline = renderPipelineResource.pipeline as {
-      readonly getBindGroupLayout?: (group: number) => unknown;
-    };
-
-    if (renderPipeline.getBindGroupLayout === undefined) {
-      diagnostics.push({
-        code: "particleFrame.missingBindGroupSupport",
-        message: "Particle render pipeline does not expose bind-group layouts.",
-      });
-      continue;
-    }
-    const renderPipelineWithLayouts = renderPipeline as {
-      readonly getBindGroupLayout: (group: number) => unknown;
-    };
-
-    const textureSamplerCacheKey = particleTextureSamplerFrameCacheKey(effect);
-    let textureSampler: ParticleTextureSampler | null =
-      textureSamplerFrameCache.get(textureSamplerCacheKey) ?? null;
-
-    if (textureSampler === null) {
-      textureSampler = prepareParticleTextureSamplerResources({
-        assets: options.assets,
-        cache: options.cache,
-        device,
-        effect,
-        reuse,
-        diagnostics,
-      });
-
-      if (textureSampler !== null) {
-        textureSamplerFrameCache.set(textureSamplerCacheKey, textureSampler);
-      }
-    }
-
-    if (textureSampler === null) {
-      continue;
-    }
-
-    if (effect.texture !== undefined && effect.texture !== null) {
       mutableReport.texturedEmitters += 1;
     }
 
     const record: PreparedParticleEmitterRecord = {
       emitter,
-      effect,
-      renderPipeline: renderPipelineWithLayouts,
-      renderPipelineResource,
-      textureSampler,
+      effectKey: prepared.effectKey,
+      effect: prepared.effect,
+      renderPipeline: prepared.renderPipeline,
+      renderPipelineResource: prepared.renderPipelineResource,
+      textureSampler: prepared.textureSampler,
     };
 
     if (burstBatchable) {
@@ -782,6 +733,139 @@ async function createParticleFrameResources(options: {
   };
 }
 
+async function prepareParticleEmitterFrameResources(options: {
+  readonly app: WebGpuAppParticleContext;
+  readonly assets: AssetRegistry;
+  readonly cache: WebGpuAppResourceCache;
+  readonly device: unknown;
+  readonly emitter: ParticleEmitterPacket;
+  readonly burstBatchable: boolean;
+  readonly reuse: AppTextureSamplerResourceReuseReport;
+  readonly diagnostics: unknown[];
+  readonly renderPipelineFrameCache: Map<
+    string,
+    CreateParticleRenderPipelineResourceResult
+  >;
+  readonly textureSamplerFrameCache: Map<string, ParticleTextureSampler>;
+  readonly emitterResourceFrameCache: Map<
+    string,
+    PreparedParticleEmitterFrameResources | null
+  >;
+}): Promise<PreparedParticleEmitterFrameResources | null> {
+  const effectKey = assetHandleKey(options.emitter.effect);
+  const cacheKey = `${effectKey}@${options.emitter.effectVersion}:${options.burstBatchable ? "burst" : "computed"}`;
+  const cached = options.emitterResourceFrameCache.get(cacheKey);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const effectEntry = options.assets.get<
+    "particle-effect",
+    ParticleEffectAsset
+  >(options.emitter.effect);
+  const effect = effectEntry?.asset;
+
+  if (
+    effectEntry?.status !== "ready" ||
+    effect === undefined ||
+    effect === null
+  ) {
+    options.diagnostics.push({
+      code: "particleFrame.effectNotReady",
+      message: `Particle effect '${effectKey}' is not ready.`,
+    });
+    options.emitterResourceFrameCache.set(cacheKey, null);
+    return null;
+  }
+
+  const renderPipelineFrameKey = `${effect.blendMode}:${options.burstBatchable ? "burst" : "computed"}`;
+  let renderPipelineResult = options.renderPipelineFrameCache.get(
+    renderPipelineFrameKey,
+  );
+
+  if (renderPipelineResult === undefined) {
+    const pipelineResult = options.burstBatchable
+      ? getOrCreateWebGpuAppParticleBurstRenderPipeline(
+          options.app,
+          options.cache,
+          effect.blendMode,
+        )
+      : getOrCreateWebGpuAppParticleRenderPipeline(
+          options.app,
+          options.cache,
+          effect.blendMode,
+        );
+    renderPipelineResult = isPromiseLike(pipelineResult)
+      ? await pipelineResult
+      : pipelineResult;
+    options.renderPipelineFrameCache.set(
+      renderPipelineFrameKey,
+      renderPipelineResult,
+    );
+  }
+
+  if (!renderPipelineResult.valid || renderPipelineResult.resource === null) {
+    options.diagnostics.push(...renderPipelineResult.diagnostics);
+    options.emitterResourceFrameCache.set(cacheKey, null);
+    return null;
+  }
+
+  const renderPipelineResource = renderPipelineResult.resource;
+  const renderPipeline = renderPipelineResource.pipeline as {
+    readonly getBindGroupLayout?: (group: number) => unknown;
+  };
+
+  if (renderPipeline.getBindGroupLayout === undefined) {
+    options.diagnostics.push({
+      code: "particleFrame.missingBindGroupSupport",
+      message: "Particle render pipeline does not expose bind-group layouts.",
+    });
+    options.emitterResourceFrameCache.set(cacheKey, null);
+    return null;
+  }
+
+  const textureSamplerCacheKey = particleTextureSamplerFrameCacheKey(effect);
+  let textureSampler: ParticleTextureSampler | null =
+    options.textureSamplerFrameCache.get(textureSamplerCacheKey) ?? null;
+
+  if (textureSampler === null) {
+    textureSampler = prepareParticleTextureSamplerResources({
+      assets: options.assets,
+      cache: options.cache,
+      device: options.device,
+      effect,
+      reuse: options.reuse,
+      diagnostics: options.diagnostics,
+    });
+
+    if (textureSampler !== null) {
+      options.textureSamplerFrameCache.set(
+        textureSamplerCacheKey,
+        textureSampler,
+      );
+    }
+  }
+
+  if (textureSampler === null) {
+    options.emitterResourceFrameCache.set(cacheKey, null);
+    return null;
+  }
+
+  const prepared = {
+    effectKey,
+    effect,
+    renderPipeline: renderPipeline as {
+      readonly getBindGroupLayout: (group: number) => unknown;
+    },
+    renderPipelineResource,
+    textureSampler,
+  };
+
+  options.emitterResourceFrameCache.set(cacheKey, prepared);
+  return prepared;
+}
+
 function isBatchableParticleBurst(emitter: ParticleEmitterPacket): boolean {
   return (
     emitter.mode === "burst" &&
@@ -813,7 +897,7 @@ function particleBurstBatchUnitKey(
 
   return [
     "particle-burst-batch",
-    `effect:${assetHandleKey(emitter.effect)}@${emitter.effectVersion}`,
+    `effect:${record.effectKey}@${emitter.effectVersion}`,
     `pipeline:${record.renderPipelineResource.cacheKey}`,
     `texture:${textureSampler.textureKey}`,
     `sampler:${textureSampler.samplerKey}`,
