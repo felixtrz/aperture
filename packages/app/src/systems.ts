@@ -378,6 +378,7 @@ export type {
   SpawnFogOptions,
   SpawnGltfBatchInstance,
   SpawnGltfBatchOptions,
+  SpawnGltfMaterialOverrides,
   SpawnGltfOptions,
   SpawnLightOptions,
   SpawnMeshOptions,

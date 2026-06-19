@@ -6,6 +6,7 @@ import type {
   ParticleEmitterInput,
   RenderStateDescriptor,
   SkyboxInput,
+  StandardMaterialPatch,
 } from "@aperture-engine/render";
 import type {
   ColliderInput,
@@ -256,9 +257,7 @@ export interface SpawnGltfBatchOptions {
   readonly instances: readonly SpawnGltfBatchInstance[];
 }
 
-export interface SpawnGltfMaterialOverrides {
-  readonly renderState?: Partial<RenderStateDescriptor>;
-}
+export interface SpawnGltfMaterialOverrides extends StandardMaterialPatch {}
 
 export interface SpawnPrefabOptions extends SpawnMetadata {
   /** Per-field override of the instance root's local transform. */

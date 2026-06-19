@@ -177,7 +177,10 @@ function sourceFromGltfEntityKey(
 function hasMaterialOverrides(
   overrides: SpawnGltfMaterialOverrides | undefined,
 ): overrides is SpawnGltfMaterialOverrides {
-  return overrides?.renderState !== undefined;
+  return (
+    overrides !== undefined &&
+    Object.values(overrides).some((value) => value !== undefined)
+  );
 }
 
 function cloneGltfMaterialForSpawn(input: {
@@ -242,26 +245,21 @@ function patchMaterialAsset(
   material: SourceMaterialAsset,
   overrides: SpawnGltfMaterialOverrides,
 ): SourceMaterialAsset | null {
-  if (overrides.renderState === undefined) {
-    return material;
-  }
-
-  const patch = { renderState: overrides.renderState };
   switch (builtInMaterialKind(material)) {
     case "standard":
       return patchStandardMaterial(
         material as Extract<MaterialAsset, { readonly kind: "standard" }>,
-        patch,
+        overrides,
       );
     case "unlit":
       return patchUnlitMaterial(
         material as Extract<MaterialAsset, { readonly kind: "unlit" }>,
-        patch,
+        overrides,
       );
     case "matcap":
       return patchMatcapMaterial(
         material as Extract<MaterialAsset, { readonly kind: "matcap" }>,
-        patch,
+        overrides,
       );
     default:
       return null;

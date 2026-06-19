@@ -5,6 +5,7 @@ import {
   quatFromEulerYXZ,
   type Entity,
   type InputButtonAction,
+  type SpawnGltfMaterialOverrides,
   type Vec3Tuple as Vec3,
 } from "@aperture-engine/app/systems";
 import type { EcsEntityRef } from "@aperture-engine/app/config";
@@ -29,6 +30,17 @@ const PREVIEW_HOVER_Y = 0.35; // floats clearly above the surface (a held ghost)
 const PREVIEW_BOB_AMPLITUDE = 0.08;
 const PREVIEW_BOB_RATE = 3.5;
 const SELECTOR_TILE_Y = 0.03;
+const PREVIEW_MATERIALS: SpawnGltfMaterialOverrides = {
+  baseColorFactor: [0.25, 0.9, 1, 0.38],
+  emissiveFactor: [0.06, 0.22, 0.28],
+  roughnessFactor: 0.85,
+  renderState: {
+    alphaMode: "blend",
+    cullMode: "none",
+    depth: { test: true, write: false, compare: "less" },
+    blend: { preset: "alpha" },
+  },
+};
 const ONE_SHOT_VOICES = 12;
 const PLACEMENT_CLIPS = [
   "placement-a",
@@ -49,6 +61,7 @@ export default class BuilderSystem extends createSystem({ priority: 20 }) {
   #cash = STARTING_CASH;
 
   #pointer: [number, number] = [0.5, 0.5];
+  #hasPointer = false;
   #selectorPos: Vec3 = [0, 0, 0];
   #cellX = 0;
   #cellZ = 0;
@@ -79,7 +92,6 @@ export default class BuilderSystem extends createSystem({ priority: 20 }) {
       },
       transform: { translation: [0, SELECTOR_TILE_Y, 0] },
     });
-    this.#spawnPreview();
     this.#publish();
   }
 
@@ -93,6 +105,7 @@ export default class BuilderSystem extends createSystem({ priority: 20 }) {
     )) {
       if (command.kind === "pointer") {
         this.#pointer = [command.x, command.y];
+        this.#hasPointer = true;
       } else if (command.kind === "build") {
         buildRequested = true;
       } else if (command.kind === "rotate") {
@@ -163,6 +176,9 @@ export default class BuilderSystem extends createSystem({ priority: 20 }) {
       this.#selectorTile
         .getVectorView(LocalTransform, "translation")
         .set([this.#selectorPos[0], SELECTOR_TILE_Y, this.#selectorPos[2]]);
+    }
+    if (this.#hasPointer && this.#preview === null) {
+      this.#spawnPreview();
     }
     if (this.#preview?.active === true) {
       const bob =
@@ -285,21 +301,21 @@ export default class BuilderSystem extends createSystem({ priority: 20 }) {
   }
 
   #spawnPreview(): void {
-    if (this.#preview?.active === true) {
-      this.hierarchy.despawnRecursive({
-        index: this.#preview.index,
-        generation: this.#preview.generation,
-      });
+    this.#despawnPreview();
+    if (!this.#hasPointer) {
+      return;
     }
     const spec = STRUCTURES[this.#index];
     if (spec === undefined) {
-      this.#preview = null;
       return;
     }
     this.#preview = this.spawn.gltf(this.assets.gltf(spec.id), {
       key: "selector.preview",
       name: "Preview",
       tags: ["selector"],
+      materials: PREVIEW_MATERIALS,
+      castShadow: false,
+      receiveShadow: false,
       transform: {
         translation: [
           this.#selectorPos[0],
@@ -309,6 +325,16 @@ export default class BuilderSystem extends createSystem({ priority: 20 }) {
         rotation: quatFromEulerYXZ(0, (this.#orientation * Math.PI) / 2, 0),
       },
     });
+  }
+
+  #despawnPreview(): void {
+    if (this.#preview?.active === true) {
+      this.hierarchy.despawnRecursive({
+        index: this.#preview.index,
+        generation: this.#preview.generation,
+      });
+    }
+    this.#preview = null;
   }
 
   // --- helpers ---------------------------------------------------------------
