@@ -78,6 +78,7 @@
     "@aperture-engine/vite-plugin": "workspace:*",
     "@changesets/cli": "^2.31.0",
     "@eslint/js": "^10.0.1",
+    "@jridgewell/sourcemap-codec": "1.5.5",
     "@playwright/test": "^1.60.0",
     "@types/node": "^25.8.0",
     "@vitest/coverage-v8": "4.1.6",

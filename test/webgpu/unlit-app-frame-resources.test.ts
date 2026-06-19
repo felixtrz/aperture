@@ -29,6 +29,7 @@ import {
   createPreparedMeshGpuResourceCache,
   createPreparedScalarStandardMaterialCache,
   createPreparedScalarUnlitMaterialCache,
+  createStandardAppFrameResourceCacheSlot,
   createShadowDepthTextureResourceReport,
   createShadowMapDescriptorReport,
   createShadowMatrixBufferDescriptorReport,
@@ -402,8 +403,8 @@ describe("unlit app frame-resource fallback diagnostics", () => {
       pipelineKey: "standard|instance-tint|opaque|back|less|none",
       assets: registry,
       textureSamplerDependencies: emptyTextureSamplerDependencies(),
-      viewUniforms: validViewUniforms(),
-      worldTransforms: validTransforms(),
+      viewUniforms: { ...validViewUniforms(), contentVersion: 1 },
+      worldTransforms: { ...validTransforms(), contentVersion: 1 },
       instanceTints: validInstanceTints(),
       sharedLayouts: [sharedLayout(0), sharedLayout(1)],
       materialLayout: standardMaterialLayout(),
@@ -451,8 +452,8 @@ describe("unlit app frame-resource fallback diagnostics", () => {
       pipelineKey: "standard|shadowMap|opaque|back|less|none",
       assets: registry,
       textureSamplerDependencies: emptyTextureSamplerDependencies(),
-      viewUniforms: validViewUniforms(),
-      worldTransforms: validTransforms(),
+      viewUniforms: { ...validViewUniforms(), contentVersion: 1 },
+      worldTransforms: { ...validTransforms(), contentVersion: 1 },
       sharedLayouts: [sharedLayout(0), sharedLayout(1)],
       materialLayout: standardMaterialLayout(),
       lightLayout: standardLightShadowLayout(),
@@ -621,6 +622,61 @@ describe("unlit app frame-resource fallback diagnostics", () => {
       "webgpu-app/standard/lights-shadow/group-3",
     );
   });
+
+  it("shares Standard view and world buffers across app-cache routes", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard-shared-frame-buffers");
+
+    registry.register(material);
+    const materialEntry = registry.markReady(
+      material,
+      createStandardMaterialAsset(),
+    );
+
+    const writes: { readonly label: string; readonly bytes: number }[] = [];
+    const common = {
+      device: deviceWithCapturedWrites(writes),
+      cache: createStandardAppFrameResourceCacheSlot(),
+      snapshot: snapshotWithLight(),
+      mesh: createBoxMeshAsset({ label: "SharedStandardBox" }),
+      material: required(materialEntry.asset),
+      materialHandle: material,
+      materialKey: `${assetHandleKey(material)}@${materialEntry.version}`,
+      sourceMaterialKey: assetHandleKey(material),
+      pipelineKey: "standard|opaque|back|less|none",
+      assets: registry,
+      textureSamplerDependencies: emptyTextureSamplerDependencies(),
+      viewUniforms: { ...validViewUniforms(), contentVersion: 1 },
+      worldTransforms: { ...validTransforms(), contentVersion: 1 },
+      sharedLayouts: [sharedLayout(0), sharedLayout(1)],
+      materialLayout: standardMaterialLayout(),
+      lightLayout: standardLightLayout(),
+      preparedMeshes: createPreparedMeshGpuResourceCache(),
+      preparedScalarMaterials: createPreparedScalarStandardMaterialCache(),
+    };
+
+    const first = createOrReuseStandardAppFrameResources({
+      ...common,
+      meshHandle: createMeshHandle("shared-standard-a"),
+      meshKey: "mesh:shared-standard-a@1",
+      reuse: standardReuseCounters(),
+    });
+    const second = createOrReuseStandardAppFrameResources({
+      ...common,
+      meshHandle: createMeshHandle("shared-standard-b"),
+      meshKey: "mesh:shared-standard-b@1",
+      reuse: standardReuseCounters(),
+    });
+
+    expect(first.valid).toBe(true);
+    expect(second.valid).toBe(true);
+    expect(
+      writes.filter((write) => write.label === "ViewUniforms/uniform"),
+    ).toHaveLength(1);
+    expect(
+      writes.filter((write) => write.label === "WorldTransforms/storage"),
+    ).toHaveLength(1);
+  });
 });
 
 function emptyTextureSamplerDependencies() {
@@ -766,6 +822,9 @@ function standardReuseCounters() {
     ...reuseCounters(),
     lightBuffersCreated: 0,
     lightBuffersReused: 0,
+    standardFrameResourceCacheHits: 0,
+    standardFrameResourceCacheMisses: 0,
+    standardFrameResourceCacheMissReasons: {},
     localLightClusterBuffersCreated: 0,
     localLightClusterBuffersReused: 0,
     localLightClusterBufferWrites: 0,
@@ -858,6 +917,33 @@ function deviceWithBuffers(): WebGpuBufferDeviceLike & {
       writeBuffer: () => undefined,
     },
     createBuffer: (descriptor) => ({ descriptor }),
+    createBindGroup: (descriptor: unknown) => ({ descriptor }),
+  };
+}
+
+function deviceWithCapturedWrites(
+  writes: { readonly label: string; readonly bytes: number }[],
+): WebGpuBufferDeviceLike & {
+  createBindGroup: (descriptor: unknown) => unknown;
+} {
+  return {
+    queue: {
+      writeBuffer(buffer, _offset, data) {
+        writes.push({
+          label: String((buffer as { readonly label?: unknown }).label ?? ""),
+          bytes:
+            data instanceof ArrayBuffer
+              ? data.byteLength
+              : ArrayBuffer.isView(data)
+                ? data.byteLength
+                : 0,
+        });
+      },
+    },
+    createBuffer: (descriptor) => ({
+      label: descriptor.label,
+      descriptor,
+    }),
     createBindGroup: (descriptor: unknown) => ({ descriptor }),
   };
 }

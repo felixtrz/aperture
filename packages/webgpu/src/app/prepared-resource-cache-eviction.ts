@@ -11,7 +11,7 @@ import {
 import type { WebGpuAppResourceReuseReport } from "./app.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 
-const WEBGPU_APP_PREPARED_RESOURCE_CACHE_MAX_UNUSED_FRAMES = 3;
+const WEBGPU_APP_PREPARED_RESOURCE_CACHE_MAX_UNUSED_FRAMES = 120;
 
 export interface WebGpuAppPreparedResourceCacheEvictionReport {
   readonly preparedMeshCache: PreparedMeshGpuResourceCacheEvictionReport;

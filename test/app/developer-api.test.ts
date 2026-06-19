@@ -533,6 +533,21 @@ describe("developer-facing app API", () => {
       lastError: null,
       lastFailure: null,
       lastWorkerSummary: null,
+      workerMessages: {
+        snapshotDecisions: {
+          total: 0,
+          latest: null,
+          postedMessages: {},
+          postMessageReasons: {},
+        },
+        sidebandDecisions: {
+          total: 0,
+          latest: null,
+          postedMessages: {},
+          postMessageReasons: {},
+        },
+      },
+      performance: null,
       diagnostics: null,
       render: null,
       canvas: null,
@@ -1682,7 +1697,10 @@ describe("developer-facing app API", () => {
       ...secondRoot.getVectorView(LocalTransform, "translation"),
     ]).toEqual([1.5, 0, 0]);
 
-    const firstMeshEntities = meshEntitiesInSubtree(app.lowLevel.world, firstRoot);
+    const firstMeshEntities = meshEntitiesInSubtree(
+      app.lowLevel.world,
+      firstRoot,
+    );
     const secondMeshEntities = meshEntitiesInSubtree(
       app.lowLevel.world,
       secondRoot,

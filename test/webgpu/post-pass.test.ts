@@ -269,6 +269,70 @@ describe("WebGPU post-pass helpers", () => {
     });
   });
 
+  it("reuses bloom graph bind groups while texture identities are stable", () => {
+    const events: string[] = [];
+    const effect = createWebGpuBloomPostEffect({ levels: 2 });
+    const input = postTexture("cached-bloom-input", events);
+    const device = postGraphDevice(events);
+
+    const first = effect.prepare({
+      device,
+      input,
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 1,
+      passIndex: 0,
+      isLast: true,
+      label: "test-bloom-cache",
+    });
+    const firstBindGroupCount = bloomBindGroupEvents(events).length;
+    const firstEventCount = events.length;
+    const second = effect.prepare({
+      device,
+      input,
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 2,
+      passIndex: 0,
+      isLast: true,
+      label: "test-bloom-cache",
+    });
+
+    expect(first.diagnostics).toEqual([]);
+    expect(second.diagnostics).toEqual([]);
+    expect(firstBindGroupCount).toBe(6);
+    expect(bloomBindGroupEvents(events)).toHaveLength(firstBindGroupCount);
+    expect(events.slice(firstEventCount)).toEqual([]);
+    expect(second.graph?.passes.map((pass) => pass.commands.length)).toEqual([
+      3, 3, 3, 3, 3, 3,
+    ]);
+
+    const resizedInput = postTexture(
+      "cached-bloom-input-resized",
+      events,
+      64,
+      32,
+    );
+    const resized = effect.prepare({
+      device,
+      input: resizedInput,
+      outputFormat: "rgba8unorm",
+      width: 64,
+      height: 32,
+      frame: 3,
+      passIndex: 0,
+      isLast: true,
+      label: "test-bloom-cache",
+    });
+
+    expect(resized.diagnostics).toEqual([]);
+    expect(bloomBindGroupEvents(events).length).toBeGreaterThan(
+      firstBindGroupCount,
+    );
+  });
+
   it("prepares TAA with persistent alternating history output", () => {
     const events: string[] = [];
     const effect = createWebGpuTaaPostEffect();
@@ -725,7 +789,7 @@ describe("WebGPU post-pass helpers", () => {
   });
 });
 
-function postTexture(label: string, events: string[]) {
+function postTexture(label: string, events: string[], width = 32, height = 16) {
   return {
     texture: {
       createView: () => {
@@ -733,8 +797,8 @@ function postTexture(label: string, events: string[]) {
         return { label };
       },
     },
-    width: 32,
-    height: 16,
+    width,
+    height,
     format: "rgba8unorm",
     label,
   };
@@ -843,6 +907,12 @@ function textureDevice(events: string[]) {
       return { descriptor: input, createView: () => ({ descriptor: input }) };
     },
   };
+}
+
+function bloomBindGroupEvents(events: readonly string[]): readonly string[] {
+  return events.filter(
+    (event) => event.includes(":bloom:") && event.includes(":bind-group"),
+  );
 }
 
 function floatUpload(record: BufferWriteRecord): Float32Array {

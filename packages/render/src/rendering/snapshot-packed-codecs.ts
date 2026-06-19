@@ -22,3 +22,14 @@ export {
   readQuadBatchPacket,
   writeQuadBatchPacket,
 } from "./snapshot-packed-quad-codec.js";
+export { readFogPacket, writeFogPacket } from "./snapshot-packed-fog-codec.js";
+export {
+  readParticleEmitterPacket,
+  writeParticleEmitterPacket,
+} from "./snapshot-packed-particle-codec.js";
+export {
+  readAudioEmitterPacket,
+  readAudioListenerPacket,
+  writeAudioEmitterPacket,
+  writeAudioListenerPacket,
+} from "./snapshot-packed-audio-codec.js";

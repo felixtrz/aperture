@@ -34,6 +34,10 @@ import type { QueuedBuiltInAppResourceSet } from "../render/queues/queued-built-
 import { mapFrameBoundaryReadbackSamples } from "../render/frame/frame-boundary.js";
 import type { FrameBoundaryReadbackSampleRequest } from "../render/frame/frame-boundary.js";
 import { writeRenderFramePlanFromSnapshot } from "../render/frame/render-frame-plan.js";
+import {
+  prepareDrawOrderTransformPacking,
+  type PrepareDrawOrderTransformPackingOptions,
+} from "../render/frame/draw-order-transform-packing.js";
 import { createWebGpuAppTransmissionGrabResources } from "./transmission-grab.js";
 import {
   prepareWebGpuAppIndirectDrawCommands,
@@ -49,6 +53,7 @@ import {
 import { prepareSpriteFrameResourcesForSnapshot } from "./sprites.js";
 import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
 import { prepareParticleFrameResourcesForSnapshot } from "./particles.js";
+import { renderSnapshotTimeSeconds } from "./snapshot.js";
 import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
 import { prepareQueuedBuiltInFrameResources } from "./queued-frame-resources.js";
 import { QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION } from "./queued-built-in-adapters.js";
@@ -146,9 +151,11 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
   readonly builtInResourceSet: QueuedBuiltInAppResourceSet;
   readonly routeDiagnostics?: readonly unknown[];
   readonly reuse: WebGpuAppResourceReuseReport;
+  readonly resourceLifetimeFrame?: number;
   readonly clearColor?: readonly number[];
   readonly label?: string;
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
+  readonly gpuTimings?: boolean;
   readonly standardMaterialShadowReceiverResources?:
     | StandardFrameShadowReceiverResources
     | undefined;
@@ -160,6 +167,8 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     | undefined;
   readonly phaseTimer: WebGpuAppRenderPhaseTimer;
 }): Promise<WebGpuAppRenderReport> {
+  const resourceLifetimeFrame =
+    options.resourceLifetimeFrame ?? options.snapshot.frame;
   const packedViews = writePackedSnapshotViewUniforms(
     options.snapshot,
     options.cache.frameScratch.viewUniforms,
@@ -221,6 +230,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
           cache: options.cache,
           reuse: options.reuse,
           snapshot: options.snapshot,
+          resourceLifetimeFrame,
           ...(options.label === undefined ? {} : { label: options.label }),
         })
       : null;
@@ -256,6 +266,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
   const preparedBuiltIn = await prepareQueuedBuiltInFrameResources({
     ...options,
     snapshot: options.snapshot,
+    resourceLifetimeFrame,
     resourceSet: options.builtInResourceSet,
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
@@ -392,6 +403,20 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
       ),
     ],
     bindGroups: frameResources.bindGroups,
+    drawOrderTransformPacking: (input) =>
+      prepareDrawOrderTransformPacking({
+        device: options.app.initialization
+          .device as PrepareDrawOrderTransformPackingOptions["device"],
+        packages: input.packages,
+        transforms: input.transforms,
+        ...(input.pipelineKeysByRenderId === undefined
+          ? {}
+          : { pipelineKeysByRenderId: input.pipelineKeysByRenderId }),
+        pipelines: input.pipelines,
+        bindGroups: input.bindGroups,
+        cache: options.cache.drawOrderTransforms,
+        scratch: options.cache.frameScratch.drawOrderTransforms,
+      }),
     scratch: options.cache.frameScratch.framePlan,
   });
   options.phaseTimer.finish("sort");
@@ -429,7 +454,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     snapshot: options.snapshot,
     viewUniforms: packedViews,
     reuse: options.reuse,
-    time: options.snapshot.frame / 60,
+    time: renderSnapshotTimeSeconds(options.snapshot),
   });
   const uiFrame = await prepareUiFrameResourcesForSnapshot({
     app: options.app,
@@ -487,6 +512,10 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     commands: frameCommands,
     label: options.label ?? "aperture-mixed-custom-wgsl-app",
   });
+  const renderBundleCommands = indirectDraws.commands.slice(
+    0,
+    framePlan.commandPlan.commands.length,
+  );
   options.phaseTimer.start("submit");
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app: options.app,
@@ -494,10 +523,14 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     cache: options.cache,
     snapshot: options.snapshot,
     commands: indirectDraws.commands,
+    renderBundleCommands,
     overlayCommands: uiFrame.commands,
     label: options.label ?? "aperture-mixed-custom-wgsl-app",
     reuse: options.reuse,
     transmissionSceneColorResources: transmissionGrabResources.resources,
+    ...(options.gpuTimings === undefined
+      ? {}
+      : { gpuTimings: options.gpuTimings }),
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
       options.snapshotUpdateSchedule,
     ),

@@ -1,18 +1,26 @@
 import type { SnapshotPacketEncodingRegistry } from "./snapshot-packed-registry.js";
 import {
+  readAudioEmitterPacket,
+  readAudioListenerPacket,
   readBoundsPacket,
   readEnvironmentPacket,
+  readFogPacket,
   readLightPacket,
   readMeshDrawPacket,
+  readParticleEmitterPacket,
   readQuadBatchPacket,
   readShadowRequestPacket,
   readViewPacket,
 } from "./snapshot-packed-codecs.js";
 import {
+  AUDIO_EMITTER_PACKET_WORDS,
+  AUDIO_LISTENER_PACKET_WORDS,
   BOUNDS_PACKET_WORDS,
   ENVIRONMENT_PACKET_WORDS,
+  FOG_PACKET_WORDS,
   LIGHT_PACKET_WORDS,
   MESH_DRAW_PACKET_WORDS,
+  PARTICLE_EMITTER_PACKET_WORDS,
   QUAD_BATCH_PACKET_WORDS,
   SHADOW_REQUEST_PACKET_WORDS,
   SNAPSHOT_PACKET_HEADER_WORDS,
@@ -21,10 +29,14 @@ import {
 import { readSnapshotPacketHeaderCounts } from "./snapshot-packed-encoding-header.js";
 import type { SnapshotPacketBundle } from "./snapshot-packed-encoding-types.js";
 import type {
+  AudioEmitterPacket,
+  AudioListenerPacket,
   BoundsPacket,
   EnvironmentPacket,
+  FogPacket,
   LightPacket,
   MeshDrawPacket,
+  ParticleEmitterPacket,
   QuadBatchPacket,
   ShadowRequestPacket,
   ViewPacket,
@@ -42,6 +54,10 @@ export function decodeSnapshotPackets(
     counts.shadowCasterDraws * MESH_DRAW_PACKET_WORDS +
     counts.lights * LIGHT_PACKET_WORDS +
     counts.environments * ENVIRONMENT_PACKET_WORDS +
+    counts.fogs * FOG_PACKET_WORDS +
+    counts.particleEmitters * PARTICLE_EMITTER_PACKET_WORDS +
+    counts.audioEmitters * AUDIO_EMITTER_PACKET_WORDS +
+    counts.audioListeners * AUDIO_LISTENER_PACKET_WORDS +
     counts.shadowRequests * SHADOW_REQUEST_PACKET_WORDS +
     counts.bounds * BOUNDS_PACKET_WORDS +
     counts.quadBatches * QUAD_BATCH_PACKET_WORDS;
@@ -57,6 +73,10 @@ export function decodeSnapshotPackets(
   const shadowCasterDraws: MeshDrawPacket[] = [];
   const lights: LightPacket[] = [];
   const environments: EnvironmentPacket[] = [];
+  const fogs: FogPacket[] = [];
+  const particleEmitters: ParticleEmitterPacket[] = [];
+  const audioEmitters: AudioEmitterPacket[] = [];
+  const audioListeners: AudioListenerPacket[] = [];
   const shadowRequests: ShadowRequestPacket[] = [];
   const bounds: BoundsPacket[] = [];
   const quadBatches: QuadBatchPacket[] = [];
@@ -87,6 +107,26 @@ export function decodeSnapshotPackets(
     offset += ENVIRONMENT_PACKET_WORDS;
   }
 
+  for (let index = 0; index < counts.fogs; index += 1) {
+    fogs.push(readFogPacket(words, offset));
+    offset += FOG_PACKET_WORDS;
+  }
+
+  for (let index = 0; index < counts.particleEmitters; index += 1) {
+    particleEmitters.push(readParticleEmitterPacket(words, offset, registry));
+    offset += PARTICLE_EMITTER_PACKET_WORDS;
+  }
+
+  for (let index = 0; index < counts.audioEmitters; index += 1) {
+    audioEmitters.push(readAudioEmitterPacket(words, offset, registry));
+    offset += AUDIO_EMITTER_PACKET_WORDS;
+  }
+
+  for (let index = 0; index < counts.audioListeners; index += 1) {
+    audioListeners.push(readAudioListenerPacket(words, offset));
+    offset += AUDIO_LISTENER_PACKET_WORDS;
+  }
+
   for (let index = 0; index < counts.shadowRequests; index += 1) {
     shadowRequests.push(readShadowRequestPacket(words, offset));
     offset += SHADOW_REQUEST_PACKET_WORDS;
@@ -108,6 +148,12 @@ export function decodeSnapshotPackets(
     ...(shadowCasterDraws.length === 0 ? {} : { shadowCasterDraws }),
     lights,
     environments,
+    ...(fogs.length === 0 ? {} : { fogs }),
+    ...(particleEmitters.length === 0 ? {} : { particleEmitters }),
+    ...(audioEmitters.length === 0 ? {} : { audioEmitters }),
+    ...(audioListeners.length === 0
+      ? {}
+      : { audioListener: audioListeners[0] }),
     shadowRequests,
     bounds,
     ...(quadBatches.length === 0 ? {} : { quadBatches }),

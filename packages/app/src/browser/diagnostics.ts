@@ -1,8 +1,9 @@
 import type { GeneratedBrowserAppStatus } from "./status.js";
 
 /**
- * Mirror the live render diagnostics into `status.diagnostics` each frame AND
- * surface render failures to the browser console.
+ * Mirror the live render diagnostics into `status.diagnostics` on a lightweight
+ * developer-telemetry cadence AND surface render failures to the browser
+ * console.
  *
  * Rationale (first-release DX): the renderer already collects rich telemetry
  * (lastError, per-view cull stats, mesh-draw counts), but historically NONE of it
@@ -17,10 +18,16 @@ import type { GeneratedBrowserAppStatus } from "./status.js";
 export function syncGeneratedDiagnostics(
   getDiagnostics: () => unknown,
   status: GeneratedBrowserAppStatus,
-): void {
+  options: SyncGeneratedDiagnosticsOptions = {},
+): () => void {
   let lastErrorSig = "";
   let emptyWarned = false;
   const seenFrameDiags = new Set<string>();
+  const intervalMilliseconds = normalizeDiagnosticsSyncInterval(
+    options.intervalMilliseconds,
+  );
+  let disposed = false;
+  let pendingTimer: ReturnType<typeof setTimeout> | null = null;
 
   const record = (value: unknown): Record<string, unknown> | null =>
     typeof value === "object" && value !== null
@@ -107,11 +114,41 @@ export function syncGeneratedDiagnostics(
   };
 
   const sync = () => {
+    if (disposed) {
+      return;
+    }
+
     const diagnostics = getDiagnostics();
     status.diagnostics = diagnostics;
     surface(diagnostics);
-    requestAnimationFrame(sync);
+    pendingTimer = setTimeout(sync, intervalMilliseconds);
   };
 
-  requestAnimationFrame(sync);
+  pendingTimer = setTimeout(sync, intervalMilliseconds);
+
+  return () => {
+    disposed = true;
+    if (pendingTimer !== null) {
+      clearTimeout(pendingTimer);
+      pendingTimer = null;
+    }
+  };
+}
+
+export interface SyncGeneratedDiagnosticsOptions {
+  readonly intervalMilliseconds?: number;
+}
+
+export const DEFAULT_GENERATED_DIAGNOSTICS_SYNC_INTERVAL_MS = 250;
+const MIN_GENERATED_DIAGNOSTICS_SYNC_INTERVAL_MS = 16;
+
+function normalizeDiagnosticsSyncInterval(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return DEFAULT_GENERATED_DIAGNOSTICS_SYNC_INTERVAL_MS;
+  }
+
+  return Math.max(
+    MIN_GENERATED_DIAGNOSTICS_SYNC_INTERVAL_MS,
+    Math.floor(value),
+  );
 }

@@ -176,8 +176,8 @@ function addInterpolation(
 ): void {
   entity.addComponent(RenderInterpolation, {
     initialized: true,
-    previousTranslation,
-    currentTranslation,
+    previousTranslation: [...previousTranslation],
+    currentTranslation: [...currentTranslation],
   });
 }
 

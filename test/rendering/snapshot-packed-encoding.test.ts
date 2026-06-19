@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  AUDIO_EMITTER_PACKET_WORDS,
+  AUDIO_LISTENER_PACKET_WORDS,
   BOUNDS_PACKET_WORDS,
   ENVIRONMENT_PACKET_WORDS,
+  FOG_PACKET_WORDS,
+  FogMode,
   LIGHT_PACKET_WORDS,
   MESH_DRAW_PACKET_WORDS,
+  PARTICLE_EMITTER_PACKET_WORDS,
   QUAD_BATCH_PACKET_WORDS,
   SHADOW_REQUEST_PACKET_WORDS,
   SNAPSHOT_PACKET_BYTE_STRIDES,
@@ -21,8 +26,10 @@ import {
 } from "@aperture-engine/render";
 import {
   createEnvironmentMapHandle,
+  createAudioClipHandle,
   createMaterialHandle,
   createMeshHandle,
+  createParticleEffectHandle,
   createRenderTargetHandle,
   createSamplerHandle,
   createTextureHandle,
@@ -41,6 +48,10 @@ describe("snapshot packed packet encoding", () => {
       shadowCasterDraws: 0,
       lights: packets.lights.length,
       environments: packets.environments.length,
+      fogs: packets.fogs?.length ?? 0,
+      particleEmitters: packets.particleEmitters?.length ?? 0,
+      audioEmitters: packets.audioEmitters?.length ?? 0,
+      audioListeners: packets.audioListener === undefined ? 0 : 1,
       shadowRequests: packets.shadowRequests.length,
       bounds: packets.bounds.length,
       quadBatches: 0,
@@ -123,6 +134,7 @@ describe("snapshot packed packet encoding", () => {
           instanceTintOffset: undefined,
           castsShadow: true,
           receivesShadow: false,
+          occlusionQuery: false,
         }),
       ],
       lights: [],
@@ -194,6 +206,10 @@ describe("snapshot packed packet encoding", () => {
       shadowCasterDraw: MESH_DRAW_PACKET_WORDS,
       light: LIGHT_PACKET_WORDS,
       environment: ENVIRONMENT_PACKET_WORDS,
+      fog: FOG_PACKET_WORDS,
+      particleEmitter: PARTICLE_EMITTER_PACKET_WORDS,
+      audioEmitter: AUDIO_EMITTER_PACKET_WORDS,
+      audioListener: AUDIO_LISTENER_PACKET_WORDS,
       shadowRequest: SHADOW_REQUEST_PACKET_WORDS,
       bounds: BOUNDS_PACKET_WORDS,
       quadBatch: QUAD_BATCH_PACKET_WORDS,
@@ -205,6 +221,12 @@ describe("snapshot packed packet encoding", () => {
       shadowCasterDraw: MESH_DRAW_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
       light: LIGHT_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
       environment: ENVIRONMENT_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+      fog: FOG_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+      particleEmitter:
+        PARTICLE_EMITTER_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+      audioEmitter: AUDIO_EMITTER_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+      audioListener:
+        AUDIO_LISTENER_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
       shadowRequest:
         SHADOW_REQUEST_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
       bounds: BOUNDS_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
@@ -242,8 +264,17 @@ describe("snapshot packed packet encoding", () => {
       kind: "environment-map",
       id: "environment-0",
     });
+    expect(snapshot.handles).toContainEqual({
+      kind: "particle-effect",
+      id: "smoke",
+    });
+    expect(snapshot.handles).toContainEqual({
+      kind: "audio-clip",
+      id: "engine",
+    });
     expect(snapshot.strings).toContain("pipeline-0");
     expect(snapshot.strings).toContain("layout-1");
+    expect(snapshot.strings).toContain("sfx");
     expect(encoded.words).toBeInstanceOf(Uint32Array);
   });
 
@@ -279,6 +310,8 @@ function randomPacketBundle(): SnapshotPacketBundle {
   const material1 = createMaterialHandle("material-1");
   const renderTarget = createRenderTargetHandle("offscreen-0");
   const environment = createEnvironmentMapHandle("environment-0");
+  const particleEffect = createParticleEffectHandle("smoke");
+  const audioClip = createAudioClipHandle("engine");
 
   return {
     views: [
@@ -387,6 +420,101 @@ function randomPacketBundle(): SnapshotPacketBundle {
         layerMask: 0x0f,
       },
     ],
+    fogs: [
+      {
+        fogId: 35,
+        entity: entity(35, 6),
+        mode: FogMode.Exp2,
+        color: vec4(random),
+        density: scalar(random),
+        start: scalar(random),
+        end: scalar(random),
+        layerMask: 0xff,
+      },
+    ],
+    particleEmitters: [
+      {
+        emitterId: 36,
+        entity: entity(-1, 0),
+        effect: particleEffect,
+        effectVersion: 3,
+        capacity: 12,
+        seed: -17,
+        resetEpoch: 9,
+        timeScale: 0.75,
+        simulationSpace: "world",
+        worldTransformOffset: 160,
+        boundsIndex: 1,
+        layerMask: 0xff,
+        sortKey: {
+          queue: "transparent",
+          viewId: 10,
+          layer: -1,
+          order: -4,
+          pipelineKey: "gpu-particles",
+          materialKey: "particle-effect:smoke",
+          meshKey: "particle-quad",
+          depth: scalar(random),
+          stableId: 36,
+        },
+        mode: "burst",
+        burst: {
+          burstId: 12,
+          startFrame: 8,
+          startTime: 123.456,
+          count: 12,
+          position: vec3(random),
+          positionJitterMin: vec3(random),
+          positionJitterMax: vec3(random),
+          velocityMin: vec3(random),
+          velocityMax: vec3(random),
+        },
+      },
+    ],
+    audioEmitters: [
+      {
+        key: { kind: "oneshot", seq: -3 },
+        entity: entity(37, 6),
+        clip: audioClip,
+        clipVersion: 4,
+        busId: "sfx",
+        gain: scalar(random),
+        loop: false,
+        autoplay: true,
+        playEpoch: -2,
+        stopEpoch: 5,
+        timeScale: 0.9,
+        priority: -7,
+        panningModel: "HRTF",
+        simulationSpace: "world",
+        distanceModel: "linear",
+        refDistance: 2,
+        maxDistance: 80,
+        rolloffFactor: 0.5,
+        coneInnerAngle: 120,
+        coneOuterAngle: 220,
+        coneOuterGain: 0.25,
+        occlusion: 0.3,
+        lowpassFrequency: 12000,
+        lowpassQ: 0.9,
+        offsetSec: 0.125,
+        loopStart: 0.25,
+        loopEnd: 1.5,
+        seed: -11,
+        boundsCenter: vec3(random),
+        audibilityRadius: 40,
+        audibility: "audible",
+        muted: true,
+        worldTransformOffset: 176,
+        layerMask: 0xff,
+      },
+    ],
+    audioListener: {
+      listenerId: 38,
+      entity: entity(38, 6),
+      worldTransformOffset: 192,
+      masterGain: 0.8,
+    },
     shadowRequests: [
       {
         shadowId: 40,

@@ -20,6 +20,7 @@ import {
   type DirtyUploadOutcome,
   type VersionedUploadStamp,
 } from "../../app/app-frame-resource-utils.js";
+import { retireWebGpuBuffer } from "../../gpu/buffer.js";
 import type { BindGroupResourceCache } from "../../gpu/bind-group-resource-cache.js";
 import {
   recordPreparedAppMaterialResourceUse,
@@ -32,6 +33,7 @@ import {
   CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
   createLocalLightClusterDescriptor,
   type LocalLightClusterDescriptor,
+  type LocalLightClusterGpuResource,
   type LocalLightClusterSupportedPointShadowResource,
   type LocalLightClusterSupportedSpotShadowResource,
 } from "../../lighting/local-light-clusters.js";
@@ -73,7 +75,12 @@ import {
   type ViewUniformBufferDescriptorScratch,
 } from "../../resources/views/view-uniform-buffer.js";
 import {
+  createViewUniformGpuBuffer,
+  type ViewUniformGpuBufferResource,
+} from "../../resources/views/view-uniform-buffer-resource.js";
+import {
   createWorldTransformBufferDescriptorScratch,
+  createWorldTransformGpuBuffer,
   writeWorldTransformBufferDescriptor,
   type WorldTransformBufferDescriptorScratch,
   type WorldTransformGpuBufferResource,
@@ -114,13 +121,37 @@ export interface CachedStandardAppFrameResources {
   result: CreateStandardFrameGpuResourcesResult;
 }
 
+interface StandardSharedViewUniformResource {
+  readonly resource: ViewUniformGpuBufferResource;
+  readonly byteLength: number;
+  readonly uploadStamp: VersionedUploadStamp;
+}
+
+interface StandardSharedWorldTransformResource {
+  readonly resource: WorldTransformGpuBufferResource;
+  readonly byteLength: number;
+  readonly uploadStamp: VersionedUploadStamp;
+}
+
 export interface StandardAppFrameResourceCacheSlot {
   current: CachedStandardAppFrameResources | null;
   readonly byRoute?: Map<string, CachedStandardAppFrameResources>;
+  sharedViewUniform?: StandardSharedViewUniformResource | null;
+  sharedWorldTransforms?: StandardSharedWorldTransformResource | null;
+  readonly sharedViewDescriptorScratch?: ViewUniformBufferDescriptorScratch;
+  readonly sharedWorldTransformDescriptorScratch?: WorldTransformBufferDescriptorScratch;
 }
 
 export function createStandardAppFrameResourceCacheSlot(): StandardAppFrameResourceCacheSlot {
-  return { current: null, byRoute: new Map() };
+  return {
+    current: null,
+    byRoute: new Map(),
+    sharedViewUniform: null,
+    sharedWorldTransforms: null,
+    sharedViewDescriptorScratch: createViewUniformBufferDescriptorScratch(),
+    sharedWorldTransformDescriptorScratch:
+      createWorldTransformBufferDescriptorScratch(),
+  };
 }
 
 export interface StandardAppFrameResourceReuseReport {
@@ -138,11 +169,224 @@ export interface StandardAppFrameResourceReuseReport {
   bindGroupsReused: number;
   lightBuffersCreated: number;
   lightBuffersReused: number;
+  standardFrameResourceCacheHits: number;
+  standardFrameResourceCacheMisses: number;
+  standardFrameResourceCacheMissReasons: Record<string, number>;
   localLightClusterBuffersCreated: number;
   localLightClusterBuffersReused: number;
   localLightClusterBufferWrites: number;
   localLightClusterBufferWritesSkipped: number;
   dynamicBufferWrites: number;
+}
+
+interface PrepareStandardSharedFrameResourcesResult {
+  readonly valid: boolean;
+  readonly viewUniform: ViewUniformGpuBufferResource | null;
+  readonly worldTransforms: WorldTransformGpuBufferResource | null;
+  readonly diagnostics: readonly CreateStandardAppFrameResourcesDiagnostic[];
+}
+
+function prepareStandardSharedFrameResources(input: {
+  readonly device: unknown;
+  readonly cache: StandardAppFrameResourceCacheSlot;
+  readonly viewUniforms: PackedSnapshotViewUniforms | null;
+  readonly worldTransforms: PackedSnapshotTransforms | null;
+  readonly viewDescriptor: ReturnType<typeof writeViewUniformBufferDescriptor>;
+  readonly transformDescriptor: ReturnType<
+    typeof writeWorldTransformBufferDescriptor
+  >;
+}): PrepareStandardSharedFrameResourcesResult {
+  if (!standardSharedFrameResourcesEnabled(input.cache)) {
+    return {
+      valid: true,
+      viewUniform: null,
+      worldTransforms: null,
+      diagnostics: [],
+    };
+  }
+
+  const diagnostics: CreateStandardAppFrameResourcesDiagnostic[] = [
+    ...input.viewDescriptor.diagnostics,
+    ...input.transformDescriptor.diagnostics,
+  ];
+
+  const viewUniforms = input.viewUniforms;
+  const packedWorldTransforms = input.worldTransforms;
+
+  if (
+    viewUniforms === null ||
+    packedWorldTransforms === null ||
+    input.viewDescriptor.plan === null ||
+    input.transformDescriptor.plan === null
+  ) {
+    return {
+      valid: false,
+      viewUniform: null,
+      worldTransforms: null,
+      diagnostics,
+    };
+  }
+
+  const viewUniform = prepareSharedViewUniformResource(
+    { ...input, viewUniforms },
+    diagnostics,
+  );
+  const worldTransformResource = prepareSharedWorldTransformResource(
+    { ...input, worldTransforms: packedWorldTransforms },
+    diagnostics,
+  );
+
+  return {
+    valid: viewUniform !== null && worldTransformResource !== null,
+    viewUniform,
+    worldTransforms: worldTransformResource,
+    diagnostics,
+  };
+}
+
+function standardSharedFrameResourcesEnabled(
+  cache: StandardAppFrameResourceCacheSlot,
+): boolean {
+  return (
+    cache.sharedViewDescriptorScratch !== undefined ||
+    cache.sharedWorldTransformDescriptorScratch !== undefined ||
+    cache.sharedViewUniform !== undefined ||
+    cache.sharedWorldTransforms !== undefined
+  );
+}
+
+function prepareSharedViewUniformResource(
+  input: {
+    readonly device: unknown;
+    readonly cache: StandardAppFrameResourceCacheSlot;
+    readonly viewUniforms: PackedSnapshotViewUniforms;
+    readonly viewDescriptor: ReturnType<
+      typeof writeViewUniformBufferDescriptor
+    >;
+  },
+  diagnostics: CreateStandardAppFrameResourcesDiagnostic[],
+): ViewUniformGpuBufferResource | null {
+  const plan = input.viewDescriptor.plan;
+
+  if (plan === null) {
+    return null;
+  }
+
+  const cached = input.cache.sharedViewUniform ?? null;
+
+  if (cached !== null && cached.byteLength === plan.source.byteLength) {
+    const outcome = writeVersionedBufferData(
+      input.device,
+      cached.resource.buffer,
+      plan.source,
+      input.viewUniforms,
+      cached.uploadStamp,
+    );
+
+    if (outcome === false) {
+      return null;
+    }
+
+    (
+      cached.resource as {
+        views: typeof plan.views;
+      }
+    ).views = plan.views;
+    return cached.resource;
+  }
+
+  if (cached !== null) {
+    retireWebGpuBuffer(input.device, cached.resource.buffer);
+    input.cache.sharedViewUniform = null;
+  }
+
+  const created = createViewUniformGpuBuffer({
+    device: input.device as Parameters<
+      typeof createViewUniformGpuBuffer
+    >[0]["device"],
+    plan,
+  });
+
+  diagnostics.push(...created.diagnostics);
+
+  if (!created.valid || created.resource === null) {
+    return null;
+  }
+
+  input.cache.sharedViewUniform = {
+    resource: created.resource,
+    byteLength: plan.source.byteLength,
+    uploadStamp: { version: input.viewUniforms.contentVersion },
+  };
+
+  return created.resource;
+}
+
+function prepareSharedWorldTransformResource(
+  input: {
+    readonly device: unknown;
+    readonly cache: StandardAppFrameResourceCacheSlot;
+    readonly worldTransforms: PackedSnapshotTransforms;
+    readonly transformDescriptor: ReturnType<
+      typeof writeWorldTransformBufferDescriptor
+    >;
+  },
+  diagnostics: CreateStandardAppFrameResourcesDiagnostic[],
+): WorldTransformGpuBufferResource | null {
+  const plan = input.transformDescriptor.plan;
+
+  if (plan === null) {
+    return null;
+  }
+
+  const cached = input.cache.sharedWorldTransforms ?? null;
+
+  if (cached !== null && cached.byteLength === plan.source.byteLength) {
+    const outcome = writeVersionedBufferData(
+      input.device,
+      cached.resource.buffer,
+      plan.source,
+      input.worldTransforms,
+      cached.uploadStamp,
+    );
+
+    if (outcome === false) {
+      return null;
+    }
+
+    (
+      cached.resource as {
+        offsets: typeof plan.offsets;
+      }
+    ).offsets = plan.offsets;
+    return cached.resource;
+  }
+
+  if (cached !== null) {
+    retireWebGpuBuffer(input.device, cached.resource.buffer);
+    input.cache.sharedWorldTransforms = null;
+  }
+
+  const created = createWorldTransformGpuBuffer({
+    device: input.device as Parameters<
+      typeof createWorldTransformGpuBuffer
+    >[0]["device"],
+    plan,
+  });
+
+  diagnostics.push(...created.diagnostics);
+
+  if (!created.valid || created.resource === null) {
+    return null;
+  }
+
+  input.cache.sharedWorldTransforms = {
+    resource: created.resource,
+    byteLength: plan.source.byteLength,
+    uploadStamp: { version: input.worldTransforms.contentVersion },
+  };
+
+  return created.resource;
 }
 
 interface LocalLightClusterContentKeys {
@@ -174,11 +418,16 @@ export function createOrReuseStandardAppFrameResources(options: {
   readonly materialHandle: MaterialHandle;
   readonly materialKey: string;
   readonly sourceMaterialKey: string;
+  readonly resourceLifetimeFrame?: number;
   readonly pipelineKey: string;
   readonly assets: AssetRegistry;
   readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly preparedViewUniform?: ViewUniformGpuBufferResource | undefined;
+  readonly preparedWorldTransforms?:
+    | WorldTransformGpuBufferResource
+    | undefined;
   readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
@@ -272,8 +521,11 @@ export function createOrReuseStandardAppFrameResources(options: {
       ? options.cache.current
       : (options.cache.byRoute.get(routeCacheKey) ?? null);
   const viewDescriptorScratch =
-    cached?.viewDescriptorScratch ?? createViewUniformBufferDescriptorScratch();
+    options.cache.sharedViewDescriptorScratch ??
+    cached?.viewDescriptorScratch ??
+    createViewUniformBufferDescriptorScratch();
   const worldTransformDescriptorScratch =
+    options.cache.sharedWorldTransformDescriptorScratch ??
     cached?.worldTransformDescriptorScratch ??
     createWorldTransformBufferDescriptorScratch();
   const lightBufferDescriptorScratch =
@@ -290,6 +542,35 @@ export function createOrReuseStandardAppFrameResources(options: {
     options.worldTransforms,
     worldTransformDescriptorScratch,
   );
+  const sharedFrameResources =
+    options.preparedViewUniform !== undefined &&
+    options.preparedWorldTransforms !== undefined
+      ? {
+          valid: true,
+          viewUniform: options.preparedViewUniform,
+          worldTransforms: options.preparedWorldTransforms,
+          diagnostics: [
+            ...viewDescriptor.diagnostics,
+            ...transformDescriptor.diagnostics,
+          ],
+        }
+      : prepareStandardSharedFrameResources({
+          device: options.device,
+          cache: options.cache,
+          viewUniforms: options.viewUniforms,
+          worldTransforms: options.worldTransforms,
+          viewDescriptor,
+          transformDescriptor,
+        });
+
+  if (!sharedFrameResources.valid) {
+    return {
+      valid: false,
+      resources: null,
+      diagnostics: sharedFrameResources.diagnostics,
+    };
+  }
+
   const lightBuffer = writeLightBufferDescriptor(
     options.snapshot,
     lightBufferDescriptorScratch,
@@ -310,6 +591,9 @@ export function createOrReuseStandardAppFrameResources(options: {
     );
   let localLightClusterBufferWrites = 0;
   let localLightClusterBufferWritesSkipped = 0;
+  const usingSharedFrameResources =
+    sharedFrameResources.viewUniform !== null &&
+    sharedFrameResources.worldTransforms !== null;
   // AI-64/AI-65: dirty-range/skip upload outcomes for accounting. Holder
   // objects: TS flow analysis cannot see the closure assignment ordering, so
   // plain lets would narrow back to "full" at the use sites.
@@ -335,6 +619,26 @@ export function createOrReuseStandardAppFrameResources(options: {
     }
 
     worldTransformUpload.value = outcome;
+    return true;
+  };
+  const writeCachedViewUniformBuffer = (): boolean => {
+    if (cached === null || cached.result.resources === null) {
+      return false;
+    }
+
+    const outcome = writeVersionedBufferData(
+      options.device,
+      cached.result.resources.viewUniform.buffer,
+      viewDescriptor.plan?.source ?? options.viewUniforms.data,
+      options.viewUniforms,
+      cached.viewUploadStamp,
+    );
+
+    if (outcome === false) {
+      return false;
+    }
+
+    viewUniformUpload.value = outcome;
     return true;
   };
   // AI-65: the per-route light packing scratch pairs 1:1 with this route's
@@ -372,26 +676,6 @@ export function createOrReuseStandardAppFrameResources(options: {
 
     lightFloatUpload.value = floats;
     lightMetadataUpload.value = metadata;
-    return true;
-  };
-  const writeCachedViewUniformBuffer = (): boolean => {
-    if (cached === null || cached.result.resources === null) {
-      return false;
-    }
-
-    const outcome = writeVersionedBufferData(
-      options.device,
-      cached.result.resources.viewUniform.buffer,
-      viewDescriptor.plan?.source ?? options.viewUniforms.data,
-      options.viewUniforms,
-      cached.viewUploadStamp,
-    );
-
-    if (outcome === false) {
-      return false;
-    }
-
-    viewUniformUpload.value = outcome;
     return true;
   };
   const writeCachedLocalLightClusterBuffers = (): boolean => {
@@ -436,8 +720,21 @@ export function createOrReuseStandardAppFrameResources(options: {
 
     return written;
   };
+  const cacheReusePreconditionFailure =
+    standardFrameResourceCachePreconditionFailure({
+      cached,
+      sharedFrameResources,
+      usingSharedFrameResources,
+      viewDescriptorPlan: viewDescriptor.plan,
+      transformDescriptorPlan: transformDescriptor.plan,
+      lightDescriptorPlan: lightDescriptor.plan,
+      localLightClusterDescriptor,
+      cachedLocalLightClusters,
+      pipelineKey: options.pipelineKey,
+    });
 
   if (
+    cacheReusePreconditionFailure === null &&
     cached !== null &&
     cached.meshKey === options.meshKey &&
     cached.materialKey === options.materialKey &&
@@ -465,13 +762,20 @@ export function createOrReuseStandardAppFrameResources(options: {
       options.textureSamplerDependencies.samplerKeys,
     ) &&
     cached.result.resources !== null &&
+    (!usingSharedFrameResources ||
+      (cached.result.resources.viewUniform ===
+        sharedFrameResources.viewUniform &&
+        cached.result.resources.worldTransforms ===
+          sharedFrameResources.worldTransforms)) &&
     cached.result.resources.lightGpuBuffers.resource !== null &&
     viewDescriptor.plan !== null &&
     transformDescriptor.plan !== null &&
     lightDescriptor.plan !== null &&
-    cached.viewByteLength === viewDescriptor.plan.source.byteLength &&
-    cached.worldTransformByteLength ===
-      transformDescriptor.plan.source.byteLength &&
+    (usingSharedFrameResources ||
+      cached.viewByteLength === viewDescriptor.plan.source.byteLength) &&
+    (usingSharedFrameResources ||
+      cached.worldTransformByteLength ===
+        transformDescriptor.plan.source.byteLength) &&
     cached.lightFloatByteLength ===
       lightDescriptor.plan.source.floats.byteLength &&
     cached.lightMetadataByteLength ===
@@ -489,19 +793,24 @@ export function createOrReuseStandardAppFrameResources(options: {
     !requiresInstanceTintBuffer(options.pipelineKey) &&
     !requiresSkinningJointBuffer(options.pipelineKey) &&
     !requiresMorphTargetWeightBuffer(options.pipelineKey) &&
-    writeCachedViewUniformBuffer() &&
-    writeCachedWorldTransformBuffer() &&
+    (usingSharedFrameResources || writeCachedViewUniformBuffer()) &&
+    (usingSharedFrameResources || writeCachedWorldTransformBuffer()) &&
     writeCachedLightBuffers() &&
     writeCachedLocalLightClusterBuffers()
   ) {
+    recordStandardFrameResourceCacheHit(options.reuse);
     options.reuse.meshBuffersReused += 1;
     options.reuse.materialBuffersReused += 1;
     options.reuse.bindGroupsReused += cached.result.resources.bindGroups.length;
     options.reuse.lightBuffersReused += 1;
     options.reuse.dynamicBufferWrites +=
-      4 -
-      (worldTransformUpload.value === "skipped" ? 1 : 0) -
-      (viewUniformUpload.value === "skipped" ? 1 : 0) -
+      (usingSharedFrameResources ? 2 : 4) -
+      (!usingSharedFrameResources && worldTransformUpload.value === "skipped"
+        ? 1
+        : 0) -
+      (!usingSharedFrameResources && viewUniformUpload.value === "skipped"
+        ? 1
+        : 0) -
       (lightFloatUpload.value === "skipped" ? 1 : 0) -
       (lightMetadataUpload.value === "skipped" ? 1 : 0);
     if (
@@ -524,16 +833,18 @@ export function createOrReuseStandardAppFrameResources(options: {
 
     const resources = cached.result.resources;
 
-    (
-      resources.viewUniform as {
-        views: typeof viewDescriptor.plan.views;
-      }
-    ).views = viewDescriptor.plan.views;
-    (
-      resources.worldTransforms as {
-        offsets: typeof transformDescriptor.plan.offsets;
-      }
-    ).offsets = transformDescriptor.plan.offsets;
+    if (!usingSharedFrameResources) {
+      (
+        resources.viewUniform as {
+          views: typeof viewDescriptor.plan.views;
+        }
+      ).views = viewDescriptor.plan.views;
+      (
+        resources.worldTransforms as {
+          offsets: typeof transformDescriptor.plan.offsets;
+        }
+      ).offsets = transformDescriptor.plan.offsets;
+    }
     (
       resources.lightGpuBuffers as {
         lightBuffer: typeof lightBuffer;
@@ -549,14 +860,21 @@ export function createOrReuseStandardAppFrameResources(options: {
     return cached.result;
   }
 
+  recordStandardFrameResourceCacheMiss(
+    options.reuse,
+    cacheReusePreconditionFailure ?? "buffer-write-failed",
+  );
+
   const preparedMaterialFallbackDiagnostics: PreparedAppMaterialFallbackDiagnostic[] =
     [];
+  const resourceLifetimeFrame =
+    options.resourceLifetimeFrame ?? options.snapshot.frame;
   const preparedMesh = preparePreparedStandardMesh({
     ...options,
-    frame: options.snapshot.frame,
+    frame: resourceLifetimeFrame,
   });
   const preparedMaterial = preparePreparedStandardMaterial(
-    { ...options, frame: options.snapshot.frame },
+    { ...options, frame: resourceLifetimeFrame },
     preparedMaterialFallbackDiagnostics,
   );
   const result = createStandardFrameGpuResources({
@@ -575,7 +893,13 @@ export function createOrReuseStandardAppFrameResources(options: {
       ? {}
       : { preparedMaterial: preparedMaterial.resource }),
     viewUniforms: options.viewUniforms,
+    ...(sharedFrameResources.viewUniform === null
+      ? {}
+      : { preparedViewUniform: sharedFrameResources.viewUniform }),
     worldTransforms: options.worldTransforms,
+    ...(sharedFrameResources.worldTransforms === null
+      ? {}
+      : { preparedWorldTransforms: sharedFrameResources.worldTransforms }),
     ...(options.previousWorldTransforms === undefined
       ? {}
       : { previousWorldTransforms: options.previousWorldTransforms }),
@@ -823,6 +1147,157 @@ function isMultiShadowKind(
     shadowKind === "multi-point-array" ||
     shadowKind === "multi-spot-array-point-array"
   );
+}
+
+function recordStandardFrameResourceCacheHit(
+  reuse: StandardAppFrameResourceReuseReport,
+): void {
+  reuse.standardFrameResourceCacheHits += 1;
+}
+
+function recordStandardFrameResourceCacheMiss(
+  reuse: StandardAppFrameResourceReuseReport,
+  reason: string,
+): void {
+  reuse.standardFrameResourceCacheMisses += 1;
+  reuse.standardFrameResourceCacheMissReasons[reason] =
+    (reuse.standardFrameResourceCacheMissReasons[reason] ?? 0) + 1;
+}
+
+function standardFrameResourceCachePreconditionFailure(input: {
+  readonly cached: CachedStandardAppFrameResources | null;
+  readonly sharedFrameResources: PrepareStandardSharedFrameResourcesResult;
+  readonly usingSharedFrameResources: boolean;
+  readonly viewDescriptorPlan: {
+    readonly source: { readonly byteLength: number };
+  } | null;
+  readonly transformDescriptorPlan: {
+    readonly source: { readonly byteLength: number };
+  } | null;
+  readonly lightDescriptorPlan: {
+    readonly source: {
+      readonly floats: { readonly byteLength: number };
+      readonly metadata: { readonly byteLength: number };
+    };
+  } | null;
+  readonly localLightClusterDescriptor: LocalLightClusterDescriptor | null;
+  readonly cachedLocalLightClusters: LocalLightClusterGpuResource | null;
+  readonly pipelineKey: string;
+}): string | null {
+  const cached = input.cached;
+
+  if (cached === null) {
+    return "no-route-entry";
+  }
+
+  const resources = cached.result.resources;
+
+  if (resources === null) {
+    return "cached-resources-null";
+  }
+
+  if (
+    input.usingSharedFrameResources &&
+    (resources.viewUniform !== input.sharedFrameResources.viewUniform ||
+      resources.worldTransforms !== input.sharedFrameResources.worldTransforms)
+  ) {
+    return "shared-frame-resource-mismatch";
+  }
+
+  if (resources.lightGpuBuffers.resource === null) {
+    return "missing-light-buffer";
+  }
+
+  if (input.viewDescriptorPlan === null) {
+    return "missing-view-descriptor";
+  }
+
+  if (input.transformDescriptorPlan === null) {
+    return "missing-transform-descriptor";
+  }
+
+  if (input.lightDescriptorPlan === null) {
+    return "missing-light-descriptor";
+  }
+
+  if (
+    !input.usingSharedFrameResources &&
+    cached.viewByteLength !== input.viewDescriptorPlan.source.byteLength
+  ) {
+    return "view-byte-length-changed";
+  }
+
+  if (
+    !input.usingSharedFrameResources &&
+    cached.worldTransformByteLength !==
+      input.transformDescriptorPlan.source.byteLength
+  ) {
+    return "world-transform-byte-length-changed";
+  }
+
+  if (
+    cached.lightFloatByteLength !==
+    input.lightDescriptorPlan.source.floats.byteLength
+  ) {
+    return "light-float-byte-length-changed";
+  }
+
+  if (
+    cached.lightMetadataByteLength !==
+    input.lightDescriptorPlan.source.metadata.byteLength
+  ) {
+    return "light-metadata-byte-length-changed";
+  }
+
+  const localLightClusterDescriptor = input.localLightClusterDescriptor;
+
+  if (localLightClusterDescriptor !== null) {
+    if (input.cachedLocalLightClusters === null) {
+      return "missing-local-light-cluster-cache";
+    }
+
+    if (
+      cached.localLightClusterParamsByteLength !==
+      localLightClusterDescriptor.params.byteLength
+    ) {
+      return "local-light-cluster-params-byte-length-changed";
+    }
+
+    if (
+      cached.localLightClusterCellsByteLength !==
+      localLightClusterDescriptor.cells.byteLength
+    ) {
+      return "local-light-cluster-cells-byte-length-changed";
+    }
+
+    if (
+      cached.localLightClusterIndicesByteLength !==
+      localLightClusterDescriptor.indices.byteLength
+    ) {
+      return "local-light-cluster-indices-byte-length-changed";
+    }
+
+    if (
+      cached.localLightClusterMetadataByteLength !==
+      localLightClusterDescriptor.metadata.byteLength
+    ) {
+      return "local-light-cluster-metadata-byte-length-changed";
+    }
+  }
+
+  if (requiresInstanceTintBuffer(input.pipelineKey)) {
+    return "requires-instance-tint-buffer";
+  }
+
+  if (requiresSkinningJointBuffer(input.pipelineKey)) {
+    return "requires-skinning-joint-buffer";
+  }
+
+  if (requiresMorphTargetWeightBuffer(input.pipelineKey)) {
+    return "requires-morph-target-weight-buffer";
+  }
+
+  return null;
 }
 
 function requiresClusteredLocalLights(pipelineKey: string): boolean {

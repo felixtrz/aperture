@@ -81,10 +81,17 @@ export interface RenderBundleExecutionReport {
   readonly diagnostics: readonly RenderBundleDiagnostic[];
 }
 
+export interface RenderBundleKeySummary {
+  readonly key: string | null;
+  readonly keyHash: string | null;
+  readonly keyLength: number | null;
+}
+
 export interface ExecuteRenderPassCommandsWithRenderBundleOptions {
   readonly pass: RenderBundleRenderPassLike;
   readonly device: RenderBundleDeviceLike;
   readonly commands: readonly RenderPassCommand[];
+  readonly bundledCommandCount?: number;
   readonly cache: RenderBundleCache;
   readonly key: string;
   readonly descriptor: RenderBundleEncoderDescriptorLike;
@@ -120,9 +127,30 @@ export function createRenderBundleCommandKey(
   return JSON.stringify(key);
 }
 
+export function summarizeRenderBundleKey(
+  key: string | null,
+): RenderBundleKeySummary {
+  if (key === null) {
+    return { key: null, keyHash: null, keyLength: null };
+  }
+
+  const hash = hashString(key);
+
+  return {
+    key: key.length <= 160 ? key : `hash:${hash}:length:${key.length}`,
+    keyHash: hash,
+    keyLength: key.length,
+  };
+}
+
 export function executeRenderPassCommandsWithRenderBundle(
   options: ExecuteRenderPassCommandsWithRenderBundleOptions,
 ): RenderBundleCommandExecutionResult {
+  const split = splitRenderBundleCommands(
+    options.commands,
+    options.bundledCommandCount,
+  );
+
   if (options.enabled === false) {
     const execution = executeRenderPassCommands({
       pass: options.pass,
@@ -181,7 +209,16 @@ export function executeRenderPassCommandsWithRenderBundle(
       );
     }
 
-    const execution = executionReportFromCacheEntry(cached);
+    const bundleExecution = executionReportFromCacheEntry(cached);
+    const directExecution = executeRenderPassCommands({
+      pass: options.pass,
+      commands: split.directCommands,
+    });
+    const execution = combineRenderPassCommandExecutionReports(
+      bundleExecution,
+      directExecution,
+      options.commands.length,
+    );
 
     return {
       execution,
@@ -229,7 +266,7 @@ export function executeRenderPassCommandsWithRenderBundle(
 
   const bundleExecution = executeRenderPassCommands({
     pass: bundleEncoder,
-    commands: options.commands,
+    commands: split.bundleCommands,
   });
 
   if (!bundleExecution.valid) {
@@ -280,6 +317,10 @@ export function executeRenderPassCommandsWithRenderBundle(
       )}`,
     );
   }
+  const directExecution = executeRenderPassCommands({
+    pass: options.pass,
+    commands: split.directCommands,
+  });
 
   const entry: RenderBundleCacheEntry = {
     key: options.key,
@@ -290,9 +331,14 @@ export function executeRenderPassCommandsWithRenderBundle(
     nonIndexedDrawCalls: bundleExecution.nonIndexedDrawCalls,
   };
   options.cache.entries.set(options.key, entry);
+  const execution = combineRenderPassCommandExecutionReports(
+    bundleExecution,
+    directExecution,
+    options.commands.length,
+  );
 
   return {
-    execution: bundleExecution,
+    execution,
     renderBundle: {
       valid: true,
       status: "created",
@@ -330,6 +376,51 @@ function fallbackAfterBundleFailure(
       cacheSize: options.cache.entries.size,
       diagnostics: [{ code, message }],
     }),
+  };
+}
+
+function splitRenderBundleCommands(
+  commands: readonly RenderPassCommand[],
+  bundledCommandCount: number | undefined,
+): {
+  readonly bundleCommands: readonly RenderPassCommand[];
+  readonly directCommands: readonly RenderPassCommand[];
+} {
+  if (
+    bundledCommandCount === undefined ||
+    bundledCommandCount >= commands.length
+  ) {
+    return {
+      bundleCommands: commands,
+      directCommands: [],
+    };
+  }
+
+  const clampedCount = Math.max(0, bundledCommandCount);
+
+  return {
+    bundleCommands: commands.slice(0, clampedCount),
+    directCommands: commands.slice(clampedCount),
+  };
+}
+
+function combineRenderPassCommandExecutionReports(
+  bundled: RenderPassCommandExecutionReport,
+  direct: RenderPassCommandExecutionReport,
+  commandCount: number,
+): RenderPassCommandExecutionReport {
+  const executedCommands = bundled.executedCommands + direct.executedCommands;
+
+  return {
+    valid: bundled.valid && direct.valid,
+    commandCount,
+    executedCommands,
+    skippedCommands: commandCount - executedCommands,
+    drawCalls: bundled.drawCalls + direct.drawCalls,
+    indexedDrawCalls: bundled.indexedDrawCalls + direct.indexedDrawCalls,
+    nonIndexedDrawCalls:
+      bundled.nonIndexedDrawCalls + direct.nonIndexedDrawCalls,
+    diagnostics: [...bundled.diagnostics, ...direct.diagnostics],
   };
 }
 
@@ -384,7 +475,12 @@ function commandKeyPart(
         resourceIdentity(command.pipeline, cache),
       ];
     case "setBindGroup":
-      return ["bg", command.index, command.resourceKey];
+      return [
+        "bg",
+        command.index,
+        command.resourceKey,
+        resourceIdentity(command.bindGroup, cache),
+      ];
     case "setVertexBuffer":
       return [
         "vb",
@@ -456,6 +552,17 @@ function resourceIdentity(value: unknown, cache: RenderBundleCache): string {
   cache.objectIds.set(value, id);
 
   return `object:${id}`;
+}
+
+function hashString(value: string): string {
+  let hash = 0x811c9dc5;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
 function messageFromCause(cause: unknown): string {

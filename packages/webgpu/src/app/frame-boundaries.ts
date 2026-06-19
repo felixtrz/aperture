@@ -51,6 +51,7 @@ import {
   type WebGpuAppMsaaReport,
 } from "./attachments.js";
 import {
+  createWebGpuAppGpuTimingForPass,
   createWebGpuAppGpuTimingForTarget,
   type WebGpuAppGpuTimingReadback,
   type WebGpuAppOcclusionQueryReadback,
@@ -116,6 +117,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
   readonly commands: readonly RenderPassCommand[];
+  readonly renderBundleCommands?: readonly RenderPassCommand[];
   readonly overlayCommands?: readonly RenderPassCommand[];
   readonly label: string;
   readonly reuse: WebGpuAppResourceReuseReport;
@@ -124,6 +126,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   readonly transmissionSceneColorResources?: StandardFrameTransmissionSceneColorResources | null;
   readonly clearColor?: readonly number[];
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
+  readonly gpuTimings?: boolean;
   readonly enableRenderBundles?: boolean;
   // M3-T5: shadow caster passes to fold into the forward encoder as depth-only
   // graph nodes the opaque pass reads (only used when useFrameGraph is on).
@@ -180,6 +183,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   let msaaColorTexturesCreated = 0;
   let msaaColorTexturesReused = 0;
   let allTargetsValid = true;
+  const renderBundleViewCommands: RenderPassCommand[] = [];
   const submittedTargetCounts = new Map<string, number>();
   const submittedTargetLayerMasks = new Map<string, number>();
   const targetSubmissionTotals = countWebGpuAppFrameBoundaryTargetSubmissions(
@@ -295,6 +299,16 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       options.cache.frameScratch.viewCommands,
       skybox.commands,
     );
+    const renderBundleCommandsForView =
+      options.renderBundleCommands === undefined
+        ? commandsForView
+        : writeCommandsForView(
+            options.renderBundleCommands,
+            options.snapshot,
+            target.view,
+            renderBundleViewCommands,
+            skybox.commands,
+          );
     const occlusionCandidateRenderIds =
       collectOcclusionQueryRenderIds(commandsForView);
     const occlusionCullingPlan = planGpuOcclusionFeedbackCulling({
@@ -392,8 +406,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       !isTransparentOverlayClearColor(targetClearColor)
         ? "load"
         : "clear";
-    const colorStoreOp: RenderPassAttachmentStoreOp =
-      storeMsaaColorForLaterLoad ? "store" : "discard";
+    const colorStoreOp: RenderPassAttachmentStoreOp = storeMsaaColorForLaterLoad
+      ? "store"
+      : "discard";
     const finalTargetSubmission =
       previousTargetSubmissions + 1 >= targetSubmissionTotal;
 
@@ -402,15 +417,22 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       readbackBoundary === null &&
       target.source === "swapchain" &&
       targetIndex === lastSwapchainTargetIndex;
-    const gpuTiming = await createWebGpuAppGpuTimingForTarget(
-      options.app,
-      options.cache,
-      options.label,
-      target,
-    );
-    gpuTimingDiagnostics.push(...gpuTiming.diagnostics);
+    const targetPassName =
+      target.renderTargetKey === null
+        ? "main"
+        : `main:${target.renderTargetKey}`;
+    const gpuTiming =
+      options.gpuTimings === true
+        ? await createWebGpuAppGpuTimingForTarget(
+            options.app,
+            options.cache,
+            options.label,
+            target,
+          )
+        : null;
+    gpuTimingDiagnostics.push(...(gpuTiming?.diagnostics ?? []));
 
-    if (gpuTiming.resources !== null) {
+    if (gpuTiming?.resources !== null && gpuTiming?.resources !== undefined) {
       gpuTimingReadbacks.push({
         passName: gpuTiming.passName,
         resources: gpuTiming.resources,
@@ -462,7 +484,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         ...(includeReadback
           ? { readbackSamples: options.readbackSamples }
           : {}),
-        ...(gpuTiming.resources === null
+        ...(gpuTiming?.resources === undefined || gpuTiming.resources === null
           ? {}
           : {
               gpuTiming: {
@@ -479,6 +501,11 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
                 queryCount: occlusionRenderIds.length,
               },
             }),
+        enableRenderBundles: options.enableRenderBundles === true,
+        renderBundleCommandCount: renderBundleCommandsForView.length,
+        ...((options.shadowCasterGraphPasses ?? []).length === 0
+          ? {}
+          : { shadowCasterGraphPasses: options.shadowCasterGraphPasses }),
       });
       const sceneOcclusionQueries =
         postTarget.boundaries[0]?.occlusionQueries ?? null;
@@ -495,7 +522,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         sceneOcclusionQueries?.valid === true
       ) {
         occlusionQueryReadbacks.push({
-          passName: gpuTiming.passName,
+          passName: gpuTiming?.passName ?? targetPassName,
           viewId: target.view.viewId,
           resources: occlusionQueries.resources,
           renderIds: [...occlusionRenderIds],
@@ -519,7 +546,10 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
           targetSubmissionKey,
           previousTargetSubmissions + 1,
         );
-        submittedTargetLayerMasks.set(targetSubmissionKey, target.view.layerMask);
+        submittedTargetLayerMasks.set(
+          targetSubmissionKey,
+          target.view.layerMask,
+        );
       }
       diagnostics.push(...postTarget.diagnostics);
       continue;
@@ -616,10 +646,15 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       depthStencilFormat: WEBGPU_APP_DEPTH_FORMAT,
       sampleCount,
     };
+    const renderBundleCommandCount = renderBundleCommandsForView.length;
+    const renderBundleCommands =
+      renderBundleCommandCount === commandsForBoundaryWithOverlay.length
+        ? commandsForBoundaryWithOverlay
+        : commandsForBoundaryWithOverlay.slice(0, renderBundleCommandCount);
     const renderBundleKey = createWebGpuAppRenderBundleCommandKey({
       target,
       descriptor: renderBundleDescriptor,
-      commands: commandsForBoundaryWithOverlay,
+      commands: renderBundleCommands,
       cache: options.cache.renderBundles,
     });
     const boundaryOptions: Parameters<typeof assembleFrameBoundary>[0] = {
@@ -654,8 +689,10 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         depthStoreOp: "store",
       },
       ...(commandsForBoundaryWithOverlay.length === 0 ||
+      renderBundleCommands.length === 0 ||
       options.enableRenderBundles === false ||
-      overlayCommands.length > 0 ||
+      (overlayCommands.length > 0 &&
+        options.renderBundleCommands === undefined) ||
       occlusionRenderIds.length > 0
         ? {}
         : {
@@ -663,6 +700,10 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
               cache: options.cache.renderBundles,
               key: renderBundleKey,
               descriptor: renderBundleDescriptor,
+              ...(renderBundleCommandCount ===
+              commandsForBoundaryWithOverlay.length
+                ? {}
+                : { bundledCommandCount: renderBundleCommandCount }),
             },
           }),
       ...(msaaColorTarget.resource === null
@@ -676,7 +717,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
               ? { msaaColorStoreOp: "store" as const }
               : {}),
           }),
-      ...(gpuTiming.resources === null
+      ...(gpuTiming?.resources === undefined || gpuTiming.resources === null
         ? {}
         : {
             gpuTiming: {
@@ -728,7 +769,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         msaaSampleCount: msaaColorTarget.resource?.sampleCount ?? null,
         occlusionQueries,
         occlusionRenderIds,
-        gpuTimingPassName: gpuTiming.passName,
+        gpuTimingPassName: gpuTiming?.passName ?? targetPassName,
         shadowReads: forwardGraphShadowReads,
       });
       firstDepthAttachment ??= createWebGpuAppDepthAttachmentReport(
@@ -776,7 +817,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       boundary.occlusionQueries?.valid === true
     ) {
       occlusionQueryReadbacks.push({
-        passName: gpuTiming.passName,
+        passName: gpuTiming?.passName ?? targetPassName,
         viewId: target.view.viewId,
         resources: occlusionQueries.resources,
         renderIds: [...occlusionRenderIds],

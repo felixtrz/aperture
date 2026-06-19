@@ -193,6 +193,7 @@ export function prepareMeshGpuResource(
 
   if (cached !== undefined) {
     cached.lastUsedFrame = options.frame ?? 0;
+    pruneSupersededSameLayoutMeshGpuResourceAliases(options.cache, cached);
 
     return {
       valid: true,
@@ -232,6 +233,7 @@ export function prepareMeshGpuResource(
     };
 
     options.cache.resources.set(cacheKey, resource);
+    pruneSupersededSameLayoutMeshGpuResourceAliases(options.cache, resource);
 
     return {
       valid: true,
@@ -269,6 +271,7 @@ export function prepareMeshGpuResource(
   };
 
   options.cache.resources.set(cacheKey, resource);
+  pruneSupersededSameLayoutMeshGpuResourceAliases(options.cache, resource);
 
   return {
     valid: true,
@@ -288,6 +291,24 @@ export function preparedMeshGpuResourceCacheKey(input: {
     `version:${input.sourceVersion}`,
     `layout:${input.layoutKey}`,
   ].join("|");
+}
+
+function pruneSupersededSameLayoutMeshGpuResourceAliases(
+  cache: PreparedMeshGpuResourceCache,
+  keep: PreparedMeshGpuResource,
+): void {
+  for (const [key, resource] of cache.resources) {
+    if (
+      key === keep.cacheKey ||
+      resource.sourceMeshKey !== keep.sourceMeshKey ||
+      resource.layoutKey !== keep.layoutKey ||
+      resource.sourceVersion === keep.sourceVersion
+    ) {
+      continue;
+    }
+
+    cache.resources.delete(key);
+  }
 }
 
 function withPreparedMeshResourceLabel(
@@ -403,7 +424,8 @@ function writeMeshBufferDataOrRanges(
   device: WebGpuBufferDeviceLike,
   buffer: unknown,
   source: ArrayBufferView,
-  ranges: readonly { readonly byteOffset: number; readonly byteLength: number }[]
+  ranges:
+    | readonly { readonly byteOffset: number; readonly byteLength: number }[]
     | undefined,
 ): boolean {
   if (ranges === undefined) {

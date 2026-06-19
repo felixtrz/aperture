@@ -109,6 +109,84 @@ export function createWebGpuBuffer(
   return { ok: true, buffer };
 }
 
+export function writeWebGpuBufferData(
+  device: Pick<WebGpuBufferDeviceLike, "queue">,
+  buffer: unknown,
+  data: ArrayBufferView,
+): boolean {
+  if (data.byteLength === 0) {
+    return true;
+  }
+
+  if (device.queue?.writeBuffer === undefined) {
+    return false;
+  }
+
+  const upload = createInitialDataUpload(data);
+
+  device.queue.writeBuffer(
+    buffer,
+    0,
+    upload.data,
+    upload.dataOffset,
+    upload.size,
+  );
+  return true;
+}
+
+export interface WebGpuBufferSubDataRange {
+  readonly bufferOffset: number;
+  readonly dataByteOffset: number;
+  readonly byteLength: number;
+}
+
+export function writeWebGpuBufferSubData(
+  device: Pick<WebGpuBufferDeviceLike, "queue">,
+  buffer: unknown,
+  data: ArrayBufferView,
+  range: WebGpuBufferSubDataRange,
+): boolean {
+  if (range.byteLength === 0) {
+    return true;
+  }
+
+  if (
+    range.bufferOffset < 0 ||
+    range.dataByteOffset < 0 ||
+    range.byteLength < 0 ||
+    range.dataByteOffset + range.byteLength > data.byteLength ||
+    range.bufferOffset % 4 !== 0
+  ) {
+    return false;
+  }
+
+  if (device.queue?.writeBuffer === undefined) {
+    return false;
+  }
+
+  const sourceByteOffset = data.byteOffset + range.dataByteOffset;
+  const size = alignTo4(range.byteLength);
+
+  if (size === range.byteLength && sourceByteOffset % 4 === 0) {
+    device.queue.writeBuffer(
+      buffer,
+      range.bufferOffset,
+      data.buffer,
+      sourceByteOffset,
+      size,
+    );
+    return true;
+  }
+
+  const padded = new Uint8Array(size);
+  padded.set(
+    new Uint8Array(data.buffer, sourceByteOffset, range.byteLength),
+    0,
+  );
+  device.queue.writeBuffer(buffer, range.bufferOffset, padded.buffer, 0, size);
+  return true;
+}
+
 export function destroyWebGpuBuffer(buffer: unknown): void {
   if (typeof buffer !== "object" || buffer === null) {
     return;
@@ -117,6 +195,35 @@ export function destroyWebGpuBuffer(buffer: unknown): void {
   const destroy = (buffer as { readonly destroy?: unknown }).destroy;
   if (typeof destroy === "function") {
     destroy.call(buffer);
+  }
+}
+
+export function retireWebGpuBuffer(device: unknown, buffer: unknown): void {
+  const onSubmittedWorkDone =
+    typeof device === "object" && device !== null
+      ? (
+          device as {
+            readonly queue?: {
+              readonly onSubmittedWorkDone?: () => PromiseLike<unknown>;
+            };
+          }
+        ).queue?.onSubmittedWorkDone
+      : undefined;
+
+  if (typeof onSubmittedWorkDone !== "function") {
+    destroyWebGpuBuffer(buffer);
+    return;
+  }
+
+  try {
+    onSubmittedWorkDone
+      .call((device as { readonly queue?: unknown }).queue)
+      .then(
+        () => destroyWebGpuBuffer(buffer),
+        () => destroyWebGpuBuffer(buffer),
+      );
+  } catch {
+    destroyWebGpuBuffer(buffer);
   }
 }
 

@@ -1,5 +1,119 @@
 # Completed Tasks
 
+## Racing - Status retention and resource diagnostics compaction
+
+Completed: 2026-06-18 06:38 PDT
+
+### Summary
+
+- Removed full entity summaries from normal generated-worker snapshot
+  summaries; entity details now resolve through on-demand runtime/devtool
+  commands, and the developer panel requests an initial entity snapshot
+  explicitly.
+- Dropped transient full worker-summary fields from steady browser status while
+  preserving `entityTools` for on-demand tooling.
+- Updated CLI `renderExplainEntity` to resolve entities through the generated
+  runtime bridge before falling back to legacy retained status entities.
+- Throttled the developer-api panel status renderer to 4 Hz so the initial
+  on-demand entity snapshot does not make the panel pretty-print status every
+  RAF.
+- Added status-only retained resource compaction so browser status keeps
+  resource totals/family counts while full report serialization remains
+  detailed by default.
+- Updated the Racing three.js frame-time audit, public dashboard, render
+  pipeline tracker, backlog, completed log, and handoff with the latest exact
+  measurements.
+
+### Validation
+
+- `pnpm exec vitest run test/app/browser-performance-status.test.ts test/cli/render-tools.test.ts`
+- `pnpm exec vitest run test/app/browser-performance-status.test.ts test/cli/render-tools.test.ts test/webgpu/webgpu-app.test.ts -t "retained full worker summary fields|renderExplainEntity|initializes WebGPU and renders the unlit queue path"`
+- `pnpm exec tsc -b --force packages/webgpu packages/app packages/cli --pretty false`
+- `pnpm exec prettier --check packages/webgpu/src/app/report.ts packages/webgpu/src/app/create-webgpu-app.ts packages/app/src/worker/snapshot.ts packages/app/src/browser/assets.ts packages/cli/src/tools/render.ts examples/developer-api/src/dev-panel.ts test/app/browser-performance-status.test.ts test/cli/render-tools.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm --dir racing run build -- --force`
+- Live rebuilt status payload check against `http://127.0.0.1:5186/`
+- `/tmp/racing-frame-audit-status-resource-compact.json`
+- Attempted `pnpm exec playwright test test/e2e/developer-api.spec.ts`; it still
+  timed out at the existing resize/status boundary before reaching the new
+  entity-snapshot assertions, so it is documented in handoff as a separate
+  validation issue.
+
+## Racing - Diagnostics compaction and cadence evidence
+
+Completed: 2026-06-18 06:18 PDT
+
+### Summary
+
+- Added cached app-facing cadence diagnostics for snapshot arrival,
+  presentation callbacks, render start/completion, pending replacement, and
+  missed-in-flight catch-up behavior.
+- Measured and rejected an immediate scheduled-snapshot drain policy because it
+  raised submit count but regressed p95/p99/max frame tails.
+- Compacted app-facing render-bundle diagnostics by hashing long bundle keys and
+  compacted shadow diagnostics by replacing the full caster draw array with
+  counts plus an 8-entry sample.
+- Updated the Racing three.js frame-time audit, backlog, completed log, and
+  handoff with the latest accepted measurements and remaining blockers.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/app-frame-boundaries.test.ts test/webgpu/webgpu-app.test.ts test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/app-auto-shadow-frame.test.ts`
+- `pnpm exec tsc -b --force packages/webgpu --pretty false`
+- `pnpm --dir racing run build -- --force`
+- Live rebuilt status payload check against `http://127.0.0.1:5186/`
+- `/tmp/racing-frame-audit-current-final.json`
+
+## Racing - Opaque identity and post-graph bundle prefix reuse
+
+Completed: 2026-06-18 05:40 PDT
+
+### Summary
+
+- Treated opaque/alpha-test depth-only sort movement as ordering metadata
+  instead of structural mesh-draw identity, while preserving transparent depth
+  invalidation.
+- Added post-graph scene render-bundle prefix reuse so stable base-scene
+  commands can execute through a cached bundle while dynamic particle/UI tails
+  execute directly in the same pass.
+- Made render-bundle keys include captured bind-group object identity and
+  deferred replaced GPU buffer destruction until submitted work completes.
+- Updated the Racing three.js frame-time audit, public dashboard, render
+  pipeline tracker, backlog, and handoff with the accepted final measurements.
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/snapshot-change-set.test.ts test/rendering/render-world.test.ts test/rendering/extraction.test.ts`
+- `pnpm exec vitest run test/webgpu/buffer.test.ts test/webgpu/frame-boundary.test.ts test/webgpu/app-frame-boundaries.test.ts test/webgpu/post-graph-parity.test.ts`
+- `pnpm exec tsc -b --force packages/render packages/webgpu packages/runtime packages/app --pretty false`
+- `pnpm --dir racing run build -- --force`
+- `/tmp/racing-drive-distribution-opaque-depth-identity.json`
+- `/tmp/racing-frame-audit-post-scene-bundle-retire.json`
+
+## Racing - Frustum-independent extraction cache reuse
+
+Completed: 2026-06-18 05:18 PDT
+
+### Summary
+
+- Decoupled mesh and shadow-caster extraction cache reuse from the full primary
+  camera frustum signature.
+- Kept current per-frame culling and refreshed main-pass sort depth for cached
+  draws, while preventing shadow-caster templates from inheriting primary-camera
+  frustum state.
+- Updated the Racing three.js frame-time audit, public dashboard, render
+  pipeline tracker, backlog, and handoff with the latest measurements and next
+  bottleneck.
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/extraction.test.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction-mesh-cache.ts packages/render/src/rendering/extraction-meshes.ts test/rendering/extraction.test.ts`
+- `pnpm exec tsc -b --force packages/render packages/webgpu packages/runtime packages/app --pretty false`
+- `pnpm --dir racing run build -- --force`
+- `/tmp/racing-drive-distribution-main-cache.json`
+- `/tmp/racing-write-probe-shadow-world-transforms.json`
+- `/tmp/racing-frame-audit-main-cache.json`
+
 ## FPS-PORT - Completion audit and tool client hardening
 
 Completed: 2026-06-17 15:08 PDT

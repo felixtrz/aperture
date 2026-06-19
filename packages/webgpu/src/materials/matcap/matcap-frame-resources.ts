@@ -102,6 +102,8 @@ export interface CreateMatcapFrameGpuResourcesOptions {
   readonly device: MatcapFrameGpuResourceDeviceLike;
   readonly mesh: MeshAsset | null;
   readonly preparedMesh?: MeshGpuBufferResource | undefined;
+  readonly preparedViewUniform?: ViewUniformGpuBufferResource | undefined;
+  readonly preparedWorldTransforms?: WorldTransformGpuBufferResource | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
   readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
@@ -229,10 +231,14 @@ function createMeshResource(
 function createViewUniformResource(
   options: Pick<
     CreateMatcapFrameGpuResourcesOptions,
-    "device" | "viewUniforms"
+    "device" | "preparedViewUniform" | "viewUniforms"
   >,
   diagnostics: CreateMatcapFrameGpuResourcesDiagnostic[],
 ): ViewUniformGpuBufferResource | null {
+  if (options.preparedViewUniform !== undefined) {
+    return options.preparedViewUniform;
+  }
+
   if (options.viewUniforms === null) {
     diagnostics.push({
       code: "matcapFrameResources.missingViewUniforms",
@@ -259,10 +265,14 @@ function createViewUniformResource(
 function createWorldTransformResource(
   options: Pick<
     CreateMatcapFrameGpuResourcesOptions,
-    "device" | "worldTransforms"
+    "device" | "preparedWorldTransforms" | "worldTransforms"
   >,
   diagnostics: CreateMatcapFrameGpuResourcesDiagnostic[],
 ): WorldTransformGpuBufferResource | null {
+  if (options.preparedWorldTransforms !== undefined) {
+    return options.preparedWorldTransforms;
+  }
+
   if (options.worldTransforms === null) {
     diagnostics.push({
       code: "matcapFrameResources.missingWorldTransforms",

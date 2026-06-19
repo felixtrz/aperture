@@ -28,6 +28,7 @@ import {
   releaseWebGpuAppGpuTimingReadbacks,
 } from "./gpu-readback.js";
 import { prepareParticleFrameResourcesForSnapshot } from "./particles.js";
+import { renderSnapshotTimeSeconds } from "./snapshot.js";
 import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
 import {
   customWgslMaterialRenderPipelineCacheKey,
@@ -60,6 +61,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
   readonly clearColor?: readonly number[];
   readonly label?: string;
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
+  readonly gpuTimings?: boolean;
   readonly phaseTimer: WebGpuAppRenderPhaseTimer;
 }): Promise<WebGpuAppRenderReport> {
   const draw = options.snapshot.meshDraws[0];
@@ -287,7 +289,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     snapshot: options.snapshot,
     viewUniforms: packedViews,
     reuse: options.reuse,
-    time: options.snapshot.frame / 60,
+    time: renderSnapshotTimeSeconds(options.snapshot),
   });
   const uiFrame = await prepareUiFrameResourcesForSnapshot({
     app: options.app,
@@ -331,6 +333,10 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     commands: frameCommands,
     label: options.label ?? "aperture-custom-wgsl-app",
   });
+  const renderBundleCommands = indirectDraws.commands.slice(
+    0,
+    framePlan.commandPlan.commands.length,
+  );
   options.phaseTimer.start("submit");
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app: options.app,
@@ -338,12 +344,16 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     cache: options.cache,
     snapshot: options.snapshot,
     commands: indirectDraws.commands,
+    renderBundleCommands,
     overlayCommands: uiFrame.commands,
     label: options.label ?? "aperture-custom-wgsl-app",
     reuse: options.reuse,
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
       options.snapshotUpdateSchedule,
     ),
+    ...(options.gpuTimings === undefined
+      ? {}
+      : { gpuTimings: options.gpuTimings }),
     ...(options.clearColor === undefined
       ? {}
       : { clearColor: options.clearColor }),

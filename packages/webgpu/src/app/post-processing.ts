@@ -5,6 +5,7 @@ import {
   type FrameBoundaryAssemblyReport,
   type FrameBoundaryEncodeReport,
   type FrameBoundaryReadbackSampleRequest,
+  type FrameBoundaryRenderBundleOptions,
 } from "../render/frame/frame-boundary.js";
 import { createFrameGraph } from "../render/graph/frame-graph.js";
 import { compileFrameGraph } from "../render/graph/frame-graph-compile.js";
@@ -13,6 +14,7 @@ import {
   type FrameGraphRenderNodeBoundary,
   type FrameGraphResources,
 } from "../render/graph/frame-graph-execute.js";
+import { createRenderBundleCommandKey } from "../render/draw/render-bundle.js";
 import type { RenderPassCommand } from "../render/passes/render-pass-commands.js";
 import type {
   RenderPassAttachmentLoadOp,
@@ -35,6 +37,10 @@ import {
   createUserPassSkippedOnLegacyRouteDiagnostic,
   type WebGpuAppPassResolvers,
 } from "./user-pass.js";
+import {
+  buildShadowCasterDepthAttachmentPlan,
+  type ShadowCasterGraphPass,
+} from "./shadow-caster-graph-pass.js";
 import type { WebGpuAppFrameBoundaryTarget } from "./frame-target.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import { encodePostPassMotionVectorClearColor } from "./motion-vectors.js";
@@ -88,18 +94,31 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   readonly occlusionQueries?: Parameters<
     typeof assembleFrameBoundary
   >[0]["occlusionQueries"];
+  readonly enableRenderBundles?: boolean;
+  readonly renderBundleCommandCount?: number;
   // M3-T3: opt this swapchain post target into the single-encoder FrameGraph
   // path. Undefined/false keeps the legacy N-submit path. The graph path returns
-  // null (→ legacy) for cases it does not yet cover (motion vectors / MSAA /
-  // indirect channel / occlusion / gpu timing), so the flag is a safe no-op for
-  // those routes; default stays OFF until each route's E2E is green.
+  // null (→ legacy) for cases it does not yet cover (motion-vector fallbacks /
+  // indirect channel / occlusion), so the flag is a safe no-op for those routes.
   readonly useFrameGraph?: boolean;
+  readonly shadowCasterGraphPasses?: readonly ShadowCasterGraphPass[];
 }): WebGpuAppPostProcessedSwapchainTargetResult {
   if (options.useFrameGraph === true) {
     const viaGraph =
       assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(options);
     if (viaGraph !== null) {
       return viaGraph;
+    }
+
+    if ((options.shadowCasterGraphPasses ?? []).length > 0) {
+      return invalidPostProcessedSwapchainTarget(options, [
+        {
+          code: "webgpu.postGraph.shadowCasterGraphDeclined",
+          severity: "error",
+          message:
+            "Post-processing graph execution was required to fold shadow caster passes into the frame, but this post route is not graph-compatible.",
+        },
+      ]);
     }
   }
 
@@ -274,6 +293,20 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   const sceneColorLoadOp = options.sceneColorLoadOp ?? "clear";
   const sceneDepthLoadOp = options.sceneDepthLoadOp ?? "clear";
   const present = options.present ?? true;
+  const sceneRenderBundle = createPostSceneRenderBundleOptions({
+    options,
+    commands: options.commands,
+    colorFormats: createPostSceneRenderBundleColorFormats({
+      sceneColorFormat: options.app.sceneRenderFormat,
+      motionVectorColorFormat: useSceneMotionVectorAttachment
+        ? (motionVectorTexture?.format ?? null)
+        : null,
+      indirectColorFormat: useSceneIndirectAttachment
+        ? (indirectColorTexture?.format ?? null)
+        : null,
+    }),
+    sampleCount: options.msaaColorTarget?.sampleCount ?? 1,
+  });
   const sceneBoundary = assembleFrameBoundary({
     context,
     device,
@@ -311,6 +344,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     ...(options.occlusionQueries === undefined
       ? {}
       : { occlusionQueries: options.occlusionQueries }),
+    ...(sceneRenderBundle === undefined
+      ? {}
+      : { renderBundle: sceneRenderBundle }),
   });
   let input: WebGpuPostPassTextureResource = sceneTexture.resource;
   let readbackBoundary: FrameBoundaryAssemblyReport | null = null;
@@ -613,6 +649,107 @@ type PostProcessedSwapchainTargetOptions = Parameters<
   typeof assembleWebGpuAppPostProcessedSwapchainTarget
 >[0];
 
+function createPostSceneRenderBundleOptions(args: {
+  readonly options: PostProcessedSwapchainTargetOptions;
+  readonly commands: readonly RenderPassCommand[];
+  readonly colorFormats: readonly string[];
+  readonly sampleCount: number;
+}): FrameBoundaryRenderBundleOptions | undefined {
+  const cache = args.options.cache.renderBundles;
+  const bundledCommandCount = Math.min(
+    args.commands.length,
+    args.options.renderBundleCommandCount ?? args.commands.length,
+  );
+  const bundleCommands =
+    bundledCommandCount === args.commands.length
+      ? args.commands
+      : args.commands.slice(0, bundledCommandCount);
+
+  if (
+    args.options.enableRenderBundles !== true ||
+    bundleCommands.length === 0 ||
+    args.options.occlusionQueries !== undefined ||
+    cache === undefined
+  ) {
+    return undefined;
+  }
+
+  const descriptor = {
+    colorFormats: args.colorFormats,
+    depthStencilFormat: args.options.depthAttachment.format,
+    sampleCount: args.sampleCount,
+  };
+  const key = createRenderBundleCommandKey(
+    {
+      targetKey: [
+        "post-scene",
+        `view:${args.options.target.view.viewId}`,
+        `size:${args.options.target.width}x${args.options.target.height}`,
+        `color:${args.colorFormats.join("+")}`,
+        `depth:${args.options.depthAttachment.format}`,
+        `samples:${args.sampleCount}`,
+      ].join("|"),
+      ...descriptor,
+      commands: bundleCommands,
+    },
+    cache,
+  );
+
+  return {
+    cache,
+    key,
+    descriptor,
+    ...(bundledCommandCount === args.commands.length
+      ? {}
+      : { bundledCommandCount }),
+  };
+}
+
+function createPostSceneRenderBundleColorFormats(args: {
+  readonly sceneColorFormat: string;
+  readonly motionVectorColorFormat: string | null;
+  readonly indirectColorFormat: string | null;
+}): readonly string[] {
+  const colorFormats = [args.sceneColorFormat];
+
+  if (args.motionVectorColorFormat !== null) {
+    colorFormats.push(args.motionVectorColorFormat);
+  } else if (args.indirectColorFormat !== null) {
+    colorFormats.push(args.indirectColorFormat);
+  }
+
+  return colorFormats;
+}
+
+function invalidPostProcessedSwapchainTarget(
+  options: PostProcessedSwapchainTargetOptions,
+  diagnostics: readonly unknown[],
+): WebGpuAppPostProcessedSwapchainTargetResult {
+  return {
+    valid: false,
+    boundaries: [],
+    renderTarget: {
+      viewId: options.target.view.viewId,
+      source: "swapchain",
+      renderTargetKey: null,
+      width: options.target.width,
+      height: options.target.height,
+      format: options.target.format,
+      ok: false,
+      drawCalls: 0,
+      ...(options.msaaColorTarget === undefined ||
+      options.msaaColorTarget === null
+        ? {}
+        : { msaaSampleCount: options.msaaColorTarget.sampleCount }),
+    },
+    postEffects: [],
+    readbackBoundary: null,
+    plannedCommands: 0,
+    drawCalls: 0,
+    diagnostics,
+  };
+}
+
 interface PostGraphNodeRecord {
   readonly name: string;
   readonly texture: ReturnType<typeof buildFrameBoundaryTargetPlan>["texture"];
@@ -642,8 +779,8 @@ interface PostGraphEffectMeta {
  * registers them as graph nodes + resolveRenderBoundary payloads and runs them
  * through executeFrameGraph ONCE, so the whole post stack submits a single
  * command buffer. Returns null to fall back to the legacy path for anything this
- * v1 does not cover (motion vectors / MSAA / indirect channel / occlusion / gpu
- * timing, or any resource allocation failure), keeping the flag a safe no-op.
+ * v1 does not cover (motion-vector fallbacks / indirect channel / occlusion, or
+ * any resource allocation failure), keeping the flag a safe no-op.
  */
 export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
   options: PostProcessedSwapchainTargetOptions,
@@ -665,8 +802,6 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       ? null
       : options.motionVectorColorFormat;
   if (
-    (options.msaaColorTarget !== undefined &&
-      options.msaaColorTarget !== null) ||
     (options.indirectColorFormat !== undefined &&
       options.indirectColorFormat !== null) ||
     options.occlusionQueries !== undefined ||
@@ -803,6 +938,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     // node's motion-vector target). Each is recorded as an additional graph
     // write so a downstream node (TAA) can declare a read edge on it.
     readonly additionalWriteHandles?: readonly string[];
+    readonly renderBundle?: FrameBoundaryRenderBundleOptions;
   }): void => {
     // Declare the write handle as a transient unless it is the imported
     // swapchain or was already declared (a persistent declareHistory handle
@@ -841,6 +977,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       readbackTexture: plan.texture.texture,
       ...(args.readback === undefined ? {} : { readback: args.readback }),
       ...(args.gpuTiming === undefined ? {} : { gpuTiming: args.gpuTiming }),
+      ...(args.renderBundle === undefined
+        ? {}
+        : { renderBundle: args.renderBundle }),
     });
     records.push({
       name: args.name,
@@ -849,13 +988,54 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     });
   };
 
+  const shadowNodeNames: string[] = [];
+  const shadowReadHandles: string[] = [];
+  for (const shadowPass of options.shadowCasterGraphPasses ?? []) {
+    const handle = `post:shadow:${shadowPass.key}`;
+    if (graph.handle(handle) === undefined) {
+      graph.declareTransient(handle, {
+        kind: "depth-texture",
+        width: shadowPass.width,
+        height: shadowPass.height,
+        format: shadowPass.depthFormat,
+        sampleCount: 1,
+      });
+    }
+    const nodeName = `${options.label}:shadow:${shadowPass.key}:post-fg`;
+    graph.addRenderPass({
+      name: nodeName,
+      reads: [],
+      writes: [{ handle, attachment: shadowPass.depthLoadOp }],
+      commands: shadowPass.commands,
+    });
+    payloads.set(nodeName, {
+      device,
+      attachments: buildShadowCasterDepthAttachmentPlan(shadowPass),
+      commands: shadowPass.commands,
+      label: nodeName,
+      colorTargetSource: "offscreen-target",
+    });
+    shadowNodeNames.push(nodeName);
+    shadowReadHandles.push(handle);
+  }
+
   // ---- scene node ----
   const sceneNodeName = `${options.label}:swapchain:scene`;
   const sceneColorLoadOp = options.sceneColorLoadOp ?? "clear";
   const sceneDepthLoadOp = options.sceneDepthLoadOp ?? "clear";
+  const sceneRenderBundle = createPostSceneRenderBundleOptions({
+    options,
+    commands: options.commands,
+    colorFormats: createPostSceneRenderBundleColorFormats({
+      sceneColorFormat: options.app.sceneRenderFormat,
+      motionVectorColorFormat: motionVectorTexture?.format ?? null,
+      indirectColorFormat: null,
+    }),
+    sampleCount: options.msaaColorTarget?.sampleCount ?? 1,
+  });
   registerNode({
     name: sceneNodeName,
-    reads: [],
+    reads: shadowReadHandles,
     writeHandle: sceneColorHandle,
     writeAttachment: sceneColorLoadOp,
     planOptions: {
@@ -868,6 +1048,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       ...(sceneColorLoadOp !== "clear" || options.clearColor === undefined
         ? {}
         : { clearColor: options.clearColor }),
+      ...(options.msaaColorTarget === undefined
+        ? {}
+        : { msaaColorTarget: options.msaaColorTarget }),
       ...(options.sceneMsaaColorStoreOp === undefined
         ? {}
         : { msaaColorStoreOp: options.sceneMsaaColorStoreOp }),
@@ -891,6 +1074,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     ...(motionVectorHandle === null
       ? {}
       : { additionalWriteHandles: [motionVectorHandle] }),
+    ...(sceneRenderBundle === undefined
+      ? {}
+      : { renderBundle: sceneRenderBundle }),
   });
 
   let input: WebGpuPostPassTextureResource = sceneTexture.resource;
@@ -1318,6 +1504,15 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
 
   const sceneEncode = encodeByName.get(sceneNodeName);
   let valid = (sceneEncode?.valid ?? false) && frameOk;
+  for (const shadowNodeName of shadowNodeNames) {
+    const shadowEncode = encodeByName.get(shadowNodeName);
+    valid &&= (shadowEncode?.valid ?? false) && frameOk;
+    diagnostics.push(
+      ...(shadowEncode?.begin?.diagnostics ?? []),
+      ...(shadowEncode?.execution?.diagnostics ?? []),
+      ...(shadowEncode?.end?.diagnostics ?? []),
+    );
+  }
 
   const postEffects: WebGpuAppPostEffectSubmissionReport[] = effectMetas.map(
     (meta) => {
@@ -1351,6 +1546,10 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     format: options.target.format,
     ok: valid,
     drawCalls: sceneEncode?.execution?.drawCalls ?? 0,
+    ...(options.msaaColorTarget === undefined ||
+    options.msaaColorTarget === null
+      ? {}
+      : { msaaSampleCount: options.msaaColorTarget.sampleCount }),
     graph: graphReport,
   };
 

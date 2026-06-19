@@ -199,6 +199,7 @@ export function extractRenderSnapshot(
 
   return {
     frame: options.frame ?? 0,
+    time: options.time ?? 0,
     views,
     meshDraws,
     ...(shadowCasterDraws.length === 0 ? {} : { shadowCasterDraws }),

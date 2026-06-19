@@ -242,8 +242,8 @@ function snapshot(input: {
   writeMatrix(viewMatrices, 32, 5);
 
   const meshDraw = meshDrawPacket({
-    queue: input.meshQueue,
-    depth: input.meshDepth,
+    ...(input.meshQueue === undefined ? {} : { queue: input.meshQueue }),
+    ...(input.meshDepth === undefined ? {} : { depth: input.meshDepth }),
   });
   const light = lightPacket();
   const environments = input.environment === false ? [] : [environmentPacket()];

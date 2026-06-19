@@ -1,3 +1,1627 @@
+# Handoff - Racing Auto-Shadow Cache And Mapped Profile Reorientation
+
+**Updated:** 2026-06-18 15:21 PDT
+
+Active user goal remains open. Work has moved from `main` to branch
+`racing-perf-autoshadow-reorient` to preserve the broad shared dirty worktree.
+Another agent had been making large uncommitted render/shadow/pacing changes;
+that agent is now stopped. I preserved that work, fixed a syntax error in its
+`render-shadow-frame.ts` object spreads, and continued from the measured Racing
+perf goal.
+
+## Completed In This Slice
+
+- Fixed same-snapshot auto-shadow cache reuse so cached frames advance to the
+  current render frame. This lets stable frames hit via the change set instead
+  of rebuilding or hashing the large auto-shadow input key every RAF.
+- Stored nullable auto-shadow input keys for short-circuited dirty misses and
+  reported null hashes when no key was built. This avoids diagnostics causing
+  the same hot work they are meant to explain.
+- Added a regression assertion that a second stable auto-shadow render reuses
+  from `reuseSource: "change-set"` with null current/cached key hashes.
+- Added an ordered unique-key fast path to render snapshot packet-family
+  comparison. Stable, same-order packet families avoid the Map/bucket fallback;
+  duplicate/reordered families still use the old path.
+- Added source-map-aware CPU profile summaries to
+  `scripts/racing-render-loop-trace.mjs`. When the served build has `.map`
+  files, summaries now include `topMappedAppSelfTime` grouped by original source
+  location. Added explicit dev dependency `@jridgewell/sourcemap-codec`.
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md` with the current traces,
+  fixed/open status, and next recommended targets.
+
+## Current Measurements
+
+- Fair paired trace after fixes:
+  `/tmp/racing-current-after-cache-and-changeset-idle-drive-repeat3/summary.json`
+  (normal non-sourcemap build, 3 paired idle+drive trials, 3 second samples).
+- Aperture now wins most frame-pacing aggregates in both idle and drive.
+  Idle aggregate pacing score: `d50 -0.27 ms`; drive aggregate pacing score:
+  `d50 -0.12 ms`.
+- Callback p95 remains open. Idle callback p95 loses by median `+0.48 ms`
+  because of one tail trial. Drive callback p95 loses in all trials by median
+  `+1.65 ms`.
+- Internal diagnostics confirm the auto-shadow stable-frame fix:
+  idle `prepareMainAutoShadow` dropped from roughly `0.63 ms` average before
+  the cache-frame advance to roughly `0.02 ms` average after.
+- Latest mapped profile:
+  `/tmp/racing-change-set-fastpath-mapped-profile-drive-3p5s/summary.json`.
+  Top mapped areas are now spread across shadow caster draw-list/readiness,
+  burst particle prep, snapshot change-set/packet extraction, queued/standard
+  frame resources, render-pass draw-list/batching, and shadow-frame setup.
+
+## Validation Run
+
+- `pnpm exec prettier --write packages/webgpu/src/app/queued-built-in-frame.ts`
+- `pnpm exec prettier --write packages/webgpu/src/app/auto-shadow-frame.ts packages/webgpu/src/app/resource-cache.ts packages/webgpu/src/shadows/render-shadow-frame.ts`
+- `pnpm exec prettier --write test/webgpu/webgpu-app.test.ts`
+- `pnpm exec prettier --write packages/render/src/rendering/snapshot-change-set-compare.ts`
+- `pnpm exec prettier --write scripts/racing-render-loop-trace.mjs package.json pnpm-lock.yaml`
+- `node --check scripts/racing-render-loop-trace.mjs`
+- `pnpm exec tsc -b packages/webgpu --pretty false`
+- `pnpm exec tsc -b packages/render packages/webgpu --pretty false`
+- `pnpm exec vitest run test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/webgpu-app.test.ts -t "auto-shadow|auto shadow|auto-renders directional shadow resources"`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "auto-renders directional shadow resources"`
+- `pnpm exec vitest run test/rendering/snapshot-change-set.test.ts test/rendering/render-world-change-set-ids.test.ts test/webgpu/app-snapshot-update-metadata.test.ts`
+- `pnpm --dir racing exec vite build`
+- Trace runs listed above.
+- `git diff --check` passed after the auto-shadow cache-frame fix; rerun before
+  committing final docs because docs/package-lock changed afterward.
+
+## Known Issues / Next Targets
+
+- The goal is not complete: Aperture does not consistently beat three.js on
+  callback p95, especially while driving.
+- Next general engine target: reduce drive-frame auto-shadow dirty work. The key
+  path is fixed; moving caster transforms still dirty the shadow frame and cause
+  walks over all shadow caster records.
+- Second target: reduce burst particle CPU prep. Racing reaches about `306`
+  active burst emitters / `912` live particles while driving, causing hundreds
+  of tiny per-emitter CPU updates. Prefer a general burst coalescing or
+  multi-burst batch representation before changing Racing's visual authoring.
+- The worktree remains very dirty from multiple prior slices and the stopped
+  other agent. Do not revert unrelated files. Commit only coherent validated
+  subsets.
+
+---
+
+# Handoff - Racing Message Pacing Sweep And Current Default Trace
+
+**Updated:** 2026-06-18 15:25 PDT
+
+Active user goal remains open. The latest rebuilt paired default drive trace
+shows Aperture winning frame-pacing shape against the three.js Racing reference,
+while still losing callback p95. Keep challenging worker-message exchanges, but
+do not assume message count alone explains the remaining gap.
+
+## Latest Completed Slice
+
+- Added clearer trace CLI aliases for message-rate experiments, including
+  `--source-assets-message-rate-hz=0|60`.
+- Added delivered-message frame-pacing impact metrics to
+  `scripts/racing-render-loop-trace.mjs`: the trace now reports `msgImpact`
+  deltas comparing RAF windows with worker messages against RAF windows without
+  worker messages.
+- Backed out the unproven auto-shadow change-set fast path from this worktree.
+  The repeated traces did not show a reliable drive improvement, so do not treat
+  that experiment as retained progress.
+- Updated `docs/SAB_RENDER_PACING_PLAN.md` with the rebuilt source-assets rate
+  sweep and paired default drive result. That doc is still dirty because it
+  also contains broader uncommitted audit notes.
+
+## Latest Findings
+
+- Follow-up message-impact traces:
+  `/tmp/racing-pacing-msg-impact-default-idle-repeat3/summary.json`,
+  `/tmp/racing-pacing-msg-impact-default-drive-repeat3/summary.json`, and
+  `/tmp/racing-pacing-msg-impact-sourceassets-off-drive-repeat3/summary.json`
+  (3 paired trials, 3 second samples, no trace/profile).
+- Default idle won the aggregate frame-pacing shape against three.js:
+  interval p95 `d50 -0.34 ms`, deviation p95 `d50 -0.14 ms`,
+  adjacent-jitter p95 `d50 -0.38 ms`, RMS `d50 -0.20 ms`,
+  `pacingInstabilityScoreMs d50 -0.43 ms`, within-1ms `d50 +7.8 pp`, and
+  jitter-over-2ms `d50 -7.3 pp`. Callback p95 still lost (`d50 +0.74 ms`).
+- Default drive also won the aggregate frame-pacing shape: interval p95
+  `d50 -0.37 ms`, deviation p95 `d50 -0.28 ms`, adjacent-jitter p95
+  `d50 -0.89 ms`, RMS `d50 -0.30 ms`, `pacingInstabilityScoreMs d50 -0.75 ms`,
+  within-1ms `d50 +15.7 pp`, and jitter-over-2ms `d50 -13.4 pp`. Callback p95
+  still lost (`d50 +1.42 ms`).
+- Default drive delivered about `16 Hz` of worker messages, mostly
+  `aperture.simulation.sourceAssets`, touching about `26%` of RAF windows.
+  The new `msgImpact` split did not show those message windows as consistently
+  worse: interval-p95 deltas for message windows versus no-message windows were
+  `-0.64 ms`, `-1.22 ms`, and `+0.09 ms` across the three default drive trials.
+- Disabling dedicated source-asset messages dropped worker delivery to about
+  `2 Hz` / `3.3%` of RAF windows, but did not beat current default in this
+  rebuilt comparison. Direct default-minus-off medians were interval p95
+  `-0.14 ms`, adjacent-jitter p95 `-0.14 ms`, RMS `-0.04 ms`, score
+  `-0.12 ms`, within-1ms `+2.2 pp`, and callback p95 effectively tied
+  (`+0.01 ms`).
+- Updated conclusion: keep render heartbeat poll-only and keep challenging
+  thread messages with measured experiments. Raw message count is not the whole
+  cause of the remaining smoothness/callback gap; the source-asset stream still
+  deserves a pollable/coalesced dynamic-asset data plane because freshness
+  should not require irregular `postMessage` wakeups.
+- Rebuilt paired default drive trace:
+  `/tmp/racing-rebuilt-default-paired-drive-repeat3/summary.json`
+  (3 paired drive trials, 4 second samples, no trace/profile).
+- Aperture won drive aggregate interval p95 (`d50 -0.41 ms`), interval p99
+  (`d50 -0.15 ms`), max interval (`d50 -0.06 ms`), deviation p95
+  (`d50 -0.20 ms`), adjacent-jitter p95 (`d50 -0.75 ms`), RMS
+  (`d50 -0.20 ms`), `pacingInstabilityScoreMs` (`d50 -0.58 ms`),
+  within-1ms ratio (`d50 +8.7 pp`), and jitter-over-2ms ratio
+  (`d50 -9.2 pp`).
+- Aperture still lost callback p95 in every paired trial (`d50 +1.30 ms`).
+  Treat callback p95 as the current render-work target.
+- Rebuilt Aperture-only source-asset sweep:
+  `/tmp/racing-source-rate-rebuilt-default/summary.json`,
+  `/tmp/racing-source-rate-rebuilt-off/summary.json`, and
+  `/tmp/racing-source-rate-rebuilt-60/summary.json`.
+  Default delivered about `15.7 Hz` of worker messages and touched about `26%`
+  of RAF windows. Source-assets off dropped to about `2 Hz` / `3.3%` and
+  improved median pacing score (`2.59 ms` -> `2.14 ms`) but barely moved
+  callback p95 (`3.95 ms` -> `3.82 ms`). Source-assets at `60 Hz` touched about
+  `88%` of RAF windows, improved within-1ms/jitter2, but did not solve callback
+  p95.
+- Conclusion: keep render heartbeat poll-only. The source-asset stream should
+  become pollable/coalesced because dynamic drift-mark mesh updates should stay
+  fresh without irregular `postMessage` wakeups. But the callback tail is mostly
+  render work, so the next runtime fix should also pressure auto-shadow,
+  particles, and resource preparation.
+
+## Latest Validation
+
+- `node --check scripts/racing-render-loop-trace.mjs`
+- `node scripts/racing-render-loop-trace.mjs --scenario=idle --repeat=3 --duration=3000 --warmup=1500 --drive-settle=1000 --no-trace --no-cpu-profile --out=/tmp/racing-pacing-msg-impact-default-idle-repeat3`
+- `node scripts/racing-render-loop-trace.mjs --scenario=drive --repeat=3 --duration=3000 --warmup=1500 --drive-settle=1000 --no-trace --no-cpu-profile --out=/tmp/racing-pacing-msg-impact-default-drive-repeat3`
+- `node scripts/racing-render-loop-trace.mjs --scenario=drive --repeat=3 --duration=3000 --warmup=1500 --drive-settle=1000 --no-trace --no-cpu-profile --aperture-source-assets-rate=0 --out=/tmp/racing-pacing-msg-impact-sourceassets-off-drive-repeat3`
+- `pnpm exec prettier --check docs/SAB_RENDER_PACING_PLAN.md scripts/racing-render-loop-trace.mjs`
+- `pnpm --dir racing run build -- --force`
+- `node scripts/racing-render-loop-trace.mjs --target=aperture --scenario=drive --repeat=1 --duration=1500 --warmup=500 --drive-settle=250 --no-trace --no-cpu-profile --out=/tmp/racing-message-impact-smoke`
+- `node scripts/racing-render-loop-trace.mjs --target=aperture,three --scenario=drive --repeat=3 --duration=4000 --warmup=1000 --drive-settle=500 --no-trace --no-cpu-profile --out=/tmp/racing-rebuilt-default-paired-drive-repeat3`
+
+## Commits Made
+
+- `3b579936 Add racing trace message rate aliases`
+- `51974790 Track racing message frame pacing impact`
+
+## Recommended Next Task
+
+Use a full-detail trace/profile to separate callback p95 into auto-shadow,
+particles, dynamic mesh/resource prep, and source-asset handling. The next
+general transport slice should be a pollable/coalesced dynamic mesh update data
+plane, but do not spend it only suppressing messages: source-assets-off proves
+pacing sensitivity, not a complete freshness-preserving fix.
+
+---
+
+# Handoff - Dynamic Mesh Alias Pruning And Idle/Drive Trace
+
+**Updated:** 2026-06-18 14:55 PDT
+
+Active user goal remains open: Aperture is now winning the aggregate
+frame-pacing-shape metrics in the latest paired idle and drive trace, but it
+still loses callback p95, especially while driving. This slice fixed a
+renderer-side dynamic mesh cache issue exposed by the drift-mark source-asset
+path: same-layout mesh version bumps were aliasing the same GPU buffers but
+leaving stale prepared mesh cache entries behind.
+
+## Latest Completed Slice
+
+- `prepareMeshGpuResource()` now prunes superseded same-layout prepared mesh
+  aliases for a source mesh after a cache hit, same-layout update, or new
+  resource creation. The GPU buffers remain owned by the current resource; old
+  version aliases no longer accumulate in the backend cache.
+- Updated `test/webgpu/prepared-mesh-cache.test.ts` so same-layout source
+  version bumps are expected to update in place and leave only the latest alias.
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md` and
+  `docs/SAB_RENDER_PACING_PLAN.md` with the new idle+drive trace.
+
+## Latest Findings
+
+- Latest trace:
+  `/tmp/racing-pacing-mesh-alias-prune-idle-drive-repeat3/summary.json`
+  (3 paired idle+drive trials, 3 second samples, no trace/profile).
+- Aperture won the idle aggregate on interval p95 (`d50 -0.30 ms`),
+  deviation p95 (`d50 -0.14 ms`), adjacent-jitter p95 (`d50 -0.26 ms`), RMS
+  (`d50 -0.22 ms`), `pacingInstabilityScoreMs` (`d50 -0.45 ms`), within-1ms
+  (`d50 +8.8 pp`), and jitter-over-2ms (`d50 -7.2 pp`). Idle callback p95
+  still lost overall (`d50 +0.84 ms`, `1/3` Aperture wins).
+- Aperture won the drive aggregate on interval p95 (`d50 -0.24 ms`),
+  deviation p95 (`d50 -0.19 ms`), adjacent-jitter p95 (`d50 -0.18 ms`), RMS
+  (`d50 -0.14 ms`), `pacingInstabilityScoreMs` (`d50 -0.23 ms`), within-1ms
+  (`d50 +6.8 pp`), and jitter-over-2ms (`d50 -8.3 pp`). Drive callback p95
+  still lost in all three trials (`d50 +1.48 ms`).
+- Resource effect is clean: final sampled idle/drive frames reported
+  `preparedMeshCache.totalEntries:2`, `meshBuffersCreated:0`, and
+  `preparedMeshBuffersCreated:0`. Before this pruning, sampled drive frames
+  could retain `32` prepared mesh entries and occasionally report large mesh /
+  bind-group creation churn.
+- The source-asset message stream is still present and unchanged: idle is about
+  `2 Hz` summary/snapshot messages, while drive is about `16 Hz`, mostly
+  `aperture.simulation.sourceAssets`. The next real transport fix remains a
+  dynamic source-asset mailbox/shared data path, not further blind throttling.
+
+## Latest Validation
+
+- `pnpm exec vitest run test/webgpu/prepared-mesh-cache.test.ts`
+- `pnpm exec tsc -b packages/webgpu --pretty false`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build -- --force`
+- `node scripts/racing-render-loop-trace.mjs --scenario=idle,drive --repeat=3 --duration=3000 --warmup=1500 --drive-settle=1000 --no-trace --no-cpu-profile --out=/tmp/racing-pacing-mesh-alias-prune-idle-drive-repeat3`
+
+## Recommended Next Task
+
+Keep the next implementation focused on the measured callback p95 gap. The
+highest-value transport work is still a dynamic mesh/source-asset mailbox that
+keeps drift-mark updates fresh while decoupling payload availability from
+irregular `postMessage` wakeups. In parallel, use phase details to keep pressure
+on `prepareMainAutoShadow` p95 and `prepareMainResources` p95, because
+auto-shadow refreshes and resource preparation still show tail spikes even when
+their medians are low.
+
+---
+
+# Handoff - Auto-Shadow Cache Diagnostics And Poll Pacing Evidence
+
+**Updated:** 2026-06-18 14:45 PDT
+
+Active user goal remains open: continue implementing proper engine/app fixes
+until Aperture consistently outperforms the three.js Racing reference in both
+idle and drive. This slice added first-class auto-shadow cache hit/miss
+diagnostics, verified them through the renderer facade, and used a fresh Racing
+trace to separate shadow-cache behavior from the remaining source-asset message
+stream.
+
+## Latest Completed Slice
+
+- Added `resourceReuse.autoShadowFrameCache` to app-facing render reports. It
+  reports `status`, `reason`, `pipelineKind`, cached/previous frame ids,
+  input-key hashes/lengths, `reuseSource`, and the first changed input section
+  for input-key misses.
+- Preserved the existing auto-shadow change-set fast path and now reports
+  `reuseSource: "change-set"` when it proves the shadow inputs are stable
+  without rebuilding the full key.
+- Added renderer-facade assertions for no-previous-frame miss, cache hit, camera
+  input-key miss, and explicit auto-shadow disable behavior.
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md` and
+  `docs/SAB_RENDER_PACING_PLAN.md` with the new trace evidence.
+
+## Latest Findings
+
+- Latest trace:
+  `/tmp/racing-pacing-autoshadow-miss-reasons-drive-repeat3/summary.json`
+  (3 paired drive trials, 3 second samples, no trace/profile).
+- Aperture won the drive aggregate on interval p95 (`d50 -0.44 ms`), interval
+  p99 (`d50 -0.09 ms`), absolute-deviation p95 (`d50 -0.07 ms`),
+  adjacent-jitter p95 (`d50 -0.41 ms`), RMS deviation (`d50 -0.22 ms`),
+  `pacingInstabilityScoreMs` (`d50 -0.43 ms`), within-1ms ratio
+  (`d50 +8.8 pp`), and jitter-over-2ms ratio (`d50 -9.4 pp`).
+- Aperture still lost callback p95 in all three trials (`d50 +1.32 ms`).
+- Final sampled frames showed two auto-shadow cache hits via
+  `reuseSource: "change-set"` and one miss with
+  `reason: "input-key-changed"` / `firstChangedInputSection: "camera"`.
+  Hit samples reduced `prepareMainAutoShadow` p50 to about `0.16 ms`; the
+  camera-miss sample was about `0.94 ms` p50.
+- Worker-message delivery stayed about `15.6-16.3 Hz`, mostly
+  `aperture.simulation.sourceAssets`, touching about `26%` of RAF windows. The
+  worker source-asset serializer commits changed versions only after a message
+  carries them, so `sourceAssetsMessageRateHz=0` is a freshness tradeoff until
+  there is a real shared/mailbox dynamic-asset data path.
+
+## Latest Validation
+
+- `pnpm exec vitest run test/webgpu/app-auto-shadow-frame.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "auto-renders directional shadow resources"`
+- `pnpm exec tsc -b packages/webgpu --pretty false`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build -- --force`
+- `node scripts/racing-render-loop-trace.mjs --scenario=drive --repeat=3 --duration=3000 --warmup=1500 --drive-settle=1000 --no-trace --no-cpu-profile --out=/tmp/racing-pacing-autoshadow-miss-reasons-drive-repeat3`
+
+## Recommended Next Task
+
+Implement the dynamic source-asset mailbox/data-plane slice. The current
+source-asset path is still the measured worker-message stream during Racing
+drive, and suppressing it without a mailbox only delays drift-mark mesh
+freshness. A correct slice should keep latest dynamic mesh updates fresh while
+decoupling delivery from irregular main-thread `postMessage` wakeups.
+
+---
+
+# Handoff - Racing Poll Pacing And Auto-Shadow Input Key
+
+**Updated:** 2026-06-18 14:35 PDT
+
+Active user goal remains open: keep challenging worker-thread message exchanges
+with experiments, prefer pollable data paths where they are proven, and track
+frame pacing as a first-class benchmark metric. This slice kept the poll-first
+render heartbeat default, added/used pacing-shape metrics in the trace harness,
+and made the auto-shadow callback path depend on actual shadow inputs rather
+than broad snapshot-family invalidation.
+
+## Latest Completed Slice
+
+- `scripts/racing-render-loop-trace.mjs` now reports frame-pacing metrics that
+  are usable for poll-vs-message decisions: `pacingInstabilityScoreMs`,
+  adjacent jitter ratios, missed-vsyncs/second, measured
+  `MessageChannel.port1` delivery rate, worker-message interval stats, and
+  messages-per-RAF-window.
+- `createWebGpuAppAutoShadowFrame()` skips the no-camera fallback scene fit
+  when a primary shadow camera exists. That avoids walking all shadow
+  caster/receiver bounds for camera-backed frames where the fallback matrix is
+  unused.
+- Cached auto-shadow frames now store an actual-input key instead of relying on
+  broad family-count change sets. The key includes the selected shadow camera,
+  directional requests, referenced lights/transforms, actual shadow casters, and
+  only the bounds that can affect the selected shadow fitting mode.
+- Racing drift marks now explicitly opt out of receiving shadows; they are
+  unlit transparent decals and should not invalidate or participate in receiver
+  fitting.
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md` and
+  `docs/SAB_RENDER_PACING_PLAN.md` with the latest clean repeat trace and the
+  auto-shadow reuse caveat.
+
+## Latest Findings
+
+- Latest clean trace:
+  `/tmp/racing-pacing-poll-autoshadow-clean-drive-repeat3/summary.json`
+  (3 paired drive trials, 3 second samples, no trace/profile).
+- Poll-first remains supported by the trace: Aperture won aggregate interval
+  p99 (`3/3`), max interval (`3/3`), absolute-deviation p95 (`2/3`,
+  `d50 -0.13 ms`), adjacent-jitter p95 (`2/3`, `d50 -0.28 ms`), RMS deviation
+  (`2/3`, `d50 -0.09 ms`), `pacingInstabilityScoreMs` (`2/3`,
+  `d50 -0.23 ms`), within-1ms ratio (`3/3`, `d50 +2.9 pp`), and
+  jitter-over-2ms ratio (`3/3`, `d50 -6.7 pp`).
+- Aperture narrowly lost interval p95 (`1/3`, `d50 +0.02 ms`) and still lost
+  callback p95 in every trial (`d50 +0.84 ms`). The perceived smoothness gap is
+  now more about callback-tail work and message shape than draw count.
+- Delivered worker messages remained about `15.6-16.0 Hz`, mostly
+  `aperture.simulation.sourceAssets`, touching about `26%` of RAF windows. The
+  next transport experiment should make dynamic source assets pollable or
+  coalesced, not restore steady render heartbeat messages.
+- Auto-shadow input-key cleanup is general and tested, but not yet a proven
+  performance win. Final sampled frames still showed
+  `autoShadowFramesCreated:1` / `autoShadowFramesReused:0`, and
+  `prepareMainAutoShadow` remained around `1.05-1.10 ms` p50 /
+  `1.27-1.30 ms` p95. Add cache miss-reason diagnostics before spending more
+  time guessing at this path.
+
+## Latest Validation
+
+- `pnpm exec prettier --write packages/webgpu/src/app/auto-shadow-frame.ts packages/webgpu/src/app/queued-built-in-frame.ts packages/webgpu/src/app/resource-cache.ts packages/webgpu/src/shadows/render-shadow-frame.ts test/webgpu/app-auto-shadow-frame.test.ts racing/src/systems/drift-marks.system.ts`
+- `pnpm exec vitest run test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/webgpu-app.test.ts -t "auto-shadow|auto shadow|phase timing|GPU timestamp"`
+- `pnpm exec tsc -b packages/webgpu --pretty false`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build -- --force`
+- `node scripts/racing-render-loop-trace.mjs --scenario=drive --repeat=3 --duration=3000 --warmup=1500 --drive-settle=1000 --no-trace --no-cpu-profile --out=/tmp/racing-pacing-poll-autoshadow-clean-drive-repeat3`
+
+## Recommended Next Task
+
+First add auto-shadow cache miss-reason diagnostics so `prepareMainAutoShadow`
+can be attacked with proof instead of inferred key diffs. In parallel with that
+direction, the highest-value transport slice is still a pollable/coalesced
+dynamic source-asset mailbox for drift-mark mesh updates, because
+`aperture.simulation.sourceAssets` is the remaining measured worker-message
+stream during Racing drive.
+
+---
+
+# Handoff - Racing Channel-Delivered Frame-Pacing Metrics
+
+**Updated:** 2026-06-18 13:59 PDT
+
+Active user goal remains open: continue investigating and implementing proper
+engine/app fixes until Aperture consistently outperforms the three.js Racing
+reference in both idle and drive. This slice tightened the trace harness so
+poll-vs-message conclusions use measured-window channel delivery, not
+cumulative warmup/status counters.
+
+## Latest Completed Slice
+
+- Extended `scripts/racing-render-loop-trace.mjs` with:
+  - `pacingInstabilityScoreMs` alongside the raw RAF deviation, adjacent jitter,
+    RMS, within-1ms, long-frame, and missed-vsync metrics.
+  - Normalized jitter ratios and missed-vsyncs/second so runs of different
+    duration are comparable.
+  - Baseline/snapshot status counter deltas for the measured RAF window.
+  - Trace-local `MessageChannel.port1` delivery instrumentation, reported as
+    `workerMsgHz` and top delivered message type. This is the relevant route for
+    Aperture generated browser apps; raw Worker `message` events were not the
+    simulation receive path.
+- Ran new drive repeats:
+  `/tmp/racing-pacing-channel-default-drive-repeat3/summary.json` and
+  `/tmp/racing-pacing-channel-heartbeat60-drive-repeat3/summary.json`
+  (3 paired trials each, 3 second samples, no trace/profile).
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md` and
+  `docs/SAB_RENDER_PACING_PLAN.md` with the corrected interpretation.
+
+## Latest Findings
+
+- The previous `msg top` / `sideband top` fields are cumulative browser status
+  counters. They can include startup and pre-sample traffic, so they should not
+  be used as the measured RAF-window message rate.
+- Default native-RAF SAB drive delivered about `16 Hz` of messages during the
+  measured window, mostly `aperture.simulation.sourceAssets`.
+- Forcing `--aperture-shared-message-rate=60` delivered about `52 Hz` of
+  `aperture.simulation.snapshot` messages during the same kind of window.
+- Direct default-vs-heartbeat medians do not justify restoring render
+  heartbeat. Heartbeat worsened interval p95 by `+0.16 ms`, deviation p95 by
+  `+0.09 ms`, RMS by `+0.03 ms`, within-1ms by `-2.3 pp`, jitter-over-2ms by
+  `+1.1 pp`, callback p95 by `+0.11 ms`, and render p95 by `+0.44 ms`.
+  Adjacent-jitter p95 improved by `0.07 ms`, and the composite score was
+  effectively tied.
+- Current conclusion: keep render heartbeat poll-only. Keep challenging the
+  remaining source-asset message stream with experiments, but do not treat all
+  cumulative message counters as in-window pacing pressure.
+
+## Latest Validation
+
+- `node --check scripts/racing-render-loop-trace.mjs`
+- `pnpm exec prettier --check scripts/racing-render-loop-trace.mjs docs/RACING_THREEJS_FRAME_TIME_AUDIT.md docs/SAB_RENDER_PACING_PLAN.md`
+- `git diff --check`
+
+## Recommended Next Task
+
+Design the dynamic source-asset data-plane experiment: source assets are now the
+remaining measured message stream during Racing drive. The next useful slice is
+not a blind lower cadence; it should test a pollable/coalesced source-asset path
+or a dynamic mesh update mailbox that keeps drift-mark freshness while reducing
+`aperture.simulation.sourceAssets` channel delivery.
+
+---
+
+# Handoff - Racing Source-Asset Poll Pressure
+
+**Updated:** 2026-06-18 14:05 PDT
+
+Active user goal remains open: continue investigating and implementing proper
+engine/app fixes until Aperture consistently outperforms the three.js Racing
+reference in both idle and drive. This slice tested the remaining
+source-asset-message stream with repeated paired frame-pacing trials and kept
+the change general: lower the SAB source-asset sideband default, but do not
+hide the need for a pollable dynamic-asset data plane.
+
+## Latest Completed Slice
+
+- Dedicated `sourceAssets` sideband messages now carry the source-asset delta,
+  top-level post-message decision, and frame only. They no longer carry a full
+  worker summary payload.
+- Browser-side source-asset mirroring now preserves the last full worker
+  summary when a lean sideband arrives, and it records post-message decisions
+  from either the top-level message field or the worker summary.
+- Lowered the default SAB source-asset sideband cadence to `15 Hz`
+  (`sourceAssetsMessageRateHz` start option still overrides it).
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md` and
+  `docs/SAB_RENDER_PACING_PLAN.md` with the latest source0/source15/default
+  trace evidence.
+
+## Latest Findings
+
+- Fresh paired repeat traces:
+  `/tmp/racing-pacing-repeat3-current-default/summary.json`,
+  `/tmp/racing-pacing-repeat3-source15-current/summary.json`, and
+  `/tmp/racing-pacing-repeat3-source0/summary.json`.
+- Current default drive still delivered about `16 Hz` of worker messages, mostly
+  `aperture.simulation.sourceAssets`, and lost the aggregate on interval p95,
+  adjacent jitter p95, RMS, pacing score, and within-1ms ratio.
+- Explicit `--aperture-source-assets-message-rate=15` won the 3-trial drive
+  aggregate on interval p95, deviation p95, adjacent jitter p95, RMS, pacing
+  score, within-1ms ratio, and jitter-over-2ms ratio; it still lost callback
+  p95 (`d50 +0.54 ms`).
+- `--aperture-source-assets-message-rate=0` removed roughly `56` source-asset
+  worker deliveries in the measured 4 second drive window and gave the strongest
+  pacing sample. Direct Aperture-only medians versus current default improved
+  drive interval p95 by about `0.60 ms`, adjacent jitter p95 by about
+  `0.93 ms`, render p95 by about `0.48 ms`, and callback p95 by about
+  `0.18 ms`.
+- Source0 is proof that the notification stream is costly, not a safe default:
+  the changing assets are the dynamic `racing.driftMarks.*` mesh assets. The
+  generalized fix is a pollable/coalesced dynamic-asset data plane that keeps
+  update freshness without a `postMessage` wakeup per asset update.
+
+## Latest Validation
+
+- `pnpm exec prettier --check packages/app/src/worker/snapshot.ts packages/app/src/browser/assets.ts test/app/generated-worker-shared-snapshot-message.test.ts test/app/browser-performance-status.test.ts`
+- `pnpm exec vitest run test/app/generated-worker-shared-snapshot-message.test.ts test/app/browser-performance-status.test.ts`
+- `pnpm exec tsc -b --force packages/app --pretty false`
+- `pnpm --dir racing run build -- --force`
+- Repeated trace harness exercised successfully with current default,
+  `--aperture-source-assets-message-rate=15`, and
+  `--aperture-source-assets-message-rate=0`.
+
+## Recommended Next Task
+
+Design and implement a correctness-preserving dynamic source-asset transport
+improvement: shared/ring-buffered payloads, a pollable versioned asset mailbox,
+or another coalesced path that avoids irregular per-frame
+`sourceAssetsChanged` sideband bursts without restoring render heartbeat as a
+benchmark-specific workaround. Keep using `--repeat=N` and the aggregate pacing
+comparisons for any transport decision.
+
+---
+
+# Handoff - Racing Status Retention And Resource Diagnostics Compaction
+
+**Updated:** 2026-06-18 06:38 PDT
+
+Active user goal remains open: continue investigating and implementing proper
+engine/app fixes until Aperture consistently outperforms the three.js Racing
+reference in both idle and drive. This slice is generalized renderer/app
+diagnostics/status infrastructure, not a Racing-only benchmark shortcut. The
+latest paired benchmark still does **not** prove a clean win because Aperture
+trails three.js on drive p95/p99/max, rendered submit cadence, and heap.
+
+## Latest Completed Slice
+
+- Removed full entity summaries from normal generated-worker snapshot summaries.
+  Entity details are now resolved through on-demand runtime/devtool commands,
+  and the developer panel requests its initial entity snapshot explicitly.
+- Updated browser worker-summary merging so transient full-summary fields
+  (`resources`, `startOptions`, `assets`, `physics`, legacy `entities`) are
+  dropped when thin summaries arrive, while `entityTools` remains available for
+  on-demand tooling.
+- Throttled the developer-api panel status renderer to 4 Hz after the initial
+  on-demand entity snapshot exposed that pretty-printing status every RAF can
+  make the headed WebGPU page unresponsive under Playwright tracing.
+- Updated `renderExplainEntity` to resolve entity details through the generated
+  runtime bridge (`ecs_find_entities` / `ecs_get_entity`) before falling back to
+  legacy retained status entities.
+- Added status-only retained resource compaction:
+  `webGpuAppRenderReportToJsonValue(report)` remains full-detail by default,
+  while the browser status path uses `detail: "status"` and drops per-entry
+  retained mesh/material resource details.
+- Added focused regression coverage for browser worker-summary retention,
+  runtime-backed CLI entity explain, and full-vs-status resource report
+  serialization.
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md`, `docs/index.html`, and
+  `docs/render-pipeline-comparison.html` with the latest exact audit evidence.
+
+## Latest Measurements
+
+Current-source isolated local server run:
+`/tmp/racing-frame-audit-status-resource-compact.json`
+(`2026-06-18T13:36:24.676Z`, SharedArrayBuffer active):
+
+- Aperture idle: avg `4.17 ms`, p95 `4.72 ms`, p99 `5.10 ms`, max
+  `5.17 ms`, heap `69.73 MB`; WebGPU submits `1292-1339` over 6s.
+- three.js idle: avg `4.17 ms`, p95 `4.73 ms`, p99 `5.07 ms`, max
+  `5.18 ms`, heap `18.01 MB`.
+- Aperture drive: avg `4.17 ms`, p95 `4.69 ms`, p99 `5.06 ms`, max
+  `7.29 ms`, heap `68.54 MB`; WebGPU submits `855-924` over 6s.
+- three.js drive: avg `4.17 ms`, p95 `4.61 ms`, p99 `4.99 ms`, max
+  `5.19 ms`, heap `18.49 MB`.
+- Console warnings: only the existing initialization deprecation warning.
+
+Live rebuilt status payload check on `http://127.0.0.1:5186/`:
+
+- Generated app status: about `51.7 KB` (down from about `152 KB` before this
+  retention slice).
+- `diagnostics`: about `41.3 KB`.
+- `diagnostics.lastFrame`: about `39.2 KB`.
+- `lastFrame.resourceReuse`: about `1.8 KB` (down from about `15.9 KB` before
+  status-only compaction).
+- `lastWorkerSummary`: about `2.1 KB`.
+- Steady worker status no longer retains `entities`, `assets`, `resources`, or
+  `physics`.
+
+Drive final-frame change sets in the latest audit:
+
+- trial 1: `0 / 42` mesh draws and `0 / 364` shadow caster draws changed;
+- trial 2: `0 / 42` mesh draws and `0 / 364` shadow caster draws changed;
+- trial 3: `8 / 42` mesh draws and `6 / 364` shadow caster draws changed;
+- bounds remain broad at `386 changed`, `326 unchanged`.
+
+Latest WebGPU write probe remains the previous accepted low-volume run:
+`/tmp/racing-write-probe-shadow-world-transforms.json`
+(`2026-06-18T12:07:32.003Z`): idle `0.15 KB/frame`, drive `2.09 KB/frame`.
+
+## Validation
+
+- `pnpm exec vitest run test/app/browser-performance-status.test.ts test/cli/render-tools.test.ts`
+- `pnpm exec vitest run test/app/browser-performance-status.test.ts test/cli/render-tools.test.ts test/webgpu/webgpu-app.test.ts -t "retained full worker summary fields|renderExplainEntity|initializes WebGPU and renders the unlit queue path"`
+- `pnpm exec tsc -b --force packages/webgpu packages/app packages/cli --pretty false`
+- `pnpm exec prettier --check packages/webgpu/src/app/report.ts packages/webgpu/src/app/create-webgpu-app.ts packages/app/src/worker/snapshot.ts packages/app/src/browser/assets.ts packages/cli/src/tools/render.ts examples/developer-api/src/dev-panel.ts test/app/browser-performance-status.test.ts test/cli/render-tools.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm --dir racing run build -- --force`
+  - passed with the existing Vite large-chunk warning.
+- Live status payload check against the rebuilt Racing server.
+- Paired frame audit completed against local Racing/three.js servers:
+  `/tmp/racing-frame-audit-status-resource-compact.json`.
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts`
+  - failed before reaching the new entity-snapshot assertions; the headed
+    WebGPU page became unresponsive around the first status read/resize
+    boundary and timed out at `page.setViewportSize`. A focused panel
+    throttling fix was kept, but this full e2e remains a separate validation
+    issue.
+
+## Known Issues / Next Best Work
+
+- Active goal is not achieved. Aperture drive trails three.js on p95/p99/max
+  and rendered submit cadence.
+- Top next engine target: heap retention and drive cadence/tail outliers now
+  that draw count, upload byte pressure, status payload retention, and broad
+  main-mesh identity churn are mostly controlled.
+- Keep detailed `renderChangeSet.keys` available to CLI packet/entity tools, or
+  replace it with an explicitly tested on-demand detail path before shrinking
+  that remaining `~16.8 KB` status field.
+- Heap remains much higher than three.js and needs a dedicated retention audit.
+- Add frame-report upload diagnostics for full/range/skipped writes and fallback
+  reasons.
+
+---
+
+# Handoff - Racing Diagnostics Compaction And Cadence Probe
+
+**Updated:** 2026-06-18 06:18 PDT
+
+Active user goal remains open: continue investigating and implementing proper
+engine/app fixes until Aperture consistently outperforms the three.js Racing
+reference in both idle and drive. This slice is generalized renderer/app
+diagnostics infrastructure and frame-loop evidence, not a Racing-only benchmark
+shortcut. The latest paired benchmark is improved, but still does **not** prove
+a clean win because Aperture has a worse drive max frame and much higher heap.
+
+## Latest Completed Slice
+
+- Added cadence diagnostics to `createWebGpuApp`: snapshots received,
+  presentation callbacks, renders started/completed, pending replacement count,
+  missed-in-flight catch-up count, callback-without-work count, and render
+  failures.
+- Measured and rejected an immediate scheduled-snapshot drain policy. It raised
+  rendered submit count, but `/tmp/racing-frame-audit-idle-drain.json` showed
+  worse p95/p99/max, so it was not kept.
+- Kept the generalized one-render-in-flight, latest-pending-snapshot-wins
+  scheduler contract and removed zero-only counters from the public cadence
+  report.
+- Summarized long render-bundle diagnostic keys by stable hash/length instead of
+  publishing full command-key JSON strings in frame reports.
+- Compact app-facing shadow diagnostics: exact counts remain, but the 364-entry
+  caster draw list is represented by an 8-entry sample plus omitted count.
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md` with the latest accepted
+  benchmark evidence and the remaining diagnostics/status compatibility
+  boundary.
+
+## Latest Measurements
+
+Current-source isolated local server run:
+`/tmp/racing-frame-audit-current-final.json`
+(`2026-06-18T13:17:58.264Z`, SharedArrayBuffer active):
+
+- Aperture idle: avg `4.17 ms`, p95 `4.70 ms`, p99 `5.05 ms`, max
+  `5.20 ms`, heap `74.11 MB`; WebGPU submits `1303-1321` over 6s.
+- three.js idle: avg `4.17 ms`, p95 `4.70 ms`, p99 `5.07 ms`, max
+  `6.24 ms`, heap `18.20 MB`.
+- Aperture drive: avg `4.17 ms`, p95 `4.65 ms`, p99 `5.03 ms`, max
+  `8.33 ms`, heap `74.88 MB`; WebGPU submits `875-986` over 6s.
+- three.js drive: avg `4.17 ms`, p95 `4.63 ms`, p99 `5.04 ms`, max
+  `5.20 ms`, heap `18.87 MB`.
+- Console warnings: `0` destroyed-buffer warnings in the accepted final run;
+  only the existing initialization deprecation warning appeared.
+
+Live rebuilt status payload check on `http://127.0.0.1:5186/`:
+
+- `diagnostics.lastFrame` is about `53 KB`.
+- Largest remaining fields: `renderChangeSet` `~16.8 KB`, `resourceReuse`
+  `~15.9 KB`, `shadow` `~6.8 KB`, `diagnosticsSummary` `~6.4 KB`.
+- Shadow caster draw-list diagnostics are compact (`8` draw sample entries,
+  `356` omitted for the Racing shadow pass).
+- `renderChangeSet.keys` remains detailed because CLI packet/entity explanation
+  tools read it from browser status.
+
+Drive distribution after opaque depth-only identity:
+`/tmp/racing-drive-distribution-opaque-depth-identity.json`
+(`2026-06-18T12:22:02.774Z`):
+
+- `219` samples over 7s while holding `W+D`.
+- Broad main mesh changes (`>=30` changed mesh draws): `5 / 219`, down from
+  `98 / 222` before this slice.
+- Broad shadow-caster changes (`>=300` changed shadow draws): `21 / 219`.
+- Stable frames now show post-graph scene bundle reuse with `encodedCommands: 0`;
+  dynamic particle tail commands still execute directly, so render target draw
+  counts remain correct.
+
+Latest WebGPU write probe remains the previous accepted low-volume run:
+`/tmp/racing-write-probe-shadow-world-transforms.json`
+(`2026-06-18T12:07:32.003Z`): idle `0.15 KB/frame`, drive `2.09 KB/frame`.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/app-frame-boundaries.test.ts test/webgpu/webgpu-app.test.ts test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/app-auto-shadow-frame.test.ts`
+- `pnpm exec tsc -b --force packages/webgpu --pretty false`
+- `pnpm --dir racing run build -- --force`
+  - passed with the existing Vite large-chunk warning.
+- Live status payload check against the rebuilt Racing server.
+- Paired frame audit completed against local Racing/three.js servers:
+  `/tmp/racing-frame-audit-current-final.json`.
+- Pending before final stop: broader typecheck, prettier/docs checks,
+  `pnpm run check:progress`, and `git diff --check` after docs settle.
+
+## Known Issues / Next Best Work
+
+- Active goal is not achieved. Aperture drive is roughly tied with three.js
+  around p95/p99 in the latest run, but still trails on max frame and rendered
+  submit cadence.
+- Top next engine target: heap/status retention and cadence tail outliers.
+  Stable frames can reuse the post-graph scene bundle, but rendered submits are
+  still only `875-986` over the 6s drive sample and pending snapshots still
+  accumulate during drive.
+- Investigate why some drive frames still report narrow mesh/shadow changes
+  (`6-8` draw records) and miss bundle reuse, but broad main-mesh churn is no
+  longer the primary blocker.
+- Heap remains much higher than three.js and needs a dedicated retention audit.
+  `lastWorkerSummary` plus render diagnostics/status data are visible suspects,
+  but do not remove detailed `renderChangeSet.keys` without a CLI-compatible
+  replacement.
+- Add frame-report upload diagnostics for full/range/skipped writes and fallback
+  reasons.
+
+---
+
+# Handoff - Racing Extraction Cache Dependency Fix
+
+**Updated:** 2026-06-18 05:18 PDT
+
+Active user goal remains open: continue investigating and implementing proper
+engine/app fixes until Aperture consistently outperforms the three.js Racing
+reference in both idle and drive. This slice is generalized render-extraction
+dependency tracking, not a Racing-only benchmark shortcut, but the latest paired
+benchmark still does **not** prove a clean win.
+
+## Latest Completed Slice
+
+- Made mesh and shadow-caster extraction cache reuse independent from the full
+  camera frustum signature:
+  - frustum planes still run current per-entity visibility tests each frame;
+  - main-pass cached draws refresh `sortKey.viewId` and `sortKey.depth` from
+    the active view before append;
+  - shadow-caster cached draws do not inherit primary-camera frustum state and
+    keep stable shadow sort metadata;
+  - the cache remains guarded by entity version, transform version, layer mask,
+    and existing side-buffer exclusions.
+- Added regression coverage proving:
+  - camera movement does not invalidate unchanged shadow casters;
+  - a cached main mesh entry survives camera movement while matching a cold
+    extraction's refreshed sort depth.
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md`, `docs/index.html`, and
+  `docs/render-pipeline-comparison.html` with the latest benchmark/write-probe
+  evidence and next bottlenecks.
+
+## Latest Measurements
+
+Current-source isolated local server run:
+`/tmp/racing-frame-audit-main-cache.json`
+(`2026-06-18T12:07:53.183Z`, SharedArrayBuffer active):
+
+- Aperture idle: avg `4.17 ms`, p95 `4.78 ms`, p99 `5.05 ms`, max
+  `6.08 ms`, heap `71.81 MB`; WebGPU submits `1248-1299` over 6s.
+- three.js idle: avg `4.17 ms`, p95 `4.74 ms`, p99 `5.12 ms`, max
+  `5.20 ms`, heap `18.19 MB`.
+- Aperture drive: avg `4.18 ms`, p95 `4.72 ms`, p99 `5.10 ms`, max
+  `8.34 ms`, heap `58.10 MB`; WebGPU submits `829-869` over 6s.
+- three.js drive: avg `4.17 ms`, p95 `4.64 ms`, p99 `4.99 ms`, max
+  `5.19 ms`, heap `18.84 MB`.
+
+Latest WebGPU write probe:
+`/tmp/racing-write-probe-shadow-world-transforms.json`
+(`2026-06-18T12:07:32.003Z`):
+
+- Idle: `1.88` writes/frame and `0.15 KB/frame`; top labels are the indirect
+  draw buffer at about `0.09 KB/frame` and the directional shadow pass matrix at
+  about `0.06 KB/frame`.
+- Drive: `8.96` writes/frame and `2.09 KB/frame`.
+- The previous full `Particle/BurstBatch/...smoke...` drive upload remains
+  gone. Current top drive labels are analytic burst initial-slot writes
+  (`0.44 KB/frame`), compact `WorldTransforms/storage` (`0.37 KB/frame`),
+  `ShadowCasterWorldTransforms/storage` (`0.24 KB/frame`), light floats
+  (`0.21 KB/frame`), and burst params (`0.19 KB/frame`).
+- No current drive write label is above `0.45 KB/frame`; dynamic upload byte
+  pressure remains low and is no longer dominated by one buffer.
+
+Drive change-set/cadence probe:
+`/tmp/racing-drive-distribution-main-cache.json`
+(`2026-06-18T12:06:51.968Z`):
+
+- `222` samples over 7s while holding `W+D`.
+- Broad main mesh changes (`>=30` changed mesh draws): `98 / 222` samples.
+- Broad shadow-caster changes (`>=300` changed shadow draws): `25 / 222`
+  samples.
+- Latest cadence sample still showed RAF near `240 Hz`, renders completed near
+  `152 Hz`, `pendingSnapshot:true`, `scheduled:true`, and `inFlight:false`.
+
+## Validation
+
+- `pnpm exec vitest run test/rendering/extraction.test.ts`
+  - 72 tests passed.
+- `pnpm exec prettier --check packages/render/src/rendering/extraction-mesh-cache.ts packages/render/src/rendering/extraction-meshes.ts test/rendering/extraction.test.ts`
+- `pnpm exec tsc -b --force packages/render packages/webgpu packages/runtime packages/app --pretty false`
+- `pnpm --dir racing run build -- --force`
+  - passed with the existing Vite large-chunk warning.
+- Latest write probe and paired frame audit completed against the live local
+  Racing/three.js servers.
+- Pending before final stop: rerun `pnpm run check:progress`, `git diff --check`,
+  and any broader targeted suites after the docs settle.
+
+## Known Issues / Next Best Work
+
+- Active goal is not achieved. Aperture drive still trails three.js on max
+  frame and rendered submit cadence; idle p95/p99/max also remain behind in the
+  latest saved run.
+- Top next engine target: split main mesh resource identity from view/sort
+  ordering metadata so camera-driven sort-depth changes do not falsely block
+  render-bundle or incremental-update decisions. Do not loosen transparent sort
+  correctness.
+- Frame cadence remains open: latest live probe still showed pending snapshots
+  queued while no render was in flight and a presentation callback was merely
+  scheduled.
+- Add frame-report upload diagnostics for full/range/skipped writes and
+  fallback reasons.
+- Continue cadence and heap work now that dynamic upload byte pressure is low.
+- Particle burst slot fragmentation and tiny initial-slot write count can still
+  be improved, but particle burst uploads are no longer the top byte target.
+
+---
+
+# Handoff - Racing Shadow World-Transform Instancing
+
+**Updated:** 2026-06-18 03:59 PDT
+
+Active user goal remains open: continue investigating and implementing proper
+engine/app fixes until Aperture consistently outperforms the three.js Racing
+reference in both idle and drive. This slice is a generalized shadow renderer
+fix, not a Racing-only benchmark shortcut, but the latest paired benchmark still
+does **not** prove a clean win.
+
+## Latest Completed Slice
+
+- Changed directional shadow caster submission from CPU-baked per-caster
+  light-space matrix uploads to a shader-side composition path:
+  - group 0 binding 0 is now one per-pass light view-projection uniform;
+  - group 0 binding 1 is a draw-list-order caster world-transform storage
+    buffer;
+  - shadow command records map each `${passKey}:${renderId}` to a contiguous
+    world-transform slot and use that slot as `firstInstance`;
+  - compatible shadow records still group/coalesce through the existing render
+    pass draw-list path.
+- Added cached shadow pass matrix buffers and a cached
+  `ShadowCasterWorldTransforms/storage` buffer with dirty upload behavior:
+  byte-identical frames skip, clustered moving ranges use bounded sub-writes,
+  and broad changes fall back to full upload.
+- Added a live-resource guard so a partially-created pass-matrix/world-transform
+  bind-group path reports missing resources instead of falling back to an
+  obsolete one-binding shape.
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md`, `docs/index.html`, and
+  `docs/render-pipeline-comparison.html` with the latest benchmark/write-probe
+  evidence.
+
+## Latest Measurements
+
+Current-source isolated local server run:
+`/tmp/racing-frame-audit-shadow-world-transforms.json`
+(`2026-06-18T10:54:30.190Z`, SharedArrayBuffer active):
+
+- Aperture idle: avg `4.17 ms`, p95 `4.82 ms`, p99 `5.06 ms`, max
+  `5.20 ms`, heap `92.98 MB`; WebGPU submits `1227-1244` over 6s.
+- three.js idle: avg `4.17 ms`, p95 `4.67 ms`, p99 `5.05 ms`, max
+  `5.19 ms`, heap `18.17 MB`.
+- Aperture drive: avg `4.19 ms`, p95 `4.74 ms`, p99 `5.11 ms`, max
+  `8.69 ms`, heap `63.91 MB`; WebGPU submits `823-874` over 6s.
+- three.js drive: avg `4.17 ms`, p95 `4.68 ms`, p99 `5.09 ms`, max
+  `5.20 ms`, heap `18.83 MB`.
+
+Latest WebGPU write probe:
+`/tmp/racing-write-probe-shadow-world-transforms.json`
+(`2026-06-18T10:54:22.237Z`):
+
+- Idle: `5.44` writes/frame and `5.1 KB/frame`; top write is
+  `WorldTransforms/storage` at `4.6 KB/frame`.
+- Drive: `9.31` writes/frame and `21.2 KB/frame`.
+- The previous `DirectionalShadowCasterBakedMatrices/storage` drive cost
+  (`17.4 KB/frame`) is gone. The replacement
+  `ShadowCasterWorldTransforms/storage` cost is one `380` byte clustered write
+  per shadow frame, about `0.23 KB/frame`.
+- Top remaining drive write target is
+  `Particle/BurstBatch/...smoke...` at about `15.0 KB/frame`, followed by
+  compact `WorldTransforms/storage` at about `5.0 KB/frame`.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/shadow-caster-command-record-plan.test.ts test/webgpu/shadow-caster-matrix-bind-group-resource.test.ts test/webgpu/shadow-caster-pipeline-resource.test.ts`
+  - 4 files, 23 tests passed.
+- `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/shadow-caster-command-record-plan.test.ts test/webgpu/shadow-caster-draw-list-plan.test.ts test/webgpu/shadow-caster-frame-resource-readiness.test.ts test/webgpu/shadow-caster-matrix-bind-group-resource.test.ts test/webgpu/shadow-caster-pipeline-resource.test.ts test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/draw-order-transform-packing.test.ts test/webgpu/transform-dirty-upload.test.ts test/rendering/transform-pack.test.ts test/webgpu/prepared-mesh-cache.test.ts test/app/meshes.test.ts`
+  - 13 files, 104 tests passed.
+- `pnpm exec tsc -b --force packages/simulation packages/render packages/runtime packages/webgpu packages/app --pretty false`
+- `pnpm --dir racing run build -- --force`
+  - passed with the existing Vite large-chunk warning.
+- Latest write probe and paired frame audit completed against the live local
+  Racing/three.js servers.
+
+## Known Issues / Next Best Work
+
+- Active goal is not achieved. Aperture drive still trails three.js on max
+  frame and rendered submit cadence.
+- Top next engine target: reduce particle burst-batch upload pressure. Burst
+  draws are batched, but the renderer still repacks/uploads the full live burst
+  batch buffer.
+- Add frame-report upload diagnostics for full/range/skipped writes and
+  fallback reasons.
+- Continue cadence and heap work after the remaining large dynamic writes are
+  addressed.
+
+---
+
+# Handoff - Racing Compact Transforms And Dynamic Ribbon Ranges
+
+**Updated:** 2026-06-18 03:29 PDT
+
+Active user goal remains open: continue investigating and implementing proper
+engine/app fixes until Aperture consistently outperforms the three.js Racing
+reference in both idle and drive. The changes in this slice are generalized
+engine/app-helper fixes, not Racing-only benchmark shortcuts, but the latest
+paired benchmark still does **not** prove a clean win.
+
+## Latest Completed Slice
+
+- Added compact mesh-world transform packing:
+  - mesh frame resources now pack only transforms referenced by mesh draw
+    packets into a compact buffer;
+  - raw extraction-order transforms remain available for overlay/picking paths
+    that still need raw offsets;
+  - the fix is route/resource-prep level, with no Racing asset names or
+    tree/deco conditionals.
+- Added same-layout prepared mesh GPU buffer reuse:
+  - prepared mesh resources can reuse existing GPU buffers across source asset
+    version bumps when the upload layout is unchanged;
+  - vertex/index descriptors can carry optional byte update ranges;
+  - absent ranges mean full upload, empty ranges mean no upload for that buffer.
+- Converted `trails.groundRibbon(...)` to fixed-capacity dynamic meshes:
+  - ground ribbons now keep max-capacity vertex/index buffers and change the
+    submesh draw range instead of growing buffer sizes;
+  - each flushed segment marks one `288` byte vertex range;
+  - index buffers are static after initial upload.
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md`, `docs/index.html`, and
+  `docs/render-pipeline-comparison.html` with the latest benchmark/write-probe
+  evidence and next bottlenecks.
+
+## Latest Measurements
+
+Current-source isolated local server run:
+`/tmp/racing-frame-audit-ground-ribbon-ranges.json`
+(`2026-06-18T10:19:32.653Z`, SharedArrayBuffer active):
+
+- Aperture idle: avg `4.17 ms`, p95 `4.74 ms`, p99 `5.10 ms`, max
+  `5.21 ms`, heap `59.20 MB`; WebGPU submits `1013-1091` over 6s.
+- three.js idle: avg `4.17 ms`, p95 `4.63 ms`, p99 `5.04 ms`, max
+  `5.23 ms`, heap `15.88 MB`.
+- Aperture drive: avg `4.19 ms`, p95 `4.64 ms`, p99 `5.10 ms`, max
+  `8.90 ms`, heap `43.70 MB`; WebGPU submits `716-836` over 6s.
+- three.js drive: avg `4.17 ms`, p95 `4.59 ms`, p99 `5.03 ms`, max
+  `5.20 ms`, heap `18.53 MB`.
+
+Latest WebGPU write probe:
+`/tmp/racing-write-probe-ground-ribbon-ranges.json`
+(`2026-06-18T10:18:27.416Z`):
+
+- Idle: `4.73` writes/frame and `4.4 KB/frame`; top write is compact
+  `WorldTransforms/storage` at `4.0 KB/frame`.
+- Drive: `11.76` writes/frame and `41.8 KB/frame`; top writes are
+  `DirectionalShadowCasterBakedMatrices/storage` at `17.4 KB/frame`,
+  `Particle/BurstBatch/...smoke...` at `16.8 KB/frame`, and
+  `WorldTransforms/storage` at `6.2 KB/frame`.
+- Drift trail vertex writes are now one `288` byte update per emitted segment:
+  `Drift trail bl` `89.7 bytes/frame`, `Drift trail br` `85.6 bytes/frame`;
+  drift index writes are gone from the hot list.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/prepared-mesh-cache.test.ts`
+- `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/shadow-caster-command-record-plan.test.ts test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/draw-order-transform-packing.test.ts test/webgpu/transform-dirty-upload.test.ts test/rendering/transform-pack.test.ts test/webgpu/prepared-mesh-cache.test.ts test/app/meshes.test.ts`
+  - 9 files, 82 tests passed.
+- `pnpm exec tsc -b --force packages/simulation packages/render packages/runtime packages/webgpu packages/app`
+- `pnpm --dir racing run build -- --force`
+  - passed with the existing Vite large-chunk warning.
+- `pnpm run check:progress`
+- `git diff --check`
+
+## Known Issues / Next Best Work
+
+- Active goal is not achieved. Aperture drive still trails three.js on max
+  frame and rendered submit cadence.
+- Top next engine target: reduce directional shadow baked-matrix upload
+  pressure. The shadow path still uploads a full baked caster matrix table
+  during active drive/camera changes.
+- Second target: reduce particle burst-batch upload pressure. Burst draws are
+  batched, but the renderer still repacks/uploads the full live burst batch
+  buffer.
+- Add frame-report upload diagnostics for full/range/skipped writes and
+  fallback reasons.
+- Continue heap/cadence work after the remaining large dynamic writes are
+  addressed.
+
+---
+
+# Handoff - Racing Standard/Transform Upload Reuse Audit
+
+**Updated:** 2026-06-18 02:50 PDT
+
+Active user goal remains open: continue investigating and implementing proper
+engine/app fixes until Aperture consistently outperforms the three.js Racing
+reference in both idle and drive. The accepted changes in this slice are
+general renderer/resource fixes, not Racing-only benchmark hacks, but the
+latest current-source benchmark still does **not** prove a clean win.
+
+## Latest Completed Slice
+
+- Rebuilt from current source after removing stale ignored package/app bundles
+  earlier in the run, so the Racing production bundle uses the live WebGPU
+  source path rather than an old compatibility `dist` tree.
+- Added generalized baked directional shadow matrix reuse:
+  - shadow caster matrix baking now uses cache-owned scratch storage;
+  - the baked matrix GPU resource keeps the last uploaded bytes;
+  - identical baked caster matrix frames skip `queue.writeBuffer`;
+  - buffer size changes still destroy/recreate normally.
+- Added shared Standard app-frame resources:
+  - StandardMaterial app frames can share app-cache-owned view-uniform and
+    world-transform resources across compatible Standard routes;
+  - minimal/standalone cache slots keep old behavior when no app cache exists.
+- Added bounded multi-range transform dirty uploads:
+  - packed transform snapshots can carry multiple dirty windows;
+  - WebGPU dirty uploads write those bounded ranges when the previous GPU
+    version is exactly one frame behind;
+  - changed-float threshold and range-count caps still fall back to full writes.
+- Added draw-order transform upload skipping:
+  - draw-order transform buffers keep the last uploaded matrix bytes;
+  - byte-identical sorted draw-order matrices now skip reupload.
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md`, `docs/index.html`, and
+  `docs/render-pipeline-comparison.html` with the latest benchmark/write-probe
+  evidence and the explicit generalized-vs-benchmark-hack distinction.
+
+## Latest Measurements
+
+Current-source isolated local server run:
+`/tmp/racing-frame-audit-after-draworder-skip.json`
+(`2026-06-18T09:40:26.128Z`, SharedArrayBuffer active):
+
+- Aperture idle: avg `4.167 ms`, p95 `4.767 ms`, p99 `5.087 ms`, max
+  `5.205 ms`, heap `59.77 MB`; WebGPU submits `1250-1298` over 6s.
+- three.js idle: avg `4.167 ms`, p95 `4.727 ms`, p99 `5.063 ms`, max
+  `5.210 ms`, heap `18.13 MB`.
+- Aperture drive: avg `4.174 ms`, p95 `4.680 ms`, p99 `5.050 ms`, max
+  `8.465 ms`, heap `76.25 MB`; WebGPU submits `879-939` over 6s.
+- three.js drive: avg `4.166 ms`, p95 `4.600 ms`, p99 `5.063 ms`, max
+  `5.210 ms`, heap `18.94 MB`.
+- Latest full benchmark counts: idle `meshDraws:40`, `shadowCasterDraws:364`,
+  `drawPackages:40`, `drawCommands:125`, `drawCalls:25`, diagnostics `0`;
+  drive `meshDraws:42`, `shadowCasterDraws:364`, `particleEmitters:306`,
+  `drawPackages:42`, `drawCommands:177`, `drawCalls:34`, diagnostics `0`.
+
+Latest WebGPU write probe:
+`/tmp/racing-write-probe-draworder-skip.json`
+(`2026-06-18T09:39:58.500Z`):
+
+- Idle: `6.12` writes/frame and `53.0 KB/frame`; draw-order transform uploads
+  are gone after the initial stable upload; extraction-order
+  `WorldTransforms/storage` remains `2.04` writes/frame and `52.5 KB/frame`.
+- Drive: `20.11` writes/frame and `227.8 KB/frame`; draw-order transform upload
+  is down to `40` writes across `771` sampled frames (`0.052` writes/frame);
+  extraction-order `WorldTransforms/storage` remains `3.00` writes/frame and
+  `128.0 KB/frame`.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/shadow-caster-command-record-plan.test.ts test/webgpu/app-auto-shadow-frame.test.ts test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/draw-order-transform-packing.test.ts test/webgpu/transform-dirty-upload.test.ts test/rendering/transform-pack.test.ts`
+  - 7 files, 66 tests passed.
+- `pnpm exec tsc -b --force packages/simulation packages/render packages/runtime packages/webgpu packages/app`
+- `pnpm --dir racing run build -- --force`
+  - passed with the existing Vite large-chunk warning.
+- `pnpm run check:progress`
+- `git diff --check`
+
+## Known Issues / Next Best Work
+
+- Active goal is not achieved. Aperture idle is close, but drive still trails
+  three.js on p95/max and rendered submit cadence.
+- The top concrete next engine target is eliminating redundant
+  extraction-order `WorldTransforms/storage` uploads for routes fully covered by
+  draw-order transform packing. This should be a generalized two-phase
+  resource-prep or route-coverage fix, not a Racing conditional.
+- Add frame-report diagnostics for transform upload mode/fallback reason so
+  future probes expose full/envelope/multi-range behavior directly.
+- Active drive still reports broad mesh/shadow change-set churn
+  (`42/42` mesh draws and `364/364` shadow caster draws changed), which likely
+  contributes to full/large transform uploads.
+- Memory pressure remains high: latest used heap is `59.77-76.25 MB` for
+  Aperture versus `18.13-18.94 MB` for three.js.
+
+---
+
+# Handoff - Racing Particle Buffer Cache And Scheduler Experiment Rejection
+
+**Updated:** 2026-06-18 02:01 PDT
+
+Active user goal remains open: continue investigating and implementing proper
+engine/app fixes until Aperture consistently outperforms the three.js Racing
+reference in both idle and drive. The latest current-source isolated evidence
+keeps diagnostics at `0`, but still does **not** prove a clean win because
+drive max/tail latency and rendered cadence remain worse than three.js.
+
+## Latest Completed Slice
+
+- Added particle view-uniform buffer reuse:
+  - `prepareParticleFrameResourcesForSnapshot()` now reuses a cache-owned
+    `Particle/ViewUniforms` GPU buffer and updates it with `queue.writeBuffer`
+    instead of allocating a fresh GPU buffer every particle frame.
+  - The cache destroys/recreates only when a later snapshot needs a larger
+    view-uniform payload.
+  - Focused particle tests now prove reuse across frames and resize
+    invalidation.
+- Tested and rejected a bounded scheduler late-latch experiment:
+  - The experiment rendered a pending worker snapshot immediately when an
+    in-flight render completed before the scheduled RAF.
+  - The Racing benchmark worsened drive p95/p99/max and did not consistently
+    improve submit counts, so the experiment was reverted.
+- Added a dedicated shadow-caster extraction cache:
+  - `RenderExtractionCache` now keeps `shadowCasterDrawEntities` separate from
+    main-view `meshDrawEntities`.
+  - Shadow-caster extraction can reuse unchanged off-camera caster packet
+    templates without inheriting main-camera frustum-cull cache state.
+  - Transform-only shadow caster updates refresh matrix/bounds while preserving
+    cached draw template identity.
+- Added a narrow worker-snapshot presentation catch-up path:
+  - `createWebGpuApp()` now records a presentation callback that fires while a
+    render is in flight.
+  - If a newer snapshot is pending after the in-flight render completes, the app
+    renders the latest pending snapshot immediately instead of waiting for one
+    additional RAF.
+  - A broader display-driven RAF render-loop experiment was benchmarked, found
+    worse for Racing submit cadence, and reverted.
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md`,
+  `docs/index.html`, and `docs/render-pipeline-comparison.html` with the latest
+  numbers and the remaining non-win diagnosis.
+
+## Latest Measurements
+
+Current-source isolated local server run after particle view-buffer reuse:
+`/tmp/racing-frame-audit-particle-view-buffer.json`
+(`2026-06-18T08:52:40.094Z`, SharedArrayBuffer active):
+
+- Aperture idle: avg `4.167 ms`, p95 `4.815 ms`, p99 `5.135 ms`, max
+  `5.198 ms`; WebGPU submits `1208-1319` over 6s.
+- three.js idle: avg `4.166 ms`, p95 `4.667 ms`, p99 `5.033 ms`, max
+  `5.233 ms`.
+- Aperture drive: avg `4.176 ms`, p95 `4.642 ms`, p99 `5.083 ms`, max
+  `8.553 ms`; WebGPU submits `809-901` over 6s.
+- three.js drive: avg `4.167 ms`, p95 `4.633 ms`, p99 `5.000 ms`, max
+  `5.200 ms`.
+- Latest sampled Aperture drive counts: `meshDraws:42`,
+  `shadowCasterDraws:364`, `particleEmitters:306`, `liveParticles:918`,
+  `drawPackages:42`, `drawCommands:177`, `drawCalls:34`, diagnostics `0`.
+
+Accepted phase-rich isolated local server run:
+`/tmp/racing-frame-audit-scheduler.json` and
+`/tmp/racing-frame-audit-isolated-latest.json`
+(`2026-06-18T08:35:14.202Z`, SharedArrayBuffer active):
+
+- Aperture idle: avg `4.167 ms`, p95 `4.700 ms`, p99 `5.067 ms`, max
+  `5.198 ms`; WebGPU submits `961-1047` over 6s; worker extraction
+  `0.72-0.75 ms`.
+- three.js idle: avg `4.167 ms`, p95 `4.567 ms`, p99 `5.033 ms`, max
+  `5.200 ms`.
+- Aperture drive: avg `4.181 ms`, p95 `4.707 ms`, p99 `5.077 ms`, max
+  `8.552 ms`; WebGPU submits `802-978` over 6s; worker extraction
+  `1.29-1.34 ms`.
+- three.js drive: avg `4.167 ms`, p95 `4.667 ms`, p99 `5.033 ms`, max
+  `5.200 ms`.
+- Latest sampled Aperture idle counts: `meshDraws:40`,
+  `shadowCasterDraws:364`, `drawPackages:40`, `drawCommands:125`,
+  `drawCalls:25`, diagnostics `0`, particles `0`.
+- Latest sampled Aperture drive counts: `meshDraws:43`,
+  `shadowCasterDraws:364`, `particleEmitters:306`, `liveParticles:918`,
+  `drawPackages:43`, `drawCommands:177`, `drawCalls:34`, diagnostics `0`.
+
+## Validation
+
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/extraction-transform-only.test.ts test/rendering/extraction-scratch-reuse.test.ts`
+  - 3 files, 79 tests passed.
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "worker snapshots|catches up a pending worker snapshot|SharedArrayBuffer snapshots"`
+  - 4 tests passed, 68 skipped by filter.
+- `pnpm exec vitest run test/webgpu/particle-frame-resources.test.ts`
+  - 5 tests passed.
+- `pnpm exec vitest run test/webgpu/particle-frame-resources.test.ts test/webgpu/webgpu-app.test.ts -t "GPU particle app frame resources|worker snapshots|catches up a pending worker snapshot|SharedArrayBuffer snapshots"`
+  - 9 tests passed, 68 skipped by filter.
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/runtime run typecheck`
+- `pnpm --filter @aperture-engine/runtime run build`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build -- --force`
+  - passed with the existing Vite large-chunk warning.
+
+## Known Issues / Next Best Work
+
+- The active goal is not achieved. Aperture idle is near parity, but drive still
+  trails three.js on max/tail latency and rendered cadence.
+- Reduce render `prepare`/resource-planning cost next. Latest drive frames still
+  spend about `1.9-2.0 ms` in prepare even after extraction fell below
+  `1.4 ms`.
+- Check in the browser benchmark runner so future slices can reproduce display
+  RAF intervals, WebGPU submit cadence, worker timings, counts, particle stats,
+  and phase timings without relying on `/tmp`.
+- Define the high-refresh simulation/render policy. Snapshot-driven rendering
+  still falls below 240 Hz under drive.
+- Add a local/dev COOP/COEP serving path for repeatable SharedArrayBuffer perf
+  runs without one-off static servers.
+- Audit heap/GC pressure directly; the latest isolated Chromium run exposed no
+  useful `jsHeapUsedSize`, while earlier precise-memory runs showed Aperture far
+  above three.js.
+- Fix DPR/backing-store sizing for `device-pixel-content-box` and DPR `2`.
+- Investigate intermittent active-drive all-scene mesh/shadow invalidation and
+  remaining idle bounds churn.
+
+---
+
+# Handoff - Racing SAB Transport And Frame-Time Audit Update
+
+**Updated:** 2026-06-18 01:08 PDT
+
+Active user goal remains open: continue investigating and implementing proper
+engine/app fixes until Aperture consistently outperforms the three.js Racing
+reference in both idle and drive. The latest isolated/SAB evidence is near
+idle parity, but still not a clean drive win.
+
+## Latest Completed Slice
+
+- Exposed generated browser performance timing status:
+  - `__APERTURE_GENERATED_APP__.performance.latest` now reports worker publish
+    timing and transport mode.
+  - rolling publish/step/low-level stats are retained for lightweight browser
+    probes.
+- Extended the packed shared-snapshot ABI for particle emitter packets:
+  - ABI version bumped to `12`;
+  - particle packets round-trip through render encode/decode and WebGPU SAB
+    reconstruction;
+  - Racing drive/smoke frames no longer force transferable snapshots because of
+    `particleEmitters`.
+- Added SAB-compatible audio sideband snapshots:
+  - shared render frames now send compact placeholder snapshots containing only
+    audio packets and their referenced matrices;
+  - audio remains a main-thread sibling derived view without forcing full render
+    snapshots onto the transferable path.
+- Fixed a SAB frame/registry race:
+  - WebGPU shared snapshot decode now requires the readable SAB frame to match
+    the worker message frame;
+  - stale events are skipped instead of decoding newer packet words with an
+    older registry.
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md` with the clean isolated
+  headed Playwright benchmark from `/tmp/racing-frame-audit-isolated-latest.json`
+  (`2026-06-18T08:07:16.282Z`).
+
+## Latest Measurements
+
+Latest isolated local server run (`http://127.0.0.1:5186/`,
+SharedArrayBuffer active):
+
+- Aperture idle: avg `4.172 ms`, p95 `4.762 ms`, p99 `5.043 ms`, max
+  `7.663 ms`.
+- three.js idle: avg `4.167 ms`, p95 `4.567 ms`, p99 `5.000 ms`, max
+  `5.233 ms`.
+- Aperture drive: avg `4.281 ms`, p95 `4.970 ms`, p99 `8.257 ms`, max
+  `8.857 ms`.
+- three.js drive: avg `4.167 ms`, p95 `4.600 ms`, p99 `5.033 ms`, max
+  `5.233 ms`.
+- `performance.memory` did not expose used heap in this Chromium run; the prior
+  precise-memory plain-server run still showed Aperture far above three.js.
+- Aperture transport was `shared-array-buffer` in all six samples, with zero
+  render failures and no SAB packet/index validation errors after the frame
+  matching fix.
+- Aperture WebGPU submits: `1317-1347` over 6s idle (`~220-225/s`) and
+  `1081-1172` over 6s drive (`~180-195/s`).
+- Worker publish timing:
+  - idle `postMessageMilliseconds` avg `0.043-0.046 ms`;
+  - drive `postMessageMilliseconds` avg `0.169-0.187 ms`;
+  - drive publish avg remains `4.18-4.45 ms`.
+- Last Aperture diagnostics:
+  - idle main packages/descriptors/drawList/resolved `40 / 40 / 14 / 14`;
+  - drive main packages/descriptors/drawList/resolved `42 / 42 / 20 / 20`;
+  - shadow status `ready`, `passCount:1`, `364` caster records grouped to
+    `30` shadow draws;
+  - drive still has `306` particle emitters / `906` live particles;
+  - two drive trials showed only `6` mesh/shadow changes, but one trial still
+    showed all mesh/shadow packets changed.
+
+## Validation
+
+- `pnpm exec vitest run test/app/browser-performance-status.test.ts test/app/browser-signals.test.ts test/app/browser-input-forwarding.test.ts`
+- `pnpm exec vitest run test/rendering/snapshot-packed-encoding.test.ts test/webgpu/app-snapshot-transport.test.ts test/app/audio-snapshot-transport.test.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build -- --force`
+  - passed with the existing Vite large-chunk warning.
+- `pnpm exec prettier --check ...` on the touched docs/code/test files.
+- `git diff --check`
+
+## Known Issues / Next Best Work
+
+- The active goal is not achieved. Aperture idle is close to parity, but drive
+  still trails three.js on p99/max jitter and rendered cadence.
+- Persist the new runtime/app phase timing histograms in a checked-in benchmark
+  runner. The ad hoc JSON now includes worker publish rolling stats, but the
+  driver still lives outside the repo.
+- Define the high-refresh simulation/render policy. The latest fixes reduced
+  waste, but snapshot-driven rendering still falls below 240 Hz under drive.
+- Add a local/dev COOP/COEP serving path so SAB transport can be measured in the
+  normal Racing benchmark environment without a temporary server.
+- Audit heap retention and GC variance directly; the latest isolated run lacked
+  used-heap counters, while the prior precise-memory run remained far above
+  three.js.
+- Investigate intermittent active-drive all-scene mesh/shadow invalidation and
+  the remaining `76` idle bounds changes.
+
+---
+
+# Handoff - Racing Three.js Follow-Up: Diagnostics Cache And Fog SAB Codec
+
+**Updated:** 2026-06-17 23:34 PDT
+
+Active user goal remains open: continue investigating and implementing proper
+engine/app fixes until Aperture consistently outperforms the three.js Racing
+reference in both idle and drive. The latest evidence is still near parity, not
+a clean win.
+
+## Latest Completed Slice
+
+- Cached WebGPU app diagnostics JSON:
+  - `createWebGpuApp.getDiagnostics()` now returns the cached JSON conversion
+    for the latest render/pick report instead of reserializing large reports on
+    every browser diagnostics RAF.
+  - Added a focused identity assertion in `test/webgpu/webgpu-app.test.ts`.
+- Added fog support to the packed shared snapshot ABI:
+  - bumped packet ABI version to `11`;
+  - added fixed-width fog packet encoding/decoding and public stride metadata;
+  - reconstructed `snapshot.fogs` and `report.fogs` in
+    `readWebGpuAppSharedSnapshot`;
+  - removed fog from the worker's unsupported-SAB payload list;
+  - added render codec, worker fallback, and WebGPU shared snapshot coverage.
+- Updated `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md` with:
+  - the latest plain-server benchmark from
+    `/tmp/racing-frame-audit-latest.json`
+    (`2026-06-18T06:16:28.984Z`);
+  - an isolated-header benchmark from
+    `/tmp/racing-frame-audit-isolated-latest.json`
+    (`2026-06-18T06:29:00.640Z`);
+  - the important measurement correction that RAF interval data is display
+    cadence, not Aperture rendered-frame cadence.
+
+## Latest Measurements
+
+- Plain local server (`http://127.0.0.1:5181/`, SAB unavailable):
+  - Aperture idle: avg `4.169 ms`, p95 `4.667 ms`, p99 `5.033 ms`, heap
+    `43.74 MB`.
+  - three.js idle: avg `4.167 ms`, p95 `4.667 ms`, p99 `5.067 ms`, heap
+    `17.94 MB`.
+  - Aperture drive: avg `4.178 ms`, p95 `4.733 ms`, p99 `5.167 ms`, heap
+    `57.65 MB`.
+  - three.js drive: avg `4.167 ms`, p95 `4.600 ms`, p99 `5.000 ms`, heap
+    `17.70 MB`.
+- Isolated-header Aperture server (`http://127.0.0.1:5186/`, SAB available
+  during the measurement):
+  - Aperture idle: avg `4.169 ms`, p95 `4.667 ms`, p99 `5.040 ms`, heap
+    `50.00 MB`.
+  - three.js idle: avg `4.167 ms`, p95 `4.700 ms`, p99 `5.067 ms`, heap
+    `18.11 MB`.
+  - Aperture drive: avg `4.182 ms`, p95 `4.697 ms`, p99 `5.082 ms`, heap
+    `52.82 MB`.
+  - three.js drive: avg `4.167 ms`, p95 `4.667 ms`, p99 `5.033 ms`, heap
+    `18.33 MB`.
+- Live diagnostics after rebuild:
+  - main resolved draws remain `14` idle / `20` drive;
+  - shadow casters remain `364` records grouped to `30` shadow draw calls;
+  - post graph stays active under MSAA with scene + `12` bloom nodes + tonemap;
+  - plain Python server reports `SharedArrayBuffer` unavailable;
+  - isolated-header probe reports active SAB transport for eligible frames, but
+    drive still carries particle packets that fall back per frame.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "creates a renderer-only app that consumes worker snapshots without ECS authoring APIs"`
+- `pnpm exec vitest run test/rendering/snapshot-packed-encoding.test.ts test/app/audio-snapshot-transport.test.ts test/webgpu/app-snapshot-transport.test.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --filter @aperture-engine/render run build`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm exec prettier --check ...` on changed code/docs
+- `git diff --check`
+
+## Known Issues / Next Best Work
+
+- The active goal is not achieved. Aperture is still not a consistent idle and
+  drive win against the three.js reference.
+- The benchmark's RAF interval table mostly measures display cadence. Add
+  explicit submitted-render cadence, worker snapshot cadence, and render CPU
+  phase distributions before using it as the primary pass/fail gate.
+- Actual Aperture submitted render cadence is still around `60-70 Hz` in these
+  runs, while three.js renders every RAF. The next real fix should define and
+  implement the high-refresh simulation/render policy: fixed-step
+  interpolation, render-on-display using latest snapshots, or a documented lower
+  render cadence.
+- Particle packets still force per-frame transferable snapshots in drive. A
+  shared-codec path for particle batches, or a more compact worker particle
+  representation, is a likely next transport win.
+- Memory remains roughly 2-3x three.js.
+
+---
+
+# Handoff - Racing Render Batching Implementation
+
+**Updated:** 2026-06-17 21:35 PDT
+
+Implemented the user-requested `docs/RACING_RENDER_BATCHING_PLAN.md` goal.
+
+## Latest Completed Slice
+
+- Added shared render-phase batching-key/run utilities in
+  `packages/webgpu/src/render/phase/render-phase-batching.ts`.
+- Implemented shadow caster instancing:
+  - shadow caster draw records preserve submesh vertex/index ranges;
+  - alpha-blend and alpha-test casters are excluded from the first depth-only
+    slice;
+  - baked caster matrices are consumed in grouped draw order;
+  - compatible shadow records coalesce into grouped indexed draws.
+- Implemented main-pass draw-order transform packing:
+  - eligible opaque rigid draws use a separate draw-order transform buffer;
+  - extraction-order snapshot transforms remain untouched for picking,
+    previous-transform history, and side buffers;
+  - draw commands carry a draw-order transform resource key so group-1 bind
+    group selection uses the correct buffer.
+- Folded main and shadow compatibility checks through the shared render-phase
+  key model, including resolved pipeline key, material identity, mesh/layout,
+  ranges, layer/receive-shadow state, cull/bind/buffer state where applicable,
+  and negative-scale winding for main-pass rigid draws.
+- Hardened FPS smoke scripts:
+  - default port changed from occupied `5173` to `5182`;
+  - `fps.state` reads now wait for the generated resource and can fall back to
+    browser worker-summary resources when MCP `resource_get` is stale.
+- Updated the public tracker pages:
+  - `docs/index.html` now records the Racing batching proof and final FPS smoke
+    validation;
+  - `docs/render-pipeline-comparison.html` now describes the draw-order
+    transform packing and grouped shadow submit paths.
+
+## Validation
+
+- `pnpm exec vitest run test/webgpu/shadow-caster-draw-list-plan.test.ts test/webgpu/shadow-caster-frame-resource-readiness.test.ts test/webgpu/shadow-caster-command-record-plan.test.ts test/webgpu/draw-order-transform-packing.test.ts test/webgpu/render-pass-draw-list.test.ts test/webgpu/render-pass-commands.test.ts test/webgpu/render-frame-plan.test.ts test/webgpu/app-diagnostics-summary.test.ts`
+  - 8 files, 82 tests passed.
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm --dir racing run typecheck`
+- `pnpm --dir racing run build`
+- `pnpm --dir fps run typecheck`
+- `pnpm --dir fps run build`
+- Racing managed browser validation at `http://127.0.0.1:5181/`:
+  - WebGPU OK, frame diagnostics `0`;
+  - main packages/descriptors/drawList/resolved `36 / 36 / 14 / 14`;
+  - main swapchain draw calls `12`;
+  - shadow raw caster records `364`, grouped submitted shadow draw calls `30`;
+  - screenshot saved at `/tmp/aperture-racing-batching-validation.png`.
+- FPS smoke:
+  - `pnpm --dir fps run smoke:full-clear`
+  - `pnpm --dir fps run smoke:mechanics`
+  - `pnpm --dir fps run smoke:skybox-readback`
+- Tracker and formatting:
+  - `pnpm run check:progress`
+  - `pnpm exec prettier --check docs/index.html docs/render-pipeline-comparison.html docs/RACING_RENDER_BATCHING_PLAN.md docs/RACING_THREEJS_FRAME_TIME_AUDIT.md docs/FPS_STARTER_AUDIT_FIX_PLAN.md agent/HANDOFF.md packages/webgpu/src/render/phase/render-phase-batching.ts packages/webgpu/src/render/frame/draw-order-transform-packing.ts packages/webgpu/src/shadows/shadow-caster-draw-list-plan.ts packages/webgpu/src/shadows/shadow-caster-command-record-plan.ts test/webgpu/draw-order-transform-packing.test.ts fps/scripts/full-clear-smoke.mjs fps/scripts/mechanics-smoke.mjs fps/scripts/skybox-readback-smoke.mjs`
+  - `git diff --check`
+
+## Known Issues
+
+- The broader Racing particle pooling issue from
+  `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md` remains separate; this slice fixes
+  rigid mesh/shadow draw batching, not smoke particle burst pooling.
+- Pre-existing untracked screenshot/parity artifacts remain outside this slice.
+- Port `5173` is currently occupied by an unrelated
+  `/private/tmp/aperture-platformer` Vite process; FPS smoke now defaults to
+  `5182`.
+
+## Recommended Next Task
+
+Address the Racing particle pooling item from
+`docs/RACING_THREEJS_FRAME_TIME_AUDIT.md`: coalesce smoke bursts by
+effect/material into pooled GPU buffers rather than one draw unit per burst.
+
+---
+
+# Handoff - Racing Three.js Frame-Time Audit Doc
+
+**Updated:** 2026-06-17 20:32 PDT
+
+User asked to preserve the recovered Racing vs three.js performance report as a
+Markdown document.
+
+## Latest Completed Slice
+
+- Added `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md`.
+- Captured the original frame-time measurements, Aperture-specific findings,
+  high-DPR sizing bug, heap/task-duration observations, and six-item recommended
+  fix order.
+- Linked the mesh/shadow batching portion to
+  `docs/RACING_RENDER_BATCHING_PLAN.md` while keeping particle pooling and other
+  non-instancing work separate.
+
+## Validation
+
+- `pnpm exec prettier --check docs/RACING_THREEJS_FRAME_TIME_AUDIT.md agent/HANDOFF.md`
+- `git diff --check`
+
+## Known Issues
+
+- This was documentation only; no fixes are implemented by the new audit note.
+- Pre-existing untracked screenshot/parity artifacts remain outside this slice.
+
+## Recommended Next Task
+
+Start with `docs/RACING_THREEJS_FRAME_TIME_AUDIT.md` item 1 if prioritizing the
+drive/smoke frame-time regression, or `docs/RACING_RENDER_BATCHING_PLAN.md`
+slice 1 if prioritizing idle/shadow draw-call reduction.
+
+---
+
+# Handoff - Racing Render Batching Plan
+
+**Updated:** 2026-06-17 20:20 PDT
+
+User-directed research follow-up documented the corrected Racing batching plan.
+
+## Latest Completed Slice
+
+- Added `docs/RACING_RENDER_BATCHING_PLAN.md`, capturing the corrected
+  shadow-first sequencing for Racing draw-call reduction.
+- Reframed the fix around draw-order instance packing: the existing main-pass
+  coalescer already emits grouped `instanceCount` records, but compatible draws
+  miss because transform offsets remain in extraction order.
+- Documented that no shader change is needed for rigid grouped instances because
+  `firstInstance + @builtin(instance_index)` already indexes distinct transform
+  matrices.
+- Reverified the surrounding resource-leak context and added notes to
+  `docs/FPS_STARTER_AUDIT_FIX_PLAN.md`:
+  - current shadow baked-caster matrices are cached/reused and destroyed on size
+    mismatch, so there is no open baked-matrix leak to couple to batching;
+  - particle emitter state buffers are destroyed on stale eviction and have
+    existing test coverage.
+
+## Validation
+
+- Source inspection of:
+  - `packages/webgpu/src/shadows/render-shadow-frame.ts`
+  - `packages/webgpu/src/app/particles.ts`
+  - `test/webgpu/particle-frame-resources.test.ts`
+  - `packages/webgpu/src/render/passes/render-pass-draw-list.ts`
+  - `packages/webgpu/src/render/frame/render-frame-plan.ts`
+- No code tests were run; this was a documentation and source-verification
+  slice.
+
+## Known Issues
+
+- The batching/instancing fix is not implemented yet.
+- Pre-existing untracked screenshot/parity artifacts remain outside this slice.
+
+## Recommended Next Task
+
+Implement `docs/RACING_RENDER_BATCHING_PLAN.md` slice 1: shadow caster
+instancing through grouped baked-caster matrix order, submesh/index-range
+threading, and conservative rigid opaque eligibility.
+
+---
+
 # Handoff - FPS Audit Batch 3 Diagnostics And Particle Report Fix
 
 **Updated:** 2026-06-17 17:55 PDT

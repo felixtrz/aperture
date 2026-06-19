@@ -59,22 +59,30 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3097` — Replace placeholder PMREM with GGX/VNDF prefilter sampling.
+`task-racing-heap-cadence-tail-audit` — Reduce Racing heap retention and drive cadence/tail outliers.
 
-Category: `webgpu-render`
+Category: `runtime-orchestration`
 
-Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`,
-`references/engine/src/scene/graphics/reproject-texture.js`.
+Reference anchor: `references/bevy/crates/bevy_render/src/pipelined_rendering.rs`,
+`references/engine/src/framework/app-base.js`, and
+`references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
 
 Acceptance criteria:
 
-- Replace the current placeholder prefilter path with a GGX/VNDF importance
-  sampling path appropriate for PMREM-style specular IBL.
-- Add focused unit coverage for the sampling distribution/resource metadata.
-- Add or update a visible render route so roughness-dependent specular
-  reflection changes are observable in pixels.
-- Keep the implementation WebGPU-only and renderer-owned; do not introduce a
-  mutable scene graph or WebGL fallback.
+- Audit retained browser status, render diagnostics, ECS/extraction packet
+  metadata, and renderer resource metadata that keep Aperture at about
+  `69.73 MB` idle / `68.54 MB` drive heap while three.js stays near
+  `18-19 MB`.
+- Preserve the snapshot-driven contract: at most one render in flight, latest
+  pending snapshot wins, no hidden scene graph, and no Racing-only render loop.
+- Keep detailed `renderChangeSet.keys` available to CLI packet/entity tools, or
+  replace it with an explicitly tested tool-compatible detail path.
+- Improve Racing idle p95 or drive max-frame tail from the latest accepted audit
+  (`4.72 ms` idle p95, `7.29 ms` drive max), while moving drive p95/p99 toward
+  or below the latest three.js values (`4.61 ms` / `4.99 ms`) and keeping
+  destroyed-buffer validation warnings at `0`.
+- Add targeted tests for any retained-summary compaction or diagnostics sampling
+  behavior changed by the slice.
 
 ## Historical M10 Physics Notes
 

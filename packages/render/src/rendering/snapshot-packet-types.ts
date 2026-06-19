@@ -119,6 +119,7 @@ export type ParticleEmitterModePacket = "continuous" | "burst";
 export interface ParticleBurstPacket {
   readonly burstId: number;
   readonly startFrame: number;
+  readonly startTime?: number;
   readonly count: number;
   readonly position: readonly [number, number, number];
   readonly positionJitterMin: readonly [number, number, number];

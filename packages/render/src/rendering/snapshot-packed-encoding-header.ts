@@ -11,9 +11,13 @@ export interface SnapshotPacketHeaderCounts {
   readonly shadowCasterDraws: number;
   readonly lights: number;
   readonly environments: number;
+  readonly particleEmitters: number;
+  readonly audioEmitters: number;
+  readonly audioListeners: number;
   readonly shadowRequests: number;
   readonly bounds: number;
   readonly quadBatches: number;
+  readonly fogs: number;
 }
 
 export function writeSnapshotPacketHeader(
@@ -34,6 +38,12 @@ export function writeSnapshotPacketHeader(
     counts.shadowRequests;
   words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Bounds] = counts.bounds;
   words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.QuadBatches] = counts.quadBatches;
+  words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Fogs] = counts.fogs;
+  words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.ParticleEmitters] =
+    counts.particleEmitters;
+  words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.AudioEmitters] = counts.audioEmitters;
+  words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.AudioListeners] =
+    counts.audioListeners;
 }
 
 export function readSnapshotPacketHeaderCounts(
@@ -48,10 +58,16 @@ export function readSnapshotPacketHeaderCounts(
       words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.ShadowCasterDraws] ?? 0,
     lights: words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Lights] ?? 0,
     environments: words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Environments] ?? 0,
+    particleEmitters:
+      words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.ParticleEmitters] ?? 0,
+    audioEmitters: words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.AudioEmitters] ?? 0,
+    audioListeners:
+      words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.AudioListeners] ?? 0,
     shadowRequests:
       words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.ShadowRequests] ?? 0,
     bounds: words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Bounds] ?? 0,
     quadBatches: words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.QuadBatches] ?? 0,
+    fogs: words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Fogs] ?? 0,
   };
 }
 

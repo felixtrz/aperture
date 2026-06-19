@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createWebGpuBuffer,
+  retireWebGpuBuffer,
   type WebGpuBufferDeviceLike,
 } from "@aperture-engine/webgpu/test-support";
 
@@ -164,6 +165,30 @@ describe("WebGPU buffer creation boundary", () => {
         descriptor: { size: 4, usage: 1, initialData: new Uint8Array(4) },
       }),
     ).toMatchObject({ ok: false, reason: "queue-write-buffer-unavailable" });
+  });
+
+  it("defers retired buffer destruction until submitted work completes", async () => {
+    const events: string[] = [];
+    let resolveSubmittedWork: (() => void) | undefined;
+    const buffer = {
+      destroy: () => events.push("destroy"),
+    };
+    const device = {
+      queue: {
+        onSubmittedWorkDone: () =>
+          new Promise<void>((resolve) => {
+            events.push("wait");
+            resolveSubmittedWork = resolve;
+          }),
+      },
+    };
+
+    retireWebGpuBuffer(device, buffer);
+
+    expect(events).toEqual(["wait"]);
+    resolveSubmittedWork?.();
+    await Promise.resolve();
+    expect(events).toEqual(["wait", "destroy"]);
   });
 });
 

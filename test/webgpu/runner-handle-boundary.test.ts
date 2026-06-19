@@ -62,6 +62,7 @@ function rendererWithHandles(): RendererAssemblySmokeReport {
       counts: {
         views: 1,
         meshDraws: 1,
+        shadowCasterDraws: 0,
         lights: 0,
         environments: 1,
         shadowRequests: 0,

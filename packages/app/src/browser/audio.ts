@@ -32,11 +32,18 @@ export interface GeneratedAudioOptions extends AudioEngineOptions {
    * defaults to the mirrored source-asset registry when omitted.)
    */
   readonly autoUnlock?: boolean;
+  /**
+   * `worker` preserves the legacy direct worker subscriptions. `manual` lets a
+   * presentation loop feed the exact snapshot it sampled from SAB/transferable
+   * transport, avoiding a separate per-frame audio sideband message.
+   */
+  readonly snapshotSource?: "worker" | "manual";
 }
 
 /** The wired audio engine plus its teardown. */
 export interface GeneratedAudio {
   readonly engine: AudioEngine;
+  applySnapshot(snapshot: RenderSnapshot): void;
   dispose(): void;
 }
 
@@ -55,7 +62,12 @@ export function installGeneratedAudio(
   sourceAssets: AssetRegistry,
   options: GeneratedAudioOptions = {},
 ): GeneratedAudio | null {
-  const { autoUnlock = true, resolveClip, ...engineOptions } = options;
+  const {
+    autoUnlock = true,
+    snapshotSource = "worker",
+    resolveClip,
+    ...engineOptions
+  } = options;
   const created = createAudioEngine({
     ...engineOptions,
     resolveClip:
@@ -68,34 +80,43 @@ export function installGeneratedAudio(
   const engine = created.engine;
 
   let previousTime = monotonicNow();
-  const applySnapshot = (
-    snapshot: SimulationWorkerSnapshotEvent["snapshot"],
-  ) => {
+  let disposed = false;
+  const applySnapshot = (snapshot: RenderSnapshot): void => {
+    if (disposed) {
+      return;
+    }
+
     const now = monotonicNow();
     const frameDelta = (now - previousTime) / 1000;
     previousTime = now;
     engine.applySnapshot(snapshot, frameDelta);
   };
-  const unsubscribeSnapshot = worker.onSnapshot(
-    (event: SimulationWorkerSnapshotEvent) => {
-      applySnapshot(event.snapshot);
-    },
-  );
-  const unsubscribeAudioSnapshot = worker.onMessage((message) => {
-    const snapshot = readAudioSnapshotMessage(message);
+  const unsubscribeSnapshot =
+    snapshotSource === "manual"
+      ? null
+      : worker.onSnapshot((event: SimulationWorkerSnapshotEvent) => {
+          applySnapshot(event.snapshot);
+        });
+  const unsubscribeAudioSnapshot =
+    snapshotSource === "manual"
+      ? null
+      : worker.onMessage((message) => {
+          const snapshot = readAudioSnapshotMessage(message);
 
-    if (snapshot !== null) {
-      applySnapshot(snapshot);
-    }
-  });
+          if (snapshot !== null) {
+            applySnapshot(snapshot);
+          }
+        });
 
   const detachUnlock = autoUnlock ? installAutoUnlock(engine) : null;
 
   return {
     engine,
+    applySnapshot,
     dispose() {
-      unsubscribeSnapshot();
-      unsubscribeAudioSnapshot();
+      disposed = true;
+      unsubscribeSnapshot?.();
+      unsubscribeAudioSnapshot?.();
       detachUnlock?.();
       engine.dispose();
     },

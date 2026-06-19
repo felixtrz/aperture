@@ -64,6 +64,7 @@ export default class DriftMarksSystem extends createSystem({ priority: 135 }) {
       depthBias: DEPTH_BIAS,
       tags: ["drift-marks"],
       castShadow: false,
+      receiveShadow: false,
     });
   }
 

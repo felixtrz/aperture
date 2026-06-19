@@ -869,10 +869,18 @@ export function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseRepo
     queuedBindGroupCacheSize: 0,
     lightBuffersCreated: 0,
     lightBuffersReused: 0,
+    standardFrameResourceCacheHits: 0,
+    standardFrameResourceCacheMisses: 0,
+    standardFrameResourceCacheMissReasons: {},
     localLightClusterBuffersCreated: 0,
     localLightClusterBuffersReused: 0,
     localLightClusterBufferWrites: 0,
     localLightClusterBufferWritesSkipped: 0,
+    autoShadowFramesCreated: 0,
+    autoShadowFramesReused: 0,
+    autoShadowFrameCache: {
+      status: "not-evaluated",
+    },
     dynamicBufferWrites: 0,
   };
 }

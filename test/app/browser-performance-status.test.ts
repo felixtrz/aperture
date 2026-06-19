@@ -52,7 +52,7 @@ describe("generated browser performance status", () => {
       forwarded.push(event);
     });
 
-    snapshotCallback?.({
+    emitSnapshotEvent(snapshotCallback, {
       snapshot: snapshot(7),
       frame: 7,
       message: {
@@ -166,7 +166,7 @@ describe("generated browser performance status", () => {
     const sourceAssets = new AssetRegistry();
 
     mirrorSimulationWorkerSourceAssets(worker, sourceAssets, status);
-    messageCallback?.({
+    emitWorkerMessage(messageCallback, {
       type: SIMULATION_WORKER_PROTOCOL.sourceAssets,
       frame: 2,
       sourceAssets: {
@@ -312,7 +312,7 @@ describe("generated browser performance status", () => {
     );
 
     mirrored.onSnapshot(() => {});
-    snapshotCallback?.({
+    emitSnapshotEvent(snapshotCallback, {
       snapshot: snapshot(1),
       frame: 1,
       message: {
@@ -342,7 +342,7 @@ describe("generated browser performance status", () => {
       (status.lastWorkerSummary as { readonly entities?: unknown }).entities,
     ).toBeDefined();
 
-    snapshotCallback?.({
+    emitSnapshotEvent(snapshotCallback, {
       snapshot: snapshot(2),
       frame: 2,
       message: {
@@ -500,6 +500,20 @@ function snapshot(frame: number): RenderSnapshot {
       diagnostics: 0,
     },
   };
+}
+
+function emitSnapshotEvent(
+  callback: SimulationWorkerSnapshotCallback | null,
+  event: Parameters<SimulationWorkerSnapshotCallback>[0],
+): void {
+  callback?.(event);
+}
+
+function emitWorkerMessage(
+  callback: SimulationWorkerMessageCallback | null,
+  message: Parameters<SimulationWorkerMessageCallback>[0],
+): void {
+  callback?.(message);
 }
 
 function emitTimedSnapshot(

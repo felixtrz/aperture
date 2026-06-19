@@ -42,6 +42,8 @@ export interface SpatialIndexPopulationContext {
 
 export interface SpatialIndexPopulationState {
   readonly bvhCache: MeshBvhCache;
+  readonly entries: Map<string, CachedSpatialEntry>;
+  readonly meshAssets: Map<string, CachedSpatialMeshAsset>;
 }
 
 export interface SpatialIndexPopulationDiagnostic {
@@ -64,6 +66,8 @@ export interface SpatialIndexPopulationReport {
 export function createSpatialIndexPopulationState(): SpatialIndexPopulationState {
   return {
     bvhCache: createMeshBvhCache(),
+    entries: new Map(),
+    meshAssets: new Map(),
   };
 }
 
@@ -79,9 +83,22 @@ export function populateSpatialIndexFromWorld(
   const bvhReports: MeshBvhCacheReport[] = [];
   const diagnostics: SpatialIndexPopulationDiagnostic[] = [];
   const liveMeshKeys = new Set<string>();
+  const liveEntityKeys = new Set<string>();
+  const liveMeshAssetKeys = new Set<string>();
 
   for (const entity of [...query.entities].sort(compareEntities)) {
-    const entry = spatialEntryFromEntity(context, state, entity, diagnostics);
+    const entityKey = spatialEntityKey(entity);
+
+    liveEntityKeys.add(entityKey);
+
+    const entry = spatialEntryFromEntity(
+      context,
+      state,
+      entity,
+      entityKey,
+      diagnostics,
+      liveMeshAssetKeys,
+    );
 
     if (entry === null) {
       continue;
@@ -96,6 +113,8 @@ export function populateSpatialIndexFromWorld(
     }
   }
 
+  pruneSpatialEntryCache(state.entries, liveEntityKeys);
+  pruneSpatialMeshAssetCache(state.meshAssets, liveMeshAssetKeys);
   // Reclaim BVH cache entries for meshes that are no longer indexed this pass
   // (despawned entities, removed mesh assets) so the cache does not leak.
   state.bvhCache.prune(liveMeshKeys);
@@ -110,7 +129,9 @@ function spatialEntryFromEntity(
   context: SpatialIndexPopulationContext,
   state: SpatialIndexPopulationState,
   entity: Entity,
+  entityKey: string,
   diagnostics: SpatialIndexPopulationDiagnostic[],
+  liveMeshAssetKeys: Set<string>,
 ): {
   readonly bounds: SpatialRaycastableBounds;
   readonly mesh: SpatialRaycastableMesh;
@@ -118,6 +139,7 @@ function spatialEntryFromEntity(
   readonly meshKey: string;
 } | null {
   if (!entityIsSpatiallyQueryable(entity)) {
+    state.entries.delete(entityKey);
     return null;
   }
 
@@ -125,6 +147,7 @@ function spatialEntryFromEntity(
   const meshHandle = parseMeshHandle(meshId);
 
   if (meshHandle === null) {
+    state.entries.delete(entityKey);
     diagnostics.push(diagnostic(entity, "spatial.mesh.missingHandle"));
     return null;
   }
@@ -132,14 +155,62 @@ function spatialEntryFromEntity(
   const meshEntry = context.assetsRegistry.get<"mesh", MeshAsset>(meshHandle);
 
   if (meshEntry?.status !== "ready" || meshEntry.asset === null) {
+    state.entries.delete(entityKey);
     diagnostics.push(diagnostic(entity, "spatial.mesh.notReady"));
     return null;
   }
 
-  const adapterReport = createSpatialTriangleMeshFromMeshAsset(meshEntry.asset);
+  const meshAssetKey = `${meshId}:${meshEntry.version}`;
+  const entityVersion = context.world.entityVersion(entity);
+  const transformVersion = context.world.entityTransformVersion(entity);
+  const cached = state.entries.get(entityKey);
 
-  if (adapterReport.mesh === null) {
-    for (const adapterDiagnostic of adapterReport.diagnostics) {
+  liveMeshAssetKeys.add(meshAssetKey);
+
+  if (
+    cached !== undefined &&
+    cached.entityVersion === entityVersion &&
+    cached.meshId === meshId &&
+    cached.meshVersion === meshEntry.version
+  ) {
+    if (cached.transformVersion === transformVersion) {
+      return {
+        ...cached,
+        bvhReport: reusableBvhReport(cached.bvhReport),
+      };
+    }
+
+    const refreshed = refreshCachedSpatialEntry(
+      cached,
+      entity,
+      transformVersion,
+      diagnostics,
+    );
+
+    if (refreshed === null) {
+      state.entries.delete(entityKey);
+      return null;
+    }
+
+    state.entries.set(entityKey, refreshed);
+    return {
+      ...refreshed,
+      bvhReport: reusableBvhReport(refreshed.bvhReport),
+    };
+  }
+
+  state.entries.delete(entityKey);
+
+  const meshAsset = cachedSpatialMeshAsset(
+    state,
+    meshId,
+    meshAssetKey,
+    meshEntry.version,
+    meshEntry.asset,
+  );
+
+  if (meshAsset.mesh === null || meshAsset.localAabb === null) {
+    for (const adapterDiagnostic of meshAsset.diagnostics) {
       diagnostics.push(
         diagnostic(entity, adapterDiagnostic.code, adapterDiagnostic.severity),
       );
@@ -155,25 +226,22 @@ function spatialEntryFromEntity(
     return null;
   }
 
-  const localAabb = localAabbForMesh(adapterReport.mesh);
-
-  if (localAabb === null) {
-    diagnostics.push(diagnostic(entity, "spatial.mesh.empty"));
-    return null;
-  }
-
   const pickable = pickableState(entity);
   const layerMask = layerMaskForEntity(entity);
   const bvhReport = bvhReportForEntity(
     state,
     entity,
-    adapterReport.mesh,
+    meshAsset.mesh,
     meshId,
     meshEntry.version,
   );
-  const worldAabb = transformAabb(localAabb, worldFromMesh);
-
-  return {
+  const worldAabb = transformAabb(meshAsset.localAabb, worldFromMesh);
+  const entry: CachedSpatialEntry = {
+    entityVersion,
+    transformVersion,
+    meshId,
+    meshVersion: meshEntry.version,
+    localAabb: meshAsset.localAabb,
     bounds: {
       entity,
       worldAabb,
@@ -182,7 +250,7 @@ function spatialEntryFromEntity(
     },
     mesh: {
       entity,
-      mesh: adapterReport.mesh,
+      mesh: meshAsset.mesh,
       ...(bvhReport?.bvh === null || bvhReport === null
         ? {}
         : { bvh: bvhReport.bvh }),
@@ -194,6 +262,38 @@ function spatialEntryFromEntity(
     bvhReport,
     meshKey: meshId,
   };
+
+  state.entries.set(entityKey, entry);
+  return entry;
+}
+
+interface CachedSpatialEntry {
+  readonly entityVersion: number;
+  readonly transformVersion: number;
+  readonly meshId: string;
+  readonly meshVersion: number;
+  readonly localAabb: {
+    readonly min: Vec3Like;
+    readonly max: Vec3Like;
+  };
+  readonly bounds: SpatialRaycastableBounds;
+  readonly mesh: SpatialRaycastableMesh;
+  readonly bvhReport: MeshBvhCacheReport | null;
+  readonly meshKey: string;
+}
+
+interface CachedSpatialMeshAsset {
+  readonly meshId: string;
+  readonly version: number;
+  readonly mesh: SpatialTriangleMesh | null;
+  readonly localAabb: {
+    readonly min: Vec3Like;
+    readonly max: Vec3Like;
+  } | null;
+  readonly diagnostics: readonly {
+    readonly code: string;
+    readonly severity: "warning" | "error";
+  }[];
 }
 
 function entityIsSpatiallyQueryable(entity: Entity): boolean {
@@ -247,6 +347,116 @@ function bvhReportForEntity(
     },
     dynamicPolicy: dynamicPolicy(entity),
   });
+}
+
+function cachedSpatialMeshAsset(
+  state: SpatialIndexPopulationState,
+  meshId: string,
+  meshAssetKey: string,
+  version: number,
+  asset: MeshAsset,
+): CachedSpatialMeshAsset {
+  const cached = state.meshAssets.get(meshAssetKey);
+
+  if (
+    cached !== undefined &&
+    cached.meshId === meshId &&
+    cached.version === version
+  ) {
+    return cached;
+  }
+
+  const adapterReport = createSpatialTriangleMeshFromMeshAsset(asset);
+  const localAabb =
+    adapterReport.mesh === null ? null : localAabbForMesh(adapterReport.mesh);
+  const diagnostics =
+    adapterReport.mesh !== null && localAabb === null
+      ? [
+          ...adapterReport.diagnostics,
+          { code: "spatial.mesh.empty", severity: "error" as const },
+        ]
+      : adapterReport.diagnostics;
+  const entry: CachedSpatialMeshAsset = {
+    meshId,
+    version,
+    mesh: adapterReport.mesh,
+    localAabb,
+    diagnostics,
+  };
+
+  state.meshAssets.set(meshAssetKey, entry);
+  return entry;
+}
+
+function refreshCachedSpatialEntry(
+  cached: CachedSpatialEntry,
+  entity: Entity,
+  transformVersion: number,
+  diagnostics: SpatialIndexPopulationDiagnostic[],
+): CachedSpatialEntry | null {
+  const worldFromMesh = readWorldMatrix(entity);
+  const meshFromWorld = invertMat4(worldFromMesh);
+
+  if (meshFromWorld === null) {
+    diagnostics.push(diagnostic(entity, "spatial.mesh.nonInvertibleTransform"));
+    return null;
+  }
+
+  const worldAabb = transformAabb(cached.localAabb, worldFromMesh);
+  const bounds: SpatialRaycastableBounds = {
+    ...cached.bounds,
+    worldAabb,
+  };
+  const mesh: SpatialRaycastableMesh = {
+    ...cached.mesh,
+    worldFromMesh,
+    meshFromWorld,
+  };
+
+  return {
+    ...cached,
+    transformVersion,
+    bounds,
+    mesh,
+  };
+}
+
+function reusableBvhReport(
+  report: MeshBvhCacheReport | null,
+): MeshBvhCacheReport | null {
+  if (report === null) {
+    return null;
+  }
+
+  return {
+    ...report,
+    reused: report.bvh !== null,
+    refit: false,
+    built: false,
+    buildTimeMs: 0,
+  };
+}
+
+function pruneSpatialEntryCache(
+  entries: Map<string, CachedSpatialEntry>,
+  liveEntityKeys: ReadonlySet<string>,
+): void {
+  for (const key of entries.keys()) {
+    if (!liveEntityKeys.has(key)) {
+      entries.delete(key);
+    }
+  }
+}
+
+function pruneSpatialMeshAssetCache(
+  entries: Map<string, CachedSpatialMeshAsset>,
+  liveMeshAssetKeys: ReadonlySet<string>,
+): void {
+  for (const key of entries.keys()) {
+    if (!liveMeshAssetKeys.has(key)) {
+      entries.delete(key);
+    }
+  }
 }
 
 function accelerationStrategy(entity: Entity): MeshBvhBuildStrategy {
@@ -338,6 +548,10 @@ function readWorldMatrix(entity: Entity): Mat4 {
   matrix.set(entity.getVectorView(WorldTransform, "col2"), 8);
   matrix.set(entity.getVectorView(WorldTransform, "col3"), 12);
   return matrix;
+}
+
+function spatialEntityKey(entity: Entity): string {
+  return `${entity.index}:${entity.generation}`;
 }
 
 function parseMeshHandle(value: string) {

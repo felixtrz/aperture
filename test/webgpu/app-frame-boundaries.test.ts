@@ -327,6 +327,56 @@ describe("WebGPU app frame boundary assembly", () => {
     expect(events).toContain("resolveQuerySet:1");
   });
 
+  it("creates and reuses render bundles for post-graph scene passes", async () => {
+    const events: string[] = [];
+    const harness = appHarness(events, {
+      postEffects: [createWebGpuCopyPostEffect({ id: "copy" })],
+      renderBundles: true,
+      useFrameGraph: true,
+    });
+    const cache = createWebGpuAppResourceCache();
+    const baseOptions = {
+      app: harness.app,
+      assets: new AssetRegistry(),
+      cache,
+      snapshot: appSnapshot([appView({ viewId: 5 })]),
+      commands: [drawCommand(5), drawCommand(6)],
+      renderBundleCommands: [drawCommand(5)],
+      label: "frame",
+      reuse: resourceReuseReport(),
+      enableRenderBundles: true,
+    };
+
+    const first = await assembleWebGpuAppFrameBoundaries(baseOptions);
+    const second = await assembleWebGpuAppFrameBoundaries(baseOptions);
+
+    expect(first.valid).toBe(true);
+    expect(second.valid).toBe(true);
+    expect(first.renderBundles).toMatchObject({
+      created: 1,
+      reused: 0,
+      executedBundles: 1,
+      drawCalls: 1,
+    });
+    expect(first.renderTargets).toMatchObject([{ drawCalls: 2 }]);
+    expect(first.renderBundles?.reports[0]).toMatchObject({
+      commandCount: 1,
+      drawCalls: 1,
+    });
+    expect(second.renderBundles).toMatchObject({
+      created: 0,
+      reused: 1,
+      encodedCommands: 0,
+      executedBundles: 1,
+      drawCalls: 1,
+    });
+    expect(second.renderTargets).toMatchObject([{ drawCalls: 2 }]);
+    expect(events).toContain("bundle:create:frame:swapchain:scene:bundle");
+    expect(events.filter((event) => event === "executeBundles:1")).toHaveLength(
+      2,
+    );
+  });
+
   it("runs post effects once after the final same-swapchain camera view", async () => {
     const events: string[] = [];
     const harness = appHarness(events, {
@@ -624,6 +674,7 @@ function appHarness(
     readonly occlusionQuerySets?: boolean;
     readonly useFrameGraph?: boolean;
     readonly postEffects?: readonly WebGpuPostEffect[];
+    readonly renderBundles?: boolean;
   } = {},
 ): {
   readonly app: WebGpuApp;
@@ -651,6 +702,25 @@ function appHarness(
       getBindGroupLayout: (group: number) => ({ group }),
     }),
     createBindGroup: (descriptor: unknown) => ({ descriptor }),
+    ...(options.renderBundles === true
+      ? {
+          createRenderBundleEncoder: (descriptor: {
+            readonly label?: string;
+          }) => {
+            events.push(`bundle:create:${descriptor.label ?? "unlabeled"}`);
+            return {
+              setPipeline: () => events.push("bundle:setPipeline"),
+              setBindGroup: () => events.push("bundle:setBindGroup"),
+              setVertexBuffer: () => events.push("bundle:setVertexBuffer"),
+              draw: () => events.push("bundle:draw"),
+              finish: () => {
+                events.push("bundle:finish");
+                return { label: "render-bundle" };
+              },
+            };
+          },
+        }
+      : {}),
     createBuffer: (descriptor: { readonly label?: string }) => ({
       descriptor,
       mapAsync: async () => {},
@@ -675,6 +745,12 @@ function appHarness(
             setBindGroup: () => events.push("setBindGroup"),
             setVertexBuffer: () => events.push("setVertexBuffer"),
             draw: () => events.push("draw"),
+            ...(options.renderBundles === true
+              ? {
+                  executeBundles: (bundles: readonly unknown[]) =>
+                    events.push(`executeBundles:${bundles.length}`),
+                }
+              : {}),
             beginOcclusionQuery: (queryIndex: number) =>
               events.push(`beginOcclusionQuery:${queryIndex}`),
             endOcclusionQuery: () => events.push("endOcclusionQuery"),

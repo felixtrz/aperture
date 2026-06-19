@@ -79,9 +79,9 @@ describe("transform-only extraction fast path (AI-67)", () => {
     const secondDraw = second.meshDraws[0];
     expect(secondDraw).toBeDefined();
 
-    // Template reuse is observable through object identity of the immutable
-    // template parts (sortKey/batchKey are carried by reference).
-    expect(secondDraw?.sortKey).toBe(firstDraw?.sortKey);
+    // The structural template remains stable while per-view sort metadata is
+    // refreshed for the moved bounds.
+    expect(secondDraw?.sortKey).toStrictEqual(firstDraw?.sortKey);
     expect(secondDraw?.batchKey).toBe(firstDraw?.batchKey);
     expect(secondDraw?.renderId).toBe(firstDraw?.renderId);
     expect(secondDraw?.material.id).toBe(firstDraw?.material.id);

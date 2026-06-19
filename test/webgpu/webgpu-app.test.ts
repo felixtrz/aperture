@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   assetHandleKey,
   createRenderTargetHandle,
@@ -366,11 +366,15 @@ describe("WebGPU app facade", () => {
       createUnlitMaterialAsset({ label: "White" }),
     );
     const worker = createManualSimulationWorker();
+    const presentationFrames: number[] = [];
     const created = await createRendererOnlyWebGpuApp({
       canvas,
       environment,
       simulationWorker: worker,
       sourceAssets: simulation.assets,
+      onPresentationSnapshot(snapshot) {
+        presentationFrames.push(snapshot.frame);
+      },
     });
 
     expect(created.ok).toBe(true);
@@ -414,6 +418,7 @@ describe("WebGPU app facade", () => {
     expect(diagnostics.lastError).toBeNull();
     expect(diagnostics.lastFrame?.ok).toBe(true);
     expect(diagnostics.lastFrame?.frame).toBe(7);
+    expect(presentationFrames).toEqual([7]);
     expect(app.getDiagnostics().lastFrame).toBe(diagnostics.lastFrame);
     expect(diagnostics.cadence).toMatchObject({
       sampleWindow: 120,
@@ -559,7 +564,7 @@ describe("WebGPU app facade", () => {
       expect(scheduledRafs).toHaveLength(1);
       runRaf();
 
-      releaseFirstRender?.();
+      (releaseFirstRender as (() => void) | null)?.();
       await waitForCondition(() => {
         const diagnostics = app.getDiagnostics();
 
@@ -845,6 +850,81 @@ describe("WebGPU app facade", () => {
     });
   });
 
+  it("defaults native RAF SharedArrayBuffer workers to poll-only heartbeats", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const worker = createStartOptionsCaptureSimulationWorker();
+
+    vi.stubGlobal("requestAnimationFrame", () => 1);
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+    try {
+      const created = await createRendererOnlyWebGpuApp({
+        canvas,
+        environment,
+        simulationWorker: worker,
+        autoStart: true,
+        transport: "shared-array-buffer",
+        sharedSnapshotTransport: {
+          requireCrossOriginIsolated: false,
+          maxEntities: 1,
+          maxViews: 1,
+          maxPacketWords: 32,
+        },
+      });
+
+      expect(created.ok).toBe(true);
+      expect(worker.startOptions).toMatchObject({
+        sharedSnapshotMessageRateHz: 0,
+        sourceAssetsMessageRateHz: 15,
+        transport: {
+          mode: "shared-array-buffer",
+        },
+      });
+      if (created.ok) {
+        created.app.stop();
+      }
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("lets explicit worker heartbeat options override native RAF poll-only defaults", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const worker = createStartOptionsCaptureSimulationWorker();
+
+    vi.stubGlobal("requestAnimationFrame", () => 1);
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+    try {
+      const created = await createRendererOnlyWebGpuApp({
+        canvas,
+        environment,
+        simulationWorker: worker,
+        autoStart: true,
+        transport: "shared-array-buffer",
+        sharedSnapshotTransport: {
+          requireCrossOriginIsolated: false,
+          maxEntities: 1,
+          maxViews: 1,
+          maxPacketWords: 32,
+        },
+        workerStartOptions: {
+          sharedSnapshotMessageRateHz: 15,
+          sourceAssetsMessageRateHz: 30,
+        },
+      });
+
+      expect(created.ok).toBe(true);
+      expect(worker.startOptions?.sharedSnapshotMessageRateHz).toBe(15);
+      expect(worker.startOptions?.sourceAssetsMessageRateHz).toBe(30);
+      if (created.ok) {
+        created.app.stop();
+      }
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("stores the selected output tonemap operator on renderer-only apps", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
@@ -975,6 +1055,38 @@ describe("WebGPU app facade", () => {
       standard: 0,
     });
     expectPreparedMeshFacadeSummary(frame, { totalEntries: 1 });
+
+    const fullStatusReport = webGpuAppRenderReportToJsonValue(frame);
+    const compactStatusReport = webGpuAppRenderReportToJsonValue(frame, {
+      detail: "status",
+    });
+
+    expect(
+      fullStatusReport.resourceReuse.preparedMeshCache.layouts.length,
+    ).toBeGreaterThan(0);
+    expect(
+      fullStatusReport.resourceReuse.preparedMeshFacade.entries.length,
+    ).toBe(1);
+    expect(
+      fullStatusReport.resourceReuse.preparedMaterialFacade.entries.length,
+    ).toBe(1);
+    expect(compactStatusReport.resourceReuse.preparedMeshCache).toEqual({
+      totalEntries:
+        fullStatusReport.resourceReuse.preparedMeshCache.totalEntries,
+      layouts: [],
+    });
+    expect(compactStatusReport.resourceReuse.preparedMeshFacade).toEqual({
+      totalEntries:
+        fullStatusReport.resourceReuse.preparedMeshFacade.totalEntries,
+      entries: [],
+    });
+    expect(compactStatusReport.resourceReuse.preparedMaterialFacade).toEqual({
+      totalEntries:
+        fullStatusReport.resourceReuse.preparedMaterialFacade.totalEntries,
+      families: fullStatusReport.resourceReuse.preparedMaterialFacade.families,
+      entries: [],
+    });
+
     expect(queuedFamilyResourceCount(frame.resources?.resources, "unlit")).toBe(
       1,
     );
@@ -1151,12 +1263,12 @@ describe("WebGPU app facade", () => {
 
     expect(latestFrame.ok).toBe(true);
     expectPreparedMeshCacheSummary(latestFrame, {
-      totalEntries: 4,
-      layoutEntryCounts: [4],
+      totalEntries: 1,
+      layoutEntryCounts: [1],
     });
     expectPreparedMeshFacadeSummary(latestFrame, { totalEntries: 1 });
     expectPreparedMaterialCacheSummary(latestFrame, {
-      unlit: 4,
+      unlit: 6,
       matcap: 0,
       standard: 0,
     });
@@ -1170,18 +1282,18 @@ describe("WebGPU app facade", () => {
       webGpuAppRenderReportToJsonValue(latestFrame).resourceReuse;
 
     expect(resourceReuse.preparedMeshCacheEviction).toEqual({
-      checked: 5,
-      retained: 3,
-      evicted: 1,
+      checked: 1,
+      retained: 0,
+      evicted: 0,
       skippedInUse: 1,
     });
     expect(resourceReuse.preparedMaterialCacheEviction).toEqual({
-      checked: 5,
-      retained: 3,
-      evicted: 1,
+      checked: 6,
+      retained: 5,
+      evicted: 0,
       skippedInUse: 1,
       families: {
-        unlit: { checked: 5, retained: 3, evicted: 1, skippedInUse: 1 },
+        unlit: { checked: 6, retained: 5, evicted: 0, skippedInUse: 1 },
         matcap: { checked: 0, retained: 0, evicted: 0, skippedInUse: 0 },
         standard: { checked: 0, retained: 0, evicted: 0, skippedInUse: 0 },
         "debug-normal": {
@@ -1482,6 +1594,7 @@ describe("WebGPU app facade", () => {
       canvas,
       environment,
       worldOptions: { entityCapacity: 8 },
+      gpuTimings: true,
     });
 
     expect(created.ok).toBe(true);
@@ -1510,7 +1623,7 @@ describe("WebGPU app facade", () => {
     );
 
     const frame = await app.stepAndRender(1 / 60, 1, 21);
-    const json = webGpuAppRenderReportToJsonValue(frame);
+    const json = webGpuAppRenderReportToJsonValue(frame) as Record<string, any>;
 
     expect(frame.ok).toBe(true);
     expect(frame.gpuTimings).toMatchObject({
@@ -1534,18 +1647,43 @@ describe("WebGPU app facade", () => {
       "sort",
       "submit",
     ]);
+    const expectedPhaseDetails = [
+      "prepareMain",
+      "prepareMainMotionVectors",
+      "prepareMainViews",
+      "prepareMainTransforms",
+      "prepareMainPreviousTransforms",
+      "prepareMainInstanceTints",
+      "prepareMainAreaLights",
+      "prepareMainTransmission",
+      "prepareMainAutoShadow",
+      "prepareMainResources",
+      "prepareOverlays",
+      "prepareOverlaySprites",
+      "prepareOverlayText",
+      "prepareOverlayParticles",
+      "prepareOverlayUi",
+    ];
+    expect(frame.phaseTimings?.details.map((detail) => detail.detail)).toEqual(
+      expectedPhaseDetails,
+    );
     expect(
       frame.phaseTimings?.phases.every((phase) => phase.sampleCount === 1),
     ).toBe(true);
+    expect(
+      frame.phaseTimings?.details.every((detail) => detail.sampleCount === 1),
+    ).toBe(true);
     expect(frame.phaseTimings?.totalMilliseconds).toBeGreaterThanOrEqual(0);
-    expect(json.phaseTimings?.phases.map((phase) => phase.phase)).toEqual([
-      "extract",
-      "collect",
-      "prepare",
-      "queue",
-      "sort",
-      "submit",
-    ]);
+    expect(
+      json.phaseTimings?.phases.map(
+        (phase: { readonly phase: string }) => phase.phase,
+      ),
+    ).toEqual(["extract", "collect", "prepare", "queue", "sort", "submit"]);
+    expect(
+      json.phaseTimings?.details.map(
+        (detail: { readonly detail: string }) => detail.detail,
+      ),
+    ).toEqual(expectedPhaseDetails);
     expect(json.diagnosticsSummary?.gpuTimings).toEqual(json.gpuTimings);
     expect(json.diagnosticsSummary?.gpuTimings?.passes[0]).toMatchObject({
       pass: "main",
@@ -1569,6 +1707,53 @@ describe("WebGPU app facade", () => {
     expect(
       events.filter((event) => event.startsWith("device:querySet:")),
     ).toHaveLength(1);
+  });
+
+  it("keeps GPU timestamp timing readbacks opt-in for normal frames", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events, {
+      timestampQuery: true,
+    });
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "DefaultCube" }),
+    );
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "DefaultWhite" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 23);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.gpuTimings).toBeUndefined();
+    expect(events).not.toContain("encoder:timestamp:0");
+    expect(events).not.toContain("encoder:timestamp:1");
+    expect(events).not.toContain("encoder:resolve:2");
   });
 
   it("submits ViewPacket render targets to registered off-screen textures and the swapchain", async () => {
@@ -2081,7 +2266,7 @@ describe("WebGPU app facade", () => {
       firstMaterialResource,
     );
     expect(resourceEventCounts(events).buffers).toBe(
-      firstEventCounts.buffers + 3,
+      firstEventCounts.buffers + 1,
     );
   });
 
@@ -2220,9 +2405,9 @@ describe("WebGPU app facade", () => {
     expect(meshVersionFrame.ok).toBe(true);
     expect(meshVersionFrame.resourceReuse).toMatchObject({
       pipelineHits: 1,
-      meshBuffersCreated: 1,
-      preparedMeshBuffersCreated: 1,
-      preparedMeshBuffersReused: 0,
+      meshBuffersCreated: 0,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 1,
       materialBuffersReused: 1,
       preparedMaterialBuffersReused: 1,
       preparedMaterialBindGroupsReused: 1,
@@ -3242,7 +3427,7 @@ describe("WebGPU app facade", () => {
       textures: firstResourceEvents.textures,
       textureViews: firstResourceEvents.textureViews,
       samplers: firstResourceEvents.samplers,
-      buffers: firstResourceEvents.buffers + 8,
+      buffers: firstResourceEvents.buffers + 4,
       bindGroups: firstResourceEvents.bindGroups + 2,
     });
     expect(
@@ -6932,7 +7117,7 @@ describe("WebGPU app facade", () => {
     expect(json).not.toContain("matcapResourceSet");
     expect(json).not.toContain("snapshot");
     expect(json).not.toContain("commandBuffer");
-    expect(json).not.toContain("descriptor");
+    expect(json).not.toContain('"descriptor":');
     expect(events).toContain("pass:bind:3");
     expect(events).not.toContain("pass:bind:4");
     expect(events).toContain("queue:submit:1");
@@ -7123,7 +7308,7 @@ describe("WebGPU app facade", () => {
       }),
     );
 
-    app.spawn(
+    const cameraEntity = app.spawn(
       withTransform({ translation: [0, 0, 5] }),
       withCamera({ priority: 0, layerMask: 1 }),
     );
@@ -7155,18 +7340,18 @@ describe("WebGPU app facade", () => {
 
     expect(frame.ok).toBe(true);
     expect(frame.shadow).toMatchObject({
-      status: "submitted",
+      status: "ready",
       shadowKind: "directional-cascaded",
       passCount: 2,
       commandBufferSubmission: {
-        status: "submitted",
-        submittedCommandBuffers: 1,
+        status: "ready",
+        submittedCommandBuffers: 0,
         sections: {
-          shaderSampling: true,
+          shaderSampling: false,
         },
       },
       sections: {
-        commandBufferSubmission: true,
+        commandBufferSubmission: false,
         receiverResources: true,
       },
     });
@@ -7179,30 +7364,136 @@ describe("WebGPU app facade", () => {
       "cascadedShadowMap",
     );
     expect(frame.resourceReuse).toMatchObject({
+      autoShadowFramesCreated: 1,
+      autoShadowFramesReused: 0,
+      autoShadowFrameCache: {
+        status: "miss",
+        reason: "no-previous-frame",
+        pipelineKind: "directional-cascaded",
+        previousFrame: null,
+      },
       meshBuffersCreated: 1,
       meshBuffersReused: 1,
       preparedMeshBuffersCreated: 1,
       preparedMeshBuffersReused: 1,
     });
     expect(value.shadow).toMatchObject({
-      status: "submitted",
+      status: "ready",
       commandBufferSubmission: {
-        status: "submitted",
-        sections: { shaderSampling: true },
+        status: "ready",
+        sections: { shaderSampling: false },
       },
     });
     expect(frame.diagnostics).toEqual([]);
     expect(events.filter((event) => event === "queue:submit:1")).toHaveLength(
-      2,
+      1,
     );
     expect(events).toContain("pass:drawIndexed:36");
 
+    const cachedEventStart = events.length;
+
+    const cachedFrame = await app.stepAndRender(1 / 60, 2, 33);
+    const cachedEvents = events.slice(cachedEventStart);
+
+    expect(cachedFrame.ok).toBe(true);
+    expect(cachedFrame.shadow).toMatchObject({
+      status: "ready",
+      shadowKind: "directional-cascaded",
+    });
+    expect(cachedFrame.resourceReuse).toMatchObject({
+      autoShadowFramesCreated: 0,
+      autoShadowFramesReused: 1,
+      autoShadowFrameCache: {
+        status: "hit",
+        pipelineKind: "directional-cascaded",
+        cachedFrame: expect.any(Number),
+        previousFrame: expect.any(Number),
+      },
+    });
+    expect(
+      cachedEvents.filter((event) => event === "pass:drawIndexed:36"),
+    ).toHaveLength(1);
+
+    const changeSetCachedEventStart = events.length;
+
+    const changeSetCachedFrame = await app.stepAndRender(1 / 60, 3, 34);
+    const changeSetCachedEvents = events.slice(changeSetCachedEventStart);
+
+    expect(changeSetCachedFrame.ok).toBe(true);
+    expect(changeSetCachedFrame.resourceReuse).toMatchObject({
+      autoShadowFramesCreated: 0,
+      autoShadowFramesReused: 1,
+      autoShadowFrameCache: {
+        status: "hit",
+        pipelineKind: "directional-cascaded",
+        cachedFrame: expect.any(Number),
+        previousFrame: expect.any(Number),
+        currentInputKeyHash: null,
+        cachedInputKeyHash: null,
+        reuseSource: "change-set",
+      },
+    });
+    expect(
+      changeSetCachedEvents.filter((event) => event === "pass:drawIndexed:36"),
+    ).toHaveLength(1);
+
+    const sameSnapshotEventStart = events.length;
+
+    const sameSnapshotFrame = await app.render({
+      snapshot: changeSetCachedFrame.snapshot,
+      frame: 34,
+    });
+    const sameSnapshotEvents = events.slice(sameSnapshotEventStart);
+
+    expect(sameSnapshotFrame.ok).toBe(true);
+    expect(sameSnapshotFrame.resourceReuse).toMatchObject({
+      autoShadowFramesCreated: 0,
+      autoShadowFramesReused: 1,
+      autoShadowFrameCache: {
+        status: "hit",
+        pipelineKind: "directional-cascaded",
+        cachedFrame: changeSetCachedFrame.snapshot.frame,
+        previousFrame: expect.any(Number),
+        currentInputKeyHash: null,
+        cachedInputKeyHash: null,
+        reuseSource: "same-frame",
+      },
+    });
+    expect(
+      sameSnapshotEvents.filter((event) => event === "pass:drawIndexed:36"),
+    ).toHaveLength(1);
+
+    cameraEntity.getVectorView(LocalTransform, "translation").set([0, 0, 6]);
+
+    const cameraMoveEventStart = events.length;
+
+    const cameraMoveFrame = await app.stepAndRender(1 / 60, 4, 35);
+    const cameraMoveEvents = events.slice(cameraMoveEventStart);
+
+    expect(cameraMoveFrame.ok).toBe(true);
+    expect(cameraMoveFrame.resourceReuse).toMatchObject({
+      autoShadowFramesCreated: 1,
+      autoShadowFramesReused: 0,
+      autoShadowFrameCache: {
+        status: "miss",
+        reason: "input-key-changed",
+        pipelineKind: "directional-cascaded",
+        cachedFrame: expect.any(Number),
+        previousFrame: expect.any(Number),
+        firstChangedInputSection: "camera",
+      },
+    });
+    expect(
+      cameraMoveEvents.filter((event) => event === "pass:drawIndexed:36")
+        .length,
+    ).toBeGreaterThan(1);
+
     const disabledEventStart = events.length;
 
-    app.step(1 / 60, 2);
+    app.step(1 / 60, 5);
 
     const disabledFrame = await app.render({
-      frame: 33,
+      frame: 36,
       autoStandardMaterialShadowReceiverResources: false,
     });
     const disabledEvents = events.slice(disabledEventStart);
@@ -7210,6 +7501,12 @@ describe("WebGPU app facade", () => {
     expect(disabledFrame.ok).toBe(true);
     expect(disabledFrame.shadow).toBeUndefined();
     expect(disabledFrame.snapshot.shadowRequests).toHaveLength(1);
+    expect(disabledFrame.resourceReuse).toMatchObject({
+      autoShadowFrameCache: {
+        status: "disabled",
+        reason: "disabled-by-option",
+      },
+    });
     expect(
       disabledFrame.snapshot.meshDraws[0]?.batchKey.pipelineKey,
     ).not.toContain("shadowMap");
@@ -7384,25 +7681,25 @@ describe("WebGPU app facade", () => {
       meshBuffersCreated: 1,
       meshBuffersReused: 1,
       preparedMeshBuffersCreated: 1,
-      preparedMeshBuffersReused: 1,
+      preparedMeshBuffersReused: 0,
       materialBuffersCreated: 0,
       materialBuffersReused: 2,
       preparedMaterialBuffersCreated: 0,
-      preparedMaterialBuffersReused: 2,
+      preparedMaterialBuffersReused: 1,
       preparedMaterialBindGroupsCreated: 0,
-      preparedMaterialBindGroupsReused: 2,
-      bindGroupsCreated: 6,
-      bindGroupsReused: 2,
-      lightBuffersCreated: 2,
+      preparedMaterialBindGroupsReused: 1,
+      bindGroupsCreated: 3,
+      bindGroupsReused: 5,
+      lightBuffersCreated: 1,
       dynamicBufferWrites: 0,
     });
     expect(
       webGpuAppRenderReportToJsonValue(secondFrame).resourceReuse,
     ).toMatchObject({
       preparedMeshBuffersCreated: 1,
-      preparedMeshBuffersReused: 1,
-      preparedMaterialBuffersReused: 2,
-      preparedMaterialBindGroupsReused: 2,
+      preparedMeshBuffersReused: 0,
+      preparedMaterialBuffersReused: 1,
+      preparedMaterialBindGroupsReused: 1,
     });
   });
 
@@ -7537,7 +7834,7 @@ describe("WebGPU app facade", () => {
       bindGroupsReused: 4,
       lightBuffersCreated: 0,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 2,
+      dynamicBufferWrites: 1,
     });
     expectPreparedMaterialCacheSummary(cacheHitFrame, {
       unlit: 0,
@@ -8125,7 +8422,7 @@ describe("WebGPU app facade", () => {
       JSON.stringify(
         webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
       ),
-    ).not.toContain("descriptor");
+    ).not.toContain('"descriptor":');
 
     const firstResourceEvents = resourceEventCounts(events);
     const firstResources = frame.resources?.resources;
@@ -8177,20 +8474,20 @@ describe("WebGPU app facade", () => {
       meshBuffersCreated: 1,
       meshBuffersReused: 1,
       preparedMeshBuffersCreated: 1,
-      preparedMeshBuffersReused: 1,
+      preparedMeshBuffersReused: 0,
       materialBuffersCreated: 0,
       materialBuffersReused: 2,
       preparedMaterialBuffersCreated: 0,
-      preparedMaterialBuffersReused: 2,
+      preparedMaterialBuffersReused: 1,
       preparedMaterialBindGroupsCreated: 0,
-      preparedMaterialBindGroupsReused: 2,
+      preparedMaterialBindGroupsReused: 1,
       textureResourcesCreated: 0,
       textureResourcesReused: 2,
       samplerResourcesCreated: 0,
       samplerResourcesReused: 2,
-      bindGroupsCreated: 6,
-      bindGroupsReused: 2,
-      lightBuffersCreated: 2,
+      bindGroupsCreated: 3,
+      bindGroupsReused: 5,
+      lightBuffersCreated: 1,
       dynamicBufferWrites: 0,
     });
     expectPreparedMaterialFacadeSummary(thirdFrame, {
@@ -8220,9 +8517,9 @@ describe("WebGPU app facade", () => {
     expect(
       webGpuAppRenderReportToJsonValue(thirdFrame).resourceReuse,
     ).toMatchObject({
-      preparedMeshBuffersReused: 1,
-      preparedMaterialBuffersReused: 2,
-      preparedMaterialBindGroupsReused: 2,
+      preparedMeshBuffersReused: 0,
+      preparedMaterialBuffersReused: 1,
+      preparedMaterialBindGroupsReused: 1,
       textureResourcesReused: 2,
       samplerResourcesReused: 2,
     });
@@ -8512,28 +8809,28 @@ describe("WebGPU app facade", () => {
       meshBuffersCreated: 1,
       meshBuffersReused: 1,
       preparedMeshBuffersCreated: 1,
-      preparedMeshBuffersReused: 1,
+      preparedMeshBuffersReused: 0,
       materialBuffersCreated: 0,
       materialBuffersReused: 2,
       preparedMaterialBuffersCreated: 0,
-      preparedMaterialBuffersReused: 2,
+      preparedMaterialBuffersReused: 1,
       preparedMaterialBindGroupsCreated: 0,
-      preparedMaterialBindGroupsReused: 2,
+      preparedMaterialBindGroupsReused: 1,
       textureResourcesCreated: 0,
       textureResourcesReused: 2,
       samplerResourcesCreated: 0,
       samplerResourcesReused: 2,
-      bindGroupsCreated: 6,
-      bindGroupsReused: 2,
-      lightBuffersCreated: 2,
+      bindGroupsCreated: 3,
+      bindGroupsReused: 5,
+      lightBuffersCreated: 1,
       dynamicBufferWrites: 0,
     });
     expect(
       webGpuAppRenderReportToJsonValue(thirdFrame).resourceReuse,
     ).toMatchObject({
-      preparedMeshBuffersReused: 1,
-      preparedMaterialBuffersReused: 2,
-      preparedMaterialBindGroupsReused: 2,
+      preparedMeshBuffersReused: 0,
+      preparedMaterialBuffersReused: 1,
+      preparedMaterialBindGroupsReused: 1,
       textureResourcesReused: 2,
       samplerResourcesReused: 2,
     });
@@ -8839,28 +9136,28 @@ describe("WebGPU app facade", () => {
       meshBuffersCreated: 1,
       meshBuffersReused: 1,
       preparedMeshBuffersCreated: 1,
-      preparedMeshBuffersReused: 1,
+      preparedMeshBuffersReused: 0,
       materialBuffersCreated: 0,
       materialBuffersReused: 2,
       preparedMaterialBuffersCreated: 0,
-      preparedMaterialBuffersReused: 2,
+      preparedMaterialBuffersReused: 1,
       preparedMaterialBindGroupsCreated: 0,
-      preparedMaterialBindGroupsReused: 2,
+      preparedMaterialBindGroupsReused: 1,
       textureResourcesCreated: 0,
       textureResourcesReused: 4,
       samplerResourcesCreated: 0,
       samplerResourcesReused: 4,
-      bindGroupsCreated: 6,
-      bindGroupsReused: 2,
-      lightBuffersCreated: 2,
+      bindGroupsCreated: 3,
+      bindGroupsReused: 5,
+      lightBuffersCreated: 1,
       dynamicBufferWrites: 0,
     });
     expect(
       webGpuAppRenderReportToJsonValue(thirdFrame).resourceReuse,
     ).toMatchObject({
-      preparedMeshBuffersReused: 1,
-      preparedMaterialBuffersReused: 2,
-      preparedMaterialBindGroupsReused: 2,
+      preparedMeshBuffersReused: 0,
+      preparedMaterialBuffersReused: 1,
+      preparedMaterialBindGroupsReused: 1,
       textureResourcesReused: 4,
       samplerResourcesReused: 4,
     });
@@ -9112,28 +9409,28 @@ describe("WebGPU app facade", () => {
       meshBuffersCreated: 1,
       meshBuffersReused: 1,
       preparedMeshBuffersCreated: 1,
-      preparedMeshBuffersReused: 1,
+      preparedMeshBuffersReused: 0,
       materialBuffersCreated: 0,
       materialBuffersReused: 2,
       preparedMaterialBuffersCreated: 0,
-      preparedMaterialBuffersReused: 2,
+      preparedMaterialBuffersReused: 1,
       preparedMaterialBindGroupsCreated: 0,
-      preparedMaterialBindGroupsReused: 2,
+      preparedMaterialBindGroupsReused: 1,
       textureResourcesCreated: 0,
       textureResourcesReused: 2,
       samplerResourcesCreated: 0,
       samplerResourcesReused: 2,
-      bindGroupsCreated: 6,
-      bindGroupsReused: 2,
-      lightBuffersCreated: 2,
+      bindGroupsCreated: 3,
+      bindGroupsReused: 5,
+      lightBuffersCreated: 1,
       dynamicBufferWrites: 0,
     });
     expect(
       webGpuAppRenderReportToJsonValue(thirdFrame).resourceReuse,
     ).toMatchObject({
-      preparedMeshBuffersReused: 1,
-      preparedMaterialBuffersReused: 2,
-      preparedMaterialBindGroupsReused: 2,
+      preparedMeshBuffersReused: 0,
+      preparedMaterialBuffersReused: 1,
+      preparedMaterialBindGroupsReused: 1,
       textureResourcesReused: 2,
       samplerResourcesReused: 2,
     });

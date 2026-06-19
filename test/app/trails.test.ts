@@ -38,10 +38,12 @@ describe("Aperture system trail access", () => {
     expect(trail.entity).toBeDefined();
 
     const initialMesh = trail.getMeshAsset();
-    expect(initialMesh.vertexStreams[0]?.vertexCount).toBe(1);
-    expect(initialMesh.vertexStreams[0]?.data).toHaveLength(12);
+    expect(initialMesh.vertexStreams[0]?.vertexCount).toBe(4 * 6);
+    expect(initialMesh.vertexStreams[0]?.data).toHaveLength(4 * 6 * 12);
+    expect(initialMesh.vertexStreams[0]?.updateRanges).toEqual([]);
+    expect(initialMesh.indexBuffer?.indexCount).toBe(4 * 6);
     expect(initialMesh.submeshes[0]?.vertexCount).toBe(0);
-    expect(initialMesh.indexBuffer).toBeUndefined();
+    expect(initialMesh.submeshes[0]?.indexCount).toBe(0);
   });
 
   it("tracks and publishes faded ground-ribbon segments", () => {
@@ -65,11 +67,15 @@ describe("Aperture system trail access", () => {
     const data = asset?.vertexStreams[0]?.data as Float32Array | undefined;
 
     expect(result?.version).toBe(2);
-    expect(asset?.vertexStreams[0]?.vertexCount).toBe(6);
-    expect(data?.length).toBe(6 * 12);
-    expect(asset?.indexBuffer?.indexCount).toBe(6);
-    expect(asset?.indexBuffer?.data).toHaveLength(6);
+    expect(asset?.vertexStreams[0]?.vertexCount).toBe(12);
+    expect(data?.length).toBe(12 * 12);
+    expect(asset?.vertexStreams[0]?.updateRanges).toEqual([
+      { byteOffset: 0, byteLength: 6 * 12 * 4 },
+    ]);
+    expect(asset?.indexBuffer?.indexCount).toBe(12);
+    expect(asset?.indexBuffer?.data).toHaveLength(12);
     expect(asset?.submeshes[0]?.vertexCount).toBe(6);
+    expect(asset?.submeshes[0]?.indexCount).toBe(6);
     expect(asset?.localAabb?.min).toEqual([0, 0, -0.5]);
     expect(asset?.localAabb?.max).toEqual([1, 0, 0.5]);
     expect(Array.from(data?.slice(8, 12) ?? [])).toEqual([
@@ -103,7 +109,7 @@ describe("Aperture system trail access", () => {
     expect(asset.indexBuffer?.data).toHaveLength(12);
     expect(asset.localAabb?.min).toEqual([0, 0, -0.5]);
     expect(asset.localAabb?.max).toEqual([2, 0, 0.5]);
-    expect(Array.from(data?.slice(0, 3) ?? [])).toEqual([0, 0, -0.5]);
+    expect(Array.from(data?.slice(0, 3) ?? [])).toEqual([1, 0, -0.5]);
   });
 
   it("uses uint32 indices when a trail exceeds uint16 vertex capacity", () => {

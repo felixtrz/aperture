@@ -71,6 +71,9 @@ describe("prepared mesh GPU resource cache", () => {
     );
     expect(gpu.buffers.length).toBe(buffersAfterFirst);
     expect(gpu.writes.length).toBeGreaterThan(writesAfterFirst);
+    expect(
+      [...cache.resources.values()].map((entry) => entry.sourceVersion),
+    ).toEqual([2]);
   });
 
   it("creates a new mesh GPU resource when a version bump changes layout", () => {
@@ -181,7 +184,7 @@ describe("prepared mesh GPU resource cache", () => {
     expect(third.resource?.lastUsedFrame).toBe(14);
     expect(
       [...cache.resources.values()].map((entry) => entry.lastUsedFrame),
-    ).toEqual([12, 14]);
+    ).toEqual([14]);
   });
 
   it("keeps prepared mesh resources scoped to mesh buffers only", () => {
@@ -274,10 +277,10 @@ describe("prepared mesh GPU resource cache", () => {
       cache,
     );
 
-    expect(summary.totalEntries).toBe(3);
+    expect(summary.totalEntries).toBe(2);
     expect(summary.layouts).toHaveLength(2);
     expect(summary.layouts.map((layout) => layout.entries).sort()).toEqual([
-      1, 2,
+      1, 1,
     ]);
     expect(summary.layouts.map((layout) => layout.layoutKey)).toEqual(
       [...summary.layouts.map((layout) => layout.layoutKey)].sort(),
@@ -395,7 +398,10 @@ function deviceWithBuffers(created: unknown[]): WebGpuBufferDeviceLike {
 
 function rangeMesh(
   data: Float32Array,
-  updateRanges?: readonly { readonly byteOffset: number; readonly byteLength: number }[],
+  updateRanges?: readonly {
+    readonly byteOffset: number;
+    readonly byteLength: number;
+  }[],
 ): MeshAsset {
   return {
     kind: "mesh",

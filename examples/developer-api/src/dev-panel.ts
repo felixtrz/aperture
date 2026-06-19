@@ -17,6 +17,8 @@ const SELECT_POINTER = [0.4, 0.54] as const;
 const DEBUG_METADATA_COMPONENT = "aperture.metadata.debug";
 let snapshotRequestId = 0;
 let mutationRequestId = 0;
+let lastStatusRenderAt = Number.NEGATIVE_INFINITY;
+const STATUS_RENDER_INTERVAL_MS = 250;
 
 const selectButton = document.querySelector<HTMLButtonElement>(
   "[data-aperture-action='select']",
@@ -48,6 +50,11 @@ const noteInput = document.querySelector<HTMLInputElement>(
 const statusOutput = document.querySelector<HTMLElement>(
   "#aperture-dev-status",
 );
+
+dispatchCommand(APERTURE_ENTITY_SNAPSHOT_COMMAND_CHANNEL, {
+  label: "panel.initial",
+  limit: 50,
+});
 
 selectButton?.addEventListener("click", () => {
   // Drive the pointer-interaction state machine directly (move + down + up at
@@ -114,8 +121,12 @@ invalidCommandButton?.addEventListener("click", () => {
   );
 });
 
-function renderStatus(): void {
-  if (statusOutput !== null) {
+function renderStatus(timestamp = performance.now()): void {
+  if (
+    statusOutput !== null &&
+    timestamp - lastStatusRenderAt >= STATUS_RENDER_INTERVAL_MS
+  ) {
+    lastStatusRenderAt = timestamp;
     statusOutput.textContent = JSON.stringify(readPanelStatus(), null, 2);
   }
 
@@ -127,6 +138,8 @@ function readPanelStatus(): JsonRecord {
   const worker = readRecord(status?.lastWorkerSummary);
   const entities = readRecord(worker?.entities);
   const entityTools = readRecord(worker?.entityTools);
+  const latestEntitySnapshot =
+    readRecord(entityTools?.lastSnapshot) ?? entities;
   const lastFailure = readRecord(status?.lastFailure);
   const entityToolDiff = readRecord(entityTools?.lastDiff);
   const entityToolCounts = readRecord(entityToolDiff?.counts);
@@ -154,8 +167,8 @@ function readPanelStatus(): JsonRecord {
     input: readRecord(worker?.input),
     commands: readRecord(worker?.commands),
     entities: {
-      total: entities?.total ?? 0,
-      summaries: readEntitySummaries(entities?.summaries),
+      total: latestEntitySnapshot?.total ?? 0,
+      summaries: readEntitySummaries(latestEntitySnapshot?.summaries),
     },
     entityTools: {
       finds: entityTools?.finds ?? 0,
@@ -225,6 +238,23 @@ function readCurrentEntityRef(): unknown {
 
   if (findEntity !== null) {
     return findEntity;
+  }
+
+  const lastSnapshot = readRecord(entityTools?.lastSnapshot);
+  const snapshotSummaries = Array.isArray(lastSnapshot?.summaries)
+    ? lastSnapshot.summaries
+    : [];
+
+  for (const entry of snapshotSummaries) {
+    const summary = readRecord(entry);
+    if (summary?.key !== "level.crate.primary") {
+      continue;
+    }
+
+    const entity = readEntityRef(summary.entity);
+    if (entity !== null) {
+      return entity;
+    }
   }
 
   const entities = readRecord(worker?.entities);

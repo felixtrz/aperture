@@ -248,11 +248,46 @@ export interface WebGpuAppResourceReuseReport {
   queuedBindGroupCacheSize: number;
   lightBuffersCreated: number;
   lightBuffersReused: number;
+  standardFrameResourceCacheHits: number;
+  standardFrameResourceCacheMisses: number;
+  standardFrameResourceCacheMissReasons: Record<string, number>;
   localLightClusterBuffersCreated: number;
   localLightClusterBuffersReused: number;
   localLightClusterBufferWrites: number;
   localLightClusterBufferWritesSkipped: number;
+  autoShadowFramesCreated: number;
+  autoShadowFramesReused: number;
+  autoShadowFrameCache: WebGpuAppAutoShadowFrameCacheReport;
   dynamicBufferWrites: number;
+}
+
+export type WebGpuAppAutoShadowFrameCacheStatus =
+  | "not-evaluated"
+  | "disabled"
+  | "hit"
+  | "miss";
+
+export type WebGpuAppAutoShadowFrameCacheMissReason =
+  | "disabled-by-option"
+  | "external-shadow-resources"
+  | "no-auto-shadow-work"
+  | "empty-cache"
+  | "gpu-timings"
+  | "no-previous-frame"
+  | "input-key-changed";
+
+export interface WebGpuAppAutoShadowFrameCacheReport {
+  readonly status: WebGpuAppAutoShadowFrameCacheStatus;
+  readonly reason?: WebGpuAppAutoShadowFrameCacheMissReason;
+  readonly pipelineKind?: string | null;
+  readonly cachedFrame?: number | null;
+  readonly previousFrame?: number | null;
+  readonly currentInputKeyHash?: string | null;
+  readonly cachedInputKeyHash?: string | null;
+  readonly currentInputKeyLength?: number | null;
+  readonly cachedInputKeyLength?: number | null;
+  readonly firstChangedInputSection?: string | null;
+  readonly reuseSource?: "same-frame" | "change-set" | "input-key";
 }
 
 export type WebGpuAppFrameResourceRouteDiagnostic =
@@ -623,6 +658,13 @@ export interface CreateWebGpuAppOptions extends Omit<
   // M3-T3 + AI-25: the single-encoder FrameGraph path, ON by default at parity.
   // Set false to force the legacy multi-submit path.
   readonly useFrameGraph?: boolean;
+  /**
+   * Called with the exact worker snapshot selected for a presentation tick.
+   * Sibling main-thread systems such as audio can consume the same RAF-polled
+   * SAB/transferable snapshot without requiring their own per-frame worker
+   * message.
+   */
+  readonly onPresentationSnapshot?: (snapshot: RenderSnapshot) => void;
 }
 
 export interface CreateWebGpuAppSuccess {

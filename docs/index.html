@@ -393,27 +393,109 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-17 22:12 UTC</dd>
+            <dd>2026-06-18 22:21 UTC</dd>
             <dt>Branch</dt>
-            <dd>fps-starter-kit-port</dd>
+            <dd>racing-perf-autoshadow-reorient</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the Starter Kit FPS port completion audit is
-              green. Source player, weapon, enemy, HUD, audio, level, enemy,
-              and cloud data are anchored by focused tests against
+              Latest update: Racing frame-time follow-up fixed stable
+              auto-shadow cache reuse so same-snapshot frames advance the cache
+              frame and hit by change-set proof without rebuilding or hashing
+              the large shadow input key. Idle
+              <code>prepareMainAutoShadow</code> dropped to about
+              <code>0.02 ms</code> average, and the latest paired trace has
+              Aperture winning most idle and drive frame-pacing aggregates.
+              Callback p95 remains open, especially drive, where Aperture still
+              trails three.js by median <code>+1.65 ms</code>. The trace
+              harness now supports source-map-aware CPU profile summaries; the
+              next targets are drive dirty-shadow work and burst particle CPU
+              prep. The audit is updated in
+              <code>docs/RACING_THREEJS_FRAME_TIME_AUDIT.md</code>. Prior
+              update: Racing frame-time follow-up now tracks delivered-message
+              frame-pacing impact in the trace harness. Default idle and drive
+              both win the paired three.js aggregate pacing-shape metrics,
+              while Aperture still loses callback p95. Disabling dedicated
+              source-asset messages drops worker delivery from about
+              <code>16 Hz</code> to about <code>2 Hz</code>, but the rebuilt
+              direct comparison did not beat the current default; raw message
+              count is not the whole cause. Prior
+              update: Racing frame-time follow-up moved generated worker entity
+              summaries to on-demand tool/dev-panel requests, drops transient
+              full worker fields from steady browser status, and compacts
+              retained resource details only for the app-facing status report.
+              These are generalized renderer/app diagnostics fixes, not Racing
+              asset shortcuts. The live Racing status payload is down to about
+              <code>51.7 KB</code>, but the latest benchmark still does not
+              prove the active goal: Aperture drive reported
+              <code>4.17 ms</code> avg / <code>4.69 ms</code> p95 /
+              <code>5.06 ms</code> p99 / <code>7.29 ms</code> max with
+              <code>855-924</code> WebGPU submits over 6s, while three.js drive
+              reported <code>4.17 ms</code> avg / <code>4.61 ms</code> p95 /
+              <code>4.99 ms</code> p99 / <code>5.19 ms</code> max. Aperture
+              still trails on drive tails, heap, and display-rate submit
+              cadence. Prior update: Racing frame-time follow-up added cadence
+              diagnostics, measured and rejected an immediate snapshot-drain
+              scheduler that worsened tails, summarized long render-bundle keys
+              by hash/length, and compacted app-facing shadow diagnostics to
+              counts plus a draw sample. Prior update: Racing frame-time
+              follow-up split opaque depth-only sort movement from structural
+              mesh-draw identity, added post-graph scene render-bundle prefix
+              reuse for stable base-scene commands with dynamic particle tails,
+              keyed render bundles on captured bind-group object identity, and
+              deferred replaced GPU buffer destruction through submitted-work
+              completion. Prior update: Racing frame-time follow-up made mesh
+              and shadow-caster extraction cache reuse independent from the full
+              camera frustum signature. Prior update: Racing frame-time
+              follow-up added shared queued built-in frame resources and
+              matrix-slot transform dirty uploads. Built-in material families
+              now share one prepared view/world resource pair per frame, and
+              sparse changed transforms upload as matrix-aligned ranges instead
+              of broad float envelopes. Prior update: Racing frame-time
+              follow-up added analytic burst particle rendering for eligible
+              short-lived effects. Prior update: Racing frame-time follow-up
+              moved directional shadow casters from CPU-baked light-space matrix
+              uploads to a generalized pass-matrix plus draw-list
+              world-transform buffer. Compatible shadow records now use normal
+              instanced <code>firstInstance</code> indexing, and the shader
+              computes <code>lightViewProjection * world</code>. Prior update:
+              Racing frame-time follow-up added compact mesh-world transform
+              packing plus fixed-capacity dynamic ground-ribbon update ranges.
+              These are generalized renderer and app-helper fixes: mesh routes
+              no longer upload the full extraction-order transform table, and
+              drift marks now update one <code>288</code> byte segment range
+              instead of growing full trail buffers. Prior update: Racing
+              frame-time follow-up now reuses a cache-owned particle
+              view-uniform GPU buffer instead of allocating a fresh
+              <code>Particle/ViewUniforms</code> buffer every particle frame,
+              and a bounded late-latch scheduler experiment was tested and
+              reverted after it worsened Racing drive tails. Prior update:
+              Racing frame-time follow-up added a dedicated shadow-caster
+              extraction cache and a worker-snapshot presentation catch-up path
+              after in-flight renders; the phase-rich isolated SAB run showed
+              extraction at <code>0.72-0.75 ms</code> idle and
+              <code>1.29-1.34 ms</code> drive. Prior update: Racing frame-time
+              follow-up moved particle emitter packets onto the packed
+              SharedArrayBuffer snapshot path, added a compact audio sideband so
+              audio no longer forces full transferable render snapshots, and
+              fixed SAB frame/registry matching so stale worker messages are
+              skipped instead of decoded against newer packet words. Prior
+              update: Racing frame-time follow-up landed more generalized engine
+              fixes after batching: generated workers prefer
+              <code>MessageChannel</code> scheduling, spatial index population
+              caches stable mesh/entity entries, bloom reuses stable
+              command/bind-group work, and automatic shadow caster work can fold
+              into the post FrameGraph so the Racing route submits roughly one
+              WebGPU command buffer per rendered graph frame. Prior update:
+              Racing render batching is implemented and browser-validated; the
+              route reported main packages/descriptors/drawList/resolved
+              <code>36 / 36 / 14 / 14</code>, shadow caster records
+              <code>364</code> grouped into <code>30</code> submitted shadow
+              draws, and frame diagnostics <code>0</code>. Prior update: the
+              Starter Kit FPS port completion audit is green. Source player,
+              weapon, enemy, HUD, audio, level, enemy, and cloud data are
+              anchored by focused tests against
               <code>references/Starter-Kit-FPS</code>, and managed Aperture
-              smokes now prove mechanics, skybox readback, and full route clear.
-              The latest <code>smoke:full-clear</code> run cleared all 4
-              enemies with <code>health:60</code>,
-              <code>shotsFired:8</code>, <code>hits:16</code>, and
-              <code>gameStatus:"cleared"</code>. The CLI tool client was also
-              hardened to keep managed browser-backed tool calls attached and to
-              reconnect once after closed-page errors. Racing and Shadow Lab
-              were rechecked through managed Aperture CLI with WebGPU ready,
-              diagnostics <code>0</code>, and healthy shadow frame reports. The
-              <code>?compare=weapon</code> three.js/Aperture probe also follows
-              the final free-resize layout, with a focused layout guard covering
-              the no-splash shell and compare panes.
+              smokes prove mechanics, skybox readback, and full route clear.
               Prior update: Starter Kit FPS now free-resizes the playable
               shell/canvas to the full browser viewport, with the boot splash
               DOM removed and the 1280x720 source cap/aspect sizing retired.
@@ -421,9 +503,9 @@
               viewports, and the managed Aperture
               <code>smoke:full-clear</code> route cleared all 4 enemies with
               <code>health:60</code>, <code>shotsFired:8</code>,
-              <code>hits:16</code>, and <code>gameStatus:"cleared"</code>.
-              Prior update: camera-backed directional shadow defaults now
-              refuse to forward fallback scene/fixed matrix fields into matrix
+              <code>hits:16</code>, and <code>gameStatus:"cleared"</code>. Prior
+              update: camera-backed directional shadow defaults now refuse to
+              forward fallback scene/fixed matrix fields into matrix
               computation, so a Three.js-style fixed box cannot affect the
               out-of-box default. Fixed/static bounds remain explicit authored
               overrides or no-camera fallback behavior only. Focused coverage
@@ -440,29 +522,29 @@
               reach concern and cleared the northeast double-jump route, all 4
               enemies, <code>shotsFired:8</code>, <code>hits:16</code>, and
               <code>gameStatus:"cleared"</code>. Prior update: Starter Kit FPS
-              now has a focused
-              <code>smoke:mechanics</code> Aperture MCP proof for the recent
-              gameplay input reports. The smoke starts a fresh managed session,
-              pauses and steps the generated simulation, and verifies primary
-              browser left-click shooting (<code>shotsFired</code> increments),
-              camera-yaw-relative W movement at -90 degrees
+              now has a focused <code>smoke:mechanics</code> Aperture MCP proof
+              for the recent gameplay input reports. The smoke starts a fresh
+              managed session, pauses and steps the generated simulation, and
+              verifies primary browser left-click shooting (<code
+                >shotsFired</code
+              >
+              increments), camera-yaw-relative W movement at -90 degrees
               (<code>dx:1.099</code>, <code>dz:-0.012</code>), and browser
               Space-tap jump behavior (<code>verticalVelocity:7</code>,
-              <code>jumpsRemaining:1</code>, <code>grounded:false</code>).
-              Prior update: directional shadow auto-fit now selects the
-              default-target camera that overlaps visible standard shadow
-              receivers before fitting the shadow footprint. Overlay and
-              viewmodel cameras can no longer accidentally drive the
-              out-of-box directional shadow default, and fixed/static bounds
-              remain explicit authored or no-camera fallback behavior only.
-              Focused coverage now proves overlay-first multi-camera
-              selection, off-frustum caster extraction, and off-footprint
-              caster guards. Managed Aperture proof kept FPS, racing, and
-              Shadow Lab at diagnostics <code>0</code> with submitted shadow
-              passes; racing and Shadow Lab each consumed
-              <code>364</code> shadow-caster draws, and FPS consumed
-              <code>44</code>. Prior update: Aperture pointer input now models
-              <code>primary</code>, <code>secondary</code>, and
+              <code>jumpsRemaining:1</code>, <code>grounded:false</code>). Prior
+              update: directional shadow auto-fit now selects the default-target
+              camera that overlaps visible standard shadow receivers before
+              fitting the shadow footprint. Overlay and viewmodel cameras can no
+              longer accidentally drive the out-of-box directional shadow
+              default, and fixed/static bounds remain explicit authored or
+              no-camera fallback behavior only. Focused coverage now proves
+              overlay-first multi-camera selection, off-frustum caster
+              extraction, and off-footprint caster guards. Managed Aperture
+              proof kept FPS, racing, and Shadow Lab at diagnostics
+              <code>0</code> with submitted shadow passes; racing and Shadow Lab
+              each consumed <code>364</code> shadow-caster draws, and FPS
+              consumed <code>44</code>. Prior update: Aperture pointer input now
+              models <code>primary</code>, <code>secondary</code>, and
               <code>middle</code> button state end-to-end. Browser forwarding
               maps left/middle/right canvas clicks into named pointer events,
               config validation accepts <code>input.pointer("middle")</code>,
@@ -471,26 +553,25 @@
               showed <code>lastInputEvent.pointer:"middle"</code> switching FPS
               from <code>weaponName:"Blaster"</code> to
               <code>weaponName:"Repeater"</code>, and a following left click
-              still incremented <code>shotsFired</code> to <code>1</code>.
-              The full-clear smoke still reached <code>shotsFired:8</code>,
+              still incremented <code>shotsFired</code> to <code>1</code>. The
+              full-clear smoke still reached <code>shotsFired:8</code>,
               <code>hits:16</code>, <code>destroyedEnemies:4</code>, and
               <code>gameStatus:"cleared"</code>. Prior update: Starter Kit FPS
               keyboard taps are reliable on the current managed build, and
-              Aperture CLI browser-backed tool calls no longer close the
-              managed Chrome session after each call. Prior update: directional
-              shadow defaults have been corrected
-              after the temporary scene-fit regression. Camera-backed app
-              frames now fit the shadow footprint to the primary camera
-              receiver/frustum region for sharp out-of-box shadows, while
-              independently extracted <code>shadowCasterDraws</code> still feed
-              the shadow pass and caster depth range, so off-camera casters can
-              keep contributing without inflating the whole map. Fixed/static
-              scene bounds remain explicit authored or no-camera fallback
-              behavior only. Prior update: Starter Kit FPS level collision now
-              uses
-              asset-backed triangle mesh colliders sourced from the imported
-              platform and wall GLB primitives instead of hand-authored box
-              approximations. Generated app config can opt into
+              Aperture CLI browser-backed tool calls no longer close the managed
+              Chrome session after each call. Prior update: directional shadow
+              defaults have been corrected after the temporary scene-fit
+              regression. Camera-backed app frames now fit the shadow footprint
+              to the primary camera receiver/frustum region for sharp out-of-box
+              shadows, while independently extracted
+              <code>shadowCasterDraws</code> still feed the shadow pass and
+              caster depth range, so off-camera casters can keep contributing
+              without inflating the whole map. Fixed/static scene bounds remain
+              explicit authored or no-camera fallback behavior only. Prior
+              update: Starter Kit FPS level collision now uses asset-backed
+              triangle mesh colliders sourced from the imported platform and
+              wall GLB primitives instead of hand-authored box approximations.
+              Generated app config can opt into
               <code>physics.colliderGeometry:{kind:"assets"}</code>, and the
               mesh spatial adapter now decodes byte-backed GLB vertex streams
               into numeric CPU geometry before Rapier cooks static trimesh
@@ -1873,10 +1954,12 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Replace placeholder PMREM with GGX/VNDF prefilter sampling, then
-              continue FPS-visible source-parity follow-ups such as source
-              skybox orientation/readback. Keep racing and Shadow Lab green
-              when touching shared runtime or renderer paths.
+              Diagnose Racing drive-frame change-set broadness and render
+              cadence/tail latency now that dynamic upload byte pressure is no
+              longer dominated by a single buffer label. Keep the now-fixed
+              main/shadow/particle batching and built-in resource sharing shape
+              from regressing. Keep FPS and Shadow Lab green when touching
+              shared runtime or renderer paths.
             </dd>
           </dl>
         </aside>
@@ -2541,8 +2624,16 @@
               routes without WebGPU layout validation errors. Compatible
               mesh/material-identical queue and draw-list records now coalesce
               into one instanced draw when their transform slots are contiguous.
-              Static mesh batching now has a renderer-independent merge
-              primitive, queue-level static merged records, and a browser
+              Racing now proves the non-contiguous case through a renderer-owned
+              draw-order transform buffer for eligible opaque rigid draws, so
+              sorted compatible records can be repacked without mutating
+              extraction-order snapshot transforms used by picking, motion
+              history, and transform-slot side buffers. The shared render-phase
+              compatibility key also feeds shadow caster grouping, keeping
+              pipeline, material, mesh layout, submesh range, layer,
+              receive-shadow, cull, buffer, and negative-scale winding splits
+              explicit. Static mesh batching now has a renderer-independent
+              merge primitive, queue-level static merged records, and a browser
               example that renders 20 source shapes as five draw calls. Queue
               plans now also publish opaque/transparent sort-phase counts for
               diagnostics, app reports now publish queue-to-submit command
@@ -2618,27 +2709,35 @@
               wiring. The first instance-transform buffer proof renders four
               indexed cube instances from one draw, and render-pass draw-list
               planning now emits grouped instance counts for compatible
-              contiguous draws. The instancing example now proves 1,000
-              ECS-authored boxes through one grouped draw call. A static mesh
-              merge browser proof now renders a merged vertex/index buffer
-              pixel-identical to separate per-mesh draws, and the batching
-              example now submits 20 heterogeneous StandardMaterial source
-              shapes as five draw calls. Standalone GPU timestamp query
-              resources now support creation, resolve/copy, and readback behind
-              feature detection, and the WebGPU app now reports per-pass timings
-              for main and shadow pass submissions when timestamp queries are
-              available. The GPU profiler example now displays live
-              main/offscreen pass timings in a DOM overlay. The triangle custom
-              WGSL route now submits a prepared custom shader module, render
-              pipeline, and group-2 material bind group through the shared
-              render-world, draw-list, and command path, and the custom-material
-              example now proves an animated WaterMaterial-style plane by
-              changing a fragment uniform across frames. StandardMaterial
-              <code>instance-tint</code> pipelines now bind an instance-rate
-              tint vertex buffer and sample it in WGSL to multiply base color
-              and alpha; the instance-tint example now proves those values
-              visibly across a 256-box gradient swarm. Custom WGSL pipelines now
-              also bind generic instance-attribute buffers; the
+              contiguous draws. Racing now validates the practical app route:
+              main draw descriptors repack to draw-list/resolved records
+              <code>36 / 14 / 14</code>, and the swapchain submits
+              <code>12</code> main draw calls with zero diagnostics. Shadow
+              command planning now threads submesh vertex/index ranges through
+              caster readiness, bakes matrices in grouped draw order, and emits
+              grouped <code>drawIndexed(..., instanceCount=N)</code> commands;
+              the same Racing proof reduced <code>364</code> raw caster records
+              to <code>30</code> grouped submitted shadow draws. The instancing
+              example now proves 1,000 ECS-authored boxes through one grouped
+              draw call. A static mesh merge browser proof now renders a merged
+              vertex/index buffer pixel-identical to separate per-mesh draws,
+              and the batching example now submits 20 heterogeneous
+              StandardMaterial source shapes as five draw calls. Standalone GPU
+              timestamp query resources now support creation, resolve/copy, and
+              readback behind feature detection, and the WebGPU app now reports
+              per-pass timings for main and shadow pass submissions when
+              timestamp queries are available. The GPU profiler example now
+              displays live main/offscreen pass timings in a DOM overlay. The
+              triangle custom WGSL route now submits a prepared custom shader
+              module, render pipeline, and group-2 material bind group through
+              the shared render-world, draw-list, and command path, and the
+              custom-material example now proves an animated WaterMaterial-style
+              plane by changing a fragment uniform across frames.
+              StandardMaterial <code>instance-tint</code> pipelines now bind an
+              instance-rate tint vertex buffer and sample it in WGSL to multiply
+              base color and alpha; the instance-tint example now proves those
+              values visibly across a 256-box gradient swarm. Custom WGSL
+              pipelines now also bind generic instance-attribute buffers; the
               instance-attributes example proves 576 ECS-authored phase/sway
               rows through one custom material and one instanced draw. The
               picking facade now submits a pick-only ID pass and reads one
@@ -2779,6 +2878,13 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">racing</span> Updated the Racing vs
+                three.js frame-time audit after cadence diagnostics and
+                app-facing report compaction. Aperture is roughly tied with
+                three.js around drive p95/p99, but still trails on max frame,
+                heap, and rendered submit cadence.
+              </li>
+              <li>
                 <span class="badge green">fps</span> Added
                 <code>pnpm --dir fps run smoke:mechanics</code>, a focused
                 Aperture MCP smoke for Starter Kit FPS input mechanics. It
@@ -2797,12 +2903,12 @@
                 edge behavior, forwards left/middle/right browser clicks as
                 named pointer events, and exposes all three states in input
                 summaries. Starter Kit FPS binds source
-                <code>weapon_toggle</code> to <code>input.pointer("middle")</code>.
-                Live Aperture proof switched from
-                <code>weaponName:"Blaster"</code> to
+                <code>weapon_toggle</code> to
+                <code>input.pointer("middle")</code>. Live Aperture proof
+                switched from <code>weaponName:"Blaster"</code> to
                 <code>weaponName:"Repeater"</code> via middle click, then
-                verified left-click shooting with <code>shotsFired:1</code>.
-                The full-clear smoke still ended at
+                verified left-click shooting with <code>shotsFired:1</code>. The
+                full-clear smoke still ended at
                 <code>gameStatus:"cleared"</code>.
               </li>
               <li>
@@ -6252,10 +6358,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Replace placeholder PMREM
-                with GGX/VNDF prefilter sampling. The visible proof should make
-                roughness-dependent specular IBL changes observable in pixels
-                while keeping the implementation WebGPU-only and renderer-owned.
+                <span class="badge amber">next</span> Reduce Racing heap
+                retention and drive cadence/tail outliers now that draw count,
+                upload pressure, app-facing status payload, and broad main-mesh
+                identity churn are mostly controlled. The proof should preserve
+                CLI access to detailed render-change keys, keep destroyed-buffer
+                warnings at <code>0</code>, and improve idle p95 or drive max
+                frame without forcing a Racing-only render loop.
               </li>
               <li>
                 <span class="badge amber">next</span> FPS-visible follow-up:
@@ -6658,11 +6767,11 @@
                 prove primary shooting, middle-click weapon switching,
                 camera-relative movement, jump, skybox readback, and full route
                 clear with <code>health:60</code>, <code>shotsFired:8</code>,
-                <code>hits:16</code>, and <code>gameStatus:"cleared"</code>.
-                The Aperture CLI tool client now keeps managed browser-backed
-                calls attached and reconnects once after closed-page errors,
-                and the <code>?compare=weapon</code> probe follows the final
-                free-resize layout with a focused no-splash/free-resize guard.
+                <code>hits:16</code>, and <code>gameStatus:"cleared"</code>. The
+                Aperture CLI tool client now keeps managed browser-backed calls
+                attached and reconnects once after closed-page errors, and the
+                <code>?compare=weapon</code> probe follows the final free-resize
+                layout with a focused no-splash/free-resize guard.
               </span>
             </div>
           </div>
@@ -6684,16 +6793,18 @@
           <div class="timeline-item">
             <div class="task-id">FPS-PORT</div>
             <div>
-              <strong>Multi-button pointer input drives source middle-click weapon toggle.</strong>
+              <strong
+                >Multi-button pointer input drives source middle-click weapon
+                toggle.</strong
+              >
               <span>
                 Aperture now models and forwards <code>primary</code>,
                 <code>secondary</code>, and <code>middle</code> pointer buttons,
                 and Starter Kit FPS binds <code>switchWeapon</code> to the
                 source middle-mouse mapping. Live Aperture proof switched to
                 <code>weaponName:"Repeater"</code> with middle click, verified
-                left-click shooting still reaches <code>shotsFired:1</code>,
-                and reran the full-clear smoke to
-                <code>gameStatus:"cleared"</code>.
+                left-click shooting still reaches <code>shotsFired:1</code>, and
+                reran the full-clear smoke to <code>gameStatus:"cleared"</code>.
               </span>
             </div>
           </div>

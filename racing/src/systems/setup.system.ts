@@ -129,6 +129,19 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
 
   #spawnLights(): void {
     // Sun: directional, aimed from DIR_LIGHT.position toward the origin.
+    const bounds = computeTrackBounds(this.#cells);
+    const shadowExtent = Math.max(bounds.halfWidth, bounds.halfDepth) + 10;
+    const shadowCenter: [number, number, number] = [
+      bounds.centerX,
+      0,
+      bounds.centerZ,
+    ];
+    const shadowLightDistance = Math.hypot(
+      DIR_LIGHT.position[0] - shadowCenter[0],
+      DIR_LIGHT.position[1] - shadowCenter[1],
+      DIR_LIGHT.position[2] - shadowCenter[2],
+    );
+
     this.spawn.light({
       key: "light.sun",
       name: "sun",
@@ -140,14 +153,17 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         lookAt: [0, 0, 0],
       },
       shadow: {
-        // Aperture auto-fits directional shadows from the active camera's
-        // receiver region and independent shadow casters; these remain
-        // quality/filtering knobs.
+        // main.js sizes DirectionalLight.shadow.camera from computeTrackBounds.
         mapSize: 4096,
         cascadeCount: 1,
         shadowType: 1,
         filterRadius: DIR_LIGHT.shadowRadius,
         normalBias: 0.05,
+        center: shadowCenter,
+        orthographicSize: shadowExtent * 2,
+        near: 0.5,
+        far: 60,
+        lightDistance: shadowLightDistance,
       },
     });
 

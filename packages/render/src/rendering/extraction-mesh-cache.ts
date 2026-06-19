@@ -11,6 +11,7 @@ import { pushVec4 } from "./extraction-packing.js";
 
 export interface RenderExtractionCache {
   readonly meshDrawEntities: Map<string, CachedMeshDrawEntity>;
+  readonly shadowCasterDrawEntities: Map<string, CachedMeshDrawEntity>;
   /**
    * Persistent numeric accumulators reused across frames (AI-30): reset to
    * length 0 at the start of each extraction and copied into fresh per-frame
@@ -20,6 +21,8 @@ export interface RenderExtractionCache {
   readonly scratch: RenderExtractionScratch;
   clear(): void;
 }
+
+export type MeshDrawEntityCacheScope = "mesh" | "shadow-caster";
 
 interface RenderExtractionScratch {
   readonly transforms: number[];
@@ -53,9 +56,11 @@ interface CachedMeshDrawEntity {
 
 export function createRenderExtractionCache(): RenderExtractionCache {
   const meshDrawEntities = new Map<string, CachedMeshDrawEntity>();
+  const shadowCasterDrawEntities = new Map<string, CachedMeshDrawEntity>();
 
   return {
     meshDrawEntities,
+    shadowCasterDrawEntities,
     scratch: {
       transforms: [],
       bones: [],
@@ -70,8 +75,18 @@ export function createRenderExtractionCache(): RenderExtractionCache {
     },
     clear() {
       meshDrawEntities.clear();
+      shadowCasterDrawEntities.clear();
     },
   };
+}
+
+export function meshDrawEntityCacheForScope(
+  cache: RenderExtractionCache,
+  scope: MeshDrawEntityCacheScope,
+): Map<string, CachedMeshDrawEntity> {
+  return scope === "shadow-caster"
+    ? cache.shadowCasterDrawEntities
+    : cache.meshDrawEntities;
 }
 
 export function appendCachedMeshDrawEntity(
@@ -80,6 +95,10 @@ export function appendCachedMeshDrawEntity(
   instanceTints: number[],
   bounds: BoundsPacket[],
   draws: MeshDrawPacket[],
+  sort?: {
+    readonly viewId: number;
+    readonly depth: number;
+  },
 ): void {
   const worldTransformOffset = pushMatrix(transforms, cached.worldMatrix);
   const instanceTintOffset =
@@ -96,6 +115,15 @@ export function appendCachedMeshDrawEntity(
   for (const draw of cached.draws) {
     draws.push({
       ...draw,
+      ...(sort === undefined
+        ? {}
+        : {
+            sortKey: {
+              ...draw.sortKey,
+              viewId: sort.viewId,
+              depth: sort.depth,
+            },
+          }),
       worldTransformOffset,
       ...(instanceTintOffset === undefined ? {} : { instanceTintOffset }),
       boundsIndex,

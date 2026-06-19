@@ -23,6 +23,7 @@ import { readMaterialSlots } from "./extraction-mesh-materials.js";
 import {
   appendCachedMeshDrawEntity,
   entityCacheKey,
+  meshDrawEntityCacheForScope,
   refreshCachedMeshDrawEntityTransform,
   type RenderExtractionCache,
 } from "./extraction-mesh-cache.js";
@@ -57,7 +58,7 @@ export function extractMeshDraws(
   cameraLayerMask: number,
   fogs: readonly FogPacket[],
   viewCullContexts: readonly ViewCullContext[],
-  viewCullSignature: number,
+  _viewCullSignature: number,
   cache: RenderExtractionCache | undefined,
   options: MeshDrawExtractionOptions = {},
 ): MeshDrawPacket[] {
@@ -66,20 +67,29 @@ export function extractMeshDraws(
   });
   const draws: MeshDrawPacket[] = [];
   const frustumCull = options.frustumCull !== false;
+  const extractingShadowCasters = options.requireShadowCaster === true;
+  const cacheScope = extractingShadowCasters ? "shadow-caster" : "mesh";
+  // Frustum planes affect per-frame visibility and sort depth, not the
+  // structural draw packet template cached for a static entity.
+  const cacheViewCullSignature = 0;
   const activeCache =
-    frustumCull && options.requireShadowCaster !== true ? cache : undefined;
+    frustumCull || extractingShadowCasters ? cache : undefined;
+  const activeCacheEntries =
+    activeCache === undefined
+      ? undefined
+      : meshDrawEntityCacheForScope(activeCache, cacheScope);
 
   for (const entity of sortedEntities(query.entities)) {
     const cacheKey = entityCacheKey(entity);
     const entityVersion = world.entityVersion(entity);
     const transformVersion = world.entityTransformVersion(entity);
-    const cached = activeCache?.meshDrawEntities.get(cacheKey);
+    const cached = activeCacheEntries?.get(cacheKey);
 
     if (
       cached !== undefined &&
       cached.entityVersion === entityVersion &&
       cached.cameraLayerMask === cameraLayerMask &&
-      cached.viewCullSignature === viewCullSignature
+      cached.viewCullSignature === cacheViewCullSignature
     ) {
       // Structural state unchanged. A transform-version drift takes the
       // matrix-only fast path (AI-67): keep the packet templates, refresh the
@@ -92,7 +102,7 @@ export function extractMeshDraws(
           readWorldMatrix(entity),
           transformVersion,
         );
-        activeCache?.meshDrawEntities.set(cacheKey, entry);
+        activeCacheEntries?.set(cacheKey, entry);
       }
 
       if (
@@ -106,17 +116,31 @@ export function extractMeshDraws(
         continue;
       }
 
+      const sortView = extractingShadowCasters
+        ? undefined
+        : firstMatchingSortView(entry.layerMask, viewCullContexts);
+      const sortViewId = sortView?.viewId ?? 0;
+      const sortDepth =
+        sortView === undefined
+          ? 0
+          : computeViewDepth(
+              sortView.viewMatrix,
+              entry.bounds.worldSphere.center,
+            );
       appendCachedMeshDrawEntity(
         entry,
         transforms,
         instanceTints,
         bounds,
         draws,
+        extractingShadowCasters
+          ? undefined
+          : { viewId: sortViewId, depth: sortDepth },
       );
       continue;
     }
 
-    activeCache?.meshDrawEntities.delete(cacheKey);
+    activeCacheEntries?.delete(cacheKey);
 
     const entityState = readMeshEntityExtractionState({
       entity,
@@ -192,10 +216,9 @@ export function extractMeshDraws(
       entity.hasComponent(OcclusionQuery) &&
       entity.getValue(OcclusionQuery, "enabled") !== false;
     const boundsIndex = bounds.length;
-    const sortView = firstMatchingSortView(
-      entityState.layerMask,
-      viewCullContexts,
-    );
+    const sortView = extractingShadowCasters
+      ? undefined
+      : firstMatchingSortView(entityState.layerMask, viewCullContexts);
     const sortViewId = sortView?.viewId ?? 0;
     const sortDepth =
       sortView === undefined
@@ -252,12 +275,13 @@ export function extractMeshDraws(
 
     writeMeshDrawEntityCache({
       cache: activeCache,
+      cacheScope,
       cacheKey,
       entity,
       entityVersion,
       transformVersion,
       cameraLayerMask,
-      viewCullSignature,
+      viewCullSignature: cacheViewCullSignature,
       layerMask: entityState.layerMask,
       worldMatrix: entityState.worldMatrix,
       entityDraws,

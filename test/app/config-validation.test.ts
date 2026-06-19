@@ -264,7 +264,7 @@ describe("validateApertureConfig", () => {
           mode: "headless",
           physics: {
             colliderGeometry: { kind: "provider" },
-          } as unknown as ApertureConfig["physics"],
+          } as unknown as NonNullable<ApertureConfig["physics"]>,
         }),
       );
 

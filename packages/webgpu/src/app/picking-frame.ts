@@ -78,6 +78,7 @@ export interface WebGpuAppPickFrameOptions {
   readonly adapters: Parameters<
     typeof collectQueuedBuiltInAppResourceSet
   >[0]["adapters"];
+  readonly resourceLifetimeFrame?: number;
   getPipeline(input: {
     readonly item: QueuedBuiltInAppResourceItem;
     readonly reuse: WebGpuAppResourceReuseReport;
@@ -558,6 +559,7 @@ async function prepareWebGpuAppPickFrameResources(
     assets: context.sourceAssets,
     cache: resourceCache,
     snapshot,
+    resourceLifetimeFrame: options.resourceLifetimeFrame ?? snapshot.frame,
     resourceSet: queuedBuiltIn.resourceSet,
     reuse: pickResourceReuse,
     viewUniforms: packedViews,

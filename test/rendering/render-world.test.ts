@@ -94,6 +94,50 @@ describe("render world lifecycle", () => {
     });
   });
 
+  it("reuses render object bindings across opaque depth-only sort changes", () => {
+    const world = new RenderWorld();
+    const draw = {
+      ...packet(34),
+      sortKey: createRenderSortKey({
+        stableId: createStableRenderId({ index: 34, generation: 0 }),
+        depth: 2,
+      }),
+    };
+    const nextDraw = {
+      ...draw,
+      sortKey: { ...draw.sortKey, depth: 12 },
+    };
+    const previous = snapshot([draw], 1);
+    const next = snapshot([nextDraw], 2);
+
+    world.applySnapshot(previous);
+    world.updateResourceBindings(draw.renderId, {
+      meshResourceKey: "mesh:opaque-depth",
+      materialResourceKey: "material:opaque-depth",
+    });
+
+    const changeSet = createRenderSnapshotChangeSet(previous, next);
+    const report = world.applySnapshot(next, { changeSet });
+
+    expect(changeSet.meshDraws).toEqual({
+      changed: 0,
+      unchanged: 1,
+      removed: 0,
+    });
+    expect(report).toMatchObject({
+      created: 0,
+      updated: 0,
+      unchanged: 1,
+      removed: 0,
+      active: 1,
+    });
+    expect(world.getObject(draw.renderId)?.packet.sortKey.depth).toBe(12);
+    expect(world.getObject(draw.renderId)?.gpu).toEqual({
+      meshResourceKey: "mesh:opaque-depth",
+      materialResourceKey: "material:opaque-depth",
+    });
+  });
+
   it("reports duplicate render ids and keeps the first packet", () => {
     const world = new RenderWorld();
     const first = packet(4);

@@ -5,6 +5,7 @@ import {
   createWebGpuPostPassTextureCacheSlot,
   type RenderPassCommand,
 } from "@aperture-engine/webgpu/test-support";
+import type { ShadowCasterGraphPass } from "../../packages/webgpu/src/app/shadow-caster-graph-pass.js";
 
 // M3-T3 Done-when #3 + the single-encoder win at the app level: feed the SAME
 // prepared post effects through assembleWebGpuAppPostProcessedSwapchainTarget on
@@ -34,6 +35,7 @@ function fakeTexture(label: string) {
 interface Recorder {
   submits: number;
   encoders: number;
+  passDescriptors?: unknown[];
 }
 
 function fakeDevice(recorder: Recorder) {
@@ -43,15 +45,18 @@ function fakeDevice(recorder: Recorder) {
     createCommandEncoder: () => {
       recorder.encoders += 1;
       return {
-        beginRenderPass: () => ({
-          setPipeline: () => {},
-          setBindGroup: () => {},
-          setVertexBuffer: () => {},
-          setIndexBuffer: () => {},
-          draw: () => {},
-          drawIndexed: () => {},
-          end: () => {},
-        }),
+        beginRenderPass: (descriptor: unknown) => {
+          recorder.passDescriptors?.push(descriptor);
+          return {
+            setPipeline: () => {},
+            setBindGroup: () => {},
+            setVertexBuffer: () => {},
+            setIndexBuffer: () => {},
+            draw: () => {},
+            drawIndexed: () => {},
+            end: () => {},
+          };
+        },
         finish: () => ({ label: "command-buffer" }),
       };
     },
@@ -193,6 +198,9 @@ function postOptions(
     simpleEffect("blur", 11),
   ],
   sceneRenderFormat = "rgba8unorm",
+  options: {
+    readonly msaa?: boolean;
+  } = {},
 ): PostOptions {
   const device = fakeDevice(recorder);
   const app = {
@@ -229,13 +237,21 @@ function postOptions(
       width: 4,
       height: 4,
       format: "depth24plus",
-      sampleCount: 1,
+      sampleCount: options.msaa === true ? 4 : 1,
       view: { label: "depth-view" },
     },
     effects,
     label: "post",
     clearColor: [0, 0, 0, 1],
     useFrameGraph,
+    ...(options.msaa === true
+      ? {
+          msaaColorTarget: {
+            view: { label: "scene-msaa-view" },
+            sampleCount: 4,
+          },
+        }
+      : {}),
   } as unknown as PostOptions;
 }
 
@@ -312,6 +328,73 @@ describe("post processing graph-vs-legacy parity (M3-T3)", () => {
     });
 
     // scene + fxaa + 3 bloom passes = 5 legacy submits, collapsed to ONE
+    expect(graphRecorder.submits).toBe(1);
+    expect(graphRecorder.encoders).toBe(1);
+    expect(legacyRecorder.submits).toBe(5);
+    expect(legacyRecorder.encoders).toBe(5);
+  });
+
+  it("folds shadow caster passes into the post graph before the scene pass", () => {
+    const recorder: Recorder = { submits: 0, encoders: 0, passDescriptors: [] };
+    const shadowDepthView = { label: "shadow-depth-view" };
+    const shadowPass: ShadowCasterGraphPass = {
+      key: "sun:cascade:0",
+      depthView: shadowDepthView,
+      depthLoadOp: "clear",
+      depthStoreOp: "store",
+      depthClearValue: 1,
+      width: 64,
+      height: 64,
+      depthFormat: "depth24plus",
+      commands: [drawCommand(99)],
+    };
+    const result = assembleWebGpuAppPostProcessedSwapchainTarget({
+      ...postOptions(true, recorder, [simpleEffect("fxaa", 10)]),
+      shadowCasterGraphPasses: [shadowPass],
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.graph?.order[0]).toBe("post:shadow:sun:cascade:0:post-fg");
+    expect(result.graph?.order[1]).toBe("post:swapchain:scene");
+    expect(result.postEffects).toHaveLength(1);
+    expect(recorder.submits).toBe(1);
+    expect(recorder.encoders).toBe(1);
+    expect(recorder.passDescriptors).toHaveLength(3);
+    expect(recorder.passDescriptors?.[0]).toMatchObject({
+      colorAttachments: [],
+      depthStencilAttachment: { view: shadowDepthView },
+    });
+  });
+
+  it("keeps the graph path under MSAA by resolving the scene pass into scene-color", () => {
+    const effects = [simpleEffect("fxaa", 10), bloomEffect("bloom")];
+
+    const legacyRecorder: Recorder = { submits: 0, encoders: 0 };
+    const legacy = assembleWebGpuAppPostProcessedSwapchainTarget(
+      postOptions(false, legacyRecorder, effects, "rgba8unorm", {
+        msaa: true,
+      }),
+    );
+
+    const graphRecorder: Recorder = { submits: 0, encoders: 0 };
+    const graph = assembleWebGpuAppPostProcessedSwapchainTarget(
+      postOptions(true, graphRecorder, effects, "rgba8unorm", {
+        msaa: true,
+      }),
+    );
+
+    expect(legacy.valid).toBe(true);
+    expect(graph.valid).toBe(true);
+    expect(graph.postEffects).toEqual(legacy.postEffects);
+    expect(graph.renderTarget.msaaSampleCount).toBe(4);
+    expect(
+      graph.boundaries[0]?.attachments?.plan?.colorAttachments[0],
+    ).toMatchObject({
+      view: { label: "scene-msaa-view" },
+      resolveTarget: { label: "post:post:scene:view" },
+      storeOp: "discard",
+    });
+
     expect(graphRecorder.submits).toBe(1);
     expect(graphRecorder.encoders).toBe(1);
     expect(legacyRecorder.submits).toBe(5);

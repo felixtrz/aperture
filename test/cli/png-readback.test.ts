@@ -39,7 +39,7 @@ describe("Aperture CLI PNG readback tools", () => {
 
     await expect(
       callBrowserBackedTool(
-        page as Parameters<typeof callBrowserBackedTool>[0],
+        page as unknown as Parameters<typeof callBrowserBackedTool>[0],
         session,
         "render_readback_samples",
         {
@@ -90,7 +90,7 @@ describe("Aperture CLI PNG readback tools", () => {
 
     await expect(
       callBrowserBackedTool(
-        page as Parameters<typeof callBrowserBackedTool>[0],
+        page as unknown as Parameters<typeof callBrowserBackedTool>[0],
         session,
         "browser_pick_pixel",
         { x: 1, y: 1, coordinateSpace: "normalized" },
@@ -122,7 +122,7 @@ describe("Aperture CLI PNG readback tools", () => {
 
     await expect(
       callBrowserBackedTool(
-        page as Parameters<typeof callBrowserBackedTool>[0],
+        page as unknown as Parameters<typeof callBrowserBackedTool>[0],
         session,
         "render_readback_samples",
         {

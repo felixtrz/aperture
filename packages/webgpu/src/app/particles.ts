@@ -2079,8 +2079,8 @@ function ensureParticleBurstCpuInitialized(options: {
     effect: options.effect,
   });
   options.cpu.initialized = true;
-  options.cpu.startTime = options.time;
-  options.cpu.lastTime = options.time;
+  options.cpu.startTime = options.emitter.burst?.startTime ?? options.time;
+  options.cpu.lastTime = options.cpu.startTime;
 }
 
 function initializeParticleBurstCpuState(options: {

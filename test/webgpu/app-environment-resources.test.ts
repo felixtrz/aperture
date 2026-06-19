@@ -56,6 +56,7 @@ describe("WebGPU app environment resource cache", () => {
       standardShadowBindGroupEntries: 0,
       shadowCasterPipelineEntries: 0,
       shadowCasterMatrixBindGroupEntries: 0,
+      shadowCasterCommandTopologyEntries: 0,
       shadowDepthTextureEntries: 0,
       shadowMatrixBufferEntries: 0,
       totalEntries: 4,

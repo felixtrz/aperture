@@ -7,6 +7,7 @@ import {
 } from "../gpu/occlusion-query.js";
 import {
   createRenderBundleCommandKey,
+  summarizeRenderBundleKey,
   type RenderBundleExecutionReport,
 } from "../render/draw/render-bundle.js";
 import { prepareIndirectDrawCommands } from "../render/draw/indirect-draw-commands.js";
@@ -162,19 +163,25 @@ export function createWebGpuAppRenderBundleReport(
       (max, report) => Math.max(max, report.cacheSize),
       0,
     ),
-    reports: reports.map((report) => ({
-      valid: report.valid,
-      status: report.status,
-      key: report.key,
-      commandCount: report.commandCount,
-      encodedCommands: report.encodedCommands,
-      executedBundles: report.executedBundles,
-      drawCalls: report.drawCalls,
-      cacheSize: report.cacheSize,
-      diagnostics: report.diagnostics.map((diagnostic) =>
-        toWebGpuAppJsonValue(diagnostic),
-      ),
-    })),
+    reports: reports.map((report) => {
+      const key = summarizeRenderBundleKey(report.key);
+
+      return {
+        valid: report.valid,
+        status: report.status,
+        key: key.key,
+        keyHash: key.keyHash,
+        keyLength: key.keyLength,
+        commandCount: report.commandCount,
+        encodedCommands: report.encodedCommands,
+        executedBundles: report.executedBundles,
+        drawCalls: report.drawCalls,
+        cacheSize: report.cacheSize,
+        diagnostics: report.diagnostics.map((diagnostic) =>
+          toWebGpuAppJsonValue(diagnostic),
+        ),
+      };
+    }),
   };
 }
 

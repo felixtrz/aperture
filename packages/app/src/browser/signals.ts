@@ -9,7 +9,10 @@ export type GeneratedSignalsListener = (
 export interface GeneratedSignalsSubscriptionOptions {
   readonly scope?: object;
   readonly immediate?: boolean;
+  readonly intervalMilliseconds?: number;
 }
+
+export const DEFAULT_GENERATED_SIGNAL_SUBSCRIPTION_INTERVAL_MS = 16;
 
 export function readGeneratedSignals(
   scope: object = globalThis,
@@ -33,7 +36,11 @@ export function subscribeGeneratedSignals(
   options: GeneratedSignalsSubscriptionOptions = {},
 ): () => void {
   const scope = options.scope ?? globalThis;
+  const intervalMilliseconds = normalizeSignalSubscriptionInterval(
+    options.intervalMilliseconds,
+  );
   let disposed = false;
+  let pendingTimer: ReturnType<typeof setTimeout> | null = null;
   let previous: GeneratedSignalSummary | null = null;
 
   const frame = () => {
@@ -45,7 +52,7 @@ export function subscribeGeneratedSignals(
       listener(next);
     }
 
-    schedule(frame);
+    pendingTimer = setTimeout(frame, intervalMilliseconds);
   };
 
   if (options.immediate !== false) {
@@ -56,10 +63,14 @@ export function subscribeGeneratedSignals(
     }
   }
 
-  schedule(frame);
+  pendingTimer = setTimeout(frame, intervalMilliseconds);
 
   return () => {
     disposed = true;
+    if (pendingTimer !== null) {
+      clearTimeout(pendingTimer);
+      pendingTimer = null;
+    }
   };
 }
 
@@ -74,11 +85,10 @@ function readSignalRecord(value: unknown): GeneratedSignalSummary | null {
     : null;
 }
 
-function schedule(callback: () => void): void {
-  if (typeof requestAnimationFrame === "function") {
-    requestAnimationFrame(callback);
-    return;
+function normalizeSignalSubscriptionInterval(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return DEFAULT_GENERATED_SIGNAL_SUBSCRIPTION_INTERVAL_MS;
   }
 
-  setTimeout(callback, 16);
+  return Math.max(1, Math.floor(value));
 }

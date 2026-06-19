@@ -40,6 +40,12 @@ import {
   createRenderFramePlanScratch,
   type RenderFramePlanScratch,
 } from "../render/frame/render-frame-plan.js";
+import {
+  createDrawOrderTransformBufferCache,
+  createDrawOrderTransformPackingScratch,
+  type DrawOrderTransformBufferCache,
+  type DrawOrderTransformPackingScratch,
+} from "../render/frame/draw-order-transform-packing.js";
 import type { CreateSpriteRenderPipelineResourceResult } from "../render/sprites/sprite-pipeline.js";
 import type { CreateMsdfTextRenderPipelineResourceResult } from "../render/text/msdf-text-pipeline.js";
 import type { CreateUiQuadRenderPipelineResourceResult } from "../render/ui/ui-quad-pipeline.js";
@@ -95,6 +101,7 @@ import type {
   CachedDebugNormalAppFrameResources,
   DebugNormalAppFrameResourceCacheSlot,
 } from "../materials/debug-normal/debug-normal-app-frame-resources.js";
+import type { StandardFrameShadowReceiverResources } from "../materials/standard/standard-frame-resources.js";
 import {
   createWebGpuPostPassTextureCacheSlot,
   type WebGpuPostPassTextureCacheSlot,
@@ -110,6 +117,11 @@ import {
 } from "../resources/transforms/world-transform-buffer.js";
 import type { WebGpuAppPipelineResourceResult } from "./app.js";
 import type { WebGpuAppPipelineLayouts } from "./pipeline-layouts.js";
+import {
+  createQueuedBuiltInSharedFrameResourceCache,
+  type QueuedBuiltInSharedFrameResourceCache,
+} from "./queued-frame-shared-resources.js";
+import type { RenderShadowFrameReport } from "../shadows/render-shadow-frame.js";
 
 export interface WebGpuAppResourceCache {
   readonly pipelines: Map<string, WebGpuAppPipelineResourceResult>;
@@ -160,15 +172,18 @@ export interface WebGpuAppResourceCache {
   readonly preparedMeshFacade: PreparedMeshStore;
   readonly preparedMaterials: PreparedBuiltInMaterialStore;
   readonly preparedMaterialFacade: PreparedMaterialStore;
+  readonly queuedBuiltInSharedFrame: QueuedBuiltInSharedFrameResourceCache;
   readonly idPickPipelines: Map<string, WebGpuIdBufferPickPipelineResource>;
   readonly gpuTimings: Map<string, WebGpuAppGpuTimingCacheEntry>;
   readonly phaseTimingHistory: WebGpuAppRenderPhaseTimingHistory;
+  autoShadowFrame: CachedWebGpuAppAutoShadowFrame | null;
   readonly occlusionQueries: Map<string, GpuOcclusionQueryResources>;
   readonly occlusionFeedback: GpuOcclusionFeedbackState;
   readonly renderBundles: RenderBundleCache;
   readonly indirectDraws: IndirectDrawCommandCache;
   readonly postPasses: WebGpuAppPostPassCache;
   readonly frameScratch: WebGpuAppFrameScratch;
+  readonly drawOrderTransforms: DrawOrderTransformBufferCache;
   readonly unlitFrame: UnlitAppFrameResourceCacheSlot;
   readonly matcapFrame: MatcapAppFrameResourceCacheSlot;
   readonly standardFrame: StandardAppFrameResourceCacheSlot;
@@ -180,6 +195,13 @@ export interface WebGpuAppResourceCache {
     string,
     WebGpuMsaaColorTextureCacheSlot
   >;
+}
+
+export interface CachedWebGpuAppAutoShadowFrame {
+  readonly frame: number;
+  readonly inputKey: string | null;
+  readonly receiverResources: StandardFrameShadowReceiverResources;
+  readonly report: RenderShadowFrameReport;
 }
 
 export interface ParticleEmitterGpuStateResource {
@@ -204,6 +226,8 @@ export interface ParticleEmitterCpuStateResource {
   startTime: number;
   lastTime: number;
   liveCount: number;
+  maxLifetime: number;
+  uniformLifetime: boolean;
 }
 
 export interface ParticleBurstBatchSlot {
@@ -265,6 +289,9 @@ export interface WebGpuAppFrameScratch {
   readonly worldTransforms: ReturnType<
     typeof createPackedSnapshotTransformsScratch
   >;
+  readonly meshWorldTransforms: ReturnType<
+    typeof createPackedSnapshotTransformsScratch
+  >;
   readonly instanceTints: ReturnType<
     typeof createPackedSnapshotInstanceTintsScratch
   >;
@@ -272,6 +299,7 @@ export interface WebGpuAppFrameScratch {
   readonly materialQueue: MaterialQueueScratch;
   readonly queueRoute: QueuedBuiltInAppRouteCollectorScratch;
   readonly queuedBuiltInFrameResources: QueuedBuiltInFrameResourceScratch<WebGpuAppPipelinePlanResult>;
+  readonly drawOrderTransforms: DrawOrderTransformPackingScratch;
   readonly viewCommands: RenderPassCommand[];
   readonly skyboxCommands: RenderPassCommand[];
   readonly occlusionFallbackCommands: RenderPassCommand[];
@@ -337,9 +365,11 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     preparedMeshFacade: createPreparedMeshStore(),
     preparedMaterials: createPreparedBuiltInMaterialStore(),
     preparedMaterialFacade: createPreparedMaterialStore(),
+    queuedBuiltInSharedFrame: createQueuedBuiltInSharedFrameResourceCache(),
     idPickPipelines: new Map(),
     gpuTimings: new Map(),
     phaseTimingHistory: createWebGpuAppRenderPhaseTimingHistory(),
+    autoShadowFrame: null,
     occlusionQueries: new Map(),
     occlusionFeedback: createGpuOcclusionFeedbackState(),
     renderBundles: createRenderBundleCache(),
@@ -362,6 +392,7 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
       previousWorldTransformByteLength: 0,
     },
     frameScratch: createWebGpuAppFrameScratch(),
+    drawOrderTransforms: createDrawOrderTransformBufferCache(),
     unlitFrame:
       createWebGpuAppFrameResourceCacheSlot<CachedUnlitAppFrameResources>(),
     matcapFrame:
@@ -386,12 +417,14 @@ function createWebGpuAppFrameScratch(): WebGpuAppFrameScratch {
   return {
     viewUniforms: createPackedSnapshotViewUniformsScratch(),
     worldTransforms: createPackedSnapshotTransformsScratch(),
+    meshWorldTransforms: createPackedSnapshotTransformsScratch(),
     instanceTints: createPackedSnapshotInstanceTintsScratch(),
     framePlan: createRenderFramePlanScratch(),
     materialQueue: createMaterialQueueScratch(),
     queueRoute: createQueuedBuiltInAppRouteCollectorScratch(),
     queuedBuiltInFrameResources:
       createQueuedBuiltInFrameResourceScratch<WebGpuAppPipelinePlanResult>(),
+    drawOrderTransforms: createDrawOrderTransformPackingScratch(),
     viewCommands: [],
     skyboxCommands: [],
     occlusionFallbackCommands: [],

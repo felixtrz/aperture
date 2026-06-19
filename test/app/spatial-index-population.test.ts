@@ -218,6 +218,21 @@ describe("spatial index population", () => {
       fixture.state,
     );
     const firstBvh = first.meshes[0]?.bvh;
+    const second = populateSpatialIndexFromWorld(
+      {
+        world: fixture.world,
+        assetsRegistry: fixture.registry,
+        spatial: fixture.context.spatial,
+      },
+      fixture.state,
+    );
+
+    expect(second.meshes[0]).toBe(first.meshes[0]);
+    expect(second.bounds[0]).toBe(first.bounds[0]);
+    expect(second.bvhReports[0]).toMatchObject({
+      reused: true,
+      built: false,
+    });
 
     setWorldTranslation(entity, [0, 1, 0]);
     const moved = populateSpatialIndexFromWorld(

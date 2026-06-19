@@ -157,7 +157,11 @@ system-authored custom WGSL materials"). The `pipelineKey` is prefixed by your
 2. Browser e2e proof that the spawned entity exists with its tags:
 
 ```ts
-expect(status?.lastWorkerSummary?.entities?.summaries ?? []).toEqual(
+const entitySnapshot =
+  status?.lastWorkerSummary?.entityTools?.lastSnapshot ??
+  status?.lastWorkerSummary?.entities;
+
+expect(entitySnapshot?.summaries ?? []).toEqual(
   expect.arrayContaining([
     expect.objectContaining({
       key: "level.custom.water",

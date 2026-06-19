@@ -507,6 +507,7 @@ function createSharedSnapshotMessage(
 
     transport.shared.writer.writeFrame({
       frame: snapshot.frame,
+      ...(snapshot.time === undefined ? {} : { time: snapshot.time }),
       transforms: snapshot.transforms,
       ...(snapshot.instanceTints === undefined
         ? {}
@@ -876,6 +877,7 @@ export function createSharedSnapshotPlaceholder(
 
   return {
     frame: snapshot.frame,
+    ...(snapshot.time === undefined ? {} : { time: snapshot.time }),
     views: [],
     meshDraws: [],
     lights: [],

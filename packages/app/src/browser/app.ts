@@ -4,6 +4,7 @@ import {
   type SimulationWorkerEntry,
 } from "@aperture-engine/runtime";
 import { AssetRegistry } from "@aperture-engine/simulation";
+import type { RenderSnapshot } from "@aperture-engine/render";
 import {
   createWebGpuApp,
   createWebGpuBloomPostEffect,
@@ -119,17 +120,24 @@ export async function startGeneratedBrowserApp(
   // Bloom needs the HDR scene-buffer path; opting into bloom implies exposure.
   const bloomEnabled = postEffects.length > 0;
   const exposure = config.render?.exposure ?? (bloomEnabled ? 1 : undefined);
+  const audioOptions = resolveGeneratedAudioOptions(config, options.audio);
+  const workerStartOptions = createGeneratedWorkerStartOptions({
+    workerStartOptions: options.workerStartOptions,
+    audioOptions,
+  });
+  let applyAudioSnapshot: ((snapshot: RenderSnapshot) => void) | null = null;
   const webgpu = await createWebGpuApp({
     canvas: canvas as unknown as WebGpuCanvasLike,
     simulationWorker: mirroredWorker,
     sourceAssets,
-    autoStart: true,
+    autoStart: false,
     msaaSampleCount: status.render.requestedSampleCount,
     useFrameGraph,
+    onPresentationSnapshot(snapshot) {
+      applyAudioSnapshot?.(snapshot);
+    },
     ...(gpuTimings === undefined ? {} : { gpuTimings }),
-    ...(options.workerStartOptions === undefined
-      ? {}
-      : { workerStartOptions: options.workerStartOptions }),
+    ...(workerStartOptions === undefined ? {} : { workerStartOptions }),
     ...(config.render?.tonemap === undefined
       ? {}
       : { tonemap: config.render.tonemap }),
@@ -155,14 +163,20 @@ export async function startGeneratedBrowserApp(
   // module is imported dynamically only when enabled, so a non-audio app never
   // loads @aperture-engine/audio.
   let audio: GeneratedAudio | null = null;
-  const audioOptions = resolveGeneratedAudioOptions(config, options.audio);
   if (audioOptions !== undefined && audioOptions !== false) {
     const { installGeneratedAudio } = await import("./audio.js");
     audio = installGeneratedAudio(
       worker,
       sourceAssets,
-      audioOptions === true ? {} : audioOptions,
+      audioOptions === true
+        ? { snapshotSource: "manual" }
+        : { ...audioOptions, snapshotSource: "manual" },
     );
+    applyAudioSnapshot = audio?.applySnapshot ?? null;
+  }
+
+  if (webgpu.ok) {
+    webgpu.app.start();
   }
 
   return {
@@ -182,6 +196,20 @@ export async function startGeneratedBrowserApp(
     removePass(name) {
       return webgpu.ok ? webgpu.app.removePass(name) : false;
     },
+  };
+}
+
+function createGeneratedWorkerStartOptions(options: {
+  readonly workerStartOptions: Record<string, unknown> | undefined;
+  readonly audioOptions: boolean | GeneratedAudioOptions | false | undefined;
+}): Record<string, unknown> | undefined {
+  if (options.audioOptions === undefined || options.audioOptions === false) {
+    return options.workerStartOptions;
+  }
+
+  return {
+    audioSnapshotMessageRateHz: 0,
+    ...(options.workerStartOptions ?? {}),
   };
 }
 

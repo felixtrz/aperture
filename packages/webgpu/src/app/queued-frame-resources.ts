@@ -22,6 +22,7 @@ import type {
 import type { UnlitBindGroupResource } from "../materials/unlit/unlit-bind-group.js";
 import type { LocalLightClusterCookieResources } from "../lighting/local-light-cookie-resources.js";
 import type { WorldTransformGpuBufferResource } from "../resources/transforms/world-transform-buffer.js";
+import type { ViewUniformGpuBufferResource } from "../resources/views/view-uniform-buffer-resource.js";
 import type {
   QueuedBuiltInAppResourceItem,
   QueuedBuiltInAppResourceSet,
@@ -29,6 +30,7 @@ import type {
 import {
   prepareQueuedBuiltInFrameResourceSet,
   type CreateQueuedBuiltInFrameResourcesResult,
+  type QueuedBuiltInBindGroupReuseReport,
   type QueuedBuiltInFrameResources,
 } from "../render/queues/queued-built-in-frame-resource-set.js";
 import type {
@@ -41,6 +43,7 @@ import type {
   WebGpuAppPipelineResourceResult,
   WebGpuAppResourceReuseReport,
 } from "./app.js";
+import { prepareQueuedBuiltInSharedFrameResources } from "./queued-frame-shared-resources.js";
 
 export type QueuedBuiltInAppResourcePreparationCache = Omit<
   WebGpuAppResourceCache,
@@ -53,10 +56,13 @@ export interface QueuedBuiltInFrameResourcePreparationOptions {
   readonly cache: QueuedBuiltInAppResourcePreparationCache;
   readonly preparedMaterials: PreparedBuiltInMaterialStore;
   readonly snapshot: RenderSnapshot;
+  readonly resourceLifetimeFrame: number;
   readonly item: QueuedBuiltInAppResourceItem;
   readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly preparedViewUniform: ViewUniformGpuBufferResource;
+  readonly preparedWorldTransforms: WorldTransformGpuBufferResource;
   readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly layouts: WebGpuAppPipelineLayouts;
@@ -87,6 +93,7 @@ export interface PrepareQueuedBuiltInFrameResourcesOptions {
   readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
+  readonly resourceLifetimeFrame?: number;
   readonly resourceSet: QueuedBuiltInAppResourceSet;
   readonly reuse: WebGpuAppResourceReuseReport;
   readonly viewUniforms: PackedSnapshotViewUniforms;
@@ -134,6 +141,40 @@ export interface PrepareQueuedBuiltInFrameResourcesResult {
 export async function prepareQueuedBuiltInFrameResources(
   options: PrepareQueuedBuiltInFrameResourcesOptions,
 ): Promise<PrepareQueuedBuiltInFrameResourcesResult> {
+  const resourceLifetimeFrame =
+    options.resourceLifetimeFrame ?? options.snapshot.frame;
+  const sharedFrameResources = prepareQueuedBuiltInSharedFrameResources({
+    device: options.app.initialization.device,
+    cache: options.cache.queuedBuiltInSharedFrame,
+    viewUniforms: options.viewUniforms,
+    worldTransforms: options.worldTransforms,
+  });
+
+  if (
+    !sharedFrameResources.valid ||
+    sharedFrameResources.viewUniform === null ||
+    sharedFrameResources.worldTransforms === null
+  ) {
+    return {
+      valid: false,
+      resources: null,
+      resourcesResult: {
+        valid: false,
+        resources: null,
+        bindGroupReuse: emptyQueuedBuiltInBindGroupReuseReport(),
+        diagnostics: sharedFrameResources.diagnostics,
+      },
+      diagnostics: sharedFrameResources.diagnostics,
+      pipelineResults: [],
+      firstPipeline: null,
+      pipelineKeysByRenderId: new Map(),
+      meshResourceKeys: new Map(),
+      materialResourceKeys: new Map(),
+    };
+  }
+  const preparedViewUniform = sharedFrameResources.viewUniform;
+  const preparedWorldTransforms = sharedFrameResources.worldTransforms;
+
   const prepared = await prepareQueuedBuiltInFrameResourceSet({
     resourceSet: options.resourceSet,
     scratch: options.cache.frameScratch.queuedBuiltInFrameResources,
@@ -187,10 +228,13 @@ export async function prepareQueuedBuiltInFrameResources(
           assets: options.assets,
           cache: options.cache,
           snapshot: options.snapshot,
+          resourceLifetimeFrame,
           item,
           textureSamplerDependencies,
           viewUniforms,
           worldTransforms,
+          preparedViewUniform,
+          preparedWorldTransforms,
           ...(options.previousWorldTransforms === undefined
             ? {}
             : { previousWorldTransforms: options.previousWorldTransforms }),
@@ -249,10 +293,13 @@ function createQueuedBuiltInFrameResourceOptions(input: {
   readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
+  readonly resourceLifetimeFrame: number;
   readonly item: QueuedBuiltInAppResourceItem;
   readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly preparedViewUniform: ViewUniformGpuBufferResource;
+  readonly preparedWorldTransforms: WorldTransformGpuBufferResource;
   readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly layouts: WebGpuAppPipelineLayouts;
@@ -283,10 +330,13 @@ function createQueuedBuiltInFrameResourceOptions(input: {
     cache: input.cache,
     preparedMaterials: input.cache.preparedMaterials,
     snapshot: input.snapshot,
+    resourceLifetimeFrame: input.resourceLifetimeFrame,
     item: input.item,
     textureSamplerDependencies: input.textureSamplerDependencies,
     viewUniforms: input.viewUniforms,
     worldTransforms: input.worldTransforms,
+    preparedViewUniform: input.preparedViewUniform,
+    preparedWorldTransforms: input.preparedWorldTransforms,
     ...(input.previousWorldTransforms === undefined
       ? {}
       : { previousWorldTransforms: input.previousWorldTransforms }),
@@ -326,6 +376,17 @@ function createQueuedBuiltInFrameResourceOptions(input: {
             input.transmissionSceneColorResources,
         }),
     reuse: input.reuse,
+  };
+}
+
+function emptyQueuedBuiltInBindGroupReuseReport(): QueuedBuiltInBindGroupReuseReport {
+  return {
+    created: 0,
+    reused: 0,
+    cached: 0,
+    shared: { created: 0, reused: 0, cached: 0 },
+    lights: { created: 0, reused: 0, cached: 0 },
+    standardLightShadows: { created: 0, reused: 0, cached: 0 },
   };
 }
 

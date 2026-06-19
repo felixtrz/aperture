@@ -103,6 +103,8 @@ export interface CreateDebugNormalFrameGpuResourcesOptions {
   readonly device: DebugNormalFrameGpuResourceDeviceLike;
   readonly mesh: MeshAsset | null;
   readonly preparedMesh?: MeshGpuBufferResource | undefined;
+  readonly preparedViewUniform?: ViewUniformGpuBufferResource | undefined;
+  readonly preparedWorldTransforms?: WorldTransformGpuBufferResource | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
   readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
@@ -225,10 +227,14 @@ function createMeshResource(
 function createViewUniformResource(
   options: Pick<
     CreateDebugNormalFrameGpuResourcesOptions,
-    "device" | "viewUniforms"
+    "device" | "preparedViewUniform" | "viewUniforms"
   >,
   diagnostics: CreateDebugNormalFrameGpuResourcesDiagnostic[],
 ): ViewUniformGpuBufferResource | null {
+  if (options.preparedViewUniform !== undefined) {
+    return options.preparedViewUniform;
+  }
+
   if (options.viewUniforms === null) {
     diagnostics.push({
       code: "debugNormalFrameResources.missingViewUniforms",
@@ -255,10 +261,14 @@ function createViewUniformResource(
 function createWorldTransformResource(
   options: Pick<
     CreateDebugNormalFrameGpuResourcesOptions,
-    "device" | "worldTransforms"
+    "device" | "preparedWorldTransforms" | "worldTransforms"
   >,
   diagnostics: CreateDebugNormalFrameGpuResourcesDiagnostic[],
 ): WorldTransformGpuBufferResource | null {
+  if (options.preparedWorldTransforms !== undefined) {
+    return options.preparedWorldTransforms;
+  }
+
   if (options.worldTransforms === null) {
     diagnostics.push({
       code: "debugNormalFrameResources.missingWorldTransforms",

@@ -1,9 +1,13 @@
 import type { SnapshotPacketEncodingRegistry } from "./snapshot-packed-registry.js";
 import type {
+  AudioEmitterPacket,
+  AudioListenerPacket,
   BoundsPacket,
   EnvironmentPacket,
+  FogPacket,
   LightPacket,
   MeshDrawPacket,
+  ParticleEmitterPacket,
   QuadBatchPacket,
   RenderSnapshot,
   ShadowRequestPacket,
@@ -16,6 +20,10 @@ export interface SnapshotPacketBundle {
   readonly shadowCasterDraws?: readonly MeshDrawPacket[];
   readonly lights: readonly LightPacket[];
   readonly environments: readonly EnvironmentPacket[];
+  readonly fogs?: readonly FogPacket[];
+  readonly particleEmitters?: readonly ParticleEmitterPacket[];
+  readonly audioEmitters?: readonly AudioEmitterPacket[];
+  readonly audioListener?: AudioListenerPacket;
   readonly shadowRequests: readonly ShadowRequestPacket[];
   readonly bounds: readonly BoundsPacket[];
   readonly quadBatches?: readonly QuadBatchPacket[];
@@ -35,6 +43,10 @@ export interface EncodedSnapshotPackets {
     readonly shadowCasterDraws: number;
     readonly lights: number;
     readonly environments: number;
+    readonly fogs: number;
+    readonly particleEmitters: number;
+    readonly audioEmitters: number;
+    readonly audioListeners: number;
     readonly shadowRequests: number;
     readonly bounds: number;
     readonly quadBatches: number;
@@ -52,6 +64,10 @@ export type SnapshotPacketEncodingInput =
       | "shadowCasterDraws"
       | "lights"
       | "environments"
+      | "fogs"
+      | "particleEmitters"
+      | "audioEmitters"
+      | "audioListener"
       | "shadowRequests"
       | "bounds"
       | "quadBatches"

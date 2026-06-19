@@ -12,6 +12,7 @@ import {
 describe("generated browser signals", () => {
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it("reads the generated worker signal summary without exposing status shape", () => {
@@ -71,6 +72,32 @@ describe("generated browser signals", () => {
     vi.advanceTimersByTime(16);
 
     expect(updates).toEqual([{ speed: 0.75 }, { speed: 1.25, started: true }]);
+  });
+
+  it("polls signal summaries on a timer instead of a browser RAF loop", () => {
+    vi.useFakeTimers();
+    const requestAnimationFrame = vi.fn();
+    vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
+    const scope: Record<string, unknown> = {
+      [APERTURE_GENERATED_STATUS_GLOBAL]: statusWithSignals({
+        speed: 0.75,
+      }),
+    };
+    const updates: GeneratedSignalSummary[] = [];
+    const unsubscribe = subscribeGeneratedSignals(
+      (signals) => {
+        updates.push(signals);
+      },
+      { scope },
+    );
+
+    scope[APERTURE_GENERATED_STATUS_GLOBAL] = statusWithSignals({ speed: 1 });
+    vi.advanceTimersByTime(16);
+
+    expect(requestAnimationFrame).not.toHaveBeenCalled();
+    expect(updates).toEqual([{ speed: 0.75 }, { speed: 1 }]);
+
+    unsubscribe();
   });
 
   it("subscribes to generated browser status mutation and stops after unsubscribe", () => {
@@ -148,9 +175,28 @@ function statusWithSignals(signals: unknown): GeneratedBrowserAppStatus {
     lastError: null,
     lastFailure: null,
     lastWorkerSummary: signals === null ? null : { signals },
+    workerMessages: emptyWorkerMessages(),
+    performance: null,
     diagnostics: null,
     render: null,
     canvas: null,
     systems: [],
+  };
+}
+
+function emptyWorkerMessages(): GeneratedBrowserAppStatus["workerMessages"] {
+  return {
+    snapshotDecisions: {
+      total: 0,
+      latest: null,
+      postedMessages: {},
+      postMessageReasons: {},
+    },
+    sidebandDecisions: {
+      total: 0,
+      latest: null,
+      postedMessages: {},
+      postMessageReasons: {},
+    },
   };
 }

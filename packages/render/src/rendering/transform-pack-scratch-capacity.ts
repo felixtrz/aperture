@@ -25,6 +25,23 @@ export function ensureTransformDataCapacity(
   scratch.data = next;
 }
 
+export function ensureTransformNextDataCapacity(
+  scratch: PackedSnapshotTransformsScratch,
+  required: number,
+): void {
+  if (scratch.nextData.length >= required) {
+    return;
+  }
+
+  let capacity = Math.max(16, scratch.nextData.length);
+
+  while (capacity < required) {
+    capacity *= 2;
+  }
+
+  scratch.nextData = new Float32Array(capacity);
+}
+
 export function ensurePreviousTransformDataCapacity(
   scratch: PackedSnapshotPreviousTransformsScratch,
   required: number,

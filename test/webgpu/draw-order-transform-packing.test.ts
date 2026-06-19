@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createMaterialHandle,
+  createMeshHandle,
   DRAW_ORDER_WORLD_TRANSFORM_BIND_GROUP_SCOPE_KEY,
   createDrawCommandDescriptorScratch,
   createDrawOrderTransformBufferCache,
@@ -130,11 +132,7 @@ describe("draw-order transform packing", () => {
     const first = prepareDrawOrderTransformPacking({
       device,
       packages: {
-        packages: [
-          drawPackage(3, 32),
-          drawPackage(1, 0),
-          drawPackage(2, 16),
-        ],
+        packages: [drawPackage(3, 32), drawPackage(1, 0), drawPackage(2, 16)],
         diagnostics: [],
         summary: {},
       } as never,
@@ -147,11 +145,7 @@ describe("draw-order transform packing", () => {
     const second = prepareDrawOrderTransformPacking({
       device,
       packages: {
-        packages: [
-          drawPackage(3, 32),
-          drawPackage(1, 0),
-          drawPackage(2, 16),
-        ],
+        packages: [drawPackage(3, 32), drawPackage(1, 0), drawPackage(2, 16)],
         diagnostics: [],
         summary: {},
       } as never,
@@ -182,11 +176,7 @@ describe("draw-order transform packing", () => {
     prepareDrawOrderTransformPacking({
       device,
       packages: {
-        packages: [
-          drawPackage(3, 32),
-          drawPackage(1, 0),
-          drawPackage(2, 16),
-        ],
+        packages: [drawPackage(3, 32), drawPackage(1, 0), drawPackage(2, 16)],
         diagnostics: [],
         summary: {},
       } as never,
@@ -199,11 +189,7 @@ describe("draw-order transform packing", () => {
     prepareDrawOrderTransformPacking({
       device,
       packages: {
-        packages: [
-          drawPackage(3, 32),
-          drawPackage(1, 0),
-          drawPackage(2, 16),
-        ],
+        packages: [drawPackage(3, 32), drawPackage(1, 0), drawPackage(2, 16)],
         diagnostics: [],
         summary: {},
       } as never,
@@ -307,8 +293,8 @@ function drawPackage(
   const packet: MeshDrawPacket = {
     renderId,
     entity: { index: renderId, generation: 1 },
-    mesh: { kind: "mesh", id: "tree" },
-    material: { kind: "material", id: "trees" },
+    mesh: createMeshHandle("tree"),
+    material: createMaterialHandle("trees"),
     submesh: 0,
     materialSlot: 0,
     worldTransformOffset: transformPackedOffset,
@@ -400,6 +386,7 @@ function meshResource(): MeshGpuBufferResource {
     vertexBuffers: [
       {
         resourceKey: "mesh:tree/positions",
+        streamId: "POSITION",
         buffer: { kind: "vertex-buffer" },
         vertexCount: 36,
       },
@@ -411,7 +398,7 @@ function meshResource(): MeshGpuBufferResource {
       indexCount: 36,
     },
     vertexCount: 36,
-  } as MeshGpuBufferResource;
+  } as unknown as MeshGpuBufferResource;
 }
 
 function pipeline(key: string): GetOrCreateRenderPipelineResult {

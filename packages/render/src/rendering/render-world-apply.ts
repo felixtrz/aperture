@@ -13,7 +13,6 @@ export function applySnapshotToRenderWorldObjects(
 ): RenderWorldApplyReport {
   const diagnostics: RenderDiagnostic[] = [];
   const seen = new Set<number>();
-  const next = new Map<number, RenderWorldObject>();
   const unchangedRenderIds = unchangedMeshDrawRenderIds(
     options.changeSet,
     snapshot.frame,
@@ -44,7 +43,7 @@ export function applySnapshotToRenderWorldObjects(
       updated += 1;
     }
 
-    next.set(packet.renderId, {
+    objects.set(packet.renderId, {
       renderId: packet.renderId,
       status: "active",
       packet,
@@ -55,14 +54,12 @@ export function applySnapshotToRenderWorldObjects(
     });
   }
 
-  const removed = [...objects.keys()].filter(
-    (renderId) => !seen.has(renderId),
-  ).length;
-
-  objects.clear();
-
-  for (const [renderId, object] of next) {
-    objects.set(renderId, object);
+  let removed = 0;
+  for (const renderId of objects.keys()) {
+    if (!seen.has(renderId)) {
+      objects.delete(renderId);
+      removed += 1;
+    }
   }
 
   return {

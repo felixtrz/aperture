@@ -138,6 +138,7 @@ function snapshot(): RenderSnapshotInspectionReport {
     counts: {
       views: 1,
       meshDraws: 1,
+      shadowCasterDraws: 0,
       lights: 0,
       environments: 0,
       shadowRequests: 0,

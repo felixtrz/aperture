@@ -2,6 +2,7 @@ import {
   createExtractionApp,
   type CreateExtractionAppOptions,
   type ExtractionApp,
+  type SimulationStepResult,
 } from "@aperture-engine/runtime";
 import type { SystemConstructor, SystemQueries, SystemSchema } from "elics";
 import { resolveWorldTransforms } from "@aperture-engine/simulation";
@@ -64,6 +65,24 @@ export interface AperturePreloadReport {
   readonly manual: readonly string[];
 }
 
+export interface ApertureAppStepResult {
+  readonly transform: SimulationStepResult["transform"];
+  readonly fixedStep: SimulationStepResult["fixedStep"];
+  readonly timing: ApertureAppStepTimingReport;
+}
+
+export interface ApertureAppStepTimingReport {
+  readonly totalMilliseconds: number;
+  readonly preStepResolveSpatialMilliseconds: number;
+  readonly inputEffectsMilliseconds: number;
+  readonly lowLevelStepMilliseconds: number;
+  readonly postStepSpatialMilliseconds: number;
+  readonly interactionMilliseconds: number;
+  readonly postUpdateEffectsMilliseconds: number;
+  readonly preStepWorldChanged: boolean;
+  readonly lowLevel: SimulationStepResult["timing"];
+}
+
 export interface ApertureApp {
   readonly mode: ApertureConfig["mode"];
   readonly config: ApertureConfig;
@@ -71,7 +90,7 @@ export interface ApertureApp {
   readonly context: ApertureSystemContext;
   readonly physics: AperturePhysicsFacade | null;
   readonly preload: AperturePreloadReport;
-  step(delta?: number, time?: number): ReturnType<ExtractionApp["step"]>;
+  step(delta?: number, time?: number): ApertureAppStepResult;
   extract(frame?: number): ReturnType<ExtractionApp["extract"]>;
   registerFixedStepTask(
     task: Parameters<ExtractionApp["registerFixedStepTask"]>[0],
@@ -197,20 +216,51 @@ export async function createApertureApp(
     physics: physicsFacade,
     preload,
     step(delta = 0, time = 0) {
-      if (lowLevel.world.worldChangeVersion() !== worldVersionAtRefresh) {
+      const timingStartedAt = nowMilliseconds();
+      let timingCursor = timingStartedAt;
+      const markTiming = (): number => {
+        const now = nowMilliseconds();
+        const elapsed = Math.max(0, now - timingCursor);
+
+        timingCursor = now;
+        return elapsed;
+      };
+      const preStepWorldChanged =
+        lowLevel.world.worldChangeVersion() !== worldVersionAtRefresh;
+
+      if (preStepWorldChanged) {
         resolveWorldTransforms(lowLevel.world);
         refreshSpatialIndex();
       }
+      const preStepResolveSpatialMilliseconds = markTiming();
       flushApertureSystemEffects(lowLevel.world, "input");
+      const inputEffectsMilliseconds = markTiming();
       const result = lowLevel.step(delta, time);
+      const lowLevelStepMilliseconds = markTiming();
       lastFixedStep = result.fixedStep;
       refreshSpatialIndex();
+      const postStepSpatialMilliseconds = markTiming();
       worldVersionAtRefresh = lowLevel.world.worldChangeVersion();
       // Synthesize pointer-on-object events from post-update world state, after
       // fixed-step physics writeback has refreshed transforms and picking data.
       runInteractionFrame(context, time);
+      const interactionMilliseconds = markTiming();
       flushApertureSystemEffects(lowLevel.world, "postUpdate");
-      return result;
+      const postUpdateEffectsMilliseconds = markTiming();
+      return {
+        ...result,
+        timing: {
+          totalMilliseconds: Math.max(0, nowMilliseconds() - timingStartedAt),
+          preStepResolveSpatialMilliseconds,
+          inputEffectsMilliseconds,
+          lowLevelStepMilliseconds,
+          postStepSpatialMilliseconds,
+          interactionMilliseconds,
+          postUpdateEffectsMilliseconds,
+          preStepWorldChanged,
+          lowLevel: result.timing,
+        },
+      };
     },
     extract(frame = 0) {
       const snapshot = lowLevel.extract(frame);
@@ -384,6 +434,10 @@ function preloadReport(config: ApertureConfig): AperturePreloadReport {
     background: byPolicy.background,
     manual: byPolicy.manual,
   };
+}
+
+function nowMilliseconds(): number {
+  return typeof performance === "undefined" ? Date.now() : performance.now();
 }
 
 function installRenderDefaults(

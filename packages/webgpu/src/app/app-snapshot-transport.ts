@@ -1,4 +1,6 @@
 import {
+  AUDIO_EMITTER_PACKET_WORDS,
+  AUDIO_LISTENER_PACKET_WORDS,
   BOUNDS_PACKET_WORDS,
   ENVIRONMENT_PACKET_WORDS,
   FOG_PACKET_WORDS,
@@ -17,6 +19,7 @@ import {
   type RenderSnapshot,
   type RenderSnapshotChangeSet,
   type RenderSnapshotFamilyChangeCounts,
+  type SnapshotPacketBundle,
   type SnapshotPacketRegistrySnapshot,
 } from "@aperture-engine/render";
 import {
@@ -96,6 +99,24 @@ export interface ReadWebGpuAppSharedSnapshotOptions {
    */
   readonly requireMessageFrame?: boolean;
 }
+
+interface SharedSnapshotPacketDecodeCacheEntry {
+  readonly registry: SnapshotPacketRegistrySnapshot;
+  readonly words: Uint32Array;
+  readonly packets: SnapshotPacketBundle;
+}
+
+interface SharedSnapshotPacketDecodeCache {
+  readonly entriesByBufferIndex: Map<
+    number,
+    SharedSnapshotPacketDecodeCacheEntry
+  >;
+}
+
+const SHARED_SNAPSHOT_PACKET_DECODE_CACHES = new WeakMap<
+  SharedSnapshotTransport,
+  SharedSnapshotPacketDecodeCache
+>();
 
 export function createWebGpuAppSnapshotTransport(options: {
   readonly mode?: WebGpuAppSnapshotTransportMode;
@@ -213,12 +234,17 @@ export function readWebGpuAppSharedSnapshot(
     return null;
   }
 
-  const registry = createSnapshotPacketRegistry(payload.registry);
-  const packets = decodeSnapshotPackets(frame.packetWords, registry);
+  const packets = decodeSharedSnapshotPackets(
+    transport.shared,
+    frame.bufferIndex,
+    frame.packetWords,
+    payload.registry,
+  );
   const diagnostics = payload.diagnostics ?? [];
 
   return {
     frame: frame.frame,
+    time: frame.time,
     views: packets.views,
     meshDraws: packets.meshDraws,
     ...(packets.shadowCasterDraws === undefined
@@ -230,6 +256,12 @@ export function readWebGpuAppSharedSnapshot(
     ...(packets.particleEmitters === undefined
       ? {}
       : { particleEmitters: packets.particleEmitters }),
+    ...(packets.audioEmitters === undefined
+      ? {}
+      : { audioEmitters: packets.audioEmitters }),
+    ...(packets.audioListener === undefined
+      ? {}
+      : { audioListener: packets.audioListener }),
     shadowRequests: packets.shadowRequests,
     bounds: packets.bounds,
     ...(packets.quadBatches === undefined
@@ -259,6 +291,7 @@ export function readWebGpuAppSharedSnapshot(
       environments: packets.environments.length,
       fogs: packets.fogs?.length ?? 0,
       particleEmitters: packets.particleEmitters?.length ?? 0,
+      audioEmitters: packets.audioEmitters?.length ?? 0,
       shadowRequests: packets.shadowRequests.length,
       bounds: packets.bounds.length,
       quadBatches: packets.quadBatches?.length ?? 0,
@@ -267,6 +300,63 @@ export function readWebGpuAppSharedSnapshot(
       diagnostics: diagnostics.length,
     },
   };
+}
+
+function decodeSharedSnapshotPackets(
+  shared: SharedSnapshotTransport,
+  bufferIndex: number,
+  words: Uint32Array,
+  registrySnapshot: SnapshotPacketRegistrySnapshot,
+): SnapshotPacketBundle {
+  const cache = getSharedSnapshotPacketDecodeCache(shared);
+  const cached = cache.entriesByBufferIndex.get(bufferIndex);
+
+  if (
+    cached !== undefined &&
+    cached.registry === registrySnapshot &&
+    uint32ArraysEqual(cached.words, words)
+  ) {
+    return cached.packets;
+  }
+
+  const registry = createSnapshotPacketRegistry(registrySnapshot);
+  const packets = decodeSnapshotPackets(words, registry);
+  cache.entriesByBufferIndex.set(bufferIndex, {
+    registry: registrySnapshot,
+    words: new Uint32Array(words),
+    packets,
+  });
+  return packets;
+}
+
+function getSharedSnapshotPacketDecodeCache(
+  shared: SharedSnapshotTransport,
+): SharedSnapshotPacketDecodeCache {
+  const cached = SHARED_SNAPSHOT_PACKET_DECODE_CACHES.get(shared);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const cache: SharedSnapshotPacketDecodeCache = {
+    entriesByBufferIndex: new Map(),
+  };
+  SHARED_SNAPSHOT_PACKET_DECODE_CACHES.set(shared, cache);
+  return cache;
+}
+
+function uint32ArraysEqual(a: Uint32Array, b: Uint32Array): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  for (let index = 0; index < a.length; index += 1) {
+    if (a[index] !== b[index]) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export function hasWebGpuAppSharedSnapshotPayload(message: unknown): boolean {
@@ -373,6 +463,8 @@ function defaultSharedSnapshotPacketWords(input: {
     input.maxEntities * MESH_DRAW_PACKET_WORDS +
     input.maxEntities * MESH_DRAW_PACKET_WORDS +
     input.maxEntities * PARTICLE_EMITTER_PACKET_WORDS +
+    input.maxEntities * AUDIO_EMITTER_PACKET_WORDS +
+    AUDIO_LISTENER_PACKET_WORDS +
     input.maxEntities * QUAD_BATCH_PACKET_WORDS +
     maxLights * LIGHT_PACKET_WORDS +
     maxEnvironments * ENVIRONMENT_PACKET_WORDS +

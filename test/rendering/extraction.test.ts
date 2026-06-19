@@ -48,6 +48,7 @@ import {
   createStandardMaterialAsset,
   createTextureAsset,
   createRenderExtractionCache,
+  createRenderSnapshotChangeSet,
   createSkin,
   createStableRenderId,
   createSprite,
@@ -75,9 +76,13 @@ describe("render extraction", () => {
       layerMask: 0b01,
     });
 
-    const snapshot = extractRenderSnapshot(world, assets, { frame: 7 });
+    const snapshot = extractRenderSnapshot(world, assets, {
+      frame: 7,
+      time: 42.25,
+    });
 
     expect(snapshot.frame).toBe(7);
+    expect(snapshot.time).toBe(42.25);
     expect(snapshot.views.map((view) => view.camera.index)).toEqual([
       camera.index,
     ]);
@@ -636,6 +641,163 @@ describe("render extraction", () => {
       staticMs,
       `cached static extraction ${staticMs.toFixed(3)}ms should be <50% of dirty extraction ${dirtyMs.toFixed(3)}ms`,
     ).toBeLessThan(dirtyMs * 0.5);
+  });
+
+  it("reuses unchanged offscreen shadow casters during cached extraction", () => {
+    const entityCount = 128;
+    const world = createRuntimeWorld(entityCount + 4);
+    const assets = createReadyAssets();
+    const casters: Array<ReturnType<typeof createMeshEntity>> = [];
+
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [0, 0, 5],
+    });
+    createLightEntity(world).addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({ enabled: true }),
+    );
+    const visibleReceiver = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [0, 0, 0],
+    });
+    visibleReceiver.addComponent(ShadowCaster, { enabled: false });
+
+    for (let index = 0; index < entityCount; index += 1) {
+      casters.push(
+        createMeshEntity(world, {
+          meshId: "mesh:cube",
+          materialId: "material:unlit",
+          layerMask: 1,
+          translation: [120 + index, 0, 0],
+        }),
+      );
+    }
+
+    const cache = createRenderExtractionCache();
+    const full = extractRenderSnapshot(world, assets, { frame: 21 });
+
+    extractRenderSnapshot(world, assets, { frame: 21, cache });
+    const cached = extractRenderSnapshot(world, assets, { frame: 21, cache });
+    const firstCasterDraw = cached.shadowCasterDraws?.find(
+      (draw) => draw.entity.index === casters[0]?.index,
+    );
+
+    expect(stableSnapshotValue(cached)).toEqual(stableSnapshotValue(full));
+    expect(cache.meshDrawEntities.size).toBe(1);
+    expect(cache.shadowCasterDrawEntities.size).toBe(entityCount);
+    expect(cached.meshDraws.map((draw) => draw.entity.index)).toEqual([
+      visibleReceiver.index,
+    ]);
+    expect(cached.shadowCasterDraws).toHaveLength(entityCount);
+    expect(firstCasterDraw).toBeDefined();
+
+    casters[0]?.getVectorView(WorldTransform, "col3").set([140, 2, 0, 1]);
+    const moved = extractRenderSnapshot(world, assets, { frame: 22, cache });
+    const movedCasterDraw = moved.shadowCasterDraws?.find(
+      (draw) => draw.entity.index === casters[0]?.index,
+    );
+    const movedOffset = movedCasterDraw?.worldTransformOffset ?? 0;
+    const movedBounds = moved.bounds[movedCasterDraw?.boundsIndex ?? -1];
+
+    expect(movedCasterDraw?.sortKey).toBe(firstCasterDraw?.sortKey);
+    expect(moved.transforms[movedOffset + 12]).toBeCloseTo(140, 5);
+    expect(moved.transforms[movedOffset + 13]).toBeCloseTo(2, 5);
+    expect(movedBounds?.worldSphere.center[0]).toBeCloseTo(140, 5);
+    expect(movedBounds?.worldSphere.center[1]).toBeCloseTo(2, 5);
+  });
+
+  it("does not invalidate cached shadow casters when only the camera frustum changes", () => {
+    const entityCount = 16;
+    const world = createRuntimeWorld(entityCount + 4);
+    const assets = createReadyAssets();
+    const casters: Array<ReturnType<typeof createMeshEntity>> = [];
+
+    const camera = createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [0, 0, 5],
+    });
+    createLightEntity(world).addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({ enabled: true }),
+    );
+    const visibleReceiver = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [0, 0, 0],
+    });
+    visibleReceiver.addComponent(ShadowCaster, { enabled: false });
+
+    for (let index = 0; index < entityCount; index += 1) {
+      casters.push(
+        createMeshEntity(world, {
+          meshId: "mesh:cube",
+          materialId: "material:unlit",
+          layerMask: 1,
+          translation: [120 + index, 0, 0],
+        }),
+      );
+    }
+
+    const cache = createRenderExtractionCache();
+    const first = extractRenderSnapshot(world, assets, { frame: 31, cache });
+
+    camera.getVectorView(WorldTransform, "col3").set([1, 0, 5, 1]);
+
+    const second = extractRenderSnapshot(world, assets, { frame: 32, cache });
+    const changeSet = createRenderSnapshotChangeSet(first, second);
+
+    expect(first.shadowCasterDraws).toHaveLength(entityCount);
+    expect(second.shadowCasterDraws).toHaveLength(entityCount);
+    expect(changeSet.shadowCasterDraws).toEqual({
+      changed: 0,
+      unchanged: entityCount,
+      removed: 0,
+    });
+  });
+
+  it("reuses cached mesh packets across camera frustum changes while refreshing sort depth", () => {
+    const world = createRuntimeWorld(4);
+    const assets = createReadyAssets();
+    const camera = createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [0, 0, 5],
+    });
+    const mesh = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [0, 0, 0],
+    });
+    const cache = createRenderExtractionCache();
+    const first = extractRenderSnapshot(world, assets, { frame: 41, cache });
+    const cacheKey = `${mesh.index}:${mesh.generation}`;
+    const firstCacheEntry: unknown = cache.meshDrawEntities.get(cacheKey);
+    const firstDraw = first.meshDraws[0];
+
+    expect(first.meshDraws).toHaveLength(1);
+    expect(firstCacheEntry).toBeDefined();
+    expect(firstDraw).toBeDefined();
+
+    camera.getVectorView(WorldTransform, "col3").set([0, 0, 6, 1]);
+
+    const second = extractRenderSnapshot(world, assets, { frame: 42, cache });
+    const cold = extractRenderSnapshot(world, assets, { frame: 42 });
+    const secondCacheEntry: unknown = cache.meshDrawEntities.get(cacheKey);
+    const secondDraw = second.meshDraws[0];
+    const coldDraw = cold.meshDraws[0];
+
+    expect(second.meshDraws).toHaveLength(1);
+    expect(secondCacheEntry).toBe(firstCacheEntry);
+    expect(secondDraw?.renderId).toBe(firstDraw?.renderId);
+    expect(secondDraw?.sortKey.depth).not.toBe(firstDraw?.sortKey.depth);
+    expect(secondDraw?.sortKey.depth).toBe(coldDraw?.sortKey.depth);
   });
 
   it("packs per-entity instance tint alongside extracted StandardMaterial draws", () => {

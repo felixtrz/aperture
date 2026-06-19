@@ -238,8 +238,17 @@ function installGeneratedGamepadPolling(
   }
 
   let lastConnected = 0;
-  const shouldPoll = configUsesGamepads(config);
+  let polling = false;
+  const shouldListen = configUsesGamepads(config);
 
+  const startPolling = (): void => {
+    if (polling) {
+      return;
+    }
+
+    polling = true;
+    requestAnimationFrame(poll);
+  };
   const poll = (): void => {
     const gamepads = browserGamepadSnapshots();
     const shouldForward = gamepads.length > 0 || lastConnected > 0;
@@ -255,19 +264,28 @@ function installGeneratedGamepadPolling(
     }
 
     lastConnected = gamepads.length;
+    if (gamepads.length === 0) {
+      polling = false;
+      armGamepadConnectedListener();
+      return;
+    }
+
     requestAnimationFrame(poll);
   };
+  const armGamepadConnectedListener = (): void => {
+    window.addEventListener("gamepadconnected", startPolling, {
+      once: true,
+    });
+  };
 
-  if (shouldPoll) {
-    requestAnimationFrame(poll);
+  if (!shouldListen) {
+    return;
+  }
+
+  if (browserGamepadSnapshots().length > 0) {
+    startPolling();
   } else {
-    window.addEventListener(
-      "gamepadconnected",
-      () => requestAnimationFrame(poll),
-      {
-        once: true,
-      },
-    );
+    armGamepadConnectedListener();
   }
 }
 

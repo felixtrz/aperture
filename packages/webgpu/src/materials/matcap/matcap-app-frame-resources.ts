@@ -46,6 +46,7 @@ import {
   writeViewUniformBufferDescriptor,
   type ViewUniformBufferDescriptorScratch,
 } from "../../resources/views/view-uniform-buffer.js";
+import type { ViewUniformGpuBufferResource } from "../../resources/views/view-uniform-buffer-resource.js";
 import {
   createWorldTransformBufferDescriptorScratch,
   writeWorldTransformBufferDescriptor,
@@ -115,6 +116,8 @@ export function createOrReuseMatcapAppFrameResources(options: {
   readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly preparedViewUniform?: ViewUniformGpuBufferResource | undefined;
+  readonly preparedWorldTransforms?: WorldTransformGpuBufferResource | undefined;
   readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: MatcapMaterialBindGroupLayoutResource | null;
@@ -147,6 +150,9 @@ export function createOrReuseMatcapAppFrameResources(options: {
     value: "full",
   };
   const viewUniformUpload: { value: DirtyUploadOutcome } = { value: "full" };
+  const usingSharedFrameResources =
+    options.preparedViewUniform !== undefined &&
+    options.preparedWorldTransforms !== undefined;
   const writeCachedWorldTransformBuffer = (): boolean => {
     if (cached === null || cached.result.resources === null) {
       return false;
@@ -208,16 +214,22 @@ export function createOrReuseMatcapAppFrameResources(options: {
     cached.viewByteLength === viewDescriptor.plan.source.byteLength &&
     cached.worldTransformByteLength ===
       transformDescriptor.plan.source.byteLength &&
-    writeCachedViewUniformBuffer() &&
-    writeCachedWorldTransformBuffer()
+    (!usingSharedFrameResources ||
+      (cached.result.resources.viewUniform === options.preparedViewUniform &&
+        cached.result.resources.worldTransforms ===
+          options.preparedWorldTransforms)) &&
+    (usingSharedFrameResources || writeCachedViewUniformBuffer()) &&
+    (usingSharedFrameResources || writeCachedWorldTransformBuffer())
   ) {
     options.reuse.meshBuffersReused += 1;
     options.reuse.materialBuffersReused += 1;
     options.reuse.bindGroupsReused += cached.result.resources.bindGroups.length;
     options.reuse.dynamicBufferWrites +=
-      2 -
-      (worldTransformUpload.value === "skipped" ? 1 : 0) -
-      (viewUniformUpload.value === "skipped" ? 1 : 0);
+      usingSharedFrameResources
+        ? 0
+        : 2 -
+          (worldTransformUpload.value === "skipped" ? 1 : 0) -
+          (viewUniformUpload.value === "skipped" ? 1 : 0);
 
     const resources = cached.result.resources;
 
@@ -255,7 +267,13 @@ export function createOrReuseMatcapAppFrameResources(options: {
       ? {}
       : { preparedMaterial: preparedMaterial.resource }),
     viewUniforms: options.viewUniforms,
+    ...(options.preparedViewUniform === undefined
+      ? {}
+      : { preparedViewUniform: options.preparedViewUniform }),
     worldTransforms: options.worldTransforms,
+    ...(options.preparedWorldTransforms === undefined
+      ? {}
+      : { preparedWorldTransforms: options.preparedWorldTransforms }),
     ...(options.previousWorldTransforms === undefined
       ? {}
       : { previousWorldTransforms: options.previousWorldTransforms }),

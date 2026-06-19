@@ -13,7 +13,10 @@ import {
   type WebGpuApp,
 } from "@aperture-engine/webgpu/test-support";
 
-import { createWebGpuAppAutoShadowFrame } from "../../packages/webgpu/src/app/auto-shadow-frame.js";
+import {
+  createWebGpuAppAutoShadowFrame,
+  createWebGpuAppAutoShadowFrameInputKey,
+} from "../../packages/webgpu/src/app/auto-shadow-frame.js";
 import { createWebGpuAppResourceReuseReport } from "../../packages/webgpu/src/app/report.js";
 
 describe("WebGPU app auto-shadow frame", () => {
@@ -208,6 +211,72 @@ describe("WebGPU app auto-shadow frame", () => {
       result?.matrixComputation.matrices[0]?.orthographicSize,
     ).toBeLessThan(9);
   });
+
+  it("keys cached auto-shadow frames by actual shadow bounds inputs", () => {
+    const opaqueMesh = createMeshHandle("keyed-caster");
+    const alphaMesh = createMeshHandle("keyed-alpha-helper");
+    const source = snapshot({ opaqueMesh, alphaMesh });
+    const fixedCameraSource: RenderSnapshot = {
+      ...source,
+      shadowRequests: source.shadowRequests.map((request) => ({
+        ...request,
+        orthographicSize: 40,
+      })),
+    };
+
+    expect(
+      createWebGpuAppAutoShadowFrameInputKey(
+        replaceSnapshotBounds(fixedCameraSource, 0, {
+          min: [-100, -100, -100],
+          max: [100, 100, 100],
+        }),
+      ),
+    ).toBe(createWebGpuAppAutoShadowFrameInputKey(fixedCameraSource));
+    const movedFixedCamera = cameraView(20, 10, 40);
+    expect(
+      createWebGpuAppAutoShadowFrameInputKey({
+        ...fixedCameraSource,
+        views: movedFixedCamera.views,
+        viewMatrices: movedFixedCamera.viewMatrices,
+      }),
+    ).toBe(createWebGpuAppAutoShadowFrameInputKey(fixedCameraSource));
+
+    const autoFitKey = createWebGpuAppAutoShadowFrameInputKey(source);
+    const movedAutoFitCamera = cameraView(20, 10, 40);
+
+    expect(
+      createWebGpuAppAutoShadowFrameInputKey({
+        ...source,
+        views: movedAutoFitCamera.views,
+        viewMatrices: movedAutoFitCamera.viewMatrices,
+      }),
+    ).not.toBe(autoFitKey);
+
+    expect(
+      createWebGpuAppAutoShadowFrameInputKey(
+        replaceSnapshotBounds(source, 1, {
+          min: [-100, -100, -100],
+          max: [100, 100, 100],
+        }),
+      ),
+    ).toBe(autoFitKey);
+    expect(
+      createWebGpuAppAutoShadowFrameInputKey(
+        replaceSnapshotBounds(source, 0, {
+          min: [-10, 0, -10],
+          max: [10, 10, 10],
+        }),
+      ),
+    ).not.toBe(autoFitKey);
+    expect(
+      createWebGpuAppAutoShadowFrameInputKey(
+        replaceSnapshotBounds(source, 2, {
+          min: [-20, 0, -20],
+          max: [20, 0.1, 20],
+        }),
+      ),
+    ).not.toBe(autoFitKey);
+  });
 });
 
 function app(device: RenderShadowFrameDeviceLike): WebGpuApp {
@@ -348,6 +417,19 @@ function boundsPacket(
   };
 }
 
+function replaceSnapshotBounds(
+  source: RenderSnapshot,
+  index: number,
+  worldAabb: RenderSnapshot["bounds"][number]["worldAabb"],
+): RenderSnapshot {
+  return {
+    ...source,
+    bounds: source.bounds.map((bounds, boundsIndex) =>
+      boundsIndex === index ? boundsPacket(bounds.boundsId, worldAabb) : bounds,
+    ),
+  };
+}
+
 function meshDraw(input: {
   readonly renderId: number;
   readonly mesh: ReturnType<typeof createMeshHandle>;
@@ -393,7 +475,15 @@ function meshDraw(input: {
 }
 
 function primaryCameraView(): Pick<RenderSnapshot, "views" | "viewMatrices"> {
-  const viewMatrix = translationView(80, 40, 120);
+  return cameraView(80, 40, 120);
+}
+
+function cameraView(
+  x: number,
+  y: number,
+  z: number,
+): Pick<RenderSnapshot, "views" | "viewMatrices"> {
+  const viewMatrix = translationView(x, y, z);
   const projectionMatrix = makePerspective(1, 1.5, 0.1, 200);
   const viewProjectionMatrix = multiplyMat4(projectionMatrix, viewMatrix);
   const viewMatrices = new Float32Array(48);

@@ -53,7 +53,7 @@ export function createQueuedBuiltInAppDiagnosticsSummary(input: {
   readonly adapterValidation: QueuedBuiltInAppResourceAdapterRegistryValidationJsonValue;
   readonly framePlan?: Pick<
     PlanRenderFrameFromSnapshotResult,
-    "readiness" | "packages"
+    "readiness" | "packages" | "summary"
   >;
 }): WebGpuAppDiagnosticsSummary {
   const hasStandardRoute = input.resourceSet.items.some(

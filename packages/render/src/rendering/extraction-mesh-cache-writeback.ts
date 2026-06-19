@@ -4,11 +4,14 @@ import type { MeshDrawMorphInputs } from "./extraction-mesh-draw-inputs.js";
 import type { BoundsPacket, MeshDrawPacket } from "./snapshot.js";
 import {
   createMeshDrawPacketTemplate,
+  meshDrawEntityCacheForScope,
   type RenderExtractionCache,
+  type MeshDrawEntityCacheScope,
 } from "./extraction-mesh-cache.js";
 
 export interface WriteMeshDrawEntityCacheInput {
   readonly cache: RenderExtractionCache | undefined;
+  readonly cacheScope?: MeshDrawEntityCacheScope;
   readonly cacheKey: string;
   readonly entity: Entity;
   readonly entityVersion: number;
@@ -47,7 +50,10 @@ export function writeMeshDrawEntityCache(
     return;
   }
 
-  input.cache.meshDrawEntities.set(input.cacheKey, {
+  meshDrawEntityCacheForScope(
+    input.cache,
+    input.cacheScope ?? "mesh",
+  ).set(input.cacheKey, {
     entityVersion: input.entityVersion,
     transformVersion: input.transformVersion,
     cameraLayerMask: input.cameraLayerMask,

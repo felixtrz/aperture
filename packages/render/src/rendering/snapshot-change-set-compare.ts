@@ -28,6 +28,17 @@ export interface PacketFamilyComparison {
 export interface ComparePacketFamilyOptions {
   readonly includeKeys?: boolean;
   readonly includeRawUnchangedKeys?: boolean;
+  /**
+   * Allows the ordered fast path to skip duplicate-key detection for packet
+   * families whose keys are already unique by extraction/render-world contract.
+   */
+  readonly assumeUniqueKeys?: boolean;
+  /**
+   * Allows the ordered fast path to compare same-key duplicate packets by slot.
+   * This is conservative for stable ordered families such as bounds: duplicate
+   * reorders can over-report changes, but cannot hide changed or removed work.
+   */
+  readonly allowOrderedDuplicateKeys?: boolean;
 }
 
 export function comparePacketFamily<TPacket>(
@@ -35,6 +46,11 @@ export function comparePacketFamily<TPacket>(
   next: PacketSnapshot<TPacket>,
   options: ComparePacketFamilyOptions = {},
 ): PacketFamilyComparison {
+  const ordered = compareOrderedUniquePacketFamily(previous, next, options);
+  if (ordered !== null) {
+    return ordered;
+  }
+
   const previousSingles = new Map<PacketSnapshotKey, TPacket>();
   let previousBuckets: Map<PacketSnapshotKey, TPacket[]> | undefined;
   const includeKeys = options.includeKeys !== false;
@@ -126,6 +142,74 @@ export function comparePacketFamily<TPacket>(
               previousSingles,
               previousBuckets,
             ),
+          },
+        }
+      : {}),
+  };
+}
+
+function compareOrderedUniquePacketFamily<TPacket>(
+  previous: PacketSnapshot<TPacket>,
+  next: PacketSnapshot<TPacket>,
+  options: ComparePacketFamilyOptions,
+): PacketFamilyComparison | null {
+  if (previous.packets.length !== next.packets.length) {
+    return null;
+  }
+
+  const includeKeys = options.includeKeys !== false;
+  const rawUnchangedKeys: PacketSnapshotKey[] | null =
+    options.includeRawUnchangedKeys === true ? [] : null;
+  const changedKeys: string[] | null = includeKeys ? [] : null;
+  const unchangedKeys: string[] | null = includeKeys ? [] : null;
+  const seenKeys =
+    options.assumeUniqueKeys === true ||
+    options.allowOrderedDuplicateKeys === true
+      ? null
+      : new Set<PacketSnapshotKey>();
+  let changed = 0;
+  let unchanged = 0;
+
+  for (let index = 0; index < next.packets.length; index += 1) {
+    const previousPacket = previous.packets[index]!;
+    const nextPacket = next.packets[index]!;
+    const previousKey = previous.key(previousPacket);
+    const nextKey = next.key(nextPacket);
+
+    if (
+      previousKey !== nextKey ||
+      (seenKeys !== null && seenKeys.has(nextKey))
+    ) {
+      return null;
+    }
+
+    seenKeys?.add(nextKey);
+
+    if (packetsEqual(previous, next, previousPacket, nextPacket)) {
+      unchanged += 1;
+      rawUnchangedKeys?.push(nextKey);
+      unchangedKeys?.push(formatPacketKey(next, nextKey));
+    } else {
+      changed += 1;
+      changedKeys?.push(formatPacketKey(next, nextKey));
+    }
+  }
+
+  return {
+    counts: {
+      changed,
+      unchanged,
+      removed: 0,
+    },
+    ...(rawUnchangedKeys === null
+      ? {}
+      : { rawUnchangedKeys: rawUnchangedKeys }),
+    ...(includeKeys
+      ? {
+          keys: {
+            changed: changedKeys ?? [],
+            unchanged: unchangedKeys ?? [],
+            removed: [],
           },
         }
       : {}),

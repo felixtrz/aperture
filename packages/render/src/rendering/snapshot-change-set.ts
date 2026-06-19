@@ -33,15 +33,17 @@ export function createRenderSnapshotChangeSet(
   next: RenderSnapshot,
   options: CreateRenderSnapshotChangeSetOptions = {},
 ): RenderSnapshotChangeSet {
+  const uniqueKeyOptions = withAssumedUniqueKeys(options);
+  const duplicateKeyOptions = withoutAssumedUniqueKeys(options);
   const views = comparePacketFamily(
     viewPackets(previous),
     viewPackets(next),
-    options,
+    uniqueKeyOptions,
   );
   const meshDrawOptions =
     options.includeUnchangedMeshDrawRenderIds === true
-      ? { ...options, includeRawUnchangedKeys: true }
-      : options;
+      ? { ...uniqueKeyOptions, includeRawUnchangedKeys: true }
+      : uniqueKeyOptions;
   const meshDraws = comparePacketFamily(
     meshDrawPackets(previous),
     meshDrawPackets(next),
@@ -50,27 +52,27 @@ export function createRenderSnapshotChangeSet(
   const shadowCasterDraws = comparePacketFamily(
     shadowCasterDrawPackets(previous),
     shadowCasterDrawPackets(next),
-    options,
+    uniqueKeyOptions,
   );
   const lights = comparePacketFamily(
     lightPackets(previous),
     lightPackets(next),
-    options,
+    uniqueKeyOptions,
   );
   const environments = comparePacketFamily(
     environmentPackets(previous),
     environmentPackets(next),
-    options,
+    uniqueKeyOptions,
   );
   const shadowRequests = comparePacketFamily(
     shadowRequestPackets(previous),
     shadowRequestPackets(next),
-    options,
+    uniqueKeyOptions,
   );
   const bounds = comparePacketFamily(
     boundsPackets(previous),
     boundsPackets(next),
-    options,
+    duplicateKeyOptions,
   );
   const keys =
     views.keys === undefined ||
@@ -117,6 +119,22 @@ export function createRenderSnapshotChangeSet(
         }),
     ...(keys === undefined ? {} : { keys }),
   };
+}
+
+function withAssumedUniqueKeys(
+  options: CreateRenderSnapshotChangeSetOptions,
+): CreateRenderSnapshotChangeSetOptions {
+  return options.assumeUniqueKeys === true
+    ? options
+    : { ...options, assumeUniqueKeys: true };
+}
+
+function withoutAssumedUniqueKeys(
+  options: CreateRenderSnapshotChangeSetOptions,
+): CreateRenderSnapshotChangeSetOptions {
+  return options.assumeUniqueKeys === true
+    ? { ...options, assumeUniqueKeys: false }
+    : options;
 }
 
 function rawNumberKeys(

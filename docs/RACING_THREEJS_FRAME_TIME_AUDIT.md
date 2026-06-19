@@ -32,10 +32,132 @@ plus SAB audio emitter/listener packet transport, generated-audio consumption
 from the RAF-polled presentation snapshot, and native-RAF SAB poll-only
 heartbeat defaults, plus explicit frame-pacing comparison metrics and
 configurable worker full-summary cadence for trace experiments, and native-RAF
-SAB source-asset sideband cadence defaulting to `15 Hz`.
+SAB source-asset sideband cadence defaulting to `15 Hz`, plus auto-shadow
+fallback-fit avoidance on primary-camera frames, actual-input auto-shadow cache
+keys, Racing drift-mark shadow-receiver opt-out, and app-facing auto-shadow
+cache hit/miss diagnostics, plus stale same-layout prepared mesh alias pruning.
+Latest update: same-snapshot auto-shadow cache hits now advance the cached
+frame and use change-set-proven reuse without building or hashing the large
+auto-shadow input key; the render snapshot change-set comparator also has an
+ordered unique-key fast path, and the racing trace harness can attribute CPU
+profiles through source maps when the served Aperture build includes `.map`
+files.
 
 **Sources:**
 
+- Latest cache-frame/change-set trace:
+  `/tmp/racing-current-after-cache-and-changeset-idle-drive-repeat3/summary.json`
+  (`2026-06-18`, 3 paired idle+drive trials, 3 second samples, no trace/profile,
+  normal non-sourcemap production build). Aperture now wins most frame-pacing
+  aggregate metrics in both scenarios. Idle aggregate wins: interval p95
+  `d50 -0.06 ms`, deviation p95 `d50 -0.31 ms`, adjacent-jitter p95
+  `d50 -0.22 ms`, RMS `d50 -0.08 ms`, pacing score `d50 -0.27 ms`,
+  within-1ms `d50 +1.2 pp`, and jitter-over-2ms `d50 -5.7 pp`; idle callback
+  p95 still lost by median `+0.48 ms` because one trial had an Aperture
+  callback tail. Drive aggregate wins: interval p95 `d50 -0.17 ms`, deviation
+  p95 `d50 -0.05 ms`, adjacent-jitter p95 `d50 -0.20 ms`, RMS `d50 -0.02 ms`,
+  pacing score `d50 -0.12 ms`, and jitter-over-2ms `d50 -2.2 pp`; drive
+  callback p95 still lost in all trials by median `+1.65 ms`.
+- Latest mapped CPU-profile probe:
+  `/tmp/racing-change-set-fastpath-mapped-profile-drive-3p5s/summary.json`
+  (`2026-06-18`, Aperture-only drive, sourcemapped production build). The old
+  `hashAutoShadowInputKey` / full caster-key serialization hotspot is gone.
+  The top mapped app self-time is now spread across
+  `shadow-caster-draw-list-plan`, burst particle prep in `app/particles`,
+  snapshot change-set comparison/packet key extraction, standard/queued frame
+  resource prep, render-pass draw-list/batching, and shadow-frame setup. The
+  phase report still points at drive-frame `prepareMainResources`,
+  `prepareMainAutoShadow`, and `prepareOverlayParticles` as the main recurring
+  CPU areas.
+- Latest message-impact traces:
+  `/tmp/racing-pacing-msg-impact-default-idle-repeat3/summary.json`,
+  `/tmp/racing-pacing-msg-impact-default-drive-repeat3/summary.json`, and
+  `/tmp/racing-pacing-msg-impact-sourceassets-off-drive-repeat3/summary.json`
+  (`2026-06-18`, 3 paired trials, 3 second samples, no trace/profile). The
+  trace harness now tracks delivered-message frame-pacing impact by comparing
+  RAF windows with `MessageChannel` worker deliveries against RAF windows
+  without them. Default idle won the aggregate frame-pacing shape against
+  three.js: interval p95 `d50 -0.34 ms`, deviation p95 `d50 -0.14 ms`,
+  adjacent-jitter p95 `d50 -0.38 ms`, RMS `d50 -0.20 ms`,
+  `pacingInstabilityScoreMs d50 -0.43 ms`, within-1ms `d50 +7.8 pp`, and
+  jitter-over-2ms `d50 -7.3 pp`; callback p95 still lost (`d50 +0.74 ms`).
+  Default drive also won the aggregate pacing shape: interval p95
+  `d50 -0.37 ms`, deviation p95 `d50 -0.28 ms`, adjacent-jitter p95
+  `d50 -0.89 ms`, RMS `d50 -0.30 ms`, `pacingInstabilityScoreMs d50 -0.75 ms`,
+  within-1ms `d50 +15.7 pp`, and jitter-over-2ms `d50 -13.4 pp`; callback p95
+  still lost (`d50 +1.42 ms`). Default drive delivered about `16 Hz` of worker
+  messages, mostly `aperture.simulation.sourceAssets`, touching about `26%` of
+  RAF windows, but the new `msgImpact` split did not show those message windows
+  as consistently worse (`interval p95` deltas were `-0.64 ms`, `-1.22 ms`,
+  and `+0.09 ms`). Disabling dedicated source-asset messages dropped delivery
+  to about `2 Hz` / `3.3%` of RAF windows, but did **not** beat the current
+  default in this rebuilt comparison: default-minus-off direct medians were
+  interval p95 `-0.14 ms`, adjacent-jitter p95 `-0.14 ms`, RMS `-0.04 ms`,
+  score `-0.12 ms`, within-1ms `+2.2 pp`, and callback p95 effectively tied
+  (`+0.01 ms`). Conclusion: keep the render heartbeat poll-only and keep
+  challenging message necessity, but do not treat raw message count as the
+  whole cause. The next transport fix should make dynamic source-asset updates
+  pollable/coalesced while preserving drift-mark freshness, then remeasure with
+  the message-impact metric.
+- Latest prepared-mesh alias-pruning trace:
+  `/tmp/racing-pacing-mesh-alias-prune-idle-drive-repeat3/summary.json`
+  (`2026-06-18`, 3 paired idle+drive trials, 3 second samples, no
+  trace/profile). Aperture won the aggregate pacing-shape metrics in both idle
+  and drive. Idle aggregate: interval p95 `d50 -0.30 ms`, deviation p95
+  `d50 -0.14 ms`, adjacent-jitter p95 `d50 -0.26 ms`, RMS `d50 -0.22 ms`,
+  `pacingInstabilityScoreMs d50 -0.45 ms`, within-1ms `d50 +8.8 pp`, and
+  jitter-over-2ms `d50 -7.2 pp`; callback p95 still lost (`d50 +0.84 ms`,
+  `1/3` Aperture wins). Drive aggregate: interval p95 `d50 -0.24 ms`,
+  deviation p95 `d50 -0.19 ms`, adjacent-jitter p95 `d50 -0.18 ms`, RMS
+  `d50 -0.14 ms`, `pacingInstabilityScoreMs d50 -0.23 ms`, within-1ms
+  `d50 +6.8 pp`, and jitter-over-2ms `d50 -8.3 pp`; callback p95 still lost
+  in every trial (`d50 +1.48 ms`). The renderer-side cache effect is clear:
+  final sampled idle/drive frames kept `preparedMeshCache.totalEntries:2`,
+  `meshBuffersCreated:0`, and `preparedMeshBuffersCreated:0`; before pruning,
+  sampled drive frames could retain `32` prepared mesh entries and occasionally
+  report large resource creation churn. Worker delivery did not change:
+  idle stayed around `2 Hz` summary/snapshot messages, while drive stayed
+  around `16 Hz` mostly `aperture.simulation.sourceAssets`. This confirms alias
+  pruning is useful but does not replace the planned pollable/coalesced dynamic
+  source-asset data path.
+- Latest auto-shadow cache miss-reason trace:
+  `/tmp/racing-pacing-autoshadow-miss-reasons-drive-repeat3/summary.json`
+  (`2026-06-18`, 3 paired drive trials, 3 second samples, no trace/profile).
+  Aperture won the 3-trial drive aggregate on interval p95 (`d50 -0.44 ms`),
+  interval p99 (`d50 -0.09 ms`), absolute-deviation p95 (`d50 -0.07 ms`),
+  adjacent-jitter p95 (`d50 -0.41 ms`), RMS deviation (`d50 -0.22 ms`),
+  `pacingInstabilityScoreMs` (`d50 -0.43 ms`), within-1ms ratio
+  (`d50 +8.8 pp`), and jitter-over-2ms ratio (`d50 -9.4 pp`). It still lost
+  callback p95 in every trial (`d50 +1.32 ms`). The new
+  `resourceReuse.autoShadowFrameCache` report showed two final sampled
+  auto-shadow hits via `reuseSource: "change-set"` and one miss with
+  `reason: "input-key-changed"` / `firstChangedInputSection: "camera"`.
+  On hit samples, `prepareMainAutoShadow` p50 dropped to about `0.16 ms`; on
+  the camera-miss sample it was about `0.94 ms` p50. The remaining worker
+  delivery rate stayed `15.6-16.3 Hz`, mostly
+  `aperture.simulation.sourceAssets`, touching about `26%` of RAF windows.
+  Conclusion: shadow caching is now observable and working when the relevant
+  change set is stable; the persistent message/callback target is still the
+  dynamic drift-mark source-asset path, not a render heartbeat.
+- Latest clean poll/default trace after the auto-shadow input-key cleanup:
+  `/tmp/racing-pacing-poll-autoshadow-clean-drive-repeat3/summary.json`
+  (`2026-06-18`, 3 paired drive trials, 3 second samples, no trace/profile).
+  The poll-first default still looks like the right direction on frame-pacing
+  shape: Aperture won aggregate interval p99 (`3/3`), max interval (`3/3`),
+  absolute-deviation p95 (`2/3`, `d50 -0.13 ms`), adjacent-jitter p95 (`2/3`,
+  `d50 -0.28 ms`), RMS deviation (`2/3`, `d50 -0.09 ms`), composite
+  `pacingInstabilityScoreMs` (`2/3`, `d50 -0.23 ms`), within-1ms ratio (`3/3`,
+  `d50 +2.9 pp`), and jitter-over-2ms ratio (`3/3`, `d50 -6.7 pp`). Aperture
+  narrowly lost interval p95 (`1/3`, `d50 +0.02 ms`) and still lost callback
+  p95 in every trial (`d50 +0.84 ms`). The measured `MessageChannel` delivery
+  rate remained `15.6-16.0 Hz`, mostly
+  `aperture.simulation.sourceAssets`, touching about `26%` of RAF windows. The
+  auto-shadow key cleanup is not yet a claimed win: final sampled frames still
+  reported `autoShadowFramesCreated:1` / `autoShadowFramesReused:0`, and
+  `prepareMainAutoShadow` stayed around `1.05-1.10 ms` p50 /
+  `1.27-1.30 ms` p95. The next shadow step is first-class cache miss-reason
+  instrumentation; the next transport step remains a pollable/coalesced dynamic
+  asset mailbox.
 - Latest dynamic mesh source-asset patch trace:
   `/tmp/racing-pacing-repeat3-mesh-patch-inplace-default/summary.json`
   (`2026-06-18`, 3 paired idle+drive trials, 4 second samples, no
@@ -1884,6 +2006,16 @@ Updated status:
 - Snapshot change-set key string churn: partially fixed with numeric internal
   comparison keys; latest sample removed generic packet key formatting from the
   top allocation list, though bounds/particle key churn still remains visible.
+- Auto-shadow key churn on stable frames: fixed for same-snapshot reuse. Cached
+  auto-shadow frames now advance their cache frame on reuse, so the next stable
+  frame can hit by change-set proof and report null current/cached key hashes
+  instead of rebuilding or hashing the large input key. Idle
+  `prepareMainAutoShadow` dropped from roughly `0.63 ms` average to roughly
+  `0.02 ms` average in the paired trace diagnostics.
+- Snapshot change-set map allocation: partially fixed with an ordered
+  unique-key fast path for stable packet families. Mapped CPU profiles show the
+  comparator is lower but still visible because render snapshots still compare
+  large dynamic packet families each frame.
 - Particle burst bind-group cache experiment: tested and backed out after the
   paired audit worsened drive p99/max.
 - High-DPR backing-store mismatch: still open.
@@ -1909,7 +2041,18 @@ Updated status:
 
 ## Recommended Fix Order
 
-1. Move dynamic source-asset payloads toward shared/ring-buffered binary
+1. Reduce drive-frame auto-shadow dirty-frame work. The cache key path is no
+   longer the issue; moving caster transforms still dirties the shadow frame,
+   and the renderer walks all shadow caster records to rebuild draw lists,
+   readiness, world-transform buffers, and command records. The likely general
+   fix is cached/static shadow caster planning with dynamic transform updates,
+   not a Racing-only shadow toggle.
+2. Reduce particle burst CPU prep. Racing's wheel smoke currently becomes
+   about `306` active burst emitters / `912` live particles while driving, so
+   the renderer performs hundreds of tiny per-emitter burst updates each frame.
+   Prefer a general burst coalescing or multi-burst batch representation before
+   changing Racing's visual authoring.
+3. Move dynamic source-asset payloads toward shared/ring-buffered binary
    transport or another pollable/coalesced path. Racing drift marks are the
    current proof case: the current channel-instrumented default still delivers
    about `16 Hz` of source-asset messages during the sampled drive window,
@@ -1917,29 +2060,29 @@ Updated status:
    without a clear pacing win. The fix should preserve correctness for
    arbitrary dynamic assets without relying on worker messages as a presentation
    pacer.
-2. Diagnose drive-frame render cadence and particle-heavy work together. The
+4. Diagnose drive-frame render cadence and particle-heavy work together. The
    worker is no longer flooding snapshots or source-asset sideband messages, so
    remaining drive loss should be attributed to app callback/render preparation
    tail, actual simulation pressure, scheduler policy, or heap churn.
-3. Audit heap retention directly. The latest drive run retained `67.05 MB`,
+5. Audit heap retention directly. The latest drive run retained `67.05 MB`,
    far above the three.js reference and high enough to explain tail spikes or
    GC-sensitive variance.
-4. Expose dynamic-buffer upload diagnostics in frame reports so future probes
+6. Expose dynamic-buffer upload diagnostics in frame reports so future probes
    show full writes, range writes, skipped writes, and fallback reasons.
-5. Reduce broader render `prepare`/resource planning cost. Submit cadence
+7. Reduce broader render `prepare`/resource planning cost. Submit cadence
    remains below display cadence even after the write-byte reductions.
-6. Define the high-refresh simulation/render policy: fixed-step interpolation,
+8. Define the high-refresh simulation/render policy: fixed-step interpolation,
    render-on-display using latest snapshots, or a documented lower render
    cadence. Then benchmark against three.js using the same concept of "frame."
-7. Add a local/dev COOP/COEP serving path so SAB transport can be enabled
+9. Add a local/dev COOP/COEP serving path so SAB transport can be enabled
    without a one-off static server.
-8. Fix DPR/backing-store sizing for `device-pixel-content-box` and DPR `2`.
-9. Reduce remaining bounds/change-set churn, especially active-drive bounds
+10. Fix DPR/backing-store sizing for `device-pixel-content-box` and DPR `2`.
+11. Reduce remaining bounds/change-set churn, especially active-drive bounds
    churn.
-10. Reduce particle burst slot fragmentation/tiny initial-slot write count if
+12. Reduce particle burst slot fragmentation/tiny initial-slot write count if
     it shows up in count-dominant probes after the larger cadence and transform
     work.
-11. Keep render batching counters as regression gates: main resolved draws
+13. Keep render batching counters as regression gates: main resolved draws
     should remain around `14-20`, shadow `364` caster records should remain
     grouped to about `30` shadow draws, and drive draw calls should stay near
     the current `32` rather than regressing to the old `300+` range.

@@ -63,9 +63,12 @@ import type { ShadowDepthTextureResourceCache } from "../shadows/shadow-depth-te
 import type { ShadowMatrixBufferResource } from "../shadows/shadow-matrix-buffer-resource.js";
 import type { StandardFrameIblResources } from "../materials/standard/standard-frame-resources.js";
 import type {
-  BakedShadowCasterMatrixBindGroupResource,
-  BakedShadowCasterMatrixBufferResource,
+  ShadowCasterCommandTopologyCacheEntry,
+  ShadowCasterPassMatrixBufferResource,
+  ShadowCasterWorldTransformBufferResource,
+  ShadowCasterWorldTransformScratch,
 } from "../shadows/render-shadow-frame.js";
+import { createShadowCasterWorldTransformScratch } from "../shadows/render-shadow-frame.js";
 
 export interface WebGpuEnvironmentResourceCache {
   readonly diffuseTextures: Map<string, TextureGpuResource>;
@@ -87,13 +90,18 @@ export interface WebGpuEnvironmentResourceCache {
   >;
   readonly shadowDepthTextures: ShadowDepthTextureResourceCache;
   readonly shadowMatrixBuffers: Map<string, ShadowMatrixBufferResource>;
-  readonly bakedShadowCasterMatrixBuffers: Map<
+  readonly shadowCasterPassMatrixBuffers: Map<
     string,
-    BakedShadowCasterMatrixBufferResource
+    ShadowCasterPassMatrixBufferResource
   >;
-  readonly bakedShadowCasterMatrixBindGroups: Map<
+  readonly shadowCasterWorldTransformBuffers: Map<
     string,
-    BakedShadowCasterMatrixBindGroupResource
+    ShadowCasterWorldTransformBufferResource
+  >;
+  readonly shadowCasterWorldTransformScratch: ShadowCasterWorldTransformScratch;
+  readonly shadowCasterCommandTopology: Map<
+    string,
+    ShadowCasterCommandTopologyCacheEntry
   >;
 }
 
@@ -111,6 +119,7 @@ export interface WebGpuEnvironmentResourceCacheSummary {
   standardShadowBindGroupEntries: number;
   shadowCasterPipelineEntries: number;
   shadowCasterMatrixBindGroupEntries: number;
+  shadowCasterCommandTopologyEntries: number;
   shadowDepthTextureEntries: number;
   shadowMatrixBufferEntries: number;
   totalEntries: number;
@@ -239,8 +248,11 @@ export function createWebGpuEnvironmentResourceCache(): WebGpuEnvironmentResourc
     shadowCasterMatrixBindGroups: new Map(),
     shadowDepthTextures: new Map(),
     shadowMatrixBuffers: new Map(),
-    bakedShadowCasterMatrixBuffers: new Map(),
-    bakedShadowCasterMatrixBindGroups: new Map(),
+    shadowCasterPassMatrixBuffers: new Map(),
+    shadowCasterWorldTransformBuffers: new Map(),
+    shadowCasterWorldTransformScratch:
+      createShadowCasterWorldTransformScratch(),
+    shadowCasterCommandTopology: new Map(),
   };
 }
 
@@ -275,6 +287,7 @@ export function createWebGpuEnvironmentResourceCacheSummary(): WebGpuEnvironment
     standardShadowBindGroupEntries: 0,
     shadowCasterPipelineEntries: 0,
     shadowCasterMatrixBindGroupEntries: 0,
+    shadowCasterCommandTopologyEntries: 0,
     shadowDepthTextureEntries: 0,
     shadowMatrixBufferEntries: 0,
     totalEntries: 0,
@@ -294,6 +307,8 @@ export function writeWebGpuEnvironmentResourceCacheSummary(
   summary.shadowCasterPipelineEntries = cache.shadowCasterPipelines.size;
   summary.shadowCasterMatrixBindGroupEntries =
     cache.shadowCasterMatrixBindGroups.size;
+  summary.shadowCasterCommandTopologyEntries =
+    cache.shadowCasterCommandTopology.size;
   summary.shadowDepthTextureEntries = cache.shadowDepthTextures.size;
   summary.shadowMatrixBufferEntries = cache.shadowMatrixBuffers.size;
   summary.totalEntries =
@@ -305,6 +320,7 @@ export function writeWebGpuEnvironmentResourceCacheSummary(
     summary.standardShadowBindGroupEntries +
     summary.shadowCasterPipelineEntries +
     summary.shadowCasterMatrixBindGroupEntries +
+    summary.shadowCasterCommandTopologyEntries +
     summary.shadowDepthTextureEntries +
     summary.shadowMatrixBufferEntries;
   return summary;

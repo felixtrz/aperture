@@ -387,6 +387,7 @@ function extractParticleBursts(
       burst: {
         burstId: burst.seq,
         startFrame: burst.startFrame,
+        startTime: burst.startTime,
         count: Math.max(1, Math.trunc(burst.request.count)),
         position,
         positionJitterMin: [
@@ -652,16 +653,8 @@ function particleDisplacementRange(
       );
     }
   } else if (damping > 0) {
-    const turningMin = particleDampedTurningTime(
-      velocityMin,
-      gravity,
-      damping,
-    );
-    const turningMax = particleDampedTurningTime(
-      velocityMax,
-      gravity,
-      damping,
-    );
+    const turningMin = particleDampedTurningTime(velocityMin, gravity, damping);
+    const turningMax = particleDampedTurningTime(velocityMax, gravity, damping);
     if (turningMin > 0 && turningMin < lifetime) {
       candidates.push(
         particleDisplacement(velocityMin, gravity, damping, turningMin),

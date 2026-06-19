@@ -47,6 +47,7 @@ interface WebGpuAppOcclusionCullingState {
 
 export interface WebGpuAppGpuTimingReadback {
   readonly passName: string;
+  readonly passNames?: readonly string[];
   readonly resources: GpuTimestampQueryResources;
   /**
    * Returns the frame's readback buffer to the pass's rotation ring once the
@@ -86,14 +87,25 @@ export async function createWebGpuAppGpuTimingForTarget(
 ): Promise<WebGpuAppGpuTimingFrameLease> {
   const passName =
     target.renderTargetKey === null ? "main" : `main:${target.renderTargetKey}`;
-  const cacheKey = `${passName}:2`;
+  return createWebGpuAppGpuTimingForPass(app, cache, label, passName, 2);
+}
+
+export async function createWebGpuAppGpuTimingForPass(
+  app: WebGpuAppGpuDeviceContext,
+  cache: WebGpuAppResourceCache,
+  label: string,
+  passName: string,
+  queryCount: number,
+): Promise<WebGpuAppGpuTimingFrameLease> {
+  const normalizedQueryCount = Math.max(2, Math.ceil(queryCount));
+  const cacheKey = `${passName}:${normalizedQueryCount}`;
   let entry = cache.gpuTimings.get(cacheKey);
 
   if (entry === undefined) {
     const created = await createGpuTimestampQueryResourcesChecked({
       device: app.initialization.device as GpuTimestampQueryDeviceLike,
       label: `${label}:${passName}:gpu-timing`,
-      queryCount: 2,
+      queryCount: normalizedQueryCount,
     });
 
     entry = {
@@ -215,7 +227,7 @@ export async function readWebGpuAppGpuTimings(input: {
     }
 
     return createGpuPassTimingReport({
-      passNames: [readback.passName],
+      passNames: readback.passNames ?? [readback.passName],
       readback: await readWebGpuAppGpuTimingReadback(readback),
       diagnostics: input.diagnostics,
     });
@@ -226,7 +238,7 @@ export async function readWebGpuAppGpuTimings(input: {
   for (const readback of input.readbacks) {
     passReports.push(
       createGpuPassTimingReport({
-        passNames: [readback.passName],
+        passNames: readback.passNames ?? [readback.passName],
         readback: await readWebGpuAppGpuTimingReadback(readback),
       }),
     );

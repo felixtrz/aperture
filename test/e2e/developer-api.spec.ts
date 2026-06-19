@@ -1,6 +1,6 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import path from "node:path";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { pixelDistance, readPngImage, type RgbaPixel } from "./png.js";
 
@@ -10,6 +10,211 @@ const DEVELOPER_API_URL = `http://127.0.0.1:${DEVELOPER_API_PORT}/`;
 type GeneratedStatusGlobal = typeof globalThis & {
   readonly __APERTURE_GENERATED_APP__?: GeneratedBrowserAppStatus;
 };
+
+async function readGeneratedFrameStatus(
+  page: Page,
+): Promise<GeneratedBrowserAppStatus | null> {
+  const json = await page.evaluate(() => {
+    const status =
+      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__ ?? null;
+    const frame = status?.diagnostics?.lastFrame;
+    const msaa = frame?.msaa;
+    const render = status?.render;
+    const canvas = status?.canvas;
+
+    if (status === null) {
+      return "null";
+    }
+
+    return JSON.stringify({
+      status: status.status,
+      webgpuOk: status.webgpuOk,
+      snapshots: status.snapshots,
+      mirroredSourceAssets: status.mirroredSourceAssets,
+      diagnostics: {
+        lastFrame:
+          frame === null || frame === undefined
+            ? undefined
+            : {
+                msaa:
+                  msaa === undefined
+                    ? undefined
+                    : {
+                        requestedSampleCount: msaa.requestedSampleCount,
+                        sampleCount: msaa.sampleCount,
+                        enabled: msaa.enabled,
+                        clamped: msaa.clamped,
+                        colorTargets: msaa.colorTargets,
+                      },
+                renderTargets: frame.renderTargets?.map((target) => ({
+                  width: target.width,
+                  height: target.height,
+                  msaaSampleCount: target.msaaSampleCount,
+                })),
+                counts:
+                  frame.counts === undefined
+                    ? undefined
+                    : {
+                        views: frame.counts.views,
+                        meshDraws: frame.counts.meshDraws,
+                        drawCalls: frame.counts.drawCalls,
+                        diagnostics: frame.counts.diagnostics,
+                      },
+                diagnostics: frame.diagnostics?.map(() => null) ?? [],
+              },
+      },
+      render:
+        render === null || render === undefined
+          ? render
+          : {
+              requestedSampleCount: render.requestedSampleCount,
+              sampleCountSource: render.sampleCountSource,
+              pixelRatio: render.pixelRatio,
+              maxPixelRatio: render.maxPixelRatio,
+              pixelRatioSource: render.pixelRatioSource,
+              diagnostics: render.diagnostics?.map(() => null) ?? [],
+            },
+      canvas:
+        canvas === null || canvas === undefined
+          ? canvas
+          : {
+              width: canvas.width,
+              height: canvas.height,
+              displayWidth: canvas.displayWidth,
+              displayHeight: canvas.displayHeight,
+              pixelRatio: canvas.pixelRatio,
+              aspect: canvas.aspect,
+              maxPixelRatio: canvas.maxPixelRatio,
+              pixelRatioSource: canvas.pixelRatioSource,
+              resizeSource: canvas.resizeSource,
+              measurementSource: canvas.measurementSource,
+            },
+    });
+  });
+
+  return JSON.parse(json) as GeneratedBrowserAppStatus | null;
+}
+
+async function readGeneratedWorkerStatus(
+  page: Page,
+): Promise<GeneratedBrowserAppStatus | null> {
+  const json = await page.evaluate(() => {
+    const status =
+      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__ ?? null;
+    const worker = status?.lastWorkerSummary;
+    const entityTools = worker?.entityTools;
+
+    if (status === null) {
+      return "null";
+    }
+
+    return JSON.stringify({
+      status: status.status,
+      webgpuOk: status.webgpuOk,
+      forwardedInputEvents: status.forwardedInputEvents,
+      forwardedCommandEvents: status.forwardedCommandEvents,
+      lastCommandEvent: status.lastCommandEvent,
+      lastFailure: status.lastFailure,
+      lastWorkerSummary:
+        worker === null || worker === undefined
+          ? undefined
+          : {
+              signals: worker.signals,
+              input: worker.input,
+              diagnostics: worker.diagnostics?.map((diagnostic) => ({
+                code: diagnostic.code,
+                severity: diagnostic.severity,
+                data: diagnostic.data,
+              })),
+              commands:
+                worker.commands === undefined
+                  ? undefined
+                  : {
+                      enqueued: worker.commands.enqueued,
+                      drained: worker.commands.drained,
+                      requestedAssets: worker.commands.requestedAssets?.map(
+                        (asset) => ({
+                          id: asset.id,
+                          status: asset.status,
+                          ready: asset.ready,
+                        }),
+                      ),
+                    },
+              entities:
+                worker.entities === undefined
+                  ? undefined
+                  : {
+                      total: worker.entities.total,
+                      summaries: worker.entities.summaries?.map((summary) => ({
+                        key: summary.key,
+                        name: summary.name,
+                        componentIds: summary.componentIds,
+                        tags: summary.tags,
+                        source: summary.source,
+                      })),
+                    },
+              entityTools:
+                entityTools === undefined
+                  ? undefined
+                  : {
+                      finds: entityTools.finds,
+                      gets: entityTools.gets,
+                      mutations: entityTools.mutations,
+                      snapshots: entityTools.snapshots,
+                      diffs: entityTools.diffs,
+                      lastFind:
+                        entityTools.lastFind === undefined
+                          ? undefined
+                          : {
+                              total: entityTools.lastFind.total,
+                              summaries: entityTools.lastFind.summaries?.map(
+                                (summary) => ({
+                                  entity: summary.entity,
+                                  key: summary.key,
+                                }),
+                              ),
+                            },
+                      lastGet:
+                        entityTools.lastGet === undefined
+                          ? undefined
+                          : {
+                              ok: entityTools.lastGet.ok,
+                              summary:
+                                entityTools.lastGet.summary === undefined
+                                  ? undefined
+                                  : {
+                                      entity:
+                                        entityTools.lastGet.summary.entity,
+                                      key: entityTools.lastGet.summary.key,
+                                    },
+                            },
+                      lastMutation: entityTools.lastMutation,
+                      lastSnapshot:
+                        entityTools.lastSnapshot === undefined
+                          ? undefined
+                          : {
+                              label: entityTools.lastSnapshot.label,
+                              total: entityTools.lastSnapshot.total,
+                              summaries:
+                                entityTools.lastSnapshot.summaries?.map(
+                                  (summary) => ({
+                                    key: summary.key,
+                                    name: summary.name,
+                                    componentIds: summary.componentIds,
+                                    tags: summary.tags,
+                                    source: summary.source,
+                                  }),
+                                ),
+                            },
+                      lastDiff: entityTools.lastDiff,
+                      diagnostics: entityTools.diagnostics,
+                    },
+            },
+    });
+  });
+
+  return JSON.parse(json) as GeneratedBrowserAppStatus | null;
+}
 
 interface GeneratedBrowserAppStatus {
   readonly status: string;
@@ -107,6 +312,17 @@ interface GeneratedBrowserAppStatus {
       readonly lastSnapshot?: {
         readonly label?: string;
         readonly total?: number;
+        readonly summaries?: readonly {
+          readonly key?: string;
+          readonly name?: string;
+          readonly componentIds?: readonly string[];
+          readonly tags?: readonly string[];
+          readonly source?: {
+            readonly assetId?: string;
+            readonly gltfNodeIndex?: number;
+            readonly gltfNodePath?: string;
+          };
+        }[];
       };
       readonly lastDiff?: {
         readonly fromLabel?: string;
@@ -227,10 +443,7 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
 
   await page.waitForTimeout(500);
 
-  const status = await page.evaluate(
-    () =>
-      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__ ?? null,
-  );
+  const status = await readGeneratedFrameStatus(page);
 
   await test.info().attach("developer-api-status", {
     body: JSON.stringify(status, null, 2),
@@ -309,10 +522,7 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
     { timeout: 10000 },
   );
 
-  const resizedStatus = await page.evaluate(
-    () =>
-      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__ ?? null,
-  );
+  const resizedStatus = await readGeneratedFrameStatus(page);
 
   await test.info().attach("developer-api-resized-status", {
     body: JSON.stringify(
@@ -347,8 +557,13 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
       (resizedStatus?.canvas?.displayHeight ?? 1),
     5,
   );
-  expect(status?.lastWorkerSummary?.entities?.total ?? 0).toBeGreaterThan(0);
-  expect(status?.lastWorkerSummary?.entities?.summaries ?? []).toEqual(
+  const initialWorkerStatus = await readGeneratedWorkerStatus(page);
+  const entitySnapshot =
+    initialWorkerStatus?.lastWorkerSummary?.entityTools?.lastSnapshot ??
+    initialWorkerStatus?.lastWorkerSummary?.entities;
+
+  expect(entitySnapshot?.total ?? 0).toBeGreaterThan(0);
+  expect(entitySnapshot?.summaries ?? []).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
         key: "level.crate.primary",
@@ -389,10 +604,7 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
     { timeout: 10000 },
   );
 
-  const snapshotStatus = await page.evaluate(
-    () =>
-      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__ ?? null,
-  );
+  const snapshotStatus = await readGeneratedWorkerStatus(page);
 
   await test.info().attach("developer-api-entity-snapshot-status", {
     body: JSON.stringify(
@@ -438,10 +650,7 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
     { timeout: 10000 },
   );
 
-  const inputStatus = await page.evaluate(
-    () =>
-      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__ ?? null,
-  );
+  const inputStatus = await readGeneratedWorkerStatus(page);
 
   await test.info().attach("developer-api-input-status", {
     body: JSON.stringify(inputStatus?.lastWorkerSummary ?? null, null, 2),
@@ -503,10 +712,7 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
     { timeout: 10000 },
   );
 
-  const diffStatus = await page.evaluate(
-    () =>
-      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__ ?? null,
-  );
+  const diffStatus = await readGeneratedWorkerStatus(page);
 
   await test.info().attach("developer-api-entity-diff-status", {
     body: JSON.stringify(
@@ -591,11 +797,9 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
     { timeout: 10000 },
   );
 
-  const entityToolStatus = await page.evaluate(
-    () =>
-      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__
-        ?.lastWorkerSummary?.entityTools ?? null,
-  );
+  const entityToolStatus =
+    (await readGeneratedWorkerStatus(page))?.lastWorkerSummary?.entityTools ??
+    null;
 
   await test.info().attach("developer-api-entity-tool-status", {
     body: JSON.stringify(entityToolStatus, null, 2),
@@ -677,10 +881,7 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
     { timeout: 10000 },
   );
 
-  const commandStatus = await page.evaluate(
-    () =>
-      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__ ?? null,
-  );
+  const commandStatus = await readGeneratedWorkerStatus(page);
 
   await test.info().attach("developer-api-command-status", {
     body: JSON.stringify(commandStatus?.lastWorkerSummary ?? null, null, 2),

@@ -2,10 +2,11 @@
 /* global KeyboardEvent, document, location */
 import { createServer } from "node:http";
 import { readFile, stat, mkdir, writeFile } from "node:fs/promises";
-import { createReadStream } from "node:fs";
+import { createReadStream, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { inflateSync } from "node:zlib";
+import { decode as decodeSourceMapMappings } from "@jridgewell/sourcemap-codec";
 import { chromium } from "playwright";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -260,6 +261,7 @@ async function runScenario(browser, target, scenario, trialIndex) {
   await clearSamplers(page);
   const profiler = await startProfiling(
     page,
+    target,
     runFileBase(target.id, scenario, trialIndex),
   );
   await page.waitForTimeout(durationMs);
@@ -280,7 +282,7 @@ async function runScenario(browser, target, scenario, trialIndex) {
   };
 }
 
-async function startProfiling(page, fileBase) {
+async function startProfiling(page, target, fileBase) {
   const client = await page.context().newCDPSession(page);
   if (captureCpuProfile) {
     await client.send("Profiler.enable");
@@ -320,7 +322,9 @@ async function startProfiling(page, fileBase) {
         const profilePath = path.join(outDir, `${fileBase}.cpuprofile`);
         await writeFile(profilePath, JSON.stringify(profile));
         files.cpuProfile = profilePath;
-        files.cpuProfileSummary = analyzeCpuProfile(profile);
+        files.cpuProfileSummary = await analyzeCpuProfile(profile, {
+          sourceMapRoots: sourceMapRootsForTarget(target),
+        });
       }
 
       if (captureTrace) {
@@ -871,6 +875,14 @@ function summarizeApertureSamples(
     latest,
     drawCalls: quantiles(drawCounts),
     phaseTimings: summarizeAperturePhaseTimings(samples, latest),
+    autoShadowFrameCache: summarizeApertureAutoShadowFrameCache(
+      samples,
+      latest,
+    ),
+    standardFrameResourceCache: summarizeApertureStandardFrameResourceCache(
+      samples,
+      latest,
+    ),
     cadence: summarizeApertureCadence(samples, latest),
     gpuTimings: summarizeApertureGpuTimings(samples, latest),
     workerMessages: summarizeApertureWorkerMessages(
@@ -883,6 +895,127 @@ function summarizeApertureSamples(
       latest?.performance?.latest?.transport ??
       latest?.performance?.transport ??
       null,
+  };
+}
+
+function summarizeApertureStandardFrameResourceCache(samples, latest) {
+  const reports = [
+    ...samples.map((sample) => sample?.resourceReuse),
+    latest?.diagnostics?.resourceReuse,
+  ].filter(
+    (resourceReuse) => resourceReuse !== undefined && resourceReuse !== null,
+  );
+  const hits = [];
+  const misses = [];
+  const missReasons = {};
+
+  for (const resourceReuse of reports) {
+    if (isFiniteNumber(resourceReuse.standardFrameResourceCacheHits)) {
+      hits.push(resourceReuse.standardFrameResourceCacheHits);
+    }
+    if (isFiniteNumber(resourceReuse.standardFrameResourceCacheMisses)) {
+      misses.push(resourceReuse.standardFrameResourceCacheMisses);
+    }
+
+    const reasons = resourceReuse.standardFrameResourceCacheMissReasons;
+    if (reasons !== undefined && reasons !== null) {
+      for (const [reason, count] of Object.entries(reasons)) {
+        if (isFiniteNumber(count)) {
+          missReasons[reason] = (missReasons[reason] ?? 0) + count;
+        }
+      }
+    }
+  }
+
+  if (hits.length === 0 && misses.length === 0) {
+    return null;
+  }
+
+  return {
+    sampleCount: reports.length,
+    hits: quantiles(hits),
+    misses: quantiles(misses),
+    missReasons,
+    latest: {
+      hits:
+        latest?.diagnostics?.resourceReuse?.standardFrameResourceCacheHits ??
+        null,
+      misses:
+        latest?.diagnostics?.resourceReuse?.standardFrameResourceCacheMisses ??
+        null,
+      missReasons:
+        latest?.diagnostics?.resourceReuse
+          ?.standardFrameResourceCacheMissReasons ?? null,
+    },
+  };
+}
+
+function summarizeApertureAutoShadowFrameCache(samples, latest) {
+  const cacheReports = [];
+  const framesCreated = [];
+  const framesReused = [];
+
+  for (const resourceReuse of [
+    ...samples.map((sample) => sample?.resourceReuse),
+    latest?.diagnostics?.resourceReuse,
+  ]) {
+    if (resourceReuse === undefined || resourceReuse === null) continue;
+
+    if (isFiniteNumber(resourceReuse.autoShadowFramesCreated)) {
+      framesCreated.push(resourceReuse.autoShadowFramesCreated);
+    }
+    if (isFiniteNumber(resourceReuse.autoShadowFramesReused)) {
+      framesReused.push(resourceReuse.autoShadowFramesReused);
+    }
+    if (
+      resourceReuse.autoShadowFrameCache !== undefined &&
+      resourceReuse.autoShadowFrameCache !== null
+    ) {
+      cacheReports.push(resourceReuse.autoShadowFrameCache);
+    }
+  }
+
+  if (cacheReports.length === 0) {
+    return null;
+  }
+
+  const statusCounts = {};
+  const reasonCounts = {};
+  const reuseSourceCounts = {};
+  const firstChangedInputSectionCounts = {};
+
+  for (const report of cacheReports) {
+    incrementCount(statusCounts, report.status ?? "unknown");
+
+    if (report.reason !== undefined && report.reason !== null) {
+      incrementCount(reasonCounts, report.reason);
+    }
+    if (report.reuseSource !== undefined && report.reuseSource !== null) {
+      incrementCount(reuseSourceCounts, report.reuseSource);
+    }
+    if (
+      report.firstChangedInputSection !== undefined &&
+      report.firstChangedInputSection !== null
+    ) {
+      incrementCount(
+        firstChangedInputSectionCounts,
+        report.firstChangedInputSection,
+      );
+    }
+  }
+
+  return {
+    sampleCount: cacheReports.length,
+    latest:
+      latest?.diagnostics?.resourceReuse?.autoShadowFrameCache ??
+      cacheReports.at(-1) ??
+      null,
+    statusCounts,
+    reasonCounts,
+    reuseSourceCounts,
+    firstChangedInputSectionCounts,
+    framesCreated: quantiles(framesCreated),
+    framesReused: quantiles(framesReused),
   };
 }
 
@@ -1913,13 +2046,16 @@ function compareMetric(apertureValue, threeValue, betterDirection) {
   };
 }
 
-function analyzeCpuProfile(profile) {
+async function analyzeCpuProfile(profile, options = {}) {
   const nodes = Array.isArray(profile?.nodes) ? profile.nodes : [];
   const samples = Array.isArray(profile?.samples) ? profile.samples : [];
   const timeDeltas = Array.isArray(profile?.timeDeltas)
     ? profile.timeDeltas
     : [];
   const nodesById = new Map(nodes.map((node) => [node.id, node]));
+  const sourceMapResolver = createSourceMapResolver(
+    options.sourceMapRoots ?? [],
+  );
   const selfMsById = new Map();
   const fallbackDeltaMs =
     samples.length > 0 &&
@@ -1938,30 +2074,41 @@ function analyzeCpuProfile(profile) {
     selfMsById.set(nodeId, (selfMsById.get(nodeId) ?? 0) + deltaMs);
   }
 
-  const entries = Array.from(selfMsById.entries())
-    .map(([nodeId, selfMs]) => {
-      const node = nodesById.get(nodeId);
-      const callFrame = node?.callFrame ?? {};
-      const url = String(callFrame.url ?? "");
-      return {
-        functionName: normalizeProfileFunctionName(callFrame.functionName),
-        url,
-        urlBucket: bucketProfileUrl(url),
-        lineNumber: isFiniteNumber(callFrame.lineNumber)
+  const entries = (
+    await Promise.all(
+      Array.from(selfMsById.entries()).map(async ([nodeId, selfMs]) => {
+        const node = nodesById.get(nodeId);
+        const callFrame = node?.callFrame ?? {};
+        const url = String(callFrame.url ?? "");
+        const lineNumber = isFiniteNumber(callFrame.lineNumber)
           ? callFrame.lineNumber + 1
-          : null,
-        columnNumber: isFiniteNumber(callFrame.columnNumber)
+          : null;
+        const columnNumber = isFiniteNumber(callFrame.columnNumber)
           ? callFrame.columnNumber + 1
-          : null,
-        selfMs,
-      };
-    })
-    .sort((a, b) => b.selfMs - a.selfMs);
+          : null;
+        const sourceMap =
+          lineNumber === null || columnNumber === null
+            ? null
+            : await sourceMapResolver.resolve(url, lineNumber, columnNumber);
+
+        return {
+          functionName: normalizeProfileFunctionName(callFrame.functionName),
+          url,
+          urlBucket: bucketProfileUrl(url),
+          lineNumber,
+          columnNumber,
+          ...(sourceMap === null ? {} : { sourceMap }),
+          selfMs,
+        };
+      }),
+    )
+  ).sort((a, b) => b.selfMs - a.selfMs);
 
   const bucketMs = {};
   for (const entry of entries) {
     bucketMs[entry.urlBucket] = (bucketMs[entry.urlBucket] ?? 0) + entry.selfMs;
   }
+  const mappedEntries = groupMappedCpuProfileEntries(entries);
 
   return {
     sampleCount: samples.length,
@@ -1970,8 +2117,196 @@ function analyzeCpuProfile(profile) {
     topAppSelfTime: entries
       .filter((entry) => entry.urlBucket !== "browser/internal")
       .slice(0, 30),
+    topMappedAppSelfTime: mappedEntries
+      .filter((entry) => entry.urlBucket !== "browser/internal")
+      .slice(0, 30),
     bucketMs,
   };
+}
+
+function groupMappedCpuProfileEntries(entries) {
+  const groups = new Map();
+  for (const entry of entries) {
+    const mapped = entry.sourceMap;
+    if (mapped === undefined || mapped === null) {
+      continue;
+    }
+
+    const functionName =
+      mapped.name ?? entry.functionName ?? normalizeProfileFunctionName("");
+    const key = [
+      entry.urlBucket,
+      mapped.source,
+      mapped.lineNumber,
+      mapped.columnNumber,
+      functionName,
+    ].join("\0");
+    const existing = groups.get(key);
+    if (existing === undefined) {
+      groups.set(key, {
+        functionName,
+        source: mapped.source,
+        lineNumber: mapped.lineNumber,
+        columnNumber: mapped.columnNumber,
+        urlBucket: entry.urlBucket,
+        selfMs: entry.selfMs,
+        sampleLocations: [
+          {
+            functionName: entry.functionName,
+            url: entry.url,
+            lineNumber: entry.lineNumber,
+            columnNumber: entry.columnNumber,
+          },
+        ],
+      });
+      continue;
+    }
+
+    existing.selfMs += entry.selfMs;
+    if (existing.sampleLocations.length < 5) {
+      existing.sampleLocations.push({
+        functionName: entry.functionName,
+        url: entry.url,
+        lineNumber: entry.lineNumber,
+        columnNumber: entry.columnNumber,
+      });
+    }
+  }
+
+  return Array.from(groups.values()).sort((a, b) => b.selfMs - a.selfMs);
+}
+
+function sourceMapRootsForTarget(target) {
+  if (target.kind === "aperture") {
+    return [DEFAULT_APERTURE_DIST];
+  }
+
+  if (target.kind === "three") {
+    return [DEFAULT_THREE_ROOT, path.join(ROOT, "references", "three.js")];
+  }
+
+  return [];
+}
+
+function createSourceMapResolver(sourceMapRoots) {
+  const cache = new Map();
+
+  return {
+    async resolve(url, lineNumber, columnNumber) {
+      const sourceMap = await loadSourceMapForUrl(url, sourceMapRoots, cache);
+      if (sourceMap === null) {
+        return null;
+      }
+
+      return originalPositionFor(sourceMap, lineNumber, columnNumber);
+    },
+  };
+}
+
+async function loadSourceMapForUrl(url, roots, cache) {
+  if (url.length === 0 || roots.length === 0) {
+    return null;
+  }
+
+  const cacheKey = `${url}\0${roots.join("\0")}`;
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey);
+  }
+
+  const mapPath = sourceMapPathForUrl(url, roots);
+  if (mapPath === null) {
+    cache.set(cacheKey, null);
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(await readFile(mapPath, "utf8"));
+    const sourceMap = {
+      filePath: mapPath,
+      sources: Array.isArray(parsed.sources) ? parsed.sources : [],
+      names: Array.isArray(parsed.names) ? parsed.names : [],
+      sourceRoot:
+        typeof parsed.sourceRoot === "string" ? parsed.sourceRoot : "",
+      mappings: decodeSourceMapMappings(String(parsed.mappings ?? "")),
+    };
+    cache.set(cacheKey, sourceMap);
+    return sourceMap;
+  } catch {
+    cache.set(cacheKey, null);
+    return null;
+  }
+}
+
+function sourceMapPathForUrl(url, roots) {
+  let pathname;
+  try {
+    pathname = new URL(url).pathname;
+  } catch {
+    return null;
+  }
+
+  const relativePath = pathname.replace(/^\/+/, "");
+  for (const root of roots) {
+    const candidate = path.join(root, `${relativePath}.map`);
+    if (fileExistsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+function fileExistsSync(filePath) {
+  try {
+    return statSync(filePath).isFile();
+  } catch {
+    return false;
+  }
+}
+
+function originalPositionFor(sourceMap, lineNumber, columnNumber) {
+  const line = sourceMap.mappings[lineNumber - 1];
+  if (!Array.isArray(line) || line.length === 0) {
+    return null;
+  }
+
+  let best = null;
+  const generatedColumn = columnNumber - 1;
+  for (const segment of line) {
+    if (segment.length < 4 || segment[0] > generatedColumn) {
+      break;
+    }
+    best = segment;
+  }
+
+  if (best === null || best.length < 4) {
+    return null;
+  }
+
+  const source = sourceMap.sources[best[1]];
+  if (typeof source !== "string") {
+    return null;
+  }
+
+  const name = best.length >= 5 ? sourceMap.names[best[4]] : undefined;
+  return {
+    source: normalizeSourceMapSource(sourceMap.sourceRoot, source),
+    lineNumber: best[2] + 1,
+    columnNumber: best[3] + 1,
+    ...(typeof name === "string" && name.length > 0 ? { name } : {}),
+  };
+}
+
+function normalizeSourceMapSource(sourceRoot, source) {
+  if (sourceRoot.length === 0) {
+    return source;
+  }
+
+  if (/^[a-z]+:/i.test(source) || source.startsWith("/")) {
+    return source;
+  }
+
+  return `${sourceRoot.replace(/\/?$/, "/")}${source}`;
 }
 
 function normalizeProfileFunctionName(value) {
@@ -2285,6 +2620,10 @@ function topCountKey(counts) {
   return best;
 }
 
+function incrementCount(counts, key) {
+  counts[String(key)] = (counts[String(key)] ?? 0) + 1;
+}
+
 function subtractFinite(left, right) {
   return isFiniteNumber(left) && isFiniteNumber(right) ? left - right : null;
 }
@@ -2419,6 +2758,7 @@ function createFrameSamplerInitScript() {
         null,
       phaseTimings: lastFrame?.phaseTimings ?? diagnostics?.phaseTimings ?? null,
       gpuTimings: lastFrame?.gpuTimings ?? diagnostics?.gpuTimings ?? null,
+      resourceReuse: lastFrame?.resourceReuse ?? diagnostics?.resourceReuse ?? null,
       workerPublish:
         status.lastWorkerSummary?.previousPublishTiming ??
         status.lastWorkerSummary?.publishTiming ??

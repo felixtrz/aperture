@@ -38,6 +38,12 @@ export interface PackedSnapshotTransforms {
    * means unknown (treat as full).
    */
   readonly dirtyRange?: PackedTransformDirtyRange | null;
+  /**
+   * Bounded disjoint dirty windows for sparse updates. Consumers that can
+   * issue several small writes should prefer this over `dirtyRange`. `null`
+   * means byte-identical, undefined means unknown or full-fallback.
+   */
+  readonly dirtyRanges?: readonly PackedTransformDirtyRange[] | null;
 }
 
 export interface PackedPreviousSnapshotTransformHistoryReport {
@@ -85,9 +91,12 @@ export interface PackedSnapshotInstanceAttributes {
 
 export interface PackedSnapshotTransformsScratch {
   data: Float32Array;
+  nextData: Float32Array;
   readonly offsets: PackedTransformOffset[];
   readonly diagnostics: RenderDiagnostic[];
   readonly offsetPool: PackedTransformOffset[];
+  readonly sourceOffsets: number[];
+  readonly sourceOffsetToPackedOffset: Map<number, number>;
   readonly result: PackedSnapshotTransforms;
   /** Float count written on the previous frame (-1 before the first write). */
   lastFloatCount: number;
@@ -140,6 +149,7 @@ export interface MutablePackedSnapshotTransforms {
   diagnostics: readonly RenderDiagnostic[];
   contentVersion: number | undefined;
   dirtyRange: PackedTransformDirtyRange | null | undefined;
+  dirtyRanges: readonly PackedTransformDirtyRange[] | null | undefined;
 }
 
 export interface MutablePackedSnapshotPreviousTransforms extends MutablePackedSnapshotTransforms {

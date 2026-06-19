@@ -17,10 +17,13 @@ describe("WebGPU app report serialization", () => {
       snapshotChangeSet: changeSetWithKeys(),
       diagnostics: [],
     });
-    const full = webGpuAppRenderReportToJsonValue(report);
+    const full = webGpuAppRenderReportToJsonValue(report) as Record<
+      string,
+      any
+    >;
     const status = webGpuAppRenderReportToJsonValue(report, {
       detail: "status",
-    });
+    }) as Record<string, any>;
 
     expect(
       full.renderChangeSet?.["keys"]?.["meshDraws"]?.["unchanged"],
@@ -67,10 +70,13 @@ describe("WebGPU app report serialization", () => {
       diagnosticsSummary: diagnosticsSummaryWithDirectLighting() as never,
       shadow: shadowReportWithDetails() as never,
     });
-    const full = webGpuAppRenderReportToJsonValue(report);
+    const full = webGpuAppRenderReportToJsonValue(report) as Record<
+      string,
+      any
+    >;
     const status = webGpuAppRenderReportToJsonValue(report, {
       detail: "status",
-    });
+    }) as Record<string, any>;
 
     expect(full.shadow?.["matrixComputation"]?.["matrices"]).toHaveLength(1);
     expect(

@@ -53,6 +53,7 @@ describe("createSharedSnapshotTransport", () => {
     });
     const report = transport.writer.writeFrame({
       frame: 1,
+      time: 12.25,
       transforms: new Float32Array(32).fill(1),
       instanceTints: new Float32Array([1, 0, 0, 1, 0, 1, 0, 1]),
       viewMatrices: new Float32Array(48).fill(2),
@@ -64,6 +65,7 @@ describe("createSharedSnapshotTransport", () => {
 
     expect(report).toMatchObject({
       frame: 1,
+      time: 12.25,
       transformFloats: 32,
       instanceTintFloats: 8,
       viewMatrixFloats: 48,
@@ -74,6 +76,7 @@ describe("createSharedSnapshotTransport", () => {
     expect(read?.instanceTints).toEqual(
       new Float32Array([1, 0, 0, 1, 0, 1, 0, 1]),
     );
+    expect(read?.time).toBe(12.25);
     expect(read?.packetWords).toEqual(
       new Uint32Array([0x4150_5350, 1, 1, 2, 3, 4, 5, 6]),
     );
@@ -302,6 +305,7 @@ describe("createSharedSnapshotTransport", () => {
 function createFrameInput(frame: number) {
   return {
     frame,
+    time: frame * 0.25,
     transforms: new Float32Array(32).fill(frame),
     viewMatrices: new Float32Array(48).fill(frame * 2),
   };

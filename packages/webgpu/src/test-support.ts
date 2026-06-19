@@ -70,6 +70,7 @@ export * from "./render/frame/frame-execution-report.js";
 export * from "./render/frame/frame-submission-smoke.js";
 export * from "./render/frame/frame-report.js";
 export * from "./render/frame/render-frame-plan.js";
+export * from "./render/frame/draw-order-transform-packing.js";
 export * from "./render/frame/render-frame-phases.js";
 export * from "./render/frame/frame-readiness.js";
 export * from "./gpu/gpu-timing.js";

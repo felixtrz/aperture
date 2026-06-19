@@ -3,7 +3,7 @@
 **Created:** 2026-06-17
 **Updated:** 2026-06-17
 **Source:** Multi-agent audit of `b80e8a43b61e9b6a234e443c05ff8448c7bc471b` through `fps-starter-kit-port`.
-**Status:** Batch 1, Batch 2, and Batch 3 implemented.
+**Status:** implemented.
 
 This plan converts the confirmed audit findings from the FPS starter-kit branch
 into reviewable remediation batches. The goal is to fix the steady-state
@@ -43,6 +43,13 @@ shippable.
 
 ### 1. Shadow Baked-Caster Resource Leak
 
+**Reverification note 2026-06-17:** the current source no longer supports
+treating this as an open leak. `render-shadow-frame.ts` caches the baked caster
+matrix buffer, reuses it via `queue.writeBuffer` when the byte size matches,
+destroys and recreates it on size mismatch, and invalidates the bind group tied
+to the old buffer identity. Do not schedule another shadow baked-matrix leak fix
+without a fresh reproduction against current source.
+
 - Files:
   - `packages/webgpu/src/shadows/render-shadow-frame.ts`
   - Nearby shadow resource tests or new focused tests under `test/`
@@ -79,6 +86,12 @@ shippable.
     stale tail data.
 
 ### 3. Particle State Eviction Buffer Leak
+
+**Reverification note 2026-06-17:** the current source destroys stale particle
+state buffers before deleting inactive emitter entries, and
+`test/webgpu/particle-frame-resources.test.ts` asserts the destroy call on
+eviction. Treat the leak as fixed unless a new non-eviction particle ownership
+path is identified.
 
 - Files:
   - `packages/webgpu/src/app/particles.ts`

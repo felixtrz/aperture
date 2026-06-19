@@ -9,6 +9,7 @@ import {
 export function createEmptyRenderSnapshot(frame: number): RenderSnapshot {
   return {
     frame,
+    time: frame / 60,
     views: [],
     meshDraws: [],
     spriteDraws: [],
@@ -33,6 +34,12 @@ export function createEmptyRenderSnapshot(frame: number): RenderSnapshot {
       diagnostics: 0,
     },
   };
+}
+
+export function renderSnapshotTimeSeconds(snapshot: RenderSnapshot): number {
+  return typeof snapshot.time === "number" && Number.isFinite(snapshot.time)
+    ? snapshot.time
+    : snapshot.frame / 60;
 }
 
 export function createWebGpuAppSnapshotUpdateMetadata(

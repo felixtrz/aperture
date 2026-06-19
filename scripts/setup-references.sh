@@ -62,6 +62,8 @@ mkdir -p "$REF_DIR"
 # Format: "dir|https-url|pinned-sha|human-readable-ref"
 # Update the SHA here whenever you intentionally re-capture a reference.
 REPOS=(
+  "Starter-Kit-FPS|https://github.com/KenneyNL/Starter-Kit-FPS.git|185fd2326d74a5cf858cffc616f87cf9696f9cc0|main @ 2026-06-16 capture"
+  "Starter-Kit-Racing|https://github.com/mrdoob/Starter-Kit-Racing.git|6d69c02acec74572653aa11084574868688bcbf9|main @ 2026-06-14 capture"
   "bevy|https://github.com/bevyengine/bevy.git|370be1b02fc93a4bfabf61fb2fc66cf2affca495|main @ v0.16.0-rc.4+2713"
   "engine|https://github.com/playcanvas/engine.git|a4cdaf35cb4651809f829670a22778395da71dc6|PlayCanvas main @ ~v2.13.0-beta.1+512"
   "three-mesh-bvh|https://github.com/gkjohnson/three-mesh-bvh.git|30811dc01a8c58099873340d4a1f91d11a9aeb73|v0.9.10"

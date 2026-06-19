@@ -8547,6 +8547,17 @@ interface SimulationWorkerSnapshotMessage {
     readonly meshDraws: readonly {
       readonly entity: { readonly index: number; readonly generation: number };
       readonly worldTransformOffset: number;
+      readonly boundsIndex: number;
+    }[];
+    readonly shadowCasterDraws?: readonly {
+      readonly entity: { readonly index: number; readonly generation: number };
+      readonly worldTransformOffset: number;
+      readonly boundsIndex: number;
+    }[];
+    readonly bounds: readonly {
+      readonly worldAabb: {
+        readonly min: readonly number[];
+      };
     }[];
     readonly transforms: Float32Array;
   };

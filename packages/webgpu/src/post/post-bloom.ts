@@ -49,6 +49,32 @@ interface BloomBlurParameterBufferSlot {
   current: BloomBlurParameterBuffer | null;
 }
 
+interface BloomSingleInputCommandCacheSlot {
+  current: CachedSingleInputBloomCommands | null;
+}
+
+interface BloomCompositeCommandCacheSlot {
+  current: CachedCompositeBloomCommands | null;
+}
+
+interface CachedSingleInputBloomCommands {
+  readonly pipeline: unknown;
+  readonly sampler: unknown;
+  readonly inputTexture: unknown;
+  readonly blurParameterBuffer: unknown | null;
+  readonly resourceKey: string;
+  readonly commands: readonly RenderPassCommand[];
+}
+
+interface CachedCompositeBloomCommands {
+  readonly pipeline: unknown;
+  readonly sampler: unknown;
+  readonly baseTexture: unknown;
+  readonly bloomTextures: readonly unknown[];
+  readonly resourceKey: string;
+  readonly commands: readonly RenderPassCommand[];
+}
+
 interface BloomPostBufferDeviceLike extends WebGpuPostPassDeviceLike {
   readonly createBuffer?: (descriptor: {
     readonly label?: string;
@@ -100,6 +126,20 @@ export function createWebGpuBloomPostEffect(
     { length: levelCount },
     (): BloomBlurParameterBufferSlot => ({ current: null }),
   );
+  const brightpassCommandSlot: BloomSingleInputCommandCacheSlot = {
+    current: null,
+  };
+  const horizontalCommandSlots = Array.from(
+    { length: levelCount },
+    (): BloomSingleInputCommandCacheSlot => ({ current: null }),
+  );
+  const verticalCommandSlots = Array.from(
+    { length: levelCount },
+    (): BloomSingleInputCommandCacheSlot => ({ current: null }),
+  );
+  const compositeCommandSlot: BloomCompositeCommandCacheSlot = {
+    current: null,
+  };
   let sampler: unknown | null = null;
 
   return {
@@ -167,6 +207,10 @@ export function createWebGpuBloomPostEffect(
         horizontalResources: mipResources.horizontal,
         verticalResources: mipResources.vertical,
         blurParameterSlots,
+        brightpassCommandSlot,
+        horizontalCommandSlots,
+        verticalCommandSlots,
+        compositeCommandSlot,
         ...(prepareOptions.output === undefined
           ? {}
           : { output: prepareOptions.output }),
@@ -259,6 +303,10 @@ function prepareBloomGraph(options: {
   readonly horizontalResources: readonly WebGpuPostPassTextureResource[];
   readonly verticalResources: readonly WebGpuPostPassTextureResource[];
   readonly blurParameterSlots: readonly BloomBlurParameterBufferSlot[];
+  readonly brightpassCommandSlot: BloomSingleInputCommandCacheSlot;
+  readonly horizontalCommandSlots: readonly BloomSingleInputCommandCacheSlot[];
+  readonly verticalCommandSlots: readonly BloomSingleInputCommandCacheSlot[];
+  readonly compositeCommandSlot: BloomCompositeCommandCacheSlot;
 }): WebGpuPreparedPostEffectGraph {
   const passes: WebGpuPreparedPostEffectGraphPass[] = [];
 
@@ -277,6 +325,7 @@ function prepareBloomGraph(options: {
       intensity: options.intensity,
       radius: options.radius,
       kernelSize: null,
+      commandSlot: options.brightpassCommandSlot,
     }),
   );
 
@@ -286,12 +335,16 @@ function prepareBloomGraph(options: {
     const horizontalOutput = options.horizontalResources[level];
     const verticalOutput = options.verticalResources[level];
     const blurParameterSlot = options.blurParameterSlots[level];
+    const horizontalCommandSlot = options.horizontalCommandSlots[level];
+    const verticalCommandSlot = options.verticalCommandSlots[level];
     const kernelSize = bloomKernelSize(level);
 
     if (
       horizontalOutput === undefined ||
       verticalOutput === undefined ||
-      blurParameterSlot === undefined
+      blurParameterSlot === undefined ||
+      horizontalCommandSlot === undefined ||
+      verticalCommandSlot === undefined
     ) {
       continue;
     }
@@ -312,6 +365,7 @@ function prepareBloomGraph(options: {
         radius: options.radius,
         kernelSize,
         blurParameterSlot,
+        commandSlot: horizontalCommandSlot,
       }),
     );
     passes.push(
@@ -330,6 +384,7 @@ function prepareBloomGraph(options: {
         radius: options.radius,
         kernelSize,
         blurParameterSlot,
+        commandSlot: verticalCommandSlot,
       }),
     );
     input = verticalOutput;
@@ -349,6 +404,7 @@ function prepareBloomGraph(options: {
       threshold: options.threshold,
       intensity: options.intensity,
       radius: options.radius,
+      commandSlot: options.compositeCommandSlot,
       ...(options.output === undefined ? {} : { output: options.output }),
     }),
   );
@@ -395,6 +451,7 @@ function prepareSingleInputBloomGraphPass(options: {
   readonly radius: number;
   readonly kernelSize: number | null;
   readonly blurParameterSlot?: BloomBlurParameterBufferSlot;
+  readonly commandSlot: BloomSingleInputCommandCacheSlot;
 }): WebGpuPreparedPostEffectGraphPass {
   const diagnostics: WebGpuPostPassDiagnostic[] = [];
   const blurParameters =
@@ -429,8 +486,9 @@ function prepareSingleInputBloomGraphPass(options: {
     pipelineResult === null ||
     (options.kind !== "brightpass" && blurParameters === null)
       ? []
-      : createSingleInputBloomCommands({
+      : createOrReuseSingleInputBloomCommands({
           device: options.device,
+          slot: options.commandSlot,
           sampler: options.sampler,
           pipeline: pipelineResult.pipeline,
           pipelineKey: pipelineResult.key,
@@ -468,6 +526,7 @@ function prepareBloomCompositeGraphPass(options: {
   readonly threshold: number;
   readonly intensity: number;
   readonly radius: number;
+  readonly commandSlot: BloomCompositeCommandCacheSlot;
 }): WebGpuPreparedPostEffectGraphPass {
   const diagnostics: WebGpuPostPassDiagnostic[] = [];
   const pipelineResult = getOrCreateBloomPostPipeline({
@@ -496,8 +555,9 @@ function prepareBloomCompositeGraphPass(options: {
   const commands =
     pipelineResult === null
       ? []
-      : createCompositeBloomCommands({
+      : createOrReuseCompositeBloomCommands({
           device: options.device,
+          slot: options.commandSlot,
           sampler: options.sampler,
           pipeline: pipelineResult.pipeline,
           pipelineKey: pipelineResult.key,
@@ -563,8 +623,9 @@ function getOrCreateBloomPostPipeline(options: {
   return pipeline;
 }
 
-function createSingleInputBloomCommands(options: {
+function createOrReuseSingleInputBloomCommands(options: {
   readonly device: WebGpuPostPassDeviceLike;
+  readonly slot: BloomSingleInputCommandCacheSlot;
   readonly sampler: unknown;
   readonly pipeline: unknown;
   readonly pipelineKey: string;
@@ -574,6 +635,24 @@ function createSingleInputBloomCommands(options: {
   readonly blurParameters?: BloomBlurParameterBuffer;
   readonly diagnostics: WebGpuPostPassDiagnostic[];
 }): readonly RenderPassCommand[] {
+  const blurParameterBuffer = options.blurParameters?.buffer ?? null;
+  const resourceKey =
+    options.blurParameters === undefined
+      ? `${options.effectId}:input:${options.input.label}`
+      : `${options.effectId}:input:${options.input.label}:blur:${options.blurParameters.width}x${options.blurParameters.height}`;
+  const cached = options.slot.current;
+
+  if (
+    cached !== null &&
+    cached.pipeline === options.pipeline &&
+    cached.sampler === options.sampler &&
+    cached.inputTexture === options.input.texture &&
+    cached.blurParameterBuffer === blurParameterBuffer &&
+    cached.resourceKey === resourceKey
+  ) {
+    return cached.commands;
+  }
+
   const inputView = options.input.texture.createView?.();
 
   if (inputView === undefined) {
@@ -626,15 +705,21 @@ function createSingleInputBloomCommands(options: {
     ],
   });
 
-  return bloomDrawCommands({
+  const commands = bloomDrawCommands({
     pipelineKey: options.pipelineKey,
     pipeline: options.pipeline,
-    resourceKey:
-      options.blurParameters === undefined
-        ? `${options.effectId}:input:${options.input.label}`
-        : `${options.effectId}:input:${options.input.label}:blur:${options.blurParameters.width}x${options.blurParameters.height}`,
+    resourceKey,
     bindGroup,
   });
+  options.slot.current = {
+    pipeline: options.pipeline,
+    sampler: options.sampler,
+    inputTexture: options.input.texture,
+    blurParameterBuffer,
+    resourceKey,
+    commands,
+  };
+  return commands;
 }
 
 function prepareBloomBlurParameterBuffer(options: {
@@ -732,8 +817,9 @@ function prepareBloomBlurParameterBuffer(options: {
   return next;
 }
 
-function createCompositeBloomCommands(options: {
+function createOrReuseCompositeBloomCommands(options: {
   readonly device: WebGpuPostPassDeviceLike;
+  readonly slot: BloomCompositeCommandCacheSlot;
   readonly sampler: unknown;
   readonly pipeline: unknown;
   readonly pipelineKey: string;
@@ -743,6 +829,23 @@ function createCompositeBloomCommands(options: {
   readonly bloomLevels: readonly WebGpuPostPassTextureResource[];
   readonly diagnostics: WebGpuPostPassDiagnostic[];
 }): readonly RenderPassCommand[] {
+  const bloomTextures = options.bloomLevels.map((level) => level.texture);
+  const resourceKey = `${options.effectId}:composite:${options.base.label}:${options.bloomLevels
+    .map((level) => level.label)
+    .join(":")}`;
+  const cached = options.slot.current;
+
+  if (
+    cached !== null &&
+    cached.pipeline === options.pipeline &&
+    cached.sampler === options.sampler &&
+    cached.baseTexture === options.base.texture &&
+    cached.resourceKey === resourceKey &&
+    sameObjectSequence(cached.bloomTextures, bloomTextures)
+  ) {
+    return cached.commands;
+  }
+
   const baseView = options.base.texture.createView?.();
   const bloomViews = options.bloomLevels.map((level) =>
     level.texture.createView?.(),
@@ -794,14 +897,38 @@ function createCompositeBloomCommands(options: {
     ],
   });
 
-  return bloomDrawCommands({
+  const commands = bloomDrawCommands({
     pipelineKey: options.pipelineKey,
     pipeline: options.pipeline,
-    resourceKey: `${options.effectId}:composite:${options.base.label}:${options.bloomLevels
-      .map((level) => level.label)
-      .join(":")}`,
+    resourceKey,
     bindGroup,
   });
+  options.slot.current = {
+    pipeline: options.pipeline,
+    sampler: options.sampler,
+    baseTexture: options.base.texture,
+    bloomTextures,
+    resourceKey,
+    commands,
+  };
+  return commands;
+}
+
+function sameObjectSequence(
+  left: readonly unknown[],
+  right: readonly unknown[],
+): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] !== right[index]) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function bloomDrawCommands(options: {

@@ -1,6 +1,6 @@
 # SAB Render Pacing Plan
 
-**Status:** partially implemented, remaining work planned
+**Status:** plan - partially implemented, remaining work planned
 **Date:** 2026-06-18
 **Context:** racing frame pacing audit against the three.js starter-kit racing reference
 
@@ -59,6 +59,26 @@ The first pacing slice is implemented and validated:
 
 Latest paired trace evidence after this slice:
 
+- Message-impact follow-up traces:
+  `/tmp/racing-pacing-msg-impact-default-idle-repeat3/summary.json`,
+  `/tmp/racing-pacing-msg-impact-default-drive-repeat3/summary.json`, and
+  `/tmp/racing-pacing-msg-impact-sourceassets-off-drive-repeat3/summary.json`
+  (3 paired trials, 3 second samples, no trace/profile). The trace now includes
+  delivered-message frame-pacing impact: RAF windows with worker-message
+  delivery are compared against RAF windows without delivery in the same
+  measured run. Default idle and default drive both won the aggregate
+  frame-pacing shape against three.js while still losing callback p95. Default
+  drive delivered about `16 Hz` of worker messages, mostly
+  `aperture.simulation.sourceAssets`, touching about `26%` of RAF windows, but
+  the `msgImpact` split did not show message-delivery windows as consistently
+  worse. Disabling dedicated source-asset messages dropped delivery to about
+  `2 Hz` / `3.3%` of RAF windows, but did not improve the direct Aperture
+  median against default in this rebuilt sample: default-minus-off medians were
+  interval p95 `-0.14 ms`, adjacent-jitter p95 `-0.14 ms`, RMS `-0.04 ms`,
+  score `-0.12 ms`, within-1ms `+2.2 pp`, and callback p95 effectively tied.
+  Conclusion: the render heartbeat should remain poll-only, but the remaining
+  source-asset path needs a real pollable/coalesced dynamic-asset data plane
+  rather than blind message suppression.
 - Short headed sanity trace, 2.5s samples:
   `/tmp/racing-paired-sab-plan-check/summary.json`
   - Aperture idle RAF p95 `18.06 ms`; three.js idle p95 `18.20 ms`.
@@ -235,12 +255,111 @@ Latest paired trace evidence after this slice:
     `3.49 ms` callback p95), despite the same `~53 Hz` delivered-message rate.
     That reinforces the current direction: measure message shape/timing, and
     make dynamic geometry pollable/coalesced before changing defaults again.
+- Clean poll/default repeat after auto-shadow input-key cleanup:
+  `/tmp/racing-pacing-poll-autoshadow-clean-drive-repeat3/summary.json`
+  - Aperture won the paired drive aggregate on interval p99, max interval,
+    absolute-deviation p95, adjacent-jitter p95, RMS deviation,
+    `pacingInstabilityScoreMs`, within-1ms ratio, and jitter-over-2ms ratio.
+    It narrowly lost interval p95 (`d50 +0.02 ms`) and still lost callback p95
+    in all three trials (`d50 +0.84 ms`).
+  - Delivered worker messages remained about `15.6-16.0 Hz`, mostly
+    `aperture.simulation.sourceAssets`, and touched about `26%` of RAF
+    windows. The remaining message stream is now concrete enough to track as a
+    pacing input, not just a total counter.
+  - Auto-shadow cache keys now describe actual shadow inputs instead of broad
+    snapshot-family changes, and primary-camera frames avoid the unused
+    no-camera fallback fit. That is a general render-loop cleanup, but this
+    trace did not prove reuse yet: final sampled frames still reported
+    `autoShadowFramesCreated:1` / `autoShadowFramesReused:0`, while
+    `prepareMainAutoShadow` remained about `1.05-1.10 ms` p50 and
+    `1.27-1.30 ms` p95. Add miss-reason diagnostics before claiming this as a
+    pacing win.
+- Auto-shadow miss-reason repeat:
+  `/tmp/racing-pacing-autoshadow-miss-reasons-drive-repeat3/summary.json`
+  - The trace now exposes `resourceReuse.autoShadowFrameCache`, including
+    `status`, `reason`, `reuseSource`, input-key hashes/lengths, and
+    `firstChangedInputSection`.
+  - Aperture won the 3-trial drive aggregate on interval p95, interval p99,
+    absolute-deviation p95, adjacent-jitter p95, RMS deviation,
+    `pacingInstabilityScoreMs`, within-1ms ratio, and jitter-over-2ms ratio.
+    It still lost callback p95 in every trial (`d50 +1.32 ms`).
+  - Final sampled frames showed two auto-shadow cache hits through
+    `reuseSource: "change-set"` and one miss with
+    `reason: "input-key-changed"` / `firstChangedInputSection: "camera"`.
+    Hit samples drove `prepareMainAutoShadow` p50 down to about `0.16 ms`; the
+    camera-miss sample was about `0.94 ms` p50.
+  - Worker messages remained `15.6-16.3 Hz`, mostly
+    `aperture.simulation.sourceAssets`, touching about `26%` of RAF windows.
+    This keeps the next transport slice focused on the dynamic source-asset
+    data plane.
+- Prepared mesh alias-pruning repeat:
+  `/tmp/racing-pacing-mesh-alias-prune-idle-drive-repeat3/summary.json`
+  - Same-layout dynamic mesh version bumps now prune stale prepared mesh aliases
+    after updating the reusable GPU buffers. This keeps the dynamic trail GPU
+    resource cache to the current alias instead of accumulating one cache entry
+    per source-asset version.
+  - Aperture won the aggregate pacing-shape metrics in both idle and drive.
+    Idle aggregate won interval p95, deviation p95, adjacent-jitter p95, RMS,
+    `pacingInstabilityScoreMs`, within-1ms ratio, and jitter-over-2ms ratio
+    (`2/3` wins on each). Drive aggregate won the same set, with `3/3` wins on
+    deviation p95, RMS, score, within-1ms, and jitter-over-2ms.
+  - Callback p95 still lost: idle `d50 +0.84 ms` and drive `d50 +1.48 ms`.
+  - Resource effect: sampled idle/drive frames now showed
+    `preparedMeshCache.totalEntries:2`, `meshBuffersCreated:0`, and
+    `preparedMeshBuffersCreated:0`. The source-asset message stream did not
+    change; drive remained about `16 Hz` and mostly
+    `aperture.simulation.sourceAssets`.
+- Rebuilt current-source source-asset rate sweep after backing out the
+  unproven auto-shadow fast path:
+  `/tmp/racing-source-rate-rebuilt-default/summary.json`,
+  `/tmp/racing-source-rate-rebuilt-off/summary.json`, and
+  `/tmp/racing-source-rate-rebuilt-60/summary.json` (`2026-06-18`, 3
+  Aperture-only drive trials per config, 4 second samples, no trace/profile).
+  - Default native-RAF SAB still delivers about `15.7 Hz` of worker messages
+    during drive, mostly `aperture.simulation.sourceAssets`, touching about
+    `26%` of RAF windows. Median pacing: interval p95 `18.36 ms`, deviation
+    p95 `1.81 ms`, adjacent-jitter p95 `3.38 ms`, RMS `0.89 ms`, score
+    `2.59 ms`, within-1ms `72.5%`, jitter-over-2ms `18.8%`, callback p95
+    `3.95 ms`.
+  - `--source-assets-message-rate-hz=0` reduced delivered worker messages to
+    about `2.0 Hz` and touched only `3.3%` of RAF windows. Median pacing
+    improved on interval p95 (`18.10 ms`), adjacent-jitter p95 (`2.73 ms`),
+    RMS (`0.78 ms`), score (`2.14 ms`), within-1ms (`74.9%`), and
+    jitter-over-2ms (`14.3%`). Callback p95 only moved to `3.82 ms`, so the
+    remaining callback tail is not primarily a source-asset notification
+    problem.
+  - `--source-assets-message-rate-hz=60` delivered about `53.9 Hz` and touched
+    about `88%` of RAF windows. It improved within-1ms (`82.5%`) and
+    jitter-over-2ms (`12.1%`) versus default, but interval p95/score were mixed
+    and callback p95 stayed near `3.84 ms`.
+  - Current conclusion: the render heartbeat should stay poll-only, and the
+    source-asset stream should not be judged only by message count. Sparse
+    dynamic-asset messages can disturb RAF regularity, while regular high-rate
+    messages can look smoother but increase wakeups. The durable fix remains a
+    pollable/coalesced dynamic-asset data plane, starting with dynamic mesh
+    update ranges, so visual freshness is not tied to a `postMessage` cadence.
+- Rebuilt current-source paired default drive trace:
+  `/tmp/racing-rebuilt-default-paired-drive-repeat3/summary.json`
+  (`2026-06-18`, 3 paired drive trials, 4 second samples, no trace/profile).
+  - Aperture won the drive aggregate on interval p95 (`d50 -0.41 ms`),
+    interval p99 (`d50 -0.15 ms`), max interval (`d50 -0.06 ms`), deviation p95
+    (`d50 -0.20 ms`), adjacent-jitter p95 (`d50 -0.75 ms`), RMS
+    (`d50 -0.20 ms`), `pacingInstabilityScoreMs` (`d50 -0.58 ms`),
+    within-1ms ratio (`d50 +8.7 pp`), and jitter-over-2ms ratio
+    (`d50 -9.2 pp`).
+  - Aperture still lost callback p95 in every trial (`d50 +1.30 ms` versus
+    three.js), despite winning the frame-pacing shape. Treat callback p95 as
+    the remaining render-work target, not as proof that the RAF poll model is
+    failing.
 
 Racing still authors dynamic drift-mark mesh assets while driving. Therefore,
 simply lowering the generic source-asset sideband can improve this benchmark,
 but it trades against dynamic-asset freshness and is not a complete poll model.
 The correct follow-up is to split dynamic asset payload delivery from
 main-thread wakeups, not to add a Racing-specific source-asset throttle.
+The current worker source-asset serializer deliberately commits changed asset
+versions only after a message carries them, so disabling source-asset messages
+without a new shared/mailbox data path is a freshness tradeoff, not a fix.
 
 ## Confirmed Current Behavior
 

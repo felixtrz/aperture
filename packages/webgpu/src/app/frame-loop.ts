@@ -39,6 +39,10 @@ import {
 } from "../materials/standard/standard-app-pipeline-keys.js";
 import { writeRenderFramePlanFromSnapshot } from "../render/frame/render-frame-plan.js";
 import {
+  prepareDrawOrderTransformPacking,
+  type PrepareDrawOrderTransformPackingOptions,
+} from "../render/frame/draw-order-transform-packing.js";
+import {
   createWebGpuAppResourceReuseReport,
   renderReport,
   frameBoundariesNeedGpuDrain,
@@ -55,6 +59,7 @@ import { getOrCreateWebGpuAppPipeline } from "./pipeline-resources.js";
 import {
   createEmptyRenderSnapshot,
   createWebGpuAppSnapshotUpdateMetadata,
+  renderSnapshotTimeSeconds,
 } from "./snapshot.js";
 import {
   newOcclusionQueryDiagnostics,
@@ -96,6 +101,7 @@ import type {
 
 interface WebGpuAppFrameRenderOptions extends WebGpuAppRenderOptions {
   readonly previousSnapshotForUpdate?: RenderSnapshot | null;
+  readonly resourceLifetimeFrame?: number;
 }
 
 export async function renderWebGpuAppFrame(
@@ -205,6 +211,7 @@ export async function renderWebGpuAppFrame(
         localLightCookieResources.resources,
       ),
   });
+  const resourceLifetimeFrame = options.resourceLifetimeFrame ?? snapshot.frame;
   const updateMetadata = createWebGpuAppSnapshotUpdateMetadata(
     snapshot,
     options,
@@ -394,6 +401,7 @@ export async function renderWebGpuAppFrame(
       builtInResourceSet: queuedBuiltIn.resourceSet,
       routeDiagnostics: queuedBuiltIn.diagnostics,
       reuse,
+      resourceLifetimeFrame,
       ...(options.clearColor === undefined
         ? {}
         : { clearColor: options.clearColor }),
@@ -401,6 +409,9 @@ export async function renderWebGpuAppFrame(
       ...(options.readbackSamples === undefined
         ? {}
         : { readbackSamples: options.readbackSamples }),
+      ...(options.gpuTimings === undefined
+        ? {}
+        : { gpuTimings: options.gpuTimings }),
       ...(options.standardMaterialShadowReceiverResources === undefined
         ? {}
         : {
@@ -444,6 +455,9 @@ export async function renderWebGpuAppFrame(
       ...(options.readbackSamples === undefined
         ? {}
         : { readbackSamples: options.readbackSamples }),
+      ...(options.gpuTimings === undefined
+        ? {}
+        : { gpuTimings: options.gpuTimings }),
       phaseTimer,
     });
   }
@@ -530,6 +544,7 @@ export async function renderWebGpuAppFrame(
       resourceSet: queuedBuiltIn.resourceSet,
       routeDiagnostics: queuedBuiltIn.diagnostics,
       reuse,
+      resourceLifetimeFrame,
       ...(options.clearColor === undefined
         ? {}
         : { clearColor: options.clearColor }),
@@ -537,6 +552,9 @@ export async function renderWebGpuAppFrame(
       ...(options.readbackSamples === undefined
         ? {}
         : { readbackSamples: options.readbackSamples }),
+      ...(options.gpuTimings === undefined
+        ? {}
+        : { gpuTimings: options.gpuTimings }),
       ...(options.standardMaterialShadowReceiverResources === undefined
         ? {}
         : {
@@ -743,6 +761,7 @@ export async function renderWebGpuAppFrame(
       cache: resourceCache,
       preparedMaterials: resourceCache.preparedMaterials,
       snapshot,
+      resourceLifetimeFrame,
       item,
       textureSamplerDependencies,
       viewUniforms: packedViews,
@@ -834,6 +853,20 @@ export async function renderWebGpuAppFrame(
       : {}),
     pipelines: [pipelineResult],
     bindGroups: frameResources.bindGroups,
+    drawOrderTransformPacking: (input) =>
+      prepareDrawOrderTransformPacking({
+        device: app.initialization
+          .device as PrepareDrawOrderTransformPackingOptions["device"],
+        packages: input.packages,
+        transforms: input.transforms,
+        ...(input.pipelineKeysByRenderId === undefined
+          ? {}
+          : { pipelineKeysByRenderId: input.pipelineKeysByRenderId }),
+        pipelines: input.pipelines,
+        bindGroups: input.bindGroups,
+        cache: resourceCache.drawOrderTransforms,
+        scratch: resourceCache.frameScratch.drawOrderTransforms,
+      }),
     scratch: resourceCache.frameScratch.framePlan,
   });
   phaseTimer.finish("queue");
@@ -865,7 +898,7 @@ export async function renderWebGpuAppFrame(
     snapshot,
     viewUniforms: packedViews,
     reuse,
-    time: snapshot.frame / 60,
+    time: renderSnapshotTimeSeconds(snapshot),
   });
   const uiFrame = await prepareUiFrameResourcesForSnapshot({
     app,
@@ -921,6 +954,10 @@ export async function renderWebGpuAppFrame(
     commands: frameCommands,
     label: options.label ?? "aperture-webgpu-app",
   });
+  const renderBundleCommands = indirectDraws.commands.slice(
+    0,
+    framePlan.commandPlan.commands.length,
+  );
   phaseTimer.start("submit");
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app,
@@ -928,6 +965,7 @@ export async function renderWebGpuAppFrame(
     cache: resourceCache,
     snapshot,
     commands: indirectDraws.commands,
+    renderBundleCommands,
     overlayCommands: uiFrame.commands,
     label: options.label ?? "aperture-webgpu-app",
     reuse,
@@ -937,6 +975,9 @@ export async function renderWebGpuAppFrame(
     ...(options.clearColor === undefined
       ? {}
       : { clearColor: options.clearColor }),
+    ...(options.gpuTimings === undefined
+      ? {}
+      : { gpuTimings: options.gpuTimings }),
     ...(options.readbackSamples === undefined
       ? {}
       : { readbackSamples: options.readbackSamples }),

@@ -82,7 +82,7 @@ export const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           materialHandle: options.item.draw.material,
           materialKey: options.item.materialKey,
           sourceMaterialKey: options.item.sourceMaterialKey,
-          frame: options.snapshot.frame,
+          frame: options.resourceLifetimeFrame,
           pipelineKey: options.item.draw.batchKey.pipelineKey,
           preparedMeshes: options.cache.preparedMeshes,
           preparedScalarMaterials: options.preparedMaterials.unlit,
@@ -90,6 +90,8 @@ export const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           textureSamplerDependencies: options.textureSamplerDependencies,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
+          preparedViewUniform: options.preparedViewUniform,
+          preparedWorldTransforms: options.preparedWorldTransforms,
           ...(options.previousWorldTransforms === undefined
             ? {}
             : { previousWorldTransforms: options.previousWorldTransforms }),
@@ -108,12 +110,14 @@ export const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           materialHandle: options.item.draw.material,
           materialKey: options.item.materialKey,
           sourceMaterialKey: options.item.sourceMaterialKey,
-          frame: options.snapshot.frame,
+          frame: options.resourceLifetimeFrame,
           pipelineKey: options.item.draw.batchKey.pipelineKey,
           assets: options.assets,
           textureSamplerDependencies: options.textureSamplerDependencies,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
+          preparedViewUniform: options.preparedViewUniform,
+          preparedWorldTransforms: options.preparedWorldTransforms,
           ...(options.previousWorldTransforms === undefined
             ? {}
             : { previousWorldTransforms: options.previousWorldTransforms }),
@@ -141,11 +145,14 @@ export const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           materialHandle: options.item.draw.material,
           materialKey: options.item.materialKey,
           sourceMaterialKey: options.item.sourceMaterialKey,
+          resourceLifetimeFrame: options.resourceLifetimeFrame,
           pipelineKey: options.item.draw.batchKey.pipelineKey,
           assets: options.assets,
           textureSamplerDependencies: options.textureSamplerDependencies,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
+          preparedViewUniform: options.preparedViewUniform,
+          preparedWorldTransforms: options.preparedWorldTransforms,
           ...(options.previousWorldTransforms === undefined
             ? {}
             : { previousWorldTransforms: options.previousWorldTransforms }),
@@ -206,11 +213,13 @@ export const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           materialHandle: options.item.draw.material,
           materialKey: options.item.materialKey,
           sourceMaterialKey: options.item.sourceMaterialKey,
-          frame: options.snapshot.frame,
+          frame: options.resourceLifetimeFrame,
           pipelineKey: options.item.draw.batchKey.pipelineKey,
           assets: options.assets,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
+          preparedViewUniform: options.preparedViewUniform,
+          preparedWorldTransforms: options.preparedWorldTransforms,
           ...(options.previousWorldTransforms === undefined
             ? {}
             : { previousWorldTransforms: options.previousWorldTransforms }),

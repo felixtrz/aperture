@@ -4,6 +4,7 @@ import {
   assembleFrameBoundary,
   createRenderBundleCache,
   createRenderBundleCommandKey,
+  summarizeRenderBundleKey,
   type RenderPassCommand,
 } from "@aperture-engine/webgpu/test-support";
 
@@ -411,8 +412,9 @@ describe("frame boundary assembly helper", () => {
     expect(events).toEqual(["begin", "draw", "end", "finish", "submit:1"]);
   });
 
-  it("keys bind group bundle compatibility by resource key instead of wrapper identity", () => {
+  it("keys bind group bundle compatibility by resource key and captured bind group identity", () => {
     const cache = createRenderBundleCache();
+    const bindGroup = { frame: 1 };
     const first = createRenderBundleCommandKey(
       {
         targetKey: "swapchain",
@@ -423,7 +425,7 @@ describe("frame boundary assembly helper", () => {
             renderId: 1,
             index: 0,
             resourceKey: "bind-group:view-buffer",
-            bindGroup: { frame: 1 },
+            bindGroup,
           },
           drawCommand(),
         ],
@@ -440,7 +442,7 @@ describe("frame boundary assembly helper", () => {
             renderId: 1,
             index: 0,
             resourceKey: "bind-group:view-buffer",
-            bindGroup: { frame: 2 },
+            bindGroup,
           },
           drawCommand(),
         ],
@@ -449,6 +451,45 @@ describe("frame boundary assembly helper", () => {
     );
 
     expect(second).toBe(first);
+
+    const replaced = createRenderBundleCommandKey(
+      {
+        targetKey: "swapchain",
+        colorFormats: ["bgra8unorm"],
+        commands: [
+          {
+            kind: "setBindGroup",
+            renderId: 1,
+            index: 0,
+            resourceKey: "bind-group:view-buffer",
+            bindGroup: { frame: 1 },
+          },
+          drawCommand(),
+        ],
+      },
+      cache,
+    );
+
+    expect(replaced).not.toBe(first);
+  });
+
+  it("summarizes long render bundle keys for diagnostics without losing identity", () => {
+    const short = summarizeRenderBundleKey("static-plane");
+    const longKey = "render-bundle:" + "command-key:".repeat(80);
+    const long = summarizeRenderBundleKey(longKey);
+    const sameLong = summarizeRenderBundleKey(longKey);
+    const otherLong = summarizeRenderBundleKey(`${longKey}:other`);
+
+    expect(short).toEqual({
+      key: "static-plane",
+      keyHash: "60a4c424",
+      keyLength: 12,
+    });
+    expect(long.key).toBe(`hash:${long.keyHash}:length:${longKey.length}`);
+    expect(long.key?.length).toBeLessThan(40);
+    expect(long.keyLength).toBe(longKey.length);
+    expect(long.keyHash).toBe(sameLong.keyHash);
+    expect(long.keyHash).not.toBe(otherLong.keyHash);
   });
 });
 

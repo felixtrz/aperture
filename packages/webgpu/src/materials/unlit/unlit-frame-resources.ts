@@ -100,6 +100,8 @@ export interface CreateUnlitFrameGpuResourcesOptions {
   readonly device: UnlitFrameGpuResourceDeviceLike;
   readonly mesh: MeshAsset | null;
   readonly preparedMesh?: MeshGpuBufferResource | undefined;
+  readonly preparedViewUniform?: ViewUniformGpuBufferResource | undefined;
+  readonly preparedWorldTransforms?: WorldTransformGpuBufferResource | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
   readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
@@ -471,6 +473,10 @@ function createViewUniformResource(
   options: UnlitSharedFrameGpuResourceOptions,
   diagnostics: CreateUnlitFrameGpuResourcesDiagnostic[],
 ): ViewUniformGpuBufferResource | null {
+  if (options.preparedViewUniform !== undefined) {
+    return options.preparedViewUniform;
+  }
+
   if (options.viewUniforms === null) {
     diagnostics.push({
       code: "unlitFrameResources.missingViewUniforms",
@@ -498,6 +504,10 @@ function createWorldTransformResource(
   options: UnlitSharedFrameGpuResourceOptions,
   diagnostics: CreateUnlitFrameGpuResourcesDiagnostic[],
 ): WorldTransformGpuBufferResource | null {
+  if (options.preparedWorldTransforms !== undefined) {
+    return options.preparedWorldTransforms;
+  }
+
   if (options.worldTransforms === null) {
     diagnostics.push({
       code: "unlitFrameResources.missingWorldTransforms",
@@ -559,6 +569,8 @@ interface UnlitSharedFrameGpuResourceOptions {
   readonly device: UnlitFrameGpuResourceDeviceLike;
   readonly mesh: MeshAsset | null;
   readonly preparedMesh?: MeshGpuBufferResource | undefined;
+  readonly preparedViewUniform?: ViewUniformGpuBufferResource | undefined;
+  readonly preparedWorldTransforms?: WorldTransformGpuBufferResource | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
 }

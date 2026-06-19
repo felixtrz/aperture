@@ -12,6 +12,10 @@ export interface VersionedUploadStamp {
 interface DirtyUploadContent {
   readonly contentVersion?: number | undefined;
   readonly dirtyRange?: PackedTransformDirtyRange | null | undefined;
+  readonly dirtyRanges?:
+    | readonly PackedTransformDirtyRange[]
+    | null
+    | undefined;
 }
 
 /**
@@ -46,6 +50,31 @@ export function writeVersionedBufferData(
 
   if (stamp.version === version) {
     return "skipped";
+  }
+
+  const ranges = content.dirtyRanges;
+
+  if (
+    ranges !== null &&
+    ranges !== undefined &&
+    ranges.length > 0 &&
+    ranges.every((range) => !range.full) &&
+    stamp.version === version - 1
+  ) {
+    for (const range of ranges) {
+      const written = writeBufferSubData(device, buffer, source, {
+        bufferByteOffset: range.floatOffset * FLOAT32_BYTES,
+        dataByteOffset: range.floatOffset * FLOAT32_BYTES,
+        byteLength: range.floatCount * FLOAT32_BYTES,
+      });
+
+      if (!written) {
+        return false;
+      }
+    }
+
+    stamp.version = version;
+    return "sub-range";
   }
 
   const range = content.dirtyRange;

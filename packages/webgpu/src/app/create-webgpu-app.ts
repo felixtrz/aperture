@@ -120,6 +120,7 @@ export async function createWebGpuApp(
   let latestPickReport: WebGpuAppPickReport | null = null;
   let latestPickReportJson: WebGpuAppPickReportJsonValue | null = null;
   let latestWorkerError: WebGpuAppWorkerRenderErrorDiagnostic | null = null;
+  let preparedResourceLifetimeFrame = 0;
   const cadence = createWebGpuAppCadenceDiagnostics();
   const defaultGpuTimings =
     options.gpuTimings === true || options.timestampQuery === true;
@@ -190,6 +191,7 @@ export async function createWebGpuApp(
       cadence.recordRenderStarted(snapshot.frame, {
         snapshotQueueAgeMilliseconds,
       });
+      options.onPresentationSnapshot?.(snapshot);
       await app.renderSnapshot(snapshot, {
         frame: snapshot.frame,
         ...(snapshotChangeSet === null ? {} : { snapshotChangeSet }),
@@ -337,6 +339,11 @@ export async function createWebGpuApp(
       options.simulationWorker.start(
         mergeWorkerStartOptions(
           assetDecoderStartOptions,
+          createPresentationSnapshotStartOptions({
+            hasNativePresentationFrame,
+            sharedSnapshotActive:
+              snapshotTransport.mode === "shared-array-buffer",
+          }),
           options.workerStartOptions,
           startOptions,
           transportStartPayload === null
@@ -405,6 +412,7 @@ export async function createWebGpuApp(
               pipeline,
               getBindGroupLayout,
             }),
+          resourceLifetimeFrame: nextPreparedResourceLifetimeFrame(),
         },
       );
 
@@ -414,6 +422,7 @@ export async function createWebGpuApp(
     },
     async renderSnapshot(snapshot, renderOptions = {}) {
       const previousSnapshotForReport = previousSnapshotForUpdate;
+      const resourceLifetimeFrame = nextPreparedResourceLifetimeFrame();
       const report = await renderWebGpuAppFrame(
         { app, sourceAssets },
         resourceCache,
@@ -422,6 +431,7 @@ export async function createWebGpuApp(
           gpuTimings: renderOptions.gpuTimings ?? defaultGpuTimings,
           snapshot,
           previousSnapshotForUpdate,
+          resourceLifetimeFrame,
         },
       );
 
@@ -435,7 +445,7 @@ export async function createWebGpuApp(
       if (report.ok) {
         evictWebGpuAppPreparedResourceCaches({
           cache: resourceCache,
-          frame: report.frame,
+          frame: resourceLifetimeFrame,
           resourceReuse: report.resourceReuse,
         });
       }
@@ -462,6 +472,11 @@ export async function createWebGpuApp(
   }
 
   return { ok: true, app, initialization };
+
+  function nextPreparedResourceLifetimeFrame(): number {
+    preparedResourceLifetimeFrame += 1;
+    return preparedResourceLifetimeFrame;
+  }
 
   function nextRenderableSnapshotEvent(): PendingSnapshotEventRecord | null {
     return (
@@ -796,6 +811,18 @@ function nowMilliseconds(): number {
   const clock = globalThis.performance;
 
   return clock === undefined ? Date.now() : clock.now();
+}
+
+function createPresentationSnapshotStartOptions(options: {
+  readonly hasNativePresentationFrame: boolean;
+  readonly sharedSnapshotActive: boolean;
+}): Record<string, unknown> | undefined {
+  return options.hasNativePresentationFrame && options.sharedSnapshotActive
+    ? {
+        sharedSnapshotMessageRateHz: 0,
+        sourceAssetsMessageRateHz: 15,
+      }
+    : undefined;
 }
 
 function mergeWorkerStartOptions(

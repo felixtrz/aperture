@@ -22,6 +22,7 @@ import {
   type QueuedBuiltInAppResourceItem,
   type UnlitFrameGpuResources,
 } from "@aperture-engine/webgpu/test-support";
+import type { PreparedAppTextureSamplerResources } from "../../packages/webgpu/src/app/app-texture-sampler-resources.js";
 
 describe("queued built-in frame-resource set preparation", () => {
   it("prepares a routed built-in frame-resource set with injected pipeline callbacks", async () => {
@@ -496,12 +497,12 @@ function createMaterialAssetForFamily(
 
 function preparedDependencies(
   overrides: Partial<{
-    readonly textures: readonly unknown[];
-    readonly samplers: readonly unknown[];
+    readonly textures: PreparedAppTextureSamplerResources["textures"];
+    readonly samplers: PreparedAppTextureSamplerResources["samplers"];
     readonly textureKeys: readonly string[];
     readonly samplerKeys: readonly string[];
   }> = {},
-) {
+): PreparedAppTextureSamplerResources {
   return {
     valid: true,
     textures: [],

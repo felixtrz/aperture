@@ -1,5 +1,6 @@
 import type {
   MeshAsset,
+  MeshBufferUpdateRange,
   MeshIndexBufferDescriptor,
   MeshSubmeshDescriptor,
   MeshVertexStreamDescriptor,
@@ -10,7 +11,8 @@ export type MeshUploadUsageHint = "vertex" | "index";
 export type MeshUploadPlanDiagnosticCode =
   | "meshUpload.missingVertexStreamData"
   | "meshUpload.invalidVertexStreamData"
-  | "meshUpload.invalidIndexData";
+  | "meshUpload.invalidIndexData"
+  | "meshUpload.invalidUpdateRange";
 
 export interface MeshUploadPlanDiagnostic {
   readonly code: MeshUploadPlanDiagnosticCode;
@@ -28,6 +30,7 @@ export interface MeshVertexUploadDescriptor {
   readonly byteLength: number;
   readonly source: ArrayBufferView;
   readonly attributes: MeshVertexStreamDescriptor["attributes"];
+  readonly updateRanges?: readonly MeshBufferUpdateRange[];
 }
 
 export interface MeshIndexUploadDescriptor {
@@ -37,6 +40,7 @@ export interface MeshIndexUploadDescriptor {
   readonly indexCount: number;
   readonly byteLength: number;
   readonly source: ArrayBufferView;
+  readonly updateRanges?: readonly MeshBufferUpdateRange[];
 }
 
 export interface MeshSubmeshUploadRange {
@@ -135,17 +139,28 @@ function createVertexUploadDescriptor(
     return [];
   }
 
+  const updateRanges = normalizeUpdateRanges(
+    stream.updateRanges,
+    source.byteLength,
+    diagnostics,
+    "vertexStreams.updateRanges",
+    stream.id,
+  );
+  const descriptor: MeshVertexUploadDescriptor = {
+    label: `${mesh.label}/vertex:${stream.id}`,
+    streamId: stream.id,
+    usage: "vertex",
+    arrayStride: stream.arrayStride,
+    vertexCount: stream.vertexCount,
+    byteLength: source.byteLength,
+    source,
+    attributes: stream.attributes,
+  };
+
   return [
-    {
-      label: `${mesh.label}/vertex:${stream.id}`,
-      streamId: stream.id,
-      usage: "vertex",
-      arrayStride: stream.arrayStride,
-      vertexCount: stream.vertexCount,
-      byteLength: source.byteLength,
-      source,
-      attributes: stream.attributes,
-    },
+    updateRanges === undefined
+      ? descriptor
+      : { ...descriptor, updateRanges },
   ];
 }
 
@@ -209,7 +224,13 @@ function createIndexUploadDescriptor(
     return undefined;
   }
 
-  return {
+  const updateRanges = normalizeUpdateRanges(
+    indexBuffer.updateRanges,
+    source.byteLength,
+    diagnostics,
+    "indexBuffer.updateRanges",
+  );
+  const descriptor: MeshIndexUploadDescriptor = {
     label: `${mesh.label}/index`,
     usage: "index",
     format: indexBuffer.format,
@@ -217,8 +238,53 @@ function createIndexUploadDescriptor(
     byteLength: source.byteLength,
     source,
   };
+
+  return updateRanges === undefined
+    ? descriptor
+    : { ...descriptor, updateRanges };
 }
 
 function toArrayBufferView(value: unknown): ArrayBufferView | undefined {
   return ArrayBuffer.isView(value) ? value : undefined;
+}
+
+function normalizeUpdateRanges(
+  ranges: readonly MeshBufferUpdateRange[] | undefined,
+  byteLength: number,
+  diagnostics: MeshUploadPlanDiagnostic[],
+  field: string,
+  streamId?: string,
+): readonly MeshBufferUpdateRange[] | undefined {
+  if (ranges === undefined) {
+    return undefined;
+  }
+
+  const normalized: MeshBufferUpdateRange[] = [];
+
+  for (const range of ranges) {
+    if (
+      !Number.isInteger(range.byteOffset) ||
+      !Number.isInteger(range.byteLength) ||
+      range.byteOffset < 0 ||
+      range.byteLength < 0 ||
+      range.byteOffset + range.byteLength > byteLength ||
+      range.byteOffset % 4 !== 0 ||
+      range.byteLength % 4 !== 0
+    ) {
+      diagnostics.push({
+        code: "meshUpload.invalidUpdateRange",
+        ...(streamId === undefined ? {} : { streamId }),
+        field,
+        message:
+          "Mesh update ranges must be 4-byte aligned byte windows inside the source buffer.",
+      });
+      continue;
+    }
+
+    if (range.byteLength > 0) {
+      normalized.push(range);
+    }
+  }
+
+  return normalized;
 }

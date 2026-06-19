@@ -198,6 +198,31 @@ describe("installGeneratedAudio (main-thread integration)", () => {
     audio.dispose();
   });
 
+  it("can be driven manually without worker snapshot subscriptions", async () => {
+    const backend = new FakeAudioBackend({ state: "running" });
+    const probe = fakeWorker();
+    const audio = installGeneratedAudio(probe.worker, registryWithClip(), {
+      backend,
+      autoUnlock: false,
+      snapshotSource: "manual",
+    });
+    if (audio === null) throw new Error("expected audio to install");
+
+    expect(probe.listeners).toBe(0);
+    expect(probe.messageListeners).toBe(0);
+
+    audio.applySnapshot(snap([emitter({ autoplay: true })]));
+    await tick();
+
+    expect(audio.engine.activeVoiceCount).toBe(1);
+    expect(audio.engine.activeSourceCount).toBe(1);
+
+    audio.dispose();
+    audio.applySnapshot(snap([emitter({ key: { kind: "entity", id: 2 } })]));
+    await tick();
+    expect(audio.engine.activeVoiceCount).toBe(0);
+  });
+
   it("stops driving after dispose() and tears the engine down", async () => {
     const backend = new FakeAudioBackend({ state: "running" });
     const probe = fakeWorker();

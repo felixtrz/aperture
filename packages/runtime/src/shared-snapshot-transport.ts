@@ -15,9 +15,19 @@ const enum HeaderIndex {
   PacketWords = 6,
   QuadInstanceFloats = 7,
   QuadInstanceWords = 8,
+  TimeLo = 9,
+  TimeHi = 10,
 }
 
-const HEADER_INT32_COUNT = 9;
+const HEADER_INT32_COUNT = 11;
+const FLOAT64_SCRATCH_BYTES = 8;
+const FLOAT64_HEADER_SCRATCH_BUFFER = new ArrayBuffer(FLOAT64_SCRATCH_BYTES);
+const FLOAT64_HEADER_SCRATCH_FLOATS = new Float64Array(
+  FLOAT64_HEADER_SCRATCH_BUFFER,
+);
+const FLOAT64_HEADER_SCRATCH_WORDS = new Int32Array(
+  FLOAT64_HEADER_SCRATCH_BUFFER,
+);
 
 export interface CreateSharedSnapshotTransportOptions {
   readonly maxEntities: number;
@@ -52,6 +62,7 @@ export interface SharedSnapshotTransportLayout {
 
 export interface SharedSnapshotFrameInput {
   readonly frame: number;
+  readonly time?: number;
   readonly transforms: ArrayLike<number>;
   readonly instanceTints?: ArrayLike<number>;
   readonly viewMatrices: ArrayLike<number>;
@@ -62,6 +73,7 @@ export interface SharedSnapshotFrameInput {
 
 export interface SharedSnapshotWriteReport {
   readonly frame: number;
+  readonly time: number;
   readonly sequence: number;
   readonly bufferIndex: number;
   readonly transformFloats: number;
@@ -74,6 +86,7 @@ export interface SharedSnapshotWriteReport {
 
 export interface SharedSnapshotReadFrame {
   readonly frame: number;
+  readonly time: number;
   readonly sequence: number;
   readonly bufferIndex: number;
   readonly transforms: Float32Array;
@@ -377,6 +390,7 @@ function createWriter(
       );
       Atomics.store(header, HeaderIndex.Sequence, writeSequence);
       Atomics.store(header, HeaderIndex.Frame, frame.frame);
+      writeHeaderFloat64(header, HeaderIndex.TimeLo, snapshotFrameTime(frame));
       Atomics.store(header, HeaderIndex.ActiveBuffer, nextBuffer);
       Atomics.store(
         header,
@@ -416,6 +430,7 @@ function createWriter(
 
       return {
         frame: frame.frame,
+        time: snapshotFrameTime(frame),
         sequence: completeSequence,
         bufferIndex: nextBuffer,
         transformFloats: frame.transforms.length,
@@ -457,6 +472,7 @@ function createReader(
 
         const bufferIndex = Atomics.load(header, HeaderIndex.ActiveBuffer);
         const frame = Atomics.load(header, HeaderIndex.Frame);
+        const time = readHeaderFloat64(header, HeaderIndex.TimeLo);
         const transformFloats = Atomics.load(
           header,
           HeaderIndex.TransformFloats,
@@ -495,6 +511,7 @@ function createReader(
 
         return {
           frame,
+          time,
           sequence: sequenceAfter,
           bufferIndex,
           transforms: transforms.subarray(
@@ -599,6 +616,13 @@ function validateFrameInput(
 ): void {
   validateNonNegativeInteger(frame.frame, "frame");
 
+  if (
+    frame.time !== undefined &&
+    (!Number.isFinite(frame.time) || frame.time < 0)
+  ) {
+    throw new RangeError("Shared snapshot transport time must be finite >= 0.");
+  }
+
   if (frame.transforms.length > layout.transformFloatsPerBuffer) {
     throw new RangeError(
       `Shared snapshot transform frame has ${frame.transforms.length} floats; capacity is ${layout.transformFloatsPerBuffer}.`,
@@ -658,4 +682,28 @@ function validateNonNegativeInteger(value: number, label: string): void {
   if (!Number.isInteger(value) || value < 0) {
     throw new RangeError(`Shared snapshot transport ${label} must be >= 0.`);
   }
+}
+
+function snapshotFrameTime(frame: SharedSnapshotFrameInput): number {
+  return typeof frame.time === "number" && Number.isFinite(frame.time)
+    ? Math.max(0, frame.time)
+    : frame.frame / 60;
+}
+
+function writeHeaderFloat64(
+  header: Int32Array,
+  offset: HeaderIndex,
+  value: number,
+): void {
+  FLOAT64_HEADER_SCRATCH_FLOATS[0] = value;
+  Atomics.store(header, offset, FLOAT64_HEADER_SCRATCH_WORDS[0] ?? 0);
+  Atomics.store(header, offset + 1, FLOAT64_HEADER_SCRATCH_WORDS[1] ?? 0);
+}
+
+function readHeaderFloat64(header: Int32Array, offset: HeaderIndex): number {
+  FLOAT64_HEADER_SCRATCH_WORDS[0] = Atomics.load(header, offset);
+  FLOAT64_HEADER_SCRATCH_WORDS[1] = Atomics.load(header, offset + 1);
+  return Number.isFinite(FLOAT64_HEADER_SCRATCH_FLOATS[0] ?? NaN)
+    ? Math.max(0, FLOAT64_HEADER_SCRATCH_FLOATS[0] ?? 0)
+    : 0;
 }

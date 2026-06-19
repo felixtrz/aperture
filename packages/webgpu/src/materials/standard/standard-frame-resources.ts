@@ -202,7 +202,11 @@ export interface CreateStandardFrameGpuResourcesOptions {
   readonly mesh: MeshAsset | null;
   readonly preparedMesh?: MeshGpuBufferResource | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
+  readonly preparedViewUniform?: ViewUniformGpuBufferResource | undefined;
   readonly worldTransforms: PackedSnapshotTransforms | null;
+  readonly preparedWorldTransforms?:
+    | WorldTransformGpuBufferResource
+    | undefined;
   readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly material: StandardMaterialAsset | null;
@@ -316,8 +320,12 @@ export function createStandardFrameGpuResources(
 ): CreateStandardFrameGpuResourcesResult {
   const diagnostics: CreateStandardFrameGpuResourcesDiagnostic[] = [];
   const mesh = createMeshResource(options, diagnostics);
-  const viewUniform = createViewUniformResource(options, diagnostics);
-  const worldTransforms = createWorldTransformResource(options, diagnostics);
+  const viewUniform =
+    options.preparedViewUniform ??
+    createViewUniformResource(options, diagnostics);
+  const worldTransforms =
+    options.preparedWorldTransforms ??
+    createWorldTransformResource(options, diagnostics);
   const instanceTints = createInstanceTintResource(options, diagnostics);
   const skinningJointMatrices = createSkinningJointResource(
     options,

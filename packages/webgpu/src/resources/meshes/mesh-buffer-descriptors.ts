@@ -34,12 +34,14 @@ export interface MeshVertexBufferDescriptorPlan {
   readonly streamId: string;
   readonly descriptor: WebGpuBufferDescriptor;
   readonly source: ArrayBufferView;
+  readonly updateRanges?: MeshVertexUploadDescriptor["updateRanges"];
   readonly vertexCount: number;
 }
 
 export interface MeshIndexBufferDescriptorPlan {
   readonly descriptor: WebGpuBufferDescriptor;
   readonly source: ArrayBufferView;
+  readonly updateRanges?: MeshIndexUploadDescriptor["updateRanges"];
   readonly format: MeshIndexUploadDescriptor["format"];
   readonly indexCount: number;
 }
@@ -117,6 +119,9 @@ function createVertexBufferDescriptor(
   return {
     streamId: upload.streamId,
     source: upload.source,
+    ...(upload.updateRanges === undefined
+      ? {}
+      : { updateRanges: upload.updateRanges }),
     vertexCount: upload.vertexCount,
     descriptor: {
       label: upload.label,
@@ -133,6 +138,9 @@ function createIndexBufferDescriptor(
 ): MeshIndexBufferDescriptorPlan {
   return {
     source: upload.source,
+    ...(upload.updateRanges === undefined
+      ? {}
+      : { updateRanges: upload.updateRanges }),
     format: upload.format,
     indexCount: upload.indexCount,
     descriptor: {

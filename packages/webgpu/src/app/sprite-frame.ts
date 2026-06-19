@@ -12,6 +12,7 @@ import {
 } from "./sprites.js";
 import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
 import { prepareParticleFrameResourcesForSnapshot } from "./particles.js";
+import { renderSnapshotTimeSeconds } from "./snapshot.js";
 import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
 import {
   createWebGpuAppResourceReuseReport,
@@ -141,7 +142,7 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     snapshot: options.snapshot,
     viewUniforms: packedViews,
     reuse,
-    time: options.snapshot.frame / 60,
+    time: renderSnapshotTimeSeconds(options.snapshot),
   });
 
   if (!particleFrame.valid) {
@@ -222,6 +223,9 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     overlayCommands: uiFrame.commands,
     label: options.label ?? "aperture-webgpu-sprite-app",
     reuse,
+    ...(options.gpuTimings === undefined
+      ? {}
+      : { gpuTimings: options.gpuTimings }),
     ...(options.clearColor === undefined
       ? {}
       : { clearColor: options.clearColor }),

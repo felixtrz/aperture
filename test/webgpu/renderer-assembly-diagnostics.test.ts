@@ -96,6 +96,7 @@ function snapshot(
     counts: {
       views: counts.views ?? 1,
       meshDraws: counts.meshDraws ?? 1,
+      shadowCasterDraws: counts.shadowCasterDraws ?? 0,
       lights: counts.lights ?? 0,
       environments: counts.environments ?? 0,
       shadowRequests: counts.shadowRequests ?? 0,

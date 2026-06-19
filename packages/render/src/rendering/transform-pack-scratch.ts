@@ -19,6 +19,7 @@ export {
   ensureInstanceTintDataCapacity,
   ensurePreviousTransformDataCapacity,
   ensureTransformDataCapacity,
+  ensureTransformNextDataCapacity,
 } from "./transform-pack-scratch-capacity.js";
 export {
   instanceAttributeOffsetAt,
@@ -35,6 +36,7 @@ export function createPackedSnapshotTransformsScratch(
   const diagnostics: RenderDiagnostic[] = [];
   const offsetPool: PackedTransformOffset[] = [];
   const data = new Float32Array(floatCapacity);
+  const nextData = new Float32Array(floatCapacity);
 
   for (let i = 0; i < offsetCapacity; i += 1) {
     offsetPool.push(createEmptyOffset());
@@ -42,9 +44,12 @@ export function createPackedSnapshotTransformsScratch(
 
   return {
     data,
+    nextData,
     offsets,
     diagnostics,
     offsetPool,
+    sourceOffsets: [],
+    sourceOffsetToPackedOffset: new Map(),
     result: { data, floatCount: 0, offsets, diagnostics, contentVersion: 0 },
     lastFloatCount: -1,
     contentVersion: 0,

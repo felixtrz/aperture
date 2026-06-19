@@ -548,7 +548,7 @@ describe("GPU particle app frame resources", () => {
         ...emitter.burst!,
         burstId: 2,
         startFrame: 13,
-        position: [2, 2, 3],
+        position: [2, 2, 3] as const,
       },
     };
     const lastEmitter = {
@@ -560,7 +560,7 @@ describe("GPU particle app frame resources", () => {
         ...emitter.burst!,
         burstId: 3,
         startFrame: 14,
-        position: [3, 2, 3],
+        position: [3, 2, 3] as const,
       },
     };
     const initialSnapshot: RenderSnapshot = {

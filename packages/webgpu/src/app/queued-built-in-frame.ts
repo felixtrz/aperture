@@ -50,6 +50,7 @@ import {
 import { prepareSpriteFrameResourcesForSnapshot } from "./sprites.js";
 import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
 import { prepareParticleFrameResourcesForSnapshot } from "./particles.js";
+import { renderSnapshotTimeSeconds } from "./snapshot.js";
 import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
 import { prepareQueuedBuiltInFrameResources } from "./queued-frame-resources.js";
 import { QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION } from "./queued-built-in-adapters.js";
@@ -601,7 +602,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
         snapshot: options.snapshot,
         viewUniforms: packedViews,
         reuse: options.reuse,
-        time: options.snapshot.frame / 60,
+        time: renderSnapshotTimeSeconds(options.snapshot),
       }),
   );
   const uiFrame = await measureRenderPhaseDetailAsync(

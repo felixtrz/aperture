@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FPS_ROOT = path.resolve(__dirname, "..");
-const DEFAULT_PORT = 5173;
+const DEFAULT_PORT = 5182;
 const DT = 1 / 60;
 const LOOK_RADIANS_PER_UNIT = 26 / 700;
 
@@ -255,17 +255,52 @@ async function releaseInputs(mcpClient) {
 }
 
 async function readFpsState(mcpClient) {
-  const response = await mcpClient.call("resource_get", { id: "fps.state" });
+  let lastResponse = null;
+
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const response = await mcpClient.call("resource_get", { id: "fps.state" });
+    const values =
+      fpsStateValuesFromResourceResponse(response) ??
+      (await fpsStateValuesFromBrowserStatus(mcpClient));
+
+    if (values !== undefined) {
+      return values;
+    }
+
+    lastResponse = response;
+    await delay(100);
+  }
+
+  throw new Error(
+    `fps.state was not available: ${JSON.stringify(lastResponse)}`,
+  );
+}
+
+function fpsStateValuesFromResourceResponse(response) {
   const entry =
     response?.result?.resources?.entries?.[0] ??
     response?.result?.entries?.[0] ??
     response?.result?.entry ??
     response?.result;
-  const values = entry?.values;
-  if (values === undefined) {
-    throw new Error(`fps.state was not available: ${JSON.stringify(response)}`);
-  }
-  return values;
+
+  return entry?.values;
+}
+
+async function fpsStateValuesFromBrowserStatus(mcpClient) {
+  const response = await mcpClient.call("browser_status", {});
+  const resources =
+    response?.page?.status?.lastWorkerSummary?.resources?.entries ??
+    response?.status?.lastWorkerSummary?.resources?.entries ??
+    [];
+  const entry = resources.find((resource) => resource.id === "fps.state");
+
+  return entry?.values;
+}
+
+async function delay(ms) {
+  await new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function summarizeState(state) {
@@ -482,6 +517,7 @@ async function main() {
   try {
     await mcp.start();
     await mcp.call("browser_wait_for_webgpu", { timeoutMs: 30_000 });
+    await readFpsState(mcp);
     await resetGame(mcp);
     await provePrimaryMouseShoot(mcp);
     await proveMiddleMouseWeaponToggle(mcp);

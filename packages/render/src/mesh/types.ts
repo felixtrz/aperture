@@ -40,18 +40,25 @@ export interface MeshVertexAttributeDescriptor {
   readonly offset: number;
 }
 
+export interface MeshBufferUpdateRange {
+  readonly byteOffset: number;
+  readonly byteLength: number;
+}
+
 export interface MeshVertexStreamDescriptor {
   readonly id: string;
   readonly arrayStride: number;
   readonly vertexCount: number;
   readonly attributes: readonly MeshVertexAttributeDescriptor[];
   readonly data: Float32Array | Uint16Array | Uint8Array;
+  readonly updateRanges?: readonly MeshBufferUpdateRange[];
 }
 
 export interface MeshIndexBufferDescriptor {
   readonly format: MeshIndexFormat;
   readonly data: Uint16Array | Uint32Array;
   readonly indexCount?: number;
+  readonly updateRanges?: readonly MeshBufferUpdateRange[];
 }
 
 export interface MeshSubmeshDescriptor {

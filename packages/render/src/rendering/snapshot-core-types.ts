@@ -27,6 +27,11 @@ import type {
 // and packed numeric buffers so the same shape can cross a future Worker boundary.
 export interface RenderSnapshot {
   readonly frame: number;
+  /**
+   * Simulation/extraction time in seconds. Older hand-built test snapshots may
+   * omit this; render paths should fall back conservatively when absent.
+   */
+  readonly time?: number;
   readonly views: readonly ViewPacket[];
   readonly meshDraws: readonly MeshDrawPacket[];
   /**

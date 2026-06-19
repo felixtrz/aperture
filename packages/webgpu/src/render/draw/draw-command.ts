@@ -32,6 +32,7 @@ export interface DrawCommandDescriptor {
   readonly indexCount: number | null;
   readonly indexStart?: number | null;
   readonly transformPackedOffset: number;
+  readonly worldTransformResourceKey?: string;
   readonly occlusionQuery?: boolean;
 }
 
@@ -44,6 +45,7 @@ export interface CreateDrawCommandDescriptorOptions {
   readonly instanceTintResources?: readonly InstanceTintGpuBufferResource[];
   readonly instanceAttributeResources?: readonly InstanceAttributeGpuBufferResource[];
   readonly pipelineKeysByRenderId?: ReadonlyMap<number, string>;
+  readonly worldTransformResourceKeyByRenderId?: ReadonlyMap<number, string>;
 }
 
 export interface DrawCommandDescriptorScratch {
@@ -68,6 +70,7 @@ interface MutableDrawCommandDescriptor {
   indexCount: number | null;
   indexStart: number | null;
   transformPackedOffset: number;
+  worldTransformResourceKey?: string;
   occlusionQuery?: boolean;
 }
 
@@ -203,6 +206,15 @@ export function writeDrawCommandDescriptors(
         ? null
         : (drawPackage.packet.indexStart ?? 0);
     descriptor.transformPackedOffset = drawPackage.transformPackedOffset;
+    const worldTransformResourceKey =
+      options.worldTransformResourceKeyByRenderId?.get(drawPackage.renderId);
+
+    if (worldTransformResourceKey === undefined) {
+      delete descriptor.worldTransformResourceKey;
+    } else {
+      descriptor.worldTransformResourceKey = worldTransformResourceKey;
+    }
+
     if (drawPackage.packet.occlusionQuery === true) {
       descriptor.occlusionQuery = true;
     } else {

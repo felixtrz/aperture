@@ -23,6 +23,7 @@ import {
   publishGeneratedWorkerSnapshot,
   type GeneratedWorkerSummaryCadence,
 } from "../../packages/app/src/worker/snapshot.js";
+import type { GeneratedEntityToolBridge } from "../../packages/app/src/worker/devtools/entities.js";
 
 describe("generated worker shared snapshot message cadence", () => {
   afterEach(() => {
@@ -68,7 +69,7 @@ describe("generated worker shared snapshot message cadence", () => {
       transport,
       pendingInput: [],
       sourceAssetState: createSourceAssetSerializationState(),
-      entityTools: { summary: () => ({ available: true }) },
+      entityTools: fakeEntityTools(),
       summaryCadence: thinSummaryCadence(),
       delta: 1 / 60,
       previousPublishTiming: null,
@@ -171,7 +172,7 @@ describe("generated worker shared snapshot message cadence", () => {
       transport,
       pendingInput: [],
       sourceAssetState: createSourceAssetSerializationState(),
-      entityTools: { summary: () => ({ available: true }) },
+      entityTools: fakeEntityTools(),
       summaryCadence: thinSummaryCadence(),
       delta: 1 / 60,
       previousPublishTiming: null,
@@ -232,7 +233,7 @@ describe("generated worker shared snapshot message cadence", () => {
       transport,
       pendingInput: [],
       sourceAssetState: createSourceAssetSerializationState(),
-      entityTools: { summary: () => ({ available: true }) },
+      entityTools: fakeEntityTools(),
       summaryCadence: thinSummaryCadence(),
       delta: 1 / 60,
       previousPublishTiming: null,
@@ -294,7 +295,7 @@ describe("generated worker shared snapshot message cadence", () => {
       transport,
       pendingInput: [],
       sourceAssetState: createSourceAssetSerializationState(),
-      entityTools: { summary: () => ({ available: true }) },
+      entityTools: fakeEntityTools(),
       summaryCadence: thinSummaryCadence(),
       delta: 1 / 60,
       previousPublishTiming: null,
@@ -344,7 +345,7 @@ describe("generated worker shared snapshot message cadence", () => {
       transport,
       pendingInput: [],
       sourceAssetState: createSourceAssetSerializationState(),
-      entityTools: { summary: () => ({ available: true }) },
+      entityTools: fakeEntityTools(),
       summaryCadence: thinSummaryCadence(),
       delta: 1 / 60,
       previousPublishTiming: null,
@@ -481,7 +482,7 @@ describe("generated worker shared snapshot message cadence", () => {
       transport,
       pendingInput: [],
       sourceAssetState: createSourceAssetSerializationState(),
-      entityTools: { summary: () => ({ available: true }) },
+      entityTools: fakeEntityTools(),
       summaryCadence: thinSummaryCadence(),
       delta: 1 / 60,
       previousPublishTiming: null,
@@ -548,7 +549,7 @@ describe("generated worker shared snapshot message cadence", () => {
       transport,
       pendingInput: [],
       sourceAssetState: createSourceAssetSerializationState(),
-      entityTools: { summary: () => ({ available: true }) },
+      entityTools: fakeEntityTools(),
       summaryCadence: thinSummaryCadence(),
       delta: 1 / 60,
       previousPublishTiming: null,
@@ -733,6 +734,29 @@ function audioEmitter(
   };
 }
 
+function fakeEntityTools(): GeneratedEntityToolBridge {
+  return {
+    handle: () => false,
+    call: () => ({ ok: false, diagnostic: { code: "test.unavailable" } }),
+    summary: () => ({
+      finds: 0,
+      gets: 0,
+      mutations: 0,
+      snapshots: 0,
+      diffs: 0,
+      hierarchies: 0,
+      lastRequest: null,
+      lastFind: null,
+      lastGet: null,
+      lastMutation: null,
+      lastSnapshot: null,
+      lastDiff: null,
+      lastHierarchy: null,
+      diagnostics: [],
+    }),
+  };
+}
+
 function thinSummaryCadence(): GeneratedWorkerSummaryCadence {
   return {
     intervalMilliseconds: 500,
@@ -757,10 +781,16 @@ function baseSnapshot(extra: Partial<RenderSnapshot> = {}): RenderSnapshot {
     report: {
       views: 0,
       meshDraws: 0,
+      shadowCasterDraws: 0,
       lights: 0,
       environments: 0,
+      fogs: 0,
+      particleEmitters: 0,
+      audioEmitters: 0,
       shadowRequests: 0,
       bounds: 0,
+      quadBatches: 0,
+      quadInstances: 0,
       diagnostics: 0,
     },
     ...extra,

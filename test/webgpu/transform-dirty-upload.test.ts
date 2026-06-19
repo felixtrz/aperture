@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   createPackedSnapshotTransformsScratch,
   packSnapshotTransforms,
+  writePackedSnapshotMeshTransforms,
   writePackedSnapshotTransforms,
   TRANSFORM_DIRTY_FULL_WRITE_FRACTION,
+  TRANSFORM_DIRTY_FULL_SPAN_FRACTION,
+  TRANSFORM_DIRTY_MAX_RANGES,
 } from "@aperture-engine/render";
 import {
   writeBufferData,
@@ -84,8 +87,8 @@ describe("writePackedSnapshotTransforms dirty ranges", () => {
 
     expect(result.contentVersion).toBe(2);
     expect(result.dirtyRange).toEqual({
-      floatOffset: 2 * MATRIX_FLOATS + 12,
-      floatCount: 2,
+      floatOffset: 2 * MATRIX_FLOATS,
+      floatCount: MATRIX_FLOATS,
       full: false,
     });
     // The scratch content matches a cold full pack byte-for-byte.
@@ -94,7 +97,7 @@ describe("writePackedSnapshotTransforms dirty ranges", () => {
     );
   });
 
-  it("coalesces multiple moved matrices into one window spanning first to last change", () => {
+  it("keeps sparse moved matrices as bounded dirty ranges", () => {
     const scratch = createPackedSnapshotTransformsScratch();
     const transforms = identityGrid(10);
     writePackedSnapshotTransforms(snapshotWith(transforms, 10), scratch);
@@ -109,20 +112,62 @@ describe("writePackedSnapshotTransforms dirty ranges", () => {
     );
 
     expect(result.dirtyRange).toEqual({
-      floatOffset: 1 * MATRIX_FLOATS + 12,
-      floatCount: 2 * MATRIX_FLOATS + 1,
+      floatOffset: 1 * MATRIX_FLOATS,
+      floatCount: 3 * MATRIX_FLOATS,
       full: false,
     });
+    expect(result.dirtyRanges).toEqual([
+      {
+        floatOffset: 1 * MATRIX_FLOATS,
+        floatCount: MATRIX_FLOATS,
+        full: false,
+      },
+      {
+        floatOffset: 3 * MATRIX_FLOATS,
+        floatCount: MATRIX_FLOATS,
+        full: false,
+      },
+    ]);
   });
 
-  it("falls back to one full write when the changed span crosses the threshold", () => {
+  it("does not fall back just because sparse changes are far apart", () => {
+    const scratch = createPackedSnapshotTransformsScratch();
+    const transforms = identityGrid(8);
+    writePackedSnapshotTransforms(snapshotWith(transforms, 8), scratch);
+
+    const moved = new Float32Array(transforms);
+    moved[12] = 42; // first matrix
+    moved[7 * MATRIX_FLOATS + 12] = 43; // last matrix: span = whole buffer
+
+    const result = writePackedSnapshotTransforms(
+      snapshotWith(moved, 8),
+      scratch,
+    );
+
+    expect(result.dirtyRange).toEqual({
+      floatOffset: 0,
+      floatCount: 8 * MATRIX_FLOATS,
+      full: false,
+    });
+    expect(result.dirtyRanges).toEqual([
+      { floatOffset: 0, floatCount: MATRIX_FLOATS, full: false },
+      {
+        floatOffset: 7 * MATRIX_FLOATS,
+        floatCount: MATRIX_FLOATS,
+        full: false,
+      },
+    ]);
+  });
+
+  it("keeps large contiguous matrix runs as sub-ranges when the dirty span is not near-whole-buffer", () => {
     const scratch = createPackedSnapshotTransformsScratch();
     const transforms = identityGrid(4);
     writePackedSnapshotTransforms(snapshotWith(transforms, 4), scratch);
 
     const moved = new Float32Array(transforms);
-    moved[12] = 42; // first matrix
-    moved[3 * MATRIX_FLOATS + 12] = 43; // last matrix: span = whole buffer
+    for (let index = 0; index < moved.length / 2; index += 1) {
+      moved[index] = (moved[index] ?? 0) + 1;
+    }
 
     const result = writePackedSnapshotTransforms(
       snapshotWith(moved, 4),
@@ -131,12 +176,66 @@ describe("writePackedSnapshotTransforms dirty ranges", () => {
 
     expect(result.dirtyRange).toEqual({
       floatOffset: 0,
-      floatCount: 64,
+      floatCount: 2 * MATRIX_FLOATS,
+      full: false,
+    });
+    expect(result.dirtyRanges).toEqual([
+      { floatOffset: 0, floatCount: 2 * MATRIX_FLOATS, full: false },
+    ]);
+    expect(TRANSFORM_DIRTY_FULL_WRITE_FRACTION).toBeLessThanOrEqual(0.5);
+    expect(TRANSFORM_DIRTY_FULL_SPAN_FRACTION).toBeGreaterThan(0.75);
+  });
+
+  it("falls back to one full write when the changed matrix span is near-whole-buffer", () => {
+    const scratch = createPackedSnapshotTransformsScratch();
+    const transforms = identityGrid(8);
+    writePackedSnapshotTransforms(snapshotWith(transforms, 8), scratch);
+
+    const moved = new Float32Array(transforms);
+    for (const matrix of [0, 2, 4, 7]) {
+      const offset = matrix * MATRIX_FLOATS + 12;
+      moved[offset] = (moved[offset] ?? 0) + 1;
+    }
+
+    const result = writePackedSnapshotTransforms(
+      snapshotWith(moved, 8),
+      scratch,
+    );
+
+    expect(result.dirtyRange).toEqual({
+      floatOffset: 0,
+      floatCount: 8 * MATRIX_FLOATS,
       full: true,
     });
-    expect(TRANSFORM_DIRTY_FULL_WRITE_FRACTION).toBeLessThanOrEqual(
-      (3 * MATRIX_FLOATS + 1) / 64,
+    expect(result.dirtyRanges).toBeUndefined();
+  });
+
+  it("falls back to one full write when sparse updates exceed the range cap", () => {
+    const scratch = createPackedSnapshotTransformsScratch();
+    const matrixCount = TRANSFORM_DIRTY_MAX_RANGES + 2;
+    const transforms = identityGrid(matrixCount);
+    writePackedSnapshotTransforms(
+      snapshotWith(transforms, matrixCount),
+      scratch,
     );
+
+    const moved = new Float32Array(transforms);
+    for (let matrix = 0; matrix < matrixCount; matrix += 1) {
+      const offset = matrix * MATRIX_FLOATS + 12;
+      moved[offset] = (moved[offset] ?? 0) + 1;
+    }
+
+    const result = writePackedSnapshotTransforms(
+      snapshotWith(moved, matrixCount),
+      scratch,
+    );
+
+    expect(result.dirtyRange).toEqual({
+      floatOffset: 0,
+      floatCount: matrixCount * MATRIX_FLOATS,
+      full: true,
+    });
+    expect(result.dirtyRanges).toBeUndefined();
   });
 
   it("treats float-count changes and capacity growth as full writes", () => {
@@ -169,6 +268,90 @@ describe("writePackedSnapshotTransforms dirty ranges", () => {
 
     expect(packed.contentVersion).toBeUndefined();
     expect(packed.dirtyRange).toBeUndefined();
+    expect(packed.dirtyRanges).toBeUndefined();
+  });
+});
+
+describe("writePackedSnapshotMeshTransforms compact dirty ranges", () => {
+  it("packs only mesh-referenced matrices and ignores unrelated transform churn", () => {
+    const scratch = createPackedSnapshotTransformsScratch();
+    const transforms = identityGrid(5);
+    const snapshot = {
+      transforms,
+      meshDraws: [
+        { renderId: 10, worldTransformOffset: 0 },
+        { renderId: 11, worldTransformOffset: 3 * MATRIX_FLOATS },
+      ],
+    } as unknown as Parameters<typeof writePackedSnapshotMeshTransforms>[0];
+
+    const first = writePackedSnapshotMeshTransforms(snapshot, scratch);
+
+    expect(first.floatCount).toBe(2 * MATRIX_FLOATS);
+    expect(first.offsets).toEqual([
+      { renderId: 10, sourceOffset: 0, packedOffset: 0 },
+      {
+        renderId: 11,
+        sourceOffset: 3 * MATRIX_FLOATS,
+        packedOffset: MATRIX_FLOATS,
+      },
+    ]);
+    expect(Array.from(first.data.subarray(0, first.floatCount))).toEqual([
+      ...Array.from(transforms.subarray(0, MATRIX_FLOATS)),
+      ...Array.from(transforms.subarray(3 * MATRIX_FLOATS, 4 * MATRIX_FLOATS)),
+    ]);
+    expect(first.dirtyRange).toEqual({
+      floatOffset: 0,
+      floatCount: 2 * MATRIX_FLOATS,
+      full: true,
+    });
+    const firstVersion = first.contentVersion;
+
+    const unrelated = new Float32Array(transforms);
+    unrelated[2 * MATRIX_FLOATS + 12] =
+      (unrelated[2 * MATRIX_FLOATS + 12] ?? 0) + 1000;
+    const second = writePackedSnapshotMeshTransforms(
+      { ...snapshot, transforms: unrelated },
+      scratch,
+    );
+
+    expect(second.contentVersion).toBe(firstVersion);
+    expect(second.dirtyRange).toBeNull();
+    const secondVersion = second.contentVersion;
+
+    const moved = new Float32Array(unrelated);
+    moved[3 * MATRIX_FLOATS + 13] = (moved[3 * MATRIX_FLOATS + 13] ?? 0) + 7;
+    const third = writePackedSnapshotMeshTransforms(
+      { ...snapshot, transforms: moved },
+      scratch,
+    );
+
+    expect(third.contentVersion).toBe((secondVersion ?? 0) + 1);
+    expect(third.dirtyRange).toEqual({
+      floatOffset: MATRIX_FLOATS,
+      floatCount: MATRIX_FLOATS,
+      full: false,
+    });
+  });
+
+  it("reuses one compact matrix slot for draws sharing a source transform", () => {
+    const scratch = createPackedSnapshotTransformsScratch();
+    const transforms = identityGrid(3);
+    const packed = writePackedSnapshotMeshTransforms(
+      {
+        transforms,
+        meshDraws: [
+          { renderId: 1, worldTransformOffset: 2 * MATRIX_FLOATS },
+          { renderId: 2, worldTransformOffset: 2 * MATRIX_FLOATS },
+        ],
+      } as unknown as Parameters<typeof writePackedSnapshotMeshTransforms>[0],
+      scratch,
+    );
+
+    expect(packed.floatCount).toBe(MATRIX_FLOATS);
+    expect(packed.offsets).toEqual([
+      { renderId: 1, sourceOffset: 2 * MATRIX_FLOATS, packedOffset: 0 },
+      { renderId: 2, sourceOffset: 2 * MATRIX_FLOATS, packedOffset: 0 },
+    ]);
   });
 });
 
@@ -244,7 +427,7 @@ describe("writeVersionedBufferData protocol", () => {
     ).toBe("skipped");
     expect(gpu.writes).toHaveLength(0);
 
-    // Frame 3: one matrix moves — one 8-byte window (two floats).
+    // Frame 3: one matrix moves — one 64-byte matrix-slot window.
     const moved = new Float32Array(transforms);
     moved[4 * MATRIX_FLOATS + 12] = 11;
     moved[4 * MATRIX_FLOATS + 13] = 12;
@@ -259,7 +442,7 @@ describe("writeVersionedBufferData protocol", () => {
       ),
     ).toBe("sub-range");
     expect(gpu.writes).toEqual([
-      { bufferOffset: (4 * MATRIX_FLOATS + 12) * 4, size: 8 },
+      { bufferOffset: 4 * MATRIX_FLOATS * 4, size: MATRIX_FLOATS * 4 },
     ]);
     expect(Array.from(new Float32Array(backing.buffer))).toEqual(
       Array.from(moved),
@@ -296,6 +479,40 @@ describe("writeVersionedBufferData protocol", () => {
       ),
     ).toBe("full");
     expect(gpu.writes).toEqual([{ bufferOffset: 0, size: 96 * 4 }]);
+  });
+
+  it("writes multiple dirty ranges when sparse changes are far apart", () => {
+    const scratch = createPackedSnapshotTransformsScratch();
+    const transforms = identityGrid(8);
+    const backing = new Uint8Array(transforms.byteLength);
+    const gpu = fakeDevice(backing);
+    const buffer = {};
+
+    let packed = writePackedSnapshotTransforms(
+      snapshotWith(transforms, 8),
+      scratch,
+    );
+    expect(writeBufferData(gpu.device, buffer, packed.data)).toBe(true);
+    const target: { version?: number | undefined } = {
+      version: packed.contentVersion,
+    };
+
+    const moved = new Float32Array(transforms);
+    moved[1 * MATRIX_FLOATS + 12] = 100;
+    moved[6 * MATRIX_FLOATS + 13] = 200;
+    packed = writePackedSnapshotTransforms(snapshotWith(moved, 8), scratch);
+    gpu.writes.length = 0;
+
+    expect(
+      writeVersionedBufferData(gpu.device, buffer, packed.data, packed, target),
+    ).toBe("sub-range");
+    expect(gpu.writes).toEqual([
+      { bufferOffset: 1 * MATRIX_FLOATS * 4, size: MATRIX_FLOATS * 4 },
+      { bufferOffset: 6 * MATRIX_FLOATS * 4, size: MATRIX_FLOATS * 4 },
+    ]);
+    expect(Array.from(new Float32Array(backing.buffer))).toEqual(
+      Array.from(moved),
+    );
   });
 
   it("returns false without stamping when the device write fails", () => {
