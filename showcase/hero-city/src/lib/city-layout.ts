@@ -57,28 +57,36 @@ export interface PlacedTile {
   readonly orientation: number;
 }
 
+// Rotate the whole town this many radians about Y. Applied as a rigid rotation
+// (positions and tile meshes rotate together), so tiles stay seamless — it just
+// orients the grid diagonally to the isometric camera.
+export const CITY_YAW = Math.PI / 4; // ~45°
+
 function recenter(config: CityConfig): {
   readonly tiles: readonly PlacedTile[];
   readonly halfExtent: number;
 } {
   const xs = config.tiles.map((t) => t.x);
   const zs = config.tiles.map((t) => t.z);
-  const minX = Math.min(...xs);
-  const maxX = Math.max(...xs);
-  const minZ = Math.min(...zs);
-  const maxZ = Math.max(...zs);
-  const cx = (minX + maxX) / 2;
-  const cz = (minZ + maxZ) / 2;
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const cz = (Math.min(...zs) + Math.max(...zs)) / 2;
 
-  const tiles = config.tiles.map((t) => ({
-    id: t.id,
-    x: t.x - cx,
-    z: t.z - cz,
-    orientation: t.orientation,
-  }));
-  // Half-extent of the tiled footprint (+0.5 for tile width), to size the
-  // shadow box and camera framing.
-  const halfExtent = Math.max(maxX - minX, maxZ - minZ) / 2 + 0.5;
+  const cos = Math.cos(CITY_YAW);
+  const sin = Math.sin(CITY_YAW);
+  let maxRadius = 0;
+
+  const tiles = config.tiles.map((t) => {
+    // Center on the origin, then rotate the position about Y by CITY_YAW (the
+    // tile mesh gets the matching +CITY_YAW in setup, keeping the town rigid).
+    const lx = t.x - cx;
+    const lz = t.z - cz;
+    const x = lx * cos + lz * sin;
+    const z = -lx * sin + lz * cos;
+    maxRadius = Math.max(maxRadius, Math.hypot(x, z));
+    return { id: t.id, x, z, orientation: t.orientation };
+  });
+  // Bounding radius (+ tile margin), used to size the shadow box. Rotation-safe.
+  const halfExtent = maxRadius + 0.7;
   return { tiles, halfExtent };
 }
 

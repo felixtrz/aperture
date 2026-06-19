@@ -23,7 +23,7 @@ const SKY_RADIUS = 120;
 const SKY_UPDATE_INTERVAL = 0.12; // seconds between gradient refreshes
 const CYCLE_SECONDS = 48; // full sunrise -> day -> dusk -> night loop
 const START_PHASE = 0.42; // open on bright midday
-const LAMP_MAX_INTENSITY = 24; // street-lamp point-light intensity at full night
+const LAMP_MAX_INTENSITY = 10; // street-lamp point-light intensity at full night
 
 const SKY_WGSL = /* wgsl */ `
 struct ViewProjectionUniform {

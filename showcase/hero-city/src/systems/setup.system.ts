@@ -4,6 +4,7 @@ import {
   CAMERA_START_YAW,
   CAMERA_ZOOM,
   CITY_HALF_EXTENT,
+  CITY_YAW,
   TILES,
   cameraOffset,
   tileCastsShadow,
@@ -12,10 +13,11 @@ import {
 const SHADOW_MAP_SIZE = 2048;
 const SHADOW_ORTHOGRAPHIC_SIZE = CITY_HALF_EXTENT * 2 * Math.SQRT2 * 0.5 + 3;
 // Height of the street-lamp point lights above their tile (≈ the lamp heads).
-const LAMP_HEIGHT = 1.35;
+const LAMP_HEIGHT = 1.25;
 
-function quarterTurn(r: number) {
-  return quatFromEulerYXZ(0, (r * Math.PI) / 2, 0);
+// Tile orientation (quarter-turns) plus the whole-town CITY_YAW rotation.
+function tileRotation(r: number) {
+  return quatFromEulerYXZ(0, (r * Math.PI) / 2 + CITY_YAW, 0);
 }
 
 // Builds the authored hero town once at startup: the isometric camera (then
@@ -75,7 +77,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         receiveShadow: true,
         transform: {
           translation: [tile.x, 0, tile.z],
-          rotation: quarterTurn(tile.orientation),
+          rotation: tileRotation(tile.orientation),
         },
       });
     }
@@ -91,9 +93,9 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         key: `light.lamp.${lampIndex}`,
         name: "Street Lamp",
         kind: "point",
-        color: [1.0, 0.76, 0.42, 1],
+        color: [1.0, 0.74, 0.4, 1],
         intensity: 0,
-        light: { range: 7 },
+        light: { range: 4.5 },
         transform: { translation: [tile.x, LAMP_HEIGHT, tile.z] },
       });
       lampIndex += 1;
