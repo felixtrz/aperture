@@ -511,6 +511,9 @@ fn saturate(value: f32) -> f32 {`,
     code = applyStandardShadowMapSampling(code, {
       cascaded: features.cascadedShadowMap === true,
       arrayShadows: features.clusteredLocalLightArrayShadows === true,
+      // A spot is a single-2D perspective shadow that reuses the directional
+      // shadow-map bindings; additionally shadow the spot light block.
+      spotReceiver: features.spotShadowMap === true,
     });
   } else if (features.pointShadowMap === true) {
     code = applyStandardPointShadowMapSampling(code, {

@@ -103,7 +103,9 @@ export function withStandardShadowPipelineKeys(
                         "shadowMap",
                         CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
                       ]
-                    : ["shadowMap"];
+                    : shadowKind === "spot"
+                      ? ["shadowMap", "spotShadowMap"]
+                      : ["shadowMap"];
   const meshDraws = snapshot.meshDraws.map((draw) => {
     let pipelineKey = draw.batchKey.pipelineKey;
 

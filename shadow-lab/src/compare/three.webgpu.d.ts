@@ -23,5 +23,6 @@ export const PointLight: any;
 export const RenderPipeline: any;
 export const Scene: any;
 export const SphereGeometry: any;
+export const SpotLight: any;
 export const TSL: any;
 export const WebGPURenderer: any;

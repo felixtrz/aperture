@@ -69,7 +69,9 @@ describe("spot shadow 2D pipeline planning", () => {
       lightKind: "spot",
       projection: "perspective-spot",
       fovYRadians: 1,
-      near: 0.012,
+      // near scales with the light range for perspective depth precision
+      // (max(range * 0.02, 0.05)); range 12 -> 0.24. Mirrors the point fix.
+      near: 0.24,
       far: 12,
       passKey: "shadow-pass:13:light:17",
     });
@@ -82,7 +84,7 @@ describe("spot shadow 2D pipeline planning", () => {
         {
           passKey: "shadow-pass:13:light:17",
           lightDirection: [0, 0, -1],
-          near: 0.012,
+          near: 0.24,
           far: 12,
         },
       ],

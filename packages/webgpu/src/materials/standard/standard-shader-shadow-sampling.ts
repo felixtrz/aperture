@@ -18,6 +18,7 @@ export function applyStandardShadowMapSampling(
   options: {
     readonly cascaded?: boolean;
     readonly arrayShadows?: boolean;
+    readonly spotReceiver?: boolean;
   } = {},
 ): string {
   const helpers =
@@ -496,7 +497,7 @@ fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u
   return compareFactor;
 }`;
 
-  return code
+  const directionalApplied = code
     .replace(
       `fn evaluateDirectLight(
   normal: vec3f,`,
@@ -537,6 +538,36 @@ fn evaluateDirectLight(
         roughness,
       ) * shadowFactor;`,
     );
+
+  if (options.spotReceiver !== true) {
+    return directionalApplied;
+  }
+
+  // A spot light is a single-2D perspective shadow that reuses the directional
+  // shadow-map bindings (sampleDirectionalShadowFactor samples matrix 0). Shadow
+  // the global spot light block with it. Gated on spotReceiver so directional
+  // frames (which share the shadowMap binding) are untouched.
+  return directionalApplied.replace(
+    `        direct = direct + evaluateDirectLight(
+          normal,
+          viewDir,
+          lightDir,
+          lightRadiance(lightIndex) * rangeAttenuation * coneAttenuation,
+          baseColor,
+          metallic,
+          roughness,
+        );`,
+    `        let spotShadowFactor = sampleDirectionalShadowFactor(input.worldPosition, normal);
+        direct = direct + evaluateDirectLight(
+          normal,
+          viewDir,
+          lightDir,
+          lightRadiance(lightIndex) * rangeAttenuation * coneAttenuation,
+          baseColor,
+          metallic,
+          roughness,
+        ) * spotShadowFactor;`,
+  );
 }
 
 function pointShadowReceiverSamplingBody(pointArrayShadows: boolean): string {

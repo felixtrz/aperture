@@ -160,8 +160,15 @@ export function createSpotShadowViewProjectionPlanReport(
       casterLayerMask: request.casterLayerMask,
       receiverLayerMask: request.receiverLayerMask,
       projection: "perspective-spot",
+      // three.js SpotLightShadow: fov = 2 * outerConeAngle * focus (focus = 1),
+      // i.e. the FULL vertical cone angle. outerConeAngle is the half-angle.
       fovYRadians: Math.max(light.outerConeAngle * 2, 0.01),
-      near: input.near ?? Math.max(light.range / 1000, 0.01),
+      // Perspective shadow depth precision collapses toward the far plane, so a
+      // near plane that is a meaningful fraction of the range keeps usable
+      // contrast between occluder and receiver depths (mirrors the point shadow
+      // fix; three.js uses a fixed 0.5 near for its default range). range/1000
+      // crushed nearly all precision into [0.99, 1.0].
+      near: input.near ?? Math.max(light.range * 0.02, 0.05),
       far: light.range,
       viewMatrixKey: `${pass.passKey}:view`,
       projectionMatrixKey: `${pass.passKey}:projection`,

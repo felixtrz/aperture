@@ -48,6 +48,14 @@ export interface StandardTextureShaderFeatures {
   readonly shadowMap?: boolean;
   readonly cascadedShadowMap?: boolean;
   readonly pointShadowMap?: boolean;
+  /**
+   * Single-2D spot shadow receiver. Reuses the directional shadow-map bindings
+   * (a spot is a perspective single-2D shadow), but additionally injects the
+   * shadow factor into the spot light block. Distinguishes a spot-only frame
+   * from a directional one (both use the `shadowMap` binding) so the spot block
+   * is only shadowed when a spot shadow was actually baked.
+   */
+  readonly spotShadowMap?: boolean;
   readonly iblDiffuse?: boolean;
   readonly iblSpecularProof?: boolean;
   readonly iblSpecularBrdf?: boolean;

@@ -26,7 +26,8 @@ import type { WebGpuAppResourceCache } from "./resource-cache.js";
 export type WebGpuAppAutoShadowPipelineKind =
   | "directional"
   | "directional-cascaded"
-  | "point-array";
+  | "point-array"
+  | "spot";
 
 export function standardAutoShadowPipelineKindFromSnapshot(
   snapshot: RenderSnapshot,
@@ -51,9 +52,15 @@ export function standardAutoShadowPipelineKindFromSnapshot(
   // receiver resources produced by render-shadow-frame. (Mixed directional+point
   // in one frame is a follow-up; directional takes precedence above to keep its
   // path unchanged.)
-  return snapshot.shadowRequests.some(isPointShadowRequest)
-    ? "point-array"
-    : null;
+  if (snapshot.shadowRequests.some(isPointShadowRequest)) {
+    return "point-array";
+  }
+
+  // Then spot: a single 2D perspective map that reuses the directional shadow
+  // bind-group layout (matrix@2, depth@3, sampler@4). The "spot" pipeline-key
+  // variant adds the spotShadowMap shader feature so the spot light block is
+  // shadowed via sampleDirectionalShadowFactor (matrix 0) — bindings unchanged.
+  return snapshot.shadowRequests.some(isSpotShadowRequest) ? "spot" : null;
 }
 
 export function createWebGpuAppAutoShadowFrame(options: {
@@ -899,6 +906,14 @@ function isPointShadowRequest(request: ShadowRequestPacket): boolean {
   return request.lightKind === "point";
 }
 
+function isSpotShadowRequest(request: ShadowRequestPacket): boolean {
+  return request.lightKind === "spot";
+}
+
 function isSupportedAutoShadowRequest(request: ShadowRequestPacket): boolean {
-  return isDirectionalShadowRequest(request) || isPointShadowRequest(request);
+  return (
+    isDirectionalShadowRequest(request) ||
+    isPointShadowRequest(request) ||
+    isSpotShadowRequest(request)
+  );
 }

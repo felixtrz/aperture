@@ -253,6 +253,51 @@ describe("WebGPU app auto-shadow frame", () => {
     );
   });
 
+  it("bakes a single 2D perspective shadow for a spot light with no directional", () => {
+    const calls = createDeviceCalls();
+    const assets = new AssetRegistry();
+    const opaqueMesh = createMeshHandle("spot-caster");
+
+    assets.register(opaqueMesh, { label: "Spot caster" });
+    assets.markReady(opaqueMesh, triangleMesh("Spot caster"));
+
+    const result = createWebGpuAppAutoShadowFrame({
+      app: app(device(calls)),
+      assets,
+      cache: createWebGpuAppResourceCache(),
+      reuse: createWebGpuAppResourceReuseReport(),
+      snapshot: spotShadowSnapshot(opaqueMesh),
+    });
+
+    expect(result).not.toBeNull();
+    expect(result?.report.status).toBe("submitted");
+    // Spot shadows reuse the directional single-2D receiver bindings.
+    expect(result?.receiverResources?.shadowKind).toBe("spot");
+    expect(result?.descriptor.descriptors[0]).toMatchObject({
+      lightKind: "spot",
+      cascadeCount: 1,
+      viewDimension: "2d",
+    });
+    // One perspective camera -> one bake pass, one draw of the one caster.
+    expect(result?.passPlan.passCount).toBe(1);
+    expect(result?.casterDrawList.includedDrawCount).toBe(1);
+    expect(result?.report.drawCalls).toBe(1);
+    // The perspective near/far come from the light range (matches three.js
+    // SpotLightShadow: near scaled off range, far = range).
+    expect(result?.matrixComputation.matrices[0]?.far).toBe(40);
+    expect(result?.matrixComputation.matrices[0]?.near).toBeGreaterThan(0.1);
+  });
+
+  it("invalidates the cached spot-shadow frame when the light moves", () => {
+    const opaqueMesh = createMeshHandle("spot-cache-caster");
+    const source = spotShadowSnapshot(opaqueMesh);
+    const movedLight = spotShadowSnapshot(opaqueMesh, [4, 6, 2]);
+
+    expect(createWebGpuAppAutoShadowFrameInputKey(source)).not.toBe(
+      createWebGpuAppAutoShadowFrameInputKey(movedLight),
+    );
+  });
+
   it("keys cached auto-shadow frames by actual shadow bounds inputs", () => {
     const opaqueMesh = createMeshHandle("keyed-caster");
     const alphaMesh = createMeshHandle("keyed-alpha-helper");
@@ -488,6 +533,87 @@ function pointShadowSnapshot(
         shadowId: 7,
         lightId: 11,
         lightKind: "point",
+        casterLayerMask: 1,
+        receiverLayerMask: 1,
+      },
+    ],
+    bounds: [
+      boundsPacket(0, { min: [-1, 0, -1], max: [1, 2, 1] }),
+      boundsPacket(1, { min: [-8, 0, -8], max: [8, 0.1, 8] }),
+    ],
+    transforms,
+    viewMatrices: new Float32Array(0),
+    diagnostics: [],
+    report: {
+      views: 0,
+      meshDraws: 2,
+      lights: 1,
+      environments: 0,
+      shadowRequests: 1,
+      bounds: 2,
+      diagnostics: 0,
+    },
+  };
+}
+
+function spotShadowSnapshot(
+  caster: ReturnType<typeof createMeshHandle>,
+  lightPosition: readonly [number, number, number] = [0, 6, 0],
+): RenderSnapshot {
+  // A downward spot: light transform at slot 0 with -Z column = [0, 1, 0] so the
+  // light direction (negated -Z) points straight down, plus the position in
+  // columns 12..14. A spot shadow has no primary-camera fit, so no view needed.
+  const transforms = identityTransform();
+  transforms[8] = 0;
+  transforms[9] = 1;
+  transforms[10] = 0;
+  transforms[12] = lightPosition[0];
+  transforms[13] = lightPosition[1];
+  transforms[14] = lightPosition[2];
+
+  return {
+    frame: 1,
+    views: [],
+    meshDraws: [
+      meshDraw({
+        renderId: 301,
+        mesh: caster,
+        material: createMaterialHandle("spot-caster"),
+        boundsIndex: 0,
+        pipelineKey: "standard|opaque|back|less|none",
+        castsShadow: true,
+        receivesShadow: true,
+      }),
+      meshDraw({
+        renderId: 302,
+        mesh: caster,
+        material: createMaterialHandle("spot-receiver"),
+        boundsIndex: 1,
+        pipelineKey: "standard|opaque|back|less|none",
+        castsShadow: false,
+        receivesShadow: true,
+      }),
+    ],
+    lights: [
+      {
+        lightId: 11,
+        entity: { index: 1, generation: 0 },
+        kind: "spot",
+        color: [1, 1, 1, 1],
+        intensity: 12,
+        range: 40,
+        innerConeAngle: 0.3,
+        outerConeAngle: 0.5,
+        worldTransformOffset: 0,
+        layerMask: 1,
+      },
+    ],
+    environments: [],
+    shadowRequests: [
+      {
+        shadowId: 7,
+        lightId: 11,
+        lightKind: "spot",
         casterLayerMask: 1,
         receiverLayerMask: 1,
       },

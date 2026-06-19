@@ -18,6 +18,7 @@ import {
   FOG_HEX,
   HEMI_LIGHT,
   POINT_LIGHT,
+  SPOT_LIGHT,
   SPAWN_POS,
   VEHICLE_ROOT_SCALE,
 } from "../lib/tuning.js";
@@ -183,12 +184,11 @@ function layout(): {
   };
 }
 
-type LightMode = "directional" | "point";
+type LightMode = "directional" | "point" | "spot";
 
 function resolveLightMode(): LightMode {
-  return new URLSearchParams(window.location.search).get("light") === "point"
-    ? "point"
-    : "directional";
+  const light = new URLSearchParams(window.location.search).get("light");
+  return light === "point" ? "point" : light === "spot" ? "spot" : "directional";
 }
 
 function resolvePageTrack(): {
@@ -252,8 +252,11 @@ async function buildScene(): Promise<{
   const playerRoot = buildPlayer(scene, models);
   buildBloomProbe(scene);
 
-  if (resolveLightMode() === "point") {
+  const lightMode = resolveLightMode();
+  if (lightMode === "point") {
     buildPointLight(scene);
+  } else if (lightMode === "spot") {
+    buildSpotLight(scene);
   } else {
     buildSun(scene, bounds);
   }
@@ -325,6 +328,40 @@ function buildPointLight(scene: typeof THREE.Scene.prototype): void {
   point.shadow.camera.updateProjectionMatrix();
   point.shadow.radius = POINT_LIGHT.shadowRadius;
   scene.add(point);
+}
+
+// Mirrors SetupSystem.#spawnSpotLight: a single-2D perspective shadow spot
+// light. Aperture uses the same physical inverse-square falloff three.js does
+// (decay 2) windowed by the range, plus a cone falloff between the inner/outer
+// half-angles, so the panes are lit comparably and the diff isolates shadow
+// behavior. three.js maps the inner cone via penumbra: cosInner =
+// cos(angle * (1 - penumbra)), so penumbra = 1 - inner/outer.
+function buildSpotLight(scene: typeof THREE.Scene.prototype): void {
+  const penumbra = Math.max(
+    0,
+    Math.min(1, 1 - SPOT_LIGHT.innerConeAngle / SPOT_LIGHT.outerConeAngle),
+  );
+  const spot = new THREE.SpotLight(
+    SPOT_LIGHT.colorHex,
+    SPOT_LIGHT.intensity,
+    SPOT_LIGHT.range,
+    SPOT_LIGHT.outerConeAngle,
+    penumbra,
+    2,
+  );
+  spot.position.set(...SPOT_LIGHT.position);
+  spot.target.position.set(...SPOT_LIGHT.target);
+  scene.add(spot.target);
+  spot.castShadow = true;
+  spot.shadow.mapSize.setScalar(SPOT_LIGHT.shadowMapSize);
+  // Match Aperture's perspective near/far (range-scaled near, far = range). The
+  // shadow camera fov is driven by the cone angle automatically (three.js
+  // SpotLightShadow: fov = 2 * outerConeAngle).
+  spot.shadow.camera.near = Math.max(SPOT_LIGHT.range * 0.02, 0.05);
+  spot.shadow.camera.far = SPOT_LIGHT.range;
+  spot.shadow.camera.updateProjectionMatrix();
+  spot.shadow.radius = SPOT_LIGHT.shadowRadius;
+  scene.add(spot);
 }
 
 function buildTrack(
