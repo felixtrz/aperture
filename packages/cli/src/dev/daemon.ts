@@ -8,6 +8,7 @@ import {
 } from "../session.js";
 import { assertApertureDevAppRoot } from "./app-root.js";
 import { launchManagedBrowser } from "./browser.js";
+import { resolveApertureGpu } from "./gpu.js";
 import {
   appendLog,
   closeApertureDevLogStreams,
@@ -17,6 +18,7 @@ import {
 import { findAvailablePort, resolveApertureDevServerPort } from "./ports.js";
 import { stopChild } from "./process.js";
 import { startViteServer, waitForHttp } from "./server.js";
+import { startVirtualDisplay, type VirtualDisplay } from "./xvfb.js";
 import {
   DEFAULT_HOST,
   DEFAULT_PORT,
@@ -38,7 +40,15 @@ export async function runApertureDevSessionDaemon(
     strictPort: options.strictPort !== false,
   });
   const url = `http://${host}:${port}/`;
-  const headless = options.headless ?? options.open !== true;
+  const gpu = resolveApertureGpu({
+    ...(options.gpu === undefined ? {} : { mode: options.gpu }),
+  });
+  // Headless Chrome does not composite SwiftShader WebGPU into screenshots or
+  // pixel readbacks, so software rendering must run headed (with a virtual
+  // display on GPU-less Linux). On a hardware GPU we honor the requested mode.
+  const headless = gpu.software
+    ? false
+    : (options.headless ?? options.open !== true);
   const logs = logFiles(appRoot);
   const startedAt = new Date().toISOString();
 
@@ -65,6 +75,7 @@ export async function runApertureDevSessionDaemon(
   const streams = openApertureDevLogStreams(logs);
   let server: ChildProcess | null = null;
   let browser: ManagedBrowser | null = null;
+  let display: VirtualDisplay | null = null;
 
   const writeSession = async (input: {
     readonly serverState: "starting" | "running" | "stopped" | "failed";
@@ -101,6 +112,7 @@ export async function runApertureDevSessionDaemon(
     });
     await browser?.close();
     stopChild(server);
+    await display?.close();
     await closeApertureDevLogStreams(streams);
     process.exitCode = 0;
     process.exit();
@@ -127,11 +139,35 @@ export async function runApertureDevSessionDaemon(
     await writeSession({ serverState: "running", browserState: "starting" });
 
     const browserCdpPort = await findAvailablePort(port + 1_000, host);
+    await appendLog(
+      streams.daemon,
+      `WebGPU backend: ${gpu.software ? "software (SwiftShader)" : "hardware"} — ${gpu.reason} [${gpu.source}]`,
+    );
+
+    // Software WebGPU runs headed; on GPU-less Linux without an existing X
+    // display, spin up an Xvfb virtual display so the user does not have to
+    // wrap the command in xvfb-run.
+    let browserEnv: NodeJS.ProcessEnv | undefined;
+    if (
+      gpu.software &&
+      process.platform === "linux" &&
+      !hasDisplay(process.env)
+    ) {
+      display = await startVirtualDisplay({ log: streams.browser });
+      browserEnv = { ...process.env, DISPLAY: display.display };
+      await appendLog(
+        streams.daemon,
+        `Started Xvfb virtual display ${display.display} for headed software rendering.`,
+      );
+    }
+
     browser = await launchManagedBrowser({
       url,
       host,
       cdpPort: browserCdpPort,
       headless,
+      software: gpu.software,
+      ...(browserEnv === undefined ? {} : { env: browserEnv }),
       log: streams.browser,
     });
     await writeSession({
@@ -168,10 +204,16 @@ export async function runApertureDevSessionDaemon(
     );
     await browser?.close();
     stopChild(server);
+    await display?.close();
     await closeApertureDevLogStreams(streams);
     process.exitCode = 1;
     return;
   }
 
   await new Promise(() => undefined);
+}
+
+function hasDisplay(env: NodeJS.ProcessEnv): boolean {
+  const display = env["DISPLAY"];
+  return typeof display === "string" && display.trim().length > 0;
 }

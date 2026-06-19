@@ -9,6 +9,8 @@ import {
   type ApertureDevUpReport,
 } from "../dev-session.js";
 import { ApertureCliError } from "../errors.js";
+import { parseApertureGpuMode } from "../dev/gpu.js";
+import type { ApertureGpuMode } from "../dev/types.js";
 import type { ApertureDevSessionStatus } from "../session.js";
 
 interface ParsedDevUpCommand {
@@ -17,6 +19,7 @@ interface ParsedDevUpCommand {
   readonly open: boolean;
   readonly headless?: boolean;
   readonly strictPort?: boolean;
+  readonly gpu?: ApertureGpuMode;
 }
 
 interface ParsedDevLogsCommand {
@@ -48,6 +51,7 @@ export async function runDevCommand(options: {
       ...(parsed.strictPort === undefined
         ? {}
         : { strictPort: parsed.strictPort }),
+      ...(parsed.gpu === undefined ? {} : { gpu: parsed.gpu }),
     });
 
     options.stdout(devUpSuccessMessage(report));
@@ -99,6 +103,7 @@ export async function runDevCommand(options: {
       ...(parsed.strictPort === undefined
         ? {}
         : { strictPort: parsed.strictPort }),
+      ...(parsed.gpu === undefined ? {} : { gpu: parsed.gpu }),
     });
     return 0;
   }
@@ -115,6 +120,7 @@ function parseDevUpCommand(argv: readonly string[]): ParsedDevUpCommand {
   let open = false;
   let headless: boolean | undefined;
   let strictPort: boolean | undefined;
+  let gpu: ApertureGpuMode | undefined;
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -157,6 +163,22 @@ function parseDevUpCommand(argv: readonly string[]): ParsedDevUpCommand {
       continue;
     }
 
+    if (arg === "--gpu") {
+      index += 1;
+      gpu = parseApertureGpuMode(readOptionValue(argv, index, arg), "flag");
+      continue;
+    }
+
+    if (arg === "--software" || arg === "--swiftshader") {
+      gpu = "software";
+      continue;
+    }
+
+    if (arg === "--hardware") {
+      gpu = "hardware";
+      continue;
+    }
+
     throw new ApertureCliError(
       "aperture.dev.unknownOption",
       `Unknown dev option '${arg ?? ""}'. Run 'aperture dev --help' for supported options.`,
@@ -169,6 +191,7 @@ function parseDevUpCommand(argv: readonly string[]): ParsedDevUpCommand {
     open,
     ...(headless === undefined ? {} : { headless }),
     ...(strictPort === undefined ? {} : { strictPort }),
+    ...(gpu === undefined ? {} : { gpu }),
   };
 }
 
@@ -242,7 +265,7 @@ function isHelpFlag(value: string): boolean {
 
 function devHelp(): string {
   return `Usage:
-  aperture dev up [--open] [--host <host>] [--port <port>]
+  aperture dev up [--open] [--host <host>] [--port <port>] [--gpu <mode>]
   aperture dev status
   aperture dev logs [--lines <count>]
   aperture dev open
@@ -256,6 +279,12 @@ Options:
   --headed            Launch the managed browser headed.
   --host <host>       Host for the Vite server. Defaults to 127.0.0.1.
   --port <port>       Port for the Vite server. Defaults to 5173.
+  --gpu <mode>        WebGPU backend: auto (default), hardware, or software.
+                      auto uses the GPU when present and falls back to
+                      SwiftShader on GPU-less hosts (CI, dev containers).
+                      Also set via the APERTURE_GPU environment variable.
+  --software          Force SwiftShader CPU WebGPU (alias for --gpu software).
+  --hardware          Force the hardware GPU (alias for --gpu hardware).
   --strict-port       Fail if the requested port is unavailable. Default.
   --no-strict-port    Allow Aperture to choose the next available port.
   --lines <count>     Log lines to print for dev logs. Defaults to 80.
