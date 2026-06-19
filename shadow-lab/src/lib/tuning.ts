@@ -67,7 +67,7 @@ export const DIR_LIGHT = {
 // expected — the goal here is the shadow, not the photometric model.
 export const POINT_LIGHT = {
   colorHex: 0xffffff,
-  intensity: 8,
+  intensity: 3,
   position: [6.5, 8, 8] as [number, number, number],
   range: 40,
   shadowMapSize: 2048,
