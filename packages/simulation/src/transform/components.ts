@@ -12,7 +12,7 @@ import {
   type QuatLike,
   type Vec3Like,
   type Vec4Like,
-} from "../math/index.js";
+} from "@aperture-engine/math";
 
 export interface LocalTransformInput {
   readonly translation?: Vec3Like;

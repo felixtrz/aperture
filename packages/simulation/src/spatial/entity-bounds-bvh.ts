@@ -1,7 +1,12 @@
-import { vec3 } from "../math/constructors.js";
-import { intersectRayAabb, intersectRaySphere } from "../math/ray.js";
-import { v3 } from "../math/scalars.js";
-import type { Aabb, Ray, Vec3Like } from "../math/types.js";
+import {
+  intersectRayAabb,
+  intersectRaySphere,
+  v3,
+  vec3,
+  type Aabb,
+  type Ray,
+  type Vec3Like,
+} from "@aperture-engine/math";
 import type {
   RaycastHit,
   RaycastOptions,

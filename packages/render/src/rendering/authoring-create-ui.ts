@@ -1,5 +1,6 @@
 import {
   assetHandleKey,
+  toVec4Tuple,
   type ComponentInitialData,
 } from "@aperture-engine/simulation";
 import {
@@ -23,7 +24,6 @@ import type {
   UiScroll,
   UiText,
 } from "./authoring-components.js";
-import { toTuple4 } from "./authoring-utils.js";
 
 export function createUiScreen(
   input: UiScreenInput = {},
@@ -44,7 +44,7 @@ export function createUiNode(
     y: input.y ?? 0,
     width: input.width ?? 0,
     height: input.height ?? 0,
-    padding: toTuple4(input.padding ?? [0, 0, 0, 0]),
+    padding: toVec4Tuple(input.padding ?? [0, 0, 0, 0]),
     gap: input.gap ?? 0,
     layoutMode: input.layoutMode ?? UiLayoutMode.Absolute,
     zIndex: input.zIndex ?? 0,
@@ -58,7 +58,7 @@ export function createUiPanel(
   input: UiPanelInput = {},
 ): ComponentInitialData<typeof UiPanel> {
   return {
-    color: toTuple4(input.color ?? [0, 0, 0, 0.75]),
+    color: toVec4Tuple(input.color ?? [0, 0, 0, 0.75]),
   };
 }
 
@@ -71,8 +71,8 @@ export function createUiImage(
       input.sampler === undefined || input.sampler === null
         ? ""
         : assetHandleKey(input.sampler),
-    color: toTuple4(input.color ?? [1, 1, 1, 1]),
-    uvRect: toTuple4(input.uvRect ?? [0, 0, 1, 1]),
+    color: toVec4Tuple(input.color ?? [1, 1, 1, 1]),
+    uvRect: toVec4Tuple(input.uvRect ?? [0, 0, 1, 1]),
   };
 }
 
@@ -89,7 +89,7 @@ export function createUiText(
     lineHeight: input.lineHeight ?? 0,
     maxWidth: input.maxWidth ?? 0,
     align: input.align ?? UiTextAlign.Left,
-    color: toTuple4(input.color ?? [1, 1, 1, 1]),
+    color: toVec4Tuple(input.color ?? [1, 1, 1, 1]),
   };
 }
 

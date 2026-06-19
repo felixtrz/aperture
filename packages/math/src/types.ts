@@ -1,21 +1,17 @@
 import type {
-  Mat4 as WgpuMat4,
-  Mat4Arg as WgpuMat4Arg,
-  Quat as WgpuQuat,
-  QuatArg as WgpuQuatArg,
-  Vec2 as WgpuVec2,
-  Vec2Arg as WgpuVec2Arg,
-  Vec3 as WgpuVec3,
-  Vec3Arg as WgpuVec3Arg,
-  Vec4 as WgpuVec4,
-  Vec4Arg as WgpuVec4Arg,
-} from "wgpu-matrix";
+  Mat4 as KernelMat4,
+  Quat as KernelQuat,
+  Vec2 as KernelVec2,
+  Vec3 as KernelVec3,
+  Vec4 as KernelVec4,
+} from "./kernel/index.js";
+import type { StorageArg } from "./kernel/storage.js";
 
-export type Vec2 = WgpuVec2;
-export type Vec3 = WgpuVec3;
-export type Vec4 = WgpuVec4;
-export type Quat = WgpuQuat;
-export type Mat4 = WgpuMat4;
+export type Vec2 = KernelVec2;
+export type Vec3 = KernelVec3;
+export type Vec4 = KernelVec4;
+export type Quat = KernelQuat;
+export type Mat4 = KernelMat4;
 export type Color = Vec4;
 
 export type Vec2Tuple = [number, number];
@@ -24,11 +20,13 @@ export type Vec4Tuple = [number, number, number, number];
 export type QuatTuple = [number, number, number, number];
 export type ColorTuple = Vec4Tuple;
 
-export type Vec2Like = WgpuVec2Arg | readonly [number, number];
-export type Vec3Like = WgpuVec3Arg | readonly [number, number, number];
-export type Vec4Like = WgpuVec4Arg | readonly [number, number, number, number];
-export type QuatLike = WgpuQuatArg | readonly [number, number, number, number];
-export type Mat4Like = WgpuMat4Arg | ArrayLike<number>;
+// `*Like` input types mirror the previous backend's "arg" types: a typed array
+// (the common case) or a readonly tuple literal for authoring convenience.
+export type Vec2Like = StorageArg | readonly [number, number];
+export type Vec3Like = StorageArg | readonly [number, number, number];
+export type Vec4Like = StorageArg | readonly [number, number, number, number];
+export type QuatLike = StorageArg | readonly [number, number, number, number];
+export type Mat4Like = StorageArg | ArrayLike<number>;
 
 export interface Ray {
   readonly origin: Vec3Like;

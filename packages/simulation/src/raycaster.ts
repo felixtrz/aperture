@@ -1,14 +1,15 @@
-import { EPSILON } from "./math/constants.js";
-import { vec3 } from "./math/constructors.js";
-import { intersectRayAabb, intersectRaySphere } from "./math/ray.js";
-import { v3 } from "./math/scalars.js";
-import type {
-  Aabb,
-  BoundingSphere,
-  Ray,
-  RayHit,
-  Vec3Like,
-} from "./math/types.js";
+import {
+  EPSILON,
+  intersectRayAabb,
+  intersectRaySphere,
+  v3,
+  vec3,
+  type Aabb,
+  type BoundingSphere,
+  type Ray,
+  type RayHit,
+  type Vec3Like,
+} from "@aperture-engine/math";
 
 const DEFAULT_RAY_LAYER_MASK = 0xffffffff;
 const DEFAULT_OBJECT_LAYER_MASK = 0x00000001;

@@ -1,23 +1,25 @@
 {
-  "name": "@aperture-engine/simulation",
+  "name": "@aperture-engine/math",
   "version": "0.1.0",
-  "description": "Headless ECS, assets, math, diagnostics, and transform foundation for Aperture.",
+  "description": "Fast, zero-dependency, WebGPU-first 3D math for the Aperture engine: Float32Array-native vectors, quaternions, and matrices with fused transform fast paths.",
   "author": "Felix Zhang",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/felixtrz/aperture.git",
-    "directory": "packages/simulation"
+    "directory": "packages/math"
   },
-  "homepage": "https://github.com/felixtrz/aperture/tree/main/packages/simulation#readme",
+  "homepage": "https://github.com/felixtrz/aperture/tree/main/packages/math#readme",
   "bugs": "https://github.com/felixtrz/aperture/issues",
   "keywords": [
     "aperture",
-    "ecs",
     "webgpu",
-    "game-engine",
+    "3d-math",
+    "matrix",
+    "vector",
+    "quaternion",
+    "gamedev",
     "typescript",
-    "transform",
-    "scene-graph"
+    "linear-algebra"
   ],
   "type": "module",
   "license": "MIT",
@@ -26,6 +28,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./kernel": {
+      "types": "./dist/kernel/index.d.ts",
+      "import": "./dist/kernel/index.js"
     }
   },
   "main": "./dist/index.js",
@@ -40,9 +46,5 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json"
-  },
-  "dependencies": {
-    "@aperture-engine/math": "workspace:^",
-    "elics": "^3.4.2"
   }
 }

@@ -1,16 +1,14 @@
-import type { Entity, Vec2Like, Vec3Like } from "@aperture-engine/simulation";
+import type { Entity, Vec3Like } from "@aperture-engine/simulation";
+import {
+  toVec2Tuple as tuple2,
+  toVec3Tuple as tuple3,
+} from "@aperture-engine/simulation";
 import type { EcsEntityRef } from "../config.js";
+
+export { tuple2, tuple3 };
 
 export function entityRef(entity: Entity): EcsEntityRef {
   return { index: entity.index, generation: entity.generation };
-}
-
-export function tuple3(values: ArrayLike<number>): [number, number, number] {
-  return [values[0]!, values[1]!, values[2]!];
-}
-
-export function tuple2(values: Vec2Like): [number, number] {
-  return [values[0]!, values[1]!];
 }
 
 export function normalizeTuple3(

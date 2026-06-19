@@ -1,5 +1,4 @@
-import { vec3 as wgpuVec3, type Vec3Arg as WgpuVec3Arg } from "wgpu-matrix";
-
+import { vec3 as kvec3 } from "./kernel/index.js";
 import { vec3 } from "./constructors.js";
 import { transformPoint } from "./matrix.js";
 import { v3 } from "./scalars.js";
@@ -7,8 +6,8 @@ import type { Aabb, Mat4Like } from "./types.js";
 
 export function unionAabb(a: Aabb, b: Aabb): Aabb {
   return {
-    min: wgpuVec3.min(asWgpuVec3Arg(a.min), asWgpuVec3Arg(b.min)),
-    max: wgpuVec3.max(asWgpuVec3Arg(a.max), asWgpuVec3Arg(b.max)),
+    min: kvec3.min(a.min, b.min),
+    max: kvec3.max(a.max, b.max),
   };
 }
 
@@ -56,15 +55,11 @@ export function transformAabb(aabb: Aabb, matrix: Mat4Like): Aabb {
         corner[1] = y;
         corner[2] = z;
         transformPoint(matrix, corner, transformed);
-        wgpuVec3.min(min, transformed, min);
-        wgpuVec3.max(max, transformed, max);
+        kvec3.min(min, transformed, min);
+        kvec3.max(max, transformed, max);
       }
     }
   }
 
   return { min, max };
-}
-
-function asWgpuVec3Arg(value: Aabb["min"]): WgpuVec3Arg {
-  return value as WgpuVec3Arg;
 }

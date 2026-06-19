@@ -22,6 +22,7 @@ const shouldPack = options.shouldPack;
 const EMITTED_IMPORT_CHECK_SKIP = new Set(["packages/cli"]);
 
 const publishablePackages = [
+  "packages/math",
   "packages/simulation",
   "packages/physics",
   "packages/physics-rapier",

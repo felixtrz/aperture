@@ -22,7 +22,7 @@
   "private": true,
   "packageManager": "pnpm@10.12.1",
   "scripts": {
-    "build": "tsc -b packages/simulation packages/physics packages/physics-rapier packages/render packages/runtime packages/webgpu packages/audio packages/vite-plugin packages/app packages/cli",
+    "build": "tsc -b packages/math packages/simulation packages/physics packages/physics-rapier packages/render packages/runtime packages/webgpu packages/audio packages/vite-plugin packages/app packages/cli",
     "typecheck": "pnpm run build",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "check:boundaries": "node scripts/check-package-boundaries.mjs",
@@ -39,6 +39,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "bench": "vitest bench --run",
+    "bench:math": "pnpm --filter @aperture-engine/math run build && node scripts/bench-math.mjs",
     "agent:finalize": "node scripts/finalize-agent-status.mjs",
     "test:watch": "vitest",
     "test:shaders": "node scripts/webgpu-shader-compile-check.mjs",
@@ -68,8 +69,7 @@
   },
   "dependencies": {
     "@preact/signals-core": "^1.8.0",
-    "elics": "^3.4.2",
-    "wgpu-matrix": "^3.4.2"
+    "elics": "^3.4.2"
   },
   "devDependencies": {
     "@aperture-engine/app": "workspace:*",
@@ -83,12 +83,14 @@
     "@types/node": "^25.8.0",
     "@vitest/coverage-v8": "4.1.6",
     "eslint": "^10.4.0",
+    "gl-matrix": "^3.4.4",
     "globals": "^17.6.0",
     "knip": "^6.16.1",
     "prettier": "^3.8.3",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.3",
     "vite": "^8.0.13",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.6",
+    "wgpu-matrix": "^3.4.2"
   }
 }

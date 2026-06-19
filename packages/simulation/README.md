@@ -12,7 +12,17 @@ This package is part of the [Aperture](https://github.com/felixtrz/aperture) eng
 
 ## What it does
 
-`@aperture-engine/simulation` is the headless, DOM-free heart of Aperture. It wraps the [`elics`](https://www.npmjs.com/package/elics) ECS with change-version tracking and adds the engine's authoritative data model: transform components (local/world matrices, parent/child hierarchy), an asset registry with handles and collections, a math layer over [`wgpu-matrix`](https://www.npmjs.com/package/wgpu-matrix), spatial acceleration (BVH), scene/prefab serialization, and diagnostics. Because it has no rendering or browser dependencies, it runs identically on the main thread, in a worker, or in tests.
+`@aperture-engine/simulation` is the headless, DOM-free heart of Aperture. It wraps the [`elics`](https://www.npmjs.com/package/elics) ECS with change-version tracking and adds the engine's authoritative data model: transform components (local/world matrices, parent/child hierarchy), an asset registry with handles and collections, spatial acceleration (BVH), scene/prefab serialization, and diagnostics. Because it has no rendering or browser dependencies, it runs identically on the main thread, in a worker, or in tests.
+
+### Math
+
+3D math lives in its own zero-dependency package, [`@aperture-engine/math`](../math) — a `Float32Array`-native, WebGPU-first kernel with fused transform fast paths (`composeTRS`, `mulAffine`, `invertAffine`), benchmarked as the fastest option for the engine's transform workload. For convenience the entire math surface is **re-exported** from `@aperture-engine/simulation`, so existing imports keep working:
+
+```ts
+import { composeTrsMatrix, makePerspective, Vec3 } from "@aperture-engine/simulation";
+// …or import it directly:
+import { composeTrsMatrix } from "@aperture-engine/math";
+```
 
 ## Usage
 

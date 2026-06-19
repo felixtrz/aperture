@@ -1,5 +1,4 @@
-import { mat4 as wgpuMat4 } from "wgpu-matrix";
-
+import { mat4 as kmat4 } from "./kernel/index.js";
 import { mat4 } from "./constructors.js";
 import { assertFiniteNumber, assertFinitePositive } from "./scalars.js";
 import type { Mat4 } from "./types.js";
@@ -20,7 +19,7 @@ export function makePerspective(
     throw new RangeError("Expected near to be less than far.");
   }
 
-  return wgpuMat4.perspective(fovyRadians, aspect, near, far, out);
+  return kmat4.perspective(fovyRadians, aspect, near, far, out);
 }
 
 export function makeOrthographic(
@@ -53,5 +52,5 @@ export function makeOrthographic(
     throw new RangeError("Expected near to be less than far.");
   }
 
-  return wgpuMat4.ortho(left, right, bottom, top, near, far, out);
+  return kmat4.ortho(left, right, bottom, top, near, far, out);
 }

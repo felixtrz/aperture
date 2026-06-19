@@ -6,6 +6,7 @@ import {
   makeOrthographic,
   makePerspective,
   multiplyMat4,
+  toVec3Tuple,
   transformPoint,
   type EcsWorld,
   type Entity,
@@ -185,7 +186,7 @@ function rayFromCamera(
   // the near plane (rather than the eye) keeps picking inside the view frustum and
   // unifies the two projection paths — `projection` only selects the matrix above.
   return {
-    origin: tuple3(nearPoint),
+    origin: toVec3Tuple(nearPoint),
     direction: normalize3([
       readVec3(farPoint, 0) - readVec3(nearPoint, 0),
       readVec3(farPoint, 1) - readVec3(nearPoint, 1),
@@ -224,10 +225,6 @@ function normalize3(value: Vec3Like): [number, number, number] {
   }
 
   return [x / length, y / length, z / length];
-}
-
-function tuple3(value: Vec3Like): [number, number, number] {
-  return [readVec3(value, 0), readVec3(value, 1), readVec3(value, 2)];
 }
 
 function readVec3(value: Vec3Like, index: 0 | 1 | 2): number {
