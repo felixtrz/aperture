@@ -23,6 +23,7 @@ const SKY_RADIUS = 120;
 const SKY_UPDATE_INTERVAL = 0.12; // seconds between gradient refreshes
 const CYCLE_SECONDS = 48; // full sunrise -> day -> dusk -> night loop
 const START_PHASE = 0.42; // open on bright midday
+const LAMP_MAX_INTENSITY = 24; // street-lamp point-light intensity at full night
 
 const SKY_WGSL = /* wgsl */ `
 struct ViewProjectionUniform {
@@ -44,7 +45,7 @@ struct VertexInput {
 
 struct VertexOutput {
   @builtin(position) position: vec4f,
-  @location(0) localPosition: vec3f,
+  @location(0) clip: vec4f,
 };
 
 @group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
@@ -55,17 +56,21 @@ struct VertexOutput {
 fn vs_main(input: VertexInput) -> VertexOutput {
   var output: VertexOutput;
   let world = worldTransforms[input.instanceIndex];
-  output.position = view.viewProjection * world * vec4f(input.position, 1.0);
-  output.localPosition = input.position;
+  let clip = view.viewProjection * world * vec4f(input.position, 1.0);
+  output.position = clip;
+  output.clip = clip;
   return output;
 }
 
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
-  let dir = normalize(input.localPosition);
-  // Tighten the gradient into the low band actually visible in the steep
-  // isometric view: the horizon shows bottomColor, the upper sky topColor.
-  let t = smoothstep(-0.05, 0.4, dir.y);
+  // Screen-space vertical gradient: bottom of frame = horizon (bottomColor),
+  // top of frame = zenith (topColor). A world-direction gradient collapses to a
+  // flat color in the steep isometric view (only a thin near-horizon band of
+  // the dome is visible), so key the gradient off screen Y instead.
+  let ndcY = input.clip.y / input.clip.w;
+  let s = clamp(ndcY * 0.5 + 0.5, 0.0, 1.0);
+  let t = smoothstep(0.28, 1.0, s);
   let color = mix(sky.bottomColor.rgb, sky.topColor.rgb, t);
   return vec4f(color, 1.0);
 }
@@ -213,6 +218,19 @@ export default class DayNightSystem extends createSystem({
         .getVectorView(Light, "color")
         .set([sample.ambient[0], sample.ambient[1], sample.ambient[2], 1]);
       ambient.setValue(Light, "intensity", sample.ambientIntensity);
+    }
+
+    // --- street lamps: dark by day, warm glow as the sun sets ---------------
+    const lampFactor = Math.min(
+      Math.max((2.6 - sample.sunIntensity) / (2.6 - 0.9), 0),
+      1,
+    );
+    const lampIntensity = lampFactor * LAMP_MAX_INTENSITY;
+    for (const entity of this.queries.lights.entities) {
+      const key = entity.getValue(AppEntityKey, "value");
+      if (typeof key === "string" && key.startsWith("light.lamp.")) {
+        entity.setValue(Light, "intensity", lampIntensity);
+      }
     }
 
     // --- sky dome: throttled refresh ----------------------------------------
