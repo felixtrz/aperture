@@ -26,7 +26,7 @@ import type { WebGpuAppResourceCache } from "./resource-cache.js";
 export type WebGpuAppAutoShadowPipelineKind =
   | "directional"
   | "directional-cascaded"
-  | "point";
+  | "point-array";
 
 export function standardAutoShadowPipelineKindFromSnapshot(
   snapshot: RenderSnapshot,
@@ -45,10 +45,15 @@ export function standardAutoShadowPipelineKindFromSnapshot(
       : "directional";
   }
 
-  // No directional shadows: bake point cube-map shadows when present. (Mixed
-  // directional+point in one frame is a follow-up; directional takes precedence
-  // above to keep its path unchanged — mirror of render-shadow-frame.)
-  return snapshot.shadowRequests.some(isPointShadowRequest) ? "point" : null;
+  // No directional shadows: bake point shadows when present. Point shadows use
+  // the 2d-array ("point-array") receiver path (self-consistent per-face
+  // reprojection), so the pipeline-key variant must match the "point-array"
+  // receiver resources produced by render-shadow-frame. (Mixed directional+point
+  // in one frame is a follow-up; directional takes precedence above to keep its
+  // path unchanged.)
+  return snapshot.shadowRequests.some(isPointShadowRequest)
+    ? "point-array"
+    : null;
 }
 
 export function createWebGpuAppAutoShadowFrame(options: {

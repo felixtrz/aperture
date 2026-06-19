@@ -237,7 +237,11 @@ function createShadowPassPlans(
     receiverLayerMask: request.receiverLayerMask,
     depthLoadOp: "clear",
     depthStoreOp: "store",
-    depthClearValue: texture.faceCount === 6 ? 0 : 1,
+    // Standard [0,1] depth with a less-equal caster test: clear to the far value
+    // (1) so the nearest caster wins on every pass. This applies to cube point
+    // shadows too (6 perspective faces) — clearing those to 0 left the depth
+    // test rejecting every fragment, so the cube recorded no occluders.
+    depthClearValue: 1,
     submission,
   }));
 }

@@ -171,7 +171,13 @@ export function createPointShadowViewProjectionPlanReport(
         receiverLayerMask: request.receiverLayerMask,
         projection: "perspective-cube-face",
         fovYRadians: Math.PI / 2,
-        near: input.near ?? Math.max(light.range / 1000, 0.01),
+        // Perspective shadow depth precision collapses toward the far plane, so
+        // a near plane that is a meaningful fraction of the range keeps usable
+        // contrast between occluder and receiver depths (three.js uses a fixed
+        // 0.5 for its default range; this scales with the light so small and
+        // large lights both stay well-conditioned). range/1000 crushed nearly
+        // all precision into [0.99, 1.0].
+        near: input.near ?? Math.max(light.range * 0.02, 0.05),
         far: light.range,
         viewMatrixKey: `${pass.passKey}:view`,
         projectionMatrixKey: `${pass.passKey}:projection`,

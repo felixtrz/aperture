@@ -230,11 +230,12 @@ describe("WebGPU app auto-shadow frame", () => {
 
     expect(result).not.toBeNull();
     expect(result?.report.status).toBe("submitted");
-    expect(result?.receiverResources?.shadowKind).toBe("point");
+    // Point shadows use the self-consistent 2d-array receiver path.
+    expect(result?.receiverResources?.shadowKind).toBe("point-array");
     expect(result?.descriptor.descriptors[0]).toMatchObject({
       lightKind: "point",
       faceCount: 6,
-      viewDimension: "cube",
+      viewDimension: "2d-array",
     });
     // Six cube faces -> six bake passes, six per-face draws of the one caster.
     expect(result?.passPlan.passCount).toBe(6);

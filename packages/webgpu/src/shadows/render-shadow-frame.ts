@@ -755,7 +755,12 @@ export function createRenderShadowFrame(
     },
   );
   const receiverResources = createReceiverResources({
-    shadowKind: isPointFrame ? "point" : resolveShadowKind(descriptor),
+    // Point shadows use the 2d-array ("point-array") receiver path: each cube
+    // face is an array layer reprojected through its own matrix in the shader,
+    // which keeps occluder placement self-consistent with the bake. The
+    // pipeline-kind (auto-shadow-frame) must agree so the variant + bindings
+    // select the 2d-array sampler.
+    shadowKind: isPointFrame ? "point-array" : resolveShadowKind(descriptor),
     matrixBufferResource,
     depthTextureResources,
     samplerResource,
@@ -1692,9 +1697,13 @@ function createDirectionalShadowDescriptor(
 }
 
 /**
- * Point shadows render the scene into a 6-face cube depth map (one perspective
- * pass per cube face). The near/far planes are derived from the light range by
- * the point view-projection plan, so only resolution + bias are authored here.
+ * Point shadows render the scene into a 6-layer depth array (one perspective
+ * pass per cube face, stored as array layers). The receiver samples each face by
+ * reprojecting through the SAME per-face matrix and computing the layer UV in
+ * the shader, so placement is self-consistent and does not depend on the
+ * hardware cube-map face/UV convention (which a real cube texture would). The
+ * near/far planes are derived from the light range by the point view-projection
+ * plan, so only resolution + bias are authored here.
  */
 function createPointShadowDescriptor(
   request: ShadowRequestPacket,
@@ -1710,7 +1719,9 @@ function createPointShadowDescriptor(
       options?.filterRadiusTexels ?? request.filterRadius ?? 1,
     cascadeCount: 1,
     faceCount: 6,
-    viewDimension: "cube",
+    layerCount: 6,
+    layerBaseIndex: 0,
+    viewDimension: "2d-array",
     resourceKey:
       options?.resourceKey ??
       `shadow-map:${request.shadowId}:light:${request.lightId}`,
