@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  PARTICLE_BURST_RENDER_WGSL,
   PARTICLE_COMPUTE_WGSL,
   PARTICLE_RENDER_WGSL,
   createParticleComputePipelineResource,
@@ -56,6 +57,10 @@ describe("GPU particle WebGPU pipelines", () => {
     expect(PARTICLE_RENDER_WGSL).toContain("var particleTexture");
     expect(PARTICLE_RENDER_WGSL).toContain("textureSample");
     expect(PARTICLE_RENDER_WGSL).toContain("@builtin(instance_index)");
+    expect(PARTICLE_RENDER_WGSL).toContain("fogColor: vec4f");
+    expect(PARTICLE_RENDER_WGSL).toContain("applyParticleFog");
+    expect(PARTICLE_BURST_RENDER_WGSL).toContain("fogColor: vec4f");
+    expect(PARTICLE_BURST_RENDER_WGSL).toContain("applyParticleFog");
     expect(computeDescriptors).toEqual([
       expect.objectContaining({
         label: "aperture/gpu-particles-compute",

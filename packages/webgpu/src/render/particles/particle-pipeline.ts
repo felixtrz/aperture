@@ -140,7 +140,9 @@ export const PARTICLE_RENDER_WGSL = `
 struct ViewProjectionUniform {
   viewProjection: mat4x4f,
   cameraPosition: vec4f,
-  viewport: vec4f,
+  previousViewProjection: mat4x4f,
+  fogColor: vec4f,
+  fogParams: vec4f,
 };
 
 struct ParticleData {
@@ -152,6 +154,7 @@ struct VertexOutput {
   @builtin(position) position: vec4f,
   @location(0) color: vec4f,
   @location(1) uv: vec2f,
+  @location(2) distanceToCamera: f32,
 };
 
 @group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
@@ -169,6 +172,30 @@ fn quadUv(vertexIndex: u32) -> vec2f {
   let u = array<f32, 6>(0.0, 1.0, 1.0, 0.0, 1.0, 0.0);
   let v = array<f32, 6>(1.0, 1.0, 0.0, 1.0, 0.0, 0.0);
   return vec2f(u[vertexIndex], v[vertexIndex]);
+}
+
+fn saturate(value: f32) -> f32 {
+  return clamp(value, 0.0, 1.0);
+}
+
+fn applyParticleFog(color: vec3f, distanceToCamera: f32) -> vec3f {
+  let mode = u32(round(view.fogParams.x));
+
+  if (view.fogColor.a <= 0.0 || mode == 0u) {
+    return color;
+  }
+
+  var fogFactor = 0.0;
+
+  if (mode == 1u) {
+    fogFactor = 1.0 - saturate((view.fogParams.w - distanceToCamera) / max(view.fogParams.w - view.fogParams.z, 0.0001));
+  } else if (mode == 2u) {
+    fogFactor = 1.0 - saturate(exp(-distanceToCamera * view.fogParams.y));
+  } else {
+    fogFactor = 1.0 - saturate(exp(-distanceToCamera * distanceToCamera * view.fogParams.y * view.fogParams.y));
+  }
+
+  return mix(color, view.fogColor.rgb, saturate(fogFactor * view.fogColor.a));
 }
 
 @vertex
@@ -196,13 +223,15 @@ fn vs_main(
   output.position = view.viewProjection * vec4f(world, 1.0);
   output.color = particle.color;
   output.uv = quadUv(vertexIndex);
+  output.distanceToCamera = length(view.cameraPosition.xyz - world);
   return output;
 }
 
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   let texel = textureSample(particleTexture, particleSampler, input.uv);
-  return input.color * texel;
+  let color = input.color * texel;
+  return vec4f(applyParticleFog(color.rgb, input.distanceToCamera), color.a);
 }
 `.trim();
 
@@ -212,7 +241,9 @@ const PARTICLE_CURVE_SAMPLE_COUNT: u32 = 16u;
 struct ViewProjectionUniform {
   viewProjection: mat4x4f,
   cameraPosition: vec4f,
-  viewport: vec4f,
+  previousViewProjection: mat4x4f,
+  fogColor: vec4f,
+  fogParams: vec4f,
 };
 
 struct ParticleBurstData {
@@ -232,6 +263,7 @@ struct VertexOutput {
   @builtin(position) position: vec4f,
   @location(0) color: vec4f,
   @location(1) uv: vec2f,
+  @location(2) distanceToCamera: f32,
 };
 
 @group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
@@ -250,6 +282,30 @@ fn quadUv(vertexIndex: u32) -> vec2f {
   let u = array<f32, 6>(0.0, 1.0, 1.0, 0.0, 1.0, 0.0);
   let v = array<f32, 6>(1.0, 1.0, 0.0, 1.0, 0.0, 0.0);
   return vec2f(u[vertexIndex], v[vertexIndex]);
+}
+
+fn saturate(value: f32) -> f32 {
+  return clamp(value, 0.0, 1.0);
+}
+
+fn applyParticleFog(color: vec3f, distanceToCamera: f32) -> vec3f {
+  let mode = u32(round(view.fogParams.x));
+
+  if (view.fogColor.a <= 0.0 || mode == 0u) {
+    return color;
+  }
+
+  var fogFactor = 0.0;
+
+  if (mode == 1u) {
+    fogFactor = 1.0 - saturate((view.fogParams.w - distanceToCamera) / max(view.fogParams.w - view.fogParams.z, 0.0001));
+  } else if (mode == 2u) {
+    fogFactor = 1.0 - saturate(exp(-distanceToCamera * view.fogParams.y));
+  } else {
+    fogFactor = 1.0 - saturate(exp(-distanceToCamera * distanceToCamera * view.fogParams.y * view.fogParams.y));
+  }
+
+  return mix(color, view.fogColor.rgb, saturate(fogFactor * view.fogColor.a));
 }
 
 fn sizeCurveValue(index: u32) -> f32 {
@@ -337,13 +393,15 @@ fn vs_main(
   output.position = view.viewProjection * vec4f(world, 1.0);
   output.color = sampleColorCurve(lifeT) * alive;
   output.uv = quadUv(vertexIndex);
+  output.distanceToCamera = length(view.cameraPosition.xyz - world);
   return output;
 }
 
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   let texel = textureSample(particleTexture, particleSampler, input.uv);
-  return input.color * texel;
+  let color = input.color * texel;
+  return vec4f(applyParticleFog(color.rgb, input.distanceToCamera), color.a);
 }
 `.trim();
 
