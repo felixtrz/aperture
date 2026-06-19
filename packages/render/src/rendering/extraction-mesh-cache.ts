@@ -45,6 +45,7 @@ type MeshDrawPacketTemplate = Omit<
 interface CachedMeshDrawEntity {
   readonly entityVersion: number;
   readonly transformVersion: number;
+  readonly assetSignature: string;
   readonly cameraLayerMask: number;
   readonly viewCullSignature: number;
   readonly layerMask: number;

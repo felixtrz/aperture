@@ -1,6 +1,12 @@
-import { type AssetRegistry, type EcsWorld } from "@aperture-engine/simulation";
+import {
+  assetHandleKey,
+  type AssetRegistry,
+  type EcsWorld,
+  type Entity,
+  type MaterialHandle,
+} from "@aperture-engine/simulation";
 import { validateMeshAsset } from "../mesh/index.js";
-import { Material, Mesh, OcclusionQuery } from "./index.js";
+import { Material, MaterialSlots, Mesh, OcclusionQuery } from "./index.js";
 import {
   type BoundsPacket,
   type FogPacket,
@@ -20,6 +26,7 @@ import { readMeshDrawExtractionInputs } from "./extraction-mesh-draw-inputs.js";
 import { readMeshEntityExtractionState } from "./extraction-mesh-entity-state.js";
 import { readWorldMatrix } from "./extraction-matrices.js";
 import { readMaterialSlots } from "./extraction-mesh-materials.js";
+import { parseMaterialHandle, parseMeshHandle } from "./extraction-inputs.js";
 import {
   appendCachedMeshDrawEntity,
   entityCacheKey,
@@ -84,10 +91,16 @@ export function extractMeshDraws(
     const entityVersion = world.entityVersion(entity);
     const transformVersion = world.entityTransformVersion(entity);
     const cached = activeCacheEntries?.get(cacheKey);
+    const assetSignature =
+      activeCacheEntries === undefined
+        ? null
+        : readMeshDrawEntityAssetSignature(entity, assets);
 
     if (
       cached !== undefined &&
       cached.entityVersion === entityVersion &&
+      assetSignature !== null &&
+      cached.assetSignature === assetSignature &&
       cached.cameraLayerMask === cameraLayerMask &&
       cached.viewCullSignature === cacheViewCullSignature
     ) {
@@ -280,6 +293,7 @@ export function extractMeshDraws(
       entity,
       entityVersion,
       transformVersion,
+      assetSignature,
       cameraLayerMask,
       viewCullSignature: cacheViewCullSignature,
       layerMask: entityState.layerMask,
@@ -296,4 +310,115 @@ export function extractMeshDraws(
   }
 
   return draws;
+}
+
+function readMeshDrawEntityAssetSignature(
+  entity: Entity,
+  assets: AssetRegistry,
+): string | null {
+  const meshHandle = parseMeshHandle(entity.getValue(Mesh, "meshId") ?? "");
+
+  if (meshHandle === null) {
+    return null;
+  }
+
+  const meshEntry = assets.get(meshHandle);
+
+  if (meshEntry === undefined) {
+    return null;
+  }
+
+  const materialHandles = new Map<string, MaterialHandle>();
+  const primaryMaterialHandle = parseMaterialHandle(
+    entity.getValue(Material, "materialId") ?? "",
+  );
+
+  if (primaryMaterialHandle !== null) {
+    materialHandles.set(
+      assetHandleKey(primaryMaterialHandle),
+      primaryMaterialHandle,
+    );
+  }
+
+  const materialSlots = readMaterialSlotHandlesForCache(entity);
+
+  if (materialSlots === null) {
+    return null;
+  }
+
+  for (const materialHandle of materialSlots.handles) {
+    materialHandles.set(assetHandleKey(materialHandle), materialHandle);
+  }
+
+  const materialSegments = [...materialHandles]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, materialHandle]) => {
+      const entry = assets.get(materialHandle);
+
+      return [
+        "material",
+        key,
+        `status:${entry?.status ?? "missing"}`,
+        `version:${entry?.version ?? -1}`,
+      ].join(":");
+    });
+
+  return [
+    "mesh-draw-assets",
+    "mesh",
+    assetHandleKey(meshHandle),
+    `status:${meshEntry.status}`,
+    `version:${meshEntry.version}`,
+    `primary:${primaryMaterialHandle === null ? "none" : assetHandleKey(primaryMaterialHandle)}`,
+    `slots:${materialSlots.slotsJson}`,
+    ...materialSegments,
+  ].join("|");
+}
+
+function readMaterialSlotHandlesForCache(entity: Entity): {
+  readonly slotsJson: string;
+  readonly handles: readonly MaterialHandle[];
+} | null {
+  if (!entity.hasComponent(MaterialSlots)) {
+    return { slotsJson: "[]", handles: [] };
+  }
+
+  const slotsJson = entity.getValue(MaterialSlots, "slotsJson") ?? "[]";
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(slotsJson);
+  } catch {
+    return null;
+  }
+
+  if (!Array.isArray(parsed)) {
+    return null;
+  }
+
+  const handles: MaterialHandle[] = [];
+
+  for (const entry of parsed) {
+    if (
+      typeof entry !== "object" ||
+      entry === null ||
+      !Number.isInteger((entry as { slot?: unknown }).slot) ||
+      ((entry as { slot?: number }).slot ?? -1) < 0 ||
+      typeof (entry as { materialId?: unknown }).materialId !== "string"
+    ) {
+      return null;
+    }
+
+    const material = parseMaterialHandle(
+      (entry as { materialId: string }).materialId,
+    );
+
+    if (material === null) {
+      return null;
+    }
+
+    handles.push(material);
+  }
+
+  return { slotsJson, handles };
 }

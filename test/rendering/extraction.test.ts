@@ -643,6 +643,70 @@ describe("render extraction", () => {
     ).toBeLessThan(dirtyMs * 0.5);
   });
 
+  it("invalidates cached mesh packets when the source mesh asset version changes", () => {
+    const world = createRuntimeWorld(4);
+    const assets = createReadyAssets({
+      meshAsset: createTrailLikeMeshAsset(0),
+    });
+    const meshHandle = createMeshHandle("cube");
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const cache = createRenderExtractionCache();
+    const first = extractRenderSnapshot(world, assets, { frame: 51, cache });
+
+    expect(first.meshDraws[0]?.indexCount).toBe(0);
+
+    assets.markReady(meshHandle, createTrailLikeMeshAsset(6));
+
+    const cached = extractRenderSnapshot(world, assets, { frame: 52, cache });
+    const cold = extractRenderSnapshot(world, assets, { frame: 52 });
+
+    expect(cached.meshDraws[0]?.indexCount).toBe(6);
+    expect(stableSnapshotValue(cached)).toEqual(stableSnapshotValue(cold));
+  });
+
+  it("invalidates cached mesh packets when the source material asset version changes", () => {
+    const world = createRuntimeWorld(4);
+    const assets = createReadyAssets();
+    const materialHandle = createMaterialHandle("unlit");
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const cache = createRenderExtractionCache();
+    const first = extractRenderSnapshot(world, assets, { frame: 61, cache });
+
+    expect(first.meshDraws[0]?.sortKey.queue).toBe("opaque");
+
+    assets.markReady(
+      materialHandle,
+      createUnlitMaterialAsset({
+        renderState: {
+          alphaMode: "blend",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "alpha" },
+        },
+      }),
+    );
+
+    const cached = extractRenderSnapshot(world, assets, { frame: 62, cache });
+    const cold = extractRenderSnapshot(world, assets, { frame: 62 });
+
+    expect(cached.meshDraws[0]?.sortKey.queue).toBe("transparent");
+    expect(cached.meshDraws[0]?.batchKey.pipelineKey).toContain("blend");
+    expect(stableSnapshotValue(cached)).toEqual(stableSnapshotValue(cold));
+  });
+
   it("reuses unchanged offscreen shadow casters during cached extraction", () => {
     const entityCount = 128;
     const world = createRuntimeWorld(entityCount + 4);
@@ -3141,6 +3205,51 @@ function createTwoSubmeshBoxMesh(): MeshAsset {
         indexCount: 6,
       },
     ],
+  };
+}
+
+function createTrailLikeMeshAsset(drawCount: number): MeshAsset {
+  return {
+    kind: "mesh",
+    label: "TrailLike",
+    vertexStreams: [
+      {
+        id: "trail-positions",
+        arrayStride: 12,
+        vertexCount: 6,
+        attributes: [{ semantic: "POSITION", format: "float32x3", offset: 0 }],
+        data: new Float32Array([
+          0, 0, -0.5, 0, 0, 0.5, 1, 0, -0.5, 0, 0, 0.5, 1, 0, 0.5, 1, 0, -0.5,
+        ]),
+        updateRanges: [{ byteOffset: 0, byteLength: 6 * 3 * 4 }],
+      },
+    ],
+    indexBuffer: {
+      format: "uint16",
+      data: new Uint16Array([0, 1, 2, 3, 4, 5]),
+      indexCount: 6,
+      updateRanges: [],
+    },
+    submeshes: [
+      {
+        label: "default",
+        topology: "triangle-list",
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount: drawCount,
+        indexStart: 0,
+        indexCount: drawCount,
+      },
+    ],
+    materialSlots: [{ index: 0, label: "default" }],
+    localAabb: {
+      min: [0, 0, -0.5],
+      max: [1, 0, 0.5],
+    },
+    localSphere: {
+      center: [0.5, 0, 0],
+      radius: Math.hypot(0.5, 0, 0.5),
+    },
   };
 }
 
