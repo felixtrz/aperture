@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import fpsConfig from "../../fps/aperture.config.js";
+import fpsConfig from "../../showcase/fps/aperture.config.js";
 import {
   advanceInputResource,
   createInputResource,

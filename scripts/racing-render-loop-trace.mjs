@@ -11,7 +11,7 @@ import { chromium } from "playwright";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_OUT_DIR = path.join(ROOT, "tmp", "racing-render-loop-traces");
-const DEFAULT_APERTURE_DIST = path.join(ROOT, "racing", "dist");
+const DEFAULT_APERTURE_DIST = path.join(ROOT, "showcase", "racing", "dist");
 const DEFAULT_THREE_ROOT = path.join(ROOT, "references", "Starter-Kit-Racing");
 
 const args = parseArgs(process.argv.slice(2));

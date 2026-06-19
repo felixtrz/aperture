@@ -34,7 +34,7 @@ import {
   sourceWeaponMuzzleLocalPosition,
   sourceWeaponMuzzleWorldPosition,
   weaponViewmodelOffsetTarget,
-} from "../../fps/src/lib/fps-controls.js";
+} from "../../showcase/fps/src/lib/fps-controls.js";
 import {
   SOURCE_GAMEPAD_LOOK_SENSITIVITY,
   SOURCE_ENEMY_HOVER_AMPLITUDE,
@@ -46,7 +46,7 @@ import {
   SOURCE_POINTER_LOCK_LOOK_RADIANS_PER_UNIT,
   SOURCE_WEAPON_CONTAINER_OFFSET,
   WEAPONS,
-} from "../../fps/src/lib/fps-data.js";
+} from "../../showcase/fps/src/lib/fps-data.js";
 
 describe("Starter Kit FPS controls", () => {
   it("moves W relative to the camera yaw on the horizontal plane", () => {

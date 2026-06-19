@@ -10,7 +10,7 @@ import {
   sourceEnemyDamageAudioEvents,
   sourceFootstepAudible,
   sourceOneShotTimeScale,
-} from "../../fps/src/lib/fps-audio.js";
+} from "../../showcase/fps/src/lib/fps-audio.js";
 
 describe("Starter Kit FPS audio", () => {
   it("uses the source footstep volume in linear gain", () => {

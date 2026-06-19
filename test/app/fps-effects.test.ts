@@ -13,12 +13,12 @@ import {
   sourceSpriteAlphaForFrame,
   sourceSpriteFrameForLife,
   type SpriteAnimationFrame,
-} from "../../fps/src/lib/fps-effects.js";
+} from "../../showcase/fps/src/lib/fps-effects.js";
 import {
   IMPACT_EFFECT_SLOT_COUNT,
   WEAPONS,
   impactEffectKey,
-} from "../../fps/src/lib/fps-data.js";
+} from "../../showcase/fps/src/lib/fps-data.js";
 
 const IMPACT_FRAMES: readonly SpriteAnimationFrame[] = [
   [0, 0, 0.5, 0.5],

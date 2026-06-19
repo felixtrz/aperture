@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
     />
     <title>Racing — Aperture</title>
-    <link rel="icon" href="data:," />
+    <link rel="icon" type="image/svg+xml" href="/aperture.svg" />
     <style>
       :root {
         color-scheme: dark;
@@ -74,32 +74,58 @@
         opacity: 0.9;
       }
 
-      .corner-link {
+      #engine-badge {
         position: absolute;
-        color: #1f2430;
+        bottom: 14px;
+        right: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #fff;
         font:
-          400 13px -apple-system,
+          600 12px -apple-system,
           BlinkMacSystemFont,
           "Segoe UI",
           sans-serif;
+        letter-spacing: 0.02em;
         text-decoration: none;
-        background: rgba(255, 255, 255, 0.92);
-        padding: 9px 18px;
+        background: rgba(18, 20, 32, 0.42);
+        padding: 8px 15px;
         border-radius: 999px;
-        border: 1px solid rgba(0, 0, 0, 0.06);
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow:
+          0 4px 16px rgba(0, 0, 0, 0.28),
+          inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(8px) saturate(140%);
+        -webkit-backdrop-filter: blur(8px) saturate(140%);
         z-index: 10;
+        transition:
+          background 0.16s ease,
+          transform 0.16s ease,
+          box-shadow 0.16s ease;
       }
-      #engine-badge {
-        bottom: 12px;
-        right: 12px;
+      #engine-badge .badge-logo {
+        width: 14px;
+        height: 14px;
+        display: block;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+      }
+      #engine-badge:hover {
+        background: rgba(18, 20, 32, 0.58);
+        transform: translateY(-1px);
+        box-shadow:
+          0 6px 20px rgba(0, 0, 0, 0.34),
+          inset 0 1px 0 rgba(255, 255, 255, 0.16);
       }
     </style>
   </head>
   <body>
     <canvas id="aperture"></canvas>
     <div id="lap-timer">
-      <div class="row"><span class="label">LAP</span><span class="lap">1</span></div>
+      <div class="row">
+        <span class="label">LAP</span><span class="lap">1</span>
+      </div>
       <div class="current">0:00.00</div>
       <div class="row stat">
         <span class="label">LAST</span><span class="last">0:00.00</span>
@@ -108,9 +134,15 @@
         <span class="label">BEST</span><span class="best">0:00.00</span>
       </div>
     </div>
-    <a id="engine-badge" class="corner-link" href="https://github.com/felixtrz/aperture"
-      >Built with Aperture</a
+    <a
+      id="engine-badge"
+      href="https://github.com/felixtrz/aperture"
+      target="_blank"
+      rel="noopener"
     >
+      <img class="badge-logo" src="/aperture.svg" alt="" />
+      <span>Built with Aperture</span>
+    </a>
     <script type="module" src="/src/hud.ts"></script>
   </body>
 </html>

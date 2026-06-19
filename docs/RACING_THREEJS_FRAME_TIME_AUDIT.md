@@ -676,7 +676,7 @@ p95 17.50 ms / p99 17.70 ms / max 33.40 ms`. Aperture reported `25` idle
 - Live Racing diagnostics probe after the latest rebuild on the temporary
   isolated server at `http://127.0.0.1:5186/`.
 - Local three.js reference: `references/Starter-Kit-Racing`.
-- Current Aperture sources under `packages/`, `racing/`, and `test/`.
+- Current Aperture sources under `packages/`, `showcase/racing/`, and `test/`.
 - Earlier recovered Codex session note from
   `~/.codex/sessions/2026/06/17/rollout-2026-06-17T18-18-45-019ed84f-222b-7bb2-83c7-2b9dbbd75043.jsonl`.
 
@@ -931,14 +931,14 @@ renderer-cadence evidence.
 ## Latest Method
 
 Fresh render-loop measurement used the current Aperture Racing production build
-served from `racing/dist` and the three.js reference served locally from
+served from `showcase/racing/dist` and the three.js reference served locally from
 `references/Starter-Kit-Racing`.
 
 - Browser: headed Chromium through Playwright.
 - Viewport: `1280x720`, DPR `1`.
 - Current paired run: 1 second warm-up, 2.5 second idle sample, then hold
   `W+D`, wait `700 ms`, and sample 2.5 seconds of drive/smoke.
-- Latest local run: Aperture served from `racing/dist` by the harness with
+- Latest local run: Aperture served from `showcase/racing/dist` by the harness with
   cross-origin isolation headers; `SharedArrayBuffer` active in Aperture.
 - Instrumentation:
   - `requestAnimationFrame` timestamp intervals from an independent page probe;
@@ -2078,7 +2078,7 @@ Updated status:
    without a one-off static server.
 10. Fix DPR/backing-store sizing for `device-pixel-content-box` and DPR `2`.
 11. Reduce remaining bounds/change-set churn, especially active-drive bounds
-   churn.
+    churn.
 12. Reduce particle burst slot fragmentation/tiny initial-slot write count if
     it shows up in count-dominant probes after the larger cadence and transform
     work.
