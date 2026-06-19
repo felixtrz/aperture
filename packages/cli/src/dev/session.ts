@@ -69,6 +69,10 @@ export async function startApertureDevSession(
     args.push("--strict-port");
   }
 
+  if (options.gpu !== undefined) {
+    args.push("--gpu", options.gpu);
+  }
+
   const child = spawn(process.execPath, args, {
     cwd: appRoot,
     detached: true,

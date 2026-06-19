@@ -8,6 +8,12 @@ export const DEFAULT_PORT = 5173;
 export const DEFAULT_TIMEOUT_MS = 30_000;
 export const VITE_CONFIG_FILE = "vite.config.ts";
 
+/**
+ * WebGPU rendering backend for the managed browser. `auto` detects whether the
+ * host has a GPU and falls back to SwiftShader (`software`) when it does not.
+ */
+export type ApertureGpuMode = "auto" | "hardware" | "software";
+
 export class ApertureDevSessionError extends Error {
   readonly code: string;
   readonly exitCode: number;
@@ -28,6 +34,7 @@ export interface ApertureDevUpOptions {
   readonly open?: boolean;
   readonly headless?: boolean;
   readonly strictPort?: boolean;
+  readonly gpu?: ApertureGpuMode;
   readonly timeoutMs?: number;
 }
 
@@ -38,6 +45,7 @@ export interface ApertureDevDaemonOptions {
   readonly open?: boolean;
   readonly headless?: boolean;
   readonly strictPort?: boolean;
+  readonly gpu?: ApertureGpuMode;
 }
 
 export interface ApertureDevDownOptions {

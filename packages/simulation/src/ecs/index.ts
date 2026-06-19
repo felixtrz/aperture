@@ -63,7 +63,7 @@ export type EcsWorld = VersionedEcsWorld;
  * any non-trivial 3D scene blows past (a single glTF expands to several entities;
  * a decorated track is ~1000+). Default to a generous capacity so apps don't hit
  * that wall, while still allowing an explicit override (threaded from app config
- * via worldOptions.entityCapacity). See racing/docs/PORT_PROGRESS.md.
+ * via worldOptions.entityCapacity). See showcase/racing/docs/PORT_PROGRESS.md.
  */
 export const DEFAULT_ENTITY_CAPACITY = 16384;
 

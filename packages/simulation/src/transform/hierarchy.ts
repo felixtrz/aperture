@@ -20,7 +20,7 @@ import {
   invertMat4,
   multiplyMat4,
   type Mat4Like,
-} from "../math/index.js";
+} from "@aperture-engine/math";
 import {
   Children,
   LocalTransform,

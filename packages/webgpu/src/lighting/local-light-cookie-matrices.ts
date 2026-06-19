@@ -1,6 +1,8 @@
 import {
   makePerspective,
   multiplyMat4,
+  toVec3Tuple,
+  vec3Dot,
   type Mat4Like,
 } from "@aperture-engine/simulation";
 import type { LightPacket, RenderSnapshot } from "@aperture-engine/render";
@@ -262,7 +264,7 @@ function computeSpotCookieMatrix(
     light.worldTransformOffset,
     light.worldTransformOffset + 16,
   );
-  const lightPosition = tuple3([
+  const lightPosition = toVec3Tuple([
     transform[12] ?? 0,
     transform[13] ?? 0,
     transform[14] ?? 0,
@@ -283,12 +285,16 @@ function computeSpotCookieMatrix(
     };
   }
 
-  const target = tuple3([
+  const target = toVec3Tuple([
     lightPosition[0] + lightDirection[0],
     lightPosition[1] + lightDirection[1],
     lightPosition[2] + lightDirection[2],
   ]);
-  const up = tuple3([transform[4] ?? 0, transform[5] ?? 1, transform[6] ?? 0]);
+  const up = toVec3Tuple([
+    transform[4] ?? 0,
+    transform[5] ?? 1,
+    transform[6] ?? 0,
+  ]);
   const viewMatrix = makeLookAt(lightPosition, target, up);
   const projectionMatrix = makePerspective(
     Math.max(light.outerConeAngle * 2, 0.01),
@@ -371,9 +377,9 @@ function makeLookAt(
   }
 
   const xAxis =
-    normalize(cross(tuple3(up), zAxis)) ??
+    normalize(cross(toVec3Tuple(up), zAxis)) ??
     normalize(cross(fallbackUpForAxis(zAxis), zAxis)) ??
-    tuple3([1, 0, 0]);
+    toVec3Tuple([1, 0, 0]);
   const yAxis = cross(zAxis, xAxis);
 
   return [
@@ -389,9 +395,9 @@ function makeLookAt(
     yAxis[2],
     zAxis[2],
     0,
-    -dot(xAxis, eye),
-    -dot(yAxis, eye),
-    -dot(zAxis, eye),
+    -vec3Dot(xAxis, eye),
+    -vec3Dot(yAxis, eye),
+    -vec3Dot(zAxis, eye),
     1,
   ];
 }
@@ -421,13 +427,7 @@ function normalize(
     return null;
   }
 
-  return tuple3([value[0] / length, value[1] / length, value[2] / length]);
-}
-
-function tuple3(
-  value: readonly [number, number, number],
-): readonly [number, number, number] {
-  return [value[0], value[1], value[2]];
+  return toVec3Tuple([value[0] / length, value[1] / length, value[2] / length]);
 }
 
 function cross(
@@ -439,11 +439,4 @@ function cross(
     a[2] * b[0] - a[0] * b[2],
     a[0] * b[1] - a[1] * b[0],
   ];
-}
-
-function dot(
-  a: readonly [number, number, number],
-  b: readonly [number, number, number],
-): number {
-  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }

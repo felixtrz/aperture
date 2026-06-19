@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import ts from "typescript";
 
 export const DEFAULT_HEADLESS_PACKAGES = [
+  "math",
   "simulation",
   "physics",
   "physics-rapier",

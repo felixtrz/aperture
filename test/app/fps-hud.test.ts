@@ -30,7 +30,7 @@ import {
   sourcePointerLockLookAxis,
   sourcePointerLockLookCommand,
   writeSourceHudCssVariables,
-} from "../../fps/src/lib/fps-hud.js";
+} from "../../showcase/fps/src/lib/fps-hud.js";
 
 describe("Starter Kit FPS HUD", () => {
   it("derives crosshair size from the source TextureRect scale", () => {

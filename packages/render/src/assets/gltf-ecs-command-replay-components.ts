@@ -3,6 +3,8 @@ import {
   Name,
   Parent,
   WorldTransform,
+  toVec3Tuple,
+  toVec4Tuple,
   type Entity,
 } from "@aperture-engine/simulation";
 
@@ -25,8 +27,6 @@ import {
   isRecord,
   isTuple3,
   isTuple4,
-  tuple3,
-  tuple4,
 } from "./gltf-ecs-command-replay-value-guards.js";
 import type {
   GltfEcsAuthoringCommand,
@@ -77,9 +77,9 @@ export function applyGltfEcsReplayComponent(input: {
           return false;
         }
         input.entity.addComponent(LocalTransform, {
-          translation: tuple3(value.translation),
-          rotation: tuple4(value.rotation),
-          scale: tuple3(value.scale),
+          translation: toVec3Tuple(value.translation),
+          rotation: toVec4Tuple(value.rotation),
+          scale: toVec3Tuple(value.scale),
         });
         return true;
       }
@@ -135,10 +135,10 @@ export function applyGltfEcsReplayComponent(input: {
           return false;
         }
         input.entity.addComponent(WorldTransform, {
-          col0: tuple4(value.col0),
-          col1: tuple4(value.col1),
-          col2: tuple4(value.col2),
-          col3: tuple4(value.col3),
+          col0: toVec4Tuple(value.col0),
+          col1: toVec4Tuple(value.col1),
+          col2: toVec4Tuple(value.col2),
+          col3: toVec4Tuple(value.col3),
         });
         return true;
       }

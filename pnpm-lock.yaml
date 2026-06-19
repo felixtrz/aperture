@@ -13,9 +13,6 @@ importers:
       elics:
         specifier: ^3.4.2
         version: 3.4.2
-      wgpu-matrix:
-        specifier: ^3.4.2
-        version: 3.4.2
     devDependencies:
       "@aperture-engine/app":
         specifier: workspace:*
@@ -50,6 +47,9 @@ importers:
       eslint:
         specifier: ^10.4.0
         version: 10.4.0(jiti@2.7.0)
+      gl-matrix:
+        specifier: ^3.4.4
+        version: 3.4.4
       globals:
         specifier: ^17.6.0
         version: 17.6.0
@@ -71,74 +71,9 @@ importers:
       vitest:
         specifier: ^4.1.6
         version: 4.1.6(@types/node@25.8.0)(@vitest/coverage-v8@4.1.6)(vite@8.0.13(@types/node@25.8.0)(jiti@2.7.0)(yaml@2.9.0))
-
-  city-builder:
-    dependencies:
-      '@aperture-engine/app':
-        specifier: workspace:*
-        version: link:../packages/app
-      '@aperture-engine/audio':
-        specifier: workspace:*
-        version: link:../packages/audio
-      '@aperture-engine/render':
-        specifier: workspace:*
-        version: link:../packages/render
-      '@aperture-engine/simulation':
-        specifier: workspace:*
-        version: link:../packages/simulation
-      '@aperture-engine/vite-plugin':
-        specifier: workspace:*
-        version: link:../packages/vite-plugin
-      '@aperture-engine/webgpu':
-        specifier: workspace:*
-        version: link:../packages/webgpu
-    devDependencies:
-      '@aperture-engine/cli':
-        specifier: workspace:*
-        version: link:../packages/cli
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-      vite:
-        specifier: ^8.0.13
-        version: 8.0.16(@types/node@25.8.0)(jiti@2.7.0)(yaml@2.9.0)
-
-  fps:
-    dependencies:
-      "@aperture-engine/app":
-        specifier: workspace:*
-        version: link:../packages/app
-      "@aperture-engine/audio":
-        specifier: workspace:*
-        version: link:../packages/audio
-      "@aperture-engine/physics":
-        specifier: workspace:*
-        version: link:../packages/physics
-      "@aperture-engine/physics-rapier":
-        specifier: workspace:*
-        version: link:../packages/physics-rapier
-      "@aperture-engine/render":
-        specifier: workspace:*
-        version: link:../packages/render
-      "@aperture-engine/simulation":
-        specifier: workspace:*
-        version: link:../packages/simulation
-      "@aperture-engine/vite-plugin":
-        specifier: workspace:*
-        version: link:../packages/vite-plugin
-      "@aperture-engine/webgpu":
-        specifier: workspace:*
-        version: link:../packages/webgpu
-    devDependencies:
-      "@aperture-engine/cli":
-        specifier: workspace:*
-        version: link:../packages/cli
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-      vite:
-        specifier: ^8.0.13
-        version: 8.0.16(@types/node@25.8.0)(jiti@2.7.0)(yaml@2.9.0)
+      wgpu-matrix:
+        specifier: ^3.4.2
+        version: 3.4.2
 
   packages/app:
     dependencies:
@@ -194,6 +129,8 @@ importers:
         specifier: ^8.0.13
         version: 8.0.13(@types/node@25.8.0)(jiti@2.7.0)(yaml@2.9.0)
 
+  packages/math: {}
+
   packages/physics:
     dependencies:
       "@aperture-engine/simulation":
@@ -229,10 +166,10 @@ importers:
 
   packages/simulation:
     dependencies:
+      "@aperture-engine/math":
+        specifier: workspace:^
+        version: link:../math
       elics:
-        specifier: ^3.4.2
-        version: 3.4.2
-      wgpu-matrix:
         specifier: ^3.4.2
         version: 3.4.2
 
@@ -257,43 +194,6 @@ importers:
         specifier: workspace:^
         version: link:../simulation
 
-  platformer:
-    dependencies:
-      '@aperture-engine/app':
-        specifier: workspace:*
-        version: link:../packages/app
-      '@aperture-engine/audio':
-        specifier: workspace:*
-        version: link:../packages/audio
-      '@aperture-engine/physics':
-        specifier: workspace:*
-        version: link:../packages/physics
-      '@aperture-engine/physics-rapier':
-        specifier: workspace:*
-        version: link:../packages/physics-rapier
-      '@aperture-engine/render':
-        specifier: workspace:*
-        version: link:../packages/render
-      '@aperture-engine/simulation':
-        specifier: workspace:*
-        version: link:../packages/simulation
-      '@aperture-engine/vite-plugin':
-        specifier: workspace:*
-        version: link:../packages/vite-plugin
-      '@aperture-engine/webgpu':
-        specifier: workspace:*
-        version: link:../packages/webgpu
-    devDependencies:
-      '@aperture-engine/cli':
-        specifier: workspace:*
-        version: link:../packages/cli
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-      vite:
-        specifier: ^8.0.13
-        version: 8.0.16(@types/node@25.8.0)(jiti@2.7.0)(yaml@2.9.0)
-
   playground:
     dependencies:
       "@aperture-engine/app":
@@ -313,7 +213,7 @@ importers:
         specifier: ^8.0.13
         version: 8.0.13(@types/node@25.8.0)(jiti@2.7.0)(yaml@2.9.0)
 
-  racing:
+  shadow-lab:
     dependencies:
       "@aperture-engine/app":
         specifier: workspace:*
@@ -344,30 +244,135 @@ importers:
         specifier: ^8.0.16
         version: 8.0.16(@types/node@25.8.0)(jiti@2.7.0)(yaml@2.9.0)
 
-  shadow-lab:
+  showcase/city-builder:
     dependencies:
       "@aperture-engine/app":
         specifier: workspace:*
-        version: link:../packages/app
+        version: link:../../packages/app
       "@aperture-engine/audio":
         specifier: workspace:*
-        version: link:../packages/audio
+        version: link:../../packages/audio
       "@aperture-engine/render":
         specifier: workspace:*
-        version: link:../packages/render
+        version: link:../../packages/render
       "@aperture-engine/simulation":
         specifier: workspace:*
-        version: link:../packages/simulation
+        version: link:../../packages/simulation
       "@aperture-engine/vite-plugin":
         specifier: workspace:*
-        version: link:../packages/vite-plugin
+        version: link:../../packages/vite-plugin
       "@aperture-engine/webgpu":
         specifier: workspace:*
-        version: link:../packages/webgpu
+        version: link:../../packages/webgpu
     devDependencies:
       "@aperture-engine/cli":
         specifier: workspace:*
-        version: link:../packages/cli
+        version: link:../../packages/cli
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^8.0.13
+        version: 8.0.16(@types/node@25.8.0)(jiti@2.7.0)(yaml@2.9.0)
+
+  showcase/fps:
+    dependencies:
+      "@aperture-engine/app":
+        specifier: workspace:*
+        version: link:../../packages/app
+      "@aperture-engine/audio":
+        specifier: workspace:*
+        version: link:../../packages/audio
+      "@aperture-engine/physics":
+        specifier: workspace:*
+        version: link:../../packages/physics
+      "@aperture-engine/physics-rapier":
+        specifier: workspace:*
+        version: link:../../packages/physics-rapier
+      "@aperture-engine/render":
+        specifier: workspace:*
+        version: link:../../packages/render
+      "@aperture-engine/simulation":
+        specifier: workspace:*
+        version: link:../../packages/simulation
+      "@aperture-engine/vite-plugin":
+        specifier: workspace:*
+        version: link:../../packages/vite-plugin
+      "@aperture-engine/webgpu":
+        specifier: workspace:*
+        version: link:../../packages/webgpu
+    devDependencies:
+      "@aperture-engine/cli":
+        specifier: workspace:*
+        version: link:../../packages/cli
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^8.0.13
+        version: 8.0.16(@types/node@25.8.0)(jiti@2.7.0)(yaml@2.9.0)
+
+  showcase/platformer:
+    dependencies:
+      "@aperture-engine/app":
+        specifier: workspace:*
+        version: link:../../packages/app
+      "@aperture-engine/audio":
+        specifier: workspace:*
+        version: link:../../packages/audio
+      "@aperture-engine/physics":
+        specifier: workspace:*
+        version: link:../../packages/physics
+      "@aperture-engine/physics-rapier":
+        specifier: workspace:*
+        version: link:../../packages/physics-rapier
+      "@aperture-engine/render":
+        specifier: workspace:*
+        version: link:../../packages/render
+      "@aperture-engine/simulation":
+        specifier: workspace:*
+        version: link:../../packages/simulation
+      "@aperture-engine/vite-plugin":
+        specifier: workspace:*
+        version: link:../../packages/vite-plugin
+      "@aperture-engine/webgpu":
+        specifier: workspace:*
+        version: link:../../packages/webgpu
+    devDependencies:
+      "@aperture-engine/cli":
+        specifier: workspace:*
+        version: link:../../packages/cli
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^8.0.13
+        version: 8.0.16(@types/node@25.8.0)(jiti@2.7.0)(yaml@2.9.0)
+
+  showcase/racing:
+    dependencies:
+      "@aperture-engine/app":
+        specifier: workspace:*
+        version: link:../../packages/app
+      "@aperture-engine/audio":
+        specifier: workspace:*
+        version: link:../../packages/audio
+      "@aperture-engine/render":
+        specifier: workspace:*
+        version: link:../../packages/render
+      "@aperture-engine/simulation":
+        specifier: workspace:*
+        version: link:../../packages/simulation
+      "@aperture-engine/vite-plugin":
+        specifier: workspace:*
+        version: link:../../packages/vite-plugin
+      "@aperture-engine/webgpu":
+        specifier: workspace:*
+        version: link:../../packages/webgpu
+    devDependencies:
+      "@aperture-engine/cli":
+        specifier: workspace:*
+        version: link:../../packages/cli
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -2001,6 +2006,12 @@ packages:
     resolution:
       {
         integrity: sha512-yTb+8DXzDREzgvYmh6s9vHsSVCHeC0G3PI5bEXNBHtmshPnO+S5O7qgLEOn0I5QvMy6kpZN8K1NKGyilLb93wA==,
+      }
+
+  gl-matrix@3.4.4:
+    resolution:
+      {
+        integrity: sha512-latSnyDNt/8zYUB6VIJ6PCh2jBjJX6gnDsoCZ7LyW7GkqrD51EWwa9qCoGixj8YqBtETQK/xY7OmpTF8xz1DdQ==,
       }
 
   glob-parent@5.1.2:
@@ -4074,6 +4085,8 @@ snapshots:
   get-tsconfig@4.14.0:
     dependencies:
       resolve-pkg-maps: 1.0.0
+
+  gl-matrix@3.4.4: {}
 
   glob-parent@5.1.2:
     dependencies:

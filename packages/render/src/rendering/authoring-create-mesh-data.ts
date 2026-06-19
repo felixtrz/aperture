@@ -1,5 +1,6 @@
 import {
   assetHandleKey,
+  toVec4Tuple,
   type ComponentInitialData,
 } from "@aperture-engine/simulation";
 import type {
@@ -16,7 +17,6 @@ import type {
   MorphTargetWeights,
   Skin,
 } from "./authoring-components.js";
-import { toTuple4 } from "./authoring-utils.js";
 
 export function createMaterialSlots(
   input: MaterialSlotsInput,
@@ -35,7 +35,7 @@ export function createInstanceTint(
   input: InstanceTintInput = {},
 ): ComponentInitialData<typeof InstanceTint> {
   return {
-    color: toTuple4(input.color ?? [1, 1, 1, 1]),
+    color: toVec4Tuple(input.color ?? [1, 1, 1, 1]),
   };
 }
 

@@ -14,12 +14,15 @@ export {
 export {
   ApertureDevSessionError,
   openApertureDevSession,
+  parseApertureGpuMode,
   readApertureDevLogs,
   readApertureDevStatus,
   resolveApertureDevServerPort,
+  resolveApertureGpu,
   runApertureDevSessionDaemon,
   startApertureDevSession,
   stopApertureDevSession,
+  swiftShaderArgs,
   type ApertureDevDaemonOptions,
   type ApertureDevDownOptions,
   type ApertureDevDownReport,
@@ -27,6 +30,9 @@ export {
   type ApertureDevLogsReport,
   type ApertureDevUpOptions,
   type ApertureDevUpReport,
+  type ApertureGpuMode,
+  type ResolveApertureGpuOptions,
+  type ResolvedApertureGpu,
   type ResolveApertureDevServerPortOptions,
 } from "./dev-session.js";
 export {

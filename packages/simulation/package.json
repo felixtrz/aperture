@@ -42,7 +42,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "elics": "^3.4.2",
-    "wgpu-matrix": "^3.4.2"
+    "@aperture-engine/math": "workspace:^",
+    "elics": "^3.4.2"
   }
 }

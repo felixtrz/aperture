@@ -1,5 +1,6 @@
 import {
   assetHandleKey,
+  toVec4Tuple,
   type ComponentInitialData,
 } from "@aperture-engine/simulation";
 import {
@@ -14,7 +15,7 @@ import {
   type SpriteInput,
 } from "./authoring-types.js";
 import type { Fog, Skybox, Sprite } from "./authoring-components.js";
-import { spriteSize, toTuple4 } from "./authoring-utils.js";
+import { spriteSize } from "./authoring-utils.js";
 
 export function createSprite(
   input: SpriteInput,
@@ -27,10 +28,10 @@ export function createSprite(
       input.sampler === undefined || input.sampler === null
         ? ""
         : assetHandleKey(input.sampler),
-    color: toTuple4(input.color ?? [1, 1, 1, 1]),
+    color: toVec4Tuple(input.color ?? [1, 1, 1, 1]),
     width: size[0],
     height: size[1],
-    uvRect: toTuple4(input.uvRect ?? [0, 0, 1, 1]),
+    uvRect: toVec4Tuple(input.uvRect ?? [0, 0, 1, 1]),
     pivot: [input.pivot?.[0] ?? 0.5, input.pivot?.[1] ?? 0.5],
     rotation: input.rotation ?? 0,
     atlasFrame: input.atlasFrame ?? 0,
@@ -62,7 +63,7 @@ export function createFog(
 
   return {
     mode,
-    color: toTuple4(input.color ?? [0, 0, 0, 1]),
+    color: toVec4Tuple(input.color ?? [0, 0, 0, 1]),
     density: input.density ?? (mode === FogMode.Linear ? 0 : 0.00025),
     start: input.start ?? 1,
     end: input.end ?? 1000,

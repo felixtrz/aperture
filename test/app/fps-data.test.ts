@@ -76,8 +76,8 @@ import {
   WEAPONS,
   platformLargeGrassDecorationKey,
   sourceLevelColliderMeshId,
-} from "../../fps/src/lib/fps-data.js";
-import type { FpsInputCommand } from "../../fps/src/lib/fps-data.js";
+} from "../../showcase/fps/src/lib/fps-data.js";
+import type { FpsInputCommand } from "../../showcase/fps/src/lib/fps-data.js";
 
 describe("Starter Kit FPS source data", () => {
   it("derives player body/capsule data from the source Player scene", () => {
@@ -419,7 +419,7 @@ function readStarterKitSource(relativePath: string): string {
 
 function readFpsAssetBytes(relativePath: string): Uint8Array {
   return readFileSync(
-    new URL(`../../fps/public/${relativePath}`, import.meta.url),
+    new URL(`../../showcase/fps/public/${relativePath}`, import.meta.url),
   );
 }
 

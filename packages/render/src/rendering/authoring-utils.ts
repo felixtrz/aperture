@@ -1,4 +1,3 @@
-import type { Vec4Like } from "@aperture-engine/simulation";
 import type {
   RenderAuthoringDiagnostic,
   SpriteInput,
@@ -22,10 +21,6 @@ export function validateRect(
   }
 }
 
-export function toTuple4(values: Vec4Like): [number, number, number, number] {
-  return [read(values, 0), read(values, 1), read(values, 2), read(values, 3)];
-}
-
 export function tuple4(
   x: number,
   y: number,
@@ -47,14 +42,4 @@ export function spriteSize(
   }
 
   return typeof size === "number" ? [size, size] : [size[0] ?? 1, size[1] ?? 1];
-}
-
-function read(values: ArrayLike<number>, index: number): number {
-  const value = values[index];
-
-  if (value === undefined) {
-    throw new RangeError(`Expected numeric value at index ${index}.`);
-  }
-
-  return value;
 }

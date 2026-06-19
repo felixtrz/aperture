@@ -5,6 +5,7 @@ import {
   APERTURE_MCP_MANAGED_GLOBAL,
   readApertureDevSession,
 } from "../session.js";
+import { swiftShaderArgs } from "./gpu.js";
 import type { ManagedBrowser } from "./types.js";
 import { appendLog } from "./logs.js";
 
@@ -13,17 +14,25 @@ export async function launchManagedBrowser(input: {
   readonly host: string;
   readonly cdpPort: number;
   readonly headless: boolean;
+  // When true, force WebGPU onto SwiftShader's CPU backend (GPU-less hosts such
+  // as CI runners and dev containers). Resolved by resolveApertureGpu().
+  readonly software: boolean;
+  // Extra environment for the browser process, e.g. DISPLAY for a virtual
+  // (Xvfb) display when rendering software WebGPU headed on Linux.
+  readonly env?: NodeJS.ProcessEnv;
   readonly log: WriteStream;
 }): Promise<ManagedBrowser> {
   const { chromium } = await import("playwright");
   const browser = await chromium.launch({
     headless: input.headless,
+    ...(input.env === undefined ? {} : { env: input.env }),
     // Use the user's installed Google Chrome (real GPU/Metal stack), NOT Playwright's
     // bundled Chromium. The bundled build has a flakier WebGPU path on macOS and,
     // combined with --enable-unsafe-webgpu, intermittently selects the software
     // (SwiftShader) fallback adapter and renders garbage (full-screen magenta).
-    // Stock Chrome ships WebGPU on the hardware adapter by default, so we add no
-    // GPU/WebGPU flags here and let it behave exactly like the user's own browser.
+    // On a hardware GPU we add no WebGPU flags and let stock Chrome behave exactly
+    // like the user's own browser; on a GPU-less host (input.software) we opt into
+    // SwiftShader explicitly so navigator.gpu exists at all.
     channel: "chrome",
     args: [
       `--remote-debugging-address=${input.host}`,
@@ -37,6 +46,7 @@ export async function launchManagedBrowser(input: {
       "--disable-backgrounding-occluded-windows",
       "--disable-renderer-backgrounding",
       "--disable-background-timer-throttling",
+      ...(input.software ? swiftShaderArgs() : []),
     ],
   });
   const page = await browser.newPage({ viewport: { width: 960, height: 640 } });

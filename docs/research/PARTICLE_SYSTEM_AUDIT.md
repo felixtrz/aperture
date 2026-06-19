@@ -44,9 +44,9 @@ Representative Aperture files inspected:
 - `test/rendering/particle-emitter-extraction.test.ts`
 - `test/webgpu/particle-frame-resources.test.ts`
 - `test/webgpu/particle-pipeline.test.ts`
-- `racing/aperture.config.ts`
-- `racing/src/systems/particles.system.ts`
-- `racing/test/racing/particles-system.test.ts`
+- `showcase/racing/aperture.config.ts`
+- `showcase/racing/src/systems/particles.system.ts`
+- `showcase/racing/test/racing/particles-system.test.ts`
 
 ## Reference Engine Source Anchors
 

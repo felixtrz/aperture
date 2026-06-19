@@ -1,8 +1,5 @@
 packages:
   - "packages/*"
+  - "showcase/*"
   - "playground"
-  - "fps"
-  - "racing"
   - "shadow-lab"
-  - "platformer"
-  - "city-builder"
