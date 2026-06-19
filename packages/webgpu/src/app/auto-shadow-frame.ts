@@ -25,7 +25,8 @@ import type { WebGpuAppResourceCache } from "./resource-cache.js";
 
 export type WebGpuAppAutoShadowPipelineKind =
   | "directional"
-  | "directional-cascaded";
+  | "directional-cascaded"
+  | "point";
 
 export function standardAutoShadowPipelineKindFromSnapshot(
   snapshot: RenderSnapshot,
@@ -38,13 +39,16 @@ export function standardAutoShadowPipelineKindFromSnapshot(
     isDirectionalShadowRequest,
   );
 
-  if (directionalRequests.length === 0) {
-    return null;
+  if (directionalRequests.length > 0) {
+    return directionalRequests.some((request) => (request.cascadeCount ?? 1) > 1)
+      ? "directional-cascaded"
+      : "directional";
   }
 
-  return directionalRequests.some((request) => (request.cascadeCount ?? 1) > 1)
-    ? "directional-cascaded"
-    : "directional";
+  // No directional shadows: bake point cube-map shadows when present. (Mixed
+  // directional+point in one frame is a follow-up; directional takes precedence
+  // above to keep its path unchanged — mirror of render-shadow-frame.)
+  return snapshot.shadowRequests.some(isPointShadowRequest) ? "point" : null;
 }
 
 export function createWebGpuAppAutoShadowFrame(options: {
@@ -109,12 +113,15 @@ export function createWebGpuAppAutoShadowFrameInputKey(
     : needsFallbackSceneFit
       ? collectFallbackShadowBoundsIndices(snapshot)
       : new Set<number>();
-  const directionalRequests = snapshot.shadowRequests.filter(
-    isDirectionalShadowRequest,
+  // Key on every shadow request the frame may bake (directional + point) plus
+  // their lights and casters, so the cached frame invalidates when a point
+  // light moves or a caster animates — not only on directional changes.
+  const supportedRequests = snapshot.shadowRequests.filter(
+    isSupportedAutoShadowRequest,
   );
 
   return [
-    "auto-shadow-input:v3",
+    "auto-shadow-input:v4",
     needsCameraFrustumFitBounds
       ? "primary-camera-fit"
       : needsFallbackSceneFit
@@ -123,9 +130,9 @@ export function createWebGpuAppAutoShadowFrameInputKey(
     needsCameraFrustumFitBounds
       ? shadowCameraInputKey(primaryShadowCamera)
       : "camera:not-used",
-    shadowRequestsInputKey(directionalRequests),
-    shadowLightsInputKey(snapshot, directionalRequests),
-    shadowCastersInputKey(snapshot, directionalRequests),
+    shadowRequestsInputKey(supportedRequests),
+    shadowLightsInputKey(snapshot, supportedRequests),
+    shadowCastersInputKey(snapshot, supportedRequests),
     shadowBoundsInputKey(snapshot, indices),
   ].join(";");
 }
@@ -649,8 +656,8 @@ function shadowLightsInputKey(
   requests: readonly ShadowRequestPacket[],
 ): string {
   const lightIds = new Set(requests.map((request) => request.lightId));
-  const lights = snapshot.lights.filter(
-    (light) => light.kind === "directional" && lightIds.has(light.lightId),
+  const lights = snapshot.lights.filter((light) =>
+    lightIds.has(light.lightId),
   );
 
   return `lights:${lights
@@ -680,7 +687,7 @@ function shadowCastersInputKey(
   requests: readonly ShadowRequestPacket[],
 ): string {
   const casters = shadowCasterDrawsForSnapshot(snapshot).filter((draw) =>
-    isShadowCasterDraw(draw, requests),
+    isSupportedShadowCasterDraw(draw, requests),
   );
 
   return `casters:${casters
@@ -759,7 +766,7 @@ function createAutoShadowCasterMeshViews(options: {
   const preparedByMeshKey = new Set<string>();
 
   for (const draw of shadowCasterDrawsForSnapshot(options.snapshot)) {
-    if (!isShadowCasterDraw(draw, options.snapshot.shadowRequests)) {
+    if (!isSupportedShadowCasterDraw(draw, options.snapshot.shadowRequests)) {
       continue;
     }
 
@@ -858,6 +865,35 @@ function isShadowCasterDraw(
   );
 }
 
+/**
+ * Like {@link isShadowCasterDraw} but matches any baked shadow kind (directional
+ * or point). Used for caster mesh-resource preparation and the cache input key,
+ * which must cover point casters too; the directional auto-fit helpers keep using
+ * the directional-only predicate so their behavior is unchanged.
+ */
+function isSupportedShadowCasterDraw(
+  draw: MeshDrawPacket,
+  shadowRequests: readonly ShadowRequestPacket[],
+): boolean {
+  return (
+    draw.castsShadow !== false &&
+    isDepthOnlyShadowCasterDrawSupported(draw) &&
+    shadowRequests.some(
+      (request) =>
+        isSupportedAutoShadowRequest(request) &&
+        (draw.layerMask & request.casterLayerMask) !== 0,
+    )
+  );
+}
+
 function isDirectionalShadowRequest(request: ShadowRequestPacket): boolean {
   return request.lightKind === undefined || request.lightKind === "directional";
+}
+
+function isPointShadowRequest(request: ShadowRequestPacket): boolean {
+  return request.lightKind === "point";
+}
+
+function isSupportedAutoShadowRequest(request: ShadowRequestPacket): boolean {
+  return isDirectionalShadowRequest(request) || isPointShadowRequest(request);
 }
