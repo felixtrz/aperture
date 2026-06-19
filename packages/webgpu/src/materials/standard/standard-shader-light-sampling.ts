@@ -529,7 +529,7 @@ fn evaluateClusteredLocalLights(
         let toLight = lightPosition - position;
         let lightDistance = length(toLight);
         let lightRange = pointLightRange(lightIndex);
-        let attenuation = pow(saturate(1.0 - lightDistance / lightRange), 2.0);
+        let attenuation = punctualDistanceAttenuation(lightDistance, lightRange);
 
         if (attenuation > 0.0 && lightDistance > 0.0001) {
           let shadowFactor = localLightClusterPointShadowFactor(position, lightIndex, lightPosition);
@@ -551,7 +551,7 @@ fn evaluateClusteredLocalLights(
         let toLight = lightPosition - position;
         let lightDistance = length(toLight);
         let lightRange = pointLightRange(lightIndex);
-        let rangeAttenuation = pow(saturate(1.0 - lightDistance / lightRange), 2.0);
+        let rangeAttenuation = punctualDistanceAttenuation(lightDistance, lightRange);
 
         if (rangeAttenuation > 0.0 && lightDistance > 0.0001) {
           let lightDir = toLight / lightDistance;
@@ -603,7 +603,7 @@ fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> @lo
       let toLight = lightPosition - input.worldPosition;
       let lightDistance = length(toLight);
       let lightRange = pointLightRange(lightIndex);
-      let attenuation = pow(saturate(1.0 - lightDistance / lightRange), 2.0);
+      let attenuation = punctualDistanceAttenuation(lightDistance, lightRange);
 
       if (attenuation > 0.0 && lightDistance > 0.0001) {
         direct = direct + evaluateDirectLight(
@@ -623,7 +623,7 @@ fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> @lo
       let toLight = lightPosition - input.worldPosition;
       let lightDistance = length(toLight);
       let lightRange = pointLightRange(lightIndex);
-      let rangeAttenuation = pow(saturate(1.0 - lightDistance / lightRange), 2.0);
+      let rangeAttenuation = punctualDistanceAttenuation(lightDistance, lightRange);
 
       if (rangeAttenuation > 0.0 && lightDistance > 0.0001) {
         let lightDir = toLight / lightDistance;

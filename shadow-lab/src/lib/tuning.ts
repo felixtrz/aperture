@@ -53,6 +53,47 @@ export const DIR_LIGHT = {
   shadowFar: 60,
   shadowRadius: 4,
 } as const;
+// Omni light used by the `?light=point` shadow-parity mode (cube-map shadows).
+// Placed above the start/finish so its radial shadows fall across the player
+// truck and nearby track toward the camera. Authored 1:1 on both the Aperture
+// and three.js panes (see three-compare.ts).
+//
+// Both panes use the same physical inverse-square falloff windowed by `range`
+// (three.js PointLight decay 2 + distance = range; Aperture's matching shader
+// model), so the split-screen diff isolates shadow behavior. Intensity is in
+// the candela-like units that physical falloff implies, hence much larger than
+// the directional sun's illuminance.
+export const POINT_LIGHT = {
+  colorHex: 0xffffff,
+  intensity: 45,
+  position: [6.5, 8, 8] as [number, number, number],
+  range: 40,
+  shadowMapSize: 2048,
+  shadowRadius: 4,
+} as const;
+// Spot light used by the `?light=spot` shadow-parity mode (single 2D
+// perspective shadow). Placed above and to the side of the start/finish, aimed
+// down at the player truck so the cone and its hard-edged shadow fall across the
+// truck and nearby track toward the camera. Authored 1:1 on both panes (see
+// three-compare.ts).
+//
+// Both panes use the same physical inverse-square falloff windowed by `range`
+// (three.js SpotLight decay 2 + distance = range) plus a smoothstep cone
+// falloff between the inner and outer cone angles. The split-screen diff then
+// isolates shadow behavior. Angles are half-angles in radians (three.js
+// SpotLight.angle is the outer half-angle; penumbra maps to the inner angle).
+export const SPOT_LIGHT = {
+  colorHex: 0xffffff,
+  intensity: 90,
+  position: [6.5, 12, 8] as [number, number, number],
+  target: [SPAWN_POS[0], 0.5, SPAWN_POS[2]] as [number, number, number],
+  range: 40,
+  // Outer half-angle ~30°, inner ~22° (penumbra band between them).
+  outerConeAngle: 0.52,
+  innerConeAngle: 0.38,
+  shadowMapSize: 2048,
+  shadowRadius: 4,
+} as const;
 export const HEMI_LIGHT = {
   skyHex: 0xc8d8e8,
   groundHex: 0x7a8a5a,

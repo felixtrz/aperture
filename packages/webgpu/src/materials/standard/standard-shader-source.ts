@@ -316,6 +316,20 @@ fn pointLightRange(lightIndex: u32) -> f32 {
   return max(lightFloats[offset + 5u], 0.0001);
 }
 
+// Physically-based punctual (point/spot) distance attenuation, matching the
+// three.js getDistanceAttenuation with the default decay of 2 (and PlayCanvas /
+// Bevy): inverse-square falloff windowed by a smooth range cutoff so radiance
+// reaches zero at the authored range. lightRange <= 0 disables the window.
+fn punctualDistanceAttenuation(lightDistance: f32, lightRange: f32) -> f32 {
+  let inverseSquare = 1.0 / max(lightDistance * lightDistance, 0.0001);
+  if (lightRange <= 0.0) {
+    return inverseSquare;
+  }
+  let ratio2 = (lightDistance * lightDistance) / (lightRange * lightRange);
+  let window = saturate(1.0 - ratio2 * ratio2);
+  return inverseSquare * window * window;
+}
+
 fn spotLightDirection(lightIndex: u32) -> vec3f {
   return packedLightDirection(lightIndex);
 }
@@ -675,7 +689,7 @@ ${createStandardFragmentComposer().emitMetallicRoughnessBlock()}
       let toLight = lightPosition - input.worldPosition;
       let lightDistance = length(toLight);
       let lightRange = pointLightRange(lightIndex);
-      let attenuation = pow(saturate(1.0 - lightDistance / lightRange), 2.0);
+      let attenuation = punctualDistanceAttenuation(lightDistance, lightRange);
 
       if (attenuation > 0.0 && lightDistance > 0.0001) {
         direct = direct + evaluateDirectLight(
@@ -695,7 +709,7 @@ ${createStandardFragmentComposer().emitMetallicRoughnessBlock()}
       let toLight = lightPosition - input.worldPosition;
       let lightDistance = length(toLight);
       let lightRange = pointLightRange(lightIndex);
-      let rangeAttenuation = pow(saturate(1.0 - lightDistance / lightRange), 2.0);
+      let rangeAttenuation = punctualDistanceAttenuation(lightDistance, lightRange);
 
       if (rangeAttenuation > 0.0 && lightDistance > 0.0001) {
         let lightDir = toLight / lightDistance;

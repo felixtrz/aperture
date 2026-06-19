@@ -472,6 +472,7 @@ function standardTextureFeatures(
     shadowMap: tokens.includes("shadowMap"),
     cascadedShadowMap: tokens.includes("cascadedShadowMap"),
     pointShadowMap: tokens.includes("pointShadowMap"),
+    spotShadowMap: tokens.includes("spotShadowMap"),
     iblDiffuse: tokens.includes("iblDiffuse"),
     iblSpecularProof: tokens.includes("iblSpecularProof"),
     iblSpecularBrdf: tokens.includes("iblSpecularBrdf"),

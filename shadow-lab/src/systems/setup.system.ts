@@ -11,6 +11,8 @@ import {
   DIR_LIGHT,
   FOG_HEX,
   HEMI_LIGHT,
+  POINT_LIGHT,
+  SPOT_LIGHT,
   SPAWN_POS,
   VEHICLE_ROOT_SCALE,
 } from "../lib/tuning.js";
@@ -71,7 +73,23 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     });
   }
 
+  // One shadow-casting light at a time keeps the shadow shape unambiguous.
+  // `?light=point` swaps the directional sun for a cube-map point light;
+  // `?light=spot` swaps it for a single-2D perspective spot light. The page-URL
+  // param is forwarded into startOptions by the generated bootstrap.
   #spawnLights(): void {
+    const light = this.startOptions.string("light");
+    if (light === "point") {
+      this.#spawnPointLight();
+    } else if (light === "spot") {
+      this.#spawnSpotLight();
+    } else {
+      this.#spawnDirectionalLight();
+    }
+    this.#spawnAmbient();
+  }
+
+  #spawnDirectionalLight(): void {
     this.spawn.light({
       key: "light.sun",
       name: "sun",
@@ -87,7 +105,59 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         normalBias: 0.05,
       },
     });
+  }
 
+  #spawnPointLight(): void {
+    this.spawn.light({
+      key: "light.point",
+      name: "point-light",
+      kind: "point",
+      color: hexColor(POINT_LIGHT.colorHex),
+      intensity: POINT_LIGHT.intensity,
+      // `range` lives on LightInput (controls falloff + cube-shadow far plane).
+      light: { range: POINT_LIGHT.range },
+      transform: { translation: POINT_LIGHT.position },
+      shadow: {
+        // Cube-map shadow: near/far are derived from the light range by the
+        // renderer, so only resolution + filtering are authored here.
+        mapSize: POINT_LIGHT.shadowMapSize,
+        shadowType: 1,
+        filterRadius: POINT_LIGHT.shadowRadius,
+        normalBias: 0.05,
+      },
+    });
+  }
+
+  #spawnSpotLight(): void {
+    this.spawn.light({
+      key: "light.spot",
+      name: "spot-light",
+      kind: "spot",
+      color: hexColor(SPOT_LIGHT.colorHex),
+      intensity: SPOT_LIGHT.intensity,
+      // `range` controls falloff + the perspective-shadow far plane; the cone
+      // angles (half-angles, radians) drive the spot's smoothstep edge.
+      light: {
+        range: SPOT_LIGHT.range,
+        innerConeAngle: SPOT_LIGHT.innerConeAngle,
+        outerConeAngle: SPOT_LIGHT.outerConeAngle,
+      },
+      transform: {
+        translation: SPOT_LIGHT.position,
+        lookAt: SPOT_LIGHT.target,
+      },
+      shadow: {
+        // Single 2D perspective shadow: near/far derived from the light range by
+        // the renderer, so only resolution + filtering are authored here.
+        mapSize: SPOT_LIGHT.shadowMapSize,
+        shadowType: 1,
+        filterRadius: SPOT_LIGHT.shadowRadius,
+        normalBias: 0.05,
+      },
+    });
+  }
+
+  #spawnAmbient(): void {
     const sky = hexColor(HEMI_LIGHT.skyHex);
     const ground = hexColor(HEMI_LIGHT.groundHex);
     const skyBias = 0.85;

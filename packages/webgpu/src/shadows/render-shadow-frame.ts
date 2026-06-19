@@ -46,6 +46,26 @@ import {
   type DirectionalShadowViewProjectionPlanReport,
 } from "./directional-shadow-view-projection-plan.js";
 import {
+  createPointShadowViewProjectionPlanReport,
+  pointShadowViewProjectionPlanReportToJsonValue,
+  type PointShadowViewProjectionPlanReport,
+} from "./point-shadow-view-projection-plan.js";
+import {
+  createPointShadowMatrixComputationReport,
+  pointShadowMatrixComputationReportToJsonValue,
+  type PointShadowMatrixComputationReport,
+} from "./point-shadow-matrix-computation.js";
+import {
+  createSpotShadowViewProjectionPlanReport,
+  spotShadowViewProjectionPlanReportToJsonValue,
+  type SpotShadowViewProjectionPlanReport,
+} from "./spot-shadow-view-projection-plan.js";
+import {
+  createSpotShadowMatrixComputationReport,
+  spotShadowMatrixComputationReportToJsonValue,
+  type SpotShadowMatrixComputationReport,
+} from "./spot-shadow-matrix-computation.js";
+import {
   createShadowCasterCommandPlanReadinessReport,
   shadowCasterCommandPlanReadinessReportToJsonValue,
   type ShadowCasterCommandPlanReadinessReport,
@@ -169,6 +189,28 @@ export type RenderShadowFrameShadowKind = NonNullable<
   StandardFrameShadowReceiverResources["shadowKind"]
 >;
 
+/**
+ * Which light kind a frame bakes. A frame bakes exactly one (directional takes
+ * precedence, then point, then spot — see createRenderShadowFrame). Drives the
+ * per-kind view-projection/matrix serializers in the report.
+ */
+export type RenderShadowFrameKind = "directional" | "point" | "spot";
+
+/**
+ * The shadow view-projection / matrix-computation reports differ by light kind
+ * (directional cascades vs point cube faces vs spot perspective) but flow
+ * through the same generic caster pipeline. The frame result and report widen to
+ * the union so a frame can be any kind without losing per-kind diagnostics.
+ */
+export type RenderShadowFrameViewProjectionReport =
+  | DirectionalShadowViewProjectionPlanReport
+  | PointShadowViewProjectionPlanReport
+  | SpotShadowViewProjectionPlanReport;
+export type RenderShadowFrameMatrixComputationReport =
+  | DirectionalShadowMatrixComputationReport
+  | PointShadowMatrixComputationReport
+  | SpotShadowMatrixComputationReport;
+
 export interface RenderShadowFrameCache {
   readonly shadowDepthTextures?: ShadowDepthTextureResourceCache;
   readonly shadowMatrixBuffers?: Map<string, ShadowMatrixBufferResource>;
@@ -239,8 +281,8 @@ export interface RenderShadowFrameResult {
   >;
   readonly passPlan: ShadowPassPlanReport;
   readonly passAttachments: ShadowPassAttachmentDescriptorReport;
-  readonly viewProjection: DirectionalShadowViewProjectionPlanReport;
-  readonly matrixComputation: DirectionalShadowMatrixComputationReport;
+  readonly viewProjection: RenderShadowFrameViewProjectionReport;
+  readonly matrixComputation: RenderShadowFrameMatrixComputationReport;
   readonly matrixBuffer: ShadowMatrixBufferDescriptorReport;
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
   readonly casterDrawList: ShadowCasterDrawListPlanReport;
@@ -263,8 +305,8 @@ export interface RenderShadowFrameReport {
   readonly passCount: number;
   readonly drawCalls: number;
   readonly descriptor: ShadowMapDescriptorReport;
-  readonly viewProjection: DirectionalShadowViewProjectionPlanReport;
-  readonly matrixComputation: DirectionalShadowMatrixComputationReport;
+  readonly viewProjection: RenderShadowFrameViewProjectionReport;
+  readonly matrixComputation: RenderShadowFrameMatrixComputationReport;
   readonly casterDrawList: ShadowCasterDrawListPlanReport;
   readonly depthTextureKeys: readonly string[];
   readonly matrixBufferResourceKey: string | null;
@@ -355,13 +397,40 @@ export function createRenderShadowFrame(
   options: CreateRenderShadowFrameOptions,
 ): RenderShadowFrameResult {
   const encodeCommandBuffer = options.encode !== false;
-  const shadowRequests = options.snapshot.shadowRequests.filter(
+  // A frame bakes a single light kind. Directional takes precedence, then point,
+  // then spot — each is the sole shadow kind in its frame. Mixing kinds in one
+  // frame is a follow-up (the multi receiver bind group needs combined point +
+  // spot resources). Point bakes a 2d-array cube; spot a single 2D perspective
+  // map that reuses the directional bindings.
+  const directionalRequests = options.snapshot.shadowRequests.filter(
     isDirectionalShadowRequest,
   );
+  const pointShadowRequests = options.snapshot.shadowRequests.filter(
+    isPointShadowRequest,
+  );
+  const spotShadowRequests = options.snapshot.shadowRequests.filter(
+    isSpotShadowRequest,
+  );
+  const isPointFrame =
+    directionalRequests.length === 0 && pointShadowRequests.length > 0;
+  const isSpotFrame =
+    directionalRequests.length === 0 &&
+    pointShadowRequests.length === 0 &&
+    spotShadowRequests.length > 0;
+  const shadowRequests = isPointFrame
+    ? pointShadowRequests
+    : isSpotFrame
+      ? spotShadowRequests
+      : directionalRequests;
+  const kindLabel = isPointFrame ? "point" : isSpotFrame ? "spot" : "directional";
   const descriptor = createShadowMapDescriptorReport({
     shadowRequests,
     descriptors: shadowRequests.map((request) =>
-      createDirectionalShadowDescriptor(request, options.shadowMap),
+      isPointFrame
+        ? createPointShadowDescriptor(request, options.shadowMap)
+        : isSpotFrame
+          ? createSpotShadowDescriptor(request, options.shadowMap)
+          : createDirectionalShadowDescriptor(request, options.shadowMap),
     ),
   });
   const textures = createShadowTextureResourceReport({
@@ -376,7 +445,7 @@ export function createRenderShadowFrame(
   });
   const samplerResource = createShadowSamplerResourceReport({
     device: options.device,
-    resourceKey: "shadow-sampler:directional",
+    resourceKey: `shadow-sampler:${kindLabel}`,
     ...(options.cache?.shadowSamplers === undefined
       ? {}
       : { cache: options.cache.shadowSamplers }),
@@ -390,72 +459,117 @@ export function createRenderShadowFrame(
     shadowPassPlan: passPlan,
     depthTextureResources,
   });
-  const shadowCamera = resolvePrimaryShadowCamera(options.snapshot);
-  const needsCameraFrustumFit =
-    shadowCamera !== null &&
-    shadowRequests.some(shadowRequestNeedsCameraFrustumFit);
-  const fallbackMatrix = needsCameraFrustumFit ? undefined : options.matrix;
-  const viewProjection = createDirectionalShadowViewProjectionPlanReport({
-    shadowRequests,
-    lights: options.snapshot.lights,
-    shadowPassPlan: passPlan,
-    computation: "ready",
-    ...(!needsCameraFrustumFit || shadowCamera === null
-      ? {}
-      : {
-          cameraNear: shadowCamera.near,
-          cameraFar: shadowCamera.far,
-          shadowMaxDistance: shadowCamera.far,
-        }),
-  });
   const casterDrawList = createShadowCasterDrawListPlanReport({
     shadowRequests,
     meshDraws: options.snapshot.shadowCasterDraws ?? options.snapshot.meshDraws,
     shadowPassPlan: passPlan,
     commandEncoding: "ready",
   });
-  const matrixComputation = createDirectionalShadowMatrixComputationReport({
-    viewProjection,
-    transforms: options.snapshot.transforms,
-    ...(!needsCameraFrustumFit || shadowCamera === null
-      ? {}
-      : {
-          cameraViewMatrix: shadowCamera.viewMatrix,
-          cameraProjectionMatrix: shadowCamera.projectionMatrix,
-        }),
-    ...(needsCameraFrustumFit
-      ? {
-          casterBounds: createDirectionalShadowCasterBounds({
-            casterDrawList,
-            bounds: options.snapshot.bounds,
+  // A frame bakes exactly one light kind (see isPointFrame). Point shadows use a
+  // fixed perspective cube projection derived from the light range and so skip
+  // the directional camera-frustum auto-fit; both kinds resolve a view-projection
+  // and matrix computation here, then flow through the same generic caster
+  // pipeline below.
+  let viewProjection: RenderShadowFrameViewProjectionReport;
+  let matrixComputation: RenderShadowFrameMatrixComputationReport;
+  if (isPointFrame) {
+    const pointViewProjection = createPointShadowViewProjectionPlanReport({
+      shadowRequests,
+      lights: options.snapshot.lights,
+      shadowPassPlan: passPlan,
+      computation: "ready",
+    });
+    viewProjection = pointViewProjection;
+    matrixComputation = createPointShadowMatrixComputationReport({
+      viewProjection: pointViewProjection,
+      transforms: options.snapshot.transforms,
+    });
+  } else if (isSpotFrame) {
+    // Spot shadows use a single 2D perspective map (three.js SpotLightShadow):
+    // a PerspectiveCamera looking down the cone axis. The fixed near/far come
+    // from the light range, so — like point — it skips the directional
+    // camera-frustum auto-fit and resolves a self-contained view-projection.
+    const spotViewProjection = createSpotShadowViewProjectionPlanReport({
+      shadowRequests,
+      lights: options.snapshot.lights,
+      shadowPassPlan: passPlan,
+      computation: "ready",
+    });
+    viewProjection = spotViewProjection;
+    matrixComputation = createSpotShadowMatrixComputationReport({
+      viewProjection: spotViewProjection,
+      transforms: options.snapshot.transforms,
+    });
+  } else {
+    const shadowCamera = resolvePrimaryShadowCamera(options.snapshot);
+    const needsCameraFrustumFit =
+      shadowCamera !== null &&
+      shadowRequests.some(shadowRequestNeedsCameraFrustumFit);
+    const fallbackMatrix = needsCameraFrustumFit ? undefined : options.matrix;
+    const directionalViewProjection =
+      createDirectionalShadowViewProjectionPlanReport({
+        shadowRequests,
+        lights: options.snapshot.lights,
+        shadowPassPlan: passPlan,
+        computation: "ready",
+        ...(!needsCameraFrustumFit || shadowCamera === null
+          ? {}
+          : {
+              cameraNear: shadowCamera.near,
+              cameraFar: shadowCamera.far,
+              shadowMaxDistance: shadowCamera.far,
+            }),
+      });
+    viewProjection = directionalViewProjection;
+    matrixComputation = createDirectionalShadowMatrixComputationReport({
+      viewProjection: directionalViewProjection,
+      transforms: options.snapshot.transforms,
+      ...(!needsCameraFrustumFit || shadowCamera === null
+        ? {}
+        : {
+            cameraViewMatrix: shadowCamera.viewMatrix,
+            cameraProjectionMatrix: shadowCamera.projectionMatrix,
           }),
-          receiverBounds: createDirectionalShadowReceiverBounds({
-            passPlan,
-            meshDraws: options.snapshot.meshDraws,
-            bounds: options.snapshot.bounds,
-          }),
-        }
-      : {}),
-    frustumFit: needsCameraFrustumFit,
-    ...(fallbackMatrix?.center === undefined
-      ? {}
-      : { center: fallbackMatrix.center }),
-    ...(fallbackMatrix?.orthographicSize === undefined
-      ? {}
-      : { orthographicSize: fallbackMatrix.orthographicSize }),
-    ...(fallbackMatrix?.near === undefined
-      ? {}
-      : { near: fallbackMatrix.near }),
-    ...(fallbackMatrix?.far === undefined ? {} : { far: fallbackMatrix.far }),
-    ...(fallbackMatrix?.lightDistance === undefined
-      ? {}
-      : { lightDistance: fallbackMatrix.lightDistance }),
-  });
+      ...(needsCameraFrustumFit
+        ? {
+            casterBounds: createDirectionalShadowCasterBounds({
+              casterDrawList,
+              bounds: options.snapshot.bounds,
+            }),
+            receiverBounds: createDirectionalShadowReceiverBounds({
+              passPlan,
+              meshDraws: options.snapshot.meshDraws,
+              bounds: options.snapshot.bounds,
+            }),
+          }
+        : {}),
+      frustumFit: needsCameraFrustumFit,
+      ...(fallbackMatrix?.center === undefined
+        ? {}
+        : { center: fallbackMatrix.center }),
+      ...(fallbackMatrix?.orthographicSize === undefined
+        ? {}
+        : { orthographicSize: fallbackMatrix.orthographicSize }),
+      ...(fallbackMatrix?.near === undefined
+        ? {}
+        : { near: fallbackMatrix.near }),
+      ...(fallbackMatrix?.far === undefined
+        ? {}
+        : { far: fallbackMatrix.far }),
+      ...(fallbackMatrix?.lightDistance === undefined
+        ? {}
+        : { lightDistance: fallbackMatrix.lightDistance }),
+    });
+  }
   const matrixBuffer = createShadowMatrixBufferDescriptorReport({
     viewProjection,
     upload: "ready",
-    resourceKey: "shadow-matrix-buffer:directional",
-    label: "DirectionalShadowMatrices/storage",
+    resourceKey: `shadow-matrix-buffer:${kindLabel}`,
+    // Spot shadows reuse the directional bindings (sampleDirectionalShadowFactor
+    // samples matrix 0), so they upload into the directional matrix storage.
+    label: isPointFrame
+      ? "PointShadowMatrices/storage"
+      : "DirectionalShadowMatrices/storage",
   });
   const matrixBufferResource = createShadowMatrixBufferResourceReport({
     device: options.device,
@@ -648,7 +762,7 @@ export function createRenderShadowFrame(
   const encoderResource = encodeCommandBuffer
     ? createCommandEncoderResource({
         device: options.device,
-        label: options.label ?? "shadow-pass:directional",
+        label: options.label ?? `shadow-pass:${kindLabel}`,
       })
     : null;
   const encoder = encoderResource?.resource?.encoder as
@@ -677,7 +791,7 @@ export function createRenderShadowFrame(
       ...(options.device.queue === undefined
         ? {}
         : { queue: options.device.queue }),
-      label: options.label ?? "shadow-pass:directional",
+      label: options.label ?? `shadow-pass:${kindLabel}`,
       submit: options.submit ?? true,
       deferEncoding: !encodeCommandBuffer,
       ...(options.gpuTiming === undefined
@@ -691,13 +805,29 @@ export function createRenderShadowFrame(
     },
   );
   const receiverResources = createReceiverResources({
-    shadowKind: resolveShadowKind(descriptor),
+    // Point shadows use the 2d-array ("point-array") receiver path: each cube
+    // face is an array layer reprojected through its own matrix in the shader,
+    // which keeps occluder placement self-consistent with the bake. The
+    // pipeline-kind (auto-shadow-frame) must agree so the variant + bindings
+    // select the 2d-array sampler.
+    //
+    // Spot shadows ("spot") reuse the directional single-2D bindings (same
+    // bind-group layout: matrix@2, depth@3, sampler@4) — the only difference is
+    // the shader's spotShadowMap feature, which also shadows the spot light
+    // block via sampleDirectionalShadowFactor (matrix 0). So the receiver
+    // resources match the directional shape; only the kind label differs.
+    shadowKind: isPointFrame
+      ? "point-array"
+      : isSpotFrame
+        ? "spot"
+        : resolveShadowKind(descriptor),
     matrixBufferResource,
     depthTextureResources,
     samplerResource,
   });
   const report = createRenderShadowFrameReport({
     shadowKind: receiverResources?.shadowKind ?? null,
+    kind: kindLabel,
     shadowRequests,
     depthTextureResources,
     matrixBufferResource,
@@ -1017,7 +1147,7 @@ interface ShadowCasterWorldTransforms {
  */
 function createShadowCasterPassMatrixBuffers(input: {
   readonly device: RenderShadowFrameDeviceLike;
-  readonly matrices: DirectionalShadowMatrixComputationReport;
+  readonly matrices: RenderShadowFrameMatrixComputationReport;
   readonly cache?: Map<string, ShadowCasterPassMatrixBufferResource>;
 }): readonly ShadowCasterPassMatrixBufferResource[] {
   if (input.matrices.status === "not-required") {
@@ -1626,6 +1756,66 @@ function createDirectionalShadowDescriptor(
   };
 }
 
+/**
+ * Point shadows render the scene into a 6-layer depth array (one perspective
+ * pass per cube face, stored as array layers). The receiver samples each face by
+ * reprojecting through the SAME per-face matrix and computing the layer UV in
+ * the shader, so placement is self-consistent and does not depend on the
+ * hardware cube-map face/UV convention (which a real cube texture would). The
+ * near/far planes are derived from the light range by the point view-projection
+ * plan, so only resolution + bias are authored here.
+ */
+function createPointShadowDescriptor(
+  request: ShadowRequestPacket,
+  options: RenderShadowFrameShadowMapOptions | undefined,
+): ShadowMapDescriptorSource {
+  return {
+    shadowId: request.shadowId,
+    lightId: request.lightId,
+    mapSize: options?.mapSize ?? request.mapSize ?? DEFAULT_SHADOW_MAP_SIZE,
+    depthBias: options?.depthBias ?? request.depthBias ?? DEFAULT_DEPTH_BIAS,
+    normalBias: options?.normalBias ?? request.normalBias ?? 0,
+    filterRadiusTexels:
+      options?.filterRadiusTexels ?? request.filterRadius ?? 1,
+    cascadeCount: 1,
+    faceCount: 6,
+    layerCount: 6,
+    layerBaseIndex: 0,
+    viewDimension: "2d-array",
+    resourceKey:
+      options?.resourceKey ??
+      `shadow-map:${request.shadowId}:light:${request.lightId}`,
+  };
+}
+
+/**
+ * Spot shadows render the scene into a single 2D depth map from one perspective
+ * camera looking down the cone axis (three.js SpotLightShadow). This mirrors the
+ * directional non-cascaded descriptor (single 2D, cascadeCount 1) so the
+ * receiver reuses the directional bind-group layout; the near/far come from the
+ * light range via the spot view-projection plan, so only resolution + bias are
+ * authored here.
+ */
+function createSpotShadowDescriptor(
+  request: ShadowRequestPacket,
+  options: RenderShadowFrameShadowMapOptions | undefined,
+): ShadowMapDescriptorSource {
+  return {
+    shadowId: request.shadowId,
+    lightId: request.lightId,
+    mapSize: options?.mapSize ?? request.mapSize ?? DEFAULT_SHADOW_MAP_SIZE,
+    depthBias: options?.depthBias ?? request.depthBias ?? DEFAULT_DEPTH_BIAS,
+    normalBias: options?.normalBias ?? request.normalBias ?? 0,
+    filterRadiusTexels:
+      options?.filterRadiusTexels ?? request.filterRadius ?? 1,
+    cascadeCount: 1,
+    viewDimension: "2d",
+    resourceKey:
+      options?.resourceKey ??
+      `shadow-map:${request.shadowId}:light:${request.lightId}`,
+  };
+}
+
 function maxAuthoredCasterSlopeBias(
   shadowRequests: readonly ShadowRequestPacket[],
 ): { readonly slopeBias: number } | Record<string, never> {
@@ -1666,6 +1856,7 @@ function createReceiverResources(input: {
 
 function createRenderShadowFrameReport(input: {
   readonly shadowKind: RenderShadowFrameShadowKind | null;
+  readonly kind: RenderShadowFrameKind;
   readonly shadowRequests: readonly ShadowRequestPacket[];
   readonly depthTextureResources: ShadowDepthTextureResourceReport;
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
@@ -1678,7 +1869,10 @@ function createRenderShadowFrameReport(input: {
   readonly receiverResources: StandardFrameShadowReceiverResources | null;
   readonly stages: RenderShadowFrameDiagnosticStages;
 }): RenderShadowFrameReport {
-  const diagnostics = collectRenderShadowFrameDiagnostics(input.stages);
+  const diagnostics = collectRenderShadowFrameDiagnostics(
+    input.stages,
+    input.kind,
+  );
   const submitted = input.commandBufferSubmission.status === "submitted";
   const assembledOrPlannedPasses =
     input.commandBufferSubmission.counts.assembledPasses > 0
@@ -1704,11 +1898,13 @@ function createRenderShadowFrameReport(input: {
     passCount: assembledOrPlannedPasses,
     drawCalls: input.commandBufferSubmission.counts.drawCalls,
     descriptor: shadowMapDescriptorReportToJsonValue(input.stages.descriptor),
-    viewProjection: directionalShadowViewProjectionPlanReportToJsonValue(
+    viewProjection: serializeShadowViewProjection(
       input.stages.viewProjection,
+      input.kind,
     ),
-    matrixComputation: directionalShadowMatrixComputationReportToJsonValue(
+    matrixComputation: serializeShadowMatrixComputation(
       input.stages.matrixComputation,
+      input.kind,
     ),
     casterDrawList: shadowCasterDrawListPlanReportToJsonValue(
       input.stages.casterDrawList,
@@ -1765,8 +1961,8 @@ interface RenderShadowFrameDiagnosticStages {
   >;
   readonly passPlan: ShadowPassPlanReport;
   readonly passAttachments: ShadowPassAttachmentDescriptorReport;
-  readonly viewProjection: DirectionalShadowViewProjectionPlanReport;
-  readonly matrixComputation: DirectionalShadowMatrixComputationReport;
+  readonly viewProjection: RenderShadowFrameViewProjectionReport;
+  readonly matrixComputation: RenderShadowFrameMatrixComputationReport;
   readonly matrixBuffer: ShadowMatrixBufferDescriptorReport;
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
   readonly casterDrawList: ShadowCasterDrawListPlanReport;
@@ -1781,8 +1977,48 @@ interface RenderShadowFrameDiagnosticStages {
   readonly commandBufferSubmission: ShadowPassCommandBufferSubmissionReport;
 }
 
+/**
+ * Serialize a per-kind shadow view-projection report to its JSON value. The
+ * directional, point, and spot reports have different shapes, so the active kind
+ * picks the matching serializer (the frame bakes a single kind — see kindLabel).
+ */
+function serializeShadowViewProjection(
+  report: RenderShadowFrameViewProjectionReport,
+  kind: RenderShadowFrameKind,
+): RenderShadowFrameViewProjectionReport {
+  return kind === "point"
+    ? pointShadowViewProjectionPlanReportToJsonValue(
+        report as PointShadowViewProjectionPlanReport,
+      )
+    : kind === "spot"
+      ? spotShadowViewProjectionPlanReportToJsonValue(
+          report as SpotShadowViewProjectionPlanReport,
+        )
+      : directionalShadowViewProjectionPlanReportToJsonValue(
+          report as DirectionalShadowViewProjectionPlanReport,
+        );
+}
+
+function serializeShadowMatrixComputation(
+  report: RenderShadowFrameMatrixComputationReport,
+  kind: RenderShadowFrameKind,
+): RenderShadowFrameMatrixComputationReport {
+  return kind === "point"
+    ? pointShadowMatrixComputationReportToJsonValue(
+        report as PointShadowMatrixComputationReport,
+      )
+    : kind === "spot"
+      ? spotShadowMatrixComputationReportToJsonValue(
+          report as SpotShadowMatrixComputationReport,
+        )
+      : directionalShadowMatrixComputationReportToJsonValue(
+          report as DirectionalShadowMatrixComputationReport,
+        );
+}
+
 function collectRenderShadowFrameDiagnostics(
   stages: RenderShadowFrameDiagnosticStages,
+  kind: RenderShadowFrameKind,
 ): readonly RenderShadowFrameDiagnostic[] {
   const diagnostics: RenderShadowFrameDiagnostic[] = [];
   const append = (stage: string, values: readonly unknown[]) => {
@@ -1820,14 +2056,12 @@ function collectRenderShadowFrameDiagnostics(
   );
   append(
     "viewProjection",
-    directionalShadowViewProjectionPlanReportToJsonValue(stages.viewProjection)
-      .diagnostics,
+    serializeShadowViewProjection(stages.viewProjection, kind).diagnostics,
   );
   append(
     "matrixComputation",
-    directionalShadowMatrixComputationReportToJsonValue(
-      stages.matrixComputation,
-    ).diagnostics,
+    serializeShadowMatrixComputation(stages.matrixComputation, kind)
+      .diagnostics,
   );
   append(
     "matrixBuffer",
@@ -1928,6 +2162,14 @@ function resolveShadowKind(
 
 function isDirectionalShadowRequest(request: ShadowRequestPacket): boolean {
   return request.lightKind === undefined || request.lightKind === "directional";
+}
+
+function isPointShadowRequest(request: ShadowRequestPacket): boolean {
+  return request.lightKind === "point";
+}
+
+function isSpotShadowRequest(request: ShadowRequestPacket): boolean {
+  return request.lightKind === "spot";
 }
 
 function shadowRequestNeedsCameraFrustumFit(

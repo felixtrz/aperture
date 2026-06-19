@@ -17,6 +17,8 @@ import {
   DIR_LIGHT,
   FOG_HEX,
   HEMI_LIGHT,
+  POINT_LIGHT,
+  SPOT_LIGHT,
   SPAWN_POS,
   VEHICLE_ROOT_SCALE,
 } from "../lib/tuning.js";
@@ -31,6 +33,7 @@ import {
   decodeCells,
   type DecorationInstance,
   type GridCell,
+  type TrackBounds,
 } from "../lib/track.js";
 
 interface DevtoolsResponse {
@@ -181,6 +184,13 @@ function layout(): {
   };
 }
 
+type LightMode = "directional" | "point" | "spot";
+
+function resolveLightMode(): LightMode {
+  const light = new URLSearchParams(window.location.search).get("light");
+  return light === "point" ? "point" : light === "spot" ? "spot" : "directional";
+}
+
 function resolvePageTrack(): {
   readonly cells: readonly GridCell[];
   readonly customMap: boolean;
@@ -242,6 +252,40 @@ async function buildScene(): Promise<{
   const playerRoot = buildPlayer(scene, models);
   buildBloomProbe(scene);
 
+  const lightMode = resolveLightMode();
+  if (lightMode === "point") {
+    buildPointLight(scene);
+  } else if (lightMode === "spot") {
+    buildSpotLight(scene);
+  } else {
+    buildSun(scene, bounds);
+  }
+
+  // Aperture currently approximates the reference HemisphereLight as a single
+  // sky-biased ambient light. Keep the reference pane on the same fill model so
+  // this view isolates render/shadow/post differences instead of light-model drift.
+  const skyBias = 0.85;
+  const sky = new THREE.Color(HEMI_LIGHT.skyHex);
+  const ground = new THREE.Color(HEMI_LIGHT.groundHex);
+  const ambient = new THREE.AmbientLight(
+    new THREE.Color(
+      sky.r * skyBias + ground.r * (1 - skyBias),
+      sky.g * skyBias + ground.g * (1 - skyBias),
+      sky.b * skyBias + ground.b * (1 - skyBias),
+    ),
+    HEMI_LIGHT.intensity,
+  );
+  scene.add(ambient);
+
+  return { scene, playerRoot };
+}
+
+// Mirrors SetupSystem.#spawnDirectionalLight: a shadow-casting sun with a
+// fixed ortho box sized to the track bounds.
+function buildSun(
+  scene: typeof THREE.Scene.prototype,
+  bounds: TrackBounds,
+): void {
   const shadowExtent = Math.max(bounds.halfWidth, bounds.halfDepth) + 10;
   const sun = new THREE.DirectionalLight(
     DIR_LIGHT.colorHex,
@@ -262,24 +306,68 @@ async function buildScene(): Promise<{
   shadowCamera.updateProjectionMatrix();
   sun.shadow.radius = DIR_LIGHT.shadowRadius;
   scene.add(sun);
+}
 
-  // Aperture currently approximates the reference HemisphereLight as a single
-  // sky-biased ambient light. Keep the reference pane on the same fill model so
-  // this view isolates render/shadow/post differences instead of light-model drift.
-  const skyBias = 0.85;
-  const sky = new THREE.Color(HEMI_LIGHT.skyHex);
-  const ground = new THREE.Color(HEMI_LIGHT.groundHex);
-  const ambient = new THREE.AmbientLight(
-    new THREE.Color(
-      sky.r * skyBias + ground.r * (1 - skyBias),
-      sky.g * skyBias + ground.g * (1 - skyBias),
-      sky.b * skyBias + ground.b * (1 - skyBias),
-    ),
-    HEMI_LIGHT.intensity,
+// Mirrors SetupSystem.#spawnPointLight: a cube-map shadow point light. Aperture
+// now uses the same physical inverse-square falloff three.js does (decay 2)
+// windowed by the range, so the panes are lit identically and the diff isolates
+// shadow behavior rather than the falloff model.
+function buildPointLight(scene: typeof THREE.Scene.prototype): void {
+  const point = new THREE.PointLight(
+    POINT_LIGHT.colorHex,
+    POINT_LIGHT.intensity,
+    POINT_LIGHT.range,
+    2,
   );
-  scene.add(ambient);
+  point.position.set(...POINT_LIGHT.position);
+  point.castShadow = true;
+  point.shadow.mapSize.setScalar(POINT_LIGHT.shadowMapSize);
+  // Match Aperture's cube-face near/far (range-scaled near, far = range).
+  point.shadow.camera.near = Math.min(
+    Math.max(POINT_LIGHT.range * 0.02, 0.05),
+    POINT_LIGHT.range * 0.5,
+  );
+  point.shadow.camera.far = POINT_LIGHT.range;
+  point.shadow.camera.updateProjectionMatrix();
+  point.shadow.radius = POINT_LIGHT.shadowRadius;
+  scene.add(point);
+}
 
-  return { scene, playerRoot };
+// Mirrors SetupSystem.#spawnSpotLight: a single-2D perspective shadow spot
+// light. Aperture uses the same physical inverse-square falloff three.js does
+// (decay 2) windowed by the range, plus a cone falloff between the inner/outer
+// half-angles, so the panes are lit comparably and the diff isolates shadow
+// behavior. three.js maps the inner cone via penumbra: cosInner =
+// cos(angle * (1 - penumbra)), so penumbra = 1 - inner/outer.
+function buildSpotLight(scene: typeof THREE.Scene.prototype): void {
+  const penumbra = Math.max(
+    0,
+    Math.min(1, 1 - SPOT_LIGHT.innerConeAngle / SPOT_LIGHT.outerConeAngle),
+  );
+  const spot = new THREE.SpotLight(
+    SPOT_LIGHT.colorHex,
+    SPOT_LIGHT.intensity,
+    SPOT_LIGHT.range,
+    SPOT_LIGHT.outerConeAngle,
+    penumbra,
+    2,
+  );
+  spot.position.set(...SPOT_LIGHT.position);
+  spot.target.position.set(...SPOT_LIGHT.target);
+  scene.add(spot.target);
+  spot.castShadow = true;
+  spot.shadow.mapSize.setScalar(SPOT_LIGHT.shadowMapSize);
+  // Match Aperture's perspective near/far (range-scaled near, far = range). The
+  // shadow camera fov is driven by the cone angle automatically (three.js
+  // SpotLightShadow: fov = 2 * outerConeAngle).
+  spot.shadow.camera.near = Math.min(
+    Math.max(SPOT_LIGHT.range * 0.02, 0.05),
+    SPOT_LIGHT.range * 0.5,
+  );
+  spot.shadow.camera.far = SPOT_LIGHT.range;
+  spot.shadow.camera.updateProjectionMatrix();
+  spot.shadow.radius = SPOT_LIGHT.shadowRadius;
+  scene.add(spot);
 }
 
 function buildTrack(

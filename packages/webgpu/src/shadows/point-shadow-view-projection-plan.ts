@@ -171,7 +171,15 @@ export function createPointShadowViewProjectionPlanReport(
         receiverLayerMask: request.receiverLayerMask,
         projection: "perspective-cube-face",
         fovYRadians: Math.PI / 2,
-        near: input.near ?? Math.max(light.range / 1000, 0.01),
+        // Perspective shadow depth precision collapses toward the far plane, so
+        // a near plane that is a meaningful fraction of the range keeps usable
+        // contrast between occluder and receiver depths (three.js uses a fixed
+        // 0.5 for its default range; this scales with the light so small and
+        // large lights both stay well-conditioned). range/1000 crushed nearly
+        // all precision into [0.99, 1.0]. The min() keeps near strictly below
+        // far for tiny-range lights (far = range), since makePerspective throws
+        // when near >= far.
+        near: input.near ?? pointShadowNearPlane(light.range),
         far: light.range,
         viewMatrixKey: `${pass.passKey}:view`,
         projectionMatrixKey: `${pass.passKey}:projection`,
@@ -240,6 +248,16 @@ export function pointShadowViewProjectionPlanReportToJson(
   report: PointShadowViewProjectionPlanReport,
 ): string {
   return JSON.stringify(pointShadowViewProjectionPlanReportToJsonValue(report));
+}
+
+/**
+ * Perspective near plane for a point cube face: a range-scaled fraction with a
+ * small floor for depth precision, capped at half the range so it stays strictly
+ * below the far plane (far = range) even for tiny-range lights — makePerspective
+ * throws when near >= far.
+ */
+function pointShadowNearPlane(range: number): number {
+  return Math.min(Math.max(range * 0.02, 0.05), range * 0.5);
 }
 
 function determineStatus(input: {
