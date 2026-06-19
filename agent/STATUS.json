@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "4c1e36c2",
+  "lastCommit": "9bc9e344",
   "activePid": null,
-  "notes": "FPS port completion audit is green: source mechanics/data/scene/layout parity covered, Aperture mechanics/skybox/full-clear smokes passed, racing and shadow-lab live CLI checks stayed WebGPU-ready with diagnostics 0, CLI browser-backed tool client hardened, compare probe follows free-resize layout, and managed sessions were stopped.",
-  "lastRunFinishedAt": "2026-06-17T22:12:32Z"
+  "notes": "Committed validated Racing render pacing checkpoint 9bc9e344; full Vitest, package typecheck, test typecheck, progress check, diff check, and Racing build passed; only local artifact files remain untracked.",
+  "lastRunFinishedAt": "2026-06-19T01:21:28Z"
 }

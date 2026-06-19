@@ -1,3 +1,39 @@
+# Handoff - Racing Performance Checkpoint Commit
+
+**Updated:** 2026-06-18 18:22 PDT
+
+Active user goal remains open. The broad Racing performance worktree has been
+validated and checkpointed on branch `racing-perf-autoshadow-reorient`.
+
+## Final Checkpoint
+
+- Commit created: `9bc9e344 Checkpoint racing render pacing improvements`.
+- Staged and committed all meaningful source, test, docs, lockfile, and agent
+  bookkeeping changes that were part of the Racing render-pacing work.
+- Left only local artifacts untracked: screenshots, parity captures,
+  `_euler-verify.mjs`, and `tmp/` trace/profile output.
+- Added `Starter-Kit-FPS` and `Starter-Kit-Racing` to
+  `scripts/setup-references.sh` so docs that cite those local references remain
+  restorable by `pnpm run setup:references`.
+
+## Validation At Checkpoint
+
+- `git diff --check`
+- `pnpm exec tsc -b packages/render packages/runtime packages/app packages/webgpu --pretty false`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm --dir racing run build`
+- `pnpm test` (`555` files / `3475` tests passed)
+
+## Next Recommended Work
+
+Rerun the paired idle+drive Racing benchmark after the checkpoint commit, then
+target the remaining callback-p95 gap. The most likely next areas remain
+drive-frame shadow caster work, particle burst CPU prep, and the pollable /
+coalesced dynamic source-asset path.
+
+---
+
 # Handoff - Racing Auto-Shadow Cache And Mapped Profile Reorientation
 
 **Updated:** 2026-06-18 15:21 PDT
