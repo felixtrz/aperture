@@ -11,20 +11,12 @@ const baseURL =
 const artifactDir =
   process.env.APERTURE_RENDER_CONTROL_ARTIFACT_DIR ??
   path.join("test-results", "render-control-cli");
-// Default browser flags mirror playwright.ci.config.ts (and the generated
-// playwright.local.config.ts): WebGPU on SwiftShader Vulkan. On GPU-less
-// machines Chromium otherwise reports a usable adapter but has no
-// SharedImageBackingFactory for the WebGPU canvas swap chain, so the first
-// rendered frame destroys the device and every pending WebGPU operation
-// rejects with "A valid external Instance reference no longer exists.".
-// Override with APERTURE_RENDER_CONTROL_BROWSER_ARGS (space-separated) to
-// probe a real GPU, e.g. APERTURE_RENDER_CONTROL_BROWSER_ARGS="--enable-unsafe-webgpu".
-const defaultBrowserArgs = [
-  "--enable-unsafe-webgpu",
-  "--use-vulkan=swiftshader",
-  "--enable-features=Vulkan",
-  "--enable-unsafe-swiftshader",
-];
+// Use real Chrome's WebGPU path for visual captures. The bundled headless shell
+// and Linux/Vulkan-oriented SwiftShader flags can report a healthy WebGPU frame
+// while screenshots contain a black canvas on macOS. Override with
+// APERTURE_RENDER_CONTROL_BROWSER_ARGS only when intentionally probing another
+// GPU profile.
+const defaultBrowserArgs = ["--enable-unsafe-webgpu"];
 const launchOptions = {
   channel: process.env.APERTURE_RENDER_CONTROL_CHANNEL ?? "chrome",
   headless: process.env.APERTURE_RENDER_CONTROL_HEADLESS === "1",
@@ -815,7 +807,9 @@ async function evaluateControl(method, args, capability) {
 
 async function screenshotCanvas() {
   try {
-    return await page.locator("#aperture-canvas").screenshot();
+    const png = await page.locator("#aperture-canvas").screenshot();
+    assertScreenshotNotBlank(png);
+    return png;
   } catch (error) {
     throw await createRenderControlError(
       "screenshot",
@@ -823,6 +817,26 @@ async function screenshotCanvas() {
       "screenshot-failed",
     );
   }
+}
+
+function assertScreenshotNotBlank(png) {
+  if (process.env.APERTURE_RENDER_CONTROL_ALLOW_BLANK_SCREENSHOT === "1") {
+    return;
+  }
+
+  const summary = summarizePngLuma(png);
+  if (summary.coverage < 0.995 || summary.maxLuma > 4) {
+    return;
+  }
+
+  throw new Error(
+    "Captured canvas screenshot is blank/black. This usually means Chrome's " +
+      "headless WebGPU compositing path is wrong for this machine. Use the " +
+      "default render-control Chrome profile, or set " +
+      'APERTURE_RENDER_CONTROL_CHANNEL=chrome and ' +
+      'APERTURE_RENDER_CONTROL_BROWSER_ARGS="--enable-unsafe-webgpu"; avoid ' +
+      "the bundled headless shell and Vulkan/SwiftShader flags for visual captures.",
+  );
 }
 
 async function resetKnownExamples() {
@@ -1113,6 +1127,38 @@ function readPngPixel(png, xRatio, yRatio) {
   const y = clampIndex(Math.floor(image.height * yRatio), image.height);
 
   return readImagePixel(image, x, y);
+}
+
+function summarizePngLuma(png) {
+  const image = readPngImage(png);
+  const stride = Math.max(
+    1,
+    Math.floor(Math.min(image.width, image.height) / 96),
+  );
+  let samples = 0;
+  let blankLike = 0;
+  let maxLuma = 0;
+
+  for (let y = 0; y < image.height; y += stride) {
+    for (let x = 0; x < image.width; x += stride) {
+      const pixel = readImagePixel(image, x, y);
+      const alpha = pixel.a / 255;
+      const luma =
+        (0.2126 * pixel.r + 0.7152 * pixel.g + 0.0722 * pixel.b) * alpha;
+
+      samples += 1;
+      maxLuma = Math.max(maxLuma, luma);
+      if (alpha <= 0.01 || luma <= 4) {
+        blankLike += 1;
+      }
+    }
+  }
+
+  return {
+    samples,
+    coverage: samples === 0 ? 1 : blankLike / samples,
+    maxLuma,
+  };
 }
 
 function readPngImage(png) {
