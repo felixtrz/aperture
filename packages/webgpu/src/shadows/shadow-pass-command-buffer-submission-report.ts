@@ -77,6 +77,7 @@ export interface CreateShadowPassCommandBufferSubmissionReportOptions {
   readonly queue?: QueueSubmitLike;
   readonly label?: string;
   readonly submit?: boolean;
+  readonly deferEncoding?: boolean;
   readonly gpuTiming?: ShadowPassCommandBufferGpuTimingOptions;
 }
 
@@ -95,6 +96,17 @@ export function createShadowPassCommandBufferSubmissionReport(
   }
 
   const diagnostics: ShadowPassCommandBufferSubmissionDiagnostic[] = [];
+
+  if (options.deferEncoding === true && options.assembly.ready) {
+    return report({
+      status: "ready",
+      assembly: options.assembly,
+      commandBuffers: [],
+      submittedCommandBuffers: 0,
+      skippedSubmissions: 0,
+      diagnostics: [],
+    });
+  }
 
   if (options.assembly.counts.assembledPasses === 0) {
     diagnostics.push({

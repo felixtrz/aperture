@@ -7,6 +7,9 @@ import type { UnlitBindGroupResource } from "../../materials/unlit/unlit-bind-gr
 import { requiredBindGroupGroupsForPipelineKey } from "../../materials/core/material-pipeline-selection.js";
 import { skinningJointBufferResourceKeyForRenderId } from "../../resources/attributes/skinning-joint-buffer.js";
 
+export const DRAW_ORDER_WORLD_TRANSFORM_BIND_GROUP_SCOPE_KEY =
+  "__aperture_draw_order_world_transforms__";
+
 export type RenderPassDrawListDiagnosticCode =
   | "renderPassDrawList.missingPipelineResource"
   | "renderPassDrawList.missingBindGroupResource";
@@ -346,6 +349,7 @@ function findWorldTransformBindGroup(
   scratch: RenderPassDrawListScratch,
 ): UnlitBindGroupResource | undefined {
   const skinned = command.pipelineKey.split("|").includes("skinned");
+  const requestedWorldTransformResourceKey = command.worldTransformResourceKey;
   const drawSkinningResourceKey = skinningJointBufferResourceKeyForRenderId(
     command.renderId,
   );
@@ -360,6 +364,9 @@ function findWorldTransformBindGroup(
     const drawScoped = bindGroup.entryResourceKeys.includes(
       drawSkinningResourceKey,
     );
+    const drawOrderScoped = bindGroup.entryResourceKeys.includes(
+      DRAW_ORDER_WORLD_TRANSFORM_BIND_GROUP_SCOPE_KEY,
+    );
 
     if (skinned) {
       if (drawScoped) {
@@ -369,6 +376,26 @@ function findWorldTransformBindGroup(
     }
 
     if (drawScoped) {
+      continue;
+    }
+
+    if (requestedWorldTransformResourceKey !== undefined) {
+      if (
+        bindGroup.entryResourceKeys.includes(requestedWorldTransformResourceKey)
+      ) {
+        if (!hasPipelineScopedKey(bindGroup, scratch.pipelineKeys)) {
+          firstCandidate ??= bindGroup;
+          continue;
+        }
+
+        if (bindGroup.entryResourceKeys.includes(command.pipelineKey)) {
+          return bindGroup;
+        }
+      }
+      continue;
+    }
+
+    if (drawOrderScoped) {
       continue;
     }
 

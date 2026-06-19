@@ -192,7 +192,7 @@ describe("render shadow frame", () => {
       samplersReused: 0,
       pipelinesCreated: 1,
       pipelinesReused: 0,
-      matrixBindGroupsCreated: 1,
+      matrixBindGroupsCreated: 3,
       matrixBindGroupsReused: 0,
     });
     expect(second.report.resourceReuse).toMatchObject({
@@ -203,7 +203,7 @@ describe("render shadow frame", () => {
       pipelinesCreated: 0,
       pipelinesReused: 1,
       matrixBindGroupsCreated: 0,
-      matrixBindGroupsReused: 1,
+      matrixBindGroupsReused: 3,
     });
     expect(second.report.commandBufferSubmission.status).toBe("submitted");
     expect(second.report.commandBufferSubmission.sections.shaderSampling).toBe(
@@ -213,21 +213,64 @@ describe("render shadow frame", () => {
     expect(calls.textures).toHaveLength(1);
     expect(calls.samplers).toHaveLength(1);
     expect(calls.pipelines).toHaveLength(1);
-    expect(calls.buffers).toHaveLength(2);
-    expect(calls.bindGroups).toHaveLength(2);
+    expect(calls.buffers).toHaveLength(5);
+    expect(calls.bindGroups).toHaveLength(3);
     expect(calls.submissions).toHaveLength(2);
     expect(calls.destroyedBuffers).toHaveLength(0);
     expect(
       calls.bufferWrites.filter((write) =>
         writeTargetsBufferLabel(
           write,
-          "DirectionalShadowCasterBakedMatrices/storage",
+          "ShadowCasterWorldTransforms/storage",
+        ),
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("updates cached caster world transforms in place when caster transforms change", () => {
+    const calls = createDeviceCalls();
+    const cache = createWebGpuEnvironmentResourceCache();
+    const base = {
+      device: device(calls),
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache,
+      shadowMap: { cascadeCount: 3, mapSize: 512 },
+      matrix: { center: [0, 0, -2], orthographicSize: 16 },
+    } as const;
+
+    const first = createRenderShadowFrame({
+      ...base,
+      snapshot: snapshot(),
+    });
+    const second = createRenderShadowFrame({
+      ...base,
+      snapshot: snapshot({ transforms: translatedTransform([1, 0, 0]) }),
+    });
+
+    expect(first.report.status).toBe("submitted");
+    expect(second.report.status).toBe("submitted");
+    expect(
+      calls.buffers.filter((buffer) =>
+        bufferHasLabel(buffer, "ShadowCasterWorldTransforms/storage"),
+      ),
+    ).toHaveLength(1);
+    expect(
+      calls.destroyedBuffers.filter((buffer) =>
+        bufferHasLabel(buffer, "ShadowCasterWorldTransforms/storage"),
+      ),
+    ).toHaveLength(0);
+    expect(
+      calls.bufferWrites.filter((write) =>
+        writeTargetsBufferLabel(
+          write,
+          "ShadowCasterWorldTransforms/storage",
         ),
       ),
     ).toHaveLength(2);
   });
 
-  it("recreates baked caster resources when the caster matrix count changes", () => {
+  it("recreates caster world-transform resources when the caster count changes", () => {
     const calls = createDeviceCalls();
     const cache = createWebGpuEnvironmentResourceCache();
     const base = {
@@ -253,12 +296,12 @@ describe("render shadow frame", () => {
     expect(second.report.status).toBe("submitted");
     expect(
       calls.buffers.filter((buffer) =>
-        bufferHasLabel(buffer, "DirectionalShadowCasterBakedMatrices/storage"),
+        bufferHasLabel(buffer, "ShadowCasterWorldTransforms/storage"),
       ),
     ).toHaveLength(2);
     expect(
       calls.destroyedBuffers.filter((buffer) =>
-        bufferHasLabel(buffer, "DirectionalShadowCasterBakedMatrices/storage"),
+        bufferHasLabel(buffer, "ShadowCasterWorldTransforms/storage"),
       ),
     ).toHaveLength(1);
     expect(
@@ -333,6 +376,42 @@ describe("render shadow frame", () => {
     });
   });
 
+  it("keeps authored fixed shadow-camera matrices independent of primary camera movement", () => {
+    const fixedShadow = {
+      cascadeCount: 1,
+      center: [1, 2, 3] as const,
+      orthographicSize: 16,
+      near: 0.5,
+      far: 60,
+      lightDistance: 20,
+    };
+    const base = {
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache: createWebGpuEnvironmentResourceCache(),
+    } as const;
+    const first = createRenderShadowFrame({
+      ...base,
+      device: device(createDeviceCalls()),
+      snapshot: snapshot({
+        view: primaryCameraView(),
+        shadowRequest: fixedShadow,
+      }),
+    });
+    const second = createRenderShadowFrame({
+      ...base,
+      device: device(createDeviceCalls()),
+      snapshot: snapshot({
+        view: cameraView(-8, 6, 24),
+        shadowRequest: fixedShadow,
+      }),
+    });
+
+    expect(second.matrixComputation.matrices[0]).toEqual(
+      first.matrixComputation.matrices[0],
+    );
+  });
+
   it("specializes caster pipeline vertex layout from the caster draw list", () => {
     const calls = createDeviceCalls();
     const result = createRenderShadowFrame({
@@ -379,6 +458,7 @@ function snapshot(
     readonly shadowRequest?: Partial<RenderSnapshot["shadowRequests"][number]>;
     readonly view?: Pick<RenderSnapshot, "views" | "viewMatrices">;
     readonly bounds?: RenderSnapshot["bounds"];
+    readonly transforms?: Float32Array;
   } = {},
 ): RenderSnapshot {
   return {
@@ -446,7 +526,7 @@ function snapshot(
       },
     ],
     bounds: options.bounds ?? [],
-    transforms: identityTransform(),
+    transforms: options.transforms ?? identityTransform(),
     viewMatrices: options.view?.viewMatrices ?? new Float32Array(0),
     diagnostics: [],
     report: {
@@ -487,7 +567,15 @@ function boundsPacket(
 }
 
 function primaryCameraView(): Pick<RenderSnapshot, "views" | "viewMatrices"> {
-  const viewMatrix = translationView(4, 2, 10);
+  return cameraView(4, 2, 10);
+}
+
+function cameraView(
+  x: number,
+  y: number,
+  z: number,
+): Pick<RenderSnapshot, "views" | "viewMatrices"> {
+  const viewMatrix = translationView(x, y, z);
   const projectionMatrix = makePerspective(1.0, 1.5, 0.1, 60);
   const viewProjectionMatrix = multiplyMat4(projectionMatrix, viewMatrix);
   const viewMatrices = new Float32Array(48);
@@ -557,6 +645,18 @@ function executableMeshes(): readonly ShadowCasterExecutableMeshResourceView[] {
 
 function identityTransform(): Float32Array {
   return new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+}
+
+function translatedTransform(
+  translation: readonly [number, number, number],
+): Float32Array {
+  const transform = identityTransform();
+
+  transform[12] = translation[0];
+  transform[13] = translation[1];
+  transform[14] = translation[2];
+
+  return transform;
 }
 
 interface DeviceCalls {

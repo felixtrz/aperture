@@ -10,7 +10,12 @@ import {
   transformPoint,
   type Mat4Like,
 } from "@aperture-engine/simulation";
-import { createWebGpuBuffer, destroyWebGpuBuffer } from "../gpu/buffer.js";
+import {
+  createWebGpuBuffer,
+  destroyWebGpuBuffer,
+  writeWebGpuBufferData,
+  writeWebGpuBufferSubData,
+} from "../gpu/buffer.js";
 import type { WebGpuBufferDeviceLike } from "../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
 import type { CommandEncoderFinishLike } from "../gpu/command-buffer.js";
@@ -18,6 +23,7 @@ import {
   createCommandEncoderResource,
   type CommandEncoderDeviceLike,
 } from "../gpu/command-encoder.js";
+import type { GpuTimestampQueryResources } from "../gpu/gpu-timing.js";
 import type { RenderPassCommandEncoderLike } from "../render/passes/render-pass-lifecycle.js";
 import type { QueueSubmitLike } from "../render/queues/queue-submit.js";
 import type { TextureGpuDeviceLike } from "../resources/textures/texture-resources.js";
@@ -172,13 +178,18 @@ export interface RenderShadowFrameCache {
     string,
     ShadowCasterMatrixBindGroupResource
   >;
-  readonly bakedShadowCasterMatrixBuffers?: Map<
+  readonly shadowCasterPassMatrixBuffers?: Map<
     string,
-    BakedShadowCasterMatrixBufferResource
+    ShadowCasterPassMatrixBufferResource
   >;
-  readonly bakedShadowCasterMatrixBindGroups?: Map<
+  readonly shadowCasterWorldTransformBuffers?: Map<
     string,
-    BakedShadowCasterMatrixBindGroupResource
+    ShadowCasterWorldTransformBufferResource
+  >;
+  readonly shadowCasterWorldTransformScratch?: ShadowCasterWorldTransformScratch;
+  readonly shadowCasterCommandTopology?: Map<
+    string,
+    ShadowCasterCommandTopologyCacheEntry
   >;
 }
 
@@ -210,7 +221,11 @@ export interface CreateRenderShadowFrameOptions {
   readonly shadowMap?: RenderShadowFrameShadowMapOptions;
   readonly matrix?: RenderShadowFrameMatrixOptions;
   readonly label?: string;
+  readonly encode?: boolean;
   readonly submit?: boolean;
+  readonly gpuTiming?: {
+    readonly resources: GpuTimestampQueryResources;
+  };
 }
 
 export interface RenderShadowFrameResult {
@@ -293,20 +308,35 @@ export interface RenderShadowFrameDiagnostic {
   readonly message: string;
 }
 
-export interface BakedShadowCasterMatrixBufferResource {
+export interface ShadowCasterPassMatrixBufferResource {
+  readonly resourceKey: string;
+  readonly matrixResourceKey: string;
+  readonly label: string;
+  readonly passKey: string;
+  readonly matrixKey: string;
+  readonly buffer: unknown;
+  readonly byteSize: number;
+  readonly lastData: Float32Array;
+}
+
+export interface ShadowCasterWorldTransformBufferResource {
   readonly resourceKey: string;
   readonly label: string;
   readonly buffer: unknown;
   readonly byteSize: number;
   readonly matrixCount: number;
+  readonly lastData: Float32Array;
 }
 
-export interface BakedShadowCasterMatrixBindGroupResource {
-  readonly matrixResourceKey: string;
-  readonly resourceKey: string;
-  readonly group: 0;
-  readonly bindGroup: unknown;
-  readonly matrixBuffer: unknown;
+export interface ShadowCasterWorldTransformScratch {
+  data: Float32Array;
+  readonly indexByPassDraw: Map<string, number>;
+}
+
+export interface ShadowCasterCommandTopologyCacheEntry {
+  readonly key: string;
+  readonly frameResources: ShadowCasterFrameResourceReadinessReport;
+  readonly commandRecords: ShadowCasterCommandRecordPlanReport;
 }
 
 const DEFAULT_SHADOW_MAP_SIZE = 1024;
@@ -314,9 +344,17 @@ const DEFAULT_DEPTH_BIAS = 0.001;
 const MATRIX_FLOAT_COUNT = 16;
 const EPSILON = 1e-6;
 
+export function createShadowCasterWorldTransformScratch(): ShadowCasterWorldTransformScratch {
+  return {
+    data: new Float32Array(0),
+    indexByPassDraw: new Map(),
+  };
+}
+
 export function createRenderShadowFrame(
   options: CreateRenderShadowFrameOptions,
 ): RenderShadowFrameResult {
+  const encodeCommandBuffer = options.encode !== false;
   const shadowRequests = options.snapshot.shadowRequests.filter(
     isDirectionalShadowRequest,
   );
@@ -353,14 +391,16 @@ export function createRenderShadowFrame(
     depthTextureResources,
   });
   const shadowCamera = resolvePrimaryShadowCamera(options.snapshot);
-  const useCameraFrustumFit = shadowCamera !== null;
-  const fallbackMatrix = useCameraFrustumFit ? undefined : options.matrix;
+  const needsCameraFrustumFit =
+    shadowCamera !== null &&
+    shadowRequests.some(shadowRequestNeedsCameraFrustumFit);
+  const fallbackMatrix = needsCameraFrustumFit ? undefined : options.matrix;
   const viewProjection = createDirectionalShadowViewProjectionPlanReport({
     shadowRequests,
     lights: options.snapshot.lights,
     shadowPassPlan: passPlan,
     computation: "ready",
-    ...(shadowCamera === null
+    ...(!needsCameraFrustumFit || shadowCamera === null
       ? {}
       : {
           cameraNear: shadowCamera.near,
@@ -377,22 +417,26 @@ export function createRenderShadowFrame(
   const matrixComputation = createDirectionalShadowMatrixComputationReport({
     viewProjection,
     transforms: options.snapshot.transforms,
-    ...(shadowCamera === null
+    ...(!needsCameraFrustumFit || shadowCamera === null
       ? {}
       : {
           cameraViewMatrix: shadowCamera.viewMatrix,
           cameraProjectionMatrix: shadowCamera.projectionMatrix,
         }),
-    casterBounds: createDirectionalShadowCasterBounds({
-      casterDrawList,
-      bounds: options.snapshot.bounds,
-    }),
-    receiverBounds: createDirectionalShadowReceiverBounds({
-      passPlan,
-      meshDraws: options.snapshot.meshDraws,
-      bounds: options.snapshot.bounds,
-    }),
-    frustumFit: useCameraFrustumFit,
+    ...(needsCameraFrustumFit
+      ? {
+          casterBounds: createDirectionalShadowCasterBounds({
+            casterDrawList,
+            bounds: options.snapshot.bounds,
+          }),
+          receiverBounds: createDirectionalShadowReceiverBounds({
+            passPlan,
+            meshDraws: options.snapshot.meshDraws,
+            bounds: options.snapshot.bounds,
+          }),
+        }
+      : {}),
+    frustumFit: needsCameraFrustumFit,
     ...(fallbackMatrix?.center === undefined
       ? {}
       : { center: fallbackMatrix.center }),
@@ -465,10 +509,39 @@ export function createRenderShadowFrame(
       ? {}
       : { cache: options.cache.shadowCasterPipelines }),
   });
+  const casterPassMatrices = createShadowCasterPassMatrixBuffers({
+    device: options.device,
+    matrices: matrixComputation,
+    ...(options.cache?.shadowCasterPassMatrixBuffers === undefined
+      ? {}
+      : { cache: options.cache.shadowCasterPassMatrixBuffers }),
+  });
+  const casterWorldTransforms = buildShadowCasterWorldTransforms({
+    device: options.device,
+    casterDrawList,
+    transforms: options.snapshot.transforms,
+    ...(options.cache?.shadowCasterWorldTransformBuffers === undefined
+      ? {}
+      : { cache: options.cache.shadowCasterWorldTransformBuffers }),
+    ...(options.cache?.shadowCasterMatrixBindGroups === undefined
+      ? {}
+      : { bindGroupCache: options.cache.shadowCasterMatrixBindGroups }),
+    ...(options.cache?.shadowCasterWorldTransformScratch === undefined
+      ? {}
+      : { scratch: options.cache.shadowCasterWorldTransformScratch }),
+  });
   const matrixBindGroupResource =
     createShadowCasterMatrixBindGroupResourceReport({
       device: options.device,
       matrixBufferResource,
+      passMatrixResources: casterPassMatrices,
+      worldTransformResource:
+        casterWorldTransforms === null
+          ? null
+          : {
+              resourceKey: casterWorldTransforms.resourceKey,
+              buffer: casterWorldTransforms.buffer,
+            },
       ...(pipelineResource.resource?.matrixBindGroupLayout === undefined
         ? {}
         : { layout: pipelineResource.resource.matrixBindGroupLayout }),
@@ -476,69 +549,109 @@ export function createRenderShadowFrame(
         ? {}
         : { cache: options.cache.shadowCasterMatrixBindGroups }),
     });
-  const frameResources = createShadowCasterFrameResourceReadinessReport({
-    casterDrawList,
-    preparedMeshes: options.preparedMeshes,
-    matrixBufferResource,
-    pipelineDescriptor,
-  });
-  // Casters must render WORLD-space geometry into the depth map, but the shared
-  // matrix buffer (also read by the receiver) holds only the pure lightVP. Bake
-  // a SEPARATE caster-only buffer where entry = lightVP_pass * worldMatrix and
-  // point each caster draw's firstInstance at its baked entry. The receiver's
-  // pure-lightVP buffer is left untouched.
-  const bakedCaster = buildBakedCasterMatrices({
-    device: options.device,
-    casterDrawList,
-    matrices: matrixComputation,
-    transforms: options.snapshot.transforms,
-    ...(options.cache?.bakedShadowCasterMatrixBuffers === undefined
-      ? {}
-      : { cache: options.cache.bakedShadowCasterMatrixBuffers }),
-    ...(options.cache?.bakedShadowCasterMatrixBindGroups === undefined
-      ? {}
-      : { bindGroupCache: options.cache.bakedShadowCasterMatrixBindGroups }),
-  });
-  const bakedCasterBindGroup = createBakedCasterBindGroup(
-    options.device,
-    bakedCaster,
-    pipelineResource.resource?.matrixBindGroupLayout,
-    options.cache?.bakedShadowCasterMatrixBindGroups,
-  );
+  const shadowCasterCommandTopologyKey =
+    createShadowCasterCommandTopologyCacheKey({
+      casterDrawList,
+      commandPlan,
+      preparedMeshes: options.preparedMeshes,
+      executableMeshes: options.executableMeshes,
+      matrixBufferResource,
+      pipelineResource,
+      matrixBindGroupResource,
+    });
+  const cachedShadowCasterCommandTopology =
+    shadowCasterCommandTopologyKey === null
+      ? undefined
+      : options.cache?.shadowCasterCommandTopology?.get(
+          shadowCasterCommandTopologyKey,
+        );
+  const frameResources =
+    cachedShadowCasterCommandTopology?.frameResources ??
+    createShadowCasterFrameResourceReadinessReport({
+      casterDrawList,
+      preparedMeshes: options.preparedMeshes,
+      matrixBufferResource,
+      pipelineDescriptor,
+    });
 
-  const commandRecords = createShadowCasterCommandRecordPlanReport({
-    frameResources,
-    commandPlan,
-    pipelines: pipelineResource.resources.map((resource) => ({
-      pipelineKey: resource.pipelineKey,
-      resourceKey: resource.resourceKey,
-      pipeline: resource.pipeline,
-    })),
-    matrixBindGroups:
-      matrixBindGroupResource.resource === null
-        ? []
-        : [
-            {
-              matrixResourceKey:
-                matrixBindGroupResource.resource.matrixResourceKey,
-              resourceKey: matrixBindGroupResource.resource.resourceKey,
-              group: matrixBindGroupResource.resource.group,
-              bindGroup: matrixBindGroupResource.resource.bindGroup,
-            },
-          ],
-    meshes: options.executableMeshes,
-    ...(bakedCaster === null || bakedCasterBindGroup === null
-      ? {}
-      : {
-          bakedMatrixIndexByPassDraw: bakedCaster.indexByPassDraw,
-          bakedMatrixBindGroup: bakedCasterBindGroup,
-        }),
-  });
-  const encoderResource = createCommandEncoderResource({
-    device: options.device,
-    label: options.label ?? "shadow-pass:directional",
-  });
-  const encoder = encoderResource.resource?.encoder as
+  const commandRecords =
+    cachedShadowCasterCommandTopology?.commandRecords ??
+    createShadowCasterCommandRecordPlanReport({
+      frameResources,
+      commandPlan,
+      pipelines: pipelineResource.resources.map((resource) => ({
+        pipelineKey: resource.pipelineKey,
+        resourceKey: resource.resourceKey,
+        pipeline: resource.pipeline,
+      })),
+      matrixBindGroups:
+        matrixBindGroupResource.resources.length > 0
+          ? matrixBindGroupResource.resources.map((resource) => ({
+              matrixResourceKey: resource.matrixResourceKey,
+              ...(resource.passKey === undefined
+                ? {}
+                : { passKey: resource.passKey }),
+              ...(resource.worldTransformResourceKey === undefined
+                ? {}
+                : {
+                    worldTransformResourceKey:
+                      resource.worldTransformResourceKey,
+                  }),
+              resourceKey: resource.resourceKey,
+              group: resource.group,
+              bindGroup: resource.bindGroup,
+            }))
+          : matrixBindGroupResource.resource === null
+            ? []
+            : [
+                {
+                  matrixResourceKey:
+                    matrixBindGroupResource.resource.matrixResourceKey,
+                  resourceKey: matrixBindGroupResource.resource.resourceKey,
+                  group: matrixBindGroupResource.resource.group,
+                  bindGroup: matrixBindGroupResource.resource.bindGroup,
+                },
+              ],
+      meshes: options.executableMeshes,
+      ...(casterWorldTransforms === null ||
+      cachedShadowCasterCommandTopology !== undefined
+        ? {}
+        : {
+            worldTransformIndexByPassDraw: buildShadowCasterWorldTransformIndex(
+              {
+                casterDrawList,
+                ...(options.cache?.shadowCasterWorldTransformScratch ===
+                undefined
+                  ? {}
+                  : {
+                      scratch: options.cache.shadowCasterWorldTransformScratch,
+                    }),
+              },
+            ),
+          }),
+    });
+  if (
+    cachedShadowCasterCommandTopology === undefined &&
+    shadowCasterCommandTopologyKey !== null &&
+    frameResources.status === "ready" &&
+    commandRecords.status === "ready"
+  ) {
+    options.cache?.shadowCasterCommandTopology?.set(
+      shadowCasterCommandTopologyKey,
+      {
+        key: shadowCasterCommandTopologyKey,
+        frameResources,
+        commandRecords,
+      },
+    );
+  }
+  const encoderResource = encodeCommandBuffer
+    ? createCommandEncoderResource({
+        device: options.device,
+        label: options.label ?? "shadow-pass:directional",
+      })
+    : null;
+  const encoder = encoderResource?.resource?.encoder as
     | (RenderPassCommandEncoderLike & CommandEncoderFinishLike)
     | undefined;
   const encoderAssembly = createShadowPassEncoderAssemblyReport({
@@ -547,6 +660,10 @@ export function createRenderShadowFrame(
     commandEncoding,
     commands: commandRecords.commandRecords,
     ...(encoder === undefined ? {} : { encoder }),
+    ...(options.gpuTiming === undefined
+      ? {}
+      : { gpuTiming: { resources: options.gpuTiming.resources } }),
+    deferEncoding: !encodeCommandBuffer,
     resolveDepthView: (attachment) =>
       resolveShadowDepthTextureAttachmentView(
         depthTextureResources,
@@ -562,6 +679,15 @@ export function createRenderShadowFrame(
         : { queue: options.device.queue }),
       label: options.label ?? "shadow-pass:directional",
       submit: options.submit ?? true,
+      deferEncoding: !encodeCommandBuffer,
+      ...(options.gpuTiming === undefined
+        ? {}
+        : {
+            gpuTiming: {
+              resources: options.gpuTiming.resources,
+              queryCount: passPlan.passCount * 2,
+            },
+          }),
     },
   );
   const receiverResources = createReceiverResources({
@@ -628,6 +754,177 @@ export function createRenderShadowFrame(
     encoderAssembly,
     commandBufferSubmission,
   };
+}
+
+function createShadowCasterCommandTopologyCacheKey(input: {
+  readonly casterDrawList: ShadowCasterDrawListPlanReport;
+  readonly commandPlan: ShadowCasterCommandPlanReadinessReport;
+  readonly preparedMeshes: readonly ShadowCasterPreparedMeshResourceView[];
+  readonly executableMeshes: readonly ShadowCasterExecutableMeshResourceView[];
+  readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
+  readonly pipelineResource: ShadowCasterPipelineResourceReport;
+  readonly matrixBindGroupResource: ShadowCasterMatrixBindGroupResourceReport;
+}): string | null {
+  if (
+    input.casterDrawList.status === "not-required" ||
+    input.casterDrawList.includedDrawCount === 0 ||
+    input.commandPlan.status !== "ready" ||
+    input.matrixBufferResource.resource === null ||
+    input.pipelineResource.status !== "available" ||
+    input.matrixBindGroupResource.status !== "available"
+  ) {
+    return null;
+  }
+
+  const parts = [
+    "shadow-caster-command-topology:v1",
+    `matrix:${input.matrixBufferResource.resource.resourceKey}`,
+  ];
+
+  for (const list of input.casterDrawList.lists) {
+    parts.push(
+      [
+        "list",
+        list.passKey,
+        list.shadowId,
+        list.lightId,
+        list.casterLayerMask,
+        list.receiverLayerMask,
+        list.commandEncoding,
+      ].join(":"),
+    );
+
+    for (const draw of list.draws) {
+      parts.push(
+        [
+          "draw",
+          draw.renderId,
+          draw.meshKey,
+          draw.materialKey,
+          draw.meshLayoutKey,
+          draw.casterCullMode,
+          draw.submesh,
+          draw.vertexStart ?? "default",
+          draw.vertexCount ?? "default",
+          draw.indexStart ?? "default",
+          draw.indexCount ?? "default",
+          draw.layerMask,
+        ].join(":"),
+      );
+    }
+  }
+
+  for (const command of input.commandPlan.commands) {
+    parts.push(
+      [
+        "command",
+        command.commandKey,
+        command.shadowId,
+        command.lightId,
+        command.passKey,
+        command.matrixResourceKey,
+        command.matrixOffsetBytes,
+        command.drawCount,
+        command.commandEncoding,
+      ].join(":"),
+    );
+  }
+
+  for (const mesh of [...input.preparedMeshes].sort(compareMeshResourceViews)) {
+    parts.push(
+      [
+        "prepared-mesh",
+        mesh.meshKey,
+        mesh.meshResourceKey,
+        mesh.indexBufferResourceKey ?? "none",
+        ...mesh.vertexBufferResourceKeys,
+      ].join(":"),
+    );
+  }
+
+  for (const mesh of [...input.executableMeshes].sort(
+    compareExecutableMeshResourceViews,
+  )) {
+    parts.push(
+      [
+        "executable-mesh",
+        mesh.meshKey,
+        mesh.meshResourceKey,
+        mesh.indexBuffer?.resourceKey ?? "none",
+        mesh.indexBuffer?.format ?? "none",
+        mesh.indexBuffer?.indexCount ?? "none",
+        ...mesh.vertexBuffers.flatMap((buffer) => [
+          buffer.resourceKey,
+          buffer.vertexCount,
+        ]),
+      ].join(":"),
+    );
+  }
+
+  for (const resource of [...input.pipelineResource.resources].sort(
+    comparePipelineResources,
+  )) {
+    parts.push(
+      ["pipeline", resource.pipelineKey, resource.resourceKey].join(":"),
+    );
+  }
+
+  const bindGroups =
+    input.matrixBindGroupResource.resources.length > 0
+      ? input.matrixBindGroupResource.resources
+      : input.matrixBindGroupResource.resource === null
+        ? []
+        : [input.matrixBindGroupResource.resource];
+
+  for (const resource of [...bindGroups].sort(
+    compareMatrixBindGroupResources,
+  )) {
+    parts.push(
+      [
+        "matrix-bind-group",
+        resource.passKey ?? "default",
+        resource.matrixResourceKey,
+        resource.worldTransformResourceKey ?? "none",
+        resource.resourceKey,
+      ].join(":"),
+    );
+  }
+
+  return parts.join("\n");
+}
+
+function compareMeshResourceViews(
+  a: ShadowCasterPreparedMeshResourceView,
+  b: ShadowCasterPreparedMeshResourceView,
+): number {
+  return compareStrings(a.meshKey, b.meshKey);
+}
+
+function compareExecutableMeshResourceViews(
+  a: ShadowCasterExecutableMeshResourceView,
+  b: ShadowCasterExecutableMeshResourceView,
+): number {
+  return compareStrings(a.meshResourceKey, b.meshResourceKey);
+}
+
+function comparePipelineResources(
+  a: ShadowCasterPipelineResource,
+  b: ShadowCasterPipelineResource,
+): number {
+  return compareStrings(a.pipelineKey, b.pipelineKey);
+}
+
+function compareMatrixBindGroupResources(
+  a: ShadowCasterMatrixBindGroupResource,
+  b: ShadowCasterMatrixBindGroupResource,
+): number {
+  return compareStrings(a.resourceKey, b.resourceKey);
+}
+
+function compareStrings(a: string, b: string): number {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
 }
 
 function createDirectionalShadowCasterBounds(input: {
@@ -699,36 +996,109 @@ function createDirectionalShadowReceiverBounds(input: {
   }));
 }
 
-const BAKED_CASTER_MATRIX_FLOATS = 16;
-const BAKED_CASTER_IDENTITY = new Float32Array([
+const SHADOW_CASTER_MATRIX_FLOATS = 16;
+const SHADOW_CASTER_WORLD_DIRTY_FULL_WRITE_FRACTION = 0.5;
+const SHADOW_CASTER_WORLD_DIRTY_MAX_RANGES = 64;
+const SHADOW_CASTER_WORLD_DIRTY_MERGE_GAP_FLOATS = 256;
+const SHADOW_CASTER_IDENTITY = new Float32Array([
   1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
 ]);
 
-interface BakedCasterMatrices {
+interface ShadowCasterWorldTransforms {
   readonly buffer: unknown;
   readonly resourceKey: string;
-  /** `${passKey}:${renderId}` -> baked entry index (firstInstance = index). */
-  readonly indexByPassDraw: ReadonlyMap<string, number>;
 }
 
 /**
- * Builds a caster-only matrix buffer where entry[k] = lightVP_pass * worldMatrix
- * for each included (passKey, renderId) caster draw, so the caster vertex shader
- * (`matrices[instanceIndex] * localPosition`) lands the occluder in WORLD space
- * inside the depth map. Returns null (caller falls back to the legacy local-space
- * behavior) when there is nothing to bake or the device cannot allocate.
+ * Builds one tiny pass-matrix buffer per shadow pass. The caster shader binds
+ * exactly one of these per pass and multiplies it by the draw-list-order world
+ * transform selected via firstInstance. This avoids rebaking every caster
+ * matrix when the light/camera view-projection changes.
  */
-function buildBakedCasterMatrices(input: {
+function createShadowCasterPassMatrixBuffers(input: {
+  readonly device: RenderShadowFrameDeviceLike;
+  readonly matrices: DirectionalShadowMatrixComputationReport;
+  readonly cache?: Map<string, ShadowCasterPassMatrixBufferResource>;
+}): readonly ShadowCasterPassMatrixBufferResource[] {
+  if (input.matrices.status === "not-required") {
+    return [];
+  }
+
+  const resources: ShadowCasterPassMatrixBufferResource[] = [];
+
+  for (const matrix of input.matrices.matrices) {
+    const data = new Float32Array(matrix.viewProjectionMatrix);
+    const resourceKey = shadowCasterPassMatrixBufferResourceKey(
+      matrix.passKey,
+      matrix.matrixKey,
+    );
+    const cached = input.cache?.get(resourceKey);
+
+    if (cached !== undefined) {
+      if (cached.byteSize === data.byteLength) {
+        if (!floatArraysEqual(cached.lastData, data)) {
+          if (!writeWebGpuBufferData(input.device, cached.buffer, data)) {
+            continue;
+          }
+          cached.lastData.set(data);
+        }
+        resources.push(cached);
+        continue;
+      }
+
+      destroyWebGpuBuffer(cached.buffer);
+      input.cache?.delete(resourceKey);
+    }
+
+    const label = `ShadowCasterPassMatrix/${matrix.passKey}`;
+    const buffer = createWebGpuBuffer({
+      device: input.device,
+      descriptor: {
+        label,
+        size: data.byteLength,
+        usage:
+          WEBGPU_BUFFER_USAGE_FLAGS.UNIFORM |
+          WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
+        initialData: data,
+      },
+    });
+
+    if (!buffer.ok) {
+      continue;
+    }
+
+    const resource: ShadowCasterPassMatrixBufferResource = {
+      resourceKey,
+      matrixResourceKey: resourceKey,
+      label,
+      passKey: matrix.passKey,
+      matrixKey: matrix.matrixKey,
+      buffer: buffer.buffer,
+      byteSize: data.byteLength,
+      lastData: new Float32Array(data),
+    };
+
+    input.cache?.set(resourceKey, resource);
+    resources.push(resource);
+  }
+
+  return resources;
+}
+
+/**
+ * Builds a caster-only WORLD matrix buffer in shadow draw-list order. This is
+ * the shadow equivalent of draw-order transform packing: compatible sorted
+ * caster records get contiguous firstInstance slots, while light/camera matrix
+ * changes do not dirty the whole caster table.
+ */
+function buildShadowCasterWorldTransforms(input: {
   readonly device: RenderShadowFrameDeviceLike;
   readonly casterDrawList: ShadowCasterDrawListPlanReport;
-  readonly matrices: DirectionalShadowMatrixComputationReport;
   readonly transforms: Float32Array;
-  readonly cache?: Map<string, BakedShadowCasterMatrixBufferResource>;
-  readonly bindGroupCache?: Map<
-    string,
-    BakedShadowCasterMatrixBindGroupResource
-  >;
-}): BakedCasterMatrices | null {
+  readonly cache?: Map<string, ShadowCasterWorldTransformBufferResource>;
+  readonly bindGroupCache?: Map<string, ShadowCasterMatrixBindGroupResource>;
+  readonly scratch?: ShadowCasterWorldTransformScratch;
+}): ShadowCasterWorldTransforms | null {
   if (
     input.casterDrawList.status === "not-required" ||
     input.casterDrawList.includedDrawCount === 0
@@ -736,72 +1106,61 @@ function buildBakedCasterMatrices(input: {
     return null;
   }
 
-  const lightVpByPass = new Map<string, readonly number[]>(
-    input.matrices.matrices.map((matrix) => [
-      matrix.passKey,
-      matrix.viewProjectionMatrix,
-    ]),
-  );
+  const scratch = input.scratch ?? createShadowCasterWorldTransformScratch();
 
   let entryCount = 0;
   for (const list of input.casterDrawList.lists) {
-    if (lightVpByPass.has(list.passKey)) {
-      entryCount += list.draws.length;
-    }
+    entryCount += list.draws.length;
   }
 
   if (entryCount === 0) {
     return null;
   }
 
-  const data = new Float32Array(entryCount * BAKED_CASTER_MATRIX_FLOATS);
-  const indexByPassDraw = new Map<string, number>();
+  const floatCount = entryCount * SHADOW_CASTER_MATRIX_FLOATS;
+
+  if (scratch.data.length < floatCount) {
+    scratch.data = new Float32Array(floatCount);
+  }
+
+  const data = scratch.data.subarray(0, floatCount);
   let entryIndex = 0;
 
   for (const list of input.casterDrawList.lists) {
-    const lightVp = lightVpByPass.get(list.passKey);
-
-    if (lightVp === undefined) {
-      continue;
-    }
-
     for (const draw of list.draws) {
-      const world = readBakedCasterWorldMatrix(
+      writeShadowCasterWorldMatrix(
+        data,
+        entryIndex * SHADOW_CASTER_MATRIX_FLOATS,
         input.transforms,
         draw.worldTransformOffset,
       );
-      // Caster shader computes matrices[i] * localPos; we need
-      // lightVP * world * localPos, so bake lightVP * world. Operand order
-      // matches multiplyMat4(projectionMatrix, viewMatrix) used elsewhere and
-      // the receiver's directionalShadowMatrices[i] * worldPosition.
-      const baked = multiplyMat4(lightVp as Mat4Like, world as Mat4Like);
-      data.set(baked, entryIndex * BAKED_CASTER_MATRIX_FLOATS);
-      indexByPassDraw.set(`${list.passKey}:${draw.renderId}`, entryIndex);
       entryIndex += 1;
     }
   }
 
-  const resourceKey = "shadow-caster-baked-matrix-buffer:directional";
+  const resourceKey = "shadow-caster-world-transform-buffer:directional";
   const cached = input.cache?.get(resourceKey);
 
   if (cached !== undefined) {
     if (cached.byteSize === data.byteLength) {
-      if (input.device.queue?.writeBuffer === undefined) {
+      if (!writeShadowCasterWorldTransformUpdates(input.device, cached, data)) {
         return null;
       }
-      input.device.queue.writeBuffer(cached.buffer, 0, data);
-      return { buffer: cached.buffer, resourceKey, indexByPassDraw };
+      return { buffer: cached.buffer, resourceKey };
     }
 
     destroyWebGpuBuffer(cached.buffer);
     input.cache?.delete(resourceKey);
-    input.bindGroupCache?.delete(bakedCasterBindGroupResourceKey(resourceKey));
+    invalidateShadowCasterWorldTransformBindGroups(
+      input.bindGroupCache,
+      resourceKey,
+    );
   }
 
   const buffer = createWebGpuBuffer({
     device: input.device,
     descriptor: {
-      label: "DirectionalShadowCasterBakedMatrices/storage",
+      label: "ShadowCasterWorldTransforms/storage",
       size: data.byteLength,
       usage:
         WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
@@ -815,81 +1174,215 @@ function buildBakedCasterMatrices(input: {
 
   input.cache?.set(resourceKey, {
     resourceKey,
-    label: "DirectionalShadowCasterBakedMatrices/storage",
+    label: "ShadowCasterWorldTransforms/storage",
     buffer: buffer.buffer,
     byteSize: data.byteLength,
     matrixCount: entryCount,
+    lastData: new Float32Array(data),
   });
 
-  return { buffer: buffer.buffer, resourceKey, indexByPassDraw };
+  return { buffer: buffer.buffer, resourceKey };
 }
 
-function readBakedCasterWorldMatrix(
-  transforms: Float32Array,
-  offset: number,
-): Float32Array {
-  if (
-    !Number.isInteger(offset) ||
-    offset < 0 ||
-    offset + BAKED_CASTER_MATRIX_FLOATS > transforms.length
-  ) {
-    return BAKED_CASTER_IDENTITY;
+function buildShadowCasterWorldTransformIndex(input: {
+  readonly casterDrawList: ShadowCasterDrawListPlanReport;
+  readonly scratch?: ShadowCasterWorldTransformScratch;
+}): ReadonlyMap<string, number> {
+  const scratch = input.scratch ?? createShadowCasterWorldTransformScratch();
+  const indexByPassDraw = scratch.indexByPassDraw;
+  let entryIndex = 0;
+
+  indexByPassDraw.clear();
+
+  for (const list of input.casterDrawList.lists) {
+    for (const draw of list.draws) {
+      indexByPassDraw.set(`${list.passKey}:${draw.renderId}`, entryIndex);
+      entryIndex += 1;
+    }
   }
 
-  return transforms.subarray(offset, offset + BAKED_CASTER_MATRIX_FLOATS);
+  return indexByPassDraw;
 }
 
-function createBakedCasterBindGroup(
+function writeShadowCasterWorldTransformUpdates(
   device: RenderShadowFrameDeviceLike,
-  baked: BakedCasterMatrices | null,
-  layout: unknown,
-  cache?: Map<string, BakedShadowCasterMatrixBindGroupResource>,
-): BakedShadowCasterMatrixBindGroupResource | null {
-  if (baked === null || device.createBindGroup === undefined) {
-    return null;
+  cached: ShadowCasterWorldTransformBufferResource,
+  data: Float32Array,
+): boolean {
+  const ranges: { floatOffset: number; floatCount: number }[] = [];
+  let changedFloatCount = 0;
+  let index = 0;
+
+  while (index < data.length) {
+    if (cached.lastData[index] === data[index]) {
+      index += 1;
+      continue;
+    }
+
+    const start = index;
+
+    while (index < data.length && cached.lastData[index] !== data[index]) {
+      index += 1;
+    }
+
+    const floatCount = index - start;
+
+    changedFloatCount += floatCount;
+    ranges.push({ floatOffset: start, floatCount });
   }
 
-  const resourceKey = bakedCasterBindGroupResourceKey(baked.resourceKey);
-  const cached = cache?.get(resourceKey);
-
-  if (cached !== undefined && cached.matrixBuffer === baked.buffer) {
-    return cached;
+  if (changedFloatCount === 0) {
+    return true;
   }
 
-  if (cached !== undefined) {
-    cache?.delete(resourceKey);
+  const fullWrite =
+    changedFloatCount / data.length >=
+    SHADOW_CASTER_WORLD_DIRTY_FULL_WRITE_FRACTION;
+
+  if (fullWrite) {
+    if (!writeWebGpuBufferData(device, cached.buffer, data)) {
+      return false;
+    }
+    cached.lastData.set(data);
+    return true;
   }
 
-  const resolvedLayout =
-    layout ??
-    device.createBindGroupLayout?.(
-      createShadowCasterMatrixBindGroupLayoutDescriptor(),
+  const uploadRanges = mergeShadowCasterWorldDirtyRanges(ranges);
+
+  if (uploadRanges.length > SHADOW_CASTER_WORLD_DIRTY_MAX_RANGES) {
+    if (!writeWebGpuBufferData(device, cached.buffer, data)) {
+      return false;
+    }
+    cached.lastData.set(data);
+    return true;
+  }
+
+  for (const range of uploadRanges) {
+    const byteOffset = range.floatOffset * Float32Array.BYTES_PER_ELEMENT;
+    const byteLength = range.floatCount * Float32Array.BYTES_PER_ELEMENT;
+
+    if (
+      !writeWebGpuBufferSubData(device, cached.buffer, data, {
+        bufferOffset: byteOffset,
+        dataByteOffset: byteOffset,
+        byteLength,
+      })
+    ) {
+      return false;
+    }
+
+    cached.lastData.set(
+      data.subarray(range.floatOffset, range.floatOffset + range.floatCount),
+      range.floatOffset,
     );
-
-  if (resolvedLayout === undefined || resolvedLayout === null) {
-    return null;
   }
 
-  const bindGroup = device.createBindGroup({
-    label: resourceKey,
-    layout: resolvedLayout,
-    entries: [{ binding: 0, resource: { buffer: baked.buffer } }],
-  });
-
-  const resource: BakedShadowCasterMatrixBindGroupResource = {
-    matrixResourceKey: baked.resourceKey,
-    resourceKey,
-    group: 0,
-    bindGroup,
-    matrixBuffer: baked.buffer,
-  };
-
-  cache?.set(resourceKey, resource);
-  return resource;
+  return true;
 }
 
-function bakedCasterBindGroupResourceKey(matrixResourceKey: string): string {
-  return `bind-group:shadow-caster/baked-matrices/${matrixResourceKey}`;
+function mergeShadowCasterWorldDirtyRanges(
+  ranges: readonly {
+    readonly floatOffset: number;
+    readonly floatCount: number;
+  }[],
+): readonly { readonly floatOffset: number; readonly floatCount: number }[] {
+  if (ranges.length <= 1) {
+    return ranges;
+  }
+
+  const merged: { floatOffset: number; floatCount: number }[] = [];
+  let currentStart = ranges[0]?.floatOffset ?? 0;
+  let currentEnd = currentStart + (ranges[0]?.floatCount ?? 0);
+
+  for (let index = 1; index < ranges.length; index += 1) {
+    const range = ranges[index];
+
+    if (range === undefined) {
+      continue;
+    }
+
+    const rangeEnd = range.floatOffset + range.floatCount;
+    const gap = range.floatOffset - currentEnd;
+
+    if (gap <= SHADOW_CASTER_WORLD_DIRTY_MERGE_GAP_FLOATS) {
+      currentEnd = Math.max(currentEnd, rangeEnd);
+      continue;
+    }
+
+    merged.push({
+      floatOffset: currentStart,
+      floatCount: currentEnd - currentStart,
+    });
+    currentStart = range.floatOffset;
+    currentEnd = rangeEnd;
+  }
+
+  merged.push({
+    floatOffset: currentStart,
+    floatCount: currentEnd - currentStart,
+  });
+
+  return merged;
+}
+
+function writeShadowCasterWorldMatrix(
+  output: Float32Array,
+  outputOffset: number,
+  transforms: Float32Array,
+  sourceOffset: number,
+): void {
+  if (
+    !Number.isInteger(sourceOffset) ||
+    sourceOffset < 0 ||
+    sourceOffset + SHADOW_CASTER_MATRIX_FLOATS > transforms.length
+  ) {
+    output.set(SHADOW_CASTER_IDENTITY, outputOffset);
+    return;
+  }
+
+  output.set(
+    transforms.subarray(
+      sourceOffset,
+      sourceOffset + SHADOW_CASTER_MATRIX_FLOATS,
+    ),
+    outputOffset,
+  );
+}
+
+function shadowCasterPassMatrixBufferResourceKey(
+  passKey: string,
+  matrixKey: string,
+): string {
+  return `shadow-caster-pass-matrix-buffer:${encodeURIComponent(passKey)}:${encodeURIComponent(matrixKey)}`;
+}
+
+function floatArraysEqual(a: Float32Array, b: Float32Array): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  for (let index = 0; index < a.length; index += 1) {
+    if (a[index] !== b[index]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function invalidateShadowCasterWorldTransformBindGroups(
+  cache: Map<string, ShadowCasterMatrixBindGroupResource> | undefined,
+  worldTransformResourceKey: string,
+): void {
+  if (cache === undefined) {
+    return;
+  }
+
+  for (const [key, resource] of cache) {
+    if (resource.worldTransformResourceKey === worldTransformResourceKey) {
+      cache.delete(key);
+    }
+  }
 }
 
 function invalidateShadowCasterMatrixBindGroup(
@@ -903,14 +1396,14 @@ function invalidateShadowCasterMatrixBindGroup(
   cache?.delete(shadowCasterMatrixBindGroupResourceKey(matrixResourceKey));
 }
 
-interface PrimaryShadowCamera {
+export interface PrimaryShadowCamera {
   readonly viewMatrix: Mat4Like;
   readonly projectionMatrix: Mat4Like;
   readonly near: number;
   readonly far: number;
 }
 
-function resolvePrimaryShadowCamera(
+export function resolvePrimaryShadowCamera(
   snapshot: RenderSnapshot,
 ): PrimaryShadowCamera | null {
   const view = selectPrimaryShadowView(snapshot);
@@ -1187,6 +1680,10 @@ function createRenderShadowFrameReport(input: {
 }): RenderShadowFrameReport {
   const diagnostics = collectRenderShadowFrameDiagnostics(input.stages);
   const submitted = input.commandBufferSubmission.status === "submitted";
+  const assembledOrPlannedPasses =
+    input.commandBufferSubmission.counts.assembledPasses > 0
+      ? input.commandBufferSubmission.counts.assembledPasses
+      : input.stages.passAttachments.passCount;
   const ready =
     input.receiverResources !== null && input.commandBufferSubmission.ready;
   const status =
@@ -1204,7 +1701,7 @@ function createRenderShadowFrameReport(input: {
     status,
     shadowKind: input.shadowKind,
     requestCount: input.shadowRequests.length,
-    passCount: input.commandBufferSubmission.counts.assembledPasses,
+    passCount: assembledOrPlannedPasses,
     drawCalls: input.commandBufferSubmission.counts.drawCalls,
     descriptor: shadowMapDescriptorReportToJsonValue(input.stages.descriptor),
     viewProjection: directionalShadowViewProjectionPlanReportToJsonValue(
@@ -1248,7 +1745,7 @@ function createRenderShadowFrameReport(input: {
     },
     commandBufferSubmission: {
       status: input.commandBufferSubmission.status,
-      assembledPasses: input.commandBufferSubmission.counts.assembledPasses,
+      assembledPasses: assembledOrPlannedPasses,
       commandBuffers: input.commandBufferSubmission.counts.commandBuffers,
       submittedCommandBuffers:
         input.commandBufferSubmission.counts.submittedCommandBuffers,
@@ -1431,4 +1928,12 @@ function resolveShadowKind(
 
 function isDirectionalShadowRequest(request: ShadowRequestPacket): boolean {
   return request.lightKind === undefined || request.lightKind === "directional";
+}
+
+function shadowRequestNeedsCameraFrustumFit(
+  request: ShadowRequestPacket,
+): boolean {
+  return (
+    isDirectionalShadowRequest(request) && (request.orthographicSize ?? 0) <= 0
+  );
 }

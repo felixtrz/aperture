@@ -9,8 +9,10 @@ import type {
   ShadowRequestPacket,
 } from "@aperture-engine/render";
 import { prepareAppMeshResource } from "../resources/meshes/prepared-app-mesh-resource.js";
+import type { GpuTimestampQueryResources } from "../gpu/gpu-timing.js";
 import {
   createRenderShadowFrame,
+  resolvePrimaryShadowCamera,
   type RenderShadowFrameDeviceLike,
   type RenderShadowFrameResult,
 } from "../shadows/render-shadow-frame.js";
@@ -51,18 +53,32 @@ export function createWebGpuAppAutoShadowFrame(options: {
   readonly cache: WebGpuAppResourceCache;
   readonly reuse: WebGpuAppResourceReuseReport;
   readonly snapshot: RenderSnapshot;
+  readonly resourceLifetimeFrame?: number;
   readonly label?: string;
+  readonly submit?: boolean;
+  readonly gpuTiming?: {
+    readonly resources: GpuTimestampQueryResources;
+  };
 }): RenderShadowFrameResult | null {
   if (standardAutoShadowPipelineKindFromSnapshot(options.snapshot) === null) {
     return null;
   }
 
-  const meshViews = createAutoShadowCasterMeshViews(options);
+  const meshViews = createAutoShadowCasterMeshViews({
+    ...options,
+    resourceLifetimeFrame:
+      options.resourceLifetimeFrame ?? options.snapshot.frame,
+  });
 
   // The render-shadow frame uses the active render camera for PlayCanvas-style
   // automatic directional fitting when a primary view exists. The scene matrix
-  // is a no-camera fallback, not a default fixed shadow box.
-  const sceneMatrix = computeShadowSceneMatrix(options.snapshot);
+  // is a no-camera fallback, not a default fixed shadow box; avoid computing
+  // it on camera-backed frames because it walks all caster/receiver bounds.
+  const sceneMatrix =
+    resolvePrimaryShadowCamera(options.snapshot) === null &&
+    autoShadowNeedsCameraFrustumFitBounds(options.snapshot)
+      ? computeShadowSceneMatrix(options.snapshot)
+      : null;
 
   return createRenderShadowFrame({
     device: options.app.initialization.device as RenderShadowFrameDeviceLike,
@@ -72,7 +88,61 @@ export function createWebGpuAppAutoShadowFrame(options: {
     cache: options.cache.environmentResources,
     ...(sceneMatrix === null ? {} : { matrix: sceneMatrix }),
     label: `${options.label ?? "aperture-webgpu-app"}:auto-shadow`,
+    ...(options.submit === false ? { encode: false } : {}),
+    ...(options.submit === undefined ? {} : { submit: options.submit }),
+    ...(options.gpuTiming === undefined
+      ? {}
+      : { gpuTiming: options.gpuTiming }),
   });
+}
+
+export function createWebGpuAppAutoShadowFrameInputKey(
+  snapshot: RenderSnapshot,
+): string {
+  const primaryShadowCamera = resolvePrimaryShadowCamera(snapshot);
+  const needsAutoFit = autoShadowNeedsCameraFrustumFitBounds(snapshot);
+  const needsCameraFrustumFitBounds =
+    primaryShadowCamera !== null && needsAutoFit;
+  const needsFallbackSceneFit = primaryShadowCamera === null && needsAutoFit;
+  const indices = needsCameraFrustumFitBounds
+    ? collectCameraFitShadowBoundsIndices(snapshot)
+    : needsFallbackSceneFit
+      ? collectFallbackShadowBoundsIndices(snapshot)
+      : new Set<number>();
+  const directionalRequests = snapshot.shadowRequests.filter(
+    isDirectionalShadowRequest,
+  );
+
+  return [
+    "auto-shadow-input:v3",
+    needsCameraFrustumFitBounds
+      ? "primary-camera-fit"
+      : needsFallbackSceneFit
+        ? "fallback-scene-fit"
+        : "fixed-camera",
+    needsCameraFrustumFitBounds
+      ? shadowCameraInputKey(primaryShadowCamera)
+      : "camera:not-used",
+    shadowRequestsInputKey(directionalRequests),
+    shadowLightsInputKey(snapshot, directionalRequests),
+    shadowCastersInputKey(snapshot, directionalRequests),
+    shadowBoundsInputKey(snapshot, indices),
+  ].join(";");
+}
+
+export function autoShadowInputKeyUsesCamera(
+  snapshot: RenderSnapshot,
+): boolean {
+  return (
+    resolvePrimaryShadowCamera(snapshot) !== null &&
+    autoShadowNeedsCameraFrustumFitBounds(snapshot)
+  );
+}
+
+export function autoShadowInputKeyUsesBounds(
+  snapshot: RenderSnapshot,
+): boolean {
+  return autoShadowNeedsCameraFrustumFitBounds(snapshot);
 }
 
 interface ShadowSceneMatrix {
@@ -437,12 +507,249 @@ function receiverCeilingY(snapshot: RenderSnapshot): number | null {
   return Number.isFinite(ceiling) ? ceiling : null;
 }
 
+function autoShadowNeedsCameraFrustumFitBounds(
+  snapshot: RenderSnapshot,
+): boolean {
+  return snapshot.shadowRequests.some(
+    (request) =>
+      isDirectionalShadowRequest(request) &&
+      (request.orthographicSize ?? 0) <= 0,
+  );
+}
+
+function collectCameraFitShadowBoundsIndices(
+  snapshot: RenderSnapshot,
+): ReadonlySet<number> {
+  const indices = new Set<number>();
+  const directionalRequests = snapshot.shadowRequests.filter(
+    isDirectionalShadowRequest,
+  );
+
+  for (const draw of shadowCasterDrawsForSnapshot(snapshot)) {
+    if (isShadowCasterDraw(draw, directionalRequests)) {
+      indices.add(draw.boundsIndex);
+    }
+  }
+
+  for (const draw of snapshot.meshDraws) {
+    if (
+      draw.receivesShadow === false ||
+      !draw.batchKey.pipelineKey.startsWith("standard|")
+    ) {
+      continue;
+    }
+
+    const isReceiver = directionalRequests.some(
+      (request) => (draw.layerMask & request.receiverLayerMask) !== 0,
+    );
+
+    if (isReceiver) {
+      indices.add(draw.boundsIndex);
+    }
+  }
+
+  return indices;
+}
+
+function collectFallbackShadowBoundsIndices(
+  snapshot: RenderSnapshot,
+): ReadonlySet<number> {
+  const indices = new Set<number>();
+
+  for (const draw of shadowCasterDrawsForSnapshot(snapshot)) {
+    if (isShadowCasterDraw(draw, snapshot.shadowRequests)) {
+      indices.add(draw.boundsIndex);
+    }
+  }
+
+  for (const draw of snapshot.meshDraws) {
+    if (draw.receivesShadow !== false) {
+      indices.add(draw.boundsIndex);
+    }
+  }
+
+  return indices;
+}
+
+function shadowBoundsInputKey(
+  snapshot: RenderSnapshot,
+  indices: ReadonlySet<number>,
+): string {
+  if (indices.size === 0) {
+    return "auto-shadow-input:bounds:none";
+  }
+
+  return [...indices]
+    .sort((a, b) => a - b)
+    .map((index) => {
+      const bounds = snapshot.bounds[index];
+      if (bounds === undefined) {
+        return `${index}:missing`;
+      }
+
+      const { min, max } = bounds.worldAabb;
+      return `${index}:${numberKey(min[0])},${numberKey(min[1])},${numberKey(
+        min[2],
+      )}:${numberKey(max[0])},${numberKey(max[1])},${numberKey(max[2])}`;
+    })
+    .join("|");
+}
+
+function numberKey(value: number | undefined): string {
+  return Number.isFinite(value) ? String(value) : "nan";
+}
+
+function shadowCameraInputKey(
+  camera: ReturnType<typeof resolvePrimaryShadowCamera>,
+): string {
+  if (camera === null) {
+    return "camera:none";
+  }
+
+  return [
+    "camera",
+    numberKey(camera.near),
+    numberKey(camera.far),
+    matrixKey(camera.viewMatrix),
+    matrixKey(camera.projectionMatrix),
+  ].join(":");
+}
+
+function shadowRequestsInputKey(
+  requests: readonly ShadowRequestPacket[],
+): string {
+  return `requests:${requests.map(shadowRequestInputKey).join("|")}`;
+}
+
+function shadowRequestInputKey(request: ShadowRequestPacket): string {
+  return [
+    request.shadowId,
+    request.lightId,
+    request.lightKind ?? "directional",
+    request.cascadeCount ?? "default",
+    request.casterLayerMask,
+    request.receiverLayerMask,
+    request.shadowType ?? "default",
+    request.strength ?? "default",
+    request.filterRadius ?? "default",
+    request.slopeBias ?? "default",
+    request.depthBias ?? "default",
+    request.normalBias ?? "default",
+    request.mapSize ?? "default",
+    tupleKey(request.center),
+    request.orthographicSize ?? "default",
+    request.near ?? "default",
+    request.far ?? "default",
+    request.lightDistance ?? "default",
+  ].join(",");
+}
+
+function shadowLightsInputKey(
+  snapshot: RenderSnapshot,
+  requests: readonly ShadowRequestPacket[],
+): string {
+  const lightIds = new Set(requests.map((request) => request.lightId));
+  const lights = snapshot.lights.filter(
+    (light) => light.kind === "directional" && lightIds.has(light.lightId),
+  );
+
+  return `lights:${lights
+    .map((light) => {
+      return [
+        light.lightId,
+        light.kind,
+        tupleKey(light.color),
+        light.intensity,
+        light.range,
+        light.innerConeAngle,
+        light.outerConeAngle,
+        light.width ?? "default",
+        light.height ?? "default",
+        nullableAssetHandleKey(light.cookieTexture),
+        nullableAssetHandleKey(light.cookieSampler),
+        light.cookieIntensity ?? "default",
+        light.layerMask,
+        matrixAtKey(snapshot.transforms, light.worldTransformOffset),
+      ].join(",");
+    })
+    .join("|")}`;
+}
+
+function shadowCastersInputKey(
+  snapshot: RenderSnapshot,
+  requests: readonly ShadowRequestPacket[],
+): string {
+  const casters = shadowCasterDrawsForSnapshot(snapshot).filter((draw) =>
+    isShadowCasterDraw(draw, requests),
+  );
+
+  return `casters:${casters
+    .map((draw) => {
+      return [
+        draw.renderId,
+        assetHandleKey(draw.mesh),
+        assetHandleKey(draw.material),
+        draw.submesh,
+        draw.materialSlot,
+        draw.vertexStart ?? "default",
+        draw.vertexCount ?? "default",
+        draw.indexStart ?? "default",
+        draw.indexCount ?? "default",
+        draw.layerMask,
+        draw.castsShadow ?? "default",
+        draw.receivesShadow ?? "default",
+        draw.batchKey.pipelineKey,
+        draw.batchKey.materialKey,
+        draw.batchKey.meshLayoutKey,
+        draw.batchKey.topology,
+        draw.batchKey.instanced,
+        draw.batchKey.skinned,
+        draw.batchKey.morphed,
+        matrixAtKey(snapshot.transforms, draw.worldTransformOffset),
+      ].join(",");
+    })
+    .join("|")}`;
+}
+
+function matrixAtKey(values: Float32Array, offset: number): string {
+  if (!Number.isInteger(offset) || offset < 0 || offset + 16 > values.length) {
+    return "missing";
+  }
+
+  return matrixKey(values.subarray(offset, offset + 16));
+}
+
+function matrixKey(values: ArrayLike<number>): string {
+  const parts: string[] = [];
+  for (let index = 0; index < values.length; index += 1) {
+    parts.push(numberKey(values[index]));
+  }
+  return parts.join(",");
+}
+
+function tupleKey(values: ArrayLike<number> | undefined): string {
+  if (values === undefined) {
+    return "default";
+  }
+
+  return matrixKey(values);
+}
+
+function nullableAssetHandleKey(
+  handle: Parameters<typeof assetHandleKey>[0] | null | undefined,
+): string {
+  return handle === null || handle === undefined
+    ? "none"
+    : assetHandleKey(handle);
+}
+
 function createAutoShadowCasterMeshViews(options: {
   readonly app: WebGpuApp;
   readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
   readonly reuse: WebGpuAppResourceReuseReport;
   readonly snapshot: RenderSnapshot;
+  readonly resourceLifetimeFrame: number;
 }): {
   readonly preparedMeshes: readonly ShadowCasterPreparedMeshResourceView[];
   readonly executableMeshes: readonly ShadowCasterExecutableMeshResourceView[];
@@ -471,7 +778,7 @@ function createAutoShadowCasterMeshViews(options: {
       mesh,
       meshHandle: draw.mesh,
       meshKey: sourceAssetCacheKey(draw.mesh, meshEntry?.version ?? -1),
-      frame: options.snapshot.frame,
+      frame: options.resourceLifetimeFrame,
       preparedMeshes: options.cache.preparedMeshes,
     });
 

@@ -5,6 +5,7 @@ import {
 import {
   rememberPackedSnapshotTransformsByRenderId,
   writeMaterialQueueFromSnapshot,
+  writePackedSnapshotMeshTransforms,
   writePackedSnapshotInstanceTintsForVertexBuffer,
   writePackedSnapshotTransforms,
   writePackedSnapshotViewUniforms,
@@ -24,7 +25,12 @@ import type {
 } from "../materials/standard/standard-frame-resources.js";
 import { writeRenderFramePlanFromSnapshot } from "../render/frame/render-frame-plan.js";
 import {
+  prepareDrawOrderTransformPacking,
+  type PrepareDrawOrderTransformPackingOptions,
+} from "../render/frame/draw-order-transform-packing.js";
+import {
   createWebGpuAppDiagnosticsSummaryWithGpuTimings,
+  createWebGpuAppGpuTimingForPass,
   newOcclusionQueryDiagnostics,
   readWebGpuAppGpuTimings,
   readWebGpuAppOcclusionQueries,
@@ -56,17 +62,33 @@ import {
   rememberCurrentViewProjectionMatrices,
 } from "./motion-vectors.js";
 import { assembleWebGpuAppFrameBoundaries } from "./frame-boundaries.js";
-import type { ShadowCasterGraphPass } from "./shadow-caster-graph-pass.js";
+import {
+  createShadowCasterGraphPasses,
+  type ShadowCasterGraphPass,
+} from "./shadow-caster-graph-pass.js";
 import {
   renderReport,
   frameBoundariesNeedGpuDrain,
   waitForSubmittedWork,
 } from "./report.js";
-import { createWebGpuAppAutoShadowFrame } from "./auto-shadow-frame.js";
-import type { WebGpuAppRenderPhaseTimer } from "./app-phase-timing.js";
-import type { WebGpuAppResourceCache } from "./resource-cache.js";
+import {
+  autoShadowInputKeyUsesBounds,
+  autoShadowInputKeyUsesCamera,
+  createWebGpuAppAutoShadowFrameInputKey,
+  createWebGpuAppAutoShadowFrame,
+  standardAutoShadowPipelineKindFromSnapshot,
+} from "./auto-shadow-frame.js";
+import type {
+  WebGpuAppRenderPhaseDetailName,
+  WebGpuAppRenderPhaseTimer,
+} from "./app-phase-timing.js";
+import type {
+  CachedWebGpuAppAutoShadowFrame,
+  WebGpuAppResourceCache,
+} from "./resource-cache.js";
 import type {
   WebGpuApp,
+  WebGpuAppAutoShadowFrameCacheReport,
   WebGpuAppRenderReport,
   WebGpuAppResourceReuseReport,
 } from "./app.js";
@@ -81,9 +103,11 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   readonly resourceSet: QueuedBuiltInAppResourceSet;
   readonly routeDiagnostics?: readonly unknown[];
   readonly reuse: WebGpuAppResourceReuseReport;
+  readonly resourceLifetimeFrame?: number;
   readonly clearColor?: readonly number[];
   readonly label?: string;
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
+  readonly gpuTimings?: boolean;
   readonly standardMaterialShadowReceiverResources?:
     | StandardFrameShadowReceiverResources
     | undefined;
@@ -99,30 +123,60 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     | undefined;
   readonly phaseTimer: WebGpuAppRenderPhaseTimer;
 }): Promise<WebGpuAppRenderReport> {
-  const sceneMotionVectors = createWebGpuAppSceneMotionVectorPlan({
-    app: options.app,
-    assets: options.assets,
-    snapshot: options.snapshot,
-  });
-  const packedViews = writePackedSnapshotViewUniforms(
-    options.snapshot,
-    options.cache.frameScratch.viewUniforms,
-    {
-      previousViewProjectionByViewId:
-        options.cache.postPasses.previousViewProjectionByViewId,
-    },
+  options.phaseTimer.startDetail("prepareMain");
+  const resourceLifetimeFrame =
+    options.resourceLifetimeFrame ?? options.snapshot.frame;
+  const sceneMotionVectors = measureRenderPhaseDetail(
+    options.phaseTimer,
+    "prepareMainMotionVectors",
+    () =>
+      createWebGpuAppSceneMotionVectorPlan({
+        app: options.app,
+        assets: options.assets,
+        snapshot: options.snapshot,
+      }),
   );
-  const packedTransforms = writePackedSnapshotTransforms(
-    options.snapshot,
-    options.cache.frameScratch.worldTransforms,
+  const packedViews = measureRenderPhaseDetail(
+    options.phaseTimer,
+    "prepareMainViews",
+    () =>
+      writePackedSnapshotViewUniforms(
+        options.snapshot,
+        options.cache.frameScratch.viewUniforms,
+        {
+          previousViewProjectionByViewId:
+            options.cache.postPasses.previousViewProjectionByViewId,
+        },
+      ),
   );
-  const previousObjectTransforms =
-    prepareWebGpuAppPreviousObjectTransformResource({
-      device: options.app.initialization.device,
-      cache: options.cache.postPasses,
-      currentTransforms: packedTransforms,
-      required: sceneMotionVectors.colorFormat !== null,
-    });
+  const meshPackedTransforms = measureRenderPhaseDetail(
+    options.phaseTimer,
+    "prepareMainTransforms",
+    () =>
+      writePackedSnapshotMeshTransforms(
+        options.snapshot,
+        options.cache.frameScratch.meshWorldTransforms,
+      ),
+  );
+  const overlayPackedTransforms = snapshotNeedsRawOffsetWorldTransforms(
+    options.snapshot,
+  )
+    ? writePackedSnapshotTransforms(
+        options.snapshot,
+        options.cache.frameScratch.worldTransforms,
+      )
+    : meshPackedTransforms;
+  const previousObjectTransforms = measureRenderPhaseDetail(
+    options.phaseTimer,
+    "prepareMainPreviousTransforms",
+    () =>
+      prepareWebGpuAppPreviousObjectTransformResource({
+        device: options.app.initialization.device,
+        cache: options.cache.postPasses,
+        currentTransforms: meshPackedTransforms,
+        required: sceneMotionVectors.colorFormat !== null,
+      }),
+  );
   const motionVectorColorFormat =
     sceneMotionVectors.colorFormat !== null &&
     previousObjectTransforms.resource === null
@@ -141,23 +195,40 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     )
       ? options.app.sceneRenderFormat
       : null;
-  const packedInstanceTints = writePackedSnapshotInstanceTintsForVertexBuffer(
-    options.snapshot,
-    packedTransforms,
-    options.cache.frameScratch.instanceTints,
+  const packedInstanceTints = measureRenderPhaseDetail(
+    options.phaseTimer,
+    "prepareMainInstanceTints",
+    () =>
+      writePackedSnapshotInstanceTintsForVertexBuffer(
+        options.snapshot,
+        meshPackedTransforms,
+        options.cache.frameScratch.instanceTints,
+      ),
   );
-  const standardAreaLightLtc = resolveStandardAreaLightLtcResources({
-    app: options.app,
-    cache: options.cache,
-    required: queuedBuiltInResourceSetHasStandardMaterial(options.resourceSet),
-  });
-  const transmissionGrabResources = createWebGpuAppTransmissionGrabResources({
-    app: options.app,
-    assets: options.assets,
-    cache: options.cache,
-    snapshot: options.snapshot,
-    required: snapshotUsesTransmission(options.snapshot),
-  });
+  const standardAreaLightLtc = measureRenderPhaseDetail(
+    options.phaseTimer,
+    "prepareMainAreaLights",
+    () =>
+      resolveStandardAreaLightLtcResources({
+        app: options.app,
+        cache: options.cache,
+        required: queuedBuiltInResourceSetHasStandardMaterial(
+          options.resourceSet,
+        ),
+      }),
+  );
+  const transmissionGrabResources = measureRenderPhaseDetail(
+    options.phaseTimer,
+    "prepareMainTransmission",
+    () =>
+      createWebGpuAppTransmissionGrabResources({
+        app: options.app,
+        assets: options.assets,
+        cache: options.cache,
+        snapshot: options.snapshot,
+        required: snapshotUsesTransmission(options.snapshot),
+      }),
+  );
 
   if (!standardAreaLightLtc.valid || !transmissionGrabResources.valid) {
     return renderReport({
@@ -171,7 +242,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       diagnostics: [
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
-        ...packedTransforms.diagnostics,
+        ...meshPackedTransforms.diagnostics,
         ...previousObjectTransforms.diagnostics,
         ...packedInstanceTints.diagnostics,
         ...standardAreaLightLtc.diagnostics,
@@ -180,28 +251,133 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     });
   }
 
-  const autoShadowFrame =
+  const autoShadowDetailStartedAt = nowMilliseconds();
+  const usesAutoShadowFrame =
     options.standardMaterialShadowReceiverResources === undefined &&
-    options.autoStandardMaterialShadowReceiverResources !== false
-      ? createWebGpuAppAutoShadowFrame({
+    options.autoStandardMaterialShadowReceiverResources !== false;
+  const autoShadowPipelineKind = usesAutoShadowFrame
+    ? standardAutoShadowPipelineKindFromSnapshot(options.snapshot)
+    : null;
+  const autoShadowCache = evaluateReusableAutoShadowFrame({
+    cache: options.cache,
+    snapshot: options.snapshot,
+    snapshotChangeSet: options.snapshotChangeSet,
+    gpuTimings: options.gpuTimings,
+    usesAutoShadowFrame,
+    pipelineKind: autoShadowPipelineKind,
+    hasExternalShadowResources:
+      options.standardMaterialShadowReceiverResources !== undefined,
+  });
+  const cachedAutoShadowFrame = autoShadowCache.cached;
+  options.reuse.autoShadowFrameCache = autoShadowCache.report;
+
+  if (cachedAutoShadowFrame !== null) {
+    options.reuse.autoShadowFramesReused += 1;
+    options.cache.autoShadowFrame = {
+      ...cachedAutoShadowFrame,
+      frame: options.snapshot.frame,
+      inputKey: autoShadowCache.currentInputKey,
+    };
+  } else if (autoShadowPipelineKind === null) {
+    options.cache.autoShadowFrame = null;
+  } else {
+    options.cache.autoShadowFrame = null;
+  }
+
+  const autoShadowSubmitsOwnCommandBuffer = options.app.useFrameGraph !== true;
+  const autoShadowGpuTiming =
+    options.gpuTimings === true &&
+    cachedAutoShadowFrame === null &&
+    usesAutoShadowFrame &&
+    autoShadowSubmitsOwnCommandBuffer &&
+    autoShadowPipelineKind !== null
+      ? await createWebGpuAppGpuTimingForPass(
+          options.app,
+          options.cache,
+          options.label ?? "aperture-webgpu-app",
+          "shadow",
+          countAutoShadowGpuTimingQueries(options.snapshot),
+        )
+      : null;
+  const autoShadowFrame =
+    cachedAutoShadowFrame !== null || !usesAutoShadowFrame
+      ? null
+      : createWebGpuAppAutoShadowFrame({
           app: options.app,
           assets: options.assets,
           cache: options.cache,
           reuse: options.reuse,
           snapshot: options.snapshot,
+          resourceLifetimeFrame,
           ...(options.label === undefined ? {} : { label: options.label }),
-        })
-      : null;
+          submit: autoShadowSubmitsOwnCommandBuffer,
+          ...(autoShadowGpuTiming?.resources === null ||
+          autoShadowGpuTiming?.resources === undefined
+            ? {}
+            : { gpuTiming: { resources: autoShadowGpuTiming.resources } }),
+        });
+  if (autoShadowFrame !== null) {
+    options.reuse.autoShadowFramesCreated += 1;
+  }
+  const autoShadowGpuTimingReadbacks =
+    autoShadowGpuTiming?.resources !== null &&
+    autoShadowGpuTiming?.resources !== undefined &&
+    autoShadowFrame?.commandBufferSubmission.gpuTiming !== undefined
+      ? [
+          {
+            passName: autoShadowGpuTiming.passName,
+            passNames: autoShadowGpuTimingPassNames(autoShadowFrame.passPlan),
+            resources: autoShadowGpuTiming.resources,
+            ...(autoShadowGpuTiming.release === undefined
+              ? {}
+              : { release: autoShadowGpuTiming.release }),
+          },
+        ]
+      : [];
+  if (
+    autoShadowGpuTiming !== null &&
+    autoShadowGpuTiming.release !== undefined &&
+    autoShadowGpuTimingReadbacks.length === 0
+  ) {
+    autoShadowGpuTiming.release();
+  }
+  const autoShadowGraphPasses =
+    autoShadowFrame === null || options.app.useFrameGraph !== true
+      ? []
+      : createShadowCasterGraphPasses({
+          passAttachments: autoShadowFrame.passAttachments,
+          depthTextureResources: autoShadowFrame.depthTextureResources,
+          commandRecords: autoShadowFrame.commandRecords.commandRecords,
+        });
+  const shadowCasterGraphPasses = [
+    ...(options.shadowCasterGraphPasses ?? []),
+    ...autoShadowGraphPasses,
+  ];
+  const autoShadowReport =
+    cachedAutoShadowFrame?.report ?? autoShadowFrame?.report;
+  const autoShadowReceiverResources =
+    cachedAutoShadowFrame?.receiverResources ??
+    autoShadowFrame?.receiverResources ??
+    null;
   const standardMaterialShadowReceiverResources =
     options.standardMaterialShadowReceiverResources ??
-    autoShadowFrame?.receiverResources ??
+    autoShadowReceiverResources ??
     undefined;
+  options.phaseTimer.addDetail(
+    "prepareMainAutoShadow",
+    nowMilliseconds() - autoShadowDetailStartedAt,
+  );
 
   if (
     autoShadowFrame !== null &&
-    (autoShadowFrame.report.status !== "submitted" ||
+    ((autoShadowFrame.report.status !== "submitted" &&
+      !(
+        autoShadowFrame.report.status === "ready" &&
+        autoShadowGraphPasses.length > 0
+      )) ||
       autoShadowFrame.receiverResources === null)
   ) {
+    options.cache.autoShadowFrame = null;
     return renderReport({
       ok: false,
       snapshot: options.snapshot,
@@ -214,7 +390,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       diagnostics: [
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
-        ...packedTransforms.diagnostics,
+        ...meshPackedTransforms.diagnostics,
         ...previousObjectTransforms.diagnostics,
         ...packedInstanceTints.diagnostics,
         ...autoShadowFrame.report.diagnostics,
@@ -222,53 +398,61 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     });
   }
 
-  const prepared = await prepareQueuedBuiltInFrameResources({
-    ...options,
-    viewUniforms: packedViews,
-    worldTransforms: packedTransforms,
-    ...(previousObjectTransforms.resource === null
-      ? {}
-      : { previousWorldTransforms: previousObjectTransforms.resource }),
-    instanceTints: packedInstanceTints,
-    standardAreaLightLtcResources: standardAreaLightLtc.resources,
-    localLightCookieResources: options.localLightCookieResources,
-    transmissionSceneColorResources: transmissionGrabResources.resources,
-    ...(standardMaterialShadowReceiverResources === undefined
-      ? {}
-      : {
-          standardMaterialShadowReceiverResources:
-            standardMaterialShadowReceiverResources,
-        }),
-    ...(options.standardMaterialIblResources === undefined
-      ? {}
-      : {
-          standardMaterialIblResources: options.standardMaterialIblResources,
-        }),
-    getPipeline: (item) =>
-      getOrCreateWebGpuAppPipeline({
-        app: options.app,
-        cache: options.cache,
-        reuse: options.reuse,
-        kind: item.adapter.kind,
-        pipelineKey: item.draw.batchKey.pipelineKey,
-        batchKey: item.draw.batchKey,
-        motionVectorColorFormat,
-        indirectColorFormat,
+  const prepared = await measureRenderPhaseDetailAsync(
+    options.phaseTimer,
+    "prepareMainResources",
+    () =>
+      prepareQueuedBuiltInFrameResources({
+        ...options,
+        resourceLifetimeFrame,
+        viewUniforms: packedViews,
+        worldTransforms: meshPackedTransforms,
+        ...(previousObjectTransforms.resource === null
+          ? {}
+          : { previousWorldTransforms: previousObjectTransforms.resource }),
+        instanceTints: packedInstanceTints,
+        standardAreaLightLtcResources: standardAreaLightLtc.resources,
+        localLightCookieResources: options.localLightCookieResources,
+        transmissionSceneColorResources: transmissionGrabResources.resources,
+        ...(standardMaterialShadowReceiverResources === undefined
+          ? {}
+          : {
+              standardMaterialShadowReceiverResources:
+                standardMaterialShadowReceiverResources,
+            }),
+        ...(options.standardMaterialIblResources === undefined
+          ? {}
+          : {
+              standardMaterialIblResources:
+                options.standardMaterialIblResources,
+            }),
+        getPipeline: (item) =>
+          getOrCreateWebGpuAppPipeline({
+            app: options.app,
+            cache: options.cache,
+            reuse: options.reuse,
+            kind: item.adapter.kind,
+            pipelineKey: item.draw.batchKey.pipelineKey,
+            batchKey: item.draw.batchKey,
+            motionVectorColorFormat,
+            indirectColorFormat,
+          }),
+        getPipelineLayouts: ({ item, pipeline, getBindGroupLayout }) =>
+          getWebGpuAppPipelineLayouts({
+            cache: options.cache,
+            kind: item.adapter.kind,
+            pipeline,
+            getBindGroupLayout,
+          }),
       }),
-    getPipelineLayouts: ({ item, pipeline, getBindGroupLayout }) =>
-      getWebGpuAppPipelineLayouts({
-        cache: options.cache,
-        kind: item.adapter.kind,
-        pipeline,
-        getBindGroupLayout,
-      }),
-  });
+  );
   const diagnosticsSummary = createQueuedBuiltInAppDiagnosticsSummary({
     snapshot: options.snapshot,
     resourceSet: options.resourceSet,
     resources: prepared.resources,
     adapterValidation: QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION,
   });
+  options.phaseTimer.finishDetail("prepareMain");
   options.phaseTimer.finish("prepare");
 
   if (!prepared.valid || prepared.resources === null) {
@@ -277,7 +461,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       snapshot: options.snapshot,
       pipeline: prepared.firstPipeline,
       resources: prepared.resourcesResult,
-      ...(autoShadowFrame === null ? {} : { shadow: autoShadowFrame.report }),
+      ...(autoShadowReport === undefined ? {} : { shadow: autoShadowReport }),
       resourceReuse: options.reuse,
       phaseTimings: options.phaseTimer.report(
         options.cache.phaseTimingHistory,
@@ -287,7 +471,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       diagnostics: [
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
-        ...packedTransforms.diagnostics,
+        ...meshPackedTransforms.diagnostics,
         ...previousObjectTransforms.diagnostics,
         ...packedInstanceTints.diagnostics,
         ...prepared.diagnostics,
@@ -314,7 +498,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       snapshot: options.snapshot,
       pipeline: prepared.firstPipeline,
       resources: prepared.resourcesResult,
-      ...(autoShadowFrame === null ? {} : { shadow: autoShadowFrame.report }),
+      ...(autoShadowReport === undefined ? {} : { shadow: autoShadowReport }),
       resourceReuse: options.reuse,
       phaseTimings: options.phaseTimer.report(
         options.cache.phaseTimingHistory,
@@ -324,7 +508,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       diagnostics: [
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
-        ...packedTransforms.diagnostics,
+        ...meshPackedTransforms.diagnostics,
         ...previousObjectTransforms.diagnostics,
         ...packedInstanceTints.diagnostics,
         ...(options.routeDiagnostics ?? []),
@@ -338,7 +522,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     snapshot: options.snapshot,
     snapshotChangeSet: options.snapshotChangeSet,
     renderWorld: options.app.renderWorld,
-    transforms: packedTransforms,
+    transforms: meshPackedTransforms,
     resolveMeshResourceKey: (draw) =>
       prepared.meshResourceKeys.get(assetHandleKey(draw.mesh)) ?? null,
     resolveMaterialResourceKey: (draw) =>
@@ -348,6 +532,20 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     pipelineKeysByRenderId: prepared.pipelineKeysByRenderId,
     pipelines: prepared.pipelineResults,
     bindGroups: prepared.resources.bindGroups,
+    drawOrderTransformPacking: (input) =>
+      prepareDrawOrderTransformPacking({
+        device: options.app.initialization
+          .device as PrepareDrawOrderTransformPackingOptions["device"],
+        packages: input.packages,
+        transforms: input.transforms,
+        ...(input.pipelineKeysByRenderId === undefined
+          ? {}
+          : { pipelineKeysByRenderId: input.pipelineKeysByRenderId }),
+        pipelines: input.pipelines,
+        bindGroups: input.bindGroups,
+        cache: options.cache.drawOrderTransforms,
+        scratch: options.cache.frameScratch.drawOrderTransforms,
+      }),
     scratch: options.cache.frameScratch.framePlan,
   });
   options.phaseTimer.finish("sort");
@@ -359,41 +557,69 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     framePlan,
   });
   options.phaseTimer.start("prepare");
-  const spriteFrame = await prepareSpriteFrameResourcesForSnapshot({
-    app: options.app,
-    assets: options.assets,
-    cache: options.cache,
-    snapshot: options.snapshot,
-    viewUniforms: packedViews,
-    worldTransforms: packedTransforms,
-    reuse: options.reuse,
-  });
-  const textFrame = await prepareMsdfTextFrameResourcesForSnapshot({
-    app: options.app,
-    assets: options.assets,
-    cache: options.cache,
-    snapshot: options.snapshot,
-    viewUniforms: packedViews,
-    worldTransforms: packedTransforms,
-    reuse: options.reuse,
-  });
-  const particleFrame = await prepareParticleFrameResourcesForSnapshot({
-    app: options.app,
-    assets: options.assets,
-    cache: options.cache,
-    snapshot: options.snapshot,
-    viewUniforms: packedViews,
-    reuse: options.reuse,
-    time: options.snapshot.frame / 60,
-  });
-  const uiFrame = await prepareUiFrameResourcesForSnapshot({
-    app: options.app,
-    assets: options.assets,
-    cache: options.cache,
-    snapshot: options.snapshot,
-    viewUniforms: packedViews,
-    reuse: options.reuse,
-  });
+  options.phaseTimer.startDetail("prepareOverlays");
+  const spriteFrame = await measureRenderPhaseDetailAsync(
+    options.phaseTimer,
+    "prepareOverlaySprites",
+    () =>
+      snapshotHasSpriteFrameWork(options.snapshot)
+        ? prepareSpriteFrameResourcesForSnapshot({
+            app: options.app,
+            assets: options.assets,
+            cache: options.cache,
+            snapshot: options.snapshot,
+            viewUniforms: packedViews,
+            worldTransforms: overlayPackedTransforms,
+            reuse: options.reuse,
+          })
+        : emptySpriteFrameResources(),
+  );
+  const textFrame = await measureRenderPhaseDetailAsync(
+    options.phaseTimer,
+    "prepareOverlayText",
+    () =>
+      snapshotHasMsdfTextFrameWork(options.snapshot)
+        ? prepareMsdfTextFrameResourcesForSnapshot({
+            app: options.app,
+            assets: options.assets,
+            cache: options.cache,
+            snapshot: options.snapshot,
+            viewUniforms: packedViews,
+            worldTransforms: overlayPackedTransforms,
+            reuse: options.reuse,
+          })
+        : emptyMsdfTextFrameResources(),
+  );
+  const particleFrame = await measureRenderPhaseDetailAsync(
+    options.phaseTimer,
+    "prepareOverlayParticles",
+    () =>
+      prepareParticleFrameResourcesForSnapshot({
+        app: options.app,
+        assets: options.assets,
+        cache: options.cache,
+        snapshot: options.snapshot,
+        viewUniforms: packedViews,
+        reuse: options.reuse,
+        time: options.snapshot.frame / 60,
+      }),
+  );
+  const uiFrame = await measureRenderPhaseDetailAsync(
+    options.phaseTimer,
+    "prepareOverlayUi",
+    () =>
+      snapshotHasUiFrameWork(options.snapshot)
+        ? prepareUiFrameResourcesForSnapshot({
+            app: options.app,
+            assets: options.assets,
+            cache: options.cache,
+            snapshot: options.snapshot,
+            viewUniforms: packedViews,
+            reuse: options.reuse,
+          })
+        : emptyUiFrameResources(),
+  );
+  options.phaseTimer.finishDetail("prepareOverlays");
   options.phaseTimer.finish("prepare");
 
   if (
@@ -407,7 +633,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       snapshot: options.snapshot,
       pipeline: prepared.firstPipeline,
       resources: prepared.resourcesResult,
-      ...(autoShadowFrame === null ? {} : { shadow: autoShadowFrame.report }),
+      ...(autoShadowReport === undefined ? {} : { shadow: autoShadowReport }),
       resourceReuse: options.reuse,
       phaseTimings: options.phaseTimer.report(
         options.cache.phaseTimingHistory,
@@ -417,7 +643,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       diagnostics: [
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
-        ...packedTransforms.diagnostics,
+        ...meshPackedTransforms.diagnostics,
         ...packedInstanceTints.diagnostics,
         ...spriteFrame.resources.diagnostics,
         ...textFrame.resources.diagnostics,
@@ -442,6 +668,10 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     commands: frameCommands,
     label: options.label ?? "aperture-webgpu-app",
   });
+  const renderBundleCommands = indirectDraws.commands.slice(
+    0,
+    framePlan.commandPlan.commands.length,
+  );
   options.phaseTimer.start("submit");
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app: options.app,
@@ -449,12 +679,16 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     cache: options.cache,
     snapshot: options.snapshot,
     commands: indirectDraws.commands,
+    renderBundleCommands,
     overlayCommands: uiFrame.commands,
     label: options.label ?? "aperture-webgpu-app",
     reuse: options.reuse,
     motionVectorColorFormat,
     indirectColorFormat,
     transmissionSceneColorResources: transmissionGrabResources.resources,
+    ...(options.gpuTimings === undefined
+      ? {}
+      : { gpuTimings: options.gpuTimings }),
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
       options.snapshotUpdateSchedule,
     ),
@@ -464,9 +698,9 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     ...(options.readbackSamples === undefined
       ? {}
       : { readbackSamples: options.readbackSamples }),
-    ...(options.shadowCasterGraphPasses === undefined
+    ...(shadowCasterGraphPasses.length === 0
       ? {}
-      : { shadowCasterGraphPasses: options.shadowCasterGraphPasses }),
+      : { shadowCasterGraphPasses }),
   });
   rememberCurrentViewProjectionMatrices(
     options.snapshot,
@@ -475,7 +709,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   const motionVectorHistoryUpdate =
     sceneMotionVectors.required && previousObjectTransforms.resource !== null
       ? rememberPackedSnapshotTransformsByRenderId(
-          packedTransforms,
+          meshPackedTransforms,
           options.cache.postPasses.previousWorldTransformsByRenderId,
         )
       : { stored: 0, staleRemoved: 0 };
@@ -490,8 +724,14 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     await waitForSubmittedWork(options.app.initialization.device);
   }
   const gpuTimings = await readWebGpuAppGpuTimings({
-    readbacks: boundaries.gpuTimingReadbacks,
-    diagnostics: boundaries.gpuTimingDiagnostics,
+    readbacks: [
+      ...autoShadowGpuTimingReadbacks,
+      ...boundaries.gpuTimingReadbacks,
+    ],
+    diagnostics: [
+      ...(autoShadowGpuTiming?.diagnostics ?? []),
+      ...boundaries.gpuTimingDiagnostics,
+    ],
   });
   const occlusionQueries = await readWebGpuAppOcclusionQueries({
     readbacks: boundaries.occlusionQueryReadbacks,
@@ -529,7 +769,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   );
   options.phaseTimer.finish("submit");
 
-  return renderReport({
+  const report = renderReport({
     ok: frameOk,
     snapshot: options.snapshot,
     snapshotChangeSet: options.snapshotChangeSet,
@@ -540,7 +780,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
     postEffects: boundaries.postEffects,
-    ...(autoShadowFrame === null ? {} : { shadow: autoShadowFrame.report }),
+    ...(autoShadowReport === undefined ? {} : { shadow: autoShadowReport }),
     motionVectors: motionVectorReport,
     ...(boundaries.renderBundles === undefined
       ? {}
@@ -593,6 +833,509 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ),
     ],
   });
+
+  rememberAutoShadowFrame({
+    cache: options.cache,
+    frame: options.snapshot.frame,
+    frameOk,
+    snapshot: options.snapshot,
+    inputKey: autoShadowCache.currentInputKey,
+    autoShadowFrame,
+    graphPasses: autoShadowGraphPasses.length,
+  });
+
+  return report;
+}
+
+function rememberAutoShadowFrame(options: {
+  readonly cache: WebGpuAppResourceCache;
+  readonly frame: number;
+  readonly frameOk: boolean;
+  readonly snapshot: RenderSnapshot;
+  readonly inputKey: string | null;
+  readonly autoShadowFrame: ReturnType<typeof createWebGpuAppAutoShadowFrame>;
+  readonly graphPasses: number;
+}): void {
+  const frame = options.autoShadowFrame;
+  if (
+    !options.frameOk ||
+    frame === null ||
+    frame.receiverResources === null ||
+    !(
+      frame.report.status === "submitted" ||
+      (frame.report.status === "ready" && options.graphPasses > 0)
+    )
+  ) {
+    return;
+  }
+
+  options.cache.autoShadowFrame = {
+    frame: options.frame,
+    inputKey: options.inputKey,
+    receiverResources: frame.receiverResources,
+    report: frame.report,
+  };
+}
+
+function evaluateReusableAutoShadowFrame(options: {
+  readonly cache: WebGpuAppResourceCache;
+  readonly snapshot: RenderSnapshot;
+  readonly snapshotChangeSet: RenderSnapshotChangeSet;
+  readonly gpuTimings: boolean | undefined;
+  readonly usesAutoShadowFrame: boolean;
+  readonly pipelineKind: string | null;
+  readonly hasExternalShadowResources: boolean;
+}): {
+  readonly cached: CachedWebGpuAppAutoShadowFrame | null;
+  readonly currentInputKey: string | null;
+  readonly report: WebGpuAppAutoShadowFrameCacheReport;
+} {
+  if (options.hasExternalShadowResources) {
+    return {
+      cached: null,
+      currentInputKey: null,
+      report: {
+        status: "disabled",
+        reason: "external-shadow-resources",
+        pipelineKind: options.pipelineKind,
+        previousFrame: options.snapshotChangeSet.previousFrame,
+      },
+    };
+  }
+
+  if (!options.usesAutoShadowFrame) {
+    return {
+      cached: null,
+      currentInputKey: null,
+      report: {
+        status: "disabled",
+        reason: "disabled-by-option",
+        pipelineKind: options.pipelineKind,
+        previousFrame: options.snapshotChangeSet.previousFrame,
+      },
+    };
+  }
+
+  if (options.pipelineKind === null) {
+    return {
+      cached: null,
+      currentInputKey: null,
+      report: {
+        status: "disabled",
+        reason: "no-auto-shadow-work",
+        pipelineKind: null,
+        previousFrame: options.snapshotChangeSet.previousFrame,
+      },
+    };
+  }
+
+  const cached = options.cache.autoShadowFrame;
+  if (options.gpuTimings === true) {
+    const miss = autoShadowCacheMissReport({
+      reason: "gpu-timings",
+      pipelineKind: options.pipelineKind,
+      cached,
+      previousFrame: options.snapshotChangeSet.previousFrame,
+      snapshot: options.snapshot,
+    });
+    return {
+      cached: null,
+      currentInputKey: miss.currentInputKey,
+      report: miss.report,
+    };
+  }
+
+  if (options.snapshotChangeSet.previousFrame === null) {
+    const miss = autoShadowCacheMissReport({
+      reason: "no-previous-frame",
+      pipelineKind: options.pipelineKind,
+      cached,
+      previousFrame: null,
+      snapshot: options.snapshot,
+    });
+    return {
+      cached: null,
+      currentInputKey: miss.currentInputKey,
+      report: miss.report,
+    };
+  }
+
+  if (cached === null) {
+    const miss = autoShadowCacheMissReport({
+      reason: "empty-cache",
+      pipelineKind: options.pipelineKind,
+      cached: null,
+      previousFrame: options.snapshotChangeSet.previousFrame,
+      snapshot: options.snapshot,
+    });
+    return {
+      cached: null,
+      currentInputKey: miss.currentInputKey,
+      report: miss.report,
+    };
+  }
+
+  if (cached.frame === options.snapshot.frame) {
+    return {
+      cached,
+      currentInputKey: cached.inputKey,
+      report: {
+        status: "hit",
+        pipelineKind: options.pipelineKind,
+        cachedFrame: cached.frame,
+        previousFrame: options.snapshotChangeSet.previousFrame,
+        currentInputKeyHash: null,
+        cachedInputKeyHash: null,
+        currentInputKeyLength: cached.inputKey?.length ?? null,
+        cachedInputKeyLength: cached.inputKey?.length ?? null,
+        reuseSource: "same-frame",
+      },
+    };
+  }
+
+  const changeSetChangedSection = autoShadowInputChangedSectionFromChangeSet(
+    options.snapshot,
+    options.snapshotChangeSet,
+  );
+  if (
+    changeSetChangedSection === null &&
+    cached.frame === options.snapshotChangeSet.previousFrame
+  ) {
+    return {
+      cached,
+      currentInputKey: cached.inputKey,
+      report: {
+        status: "hit",
+        pipelineKind: options.pipelineKind,
+        cachedFrame: cached.frame,
+        previousFrame: options.snapshotChangeSet.previousFrame,
+        currentInputKeyHash: null,
+        cachedInputKeyHash: null,
+        currentInputKeyLength: cached.inputKey?.length ?? null,
+        cachedInputKeyLength: cached.inputKey?.length ?? null,
+        reuseSource: "change-set",
+      },
+    };
+  }
+
+  if (changeSetChangedSection !== null) {
+    return {
+      cached: null,
+      currentInputKey: null,
+      report: {
+        status: "miss",
+        reason: "input-key-changed",
+        pipelineKind: options.pipelineKind,
+        cachedFrame: cached.frame,
+        previousFrame: options.snapshotChangeSet.previousFrame,
+        currentInputKeyHash: null,
+        cachedInputKeyHash: null,
+        currentInputKeyLength: null,
+        cachedInputKeyLength: cached.inputKey?.length ?? null,
+        firstChangedInputSection: changeSetChangedSection,
+      },
+    };
+  }
+
+  const inputKey = createWebGpuAppAutoShadowFrameInputKey(options.snapshot);
+  const cachedInputKeyHash = hashAutoShadowInputKey(cached.inputKey);
+  const currentInputKeyHash = hashAutoShadowInputKey(inputKey);
+  if (cached.inputKey === inputKey) {
+    return {
+      cached,
+      currentInputKey: inputKey,
+      report: {
+        status: "hit",
+        pipelineKind: options.pipelineKind,
+        cachedFrame: cached.frame,
+        previousFrame: options.snapshotChangeSet.previousFrame,
+        currentInputKeyHash,
+        cachedInputKeyHash,
+        currentInputKeyLength: inputKey.length,
+        cachedInputKeyLength: cached.inputKey?.length ?? null,
+        reuseSource: "input-key",
+      },
+    };
+  }
+
+  return {
+    cached: null,
+    currentInputKey: inputKey,
+    report: {
+      status: "miss",
+      reason: "input-key-changed",
+      pipelineKind: options.pipelineKind,
+      cachedFrame: cached.frame,
+      previousFrame: options.snapshotChangeSet.previousFrame,
+      currentInputKeyHash,
+      cachedInputKeyHash,
+      currentInputKeyLength: inputKey.length,
+      cachedInputKeyLength: cached.inputKey?.length ?? null,
+      firstChangedInputSection:
+        cached.inputKey === null
+          ? null
+          : firstChangedAutoShadowInputKeySection(cached.inputKey, inputKey),
+    },
+  };
+}
+
+function autoShadowCacheMissReport(options: {
+  readonly reason: NonNullable<WebGpuAppAutoShadowFrameCacheReport["reason"]>;
+  readonly pipelineKind: string | null;
+  readonly cached: CachedWebGpuAppAutoShadowFrame | null;
+  readonly previousFrame: number | null;
+  readonly snapshot: RenderSnapshot;
+}): {
+  readonly currentInputKey: string;
+  readonly report: WebGpuAppAutoShadowFrameCacheReport;
+} {
+  const inputKey = createWebGpuAppAutoShadowFrameInputKey(options.snapshot);
+  return {
+    currentInputKey: inputKey,
+    report: {
+      status: "miss",
+      reason: options.reason,
+      pipelineKind: options.pipelineKind,
+      cachedFrame: options.cached?.frame ?? null,
+      previousFrame: options.previousFrame,
+      currentInputKeyHash: hashAutoShadowInputKey(inputKey),
+      cachedInputKeyHash:
+        options.cached === null
+          ? null
+          : hashAutoShadowInputKey(options.cached.inputKey),
+      currentInputKeyLength: inputKey.length,
+      cachedInputKeyLength: options.cached?.inputKey?.length ?? null,
+    },
+  };
+}
+
+function autoShadowInputChangedSectionFromChangeSet(
+  snapshot: RenderSnapshot,
+  changeSet: RenderSnapshotChangeSet,
+): string | null {
+  if (familyChanged(changeSet.shadowRequests)) {
+    return "requests";
+  }
+
+  if (
+    autoShadowInputKeyUsesCamera(snapshot) &&
+    familyChanged(changeSet.views)
+  ) {
+    return "camera";
+  }
+
+  if (familyChanged(changeSet.lights)) {
+    return "lights";
+  }
+
+  if (familyChanged(changeSet.shadowCasterDraws)) {
+    return "casters";
+  }
+
+  if (
+    autoShadowInputKeyUsesBounds(snapshot) &&
+    familyChanged(changeSet.bounds)
+  ) {
+    return "bounds";
+  }
+
+  return null;
+}
+
+function familyChanged(family: {
+  readonly changed: number;
+  readonly removed: number;
+}): boolean {
+  return family.changed > 0 || family.removed > 0;
+}
+
+const AUTO_SHADOW_INPUT_KEY_SECTIONS = [
+  "version",
+  "mode",
+  "camera",
+  "requests",
+  "lights",
+  "casters",
+  "bounds",
+] as const;
+
+function firstChangedAutoShadowInputKeySection(
+  previous: string,
+  current: string,
+): string | null {
+  const previousSections = previous.split(";");
+  const currentSections = current.split(";");
+  const sectionCount = Math.max(
+    previousSections.length,
+    currentSections.length,
+  );
+
+  for (let index = 0; index < sectionCount; index += 1) {
+    if (previousSections[index] !== currentSections[index]) {
+      return AUTO_SHADOW_INPUT_KEY_SECTIONS[index] ?? `section-${index}`;
+    }
+  }
+
+  return null;
+}
+
+function hashAutoShadowInputKey(key: string | null): string | null {
+  if (key === null) {
+    return null;
+  }
+
+  let hash = 2166136261;
+
+  for (let index = 0; index < key.length; index += 1) {
+    hash ^= key.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+function countAutoShadowGpuTimingQueries(snapshot: RenderSnapshot): number {
+  const passCount = snapshot.shadowRequests.reduce(
+    (count, request) =>
+      isAutoShadowDirectionalRequest(request)
+        ? count +
+          Math.max(1, Math.min(4, Math.round(request.cascadeCount ?? 1)))
+        : count,
+    0,
+  );
+  return Math.max(1, passCount) * 2;
+}
+
+function autoShadowGpuTimingPassNames(
+  passPlan: NonNullable<
+    ReturnType<typeof createWebGpuAppAutoShadowFrame>
+  >["passPlan"],
+): readonly string[] {
+  const passNames = passPlan.passes.map((pass) => `shadow:${pass.passKey}`);
+  return passNames.length === 0 ? ["shadow"] : passNames;
+}
+
+function isAutoShadowDirectionalRequest(
+  request: RenderSnapshot["shadowRequests"][number],
+): boolean {
+  return request.lightKind === undefined || request.lightKind === "directional";
+}
+
+const EMPTY_SPRITE_FRAME_RESOURCES = {
+  pipeline: null,
+  resources: {
+    valid: true,
+    commands: [],
+    diagnostics: [],
+  },
+} as const satisfies Awaited<
+  ReturnType<typeof prepareSpriteFrameResourcesForSnapshot>
+>;
+
+const EMPTY_MSDF_TEXT_FRAME_RESOURCES = {
+  pipeline: null,
+  resources: {
+    valid: true,
+    commands: [],
+    diagnostics: [],
+  },
+} as const satisfies Awaited<
+  ReturnType<typeof prepareMsdfTextFrameResourcesForSnapshot>
+>;
+
+const EMPTY_UI_FRAME_RESOURCES = {
+  valid: true,
+  commands: [],
+  diagnostics: [],
+} as const satisfies Awaited<
+  ReturnType<typeof prepareUiFrameResourcesForSnapshot>
+>;
+
+function emptySpriteFrameResources(): Awaited<
+  ReturnType<typeof prepareSpriteFrameResourcesForSnapshot>
+> {
+  return EMPTY_SPRITE_FRAME_RESOURCES;
+}
+
+function emptyMsdfTextFrameResources(): Awaited<
+  ReturnType<typeof prepareMsdfTextFrameResourcesForSnapshot>
+> {
+  return EMPTY_MSDF_TEXT_FRAME_RESOURCES;
+}
+
+function emptyUiFrameResources(): Awaited<
+  ReturnType<typeof prepareUiFrameResourcesForSnapshot>
+> {
+  return EMPTY_UI_FRAME_RESOURCES;
+}
+
+function snapshotHasSpriteFrameWork(snapshot: RenderSnapshot): boolean {
+  if ((snapshot.spriteDraws ?? []).length > 0) {
+    return true;
+  }
+
+  return (snapshot.quadBatches ?? []).some((batch) => batch.kind === "sprite");
+}
+
+function snapshotHasMsdfTextFrameWork(snapshot: RenderSnapshot): boolean {
+  return (snapshot.quadBatches ?? []).some((batch) => batch.kind === "glyph");
+}
+
+function snapshotHasUiFrameWork(snapshot: RenderSnapshot): boolean {
+  return (snapshot.uiNodes ?? []).some(
+    (node) =>
+      (node.kind === "panel" ||
+        node.kind === "image" ||
+        (node.kind === "text" && (node.text ?? "").length > 0)) &&
+      node.rect.width > 0 &&
+      node.rect.height > 0,
+  );
+}
+
+function snapshotNeedsRawOffsetWorldTransforms(
+  snapshot: RenderSnapshot,
+): boolean {
+  if ((snapshot.spriteDraws ?? []).length > 0) {
+    return true;
+  }
+
+  return (snapshot.quadBatches ?? []).some(
+    (batch) => batch.kind === "sprite" || batch.kind === "glyph",
+  );
+}
+
+function measureRenderPhaseDetail<T>(
+  phaseTimer: WebGpuAppRenderPhaseTimer,
+  detail: WebGpuAppRenderPhaseDetailName,
+  fn: () => T,
+): T {
+  const startedAt = nowMilliseconds();
+
+  try {
+    return fn();
+  } finally {
+    phaseTimer.addDetail(detail, nowMilliseconds() - startedAt);
+  }
+}
+
+async function measureRenderPhaseDetailAsync<T>(
+  phaseTimer: WebGpuAppRenderPhaseTimer,
+  detail: WebGpuAppRenderPhaseDetailName,
+  fn: () => T | Promise<T>,
+): Promise<T> {
+  const startedAt = nowMilliseconds();
+
+  try {
+    return await fn();
+  } finally {
+    phaseTimer.addDetail(detail, nowMilliseconds() - startedAt);
+  }
+}
+
+function nowMilliseconds(): number {
+  return globalThis.performance === undefined
+    ? Date.now()
+    : globalThis.performance.now();
 }
 
 function hasErrorDiagnostics(diagnostics: readonly unknown[]): boolean {

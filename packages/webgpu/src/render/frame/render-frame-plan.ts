@@ -73,7 +73,23 @@ export interface PlanRenderFrameFromSnapshotInput {
   readonly pipelines: readonly GetOrCreateRenderPipelineResult[];
   readonly bindGroups: readonly UnlitBindGroupResource[];
   readonly requiredBindGroupGroups?: readonly number[];
+  readonly drawOrderTransformPacking?: (
+    input: RenderFrameDrawOrderTransformPackingInput,
+  ) => RenderFrameDrawOrderTransformPackingResult | null;
   readonly summaryScratch?: RenderFramePlanSummaryScratch;
+}
+
+export interface RenderFrameDrawOrderTransformPackingInput {
+  readonly packages: RenderWorldDrawPackagePlan;
+  readonly transforms: PackedSnapshotTransforms;
+  readonly pipelineKeysByRenderId?: ReadonlyMap<number, string>;
+  readonly pipelines: readonly GetOrCreateRenderPipelineResult[];
+  readonly bindGroups: readonly UnlitBindGroupResource[];
+}
+
+export interface RenderFrameDrawOrderTransformPackingResult {
+  readonly bindGroups?: readonly UnlitBindGroupResource[];
+  readonly worldTransformResourceKeyByRenderId?: ReadonlyMap<number, string>;
 }
 
 export interface RenderFramePlanCounts {
@@ -137,6 +153,7 @@ export interface RenderFrameQueueDiagnosticsSummary {
   readonly packageSlotsReused: number;
   readonly packageSlotsCreated: number;
   readonly missingPackedTransformCount: number;
+  readonly draw?: RenderFramePlanCounts["draw"];
   readonly stateSort: OpaqueRenderStateSortPressureReport;
   readonly diagnostics: RenderFrameQueueDiagnosticSummary;
 }
@@ -250,6 +267,17 @@ export function writeRenderFramePlanFromSnapshot(
     input.transforms,
     input.scratch.drawPackageScratch,
   );
+  const drawOrderTransformPacking = input.drawOrderTransformPacking?.({
+    packages,
+    transforms: input.transforms,
+    ...(input.pipelineKeysByRenderId === undefined
+      ? {}
+      : { pipelineKeysByRenderId: input.pipelineKeysByRenderId }),
+    pipelines: input.pipelines,
+    bindGroups: input.bindGroups,
+  });
+  const bindGroups =
+    drawOrderTransformPacking?.bindGroups ?? input.bindGroups;
   const drawCommands = writeDrawCommandDescriptors(
     packages.packages,
     input.meshResources,
@@ -261,13 +289,20 @@ export function writeRenderFramePlanFromSnapshot(
       ...(input.pipelineKeysByRenderId === undefined
         ? {}
         : { pipelineKeysByRenderId: input.pipelineKeysByRenderId }),
+      ...(drawOrderTransformPacking?.worldTransformResourceKeyByRenderId ===
+      undefined
+        ? {}
+        : {
+            worldTransformResourceKeyByRenderId:
+              drawOrderTransformPacking.worldTransformResourceKeyByRenderId,
+          }),
     },
   );
   const drawList = writeRenderPassDrawList(
     {
       drawCommands: drawCommands.descriptors,
       pipelines: input.pipelines,
-      bindGroups: input.bindGroups,
+      bindGroups,
       ...(input.requiredBindGroupGroups === undefined
         ? {}
         : { requiredBindGroupGroups: input.requiredBindGroupGroups }),
@@ -278,7 +313,7 @@ export function writeRenderFramePlanFromSnapshot(
     {
       drawList: drawList.draws,
       pipelines: input.pipelines,
-      bindGroups: input.bindGroups,
+      bindGroups,
       meshResources: input.meshResources,
       ...(input.instanceTintResources === undefined
         ? {}
@@ -322,7 +357,9 @@ export function writeRenderFramePlanFromSnapshot(
 }
 
 export function createRenderFrameQueueDiagnosticsSummary(
-  input: Pick<PlanRenderFrameFromSnapshotResult, "readiness" | "packages">,
+  input: Pick<PlanRenderFrameFromSnapshotResult, "readiness" | "packages"> & {
+    readonly summary?: Pick<RenderFramePlanSummary, "counts">;
+  },
 ): RenderFrameQueueDiagnosticsSummary {
   const byCode: Record<string, number> = {};
   let total = 0;
@@ -340,6 +377,9 @@ export function createRenderFrameQueueDiagnosticsSummary(
     packageSlotsCreated: input.packages.summary.packageSlotsCreated,
     missingPackedTransformCount:
       input.packages.summary.missingPackedTransformCount,
+    ...(input.summary === undefined
+      ? {}
+      : { draw: input.summary.counts.draw }),
     stateSort: input.packages.summary.stateSort,
     diagnostics: {
       total,

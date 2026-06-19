@@ -4,12 +4,15 @@ import type {
   RenderBundleDiagnostic,
   RenderBundleExecutionStatus,
 } from "../draw/render-bundle.js";
+import { summarizeRenderBundleKey } from "../draw/render-bundle.js";
 import { summarizeFrameBoundaryDiagnostics } from "./frame-boundary-diagnostics.js";
 
 export interface FrameBoundaryRenderBundleReportJsonValue {
   readonly valid: boolean;
   readonly status: RenderBundleExecutionStatus;
   readonly key: string | null;
+  readonly keyHash: string | null;
+  readonly keyLength: number | null;
   readonly commandCount: number;
   readonly encodedCommands: number;
   readonly executedBundles: number;
@@ -73,23 +76,34 @@ export function frameBoundaryReportToJsonValue(
       executedRenderBundles: report.renderBundle?.executedBundles ?? 0,
       submittedCommandBuffers: report.submit?.submitted ?? 0,
     },
-    renderBundle:
-      report.renderBundle === undefined || report.renderBundle === null
-        ? null
-        : {
-            valid: report.renderBundle.valid,
-            status: report.renderBundle.status,
-            key: report.renderBundle.key,
-            commandCount: report.renderBundle.commandCount,
-            encodedCommands: report.renderBundle.encodedCommands,
-            executedBundles: report.renderBundle.executedBundles,
-            drawCalls: report.renderBundle.drawCalls,
-            indexedDrawCalls: report.renderBundle.indexedDrawCalls,
-            nonIndexedDrawCalls: report.renderBundle.nonIndexedDrawCalls,
-            cacheSize: report.renderBundle.cacheSize,
-            diagnostics: report.renderBundle.diagnostics,
-          },
+    renderBundle: renderBundleReportToJsonValue(report.renderBundle),
     diagnostics: summarizeFrameBoundaryDiagnostics(report).diagnostics,
+  };
+}
+
+function renderBundleReportToJsonValue(
+  report: FrameBoundaryAssemblyReport["renderBundle"],
+): FrameBoundaryRenderBundleReportJsonValue | null {
+  if (report === undefined || report === null) {
+    return null;
+  }
+
+  const key = summarizeRenderBundleKey(report.key);
+
+  return {
+    valid: report.valid,
+    status: report.status,
+    key: key.key,
+    keyHash: key.keyHash,
+    keyLength: key.keyLength,
+    commandCount: report.commandCount,
+    encodedCommands: report.encodedCommands,
+    executedBundles: report.executedBundles,
+    drawCalls: report.drawCalls,
+    indexedDrawCalls: report.indexedDrawCalls,
+    nonIndexedDrawCalls: report.nonIndexedDrawCalls,
+    cacheSize: report.cacheSize,
+    diagnostics: report.diagnostics,
   };
 }
 

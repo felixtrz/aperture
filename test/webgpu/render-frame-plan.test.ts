@@ -138,6 +138,12 @@ describe("render frame snapshot planning helper", () => {
       packageSlotsReused: 0,
       packageSlotsCreated: 0,
       missingPackedTransformCount: 0,
+      draw: {
+        packages: 0,
+        descriptors: 0,
+        drawList: 0,
+        resolved: 0,
+      },
       stateSort: expect.objectContaining({
         phase: "opaque",
         recordCount: 0,
@@ -168,6 +174,12 @@ describe("render frame snapshot planning helper", () => {
       packageSlotsReused: 2,
       packageSlotsCreated: 0,
       missingPackedTransformCount: 0,
+      draw: {
+        packages: 2,
+        descriptors: 2,
+        drawList: 1,
+        resolved: 1,
+      },
       stateSort: expect.objectContaining({
         phase: "opaque",
         recordCount: 2,

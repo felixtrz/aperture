@@ -241,6 +241,7 @@ export interface FrameBoundaryRenderBundleOptions {
   readonly cache: RenderBundleCache;
   readonly key: string;
   readonly descriptor: RenderBundleEncoderDescriptorLike;
+  readonly bundledCommandCount?: number;
   readonly enabled?: boolean;
 }
 
@@ -656,6 +657,9 @@ function executeFrameBoundaryCommands(options: {
     pass: options.pass as RenderBundleRenderPassLike,
     device: options.device,
     commands: options.commands,
+    ...(options.renderBundle.bundledCommandCount === undefined
+      ? {}
+      : { bundledCommandCount: options.renderBundle.bundledCommandCount }),
     cache: options.renderBundle.cache,
     key: options.renderBundle.key,
     descriptor: options.renderBundle.descriptor,

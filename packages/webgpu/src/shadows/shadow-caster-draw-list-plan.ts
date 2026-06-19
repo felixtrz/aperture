@@ -4,7 +4,10 @@ import type {
   ShadowRequestPacket,
 } from "@aperture-engine/render";
 
-import { parseMaterialPipelineRenderStateTokens } from "../materials/core/material-render-state.js";
+import {
+  parseMaterialPipelineRenderStateTokens,
+  type MaterialPipelineRenderStateTokens,
+} from "../materials/core/material-render-state.js";
 import type { ShadowPassPlanReport } from "./shadow-pass-plan.js";
 
 export type ShadowCasterCullMode = "back" | "front" | "none";
@@ -39,6 +42,7 @@ export type ShadowCasterDrawListDiagnosticCode =
   | "shadowCasterDrawList.missingPassPlan"
   | "shadowCasterDrawList.noCasters"
   | "shadowCasterDrawList.unsupportedAlphaBlendCaster"
+  | "shadowCasterDrawList.unsupportedAlphaTestCaster"
   | "shadowCasterDrawList.commandEncodingDeferred";
 
 export function isDepthOnlyShadowCasterDrawSupported(
@@ -48,10 +52,53 @@ export function isDepthOnlyShadowCasterDrawSupported(
     draw.batchKey.pipelineKey,
   );
 
+  return areDepthOnlyShadowCasterTokensSupported(tokens);
+}
+
+function areDepthOnlyShadowCasterTokensSupported(
+  tokens: Pick<MaterialPipelineRenderStateTokens, "alphaMode">,
+): boolean {
   // The current caster pass writes depth only; it does not sample material
-  // alpha. Alpha-blended visual helpers would cast as solid geometry and their
-  // broad culling bounds can destroy auto-shadow scene fitting.
-  return tokens.alphaMode !== "blend";
+  // alpha. Alpha-blended visual helpers and alpha-tested cutouts would cast as
+  // solid geometry until a caster material path can evaluate cutoff state.
+  return tokens.alphaMode !== "blend" && tokens.alphaMode !== "alpha-test";
+}
+
+function shadowCasterRenderStateDecision(
+  pipelineKey: string,
+  cache: Map<string, ShadowCasterRenderStateDecision>,
+): ShadowCasterRenderStateDecision {
+  const cached = cache.get(pipelineKey);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const tokens = parseMaterialPipelineRenderStateTokens(pipelineKey);
+  const decision = {
+    supported: areDepthOnlyShadowCasterTokensSupported(tokens),
+    alphaMode: tokens.alphaMode,
+    casterCullMode: casterCullModeForForward(tokens.cullMode),
+  };
+
+  cache.set(pipelineKey, decision);
+  return decision;
+}
+
+function cachedAssetHandleKey(
+  cache: Map<unknown, string>,
+  handle: Parameters<typeof assetHandleKey>[0],
+): string {
+  const cached = cache.get(handle);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const key = assetHandleKey(handle);
+
+  cache.set(handle, key);
+  return key;
 }
 
 export interface ShadowCasterDrawRecord {
@@ -66,6 +113,10 @@ export interface ShadowCasterDrawRecord {
    */
   readonly casterCullMode: ShadowCasterCullMode;
   readonly submesh: number;
+  readonly vertexStart?: number;
+  readonly vertexCount?: number;
+  readonly indexStart?: number;
+  readonly indexCount?: number;
   readonly layerMask: number;
   /** Index into `snapshot.bounds` for this caster's world bounds. */
   readonly boundsIndex: number;
@@ -121,6 +172,12 @@ export interface ShadowCasterDrawListPlanInput {
   readonly commandEncoding?: ShadowCasterDrawListMode;
 }
 
+interface ShadowCasterRenderStateDecision {
+  readonly supported: boolean;
+  readonly alphaMode: string | null;
+  readonly casterCullMode: ShadowCasterCullMode;
+}
+
 export function createShadowCasterDrawListPlanReport(
   input: ShadowCasterDrawListPlanInput,
 ): ShadowCasterDrawListPlanReport {
@@ -158,6 +215,12 @@ export function createShadowCasterDrawListPlanReport(
       (pass) => `${pass.shadowId}:${pass.lightId}`,
     ),
   );
+  const renderStateByPipelineKey = new Map<
+    string,
+    ShadowCasterRenderStateDecision
+  >();
+  const meshKeys = new Map<unknown, string>();
+  const materialKeys = new Map<unknown, string>();
   const lists: ShadowCasterDrawList[] = [];
 
   for (const request of input.shadowRequests) {
@@ -198,32 +261,54 @@ export function createShadowCasterDrawListPlanReport(
         continue;
       }
 
-      if (!isDepthOnlyShadowCasterDrawSupported(draw)) {
+      const renderState = shadowCasterRenderStateDecision(
+        draw.batchKey.pipelineKey,
+        renderStateByPipelineKey,
+      );
+
+      if (!renderState.supported) {
+        const alphaMode = renderState.alphaMode;
+        const alphaTest = alphaMode === "alpha-test";
+
         diagnostics.push({
-          code: "shadowCasterDrawList.unsupportedAlphaBlendCaster",
+          code: alphaTest
+            ? "shadowCasterDrawList.unsupportedAlphaTestCaster"
+            : "shadowCasterDrawList.unsupportedAlphaBlendCaster",
           severity: "warning",
           shadowId: request.shadowId,
           lightId: request.lightId,
-          message: `Shadow request '${request.shadowId}' skipped alpha-blended render object '${draw.renderId}' because the depth-only shadow caster pass cannot evaluate material alpha.`,
+          message: alphaTest
+            ? `Shadow request '${request.shadowId}' skipped alpha-tested render object '${draw.renderId}' because the depth-only shadow caster pass cannot evaluate material cutoff alpha.`
+            : `Shadow request '${request.shadowId}' skipped alpha-blended render object '${draw.renderId}' because the depth-only shadow caster pass cannot evaluate material alpha.`,
         });
         continue;
       }
 
       included.push({
         renderId: draw.renderId,
-        meshKey: assetHandleKey(draw.mesh),
-        materialKey: assetHandleKey(draw.material),
+        meshKey: cachedAssetHandleKey(meshKeys, draw.mesh),
+        materialKey: cachedAssetHandleKey(materialKeys, draw.material),
         meshLayoutKey: draw.batchKey.meshLayoutKey,
-        casterCullMode: casterCullModeForForward(
-          parseMaterialPipelineRenderStateTokens(draw.batchKey.pipelineKey)
-            .cullMode,
-        ),
+        casterCullMode: renderState.casterCullMode,
         submesh: draw.submesh,
+        ...(draw.vertexStart === undefined
+          ? {}
+          : { vertexStart: draw.vertexStart }),
+        ...(draw.vertexCount === undefined
+          ? {}
+          : { vertexCount: draw.vertexCount }),
+        ...(draw.indexStart === undefined
+          ? {}
+          : { indexStart: draw.indexStart }),
+        ...(draw.indexCount === undefined
+          ? {}
+          : { indexCount: draw.indexCount }),
         layerMask: draw.layerMask,
         boundsIndex: draw.boundsIndex,
         worldTransformOffset: draw.worldTransformOffset,
       });
     }
+    included.sort(compareShadowCasterDrawRecords);
     const skippedDrawCount = input.meshDraws.length - included.length;
 
     if (included.length === 0) {
@@ -298,6 +383,42 @@ export function createShadowCasterDrawListPlanReport(
     lists,
     diagnostics,
   };
+}
+
+function compareShadowCasterDrawRecords(
+  a: ShadowCasterDrawRecord,
+  b: ShadowCasterDrawRecord,
+): number {
+  return (
+    compareStrings(a.meshKey, b.meshKey) ||
+    compareStrings(a.materialKey, b.materialKey) ||
+    compareStrings(a.meshLayoutKey, b.meshLayoutKey) ||
+    compareStrings(a.casterCullMode, b.casterCullMode) ||
+    compareNumbers(a.submesh, b.submesh) ||
+    compareOptionalNumbers(a.vertexStart, b.vertexStart) ||
+    compareOptionalNumbers(a.vertexCount, b.vertexCount) ||
+    compareOptionalNumbers(a.indexStart, b.indexStart) ||
+    compareOptionalNumbers(a.indexCount, b.indexCount) ||
+    compareNumbers(a.layerMask, b.layerMask) ||
+    a.renderId - b.renderId
+  );
+}
+
+function compareStrings(a: string, b: string): number {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
+function compareNumbers(a: number, b: number): number {
+  return a - b;
+}
+
+function compareOptionalNumbers(
+  a: number | undefined,
+  b: number | undefined,
+): number {
+  return (a ?? -1) - (b ?? -1);
 }
 
 export function shadowCasterDrawListPlanReportToJsonValue(

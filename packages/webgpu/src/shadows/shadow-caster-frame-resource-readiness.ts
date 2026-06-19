@@ -43,6 +43,11 @@ export interface ShadowCasterFrameResourceRecord {
   readonly meshKey: string;
   readonly meshLayoutKey: string;
   readonly passKey: string;
+  readonly submesh: number;
+  readonly vertexStart?: number;
+  readonly vertexCount?: number;
+  readonly indexStart?: number;
+  readonly indexCount?: number;
   readonly meshResourceKey: string | null;
   readonly vertexBufferResourceKeys: readonly string[];
   readonly indexBufferResourceKey: string | null;
@@ -170,6 +175,19 @@ export function createShadowCasterFrameResourceReadinessReport(
         meshKey: draw.meshKey,
         meshLayoutKey: draw.meshLayoutKey,
         passKey: list.passKey,
+        submesh: draw.submesh,
+        ...(draw.vertexStart === undefined
+          ? {}
+          : { vertexStart: draw.vertexStart }),
+        ...(draw.vertexCount === undefined
+          ? {}
+          : { vertexCount: draw.vertexCount }),
+        ...(draw.indexStart === undefined
+          ? {}
+          : { indexStart: draw.indexStart }),
+        ...(draw.indexCount === undefined
+          ? {}
+          : { indexCount: draw.indexCount }),
         meshResourceKey: prepared?.meshResourceKey ?? null,
         vertexBufferResourceKeys: prepared?.vertexBufferResourceKeys ?? [],
         indexBufferResourceKey: prepared?.indexBufferResourceKey ?? null,

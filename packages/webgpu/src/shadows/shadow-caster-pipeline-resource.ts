@@ -24,11 +24,12 @@ import {
 } from "../materials/unlit/unlit-pipeline.js";
 
 export const SHADOW_CASTER_DEPTH_ONLY_WGSL = /* wgsl */ `
-struct ShadowMatrices {
-  matrices: array<mat4x4<f32>>,
+struct ShadowPassMatrix {
+  viewProjection: mat4x4<f32>,
 };
 
-@group(0) @binding(0) var<storage, read> shadowMatrices: ShadowMatrices;
+@group(0) @binding(0) var<uniform> shadowPassMatrix: ShadowPassMatrix;
+@group(0) @binding(1) var<storage, read> worldTransforms: array<mat4x4<f32>>;
 
 struct VertexInput {
   @location(0) position: vec3f,
@@ -37,7 +38,7 @@ struct VertexInput {
 
 @vertex
 fn vs_main(input: VertexInput) -> @builtin(position) vec4f {
-  return shadowMatrices.matrices[input.instanceIndex] * vec4f(input.position, 1.0);
+  return shadowPassMatrix.viewProjection * worldTransforms[input.instanceIndex] * vec4f(input.position, 1.0);
 }
 
 @fragment
@@ -51,15 +52,16 @@ fn fs_main() {
 // PERFORATED shadow instead of a solid silhouette. Still depth-only (no color
 // target). cullMode stays 'none' (cutout geometry is typically double-sided).
 export const SHADOW_CASTER_ALPHA_TEST_WGSL = /* wgsl */ `
-struct ShadowMatrices {
-  matrices: array<mat4x4<f32>>,
+struct ShadowPassMatrix {
+  viewProjection: mat4x4<f32>,
 };
 
 struct AlphaTestParams {
   alphaCutoff: f32,
 };
 
-@group(0) @binding(0) var<storage, read> shadowMatrices: ShadowMatrices;
+@group(0) @binding(0) var<uniform> shadowPassMatrix: ShadowPassMatrix;
+@group(0) @binding(1) var<storage, read> worldTransforms: array<mat4x4<f32>>;
 @group(1) @binding(0) var baseColorTexture: texture_2d<f32>;
 @group(1) @binding(1) var baseColorSampler: sampler;
 @group(1) @binding(2) var<uniform> alphaTestParams: AlphaTestParams;
@@ -78,7 +80,7 @@ struct VertexOutput {
 @vertex
 fn vs_main(input: VertexInput) -> VertexOutput {
   var output: VertexOutput;
-  output.position = shadowMatrices.matrices[input.instanceIndex] * vec4f(input.position, 1.0);
+  output.position = shadowPassMatrix.viewProjection * worldTransforms[input.instanceIndex] * vec4f(input.position, 1.0);
   output.uv = input.uv;
   return output;
 }

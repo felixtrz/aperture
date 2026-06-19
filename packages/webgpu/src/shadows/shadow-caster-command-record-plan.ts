@@ -42,6 +42,8 @@ export interface ShadowCasterPipelineResourceView {
 
 export interface ShadowCasterMatrixBindGroupResourceView {
   readonly matrixResourceKey: string;
+  readonly passKey?: string;
+  readonly worldTransformResourceKey?: string;
   readonly resourceKey: string;
   readonly group: number;
   readonly bindGroup: unknown;
@@ -135,17 +137,24 @@ export interface CreateShadowCasterCommandRecordPlanReportOptions {
   readonly pipelines?: readonly ShadowCasterPipelineResourceView[];
   readonly matrixBindGroups?: readonly ShadowCasterMatrixBindGroupResourceView[];
   readonly meshes?: readonly ShadowCasterExecutableMeshResourceView[];
-  /**
-   * Per-`${passKey}:${renderId}` baked-entry index into a SEPARATE caster matrix
-   * buffer whose entry = lightVP_pass * worldMatrix. When supplied together with
-   * {@link bakedMatrixBindGroup}, each caster draw's firstInstance selects its
-   * baked matrix so the depth map is rendered in WORLD space (the caster vertex
-   * shader computes `matrices[instanceIndex] * localPosition`). Without it, the
-   * legacy per-pass cascade offset is used (casters render in LOCAL space).
-   */
+  /** Legacy per-`${passKey}:${renderId}` baked-entry index fallback. */
   readonly bakedMatrixIndexByPassDraw?: ReadonlyMap<string, number>;
-  /** Group-0 bind group over the baked caster matrix buffer (lockstep with the index map). */
+  /** Legacy group-0 bind group over the baked caster matrix fallback buffer. */
   readonly bakedMatrixBindGroup?: ShadowCasterMatrixBindGroupResourceView;
+  /**
+   * Per-`${passKey}:${renderId}` entry index into the shadow caster WORLD
+   * transform buffer. When supplied with pass-keyed matrix bind groups, the
+   * caster shader computes `passLightVP * worldTransforms[instance] * local`.
+   */
+  readonly worldTransformIndexByPassDraw?: ReadonlyMap<string, number>;
+}
+
+interface ShadowCasterResolvedDraw extends ResolvedRenderPassDraw {
+  readonly renderIds: number[];
+}
+
+interface MutableShadowCasterResolvedDraw extends ShadowCasterResolvedDraw {
+  instanceCount: number;
 }
 
 export function createShadowCasterCommandRecordPlanReport(
@@ -176,6 +185,11 @@ export function createShadowCasterCommandRecordPlanReport(
       bindGroup,
     ]),
   );
+  const matrixBindGroupsByPass = new Map(
+    (options.matrixBindGroups ?? []).flatMap((bindGroup) =>
+      bindGroup.passKey === undefined ? [] : [[bindGroup.passKey, bindGroup]],
+    ),
+  );
   const meshes = new Map(
     (options.meshes ?? []).map((mesh) => [mesh.meshResourceKey, mesh]),
   );
@@ -183,7 +197,7 @@ export function createShadowCasterCommandRecordPlanReport(
     options.commandPlan.commands.map((command) => [command.passKey, command]),
   );
   const diagnostics: ShadowCasterCommandRecordPlanDiagnostic[] = [];
-  const resolvedDrawsByPass = new Map<string, ResolvedRenderPassDraw[]>();
+  const resolvedDrawsByPass = new Map<string, ShadowCasterResolvedDraw[]>();
 
   if (options.frameResources.counts.readyDraws === 0) {
     diagnostics.push({
@@ -212,9 +226,10 @@ export function createShadowCasterCommandRecordPlanReport(
         ? undefined
         : pipelines.get(record.pipelineKey);
     const matrixBindGroup =
-      record.matrixResourceKey === null
+      matrixBindGroupsByPass.get(record.passKey) ??
+      (record.matrixResourceKey === null
         ? undefined
-        : matrixBindGroups.get(record.matrixResourceKey);
+        : matrixBindGroups.get(record.matrixResourceKey));
     const mesh =
       record.meshResourceKey === null
         ? undefined
@@ -295,19 +310,24 @@ export function createShadowCasterCommandRecordPlanReport(
 
     const vertexBuffers = resolveVertexBuffers(record, mesh, diagnostics);
     const indexBuffer = resolveIndexBuffer(record, mesh, diagnostics);
-    // When a baked caster buffer + its bind group are supplied, point this
-    // draw's firstInstance at the per-(pass,object) baked matrix index so the
-    // depth map renders WORLD-space geometry. transformPackedOffsetToInstance
-    // divides by 16, so transformPackedOffset = bakedIndex * 16 yields
-    // firstInstance = bakedIndex. Otherwise fall back to the legacy per-pass
-    // cascade offset so existing callers/tests are unchanged.
-    const bakedIndex = options.bakedMatrixIndexByPassDraw?.get(
-      `${record.passKey}:${record.renderId}`,
-    );
+    // Preferred path: firstInstance selects this caster's draw-list-order WORLD
+    // matrix while the pass-keyed bind group selects the light view-projection.
+    // The baked matrix path remains a legacy fallback for older low-level tests.
+    const passDrawKey = `${record.passKey}:${record.renderId}`;
+    const worldTransformIndex =
+      options.worldTransformIndexByPassDraw?.get(passDrawKey);
+    const useWorldTransform =
+      worldTransformIndex !== undefined &&
+      matrixBindGroup?.worldTransformResourceKey !== undefined;
+    const bakedIndex = options.bakedMatrixIndexByPassDraw?.get(passDrawKey);
     const useBaked =
-      bakedIndex !== undefined && options.bakedMatrixBindGroup !== undefined;
+      !useWorldTransform &&
+      bakedIndex !== undefined &&
+      options.bakedMatrixBindGroup !== undefined;
     const transformPackedOffset = useBaked
       ? bakedIndex * 16
+      : useWorldTransform
+        ? worldTransformIndex * 16
       : matrixOffsetBytesToPackedOffset(commandPlan.matrixOffsetBytes);
 
     if (transformPackedOffset === null) {
@@ -332,8 +352,9 @@ export function createShadowCasterCommandRecordPlanReport(
       useBaked && options.bakedMatrixBindGroup !== undefined
         ? options.bakedMatrixBindGroup
         : matrixBindGroup;
-    const draw: ResolvedRenderPassDraw = {
+    const draw: ShadowCasterResolvedDraw = {
       renderId: record.renderId,
+      renderIds: [record.renderId],
       pipelineKey: pipeline.pipelineKey,
       pipeline: pipeline.pipeline,
       bindGroups: [
@@ -344,9 +365,11 @@ export function createShadowCasterCommandRecordPlanReport(
         },
       ],
       vertexBuffers,
-      vertexCount: meshVertexCount(vertexBuffers),
+      vertexCount: record.vertexCount ?? meshVertexCount(vertexBuffers),
+      vertexStart: record.vertexStart ?? 0,
       indexBuffer,
-      indexCount: indexBuffer.indexCount,
+      indexCount: record.indexCount ?? indexBuffer.indexCount,
+      indexStart: record.indexStart ?? 0,
       instanceCount: 1,
       transformPackedOffset,
     };
@@ -355,7 +378,7 @@ export function createShadowCasterCommandRecordPlanReport(
     if (draws === undefined) {
       resolvedDrawsByPass.set(record.passKey, [draw]);
     } else {
-      draws.push(draw);
+      pushShadowCasterResolvedDraw(draws, draw);
     }
   }
 
@@ -540,13 +563,13 @@ function mapCommandDiagnostics(
 function createRecord(
   passKey: string,
   commandKey: string,
-  draws: readonly ResolvedRenderPassDraw[],
+  draws: readonly ShadowCasterResolvedDraw[],
   commands: readonly RenderPassCommand[],
 ): ShadowCasterCommandRecordPlanRecord {
   return {
     passKey,
     commandKey,
-    renderIds: draws.map((draw) => draw.renderId),
+    renderIds: draws.flatMap((draw) => draw.renderIds),
     commandCount: commands.length,
     drawCalls: commands.filter(
       (command) => command.kind === "draw" || command.kind === "drawIndexed",
@@ -575,12 +598,103 @@ function createRecord(
         command.kind === "setIndexBuffer" ? [command.resourceKey] : [],
       ),
     ),
-    drawCommandKeys: commands.flatMap((command) =>
-      command.kind === "draw" || command.kind === "drawIndexed"
-        ? [`${passKey}:draw:${command.renderId}`]
-        : [],
+    drawCommandKeys: draws.flatMap((draw) =>
+      draw.renderIds.map((renderId) => `${passKey}:draw:${renderId}`),
     ),
   };
+}
+
+function pushShadowCasterResolvedDraw(
+  draws: ShadowCasterResolvedDraw[],
+  draw: ShadowCasterResolvedDraw,
+): void {
+  const previous = draws[draws.length - 1];
+
+  if (canCoalesceShadowCasterDraw(previous, draw)) {
+    const mutable = previous as MutableShadowCasterResolvedDraw;
+
+    mutable.instanceCount += draw.instanceCount;
+    mutable.renderIds.push(...draw.renderIds);
+    return;
+  }
+
+  draws.push(draw);
+}
+
+function canCoalesceShadowCasterDraw(
+  previous: ShadowCasterResolvedDraw | undefined,
+  draw: ShadowCasterResolvedDraw,
+): boolean {
+  if (previous === undefined) {
+    return false;
+  }
+
+  return (
+    previous.pipelineKey === draw.pipelineKey &&
+    previous.pipeline === draw.pipeline &&
+    previous.occlusionQuery !== true &&
+    draw.occlusionQuery !== true &&
+    previous.vertexStart === draw.vertexStart &&
+    previous.vertexCount === draw.vertexCount &&
+    previous.indexStart === draw.indexStart &&
+    previous.indexCount === draw.indexCount &&
+    shadowCasterResolvedDrawResourcesMatch(previous, draw) &&
+    previous.transformPackedOffset + previous.instanceCount * 16 ===
+      draw.transformPackedOffset
+  );
+}
+
+function shadowCasterResolvedDrawResourcesMatch(
+  a: ShadowCasterResolvedDraw,
+  b: ShadowCasterResolvedDraw,
+): boolean {
+  if (
+    a.bindGroups.length !== b.bindGroups.length ||
+    a.vertexBuffers.length !== b.vertexBuffers.length
+  ) {
+    return false;
+  }
+
+  for (let index = 0; index < a.bindGroups.length; index += 1) {
+    const left = a.bindGroups[index];
+    const right = b.bindGroups[index];
+
+    if (
+      left === undefined ||
+      right === undefined ||
+      left.group !== right.group ||
+      left.resourceKey !== right.resourceKey ||
+      left.bindGroup !== right.bindGroup
+    ) {
+      return false;
+    }
+  }
+
+  for (let index = 0; index < a.vertexBuffers.length; index += 1) {
+    const left = a.vertexBuffers[index];
+    const right = b.vertexBuffers[index];
+
+    if (
+      left === undefined ||
+      right === undefined ||
+      left.resourceKey !== right.resourceKey ||
+      left.vertexCount !== right.vertexCount ||
+      left.buffer !== right.buffer
+    ) {
+      return false;
+    }
+  }
+
+  if (a.indexBuffer === null || b.indexBuffer === null) {
+    return a.indexBuffer === b.indexBuffer;
+  }
+
+  return (
+    a.indexBuffer.resourceKey === b.indexBuffer.resourceKey &&
+    a.indexBuffer.format === b.indexBuffer.format &&
+    a.indexBuffer.indexCount === b.indexBuffer.indexCount &&
+    a.indexBuffer.buffer === b.indexBuffer.buffer
+  );
 }
 
 function matrixOffsetBytesToPackedOffset(offsetBytes: number): number | null {

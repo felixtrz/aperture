@@ -125,6 +125,7 @@ export interface CreateShadowPassEncoderAssemblyReportOptions {
   readonly commandEncoding: ShadowPassCommandEncodingReport;
   readonly commands: readonly ShadowPassEncoderCommandRecord[];
   readonly encoder?: RenderPassCommandEncoderLike;
+  readonly deferEncoding?: boolean;
   readonly resolveDepthView?: (
     attachment: ShadowPassDepthAttachmentDescriptor,
   ) => unknown | null;
@@ -179,7 +180,7 @@ export function createShadowPassEncoderAssemblyReport(
     });
   }
 
-  if (options.encoder === undefined) {
+  if (options.encoder === undefined && options.deferEncoding !== true) {
     diagnostics.push({
       code: "shadowPassEncoderAssembly.missingCommandEncoder",
       severity: "warning",
@@ -216,7 +217,9 @@ export function createShadowPassEncoderAssemblyReport(
     }
 
     const assembled =
-      options.encoder === undefined || depthView === null
+      options.deferEncoding === true ||
+      options.encoder === undefined ||
+      depthView === null
         ? null
         : assemblePass(
             options.encoder,
@@ -241,8 +244,14 @@ export function createShadowPassEncoderAssemblyReport(
       depthViewKey: attachment.viewKey,
       commandCount: commands.length,
       executedCommands: assembled?.execution.executedCommands ?? 0,
-      drawCalls: assembled?.execution.drawCalls ?? 0,
-      indexedDrawCalls: assembled?.execution.indexedDrawCalls ?? 0,
+      drawCalls:
+        assembled?.execution.drawCalls ??
+        (options.deferEncoding === true ? countDrawCommands(commands) : 0),
+      indexedDrawCalls:
+        assembled?.execution.indexedDrawCalls ??
+        (options.deferEncoding === true
+          ? countIndexedDrawCommands(commands)
+          : 0),
       begun: assembled?.begun ?? false,
       ended: assembled?.ended ?? false,
     });
@@ -266,9 +275,11 @@ export function createShadowPassEncoderAssemblyReport(
   return report({
     status: hasBlockingDiagnostics
       ? "missing"
-      : records.some((record) => record.ended)
+      : options.deferEncoding === true
         ? "ready"
-        : "deferred",
+        : records.some((record) => record.ended)
+          ? "ready"
+          : "deferred",
     attachments: options.attachments,
     frameResources: options.frameResources,
     commandEncoding: options.commandEncoding,
@@ -313,6 +324,25 @@ export function shadowPassEncoderAssemblyReportToJson(
   value: ShadowPassEncoderAssemblyReport,
 ): string {
   return JSON.stringify(shadowPassEncoderAssemblyReportToJsonValue(value));
+}
+
+function countDrawCommands(commands: readonly RenderPassCommand[]): number {
+  return commands.filter(
+    (command) =>
+      command.kind === "draw" ||
+      command.kind === "drawIndexed" ||
+      command.kind === "drawIndirect" ||
+      command.kind === "drawIndexedIndirect",
+  ).length;
+}
+
+function countIndexedDrawCommands(
+  commands: readonly RenderPassCommand[],
+): number {
+  return commands.filter(
+    (command) =>
+      command.kind === "drawIndexed" || command.kind === "drawIndexedIndirect",
+  ).length;
 }
 
 function assemblePass(

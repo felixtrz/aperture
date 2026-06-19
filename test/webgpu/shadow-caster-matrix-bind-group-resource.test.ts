@@ -25,12 +25,16 @@ describe("shadow caster matrix bind-group resource", () => {
         },
       },
       matrixBufferResource: matrixBufferResource(),
+      passMatrixResources: [passMatrixResource()],
+      worldTransformResource: worldTransformResource(),
     });
     const json = shadowCasterMatrixBindGroupResourceReportToJsonValue(report);
 
     expect(report.resource).toMatchObject({
       group: 0,
-      matrixResourceKey: "shadow-matrix-buffer:directional",
+      matrixResourceKey: "shadow-caster-pass-matrix:pass-0",
+      passKey: "shadow-pass:7",
+      worldTransformResourceKey: "world-transform-buffer:shadow-casters",
       layout,
       bindGroup,
     });
@@ -41,6 +45,11 @@ describe("shadow caster matrix bind-group resource", () => {
           {
             binding: 0,
             visibility: 1,
+            buffer: { type: "uniform" },
+          },
+          {
+            binding: 1,
+            visibility: 1,
             buffer: { type: "read-only-storage" },
           },
         ],
@@ -49,12 +58,16 @@ describe("shadow caster matrix bind-group resource", () => {
     expect(bindGroups).toEqual([
       {
         label:
-          "bind-group:shadow-caster/group-0/shadow-matrix-buffer:directional",
+          "bind-group:shadow-caster/group-0/shadow-caster-pass-matrix:pass-0/pass:shadow-pass%3A7/world:world-transform-buffer%3Ashadow-casters",
         layout,
         entries: [
           {
             binding: 0,
-            resource: { buffer: "matrix-buffer" },
+            resource: { buffer: "pass-matrix-buffer" },
+          },
+          {
+            binding: 1,
+            resource: { buffer: "world-transform-buffer" },
           },
         ],
       },
@@ -74,12 +87,32 @@ describe("shadow caster matrix bind-group resource", () => {
       },
       resource: {
         group: 0,
-        matrixResourceKey: "shadow-matrix-buffer:directional",
+        matrixResourceKey: "shadow-caster-pass-matrix:pass-0",
+        passKey: "shadow-pass:7",
+        worldTransformResourceKey: "world-transform-buffer:shadow-casters",
         resourceKey:
-          "bind-group:shadow-caster/group-0/shadow-matrix-buffer:directional",
+          "bind-group:shadow-caster/group-0/shadow-caster-pass-matrix:pass-0/pass:shadow-pass%3A7/world:world-transform-buffer%3Ashadow-casters",
         layoutKey: "shadow-caster/group-0:directional-shadow-matrices@0",
-        entryResourceKeys: ["shadow-matrix-buffer:directional"],
+        entryResourceKeys: [
+          "shadow-caster-pass-matrix:pass-0",
+          "world-transform-buffer:shadow-casters",
+        ],
       },
+      resources: [
+        {
+          group: 0,
+          matrixResourceKey: "shadow-caster-pass-matrix:pass-0",
+          passKey: "shadow-pass:7",
+          worldTransformResourceKey: "world-transform-buffer:shadow-casters",
+          resourceKey:
+            "bind-group:shadow-caster/group-0/shadow-caster-pass-matrix:pass-0/pass:shadow-pass%3A7/world:world-transform-buffer%3Ashadow-casters",
+          layoutKey: "shadow-caster/group-0:directional-shadow-matrices@0",
+          entryResourceKeys: [
+            "shadow-caster-pass-matrix:pass-0",
+            "world-transform-buffer:shadow-casters",
+          ],
+        },
+      ],
       diagnostics: [
         {
           code: "shadowCasterMatrixBindGroupResource.passSubmissionDeferred",
@@ -114,6 +147,8 @@ describe("shadow caster matrix bind-group resource", () => {
         },
       },
       matrixBufferResource: matrixBufferResource(),
+      passMatrixResources: [passMatrixResource()],
+      worldTransformResource: worldTransformResource(),
       layout,
     });
 
@@ -122,12 +157,16 @@ describe("shadow caster matrix bind-group resource", () => {
     expect(bindGroups).toEqual([
       {
         label:
-          "bind-group:shadow-caster/group-0/shadow-matrix-buffer:directional",
+          "bind-group:shadow-caster/group-0/shadow-caster-pass-matrix:pass-0/pass:shadow-pass%3A7/world:world-transform-buffer%3Ashadow-casters",
         layout,
         entries: [
           {
             binding: 0,
-            resource: { buffer: "matrix-buffer" },
+            resource: { buffer: "pass-matrix-buffer" },
+          },
+          {
+            binding: 1,
+            resource: { buffer: "world-transform-buffer" },
           },
         ],
       },
@@ -151,6 +190,8 @@ describe("shadow caster matrix bind-group resource", () => {
       createShadowCasterMatrixBindGroupResourceReport({
         device: { createBindGroup: () => ({}) },
         matrixBufferResource: matrixBufferResource(),
+        passMatrixResources: [passMatrixResource()],
+        worldTransformResource: worldTransformResource(),
       }),
     );
     const missingBindGroup =
@@ -158,8 +199,25 @@ describe("shadow caster matrix bind-group resource", () => {
         createShadowCasterMatrixBindGroupResourceReport({
           device: { createBindGroupLayout: () => ({}) },
           matrixBufferResource: matrixBufferResource(),
+          passMatrixResources: [passMatrixResource()],
+          worldTransformResource: worldTransformResource(),
         }),
       );
+    const missingWorldTransform =
+      shadowCasterMatrixBindGroupResourceReportToJsonValue(
+        createShadowCasterMatrixBindGroupResourceReport({
+          device: device(),
+          matrixBufferResource: matrixBufferResource(),
+          passMatrixResources: [passMatrixResource()],
+        }),
+      );
+    const missingPassMatrix = shadowCasterMatrixBindGroupResourceReportToJsonValue(
+      createShadowCasterMatrixBindGroupResourceReport({
+        device: device(),
+        matrixBufferResource: matrixBufferResource(),
+        worldTransformResource: worldTransformResource(),
+      }),
+    );
 
     expect(missingMatrix.diagnostics).toMatchObject([
       {
@@ -174,6 +232,16 @@ describe("shadow caster matrix bind-group resource", () => {
     expect(missingBindGroup.diagnostics).toMatchObject([
       {
         code: "shadowCasterMatrixBindGroupResource.createBindGroupUnavailable",
+      },
+    ]);
+    expect(missingWorldTransform.diagnostics).toMatchObject([
+      {
+        code: "shadowCasterMatrixBindGroupResource.missingWorldTransformResource",
+      },
+    ]);
+    expect(missingPassMatrix.diagnostics).toMatchObject([
+      {
+        code: "shadowCasterMatrixBindGroupResource.missingPassMatrixResource",
       },
     ]);
   });
@@ -204,6 +272,21 @@ function matrixBufferResource(): ShadowMatrixBufferResourceReport {
       entryMatrixKeys: ["shadow-matrix:7:light:11"],
     },
     diagnostics: [],
+  };
+}
+
+function passMatrixResource() {
+  return {
+    passKey: "shadow-pass:7",
+    matrixResourceKey: "shadow-caster-pass-matrix:pass-0",
+    buffer: "pass-matrix-buffer",
+  };
+}
+
+function worldTransformResource() {
+  return {
+    resourceKey: "world-transform-buffer:shadow-casters",
+    buffer: "world-transform-buffer",
   };
 }
 

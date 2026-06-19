@@ -157,6 +157,76 @@ describe("shadow caster draw-list planning", () => {
       },
     ]);
   });
+
+  it("skips alpha-tested draws until cutoff state is available to the caster pass", () => {
+    const report = createShadowCasterDrawListPlanReport({
+      shadowRequests: [shadowRequest(7, 11)],
+      meshDraws: [
+        meshDraw(1, 1, { pipelineKey: "standard|alpha-test|back|less|none" }),
+        meshDraw(2, 1, { pipelineKey: "standard|opaque|back|less|none" }),
+      ],
+      shadowPassPlan: shadowPassPlan(),
+      commandEncoding: "ready",
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.includedDrawCount).toBe(1);
+    expect(report.skippedDrawCount).toBe(1);
+    expect(report.lists[0]?.draws.map((draw) => draw.renderId)).toEqual([2]);
+    expect(report.diagnostics).toEqual([
+      {
+        code: "shadowCasterDrawList.unsupportedAlphaTestCaster",
+        severity: "warning",
+        shadowId: 7,
+        lightId: 11,
+        message:
+          "Shadow request '7' skipped alpha-tested render object '1' because the depth-only shadow caster pass cannot evaluate material cutoff alpha.",
+      },
+    ]);
+  });
+
+  it("sorts compatible caster records together and preserves submesh ranges", () => {
+    const report = createShadowCasterDrawListPlanReport({
+      shadowRequests: [shadowRequest(7, 11)],
+      meshDraws: [
+        meshDraw(1, 1, {
+          meshId: "tree",
+          materialId: "bark",
+          indexStart: 0,
+          indexCount: 12,
+        }),
+        meshDraw(2, 1, {
+          meshId: "tent",
+          materialId: "canvas",
+          indexStart: 0,
+          indexCount: 18,
+        }),
+        meshDraw(3, 1, {
+          meshId: "tree",
+          materialId: "bark",
+          indexStart: 0,
+          indexCount: 12,
+        }),
+      ],
+      shadowPassPlan: shadowPassPlan(),
+      commandEncoding: "ready",
+    });
+
+    expect(report.lists[0]?.draws.map((draw) => draw.renderId)).toEqual([
+      2, 1, 3,
+    ]);
+    expect(report.lists[0]?.draws.slice(1).map((draw) => draw.renderId)).toEqual(
+      [1, 3],
+    );
+    expect(report.lists[0]?.draws[1]).toMatchObject({
+      renderId: 1,
+      meshKey: "mesh:tree",
+      materialKey: "material:bark",
+      submesh: 0,
+      indexStart: 0,
+      indexCount: 12,
+    });
+  });
 });
 
 describe("shadow caster cull mode (three.js shadowSide parity)", () => {
@@ -230,16 +300,37 @@ function meshDraw(
   options: Pick<MeshDrawPacket, "castsShadow" | "receivesShadow"> & {
     /** Material forward pipeline key; the cull token drives caster cull mode. */
     readonly pipelineKey?: string;
+    readonly meshId?: string;
+    readonly materialId?: string;
+    readonly submesh?: number;
+    readonly vertexStart?: number;
+    readonly vertexCount?: number;
+    readonly indexStart?: number;
+    readonly indexCount?: number;
   } = {},
 ): MeshDrawPacket {
-  const { pipelineKey = "standard", ...packetOptions } = options;
+  const {
+    pipelineKey = "standard",
+    meshId = `mesh-${renderId}`,
+    materialId = `material-${renderId}`,
+    submesh = 0,
+    vertexStart,
+    vertexCount,
+    indexStart,
+    indexCount,
+    ...packetOptions
+  } = options;
   return {
     renderId,
     entity: { index: renderId, generation: 0 },
-    mesh: createMeshHandle(`mesh-${renderId}`),
-    material: createMaterialHandle(`material-${renderId}`),
-    submesh: 0,
+    mesh: createMeshHandle(meshId),
+    material: createMaterialHandle(materialId),
+    submesh,
     materialSlot: 0,
+    ...(vertexStart === undefined ? {} : { vertexStart }),
+    ...(vertexCount === undefined ? {} : { vertexCount }),
+    ...(indexStart === undefined ? {} : { indexStart }),
+    ...(indexCount === undefined ? {} : { indexCount }),
     worldTransformOffset: 0,
     boundsIndex: 0,
     layerMask,
@@ -250,15 +341,15 @@ function meshDraw(
       layer: 0,
       order: 0,
       pipelineKey: "standard",
-      materialKey: `material-${renderId}`,
-      meshKey: `mesh-${renderId}`,
+      materialKey: materialId,
+      meshKey: meshId,
       depth: 0,
       stableId: renderId,
     },
     batchKey: {
       pipelineKey,
-      materialKey: `material-${renderId}`,
-      meshLayoutKey: `mesh-${renderId}`,
+      materialKey: materialId,
+      meshLayoutKey: meshId,
       topology: "triangle-list",
       instanced: false,
       skinned: false,

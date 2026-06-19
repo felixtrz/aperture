@@ -141,6 +141,122 @@ describe("shadow caster command record planning", () => {
     );
   });
 
+  it("groups compatible world-transform shadow caster records into one indexed draw", () => {
+    const report = createShadowCasterCommandRecordPlanReport({
+      frameResources: frameResources("ready", {
+        records: [frameResourceRecord(101), frameResourceRecord(102)],
+      }),
+      commandPlan: commandPlan(),
+      pipelines: [
+        {
+          pipelineKey:
+            "shadow-caster/depth-only/depth24plus/triangle-list/back",
+          resourceKey: "pipeline:shadow-caster/depth-only",
+          pipeline: { type: "pipeline" },
+        },
+      ],
+      matrixBindGroups: [
+        {
+          matrixResourceKey: "shadow-caster-pass-matrix:pass-0",
+          passKey: "shadow-pass:7:light:11",
+          worldTransformResourceKey: "shadow-caster-world-transform-buffer:directional",
+          resourceKey: "bind-group:shadow-caster/pass-0",
+          group: 0,
+          bindGroup: { type: "pass-world-bind-group" },
+        },
+      ],
+      worldTransformIndexByPassDraw: new Map([
+        ["shadow-pass:7:light:11:101", 0],
+        ["shadow-pass:7:light:11:102", 1],
+      ]),
+      meshes: [meshResource()],
+    });
+    const drawCommands = report.commandRecords[0]?.commands.filter(
+      (command) => command.kind === "drawIndexed",
+    );
+
+    expect(drawCommands).toMatchObject([
+      {
+        kind: "drawIndexed",
+        renderId: 101,
+        indexCount: 36,
+        instanceCount: 2,
+        firstIndex: 0,
+        firstInstance: 0,
+      },
+    ]);
+    expect(report.counts.frameResourceDraws).toBe(2);
+    expect(report.counts.commandCount).toBe(5);
+    expect(report.counts.drawCalls).toBe(1);
+    expect(report.records[0]).toMatchObject({
+      renderIds: [101, 102],
+      drawCalls: 1,
+      drawCommandKeys: [
+        "shadow-pass:7:light:11:draw:101",
+        "shadow-pass:7:light:11:draw:102",
+      ],
+    });
+  });
+
+  it("does not group world-transform shadow caster records with different submesh ranges", () => {
+    const report = createShadowCasterCommandRecordPlanReport({
+      frameResources: frameResources("ready", {
+        records: [
+          frameResourceRecord(101, { indexStart: 0, indexCount: 6 }),
+          frameResourceRecord(102, { indexStart: 6, indexCount: 6 }),
+        ],
+      }),
+      commandPlan: commandPlan(),
+      pipelines: [
+        {
+          pipelineKey:
+            "shadow-caster/depth-only/depth24plus/triangle-list/back",
+          resourceKey: "pipeline:shadow-caster/depth-only",
+          pipeline: { type: "pipeline" },
+        },
+      ],
+      matrixBindGroups: [
+        {
+          matrixResourceKey: "shadow-caster-pass-matrix:pass-0",
+          passKey: "shadow-pass:7:light:11",
+          worldTransformResourceKey: "shadow-caster-world-transform-buffer:directional",
+          resourceKey: "bind-group:shadow-caster/pass-0",
+          group: 0,
+          bindGroup: { type: "pass-world-bind-group" },
+        },
+      ],
+      worldTransformIndexByPassDraw: new Map([
+        ["shadow-pass:7:light:11:101", 0],
+        ["shadow-pass:7:light:11:102", 1],
+      ]),
+      meshes: [meshResource()],
+    });
+    const drawCommands = report.commandRecords[0]?.commands.filter(
+      (command) => command.kind === "drawIndexed",
+    );
+
+    expect(drawCommands).toMatchObject([
+      {
+        kind: "drawIndexed",
+        renderId: 101,
+        indexCount: 6,
+        instanceCount: 1,
+        firstIndex: 0,
+        firstInstance: 0,
+      },
+      {
+        kind: "drawIndexed",
+        renderId: 102,
+        indexCount: 6,
+        instanceCount: 1,
+        firstIndex: 6,
+        firstInstance: 1,
+      },
+    ]);
+    expect(report.counts.drawCalls).toBe(2);
+    expect(report.records[0]?.renderIds).toEqual([101, 102]);
+  });
+
   it("reports missing live pipeline and matrix bind-group resources", () => {
     const json = shadowCasterCommandRecordPlanReportToJsonValue(
       createShadowCasterCommandRecordPlanReport({
@@ -240,15 +356,19 @@ describe("shadow caster command record planning", () => {
 
 function frameResources(
   status: ShadowCasterFrameResourceReadinessReport["status"],
+  options: {
+    readonly records?: ShadowCasterFrameResourceReadinessReport["records"];
+  } = {},
 ): ShadowCasterFrameResourceReadinessReport {
   const ready = status === "ready";
+  const records = options.records ?? [frameResourceRecord(101)];
 
   return {
     ready: ready || status === "not-required",
     status,
     counts: {
-      casterDraws: ready ? 1 : 0,
-      readyDraws: ready ? 1 : 0,
+      casterDraws: ready ? records.length : 0,
+      readyDraws: ready ? records.length : 0,
       missingMeshBuffers: 0,
       pipelineDescriptors: ready ? 1 : 0,
       matrixBuffers: ready ? 1 : 0,
@@ -262,24 +382,30 @@ function frameResources(
       passSubmission: false,
       shaderSampling: false,
     },
-    records: ready
-      ? [
-          {
-            renderId: 101,
-            meshKey: "mesh:gltf-cube",
-            meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
-            passKey: "shadow-pass:7:light:11",
-            meshResourceKey: "mesh-buffer:gltf-cube",
-            vertexBufferResourceKeys: ["mesh-vertex-buffer:gltf-cube/position"],
-            indexBufferResourceKey: "mesh-index-buffer:gltf-cube",
-            matrixResourceKey: "shadow-matrix-buffer:directional",
-            pipelineKey:
-              "shadow-caster/depth-only/depth24plus/triangle-list/back",
-            ready: true,
-          },
-        ]
-      : [],
+    records: ready ? records : [],
     diagnostics: [],
+  };
+}
+
+function frameResourceRecord(
+  renderId: number,
+  overrides: Partial<
+    ShadowCasterFrameResourceReadinessReport["records"][number]
+  > = {},
+): ShadowCasterFrameResourceReadinessReport["records"][number] {
+  return {
+    renderId,
+    meshKey: "mesh:gltf-cube",
+    meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
+    passKey: "shadow-pass:7:light:11",
+    submesh: 0,
+    meshResourceKey: "mesh-buffer:gltf-cube",
+    vertexBufferResourceKeys: ["mesh-vertex-buffer:gltf-cube/position"],
+    indexBufferResourceKey: "mesh-index-buffer:gltf-cube",
+    matrixResourceKey: "shadow-matrix-buffer:directional",
+    pipelineKey: "shadow-caster/depth-only/depth24plus/triangle-list/back",
+    ready: true,
+    ...overrides,
   };
 }
 
