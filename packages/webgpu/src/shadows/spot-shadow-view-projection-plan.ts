@@ -167,8 +167,10 @@ export function createSpotShadowViewProjectionPlanReport(
       // near plane that is a meaningful fraction of the range keeps usable
       // contrast between occluder and receiver depths (mirrors the point shadow
       // fix; three.js uses a fixed 0.5 near for its default range). range/1000
-      // crushed nearly all precision into [0.99, 1.0].
-      near: input.near ?? Math.max(light.range * 0.02, 0.05),
+      // crushed nearly all precision into [0.99, 1.0]. The min() keeps near
+      // strictly below far for tiny-range spots (far = range), since
+      // makePerspective throws when near >= far.
+      near: input.near ?? spotShadowNearPlane(light.range),
       far: light.range,
       viewMatrixKey: `${pass.passKey}:view`,
       projectionMatrixKey: `${pass.passKey}:projection`,
@@ -236,6 +238,16 @@ export function spotShadowViewProjectionPlanReportToJson(
   report: SpotShadowViewProjectionPlanReport,
 ): string {
   return JSON.stringify(spotShadowViewProjectionPlanReportToJsonValue(report));
+}
+
+/**
+ * Perspective near plane for a spot shadow: a range-scaled fraction with a small
+ * floor for depth precision, capped at half the range so it stays strictly below
+ * the far plane (far = range) even for tiny-range spots — makePerspective throws
+ * when near >= far.
+ */
+function spotShadowNearPlane(range: number): number {
+  return Math.min(Math.max(range * 0.02, 0.05), range * 0.5);
 }
 
 function determineStatus(input: {

@@ -115,6 +115,44 @@ describe("spot shadow 2D pipeline planning", () => {
       /GPUTexture|GPUTextureView|GPUBuffer|"raw"/,
     );
   });
+
+  it("keeps near strictly below far for a tiny-range spot (no makePerspective throw)", () => {
+    // range <= 0.05 would make the 0.05 near floor >= far (= range); the near
+    // formula caps near at range * 0.5 so makePerspective never throws.
+    const request = shadowRequest();
+    const shadowPassPlan = createShadowPassPlanReport({
+      shadowRequests: [request],
+      textures: createShadowTextureResourceReport({
+        descriptors: createShadowMapDescriptorReport({
+          shadowRequests: [request],
+          descriptors: [{ shadowId: 13, lightId: 17, mapSize: 512 }],
+        }),
+      }),
+      submission: "ready",
+    });
+    const viewProjection = createSpotShadowViewProjectionPlanReport({
+      shadowRequests: [request],
+      lights: [{ ...light(), range: 0.04 }],
+      shadowPassPlan,
+      computation: "ready",
+    });
+
+    const plan = viewProjection.plans[0];
+    expect(plan?.far).toBe(0.04);
+    expect(plan?.near).toBeLessThan(0.04);
+    expect(plan?.near).toBeGreaterThan(0);
+
+    // The matrix computation calls makePerspective; it must not throw and must
+    // produce a finite, ready matrix.
+    const matrices = createSpotShadowMatrixComputationReport({
+      viewProjection,
+      transforms: identityTransform(),
+    });
+    expect(matrices.status).toBe("ready");
+    expect(matrices.matrices[0]?.viewProjectionMatrix.every(Number.isFinite)).toBe(
+      true,
+    );
+  });
 });
 
 function spotShadowInput() {

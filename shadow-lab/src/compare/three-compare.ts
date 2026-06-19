@@ -323,7 +323,10 @@ function buildPointLight(scene: typeof THREE.Scene.prototype): void {
   point.castShadow = true;
   point.shadow.mapSize.setScalar(POINT_LIGHT.shadowMapSize);
   // Match Aperture's cube-face near/far (range-scaled near, far = range).
-  point.shadow.camera.near = Math.max(POINT_LIGHT.range * 0.02, 0.05);
+  point.shadow.camera.near = Math.min(
+    Math.max(POINT_LIGHT.range * 0.02, 0.05),
+    POINT_LIGHT.range * 0.5,
+  );
   point.shadow.camera.far = POINT_LIGHT.range;
   point.shadow.camera.updateProjectionMatrix();
   point.shadow.radius = POINT_LIGHT.shadowRadius;
@@ -357,7 +360,10 @@ function buildSpotLight(scene: typeof THREE.Scene.prototype): void {
   // Match Aperture's perspective near/far (range-scaled near, far = range). The
   // shadow camera fov is driven by the cone angle automatically (three.js
   // SpotLightShadow: fov = 2 * outerConeAngle).
-  spot.shadow.camera.near = Math.max(SPOT_LIGHT.range * 0.02, 0.05);
+  spot.shadow.camera.near = Math.min(
+    Math.max(SPOT_LIGHT.range * 0.02, 0.05),
+    SPOT_LIGHT.range * 0.5,
+  );
   spot.shadow.camera.far = SPOT_LIGHT.range;
   spot.shadow.camera.updateProjectionMatrix();
   spot.shadow.radius = SPOT_LIGHT.shadowRadius;

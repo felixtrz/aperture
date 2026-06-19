@@ -310,20 +310,38 @@ fn shadowDepthBias(lightIndex: u32) -> f32 {
   return max(lightFloats[lightFloatOffset(lightIndex) + 25u], 0.0);
 }
 
-fn directionalShadowStrengthValue() -> f32 {
-  for (var strengthIndex = 0u; strengthIndex < lightCount(); strengthIndex = strengthIndex + 1u) {
-    if (lightKind(strengthIndex) == LIGHT_KIND_DIRECTIONAL) {
-      return shadowStrength(strengthIndex);
+// The light that owns this single-2D shadow map: the directional light when
+// present, otherwise the spot light (a spot reuses the directional bindings on
+// the non-cascaded path, sampling matrix 0). Mixed directional+spot scenes route
+// through applyStandardMultiShadowMapSampling, so at most one applies here.
+// Returns lightCount() when neither exists, so callers fall back to defaults.
+// Directional behavior is unchanged: a directional light is always found first.
+fn singleShadowLightIndex() -> u32 {
+  for (var directionalIndex = 0u; directionalIndex < lightCount(); directionalIndex = directionalIndex + 1u) {
+    if (lightKind(directionalIndex) == LIGHT_KIND_DIRECTIONAL) {
+      return directionalIndex;
     }
+  }
+  for (var spotIndex = 0u; spotIndex < lightCount(); spotIndex = spotIndex + 1u) {
+    if (lightKind(spotIndex) == LIGHT_KIND_SPOT) {
+      return spotIndex;
+    }
+  }
+  return lightCount();
+}
+
+fn directionalShadowStrengthValue() -> f32 {
+  let shadowLightIndex = singleShadowLightIndex();
+  if (shadowLightIndex < lightCount()) {
+    return shadowStrength(shadowLightIndex);
   }
   return 1.0;
 }
 
 fn directionalShadowDepthBiasValue() -> f32 {
-  for (var biasIndex = 0u; biasIndex < lightCount(); biasIndex = biasIndex + 1u) {
-    if (lightKind(biasIndex) == LIGHT_KIND_DIRECTIONAL) {
-      return max(shadowDepthBias(biasIndex), STANDARD_SHADOW_DEPTH_BIAS);
-    }
+  let shadowLightIndex = singleShadowLightIndex();
+  if (shadowLightIndex < lightCount()) {
+    return max(shadowDepthBias(shadowLightIndex), STANDARD_SHADOW_DEPTH_BIAS);
   }
   return STANDARD_SHADOW_DEPTH_BIAS;
 }
@@ -333,10 +351,9 @@ fn shadowNormalBias(lightIndex: u32) -> f32 {
 }
 
 fn directionalShadowNormalBiasValue() -> f32 {
-  for (var biasIndex = 0u; biasIndex < lightCount(); biasIndex = biasIndex + 1u) {
-    if (lightKind(biasIndex) == LIGHT_KIND_DIRECTIONAL) {
-      return shadowNormalBias(biasIndex);
-    }
+  let shadowLightIndex = singleShadowLightIndex();
+  if (shadowLightIndex < lightCount()) {
+    return shadowNormalBias(shadowLightIndex);
   }
   return 0.0;
 }
@@ -346,10 +363,9 @@ fn shadowFilterRadius(lightIndex: u32) -> f32 {
 }
 
 fn directionalShadowFilterRadiusValue() -> f32 {
-  for (var filterIndex = 0u; filterIndex < lightCount(); filterIndex = filterIndex + 1u) {
-    if (lightKind(filterIndex) == LIGHT_KIND_DIRECTIONAL) {
-      return shadowFilterRadius(filterIndex);
-    }
+  let shadowLightIndex = singleShadowLightIndex();
+  if (shadowLightIndex < lightCount()) {
+    return shadowFilterRadius(shadowLightIndex);
   }
   return 1.0;
 }
@@ -359,10 +375,9 @@ fn shadowFilterType(lightIndex: u32) -> u32 {
 }
 
 fn directionalShadowFilterTypeValue() -> u32 {
-  for (var filterIndex = 0u; filterIndex < lightCount(); filterIndex = filterIndex + 1u) {
-    if (lightKind(filterIndex) == LIGHT_KIND_DIRECTIONAL) {
-      return shadowFilterType(filterIndex);
-    }
+  let shadowLightIndex = singleShadowLightIndex();
+  if (shadowLightIndex < lightCount()) {
+    return shadowFilterType(shadowLightIndex);
   }
   return 1u;
 }
