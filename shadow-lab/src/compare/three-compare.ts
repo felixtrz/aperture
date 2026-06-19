@@ -305,21 +305,22 @@ function buildSun(
   scene.add(sun);
 }
 
-// Mirrors SetupSystem.#spawnPointLight: a cube-map shadow point light. decay 0
-// + distance = range matches Aperture's range-window falloff zero-crossing so
-// the diff isolates the shadow, not the (model-divergent) brightness curve.
+// Mirrors SetupSystem.#spawnPointLight: a cube-map shadow point light. Aperture
+// now uses the same physical inverse-square falloff three.js does (decay 2)
+// windowed by the range, so the panes are lit identically and the diff isolates
+// shadow behavior rather than the falloff model.
 function buildPointLight(scene: typeof THREE.Scene.prototype): void {
   const point = new THREE.PointLight(
     POINT_LIGHT.colorHex,
     POINT_LIGHT.intensity,
     POINT_LIGHT.range,
-    0,
+    2,
   );
   point.position.set(...POINT_LIGHT.position);
   point.castShadow = true;
   point.shadow.mapSize.setScalar(POINT_LIGHT.shadowMapSize);
-  // Aperture derives the cube-face near/far from the light range; match it.
-  point.shadow.camera.near = Math.max(POINT_LIGHT.range / 1000, 0.01);
+  // Match Aperture's cube-face near/far (range-scaled near, far = range).
+  point.shadow.camera.near = Math.max(POINT_LIGHT.range * 0.02, 0.05);
   point.shadow.camera.far = POINT_LIGHT.range;
   point.shadow.camera.updateProjectionMatrix();
   point.shadow.radius = POINT_LIGHT.shadowRadius;

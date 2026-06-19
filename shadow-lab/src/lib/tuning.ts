@@ -56,18 +56,16 @@ export const DIR_LIGHT = {
 // Omni light used by the `?light=point` shadow-parity mode (cube-map shadows).
 // Placed above the start/finish so its radial shadows fall across the player
 // truck and nearby track toward the camera. Authored 1:1 on both the Aperture
-// and three.js panes (see three-compare.ts) so the split-screen isolates shadow
-// shape rather than light setup.
+// and three.js panes (see three-compare.ts).
 //
-// NOTE on falloff: Aperture's point attenuation is a linear range window,
-// (1 - d/range)^2, while three.js PointLight is physical inverse-square by
-// default. The compare pane builds its PointLight with decay 0 + distance =
-// range so both panes share the same zero-crossing at d = range; a residual
-// mid-range brightness delta remains (three uses a quartic window) and is
-// expected — the goal here is the shadow, not the photometric model.
+// Both panes use the same physical inverse-square falloff windowed by `range`
+// (three.js PointLight decay 2 + distance = range; Aperture's matching shader
+// model), so the split-screen diff isolates shadow behavior. Intensity is in
+// the candela-like units that physical falloff implies, hence much larger than
+// the directional sun's illuminance.
 export const POINT_LIGHT = {
   colorHex: 0xffffff,
-  intensity: 3,
+  intensity: 45,
   position: [6.5, 8, 8] as [number, number, number],
   range: 40,
   shadowMapSize: 2048,
