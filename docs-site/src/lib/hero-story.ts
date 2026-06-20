@@ -1,6 +1,6 @@
 export const HERO_STORY_COMMAND_CHANNEL = "landing-scene.story";
 
-export const HERO_STORY_START_PHASE = 0.2;
+export const HERO_STORY_START_PHASE = 0.14;
 export const HERO_STORY_PHASE_STEP = 1 / 4;
 
 function storyPhase(index: number): number {
