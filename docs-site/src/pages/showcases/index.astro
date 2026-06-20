@@ -1,0 +1,23 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { showcases } from "../../content/showcases";
+import { ShowcaseCards } from "../../components/ShowcaseCards";
+---
+
+<DocsLayout
+  title="Aperture Showcases"
+  description="Aperture showcase applications: city builder, FPS, platformer, and racing."
+>
+  <section class="docs-hero">
+    <div>
+      <p class="docs-eyebrow">Showcases</p>
+      <h1>Four focused apps that prove engine workflows.</h1>
+      <p>
+        This section is reserved for standalone showcase apps that exercise
+        complete game and tool workflows.
+      </p>
+    </div>
+  </section>
+
+  <ShowcaseCards showcases={showcases} />
+</DocsLayout>

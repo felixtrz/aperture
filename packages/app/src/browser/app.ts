@@ -5,6 +5,7 @@ import {
 } from "@aperture-engine/runtime";
 import { AssetRegistry } from "@aperture-engine/simulation";
 import type { RenderSnapshot } from "@aperture-engine/render";
+import { createApertureDevtoolsRequest } from "../commands.js";
 import {
   createWebGpuApp,
   createWebGpuBloomPostEffect,
@@ -26,7 +27,11 @@ import { installGeneratedDevtoolsRuntime } from "./devtools/index.js";
 import { resolveUseFrameGraph } from "./frame-graph-route.js";
 import { resolveGpuTimings } from "./gpu-timings-route.js";
 import { installGeneratedInputForwarding } from "./input.js";
-import { resolveGeneratedRenderSettings } from "./render.js";
+import {
+  readGeneratedRenderProfileEnvironment,
+  resolveGeneratedEffectiveRenderDefaults,
+  resolveGeneratedRenderSettings,
+} from "./render.js";
 import {
   installGeneratedRenderDiagnosticsAccessor,
   installGeneratedStatus,
@@ -79,10 +84,20 @@ export async function startGeneratedBrowserApp(
 ): Promise<GeneratedBrowserApp> {
   const config = defineApertureConfig(options.config);
   const canvas = resolveCanvas(config);
+  const renderProfile = resolveGeneratedEffectiveRenderDefaults(
+    config.render,
+    readGeneratedRenderProfileEnvironment(canvas),
+  );
+  const render = renderProfile.render;
   const sourceAssets = new AssetRegistry();
   const status = installGeneratedStatus();
-  status.render = resolveGeneratedRenderSettings(config.render);
+  status.render = resolveGeneratedRenderSettings(
+    render,
+    undefined,
+    renderProfile.profile,
+  );
   status.systems = options.systemManifest ?? [];
+  const demandDriven = render?.cadence === "demand";
   let webgpuResult: CreateWebGpuAppResult | null = null;
   const worker = createSimulationWorker(options.workerEntry, {
     workerOptions: { type: "module" },
@@ -90,16 +105,26 @@ export async function startGeneratedBrowserApp(
       ? {}
       : { workerFactory: options.workerFactory }),
   });
+  const scheduleDemandStep = demandDriven
+    ? createGeneratedDemandStepScheduler(worker)
+    : null;
 
   installGeneratedInputForwarding(canvas, worker, status, config);
-  installGeneratedCommandForwarding(worker, status);
+  installGeneratedCommandForwarding(worker, status, {
+    ...(scheduleDemandStep === null
+      ? {}
+      : { afterForward: scheduleDemandStep }),
+  });
   if (options.devtools?.enabled === true) {
     installGeneratedDevtoolsRuntime({
       worker,
       getWebGpuResult: () => webgpuResult,
     });
   }
-  installCanvasResizeSync(canvas, worker, status, config.render);
+  installCanvasResizeSync(canvas, worker, status, render, {
+    renderProfile: renderProfile.profile,
+    ...(scheduleDemandStep === null ? {} : { afterResize: scheduleDemandStep }),
+  });
 
   const mirroredWorker = mirrorSimulationWorkerSourceAssets(
     worker,
@@ -114,16 +139,18 @@ export async function startGeneratedBrowserApp(
     typeof window !== "undefined"
       ? new URLSearchParams(window.location.search)
       : null;
-  const useFrameGraph = resolveUseFrameGraph(config.render, browserSearch);
+  const useFrameGraph = resolveUseFrameGraph(render, browserSearch);
   const gpuTimings = resolveGpuTimings(browserSearch);
-  const postEffects = resolveGeneratedPostEffects(config.render);
+  const postEffects = resolveGeneratedPostEffects(render);
   // Bloom needs the HDR scene-buffer path; opting into bloom implies exposure.
   const bloomEnabled = postEffects.length > 0;
-  const exposure = config.render?.exposure ?? (bloomEnabled ? 1 : undefined);
+  const exposure = render?.exposure ?? (bloomEnabled ? 1 : undefined);
   const audioOptions = resolveGeneratedAudioOptions(config, options.audio);
   const workerStartOptions = createGeneratedWorkerStartOptions({
     workerStartOptions: options.workerStartOptions,
     audioOptions,
+    demandDriven,
+    renderProfile: renderProfile.profile,
   });
   let applyAudioSnapshot: ((snapshot: RenderSnapshot) => void) | null = null;
   const webgpu = await createWebGpuApp({
@@ -133,14 +160,13 @@ export async function startGeneratedBrowserApp(
     autoStart: false,
     msaaSampleCount: status.render.requestedSampleCount,
     useFrameGraph,
+    presentationCadence: demandDriven ? "snapshot" : "continuous",
     onPresentationSnapshot(snapshot) {
       applyAudioSnapshot?.(snapshot);
     },
     ...(gpuTimings === undefined ? {} : { gpuTimings }),
     ...(workerStartOptions === undefined ? {} : { workerStartOptions }),
-    ...(config.render?.tonemap === undefined
-      ? {}
-      : { tonemap: config.render.tonemap }),
+    ...(render?.tonemap === undefined ? {} : { tonemap: render.tonemap }),
     ...(exposure === undefined ? {} : { exposure }),
     ...(postEffects.length === 0 ? {} : { postEffects }),
   });
@@ -177,6 +203,7 @@ export async function startGeneratedBrowserApp(
 
   if (webgpu.ok) {
     webgpu.app.start();
+    scheduleDemandStep?.();
   }
 
   return {
@@ -202,14 +229,65 @@ export async function startGeneratedBrowserApp(
 function createGeneratedWorkerStartOptions(options: {
   readonly workerStartOptions: Record<string, unknown> | undefined;
   readonly audioOptions: boolean | GeneratedAudioOptions | false | undefined;
+  readonly demandDriven?: boolean;
+  readonly renderProfile?: string | null;
 }): Record<string, unknown> | undefined {
-  if (options.audioOptions === undefined || options.audioOptions === false) {
-    return options.workerStartOptions;
+  const base =
+    options.audioOptions === undefined || options.audioOptions === false
+      ? options.workerStartOptions
+      : {
+          audioSnapshotMessageRateHz: 0,
+          ...(options.workerStartOptions ?? {}),
+        };
+
+  const withRenderProfile =
+    options.renderProfile === null || options.renderProfile === undefined
+      ? base
+      : {
+          ...(base ?? {}),
+          apertureRenderProfile: options.renderProfile,
+        };
+
+  if (options.demandDriven !== true) {
+    return withRenderProfile;
   }
 
   return {
-    audioSnapshotMessageRateHz: 0,
-    ...(options.workerStartOptions ?? {}),
+    ...(withRenderProfile ?? {}),
+    simulationPaused: true,
+  };
+}
+
+function createGeneratedDemandStepScheduler(
+  worker: SimulationWorker,
+): () => void {
+  let scheduled = false;
+  let nextRequestId = 0;
+
+  return () => {
+    if (scheduled) {
+      return;
+    }
+
+    scheduled = true;
+    const step = () => {
+      scheduled = false;
+      nextRequestId += 1;
+      worker.postMessage(
+        createApertureDevtoolsRequest({
+          requestId: `generated-demand-${Date.now()}-${nextRequestId}`,
+          tool: "ecs_step",
+          payload: { delta: 1 / 60 },
+        }),
+      );
+    };
+
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(step);
+      return;
+    }
+
+    setTimeout(step, 0);
   };
 }
 

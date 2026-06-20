@@ -18,6 +18,7 @@ import {
   DEFAULT_GENERATED_MSAA_SAMPLE_COUNT,
   measureGeneratedCanvasResize,
   readGeneratedBrowserAppStatus,
+  resolveGeneratedEffectiveRenderDefaults,
   resolveGeneratedRenderSettings,
   type GeneratedBrowserAppStatus,
 } from "@aperture-engine/app/browser";
@@ -313,6 +314,51 @@ describe("developer-facing app API", () => {
       maxPixelRatio: 1,
       pixelRatioSource: "capped",
       diagnostics: [],
+    });
+  });
+
+  it("applies the first matching generated render device profile", () => {
+    const resolution = resolveGeneratedEffectiveRenderDefaults(
+      {
+        sampleCount: 4,
+        maxPixelRatio: 2,
+        bloom: { threshold: 0.8, intensity: 0.06, levels: 5 },
+        deviceProfiles: [
+          {
+            label: "desktop",
+            minViewportWidth: 900,
+            sampleCount: 4,
+            maxPixelRatio: 2,
+          },
+          {
+            label: "mobile",
+            maxViewportWidth: 700,
+            minDevicePixelRatio: 2,
+            sampleCount: 1,
+            maxPixelRatio: 1.5,
+            bloom: { threshold: 0.86, intensity: 0.04, levels: 3 },
+          },
+        ],
+      },
+      { viewportWidth: 390, viewportHeight: 844, devicePixelRatio: 3 },
+    );
+
+    expect(resolution.profile).toBe("mobile");
+    expect(resolution.render).toMatchObject({
+      sampleCount: 1,
+      maxPixelRatio: 1.5,
+      bloom: { threshold: 0.86, intensity: 0.04, levels: 3 },
+    });
+
+    const settings = resolveGeneratedRenderSettings(
+      resolution.render,
+      3,
+      resolution.profile,
+    );
+    expect(settings).toMatchObject({
+      requestedSampleCount: 1,
+      pixelRatio: 1.5,
+      profile: "mobile",
     });
   });
 

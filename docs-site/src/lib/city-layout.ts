@@ -94,6 +94,33 @@ const placed = recenter(CITY);
 export const TILES: readonly PlacedTile[] = placed.tiles;
 export const CITY_HALF_EXTENT = placed.halfExtent;
 
+export interface CityCompositionBounds {
+  readonly min: readonly [number, number, number];
+  readonly max: readonly [number, number, number];
+}
+
+const COMPOSITION_TILE_MARGIN = 0.72;
+const COMPOSITION_CITY_MAX_HEIGHT = 3.35;
+
+export const CITY_COMPOSITION_BOUNDS: CityCompositionBounds = (() => {
+  let minX = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let minZ = Number.POSITIVE_INFINITY;
+  let maxZ = Number.NEGATIVE_INFINITY;
+
+  for (const tile of TILES) {
+    minX = Math.min(minX, tile.x - COMPOSITION_TILE_MARGIN);
+    maxX = Math.max(maxX, tile.x + COMPOSITION_TILE_MARGIN);
+    minZ = Math.min(minZ, tile.z - COMPOSITION_TILE_MARGIN);
+    maxZ = Math.max(maxZ, tile.z + COMPOSITION_TILE_MARGIN);
+  }
+
+  return {
+    min: [minX, 0, minZ],
+    max: [maxX, COMPOSITION_CITY_MAX_HEIGHT, maxZ],
+  };
+})();
+
 // Tiles with raised geometry cast shadows; flat ground (roads/pavement/grass)
 // only receives them.
 export function tileCastsShadow(id: string): boolean {
@@ -109,11 +136,12 @@ export function tileCastsShadow(id: string): boolean {
 export const CAMERA_PITCH = Math.atan(1 / Math.SQRT2); // ≈ 35.26° downward
 export const CAMERA_FOV_Y_DEGREES = 22;
 // Distance from the focus point; framed for this compact city.
-export const CAMERA_ZOOM = 16;
-// Starting yaw; the orbit system slowly rotates around this.
-export const CAMERA_START_YAW = Math.PI / 4; // 45°
-// Radians/second the hero camera drifts around the town. Slow and ambient.
-export const CAMERA_ORBIT_SPEED = 0.06;
+export const CAMERA_ZOOM = 18;
+// Fixed hero camera yaw: 45° around the already-rotated city layout.
+export const CAMERA_START_YAW = CITY_YAW + Math.PI / 4;
+// Shift the framed focus slightly to camera-right so the city sits left of
+// center and leaves room for the fixed story card.
+export const CAMERA_COMPOSITION_RIGHT_OFFSET = 1.4;
 
 /** World-space camera offset from the focus point for a given yaw and zoom. */
 export function cameraOffset(
@@ -126,4 +154,11 @@ export function cameraOffset(
     Math.sin(CAMERA_PITCH) * zoom,
     horizontal * Math.cos(yaw),
   ];
+}
+
+export function cameraRightOffset(
+  yaw: number,
+  distance: number,
+): [number, number, number] {
+  return [Math.cos(yaw) * distance, 0, -Math.sin(yaw) * distance];
 }

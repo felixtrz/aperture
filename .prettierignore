@@ -17,3 +17,9 @@ shadow-lab/src/compare/three.webgpu.d.ts
 shadow-lab/src/compare/loaders/
 shadow-lab/src/compare/utils/
 shadow-lab/src/compare/tsl/
+docs-site/.aperture/
+docs-site/.astro/
+docs-site/dist/
+docs-site/public/api-reference/
+docs-site/src/content/*.generated.json
+docs-site/**/*.astro

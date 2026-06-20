@@ -38,6 +38,10 @@ export function installCanvasResizeSync(
   worker: SimulationWorker,
   status: GeneratedBrowserAppStatus,
   render: ApertureRenderDefaults | undefined,
+  options: {
+    readonly afterResize?: () => void;
+    readonly renderProfile?: string | null;
+  } = {},
 ): void {
   let lastSignature = "";
 
@@ -58,7 +62,11 @@ export function installCanvasResizeSync(
       resizeStatus.pixelRatio,
     ].join(":");
 
-    status.render = resolveGeneratedRenderSettings(render);
+    status.render = resolveGeneratedRenderSettings(
+      render,
+      undefined,
+      options.renderProfile ?? null,
+    );
 
     if (canvas.width !== resizeStatus.width) {
       canvas.width = resizeStatus.width;
@@ -77,6 +85,7 @@ export function installCanvasResizeSync(
           payload: resizeStatus,
         }),
       );
+      options.afterResize?.();
       lastSignature = signature;
     }
   };

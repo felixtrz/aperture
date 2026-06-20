@@ -1,0 +1,28 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { ExampleGallery } from "../../components/ExampleGallery";
+import examplesManifest from "../../content/examples.generated.json";
+---
+
+<DocsLayout
+  title="Aperture Examples"
+  description="Runnable Aperture examples grouped by engine capability."
+>
+  <section class="docs-hero">
+    <div>
+      <p class="docs-eyebrow">Examples</p>
+      <h1>A runnable gallery over the engine harness.</h1>
+      <p>
+        Every <code>examples/*.html</code> route is represented here. Use
+        <code>pnpm examples:serve</code> for live WebGPU execution during local
+        development.
+      </p>
+    </div>
+  </section>
+
+  <ExampleGallery
+    examples={examplesManifest.examples}
+    categories={examplesManifest.categories}
+    client:load
+  />
+</DocsLayout>

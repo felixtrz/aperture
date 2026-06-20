@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <title>Aperture — the agent-first 3D engine</title>
+    <link rel="icon" type="image/svg+xml" href="aperture.svg" />
+    <style is:global>
+      :root {
+        color-scheme: dark;
+        --ui:
+          600 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --glass: rgba(8, 11, 16, 0.58);
+        --hairline: rgba(255, 255, 255, 0.12);
+        --muted: rgba(255, 255, 255, 0.68);
+        --hero-desktop-stage-max: 1500px;
+        --hero-desktop-side-gutter: 48px;
+        --hero-desktop-card-width: 380px;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        min-height: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+        background: #0c0f14;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        scroll-snap-type: y mandatory;
+      }
+      body {
+        scrollbar-width: none;
+      }
+      html {
+        scrollbar-width: none;
+      }
+      html::-webkit-scrollbar,
+      body::-webkit-scrollbar {
+        display: none;
+      }
+      #aperture {
+        position: fixed;
+        inset: 0;
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        touch-action: pan-y;
+      }
+
+      /* --- top nav ---------------------------------------------------- */
+      #nav {
+        position: fixed;
+        top: 0;
+        left: 50%;
+        right: auto;
+        z-index: 10;
+        display: flex;
+        width: min(
+          calc(100vw - var(--hero-desktop-side-gutter) * 2),
+          var(--hero-desktop-stage-max)
+        );
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 0;
+        color: #fff;
+        pointer-events: none;
+        transform: translateX(-50%);
+      }
+      #nav .nav-top {
+        display: contents;
+      }
+      #nav .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        pointer-events: auto;
+      }
+      #nav .brand-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      #nav .brand-name {
+        font-weight: 700;
+        font-size: 17px;
+        line-height: 1;
+        letter-spacing: 0.01em;
+      }
+      #nav .brand-tagline {
+        max-width: min(38vw, 330px);
+        font-size: 12px;
+        line-height: 1.15;
+        font-weight: 500;
+        letter-spacing: 0;
+        color: rgba(255, 255, 255, 0.72);
+      }
+      #nav .brand img {
+        width: 22px;
+        height: 22px;
+      }
+      #nav .menu-toggle {
+        display: none;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        padding: 0;
+        color: #fff;
+        background: var(--glass);
+        border: 1px solid var(--hairline);
+        border-radius: 999px;
+        backdrop-filter: blur(12px) saturate(130%);
+        -webkit-backdrop-filter: blur(12px) saturate(130%);
+        cursor: pointer;
+        pointer-events: auto;
+      }
+      #nav .menu-icon,
+      #nav .menu-icon::before,
+      #nav .menu-icon::after {
+        display: block;
+        width: 16px;
+        height: 2px;
+        background: currentColor;
+        border-radius: 999px;
+      }
+      #nav .menu-icon {
+        position: relative;
+      }
+      #nav .menu-icon::before,
+      #nav .menu-icon::after {
+        content: "";
+        position: absolute;
+        left: 0;
+      }
+      #nav .menu-icon::before {
+        top: -5px;
+      }
+      #nav .menu-icon::after {
+        top: 5px;
+      }
+      #nav .links {
+        display: inline-flex;
+        gap: 8px;
+        pointer-events: auto;
+      }
+      #nav .links a {
+        color: #fff;
+        text-decoration: none;
+        font: var(--ui);
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        opacity: 0.85;
+        transition:
+          background 0.16s ease,
+          opacity 0.16s ease,
+          border-color 0.16s ease;
+      }
+      #nav .links a:hover {
+        opacity: 1;
+        background: var(--glass);
+        border-color: var(--hairline);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+      #nav .links a:focus-visible {
+        outline: 2px solid rgba(255, 255, 255, 0.72);
+        outline-offset: 3px;
+      }
+      #nav .mobile-hero {
+        display: none;
+      }
+
+      /* --- story card ------------------------------------------------- */
+      #story-card {
+        position: fixed;
+        top: 50%;
+        right: auto;
+        left: var(
+          --hero-story-card-left,
+          calc(
+            100vw -
+              max(
+                var(--hero-desktop-side-gutter),
+                calc((100vw - var(--hero-desktop-stage-max)) / 2)
+              ) -
+              min(var(--hero-desktop-card-width), calc(100vw - 48px))
+          )
+        );
+        z-index: 10;
+        width: min(var(--hero-desktop-card-width), calc(100vw - 48px));
+        height: var(--story-card-height, auto);
+        box-sizing: border-box;
+        padding: 22px 24px 24px;
+        color: #fff;
+        background: var(--glass);
+        border: 1px solid var(--hairline);
+        border-radius: 18px;
+        backdrop-filter: blur(12px) saturate(130%);
+        -webkit-backdrop-filter: blur(12px) saturate(130%);
+        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.38);
+        pointer-events: auto;
+        user-select: none;
+        transform: translateY(-50%);
+      }
+      #story-card > div {
+        display: block;
+      }
+      #story-segments {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 24px;
+      }
+      .story-segment {
+        position: relative;
+        min-width: 0;
+        height: 4px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: transparent;
+        cursor: pointer;
+      }
+      .story-segment::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: auto;
+        left: 0;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.24);
+        transition:
+          background 0.32s ease,
+          box-shadow 0.32s ease;
+      }
+      .story-segment span {
+        display: none;
+      }
+      .story-segment small {
+        display: none;
+      }
+      .story-segment[aria-current="true"]::before {
+        background: #fff;
+        box-shadow: 0 0 14px rgba(255, 255, 255, 0.46);
+      }
+      #story-title {
+        margin: 0 0 14px;
+        max-width: 12ch;
+        font-size: 38px;
+        line-height: 1.03;
+        letter-spacing: 0;
+        font-weight: 760;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      }
+      #story-body {
+        margin: 0;
+        font-size: 15px;
+        line-height: 1.55;
+        color: var(--muted);
+      }
+      #story-scroll {
+        position: relative;
+        z-index: 2;
+        pointer-events: none;
+      }
+      .story-step {
+        height: 100vh;
+        scroll-snap-align: start;
+      }
+
+      :root[data-hero-compact-composition="true"]:not(
+          [data-hero-mobile-nav="true"]
+        )
+        #story-card {
+        top: auto;
+        right: auto;
+        bottom: 24px;
+        left: 50%;
+        width: var(--hero-desktop-card-width);
+        transform: translateX(-50%);
+      }
+
+      /* Keep in sync with HERO_MOBILE_NAV_BREAKPOINT_PX. */
+      @media (max-width: 760px) {
+        #nav {
+          display: block;
+          right: 0;
+          left: 0;
+          width: auto;
+          padding: 14px 16px 0;
+          transform: none;
+        }
+        #nav .nav-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        #nav .brand {
+          gap: 8px;
+          width: auto;
+          text-align: left;
+        }
+        #nav .brand img {
+          width: 26px;
+          height: 26px;
+        }
+        #nav .brand-copy {
+          display: flex;
+        }
+        #nav .brand-name {
+          font-size: 24px;
+          line-height: 1;
+        }
+        #nav .brand-tagline {
+          display: none;
+        }
+        #nav .menu-toggle {
+          display: grid;
+        }
+        #nav .mobile-hero {
+          display: block;
+          width: calc(100vw - 32px);
+          margin-top: 24px;
+        }
+        #nav .links {
+          position: fixed;
+          top: 58px;
+          right: 16px;
+          display: flex;
+          width: min(196px, calc(100vw - 32px));
+          flex-direction: column;
+          gap: 4px;
+          padding: 8px;
+          background: rgba(8, 11, 16, 0.78);
+          border: 1px solid var(--hairline);
+          border-radius: 14px;
+          box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
+          backdrop-filter: blur(12px) saturate(130%);
+          -webkit-backdrop-filter: blur(12px) saturate(130%);
+          opacity: 0;
+          visibility: hidden;
+          transform: translateY(-6px);
+          transition:
+            opacity 0.16s ease,
+            transform 0.16s ease,
+            visibility 0.16s ease;
+        }
+        #nav .links[data-open="true"] {
+          opacity: 1;
+          transform: translateY(0);
+          visibility: visible;
+        }
+        #nav .links a {
+          border-radius: 10px;
+          padding: 10px 12px;
+          font-size: 12px;
+        }
+        #nav .mobile-tagline {
+          display: block;
+          width: 100%;
+          margin: 0;
+          color: #fff;
+          font-size: clamp(44px, 15vw, 64px);
+          line-height: 0.88;
+          font-weight: 780;
+          letter-spacing: 0;
+        }
+        #nav .mobile-command {
+          display: inline-flex;
+          width: min(340px, calc(100vw - 32px));
+          box-sizing: border-box;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 8px;
+          margin-top: 18px;
+          padding: 9px 11px;
+          color: rgba(255, 255, 255, 0.92);
+          background:
+            linear-gradient(
+              180deg,
+              rgba(255, 255, 255, 0.08),
+              rgba(255, 255, 255, 0.02)
+            ),
+            rgba(4, 7, 10, 0.72);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          border-radius: 12px;
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.08),
+            0 12px 34px rgba(0, 0, 0, 0.3);
+          backdrop-filter: blur(12px) saturate(130%);
+          -webkit-backdrop-filter: blur(12px) saturate(130%);
+          pointer-events: auto;
+        }
+        #nav .mobile-command-prompt {
+          flex: 0 0 auto;
+          color: #78ffbe;
+          font:
+            700 clamp(9px, 2.8vw, 11px) ui-monospace,
+            SFMono-Regular,
+            Menlo,
+            Monaco,
+            Consolas,
+            "Liberation Mono",
+            monospace;
+          line-height: 1;
+        }
+        #nav .mobile-command code {
+          display: block;
+          min-width: 0;
+          max-width: 100%;
+          overflow: hidden;
+          font:
+            650 clamp(9px, 2.8vw, 11px) ui-monospace,
+            SFMono-Regular,
+            Menlo,
+            Monaco,
+            Consolas,
+            "Liberation Mono",
+            monospace;
+          line-height: 1.2;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        #story-card {
+          top: auto;
+          right: 16px;
+          bottom: 18px;
+          left: 16px;
+          width: auto;
+          transform: none;
+        }
+        #story-title {
+          max-width: 14ch;
+          font-size: 30px;
+        }
+      }
+      @media (max-width: 360px) {
+        #nav .mobile-hero {
+          margin-top: 18px;
+        }
+        #nav .mobile-tagline {
+          font-size: clamp(39px, 13.2vw, 44px);
+          line-height: 0.86;
+        }
+        #nav .mobile-command {
+          margin-top: 12px;
+          padding: 9px 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="aperture"></canvas>
+
+    <nav id="nav">
+      <span class="nav-top">
+        <span class="brand">
+          <img src="aperture.svg" alt="" />
+          <span class="brand-copy">
+            <span class="brand-name">Aperture</span>
+            <span class="brand-tagline"
+              >State-of-the-art 3D engine for the agentic age.</span
+            >
+          </span>
+        </span>
+        <button
+          id="nav-menu-toggle"
+          class="menu-toggle"
+          type="button"
+          aria-label="Menu"
+          aria-expanded="false"
+          aria-controls="nav-links"
+        >
+          <span class="menu-icon" aria-hidden="true"></span>
+        </button>
+      </span>
+      <span id="nav-links" class="links">
+        <a href="docs/">Docs</a>
+        <a href="examples/">Examples</a>
+        <a href="showcases/">Showcases</a>
+        <a href="https://github.com/felixtrz/aperture">GitHub</a>
+      </span>
+      <span class="mobile-hero">
+        <span class="mobile-tagline"
+          >State-of-the-art 3D engine for the agentic age.</span
+        >
+        <span class="mobile-command">
+          <span class="mobile-command-prompt" aria-hidden="true">$</span>
+          <code>npx @aperture-engine/cli create my-app</code>
+        </span>
+      </span>
+    </nav>
+
+    <aside id="story-card" aria-live="polite">
+      <div>
+        <div id="story-segments" role="tablist" aria-label="Engine story"></div>
+        <h1 id="story-title"></h1>
+        <p id="story-body"></p>
+      </div>
+    </aside>
+
+    <main id="story-scroll" aria-hidden="true"></main>
+
+    <script>
+      import {
+        HERO_STORY_COMMAND_CHANNEL,
+        HERO_STORY_MOMENTS,
+      } from "/src/lib/hero-story.ts";
+      import {
+        HERO_COMPACT_LAYOUT_BREAKPOINT_PX,
+        HERO_DESKTOP_CARD_WIDTH_PX,
+        HERO_DESKTOP_CITY_PANEL_GAP_PX,
+        HERO_DESKTOP_CITY_TARGET_WIDTH_PX,
+        HERO_DESKTOP_COMPOSITION_MAX_WIDTH_PX,
+        HERO_DESKTOP_COMPOSITION_SIDE_GUTTER_PX,
+        HERO_LAYOUT_COMMAND_CHANNEL,
+        HERO_LAYOUT_STATE_COMMAND_CHANNEL,
+        HERO_MOBILE_NAV_BREAKPOINT_PX,
+      } from "/src/lib/hero-layout.ts";
+      import "virtual:aperture/browser-entry";
+
+      const segments = document.querySelector("#story-segments");
+      const scrollRoot = document.querySelector("#story-scroll");
+      const card = document.querySelector("#story-card");
+      const title = document.querySelector("#story-title");
+      const body = document.querySelector("#story-body");
+      const navMenuToggle = document.querySelector("#nav-menu-toggle");
+      const navLinks = document.querySelector("#nav-links");
+      const compactLayoutQuery = window.matchMedia(
+        `(max-width: ${HERO_COMPACT_LAYOUT_BREAKPOINT_PX}px)`,
+      );
+      const mobileNavQuery = window.matchMedia(
+        `(max-width: ${HERO_MOBILE_NAV_BREAKPOINT_PX}px)`,
+      );
+      document.documentElement.style.setProperty(
+        "--hero-desktop-card-width",
+        `${HERO_DESKTOP_CARD_WIDTH_PX}px`,
+      );
+
+      let activeIndex = 0;
+      let activeLayoutSignature = "";
+      let activeStoryPhaseSignature = "";
+      const storyCycleCount = HERO_STORY_MOMENTS.length;
+      const storyLoopCopies = 7;
+      const storyLoopMiddleCopy = Math.floor(storyLoopCopies / 2);
+      let resizeFrame = 0;
+      let suppressScroll = false;
+
+      function setNavMenuOpen(open) {
+        navLinks.dataset.open = String(open);
+        navMenuToggle.setAttribute("aria-expanded", String(open));
+      }
+
+      navMenuToggle.addEventListener("click", () => {
+        setNavMenuOpen(navLinks.dataset.open !== "true");
+      });
+      navLinks.addEventListener("click", (event) => {
+        if (event.target instanceof HTMLAnchorElement) {
+          setNavMenuOpen(false);
+        }
+      });
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          setNavMenuOpen(false);
+        }
+      });
+
+      function dispatchStoryPhase(moment, phase, force = false) {
+        const wrappedPhase = wrapPhase(phase);
+        const signature = `${moment.id}:${wrappedPhase.toFixed(4)}`;
+        if (!force && activeStoryPhaseSignature === signature) return;
+        activeStoryPhaseSignature = signature;
+        window.dispatchEvent(
+          new CustomEvent("aperture:command", {
+            detail: {
+              channel: HERO_STORY_COMMAND_CHANNEL,
+              payload: {
+                kind: "set-phase",
+                moment: moment.id,
+                phase: wrappedPhase,
+              },
+            },
+          }),
+        );
+      }
+
+      function desktopStageWidth() {
+        return Math.min(
+          HERO_DESKTOP_COMPOSITION_MAX_WIDTH_PX,
+          Math.max(
+            0,
+            window.innerWidth - HERO_DESKTOP_COMPOSITION_SIDE_GUTTER_PX * 2,
+          ),
+        );
+      }
+
+      function desktopCardLeft(cardWidth) {
+        const pairWidth =
+          HERO_DESKTOP_CITY_TARGET_WIDTH_PX +
+          HERO_DESKTOP_CITY_PANEL_GAP_PX +
+          cardWidth;
+        return (
+          (window.innerWidth - pairWidth) / 2 +
+          HERO_DESKTOP_CITY_TARGET_WIDTH_PX +
+          HERO_DESKTOP_CITY_PANEL_GAP_PX
+        );
+      }
+
+      function syncDesktopCardPosition(compact) {
+        if (compact) {
+          card.style.removeProperty("--hero-story-card-left");
+          return;
+        }
+
+        const cardWidth = card.getBoundingClientRect().width;
+        card.style.setProperty(
+          "--hero-story-card-left",
+          `${desktopCardLeft(cardWidth)}px`,
+        );
+      }
+
+      function layoutPayload(compact) {
+        const cardRect = card.getBoundingClientRect();
+        const cardWidth = cardRect.width;
+        const target = compact
+          ? {
+              cityTargetWidth: HERO_DESKTOP_CITY_TARGET_WIDTH_PX,
+              cityPanelGap: HERO_DESKTOP_CITY_PANEL_GAP_PX,
+            }
+          : {
+              cityTargetWidth: HERO_DESKTOP_CITY_TARGET_WIDTH_PX,
+              cityPanelGap: HERO_DESKTOP_CITY_PANEL_GAP_PX,
+            };
+        return {
+          kind: "set-composition",
+          compact,
+          viewportWidth: window.innerWidth,
+          viewportHeight: window.innerHeight,
+          stageWidth: compact ? window.innerWidth : desktopStageWidth(),
+          cardLeft: cardRect.left,
+          cardWidth,
+          cityTargetWidth: target.cityTargetWidth,
+          cityPanelGap: target.cityPanelGap,
+        };
+      }
+
+      function layoutSignature(payload) {
+        return [
+          payload.kind,
+          payload.compact,
+          Math.round(payload.viewportWidth),
+          Math.round(payload.viewportHeight),
+          Math.round(payload.stageWidth),
+          Math.round(payload.cardLeft),
+          Math.round(payload.cardWidth),
+          Math.round(payload.cityTargetWidth),
+          Math.round(payload.cityPanelGap),
+        ].join(":");
+      }
+
+      function dispatchLayout(payload) {
+        for (const channel of [
+          HERO_LAYOUT_COMMAND_CHANNEL,
+          HERO_LAYOUT_STATE_COMMAND_CHANNEL,
+        ]) {
+          window.dispatchEvent(
+            new CustomEvent("aperture:command", {
+              detail: {
+                channel,
+                payload,
+              },
+            }),
+          );
+        }
+      }
+
+      function syncResponsiveLayout(force = false) {
+        const compact = compactLayoutQuery.matches;
+        const mobileNav = mobileNavQuery.matches;
+        document.documentElement.dataset.heroCompactComposition =
+          String(compact);
+        document.documentElement.dataset.heroMobileNav = String(mobileNav);
+        syncDesktopCardPosition(compact);
+        const payload = layoutPayload(compact);
+        if (!mobileNav) {
+          setNavMenuOpen(false);
+        }
+        const signature = layoutSignature(payload);
+        if (!force && activeLayoutSignature === signature) return;
+        activeLayoutSignature = signature;
+        dispatchLayout(payload);
+      }
+
+      function renderStory(index) {
+        const moment = HERO_STORY_MOMENTS[index];
+        if (!moment) return;
+        activeIndex = index;
+        title.textContent = moment.title;
+        body.textContent = moment.body;
+        for (const [buttonIndex, button] of [
+          ...segments.querySelectorAll(".story-segment"),
+        ].entries()) {
+          button.setAttribute(
+            "aria-current",
+            String(buttonIndex === activeIndex),
+          );
+        }
+      }
+
+      function storyStepFromScroll() {
+        return Math.floor(
+          (window.scrollY + window.innerHeight * 0.5) /
+            Math.max(window.innerHeight, 1),
+        );
+      }
+
+      function storyPositionFromScroll() {
+        return window.scrollY / Math.max(window.innerHeight, 1);
+      }
+
+      function wrapIndex(index) {
+        return ((index % storyCycleCount) + storyCycleCount) % storyCycleCount;
+      }
+
+      function wrapPhase(phase) {
+        return ((phase % 1) + 1) % 1;
+      }
+
+      function lerpPhaseForward(from, to, amount) {
+        const target = to < from ? to + 1 : to;
+        return wrapPhase(from + (target - from) * amount);
+      }
+
+      function activeIndexFromScroll() {
+        return wrapIndex(storyStepFromScroll());
+      }
+
+      function storyPhaseFromScroll() {
+        const position = storyPositionFromScroll();
+        const baseStep = Math.floor(position);
+        const local = Math.min(Math.max(position - baseStep, 0), 1);
+        const current = HERO_STORY_MOMENTS[wrapIndex(baseStep)];
+        const next = HERO_STORY_MOMENTS[wrapIndex(baseStep + 1)];
+        return lerpPhaseForward(current.phase, next.phase, local);
+      }
+
+      function syncStoryPhase(force = false) {
+        const moment = HERO_STORY_MOMENTS[activeIndexFromScroll()];
+        if (!moment) return;
+        dispatchStoryPhase(moment, storyPhaseFromScroll(), force);
+      }
+
+      function storyLoopCycleHeight() {
+        return storyCycleCount * window.innerHeight;
+      }
+
+      function storyLoopMiddleScroll(index = activeIndex) {
+        return (
+          (storyLoopMiddleCopy * storyCycleCount + index) * window.innerHeight
+        );
+      }
+
+      function recenterStoryScroll() {
+        const cycleHeight = storyLoopCycleHeight();
+        if (cycleHeight <= 0) return;
+
+        const currentStep = storyStepFromScroll();
+        const currentCopy = Math.floor(currentStep / storyCycleCount);
+        let nextScroll = window.scrollY;
+
+        if (currentCopy <= 1) {
+          nextScroll += cycleHeight * (storyLoopMiddleCopy - currentCopy);
+        } else if (currentCopy >= storyLoopCopies - 2) {
+          nextScroll -= cycleHeight * (currentCopy - storyLoopMiddleCopy);
+        } else {
+          return;
+        }
+
+        suppressScroll = true;
+        window.scrollTo({ top: nextScroll, behavior: "auto" });
+        requestAnimationFrame(() => {
+          suppressScroll = false;
+        });
+      }
+
+      function syncStoryCardHeight() {
+        const currentTitle = title.textContent;
+        const currentBody = body.textContent;
+        const currentVisibility = card.style.visibility;
+        card.style.removeProperty("--story-card-height");
+        card.style.visibility = "hidden";
+
+        let maxHeight = 0;
+        for (const moment of HERO_STORY_MOMENTS) {
+          title.textContent = moment.title;
+          body.textContent = moment.body;
+          maxHeight = Math.max(
+            maxHeight,
+            Math.ceil(card.getBoundingClientRect().height),
+          );
+        }
+
+        card.style.setProperty("--story-card-height", `${maxHeight}px`);
+        title.textContent = currentTitle;
+        body.textContent = currentBody;
+        card.style.visibility = currentVisibility;
+      }
+
+      for (const [index, moment] of HERO_STORY_MOMENTS.entries()) {
+        const button = document.createElement("button");
+        button.className = "story-segment";
+        button.type = "button";
+        button.setAttribute("aria-label", moment.title);
+        button.innerHTML = `<span>${moment.label}</span>`;
+        button.addEventListener("click", () => {
+          window.scrollTo({
+            top: storyLoopMiddleScroll(index),
+            behavior: "smooth",
+          });
+          renderStory(index);
+        });
+        segments.append(button);
+      }
+
+      for (let copy = 0; copy < storyLoopCopies; copy += 1) {
+        for (let index = 0; index < storyCycleCount; index += 1) {
+          const step = document.createElement("section");
+          step.className = "story-step";
+          scrollRoot.append(step);
+        }
+      }
+
+      let ticking = false;
+      window.addEventListener(
+        "scroll",
+        () => {
+          if (suppressScroll) return;
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(() => {
+            ticking = false;
+            recenterStoryScroll();
+            const next = activeIndexFromScroll();
+            if (next !== activeIndex) renderStory(next);
+            syncStoryPhase();
+          });
+        },
+        { passive: true },
+      );
+
+      window.addEventListener(
+        "resize",
+        () => {
+          if (resizeFrame) cancelAnimationFrame(resizeFrame);
+          resizeFrame = requestAnimationFrame(() => {
+            resizeFrame = 0;
+            syncResponsiveLayout(true);
+            syncStoryCardHeight();
+            window.scrollTo({
+              top: storyLoopMiddleScroll(activeIndex),
+              behavior: "auto",
+            });
+            renderStory(activeIndex);
+            syncStoryPhase(true);
+          });
+        },
+        { passive: true },
+      );
+
+      compactLayoutQuery.addEventListener("change", () =>
+        syncResponsiveLayout(true),
+      );
+      syncResponsiveLayout(true);
+      requestAnimationFrame(() => syncResponsiveLayout(true));
+      window.addEventListener("load", () => syncResponsiveLayout(true), {
+        once: true,
+      });
+      syncStoryCardHeight();
+      window.scrollTo({
+        top: storyLoopMiddleScroll(activeIndexFromScroll()),
+        behavior: "auto",
+      });
+      renderStory(activeIndexFromScroll());
+      syncStoryPhase(true);
+    </script>
+  </body>
+</html>

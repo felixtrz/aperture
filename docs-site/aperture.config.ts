@@ -1,10 +1,16 @@
-import { asset, defineApertureConfig } from "@aperture-engine/app/config";
+import {
+  asset,
+  defineApertureConfig,
+  signal,
+} from "@aperture-engine/app/config";
 
 const model = (name: string) =>
-  asset.gltf(`/models/${name}.glb`, { preload: "blocking" });
+  asset.gltf(`${import.meta.env.BASE_URL}models/${name}.glb`, {
+    preload: "blocking",
+  });
 
-// Every Kenney tile the layout can reference, keyed by its model id so systems
-// resolve it with `this.assets.gltf(id)`.
+// Every Kenney tile/prop the layout can reference, keyed by its model id so
+// systems resolve it with `this.assets.gltf(id)`.
 const MODEL_IDS = [
   "road-straight",
   "road-straight-lightposts",
@@ -21,11 +27,10 @@ const MODEL_IDS = [
   "grass",
   "grass-trees",
   "grass-trees-tall",
+  "vehicle-truck-red",
 ] as const;
 
-const modelAssets = Object.fromEntries(
-  MODEL_IDS.map((id) => [id, model(id)]),
-);
+const modelAssets = Object.fromEntries(MODEL_IDS.map((id) => [id, model(id)]));
 
 export default defineApertureConfig({
   mode: "browser",
@@ -34,6 +39,10 @@ export default defineApertureConfig({
   assets: {
     ...modelAssets,
   },
+  signals: {
+    heroMoment: signal.string("ecs-native"),
+    heroPhase: signal.number(0.32),
+  },
   render: {
     // The town now floats with no ground plane, so a deep background makes the
     // colorful tiles pop (like Kenney's own screenshot). The day/night cycle
@@ -41,8 +50,19 @@ export default defineApertureConfig({
     clearColor: [0.07, 0.09, 0.13, 1],
     defaultCamera: false,
     defaultLight: false,
+    cadence: "demand",
     sampleCount: 4,
     maxPixelRatio: 2,
+    deviceProfiles: [
+      {
+        label: "mobile",
+        maxViewportWidth: 760,
+        minDevicePixelRatio: 2,
+        sampleCount: 1,
+        maxPixelRatio: 1.5,
+        bloom: false,
+      },
+    ],
     tonemap: "aces",
     exposure: 1,
     // Gentle bloom now; the night beat will lean on this for glowing windows.

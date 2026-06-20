@@ -327,6 +327,7 @@ export interface WebGpuAppSimulationWorker {
 }
 
 export type WebGpuAppStartOptions = Record<string, unknown>;
+export type WebGpuAppPresentationCadence = "continuous" | "snapshot";
 
 export interface WebGpuAppWorkerRenderErrorDiagnostic {
   readonly code: "webGpuApp.workerSnapshotRenderFailed";
@@ -640,6 +641,12 @@ export interface CreateWebGpuAppOptions extends Omit<
   readonly workerStartOptions?: WebGpuAppStartOptions;
   readonly transport?: WebGpuAppSnapshotTransportMode;
   readonly sharedSnapshotTransport?: WebGpuAppSharedSnapshotTransportOptions;
+  /**
+   * "continuous" keeps a presentation callback alive even when no new snapshot
+   * is pending. "snapshot" schedules presentation only when a worker snapshot
+   * arrives, which is useful for demand-driven generated apps.
+   */
+  readonly presentationCadence?: WebGpuAppPresentationCadence;
   readonly msaa?: number;
   readonly msaaSampleCount?: number;
   readonly tonemap?: TonemapOperator;

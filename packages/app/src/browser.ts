@@ -2,10 +2,14 @@ export {
   DEFAULT_GENERATED_MAX_PIXEL_RATIO,
   DEFAULT_GENERATED_MSAA_SAMPLE_COUNT,
   measureGeneratedCanvasResize,
+  readGeneratedRenderProfileEnvironment,
+  resolveGeneratedEffectiveRenderDefaults,
   resolveGeneratedRenderSettings,
 } from "./browser/render.js";
 export type {
+  GeneratedBrowserEffectiveRenderDefaults,
   GeneratedBrowserRenderSettings,
+  GeneratedBrowserRenderProfileEnvironment,
   GeneratedCanvasMeasurementSource,
   GeneratedCanvasMeasureElement,
   GeneratedCanvasResizeMeasurement,
