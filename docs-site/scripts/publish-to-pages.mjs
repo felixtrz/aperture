@@ -131,21 +131,6 @@ async function main() {
     }
   }
 
-  const heroRedirect = path.join(pagesDir, "hero-city", "index.html");
-  if (await exists(heroRedirect)) {
-    nextFiles.add("hero-city/index.html");
-  } else {
-    copyOps.push({
-      from: null,
-      to: heroRedirect,
-      file: "hero-city/index.html",
-      sourceLabel: "generated redirect",
-      contents:
-        '<!doctype html><meta charset="utf-8"><title>Aperture</title><meta http-equiv="refresh" content="0; url=../"><link rel="canonical" href="../"><script>location.replace("../");</script>',
-    });
-    nextFiles.add("hero-city/index.html");
-  }
-
   const staleFiles = previousManifest.files
     .filter((file) => !nextFiles.has(file))
     .sort();
