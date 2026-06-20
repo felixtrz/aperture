@@ -219,10 +219,7 @@ describe("render shadow frame", () => {
     expect(calls.destroyedBuffers).toHaveLength(0);
     expect(
       calls.bufferWrites.filter((write) =>
-        writeTargetsBufferLabel(
-          write,
-          "ShadowCasterWorldTransforms/storage",
-        ),
+        writeTargetsBufferLabel(write, "ShadowCasterWorldTransforms/storage"),
       ),
     ).toHaveLength(1);
   });
@@ -262,10 +259,7 @@ describe("render shadow frame", () => {
     ).toHaveLength(0);
     expect(
       calls.bufferWrites.filter((write) =>
-        writeTargetsBufferLabel(
-          write,
-          "ShadowCasterWorldTransforms/storage",
-        ),
+        writeTargetsBufferLabel(write, "ShadowCasterWorldTransforms/storage"),
       ),
     ).toHaveLength(2);
   });
@@ -351,9 +345,9 @@ describe("render shadow frame", () => {
     const destroyed = new Set(calls.destroyedBuffers);
     const referencedBuffers = bindGroupBufferReferences(revisit.commandRecords);
     expect(referencedBuffers.length).toBeGreaterThan(0);
-    expect(
-      referencedBuffers.filter((buffer) => destroyed.has(buffer)),
-    ).toEqual([]);
+    expect(referencedBuffers.filter((buffer) => destroyed.has(buffer))).toEqual(
+      [],
+    );
   });
 
   it("honors authored shadow request bias, filter radius, and map size", () => {
