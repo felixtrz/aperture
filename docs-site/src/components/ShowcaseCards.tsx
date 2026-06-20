@@ -74,6 +74,7 @@ export function ShowcaseCards({ showcases }: ShowcaseCardsProps) {
           ))}
         </div>
         <iframe
+          allow="fullscreen; gamepad; webgpu"
           className="docs-browser-frame"
           src={withBase(activeShowcase.href)}
           title={`${activeShowcase.name} showcase`}

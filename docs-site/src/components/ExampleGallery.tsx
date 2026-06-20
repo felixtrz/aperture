@@ -18,6 +18,7 @@ export interface ExampleGalleryProps {
 }
 
 const base = import.meta.env.BASE_URL ?? "/";
+const defaultExampleId = "spinning-cube";
 
 function withBase(href: string) {
   if (/^https?:\/\//u.test(href) || !href.startsWith("/")) {
@@ -27,9 +28,13 @@ function withBase(href: string) {
 }
 
 export function ExampleGallery({ examples, categories }: ExampleGalleryProps) {
+  const defaultExample =
+    examples.find((example) => example.id === defaultExampleId) ?? examples[0];
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
-  const [activeExampleId, setActiveExampleId] = useState(examples[0]?.id ?? "");
+  const [activeExampleId, setActiveExampleId] = useState(
+    defaultExample?.id ?? "",
+  );
   const handleQueryChange = (event: ChangeEvent<HTMLInputElement>) => {
     setQuery(event.currentTarget.value);
   };
@@ -147,6 +152,7 @@ export function ExampleGallery({ examples, categories }: ExampleGalleryProps) {
           ))}
         </div>
         <iframe
+          allow="fullscreen; gamepad; webgpu"
           className="docs-browser-frame"
           src={withBase(activeExample.href)}
           title={`${activeExample.title} example`}
