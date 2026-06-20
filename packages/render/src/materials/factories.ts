@@ -50,7 +50,7 @@ export function createUnlitMaterialAsset(
     kind: "unlit",
     label: input.label ?? "Unlit Material",
     renderState: createDefaultRenderState(input.renderState),
-    baseColorFactor: (input.baseColorFactor ?? vec4(1, 1, 1, 1)) as Vec4,
+    baseColorFactor: materialColor(input.baseColorFactor),
     baseColorTexture: input.baseColorTexture ?? null,
     unsupportedFeatures: input.unsupportedFeatures ?? [],
   };
@@ -72,7 +72,7 @@ export function createMatcapMaterialAsset(
     kind: "matcap",
     label: input.label ?? "Matcap Material",
     renderState: createDefaultRenderState(input.renderState),
-    baseColorFactor: (input.baseColorFactor ?? vec4(1, 1, 1, 1)) as Vec4,
+    baseColorFactor: materialColor(input.baseColorFactor),
     matcapTexture: input.matcapTexture ?? null,
     unsupportedFeatures: input.unsupportedFeatures ?? [],
   };
@@ -94,7 +94,7 @@ export function createStandardMaterialAsset(
     kind: "standard",
     label: input.label ?? "Standard Material",
     renderState: createDefaultRenderState(input.renderState),
-    baseColorFactor: (input.baseColorFactor ?? vec4(1, 1, 1, 1)) as Vec4,
+    baseColorFactor: materialColor(input.baseColorFactor),
     baseColorTexture: input.baseColorTexture ?? null,
     metallicFactor: input.metallicFactor ?? 1,
     roughnessFactor: input.roughnessFactor ?? 1,
@@ -176,6 +176,29 @@ export interface MatcapMaterialPatch {
   readonly baseColorFactor?: Vec4Like;
   readonly renderState?: Partial<RenderStateDescriptor>;
   readonly label?: string;
+}
+
+function materialColor(value: Vec4Like | undefined): Vec4 {
+  if (value === undefined) {
+    return vec4(1, 1, 1, 1);
+  }
+
+  return vec4(
+    readVec4Component(value, 0),
+    readVec4Component(value, 1),
+    readVec4Component(value, 2),
+    readVec4Component(value, 3),
+  );
+}
+
+function readVec4Component(value: Vec4Like, index: number): number {
+  const component = value[index];
+  if (component === undefined) {
+    throw new RangeError(
+      `Material baseColorFactor is missing numeric value at index ${index}.`,
+    );
+  }
+  return component;
 }
 
 export function patchStandardMaterial(
