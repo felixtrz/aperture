@@ -326,14 +326,9 @@ function createPlaceholderSnapshot(frame: number): RenderSnapshot {
   };
 }
 
-function runNextScheduledRaf(scheduledRafs: FrameRequestCallback[]): void {
-  const callback = scheduledRafs.shift();
-
-  if (callback === undefined) {
-    throw new Error("Expected a scheduled requestAnimationFrame callback.");
-  }
-
-  callback(performance.now());
+interface JsonRecord {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- serialized JSON report is inspected dynamically (array .map/index access) in assertions
+  readonly [key: string]: any;
 }
 
 async function waitForCondition(
@@ -1623,7 +1618,9 @@ describe("WebGPU app facade", () => {
     );
 
     const frame = await app.stepAndRender(1 / 60, 1, 21);
-    const json = webGpuAppRenderReportToJsonValue(frame) as Record<string, any>;
+    const json = webGpuAppRenderReportToJsonValue(
+      frame,
+    ) as unknown as JsonRecord;
 
     expect(frame.ok).toBe(true);
     expect(frame.gpuTimings).toMatchObject({

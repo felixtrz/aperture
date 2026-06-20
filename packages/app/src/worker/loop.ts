@@ -159,18 +159,48 @@ export async function runGeneratedWorkerLoop(options: {
     });
     options.setApp(app, entityTools, devtools);
 
+    const reportRuntimeFailure = (error: unknown): void => {
+      const diagnostic = errorToApertureDiagnostic(error, {
+        code: "aperture.generatedWorker.tickFailed",
+        severity: "error",
+        message:
+          "Generated Aperture simulation worker threw during a frame tick.",
+        suggestedFix:
+          "Inspect the throwing app system or per-frame asset update, then restart the generated app.",
+        source: { worker: "generated-simulation" },
+      });
+
+      options.port.postMessage({
+        type: SIMULATION_WORKER_PROTOCOL.error,
+        reason: diagnostic.code,
+        message: diagnostic.message,
+        diagnostics: [diagnostic],
+      });
+    };
+
     const tick = () => {
       if (!running) {
         tickScheduler.dispose();
         return;
       }
 
-      const now = performance.now();
-      const delta = Math.max(0, (now - previousTime) / 1000);
-      previousTime = now;
+      try {
+        const now = performance.now();
+        const delta = Math.max(0, (now - previousTime) / 1000);
+        previousTime = now;
 
-      if (!paused) {
-        publishSnapshot(delta, now / 1000);
+        if (!paused) {
+          publishSnapshot(delta, now / 1000);
+        }
+      } catch (error: unknown) {
+        // A steady-state tick failure is otherwise uncaught (the reschedule
+        // below never runs and the scheduler callback swallows it), leaving the
+        // simulation frozen with no signal. Halt the loop and surface the
+        // failure to the main thread instead.
+        running = false;
+        tickScheduler.dispose();
+        reportRuntimeFailure(error);
+        return;
       }
 
       tickScheduler.schedule(tick);

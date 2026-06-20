@@ -51,7 +51,6 @@ import {
   type WebGpuAppMsaaReport,
 } from "./attachments.js";
 import {
-  createWebGpuAppGpuTimingForPass,
   createWebGpuAppGpuTimingForTarget,
   type WebGpuAppGpuTimingReadback,
   type WebGpuAppOcclusionQueryReadback,

@@ -29,7 +29,26 @@ import { installApertureSystemGraphHmr } from "./system-graph-hmr.js";
 export interface ApertureVitePluginOptions {
   readonly configFile?: string;
   readonly ai?: ApertureVitePluginAiOptions;
+  /**
+   * Emit the COOP/COEP response headers that make the page cross-origin
+   * isolated. Aperture's worker transport relies on `SharedArrayBuffer`, which
+   * the browser only exposes when the document is cross-origin isolated, so
+   * this defaults to `true`. Set it to `false` only if you supply the headers
+   * yourself (for example via a hosting `_headers` file or another plugin).
+   */
+  readonly crossOriginIsolation?: boolean;
 }
+
+/**
+ * Response headers required for `crossOriginIsolated === true`, which in turn
+ * unlocks `SharedArrayBuffer` for the worker/main-thread snapshot transport.
+ */
+export const APERTURE_CROSS_ORIGIN_ISOLATION_HEADERS: Readonly<
+  Record<string, string>
+> = {
+  "Cross-Origin-Opener-Policy": "same-origin",
+  "Cross-Origin-Embedder-Policy": "require-corp",
+};
 
 export interface ApertureVitePluginAiOptions {
   readonly mode?: "agent" | "off";
@@ -37,6 +56,10 @@ export interface ApertureVitePluginAiOptions {
 
 export interface ApertureVitePlugin {
   readonly name: string;
+  config?(): {
+    readonly server?: { readonly headers?: Record<string, string> };
+    readonly preview?: { readonly headers?: Record<string, string> };
+  } | void;
   configResolved?(config: {
     readonly root: string;
     readonly command?: "serve" | "build";
@@ -68,9 +91,21 @@ export function aperture(
       }
     | undefined;
   const aiDevtoolsEnabled = options.ai?.mode !== "off";
+  const crossOriginIsolation = options.crossOriginIsolation !== false;
 
   const plugin: ApertureVitePlugin = {
     name: "aperture",
+    config() {
+      if (!crossOriginIsolation) {
+        return;
+      }
+
+      const headers = { ...APERTURE_CROSS_ORIGIN_ISOLATION_HEADERS };
+      return {
+        server: { headers },
+        preview: { headers: { ...headers } },
+      };
+    },
     configResolved(config) {
       root = config.root;
       command = config.command ?? command;

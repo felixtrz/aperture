@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1236
+Every structured diagnostic code the engine can emit (1250
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -85,11 +85,12 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.entityTools.invalidMutationRequest` | Entity mutation requires component and field string values.             | yes  | `packages/app/src/worker/devtools/entities.ts` |
 | `aperture.entityTools.missingEntityRef`       | Entity tool command requires an entity { index, generation } reference. | yes  | `packages/app/src/worker/devtools/entities.ts` |
 
-## aperture.generatedWorker (1)
+## aperture.generatedWorker (2)
 
-| Code                              | Message                                                     | Fix? | Emitted from                      |
-| --------------------------------- | ----------------------------------------------------------- | ---- | --------------------------------- |
-| `aperture.generatedWorker.failed` | Generated Aperture simulation worker failed during startup. | yes  | `packages/app/src/worker/loop.ts` |
+| Code                                  | Message                                                         | Fix? | Emitted from                      |
+| ------------------------------------- | --------------------------------------------------------------- | ---- | --------------------------------- |
+| `aperture.generatedWorker.failed`     | Generated Aperture simulation worker failed during startup.     | yes  | `packages/app/src/worker/loop.ts` |
+| `aperture.generatedWorker.tickFailed` | Generated Aperture simulation worker threw during a frame tick. | yes  | `packages/app/src/worker/loop.ts` |
 
 ## aperture.gltf (4)
 
@@ -187,15 +188,15 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## aperture.render (7)
 
-| Code                                        | Message                                                                                                               | Fix? | Emitted from                                           |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------ |
-| `aperture.render.canvasMissing`             | No HTML canvas was found for managed-browser entity pick.                                                             | —    | `packages/app/src/browser/devtools/picking.ts`         |
-| `aperture.render.pickOutOfBounds`           | Pick point is outside the …x… canvas.                                                                                 | —    | `packages/app/src/browser/devtools/picking.ts`         |
-| `aperture.render.readbackSampleOutOfBounds` | Readback sample '…' is outside the …x… canvas.                                                                        | —    | `packages/app/src/browser/devtools/canvas-readback.ts` |
-| `aperture.render.sampleCount.clamped`       | WebGPU generated apps currently support MSAA sample counts 1 and 4; this value will be clamped by the WebGPU backend. | yes  | `packages/app/src/browser/render.ts`                   |
-| `aperture.render.sampleCount.invalid`       | Generated app render.sampleCount must be a finite positive number; using the default 4x MSAA.                         | yes  | `packages/app/src/browser/render.ts`                   |
-| `aperture.render.webgpuNotReady`            | WebGPU has not finished initializing in this managed tab.                                                             | —    | `packages/app/src/browser/devtools/picking.ts`         |
-| `aperture.render.webgpuUnavailable`         | WebGPU initialization failed, so entity picking is unavailable.                                                       | —    | `packages/app/src/browser/devtools/picking.ts`         |
+| Code                                        | Message                                                                                                               | Fix? | Emitted from                                                                                       |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------- |
+| `aperture.render.canvasMissing`             | No HTML canvas was found for managed-browser entity pick.                                                             | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
+| `aperture.render.pickOutOfBounds`           | Pick point is outside the …x… canvas.                                                                                 | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
+| `aperture.render.readbackSampleOutOfBounds` | Readback sample '…' is outside the …x… canvas.                                                                        | —    | `packages/app/src/browser/devtools/canvas-readback.ts`<br>`packages/cli/src/tools/png-readback.ts` |
+| `aperture.render.sampleCount.clamped`       | WebGPU generated apps currently support MSAA sample counts 1 and 4; this value will be clamped by the WebGPU backend. | yes  | `packages/app/src/browser/render.ts`                                                               |
+| `aperture.render.sampleCount.invalid`       | Generated app render.sampleCount must be a finite positive number; using the default 4x MSAA.                         | yes  | `packages/app/src/browser/render.ts`                                                               |
+| `aperture.render.webgpuNotReady`            | WebGPU has not finished initializing in this managed tab.                                                             | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
+| `aperture.render.webgpuUnavailable`         | WebGPU initialization failed, so entity picking is unavailable.                                                       | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
 
 ## aperture.resource (3)
 
@@ -3078,6 +3079,12 @@ suggestedFix accompanies it, and where it is emitted.
 | ----------------------------- | ------------------------------------------------------------- | ---- | ----------------------------------------- |
 | `meshUpload.invalidIndexData` | Index buffer data is missing or incompatible with '…' format. | —    | `packages/render/src/mesh/upload-plan.ts` |
 
+## meshUpload.invalidUpdateRange (1)
+
+| Code                            | Message                                                                          | Fix? | Emitted from                              |
+| ------------------------------- | -------------------------------------------------------------------------------- | ---- | ----------------------------------------- |
+| `meshUpload.invalidUpdateRange` | Mesh update ranges must be 4-byte aligned byte windows inside the source buffer. | —    | `packages/render/src/mesh/upload-plan.ts` |
+
 ## meshUpload.invalidVertexStreamData (1)
 
 | Code                                 | Message                                                                 | Fix? | Emitted from                              |
@@ -3390,11 +3397,47 @@ suggestedFix accompanies it, and where it is emitted.
 | ---------------------------------- | -------------------------------------- | ---- | -------------------------------------- |
 | `particleFrame.beginComputeFailed` | Particle compute pass could not begin. | —    | `packages/webgpu/src/app/particles.ts` |
 
+## particleFrame.burstBatchBufferFailed (1)
+
+| Code                                   | Message                       | Fix? | Emitted from                           |
+| -------------------------------------- | ----------------------------- | ---- | -------------------------------------- |
+| `particleFrame.burstBatchBufferFailed` | (message composed at runtime) | —    | `packages/webgpu/src/app/particles.ts` |
+
+## particleFrame.burstBatchSlotUnavailable (1)
+
+| Code                                      | Message                                                            | Fix? | Emitted from                           |
+| ----------------------------------------- | ------------------------------------------------------------------ | ---- | -------------------------------------- |
+| `particleFrame.burstBatchSlotUnavailable` | Particle burst batch did not have enough contiguous slot capacity. | —    | `packages/webgpu/src/app/particles.ts` |
+
+## particleFrame.burstBatchUnavailable (1)
+
+| Code                                  | Message                                                             | Fix? | Emitted from                           |
+| ------------------------------------- | ------------------------------------------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.burstBatchUnavailable` | Particle burst batching requires bind groups and queue.writeBuffer. | —    | `packages/webgpu/src/app/particles.ts` |
+
+## particleFrame.burstParamBufferFailed (1)
+
+| Code                                   | Message                       | Fix? | Emitted from                           |
+| -------------------------------------- | ----------------------------- | ---- | -------------------------------------- |
+| `particleFrame.burstParamBufferFailed` | (message composed at runtime) | —    | `packages/webgpu/src/app/particles.ts` |
+
+## particleFrame.burstParamBufferMissing (1)
+
+| Code                                    | Message                                               | Fix? | Emitted from                           |
+| --------------------------------------- | ----------------------------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.burstParamBufferMissing` | Particle burst render params did not return a buffer. | —    | `packages/webgpu/src/app/particles.ts` |
+
+## particleFrame.burstParamWriteUnavailable (1)
+
+| Code                                       | Message                                                 | Fix? | Emitted from                           |
+| ------------------------------------------ | ------------------------------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.burstParamWriteUnavailable` | Particle burst render params require queue.writeBuffer. | —    | `packages/webgpu/src/app/particles.ts` |
+
 ## particleFrame.burstStateMissing (1)
 
-| Code                              | Message                                              | Fix? | Emitted from                           |
-| --------------------------------- | ---------------------------------------------------- | ---- | -------------------------------------- |
-| `particleFrame.burstStateMissing` | Particle burst packet is missing renderer CPU state. | —    | `packages/webgpu/src/app/particles.ts` |
+| Code                              | Message                                            | Fix? | Emitted from                           |
+| --------------------------------- | -------------------------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.burstStateMissing` | Particle burst packet is missing burst parameters. | —    | `packages/webgpu/src/app/particles.ts` |
 
 ## particleFrame.burstWriteBufferUnavailable (1)
 
@@ -3404,9 +3447,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## particleFrame.effectNotReady (1)
 
-| Code                           | Message                                                      | Fix? | Emitted from                           |
-| ------------------------------ | ------------------------------------------------------------ | ---- | -------------------------------------- |
-| `particleFrame.effectNotReady` | Particle render pipeline does not expose bind-group layouts. | —    | `packages/webgpu/src/app/particles.ts` |
+| Code                           | Message                           | Fix? | Emitted from                           |
+| ------------------------------ | --------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.effectNotReady` | Particle effect '…' is not ready. | —    | `packages/webgpu/src/app/particles.ts` |
 
 ## particleFrame.missingBindGroupSupport (1)
 
@@ -3428,9 +3471,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## particleFrame.viewBufferFailed (1)
 
-| Code                             | Message                           | Fix? | Emitted from                           |
-| -------------------------------- | --------------------------------- | ---- | -------------------------------------- |
-| `particleFrame.viewBufferFailed` | Particle effect '…' is not ready. | —    | `packages/webgpu/src/app/particles.ts` |
+| Code                             | Message                       | Fix? | Emitted from                           |
+| -------------------------------- | ----------------------------- | ---- | -------------------------------------- |
+| `particleFrame.viewBufferFailed` | (message composed at runtime) | —    | `packages/webgpu/src/app/particles.ts` |
 
 ## particlePipeline.createComputePipelineUnavailable (1)
 
@@ -4402,12 +4445,6 @@ suggestedFix accompanies it, and where it is emitted.
 | -------------------------------- | ----------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------- |
 | `shadowCasterDrawList.noCasters` | Shadow caster draw lists are planned, but shadow command encoding is not implemented yet. | —    | `packages/webgpu/src/shadows/shadow-caster-draw-list-plan.ts` |
 
-## shadowCasterDrawList.unsupportedAlphaBlendCaster (1)
-
-| Code                                               | Message                                                                                                                              | Fix? | Emitted from                                                  |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---- | ------------------------------------------------------------- |
-| `shadowCasterDrawList.unsupportedAlphaBlendCaster` | Shadow request '…' skipped alpha-blended render object '…' because the depth-only shadow caster pass cannot evaluate material alpha. | —    | `packages/webgpu/src/shadows/shadow-caster-draw-list-plan.ts` |
-
 ## shadowCasterFrameResource.missingMatrixBuffer (1)
 
 | Code                                            | Message                                                                     | Fix? | Emitted from                                                            |
@@ -4461,6 +4498,18 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                                              | Message                                                                                 | Fix? | Emitted from                                                              |
 | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------- |
 | `shadowCasterMatrixBindGroupResource.missingMatrixBufferResource` | Shadow caster matrix bind-group creation requires a live shadow matrix buffer resource. | —    | `packages/webgpu/src/shadows/shadow-caster-matrix-bind-group-resource.ts` |
+
+## shadowCasterMatrixBindGroupResource.missingPassMatrixResource (1)
+
+| Code                                                            | Message                                                                            | Fix? | Emitted from                                                              |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------- |
+| `shadowCasterMatrixBindGroupResource.missingPassMatrixResource` | Shadow caster matrix bind-group creation requires at least one pass matrix buffer. | —    | `packages/webgpu/src/shadows/shadow-caster-matrix-bind-group-resource.ts` |
+
+## shadowCasterMatrixBindGroupResource.missingWorldTransformResource (1)
+
+| Code                                                                | Message                                                                     | Fix? | Emitted from                                                              |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------- |
+| `shadowCasterMatrixBindGroupResource.missingWorldTransformResource` | Shadow caster matrix bind-group creation requires a world-transform buffer. | —    | `packages/webgpu/src/shadows/shadow-caster-matrix-bind-group-resource.ts` |
 
 ## shadowCasterMatrixBindGroupResource.passSubmissionDeferred (1)
 
@@ -5092,14 +5141,15 @@ suggestedFix accompanies it, and where it is emitted.
 | --------------------------------------- | ----------------------------- | ---- | ------------------------------------------------------ |
 | `skyboxRenderPipeline.shaderDiagnostic` | (message composed at runtime) | —    | `packages/webgpu/src/render/skybox/skybox-pipeline.ts` |
 
-## spatial.mesh (4)
+## spatial.mesh (5)
 
-| Code                                       | Message                                                                                            | Fix? | Emitted from                                  |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------- |
-| `spatial.mesh.missing-position`            | Mesh '…' cannot be queried because it has no POSITION attribute.                                   | yes  | `packages/render/src/mesh/spatial-adapter.ts` |
-| `spatial.mesh.unsupported-index-format`    | Mesh '…' index format '…' is not supported for CPU spatial queries.                                | yes  | `packages/render/src/mesh/spatial-adapter.ts` |
-| `spatial.mesh.unsupported-position-format` | Mesh '…' POSITION format '…' is not supported for CPU spatial queries.                             | yes  | `packages/render/src/mesh/spatial-adapter.ts` |
-| `spatial.mesh.unsupported-topology`        | Mesh '…' submesh '…' uses topology '…', but CPU mesh queries currently support triangle-list only. | yes  | `packages/render/src/mesh/spatial-adapter.ts` |
+| Code                                       | Message                                                                                            | Fix? | Emitted from                                           |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `spatial.mesh.empty`                       | (message composed at runtime)                                                                      | —    | `packages/app/src/systems/spatial-index-population.ts` |
+| `spatial.mesh.missing-position`            | Mesh '…' cannot be queried because it has no POSITION attribute.                                   | yes  | `packages/render/src/mesh/spatial-adapter.ts`          |
+| `spatial.mesh.unsupported-index-format`    | Mesh '…' index format '…' is not supported for CPU spatial queries.                                | yes  | `packages/render/src/mesh/spatial-adapter.ts`          |
+| `spatial.mesh.unsupported-position-format` | Mesh '…' POSITION format '…' is not supported for CPU spatial queries.                             | yes  | `packages/render/src/mesh/spatial-adapter.ts`          |
+| `spatial.mesh.unsupported-topology`        | Mesh '…' submesh '…' uses topology '…', but CPU mesh queries currently support triangle-list only. | yes  | `packages/render/src/mesh/spatial-adapter.ts`          |
 
 ## spatial.mesh-bvh (5)
 
@@ -5182,6 +5232,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                           | Message                                            | Fix? | Emitted from                                                    |
 | ------------------------------ | -------------------------------------------------- | ---- | --------------------------------------------------------------- |
 | `sprite.invalidCoordinateMode` | Sprite coordinateMode must be 'world' or 'screen'. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## sprite.invalidDepthMode (1)
+
+| Code                      | Message                                        | Fix? | Emitted from                                                    |
+| ------------------------- | ---------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `sprite.invalidDepthMode` | Sprite depthMode must be 'test' or 'disabled'. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## sprite.invalidPivot (1)
 
@@ -6503,6 +6559,12 @@ suggestedFix accompanies it, and where it is emitted.
 | ----------------------------------------- | -------------------------------------------------------------------- | ---- | --------------------------------------------------------------------- |
 | `viewUniformGpuBuffer.nullDescriptorPlan` | Cannot create a view uniform GPU buffer from a null descriptor plan. | —    | `packages/webgpu/src/resources/views/view-uniform-buffer-resource.ts` |
 
+## webgpu.postGraph (1)
+
+| Code                                         | Message                                                                                                                                | Fix? | Emitted from                                 |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------- |
+| `webgpu.postGraph.shadowCasterGraphDeclined` | Post-processing graph execution was required to fold shadow caster passes into the frame, but this post route is not graph-compatible. | —    | `packages/webgpu/src/app/post-processing.ts` |
+
 ## webgpu.userPass (3)
 
 | Code                                             | Message                                                                                                                                                                                  | Fix? | Emitted from                                                                                  |
@@ -6775,6 +6837,12 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------------------- | ------------------------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `webGpuPostPass.createBindGroupUnavailable` | Bloom post effect '…' cannot create a texture sampling bind group. | —    | `packages/webgpu/src/post/post-bloom.ts`<br>`packages/webgpu/src/post/post-dof.ts`<br>`packages/webgpu/src/post/post-fxaa.ts`<br>`packages/webgpu/src/post/post-pass.ts`<br>`packages/webgpu/src/post/post-ssao.ts`<br>`packages/webgpu/src/post/post-ssr.ts`<br>`packages/webgpu/src/post/post-taa.ts`<br>`packages/webgpu/src/post/post-tonemap.ts` |
 
+## webGpuPostPass.createBufferUnavailable (1)
+
+| Code                                     | Message                                                                   | Fix? | Emitted from                             |
+| ---------------------------------------- | ------------------------------------------------------------------------- | ---- | ---------------------------------------- |
+| `webGpuPostPass.createBufferUnavailable` | Bloom post effect '…' cannot allocate blur parameters without a mip slot. | —    | `packages/webgpu/src/post/post-bloom.ts` |
+
 ## webGpuPostPass.createRenderPipelineUnavailable (1)
 
 | Code                                             | Message                                                | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                          |
@@ -6834,6 +6902,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                   | Message                                     | Fix? | Emitted from                            |
 | -------------------------------------- | ------------------------------------------- | ---- | --------------------------------------- |
 | `webGpuPostPass.textureCreationFailed` | WebGPU post pass texture creation failed: … | —    | `packages/webgpu/src/post/post-pass.ts` |
+
+## webGpuPostPass.writeBufferUnavailable (1)
+
+| Code                                    | Message                                                     | Fix? | Emitted from                             |
+| --------------------------------------- | ----------------------------------------------------------- | ---- | ---------------------------------------- |
+| `webGpuPostPass.writeBufferUnavailable` | Bloom post effect '…' cannot upload blur parameter buffers. | —    | `packages/webgpu/src/post/post-bloom.ts` |
 
 ## worldTransformBuffer.emptyData (1)
 

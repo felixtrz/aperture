@@ -503,6 +503,39 @@ function createReader(
         const quadInstanceWordOffset =
           bufferIndex * layout.quadInstanceWordsPerBuffer;
         const packetOffset = bufferIndex * layout.packetWordsPerBuffer;
+
+        // Copy the payload out of the shared ring *before* re-validating the
+        // sequence. The returned arrays are owned copies (via slice), not live
+        // SAB views, so the consumer can safely retain them across an async GPU
+        // upload and across frames while the writer recycles the underlying
+        // buffers. The post-copy seqlock check guarantees the writer did not
+        // overwrite this buffer mid-copy; otherwise we retry with a fresh read.
+        // (Returning subarray views here tore under any writer/reader rate
+        // mismatch because the seqlock only covered the header read.)
+        const outTransforms = transforms.slice(
+          transformOffset,
+          transformOffset + transformFloats,
+        );
+        const outInstanceTints = instanceTints.slice(
+          instanceTintOffset,
+          instanceTintOffset + instanceTintFloats,
+        );
+        const outViewMatrices = viewMatrices.slice(
+          viewMatrixOffset,
+          viewMatrixOffset + viewMatrixFloats,
+        );
+        const outQuadInstanceFloats = quadInstanceFloats.slice(
+          quadInstanceFloatOffset,
+          quadInstanceFloatOffset + quadInstanceFloatCount,
+        );
+        const outQuadInstanceWords = quadInstanceWords.slice(
+          quadInstanceWordOffset,
+          quadInstanceWordOffset + quadInstanceWordCount,
+        );
+        const outPacketWords = packetWords.slice(
+          packetOffset,
+          packetOffset + packetWordCount,
+        );
         const sequenceAfter = Atomics.load(header, HeaderIndex.Sequence);
 
         if (sequenceBefore !== sequenceAfter || sequenceAfter % 2 !== 0) {
@@ -514,30 +547,12 @@ function createReader(
           time,
           sequence: sequenceAfter,
           bufferIndex,
-          transforms: transforms.subarray(
-            transformOffset,
-            transformOffset + transformFloats,
-          ),
-          instanceTints: instanceTints.subarray(
-            instanceTintOffset,
-            instanceTintOffset + instanceTintFloats,
-          ),
-          viewMatrices: viewMatrices.subarray(
-            viewMatrixOffset,
-            viewMatrixOffset + viewMatrixFloats,
-          ),
-          quadInstanceFloats: quadInstanceFloats.subarray(
-            quadInstanceFloatOffset,
-            quadInstanceFloatOffset + quadInstanceFloatCount,
-          ),
-          quadInstanceWords: quadInstanceWords.subarray(
-            quadInstanceWordOffset,
-            quadInstanceWordOffset + quadInstanceWordCount,
-          ),
-          packetWords: packetWords.subarray(
-            packetOffset,
-            packetOffset + packetWordCount,
-          ),
+          transforms: outTransforms,
+          instanceTints: outInstanceTints,
+          viewMatrices: outViewMatrices,
+          quadInstanceFloats: outQuadInstanceFloats,
+          quadInstanceWords: outQuadInstanceWords,
+          packetWords: outPacketWords,
         };
       }
 

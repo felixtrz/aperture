@@ -169,7 +169,6 @@ function attributeDataView(
   componentBytes: number,
 ): ArrayLike<number> {
   const componentCount = componentsPerFormat(attribute.format);
-  const stride = stream.arrayStride / componentBytes;
   const byteOffset = stream.data.byteOffset + attribute.offset;
 
   if (

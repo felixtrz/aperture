@@ -39,7 +39,6 @@ import type {
   WebGpuAppCadenceReport,
   WebGpuAppCadenceValueReport,
   WebGpuAppDiagnosticsOptions,
-  WebGpuAppPickReport,
   WebGpuAppPickReportJsonValue,
   WebGpuAppRenderReport,
   WebGpuAppRenderReportJsonValue,
@@ -117,7 +116,6 @@ export async function createWebGpuApp(
   let latestStatusReportJsonSource: WebGpuAppRenderReport | null = null;
   let previousSnapshotForUpdate: RenderSnapshot | null = null;
   let latestPreviousSnapshotForUpdate: RenderSnapshot | null = null;
-  let latestPickReport: WebGpuAppPickReport | null = null;
   let latestPickReportJson: WebGpuAppPickReportJsonValue | null = null;
   let latestWorkerError: WebGpuAppWorkerRenderErrorDiagnostic | null = null;
   let preparedResourceLifetimeFrame = 0;
@@ -416,7 +414,6 @@ export async function createWebGpuApp(
         },
       );
 
-      latestPickReport = report;
       latestPickReportJson = webGpuAppPickReportToJsonValue(report);
       return report.entity;
     },
