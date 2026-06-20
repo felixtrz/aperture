@@ -55,6 +55,7 @@ const SUN_HORIZON_ELEVATION_DEGREES = 6;
 const SUN_NOON_ELEVATION_DEGREES = 72;
 const SUN_SIDE_WEIGHT = 1;
 const SUN_BEHIND_WEIGHT = 0.45;
+const MORNING_LIGHTS_OFF_PHASE = 0.2;
 const LAMP_MAX_INTENSITY = 4; // street-lamp spot-light intensity at full night
 const WINDOW_MAX_VISIBILITY = 1; // 0..1 window opacity/emissive multiplier at full night
 const WINDOW_BASE_COLOR = [1, 0.78, 0.32] as const;
@@ -250,10 +251,9 @@ export default class DayNightSystem extends createSystem({
     }
 
     // --- night lights: dark by day, warm glow as the sun sets --------------
-    const lampFactor = Math.min(
-      Math.max((2.6 - sample.sunIntensity) / (2.6 - 0.9), 0),
-      1,
-    );
+    const lampFactor =
+      Math.min(Math.max((2.6 - sample.sunIntensity) / (2.6 - 0.9), 0), 1) *
+      morningNightLightFactor(this.#phase);
     for (const entity of this.queries.lights.entities) {
       const key = entity.getValue(AppEntityKey, "value");
       if (typeof key === "string" && nightSyncedLight(key)) {
@@ -592,6 +592,13 @@ function nightSyncedLight(key: string): boolean {
   );
 }
 
+function morningNightLightFactor(phase: number): number {
+  if (phase < SUNRISE_PHASE || phase >= 0.3) {
+    return 1;
+  }
+  return 1 - smoothstepRange(SUNRISE_PHASE, MORNING_LIGHTS_OFF_PHASE, phase);
+}
+
 function sampleSunArc(phase: number): SunArc {
   const daylight = daylightProgress(phase);
   if (daylight === null) {
@@ -646,6 +653,13 @@ function yawVector(yaw: number): readonly [number, number] {
 function smoothstep01(value: number): number {
   const t = Math.min(Math.max(value, 0), 1);
   return t * t * (3 - 2 * t);
+}
+
+function smoothstepRange(start: number, end: number, value: number): number {
+  if (end <= start) {
+    return value >= end ? 1 : 0;
+  }
+  return smoothstep01((value - start) / (end - start));
 }
 
 function smootherstep01(value: number): number {
