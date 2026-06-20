@@ -316,7 +316,7 @@ fn localLightClusterPointCookieColor(position: vec3f, lightIndex: u32, lightPosi
     roughness,
   );`;
 
-  let result = code
+  const result = code
     .replace(
       `@fragment
 fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> @location(0) vec4f {`,

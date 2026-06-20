@@ -9,6 +9,10 @@ import {
   webGpuAppRenderReportToJsonValue,
 } from "../../packages/webgpu/src/app/report.js";
 
+interface JsonRecord {
+  readonly [key: string]: JsonRecord | undefined;
+}
+
 describe("WebGPU app report serialization", () => {
   it("keeps full render change-set keys for explicit reports and compacts status keys", () => {
     const report = renderReport({
@@ -17,13 +21,12 @@ describe("WebGPU app report serialization", () => {
       snapshotChangeSet: changeSetWithKeys(),
       diagnostics: [],
     });
-    const full = webGpuAppRenderReportToJsonValue(report) as Record<
-      string,
-      any
-    >;
+    const full = webGpuAppRenderReportToJsonValue(
+      report,
+    ) as unknown as JsonRecord;
     const status = webGpuAppRenderReportToJsonValue(report, {
       detail: "status",
-    }) as Record<string, any>;
+    }) as unknown as JsonRecord;
 
     expect(
       full.renderChangeSet?.["keys"]?.["meshDraws"]?.["unchanged"],
@@ -70,13 +73,12 @@ describe("WebGPU app report serialization", () => {
       diagnosticsSummary: diagnosticsSummaryWithDirectLighting() as never,
       shadow: shadowReportWithDetails() as never,
     });
-    const full = webGpuAppRenderReportToJsonValue(report) as Record<
-      string,
-      any
-    >;
+    const full = webGpuAppRenderReportToJsonValue(
+      report,
+    ) as unknown as JsonRecord;
     const status = webGpuAppRenderReportToJsonValue(report, {
       detail: "status",
-    }) as Record<string, any>;
+    }) as unknown as JsonRecord;
 
     expect(full.shadow?.["matrixComputation"]?.["matrices"]).toHaveLength(1);
     expect(

@@ -7,7 +7,6 @@ import type {
   ApertureConfig,
   ApertureAudioAssetDescriptor,
   ApertureConfigAsset,
-  ApertureConfigAssetDescriptor,
   ApertureParticleEffectAssetDescriptor,
   ApertureTextureAssetDescriptor,
   AssetPreloadPolicy,
@@ -684,7 +683,11 @@ function validatePointerName(
   actionName: string,
   pointer: PointerBinding["pointer"],
 ): void {
-  if (pointer === "primary" || pointer === "secondary" || pointer === "middle") {
+  if (
+    pointer === "primary" ||
+    pointer === "secondary" ||
+    pointer === "middle"
+  ) {
     return;
   }
 

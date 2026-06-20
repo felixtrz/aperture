@@ -104,6 +104,40 @@ describe("createSharedSnapshotTransport", () => {
     });
   });
 
+  it("returns payload copies the writer cannot overwrite (no SAB tearing)", () => {
+    const transport = createSharedSnapshotTransport({
+      maxEntities: 1,
+      maxViews: 1,
+      requireCrossOriginIsolated: false,
+    });
+
+    transport.writer.writeFrame({
+      frame: 1,
+      transforms: new Float32Array(16).fill(1),
+      viewMatrices: new Float32Array(48).fill(1),
+    });
+
+    const read = transport.reader.readLatestFrame();
+    expect(read?.transforms[0]).toBe(1);
+
+    // The writer alternates between the two ring buffers, so frame 3 recycles
+    // the buffer frame 1 used. A live SAB view would observe these later writes
+    // (tearing); an owned copy must stay pinned to frame 1's data.
+    transport.writer.writeFrame({
+      frame: 2,
+      transforms: new Float32Array(16).fill(2),
+      viewMatrices: new Float32Array(48).fill(2),
+    });
+    transport.writer.writeFrame({
+      frame: 3,
+      transforms: new Float32Array(16).fill(3),
+      viewMatrices: new Float32Array(48).fill(3),
+    });
+
+    expect(read?.transforms).toEqual(new Float32Array(16).fill(1));
+    expect(read?.viewMatrices).toEqual(new Float32Array(48).fill(1));
+  });
+
   it("reconstructs writer and reader views from transferred shared buffers", () => {
     const source = createSharedSnapshotTransport({
       maxEntities: 1,

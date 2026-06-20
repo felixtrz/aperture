@@ -4,7 +4,6 @@ import type {
   LightInput,
   LightShadowSettingsInput,
   ParticleEmitterInput,
-  RenderStateDescriptor,
   SkyboxInput,
   StandardMaterialPatch,
 } from "@aperture-engine/render";
@@ -257,7 +256,7 @@ export interface SpawnGltfBatchOptions {
   readonly instances: readonly SpawnGltfBatchInstance[];
 }
 
-export interface SpawnGltfMaterialOverrides extends StandardMaterialPatch {}
+export type SpawnGltfMaterialOverrides = StandardMaterialPatch;
 
 export interface SpawnPrefabOptions extends SpawnMetadata {
   /** Per-field override of the instance root's local transform. */

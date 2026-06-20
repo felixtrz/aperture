@@ -89,7 +89,6 @@ import {
 } from "./shadow-caster-frame-resource-readiness.js";
 import {
   createShadowCasterMatrixBindGroupResourceReport,
-  createShadowCasterMatrixBindGroupLayoutDescriptor,
   shadowCasterMatrixBindGroupResourceKey,
   type ShadowCasterMatrixBindGroupResource,
   type ShadowCasterMatrixBindGroupResourceReport,
@@ -405,12 +404,10 @@ export function createRenderShadowFrame(
   const directionalRequests = options.snapshot.shadowRequests.filter(
     isDirectionalShadowRequest,
   );
-  const pointShadowRequests = options.snapshot.shadowRequests.filter(
-    isPointShadowRequest,
-  );
-  const spotShadowRequests = options.snapshot.shadowRequests.filter(
-    isSpotShadowRequest,
-  );
+  const pointShadowRequests =
+    options.snapshot.shadowRequests.filter(isPointShadowRequest);
+  const spotShadowRequests =
+    options.snapshot.shadowRequests.filter(isSpotShadowRequest);
   const isPointFrame =
     directionalRequests.length === 0 && pointShadowRequests.length > 0;
   const isSpotFrame =
@@ -422,7 +419,11 @@ export function createRenderShadowFrame(
     : isSpotFrame
       ? spotShadowRequests
       : directionalRequests;
-  const kindLabel = isPointFrame ? "point" : isSpotFrame ? "spot" : "directional";
+  const kindLabel = isPointFrame
+    ? "point"
+    : isSpotFrame
+      ? "spot"
+      : "directional";
   const descriptor = createShadowMapDescriptorReport({
     shadowRequests,
     descriptors: shadowRequests.map((request) =>
@@ -553,9 +554,7 @@ export function createRenderShadowFrame(
       ...(fallbackMatrix?.near === undefined
         ? {}
         : { near: fallbackMatrix.near }),
-      ...(fallbackMatrix?.far === undefined
-        ? {}
-        : { far: fallbackMatrix.far }),
+      ...(fallbackMatrix?.far === undefined ? {} : { far: fallbackMatrix.far }),
       ...(fallbackMatrix?.lightDistance === undefined
         ? {}
         : { lightDistance: fallbackMatrix.lightDistance }),

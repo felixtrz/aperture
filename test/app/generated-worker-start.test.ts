@@ -97,6 +97,16 @@ class GeneratedWorkerInputProofSystem extends GeneratedWorkerInputProofBase {
   }
 }
 
+const GeneratedWorkerTickThrowProofBase = createSystem();
+
+class GeneratedWorkerTickThrowProofSystem extends GeneratedWorkerTickThrowProofBase {
+  override update(): void {
+    throw new Error(
+      "Intentional tick failure for worker error propagation test.",
+    );
+  }
+}
+
 const GeneratedWorkerParticleSummaryProofBase = createSystem();
 
 class GeneratedWorkerParticleSummaryProofSystem extends GeneratedWorkerParticleSummaryProofBase {
@@ -7457,6 +7467,30 @@ describe("generated simulation worker start messages", () => {
     expect(error).toMatchObject({
       type: SIMULATION_WORKER_PROTOCOL.error,
       reason: "aperture.generatedWorker.failed",
+    });
+  });
+
+  it("reports a steady-state tick failure instead of freezing silently", async () => {
+    const port = new TestGeneratedWorkerPort();
+
+    startGeneratedSimulationWorker({
+      config: defineApertureConfig({ mode: "headless", systems: [] }),
+      systems: [{ default: GeneratedWorkerTickThrowProofSystem }],
+      port,
+    });
+    // No `stop: true`: the steady-state tick loop runs and the first tick throws
+    // inside the system update. Without the loop's try/catch this surfaced as an
+    // uncaught worker error and the simulation froze with no signal.
+    port.dispatch({
+      type: SIMULATION_WORKER_PROTOCOL.start,
+      options: {},
+    });
+
+    const error = await port.nextPostedMessage(isSimulationWorkerErrorMessage);
+
+    expect(error).toMatchObject({
+      type: SIMULATION_WORKER_PROTOCOL.error,
+      reason: "aperture.generatedWorker.tickFailed",
     });
   });
 });

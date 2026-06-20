@@ -528,6 +528,7 @@ async function collectVisualDiagnostics(page) {
   }
 
   const canvasInfo = await page.evaluate(() => {
+    /* global HTMLCanvasElement */
     const canvas = document.querySelector("canvas");
     if (!(canvas instanceof HTMLCanvasElement)) {
       return {

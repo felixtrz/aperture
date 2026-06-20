@@ -14,6 +14,8 @@ export default tseslint.config(
       "examples/**/dist/**",
       "node_modules/**",
       "coverage/**",
+      "shadow-lab/src/compare/three.core.js",
+      "shadow-lab/src/compare/three.webgpu.js",
       "agent/logs/**",
       ".claude/**",
       "**/.aperture/**",
