@@ -25,8 +25,13 @@ untouched source (`packages/physics/src/ecs-sync.ts`,
 mismatches introduced by the installed TypeScript (`^6.0.3`, which made
 `TypedArray`s generic over their buffer type). The build gate (`tsc -b`) is
 green, so this is a type-checker/lib-version drift in the test tsconfig, not a
-defect introduced by this audit. It should be addressed separately (pin
-TypeScript or adapt the `number[]` ⇄ `Float32Array` call sites).
+defect introduced by this audit.
+
+**Update:** resolved in a follow-up — the math storage types are now branded as
+`Float32Array & <tuple>` (so vector element access types as `number` and stays
+assignable to `number[]`), and the `Float32Array` ⇄ `number[]` /
+`exactOptionalPropertyTypes` call sites across source and tests were adapted.
+`pnpm run check` (including `typecheck:test` and `format:check`) is now green.
 
 ## Remediation completed in this pass
 
