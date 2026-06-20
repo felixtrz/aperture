@@ -3,27 +3,28 @@
 // these at the JIT ceiling. Inputs are cast to fixed tuples for precise typing
 // under `noUncheckedIndexedAccess`; the casts are type-only and free at runtime.
 
+import { allocVec3 } from "./alloc.js";
 import type { NumArray, T3, T4, T16, Vec3 } from "./types.js";
 
 export function create(x = 0, y = 0, z = 0): Vec3 {
-  const d = new Float32Array(3);
+  const d = allocVec3();
   d[0] = x;
   d[1] = y;
   d[2] = z;
   return d;
 }
 
-export function set(x: number, y: number, z: number, dst?: Vec3): Vec3 {
-  const d = dst ?? new Float32Array(3);
+export function set(x: number, y: number, z: number, dst?: Float32Array): Vec3 {
+  const d = allocVec3(dst);
   d[0] = x;
   d[1] = y;
   d[2] = z;
   return d;
 }
 
-export function copy(vIn: NumArray, dst?: Vec3): Vec3 {
+export function copy(vIn: NumArray, dst?: Float32Array): Vec3 {
   const v = vIn as unknown as T3;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   d[0] = v[0];
   d[1] = v[1];
   d[2] = v[2];
@@ -32,20 +33,20 @@ export function copy(vIn: NumArray, dst?: Vec3): Vec3 {
 
 export { copy as clone };
 
-export function add(aIn: NumArray, bIn: NumArray, dst?: Vec3): Vec3 {
+export function add(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Vec3 {
   const a = aIn as unknown as T3;
   const b = bIn as unknown as T3;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   d[0] = a[0] + b[0];
   d[1] = a[1] + b[1];
   d[2] = a[2] + b[2];
   return d;
 }
 
-export function subtract(aIn: NumArray, bIn: NumArray, dst?: Vec3): Vec3 {
+export function subtract(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Vec3 {
   const a = aIn as unknown as T3;
   const b = bIn as unknown as T3;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   d[0] = a[0] - b[0];
   d[1] = a[1] - b[1];
   d[2] = a[2] - b[2];
@@ -54,9 +55,9 @@ export function subtract(aIn: NumArray, bIn: NumArray, dst?: Vec3): Vec3 {
 
 export { subtract as sub };
 
-export function scale(vIn: NumArray, k: number, dst?: Vec3): Vec3 {
+export function scale(vIn: NumArray, k: number, dst?: Float32Array): Vec3 {
   const v = vIn as unknown as T3;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   d[0] = v[0] * k;
   d[1] = v[1] * k;
   d[2] = v[2] * k;
@@ -69,20 +70,20 @@ export function addScaled(
   aIn: NumArray,
   bIn: NumArray,
   k: number,
-  dst?: Vec3,
+  dst?: Float32Array,
 ): Vec3 {
   const a = aIn as unknown as T3;
   const b = bIn as unknown as T3;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   d[0] = a[0] + b[0] * k;
   d[1] = a[1] + b[1] * k;
   d[2] = a[2] + b[2] * k;
   return d;
 }
 
-export function negate(vIn: NumArray, dst?: Vec3): Vec3 {
+export function negate(vIn: NumArray, dst?: Float32Array): Vec3 {
   const v = vIn as unknown as T3;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   d[0] = -v[0];
   d[1] = -v[1];
   d[2] = -v[2];
@@ -95,10 +96,10 @@ export function dot(aIn: NumArray, bIn: NumArray): number {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
-export function cross(aIn: NumArray, bIn: NumArray, dst?: Vec3): Vec3 {
+export function cross(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Vec3 {
   const a = aIn as unknown as T3;
   const b = bIn as unknown as T3;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   const ax = a[0];
   const ay = a[1];
   const az = a[2];
@@ -134,9 +135,9 @@ export function distance(aIn: NumArray, bIn: NumArray): number {
   return Math.sqrt(dx * dx + dy * dy + dz * dz);
 }
 
-export function normalize(vIn: NumArray, dst?: Vec3): Vec3 {
+export function normalize(vIn: NumArray, dst?: Float32Array): Vec3 {
   const v = vIn as unknown as T3;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   const x = v[0];
   const y = v[1];
   const z = v[2];
@@ -148,20 +149,20 @@ export function normalize(vIn: NumArray, dst?: Vec3): Vec3 {
   return d;
 }
 
-export function min(aIn: NumArray, bIn: NumArray, dst?: Vec3): Vec3 {
+export function min(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Vec3 {
   const a = aIn as unknown as T3;
   const b = bIn as unknown as T3;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   d[0] = Math.min(a[0], b[0]);
   d[1] = Math.min(a[1], b[1]);
   d[2] = Math.min(a[2], b[2]);
   return d;
 }
 
-export function max(aIn: NumArray, bIn: NumArray, dst?: Vec3): Vec3 {
+export function max(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Vec3 {
   const a = aIn as unknown as T3;
   const b = bIn as unknown as T3;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   d[0] = Math.max(a[0], b[0]);
   d[1] = Math.max(a[1], b[1]);
   d[2] = Math.max(a[2], b[2]);
@@ -172,11 +173,11 @@ export function lerp(
   aIn: NumArray,
   bIn: NumArray,
   t: number,
-  dst?: Vec3,
+  dst?: Float32Array,
 ): Vec3 {
   const a = aIn as unknown as T3;
   const b = bIn as unknown as T3;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   d[0] = a[0] + t * (b[0] - a[0]);
   d[1] = a[1] + t * (b[1] - a[1]);
   d[2] = a[2] + t * (b[2] - a[2]);
@@ -184,10 +185,10 @@ export function lerp(
 }
 
 /** Full homogeneous transform of a point by a 4x4 matrix (divides by w). */
-export function transformMat4(vIn: NumArray, mIn: NumArray, dst?: Vec3): Vec3 {
+export function transformMat4(vIn: NumArray, mIn: NumArray, dst?: Float32Array): Vec3 {
   const v = vIn as unknown as T3;
   const m = mIn as unknown as T16;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   const x = v[0];
   const y = v[1];
   const z = v[2];
@@ -202,11 +203,11 @@ export function transformMat4(vIn: NumArray, mIn: NumArray, dst?: Vec3): Vec3 {
 export function transformMat4Upper3x3(
   vIn: NumArray,
   mIn: NumArray,
-  dst?: Vec3,
+  dst?: Float32Array,
 ): Vec3 {
   const v = vIn as unknown as T3;
   const m = mIn as unknown as T16;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   const x = v[0];
   const y = v[1];
   const z = v[2];
@@ -217,10 +218,10 @@ export function transformMat4Upper3x3(
 }
 
 /** Rotates a vec3 by a quaternion. */
-export function transformQuat(vIn: NumArray, qIn: NumArray, dst?: Vec3): Vec3 {
+export function transformQuat(vIn: NumArray, qIn: NumArray, dst?: Float32Array): Vec3 {
   const v = vIn as unknown as T3;
   const q = qIn as unknown as T4;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   const qx = q[0];
   const qy = q[1];
   const qz = q[2];

@@ -1,11 +1,12 @@
 // Aperture in-house quaternion kernel. Storage order is [x, y, z, w].
 
+import { allocQuat } from "./alloc.js";
 import type { NumArray, T4, T16, Quat } from "./types.js";
 
 const EPSILON = 0.00001;
 
 export function create(x = 0, y = 0, z = 0, w = 1): Quat {
-  const d = new Float32Array(4);
+  const d = allocQuat();
   d[0] = x;
   d[1] = y;
   d[2] = z;
@@ -13,8 +14,8 @@ export function create(x = 0, y = 0, z = 0, w = 1): Quat {
   return d;
 }
 
-export function identity(dst?: Quat): Quat {
-  const d = dst ?? new Float32Array(4);
+export function identity(dst?: Float32Array): Quat {
+  const d = allocQuat(dst);
   d[0] = 0;
   d[1] = 0;
   d[2] = 0;
@@ -22,9 +23,9 @@ export function identity(dst?: Quat): Quat {
   return d;
 }
 
-export function copy(qIn: NumArray, dst?: Quat): Quat {
+export function copy(qIn: NumArray, dst?: Float32Array): Quat {
   const q = qIn as unknown as T4;
-  const d = dst ?? new Float32Array(4);
+  const d = allocQuat(dst);
   d[0] = q[0];
   d[1] = q[1];
   d[2] = q[2];
@@ -35,10 +36,10 @@ export function copy(qIn: NumArray, dst?: Quat): Quat {
 export { copy as clone };
 
 /** Quaternion product a * b. */
-export function multiply(aIn: NumArray, bIn: NumArray, dst?: Quat): Quat {
+export function multiply(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Quat {
   const a = aIn as unknown as T4;
   const b = bIn as unknown as T4;
-  const d = dst ?? new Float32Array(4);
+  const d = allocQuat(dst);
   const ax = a[0];
   const ay = a[1];
   const az = a[2];
@@ -60,10 +61,10 @@ export { multiply as mul };
 export function fromAxisAngle(
   axisIn: NumArray,
   radians: number,
-  dst?: Quat,
+  dst?: Float32Array,
 ): Quat {
   const axis = axisIn as unknown as T4;
-  const d = dst ?? new Float32Array(4);
+  const d = allocQuat(dst);
   const half = radians * 0.5;
   const s = Math.sin(half);
   d[0] = s * axis[0];
@@ -81,9 +82,9 @@ export function fromEuler(
   y: number,
   z: number,
   order: RotationOrder,
-  dst?: Quat,
+  dst?: Float32Array,
 ): Quat {
-  const d = dst ?? new Float32Array(4);
+  const d = allocQuat(dst);
   const sx = Math.sin(x * 0.5);
   const cx = Math.cos(x * 0.5);
   const sy = Math.sin(y * 0.5);
@@ -138,9 +139,9 @@ export function fromEuler(
  * column-major matrix, via Shoemake's method — the exact algorithm the
  * previous backend used, so decomposition behaviour is unchanged.
  */
-export function fromMat(mIn: NumArray, dst?: Quat): Quat {
+export function fromMat(mIn: NumArray, dst?: Float32Array): Quat {
   const m = mIn as unknown as T16;
-  const d = dst ?? new Float32Array(4);
+  const d = allocQuat(dst);
   const trace = m[0] + m[5] + m[10];
   if (trace > 0) {
     const root = Math.sqrt(trace + 1);
@@ -186,9 +187,9 @@ export function length(vIn: NumArray): number {
 
 export { length as len };
 
-export function normalize(qIn: NumArray, dst?: Quat): Quat {
+export function normalize(qIn: NumArray, dst?: Float32Array): Quat {
   const q = qIn as unknown as T4;
-  const d = dst ?? new Float32Array(4);
+  const d = allocQuat(dst);
   const x = q[0];
   const y = q[1];
   const z = q[2];
@@ -209,9 +210,9 @@ export function normalize(qIn: NumArray, dst?: Quat): Quat {
   return d;
 }
 
-export function conjugate(qIn: NumArray, dst?: Quat): Quat {
+export function conjugate(qIn: NumArray, dst?: Float32Array): Quat {
   const q = qIn as unknown as T4;
-  const d = dst ?? new Float32Array(4);
+  const d = allocQuat(dst);
   d[0] = -q[0];
   d[1] = -q[1];
   d[2] = -q[2];
@@ -224,11 +225,11 @@ export function slerp(
   aIn: NumArray,
   bIn: NumArray,
   t: number,
-  dst?: Quat,
+  dst?: Float32Array,
 ): Quat {
   const a = aIn as unknown as T4;
   const b = bIn as unknown as T4;
-  const d = dst ?? new Float32Array(4);
+  const d = allocQuat(dst);
   const ax = a[0];
   const ay = a[1];
   const az = a[2];

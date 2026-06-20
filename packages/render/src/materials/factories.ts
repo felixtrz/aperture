@@ -1,4 +1,5 @@
-import type { Vec3Like, Vec4Like } from "@aperture-engine/simulation";
+import { vec4 } from "@aperture-engine/simulation";
+import type { Vec3Like, Vec4, Vec4Like } from "@aperture-engine/simulation";
 import type {
   DebugNormalMaterialAsset,
   CustomMaterialDependencyDeclaration,
@@ -43,7 +44,7 @@ export function createUnlitMaterialAsset(
     kind: "unlit",
     label: input.label ?? "Unlit Material",
     renderState: createDefaultRenderState(input.renderState),
-    baseColorFactor: input.baseColorFactor ?? new Float32Array([1, 1, 1, 1]),
+    baseColorFactor: (input.baseColorFactor ?? vec4(1, 1, 1, 1)) as Vec4,
     baseColorTexture: input.baseColorTexture ?? null,
     unsupportedFeatures: input.unsupportedFeatures ?? [],
   };
@@ -61,7 +62,7 @@ export function createMatcapMaterialAsset(
     kind: "matcap",
     label: input.label ?? "Matcap Material",
     renderState: createDefaultRenderState(input.renderState),
-    baseColorFactor: input.baseColorFactor ?? new Float32Array([1, 1, 1, 1]),
+    baseColorFactor: (input.baseColorFactor ?? vec4(1, 1, 1, 1)) as Vec4,
     matcapTexture: input.matcapTexture ?? null,
     unsupportedFeatures: input.unsupportedFeatures ?? [],
   };
@@ -79,7 +80,7 @@ export function createStandardMaterialAsset(
     kind: "standard",
     label: input.label ?? "Standard Material",
     renderState: createDefaultRenderState(input.renderState),
-    baseColorFactor: input.baseColorFactor ?? new Float32Array([1, 1, 1, 1]),
+    baseColorFactor: (input.baseColorFactor ?? vec4(1, 1, 1, 1)) as Vec4,
     baseColorTexture: input.baseColorTexture ?? null,
     metallicFactor: input.metallicFactor ?? 1,
     roughnessFactor: input.roughnessFactor ?? 1,

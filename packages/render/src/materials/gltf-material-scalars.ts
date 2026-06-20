@@ -1,3 +1,5 @@
+import { vec4 } from "@aperture-engine/simulation";
+import type { Vec4 } from "@aperture-engine/simulation";
 import type { GltfMaterialMappingDiagnostic } from "./gltf-material-types.js";
 import {
   isFiniteNumberTuple,
@@ -9,16 +11,14 @@ export function mapBaseColorFactor(input: {
   readonly field: string;
   readonly value: unknown;
   readonly diagnostics: GltfMaterialMappingDiagnostic[];
-}): Float32Array {
-  const fallback = [1, 1, 1, 1] as const;
-
+}): Vec4 {
   if (input.value === undefined) {
-    return new Float32Array(fallback);
+    return vec4(1, 1, 1, 1);
   }
 
   if (isFiniteNumberTuple(input.value, 4)) {
     const tuple = input.value as readonly [number, number, number, number];
-    return new Float32Array(tuple);
+    return vec4(tuple[0], tuple[1], tuple[2], tuple[3]);
   }
 
   input.diagnostics.push({
@@ -29,7 +29,7 @@ export function mapBaseColorFactor(input: {
     value: toDiagnosticValue(input.value),
     message: `${input.field} must be a four-number array.`,
   });
-  return new Float32Array(fallback);
+  return vec4(1, 1, 1, 1);
 }
 
 export function mapVec3(input: {

@@ -1,9 +1,10 @@
 // Aperture in-house vec4 kernel (also the storage for RGBA colors).
 
+import { allocVec4 } from "./alloc.js";
 import type { NumArray, T4, Vec4 } from "./types.js";
 
 export function create(x = 0, y = 0, z = 0, w = 0): Vec4 {
-  const d = new Float32Array(4);
+  const d = allocVec4();
   d[0] = x;
   d[1] = y;
   d[2] = z;
@@ -16,9 +17,9 @@ export function set(
   y: number,
   z: number,
   w: number,
-  dst?: Vec4,
+  dst?: Float32Array,
 ): Vec4 {
-  const d = dst ?? new Float32Array(4);
+  const d = allocVec4(dst);
   d[0] = x;
   d[1] = y;
   d[2] = z;
@@ -26,9 +27,9 @@ export function set(
   return d;
 }
 
-export function copy(vIn: NumArray, dst?: Vec4): Vec4 {
+export function copy(vIn: NumArray, dst?: Float32Array): Vec4 {
   const v = vIn as unknown as T4;
-  const d = dst ?? new Float32Array(4);
+  const d = allocVec4(dst);
   d[0] = v[0];
   d[1] = v[1];
   d[2] = v[2];
@@ -36,10 +37,10 @@ export function copy(vIn: NumArray, dst?: Vec4): Vec4 {
   return d;
 }
 
-export function add(aIn: NumArray, bIn: NumArray, dst?: Vec4): Vec4 {
+export function add(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Vec4 {
   const a = aIn as unknown as T4;
   const b = bIn as unknown as T4;
-  const d = dst ?? new Float32Array(4);
+  const d = allocVec4(dst);
   d[0] = a[0] + b[0];
   d[1] = a[1] + b[1];
   d[2] = a[2] + b[2];
@@ -47,10 +48,10 @@ export function add(aIn: NumArray, bIn: NumArray, dst?: Vec4): Vec4 {
   return d;
 }
 
-export function subtract(aIn: NumArray, bIn: NumArray, dst?: Vec4): Vec4 {
+export function subtract(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Vec4 {
   const a = aIn as unknown as T4;
   const b = bIn as unknown as T4;
-  const d = dst ?? new Float32Array(4);
+  const d = allocVec4(dst);
   d[0] = a[0] - b[0];
   d[1] = a[1] - b[1];
   d[2] = a[2] - b[2];
@@ -60,9 +61,9 @@ export function subtract(aIn: NumArray, bIn: NumArray, dst?: Vec4): Vec4 {
 
 export { subtract as sub };
 
-export function scale(vIn: NumArray, k: number, dst?: Vec4): Vec4 {
+export function scale(vIn: NumArray, k: number, dst?: Float32Array): Vec4 {
   const v = vIn as unknown as T4;
-  const d = dst ?? new Float32Array(4);
+  const d = allocVec4(dst);
   d[0] = v[0] * k;
   d[1] = v[1] * k;
   d[2] = v[2] * k;
@@ -91,9 +92,9 @@ export function length(v: NumArray): number {
 
 export { length as len };
 
-export function normalize(vIn: NumArray, dst?: Vec4): Vec4 {
+export function normalize(vIn: NumArray, dst?: Float32Array): Vec4 {
   const v = vIn as unknown as T4;
-  const d = dst ?? new Float32Array(4);
+  const d = allocVec4(dst);
   const x = v[0];
   const y = v[1];
   const z = v[2];
