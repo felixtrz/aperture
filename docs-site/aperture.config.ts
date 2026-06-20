@@ -60,13 +60,13 @@ export default defineApertureConfig({
         minDevicePixelRatio: 2,
         sampleCount: 1,
         maxPixelRatio: 1.5,
-        bloom: false,
+        bloom: { threshold: 1.05, intensity: 0.035, radius: 0.1, levels: 1 },
       },
     ],
     tonemap: "aces",
     exposure: 1,
     // Gentle bloom now; the night beat will lean on this for glowing windows.
-    bloom: { threshold: 0.8, intensity: 0.06, radiusPixels: 2 },
+    bloom: { threshold: 0.82, intensity: 0.055, radius: 0.14, levels: 2 },
   },
   diagnostics: {
     level: "info",

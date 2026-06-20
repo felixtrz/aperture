@@ -181,6 +181,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         lookAt: cameraFocus,
       },
       fovYDegrees: CAMERA_FOV_Y_DEGREES,
+      camera: { clearColor: [0.28, 0.46, 0.82, 1] },
     });
 
     // Sun + ambient: initial values for the opening (midday) phase; the

@@ -1,18 +1,25 @@
 import {
   AppEntityKey,
-  EcsType,
   LocalTransform,
   createSystem,
   material,
   mesh,
   quatFromEulerYXZ,
-  shader,
   type Entity,
   type Vec3Tuple as Vec3,
 } from "@aperture-engine/app/systems";
-import { createMaterialHandle } from "@aperture-engine/simulation";
+import {
+  createMaterialHandle,
+  type MaterialHandle,
+} from "@aperture-engine/simulation";
 import { Light, Material } from "@aperture-engine/render";
-import { CAMERA_START_YAW } from "../lib/city-layout.js";
+import {
+  CAMERA_COMPOSITION_RIGHT_OFFSET,
+  CAMERA_START_YAW,
+  CAMERA_ZOOM,
+  cameraOffset,
+  cameraRightOffset,
+} from "../lib/city-layout.js";
 import {
   HERO_LAYOUT_STATE_COMMAND_CHANNEL,
   type HeroLayoutCommand,
@@ -25,23 +32,20 @@ import {
   type HeroStoryMomentId,
 } from "../lib/hero-story.js";
 
-// Drives the hero scene's day/night cycle. Every frame it animates the
-// directional sun (color, intensity, and arc) and the ambient sky fill; the
-// gradient sky dome — a custom-WGSL inverted sphere — is refreshed on a throttle
-// by respawning it with the current top/bottom colors (its material/mesh assets
-// are keyed by the stable "sky.dome" spawn key, so this updates them in place
-// rather than leaking new assets, mirroring city-builder's despawn+respawn).
-
-const SKY_RADIUS = 120;
-// Custom-WGSL material uniforms are not runtime-patchable through
-// `this.materials.set`, so the dome is refreshed with new uniform defaults.
-// Keep the desktop cadence near display rate; lower rates make the day/night
-// gradient visibly step as the cycle moves through dawn and dusk. Compact
-// mobile layouts use a lower cadence because each refresh respawns the custom
-// material asset and is noticeably expensive on iPhone-class GPUs.
+// Drives the hero scene's day/night cycle. Every update animates sun, ambient
+// fill, night lights, glowing windows, and the screen-aligned sky bands. The
+// page is demand-rendered, so sky material updates only run while story
+// gestures are stepping the worker.
+const SKY_BAND_COUNT = 18;
+const SKY_PLANE_DISTANCE = 78;
+const SKY_PLANE_WIDTH = 96;
+const SKY_PLANE_HEIGHT = 62;
+const SKY_BAND_DEPTH = 0.05;
+const SKY_BAND_OVERLAP = 1.12;
+const SKY_EMISSIVE_STRENGTH = 0.9;
 const SKY_UPDATE_INTERVAL_DESKTOP = 1 / 60;
-const SKY_UPDATE_INTERVAL_COMPACT = 1 / 8;
-const SKY_COLOR_EPSILON = 0.0015;
+const SKY_UPDATE_INTERVAL_COMPACT = 1 / 30;
+const SKY_COLOR_EPSILON = 0.00025;
 const START_MOMENT_ID = HERO_STORY_MOMENTS[0].id;
 const START_PHASE: number = HERO_STORY_MOMENTS[0].phase;
 const SUNRISE_PHASE = 0.16;
@@ -59,57 +63,6 @@ const WINDOW_VISIBILITY_EPSILON = 0.005;
 const TAU = Math.PI * 2;
 const SUN_SOURCE_LEFT_YAW = cameraRelativeSunYaw(-Math.PI / 2);
 const SUN_SOURCE_RIGHT_YAW = cameraRelativeSunYaw(Math.PI / 2);
-
-const SKY_WGSL = /* wgsl */ `
-struct ViewProjectionUniform {
-  viewProjection: mat4x4f,
-  cameraPosition: vec4f,
-};
-
-struct SkyUniform {
-  topColor: vec4f,
-  bottomColor: vec4f,
-};
-
-struct VertexInput {
-  @location(0) position: vec3f,
-  @location(1) normal: vec3f,
-  @location(2) uv: vec2f,
-  @builtin(instance_index) instanceIndex: u32,
-};
-
-struct VertexOutput {
-  @builtin(position) position: vec4f,
-  @location(0) clip: vec4f,
-};
-
-@group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
-@group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
-@group(2) @binding(0) var<uniform> sky: SkyUniform;
-
-@vertex
-fn vs_main(input: VertexInput) -> VertexOutput {
-  var output: VertexOutput;
-  let world = worldTransforms[input.instanceIndex];
-  let clip = view.viewProjection * world * vec4f(input.position, 1.0);
-  output.position = clip;
-  output.clip = clip;
-  return output;
-}
-
-@fragment
-fn fs_main(input: VertexOutput) -> @location(0) vec4f {
-  // Screen-space vertical gradient: bottom of frame = horizon (bottomColor),
-  // top of frame = zenith (topColor). A world-direction gradient collapses to a
-  // flat color in the steep isometric view (only a thin near-horizon band of
-  // the dome is visible), so key the gradient off screen Y instead.
-  let ndcY = input.clip.y / input.clip.w;
-  let s = clamp(ndcY * 0.5 + 0.5, 0.0, 1.0);
-  let t = smoothstep(0.28, 1.0, s);
-  let color = mix(sky.bottomColor.rgb, sky.topColor.rgb, t);
-  return vec4f(color, 1.0);
-}
-`;
 
 interface DayKey {
   readonly phase: number;
@@ -245,13 +198,22 @@ export default class DayNightSystem extends createSystem({
 }) {
   #phase = START_PHASE;
   #activeMomentId: HeroStoryMomentId = START_MOMENT_ID;
-  #skyTimer = SKY_UPDATE_INTERVAL_DESKTOP; // force a dome on the first update
+  #skyTimer = SKY_UPDATE_INTERVAL_DESKTOP;
   #compactLayout = false;
-  #dome: Entity | null = null;
+  #skyBandMaterials: {
+    readonly index: number;
+    readonly handle: MaterialHandle;
+  }[] = [];
   #lastSkyTop: Vec3 | null = null;
   #lastSkyBottom: Vec3 | null = null;
   #lastWindowVisibility: number | null = null;
   #nightLightMaxIntensityByKey = new Map<string, number>();
+
+  override init(): void {
+    const sample = this.#sample(this.#phase);
+    this.#spawnSkyBands(sample.skyTop, sample.skyBottom);
+    this.#refreshSkyIfChanged(sample.skyTop, sample.skyBottom);
+  }
 
   override update(delta: number): void {
     const dt = Math.min(Math.max(delta, 0), 1 / 30);
@@ -306,15 +268,61 @@ export default class DayNightSystem extends createSystem({
     // --- emissive windows: same night factor as the street lamps ------------
     this.#setWindowVisibility(lampFactor * WINDOW_MAX_VISIBILITY);
 
-    // --- sky dome: throttled refresh ----------------------------------------
+    // --- sky gradient: throttled material refresh ---------------------------
     this.#skyTimer += dt;
     if (this.#skyTimer >= this.#skyUpdateInterval()) {
       this.#skyTimer = 0;
-      this.#refreshDomeIfChanged(sample.skyTop, sample.skyBottom);
+      this.#refreshSkyIfChanged(sample.skyTop, sample.skyBottom);
     }
   }
 
-  #refreshDomeIfChanged(top: Vec3, bottom: Vec3): void {
+  #spawnSkyBands(top: Vec3, bottom: Vec3): void {
+    if (this.#skyBandMaterials.length > 0) {
+      return;
+    }
+
+    const placement = skyBandPlacement();
+    const bandHeight = (SKY_PLANE_HEIGHT / SKY_BAND_COUNT) * SKY_BAND_OVERLAP;
+
+    for (let index = 0; index < SKY_BAND_COUNT; index += 1) {
+      const key = `sky.band.${index}`;
+      const color = skyBandColor(top, bottom, index);
+      const yOffset = ((index + 0.5) / SKY_BAND_COUNT - 0.5) * SKY_PLANE_HEIGHT;
+      const translation = add3(placement.center, scale3(placement.up, yOffset));
+      const entity = this.spawn.mesh({
+        key,
+        name: "Sky Band",
+        tags: ["sky"],
+        mesh: mesh.box({
+          size: [SKY_PLANE_WIDTH, bandHeight, SKY_BAND_DEPTH],
+        }),
+        material: material.standard({
+          label: "Sky Band",
+          baseColor: [...color, 1],
+          emissiveFactor: scaleColor(color, SKY_EMISSIVE_STRENGTH),
+          roughness: 1,
+          metallic: 0,
+        }),
+        castShadow: false,
+        receiveShadow: false,
+        transform: {
+          translation,
+          lookAt: placement.cameraPosition,
+        },
+      });
+
+      const materialId = entity.getValue(Material, "materialId");
+      if (typeof materialId !== "string") {
+        continue;
+      }
+      const handle = materialHandleFromKey(materialId);
+      if (handle !== null) {
+        this.#skyBandMaterials.push({ index, handle });
+      }
+    }
+  }
+
+  #refreshSkyIfChanged(top: Vec3, bottom: Vec3): void {
     if (
       this.#lastSkyTop !== null &&
       this.#lastSkyBottom !== null &&
@@ -326,45 +334,28 @@ export default class DayNightSystem extends createSystem({
 
     this.#lastSkyTop = [...top] as Vec3;
     this.#lastSkyBottom = [...bottom] as Vec3;
-    this.#refreshDome(top, bottom);
+    this.#setSkyBands(top, bottom);
   }
 
-  #refreshDome(top: Vec3, bottom: Vec3): void {
-    const previous = this.#dome;
-    if (previous !== null) {
-      this.hierarchy.despawnRecursive({
-        index: previous.index,
-        generation: previous.generation,
-      });
-    }
-    this.#dome = this.spawn.mesh({
-      key: "sky.dome",
-      name: "Sky Dome",
-      tags: ["sky"],
-      mesh: mesh.sphere({ radius: SKY_RADIUS, segments: 32 }),
-      material: material.customWgsl({
-        familyKey: "hero/sky-gradient",
-        label: "Sky Gradient",
-        shader: shader.inlineWgsl(SKY_WGSL, { virtualPath: "hero-sky.wgsl" }),
-        entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+  #setSkyBands(top: Vec3, bottom: Vec3): void {
+    for (const band of this.#skyBandMaterials) {
+      const color = skyBandColor(top, bottom, band.index);
+      const result = this.materials.set(band.handle, {
+        baseColorFactor: [...color, 1],
+        emissiveFactor: scaleColor(color, SKY_EMISSIVE_STRENGTH),
         renderState: {
-          cullMode: "none",
+          alphaMode: "opaque",
+          cullMode: "back",
           depth: { test: true, write: true, compare: "less" },
         },
-        bindings: [
-          material.uniform("sky", {
-            binding: 0,
-            visibility: ["fragment"],
-            fields: {
-              topColor: { type: EcsType.Vec4, default: [...top, 1] },
-              bottomColor: { type: EcsType.Vec4, default: [...bottom, 1] },
-            },
-          }),
-        ],
-      }),
-      castShadow: false,
-      receiveShadow: false,
-    });
+      });
+      if (!result.ok) {
+        this.diagnostics.warn("hero.skyBandMaterialUpdateSkipped", {
+          index: band.index,
+          reason: result.diagnostic.message,
+        });
+      }
+    }
   }
 
   #sample(phase: number): DaySample {
@@ -384,18 +375,23 @@ export default class DayNightSystem extends createSystem({
     let local = phase - lower.phase;
     if (local < 0) local += 1;
     const t = span === 0 ? 0 : Math.min(local / span, 1);
+    const colorT = smootherstep01(t);
     const sunArc = sampleSunArc(phase);
 
     return {
       phase,
-      skyTop: lerp3(lower.skyTop, upper.skyTop, t),
-      skyBottom: lerp3(lower.skyBottom, upper.skyBottom, t),
-      sun: lerp3(lower.sun, upper.sun, t),
+      skyTop: lerp3(lower.skyTop, upper.skyTop, colorT),
+      skyBottom: lerp3(lower.skyBottom, upper.skyBottom, colorT),
+      sun: lerp3(lower.sun, upper.sun, colorT),
       sunIntensity: sunArc.intensity,
       sunPitchDeg: sunArc.pitchDeg,
       sunYawDeg: sunArc.yawDeg,
-      ambient: lerp3(lower.ambient, upper.ambient, t),
-      ambientIntensity: lerp(lower.ambientIntensity, upper.ambientIntensity, t),
+      ambient: lerp3(lower.ambient, upper.ambient, colorT),
+      ambientIntensity: lerp(
+        lower.ambientIntensity,
+        upper.ambientIntensity,
+        colorT,
+      ),
     };
   }
 
@@ -530,6 +526,65 @@ function materialHandleFromKey(key: string) {
     : null;
 }
 
+function skyBandColor(top: Vec3, bottom: Vec3, index: number): Vec3 {
+  const t = (index + 0.5) / SKY_BAND_COUNT;
+  return lerp3(bottom, top, smootherstep01(t));
+}
+
+function scaleColor(color: Vec3, scale: number): Vec3 {
+  return [color[0] * scale, color[1] * scale, color[2] * scale];
+}
+
+function skyBandPlacement(): {
+  readonly cameraPosition: Vec3;
+  readonly center: Vec3;
+  readonly up: Vec3;
+} {
+  const focus = cameraRightOffset(
+    CAMERA_START_YAW,
+    CAMERA_COMPOSITION_RIGHT_OFFSET,
+  );
+  const offset = cameraOffset(CAMERA_START_YAW, CAMERA_ZOOM);
+  const cameraPosition = add3(focus, offset);
+  const forward = normalize3(subtract3(focus, cameraPosition)) ?? [0, 0, -1];
+  const back = scale3(forward, -1);
+  const right = normalize3(cross3([0, 1, 0], back)) ?? [1, 0, 0];
+  const up = normalize3(cross3(back, right)) ?? [0, 1, 0];
+  return {
+    cameraPosition,
+    center: add3(cameraPosition, scale3(forward, SKY_PLANE_DISTANCE)),
+    up,
+  };
+}
+
+function add3(a: Vec3, b: readonly [number, number, number]): Vec3 {
+  return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+}
+
+function subtract3(a: Vec3, b: Vec3): Vec3 {
+  return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
+
+function scale3(value: Vec3, scale: number): Vec3 {
+  return [value[0] * scale, value[1] * scale, value[2] * scale];
+}
+
+function cross3(a: Vec3, b: Vec3): Vec3 {
+  return [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0],
+  ];
+}
+
+function normalize3(value: Vec3): Vec3 | null {
+  const length = Math.hypot(value[0], value[1], value[2]);
+  if (length <= 1e-6) {
+    return null;
+  }
+  return [value[0] / length, value[1] / length, value[2] / length];
+}
+
 function nightSyncedLight(key: string): boolean {
   return (
     key.startsWith("light.lamp.") ||
@@ -556,7 +611,11 @@ function sampleSunArc(phase: number): SunArc {
     SUN_NOON_ELEVATION_DEGREES,
     lift,
   );
-  const yaw = lerpAngle(SUN_SOURCE_LEFT_YAW, SUN_SOURCE_RIGHT_YAW, daylightEase);
+  const yaw = lerpAngle(
+    SUN_SOURCE_LEFT_YAW,
+    SUN_SOURCE_RIGHT_YAW,
+    daylightEase,
+  );
 
   return {
     intensity: SUN_MAX_INTENSITY * lift,
@@ -587,6 +646,11 @@ function yawVector(yaw: number): readonly [number, number] {
 function smoothstep01(value: number): number {
   const t = Math.min(Math.max(value, 0), 1);
   return t * t * (3 - 2 * t);
+}
+
+function smootherstep01(value: number): number {
+  const t = Math.min(Math.max(value, 0), 1);
+  return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
 function lerpAngle(a: number, b: number, t: number): number {

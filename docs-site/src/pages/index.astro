@@ -27,7 +27,9 @@
         min-height: 100%;
         overflow-x: hidden;
         overflow-y: hidden;
-        background: #0c0f14;
+        background:
+          linear-gradient(180deg, rgb(71 117 209), rgb(184 128 77)),
+          #0c0f14;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         overscroll-behavior: none;
         touch-action: none;
@@ -48,6 +50,9 @@
         display: block;
         width: 100vw;
         height: 100vh;
+        background:
+          linear-gradient(180deg, rgb(71 117 209), rgb(184 128 77)),
+          #0c0f14;
         pointer-events: none;
         touch-action: pan-y;
       }
@@ -549,7 +554,7 @@
       let wheelGestureDelta = 0;
       let wheelGestureTimer = 0;
       let pointerGesture = null;
-      const transitionDurationMs = 820;
+      const transitionDurationMs = 1230;
       const wheelGestureIdleMs = 150;
       const wheelGestureThresholdPx = 86;
       const pointerGestureThresholdPx = 46;
@@ -789,6 +794,19 @@
         const moment = HERO_STORY_MOMENTS[activeIndex];
         if (!moment) return;
         dispatchStoryPhase(moment, activePhase, force);
+      }
+
+      function primeInitialStoryPhase() {
+        let remaining = 6;
+        const prime = () => {
+          syncStoryPhase(true);
+          remaining -= 1;
+          if (remaining <= 0) {
+            return;
+          }
+          requestAnimationFrame(prime);
+        };
+        requestAnimationFrame(prime);
       }
 
       function cancelStoryTransition() {
@@ -1060,6 +1078,7 @@
       syncStoryCardHeight();
       renderStory(activeIndex);
       syncStoryPhase(true);
+      primeInitialStoryPhase();
     </script>
   </body>
 </html>
