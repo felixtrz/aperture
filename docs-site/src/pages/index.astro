@@ -26,10 +26,11 @@
         width: 100%;
         min-height: 100%;
         overflow-x: hidden;
-        overflow-y: auto;
+        overflow-y: hidden;
         background: #0c0f14;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        scroll-snap-type: y mandatory;
+        overscroll-behavior: none;
+        touch-action: none;
       }
       body {
         scrollbar-width: none;
@@ -271,7 +272,6 @@
       }
       .story-step {
         height: 100vh;
-        scroll-snap-align: start;
       }
 
       :root[data-hero-compact-composition="true"]:not(
@@ -522,7 +522,6 @@
       import "virtual:aperture/browser-entry";
 
       const segments = document.querySelector("#story-segments");
-      const scrollRoot = document.querySelector("#story-scroll");
       const card = document.querySelector("#story-card");
       const title = document.querySelector("#story-title");
       const body = document.querySelector("#story-body");
@@ -540,13 +539,24 @@
       );
 
       let activeIndex = 0;
+      let activePhase = HERO_STORY_MOMENTS[0]?.phase ?? 0;
       let activeLayoutSignature = "";
       let activeStoryPhaseSignature = "";
       const storyCycleCount = HERO_STORY_MOMENTS.length;
-      const storyLoopCopies = 7;
-      const storyLoopMiddleCopy = Math.floor(storyLoopCopies / 2);
       let resizeFrame = 0;
-      let suppressScroll = false;
+      let transitionFrame = 0;
+      let queuedDirection = 0;
+      let wheelGestureDelta = 0;
+      let wheelGestureTimer = 0;
+      let pointerGesture = null;
+      const transitionDurationMs = 820;
+      const wheelGestureIdleMs = 150;
+      const wheelGestureThresholdPx = 86;
+      const pointerGestureThresholdPx = 46;
+      const pointerVelocityThresholdPxPerMs = 0.42;
+      const reducedMotionQuery = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      );
 
       function setNavMenuOpen(open) {
         navLinks.dataset.open = String(open);
@@ -564,6 +574,39 @@
       window.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
           setNavMenuOpen(false);
+          return;
+        }
+        if (isTextEditingTarget(event.target)) {
+          return;
+        }
+        if (event.key === "ArrowDown" || event.key === "PageDown") {
+          event.preventDefault();
+          navigateByDirection(1);
+          return;
+        }
+        if (event.key === "ArrowUp" || event.key === "PageUp") {
+          event.preventDefault();
+          navigateByDirection(-1);
+          return;
+        }
+        if (event.key === " " && event.shiftKey) {
+          event.preventDefault();
+          navigateByDirection(-1);
+          return;
+        }
+        if (event.key === " ") {
+          event.preventDefault();
+          navigateByDirection(1);
+          return;
+        }
+        if (event.key === "Home") {
+          event.preventDefault();
+          navigateToIndex(0, { interrupt: true });
+          return;
+        }
+        if (event.key === "End") {
+          event.preventDefault();
+          navigateToIndex(storyCycleCount - 1, { interrupt: true });
         }
       });
 
@@ -711,17 +754,6 @@
         }
       }
 
-      function storyStepFromScroll() {
-        return Math.floor(
-          (window.scrollY + window.innerHeight * 0.5) /
-            Math.max(window.innerHeight, 1),
-        );
-      }
-
-      function storyPositionFromScroll() {
-        return window.scrollY / Math.max(window.innerHeight, 1);
-      }
-
       function wrapIndex(index) {
         return ((index % storyCycleCount) + storyCycleCount) % storyCycleCount;
       }
@@ -730,60 +762,109 @@
         return ((phase % 1) + 1) % 1;
       }
 
-      function lerpPhaseForward(from, to, amount) {
-        const target = to < from ? to + 1 : to;
-        return wrapPhase(from + (target - from) * amount);
+      function phaseTargetForDirection(from, to, direction) {
+        if (direction < 0 && to > from) {
+          return to - 1;
+        }
+        if (direction >= 0 && to < from) {
+          return to + 1;
+        }
+        return to;
       }
 
-      function activeIndexFromScroll() {
-        return wrapIndex(storyStepFromScroll());
+      function easeInOutCubic(value) {
+        return value < 0.5
+          ? 4 * value * value * value
+          : 1 - Math.pow(-2 * value + 2, 3) / 2;
       }
 
-      function storyPhaseFromScroll() {
-        const position = storyPositionFromScroll();
-        const baseStep = Math.floor(position);
-        const local = Math.min(Math.max(position - baseStep, 0), 1);
-        const current = HERO_STORY_MOMENTS[wrapIndex(baseStep)];
-        const next = HERO_STORY_MOMENTS[wrapIndex(baseStep + 1)];
-        return lerpPhaseForward(current.phase, next.phase, local);
+      function shortestDirectionToIndex(index) {
+        const target = wrapIndex(index);
+        const forward = wrapIndex(target - activeIndex);
+        const backward = wrapIndex(activeIndex - target);
+        return forward <= backward ? 1 : -1;
       }
 
       function syncStoryPhase(force = false) {
-        const moment = HERO_STORY_MOMENTS[activeIndexFromScroll()];
+        const moment = HERO_STORY_MOMENTS[activeIndex];
         if (!moment) return;
-        dispatchStoryPhase(moment, storyPhaseFromScroll(), force);
+        dispatchStoryPhase(moment, activePhase, force);
       }
 
-      function storyLoopCycleHeight() {
-        return storyCycleCount * window.innerHeight;
+      function cancelStoryTransition() {
+        if (transitionFrame === 0) return;
+        cancelAnimationFrame(transitionFrame);
+        transitionFrame = 0;
       }
 
-      function storyLoopMiddleScroll(index = activeIndex) {
-        return (
-          (storyLoopMiddleCopy * storyCycleCount + index) * window.innerHeight
+      function finishTransition(moment, targetPhase, force = false) {
+        activePhase = wrapPhase(targetPhase);
+        transitionFrame = 0;
+        dispatchStoryPhase(moment, activePhase, force);
+        if (queuedDirection !== 0) {
+          const direction = queuedDirection;
+          queuedDirection = 0;
+          navigateByDirection(direction);
+        }
+      }
+
+      function animateStoryPhase(moment, targetPhase, direction) {
+        const startPhase = activePhase;
+        const resolvedTargetPhase = phaseTargetForDirection(
+          startPhase,
+          targetPhase,
+          direction,
         );
-      }
-
-      function recenterStoryScroll() {
-        const cycleHeight = storyLoopCycleHeight();
-        if (cycleHeight <= 0) return;
-
-        const currentStep = storyStepFromScroll();
-        const currentCopy = Math.floor(currentStep / storyCycleCount);
-        let nextScroll = window.scrollY;
-
-        if (currentCopy <= 1) {
-          nextScroll += cycleHeight * (storyLoopMiddleCopy - currentCopy);
-        } else if (currentCopy >= storyLoopCopies - 2) {
-          nextScroll -= cycleHeight * (currentCopy - storyLoopMiddleCopy);
-        } else {
+        const duration = reducedMotionQuery.matches ? 0 : transitionDurationMs;
+        if (duration <= 0) {
+          finishTransition(moment, resolvedTargetPhase, true);
           return;
         }
 
-        suppressScroll = true;
-        window.scrollTo({ top: nextScroll, behavior: "auto" });
-        requestAnimationFrame(() => {
-          suppressScroll = false;
+        const startedAt = performance.now();
+        const tick = (now) => {
+          const elapsed = now - startedAt;
+          const progress = Math.min(Math.max(elapsed / duration, 0), 1);
+          const eased = easeInOutCubic(progress);
+          activePhase = wrapPhase(
+            startPhase + (resolvedTargetPhase - startPhase) * eased,
+          );
+          dispatchStoryPhase(moment, activePhase);
+          if (progress >= 1) {
+            finishTransition(moment, resolvedTargetPhase);
+            return;
+          }
+          transitionFrame = requestAnimationFrame(tick);
+        };
+        transitionFrame = requestAnimationFrame(tick);
+      }
+
+      function navigateToIndex(index, options = {}) {
+        const targetIndex = wrapIndex(index);
+        if (targetIndex === activeIndex && transitionFrame === 0) {
+          syncStoryPhase(true);
+          return;
+        }
+        if (options.interrupt === true) {
+          queuedDirection = 0;
+        }
+        if (transitionFrame !== 0 && options.interrupt !== true) {
+          queuedDirection = options.direction ?? shortestDirectionToIndex(index);
+          return;
+        }
+        cancelStoryTransition();
+
+        const direction = options.direction ?? shortestDirectionToIndex(index);
+        const moment = HERO_STORY_MOMENTS[targetIndex];
+        if (!moment) return;
+        renderStory(targetIndex);
+        animateStoryPhase(moment, moment.phase, direction);
+      }
+
+      function navigateByDirection(direction) {
+        const normalized = direction < 0 ? -1 : 1;
+        navigateToIndex(activeIndex + normalized, {
+          direction: normalized,
         });
       }
 
@@ -817,40 +898,141 @@
         button.setAttribute("aria-label", moment.title);
         button.innerHTML = `<span>${moment.label}</span>`;
         button.addEventListener("click", () => {
-          window.scrollTo({
-            top: storyLoopMiddleScroll(index),
-            behavior: "smooth",
-          });
-          renderStory(index);
+          navigateToIndex(index, { interrupt: true });
         });
         segments.append(button);
       }
 
-      for (let copy = 0; copy < storyLoopCopies; copy += 1) {
+      for (let copy = 0; copy < 1; copy += 1) {
         for (let index = 0; index < storyCycleCount; index += 1) {
           const step = document.createElement("section");
           step.className = "story-step";
-          scrollRoot.append(step);
+          document.querySelector("#story-scroll")?.append(step);
         }
       }
 
-      let ticking = false;
+      function isTextEditingTarget(target) {
+        return (
+          target instanceof Element &&
+          target.closest(
+            'input, textarea, select, [contenteditable="true"], [role="textbox"]',
+          ) !== null
+        );
+      }
+
+      function isInteractiveTarget(target) {
+        return (
+          target instanceof Element &&
+          target.closest(
+            'a, button, input, textarea, select, [contenteditable="true"], [role="button"]',
+          ) !== null
+        );
+      }
+
+      function wheelDeltaPixels(event) {
+        if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+          return event.deltaY * 16;
+        }
+        if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+          return event.deltaY * window.innerHeight;
+        }
+        return event.deltaY;
+      }
+
+      function commitWheelGesture() {
+        const delta = wheelGestureDelta;
+        wheelGestureDelta = 0;
+        wheelGestureTimer = 0;
+        if (Math.abs(delta) < wheelGestureThresholdPx) {
+          return;
+        }
+        navigateByDirection(delta > 0 ? 1 : -1);
+      }
+
       window.addEventListener(
-        "scroll",
-        () => {
-          if (suppressScroll) return;
-          if (ticking) return;
-          ticking = true;
-          requestAnimationFrame(() => {
-            ticking = false;
-            recenterStoryScroll();
-            const next = activeIndexFromScroll();
-            if (next !== activeIndex) renderStory(next);
-            syncStoryPhase();
-          });
+        "wheel",
+        (event) => {
+          if (event.ctrlKey || event.metaKey) {
+            return;
+          }
+          event.preventDefault();
+          wheelGestureDelta += wheelDeltaPixels(event);
+          if (wheelGestureTimer !== 0) {
+            window.clearTimeout(wheelGestureTimer);
+          }
+          wheelGestureTimer = window.setTimeout(
+            commitWheelGesture,
+            wheelGestureIdleMs,
+          );
+        },
+        { passive: false },
+      );
+
+      window.addEventListener(
+        "pointerdown",
+        (event) => {
+          if (event.pointerType === "mouse" || isInteractiveTarget(event.target)) {
+            return;
+          }
+          pointerGesture = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            lastX: event.clientX,
+            lastY: event.clientY,
+            startedAt: performance.now(),
+          };
         },
         { passive: true },
       );
+
+      window.addEventListener(
+        "pointermove",
+        (event) => {
+          if (
+            pointerGesture === null ||
+            pointerGesture.pointerId !== event.pointerId
+          ) {
+            return;
+          }
+          pointerGesture.lastX = event.clientX;
+          pointerGesture.lastY = event.clientY;
+        },
+        { passive: true },
+      );
+
+      function commitPointerGesture(event) {
+        if (
+          pointerGesture === null ||
+          pointerGesture.pointerId !== event.pointerId
+        ) {
+          pointerGesture = null;
+          return;
+        }
+        const deltaX = event.clientX - pointerGesture.startX;
+        const deltaY = event.clientY - pointerGesture.startY;
+        const elapsed = Math.max(1, performance.now() - pointerGesture.startedAt);
+        const velocity = Math.abs(deltaY) / elapsed;
+        pointerGesture = null;
+
+        if (
+          Math.abs(deltaY) < pointerGestureThresholdPx &&
+          velocity < pointerVelocityThresholdPxPerMs
+        ) {
+          return;
+        }
+        if (Math.abs(deltaY) < Math.abs(deltaX) * 1.2) {
+          return;
+        }
+        navigateByDirection(deltaY < 0 ? 1 : -1);
+      }
+
+      window.addEventListener("pointerup", commitPointerGesture, {
+        passive: true,
+      });
+      window.addEventListener("pointercancel", () => {
+        pointerGesture = null;
+      });
 
       window.addEventListener(
         "resize",
@@ -860,10 +1042,6 @@
             resizeFrame = 0;
             syncResponsiveLayout(true);
             syncStoryCardHeight();
-            window.scrollTo({
-              top: storyLoopMiddleScroll(activeIndex),
-              behavior: "auto",
-            });
             renderStory(activeIndex);
             syncStoryPhase(true);
           });
@@ -880,11 +1058,7 @@
         once: true,
       });
       syncStoryCardHeight();
-      window.scrollTo({
-        top: storyLoopMiddleScroll(activeIndexFromScroll()),
-        behavior: "auto",
-      });
-      renderStory(activeIndexFromScroll());
+      renderStory(activeIndex);
       syncStoryPhase(true);
     </script>
   </body>
