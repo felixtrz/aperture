@@ -35,9 +35,15 @@ export function createDefaultRenderState(
 }
 
 export function createUnlitMaterialAsset(
-  input: Partial<Omit<UnlitMaterialAsset, "kind" | "label" | "renderState">> & {
+  input: Partial<
+    Omit<
+      UnlitMaterialAsset,
+      "kind" | "label" | "renderState" | "baseColorFactor"
+    >
+  > & {
     readonly label?: string;
     readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly baseColorFactor?: Vec4Like;
   } = {},
 ): UnlitMaterialAsset {
   return {
@@ -52,10 +58,14 @@ export function createUnlitMaterialAsset(
 
 export function createMatcapMaterialAsset(
   input: Partial<
-    Omit<MatcapMaterialAsset, "kind" | "label" | "renderState">
+    Omit<
+      MatcapMaterialAsset,
+      "kind" | "label" | "renderState" | "baseColorFactor"
+    >
   > & {
     readonly label?: string;
     readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly baseColorFactor?: Vec4Like;
   } = {},
 ): MatcapMaterialAsset {
   return {
@@ -70,10 +80,14 @@ export function createMatcapMaterialAsset(
 
 export function createStandardMaterialAsset(
   input: Partial<
-    Omit<StandardMaterialAsset, "kind" | "label" | "renderState">
+    Omit<
+      StandardMaterialAsset,
+      "kind" | "label" | "renderState" | "baseColorFactor"
+    >
   > & {
     readonly label?: string;
     readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly baseColorFactor?: Vec4Like;
   } = {},
 ): StandardMaterialAsset {
   return {
