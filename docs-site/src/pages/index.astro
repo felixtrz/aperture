@@ -520,6 +520,8 @@
       import {
         HERO_COMPACT_LAYOUT_BREAKPOINT_PX,
         HERO_DESKTOP_CARD_WIDTH_PX,
+        HERO_DESKTOP_CARD_VISUAL_LEFT_SHIFT_FULL_WIDTH_PX,
+        HERO_DESKTOP_CARD_VISUAL_LEFT_SHIFT_MAX_PX,
         HERO_DESKTOP_CITY_PANEL_GAP_PX,
         HERO_DESKTOP_CITY_TARGET_WIDTH_PX,
         HERO_DESKTOP_COMPOSITION_MAX_WIDTH_PX,
@@ -660,6 +662,24 @@
         );
       }
 
+      function desktopCardVisualLeftShift() {
+        const shiftStartWidth = HERO_COMPACT_LAYOUT_BREAKPOINT_PX + 1;
+        const shiftRange =
+          HERO_DESKTOP_CARD_VISUAL_LEFT_SHIFT_FULL_WIDTH_PX - shiftStartWidth;
+        if (shiftRange <= 0 || window.innerWidth <= shiftStartWidth) {
+          return 0;
+        }
+        if (
+          window.innerWidth >= HERO_DESKTOP_CARD_VISUAL_LEFT_SHIFT_FULL_WIDTH_PX
+        ) {
+          return HERO_DESKTOP_CARD_VISUAL_LEFT_SHIFT_MAX_PX;
+        }
+        return (
+          ((window.innerWidth - shiftStartWidth) / shiftRange) *
+          HERO_DESKTOP_CARD_VISUAL_LEFT_SHIFT_MAX_PX
+        );
+      }
+
       function syncDesktopCardPosition(compact) {
         if (compact) {
           card.style.removeProperty("--hero-story-card-left");
@@ -669,13 +689,16 @@
         const cardWidth = card.getBoundingClientRect().width;
         card.style.setProperty(
           "--hero-story-card-left",
-          `${desktopCardLeft(cardWidth)}px`,
+          `${desktopCardLeft(cardWidth) - desktopCardVisualLeftShift()}px`,
         );
       }
 
       function layoutPayload(compact, mobile) {
         const cardRect = card.getBoundingClientRect();
         const cardWidth = cardRect.width;
+        const compositionCardLeft = compact
+          ? cardRect.left
+          : desktopCardLeft(cardWidth);
         const target = compact
           ? {
               cityTargetWidth: HERO_DESKTOP_CITY_TARGET_WIDTH_PX,
@@ -692,7 +715,7 @@
           viewportWidth: window.innerWidth,
           viewportHeight: window.innerHeight,
           stageWidth: compact ? window.innerWidth : desktopStageWidth(),
-          cardLeft: cardRect.left,
+          cardLeft: compositionCardLeft,
           cardWidth,
           cityTargetWidth: target.cityTargetWidth,
           cityPanelGap: target.cityPanelGap,
