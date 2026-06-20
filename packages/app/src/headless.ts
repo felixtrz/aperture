@@ -43,7 +43,9 @@ export interface ApertureHeadlessStatus {
   >;
   readonly input: ApertureInputSummary;
   readonly signals: SignalSummary;
-  readonly resources: ReturnType<ApertureApp["context"]["resources"]["summary"]>;
+  readonly resources: ReturnType<
+    ApertureApp["context"]["resources"]["summary"]
+  >;
   readonly startOptions: ReturnType<
     ApertureApp["context"]["startOptions"]["summary"]
   >;

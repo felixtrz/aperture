@@ -9,17 +9,17 @@ skybox, and blob shadows.
 
 ## Source mechanics (from the Godot project)
 
-| System            | Source script            | Behaviour |
-|-------------------|--------------------------|-----------|
-| Player controller | `scripts/player.gd`      | `CharacterBody3D` + `move_and_slide`; camera-relative WASD; scalar gravity (`+= 25·dt`, jump sets `gravity = -7`); **double jump**; squash/stretch on jump/land; faces movement dir; respawn when `y < -10`; footstep loop + walk/idle/jump anims + dust trail. |
-| Camera rig        | `scripts/view.gd`        | Orbit rig follows player (pos lerp), arrow/right-stick rotate (yaw + pitch clamp `[-80°,-10°]`), `+`/`-`/triggers zoom (`[4,16]`). |
-| Coins             | `objects/coin.gd`        | `Area3D`; rotate + sine-bob; on player overlap → `collect_coin()`, coin SFX, hide. 14 coins. |
-| Falling platforms | `objects/platform_falling.gd` | On player contact (top `Area3D`) → fall SFX, squash, accelerate down (`+= 15·dt`), free `< -10`. 3 of them. |
-| Bricks            | `objects/brick.gd`       | `StaticBody3D` + bottom `Area3D`; break (SFX + particles, remove) when player hits from below. 3 of them. |
-| Clouds            | `objects/cloud.gd`       | Decorative sine-bob, random rate/amplitude. 7 of them. |
-| Flag              | model only               | Goal marker at `[0, 3.48, -6]`. |
-| HUD               | `scripts/hud.gd`         | Coin icon + count. |
-| Audio             | `scripts/audio.gd`       | Pooled one-shots, random pitch 0.9–1.1. |
+| System            | Source script                 | Behaviour                                                                                                                                                                                                                                                       |
+| ----------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Player controller | `scripts/player.gd`           | `CharacterBody3D` + `move_and_slide`; camera-relative WASD; scalar gravity (`+= 25·dt`, jump sets `gravity = -7`); **double jump**; squash/stretch on jump/land; faces movement dir; respawn when `y < -10`; footstep loop + walk/idle/jump anims + dust trail. |
+| Camera rig        | `scripts/view.gd`             | Orbit rig follows player (pos lerp), arrow/right-stick rotate (yaw + pitch clamp `[-80°,-10°]`), `+`/`-`/triggers zoom (`[4,16]`).                                                                                                                              |
+| Coins             | `objects/coin.gd`             | `Area3D`; rotate + sine-bob; on player overlap → `collect_coin()`, coin SFX, hide. 14 coins.                                                                                                                                                                    |
+| Falling platforms | `objects/platform_falling.gd` | On player contact (top `Area3D`) → fall SFX, squash, accelerate down (`+= 15·dt`), free `< -10`. 3 of them.                                                                                                                                                     |
+| Bricks            | `objects/brick.gd`            | `StaticBody3D` + bottom `Area3D`; break (SFX + particles, remove) when player hits from below. 3 of them.                                                                                                                                                       |
+| Clouds            | `objects/cloud.gd`            | Decorative sine-bob, random rate/amplitude. 7 of them.                                                                                                                                                                                                          |
+| Flag              | model only                    | Goal marker at `[0, 3.48, -6]`.                                                                                                                                                                                                                                 |
+| HUD               | `scripts/hud.gd`              | Coin icon + count.                                                                                                                                                                                                                                              |
+| Audio             | `scripts/audio.gd`            | Pooled one-shots, random pitch 0.9–1.1.                                                                                                                                                                                                                         |
 
 Tuning constants (converted to m/s where Godot used `speed·dt`): `SPEED ≈ 4.5`,
 `JUMP_STRENGTH = 7`, `GRAVITY = 25`, `MAX_JUMPS = 2`, movement/rotation/scale
@@ -43,7 +43,7 @@ smoothing rate `10`, camera follow rate `4`, camera rotate rate `6`,
 
 - **Player body**: `spawn.physics` kinematic-position capsule + character
   controller; moved each frame with `physics.moveCharacter` (returns `grounded`
-  + `collisions`), then `physics.setKinematicTarget`. (Mirrors fps.)
+  - `collisions`), then `physics.setKinematicTarget`. (Mirrors fps.)
 - **Player model**: separate `spawn.gltf("character")` entity, repositioned to
   the body each frame, yaw-rotated to face movement, scaled for squash/stretch,
   with `spawn.animation(root)` crossfading idle/walk/jump.
@@ -77,10 +77,10 @@ smoothing rate `10`, camera follow rate `4`, camera rotate rate `6`,
    (`dist/bin/aperture.js`) is a build artifact; the workspace `pnpm install`
    ran before the cli was built, so the `.bin/aperture` symlink was never
    created (affected every app + root). Fix: re-run `pnpm install` after the cli
-   is built. *(Resolved during setup.)*
+   is built. _(Resolved during setup.)_
 
 2. **Trimesh colliders from gltf assets work cleanly.** `physics.colliderGeometry:
-   { kind: "assets" }` + a static collider with
+{ kind: "assets" }` + a static collider with
    `shape: { kind: "trimesh", meshId: "mesh:<assetId>:mesh:0:primitive:0" }`
    produces correct collision for every single-mesh platform glb. Verified the
    player rests grounded on the starting platform and walks across the level
@@ -91,12 +91,12 @@ smoothing rate `10`, camera follow rate `4`, camera rotate rate `6`,
    (capsule bottom = offsetY 0.55 − (halfHeight 0.2 + radius 0.3) = +0.05).
 
 4. **BUG (mine, fixed): brick fall-through.** Kenney's `brick.glb` has its origin
-   at the *bottom* (AABB `y=[0,1]`), but I gave it a box collider centered on the
+   at the _bottom_ (AABB `y=[0,1]`), but I gave it a box collider centered on the
    entity origin → the collider sat entirely below the visible cube and the
    player fell through the top. Fix: `offsetTranslation: [0, 0.5, 0]` + half-extent
    0.5 to wrap the 1-unit visual, and brick-underside detection uses
-   `brick.position.y` (origin = bottom face). *This was the "falls through orange
-   platforms" report — the bricks are the orange blocks.*
+   `brick.position.y` (origin = bottom face). _This was the "falls through orange
+   platforms" report — the bricks are the orange blocks._
 
 5. **Black platform tops are FAITHFUL, not a bug.** Kenney's small/medium square
    `platform`/`platform-medium` glbs render gold dirt sides + a near-black top by
@@ -114,10 +114,10 @@ smoothing rate `10`, camera follow rate `4`, camera rotate rate `6`,
    in-app A/B (vitexec): placed one falling platform next to spawn and drove the
    player onto it with the collider as **kinematic** vs **static**. Both gave
    `groundedOverFallingPlatform=true` with near-identical trajectories — i.e. the
-   character controller collides with kinematic *and* static bodies (the rapier
+   character controller collides with kinematic _and_ static bodies (the rapier
    KCC query only excludes sensors). Root cause was my **premature fall trigger**:
    a loose footprint (±1.0) + y-tolerance (±0.6) fired while the player was still
-   on an *adjacent* surface, so the platform dropped away before they arrived.
+   on an _adjacent_ surface, so the platform dropped away before they arrived.
    Ship-quality fix (no library change): trigger only when the character
    controller's actual ground contact is THIS platform (new `groundKey` resource,
    derived from `moveCharacter` collision normals), and implement falling as a
@@ -126,8 +126,10 @@ smoothing rate `10`, camera follow rate `4`, camera rotate rate `6`,
    `StaticBody3D` whose transform is scripted).
 
 ### Findings
+
 All engine/tooling gaps are investigated to a conclusion (incl. retractions of
 my own early misreads) in **`ENGINE_AND_TOOLING_FINDINGS.md`**. Headlines:
+
 - Confirmed engine: `playOneShot` leaks emitter entities with unique ids (likely
   the audio-stop cause; app uses a bounded voice pool); `RAPIER.init({})`
   deprecation warning; misleading "0 draws" diagnostic during asset load.
@@ -138,6 +140,7 @@ my own early misreads) in **`ENGINE_AND_TOOLING_FINDINGS.md`**. Headlines:
 - Physics: NOT broken (kinematic vs static A/B).
 
 ### vitexec note
+
 - vitexec (v0.1.17 via `pnpm dlx`) prints its logs but **does not exit the
   process** — it lingers holding a Chromium. Running several in a session piles up
   orphan browsers and bogs the machine. Workflow: redirect to a file, poll for a
@@ -162,6 +165,7 @@ my own early misreads) in **`ENGINE_AND_TOOLING_FINDINGS.md`**. Headlines:
   SwiftShader — needs an ear in the live session to confirm the respawn case.
 
 ## How to run
+
 `pnpm exec aperture dev up --open` (or `--port <n>` to pin off vitexec's 5173+
 range), then play in the managed browser. `pnpm run build` / `pnpm run typecheck`
 both pass clean.

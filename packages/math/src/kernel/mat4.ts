@@ -14,14 +14,15 @@
 // make transform propagation faster than composing a general library's
 // primitives.
 
+import { allocMat4, allocVec3 } from "./alloc.js";
 import type { Mat4, NumArray, T3, T4, T16, Vec3 } from "./types.js";
 
 export function create(): Mat4 {
-  return new Float32Array(16);
+  return allocMat4();
 }
 
-export function identity(dst?: Mat4): Mat4 {
-  const d = dst ?? new Float32Array(16);
+export function identity(dst?: Float32Array): Mat4 {
+  const d = allocMat4(dst);
   d[0] = 1;
   d[1] = 0;
   d[2] = 0;
@@ -41,9 +42,9 @@ export function identity(dst?: Mat4): Mat4 {
   return d;
 }
 
-export function copy(srcIn: NumArray, dst?: Mat4): Mat4 {
+export function copy(srcIn: NumArray, dst?: Float32Array): Mat4 {
   const src = srcIn as unknown as T16;
-  const d = dst ?? new Float32Array(16);
+  const d = allocMat4(dst);
   d[0] = src[0];
   d[1] = src[1];
   d[2] = src[2];
@@ -66,10 +67,14 @@ export function copy(srcIn: NumArray, dst?: Mat4): Mat4 {
 export { copy as clone };
 
 /** Multiplies `a` (left) by `b` (right): dst = a * b. */
-export function multiply(aIn: NumArray, bIn: NumArray, dst?: Mat4): Mat4 {
+export function multiply(
+  aIn: NumArray,
+  bIn: NumArray,
+  dst?: Float32Array,
+): Mat4 {
   const a = aIn as unknown as T16;
   const b = bIn as unknown as T16;
-  const d = dst ?? new Float32Array(16);
+  const d = allocMat4(dst);
   const a00 = a[0];
   const a01 = a[1];
   const a02 = a[2];
@@ -129,10 +134,14 @@ export { multiply as mul };
  * row, so transform-hierarchy propagation runs measurably faster. The result
  * is identical to {@link multiply} whenever both inputs are affine.
  */
-export function mulAffine(aIn: NumArray, bIn: NumArray, dst?: Mat4): Mat4 {
+export function mulAffine(
+  aIn: NumArray,
+  bIn: NumArray,
+  dst?: Float32Array,
+): Mat4 {
   const a = aIn as unknown as T16;
   const b = bIn as unknown as T16;
-  const d = dst ?? new Float32Array(16);
+  const d = allocMat4(dst);
   const a00 = a[0];
   const a01 = a[1];
   const a02 = a[2];
@@ -240,9 +249,9 @@ export function determinant(mIn: NumArray): number {
  * yields a non-finite result (`1/0`); callers that care guard with
  * {@link determinant} first. For affine transforms prefer {@link invertAffine}.
  */
-export function inverse(mIn: NumArray, dst?: Mat4): Mat4 {
+export function inverse(mIn: NumArray, dst?: Float32Array): Mat4 {
   const m = mIn as unknown as T16;
-  const d = dst ?? new Float32Array(16);
+  const d = allocMat4(dst);
   const a00 = m[0];
   const a01 = m[1];
   const a02 = m[2];
@@ -302,7 +311,7 @@ export { inverse as invert };
  * linear part and re-derives the translation, which is far cheaper than the
  * general cofactor expansion. Returns `null` when the linear part is singular.
  */
-export function invertAffine(mIn: NumArray, dst?: Mat4): Mat4 | null {
+export function invertAffine(mIn: NumArray, dst?: Float32Array): Mat4 | null {
   const m = mIn as unknown as T16;
   const a00 = m[0];
   const a01 = m[1];
@@ -339,7 +348,7 @@ export function invertAffine(mIn: NumArray, dst?: Mat4): Mat4 | null {
   const i21 = (-a21 * a00 + a01 * a20) * det;
   const i22 = (a11 * a00 - a01 * a10) * det;
 
-  const d = dst ?? new Float32Array(16);
+  const d = allocMat4(dst);
   d[0] = i00;
   d[1] = i01;
   d[2] = i02;
@@ -361,9 +370,9 @@ export function invertAffine(mIn: NumArray, dst?: Mat4): Mat4 | null {
 }
 
 /** Builds a rotation matrix from a quaternion [x, y, z, w]. */
-export function fromQuat(qIn: NumArray, dst?: Mat4): Mat4 {
+export function fromQuat(qIn: NumArray, dst?: Float32Array): Mat4 {
   const q = qIn as unknown as T4;
-  const d = dst ?? new Float32Array(16);
+  const d = allocMat4(dst);
   const x = q[0];
   const y = q[1];
   const z = q[2];
@@ -400,10 +409,10 @@ export function fromQuat(qIn: NumArray, dst?: Mat4): Mat4 {
 }
 
 /** Scales the columns of `m` by `v`: dst = m * scale(v). */
-export function scale(mIn: NumArray, vIn: NumArray, dst?: Mat4): Mat4 {
+export function scale(mIn: NumArray, vIn: NumArray, dst?: Float32Array): Mat4 {
   const m = mIn as unknown as T16;
   const v = vIn as unknown as T3;
-  const d = dst ?? new Float32Array(16);
+  const d = allocMat4(dst);
   const v0 = v[0];
   const v1 = v[1];
   const v2 = v[2];
@@ -429,10 +438,14 @@ export function scale(mIn: NumArray, vIn: NumArray, dst?: Mat4): Mat4 {
 }
 
 /** Sets the translation column of `m`. */
-export function setTranslation(mIn: NumArray, vIn: NumArray, dst?: Mat4): Mat4 {
+export function setTranslation(
+  mIn: NumArray,
+  vIn: NumArray,
+  dst?: Float32Array,
+): Mat4 {
   const m = mIn as unknown as T16;
   const v = vIn as unknown as T3;
-  const d = dst ?? identity();
+  const d = allocMat4(dst);
   if ((mIn as unknown) !== (d as unknown)) {
     d[0] = m[0];
     d[1] = m[1];
@@ -455,9 +468,9 @@ export function setTranslation(mIn: NumArray, vIn: NumArray, dst?: Mat4): Mat4 {
 }
 
 /** Reads the translation column into a vec3. */
-export function getTranslation(mIn: NumArray, dst?: Vec3): Vec3 {
+export function getTranslation(mIn: NumArray, dst?: Float32Array): Vec3 {
   const m = mIn as unknown as T16;
-  const d = dst ?? new Float32Array(3);
+  const d = allocVec3(dst);
   d[0] = m[12];
   d[1] = m[13];
   d[2] = m[14];
@@ -473,12 +486,12 @@ export function composeTRS(
   tIn: NumArray,
   qIn: NumArray,
   sIn: NumArray,
-  dst?: Mat4,
+  dst?: Float32Array,
 ): Mat4 {
   const t = tIn as unknown as T3;
   const q = qIn as unknown as T4;
   const s = sIn as unknown as T3;
-  const d = dst ?? new Float32Array(16);
+  const d = allocMat4(dst);
   const x = q[0];
   const y = q[1];
   const z = q[2];
@@ -526,9 +539,9 @@ export function perspective(
   aspect: number,
   zNear: number,
   zFar: number,
-  dst?: Mat4,
+  dst?: Float32Array,
 ): Mat4 {
-  const d = dst ?? new Float32Array(16);
+  const d = allocMat4(dst);
   const f = Math.tan(Math.PI * 0.5 - 0.5 * fovyRadians);
   d[0] = f / aspect;
   d[1] = 0;
@@ -563,9 +576,9 @@ export function ortho(
   top: number,
   near: number,
   far: number,
-  dst?: Mat4,
+  dst?: Float32Array,
 ): Mat4 {
-  const d = dst ?? new Float32Array(16);
+  const d = allocMat4(dst);
   d[0] = 2 / (right - left);
   d[1] = 0;
   d[2] = 0;

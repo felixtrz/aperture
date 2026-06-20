@@ -6,6 +6,7 @@ import {
 } from "@aperture-engine/render";
 import {
   createMaterialHandle,
+  vec4,
   type AssetRegistry,
   type Entity,
   type MaterialHandle,
@@ -355,7 +356,7 @@ function ensureTrailMaterial(
 
   const asset = createUnlitMaterialAsset({
     label: options.label,
-    baseColorFactor: new Float32Array([1, 1, 1, options.opacity]),
+    baseColorFactor: vec4(1, 1, 1, options.opacity),
     renderState: createDefaultRenderState({
       alphaMode: "blend",
       cullMode: "none",

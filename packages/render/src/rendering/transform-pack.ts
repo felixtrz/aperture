@@ -177,10 +177,7 @@ export function writePackedSnapshotMeshTransforms(
     const packedOffset = index * MATRIX_FLOATS;
 
     scratch.nextData.set(
-      snapshot.transforms.subarray(
-        sourceOffset,
-        sourceOffset + MATRIX_FLOATS,
-      ),
+      snapshot.transforms.subarray(sourceOffset, sourceOffset + MATRIX_FLOATS),
       packedOffset,
     );
     sourceOffsetToPackedOffset.set(sourceOffset, packedOffset);

@@ -15,7 +15,10 @@ export function readWorldMatrix(entity: Entity): Mat4 {
   return matrix;
 }
 
-export function pushMatrix(values: number[], matrix: Mat4): number {
+export function pushMatrix(
+  values: number[],
+  matrix: Mat4 | readonly number[],
+): number {
   const offset = values.length;
   values.push(...matrix);
   return offset;

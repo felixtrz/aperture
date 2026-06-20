@@ -345,8 +345,7 @@ export default class PlayerSystem extends createSystem({
       this.#setLookTargets(look.targetYaw, look.targetPitch);
     }
 
-    const hasCommandLook =
-      this.#commandLookX !== 0 || this.#commandLookY !== 0;
+    const hasCommandLook = this.#commandLookX !== 0 || this.#commandLookY !== 0;
     const mouseLookAction = this.actions.mouseLook as
       | InputAxis2dAction
       | undefined;

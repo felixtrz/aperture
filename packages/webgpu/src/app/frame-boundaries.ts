@@ -395,7 +395,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     const storeMsaaColorForLaterLoad =
       msaaColorTarget.resource !== null &&
       previousTargetSubmissions + 1 < targetSubmissionTotal;
-    const targetClearColor = options.clearColor ?? target.view.clearColor;
+    const targetClearColor: number[] = Array.from(
+      options.clearColor ?? target.view.clearColor,
+    );
     const colorLoadOp: RenderPassAttachmentLoadOp = loadExistingTarget
       ? "load"
       : "clear";
@@ -564,7 +566,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         commands: commandsForBoundary,
         depthAttachment,
         label: options.label,
-        clearColor: options.clearColor ?? target.view.clearColor,
+        clearColor: targetClearColor,
         resources: options.transmissionSceneColorResources,
       };
 
@@ -1517,7 +1519,7 @@ function registerForwardGraphUserPasses(args: {
 }
 
 function isTransparentOverlayClearColor(
-  clearColor: readonly number[] | undefined,
+  clearColor: ArrayLike<number> | undefined,
 ): boolean {
   const alpha = clearColor?.[3];
   return typeof alpha === "number" && Number.isFinite(alpha) && alpha < 1;

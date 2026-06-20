@@ -484,8 +484,8 @@ function extractPackedVector3ArrayBounds(sceneSource: string): {
 function expectRuntimeColliderBoundsCoverSourceShape(
   runtime:
     | {
-        readonly min: readonly [number, number, number];
-        readonly max: readonly [number, number, number];
+        readonly min: ArrayLike<number>;
+        readonly max: ArrayLike<number>;
       }
     | undefined,
   source: {

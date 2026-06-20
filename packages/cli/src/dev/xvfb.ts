@@ -35,7 +35,14 @@ export async function startVirtualDisplay(input: {
 
   const child = spawn(
     "Xvfb",
-    [display, "-screen", "0", `${width}x${height}x${depth}`, "-nolisten", "tcp"],
+    [
+      display,
+      "-screen",
+      "0",
+      `${width}x${height}x${depth}`,
+      "-nolisten",
+      "tcp",
+    ],
     { stdio: ["ignore", "pipe", "pipe"] },
   );
   pipeChildOutput(child, input.log);
@@ -108,7 +115,9 @@ function waitForDisplayReady(
       }
       if (Date.now() - start > READY_TIMEOUT_MS) {
         cleanup();
-        reject(new Error(`Timed out waiting for the Xvfb display ${socketPath}.`));
+        reject(
+          new Error(`Timed out waiting for the Xvfb display ${socketPath}.`),
+        );
         return;
       }
       setTimeout(poll, 100);

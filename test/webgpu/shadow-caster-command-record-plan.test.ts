@@ -159,7 +159,8 @@ describe("shadow caster command record planning", () => {
         {
           matrixResourceKey: "shadow-caster-pass-matrix:pass-0",
           passKey: "shadow-pass:7:light:11",
-          worldTransformResourceKey: "shadow-caster-world-transform-buffer:directional",
+          worldTransformResourceKey:
+            "shadow-caster-world-transform-buffer:directional",
           resourceKey: "bind-group:shadow-caster/pass-0",
           group: 0,
           bindGroup: { type: "pass-world-bind-group" },
@@ -219,7 +220,8 @@ describe("shadow caster command record planning", () => {
         {
           matrixResourceKey: "shadow-caster-pass-matrix:pass-0",
           passKey: "shadow-pass:7:light:11",
-          worldTransformResourceKey: "shadow-caster-world-transform-buffer:directional",
+          worldTransformResourceKey:
+            "shadow-caster-world-transform-buffer:directional",
           resourceKey: "bind-group:shadow-caster/pass-0",
           group: 0,
           bindGroup: { type: "pass-world-bind-group" },

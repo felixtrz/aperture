@@ -14,13 +14,13 @@ leaked glTF subtrees at the origin (see `ENGINE_AND_TOOLING_FINDINGS.md` §E1).
 
 ## Source mechanics (from the Godot project)
 
-| System | Source script | Behaviour |
-|---|---|---|
-| Builder | `scripts/builder.gd` | A `GridMap` (1×1 cells) on the `y=0` plane. A "selector" cursor snaps to `round(mouseRayOnGround)`; LMB places the current structure (charged only when the cell's id changes), DEL removes, RMB rotates the cursor 90°, Q/E cycle structures. Cash starts at `$10,000`. |
-| Camera | `scripts/view.gd` | Orbit rig: focus glides over the ground (pos lerp ×8), WASD pans screen-relative (`input.rotated(UP, yaw)`), wheel zooms `[15,80]` step 5 (lerp ×8), middle-drag yaws (`-relative.x/10`, rot lerp ×6), F recentres. Camera child sits back `zoom` m at fov 20°, ~35.26° iso tilt. |
-| Structures | `structures/*.tres` | 15 `Structure` resources (model + price). Order = the `Builder.structures` array. |
-| Audio | `scripts/audio.gd` | 12-voice pool, random pitch 0.9–1.1; placement/removal/rotate/toggle one-shots + ambience loop (`-30 dB`, autoplay). |
-| Save/Load | `builder.gd` F1/F2/F3 | Serialise used cells to a Godot `.res`. **Not ported** (Godot-binary, non-portable; out of scope). |
+| System     | Source script         | Behaviour                                                                                                                                                                                                                                                                         |
+| ---------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Builder    | `scripts/builder.gd`  | A `GridMap` (1×1 cells) on the `y=0` plane. A "selector" cursor snaps to `round(mouseRayOnGround)`; LMB places the current structure (charged only when the cell's id changes), DEL removes, RMB rotates the cursor 90°, Q/E cycle structures. Cash starts at `$10,000`.          |
+| Camera     | `scripts/view.gd`     | Orbit rig: focus glides over the ground (pos lerp ×8), WASD pans screen-relative (`input.rotated(UP, yaw)`), wheel zooms `[15,80]` step 5 (lerp ×8), middle-drag yaws (`-relative.x/10`, rot lerp ×6), F recentres. Camera child sits back `zoom` m at fov 20°, ~35.26° iso tilt. |
+| Structures | `structures/*.tres`   | 15 `Structure` resources (model + price). Order = the `Builder.structures` array.                                                                                                                                                                                                 |
+| Audio      | `scripts/audio.gd`    | 12-voice pool, random pitch 0.9–1.1; placement/removal/rotate/toggle one-shots + ambience loop (`-30 dB`, autoplay).                                                                                                                                                              |
+| Save/Load  | `builder.gd` F1/F2/F3 | Serialise used cells to a Godot `.res`. **Not ported** (Godot-binary, non-portable; out of scope).                                                                                                                                                                                |
 
 Structure table (id · price), in cycle order — mirrored verbatim in `src/lib/city-data.ts`:
 `road-straight`·25, `road-straight-lightposts`·25, `road-corner`·25, `road-split`·25,
@@ -43,12 +43,12 @@ Structure table (id · price), in cycle order — mirrored verbatim in `src/lib/
 
 Pure ECS; no scene graph as app state. Four systems (`src/systems/*.system.ts`):
 
-| System | Priority | Role |
-|---|---|---|
-| `setup` | 0 | Spawns the camera (`camera.main`), sun (shadow-casting directional) + ambient fill, and the ground box. |
-| `camera` | 10 | Isometric orbit rig. Drains `citybuilder.camera` (wheel zoom, middle-drag yaw); reads `pan`/`center`/`zoomIn`/`zoomOut` actions; writes `camera.main`'s `LocalTransform` each frame. |
-| `builder` | 20 | The grid. Drains `citybuilder.build` (pointer, build, rotate); reads `toggleNext`/`togglePrev`/`demolish`/`reset` actions; raycasts the cursor, places/removes glTF tiles, tracks cells, publishes HUD signals. |
-| `audio` | 90 | Keeps the ambience loop alive. |
+| System    | Priority | Role                                                                                                                                                                                                            |
+| --------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `setup`   | 0        | Spawns the camera (`camera.main`), sun (shadow-casting directional) + ambient fill, and the ground box.                                                                                                         |
+| `camera`  | 10       | Isometric orbit rig. Drains `citybuilder.camera` (wheel zoom, middle-drag yaw); reads `pan`/`center`/`zoomIn`/`zoomOut` actions; writes `camera.main`'s `LocalTransform` each frame.                            |
+| `builder` | 20       | The grid. Drains `citybuilder.build` (pointer, build, rotate); reads `toggleNext`/`togglePrev`/`demolish`/`reset` actions; raycasts the cursor, places/removes glTF tiles, tracks cells, publishes HUD signals. |
+| `audio`   | 90       | Keeps the ambience loop alive.                                                                                                                                                                                  |
 
 Key engine APIs leaned on (all worked first try):
 
@@ -71,18 +71,18 @@ Key engine APIs leaned on (all worked first try):
 
 ## Controls
 
-| Input | Action | Path |
-|---|---|---|
-| Mouse move | Move selector (raycast to grid) | HUD → `citybuilder.build` |
-| Left click | Place current structure | HUD → `citybuilder.build` |
-| Right click | Rotate piece 90° | HUD → `citybuilder.build` |
-| `Del` / `Backspace` / `X` | Demolish cell under cursor | `demolish` action |
-| `Q` / `E` | Cycle structure | `togglePrev` / `toggleNext` |
-| `W` `A` `S` `D` | Pan camera focus | `pan` axis |
-| Middle-drag | Orbit (yaw) | HUD → `citybuilder.camera` |
-| Wheel / `+` `−` | Zoom `[15,80]` | HUD channel / `zoomIn`·`zoomOut` |
-| `F` | Recenter focus | `center` action |
-| `R` | Clear the city | `reset` action |
+| Input                     | Action                          | Path                             |
+| ------------------------- | ------------------------------- | -------------------------------- |
+| Mouse move                | Move selector (raycast to grid) | HUD → `citybuilder.build`        |
+| Left click                | Place current structure         | HUD → `citybuilder.build`        |
+| Right click               | Rotate piece 90°                | HUD → `citybuilder.build`        |
+| `Del` / `Backspace` / `X` | Demolish cell under cursor      | `demolish` action                |
+| `Q` / `E`                 | Cycle structure                 | `togglePrev` / `toggleNext`      |
+| `W` `A` `S` `D`           | Pan camera focus                | `pan` axis                       |
+| Middle-drag               | Orbit (yaw)                     | HUD → `citybuilder.camera`       |
+| Wheel / `+` `−`           | Zoom `[15,80]`                  | HUD channel / `zoomIn`·`zoomOut` |
+| `F`                       | Recenter focus                  | `center` action                  |
+| `R`                       | Clear the city                  | `reset` action                   |
 
 ## Deviations from the source
 
@@ -113,14 +113,14 @@ with no MCP input tool) was verified separately via vitexec dispatching real
    so cycling looked like it was editing an already-placed tile. The preview now
    floats ~0.35 above the cell with a gentle bob — an unmistakable "held" cursor
    over its cyan target tile. (`builder.system.ts`)
-3. **Building/road face "strips"** — horizontal bands on buildings *and* roads at
+3. **Building/road face "strips"** — horizontal bands on buildings _and_ roads at
    close zoom. **Measured to be the asset, not a bug**: the Kenney `colormap.png`
-   is a palette of vertical *gradient* swatches (decoded green swatch fades
+   is a palette of vertical _gradient_ swatches (decoded green swatch fades
    RGB(90,196,135)→(31,136,107), ~24%); each floor/tile maps to one swatch, so
    the fade repeats per floor/tile. A pixel readback confirmed the lit face
    tracks that gradient faithfully (not amplified, not 8-bit banding). It only
    reads as stripes at close zoom on a hi-DPI window; the reference uses the same
-   texture. We *did* soften the lighting (sun illuminance 4.5→2.2, ambient
+   texture. We _did_ soften the lighting (sun illuminance 4.5→2.2, ambient
    0.6→1.3) because a harsh sun cast hard shadows on the floor ledges that
    compounded it — now the buildings read as clean flat blocks like the
    reference. (`setup.system.ts`; see `ENGINE_AND_TOOLING_FINDINGS.md`)

@@ -215,9 +215,9 @@ describe("shadow caster draw-list planning", () => {
     expect(report.lists[0]?.draws.map((draw) => draw.renderId)).toEqual([
       2, 1, 3,
     ]);
-    expect(report.lists[0]?.draws.slice(1).map((draw) => draw.renderId)).toEqual(
-      [1, 3],
-    );
+    expect(
+      report.lists[0]?.draws.slice(1).map((draw) => draw.renderId),
+    ).toEqual([1, 3]);
     expect(report.lists[0]?.draws[1]).toMatchObject({
       renderId: 1,
       meshKey: "mesh:tree",

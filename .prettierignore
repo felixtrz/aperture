@@ -9,3 +9,11 @@ examples/assets/basis/
 examples/assets/draco/
 examples/assets/meshopt/
 test/assets/fixtures/draco/
+
+# Vendored three.js comparison sources (kept verbatim from upstream r184)
+shadow-lab/src/compare/three.core.js
+shadow-lab/src/compare/three.webgpu.js
+shadow-lab/src/compare/three.webgpu.d.ts
+shadow-lab/src/compare/loaders/
+shadow-lab/src/compare/utils/
+shadow-lab/src/compare/tsl/

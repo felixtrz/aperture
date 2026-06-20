@@ -60,7 +60,11 @@ export function parseApertureGpuMode(
     return "auto";
   }
 
-  if (normalized === "hardware" || normalized === "gpu" || normalized === "hw") {
+  if (
+    normalized === "hardware" ||
+    normalized === "gpu" ||
+    normalized === "hw"
+  ) {
     return "hardware";
   }
 
@@ -131,7 +135,12 @@ export function resolveApertureGpu(
   }
 
   const detection = detectSoftwareRendering(platform);
-  return { software: detection.software, mode, source, reason: detection.reason };
+  return {
+    software: detection.software,
+    mode,
+    source,
+    reason: detection.reason,
+  };
 }
 
 function detectSoftwareRendering(platform: NodeJS.Platform): {

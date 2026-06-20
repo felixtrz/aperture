@@ -833,7 +833,7 @@ function assertScreenshotNotBlank(png) {
     "Captured canvas screenshot is blank/black. This usually means Chrome's " +
       "headless WebGPU compositing path is wrong for this machine. Use the " +
       "default render-control Chrome profile, or set " +
-      'APERTURE_RENDER_CONTROL_CHANNEL=chrome and ' +
+      "APERTURE_RENDER_CONTROL_CHANNEL=chrome and " +
       'APERTURE_RENDER_CONTROL_BROWSER_ARGS="--enable-unsafe-webgpu"; avoid ' +
       "the bundled headless shell and Vulkan/SwiftShader flags for visual captures.",
   );

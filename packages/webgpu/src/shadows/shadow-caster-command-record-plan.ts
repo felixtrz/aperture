@@ -328,7 +328,7 @@ export function createShadowCasterCommandRecordPlanReport(
       ? bakedIndex * 16
       : useWorldTransform
         ? worldTransformIndex * 16
-      : matrixOffsetBytesToPackedOffset(commandPlan.matrixOffsetBytes);
+        : matrixOffsetBytesToPackedOffset(commandPlan.matrixOffsetBytes);
 
     if (transformPackedOffset === null) {
       diagnostics.push({

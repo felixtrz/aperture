@@ -44,8 +44,10 @@ export default class CameraSystem extends createSystem({
     const state = this.resources.read(PlatformerResource);
 
     const rotate = this.actions.cameraRotate;
-    const rx = rotate?.kind === "axis2d" ? (rotate as InputAxis2dAction).x.value : 0;
-    const ry = rotate?.kind === "axis2d" ? (rotate as InputAxis2dAction).y.value : 0;
+    const rx =
+      rotate?.kind === "axis2d" ? (rotate as InputAxis2dAction).x.value : 0;
+    const ry =
+      rotate?.kind === "axis2d" ? (rotate as InputAxis2dAction).y.value : 0;
     const zoomDelta =
       (this.#held("zoomOut") ? 1 : 0) - (this.#held("zoomIn") ? 1 : 0);
 
@@ -61,22 +63,39 @@ export default class CameraSystem extends createSystem({
       CAMERA_ZOOM_MAX,
     );
 
-    const yaw = lerpAngle(state.cameraYaw, targetYaw, clamp01(CAMERA_ROTATE_LERP * dt));
-    const pitch = lerp(state.cameraPitch, targetPitch, clamp01(CAMERA_ROTATE_LERP * dt));
+    const yaw = lerpAngle(
+      state.cameraYaw,
+      targetYaw,
+      clamp01(CAMERA_ROTATE_LERP * dt),
+    );
+    const pitch = lerp(
+      state.cameraPitch,
+      targetPitch,
+      clamp01(CAMERA_ROTATE_LERP * dt),
+    );
 
     const followTarget: Vec3 = [
       state.bodyPosition[0],
       state.bodyPosition[1] + CAMERA_TARGET_Y_OFFSET,
       state.bodyPosition[2],
     ];
-    const follow = approachVec3(state.cameraFollow, followTarget, CAMERA_FOLLOW_RATE, dt);
+    const follow = approachVec3(
+      state.cameraFollow,
+      followTarget,
+      CAMERA_FOLLOW_RATE,
+      dt,
+    );
 
     const offset = cameraOffset(yaw, pitch, zoom);
     const camera = this.#findByKey(CAMERA_KEY);
     if (camera !== null) {
       camera
         .getVectorView(LocalTransform, "translation")
-        .set([follow[0] + offset[0], follow[1] + offset[1], follow[2] + offset[2]]);
+        .set([
+          follow[0] + offset[0],
+          follow[1] + offset[1],
+          follow[2] + offset[2],
+        ]);
       camera
         .getVectorView(LocalTransform, "rotation")
         .set(quatFromEulerYXZ(pitch, yaw, 0));

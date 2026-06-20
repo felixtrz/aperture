@@ -968,7 +968,7 @@ function writeUiQuadData(
   data: Float32Array,
   instance: number,
   node: UiNodePacket,
-  color: readonly number[],
+  color: ArrayLike<number>,
 ): void {
   const offset = instance * UI_QUAD_FLOAT_STRIDE;
   const uv = node.uvRect ?? [0, 0, 1, 1];
@@ -1106,7 +1106,7 @@ function parseFontAtlasHandle(value: string): FontAtlasHandle | null {
 }
 
 function withOpacity(
-  color: readonly number[],
+  color: ArrayLike<number>,
   opacity: number,
 ): readonly [number, number, number, number] {
   return [

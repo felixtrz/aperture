@@ -88,7 +88,13 @@ export default class PlayerSystem extends createSystem({
     let coinReset = false;
 
     // --- reset (R) -> full level reset --------------------------------------
-    if (this.#edge("reset", () => this.#resetWasPressed, (v) => (this.#resetWasPressed = v))) {
+    if (
+      this.#edge(
+        "reset",
+        () => this.#resetWasPressed,
+        (v) => (this.#resetWasPressed = v),
+      )
+    ) {
       position = [...PLAYER_BODY_START];
       movementVelocity = [0, 0, 0];
       verticalVelocity = 0;
@@ -100,8 +106,10 @@ export default class PlayerSystem extends createSystem({
 
     // --- input --------------------------------------------------------------
     const move = this.actions.move;
-    const moveX = move?.kind === "axis2d" ? (move as InputAxis2dAction).x.value : 0;
-    const moveY = move?.kind === "axis2d" ? (move as InputAxis2dAction).y.value : 0;
+    const moveX =
+      move?.kind === "axis2d" ? (move as InputAxis2dAction).x.value : 0;
+    const moveY =
+      move?.kind === "axis2d" ? (move as InputAxis2dAction).y.value : 0;
 
     // --- gravity ------------------------------------------------------------
     verticalVelocity -= GRAVITY * dt;
@@ -174,7 +182,11 @@ export default class PlayerSystem extends createSystem({
         movementVelocity[0],
         movementVelocity[2],
       );
-      facingYaw = lerpAngle(facingYaw, target + MODEL_YAW_OFFSET, clamp01(ROTATION_LERP_RATE * dt));
+      facingYaw = lerpAngle(
+        facingYaw,
+        target + MODEL_YAW_OFFSET,
+        clamp01(ROTATION_LERP_RATE * dt),
+      );
     }
     modelScale = approachVec3(modelScale, [1, 1, 1], SCALE_LERP_RATE, dt);
 
@@ -205,10 +217,14 @@ export default class PlayerSystem extends createSystem({
 
     const groundedSignal = this.signals.grounded;
     if (groundedSignal !== undefined) groundedSignal.value = grounded;
-    if (this.signals.playerX !== undefined) this.signals.playerX.value = position[0];
-    if (this.signals.playerY !== undefined) this.signals.playerY.value = position[1];
-    if (this.signals.playerZ !== undefined) this.signals.playerZ.value = position[2];
-    if (this.signals.groundKey !== undefined) this.signals.groundKey.value = groundKey;
+    if (this.signals.playerX !== undefined)
+      this.signals.playerX.value = position[0];
+    if (this.signals.playerY !== undefined)
+      this.signals.playerY.value = position[1];
+    if (this.signals.playerZ !== undefined)
+      this.signals.playerZ.value = position[2];
+    if (this.signals.groundKey !== undefined)
+      this.signals.groundKey.value = groundKey;
   }
 
   // --- physics ---------------------------------------------------------------
@@ -253,7 +269,12 @@ export default class PlayerSystem extends createSystem({
       }
     }
 
-    return { position: target, grounded: move.grounded, blockedUpward, groundKey };
+    return {
+      position: target,
+      grounded: move.grounded,
+      blockedUpward,
+      groundKey,
+    };
   }
 
   #keyForRef(ref: string): string {
@@ -283,7 +304,9 @@ export default class PlayerSystem extends createSystem({
     const model = this.#findByKey(PLAYER_MODEL_KEY);
     if (model === null) return;
     model.getVectorView(LocalTransform, "translation").set(position);
-    model.getVectorView(LocalTransform, "rotation").set(quatFromEulerYXZ(0, facingYaw, 0));
+    model
+      .getVectorView(LocalTransform, "rotation")
+      .set(quatFromEulerYXZ(0, facingYaw, 0));
     model.getVectorView(LocalTransform, "scale").set(scale);
   }
 
@@ -291,16 +314,23 @@ export default class PlayerSystem extends createSystem({
     const shadow = this.#findByKey(PLAYER_SHADOW_KEY);
     if (shadow === null) return;
     const body = this.#findByKey(PLAYER_BODY_KEY);
-    const exclude = body === null ? undefined : { excludeEntity: serializeEntityRef(body) };
+    const exclude =
+      body === null ? undefined : { excludeEntity: serializeEntityRef(body) };
     const hit = this.physics.raycastFirst(
-      { origin: [position[0], position[1] + 0.5, position[2]], direction: [0, -1, 0], maxDistance: 60 },
+      {
+        origin: [position[0], position[1] + 0.5, position[2]],
+        direction: [0, -1, 0],
+        maxDistance: 60,
+      },
       exclude,
     );
     if (hit === null) {
       shadow.getVectorView(LocalTransform, "translation").set(HIDDEN);
       return;
     }
-    shadow.getVectorView(LocalTransform, "translation").set([hit.point[0], hit.point[1] + 0.02, hit.point[2]]);
+    shadow
+      .getVectorView(LocalTransform, "translation")
+      .set([hit.point[0], hit.point[1] + 0.02, hit.point[2]]);
   }
 
   #updateAnimation(grounded: boolean, speed: number): void {
@@ -326,13 +356,16 @@ export default class PlayerSystem extends createSystem({
   // Bounded voice pool (mirrors Godot audio.gd's player pool): reuse a fixed set
   // of one-shot ids so a play session never allocates unbounded audio voices.
   #playOneShot(clip: string): void {
-    this.audio.playOneShot(`platformer.player.${this.#voice % ONE_SHOT_VOICES}`, {
-      clip: this.audio.clip(clip),
-      busId: "sfx",
-      gain: ONE_SHOT_GAIN,
-      timeScale: 0.9 + Math.random() * 0.2,
-      simulationSpace: AudioSimulationSpace.Local,
-    });
+    this.audio.playOneShot(
+      `platformer.player.${this.#voice % ONE_SHOT_VOICES}`,
+      {
+        clip: this.audio.clip(clip),
+        busId: "sfx",
+        gain: ONE_SHOT_GAIN,
+        timeScale: 0.9 + Math.random() * 0.2,
+        simulationSpace: AudioSimulationSpace.Local,
+      },
+    );
     this.#voice += 1;
   }
 
@@ -348,7 +381,11 @@ export default class PlayerSystem extends createSystem({
 
   // --- helpers ---------------------------------------------------------------
 
-  #edge(name: string, get: () => boolean, set: (value: boolean) => void): boolean {
+  #edge(
+    name: string,
+    get: () => boolean,
+    set: (value: boolean) => void,
+  ): boolean {
     const action = this.#button(name);
     const down = action?.down() === true;
     const pressed = action?.pressed() === true;

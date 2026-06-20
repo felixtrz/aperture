@@ -1,4 +1,10 @@
-import { mat4 as kmat4, quat as kquat, vec3 as kvec3 } from "./kernel/index.js";
+import {
+  mat4 as kmat4,
+  quat as kquat,
+  vec2 as kvec2,
+  vec3 as kvec3,
+  vec4 as kvec4,
+} from "./kernel/index.js";
 import { read } from "./scalars.js";
 import type {
   Color,
@@ -12,10 +18,7 @@ import type {
 } from "./types.js";
 
 export function vec2(x = 0, y = 0): Vec2 {
-  const out = new Float32Array(2);
-  out[0] = x;
-  out[1] = y;
-  return out;
+  return kvec2.create(x, y);
 }
 
 export function vec3(x = 0, y = 0, z = 0): Vec3 {
@@ -23,12 +26,7 @@ export function vec3(x = 0, y = 0, z = 0): Vec3 {
 }
 
 export function vec4(x = 0, y = 0, z = 0, w = 0): Vec4 {
-  const out = new Float32Array(4);
-  out[0] = x;
-  out[1] = y;
-  out[2] = z;
-  out[3] = w;
-  return out;
+  return kvec4.create(x, y, z, w);
 }
 
 export function quat(x = 0, y = 0, z = 0, w = 1): Quat {

@@ -29,9 +29,7 @@ describe("standard indirect color-channel shader variant (M5-T6)", () => {
     expect(variant.code).toContain(
       "let standardIndirectColor = ambientDiffuse;",
     );
-    expect(variant.code).toContain(
-      "let standardDirectColor = direct;",
-    );
+    expect(variant.code).toContain("let standardDirectColor = direct;");
     expect(variant.code).toContain(
       "let standardEmissiveColor = material.emissiveFactor;",
     );

@@ -136,7 +136,11 @@ function parsePostEffectEnabledPayload(
         ? record["id"]
         : null;
   const enabled = record["enabled"];
-  if (effectId === null || effectId.length === 0 || typeof enabled !== "boolean") {
+  if (
+    effectId === null ||
+    effectId.length === 0 ||
+    typeof enabled !== "boolean"
+  ) {
     return null;
   }
   return { effectId, enabled };

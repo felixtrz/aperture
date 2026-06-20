@@ -16,6 +16,7 @@ import {
 import {
   createMaterialHandle,
   createMeshHandle,
+  vec4,
   type AssetHandle,
   type AssetRegistry,
   type MaterialHandle,
@@ -187,12 +188,12 @@ function materialDescriptorToAsset(
     ...(descriptorValue.options.baseColor === undefined
       ? {}
       : {
-          baseColorFactor: new Float32Array([
+          baseColorFactor: vec4(
             read4(descriptorValue.options.baseColor, 0),
             read4(descriptorValue.options.baseColor, 1),
             read4(descriptorValue.options.baseColor, 2),
             read4(descriptorValue.options.baseColor, 3),
-          ]),
+          ),
         }),
     ...(descriptorValue.options.roughness === undefined
       ? {}

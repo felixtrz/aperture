@@ -1,6 +1,7 @@
 # AGENTS.md
 
 <!-- aperture-managed:start aperture-ai-tools -->
+
 You are working on an Aperture app.
 
 ## Runtime Model

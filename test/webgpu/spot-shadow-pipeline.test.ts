@@ -125,7 +125,9 @@ describe("spot shadow 2D pipeline planning", () => {
       textures: createShadowTextureResourceReport({
         descriptors: createShadowMapDescriptorReport({
           shadowRequests: [request],
-          descriptors: [{ shadowId: 13, lightId: 17, mapSize: 512 }],
+          descriptors: [
+            { shadowId: 13, lightId: 17, mapSize: 512, depthBias: 0.002 },
+          ],
         }),
       }),
       submission: "ready",
@@ -149,9 +151,9 @@ describe("spot shadow 2D pipeline planning", () => {
       transforms: identityTransform(),
     });
     expect(matrices.status).toBe("ready");
-    expect(matrices.matrices[0]?.viewProjectionMatrix.every(Number.isFinite)).toBe(
-      true,
-    );
+    expect(
+      matrices.matrices[0]?.viewProjectionMatrix.every(Number.isFinite),
+    ).toBe(true);
   });
 });
 

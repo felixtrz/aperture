@@ -13,6 +13,31 @@ import {
   type ShadowCasterPreparedMeshResourceView,
 } from "@aperture-engine/webgpu/test-support";
 
+// These scenarios always produce directional shadows; narrow the shadow-kind
+// union to the directional members the assertions read.
+function dirMatrix(
+  value: unknown,
+):
+  | { readonly orthographicSize: number; readonly center: readonly number[] }
+  | undefined {
+  return value as
+    | { readonly orthographicSize: number; readonly center: readonly number[] }
+    | undefined;
+}
+function dirPlan(value: unknown):
+  | {
+      readonly cascadeNearDistance: number;
+      readonly cascadeFarDistance: number;
+    }
+  | undefined {
+  return value as
+    | {
+        readonly cascadeNearDistance: number;
+        readonly cascadeFarDistance: number;
+      }
+    | undefined;
+}
+
 describe("render shadow frame", () => {
   it("submits a directional CSM caster pass and returns receiver resources", () => {
     const calls = createDeviceCalls();
@@ -64,27 +89,27 @@ describe("render shadow frame", () => {
 
     expect(result.report.status).toBe("submitted");
     expect(result.report.diagnostics).toEqual([]);
-    expect(result.viewProjection.plans[0]?.cascadeNearDistance).toBeCloseTo(
-      0.1,
-      4,
-    );
-    expect(result.viewProjection.plans[0]?.cascadeFarDistance).toBeCloseTo(
-      60,
-      2,
-    );
     expect(
-      result.report.viewProjection.plans[0]?.cascadeFarDistance,
+      dirPlan(result.viewProjection.plans[0])?.cascadeNearDistance,
+    ).toBeCloseTo(0.1, 4);
+    expect(
+      dirPlan(result.viewProjection.plans[0])?.cascadeFarDistance,
     ).toBeCloseTo(60, 2);
     expect(
-      result.matrixComputation.matrices[0]?.orthographicSize,
+      dirPlan(result.report.viewProjection.plans[0])?.cascadeFarDistance,
+    ).toBeCloseTo(60, 2);
+    expect(
+      dirMatrix(result.matrixComputation.matrices[0])?.orthographicSize,
     ).toBeGreaterThan(20);
     expect(
-      result.report.matrixComputation.matrices[0]?.orthographicSize,
+      dirMatrix(result.report.matrixComputation.matrices[0])?.orthographicSize,
     ).toBeGreaterThan(20);
     expect(result.report.casterDrawList.includedDrawCount).toBe(
       result.casterDrawList.includedDrawCount,
     );
-    expect(result.matrixComputation.matrices[0]?.center).not.toEqual([0, 0, 0]);
+    expect(dirMatrix(result.matrixComputation.matrices[0])?.center).not.toEqual(
+      [0, 0, 0],
+    );
   });
 
   it("uses matrix options as fallback without suppressing primary camera frustum fit", () => {
@@ -114,14 +139,14 @@ describe("render shadow frame", () => {
 
     expect(result.report.status).toBe("submitted");
     expect(
-      result.matrixComputation.matrices[0]?.orthographicSize,
+      dirMatrix(result.matrixComputation.matrices[0])?.orthographicSize,
     ).toBeGreaterThan(20);
     expect(result.matrixComputation.matrices[0]).toEqual(
       baseResult.matrixComputation.matrices[0],
     );
-    expect(result.matrixComputation.matrices[0]?.center).not.toEqual([
-      0, 0, -2,
-    ]);
+    expect(dirMatrix(result.matrixComputation.matrices[0])?.center).not.toEqual(
+      [0, 0, -2],
+    );
   });
 
   it("tightens single-cascade frustum fit to receiver bounds", () => {
@@ -156,17 +181,17 @@ describe("render shadow frame", () => {
     });
 
     const looseSize =
-      loose.matrixComputation.matrices[0]?.orthographicSize ?? 0;
+      dirMatrix(loose.matrixComputation.matrices[0])?.orthographicSize ?? 0;
     const tightSize =
-      tight.matrixComputation.matrices[0]?.orthographicSize ?? 0;
+      dirMatrix(tight.matrixComputation.matrices[0])?.orthographicSize ?? 0;
 
     expect(looseSize).toBeGreaterThan(100);
     expect(tightSize).toBeGreaterThan(0);
     expect(tightSize).toBeLessThan(10);
     expect(tightSize).toBeLessThan(looseSize * 0.1);
-    expect(tight.report.matrixComputation.matrices[0]?.orthographicSize).toBe(
-      tightSize,
-    );
+    expect(
+      dirMatrix(tight.report.matrixComputation.matrices[0])?.orthographicSize,
+    ).toBe(tightSize);
   });
 
   it("reuses cached shadow resources across identical frames", () => {

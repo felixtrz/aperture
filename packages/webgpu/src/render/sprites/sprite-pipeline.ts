@@ -353,8 +353,7 @@ function createBrowserSpriteRenderPipelineDescriptor(input: {
           depthStencil: {
             format: input.depthFormat,
             depthWriteEnabled: false,
-            depthCompare:
-              input.depthMode === "disabled" ? "always" : "less",
+            depthCompare: input.depthMode === "disabled" ? "always" : "less",
           },
         }),
   };

@@ -22,16 +22,14 @@ export default class CloudsSystem extends createSystem({
     for (const cloud of CLOUDS) {
       const entity = this.#findByKey(cloud.key);
       if (entity === null) continue;
-      entity
-        .getVectorView(LocalTransform, "translation")
-        .set(
-          sourceCloudHoverPosition({
-            basePosition: cloud.position,
-            hoverVelocity: cloud.hoverVelocity,
-            hoverRate: cloud.hoverRate,
-            time: this.#time,
-          }),
-        );
+      entity.getVectorView(LocalTransform, "translation").set(
+        sourceCloudHoverPosition({
+          basePosition: cloud.position,
+          hoverVelocity: cloud.hoverVelocity,
+          hoverRate: cloud.hoverRate,
+          time: this.#time,
+        }),
+      );
     }
   }
 

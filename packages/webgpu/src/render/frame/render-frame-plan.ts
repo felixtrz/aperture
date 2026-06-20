@@ -276,8 +276,7 @@ export function writeRenderFramePlanFromSnapshot(
     pipelines: input.pipelines,
     bindGroups: input.bindGroups,
   });
-  const bindGroups =
-    drawOrderTransformPacking?.bindGroups ?? input.bindGroups;
+  const bindGroups = drawOrderTransformPacking?.bindGroups ?? input.bindGroups;
   const drawCommands = writeDrawCommandDescriptors(
     packages.packages,
     input.meshResources,
@@ -377,9 +376,7 @@ export function createRenderFrameQueueDiagnosticsSummary(
     packageSlotsCreated: input.packages.summary.packageSlotsCreated,
     missingPackedTransformCount:
       input.packages.summary.missingPackedTransformCount,
-    ...(input.summary === undefined
-      ? {}
-      : { draw: input.summary.counts.draw }),
+    ...(input.summary === undefined ? {} : { draw: input.summary.counts.draw }),
     stateSort: input.packages.summary.stateSort,
     diagnostics: {
       total,

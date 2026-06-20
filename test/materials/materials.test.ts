@@ -35,6 +35,25 @@ describe("material, texture, sampler, and render-state schemas", () => {
     });
   });
 
+  it("stores tuple base colors in Float32Array material storage", () => {
+    const standard = createStandardMaterialAsset({
+      baseColorFactor: [0.25, 0.5, 0.75, 1],
+    });
+    const unlit = createUnlitMaterialAsset({
+      baseColorFactor: [0, 0.25, 0.5, 1],
+    });
+    const matcap = createMatcapMaterialAsset({
+      baseColorFactor: [1, 0.75, 0.5, 1],
+    });
+
+    expect(standard.baseColorFactor).toBeInstanceOf(Float32Array);
+    expect(unlit.baseColorFactor).toBeInstanceOf(Float32Array);
+    expect(matcap.baseColorFactor).toBeInstanceOf(Float32Array);
+    expect(Array.from(standard.baseColorFactor)).toEqual([0.25, 0.5, 0.75, 1]);
+    expect(Array.from(unlit.baseColorFactor)).toEqual([0, 0.25, 0.5, 1]);
+    expect(Array.from(matcap.baseColorFactor)).toEqual([1, 0.75, 0.5, 1]);
+  });
+
   it("adds a stable unlit pipeline feature for base-color textures", () => {
     const material = createUnlitMaterialAsset({
       baseColorTexture: {

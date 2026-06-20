@@ -560,7 +560,9 @@ function isPhysicsJointMotorModel(
 }
 
 function isSpriteCoordinateMode(value: unknown): value is SpriteCoordinateMode {
-  return typeof value === "string" && stringValueIn(value, SpriteCoordinateMode);
+  return (
+    typeof value === "string" && stringValueIn(value, SpriteCoordinateMode)
+  );
 }
 
 function isSpriteBillboardMode(value: unknown): value is SpriteBillboardMode {

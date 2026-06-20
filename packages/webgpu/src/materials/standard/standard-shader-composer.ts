@@ -150,7 +150,12 @@ export class StandardFragmentComposer {
     expression: string,
     statement?: string,
   ): void {
-    addUniqueTerm(this.#indirectDiffuseTerms, "indirectDiffuse", id, expression);
+    addUniqueTerm(
+      this.#indirectDiffuseTerms,
+      "indirectDiffuse",
+      id,
+      expression,
+    );
     if (statement !== undefined) {
       this.addMaterialStatement(statement);
     }
@@ -455,7 +460,9 @@ function removeFirstMatchingStatement(
   statements: string[],
   prefix: string,
 ): void {
-  const index = statements.findIndex((statement) => statement.startsWith(prefix));
+  const index = statements.findIndex((statement) =>
+    statement.startsWith(prefix),
+  );
 
   if (index >= 0) {
     statements.splice(index, 1);

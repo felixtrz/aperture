@@ -1,6 +1,7 @@
 # Copilot Instructions
 
 <!-- aperture-managed:start aperture-ai-tools -->
+
 This project is an Aperture app. Keep changes ECS-first:
 
 - Add behavior in `*.system.ts` files.

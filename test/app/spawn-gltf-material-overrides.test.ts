@@ -71,9 +71,8 @@ describe("spawn.gltf material overrides", () => {
     expect(replacement?.renderState.depth.write).toBe(false);
     expect(replacement?.renderState.blend.preset).toBe("alpha");
 
-    const original = registry.get<"material", SourceMaterialAsset>(
-      source,
-    )?.asset as StandardMaterialAsset | null | undefined;
+    const original = registry.get<"material", SourceMaterialAsset>(source)
+      ?.asset as StandardMaterialAsset | null | undefined;
     expect(Array.from(original?.baseColorFactor ?? [])).toEqual([1, 1, 1, 1]);
     expect(original?.roughnessFactor).toBe(0.25);
     expect(original?.renderState.alphaMode).toBe("opaque");

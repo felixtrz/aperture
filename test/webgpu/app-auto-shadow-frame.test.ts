@@ -19,6 +19,31 @@ import {
 } from "../../packages/webgpu/src/app/auto-shadow-frame.js";
 import { createWebGpuAppResourceReuseReport } from "../../packages/webgpu/src/app/report.js";
 
+// These scenarios always produce directional shadows; narrow the shadow-kind
+// union to the directional members the assertions read.
+function dirMatrix(
+  value: unknown,
+):
+  | { readonly orthographicSize: number; readonly center: readonly number[] }
+  | undefined {
+  return value as
+    | { readonly orthographicSize: number; readonly center: readonly number[] }
+    | undefined;
+}
+function dirPlan(value: unknown):
+  | {
+      readonly cascadeNearDistance: number;
+      readonly cascadeFarDistance: number;
+    }
+  | undefined {
+  return value as
+    | {
+        readonly cascadeNearDistance: number;
+        readonly cascadeFarDistance: number;
+      }
+    | undefined;
+}
+
 describe("WebGPU app auto-shadow frame", () => {
   it("uses primary-camera receiver fit when a primary camera exists", () => {
     const calls = createDeviceCalls();
@@ -49,10 +74,10 @@ describe("WebGPU app auto-shadow frame", () => {
       result?.casterDrawList.diagnostics.map((diagnostic) => diagnostic.code),
     ).toEqual(["shadowCasterDrawList.unsupportedAlphaBlendCaster"]);
     expect(
-      result?.matrixComputation.matrices[0]?.orthographicSize,
+      dirMatrix(result?.matrixComputation.matrices[0])?.orthographicSize,
     ).toBeGreaterThan(7);
     expect(
-      result?.matrixComputation.matrices[0]?.orthographicSize,
+      dirMatrix(result?.matrixComputation.matrices[0])?.orthographicSize,
     ).toBeLessThan(9);
   });
 
@@ -82,8 +107,9 @@ describe("WebGPU app auto-shadow frame", () => {
       }),
     });
 
-    const orthographicSize =
-      result?.matrixComputation.matrices[0]?.orthographicSize;
+    const orthographicSize = dirMatrix(
+      result?.matrixComputation.matrices[0],
+    )?.orthographicSize;
     const oldWorldDiagonalSize = Math.hypot(20, 1, 20) * 1.1;
 
     expect(result).not.toBeNull();
@@ -159,15 +185,17 @@ describe("WebGPU app auto-shadow frame", () => {
     expect(
       result?.casterDrawList.diagnostics.map((diagnostic) => diagnostic.code),
     ).toEqual(["shadowCasterDrawList.unsupportedAlphaBlendCaster"]);
-    expect(result?.matrixComputation.matrices[0]?.center[0]).toBeGreaterThan(
-      -1,
-    );
-    expect(result?.matrixComputation.matrices[0]?.center[0]).toBeLessThan(1);
     expect(
-      result?.matrixComputation.matrices[0]?.orthographicSize,
+      dirMatrix(result?.matrixComputation.matrices[0])?.center[0],
+    ).toBeGreaterThan(-1);
+    expect(
+      dirMatrix(result?.matrixComputation.matrices[0])?.center[0],
+    ).toBeLessThan(1);
+    expect(
+      dirMatrix(result?.matrixComputation.matrices[0])?.orthographicSize,
     ).toBeGreaterThan(7);
     expect(
-      result?.matrixComputation.matrices[0]?.orthographicSize,
+      dirMatrix(result?.matrixComputation.matrices[0])?.orthographicSize,
     ).toBeLessThan(9);
     expect(result?.matrixComputation.matrices[0]?.far).toBeGreaterThan(
       receiverOnlyResult?.matrixComputation.matrices[0]?.far ?? Infinity,
@@ -198,17 +226,17 @@ describe("WebGPU app auto-shadow frame", () => {
     });
 
     expect(result).not.toBeNull();
-    expect(result?.viewProjection.plans[0]?.cascadeFarDistance).toBeGreaterThan(
-      199,
-    );
-    expect(result?.viewProjection.plans[0]?.cascadeFarDistance).toBeLessThan(
-      201,
-    );
     expect(
-      result?.matrixComputation.matrices[0]?.orthographicSize,
+      dirPlan(result?.viewProjection.plans[0])?.cascadeFarDistance,
+    ).toBeGreaterThan(199);
+    expect(
+      dirPlan(result?.viewProjection.plans[0])?.cascadeFarDistance,
+    ).toBeLessThan(201);
+    expect(
+      dirMatrix(result?.matrixComputation.matrices[0])?.orthographicSize,
     ).toBeGreaterThan(7);
     expect(
-      result?.matrixComputation.matrices[0]?.orthographicSize,
+      dirMatrix(result?.matrixComputation.matrices[0])?.orthographicSize,
     ).toBeLessThan(9);
   });
 

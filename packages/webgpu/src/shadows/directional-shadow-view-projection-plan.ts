@@ -308,9 +308,7 @@ function shadowInputKey(shadowId: number, lightId: number): string {
   return `${shadowId}:${lightId}`;
 }
 
-function tuple3(
-  value: readonly [number, number, number] | readonly number[],
-): readonly [number, number, number] {
+function tuple3(value: ArrayLike<number>): readonly [number, number, number] {
   return [value[0] ?? 0, value[1] ?? 0, value[2] ?? 0];
 }
 

@@ -326,7 +326,9 @@ function extractParticleBursts(
             position,
             positionRange,
             velocityRange,
-            centerOverride: burst.request.boundsCenter,
+            ...(burst.request.boundsCenter === undefined
+              ? {}
+              : { centerOverride: burst.request.boundsCenter }),
             effect,
             diagnostics: input.diagnostics,
             effectKey: assetHandleKey(burst.effect),

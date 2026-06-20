@@ -203,8 +203,7 @@ describe("queued built-in app resource set collector", () => {
       drawPacket({
         renderId: 21,
         materialFamily: "standard",
-        pipelineKey:
-          "standard|shadowMap|fogLinear|opaque|back|less|none",
+        pipelineKey: "standard|shadowMap|fogLinear|opaque|back|less|none",
       }),
       drawPacket({
         renderId: 22,

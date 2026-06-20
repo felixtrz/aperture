@@ -382,15 +382,15 @@ function createSerializedMeshAssetPatch(
       ? {}
       : {
           localAabb: {
-            min: [...asset.localAabb.min],
-            max: [...asset.localAabb.max],
+            min: Array.from(asset.localAabb.min),
+            max: Array.from(asset.localAabb.max),
           },
         }),
     ...(asset.localSphere === undefined
       ? {}
       : {
           localSphere: {
-            center: [...asset.localSphere.center],
+            center: Array.from(asset.localSphere.center),
             radius: asset.localSphere.radius,
           },
         }),
@@ -461,15 +461,15 @@ function applySerializedMeshAssetPatch(
       ? {}
       : {
           localAabb: {
-            min: [...patch.localAabb.min],
-            max: [...patch.localAabb.max],
+            min: Array.from(patch.localAabb.min),
+            max: Array.from(patch.localAabb.max),
           },
         }),
     ...(patch.localSphere === undefined
       ? {}
       : {
           localSphere: {
-            center: [...patch.localSphere.center],
+            center: Array.from(patch.localSphere.center),
             radius: patch.localSphere.radius,
           },
         }),

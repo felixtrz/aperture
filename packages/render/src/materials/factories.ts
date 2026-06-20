@@ -1,4 +1,5 @@
-import type { Vec3Like, Vec4Like } from "@aperture-engine/simulation";
+import { vec4 } from "@aperture-engine/simulation";
+import type { Vec3Like, Vec4, Vec4Like } from "@aperture-engine/simulation";
 import type {
   DebugNormalMaterialAsset,
   CustomMaterialDependencyDeclaration,
@@ -34,16 +35,22 @@ export function createDefaultRenderState(
 }
 
 export function createUnlitMaterialAsset(
-  input: Partial<Omit<UnlitMaterialAsset, "kind" | "label" | "renderState">> & {
+  input: Partial<
+    Omit<
+      UnlitMaterialAsset,
+      "kind" | "label" | "renderState" | "baseColorFactor"
+    >
+  > & {
     readonly label?: string;
     readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly baseColorFactor?: Vec4Like;
   } = {},
 ): UnlitMaterialAsset {
   return {
     kind: "unlit",
     label: input.label ?? "Unlit Material",
     renderState: createDefaultRenderState(input.renderState),
-    baseColorFactor: input.baseColorFactor ?? new Float32Array([1, 1, 1, 1]),
+    baseColorFactor: materialColor(input.baseColorFactor),
     baseColorTexture: input.baseColorTexture ?? null,
     unsupportedFeatures: input.unsupportedFeatures ?? [],
   };
@@ -51,17 +58,21 @@ export function createUnlitMaterialAsset(
 
 export function createMatcapMaterialAsset(
   input: Partial<
-    Omit<MatcapMaterialAsset, "kind" | "label" | "renderState">
+    Omit<
+      MatcapMaterialAsset,
+      "kind" | "label" | "renderState" | "baseColorFactor"
+    >
   > & {
     readonly label?: string;
     readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly baseColorFactor?: Vec4Like;
   } = {},
 ): MatcapMaterialAsset {
   return {
     kind: "matcap",
     label: input.label ?? "Matcap Material",
     renderState: createDefaultRenderState(input.renderState),
-    baseColorFactor: input.baseColorFactor ?? new Float32Array([1, 1, 1, 1]),
+    baseColorFactor: materialColor(input.baseColorFactor),
     matcapTexture: input.matcapTexture ?? null,
     unsupportedFeatures: input.unsupportedFeatures ?? [],
   };
@@ -69,17 +80,21 @@ export function createMatcapMaterialAsset(
 
 export function createStandardMaterialAsset(
   input: Partial<
-    Omit<StandardMaterialAsset, "kind" | "label" | "renderState">
+    Omit<
+      StandardMaterialAsset,
+      "kind" | "label" | "renderState" | "baseColorFactor"
+    >
   > & {
     readonly label?: string;
     readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly baseColorFactor?: Vec4Like;
   } = {},
 ): StandardMaterialAsset {
   return {
     kind: "standard",
     label: input.label ?? "Standard Material",
     renderState: createDefaultRenderState(input.renderState),
-    baseColorFactor: input.baseColorFactor ?? new Float32Array([1, 1, 1, 1]),
+    baseColorFactor: materialColor(input.baseColorFactor),
     baseColorTexture: input.baseColorTexture ?? null,
     metallicFactor: input.metallicFactor ?? 1,
     roughnessFactor: input.roughnessFactor ?? 1,
@@ -161,6 +176,29 @@ export interface MatcapMaterialPatch {
   readonly baseColorFactor?: Vec4Like;
   readonly renderState?: Partial<RenderStateDescriptor>;
   readonly label?: string;
+}
+
+function materialColor(value: Vec4Like | undefined): Vec4 {
+  if (value === undefined) {
+    return vec4(1, 1, 1, 1);
+  }
+
+  return vec4(
+    readVec4Component(value, 0),
+    readVec4Component(value, 1),
+    readVec4Component(value, 2),
+    readVec4Component(value, 3),
+  );
+}
+
+function readVec4Component(value: Vec4Like, index: number): number {
+  const component = value[index];
+  if (component === undefined) {
+    throw new RangeError(
+      `Material baseColorFactor is missing numeric value at index ${index}.`,
+    );
+  }
+  return component;
 }
 
 export function patchStandardMaterial(

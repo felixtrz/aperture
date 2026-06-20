@@ -1,15 +1,22 @@
 // Storage types are always tight, monomorphic Float32Arrays — the layout the
-// GPU, ECS columns, and worker snapshots all expect. Keeping a single concrete
-// output type is what lets V8 keep these functions monomorphic and fast. The
-// `Float32` alias (see `storage.d.ts`) is exactly `Float32Array` at runtime; it
-// only adjusts how element access is typed for callers.
-import type { Float32 } from "./storage.js";
+// GPU, ECS columns, and worker snapshots all expect. They are typed as
+// `Float32Array & <fixed-length tuple>` so that element access returns a precise
+// `number` (not `number | undefined`) under the repo's `noUncheckedIndexedAccess`
+// setting, and so a vector is assignable to `number[]`, while the runtime value
+// is always a real `Float32Array`. Allocate through the `alloc.ts` helpers,
+// which apply the single type-only cast from `Float32Array` to the branded type.
 
-export type Vec2 = Float32;
-export type Vec3 = Float32;
-export type Vec4 = Float32;
-export type Quat = Float32;
-export type Mat4 = Float32;
+export type Vec2 = Float32Array & [number, number];
+export type Vec3 = Float32Array & [number, number, number];
+export type Vec4 = Float32Array & [number, number, number, number];
+export type Quat = Float32Array & [number, number, number, number];
+// prettier-ignore
+export type Mat4 = Float32Array & [
+  number, number, number, number,
+  number, number, number, number,
+  number, number, number, number,
+  number, number, number, number,
+];
 
 /**
  * Read-only numeric input. Accepts Float32Array storage, plain `number[]`, and
