@@ -149,9 +149,9 @@ describe("spot shadow 2D pipeline planning", () => {
       transforms: identityTransform(),
     });
     expect(matrices.status).toBe("ready");
-    expect(matrices.matrices[0]?.viewProjectionMatrix.every(Number.isFinite)).toBe(
-      true,
-    );
+    expect(
+      matrices.matrices[0]?.viewProjectionMatrix.every(Number.isFinite),
+    ).toBe(true);
   });
 });
 

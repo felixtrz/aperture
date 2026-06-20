@@ -20,11 +20,12 @@ Keep both, specialize them. They look like competitors but are different layers:
 Make vitexec the daily interactive driver; fix the MCP's two concrete defects;
 let the MCP keep the jobs only it can do. The multiplier is **vitexec calling the
 MCP runtime bridge from inside the page** (`__APERTURE_MCP_RUNTIME__.callTool(…)`)
-— worker introspection *with* vitexec's output control.
+— worker introspection _with_ vitexec's output control.
 
 ## vitexec
 
 ### Wins (observed)
+
 - **You control the output.** Logged exactly `y=0.49 grounded=true`. This is the
   single biggest day-to-day win (see the MCP payload problem below).
 - **Deterministic scripted sequences.** One snippet = load + act + assert.
@@ -33,15 +34,16 @@ MCP runtime bridge from inside the page** (`__APERTURE_MCP_RUNTIME__.callTool(�
 - **The worker/sim DOES boot under headless SwiftShader.** Got real telemetry
   (player rests on the start platform: `grounded=true, y≈0.49`, 400+ signal
   updates over 7 s). The "WebGPU won't run headless" fear did not block the
-  *simulation* — only rendering.
+  _simulation_ — only rendering.
 
 ### Gaps (today, plain `pnpm dlx vitexec --gpu`)
+
 - **~40 s cold boot per run** (Playwright + Chromium + WebGPU + worker from
   frame 0). The MCP attaches to a running session instantly.
 - **State doesn't persist across runs** — every run restarts the sim at frame 0,
   so multi-step exploration must fit in one snippet.
 - **No trustworthy frames.** Headless SwiftShader → blank/unreliable WebGPU
-  readback, so screenshots are useless. The *headed* MCP session is how the
+  readback, so screenshots are useless. The _headed_ MCP session is how the
   black-platform-tops bug was actually seen.
 - **Can't reach the worker.** From the page, vitexec only sees what the page
   exposes (signals). It cannot query arbitrary ECS entities, physics colliders,
@@ -51,14 +53,16 @@ MCP runtime bridge from inside the page** (`__APERTURE_MCP_RUNTIME__.callTool(�
   EOF and looks like a hang. Redirect to a file instead.
 
 ### The fork (`felixtrz/vitexec#feat/adopt-existing-browser`)
+
 Targets the two biggest gaps directly: adopting the already-running **headed**
 aperture dev browser gives instant attach, state persistence, **real-GPU frames**,
-*and* access to the in-page `__APERTURE_MCP_RUNTIME__` bridge — all on top of
+_and_ access to the in-page `__APERTURE_MCP_RUNTIME__` bridge — all on top of
 vitexec's output control and input. If it works it becomes the primary tool.
 
 ## aperture MCP / CLI
 
 ### Uniquely valuable (vitexec can't replicate without becoming the MCP)
+
 - **Worker/ECS/physics/render introspection** (`ecs_find_entities`,
   `render_get_frame_report`, `render_pick_entity`, …).
 - **RAG over the engine corpus** (`reference_search` / `reference_api_lookup` /
@@ -68,6 +72,7 @@ vitexec's output control and input. If it works it becomes the primary tool.
 - **Typed, discoverable surface** for other agents and headless CI.
 
 ### Concrete defects found (fixable, not fundamental)
+
 1. **Payload bloat.** Every status/input tool embeds the full diagnostics+render
    snapshot (~100 k chars). `browser_status`, `browser_wait_for_webgpu`,
    `input_key`, `input_reset` each overflowed the agent context and had to be
@@ -81,6 +86,7 @@ vitexec's output control and input. If it works it becomes the primary tool.
      stale-snapshot/dirty-state artifacts, not tool bugs. See FINDINGS §C.
 
 ### Recommendation (priority order)
+
 1. Add `summaryOnly`/field-selection to every status tool — kill the 100 k
    payloads. (Highest impact.)
 2. Make `ecs_find_entities`'s `components` filter actually filter.
@@ -88,8 +94,8 @@ vitexec's output control and input. If it works it becomes the primary tool.
 
 ## Division of labor
 
-| Job | Owner |
-|---|---|
-| Scripted interaction, e2e flows, input sim, screenshots/video, profiling | vitexec (fork) |
-| ECS/physics/render introspection, RAG, session lifecycle, typed surface for other agents/CI | MCP/CLI |
-| Worker introspection with clean output | vitexec → `__APERTURE_MCP_RUNTIME__.callTool` |
+| Job                                                                                         | Owner                                         |
+| ------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Scripted interaction, e2e flows, input sim, screenshots/video, profiling                    | vitexec (fork)                                |
+| ECS/physics/render introspection, RAG, session lifecycle, typed surface for other agents/CI | MCP/CLI                                       |
+| Worker introspection with clean output                                                      | vitexec → `__APERTURE_MCP_RUNTIME__.callTool` |

@@ -29,9 +29,7 @@ describe("Aperture managed-browser GPU mode resolution", () => {
     expect(() => parseApertureGpuMode("metal", "flag")).toThrow(
       ApertureCliError,
     );
-    expect(() => parseApertureGpuMode("metal", "env")).toThrow(
-      /APERTURE_GPU/,
-    );
+    expect(() => parseApertureGpuMode("metal", "env")).toThrow(/APERTURE_GPU/);
   });
 
   it("honors an explicit hardware request over env and platform", () => {
@@ -45,7 +43,10 @@ describe("Aperture managed-browser GPU mode resolution", () => {
   });
 
   it("honors an explicit software request", () => {
-    const resolved = resolveApertureGpu({ mode: "software", platform: "darwin" });
+    const resolved = resolveApertureGpu({
+      mode: "software",
+      platform: "darwin",
+    });
     expect(resolved.software).toBe(true);
     expect(resolved.source).toBe("flag");
   });

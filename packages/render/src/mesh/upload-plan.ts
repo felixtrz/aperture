@@ -158,9 +158,7 @@ function createVertexUploadDescriptor(
   };
 
   return [
-    updateRanges === undefined
-      ? descriptor
-      : { ...descriptor, updateRanges },
+    updateRanges === undefined ? descriptor : { ...descriptor, updateRanges },
   ];
 }
 

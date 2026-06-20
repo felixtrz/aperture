@@ -18,7 +18,7 @@ port is a release proof-point; these are first-release-relevant engine issues.
    allocates each component column densely at `entityCapacity` ONCE and **never grows**;
    exceeding it throws `RangeError: offset is out of bounds`, surfaced as
    `aperture.spawn.gltfReplayFailed: gltfEcsReplay.componentApplyFailed: offset is out of
-   bounds`. elics' default is only **1000** — a decorated track (~1000+ entities, each
+bounds`. elics' default is only **1000** — a decorated track (~1000+ entities, each
    glTF expands to several) crashes the worker. Fixed: `createWorld` in
    `packages/simulation/src/ecs/index.ts` now defaults `entityCapacity` to
    `DEFAULT_ENTITY_CAPACITY = 16384` (overridable via `worldOptions.entityCapacity`).
@@ -50,18 +50,18 @@ conjugate rotation — that was app code, not the engine; see PORT_PROGRESS.md.)
    - **no billboarding** (quad expanded in world XY, not camera-facing);
    - **additive blend + depthCompare 'always'** only → grey smoke brightens the scene, ignores occlusion;
    - **procedural looping life** (`fract(time/lifetime)`), not emission/burst/gravity driven.
-   Plus app-surface gaps: `spawn` facade has **no `particles()`/`sprite()`** command
-   (`packages/app/src/systems/spawn/commands.ts`); `@aperture-engine/app` doesn't re-export
-   the particle authoring APIs; and there's **no public path to register a `particle-effect`
-   asset** (config asset kinds are only gltf|texture|hdr|shader; the `AssetRegistry` isn't
-   exposed on the system instance). → Smoke trails need a real textured/billboarded particle
-   pass + an app-facing spawn/asset surface.
-   **Port workaround (DONE):** `particles.system.ts` (p125) sidesteps the GPU particle pass
-   entirely — renders smoke as app-built **textured billboard quads** (dynamic unlit mesh, same
-   path as drift marks; pool 1280, camera-facing, `/sprites/smoke.png`). Works app-only. The
-   GPU pipeline still needs the above fixes to be usable for real particle effects.
+     Plus app-surface gaps: `spawn` facade has **no `particles()`/`sprite()`** command
+     (`packages/app/src/systems/spawn/commands.ts`); `@aperture-engine/app` doesn't re-export
+     the particle authoring APIs; and there's **no public path to register a `particle-effect`
+     asset** (config asset kinds are only gltf|texture|hdr|shader; the `AssetRegistry` isn't
+     exposed on the system instance). → Smoke trails need a real textured/billboarded particle
+     pass + an app-facing spawn/asset surface.
+     **Port workaround (DONE):** `particles.system.ts` (p125) sidesteps the GPU particle pass
+     entirely — renders smoke as app-built **textured billboard quads** (dynamic unlit mesh, same
+     path as drift marks; pool 1280, camera-facing, `/sprites/smoke.png`). Works app-only. The
+     GPU pipeline still needs the above fixes to be usable for real particle effects.
 
-8. **Config `asset.texture(url)` registers a handle but NEVER decodes pixels** — only the glTF
+5. **Config `asset.texture(url)` registers a handle but NEVER decodes pixels** — only the glTF
    path decodes images; the bootstrap's texture `request()` just `markReady`s a `{id,kind,url}`
    stub, so a config-declared texture is never sampleable. The smoke system had to fetch +
    decode the PNG itself in the worker (`createImageBitmap`/`OffscreenCanvas`) and `markReady` a
@@ -70,7 +70,7 @@ conjugate rotation — that was app code, not the engine; see PORT_PROGRESS.md.)
    ~30 lines had to be inlined. First-release fixes: make config `asset.texture` actually decode,
    and re-export the image decoder.
 
-5. **Drift marks — IMPLEMENTED (`drift-marks.system.ts`, p135), but via a non-public
+6. **Drift marks — IMPLEMENTED (`drift-marks.system.ts`, p135), but via a non-public
    registry path.** The engine DOES support app-built dynamic vertex-color unlit meshes:
    `UNLIT_VERTEX_COLOR_MESH_WGSL` (auto-selected when the MeshAsset's vertex layout has a
    COLOR_0 attribute — `packages/webgpu/src/materials/unlit/unlit-pipeline.ts`), plus
@@ -104,9 +104,9 @@ default — the port had to add them to import the mesh/material factories; the 
    `applySnapshot(renderSnapshot, dt)` reconciling `AudioEmitterPacket[]` produced by the
    ECS — there is no `engine.playLoop(buffer)` / `setVoicePlaybackRate(...)`. The racing
    port therefore drives audio from the **main thread** (`src/audio.ts`, wired from
-   `hud.ts`) by building voices directly on the *lower* public seams
+   `hud.ts`) by building voices directly on the _lower_ public seams
    `createWebAudioBackend` + `createAudioMixer` (+ backend `createSource/createGain/
-   createBiquad`, `busInput`), reading the `speed`/`throttle`/`driftIntensity` signals.
+createBiquad`, `busInput`), reading the `speed`/`throttle`/`driftIntensity` signals.
    This works with NO engine patch, but the first-release gaps are: (a) no `config.audio`
    enablement / app-facing audio surface (you must drop to the backend/mixer); (b)
    `AudioEmitterPacket` can't express the per-gear lowpass/RPM model, so even the snapshot
@@ -114,6 +114,7 @@ default — the port had to add them to import the mesh/material factories; the 
    0..1 while the reference's skid-pitch formula assumes raw 1..3 (adapted app-side).
 
 ## Tooling note
+
 - The `mcp__aperture__ecs_get_entity` / `ecs_find_entities` MCP tools ignored my
   `key`/`keyPattern`/`tags`/`limit` params (returned entity 0 or the full untruncated
   set). Worked around by reading the saved JSON with `jq`. Worth checking the MCP arg

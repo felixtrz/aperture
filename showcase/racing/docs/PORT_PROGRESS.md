@@ -17,17 +17,20 @@ gaps in `packages/` as discovered; document everything. Do not stop until parity
 
 `racing/` is an **isolated** project (`racing/pnpm-workspace.yaml` = `packages: []`)
 that consumes the engine as built tarballs, simulating an external consumer:
+
 - `racing/vendor/*.tgz` — 10 packed packages.
 - `racing/package.json` deps + `pnpm.overrides` map every `@aperture-engine/*` to
   its `file:vendor/*.tgz`.
 
 **Rebuild loop after editing `packages/`:**
+
 ```
 cd /Users/felixz/Projects/aperture && pnpm run build
 ( cd packages/<changed> && pnpm pack --pack-destination /Users/felixz/Projects/aperture/racing/vendor )
 cd racing && pnpm install --force
 node_modules/.bin/aperture dev down && node_modules/.bin/aperture dev up --open --port 8852
 ```
+
 Repack every package you changed (app/webgpu/render/physics/cli are the ones touched).
 
 ## How Aperture apps work (architecture)
@@ -59,7 +62,7 @@ Repack every package you changed (app/webgpu/render/physics/cli are the ones tou
 3. **Fog on the spawn facade** — `spawn.fog({ mode, color, start, end, density })`
    → `Fog` component.
 4. **Tonemap/exposure/bloom in render config** — `ApertureRenderDefaults.{tonemap,
-   exposure, bloom}` threaded through `packages/app/src/browser/app.ts` into
+exposure, bloom}` threaded through `packages/app/src/browser/app.ts` into
    `createWebGpuApp({ tonemap, exposure, postEffects:[bloom] })`. Engine default
    tonemap was `"none"`; ACES/AgX/Neutral/Reinhard all exist.
 5. **WGSL shader bug fix** —
@@ -85,7 +88,7 @@ Repack every package you changed (app/webgpu/render/physics/cli are the ones tou
    (was elics' fixed default 1000). elics allocates each component column densely at
    `entityCapacity` with NO growth, so a ~1000+ entity scene (track + ~115 decoration
    gltfs, each expanding to several entities) crashed with `gltfEcsReplay.component
-   ApplyFailed: offset is out of bounds`. Overridable via `worldOptions.entityCapacity`
+ApplyFailed: offset is out of bounds`. Overridable via `worldOptions.entityCapacity`
    (threaded from `options.start.entityCapacity` in `worker/loop.ts`). Deeper fix: elics
    should grow dynamically / emit a clear capacity diagnostic; expose `entityCapacity` in
    the public app config.
@@ -98,7 +101,7 @@ sheen; engine has Ambient/Environment/Directional/Point/Spot/RectArea, no Hemisp
 ## App state (racing/)
 
 - **config**: 11 gltf assets; signals `lap,currentLapTime,lastLapTime,bestLapTime,
-  speed,started`; input `drive` (axis2d: WASD/arrows + gamepad stick); physics
+speed,started`; input `drive` (axis2d: WASD/arrows + gamepad stick); physics
   gravity `[0,-9.81,0]`; render clearColor `0xadb2ba`, defaultCamera/Light false,
   sampleCount 4, tonemap `aces`, exposure 1.0, bloom `{threshold .5, intensity .02, radius .02, levels 5}`.
 - **src/lib**: `math.ts` (quat/scalar helpers), `track.ts` (TRACK_CELLS, DECO_CELLS,
@@ -179,7 +182,7 @@ generated bootstrap won't pick them up.
       `driftIntensity` signals (3-gear pitch model per spec §8). Boots on first gesture;
       clips at `/audio/*.ogg` (200). No engine patch. Sound itself pending an ear-check.
 - [~] Road matte parity — app-side improved (sky-biased ambient fill); full parity needs a
-      `LightKind.Hemisphere` (+ optional double-sided back-face normal flip). ENGINE_FINDINGS #3.
+  `LightKind.Hemisphere` (+ optional double-sided back-face normal flip). ENGINE_FINDINGS #3.
 - [x] Touch / pointer drive controls (`src/hud.ts` `setupTouchControls`): virtual-joystick
       drag → `dispatchApertureInputAction("drive",{x,y})`. VERIFIED forwarding to the worker
       (simulated drag drove `drive` to `{x:0.94,y:0.94}` then back to `{0,0}` on release).

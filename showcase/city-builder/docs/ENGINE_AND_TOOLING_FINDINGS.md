@@ -16,7 +16,7 @@ model "settled" at the world origin `[0,0,0]`, piling up over time.
 
 **Root cause:** `spawn.gltf` builds its scene subtree by writing the `Parent`
 component **directly** (via glTF command replay), never through `setParent`. But
-`Children` is documented as *"a derived index kept consistent on `setParent`"* —
+`Children` is documented as _"a derived index kept consistent on `setParent`"_ —
 so glTF roots never get a `Children` index. `hierarchy.despawnRecursive` walked
 **only** that index, so it destroyed the root and left the node/primitive
 children parented to a now-dead entity → they fall back to detached roots at the
@@ -52,50 +52,56 @@ despawns a glTF entity (demolish, pooling, hot-swap), so the fix is broad.
 ## Tooling / DX feedback
 
 ### T1. No wheel/scroll input primitive in MCP/CLI — MEDIUM
+
 `packages/cli/src/tools/input.ts` exposes `input_pointer_move`, `input_pointer_click`,
 `input_drag`, `input_key`, `input_action_set`, `input_gamepad_set` — but **no
 wheel/scroll**. Any app that uses the scroll wheel (zoom here, the standard
 city-builder idiom) can't be driven or regression-tested headlessly through the
 standard tools. Playwright's `page.mouse.wheel()` already exists under the hood;
-an `input_wheel { deltaX, deltaY }` tool would close the gap. *Mitigation: I added
-keyboard/gamepad zoom bindings so zoom is both usable and testable.*
+an `input_wheel { deltaX, deltaY }` tool would close the gap. _Mitigation: I added
+keyboard/gamepad zoom bindings so zoom is both usable and testable._
 
 ### T2. `aperture dev up` silently attached the browser to a FOREIGN dev server — MEDIUM/HIGH
+
 A pre-existing `vite` server from another repo (`/Users/felixz/Projects/aperture/racing`)
 was already listening on the default port `5173`. `aperture dev up --open` (with
 the default `--strict-port`) reported **"Started Aperture dev session"** and a
-healthy `webgpuOk:true`, but `ecs_list_systems` showed *racing's* systems and the
+healthy `webgpuOk:true`, but `ecs_list_systems` showed _racing's_ systems and the
 signals were racing's — the managed tab was showing the wrong app, while
 `session.json.appRoot` still pointed at city-builder. Re-launching with an
 explicit free `--port` fixed it. Whatever the internal cause (port reuse vs. the
 browser navigating to a stale default URL), the observed behaviour is a sharp
 gotcha: **a green dev session can be driving a different app than your `appRoot`.**
 Worth either failing fast on a foreign server holding the port, or verifying the
-served app's id matches `appRoot` before reporting success. *Sanity check after
-`dev up`: confirm `ecs_list_systems` shows your own `src/systems/*` paths.*
+served app's id matches `appRoot` before reporting success. _Sanity check after
+`dev up`: confirm `ecs_list_systems` shows your own `src/systems/_` paths.\*
 
 ### T3. Pointer tools default to NORMALIZED coords; pixels clamp silently — LOW
+
 `input_pointer_move`/`_click` treat `x,y` as normalized `0..1` by default
 (`coordinateSpace: auto`). Passing pixel values (e.g. `680,250`) silently clamps
 to the canvas corner `(1,1)` with no warning — my first move appeared to "do
 nothing." The returned `point` echo is the only tell. A warning when `x|y > 1`
 under `auto` would save a debugging cycle.
 
-### T4. Every input_* / browser_status call returns the full ~30 KB status — LOW/MEDIUM
-`browser_status` and *each* `input_*` MCP call return the entire frame snapshot
+### T4. Every input\_\* / browser_status call returns the full ~30 KB status — LOW/MEDIUM
+
+`browser_status` and _each_ `input_*` MCP call return the entire frame snapshot
 (perf rolling windows, full render-graph diagnostics, light bind-group keys, …) —
 ~30 KB of JSON per call. In an agent loop that drives dozens of inputs this is
 very expensive and crowds the context. A `verbosity`/`fields` option (or a
-`signals`-only summary) would help. *Mitigation: I drove inputs via the
-`aperture tool` CLI piped through `jq` to extract just signals/entities.*
+`signals`-only summary) would help. _Mitigation: I drove inputs via the
+`aperture tool` CLI piped through `jq` to extract just signals/entities._
 
 ### T5. `lastWorkerSummary` lags the dispatching call by 1–2 frames — LOW (expected)
-Reading the status returned *by* an input call shows pre-update state (e.g. a just-
+
+Reading the status returned _by_ an input call shows pre-update state (e.g. a just-
 issued build still reads `cellCount:0`); re-reading after a short settle shows the
 result. Same caveat the platformer port recorded. Test authors should read state
-*after* a settle, not from the dispatch echo.
+_after_ a settle, not from the dispatch echo.
 
 ### T6. `lastWorkerSummary.entities.summaries` is capped — LOW
+
 The entity summary list is truncated (~16 entries), so once a city has many tiles
 you can't enumerate all cell roots from the worker summary alone — `ecs_query` /
 `ecs_find_entities` are needed for the complete set. (Cash/`cellCount` signals
@@ -103,7 +109,7 @@ remained an accurate aggregate throughout.)
 
 ## Render note: the building/road "stripes" are the asset, not a render bug
 
-Reported during live review: horizontal **stripes** on building faces *and* road
+Reported during live review: horizontal **stripes** on building faces _and_ road
 tiles at close zoom. Investigated to a measured conclusion (it is **not** a
 placement/UV/pipeline bug, and **not** 8-bit output banding):
 
@@ -119,7 +125,7 @@ placement/UV/pipeline bug, and **not** 8-bit output banding):
   /2×); at the play/overview zoom (and Kenney's promo screenshot) it's soft
   shading. The reference uses the identical texture.
 
-What we *did* change: a harsh sun additionally cast hard shadows on the buildings'
+What we _did_ change: a harsh sun additionally cast hard shadows on the buildings'
 floor **ledges**, compounding the look. Matching the source's soft ambient GI
 (`ambient_light_energy 0.75` + SDFGI) — gentle sun (`illuminance 4.5→2.2`) +
 strong ambient (`0.6→1.3`) — removed that compounding; the residual is the

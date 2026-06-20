@@ -45,9 +45,7 @@ export function sourceEnemyDamageAudioEvents(input: {
   if (input.currentHealth <= 0) return [];
 
   const remaining = input.currentHealth - input.damage;
-  return remaining <= 0
-    ? ["enemy-hurt", "enemy-destroy"]
-    : ["enemy-hurt"];
+  return remaining <= 0 ? ["enemy-hurt", "enemy-destroy"] : ["enemy-hurt"];
 }
 
 function clamp01(value: number): number {

@@ -5,7 +5,12 @@ import type { StartOptionsAccess } from "@aperture-engine/app/systems";
 
 export type GridCell = readonly [number, number, string, number];
 
-export const ORIENT_DEG: Record<number, number> = { 0: 0, 10: 180, 16: 90, 22: 270 };
+export const ORIENT_DEG: Record<number, number> = {
+  0: 0,
+  10: 180,
+  16: 90,
+  22: 270,
+};
 
 export const CELL_RAW = 9.99;
 export const GRID_SCALE = 0.75;
@@ -33,82 +38,135 @@ export const DECO_CELLS: readonly GridCell[] = [
   [-4, -2, "decoration-tents", 10],
   [-1, -4, "decoration-tents", 22],
   [-1, 1, "decoration-tents", 22],
-  [-8, -9, "decoration-forest", 0], [-7, -9, "decoration-forest", 0],
-  [-6, -9, "decoration-forest", 0], [-5, -9, "decoration-forest", 0],
-  [-4, -9, "decoration-forest", 0], [-3, -9, "decoration-forest", 0],
-  [-2, -9, "decoration-forest", 0], [-1, -9, "decoration-forest", 0],
-  [0, -9, "decoration-forest", 0], [1, -9, "decoration-forest", 0],
+  [-8, -9, "decoration-forest", 0],
+  [-7, -9, "decoration-forest", 0],
+  [-6, -9, "decoration-forest", 0],
+  [-5, -9, "decoration-forest", 0],
+  [-4, -9, "decoration-forest", 0],
+  [-3, -9, "decoration-forest", 0],
+  [-2, -9, "decoration-forest", 0],
+  [-1, -9, "decoration-forest", 0],
+  [0, -9, "decoration-forest", 0],
+  [1, -9, "decoration-forest", 0],
   [2, -9, "decoration-forest", 0],
-  [-8, -8, "decoration-forest", 0], [-7, -8, "decoration-forest", 0],
-  [-6, -8, "decoration-forest", 0], [-5, -8, "decoration-forest", 0],
-  [-4, -8, "decoration-forest", 0], [-3, -8, "decoration-forest", 0],
-  [-2, -8, "decoration-forest", 0], [-1, -8, "decoration-forest", 0],
-  [0, -8, "decoration-forest", 0], [1, -8, "decoration-forest", 0],
+  [-8, -8, "decoration-forest", 0],
+  [-7, -8, "decoration-forest", 0],
+  [-6, -8, "decoration-forest", 0],
+  [-5, -8, "decoration-forest", 0],
+  [-4, -8, "decoration-forest", 0],
+  [-3, -8, "decoration-forest", 0],
+  [-2, -8, "decoration-forest", 0],
+  [-1, -8, "decoration-forest", 0],
+  [0, -8, "decoration-forest", 0],
+  [1, -8, "decoration-forest", 0],
   [2, -8, "decoration-forest", 0],
-  [-8, -7, "decoration-forest", 0], [-7, -7, "decoration-forest", 0],
-  [-6, -7, "decoration-forest", 0], [-5, -7, "decoration-forest", 0],
-  [-4, -7, "decoration-forest", 0], [-3, -7, "decoration-forest", 0],
-  [-2, -7, "decoration-forest", 0], [-1, -7, "decoration-forest", 0],
-  [0, -7, "decoration-forest", 0], [1, -7, "decoration-forest", 0],
+  [-8, -7, "decoration-forest", 0],
+  [-7, -7, "decoration-forest", 0],
+  [-6, -7, "decoration-forest", 0],
+  [-5, -7, "decoration-forest", 0],
+  [-4, -7, "decoration-forest", 0],
+  [-3, -7, "decoration-forest", 0],
+  [-2, -7, "decoration-forest", 0],
+  [-1, -7, "decoration-forest", 0],
+  [0, -7, "decoration-forest", 0],
+  [1, -7, "decoration-forest", 0],
   [2, -7, "decoration-forest", 0],
-  [-8, -6, "decoration-forest", 0], [-7, -6, "decoration-forest", 0],
-  [-6, -6, "decoration-forest", 0], [-5, -6, "decoration-forest", 0],
-  [-4, -6, "decoration-forest", 0], [-3, -6, "decoration-empty", 0],
-  [-2, -6, "decoration-empty", 0], [-1, -6, "decoration-empty", 0],
-  [0, -6, "decoration-empty", 0], [1, -6, "decoration-forest", 0],
+  [-8, -6, "decoration-forest", 0],
+  [-7, -6, "decoration-forest", 0],
+  [-6, -6, "decoration-forest", 0],
+  [-5, -6, "decoration-forest", 0],
+  [-4, -6, "decoration-forest", 0],
+  [-3, -6, "decoration-empty", 0],
+  [-2, -6, "decoration-empty", 0],
+  [-1, -6, "decoration-empty", 0],
+  [0, -6, "decoration-empty", 0],
+  [1, -6, "decoration-forest", 0],
   [2, -6, "decoration-forest", 0],
-  [-8, -5, "decoration-forest", 0], [-7, -5, "decoration-forest", 0],
-  [-6, -5, "decoration-forest", 0], [-5, -5, "decoration-forest", 0],
-  [-4, -5, "decoration-empty", 0], [-3, -5, "decoration-empty", 0],
-  [-2, -5, "decoration-empty", 0], [-1, -5, "decoration-empty", 0],
-  [0, -5, "decoration-empty", 0], [1, -5, "decoration-forest", 0],
+  [-8, -5, "decoration-forest", 0],
+  [-7, -5, "decoration-forest", 0],
+  [-6, -5, "decoration-forest", 0],
+  [-5, -5, "decoration-forest", 0],
+  [-4, -5, "decoration-empty", 0],
+  [-3, -5, "decoration-empty", 0],
+  [-2, -5, "decoration-empty", 0],
+  [-1, -5, "decoration-empty", 0],
+  [0, -5, "decoration-empty", 0],
+  [1, -5, "decoration-forest", 0],
   [2, -5, "decoration-forest", 0],
-  [-8, -4, "decoration-forest", 0], [-7, -4, "decoration-forest", 0],
-  [-6, -4, "decoration-forest", 0], [-5, -4, "decoration-forest", 0],
+  [-8, -4, "decoration-forest", 0],
+  [-7, -4, "decoration-forest", 0],
+  [-6, -4, "decoration-forest", 0],
+  [-5, -4, "decoration-forest", 0],
   [-4, -4, "decoration-empty", 0],
   [1, -4, "decoration-forest", 0],
   [2, -4, "decoration-forest", 0],
-  [-8, -3, "decoration-forest", 0], [-7, -3, "decoration-forest", 0],
-  [-6, -3, "decoration-forest", 0], [-5, -3, "decoration-forest", 0],
+  [-8, -3, "decoration-forest", 0],
+  [-7, -3, "decoration-forest", 0],
+  [-6, -3, "decoration-forest", 0],
+  [-5, -3, "decoration-forest", 0],
   [-4, -3, "decoration-empty", 0],
   [1, -3, "decoration-forest", 0],
   [2, -3, "decoration-forest", 0],
-  [-8, -2, "decoration-forest", 0], [-7, -2, "decoration-forest", 0],
-  [-6, -2, "decoration-forest", 0], [-5, -2, "decoration-forest", 0],
+  [-8, -2, "decoration-forest", 0],
+  [-7, -2, "decoration-forest", 0],
+  [-6, -2, "decoration-forest", 0],
+  [-5, -2, "decoration-forest", 0],
   [1, -2, "decoration-forest", 0],
   [2, -2, "decoration-forest", 0],
-  [-8, -1, "decoration-forest", 0], [-7, -1, "decoration-forest", 0],
-  [-6, -1, "decoration-forest", 0], [-5, -1, "decoration-forest", 0],
-  [-4, -1, "decoration-empty", 0], [-1, -1, "decoration-empty", 0],
+  [-8, -1, "decoration-forest", 0],
+  [-7, -1, "decoration-forest", 0],
+  [-6, -1, "decoration-forest", 0],
+  [-5, -1, "decoration-forest", 0],
+  [-4, -1, "decoration-empty", 0],
+  [-1, -1, "decoration-empty", 0],
   [1, -1, "decoration-forest", 0],
   [2, -1, "decoration-forest", 0],
-  [-8, 0, "decoration-forest", 0], [-7, 0, "decoration-forest", 0],
-  [-6, 0, "decoration-forest", 0], [-5, 0, "decoration-forest", 0],
-  [-4, 0, "decoration-empty", 0], [-3, 0, "decoration-empty", 0],
+  [-8, 0, "decoration-forest", 0],
+  [-7, 0, "decoration-forest", 0],
+  [-6, 0, "decoration-forest", 0],
+  [-5, 0, "decoration-forest", 0],
+  [-4, 0, "decoration-empty", 0],
+  [-3, 0, "decoration-empty", 0],
   [-1, 0, "decoration-empty", 0],
   [1, 0, "decoration-forest", 0],
   [2, 0, "decoration-forest", 0],
-  [-8, 1, "decoration-forest", 0], [-7, 1, "decoration-forest", 0],
-  [-6, 1, "decoration-forest", 0], [-5, 1, "decoration-forest", 0],
-  [-4, 1, "decoration-empty", 0], [-3, 1, "decoration-empty", 0],
+  [-8, 1, "decoration-forest", 0],
+  [-7, 1, "decoration-forest", 0],
+  [-6, 1, "decoration-forest", 0],
+  [-5, 1, "decoration-forest", 0],
+  [-4, 1, "decoration-empty", 0],
+  [-3, 1, "decoration-empty", 0],
   [1, 1, "decoration-forest", 0],
   [2, 1, "decoration-forest", 0],
-  [-8, 2, "decoration-forest", 0], [-7, 2, "decoration-forest", 0],
-  [-6, 2, "decoration-forest", 0], [-5, 2, "decoration-forest", 0],
-  [-4, 2, "decoration-empty", 0], [-3, 2, "decoration-empty", 0],
+  [-8, 2, "decoration-forest", 0],
+  [-7, 2, "decoration-forest", 0],
+  [-6, 2, "decoration-forest", 0],
+  [-5, 2, "decoration-forest", 0],
+  [-4, 2, "decoration-empty", 0],
+  [-3, 2, "decoration-empty", 0],
   [1, 2, "decoration-forest", 0],
   [2, 2, "decoration-forest", 0],
-  [-8, 3, "decoration-forest", 0], [-7, 3, "decoration-forest", 0],
-  [-6, 3, "decoration-forest", 0], [-5, 3, "decoration-forest", 0],
-  [-4, 3, "decoration-forest", 0], [-3, 3, "decoration-forest", 0],
-  [-2, 3, "decoration-forest", 0], [-1, 3, "decoration-forest", 0],
-  [0, 3, "decoration-forest", 0], [1, 3, "decoration-forest", 0],
+  [-8, 3, "decoration-forest", 0],
+  [-7, 3, "decoration-forest", 0],
+  [-6, 3, "decoration-forest", 0],
+  [-5, 3, "decoration-forest", 0],
+  [-4, 3, "decoration-forest", 0],
+  [-3, 3, "decoration-forest", 0],
+  [-2, 3, "decoration-forest", 0],
+  [-1, 3, "decoration-forest", 0],
+  [0, 3, "decoration-forest", 0],
+  [1, 3, "decoration-forest", 0],
   [2, 3, "decoration-forest", 0],
-  [-8, 4, "decoration-forest", 0], [-7, 4, "decoration-forest", 0],
-  [-6, 4, "decoration-forest", 0], [-5, 4, "decoration-forest", 0],
-  [-4, 4, "decoration-forest", 0], [-3, 4, "decoration-forest", 0],
-  [-2, 4, "decoration-forest", 0], [-1, 4, "decoration-forest", 0],
-  [0, 4, "decoration-forest", 0], [1, 4, "decoration-forest", 0],
+  [-8, 4, "decoration-forest", 0],
+  [-7, 4, "decoration-forest", 0],
+  [-6, 4, "decoration-forest", 0],
+  [-5, 4, "decoration-forest", 0],
+  [-4, 4, "decoration-forest", 0],
+  [-3, 4, "decoration-forest", 0],
+  [-2, 4, "decoration-forest", 0],
+  [-1, 4, "decoration-forest", 0],
+  [0, 4, "decoration-forest", 0],
+  [1, 4, "decoration-forest", 0],
   [2, 4, "decoration-forest", 0],
 ];
 
@@ -161,7 +219,10 @@ export function computeDecorationBuckets(
   const buckets: DecorationBuckets = { empty, forest, tents };
 
   const occupied = new Set<string>();
-  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  let minX = Infinity,
+    maxX = -Infinity,
+    minZ = Infinity,
+    maxZ = -Infinity;
 
   for (const [gx, gz] of cells) {
     occupied.add(gx + "," + gz);
@@ -181,7 +242,11 @@ export function computeDecorationBuckets(
       const x = (gx + 0.5) * CELL_RAW;
       const z = (gz + 0.5) * CELL_RAW;
       const rotQ = ((ORIENT_DEG[orient] ?? 0) / 90) | 0;
-      buckets[DECO_KEY_TO_BUCKET[key] ?? "forest"].push({ x, z, rotQuarters: rotQ });
+      buckets[DECO_KEY_TO_BUCKET[key] ?? "forest"].push({
+        x,
+        z,
+        rotQuarters: rotQ,
+      });
     }
   }
 
@@ -326,10 +391,15 @@ export interface TrackBounds {
   readonly halfDepth: number;
 }
 
-export function computeTrackBounds(cells: readonly GridCell[] | null): TrackBounds {
+export function computeTrackBounds(
+  cells: readonly GridCell[] | null,
+): TrackBounds {
   if (!cells || cells.length === 0)
     return { centerX: 0, centerZ: 0, halfWidth: 30, halfDepth: 30 };
-  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  let minX = Infinity,
+    maxX = -Infinity,
+    minZ = Infinity,
+    maxZ = -Infinity;
   for (const [gx, gz] of cells) {
     minX = Math.min(minX, gx);
     maxX = Math.max(maxX, gx);
@@ -346,8 +416,12 @@ export function computeTrackBounds(cells: readonly GridCell[] | null): TrackBoun
 
 function bytesToBase64url(bytes: Uint8Array): string {
   let binary = "";
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]!);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  for (let i = 0; i < bytes.length; i++)
+    binary += String.fromCharCode(bytes[i]!);
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 function base64urlToBytes(str: string): Uint8Array {

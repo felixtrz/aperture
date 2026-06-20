@@ -11,10 +11,10 @@ Findings were produced with: vitexec logic runs (drive input via
 (talks directly to the dev session), in-app A/B experiments, and ECS/render
 introspection.
 
-**Caveat that bit me:** several "bugs" I first noted came from a *messy
-accumulated session state* plus reading a tool's **immediate return** (a
+**Caveat that bit me:** several "bugs" I first noted came from a _messy
+accumulated session state_ plus reading a tool's **immediate return** (a
 pre-dispatch snapshot) instead of re-reading state afterward. On clean
-re-verification they did **not** reproduce (see *Retracted* below). Lesson:
+re-verification they did **not** reproduce (see _Retracted_ below). Lesson:
 verify tooling findings from a fresh `input_reset`ed state and confirm via
 `input_get_state`, not the dispatch call's echo.
 
@@ -23,9 +23,10 @@ verify tooling findings from a fresh `input_reset`ed state and confirm via
 ## A. Confirmed engine findings
 
 ### A1. `audio.playOneShot` leaks emitter entities with unique ids — MEDIUM
+
 Each `playOneShot(id, …)` creates a **persistent `aperture.render.audioEmitter`
 ECS entity keyed by `id`, never reclaimed**. The fps reference (and my first
-draft) use `` `…${Math.random()}` `` ids → a *new* emitter entity every shot →
+draft) use `` `…${Math.random()}` `` ids → a _new_ emitter entity every shot →
 unbounded growth over a session.
 
 - Evidence: after gameplay the world holds exactly 12 audio emitters —
@@ -40,12 +41,14 @@ unbounded growth over a session.
   finished non-looping one-shot emitters.
 
 ### A2. `RAPIER.init({})` triggers a deprecation warning — COSMETIC
+
 `packages/physics-rapier/src/backend.ts:122` calls `RAPIER.init({})`;
-`@dimforge/rapier3d-compat@0.19.3` logs *"using deprecated parameters for the
-initialization function; pass a single object instead"* once per physics-world
+`@dimforge/rapier3d-compat@0.19.3` logs _"using deprecated parameters for the
+initialization function; pass a single object instead"_ once per physics-world
 init (so once per page load / HMR). Harmless, but noisy.
 
 ### A3. "render produced 0 draws for an active camera view" spams during load — LOW
+
 Fires repeatedly while assets are still loading (no renderable meshes yet → 0
 draws), then **stops at steady state** (confirmed: warnings clustered only in the
 session's first ~50 s; at frame 75k the single view renders 15 mesh + 39 shadow
@@ -59,11 +62,13 @@ wording it for that case.
 ## B. Confirmed tooling (MCP/CLI) findings
 
 ### B1. `ecs_find_entities` `components` filter is ignored — MEDIUM
+
 `{components:["aperture.physics.collider"]}` returned **all 171 entities**, while
 `{key:"brick.0"}` → 1 and `{tags:["brick"]}` → 6 filtered correctly. So the
 `components` filter is silently a no-op.
 
 ### B2. Status/query tools emit ~100k-char payloads — HIGH (for agent use)
+
 `browser_status`, `browser_wait_for_webgpu`, `input_key`, `input_reset`, and
 unfiltered `ecs_find_entities` each return the full diagnostics+render snapshot
 (~100k chars) and overflow an agent's context — every call had to be `jq`/`node`-
@@ -77,7 +82,7 @@ extracted from a temp file. `render_get_frame_report` already supports
 Documented so they aren't re-reported as bugs:
 
 - **`input_action_set` axis mapping** — first looked like `(0,1)`→`(-1,-1)`. The
-  tool's *return* is a pre-dispatch snapshot; the value **does** apply
+  tool's _return_ is a pre-dispatch snapshot; the value **does** apply
   (`input_action_set move x=1` → `input_get_state` `move.x == 1`). The earlier
   `(-1,-1)` was leftover stuck state from prior calls. **Not a bug.**
 - **`input_reset` leaves keys stuck** — clean test: `KeyD` down (`move.x=1`) →
@@ -92,7 +97,7 @@ Documented so they aren't re-reported as bugs:
 The user suspected the physics library re: falling platforms. **Disproven by an
 in-app A/B:** a falling platform placed next to spawn, driven onto with its
 collider as **kinematic** vs **static**, gave identical `groundedOverFalling
-Platform=true` trajectories — the rapier KCC collides with kinematic *and* static
+Platform=true` trajectories — the rapier KCC collides with kinematic _and_ static
 bodies (its query only excludes sensors). Root cause was an app-side **premature
 fall trigger** (loose footprint fired while the player was on an adjacent
 surface). Fixed in-app with precise ground-contact detection.
@@ -104,7 +109,7 @@ surface). Fixed in-app with precise ground-contact detection.
 Not known bugs — just unverified with the available headless tooling:
 
 - **Audio output**: headless SwiftShader has no audio device, so whether sound
-  *audibly* stops on respawn can't be measured — needs an ear in the live session
+  _audibly_ stops on respawn can't be measured — needs an ear in the live session
   (the A1 emitter mechanism is the evidence-based fix).
 - **Animation clip playback**: ✅ CONFIRMED working — sampling the character's
   node rotations over time shows the idle clip animating (`torso` x
@@ -114,8 +119,8 @@ Not known bugs — just unverified with the available headless tooling:
 - **Model facing direction** (`MODEL_YAW_OFFSET=0`): logic runs; visual heading
   not confirmed.
 - **Falling-platform full sequence** (land → grace → drop → visual falls away) on
-  a *real* level platform: only the mechanism (groundKey trigger + static
+  a _real_ level platform: only the mechanism (groundKey trigger + static
   collider collision) is verified.
 - **Brick break end-to-end** (jump up into it → breaks): collider geometry is
   verified; the break event isn't.
-- **Camera zoom** (Q/E): camera *rotate* is confirmed via screenshot; zoom isn't.
+- **Camera zoom** (Q/E): camera _rotate_ is confirmed via screenshot; zoom isn't.

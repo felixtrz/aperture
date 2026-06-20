@@ -129,7 +129,10 @@ describe("transform hierarchy (M7-T1)", () => {
     // `parent` option = addComponent(Parent, ...)), so the root's derived
     // `Children` index is never populated.
     const root = createTransformEntity(world, { translation: [7, 0, -3] });
-    const node = createTransformEntity(world, { translation: [0, 0, 0], parent: root });
+    const node = createTransformEntity(world, {
+      translation: [0, 0, 0],
+      parent: root,
+    });
     const primitive = createTransformEntity(world, {
       translation: [0, 0, 0],
       parent: node,

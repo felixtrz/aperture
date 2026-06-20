@@ -188,7 +188,11 @@ type LightMode = "directional" | "point" | "spot";
 
 function resolveLightMode(): LightMode {
   const light = new URLSearchParams(window.location.search).get("light");
-  return light === "point" ? "point" : light === "spot" ? "spot" : "directional";
+  return light === "point"
+    ? "point"
+    : light === "spot"
+      ? "spot"
+      : "directional";
 }
 
 function resolvePageTrack(): {

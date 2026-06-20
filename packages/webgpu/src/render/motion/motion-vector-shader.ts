@@ -242,10 +242,9 @@ function parseWgslParameter(parameter: string): WgslParameterInfo {
     /^(?:\s*@\w+(?:\([^)]*\))?\s*)+/u,
     "",
   );
-  const match =
-    /^\s*([A-Za-z_]\w*)\s*:\s*([A-Za-z_]\w*(?:<[^>]*>)?)/u.exec(
-      parameterWithoutAttributes,
-    );
+  const match = /^\s*([A-Za-z_]\w*)\s*:\s*([A-Za-z_]\w*(?:<[^>]*>)?)/u.exec(
+    parameterWithoutAttributes,
+  );
 
   return {
     name: match?.[1] ?? "input",

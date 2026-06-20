@@ -17,6 +17,7 @@ A Stop hook blocks ending the turn until parity holds. Parity is **not** reached
 yet — see §3 (the protrusion bug) and §6 (open camera-sync issue).
 
 ### Hard constraints (from the user, do not violate)
+
 - **No hacky fallbacks / compat shims / magic-threshold branches.** The framework
   is very early; zero backward-compat concern through ~mid-2027. Always do the
   clean, principled thing. (See memory `no-hacky-fallbacks`.)
@@ -35,14 +36,15 @@ We are bringing aperture's **WebGPU directional-shadow** rendering to parity wit
 three.js (WebGPU/TSL route) and PlayCanvas. The audit found three concrete
 deltas, two already fixed, plus one unsolved bug:
 
-| # | Delta vs references | Status |
-|---|---------------------|--------|
-| A | Authored `mapSize` was **ignored** (hardcoded 1024) | **FIXED** — wired through packet codec |
-| B | `normalBias` was multiplied by `0.05` (≈20× too weak) | **FIXED** — now a raw world-space distance (three.js/PlayCanvas parity) |
-| C | Shadow caster face culling | **CHANGED** — flipped from three.js back-face to **PlayCanvas front-face + always-on slope-scaled depth bias** |
-| D | **PROTRUSION BUG (UNSOLVED):** a caster that intersects the ground casts **no ground shadow** | **OPEN** — see §3 |
+| #   | Delta vs references                                                                           | Status                                                                                                         |
+| --- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| A   | Authored `mapSize` was **ignored** (hardcoded 1024)                                           | **FIXED** — wired through packet codec                                                                         |
+| B   | `normalBias` was multiplied by `0.05` (≈20× too weak)                                         | **FIXED** — now a raw world-space distance (three.js/PlayCanvas parity)                                        |
+| C   | Shadow caster face culling                                                                    | **CHANGED** — flipped from three.js back-face to **PlayCanvas front-face + always-on slope-scaled depth bias** |
+| D   | **PROTRUSION BUG (UNSOLVED):** a caster that intersects the ground casts **no ground shadow** | **OPEN** — see §3                                                                                              |
 
 ### The reproduction that exposes everything (the "tree at Y = −2.1" case)
+
 The lab scene is a **tree built from primitives** (a cylinder trunk + 3 stacked
 cones, as a parent/child hierarchy, deliberately "exactly like a glTF would be")
 standing on a flat ground box. When you lower the tree so its base sinks below
@@ -61,9 +63,9 @@ vendored build right now.
    - `normalBias` is now a **raw world-space distance** (removed the
      `STANDARD_SHADOW_NORMAL_OFFSET_SCALE = 0.05` multiplier in both the cascaded
      and non-cascaded blocks). `biasedPosition = worldPosition + normal *
-     shadowNormalBias(...)`.
+shadowNormalBias(...)`.
    - Contains `shadowDepthFromClip()` helper and `STANDARD_SHADOW_DEPTH_BIAS =
-     0.0004` (receiver-side constant compare bias).
+0.0004` (receiver-side constant compare bias).
    - **NOTE:** a temporary `directionalShadowFrustumViz()` diagnostic function was
      added then **reverted** — the file is clean. If you re-add a viz, the
      non-cascaded color line is assembled in the `.replace(...)` near the bottom
@@ -74,7 +76,7 @@ vendored build right now.
      `readonly mapSize?: number` to `ShadowRequestPacket`.
    - `packages/render/src/rendering/snapshot-packed-encoding-constants.ts` —
      `SHADOW_REQUEST_PACKET_WORDS = 13` (was 12); `SNAPSHOT_PACKET_ENCODING_VERSION
-     = 8` (was 7); offset 12 = mapSize.
+= 8` (was 7); offset 12 = mapSize.
    - `packages/render/src/rendering/snapshot-packed-light-codec.ts` — write/read
      mapSize at word offset 12.
    - `packages/render/src/rendering/extraction-light-settings.ts` —
@@ -114,6 +116,7 @@ vendored build right now.
 through the ground) → **no ground shadow**.
 
 **Ruled OUT by direct experiment (each was a rebuild + retest):**
+
 - ❌ **Caster depth/slope bias** — set `SHADOW_CASTER_DEPTH_BIAS = 0` and
   `SHADOW_CASTER_SLOPE_SCALE = 0`; protrusion **still** cast no shadow. So it is
   not peter-panning from the bias.
@@ -129,8 +132,8 @@ center drops **below** the receiver plane.
 **Hand geometry analysis (for Y = −2.1) said the bug "shouldn't" happen:**
 center ≈ (−1.19, −0.78, 0.44), radius ≈ 4.14, near ≈ 1.24, far ≈ 12.43,
 lightDist ≈ 6.63, eye ≈ (2.66, 4.30, −1.35). The top cone apex is at NDC depth
-≈ 0.27, the ground under it ≈ 0.35; the apex is *closer to the light* and *inside*
-[near,far] and inside the XY footprint — so the receiver *should* read "shadowed".
+≈ 0.27, the ground under it ≈ 0.35; the apex is _closer to the light_ and _inside_
+[near,far] and inside the XY footprint — so the receiver _should_ read "shadowed".
 It reads "lit". That mismatch means a **UV / frustum / depth misalignment**
 between the caster-bake `lightVP` and the receiver-sample `lightVP` for
 ground-intersecting casters — **not yet root-caused at the pixel level.**
@@ -148,25 +151,28 @@ localize the divergence.
 **Likely fix shape (Opus audit P0-3, not yet implemented):** tighten the ortho
 `near`/`far` to the caster's actual depth-range along the light, and stop the
 receiver-ceiling extension from collapsing/skewing the depth frustum — **while
-preserving** the property that a *fully* submerged caster casts no shadow.
+preserving** the property that a _fully_ submerged caster casts no shadow.
 
 ---
 
 ## 4. Tooling: shadow-lab setup (read this before touching anything)
 
 ### 4.1 What shadow-lab is
+
 A permanent in-browser **debug harness** (a KEEP, not throwaway). It's a normal
 aperture app that **vendors the engine as `.tgz` files** in `shadow-lab/vendor/`
 and pins them via `package.json` `pnpm.overrides`. A framework-free **DOM debug
 panel** drives the engine's in-browser devtools runtime.
 
 ### 4.2 Running it
+
 ```bash
 cd /Users/felixz/Projects/aperture/shadow-lab
 pnpm exec aperture dev down            # stop any running session
 rm -rf node_modules/.vite              # clear vite cache (do this after engine rebuilds)
 pnpm exec aperture dev up --port 8852 --open   # --open => VISIBLE window
 ```
+
 - **`--open` gives a visible Chrome window. `--headed` is a NO-OP** (CLI bug —
   `dev/session.js` only drops `--headless` when `open===true`). See memory
   `aperture-dev-headed-flag`.
@@ -179,8 +185,10 @@ pnpm exec aperture dev up --port 8852 --open   # --open => VISIBLE window
   `auto-restart-dev-session`.
 
 ### 4.3 Engine rebuild → lab propagation (CRITICAL — easy to get wrong)
+
 Editing `packages/*/src` does **nothing** to the lab until you rebuild, repack,
 force-install, and restart dev:
+
 ```bash
 cd /Users/felixz/Projects/aperture
 LAB=/Users/felixz/Projects/aperture/shadow-lab
@@ -197,6 +205,7 @@ pnpm --filter @aperture-engine/render run build      # if you touched render/
 (cd "$LAB" && pnpm exec aperture dev down; rm -rf node_modules/.vite; \
    pnpm exec aperture dev up --port 8852 --open)
 ```
+
 - **New app SOURCE files** (e.g. a new `src/**` module or `*.system.ts`) also
   need a **dev restart** — vite scans systems at server start; HMR alone won't
   pick them up.
@@ -205,6 +214,7 @@ pnpm --filter @aperture-engine/render run build      # if you touched render/
   `/tmp/checkactive.mjs`. Memory `vendored-engine-rebuild-propagation`.
 
 ### 4.4 Driving the running app (in-page runtime + MCP)
+
 - **In-page runtime** (preferred for setting component fields):
   `window.__APERTURE_MCP_RUNTIME__.callTool(tool, payload)` — same `callTool` the
   MCP server uses. Reach it via Playwright CDP (`connectOverCDP("http://127.0.0.1:9852")`).
@@ -215,10 +225,11 @@ pnpm --filter @aperture-engine/render run build      # if you touched render/
   for writes, use the **in-page runtime** `callTool` instead (Playwright script).
 - The engine has a canvas-readback devtools module
   (`packages/app/dist/browser/devtools/canvas-readback.js`) — and we confirmed
-  the **main thread CAN `drawImage` from the `#aperture` canvas** (it is *not*
+  the **main thread CAN `drawImage` from the `#aperture` canvas** (it is _not_
   worker-transferred), which is what makes the in-app pixel diff possible.
 
 ### 4.5 Helper scripts (in `/tmp`, may need recreating)
+
 - `/tmp/treeY.mjs <y>` — sets the "tree" entity translation to `[0, y, 0]` via the
   in-page runtime. Usage: `node /tmp/treeY.mjs -2.1`.
 - `/tmp/checkactive.mjs` — confirms the served caster pipeline cull mode / that
@@ -227,11 +238,13 @@ pnpm --filter @aperture-engine/render run build      # if you touched render/
 - `/tmp/console.mjs` — reloads the page and dumps console logs + a DOM probe.
 - `/tmp/probe-canvas.mjs` — checks whether the main thread can read the aperture
   canvas pixels.
-(They all use the Playwright at `node_modules/playwright`, CDP `9852`, page on
-`8852`.)
+  (They all use the Playwright at `node_modules/playwright`, CDP `9852`, page on
+  `8852`.)
 
 ### 4.6 The lab scene (what's spawned)
+
 `shadow-lab/src/systems/setup.system.ts`:
+
 - **Camera** `main-camera`: fov 40°, near 0.1, far 200.
 - **Sun** `light.sun`: directional, color white, illuminance `DIR_LIGHT.intensity`
   (=3), `transform.translation = DIR_LIGHT.position = [11.4, 15, −5.3]`,
@@ -263,6 +276,7 @@ The user asked for: **left = aperture, right = three.js (WebGPU), with the right
 side toggleable to a pixel-diff heatmap.** This is the gold-standard parity tool.
 
 ### Files added
+
 - `shadow-lab/src/compare/three.webgpu.js` + `three.core.js` — **vendored three
   r184 WebGPU build**, copied verbatim from
   `references/three.js/build/three.webgpu.js` (and `.core.js`). No npm install.
@@ -270,8 +284,8 @@ side toggleable to a pixel-diff heatmap.** This is the gold-standard parity tool
   (`declare module "*/three.webgpu.js"`) so the `.js` import types as `any`.
 - `shadow-lab/src/compare/three-compare.ts` — **`installThreeCompare()`**:
   - **Layout**: shrinks `#aperture` to `left 50vw`; adds `#sl-three` (right 50vw)
-    + `#sl-diff` overlay canvas (hidden) + center divider + pane labels +
-    a bottom-center **"Diff heatmap: OFF/ON"** toggle button.
+    - `#sl-diff` overlay canvas (hidden) + center divider + pane labels +
+      a bottom-center **"Diff heatmap: OFF/ON"** toggle button.
   - **`buildScene()`** mirrors `setup.system.ts` 1:1 (ground box, trunk cylinder +
     3 cones in a `THREE.Group`, sun `DirectionalLight` at `[11.4,15,−5.3]` →
     target origin with shadow ortho `±8, near 0.5, far 60, mapSize 4096`,
@@ -296,6 +310,7 @@ side toggleable to a pixel-diff heatmap.** This is the gold-standard parity tool
   `return;` if you ever run the lab without the comparison.
 
 ### Current state of the harness
+
 - ✅ Boots. Both WebGPU contexts initialize. Split layout renders. three.js draws
   the scene with a clear, strong tree shadow + inter-cone self-shadowing.
 - ✅ Aperture camera push works (`camcheck.mjs` shows translation
@@ -315,6 +330,7 @@ side toggleable to a pixel-diff heatmap.** This is the gold-standard parity tool
 origin, yet the panes show different view angles / tree sizes.
 
 **Suspects (in rough priority):**
+
 1. **Rotation convention mismatch.** We compute the quaternion ourselves
    (`quatLookAt`, camera forward = −Z, up = +Y) and push it to aperture's
    `LocalTransform.rotation`. If aperture's camera applies the quaternion under a
@@ -392,6 +408,7 @@ mean anything.
 ## 9. Quick reference — file map
 
 **Engine (packages/):**
+
 - `webgpu/src/app/auto-shadow-frame.ts` ← **ortho fit; protrusion bug lives here**
 - `webgpu/src/shadows/shadow-caster-draw-list-plan.ts` ← caster cull (front-face)
 - `webgpu/src/shadows/shadow-caster-pipeline-descriptor.ts` ← caster bias 2 / 2.75
@@ -399,9 +416,10 @@ mean anything.
 - `webgpu/src/materials/standard/standard-shader-shadow-sampling.ts` ← receiver
   sampling, normalBias (raw), `STANDARD_SHADOW_DEPTH_BIAS`, `shadowDepthFromClip`
 - `render/src/rendering/{snapshot-packet-types,snapshot-packed-encoding-constants,
-  snapshot-packed-light-codec,extraction-light-settings}.ts` ← mapSize codec
+snapshot-packed-light-codec,extraction-light-settings}.ts` ← mapSize codec
 
 **Lab (shadow-lab/):**
+
 - `src/systems/setup.system.ts` ← scene (tree, ground, sun, ambient; diagnostics)
 - `src/systems/orbit-controls.system.ts` ← DISABLED (harness owns camera)
 - `src/compare/three-compare.ts` ← split-screen + diff harness

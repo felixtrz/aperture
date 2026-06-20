@@ -3,10 +3,7 @@
 import { runApertureCli } from "../cli.js";
 
 let pendingWrites = Promise.resolve();
-const enqueueWrite = (
-  stream: NodeJS.WriteStream,
-  text: string,
-): void => {
+const enqueueWrite = (stream: NodeJS.WriteStream, text: string): void => {
   pendingWrites = pendingWrites.then(
     () =>
       new Promise<void>((resolve, reject) => {

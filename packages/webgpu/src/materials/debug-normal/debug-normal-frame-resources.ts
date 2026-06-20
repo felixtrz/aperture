@@ -104,7 +104,9 @@ export interface CreateDebugNormalFrameGpuResourcesOptions {
   readonly mesh: MeshAsset | null;
   readonly preparedMesh?: MeshGpuBufferResource | undefined;
   readonly preparedViewUniform?: ViewUniformGpuBufferResource | undefined;
-  readonly preparedWorldTransforms?: WorldTransformGpuBufferResource | undefined;
+  readonly preparedWorldTransforms?:
+    | WorldTransformGpuBufferResource
+    | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
   readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;

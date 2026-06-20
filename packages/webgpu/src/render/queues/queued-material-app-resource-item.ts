@@ -152,9 +152,7 @@ export function createQueuedMaterialAppRouteReportDiagnostic(input: {
     },
     input.shell,
   );
-  const report = webGpuAppMaterialQueueRouteReportShellToJsonValue(
-    input.shell,
-  );
+  const report = webGpuAppMaterialQueueRouteReportShellToJsonValue(input.shell);
 
   return {
     code: "webGpuApp.materialQueueRouteReport",

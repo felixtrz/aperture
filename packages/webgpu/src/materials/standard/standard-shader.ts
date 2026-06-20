@@ -336,7 +336,10 @@ function createStandardTextureVariantWgsl(
 
   if (features.normalTexture) {
     vertex.addInputField("tangent", "  @location(3) tangent: vec4f,");
-    vertex.addOutputField("worldTangent", "  @location(3) worldTangent: vec3f,");
+    vertex.addOutputField(
+      "worldTangent",
+      "  @location(3) worldTangent: vec3f,",
+    );
     vertex.addOutputField("tangentSign", "  @location(4) tangentSign: f32,");
     vertex.enableTangentOutput();
     fragment.addHelperFunction(`fn sampleTangentSpaceNormal(input: VertexOutput, frontFacing: bool) -> vec3f {
@@ -356,7 +359,9 @@ function createStandardTextureVariantWgsl(
   let bitangent = normalize(cross(normal, tangent) * input.tangentSign);
   return normalize(mat3x3f(tangent, bitangent, normal) * tangentNormal);
 }`);
-    fragment.setNormalExpression("sampleTangentSpaceNormal(input, frontFacing)");
+    fragment.setNormalExpression(
+      "sampleTangentSpaceNormal(input, frontFacing)",
+    );
   }
 
   if (features.texCoord1 === true) {
@@ -434,7 +439,10 @@ fn saturate(value: f32) -> f32 {`,
 
   if (features.instanceTint === true) {
     vertex.addInputField("instanceTint", "  @location(6) instanceTint: vec4f,");
-    vertex.addOutputField("instanceTint", "  @location(7) instanceTint: vec4f,");
+    vertex.addOutputField(
+      "instanceTint",
+      "  @location(7) instanceTint: vec4f,",
+    );
     vertex.addPostUvOutputAssignment(
       "  output.instanceTint = input.instanceTint;",
     );
@@ -543,7 +551,10 @@ fn saturate(value: f32) -> f32 {`,
     ),
     samplePointShadowReceiverFactor(input.worldPosition),
   );`);
-    fragment.setDirectTerm("receiverShadowDirect", "direct * receiverShadowFactor");
+    fragment.setDirectTerm(
+      "receiverShadowDirect",
+      "direct * receiverShadowFactor",
+    );
   } else if (
     features.pointShadowMap === true &&
     features.shadowMap !== true &&

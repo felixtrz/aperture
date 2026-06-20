@@ -55,7 +55,11 @@ export default class HazardsSystem extends createSystem({
       // Trigger only when the controller is actually standing on THIS platform's
       // collider — precise, no footprint false-positives that drop the platform
       // before the player arrives.
-      if (!entry.falling && state.grounded && state.groundKey === platform.key) {
+      if (
+        !entry.falling &&
+        state.grounded &&
+        state.groundKey === platform.key
+      ) {
         entry = { falling: true, velocity: 0, offsetY: 0 };
         this.#playOneShot("fall");
         this.#squash.set(platform.key, [...FALLING_PLATFORM_SQUASH]);
@@ -72,7 +76,8 @@ export default class HazardsSystem extends createSystem({
       // The collider is static (never moves). Keep it solid for a short grace
       // after the trigger, then disable it so the player drops through while the
       // visual model continues to fall away.
-      const colliderSolid = !entry.falling || entry.velocity < FALL_GRACE_VELOCITY;
+      const colliderSolid =
+        !entry.falling || entry.velocity < FALL_GRACE_VELOCITY;
       if (collider !== null && collider.hasComponent(Collider)) {
         collider.setValue(Collider, "enabled", colliderSolid);
       }
@@ -88,7 +93,9 @@ export default class HazardsSystem extends createSystem({
       if (model !== null) {
         model
           .getVectorView(LocalTransform, "translation")
-          .set(y < -40 ? HIDDEN : [platform.position[0], y, platform.position[2]]);
+          .set(
+            y < -40 ? HIDDEN : [platform.position[0], y, platform.position[2]],
+          );
         model.getVectorView(LocalTransform, "scale").set(scale);
       }
 

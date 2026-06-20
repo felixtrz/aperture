@@ -117,7 +117,9 @@ export function createOrReuseMatcapAppFrameResources(options: {
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly preparedViewUniform?: ViewUniformGpuBufferResource | undefined;
-  readonly preparedWorldTransforms?: WorldTransformGpuBufferResource | undefined;
+  readonly preparedWorldTransforms?:
+    | WorldTransformGpuBufferResource
+    | undefined;
   readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: MatcapMaterialBindGroupLayoutResource | null;
@@ -224,12 +226,11 @@ export function createOrReuseMatcapAppFrameResources(options: {
     options.reuse.meshBuffersReused += 1;
     options.reuse.materialBuffersReused += 1;
     options.reuse.bindGroupsReused += cached.result.resources.bindGroups.length;
-    options.reuse.dynamicBufferWrites +=
-      usingSharedFrameResources
-        ? 0
-        : 2 -
-          (worldTransformUpload.value === "skipped" ? 1 : 0) -
-          (viewUniformUpload.value === "skipped" ? 1 : 0);
+    options.reuse.dynamicBufferWrites += usingSharedFrameResources
+      ? 0
+      : 2 -
+        (worldTransformUpload.value === "skipped" ? 1 : 0) -
+        (viewUniformUpload.value === "skipped" ? 1 : 0);
 
     const resources = cached.result.resources;
 

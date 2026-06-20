@@ -131,18 +131,78 @@ export function colliderMeshId(assetId: string): string {
 }
 
 export const STATIC_PLATFORMS: readonly StaticPlatform[] = [
-  { key: "platform.0", assetId: "platform", position: [0, 0, 0], yawDegrees: 6.7 },
-  { key: "platform.1", assetId: "platform", position: [-15, 0, 4], yawDegrees: 6.7 },
-  { key: "platform.2", assetId: "platform", position: [-21.925, 0.347, -2.684], yawDegrees: 6.7 },
-  { key: "platform.3", assetId: "platform", position: [-22.076, 1.513, -4.765], yawDegrees: -12.1 },
-  { key: "platform.4", assetId: "platform", position: [-3, 2, -3], yawDegrees: 0 },
-  { key: "platform.5", assetId: "platform", position: [-3, 3, -5], yawDegrees: 14.9 },
-  { key: "platform-medium.0", assetId: "platform-medium", position: [-3, 0, 0], yawDegrees: -5 },
-  { key: "platform-medium.1", assetId: "platform-medium", position: [-5, 0, 4], yawDegrees: -5.7 },
-  { key: "platform-medium.2", assetId: "platform-medium", position: [-14.942, 0.992, 0.128], yawDegrees: 21.6 },
-  { key: "platform-medium.3", assetId: "platform-medium", position: [0, 3, -6], yawDegrees: 0 },
-  { key: "platform-grass.0", assetId: "platform-grass-large-round", position: [-7, 1, -2], yawDegrees: 0 },
-  { key: "platform-grass.1", assetId: "platform-grass-large-round", position: [-19.31, 1, 2.832], yawDegrees: 0 },
+  {
+    key: "platform.0",
+    assetId: "platform",
+    position: [0, 0, 0],
+    yawDegrees: 6.7,
+  },
+  {
+    key: "platform.1",
+    assetId: "platform",
+    position: [-15, 0, 4],
+    yawDegrees: 6.7,
+  },
+  {
+    key: "platform.2",
+    assetId: "platform",
+    position: [-21.925, 0.347, -2.684],
+    yawDegrees: 6.7,
+  },
+  {
+    key: "platform.3",
+    assetId: "platform",
+    position: [-22.076, 1.513, -4.765],
+    yawDegrees: -12.1,
+  },
+  {
+    key: "platform.4",
+    assetId: "platform",
+    position: [-3, 2, -3],
+    yawDegrees: 0,
+  },
+  {
+    key: "platform.5",
+    assetId: "platform",
+    position: [-3, 3, -5],
+    yawDegrees: 14.9,
+  },
+  {
+    key: "platform-medium.0",
+    assetId: "platform-medium",
+    position: [-3, 0, 0],
+    yawDegrees: -5,
+  },
+  {
+    key: "platform-medium.1",
+    assetId: "platform-medium",
+    position: [-5, 0, 4],
+    yawDegrees: -5.7,
+  },
+  {
+    key: "platform-medium.2",
+    assetId: "platform-medium",
+    position: [-14.942, 0.992, 0.128],
+    yawDegrees: 21.6,
+  },
+  {
+    key: "platform-medium.3",
+    assetId: "platform-medium",
+    position: [0, 3, -6],
+    yawDegrees: 0,
+  },
+  {
+    key: "platform-grass.0",
+    assetId: "platform-grass-large-round",
+    position: [-7, 1, -2],
+    yawDegrees: 0,
+  },
+  {
+    key: "platform-grass.1",
+    assetId: "platform-grass-large-round",
+    position: [-19.31, 1, 2.832],
+    yawDegrees: 0,
+  },
 ];
 
 export const FALLING_PLATFORMS: readonly FallingPlatform[] = [
@@ -175,16 +235,69 @@ export const COINS: readonly CoinSpec[] = [
 ];
 
 export const CLOUDS: readonly CloudSpec[] = [
-  { key: "cloud.0", position: [1.55, 1.107, -2.666], yawDegrees: 0, scale: 1, hoverVelocity: 0.55, hoverRate: 1.1 },
-  { key: "cloud.1", position: [3.335, 1.371, -4.193], yawDegrees: -14.5, scale: 1.403, hoverVelocity: 0.95, hoverRate: 1.45 },
-  { key: "cloud.2", position: [-10.575, 2.038, -7.937], yawDegrees: -14.5, scale: 1.403, hoverVelocity: 0.7, hoverRate: 0.85 },
-  { key: "cloud.3", position: [-9.468, 2.038, 11.509], yawDegrees: -45.1, scale: 1.403, hoverVelocity: 0.35, hoverRate: 1.75 },
-  { key: "cloud.4", position: [-9.202, 2.795, 13.743], yawDegrees: -169.5, scale: 1.403, hoverVelocity: 1.25, hoverRate: 1.6 },
-  { key: "cloud.5", position: [-14.305, 2.038, -8.242], yawDegrees: -25.4, scale: 2.699, hoverVelocity: 0.8, hoverRate: 0.95 },
-  { key: "cloud.6", position: [-14.152, 2.038, 10.065], yawDegrees: -25.4, scale: 2.699, hoverVelocity: 1.45, hoverRate: 1.25 },
+  {
+    key: "cloud.0",
+    position: [1.55, 1.107, -2.666],
+    yawDegrees: 0,
+    scale: 1,
+    hoverVelocity: 0.55,
+    hoverRate: 1.1,
+  },
+  {
+    key: "cloud.1",
+    position: [3.335, 1.371, -4.193],
+    yawDegrees: -14.5,
+    scale: 1.403,
+    hoverVelocity: 0.95,
+    hoverRate: 1.45,
+  },
+  {
+    key: "cloud.2",
+    position: [-10.575, 2.038, -7.937],
+    yawDegrees: -14.5,
+    scale: 1.403,
+    hoverVelocity: 0.7,
+    hoverRate: 0.85,
+  },
+  {
+    key: "cloud.3",
+    position: [-9.468, 2.038, 11.509],
+    yawDegrees: -45.1,
+    scale: 1.403,
+    hoverVelocity: 0.35,
+    hoverRate: 1.75,
+  },
+  {
+    key: "cloud.4",
+    position: [-9.202, 2.795, 13.743],
+    yawDegrees: -169.5,
+    scale: 1.403,
+    hoverVelocity: 1.25,
+    hoverRate: 1.6,
+  },
+  {
+    key: "cloud.5",
+    position: [-14.305, 2.038, -8.242],
+    yawDegrees: -25.4,
+    scale: 2.699,
+    hoverVelocity: 0.8,
+    hoverRate: 0.95,
+  },
+  {
+    key: "cloud.6",
+    position: [-14.152, 2.038, 10.065],
+    yawDegrees: -25.4,
+    scale: 2.699,
+    hoverVelocity: 1.45,
+    hoverRate: 1.25,
+  },
 ];
 
-export const FLAG: FlagSpec = { key: "flag", position: [0, 3.481, -6], yawDegrees: 45 };
+export const FLAG: FlagSpec = {
+  key: "flag",
+  position: [0, 3.481, -6],
+  yawDegrees: 45,
+};
 
 // Coin spin/bob (objects/coin.gd: rotate_y(2·dt); y += cos(time·5)·dt).
 export const COIN_SPIN_RATE = 2;
@@ -203,4 +316,6 @@ export const BRICK_HALF_EXTENT = 0.5;
 export const BRICK_COLLIDER_OFFSET: Vec3 = [0, 0.5, 0];
 // Player capsule top above the body root: colliderOffsetY + halfHeight + radius.
 export const PLAYER_CAPSULE_TOP_OFFSET =
-  PLAYER_COLLIDER_OFFSET[1] + PLAYER_CAPSULE_HALF_HEIGHT + PLAYER_CAPSULE_RADIUS;
+  PLAYER_COLLIDER_OFFSET[1] +
+  PLAYER_CAPSULE_HALF_HEIGHT +
+  PLAYER_CAPSULE_RADIUS;

@@ -221,7 +221,10 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         physics: {
           rigidBody: { type: "static" },
           collider: {
-            shape: { kind: "trimesh", meshId: colliderMeshId(platform.assetId) },
+            shape: {
+              kind: "trimesh",
+              meshId: colliderMeshId(platform.assetId),
+            },
             friction: 1,
             restitution: 0,
           },
@@ -436,7 +439,9 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
   #shadowSampler(): SamplerHandle {
     const handle = createSamplerHandle(SHADOW_SAMPLER_ID);
     if (!this.assetsRegistry.has(handle)) {
-      this.assetsRegistry.register(handle, { label: "Player Blob Shadow Sampler" });
+      this.assetsRegistry.register(handle, {
+        label: "Player Blob Shadow Sampler",
+      });
     }
     this.assetsRegistry.markReady(
       handle,

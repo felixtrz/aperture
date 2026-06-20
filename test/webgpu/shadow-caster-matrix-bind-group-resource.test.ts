@@ -211,13 +211,14 @@ describe("shadow caster matrix bind-group resource", () => {
           passMatrixResources: [passMatrixResource()],
         }),
       );
-    const missingPassMatrix = shadowCasterMatrixBindGroupResourceReportToJsonValue(
-      createShadowCasterMatrixBindGroupResourceReport({
-        device: device(),
-        matrixBufferResource: matrixBufferResource(),
-        worldTransformResource: worldTransformResource(),
-      }),
-    );
+    const missingPassMatrix =
+      shadowCasterMatrixBindGroupResourceReportToJsonValue(
+        createShadowCasterMatrixBindGroupResourceReport({
+          device: device(),
+          matrixBufferResource: matrixBufferResource(),
+          worldTransformResource: worldTransformResource(),
+        }),
+      );
 
     expect(missingMatrix.diagnostics).toMatchObject([
       {

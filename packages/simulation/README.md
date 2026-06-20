@@ -19,7 +19,11 @@ This package is part of the [Aperture](https://github.com/felixtrz/aperture) eng
 3D math lives in its own zero-dependency package, [`@aperture-engine/math`](../math) — a `Float32Array`-native, WebGPU-first kernel with fused transform fast paths (`composeTRS`, `mulAffine`, `invertAffine`), benchmarked as the fastest option for the engine's transform workload. For convenience the entire math surface is **re-exported** from `@aperture-engine/simulation`, so existing imports keep working:
 
 ```ts
-import { composeTrsMatrix, makePerspective, Vec3 } from "@aperture-engine/simulation";
+import {
+  composeTrsMatrix,
+  makePerspective,
+  Vec3,
+} from "@aperture-engine/simulation";
 // …or import it directly:
 import { composeTrsMatrix } from "@aperture-engine/math";
 ```

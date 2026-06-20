@@ -62,4 +62,4 @@ A screenshot is only proof if you read it critically — "something rendered" is
 - Objects that **float** with no contact shadow — missing shadows or grounding.
 - A **flat, raw render** with no finishing pass.
 
-Pair the picture with state assertions: confirm the player-visible *outcome* from real app state (the count changed, the entity was removed, the animation state advanced), not just that the frame drew.
+Pair the picture with state assertions: confirm the player-visible _outcome_ from real app state (the count changed, the entity was removed, the animation state advanced), not just that the frame drew.

@@ -41,7 +41,9 @@ export function standardAutoShadowPipelineKindFromSnapshot(
   );
 
   if (directionalRequests.length > 0) {
-    return directionalRequests.some((request) => (request.cascadeCount ?? 1) > 1)
+    return directionalRequests.some(
+      (request) => (request.cascadeCount ?? 1) > 1,
+    )
       ? "directional-cascaded"
       : "directional";
   }
@@ -668,9 +670,7 @@ function shadowLightsInputKey(
   requests: readonly ShadowRequestPacket[],
 ): string {
   const lightIds = new Set(requests.map((request) => request.lightId));
-  const lights = snapshot.lights.filter((light) =>
-    lightIds.has(light.lightId),
-  );
+  const lights = snapshot.lights.filter((light) => lightIds.has(light.lightId));
 
   return `lights:${lights
     .map((light) => {

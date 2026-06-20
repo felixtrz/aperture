@@ -406,63 +406,62 @@
               <code>0.02 ms</code> average, and the latest paired trace has
               Aperture winning most idle and drive frame-pacing aggregates.
               Callback p95 remains open, especially drive, where Aperture still
-              trails three.js by median <code>+1.65 ms</code>. The trace
-              harness now supports source-map-aware CPU profile summaries; the
-              next targets are drive dirty-shadow work and burst particle CPU
-              prep. The audit is updated in
+              trails three.js by median <code>+1.65 ms</code>. The trace harness
+              now supports source-map-aware CPU profile summaries; the next
+              targets are drive dirty-shadow work and burst particle CPU prep.
+              The audit is updated in
               <code>docs/RACING_THREEJS_FRAME_TIME_AUDIT.md</code>. Prior
               update: Racing frame-time follow-up now tracks delivered-message
               frame-pacing impact in the trace harness. Default idle and drive
-              both win the paired three.js aggregate pacing-shape metrics,
-              while Aperture still loses callback p95. Disabling dedicated
+              both win the paired three.js aggregate pacing-shape metrics, while
+              Aperture still loses callback p95. Disabling dedicated
               source-asset messages drops worker delivery from about
               <code>16 Hz</code> to about <code>2 Hz</code>, but the rebuilt
               direct comparison did not beat the current default; raw message
-              count is not the whole cause. Prior
-              update: Racing frame-time follow-up moved generated worker entity
-              summaries to on-demand tool/dev-panel requests, drops transient
-              full worker fields from steady browser status, and compacts
-              retained resource details only for the app-facing status report.
-              These are generalized renderer/app diagnostics fixes, not Racing
-              asset shortcuts. The live Racing status payload is down to about
-              <code>51.7 KB</code>, but the latest benchmark still does not
-              prove the active goal: Aperture drive reported
-              <code>4.17 ms</code> avg / <code>4.69 ms</code> p95 /
-              <code>5.06 ms</code> p99 / <code>7.29 ms</code> max with
-              <code>855-924</code> WebGPU submits over 6s, while three.js drive
-              reported <code>4.17 ms</code> avg / <code>4.61 ms</code> p95 /
-              <code>4.99 ms</code> p99 / <code>5.19 ms</code> max. Aperture
-              still trails on drive tails, heap, and display-rate submit
-              cadence. Prior update: Racing frame-time follow-up added cadence
-              diagnostics, measured and rejected an immediate snapshot-drain
-              scheduler that worsened tails, summarized long render-bundle keys
-              by hash/length, and compacted app-facing shadow diagnostics to
-              counts plus a draw sample. Prior update: Racing frame-time
-              follow-up split opaque depth-only sort movement from structural
-              mesh-draw identity, added post-graph scene render-bundle prefix
-              reuse for stable base-scene commands with dynamic particle tails,
-              keyed render bundles on captured bind-group object identity, and
-              deferred replaced GPU buffer destruction through submitted-work
-              completion. Prior update: Racing frame-time follow-up made mesh
-              and shadow-caster extraction cache reuse independent from the full
-              camera frustum signature. Prior update: Racing frame-time
-              follow-up added shared queued built-in frame resources and
-              matrix-slot transform dirty uploads. Built-in material families
-              now share one prepared view/world resource pair per frame, and
-              sparse changed transforms upload as matrix-aligned ranges instead
-              of broad float envelopes. Prior update: Racing frame-time
-              follow-up added analytic burst particle rendering for eligible
-              short-lived effects. Prior update: Racing frame-time follow-up
-              moved directional shadow casters from CPU-baked light-space matrix
-              uploads to a generalized pass-matrix plus draw-list
-              world-transform buffer. Compatible shadow records now use normal
-              instanced <code>firstInstance</code> indexing, and the shader
-              computes <code>lightViewProjection * world</code>. Prior update:
-              Racing frame-time follow-up added compact mesh-world transform
-              packing plus fixed-capacity dynamic ground-ribbon update ranges.
-              These are generalized renderer and app-helper fixes: mesh routes
-              no longer upload the full extraction-order transform table, and
-              drift marks now update one <code>288</code> byte segment range
+              count is not the whole cause. Prior update: Racing frame-time
+              follow-up moved generated worker entity summaries to on-demand
+              tool/dev-panel requests, drops transient full worker fields from
+              steady browser status, and compacts retained resource details only
+              for the app-facing status report. These are generalized
+              renderer/app diagnostics fixes, not Racing asset shortcuts. The
+              live Racing status payload is down to about <code>51.7 KB</code>,
+              but the latest benchmark still does not prove the active goal:
+              Aperture drive reported <code>4.17 ms</code> avg /
+              <code>4.69 ms</code> p95 / <code>5.06 ms</code> p99 /
+              <code>7.29 ms</code> max with <code>855-924</code> WebGPU submits
+              over 6s, while three.js drive reported <code>4.17 ms</code> avg /
+              <code>4.61 ms</code> p95 / <code>4.99 ms</code> p99 /
+              <code>5.19 ms</code> max. Aperture still trails on drive tails,
+              heap, and display-rate submit cadence. Prior update: Racing
+              frame-time follow-up added cadence diagnostics, measured and
+              rejected an immediate snapshot-drain scheduler that worsened
+              tails, summarized long render-bundle keys by hash/length, and
+              compacted app-facing shadow diagnostics to counts plus a draw
+              sample. Prior update: Racing frame-time follow-up split opaque
+              depth-only sort movement from structural mesh-draw identity, added
+              post-graph scene render-bundle prefix reuse for stable base-scene
+              commands with dynamic particle tails, keyed render bundles on
+              captured bind-group object identity, and deferred replaced GPU
+              buffer destruction through submitted-work completion. Prior
+              update: Racing frame-time follow-up made mesh and shadow-caster
+              extraction cache reuse independent from the full camera frustum
+              signature. Prior update: Racing frame-time follow-up added shared
+              queued built-in frame resources and matrix-slot transform dirty
+              uploads. Built-in material families now share one prepared
+              view/world resource pair per frame, and sparse changed transforms
+              upload as matrix-aligned ranges instead of broad float envelopes.
+              Prior update: Racing frame-time follow-up added analytic burst
+              particle rendering for eligible short-lived effects. Prior update:
+              Racing frame-time follow-up moved directional shadow casters from
+              CPU-baked light-space matrix uploads to a generalized pass-matrix
+              plus draw-list world-transform buffer. Compatible shadow records
+              now use normal instanced <code>firstInstance</code> indexing, and
+              the shader computes <code>lightViewProjection * world</code>.
+              Prior update: Racing frame-time follow-up added compact mesh-world
+              transform packing plus fixed-capacity dynamic ground-ribbon update
+              ranges. These are generalized renderer and app-helper fixes: mesh
+              routes no longer upload the full extraction-order transform table,
+              and drift marks now update one <code>288</code> byte segment range
               instead of growing full trail buffers. Prior update: Racing
               frame-time follow-up now reuses a cache-owned particle
               view-uniform GPU buffer instead of allocating a fresh
