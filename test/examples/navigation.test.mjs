@@ -131,6 +131,7 @@ const expectedImports = {
   "@aperture-engine/render": "/packages/render/dist/index.js",
   "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
   "@aperture-engine/physics": "/packages/physics/dist/index.js",
+  "@aperture-engine/math": "/packages/math/dist/index.js",
   "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
   "@aperture-engine/webgpu": "/packages/webgpu/dist/index.js",
   "@aperture-engine/webgpu/test-support":
