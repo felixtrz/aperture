@@ -13,6 +13,7 @@ const projectRoot = path.resolve(
 const allowedTopLevelPaths = new Set(["examples", "node_modules", "packages"]);
 const workerModulePrefix = "/worker-modules/";
 const workerModuleImportMap = new Map([
+  ["@aperture-engine/math", "/worker-modules/packages/math/dist/index.js"],
   ["@aperture-engine/app", "/worker-modules/packages/app/dist/index.js"],
   [
     "@aperture-engine/app/config",
