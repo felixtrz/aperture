@@ -98,6 +98,11 @@
   padding: clamp(44px, 8vw, 92px) 0 84px;
 }
 
+.docs-main--browser {
+  padding-top: 18px;
+  padding-bottom: 24px;
+}
+
 .docs-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -384,6 +389,24 @@
   background: #05070a;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
+}
+
+@media (min-width: 781px) {
+  .docs-main--browser .docs-browser {
+    height: max(680px, calc(100vh - 128px));
+  }
+
+  .docs-main--browser .docs-browser-sidebar {
+    max-height: none;
+  }
+
+  .docs-main--browser .docs-browser-preview {
+    min-height: 0;
+  }
+
+  .docs-main--browser .docs-browser-frame {
+    min-height: 0;
+  }
 }
 
 .api-entry {

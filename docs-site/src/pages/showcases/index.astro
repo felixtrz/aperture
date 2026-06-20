@@ -7,17 +7,7 @@ import { ShowcaseCards } from "../../components/ShowcaseCards";
 <DocsLayout
   title="Aperture Showcases"
   description="Aperture showcase applications: city builder, FPS, platformer, and racing."
+  mainClass="docs-main--browser"
 >
-  <section class="docs-hero">
-    <div>
-      <p class="docs-eyebrow">Showcases</p>
-      <h1>Open each showcase from one embedded browser.</h1>
-      <p>
-        The standalone showcase apps are listed on the left and framed on the
-        right so they can be compared without losing docs context.
-      </p>
-    </div>
-  </section>
-
   <ShowcaseCards showcases={showcases} client:load />
 </DocsLayout>

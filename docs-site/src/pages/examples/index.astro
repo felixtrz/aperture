@@ -7,18 +7,8 @@ import examplesManifest from "../../content/examples.generated.json";
 <DocsLayout
   title="Aperture Examples"
   description="Runnable Aperture examples grouped by engine capability."
+  mainClass="docs-main--browser"
 >
-  <section class="docs-hero">
-    <div>
-      <p class="docs-eyebrow">Examples</p>
-      <h1>Run the examples without leaving the docs.</h1>
-      <p>
-        Every <code>examples/*.html</code> route is listed on the left and
-        embedded on the right for direct WebGPU inspection.
-      </p>
-    </div>
-  </section>
-
   <ExampleGallery
     examples={examplesManifest.examples}
     categories={examplesManifest.categories}
