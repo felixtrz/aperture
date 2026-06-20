@@ -67,7 +67,11 @@ export function copy(srcIn: NumArray, dst?: Float32Array): Mat4 {
 export { copy as clone };
 
 /** Multiplies `a` (left) by `b` (right): dst = a * b. */
-export function multiply(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Mat4 {
+export function multiply(
+  aIn: NumArray,
+  bIn: NumArray,
+  dst?: Float32Array,
+): Mat4 {
   const a = aIn as unknown as T16;
   const b = bIn as unknown as T16;
   const d = allocMat4(dst);
@@ -130,7 +134,11 @@ export { multiply as mul };
  * row, so transform-hierarchy propagation runs measurably faster. The result
  * is identical to {@link multiply} whenever both inputs are affine.
  */
-export function mulAffine(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Mat4 {
+export function mulAffine(
+  aIn: NumArray,
+  bIn: NumArray,
+  dst?: Float32Array,
+): Mat4 {
   const a = aIn as unknown as T16;
   const b = bIn as unknown as T16;
   const d = allocMat4(dst);
@@ -430,7 +438,11 @@ export function scale(mIn: NumArray, vIn: NumArray, dst?: Float32Array): Mat4 {
 }
 
 /** Sets the translation column of `m`. */
-export function setTranslation(mIn: NumArray, vIn: NumArray, dst?: Float32Array): Mat4 {
+export function setTranslation(
+  mIn: NumArray,
+  vIn: NumArray,
+  dst?: Float32Array,
+): Mat4 {
   const m = mIn as unknown as T16;
   const v = vIn as unknown as T3;
   const d = allocMat4(dst);

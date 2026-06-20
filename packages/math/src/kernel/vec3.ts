@@ -43,7 +43,11 @@ export function add(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Vec3 {
   return d;
 }
 
-export function subtract(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Vec3 {
+export function subtract(
+  aIn: NumArray,
+  bIn: NumArray,
+  dst?: Float32Array,
+): Vec3 {
   const a = aIn as unknown as T3;
   const b = bIn as unknown as T3;
   const d = allocVec3(dst);
@@ -185,7 +189,11 @@ export function lerp(
 }
 
 /** Full homogeneous transform of a point by a 4x4 matrix (divides by w). */
-export function transformMat4(vIn: NumArray, mIn: NumArray, dst?: Float32Array): Vec3 {
+export function transformMat4(
+  vIn: NumArray,
+  mIn: NumArray,
+  dst?: Float32Array,
+): Vec3 {
   const v = vIn as unknown as T3;
   const m = mIn as unknown as T16;
   const d = allocVec3(dst);
@@ -218,7 +226,11 @@ export function transformMat4Upper3x3(
 }
 
 /** Rotates a vec3 by a quaternion. */
-export function transformQuat(vIn: NumArray, qIn: NumArray, dst?: Float32Array): Vec3 {
+export function transformQuat(
+  vIn: NumArray,
+  qIn: NumArray,
+  dst?: Float32Array,
+): Vec3 {
   const v = vIn as unknown as T3;
   const q = qIn as unknown as T4;
   const d = allocVec3(dst);

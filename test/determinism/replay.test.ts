@@ -190,8 +190,8 @@ function hashSnapshotForReplay(snapshot: RenderSnapshot): string {
     transforms: Array.from(snapshot.transforms, quantize),
     viewMatrices: Array.from(snapshot.viewMatrices, quantize),
     bounds: snapshot.bounds.map((bounds) => [
-      ...[...bounds.worldAabb.min].map(quantize),
-      ...[...bounds.worldAabb.max].map(quantize),
+      ...Array.from(bounds.worldAabb.min, quantize),
+      ...Array.from(bounds.worldAabb.max, quantize),
     ]),
     lights: snapshot.lights.length,
     views: snapshot.views.length,

@@ -36,7 +36,11 @@ export function copy(qIn: NumArray, dst?: Float32Array): Quat {
 export { copy as clone };
 
 /** Quaternion product a * b. */
-export function multiply(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Quat {
+export function multiply(
+  aIn: NumArray,
+  bIn: NumArray,
+  dst?: Float32Array,
+): Quat {
   const a = aIn as unknown as T4;
   const b = bIn as unknown as T4;
   const d = allocQuat(dst);

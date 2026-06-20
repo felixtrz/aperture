@@ -11,9 +11,11 @@ import {
   invertMat4,
   mat4,
   multiplyMat4,
+  quat,
   quatFromAxisAngle,
   transformPoint,
   transformVector,
+  vec3,
   type QuatLike,
   type Mat4Like,
   type Vec3Like,
@@ -136,8 +138,8 @@ describe("Aperture matrix math", () => {
       quatFromAxisAngle([0, 0, 1], Math.PI / 2),
       [2, 3, 4],
     );
-    const pointOut = new Float32Array(3);
-    const vectorOut = new Float32Array(3);
+    const pointOut = vec3();
+    const vectorOut = vec3();
 
     expect(transformPoint(matrix, [1, 2, 3], pointOut)).toBe(pointOut);
     expectVec3(pointOut, wgpuVec3.transformMat4([1, 2, 3], matrix));
@@ -147,7 +149,7 @@ describe("Aperture matrix math", () => {
   });
 
   it("normalizes axis-angle input before delegating to wgpu-matrix", () => {
-    const out = new Float32Array(4);
+    const out = quat();
 
     expect(quatFromAxisAngle([0, 0, 2], Math.PI / 2, out)).toBe(out);
     expectQuat(out, wgpuQuat.fromAxisAngle([0, 0, 1], Math.PI / 2));

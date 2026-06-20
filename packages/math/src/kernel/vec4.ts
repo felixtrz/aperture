@@ -48,7 +48,11 @@ export function add(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Vec4 {
   return d;
 }
 
-export function subtract(aIn: NumArray, bIn: NumArray, dst?: Float32Array): Vec4 {
+export function subtract(
+  aIn: NumArray,
+  bIn: NumArray,
+  dst?: Float32Array,
+): Vec4 {
   const a = aIn as unknown as T4;
   const b = bIn as unknown as T4;
   const d = allocVec4(dst);
