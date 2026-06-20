@@ -1,7 +1,7 @@
-// The hero town layout. This is a city authored in the city-builder showcase
+// The landing town layout. This is a city authored in the city-builder showcase
 // app and exported to the city-config schema
 // (https://aperture-engine.dev/schemas/city-builder/city.schema.json), then
-// inlined here so the hero scene reproduces it exactly.
+// inlined here so the landing scene reproduces it exactly.
 //
 // Each tile is a unit (1x1) Kenney structure placed at world (x, 0, z) and
 // rotated `orientation` quarter-turns about Y — the same math city-builder uses,

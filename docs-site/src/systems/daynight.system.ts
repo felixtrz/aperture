@@ -32,7 +32,7 @@ import {
   type HeroStoryMomentId,
 } from "../lib/hero-story.js";
 
-// Drives the hero scene's day/night cycle. Every update animates sun, ambient
+// Drives the landing scene's day/night cycle. Every update animates sun, ambient
 // fill, night lights, glowing windows, and the screen-aligned sky bands. The
 // page is demand-rendered, so sky material updates only run while story
 // gestures are stepping the worker.

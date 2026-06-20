@@ -3,6 +3,7 @@ import {
   defineApertureConfig,
   signal,
 } from "@aperture-engine/app/config";
+import { HERO_STORY_START_PHASE } from "./src/lib/hero-story.js";
 
 const model = (name: string) =>
   asset.gltf(`${import.meta.env.BASE_URL}models/${name}.glb`, {
@@ -41,7 +42,7 @@ export default defineApertureConfig({
   },
   signals: {
     heroMoment: signal.string("ecs-native"),
-    heroPhase: signal.number(0.32),
+    heroPhase: signal.number(HERO_STORY_START_PHASE),
   },
   render: {
     // The town now floats with no ground plane, so a deep background makes the

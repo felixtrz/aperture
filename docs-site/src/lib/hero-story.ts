@@ -1,9 +1,18 @@
-export const HERO_STORY_COMMAND_CHANNEL = "hero-city.story";
+export const HERO_STORY_COMMAND_CHANNEL = "landing-scene.story";
+
+export const HERO_STORY_START_PHASE = 0.2;
+export const HERO_STORY_PHASE_STEP = 1 / 4;
+
+function storyPhase(index: number): number {
+  return Number(
+    ((HERO_STORY_START_PHASE + HERO_STORY_PHASE_STEP * index) % 1).toFixed(4),
+  );
+}
 
 export const HERO_STORY_MOMENTS = [
   {
     id: "ecs-native",
-    phase: 0.32,
+    phase: storyPhase(0),
     label: "ECS",
     time: "Morning",
     title: "ECS-native, not scene-graph",
@@ -11,7 +20,7 @@ export const HERO_STORY_MOMENTS = [
   },
   {
     id: "agent-first",
-    phase: 0.42,
+    phase: storyPhase(1),
     label: "Agents",
     time: "Noon",
     title: "Agent-first, human-readable",
@@ -19,7 +28,7 @@ export const HERO_STORY_MOMENTS = [
   },
   {
     id: "multithreaded",
-    phase: 0.64,
+    phase: storyPhase(2),
     label: "Worker",
     time: "Dusk",
     title: "Multithreaded by default",
@@ -27,7 +36,7 @@ export const HERO_STORY_MOMENTS = [
   },
   {
     id: "webgpu-rendering",
-    phase: 0.0,
+    phase: storyPhase(3),
     label: "WebGPU",
     time: "Night",
     title: "State-of-the-art WebGPU rendering",
@@ -53,8 +62,6 @@ export type HeroStoryCommand =
   | HeroStorySetMomentCommand
   | HeroStorySetPhaseCommand;
 
-export function heroStoryMomentById(
-  id: string,
-): HeroStoryMoment | undefined {
+export function heroStoryMomentById(id: string): HeroStoryMoment | undefined {
   return HERO_STORY_MOMENTS.find((moment) => moment.id === id);
 }

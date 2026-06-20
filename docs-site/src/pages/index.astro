@@ -1057,19 +1057,25 @@
         const deltaX = event.clientX - pointerGesture.startX;
         const deltaY = event.clientY - pointerGesture.startY;
         const elapsed = Math.max(1, performance.now() - pointerGesture.startedAt);
-        const velocity = Math.abs(deltaY) / elapsed;
+        const absDeltaX = Math.abs(deltaX);
+        const absDeltaY = Math.abs(deltaY);
+        let gestureDelta = 0;
+        if (absDeltaX >= absDeltaY * 1.2) {
+          gestureDelta = deltaX;
+        } else if (absDeltaY >= absDeltaX * 1.2) {
+          gestureDelta = deltaY;
+        }
+        const velocity = Math.abs(gestureDelta) / elapsed;
         pointerGesture = null;
 
         if (
-          Math.abs(deltaY) < pointerGestureThresholdPx &&
-          velocity < pointerVelocityThresholdPxPerMs
+          gestureDelta === 0 ||
+          (Math.abs(gestureDelta) < pointerGestureThresholdPx &&
+            velocity < pointerVelocityThresholdPxPerMs)
         ) {
           return;
         }
-        if (Math.abs(deltaY) < Math.abs(deltaX) * 1.2) {
-          return;
-        }
-        navigateByDirection(deltaY < 0 ? 1 : -1);
+        navigateByDirection(gestureDelta < 0 ? 1 : -1);
       }
 
       window.addEventListener("pointerup", commitPointerGesture, {

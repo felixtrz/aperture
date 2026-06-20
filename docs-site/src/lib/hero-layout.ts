@@ -1,5 +1,5 @@
-export const HERO_LAYOUT_COMMAND_CHANNEL = "hero-city.layout";
-export const HERO_LAYOUT_STATE_COMMAND_CHANNEL = "hero-city.layout-state";
+export const HERO_LAYOUT_COMMAND_CHANNEL = "landing-scene.layout";
+export const HERO_LAYOUT_STATE_COMMAND_CHANNEL = "landing-scene.layout-state";
 
 export const HERO_DESKTOP_COMPOSITION_MAX_WIDTH_PX = 1500;
 export const HERO_DESKTOP_COMPOSITION_SIDE_GUTTER_PX = 48;
