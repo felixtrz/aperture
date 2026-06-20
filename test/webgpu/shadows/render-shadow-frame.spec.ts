@@ -219,10 +219,7 @@ describe("render shadow frame", () => {
     expect(calls.destroyedBuffers).toHaveLength(0);
     expect(
       calls.bufferWrites.filter((write) =>
-        writeTargetsBufferLabel(
-          write,
-          "ShadowCasterWorldTransforms/storage",
-        ),
+        writeTargetsBufferLabel(write, "ShadowCasterWorldTransforms/storage"),
       ),
     ).toHaveLength(1);
   });
@@ -262,10 +259,7 @@ describe("render shadow frame", () => {
     ).toHaveLength(0);
     expect(
       calls.bufferWrites.filter((write) =>
-        writeTargetsBufferLabel(
-          write,
-          "ShadowCasterWorldTransforms/storage",
-        ),
+        writeTargetsBufferLabel(write, "ShadowCasterWorldTransforms/storage"),
       ),
     ).toHaveLength(2);
   });
@@ -310,6 +304,50 @@ describe("render shadow frame", () => {
       ),
     ).toHaveLength(1);
     expect(calls.bindGroups).toHaveLength(4);
+  });
+
+  it("drops cached caster command topology when the world-transform buffer is recreated", () => {
+    // Regression: demolishing a shadow caster changes the caster count, which
+    // resizes (destroys + recreates) the shared ShadowCasterWorldTransforms
+    // buffer. Revisiting an earlier caster configuration must not replay a
+    // cached command topology whose bind groups still point at the destroyed
+    // buffer — doing so submits a destroyed buffer every frame and blacks out
+    // the whole device (a permanent black screen after delete).
+    const calls = createDeviceCalls();
+    const cache = createWebGpuEnvironmentResourceCache();
+    const base = {
+      device: device(calls),
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache,
+      matrix: { center: [0, 0, -2], orthographicSize: 16 },
+    } as const;
+    const single = {
+      ...base,
+      snapshot: snapshot({ shadowRequest: { cascadeCount: 1 } }),
+      shadowMap: { cascadeCount: 1, mapSize: 512 },
+    } as const;
+    const triple = {
+      ...base,
+      snapshot: snapshot({ shadowRequest: { cascadeCount: 3 } }),
+      shadowMap: { cascadeCount: 3, mapSize: 512 },
+    } as const;
+
+    // 1 cascade (caches a topology) -> 3 cascades (recreates the buffer, so the
+    // first topology now references a destroyed buffer) -> back to 1 cascade,
+    // whose topology key matches the very first frame.
+    createRenderShadowFrame(single);
+    createRenderShadowFrame(triple);
+    const revisit = createRenderShadowFrame(single);
+
+    expect(revisit.report.status).toBe("submitted");
+
+    const destroyed = new Set(calls.destroyedBuffers);
+    const referencedBuffers = bindGroupBufferReferences(revisit.commandRecords);
+    expect(referencedBuffers.length).toBeGreaterThan(0);
+    expect(referencedBuffers.filter((buffer) => destroyed.has(buffer))).toEqual(
+      [],
+    );
   });
 
   it("honors authored shadow request bias, filter radius, and map size", () => {
@@ -758,6 +796,38 @@ function device(calls: DeviceCalls): RenderShadowFrameDeviceLike {
       },
     },
   };
+}
+
+function bindGroupBufferReferences(report: {
+  readonly commandRecords: readonly {
+    readonly commands: readonly {
+      readonly kind: string;
+      readonly bindGroup?: unknown;
+    }[];
+  }[];
+}): unknown[] {
+  const buffers: unknown[] = [];
+  for (const record of report.commandRecords) {
+    for (const command of record.commands) {
+      if (command.kind !== "setBindGroup") continue;
+      const entries =
+        (
+          command.bindGroup as {
+            readonly descriptor?: {
+              readonly entries?: readonly {
+                readonly resource?: { readonly buffer?: unknown };
+              }[];
+            };
+          }
+        ).descriptor?.entries ?? [];
+      for (const entry of entries) {
+        if (entry.resource?.buffer !== undefined) {
+          buffers.push(entry.resource.buffer);
+        }
+      }
+    }
+  }
+  return buffers;
 }
 
 function bufferHasLabel(buffer: unknown, label: string): boolean {

@@ -644,6 +644,14 @@ export function createRenderShadowFrame(
       ? {}
       : { scratch: options.cache.shadowCasterWorldTransformScratch }),
   });
+  // A recreated world-transform buffer leaves every cached command topology
+  // pointing at the destroyed buffer (their bind groups embed it under a stable
+  // resourceKey). Drop them so a later frame that revisits a prior caster
+  // configuration rebuilds its records against the live buffer instead of
+  // replaying one that submits a destroyed buffer (a permanent black frame).
+  if (casterWorldTransforms?.recreated === true) {
+    options.cache?.shadowCasterCommandTopology?.clear();
+  }
   const matrixBindGroupResource =
     createShadowCasterMatrixBindGroupResourceReport({
       device: options.device,
@@ -1137,6 +1145,14 @@ const SHADOW_CASTER_IDENTITY = new Float32Array([
 interface ShadowCasterWorldTransforms {
   readonly buffer: unknown;
   readonly resourceKey: string;
+  /**
+   * True when a brand-new GPU buffer was allocated this call (first creation or
+   * a resize that destroyed the previous one). The shared caster world-transform
+   * buffer is referenced by every cached `shadowCasterCommandTopology` entry's
+   * bind groups, so when it is recreated those entries are stale and the caller
+   * must drop them before reusing one.
+   */
+  readonly recreated: boolean;
 }
 
 /**
@@ -1276,7 +1292,7 @@ function buildShadowCasterWorldTransforms(input: {
       if (!writeShadowCasterWorldTransformUpdates(input.device, cached, data)) {
         return null;
       }
-      return { buffer: cached.buffer, resourceKey };
+      return { buffer: cached.buffer, resourceKey, recreated: false };
     }
 
     destroyWebGpuBuffer(cached.buffer);
@@ -1311,7 +1327,7 @@ function buildShadowCasterWorldTransforms(input: {
     lastData: new Float32Array(data),
   });
 
-  return { buffer: buffer.buffer, resourceKey };
+  return { buffer: buffer.buffer, resourceKey, recreated: true };
 }
 
 function buildShadowCasterWorldTransformIndex(input: {
