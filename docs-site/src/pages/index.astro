@@ -330,6 +330,8 @@
         }
         #nav .mobile-hero {
           display: block;
+          position: relative;
+          z-index: 1;
           width: calc(100vw - 32px);
           margin-top: 24px;
         }
@@ -337,6 +339,7 @@
           position: fixed;
           top: 58px;
           right: 16px;
+          z-index: 4;
           display: flex;
           width: min(196px, calc(100vw - 32px));
           flex-direction: column;
