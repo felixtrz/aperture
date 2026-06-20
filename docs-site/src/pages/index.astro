@@ -19,6 +19,7 @@
         --hero-desktop-stage-max: 1500px;
         --hero-desktop-side-gutter: 48px;
         --hero-desktop-card-width: 380px;
+        --hero-compact-card-width: 728px;
       }
       html,
       body {
@@ -287,7 +288,7 @@
         right: auto;
         bottom: 24px;
         left: 50%;
-        width: var(--hero-desktop-card-width);
+        width: min(var(--hero-compact-card-width), calc(100vw - 32px));
         transform: translateX(-50%);
       }
 
