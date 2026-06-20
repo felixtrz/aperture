@@ -22,7 +22,7 @@ export interface ResolvedViewRectangle {
 }
 
 export interface ResolveNormalizedViewRectangleOptions {
-  readonly rect: readonly number[];
+  readonly rect: ArrayLike<number>;
   readonly target: NormalizedViewRectangleTarget;
   readonly label?: string;
 }
@@ -59,7 +59,10 @@ export function resolveNormalizedViewRectangle(
 
   if (
     options.rect.length < 4 ||
-    !options.rect.slice(0, 4).every((value) => Number.isFinite(value)) ||
+    !Number.isFinite(options.rect[0]) ||
+    !Number.isFinite(options.rect[1]) ||
+    !Number.isFinite(options.rect[2]) ||
+    !Number.isFinite(options.rect[3]) ||
     (options.rect[2] ?? 0) <= 0 ||
     (options.rect[3] ?? 0) <= 0
   ) {

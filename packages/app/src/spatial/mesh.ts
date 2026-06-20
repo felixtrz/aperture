@@ -177,8 +177,8 @@ export function meshQueryTransforms(entry: SpatialRaycastableMesh): {
   }
 
   return {
-    ...(meshFromWorld === undefined ? {} : { meshFromWorld }),
-    ...(worldFromMesh === undefined ? {} : { worldFromMesh }),
+    ...(meshFromWorld == null ? {} : { meshFromWorld }),
+    ...(worldFromMesh == null ? {} : { worldFromMesh }),
   };
 }
 

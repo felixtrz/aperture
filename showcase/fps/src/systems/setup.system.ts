@@ -28,6 +28,7 @@ import {
   getChildren,
   createSamplerHandle,
   createTextureHandle,
+  vec4,
   type EcsWorld,
   type MaterialHandle,
   type SamplerHandle,
@@ -620,7 +621,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
     const materialHandle = createMaterialHandle(PLAYER_SHADOW_MATERIAL_ID);
     const material = createUnlitMaterialAsset({
       label: "Player Blob Shadow",
-      baseColorFactor: new Float32Array([1, 1, 1, 0.705882]),
+      baseColorFactor: vec4(1, 1, 1, 0.705882),
       baseColorTexture: { texture, sampler },
       renderState: createDefaultRenderState({
         alphaMode: "blend",

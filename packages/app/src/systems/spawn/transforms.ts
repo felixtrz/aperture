@@ -20,10 +20,13 @@ export function writeTransform(
   entity: Entity,
   input: SystemTransformInput = {},
 ): void {
+  const resolvedRotation = input.rotation ?? rotationFromTransformInput(input);
   const localInput: LocalTransformInput = {
-    translation: input.translation,
-    rotation: input.rotation ?? rotationFromTransformInput(input),
-    scale: input.scale,
+    ...(input.translation === undefined
+      ? {}
+      : { translation: input.translation }),
+    ...(resolvedRotation === undefined ? {} : { rotation: resolvedRotation }),
+    ...(input.scale === undefined ? {} : { scale: input.scale }),
   };
   const root = createRootTransform(localInput);
   const parent = createParentInput(input.parent ?? null);
