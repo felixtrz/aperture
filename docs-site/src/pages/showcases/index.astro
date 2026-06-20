@@ -11,13 +11,13 @@ import { ShowcaseCards } from "../../components/ShowcaseCards";
   <section class="docs-hero">
     <div>
       <p class="docs-eyebrow">Showcases</p>
-      <h1>Four focused apps that prove engine workflows.</h1>
+      <h1>Open each showcase from one embedded browser.</h1>
       <p>
-        This section is reserved for standalone showcase apps that exercise
-        complete game and tool workflows.
+        The standalone showcase apps are listed on the left and framed on the
+        right so they can be compared without losing docs context.
       </p>
     </div>
   </section>
 
-  <ShowcaseCards showcases={showcases} />
+  <ShowcaseCards showcases={showcases} client:load />
 </DocsLayout>

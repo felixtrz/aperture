@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
-import { Badge, Card, Input, MonoTag } from "lumin";
+import { Badge, Input, MonoTag } from "lumin";
 
 export interface ExampleEntry {
   readonly id: string;
@@ -17,9 +17,19 @@ export interface ExampleGalleryProps {
   readonly categories: readonly string[];
 }
 
+const base = import.meta.env.BASE_URL ?? "/";
+
+function withBase(href: string) {
+  if (/^https?:\/\//u.test(href) || !href.startsWith("/")) {
+    return href;
+  }
+  return `${base}${href.slice(1)}`;
+}
+
 export function ExampleGallery({ examples, categories }: ExampleGalleryProps) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
+  const [activeExampleId, setActiveExampleId] = useState(examples[0]?.id ?? "");
   const handleQueryChange = (event: ChangeEvent<HTMLInputElement>) => {
     setQuery(event.currentTarget.value);
   };
@@ -45,63 +55,102 @@ export function ExampleGallery({ examples, categories }: ExampleGalleryProps) {
       }),
     [category, examples, normalizedQuery],
   );
+  const activeExample =
+    visibleExamples.find((example) => example.id === activeExampleId) ??
+    visibleExamples[0] ??
+    examples.find((example) => example.id === activeExampleId) ??
+    examples[0];
+
+  useEffect(() => {
+    const firstVisibleExample = visibleExamples[0];
+    if (
+      firstVisibleExample !== undefined &&
+      !visibleExamples.some((example) => example.id === activeExampleId)
+    ) {
+      setActiveExampleId(firstVisibleExample.id);
+    }
+  }, [activeExampleId, visibleExamples]);
+
+  if (activeExample === undefined) {
+    return null;
+  }
 
   return (
-    <section>
-      <div className="example-toolbar">
-        <Input
-          aria-label="Search examples"
-          placeholder="Search examples"
-          value={query}
-          onChange={handleQueryChange}
-        />
-        <div className="example-filters" aria-label="Example categories">
-          {["All", ...categories].map((item) => (
-            <button
-              key={item}
-              className="example-filter"
-              data-active={String(item === category)}
-              type="button"
-              onClick={() => setCategory(item)}
-            >
-              {item}
-            </button>
-          ))}
+    <section className="docs-browser" aria-label="Example browser">
+      <aside className="docs-browser-sidebar" aria-label="Example list">
+        <div className="example-toolbar">
+          <Input
+            aria-label="Search examples"
+            placeholder="Search examples"
+            value={query}
+            onChange={handleQueryChange}
+          />
+          <div className="example-filters" aria-label="Example categories">
+            {["All", ...categories].map((item) => (
+              <button
+                key={item}
+                className="example-filter"
+                data-active={String(item === category)}
+                type="button"
+                onClick={() => setCategory(item)}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-      <p className="example-count">
-        {visibleExamples.length} of {examples.length} examples
-      </p>
-      <div className="docs-grid">
-        {visibleExamples.map((example) => (
-          <Card
-            key={example.id}
-            title={
-              <span className="docs-card-title">
+        <p className="example-count">
+          {visibleExamples.length} of {examples.length} examples
+        </p>
+        <div className="docs-browser-list">
+          {visibleExamples.map((example) => (
+            <button
+              key={example.id}
+              className="docs-browser-item"
+              data-active={String(example.id === activeExample.id)}
+              type="button"
+              onClick={() => setActiveExampleId(example.id)}
+            >
+              <span className="docs-browser-item-title">
                 <span>{example.title}</span>
                 <Badge tone="mcp">{example.category}</Badge>
               </span>
-            }
-          >
+              <span className="docs-browser-item-description">
+                {example.file}
+              </span>
+            </button>
+          ))}
+        </div>
+      </aside>
+
+      <div className="docs-browser-preview">
+        <div className="docs-browser-frame-header">
+          <div>
+            <h2>{activeExample.title}</h2>
             <p>
-              Runnable example route for <code>{example.file}</code>. Use the
-              examples dev server for live WebGPU execution.
+              <code>{activeExample.file}</code>
             </p>
-            <div className="docs-tag-row">
-              {example.sourceFiles.map((source) => (
-                <MonoTag key={source}>{source}</MonoTag>
-              ))}
-            </div>
-            <div className="docs-actions">
-              <a href={example.localDevUrl}>Run locally</a>
-              <a
-                href={`https://github.com/felixtrz/aperture/tree/main/${example.sourceFiles[0]}`}
-              >
-                Source
-              </a>
-            </div>
-          </Card>
-        ))}
+          </div>
+          <div className="docs-actions">
+            <a href={withBase(activeExample.href)}>Open</a>
+            <a href={activeExample.localDevUrl}>Local</a>
+            <a
+              href={`https://github.com/felixtrz/aperture/tree/main/${activeExample.sourceFiles[0]}`}
+            >
+              Source
+            </a>
+          </div>
+        </div>
+        <div className="docs-tag-row">
+          {activeExample.sourceFiles.map((source) => (
+            <MonoTag key={source}>{source}</MonoTag>
+          ))}
+        </div>
+        <iframe
+          className="docs-browser-frame"
+          src={withBase(activeExample.href)}
+          title={`${activeExample.title} example`}
+        />
       </div>
     </section>
   );

@@ -119,6 +119,7 @@ for (const route of [
   "index.html",
   "docs/index.html",
   "examples/index.html",
+  "examples/triangle.html",
   "showcases/index.html",
   "api/index.html",
 ]) {
@@ -165,6 +166,33 @@ const docsLayoutSource = await readFile(
 );
 if (!docsLayoutSource.includes("lumin/styles.css")) {
   fail("docs layout does not import Lumin styles");
+}
+
+const examplesHtml = await readFile(
+  path.join(docsSiteDir, "dist", "examples", "index.html"),
+  "utf8",
+);
+if (!examplesHtml.includes("docs-browser")) {
+  fail("examples page is missing the embedded browser layout");
+}
+const triangleHtml = await readFile(
+  path.join(docsSiteDir, "dist", "examples", "triangle.html"),
+  "utf8",
+);
+if (
+  !triangleHtml.includes(`${process.env.APERTURE_DOCS_BASE ?? "/"}packages/`)
+) {
+  fail("staged triangle example does not use base-aware package imports");
+}
+for (const stagedRoute of [
+  "packages/webgpu/dist/index.js",
+  "node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+  "worker-modules/examples/triangle.main.js",
+  "worker-modules/packages/simulation/dist/index.js",
+]) {
+  if (!(await exists(path.join(docsSiteDir, "dist", stagedRoute)))) {
+    fail(`docs-site dist is missing staged example asset ${stagedRoute}`);
+  }
 }
 
 if (failures.length > 0) {

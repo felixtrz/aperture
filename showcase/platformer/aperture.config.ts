@@ -5,14 +5,19 @@ import {
   signal,
 } from "@aperture-engine/app/config";
 
+const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+
 const model = (name: string) =>
-  asset.gltf(`/models/${name}.glb`, { preload: "blocking" });
+  asset.gltf(assetUrl(`models/${name}.glb`), { preload: "blocking" });
 
 const sound = (name: string, durationHint: number) =>
-  asset.audio(`/sounds/${name}.ogg`, { preload: "blocking", durationHint });
+  asset.audio(assetUrl(`sounds/${name}.ogg`), {
+    preload: "blocking",
+    durationHint,
+  });
 
 const sprite = (name: string) =>
-  asset.texture(`/sprites/${name}.png`, {
+  asset.texture(assetUrl(`sprites/${name}.png`), {
     preload: "blocking",
     colorSpace: "srgb",
     semantic: "base-color",

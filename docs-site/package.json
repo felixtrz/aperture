@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "pnpm run prepare && astro dev --host 127.0.0.1",
     "build": "pnpm run prepare && astro build",
-    "build:all": "pnpm run build && pnpm run build:showcases",
+    "build:all": "pnpm run build:packages && pnpm run build && pnpm run build:showcases && pnpm run build:examples",
+    "build:packages": "pnpm --dir .. run build",
     "build:pages": "APERTURE_DOCS_BASE=/aperture/ pnpm run build:all",
+    "build:examples": "node scripts/stage-example-routes.mjs",
     "build:showcases": "node scripts/build-showcases.mjs",
     "preview": "astro preview --host 127.0.0.1",
     "typecheck": "pnpm run prepare && astro check && tsc --noEmit",

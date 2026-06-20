@@ -41,6 +41,7 @@ const keyboardButtonReleaseTimers = new Map<
   number
 >();
 const instantButtonReleaseTimers = new Map<string, number>();
+const fallbackCrosshairUrl = `${import.meta.env.BASE_URL}sprites/crosshair.png`;
 
 function readNumber(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
@@ -54,7 +55,7 @@ function render(signals: GeneratedSignalSummary | null): void {
   const crosshair =
     typeof signals?.crosshair === "string" && signals.crosshair.length > 0
       ? signals.crosshair
-      : "/sprites/crosshair.png";
+      : fallbackCrosshairUrl;
 
   writeText(healthEl, sourceHealthText(readNumber(signals?.health, 100)));
 

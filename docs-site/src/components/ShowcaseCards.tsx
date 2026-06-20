@@ -1,4 +1,5 @@
-import { Badge, Card, MonoTag } from "lumin";
+import { useState } from "react";
+import { Badge, MonoTag } from "lumin";
 import type { ShowcaseEntry } from "../content/showcases.js";
 
 export interface ShowcaseCardsProps {
@@ -15,32 +16,69 @@ function withBase(href: string) {
 }
 
 export function ShowcaseCards({ showcases }: ShowcaseCardsProps) {
+  const [activeShowcaseId, setActiveShowcaseId] = useState(
+    showcases[0]?.id ?? "",
+  );
+  const activeShowcase =
+    showcases.find((showcase) => showcase.id === activeShowcaseId) ??
+    showcases[0];
+
+  if (activeShowcase === undefined) {
+    return null;
+  }
+
   return (
-    <div className="docs-grid">
-      {showcases.map((showcase) => (
-        <Card
-          key={showcase.id}
-          title={
-            <span className="docs-card-title">
-              <span>{showcase.name}</span>
-              <Badge tone={showcase.status === "active" ? "ok" : "warn"} dot>
-                {showcase.status}
-              </Badge>
-            </span>
-          }
-        >
-          <p>{showcase.description}</p>
-          <div className="docs-tag-row">
-            {showcase.capabilities.map((capability) => (
-              <MonoTag key={capability}>{capability}</MonoTag>
-            ))}
+    <section className="docs-browser" aria-label="Showcase browser">
+      <aside className="docs-browser-sidebar" aria-label="Showcase list">
+        <div className="docs-browser-sidebar-header">
+          <span>Showcases</span>
+          <strong>{showcases.length}</strong>
+        </div>
+        <div className="docs-browser-list">
+          {showcases.map((showcase) => (
+            <button
+              key={showcase.id}
+              className="docs-browser-item"
+              data-active={String(showcase.id === activeShowcase.id)}
+              type="button"
+              onClick={() => setActiveShowcaseId(showcase.id)}
+            >
+              <span className="docs-browser-item-title">
+                <span>{showcase.name}</span>
+                <Badge tone={showcase.status === "active" ? "ok" : "warn"} dot>
+                  {showcase.status}
+                </Badge>
+              </span>
+              <span className="docs-browser-item-description">
+                {showcase.description}
+              </span>
+            </button>
+          ))}
+        </div>
+      </aside>
+
+      <div className="docs-browser-preview">
+        <div className="docs-browser-frame-header">
+          <div>
+            <h2>{activeShowcase.name}</h2>
+            <p>{activeShowcase.description}</p>
           </div>
           <div className="docs-actions">
-            <a href={withBase(showcase.href)}>Open</a>
-            <a href={showcase.sourceHref}>Source</a>
+            <a href={withBase(activeShowcase.href)}>Open</a>
+            <a href={activeShowcase.sourceHref}>Source</a>
           </div>
-        </Card>
-      ))}
-    </div>
+        </div>
+        <div className="docs-tag-row">
+          {activeShowcase.capabilities.map((capability) => (
+            <MonoTag key={capability}>{capability}</MonoTag>
+          ))}
+        </div>
+        <iframe
+          className="docs-browser-frame"
+          src={withBase(activeShowcase.href)}
+          title={`${activeShowcase.name} showcase`}
+        />
+      </div>
+    </section>
   );
 }
