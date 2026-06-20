@@ -366,8 +366,8 @@
           width: 100%;
           margin: 0;
           color: #fff;
-          font-size: clamp(44px, 15vw, 64px);
-          line-height: 0.88;
+          font-size: clamp(38px, 12.2vw, 54px);
+          line-height: 0.94;
           font-weight: 780;
           letter-spacing: 0;
         }
@@ -445,8 +445,8 @@
           margin-top: 18px;
         }
         #nav .mobile-tagline {
-          font-size: clamp(39px, 13.2vw, 44px);
-          line-height: 0.86;
+          font-size: clamp(34px, 11.2vw, 39px);
+          line-height: 0.94;
         }
         #nav .mobile-command {
           margin-top: 12px;
@@ -464,9 +464,7 @@
           <img src="aperture.svg" alt="" />
           <span class="brand-copy">
             <span class="brand-name">Aperture</span>
-            <span class="brand-tagline"
-              >State-of-the-art 3D engine for the agentic age.</span
-            >
+            <span class="brand-tagline">3D engine for the agentic age.</span>
           </span>
         </span>
         <button
@@ -487,9 +485,7 @@
         <a href="https://github.com/felixtrz/aperture">GitHub</a>
       </span>
       <span class="mobile-hero">
-        <span class="mobile-tagline"
-          >State-of-the-art 3D engine for the agentic age.</span
-        >
+        <span class="mobile-tagline">3D engine for the agentic age.</span>
         <span class="mobile-command">
           <span class="mobile-command-prompt" aria-hidden="true">$</span>
           <code>npx @aperture-engine/cli create my-app</code>
@@ -625,7 +621,7 @@
         );
       }
 
-      function layoutPayload(compact) {
+      function layoutPayload(compact, mobile) {
         const cardRect = card.getBoundingClientRect();
         const cardWidth = cardRect.width;
         const target = compact
@@ -640,6 +636,7 @@
         return {
           kind: "set-composition",
           compact,
+          mobile,
           viewportWidth: window.innerWidth,
           viewportHeight: window.innerHeight,
           stageWidth: compact ? window.innerWidth : desktopStageWidth(),
@@ -654,6 +651,7 @@
         return [
           payload.kind,
           payload.compact,
+          payload.mobile,
           Math.round(payload.viewportWidth),
           Math.round(payload.viewportHeight),
           Math.round(payload.stageWidth),
@@ -687,7 +685,7 @@
           String(compact);
         document.documentElement.dataset.heroMobileNav = String(mobileNav);
         syncDesktopCardPosition(compact);
-        const payload = layoutPayload(compact);
+        const payload = layoutPayload(compact, mobileNav);
         if (!mobileNav) {
           setNavMenuOpen(false);
         }

@@ -38,11 +38,14 @@ const MAX_CAMERA_ZOOM = 80;
 const MIN_CAMERA_RIGHT_OFFSET = -24;
 const MAX_CAMERA_RIGHT_OFFSET = 24;
 const CAMERA_SOLVE_ITERATIONS = 18;
+const MOBILE_CAMERA_ZOOM = CAMERA_ZOOM * 1.16;
+const MOBILE_CAMERA_FOCUS_Y_OFFSET = -0.35;
 
 type Vec3 = readonly [number, number, number];
 
 interface CameraCompositionLayout {
   readonly compact: boolean;
+  readonly mobile: boolean;
   readonly viewportWidth: number;
   readonly viewportHeight: number;
   readonly stageWidth: number;
@@ -119,6 +122,7 @@ export default class CameraCompositionSystem extends createSystem({
 }) {
   #layout: CameraCompositionLayout = {
     compact: false,
+    mobile: false,
     viewportWidth: DEFAULT_DESKTOP_VIEWPORT_WIDTH_PX,
     viewportHeight: DEFAULT_DESKTOP_VIEWPORT_HEIGHT_PX,
     stageWidth: DEFAULT_DESKTOP_VIEWPORT_WIDTH_PX,
@@ -143,6 +147,7 @@ export default class CameraCompositionSystem extends createSystem({
 
       const nextLayout = {
         compact: command.compact,
+        mobile: command.mobile,
         viewportWidth: Math.max(1, finiteOr(command.viewportWidth, 1)),
         viewportHeight: Math.max(1, finiteOr(command.viewportHeight, 1)),
         stageWidth: Math.max(1, finiteOr(command.stageWidth, 1)),
@@ -159,6 +164,7 @@ export default class CameraCompositionSystem extends createSystem({
       };
       if (
         this.#layout.compact !== nextLayout.compact ||
+        this.#layout.mobile !== nextLayout.mobile ||
         this.#layout.viewportWidth !== nextLayout.viewportWidth ||
         this.#layout.viewportHeight !== nextLayout.viewportHeight ||
         this.#layout.stageWidth !== nextLayout.stageWidth ||
@@ -183,16 +189,21 @@ export default class CameraCompositionSystem extends createSystem({
       return false;
     }
 
-    const zoom = this.#layout.compact ? CAMERA_ZOOM : this.#solveZoom();
+    const zoom = this.#layout.mobile
+      ? MOBILE_CAMERA_ZOOM
+      : this.#layout.compact
+        ? CAMERA_ZOOM
+        : this.#solveZoom();
     const rightOffset = this.#layout.compact ? 0 : this.#solveRightOffset(zoom);
     const focus = cameraRightOffset(CAMERA_START_YAW, rightOffset);
+    const focusY = this.#layout.mobile ? MOBILE_CAMERA_FOCUS_Y_OFFSET : 0;
     const rigOffset = cameraOffset(CAMERA_START_YAW, zoom);
 
     camera
       .getVectorView(LocalTransform, "translation")
       .set([
         focus[0] + rigOffset[0],
-        focus[1] + rigOffset[1],
+        focus[1] + focusY + rigOffset[1],
         focus[2] + rigOffset[2],
       ]);
     camera

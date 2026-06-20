@@ -142,7 +142,7 @@ const homeHtml = await readFile(
   path.join(docsSiteDir, "dist", "index.html"),
   "utf8",
 );
-if (!homeHtml.includes("State-of-the-art 3D engine for the agentic age.")) {
+if (!homeHtml.includes("3D engine for the agentic age.")) {
   fail("docs-site home no longer contains the preserved front-page tagline");
 }
 const homeSource = await readFile(

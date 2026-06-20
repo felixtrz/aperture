@@ -22,6 +22,7 @@ export interface HeroLayoutSetCompactCommand {
 export interface HeroLayoutSetCompositionCommand {
   readonly kind: "set-composition";
   readonly compact: boolean;
+  readonly mobile: boolean;
   readonly viewportWidth: number;
   readonly viewportHeight: number;
   readonly stageWidth: number;
