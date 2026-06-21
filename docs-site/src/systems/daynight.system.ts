@@ -97,8 +97,8 @@ const KEYS: readonly DayKey[] = [
     skyTop: [0.025, 0.035, 0.08],
     skyBottom: [0.006, 0.008, 0.018],
     sun: [0.32, 0.38, 0.62],
-    ambient: [0.12, 0.14, 0.26],
-    ambientIntensity: 0.58,
+    ambient: [0.15, 0.17, 0.31],
+    ambientIntensity: 0.7,
   },
   {
     phase: 0.12, // pre-dawn
@@ -169,8 +169,8 @@ const KEYS: readonly DayKey[] = [
     skyTop: [0.035, 0.04, 0.095],
     skyBottom: [0.008, 0.009, 0.022],
     sun: [0.36, 0.38, 0.58],
-    ambient: [0.13, 0.14, 0.26],
-    ambientIntensity: 0.6,
+    ambient: [0.16, 0.17, 0.31],
+    ambientIntensity: 0.72,
   },
 ];
 
