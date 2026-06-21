@@ -43,6 +43,10 @@ import {
   type FixedStepAccess,
   type FixedStepTaskRegistrar,
 } from "./fixed-step.js";
+import {
+  createHtmlBridgeAccess,
+  type HtmlBridgeAccess,
+} from "./html-bridge.js";
 
 // This interface is intentionally empty so generated app-local declarations can
 // augment it with kind-specific action properties.
@@ -79,6 +83,7 @@ export interface ApertureSystemContext {
   readonly physics: PhysicsAccess;
   readonly fixedStep: FixedStepAccess;
   readonly interaction: InteractionAccess;
+  readonly html: HtmlBridgeAccess;
   readonly diagnostics: SystemDiagnostics;
   readonly effects: ScheduledEffects;
 }
@@ -154,6 +159,7 @@ export function createApertureSystemContext(
   });
   const fixedStep = createFixedStepAccess(options.registerFixedStepTask);
   const interaction = createInteractionAccess(options.world);
+  const html = createHtmlBridgeAccess(resources);
 
   const context: ApertureSystemContext = {
     world: options.world,
@@ -178,6 +184,7 @@ export function createApertureSystemContext(
     physics,
     fixedStep,
     interaction,
+    html,
     diagnostics,
     effects: createScheduledEffects(),
   };
@@ -217,6 +224,7 @@ function isApertureSystemContext(
     "trails" in value &&
     "particles" in value &&
     "audio" in value &&
+    "html" in value &&
     "effects" in value
   );
 }

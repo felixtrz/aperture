@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture Mixed Secondary Crop Render Targets</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@aperture-engine/render": "/aperture/packages/render/dist/index.js",
+          "@aperture-engine/runtime": "/aperture/packages/runtime/dist/index.js",
+          "@aperture-engine/physics": "/aperture/packages/physics/dist/index.js",
+          "@aperture-engine/math": "/aperture/packages/math/dist/index.js",
+          "@aperture-engine/simulation": "/aperture/packages/simulation/dist/index.js",
+          "@aperture-engine/webgpu": "/aperture/packages/webgpu/dist/index.js",
+          "@aperture-engine/webgpu/test-support": "/aperture/packages/webgpu/dist/test-support.js",
+          "elics": "/aperture/node_modules/elics/lib/index.js",
+          "wgpu-matrix": "/aperture/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+          "@preact/signals-core": "/aperture/node_modules/@preact/signals-core/dist/signals-core.mjs",
+          "@aperture-engine/app": "/aperture/packages/app/dist/index.js",
+          "@aperture-engine/app/browser": "/aperture/packages/app/dist/browser.js",
+          "@aperture-engine/app/config": "/aperture/packages/app/dist/config.js",
+          "@aperture-engine/app/systems": "/aperture/packages/app/dist/systems.js",
+          "@aperture-engine/app/worker": "/aperture/packages/app/dist/worker.js",
+          "@aperture-engine/audio": "/aperture/packages/audio/dist/index.js",
+          "@aperture-engine/physics/testing": "/aperture/packages/physics/dist/testing.js",
+          "@aperture-engine/physics-rapier": "/aperture/packages/physics-rapier/dist/index.js",
+          "@aperture-engine/render/test-support": "/aperture/packages/render/dist/test-support.js",
+          "@aperture-engine/vite-plugin": "/aperture/packages/vite-plugin/dist/index.js",
+          "@dimforge/rapier3d-compat": "/aperture/packages/physics-rapier/node_modules/@dimforge/rapier3d-compat/rapier.mjs"
+        }
+      }
+    </script>
+    <script type="module" src="./example-control.js"></script>
+  </head>
+  <body>
+    <main class="runtime-shell">
+      <section
+        class="viewport-panel"
+        aria-label="Aperture mixed secondary-crop render-target runtime"
+      >
+        <canvas
+          id="aperture-canvas"
+          width="960"
+          height="540"
+          aria-label="Aperture WebGPU mixed secondary-crop render-target canvas"
+        ></canvas>
+      </section>
+      <aside class="status-panel" aria-label="Runtime status">
+        <div class="status-row">
+          <span>example</span>
+          <strong id="example-name">mixed secondary crop</strong>
+        </div>
+        <div class="status-row">
+          <span>state</span>
+          <strong id="example-state">loading</strong>
+        </div>
+        <nav class="example-links" aria-label="Examples">
+          <a href="/aperture/">clear</a>
+          <a href="/aperture/examples/triangle.html">triangle</a>
+          <a href="/aperture/examples/multi-entity.html">multi entity</a>
+          <a href="/aperture/examples/spinning-cube.html">spinning cube</a>
+          <a href="/aperture/examples/render-to-texture.html">render texture</a>
+          <a href="/aperture/examples/render-target-resize.html">target resize</a>
+          <a href="/aperture/examples/render-target-msaa-resize.html">msaa resize</a>
+          <a href="/aperture/examples/render-target-reuse.html">target reuse</a>
+          <a href="/aperture/examples/render-target-msaa-reuse.html">msaa reuse</a>
+          <a href="/aperture/examples/mixed-camera-targets.html">mixed targets</a>
+          <a href="/aperture/examples/multi-render-targets.html">multi targets</a>
+          <a href="/aperture/examples/mixed-multi-render-targets.html">mixed multi</a>
+          <a href="/aperture/examples/render-target-dual-size.html">dual size</a>
+          <a href="/aperture/examples/mixed-dual-size-render-targets.html">mixed dual</a>
+          <a href="/aperture/examples/mixed-secondary-crop-render-targets.html"
+            >mixed crop</a
+          >
+          <a href="/aperture/examples/mixed-msaa-two-targets.html">mixed msaa</a>
+          <a href="/aperture/examples/mixed-msaa-dual-size.html">mixed msaa dual size</a>
+          <a href="/aperture/examples/mixed-msaa-resized-dual-size.html"
+            >mixed msaa resized dual size</a
+          >
+          <a href="/aperture/examples/mixed-msaa-reuse-dual-size.html"
+            >mixed msaa reuse dual size</a
+          >
+          <a href="/aperture/examples/mixed-msaa-resized-reuse-dual-size.html"
+            >mixed msaa resized reuse dual size</a
+          >
+
+          <a href="/aperture/examples/mixed-msaa-secondary-crop.html">mixed msaa crop</a>
+          <a href="/aperture/examples/mixed-msaa-resize.html">mixed msaa resize</a>
+          <a href="/aperture/examples/mixed-msaa-resized-crop.html"
+            >mixed msaa resized crop</a
+          >
+          <a href="/aperture/examples/mixed-msaa-reuse.html">mixed msaa reuse</a>
+          <a href="/aperture/examples/mixed-msaa-reuse-crop.html"
+            >mixed msaa reuse crop</a
+          >
+          <a href="/aperture/examples/mixed-msaa-resized-reuse-crop.html"
+            >mixed msaa resized reuse crop</a
+          >
+          <a href="/aperture/examples/mixed-msaa-clear-load.html"
+            >mixed msaa clear load</a
+          >
+          <a href="/aperture/examples/mixed-msaa-reuse-clear-load.html"
+            >mixed msaa reuse clear load</a
+          >
+          <a href="/aperture/examples/mixed-msaa-resized-clear-load.html"
+            >mixed msaa resized clear load</a
+          >
+          <a href="/aperture/examples/mixed-msaa-target-crop.html"
+            >mixed msaa target crop</a
+          >
+          <a href="/aperture/examples/render-target-msaa.html">target msaa</a>
+          <a href="/aperture/examples/render-target-msaa-two-targets.html"
+            >msaa two targets</a
+          >
+          <a href="/aperture/examples/render-target-msaa-secondary-crop.html"
+            >msaa crop</a
+          >
+          <a href="/aperture/examples/render-target-secondary-crop.html"
+            >secondary crop</a
+          >
+          <a href="/aperture/examples/render-target-viewport-crop.html">target crop</a>
+          <a href="/aperture/examples/render-target-msaa-viewport-crop.html"
+            >msaa target crop</a
+          >
+          <a href="/aperture/examples/render-target-clear-load.html"
+            >target clear load</a
+          >
+          <a href="/aperture/examples/render-target-msaa-clear-load.html"
+            >msaa clear load</a
+          >
+          <a href="/aperture/examples/worker-cube.html">worker cube</a>
+          <a href="/aperture/examples/matcap-app.html">matcap app</a>
+          <a href="/aperture/examples/materials-showcase.html">materials</a>
+          <a href="/aperture/examples/gltf-scene.html">gltf scene</a>
+          <a href="/aperture/examples/point-shadow.html">point shadow</a>
+          <a href="/aperture/examples/spot-shadow.html">spot shadow</a>
+          <a href="/aperture/examples/app-diagnostics.html">diagnostics</a>
+        </nav>
+        <pre id="example-json">{}</pre>
+      </aside>
+    </main>
+    <script type="module" src="./render-to-texture.main.js"></script>
+  </body>
+</html>

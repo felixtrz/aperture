@@ -1,6 +1,8 @@
 import type {
   CameraInput,
+  CustomWgslMaterialAsset,
   FogInput,
+  LineListMeshOptions,
   LightInput,
   LightShadowSettingsInput,
   ParticleEmitterInput,
@@ -8,6 +10,7 @@ import type {
   RuntimeUniformInput,
   SkyboxInput,
   StandardMaterialPatch,
+  UnlitMaterialAsset,
 } from "@aperture-engine/render";
 import type {
   ColliderInput,
@@ -38,7 +41,6 @@ import type {
   Vec3Like,
   Vec4Like,
 } from "@aperture-engine/simulation";
-import type { CustomWgslMaterialAsset } from "@aperture-engine/render";
 import type {
   SystemGltfAssetHandle,
   SystemParticleEffectAssetHandle,
@@ -116,14 +118,65 @@ export interface SpawnRuntimeUniformOptions extends SpawnMetadata {
   readonly version?: RuntimeUniformInput["version"];
 }
 
-export interface PrimitiveMeshDescriptor {
-  readonly kind: "box" | "sphere" | "capsule" | "plane" | "cylinder" | "cone";
-  readonly options: Record<string, unknown>;
+export interface BoxMeshDescriptorOptions {
+  readonly size?: number | Vec3Like;
+}
+
+export interface SphereMeshDescriptorOptions {
+  readonly radius?: number;
+  readonly segments?: number;
+}
+
+export interface CapsuleMeshDescriptorOptions {
+  readonly radius?: number;
+  readonly depth?: number;
+  readonly segments?: number;
+}
+
+export interface PlaneMeshDescriptorOptions {
+  readonly size?: number | readonly [number, number];
+  readonly subdivisions?: number;
+}
+
+export interface CylinderMeshDescriptorOptions {
+  readonly radius?: number;
+  readonly depth?: number;
+  readonly segments?: number;
+}
+
+export interface ConeMeshDescriptorOptions {
+  readonly radius?: number;
+  readonly depth?: number;
+  readonly segments?: number;
+}
+
+export type LineListMeshDescriptorOptions = LineListMeshOptions;
+
+export type PrimitiveMeshDescriptor =
+  | PrimitiveMeshDescriptorBase<"box", BoxMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<"sphere", SphereMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<"capsule", CapsuleMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<"plane", PlaneMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<"cylinder", CylinderMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<"cone", ConeMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<"line-list", LineListMeshDescriptorOptions>;
+
+export interface PrimitiveMeshDescriptorBase<
+  TKind extends string,
+  TOptions extends object,
+> {
+  readonly kind: TKind;
+  readonly options: Readonly<TOptions>;
 }
 
 export interface StandardMaterialDescriptor {
   readonly kind: "standard";
   readonly options: StandardMaterialOptions;
+}
+
+export interface UnlitMaterialDescriptor {
+  readonly kind: "unlit";
+  readonly options: UnlitMaterialOptions;
 }
 
 export type CustomWgslShaderDescriptor =
@@ -158,6 +211,7 @@ export type CustomWgslMaterialDescriptor = Omit<
 
 export type MaterialDescriptor =
   | StandardMaterialDescriptor
+  | UnlitMaterialDescriptor
   | CustomWgslMaterialDescriptor;
 
 export interface StandardMaterialOptions {
@@ -169,6 +223,12 @@ export interface StandardMaterialOptions {
    */
   readonly emissiveFactor?: Vec3Like;
   readonly label?: string;
+}
+
+export interface UnlitMaterialOptions {
+  readonly baseColor?: Vec4Like;
+  readonly label?: string;
+  readonly renderState?: Partial<UnlitMaterialAsset["renderState"]>;
 }
 
 export interface SpawnMeshOptions extends SpawnMetadata {

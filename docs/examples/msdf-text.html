@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture MSDF Text</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@aperture-engine/render": "/aperture/packages/render/dist/index.js",
+          "@aperture-engine/runtime": "/aperture/packages/runtime/dist/index.js",
+          "@aperture-engine/physics": "/aperture/packages/physics/dist/index.js",
+          "@aperture-engine/math": "/aperture/packages/math/dist/index.js",
+          "@aperture-engine/simulation": "/aperture/packages/simulation/dist/index.js",
+          "@aperture-engine/webgpu": "/aperture/packages/webgpu/dist/index.js",
+          "@aperture-engine/webgpu/test-support": "/aperture/packages/webgpu/dist/test-support.js",
+          "elics": "/aperture/node_modules/elics/lib/index.js",
+          "wgpu-matrix": "/aperture/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+          "@preact/signals-core": "/aperture/node_modules/@preact/signals-core/dist/signals-core.mjs",
+          "@aperture-engine/app": "/aperture/packages/app/dist/index.js",
+          "@aperture-engine/app/browser": "/aperture/packages/app/dist/browser.js",
+          "@aperture-engine/app/config": "/aperture/packages/app/dist/config.js",
+          "@aperture-engine/app/systems": "/aperture/packages/app/dist/systems.js",
+          "@aperture-engine/app/worker": "/aperture/packages/app/dist/worker.js",
+          "@aperture-engine/audio": "/aperture/packages/audio/dist/index.js",
+          "@aperture-engine/physics/testing": "/aperture/packages/physics/dist/testing.js",
+          "@aperture-engine/physics-rapier": "/aperture/packages/physics-rapier/dist/index.js",
+          "@aperture-engine/render/test-support": "/aperture/packages/render/dist/test-support.js",
+          "@aperture-engine/vite-plugin": "/aperture/packages/vite-plugin/dist/index.js",
+          "@dimforge/rapier3d-compat": "/aperture/packages/physics-rapier/node_modules/@dimforge/rapier3d-compat/rapier.mjs"
+        }
+      }
+    </script>
+    <script type="module" src="./example-control.js"></script>
+  </head>
+  <body>
+    <main class="runtime-shell">
+      <section class="viewport-panel" aria-label="Aperture MSDF text">
+        <canvas
+          id="aperture-canvas"
+          width="960"
+          height="540"
+          aria-label="Aperture WebGPU MSDF text canvas"
+        ></canvas>
+      </section>
+      <aside class="status-panel" aria-label="Runtime status">
+        <div class="status-row">
+          <span>example</span>
+          <strong id="example-name">msdf text</strong>
+        </div>
+        <div class="status-row">
+          <span>state</span>
+          <strong id="example-state">loading</strong>
+        </div>
+        <nav class="example-links" aria-label="Examples">
+          <a href="/aperture/">clear</a>
+          <a href="/aperture/examples/triangle.html">triangle</a>
+          <a href="/aperture/examples/multi-entity.html">multi entity</a>
+          <a href="/aperture/examples/outdoor-scene.html">outdoor scene</a>
+          <a href="/aperture/examples/sprite-billboard.html">sprite billboard</a>
+          <a href="/aperture/examples/msdf-text.html">msdf text</a>
+          <a href="/aperture/examples/glb-viewer.html">glb viewer</a>
+        </nav>
+        <pre id="example-json">{}</pre>
+      </aside>
+    </main>
+    <script type="module" src="./msdf-text.main.js"></script>
+  </body>
+</html>

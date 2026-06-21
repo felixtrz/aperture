@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture Browser Harness</title>
+    <link rel="stylesheet" href="/examples/styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@aperture-engine/render": "/packages/render/dist/index.js",
+          "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
+          "@aperture-engine/physics": "/packages/physics/dist/index.js",
+          "@aperture-engine/math": "/packages/math/dist/index.js",
+          "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
+          "@aperture-engine/webgpu": "/packages/webgpu/dist/index.js",
+          "@aperture-engine/webgpu/test-support": "/packages/webgpu/dist/test-support.js",
+          "elics": "/node_modules/elics/lib/index.js",
+          "wgpu-matrix": "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+          "@preact/signals-core": "/node_modules/@preact/signals-core/dist/signals-core.mjs"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main class="runtime-shell">
+      <section class="viewport-panel" aria-label="Aperture browser runtime">
+        <canvas
+          id="aperture-canvas"
+          width="960"
+          height="540"
+          aria-label="Aperture WebGPU canvas"
+        ></canvas>
+      </section>
+      <aside class="status-panel" aria-label="Runtime status">
+        <div class="status-row">
+          <span>example</span>
+          <strong id="example-name">webgpu clear</strong>
+        </div>
+        <div class="status-row">
+          <span>state</span>
+          <strong id="example-state">loading</strong>
+        </div>
+        <nav class="example-links" aria-label="Examples">
+          <a href="/">clear</a>
+          <a href="/examples/triangle.html">triangle</a>
+          <a href="/examples/triangle.html?material=custom-wgsl">custom WGSL</a>
+          <a href="/examples/custom-material.html">custom material</a>
+          <a href="/examples/multi-entity.html">multi entity</a>
+          <a href="/examples/split-screen-multi-camera.html">split screen</a>
+          <a href="/examples/orthographic-camera.html">orthographic</a>
+          <a href="/examples/line-primitives.html">lines</a>
+          <a href="/examples/camera-render-layers.html">layers</a>
+          <a href="/examples/camera-priority-overlay.html">priority</a>
+          <a href="/examples/camera-sub-view-crop.html">crop</a>
+          <a href="/examples/camera-viewport-grid.html">grid</a>
+          <a href="/examples/camera-clear-load-matrix.html">clear/load</a>
+          <a href="/examples/camera-picture-in-picture.html">inset</a>
+          <a href="/examples/camera-viewport-resize.html">resize</a>
+          <a href="/examples/spinning-cube.html">spinning cube</a>
+          <a href="/examples/material-mutation.html">material mutation</a>
+          <a href="/examples/post-effects.html">post effects</a>
+          <a href="/examples/msaa.html">msaa</a>
+          <a href="/examples/taa.html">taa</a>
+          <a href="/examples/ssao.html">ssao</a>
+          <a href="/examples/ssao-indirect.html">ssao indirect</a>
+          <a href="/examples/ssr.html">ssr</a>
+          <a href="/examples/dof.html">dof</a>
+          <a href="/examples/hdr-exposure.html">hdr exposure</a>
+          <a href="/examples/tonemap-showcase.html">tonemap showcase</a>
+          <a href="/examples/ibl-brdf.html">ibl brdf</a>
+          <a href="/examples/ibl-irradiance.html">ibl irradiance</a>
+          <a href="/examples/ibl-equirect.html">ibl equirect</a>
+          <a href="/examples/instancing.html">instancing</a>
+          <a href="/examples/instance-tint.html">instance tint</a>
+          <a href="/examples/instance-attributes.html">instance attributes</a>
+          <a href="/examples/batching.html">batching</a>
+          <a href="/examples/render-to-texture.html">render texture</a>
+          <a href="/examples/render-target-resize.html">target resize</a>
+          <a href="/examples/render-target-msaa-resize.html">msaa resize</a>
+          <a href="/examples/render-target-reuse.html">target reuse</a>
+          <a href="/examples/render-target-msaa-reuse.html">msaa reuse</a>
+          <a href="/examples/mixed-camera-targets.html">mixed targets</a>
+          <a href="/examples/multi-render-targets.html">multi targets</a>
+          <a href="/examples/mixed-multi-render-targets.html">mixed multi</a>
+          <a href="/examples/render-target-dual-size.html">dual size</a>
+          <a href="/examples/mixed-dual-size-render-targets.html">mixed dual</a>
+          <a href="/examples/mixed-secondary-crop-render-targets.html"
+            >mixed crop</a
+          >
+          <a href="/examples/mixed-msaa-two-targets.html">mixed msaa</a>
+          <a href="/examples/mixed-msaa-dual-size.html">mixed msaa dual size</a>
+          <a href="/examples/mixed-msaa-resized-dual-size.html"
+            >mixed msaa resized dual size</a
+          >
+          <a href="/examples/mixed-msaa-reuse-dual-size.html"
+            >mixed msaa reuse dual size</a
+          >
+          <a href="/examples/mixed-msaa-resized-reuse-dual-size.html"
+            >mixed msaa resized reuse dual size</a
+          >
+
+          <a href="/examples/mixed-msaa-secondary-crop.html">mixed msaa crop</a>
+          <a href="/examples/mixed-msaa-resize.html">mixed msaa resize</a>
+          <a href="/examples/mixed-msaa-resized-crop.html"
+            >mixed msaa resized crop</a
+          >
+          <a href="/examples/mixed-msaa-reuse.html">mixed msaa reuse</a>
+          <a href="/examples/mixed-msaa-reuse-crop.html"
+            >mixed msaa reuse crop</a
+          >
+          <a href="/examples/mixed-msaa-resized-reuse-crop.html"
+            >mixed msaa resized reuse crop</a
+          >
+          <a href="/examples/mixed-msaa-clear-load.html"
+            >mixed msaa clear load</a
+          >
+          <a href="/examples/mixed-msaa-reuse-clear-load.html"
+            >mixed msaa reuse clear load</a
+          >
+          <a href="/examples/mixed-msaa-resized-clear-load.html"
+            >mixed msaa resized clear load</a
+          >
+          <a href="/examples/mixed-msaa-target-crop.html"
+            >mixed msaa target crop</a
+          >
+          <a href="/examples/render-target-msaa.html">target msaa</a>
+          <a href="/examples/render-target-msaa-two-targets.html"
+            >msaa two targets</a
+          >
+          <a href="/examples/render-target-msaa-secondary-crop.html"
+            >msaa crop</a
+          >
+          <a href="/examples/render-target-secondary-crop.html"
+            >secondary crop</a
+          >
+          <a href="/examples/render-target-viewport-crop.html">target crop</a>
+          <a href="/examples/render-target-msaa-viewport-crop.html"
+            >msaa target crop</a
+          >
+          <a href="/examples/render-target-clear-load.html"
+            >target clear load</a
+          >
+          <a href="/examples/render-target-msaa-clear-load.html"
+            >msaa clear load</a
+          >
+          <a href="/examples/worker-cube.html">worker cube</a>
+          <a href="/examples/render-packet-inspector.html">packet inspector</a>
+          <a href="/examples/sab-cube.html">sab cube</a>
+          <a href="/examples/gpu-profiler.html">gpu profiler</a>
+          <a href="/examples/matcap-app.html">matcap app</a>
+          <a href="/examples/debug-normal-app.html">debug normal</a>
+          <a href="/examples/materials-showcase.html">materials</a>
+          <a href="/examples/gltf-scene.html">gltf scene</a>
+          <a href="/examples/auto-picking.html">auto picking</a>
+          <a href="/examples/pointer-events.html">pointer events</a>
+          <a href="/examples/ui-interaction.html">ui interaction</a>
+          <a href="/examples/orbit-camera.html">orbit camera</a>
+          <a href="/examples/translate-gizmo.html">translate gizmo</a>
+          <a href="/examples/point-shadow.html">point shadow</a>
+          <a href="/examples/spot-shadow.html">spot shadow</a>
+          <a href="/examples/multi-light-shadow.html">multi-light shadow</a>
+          <a href="/examples/csm-directional-shadow.html">csm shadow</a>
+          <a href="/examples/auto-shadow.html">auto shadow</a>
+          <a href="/examples/shadow-bias.html">shadow bias</a>
+          <a href="/examples/alpha-shadow.html">alpha shadow</a>
+          <a href="/examples/atlas-shadow.html">atlas shadow</a>
+          <a href="/examples/rect-area-light.html">rect area light</a>
+          <a href="/examples/area-light-shapes.html">area light shapes</a>
+          <a href="/examples/clustered-lights.html">clustered lights</a>
+          <a href="/examples/persistent-render-shell.html"
+            >persistent render shell</a
+          >
+          <a href="/examples/occlusion-feedback.html">occlusion feedback</a>
+          <a href="/examples/multi-material-groups.html"
+            >multi-material groups</a
+          >
+          <a href="/examples/outdoor-scene.html">outdoor scene</a>
+          <a href="/examples/sprite-billboard.html">sprite billboard</a>
+          <a href="/examples/physics-settling.html">physics settling</a>
+          <a href="/examples/physics-joints.html">physics joints</a>
+          <a href="/examples/physics-character.html">physics character</a>
+          <a href="/examples/physics-large-scale.html">physics large scale</a>
+          <a href="/examples/physics-benchmark.html">physics benchmark</a>
+          <a href="/examples/physics-worker-mode.html">physics worker</a>
+          <a href="/examples/msdf-text.html">msdf text</a>
+          <a href="/examples/ui-hud.html">ui hud</a>
+          <a href="/examples/gpu-particles.html">gpu particles</a>
+          <a href="/examples/particle-bursts.html">particle bursts</a>
+          <a href="/examples/content-showcase.html">content showcase</a>
+          <a href="/examples/custom-graph-pass.html">custom graph pass</a>
+          <a href="/examples/skybox.html">skybox</a>
+          <a href="/examples/fog.html">fog</a>
+          <a href="/examples/clearcoat.html">clearcoat</a>
+          <a href="/examples/morph-targets.html">morph targets</a>
+          <a href="/examples/animation-skinning.html">animation skinning</a>
+          <a href="/examples/transmission.html">transmission</a>
+          <a href="/examples/transmission-ior.html">transmission ior</a>
+          <a href="/examples/sheen.html">sheen</a>
+          <a href="/examples/iridescence.html">iridescence</a>
+          <a href="/examples/atmosphere.html">atmosphere</a>
+          <a href="/examples/depth-app-overlap.html">depth overlap</a>
+          <a href="/examples/glb-viewer.html">glb viewer</a>
+          <a href="/examples/compressed-gltf.html">compressed glTF</a>
+          <a href="/examples/compressed-gltf.html?asset=ktx2"
+            >compressed KTX2</a
+          >
+          <a href="/examples/standard-queue-phases.html">queue phases</a>
+          <a href="/examples/standard-texture-control.html">standard texture</a>
+          <a href="/examples/standard-gltf-texture.html">glTF texture</a>
+          <a href="/examples/app-diagnostics.html">diagnostics</a>
+        </nav>
+        <pre id="example-json">{}</pre>
+      </aside>
+    </main>
+    <script type="module" src="/examples/main.js"></script>
+  </body>
+</html>

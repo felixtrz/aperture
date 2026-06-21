@@ -10,76 +10,65 @@ import type {
   PhysicsVelocityInput,
   RigidBodyInput,
 } from "@aperture-engine/physics";
-import type { ShaderHandle, Vec3Like } from "@aperture-engine/simulation";
+import type { ShaderHandle } from "@aperture-engine/simulation";
 import type {
+  BoxMeshDescriptorOptions,
+  CapsuleMeshDescriptorOptions,
+  ConeMeshDescriptorOptions,
   CustomWgslMaterialDescriptor,
   CustomWgslSamplerBindingOptions,
   CustomWgslShaderDescriptor,
   CustomWgslTextureBindingOptions,
   CustomWgslUniformBindingOptions,
+  CylinderMeshDescriptorOptions,
+  LineListMeshDescriptorOptions,
+  PlaneMeshDescriptorOptions,
   PrimitiveMeshDescriptor,
   PhysicsSpawnDescriptor,
+  SphereMeshDescriptorOptions,
   StandardMaterialDescriptor,
   StandardMaterialOptions,
   ShaderAssetDescriptorInput,
+  UnlitMaterialDescriptor,
+  UnlitMaterialOptions,
 } from "./types.js";
 
 export const mesh = Object.freeze({
-  box(
-    options: {
-      readonly size?: number | Vec3Like;
-    } = {},
-  ): PrimitiveMeshDescriptor {
+  box(options: BoxMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
     return descriptor("box", options);
   },
-  sphere(
-    options: {
-      readonly radius?: number;
-      readonly segments?: number;
-    } = {},
-  ): PrimitiveMeshDescriptor {
+  sphere(options: SphereMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
     return descriptor("sphere", options);
   },
-  capsule(
-    options: {
-      readonly radius?: number;
-      readonly depth?: number;
-      readonly segments?: number;
-    } = {},
-  ): PrimitiveMeshDescriptor {
+  capsule(options: CapsuleMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
     return descriptor("capsule", options);
   },
-  plane(
-    options: {
-      readonly size?: number | readonly [number, number];
-      readonly subdivisions?: number;
-    } = {},
-  ): PrimitiveMeshDescriptor {
+  plane(options: PlaneMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
     return descriptor("plane", options);
   },
   cylinder(
-    options: {
-      readonly radius?: number;
-      readonly depth?: number;
-      readonly segments?: number;
-    } = {},
+    options: CylinderMeshDescriptorOptions = {},
   ): PrimitiveMeshDescriptor {
     return descriptor("cylinder", options);
   },
-  cone(
-    options: {
-      readonly radius?: number;
-      readonly depth?: number;
-      readonly segments?: number;
-    } = {},
-  ): PrimitiveMeshDescriptor {
+  cone(options: ConeMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
     return descriptor("cone", options);
+  },
+  /**
+   * Native GPU line-list mesh. Positions are consumed in pairs unless indices
+   * are provided; indexed line lists consume indices in pairs.
+   */
+  lineList(options: LineListMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("line-list", options);
   },
 });
 
 export const material = Object.freeze({
   standard(options: StandardMaterialOptions = {}): StandardMaterialDescriptor {
     return Object.freeze({ kind: "standard", options: { ...options } });
+  },
+  unlit(options: UnlitMaterialOptions = {}): UnlitMaterialDescriptor {
+    return Object.freeze({ kind: "unlit", options: { ...options } });
   },
   customWgsl(
     options: Omit<CustomWgslMaterialDescriptor, "kind">,
@@ -187,10 +176,41 @@ export const physics = Object.freeze({
 });
 
 function descriptor(
+  kind: "box",
+  options: BoxMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "box" }>;
+function descriptor(
+  kind: "sphere",
+  options: SphereMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "sphere" }>;
+function descriptor(
+  kind: "capsule",
+  options: CapsuleMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "capsule" }>;
+function descriptor(
+  kind: "plane",
+  options: PlaneMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "plane" }>;
+function descriptor(
+  kind: "cylinder",
+  options: CylinderMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "cylinder" }>;
+function descriptor(
+  kind: "cone",
+  options: ConeMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "cone" }>;
+function descriptor(
+  kind: "line-list",
+  options: LineListMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "line-list" }>;
+function descriptor(
   kind: PrimitiveMeshDescriptor["kind"],
-  options: Record<string, unknown>,
+  options: object,
 ): PrimitiveMeshDescriptor {
-  return Object.freeze({ kind, options: { ...options } });
+  return Object.freeze({
+    kind,
+    options: { ...options },
+  }) as PrimitiveMeshDescriptor;
 }
 
 function readShaderHandle(input: ShaderAssetDescriptorInput): ShaderHandle {

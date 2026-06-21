@@ -4,12 +4,18 @@ import {
   createConeMeshAsset,
   createCylinderMeshAsset,
   createCustomWgslMaterialAsset,
+  createLineListMeshAsset,
   createPlaneMeshAsset,
   createSphereMeshAsset,
   createStandardMaterialAsset,
+  createUnlitMaterialAsset,
   materialAssetDependencies,
   validateCustomMaterialSource,
+  validateMeshAsset,
   type CustomWgslUniformFieldType,
+  type LineListMeshOptions,
+  type LineListMeshSubmeshOptions,
+  type LineListPosition,
   type MeshAsset,
   type SourceMaterialAsset,
 } from "@aperture-engine/render";
@@ -146,7 +152,56 @@ function primitiveToMeshAsset(
         height: numberOption(descriptorValue.options.depth, 1),
         radialSegments: numberOption(descriptorValue.options.segments, 32),
       });
+    case "line-list":
+      return createLineListPrimitiveMeshAsset(descriptorValue.options);
   }
+}
+
+function createLineListPrimitiveMeshAsset(
+  options: LineListMeshOptions,
+): MeshAsset {
+  const positions = lineListPositions(options.positions);
+  const indices =
+    options.indices === undefined
+      ? undefined
+      : lineListIndices(options.indices, positions.length);
+
+  validateLinePairCount(
+    indices?.length ?? positions.length,
+    indices === undefined ? "positions" : "indices",
+  );
+
+  const label = optionalString(options.label, "label");
+  const mesh = createLineListMeshAsset({
+    ...(label === undefined ? {} : { label }),
+    positions,
+    ...(indices === undefined ? {} : { indices }),
+    ...(options.materialSlots === undefined
+      ? {}
+      : { materialSlots: lineListMaterialSlots(options.materialSlots) }),
+    ...(options.submeshes === undefined
+      ? {}
+      : {
+          submeshes: lineListSubmeshes(options.submeshes, {
+            indexed: indices !== undefined,
+            indexCount: indices?.length ?? 0,
+            vertexCount: positions.length,
+          }),
+        }),
+  });
+  const validation = validateMeshAsset(mesh);
+
+  if (!validation.valid) {
+    throw new ApertureSystemError(
+      "aperture.spawn.invalidLineListMesh",
+      `mesh.lineList() produced an invalid mesh: ${validation.diagnostics
+        .map((diagnostic) => diagnostic.message)
+        .join(" ")}`,
+      "Check line-list positions, indices, submesh ranges, and material slots before spawning the mesh.",
+    );
+  }
+
+  return mesh;
 }
 
 function materialDescriptorToAsset(
@@ -179,6 +234,27 @@ function materialDescriptorToAsset(
     }
 
     return source;
+  }
+
+  if (descriptorValue.kind === "unlit") {
+    return createUnlitMaterialAsset({
+      ...(descriptorValue.options.label === undefined
+        ? {}
+        : { label: descriptorValue.options.label }),
+      ...(descriptorValue.options.baseColor === undefined
+        ? {}
+        : {
+            baseColorFactor: vec4(
+              read4(descriptorValue.options.baseColor, 0),
+              read4(descriptorValue.options.baseColor, 1),
+              read4(descriptorValue.options.baseColor, 2),
+              read4(descriptorValue.options.baseColor, 3),
+            ),
+          }),
+      ...(descriptorValue.options.renderState === undefined
+        ? {}
+        : { renderState: descriptorValue.options.renderState }),
+    });
   }
 
   return createStandardMaterialAsset({
@@ -298,4 +374,235 @@ function read4(values: ArrayLike<number>, index: number): number {
 
 function numberOption(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function lineListPositions(value: unknown): LineListPosition[] {
+  if (!Array.isArray(value)) {
+    invalidLineListMesh(
+      "mesh.lineList() requires positions to be an array of [x, y, z] tuples.",
+    );
+  }
+
+  return value.map((position, index) =>
+    lineListPosition(position, `positions[${index}]`),
+  );
+}
+
+function lineListPosition(value: unknown, path: string): LineListPosition {
+  const tuple = arrayLike(value, path);
+
+  return [
+    finiteNumber(tuple[0], `${path}[0]`),
+    finiteNumber(tuple[1], `${path}[1]`),
+    finiteNumber(tuple[2], `${path}[2]`),
+  ];
+}
+
+function lineListIndices(
+  value: NonNullable<LineListMeshOptions["indices"]>,
+  vertexCount: number,
+): NonNullable<LineListMeshOptions["indices"]> {
+  if (value instanceof Uint16Array || value instanceof Uint32Array) {
+    validateLineListIndices(value, vertexCount);
+    return value;
+  }
+
+  if (!Array.isArray(value)) {
+    invalidLineListMesh(
+      "mesh.lineList() indices must be a number array, Uint16Array, or Uint32Array.",
+    );
+  }
+
+  return value.map((index, itemIndex) =>
+    lineListIndex(index, `indices[${itemIndex}]`, vertexCount),
+  );
+}
+
+function validateLineListIndices(
+  indices: Uint16Array | Uint32Array,
+  vertexCount: number,
+): void {
+  indices.forEach((index, itemIndex) => {
+    lineListIndex(index, `indices[${itemIndex}]`, vertexCount);
+  });
+}
+
+function lineListIndex(
+  value: unknown,
+  path: string,
+  vertexCount: number,
+): number {
+  const index = nonNegativeInteger(value, path);
+
+  if (index >= vertexCount) {
+    invalidLineListMesh(
+      `mesh.lineList() ${path} references vertex ${index}, but only ${vertexCount} positions were provided.`,
+    );
+  }
+
+  return index;
+}
+
+function lineListMaterialSlots(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    invalidLineListMesh(
+      "mesh.lineList() materialSlots must be a string array.",
+    );
+  }
+
+  return value.map((slot, index) => {
+    if (typeof slot !== "string") {
+      invalidLineListMesh(
+        `mesh.lineList() materialSlots[${index}] must be a string.`,
+      );
+    }
+
+    return slot;
+  });
+}
+
+function lineListSubmeshes(
+  value: unknown,
+  options: {
+    readonly indexed: boolean;
+    readonly indexCount: number;
+    readonly vertexCount: number;
+  },
+): LineListMeshSubmeshOptions[] {
+  if (!Array.isArray(value)) {
+    invalidLineListMesh("mesh.lineList() submeshes must be an array.");
+  }
+
+  return value.map((submesh, index) => {
+    if (!isRecord(submesh)) {
+      invalidLineListMesh(
+        `mesh.lineList() submeshes[${index}] must be an object.`,
+      );
+    }
+
+    const label = optionalString(submesh.label, `submeshes[${index}].label`);
+    const normalized: LineListMeshSubmeshOptions = {
+      ...(label === undefined ? {} : { label }),
+      ...(submesh.materialSlot === undefined
+        ? {}
+        : {
+            materialSlot: nonNegativeInteger(
+              submesh.materialSlot,
+              `submeshes[${index}].materialSlot`,
+            ),
+          }),
+      ...(submesh.vertexStart === undefined
+        ? {}
+        : {
+            vertexStart: nonNegativeInteger(
+              submesh.vertexStart,
+              `submeshes[${index}].vertexStart`,
+            ),
+          }),
+      ...(submesh.vertexCount === undefined
+        ? {}
+        : {
+            vertexCount: nonNegativeInteger(
+              submesh.vertexCount,
+              `submeshes[${index}].vertexCount`,
+            ),
+          }),
+      ...(submesh.indexStart === undefined
+        ? {}
+        : {
+            indexStart: nonNegativeInteger(
+              submesh.indexStart,
+              `submeshes[${index}].indexStart`,
+            ),
+          }),
+      ...(submesh.indexCount === undefined
+        ? {}
+        : {
+            indexCount: nonNegativeInteger(
+              submesh.indexCount,
+              `submeshes[${index}].indexCount`,
+            ),
+          }),
+    };
+    const lineStart = options.indexed
+      ? (normalized.indexStart ?? 0)
+      : (normalized.vertexStart ?? 0);
+    const lineCount = options.indexed
+      ? (normalized.indexCount ?? options.indexCount)
+      : (normalized.vertexCount ?? options.vertexCount);
+    const lineRange = options.indexed ? "index" : "vertex";
+
+    if (lineStart % 2 !== 0) {
+      invalidLineListMesh(
+        `mesh.lineList() submeshes[${index}] ${lineRange}Start must begin on a line-pair boundary.`,
+      );
+    }
+    validateLinePairCount(lineCount, `submeshes[${index}].${lineRange}Count`);
+
+    return normalized;
+  });
+}
+
+function validateLinePairCount(count: number, path: string): void {
+  if (count % 2 !== 0) {
+    invalidLineListMesh(
+      `mesh.lineList() ${path} must contain an even number of entries because line-list data is consumed in pairs.`,
+    );
+  }
+}
+
+function optionalString(value: unknown, path: string): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (typeof value !== "string") {
+    invalidLineListMesh(`mesh.lineList() ${path} must be a string.`);
+  }
+  return value;
+}
+
+function nonNegativeInteger(value: unknown, path: string): number {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+    invalidLineListMesh(
+      `mesh.lineList() ${path} must be a non-negative integer.`,
+    );
+  }
+
+  return value;
+}
+
+function finiteNumber(value: unknown, path: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    invalidLineListMesh(`mesh.lineList() ${path} must be a finite number.`);
+  }
+
+  return value;
+}
+
+function arrayLike(value: unknown, path: string): ArrayLike<unknown> {
+  if (
+    value === null ||
+    typeof value !== "object" ||
+    !("length" in value) ||
+    typeof value.length !== "number" ||
+    value.length < 3
+  ) {
+    invalidLineListMesh(
+      `mesh.lineList() ${path} must be an array-like [x, y, z] tuple.`,
+    );
+  }
+
+  return value as ArrayLike<unknown>;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function invalidLineListMesh(message: string): never {
+  throw new ApertureSystemError(
+    "aperture.spawn.invalidLineListMesh",
+    message,
+    "Use mesh.lineList({ positions: [[x, y, z], [x, y, z], ...] }) with finite coordinates and paired positions or paired indices.",
+  );
 }

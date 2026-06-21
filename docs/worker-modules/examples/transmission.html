@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture Transmission</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "@aperture-engine/render": "/packages/render/dist/index.js",
+          "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
+          "@aperture-engine/physics": "/packages/physics/dist/index.js",
+          "@aperture-engine/math": "/packages/math/dist/index.js",
+          "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
+          "@aperture-engine/webgpu": "/packages/webgpu/dist/index.js",
+          "@aperture-engine/webgpu/test-support": "/packages/webgpu/dist/test-support.js",
+          "elics": "/node_modules/elics/lib/index.js",
+          "wgpu-matrix": "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+          "@preact/signals-core": "/node_modules/@preact/signals-core/dist/signals-core.mjs"
+        }
+      }
+    </script>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #12161b;
+        color: #dfe7ef;
+        font:
+          14px/1.4 system-ui,
+          sans-serif;
+      }
+
+      main {
+        display: grid;
+        gap: 12px;
+        justify-items: center;
+      }
+
+      canvas {
+        width: min(80vmin, 960px);
+        height: min(80vmin, 960px);
+        border: 1px solid #303946;
+        background: #05070a;
+      }
+
+      pre {
+        width: min(80vmin, 960px);
+        max-height: 220px;
+        overflow: auto;
+        margin: 0;
+        padding: 12px;
+        box-sizing: border-box;
+        background: #0b1016;
+        border: 1px solid #26313d;
+        color: #c7d1dc;
+      }
+    </style>
+    <script type="module" src="./example-control.js"></script>
+  </head>
+  <body>
+    <main>
+      <canvas id="aperture-canvas" width="960" height="960"></canvas>
+      <div id="example-state" data-state="loading">loading</div>
+      <pre id="example-json">{}</pre>
+    </main>
+    <script type="module" src="./transmission.main.js"></script>
+  </body>
+</html>

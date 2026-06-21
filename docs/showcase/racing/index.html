@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <title>Racing — Aperture</title>
+    <link rel="icon" type="image/svg+xml" href="/aperture/showcase/racing/aperture.svg" />
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+      #aperture {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        touch-action: none;
+      }
+
+      #lap-timer {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        color: #fff;
+        font:
+          600 13px -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 10px 14px;
+        border-radius: 10px;
+        line-height: 1.4;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+        user-select: none;
+        pointer-events: none;
+        z-index: 10;
+        min-width: 140px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+      #lap-timer .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      #lap-timer .label {
+        opacity: 0.65;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+      }
+      #lap-timer .current {
+        font:
+          700 24px/1.1 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        font-variant-numeric: tabular-nums;
+        margin: 4px 0 6px;
+      }
+      #lap-timer .stat {
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+        opacity: 0.9;
+      }
+
+      #engine-badge {
+        position: absolute;
+        bottom: 14px;
+        right: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #fff;
+        font:
+          600 12px -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        letter-spacing: 0.02em;
+        text-decoration: none;
+        background: rgba(18, 20, 32, 0.42);
+        padding: 8px 15px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow:
+          0 4px 16px rgba(0, 0, 0, 0.28),
+          inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(8px) saturate(140%);
+        -webkit-backdrop-filter: blur(8px) saturate(140%);
+        z-index: 10;
+        transition:
+          background 0.16s ease,
+          transform 0.16s ease,
+          box-shadow 0.16s ease;
+      }
+      #engine-badge .badge-logo {
+        width: 14px;
+        height: 14px;
+        display: block;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+      }
+      #engine-badge:hover {
+        background: rgba(18, 20, 32, 0.58);
+        transform: translateY(-1px);
+        box-shadow:
+          0 6px 20px rgba(0, 0, 0, 0.34),
+          inset 0 1px 0 rgba(255, 255, 255, 0.16);
+      }
+    </style>
+    <script type="module" crossorigin src="/aperture/showcase/racing/assets/index-D3tW92xO.js"></script>
+  </head>
+  <body>
+    <canvas id="aperture"></canvas>
+    <div id="lap-timer">
+      <div class="row">
+        <span class="label">LAP</span><span class="lap">1</span>
+      </div>
+      <div class="current">0:00.00</div>
+      <div class="row stat">
+        <span class="label">LAST</span><span class="last">0:00.00</span>
+      </div>
+      <div class="row stat">
+        <span class="label">BEST</span><span class="best">0:00.00</span>
+      </div>
+    </div>
+    <a
+      id="engine-badge"
+      href="https://github.com/felixtrz/aperture"
+      target="_blank"
+      rel="noopener"
+    >
+      <img class="badge-logo" src="/aperture/showcase/racing/aperture.svg" alt="" />
+      <span>Built with Aperture</span>
+    </a>
+</body>
+</html>

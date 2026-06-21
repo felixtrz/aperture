@@ -1,16 +1,23 @@
 export { createSpawnCommands } from "./commands.js";
 export { material, mesh, physics, shader } from "./descriptors.js";
 export type {
+  BoxMeshDescriptorOptions,
+  CapsuleMeshDescriptorOptions,
+  ConeMeshDescriptorOptions,
   CustomWgslMaterialDescriptor,
   CustomWgslSamplerBindingOptions,
   CustomWgslShaderDescriptor,
   CustomWgslTextureBindingOptions,
   CustomWgslUniformBindingOptions,
+  CylinderMeshDescriptorOptions,
+  LineListMeshDescriptorOptions,
   MaterialDescriptor,
+  PlaneMeshDescriptorOptions,
   PrimitiveMeshDescriptor,
   PhysicsComponentDescriptor,
   PhysicsSpawnDescriptor,
   ParticleEffectDescriptorInput,
+  SphereMeshDescriptorOptions,
   SpawnCameraOptions,
   SpawnCommands,
   SpawnFogOptions,
@@ -31,4 +38,6 @@ export type {
   SystemTransformInput,
   SkyboxSamplerDescriptorInput,
   SkyboxTextureDescriptorInput,
+  UnlitMaterialDescriptor,
+  UnlitMaterialOptions,
 } from "./types.js";

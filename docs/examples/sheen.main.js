@@ -1,0 +1,332 @@
+import { createNoopSimulationWorker } from "./noop-simulation-worker.js";
+import { inspectStructuredCloneSnapshot } from "./snapshot-transport-status.js";
+import {
+  clearColor,
+  registerSheenScene,
+  sheenReadbackSamples,
+} from "./sheen-scene.js";
+
+const canvas = document.querySelector("#aperture-canvas");
+const stateElement = document.querySelector("#example-state");
+const jsonElement = document.querySelector("#example-json");
+
+const baseStatus = {
+  example: "sheen",
+  canvas: {
+    width: canvas?.width ?? 0,
+    height: canvas?.height ?? 0,
+  },
+};
+
+try {
+  const [core, webgpu] = await Promise.all([
+    Promise.all([
+      import("@aperture-engine/simulation"),
+      import("@aperture-engine/render"),
+      import("@aperture-engine/runtime"),
+    ]).then(([simulation, render, runtime]) => ({
+      ...simulation,
+      ...render,
+      ...runtime,
+    })),
+    import("@aperture-engine/webgpu"),
+  ]);
+  const aperture = { ...core, ...webgpu };
+
+  if (canvas === null) {
+    publishStatus(failure("canvas-unavailable", "Canvas missing."));
+  } else {
+    const readbackUsage = aperture.createReadbackCanvasTextureUsage();
+    const sourceAssets = new aperture.AssetRegistry();
+    const created = await aperture.createWebGpuApp({
+      canvas,
+      simulationWorker: createNoopSimulationWorker(),
+      sourceAssets,
+      ...(readbackUsage.ok ? { textureUsage: readbackUsage.usage } : {}),
+    });
+
+    if (!created.ok) {
+      publishStatus(failure(created.reason, created.message));
+    } else {
+      const scene = registerSheenScene(aperture, sourceAssets);
+
+      startWorkerSnapshotLoop(aperture, created.app, scene);
+    }
+  }
+} catch (error) {
+  publishStatus(
+    failure(
+      "sheen-failed",
+      error instanceof Error ? error.message : "Sheen example failed.",
+    ),
+  );
+}
+
+function startWorkerSnapshotLoop(aperture, app, scene) {
+  const worker = new Worker("/aperture/worker-modules/examples/sheen.worker.js", {
+    name: "aperture-sheen-simulation",
+    type: "module",
+  });
+  const loop = {
+    receivedSnapshots: 0,
+    workerReady: false,
+    workerScene: null,
+    frame: null,
+  };
+
+  worker.addEventListener("message", (event) => {
+    void handleWorkerMessage(aperture, app, scene, worker, loop, event.data);
+  });
+  worker.addEventListener("error", (event) => {
+    publishStatus(
+      failure(
+        "worker-error",
+        event.message || "The simulation worker reported an error.",
+      ),
+    );
+    worker.terminate();
+  });
+  worker.postMessage({
+    type: "init",
+    canvas: {
+      width: canvas?.width ?? 960,
+      height: canvas?.height ?? 960,
+    },
+  });
+}
+
+async function handleWorkerMessage(
+  aperture,
+  app,
+  scene,
+  worker,
+  loop,
+  message,
+) {
+  if (message?.type === "ready") {
+    loop.workerReady = true;
+    loop.workerScene = message.scene ?? null;
+    worker.postMessage({ type: "frame", frame: 1 });
+    return;
+  }
+
+  if (message?.type === "error") {
+    publishStatus(
+      failure(
+        message.reason ?? "worker-error",
+        message.message ?? "The simulation worker failed.",
+      ),
+    );
+    worker.terminate();
+    return;
+  }
+
+  if (message?.type !== "snapshot") {
+    return;
+  }
+
+  loop.receivedSnapshots += 1;
+
+  const report = await app.renderSnapshot(message.snapshot, {
+    frame: message.frame ?? 1,
+    clearColor,
+    label: "sheen",
+    readbackSamples: sheenReadbackSamples,
+  });
+  const reportJson = aperture.webGpuAppRenderReportToJsonValue(report);
+
+  loop.frame = {
+    workerStep: message.workerStep,
+    snapshot: {
+      views: report.snapshot.views.length,
+      meshDraws: report.snapshot.meshDraws.length,
+      lights: report.snapshot.lights.length,
+      bounds: report.snapshot.bounds.length,
+      diagnostics: report.snapshot.diagnostics.length,
+    },
+    counts: reportJson.counts,
+    renderOk: reportJson.ok,
+    renderTargets: reportJson.renderTargets,
+    readback: reportJson.readback,
+    pipelineKeys: report.snapshot.meshDraws.map(
+      (draw) => draw.batchKey.pipelineKey,
+    ),
+    diagnosticCodes: reportJson.diagnostics.map(
+      (diagnostic) => diagnostic.code,
+    ),
+    transport: {
+      typedArraysPreserved: inspectStructuredCloneSnapshot(report.snapshot),
+    },
+  };
+
+  publishStatus(createSheenStatus(scene, loop, reportJson.diagnostics));
+  worker.terminate();
+}
+
+function createSheenStatus(scene, loop, diagnostics) {
+  const counts = loop.frame?.counts;
+  const pipelineKeys = loop.frame?.pipelineKeys ?? [];
+  const textureContrast = createSheenTextureContrastReport(
+    loop.frame?.readback,
+  );
+  const roughnessContrast = createSheenRoughnessContrastReport(
+    loop.frame?.readback,
+  );
+  const readbackContrastOk =
+    loop.frame?.readback?.ok !== true ||
+    ((textureContrast === null || textureContrast.ok === true) &&
+      (roughnessContrast === null || roughnessContrast.ok === true));
+
+  return {
+    ...baseStatus,
+    ok:
+      counts?.meshDraws === 4 &&
+      loop.frame?.snapshot?.lights === 2 &&
+      (counts?.drawCalls ?? 0) >= 1 &&
+      counts?.diagnostics === 0 &&
+      pipelineKeys.includes("standard|sheen|opaque|none|less|none") &&
+      pipelineKeys.includes(
+        "standard|sheen|sheenColorTexture|opaque|none|less|none",
+      ) &&
+      pipelineKeys.includes(
+        "standard|sheen|sheenRoughnessTexture|opaque|none|less|none",
+      ) &&
+      readbackContrastOk,
+    phase: "submit",
+    renderingBackend: "webgpu-explicit",
+    sheen: {
+      meshKey: scene.meshKey,
+      textureMeshKey: scene.textureMeshKey,
+      baseMaterialKey: scene.baseMaterialKey,
+      fabricMaterialKey: scene.fabricMaterialKey,
+      texturedFabricMaterialKey: scene.texturedFabricMaterialKey,
+      roughnessTexturedFabricMaterialKey:
+        scene.roughnessTexturedFabricMaterialKey,
+      sheenColorTextureKey: scene.sheenColorTextureKey,
+      sheenColorSamplerKey: scene.sheenColorSamplerKey,
+      sheenRoughnessTextureKey: scene.sheenRoughnessTextureKey,
+      sheenRoughnessSamplerKey: scene.sheenRoughnessSamplerKey,
+      sheenColorFactor: [0.15, 1, 0.45],
+      sheenRoughnessFactor: 1,
+      textureBackedColor: true,
+      textureBackedRoughness: true,
+      textureContrast,
+      roughnessContrast,
+      samples: scene.samples,
+    },
+    worker: {
+      running: loop.workerReady,
+      snapshotsReceived: loop.receivedSnapshots,
+      scene: loop.workerScene,
+    },
+    frame: loop.frame,
+    diagnosticCodes: diagnostics.map((diagnostic) => diagnostic.code),
+  };
+}
+
+function createSheenTextureContrastReport(readback) {
+  if (readback?.ok !== true || !Array.isArray(readback.samples)) {
+    return null;
+  }
+
+  const low = findReadbackPixel(readback.samples, "texture-low");
+  const high = findReadbackPixel(readback.samples, "texture-high");
+
+  if (low === null || high === null) {
+    return {
+      ok: false,
+      reason: "missing-texture-sample",
+    };
+  }
+
+  if (isTransparentZeroPixel(low) && isTransparentZeroPixel(high)) {
+    return null;
+  }
+
+  const highLowDistance = pixelDistance(high, low);
+  const lowLuminance = luminance(low);
+  const highLuminance = luminance(high);
+
+  return {
+    ok: highLowDistance > 45 && highLuminance > lowLuminance + 35,
+    highLowDistance,
+    lowLuminance,
+    highLuminance,
+  };
+}
+
+function createSheenRoughnessContrastReport(readback) {
+  if (readback?.ok !== true || !Array.isArray(readback.samples)) {
+    return null;
+  }
+
+  const low = findReadbackPixel(readback.samples, "roughness-low");
+  const high = findReadbackPixel(readback.samples, "roughness-high");
+
+  if (low === null || high === null) {
+    return {
+      ok: false,
+      reason: "missing-roughness-sample",
+    };
+  }
+
+  if (isTransparentZeroPixel(low) && isTransparentZeroPixel(high)) {
+    return null;
+  }
+
+  const highLowDistance = pixelDistance(high, low);
+  const lowLuminance = luminance(low);
+  const highLuminance = luminance(high);
+
+  return {
+    ok: highLowDistance > 18,
+    highLowDistance,
+    lowLuminance,
+    highLuminance,
+  };
+}
+
+function isTransparentZeroPixel(pixel) {
+  return pixel.r === 0 && pixel.g === 0 && pixel.b === 0 && pixel.a === 0;
+}
+
+function findReadbackPixel(samples, id) {
+  return samples.find((sample) => sample.id === id)?.pixel ?? null;
+}
+
+function pixelDistance(a, b) {
+  const dr = a.r - b.r;
+  const dg = a.g - b.g;
+  const db = a.b - b.b;
+  const da = a.a - b.a;
+
+  return Math.sqrt(dr * dr + dg * dg + db * db + da * da);
+}
+
+function luminance(pixel) {
+  return pixel.r * 0.2126 + pixel.g * 0.7152 + pixel.b * 0.0722;
+}
+
+function failure(reason, message, extra = {}) {
+  return {
+    ...baseStatus,
+    ok: false,
+    reason,
+    message,
+    ...extra,
+  };
+}
+
+function publishStatus(status) {
+  globalThis.__APERTURE_EXAMPLE_STATUS__ = status;
+  window.__APERTURE_EXAMPLE_STATUS__ = status;
+
+  if (stateElement !== null) {
+    stateElement.textContent = status.ok ? "ready" : "failed";
+    stateElement.dataset.state = status.ok ? "ready" : "failed";
+  }
+
+  if (jsonElement !== null) {
+    jsonElement.textContent = JSON.stringify(status, null, 2);
+  }
+}

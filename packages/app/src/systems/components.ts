@@ -6,6 +6,7 @@ import {
   registerTransformComponents,
   type EcsWorld,
 } from "@aperture-engine/simulation";
+import { ScreenSpaceFraming } from "./screen-space-framing.js";
 
 export const AppEntityKey = defineComponent(
   "aperture.app.entityKey",
@@ -57,5 +58,6 @@ export function registerApertureAppComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(AppEntityTags);
   world.registerComponent(AppEntitySource);
   world.registerComponent(RenderInterpolation);
+  world.registerComponent(ScreenSpaceFraming);
   return world;
 }

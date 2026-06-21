@@ -1,0 +1,331 @@
+import { assetHandleKey, } from "/aperture/worker-modules/packages/simulation/dist/index.js";
+import { isCustomWgslMaterialAsset, writePackedSnapshotTransforms, writePackedSnapshotViewUniforms, } from "/aperture/worker-modules/packages/render/dist/index.js";
+import { createCustomWgslAppFrameResources } from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
+import { prepareCustomWgslAppTextureSamplerBindingResources } from "./custom-wgsl-texture-sampler-resources.js";
+import { mapFrameBoundaryReadbackSamples } from "../render/frame/frame-boundary.js";
+import { writeRenderFramePlanFromSnapshot } from "../render/frame/render-frame-plan.js";
+import { prepareWebGpuAppIndirectDrawCommands, shouldUseRenderBundlesForSnapshotSchedule, } from "./frame-boundary-support.js";
+import { assembleWebGpuAppFrameBoundaries } from "./frame-boundaries.js";
+import { newOcclusionQueryDiagnostics, readWebGpuAppOcclusionQueries, releaseWebGpuAppGpuTimingReadbacks, } from "./gpu-readback.js";
+import { prepareParticleFrameResourcesForSnapshot } from "./particles.js";
+import { renderSnapshotTimeSeconds } from "./snapshot.js";
+import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
+import { customWgslMaterialRenderPipelineCacheKey, } from "../materials/custom-wgsl/custom-wgsl-material.js";
+import { renderReport, frameBoundariesNeedGpuDrain, waitForSubmittedWork, } from "./report.js";
+import { webGpuAppScenePassColorFormat } from "./render-color-format.js";
+export async function renderCustomWgslWebGpuAppFrame(options) {
+    const draw = options.snapshot.meshDraws[0];
+    if (draw === undefined) {
+        return renderReport({
+            ok: false,
+            snapshot: options.snapshot,
+            resourceReuse: options.reuse,
+            diagnostics: [
+                {
+                    code: "webGpuApp.customWgslMissingDraw",
+                    message: "Custom WGSL app route requires one mesh draw.",
+                },
+            ],
+        });
+    }
+    const drawMeshKey = assetHandleKey(draw.mesh);
+    const drawMaterialKey = assetHandleKey(draw.material);
+    const unsupportedDraw = options.snapshot.meshDraws.find((packet) => assetHandleKey(packet.mesh) !== drawMeshKey ||
+        assetHandleKey(packet.material) !== drawMaterialKey);
+    if (unsupportedDraw !== undefined) {
+        return renderReport({
+            ok: false,
+            snapshot: options.snapshot,
+            resourceReuse: options.reuse,
+            phaseTimings: options.phaseTimer.report(options.cache.phaseTimingHistory, options.snapshot.frame),
+            diagnostics: [
+                {
+                    code: "webGpuApp.customWgslMultiResourceRouteDeferred",
+                    message: "The custom WGSL app route currently supports one custom mesh/material resource set.",
+                    renderId: unsupportedDraw.renderId,
+                },
+            ],
+        });
+    }
+    const meshEntry = options.assets.get(draw.mesh);
+    const materialEntry = options.assets.get(draw.material);
+    const material = materialEntry?.asset;
+    if (meshEntry?.asset === null ||
+        meshEntry?.asset === undefined ||
+        material === null ||
+        material === undefined ||
+        !isCustomWgslMaterialAsset(material)) {
+        return renderReport({
+            ok: false,
+            snapshot: options.snapshot,
+            resourceReuse: options.reuse,
+            diagnostics: [
+                {
+                    code: "webGpuApp.customWgslMissingSourceAsset",
+                    message: "Custom WGSL app route requires ready mesh and custom WGSL material source assets.",
+                },
+            ],
+        });
+    }
+    const preparedEntry = options.cache.preparedMaterialFacade.get(draw.material);
+    const prepared = preparedEntry?.prepared;
+    if (prepared === undefined ||
+        prepared.resourceFamily !== "custom-wgsl-material") {
+        return renderReport({
+            ok: false,
+            snapshot: options.snapshot,
+            resourceReuse: options.reuse,
+            diagnostics: [
+                {
+                    code: "webGpuApp.customWgslMaterialNotPrepared",
+                    message: "Custom WGSL material source was not prepared before frame resource creation.",
+                },
+            ],
+        });
+    }
+    const packedViews = writePackedSnapshotViewUniforms(options.snapshot, options.cache.frameScratch.viewUniforms);
+    const packedTransforms = writePackedSnapshotTransforms(options.snapshot, options.cache.frameScratch.worldTransforms);
+    const colorFormat = webGpuAppScenePassColorFormat(options.app);
+    const depthFormat = "depth24plus";
+    const sampleCount = options.app.msaa.sampleCount;
+    const pipelineCacheKey = customWgslMaterialRenderPipelineCacheKey({
+        material: prepared,
+        colorFormat,
+        depthFormat,
+        sampleCount,
+    });
+    const cachedPipeline = customWgslPipelineResultFromCache(options.cache.pipelines.get(pipelineCacheKey), pipelineCacheKey);
+    const textureSamplerBindingResources = prepareCustomWgslAppTextureSamplerBindingResources({
+        assets: options.assets,
+        device: options.app.initialization.device,
+        cache: options.cache,
+        reuse: options.reuse,
+        source: material,
+        material: prepared,
+    });
+    if (cachedPipeline === undefined) {
+        options.reuse.pipelineMisses += 1;
+    }
+    else {
+        options.reuse.pipelineHits += 1;
+    }
+    const resources = await createCustomWgslAppFrameResources({
+        device: options.app.initialization.device,
+        mesh: meshEntry.asset,
+        material: prepared,
+        viewUniforms: packedViews,
+        worldTransforms: packedTransforms,
+        colorFormat,
+        depthFormat,
+        sampleCount,
+        ...(cachedPipeline === undefined ? {} : { pipelineResult: cachedPipeline }),
+        bindingResources: textureSamplerBindingResources.resources,
+        bindingResourceDiagnostics: textureSamplerBindingResources.diagnostics,
+        runtimeUniforms: options.snapshot.runtimeUniforms ?? [],
+        runtimeUniformCache: options.cache.customWgslRuntimeUniforms,
+        reuse: options.reuse,
+    });
+    if (cachedPipeline === undefined &&
+        resources.pipelineResult?.valid === true &&
+        resources.pipelineResult.resource !== null) {
+        options.cache.pipelines.set(pipelineCacheKey, resources.pipelineResult);
+    }
+    options.phaseTimer.finish("prepare");
+    if (!resources.valid ||
+        resources.resources === null ||
+        resources.pipeline === null) {
+        return renderReport({
+            ok: false,
+            snapshot: options.snapshot,
+            pipeline: resources.pipelineResult,
+            resources,
+            resourceReuse: options.reuse,
+            phaseTimings: options.phaseTimer.report(options.cache.phaseTimingHistory, options.snapshot.frame),
+            diagnostics: [
+                ...options.snapshot.diagnostics,
+                ...packedViews.diagnostics,
+                ...packedTransforms.diagnostics,
+                ...resources.diagnostics,
+            ],
+        });
+    }
+    const frameResources = resources.resources;
+    const pipelineResource = resources.pipeline;
+    options.phaseTimer.start("queue");
+    const pipelineResult = {
+        ok: true,
+        status: "miss",
+        key: pipelineResource.cacheKey,
+        pipeline: pipelineResource.pipeline,
+        diagnostics: [],
+    };
+    const pipelineKeysByRenderId = new Map(options.snapshot.meshDraws.map((packet) => [
+        packet.renderId,
+        pipelineResource.cacheKey,
+    ]));
+    const framePlan = writeRenderFramePlanFromSnapshot({
+        snapshot: options.snapshot,
+        snapshotChangeSet: options.snapshotChangeSet,
+        renderWorld: options.app.renderWorld,
+        transforms: packedTransforms,
+        resolveMeshResourceKey: (packet) => assetHandleKey(packet.mesh) === assetHandleKey(draw.mesh)
+            ? frameResources.mesh.resourceKey
+            : null,
+        resolveMaterialResourceKey: (packet) => assetHandleKey(packet.material) === assetHandleKey(draw.material)
+            ? frameResources.material.resourceKey
+            : null,
+        meshResources: [frameResources.mesh],
+        pipelineKeysByRenderId,
+        pipelines: [pipelineResult],
+        bindGroups: frameResources.bindGroups,
+        scratch: options.cache.frameScratch.framePlan,
+    });
+    options.phaseTimer.finish("queue");
+    options.phaseTimer.start("prepare");
+    const particleFrame = await prepareParticleFrameResourcesForSnapshot({
+        app: options.app,
+        assets: options.assets,
+        cache: options.cache,
+        snapshot: options.snapshot,
+        viewUniforms: packedViews,
+        reuse: options.reuse,
+        time: renderSnapshotTimeSeconds(options.snapshot),
+    });
+    const uiFrame = await prepareUiFrameResourcesForSnapshot({
+        app: options.app,
+        assets: options.assets,
+        cache: options.cache,
+        snapshot: options.snapshot,
+        viewUniforms: packedViews,
+        reuse: options.reuse,
+    });
+    options.phaseTimer.finish("prepare");
+    if (!particleFrame.valid || !uiFrame.valid) {
+        return renderReport({
+            ok: false,
+            snapshot: options.snapshot,
+            pipeline: resources.pipelineResult,
+            resources,
+            resourceReuse: options.reuse,
+            phaseTimings: options.phaseTimer.report(options.cache.phaseTimingHistory, options.snapshot.frame),
+            diagnostics: [
+                ...options.snapshot.diagnostics,
+                ...packedViews.diagnostics,
+                ...packedTransforms.diagnostics,
+                ...resources.diagnostics,
+                ...particleFrame.diagnostics,
+                ...uiFrame.diagnostics,
+            ],
+        });
+    }
+    const frameCommands = particleFrame.commands.length === 0
+        ? framePlan.commandPlan.commands
+        : [...framePlan.commandPlan.commands, ...particleFrame.commands];
+    const indirectDraws = prepareWebGpuAppIndirectDrawCommands({
+        app: options.app,
+        cache: options.cache,
+        commands: frameCommands,
+        label: options.label ?? "aperture-custom-wgsl-app",
+    });
+    const renderBundleCommands = indirectDraws.commands.slice(0, framePlan.commandPlan.commands.length);
+    options.phaseTimer.start("submit");
+    const boundaries = await assembleWebGpuAppFrameBoundaries({
+        app: options.app,
+        assets: options.assets,
+        cache: options.cache,
+        snapshot: options.snapshot,
+        commands: indirectDraws.commands,
+        renderBundleCommands,
+        overlayCommands: uiFrame.commands,
+        label: options.label ?? "aperture-custom-wgsl-app",
+        reuse: options.reuse,
+        enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(options.snapshotUpdateSchedule),
+        ...(options.gpuTimings === undefined
+            ? {}
+            : { gpuTimings: options.gpuTimings }),
+        ...(options.clearColor === undefined
+            ? {}
+            : { clearColor: options.clearColor }),
+        ...(options.readbackSamples === undefined
+            ? {}
+            : { readbackSamples: options.readbackSamples }),
+    });
+    if (frameBoundariesNeedGpuDrain(boundaries)) {
+        await waitForSubmittedWork(options.app.initialization.device);
+    }
+    // The custom-WGSL route never maps its GPU-timing readbacks, so return the
+    // leased readback buffers to the rotation ring for later frames.
+    releaseWebGpuAppGpuTimingReadbacks(boundaries.gpuTimingReadbacks);
+    const occlusionQueries = await readWebGpuAppOcclusionQueries({
+        readbacks: boundaries.occlusionQueryReadbacks,
+        diagnostics: boundaries.occlusionQueryDiagnostics,
+        queryCount: boundaries.occlusionQueryCount,
+        frame: options.snapshot.frame,
+        feedbackState: options.cache.occlusionFeedback,
+        culling: boundaries.occlusionCulling,
+    });
+    const frameOk = framePlan.apply.diagnostics.length === 0 &&
+        framePlan.bindingPlan.diagnostics.length === 0 &&
+        framePlan.packages.diagnostics.length === 0 &&
+        framePlan.drawCommands.diagnostics.length === 0 &&
+        framePlan.drawList.valid &&
+        framePlan.resources.valid &&
+        framePlan.commandPlan.valid &&
+        particleFrame.diagnostics.length === 0 &&
+        uiFrame.diagnostics.length === 0 &&
+        boundaries.valid &&
+        (occlusionQueries === undefined ||
+            occlusionQueries.status !== "unsupported");
+    const readback = await mapFrameBoundaryReadbackSamples(boundaries.readbackBoundary?.readback, frameOk);
+    options.phaseTimer.finish("submit");
+    return renderReport({
+        ok: frameOk,
+        snapshot: options.snapshot,
+        snapshotChangeSet: options.snapshotChangeSet,
+        snapshotUpdateSchedule: options.snapshotUpdateSchedule,
+        pipeline: resources.pipelineResult,
+        resources,
+        boundary: boundaries.boundary,
+        boundaries: boundaries.boundaries,
+        commandPressure: framePlan.commandPlan.pressure,
+        renderTargets: boundaries.renderTargets,
+        postEffects: boundaries.postEffects,
+        ...(boundaries.renderBundles === undefined
+            ? {}
+            : { renderBundles: boundaries.renderBundles }),
+        ...(boundaries.depthAttachment === undefined
+            ? {}
+            : { depthAttachment: boundaries.depthAttachment }),
+        ...(readback === undefined ? {} : { readback }),
+        ...(occlusionQueries === undefined ? {} : { occlusionQueries }),
+        particles: particleFrame.report,
+        resourceReuse: options.reuse,
+        phaseTimings: options.phaseTimer.report(options.cache.phaseTimingHistory, options.snapshot.frame),
+        drawPackages: framePlan.packages.packages.length,
+        drawCommands: boundaries.plannedCommands,
+        drawCalls: boundaries.drawCalls,
+        diagnostics: [
+            ...options.snapshot.diagnostics,
+            ...framePlan.bindingPlan.diagnostics,
+            ...framePlan.readiness.diagnostics,
+            ...framePlan.packages.diagnostics,
+            ...framePlan.drawCommands.diagnostics,
+            ...framePlan.drawList.diagnostics,
+            ...framePlan.resources.diagnostics,
+            ...framePlan.commandPlan.diagnostics,
+            ...packedViews.diagnostics,
+            ...packedTransforms.diagnostics,
+            ...resources.diagnostics,
+            ...particleFrame.diagnostics,
+            ...uiFrame.diagnostics,
+            ...boundaries.diagnostics,
+            ...newOcclusionQueryDiagnostics(occlusionQueries, boundaries.occlusionQueryDiagnostics),
+        ],
+    });
+}
+function customWgslPipelineResultFromCache(value, cacheKey) {
+    return value?.resource?.cacheKey === cacheKey
+        ? value
+        : undefined;
+}
+//# sourceMappingURL=custom-wgsl-frame.js.map

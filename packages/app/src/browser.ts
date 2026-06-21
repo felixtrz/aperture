@@ -22,6 +22,14 @@ export {
 } from "./browser/input.js";
 export type { ApertureVirtualActionInput } from "./browser/input.js";
 export {
+  dispatchApertureHtmlEvent,
+  observeApertureHtmlSlots,
+} from "./browser/html-bridge.js";
+export type {
+  ApertureHtmlSlotObserver,
+  ApertureHtmlSlotObserverOptions,
+} from "./browser/html-bridge.js";
+export {
   APERTURE_MCP_MANAGED_GLOBAL,
   APERTURE_MCP_RUNTIME_GLOBAL,
 } from "./browser/devtools/index.js";

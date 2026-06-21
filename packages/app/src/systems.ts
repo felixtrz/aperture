@@ -70,6 +70,7 @@ import type { SystemAssetAccess } from "./systems/assets.js";
 import type { CameraAccess } from "./systems/cameras.js";
 import type { GltfInstanceAccess } from "./systems/gltf.js";
 import type { HierarchyAccess } from "./systems/hierarchy.js";
+import type { HtmlBridgeAccess } from "./systems/html-bridge.js";
 import type { InteractionAccess } from "./interaction/access.js";
 import type { MaterialAccess } from "./systems/materials.js";
 import type { MeshAccess } from "./systems/meshes.js";
@@ -261,6 +262,15 @@ export {
   RenderInterpolation,
   registerApertureAppComponents,
 } from "./systems/components.js";
+export {
+  ScreenSpaceFraming,
+  ScreenSpaceFramingFit,
+  createScreenSpaceFraming,
+} from "./systems/screen-space-framing.js";
+export type {
+  ScreenSpaceFramingFrameReport,
+  ScreenSpaceFramingInput,
+} from "./systems/screen-space-framing.js";
 export type { CameraAccess, CameraHandle } from "./systems/cameras.js";
 export type {
   GltfInstanceAccess,
@@ -278,6 +288,20 @@ export type {
   HierarchySetParentResult,
 } from "./systems/hierarchy.js";
 export { createHierarchyAccess } from "./systems/hierarchy.js";
+export {
+  APERTURE_HTML_BRIDGE_COMMAND_CHANNEL,
+  APERTURE_HTML_EVENT_CHANNEL_PREFIX,
+  HtmlBridgeStateResource,
+  createHtmlBridgeAccess,
+  htmlEventChannel,
+} from "./systems/html-bridge.js";
+export type {
+  HtmlBridgeAccess,
+  HtmlBridgeCommand,
+  HtmlBridgeRect,
+  HtmlBridgeViewport,
+  HtmlSlotSnapshot,
+} from "./systems/html-bridge.js";
 export type { PrefabAccess, PrefabRegisterOptions } from "./systems/prefabs.js";
 export { createPrefabAccess } from "./systems/prefabs.js";
 export type {
@@ -363,16 +387,23 @@ export {
 } from "./interaction/index.js";
 export { material, mesh, physics, shader } from "./systems/spawn/index.js";
 export type {
+  BoxMeshDescriptorOptions,
+  CapsuleMeshDescriptorOptions,
+  ConeMeshDescriptorOptions,
   CustomWgslMaterialDescriptor,
   CustomWgslSamplerBindingOptions,
   CustomWgslShaderDescriptor,
   CustomWgslTextureBindingOptions,
   CustomWgslUniformBindingOptions,
+  CylinderMeshDescriptorOptions,
+  LineListMeshDescriptorOptions,
   MaterialDescriptor,
+  PlaneMeshDescriptorOptions,
   PrimitiveMeshDescriptor,
   PhysicsComponentDescriptor,
   PhysicsSpawnDescriptor,
   ParticleEffectDescriptorInput,
+  SphereMeshDescriptorOptions,
   SpawnCameraOptions,
   SpawnCommands,
   SpawnFogOptions,
@@ -392,6 +423,8 @@ export type {
   SystemTransformInput,
   SkyboxSamplerDescriptorInput,
   SkyboxTextureDescriptorInput,
+  UnlitMaterialDescriptor,
+  UnlitMaterialOptions,
 } from "./systems/spawn/index.js";
 
 export type {
@@ -475,6 +508,7 @@ export interface ApertureSystemInstance {
   readonly physics: PhysicsAccess;
   readonly fixedStep: FixedStepAccess;
   readonly interaction: InteractionAccess;
+  readonly html: HtmlBridgeAccess;
   readonly diagnostics: SystemDiagnostics;
   readonly effects: ScheduledEffects;
   createEntity(): Entity;
@@ -646,6 +680,10 @@ export function createSystem<
 
     get interaction(): InteractionAccess {
       return this.#context.interaction;
+    }
+
+    get html(): HtmlBridgeAccess {
+      return this.#context.html;
     }
 
     get diagnostics(): SystemDiagnostics {

@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture GLB Viewer</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@aperture-engine/render": "/aperture/packages/render/dist/index.js",
+          "@aperture-engine/runtime": "/aperture/packages/runtime/dist/index.js",
+          "@aperture-engine/physics": "/aperture/packages/physics/dist/index.js",
+          "@aperture-engine/math": "/aperture/packages/math/dist/index.js",
+          "@aperture-engine/simulation": "/aperture/packages/simulation/dist/index.js",
+          "@aperture-engine/webgpu": "/aperture/packages/webgpu/dist/index.js",
+          "@aperture-engine/webgpu/test-support": "/aperture/packages/webgpu/dist/test-support.js",
+          "elics": "/aperture/node_modules/elics/lib/index.js",
+          "wgpu-matrix": "/aperture/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+          "@preact/signals-core": "/aperture/node_modules/@preact/signals-core/dist/signals-core.mjs",
+          "@aperture-engine/app": "/aperture/packages/app/dist/index.js",
+          "@aperture-engine/app/browser": "/aperture/packages/app/dist/browser.js",
+          "@aperture-engine/app/config": "/aperture/packages/app/dist/config.js",
+          "@aperture-engine/app/systems": "/aperture/packages/app/dist/systems.js",
+          "@aperture-engine/app/worker": "/aperture/packages/app/dist/worker.js",
+          "@aperture-engine/audio": "/aperture/packages/audio/dist/index.js",
+          "@aperture-engine/physics/testing": "/aperture/packages/physics/dist/testing.js",
+          "@aperture-engine/physics-rapier": "/aperture/packages/physics-rapier/dist/index.js",
+          "@aperture-engine/render/test-support": "/aperture/packages/render/dist/test-support.js",
+          "@aperture-engine/vite-plugin": "/aperture/packages/vite-plugin/dist/index.js",
+          "@dimforge/rapier3d-compat": "/aperture/packages/physics-rapier/node_modules/@dimforge/rapier3d-compat/rapier.mjs"
+        }
+      }
+    </script>
+    <script type="module" src="./example-control.js"></script>
+  </head>
+  <body>
+    <main class="runtime-shell">
+      <section class="viewport-panel" aria-label="Aperture GLB viewer">
+        <canvas
+          id="aperture-canvas"
+          width="1024"
+          height="1024"
+          aria-label="Aperture WebGPU GLB viewer canvas"
+          aria-keyshortcuts="ArrowLeft ArrowRight"
+        ></canvas>
+      </section>
+      <aside class="status-panel" aria-label="Runtime status">
+        <div class="status-row">
+          <span>example</span>
+          <strong id="example-name">glb viewer</strong>
+        </div>
+        <div class="status-row">
+          <span>state</span>
+          <strong id="example-state">loading</strong>
+        </div>
+        <label class="asset-select-row" for="glb-asset-select">
+          <span>asset</span>
+          <select id="glb-asset-select" aria-label="GLB sample asset"></select>
+        </label>
+        <label
+          id="glb-scene-select-row"
+          class="asset-select-row"
+          for="glb-scene-select"
+          hidden
+        >
+          <span>scene</span>
+          <select id="glb-scene-select" aria-label="GLB scene"></select>
+        </label>
+        <div
+          id="glb-selected-asset-summary"
+          class="selected-asset-summary"
+          aria-label="Selected asset summary"
+        ></div>
+        <div
+          class="runtime-controls glb-gallery-controls"
+          aria-label="Real URI texture gallery"
+        >
+          <button
+            id="glb-gallery-prev"
+            type="button"
+            title="Previous real URI texture sample"
+            aria-label="Previous real URI texture sample"
+            aria-keyshortcuts="ArrowLeft"
+          >
+            &larr;
+          </button>
+          <button
+            id="glb-gallery-next"
+            type="button"
+            title="Next real URI texture sample"
+            aria-label="Next real URI texture sample"
+            aria-keyshortcuts="ArrowRight"
+          >
+            &rarr;
+          </button>
+        </div>
+        <div
+          id="glb-texture-gallery-summary"
+          class="texture-gallery-summary"
+          aria-label="Texture gallery summary"
+        ></div>
+        <div
+          id="glb-material-slot-summary"
+          class="material-slot-summary"
+          aria-label="Material slot summary"
+        ></div>
+        <div
+          id="glb-image-decode-summary"
+          class="image-decode-summary"
+          aria-label="Decoded image summary"
+        ></div>
+        <div
+          id="glb-unsupported-feature-summary"
+          class="unsupported-feature-summary"
+          aria-label="Unsupported feature summary"
+        ></div>
+        <div
+          id="glb-animation-summary"
+          class="animation-summary"
+          aria-label="Animation summary"
+        ></div>
+        <div
+          id="glb-animation-clip-summary"
+          class="animation-clip-summary"
+          aria-label="Animation clip summary"
+        ></div>
+        <div
+          id="glb-animation-node-summary"
+          class="animation-node-summary"
+          aria-label="Animation node summary"
+        ></div>
+        <div
+          id="glb-animation-channel-summary"
+          class="animation-channel-summary"
+          aria-label="Animation channel summary"
+        ></div>
+        <div
+          class="runtime-controls glb-morph-controls"
+          aria-label="Morph target controls"
+        >
+          <label for="glb-morph-weight-0">
+            <span>morph 0</span>
+            <input
+              id="glb-morph-weight-0"
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value="0"
+              disabled
+            />
+          </label>
+          <label for="glb-morph-weight-1">
+            <span>morph 1</span>
+            <input
+              id="glb-morph-weight-1"
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value="0"
+              disabled
+            />
+          </label>
+        </div>
+        <div
+          id="glb-morph-summary"
+          class="morph-summary"
+          aria-label="Morph target summary"
+        ></div>
+        <div
+          id="glb-imported-camera-summary"
+          class="imported-camera-summary"
+          aria-label="Imported camera summary"
+        ></div>
+        <div
+          id="glb-imported-camera-list-summary"
+          class="imported-camera-list-summary"
+          aria-label="Imported camera list summary"
+        ></div>
+        <div
+          id="glb-light-summary"
+          class="light-summary"
+          aria-label="Light summary"
+        ></div>
+        <div
+          id="glb-metadata-summary"
+          class="metadata-summary"
+          aria-label="GLB metadata summary"
+        ></div>
+        <div
+          id="glb-scene-summary"
+          class="scene-summary"
+          aria-label="GLB scene summary"
+        ></div>
+        <div
+          id="glb-orbit-summary"
+          class="orbit-summary"
+          aria-label="Orbit fit summary"
+        ></div>
+        <div
+          id="glb-shadow-summary"
+          class="shadow-summary"
+          aria-label="Shadow summary"
+        ></div>
+        <div
+          id="glb-shadow-request-summary"
+          class="shadow-request-summary"
+          aria-label="Shadow request summary"
+        ></div>
+        <div
+          id="glb-ibl-summary"
+          class="ibl-summary"
+          aria-label="IBL summary"
+        ></div>
+        <div
+          id="glb-ibl-resource-summary"
+          class="ibl-resource-summary"
+          aria-label="IBL resource summary"
+        ></div>
+        <div
+          id="glb-draw-summary"
+          class="draw-summary"
+          aria-label="Draw summary"
+        ></div>
+        <div
+          id="glb-render-state-summary"
+          class="render-state-summary"
+          aria-label="Render state summary"
+        ></div>
+        <div
+          id="glb-pipeline-token-summary"
+          class="pipeline-token-summary"
+          aria-label="Pipeline token summary"
+        ></div>
+        <div
+          id="glb-mesh-draw-summary"
+          class="mesh-draw-summary"
+          aria-label="Mesh draw summary"
+        ></div>
+        <div
+          id="glb-prepared-resource-reuse-summary"
+          class="prepared-resource-reuse-summary"
+          aria-label="Prepared resource reuse summary"
+        ></div>
+        <div
+          id="glb-render-diagnostic-summary"
+          class="render-diagnostic-summary"
+          aria-label="Render diagnostics summary"
+        ></div>
+        <div
+          id="glb-extraction-diagnostic-summary"
+          class="extraction-diagnostic-summary"
+          aria-label="Extraction diagnostic summary"
+        ></div>
+        <div
+          id="glb-imported-light-summary"
+          class="imported-light-summary"
+          aria-label="Imported light summary"
+        ></div>
+        <div
+          id="glb-imported-light-list-summary"
+          class="imported-light-list-summary"
+          aria-label="Imported light list summary"
+        ></div>
+        <div
+          id="glb-primitive-material-summary"
+          class="primitive-material-summary"
+          aria-label="Primitive material summary"
+        ></div>
+        <div
+          id="glb-material-factor-summary"
+          class="material-factor-summary"
+          aria-label="Material factor summary"
+        ></div>
+        <div
+          id="glb-material-alpha-summary"
+          class="material-alpha-summary"
+          aria-label="Material alpha summary"
+        ></div>
+        <div
+          id="glb-primitive-texture-slot-summary"
+          class="primitive-texture-slot-summary"
+          aria-label="Primitive texture slot summary"
+        ></div>
+        <div
+          id="glb-texture-handle-summary"
+          class="texture-handle-summary"
+          aria-label="Texture handle summary"
+        ></div>
+        <div
+          id="glb-texture-sampler-summary"
+          class="texture-sampler-summary"
+          aria-label="Texture sampler summary"
+        ></div>
+        <div
+          id="glb-texture-transform-summary"
+          class="texture-transform-summary"
+          aria-label="Texture transform summary"
+        ></div>
+        <div
+          id="glb-source-loader-summary"
+          class="source-loader-summary"
+          aria-label="Source loader summary"
+        ></div>
+        <div
+          id="glb-source-output-summary"
+          class="source-output-summary"
+          aria-label="Source output summary"
+        ></div>
+        <div
+          id="glb-hierarchy-summary"
+          class="hierarchy-summary"
+          aria-label="Hierarchy summary"
+        ></div>
+        <div
+          id="glb-replay-stage-summary"
+          class="replay-stage-summary"
+          aria-label="Replay stage summary"
+        ></div>
+        <form class="asset-url-row" id="glb-url-form">
+          <label for="glb-url-input">url</label>
+          <div class="asset-url-controls">
+            <input
+              id="glb-url-input"
+              name="glb-url"
+              autocomplete="off"
+              inputmode="url"
+              placeholder="/aperture/examples/assets/cube.glb"
+              aria-label="Custom GLB URL"
+            />
+            <button type="submit">load</button>
+          </div>
+        </form>
+        <div class="runtime-controls glb-viewer-controls" aria-label="Camera">
+          <button
+            id="glb-camera-reset"
+            type="button"
+            title="Reset camera to the current asset fit"
+          >
+            home
+          </button>
+          <label>
+            <select
+              id="glb-imported-camera-select"
+              aria-label="Imported camera"
+            >
+              <option value="">camera</option>
+            </select>
+            <span>camera</span>
+          </label>
+          <label>
+            <input id="glb-imported-camera-toggle" type="checkbox" />
+            <span>imported camera</span>
+          </label>
+        </div>
+        <div
+          class="runtime-controls shadow-controls"
+          aria-label="Shadow controls"
+        >
+          <label>
+            <input id="glb-shadow-receiver-toggle" type="checkbox" checked />
+            <span>receive shadows</span>
+          </label>
+          <label>
+            <input id="glb-shadow-caster-toggle" type="checkbox" checked />
+            <span>cast shadows</span>
+          </label>
+        </div>
+        <div class="runtime-controls glb-viewer-controls" aria-label="IBL">
+          <label>
+            <input id="glb-ibl-toggle" type="checkbox" checked />
+            <span>environment IBL</span>
+          </label>
+        </div>
+        <div
+          class="runtime-controls glb-animation-controls"
+          aria-label="Animation"
+        >
+          <label>
+            <select id="glb-animation-clip" aria-label="Animation clip">
+              <option value="0">clip</option>
+            </select>
+            <span>clip</span>
+          </label>
+          <label>
+            <select id="glb-animation-loop" aria-label="Animation loop mode">
+              <option value="repeat">repeat</option>
+              <option value="once">once</option>
+            </select>
+            <span>loop</span>
+          </label>
+          <label>
+            <select
+              id="glb-animation-direction"
+              aria-label="Animation playback direction"
+            >
+              <option value="forward">forward</option>
+              <option value="reverse">reverse</option>
+            </select>
+            <span>dir</span>
+          </label>
+          <button id="glb-animation-toggle" type="button">pause</button>
+          <button id="glb-animation-cross-fade" type="button">
+            cross-fade
+          </button>
+          <label>
+            <input
+              id="glb-animation-scrub"
+              type="range"
+              min="0"
+              max="0"
+              step="0.01"
+              value="0"
+              aria-label="Animation scrub time"
+            />
+            <span>scrub</span>
+          </label>
+          <label>
+            <input
+              id="glb-animation-speed"
+              type="range"
+              min="0"
+              max="2"
+              step="0.25"
+              value="1"
+              aria-label="Animation playback speed"
+            />
+            <span>speed</span>
+          </label>
+        </div>
+        <div class="light-control-grid" aria-label="Lighting">
+          <label for="glb-imported-light-toggle">
+            <span>imported</span>
+            <input id="glb-imported-light-toggle" type="checkbox" checked />
+          </label>
+          <label for="glb-point-light-intensity">
+            <span>point</span>
+            <input
+              id="glb-point-light-intensity"
+              type="range"
+              min="0"
+              max="36"
+              step="1"
+              value="18"
+              aria-label="Point light intensity"
+            />
+          </label>
+          <label for="glb-ambient-intensity">
+            <span>ambient</span>
+            <input
+              id="glb-ambient-intensity"
+              type="range"
+              min="0"
+              max="1"
+              step="0.02"
+              value="0.24"
+              aria-label="Ambient light intensity"
+            />
+          </label>
+        </div>
+        <nav class="example-links" aria-label="Examples">
+          <a href="/aperture/">clear</a>
+          <a href="/aperture/examples/triangle.html">triangle</a>
+          <a href="/aperture/examples/multi-entity.html">multi entity</a>
+          <a href="/aperture/examples/spinning-cube.html">spinning cube</a>
+          <a href="/aperture/examples/matcap-app.html">matcap app</a>
+          <a href="/aperture/examples/materials-showcase.html">materials</a>
+          <a href="/aperture/examples/gltf-scene.html">gltf scene</a>
+          <a href="/aperture/examples/glb-viewer.html">glb viewer</a>
+          <a href="/aperture/examples/standard-texture-control.html">standard texture</a>
+          <a href="/aperture/examples/app-diagnostics.html">diagnostics</a>
+        </nav>
+        <pre id="example-json">{}</pre>
+      </aside>
+    </main>
+    <script type="module" src="./glb-viewer.main.js"></script>
+  </body>
+</html>

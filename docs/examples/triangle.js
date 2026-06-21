@@ -1,0 +1,1 @@
+import "./triangle.main.js";

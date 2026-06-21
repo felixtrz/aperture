@@ -1,0 +1,692 @@
+:root {
+  color-scheme: dark;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  background: #111418;
+  color: #edf2f7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+.runtime-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  min-height: 100vh;
+  padding: 16px;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 5%), transparent 32%), #111418;
+}
+
+.viewport-panel {
+  position: relative;
+  align-self: start;
+  display: grid;
+  place-items: center;
+  min-height: 360px;
+  border: 1px solid rgb(255 255 255 / 14%);
+  background: #0b0d10;
+}
+
+.benchmark-panel {
+  align-content: center;
+  padding: 24px;
+}
+
+.benchmark-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 16px;
+  width: min(100%, 720px);
+}
+
+.benchmark-card {
+  display: grid;
+  gap: 14px;
+  min-height: 220px;
+  padding: 18px;
+  border: 1px solid rgb(255 255 255 / 14%);
+  background: #151a20;
+}
+
+.benchmark-card strong {
+  font-size: 16px;
+  font-weight: 720;
+}
+
+.benchmark-card dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 14px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.benchmark-card dt {
+  color: #9ca8b7;
+}
+
+.benchmark-card dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+#aperture-canvas {
+  display: block;
+  width: min(100%, calc(100vh - 34px));
+  height: auto;
+  aspect-ratio: 1 / 1;
+  background:
+    linear-gradient(90deg, rgb(255 255 255 / 6%) 1px, transparent 1px),
+    linear-gradient(rgb(255 255 255 / 6%) 1px, transparent 1px), #151a20;
+  background-size: 32px 32px;
+}
+
+.msaa-viewport-grid {
+  grid-template-columns: repeat(2, minmax(0, 512px));
+  gap: 12px;
+}
+
+.msaa-canvas-frame {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.msaa-canvas-frame figcaption {
+  color: #9ca8b7;
+  font-size: 12px;
+  font-weight: 650;
+  text-align: center;
+}
+
+.msaa-canvas {
+  display: block;
+  width: min(100%, 512px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  background: #0b0d10;
+}
+
+.status-panel {
+  align-self: start;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgb(255 255 255 / 14%);
+  background: #181d23;
+}
+
+.status-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.status-row span {
+  color: #9ca8b7;
+}
+
+.status-row strong {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.asset-select-row {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.asset-select-row[hidden] {
+  display: none;
+}
+
+.asset-select-row span {
+  color: #9ca8b7;
+}
+
+.asset-select-row select {
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  background: #202832;
+  color: #edf2f7;
+  font: inherit;
+  font-size: 13px;
+}
+
+.asset-select-row select:focus-visible {
+  outline: 2px solid #81d69d;
+  outline-offset: 3px;
+}
+
+.asset-url-row {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.asset-url-row label {
+  color: #9ca8b7;
+}
+
+.asset-url-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.asset-url-controls input,
+.asset-url-controls button {
+  min-height: 34px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  background: #202832;
+  color: #edf2f7;
+  font: inherit;
+  font-size: 13px;
+}
+
+.asset-url-controls input {
+  min-width: 0;
+  padding: 0 10px;
+}
+
+.asset-url-controls button {
+  padding: 0 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.asset-url-controls button:hover {
+  background: #2a3440;
+}
+
+.asset-url-controls input:focus-visible,
+.asset-url-controls button:focus-visible {
+  outline: 2px solid #81d69d;
+  outline-offset: 3px;
+}
+
+#example-state[data-state="ready"] {
+  color: #81d69d;
+}
+
+#example-state[data-state="failed"] {
+  color: #ffab91;
+}
+
+#example-state[data-state="paused"] {
+  color: #ffd27d;
+}
+
+.runtime-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.runtime-controls button {
+  min-height: 34px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  background: #202832;
+  color: #edf2f7;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.runtime-controls button:hover:not(:disabled) {
+  background: #2a3440;
+}
+
+.runtime-controls button[aria-pressed="true"] {
+  border-color: #81d69d;
+  background: #26362d;
+  color: #c7f7d3;
+}
+
+.runtime-controls button:focus-visible {
+  outline: 2px solid #81d69d;
+  outline-offset: 3px;
+}
+
+.runtime-controls button:disabled {
+  color: #6f7a87;
+  cursor: default;
+}
+
+.selected-asset-summary,
+.material-slot-summary,
+.texture-gallery-summary,
+.image-decode-summary,
+.unsupported-feature-summary,
+.animation-summary,
+.animation-clip-summary,
+.animation-node-summary,
+.animation-channel-summary,
+.imported-camera-summary,
+.imported-camera-list-summary,
+.light-summary,
+.metadata-summary,
+.scene-summary,
+.orbit-summary,
+.shadow-summary,
+.shadow-request-summary,
+.ibl-summary,
+.ibl-resource-summary,
+.draw-summary,
+.render-state-summary,
+.pipeline-token-summary,
+.mesh-draw-summary,
+.prepared-resource-reuse-summary,
+.render-diagnostic-summary,
+.extraction-diagnostic-summary,
+.imported-light-summary,
+.imported-light-list-summary,
+.primitive-material-summary,
+.material-factor-summary,
+.material-alpha-summary,
+.primitive-texture-slot-summary,
+.texture-handle-summary,
+.texture-sampler-summary,
+.texture-transform-summary,
+.source-loader-summary,
+.source-output-summary,
+.hierarchy-summary,
+.replay-stage-summary {
+  display: grid;
+  gap: 6px;
+  padding-block: 2px;
+  font-size: 12px;
+}
+
+.selected-asset-summary[hidden],
+.material-slot-summary[hidden],
+.texture-gallery-summary[hidden],
+.image-decode-summary[hidden],
+.unsupported-feature-summary[hidden],
+.animation-summary[hidden],
+.animation-clip-summary[hidden],
+.animation-node-summary[hidden],
+.animation-channel-summary[hidden],
+.imported-camera-summary[hidden],
+.imported-camera-list-summary[hidden],
+.light-summary[hidden],
+.metadata-summary[hidden],
+.scene-summary[hidden],
+.orbit-summary[hidden],
+.shadow-summary[hidden],
+.shadow-request-summary[hidden],
+.ibl-summary[hidden],
+.ibl-resource-summary[hidden],
+.draw-summary[hidden],
+.render-state-summary[hidden],
+.pipeline-token-summary[hidden],
+.mesh-draw-summary[hidden],
+.prepared-resource-reuse-summary[hidden],
+.render-diagnostic-summary[hidden],
+.extraction-diagnostic-summary[hidden],
+.imported-light-summary[hidden],
+.imported-light-list-summary[hidden],
+.primitive-material-summary[hidden],
+.material-factor-summary[hidden],
+.material-alpha-summary[hidden],
+.primitive-texture-slot-summary[hidden],
+.texture-handle-summary[hidden],
+.texture-sampler-summary[hidden],
+.texture-transform-summary[hidden],
+.source-loader-summary[hidden],
+.source-output-summary[hidden],
+.hierarchy-summary[hidden],
+.replay-stage-summary[hidden] {
+  display: none;
+}
+
+.selected-asset-summary-row,
+.material-slot-summary-row,
+.texture-gallery-summary-row,
+.image-decode-summary-row,
+.unsupported-feature-summary-row,
+.animation-summary-row,
+.animation-clip-summary-row,
+.animation-node-summary-row,
+.animation-channel-summary-row,
+.imported-camera-summary-row,
+.imported-camera-list-summary-row,
+.light-summary-row,
+.metadata-summary-row,
+.scene-summary-row,
+.orbit-summary-row,
+.shadow-summary-row,
+.shadow-request-summary-row,
+.ibl-summary-row,
+.ibl-resource-summary-row,
+.draw-summary-row,
+.render-state-summary-row,
+.pipeline-token-summary-row,
+.mesh-draw-summary-row,
+.prepared-resource-reuse-summary-row,
+.render-diagnostic-summary-row,
+.extraction-diagnostic-summary-row,
+.imported-light-summary-row,
+.imported-light-list-summary-row,
+.primitive-material-summary-row,
+.material-factor-summary-row,
+.material-alpha-summary-row,
+.primitive-texture-slot-summary-row,
+.texture-handle-summary-row,
+.texture-sampler-summary-row,
+.texture-transform-summary-row,
+.source-loader-summary-row,
+.source-output-summary-row,
+.hierarchy-summary-row,
+.replay-stage-summary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.selected-asset-summary-row span,
+.material-slot-summary-row span,
+.texture-gallery-summary-row span,
+.image-decode-summary-row span,
+.unsupported-feature-summary-row span,
+.animation-summary-row span,
+.animation-clip-summary-row span,
+.animation-node-summary-row span,
+.animation-channel-summary-row span,
+.imported-camera-summary-row span,
+.imported-camera-list-summary-row span,
+.light-summary-row span,
+.metadata-summary-row span,
+.scene-summary-row span,
+.orbit-summary-row span,
+.shadow-summary-row span,
+.shadow-request-summary-row span,
+.ibl-summary-row span,
+.ibl-resource-summary-row span,
+.draw-summary-row span,
+.render-state-summary-row span,
+.pipeline-token-summary-row span,
+.mesh-draw-summary-row span,
+.prepared-resource-reuse-summary-row span,
+.render-diagnostic-summary-row span,
+.extraction-diagnostic-summary-row span,
+.imported-light-summary-row span,
+.imported-light-list-summary-row span,
+.primitive-material-summary-row span,
+.material-factor-summary-row span,
+.material-alpha-summary-row span,
+.primitive-texture-slot-summary-row span,
+.texture-handle-summary-row span,
+.texture-sampler-summary-row span,
+.texture-transform-summary-row span,
+.source-loader-summary-row span,
+.source-output-summary-row span,
+.hierarchy-summary-row span,
+.replay-stage-summary-row span {
+  color: #9ca8b7;
+}
+
+.selected-asset-summary-row strong,
+.material-slot-summary-row strong,
+.texture-gallery-summary-row strong,
+.image-decode-summary-row strong,
+.unsupported-feature-summary-row strong,
+.animation-summary-row strong,
+.animation-clip-summary-row strong,
+.animation-node-summary-row strong,
+.animation-channel-summary-row strong,
+.imported-camera-summary-row strong,
+.imported-camera-list-summary-row strong,
+.light-summary-row strong,
+.metadata-summary-row strong,
+.scene-summary-row strong,
+.orbit-summary-row strong,
+.shadow-summary-row strong,
+.shadow-request-summary-row strong,
+.ibl-summary-row strong,
+.ibl-resource-summary-row strong,
+.draw-summary-row strong,
+.render-state-summary-row strong,
+.pipeline-token-summary-row strong,
+.mesh-draw-summary-row strong,
+.prepared-resource-reuse-summary-row strong,
+.render-diagnostic-summary-row strong,
+.extraction-diagnostic-summary-row strong,
+.imported-light-summary-row strong,
+.imported-light-list-summary-row strong,
+.primitive-material-summary-row strong,
+.material-factor-summary-row strong,
+.material-alpha-summary-row strong,
+.primitive-texture-slot-summary-row strong,
+.texture-handle-summary-row strong,
+.texture-sampler-summary-row strong,
+.texture-transform-summary-row strong,
+.source-loader-summary-row strong,
+.source-output-summary-row strong,
+.hierarchy-summary-row strong,
+.replay-stage-summary-row strong {
+  text-align: right;
+  font-size: 12px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.glb-viewer-controls {
+  grid-template-columns: 1fr;
+}
+
+.runtime-controls label {
+  display: flex;
+  min-width: 0;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  background: #202832;
+  color: #edf2f7;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.runtime-controls input {
+  accent-color: #81d69d;
+}
+
+.runtime-controls label:has(input:focus-visible) {
+  outline: 2px solid #81d69d;
+  outline-offset: 3px;
+}
+
+.runtime-controls label:hover {
+  background: #2a3440;
+}
+
+.light-control-grid {
+  display: grid;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.light-control-grid label {
+  display: grid;
+  gap: 6px;
+  color: #9ca8b7;
+}
+
+.light-control-grid input {
+  width: 100%;
+  accent-color: #81d69d;
+}
+
+.light-control-grid input:focus-visible {
+  outline: 2px solid #81d69d;
+  outline-offset: 3px;
+}
+
+.example-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.example-links a {
+  color: #d7dee8;
+  font-size: 13px;
+  text-underline-offset: 3px;
+}
+
+.example-links a:focus-visible {
+  outline: 2px solid #81d69d;
+  outline-offset: 3px;
+}
+
+.material-showcase-panel {
+  overflow: hidden;
+}
+
+.material-legend {
+  position: absolute;
+  right: 20px;
+  bottom: 18px;
+  left: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  pointer-events: none;
+}
+
+.material-legend span {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  background: rgb(13 16 20 / 78%);
+  color: #edf2f7;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+
+.gpu-profiler-overlay {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: min(280px, calc(100% - 36px));
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  background: rgb(12 15 19 / 82%);
+  backdrop-filter: blur(8px);
+}
+
+.gpu-profiler-header,
+.gpu-profiler-pass-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.gpu-profiler-header {
+  color: #9ca8b7;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.gpu-profiler-header strong {
+  color: #edf2f7;
+  font-size: 12px;
+  text-transform: none;
+}
+
+.gpu-profiler-pass-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gpu-profiler-pass-list li {
+  min-width: 0;
+  padding-block: 2px;
+  color: #d7dee8;
+  font:
+    12px/1.4 ui-monospace,
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+}
+
+.gpu-profiler-pass-list span {
+  min-width: 0;
+  overflow: hidden;
+  color: #9ca8b7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gpu-profiler-pass-list strong {
+  flex: none;
+  color: #81d69d;
+  font-weight: 650;
+}
+
+#example-json {
+  overflow: auto;
+  max-height: calc(100vh - 160px);
+  margin: 0;
+  padding: 12px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  background: #0d1014;
+  color: #d7dee8;
+  font:
+    12px/1.5 ui-monospace,
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+}
+
+@media (max-width: 760px) {
+  .runtime-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .status-panel {
+    align-self: stretch;
+  }
+
+  .benchmark-summary {
+    grid-template-columns: 1fr;
+  }
+
+  #example-json {
+    max-height: 280px;
+  }
+}

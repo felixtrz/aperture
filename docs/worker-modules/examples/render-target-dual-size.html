@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture Render Target Dual Size</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@aperture-engine/render": "/packages/render/dist/index.js",
+          "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
+          "@aperture-engine/physics": "/packages/physics/dist/index.js",
+          "@aperture-engine/math": "/packages/math/dist/index.js",
+          "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
+          "@aperture-engine/webgpu": "/packages/webgpu/dist/index.js",
+          "@aperture-engine/webgpu/test-support": "/packages/webgpu/dist/test-support.js",
+          "elics": "/node_modules/elics/lib/index.js",
+          "wgpu-matrix": "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+          "@preact/signals-core": "/node_modules/@preact/signals-core/dist/signals-core.mjs"
+        }
+      }
+    </script>
+    <script type="module" src="./example-control.js"></script>
+  </head>
+  <body>
+    <main class="runtime-shell">
+      <section
+        class="viewport-panel"
+        aria-label="Aperture render-target dual-size runtime"
+      >
+        <canvas
+          id="aperture-canvas"
+          width="960"
+          height="540"
+          aria-label="Aperture WebGPU render-target dual-size canvas"
+        ></canvas>
+      </section>
+      <aside class="status-panel" aria-label="Runtime status">
+        <div class="status-row">
+          <span>example</span>
+          <strong id="example-name">render target dual size</strong>
+        </div>
+        <div class="status-row">
+          <span>state</span>
+          <strong id="example-state">loading</strong>
+        </div>
+        <nav class="example-links" aria-label="Examples">
+          <a href="/">clear</a>
+          <a href="/examples/triangle.html">triangle</a>
+          <a href="/examples/multi-entity.html">multi entity</a>
+          <a href="/examples/spinning-cube.html">spinning cube</a>
+          <a href="/examples/render-to-texture.html">render texture</a>
+          <a href="/examples/render-target-resize.html">target resize</a>
+          <a href="/examples/render-target-msaa-resize.html">msaa resize</a>
+          <a href="/examples/render-target-reuse.html">target reuse</a>
+          <a href="/examples/render-target-msaa-reuse.html">msaa reuse</a>
+          <a href="/examples/mixed-camera-targets.html">mixed targets</a>
+          <a href="/examples/multi-render-targets.html">multi targets</a>
+          <a href="/examples/mixed-multi-render-targets.html">mixed multi</a>
+          <a href="/examples/render-target-dual-size.html">dual size</a>
+          <a href="/examples/mixed-dual-size-render-targets.html">mixed dual</a>
+          <a href="/examples/mixed-secondary-crop-render-targets.html"
+            >mixed crop</a
+          >
+          <a href="/examples/mixed-msaa-two-targets.html">mixed msaa</a>
+          <a href="/examples/mixed-msaa-dual-size.html">mixed msaa dual size</a>
+          <a href="/examples/mixed-msaa-resized-dual-size.html"
+            >mixed msaa resized dual size</a
+          >
+          <a href="/examples/mixed-msaa-reuse-dual-size.html"
+            >mixed msaa reuse dual size</a
+          >
+          <a href="/examples/mixed-msaa-resized-reuse-dual-size.html"
+            >mixed msaa resized reuse dual size</a
+          >
+
+          <a href="/examples/mixed-msaa-secondary-crop.html">mixed msaa crop</a>
+          <a href="/examples/mixed-msaa-resize.html">mixed msaa resize</a>
+          <a href="/examples/mixed-msaa-resized-crop.html"
+            >mixed msaa resized crop</a
+          >
+          <a href="/examples/mixed-msaa-reuse.html">mixed msaa reuse</a>
+          <a href="/examples/mixed-msaa-reuse-crop.html"
+            >mixed msaa reuse crop</a
+          >
+          <a href="/examples/mixed-msaa-resized-reuse-crop.html"
+            >mixed msaa resized reuse crop</a
+          >
+          <a href="/examples/mixed-msaa-clear-load.html"
+            >mixed msaa clear load</a
+          >
+          <a href="/examples/mixed-msaa-reuse-clear-load.html"
+            >mixed msaa reuse clear load</a
+          >
+          <a href="/examples/mixed-msaa-resized-clear-load.html"
+            >mixed msaa resized clear load</a
+          >
+          <a href="/examples/mixed-msaa-target-crop.html"
+            >mixed msaa target crop</a
+          >
+          <a href="/examples/render-target-msaa.html">target msaa</a>
+          <a href="/examples/render-target-msaa-two-targets.html"
+            >msaa two targets</a
+          >
+          <a href="/examples/render-target-msaa-secondary-crop.html"
+            >msaa crop</a
+          >
+          <a href="/examples/render-target-secondary-crop.html"
+            >secondary crop</a
+          >
+          <a href="/examples/render-target-viewport-crop.html">target crop</a>
+          <a href="/examples/render-target-msaa-viewport-crop.html"
+            >msaa target crop</a
+          >
+          <a href="/examples/render-target-clear-load.html"
+            >target clear load</a
+          >
+          <a href="/examples/render-target-msaa-clear-load.html"
+            >msaa clear load</a
+          >
+          <a href="/examples/worker-cube.html">worker cube</a>
+          <a href="/examples/matcap-app.html">matcap app</a>
+          <a href="/examples/materials-showcase.html">materials</a>
+          <a href="/examples/gltf-scene.html">gltf scene</a>
+          <a href="/examples/point-shadow.html">point shadow</a>
+          <a href="/examples/spot-shadow.html">spot shadow</a>
+          <a href="/examples/app-diagnostics.html">diagnostics</a>
+        </nav>
+        <pre id="example-json">{}</pre>
+      </aside>
+    </main>
+    <script type="module" src="./render-to-texture.main.js"></script>
+  </body>
+</html>

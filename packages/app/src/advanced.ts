@@ -24,6 +24,8 @@ import {
   installRenderInterpolationFixedStep,
 } from "./render-interpolation.js";
 import { runInteractionFrame } from "./interaction/system.js";
+import { runHtmlBridgeFrame } from "./systems/html-bridge.js";
+import { runScreenSpaceFramingFrame } from "./systems/screen-space-framing.js";
 import {
   defineApertureConfig,
   type ApertureConfig,
@@ -228,6 +230,11 @@ export async function createApertureApp(
       const preStepWorldChanged =
         lowLevel.world.worldChangeVersion() !== worldVersionAtRefresh;
 
+      runHtmlBridgeFrame({
+        commands: context.commands,
+        resources: context.resources,
+      });
+
       if (preStepWorldChanged) {
         resolveWorldTransforms(lowLevel.world);
         refreshSpatialIndex();
@@ -238,6 +245,10 @@ export async function createApertureApp(
       const result = lowLevel.step(delta, time);
       const lowLevelStepMilliseconds = markTiming();
       lastFixedStep = result.fixedStep;
+      const framing = runScreenSpaceFramingFrame(context, delta);
+      if (framing.updated > 0) {
+        resolveWorldTransforms(lowLevel.world);
+      }
       refreshSpatialIndex();
       const postStepSpatialMilliseconds = markTiming();
       worldVersionAtRefresh = lowLevel.world.worldChangeVersion();

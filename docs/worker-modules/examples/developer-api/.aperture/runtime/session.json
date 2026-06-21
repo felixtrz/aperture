@@ -1,0 +1,37 @@
+{
+  "protocolVersion": 1,
+  "appRoot": "/Users/felixz/Projects/aperture/examples/developer-api",
+  "url": "http://127.0.0.1:5175/",
+  "host": "127.0.0.1",
+  "port": 5175,
+  "startedAt": "2026-06-18T14:06:17.218Z",
+  "updatedAt": "2026-06-18T14:06:17.218Z",
+  "daemon": {
+    "pid": null,
+    "state": "unknown"
+  },
+  "server": {
+    "pid": 74066,
+    "state": "running"
+  },
+  "browser": {
+    "pid": null,
+    "state": "unknown",
+    "cdpPort": null,
+    "cdpUrl": null,
+    "headless": true
+  },
+  "bridge": {
+    "statusGlobal": "__APERTURE_GENERATED_APP__",
+    "managedGlobal": "__APERTURE_MCP_MANAGED__",
+    "runtimeGlobal": "__APERTURE_MCP_RUNTIME__",
+    "url": "ws://127.0.0.1:5175/",
+    "channel": "aperture:devtools"
+  },
+  "logs": {
+    "daemon": "/Users/felixz/Projects/aperture/examples/developer-api/.aperture/runtime/daemon.log",
+    "server": "/Users/felixz/Projects/aperture/examples/developer-api/.aperture/runtime/server.log",
+    "browser": "/Users/felixz/Projects/aperture/examples/developer-api/.aperture/runtime/browser.log"
+  },
+  "owned": false
+}
