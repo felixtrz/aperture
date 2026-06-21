@@ -1,0 +1,17 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { ExampleGallery } from "../../components/ExampleGallery";
+import examplesManifest from "../../content/examples.generated.json";
+---
+
+<DocsLayout
+  title="Aperture Examples"
+  description="Runnable Aperture examples grouped by engine capability."
+  mainClass="docs-main--browser"
+>
+  <ExampleGallery
+    examples={examplesManifest.examples}
+    categories={examplesManifest.categories}
+    client:load
+  />
+</DocsLayout>

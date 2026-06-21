@@ -46,6 +46,9 @@ export async function renderSpriteOnlyWebGpuAppFrame(
   const hasGlyphBatches = (options.snapshot.quadBatches ?? []).some(
     (batch) => batch.kind === "glyph",
   );
+  const hasSkyboxes = (options.snapshot.skyboxes ?? []).length > 0;
+  const hasProceduralSkies =
+    (options.snapshot.proceduralSkies ?? []).length > 0;
   const hasUiNodes = (options.snapshot.uiNodes ?? []).length > 0;
   const hasParticleEmitters =
     (options.snapshot.particleEmitters ?? []).length > 0;
@@ -192,6 +195,8 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     !hasQuadSpriteBatches &&
     spriteDraws.length === 0 &&
     !hasGlyphBatches &&
+    !hasSkyboxes &&
+    !hasProceduralSkies &&
     !hasUiNodes &&
     !hasParticleEmitters
   ) {

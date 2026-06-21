@@ -139,6 +139,8 @@ function changeSetWithKeys(): RenderSnapshotChangeSet {
     lights: noChanges,
     environments: noChanges,
     shadowRequests: noChanges,
+    proceduralSkies: noChanges,
+    runtimeUniforms: noChanges,
     bounds: {
       changed: 0,
       unchanged: 1,
@@ -160,6 +162,8 @@ function changeSetWithKeys(): RenderSnapshotChangeSet {
       lights: emptyKeys(),
       environments: emptyKeys(),
       shadowRequests: emptyKeys(),
+      proceduralSkies: emptyKeys(),
+      runtimeUniforms: emptyKeys(),
       bounds: {
         changed: [],
         unchanged: ["bounds:12:1"],

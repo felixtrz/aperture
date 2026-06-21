@@ -5,8 +5,10 @@ import {
   signal,
 } from "@aperture-engine/app/config";
 
+const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+
 const gltf = (name: string) =>
-  asset.gltf(`/models/${name}.glb`, { preload: "blocking" });
+  asset.gltf(assetUrl(`models/${name}.glb`), { preload: "blocking" });
 
 const SMOKE_POINT_SIZE_TO_WORLD_SCALE = Math.tan((40 * Math.PI) / 360);
 const smokeColor = hexSrgbToLinearRgba(0x5e5f6b, 0.25);
@@ -28,7 +30,7 @@ export default defineApertureConfig({
     "decoration-empty": gltf("decoration-empty"),
     "decoration-forest": gltf("decoration-forest"),
     "decoration-tents": gltf("decoration-tents"),
-    smoke: asset.texture("/sprites/smoke.png", {
+    smoke: asset.texture(assetUrl("sprites/smoke.png"), {
       preload: "blocking",
       label: "Smoke sprite",
       colorSpace: "srgb",
@@ -61,15 +63,15 @@ export default defineApertureConfig({
         { t: 1, color: smokeFadeColor },
       ],
     }),
-    engine: asset.audio("/audio/engine.ogg", {
+    engine: asset.audio(assetUrl("audio/engine.ogg"), {
       preload: "blocking",
       durationHint: 2.1,
     }),
-    skid: asset.audio("/audio/skid.ogg", {
+    skid: asset.audio(assetUrl("audio/skid.ogg"), {
       preload: "blocking",
       durationHint: 1,
     }),
-    impact: asset.audio("/audio/impact.ogg", {
+    impact: asset.audio(assetUrl("audio/impact.ogg"), {
       preload: "blocking",
       durationHint: 0.5,
     }),

@@ -16,6 +16,7 @@ import {
   MeshQueryDynamicPolicy,
   Pickable,
   PickablePrecision,
+  ProceduralSky,
   RenderLayer,
   RenderOrder,
   ShadowCaster,
@@ -28,12 +29,14 @@ import {
   createLightShadowSettings,
   createMeshQueryAcceleration,
   createPickable,
+  createProceduralSky,
   createSkybox,
   registerRenderAuthoringComponents,
   validateCameraInput,
   validateFogInput,
   validateLightShadowSettingsInput,
   validateLightInput,
+  validateProceduralSkyInput,
   validateSkyboxInput,
 } from "@aperture-engine/render";
 import {
@@ -221,6 +224,42 @@ describe("render authoring ECS components", () => {
         intensity: -1,
       }).diagnostics.map((diagnostic) => diagnostic.code),
     ).toEqual(["skybox.invalidIntensity"]);
+  });
+
+  it("attaches and validates procedural sky authoring data", () => {
+    const world = createWorld({ entityCapacity: 4 });
+    registerRenderAuthoringComponents(world);
+    const sky = world.createEntity();
+
+    sky.addComponent(
+      ProceduralSky,
+      createProceduralSky({
+        topColor: [0.02, 0.06, 0.16],
+        horizonColor: [0.4, 0.22, 0.1],
+        bottomColor: [0.01, 0.014, 0.03],
+        horizonPosition: 0.38,
+        horizonSoftness: 0.2,
+        intensity: 1.3,
+        ditherStrength: 0.002,
+      }),
+    );
+
+    expectVector(
+      sky.getVectorView(ProceduralSky, "topColor"),
+      [0.02, 0.06, 0.16],
+    );
+    expectVector(
+      sky.getVectorView(ProceduralSky, "horizonColor"),
+      [0.4, 0.22, 0.1],
+    );
+    expect(sky.getValue(ProceduralSky, "horizonPosition")).toBeCloseTo(0.38, 6);
+    expect(sky.getValue(ProceduralSky, "intensity")).toBeCloseTo(1.3, 6);
+    expect(
+      validateProceduralSkyInput({
+        topColor: [0.02, -0.01, 0.16],
+        horizonSoftness: -1,
+      }).diagnostics.map((diagnostic) => diagnostic.code),
+    ).toEqual(["proceduralSky.invalidColor", "proceduralSky.invalidHorizon"]);
   });
 
   it("attaches and validates fog authoring data", () => {

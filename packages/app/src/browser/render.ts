@@ -1,5 +1,8 @@
 import type { ApertureViewportResizeCommandPayload } from "../commands.js";
-import type { ApertureRenderDefaults } from "../config.js";
+import type {
+  ApertureRenderDefaults,
+  ApertureRenderDeviceProfile,
+} from "../config.js";
 
 export const DEFAULT_GENERATED_MSAA_SAMPLE_COUNT = 4;
 export const DEFAULT_GENERATED_MAX_PIXEL_RATIO = 2;
@@ -20,7 +23,19 @@ export interface GeneratedBrowserRenderSettings {
   readonly devicePixelRatio: number;
   readonly maxPixelRatio: number;
   readonly pixelRatioSource: GeneratedPixelRatioSource;
+  readonly profile: string | null;
   readonly diagnostics: readonly unknown[];
+}
+
+export interface GeneratedBrowserRenderProfileEnvironment {
+  readonly viewportWidth?: number;
+  readonly viewportHeight?: number;
+  readonly devicePixelRatio?: number;
+}
+
+export interface GeneratedBrowserEffectiveRenderDefaults {
+  readonly render: ApertureRenderDefaults | undefined;
+  readonly profile: string | null;
 }
 
 export interface GeneratedCanvasMeasureElement {
@@ -42,7 +57,8 @@ export interface GeneratedCanvasResizeMeasurement extends ApertureViewportResize
 
 export function resolveGeneratedRenderSettings(
   render: ApertureRenderDefaults | undefined,
-  devicePixelRatio = readDevicePixelRatio(),
+  devicePixelRatio: number | undefined = readDevicePixelRatio(),
+  profile: string | null = null,
 ): GeneratedBrowserRenderSettings {
   const diagnostics: unknown[] = [];
   const rawSampleCount = render?.sampleCount;
@@ -108,7 +124,55 @@ export function resolveGeneratedRenderSettings(
     devicePixelRatio: resolvedDevicePixelRatio,
     maxPixelRatio,
     pixelRatioSource,
+    profile,
     diagnostics,
+  };
+}
+
+export function resolveGeneratedEffectiveRenderDefaults(
+  render: ApertureRenderDefaults | undefined,
+  environment: GeneratedBrowserRenderProfileEnvironment = {},
+): GeneratedBrowserEffectiveRenderDefaults {
+  const profile = render?.deviceProfiles?.find((candidate) =>
+    renderDeviceProfileMatches(candidate, environment),
+  );
+
+  if (profile === undefined) {
+    return { render, profile: null };
+  }
+
+  return {
+    render: {
+      ...render,
+      ...(profile.sampleCount === undefined
+        ? {}
+        : { sampleCount: profile.sampleCount }),
+      ...(profile.pixelRatio === undefined
+        ? {}
+        : { pixelRatio: profile.pixelRatio }),
+      ...(profile.maxPixelRatio === undefined
+        ? {}
+        : { maxPixelRatio: profile.maxPixelRatio }),
+      ...(profile.exposure === undefined ? {} : { exposure: profile.exposure }),
+      ...(profile.bloom === undefined ? {} : { bloom: profile.bloom }),
+    },
+    profile: profile.label ?? null,
+  };
+}
+
+export function readGeneratedRenderProfileEnvironment(
+  canvas: GeneratedCanvasMeasureElement,
+): GeneratedBrowserRenderProfileEnvironment {
+  const rect = canvas.getBoundingClientRect();
+  const viewportWidth =
+    normalizePositiveNumber(rect.width) ?? canvas.clientWidth;
+  const viewportHeight =
+    normalizePositiveNumber(rect.height) ?? canvas.clientHeight;
+
+  return {
+    ...(viewportWidth === 0 ? {} : { viewportWidth }),
+    ...(viewportHeight === 0 ? {} : { viewportHeight }),
+    devicePixelRatio: readDevicePixelRatio(),
   };
 }
 
@@ -179,6 +243,54 @@ export function measureGeneratedCanvasResize(
 
 function readDevicePixelRatio(): number {
   return typeof window === "object" ? window.devicePixelRatio : 1;
+}
+
+function renderDeviceProfileMatches(
+  profile: ApertureRenderDeviceProfile,
+  environment: GeneratedBrowserRenderProfileEnvironment,
+): boolean {
+  return (
+    finiteRangeMatches(
+      environment.viewportWidth,
+      profile.minViewportWidth,
+      profile.maxViewportWidth,
+    ) &&
+    finiteRangeMatches(
+      environment.viewportHeight,
+      profile.minViewportHeight,
+      profile.maxViewportHeight,
+    ) &&
+    finiteRangeMatches(
+      environment.devicePixelRatio,
+      profile.minDevicePixelRatio,
+      profile.maxDevicePixelRatio,
+    )
+  );
+}
+
+function finiteRangeMatches(
+  value: number | undefined,
+  min: number | undefined,
+  max: number | undefined,
+): boolean {
+  if (min === undefined && max === undefined) {
+    return true;
+  }
+
+  const normalized = normalizePositiveNumber(value);
+  if (normalized === null) {
+    return false;
+  }
+
+  if (min !== undefined && normalized < min) {
+    return false;
+  }
+
+  if (max !== undefined && normalized > max) {
+    return false;
+  }
+
+  return true;
 }
 
 function normalizePositiveNumber(value: unknown): number | null {

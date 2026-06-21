@@ -861,3 +861,45 @@ Consequences:
   same summary contract; future tooling may add resource diffs.
 - Experiences such as racing should migrate shared simulation state onto
   resources before adding higher-level particle/audio helpers.
+
+## 0023 — Runtime Visual Parameters Flow Through Extracted Packets
+
+Date: 2026-06-21 (procedural sky and runtime uniforms slice)
+
+Status: accepted
+
+Context:
+
+The docs-site landing scene used a stack of authored mesh bands to fake a sky
+gradient. That made the sky part of scene geometry, produced visible banding,
+and forced runtime visual changes through material source mutation. Custom WGSL
+materials also stored uniform values in source binding declarations, so
+value-only updates did not have a first-class extracted runtime path.
+
+Decision:
+
+Visual background state and dynamic shader parameters remain ECS-authored data
+that extraction turns into render snapshot packets. `ProceduralSky` is rendered
+as a WebGPU fullscreen background pass with renderer-owned cached uniform
+buffers, not as scene geometry. General dynamic custom WGSL values use keyed
+`RuntimeUniform` packets resolved by uniform bindings with `runtimeUniformKey`.
+
+Custom WGSL pipeline identity is based on shader source, render state, instance
+layout, binding visibility, and uniform field schema. Runtime uniform values are
+not part of the material source asset, prepared material pipeline key, or shader
+module key. Value-only updates write cached WebGPU uniform buffers with
+`queue.writeBuffer`.
+
+Consequences:
+
+- The renderer still consumes derived snapshots and owns GPU resources; ECS and
+  app systems never store WebGPU objects.
+- Background sky rendering is no longer scene geometry and can avoid banded
+  material-color artifacts.
+- Runtime visual value changes can happen without source asset
+  re-registration, material version churn, shader module rebuilds, or pipeline
+  rebuilds.
+- Uniform schema/layout changes remain structural and correctly invalidate
+  prepared custom WGSL material pipeline keys.
+- Shared snapshot transports must either encode new packet families or fall
+  back to transferable snapshots until packed encoding is extended.

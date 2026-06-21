@@ -1,0 +1,27 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { ApiPackageList } from "../../components/ApiPackageList";
+import apiReference from "../../content/api.generated.json";
+---
+
+<DocsLayout
+  title="Aperture API Reference"
+  description="Generated Aperture API reference from the public package export surface."
+>
+  <section class="docs-hero">
+    <div>
+      <p class="docs-eyebrow">API</p>
+      <h1>Generated from package exports.</h1>
+      <p>
+        This reference is generated from the workspace package export maps and
+        TypeScript symbols. Conceptual docs stay short; source-of-truth API
+        shape comes from the typed package surface.
+      </p>
+    </div>
+    <a class="docs-card-link" href="../api-reference/index.json"
+      >Raw JSON</a
+    >
+  </section>
+
+  <ApiPackageList packages={apiReference.packages} />
+</DocsLayout>

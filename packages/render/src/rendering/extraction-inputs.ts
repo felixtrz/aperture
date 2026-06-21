@@ -22,11 +22,13 @@ import {
   Fog,
   FogMode,
   Light,
+  ProceduralSky,
   Sprite,
   Skybox,
   type CameraInput,
   type FogInput,
   type LightInput,
+  type ProceduralSkyInput,
   type SpriteInput,
   type SkyboxInput,
 } from "./index.js";
@@ -226,6 +228,39 @@ export function skyboxInput(entity: Entity): SkyboxInput {
           sampler: sampler ?? createSamplerHandle("__invalid_skybox_sampler__"),
         }),
     intensity: entity.getValue(Skybox, "intensity") ?? 1,
+  };
+}
+
+export function proceduralSkyInput(entity: Entity): ProceduralSkyInput {
+  return {
+    model: (entity.getValue(ProceduralSky, "model") ??
+      "gradient") as "gradient",
+    priority: entity.getValue(ProceduralSky, "priority") ?? 0,
+    topColor: Array.from(entity.getVectorView(ProceduralSky, "topColor")) as [
+      number,
+      number,
+      number,
+    ],
+    horizonColor: Array.from(
+      entity.getVectorView(ProceduralSky, "horizonColor"),
+    ) as [number, number, number],
+    bottomColor: Array.from(
+      entity.getVectorView(ProceduralSky, "bottomColor"),
+    ) as [number, number, number],
+    horizonPosition: entity.getValue(ProceduralSky, "horizonPosition") ?? 0.4,
+    horizonSoftness: entity.getValue(ProceduralSky, "horizonSoftness") ?? 0.24,
+    intensity: entity.getValue(ProceduralSky, "intensity") ?? 1,
+    sunDirection: Array.from(
+      entity.getVectorView(ProceduralSky, "sunDirection"),
+    ) as [number, number, number],
+    sunColor: Array.from(entity.getVectorView(ProceduralSky, "sunColor")) as [
+      number,
+      number,
+      number,
+    ],
+    sunRadius: entity.getValue(ProceduralSky, "sunRadius") ?? 0.02,
+    sunGlow: entity.getValue(ProceduralSky, "sunGlow") ?? 0.35,
+    ditherStrength: entity.getValue(ProceduralSky, "ditherStrength") ?? 0.003,
   };
 }
 

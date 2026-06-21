@@ -96,7 +96,8 @@ export async function runGeneratedWorkerLoop(options: {
     );
     let frame = 0;
     let running = true;
-    let paused = false;
+    let paused = readWorkerInitialPaused(options.start);
+    let tickScheduled = false;
     let previousTime = performance.now();
     const pendingDevtoolsInput: ApertureGeneratedInputEvent[] = [];
     let previousPublishTiming: GeneratedWorkerSnapshotPublishTiming | null =
@@ -138,7 +139,12 @@ export async function runGeneratedWorkerLoop(options: {
         pendingDevtoolsInput.push(event);
       },
       setPaused(nextPaused) {
+        const wasPaused = paused;
         paused = nextPaused;
+        if (wasPaused && !paused) {
+          previousTime = performance.now();
+          scheduleTick();
+        }
       },
       step(delta) {
         paused = true;
@@ -178,20 +184,32 @@ export async function runGeneratedWorkerLoop(options: {
       });
     };
 
-    const tick = () => {
+    function scheduleTick(): void {
+      if (!running || paused || tickScheduled) {
+        return;
+      }
+
+      tickScheduled = true;
+      tickScheduler.schedule(tick);
+    }
+
+    function tick(): void {
+      tickScheduled = false;
       if (!running) {
         tickScheduler.dispose();
         return;
       }
 
       try {
+        if (paused) {
+          return;
+        }
+
         const now = performance.now();
         const delta = Math.max(0, (now - previousTime) / 1000);
         previousTime = now;
 
-        if (!paused) {
-          publishSnapshot(delta, now / 1000);
-        }
+        publishSnapshot(delta, now / 1000);
       } catch (error: unknown) {
         // A steady-state tick failure is otherwise uncaught (the reschedule
         // below never runs and the scheduler callback swallows it), leaving the
@@ -203,11 +221,13 @@ export async function runGeneratedWorkerLoop(options: {
         return;
       }
 
-      tickScheduler.schedule(tick);
-    };
+      scheduleTick();
+    }
 
     options.port.postMessage({ type: SIMULATION_WORKER_PROTOCOL.ready });
-    tick();
+    if (!paused) {
+      tick();
+    }
 
     if (typeof options.start["stop"] === "boolean" && options.start["stop"]) {
       running = false;
@@ -353,6 +373,12 @@ function nextGeneratedWorkerTickDeadline(
 
 function readWorkerTickRateHz(start: SimulationWorkerStartOptions): number {
   return normalizeGeneratedWorkerTickRateHz(start["workerTickRateHz"]);
+}
+
+function readWorkerInitialPaused(start: SimulationWorkerStartOptions): boolean {
+  const value = start["simulationPaused"];
+
+  return value === true || value === "true";
 }
 
 function readWorkerFullSummaryIntervalMilliseconds(

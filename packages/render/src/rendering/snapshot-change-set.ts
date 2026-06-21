@@ -9,6 +9,8 @@ import {
   environmentPackets,
   lightPackets,
   meshDrawPackets,
+  proceduralSkyPackets,
+  runtimeUniformPackets,
   shadowCasterDrawPackets,
   shadowRequestPackets,
   viewPackets,
@@ -64,6 +66,16 @@ export function createRenderSnapshotChangeSet(
     environmentPackets(next),
     uniqueKeyOptions,
   );
+  const proceduralSkies = comparePacketFamily(
+    proceduralSkyPackets(previous),
+    proceduralSkyPackets(next),
+    uniqueKeyOptions,
+  );
+  const runtimeUniforms = comparePacketFamily(
+    runtimeUniformPackets(previous),
+    runtimeUniformPackets(next),
+    uniqueKeyOptions,
+  );
   const shadowRequests = comparePacketFamily(
     shadowRequestPackets(previous),
     shadowRequestPackets(next),
@@ -80,6 +92,8 @@ export function createRenderSnapshotChangeSet(
     shadowCasterDraws.keys === undefined ||
     lights.keys === undefined ||
     environments.keys === undefined ||
+    proceduralSkies.keys === undefined ||
+    runtimeUniforms.keys === undefined ||
     shadowRequests.keys === undefined ||
     bounds.keys === undefined
       ? undefined
@@ -89,6 +103,8 @@ export function createRenderSnapshotChangeSet(
           shadowCasterDraws: shadowCasterDraws.keys,
           lights: lights.keys,
           environments: environments.keys,
+          proceduralSkies: proceduralSkies.keys,
+          runtimeUniforms: runtimeUniforms.keys,
           shadowRequests: shadowRequests.keys,
           bounds: bounds.keys,
         };
@@ -101,6 +117,8 @@ export function createRenderSnapshotChangeSet(
     shadowCasterDraws: shadowCasterDraws.counts,
     lights: lights.counts,
     environments: environments.counts,
+    proceduralSkies: proceduralSkies.counts,
+    runtimeUniforms: runtimeUniforms.counts,
     shadowRequests: shadowRequests.counts,
     bounds: bounds.counts,
     total: totalCounts([
@@ -109,6 +127,8 @@ export function createRenderSnapshotChangeSet(
       shadowCasterDraws.counts,
       lights.counts,
       environments.counts,
+      proceduralSkies.counts,
+      runtimeUniforms.counts,
       shadowRequests.counts,
       bounds.counts,
     ]),

@@ -213,12 +213,14 @@ export const FPS_RENDER_AMBIENT_COLOR: readonly [
 ] = [0.66, 0.69, 0.77, 1];
 export const FPS_RENDER_AMBIENT_INTENSITY = 1.1;
 
+const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+
 export const WEAPONS: readonly WeaponSpec[] = [
   {
     name: "Blaster",
     assetId: "blaster",
     soundId: "blaster-shot",
-    crosshairUrl: "/sprites/crosshair.png",
+    crosshairUrl: assetUrl("sprites/crosshair.png"),
     cooldown: 0.25,
     maxDistance: 10,
     damage: 25,
@@ -236,7 +238,7 @@ export const WEAPONS: readonly WeaponSpec[] = [
     name: "Repeater",
     assetId: "blaster-repeater",
     soundId: "blaster-repeater-shot",
-    crosshairUrl: "/sprites/crosshair-repeater.png",
+    crosshairUrl: assetUrl("sprites/crosshair-repeater.png"),
     cooldown: 0.1,
     maxDistance: 10,
     damage: 10,

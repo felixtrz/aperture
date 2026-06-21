@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1250
+Every structured diagnostic code the engine can emit (1277
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -492,6 +492,36 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                                 | Message                                                                          | Fix? | Emitted from                                                                   |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------ |
 | `customWgslAppFrameResources.missingPipelineLayouts` | Custom WGSL pipeline does not expose bind group layouts for app frame resources. | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-app-frame-resources.ts` |
+
+## customWgslAppFrameResources.runtimeUniformBufferFailed (1)
+
+| Code                                                     | Message                       | Fix? | Emitted from                                                                   |
+| -------------------------------------------------------- | ----------------------------- | ---- | ------------------------------------------------------------------------------ |
+| `customWgslAppFrameResources.runtimeUniformBufferFailed` | (message composed at runtime) | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-app-frame-resources.ts` |
+
+## customWgslAppFrameResources.runtimeUniformInvalidValue (1)
+
+| Code                                                     | Message                                                                  | Fix? | Emitted from                                                                   |
+| -------------------------------------------------------- | ------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------ |
+| `customWgslAppFrameResources.runtimeUniformInvalidValue` | Runtime uniform '…' value '…' does not match custom WGSL field type '…'. | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-app-frame-resources.ts` |
+
+## customWgslAppFrameResources.runtimeUniformMissing (1)
+
+| Code                                                | Message                                                                                                        | Fix? | Emitted from                                                                   |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------ |
+| `customWgslAppFrameResources.runtimeUniformMissing` | Custom WGSL binding … requires runtime uniform '…', but no runtime uniform packet with that key was extracted. | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-app-frame-resources.ts` |
+
+## customWgslAppFrameResources.runtimeUniformMissingFields (1)
+
+| Code                                                      | Message                                                                        | Fix? | Emitted from                                                                   |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------ |
+| `customWgslAppFrameResources.runtimeUniformMissingFields` | Runtime uniform '…' is missing value(s) for …; material defaults will be used. | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-app-frame-resources.ts` |
+
+## customWgslAppFrameResources.runtimeUniformWriteFailed (1)
+
+| Code                                                    | Message                                                 | Fix? | Emitted from                                                                   |
+| ------------------------------------------------------- | ------------------------------------------------------- | ---- | ------------------------------------------------------------------------------ |
+| `customWgslAppFrameResources.runtimeUniformWriteFailed` | WebGPU device cannot write updated runtime uniform '…'. | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-app-frame-resources.ts` |
 
 ## customWgslAppFrameResources.uniformBufferFailed (1)
 
@@ -3812,6 +3842,120 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------------------------------ | ---------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------- |
 | `preparedUnlitTextureDependency.textureSourceNotReady` | Texture source asset '…' is not ready for prepared unlit material resources. | —    | `packages/webgpu/src/materials/unlit/prepared-unlit-material-cache.ts` |
 
+## proceduralSky.invalidColor (1)
+
+| Code                         | Message                                                       | Fix? | Emitted from                                                    |
+| ---------------------------- | ------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidColor` | Procedural sky colors must be finite non-negative RGB values. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## proceduralSky.invalidDither (1)
+
+| Code                          | Message                                                        | Fix? | Emitted from                                                    |
+| ----------------------------- | -------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidDither` | Procedural sky ditherStrength must be finite and non-negative. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## proceduralSky.invalidHorizon (1)
+
+| Code                           | Message                                                                                              | Fix? | Emitted from                                                    |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidHorizon` | Procedural sky horizonPosition must be in [0,1] and horizonSoftness must be finite and non-negative. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## proceduralSky.invalidIntensity (1)
+
+| Code                             | Message                                                   | Fix? | Emitted from                                                    |
+| -------------------------------- | --------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidIntensity` | Procedural sky intensity must be finite and non-negative. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## proceduralSky.invalidModel (1)
+
+| Code                         | Message                                  | Fix? | Emitted from                                                    |
+| ---------------------------- | ---------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidModel` | Procedural sky model must be 'gradient'. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## proceduralSky.invalidPriority (1)
+
+| Code                            | Message                                     | Fix? | Emitted from                                                    |
+| ------------------------------- | ------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidPriority` | Procedural sky priority must be an integer. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## proceduralSky.invalidSun (1)
+
+| Code                       | Message                                                               | Fix? | Emitted from                                                    |
+| -------------------------- | --------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidSun` | Procedural sky sunRadius and sunGlow must be finite and non-negative. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## proceduralSky.invalidSunDirection (1)
+
+| Code                                | Message                                                               | Fix? | Emitted from                                                    |
+| ----------------------------------- | --------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidSunDirection` | Procedural sky sunDirection must be a finite non-zero vec3 direction. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## proceduralSkyFrame.createBindGroupUnavailable (1)
+
+| Code                                            | Message                                                 | Fix? | Emitted from                                |
+| ----------------------------------------------- | ------------------------------------------------------- | ---- | ------------------------------------------- |
+| `proceduralSkyFrame.createBindGroupUnavailable` | WebGPU device cannot create procedural sky bind groups. | —    | `packages/webgpu/src/app/procedural-sky.ts` |
+
+## proceduralSkyFrame.invalidPacket (1)
+
+| Code                               | Message                                             | Fix? | Emitted from                                |
+| ---------------------------------- | --------------------------------------------------- | ---- | ------------------------------------------- |
+| `proceduralSkyFrame.invalidPacket` | Procedural sky … contains non-finite render values. | —    | `packages/webgpu/src/app/procedural-sky.ts` |
+
+## proceduralSkyFrame.missingPipelineLayouts (1)
+
+| Code                                        | Message                                                     | Fix? | Emitted from                                |
+| ------------------------------------------- | ----------------------------------------------------------- | ---- | ------------------------------------------- |
+| `proceduralSkyFrame.missingPipelineLayouts` | Procedural sky pipeline does not expose bind group layouts. | —    | `packages/webgpu/src/app/procedural-sky.ts` |
+
+## proceduralSkyFrame.uniformWriteFailed (1)
+
+| Code                                    | Message                                                         | Fix? | Emitted from                                |
+| --------------------------------------- | --------------------------------------------------------------- | ---- | ------------------------------------------- |
+| `proceduralSkyFrame.uniformWriteFailed` | WebGPU device cannot write updated procedural sky uniform data. | —    | `packages/webgpu/src/app/procedural-sky.ts` |
+
+## proceduralSkyFrame.viewMatrixOutOfRange (1)
+
+| Code                                      | Message                                                                          | Fix? | Emitted from                                |
+| ----------------------------------------- | -------------------------------------------------------------------------------- | ---- | ------------------------------------------- |
+| `proceduralSkyFrame.viewMatrixOutOfRange` | Procedural sky view … view matrix offset … is outside snapshot view matrix data. | —    | `packages/webgpu/src/app/procedural-sky.ts` |
+
+## proceduralSkyFrame.viewProjectionNotInvertible (1)
+
+| Code                                             | Message                                                            | Fix? | Emitted from                                |
+| ------------------------------------------------ | ------------------------------------------------------------------ | ---- | ------------------------------------------- |
+| `proceduralSkyFrame.viewProjectionNotInvertible` | Procedural sky view … has a non-invertible view-projection matrix. | —    | `packages/webgpu/src/app/procedural-sky.ts` |
+
+## proceduralSkyFrame.viewProjectionOutOfRange (1)
+
+| Code                                          | Message                                                                                     | Fix? | Emitted from                                |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------- | ---- | ------------------------------------------- |
+| `proceduralSkyFrame.viewProjectionOutOfRange` | Procedural sky view … view-projection matrix offset … is outside snapshot view matrix data. | —    | `packages/webgpu/src/app/procedural-sky.ts` |
+
+## proceduralSkyRenderPipeline.createRenderPipelineUnavailable (1)
+
+| Code                                                          | Message                                                      | Fix? | Emitted from                                                   |
+| ------------------------------------------------------------- | ------------------------------------------------------------ | ---- | -------------------------------------------------------------- |
+| `proceduralSkyRenderPipeline.createRenderPipelineUnavailable` | WebGPU device cannot create procedural sky render pipelines. | —    | `packages/webgpu/src/render/skybox/procedural-sky-pipeline.ts` |
+
+## proceduralSkyRenderPipeline.pipelineCreationFailed (1)
+
+| Code                                                 | Message                       | Fix? | Emitted from                                                   |
+| ---------------------------------------------------- | ----------------------------- | ---- | -------------------------------------------------------------- |
+| `proceduralSkyRenderPipeline.pipelineCreationFailed` | (message composed at runtime) | —    | `packages/webgpu/src/render/skybox/procedural-sky-pipeline.ts` |
+
+## proceduralSkyRenderPipeline.shaderCreationFailed (1)
+
+| Code                                               | Message                                                      | Fix? | Emitted from                                                   |
+| -------------------------------------------------- | ------------------------------------------------------------ | ---- | -------------------------------------------------------------- |
+| `proceduralSkyRenderPipeline.shaderCreationFailed` | WebGPU device cannot create procedural sky render pipelines. | —    | `packages/webgpu/src/render/skybox/procedural-sky-pipeline.ts` |
+
+## proceduralSkyRenderPipeline.shaderDiagnostic (1)
+
+| Code                                           | Message                       | Fix? | Emitted from                                                   |
+| ---------------------------------------------- | ----------------------------- | ---- | -------------------------------------------------------------- |
+| `proceduralSkyRenderPipeline.shaderDiagnostic` | (message composed at runtime) | —    | `packages/webgpu/src/render/skybox/procedural-sky-pipeline.ts` |
+
 ## queuedBuiltInAppResourceAdapter.missingFamily (1)
 
 | Code                                            | Message                       | Fix? | Emitted from                                                                   |
@@ -4210,6 +4354,24 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                          | Message                                                  | Fix? | Emitted from                                    |
 | ----------------------------- | -------------------------------------------------------- | ---- | ----------------------------------------------- |
 | `renderWorld.missingRenderId` | Cannot update resource bindings for missing render id …. | —    | `packages/render/src/rendering/render-world.ts` |
+
+## runtimeUniform.invalidKey (1)
+
+| Code                        | Message                                         | Fix? | Emitted from                                                    |
+| --------------------------- | ----------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `runtimeUniform.invalidKey` | Runtime uniform key must be a non-empty string. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## runtimeUniform.invalidValues (1)
+
+| Code                           | Message                                                                                                              | Fix? | Emitted from                                                    |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `runtimeUniform.invalidValues` | Runtime uniform values must be a plain object of finite numbers, booleans, nulls, strings, or finite numeric arrays. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## runtimeUniform.invalidVersion (1)
+
+| Code                            | Message                                                      | Fix? | Emitted from                                                    |
+| ------------------------------- | ------------------------------------------------------------ | ---- | --------------------------------------------------------------- |
+| `runtimeUniform.invalidVersion` | Runtime uniform version must be a non-negative safe integer. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## shaderMetadata.missingBinding (1)
 

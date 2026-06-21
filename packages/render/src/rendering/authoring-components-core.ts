@@ -10,6 +10,7 @@ import {
   AudioSimulationSpace,
   FogMode,
   ParticleSimulationSpace,
+  ProceduralSkyModel,
   SpriteBillboardMode,
   SpriteBlendMode,
   SpriteCoordinateMode,
@@ -19,7 +20,7 @@ import {
   UiScreenScaleMode,
   UiTextAlign,
 } from "./authoring-types.js";
-import { tuple2, tuple4 } from "./authoring-utils.js";
+import { tuple2, tuple3, tuple4 } from "./authoring-utils.js";
 
 /**
  * Engine-owned skeleton structure stored on the {@link Skin} component's
@@ -279,6 +280,40 @@ export const Skybox = defineComponent(
     intensity: { type: EcsType.Float32, default: 1 },
   },
   "Renderer-independent skybox authoring component that stores cube texture and sampler handle ids only.",
+);
+
+export const ProceduralSky = defineComponent(
+  "aperture.render.proceduralSky",
+  {
+    model: {
+      type: EcsType.Enum,
+      enum: ProceduralSkyModel,
+      default: ProceduralSkyModel.Gradient,
+    },
+    priority: { type: EcsType.Int32, default: 0 },
+    topColor: { type: EcsType.Vec3, default: tuple3(0.015, 0.02, 0.08) },
+    horizonColor: { type: EcsType.Vec3, default: tuple3(0.04, 0.055, 0.13) },
+    bottomColor: { type: EcsType.Vec3, default: tuple3(0.006, 0.008, 0.025) },
+    horizonPosition: { type: EcsType.Float32, default: 0.4 },
+    horizonSoftness: { type: EcsType.Float32, default: 0.24 },
+    intensity: { type: EcsType.Float32, default: 1 },
+    sunDirection: { type: EcsType.Vec3, default: tuple3(-0.6, 0.4, -0.7) },
+    sunColor: { type: EcsType.Vec3, default: tuple3(1, 0.72, 0.38) },
+    sunRadius: { type: EcsType.Float32, default: 0.02 },
+    sunGlow: { type: EcsType.Float32, default: 0.35 },
+    ditherStrength: { type: EcsType.Float32, default: 0.003 },
+  },
+  "Renderer-independent procedural sky authoring component for fullscreen background passes.",
+);
+
+export const RuntimeUniform = defineComponent(
+  "aperture.render.runtimeUniform",
+  {
+    key: { type: EcsType.String, default: "" },
+    values: { type: EcsType.Object, default: null },
+    version: { type: EcsType.Int32, default: 0 },
+  },
+  "Renderer-independent runtime uniform values keyed for material bindings and packed by the WebGPU backend.",
 );
 
 export const Fog = defineComponent(

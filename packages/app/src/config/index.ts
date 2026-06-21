@@ -317,6 +317,21 @@ export interface ApertureBloomConfig {
   readonly levels?: number;
 }
 
+export interface ApertureRenderDeviceProfile {
+  readonly label?: string;
+  readonly minViewportWidth?: number;
+  readonly maxViewportWidth?: number;
+  readonly minViewportHeight?: number;
+  readonly maxViewportHeight?: number;
+  readonly minDevicePixelRatio?: number;
+  readonly maxDevicePixelRatio?: number;
+  readonly sampleCount?: number;
+  readonly pixelRatio?: number;
+  readonly maxPixelRatio?: number;
+  readonly exposure?: number;
+  readonly bloom?: boolean | ApertureBloomConfig;
+}
+
 export interface ApertureRenderDefaults {
   readonly clearColor?: readonly [number, number, number, number];
   readonly defaultCamera?: boolean;
@@ -324,6 +339,13 @@ export interface ApertureRenderDefaults {
   readonly sampleCount?: number;
   readonly pixelRatio?: number;
   readonly maxPixelRatio?: number;
+  /**
+   * Startup-time render quality overrides selected by viewport/device traits.
+   * Generated browser apps use the first matching profile before creating the
+   * WebGPU device, so profile-specific MSAA and post effects remain stable for
+   * the lifetime of the app.
+   */
+  readonly deviceProfiles?: readonly ApertureRenderDeviceProfile[];
   /**
    * Tonemap operator applied when converting the linear HDR scene to display.
    * Defaults to "none". Use "aces" for filmic, "agx"/"neutral" for the
@@ -346,6 +368,13 @@ export interface ApertureRenderDefaults {
    * query string.
    */
   readonly frameGraph?: boolean;
+  /**
+   * Frame production cadence for generated browser apps. "continuous" keeps the
+   * normal game-style worker/render loop. "demand" starts the worker paused and
+   * advances one snapshot after generated commands, useful for scroll-driven
+   * static showcases.
+   */
+  readonly cadence?: "continuous" | "demand";
 }
 
 export interface ApertureDiagnosticsConfig {

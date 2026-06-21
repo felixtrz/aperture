@@ -26,6 +26,7 @@ export interface PreparedCustomWgslBindingLayoutEntry {
   readonly label: string;
   readonly fields?: CustomWgslUniformBindingDeclaration["fields"];
   readonly values?: CustomWgslUniformBindingDeclaration["values"];
+  readonly runtimeUniformKey?: string;
 }
 
 export interface PreparedCustomWgslBindingResourceEntry {

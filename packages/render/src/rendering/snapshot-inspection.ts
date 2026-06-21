@@ -12,6 +12,8 @@ export interface RenderSnapshotInspectionCounts {
   readonly lights: number;
   readonly environments: number;
   readonly shadowRequests: number;
+  readonly proceduralSkies: number;
+  readonly runtimeUniforms: number;
   readonly bounds: number;
   readonly transformFloats: number;
   readonly viewMatrixFloats: number;
@@ -58,6 +60,8 @@ export function inspectRenderSnapshot(
     snapshot.lights.length === 0 &&
     snapshot.environments.length === 0 &&
     snapshot.shadowRequests.length === 0 &&
+    (snapshot.proceduralSkies?.length ?? 0) === 0 &&
+    (snapshot.runtimeUniforms?.length ?? 0) === 0 &&
     snapshot.bounds.length === 0
   ) {
     diagnostics.push({
@@ -75,6 +79,8 @@ export function inspectRenderSnapshot(
       lights: snapshot.lights.length,
       environments: snapshot.environments.length,
       shadowRequests: snapshot.shadowRequests.length,
+      proceduralSkies: snapshot.proceduralSkies?.length ?? 0,
+      runtimeUniforms: snapshot.runtimeUniforms?.length ?? 0,
       bounds: snapshot.bounds.length,
       transformFloats: snapshot.transforms.length,
       viewMatrixFloats: snapshot.viewMatrices.length,

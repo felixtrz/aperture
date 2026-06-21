@@ -4,6 +4,8 @@ export const RENDER_SNAPSHOT_CHANGE_SET_FAMILIES = [
   "shadowCasterDraws",
   "lights",
   "environments",
+  "proceduralSkies",
+  "runtimeUniforms",
   "shadowRequests",
   "bounds",
 ] as const;
@@ -35,6 +37,8 @@ export interface RenderSnapshotChangeSet {
   readonly shadowCasterDraws: RenderSnapshotFamilyChangeCounts;
   readonly lights: RenderSnapshotFamilyChangeCounts;
   readonly environments: RenderSnapshotFamilyChangeCounts;
+  readonly proceduralSkies: RenderSnapshotFamilyChangeCounts;
+  readonly runtimeUniforms: RenderSnapshotFamilyChangeCounts;
   readonly shadowRequests: RenderSnapshotFamilyChangeCounts;
   readonly bounds: RenderSnapshotFamilyChangeCounts;
   readonly total: RenderSnapshotFamilyChangeCounts;

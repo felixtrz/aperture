@@ -8,8 +8,10 @@ import type {
   LightPacket,
   MeshDrawPacket,
   ParticleEmitterPacket,
+  ProceduralSkyPacket,
   QuadBatchPacket,
   RenderQueue,
+  RuntimeUniformPacket,
   ShadowRequestPacket,
   SkyboxPacket,
   SpriteDrawPacket,
@@ -49,6 +51,8 @@ export interface RenderSnapshot {
   readonly uiNodes?: readonly UiNodePacket[];
   readonly uiHitRegions?: readonly UiHitRegionPacket[];
   readonly skyboxes?: readonly SkyboxPacket[];
+  readonly proceduralSkies?: readonly ProceduralSkyPacket[];
+  readonly runtimeUniforms?: readonly RuntimeUniformPacket[];
   readonly fogs?: readonly FogPacket[];
   readonly lights: readonly LightPacket[];
   readonly environments: readonly EnvironmentPacket[];

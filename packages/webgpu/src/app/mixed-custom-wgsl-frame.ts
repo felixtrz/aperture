@@ -721,6 +721,7 @@ async function prepareCustomDrawResourceSet(options: {
   readonly app: WebGpuApp;
   readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
+  readonly snapshot: RenderSnapshot;
   readonly draw: MeshDrawPacket;
   readonly meshKey: string;
   readonly materialKey: string;
@@ -828,6 +829,9 @@ async function prepareCustomDrawResourceSet(options: {
     ...(cachedPipeline === undefined ? {} : { pipelineResult: cachedPipeline }),
     bindingResources: textureSamplerBindingResources.resources,
     bindingResourceDiagnostics: textureSamplerBindingResources.diagnostics,
+    runtimeUniforms: options.snapshot.runtimeUniforms ?? [],
+    runtimeUniformCache: options.cache.customWgslRuntimeUniforms,
+    reuse: options.reuse,
   });
 
   if (

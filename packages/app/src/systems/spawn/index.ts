@@ -24,6 +24,7 @@ export type {
   SpawnParticlesOptions,
   SpawnPhysicsOptions,
   SpawnPrefabOptions,
+  SpawnRuntimeUniformOptions,
   SpawnSkyboxOptions,
   StandardMaterialDescriptor,
   StandardMaterialOptions,

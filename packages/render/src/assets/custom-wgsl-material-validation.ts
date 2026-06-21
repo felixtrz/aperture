@@ -357,12 +357,15 @@ function validateBindings(
         typeof binding.fields !== "object" ||
         binding.fields === null ||
         Object.keys(binding.fields).length === 0 ||
-        (binding.values !== undefined && !isJsonRecord(binding.values))
+        (binding.values !== undefined && !isJsonRecord(binding.values)) ||
+        (binding.runtimeUniformKey !== undefined &&
+          (typeof binding.runtimeUniformKey !== "string" ||
+            binding.runtimeUniformKey.trim().length === 0))
       ) {
         diagnostics.push(
           invalidBinding(
             assetKey,
-            `uniform binding '${binding.name}' must declare fields and JSON-safe values.`,
+            `uniform binding '${binding.name}' must declare fields, JSON-safe values, and a valid runtimeUniformKey.`,
           ),
         );
       }

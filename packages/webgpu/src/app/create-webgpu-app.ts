@@ -122,6 +122,8 @@ export async function createWebGpuApp(
   const cadence = createWebGpuAppCadenceDiagnostics();
   const defaultGpuTimings =
     options.gpuTimings === true || options.timestampQuery === true;
+  const continuousPresentation =
+    (options.presentationCadence ?? "continuous") === "continuous";
 
   const hasNativePresentationFrame =
     typeof requestAnimationFrame === "function";
@@ -222,6 +224,14 @@ export async function createWebGpuApp(
           scheduleAutoRender();
         }
       }
+      if (
+        nextRenderableSnapshotEvent() !== null &&
+        hasNativePresentationFrame &&
+        !continuousPresentation
+      ) {
+        cadence.recordRenderCompletionDrain();
+        scheduleAutoRender();
+      }
     }
   };
 
@@ -251,7 +261,7 @@ export async function createWebGpuApp(
 
       if (nextRenderableSnapshotEvent() === null) {
         cadence.recordPresentationCallbackWithoutSnapshot();
-        if (hasNativePresentationFrame) {
+        if (hasNativePresentationFrame && continuousPresentation) {
           scheduleAutoRender();
         }
         return;
@@ -259,7 +269,7 @@ export async function createWebGpuApp(
 
       presentationMissedWhileInFlight = false;
       renderPendingSnapshot();
-      if (hasNativePresentationFrame) {
+      if (hasNativePresentationFrame && continuousPresentation) {
         scheduleAutoRender();
       }
     });
@@ -305,7 +315,7 @@ export async function createWebGpuApp(
       }
 
       running = true;
-      if (hasNativePresentationFrame) {
+      if (hasNativePresentationFrame && continuousPresentation) {
         scheduleAutoRender();
       }
       unsubscribeSnapshot = options.simulationWorker.onSnapshot((event) => {

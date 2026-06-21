@@ -6,6 +6,10 @@ test-results/
 references/
 .aperture/
 .playwright-mcp/
+docs-site/.astro/
+docs-site/public/status/
+docs-site/public/api-reference/
+docs-site/src/content/*.generated.json
 
 .DS_Store
 *.log

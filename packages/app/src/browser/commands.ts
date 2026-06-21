@@ -12,6 +12,7 @@ import type { GeneratedBrowserAppStatus } from "./status.js";
 export function installGeneratedCommandForwarding(
   worker: SimulationWorker,
   status: GeneratedBrowserAppStatus,
+  options: { readonly afterForward?: () => void } = {},
 ): void {
   window.addEventListener(APERTURE_GENERATED_COMMAND_EVENT, (event) => {
     const command = parseGeneratedCommand((event as CustomEvent).detail);
@@ -29,6 +30,7 @@ export function installGeneratedCommandForwarding(
     }
 
     forwardCommand(worker, status, command);
+    options.afterForward?.();
   });
 }
 

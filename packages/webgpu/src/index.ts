@@ -42,6 +42,7 @@ export * from "./app/user-pass.js";
 export * from "./app/text.js";
 export * from "./app/ui.js";
 export * from "./app/particles.js";
+export * from "./app/procedural-sky.js";
 export * from "./post/post-pass.js";
 export * from "./post/post-color-history.js";
 export * from "./post/post-ssao.js";

@@ -35,6 +35,7 @@ import {
   withLightShadowSettings,
   withMaterial,
   withMesh,
+  withProceduralSky,
   withRenderLayer,
   withSkybox,
   withSprite,
@@ -3161,6 +3162,96 @@ describe("WebGPU app facade", () => {
     expect(events.indexOf("pass:draw:3")).toBeLessThan(
       events.indexOf("pass:drawIndexed:36"),
     );
+  });
+
+  it("renders an ECS-authored procedural sky and reuses stable uniforms", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withProceduralSky({
+        topColor: [0.02, 0.05, 0.18],
+        horizonColor: [0.32, 0.18, 0.12],
+        bottomColor: [0.006, 0.008, 0.02],
+        intensity: 1.1,
+        ditherStrength: 0.002,
+      }),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const firstFrame = await app.stepAndRender(1 / 60, 1, 25);
+
+    expect(firstFrame.ok).toBe(true);
+    expect(firstFrame.counts).toMatchObject({
+      views: 1,
+      meshDraws: 0,
+      skyboxes: 0,
+      proceduralSkies: 1,
+      drawCalls: 1,
+      diagnostics: 0,
+    });
+    expect(events).toContain(
+      "device:pipeline:aperture/procedural-sky:bgra8unorm",
+    );
+    expect(events.filter((event) => event === "pass:draw:3")).toHaveLength(1);
+    expect(
+      events.some((event) =>
+        event.startsWith("device:buffer:ProceduralSky/View/"),
+      ),
+    ).toBe(true);
+    expect(
+      events.some((event) =>
+        event.startsWith("device:bindGroup:ProceduralSky/ViewBindGroup/"),
+      ),
+    ).toBe(true);
+
+    events.length = 0;
+
+    const secondFrame = await app.stepAndRender(1 / 60, 1, 26);
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.counts).toMatchObject({
+      proceduralSkies: 1,
+      drawCalls: 1,
+      diagnostics: 0,
+    });
+    expect(secondFrame.resourceReuse).toMatchObject({
+      bindGroupsReused: 1,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      events.some((event) =>
+        event.startsWith("device:buffer:ProceduralSky/View/"),
+      ),
+    ).toBe(false);
+    expect(
+      events.some((event) =>
+        event.startsWith("device:bindGroup:ProceduralSky/ViewBindGroup/"),
+      ),
+    ).toBe(false);
+    expect(
+      events.some((event) =>
+        event.startsWith("queue:writeBuffer:ProceduralSky/View/"),
+      ),
+    ).toBe(false);
   });
 
   it("renders ECS sprite billboards alongside opaque mesh draws", async () => {
