@@ -22,7 +22,12 @@ import type {
   QuadPipelineVariant,
   QuadSizeMode,
 } from "./quad-snapshot.js";
-import type { AreaLightShape, FogMode, LightKind } from "./authoring.js";
+import type {
+  AreaLightShape,
+  FogMode,
+  LightKind,
+  ProceduralSkyModel,
+} from "./authoring.js";
 
 export type RenderQueue = "opaque" | "alpha-test" | "transparent";
 
@@ -277,6 +282,44 @@ export interface SkyboxPacket {
   readonly sampler?: SamplerHandle | null;
   readonly intensity: number;
   readonly layerMask: number;
+}
+
+export interface ProceduralSkyPacket {
+  readonly skyId: number;
+  readonly entity: RenderEntityRef;
+  readonly model: ProceduralSkyModel;
+  readonly priority: number;
+  readonly topColor: Vec3Like;
+  readonly horizonColor: Vec3Like;
+  readonly bottomColor: Vec3Like;
+  readonly horizonPosition: number;
+  readonly horizonSoftness: number;
+  readonly intensity: number;
+  readonly sunDirection: Vec3Like;
+  readonly sunColor: Vec3Like;
+  readonly sunRadius: number;
+  readonly sunGlow: number;
+  readonly ditherStrength: number;
+  readonly layerMask: number;
+}
+
+export type RuntimeUniformValuePacket =
+  | string
+  | number
+  | boolean
+  | null
+  | readonly number[];
+
+export type RuntimeUniformValueRecord = Readonly<
+  Record<string, RuntimeUniformValuePacket>
+>;
+
+export interface RuntimeUniformPacket {
+  readonly uniformId: number;
+  readonly entity: RenderEntityRef;
+  readonly key: string;
+  readonly values: RuntimeUniformValueRecord;
+  readonly version: number;
 }
 
 export interface FogPacket {

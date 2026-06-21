@@ -30,6 +30,14 @@ export function tuple4(
   return [x, y, z, w];
 }
 
+export function tuple3(
+  x: number,
+  y: number,
+  z: number,
+): [number, number, number] {
+  return [x, y, z];
+}
+
 export function tuple2(x: number, y: number): [number, number] {
   return [x, y];
 }

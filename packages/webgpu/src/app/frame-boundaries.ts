@@ -79,6 +79,7 @@ import {
   type WebGpuAppOcclusionCullingReport,
 } from "./occlusion-culling.js";
 import { countDrawCommands, writeCommandsForView } from "./view-commands.js";
+import { writeProceduralSkyCommandsForView } from "./procedural-sky.js";
 import { writeSkyboxCommandsForView } from "./skybox.js";
 import { assembleWebGpuAppPostProcessedSwapchainTarget } from "./post-processing.js";
 import {
@@ -282,21 +283,32 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     diagnostics.push(...viewRectangles.diagnostics);
     allTargetsValid &&= viewRectangles.valid;
 
-    const skybox = await writeSkyboxCommandsForView({
+    const proceduralSky = await writeProceduralSkyCommandsForView({
       app: options.app,
-      assets: options.assets,
       cache: options.cache,
       snapshot: options.snapshot,
       view: target.view,
       target: options.cache.frameScratch.skyboxCommands,
       reuse: options.reuse,
     });
+    const background =
+      proceduralSky.commands.length > 0
+        ? proceduralSky
+        : await writeSkyboxCommandsForView({
+            app: options.app,
+            assets: options.assets,
+            cache: options.cache,
+            snapshot: options.snapshot,
+            view: target.view,
+            target: options.cache.frameScratch.skyboxCommands,
+            reuse: options.reuse,
+          });
     const commandsForView = writeCommandsForView(
       options.commands,
       options.snapshot,
       target.view,
       options.cache.frameScratch.viewCommands,
-      skybox.commands,
+      background.commands,
     );
     const renderBundleCommandsForView =
       options.renderBundleCommands === undefined
@@ -306,7 +318,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
             options.snapshot,
             target.view,
             renderBundleViewCommands,
-            skybox.commands,
+            background.commands,
           );
     const occlusionCandidateRenderIds =
       collectOcclusionQueryRenderIds(commandsForView);
@@ -355,8 +367,8 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     // must stay valid.
     allTargetsValid &&=
       occlusionQueries === null || occlusionQueries.valid || occlusionFallback;
-    diagnostics.push(...skybox.diagnostics);
-    allTargetsValid &&= skybox.valid;
+    diagnostics.push(...background.diagnostics);
+    allTargetsValid &&= background.valid;
     const depthAttachment = createWebGpuAppDepthAttachmentForTarget(
       options.app,
       options.cache,

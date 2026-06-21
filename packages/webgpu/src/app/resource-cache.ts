@@ -54,6 +54,7 @@ import type {
   CreateParticleRenderPipelineResourceResult,
 } from "../render/particles/particle-pipeline.js";
 import type { CreateSkyboxRenderPipelineResourceResult } from "../render/skybox/skybox-pipeline.js";
+import type { CreateProceduralSkyRenderPipelineResourceResult } from "../render/skybox/procedural-sky-pipeline.js";
 import type { RenderPassCommand } from "../render/passes/render-pass-commands.js";
 import {
   createQueuedBuiltInAppRouteCollectorScratch,
@@ -101,6 +102,7 @@ import type {
   CachedDebugNormalAppFrameResources,
   DebugNormalAppFrameResourceCacheSlot,
 } from "../materials/debug-normal/debug-normal-app-frame-resources.js";
+import type { CustomWgslRuntimeUniformBufferResource } from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
 import type { StandardFrameShadowReceiverResources } from "../materials/standard/standard-frame-resources.js";
 import {
   createWebGpuPostPassTextureCacheSlot,
@@ -159,6 +161,15 @@ export interface WebGpuAppResourceCache {
   readonly skyboxPipelines: Map<
     string,
     CreateSkyboxRenderPipelineResourceResult
+  >;
+  readonly proceduralSkyPipelines: Map<
+    string,
+    CreateProceduralSkyRenderPipelineResourceResult
+  >;
+  readonly proceduralSkyUniforms: Map<string, ProceduralSkyUniformResource>;
+  readonly customWgslRuntimeUniforms: Map<
+    string,
+    CustomWgslRuntimeUniformBufferResource
   >;
   readonly layouts: Map<string, WebGpuAppPipelineLayouts>;
   readonly textures: Map<string, TextureGpuResource>;
@@ -260,6 +271,14 @@ export interface ParticleViewUniformBufferResource {
   readonly byteLength: number;
 }
 
+export interface ProceduralSkyUniformResource {
+  readonly key: string;
+  readonly buffer: unknown;
+  readonly bindGroup: unknown;
+  readonly byteLength: number;
+  valueKey: string;
+}
+
 export interface WebGpuAppPostPassCache {
   readonly scene: WebGpuPostPassTextureCacheSlot;
   readonly ping: WebGpuPostPassTextureCacheSlot;
@@ -356,6 +375,9 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     particleBurstBatchStates: new Map(),
     particleViewUniformBuffer: null,
     skyboxPipelines: new Map(),
+    proceduralSkyPipelines: new Map(),
+    proceduralSkyUniforms: new Map(),
+    customWgslRuntimeUniforms: new Map(),
     layouts: new Map(),
     textures: new Map(),
     samplers: new Map(),

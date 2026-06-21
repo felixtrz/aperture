@@ -4,6 +4,8 @@ import type {
   LightInput,
   LightShadowSettingsInput,
   ParticleEmitterInput,
+  ProceduralSkyInput,
+  RuntimeUniformInput,
   SkyboxInput,
   StandardMaterialPatch,
 } from "@aperture-engine/render";
@@ -100,6 +102,18 @@ export interface SpawnSkyboxOptions
   readonly texture: SkyboxTextureDescriptorInput;
   readonly sampler?: SkyboxSamplerDescriptorInput | null;
   readonly transform?: SystemTransformInput;
+}
+
+export interface SpawnProceduralSkyOptions
+  extends SpawnMetadata, ProceduralSkyInput {
+  readonly transform?: SystemTransformInput;
+}
+
+export interface SpawnRuntimeUniformOptions extends SpawnMetadata {
+  /** Runtime uniform key matched by custom WGSL uniform bindings. */
+  readonly uniformKey: RuntimeUniformInput["key"];
+  readonly values: RuntimeUniformInput["values"];
+  readonly version?: RuntimeUniformInput["version"];
 }
 
 export interface PrimitiveMeshDescriptor {
@@ -205,6 +219,10 @@ export interface CustomWgslUniformBindingOptions {
     CustomWgslMaterialAsset["bindings"][number],
     { readonly kind: "uniform-buffer" }
   >["values"];
+  readonly runtimeUniformKey?: Extract<
+    CustomWgslMaterialAsset["bindings"][number],
+    { readonly kind: "uniform-buffer" }
+  >["runtimeUniformKey"];
   readonly label?: string;
 }
 
@@ -277,6 +295,10 @@ export interface SpawnCommands {
   fog(options?: SpawnFogOptions): Entity;
   /** Spawn an ECS-authored skybox consumed by render extraction. */
   skybox(options: SpawnSkyboxOptions): Entity;
+  /** Spawn an ECS-authored procedural sky consumed by render extraction. */
+  proceduralSky(options?: SpawnProceduralSkyOptions): Entity;
+  /** Spawn keyed runtime uniform values consumed by dynamic custom WGSL bindings. */
+  runtimeUniform(options: SpawnRuntimeUniformOptions): Entity;
   mesh(options: SpawnMeshOptions): Entity;
   /** Spawn a renderer-independent particle emitter entity. */
   particles(options: SpawnParticlesOptions): Entity;

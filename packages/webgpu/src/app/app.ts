@@ -127,6 +127,8 @@ export interface WebGpuAppRenderCounts {
   readonly uiNodes: number;
   readonly uiHitRegions: number;
   readonly skyboxes: number;
+  readonly proceduralSkies: number;
+  readonly runtimeUniforms: number;
   readonly fogs: number;
   readonly drawPackages: number;
   readonly drawCommands: number;

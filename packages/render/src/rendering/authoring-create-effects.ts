@@ -1,20 +1,30 @@
 import {
   assetHandleKey,
+  toVec3Tuple,
   toVec4Tuple,
   type ComponentInitialData,
 } from "@aperture-engine/simulation";
 import {
   FogMode,
+  ProceduralSkyModel,
   SpriteBillboardMode,
   SpriteBlendMode,
   SpriteCoordinateMode,
   SpriteDepthMode,
   SpriteSizeMode,
   type FogInput,
+  type ProceduralSkyInput,
+  type RuntimeUniformInput,
   type SkyboxInput,
   type SpriteInput,
 } from "./authoring-types.js";
-import type { Fog, Skybox, Sprite } from "./authoring-components.js";
+import type {
+  Fog,
+  ProceduralSky,
+  RuntimeUniform,
+  Skybox,
+  Sprite,
+} from "./authoring-components.js";
 import { spriteSize } from "./authoring-utils.js";
 
 export function createSprite(
@@ -53,6 +63,36 @@ export function createSkybox(
         ? ""
         : assetHandleKey(input.sampler),
     intensity: input.intensity ?? 1,
+  };
+}
+
+export function createProceduralSky(
+  input: ProceduralSkyInput = {},
+): ComponentInitialData<typeof ProceduralSky> {
+  return {
+    model: input.model ?? ProceduralSkyModel.Gradient,
+    priority: input.priority ?? 0,
+    topColor: toVec3Tuple(input.topColor ?? [0.015, 0.02, 0.08]),
+    horizonColor: toVec3Tuple(input.horizonColor ?? [0.04, 0.055, 0.13]),
+    bottomColor: toVec3Tuple(input.bottomColor ?? [0.006, 0.008, 0.025]),
+    horizonPosition: input.horizonPosition ?? 0.4,
+    horizonSoftness: input.horizonSoftness ?? 0.24,
+    intensity: input.intensity ?? 1,
+    sunDirection: toVec3Tuple(input.sunDirection ?? [-0.6, 0.4, -0.7]),
+    sunColor: toVec3Tuple(input.sunColor ?? [1, 0.72, 0.38]),
+    sunRadius: input.sunRadius ?? 0.02,
+    sunGlow: input.sunGlow ?? 0.35,
+    ditherStrength: input.ditherStrength ?? 0.003,
+  };
+}
+
+export function createRuntimeUniform(
+  input: RuntimeUniformInput,
+): ComponentInitialData<typeof RuntimeUniform> {
+  return {
+    key: input.key,
+    values: { ...input.values },
+    version: input.version ?? 0,
   };
 }
 

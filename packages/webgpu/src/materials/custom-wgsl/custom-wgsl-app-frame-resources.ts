@@ -4,9 +4,12 @@ import {
   type PackedSnapshotTransforms,
   type PackedSnapshotViewUniforms,
   type PreparedCustomWgslMaterial,
+  type RuntimeUniformPacket,
+  type RuntimeUniformValueRecord,
 } from "@aperture-engine/render";
 import {
   createWebGpuBuffer,
+  writeWebGpuBufferData,
   type WebGpuBufferDeviceLike,
 } from "../../gpu/buffer.js";
 import {
@@ -52,6 +55,17 @@ interface CustomWgslAppFrameResources {
   )[];
 }
 
+export interface CustomWgslRuntimeUniformBufferResource {
+  readonly key: string;
+  readonly buffer: unknown;
+  readonly byteLength: number;
+  valueKey: string;
+}
+
+export interface CustomWgslRuntimeUniformReuseCounters {
+  dynamicBufferWrites: number;
+}
+
 export interface CreateCustomWgslAppFrameResourcesResult {
   readonly valid: boolean;
   readonly resources: CustomWgslAppFrameResources | null;
@@ -72,6 +86,12 @@ export async function createCustomWgslAppFrameResources(options: {
   readonly pipelineResult?: CreateCustomWgslMaterialRenderPipelineResourceResult;
   readonly bindingResources?: readonly CustomWgslMaterialGpuResource[];
   readonly bindingResourceDiagnostics?: readonly unknown[];
+  readonly runtimeUniforms?: readonly RuntimeUniformPacket[];
+  readonly runtimeUniformCache?: Map<
+    string,
+    CustomWgslRuntimeUniformBufferResource
+  >;
+  readonly reuse?: CustomWgslRuntimeUniformReuseCounters;
 }): Promise<CreateCustomWgslAppFrameResourcesResult> {
   const diagnostics: unknown[] = [];
 
@@ -122,6 +142,11 @@ export async function createCustomWgslAppFrameResources(options: {
     device: options.device,
     material: options.material,
     externalResources: options.bindingResources ?? [],
+    runtimeUniforms: options.runtimeUniforms ?? [],
+    ...(options.runtimeUniformCache === undefined
+      ? {}
+      : { runtimeUniformCache: options.runtimeUniformCache }),
+    ...(options.reuse === undefined ? {} : { reuse: options.reuse }),
   });
 
   diagnostics.push(...materialResources.diagnostics);
@@ -321,6 +346,12 @@ function createCustomWgslBindingResources(options: {
   readonly device: WebGpuBufferDeviceLike;
   readonly material: PreparedCustomWgslMaterial;
   readonly externalResources: readonly CustomWgslMaterialGpuResource[];
+  readonly runtimeUniforms: readonly RuntimeUniformPacket[];
+  readonly runtimeUniformCache?: Map<
+    string,
+    CustomWgslRuntimeUniformBufferResource
+  >;
+  readonly reuse?: CustomWgslRuntimeUniformReuseCounters;
 }): {
   readonly resources: readonly CustomWgslMaterialGpuResource[];
   readonly diagnostics: readonly unknown[];
@@ -332,6 +363,9 @@ function createCustomWgslBindingResources(options: {
       resource.resourceKey,
       resource.resource,
     ]),
+  );
+  const runtimeUniforms = new Map(
+    options.runtimeUniforms.map((uniform) => [uniform.key, uniform]),
   );
 
   for (const binding of options.material.bindGroup.entries) {
@@ -358,7 +392,51 @@ function createCustomWgslBindingResources(options: {
       continue;
     }
 
-    const bytes = encodeUniformBinding(options.material, binding.binding);
+    const runtimeValues = resolveRuntimeUniformValues({
+      layout,
+      binding,
+      runtimeUniforms,
+      diagnostics,
+    });
+
+    if (runtimeValues === null) {
+      continue;
+    }
+
+    const bytes = encodeUniformBinding(
+      options.material,
+      binding.binding,
+      runtimeValues,
+    );
+    const runtimeUniformKey = layout.runtimeUniformKey;
+    const runtimeResource =
+      runtimeUniformKey === undefined
+        ? null
+        : getOrCreateCustomWgslRuntimeUniformResource({
+            device: options.device,
+            material: options.material,
+            binding,
+            runtimeUniformKey,
+            data: bytes,
+            ...(options.runtimeUniformCache === undefined
+              ? {}
+              : { cache: options.runtimeUniformCache }),
+            ...(options.reuse === undefined ? {} : { reuse: options.reuse }),
+            diagnostics,
+          });
+
+    if (runtimeResource !== null) {
+      resources.push({
+        resourceKey: binding.resourceKey,
+        resource: { buffer: runtimeResource.buffer },
+      });
+      continue;
+    }
+
+    if (runtimeUniformKey !== undefined) {
+      continue;
+    }
+
     const bufferUsage = (
       globalThis as { GPUBufferUsage?: { UNIFORM: number; COPY_DST: number } }
     ).GPUBufferUsage ?? {
@@ -397,6 +475,7 @@ function createCustomWgslBindingResources(options: {
 function encodeUniformBinding(
   material: PreparedCustomWgslMaterial,
   bindingIndex: number,
+  runtimeValues?: RuntimeUniformValueRecord,
 ): Uint8Array {
   const sourceBinding = material.bindGroupLayout.entries.find(
     (entry) => entry.binding === bindingIndex,
@@ -405,7 +484,11 @@ function encodeUniformBinding(
   const layout = fields.map(([name, field]) => ({
     name,
     type: field.type,
-    value: sourceBinding?.values?.[name] ?? field.default ?? 0,
+    value:
+      runtimeValues?.[name] ??
+      sourceBinding?.values?.[name] ??
+      field.default ??
+      0,
   }));
   let offset = 0;
 
@@ -430,6 +513,188 @@ function encodeUniformBinding(
   }
 
   return bytes;
+}
+
+function resolveRuntimeUniformValues(input: {
+  readonly layout:
+    | PreparedCustomWgslMaterial["bindGroupLayout"]["entries"][number]
+    | undefined;
+  readonly binding: PreparedCustomWgslMaterial["bindGroup"]["entries"][number];
+  readonly runtimeUniforms: ReadonlyMap<string, RuntimeUniformPacket>;
+  readonly diagnostics: unknown[];
+}): RuntimeUniformValueRecord | undefined | null {
+  const runtimeUniformKey = input.layout?.runtimeUniformKey;
+
+  if (runtimeUniformKey === undefined) {
+    return undefined;
+  }
+
+  const packet = input.runtimeUniforms.get(runtimeUniformKey);
+
+  if (packet === undefined) {
+    input.diagnostics.push({
+      code: "customWgslAppFrameResources.runtimeUniformMissing",
+      severity: "error",
+      message: `Custom WGSL binding ${String(input.binding.binding)} requires runtime uniform '${runtimeUniformKey}', but no runtime uniform packet with that key was extracted.`,
+      binding: input.binding.binding,
+      resourceKey: input.binding.resourceKey,
+      runtimeUniformKey,
+    });
+    return null;
+  }
+
+  const fields = input.layout?.fields ?? {};
+  const missingFields: string[] = [];
+
+  for (const [name, field] of Object.entries(fields)) {
+    if (!hasOwn(packet.values, name)) {
+      missingFields.push(name);
+      continue;
+    }
+
+    const value = packet.values[name];
+
+    if (!runtimeUniformValueMatchesField(value, field.type)) {
+      input.diagnostics.push({
+        code: "customWgslAppFrameResources.runtimeUniformInvalidValue",
+        severity: "error",
+        message: `Runtime uniform '${runtimeUniformKey}' value '${name}' does not match custom WGSL field type '${field.type}'.`,
+        binding: input.binding.binding,
+        resourceKey: input.binding.resourceKey,
+        runtimeUniformKey,
+        field: name,
+      });
+      return null;
+    }
+  }
+
+  if (missingFields.length > 0) {
+    input.diagnostics.push({
+      code: "customWgslAppFrameResources.runtimeUniformMissingFields",
+      severity: "warning",
+      message: `Runtime uniform '${runtimeUniformKey}' is missing value(s) for ${missingFields.join(", ")}; material defaults will be used.`,
+      binding: input.binding.binding,
+      resourceKey: input.binding.resourceKey,
+      runtimeUniformKey,
+      fields: missingFields,
+    });
+  }
+
+  return packet.values;
+}
+
+function getOrCreateCustomWgslRuntimeUniformResource(input: {
+  readonly device: WebGpuBufferDeviceLike;
+  readonly material: PreparedCustomWgslMaterial;
+  readonly binding: PreparedCustomWgslMaterial["bindGroup"]["entries"][number];
+  readonly runtimeUniformKey: string;
+  readonly data: Uint8Array;
+  readonly cache?: Map<string, CustomWgslRuntimeUniformBufferResource>;
+  readonly reuse?: CustomWgslRuntimeUniformReuseCounters;
+  readonly diagnostics: unknown[];
+}): CustomWgslRuntimeUniformBufferResource | null {
+  const key = [
+    "custom-wgsl-runtime-uniform",
+    input.material.sourceMaterialKey,
+    `binding-${String(input.binding.binding)}`,
+    input.runtimeUniformKey,
+  ].join(":");
+  const valueKey = customWgslUniformValueKey(input.data);
+  const cached = input.cache?.get(key);
+
+  if (cached !== undefined && cached.byteLength === input.data.byteLength) {
+    if (cached.valueKey !== valueKey) {
+      if (!writeWebGpuBufferData(input.device, cached.buffer, input.data)) {
+        input.diagnostics.push({
+          code: "customWgslAppFrameResources.runtimeUniformWriteFailed",
+          severity: "error",
+          message: `WebGPU device cannot write updated runtime uniform '${input.runtimeUniformKey}'.`,
+          binding: input.binding.binding,
+          resourceKey: input.binding.resourceKey,
+          runtimeUniformKey: input.runtimeUniformKey,
+        });
+        return null;
+      }
+
+      cached.valueKey = valueKey;
+      if (input.reuse !== undefined) {
+        input.reuse.dynamicBufferWrites += 1;
+      }
+    }
+
+    return cached;
+  }
+
+  const bufferUsage = (
+    globalThis as { GPUBufferUsage?: { UNIFORM: number; COPY_DST: number } }
+  ).GPUBufferUsage ?? {
+    UNIFORM: 0x40,
+    COPY_DST: 0x08,
+  };
+  const buffer = createWebGpuBuffer({
+    device: input.device,
+    descriptor: {
+      label: key,
+      size: input.data.byteLength,
+      usage: bufferUsage.UNIFORM | bufferUsage.COPY_DST,
+      initialData: input.data,
+    },
+  });
+
+  if (!buffer.ok) {
+    input.diagnostics.push({
+      code: "customWgslAppFrameResources.runtimeUniformBufferFailed",
+      severity: "error",
+      message: buffer.message,
+      binding: input.binding.binding,
+      resourceKey: input.binding.resourceKey,
+      runtimeUniformKey: input.runtimeUniformKey,
+    });
+    return null;
+  }
+
+  const resource: CustomWgslRuntimeUniformBufferResource = {
+    key,
+    buffer: buffer.buffer,
+    byteLength: input.data.byteLength,
+    valueKey,
+  };
+
+  input.cache?.set(key, resource);
+
+  if (input.reuse !== undefined) {
+    input.reuse.dynamicBufferWrites += 1;
+  }
+
+  return resource;
+}
+
+function runtimeUniformValueMatchesField(
+  value: unknown,
+  type: string,
+): boolean {
+  const count = uniformFieldComponentCount(type);
+
+  if (count === 1) {
+    return (
+      (typeof value === "number" && Number.isFinite(value)) ||
+      (Array.isArray(value) &&
+        value.length >= 1 &&
+        typeof value[0] === "number" &&
+        Number.isFinite(value[0]))
+    );
+  }
+
+  return (
+    Array.isArray(value) &&
+    value.length >= count &&
+    value
+      .slice(0, count)
+      .every(
+        (component) =>
+          typeof component === "number" && Number.isFinite(component),
+      )
+  );
 }
 
 function writeUniformField(
@@ -511,4 +776,15 @@ function uniformFieldComponentCount(type: string): number {
 
 function alignTo(value: number, alignment: number): number {
   return Math.ceil(value / alignment) * alignment;
+}
+
+function customWgslUniformValueKey(data: Uint8Array): string {
+  return Array.from(data).join(",");
+}
+
+function hasOwn(
+  record: Readonly<Record<string, unknown>>,
+  key: string,
+): boolean {
+  return Object.prototype.hasOwnProperty.call(record, key);
 }

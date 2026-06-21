@@ -220,6 +220,7 @@ export async function renderWebGpuAppFrame(
   const firstView = snapshot.views[0];
   const spriteDraws = snapshot.spriteDraws ?? [];
   const skyboxes = snapshot.skyboxes ?? [];
+  const proceduralSkies = snapshot.proceduralSkies ?? [];
   const hasGlyphBatches = (snapshot.quadBatches ?? []).some(
     (batch) => batch.kind === "glyph",
   );
@@ -232,6 +233,7 @@ export async function renderWebGpuAppFrame(
     firstView !== undefined &&
     (spriteDraws.length > 0 ||
       skyboxes.length > 0 ||
+      proceduralSkies.length > 0 ||
       hasGlyphBatches ||
       hasUiNodes ||
       hasParticleEmitters)

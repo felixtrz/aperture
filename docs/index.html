@@ -393,15 +393,25 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-18 22:21 UTC</dd>
+            <dd>2026-06-21 18:11 UTC</dd>
             <dt>Branch</dt>
-            <dd>racing-perf-autoshadow-reorient</dd>
+            <dd>claude/sweet-maxwell-v6bt4l</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Racing frame-time follow-up fixed stable
-              auto-shadow cache reuse so same-snapshot frames advance the cache
-              frame and hit by change-set proof without rebuilding or hashing
-              the large shadow input key. Idle
+              Latest update: Procedural sky and runtime uniforms are now engine
+              features. The docs landing scene uses
+              <code>ProceduralSky</code> instead of sky-band geometry, and
+              custom WGSL uniform bindings can opt into
+              <code>runtimeUniformKey</code> values extracted from ECS
+              <code>RuntimeUniform</code> components. Value-only runtime changes
+              update cached WebGPU uniform buffers with
+              <code>queue.writeBuffer</code> without source asset
+              re-registration or shader/pipeline rebuilds. Full workspace tests,
+              package builds, docs-site typecheck/build, and shader compilation
+              passed for the slice. Prior update: Racing frame-time follow-up
+              fixed stable auto-shadow cache reuse so same-snapshot frames
+              advance the cache frame and hit by change-set proof without
+              rebuilding or hashing the large shadow input key. Idle
               <code>prepareMainAutoShadow</code> dropped to about
               <code>0.02 ms</code> average, and the latest paired trace has
               Aperture winning most idle and drive frame-pacing aggregates.
@@ -2347,10 +2357,14 @@
               WebGPU pipeline. ECS <code>OcclusionQuery</code> now extracts an
               opt-in mesh-draw flag for renderer-owned GPU visibility feedback.
               ECS <code>Fog</code> components now extract snapshot fog packets
-              for linear, exponential, and exponential-squared view fog.
-              Snapshot change sets now carry stable packet keys and produce
-              renderer update schedules that classify refresh, reuse, removal,
-              mixed, and skipped packet-family work.
+              for linear, exponential, and exponential-squared view fog. ECS
+              <code>ProceduralSky</code> components now extract
+              renderer-independent gradient/sun packets for the WebGPU
+              fullscreen sky pass, and keyed <code>RuntimeUniform</code>
+              components now extract packet data for dynamic custom WGSL uniform
+              bindings. Snapshot change sets now carry stable packet keys and
+              produce renderer update schedules that classify refresh, reuse,
+              removal, mixed, and skipped packet-family work.
             </p>
             <ul>
               <li>

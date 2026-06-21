@@ -209,6 +209,9 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     ...(cachedPipeline === undefined ? {} : { pipelineResult: cachedPipeline }),
     bindingResources: textureSamplerBindingResources.resources,
     bindingResourceDiagnostics: textureSamplerBindingResources.diagnostics,
+    runtimeUniforms: options.snapshot.runtimeUniforms ?? [],
+    runtimeUniformCache: options.cache.customWgslRuntimeUniforms,
+    reuse: options.reuse,
   });
 
   if (

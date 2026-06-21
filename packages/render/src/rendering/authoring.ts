@@ -17,8 +17,10 @@ import {
   OcclusionQuery,
   ParticleEmitter,
   Pickable,
+  ProceduralSky,
   RenderLayer,
   RenderOrder,
+  RuntimeUniform,
   ShadowCaster,
   ShadowReceiver,
   Skin,
@@ -55,6 +57,8 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(UiHitTarget);
   world.registerComponent(UiScroll);
   world.registerComponent(Skybox);
+  world.registerComponent(ProceduralSky);
+  world.registerComponent(RuntimeUniform);
   world.registerComponent(Fog);
   world.registerComponent(Camera);
   world.registerComponent(Visibility);

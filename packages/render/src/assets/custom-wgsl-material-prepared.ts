@@ -37,6 +37,9 @@ export function createPreparedCustomWgslMaterial(input: {
       ? {
           fields: binding.fields,
           ...(binding.values === undefined ? {} : { values: binding.values }),
+          ...(binding.runtimeUniformKey === undefined
+            ? {}
+            : { runtimeUniformKey: binding.runtimeUniformKey }),
         }
       : {}),
   }));
@@ -98,7 +101,7 @@ function customWgslMaterialPipelineKey(
       JSON.stringify(source.pipelineKey.specialization),
     )}`,
     `bindings:${source.bindings
-      .map((binding) => `${binding.binding}:${binding.kind}`)
+      .map(customWgslBindingLayoutSignature)
       .sort()
       .join(",")}`,
     source.renderState.alphaMode,
@@ -106,6 +109,23 @@ function customWgslMaterialPipelineKey(
     source.renderState.depth.compare,
     source.renderState.blend.preset,
   ].join("|");
+}
+
+function customWgslBindingLayoutSignature(
+  binding: CustomWgslMaterialSource["bindings"][number],
+): string {
+  const visibility = [...binding.visibility].sort().join("+");
+
+  if (binding.kind !== "uniform-buffer") {
+    return `${binding.binding}:${binding.kind}:visibility:${visibility}`;
+  }
+
+  const fields = Object.entries(binding.fields)
+    .map(([name, field]) => `${name}:${field.type}`)
+    .sort()
+    .join("+");
+
+  return `${binding.binding}:uniform-buffer:visibility:${visibility}:fields:${fields}`;
 }
 
 function stableStringHash(value: string): string {

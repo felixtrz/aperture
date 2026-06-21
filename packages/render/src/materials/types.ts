@@ -261,6 +261,7 @@ export interface CustomWgslUniformBindingDeclaration extends BaseCustomWgslBindi
   readonly kind: "uniform-buffer";
   readonly fields: Readonly<Record<string, CustomWgslUniformField>>;
   readonly values?: Readonly<Record<string, JsonPrimitive | readonly number[]>>;
+  readonly runtimeUniformKey?: string;
 }
 
 /** @public */

@@ -28,7 +28,9 @@ import {
   Mesh,
   MorphTargetWeights,
   OcclusionQuery,
+  ProceduralSky,
   RenderLayer,
+  RuntimeUniform,
   ShadowCaster,
   ShadowReceiver,
   Skin,
@@ -44,11 +46,13 @@ import {
   createMaterialSlots,
   createMorphTargetWeights,
   createOcclusionQuery,
+  createProceduralSky,
   createSamplerAsset,
   createStandardMaterialAsset,
   createTextureAsset,
   createRenderExtractionCache,
   createRenderSnapshotChangeSet,
+  createRuntimeUniform,
   createSkin,
   createStableRenderId,
   createSprite,
@@ -499,6 +503,161 @@ describe("render extraction", () => {
         code: "render.skybox.textureNotCube",
         entity: { index: entity.index, generation: entity.generation },
         assetKey: "texture:flat-background",
+      },
+    ]);
+  });
+
+  it("extracts procedural sky packets with dynamic gradient values", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+
+    createCameraEntity(world, { priority: 0, layerMask: 0b10 });
+
+    const entity = world.createEntity();
+
+    entity.addComponent(
+      ProceduralSky,
+      createProceduralSky({
+        priority: 5,
+        topColor: [0.02, 0.06, 0.18],
+        horizonColor: [0.4, 0.18, 0.08],
+        bottomColor: [0.01, 0.012, 0.035],
+        horizonPosition: 0.42,
+        horizonSoftness: 0.18,
+        intensity: 1.4,
+        sunDirection: [-0.6, 0.2, -0.7],
+        sunColor: [1.0, 0.72, 0.36],
+        sunRadius: 0.035,
+        sunGlow: 0.45,
+        ditherStrength: 0.0025,
+      }),
+    );
+    entity.addComponent(RenderLayer, { mask: 0b10 });
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 6 });
+
+    expect(snapshot.proceduralSkies).toHaveLength(1);
+    const sky = required(snapshot.proceduralSkies?.[0]);
+
+    expect(sky).toMatchObject({
+      skyId: createStableRenderId({
+        index: entity.index,
+        generation: entity.generation,
+      }),
+      entity: { index: entity.index, generation: entity.generation },
+      model: "gradient",
+      priority: 5,
+      layerMask: 0b10,
+    });
+    expectTupleCloseTo(sky.topColor, [0.02, 0.06, 0.18]);
+    expectTupleCloseTo(sky.horizonColor, [0.4, 0.18, 0.08]);
+    expectTupleCloseTo(sky.bottomColor, [0.01, 0.012, 0.035]);
+    expect(sky.horizonPosition).toBeCloseTo(0.42, 6);
+    expect(sky.horizonSoftness).toBeCloseTo(0.18, 6);
+    expect(sky.intensity).toBeCloseTo(1.4, 6);
+    expectTupleCloseTo(sky.sunDirection, [-0.6, 0.2, -0.7]);
+    expectTupleCloseTo(sky.sunColor, [1, 0.72, 0.36]);
+    expect(sky.sunRadius).toBeCloseTo(0.035, 6);
+    expect(sky.sunGlow).toBeCloseTo(0.45, 6);
+    expect(sky.ditherStrength).toBeCloseTo(0.0025, 6);
+    expect(snapshot.report).toMatchObject({
+      views: 1,
+      proceduralSkies: 1,
+      diagnostics: 0,
+    });
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("extracts runtime uniforms and marks value changes as packet changes", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const entity = world.createEntity();
+
+    entity.addComponent(
+      RuntimeUniform,
+      createRuntimeUniform({
+        key: "sky.gradient",
+        values: {
+          topColor: [0.02, 0.08, 0.22],
+          exposure: 1.1,
+        },
+        version: 1,
+      }),
+    );
+
+    const first = extractRenderSnapshot(world, assets, { frame: 1 });
+
+    expect(first.runtimeUniforms).toHaveLength(1);
+    expect(first.runtimeUniforms?.[0]).toMatchObject({
+      uniformId: createStableRenderId({
+        index: entity.index,
+        generation: entity.generation,
+      }),
+      entity: { index: entity.index, generation: entity.generation },
+      key: "sky.gradient",
+      values: {
+        topColor: [0.02, 0.08, 0.22],
+        exposure: 1.1,
+      },
+      version: 1,
+    });
+    expect(first.report).toMatchObject({
+      runtimeUniforms: 1,
+      diagnostics: 0,
+    });
+
+    entity.setValue(RuntimeUniform, "values", {
+      topColor: [0.05, 0.14, 0.36],
+      exposure: 1.35,
+    });
+    entity.setValue(RuntimeUniform, "version", 2);
+
+    const second = extractRenderSnapshot(world, assets, { frame: 2 });
+    const changeSet = createRenderSnapshotChangeSet(first, second);
+
+    expect(second.runtimeUniforms?.[0]?.values).toEqual({
+      topColor: [0.05, 0.14, 0.36],
+      exposure: 1.35,
+    });
+    expect(changeSet.runtimeUniforms).toEqual({
+      changed: 1,
+      unchanged: 0,
+      removed: 0,
+    });
+  });
+
+  it("diagnoses duplicate runtime uniform keys", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const first = world.createEntity();
+    const duplicate = world.createEntity();
+
+    first.addComponent(
+      RuntimeUniform,
+      createRuntimeUniform({
+        key: "material.params",
+        values: { color: [1, 0, 0, 1] },
+      }),
+    );
+    duplicate.addComponent(
+      RuntimeUniform,
+      createRuntimeUniform({
+        key: "material.params",
+        values: { color: [0, 0, 1, 1] },
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 1 });
+
+    expect(snapshot.runtimeUniforms).toHaveLength(1);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.runtimeUniform.duplicateKey",
+        entity: {
+          index: duplicate.index,
+          generation: duplicate.generation,
+        },
+        runtimeUniformKey: "material.params",
       },
     ]);
   });
@@ -3640,6 +3799,15 @@ function matrixAt(values: Float32Array, offset: number | undefined): number[] {
   }
 
   return Array.from(values.slice(offset, offset + 16));
+}
+
+function expectTupleCloseTo(
+  actual: ArrayLike<number>,
+  expected: readonly [number, number, number],
+): void {
+  expect(actual[0]).toBeCloseTo(expected[0], 6);
+  expect(actual[1]).toBeCloseTo(expected[1], 6);
+  expect(actual[2]).toBeCloseTo(expected[2], 6);
 }
 
 function diagnosticAssetPairs(

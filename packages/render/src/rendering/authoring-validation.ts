@@ -8,6 +8,8 @@ export {
 export {
   validateFogInput,
   validateParticleEmitterInput,
+  validateProceduralSkyInput,
+  validateRuntimeUniformInput,
   validateSkyboxInput,
   validateSpriteInput,
 } from "./authoring-validation-effects.js";

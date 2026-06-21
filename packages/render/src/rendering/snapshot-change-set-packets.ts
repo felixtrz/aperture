@@ -5,9 +5,11 @@ import type {
   EnvironmentPacket,
   LightPacket,
   MeshDrawPacket,
+  ProceduralSkyPacket,
   RenderEntityRef,
   RenderSnapshot,
   RenderSortKey,
+  RuntimeUniformPacket,
   ShadowRequestPacket,
   ViewPacket,
 } from "./snapshot.js";
@@ -119,6 +121,30 @@ export function environmentPackets(
             ? null
             : assetHandleKey(environment.handle),
       }),
+  };
+}
+
+export function proceduralSkyPackets(
+  snapshot: RenderSnapshot | null | undefined,
+): PacketSnapshot<ProceduralSkyPacket> {
+  return {
+    packets: snapshot?.proceduralSkies ?? [],
+    key: (sky) => sky.skyId,
+    formatKey: (key) => `procedural-sky:${String(key)}`,
+    equals: proceduralSkyPacketsEqual,
+    signature: stableStringify,
+  };
+}
+
+export function runtimeUniformPackets(
+  snapshot: RenderSnapshot | null | undefined,
+): PacketSnapshot<RuntimeUniformPacket> {
+  return {
+    packets: snapshot?.runtimeUniforms ?? [],
+    key: (uniform) => uniform.key,
+    formatKey: (key) => `runtime-uniform:${String(key)}`,
+    equals: runtimeUniformPacketsEqual,
+    signature: stableStringify,
   };
 }
 
@@ -323,6 +349,43 @@ function environmentPacketsEqual(
     vecEqual(previous.color, next.color, 4) &&
     previous.intensity === next.intensity &&
     previous.layerMask === next.layerMask
+  );
+}
+
+function proceduralSkyPacketsEqual(
+  previous: ProceduralSkyPacket,
+  next: ProceduralSkyPacket,
+): boolean {
+  return (
+    previous.skyId === next.skyId &&
+    entityRefsEqual(previous.entity, next.entity) &&
+    previous.model === next.model &&
+    previous.priority === next.priority &&
+    vecEqual(previous.topColor, next.topColor, 3) &&
+    vecEqual(previous.horizonColor, next.horizonColor, 3) &&
+    vecEqual(previous.bottomColor, next.bottomColor, 3) &&
+    previous.horizonPosition === next.horizonPosition &&
+    previous.horizonSoftness === next.horizonSoftness &&
+    previous.intensity === next.intensity &&
+    vecEqual(previous.sunDirection, next.sunDirection, 3) &&
+    vecEqual(previous.sunColor, next.sunColor, 3) &&
+    previous.sunRadius === next.sunRadius &&
+    previous.sunGlow === next.sunGlow &&
+    previous.ditherStrength === next.ditherStrength &&
+    previous.layerMask === next.layerMask
+  );
+}
+
+function runtimeUniformPacketsEqual(
+  previous: RuntimeUniformPacket,
+  next: RuntimeUniformPacket,
+): boolean {
+  return (
+    previous.uniformId === next.uniformId &&
+    entityRefsEqual(previous.entity, next.entity) &&
+    previous.key === next.key &&
+    previous.version === next.version &&
+    stableStringify(previous.values) === stableStringify(next.values)
   );
 }
 

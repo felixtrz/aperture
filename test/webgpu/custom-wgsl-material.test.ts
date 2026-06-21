@@ -1,13 +1,19 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+  createBoxMeshAsset,
   createDefaultRenderState,
   createInstanceAttributeLayout,
   defineInstanceAttributes,
+  type PackedSnapshotTransforms,
+  type PackedSnapshotViewUniforms,
   type PreparedCustomWgslMaterial,
+  type RuntimeUniformPacket,
 } from "@aperture-engine/render";
 import {
   createBrowserCustomWgslMaterialPipelineDescriptor,
+  createCustomWgslAppFrameResources,
   createCustomWgslMaterialBindGroupLayoutDescriptor,
   createCustomWgslMaterialBindGroupResource,
   createCustomWgslMaterialRenderResources,
@@ -228,10 +234,70 @@ describe("custom WGSL material WebGPU resources", () => {
       },
     ]);
   });
+
+  it("updates runtime uniform buffers without recreating custom WGSL pipelines", async () => {
+    const material = customWaterMaterial(null, {
+      runtimeUniformKey: "water.params",
+    });
+    const writes: unknown[] = [];
+    const bindGroups: unknown[] = [];
+    const pipelines: unknown[] = [];
+    const runtimeUniformCache = new Map();
+    const reuse = { dynamicBufferWrites: 0 };
+    const device = customFrameDevice(writes, bindGroups, pipelines);
+    const first = await createCustomWgslAppFrameResources({
+      device,
+      mesh: createBoxMeshAsset({ label: "Runtime Uniform Box" }),
+      material,
+      viewUniforms: packedViews(1),
+      worldTransforms: packedTransforms(1),
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      runtimeUniforms: [runtimeUniformPacket([0.1, 0.2, 0.8, 1])],
+      runtimeUniformCache,
+      reuse,
+    });
+
+    expect(first.valid).toBe(true);
+    expect(first.diagnostics).toEqual([]);
+    expect(pipelines).toHaveLength(1);
+    expect(runtimeUniformCache.size).toBe(1);
+
+    const cachedRuntimeUniform = required([...runtimeUniformCache.values()][0]);
+    const cachedBuffer = cachedRuntimeUniform.buffer;
+
+    writes.length = 0;
+    bindGroups.length = 0;
+
+    const second = await createCustomWgslAppFrameResources({
+      device,
+      mesh: createBoxMeshAsset({ label: "Runtime Uniform Box" }),
+      material,
+      viewUniforms: packedViews(1),
+      worldTransforms: packedTransforms(1),
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      pipelineResult: required(first.pipelineResult),
+      runtimeUniforms: [runtimeUniformPacket([1.0, 0.4, 0.1, 1])],
+      runtimeUniformCache,
+      reuse,
+    });
+
+    expect(second.valid).toBe(true);
+    expect(second.diagnostics).toEqual([]);
+    expect(pipelines).toHaveLength(1);
+    expect(runtimeUniformCache.size).toBe(1);
+    expect([...runtimeUniformCache.values()][0]?.buffer).toBe(cachedBuffer);
+    expect(writes).toContainEqual(
+      expect.objectContaining({ buffer: cachedBuffer }),
+    );
+    expect(reuse.dynamicBufferWrites).toBeGreaterThanOrEqual(2);
+  });
 });
 
 function customWaterMaterial(
   instanceAttributes: PreparedCustomWgslMaterial["pipeline"]["instanceAttributes"] = null,
+  options: { readonly runtimeUniformKey?: string } = {},
 ): PreparedCustomWgslMaterial {
   const renderState = createDefaultRenderState({
     cullMode: "none",
@@ -298,6 +364,15 @@ function customWaterMaterial(
           kind: "uniform-buffer",
           visibility: ["fragment"],
           label: "waterUniforms",
+          fields: {
+            water: { type: "vec4" },
+          },
+          values: {
+            water: [0, 0, 1, 1],
+          },
+          ...(options.runtimeUniformKey === undefined
+            ? {}
+            : { runtimeUniformKey: options.runtimeUniformKey }),
         },
       ],
     },
@@ -317,10 +392,113 @@ function customWaterMaterial(
   };
 }
 
-function required<T>(value: T | null | undefined): T {
+function runtimeUniformPacket(
+  water: readonly [number, number, number, number],
+): RuntimeUniformPacket {
+  return {
+    uniformId: 99,
+    entity: { index: 99, generation: 0 },
+    key: "water.params",
+    values: { water },
+    version: 1,
+  };
+}
+
+function packedViews(count: number): PackedSnapshotViewUniforms {
+  return {
+    data: identityViewUniforms(count),
+    views: Array.from({ length: count }, (_, index) => ({
+      viewId: index + 1,
+      sourceOffset: index,
+      packedOffset: index,
+    })),
+    diagnostics: [],
+  };
+}
+
+function packedTransforms(count: number): PackedSnapshotTransforms {
+  return {
+    data: identityMatrices(count),
+    offsets: Array.from({ length: count }, (_, index) => ({
+      renderId: index + 7,
+      sourceOffset: index,
+      packedOffset: index,
+    })),
+    diagnostics: [],
+  };
+}
+
+function identityMatrices(count: number): Float32Array {
+  const data = new Float32Array(count * 16);
+
+  for (let index = 0; index < count; index += 1) {
+    data.set([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], index * 16);
+  }
+
+  return data;
+}
+
+function identityViewUniforms(count: number): Float32Array {
+  const data = new Float32Array(count * PACKED_VIEW_UNIFORM_FLOAT_STRIDE);
+
+  for (let index = 0; index < count; index += 1) {
+    const offset = index * PACKED_VIEW_UNIFORM_FLOAT_STRIDE;
+
+    data.set([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], offset);
+    data.set([index, 0, 1, 1], offset + 16);
+  }
+
+  return data;
+}
+
+function customFrameDevice(
+  writes: unknown[],
+  bindGroups: unknown[],
+  pipelines: unknown[],
+) {
+  return {
+    queue: {
+      writeBuffer(
+        buffer: unknown,
+        bufferOffset: number,
+        data: ArrayBufferLike | ArrayBufferView,
+        dataOffset?: number,
+        size?: number,
+      ) {
+        writes.push({ buffer, bufferOffset, data, dataOffset, size });
+      },
+    },
+    createBuffer(descriptor: unknown) {
+      return { descriptor };
+    },
+    createShaderModule(descriptor: WebGpuShaderCreateDescriptor) {
+      return {
+        descriptor,
+        compilationInfo: async () => ({ messages: [] }),
+      };
+    },
+    createRenderPipeline(descriptor: WebGpuRenderPipelineCreateDescriptor) {
+      const pipeline = {
+        descriptor,
+        getBindGroupLayout(group: number) {
+          return { group };
+        },
+      };
+
+      pipelines.push(descriptor);
+      return pipeline;
+    },
+    createBindGroup(descriptor: CustomWgslMaterialBindGroupCreationDescriptor) {
+      bindGroups.push(descriptor);
+      return { descriptor };
+    },
+  };
+}
+
+function required<T>(value: T | null | undefined): NonNullable<T> {
   if (value === null || value === undefined) {
     throw new Error("Expected value to be present.");
   }
 
-  return value;
+  return value as NonNullable<T>;
 }

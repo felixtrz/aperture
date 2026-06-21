@@ -37,12 +37,12 @@ describe("render snapshot update scheduler", () => {
         environments: { family: "environments", action: "skip" },
       },
       total: {
-        families: 7,
+        families: 9,
         refreshFamilies: 1,
         reuseFamilies: 1,
         removeFamilies: 1,
         mixedFamilies: 1,
-        skipFamilies: 3,
+        skipFamilies: 5,
         packetRefreshes: 3,
         packetReuses: 4,
         packetRemovals: 2,
@@ -84,6 +84,8 @@ function changeSet(
       | "shadowCasterDraws"
       | "lights"
       | "environments"
+      | "proceduralSkies"
+      | "runtimeUniforms"
       | "shadowRequests"
       | "bounds"
     >
@@ -94,6 +96,8 @@ function changeSet(
   const shadowCasterDraws = input.shadowCasterDraws ?? emptyCounts();
   const lights = input.lights ?? emptyCounts();
   const environments = input.environments ?? emptyCounts();
+  const proceduralSkies = input.proceduralSkies ?? emptyCounts();
+  const runtimeUniforms = input.runtimeUniforms ?? emptyCounts();
   const shadowRequests = input.shadowRequests ?? emptyCounts();
   const bounds = input.bounds ?? emptyCounts();
 
@@ -105,6 +109,8 @@ function changeSet(
     shadowCasterDraws,
     lights,
     environments,
+    proceduralSkies,
+    runtimeUniforms,
     shadowRequests,
     bounds,
     total: totalCounts([
@@ -113,6 +119,8 @@ function changeSet(
       shadowCasterDraws,
       lights,
       environments,
+      proceduralSkies,
+      runtimeUniforms,
       shadowRequests,
       bounds,
     ]),

@@ -1,6 +1,7 @@
 import {
   FogMode,
   ParticleSimulationSpace,
+  ProceduralSkyModel,
   SpriteBillboardMode,
   SpriteBlendMode,
   SpriteCoordinateMode,
@@ -8,14 +9,18 @@ import {
   SpriteSizeMode,
   type FogInput,
   type ParticleEmitterInput,
+  type ProceduralSkyInput,
   type RenderAuthoringDiagnostic,
   type RenderAuthoringValidationReport,
+  type RuntimeUniformInput,
   type SkyboxInput,
   type SpriteInput,
 } from "./authoring-types.js";
 import {
   createFog,
   createParticleEmitter,
+  createProceduralSky,
+  createRuntimeUniform,
   createSkybox,
   createSprite,
 } from "./authoring-create.js";
@@ -251,6 +256,143 @@ export function validateSkyboxInput(
   return { valid: diagnostics.length === 0, diagnostics };
 }
 
+export function validateProceduralSkyInput(
+  input: ProceduralSkyInput,
+): RenderAuthoringValidationReport {
+  const sky = createProceduralSky(input);
+  const diagnostics: RenderAuthoringDiagnostic[] = [];
+  const model = sky.model ?? ProceduralSkyModel.Gradient;
+  const priority = sky.priority ?? 0;
+  const horizonPosition = sky.horizonPosition ?? 0.4;
+  const horizonSoftness = sky.horizonSoftness ?? 0.24;
+  const intensity = sky.intensity ?? 1;
+  const sunDirection = sky.sunDirection ?? [0, 1, 0];
+  const sunRadius = sky.sunRadius ?? 0;
+  const sunGlow = sky.sunGlow ?? 0;
+  const ditherStrength = sky.ditherStrength ?? 0;
+
+  if (
+    !Object.values(ProceduralSkyModel).includes(model as ProceduralSkyModel)
+  ) {
+    diagnostics.push({
+      code: "proceduralSky.invalidModel",
+      field: "model",
+      message: "Procedural sky model must be 'gradient'.",
+    });
+  }
+
+  if (!Number.isInteger(priority)) {
+    diagnostics.push({
+      code: "proceduralSky.invalidPriority",
+      field: "priority",
+      message: "Procedural sky priority must be an integer.",
+    });
+  }
+
+  validateSkyColor(sky.topColor ?? [0, 0, 0], "topColor", diagnostics);
+  validateSkyColor(sky.horizonColor ?? [0, 0, 0], "horizonColor", diagnostics);
+  validateSkyColor(sky.bottomColor ?? [0, 0, 0], "bottomColor", diagnostics);
+  validateSkyColor(sky.sunColor ?? [0, 0, 0], "sunColor", diagnostics);
+
+  if (
+    !Number.isFinite(horizonPosition) ||
+    horizonPosition < 0 ||
+    horizonPosition > 1 ||
+    !Number.isFinite(horizonSoftness) ||
+    horizonSoftness < 0
+  ) {
+    diagnostics.push({
+      code: "proceduralSky.invalidHorizon",
+      field: "horizon",
+      message:
+        "Procedural sky horizonPosition must be in [0,1] and horizonSoftness must be finite and non-negative.",
+    });
+  }
+
+  if (!Number.isFinite(intensity) || intensity < 0) {
+    diagnostics.push({
+      code: "proceduralSky.invalidIntensity",
+      field: "intensity",
+      message: "Procedural sky intensity must be finite and non-negative.",
+    });
+  }
+
+  if (
+    !Array.from(sunDirection).every(Number.isFinite) ||
+    vectorLengthSq(sunDirection) <= 1e-8
+  ) {
+    diagnostics.push({
+      code: "proceduralSky.invalidSunDirection",
+      field: "sunDirection",
+      message:
+        "Procedural sky sunDirection must be a finite non-zero vec3 direction.",
+    });
+  }
+
+  if (
+    !Number.isFinite(sunRadius) ||
+    sunRadius < 0 ||
+    !Number.isFinite(sunGlow) ||
+    sunGlow < 0
+  ) {
+    diagnostics.push({
+      code: "proceduralSky.invalidSun",
+      field: "sun",
+      message:
+        "Procedural sky sunRadius and sunGlow must be finite and non-negative.",
+    });
+  }
+
+  if (!Number.isFinite(ditherStrength) || ditherStrength < 0) {
+    diagnostics.push({
+      code: "proceduralSky.invalidDither",
+      field: "ditherStrength",
+      message: "Procedural sky ditherStrength must be finite and non-negative.",
+    });
+  }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
+export function validateRuntimeUniformInput(
+  input: RuntimeUniformInput,
+): RenderAuthoringValidationReport {
+  const uniform = createRuntimeUniform(input);
+  const version = uniform.version ?? 0;
+  const diagnostics: RenderAuthoringDiagnostic[] = [];
+
+  if (typeof uniform.key !== "string" || uniform.key.trim().length === 0) {
+    diagnostics.push({
+      code: "runtimeUniform.invalidKey",
+      field: "key",
+      message: "Runtime uniform key must be a non-empty string.",
+    });
+  }
+
+  if (!runtimeUniformValuesValid(uniform.values)) {
+    diagnostics.push({
+      code: "runtimeUniform.invalidValues",
+      field: "values",
+      message:
+        "Runtime uniform values must be a plain object of finite numbers, booleans, nulls, strings, or finite numeric arrays.",
+    });
+  }
+
+  if (
+    !Number.isInteger(version) ||
+    version < 0 ||
+    !Number.isSafeInteger(version)
+  ) {
+    diagnostics.push({
+      code: "runtimeUniform.invalidVersion",
+      field: "version",
+      message: "Runtime uniform version must be a non-negative safe integer.",
+    });
+  }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
 export function validateFogInput(
   input: FogInput,
 ): RenderAuthoringValidationReport {
@@ -305,4 +447,68 @@ export function validateFogInput(
   }
 
   return { valid: diagnostics.length === 0, diagnostics };
+}
+
+function validateSkyColor(
+  color: ArrayLike<number>,
+  field: string,
+  diagnostics: RenderAuthoringDiagnostic[],
+): void {
+  if (
+    Array.from(color)
+      .slice(0, 3)
+      .every((value) => Number.isFinite(value) && value >= 0)
+  ) {
+    return;
+  }
+
+  diagnostics.push({
+    code: "proceduralSky.invalidColor",
+    field,
+    message: "Procedural sky colors must be finite non-negative RGB values.",
+  });
+}
+
+function runtimeUniformValuesValid(value: unknown): boolean {
+  if (!isPlainObject(value)) {
+    return false;
+  }
+
+  return Object.values(value).every((entry) => {
+    if (entry === null) {
+      return true;
+    }
+
+    if (typeof entry === "boolean" || typeof entry === "string") {
+      return true;
+    }
+
+    if (typeof entry === "number") {
+      return Number.isFinite(entry);
+    }
+
+    if (Array.isArray(entry)) {
+      return entry.every(
+        (item) => typeof item === "number" && Number.isFinite(item),
+      );
+    }
+
+    return false;
+  });
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    Object.getPrototypeOf(value) === Object.prototype
+  );
+}
+
+function vectorLengthSq(vector: ArrayLike<number>): number {
+  const x = vector[0] ?? 0;
+  const y = vector[1] ?? 0;
+  const z = vector[2] ?? 0;
+
+  return x * x + y * y + z * z;
 }

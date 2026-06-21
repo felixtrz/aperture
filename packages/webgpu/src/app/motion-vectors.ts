@@ -52,7 +52,8 @@ export function createWebGpuAppSceneMotionVectorPlan(options: {
 
   if (
     (options.snapshot.spriteDraws?.length ?? 0) > 0 ||
-    (options.snapshot.skyboxes?.length ?? 0) > 0
+    (options.snapshot.skyboxes?.length ?? 0) > 0 ||
+    (options.snapshot.proceduralSkies?.length ?? 0) > 0
   ) {
     return {
       required: true,

@@ -17,6 +17,7 @@ export interface RenderDiagnostic {
   readonly meshKey?: string;
   readonly textureKey?: string;
   readonly samplerKey?: string;
+  readonly runtimeUniformKey?: string;
   readonly dependencyKind?: string;
   readonly status?: string;
   readonly field?: string;
@@ -41,6 +42,8 @@ export interface RenderSnapshotReport {
   readonly uiNodes?: number;
   readonly uiHitRegions?: number;
   readonly skyboxes?: number;
+  readonly proceduralSkies?: number;
+  readonly runtimeUniforms?: number;
   readonly fogs?: number;
   readonly lights: number;
   readonly environments: number;

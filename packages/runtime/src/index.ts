@@ -61,8 +61,10 @@ import {
   MorphTargetWeights,
   OcclusionQuery,
   ParticleEmitter,
+  ProceduralSky,
   RenderLayer,
   RenderOrder,
+  RuntimeUniform,
   ShadowCaster,
   ShadowReceiver,
   Skin,
@@ -89,6 +91,8 @@ import {
   createAudioEmitter,
   createAudioListener,
   createParticleEmitter,
+  createProceduralSky,
+  createRuntimeUniform,
   createSkin,
   createSprite,
   createSkybox,
@@ -117,7 +121,9 @@ import {
   type AudioListenerInput,
   type OcclusionQueryInput,
   type ParticleEmitterInput,
+  type ProceduralSkyInput,
   type RenderSnapshot,
+  type RuntimeUniformInput,
   type SkinInput,
   type SpriteInput,
   type SkyboxInput,
@@ -592,6 +598,24 @@ export function withSkybox(
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(Skybox, createSkybox(input));
+  };
+}
+
+export function withProceduralSky(
+  input: ProceduralSkyInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(ProceduralSky, createProceduralSky(input));
+  };
+}
+
+export function withRuntimeUniform(
+  input: RuntimeUniformInput,
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(RuntimeUniform, createRuntimeUniform(input));
   };
 }
 

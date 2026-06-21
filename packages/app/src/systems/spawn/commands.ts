@@ -7,6 +7,8 @@ import {
   Material,
   Mesh,
   ParticleEmitter,
+  ProceduralSky,
+  RuntimeUniform,
   ShadowCaster,
   ShadowReceiver,
   Skybox,
@@ -15,6 +17,8 @@ import {
   createLight,
   createLightShadowSettings,
   createParticleEmitter,
+  createProceduralSky,
+  createRuntimeUniform,
   createSkybox,
 } from "@aperture-engine/render";
 import {
@@ -129,6 +133,33 @@ export function createSpawnCommands(options: {
           ...(input.intensity === undefined
             ? {}
             : { intensity: input.intensity }),
+        }),
+      );
+      return entity;
+    },
+    proceduralSky(input = {}) {
+      const entity = createEntityWithMetadata(
+        options.world,
+        input,
+        "procedural-sky",
+      );
+      addTransform(entity, input.transform);
+      entity.addComponent(ProceduralSky, createProceduralSky(input));
+      return entity;
+    },
+    runtimeUniform(input) {
+      const entity = createEntityWithMetadata(
+        options.world,
+        input,
+        "runtime-uniform",
+      );
+
+      entity.addComponent(
+        RuntimeUniform,
+        createRuntimeUniform({
+          key: input.uniformKey,
+          values: input.values,
+          ...(input.version === undefined ? {} : { version: input.version }),
         }),
       );
       return entity;

@@ -7,6 +7,7 @@ import {
   Light,
   Material,
   Mesh,
+  ProceduralSky,
   RenderLayer,
   ShadowCaster,
   ShadowReceiver,
@@ -45,6 +46,7 @@ import {
   withInstanceTint,
   withMaterial,
   withMesh,
+  withProceduralSky,
   withRenderLayer,
   withShadowCaster,
   withShadowReceiver,
@@ -228,6 +230,48 @@ describe("runtime facade", () => {
       intensity: 0.75,
       layerMask: 1,
     });
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("spawns an ECS-authored procedural sky with runtime colors", () => {
+    const app = createExtractionApp({ worldOptions: { entityCapacity: 4 } });
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    const sky = app.spawn(
+      withProceduralSky({
+        topColor: [0.03, 0.07, 0.22],
+        horizonColor: [0.45, 0.25, 0.12],
+        bottomColor: [0.01, 0.012, 0.035],
+        horizonPosition: 0.4,
+        horizonSoftness: 0.2,
+        intensity: 1.2,
+        ditherStrength: 0.002,
+      }),
+    );
+    const snapshot = app.stepAndExtract(1 / 60, 1, 13);
+
+    expect(sky.hasComponent(ProceduralSky)).toBe(true);
+    expect(sky.getValue(ProceduralSky, "intensity")).toBeCloseTo(1.2, 6);
+    expect(snapshot.proceduralSkies).toHaveLength(1);
+    const skyPacket = snapshot.proceduralSkies?.[0];
+
+    expect(skyPacket).toMatchObject({ layerMask: 1 });
+    expect(skyPacket?.topColor[0]).toBeCloseTo(0.03, 6);
+    expect(skyPacket?.topColor[1]).toBeCloseTo(0.07, 6);
+    expect(skyPacket?.topColor[2]).toBeCloseTo(0.22, 6);
+    expect(skyPacket?.horizonColor[0]).toBeCloseTo(0.45, 6);
+    expect(skyPacket?.horizonColor[1]).toBeCloseTo(0.25, 6);
+    expect(skyPacket?.horizonColor[2]).toBeCloseTo(0.12, 6);
+    expect(skyPacket?.bottomColor[0]).toBeCloseTo(0.01, 6);
+    expect(skyPacket?.bottomColor[1]).toBeCloseTo(0.012, 6);
+    expect(skyPacket?.bottomColor[2]).toBeCloseTo(0.035, 6);
+    expect(skyPacket?.horizonPosition).toBeCloseTo(0.4, 6);
+    expect(skyPacket?.horizonSoftness).toBeCloseTo(0.2, 6);
+    expect(skyPacket?.intensity).toBeCloseTo(1.2, 6);
+    expect(skyPacket?.ditherStrength).toBeCloseTo(0.002, 6);
     expect(snapshot.diagnostics).toEqual([]);
   });
 

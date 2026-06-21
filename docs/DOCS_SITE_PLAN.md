@@ -1,6 +1,6 @@
 # Docs Site Plan
 
-Status: implemented baseline  
+Status: implemented baseline
 Last updated: 2026-06-19
 
 Implementation note: the root-level `docs-site/` package now owns the public

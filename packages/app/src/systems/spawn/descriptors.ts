@@ -99,6 +99,9 @@ export const material = Object.freeze({
       visibility: [...options.visibility],
       fields: options.fields,
       ...(options.values === undefined ? {} : { values: options.values }),
+      ...(options.runtimeUniformKey === undefined
+        ? {}
+        : { runtimeUniformKey: options.runtimeUniformKey }),
       ...(options.label === undefined ? {} : { label: options.label }),
     });
   },

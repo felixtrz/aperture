@@ -4,7 +4,7 @@
     "noEmit": true,
     "baseUrl": ".",
     "ignoreDeprecations": "6.0",
-    "types": ["vitest", "node"],
+    "types": ["vitest", "node", "vite/client"],
     "paths": {
       "@aperture-engine/app": ["packages/app/src/index.ts"],
       "@aperture-engine/app/config": ["packages/app/src/config.ts"],

@@ -367,7 +367,7 @@ describe("render asset preparation contract", () => {
       },
     });
     expect(prepared.entry?.prepared.pipeline.pipelineKey).toContain(
-      "bindings:0:uniform-buffer|blend|none|less|alpha",
+      "bindings:0:uniform-buffer:visibility:fragment:fields:color:vec4|blend|none|less|alpha",
     );
     expect(prepared.entry?.prepared.pipeline.pipelineKey).toContain(
       "instance-attributes:",
@@ -404,6 +404,69 @@ describe("render asset preparation contract", () => {
     expect(first.pipeline.pipelineKey).not.toBe(second.pipeline.pipelineKey);
     expect(first.pipeline.instanceAttributes?.strideFloats).toBe(1);
     expect(second.pipeline.instanceAttributes?.strideFloats).toBe(2);
+  });
+
+  it("keeps custom runtime uniform values out of the custom pipeline key", () => {
+    const source = (input: {
+      readonly id: string;
+      readonly values: readonly [number, number, number, number];
+      readonly extraField?: boolean;
+    }) =>
+      createCustomWgslMaterialAsset({
+        familyKey: "custom/runtime-uniform",
+        label: "Runtime Uniform Material",
+        shader: {
+          kind: "inline-wgsl",
+          code: `
+            struct Params {
+              color: vec4f,
+              gain: f32,
+            };
+
+            @group(2) @binding(0) var<uniform> params: Params;
+            @vertex fn vs_main() -> @builtin(position) vec4f { return vec4f(); }
+            @fragment fn fs_main() -> @location(0) vec4f { return params.color; }
+          `,
+        },
+        entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+        bindings: [
+          {
+            name: "params",
+            binding: 0,
+            kind: "uniform-buffer",
+            visibility: ["fragment"],
+            fields: {
+              color: { type: "vec4" },
+              ...(input.extraField === true
+                ? { gain: { type: "float32" as const, default: 1 } }
+                : {}),
+            },
+            values: { color: input.values },
+            runtimeUniformKey: input.id,
+          },
+        ],
+      });
+    const red = prepareCustomSource(
+      "runtime-red",
+      source({ id: "material.params", values: [1, 0, 0, 1] }),
+    );
+    const blue = prepareCustomSource(
+      "runtime-blue",
+      source({ id: "material.params", values: [0, 0, 1, 1] }),
+    );
+    const schemaChanged = prepareCustomSource(
+      "runtime-schema",
+      source({
+        id: "material.params",
+        values: [0, 0, 1, 1],
+        extraField: true,
+      }),
+    );
+
+    expect(red.pipeline.pipelineKey).toBe(blue.pipeline.pipelineKey);
+    expect(schemaChanged.pipeline.pipelineKey).not.toBe(
+      red.pipeline.pipelineKey,
+    );
   });
 
   it("diagnoses invalid custom WGSL material entry points", () => {

@@ -10,7 +10,7 @@ import type {
   Vec3Like,
   Vec4Like,
 } from "@aperture-engine/simulation";
-import type { InstanceDataValues } from "../materials/index.js";
+import type { InstanceDataValues, JsonPrimitive } from "../materials/index.js";
 
 export const CameraProjection = {
   Perspective: "perspective",
@@ -47,6 +47,13 @@ export const FogMode = {
 } as const;
 
 export type FogMode = (typeof FogMode)[keyof typeof FogMode];
+
+export const ProceduralSkyModel = {
+  Gradient: "gradient",
+} as const;
+
+export type ProceduralSkyModel =
+  (typeof ProceduralSkyModel)[keyof typeof ProceduralSkyModel];
 
 export const SpriteCoordinateMode = {
   World: "world",
@@ -396,6 +403,34 @@ export interface SkyboxInput {
   readonly intensity?: number;
 }
 
+export interface ProceduralSkyInput {
+  readonly model?: ProceduralSkyModel;
+  readonly priority?: number;
+  readonly topColor?: Vec3Like;
+  readonly horizonColor?: Vec3Like;
+  readonly bottomColor?: Vec3Like;
+  readonly horizonPosition?: number;
+  readonly horizonSoftness?: number;
+  readonly intensity?: number;
+  readonly sunDirection?: Vec3Like;
+  readonly sunColor?: Vec3Like;
+  readonly sunRadius?: number;
+  readonly sunGlow?: number;
+  readonly ditherStrength?: number;
+}
+
+export type RuntimeUniformValue = JsonPrimitive | readonly number[];
+
+export type RuntimeUniformValues = Readonly<
+  Record<string, RuntimeUniformValue>
+>;
+
+export interface RuntimeUniformInput {
+  readonly key: string;
+  readonly values: RuntimeUniformValues;
+  readonly version?: number;
+}
+
 export interface FogInput {
   readonly mode?: FogMode;
   readonly color?: Vec4Like;
@@ -493,6 +528,17 @@ export type RenderAuthoringDiagnosticCode =
   | "audio.invalidLowpass"
   | "skybox.invalidTexture"
   | "skybox.invalidIntensity"
+  | "proceduralSky.invalidModel"
+  | "proceduralSky.invalidPriority"
+  | "proceduralSky.invalidColor"
+  | "proceduralSky.invalidHorizon"
+  | "proceduralSky.invalidIntensity"
+  | "proceduralSky.invalidSunDirection"
+  | "proceduralSky.invalidSun"
+  | "proceduralSky.invalidDither"
+  | "runtimeUniform.invalidKey"
+  | "runtimeUniform.invalidValues"
+  | "runtimeUniform.invalidVersion"
   | "fog.invalidMode"
   | "fog.invalidColor"
   | "fog.invalidDensity"
