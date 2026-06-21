@@ -27,6 +27,9 @@
         --hero-stage-height: min(760px, calc(100vh - 128px));
         --hero-nav-bottom: 70px;
         --hero-vertical-gap: 0px;
+        --hero-vertical-promo-overlap: 0px;
+        --hero-vertical-card-overlap: 0px;
+        --hero-vertical-city-bleed: 5vw;
       }
       html,
       body {
@@ -310,7 +313,7 @@
       :root[data-hero-promo="expanded"] #nav .mobile-hero {
         display: block;
         grid-column: 1 / -1;
-        width: min(720px, 100%);
+        width: 100%;
         margin-top: 0;
       }
 
@@ -404,7 +407,10 @@
       }
 
       :root[data-hero-composition="vertical"] #hero-stage {
-        top: calc(var(--hero-nav-bottom, 70px) + 16px);
+        top: calc(
+          var(--hero-nav-bottom, 70px) + 16px -
+            var(--hero-vertical-promo-overlap)
+        );
         right: 16px;
         bottom: 18px;
         left: 16px;
@@ -418,6 +424,12 @@
         justify-items: center;
         transform: none;
       }
+      :root[data-hero-composition="vertical"][data-hero-promo="expanded"]
+        #hero-stage {
+        top: calc(
+          var(--hero-nav-bottom, 70px) - var(--hero-vertical-promo-overlap)
+        );
+      }
       :root[data-hero-composition="vertical"] #story-card {
         position: relative;
         top: auto;
@@ -425,6 +437,7 @@
         bottom: auto;
         left: auto;
         width: 100%;
+        margin-top: calc(-1 * var(--hero-vertical-card-overlap));
         transform: none;
       }
       :root[data-hero-composition="vertical"] #landing-city-slot {
@@ -432,7 +445,7 @@
         top: auto;
         bottom: auto;
         left: auto;
-        width: min(760px, calc(100vw - 16px));
+        width: min(840px, calc(100vw + var(--hero-vertical-city-bleed) * 2));
         height: 100%;
         transform: none;
       }
@@ -473,7 +486,11 @@
           line-height: 1;
         }
         #nav .brand-tagline {
-          display: none;
+          display: block;
+          max-width: min(58vw, 250px);
+          font-size: 11px;
+          line-height: 1.15;
+          color: rgba(255, 255, 255, 0.72);
         }
         #nav .menu-toggle {
           display: grid;
@@ -521,9 +538,20 @@
         #landing-city-slot {
           width: min(560px, calc(100vw - 16px));
         }
+        #story-card {
+          padding: 18px 24px 20px;
+        }
+        #story-segments {
+          margin-bottom: 20px;
+        }
         #story-title {
           max-width: 14ch;
-          font-size: 30px;
+          margin-bottom: 12px;
+          font-size: 28px;
+        }
+        #story-body {
+          font-size: 14px;
+          line-height: 1.48;
         }
       }
       @media (max-width: 360px) {
@@ -613,8 +641,11 @@
         HERO_MOBILE_NAV_BREAKPOINT_PX,
         HERO_PROMO_BOTTOM_RESERVE_PX,
         HERO_PROMO_TOP_RESERVE_ESTIMATE_PX,
+        HERO_VERTICAL_CARD_CITY_OVERLAP_RATIO,
         HERO_VERTICAL_CITY_CARD_GAP_PX,
+        HERO_VERTICAL_CITY_SCREEN_BLEED_RATIO,
         HERO_VERTICAL_FULL_NAV_PROMO_MIN_CITY_HEIGHT_PX,
+        HERO_VERTICAL_PROMO_CITY_OVERLAP_RATIO,
         HERO_VERTICAL_PROMO_MIN_CITY_HEIGHT_PX,
       } from "/src/lib/hero-layout.ts";
       import {
@@ -653,6 +684,10 @@
       document.documentElement.style.setProperty(
         "--hero-desktop-side-gutter",
         `${HERO_DESKTOP_COMPOSITION_SIDE_GUTTER_PX}px`,
+      );
+      document.documentElement.style.setProperty(
+        "--hero-vertical-city-bleed",
+        `${HERO_VERTICAL_CITY_SCREEN_BLEED_RATIO * 100}vw`,
       );
 
       let activeIndex = 0;
@@ -760,12 +795,42 @@
         const minCityHeight = mobileNav
           ? HERO_VERTICAL_PROMO_MIN_CITY_HEIGHT_PX
           : HERO_VERTICAL_FULL_NAV_PROMO_MIN_CITY_HEIGHT_PX;
+        const cardOverlapAllowance =
+          minCityHeight * HERO_VERTICAL_CARD_CITY_OVERLAP_RATIO;
+        const promoOverlapAllowance =
+          minCityHeight * HERO_VERTICAL_PROMO_CITY_OVERLAP_RATIO;
         return (
           window.innerHeight >=
           HERO_PROMO_TOP_RESERVE_ESTIMATE_PX +
             minCityHeight +
             HERO_VERTICAL_CITY_CARD_GAP_PX +
-            cardHeight
+            cardHeight -
+            cardOverlapAllowance -
+            promoOverlapAllowance
+        );
+      }
+
+      function syncVerticalOverlap(composition, mobileNav, promo) {
+        const minCityHeight = mobileNav
+          ? HERO_VERTICAL_PROMO_MIN_CITY_HEIGHT_PX
+          : HERO_VERTICAL_FULL_NAV_PROMO_MIN_CITY_HEIGHT_PX;
+        const cardOverlap =
+          composition === "vertical"
+            ? Math.round(minCityHeight * HERO_VERTICAL_CARD_CITY_OVERLAP_RATIO)
+            : 0;
+        const promoOverlap =
+          composition === "vertical" && promo === "expanded"
+            ? Math.round(
+                minCityHeight * HERO_VERTICAL_PROMO_CITY_OVERLAP_RATIO,
+              )
+            : 0;
+        document.documentElement.style.setProperty(
+          "--hero-vertical-promo-overlap",
+          `${promoOverlap}px`,
+        );
+        document.documentElement.style.setProperty(
+          "--hero-vertical-card-overlap",
+          `${cardOverlap}px`,
         );
       }
 
@@ -829,6 +894,7 @@
           ? "expanded"
           : "hidden";
         document.documentElement.dataset.heroPromo = promo;
+        syncVerticalOverlap(composition, mobileNav, promo);
         syncStageMetrics(promo);
         if (!mobileNav) {
           setNavMenuOpen(false);
