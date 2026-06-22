@@ -243,6 +243,8 @@ function isRecord(value) {
 // in the DOM (examples still write to `#example-json`), and automated checks read
 // `window.__APERTURE_EXAMPLE_STATUS__`, so this is purely cosmetic.
 function enhanceExampleShell() {
+  publishCanvasAspect();
+
   const panel = document.querySelector(".status-panel");
   const json = document.querySelector("#example-json");
 
@@ -262,6 +264,23 @@ function enhanceExampleShell() {
 
   json.replaceWith(drawer);
   drawer.append(summary, json);
+}
+
+// The canvas backing store keeps a fixed aspect (its width/height attributes),
+// so expose that ratio as a CSS custom property. The stylesheet uses it to grow
+// the canvas to fill the viewport at its true aspect instead of distorting it.
+function publishCanvasAspect() {
+  const canvas = document.querySelector("#aperture-canvas");
+
+  if (canvas === null) {
+    return;
+  }
+
+  const aspect = canvas.width / canvas.height;
+
+  if (Number.isFinite(aspect) && aspect > 0) {
+    canvas.style.setProperty("--canvas-aspect", String(aspect));
+  }
 }
 
 if (typeof document !== "undefined") {

@@ -35,11 +35,8 @@ body {
 }
 
 .runtime-shell {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
-  gap: 20px;
+  position: relative;
   min-height: 100vh;
-  padding: 20px;
   background:
     radial-gradient(
       1200px 680px at 28% -8%,
@@ -55,20 +52,14 @@ body {
 }
 
 .viewport-panel {
-  position: relative;
-  align-self: start;
+  position: absolute;
+  inset: 0;
   display: grid;
   place-items: center;
   overflow: hidden;
-  min-height: 360px;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius);
   background:
     radial-gradient(120% 120% at 50% 0%, rgb(42 52 68 / 55%), transparent 55%),
     radial-gradient(150% 150% at 50% 120%, #0a0e14, var(--stage) 70%);
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 6%) inset,
-    0 30px 80px -40px rgb(0 0 0 / 90%);
 }
 
 .benchmark-panel {
@@ -117,12 +108,14 @@ body {
 
 #aperture-canvas {
   display: block;
-  width: min(100%, calc(100vh - 40px));
+  /* Grow to fill the viewport at the canvas backing-store aspect (published as
+     --canvas-aspect by example-control.js) so the scene is never distorted. */
+  width: min(100%, calc(100vh * var(--canvas-aspect, 1.7778)));
   height: auto;
-  aspect-ratio: 1 / 1;
-  border-radius: calc(var(--radius) - 4px);
+  aspect-ratio: var(--canvas-aspect, 1.7778);
+  max-width: 100%;
+  max-height: 100vh;
   background: var(--stage);
-  box-shadow: 0 24px 60px -36px rgb(0 0 0 / 85%);
 }
 
 .msaa-viewport-grid {
@@ -153,19 +146,21 @@ body {
 }
 
 .status-panel {
-  position: sticky;
-  top: 20px;
-  align-self: start;
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
   display: grid;
   gap: 14px;
-  max-height: calc(100vh - 40px);
+  width: min(340px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
   padding: 18px;
   overflow: auto;
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--hairline-strong);
   border-radius: var(--radius);
   background: var(--panel);
-  box-shadow: 0 24px 70px -44px rgb(0 0 0 / 90%);
-  backdrop-filter: blur(14px) saturate(120%);
+  box-shadow: 0 24px 70px -30px rgb(0 0 0 / 95%);
+  backdrop-filter: blur(16px) saturate(130%);
 }
 
 .status-row {
@@ -673,7 +668,7 @@ body {
 .gpu-profiler-overlay {
   position: absolute;
   top: 18px;
-  right: 18px;
+  left: 18px;
   width: min(280px, calc(100% - 36px));
   display: grid;
   gap: 10px;
@@ -794,12 +789,13 @@ body {
 }
 
 @media (max-width: 760px) {
-  .runtime-shell {
-    grid-template-columns: 1fr;
-  }
-
   .status-panel {
-    align-self: stretch;
+    top: auto;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    width: auto;
+    max-height: 50vh;
   }
 
   .benchmark-summary {
