@@ -1,0 +1,43 @@
+{
+  "name": "@aperture-engine/reference-assets",
+  "version": "0.1.0",
+  "description": "Producer pipeline and versioned reference corpus payloads for Aperture CLI reference tools.",
+  "author": "Felix Zhang",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felixtrz/aperture.git",
+    "directory": "packages/reference-assets"
+  },
+  "homepage": "https://github.com/felixtrz/aperture/tree/main/packages/reference-assets#readme",
+  "bugs": {
+    "url": "https://github.com/felixtrz/aperture/issues"
+  },
+  "keywords": [
+    "aperture",
+    "reference-assets",
+    "rag",
+    "embeddings"
+  ],
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "ingest": "node ./scripts/ingest.mjs",
+    "build:payload": "node ./scripts/build-payload.mjs",
+    "build:payload:if-ready": "node ./scripts/build-payload.mjs --if-ready",
+    "build": "node ./scripts/build-assets.mjs",
+    "build:if-ready": "node ./scripts/build-assets.mjs --if-ready",
+    "prepare": "pnpm run build:if-ready",
+    "test": "pnpm run build:if-ready"
+  },
+  "devDependencies": {
+    "tar": "^7.5.15"
+  }
+}

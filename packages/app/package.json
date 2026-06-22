@@ -1,0 +1,96 @@
+{
+  "name": "@aperture-engine/app",
+  "version": "0.1.0",
+  "description": "Aperture metaframework app facade, config helpers, and worker-safe system authoring API.",
+  "author": "Felix Zhang",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felixtrz/aperture.git",
+    "directory": "packages/app"
+  },
+  "homepage": "https://github.com/felixtrz/aperture/tree/main/packages/app#readme",
+  "bugs": "https://github.com/felixtrz/aperture/issues",
+  "keywords": [
+    "aperture",
+    "ecs",
+    "webgpu",
+    "game-engine",
+    "typescript",
+    "metaframework",
+    "headless"
+  ],
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "import": "./dist/config.js"
+    },
+    "./systems": {
+      "types": "./dist/systems.d.ts",
+      "import": "./dist/systems.js"
+    },
+    "./advanced": {
+      "types": "./dist/advanced.d.ts",
+      "import": "./dist/advanced.js"
+    },
+    "./headless": {
+      "types": "./dist/headless.d.ts",
+      "import": "./dist/headless.js"
+    },
+    "./entity-lookup": {
+      "types": "./dist/entity-lookup.d.ts",
+      "import": "./dist/entity-lookup.js"
+    },
+    "./commands": {
+      "types": "./dist/commands.d.ts",
+      "import": "./dist/commands.js"
+    },
+    "./diagnostics": {
+      "types": "./dist/diagnostics.d.ts",
+      "import": "./dist/diagnostics.js"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.ts",
+      "import": "./dist/vite.js"
+    },
+    "./browser": {
+      "types": "./dist/browser.d.ts",
+      "import": "./dist/browser.js"
+    },
+    "./worker": {
+      "types": "./dist/worker.d.ts",
+      "import": "./dist/worker.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aperture-engine/audio": "workspace:^",
+    "@aperture-engine/physics": "workspace:^",
+    "@aperture-engine/physics-rapier": "workspace:^",
+    "@aperture-engine/render": "workspace:^",
+    "@aperture-engine/runtime": "workspace:^",
+    "@aperture-engine/simulation": "workspace:^",
+    "@aperture-engine/vite-plugin": "workspace:^",
+    "@aperture-engine/webgpu": "workspace:^",
+    "@preact/signals-core": "^1.8.0",
+    "elics": "^3.4.2"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "types": ["vitest", "node", "vite/client"],
+    "paths": {
+      "@aperture-engine/app": ["packages/app/src/index.ts"],
+      "@aperture-engine/app/config": ["packages/app/src/config.ts"],
+      "@aperture-engine/app/systems": ["packages/app/src/systems.ts"],
+      "@aperture-engine/app/advanced": ["packages/app/src/advanced.ts"],
+      "@aperture-engine/app/headless": ["packages/app/src/headless.ts"],
+      "@aperture-engine/app/entity-lookup": [
+        "packages/app/src/entity-lookup.ts"
+      ],
+      "@aperture-engine/app/commands": ["packages/app/src/commands.ts"],
+      "@aperture-engine/app/diagnostics": ["packages/app/src/diagnostics.ts"],
+      "@aperture-engine/app/vite": ["packages/app/src/vite.ts"],
+      "@aperture-engine/app/browser": ["packages/app/src/browser.ts"],
+      "@aperture-engine/app/worker": ["packages/app/src/worker.ts"],
+      "@aperture-engine/cli": ["packages/cli/src/index.ts"],
+      "@aperture-engine/physics": ["packages/physics/src/index.ts"],
+      "@aperture-engine/physics-rapier": [
+        "packages/physics-rapier/src/index.ts"
+      ],
+      "@aperture-engine/physics/testing": ["packages/physics/src/testing.ts"],
+      "@aperture-engine/render": ["packages/render/src/index.ts"],
+      "@aperture-engine/render/test-support": [
+        "packages/render/src/test-support.ts"
+      ],
+      "@aperture-engine/runtime": ["packages/runtime/src/index.ts"],
+      "@aperture-engine/math": ["packages/math/src/index.ts"],
+      "@aperture-engine/math/kernel": ["packages/math/src/kernel/index.ts"],
+      "@aperture-engine/simulation": ["packages/simulation/src/index.ts"],
+      "@aperture-engine/vite-plugin": ["packages/vite-plugin/src/index.ts"],
+      "@aperture-engine/webgpu/test-support": [
+        "packages/webgpu/src/test-support.ts"
+      ],
+      "@aperture-engine/webgpu": ["packages/webgpu/src/index.ts"],
+      "@aperture-engine/audio": ["packages/audio/src/index.ts"],
+      "@aperture-engine/audio/test-support": [
+        "packages/audio/src/test-support.ts"
+      ]
+    }
+  },
+  "include": [
+    "packages/**/*.ts",
+    "test/**/*.ts",
+    "playwright.config.ts",
+    "vitest.config.ts"
+  ],
+  "exclude": [
+    "packages/*/dist",
+    "packages/reference-assets/data",
+    "packages/reference-assets/dist",
+    "node_modules",
+    "dist"
+  ]
+}

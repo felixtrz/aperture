@@ -1,0 +1,44 @@
+{
+  "name": "@aperture-engine/docs-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm run prepare && astro dev --host 127.0.0.1",
+    "build": "pnpm run prepare && astro build",
+    "build:all": "pnpm run build:packages && pnpm run build && pnpm run build:showcases && pnpm run build:examples",
+    "build:packages": "pnpm --dir .. run build",
+    "build:pages": "APERTURE_DOCS_BASE=/aperture/ pnpm run build:all",
+    "build:examples": "node scripts/stage-example-routes.mjs",
+    "build:showcases": "node scripts/build-showcases.mjs",
+    "preview": "astro preview --host 127.0.0.1",
+    "typecheck": "pnpm run prepare && astro check && tsc --noEmit",
+    "prepare": "node scripts/generate-example-manifest.mjs && node scripts/generate-api-reference.mjs && node scripts/stage-reference-search.mjs",
+    "docs:api": "node scripts/generate-api-reference.mjs",
+    "check": "pnpm run prepare && node scripts/check-docs-site.mjs",
+    "publish:dry-run": "node scripts/publish-to-pages.mjs --dry-run",
+    "publish:pages": "pnpm run build:pages && node scripts/publish-to-pages.mjs --confirm-root-cutover",
+    "aperture": "aperture"
+  },
+  "dependencies": {
+    "@aperture-engine/app": "workspace:*",
+    "@aperture-engine/render": "workspace:*",
+    "@aperture-engine/simulation": "workspace:*",
+    "@aperture-engine/vite-plugin": "workspace:*",
+    "@aperture-engine/webgpu": "workspace:*",
+    "@astrojs/react": "^4.4.2",
+    "@huggingface/transformers": "^3.8.1",
+    "astro": "^5.16.4",
+    "lumin": "file:vendor/lumin-0.1.0.tgz",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@aperture-engine/cli": "workspace:*",
+    "@astrojs/check": "^0.9.4",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.13"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "jsx": "react-jsx",
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "types": ["astro/client", "vite/client"]
+  },
+  "include": [
+    "aperture.config.ts",
+    "vite.config.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".aperture/generated/**/*.d.ts"
+  ]
+}

@@ -1,0 +1,13 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { showcases } from "../../content/showcases";
+import { ShowcaseCards } from "../../components/ShowcaseCards";
+---
+
+<DocsLayout
+  title="Aperture Showcases"
+  description="Aperture showcase applications: city builder, FPS, platformer, and racing."
+  mainClass="docs-main--browser"
+>
+  <ShowcaseCards showcases={showcases} client:load />
+</DocsLayout>

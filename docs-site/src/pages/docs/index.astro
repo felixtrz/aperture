@@ -1,0 +1,47 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { ReferenceSearch } from "../../components/ReferenceSearch";
+import { docsSections } from "../../content/docs";
+import referenceAssetsPackage from "../../../../packages/reference-assets/package.json";
+---
+
+<DocsLayout
+  title="Aperture Docs"
+  description="Human-facing Aperture documentation for the ECS-native WebGPU runtime."
+>
+  <section class="docs-hero">
+    <div>
+      <p class="docs-eyebrow">Docs</p>
+      <h1>Build 3D apps from data-first systems.</h1>
+      <p>
+        Aperture is a WebGPU-only runtime where ECS is authoritative, rendering
+        is a derived snapshot, and app code can run in the worker by default.
+      </p>
+    </div>
+    <div class="docs-command">
+      <span>$</span>
+      <code>npx @aperture-engine/cli create my-app</code>
+    </div>
+  </section>
+
+  <ReferenceSearch
+    assetsVersion={referenceAssetsPackage.version}
+    client:load
+  />
+
+  <section class="docs-section-grid" aria-label="Documentation sections">
+    {
+      docsSections.map((section) => (
+        <article class="docs-panel" id={section.id}>
+          <h2>{section.title}</h2>
+          <p>{section.summary}</p>
+          <ul>
+            {section.bullets.map((bullet) => (
+              <li>{bullet}</li>
+            ))}
+          </ul>
+        </article>
+      ))
+    }
+  </section>
+</DocsLayout>

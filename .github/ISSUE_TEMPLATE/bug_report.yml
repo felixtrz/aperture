@@ -1,0 +1,34 @@
+name: Bug report
+description: Report a reproducible Aperture bug.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Minimal steps, code, or repository that reproduces the issue.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Aperture version
+      placeholder: "0.1.0"
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, GPU, Node, pnpm, and WebGPU status if relevant.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or diagnostics
+      render: text

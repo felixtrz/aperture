@@ -1,0 +1,44 @@
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless
+  Cross-Origin-Resource-Policy: same-origin
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Content-Type-Options: nosniff
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), fullscreen=(self), gamepad=(self), xr-spatial-tracking=(self)
+  Cache-Control: public, max-age=0, must-revalidate
+
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/showcase/*/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/showcase/*/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/showcase/*/models/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/showcase/*/sounds/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/showcase/*/sprites/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/packages/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/worker-modules/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/models/*
+  Cache-Control: public, max-age=3600
+
+/api-reference/*
+  Cache-Control: public, max-age=3600
+
+/reference-search/*
+  Cache-Control: public, max-age=3600

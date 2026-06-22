@@ -1,0 +1,514 @@
+import type {
+  DrawCommandDescriptor,
+  DrawCommandDescriptorDiagnostic,
+} from "../draw/draw-command.js";
+import type { GetOrCreateRenderPipelineResult } from "../../gpu/pipeline-cache-integration.js";
+import type { UnlitBindGroupResource } from "../../materials/unlit/unlit-bind-group.js";
+import { requiredBindGroupGroupsForPipelineKey } from "../../materials/core/material-pipeline-selection.js";
+import { skinningJointBufferResourceKeyForRenderId } from "../../resources/attributes/skinning-joint-buffer.js";
+
+export const DRAW_ORDER_WORLD_TRANSFORM_BIND_GROUP_SCOPE_KEY =
+  "__aperture_draw_order_world_transforms__";
+
+export type RenderPassDrawListDiagnosticCode =
+  | "renderPassDrawList.missingPipelineResource"
+  | "renderPassDrawList.missingBindGroupResource";
+
+export interface RenderPassDrawListDiagnostic {
+  readonly code: RenderPassDrawListDiagnosticCode;
+  readonly message: string;
+  readonly renderId: number;
+  readonly pipelineKey?: string;
+  readonly bindGroup?: {
+    readonly group: number;
+    readonly materialResourceKey?: string;
+  };
+}
+
+export interface RenderPassDrawListRecord {
+  readonly renderId: number;
+  readonly pipelineKey: string;
+  readonly bindGroupKeys: readonly string[];
+  readonly meshResourceKey: string;
+  readonly materialResourceKey: string;
+  readonly vertexBufferKeys: readonly string[];
+  readonly vertexCount: number;
+  readonly vertexStart?: number;
+  readonly indexBufferKey: string | null;
+  readonly indexCount: number | null;
+  readonly indexStart?: number | null;
+  readonly instanceCount: number;
+  readonly transformPackedOffset: number;
+  readonly occlusionQuery?: boolean;
+}
+
+export interface RenderPassDrawListOptions {
+  readonly drawCommands: readonly DrawCommandDescriptor[];
+  readonly pipelines: readonly GetOrCreateRenderPipelineResult[];
+  readonly bindGroups: readonly UnlitBindGroupResource[];
+  readonly requiredBindGroupGroups?: readonly number[];
+}
+
+export interface RenderPassDrawListPlan {
+  readonly valid: boolean;
+  readonly draws: readonly RenderPassDrawListRecord[];
+  readonly diagnostics: readonly (
+    | DrawCommandDescriptorDiagnostic
+    | RenderPassDrawListDiagnostic
+  )[];
+}
+
+export interface RenderPassDrawListScratch {
+  readonly draws: RenderPassDrawListRecord[];
+  readonly diagnostics: RenderPassDrawListDiagnostic[];
+  readonly drawPool: RenderPassDrawListRecord[];
+  readonly pipelineKeys: Set<string>;
+  readonly resolvedBindGroups: UnlitBindGroupResource[];
+  readonly plan: RenderPassDrawListPlan;
+}
+
+interface MutableRenderPassDrawListRecord {
+  renderId: number;
+  pipelineKey: string;
+  bindGroupKeys: string[];
+  meshResourceKey: string;
+  materialResourceKey: string;
+  vertexBufferKeys: string[];
+  vertexCount: number;
+  vertexStart: number;
+  indexBufferKey: string | null;
+  indexCount: number | null;
+  indexStart: number | null;
+  instanceCount: number;
+  transformPackedOffset: number;
+  occlusionQuery?: boolean;
+}
+
+export function planRenderPassDrawList(
+  options: RenderPassDrawListOptions,
+): RenderPassDrawListPlan {
+  const scratch = createRenderPassDrawListScratch();
+
+  writeRenderPassDrawList(options, scratch);
+
+  return scratch.plan;
+}
+
+export function createRenderPassDrawListScratch(
+  capacity = 0,
+): RenderPassDrawListScratch {
+  const draws: RenderPassDrawListRecord[] = [];
+  const diagnostics: RenderPassDrawListDiagnostic[] = [];
+  const drawPool: RenderPassDrawListRecord[] = [];
+
+  for (let i = 0; i < capacity; i += 1) {
+    drawPool.push(createEmptyDrawListRecord());
+  }
+
+  return {
+    draws,
+    diagnostics,
+    drawPool,
+    pipelineKeys: new Set(),
+    resolvedBindGroups: [],
+    plan: { valid: true, draws, diagnostics },
+  };
+}
+
+export function writeRenderPassDrawList(
+  options: RenderPassDrawListOptions,
+  scratch: RenderPassDrawListScratch,
+): RenderPassDrawListPlan {
+  scratch.draws.length = 0;
+  scratch.diagnostics.length = 0;
+  scratch.pipelineKeys.clear();
+
+  for (const pipeline of options.pipelines) {
+    if (pipeline.ok) {
+      scratch.pipelineKeys.add(pipeline.key);
+    }
+  }
+
+  for (const command of options.drawCommands) {
+    let ready = true;
+    const requiredGroups =
+      options.requiredBindGroupGroups ??
+      command.requiredBindGroupGroups ??
+      requiredBindGroupGroupsForPipelineKey(command.pipelineKey);
+
+    if (!scratch.pipelineKeys.has(command.pipelineKey)) {
+      scratch.diagnostics.push({
+        code: "renderPassDrawList.missingPipelineResource",
+        renderId: command.renderId,
+        pipelineKey: command.pipelineKey,
+        message: `Missing render pipeline resource '${command.pipelineKey}' for render id ${command.renderId}.`,
+      });
+      ready = false;
+    }
+
+    const bindGroups = resolveBindGroups(
+      command,
+      options.bindGroups,
+      requiredGroups,
+      scratch,
+    );
+
+    if (bindGroups.length !== requiredGroups.length) {
+      ready = false;
+    }
+
+    if (!ready) {
+      continue;
+    }
+
+    const previous = scratch.draws[scratch.draws.length - 1];
+
+    if (canCoalesceDrawListRecord(previous, command, bindGroups)) {
+      (previous as MutableRenderPassDrawListRecord).instanceCount += 1;
+      continue;
+    }
+
+    const record = drawListRecordAt(scratch, scratch.draws.length);
+
+    record.renderId = command.renderId;
+    record.pipelineKey = command.pipelineKey;
+    record.bindGroupKeys.length = 0;
+
+    for (const bindGroup of bindGroups) {
+      record.bindGroupKeys.push(bindGroup.resourceKey);
+    }
+
+    record.meshResourceKey = command.meshResourceKey;
+    record.materialResourceKey = command.materialResourceKey;
+    record.vertexBufferKeys.length = 0;
+
+    for (const vertexBufferKey of command.vertexBufferKeys) {
+      record.vertexBufferKeys.push(vertexBufferKey);
+    }
+
+    record.vertexCount = command.vertexCount;
+    record.vertexStart = command.vertexStart ?? 0;
+    record.indexBufferKey = command.indexBufferKey;
+    record.indexCount = command.indexCount;
+    record.indexStart = command.indexStart ?? null;
+    record.instanceCount = 1;
+    record.transformPackedOffset = command.transformPackedOffset;
+    if (command.occlusionQuery === true) {
+      record.occlusionQuery = true;
+    } else {
+      delete record.occlusionQuery;
+    }
+    scratch.draws.push(record);
+  }
+
+  (scratch.plan as MutableRenderPassDrawListPlan).valid =
+    scratch.diagnostics.length === 0;
+
+  return scratch.plan;
+}
+
+function canCoalesceDrawListRecord(
+  previous: RenderPassDrawListRecord | undefined,
+  command: DrawCommandDescriptor,
+  bindGroups: readonly UnlitBindGroupResource[],
+): boolean {
+  if (previous === undefined) {
+    return false;
+  }
+
+  return (
+    previous.pipelineKey === command.pipelineKey &&
+    previous.meshResourceKey === command.meshResourceKey &&
+    previous.materialResourceKey === command.materialResourceKey &&
+    previous.vertexCount === command.vertexCount &&
+    previous.vertexStart === (command.vertexStart ?? 0) &&
+    previous.indexBufferKey === command.indexBufferKey &&
+    previous.indexCount === command.indexCount &&
+    previous.indexStart === (command.indexStart ?? null) &&
+    previous.occlusionQuery !== true &&
+    command.occlusionQuery !== true &&
+    previous.transformPackedOffset + previous.instanceCount * 16 ===
+      command.transformPackedOffset &&
+    stringArraysMatch(previous.vertexBufferKeys, command.vertexBufferKeys) &&
+    bindGroupKeysMatch(previous.bindGroupKeys, bindGroups)
+  );
+}
+
+function stringArraysMatch(
+  a: readonly string[],
+  b: readonly string[],
+): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  for (let index = 0; index < a.length; index += 1) {
+    if (a[index] !== b[index]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function bindGroupKeysMatch(
+  a: readonly string[],
+  b: readonly UnlitBindGroupResource[],
+): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  for (let index = 0; index < a.length; index += 1) {
+    if (a[index] !== b[index]?.resourceKey) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function resolveBindGroups(
+  command: DrawCommandDescriptor,
+  bindGroups: readonly UnlitBindGroupResource[],
+  requiredGroups: readonly number[],
+  scratch: RenderPassDrawListScratch,
+): readonly UnlitBindGroupResource[] {
+  scratch.resolvedBindGroups.length = 0;
+
+  for (const group of requiredGroups) {
+    const bindGroup = findBindGroup(command, bindGroups, group, scratch);
+
+    if (bindGroup === undefined) {
+      scratch.diagnostics.push({
+        code: "renderPassDrawList.missingBindGroupResource",
+        renderId: command.renderId,
+        bindGroup:
+          group === 2
+            ? { group, materialResourceKey: command.materialResourceKey }
+            : { group },
+        message:
+          group === 2
+            ? `Missing material bind group resource for material '${command.materialResourceKey}' on render id ${command.renderId}.`
+            : `Missing bind group resource for group ${group} on render id ${command.renderId}.`,
+      });
+      continue;
+    }
+
+    scratch.resolvedBindGroups.push(bindGroup);
+  }
+
+  return scratch.resolvedBindGroups;
+}
+
+function findBindGroup(
+  command: DrawCommandDescriptor,
+  bindGroups: readonly UnlitBindGroupResource[],
+  group: number,
+  scratch: RenderPassDrawListScratch,
+): UnlitBindGroupResource | undefined {
+  if (group === 2) {
+    return findMaterialBindGroup(command, bindGroups, group, scratch);
+  }
+
+  if (group === 1) {
+    return findWorldTransformBindGroup(command, bindGroups, group, scratch);
+  }
+
+  let firstCandidate: UnlitBindGroupResource | undefined;
+  let hasPipelineScopedCandidate = false;
+
+  for (const bindGroup of bindGroups) {
+    if (bindGroup.group !== group) {
+      continue;
+    }
+
+    firstCandidate ??= bindGroup;
+
+    if (!hasPipelineScopedKey(bindGroup, scratch.pipelineKeys)) {
+      continue;
+    }
+
+    hasPipelineScopedCandidate = true;
+
+    if (bindGroup.entryResourceKeys.includes(command.pipelineKey)) {
+      return bindGroup;
+    }
+  }
+
+  return hasPipelineScopedCandidate &&
+    pipelineRequiresScopedBindGroup(command.pipelineKey, group)
+    ? undefined
+    : firstCandidate;
+}
+
+function findWorldTransformBindGroup(
+  command: DrawCommandDescriptor,
+  bindGroups: readonly UnlitBindGroupResource[],
+  group: number,
+  scratch: RenderPassDrawListScratch,
+): UnlitBindGroupResource | undefined {
+  const skinned = command.pipelineKey.split("|").includes("skinned");
+  const requestedWorldTransformResourceKey = command.worldTransformResourceKey;
+  const drawSkinningResourceKey = skinningJointBufferResourceKeyForRenderId(
+    command.renderId,
+  );
+  let firstCandidate: UnlitBindGroupResource | undefined;
+  let hasPipelineScopedCandidate = false;
+
+  for (const bindGroup of bindGroups) {
+    if (bindGroup.group !== group) {
+      continue;
+    }
+
+    const drawScoped = bindGroup.entryResourceKeys.includes(
+      drawSkinningResourceKey,
+    );
+    const drawOrderScoped = bindGroup.entryResourceKeys.includes(
+      DRAW_ORDER_WORLD_TRANSFORM_BIND_GROUP_SCOPE_KEY,
+    );
+
+    if (skinned) {
+      if (drawScoped) {
+        return bindGroup;
+      }
+      continue;
+    }
+
+    if (drawScoped) {
+      continue;
+    }
+
+    if (requestedWorldTransformResourceKey !== undefined) {
+      if (
+        bindGroup.entryResourceKeys.includes(requestedWorldTransformResourceKey)
+      ) {
+        if (!hasPipelineScopedKey(bindGroup, scratch.pipelineKeys)) {
+          firstCandidate ??= bindGroup;
+          continue;
+        }
+
+        if (bindGroup.entryResourceKeys.includes(command.pipelineKey)) {
+          return bindGroup;
+        }
+      }
+      continue;
+    }
+
+    if (drawOrderScoped) {
+      continue;
+    }
+
+    firstCandidate ??= bindGroup;
+
+    if (!hasPipelineScopedKey(bindGroup, scratch.pipelineKeys)) {
+      continue;
+    }
+
+    hasPipelineScopedCandidate = true;
+
+    if (bindGroup.entryResourceKeys.includes(command.pipelineKey)) {
+      return bindGroup;
+    }
+  }
+
+  return skinned
+    ? undefined
+    : hasPipelineScopedCandidate
+      ? undefined
+      : firstCandidate;
+}
+
+function findMaterialBindGroup(
+  command: DrawCommandDescriptor,
+  bindGroups: readonly UnlitBindGroupResource[],
+  group: number,
+  scratch: RenderPassDrawListScratch,
+): UnlitBindGroupResource | undefined {
+  let firstCandidate: UnlitBindGroupResource | undefined;
+  let hasPipelineScopedCandidate = false;
+
+  for (const bindGroup of bindGroups) {
+    if (bindGroup.group !== group) {
+      continue;
+    }
+
+    if (!bindGroup.entryResourceKeys.includes(command.materialResourceKey)) {
+      continue;
+    }
+
+    firstCandidate ??= bindGroup;
+
+    if (!hasPipelineScopedKey(bindGroup, scratch.pipelineKeys)) {
+      continue;
+    }
+
+    hasPipelineScopedCandidate = true;
+
+    if (bindGroup.entryResourceKeys.includes(command.pipelineKey)) {
+      return bindGroup;
+    }
+  }
+
+  return hasPipelineScopedCandidate ? undefined : firstCandidate;
+}
+
+function hasPipelineScopedKey(
+  bindGroup: UnlitBindGroupResource,
+  pipelineKeys: ReadonlySet<string>,
+): boolean {
+  for (const resourceKey of bindGroup.entryResourceKeys) {
+    if (pipelineKeys.has(resourceKey)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function pipelineRequiresScopedBindGroup(
+  pipelineKey: string,
+  group: number,
+): boolean {
+  return group === 3 && pipelineKey.split("|").includes("transmission");
+}
+
+function drawListRecordAt(
+  scratch: RenderPassDrawListScratch,
+  index: number,
+): MutableRenderPassDrawListRecord {
+  const existing = scratch.drawPool[index] as
+    | MutableRenderPassDrawListRecord
+    | undefined;
+
+  if (existing !== undefined) {
+    return existing;
+  }
+
+  const record = createEmptyDrawListRecord();
+
+  scratch.drawPool.push(record);
+  return record;
+}
+
+function createEmptyDrawListRecord(): MutableRenderPassDrawListRecord {
+  return {
+    renderId: 0,
+    pipelineKey: "",
+    bindGroupKeys: [],
+    meshResourceKey: "",
+    materialResourceKey: "",
+    vertexBufferKeys: [],
+    vertexCount: 0,
+    vertexStart: 0,
+    indexBufferKey: null,
+    indexCount: null,
+    indexStart: null,
+    instanceCount: 1,
+    transformPackedOffset: 0,
+  };
+}
+
+type MutableRenderPassDrawListPlan = {
+  -readonly [Key in keyof RenderPassDrawListPlan]: RenderPassDrawListPlan[Key];
+};

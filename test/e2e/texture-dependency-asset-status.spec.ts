@@ -1,0 +1,152 @@
+import { expect, test } from "@playwright/test";
+
+import type { MultiEntityExampleStatus } from "./example-status-types.js";
+import {
+  expectedDiagnosticCounts,
+  expectNoDrawSubmissionStatus,
+  expectStatusJsonSafeForGpu,
+  loadMultiEntityScenarioStatus,
+} from "./webgpu-status.js";
+
+for (const fixture of [
+  {
+    scenario: "missing-texture-asset",
+    dependencyKind: "texture",
+    status: "missing",
+    reason: "texture-asset-missing",
+    diagnostic: "render.texture.missing",
+    registryDiagnostic: null,
+  },
+  {
+    scenario: "missing-sampler-asset",
+    dependencyKind: "sampler",
+    status: "missing",
+    reason: "sampler-asset-missing",
+    diagnostic: "render.sampler.missing",
+    registryDiagnostic: null,
+  },
+  {
+    scenario: "loading-texture-asset",
+    dependencyKind: "texture",
+    status: "loading",
+    reason: "texture-asset-loading",
+    diagnostic: "render.texture.loading",
+    registryDiagnostic: null,
+  },
+  {
+    scenario: "failed-texture-asset",
+    dependencyKind: "texture",
+    status: "failed",
+    reason: "texture-asset-failed",
+    diagnostic: "render.texture.failed",
+    registryDiagnostic: {
+      code: "browser.fixture.failedTexture",
+      message: "Intentional browser fixture failed texture asset.",
+      severity: "error",
+    },
+  },
+  {
+    scenario: "loading-sampler-asset",
+    dependencyKind: "sampler",
+    status: "loading",
+    reason: "sampler-asset-loading",
+    diagnostic: "render.sampler.loading",
+    registryDiagnostic: null,
+  },
+  {
+    scenario: "failed-sampler-asset",
+    dependencyKind: "sampler",
+    status: "failed",
+    reason: "sampler-asset-failed",
+    diagnostic: "render.sampler.failed",
+    registryDiagnostic: {
+      code: "browser.fixture.failedSampler",
+      message: "Intentional browser fixture failed sampler asset.",
+      severity: "error",
+    },
+  },
+] as const) {
+  test(`ECS browser example reports ${fixture.status} ${fixture.dependencyKind} dependency without submitting draws`, async ({
+    page,
+  }) => {
+    const status = await loadMultiEntityScenarioStatus(
+      page,
+      fixture.scenario,
+      `${fixture.scenario}-status`,
+    );
+
+    if (status === undefined) {
+      return;
+    }
+
+    expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+      example: "ecs-multi-entity",
+      scenario: fixture.scenario,
+      ok: false,
+      phase: "extract",
+      reason: fixture.reason,
+      renderingBackend: "webgpu-explicit",
+      extraction: { views: 1, meshDraws: 0, diagnostics: 1 },
+      assetStatus: {
+        [fixture.dependencyKind]: fixture.status,
+        diagnostics: [fixture.diagnostic],
+        registryDiagnostics:
+          fixture.registryDiagnostic === null
+            ? []
+            : [fixture.registryDiagnostic],
+      },
+      textureDependency: {
+        dependencyKind: fixture.dependencyKind,
+        assetStatus: fixture.status,
+      },
+      resources: {
+        materials: 0,
+        bindGroups: 0,
+        missing: fixture.dependencyKind,
+      },
+      binding: { planned: 0, applied: 0, ready: 0, diagnostics: 0 },
+      renderWorld: {
+        active: 0,
+        ready: 0,
+        blocked: 0,
+        diagnostics: ["renderWorld.empty"],
+      },
+      diagnosticCounts: expectedDiagnosticCounts({ extraction: 1 }),
+    });
+    expectNoDrawSubmissionStatus(status);
+    expect(
+      assetDiagnosticPairs(status),
+      JSON.stringify(status, null, 2),
+    ).toEqual([
+      {
+        code: fixture.diagnostic,
+        assetKey: expect.stringMatching(
+          fixture.dependencyKind === "texture" ? /^texture:/ : /^sampler:/,
+        ),
+      },
+    ]);
+    expect(
+      status.textureDependency?.textureKey,
+      JSON.stringify(status, null, 2),
+    ).toMatch(/^texture:/);
+    expect(
+      status.textureDependency?.samplerKey,
+      JSON.stringify(status, null, 2),
+    ).toMatch(/^sampler:/);
+    expectStatusJsonSafeForGpu(status);
+  });
+}
+
+function assetDiagnosticPairs(status: MultiEntityExampleStatus):
+  | readonly {
+      readonly code: string;
+      readonly assetKey?: string;
+    }[]
+  | undefined {
+  return status.diagnostics?.map((diagnostic) => ({
+    code: diagnostic.code,
+    ...(diagnostic.assetKey === undefined
+      ? {}
+      : { assetKey: diagnostic.assetKey }),
+  }));
+}

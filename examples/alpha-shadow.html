@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture Alpha Shadow</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@aperture-engine/render": "/packages/render/dist/index.js",
+          "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
+          "@aperture-engine/physics": "/packages/physics/dist/index.js",
+          "@aperture-engine/math": "/packages/math/dist/index.js",
+          "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
+          "@aperture-engine/webgpu": "/packages/webgpu/dist/index.js",
+          "@aperture-engine/webgpu/test-support": "/packages/webgpu/dist/test-support.js",
+          "elics": "/node_modules/elics/lib/index.js",
+          "wgpu-matrix": "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+          "@preact/signals-core": "/node_modules/@preact/signals-core/dist/signals-core.mjs"
+        }
+      }
+    </script>
+    <script type="module" src="./example-control.js"></script>
+  </head>
+  <body>
+    <main class="runtime-shell">
+      <section class="viewport-panel" aria-label="Aperture alpha-shadow scene">
+        <canvas
+          id="aperture-canvas"
+          width="512"
+          height="512"
+          aria-label="Aperture WebGPU alpha-shadow canvas"
+        ></canvas>
+      </section>
+      <aside class="status-panel" aria-label="Runtime status">
+        <div class="status-row">
+          <span>example</span>
+          <strong id="example-name">alpha shadow</strong>
+        </div>
+        <div class="status-row">
+          <span>state</span>
+          <strong id="example-state">loading</strong>
+        </div>
+        <nav class="example-links" aria-label="Examples">
+          <a href="/">clear</a>
+          <a href="/examples/csm-directional-shadow.html">csm shadow</a>
+          <a href="/examples/shadow-bias.html">shadow bias</a>
+        </nav>
+        <pre id="example-json">{}</pre>
+      </aside>
+    </main>
+    <script type="module" src="./alpha-shadow.main.js"></script>
+  </body>
+</html>

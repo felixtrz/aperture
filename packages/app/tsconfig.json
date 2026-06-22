@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": "./.tsbuildinfo"
+  },
+  "references": [
+    { "path": "../simulation" },
+    { "path": "../physics" },
+    { "path": "../render" },
+    { "path": "../runtime" },
+    { "path": "../webgpu" },
+    { "path": "../vite-plugin" }
+  ],
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules"]
+}

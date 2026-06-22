@@ -1,0 +1,1 @@
+import "./batching.main.js";

@@ -1,0 +1,221 @@
+import type { Aabb, BoundingSphere } from "@aperture-engine/simulation";
+
+export type MeshTopology =
+  | "triangle-list"
+  | "triangle-strip"
+  | "line-list"
+  | "line-strip"
+  | "point-list";
+
+export type MeshVertexFormat =
+  | "float32x2"
+  | "float32x3"
+  | "float32x4"
+  | "unorm8x4"
+  | "unorm16x4"
+  | "uint16x4"
+  | "uint8x4";
+
+export type MeshVertexSemantic =
+  | "POSITION"
+  | "NORMAL"
+  | "TANGENT"
+  | "TEXCOORD_0"
+  | "TEXCOORD_1"
+  | "COLOR_0"
+  | "JOINTS_0"
+  | "WEIGHTS_0"
+  | "JOINTS_1"
+  | "WEIGHTS_1"
+  | "MORPH_POSITION_0"
+  | "MORPH_NORMAL_0"
+  | "MORPH_POSITION_1"
+  | "MORPH_NORMAL_1";
+
+export type MeshIndexFormat = "uint16" | "uint32";
+
+export interface MeshVertexAttributeDescriptor {
+  readonly semantic: MeshVertexSemantic;
+  readonly format: MeshVertexFormat;
+  readonly offset: number;
+}
+
+export interface MeshBufferUpdateRange {
+  readonly byteOffset: number;
+  readonly byteLength: number;
+}
+
+export interface MeshVertexStreamDescriptor {
+  readonly id: string;
+  readonly arrayStride: number;
+  readonly vertexCount: number;
+  readonly attributes: readonly MeshVertexAttributeDescriptor[];
+  readonly data: Float32Array | Uint16Array | Uint8Array;
+  readonly updateRanges?: readonly MeshBufferUpdateRange[];
+}
+
+export interface MeshIndexBufferDescriptor {
+  readonly format: MeshIndexFormat;
+  readonly data: Uint16Array | Uint32Array;
+  readonly indexCount?: number;
+  readonly updateRanges?: readonly MeshBufferUpdateRange[];
+}
+
+export interface MeshSubmeshDescriptor {
+  readonly label: string;
+  readonly topology: MeshTopology;
+  readonly materialSlot: number;
+  readonly vertexStart: number;
+  readonly vertexCount: number;
+  readonly indexStart: number;
+  readonly indexCount: number;
+}
+
+export interface MeshMaterialSlot {
+  readonly index: number;
+  readonly label: string;
+}
+
+export interface MeshSkinningSchema {
+  readonly joints0?: MeshVertexSemantic;
+  readonly weights0?: MeshVertexSemantic;
+  readonly joints1?: MeshVertexSemantic;
+  readonly weights1?: MeshVertexSemantic;
+}
+
+export interface MeshMorphTargetDescriptor {
+  readonly label: string;
+  readonly positionSemantic?: MeshVertexSemantic;
+  readonly normalSemantic?: MeshVertexSemantic;
+  readonly tangentSemantic?: MeshVertexSemantic;
+}
+
+/**
+ * Engine-owned morph-target delta payload for the N-target GPU render path.
+ *
+ * Unlike {@link MeshMorphTargetDescriptor} (which names per-target vertex-stream
+ * semantics and is structurally capped by the number of named slots), this
+ * carries every target's deltas in a single target-major typed buffer so an
+ * arbitrary target count (e.g. the 52 ARKit blendshapes) renders through a
+ * storage buffer indexed by `(target, vertex)` rather than fixed vertex
+ * attributes. For target `t`, vertex `v`, the position delta is at
+ * `positionDeltas[(t * vertexCount + v) * 3 ..]` (likewise `normalDeltas`,
+ * zero-filled where a target lacks NORMAL).
+ */
+export interface MeshMorphTargetData {
+  readonly targetCount: number;
+  readonly vertexCount: number;
+  readonly hasNormals: boolean;
+  readonly positionDeltas: Float32Array;
+  readonly normalDeltas: Float32Array;
+}
+
+export interface MeshAsset {
+  readonly kind: "mesh";
+  readonly label: string;
+  readonly vertexStreams: readonly MeshVertexStreamDescriptor[];
+  readonly indexBuffer?: MeshIndexBufferDescriptor;
+  readonly submeshes: readonly MeshSubmeshDescriptor[];
+  readonly materialSlots: readonly MeshMaterialSlot[];
+  readonly localAabb?: Aabb;
+  readonly localSphere?: BoundingSphere;
+  readonly skinning?: MeshSkinningSchema;
+  readonly morphTargets?: readonly MeshMorphTargetDescriptor[];
+  /**
+   * All-N morph-target deltas for the storage-buffer GPU render path. When
+   * present, the renderer morphs via this payload (indexed by target+vertex),
+   * lifting the structural 2-target vertex-attribute cap.
+   */
+  readonly morphTargetData?: MeshMorphTargetData;
+}
+
+export type MeshDiagnosticCode =
+  | "mesh.missingPosition"
+  | "mesh.missingBounds"
+  | "mesh.invalidSubmeshRange"
+  | "mesh.unsupportedTopology"
+  | "mesh.missingMaterialSlot";
+
+export interface MeshValidationDiagnostic {
+  readonly code: MeshDiagnosticCode;
+  readonly message: string;
+  readonly submesh?: number;
+}
+
+export interface MeshValidationReport {
+  readonly valid: boolean;
+  readonly diagnostics: readonly MeshValidationDiagnostic[];
+}
+
+export interface BoxMeshOptions {
+  readonly label?: string;
+  readonly width?: number;
+  readonly height?: number;
+  readonly depth?: number;
+}
+
+export interface PlaneMeshOptions {
+  readonly label?: string;
+  readonly width?: number;
+  readonly height?: number;
+}
+
+export type LineListPosition = readonly [number, number, number];
+
+export interface LineListMeshSubmeshOptions {
+  readonly label?: string;
+  readonly materialSlot?: number;
+  readonly vertexStart?: number;
+  readonly vertexCount?: number;
+  readonly indexStart?: number;
+  readonly indexCount?: number;
+}
+
+export interface LineListMeshOptions {
+  readonly label?: string;
+  readonly positions: readonly LineListPosition[];
+  readonly indices?: readonly number[] | Uint16Array | Uint32Array;
+  readonly materialSlots?: readonly string[];
+  readonly submeshes?: readonly LineListMeshSubmeshOptions[];
+}
+
+export interface SphereMeshOptions {
+  readonly label?: string;
+  readonly radius?: number;
+  readonly widthSegments?: number;
+  readonly heightSegments?: number;
+}
+
+export interface CylinderMeshOptions {
+  readonly label?: string;
+  readonly radius?: number;
+  readonly radiusTop?: number;
+  readonly radiusBottom?: number;
+  readonly height?: number;
+  readonly radialSegments?: number;
+  readonly heightSegments?: number;
+}
+
+export interface ConeMeshOptions {
+  readonly label?: string;
+  readonly radius?: number;
+  readonly height?: number;
+  readonly radialSegments?: number;
+  readonly heightSegments?: number;
+}
+
+export interface CapsuleMeshOptions {
+  readonly label?: string;
+  readonly radius?: number;
+  readonly height?: number;
+  readonly radialSegments?: number;
+  readonly capSegments?: number;
+}
+
+export interface TorusMeshOptions {
+  readonly label?: string;
+  readonly majorRadius?: number;
+  readonly tubeRadius?: number;
+  readonly radialSegments?: number;
+  readonly tubeSegments?: number;
+}

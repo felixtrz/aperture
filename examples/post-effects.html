@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture Post Effects</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@aperture-engine/render": "/packages/render/dist/index.js",
+          "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
+          "@aperture-engine/physics": "/packages/physics/dist/index.js",
+          "@aperture-engine/math": "/packages/math/dist/index.js",
+          "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
+          "@aperture-engine/webgpu": "/packages/webgpu/dist/index.js",
+          "@aperture-engine/webgpu/test-support": "/packages/webgpu/dist/test-support.js",
+          "elics": "/node_modules/elics/lib/index.js",
+          "wgpu-matrix": "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+          "@preact/signals-core": "/node_modules/@preact/signals-core/dist/signals-core.mjs"
+        }
+      }
+    </script>
+    <script type="module" src="./example-control.js"></script>
+  </head>
+  <body>
+    <main class="runtime-shell">
+      <section
+        class="viewport-panel"
+        aria-label="Aperture post effects runtime"
+      >
+        <canvas
+          id="aperture-canvas"
+          width="960"
+          height="540"
+          aria-label="Aperture WebGPU post effects canvas"
+        ></canvas>
+      </section>
+      <aside class="status-panel" aria-label="Runtime status">
+        <div class="status-row">
+          <span>example</span>
+          <strong id="example-name">post effects</strong>
+        </div>
+        <div class="status-row">
+          <span>state</span>
+          <strong id="example-state">loading</strong>
+        </div>
+        <div class="runtime-controls" aria-label="Post effects">
+          <button type="button" data-effect="fxaa">FXAA</button>
+          <button type="button" data-effect="bloom">Bloom</button>
+        </div>
+        <nav class="example-links" aria-label="Examples">
+          <a href="/">clear</a>
+          <a href="/examples/spinning-cube.html">spinning cube</a>
+          <a href="/examples/post-effects.html">post effects</a>
+          <a href="/examples/msaa.html">msaa</a>
+          <a href="/examples/taa.html">taa</a>
+          <a href="/examples/ssao.html">ssao</a>
+          <a href="/examples/ssr.html">ssr</a>
+          <a href="/examples/dof.html">dof</a>
+          <a href="/examples/tonemap-showcase.html">tonemap showcase</a>
+          <a href="/examples/materials-showcase.html">materials</a>
+          <a href="/examples/glb-viewer.html">glb viewer</a>
+        </nav>
+        <pre id="example-json">{}</pre>
+      </aside>
+    </main>
+    <script type="module" src="./post-effects.main.js"></script>
+  </body>
+</html>

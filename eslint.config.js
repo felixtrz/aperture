@@ -1,0 +1,95 @@
+import js from "@eslint/js";
+import globals from "globals";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import tseslint from "typescript-eslint";
+
+const tsconfigRootDir = path.dirname(fileURLToPath(import.meta.url));
+
+export default tseslint.config(
+  {
+    ignores: [
+      "dist/**",
+      "packages/*/dist/**",
+      "examples/**/dist/**",
+      "node_modules/**",
+      "coverage/**",
+      "tmp/**",
+      "docs-site/dist/**",
+      "docs-site/tmp/**",
+      "packages/reference-assets/data/**",
+      "packages/reference-assets/dist/**",
+      "docs/hero-city/**",
+      "READINESS_AUDIT.md",
+      "_euler-verify.mjs",
+      "shadow-lab/src/compare/three.core.js",
+      "shadow-lab/src/compare/three.webgpu.js",
+      ".claude/**",
+      "**/.aperture/**",
+      ".codex/**",
+      "examples/assets/basis/**",
+      "examples/assets/draco/**",
+      "examples/assets/meshopt/**",
+    ],
+  },
+  {
+    files: ["eslint.config.js"],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: globals.node,
+    },
+  },
+  {
+    files: ["scripts/**/*.mjs", "test/**/*.mjs"],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: globals.node,
+    },
+  },
+  {
+    files: ["examples/**/*.js"],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: globals.browser,
+    },
+  },
+  {
+    files: [
+      "packages/**/*.ts",
+      "test/**/*.ts",
+      "playwright.config.ts",
+      "vitest.config.ts",
+    ],
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    languageOptions: {
+      parserOptions: {
+        project: ["./tsconfig.test.json"],
+        tsconfigRootDir,
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+    rules: {
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { fixStyle: "inline-type-imports", prefer: "type-imports" },
+      ],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
+);

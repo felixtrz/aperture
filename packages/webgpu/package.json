@@ -1,0 +1,54 @@
+{
+  "name": "@aperture-engine/webgpu",
+  "version": "0.1.0",
+  "description": "WebGPU rendering backend for the Aperture game engine: materials, shadows, IBL, post effects, picking, text, UI, and particles.",
+  "author": "Felix Zhang",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felixtrz/aperture.git",
+    "directory": "packages/webgpu"
+  },
+  "homepage": "https://github.com/felixtrz/aperture/tree/main/packages/webgpu#readme",
+  "bugs": "https://github.com/felixtrz/aperture/issues",
+  "keywords": [
+    "aperture",
+    "webgpu",
+    "game-engine",
+    "renderer",
+    "ecs",
+    "pbr",
+    "typescript"
+  ],
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./test-support": {
+      "types": "./dist/test-support.d.ts",
+      "import": "./dist/test-support.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aperture-engine/render": "workspace:^",
+    "@aperture-engine/runtime": "workspace:^",
+    "@aperture-engine/simulation": "workspace:^"
+  }
+}

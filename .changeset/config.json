@@ -1,0 +1,26 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config/schema.json",
+  "access": "public",
+  "baseBranch": "main",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [
+    [
+      "@aperture-engine/math",
+      "@aperture-engine/simulation",
+      "@aperture-engine/physics",
+      "@aperture-engine/physics-rapier",
+      "@aperture-engine/render",
+      "@aperture-engine/runtime",
+      "@aperture-engine/webgpu",
+      "@aperture-engine/audio",
+      "@aperture-engine/vite-plugin",
+      "@aperture-engine/app",
+      "@aperture-engine/cli",
+      "@aperture-engine/reference-assets"
+    ]
+  ],
+  "ignore": [],
+  "linked": [],
+  "updateInternalDependencies": "patch"
+}

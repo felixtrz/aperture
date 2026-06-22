@@ -1,0 +1,545 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  PACKED_LIGHT_FLOAT_STRIDE,
+  PACKED_LIGHT_METADATA_STRIDE,
+  DEFAULT_LIGHT_BUFFER_RESOURCE_KEY,
+  DEFAULT_LIGHT_BUFFER_USAGE,
+  PackedAreaLightShapeId,
+  PackedLightKindId,
+  createLightBufferDescriptor,
+  createLightBufferDescriptorPlanScratch,
+  createLightBufferDescriptorPlan,
+  createLightBufferDescriptorScratch,
+  createLightGpuBuffers,
+  createLightPacketPackingScratch,
+  packLightPackets,
+  packedLightKindId,
+  writeLightBufferDescriptor,
+  writeLightBufferDescriptorPlan,
+  writePackedLightPackets,
+  type LightPacket,
+  type RenderSnapshot,
+  type WebGpuBufferDeviceLike,
+} from "@aperture-engine/webgpu/test-support";
+
+describe("light packet packing", () => {
+  it("packs light packet float and metadata fields in packet order", () => {
+    const lights = [
+      light("ambient", 1),
+      light("directional", 2),
+      light("point", 3),
+      light("spot", 4),
+      light("rect-area", 5),
+    ];
+
+    const packed = packLightPackets(lights);
+
+    expect(packed.count).toBe(5);
+    expect(packed.floatStride).toBe(PACKED_LIGHT_FLOAT_STRIDE);
+    expect(packed.metadataStride).toBe(PACKED_LIGHT_METADATA_STRIDE);
+    expect(Array.from(packed.floats.slice(0, 12))).toEqual([
+      1,
+      0.5,
+      0.25,
+      1,
+      10,
+      20,
+      0.125,
+      0.25,
+      2.5,
+      1.5,
+      PackedAreaLightShapeId.Rect,
+      0,
+    ]);
+    expect(Array.from(packed.floats.slice(12, 24))).toEqual([
+      0, 0, 0, 0, 0, -1, 1.25, 0, 0, 0, 0.75, 0,
+    ]);
+    expect(metadataColumn(packed.metadata, 0)).toEqual([
+      PackedLightKindId.Ambient,
+      PackedLightKindId.Directional,
+      PackedLightKindId.Point,
+      PackedLightKindId.Spot,
+      PackedLightKindId.RectArea,
+    ]);
+    expect(metadataColumn(packed.metadata, 1)).toEqual([16, 32, 48, 64, 80]);
+    expect(metadataColumn(packed.metadata, 2)).toEqual([2, 4, 8, 16, 32]);
+    expect(metadataColumn(packed.metadata, 3)).toEqual([
+      101, 102, 103, 104, 105,
+    ]);
+  });
+
+  it("packs snapshot lights without retaining ECS state", () => {
+    const packed = packLightPackets(
+      snapshot([light("rect-area", 5, "sphere")]),
+    );
+
+    expect(packed.count).toBe(1);
+    expect(packed.floats[10]).toBe(PackedAreaLightShapeId.Sphere);
+    expect(Array.from(packed.metadata)).toEqual([
+      PackedLightKindId.RectArea,
+      80,
+      32,
+      105,
+      5,
+      0,
+    ]);
+  });
+
+  it("packs light positions, directions, and area axes from snapshot transforms", () => {
+    const packed = packLightPackets(
+      snapshot(
+        [light("directional", 1), light("point", 2), light("spot", 3)],
+        [],
+        transformsWithEntries([
+          {
+            offset: 16,
+            position: [10, 11, 12],
+            forward: [0, -1, 0],
+            xAxis: [0, 1, 0],
+            yAxis: [1, 0, 0],
+          },
+          {
+            offset: 32,
+            position: [20, 21, 22],
+            forward: [0, 0, 1],
+            xAxis: [1, 0, 0],
+            yAxis: [0, 1, 0],
+          },
+          {
+            offset: 48,
+            position: [30, 31, 32],
+            forward: [1, 0, 0],
+            xAxis: [0, 1, 0],
+            yAxis: [0, 0, 1],
+          },
+        ]),
+      ),
+    );
+
+    expect(Array.from(packed.floats.slice(12, 18))).toEqual([
+      10, 11, 12, 0, 1, 0,
+    ]);
+    expect(
+      Array.from(
+        packed.floats.slice(
+          PACKED_LIGHT_FLOAT_STRIDE + 12,
+          PACKED_LIGHT_FLOAT_STRIDE + 18,
+        ),
+      ),
+    ).toEqual([20, 21, 22, 0, 0, -1]);
+    expect(
+      Array.from(
+        packed.floats.slice(
+          PACKED_LIGHT_FLOAT_STRIDE * 2 + 12,
+          PACKED_LIGHT_FLOAT_STRIDE * 2 + 24,
+        ),
+      ),
+    ).toEqual([30, 31, 32, -1, 0, 0, 0, 1.25, 0, 0, 0, 0.75]);
+  });
+
+  it("packs directional cascade counts, far bounds, and matrix base indices from shadow requests", () => {
+    const packed = packLightPackets(
+      snapshot(
+        [light("directional", 1), light("directional", 2)],
+        [shadowRequest(101, 2), shadowRequest(102, 3)],
+      ),
+    );
+    const secondOffset = PACKED_LIGHT_FLOAT_STRIDE;
+
+    expect(packed.floats[5]).toBe(2);
+    expect(packed.floats[10]).toBe(0);
+    expect(packed.floats[secondOffset + 5]).toBe(3);
+    expect(packed.floats[secondOffset + 10]).toBe(2);
+    expect(packed.floats[secondOffset + 6]).toBeGreaterThan(0);
+    expect(packed.floats[secondOffset + 6]).toBeLessThan(
+      packed.floats[secondOffset + 7] ?? 0,
+    );
+    expect(packed.floats[secondOffset + 7]).toBeLessThan(
+      packed.floats[secondOffset + 8] ?? 0,
+    );
+    expect(packed.floats[secondOffset + 8]).toBe(40);
+    expect(packed.floats[secondOffset + 9]).toBe(40);
+  });
+
+  it("returns stable empty typed arrays for snapshots without lights", () => {
+    const packed = packLightPackets([]);
+
+    expect(packed.count).toBe(0);
+    expect(packed.floats).toBeInstanceOf(Float32Array);
+    expect(packed.metadata).toBeInstanceOf(Int32Array);
+    expect(packed.floats).toHaveLength(0);
+    expect(packed.metadata).toHaveLength(0);
+  });
+
+  it("reuses caller-owned light packet scratch when capacity fits", () => {
+    const scratch = createLightPacketPackingScratch(4);
+    const first = writePackedLightPackets(
+      [light("directional", 1), light("point", 2)],
+      scratch,
+    );
+    const firstFloats = first.floats;
+    const firstMetadata = first.metadata;
+    const backingFloats = scratch.floats;
+    const backingMetadata = scratch.metadata;
+    const second = writePackedLightPackets(
+      [light("spot", 3), light("ambient", 4)],
+      scratch,
+    );
+
+    expect(second).toBe(first);
+    expect(second.floats).toBe(firstFloats);
+    expect(second.metadata).toBe(firstMetadata);
+    expect(scratch.floats).toBe(backingFloats);
+    expect(scratch.metadata).toBe(backingMetadata);
+    expect(Array.from(metadataColumn(second.metadata, 0))).toEqual([
+      PackedLightKindId.Spot,
+      PackedLightKindId.Ambient,
+    ]);
+  });
+
+  it("creates renderer-owned light buffer descriptors without GPU buffers", () => {
+    const packed = packLightPackets([light("directional", 2)]);
+    const descriptor = createLightBufferDescriptor(packed, {
+      resourceKey: "light-buffer:test",
+    });
+
+    expect(descriptor).toMatchObject({
+      resourceKey: "light-buffer:test",
+      usageIntent: "read-only-storage",
+      count: 1,
+      floatByteLength:
+        PACKED_LIGHT_FLOAT_STRIDE * Float32Array.BYTES_PER_ELEMENT,
+      metadataByteLength:
+        PACKED_LIGHT_METADATA_STRIDE * Int32Array.BYTES_PER_ELEMENT,
+      byteLength:
+        PACKED_LIGHT_FLOAT_STRIDE * Float32Array.BYTES_PER_ELEMENT +
+        PACKED_LIGHT_METADATA_STRIDE * Int32Array.BYTES_PER_ELEMENT,
+    });
+    expect(descriptor.packed).toBe(packed);
+  });
+
+  it("creates valid no-op descriptors for empty light inputs", () => {
+    const descriptor = createLightBufferDescriptor([]);
+
+    expect(descriptor.resourceKey).toBe(DEFAULT_LIGHT_BUFFER_RESOURCE_KEY);
+    expect(descriptor.count).toBe(0);
+    expect(descriptor.byteLength).toBe(0);
+    expect(descriptor.packed.floats).toHaveLength(0);
+    expect(descriptor.packed.metadata).toHaveLength(0);
+  });
+
+  it("creates WebGPU buffer descriptor plans for non-empty light data", () => {
+    const descriptor = createLightBufferDescriptor(
+      [light("directional", 1), light("point", 2)],
+      { resourceKey: "light-buffer:test" },
+    );
+    const result = createLightBufferDescriptorPlan(descriptor, {
+      label: "TestLights",
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.plan).toMatchObject({
+      resourceKey: "light-buffer:test",
+      source: descriptor.packed,
+      floatDescriptor: {
+        label: "TestLights/floats",
+        size: descriptor.floatByteLength,
+        usage: DEFAULT_LIGHT_BUFFER_USAGE,
+      },
+      metadataDescriptor: {
+        label: "TestLights/metadata",
+        size: descriptor.metadataByteLength,
+        usage: DEFAULT_LIGHT_BUFFER_USAGE,
+      },
+    });
+    expect(result.plan?.floatDescriptor.initialData).toBe(
+      descriptor.packed.floats,
+    );
+    expect(result.plan?.metadataDescriptor.initialData).toBe(
+      descriptor.packed.metadata,
+    );
+  });
+
+  it("reuses light buffer descriptor and plan scratch shells", () => {
+    const descriptorScratch = createLightBufferDescriptorScratch(2);
+    const planScratch = createLightBufferDescriptorPlanScratch();
+    const firstDescriptor = writeLightBufferDescriptor(
+      [light("directional", 1), light("point", 2)],
+      descriptorScratch,
+      { resourceKey: "light-buffer:test" },
+    );
+    const firstPlanResult = writeLightBufferDescriptorPlan(
+      firstDescriptor,
+      planScratch,
+      { label: "TestLights" },
+    );
+    const firstPlan = firstPlanResult.plan;
+    const firstFloatDescriptor = firstPlanResult.plan?.floatDescriptor;
+    const firstMetadataDescriptor = firstPlanResult.plan?.metadataDescriptor;
+    const firstDiagnostics = firstPlanResult.diagnostics;
+    const secondDescriptor = writeLightBufferDescriptor(
+      [light("spot", 3), light("ambient", 4)],
+      descriptorScratch,
+      { resourceKey: "light-buffer:test" },
+    );
+    const secondPlanResult = writeLightBufferDescriptorPlan(
+      secondDescriptor,
+      planScratch,
+      { label: "TestLights" },
+    );
+
+    expect(secondDescriptor).toBe(firstDescriptor);
+    expect(secondPlanResult).toBe(firstPlanResult);
+    expect(secondPlanResult.plan).toBe(firstPlan);
+    expect(secondPlanResult.plan?.floatDescriptor).toBe(firstFloatDescriptor);
+    expect(secondPlanResult.plan?.metadataDescriptor).toBe(
+      firstMetadataDescriptor,
+    );
+    expect(secondPlanResult.diagnostics).toBe(firstDiagnostics);
+    expect(secondPlanResult.plan?.floatDescriptor.initialData).toBe(
+      secondDescriptor.packed.floats,
+    );
+    expect(secondPlanResult.plan?.metadataDescriptor.initialData).toBe(
+      secondDescriptor.packed.metadata,
+    );
+  });
+
+  it("treats empty light buffer descriptor plans as valid no-ops", () => {
+    const result = createLightBufferDescriptorPlan(
+      createLightBufferDescriptor([]),
+    );
+
+    expect(result).toEqual({
+      valid: true,
+      plan: null,
+      diagnostics: [],
+    });
+  });
+
+  it("diagnoses invalid light buffer usage flags", () => {
+    const result = createLightBufferDescriptorPlan(
+      createLightBufferDescriptor([light("spot", 3)]),
+      { usage: 0 },
+    );
+
+    expect(result.plan).toBeNull();
+    expect(result.diagnostics).toEqual([
+      {
+        code: "lightBufferDescriptor.invalidUsageFlags",
+        field: "usage",
+        message: "Light buffer usage flags must be a positive integer.",
+      },
+    ]);
+  });
+
+  it("creates injected light GPU buffer resources from descriptor plans", () => {
+    const created: unknown[] = [];
+    const plan = required(
+      createLightBufferDescriptorPlan(
+        createLightBufferDescriptor([light("directional", 1)]),
+      ).plan,
+    );
+    const result = createLightGpuBuffers({
+      device: deviceWithBuffers(created),
+      plan,
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resource).toMatchObject({
+      resourceKey: "light-buffer:main",
+      floatResourceKey: "light-buffer:main/floats",
+      metadataResourceKey: "light-buffer:main/metadata",
+      count: 1,
+    });
+    expect(created).toHaveLength(2);
+  });
+
+  it("diagnoses null and failed light GPU buffer creation", () => {
+    const plan = required(
+      createLightBufferDescriptorPlan(
+        createLightBufferDescriptor([light("spot", 3)]),
+      ).plan,
+    );
+    const invalidPlan = {
+      ...plan,
+      floatDescriptor: { ...plan.floatDescriptor, size: 0 },
+    };
+
+    expect(
+      createLightGpuBuffers({
+        device: deviceWithBuffers([]),
+        plan: null,
+      }),
+    ).toMatchObject({
+      valid: false,
+      diagnostics: [{ code: "lightGpuBuffer.nullDescriptorPlan" }],
+    });
+    expect(
+      createLightGpuBuffers({
+        device: deviceWithBuffers([]),
+        plan: invalidPlan,
+      }).diagnostics.map((diagnostic) => diagnostic.code),
+    ).toEqual(["lightGpuBuffer.creationFailed"]);
+  });
+
+  it("maps all light kinds to stable numeric ids", () => {
+    expect(
+      [
+        "ambient",
+        "directional",
+        "point",
+        "spot",
+        "environment",
+        "rect-area",
+      ].map((kind) => packedLightKindId(kind as LightPacket["kind"])),
+    ).toEqual([0, 1, 2, 3, 4, 5]);
+  });
+});
+
+function light(
+  kind: LightPacket["kind"],
+  seed: number,
+  shape?: LightPacket["shape"],
+): LightPacket {
+  return {
+    lightId: 100 + seed,
+    entity: { index: seed, generation: 0 },
+    kind,
+    ...(shape === undefined ? {} : { shape }),
+    color: [1, 0.5, 0.25, 1],
+    intensity: 10 * seed,
+    range: 20 * seed,
+    innerConeAngle: 0.125 * seed,
+    outerConeAngle: 0.25 * seed,
+    width: 2.5,
+    height: 1.5,
+    worldTransformOffset: 16 * seed,
+    layerMask: 1 << seed,
+  };
+}
+
+function deviceWithBuffers(created: unknown[]): WebGpuBufferDeviceLike {
+  return {
+    queue: {
+      writeBuffer: (buffer, bufferOffset, data, dataOffset, size) => {
+        created.push({ buffer, bufferOffset, data, dataOffset, size });
+      },
+    },
+    createBuffer: (descriptor) => ({ descriptor }),
+  };
+}
+
+function required<T>(value: T | null | undefined): T {
+  if (value === null || value === undefined) {
+    throw new Error("Expected test fixture value to exist.");
+  }
+
+  return value;
+}
+
+function snapshot(
+  lights: readonly LightPacket[],
+  shadowRequests: RenderSnapshot["shadowRequests"] = [],
+  transforms = transformsForLights(lights),
+): Pick<RenderSnapshot, "lights" | "shadowRequests" | "transforms"> {
+  return { lights, shadowRequests, transforms };
+}
+
+function transformsForLights(lights: readonly LightPacket[]): Float32Array {
+  const maxOffset = lights.reduce(
+    (result, next) => Math.max(result, next.worldTransformOffset),
+    0,
+  );
+  const transforms = new Float32Array(maxOffset + 16);
+
+  for (const current of lights) {
+    writeTransform(transforms, {
+      offset: current.worldTransformOffset,
+      position: [0, 0, 0],
+      forward: [0, 0, 1],
+      xAxis: [1, 0, 0],
+      yAxis: [0, 1, 0],
+    });
+  }
+
+  return transforms;
+}
+
+interface TransformEntry {
+  readonly offset: number;
+  readonly position: readonly [number, number, number];
+  readonly forward: readonly [number, number, number];
+  readonly xAxis: readonly [number, number, number];
+  readonly yAxis: readonly [number, number, number];
+}
+
+function transformsWithEntries(
+  entries: readonly TransformEntry[],
+): Float32Array {
+  const maxOffset = entries.reduce(
+    (result, next) => Math.max(result, next.offset),
+    0,
+  );
+  const transforms = new Float32Array(maxOffset + 16);
+
+  for (const entry of entries) {
+    writeTransform(transforms, entry);
+  }
+
+  return transforms;
+}
+
+function writeTransform(transforms: Float32Array, entry: TransformEntry): void {
+  const offset = entry.offset;
+
+  transforms.set(
+    [
+      entry.xAxis[0],
+      entry.xAxis[1],
+      entry.xAxis[2],
+      0,
+      entry.yAxis[0],
+      entry.yAxis[1],
+      entry.yAxis[2],
+      0,
+      entry.forward[0],
+      entry.forward[1],
+      entry.forward[2],
+      0,
+      entry.position[0],
+      entry.position[1],
+      entry.position[2],
+      1,
+    ],
+    offset,
+  );
+}
+
+function shadowRequest(
+  lightId: number,
+  cascadeCount: number,
+): RenderSnapshot["shadowRequests"][number] {
+  return {
+    shadowId: lightId,
+    lightId,
+    lightKind: "directional",
+    cascadeCount,
+    casterLayerMask: 1,
+    receiverLayerMask: 1,
+  };
+}
+
+function metadataColumn(values: Int32Array, column: number): number[] {
+  const result: number[] = [];
+
+  for (
+    let offset = column;
+    offset < values.length;
+    offset += PACKED_LIGHT_METADATA_STRIDE
+  ) {
+    result.push(values[offset] ?? 0);
+  }
+
+  return result;
+}

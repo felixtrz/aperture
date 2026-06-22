@@ -1,0 +1,91 @@
+export type SpriteUvRect = readonly [number, number, number, number];
+export type SpriteAnimationFrame = SpriteUvRect | null;
+
+export interface SpriteFrameSelection {
+  readonly atlasFrame: number;
+  readonly visible: boolean;
+  readonly uvRect: SpriteUvRect;
+}
+
+const FULL_SPRITE_UV: SpriteUvRect = [0, 0, 1, 1];
+export const SOURCE_SPRITE_DEFAULT_PIXEL_SIZE = 0.01;
+export const SOURCE_MUZZLE_FRAME_PIXELS = 256;
+
+// player.tscn uses default SpriteBase3D pixel_size and random runtime scale.
+export const SOURCE_PLAYER_MUZZLE_WORLD_SIZE = sourceAnimatedSpriteWorldSize(
+  SOURCE_MUZZLE_FRAME_PIXELS,
+  SOURCE_SPRITE_DEFAULT_PIXEL_SIZE,
+);
+export const SOURCE_PLAYER_MUZZLE_SPRITE_SIZE: readonly [number, number] = [
+  SOURCE_PLAYER_MUZZLE_WORLD_SIZE,
+  SOURCE_PLAYER_MUZZLE_WORLD_SIZE,
+];
+
+// Starter-Kit-FPS impact.tscn uses 128px atlas frames at pixel_size 0.0025.
+export const SOURCE_IMPACT_FRAME_PIXELS = 128;
+export const SOURCE_IMPACT_PIXEL_SIZE = 0.0025;
+export const SOURCE_IMPACT_WORLD_SIZE = sourceAnimatedSpriteWorldSize(
+  SOURCE_IMPACT_FRAME_PIXELS,
+  SOURCE_IMPACT_PIXEL_SIZE,
+);
+export const SOURCE_IMPACT_SPRITE_SIZE: readonly [number, number] = [
+  SOURCE_IMPACT_WORLD_SIZE,
+  SOURCE_IMPACT_WORLD_SIZE,
+];
+
+// enemy.tscn uses default SpriteBase3D pixel_size and 0.5 node scale.
+export const SOURCE_ENEMY_MUZZLE_SCALE = 0.5;
+export const SOURCE_ENEMY_MUZZLE_WORLD_SIZE = sourceAnimatedSpriteWorldSize(
+  SOURCE_MUZZLE_FRAME_PIXELS,
+  SOURCE_SPRITE_DEFAULT_PIXEL_SIZE,
+  SOURCE_ENEMY_MUZZLE_SCALE,
+);
+export const SOURCE_ENEMY_MUZZLE_SPRITE_SIZE: readonly [number, number] = [
+  SOURCE_ENEMY_MUZZLE_WORLD_SIZE,
+  SOURCE_ENEMY_MUZZLE_WORLD_SIZE,
+];
+export const SOURCE_ENEMY_MUZZLE_RUNTIME_SCALE = 1;
+
+export function sourceAnimatedSpriteWorldSize(
+  framePixels: number,
+  pixelSize: number,
+  scale = 1,
+): number {
+  return framePixels * pixelSize * scale;
+}
+
+export function sourceSpriteFrameForLife(
+  frames: readonly SpriteAnimationFrame[],
+  normalizedLife: number,
+): SpriteFrameSelection {
+  if (frames.length === 0 || normalizedLife <= 0) {
+    return {
+      atlasFrame: 0,
+      visible: false,
+      uvRect: FULL_SPRITE_UV,
+    };
+  }
+
+  const elapsed = 1 - clamp01(normalizedLife);
+  const atlasFrame = Math.min(
+    frames.length - 1,
+    Math.max(0, Math.floor(elapsed * frames.length)),
+  );
+  const uvRect = frames[atlasFrame] ?? null;
+
+  return {
+    atlasFrame,
+    visible: uvRect !== null,
+    uvRect: uvRect ?? FULL_SPRITE_UV,
+  };
+}
+
+export function sourceSpriteAlphaForFrame(
+  frame: Pick<SpriteFrameSelection, "visible">,
+): number {
+  return frame.visible ? 1 : 0;
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}

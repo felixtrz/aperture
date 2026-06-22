@@ -1,0 +1,14 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/math" },
+    { "path": "./packages/simulation" },
+    { "path": "./packages/render" },
+    { "path": "./packages/runtime" },
+    { "path": "./packages/webgpu" },
+    { "path": "./packages/audio" },
+    { "path": "./packages/vite-plugin" },
+    { "path": "./packages/app" },
+    { "path": "./packages/cli" }
+  ]
+}

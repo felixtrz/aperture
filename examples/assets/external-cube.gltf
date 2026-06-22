@@ -1,0 +1,82 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "Aperture external glTF fixture"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [0]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "SampleCube",
+      "mesh": 0,
+      "rotation": [0, 0.258819, 0, 0.965926]
+    }
+  ],
+  "meshes": [
+    {
+      "name": "SampleCubeMesh",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0
+          },
+          "indices": 1,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "SampleCubeMint",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [0.16, 0.78, 0.56, 1]
+      },
+      "extensions": {
+        "KHR_materials_unlit": {}
+      }
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "external-cube.bin",
+      "byteLength": 168
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 96,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 96,
+      "byteLength": 72,
+      "target": 34963
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 8,
+      "type": "VEC3",
+      "min": [-0.7, -0.7, -0.7],
+      "max": [0.7, 0.7, 0.7]
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 0,
+      "componentType": 5123,
+      "count": 36,
+      "type": "SCALAR"
+    }
+  ]
+}

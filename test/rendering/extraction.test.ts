@@ -1,0 +1,3845 @@
+import { describe, expect, it } from "vitest";
+import {
+  AssetRegistry,
+  WorldTransform,
+  createEnvironmentMapHandle,
+  createMaterialHandle,
+  createMeshHandle,
+  createRenderTargetHandle,
+  createSamplerHandle,
+  createTextureHandle,
+  createRootTransform,
+  createWorld,
+  registerMetadataComponents,
+  registerTransformComponents,
+} from "@aperture-engine/simulation";
+import {
+  AreaLightShape,
+  Camera,
+  Fog,
+  FogMode,
+  InstanceData,
+  InstanceTint,
+  Light,
+  LightKind,
+  LightShadowSettings,
+  Material,
+  MaterialSlots,
+  Mesh,
+  MorphTargetWeights,
+  OcclusionQuery,
+  ProceduralSky,
+  RenderLayer,
+  RuntimeUniform,
+  ShadowCaster,
+  ShadowReceiver,
+  Skin,
+  Sprite,
+  Skybox,
+  Visibility,
+  createBoxMeshAsset,
+  createCamera,
+  createFog,
+  createInstanceData,
+  createLight,
+  createLightShadowSettings,
+  createMaterialSlots,
+  createMorphTargetWeights,
+  createOcclusionQuery,
+  createProceduralSky,
+  createSamplerAsset,
+  createStandardMaterialAsset,
+  createTextureAsset,
+  createRenderExtractionCache,
+  createRenderSnapshotChangeSet,
+  createRuntimeUniform,
+  createSkin,
+  createStableRenderId,
+  createSprite,
+  createSkybox,
+  decodeQuadInstanceFlags,
+  createUnlitMaterialAsset,
+  extractRenderSnapshot,
+  QUAD_INSTANCE_FLOAT_STRIDE,
+  QUAD_INSTANCE_WORD_STRIDE,
+  packSnapshotInstanceTints,
+  registerRenderAuthoringComponents,
+  type LightInput,
+  type MaterialAsset,
+  type MeshAsset,
+} from "@aperture-engine/render";
+
+describe("render extraction", () => {
+  it("extracts sorted views, mesh draws, bounds, and report counts", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const camera = createCameraEntity(world, { priority: 2, layerMask: 0b01 });
+    const mesh = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 0b01,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets, {
+      frame: 7,
+      time: 42.25,
+    });
+
+    expect(snapshot.frame).toBe(7);
+    expect(snapshot.time).toBe(42.25);
+    expect(snapshot.views.map((view) => view.camera.index)).toEqual([
+      camera.index,
+    ]);
+    expect(snapshot.views[0]?.renderTarget).toBeNull();
+    expect(snapshot.meshDraws.map((draw) => draw.entity.index)).toEqual([
+      mesh.index,
+    ]);
+    expect(snapshot.bounds).toHaveLength(1);
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.report).toMatchObject({
+      views: 1,
+      meshDraws: 1,
+      lights: 0,
+      bounds: 1,
+      diagnostics: 0,
+    });
+  });
+
+  it("scales world bounds spheres with the entity transform", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+
+    const entity = world.createEntity();
+    const root = createRootTransform({ scale: [3, 3, 3] });
+
+    entity.addComponent(WorldTransform, root.world);
+    entity.addComponent(Mesh, { meshId: "mesh:cube" });
+    entity.addComponent(Material, { materialId: "material:unlit" });
+    entity.addComponent(RenderLayer, { mask: 0b01 });
+    entity.addComponent(Visibility);
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 1 });
+    const bounds = snapshot.bounds[0];
+
+    expect(bounds).toBeDefined();
+    // Raycast candidate rejection uses worldSphere, so the radius must track
+    // the world scale (local unit cube sphere radius is hypot(.5,.5,.5)).
+    expect(bounds?.worldSphere.radius).toBeCloseTo(
+      Math.hypot(0.5, 0.5, 0.5) * 3,
+      5,
+    );
+    expect(bounds?.worldAabb.min[0]).toBeCloseTo(-1.5, 5);
+    expect(bounds?.worldAabb.max[0]).toBeCloseTo(1.5, 5);
+  });
+
+  it("extracts mesh draw occlusion-query opt-in without renderer-owned state", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+    const visible = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 0b01,
+    });
+    const disabled = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 0b01,
+      translation: [2, 0, 0],
+    });
+
+    visible.addComponent(OcclusionQuery, createOcclusionQuery());
+    disabled.addComponent(
+      OcclusionQuery,
+      createOcclusionQuery({ enabled: false }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 8 });
+    const byEntity = new Map(
+      snapshot.meshDraws.map((draw) => [draw.entity.index, draw]),
+    );
+
+    expect(byEntity.get(visible.index)?.occlusionQuery).toBe(true);
+    expect(byEntity.get(disabled.index)?.occlusionQuery).toBeUndefined();
+  });
+
+  it("extracts one mesh entity into material-slot submesh draw records", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: createTwoSubmeshBoxMesh(),
+    });
+    const secondaryMaterial = createMaterialHandle("secondary");
+
+    assets.register(secondaryMaterial);
+    assets.markReady(
+      secondaryMaterial,
+      createUnlitMaterialAsset({
+        baseColorFactor: [0.1, 0.8, 0.2, 1],
+      }),
+    );
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+    const entity = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 0b01,
+    });
+
+    entity.addComponent(
+      MaterialSlots,
+      createMaterialSlots({
+        slots: [{ slot: 1, material: secondaryMaterial }],
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 9 });
+    const baseRenderId = createStableRenderId({
+      index: entity.index,
+      generation: entity.generation,
+    });
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws).toHaveLength(2);
+    const drawsBySubmesh = [...snapshot.meshDraws].sort(
+      (a, b) => a.submesh - b.submesh,
+    );
+
+    expect(drawsBySubmesh).toMatchObject([
+      {
+        renderId: baseRenderId,
+        submesh: 0,
+        materialSlot: 0,
+        material: createMaterialHandle("unlit"),
+        vertexStart: 0,
+        vertexCount: 4,
+        indexStart: 0,
+        indexCount: 6,
+      },
+      {
+        renderId: baseRenderId + 1,
+        submesh: 1,
+        materialSlot: 1,
+        material: secondaryMaterial,
+        vertexStart: 4,
+        vertexCount: 4,
+        indexStart: 6,
+        indexCount: 6,
+      },
+    ]);
+    expect(drawsBySubmesh.map((draw) => draw.sortKey.materialKey)).toEqual([
+      "material:unlit",
+      "material:secondary",
+    ]);
+  });
+
+  it("extracts view-relative transparent sort depths before stable ids", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset({
+        renderState: {
+          alphaMode: "blend",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "alpha" },
+        },
+      }),
+    });
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 0b01,
+      translation: [0, 0, 5],
+      frustumCulling: false,
+    });
+    const near = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 0b01,
+      translation: [0, 0, 1],
+    });
+    const far = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 0b01,
+      translation: [0, 0, -1],
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 8 });
+
+    expect(snapshot.meshDraws.map((draw) => draw.entity.index)).toEqual([
+      far.index,
+      near.index,
+    ]);
+    expect(snapshot.meshDraws.map((draw) => draw.sortKey.queue)).toEqual([
+      "transparent",
+      "transparent",
+    ]);
+    expect(snapshot.meshDraws[0]?.sortKey.depth).toBeGreaterThan(
+      snapshot.meshDraws[1]?.sortKey.depth ?? 0,
+    );
+    expect(snapshot.meshDraws[0]?.sortKey.viewId).toBe(
+      snapshot.views[0]?.viewId,
+    );
+  });
+
+  it("extracts sprite draws as snapshot-safe billboard packets", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const texture = createTextureHandle("marker");
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "Marker",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "srgb",
+        semantic: "base-color",
+      }),
+    );
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+
+    const entity = world.createEntity();
+    const root = createRootTransform({ translation: [0, 0, -3] });
+
+    entity.addComponent(WorldTransform, root.world);
+    entity.addComponent(
+      Sprite,
+      createSprite({
+        texture,
+        size: [2, 3],
+        color: [0.25, 0.5, 0.75, 1],
+        uvRect: [0.125, 0.25, 0.5, 0.25],
+        pivot: [0.25, 0.75],
+        rotation: Math.PI / 4,
+        atlasFrame: 3,
+        coordinateMode: "screen",
+        billboardMode: "cylindrical",
+        sizeMode: "screen-pixels",
+        blendMode: "additive",
+        depthMode: "disabled",
+      }),
+    );
+    entity.addComponent(RenderLayer, { mask: 0b01 });
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 3 });
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.spriteDraws).toHaveLength(1);
+    expect(snapshot.spriteDraws?.[0]).toMatchObject({
+      renderId: createStableRenderId({
+        index: entity.index,
+        generation: entity.generation,
+      }),
+      texture,
+      width: 2,
+      height: 3,
+      layerMask: 0b01,
+      worldTransformOffset: 0,
+      boundsIndex: 0,
+    });
+    expect(snapshot.spriteDraws?.[0]?.color).toEqual([0.25, 0.5, 0.75, 1]);
+    expect(snapshot.quads).toMatchObject({
+      version: 1,
+      instanceFloatStride: QUAD_INSTANCE_FLOAT_STRIDE,
+      instanceWordStride: QUAD_INSTANCE_WORD_STRIDE,
+    });
+    expect(snapshot.quads?.instanceFloats).toHaveLength(
+      QUAD_INSTANCE_FLOAT_STRIDE,
+    );
+    expect(snapshot.quads?.instanceWords).toHaveLength(
+      QUAD_INSTANCE_WORD_STRIDE,
+    );
+    const quadFloats = Array.from(snapshot.quads?.instanceFloats ?? []);
+
+    expect(quadFloats.slice(0, 6)).toEqual([0, 0, 0, expect.any(Number), 2, 3]);
+    expect(quadFloats[6]).toBeCloseTo(Math.PI / 4, 6);
+    expect(quadFloats.slice(7)).toEqual([
+      0.25, 0.75, 0.125, 0.25, 0.5, 0.25, 0.25, 0.5, 0.75, 1, 0, 0, 0, 0, 0, 0,
+      0,
+    ]);
+    expect(snapshot.quads?.instanceWords[0]).toBe(0);
+    expect(snapshot.quads?.instanceWords[1]).toBe(0xffff_ffff);
+    expect(snapshot.quads?.instanceWords[2]).toBe(3);
+    expect(
+      decodeQuadInstanceFlags(snapshot.quads?.instanceWords[3] ?? 0),
+    ).toEqual({
+      coordinateMode: "screen",
+      billboardMode: "cylindrical",
+      sizeMode: "screen-pixels",
+    });
+    expect(snapshot.quads?.instanceWords[4]).toBe(
+      createStableRenderId({
+        index: entity.index,
+        generation: entity.generation,
+      }),
+    );
+    expect(snapshot.quadBatches).toEqual([
+      expect.objectContaining({
+        batchId: createStableRenderId({
+          index: entity.index,
+          generation: entity.generation,
+        }),
+        kind: "sprite",
+        texture,
+        materialKey: "texture:marker",
+        pipelineVariant: "sprite",
+        coordinateMode: "screen",
+        billboardMode: "cylindrical",
+        sizeMode: "screen-pixels",
+        blendMode: "additive",
+        depthMode: "disabled",
+        firstInstance: 0,
+        instanceCount: 1,
+        layerMask: 0b01,
+      }),
+    ]);
+    expect(snapshot.report).toMatchObject({
+      views: 1,
+      meshDraws: 0,
+      spriteDraws: 1,
+      quadInstances: 1,
+      quadBatches: 1,
+      bounds: 1,
+      diagnostics: 0,
+    });
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("extracts skyboxes as cube-texture background packets", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const texture = createTextureHandle("studio-cube");
+    const sampler = createSamplerHandle("linear-clamp");
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StudioCube",
+        dimension: "cube",
+        width: 2,
+        height: 2,
+        depthOrLayers: 6,
+        format: "rgba8unorm",
+        colorSpace: "srgb",
+        semantic: "base-color",
+      }),
+    );
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset({ label: "LinearClamp" }));
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+
+    const entity = world.createEntity();
+
+    entity.addComponent(
+      Skybox,
+      createSkybox({
+        texture,
+        sampler,
+        intensity: 1.25,
+      }),
+    );
+    entity.addComponent(RenderLayer, { mask: 0b01 });
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 4 });
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.skyboxes).toHaveLength(1);
+    expect(snapshot.skyboxes?.[0]).toMatchObject({
+      skyboxId: createStableRenderId({
+        index: entity.index,
+        generation: entity.generation,
+      }),
+      texture,
+      sampler,
+      intensity: 1.25,
+      layerMask: 0b01,
+    });
+    expect(snapshot.report).toMatchObject({
+      views: 1,
+      meshDraws: 0,
+      skyboxes: 1,
+      diagnostics: 0,
+    });
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("diagnoses skybox textures that are not cube assets", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const texture = createTextureHandle("flat-background");
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "FlatBackground",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "srgb",
+        semantic: "base-color",
+      }),
+    );
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+
+    const entity = world.createEntity();
+
+    entity.addComponent(Skybox, createSkybox({ texture }));
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 5 });
+
+    expect(snapshot.skyboxes).toEqual([]);
+    expect(snapshot.report).toMatchObject({
+      views: 1,
+      skyboxes: 0,
+      diagnostics: 1,
+    });
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.skybox.textureNotCube",
+        entity: { index: entity.index, generation: entity.generation },
+        assetKey: "texture:flat-background",
+      },
+    ]);
+  });
+
+  it("extracts procedural sky packets with dynamic gradient values", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+
+    createCameraEntity(world, { priority: 0, layerMask: 0b10 });
+
+    const entity = world.createEntity();
+
+    entity.addComponent(
+      ProceduralSky,
+      createProceduralSky({
+        priority: 5,
+        topColor: [0.02, 0.06, 0.18],
+        horizonColor: [0.4, 0.18, 0.08],
+        bottomColor: [0.01, 0.012, 0.035],
+        horizonPosition: 0.42,
+        horizonSoftness: 0.18,
+        intensity: 1.4,
+        sunDirection: [-0.6, 0.2, -0.7],
+        sunColor: [1.0, 0.72, 0.36],
+        sunRadius: 0.035,
+        sunGlow: 0.45,
+        ditherStrength: 0.0025,
+      }),
+    );
+    entity.addComponent(RenderLayer, { mask: 0b10 });
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 6 });
+
+    expect(snapshot.proceduralSkies).toHaveLength(1);
+    const sky = required(snapshot.proceduralSkies?.[0]);
+
+    expect(sky).toMatchObject({
+      skyId: createStableRenderId({
+        index: entity.index,
+        generation: entity.generation,
+      }),
+      entity: { index: entity.index, generation: entity.generation },
+      model: "gradient",
+      priority: 5,
+      layerMask: 0b10,
+    });
+    expectTupleCloseTo(sky.topColor, [0.02, 0.06, 0.18]);
+    expectTupleCloseTo(sky.horizonColor, [0.4, 0.18, 0.08]);
+    expectTupleCloseTo(sky.bottomColor, [0.01, 0.012, 0.035]);
+    expect(sky.horizonPosition).toBeCloseTo(0.42, 6);
+    expect(sky.horizonSoftness).toBeCloseTo(0.18, 6);
+    expect(sky.intensity).toBeCloseTo(1.4, 6);
+    expectTupleCloseTo(sky.sunDirection, [-0.6, 0.2, -0.7]);
+    expectTupleCloseTo(sky.sunColor, [1, 0.72, 0.36]);
+    expect(sky.sunRadius).toBeCloseTo(0.035, 6);
+    expect(sky.sunGlow).toBeCloseTo(0.45, 6);
+    expect(sky.ditherStrength).toBeCloseTo(0.0025, 6);
+    expect(snapshot.report).toMatchObject({
+      views: 1,
+      proceduralSkies: 1,
+      diagnostics: 0,
+    });
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("extracts runtime uniforms and marks value changes as packet changes", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const entity = world.createEntity();
+
+    entity.addComponent(
+      RuntimeUniform,
+      createRuntimeUniform({
+        key: "sky.gradient",
+        values: {
+          topColor: [0.02, 0.08, 0.22],
+          exposure: 1.1,
+        },
+        version: 1,
+      }),
+    );
+
+    const first = extractRenderSnapshot(world, assets, { frame: 1 });
+
+    expect(first.runtimeUniforms).toHaveLength(1);
+    expect(first.runtimeUniforms?.[0]).toMatchObject({
+      uniformId: createStableRenderId({
+        index: entity.index,
+        generation: entity.generation,
+      }),
+      entity: { index: entity.index, generation: entity.generation },
+      key: "sky.gradient",
+      values: {
+        topColor: [0.02, 0.08, 0.22],
+        exposure: 1.1,
+      },
+      version: 1,
+    });
+    expect(first.report).toMatchObject({
+      runtimeUniforms: 1,
+      diagnostics: 0,
+    });
+
+    entity.setValue(RuntimeUniform, "values", {
+      topColor: [0.05, 0.14, 0.36],
+      exposure: 1.35,
+    });
+    entity.setValue(RuntimeUniform, "version", 2);
+
+    const second = extractRenderSnapshot(world, assets, { frame: 2 });
+    const changeSet = createRenderSnapshotChangeSet(first, second);
+
+    expect(second.runtimeUniforms?.[0]?.values).toEqual({
+      topColor: [0.05, 0.14, 0.36],
+      exposure: 1.35,
+    });
+    expect(changeSet.runtimeUniforms).toEqual({
+      changed: 1,
+      unchanged: 0,
+      removed: 0,
+    });
+  });
+
+  it("diagnoses duplicate runtime uniform keys", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const first = world.createEntity();
+    const duplicate = world.createEntity();
+
+    first.addComponent(
+      RuntimeUniform,
+      createRuntimeUniform({
+        key: "material.params",
+        values: { color: [1, 0, 0, 1] },
+      }),
+    );
+    duplicate.addComponent(
+      RuntimeUniform,
+      createRuntimeUniform({
+        key: "material.params",
+        values: { color: [0, 0, 1, 1] },
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 1 });
+
+    expect(snapshot.runtimeUniforms).toHaveLength(1);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.runtimeUniform.duplicateKey",
+        entity: {
+          index: duplicate.index,
+          generation: duplicate.generation,
+        },
+        runtimeUniformKey: "material.params",
+      },
+    ]);
+  });
+
+  it("extracts fog packets and specializes standard draw pipeline keys", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const standard = createMaterialHandle("standard");
+
+    assets.register(standard);
+    assets.markReady(
+      standard,
+      createStandardMaterialAsset({
+        label: "FoggedStandard",
+      }),
+    );
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:standard",
+      layerMask: 0b01,
+    });
+    const fog = world.createEntity();
+
+    fog.addComponent(
+      Fog,
+      createFog({
+        mode: FogMode.Linear,
+        color: [0.55, 0.68, 0.82, 0.9],
+        start: 3,
+        end: 12,
+      }),
+    );
+    fog.addComponent(RenderLayer, { mask: 0b01 });
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 6 });
+
+    expect(snapshot.fogs).toHaveLength(1);
+    expect(snapshot.fogs?.[0]).toMatchObject({
+      fogId: createStableRenderId({
+        index: fog.index,
+        generation: fog.generation,
+      }),
+      mode: FogMode.Linear,
+      color: [
+        expect.closeTo(0.55, 5),
+        expect.closeTo(0.68, 5),
+        expect.closeTo(0.82, 5),
+        expect.closeTo(0.9, 5),
+      ],
+      start: 3,
+      end: 12,
+      layerMask: 0b01,
+    });
+    expect(snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
+      "standard|fogLinear|opaque|back|less|none",
+    );
+    expect(snapshot.report).toMatchObject({
+      views: 1,
+      meshDraws: 1,
+      fogs: 1,
+      diagnostics: 0,
+    });
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("diagnoses invalid fog authoring fields", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+    const fog = world.createEntity();
+
+    fog.addComponent(
+      Fog,
+      createFog({
+        mode: FogMode.Exp2,
+        density: -0.25,
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 7 });
+
+    expect(snapshot.fogs).toEqual([]);
+    expect(snapshot.report).toMatchObject({
+      views: 1,
+      fogs: 0,
+      diagnostics: 1,
+    });
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.fog.invalidDensity",
+        entity: { index: fog.index, generation: fog.generation },
+      },
+    ]);
+  });
+
+  it("reuses unchanged entity versions during cached mesh extraction", () => {
+    const entityCount = 1000;
+    const world = createRuntimeWorld(entityCount + 2);
+    const assets = createReadyAssets();
+    const entities: Array<ReturnType<typeof createMeshEntity>> = [];
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+
+    for (let index = 0; index < entityCount; index += 1) {
+      entities.push(
+        createMeshEntity(world, {
+          meshId: "mesh:cube",
+          materialId: "material:unlit",
+          layerMask: 1,
+        }),
+      );
+    }
+
+    const cache = createRenderExtractionCache();
+    const full = extractRenderSnapshot(world, assets, { frame: 11 });
+
+    extractRenderSnapshot(world, assets, { frame: 11, cache });
+    const cached = extractRenderSnapshot(world, assets, { frame: 11, cache });
+
+    expect(stableSnapshotValue(cached)).toEqual(stableSnapshotValue(full));
+    expect(cache.meshDrawEntities.size).toBe(entityCount);
+
+    const staticMs = measureCachedExtraction(() => {
+      extractRenderSnapshot(world, assets, { frame: 12, cache });
+    });
+    const dirtyMs = measureCachedExtraction(
+      () => {
+        extractRenderSnapshot(world, assets, { frame: 12, cache });
+      },
+      () => {
+        for (const entity of entities) {
+          entity.setValue(Visibility, "visible", true);
+        }
+      },
+    );
+
+    expect(
+      staticMs,
+      `cached static extraction ${staticMs.toFixed(3)}ms should be <50% of dirty extraction ${dirtyMs.toFixed(3)}ms`,
+    ).toBeLessThan(dirtyMs * 0.5);
+  });
+
+  it("invalidates cached mesh packets when the source mesh asset version changes", () => {
+    const world = createRuntimeWorld(4);
+    const assets = createReadyAssets({
+      meshAsset: createTrailLikeMeshAsset(0),
+    });
+    const meshHandle = createMeshHandle("cube");
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const cache = createRenderExtractionCache();
+    const first = extractRenderSnapshot(world, assets, { frame: 51, cache });
+
+    expect(first.meshDraws[0]?.indexCount).toBe(0);
+
+    assets.markReady(meshHandle, createTrailLikeMeshAsset(6));
+
+    const cached = extractRenderSnapshot(world, assets, { frame: 52, cache });
+    const cold = extractRenderSnapshot(world, assets, { frame: 52 });
+
+    expect(cached.meshDraws[0]?.indexCount).toBe(6);
+    expect(stableSnapshotValue(cached)).toEqual(stableSnapshotValue(cold));
+  });
+
+  it("invalidates cached mesh packets when the source material asset version changes", () => {
+    const world = createRuntimeWorld(4);
+    const assets = createReadyAssets();
+    const materialHandle = createMaterialHandle("unlit");
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const cache = createRenderExtractionCache();
+    const first = extractRenderSnapshot(world, assets, { frame: 61, cache });
+
+    expect(first.meshDraws[0]?.sortKey.queue).toBe("opaque");
+
+    assets.markReady(
+      materialHandle,
+      createUnlitMaterialAsset({
+        renderState: {
+          alphaMode: "blend",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "alpha" },
+        },
+      }),
+    );
+
+    const cached = extractRenderSnapshot(world, assets, { frame: 62, cache });
+    const cold = extractRenderSnapshot(world, assets, { frame: 62 });
+
+    expect(cached.meshDraws[0]?.sortKey.queue).toBe("transparent");
+    expect(cached.meshDraws[0]?.batchKey.pipelineKey).toContain("blend");
+    expect(stableSnapshotValue(cached)).toEqual(stableSnapshotValue(cold));
+  });
+
+  it("reuses unchanged offscreen shadow casters during cached extraction", () => {
+    const entityCount = 128;
+    const world = createRuntimeWorld(entityCount + 4);
+    const assets = createReadyAssets();
+    const casters: Array<ReturnType<typeof createMeshEntity>> = [];
+
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [0, 0, 5],
+    });
+    createLightEntity(world).addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({ enabled: true }),
+    );
+    const visibleReceiver = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [0, 0, 0],
+    });
+    visibleReceiver.addComponent(ShadowCaster, { enabled: false });
+
+    for (let index = 0; index < entityCount; index += 1) {
+      casters.push(
+        createMeshEntity(world, {
+          meshId: "mesh:cube",
+          materialId: "material:unlit",
+          layerMask: 1,
+          translation: [120 + index, 0, 0],
+        }),
+      );
+    }
+
+    const cache = createRenderExtractionCache();
+    const full = extractRenderSnapshot(world, assets, { frame: 21 });
+
+    extractRenderSnapshot(world, assets, { frame: 21, cache });
+    const cached = extractRenderSnapshot(world, assets, { frame: 21, cache });
+    const firstCasterDraw = cached.shadowCasterDraws?.find(
+      (draw) => draw.entity.index === casters[0]?.index,
+    );
+
+    expect(stableSnapshotValue(cached)).toEqual(stableSnapshotValue(full));
+    expect(cache.meshDrawEntities.size).toBe(1);
+    expect(cache.shadowCasterDrawEntities.size).toBe(entityCount);
+    expect(cached.meshDraws.map((draw) => draw.entity.index)).toEqual([
+      visibleReceiver.index,
+    ]);
+    expect(cached.shadowCasterDraws).toHaveLength(entityCount);
+    expect(firstCasterDraw).toBeDefined();
+
+    casters[0]?.getVectorView(WorldTransform, "col3").set([140, 2, 0, 1]);
+    const moved = extractRenderSnapshot(world, assets, { frame: 22, cache });
+    const movedCasterDraw = moved.shadowCasterDraws?.find(
+      (draw) => draw.entity.index === casters[0]?.index,
+    );
+    const movedOffset = movedCasterDraw?.worldTransformOffset ?? 0;
+    const movedBounds = moved.bounds[movedCasterDraw?.boundsIndex ?? -1];
+
+    expect(movedCasterDraw?.sortKey).toBe(firstCasterDraw?.sortKey);
+    expect(moved.transforms[movedOffset + 12]).toBeCloseTo(140, 5);
+    expect(moved.transforms[movedOffset + 13]).toBeCloseTo(2, 5);
+    expect(movedBounds?.worldSphere.center[0]).toBeCloseTo(140, 5);
+    expect(movedBounds?.worldSphere.center[1]).toBeCloseTo(2, 5);
+  });
+
+  it("does not invalidate cached shadow casters when only the camera frustum changes", () => {
+    const entityCount = 16;
+    const world = createRuntimeWorld(entityCount + 4);
+    const assets = createReadyAssets();
+    const casters: Array<ReturnType<typeof createMeshEntity>> = [];
+
+    const camera = createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [0, 0, 5],
+    });
+    createLightEntity(world).addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({ enabled: true }),
+    );
+    const visibleReceiver = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [0, 0, 0],
+    });
+    visibleReceiver.addComponent(ShadowCaster, { enabled: false });
+
+    for (let index = 0; index < entityCount; index += 1) {
+      casters.push(
+        createMeshEntity(world, {
+          meshId: "mesh:cube",
+          materialId: "material:unlit",
+          layerMask: 1,
+          translation: [120 + index, 0, 0],
+        }),
+      );
+    }
+
+    const cache = createRenderExtractionCache();
+    const first = extractRenderSnapshot(world, assets, { frame: 31, cache });
+
+    camera.getVectorView(WorldTransform, "col3").set([1, 0, 5, 1]);
+
+    const second = extractRenderSnapshot(world, assets, { frame: 32, cache });
+    const changeSet = createRenderSnapshotChangeSet(first, second);
+
+    expect(first.shadowCasterDraws).toHaveLength(entityCount);
+    expect(second.shadowCasterDraws).toHaveLength(entityCount);
+    expect(changeSet.shadowCasterDraws).toEqual({
+      changed: 0,
+      unchanged: entityCount,
+      removed: 0,
+    });
+  });
+
+  it("reuses cached mesh packets across camera frustum changes while refreshing sort depth", () => {
+    const world = createRuntimeWorld(4);
+    const assets = createReadyAssets();
+    const camera = createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [0, 0, 5],
+    });
+    const mesh = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [0, 0, 0],
+    });
+    const cache = createRenderExtractionCache();
+    const first = extractRenderSnapshot(world, assets, { frame: 41, cache });
+    const cacheKey = `${mesh.index}:${mesh.generation}`;
+    const firstCacheEntry: unknown = cache.meshDrawEntities.get(cacheKey);
+    const firstDraw = first.meshDraws[0];
+
+    expect(first.meshDraws).toHaveLength(1);
+    expect(firstCacheEntry).toBeDefined();
+    expect(firstDraw).toBeDefined();
+
+    camera.getVectorView(WorldTransform, "col3").set([0, 0, 6, 1]);
+
+    const second = extractRenderSnapshot(world, assets, { frame: 42, cache });
+    const cold = extractRenderSnapshot(world, assets, { frame: 42 });
+    const secondCacheEntry: unknown = cache.meshDrawEntities.get(cacheKey);
+    const secondDraw = second.meshDraws[0];
+    const coldDraw = cold.meshDraws[0];
+
+    expect(second.meshDraws).toHaveLength(1);
+    expect(secondCacheEntry).toBe(firstCacheEntry);
+    expect(secondDraw?.renderId).toBe(firstDraw?.renderId);
+    expect(secondDraw?.sortKey.depth).not.toBe(firstDraw?.sortKey.depth);
+    expect(secondDraw?.sortKey.depth).toBe(coldDraw?.sortKey.depth);
+  });
+
+  it("packs per-entity instance tint alongside extracted StandardMaterial draws", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset(),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const warm = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+    const cool = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    warm.addComponent(InstanceTint, { color: [1, 0.35, 0.2, 1] });
+    cool.addComponent(InstanceTint, { color: [0.2, 0.65, 1, 1] });
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 13 });
+    const packedTints = packSnapshotInstanceTints(snapshot);
+
+    expect(snapshot.meshDraws).toHaveLength(2);
+    expect(Array.from(snapshot.instanceTints ?? [])).toEqual([
+      1,
+      expect.closeTo(0.35, 5),
+      expect.closeTo(0.2, 5),
+      1,
+      expect.closeTo(0.2, 5),
+      expect.closeTo(0.65, 5),
+      1,
+      1,
+    ]);
+    expect(snapshot.meshDraws.map((draw) => draw.instanceTintOffset)).toEqual([
+      0, 4,
+    ]);
+    expect(
+      snapshot.meshDraws.every((draw) =>
+        draw.batchKey.pipelineKey.includes("instance-tint"),
+      ),
+    ).toBe(true);
+    expect(
+      new Set(snapshot.meshDraws.map((draw) => draw.batchKey.pipelineKey)).size,
+    ).toBe(1);
+    expect(packedTints).toMatchObject({
+      floatCount: 8,
+      diagnostics: [],
+      offsets: [
+        { renderId: snapshot.meshDraws[0]?.renderId, packedOffset: 0 },
+        { renderId: snapshot.meshDraws[1]?.renderId, packedOffset: 4 },
+      ],
+    });
+    expect(Array.from(packedTints.data)).toEqual([
+      1,
+      expect.closeTo(0.35, 5),
+      expect.closeTo(0.2, 5),
+      1,
+      expect.closeTo(0.2, 5),
+      expect.closeTo(0.65, 5),
+      1,
+      1,
+    ]);
+  });
+
+  it("extracts StandardMaterial skin palettes into snapshot bone matrices", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: withSkinningAttributes(createBoxMeshAsset()),
+      materialAsset: createStandardMaterialAsset(),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const entity = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    entity.addComponent(
+      Skin,
+      createSkin({
+        jointMatrices: [...identityMatrix(), ...translationMatrix(2, 0, 0)],
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 14 });
+    const draw = required(snapshot.meshDraws[0]);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.bones).toBeInstanceOf(Float32Array);
+    expect(Array.from(snapshot.bones ?? [])).toEqual([
+      ...identityMatrix(),
+      ...translationMatrix(2, 0, 0),
+    ]);
+    expect(draw).toMatchObject({
+      boneMatrixOffset: 0,
+      boneMatrixCount: 2,
+      batchKey: {
+        skinned: true,
+        pipelineKey: "standard|skinned|opaque|back|less|none",
+      },
+    });
+  });
+
+  it("stores the skin palette as a typed Float32Array with no JSON transport", () => {
+    const data = createSkin({
+      jointMatrices: [...identityMatrix(), ...translationMatrix(2, 0, 0)],
+    });
+
+    // createSkin emits a typed palette, not a serialized JSON string.
+    expect(data.jointMatrices).toBeInstanceOf(Float32Array);
+    expect("jointMatricesJson" in data).toBe(false);
+    expect(data.jointCount).toBe(2);
+  });
+
+  it("reads the typed joint palette by reference without per-extract allocation", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: withSkinningAttributes(createBoxMeshAsset()),
+      materialAsset: createStandardMaterialAsset(),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const entity = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    // A 50-joint palette: the JSON path would parse/allocate ~800 numbers per
+    // extract; the typed path reads the same Float32Array by reference.
+    const palette = new Float32Array(50 * 16);
+    for (let joint = 0; joint < 50; joint += 1) {
+      const base = joint * 16;
+      palette[base] = 1;
+      palette[base + 5] = 1;
+      palette[base + 10] = 1;
+      palette[base + 15] = 1;
+    }
+    entity.addComponent(Skin, { jointCount: 50, jointMatrices: palette });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+    const draw = required(snapshot.meshDraws[0]);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(draw.boneMatrixCount).toBe(50);
+    expect(snapshot.bones?.length).toBe(50 * 16);
+    // Extraction did not copy/replace the component's typed palette.
+    expect(entity.getValue(Skin, "jointMatrices")).toBe(palette);
+  });
+
+  it("stores morph target weights as a typed Float32Array with no JSON transport", () => {
+    const data = createMorphTargetWeights({ weights: [0.25, 2.5, -3, 0.5] });
+
+    expect(data.weights).toBeInstanceOf(Float32Array);
+    expect("weightsJson" in data).toBe(false);
+    expect(data.targetCount).toBe(4);
+  });
+
+  it("extracts unclamped morph weights into the snapshot with no JSON parse", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: withMorphTargetAttributes(createBoxMeshAsset()),
+      materialAsset: createStandardMaterialAsset(),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const entity = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+    // Weights outside [-1, 1]: the old JSON path clamped these to [-1, 1];
+    // the typed path must preserve them unchanged.
+    entity.addComponent(
+      MorphTargetWeights,
+      createMorphTargetWeights({ weights: [2.5, -3] }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws[0]?.batchKey.morphed).toBe(true);
+    expect(snapshot.morphTargetWeights?.[0]).toBeCloseTo(2.5, 5);
+    expect(snapshot.morphTargetWeights?.[1]).toBeCloseTo(-3, 5);
+  });
+
+  it("packs all N morph weights, deltas, and a per-instance descriptor into the snapshot (no 2/4 cap)", () => {
+    const world = createRuntimeWorld();
+    const meshAsset = withMorphTargetAttributes(createBoxMeshAsset(), 5);
+    const assets = createReadyAssets({
+      meshAsset,
+      materialAsset: createStandardMaterialAsset(),
+    });
+    const vertexCount = required(meshAsset.morphTargetData).vertexCount;
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const entity = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+    // Five weights: the 5th proves packing past the legacy 2/4 cap; values
+    // outside [-1, 1] prove no clamp.
+    entity.addComponent(
+      MorphTargetWeights,
+      createMorphTargetWeights({ weights: [2.5, -3, 0.5, 1.25, -2] }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets);
+    const draw = required(snapshot.meshDraws[0]);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(draw.batchKey.morphed).toBe(true);
+    expect(draw.morphTargetCount).toBe(5);
+    expect(draw.morphVertexCount).toBe(vertexCount);
+    expect(Array.from(snapshot.morphTargetWeights ?? [])).toEqual([
+      2.5, -3, 0.5, 1.25, -2,
+    ]);
+    // Per-instance descriptor for instance 0: weightOffset, targetCount,
+    // deltaOffset, vertexCount.
+    expect(Array.from(snapshot.morphInstanceDescriptors ?? [])).toEqual([
+      0,
+      5,
+      0,
+      vertexCount,
+    ]);
+    // Deltas are target-major positions then normals: 5 * V * 3 * 2 floats.
+    expect(snapshot.morphTargetDeltas?.length).toBe(5 * vertexCount * 3 * 2);
+  });
+
+  it("includes compact skinning formats in mesh layout keys", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: withCompactSkinningAttributes(createBoxMeshAsset()),
+      materialAsset: createStandardMaterialAsset(),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const entity = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    entity.addComponent(
+      Skin,
+      createSkin({
+        jointMatrices: identityMatrix(),
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws[0]?.batchKey).toMatchObject({
+      skinned: true,
+      pipelineKey: "standard|skinned|opaque|back|less|none",
+      meshLayoutKey:
+        "POSITION,NORMAL,TEXCOORD_0,JOINTS_0:uint8x4,WEIGHTS_0:unorm8x4",
+    });
+  });
+
+  it("preserves vertex stream boundaries in mesh layout keys", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: withSplitVertexStreams(createBoxMeshAsset()),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws[0]?.batchKey.meshLayoutKey).toBe(
+      "POSITION,NORMAL|TEXCOORD_0,COLOR_0:unorm8x4",
+    );
+  });
+
+  it("includes explicit stream stride and attribute offsets for padded layouts", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: withPaddedVertexStream(createBoxMeshAsset()),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws[0]?.batchKey.meshLayoutKey).toBe(
+      "stride=40,POSITION@4,NORMAL@20,TEXCOORD_0@32",
+    );
+  });
+
+  it("extracts named custom instance data into snapshot attribute packets", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const first = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+    const second = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    first.addComponent(
+      InstanceData,
+      createInstanceData({
+        materialKind: "custom-wind",
+        values: { wind: [1, 2, 3], phase: 0.25 },
+      }),
+    );
+    second.addComponent(
+      InstanceData,
+      createInstanceData({
+        materialKind: "custom-wind",
+        values: { wind: [4, 5, 6], phase: 0.75 },
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toHaveLength(2);
+    expect(
+      new Set(snapshot.meshDraws.map((draw) => draw.batchKey.pipelineKey)).size,
+    ).toBe(1);
+    expect(
+      snapshot.meshDraws.map((draw) => draw.instanceAttributePacketIndex),
+    ).toEqual([0, 1]);
+    expect(Array.from(snapshot.instanceAttributes ?? [])).toEqual([
+      0.25, 1, 2, 3, 0.75, 4, 5, 6,
+    ]);
+    expect(snapshot.instanceAttributePackets).toMatchObject([
+      {
+        materialKind: "custom-wind",
+        fields: [
+          { name: "phase", offset: 0, components: 1 },
+          { name: "wind", offset: 1, components: 3 },
+        ],
+      },
+      {
+        materialKind: "custom-wind",
+        fields: [
+          { name: "phase", offset: 4, components: 1 },
+          { name: "wind", offset: 5, components: 3 },
+        ],
+      },
+    ]);
+  });
+
+  it("stores distinct view, projection, and view-projection matrices", () => {
+    const world = createRuntimeWorld();
+
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [2, 0, 0],
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+    const view = matrixAt(
+      snapshot.viewMatrices,
+      snapshot.views[0]?.viewMatrixOffset,
+    );
+    const projection = matrixAt(
+      snapshot.viewMatrices,
+      snapshot.views[0]?.projectionMatrixOffset,
+    );
+    const viewProjection = matrixAt(
+      snapshot.viewMatrices,
+      snapshot.views[0]?.viewProjectionMatrixOffset,
+    );
+
+    expect(view).not.toEqual(projection);
+    expect(viewProjection).not.toEqual(projection);
+    expect(viewProjection).not.toEqual(view);
+  });
+
+  it("applies ECS-authored temporal jitter to camera projection matrices", () => {
+    const world = createRuntimeWorld();
+
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      temporalJitter: [0.125, -0.0625],
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+    const projection = matrixAt(
+      snapshot.viewMatrices,
+      snapshot.views[0]?.projectionMatrixOffset,
+    );
+    const viewProjection = matrixAt(
+      snapshot.viewMatrices,
+      snapshot.views[0]?.viewProjectionMatrixOffset,
+    );
+
+    expect(projection[8]).toBeCloseTo(0.125, 6);
+    expect(projection[9]).toBeCloseTo(-0.0625, 6);
+    expect(viewProjection[8]).toBeCloseTo(0.125, 6);
+    expect(viewProjection[9]).toBeCloseTo(-0.0625, 6);
+  });
+
+  it("extracts ECS-authored shadow caster and receiver flags on mesh draws", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const mesh = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    mesh.addComponent(ShadowCaster, { enabled: false });
+    mesh.addComponent(ShadowReceiver, { enabled: true });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.meshDraws[0]).toMatchObject({
+      castsShadow: false,
+      receivesShadow: true,
+    });
+    expect(JSON.parse(JSON.stringify(snapshot.meshDraws[0]))).toMatchObject({
+      castsShadow: false,
+      receivesShadow: true,
+    });
+  });
+
+  it("orders camera packets by priority then stable id", () => {
+    const world = createRuntimeWorld();
+
+    const lowPriority = createCameraEntity(world, {
+      priority: 10,
+      layerMask: 1,
+    });
+    const highPriority = createCameraEntity(world, {
+      priority: 1,
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.views.map((view) => view.camera.index)).toEqual([
+      highPriority.index,
+      lowPriority.index,
+    ]);
+  });
+
+  it("extracts valid camera render target handles without changing view order", () => {
+    const world = createRuntimeWorld();
+    const lowPriority = createCameraEntity(world, {
+      priority: 10,
+      layerMask: 1,
+      renderTargetId: "render-target:offscreen",
+    });
+    const highPriority = createCameraEntity(world, {
+      priority: 1,
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.views.map((view) => view.camera.index)).toEqual([
+      highPriority.index,
+      lowPriority.index,
+    ]);
+    expect(snapshot.views[0]?.renderTarget).toBeNull();
+    expect(snapshot.views[1]?.renderTarget).toEqual(
+      createRenderTargetHandle("offscreen"),
+    );
+  });
+
+  it("diagnoses invalid camera render target ids as canvas targets", () => {
+    const world = createRuntimeWorld();
+
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      renderTargetId: "offscreen",
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.views).toHaveLength(1);
+    expect(snapshot.views[0]?.renderTarget).toBeNull();
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.camera.invalidRenderTargetHandle",
+    ]);
+  });
+
+  it("skips renderables whose layers do not match any camera", () => {
+    const world = createRuntimeWorld();
+
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 0b10,
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.layerMismatch",
+    ]);
+  });
+
+  it("culls renderables outside all matching camera frustums and reports per-view stats", () => {
+    const world = createRuntimeWorld();
+
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [0, 0, 5],
+    });
+    const visible = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [0, 0, 0],
+    });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [120, 0, 0],
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.meshDraws.map((draw) => draw.entity.index)).toEqual([
+      visible.index,
+    ]);
+    expect(snapshot.bounds).toHaveLength(1);
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.report.cullStats).toMatchObject([
+      {
+        tested: 2,
+        culled: 1,
+        included: 1,
+      },
+    ]);
+  });
+
+  it("extracts shadow casters outside the main camera frustum", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [0, 0, 5],
+    });
+    createLightEntity(world).addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({ enabled: true }),
+    );
+    const visibleReceiver = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [0, 0, 0],
+    });
+    visibleReceiver.addComponent(ShadowCaster, { enabled: false });
+    const offscreenCaster = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [120, 0, 0],
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws.map((draw) => draw.entity.index)).toEqual([
+      visibleReceiver.index,
+    ]);
+    expect(
+      snapshot.shadowCasterDraws?.map((draw) => draw.entity.index),
+    ).toEqual([offscreenCaster.index]);
+    expect(snapshot.report).toMatchObject({
+      meshDraws: 1,
+      shadowCasterDraws: 1,
+      shadowRequests: 1,
+    });
+    expect(snapshot.report.cullStats).toMatchObject([
+      {
+        tested: 2,
+        culled: 1,
+        included: 1,
+      },
+    ]);
+  });
+
+  it("does not duplicate primary mesh diagnostics from the shadow-caster pass", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [0, 0, 5],
+    });
+    createLightEntity(world).addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({ enabled: true }),
+    );
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:missing",
+      layerMask: 1,
+      translation: [0, 0, 0],
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.shadowCasterDraws).toBeUndefined();
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.missingMaterialHandle",
+    ]);
+    expect(snapshot.report).toMatchObject({
+      meshDraws: 0,
+      diagnostics: 1,
+    });
+  });
+
+  it("allows cameras to opt out of frustum culling", () => {
+    const world = createRuntimeWorld();
+
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [0, 0, 5],
+      frustumCulling: false,
+    });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [0, 0, 0],
+    });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [120, 0, 0],
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.meshDraws).toHaveLength(2);
+    expect(snapshot.report.cullStats).toMatchObject([
+      {
+        tested: 0,
+        culled: 0,
+        included: 2,
+      },
+    ]);
+  });
+
+  it("frustum culling avoids building culled draws without regressing extraction time", () => {
+    const totalEntities = 1000;
+    const visibleEntities = 200;
+    const culled = createFrustumCullingFixture({
+      totalEntities,
+      visibleEntities,
+      frustumCulling: true,
+    });
+
+    // Deterministic, portable proof that culling does the optimization: it
+    // builds only the visible draws and reports the culled count. This is the
+    // signal that actually catches a culling regression, on any hardware.
+    expect(
+      extractRenderSnapshot(culled.world, culled.assets).report,
+    ).toMatchObject({
+      meshDraws: visibleEntities,
+      cullStats: [{ tested: totalEntities, culled: 800, included: 200 }],
+    });
+
+    const baseline = createFrustumCullingFixture({
+      totalEntities,
+      visibleEntities,
+      frustumCulling: false,
+    });
+
+    expect(
+      extractRenderSnapshot(baseline.world, baseline.assets).report,
+    ).toMatchObject({
+      meshDraws: totalEntities,
+      cullStats: [{ tested: 0, culled: 0, included: totalEntities }],
+    });
+
+    // Timing guard: the per-entity frustum test must not make extraction
+    // materially slower than the opt-out path. Wall-clock *speedup* from
+    // culling is hardware/GC-dependent (the saved packet-building can roughly
+    // cancel the added frustum tests for cheap meshes), so the portable claim
+    // is bounded overhead, not a fixed speedup — the draw-count delta above is
+    // the real optimization proof. Use the minimum of several mean-samples:
+    // the min is the cleanest estimator of intrinsic cost and is immune to the
+    // GC/scheduler excursions that otherwise make this comparison flaky on
+    // shared CI runners.
+    let culledMs = Infinity;
+    let baselineMs = Infinity;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      culledMs = Math.min(
+        culledMs,
+        measureCachedExtraction(
+          () => {
+            extractRenderSnapshot(culled.world, culled.assets);
+          },
+          undefined,
+          8,
+        ),
+      );
+      baselineMs = Math.min(
+        baselineMs,
+        measureCachedExtraction(
+          () => {
+            extractRenderSnapshot(baseline.world, baseline.assets);
+          },
+          undefined,
+          8,
+        ),
+      );
+    }
+
+    expect(
+      culledMs,
+      `culled extraction ${culledMs.toFixed(
+        3,
+      )}ms should not be materially slower than opt-out baseline ${baselineMs.toFixed(
+        3,
+      )}ms`,
+    ).toBeLessThan(baselineMs * 1.3);
+  });
+
+  it("skips missing mesh handles with diagnostics", () => {
+    const world = createRuntimeWorld();
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:missing",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.missingMeshHandle",
+    ]);
+    expect(snapshot.report.diagnostics).toBe(1);
+  });
+
+  it("skips invisible renderables before asset lookup", () => {
+    const world = createRuntimeWorld();
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const entity = createMeshEntity(world, {
+      meshId: "mesh:missing",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    entity.setValue(Visibility, "visible", false);
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.invisible",
+    ]);
+  });
+
+  it("reports loading and failed asset statuses distinctly", () => {
+    const loadingWorld = createRuntimeWorld();
+    const loadingAssets = createReadyAssets();
+
+    loadingAssets.markLoading(createMeshHandle("cube"));
+    createCameraEntity(loadingWorld, { priority: 0, layerMask: 1 });
+    createMeshEntity(loadingWorld, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    expect(
+      extractRenderSnapshot(loadingWorld, loadingAssets).diagnostics.map(
+        (diagnostic) => diagnostic.code,
+      ),
+    ).toEqual(["render.mesh.loading"]);
+
+    const failedWorld = createRuntimeWorld();
+    const failedAssets = createReadyAssets();
+
+    failedAssets.markFailed(createMaterialHandle("unlit"), [
+      { code: "material.failed", message: "test", severity: "error" },
+    ]);
+    createCameraEntity(failedWorld, { priority: 0, layerMask: 1 });
+    createMeshEntity(failedWorld, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    expect(
+      extractRenderSnapshot(failedWorld, failedAssets).diagnostics.map(
+        (diagnostic) => diagnostic.code,
+      ),
+    ).toEqual(["render.material.failed"]);
+  });
+
+  it("extracts ready unlit texture dependencies into a textured batch key", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("albedo");
+    const sampler = createSamplerHandle("linear");
+    const assets = createReadyAssets({
+      materialAsset: createUnlitMaterialAsset({
+        baseColorTexture: { texture, sampler },
+      }),
+    });
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "Albedo",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "srgb",
+        semantic: "base-color",
+      }),
+    );
+    assets.markReady(sampler, createSamplerAsset({ label: "Linear" }));
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
+      "unlit|baseColorTexture|opaque|back|less|none",
+    );
+  });
+
+  it("diagnoses missing unlit texture and sampler handles", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      materialAsset: createUnlitMaterialAsset({
+        baseColorTexture: { texture: null, sampler: null },
+      }),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.material.missingTextureHandle",
+        assetKey: "material:unlit",
+      },
+      {
+        code: "render.material.missingSamplerHandle",
+        assetKey: "material:unlit",
+      },
+    ]);
+  });
+
+  it("diagnoses unregistered unlit texture and sampler assets", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      materialAsset: createUnlitMaterialAsset({
+        baseColorTexture: {
+          texture: createTextureHandle("missing-albedo"),
+          sampler: createSamplerHandle("missing-linear"),
+        },
+      }),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      { code: "render.texture.missing", assetKey: "texture:missing-albedo" },
+      { code: "render.sampler.missing", assetKey: "sampler:missing-linear" },
+    ]);
+  });
+
+  it("diagnoses a shared missing texture asset once per renderable", () => {
+    const texture = createTextureHandle("shared-missing-albedo");
+    const sampler = createSamplerHandle("shared-ready-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset({ label: "SharedReady" }));
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.texture.missing",
+        assetKey: "texture:shared-missing-albedo",
+      },
+      {
+        code: "render.texture.missing",
+        assetKey: "texture:shared-missing-albedo",
+      },
+    ]);
+  });
+
+  it("diagnoses a shared missing sampler asset once per renderable", () => {
+    const texture = createTextureHandle("shared-ready-albedo");
+    const sampler = createSamplerHandle("shared-missing-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "SharedReadyAlbedo",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.sampler.missing",
+        assetKey: "sampler:shared-missing-linear",
+      },
+      {
+        code: "render.sampler.missing",
+        assetKey: "sampler:shared-missing-linear",
+      },
+    ]);
+  });
+
+  it("diagnoses shared missing texture and sampler assets once per renderable", () => {
+    const texture = createTextureHandle("shared-missing-albedo");
+    const sampler = createSamplerHandle("shared-missing-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.texture.missing",
+        assetKey: "texture:shared-missing-albedo",
+      },
+      {
+        code: "render.sampler.missing",
+        assetKey: "sampler:shared-missing-linear",
+      },
+      {
+        code: "render.texture.missing",
+        assetKey: "texture:shared-missing-albedo",
+      },
+      {
+        code: "render.sampler.missing",
+        assetKey: "sampler:shared-missing-linear",
+      },
+    ]);
+  });
+
+  it("diagnoses a shared loading texture asset once per renderable", () => {
+    const texture = createTextureHandle("shared-loading-albedo");
+    const sampler = createSamplerHandle("shared-ready-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markLoading(texture);
+    assets.markReady(sampler, createSamplerAsset({ label: "SharedReady" }));
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.texture.loading",
+        assetKey: "texture:shared-loading-albedo",
+      },
+      {
+        code: "render.texture.loading",
+        assetKey: "texture:shared-loading-albedo",
+      },
+    ]);
+  });
+
+  it("diagnoses a shared failed texture asset once per renderable", () => {
+    const texture = createTextureHandle("shared-failed-albedo");
+    const sampler = createSamplerHandle("shared-ready-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markFailed(texture, [
+      {
+        code: "shared.texture.failed",
+        message: "Shared texture intentionally failed.",
+        severity: "error",
+      },
+    ]);
+    assets.markReady(sampler, createSamplerAsset({ label: "SharedReady" }));
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.texture.failed",
+        assetKey: "texture:shared-failed-albedo",
+      },
+      {
+        code: "render.texture.failed",
+        assetKey: "texture:shared-failed-albedo",
+      },
+    ]);
+  });
+
+  it("diagnoses a shared failed sampler asset once per renderable", () => {
+    const texture = createTextureHandle("shared-ready-albedo");
+    const sampler = createSamplerHandle("shared-failed-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "SharedReadyAlbedo",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+    assets.markFailed(sampler, [
+      {
+        code: "shared.sampler.failed",
+        message: "Shared sampler intentionally failed.",
+        severity: "error",
+      },
+    ]);
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.sampler.failed",
+        assetKey: "sampler:shared-failed-linear",
+      },
+      {
+        code: "render.sampler.failed",
+        assetKey: "sampler:shared-failed-linear",
+      },
+    ]);
+  });
+
+  it("diagnoses a shared loading sampler asset once per renderable", () => {
+    const texture = createTextureHandle("shared-ready-albedo");
+    const sampler = createSamplerHandle("shared-loading-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "SharedReadyAlbedo",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+    assets.markLoading(sampler);
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.sampler.loading",
+        assetKey: "sampler:shared-loading-linear",
+      },
+      {
+        code: "render.sampler.loading",
+        assetKey: "sampler:shared-loading-linear",
+      },
+    ]);
+  });
+
+  it("diagnoses shared loading texture and failed sampler assets once per renderable", () => {
+    const texture = createTextureHandle("shared-loading-albedo");
+    const sampler = createSamplerHandle("shared-failed-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markLoading(texture);
+    assets.markFailed(sampler, [
+      {
+        code: "shared.sampler.failed",
+        message: "Shared sampler intentionally failed.",
+        severity: "error",
+      },
+    ]);
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.texture.loading",
+        assetKey: "texture:shared-loading-albedo",
+      },
+      {
+        code: "render.sampler.failed",
+        assetKey: "sampler:shared-failed-linear",
+      },
+      {
+        code: "render.texture.loading",
+        assetKey: "texture:shared-loading-albedo",
+      },
+      {
+        code: "render.sampler.failed",
+        assetKey: "sampler:shared-failed-linear",
+      },
+    ]);
+  });
+
+  it("diagnoses shared failed texture and loading sampler assets once per renderable", () => {
+    const texture = createTextureHandle("shared-failed-albedo");
+    const sampler = createSamplerHandle("shared-loading-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markFailed(texture, [
+      {
+        code: "shared.texture.failed",
+        message: "Shared texture intentionally failed.",
+        severity: "error",
+      },
+    ]);
+    assets.markLoading(sampler);
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.texture.failed",
+        assetKey: "texture:shared-failed-albedo",
+      },
+      {
+        code: "render.sampler.loading",
+        assetKey: "sampler:shared-loading-linear",
+      },
+      {
+        code: "render.texture.failed",
+        assetKey: "texture:shared-failed-albedo",
+      },
+      {
+        code: "render.sampler.loading",
+        assetKey: "sampler:shared-loading-linear",
+      },
+    ]);
+  });
+
+  it("diagnoses loading and failed unlit texture dependency assets", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("loading-albedo");
+    const sampler = createSamplerHandle("failed-linear");
+    const assets = createReadyAssets({
+      materialAsset: createUnlitMaterialAsset({
+        baseColorTexture: { texture, sampler },
+      }),
+    });
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markLoading(texture);
+    assets.markFailed(sampler, [
+      { code: "sampler.failed", message: "test", severity: "error" },
+    ]);
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      { code: "render.texture.loading", assetKey: "texture:loading-albedo" },
+      { code: "render.sampler.failed", assetKey: "sampler:failed-linear" },
+    ]);
+  });
+
+  it("blocks StandardMaterial normal maps when mesh tangents are missing", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("ready-normal");
+    const sampler = createSamplerHandle("ready-normal-linear");
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset({
+        normalTexture: { texture, sampler },
+      }),
+    });
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "ReadyNormal",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm",
+        colorSpace: "data",
+        semantic: "normal",
+        usage: ["sampled"],
+      }),
+    );
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset());
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.standardNormalMap.missingTangents",
+        assetKey: "material:unlit",
+      },
+    ]);
+    expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();
+  });
+
+  it("diagnoses StandardMaterial texture metadata before extraction queues a draw", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("wrong-standard-base");
+    const sampler = createSamplerHandle("standard-base-linear");
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset({
+        baseColorTexture: { texture, sampler },
+      }),
+    });
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "WrongStandardBase",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "normal",
+        usage: ["sampled"],
+      }),
+    );
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset());
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.standardMaterialTexture.invalidSemantic",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        textureKey: "texture:wrong-standard-base",
+        field: "baseColorTexture",
+        expectedSemantic: "base-color",
+        actualSemantic: "normal",
+        expectedColorSpaces: ["srgb"],
+        actualColorSpace: "linear",
+      },
+      {
+        code: "render.standardMaterialTexture.invalidColorSpace",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        textureKey: "texture:wrong-standard-base",
+        field: "baseColorTexture",
+        expectedSemantic: "base-color",
+        actualSemantic: "normal",
+        expectedColorSpaces: ["srgb"],
+        actualColorSpace: "linear",
+      },
+    ]);
+    expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();
+  });
+
+  it("diagnoses StandardMaterial failed textures and missing samplers before extraction queues a draw", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("failed-standard-base");
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset({
+        baseColorTexture: { texture, sampler: null },
+      }),
+    });
+
+    assets.register(texture);
+    assets.markFailed(texture, [
+      {
+        code: "texture.failed",
+        message: "standard base texture failed",
+        severity: "error",
+      },
+    ]);
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.standardMaterialTexture.textureNotReady",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        textureKey: "texture:failed-standard-base",
+        field: "baseColorTexture",
+        dependencyKind: "texture",
+        status: "failed",
+      },
+      {
+        code: "render.standardMaterialTexture.missingSamplerHandle",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        textureKey: "texture:failed-standard-base",
+        field: "baseColorTexture",
+        dependencyKind: "sampler",
+        status: "missing",
+      },
+    ]);
+    expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();
+  });
+
+  it("diagnoses unsupported StandardMaterial texture UV sets before extraction queues a draw", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("standard-base-uv2");
+    const sampler = createSamplerHandle("standard-base-linear");
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset({
+        baseColorTexture: { texture, sampler, texCoord: 2 },
+      }),
+    });
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StandardBaseUv2",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm-srgb",
+        colorSpace: "srgb",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset());
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.standardMaterialTexture.unsupportedTexCoord",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        textureKey: "texture:standard-base-uv2",
+        field: "baseColorTexture",
+        texCoord: 2,
+        supportedTexCoords: [0, 1],
+      },
+    ]);
+    expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();
+  });
+
+  it("diagnoses unsupported StandardMaterial texture transforms before extraction queues a draw", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("standard-base-transform");
+    const sampler = createSamplerHandle("standard-base-linear");
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset({
+        baseColorTexture: {
+          texture,
+          sampler,
+          texCoord: 2,
+          transform: {
+            offset: [0.1, 0.2],
+            scale: [0.75, 0.5],
+            rotation: 0.25,
+          },
+        },
+      }),
+    });
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StandardBaseTransform",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm-srgb",
+        colorSpace: "srgb",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset());
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.standardMaterialTexture.unsupportedTextureTransform",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        textureKey: "texture:standard-base-transform",
+        samplerKey: "sampler:standard-base-linear",
+        field: "baseColorTexture",
+        textureTransform: {
+          offset: [0.1, 0.2],
+          scale: [0.75, 0.5],
+          rotation: 0.25,
+        },
+      },
+      {
+        code: "render.standardMaterialTexture.unsupportedTexCoord",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        textureKey: "texture:standard-base-transform",
+        field: "baseColorTexture",
+        texCoord: 2,
+      },
+    ]);
+    expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();
+  });
+
+  it("diagnoses missing TEXCOORD_1 mesh attributes for StandardMaterial UV1 textures", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("standard-base-uv1");
+    const sampler = createSamplerHandle("standard-base-linear");
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset({
+        baseColorTexture: { texture, sampler, texCoord: 1 },
+      }),
+    });
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StandardBaseUv1",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm-srgb",
+        colorSpace: "srgb",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset());
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.standardMaterialTexture.missingTexCoord1",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        meshKey: "mesh:cube",
+        textureKey: "texture:standard-base-uv1",
+        field: "baseColorTexture",
+        texCoord: 1,
+      },
+    ]);
+    expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();
+  });
+
+  it("extracts StandardMaterial TEXCOORD_1 textures when mesh metadata provides UV1", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("standard-base-uv1");
+    const sampler = createSamplerHandle("standard-base-linear");
+    const assets = createReadyAssets({
+      meshAsset: withTexCoord1Attribute(createBoxMeshAsset()),
+      materialAsset: createStandardMaterialAsset({
+        baseColorTexture: { texture, sampler, texCoord: 1 },
+      }),
+    });
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StandardBaseUv1",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm-srgb",
+        colorSpace: "srgb",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset());
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.meshDraws[0]?.batchKey).toMatchObject({
+      pipelineKey: "standard|baseColorTexture|uv1|opaque|back|less|none",
+      meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TEXCOORD_1",
+    });
+  });
+
+  it("includes normalized COLOR_0 formats in mesh layout keys", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: withNormalizedColor0Attribute(createBoxMeshAsset()),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws[0]?.batchKey.meshLayoutKey).toBe(
+      "POSITION,NORMAL,TEXCOORD_0,COLOR_0:unorm8x4",
+    );
+  });
+
+  it("preserves mesh validation codes in render diagnostics", () => {
+    const world = createRuntimeWorld();
+    const invalidMesh = createBoxMeshAsset();
+    const assets = createReadyAssets({
+      meshAsset: {
+        ...invalidMesh,
+        submeshes: [
+          {
+            ...required(invalidMesh.submeshes[0]),
+            indexStart: 999,
+          },
+        ],
+      },
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    expect(
+      extractRenderSnapshot(world, assets).diagnostics.map(
+        (diagnostic) => diagnostic.code,
+      ),
+    ).toEqual(["render.mesh.invalidSubmeshRange"]);
+  });
+
+  it("uses the primary Material component for any mesh material slot", () => {
+    const world = createRuntimeWorld();
+    const mesh = createBoxMeshAsset();
+    const assets = createReadyAssets({
+      meshAsset: {
+        ...mesh,
+        materialSlots: [
+          ...mesh.materialSlots,
+          { index: 1, label: "slot1" },
+          { index: 2, label: "slot2" },
+          { index: 3, label: "slot3" },
+          { index: 4, label: "slot4" },
+        ],
+        submeshes: [
+          {
+            ...required(mesh.submeshes[0]),
+            materialSlot: 4,
+          },
+        ],
+      },
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws).toMatchObject([
+      { materialSlot: 4, material: createMaterialHandle("unlit") },
+    ]);
+  });
+
+  it("skips invalid cameras without blocking mesh extraction", () => {
+    const world = createRuntimeWorld();
+    const camera = createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const mesh = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    camera.setValue(Camera, "fovYRadians", 0);
+    camera.setValue(Camera, "near", 5);
+    camera.setValue(Camera, "far", 1);
+    camera.setValue(Camera, "layerMask", 0);
+    camera.getVectorView(Camera, "viewport").set([0, 0, -1, 1]);
+    camera.getVectorView(Camera, "scissor").set([0, 0, 1, -1]);
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.views).toEqual([]);
+    expect(snapshot.meshDraws.map((draw) => draw.entity.index)).toEqual([
+      mesh.index,
+    ]);
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.camera.invalidProjection",
+      "render.camera.invalidClipRange",
+      "render.camera.invalidViewport",
+      "render.camera.invalidViewport",
+      "render.camera.zeroLayerMask",
+    ]);
+  });
+
+  it("skips invalid lights while preserving valid extraction counts", () => {
+    const world = createRuntimeWorld();
+    const camera = createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const mesh = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+    const validLight = createLightEntity(world, {
+      kind: LightKind.Directional,
+      intensity: 2,
+      layerMask: 1,
+    });
+
+    createLightEntity(world, {
+      kind: LightKind.Spot,
+      intensity: -1,
+      range: 0,
+      innerConeAngle: 2,
+      outerConeAngle: 1,
+      layerMask: 0,
+    });
+    createLightEntity(world, {
+      kind: LightKind.RectArea,
+      width: 0,
+      height: 1,
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.views.map((view) => view.camera.index)).toEqual([
+      camera.index,
+    ]);
+    expect(snapshot.meshDraws.map((draw) => draw.entity.index)).toEqual([
+      mesh.index,
+    ]);
+    expect(snapshot.lights.map((light) => light.entity.index)).toEqual([
+      validLight.index,
+    ]);
+    expect(snapshot.report).toMatchObject({
+      views: 1,
+      meshDraws: 1,
+      lights: 1,
+      diagnostics: 5,
+    });
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.light.invalidIntensity",
+      "render.light.invalidRange",
+      "render.light.invalidSpotCone",
+      "render.light.zeroLayerMask",
+      "render.light.invalidAreaSize",
+    ]);
+  });
+
+  it("extracts transformless ambient lights and diagnoses transformless local lights", () => {
+    const world = createRuntimeWorld();
+    const ambientLight = createTransformlessLightEntity(world, {
+      kind: LightKind.Ambient,
+      intensity: 0.25,
+      layerMask: 1,
+    });
+    const environmentLight = createTransformlessLightEntity(world, {
+      kind: LightKind.Environment,
+      intensity: 0.5,
+      layerMask: 1,
+    });
+
+    createTransformlessLightEntity(world, {
+      kind: LightKind.Directional,
+      intensity: 1,
+      layerMask: 1,
+    });
+    createTransformlessLightEntity(world, {
+      kind: LightKind.Point,
+      intensity: 1,
+      range: 3,
+      layerMask: 1,
+    });
+    createTransformlessLightEntity(world, {
+      kind: LightKind.Spot,
+      intensity: 1,
+      range: 3,
+      innerConeAngle: 0.1,
+      outerConeAngle: 0.2,
+      layerMask: 1,
+    });
+    createTransformlessLightEntity(world, {
+      kind: LightKind.RectArea,
+      intensity: 1,
+      width: 2,
+      height: 1,
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.lights.map((light) => light.entity.index)).toEqual([
+      ambientLight.index,
+    ]);
+    expect(snapshot.lights.map((light) => light.kind)).toEqual([
+      LightKind.Ambient,
+    ]);
+    expect(snapshot.environments.map((environment) => environment)).toEqual([
+      expect.objectContaining({
+        environmentId: createStableRenderId({
+          index: environmentLight.index,
+          generation: environmentLight.generation,
+        }),
+        handle: null,
+        intensity: 0.5,
+        layerMask: 1,
+      }),
+    ]);
+    expect(snapshot.transforms).toHaveLength(16);
+    expect(snapshot.report).toMatchObject({
+      lights: 1,
+      environments: 1,
+      diagnostics: 4,
+    });
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.lightMissingTransform",
+      "render.lightMissingTransform",
+      "render.lightMissingTransform",
+      "render.lightMissingTransform",
+    ]);
+  });
+
+  it("propagates authored environment map handles into environment packets", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const environmentMap = createEnvironmentMapHandle("studio");
+    const environmentLight = createTransformlessLightEntity(world, {
+      kind: LightKind.Environment,
+      intensity: 0.75,
+      layerMask: 0b0101,
+      environmentMap,
+    });
+
+    assets.register(environmentMap);
+    assets.markReady(environmentMap, { label: "Studio environment map" });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.environments).toEqual([
+      expect.objectContaining({
+        environmentId: createStableRenderId({
+          index: environmentLight.index,
+          generation: environmentLight.generation,
+        }),
+        handle: environmentMap,
+        intensity: 0.75,
+        layerMask: 0b0101,
+      }),
+    ]);
+    expect(snapshot.report).toMatchObject({
+      environments: 1,
+      diagnostics: 0,
+    });
+  });
+
+  it("diagnoses invalid environment map dependencies without blocking mesh extraction", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const missing = createEnvironmentMapHandle("missing-studio");
+    const loading = createEnvironmentMapHandle("loading-studio");
+    const failed = createEnvironmentMapHandle("failed-studio");
+
+    assets.register(loading);
+    assets.register(failed);
+    assets.markLoading(loading);
+    assets.markFailed(failed, [
+      {
+        code: "environment.failed",
+        message: "test environment map failure",
+        severity: "error",
+      },
+    ]);
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+    createTransformlessLightEntity(world, {
+      kind: LightKind.Environment,
+      environmentMap: missing,
+    });
+    createTransformlessLightEntity(world, {
+      kind: LightKind.Environment,
+      environmentMap: loading,
+    });
+    createTransformlessLightEntity(world, {
+      kind: LightKind.Environment,
+      environmentMap: failed,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.environments).toEqual([]);
+    expect(snapshot.report).toMatchObject({
+      meshDraws: 1,
+      environments: 0,
+      diagnostics: 3,
+    });
+    expect(diagnosticAssetPairs(snapshot)).toEqual([
+      {
+        code: "render.environment.missing",
+        assetKey: "environment-map:missing-studio",
+      },
+      {
+        code: "render.environment.loading",
+        assetKey: "environment-map:loading-studio",
+      },
+      {
+        code: "render.environment.failed",
+        assetKey: "environment-map:failed-studio",
+      },
+    ]);
+  });
+
+  it("diagnoses malformed environment map handle ids without blocking mesh extraction", () => {
+    const world = createRuntimeWorld();
+    const environmentLight = createTransformlessLightEntity(world, {
+      kind: LightKind.Environment,
+    });
+
+    environmentLight.setValue(Light, "environmentMapId", "texture:studio");
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.environments).toEqual([]);
+    expect(snapshot.report).toMatchObject({
+      meshDraws: 1,
+      environments: 0,
+      diagnostics: 1,
+    });
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.environment.invalidHandle",
+    ]);
+  });
+
+  it("extracts point, spot, and rect area light packet fields in entity order", () => {
+    const world = createRuntimeWorld();
+    const pointLight = createLightEntity(world, {
+      kind: LightKind.Point,
+      intensity: 3,
+      range: 12,
+      innerConeAngle: 0.125,
+      outerConeAngle: 0.25,
+      layerMask: 0b0010,
+    });
+    const spotLight = createLightEntity(world, {
+      kind: LightKind.Spot,
+      intensity: 4,
+      range: 9,
+      innerConeAngle: 0.25,
+      outerConeAngle: 0.5,
+      layerMask: 0b0100,
+    });
+    const rectAreaLight = createLightEntity(world, {
+      kind: LightKind.RectArea,
+      shape: AreaLightShape.Sphere,
+      intensity: 5,
+      width: 3,
+      height: 1.5,
+      layerMask: 0b1000,
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.lights.map((light) => light.entity.index)).toEqual([
+      pointLight.index,
+      spotLight.index,
+      rectAreaLight.index,
+    ]);
+    expect(
+      snapshot.lights.map((light) => ({
+        kind: light.kind,
+        shape: light.shape,
+        intensity: light.intensity,
+        range: light.range,
+        innerConeAngle: light.innerConeAngle,
+        outerConeAngle: light.outerConeAngle,
+        width: light.width,
+        height: light.height,
+        layerMask: light.layerMask,
+      })),
+    ).toEqual([
+      {
+        kind: LightKind.Point,
+        shape: AreaLightShape.Rect,
+        intensity: 3,
+        range: 12,
+        innerConeAngle: 0.125,
+        outerConeAngle: 0.25,
+        width: 2,
+        height: 2,
+        layerMask: 0b0010,
+      },
+      {
+        kind: LightKind.Spot,
+        shape: AreaLightShape.Rect,
+        intensity: 4,
+        range: 9,
+        innerConeAngle: 0.25,
+        outerConeAngle: 0.5,
+        width: 2,
+        height: 2,
+        layerMask: 0b0100,
+      },
+      {
+        kind: LightKind.RectArea,
+        shape: AreaLightShape.Sphere,
+        intensity: 5,
+        range: 10,
+        innerConeAngle: 0.39269909262657166,
+        outerConeAngle: 0.5235987901687622,
+        width: 3,
+        height: 1.5,
+        layerMask: 0b1000,
+      },
+    ]);
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.report).toMatchObject({ lights: 3, diagnostics: 0 });
+  });
+
+  it("extracts directional and spot shadow requests and diagnoses unsupported shadow light kinds", () => {
+    const world = createRuntimeWorld();
+    const directionalLight = createLightEntity(world, {
+      kind: LightKind.Directional,
+      intensity: 1,
+      layerMask: 1,
+    });
+    const ambientLight = createTransformlessLightEntity(world, {
+      kind: LightKind.Ambient,
+      intensity: 0.2,
+      layerMask: 1,
+    });
+    const pointLight = createLightEntity(world, {
+      kind: LightKind.Point,
+      intensity: 1,
+      range: 2,
+      layerMask: 1,
+    });
+    const spotLight = createLightEntity(world, {
+      kind: LightKind.Spot,
+      intensity: 1,
+      range: 8,
+      innerConeAngle: 0.25,
+      outerConeAngle: 0.5,
+      layerMask: 1,
+    });
+    const rectAreaLight = createLightEntity(world, {
+      kind: LightKind.RectArea,
+      intensity: 1,
+      width: 2,
+      height: 1,
+      layerMask: 1,
+    });
+
+    directionalLight.addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({
+        enabled: true,
+        cascadeCount: 3,
+        casterLayerMask: 0b0011,
+        receiverLayerMask: 0b0101,
+      }),
+    );
+    ambientLight.addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({ enabled: true }),
+    );
+    pointLight.addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({ enabled: false }),
+    );
+    spotLight.addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({
+        enabled: true,
+        casterLayerMask: 0b0110,
+        receiverLayerMask: 0b1001,
+      }),
+    );
+    rectAreaLight.addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({ enabled: true }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+    const directionalLightId = createStableRenderId({
+      index: directionalLight.index,
+      generation: directionalLight.generation,
+    });
+    const spotLightId = createStableRenderId({
+      index: spotLight.index,
+      generation: spotLight.generation,
+    });
+
+    expect(snapshot.shadowRequests).toEqual([
+      {
+        shadowId: directionalLightId,
+        lightId: directionalLightId,
+        lightKind: "directional",
+        cascadeCount: 3,
+        casterLayerMask: 0b0011,
+        receiverLayerMask: 0b0101,
+      },
+      {
+        shadowId: spotLightId,
+        lightId: spotLightId,
+        lightKind: "spot",
+        casterLayerMask: 0b0110,
+        receiverLayerMask: 0b1001,
+      },
+    ]);
+    expect(snapshot.report).toMatchObject({
+      lights: 5,
+      shadowRequests: 2,
+      diagnostics: 2,
+    });
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.shadowUnsupportedLightKind.ambient",
+      "render.shadowUnsupportedLightKind.rect-area",
+    ]);
+  });
+
+  it("extracts authored shadow and fixed-camera settings onto the shadow request packet", () => {
+    const world = createRuntimeWorld();
+    const directionalLight = createLightEntity(world, {
+      kind: LightKind.Directional,
+      intensity: 1,
+      layerMask: 1,
+    });
+    directionalLight.addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({
+        enabled: true,
+        shadowType: 2,
+        strength: 0.7,
+        filterRadius: 4,
+        slopeBias: 2,
+        center: [1, 2, 3],
+        orthographicSize: 16,
+        near: 0.5,
+        far: 60,
+        lightDistance: 25,
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+    expect(snapshot.shadowRequests).toHaveLength(1);
+    const request = snapshot.shadowRequests[0]!;
+    expect(request.shadowType).toBe(2);
+    expect(request.strength).toBeCloseTo(0.7, 5);
+    expect(request.filterRadius).toBe(4);
+    expect(request.slopeBias).toBe(2);
+    expect(request.center).toEqual([1, 2, 3]);
+    expect(request.orthographicSize).toBe(16);
+    expect(request.near).toBe(0.5);
+    expect(request.far).toBe(60);
+    expect(request.lightDistance).toBe(25);
+  });
+});
+
+function createRuntimeWorld(
+  entityCapacity = 16,
+): ReturnType<typeof createWorld> {
+  const world = createWorld({ entityCapacity });
+  registerTransformComponents(world);
+  registerMetadataComponents(world);
+  registerRenderAuthoringComponents(world);
+  return world;
+}
+
+function stableSnapshotValue(
+  snapshot: ReturnType<typeof extractRenderSnapshot>,
+): unknown {
+  return {
+    ...snapshot,
+    transforms: Array.from(snapshot.transforms),
+    viewMatrices: Array.from(snapshot.viewMatrices),
+  };
+}
+
+function measureCachedExtraction(
+  run: () => void,
+  prepare: () => void = () => {},
+  iterations = 5,
+): number {
+  let total = 0;
+
+  for (let iteration = 0; iteration < iterations; iteration += 1) {
+    prepare();
+
+    const start = performance.now();
+
+    run();
+    total += performance.now() - start;
+  }
+
+  return total / iterations;
+}
+
+function createReadyAssets(
+  options: {
+    readonly meshAsset?: MeshAsset;
+    readonly materialAsset?: MaterialAsset;
+  } = {},
+): AssetRegistry {
+  const registry = new AssetRegistry();
+  const mesh = createMeshHandle("cube");
+  const material = createMaterialHandle("unlit");
+
+  registry.register(mesh);
+  registry.register(material);
+  registry.markReady(mesh, options.meshAsset ?? createBoxMeshAsset());
+  registry.markReady(
+    material,
+    options.materialAsset ?? createUnlitMaterialAsset(),
+  );
+  return registry;
+}
+
+function createTwoSubmeshBoxMesh(): MeshAsset {
+  const mesh = createBoxMeshAsset({ label: "TwoSubmeshBox" });
+
+  return {
+    ...mesh,
+    materialSlots: [
+      { index: 0, label: "primary" },
+      { index: 1, label: "secondary" },
+    ],
+    submeshes: [
+      {
+        label: "front",
+        topology: "triangle-list",
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount: 4,
+        indexStart: 0,
+        indexCount: 6,
+      },
+      {
+        label: "back",
+        topology: "triangle-list",
+        materialSlot: 1,
+        vertexStart: 4,
+        vertexCount: 4,
+        indexStart: 6,
+        indexCount: 6,
+      },
+    ],
+  };
+}
+
+function createTrailLikeMeshAsset(drawCount: number): MeshAsset {
+  return {
+    kind: "mesh",
+    label: "TrailLike",
+    vertexStreams: [
+      {
+        id: "trail-positions",
+        arrayStride: 12,
+        vertexCount: 6,
+        attributes: [{ semantic: "POSITION", format: "float32x3", offset: 0 }],
+        data: new Float32Array([
+          0, 0, -0.5, 0, 0, 0.5, 1, 0, -0.5, 0, 0, 0.5, 1, 0, 0.5, 1, 0, -0.5,
+        ]),
+        updateRanges: [{ byteOffset: 0, byteLength: 6 * 3 * 4 }],
+      },
+    ],
+    indexBuffer: {
+      format: "uint16",
+      data: new Uint16Array([0, 1, 2, 3, 4, 5]),
+      indexCount: 6,
+      updateRanges: [],
+    },
+    submeshes: [
+      {
+        label: "default",
+        topology: "triangle-list",
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount: drawCount,
+        indexStart: 0,
+        indexCount: drawCount,
+      },
+    ],
+    materialSlots: [{ index: 0, label: "default" }],
+    localAabb: {
+      min: [0, 0, -0.5],
+      max: [1, 0, 0.5],
+    },
+    localSphere: {
+      center: [0.5, 0, 0],
+      radius: Math.hypot(0.5, 0, 0.5),
+    },
+  };
+}
+
+function withTexCoord1Attribute(mesh: MeshAsset): MeshAsset {
+  const stream = required(mesh.vertexStreams[0]);
+  const source = stream.data;
+  const sourceStrideFloats = stream.arrayStride / 4;
+  const targetStrideFloats = sourceStrideFloats + 2;
+  const data = new Float32Array(stream.vertexCount * targetStrideFloats);
+  const uvOffset = 6;
+
+  for (let vertex = 0; vertex < stream.vertexCount; vertex += 1) {
+    const sourceOffset = vertex * sourceStrideFloats;
+    const targetOffset = vertex * targetStrideFloats;
+
+    data.set(
+      source.subarray(sourceOffset, sourceOffset + sourceStrideFloats),
+      targetOffset,
+    );
+    data.set(
+      source.subarray(sourceOffset + uvOffset, sourceOffset + uvOffset + 2),
+      targetOffset + sourceStrideFloats,
+    );
+  }
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        id: `${stream.id}-uv1`,
+        arrayStride: targetStrideFloats * 4,
+        attributes: [
+          ...stream.attributes,
+          {
+            semantic: "TEXCOORD_1",
+            format: "float32x2",
+            offset: stream.arrayStride,
+          },
+        ],
+        data,
+      },
+    ],
+  };
+}
+
+function withNormalizedColor0Attribute(mesh: MeshAsset): MeshAsset {
+  const stream = required(mesh.vertexStreams[0]);
+  const source = new Uint8Array(
+    stream.data.buffer,
+    stream.data.byteOffset,
+    stream.data.byteLength,
+  );
+  const arrayStride = stream.arrayStride + 4;
+  const data = new Uint8Array(stream.vertexCount * arrayStride);
+
+  for (let vertex = 0; vertex < stream.vertexCount; vertex += 1) {
+    const sourceOffset = vertex * stream.arrayStride;
+    const targetOffset = vertex * arrayStride;
+
+    data.set(
+      source.subarray(sourceOffset, sourceOffset + stream.arrayStride),
+      targetOffset,
+    );
+    data.set([255, 255, 255, 255], targetOffset + stream.arrayStride);
+  }
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        id: `${stream.id}-color0-unorm8`,
+        arrayStride,
+        attributes: [
+          ...stream.attributes,
+          {
+            semantic: "COLOR_0",
+            format: "unorm8x4",
+            offset: stream.arrayStride,
+          },
+        ],
+        data,
+      },
+    ],
+  };
+}
+
+function withSkinningAttributes(mesh: MeshAsset): MeshAsset {
+  const stream = required(mesh.vertexStreams[0]);
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        attributes: [
+          ...stream.attributes,
+          {
+            semantic: "JOINTS_0",
+            format: "uint16x4",
+            offset: stream.arrayStride,
+          },
+          {
+            semantic: "WEIGHTS_0",
+            format: "float32x4",
+            offset: stream.arrayStride + 8,
+          },
+        ],
+        arrayStride: stream.arrayStride + 24,
+      },
+    ],
+    skinning: {
+      joints0: "JOINTS_0",
+      weights0: "WEIGHTS_0",
+    },
+  };
+}
+
+function withMorphTargetAttributes(
+  mesh: MeshAsset,
+  targetCount = 2,
+): MeshAsset {
+  const stream = required(mesh.vertexStreams[0]);
+  const vertexCount = stream.vertexCount;
+  const span = targetCount * vertexCount * 3;
+
+  return {
+    ...mesh,
+    // The N-target render reads deltas from morphTargetData (a storage buffer),
+    // not vertex attributes. Distinct per-target deltas so each target moves
+    // the mesh independently.
+    morphTargetData: {
+      targetCount,
+      vertexCount,
+      hasNormals: true,
+      positionDeltas: new Float32Array(span).map(
+        (_value, index) => 1 + (index % (targetCount * 3)),
+      ),
+      normalDeltas: new Float32Array(span),
+    },
+  };
+}
+
+function withCompactSkinningAttributes(mesh: MeshAsset): MeshAsset {
+  const stream = required(mesh.vertexStreams[0]);
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        attributes: [
+          ...stream.attributes,
+          {
+            semantic: "JOINTS_0",
+            format: "uint8x4",
+            offset: stream.arrayStride,
+          },
+          {
+            semantic: "WEIGHTS_0",
+            format: "unorm8x4",
+            offset: stream.arrayStride + 4,
+          },
+        ],
+        arrayStride: stream.arrayStride + 8,
+      },
+    ],
+    skinning: {
+      joints0: "JOINTS_0",
+      weights0: "WEIGHTS_0",
+    },
+  };
+}
+
+function withSplitVertexStreams(mesh: MeshAsset): MeshAsset {
+  const stream = required(mesh.vertexStreams[0]);
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        id: `${stream.id}-position-normal`,
+        arrayStride: 24,
+        attributes: [
+          { semantic: "POSITION", format: "float32x3", offset: 0 },
+          { semantic: "NORMAL", format: "float32x3", offset: 12 },
+        ],
+      },
+      {
+        ...stream,
+        id: `${stream.id}-uv-color`,
+        arrayStride: 12,
+        attributes: [
+          { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+          { semantic: "COLOR_0", format: "unorm8x4", offset: 8 },
+        ],
+        data: new Uint8Array(stream.vertexCount * 12),
+      },
+    ],
+  };
+}
+
+function withPaddedVertexStream(mesh: MeshAsset): MeshAsset {
+  const stream = required(mesh.vertexStreams[0]);
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        arrayStride: 40,
+        attributes: [
+          { semantic: "POSITION", format: "float32x3", offset: 4 },
+          { semantic: "NORMAL", format: "float32x3", offset: 20 },
+          { semantic: "TEXCOORD_0", format: "float32x2", offset: 32 },
+        ],
+        data: new Uint8Array(stream.vertexCount * 40),
+      },
+    ],
+  };
+}
+
+function identityMatrix(): number[] {
+  return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+}
+
+function translationMatrix(x: number, y: number, z: number): number[] {
+  return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1];
+}
+
+function createTwoRenderableTextureDependencyFixture(
+  texture: ReturnType<typeof createTextureHandle>,
+  sampler: ReturnType<typeof createSamplerHandle>,
+): {
+  readonly assets: AssetRegistry;
+  readonly world: ReturnType<typeof createWorld>;
+} {
+  const world = createRuntimeWorld();
+  const assets = createReadyAssets({
+    materialAsset: createUnlitMaterialAsset({
+      baseColorTexture: { texture, sampler },
+    }),
+  });
+
+  createCameraEntity(world, { priority: 0, layerMask: 1 });
+  createMeshEntity(world, {
+    meshId: "mesh:cube",
+    materialId: "material:unlit",
+    layerMask: 1,
+  });
+  createMeshEntity(world, {
+    meshId: "mesh:cube",
+    materialId: "material:unlit",
+    layerMask: 1,
+  });
+
+  return { assets, world };
+}
+
+function createFrustumCullingFixture(input: {
+  readonly totalEntities: number;
+  readonly visibleEntities: number;
+  readonly frustumCulling: boolean;
+}): {
+  readonly assets: AssetRegistry;
+  readonly camera: ReturnType<typeof createCameraEntity>;
+  readonly world: ReturnType<typeof createWorld>;
+} {
+  const world = createRuntimeWorld(input.totalEntities + 8);
+  const assets = createReadyAssets();
+
+  const camera = createCameraEntity(world, {
+    priority: 0,
+    layerMask: 1,
+    translation: [0, 0, 5],
+    ...(input.frustumCulling ? {} : { frustumCulling: false }),
+  });
+
+  for (let index = 0; index < input.totalEntities; index += 1) {
+    const visible = index < input.visibleEntities;
+    const column = index % 20;
+    const row = Math.floor(index / 20);
+
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: visible
+        ? [(column - 10) * 0.18, (row % 10) * 0.18 - 0.9, 0]
+        : [120 + index, 0, 0],
+    });
+  }
+
+  return { assets, camera, world };
+}
+
+function createCameraEntity(
+  world: ReturnType<typeof createWorld>,
+  input: {
+    readonly priority: number;
+    readonly layerMask: number;
+    readonly translation?: readonly [number, number, number];
+    readonly renderTargetId?: string;
+    readonly frustumCulling?: boolean;
+    readonly temporalJitter?: readonly [number, number];
+  },
+) {
+  const entity = world.createEntity();
+  const root =
+    input.translation === undefined
+      ? createRootTransform()
+      : createRootTransform({ translation: input.translation });
+
+  entity.addComponent(WorldTransform, root.world);
+  entity.addComponent(
+    Camera,
+    createCamera({
+      priority: input.priority,
+      layerMask: input.layerMask,
+      ...(input.renderTargetId === undefined
+        ? {}
+        : { renderTargetId: input.renderTargetId }),
+      ...(input.frustumCulling === undefined
+        ? {}
+        : { frustumCulling: input.frustumCulling }),
+      ...(input.temporalJitter === undefined
+        ? {}
+        : { temporalJitter: input.temporalJitter }),
+    }),
+  );
+  return entity;
+}
+
+function createMeshEntity(
+  world: ReturnType<typeof createWorld>,
+  input: {
+    readonly meshId: string;
+    readonly materialId: string;
+    readonly layerMask: number;
+    readonly translation?: readonly [number, number, number];
+  },
+) {
+  const entity = world.createEntity();
+  const root =
+    input.translation === undefined
+      ? createRootTransform()
+      : createRootTransform({ translation: input.translation });
+
+  entity.addComponent(WorldTransform, root.world);
+  entity.addComponent(Mesh, {
+    meshId: input.meshId,
+  });
+  entity.addComponent(Material, {
+    materialId: input.materialId,
+  });
+  entity.addComponent(RenderLayer, { mask: input.layerMask });
+  entity.addComponent(Visibility);
+  return entity;
+}
+
+function createLightEntity(
+  world: ReturnType<typeof createWorld>,
+  input: LightInput = {},
+) {
+  const entity = world.createEntity();
+  const root = createRootTransform();
+
+  entity.addComponent(WorldTransform, root.world);
+  entity.addComponent(Light, createLight(input));
+  return entity;
+}
+
+function createTransformlessLightEntity(
+  world: ReturnType<typeof createWorld>,
+  input: LightInput = {},
+) {
+  const entity = world.createEntity();
+
+  entity.addComponent(Light, createLight(input));
+  return entity;
+}
+
+function matrixAt(values: Float32Array, offset: number | undefined): number[] {
+  if (offset === undefined) {
+    throw new Error("Expected matrix offset.");
+  }
+
+  return Array.from(values.slice(offset, offset + 16));
+}
+
+function expectTupleCloseTo(
+  actual: ArrayLike<number>,
+  expected: readonly [number, number, number],
+): void {
+  expect(actual[0]).toBeCloseTo(expected[0], 6);
+  expect(actual[1]).toBeCloseTo(expected[1], 6);
+  expect(actual[2]).toBeCloseTo(expected[2], 6);
+}
+
+function diagnosticAssetPairs(
+  snapshot: ReturnType<typeof extractRenderSnapshot>,
+): {
+  readonly code: string;
+  readonly assetKey?: string;
+}[] {
+  return snapshot.diagnostics.map((diagnostic) => ({
+    code: diagnostic.code,
+    ...(diagnostic.assetKey === undefined
+      ? {}
+      : { assetKey: diagnostic.assetKey }),
+  }));
+}
+
+function expectBlockedTextureDependencySnapshot(
+  snapshot: ReturnType<typeof extractRenderSnapshot>,
+  expectedDiagnostics: readonly {
+    readonly code: string;
+    readonly assetKey: string;
+  }[],
+): void {
+  expect(snapshot.meshDraws).toEqual([]);
+  expect(snapshot.report.diagnostics).toBe(expectedDiagnostics.length);
+  expect(diagnosticAssetPairs(snapshot)).toEqual(expectedDiagnostics);
+}
+
+function required<T>(value: T | undefined): T {
+  if (value === undefined) {
+    throw new Error("Expected fixture value.");
+  }
+
+  return value;
+}

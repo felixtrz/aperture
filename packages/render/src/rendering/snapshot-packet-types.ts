@@ -1,0 +1,442 @@
+import type {
+  Aabb,
+  AudioClipHandle,
+  BoundingSphere,
+  EnvironmentMapHandle,
+  MaterialHandle,
+  MeshHandle,
+  ParticleEffectHandle,
+  RenderTargetHandle,
+  SamplerHandle,
+  TextureHandle,
+  Vec3Like,
+  Vec4Like,
+} from "@aperture-engine/simulation";
+import type { MeshTopology } from "../mesh/index.js";
+import type {
+  QuadBatchKind,
+  QuadBillboardMode,
+  QuadBlendMode,
+  QuadCoordinateMode,
+  QuadDepthMode,
+  QuadPipelineVariant,
+  QuadSizeMode,
+} from "./quad-snapshot.js";
+import type {
+  AreaLightShape,
+  FogMode,
+  LightKind,
+  ProceduralSkyModel,
+} from "./authoring.js";
+
+export type RenderQueue = "opaque" | "alpha-test" | "transparent";
+
+export interface RenderEntityRef {
+  readonly index: number;
+  readonly generation: number;
+}
+
+export interface ViewPacket {
+  readonly viewId: number;
+  readonly camera: RenderEntityRef;
+  readonly priority: number;
+  readonly layerMask: number;
+  readonly viewMatrixOffset: number;
+  readonly projectionMatrixOffset: number;
+  readonly viewProjectionMatrixOffset: number;
+  readonly viewport: Vec4Like;
+  readonly scissor: Vec4Like;
+  readonly clearColor: Vec4Like;
+  readonly clearDepth: number;
+  readonly clearStencil: number;
+  readonly renderTarget: RenderTargetHandle | null;
+}
+
+export interface MeshDrawPacket {
+  readonly renderId: number;
+  readonly entity: RenderEntityRef;
+  readonly mesh: MeshHandle;
+  readonly material: MaterialHandle;
+  readonly submesh: number;
+  readonly materialSlot: number;
+  readonly vertexStart?: number;
+  readonly vertexCount?: number;
+  readonly indexStart?: number;
+  readonly indexCount?: number;
+  readonly worldTransformOffset: number;
+  readonly instanceTintOffset?: number;
+  readonly instanceAttributePacketIndex?: number;
+  readonly boneMatrixOffset?: number;
+  readonly boneMatrixCount?: number;
+  /** Float offset into `snapshot.morphTargetDeltas` for this draw's mesh. */
+  readonly morphDeltaOffset?: number;
+  /** Number of morph targets blended for this draw (N, not capped). */
+  readonly morphTargetCount?: number;
+  /** Float offset into `snapshot.morphTargetWeights` for this draw's weights. */
+  readonly morphWeightOffset?: number;
+  /** Vertex count of the morphed mesh (delta indexing stride). */
+  readonly morphVertexCount?: number;
+  readonly boundsIndex: number;
+  readonly layerMask: number;
+  readonly castsShadow?: boolean;
+  readonly receivesShadow?: boolean;
+  readonly occlusionQuery?: boolean;
+  readonly sortKey: RenderSortKey;
+  readonly batchKey: BatchCompatibilityKey;
+}
+
+export interface SpriteDrawPacket {
+  readonly renderId: number;
+  readonly entity: RenderEntityRef;
+  readonly texture: TextureHandle;
+  readonly sampler?: SamplerHandle | null;
+  readonly depthMode?: QuadDepthMode;
+  readonly color: Vec4Like;
+  readonly width: number;
+  readonly height: number;
+  readonly worldTransformOffset: number;
+  readonly boundsIndex: number;
+  readonly layerMask: number;
+  readonly sortKey: RenderSortKey;
+}
+
+export interface QuadBatchPacket {
+  readonly batchId: number;
+  readonly kind: QuadBatchKind;
+  readonly texture?: TextureHandle | null;
+  readonly sampler?: SamplerHandle | null;
+  readonly materialKey: string;
+  readonly pipelineVariant: QuadPipelineVariant;
+  readonly coordinateMode: QuadCoordinateMode;
+  readonly billboardMode: QuadBillboardMode;
+  readonly sizeMode: QuadSizeMode;
+  readonly blendMode: QuadBlendMode;
+  readonly depthMode?: QuadDepthMode;
+  readonly firstInstance: number;
+  readonly instanceCount: number;
+  readonly layerMask: number;
+  readonly sortKey: RenderSortKey;
+}
+
+export type ParticleSimulationSpacePacket = "world" | "local";
+export type ParticleEmitterModePacket = "continuous" | "burst";
+
+export interface ParticleBurstPacket {
+  readonly burstId: number;
+  readonly startFrame: number;
+  readonly startTime?: number;
+  readonly count: number;
+  readonly position: readonly [number, number, number];
+  readonly positionJitterMin: readonly [number, number, number];
+  readonly positionJitterMax: readonly [number, number, number];
+  readonly velocityMin: readonly [number, number, number];
+  readonly velocityMax: readonly [number, number, number];
+}
+
+export interface ParticleEmitterPacket {
+  readonly emitterId: number;
+  readonly entity: RenderEntityRef;
+  readonly effect: ParticleEffectHandle;
+  readonly effectVersion: number;
+  readonly capacity: number;
+  readonly seed: number;
+  readonly resetEpoch: number;
+  readonly timeScale: number;
+  readonly simulationSpace: ParticleSimulationSpacePacket;
+  readonly worldTransformOffset: number;
+  readonly boundsIndex: number;
+  readonly layerMask: number;
+  readonly sortKey: RenderSortKey;
+  readonly mode?: ParticleEmitterModePacket;
+  readonly burst?: ParticleBurstPacket;
+}
+
+export type AudioSimulationSpacePacket = "world" | "local";
+
+/**
+ * Voice-reconciliation key. A tagged union keeps the entity and one-shot id
+ * spaces structurally disjoint so a `createStableRenderId` value (which already
+ * consumes all 32 bits) can never collide with a transient one-shot sequence.
+ */
+export type AudioVoiceKey =
+  | { readonly kind: "entity"; readonly id: number }
+  | { readonly kind: "oneshot"; readonly seq: number };
+
+export interface AudioEmitterPacket {
+  readonly key: AudioVoiceKey;
+  readonly entity: RenderEntityRef;
+  readonly clip: AudioClipHandle;
+  readonly clipVersion: number;
+  readonly busId: string;
+  readonly gain: number;
+  readonly loop: boolean;
+  /** Start the voice on first sight (no `playEpoch` bump required). */
+  readonly autoplay: boolean;
+  /** Monotonic trigger counter; the engine fires the signed delta as voices. */
+  readonly playEpoch: number;
+  /** Monotonic stop counter; requests a click-free fade-stop. */
+  readonly stopEpoch: number;
+  /** Authored playbackRate; Doppler composes multiplicatively main-side. */
+  readonly timeScale: number;
+  readonly priority: number;
+  readonly panningModel: "equalpower" | "HRTF";
+  readonly simulationSpace: AudioSimulationSpacePacket;
+  readonly distanceModel: "inverse" | "linear" | "exponential";
+  readonly refDistance: number;
+  readonly maxDistance: number;
+  readonly rolloffFactor: number;
+  readonly coneInnerAngle: number;
+  readonly coneOuterAngle: number;
+  readonly coneOuterGain: number;
+  /** Occlusion lowpass amount in [0,1] (0 open). */
+  readonly occlusion: number;
+  /** Authored lowpass cutoff in Hz, composed with occlusion main-side. */
+  readonly lowpassFrequency: number;
+  /** Authored lowpass resonance/Q. */
+  readonly lowpassQ: number;
+  readonly offsetSec: number;
+  readonly loopStart: number;
+  readonly loopEnd: number;
+  /** Deterministic variation index — drives per-voice pitch jitter when the
+   * engine's `pitchVariation` is enabled. */
+  readonly seed?: number;
+  /** Local-space audibility/emission center offset (default origin); the engine
+   * transforms it by the world matrix as the spatial sample point. */
+  readonly boundsCenter?: readonly [number, number, number];
+  /** Virtualization radius (default 0 = use `maxDistance`). When > 0 and tighter
+   * than `maxDistance`, voices beyond it demote to virtual (still tracked). */
+  readonly audibilityRadius?: number;
+  /** Soft-demote flag; an `inaudible` packet still ships to retain its playhead. */
+  readonly audibility: "audible" | "inaudible";
+  /** Per-emitter mute = gain-to-zero, playhead continues (not a drop). */
+  readonly muted: boolean;
+  /** Index into `snapshot.transforms`; this is the WORLD matrix. */
+  readonly worldTransformOffset: number;
+  readonly layerMask: number;
+}
+
+export interface AudioListenerPacket {
+  readonly listenerId: number;
+  readonly entity: RenderEntityRef;
+  /** Index into `snapshot.transforms`; WORLD matrix (pos=col3, fwd=-col2, up=+col1). */
+  readonly worldTransformOffset: number;
+  readonly masterGain: number;
+}
+
+export type UiNodeKind = "screen" | "node" | "panel" | "image" | "text";
+export type UiLayoutModePacket = "absolute" | "row" | "column";
+export type UiTextAlignPacket = "left" | "center" | "right";
+
+export interface UiRectPacket {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+export interface UiNodePacket {
+  readonly uiId: number;
+  readonly screenId: number;
+  readonly entity: RenderEntityRef;
+  readonly parentUiId: number | null;
+  readonly kind: UiNodeKind;
+  readonly rect: UiRectPacket;
+  readonly clip: UiRectPacket;
+  readonly layoutMode: UiLayoutModePacket;
+  readonly stackIndex: number;
+  readonly zIndex: number;
+  readonly layerMask: number;
+  readonly opacity: number;
+  readonly clipsChildren: boolean;
+  readonly scrollOffset: readonly [number, number];
+  readonly color?: Vec4Like;
+  readonly texture?: TextureHandle | null;
+  readonly sampler?: SamplerHandle | null;
+  readonly uvRect?: Vec4Like;
+  readonly text?: string;
+  readonly fontAtlasId?: string;
+  readonly fontSize?: number;
+  readonly lineHeight?: number;
+  readonly maxWidth?: number;
+  readonly textAlign?: UiTextAlignPacket;
+  readonly glyphCount?: number;
+}
+
+export interface UiHitRegionPacket {
+  readonly uiId: number;
+  readonly screenId: number;
+  readonly entity: RenderEntityRef;
+  readonly rect: UiRectPacket;
+  readonly clip: UiRectPacket;
+  readonly stackIndex: number;
+  readonly layerMask: number;
+  readonly blocksInput: boolean;
+  readonly cursor: string;
+  readonly priority: number;
+}
+
+export interface SkyboxPacket {
+  readonly skyboxId: number;
+  readonly entity: RenderEntityRef;
+  readonly texture: TextureHandle;
+  readonly sampler?: SamplerHandle | null;
+  readonly intensity: number;
+  readonly layerMask: number;
+}
+
+export interface ProceduralSkyPacket {
+  readonly skyId: number;
+  readonly entity: RenderEntityRef;
+  readonly model: ProceduralSkyModel;
+  readonly priority: number;
+  readonly topColor: Vec3Like;
+  readonly horizonColor: Vec3Like;
+  readonly bottomColor: Vec3Like;
+  readonly horizonPosition: number;
+  readonly horizonSoftness: number;
+  readonly intensity: number;
+  readonly sunDirection: Vec3Like;
+  readonly sunColor: Vec3Like;
+  readonly sunRadius: number;
+  readonly sunGlow: number;
+  readonly ditherStrength: number;
+  readonly layerMask: number;
+}
+
+export type RuntimeUniformValuePacket =
+  | string
+  | number
+  | boolean
+  | null
+  | readonly number[];
+
+export type RuntimeUniformValueRecord = Readonly<
+  Record<string, RuntimeUniformValuePacket>
+>;
+
+export interface RuntimeUniformPacket {
+  readonly uniformId: number;
+  readonly entity: RenderEntityRef;
+  readonly key: string;
+  readonly values: RuntimeUniformValueRecord;
+  readonly version: number;
+}
+
+export interface FogPacket {
+  readonly fogId: number;
+  readonly entity: RenderEntityRef;
+  readonly mode: FogMode;
+  readonly color: Vec4Like;
+  readonly density: number;
+  readonly start: number;
+  readonly end: number;
+  readonly layerMask: number;
+}
+
+export interface LightPacket {
+  readonly lightId: number;
+  readonly entity: RenderEntityRef;
+  readonly kind: LightKind;
+  readonly shape?: AreaLightShape;
+  readonly color: Vec4Like;
+  readonly intensity: number;
+  readonly range: number;
+  readonly innerConeAngle: number;
+  readonly outerConeAngle: number;
+  readonly width?: number;
+  readonly height?: number;
+  readonly cookieTexture?: TextureHandle | null;
+  readonly cookieSampler?: SamplerHandle | null;
+  readonly cookieIntensity?: number;
+  readonly worldTransformOffset: number;
+  readonly layerMask: number;
+}
+
+export interface EnvironmentPacket {
+  readonly environmentId: number;
+  readonly handle: EnvironmentMapHandle | null;
+  readonly color: Vec4Like;
+  readonly intensity: number;
+  readonly layerMask: number;
+}
+
+export interface ShadowRequestPacket {
+  readonly shadowId: number;
+  readonly lightId: number;
+  readonly lightKind?: LightKind;
+  readonly cascadeCount?: number;
+  readonly casterLayerMask: number;
+  readonly receiverLayerMask: number;
+  /** Filtering mode: 0 = hard, 1 = PCF, 2 = PCSS (M4-T3). */
+  readonly shadowType?: number;
+  /** Authored shadow opacity in [0,1]; 1 = fully dark capable (M4-T3). */
+  readonly strength?: number;
+  /** PCF/PCSS filter radius in texels (M4-T3). */
+  readonly filterRadius?: number;
+  /** Slope-scaled depth bias for the caster pipeline (M4-T3). */
+  readonly slopeBias?: number;
+  /** Authored receiver depth bias (LightShadowSettings.bias) (M4-T5). */
+  readonly depthBias?: number;
+  /** Authored normal-offset bias (LightShadowSettings.normalBias) (M4-T5). */
+  readonly normalBias?: number;
+  /** Authored shadow-map resolution (LightShadowSettings.mapSize); the
+   * directional shadow descriptor honors it instead of the hardcoded default. */
+  readonly mapSize?: number;
+  /**
+   * Fixed directional shadow-camera center. Present with orthographicSize for
+   * authored shadow cameras; omitted for renderer auto-fit.
+   */
+  readonly center?: Vec3Like;
+  /** Fixed directional shadow-camera span; >0 opts out of auto-fit. */
+  readonly orthographicSize?: number;
+  /** Fixed directional shadow-camera near plane. */
+  readonly near?: number;
+  /** Fixed directional shadow-camera far plane. */
+  readonly far?: number;
+  /** Fixed directional shadow-camera distance from center toward the light. */
+  readonly lightDistance?: number;
+}
+
+export interface BoundsPacket {
+  readonly boundsId: number;
+  readonly entity: RenderEntityRef;
+  readonly localAabb: Aabb;
+  readonly worldAabb: Aabb;
+  readonly localSphere: BoundingSphere;
+  readonly worldSphere: BoundingSphere;
+}
+
+export interface InstanceAttributeFieldPacket {
+  readonly name: string;
+  readonly offset: number;
+  readonly components: number;
+}
+
+export interface InstanceAttributePacket {
+  readonly packetIndex: number;
+  readonly entity: RenderEntityRef;
+  readonly materialKind: string;
+  readonly fields: readonly InstanceAttributeFieldPacket[];
+}
+
+export interface RenderSortKey {
+  readonly queue: RenderQueue;
+  readonly viewId: number;
+  readonly layer: number;
+  readonly order: number;
+  readonly pipelineKey: string;
+  readonly materialKey: string;
+  readonly meshKey: string;
+  readonly depth: number;
+  readonly stableId: number;
+}
+
+export interface BatchCompatibilityKey {
+  readonly pipelineKey: string;
+  readonly materialKey: string;
+  readonly meshLayoutKey: string;
+  readonly topology: MeshTopology;
+  readonly instanced: boolean;
+  readonly skinned: boolean;
+  readonly morphed: boolean;
+}

@@ -1,0 +1,122 @@
+import { describe, expect, it } from "vitest";
+import {
+  LocalTransform,
+  Name,
+  Parent,
+  WorldTransform,
+  createParent,
+  createRootTransform,
+  createWorld,
+  registerMetadataComponents,
+  registerTransformComponents,
+  resolveWorldTransforms,
+} from "@aperture-engine/simulation";
+
+describe("ECS entity version tracking", () => {
+  it("increments a monotonic entity version for component writes", () => {
+    const world = createWorld({ entityCapacity: 4 });
+    registerMetadataComponents(world);
+    const entity = world.createEntity();
+
+    expect(world.entityVersion(entity)).toBe(0);
+
+    entity.addComponent(Name, { value: "Cube" });
+    expect(world.entityVersion(entity)).toBe(1);
+
+    entity.setValue(Name, "value", "Renamed Cube");
+    expect(world.entityVersion(entity)).toBe(2);
+
+    entity.removeComponent(Name);
+    expect(world.entityVersion(entity)).toBe(3);
+  });
+
+  it("tracks vector writes and marks resolved transforms on the transform version (AI-67)", () => {
+    const world = createWorld({ entityCapacity: 4 });
+    registerTransformComponents(world);
+    registerMetadataComponents(world);
+    const root = createRootTransform();
+    const entity = world.createEntity();
+
+    entity.addComponent(LocalTransform, root.local);
+    entity.addComponent(Parent, root.parent);
+    entity.addComponent(WorldTransform, root.world);
+
+    const versionAfterAuthoring = world.entityVersion(entity);
+    const transformAfterAuthoring = world.entityTransformVersion(entity);
+
+    resolveWorldTransforms(world);
+    expect(world.entityVersion(entity)).toBe(versionAfterAuthoring);
+    expect(world.entityTransformVersion(entity)).toBe(transformAfterAuthoring);
+
+    // Transform-component writes bump the transform version, leaving the
+    // structural entityVersion untouched so cached render packets survive.
+    entity.getVectorView(LocalTransform, "translation").set([2, 3, 4], 0);
+    expect(world.entityVersion(entity)).toBe(versionAfterAuthoring);
+    expect(world.entityTransformVersion(entity)).toBe(
+      transformAfterAuthoring + 1,
+    );
+
+    resolveWorldTransforms(world);
+    expect(world.entityVersion(entity)).toBe(versionAfterAuthoring);
+    expect(world.entityTransformVersion(entity)).toBe(
+      transformAfterAuthoring + 2,
+    );
+
+    resolveWorldTransforms(world);
+    expect(world.entityTransformVersion(entity)).toBe(
+      transformAfterAuthoring + 2,
+    );
+
+    // Non-transform writes stay structural.
+    entity.setValue(Name, "value", "moved");
+    expect(world.entityVersion(entity)).toBe(versionAfterAuthoring + 1);
+  });
+
+  it("starts a recycled entity generation at version zero", () => {
+    const world = createWorld({ entityCapacity: 1 });
+    registerTransformComponents(world);
+    const first = world.createEntity();
+    const firstGeneration = first.generation;
+
+    first.addComponent(Parent, createParent(null));
+    expect(world.entityVersion(first)).toBe(1);
+
+    first.destroy();
+    const second = world.createEntity();
+
+    expect(second.index).toBe(first.index);
+    expect(second.generation).not.toBe(firstGeneration);
+    expect(world.entityVersion(second)).toBe(0);
+  });
+
+  it("bounds the version-tracking map under spawn/despawn churn", () => {
+    const world = createWorld({ entityCapacity: 4 });
+    registerMetadataComponents(world);
+
+    // Each destroyed slot is recycled with a fresh generation (a new key), so a
+    // naive map would grow by one entry per cycle and leak unbounded.
+    const cycles = 500;
+    for (let i = 0; i < cycles; i += 1) {
+      const entity = world.createEntity();
+      entity.addComponent(Name, { value: `entity-${i}` });
+      entity.destroy();
+    }
+
+    // With per-destroy key removal the map tracks only the (empty) live set,
+    // never the cumulative churn count.
+    expect(world.entityVersionTrackingSize()).toBeLessThanOrEqual(4);
+    expect(world.entityVersionTrackingSize()).toBeLessThan(cycles);
+  });
+
+  it("drops a destroyed entity's tracking key", () => {
+    const world = createWorld({ entityCapacity: 4 });
+    registerMetadataComponents(world);
+
+    const entity = world.createEntity();
+    entity.addComponent(Name, { value: "Cube" });
+    expect(world.entityVersionTrackingSize()).toBe(1);
+
+    entity.destroy();
+    expect(world.entityVersionTrackingSize()).toBe(0);
+  });
+});

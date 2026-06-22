@@ -1,0 +1,28 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "tags": ["-public"],
+  "ignoreBinaries": ["tar"],
+  "ignore": ["packages/*/dist/**", "playwright-report/**", "test-results/**"],
+  "workspaces": {
+    ".": {
+      "ignoreDependencies": ["elics"],
+      "entry": [
+        "eslint.config.js",
+        "playwright.config.ts",
+        "playwright.ci.config.ts",
+        "playwright.local.config.ts",
+        "vitest.config.ts",
+        "scripts/*.mjs",
+        "examples/*.js",
+        "test/**/*.{ts,mjs}"
+      ],
+      "project": [
+        "scripts/**/*.mjs",
+        "examples/**/*.js",
+        "test/**/*.{ts,mjs}",
+        "*.config.{js,ts}",
+        "playwright*.config.ts"
+      ]
+    }
+  }
+}
