@@ -39,6 +39,22 @@ const CITY_TRUCK_WORLD_POSITION = [
 ] as const;
 const CITY_TRUCK_SCALE = 1 / 6;
 const CITY_TRUCK_WORLD_YAW = (3 * Math.PI) / 4;
+const CITY_FOOD_STALL_ASSET_ID = "stall-food";
+// Centered over authored tile { id: "road-straight", x: 0, z: 1, orientation: 0 }.
+const CITY_FOOD_STALL_WORLD_POSITION = [
+  0.7071067811865475, 0.05, 2.1213203435596424,
+] as const;
+const CITY_FOOD_STALL_SCALE = 0.425;
+const CITY_FOOD_STALL_WORLD_YAW = CITY_YAW + Math.PI + Math.PI / 2;
+const CITY_FOOD_STALL_OPENING_GLOW_SIZE = [0.18, 0.18] as const;
+const CITY_FOOD_STALL_OPENING_LOCAL_POSITION = [0, 0.15, 0.285] as const;
+const CITY_FOOD_STALL_AREA_LIGHT_LOCAL_POSITION = [0, 0.32, -0.32] as const;
+const CITY_FOOD_STALL_AREA_LIGHT_TARGET = [
+  0.7071067811865475, 0.16, 0.7071067811865476,
+] as const;
+const CITY_FOOD_STALL_AREA_LIGHT_WIDTH = 0.32;
+const CITY_FOOD_STALL_AREA_LIGHT_HEIGHT = 0.2;
+const CITY_FOOD_STALL_AREA_LIGHT_INTENSITY = 20;
 const HEADLIGHT_LOCAL_POSITIONS = [
   [-0.42, 0.55, 1.24],
   [0.42, 0.55, 1.24],
@@ -119,6 +135,28 @@ function lampLookAt(tile: LandingCityTile, side: -1 | 1) {
 
 function cityTruckRotation() {
   return quatFromEulerYXZ(0, CITY_TRUCK_WORLD_YAW, 0);
+}
+
+function cityFoodStallRotation() {
+  return quatFromEulerYXZ(0, CITY_FOOD_STALL_WORLD_YAW, 0);
+}
+
+function cityFoodStallOpeningRotation() {
+  return quatFromEulerYXZ(0, CITY_FOOD_STALL_WORLD_YAW + Math.PI, 0);
+}
+
+function cityFoodStallLocalToWorld(
+  localX: number,
+  localY: number,
+  localZ: number,
+) {
+  const root = CITY_FOOD_STALL_WORLD_POSITION;
+  const yaw = CITY_FOOD_STALL_WORLD_YAW;
+  return [
+    root[0] + localX * Math.cos(yaw) + localZ * Math.sin(yaw),
+    root[1] + localY,
+    root[2] - localX * Math.sin(yaw) + localZ * Math.cos(yaw),
+  ] as const;
 }
 
 function cityTruckLocalToWorld(localX: number, localY: number, localZ: number) {
@@ -357,6 +395,67 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         translation: CITY_TRUCK_WORLD_POSITION,
         rotation: cityTruckRotation(),
         scale: [CITY_TRUCK_SCALE, CITY_TRUCK_SCALE, CITY_TRUCK_SCALE],
+      },
+    });
+    this.spawn.gltf(this.assets.gltf(CITY_FOOD_STALL_ASSET_ID), {
+      key: "prop.food-stall",
+      name: "Food Stall",
+      tags: ["prop", "stall", "food-stall"],
+      materials: GLTF_FRONT_SIDE_MATERIALS,
+      castShadow: true,
+      receiveShadow: true,
+      transform: {
+        translation: cityFoodStallLocalToWorld(0, 0, 0.5),
+        rotation: cityFoodStallRotation(),
+        scale: [
+          CITY_FOOD_STALL_SCALE,
+          CITY_FOOD_STALL_SCALE,
+          CITY_FOOD_STALL_SCALE,
+        ],
+      },
+    });
+    this.spawn.mesh({
+      key: "window.glow.food-stall.opening",
+      name: "Food Stall Opening Glow",
+      tags: ["night-window", "food-stall"],
+      mesh: mesh.plane({ size: CITY_FOOD_STALL_OPENING_GLOW_SIZE }),
+      material: material.standard({
+        label: "Food Stall Opening Glow",
+        baseColor: [1, 0.78, 0.32, 1],
+        emissiveFactor: [3.8, 2.2, 0.5],
+        roughness: 0.35,
+        metallic: 0,
+      }),
+      castShadow: false,
+      receiveShadow: false,
+      transform: {
+        translation: cityFoodStallLocalToWorld(
+          CITY_FOOD_STALL_OPENING_LOCAL_POSITION[0],
+          CITY_FOOD_STALL_OPENING_LOCAL_POSITION[1],
+          CITY_FOOD_STALL_OPENING_LOCAL_POSITION[2],
+        ),
+        rotation: cityFoodStallOpeningRotation(),
+      },
+    });
+    this.spawn.light({
+      key: "light.food-stall.opening.area",
+      name: "Food Stall Opening Area Light",
+      tags: ["food-stall", "stall-light"],
+      kind: "rect-area",
+      color: [1, 0.78, 0.42, 1],
+      intensity: CITY_FOOD_STALL_AREA_LIGHT_INTENSITY,
+      transform: {
+        translation: cityFoodStallLocalToWorld(
+          CITY_FOOD_STALL_AREA_LIGHT_LOCAL_POSITION[0],
+          CITY_FOOD_STALL_AREA_LIGHT_LOCAL_POSITION[1],
+          CITY_FOOD_STALL_AREA_LIGHT_LOCAL_POSITION[2],
+        ),
+        lookAt: CITY_FOOD_STALL_AREA_LIGHT_TARGET,
+      },
+      light: {
+        shape: "rect",
+        width: CITY_FOOD_STALL_AREA_LIGHT_WIDTH,
+        height: CITY_FOOD_STALL_AREA_LIGHT_HEIGHT,
       },
     });
     HEADLIGHT_LOCAL_POSITIONS.forEach(([localX, localY, localZ], index) => {

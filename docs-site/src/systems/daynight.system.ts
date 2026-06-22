@@ -520,7 +520,8 @@ function normalize3(value: Vec3): Vec3 | null {
 function nightSyncedLight(key: string): boolean {
   return (
     key.startsWith("light.lamp.") ||
-    key.startsWith("light.garage-truck.headlight.")
+    key.startsWith("light.garage-truck.headlight.") ||
+    key.startsWith("light.food-stall.")
   );
 }
 

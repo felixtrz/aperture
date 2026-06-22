@@ -29,6 +29,7 @@ const MODEL_IDS = [
   "grass-trees",
   "grass-trees-tall",
   "vehicle-truck-red",
+  "stall-food",
 ] as const;
 
 const modelAssets = Object.fromEntries(MODEL_IDS.map((id) => [id, model(id)]));
