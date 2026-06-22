@@ -127,15 +127,8 @@ for (const route of [
     fail(`docs-site dist is missing ${route}`);
   }
 }
-if (!(await exists(path.join(docsSiteDir, "dist", "status", "index.html")))) {
-  fail("docs-site dist is missing status endpoint output");
-}
-const statusHtml = await readFile(
-  path.join(docsSiteDir, "dist", "status", "index.html"),
-  "utf8",
-);
-if (!statusHtml.includes("GitHub Pages-ready dashboard")) {
-  fail("status endpoint output does not contain the project dashboard");
+if (await exists(path.join(docsSiteDir, "dist", "status", "index.html"))) {
+  fail("docs-site dist must not include the removed status route");
 }
 
 const homeHtml = await readFile(

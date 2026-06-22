@@ -68,8 +68,8 @@ export const docsSections: readonly DocsSection[] = [
       "Static output is the target: build the docs site, preserve asset base paths, and keep examples runnable.",
     bullets: [
       "Use pnpm run docs:build to create the static site output.",
-      "Use pnpm run check:docs before publishing to catch missing examples, API pages, or status output.",
-      "Keep the project status dashboard reachable at /status/ after the site cutover.",
+      "Use pnpm run check:docs before publishing to catch missing examples, API pages, or base-path issues.",
+      "Keep the published manifest aligned so removed routes are deleted from GitHub Pages.",
     ],
   },
 ];

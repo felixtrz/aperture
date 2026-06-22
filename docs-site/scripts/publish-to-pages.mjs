@@ -96,9 +96,9 @@ async function main() {
       "docs-site/dist/index.html is missing. Run the docs build first.",
     );
   }
-  if (!(await exists(path.join(distDir, "status", "index.html")))) {
+  if (await exists(path.join(distDir, "status", "index.html"))) {
     throw new Error(
-      "docs-site/dist/status/index.html is missing. The status dashboard must survive cutover.",
+      "docs-site/dist/status/index.html must not be generated or deployed.",
     );
   }
 
