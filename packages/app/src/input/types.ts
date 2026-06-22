@@ -243,9 +243,6 @@ export interface InputResourceBase {
   readonly keyboard: StatefulKeyboardState;
   readonly gamepads: StatefulGamepadsState;
   readonly gamepad: Record<string, Signal<number>>;
-  readonly xr: {
-    readonly active: Signal<boolean>;
-  };
   advanceFrame(events?: readonly ApertureGeneratedInputEvent[]): void;
   diagnostics(): readonly ApertureInputDiagnostic[];
 }

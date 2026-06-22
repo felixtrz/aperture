@@ -712,61 +712,7 @@ Consequences:
   submesh-level metadata, or dedicated-worker provider transport without
   changing the durable ECS authoring shape.
 
-## 0020 — WebXR Is a View and Input Mode Over the Existing Boundary
-
-Date: 2026-06-06 (WebXR implementation plan Phase 0)
-
-Status: accepted
-
-Context:
-
-Aperture is planning WebXR support after the current render/physics foundations.
-Useful XR support needs session lifecycle, WebGPU projection-layer targets,
-per-eye view matrices, controller/hand input, hit tests, anchors, planes,
-meshes, depth, and fake XR test tooling. Aperture already has worker-safe render
-snapshots and view matrices, but it must not compromise the North Star by
-storing browser XR objects in ECS state or by adding a scene graph or WebGL
-fallback.
-
-Decision:
-
-WebXR will be implemented as a browser presentation and input mode over the
-existing ECS/render snapshot boundary:
-
-- ECS remains authoritative for durable app state, transforms, gameplay, and
-  persistent XR semantic state.
-- `XRSession`, `XRFrame`, `XRView`, `XRInputSource`, `XRSpace`,
-  `XRGPUBinding`, projection layers, subimages, and GPU textures remain
-  browser/main-thread frame-local objects.
-- The simulation worker receives only serializable XR data: session/capability
-  state, poses, actions, button/axis values, hand-joint packets, hit-test
-  results, anchors, planes, meshes, depth metadata, and diagnostics.
-- Rendering consumes the latest simulation snapshot and applies frame-local
-  per-eye XR view overrides on the main thread immediately before WebGPU
-  submission.
-- WebGPU XR projection-layer presentation belongs in `@aperture-engine/webgpu`;
-  user-facing config, browser session helpers, input forwarding, and fake XR
-  test hooks belong in browser-facing `@aperture-engine/app` entry points.
-- `@aperture-engine/render`, `@aperture-engine/runtime`, and
-  `@aperture-engine/simulation` may gain serializable XR metadata and helpers,
-  but must not import WebXR or DOM globals.
-- Core rendering remains WebGPU-only. There is no WebGL fallback for XR.
-
-Consequences:
-
-- The first XR rendering route should use serial per-eye rendering with
-  conservative culling before adding multiview, XR MSAA, native layers, or
-  late-pose-aware sorting.
-- XR view metadata must remain compatible with structured-clone and
-  SharedArrayBuffer snapshot transports.
-- XR world-space policy must be explicit, using an ECS XR origin/player-space
-  model rather than hidden renderer nodes.
-- Public XR features need fake-session or agent-operable tests that can pause,
-  step, inspect, and diff ECS state.
-- Browser/WebXR type dependencies, if added, must stay isolated to
-  browser-facing app/WebGPU code.
-
-## 0021 — Fixed-Step Render Interpolation Is a Presentation Snapshot Rewrite
+## 0020 — Fixed-Step Render Interpolation Is a Presentation Snapshot Rewrite
 
 Date: 2026-06-16 (Shadow Lab fixed-step parity slice)
 
@@ -810,7 +756,7 @@ Consequences:
   closer to packed snapshot publication, but they must preserve the
   presentation-only contract.
 
-## 0022 — App Resources Are Typed Simulation-Owned Singletons
+## 0021 — App Resources Are Typed Simulation-Owned Singletons
 
 Date: 2026-06-16 (racing library-gap resource slice)
 
@@ -852,7 +798,7 @@ Consequences:
 - Experiences such as racing should migrate shared simulation state onto
   resources before adding higher-level particle/audio helpers.
 
-## 0023 — Runtime Visual Parameters Flow Through Extracted Packets
+## 0022 — Runtime Visual Parameters Flow Through Extracted Packets
 
 Date: 2026-06-21 (procedural sky and runtime uniforms slice)
 

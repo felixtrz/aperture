@@ -85,9 +85,6 @@ class InputResourceImpl implements InputResourceBase {
   readonly keyboard = createStatefulKeyboardState();
   readonly gamepads = createStatefulGamepadsState();
   readonly gamepad: Record<string, Signal<number>> = {};
-  readonly xr = {
-    active: createSignal(false),
-  };
   readonly #descriptors: Record<string, InputActionDescriptor>;
   readonly #virtualActions = new Map<string, VirtualActionState>();
   #diagnostics: readonly ApertureInputDiagnostic[] = [];
