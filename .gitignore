@@ -50,3 +50,9 @@ playwright.local.config.ts
 # TypeScript incremental build cache (kept out of dist so it is not published)
 *.tsbuildinfo
 .tsbuildinfo
+
+# Local-only reference checkouts (external engines/kits used for comparison).
+references/
+
+# Node module compile cache (NODE_COMPILE_CACHE) build artifact.
+node-compile-cache/
