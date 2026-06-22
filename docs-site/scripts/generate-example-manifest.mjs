@@ -71,6 +71,17 @@ function categorize(id) {
   return "Basics";
 }
 
+// Low-level render-target / MSAA / multi-camera permutation routes are exhaustive
+// conformance fixtures that drive the browser e2e suite. They render near-identical
+// geometry to probe pipeline plumbing, so they add noise to the public gallery
+// without showcasing engine capability. They stay in the manifest (and keep their
+// e2e specs) but are flagged `internal` so the gallery hides them by default.
+const internalPrefixes = ["render-target-", "mixed-", "camera-"];
+
+function isInternal(id) {
+  return internalPrefixes.some((prefix) => id.startsWith(prefix));
+}
+
 async function exists(file) {
   try {
     const result = await stat(file);
@@ -99,6 +110,7 @@ for (const file of entries) {
     id,
     title: toTitle(id),
     category: categorize(id),
+    internal: isInternal(id),
     file,
     href: `/examples/${file}`,
     localDevUrl: `http://127.0.0.1:5173/examples/${file}`,
@@ -107,7 +119,11 @@ for (const file of entries) {
 }
 
 const categories = [
-  ...new Set(examples.map((example) => example.category)),
+  ...new Set(
+    examples
+      .filter((example) => !example.internal)
+      .map((example) => example.category),
+  ),
 ].sort();
 const manifest = {
   generatedAt: new Date(0).toISOString(),

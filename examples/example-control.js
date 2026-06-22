@@ -237,3 +237,39 @@ function toJsonSafe(value) {
 function isRecord(value) {
   return typeof value === "object" && value !== null;
 }
+
+// Progressive shell enhancement: keep the harness chrome clean and gallery-ready
+// by tucking the raw frame JSON into a collapsed drawer. The JSON element stays
+// in the DOM (examples still write to `#example-json`), and automated checks read
+// `window.__APERTURE_EXAMPLE_STATUS__`, so this is purely cosmetic.
+function enhanceExampleShell() {
+  const panel = document.querySelector(".status-panel");
+  const json = document.querySelector("#example-json");
+
+  if (panel === null || json === null) {
+    return;
+  }
+
+  if (json.closest(".example-json-drawer") !== null) {
+    return;
+  }
+
+  const drawer = document.createElement("details");
+  drawer.className = "example-json-drawer";
+
+  const summary = document.createElement("summary");
+  summary.textContent = "Frame JSON";
+
+  json.replaceWith(drawer);
+  drawer.append(summary, json);
+}
+
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", enhanceExampleShell, {
+      once: true,
+    });
+  } else {
+    enhanceExampleShell();
+  }
+}

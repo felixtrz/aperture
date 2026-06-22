@@ -10,6 +10,7 @@ export interface ExampleEntry {
   readonly href: string;
   readonly localDevUrl: string;
   readonly sourceFiles: readonly string[];
+  readonly internal?: boolean;
 }
 
 export interface ExampleGalleryProps {
@@ -27,7 +28,17 @@ function withBase(href: string) {
   return `${base}${href.slice(1)}`;
 }
 
-export function ExampleGallery({ examples, categories }: ExampleGalleryProps) {
+export function ExampleGallery({
+  examples: allExamples,
+  categories,
+}: ExampleGalleryProps) {
+  // Internal conformance fixtures (render-target / MSAA / multi-camera
+  // permutations) stay in the manifest for tooling but are kept out of the
+  // public gallery so it reads as a curated showcase.
+  const examples = useMemo(
+    () => allExamples.filter((example) => example.internal !== true),
+    [allExamples],
+  );
   const defaultExample =
     examples.find((example) => example.id === defaultExampleId) ?? examples[0];
   const [query, setQuery] = useState("");

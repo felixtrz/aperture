@@ -8,8 +8,20 @@
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  background: #111418;
-  color: #edf2f7;
+  --bg-0: #0a0c10;
+  --bg-1: #0e1116;
+  --panel: rgb(20 25 32 / 72%);
+  --panel-solid: #141921;
+  --stage: #05070a;
+  --hairline: rgb(255 255 255 / 10%);
+  --hairline-strong: rgb(255 255 255 / 16%);
+  --text: #eef2f7;
+  --muted: #97a3b4;
+  --accent: #7ee0a6;
+  --radius: 14px;
+  --radius-sm: 9px;
+  background: var(--bg-0);
+  color: var(--text);
 }
 
 * {
@@ -24,12 +36,22 @@ body {
 
 .runtime-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 20px;
   min-height: 100vh;
-  padding: 16px;
+  padding: 20px;
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 5%), transparent 32%), #111418;
+    radial-gradient(
+      1200px 680px at 28% -8%,
+      rgb(96 130 196 / 14%),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 600px at 100% 110%,
+      rgb(126 224 166 / 9%),
+      transparent 55%
+    ),
+    linear-gradient(180deg, var(--bg-1), var(--bg-0));
 }
 
 .viewport-panel {
@@ -37,9 +59,16 @@ body {
   align-self: start;
   display: grid;
   place-items: center;
+  overflow: hidden;
   min-height: 360px;
-  border: 1px solid rgb(255 255 255 / 14%);
-  background: #0b0d10;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(120% 120% at 50% 0%, rgb(42 52 68 / 55%), transparent 55%),
+    radial-gradient(150% 150% at 50% 120%, #0a0e14, var(--stage) 70%);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 6%) inset,
+    0 30px 80px -40px rgb(0 0 0 / 90%);
 }
 
 .benchmark-panel {
@@ -59,8 +88,9 @@ body {
   gap: 14px;
   min-height: 220px;
   padding: 18px;
-  border: 1px solid rgb(255 255 255 / 14%);
-  background: #151a20;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 4%);
 }
 
 .benchmark-card strong {
@@ -87,13 +117,12 @@ body {
 
 #aperture-canvas {
   display: block;
-  width: min(100%, calc(100vh - 34px));
+  width: min(100%, calc(100vh - 40px));
   height: auto;
   aspect-ratio: 1 / 1;
-  background:
-    linear-gradient(90deg, rgb(255 255 255 / 6%) 1px, transparent 1px),
-    linear-gradient(rgb(255 255 255 / 6%) 1px, transparent 1px), #151a20;
-  background-size: 32px 32px;
+  border-radius: calc(var(--radius) - 4px);
+  background: var(--stage);
+  box-shadow: 0 24px 60px -36px rgb(0 0 0 / 85%);
 }
 
 .msaa-viewport-grid {
@@ -119,16 +148,24 @@ body {
   width: min(100%, 512px);
   height: auto;
   aspect-ratio: 1 / 1;
-  background: #0b0d10;
+  border-radius: var(--radius-sm);
+  background: var(--stage);
 }
 
 .status-panel {
+  position: sticky;
+  top: 20px;
   align-self: start;
   display: grid;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid rgb(255 255 255 / 14%);
-  background: #181d23;
+  gap: 14px;
+  max-height: calc(100vh - 40px);
+  padding: 18px;
+  overflow: auto;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: 0 24px 70px -44px rgb(0 0 0 / 90%);
+  backdrop-filter: blur(14px) saturate(120%);
 }
 
 .status-row {
@@ -140,12 +177,35 @@ body {
 }
 
 .status-row span {
-  color: #9ca8b7;
+  color: var(--muted);
 }
 
 .status-row strong {
   font-size: 13px;
   font-weight: 650;
+}
+
+/* Promote the leading "example" row into a clean title banner. */
+.status-panel > .status-row:first-child {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.status-panel > .status-row:first-child span {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.status-panel > .status-row:first-child strong {
+  font-size: 19px;
+  font-weight: 720;
+  letter-spacing: -0.01em;
+  text-transform: capitalize;
 }
 
 .asset-select-row {
@@ -165,7 +225,8 @@ body {
 .asset-select-row select {
   width: 100%;
   min-height: 34px;
-  border: 1px solid rgb(255 255 255 / 18%);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
   background: #202832;
   color: #edf2f7;
   font: inherit;
@@ -196,7 +257,8 @@ body {
 .asset-url-controls input,
 .asset-url-controls button {
   min-height: 34px;
-  border: 1px solid rgb(255 255 255 / 18%);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
   background: #202832;
   color: #edf2f7;
   font: inherit;
@@ -244,7 +306,8 @@ body {
 
 .runtime-controls button {
   min-height: 34px;
-  border: 1px solid rgb(255 255 255 / 18%);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
   background: #202832;
   color: #edf2f7;
   font: inherit;
@@ -503,7 +566,8 @@ body {
   align-items: center;
   gap: 8px;
   padding: 0 10px;
-  border: 1px solid rgb(255 255 255 / 18%);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
   background: #202832;
   color: #edf2f7;
   font-size: 13px;
@@ -549,17 +613,32 @@ body {
 .example-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .example-links a {
-  color: #d7dee8;
-  font-size: 13px;
-  text-underline-offset: 3px;
+  padding: 4px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 4%);
+  color: #cdd6e2;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.example-links a:hover {
+  border-color: rgb(126 224 166 / 55%);
+  background: rgb(126 224 166 / 12%);
+  color: #eafff2;
 }
 
 .example-links a:focus-visible {
-  outline: 2px solid #81d69d;
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -581,7 +660,8 @@ body {
 .material-legend span {
   min-width: 0;
   padding: 8px 10px;
-  border: 1px solid rgb(255 255 255 / 16%);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
   background: rgb(13 16 20 / 78%);
   color: #edf2f7;
   font-size: 13px;
@@ -598,7 +678,8 @@ body {
   display: grid;
   gap: 10px;
   padding: 12px;
-  border: 1px solid rgb(255 255 255 / 16%);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
   background: rgb(12 15 19 / 82%);
   backdrop-filter: blur(8px);
 }
@@ -657,14 +738,53 @@ body {
   font-weight: 650;
 }
 
+.example-json-drawer {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: rgb(8 10 14 / 60%);
+}
+
+.example-json-drawer > summary {
+  padding: 9px 12px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.example-json-drawer > summary::-webkit-details-marker {
+  display: none;
+}
+
+.example-json-drawer > summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 8px;
+  color: var(--accent);
+  transition: transform 120ms ease;
+}
+
+.example-json-drawer[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.example-json-drawer > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 #example-json {
   overflow: auto;
-  max-height: calc(100vh - 160px);
+  max-height: min(46vh, 460px);
   margin: 0;
   padding: 12px;
-  border: 1px solid rgb(255 255 255 / 10%);
-  background: #0d1014;
-  color: #d7dee8;
+  border-top: 1px solid var(--hairline);
+  background: transparent;
+  color: #cdd6e2;
   font:
     12px/1.5 ui-monospace,
     "SFMono-Regular",
