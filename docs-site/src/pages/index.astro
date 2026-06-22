@@ -1,3 +1,8 @@
+---
+const base = import.meta.env.BASE_URL;
+const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
+---
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -7,7 +12,7 @@
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
     />
     <title>Aperture — the agent-first 3D engine</title>
-    <link rel="icon" type="image/svg+xml" href="aperture.svg" />
+    <link rel="icon" type="image/svg+xml" href={withBase("aperture.svg")} />
     <style is:global>
       :root {
         color-scheme: dark;
@@ -575,7 +580,7 @@
     <nav id="nav">
       <span class="nav-top">
         <span class="brand">
-          <img src="aperture.svg" alt="" />
+          <img src={withBase("aperture.svg")} alt="" />
           <span class="brand-copy">
             <span class="brand-name">Aperture</span>
             <span class="brand-tagline">3D engine for the agentic age.</span>
@@ -593,9 +598,9 @@
         </button>
       </span>
       <span id="nav-links" class="links">
-        <a href="docs/">Docs</a>
-        <a href="examples/">Examples</a>
-        <a href="showcases/">Showcases</a>
+        <a href={withBase("docs/")}>Docs</a>
+        <a href={withBase("examples/")}>Examples</a>
+        <a href={withBase("showcases/")}>Showcases</a>
         <a href="https://github.com/felixtrz/aperture">GitHub</a>
       </span>
       <span class="mobile-hero">
