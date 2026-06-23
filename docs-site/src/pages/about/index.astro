@@ -1,0 +1,253 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { ReferenceSearch } from "../../components/ReferenceSearch";
+import referenceAssetsPackage from "../../../../packages/reference-assets/package.json";
+
+interface EngineFact {
+  readonly id: string;
+  readonly title: string;
+  readonly status: string;
+  readonly summary: string;
+  readonly points: readonly string[];
+}
+
+interface Assumption {
+  readonly id: string;
+  readonly index: string;
+  readonly title: string;
+  readonly status: "validated" | "open" | "contested";
+  readonly statusLabel: string;
+  readonly summary: string;
+}
+
+const engineFacts: readonly EngineFact[] = [
+  {
+    id: "ecs-source",
+    title: "ECS is authoritative",
+    status: "Implemented",
+    summary:
+      "Gameplay state lives in ECS. Rendering, input, physics, and tooling read from that data boundary instead of a renderer-owned scene graph.",
+    points: [
+      "Entities, transforms, hierarchy, resources, and gameplay state are ECS data.",
+      "Rendering is derived from extracted snapshots.",
+      "The renderer does not own authoritative game objects.",
+    ],
+  },
+  {
+    id: "worker-runtime",
+    title: "Worker-first runtime",
+    status: "Implemented",
+    summary:
+      "The default browser shape keeps simulation portable to a worker while the main thread owns the canvas, WebGPU, input, and UI.",
+    points: [
+      "Simulation and extraction can run off the main thread.",
+      "Render snapshots are structured data passed across the boundary.",
+      "The split makes deterministic stepping and inspection easier.",
+    ],
+  },
+  {
+    id: "webgpu-renderer",
+    title: "WebGPU-only renderer",
+    status: "Implemented",
+    summary:
+      "Aperture targets the modern browser GPU stack directly, including materials, shadows, post effects, readback, and diagnostics.",
+    points: [
+      "No WebGL fallback in the core renderer.",
+      "Examples exercise cameras, lighting, materials, physics, particles, and UI.",
+      "Showcase apps prove the path beyond small demos.",
+    ],
+  },
+  {
+    id: "agent-tooling",
+    title: "Agent-readable tooling",
+    status: "Active thesis",
+    summary:
+      "The engine is built around structured diagnostics, generated API references, runtime inspection, and reproducible routes.",
+    points: [
+      "Errors should explain what failed and what to inspect next.",
+      "Examples and showcases double as verification surfaces.",
+      "Reference search gives agents and humans the same indexed corpus.",
+    ],
+  },
+];
+
+const assumptions: readonly Assumption[] = [
+  {
+    id: "solo-plus-agents",
+    index: "01",
+    title: "Building a 3D engine is becoming a one-person job",
+    status: "validated",
+    statusLabel: "Validated",
+    summary:
+      "Agents can carry enough implementation, migration, and verification work that a single developer can own engine-scale scope. The open question is how far that holds under production pressure.",
+  },
+  {
+    id: "agent-native-tooling",
+    index: "02",
+    title: "Agent-native structure can beat training-data familiarity",
+    status: "open",
+    statusLabel: "Active thesis",
+    summary:
+      "For hard iterative work, inspectable state, deterministic checks, and machine-readable diagnostics may matter more than ecosystem popularity.",
+  },
+  {
+    id: "worker-default",
+    index: "03",
+    title: "Web 3D should be worker-first by default",
+    status: "open",
+    statusLabel: "Active thesis",
+    summary:
+      "Keeping simulation off the main thread improves responsiveness and gives tools a clean data boundary to step, diff, and replay.",
+  },
+  {
+    id: "headless-agent-work",
+    index: "04",
+    title: "Agentic 3D work moves toward headless validation",
+    status: "open",
+    statusLabel: "Active thesis",
+    summary:
+      "Agents should be able to change ECS systems and validate state before paying the cost of browser and GPU rendering.",
+  },
+  {
+    id: "ecosystem-moat",
+    index: "05",
+    title: "The ecosystem moat may weaken",
+    status: "open",
+    statusLabel: "Active thesis",
+    summary:
+      "If agents can study and port ideas quickly, engine architecture may matter more, though mature ecosystems still matter a lot today.",
+  },
+];
+---
+
+<DocsLayout
+  title="About Aperture"
+  description="Aperture is a WebGPU-only, ECS-native 3D runtime for data-driven simulation, derived rendering, workers, and coding-agent workflows."
+>
+  <section class="about-section about-intro" aria-labelledby="what-it-is">
+    <div class="about-section-head">
+      <p class="docs-eyebrow">About</p>
+      <h1 id="what-it-is">What Aperture is.</h1>
+      <p>
+        Aperture is a WebGPU-only, ECS-native 3D runtime built around a simple
+        architecture: ECS is authoritative, rendering is derived from
+        snapshots, simulation can live in a worker, and coding agents are
+        treated as first-class contributors. These are the concrete pieces that
+        matter to the assumptions below.
+      </p>
+      <div class="about-cta-row">
+        <div class="docs-command about-command">
+          <span aria-hidden="true">$</span>
+          <code>npx @aperture-engine/cli create my-app</code>
+          <button
+            class="about-copy-command"
+            type="button"
+            aria-label="Copy command"
+            title="Copy command"
+            data-command="npx @aperture-engine/cli create my-app"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              focusable="false"
+            >
+              <rect x="9" y="9" width="10" height="10" rx="2"></rect>
+              <path d="M5 15V7a2 2 0 0 1 2-2h8"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="docs-section-grid about-fact-grid">
+      {
+        engineFacts.map((fact) => (
+          <article class="docs-panel about-fact-card" id={fact.id}>
+            <div class="about-card-head">
+              <h3>{fact.title}</h3>
+              <span>{fact.status}</span>
+            </div>
+            <p>{fact.summary}</p>
+            <ul>
+              {fact.points.map((point) => (
+                <li>{point}</li>
+              ))}
+            </ul>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="about-section" aria-labelledby="assumptions">
+    <div class="about-section-head">
+      <p class="docs-eyebrow">Assumptions</p>
+      <h2 id="assumptions">The bets being tested.</h2>
+      <p>
+        Aperture began as research, so these are intentionally short working
+        hypotheses, not launch claims. Some of them may be wrong.
+      </p>
+    </div>
+
+    <ol class="docs-section-grid assumption-list">
+      {
+        assumptions.map((assumption) => (
+          <li class="docs-panel assumption-card" id={assumption.id}>
+            <div class="about-card-head">
+              <span class="assumption-index">{assumption.index}</span>
+              <span class="assumption-status" data-status={assumption.status}>
+                {assumption.statusLabel}
+              </span>
+            </div>
+            <h3>{assumption.title}</h3>
+            <p>{assumption.summary}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="about-section about-search" aria-labelledby="search">
+    <div class="about-section-head">
+      <p class="docs-eyebrow">Search</p>
+      <h2 id="search">Transformer-powered search.</h2>
+      <p>
+        The reference index is part of the experiment: humans and agents can
+        search the same generated docs, public APIs, examples, diagnostics, and
+        curated source chunks.
+      </p>
+    </div>
+    <ReferenceSearch
+      assetsVersion={referenceAssetsPackage.version}
+      client:load
+    />
+  </section>
+
+  <script>
+    const copyButtons = document.querySelectorAll<HTMLButtonElement>(
+      "[data-command]",
+    );
+
+    for (const button of copyButtons) {
+      button.addEventListener("click", async () => {
+        const command = button.dataset.command;
+
+        if (!command) {
+          return;
+        }
+
+        try {
+          await navigator.clipboard.writeText(command);
+          button.dataset.copied = "true";
+          button.setAttribute("aria-label", "Command copied");
+          window.setTimeout(() => {
+            button.dataset.copied = "false";
+            button.setAttribute("aria-label", "Copy command");
+          }, 1400);
+        } catch {
+          button.dataset.copied = "false";
+        }
+      });
+    }
+  </script>
+</DocsLayout>

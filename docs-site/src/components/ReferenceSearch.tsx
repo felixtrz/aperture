@@ -205,11 +205,9 @@ export function ReferenceSearch({ assetsVersion }: ReferenceSearchProps) {
     <section className="api-reference-search">
       <div className="api-reference-search-header">
         <div>
-          <p className="docs-eyebrow">Reference Search</p>
-          <h2>Ask the same indexed corpus agents use.</h2>
           <p>
-            Search generated docs, public APIs, examples, diagnostics, and
-            curated source chunks using the pinned local embedding contract.
+            Enter a question or capability and rank matches with the pinned
+            local embedding contract.
           </p>
         </div>
         <div className="api-reference-search-meta">

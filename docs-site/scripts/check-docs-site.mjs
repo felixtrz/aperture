@@ -185,7 +185,7 @@ for (const [packageName, symbolName] of [
 
 for (const route of [
   "index.html",
-  "docs/index.html",
+  "about/index.html",
   "examples/index.html",
   "examples/triangle.html",
   "showcases/index.html",
@@ -218,11 +218,14 @@ if (!homeSource.includes("virtual:aperture/browser-entry")) {
 }
 
 const docsHtml = await readFile(
-  path.join(docsSiteDir, "dist", "docs", "index.html"),
+  path.join(docsSiteDir, "dist", "about", "index.html"),
   "utf8",
 );
 if (!docsHtml.includes("ECS is authoritative")) {
-  fail("docs page is missing core concepts content");
+  fail("about page is missing core concepts content");
+}
+if (!docsHtml.includes("Transformer-powered search")) {
+  fail("about page is missing reference search content");
 }
 const docsLayoutSource = await readFile(
   path.join(docsSiteDir, "src", "layouts", "DocsLayout.astro"),

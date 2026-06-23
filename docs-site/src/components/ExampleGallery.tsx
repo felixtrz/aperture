@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { Badge, Input, MonoTag } from "lumin";
 
@@ -46,6 +46,7 @@ export function ExampleGallery({
   const [activeExampleId, setActiveExampleId] = useState(
     defaultExample?.id ?? "",
   );
+  const activeItemRef = useRef<HTMLButtonElement | null>(null);
   const handleQueryChange = (event: ChangeEvent<HTMLInputElement>) => {
     setQuery(event.currentTarget.value);
   };
@@ -87,88 +88,112 @@ export function ExampleGallery({
     }
   }, [activeExampleId, visibleExamples]);
 
+  useEffect(() => {
+    if (activeExample === undefined) {
+      return;
+    }
+
+    activeItemRef.current?.scrollIntoView({ block: "start" });
+  }, [activeExample]);
+
   if (activeExample === undefined) {
     return null;
   }
 
   return (
-    <section className="docs-browser" aria-label="Example browser">
-      <aside className="docs-browser-sidebar" aria-label="Example list">
-        <div className="example-toolbar">
+    <div className="example-gallery">
+      <section className="example-controls" aria-label="Example controls">
+        <form
+          className="api-reference-search-form example-search-form"
+          onSubmit={(event) => event.preventDefault()}
+        >
           <Input
             aria-label="Search examples"
             placeholder="Search examples"
             value={query}
             onChange={handleQueryChange}
           />
-          <div className="example-filters" aria-label="Example categories">
-            {["All", ...categories].map((item) => (
-              <button
-                key={item}
-                className="example-filter"
-                data-active={String(item === category)}
-                type="button"
-                onClick={() => setCategory(item)}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </div>
-        <p className="example-count">
-          {visibleExamples.length} of {examples.length} examples
-        </p>
-        <div className="docs-browser-list">
-          {visibleExamples.map((example) => (
+        </form>
+        <div className="example-filters" aria-label="Example categories">
+          {["All", ...categories].map((item) => (
             <button
-              key={example.id}
-              className="docs-browser-item"
-              data-active={String(example.id === activeExample.id)}
+              key={item}
+              className="example-filter"
+              data-active={String(item === category)}
               type="button"
-              onClick={() => setActiveExampleId(example.id)}
+              onClick={() => setCategory(item)}
             >
-              <span className="docs-browser-item-title">
-                <span>{example.title}</span>
-                <Badge tone="mcp">{example.category}</Badge>
-              </span>
-              <span className="docs-browser-item-description">
-                {example.file}
-              </span>
+              {item}
             </button>
           ))}
         </div>
-      </aside>
+      </section>
 
-      <div className="docs-browser-preview">
-        <div className="docs-browser-frame-header">
-          <div>
-            <h2>{activeExample.title}</h2>
-            <p>
-              <code>{activeExample.file}</code>
-            </p>
+      <section className="docs-browser" aria-label="Example browser">
+        <aside className="docs-browser-sidebar" aria-label="Example list">
+          <div className="docs-browser-sidebar-header">
+            <span>Examples</span>
+            <strong>
+              {visibleExamples.length}/{examples.length}
+            </strong>
           </div>
-          <div className="docs-actions">
-            <a href={withBase(activeExample.href)}>Open</a>
-            <a href={activeExample.localDevUrl}>Local</a>
-            <a
-              href={`https://github.com/felixtrz/aperture/tree/main/${activeExample.sourceFiles[0]}`}
-            >
-              Source
-            </a>
+          <div className="docs-browser-list">
+            {visibleExamples.map((example) => {
+              const isActive = example.id === activeExample.id;
+
+              return (
+                <button
+                  key={example.id}
+                  ref={isActive ? activeItemRef : undefined}
+                  className="docs-browser-item"
+                  data-active={String(isActive)}
+                  type="button"
+                  onClick={() => setActiveExampleId(example.id)}
+                >
+                  <span className="docs-browser-item-title">
+                    <span>{example.title}</span>
+                    <Badge tone="mcp">{example.category}</Badge>
+                  </span>
+                  <span className="docs-browser-item-description">
+                    {example.file}
+                  </span>
+                </button>
+              );
+            })}
           </div>
+        </aside>
+
+        <div className="docs-browser-preview">
+          <div className="docs-browser-frame-header">
+            <div>
+              <h2>{activeExample.title}</h2>
+              <p>
+                <code>{activeExample.file}</code>
+              </p>
+            </div>
+            <div className="docs-actions">
+              <a href={withBase(activeExample.href)}>Open</a>
+              <a href={activeExample.localDevUrl}>Local</a>
+              <a
+                href={`https://github.com/felixtrz/aperture/tree/main/${activeExample.sourceFiles[0]}`}
+              >
+                Source
+              </a>
+            </div>
+          </div>
+          <div className="docs-tag-row">
+            {activeExample.sourceFiles.map((source) => (
+              <MonoTag key={source}>{source}</MonoTag>
+            ))}
+          </div>
+          <iframe
+            allow="fullscreen; gamepad; webgpu"
+            className="docs-browser-frame"
+            src={withBase(activeExample.href)}
+            title={`${activeExample.title} example`}
+          />
         </div>
-        <div className="docs-tag-row">
-          {activeExample.sourceFiles.map((source) => (
-            <MonoTag key={source}>{source}</MonoTag>
-          ))}
-        </div>
-        <iframe
-          allow="fullscreen; gamepad; webgpu"
-          className="docs-browser-frame"
-          src={withBase(activeExample.href)}
-          title={`${activeExample.title} example`}
-        />
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }
