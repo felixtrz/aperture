@@ -96,7 +96,7 @@ runner.step(1 / 60, 0);
 expect(runner.app.physics?.backend.kind).toBe("test");
 expect(
   context.physics.moveCharacter({
-    entity: serializeEntityRef(character),
+    entity: character,
     desiredTranslation: [0, 0, 0],
     settings: { snapToGroundDistance: 0.05 },
   }),

@@ -43,7 +43,7 @@ export function applySpawnMetadata(
   }
 
   if (metadata.key !== undefined) {
-    assertUniqueKey(world, metadata.key);
+    assertUniqueKey(world, metadata.key, entity);
     if (entity.hasComponent(AppEntityKey)) {
       entity.setValue(AppEntityKey, "value", metadata.key);
     } else {
@@ -83,13 +83,17 @@ function upsertName(entity: Entity, value: string): void {
   entity.addComponent(Name, { value });
 }
 
-function assertUniqueKey(world: EcsWorld, key: string): void {
+function assertUniqueKey(world: EcsWorld, key: string, current: Entity): void {
   const query = world.queryManager.registerQuery({
     required: [AppEntityKey],
     where: [{ component: AppEntityKey, key: "value", op: "eq", value: key }],
   });
 
-  if (query.entities.size > 0) {
+  for (const entity of query.entities) {
+    if (entity === current) {
+      continue;
+    }
+
     throw new ApertureSystemError(
       "aperture.entityKey.duplicate",
       `Entity key '${key}' is already in use.`,

@@ -229,6 +229,29 @@ Current primitive descriptors include:
 - `mesh.cylinder({ radius, depth, segments? })`
 - `mesh.cone({ radius, depth, segments? })`
 
+## Prefabs
+
+Prefabs are serialized `ApertureSceneDocument` blueprints. Author the source
+subtree in an ECS world, serialize it with `saveScene(world)`, register the
+document through `this.prefabs.register(document)`, then instantiate it with
+`this.spawn.prefab(handle, options)`.
+
+```ts
+import { saveScene } from "@aperture-engine/simulation";
+
+const document = saveScene(templateWorld);
+const cratePrefab = this.prefabs.register(document, { id: "crate.prefab" });
+
+this.spawn.prefab(cratePrefab, {
+  key: "crate.instance.1",
+  transform: { translation: [0, 0, 0] },
+});
+```
+
+Prefab instances are ordinary ECS subtrees. Instance options can override the
+root transform, and `overrides` can patch component fields by prefab-local id
+without mutating the registered blueprint.
+
 ## Custom WGSL Materials
 
 Generated browser apps can author a data-only custom WGSL material from config
@@ -312,10 +335,17 @@ material.customWgsl({
 
 V1 custom WGSL shaders use fixed renderer groups:
 
-- `@group(0) @binding(0)`: view uniform, renderer-owned.
-- `@group(1) @binding(0)`: world transform storage, renderer-owned.
+- `@group(0) @binding(0)`: view uniform, renderer-owned. The layout is
+  `{ viewProjection: mat4x4f, cameraPosition: vec4f }`.
+- `@group(1) @binding(0)`: read-only storage array of world transforms,
+  renderer-owned. Index with `@builtin(instance_index)`.
 - `@group(2)`: custom material bindings declared by `material.customWgsl(...)`.
 - `@group(3)`: reserved for future renderer extensions.
+
+Mesh vertex locations follow the built-in instance layout: `@location(0)`
+position (`vec3f`), `@location(1)` normal (`vec3f`), and `@location(2)` UV
+(`vec2f`). Use `runtimeUniformKey` on a group-2 uniform binding when per-frame
+values should come from `this.spawn.runtimeUniform(...)`.
 
 Current limitations: WGSL only; no shader imports; no user-supplied WebGPU
 objects or callbacks; no arbitrary app-owned material adapter registration; and
@@ -324,6 +354,9 @@ group-2 uniform buffers, texture bindings, sampler bindings, existing
 instance-attribute layouts, and mixed built-in/custom frames through the normal
 `createWebGpuApp()` path. Storage-buffer bindings are validated but reported as
 unsupported until a renderer-independent buffer source asset exists.
+
+See [`recipes/custom-wgsl-material.md`](./recipes/custom-wgsl-material.md) for
+a complete shader and material setup.
 
 ## Runtime Systems
 
@@ -370,6 +403,9 @@ modules default-export the class; the generated worker registers discovered
 systems in priority order. The main-thread generated bootstrap receives
 serializable manifest metadata, not live system classes.
 
+`this.queries.<name>.entities` is a `Set<Entity>`. Iterate it with `for...of`,
+test membership with `.has(entity)`, and use `.size` for counts.
+
 Use negative priorities only for very early setup, keep ordinary gameplay near
 `0` to `100`, and reserve larger values for late reactions such as camera follow
 or UI/status synchronization.
@@ -410,8 +446,10 @@ export default class SelectSystem extends createSystem({
 ```
 
 Effects registered in `init()` are disposed on system destroy and flushed in
-explicit simulation phases. Input actions are forwarded from the generated
-browser bootstrap into worker-owned signals before system effects run.
+explicit simulation phases: `input` before system updates, `update` after system
+updates, and `postUpdate` after interaction processing. Input actions are
+forwarded from the generated browser bootstrap into worker-owned signals before
+system effects run.
 Use `this.actions.jump.down()` for one-frame button presses, `this.actions.move.x`
 and `this.actions.move.y` for axis2d actions, `this.keyboard.down("KeyP")` for
 direct keyboard edges, and `this.gamepads.primary?.down("south")` for direct
@@ -556,6 +594,33 @@ export default defineApertureConfig({
 
 Headless tests can step the app through advanced helpers without importing DOM,
 canvas, `navigator.gpu`, or WebGPU presentation code.
+
+Browser config asset URLs such as `/assets/robot.glb` are served by Vite or the
+generated app host. In Node/headless tests, provide an `assetLoader` when those
+URLs need to resolve, or mark the asset `preload: "manual"` and inject ready
+source assets through `app.context.assetsRegistry`.
+
+```ts
+import { asset, defineApertureConfig } from "@aperture-engine/app/config";
+
+const app = await createApertureApp({
+  config: defineApertureConfig({
+    mode: "headless",
+    assets: {
+      robot: asset.gltf("/assets/robot.glb", { preload: "blocking" }),
+    },
+  }),
+  assetLoader: {
+    async load(assetHandle) {
+      if (assetHandle.id !== "robot") {
+        return;
+      }
+
+      // Load or register the test fixture, then mark the handle ready.
+    },
+  },
+});
+```
 
 ## Advanced APIs
 

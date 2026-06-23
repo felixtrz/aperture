@@ -168,12 +168,12 @@ const x = this.actions.move.x;
 
 ## Where to go next
 
-- [`AUTHORING.md`](AUTHORING.md) — the full metaframework guide: signals,
+- [Authoring guide](https://github.com/felixtrz/aperture/blob/main/docs/AUTHORING.md) — the full metaframework guide: signals,
   asset handles, materials (standard PBR, unlit, custom WGSL), spatial
   queries, physics components, UI, diagnostics.
-- [`../examples/`](../examples/) — 100+ focused browser examples behind
+- [Examples](https://aperture-engine.dev/examples/) — 100+ focused browser examples behind
   `npm run examples:serve`.
-- [`ARCHITECTURE.md`](ARCHITECTURE.md) — the ECS → extraction → render-world
+- [Architecture](https://github.com/felixtrz/aperture/blob/main/docs/ARCHITECTURE.md) — the ECS → extraction → render-world
   pipeline and the invariants behind it.
-- [`AI_TOOLING.md`](AI_TOOLING.md) — `aperture dev`, MCP tools, and the
+- [AI tooling](https://github.com/felixtrz/aperture/blob/main/docs/AI_TOOLING.md) — `aperture dev`, MCP tools, and the
   agent-facing inspection surface scaffolded into every new app.

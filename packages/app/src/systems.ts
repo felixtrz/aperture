@@ -353,6 +353,7 @@ export type {
   PhysicsAccessSummary,
   PhysicsBackendSummary,
   PhysicsBreakJointOptions,
+  PhysicsCharacterMoveInput,
   PhysicsEventAccess,
   PhysicsEventFamilySummary,
   PhysicsReadbackSummary,

@@ -117,6 +117,7 @@ const STEP_TIMING_FIELDS = [
   "preStepResolveSpatialMilliseconds",
   "inputEffectsMilliseconds",
   "lowLevelStepMilliseconds",
+  "updateEffectsMilliseconds",
   "postStepSpatialMilliseconds",
   "interactionMilliseconds",
   "postUpdateEffectsMilliseconds",

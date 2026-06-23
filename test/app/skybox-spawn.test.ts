@@ -190,4 +190,52 @@ describe("app skybox spawning", () => {
     });
     expect(snapshot.diagnostics).toEqual([]);
   });
+
+  it("updates existing runtime uniforms when a uniform key is reused", async () => {
+    const refs: { first: Entity | null; second: Entity | null } = {
+      first: null,
+      second: null,
+    };
+
+    class RuntimeUniformUpdateSystem extends createSystem({ priority: 0 }) {
+      override init(): void {
+        refs.first = this.spawn.runtimeUniform({
+          key: "entity.runtime-uniform",
+          uniformKey: "water.params",
+          values: { water: [0.1, 0.2, 0.3, 1] },
+          version: 1,
+        });
+        refs.second = this.spawn.runtimeUniform({
+          key: "entity.runtime-uniform",
+          uniformKey: "water.params",
+          values: { water: [0.2, 0.4, 0.8, 1] },
+          version: 2,
+        });
+      }
+    }
+
+    const app = await createApertureApp({
+      config: defineApertureConfig({ mode: "headless" }),
+      systems: [{ default: RuntimeUniformUpdateSystem }],
+    });
+
+    const snapshot = app.extract(15);
+
+    expect(refs.first).toBe(refs.second);
+    expect(snapshot.runtimeUniforms).toHaveLength(1);
+    expect(snapshot.runtimeUniforms?.[0]).toMatchObject({
+      entity: {
+        index: refs.first?.index,
+        generation: refs.first?.generation,
+      },
+      key: "water.params",
+      values: { water: [0.2, 0.4, 0.8, 1] },
+      version: 2,
+    });
+    expect(snapshot.report).toMatchObject({
+      runtimeUniforms: 1,
+      diagnostics: 0,
+    });
+    expect(snapshot.diagnostics).toEqual([]);
+  });
 });

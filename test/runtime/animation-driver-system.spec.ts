@@ -38,6 +38,22 @@ function jointTranslation(joint: Entity): readonly number[] {
 }
 
 describe("withAnimation + animation driver", () => {
+  it("returns no-op animation controls for entities without driver state", () => {
+    const app = createSimulationApp();
+    const root = app.world.createEntity();
+    const animation = createAnimationAccess(root);
+
+    expect(animation.clipIds).toEqual([]);
+    expect(animation.activeClipId).toBeNull();
+    expect(animation.time).toBe(0);
+    expect(animation.isCrossFading).toBe(false);
+    expect(() => animation.playClip("Missing")).not.toThrow();
+    expect(() => animation.crossFade("Idle", "Run", 0.25)).not.toThrow();
+    expect(() => animation.pause()).not.toThrow();
+    expect(() => animation.resume()).not.toThrow();
+    expect(() => animation.seek(1)).not.toThrow();
+  });
+
   it("drives a bound target's LocalTransform through the engine driver each step", () => {
     const app = createSimulationApp();
     const world: EcsWorld = app.world;

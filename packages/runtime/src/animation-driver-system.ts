@@ -93,13 +93,11 @@ function readDriverState(entity: Entity): AnimationDriverState | null {
   return state ?? null;
 }
 
-/** Engine-owned animation controls for `entity` (throws if it has no driver). */
+/** Engine-owned animation controls for `entity`; no-op when it has no driver. */
 export function createAnimationAccess(entity: Entity): AnimationAccess {
   const state = readDriverState(entity);
   if (state === null) {
-    throw new Error(
-      "createAnimationAccess: entity has no Animation driver state.",
-    );
+    return createNoopAnimationAccess();
   }
   const { mixer } = state;
   return {
@@ -107,9 +105,15 @@ export function createAnimationAccess(entity: Entity): AnimationAccess {
       return mixer.clipIds;
     },
     playClip(clipId, options) {
+      if (mixer.clipIds.length === 0) {
+        return;
+      }
       mixer.play(clipId, options);
     },
     crossFade(fromClipId, toClipId, durationSeconds) {
+      if (mixer.clipIds.length === 0) {
+        return;
+      }
       if (mixer.activeClipId !== fromClipId) {
         mixer.play(fromClipId, { loop: "repeat" });
       }
@@ -132,6 +136,28 @@ export function createAnimationAccess(entity: Entity): AnimationAccess {
     },
     get isCrossFading() {
       return mixer.isCrossFading;
+    },
+  };
+}
+
+function createNoopAnimationAccess(): AnimationAccess {
+  return {
+    get clipIds() {
+      return [];
+    },
+    playClip() {},
+    crossFade() {},
+    pause() {},
+    resume() {},
+    seek() {},
+    get activeClipId() {
+      return null;
+    },
+    get time() {
+      return 0;
+    },
+    get isCrossFading() {
+      return false;
     },
   };
 }

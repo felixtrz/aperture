@@ -78,6 +78,7 @@ export interface ApertureAppStepTimingReport {
   readonly preStepResolveSpatialMilliseconds: number;
   readonly inputEffectsMilliseconds: number;
   readonly lowLevelStepMilliseconds: number;
+  readonly updateEffectsMilliseconds: number;
   readonly postStepSpatialMilliseconds: number;
   readonly interactionMilliseconds: number;
   readonly postUpdateEffectsMilliseconds: number;
@@ -244,6 +245,8 @@ export async function createApertureApp(
       const inputEffectsMilliseconds = markTiming();
       const result = lowLevel.step(delta, time);
       const lowLevelStepMilliseconds = markTiming();
+      flushApertureSystemEffects(lowLevel.world, "update");
+      const updateEffectsMilliseconds = markTiming();
       lastFixedStep = result.fixedStep;
       const framing = runScreenSpaceFramingFrame(context, delta);
       if (framing.updated > 0) {
@@ -265,6 +268,7 @@ export async function createApertureApp(
           preStepResolveSpatialMilliseconds,
           inputEffectsMilliseconds,
           lowLevelStepMilliseconds,
+          updateEffectsMilliseconds,
           postStepSpatialMilliseconds,
           interactionMilliseconds,
           postUpdateEffectsMilliseconds,

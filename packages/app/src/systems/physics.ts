@@ -3,6 +3,7 @@ import type {
   PhysicsBackendCapabilities,
   PhysicsCharacterMove,
   PhysicsCharacterMoveResult,
+  PhysicsEntityRef,
   PhysicsDebugGeometry,
   PhysicsDebugOptions,
   PhysicsDebugSummary,
@@ -59,6 +60,10 @@ export interface PhysicsBreakJointOptions {
   readonly fixedStep?: number;
   readonly substep?: number;
 }
+
+export type PhysicsCharacterMoveInput = Omit<PhysicsCharacterMove, "entity"> & {
+  readonly entity: Entity | PhysicsEntityRef;
+};
 
 export interface PhysicsEventFamilySummary {
   readonly contacts: number;
@@ -201,7 +206,9 @@ export interface PhysicsAccess {
   sleepBody(entity: Entity): boolean;
   wakeBody(entity: Entity): boolean;
   breakJoint(entity: Entity, options?: PhysicsBreakJointOptions): boolean;
-  moveCharacter(move: PhysicsCharacterMove): PhysicsCharacterMoveResult | null;
+  moveCharacter(
+    move: PhysicsCharacterMoveInput,
+  ): PhysicsCharacterMoveResult | null;
   debugGeometry(options?: PhysicsDebugOptions): PhysicsDebugGeometry;
   debugSummary(options?: PhysicsDebugOptions): PhysicsDebugSummary;
 }
@@ -368,7 +375,8 @@ export function createPhysicsAccess(
       return true;
     },
     moveCharacter(move) {
-      const result = backend?.moveCharacter?.(move) ?? null;
+      const result =
+        backend?.moveCharacter?.(serializePhysicsCharacterMove(move)) ?? null;
 
       if (result !== null) {
         const previousGrounded = characterGroundedStates.get(result.entity);
@@ -395,6 +403,18 @@ export function createPhysicsAccess(
         backend?.debugGeometry?.(options) ?? { lines: [] },
       );
     },
+  };
+}
+
+function serializePhysicsCharacterMove(
+  move: PhysicsCharacterMoveInput,
+): PhysicsCharacterMove {
+  return {
+    ...move,
+    entity:
+      typeof move.entity === "string"
+        ? move.entity
+        : serializeEntityRef(move.entity),
   };
 }
 

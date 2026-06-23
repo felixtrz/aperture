@@ -29,6 +29,7 @@ import {
   type ApertureSceneDocument,
   type AssetRegistry,
   type EcsWorld,
+  type Entity,
   type SamplerHandle,
   type TextureHandle,
 } from "@aperture-engine/simulation";
@@ -63,6 +64,7 @@ import type {
   SpawnGltfBatchInstance,
   SpawnGltfBatchOptions,
   SpawnGltfOptions,
+  SpawnRuntimeUniformOptions,
   SkyboxTextureDescriptorInput,
 } from "./types.js";
 
@@ -96,9 +98,6 @@ export function createSpawnCommands(options: {
           ...(input.light ?? {}),
           kind: input.kind ?? input.light?.kind ?? LightKind.Directional,
           ...(input.color === undefined ? {} : { color: input.color }),
-          ...(input.groundColor === undefined
-            ? {}
-            : { groundColor: input.groundColor }),
           intensity:
             input.illuminance ?? input.intensity ?? input.light?.intensity ?? 1,
         }),
@@ -148,20 +147,12 @@ export function createSpawnCommands(options: {
       return entity;
     },
     runtimeUniform(input) {
-      const entity = createEntityWithMetadata(
-        options.world,
-        input,
-        "runtime-uniform",
-      );
+      const entity =
+        runtimeUniformEntityForKey(options.world, input.uniformKey) ??
+        createEntityWithMetadata(options.world, input, "runtime-uniform");
 
-      entity.addComponent(
-        RuntimeUniform,
-        createRuntimeUniform({
-          key: input.uniformKey,
-          values: input.values,
-          ...(input.version === undefined ? {} : { version: input.version }),
-        }),
-      );
+      applySpawnMetadata(options.world, entity, input, "runtime-uniform");
+      writeRuntimeUniform(entity, input);
       return entity;
     },
     mesh(input) {
@@ -369,6 +360,43 @@ function resolveSkyboxTexture(
   }
 
   return input;
+}
+
+function runtimeUniformEntityForKey(
+  world: EcsWorld,
+  uniformKey: string,
+): Entity | null {
+  const query = world.queryManager.registerQuery({
+    required: [RuntimeUniform],
+  });
+
+  for (const entity of query.entities) {
+    if (entity.getValue(RuntimeUniform, "key") === uniformKey) {
+      return entity;
+    }
+  }
+
+  return null;
+}
+
+function writeRuntimeUniform(
+  entity: Entity,
+  input: SpawnRuntimeUniformOptions,
+): void {
+  const uniform = createRuntimeUniform({
+    key: input.uniformKey,
+    values: input.values,
+    ...(input.version === undefined ? {} : { version: input.version }),
+  });
+
+  if (!entity.hasComponent(RuntimeUniform)) {
+    entity.addComponent(RuntimeUniform, uniform);
+    return;
+  }
+
+  entity.setValue(RuntimeUniform, "key", input.uniformKey);
+  entity.setValue(RuntimeUniform, "values", { ...input.values });
+  entity.setValue(RuntimeUniform, "version", input.version ?? 0);
 }
 
 function gltfBatchInstanceOptions(

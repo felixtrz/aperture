@@ -73,11 +73,6 @@ export interface SpawnLightOptions extends SpawnMetadata {
   readonly transform?: SystemTransformInput;
   readonly kind?: LightInput["kind"];
   readonly color?: Vec4Like;
-  /**
-   * Hemisphere lights only: ground (lower-hemisphere) irradiance color. The
-   * `color` field carries the sky color. Ignored by all other light kinds.
-   */
-  readonly groundColor?: Vec4Like;
   readonly illuminance?: number;
   readonly intensity?: number;
   readonly light?: LightInput;
@@ -112,7 +107,10 @@ export interface SpawnProceduralSkyOptions
 }
 
 export interface SpawnRuntimeUniformOptions extends SpawnMetadata {
-  /** Runtime uniform key matched by custom WGSL uniform bindings. */
+  /**
+   * Runtime uniform key matched by custom WGSL uniform bindings. Reusing a key
+   * updates the existing runtime-uniform entity instead of spawning duplicates.
+   */
   readonly uniformKey: RuntimeUniformInput["key"];
   readonly values: RuntimeUniformInput["values"];
   readonly version?: RuntimeUniformInput["version"];

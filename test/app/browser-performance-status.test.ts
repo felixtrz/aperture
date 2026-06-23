@@ -77,6 +77,7 @@ describe("generated browser performance status", () => {
               preStepResolveSpatialMilliseconds: 0.1,
               inputEffectsMilliseconds: 0.2,
               lowLevelStepMilliseconds: 2.5,
+              updateEffectsMilliseconds: 0.1,
               postStepSpatialMilliseconds: 0.3,
               interactionMilliseconds: 0.25,
               postUpdateEffectsMilliseconds: 0.15,
