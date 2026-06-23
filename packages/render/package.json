@@ -1,6 +1,6 @@
 {
   "name": "@aperture-engine/render",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Renderer-independent ECS authoring, assets, extraction, snapshots, and render-world contracts for Aperture.",
   "author": "Felix Zhang",
   "repository": {

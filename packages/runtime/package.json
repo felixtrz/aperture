@@ -1,6 +1,6 @@
 {
   "name": "@aperture-engine/runtime",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Headless simulation and render extraction runtime facade for Aperture.",
   "author": "Felix Zhang",
   "repository": {

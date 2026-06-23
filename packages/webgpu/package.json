@@ -1,6 +1,6 @@
 {
   "name": "@aperture-engine/webgpu",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "WebGPU rendering backend for the Aperture game engine: materials, shadows, IBL, post effects, picking, text, UI, and particles.",
   "author": "Felix Zhang",
   "repository": {

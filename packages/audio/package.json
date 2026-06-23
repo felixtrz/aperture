@@ -1,6 +1,6 @@
 {
   "name": "@aperture-engine/audio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Main-thread Web Audio realization layer for Aperture: a derived view of the authoritative ECS simulation.",
   "author": "Felix Zhang",
   "repository": {

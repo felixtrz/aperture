@@ -1,6 +1,6 @@
 {
   "name": "@aperture-engine/simulation",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Headless ECS, assets, math, diagnostics, and transform foundation for Aperture.",
   "author": "Felix Zhang",
   "repository": {

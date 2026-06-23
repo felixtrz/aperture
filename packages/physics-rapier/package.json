@@ -1,6 +1,6 @@
 {
   "name": "@aperture-engine/physics-rapier",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Rapier-backed same-worker physics backend for the aperture WebGPU game engine.",
   "author": "Felix Zhang",
   "repository": {

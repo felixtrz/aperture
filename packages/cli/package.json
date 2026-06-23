@@ -1,6 +1,6 @@
 {
   "name": "@aperture-engine/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Aperture command-line tools for app creation, managed dev sessions, MCP, and reference tooling.",
   "author": "Felix Zhang",
   "repository": {

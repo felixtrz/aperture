@@ -1,6 +1,6 @@
 {
   "name": "@aperture-engine/math",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Fast, zero-dependency, WebGPU-first 3D math for the Aperture engine: Float32Array-native vectors, quaternions, and matrices with fused transform fast paths.",
   "author": "Felix Zhang",
   "repository": {

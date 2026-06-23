@@ -1,6 +1,6 @@
 {
   "name": "@aperture-engine/reference-assets",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Producer pipeline and versioned reference corpus payloads for Aperture CLI reference tools.",
   "author": "Felix Zhang",
   "repository": {

@@ -1,6 +1,6 @@
 {
   "name": "@aperture-engine/workspace",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "WebGPU-only, ECS-native 3D runtime where simulation is authoritative and rendering is a derived view.",
   "type": "module",
   "license": "MIT",
