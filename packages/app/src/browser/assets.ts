@@ -182,11 +182,14 @@ function readPostMessageDecision(
   return messageDecision ?? readRecord(workerSummary)?.["postMessageDecision"];
 }
 
+// Fields that only appear on full-cadence summaries and should NOT be retained
+// from a previous full summary once a lite summary arrives without them.
+// `resources` and `physics` are intentionally excluded so they stay readable
+// every frame (e.g. for a signals/resources-driven HUD); the `summaryCadence.full`
+// flag still tells consumers when those values were last refreshed (see GH #29).
 const TRANSIENT_FULL_WORKER_SUMMARY_FIELDS = [
-  "resources",
   "startOptions",
   "assets",
-  "physics",
   "entities",
 ] as const;
 

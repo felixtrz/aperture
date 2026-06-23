@@ -1,7 +1,7 @@
 # Getting Started
 
-> **Doc status (2026-06-12): CURRENT.** Matches the `aperture create` minimal
-> template and the `@aperture-engine/app` config/system APIs at 0.1.x.
+> **Doc status (2026-06-23): CURRENT.** Matches the `aperture create` minimal
+> template and the `@aperture-engine/app` config/system APIs at 0.2.x.
 
 This is the five-minute path from nothing to a spinning cube you can edit,
 then to your own systems and assets. For the full authoring model, see
@@ -158,12 +158,18 @@ input: {
 },
 ```
 
+Actions arrive as a typed union, so narrow on `kind` before reading them. Axis
+components are signals (read `.value`):
+
 ```ts
 // inside a system's update()
-if (this.actions.jump.down()) {
+const jump = this.actions.jump;
+if (jump?.kind === "button" && jump.down()) {
   /* pressed this frame */
 }
-const x = this.actions.move.x;
+
+const move = this.actions.move;
+const x = move?.kind === "axis2d" ? move.x.value : 0;
 ```
 
 ## Where to go next

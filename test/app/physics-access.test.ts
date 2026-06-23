@@ -161,6 +161,39 @@ describe("physics system access", () => {
     expect(body.getValue(KinematicTarget, "enabled")).toBe(true);
   });
 
+  it("preserves current orientation when setKinematicTarget omits rotation (#28)", () => {
+    const world = createWorld({ entityCapacity: 1 });
+    const context = createApertureSystemContext({
+      world,
+      assetsRegistry: new AssetRegistry(),
+    });
+    const body = world.createEntity();
+    body.addComponent(LocalTransform, createLocalTransform());
+
+    // Seed an explicit identity-rotation target.
+    context.physics.setKinematicTarget(body, {
+      translation: [1, 0, 0],
+      rotation: [0, 0, 0, 1],
+    });
+
+    // The body is then oriented (e.g. by a prior physics writeback).
+    const yaw90: [number, number, number, number] = [0, 0.7071, 0, 0.7071];
+    body.getVectorView(LocalTransform, "rotation").set(yaw90);
+
+    // Nudging translation alone must keep the body's current orientation,
+    // not snap it back to the previous identity target.
+    context.physics.setKinematicTarget(body, { translation: [2, 0, 0] });
+
+    expect(
+      Array.from(body.getVectorView(KinematicTarget, "translation")),
+    ).toEqual([2, 0, 0]);
+    const rotation = Array.from(body.getVectorView(KinematicTarget, "rotation"));
+    expect(rotation[0]).toBeCloseTo(0);
+    expect(rotation[1]).toBeCloseTo(0.7071);
+    expect(rotation[2]).toBeCloseTo(0);
+    expect(rotation[3]).toBeCloseTo(0.7071);
+  });
+
   it("breaks ECS-authored joints explicitly and emits a jointBreak event", () => {
     const world = createWorld({ entityCapacity: 3 });
     const context = createApertureSystemContext({

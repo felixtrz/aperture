@@ -360,8 +360,35 @@ export type {
   PhysicsStepSummary,
   PhysicsSyncSummary,
   PhysicsWritebackSummary,
+  KinematicTargetTransform,
 } from "./systems/physics.js";
 export { createPhysicsAccess } from "./systems/physics.js";
+
+// Re-export the common physics facade types so app authors can stay on
+// `@aperture-engine/app/systems` (the package a scaffolded app depends on) for
+// `this.physics.*` arguments and results, without importing the lower-level
+// `@aperture-engine/physics` package (see GH #25).
+export type {
+  ColliderInput,
+  PhysicsCharacterCollision,
+  PhysicsCharacterControllerInput,
+  PhysicsCharacterControllerSettings,
+  PhysicsCharacterMoveResult,
+  PhysicsEntityRef,
+  PhysicsEvent,
+  PhysicsOverlapHit,
+  PhysicsPointProjection,
+  PhysicsQuat,
+  PhysicsQueryOptions,
+  PhysicsRay,
+  PhysicsRaycastHit,
+  PhysicsShape,
+  PhysicsShapeCast,
+  PhysicsShapeCastHit,
+  PhysicsTransform,
+  PhysicsVec3,
+  RigidBodyInput,
+} from "@aperture-engine/physics";
 export type {
   FixedStepAccess,
   FixedStepTaskRegistrar,
@@ -379,13 +406,17 @@ export type {
   PointerInteractionEvent,
   PointerInteractionEventType,
 } from "./interaction/pointer-events.js";
+// Re-export from the leaf interaction modules rather than the `interaction`
+// barrel: the barrel's `export *` cannot be traced by rolldown (Vite's bundler)
+// through the `systems -> interaction/access -> systems/components` cycle, which
+// broke `vite build` for generated apps (see GH #24).
+export { createInteractionAccess } from "./interaction/access.js";
+export { PointerInteractionState } from "./interaction/pointer-events.js";
+export { runInteractionFrame } from "./interaction/system.js";
 export {
-  createInteractionAccess,
-  PointerInteractionState,
-  runInteractionFrame,
   runUiScrollFrame,
   UI_SCROLL_DISABLED_DIAGNOSTIC,
-} from "./interaction/index.js";
+} from "./interaction/ui-scroll.js";
 export { material, mesh, physics, shader } from "./systems/spawn/index.js";
 export type {
   BoxMeshDescriptorOptions,

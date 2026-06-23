@@ -53,6 +53,26 @@ input, camera, render, and reference tool contracts exposed over MCP. Browser
 backed tools require an active managed dev session. Reference tools can run
 after the reference corpus has been warmed.
 
+### Headless CI / dev containers
+
+WebGPU is only exposed in a headed browser, so on a GPU-less Linux host
+(CI runners, dev containers) run the managed browser under a **persistent**
+virtual display with the software backend:
+
+```sh
+# One Xvfb for the whole session — do NOT wrap each command in its own
+# `xvfb-run`, or the display tears down between commands and orphans the
+# managed browser (its CDP endpoint then reports `browserConnectFailed`).
+xvfb-run -a bash -lc '
+  pnpm exec aperture dev up --software   # SwiftShader WebGPU, see --gpu
+  pnpm exec aperture tool browser_status
+  pnpm exec aperture dev down
+'
+```
+
+`--gpu auto` (the default) uses the hardware GPU when present and falls back to
+SwiftShader on GPU-less hosts; `--software` / `APERTURE_GPU=software` force it.
+
 ## Cold-Start Proof
 
 The whole loop above is CI-gated from a clean scaffold:

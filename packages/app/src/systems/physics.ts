@@ -19,6 +19,7 @@ import type {
   PhysicsReadbackReport,
   PhysicsStepReport,
   PhysicsSyncReport,
+  PhysicsQuat,
   PhysicsTransform,
   PhysicsUnsupportedFeature,
   PhysicsVec3,
@@ -59,6 +60,15 @@ export interface PhysicsBreakJointOptions {
   readonly frame?: number;
   readonly fixedStep?: number;
   readonly substep?: number;
+}
+
+/**
+ * Target pose for a kinematic body. `rotation` is optional: omit it to nudge a
+ * body's translation while preserving its current orientation (see GH #28).
+ */
+export interface KinematicTargetTransform {
+  readonly translation: PhysicsVec3;
+  readonly rotation?: PhysicsQuat;
 }
 
 export type PhysicsCharacterMoveInput = Omit<PhysicsCharacterMove, "entity"> & {
@@ -202,7 +212,7 @@ export interface PhysicsAccess {
   getLinearVelocity(entity: Entity): PhysicsVec3;
   /** Read the body's most recent angular velocity (written back each step). */
   getAngularVelocity(entity: Entity): PhysicsVec3;
-  setKinematicTarget(entity: Entity, transform: PhysicsTransform): void;
+  setKinematicTarget(entity: Entity, transform: KinematicTargetTransform): void;
   sleepBody(entity: Entity): boolean;
   wakeBody(entity: Entity): boolean;
   breakJoint(entity: Entity, options?: PhysicsBreakJointOptions): boolean;
@@ -345,7 +355,15 @@ export function createPhysicsAccess(
       ensureKinematicTarget(world, entity);
       entity.setValue(KinematicTarget, "enabled", true);
       setKinematicTargetVec3Field(entity, "translation", transform.translation);
-      entity.getVectorView(KinematicTarget, "rotation").set(transform.rotation);
+      if (transform.rotation !== undefined) {
+        entity.getVectorView(KinematicTarget, "rotation").set(transform.rotation);
+      } else if (entity.hasComponent(LocalTransform)) {
+        // No rotation supplied: keep the body's current orientation rather than
+        // snapping it to the kinematic target's default (see GH #28).
+        entity
+          .getVectorView(KinematicTarget, "rotation")
+          .set(entity.getVectorView(LocalTransform, "rotation"));
+      }
     },
     sleepBody(entity) {
       return entity.active

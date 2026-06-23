@@ -26,7 +26,29 @@ describe("Aperture Vite plugin cross-origin isolation", () => {
 
   it("omits the headers when cross-origin isolation is opted out", () => {
     const plugin = aperture({ crossOriginIsolation: false });
+    const config = plugin.config?.();
 
-    expect(plugin.config?.()).toBeUndefined();
+    // Headers are gated on cross-origin isolation...
+    expect(config?.server).toBeUndefined();
+    expect(config?.preview).toBeUndefined();
+    // ...but the worker format + dep pre-bundling are always configured
+    // (see GH #24 / GH #31).
+    expect(config?.worker).toEqual({ format: "es" });
+    expect(config?.optimizeDeps?.include).toEqual(
+      expect.arrayContaining(["@aperture-engine/app/systems"]),
+    );
+  });
+
+  it("pins the worker format to es and pre-bundles the Aperture entries", () => {
+    const config = aperture().config?.();
+
+    expect(config?.worker).toEqual({ format: "es" });
+    expect(config?.optimizeDeps?.include).toEqual(
+      expect.arrayContaining([
+        "@aperture-engine/app/config",
+        "@aperture-engine/app/systems",
+        "@aperture-engine/app/browser",
+      ]),
+    );
   });
 });

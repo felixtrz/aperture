@@ -362,12 +362,14 @@ describe("generated browser performance status", () => {
     expect(
       (status.lastWorkerSummary as { readonly assets?: unknown }).assets,
     ).toBeUndefined();
+    // `resources` and `physics` are retained from the last full summary so a
+    // signals/resources-driven HUD can read them every frame (see GH #29).
     expect(
       (status.lastWorkerSummary as { readonly resources?: unknown }).resources,
-    ).toBeUndefined();
+    ).toEqual({ count: 1 });
     expect(
       (status.lastWorkerSummary as { readonly physics?: unknown }).physics,
-    ).toBeUndefined();
+    ).toEqual({ backend: "none" });
     expect(
       (status.lastWorkerSummary as { readonly startOptions?: unknown })
         .startOptions,

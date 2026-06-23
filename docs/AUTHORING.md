@@ -410,6 +410,117 @@ Use negative priorities only for very early setup, keep ordinary gameplay near
 `0` to `100`, and reserve larger values for late reactions such as camera follow
 or UI/status synchronization.
 
+## System Context Facades
+
+Inside a system, `this` exposes the whole authoring surface. Everything is typed
+and discoverable by autocomplete — you rarely need to import the lower-level
+runtime packages directly.
+
+| Accessor | What it gives you |
+| --- | --- |
+| `this.spawn` | spawn cameras, lights, meshes, GLB, prefabs, particles, fog/sky, runtime uniforms, and non-rendered physics bodies; `this.spawn.animation(entity)` controls glTF animation |
+| `this.queries` | the ECS queries declared in `createSystem({ queries })` (`.entities` is a `Set<Entity>`) |
+| `this.config` | runtime signal fields declared in `createSystem({ config })` (`this.config.speed.value`) |
+| `this.actions` | typed input actions (narrow on `.kind`); `this.keyboard` / `this.gamepads` give raw edges |
+| `this.signals` | app signals declared in `aperture.config.ts` |
+| `this.resources` | typed ECS resource store for non-entity state (`defineResource` + `resource.*`) |
+| `this.assets` | config-declared asset handles, readiness signals, and manual requests |
+| `this.commands` | worker-owned command channels (`drain`, `requestAsset`) |
+| `this.spatial` | synchronous raycast / overlap / closest-point queries over ECS data |
+| `this.cameras` | camera access (`this.cameras.main.rayFromPointer(...)`) |
+| `this.physics` | rigid-body facade — see [Physics](#physics) |
+| `this.audio` | spatial audio (`loop`, `playOneShot`, `clip`) |
+| `this.particles` / `this.trails` | particle emitters / motion trails |
+| `this.hierarchy` | parent/child relationships |
+| `this.materials` / `this.meshes` / `this.gltf` | runtime material / mesh / glTF-instance access |
+| `this.prefabs` | register and instantiate prefab blueprints |
+| `this.interaction` / `this.html` | pointer interaction state / DOM HTML bridge |
+| `this.fixedStep` | register fixed-step tasks |
+| `this.effects` | lifecycle-owned signal effects (`this.effects.watch(...)`) |
+| `this.diagnostics` | structured diagnostics (`info` / `warn` / `error`) |
+
+## Physics
+
+Enable the Rapier rigid-body backend in `aperture.config.ts`. Setting `physics`
+also turns on the fixed-step clock that drives it:
+
+```ts
+export default defineApertureConfig({
+  // ...
+  physics: { backend: "rapier", gravity: [0, -9.81, 0] },
+  // or simply: physics: true
+});
+```
+
+Author bodies inline on a spawned mesh, or spawn a non-rendered body with
+`this.spawn.physics(...)`. You do **not** need to import
+`@aperture-engine/physics`: the `physics` helper namespace from
+`@aperture-engine/app/systems` builds the descriptors, and every `type`/`kind`
+is a plain string union.
+
+```ts
+import { createSystem, mesh, material, physics } from "@aperture-engine/app/systems";
+
+// A rendered dynamic body:
+this.spawn.mesh({
+  key: "crate",
+  mesh: mesh.box({ size: [1, 1, 1] }),
+  material: material.standard(),
+  transform: { translation: [0, 4, 0] },
+  physics: {
+    rigidBody: { type: "dynamic" }, // "static" | "dynamic" | "kinematicPosition" | "kinematicVelocity"
+    collider: { shape: { kind: "box", halfExtents: [0.5, 0.5, 0.5] } },
+  },
+});
+
+// A static floor with the equivalent helper form:
+this.spawn.physics({
+  key: "floor",
+  physics: physics.body({
+    rigidBody: { type: "static" },
+    collider: { shape: { kind: "box", halfExtents: [10, 0.5, 10] } },
+  }),
+});
+```
+
+### Who owns the transform
+
+Physics is authoritative for the pose of any body it simulates, and writes that
+pose back into `LocalTransform` every fixed step. This has one important
+consequence:
+
+> **Do not move a physics body by writing `LocalTransform` directly — the
+> writeback overwrites it the same frame, with no error.**
+
+- **Dynamic** bodies are driven by forces/impulses/velocity and gravity. Read
+  their pose from `LocalTransform`; nudge them with `this.physics.applyImpulse`,
+  `setLinearVelocity`, etc.
+- **Kinematic** bodies are driven by _you_. Move them with
+  `this.physics.setKinematicTarget(entity, { translation })` (rotation is
+  optional — omit it to keep the current orientation). Spawn them with
+  `rigidBody: { type: "kinematicPosition" }` and a `kinematicTarget`.
+
+### Character controller
+
+Drive a kinematic character with `this.physics.moveCharacter`, then commit the
+collision-resolved result back to the body:
+
+```ts
+const result = this.physics.moveCharacter({
+  entity: serializeEntityRef(body),
+  desiredTranslation: [dx, dy, dz], // this frame's intended displacement
+  settings: { snapToGroundDistance: 0.5, maxSlopeClimbAngle: Math.PI / 4 },
+});
+if (result !== null) {
+  this.physics.setKinematicTarget(body, { translation: result.targetTranslation });
+  // result.grounded / result.collisions are available for jump + contact logic
+}
+```
+
+`snapToGroundDistance` must exceed the rest gap between the collider and the
+floor or `grounded` never latches; a small constant downward "stick" velocity
+while grounded keeps the controller engaged.
+
 ## Input, Signals, And Effects
 
 Use lifecycle-owned effects for ECS mutation driven by signals. Do not use raw
