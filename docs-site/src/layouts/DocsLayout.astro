@@ -13,10 +13,9 @@ const { title, description, mainClass = "" } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
 const navItems = [
-  ["Docs", "docs/"],
+  ["About", "about/"],
   ["Showcases", "showcases/"],
   ["Examples", "examples/"],
-  ["Research", "research/"],
 ] as const;
 ---
 
@@ -38,7 +37,7 @@ const navItems = [
           <small>3D engine for the agentic age.</small>
         </span>
       </a>
-      <nav class="docs-nav" aria-label="Docs navigation">
+      <nav class="docs-nav" aria-label="Site navigation">
         {
           navItems.map(([label, href]) => (
             <a href={withBase(href)}>{label}</a>
