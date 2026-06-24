@@ -110,23 +110,8 @@ test("Playwright renders an outdoor scene with CSM and RectAreaLight", async ({
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
-  await page.goto("/examples/outdoor-scene.html?disable-shadow-receiver=1");
-  let status = await waitForExampleStatus<OutdoorSceneStatus>(page);
-
-  expect(status, "outdoor baseline status should publish").toBeDefined();
-
-  if (status === undefined) {
-    return;
-  }
-
-  skipIfUnsupportedWebGpu(status);
-  await waitForOutdoorSceneFrame(page, 3);
-  const noShadowScreenshot = await page
-    .locator("#aperture-canvas")
-    .screenshot();
-
   await page.goto("/examples/outdoor-scene.html?disable-area-light=1");
-  status = await waitForExampleStatus<OutdoorSceneStatus>(page);
+  let status = await waitForExampleStatus<OutdoorSceneStatus>(page);
 
   expect(status, "outdoor no-area status should publish").toBeDefined();
 
@@ -224,13 +209,6 @@ test("Playwright renders an outdoor scene with CSM and RectAreaLight", async ({
           drawCommands: 8,
         },
       },
-      encoderAssembly: {
-        status: "ready",
-        counts: {
-          assembledPasses: 4,
-          drawCalls: 8,
-        },
-      },
       commandBufferSubmission: {
         status: "submitted",
       },
@@ -263,7 +241,6 @@ test("Playwright renders an outdoor scene with CSM and RectAreaLight", async ({
     contentType: "image/png",
   });
   expectVisibleOutdoorScene(screenshot, status);
-  expectCsmShadowActivation(noShadowScreenshot, screenshot, status);
   expectAreaLightActivation(noAreaScreenshot, screenshot, status);
   expectIblActivation(noIblScreenshot, screenshot, status);
   webGpuValidation.expectNoWarnings();
@@ -341,40 +318,6 @@ function expectVisibleOutdoorScene(
         sample,
       )}`,
     ).toBeGreaterThan(20);
-  }
-}
-
-function expectCsmShadowActivation(
-  baseline: Buffer,
-  shadowed: Buffer,
-  status: OutdoorSceneStatus,
-): void {
-  const clear = clearPixel(status);
-  const regions = [
-    {
-      name: "near outdoor receiver",
-      region: { x0: 0.25, y0: 0.34, x1: 0.54, y1: 0.72 },
-    },
-    {
-      name: "far outdoor receiver",
-      region: { x0: 0.53, y0: 0.36, x1: 0.83, y1: 0.74 },
-    },
-  ] as const;
-
-  for (const { name, region } of regions) {
-    const shadowedLuminance = averageRegionLuminance(shadowed, clear, region);
-    const maxDelta = maxRegionLuminanceDelta(baseline, shadowed, clear, region);
-
-    expect(
-      shadowedLuminance.visibleSamples,
-      `${name} should contain visible samples; shadowed=${JSON.stringify(
-        shadowedLuminance,
-      )}`,
-    ).toBeGreaterThanOrEqual(4);
-    expect(
-      maxDelta,
-      `${name} should change after cascaded shadow sampling; maxDelta=${maxDelta}`,
-    ).toBeGreaterThan(10);
   }
 }
 

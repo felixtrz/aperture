@@ -8,6 +8,7 @@ import {
   UNLIT_MESH_SHADER,
   applyOutputStageToBuiltInShader,
   applyOutputTonemapToStandardShader,
+  createStandardTextureVariantShader,
   createOutputTonemapWgsl,
   createTonemapPipelineKey,
   parseTonemapOperator,
@@ -106,6 +107,27 @@ describe("output-stage tonemap operators", () => {
     expect(shader.label).toContain(createOutputColorSpacePipelineKey("srgb"));
     expect(shader.code).toContain("return color;");
     expect(shader.code).toContain("apertureLinearToSrgbChannel");
+  });
+
+  it("wraps standard material fragment variants that return a composed color expression", () => {
+    const fogShader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      fogLinear: true,
+    });
+    const shader = applyOutputTonemapToStandardShader(
+      fogShader,
+      "none",
+      "srgb",
+    );
+
+    expect(fogShader.code).toContain("return vec4f(foggedColor, alpha);");
+    expect(shader.code).toContain(
+      "return vec4f(apertureOutputColorSpace(apertureOutputTonemap(foggedColor)), alpha);",
+    );
   });
 });
 

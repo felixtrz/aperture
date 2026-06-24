@@ -174,10 +174,14 @@ function requestWorkerFrame(worker, loop) {
 function publishFrameStatus(aperture, app, scene, loop, step, report) {
   const reportJson = aperture.webGpuAppRenderReportToJsonValue(report);
   const route = findAutoShadowRoute(reportJson);
+  const shadowSubmissionStatus = report.shadow?.commandBufferSubmission.status;
   const renderingSupported =
     scene.shadowControls.receiverEnabled &&
     report.frame >= 3 &&
-    report.shadow?.commandBufferSubmission.status === "submitted" &&
+    report.shadow?.ready === true &&
+    (report.shadow?.drawCalls ?? 0) > 0 &&
+    (shadowSubmissionStatus === "submitted" ||
+      shadowSubmissionStatus === "ready") &&
     route !== null;
 
   publishStatus({

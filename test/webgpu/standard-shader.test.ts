@@ -1995,6 +1995,12 @@ describe("built-in standard material WGSL shader metadata", () => {
       "localLightClusterPointShadowMatrixBase(lightIndex)",
     );
     expect(shader.code).toContain(
+      "let filterType = shadowFilterType(lightIndex);",
+    );
+    expect(shader.code).toContain(
+      "max(shadowDepthBias(lightIndex), STANDARD_SHADOW_DEPTH_BIAS)",
+    );
+    expect(shader.code).toContain(
       "let shadowFactor = localLightClusterSpotShadowFactor(position, lightIndex);",
     );
     expect(shader.code).toContain(

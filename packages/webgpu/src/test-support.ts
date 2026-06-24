@@ -101,6 +101,8 @@ export * from "./lighting/local-light-clusters.js";
 export * from "./resources/meshes/mesh-buffer-descriptors.js";
 export * from "./resources/meshes/mesh-buffer-resources.js";
 export * from "./resources/attributes/morph-target-weight-buffer.js";
+export * from "./resources/attributes/morph-target-delta-buffer.js";
+export * from "./resources/attributes/morph-instance-descriptor-buffer.js";
 export * from "./render/motion/motion-vector-shader.js";
 export * from "./diagnostics/mvp-frame-readiness.js";
 export * from "./gpu/msaa.js";

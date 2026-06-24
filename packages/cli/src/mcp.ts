@@ -167,6 +167,7 @@ async function callTool(params: unknown, cwd: string): Promise<unknown> {
     cwd,
     name,
     arguments: args,
+    keepBrowserConnection: true,
   });
 
   // If a tool returns an image payload (e.g. browser_screenshot), emit a real MCP

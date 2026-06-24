@@ -11,6 +11,7 @@ export interface ApertureToolCallOptions {
   readonly cwd: string;
   readonly name: string;
   readonly arguments?: Record<string, unknown>;
+  readonly keepBrowserConnection?: boolean;
 }
 
 export interface GeneratedStatusLike {

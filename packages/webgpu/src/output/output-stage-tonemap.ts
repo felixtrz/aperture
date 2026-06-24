@@ -18,7 +18,7 @@ export type TonemapOperator = (typeof TONEMAP_OPERATORS)[number];
 
 export const DEFAULT_TONEMAP_OPERATOR: TonemapOperator = "none";
 
-const STANDARD_FRAGMENT_RETURN = "return vec4f(color, alpha);";
+const STANDARD_FRAGMENT_RETURN_PATTERN = / {2}return vec4f\((.+), alpha\);/u;
 const STANDARD_FRAGMENT_ANCHOR = "@fragment\nfn fs_main";
 
 export function isTonemapOperator(value: unknown): value is TonemapOperator {
@@ -228,11 +228,15 @@ export function applyOutputTonemapToStandardShader(
     return shader;
   }
 
-  if (!shader.code.includes(STANDARD_FRAGMENT_RETURN)) {
+  const fragmentReturn = STANDARD_FRAGMENT_RETURN_PATTERN.exec(shader.code);
+
+  if (fragmentReturn === null) {
     throw new Error(
       `Cannot apply ${createTonemapPipelineKey(operator)} and ${createOutputColorSpacePipelineKey(outputColorSpace)} to '${shader.label}' because the standard fragment output marker was not found.`,
     );
   }
+
+  const [, colorExpression] = fragmentReturn;
 
   const outputWgsl = [
     createOutputTonemapWgsl(operator),
@@ -253,8 +257,8 @@ export function applyOutputTonemapToStandardShader(
       createOutputColorSpacePipelineKey(outputColorSpace),
     ].join("|"),
     code: codeWithFunction.replace(
-      STANDARD_FRAGMENT_RETURN,
-      "return vec4f(apertureOutputColorSpace(apertureOutputTonemap(color)), alpha);",
+      STANDARD_FRAGMENT_RETURN_PATTERN,
+      `  return vec4f(apertureOutputColorSpace(apertureOutputTonemap(${colorExpression})), alpha);`,
     ),
   };
 }

@@ -1,4 +1,8 @@
-import type { MeshDrawPacket, RenderSnapshot } from "@aperture-engine/render";
+import type {
+  MeshDrawPacket,
+  PackedTransformOffset,
+  RenderSnapshot,
+} from "@aperture-engine/render";
 import {
   createWebGpuBuffer,
   type WebGpuBufferDescriptor,
@@ -35,7 +39,13 @@ interface MorphInstanceDescriptorBufferDescriptorPlan {
 export interface CreateMorphInstanceDescriptorBufferDescriptorOptions {
   readonly label?: string;
   readonly usage?: number;
+  readonly transformOffsets?: readonly MorphInstanceDescriptorTransformOffset[];
 }
+
+export type MorphInstanceDescriptorTransformOffset = Pick<
+  PackedTransformOffset,
+  "packedOffset" | "renderId" | "sourceOffset"
+>;
 
 export interface MorphInstanceDescriptorBufferDescriptorResult {
   readonly valid: boolean;
@@ -106,19 +116,55 @@ export function createMorphInstanceDescriptorBufferDescriptor(
   }
 
   const source = snapshot.morphInstanceDescriptors ?? new Uint32Array(0);
-  const instanceIndex = draw.worldTransformOffset / 16;
-  const requiredEnd = (instanceIndex + 1) * MORPH_INSTANCE_DESCRIPTOR_U32;
+  const sourceInstanceIndex = draw.worldTransformOffset / 16;
+  const drawTransformOffset = findDrawTransformOffset(
+    options.transformOffsets,
+    draw,
+  );
+  const packedTransformOffset =
+    drawTransformOffset?.packedOffset ?? draw.worldTransformOffset;
+  const packedInstanceIndex = packedTransformOffset / 16;
+  const sourceRequiredEnd =
+    (sourceInstanceIndex + 1) * MORPH_INSTANCE_DESCRIPTOR_U32;
+  const packedSource =
+    options.transformOffsets === undefined
+      ? source
+      : packMorphInstanceDescriptors(source, options.transformOffsets);
+  const packedRequiredEnd =
+    (packedInstanceIndex + 1) * MORPH_INSTANCE_DESCRIPTOR_U32;
 
   if (
-    !Number.isInteger(instanceIndex) ||
-    instanceIndex < 0 ||
-    requiredEnd > source.length
+    !Number.isInteger(sourceInstanceIndex) ||
+    sourceInstanceIndex < 0 ||
+    sourceRequiredEnd > source.length
   ) {
     diagnostics.push({
       code: "morphInstanceDescriptorBuffer.missingData",
       renderId: draw.renderId,
       field: "morphInstanceDescriptors",
-      message: `Render id ${draw.renderId} references the morph descriptor for instance ${instanceIndex}, but the snapshot descriptor buffer length is ${source.length}.`,
+      message: `Render id ${draw.renderId} references the morph descriptor for source instance ${sourceInstanceIndex}, but the snapshot descriptor buffer length is ${source.length}.`,
+    });
+  }
+
+  if (options.transformOffsets !== undefined && drawTransformOffset === null) {
+    diagnostics.push({
+      code: "morphInstanceDescriptorBuffer.missingData",
+      renderId: draw.renderId,
+      field: "transformOffsets",
+      message: `Render id ${draw.renderId} has no packed transform offset for source offset ${draw.worldTransformOffset}.`,
+    });
+  }
+
+  if (
+    !Number.isInteger(packedInstanceIndex) ||
+    packedInstanceIndex < 0 ||
+    packedRequiredEnd > packedSource.length
+  ) {
+    diagnostics.push({
+      code: "morphInstanceDescriptorBuffer.missingData",
+      renderId: draw.renderId,
+      field: "morphInstanceDescriptors",
+      message: `Render id ${draw.renderId} references the morph descriptor for packed instance ${packedInstanceIndex}, but the packed descriptor buffer length is ${packedSource.length}.`,
     });
   }
 
@@ -132,16 +178,82 @@ export function createMorphInstanceDescriptorBufferDescriptor(
       descriptor: {
         label:
           options.label ?? `MorphInstanceDescriptors/render:${draw.renderId}`,
-        size: source.byteLength,
+        size: packedSource.byteLength,
         usage,
-        initialData: source,
+        initialData: packedSource,
       },
-      source,
+      source: packedSource,
       renderId: draw.renderId,
-      instanceCount: source.length / MORPH_INSTANCE_DESCRIPTOR_U32,
+      instanceCount: packedSource.length / MORPH_INSTANCE_DESCRIPTOR_U32,
     },
     diagnostics,
   };
+}
+
+function findDrawTransformOffset(
+  offsets: readonly MorphInstanceDescriptorTransformOffset[] | undefined,
+  draw: MeshDrawPacket,
+): MorphInstanceDescriptorTransformOffset | null {
+  if (offsets === undefined) {
+    return null;
+  }
+
+  return (
+    offsets.find(
+      (offset) =>
+        offset.renderId === draw.renderId &&
+        offset.sourceOffset === draw.worldTransformOffset,
+    ) ?? null
+  );
+}
+
+function packMorphInstanceDescriptors(
+  source: Uint32Array,
+  offsets: readonly MorphInstanceDescriptorTransformOffset[],
+): Uint32Array {
+  const maxPackedInstance = offsets.reduce((max, offset) => {
+    const instanceIndex = offset.packedOffset / 16;
+
+    return Number.isInteger(instanceIndex) && instanceIndex >= 0
+      ? Math.max(max, instanceIndex)
+      : max;
+  }, -1);
+
+  if (maxPackedInstance < 0) {
+    return new Uint32Array(0);
+  }
+
+  const packed = new Uint32Array(
+    (maxPackedInstance + 1) * MORPH_INSTANCE_DESCRIPTOR_U32,
+  );
+
+  for (const offset of offsets) {
+    const sourceInstance = offset.sourceOffset / 16;
+    const packedInstance = offset.packedOffset / 16;
+
+    if (
+      !Number.isInteger(sourceInstance) ||
+      !Number.isInteger(packedInstance) ||
+      sourceInstance < 0 ||
+      packedInstance < 0
+    ) {
+      continue;
+    }
+
+    const sourceSlot = sourceInstance * MORPH_INSTANCE_DESCRIPTOR_U32;
+    const packedSlot = packedInstance * MORPH_INSTANCE_DESCRIPTOR_U32;
+
+    if (sourceSlot + MORPH_INSTANCE_DESCRIPTOR_U32 > source.length) {
+      continue;
+    }
+
+    packed.set(
+      source.subarray(sourceSlot, sourceSlot + MORPH_INSTANCE_DESCRIPTOR_U32),
+      packedSlot,
+    );
+  }
+
+  return packed;
 }
 
 export function createMorphInstanceDescriptorGpuBuffer(

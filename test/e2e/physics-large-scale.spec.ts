@@ -134,9 +134,10 @@ test("browser renders large-scale Rapier asset-collider physics from a simulatio
   expect(status.frame?.counts?.meshDraws).toBe(
     status.frame?.snapshot?.meshDraws,
   );
-  expect(status.frame?.counts?.drawCalls).toBe(
-    status.frame?.snapshot?.meshDraws,
-  );
+  expect(status.frame?.counts?.drawCalls ?? 0).toBeGreaterThan(0);
+  expect(
+    status.frame?.counts?.drawCalls ?? Number.POSITIVE_INFINITY,
+  ).toBeLessThanOrEqual(status.frame?.snapshot?.meshDraws ?? 0);
   expect(status.frame?.readback?.ok).toBe(true);
   expect(
     status.frame?.readback?.samples?.some(

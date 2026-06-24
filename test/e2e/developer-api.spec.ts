@@ -141,7 +141,7 @@ async function readGeneratedWorkerStatus(
                       ),
                     },
               entities:
-                worker.entities === undefined
+                worker.entities === null || worker.entities === undefined
                   ? undefined
                   : {
                       total: worker.entities.total,
@@ -154,7 +154,7 @@ async function readGeneratedWorkerStatus(
                       })),
                     },
               entityTools:
-                entityTools === undefined
+                entityTools === null || entityTools === undefined
                   ? undefined
                   : {
                       finds: entityTools.finds,
@@ -163,6 +163,7 @@ async function readGeneratedWorkerStatus(
                       snapshots: entityTools.snapshots,
                       diffs: entityTools.diffs,
                       lastFind:
+                        entityTools.lastFind === null ||
                         entityTools.lastFind === undefined
                           ? undefined
                           : {
@@ -175,6 +176,7 @@ async function readGeneratedWorkerStatus(
                               ),
                             },
                       lastGet:
+                        entityTools.lastGet === null ||
                         entityTools.lastGet === undefined
                           ? undefined
                           : {
@@ -190,6 +192,7 @@ async function readGeneratedWorkerStatus(
                             },
                       lastMutation: entityTools.lastMutation,
                       lastSnapshot:
+                        entityTools.lastSnapshot === null ||
                         entityTools.lastSnapshot === undefined
                           ? undefined
                           : {
@@ -557,34 +560,6 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
       (resizedStatus?.canvas?.displayHeight ?? 1),
     5,
   );
-  const initialWorkerStatus = await readGeneratedWorkerStatus(page);
-  const entitySnapshot =
-    initialWorkerStatus?.lastWorkerSummary?.entityTools?.lastSnapshot ??
-    initialWorkerStatus?.lastWorkerSummary?.entities;
-
-  expect(entitySnapshot?.total ?? 0).toBeGreaterThan(0);
-  expect(entitySnapshot?.summaries ?? []).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        key: "level.crate.primary",
-        tags: expect.arrayContaining(["interactive", "crate"]),
-      }),
-      expect.objectContaining({
-        key: "level.robot",
-        source: expect.objectContaining({
-          assetId: "robot",
-        }),
-      }),
-      expect.objectContaining({
-        key: "level.custom.water",
-        tags: expect.arrayContaining(["custom-wgsl", "shader-asset"]),
-      }),
-    ]),
-  );
-  await expect(page.locator("#aperture-dev-status")).toContainText(
-    "level.crate.primary",
-  );
-
   await page.locator("[data-aperture-action='snapshot']").click();
   await page.waitForFunction(
     () => {
@@ -622,6 +597,31 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
       total: expect.any(Number),
     },
   });
+  const entitySnapshot =
+    snapshotStatus?.lastWorkerSummary?.entityTools?.lastSnapshot;
+
+  expect(entitySnapshot?.total ?? 0).toBeGreaterThan(0);
+  expect(entitySnapshot?.summaries ?? []).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        key: "level.crate.primary",
+        tags: expect.arrayContaining(["interactive", "crate"]),
+      }),
+      expect.objectContaining({
+        key: "level.robot",
+        source: expect.objectContaining({
+          assetId: "robot",
+        }),
+      }),
+      expect.objectContaining({
+        key: "level.custom.water",
+        tags: expect.arrayContaining(["custom-wgsl", "shader-asset"]),
+      }),
+    ]),
+  );
+  await expect(page.locator("#aperture-dev-status")).toContainText(
+    "level.crate.primary",
+  );
   await expect(page.locator("#aperture-dev-status")).toContainText(
     "panel.snapshot.",
   );

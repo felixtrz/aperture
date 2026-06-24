@@ -9,10 +9,14 @@ const MANAGED_GLOBAL = "__APERTURE_MCP_MANAGED__";
 
 export interface BrowserConnection {
   // Keep the Playwright CDP browser object strongly referenced for the same
-  // lifetime as the page. Do not close it: Browser.close() can propagate to the
-  // managed browser process itself.
+  // lifetime as the page. One-shot callers should close this connection when
+  // done so their Node process can exit.
   readonly browser: unknown;
   readonly page: AperturePage;
+}
+
+interface ClosableBrowserConnection {
+  close(options?: { readonly reason?: string }): Promise<void>;
 }
 
 export type AperturePointerButton = "left" | "middle" | "right";
@@ -59,6 +63,18 @@ export async function connectToManagedPage(
   }
 
   return { browser, page };
+}
+
+export async function closeBrowserConnection(
+  connection: BrowserConnection,
+): Promise<void> {
+  if (!isClosableBrowserConnection(connection.browser)) {
+    return;
+  }
+
+  await connection.browser.close({
+    reason: "Aperture one-shot tool call completed.",
+  });
 }
 
 export async function readGeneratedStatus(
@@ -208,6 +224,17 @@ function screenshotOutputPath(options: {
   return path.isAbsolute(requested)
     ? requested
     : path.resolve(options.baseDir ?? process.cwd(), requested);
+}
+
+function isClosableBrowserConnection(
+  value: unknown,
+): value is ClosableBrowserConnection {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "close" in value &&
+    typeof value.close === "function"
+  );
 }
 
 export async function canvasStatus(page: AperturePage): Promise<unknown> {

@@ -20,8 +20,6 @@ const stopAfterReady = exampleParams.has("stop-after-ready");
 const useFrameGraph = exampleParams.get("graph") === "1";
 let pendingShadowCasterGraphPasses = null;
 
-let shadowDepthTextureResourceReport = null;
-
 try {
   const [core, webgpu] = await Promise.all([
     Promise.all([
@@ -375,282 +373,122 @@ async function createCsmShadowFrame(input) {
   const shadowRequests = report.snapshot.shadowRequests.filter(
     (request) => request.lightKind === "directional",
   );
-  const descriptor = aperture.shadowMapDescriptorReportToJsonValue(
-    aperture.createShadowMapDescriptorReport({
-      shadowRequests,
-      descriptors: shadowRequests.map((request) => ({
-        shadowId: request.shadowId,
-        lightId: request.lightId,
-        mapSize: shadowIntent.mapSize,
-        depthBias: shadowIntent.depthBias,
-        normalBias: shadowIntent.normalBias,
-        cascadeCount: shadowIntent.cascadeCount,
-        viewDimension: "2d-array",
-        resourceKey: shadowIntent.key,
-      })),
-    }),
-  );
-  const shadowTextures = aperture.shadowTextureResourceReportToJsonValue(
-    aperture.createShadowTextureResourceReport({
-      descriptors: descriptor,
-    }),
-  );
-
-  shadowDepthTextureResourceReport ??=
-    aperture.createShadowDepthTextureResourceReport({
-      device: app.initialization.device,
-      textures: shadowTextures,
-    });
-
-  const depthTextureResources =
-    aperture.shadowDepthTextureResourceReportToJsonValue(
-      shadowDepthTextureResourceReport,
-    );
-  const shadowSamplerResourceReport =
-    aperture.createShadowSamplerResourceReport({
-      device: app.initialization.device,
-      resourceKey: "shadow-sampler:csm-directional",
-      cache: appEnvironmentResourceCache.shadowSamplers,
-    });
-  const samplerResource = aperture.shadowSamplerResourceReportToJsonValue(
-    shadowSamplerResourceReport,
-  );
-  const shadowPassPlan = aperture.shadowPassPlanReportToJsonValue(
-    aperture.createShadowPassPlanReport({
-      shadowRequests,
-      textures: shadowTextures,
-      submission: "ready",
-    }),
-  );
-  const shadowPassAttachments =
-    aperture.shadowPassAttachmentDescriptorReportToJsonValue(
-      aperture.createShadowPassAttachmentDescriptorReport({
-        shadowPassPlan,
-        depthTextureResources: shadowDepthTextureResourceReport,
-      }),
-    );
-  const viewProjection =
-    aperture.directionalShadowViewProjectionPlanReportToJsonValue(
-      aperture.createDirectionalShadowViewProjectionPlanReport({
-        shadowRequests,
-        lights: report.snapshot.lights,
-        shadowPassPlan,
-        computation: "ready",
-      }),
-    );
-  const cameraMatrices = readPrimaryCameraMatrices(report.snapshot);
-  const matrixComputation =
-    aperture.directionalShadowMatrixComputationReportToJsonValue(
-      aperture.createDirectionalShadowMatrixComputationReport({
-        viewProjection,
-        transforms: report.snapshot.transforms,
-        // Static center/size are the fallback; when the camera frustum is
-        // available the matrices are frustum-fit + texel-snapped (M4-T1).
-        center: shadowIntent.center,
-        orthographicSize: shadowIntent.orthographicSize,
-        cameraViewMatrix: cameraMatrices?.view,
-        cameraProjectionMatrix: cameraMatrices?.projection,
-      }),
-    );
-  const matrixBuffer = aperture.shadowMatrixBufferDescriptorReportToJsonValue(
-    aperture.createShadowMatrixBufferDescriptorReport({
-      viewProjection,
-      upload: "ready",
-      resourceKey: "shadow-matrix-buffer:csm-directional",
-      label: "CsmDirectionalShadowMatrices/storage",
-    }),
-  );
-  const matrixBufferResourceReport =
-    aperture.createShadowMatrixBufferResourceReport({
-      device: app.initialization.device,
-      descriptor: matrixBuffer,
-      matrices: matrixComputation,
-    });
-  const matrixBufferResource =
-    aperture.shadowMatrixBufferResourceReportToJsonValue(
-      matrixBufferResourceReport,
-    );
   const casterMeshKeys = new Set(scene.casterMeshKeys);
-  const shadowCasterMeshDraws = scene.shadowControls.casterEnabled
+  const shadowCasterDraws = scene.shadowControls.casterEnabled
     ? report.snapshot.meshDraws.filter((draw) =>
         casterMeshKeys.has(draw.sortKey.meshKey),
       )
     : [];
-  const casterDrawList = aperture.shadowCasterDrawListPlanReportToJsonValue(
-    aperture.createShadowCasterDrawListPlanReport({
-      shadowRequests,
-      meshDraws: shadowCasterMeshDraws,
-      shadowPassPlan,
-      commandEncoding: "ready",
-    }),
-  );
-  const commandPlan =
-    aperture.shadowCasterCommandPlanReadinessReportToJsonValue(
-      aperture.createShadowCasterCommandPlanReadinessReport({
-        shadowPassPlan,
-        viewProjection,
-        matrixBuffer,
-        casterDrawList,
-        commandEncoding: "ready",
-      }),
-    );
-  const commandEncoding = aperture.shadowPassCommandEncodingReportToJsonValue(
-    aperture.createShadowPassCommandEncodingReport({
-      shadowPassPlan,
-      depthTextureResources: shadowDepthTextureResourceReport,
-      matrixBufferResource: matrixBufferResourceReport,
-      casterDrawList,
-      commandPlan,
-      commandEncoding: "ready",
-    }),
-  );
-  const pipelineDescriptor =
-    aperture.shadowCasterPipelineDescriptorReportToJsonValue(
-      aperture.createShadowCasterPipelineDescriptorReport({
-        commandEncoding,
-        // M4-T5: authored slope-scaled + constant pipeline bias from the light.
-        depthBias: shadowRequests[0]?.depthBias ?? 0,
-        slopeBias: shadowRequests[0]?.slopeBias ?? 0,
-      }),
-    );
-  const pipelineResourceReport =
-    aperture.createShadowCasterPipelineResourceReport({
-      device: app.initialization.device,
-      descriptor: pipelineDescriptor,
-      cache: appEnvironmentResourceCache.shadowCasterPipelines,
-    });
-  const pipelineResource =
-    aperture.shadowCasterPipelineResourceReportToJsonValue(
-      pipelineResourceReport,
-    );
-  const matrixBindGroupResourceReport =
-    aperture.createShadowCasterMatrixBindGroupResourceReport({
-      device: app.initialization.device,
-      matrixBufferResource: matrixBufferResourceReport,
-      layout: pipelineResourceReport.resource?.matrixBindGroupLayout,
-      cache: appEnvironmentResourceCache.shadowCasterMatrixBindGroups,
-    });
-  const matrixBindGroupResource =
-    aperture.shadowCasterMatrixBindGroupResourceReportToJsonValue(
-      matrixBindGroupResourceReport,
-    );
+  const shadowCasterSnapshot = {
+    ...report.snapshot,
+    shadowRequests,
+    shadowCasterDraws,
+  };
   const shadowCasterMeshViews =
     aperture.createShadowCasterMeshViewsFromAppReport(report);
-  const frameResources =
-    aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
-      aperture.createShadowCasterFrameResourceReadinessReport({
-        casterDrawList,
-        preparedMeshes: shadowCasterMeshViews.preparedMeshes,
-        matrixBufferResource: matrixBufferResourceReport,
-        pipelineDescriptor,
-      }),
-    );
-  const commandRecordPlan = aperture.createShadowCasterCommandRecordPlanReport({
-    frameResources,
-    commandPlan,
-    pipelines:
-      pipelineResourceReport.resource === null
-        ? []
-        : [
-            {
-              pipelineKey: pipelineResourceReport.resource.pipelineKey,
-              resourceKey: pipelineResourceReport.resource.resourceKey,
-              pipeline: pipelineResourceReport.resource.pipeline,
-            },
-          ],
-    matrixBindGroups:
-      matrixBindGroupResourceReport.resource === null
-        ? []
-        : [
-            {
-              matrixResourceKey:
-                matrixBindGroupResourceReport.resource.matrixResourceKey,
-              resourceKey: matrixBindGroupResourceReport.resource.resourceKey,
-              group: matrixBindGroupResourceReport.resource.group,
-              bindGroup: matrixBindGroupResourceReport.resource.bindGroup,
-            },
-          ],
-    meshes: shadowCasterMeshViews.executableMeshes,
-  });
-  const commandRecords =
-    aperture.shadowCasterCommandRecordPlanReportToJsonValue(commandRecordPlan);
-  const encoderResource = aperture.createCommandEncoderResource({
+  const shadowFrame = aperture.createRenderShadowFrame({
     device: app.initialization.device,
+    snapshot: shadowCasterSnapshot,
+    preparedMeshes: shadowCasterMeshViews.preparedMeshes,
+    executableMeshes: shadowCasterMeshViews.executableMeshes,
+    cache: appEnvironmentResourceCache,
+    shadowMap: {
+      mapSize: shadowIntent.mapSize,
+      depthBias: shadowIntent.depthBias,
+      normalBias: shadowIntent.normalBias,
+      cascadeCount: shadowIntent.cascadeCount,
+      resourceKey: shadowIntent.key,
+    },
+    // Static center/size are the fallback; when the camera frustum is available
+    // createRenderShadowFrame frustum-fits and texel-snaps the cascades.
+    matrix: {
+      center: shadowIntent.center,
+      orthographicSize: shadowIntent.orthographicSize,
+    },
     label: "shadow-pass:csm-directional",
+    submit: scene.shadowControls.casterEnabled && !useFrameGraph,
   });
-  const encoderAssemblyReport = aperture.createShadowPassEncoderAssemblyReport({
-    attachments: shadowPassAttachments,
-    frameResources,
-    commandEncoding,
-    commands: commandRecordPlan.commandRecords,
-    encoder: encoderResource.resource?.encoder,
-    resolveDepthView: (attachment) =>
-      aperture.resolveShadowDepthTextureAttachmentView(
-        shadowDepthTextureResourceReport,
-        attachment,
-      ),
-  });
-  const encoderAssembly = aperture.shadowPassEncoderAssemblyReportToJsonValue(
-    encoderAssemblyReport,
-  );
-  const commandBufferSubmissionReport =
-    aperture.createShadowPassCommandBufferSubmissionReport({
-      assembly: encoderAssemblyReport,
-      encoder: encoderResource.resource?.encoder,
-      queue: app.initialization.device.queue,
-      label: "shadow-pass:csm-directional",
-      submit: scene.shadowControls.casterEnabled && !useFrameGraph,
-    });
-  const commandBufferSubmission =
-    aperture.shadowPassCommandBufferSubmissionReportToJsonValue(
-      commandBufferSubmissionReport,
-    );
   pendingShadowCasterGraphPasses = useFrameGraph
     ? aperture.createShadowCasterGraphPasses({
-        passAttachments: shadowPassAttachments,
-        depthTextureResources: shadowDepthTextureResourceReport,
-        commandRecords: commandRecordPlan.commandRecords,
+        passAttachments: shadowFrame.passAttachments,
+        depthTextureResources: shadowFrame.depthTextureResources,
+        commandRecords: shadowFrame.commandRecords.commandRecords,
       })
     : null;
   const route = findCascadedShadowRoute(reportJson);
-  const receiverResources =
-    matrixBufferResourceReport.resource !== null &&
-    shadowDepthTextureResourceReport.resources.some(
-      (resource) => resource.allocation.resource !== null,
-    ) &&
-    shadowSamplerResourceReport.resource !== null
-      ? {
-          shadowKind: "directional-cascaded",
-          matrixBufferResource: matrixBufferResourceReport,
-          depthTextureResources: shadowDepthTextureResourceReport,
-          samplerResource: shadowSamplerResourceReport,
-        }
-      : null;
+  const commandBufferSubmission =
+    aperture.shadowPassCommandBufferSubmissionReportToJsonValue(
+      shadowFrame.commandBufferSubmission,
+    );
 
   return {
-    descriptor,
-    textures: shadowTextures,
-    depthTextureResources,
-    samplerResource,
-    passPlan: shadowPassPlan,
-    passAttachments: shadowPassAttachments,
-    viewProjection,
-    matrixComputation,
-    matrixBuffer,
-    matrixBufferResource,
-    casterDrawList,
-    commandPlan,
-    commandEncoding,
-    pipelineDescriptor,
-    pipelineResource,
-    matrixBindGroupResource,
-    frameResources,
-    commandRecords,
-    encoderAssembly,
+    descriptor: aperture.shadowMapDescriptorReportToJsonValue(
+      shadowFrame.descriptor,
+    ),
+    textures: aperture.shadowTextureResourceReportToJsonValue(
+      shadowFrame.textures,
+    ),
+    depthTextureResources: aperture.shadowDepthTextureResourceReportToJsonValue(
+      shadowFrame.depthTextureResources,
+    ),
+    samplerResource: aperture.shadowSamplerResourceReportToJsonValue(
+      shadowFrame.samplerResource,
+    ),
+    passPlan: aperture.shadowPassPlanReportToJsonValue(shadowFrame.passPlan),
+    passAttachments: aperture.shadowPassAttachmentDescriptorReportToJsonValue(
+      shadowFrame.passAttachments,
+    ),
+    viewProjection:
+      aperture.directionalShadowViewProjectionPlanReportToJsonValue(
+        shadowFrame.viewProjection,
+      ),
+    matrixComputation:
+      aperture.directionalShadowMatrixComputationReportToJsonValue(
+        shadowFrame.matrixComputation,
+      ),
+    matrixBuffer: aperture.shadowMatrixBufferDescriptorReportToJsonValue(
+      shadowFrame.matrixBuffer,
+    ),
+    matrixBufferResource: aperture.shadowMatrixBufferResourceReportToJsonValue(
+      shadowFrame.matrixBufferResource,
+    ),
+    casterDrawList: aperture.shadowCasterDrawListPlanReportToJsonValue(
+      shadowFrame.casterDrawList,
+    ),
+    commandPlan: aperture.shadowCasterCommandPlanReadinessReportToJsonValue(
+      shadowFrame.commandPlan,
+    ),
+    commandEncoding: aperture.shadowPassCommandEncodingReportToJsonValue(
+      shadowFrame.commandEncoding,
+    ),
+    pipelineDescriptor:
+      aperture.shadowCasterPipelineDescriptorReportToJsonValue(
+        shadowFrame.pipelineDescriptor,
+      ),
+    pipelineResource: aperture.shadowCasterPipelineResourceReportToJsonValue(
+      shadowFrame.pipelineResource,
+    ),
+    matrixBindGroupResource:
+      aperture.shadowCasterMatrixBindGroupResourceReportToJsonValue(
+        shadowFrame.matrixBindGroupResource,
+      ),
+    frameResources:
+      aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
+        shadowFrame.frameResources,
+      ),
+    commandRecords: aperture.shadowCasterCommandRecordPlanReportToJsonValue(
+      shadowFrame.commandRecords,
+    ),
+    encoderAssembly: aperture.shadowPassEncoderAssemblyReportToJsonValue(
+      shadowFrame.encoderAssembly,
+    ),
     commandBufferSubmission,
-    commandBufferSubmissionReport,
+    commandBufferSubmissionReport: shadowFrame.commandBufferSubmission,
     route,
-    receiverResources,
+    receiverResources:
+      scene.shadowControls.receiverEnabled && shadowFrame.receiverResources
+        ? shadowFrame.receiverResources
+        : null,
   };
 }
 
@@ -668,39 +506,6 @@ function setupShadowControls(controls) {
       controls.casterEnabled = shadowCasterToggle.checked;
     });
   }
-}
-
-// Read the highest-priority view's camera world->view and view->clip matrices
-// out of the snapshot transforms (read-only) so the directional cascade
-// matrices can be frustum-fit to the actual camera view (M4-T1). Returns null
-// when no view is present or the offsets are out of range (the matrix
-// computation then falls back to the static-center fit).
-function readPrimaryCameraMatrices(snapshot) {
-  const views = snapshot?.views ?? [];
-  if (views.length === 0) {
-    return null;
-  }
-  const primary = views.reduce((best, view) =>
-    view.priority > best.priority ? view : best,
-  );
-  const transforms = snapshot.transforms;
-  const view = sliceMatrix(transforms, primary.viewMatrixOffset);
-  const projection = sliceMatrix(transforms, primary.projectionMatrixOffset);
-  if (view === null || projection === null) {
-    return null;
-  }
-  return { view, projection };
-}
-
-function sliceMatrix(transforms, offset) {
-  if (
-    !Number.isInteger(offset) ||
-    offset < 0 ||
-    offset + 16 > transforms.length
-  ) {
-    return null;
-  }
-  return transforms.slice(offset, offset + 16);
 }
 
 function findCascadedShadowRoute(reportJson) {

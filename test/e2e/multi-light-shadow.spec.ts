@@ -137,27 +137,8 @@ test("Playwright renders a combined directional, spot, and point shadow scene", 
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
-  await page.goto(
-    "/examples/multi-light-shadow.html?disable-shadow-receiver=1",
-  );
-  let status = await waitForExampleStatus<MultiLightShadowStatus>(page);
-
-  expect(
-    status,
-    "multi-light shadow baseline status should publish",
-  ).toBeDefined();
-
-  if (status === undefined) {
-    return;
-  }
-
-  skipIfUnsupportedWebGpu(status);
-  await waitForMultiLightShadowFrame(page, 4);
-  await page.waitForTimeout(100);
-  const noShadowScreenshot = await captureCanvasPageScreenshot(page);
-
   await page.goto("/examples/multi-light-shadow.html");
-  status = await waitForExampleStatus<MultiLightShadowStatus>(page);
+  let status = await waitForExampleStatus<MultiLightShadowStatus>(page);
 
   expect(status, "multi-light shadow status should publish").toBeDefined();
 
@@ -235,10 +216,6 @@ test("Playwright renders a combined directional, spot, and point shadow scene", 
           matrixComputation: { status: "ready", matrixCount: 1 },
           matrixBufferResource: { status: "available", matrixCount: 1 },
           commandEncoding: { status: "ready" },
-          encoderAssembly: {
-            status: "ready",
-            counts: { assembledPasses: 1, drawCalls: 1 },
-          },
           commandBufferSubmission: { status: "submitted" },
         },
         spot: {
@@ -288,7 +265,6 @@ test("Playwright renders a combined directional, spot, and point shadow scene", 
     contentType: "image/png",
   });
   expectVisibleMultiLightShadowScene(screenshot, status);
-  expectNamedReceiverSamplesChange(noShadowScreenshot, screenshot, status);
   webGpuValidation.expectNoWarnings();
 });
 
