@@ -16,6 +16,10 @@ const TEMPLATE_APP_PORT = 5201;
 const WORKER_FAILURE_PORT = 5196;
 const WEBGPU_UNAVAILABLE_PORT = 5197;
 const MCP_TOOL_TIMEOUT_MS = 60_000;
+const CLI_ENV =
+  process.env.CI === "true"
+    ? { ...process.env, APERTURE_GPU: "software" }
+    : process.env;
 
 test.setTimeout(420_000);
 
@@ -2136,6 +2140,7 @@ async function runCli(
   try {
     return await execFileAsync(process.execPath, [CLI, ...args], {
       cwd: options.cwd ?? APP_ROOT,
+      env: CLI_ENV,
       timeout: 60_000,
       maxBuffer: 10 * 1024 * 1024,
     });
