@@ -13,7 +13,7 @@ writeback, and the character move report.
 > **App authoring uses string unions, not enum imports.** In a generated app you
 > only depend on `@aperture-engine/app`, so author rigid bodies with the plain
 > string `type` (`"static" | "dynamic" | "kinematicPosition" |
-> "kinematicVelocity"`) or the `physics.*` helper namespace exported from
+"kinematicVelocity"`) or the `physics.*` helper namespace exported from
 > `@aperture-engine/app/systems`. The `PhysicsRigidBodyType.*` enum below is the
 > equivalent value from `@aperture-engine/physics`; the snippets use the string
 > form so they compile in an app without adding that package.

@@ -356,7 +356,9 @@ export function createPhysicsAccess(
       entity.setValue(KinematicTarget, "enabled", true);
       setKinematicTargetVec3Field(entity, "translation", transform.translation);
       if (transform.rotation !== undefined) {
-        entity.getVectorView(KinematicTarget, "rotation").set(transform.rotation);
+        entity
+          .getVectorView(KinematicTarget, "rotation")
+          .set(transform.rotation);
       } else if (entity.hasComponent(LocalTransform)) {
         // No rotation supplied: keep the body's current orientation rather than
         // snapping it to the kinematic target's default (see GH #28).

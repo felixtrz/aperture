@@ -416,28 +416,28 @@ Inside a system, `this` exposes the whole authoring surface. Everything is typed
 and discoverable by autocomplete — you rarely need to import the lower-level
 runtime packages directly.
 
-| Accessor | What it gives you |
-| --- | --- |
-| `this.spawn` | spawn cameras, lights, meshes, GLB, prefabs, particles, fog/sky, runtime uniforms, and non-rendered physics bodies; `this.spawn.animation(entity)` controls glTF animation |
-| `this.queries` | the ECS queries declared in `createSystem({ queries })` (`.entities` is a `Set<Entity>`) |
-| `this.config` | runtime signal fields declared in `createSystem({ config })` (`this.config.speed.value`) |
-| `this.actions` | typed input actions (narrow on `.kind`); `this.keyboard` / `this.gamepads` give raw edges |
-| `this.signals` | app signals declared in `aperture.config.ts` |
-| `this.resources` | typed ECS resource store for non-entity state (`defineResource` + `resource.*`) |
-| `this.assets` | config-declared asset handles, readiness signals, and manual requests |
-| `this.commands` | worker-owned command channels (`drain`, `requestAsset`) |
-| `this.spatial` | synchronous raycast / overlap / closest-point queries over ECS data |
-| `this.cameras` | camera access (`this.cameras.main.rayFromPointer(...)`) |
-| `this.physics` | rigid-body facade — see [Physics](#physics) |
-| `this.audio` | spatial audio (`loop`, `playOneShot`, `clip`) |
-| `this.particles` / `this.trails` | particle emitters / motion trails |
-| `this.hierarchy` | parent/child relationships |
-| `this.materials` / `this.meshes` / `this.gltf` | runtime material / mesh / glTF-instance access |
-| `this.prefabs` | register and instantiate prefab blueprints |
-| `this.interaction` / `this.html` | pointer interaction state / DOM HTML bridge |
-| `this.fixedStep` | register fixed-step tasks |
-| `this.effects` | lifecycle-owned signal effects (`this.effects.watch(...)`) |
-| `this.diagnostics` | structured diagnostics (`info` / `warn` / `error`) |
+| Accessor                                       | What it gives you                                                                                                                                                          |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `this.spawn`                                   | spawn cameras, lights, meshes, GLB, prefabs, particles, fog/sky, runtime uniforms, and non-rendered physics bodies; `this.spawn.animation(entity)` controls glTF animation |
+| `this.queries`                                 | the ECS queries declared in `createSystem({ queries })` (`.entities` is a `Set<Entity>`)                                                                                   |
+| `this.config`                                  | runtime signal fields declared in `createSystem({ config })` (`this.config.speed.value`)                                                                                   |
+| `this.actions`                                 | typed input actions (narrow on `.kind`); `this.keyboard` / `this.gamepads` give raw edges                                                                                  |
+| `this.signals`                                 | app signals declared in `aperture.config.ts`                                                                                                                               |
+| `this.resources`                               | typed ECS resource store for non-entity state (`defineResource` + `resource.*`)                                                                                            |
+| `this.assets`                                  | config-declared asset handles, readiness signals, and manual requests                                                                                                      |
+| `this.commands`                                | worker-owned command channels (`drain`, `requestAsset`)                                                                                                                    |
+| `this.spatial`                                 | synchronous raycast / overlap / closest-point queries over ECS data                                                                                                        |
+| `this.cameras`                                 | camera access (`this.cameras.main.rayFromPointer(...)`)                                                                                                                    |
+| `this.physics`                                 | rigid-body facade — see [Physics](#physics)                                                                                                                                |
+| `this.audio`                                   | spatial audio (`loop`, `playOneShot`, `clip`)                                                                                                                              |
+| `this.particles` / `this.trails`               | particle emitters / motion trails                                                                                                                                          |
+| `this.hierarchy`                               | parent/child relationships                                                                                                                                                 |
+| `this.materials` / `this.meshes` / `this.gltf` | runtime material / mesh / glTF-instance access                                                                                                                             |
+| `this.prefabs`                                 | register and instantiate prefab blueprints                                                                                                                                 |
+| `this.interaction` / `this.html`               | pointer interaction state / DOM HTML bridge                                                                                                                                |
+| `this.fixedStep`                               | register fixed-step tasks                                                                                                                                                  |
+| `this.effects`                                 | lifecycle-owned signal effects (`this.effects.watch(...)`)                                                                                                                 |
+| `this.diagnostics`                             | structured diagnostics (`info` / `warn` / `error`)                                                                                                                         |
 
 ## Physics
 
@@ -459,7 +459,12 @@ Author bodies inline on a spawned mesh, or spawn a non-rendered body with
 is a plain string union.
 
 ```ts
-import { createSystem, mesh, material, physics } from "@aperture-engine/app/systems";
+import {
+  createSystem,
+  mesh,
+  material,
+  physics,
+} from "@aperture-engine/app/systems";
 
 // A rendered dynamic body:
 this.spawn.mesh({
@@ -512,7 +517,9 @@ const result = this.physics.moveCharacter({
   settings: { snapToGroundDistance: 0.5, maxSlopeClimbAngle: Math.PI / 4 },
 });
 if (result !== null) {
-  this.physics.setKinematicTarget(body, { translation: result.targetTranslation });
+  this.physics.setKinematicTarget(body, {
+    translation: result.targetTranslation,
+  });
   // result.grounded / result.collisions are available for jump + contact logic
 }
 ```

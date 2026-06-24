@@ -104,15 +104,16 @@ export function aperture(
         // to ES so `vite build` never falls back to IIFE, which Rollup rejects
         // for code-splitting builds (see GH #24).
         worker: { format: "es" as const },
-        // Pre-bundle the Aperture entry points the generated bootstrap and user
-        // systems import, so the dev server doesn't discover them mid-load and
-        // trigger a dependency re-optimization + full page reload on first run
-        // (see GH #31).
+        // Pre-bundle the Aperture entry points the generated browser bootstrap,
+        // worker bootstrap, config, and user systems import, so the dev server
+        // doesn't discover them mid-load and trigger a dependency
+        // re-optimization + full page reload on first run (see GH #31).
         optimizeDeps: {
           include: [
             "@aperture-engine/app/config",
             "@aperture-engine/app/systems",
             "@aperture-engine/app/browser",
+            "@aperture-engine/app/worker",
           ],
         },
       };
