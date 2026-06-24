@@ -387,6 +387,21 @@ fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.ar
   let shadowMapSize = vec2f(f32(shadowDimensions.x), f32(shadowDimensions.y));
   let texelSize = 1.0 / max(shadowMapSize, vec2f(1.0));
   let filterRadius = max(filterRadiusTexels, 0.0);
+
+  if (filterRadius <= 0.0) {
+    let maxTexel = shadowDimensions - vec2u(1u);
+    let texel = min(
+      vec2u(clamp(shadowUv, vec2f(0.0), vec2f(1.0)) * shadowMapSize),
+      maxTexel,
+    );
+    let sampledDepth = textureLoad(
+      directionalShadowMap,
+      vec2i(texel),
+      ${options.arrayShadows === true ? "i32(layerIndex),\n      " : ""}0,
+    );
+    return select(0.0, 1.0, receiverDepth <= sampledDepth);
+  }
+
   var visibility = 0.0;
 
   for (var y: i32 = -1; y <= 1; y = y + 1) {
@@ -856,6 +871,21 @@ fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.ar
   let shadowMapSize = vec2f(f32(shadowDimensions.x), f32(shadowDimensions.y));
   let texelSize = 1.0 / max(shadowMapSize, vec2f(1.0));
   let filterRadius = max(filterRadiusTexels, 0.0);
+
+  if (filterRadius <= 0.0) {
+    let maxTexel = shadowDimensions - vec2u(1u);
+    let texel = min(
+      vec2u(clamp(shadowUv, vec2f(0.0), vec2f(1.0)) * shadowMapSize),
+      maxTexel,
+    );
+    let sampledDepth = textureLoad(
+      spotShadowMap,
+      vec2i(texel),
+      ${options.arrayShadows === true ? "i32(layerIndex),\n      " : ""}0,
+    );
+    return select(0.0, 1.0, receiverDepth <= sampledDepth);
+  }
+
   var visibility = 0.0;
 
   for (var y: i32 = -1; y <= 1; y = y + 1) {

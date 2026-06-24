@@ -161,6 +161,134 @@ describe("physics system access", () => {
     expect(body.getValue(KinematicTarget, "enabled")).toBe(true);
   });
 
+  it("reads authored velocities and proxies explicit sleep or wake requests", () => {
+    const world = createWorld({ entityCapacity: 2 });
+    const context = createApertureSystemContext({
+      world,
+      assetsRegistry: new AssetRegistry(),
+    });
+    const body = world.createEntity();
+    const bodyRef = serializeEntityRef(body);
+
+    expect(context.physics.getLinearVelocity(body)).toEqual([0, 0, 0]);
+    expect(context.physics.getAngularVelocity(body)).toEqual([0, 0, 0]);
+
+    context.physics.setLinearVelocity(body, [1, 2, 3]);
+    context.physics.setAngularVelocity(body, [4, 5, 6]);
+
+    expect(context.physics.getLinearVelocity(body)).toEqual([1, 2, 3]);
+    expect(context.physics.getAngularVelocity(body)).toEqual([4, 5, 6]);
+    expect(context.physics.sleepBody(body)).toBe(false);
+    expect(context.physics.wakeBody(body)).toBe(false);
+
+    const backend = createTestPhysicsBackend();
+
+    backend.init();
+    backend.sync({
+      commands: [
+        {
+          kind: "upsertBody",
+          entity: bodyRef,
+          transform: {
+            translation: [0, 0, 0],
+            rotation: [0, 0, 0, 1],
+          },
+          radius: 0.5,
+        },
+      ],
+    });
+    context.physics.setBackend(backend);
+
+    expect(context.physics.sleepBody(body)).toBe(true);
+    expect(context.physics.wakeBody(body)).toBe(true);
+
+    body.destroy();
+
+    expect(context.physics.sleepBody(body)).toBe(false);
+    expect(() => context.physics.setLinearVelocity(body, [7, 8, 9])).toThrow(
+      `Cannot mutate physics command components on inactive entity ${body.index}:${body.generation}.`,
+    );
+  });
+
+  it("computes off-center impulse torque relative to the origin without LocalTransform", () => {
+    const world = createWorld({ entityCapacity: 1 });
+    const context = createApertureSystemContext({
+      world,
+      assetsRegistry: new AssetRegistry(),
+    });
+    const body = world.createEntity();
+
+    context.physics.applyImpulse(body, [0, 1, 0], {
+      point: [1, 0, 0],
+    });
+
+    expect(
+      Array.from(body.getVectorView(ExternalImpulse, "angularImpulse")),
+    ).toEqual([0, 0, 1]);
+  });
+
+  it("preserves current orientation when setKinematicTarget omits rotation (#28)", () => {
+    const world = createWorld({ entityCapacity: 1 });
+    const context = createApertureSystemContext({
+      world,
+      assetsRegistry: new AssetRegistry(),
+    });
+    const body = world.createEntity();
+    body.addComponent(LocalTransform, createLocalTransform());
+
+    // Seed an explicit identity-rotation target.
+    context.physics.setKinematicTarget(body, {
+      translation: [1, 0, 0],
+      rotation: [0, 0, 0, 1],
+    });
+
+    // The body is then oriented (e.g. by a prior physics writeback).
+    const yaw90: [number, number, number, number] = [0, 0.7071, 0, 0.7071];
+    body.getVectorView(LocalTransform, "rotation").set(yaw90);
+
+    // Nudging translation alone must keep the body's current orientation,
+    // not snap it back to the previous identity target.
+    context.physics.setKinematicTarget(body, { translation: [2, 0, 0] });
+
+    expect(
+      Array.from(body.getVectorView(KinematicTarget, "translation")),
+    ).toEqual([2, 0, 0]);
+    const rotation = Array.from(
+      body.getVectorView(KinematicTarget, "rotation"),
+    );
+    expect(rotation[0]).toBeCloseTo(0);
+    expect(rotation[1]).toBeCloseTo(0.7071);
+    expect(rotation[2]).toBeCloseTo(0);
+    expect(rotation[3]).toBeCloseTo(0.7071);
+  });
+
+  it("keeps the previous kinematic target rotation when no LocalTransform is present", () => {
+    const world = createWorld({ entityCapacity: 1 });
+    const context = createApertureSystemContext({
+      world,
+      assetsRegistry: new AssetRegistry(),
+    });
+    const body = world.createEntity();
+    const yaw90: [number, number, number, number] = [0, 0.7071, 0, 0.7071];
+
+    context.physics.setKinematicTarget(body, {
+      translation: [1, 0, 0],
+      rotation: yaw90,
+    });
+    context.physics.setKinematicTarget(body, { translation: [2, 0, 0] });
+
+    expect(
+      Array.from(body.getVectorView(KinematicTarget, "translation")),
+    ).toEqual([2, 0, 0]);
+    const rotation = Array.from(
+      body.getVectorView(KinematicTarget, "rotation"),
+    );
+    expect(rotation[0]).toBeCloseTo(0);
+    expect(rotation[1]).toBeCloseTo(0.7071);
+    expect(rotation[2]).toBeCloseTo(0);
+    expect(rotation[3]).toBeCloseTo(0.7071);
+  });
+
   it("breaks ECS-authored joints explicitly and emits a jointBreak event", () => {
     const world = createWorld({ entityCapacity: 3 });
     const context = createApertureSystemContext({

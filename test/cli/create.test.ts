@@ -169,6 +169,10 @@ describe("Aperture CLI create command", () => {
       path.join(report.targetDir, "vite.config.ts"),
       "utf8",
     );
+    const indexHtml = await readFile(
+      path.join(report.targetDir, "index.html"),
+      "utf8",
+    );
     const apertureConfig = await readFile(
       path.join(report.targetDir, "aperture.config.ts"),
       "utf8",
@@ -203,6 +207,7 @@ describe("Aperture CLI create command", () => {
       }),
     ).not.toContain("workspace:*");
     expect(viteConfig).toContain('mode: "agent"');
+    expect(indexHtml).toContain('<link rel="icon" href="data:," />');
     expect(apertureConfig).toContain("sampleCount: 4");
     expect(apertureConfig).toContain("maxPixelRatio: 2");
     expect(setupSystem).toContain("this.spawn.camera");

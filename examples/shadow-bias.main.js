@@ -50,10 +50,8 @@ try {
         }),
       );
     } else {
-      // Presentation-side asset registration mirrors the worker scene so the
-      // render app can resolve mesh/material handles from the snapshot.
-      registerShadowBiasScene(aperture, sourceAssets);
-      startWorkerSnapshotLoop(aperture, created.app, { canvas });
+      const scene = createPresentationScene(aperture, sourceAssets, canvas);
+      startWorkerSnapshotLoop(aperture, created.app, scene);
     }
   }
 } catch (error) {
@@ -65,6 +63,18 @@ try {
   );
 }
 
+function createPresentationScene(aperture, sourceAssets, targetCanvas) {
+  // Presentation-side asset registration mirrors the worker scene so the render
+  // app can resolve mesh/material handles from the snapshot.
+  const assets = registerShadowBiasScene(aperture, sourceAssets);
+
+  return {
+    canvas: targetCanvas,
+    floorMeshKey: assets.floorMeshKey,
+    pillarMeshKey: assets.pillarMeshKey,
+  };
+}
+
 function startWorkerSnapshotLoop(aperture, app, scene) {
   const worker = new Worker("/worker-modules/examples/shadow-bias.worker.js", {
     name: "aperture-shadow-bias-simulation",
@@ -74,6 +84,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     frame: 0,
     receivedSnapshots: 0,
     workerReady: false,
+    standardMaterialShadowReceiverResources: null,
   };
 
   worker.addEventListener("message", (event) => {
@@ -140,9 +151,25 @@ async function handleWorkerMessage(
     frame: message.frame,
     clearColor,
     label: "shadow-bias-app",
+    autoStandardMaterialShadowReceiverResources: false,
+    ...(loop.standardMaterialShadowReceiverResources === null
+      ? {}
+      : {
+          standardMaterialShadowReceiverResources:
+            loop.standardMaterialShadowReceiverResources,
+        }),
   });
 
-  publishFrameStatus(aperture, app, loop, message.workerStep, report);
+  const nextFrameResources = publishFrameStatus(
+    aperture,
+    app,
+    scene,
+    loop,
+    message.workerStep,
+    report,
+  );
+  loop.standardMaterialShadowReceiverResources =
+    nextFrameResources.standardMaterialShadowReceiverResources;
   requestWorkerFrame(worker, loop);
 }
 
@@ -157,11 +184,22 @@ function requestWorkerFrame(worker, loop) {
   });
 }
 
-function publishFrameStatus(aperture, app, loop, step, report) {
+function publishFrameStatus(aperture, app, scene, loop, step, report) {
   const reportJson = aperture.webGpuAppRenderReportToJsonValue(report);
+  const appEnvironmentResourceCache =
+    aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
+  const shadowFrame = createShadowBiasShadowFrame({
+    aperture,
+    app,
+    report,
+    reportJson,
+    step,
+    appEnvironmentResourceCache,
+  });
   const renderingSupported =
     report.frame >= 3 &&
-    report.shadow?.commandBufferSubmission.status === "submitted";
+    shadowFrame.commandBufferSubmissionReport.status === "submitted" &&
+    shadowFrame.route !== null;
 
   publishStatus({
     example: "shadow-bias",
@@ -186,23 +224,43 @@ function publishFrameStatus(aperture, app, loop, step, report) {
       shadowRequests: report.snapshot.shadowRequests.length,
       diagnostics: report.snapshot.diagnostics.length,
     },
+    scene: {
+      floorMeshKey: scene.floorMeshKey,
+      pillarMeshKey: scene.pillarMeshKey,
+    },
     shadow: {
       intent: { ...shadowBiasIntent, kind: "directional" },
       requests: report.snapshot.shadowRequests.map((request) => ({
         lightKind: request.lightKind,
         cascadeCount: request.cascadeCount ?? 1,
+        shadowType: request.shadowType ?? 1,
         depthBias: request.depthBias ?? 0,
         normalBias: request.normalBias ?? 0,
+        filterRadius: request.filterRadius ?? 1,
         strength: request.strength ?? 1,
       })),
       authoredDepthBias: step?.depthBias ?? null,
       authoredNormalBias: step?.normalBias ?? null,
-      report: reportJson.shadow ?? null,
+      report: shadowFrame.report,
+      descriptor: shadowFrame.descriptor,
+      depthTextureResources: shadowFrame.depthTextureResources,
+      passPlan: shadowFrame.passPlan,
+      matrixComputation: shadowFrame.matrixComputation,
+      casterDrawList: shadowFrame.casterDrawList,
+      commandEncoding: shadowFrame.commandEncoding,
+      encoderAssembly: shadowFrame.encoderAssembly,
+      commandBufferSubmission: shadowFrame.commandBufferSubmission,
       rendering: {
         supported: renderingSupported,
         mode: "frame-loop-auto-directional-csm",
         cascadeCount: shadowBiasIntent.cascadeCount,
+        pipelineKey: shadowFrame.route?.pipelineKey ?? null,
       },
+    },
+    resources: {
+      cascadedShadowRoute: shadowFrame.route,
+      bindGroups: report.resources?.resources?.bindGroups.length ?? 0,
+      reuse: report.resourceReuse,
     },
     renderWorld: { active: app.renderWorld.size },
   });
@@ -210,6 +268,83 @@ function publishFrameStatus(aperture, app, loop, step, report) {
   if (stopAfterReady && renderingSupported) {
     globalThis.__APERTURE_STOP_EXAMPLE__?.();
   }
+
+  return {
+    standardMaterialShadowReceiverResources: shadowFrame.receiverResources,
+  };
+}
+
+function createShadowBiasShadowFrame(input) {
+  const {
+    aperture,
+    app,
+    report,
+    reportJson,
+    step,
+    appEnvironmentResourceCache,
+  } = input;
+  const shadowCasterMeshViews =
+    aperture.createShadowCasterMeshViewsFromAppReport(report);
+  const shadowFrame = aperture.createRenderShadowFrame({
+    device: app.initialization.device,
+    snapshot: report.snapshot,
+    preparedMeshes: shadowCasterMeshViews.preparedMeshes,
+    executableMeshes: shadowCasterMeshViews.executableMeshes,
+    cache: appEnvironmentResourceCache,
+    shadowMap: {
+      mapSize: shadowBiasIntent.mapSize,
+      depthBias: step?.depthBias ?? shadowBiasIntent.depthBias,
+      normalBias: step?.normalBias ?? shadowBiasIntent.normalBias,
+      cascadeCount: shadowBiasIntent.cascadeCount,
+      resourceKey: shadowBiasIntent.key,
+    },
+    label: "shadow-pass:shadow-bias",
+    submit: true,
+  });
+  const route = findCascadedShadowRoute(reportJson);
+  const commandBufferSubmission =
+    aperture.shadowPassCommandBufferSubmissionReportToJsonValue(
+      shadowFrame.commandBufferSubmission,
+    );
+
+  return {
+    report: shadowFrame.report,
+    descriptor: aperture.shadowMapDescriptorReportToJsonValue(
+      shadowFrame.descriptor,
+    ),
+    depthTextureResources: aperture.shadowDepthTextureResourceReportToJsonValue(
+      shadowFrame.depthTextureResources,
+    ),
+    passPlan: aperture.shadowPassPlanReportToJsonValue(shadowFrame.passPlan),
+    matrixComputation:
+      aperture.directionalShadowMatrixComputationReportToJsonValue(
+        shadowFrame.matrixComputation,
+      ),
+    casterDrawList: aperture.shadowCasterDrawListPlanReportToJsonValue(
+      shadowFrame.casterDrawList,
+    ),
+    commandEncoding: aperture.shadowPassCommandEncodingReportToJsonValue(
+      shadowFrame.commandEncoding,
+    ),
+    encoderAssembly: aperture.shadowPassEncoderAssemblyReportToJsonValue(
+      shadowFrame.encoderAssembly,
+    ),
+    commandBufferSubmission,
+    commandBufferSubmissionReport: shadowFrame.commandBufferSubmission,
+    receiverResources: shadowFrame.receiverResources,
+    route,
+  };
+}
+
+function findCascadedShadowRoute(reportJson) {
+  const pipelines =
+    reportJson.diagnosticsSummary?.routedResourceSet?.byPipeline ?? [];
+
+  return (
+    pipelines.find((pipeline) =>
+      pipeline.pipelineKey.includes("cascadedShadowMap"),
+    ) ?? null
+  );
 }
 
 function publishStatus(status) {

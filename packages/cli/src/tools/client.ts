@@ -1,5 +1,9 @@
 import { readApertureDevSession, type ApertureDevSession } from "../session.js";
-import { connectToManagedPage, type BrowserConnection } from "./browser.js";
+import {
+  closeBrowserConnection,
+  connectToManagedPage,
+  type BrowserConnection,
+} from "./browser.js";
 import { callBrowserBackedTool, sessionSummary } from "./dispatch.js";
 import { callReferenceTool } from "./reference.js";
 import type { ApertureToolCallOptions } from "./types.js";
@@ -59,19 +63,26 @@ export async function callApertureTool(
     };
   }
 
-  // Do not call Browser.close() here. For Playwright CDP connections to the
-  // managed Chrome instance, explicit close propagates as a remote browser
-  // shutdown and tears down the active Aperture dev session. One-shot CLI tool
-  // commands exit after printing, and MCP servers intentionally keep the
-  // connection alive for their process lifetime.
+  const keepBrowserConnection = options.keepBrowserConnection === true;
+
   try {
-    return await callBrowserBackedTool(
+    const result = await callBrowserBackedTool(
       connection.page,
       session,
       options.name,
       args,
     );
+
+    if (!keepBrowserConnection) {
+      await closeAndClearBrowserConnection(session, connection);
+    }
+
+    return result;
   } catch (error: unknown) {
+    if (!keepBrowserConnection) {
+      await closeAndClearBrowserConnection(session, connection);
+    }
+
     if (!isClosedTargetError(error)) {
       throw error;
     }
@@ -84,12 +95,26 @@ export async function callApertureTool(
       throw error;
     }
 
-    return await callBrowserBackedTool(
-      retryConnection.page,
-      session,
-      options.name,
-      args,
-    );
+    try {
+      const result = await callBrowserBackedTool(
+        retryConnection.page,
+        session,
+        options.name,
+        args,
+      );
+
+      if (!keepBrowserConnection) {
+        await closeAndClearBrowserConnection(session, retryConnection);
+      }
+
+      return result;
+    } catch (retryError: unknown) {
+      if (!keepBrowserConnection) {
+        await closeAndClearBrowserConnection(session, retryConnection);
+      }
+
+      throw retryError;
+    }
   }
 }
 
@@ -111,6 +136,14 @@ function clearCachedBrowserConnection(session: ApertureDevSession): void {
   if (cachedBrowserConnection?.key === browserConnectionKey(session)) {
     cachedBrowserConnection = null;
   }
+}
+
+async function closeAndClearBrowserConnection(
+  session: ApertureDevSession,
+  connection: BrowserConnection,
+): Promise<void> {
+  clearCachedBrowserConnection(session);
+  await closeBrowserConnection(connection);
 }
 
 function browserConnectionKey(session: ApertureDevSession): string {

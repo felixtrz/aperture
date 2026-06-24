@@ -1,6 +1,8 @@
 import { AssetRegistry } from "@aperture-engine/simulation";
 import type {
   SimulationWorker,
+  SimulationWorkerErrorCallback,
+  SimulationWorkerErrorEvent,
   SimulationWorkerMessageCallback,
   SimulationWorkerSnapshotCallback,
   SimulationWorkerSnapshotEvent,
@@ -362,12 +364,14 @@ describe("generated browser performance status", () => {
     expect(
       (status.lastWorkerSummary as { readonly assets?: unknown }).assets,
     ).toBeUndefined();
+    // `resources` and `physics` are retained from the last full summary so a
+    // signals/resources-driven HUD can read them every frame (see GH #29).
     expect(
       (status.lastWorkerSummary as { readonly resources?: unknown }).resources,
-    ).toBeUndefined();
+    ).toEqual({ count: 1 });
     expect(
       (status.lastWorkerSummary as { readonly physics?: unknown }).physics,
-    ).toBeUndefined();
+    ).toEqual({ backend: "none" });
     expect(
       (status.lastWorkerSummary as { readonly startOptions?: unknown })
         .startOptions,
@@ -379,6 +383,151 @@ describe("generated browser performance status", () => {
       },
       signals: {},
     });
+  });
+
+  it("replaces non-object worker summaries and counts sparse post-message decisions", () => {
+    let snapshotCallback: SimulationWorkerSnapshotCallback | null = null;
+    const worker: SimulationWorker = {
+      worker: {
+        postMessage() {},
+        terminate() {},
+      },
+      start() {},
+      postMessage() {},
+      onMessage() {
+        return () => {};
+      },
+      onSnapshot(callback) {
+        snapshotCallback = callback;
+        return () => {
+          snapshotCallback = null;
+        };
+      },
+      onError() {
+        return () => {};
+      },
+      terminate() {},
+    };
+    const status = createStatus();
+    const mirrored = mirrorSimulationWorkerSourceAssets(
+      worker,
+      new AssetRegistry(),
+      status,
+    );
+
+    mirrored.onSnapshot(() => {});
+    emitSnapshotEvent(snapshotCallback, {
+      snapshot: snapshot(1),
+      frame: 1,
+      message: {
+        type: "aperture.simulation.snapshot",
+        snapshot: snapshot(1),
+        frame: 1,
+        workerSummary: "reset",
+        postMessageDecision: {
+          postedMessage: 42,
+          postMessageReasons: [],
+        },
+      },
+    });
+
+    expect(status.lastWorkerSummary).toBe("reset");
+    expect(status.workerMessages.snapshotDecisions).toMatchObject({
+      total: 1,
+      postedMessages: { unknown: 1 },
+      postMessageReasons: { none: 1 },
+    });
+
+    emitSnapshotEvent(snapshotCallback, {
+      snapshot: snapshot(2),
+      frame: 2,
+      message: {
+        type: "aperture.simulation.snapshot",
+        snapshot: snapshot(2),
+        frame: 2,
+        workerSummary: {
+          signals: { count: 1 },
+          postMessageDecision: {
+            postedMessage: "snapshot",
+            postMessageReasons: ["changed", 7],
+          },
+        },
+      },
+    });
+
+    expect(status.lastWorkerSummary).toMatchObject({
+      signals: { count: 1 },
+    });
+    expect(status.workerMessages.snapshotDecisions).toMatchObject({
+      total: 2,
+      postedMessages: { unknown: 1, snapshot: 1 },
+      postMessageReasons: { none: 1, changed: 1, unknown: 1 },
+    });
+  });
+
+  it("updates status for worker errors and tears down sideband mirroring", () => {
+    let errorCallback: SimulationWorkerErrorCallback = () => {
+      throw new Error("Worker error callback was not registered.");
+    };
+    const unsubscribeSidebandAssets = vi.fn();
+    const terminateWorker = vi.fn();
+    const worker: SimulationWorker = {
+      worker: {
+        postMessage() {},
+        terminate() {},
+      },
+      start() {},
+      postMessage() {},
+      onMessage() {
+        return unsubscribeSidebandAssets;
+      },
+      onSnapshot() {
+        return () => {};
+      },
+      onError(callback) {
+        errorCallback = callback;
+        return () => {
+          errorCallback = () => {};
+        };
+      },
+      terminate: terminateWorker,
+    };
+    const status = createStatus();
+    const mirrored = mirrorSimulationWorkerSourceAssets(
+      worker,
+      new AssetRegistry(),
+      status,
+    );
+    const forwarded: SimulationWorkerErrorEvent[] = [];
+
+    mirrored.onError((event) => {
+      forwarded.push(event);
+    });
+    errorCallback({
+      reason: "aperture.worker.crashed",
+      message: "Worker crashed",
+      source: "worker",
+    });
+
+    expect(forwarded).toHaveLength(1);
+    expect(status.status).toBe("worker-error");
+    expect(status.lastError).toBe(status.lastFailure);
+    expect(status.lastFailure).toMatchObject({
+      status: "failed",
+      diagnostics: [
+        {
+          code: "aperture.worker.crashed",
+          severity: "error",
+          message: "Worker crashed",
+          source: { worker: "worker" },
+        },
+      ],
+    });
+
+    mirrored.terminate();
+
+    expect(unsubscribeSidebandAssets).toHaveBeenCalledTimes(1);
+    expect(terminateWorker).toHaveBeenCalledTimes(1);
   });
 
   it("polls generated render diagnostics on a telemetry cadence instead of every RAF", () => {

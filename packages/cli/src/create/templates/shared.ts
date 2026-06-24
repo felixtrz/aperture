@@ -15,6 +15,8 @@ function indexHtml(): string {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Empty inline icon so the browser doesn't log a 404 for /favicon.ico. -->
+    <link rel="icon" href="data:," />
     <title>Aperture App</title>
     <style>
       html,

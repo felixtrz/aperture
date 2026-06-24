@@ -706,6 +706,8 @@ fn saturate(value: f32) -> f32 {`,
         features.clusteredLocalLightShadowCookies === true,
       localLightArrayCookies: features.clusteredLocalLightArrayCookies === true,
       localLightCubeCookies: features.clusteredLocalLightCubeCookies === true,
+      singleSpotShadowMap:
+        features.shadowMap === true && features.pointShadowMap !== true,
       removeGlobalPointShadowReceiverFactor:
         removeGlobalPointShadowReceiverFactor,
       removeGlobalSpotShadowReceiverFactor:

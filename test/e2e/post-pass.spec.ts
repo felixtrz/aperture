@@ -373,16 +373,22 @@ test("bloom post effect adds glow around bright pixels", async ({ page }) => {
     const format = "rgba8unorm";
     const bytesPerRow = 256;
     const source = new Uint8Array(bytesPerRow * height);
-    const samples = [
-      { id: "far-dark", x: (1 + 0.5) / width, y: (1 + 0.5) / height },
-      { id: "left-glow", x: (6 + 0.5) / width, y: (7 + 0.5) / height },
-      { id: "bright", x: (7 + 0.5) / width, y: (7 + 0.5) / height },
-    ];
+    const samples: { id: string; x: number; y: number }[] = [];
+
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        samples.push({
+          id: `${x},${y}`,
+          x: (x + 0.5) / width,
+          y: (y + 0.5) / height,
+        });
+      }
+    }
 
     for (let y = 0; y < height; y += 1) {
       for (let x = 0; x < width; x += 1) {
         const offset = y * bytesPerRow + x * 4;
-        const bright = (x === 7 || x === 8) && (y === 7 || y === 8);
+        const bright = x >= 6 && x <= 9 && y >= 6 && y <= 9;
         const value = bright ? 255 : 0;
 
         source[offset] = value;
@@ -500,6 +506,19 @@ test("bloom post effect adds glow around bright pixels", async ({ page }) => {
       outputTexture.destroy();
       return {
         ok: allValid && prepared.diagnostics.length === 0,
+        graph:
+          prepared.graph === undefined
+            ? null
+            : {
+                report: prepared.graph.report,
+                passes: prepared.graph.passes.map((pass) => ({
+                  kind: pass.kind,
+                  width: pass.width,
+                  height: pass.height,
+                  commandCount: pass.commands.length,
+                  diagnostics: pass.diagnostics,
+                })),
+              },
         diagnostics: [
           ...prepared.diagnostics,
           ...(boundary?.texture.diagnostics ?? []),
@@ -512,8 +531,8 @@ test("bloom post effect adds glow around bright pixels", async ({ page }) => {
     const bloom = await runEffect(
       createWebGpuBloomPostEffect({
         threshold: 0.7,
-        intensity: 1.2,
-        radiusPixels: 1,
+        intensity: 4,
+        radius: 1,
       }),
     );
     const copyPixels = new Map(
@@ -529,14 +548,43 @@ test("bloom post effect adds glow around bright pixels", async ({ page }) => {
 
     inputTexture.destroy();
 
+    let bloomMaxOutsideBright = 0;
+
+    for (const [id, pixel] of bloomPixels) {
+      const [xText, yText] = id.split(",");
+      const x = Number(xText);
+      const y = Number(yText);
+      const bright = x >= 6 && x <= 9 && y >= 6 && y <= 9;
+
+      if (!bright) {
+        bloomMaxOutsideBright = Math.max(bloomMaxOutsideBright, pixel.r);
+      }
+    }
+
+    const summarizeEffect = (effect: typeof copy) => ({
+      ok: effect.ok,
+      graph: effect.graph,
+      diagnostics: effect.diagnostics,
+      readback:
+        effect.readback?.ok === true
+          ? {
+              ok: true,
+              source: effect.readback.source,
+              format: effect.readback.format,
+              sampleCount: effect.readback.samples.length,
+            }
+          : effect.readback,
+    });
+
     return {
       ok: true,
-      copy,
-      bloom,
-      copyLeft: copyPixels.get("left-glow") ?? null,
-      bloomLeft: bloomPixels.get("left-glow") ?? null,
-      bloomFar: bloomPixels.get("far-dark") ?? null,
-      bloomBright: bloomPixels.get("bright") ?? null,
+      copy: summarizeEffect(copy),
+      bloom: summarizeEffect(bloom),
+      copyLeft: copyPixels.get("5,7") ?? null,
+      bloomLeft: bloomPixels.get("5,7") ?? null,
+      bloomFar: bloomPixels.get("1,1") ?? null,
+      bloomBright: bloomPixels.get("7,7") ?? null,
+      bloomMaxOutsideBright,
     };
   });
 
@@ -555,8 +603,18 @@ test("bloom post effect adds glow around bright pixels", async ({ page }) => {
 
   expect(result.copy).toMatchObject({ ok: true, readback: { ok: true } });
   expect(result.bloom).toMatchObject({ ok: true, readback: { ok: true } });
-  expect(result.copyLeft?.r).toBeLessThanOrEqual(2);
-  expect(result.bloomLeft?.r).toBeGreaterThan(20);
-  expect(result.bloomFar?.r).toBeLessThanOrEqual(2);
-  expect(result.bloomBright?.r).toBeGreaterThan(240);
+  expect(
+    result.copyLeft?.r,
+    JSON.stringify(result, null, 2),
+  ).toBeLessThanOrEqual(2);
+  expect(result.bloomLeft?.r, JSON.stringify(result, null, 2)).toBeGreaterThan(
+    50,
+  );
+  expect(result.bloomLeft?.r ?? 0).toBeGreaterThan(
+    (result.bloomFar?.r ?? 0) + 20,
+  );
+  expect(
+    result.bloomBright?.r,
+    JSON.stringify(result, null, 2),
+  ).toBeGreaterThan(240);
 });

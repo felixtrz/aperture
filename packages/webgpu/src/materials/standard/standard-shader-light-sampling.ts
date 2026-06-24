@@ -18,6 +18,7 @@ export function applyStandardClusteredLocalLightSampling(
     readonly localLightShadowCookies: boolean;
     readonly localLightArrayCookies: boolean;
     readonly localLightCubeCookies: boolean;
+    readonly singleSpotShadowMap: boolean;
     readonly removeGlobalPointShadowReceiverFactor: boolean;
     readonly removeGlobalSpotShadowReceiverFactor: boolean;
   },
@@ -46,6 +47,25 @@ export function applyStandardClusteredLocalLightSampling(
   _ = lightPosition;
   return localLightClusterUnsupportedShadowFactor(lightIndex);
 }`;
+  const spotShadowSampleExpression = options.singleSpotShadowMap
+    ? `  let filterType = shadowFilterType(lightIndex);
+  let filterRadius = select(
+    max(localLightClusterShadowFilterRadiusTexels(lightIndex), 1.0),
+    0.0,
+    filterType == 0u,
+  );
+  return sampleSpotShadowFactorWithMatrixBase(
+    position,
+    localLightClusterPointShadowMatrixBase(lightIndex),
+    filterRadius,
+    max(shadowDepthBias(lightIndex), STANDARD_SHADOW_DEPTH_BIAS),
+    filterType,
+  );`
+    : `  return sampleSpotShadowFactorWithMatrixBase(
+    position,
+    localLightClusterPointShadowMatrixBase(lightIndex),
+    localLightClusterShadowFilterRadiusTexels(lightIndex),
+  );`;
   const spotShadowFactorFunction = options.spotShadowMap
     ? `fn localLightClusterSpotShadowFactor(position: vec3f, lightIndex: u32) -> f32 {
   let metadataFlags = localLightClusterMetadataFlags(lightIndex);
@@ -58,11 +78,7 @@ export function applyStandardClusteredLocalLightSampling(
     return localLightClusterUnsupportedShadowFactor(lightIndex);
   }
 
-  return sampleSpotShadowFactorWithMatrixBase(
-    position,
-    localLightClusterPointShadowMatrixBase(lightIndex),
-    localLightClusterShadowFilterRadiusTexels(lightIndex),
-  );
+${spotShadowSampleExpression}
 }`
     : `fn localLightClusterSpotShadowFactor(position: vec3f, lightIndex: u32) -> f32 {
   _ = position;

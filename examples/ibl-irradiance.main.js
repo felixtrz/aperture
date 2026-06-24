@@ -15,8 +15,8 @@ const defaultMode = "convolved";
 // dark hemisphere (−X/−Y/−Z) faces the −X (left) side. bright-probe samples a
 // normal facing the bright environment, dark-probe a normal facing the dark one.
 const readbackSamples = [
-  { id: "bright-probe", x: 0.66, y: 0.5 },
-  { id: "dark-probe", x: 0.34, y: 0.5 },
+  { id: "bright-probe", x: 0.76, y: 0.5 },
+  { id: "dark-probe", x: 0.24, y: 0.5 },
 ];
 const searchParams = new URLSearchParams(window.location.search);
 

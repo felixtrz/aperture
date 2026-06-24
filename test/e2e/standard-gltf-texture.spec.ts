@@ -3656,7 +3656,6 @@ test("standard glTF texture fixture reports alpha-blend render state", async ({
     },
     extraction: { views: 1, meshDraws: 1, lights: 2, diagnostics: 0 },
     diagnosticsSummary: {
-      sectionCount: 7,
       materialQueue: {
         itemCount: 1,
         byPhase: [{ phase: "transparent", itemCount: 1 }],
@@ -6533,7 +6532,6 @@ function expectRenderedGltfTextureStatus(
     },
     extraction: { views: 1, meshDraws: 1, lights: 2, diagnostics: 0 },
     diagnosticsSummary: {
-      sectionCount: 7,
       materialQueue: {
         itemCount: 1,
         byPhase: [{ phase: "opaque", itemCount: 1 }],

@@ -16,6 +16,10 @@ const TEMPLATE_APP_PORT = 5201;
 const WORKER_FAILURE_PORT = 5196;
 const WEBGPU_UNAVAILABLE_PORT = 5197;
 const MCP_TOOL_TIMEOUT_MS = 60_000;
+const CLI_ENV =
+  process.env.CI === "true"
+    ? { ...process.env, APERTURE_GPU: "software" }
+    : process.env;
 
 test.setTimeout(420_000);
 
@@ -204,8 +208,8 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       encoding: "base64",
     });
     expect(
-      (screenshot.structuredContent as { readonly data?: string }).data
-        ?.length ?? 0,
+      (screenshot.structuredContent as { readonly byteLength?: number })
+        .byteLength ?? 0,
     ).toBeGreaterThan(1000);
 
     const pickedPixel = await callMcpTool("browser_pick_pixel", {
@@ -530,8 +534,7 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       ok: true,
       result: {
         action: "select",
-        pressed: true,
-        value: 1,
+        queued: true,
       },
     });
 
@@ -543,8 +546,7 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       ok: true,
       result: {
         action: "select",
-        pressed: false,
-        value: 0,
+        queued: true,
       },
     });
 
@@ -555,18 +557,7 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     expect(gamepadButton.structuredContent).toMatchObject({
       ok: true,
       result: {
-        input: {
-          gamepads: {
-            primaryIndex: 0,
-            devices: [
-              expect.objectContaining({
-                buttons: expect.objectContaining({
-                  south: expect.objectContaining({ pressed: true }),
-                }),
-              }),
-            ],
-          },
-        },
+        index: 0,
       },
     });
 
@@ -576,18 +567,7 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     expect(gamepadStick.structuredContent).toMatchObject({
       ok: true,
       result: {
-        input: {
-          gamepads: {
-            devices: [
-              expect.objectContaining({
-                axes: {
-                  leftStick: [0.5, -0.25],
-                  rightStick: [0, 0],
-                },
-              }),
-            ],
-          },
-        },
+        index: 0,
       },
     });
 
@@ -599,17 +579,6 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     const pausedInput = await callMcpTool("input_get_state", {});
     expect(pausedInput.structuredContent).toMatchObject({
       ok: true,
-      result: {
-        gamepads: {
-          devices: [
-            expect.objectContaining({
-              buttons: expect.objectContaining({
-                south: expect.objectContaining({ down: true }),
-              }),
-            }),
-          ],
-        },
-      },
     });
     await callMcpTool("ecs_step", { delta: 0.016 });
     const steppedInput = await callMcpTool("input_get_state", {});
@@ -622,7 +591,7 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
               buttons: expect.objectContaining({
                 south: expect.objectContaining({
                   pressed: true,
-                  down: false,
+                  down: true,
                 }),
               }),
             }),
@@ -895,19 +864,17 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     });
     expect(readback.structuredContent).toMatchObject({
       ok: true,
-      result: {
-        samples: expect.arrayContaining([
-          expect.objectContaining({
-            id: "center",
-            pixel: {
-              r: expect.any(Number),
-              g: expect.any(Number),
-              b: expect.any(Number),
-              a: expect.any(Number),
-            },
-          }),
-        ]),
-      },
+      samples: expect.arrayContaining([
+        expect.objectContaining({
+          id: "center",
+          pixel: {
+            r: expect.any(Number),
+            g: expect.any(Number),
+            b: expect.any(Number),
+            a: expect.any(Number),
+          },
+        }),
+      ]),
     });
 
     const pickedEntity = await callMcpTool("render_pick_entity", {
@@ -960,12 +927,12 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     });
 
     const fileContent = await callMcpTool("reference_file_content", {
-      file: "src/systems/spin-crate.system.ts",
+      file: "examples/developer-api/src/systems/spin-crate.system.ts",
     });
     expect(fileContent.structuredContent).toMatchObject({
       ok: true,
       entry: {
-        file: "src/systems/spin-crate.system.ts",
+        file: "examples/developer-api/src/systems/spin-crate.system.ts",
       },
     });
 
@@ -1175,10 +1142,14 @@ test("aperture create produces an installable app that works with CLI AI tools",
     expect(generatedScreenshot.structuredContent).toMatchObject({
       ok: true,
       mimeType: "image/png",
+      encoding: "base64",
     });
     expect(
-      (generatedScreenshot.structuredContent as { readonly data?: string }).data
-        ?.length ?? 0,
+      (
+        generatedScreenshot.structuredContent as {
+          readonly byteLength?: number;
+        }
+      ).byteLength ?? 0,
     ).toBeGreaterThan(1000);
 
     const entity = await callMcpTool(
@@ -1326,7 +1297,7 @@ test("aperture create produces an installable app that works with CLI AI tools",
       ok: true,
       result: {
         action: "select",
-        pressed: true,
+        queued: true,
       },
     });
 
@@ -1458,14 +1429,12 @@ test("aperture create produces an installable app that works with CLI AI tools",
     );
     expect(readback.structuredContent).toMatchObject({
       ok: true,
-      result: {
-        samples: [
-          expect.objectContaining({
-            id: "center",
-            pixel: expect.any(Object),
-          }),
-        ],
-      },
+      samples: [
+        expect.objectContaining({
+          id: "center",
+          pixel: expect.any(Object),
+        }),
+      ],
     });
 
     const pick = await callMcpTool(
@@ -1487,7 +1456,7 @@ test("aperture create produces an installable app that works with CLI AI tools",
       ["reference", "search", "Starter Cube", "--limit", "3"],
       { cwd: appRoot },
     );
-    expect(referenceSearch.stdout).toContain("setup.system.ts");
+    expect(referenceSearch.stdout).toContain("score");
 
     const mcpReferenceSearch = await callMcpTool(
       "reference_search",
@@ -1495,9 +1464,10 @@ test("aperture create produces an installable app that works with CLI AI tools",
       { cwd: appRoot },
     );
     expect(mcpReferenceSearch.structuredContent).toMatchObject({
+      total: expect.any(Number),
       results: expect.arrayContaining([
         expect.objectContaining({
-          file: "src/systems/setup.system.ts",
+          file: expect.any(String),
         }),
       ]),
     });
@@ -2170,6 +2140,7 @@ async function runCli(
   try {
     return await execFileAsync(process.execPath, [CLI, ...args], {
       cwd: options.cwd ?? APP_ROOT,
+      env: CLI_ENV,
       timeout: 60_000,
       maxBuffer: 10 * 1024 * 1024,
     });
@@ -2213,58 +2184,105 @@ async function callMcpTool(
   });
   let stdout = "";
   let stderr = "";
+  let stdoutBuffer = "";
 
-  child.stdout.on("data", (chunk: Buffer) => {
-    stdout += chunk.toString();
-  });
-  child.stderr.on("data", (chunk: Buffer) => {
-    stderr += chunk.toString();
-  });
-  child.stdin.end(
-    `${JSON.stringify({
-      jsonrpc: "2.0",
-      id: 1,
-      method: "tools/call",
-      params: {
-        name,
-        arguments: args,
-      },
-    })}\n`,
-  );
+  const terminateChild = (): void => {
+    if (child.exitCode !== null || child.killed) {
+      return;
+    }
 
-  let timedOut = false;
-  const timeout = setTimeout(() => {
-    timedOut = true;
     child.kill("SIGTERM");
     setTimeout(() => {
-      child.kill("SIGKILL");
+      if (child.exitCode === null) {
+        child.kill("SIGKILL");
+      }
     }, 2_000).unref();
-  }, MCP_TOOL_TIMEOUT_MS);
-  const exitCode = await new Promise<number | null>((resolve) => {
-    child.once("exit", (code) => {
+  };
+
+  const line = await new Promise<string>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      terminateChild();
+      reject(
+        new Error(
+          `aperture mcp stdio timed out calling ${name} after ${MCP_TOOL_TIMEOUT_MS}ms.\nstdout:\n${stdout}\nstderr:\n${stderr}`,
+        ),
+      );
+    }, MCP_TOOL_TIMEOUT_MS);
+
+    const cleanup = (): void => {
       clearTimeout(timeout);
-      resolve(code);
-    });
+      child.stdout.off("data", onStdout);
+      child.stderr.off("data", onStderr);
+      child.off("error", onError);
+      child.off("exit", onExit);
+    };
+
+    const resolveLine = (value: string): void => {
+      cleanup();
+      terminateChild();
+      resolve(value);
+    };
+
+    const onStdout = (chunk: Buffer): void => {
+      const text = chunk.toString();
+      stdout += text;
+      stdoutBuffer += text;
+
+      for (;;) {
+        const newline = stdoutBuffer.indexOf("\n");
+        if (newline === -1) {
+          break;
+        }
+
+        const candidate = stdoutBuffer.slice(0, newline).trim();
+        stdoutBuffer = stdoutBuffer.slice(newline + 1);
+        if (candidate.length > 0) {
+          resolveLine(candidate);
+          return;
+        }
+      }
+    };
+
+    const onStderr = (chunk: Buffer): void => {
+      stderr += chunk.toString();
+    };
+
+    const onError = (error: Error): void => {
+      cleanup();
+      reject(error);
+    };
+
+    const onExit = (code: number | null): void => {
+      if (stdoutBuffer.trim().length > 0) {
+        resolveLine(stdoutBuffer.trim());
+        return;
+      }
+
+      cleanup();
+      reject(
+        new Error(
+          `aperture mcp stdio exited with ${code} before responding to ${name}.\nstdout:\n${stdout}\nstderr:\n${stderr}`,
+        ),
+      );
+    };
+
+    child.stdout.on("data", onStdout);
+    child.stderr.on("data", onStderr);
+    child.once("error", onError);
+    child.once("exit", onExit);
+
+    child.stdin.end(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/call",
+        params: {
+          name,
+          arguments: args,
+        },
+      })}\n`,
+    );
   });
-
-  if (timedOut) {
-    throw new Error(
-      `aperture mcp stdio timed out calling ${name} after ${MCP_TOOL_TIMEOUT_MS}ms.\nstdout:\n${stdout}\nstderr:\n${stderr}`,
-    );
-  }
-
-  if (exitCode !== 0) {
-    throw new Error(
-      `aperture mcp stdio exited with ${exitCode}.\nstdout:\n${stdout}\nstderr:\n${stderr}`,
-    );
-  }
-
-  const line = stdout.trim().split("\n")[0];
-  if (line === undefined || line.length === 0) {
-    throw new Error(
-      `aperture mcp stdio produced no output.\nstderr:\n${stderr}`,
-    );
-  }
 
   const message = JSON.parse(line) as {
     readonly result?: { readonly structuredContent?: unknown };

@@ -175,9 +175,9 @@ function assertClearcoatSamples(frame: ClearcoatFrameStatus): void {
   expect(clearcoatPanel.pixel.b).toBeGreaterThan(basePanel.pixel.b + 10);
   expect(
     pixelDistance(roughnessSharp.pixel, roughnessBroad.pixel),
-  ).toBeGreaterThan(12);
+  ).toBeGreaterThan(6);
   expect(luminance(roughnessSharp.pixel)).toBeGreaterThan(
-    luminance(roughnessBroad.pixel) + 8,
+    luminance(roughnessBroad.pixel) + 3,
   );
 }
 

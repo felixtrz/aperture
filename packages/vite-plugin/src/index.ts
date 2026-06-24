@@ -59,6 +59,8 @@ export interface ApertureVitePlugin {
   config?(): {
     readonly server?: { readonly headers?: Record<string, string> };
     readonly preview?: { readonly headers?: Record<string, string> };
+    readonly worker?: { readonly format?: "es" | "iife" };
+    readonly optimizeDeps?: { readonly include?: readonly string[] };
   } | void;
   configResolved?(config: {
     readonly root: string;
@@ -96,12 +98,33 @@ export function aperture(
   const plugin: ApertureVitePlugin = {
     name: "aperture",
     config() {
+      const base = {
+        // Generated apps bundle an ES-module simulation worker that imports the
+        // (code-split) @aperture-engine/app worker entry. Pin the worker format
+        // to ES so `vite build` never falls back to IIFE, which Rollup rejects
+        // for code-splitting builds (see GH #24).
+        worker: { format: "es" as const },
+        // Pre-bundle the Aperture entry points the generated browser bootstrap,
+        // worker bootstrap, config, and user systems import, so the dev server
+        // doesn't discover them mid-load and trigger a dependency
+        // re-optimization + full page reload on first run (see GH #31).
+        optimizeDeps: {
+          include: [
+            "@aperture-engine/app/config",
+            "@aperture-engine/app/systems",
+            "@aperture-engine/app/browser",
+            "@aperture-engine/app/worker",
+          ],
+        },
+      };
+
       if (!crossOriginIsolation) {
-        return;
+        return base;
       }
 
       const headers = { ...APERTURE_CROSS_ORIGIN_ISOLATION_HEADERS };
       return {
+        ...base,
         server: { headers },
         preview: { headers: { ...headers } },
       };

@@ -17,7 +17,9 @@ import {
   Visibility,
   createBoxMeshAsset,
   createCamera,
+  createRenderExtractionCache,
   createUnlitMaterialAsset,
+  extractRenderSnapshot,
 } from "@aperture-engine/render";
 
 // AI-13 (readiness roadmap R5): the per-app persistent RenderExtractionCache.
@@ -161,41 +163,43 @@ describe("persistent render extraction cache (AI-13)", () => {
     ).toBe(false);
   });
 
-  it("does materially less work for a static frame than a fully mutated one", () => {
+  it("reuses static cache entries and refreshes mutated transforms", () => {
     const app = createExtractionApp({
       worldOptions: { entityCapacity: ENTITY_COUNT + 8 },
     });
     const entities = setupScene(app);
-    app.extract(1);
+    const cache = createRenderExtractionCache();
 
-    const measure = (prepare: () => void): number => {
-      let total = 0;
-      for (let iteration = 0; iteration < 15; iteration += 1) {
-        prepare();
-        const start = performance.now();
-        app.extract(iteration + 2);
-        total += performance.now() - start;
-      }
-      return total;
-    };
+    extractRenderSnapshot(app.world, app.assets, { frame: 1, cache });
+    expect(cache.meshDrawEntities.size).toBe(ENTITY_COUNT);
 
-    const staticTime = measure(() => {});
-    const mutatedTime = measure(() => {
-      for (const entity of entities) {
-        const translation = entity.getVectorView(LocalTransform, "translation");
-        translation[2] = Number(translation[2] ?? 0) + 0.01;
-        entity
-          .getVectorView(WorldTransform, "col3")
-          .set([
-            Number(translation[0] ?? 0),
-            Number(translation[1] ?? 0),
-            Number(translation[2] ?? 0),
-            1,
-          ]);
-      }
-    });
+    const staticEntries = new Map(cache.meshDrawEntities);
 
-    // Generous margin: the cached static path must beat full re-extraction.
-    expect(staticTime).toBeLessThan(mutatedTime);
+    extractRenderSnapshot(app.world, app.assets, { frame: 2, cache });
+    expect(cache.meshDrawEntities.size).toBe(ENTITY_COUNT);
+    for (const [key, entry] of staticEntries) {
+      expect(cache.meshDrawEntities.get(key)).toBe(entry);
+    }
+
+    for (const entity of entities) {
+      const translation = entity.getVectorView(LocalTransform, "translation");
+      translation[2] = Number(translation[2] ?? 0) + 0.01;
+      entity
+        .getVectorView(WorldTransform, "col3")
+        .set([
+          Number(translation[0] ?? 0),
+          Number(translation[1] ?? 0),
+          Number(translation[2] ?? 0),
+          1,
+        ]);
+    }
+
+    extractRenderSnapshot(app.world, app.assets, { frame: 3, cache });
+    expect(cache.meshDrawEntities.size).toBe(ENTITY_COUNT);
+    expect(
+      Array.from(staticEntries).filter(
+        ([key, entry]) => cache.meshDrawEntities.get(key) !== entry,
+      ),
+    ).toHaveLength(ENTITY_COUNT);
   });
 });

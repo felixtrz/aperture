@@ -103,8 +103,10 @@ test("browser submits depth of field post effect with focused output", async () 
       contentType: "image/png",
     });
 
-    expect(dofImage.width).toBe(512);
-    expect(dofImage.height).toBe(512);
+    // The status assertion above checks the WebGPU backing size exactly.
+    // Element screenshots can round a fractional CSS layout pixel.
+    expect(Math.abs(dofImage.width - 512)).toBeLessThanOrEqual(1);
+    expect(Math.abs(dofImage.height - 512)).toBeLessThanOrEqual(1);
 
     await stopDofExample(page);
     stopped = true;

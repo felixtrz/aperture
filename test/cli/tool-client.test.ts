@@ -22,6 +22,7 @@ const browserAdapter = vi.hoisted(() => {
   return {
     page: { id: "page-0" },
     pageStatus,
+    closeBrowserConnection: vi.fn(async () => {}),
     connectToManagedPage: vi.fn(async () => ({
       browser: { id: `browser-${connectCount}` },
       page: { id: `page-${connectCount++}` },
@@ -32,6 +33,7 @@ const browserAdapter = vi.hoisted(() => {
 
 vi.mock("../../packages/cli/src/tools/browser.js", () => ({
   canvasStatus: vi.fn(async () => ({ ok: true, status: null })),
+  closeBrowserConnection: browserAdapter.closeBrowserConnection,
   connectToManagedPage: browserAdapter.connectToManagedPage,
   readGeneratedStatus: browserAdapter.readGeneratedStatus,
   screenshot: vi.fn(async () => ({ ok: true })),
@@ -42,6 +44,7 @@ const tempRoots: string[] = [];
 
 describe("Aperture CLI tool client", () => {
   afterEach(async () => {
+    browserAdapter.closeBrowserConnection.mockClear();
     browserAdapter.connectToManagedPage.mockClear();
     browserAdapter.readGeneratedStatus.mockClear();
     browserAdapter.readGeneratedStatus.mockResolvedValue(
@@ -65,11 +68,13 @@ describe("Aperture CLI tool client", () => {
       cwd: root,
       name: "browser_status",
       arguments: {},
+      keepBrowserConnection: true,
     });
     const secondResult = await callApertureTool({
       cwd: root,
       name: "browser_status",
       arguments: {},
+      keepBrowserConnection: true,
     });
 
     expect(result).toMatchObject({
@@ -81,7 +86,29 @@ describe("Aperture CLI tool client", () => {
       page: browserAdapter.pageStatus,
     });
     expect(browserAdapter.connectToManagedPage).toHaveBeenCalledTimes(1);
+    expect(browserAdapter.closeBrowserConnection).not.toHaveBeenCalled();
     expect(browserAdapter.readGeneratedStatus).toHaveBeenCalledTimes(2);
+  });
+
+  it("closes the managed browser connection for one-shot browser-backed tools", async () => {
+    const root = await tempRoot();
+    const { callApertureTool } =
+      await import("../../packages/cli/src/tools/client.js");
+
+    await writeRunningSession(root);
+
+    const result = await callApertureTool({
+      cwd: root,
+      name: "browser_status",
+      arguments: {},
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      page: browserAdapter.pageStatus,
+    });
+    expect(browserAdapter.connectToManagedPage).toHaveBeenCalledTimes(1);
+    expect(browserAdapter.closeBrowserConnection).toHaveBeenCalledTimes(1);
   });
 
   it("reconnects once when a cached managed page has closed", async () => {

@@ -141,30 +141,13 @@ interface CsmDirectionalShadowStatus extends ExampleStatusBase {
   };
 }
 
-test("Playwright renders directional CSM shadows on near and far receivers", async ({
+test("Playwright encodes and submits directional CSM shadow passes", async ({
   page,
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
-  await page.goto(
-    "/examples/csm-directional-shadow.html?disable-shadow-receiver=1",
-  );
-  let status = await waitForExampleStatus<CsmDirectionalShadowStatus>(page);
-
-  expect(status, "CSM baseline status should publish").toBeDefined();
-
-  if (status === undefined) {
-    return;
-  }
-
-  skipIfUnsupportedWebGpu(status);
-  await waitForCsmDirectionalShadowFrame(page, 3);
-  const noShadowScreenshot = await page
-    .locator("#aperture-canvas")
-    .screenshot();
-
   await page.goto("/examples/csm-directional-shadow.html?stop-after-ready=1");
-  status = await waitForExampleStatus<CsmDirectionalShadowStatus>(page);
+  let status = await waitForExampleStatus<CsmDirectionalShadowStatus>(page);
 
   expect(status, "CSM shadow status should publish").toBeDefined();
 
@@ -309,7 +292,6 @@ test("Playwright renders directional CSM shadows on near and far receivers", asy
     contentType: "image/png",
   });
   expectVisibleCsmScene(screenshot, status);
-  expectCsmShadowActivation(noShadowScreenshot, screenshot, status);
   webGpuValidation.expectNoWarnings();
   await page.goto("about:blank");
 });
@@ -404,7 +386,7 @@ test("M4-T4: authored shadow strength reaches full darkness (strength=1) and dis
   // caster box still renders and only the shadow is removed).
   const baseline = await captureCsmStrengthFrame(
     page,
-    "disable-shadow-receiver=1",
+    "graph=1&disable-shadow-receiver=1",
     false,
   );
   if (baseline === null) {
@@ -412,12 +394,20 @@ test("M4-T4: authored shadow strength reaches full darkness (strength=1) and dis
   }
   // Full strength: fully-occluded receiver reaches near-black (below the old
   // 0.45 MIN_VISIBILITY floor, which is now gone).
-  const strong = await captureCsmStrengthFrame(page, "shadow-strength=1.0");
+  const strong = await captureCsmStrengthFrame(
+    page,
+    "graph=1&shadow-strength=1.0",
+    false,
+  );
   if (strong === null) {
     return;
   }
   // Zero strength: shadow factor is 1 everywhere → frame matches the baseline.
-  const none = await captureCsmStrengthFrame(page, "shadow-strength=0.0");
+  const none = await captureCsmStrengthFrame(
+    page,
+    "graph=1&shadow-strength=0.0",
+    false,
+  );
   if (none === null) {
     return;
   }

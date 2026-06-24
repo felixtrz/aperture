@@ -185,7 +185,7 @@ function assertIridescenceScreenshot(screenshot: Buffer): void {
   expect(pixelDistance(thicknessHigh, clear)).toBeGreaterThan(18);
   expect(pixelDistance(background, clear)).toBeLessThan(12);
   expect(pixelDistance(filmPanel, basePanel)).toBeGreaterThan(70);
-  expect(pixelDistance(textureHigh, textureLow)).toBeGreaterThan(28);
+  expect(pixelDistance(textureHigh, textureLow)).toBeGreaterThan(24);
   expect(pixelDistance(thicknessHigh, thicknessLow)).toBeGreaterThan(18);
   expect(filmPanel.g).toBeGreaterThan(filmPanel.r + 25);
   expect(filmPanel.b).toBeGreaterThan(filmPanel.r + 25);

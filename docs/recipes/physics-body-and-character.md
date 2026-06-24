@@ -10,6 +10,14 @@ Give a rendered mesh a physics body with a single `spawn.mesh` descriptor
 `context.physics.moveCharacter`. Verify through the physics summary, pose
 writeback, and the character move report.
 
+> **App authoring uses string unions, not enum imports.** In a generated app you
+> only depend on `@aperture-engine/app`, so author rigid bodies with the plain
+> string `type` (`"static" | "dynamic" | "kinematicPosition" |
+"kinematicVelocity"`) or the `physics.*` helper namespace exported from
+> `@aperture-engine/app/systems`. The `PhysicsRigidBodyType.*` enum below is the
+> equivalent value from `@aperture-engine/physics`; the snippets use the string
+> form so they compile in an app without adding that package.
+
 ## Code
 
 ### 1. Rendered mesh with a physics descriptor
@@ -24,7 +32,7 @@ this.spawn.mesh({
   material: material.standard(),
   transform: { translation: [0, 3, 0] },
   physics: {
-    rigidBody: { type: PhysicsRigidBodyType.Dynamic },
+    rigidBody: { type: "dynamic" },
     collider: { shape: { kind: "sphere", radius: 0.25 } },
     velocity: { linear: [0.4, 0, 0] },
   },
@@ -57,7 +65,7 @@ const body = context.spawn.physics({
   key: "physics.facade.dynamic",
   transform: { translation: [0, 2, 0] },
   physics: {
-    rigidBody: { type: PhysicsRigidBodyType.Dynamic },
+    rigidBody: { type: "dynamic" },
     collider: { shape: { kind: "sphere", radius: 0.25 } },
   },
 });
@@ -66,7 +74,7 @@ context.spawn.physics({
   key: "physics.facade.ground",
   transform: { translation: [0, -0.25, 0] },
   physics: {
-    rigidBody: { type: PhysicsRigidBodyType.Static },
+    rigidBody: { type: "static" },
     collider: { shape: { kind: "box", halfExtents: [4, 0.25, 4] } },
   },
 });
@@ -85,7 +93,7 @@ const character = context.spawn.physics({
   key: "physics.facade.character",
   transform: { translation: [0, 1, 0] },
   physics: {
-    rigidBody: { type: PhysicsRigidBodyType.KinematicPosition },
+    rigidBody: { type: "kinematicPosition" },
     collider: { shape: { kind: "sphere", radius: 0.5 } },
     characterController: true,
   },

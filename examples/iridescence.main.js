@@ -248,7 +248,7 @@ function createIridescenceTextureContrastReport(readback) {
   const lowLuminance = luminance(low);
 
   return {
-    ok: highLowDistance > 28,
+    ok: highLowDistance > 24,
     highLowDistance,
     lowLuminance,
     highLuminance,

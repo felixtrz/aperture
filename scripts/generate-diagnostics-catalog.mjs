@@ -12,6 +12,7 @@ import prettier from "prettier";
 
 const CATALOG_FILE = "docs/DIAGNOSTICS_CATALOG.md";
 const SOURCE_ROOT = "packages";
+const GENERATED_SOURCE_DIRS = new Set(["packages/reference-assets/data"]);
 
 // Diagnostic-shaped object literals: a `code:` property holding a dotted
 // string literal. Messages/suggestedFix are extracted best-effort from the
@@ -20,7 +21,10 @@ const CODE_PATTERN = /code:\s*"([a-zA-Z0-9][a-zA-Z0-9_.-]*\.[a-zA-Z0-9_.-]+)"/g;
 
 export async function collectDiagnosticCodes(root = process.cwd()) {
   const entries = new Map();
-  const sourceFiles = await collectSourceFiles(path.join(root, SOURCE_ROOT));
+  const sourceFiles = await collectSourceFiles(
+    path.join(root, SOURCE_ROOT),
+    root,
+  );
 
   for (const file of sourceFiles) {
     const source = await readFile(file, "utf8");
@@ -46,7 +50,7 @@ export async function collectDiagnosticCodes(root = process.cwd()) {
   return [...entries.values()].sort((a, b) => a.code.localeCompare(b.code));
 }
 
-async function collectSourceFiles(directory) {
+async function collectSourceFiles(directory, root) {
   const files = [];
   const children = await readdir(directory, { withFileTypes: true });
 
@@ -54,10 +58,18 @@ async function collectSourceFiles(directory) {
     const childPath = path.join(directory, child.name);
 
     if (child.isDirectory()) {
+      const relativeDirectory = path
+        .relative(root, childPath)
+        .split(path.sep)
+        .join("/");
+
       if (child.name === "dist" || child.name === "node_modules") {
         continue;
       }
-      files.push(...(await collectSourceFiles(childPath)));
+      if (GENERATED_SOURCE_DIRS.has(relativeDirectory)) {
+        continue;
+      }
+      files.push(...(await collectSourceFiles(childPath, root)));
     } else if (child.name.endsWith(".ts") && !child.name.endsWith(".d.ts")) {
       files.push(childPath);
     }

@@ -23,7 +23,6 @@ const shadowIntent = {
   depthBias: 0.002,
   normalBias: 0.01,
 };
-let shadowDepthTextureResourceReport = null;
 
 try {
   const [core, webgpu] = await Promise.all([
@@ -215,247 +214,130 @@ async function publishFrameStatus(
   frame,
 ) {
   const reportJson = aperture.webGpuAppRenderReportToJsonValue(report);
-  const shadowDescriptor = aperture.shadowMapDescriptorReportToJsonValue(
-    aperture.createShadowMapDescriptorReport({
-      shadowRequests: report.snapshot.shadowRequests,
-      descriptors: report.snapshot.shadowRequests.map((request) => ({
-        shadowId: request.shadowId,
-        lightId: request.lightId,
-        mapSize: shadowIntent.mapSize,
-        depthBias: shadowIntent.depthBias,
-        normalBias: shadowIntent.normalBias,
-        faceCount: 1,
-        viewDimension: "2d",
-      })),
-    }),
-  );
-  const shadowTextures = aperture.shadowTextureResourceReportToJsonValue(
-    aperture.createShadowTextureResourceReport({
-      descriptors: shadowDescriptor,
-    }),
-  );
-
-  shadowDepthTextureResourceReport ??=
-    aperture.createShadowDepthTextureResourceReport({
-      device: app.initialization.device,
-      textures: shadowTextures,
-    });
-
-  const shadowDepthTextureResources =
-    aperture.shadowDepthTextureResourceReportToJsonValue(
-      shadowDepthTextureResourceReport,
-    );
   const appEnvironmentResourceCache =
     aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
-  const shadowSamplerResourceReport =
-    aperture.createShadowSamplerResourceReport({
-      device: app.initialization.device,
-      resourceKey: "shadow-sampler:spot",
-      cache: appEnvironmentResourceCache.shadowSamplers,
-    });
-  const shadowSamplerResource = aperture.shadowSamplerResourceReportToJsonValue(
-    shadowSamplerResourceReport,
-  );
-  const shadowPassPlan = aperture.shadowPassPlanReportToJsonValue(
-    aperture.createShadowPassPlanReport({
-      shadowRequests: report.snapshot.shadowRequests,
-      textures: shadowTextures,
-      submission: "ready",
-    }),
-  );
-  const shadowPassAttachments =
-    aperture.shadowPassAttachmentDescriptorReportToJsonValue(
-      aperture.createShadowPassAttachmentDescriptorReport({
-        shadowPassPlan,
-        depthTextureResources: shadowDepthTextureResourceReport,
-      }),
-    );
-  const shadowViewProjection =
-    aperture.spotShadowViewProjectionPlanReportToJsonValue(
-      aperture.createSpotShadowViewProjectionPlanReport({
-        shadowRequests: report.snapshot.shadowRequests,
-        lights: report.snapshot.lights,
-        shadowPassPlan,
-        computation: "ready",
-      }),
-    );
-  const shadowMatrixComputation =
-    aperture.spotShadowMatrixComputationReportToJsonValue(
-      aperture.createSpotShadowMatrixComputationReport({
-        viewProjection: shadowViewProjection,
-        transforms: report.snapshot.transforms,
-      }),
-    );
-  const shadowMatrixBuffer =
-    aperture.shadowMatrixBufferDescriptorReportToJsonValue(
-      aperture.createShadowMatrixBufferDescriptorReport({
-        viewProjection: shadowViewProjection,
-        upload: "ready",
-        resourceKey: "shadow-matrix-buffer:spot",
-        label: "SpotShadowMatrices/storage",
-      }),
-    );
-  const shadowMatrixBufferResourceReport =
-    aperture.createShadowMatrixBufferResourceReport({
-      device: app.initialization.device,
-      descriptor: shadowMatrixBuffer,
-      matrices: shadowMatrixComputation,
-    });
-  const shadowMatrixBufferResource =
-    aperture.shadowMatrixBufferResourceReportToJsonValue(
-      shadowMatrixBufferResourceReport,
-    );
   const shadowCasterMeshDraws = scene.shadowControls.casterEnabled
     ? report.snapshot.meshDraws.filter(
         (draw) => draw.sortKey.meshKey === scene.cubeMeshKey,
       )
     : [];
+  const shadowCasterMeshViews =
+    aperture.createShadowCasterMeshViewsFromAppReport(report);
+  const shadowFrame = aperture.createRenderShadowFrame({
+    device: app.initialization.device,
+    snapshot: {
+      ...report.snapshot,
+      shadowCasterDraws: shadowCasterMeshDraws,
+    },
+    preparedMeshes: shadowCasterMeshViews.preparedMeshes,
+    executableMeshes: shadowCasterMeshViews.executableMeshes,
+    cache: appEnvironmentResourceCache,
+    shadowMap: {
+      mapSize: shadowIntent.mapSize,
+      depthBias: shadowIntent.depthBias,
+      normalBias: shadowIntent.normalBias,
+      resourceKey: shadowIntent.key,
+    },
+    label: "shadow-pass:spot",
+    submit: scene.shadowControls.casterEnabled && !useFrameGraph,
+  });
+  const shadowDescriptor = aperture.shadowMapDescriptorReportToJsonValue(
+    shadowFrame.descriptor,
+  );
+  const shadowTextures = aperture.shadowTextureResourceReportToJsonValue(
+    shadowFrame.textures,
+  );
+  const shadowDepthTextureResources =
+    aperture.shadowDepthTextureResourceReportToJsonValue(
+      shadowFrame.depthTextureResources,
+    );
+  const shadowSamplerResource = aperture.shadowSamplerResourceReportToJsonValue(
+    shadowFrame.samplerResource,
+  );
+  const shadowPassPlan = aperture.shadowPassPlanReportToJsonValue(
+    shadowFrame.passPlan,
+  );
+  const shadowPassAttachments =
+    aperture.shadowPassAttachmentDescriptorReportToJsonValue(
+      shadowFrame.passAttachments,
+    );
+  const shadowViewProjection =
+    aperture.spotShadowViewProjectionPlanReportToJsonValue(
+      shadowFrame.viewProjection,
+    );
+  const shadowMatrixComputation =
+    aperture.spotShadowMatrixComputationReportToJsonValue(
+      shadowFrame.matrixComputation,
+    );
+  const shadowProjectionCoverage = createSpotShadowProjectionCoverageReport(
+    shadowFrame.matrixComputation,
+  );
+  const shadowMatrixBuffer =
+    aperture.shadowMatrixBufferDescriptorReportToJsonValue(
+      shadowFrame.matrixBuffer,
+    );
+  const shadowMatrixBufferResource =
+    aperture.shadowMatrixBufferResourceReportToJsonValue(
+      shadowFrame.matrixBufferResource,
+    );
   const shadowCasterDrawList =
     aperture.shadowCasterDrawListPlanReportToJsonValue(
-      aperture.createShadowCasterDrawListPlanReport({
-        shadowRequests: report.snapshot.shadowRequests,
-        meshDraws: shadowCasterMeshDraws,
-        shadowPassPlan,
-        commandEncoding: "ready",
-      }),
+      shadowFrame.casterDrawList,
     );
   const shadowCommandPlan =
     aperture.shadowCasterCommandPlanReadinessReportToJsonValue(
-      aperture.createShadowCasterCommandPlanReadinessReport({
-        shadowPassPlan,
-        viewProjection: shadowViewProjection,
-        matrixBuffer: shadowMatrixBuffer,
-        casterDrawList: shadowCasterDrawList,
-        commandEncoding: "ready",
-      }),
+      shadowFrame.commandPlan,
     );
   const shadowPassCommandEncoding =
     aperture.shadowPassCommandEncodingReportToJsonValue(
-      aperture.createShadowPassCommandEncodingReport({
-        shadowPassPlan,
-        depthTextureResources: shadowDepthTextureResourceReport,
-        matrixBufferResource: shadowMatrixBufferResourceReport,
-        casterDrawList: shadowCasterDrawList,
-        commandPlan: shadowCommandPlan,
-        commandEncoding: "ready",
-      }),
+      shadowFrame.commandEncoding,
     );
   const shadowCasterPipelineDescriptor =
     aperture.shadowCasterPipelineDescriptorReportToJsonValue(
-      aperture.createShadowCasterPipelineDescriptorReport({
-        commandEncoding: shadowPassCommandEncoding,
-      }),
+      shadowFrame.pipelineDescriptor,
     );
-  const shadowCasterPipelineResourceReport =
-    aperture.createShadowCasterPipelineResourceReport({
-      device: app.initialization.device,
-      descriptor: shadowCasterPipelineDescriptor,
-      cache: appEnvironmentResourceCache.shadowCasterPipelines,
-    });
   const shadowCasterPipelineResource =
     aperture.shadowCasterPipelineResourceReportToJsonValue(
-      shadowCasterPipelineResourceReport,
+      shadowFrame.pipelineResource,
     );
-  const shadowCasterMatrixBindGroupResourceReport =
-    aperture.createShadowCasterMatrixBindGroupResourceReport({
-      device: app.initialization.device,
-      matrixBufferResource: shadowMatrixBufferResourceReport,
-      layout:
-        shadowCasterPipelineResourceReport.resource?.matrixBindGroupLayout,
-      cache: appEnvironmentResourceCache.shadowCasterMatrixBindGroups,
-    });
   const shadowCasterMatrixBindGroupResource =
     aperture.shadowCasterMatrixBindGroupResourceReportToJsonValue(
-      shadowCasterMatrixBindGroupResourceReport,
+      shadowFrame.matrixBindGroupResource,
     );
-  const shadowCasterMeshViews =
-    aperture.createShadowCasterMeshViewsFromAppReport(report);
   const shadowCasterFrameResources =
     aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
-      aperture.createShadowCasterFrameResourceReadinessReport({
-        casterDrawList: shadowCasterDrawList,
-        preparedMeshes: shadowCasterMeshViews.preparedMeshes,
-        matrixBufferResource: shadowMatrixBufferResourceReport,
-        pipelineDescriptor: shadowCasterPipelineDescriptor,
-      }),
+      shadowFrame.frameResources,
     );
-  const shadowCasterCommandRecordPlan =
-    aperture.createShadowCasterCommandRecordPlanReport({
-      frameResources: shadowCasterFrameResources,
-      commandPlan: shadowCommandPlan,
-      pipelines:
-        shadowCasterPipelineResourceReport.resource === null
-          ? []
-          : [
-              {
-                pipelineKey:
-                  shadowCasterPipelineResourceReport.resource.pipelineKey,
-                resourceKey:
-                  shadowCasterPipelineResourceReport.resource.resourceKey,
-                pipeline: shadowCasterPipelineResourceReport.resource.pipeline,
-              },
-            ],
-      matrixBindGroups:
-        shadowCasterMatrixBindGroupResourceReport.resource === null
-          ? []
-          : [
-              {
-                matrixResourceKey:
-                  shadowCasterMatrixBindGroupResourceReport.resource
-                    .matrixResourceKey,
-                resourceKey:
-                  shadowCasterMatrixBindGroupResourceReport.resource
-                    .resourceKey,
-                group: shadowCasterMatrixBindGroupResourceReport.resource.group,
-                bindGroup:
-                  shadowCasterMatrixBindGroupResourceReport.resource.bindGroup,
-              },
-            ],
-      meshes: shadowCasterMeshViews.executableMeshes,
-    });
   const shadowCasterCommandRecords =
     aperture.shadowCasterCommandRecordPlanReportToJsonValue(
-      shadowCasterCommandRecordPlan,
+      shadowFrame.commandRecords,
     );
-  const shadowPassCommandEncoderResource =
-    aperture.createCommandEncoderResource({
-      device: app.initialization.device,
-      label: "shadow-pass:spot",
-    });
-  const shadowPassEncoderAssemblyReport =
-    aperture.createShadowPassEncoderAssemblyReport({
-      attachments: shadowPassAttachments,
-      frameResources: shadowCasterFrameResources,
-      commandEncoding: shadowPassCommandEncoding,
-      commands: shadowCasterCommandRecordPlan.commandRecords,
-      encoder: shadowPassCommandEncoderResource.resource?.encoder,
-      resolveDepthView: (attachment) =>
-        resolveSpotShadowDepthView(
-          shadowDepthTextureResourceReport,
-          attachment,
-        ),
-    });
   const shadowPassEncoderAssembly =
     aperture.shadowPassEncoderAssemblyReportToJsonValue(
-      shadowPassEncoderAssemblyReport,
+      shadowFrame.encoderAssembly,
     );
   const shadowPassCommandBufferSubmissionReport =
-    aperture.createShadowPassCommandBufferSubmissionReport({
-      assembly: shadowPassEncoderAssemblyReport,
-      encoder: shadowPassCommandEncoderResource.resource?.encoder,
-      queue: app.initialization.device.queue,
-      label: "shadow-pass:spot",
-      submit: scene.shadowControls.casterEnabled && !useFrameGraph,
-    });
+    shadowFrame.commandBufferSubmission;
   const shadowPassCommandBufferSubmission =
     aperture.shadowPassCommandBufferSubmissionReportToJsonValue(
       shadowPassCommandBufferSubmissionReport,
     );
+  const shadowDepthProbeReport = await aperture.createShadowDepthProbeReport({
+    device: app.initialization.device,
+    samples: shadowProjectionCoverage.records,
+    depthTextureResources: shadowFrame.depthTextureResources,
+    samplerResource: shadowFrame.samplerResource,
+    commandBufferSubmission: shadowPassCommandBufferSubmissionReport,
+    depthBias: shadowIntent.depthBias,
+  });
+  const shadowDepthProbe = aperture.shadowDepthProbeReportToJsonValue(
+    shadowDepthProbeReport,
+  );
   pendingShadowCasterGraphPasses = useFrameGraph
     ? aperture.createShadowCasterGraphPasses({
-        passAttachments: shadowPassAttachments,
-        depthTextureResources: shadowDepthTextureResourceReport,
-        commandRecords: shadowCasterCommandRecordPlan.commandRecords,
+        passAttachments: shadowFrame.passAttachments,
+        depthTextureResources: shadowFrame.depthTextureResources,
+        commandRecords: shadowFrame.commandRecords.commandRecords,
       })
     : null;
   const spotShadowRoute = findSpotShadowRoute(reportJson);
@@ -524,6 +406,8 @@ async function publishFrameStatus(
       passAttachments: shadowPassAttachments,
       viewProjection: shadowViewProjection,
       matrixComputation: shadowMatrixComputation,
+      projectionCoverage: shadowProjectionCoverage,
+      depthProbe: shadowDepthProbe,
       matrixBuffer: shadowMatrixBuffer,
       matrixBufferResource: shadowMatrixBufferResource,
       casterDrawList: shadowCasterDrawList,
@@ -566,12 +450,7 @@ async function publishFrameStatus(
   });
 
   return {
-    standardMaterialShadowReceiverResources: {
-      shadowKind: "spot",
-      matrixBufferResource: shadowMatrixBufferResourceReport,
-      depthTextureResources: shadowDepthTextureResourceReport,
-      samplerResource: shadowSamplerResourceReport,
-    },
+    standardMaterialShadowReceiverResources: shadowFrame.receiverResources,
   };
 }
 
@@ -589,27 +468,6 @@ function setupShadowControls(controls) {
       controls.casterEnabled = shadowCasterToggle.checked;
     });
   }
-}
-
-function resolveSpotShadowDepthView(depthTextureResourceReport, attachment) {
-  for (const resource of depthTextureResourceReport.resources) {
-    if (
-      resource.shadowId !== attachment.shadowId ||
-      resource.lightId !== attachment.lightId
-    ) {
-      continue;
-    }
-
-    const attachmentView = resource.attachmentViews.find(
-      (view) => view.viewKey === attachment.viewKey,
-    );
-
-    if (attachmentView !== undefined) {
-      return attachmentView.view;
-    }
-  }
-
-  return null;
 }
 
 function findSpotShadowRoute(reportJson) {
@@ -634,6 +492,188 @@ function familyBuckets(report) {
     routedItems: bucket.routedItems,
     frameResources: bucket.frameResources,
   }));
+}
+
+function createSpotShadowProjectionCoverageReport(matrixComputation) {
+  const matrix = matrixComputation.matrices?.[0] ?? null;
+
+  if (matrix === null) {
+    return {
+      ready: false,
+      status: "missing",
+      matrixKey: null,
+      sampleCount: 0,
+      receiverInsideCount: 0,
+      casterInsideCount: 0,
+      records: [],
+      diagnostics: [
+        {
+          code: "spotShadow.projectionCoverage.missingMatrix",
+          severity: "warning",
+          message:
+            "Spot shadow projection coverage requires a ready spot shadow matrix.",
+        },
+      ],
+    };
+  }
+
+  const records = spotShadowProjectionSamples().map((sample) =>
+    projectShadowSample(matrix.viewProjectionMatrix, sample),
+  );
+  const receiverRecords = records.filter(
+    (record) => record.role === "receiver",
+  );
+  const casterRecords = records.filter((record) => record.role === "caster");
+  const receiverInsideCount = receiverRecords.filter(
+    (record) => record.insideProjection,
+  ).length;
+  const casterInsideCount = casterRecords.filter(
+    (record) => record.insideProjection,
+  ).length;
+  const ready = receiverInsideCount > 0 && casterInsideCount > 0;
+
+  return {
+    ready,
+    status: ready ? "ready" : "missing",
+    matrixKey: matrix.matrixKey,
+    sampleCount: records.length,
+    receiverInsideCount,
+    casterInsideCount,
+    records,
+    diagnostics: ready
+      ? []
+      : [
+          {
+            code: "spotShadow.projectionCoverage.noOverlap",
+            severity: "warning",
+            message:
+              "Spot shadow projection coverage did not find both receiver and caster samples inside the light projection.",
+          },
+        ],
+  };
+}
+
+function spotShadowProjectionSamples() {
+  return [
+    ...spotShadowReceiverSamples(),
+    {
+      key: "caster:cube:center",
+      role: "caster",
+      shape: "cube",
+      worldPosition: [0, -0.02, 0.03],
+    },
+    {
+      key: "caster:cube:back-center",
+      role: "caster",
+      shape: "cube",
+      worldPosition: [0, -0.02, -0.42],
+    },
+    {
+      key: "caster:cube:front-center",
+      role: "caster",
+      shape: "cube",
+      worldPosition: [0, -0.02, 0.48],
+    },
+    {
+      key: "caster:cube:top",
+      role: "caster",
+      shape: "cube",
+      worldPosition: [0, 0.43, 0.03],
+    },
+    {
+      key: "caster:cube:bottom",
+      role: "caster",
+      shape: "cube",
+      worldPosition: [0, -0.47, 0.03],
+    },
+    {
+      key: "caster:cube:left",
+      role: "caster",
+      shape: "cube",
+      worldPosition: [-0.45, -0.02, 0.03],
+    },
+    {
+      key: "caster:cube:right",
+      role: "caster",
+      shape: "cube",
+      worldPosition: [0.45, -0.02, 0.03],
+    },
+  ];
+}
+
+function spotShadowReceiverSamples() {
+  const samples = [];
+  const xValues = [-0.9, -0.55, -0.25, 0.05, 0.4];
+  const yValues = [-1.15, -0.8, -0.5, -0.2, 0.15];
+
+  for (const y of yValues) {
+    for (const x of xValues) {
+      samples.push({
+        key: `receiver:wall:${x}:${y}`,
+        role: "receiver",
+        shape: "wall",
+        worldPosition: [x, y, -0.92],
+      });
+    }
+  }
+
+  return samples;
+}
+
+function projectShadowSample(matrix, sample) {
+  const clip = transformPoint4(matrix, sample.worldPosition);
+  const w = Math.abs(clip[3]) <= 0.00001 ? 1 : clip[3];
+  const ndc = [clip[0] / w, clip[1] / w, clip[2] / w];
+  const depth = ndc[2] < 0 ? ndc[2] * 0.5 + 0.5 : ndc[2];
+  const uv = [ndc[0] * 0.5 + 0.5, 0.5 - ndc[1] * 0.5];
+  const clampedUv = [clamp01(uv[0]), clamp01(uv[1])];
+  const clampedDepth = clamp01(depth);
+  const projectionDistance = Math.max(
+    Math.hypot(uv[0] - clampedUv[0], uv[1] - clampedUv[1]),
+    Math.abs(depth - clampedDepth),
+  );
+
+  return {
+    key: sample.key,
+    role: sample.role,
+    shape: sample.shape,
+    worldPosition: sample.worldPosition,
+    uv: sanitizeTuple2(uv),
+    depth: sanitizeNumber(depth),
+    insideProjection:
+      uv[0] >= 0 &&
+      uv[0] <= 1 &&
+      uv[1] >= 0 &&
+      uv[1] <= 1 &&
+      depth >= 0 &&
+      depth <= 1,
+    projectionDistance: sanitizeNumber(projectionDistance),
+  };
+}
+
+function transformPoint4(matrix, point) {
+  const x = point[0];
+  const y = point[1];
+  const z = point[2];
+
+  return [
+    matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12],
+    matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13],
+    matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14],
+    matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15],
+  ];
+}
+
+function clamp01(value) {
+  return Math.min(Math.max(value, 0), 1);
+}
+
+function sanitizeTuple2(value) {
+  return [sanitizeNumber(value[0]), sanitizeNumber(value[1])];
+}
+
+function sanitizeNumber(value) {
+  return Object.is(value, -0) ? 0 : value;
 }
 
 function publishStatus(status) {

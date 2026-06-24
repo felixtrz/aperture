@@ -1,3 +1,4 @@
+import { meshBufferResourceKey } from "../resources/core/resource-keys.js";
 import type {
   ShadowCasterExecutableMeshResourceView,
   ShadowCasterExecutableVertexBufferView,
@@ -6,7 +7,9 @@ import type { ShadowCasterPreparedMeshResourceView } from "./shadow-caster-frame
 
 export interface ShadowCasterPreparedMeshFacadeEntryLike {
   readonly assetKey: string;
+  readonly sourceVersion?: number;
   readonly label: string;
+  readonly meshResourceKey?: string;
 }
 
 export interface ShadowCasterMeshGpuResourceLike {
@@ -65,7 +68,7 @@ export function createShadowCasterPreparedMeshViews(
   >();
 
   for (const entry of preparedMeshFacadeEntries(report)) {
-    const resource = meshResourceByLabel.get(`mesh-buffer:${entry.label}`);
+    const resource = resolvePreparedMeshResource(meshResourceByLabel, entry);
 
     if (resource === undefined) {
       continue;
@@ -94,7 +97,7 @@ export function createShadowCasterExecutableMeshViews(
   >();
 
   for (const entry of preparedMeshFacadeEntries(report)) {
-    const resource = meshResourceByLabel.get(`mesh-buffer:${entry.label}`);
+    const resource = resolvePreparedMeshResource(meshResourceByLabel, entry);
 
     if (resource === undefined) {
       continue;
@@ -123,6 +126,33 @@ function createMeshResourceByLabel(
       resource,
     ]),
   );
+}
+
+function resolvePreparedMeshResource(
+  resources: ReadonlyMap<string, ShadowCasterMeshGpuResourceLike>,
+  entry: ShadowCasterPreparedMeshFacadeEntryLike,
+): ShadowCasterMeshGpuResourceLike | undefined {
+  for (const key of preparedMeshResourceCandidateKeys(entry)) {
+    const resource = resources.get(key);
+
+    if (resource !== undefined) {
+      return resource;
+    }
+  }
+
+  return undefined;
+}
+
+function preparedMeshResourceCandidateKeys(
+  entry: ShadowCasterPreparedMeshFacadeEntryLike,
+): readonly string[] {
+  return [
+    ...(entry.meshResourceKey === undefined ? [] : [entry.meshResourceKey]),
+    ...(entry.sourceVersion === undefined
+      ? []
+      : [meshBufferResourceKey(`${entry.assetKey}@v${entry.sourceVersion}`)]),
+    meshBufferResourceKey(entry.label),
+  ];
 }
 
 function preparedMeshFacadeEntries(

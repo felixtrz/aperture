@@ -26,6 +26,7 @@ const phaseHistoryEnabled = routeParams.has("phase-history");
 
 const timingHistory = new Map();
 const phaseTimingHistory = new Map();
+let activeRuntime = null;
 const expectedPhaseNames = [
   "extract",
   "collect",
@@ -49,6 +50,9 @@ const baseStatus = {
     requiredPhaseNames: expectedPhaseNames,
   },
 };
+
+globalThis.addEventListener("pagehide", disposeActiveRuntime);
+globalThis.__APERTURE_GPU_PROFILER_DISPOSE__ = disposeActiveRuntime;
 
 try {
   const [core, webgpu] = await Promise.all([
@@ -142,10 +146,13 @@ function startProfilerLoop(aperture, app, scene) {
   const loop = {
     frame: 0,
     receivedSnapshots: 0,
+    renderInFlight: false,
     workerReady: false,
     workerScene: null,
   };
 
+  disposeActiveRuntime();
+  activeRuntime = { app, worker, scene, loop };
   worker.addEventListener("message", (event) => {
     void handleWorkerMessage(aperture, app, scene, worker, loop, event.data);
   });
@@ -166,6 +173,22 @@ function startProfilerLoop(aperture, app, scene) {
       height: canvas?.height ?? 540,
     },
   });
+}
+
+async function disposeActiveRuntime() {
+  const runtime = activeRuntime;
+
+  if (runtime === null) {
+    return;
+  }
+
+  activeRuntime = null;
+  runtime.loop.workerReady = false;
+  runtime.worker.terminate();
+  runtime.app.stop();
+  await waitForProfilerLoopIdle(runtime.loop);
+  await runtime.app.initialization.device.queue?.onSubmittedWorkDone?.();
+  runtime.app.initialization.device.destroy?.();
 }
 
 async function handleWorkerMessage(
@@ -202,11 +225,16 @@ async function handleWorkerMessage(
   loop.receivedSnapshots += 1;
 
   const typedSnapshot = inspectStructuredCloneSnapshot(message.snapshot);
-  const report = await app.renderSnapshot(message.snapshot, {
+  loop.renderInFlight = true;
+
+  const renderPromise = app.renderSnapshot(message.snapshot, {
     frame: message.frame ?? loop.frame,
     clearColor,
     label: "gpu-profiler",
     phaseTimingSamples: message.phaseTimingSamples,
+  });
+  const report = await renderPromise.finally(() => {
+    loop.renderInFlight = false;
   });
   const status = createProfilerStatus({
     aperture,
@@ -219,6 +247,26 @@ async function handleWorkerMessage(
 
   publishStatus(status);
   requestWorkerFrame(worker, loop);
+}
+
+function waitForProfilerLoopIdle(loop) {
+  if (!loop.renderInFlight) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    const startedAt = performance.now();
+    const poll = () => {
+      if (!loop.renderInFlight || performance.now() - startedAt > 1000) {
+        resolve();
+        return;
+      }
+
+      requestAnimationFrame(poll);
+    };
+
+    poll();
+  });
 }
 
 function requestWorkerFrame(worker, loop) {
@@ -253,9 +301,7 @@ function createProfilerStatus({
     reportJson.phaseTimings,
     message.frame ?? 0,
   );
-  const routePhaseHistoryReady =
-    !phaseHistoryEnabled ||
-    (phaseOverlay.ready && phaseOverlay.changedPhaseValueCount > 0);
+  const routePhaseHistoryReady = !phaseHistoryEnabled || phaseOverlay.ready;
 
   return {
     ...baseStatus,

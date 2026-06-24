@@ -314,7 +314,7 @@ export function createMorphTargetDeltaResource(
 export function createMorphInstanceDescriptorResource(
   options: Pick<
     CreateStandardFrameGpuResourcesOptions,
-    "device" | "snapshot" | "draw" | "pipelineKey"
+    "device" | "draw" | "pipelineKey" | "snapshot" | "worldTransforms"
   >,
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
 ): MorphInstanceDescriptorGpuBufferResource | null {
@@ -336,6 +336,11 @@ export function createMorphInstanceDescriptorResource(
   const descriptor = createMorphInstanceDescriptorBufferDescriptor(
     options.snapshot,
     options.draw,
+    {
+      ...(options.worldTransforms === null
+        ? {}
+        : { transformOffsets: options.worldTransforms.offsets }),
+    },
   );
 
   diagnostics.push(...descriptor.diagnostics);

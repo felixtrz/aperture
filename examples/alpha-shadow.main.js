@@ -84,11 +84,17 @@ async function renderShadowDepth(device, webgpu, useAlphaTest) {
     : webgpu.SHADOW_CASTER_DEPTH_ONLY_WGSL;
   const module = device.createShaderModule({ code });
 
-  // group(0): the shadow matrices storage buffer (a single identity matrix).
+  // group(0): the current shadow pass matrix plus the packed world transforms
+  // storage used by the production shadow caster shaders.
   const matrixLayout = device.createBindGroupLayout({
     entries: [
       {
         binding: 0,
+        visibility: GPUShaderStage.VERTEX,
+        buffer: { type: "uniform" },
+      },
+      {
+        binding: 1,
         visibility: GPUShaderStage.VERTEX,
         buffer: { type: "read-only-storage" },
       },
@@ -97,14 +103,22 @@ async function renderShadowDepth(device, webgpu, useAlphaTest) {
   const identity = new Float32Array([
     1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
   ]);
-  const matrixBuffer = device.createBuffer({
+  const shadowPassMatrixBuffer = device.createBuffer({
+    size: identity.byteLength,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+  const worldTransformsBuffer = device.createBuffer({
     size: identity.byteLength,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
-  device.queue.writeBuffer(matrixBuffer, 0, identity);
+  device.queue.writeBuffer(shadowPassMatrixBuffer, 0, identity);
+  device.queue.writeBuffer(worldTransformsBuffer, 0, identity);
   const matrixBindGroup = device.createBindGroup({
     layout: matrixLayout,
-    entries: [{ binding: 0, resource: { buffer: matrixBuffer } }],
+    entries: [
+      { binding: 0, resource: { buffer: shadowPassMatrixBuffer } },
+      { binding: 1, resource: { buffer: worldTransformsBuffer } },
+    ],
   });
 
   const bindGroupLayouts = [matrixLayout];
