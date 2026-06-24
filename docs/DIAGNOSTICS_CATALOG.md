@@ -11,9 +11,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## aperture.asset (1)
 
-| Code                        | Message                       | Fix? | Emitted from                                                                                                        |
-| --------------------------- | ----------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------- |
-| `aperture.asset.loadFailed` | (message composed at runtime) | yes  | `packages/app/src/systems/assets.ts`<br>`packages/reference-assets/data/sources/packages/app/src/systems/assets.ts` |
+| Code                        | Message                       | Fix? | Emitted from                         |
+| --------------------------- | ----------------------------- | ---- | ------------------------------------ |
+| `aperture.asset.loadFailed` | (message composed at runtime) | yes  | `packages/app/src/systems/assets.ts` |
 
 ## aperture.camera (5)
 
@@ -33,9 +33,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## aperture.config (1)
 
-| Code                       | Message                                 | Fix? | Emitted from                                                                                                                            |
-| -------------------------- | --------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `aperture.config.notFound` | Aperture config file '…' was not found. | yes  | `packages/reference-assets/data/sources/packages/vite-plugin/src/system-discovery.ts`<br>`packages/vite-plugin/src/system-discovery.ts` |
+| Code                       | Message                                 | Fix? | Emitted from                                   |
+| -------------------------- | --------------------------------------- | ---- | ---------------------------------------------- |
+| `aperture.config.notFound` | Aperture config file '…' was not found. | yes  | `packages/vite-plugin/src/system-discovery.ts` |
 
 ## aperture.devtools (9)
 
@@ -53,29 +53,29 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## aperture.diagnostic (1)
 
-| Code                          | Message                                  | Fix? | Emitted from                                                                                                  |
-| ----------------------------- | ---------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------- |
-| `aperture.diagnostic.unknown` | Aperture reported an unknown diagnostic. | yes  | `packages/app/src/diagnostics.ts`<br>`packages/reference-assets/data/sources/packages/app/src/diagnostics.ts` |
+| Code                          | Message                                  | Fix? | Emitted from                      |
+| ----------------------------- | ---------------------------------------- | ---- | --------------------------------- |
+| `aperture.diagnostic.unknown` | Aperture reported an unknown diagnostic. | yes  | `packages/app/src/diagnostics.ts` |
 
 ## aperture.entityHierarchy (1)
 
-| Code                                   | Message                                                                    | Fix? | Emitted from                                                                                                                              |
-| -------------------------------------- | -------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `aperture.entityHierarchy.staleParent` | Entity … references a parent that is not active in the hierarchy snapshot. | yes  | `packages/app/src/entities/lookup/hierarchy.ts`<br>`packages/reference-assets/data/sources/packages/app/src/entities/lookup/hierarchy.ts` |
+| Code                                   | Message                                                                    | Fix? | Emitted from                                    |
+| -------------------------------------- | -------------------------------------------------------------------------- | ---- | ----------------------------------------------- |
+| `aperture.entityHierarchy.staleParent` | Entity … references a parent that is not active in the hierarchy snapshot. | yes  | `packages/app/src/entities/lookup/hierarchy.ts` |
 
 ## aperture.entityLookup (9)
 
-| Code                                                 | Message                                                                        | Fix? | Emitted from                                                                                                                                                                       |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------ | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aperture.entityLookup.componentFieldUnsupported`    | Field '…' on component '…' is not mutable through the developer entity helper. | yes  | `packages/app/src/entities/lookup/mutation.ts`<br>`packages/reference-assets/data/sources/packages/app/src/entities/lookup/mutation.ts`                                            |
-| `aperture.entityLookup.componentMissing`             | Entity … does not have component '…'.                                          | yes  | `packages/app/src/entities/lookup/mutation.ts`<br>`packages/reference-assets/data/sources/packages/app/src/entities/lookup/mutation.ts`                                            |
-| `aperture.entityLookup.componentMutationUnsupported` | Component '…' is not mutable through the developer entity helper.              | yes  | `packages/app/src/entities/lookup/mutation.ts`<br>`packages/reference-assets/data/sources/packages/app/src/entities/lookup/mutation.ts`                                            |
-| `aperture.entityLookup.duplicateKey`                 | Entity lookup requires a finite integer { index, generation } reference.       | yes  | `packages/app/src/entities/lookup/query.ts`<br>`packages/reference-assets/data/sources/packages/app/src/entities/lookup/query.ts`                                                  |
-| `aperture.entityLookup.generationMismatch`           | Entity index … is active with generation …, not requested generation ….        | yes  | `packages/app/src/entities/lookup/query.ts`<br>`packages/app/src/entities/lookup/resolve.ts`<br>`packages/reference-assets/data/sources/packages/app/src/entities/lookup/query.ts` |
-| `aperture.entityLookup.invalidComponentFieldValue`   | Field '…' on component '…' requires ….                                         | yes  | `packages/app/src/entities/lookup/mutation.ts`<br>`packages/reference-assets/data/sources/packages/app/src/entities/lookup/mutation.ts`                                            |
-| `aperture.entityLookup.invalidNamePattern`           | Entity namePattern '…' is not a valid regular expression.                      | yes  | `packages/app/src/entities/lookup/query.ts`<br>`packages/reference-assets/data/sources/packages/app/src/entities/lookup/query.ts`                                                  |
-| `aperture.entityLookup.invalidRef`                   | Entity lookup requires a finite integer { index, generation } reference.       | yes  | `packages/app/src/entities/lookup/query.ts`<br>`packages/app/src/entities/lookup/resolve.ts`<br>`packages/reference-assets/data/sources/packages/app/src/entities/lookup/query.ts` |
-| `aperture.entityLookup.notFound`                     | No active entity exists at index ….                                            | yes  | `packages/app/src/entities/lookup/query.ts`<br>`packages/app/src/entities/lookup/resolve.ts`<br>`packages/reference-assets/data/sources/packages/app/src/entities/lookup/query.ts` |
+| Code                                                 | Message                                                                        | Fix? | Emitted from                                                                                 |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------ | ---- | -------------------------------------------------------------------------------------------- |
+| `aperture.entityLookup.componentFieldUnsupported`    | Field '…' on component '…' is not mutable through the developer entity helper. | yes  | `packages/app/src/entities/lookup/mutation.ts`                                               |
+| `aperture.entityLookup.componentMissing`             | Entity … does not have component '…'.                                          | yes  | `packages/app/src/entities/lookup/mutation.ts`                                               |
+| `aperture.entityLookup.componentMutationUnsupported` | Component '…' is not mutable through the developer entity helper.              | yes  | `packages/app/src/entities/lookup/mutation.ts`                                               |
+| `aperture.entityLookup.duplicateKey`                 | Entity lookup requires a finite integer { index, generation } reference.       | yes  | `packages/app/src/entities/lookup/query.ts`                                                  |
+| `aperture.entityLookup.generationMismatch`           | Entity index … is active with generation …, not requested generation ….        | yes  | `packages/app/src/entities/lookup/query.ts`<br>`packages/app/src/entities/lookup/resolve.ts` |
+| `aperture.entityLookup.invalidComponentFieldValue`   | Field '…' on component '…' requires ….                                         | yes  | `packages/app/src/entities/lookup/mutation.ts`                                               |
+| `aperture.entityLookup.invalidNamePattern`           | Entity namePattern '…' is not a valid regular expression.                      | yes  | `packages/app/src/entities/lookup/query.ts`                                                  |
+| `aperture.entityLookup.invalidRef`                   | Entity lookup requires a finite integer { index, generation } reference.       | yes  | `packages/app/src/entities/lookup/query.ts`<br>`packages/app/src/entities/lookup/resolve.ts` |
+| `aperture.entityLookup.notFound`                     | No active entity exists at index ….                                            | yes  | `packages/app/src/entities/lookup/query.ts`<br>`packages/app/src/entities/lookup/resolve.ts` |
 
 ## aperture.entityTools (3)
 
@@ -94,19 +94,19 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## aperture.gltf (4)
 
-| Code                            | Message                                                    | Fix? | Emitted from                                                                                                    |
-| ------------------------------- | ---------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------- |
-| `aperture.gltf.invalidNodeName` | GLTF node lookup requires a non-empty node name.           | yes  | `packages/app/src/systems/gltf.ts`<br>`packages/reference-assets/data/sources/packages/app/src/systems/gltf.ts` |
-| `aperture.gltf.nodeDuplicate`   | Found … GLTF nodes named '…' in the spawned root subtree.  | yes  | `packages/app/src/systems/gltf.ts`<br>`packages/reference-assets/data/sources/packages/app/src/systems/gltf.ts` |
-| `aperture.gltf.nodeMissing`     | No GLTF node named '…' exists in the spawned root subtree. | yes  | `packages/app/src/systems/gltf.ts`<br>`packages/reference-assets/data/sources/packages/app/src/systems/gltf.ts` |
-| `aperture.gltf.rootInactive`    | Cannot look up a GLTF node from an inactive root entity.   | yes  | `packages/app/src/systems/gltf.ts`<br>`packages/reference-assets/data/sources/packages/app/src/systems/gltf.ts` |
+| Code                            | Message                                                    | Fix? | Emitted from                       |
+| ------------------------------- | ---------------------------------------------------------- | ---- | ---------------------------------- |
+| `aperture.gltf.invalidNodeName` | GLTF node lookup requires a non-empty node name.           | yes  | `packages/app/src/systems/gltf.ts` |
+| `aperture.gltf.nodeDuplicate`   | Found … GLTF nodes named '…' in the spawned root subtree.  | yes  | `packages/app/src/systems/gltf.ts` |
+| `aperture.gltf.nodeMissing`     | No GLTF node named '…' exists in the spawned root subtree. | yes  | `packages/app/src/systems/gltf.ts` |
+| `aperture.gltf.rootInactive`    | Cannot look up a GLTF node from an inactive root entity.   | yes  | `packages/app/src/systems/gltf.ts` |
 
 ## aperture.headless (2)
 
-| Code                            | Message                                             | Fix? | Emitted from                                                                                            |
-| ------------------------------- | --------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------- |
-| `aperture.headless.failed`      | Aperture headless app failed.                       | yes  | `packages/app/src/headless.ts`<br>`packages/reference-assets/data/sources/packages/app/src/headless.ts` |
-| `aperture.headless.invalidMode` | Aperture headless runner requires mode: 'headless'. | yes  | `packages/app/src/headless.ts`<br>`packages/reference-assets/data/sources/packages/app/src/headless.ts` |
+| Code                            | Message                                             | Fix? | Emitted from                   |
+| ------------------------------- | --------------------------------------------------- | ---- | ------------------------------ |
+| `aperture.headless.failed`      | Aperture headless app failed.                       | yes  | `packages/app/src/headless.ts` |
+| `aperture.headless.invalidMode` | Aperture headless runner requires mode: 'headless'. | yes  | `packages/app/src/headless.ts` |
 
 ## aperture.input (6)
 
@@ -121,83 +121,83 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## aperture.materials (2)
 
-| Code                                 | Message                                                               | Fix? | Emitted from                                                                                                              |
-| ------------------------------------ | --------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------- |
-| `aperture.materials.notReady`        | Material '…' is not registered with a ready asset.                    | —    | `packages/app/src/systems/materials.ts`<br>`packages/reference-assets/data/sources/packages/app/src/systems/materials.ts` |
-| `aperture.materials.unsupportedKind` | Material '…' of kind '…' does not support runtime parameter mutation. | —    | `packages/app/src/systems/materials.ts`<br>`packages/reference-assets/data/sources/packages/app/src/systems/materials.ts` |
+| Code                                 | Message                                                               | Fix? | Emitted from                            |
+| ------------------------------------ | --------------------------------------------------------------------- | ---- | --------------------------------------- |
+| `aperture.materials.notReady`        | Material '…' is not registered with a ready asset.                    | —    | `packages/app/src/systems/materials.ts` |
+| `aperture.materials.unsupportedKind` | Material '…' of kind '…' does not support runtime parameter mutation. | —    | `packages/app/src/systems/materials.ts` |
 
 ## aperture.mcp (7)
 
-| Code                                | Message                                                                                                          | Fix? | Emitted from                                                                                                    |
-| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------- |
-| `aperture.mcp.browserConnectFailed` | The active Aperture dev session browser could not be reached over CDP.                                           | yes  | `packages/cli/src/tools/client.ts`<br>`packages/reference-assets/data/sources/packages/cli/src/tools/client.ts` |
-| `aperture.mcp.browserUnavailable`   | The active Aperture dev session does not expose a browser debugging endpoint.                                    | yes  | `packages/cli/src/tools/client.ts`<br>`packages/reference-assets/data/sources/packages/cli/src/tools/client.ts` |
-| `aperture.mcp.sessionMissing`       | No Aperture dev session exists. Run 'aperture dev up' before using browser, ECS, input, camera, or render tools. | yes  | `packages/cli/src/tools/client.ts`<br>`packages/reference-assets/data/sources/packages/cli/src/tools/client.ts` |
-| `aperture.mcp.toolUnsupported`      | Unknown Aperture reference tool.                                                                                 | —    | `packages/cli/src/tools/dispatch.ts`<br>`packages/cli/src/tools/reference.ts`                                   |
-| `aperture.mcp.webgpuTimeout`        | Timed out waiting …ms for the generated Aperture app to report WebGPU readiness.                                 | yes  | `packages/cli/src/tools/browser.ts`                                                                             |
-| `aperture.mcp.webgpuUnavailable`    | The generated Aperture app reported WebGPU initialization failure.                                               | yes  | `packages/cli/src/tools/browser.ts`                                                                             |
-| `aperture.mcp.workerError`          | The generated Aperture app reported a worker error before WebGPU became ready.                                   | yes  | `packages/cli/src/tools/browser.ts`                                                                             |
+| Code                                | Message                                                                                                          | Fix? | Emitted from                                                                  |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------- |
+| `aperture.mcp.browserConnectFailed` | The active Aperture dev session browser could not be reached over CDP.                                           | yes  | `packages/cli/src/tools/client.ts`                                            |
+| `aperture.mcp.browserUnavailable`   | The active Aperture dev session does not expose a browser debugging endpoint.                                    | yes  | `packages/cli/src/tools/client.ts`                                            |
+| `aperture.mcp.sessionMissing`       | No Aperture dev session exists. Run 'aperture dev up' before using browser, ECS, input, camera, or render tools. | yes  | `packages/cli/src/tools/client.ts`                                            |
+| `aperture.mcp.toolUnsupported`      | Unknown Aperture reference tool.                                                                                 | —    | `packages/cli/src/tools/dispatch.ts`<br>`packages/cli/src/tools/reference.ts` |
+| `aperture.mcp.webgpuTimeout`        | Timed out waiting …ms for the generated Aperture app to report WebGPU readiness.                                 | yes  | `packages/cli/src/tools/browser.ts`                                           |
+| `aperture.mcp.webgpuUnavailable`    | The generated Aperture app reported WebGPU initialization failure.                                               | yes  | `packages/cli/src/tools/browser.ts`                                           |
+| `aperture.mcp.workerError`          | The generated Aperture app reported a worker error before WebGPU became ready.                                   | yes  | `packages/cli/src/tools/browser.ts`                                           |
 
 ## aperture.physics (23)
 
-| Code                                                        | Message                                                                                                          | Fix? | Emitted from                                                                                                        |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------- |
-| `aperture.physics.breakJoint.missingEntity`                 | physics_break_joint requires an entity reference with { index, generation }.                                     | yes  | `packages/app/src/worker/devtools/bridge.ts`                                                                        |
-| `aperture.physics.breakJoint.noop`                          | physics_break_joint did not break a joint because the entity has no enabled PhysicsJoint component.              | yes  | `packages/app/src/worker/devtools/bridge.ts`                                                                        |
-| `aperture.physics.collider.invalidHalfExtent`               | Box collider half extents must all be positive finite numbers.                                                   | —    | `packages/physics/src/validation.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/validation.ts` |
-| `aperture.physics.collider.unsupportedShape`                | Collider shape kind is not supported.                                                                            | —    | `packages/physics/src/validation.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/validation.ts` |
-| `aperture.physics.command.missingEntity`                    | … requires an entity reference with { index, generation }.                                                       | yes  | `packages/app/src/worker/devtools/bridge.ts`                                                                        |
-| `aperture.physics.debugGeometry.invalidOptions`             | physics_debug_geometry received malformed debug geometry options.                                                | yes  | `packages/app/src/worker/devtools/bridge.ts`                                                                        |
-| `aperture.physics.fixedStepDisabled`                        | Aperture physics requires an enabled fixed-step clock.                                                           | yes  | `packages/app/src/advanced.ts`<br>`packages/reference-assets/data/sources/packages/app/src/advanced.ts`             |
-| `aperture.physics.joint.invalidLimitRange`                  | Joint maxLimit must be greater than or equal to minLimit.                                                        | —    | `packages/physics/src/validation.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/validation.ts` |
-| `aperture.physics.jointStatus.missingEntity`                | physics_joint_status requires an entity reference with { index, generation }.                                    | yes  | `packages/app/src/worker/devtools/bridge.ts`                                                                        |
-| `aperture.physics.jointStatus.missingJoint`                 | physics_joint_status received an entity without a PhysicsJoint component.                                        | yes  | `packages/app/src/worker/devtools/bridge.ts`                                                                        |
-| `aperture.physics.moveCharacter.invalidPayload`             | physics_move_character requires finite desiredTranslation [x, y, z] values.                                      | yes  | `packages/app/src/worker/devtools/bridge.ts`                                                                        |
-| `aperture.physics.moveCharacter.invalidSettings`            | physics_move_character settings must be an object when provided.                                                 | yes  | `packages/app/src/worker/devtools/bridge.ts`                                                                        |
-| `aperture.physics.moveCharacter.missingEntity`              | physics_move_character requires an entity reference string or { index, generation } object.                      | yes  | `packages/app/src/worker/devtools/bridge.ts`                                                                        |
-| `aperture.physics.moveCharacter.noResult`                   | physics_move_character could not move the requested entity because no backend character body/collider was found. | yes  | `packages/app/src/worker/devtools/bridge.ts`                                                                        |
-| `aperture.physics.projectPoint.invalidPoint`                | physics_project_point requires a finite point [x, y, z] tuple.                                                   | yes  | `packages/app/src/worker/devtools/bridge.ts`                                                                        |
-| `aperture.physics.raycast.invalidRay`                       | Physics raycast tools require finite origin and nonzero direction [x, y, z] tuples.                              | yes  | `packages/app/src/worker/devtools/bridge.ts`                                                                        |
-| `aperture.physics.rigidBody.invalidType`                    | RigidBody type '…' is not supported.                                                                             | —    | `packages/physics/src/validation.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/validation.ts` |
-| `aperture.physics.scene.collider.missingHeightfieldAssetId` | Serialized heightfield collider on entity '…' is missing a heightfieldAssetId.                                   | —    | `packages/physics/src/validation.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/validation.ts` |
-| `aperture.physics.scene.collider.missingMeshId`             | Serialized … collider on entity '…' is missing a meshId.                                                         | —    | `packages/physics/src/validation.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/validation.ts` |
-| `aperture.physics.scene.collider.staleHeightfieldAssetId`   | Serialized heightfield collider on entity '…' references missing heightfield asset '…'.                          | —    | `packages/physics/src/validation.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/validation.ts` |
-| `aperture.physics.scene.collider.staleMeshId`               | Serialized … collider on entity '…' references missing mesh '…'.                                                 | —    | `packages/physics/src/validation.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/validation.ts` |
-| `aperture.physics.shapeCast.invalidPayload`                 | physics_cast_shape_first requires { shape, from, to } with finite primitive shape and transform values.          | yes  | `packages/app/src/worker/devtools/bridge.ts`                                                                        |
-| `aperture.physics.shapeQuery.invalidPayload`                | physics_overlap_shape requires { shape, transform } with finite primitive shape and transform values.            | yes  | `packages/app/src/worker/devtools/bridge.ts`                                                                        |
+| Code                                                        | Message                                                                                                          | Fix? | Emitted from                                 |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------- |
+| `aperture.physics.breakJoint.missingEntity`                 | physics_break_joint requires an entity reference with { index, generation }.                                     | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.physics.breakJoint.noop`                          | physics_break_joint did not break a joint because the entity has no enabled PhysicsJoint component.              | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.physics.collider.invalidHalfExtent`               | Box collider half extents must all be positive finite numbers.                                                   | —    | `packages/physics/src/validation.ts`         |
+| `aperture.physics.collider.unsupportedShape`                | Collider shape kind is not supported.                                                                            | —    | `packages/physics/src/validation.ts`         |
+| `aperture.physics.command.missingEntity`                    | … requires an entity reference with { index, generation }.                                                       | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.physics.debugGeometry.invalidOptions`             | physics_debug_geometry received malformed debug geometry options.                                                | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.physics.fixedStepDisabled`                        | Aperture physics requires an enabled fixed-step clock.                                                           | yes  | `packages/app/src/advanced.ts`               |
+| `aperture.physics.joint.invalidLimitRange`                  | Joint maxLimit must be greater than or equal to minLimit.                                                        | —    | `packages/physics/src/validation.ts`         |
+| `aperture.physics.jointStatus.missingEntity`                | physics_joint_status requires an entity reference with { index, generation }.                                    | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.physics.jointStatus.missingJoint`                 | physics_joint_status received an entity without a PhysicsJoint component.                                        | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.physics.moveCharacter.invalidPayload`             | physics_move_character requires finite desiredTranslation [x, y, z] values.                                      | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.physics.moveCharacter.invalidSettings`            | physics_move_character settings must be an object when provided.                                                 | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.physics.moveCharacter.missingEntity`              | physics_move_character requires an entity reference string or { index, generation } object.                      | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.physics.moveCharacter.noResult`                   | physics_move_character could not move the requested entity because no backend character body/collider was found. | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.physics.projectPoint.invalidPoint`                | physics_project_point requires a finite point [x, y, z] tuple.                                                   | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.physics.raycast.invalidRay`                       | Physics raycast tools require finite origin and nonzero direction [x, y, z] tuples.                              | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.physics.rigidBody.invalidType`                    | RigidBody type '…' is not supported.                                                                             | —    | `packages/physics/src/validation.ts`         |
+| `aperture.physics.scene.collider.missingHeightfieldAssetId` | Serialized heightfield collider on entity '…' is missing a heightfieldAssetId.                                   | —    | `packages/physics/src/validation.ts`         |
+| `aperture.physics.scene.collider.missingMeshId`             | Serialized … collider on entity '…' is missing a meshId.                                                         | —    | `packages/physics/src/validation.ts`         |
+| `aperture.physics.scene.collider.staleHeightfieldAssetId`   | Serialized heightfield collider on entity '…' references missing heightfield asset '…'.                          | —    | `packages/physics/src/validation.ts`         |
+| `aperture.physics.scene.collider.staleMeshId`               | Serialized … collider on entity '…' references missing mesh '…'.                                                 | —    | `packages/physics/src/validation.ts`         |
+| `aperture.physics.shapeCast.invalidPayload`                 | physics_cast_shape_first requires { shape, from, to } with finite primitive shape and transform values.          | yes  | `packages/app/src/worker/devtools/bridge.ts` |
+| `aperture.physics.shapeQuery.invalidPayload`                | physics_overlap_shape requires { shape, transform } with finite primitive shape and transform values.            | yes  | `packages/app/src/worker/devtools/bridge.ts` |
 
 ## aperture.prefab (4)
 
-| Code                                       | Message                                               | Fix? | Emitted from                                                                                                                                  |
-| ------------------------------------------ | ----------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aperture.prefab.overrideComponentMissing` | Prefab instance '…' has no component '…' to override. | —    | `packages/reference-assets/data/sources/packages/simulation/src/serialization/prefab.ts`<br>`packages/simulation/src/serialization/prefab.ts` |
-| `aperture.prefab.unknownOverrideComponent` | Prefab override targets unregistered component '…'.   | —    | `packages/reference-assets/data/sources/packages/simulation/src/serialization/prefab.ts`<br>`packages/simulation/src/serialization/prefab.ts` |
-| `aperture.prefab.unknownOverrideField`     | Component '…' has no field '…'.                       | —    | `packages/reference-assets/data/sources/packages/simulation/src/serialization/prefab.ts`<br>`packages/simulation/src/serialization/prefab.ts` |
-| `aperture.prefab.unknownOverrideId`        | Prefab override targets unknown prefab-local id '…'.  | —    | `packages/reference-assets/data/sources/packages/simulation/src/serialization/prefab.ts`<br>`packages/simulation/src/serialization/prefab.ts` |
+| Code                                       | Message                                               | Fix? | Emitted from                                      |
+| ------------------------------------------ | ----------------------------------------------------- | ---- | ------------------------------------------------- |
+| `aperture.prefab.overrideComponentMissing` | Prefab instance '…' has no component '…' to override. | —    | `packages/simulation/src/serialization/prefab.ts` |
+| `aperture.prefab.unknownOverrideComponent` | Prefab override targets unregistered component '…'.   | —    | `packages/simulation/src/serialization/prefab.ts` |
+| `aperture.prefab.unknownOverrideField`     | Component '…' has no field '…'.                       | —    | `packages/simulation/src/serialization/prefab.ts` |
+| `aperture.prefab.unknownOverrideId`        | Prefab override targets unknown prefab-local id '…'.  | —    | `packages/simulation/src/serialization/prefab.ts` |
 
 ## aperture.reference (7)
 
-| Code                                | Message                                                                             | Fix? | Emitted from                                                                                                                                                        |
-| ----------------------------------- | ----------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aperture.reference.fileCorrupt`    | Reference payload file '…' does not match the manifest hash.                        | yes  | `packages/cli/src/reference/manifest.ts`                                                                                                                            |
-| `aperture.reference.fileMissing`    | Reference payload file '…' is missing.                                              | yes  | `packages/cli/src/reference/manifest.ts`                                                                                                                            |
-| `aperture.reference.fileNotIndexed` | The requested file is not present in the warmed reference corpus.                   | —    | `packages/cli/src/tools/reference.ts`                                                                                                                               |
-| `aperture.reference.indexCorrupt`   | The warmed reference corpus was produced with a different embedding model contract. | yes  | `packages/cli/src/reference/status.ts`<br>`packages/reference-assets/data/sources/packages/cli/src/reference/status.ts`                                             |
-| `aperture.reference.indexMissing`   | The warmed reference corpus was produced with a different embedding model contract. | yes  | `packages/cli/src/reference/status.ts`<br>`packages/reference-assets/data/sources/packages/cli/src/reference/status.ts`                                             |
-| `aperture.reference.modelMismatch`  | The manifest model contract does not match the CLI query model contract.            | yes  | `packages/cli/src/reference/manifest.ts`<br>`packages/cli/src/reference/status.ts`<br>`packages/reference-assets/data/sources/packages/cli/src/reference/status.ts` |
-| `aperture.reference.modelMissing`   | Aperture reference embedding model files are missing from ….                        | yes  | `packages/cli/src/reference/status.ts`<br>`packages/reference-assets/data/sources/packages/cli/src/reference/status.ts`                                             |
+| Code                                | Message                                                                             | Fix? | Emitted from                                                                       |
+| ----------------------------------- | ----------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------------- |
+| `aperture.reference.fileCorrupt`    | Reference payload file '…' does not match the manifest hash.                        | yes  | `packages/cli/src/reference/manifest.ts`                                           |
+| `aperture.reference.fileMissing`    | Reference payload file '…' is missing.                                              | yes  | `packages/cli/src/reference/manifest.ts`                                           |
+| `aperture.reference.fileNotIndexed` | The requested file is not present in the warmed reference corpus.                   | —    | `packages/cli/src/tools/reference.ts`                                              |
+| `aperture.reference.indexCorrupt`   | The warmed reference corpus was produced with a different embedding model contract. | yes  | `packages/cli/src/reference/status.ts`                                             |
+| `aperture.reference.indexMissing`   | The warmed reference corpus was produced with a different embedding model contract. | yes  | `packages/cli/src/reference/status.ts`                                             |
+| `aperture.reference.modelMismatch`  | The manifest model contract does not match the CLI query model contract.            | yes  | `packages/cli/src/reference/manifest.ts`<br>`packages/cli/src/reference/status.ts` |
+| `aperture.reference.modelMissing`   | Aperture reference embedding model files are missing from ….                        | yes  | `packages/cli/src/reference/status.ts`                                             |
 
 ## aperture.render (7)
 
-| Code                                        | Message                                                                                                               | Fix? | Emitted from                                                                                                        |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------- |
-| `aperture.render.canvasMissing`             | No HTML canvas was found for managed-browser entity pick.                                                             | —    | `packages/app/src/browser/devtools/picking.ts`                                                                      |
-| `aperture.render.pickOutOfBounds`           | Pick point is outside the …x… canvas.                                                                                 | —    | `packages/app/src/browser/devtools/picking.ts`                                                                      |
-| `aperture.render.readbackSampleOutOfBounds` | Readback sample '…' is outside the …x… canvas.                                                                        | —    | `packages/app/src/browser/devtools/canvas-readback.ts`<br>`packages/cli/src/tools/png-readback.ts`                  |
-| `aperture.render.sampleCount.clamped`       | WebGPU generated apps currently support MSAA sample counts 1 and 4; this value will be clamped by the WebGPU backend. | yes  | `packages/app/src/browser/render.ts`<br>`packages/reference-assets/data/sources/packages/app/src/browser/render.ts` |
-| `aperture.render.sampleCount.invalid`       | Generated app render.sampleCount must be a finite positive number; using the default 4x MSAA.                         | yes  | `packages/app/src/browser/render.ts`<br>`packages/reference-assets/data/sources/packages/app/src/browser/render.ts` |
-| `aperture.render.webgpuNotReady`            | WebGPU has not finished initializing in this managed tab.                                                             | —    | `packages/app/src/browser/devtools/picking.ts`                                                                      |
-| `aperture.render.webgpuUnavailable`         | WebGPU initialization failed, so entity picking is unavailable.                                                       | —    | `packages/app/src/browser/devtools/picking.ts`                                                                      |
+| Code                                        | Message                                                                                                               | Fix? | Emitted from                                                                                       |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------- |
+| `aperture.render.canvasMissing`             | No HTML canvas was found for managed-browser entity pick.                                                             | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
+| `aperture.render.pickOutOfBounds`           | Pick point is outside the …x… canvas.                                                                                 | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
+| `aperture.render.readbackSampleOutOfBounds` | Readback sample '…' is outside the …x… canvas.                                                                        | —    | `packages/app/src/browser/devtools/canvas-readback.ts`<br>`packages/cli/src/tools/png-readback.ts` |
+| `aperture.render.sampleCount.clamped`       | WebGPU generated apps currently support MSAA sample counts 1 and 4; this value will be clamped by the WebGPU backend. | yes  | `packages/app/src/browser/render.ts`                                                               |
+| `aperture.render.sampleCount.invalid`       | Generated app render.sampleCount must be a finite positive number; using the default 4x MSAA.                         | yes  | `packages/app/src/browser/render.ts`                                                               |
+| `aperture.render.webgpuNotReady`            | WebGPU has not finished initializing in this managed tab.                                                             | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
+| `aperture.render.webgpuUnavailable`         | WebGPU initialization failed, so entity picking is unavailable.                                                       | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
 
 ## aperture.resource (3)
 
@@ -209,56 +209,56 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## aperture.scene (1)
 
-| Code                                  | Message                                                                             | Fix? | Emitted from                                                                                                                                                  |
-| ------------------------------------- | ----------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aperture.scene.unknownFormatVersion` | Unsupported scene document formatVersion '…'; expected …. Nothing was instantiated. | —    | `packages/reference-assets/data/sources/packages/simulation/src/serialization/scene-document.ts`<br>`packages/simulation/src/serialization/scene-document.ts` |
+| Code                                  | Message                                                                             | Fix? | Emitted from                                              |
+| ------------------------------------- | ----------------------------------------------------------------------------------- | ---- | --------------------------------------------------------- |
+| `aperture.scene.unknownFormatVersion` | Unsupported scene document formatVersion '…'; expected …. Nothing was instantiated. | —    | `packages/simulation/src/serialization/scene-document.ts` |
 
 ## aperture.serialization (4)
 
-| Code                                               | Message                                                       | Fix? | Emitted from                                                                                                                                                    |
-| -------------------------------------------------- | ------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aperture.serialization.invalidEntityRefString`    | Expected serialized entity ref string for ….…; field cleared. | —    | `packages/reference-assets/data/sources/packages/simulation/src/serialization/component-codec.ts`<br>`packages/simulation/src/serialization/component-codec.ts` |
-| `aperture.serialization.unregisteredComponent`     | No registered component for id '…'; component skipped.        | —    | `packages/reference-assets/data/sources/packages/simulation/src/serialization/component-codec.ts`<br>`packages/simulation/src/serialization/component-codec.ts` |
-| `aperture.serialization.unresolvedEntityRef`       | Could not resolve entity ref '…' for ….…; set to null.        | —    | `packages/reference-assets/data/sources/packages/simulation/src/serialization/component-codec.ts`<br>`packages/simulation/src/serialization/component-codec.ts` |
-| `aperture.serialization.unresolvedEntityRefString` | Could not resolve entity ref '…' for ….…; field cleared.      | —    | `packages/reference-assets/data/sources/packages/simulation/src/serialization/component-codec.ts`<br>`packages/simulation/src/serialization/component-codec.ts` |
+| Code                                               | Message                                                       | Fix? | Emitted from                                               |
+| -------------------------------------------------- | ------------------------------------------------------------- | ---- | ---------------------------------------------------------- |
+| `aperture.serialization.invalidEntityRefString`    | Expected serialized entity ref string for ….…; field cleared. | —    | `packages/simulation/src/serialization/component-codec.ts` |
+| `aperture.serialization.unregisteredComponent`     | No registered component for id '…'; component skipped.        | —    | `packages/simulation/src/serialization/component-codec.ts` |
+| `aperture.serialization.unresolvedEntityRef`       | Could not resolve entity ref '…' for ….…; set to null.        | —    | `packages/simulation/src/serialization/component-codec.ts` |
+| `aperture.serialization.unresolvedEntityRefString` | Could not resolve entity ref '…' for ….…; field cleared.      | —    | `packages/simulation/src/serialization/component-codec.ts` |
 
 ## aperture.system (3)
 
-| Code                                   | Message                                                                              | Fix? | Emitted from                                                                                                                                                                                                                                       |
-| -------------------------------------- | ------------------------------------------------------------------------------------ | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aperture.system.invalidDefaultExport` | Discovered system module at index … does not export an EliCS system class.           | yes  | `packages/app/src/advanced.ts`<br>`packages/reference-assets/data/sources/packages/app/src/advanced.ts`                                                                                                                                            |
-| `aperture.system.invalidPriority`      | Discovered system module at index … has an invalid createSystem descriptor priority. | yes  | `packages/app/src/advanced.ts`<br>`packages/reference-assets/data/sources/packages/app/src/advanced.ts`<br>`packages/reference-assets/data/sources/packages/vite-plugin/src/system-discovery.ts`<br>`packages/vite-plugin/src/system-discovery.ts` |
-| `aperture.system.missingDefaultExport` | Discovered system module at index … has no default export.                           | yes  | `packages/app/src/advanced.ts`<br>`packages/reference-assets/data/sources/packages/app/src/advanced.ts`<br>`packages/reference-assets/data/sources/packages/vite-plugin/src/system-discovery.ts`<br>`packages/vite-plugin/src/system-discovery.ts` |
+| Code                                   | Message                                                                              | Fix? | Emitted from                                                                     |
+| -------------------------------------- | ------------------------------------------------------------------------------------ | ---- | -------------------------------------------------------------------------------- |
+| `aperture.system.invalidDefaultExport` | Discovered system module at index … does not export an EliCS system class.           | yes  | `packages/app/src/advanced.ts`                                                   |
+| `aperture.system.invalidPriority`      | Discovered system module at index … has an invalid createSystem descriptor priority. | yes  | `packages/app/src/advanced.ts`<br>`packages/vite-plugin/src/system-discovery.ts` |
+| `aperture.system.missingDefaultExport` | Discovered system module at index … has no default export.                           | yes  | `packages/app/src/advanced.ts`<br>`packages/vite-plugin/src/system-discovery.ts` |
 
 ## aperture.systemGlob (1)
 
-| Code                        | Message                                  | Fix? | Emitted from                                                                                                                            |
-| --------------------------- | ---------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `aperture.systemGlob.empty` | System glob '…' did not match any files. | yes  | `packages/reference-assets/data/sources/packages/vite-plugin/src/system-discovery.ts`<br>`packages/vite-plugin/src/system-discovery.ts` |
+| Code                        | Message                                  | Fix? | Emitted from                                   |
+| --------------------------- | ---------------------------------------- | ---- | ---------------------------------------------- |
+| `aperture.systemGlob.empty` | System glob '…' did not match any files. | yes  | `packages/vite-plugin/src/system-discovery.ts` |
 
 ## asset.dependencyCycle (1)
 
-| Code                    | Message                              | Fix? | Emitted from                                                                                                                        |
-| ----------------------- | ------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `asset.dependencyCycle` | Circular dependency detected at '…'. | —    | `packages/reference-assets/data/sources/packages/simulation/src/assets/registry.ts`<br>`packages/simulation/src/assets/registry.ts` |
+| Code                    | Message                              | Fix? | Emitted from                                 |
+| ----------------------- | ------------------------------------ | ---- | -------------------------------------------- |
+| `asset.dependencyCycle` | Circular dependency detected at '…'. | —    | `packages/simulation/src/assets/registry.ts` |
 
 ## asset.dependencyFailed (1)
 
-| Code                     | Message                | Fix? | Emitted from                                                                                                                        |
-| ------------------------ | ---------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `asset.dependencyFailed` | Dependency '…' failed. | —    | `packages/reference-assets/data/sources/packages/simulation/src/assets/registry.ts`<br>`packages/simulation/src/assets/registry.ts` |
+| Code                     | Message                | Fix? | Emitted from                                 |
+| ------------------------ | ---------------------- | ---- | -------------------------------------------- |
+| `asset.dependencyFailed` | Dependency '…' failed. | —    | `packages/simulation/src/assets/registry.ts` |
 
 ## asset.dependencyLoading (1)
 
-| Code                      | Message                          | Fix? | Emitted from                                                                                                                        |
-| ------------------------- | -------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `asset.dependencyLoading` | Dependency '…' is still loading. | —    | `packages/reference-assets/data/sources/packages/simulation/src/assets/registry.ts`<br>`packages/simulation/src/assets/registry.ts` |
+| Code                      | Message                          | Fix? | Emitted from                                 |
+| ------------------------- | -------------------------------- | ---- | -------------------------------------------- |
+| `asset.dependencyLoading` | Dependency '…' is still loading. | —    | `packages/simulation/src/assets/registry.ts` |
 
 ## asset.dependencyMissing (1)
 
-| Code                      | Message                 | Fix? | Emitted from                                                                                                                        |
-| ------------------------- | ----------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `asset.dependencyMissing` | Missing dependency '…'. | —    | `packages/reference-assets/data/sources/packages/simulation/src/assets/registry.ts`<br>`packages/simulation/src/assets/registry.ts` |
+| Code                      | Message                 | Fix? | Emitted from                                 |
+| ------------------------- | ----------------------- | ---- | -------------------------------------------- |
+| `asset.dependencyMissing` | Missing dependency '…'. | —    | `packages/simulation/src/assets/registry.ts` |
 
 ## brdfLutResource.deviceUnsupported (1)
 
@@ -280,21 +280,21 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## camera.invalidClipRange (1)
 
-| Code                      | Message                                  | Fix? | Emitted from                                                                                                                                                            |
-| ------------------------- | ---------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `camera.invalidClipRange` | Cameras require near > 0 and far > near. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-camera.ts`<br>`packages/render/src/rendering/authoring-validation-camera.ts` |
+| Code                      | Message                                  | Fix? | Emitted from                                                   |
+| ------------------------- | ---------------------------------------- | ---- | -------------------------------------------------------------- |
+| `camera.invalidClipRange` | Cameras require near > 0 and far > near. | —    | `packages/render/src/rendering/authoring-validation-camera.ts` |
 
 ## camera.invalidProjection (1)
 
-| Code                       | Message                                                          | Fix? | Emitted from                                                                                                                                                            |
-| -------------------------- | ---------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `camera.invalidProjection` | Perspective cameras require 0 < fovYRadians < PI and aspect > 0. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-camera.ts`<br>`packages/render/src/rendering/authoring-validation-camera.ts` |
+| Code                       | Message                                                          | Fix? | Emitted from                                                   |
+| -------------------------- | ---------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `camera.invalidProjection` | Perspective cameras require 0 < fovYRadians < PI and aspect > 0. | —    | `packages/render/src/rendering/authoring-validation-camera.ts` |
 
 ## camera.invalidTemporalJitter (1)
 
-| Code                           | Message                                              | Fix? | Emitted from                                                                                                                                                            |
-| ------------------------------ | ---------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `camera.invalidTemporalJitter` | Camera temporalJitter values must be finite numbers. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-camera.ts`<br>`packages/render/src/rendering/authoring-validation-camera.ts` |
+| Code                           | Message                                              | Fix? | Emitted from                                                   |
+| ------------------------------ | ---------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `camera.invalidTemporalJitter` | Camera temporalJitter values must be finite numbers. | —    | `packages/render/src/rendering/authoring-validation-camera.ts` |
 
 ## camera.invalidViewport (1)
 
@@ -304,9 +304,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## camera.zeroLayerMask (1)
 
-| Code                   | Message                            | Fix? | Emitted from                                                                                                                                                            |
-| ---------------------- | ---------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `camera.zeroLayerMask` | Camera layerMask must not be zero. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-camera.ts`<br>`packages/render/src/rendering/authoring-validation-camera.ts` |
+| Code                   | Message                            | Fix? | Emitted from                                                   |
+| ---------------------- | ---------------------------------- | ---- | -------------------------------------------------------------- |
+| `camera.zeroLayerMask` | Camera layerMask must not be zero. | —    | `packages/render/src/rendering/authoring-validation-camera.ts` |
 
 ## clearCompatibility.missingCommandBuffer (1)
 
@@ -850,9 +850,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## drawBatching.emptyPackages (1)
 
-| Code                         | Message                       | Fix? | Emitted from                                                                                                                                    |
-| ---------------------------- | ----------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `drawBatching.emptyPackages` | (message composed at runtime) | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/batching-report.ts`<br>`packages/render/src/rendering/batching-report.ts` |
+| Code                         | Message                       | Fix? | Emitted from                                       |
+| ---------------------------- | ----------------------------- | ---- | -------------------------------------------------- |
+| `drawBatching.emptyPackages` | (message composed at runtime) | —    | `packages/render/src/rendering/batching-report.ts` |
 
 ## drawCommand.missingInstanceAttributePacket (1)
 
@@ -916,27 +916,27 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## fog.invalidColor (1)
 
-| Code               | Message                                      | Fix? | Emitted from                                                                                                                                                              |
-| ------------------ | -------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `fog.invalidColor` | Fog color components must be finite numbers. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code               | Message                                      | Fix? | Emitted from                                                    |
+| ------------------ | -------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `fog.invalidColor` | Fog color components must be finite numbers. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## fog.invalidDensity (1)
 
-| Code                 | Message                                                       | Fix? | Emitted from                                                                                                                                                              |
-| -------------------- | ------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `fog.invalidDensity` | Exponential fog density must be a finite non-negative number. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                 | Message                                                       | Fix? | Emitted from                                                    |
+| -------------------- | ------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `fog.invalidDensity` | Exponential fog density must be a finite non-negative number. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## fog.invalidMode (1)
 
-| Code              | Message                                      | Fix? | Emitted from                                                                                                                                                              |
-| ----------------- | -------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `fog.invalidMode` | Fog mode must be 'linear', 'exp', or 'exp2'. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code              | Message                                      | Fix? | Emitted from                                                    |
+| ----------------- | -------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `fog.invalidMode` | Fog mode must be 'linear', 'exp', or 'exp2'. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## fog.invalidRange (1)
 
-| Code               | Message                                                           | Fix? | Emitted from                                                                                                                                                              |
-| ------------------ | ----------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `fog.invalidRange` | Linear fog requires finite start >= 0 and end greater than start. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code               | Message                                                           | Fix? | Emitted from                                                    |
+| ------------------ | ----------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `fog.invalidRange` | Linear fog requires finite start >= 0 and end greater than start. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## frameBoundaryPassRectangle.invalidRectangle (1)
 
@@ -1048,9 +1048,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## frameReadiness.emptyFrame (1)
 
-| Code                        | Message                                                   | Fix? | Emitted from                                                                                                                                          |
-| --------------------------- | --------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `frameReadiness.emptyFrame` | Frame assembly has no draw packages ready for submission. | —    | `packages/reference-assets/data/sources/packages/webgpu/src/render/frame/frame-readiness.ts`<br>`packages/webgpu/src/render/frame/frame-readiness.ts` |
+| Code                        | Message                                                   | Fix? | Emitted from                                          |
+| --------------------------- | --------------------------------------------------------- | ---- | ----------------------------------------------------- |
+| `frameReadiness.emptyFrame` | Frame assembly has no draw packages ready for submission. | —    | `packages/webgpu/src/render/frame/frame-readiness.ts` |
 
 ## glb.chunkOutOfBounds (1)
 
@@ -1084,33 +1084,33 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## glb.invalidJson (1)
 
-| Code              | Message                             | Fix? | Emitted from                                                                                                                          |
-| ----------------- | ----------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `glb.invalidJson` | GLB JSON chunk must be valid UTF-8. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/glb-container.ts`<br>`packages/render/src/assets/glb-container.ts` |
+| Code              | Message                             | Fix? | Emitted from                                  |
+| ----------------- | ----------------------------------- | ---- | --------------------------------------------- |
+| `glb.invalidJson` | GLB JSON chunk must be valid UTF-8. | —    | `packages/render/src/assets/glb-container.ts` |
 
 ## glb.invalidMagic (1)
 
-| Code               | Message                    | Fix? | Emitted from                                                                                                                          |
-| ------------------ | -------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `glb.invalidMagic` | GLB JSON chunk is missing. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/glb-container.ts`<br>`packages/render/src/assets/glb-container.ts` |
+| Code               | Message                    | Fix? | Emitted from                                  |
+| ------------------ | -------------------------- | ---- | --------------------------------------------- |
+| `glb.invalidMagic` | GLB JSON chunk is missing. | —    | `packages/render/src/assets/glb-container.ts` |
 
 ## glb.lengthMismatch (1)
 
-| Code                 | Message                    | Fix? | Emitted from                                                                                                                          |
-| -------------------- | -------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `glb.lengthMismatch` | GLB JSON chunk is missing. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/glb-container.ts`<br>`packages/render/src/assets/glb-container.ts` |
+| Code                 | Message                    | Fix? | Emitted from                                  |
+| -------------------- | -------------------------- | ---- | --------------------------------------------- |
+| `glb.lengthMismatch` | GLB JSON chunk is missing. | —    | `packages/render/src/assets/glb-container.ts` |
 
 ## glb.missingJsonChunk (1)
 
-| Code                   | Message                    | Fix? | Emitted from                                                                                                                                                                                  |
-| ---------------------- | -------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `glb.missingJsonChunk` | GLB JSON chunk is missing. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/glb-container.ts`<br>`packages/render/src/assets/glb-container-chunks.ts`<br>`packages/render/src/assets/glb-container.ts` |
+| Code                   | Message                                 | Fix? | Emitted from                                                                                          |
+| ---------------------- | --------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------- |
+| `glb.missingJsonChunk` | GLB first chunk must be the JSON chunk. | —    | `packages/render/src/assets/glb-container-chunks.ts`<br>`packages/render/src/assets/glb-container.ts` |
 
 ## glb.tooShort (1)
 
-| Code           | Message                            | Fix? | Emitted from                                                                                                                          |
-| -------------- | ---------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `glb.tooShort` | GLB data must be at least … bytes. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/glb-container.ts`<br>`packages/render/src/assets/glb-container.ts` |
+| Code           | Message                            | Fix? | Emitted from                                  |
+| -------------- | ---------------------------------- | ---- | --------------------------------------------- |
+| `glb.tooShort` | GLB data must be at least … bytes. | —    | `packages/render/src/assets/glb-container.ts` |
 
 ## glb.unknownChunk (1)
 
@@ -1120,9 +1120,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## glb.unsupportedVersion (1)
 
-| Code                     | Message                    | Fix? | Emitted from                                                                                                                          |
-| ------------------------ | -------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `glb.unsupportedVersion` | GLB JSON chunk is missing. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/glb-container.ts`<br>`packages/render/src/assets/glb-container.ts` |
+| Code                     | Message                    | Fix? | Emitted from                                  |
+| ------------------------ | -------------------------- | ---- | --------------------------------------------- |
+| `glb.unsupportedVersion` | GLB JSON chunk is missing. | —    | `packages/render/src/assets/glb-container.ts` |
 
 ## glbImport.externalBufferUnsupported (1)
 
@@ -1180,9 +1180,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## gltfAccessor.malformedAccessors (1)
 
-| Code                              | Message                                              | Fix? | Emitted from                                                                                                                                                |
-| --------------------------------- | ---------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfAccessor.malformedAccessors` | glTF root must be an object for accessor validation. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-accessor-validation.ts`<br>`packages/render/src/assets/gltf-accessor-validation.ts` |
+| Code                              | Message                                              | Fix? | Emitted from                                             |
+| --------------------------------- | ---------------------------------------------------- | ---- | -------------------------------------------------------- |
+| `gltfAccessor.malformedAccessors` | glTF root must be an object for accessor validation. | —    | `packages/render/src/assets/gltf-accessor-validation.ts` |
 
 ## gltfAccessor.sparseAccessorDeferred (1)
 
@@ -1198,87 +1198,87 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## gltfAnimation.channelLengthMismatch (1)
 
-| Code                                  | Message                                                                                 | Fix? | Emitted from                                                                                                                                          |
-| ------------------------------------- | --------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfAnimation.channelLengthMismatch` | glTF animation … channel … weights output length is not a multiple of keyframeCount\*…. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-animation-import.ts`<br>`packages/render/src/assets/gltf-animation-import.ts` |
+| Code                                  | Message                                                                                 | Fix? | Emitted from                                          |
+| ------------------------------------- | --------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------- |
+| `gltfAnimation.channelLengthMismatch` | glTF animation … channel … weights output length is not a multiple of keyframeCount\*…. | —    | `packages/render/src/assets/gltf-animation-import.ts` |
 
 ## gltfAnimation.emptyClip (1)
 
-| Code                      | Message                                         | Fix? | Emitted from                                                                                                                                          |
-| ------------------------- | ----------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfAnimation.emptyClip` | glTF animation … produced no playable channels. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-animation-import.ts`<br>`packages/render/src/assets/gltf-animation-import.ts` |
+| Code                      | Message                                         | Fix? | Emitted from                                          |
+| ------------------------- | ----------------------------------------------- | ---- | ----------------------------------------------------- |
+| `gltfAnimation.emptyClip` | glTF animation … produced no playable channels. | —    | `packages/render/src/assets/gltf-animation-import.ts` |
 
 ## gltfAnimation.inputDecodeFailed (1)
 
-| Code                              | Message                                                                                  | Fix? | Emitted from                                                                                                                                          |
-| --------------------------------- | ---------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfAnimation.inputDecodeFailed` | glTF animation … channel … input accessor … could not be decoded as a SCALAR time track. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-animation-import.ts`<br>`packages/render/src/assets/gltf-animation-import.ts` |
+| Code                              | Message                                                                                  | Fix? | Emitted from                                          |
+| --------------------------------- | ---------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------- |
+| `gltfAnimation.inputDecodeFailed` | glTF animation … channel … input accessor … could not be decoded as a SCALAR time track. | —    | `packages/render/src/assets/gltf-animation-import.ts` |
 
 ## gltfAnimation.malformedAnimation (1)
 
-| Code                               | Message                             | Fix? | Emitted from                                                                                                                                          |
-| ---------------------------------- | ----------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfAnimation.malformedAnimation` | glTF animation … must be an object. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-animation-import.ts`<br>`packages/render/src/assets/gltf-animation-import.ts` |
+| Code                               | Message                             | Fix? | Emitted from                                          |
+| ---------------------------------- | ----------------------------------- | ---- | ----------------------------------------------------- |
+| `gltfAnimation.malformedAnimation` | glTF animation … must be an object. | —    | `packages/render/src/assets/gltf-animation-import.ts` |
 
 ## gltfAnimation.malformedAnimations (1)
 
-| Code                                | Message                                        | Fix? | Emitted from                                                                                                                                          |
-| ----------------------------------- | ---------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfAnimation.malformedAnimations` | glTF animations must be an array when present. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-animation-import.ts`<br>`packages/render/src/assets/gltf-animation-import.ts` |
+| Code                                | Message                                        | Fix? | Emitted from                                          |
+| ----------------------------------- | ---------------------------------------------- | ---- | ----------------------------------------------------- |
+| `gltfAnimation.malformedAnimations` | glTF animations must be an array when present. | —    | `packages/render/src/assets/gltf-animation-import.ts` |
 
 ## gltfAnimation.malformedChannel (1)
 
-| Code                             | Message                                  | Fix? | Emitted from                                                                                                                                          |
-| -------------------------------- | ---------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfAnimation.malformedChannel` | glTF animation … channel … is malformed. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-animation-import.ts`<br>`packages/render/src/assets/gltf-animation-import.ts` |
+| Code                             | Message                                  | Fix? | Emitted from                                          |
+| -------------------------------- | ---------------------------------------- | ---- | ----------------------------------------------------- |
+| `gltfAnimation.malformedChannel` | glTF animation … channel … is malformed. | —    | `packages/render/src/assets/gltf-animation-import.ts` |
 
 ## gltfAnimation.missingSampler (1)
 
-| Code                           | Message                                                   | Fix? | Emitted from                                                                                                                                          |
-| ------------------------------ | --------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfAnimation.missingSampler` | glTF animation … channel … references an invalid sampler. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-animation-import.ts`<br>`packages/render/src/assets/gltf-animation-import.ts` |
+| Code                           | Message                                                   | Fix? | Emitted from                                          |
+| ------------------------------ | --------------------------------------------------------- | ---- | ----------------------------------------------------- |
+| `gltfAnimation.missingSampler` | glTF animation … channel … references an invalid sampler. | —    | `packages/render/src/assets/gltf-animation-import.ts` |
 
 ## gltfAnimation.missingTargetNode (1)
 
-| Code                              | Message                                        | Fix? | Emitted from                                                                                                                                          |
-| --------------------------------- | ---------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfAnimation.missingTargetNode` | glTF animation … channel … has no target node. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-animation-import.ts`<br>`packages/render/src/assets/gltf-animation-import.ts` |
+| Code                              | Message                                        | Fix? | Emitted from                                          |
+| --------------------------------- | ---------------------------------------------- | ---- | ----------------------------------------------------- |
+| `gltfAnimation.missingTargetNode` | glTF animation … channel … has no target node. | —    | `packages/render/src/assets/gltf-animation-import.ts` |
 
 ## gltfAnimation.outputDecodeFailed (1)
 
-| Code                               | Message                                                            | Fix? | Emitted from                                                                                                                                          |
-| ---------------------------------- | ------------------------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfAnimation.outputDecodeFailed` | glTF animation … channel … output accessor … could not be decoded. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-animation-import.ts`<br>`packages/render/src/assets/gltf-animation-import.ts` |
+| Code                               | Message                                                            | Fix? | Emitted from                                          |
+| ---------------------------------- | ------------------------------------------------------------------ | ---- | ----------------------------------------------------- |
+| `gltfAnimation.outputDecodeFailed` | glTF animation … channel … output accessor … could not be decoded. | —    | `packages/render/src/assets/gltf-animation-import.ts` |
 
 ## gltfAnimation.unsupportedInterpolation (1)
 
-| Code                                     | Message                                                       | Fix? | Emitted from                                                                                                                                          |
-| ---------------------------------------- | ------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfAnimation.unsupportedInterpolation` | glTF animation … channel … uses an unsupported interpolation. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-animation-import.ts`<br>`packages/render/src/assets/gltf-animation-import.ts` |
+| Code                                     | Message                                                       | Fix? | Emitted from                                          |
+| ---------------------------------------- | ------------------------------------------------------------- | ---- | ----------------------------------------------------- |
+| `gltfAnimation.unsupportedInterpolation` | glTF animation … channel … uses an unsupported interpolation. | —    | `packages/render/src/assets/gltf-animation-import.ts` |
 
 ## gltfAnimation.unsupportedTargetPath (1)
 
-| Code                                  | Message                                                 | Fix? | Emitted from                                                                                                                                          |
-| ------------------------------------- | ------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfAnimation.unsupportedTargetPath` | glTF animation … channel … targets an unsupported path. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-animation-import.ts`<br>`packages/render/src/assets/gltf-animation-import.ts` |
+| Code                                  | Message                                                 | Fix? | Emitted from                                          |
+| ------------------------------------- | ------------------------------------------------------- | ---- | ----------------------------------------------------- |
+| `gltfAnimation.unsupportedTargetPath` | glTF animation … channel … targets an unsupported path. | —    | `packages/render/src/assets/gltf-animation-import.ts` |
 
 ## gltfDecode.missingBufferBytes (1)
 
-| Code                            | Message                                 | Fix? | Emitted from                                                                                                                                            |
-| ------------------------------- | --------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfDecode.missingBufferBytes` | Buffer … bytes were not provided for …. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-accessor-decoding.ts`<br>`packages/render/src/assets/gltf-accessor-decoding.ts` |
+| Code                            | Message                                 | Fix? | Emitted from                                           |
+| ------------------------------- | --------------------------------------- | ---- | ------------------------------------------------------ |
+| `gltfDecode.missingBufferBytes` | Buffer … bytes were not provided for …. | —    | `packages/render/src/assets/gltf-accessor-decoding.ts` |
 
 ## gltfDecode.sourceRangeOutOfBounds (1)
 
-| Code                                | Message                                            | Fix? | Emitted from                                                                                                                                            |
-| ----------------------------------- | -------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfDecode.sourceRangeOutOfBounds` | Accessor … source range exceeds resolved buffer …. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-accessor-decoding.ts`<br>`packages/render/src/assets/gltf-accessor-decoding.ts` |
+| Code                                | Message                                            | Fix? | Emitted from                                           |
+| ----------------------------------- | -------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `gltfDecode.sourceRangeOutOfBounds` | Accessor … source range exceeds resolved buffer …. | —    | `packages/render/src/assets/gltf-accessor-decoding.ts` |
 
 ## gltfDecode.unsupportedOutputFormat (1)
 
-| Code                                 | Message                                       | Fix? | Emitted from                                                                                                                                            |
-| ------------------------------------ | --------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfDecode.unsupportedOutputFormat` | Accessor … has unsupported output format '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-accessor-decoding.ts`<br>`packages/render/src/assets/gltf-accessor-decoding.ts` |
+| Code                                 | Message                                       | Fix? | Emitted from                                           |
+| ------------------------------------ | --------------------------------------------- | ---- | ------------------------------------------------------ |
+| `gltfDecode.unsupportedOutputFormat` | Accessor … has unsupported output format '…'. | —    | `packages/render/src/assets/gltf-accessor-decoding.ts` |
 
 ## gltfDracoDecode.failed (1)
 
@@ -1300,9 +1300,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## gltfEcsAuthoring.invalidTraversalReport (1)
 
-| Code                                      | Message                                                                    | Fix? | Emitted from                                                                                                                                                              |
-| ----------------------------------------- | -------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfEcsAuthoring.invalidTraversalReport` | No ECS authoring commands were planned because scene traversal is invalid. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-ecs-authoring-command-plan.ts`<br>`packages/render/src/assets/gltf-ecs-authoring-command-plan.ts` |
+| Code                                      | Message                                                                    | Fix? | Emitted from                                                    |
+| ----------------------------------------- | -------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `gltfEcsAuthoring.invalidTraversalReport` | No ECS authoring commands were planned because scene traversal is invalid. | —    | `packages/render/src/assets/gltf-ecs-authoring-command-plan.ts` |
 
 ## gltfEcsAuthoring.missingPrimitiveMaterialResolution (1)
 
@@ -1312,9 +1312,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## gltfEcsAuthoring.missingSceneRoot (1)
 
-| Code                                | Message                                                                               | Fix? | Emitted from                                                                                                                                                              |
-| ----------------------------------- | ------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfEcsAuthoring.missingSceneRoot` | No ECS authoring commands were planned because traversal did not select a scene root. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-ecs-authoring-command-plan.ts`<br>`packages/render/src/assets/gltf-ecs-authoring-command-plan.ts` |
+| Code                                | Message                                                                               | Fix? | Emitted from                                                    |
+| ----------------------------------- | ------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `gltfEcsAuthoring.missingSceneRoot` | No ECS authoring commands were planned because traversal did not select a scene root. | —    | `packages/render/src/assets/gltf-ecs-authoring-command-plan.ts` |
 
 ## gltfEcsAuthoring.nodeSkippedByAncestor (1)
 
@@ -1342,9 +1342,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## gltfEcsReplay.duplicateEntityKey (1)
 
-| Code                               | Message                                    | Fix? | Emitted from                                                                                                                                              |
-| ---------------------------------- | ------------------------------------------ | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfEcsReplay.duplicateEntityKey` | Entity key '…' was created more than once. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-ecs-command-replay.ts`<br>`packages/render/src/assets/gltf-ecs-command-replay.ts` |
+| Code                               | Message                                    | Fix? | Emitted from                                            |
+| ---------------------------------- | ------------------------------------------ | ---- | ------------------------------------------------------- |
+| `gltfEcsReplay.duplicateEntityKey` | Entity key '…' was created more than once. | —    | `packages/render/src/assets/gltf-ecs-command-replay.ts` |
 
 ## gltfEcsReplay.invalidComponentValue (1)
 
@@ -1354,15 +1354,15 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## gltfEcsReplay.invalidPlan (1)
 
-| Code                        | Message                                                                           | Fix? | Emitted from                                                                                                                                              |
-| --------------------------- | --------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfEcsReplay.invalidPlan` | GLB ECS authoring commands were not replayed because the command plan is invalid. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-ecs-command-replay.ts`<br>`packages/render/src/assets/gltf-ecs-command-replay.ts` |
+| Code                        | Message                                                                           | Fix? | Emitted from                                            |
+| --------------------------- | --------------------------------------------------------------------------------- | ---- | ------------------------------------------------------- |
+| `gltfEcsReplay.invalidPlan` | GLB ECS authoring commands were not replayed because the command plan is invalid. | —    | `packages/render/src/assets/gltf-ecs-command-replay.ts` |
 
 ## gltfEcsReplay.missingEntityKey (1)
 
-| Code                             | Message                                                               | Fix? | Emitted from                                                                                                                                              |
-| -------------------------------- | --------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfEcsReplay.missingEntityKey` | Component '…' was not applied because entity key '…' was not created. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-ecs-command-replay.ts`<br>`packages/render/src/assets/gltf-ecs-command-replay.ts` |
+| Code                             | Message                                                               | Fix? | Emitted from                                            |
+| -------------------------------- | --------------------------------------------------------------------- | ---- | ------------------------------------------------------- |
+| `gltfEcsReplay.missingEntityKey` | Component '…' was not applied because entity key '…' was not created. | —    | `packages/render/src/assets/gltf-ecs-command-replay.ts` |
 
 ## gltfEcsReplay.missingJointEntityKey (1)
 
@@ -1384,45 +1384,45 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## gltfImport.assetMappingConflict (1)
 
-| Code                              | Message                                                                                   | Fix? | Emitted from                                                                                                                                                  |
-| --------------------------------- | ----------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfImport.assetMappingConflict` | Report-driven import cannot accept provided.assetMapping when createAssetMapping is true. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-report-driven-import.ts`<br>`packages/render/src/assets/gltf-report-driven-import.ts` |
+| Code                              | Message                                                                                   | Fix? | Emitted from                                              |
+| --------------------------------- | ----------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------- |
+| `gltfImport.assetMappingConflict` | Report-driven import cannot accept provided.assetMapping when createAssetMapping is true. | —    | `packages/render/src/assets/gltf-report-driven-import.ts` |
 
 ## gltfImport.meshConstructionConflict (1)
 
-| Code                                  | Message                                                                                     | Fix? | Emitted from                                                                                                                                                  |
-| ------------------------------------- | ------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfImport.meshConstructionConflict` | Report-driven import cannot accept provided.meshConstruction when createMeshAssets is true. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-report-driven-import.ts`<br>`packages/render/src/assets/gltf-report-driven-import.ts` |
+| Code                                  | Message                                                                                     | Fix? | Emitted from                                              |
+| ------------------------------------- | ------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------- |
+| `gltfImport.meshConstructionConflict` | Report-driven import cannot accept provided.meshConstruction when createMeshAssets is true. | —    | `packages/render/src/assets/gltf-report-driven-import.ts` |
 
 ## gltfImport.providedRootReport (1)
 
-| Code                            | Message                                                                                     | Fix? | Emitted from                                                                                                                                                  |
-| ------------------------------- | ------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfImport.providedRootReport` | Report-driven import creates its own root validation report; provided.root is not accepted. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-report-driven-import.ts`<br>`packages/render/src/assets/gltf-report-driven-import.ts` |
+| Code                            | Message                                                                                     | Fix? | Emitted from                                              |
+| ------------------------------- | ------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------- |
+| `gltfImport.providedRootReport` | Report-driven import creates its own root validation report; provided.root is not accepted. | —    | `packages/render/src/assets/gltf-report-driven-import.ts` |
 
 ## gltfImport.providedSceneTraversalReport (1)
 
-| Code                                      | Message                                                                                               | Fix? | Emitted from                                                                                                                                                  |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfImport.providedSceneTraversalReport` | Report-driven import creates its own scene traversal report; provided.sceneTraversal is not accepted. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-report-driven-import.ts`<br>`packages/render/src/assets/gltf-report-driven-import.ts` |
+| Code                                      | Message                                                                                               | Fix? | Emitted from                                              |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------- |
+| `gltfImport.providedSceneTraversalReport` | Report-driven import creates its own scene traversal report; provided.sceneTraversal is not accepted. | —    | `packages/render/src/assets/gltf-report-driven-import.ts` |
 
 ## gltfLoader.failedStage (1)
 
-| Code                     | Message                                             | Fix? | Emitted from                                                                                                                                                  |
-| ------------------------ | --------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfLoader.failedStage` | GLB loader orchestration includes failed stage '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-loader-orchestration.ts`<br>`packages/render/src/assets/gltf-loader-orchestration.ts` |
+| Code                     | Message                                             | Fix? | Emitted from                                              |
+| ------------------------ | --------------------------------------------------- | ---- | --------------------------------------------------------- |
+| `gltfLoader.failedStage` | GLB loader orchestration includes failed stage '…'. | —    | `packages/render/src/assets/gltf-loader-orchestration.ts` |
 
 ## gltfLoader.invalidStageOrder (1)
 
-| Code                           | Message                                                                              | Fix? | Emitted from                                                                                                                                                  |
-| ------------------------------ | ------------------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfLoader.invalidStageOrder` | GLB loader orchestration includes side-effect stage '…' after failed pure stage '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-loader-orchestration.ts`<br>`packages/render/src/assets/gltf-loader-orchestration.ts` |
+| Code                           | Message                                                                              | Fix? | Emitted from                                              |
+| ------------------------------ | ------------------------------------------------------------------------------------ | ---- | --------------------------------------------------------- |
+| `gltfLoader.invalidStageOrder` | GLB loader orchestration includes side-effect stage '…' after failed pure stage '…'. | —    | `packages/render/src/assets/gltf-loader-orchestration.ts` |
 
 ## gltfLoader.sideEffectWithoutPrerequisite (1)
 
-| Code                                       | Message                                                         | Fix? | Emitted from                                                                                                                                                  |
-| ------------------------------------------ | --------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfLoader.sideEffectWithoutPrerequisite` | GLB loader orchestration includes '…' without prerequisite '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-loader-orchestration.ts`<br>`packages/render/src/assets/gltf-loader-orchestration.ts` |
+| Code                                       | Message                                                         | Fix? | Emitted from                                              |
+| ------------------------------------------ | --------------------------------------------------------------- | ---- | --------------------------------------------------------- |
+| `gltfLoader.sideEffectWithoutPrerequisite` | GLB loader orchestration includes '…' without prerequisite '…'. | —    | `packages/render/src/assets/gltf-loader-orchestration.ts` |
 
 ## gltfMaterial.invalidField (1)
 
@@ -1438,9 +1438,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## gltfMaterial.malformedMaterial (1)
 
-| Code                             | Message                          | Fix? | Emitted from                                                                                                                                |
-| -------------------------------- | -------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfMaterial.malformedMaterial` | glTF material must be an object. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/gltf-material.ts`<br>`packages/render/src/materials/gltf-material.ts` |
+| Code                             | Message                          | Fix? | Emitted from                                     |
+| -------------------------------- | -------------------------------- | ---- | ------------------------------------------------ |
+| `gltfMaterial.malformedMaterial` | glTF material must be an object. | —    | `packages/render/src/materials/gltf-material.ts` |
 
 ## gltfMaterial.unresolvedTextureBinding (1)
 
@@ -1480,9 +1480,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## gltfMesh.malformedMeshes (1)
 
-| Code                       | Message                                    | Fix? | Emitted from                                                                                                                                      |
-| -------------------------- | ------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfMesh.malformedMeshes` | glTF meshes must be an array when present. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-mesh-primitive.ts`<br>`packages/render/src/assets/gltf-mesh-primitive.ts` |
+| Code                       | Message                                    | Fix? | Emitted from                                        |
+| -------------------------- | ------------------------------------------ | ---- | --------------------------------------------------- |
+| `gltfMesh.malformedMeshes` | glTF meshes must be an array when present. | —    | `packages/render/src/assets/gltf-mesh-primitive.ts` |
 
 ## gltfMesh.malformedPrimitive (1)
 
@@ -1564,9 +1564,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## gltfMeshRegistration.invalidConstructionReport (1)
 
-| Code                                             | Message                                                                           | Fix? | Emitted from                                                                                                                                                          |
-| ------------------------------------------------ | --------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfMeshRegistration.invalidConstructionReport` | No mesh source assets were registered because the construction report is invalid. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-mesh-source-registration.ts`<br>`packages/render/src/assets/gltf-mesh-source-registration.ts` |
+| Code                                             | Message                                                                           | Fix? | Emitted from                                                  |
+| ------------------------------------------------ | --------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------- |
+| `gltfMeshRegistration.invalidConstructionReport` | No mesh source assets were registered because the construction report is invalid. | —    | `packages/render/src/assets/gltf-mesh-source-registration.ts` |
 
 ## gltfMeshRegistration.invalidHandleKey (1)
 
@@ -1582,27 +1582,27 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## gltfMorph.malformedMeshes (1)
 
-| Code                        | Message                                    | Fix? | Emitted from                                                                                                                                                |
-| --------------------------- | ------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfMorph.malformedMeshes` | glTF meshes must be an array when present. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-morph-target-import.ts`<br>`packages/render/src/assets/gltf-morph-target-import.ts` |
+| Code                        | Message                                    | Fix? | Emitted from                                             |
+| --------------------------- | ------------------------------------------ | ---- | -------------------------------------------------------- |
+| `gltfMorph.malformedMeshes` | glTF meshes must be an array when present. | —    | `packages/render/src/assets/gltf-morph-target-import.ts` |
 
 ## gltfMorph.malformedTarget (1)
 
-| Code                        | Message                                             | Fix? | Emitted from                                                                                                                                                |
-| --------------------------- | --------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfMorph.malformedTarget` | glTF mesh … primitive … target … must be an object. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-morph-target-import.ts`<br>`packages/render/src/assets/gltf-morph-target-import.ts` |
+| Code                        | Message                                             | Fix? | Emitted from                                             |
+| --------------------------- | --------------------------------------------------- | ---- | -------------------------------------------------------- |
+| `gltfMorph.malformedTarget` | glTF mesh … primitive … target … must be an object. | —    | `packages/render/src/assets/gltf-morph-target-import.ts` |
 
 ## gltfMorph.positionDecodeFailed (1)
 
-| Code                             | Message                                             | Fix? | Emitted from                                                                                                                                                |
-| -------------------------------- | --------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfMorph.positionDecodeFailed` | glTF morph target … is missing a POSITION accessor. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-morph-target-import.ts`<br>`packages/render/src/assets/gltf-morph-target-import.ts` |
+| Code                             | Message                                             | Fix? | Emitted from                                             |
+| -------------------------------- | --------------------------------------------------- | ---- | -------------------------------------------------------- |
+| `gltfMorph.positionDecodeFailed` | glTF morph target … is missing a POSITION accessor. | —    | `packages/render/src/assets/gltf-morph-target-import.ts` |
 
 ## gltfMorph.vertexCountMismatch (1)
 
-| Code                            | Message                                         | Fix? | Emitted from                                                                                                                                                |
-| ------------------------------- | ----------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfMorph.vertexCountMismatch` | glTF morph target … has … vertices, expected …. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-morph-target-import.ts`<br>`packages/render/src/assets/gltf-morph-target-import.ts` |
+| Code                            | Message                                         | Fix? | Emitted from                                             |
+| ------------------------------- | ----------------------------------------------- | ---- | -------------------------------------------------------- |
+| `gltfMorph.vertexCountMismatch` | glTF morph target … has … vertices, expected …. | —    | `packages/render/src/assets/gltf-morph-target-import.ts` |
 
 ## gltfRegistration.duplicateAssetKey (1)
 
@@ -1630,57 +1630,57 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## gltfRoot.invalidAsset (1)
 
-| Code                    | Message                                 | Fix? | Emitted from                                                                                                                  |
-| ----------------------- | --------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `gltfRoot.invalidAsset` | glTF root must include an asset object. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-root.ts`<br>`packages/render/src/assets/gltf-root.ts` |
+| Code                    | Message                                 | Fix? | Emitted from                              |
+| ----------------------- | --------------------------------------- | ---- | ----------------------------------------- |
+| `gltfRoot.invalidAsset` | glTF root must include an asset object. | —    | `packages/render/src/assets/gltf-root.ts` |
 
 ## gltfRoot.malformedArray (1)
 
-| Code                      | Message                                           | Fix? | Emitted from                                                                                                                  |
-| ------------------------- | ------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `gltfRoot.malformedArray` | extensionsRequired must be an array when present. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-root.ts`<br>`packages/render/src/assets/gltf-root.ts` |
+| Code                      | Message                                           | Fix? | Emitted from                              |
+| ------------------------- | ------------------------------------------------- | ---- | ----------------------------------------- |
+| `gltfRoot.malformedArray` | extensionsRequired must be an array when present. | —    | `packages/render/src/assets/gltf-root.ts` |
 
 ## gltfRoot.malformedRoot (1)
 
-| Code                     | Message                      | Fix? | Emitted from                                                                                                                  |
-| ------------------------ | ---------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `gltfRoot.malformedRoot` | glTF root must be an object. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-root.ts`<br>`packages/render/src/assets/gltf-root.ts` |
+| Code                     | Message                      | Fix? | Emitted from                              |
+| ------------------------ | ---------------------------- | ---- | ----------------------------------------- |
+| `gltfRoot.malformedRoot` | glTF root must be an object. | —    | `packages/render/src/assets/gltf-root.ts` |
 
 ## gltfRoot.unsupportedRequiredExtension (1)
 
-| Code                                    | Message                       | Fix? | Emitted from                                                                                                                  |
-| --------------------------------------- | ----------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `gltfRoot.unsupportedRequiredExtension` | (message composed at runtime) | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-root.ts`<br>`packages/render/src/assets/gltf-root.ts` |
+| Code                                    | Message                       | Fix? | Emitted from                              |
+| --------------------------------------- | ----------------------------- | ---- | ----------------------------------------- |
+| `gltfRoot.unsupportedRequiredExtension` | (message composed at runtime) | —    | `packages/render/src/assets/gltf-root.ts` |
 
 ## gltfRoot.unsupportedVersion (1)
 
-| Code                          | Message                                                | Fix? | Emitted from                                                                                                                  |
-| ----------------------------- | ------------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `gltfRoot.unsupportedVersion` | Only glTF 2.0 roots are supported by the asset mapper. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-root.ts`<br>`packages/render/src/assets/gltf-root.ts` |
+| Code                          | Message                                                | Fix? | Emitted from                              |
+| ----------------------------- | ------------------------------------------------------ | ---- | ----------------------------------------- |
+| `gltfRoot.unsupportedVersion` | Only glTF 2.0 roots are supported by the asset mapper. | —    | `packages/render/src/assets/gltf-root.ts` |
 
 ## gltfSampler.invalidMagFilter (1)
 
-| Code                           | Message                              | Fix? | Emitted from                                                                                                                                              |
-| ------------------------------ | ------------------------------------ | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfSampler.invalidMagFilter` | magFilter must be NEAREST or LINEAR. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/gltf-sampler-mapping.ts`<br>`packages/render/src/materials/gltf-sampler-mapping.ts` |
+| Code                           | Message                              | Fix? | Emitted from                                            |
+| ------------------------------ | ------------------------------------ | ---- | ------------------------------------------------------- |
+| `gltfSampler.invalidMagFilter` | magFilter must be NEAREST or LINEAR. | —    | `packages/render/src/materials/gltf-sampler-mapping.ts` |
 
 ## gltfSampler.invalidMinFilter (1)
 
-| Code                           | Message                                             | Fix? | Emitted from                                                                                                                                              |
-| ------------------------------ | --------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfSampler.invalidMinFilter` | minFilter must be a glTF sampler filter enum value. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/gltf-sampler-mapping.ts`<br>`packages/render/src/materials/gltf-sampler-mapping.ts` |
+| Code                           | Message                                             | Fix? | Emitted from                                            |
+| ------------------------------ | --------------------------------------------------- | ---- | ------------------------------------------------------- |
+| `gltfSampler.invalidMinFilter` | minFilter must be a glTF sampler filter enum value. | —    | `packages/render/src/materials/gltf-sampler-mapping.ts` |
 
 ## gltfSampler.invalidWrapMode (1)
 
-| Code                          | Message                              | Fix? | Emitted from                                                                                                                                              |
-| ----------------------------- | ------------------------------------ | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfSampler.invalidWrapMode` | magFilter must be NEAREST or LINEAR. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/gltf-sampler-mapping.ts`<br>`packages/render/src/materials/gltf-sampler-mapping.ts` |
+| Code                          | Message                              | Fix? | Emitted from                                            |
+| ----------------------------- | ------------------------------------ | ---- | ------------------------------------------------------- |
+| `gltfSampler.invalidWrapMode` | magFilter must be NEAREST or LINEAR. | —    | `packages/render/src/materials/gltf-sampler-mapping.ts` |
 
 ## gltfScene.invalidNodeIndex (1)
 
-| Code                         | Message                                        | Fix? | Emitted from                                                                                                                                                                                                      |
-| ---------------------------- | ---------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfScene.invalidNodeIndex` | glTF scene … references invalid root node '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-scene-traversal.ts`<br>`packages/render/src/assets/gltf-scene-traversal-nodes.ts`<br>`packages/render/src/assets/gltf-scene-traversal.ts` |
+| Code                         | Message                                      | Fix? | Emitted from                                                                                                       |
+| ---------------------------- | -------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------ |
+| `gltfScene.invalidNodeIndex` | glTF node … references invalid child node …. | —    | `packages/render/src/assets/gltf-scene-traversal-nodes.ts`<br>`packages/render/src/assets/gltf-scene-traversal.ts` |
 
 ## gltfScene.invalidSceneIndex (1)
 
@@ -1828,51 +1828,51 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## gltfSkin.invalidJointIndex (1)
 
-| Code                         | Message                                              | Fix? | Emitted from                                                                                                                                |
-| ---------------------------- | ---------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfSkin.invalidJointIndex` | glTF skin … has an invalid joint node reference '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-skin-import.ts`<br>`packages/render/src/assets/gltf-skin-import.ts` |
+| Code                         | Message                                              | Fix? | Emitted from                                     |
+| ---------------------------- | ---------------------------------------------------- | ---- | ------------------------------------------------ |
+| `gltfSkin.invalidJointIndex` | glTF skin … has an invalid joint node reference '…'. | —    | `packages/render/src/assets/gltf-skin-import.ts` |
 
 ## gltfSkin.inverseBindCountMismatch (1)
 
-| Code                                | Message                                                                                         | Fix? | Emitted from                                                                                                                                |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfSkin.inverseBindCountMismatch` | glTF skin … provides … inverse-bind matrices for … joints; missing entries default to identity. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-skin-import.ts`<br>`packages/render/src/assets/gltf-skin-import.ts` |
+| Code                                | Message                                                                                         | Fix? | Emitted from                                     |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------ |
+| `gltfSkin.inverseBindCountMismatch` | glTF skin … provides … inverse-bind matrices for … joints; missing entries default to identity. | —    | `packages/render/src/assets/gltf-skin-import.ts` |
 
 ## gltfSkin.inverseBindDecodeFailed (1)
 
-| Code                               | Message                                                                    | Fix? | Emitted from                                                                                                                                |
-| ---------------------------------- | -------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfSkin.inverseBindDecodeFailed` | glTF skin … inverse-bind matrices accessor … could not be decoded as MAT4. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-skin-import.ts`<br>`packages/render/src/assets/gltf-skin-import.ts` |
+| Code                               | Message                                                                    | Fix? | Emitted from                                     |
+| ---------------------------------- | -------------------------------------------------------------------------- | ---- | ------------------------------------------------ |
+| `gltfSkin.inverseBindDecodeFailed` | glTF skin … inverse-bind matrices accessor … could not be decoded as MAT4. | —    | `packages/render/src/assets/gltf-skin-import.ts` |
 
 ## gltfSkin.malformedSkin (1)
 
-| Code                     | Message                        | Fix? | Emitted from                                                                                                                                |
-| ------------------------ | ------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfSkin.malformedSkin` | glTF skin … must be an object. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-skin-import.ts`<br>`packages/render/src/assets/gltf-skin-import.ts` |
+| Code                     | Message                        | Fix? | Emitted from                                     |
+| ------------------------ | ------------------------------ | ---- | ------------------------------------------------ |
+| `gltfSkin.malformedSkin` | glTF skin … must be an object. | —    | `packages/render/src/assets/gltf-skin-import.ts` |
 
 ## gltfSkin.malformedSkins (1)
 
-| Code                      | Message                                   | Fix? | Emitted from                                                                                                                                |
-| ------------------------- | ----------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfSkin.malformedSkins` | glTF skins must be an array when present. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-skin-import.ts`<br>`packages/render/src/assets/gltf-skin-import.ts` |
+| Code                      | Message                                   | Fix? | Emitted from                                     |
+| ------------------------- | ----------------------------------------- | ---- | ------------------------------------------------ |
+| `gltfSkin.malformedSkins` | glTF skins must be an array when present. | —    | `packages/render/src/assets/gltf-skin-import.ts` |
 
 ## gltfSkin.missingJoints (1)
 
-| Code                     | Message                                            | Fix? | Emitted from                                                                                                                                |
-| ------------------------ | -------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfSkin.missingJoints` | glTF skin … must declare a non-empty joints array. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-skin-import.ts`<br>`packages/render/src/assets/gltf-skin-import.ts` |
+| Code                     | Message                                            | Fix? | Emitted from                                     |
+| ------------------------ | -------------------------------------------------- | ---- | ------------------------------------------------ |
+| `gltfSkin.missingJoints` | glTF skin … must declare a non-empty joints array. | —    | `packages/render/src/assets/gltf-skin-import.ts` |
 
 ## gltfSourceRegistration.failedStage (1)
 
-| Code                                 | Message                                   | Fix? | Emitted from                                                                                                                                                                            |
-| ------------------------------------ | ----------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfSourceRegistration.failedStage` | GLB source registration stage '…' failed. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-source-registration-orchestration.ts`<br>`packages/render/src/assets/gltf-source-registration-orchestration.ts` |
+| Code                                 | Message                                   | Fix? | Emitted from                                                           |
+| ------------------------------------ | ----------------------------------------- | ---- | ---------------------------------------------------------------------- |
+| `gltfSourceRegistration.failedStage` | GLB source registration stage '…' failed. | —    | `packages/render/src/assets/gltf-source-registration-orchestration.ts` |
 
 ## gltfSourceRegistration.missingInput (1)
 
-| Code                                  | Message                                                                                 | Fix? | Emitted from                                                                                                                                                                            |
-| ------------------------------------- | --------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gltfSourceRegistration.missingInput` | GLB source registration requires an asset mapping report or a mesh construction report. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-source-registration-orchestration.ts`<br>`packages/render/src/assets/gltf-source-registration-orchestration.ts` |
+| Code                                  | Message                                                                                 | Fix? | Emitted from                                                           |
+| ------------------------------------- | --------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------- |
+| `gltfSourceRegistration.missingInput` | GLB source registration requires an asset mapping report or a mesh construction report. | —    | `packages/render/src/assets/gltf-source-registration-orchestration.ts` |
 
 ## gltfTexture.imageResolverFailed (1)
 
@@ -2170,63 +2170,63 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## idBufferPick.createBindGroupFailed (1)
 
-| Code                                 | Message                                          | Fix? | Emitted from                                                                                                                              |
-| ------------------------------------ | ------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `idBufferPick.createBindGroupFailed` | WebGPU ID-buffer picking requires createTexture. | —    | `packages/reference-assets/data/sources/packages/webgpu/src/picking/id-buffer-pick.ts`<br>`packages/webgpu/src/picking/id-buffer-pick.ts` |
+| Code                                 | Message                                          | Fix? | Emitted from                                    |
+| ------------------------------------ | ------------------------------------------------ | ---- | ----------------------------------------------- |
+| `idBufferPick.createBindGroupFailed` | WebGPU ID-buffer picking requires createTexture. | —    | `packages/webgpu/src/picking/id-buffer-pick.ts` |
 
 ## idBufferPick.createBindGroupUnavailable (1)
 
-| Code                                      | Message                                            | Fix? | Emitted from                                                                                                                              |
-| ----------------------------------------- | -------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `idBufferPick.createBindGroupUnavailable` | WebGPU ID-buffer picking requires createBindGroup. | —    | `packages/reference-assets/data/sources/packages/webgpu/src/picking/id-buffer-pick.ts`<br>`packages/webgpu/src/picking/id-buffer-pick.ts` |
+| Code                                      | Message                                            | Fix? | Emitted from                                    |
+| ----------------------------------------- | -------------------------------------------------- | ---- | ----------------------------------------------- |
+| `idBufferPick.createBindGroupUnavailable` | WebGPU ID-buffer picking requires createBindGroup. | —    | `packages/webgpu/src/picking/id-buffer-pick.ts` |
 
 ## idBufferPick.createBufferFailed (1)
 
-| Code                              | Message                                            | Fix? | Emitted from                                                                                                                              |
-| --------------------------------- | -------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `idBufferPick.createBufferFailed` | WebGPU ID-buffer picking requires createBindGroup. | —    | `packages/reference-assets/data/sources/packages/webgpu/src/picking/id-buffer-pick.ts`<br>`packages/webgpu/src/picking/id-buffer-pick.ts` |
+| Code                              | Message                                            | Fix? | Emitted from                                    |
+| --------------------------------- | -------------------------------------------------- | ---- | ----------------------------------------------- |
+| `idBufferPick.createBufferFailed` | WebGPU ID-buffer picking requires createBindGroup. | —    | `packages/webgpu/src/picking/id-buffer-pick.ts` |
 
 ## idBufferPick.createRenderPipelineUnavailable (1)
 
-| Code                                           | Message                                                 | Fix? | Emitted from                                                                                                                              |
-| ---------------------------------------------- | ------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `idBufferPick.createRenderPipelineUnavailable` | WebGPU ID-buffer picking requires createRenderPipeline. | —    | `packages/reference-assets/data/sources/packages/webgpu/src/picking/id-buffer-pick.ts`<br>`packages/webgpu/src/picking/id-buffer-pick.ts` |
+| Code                                           | Message                                                 | Fix? | Emitted from                                    |
+| ---------------------------------------------- | ------------------------------------------------------- | ---- | ----------------------------------------------- |
+| `idBufferPick.createRenderPipelineUnavailable` | WebGPU ID-buffer picking requires createRenderPipeline. | —    | `packages/webgpu/src/picking/id-buffer-pick.ts` |
 
 ## idBufferPick.createTextureUnavailable (1)
 
-| Code                                    | Message                                          | Fix? | Emitted from                                                                                                                              |
-| --------------------------------------- | ------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `idBufferPick.createTextureUnavailable` | WebGPU ID-buffer picking requires createTexture. | —    | `packages/reference-assets/data/sources/packages/webgpu/src/picking/id-buffer-pick.ts`<br>`packages/webgpu/src/picking/id-buffer-pick.ts` |
+| Code                                    | Message                                          | Fix? | Emitted from                                    |
+| --------------------------------------- | ------------------------------------------------ | ---- | ----------------------------------------------- |
+| `idBufferPick.createTextureUnavailable` | WebGPU ID-buffer picking requires createTexture. | —    | `packages/webgpu/src/picking/id-buffer-pick.ts` |
 
 ## idBufferPick.missingPickPipeline (1)
 
-| Code                               | Message                                     | Fix? | Emitted from                                                                                                                              |
-| ---------------------------------- | ------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `idBufferPick.missingPickPipeline` | Missing ID-buffer picking pipeline for '…'. | —    | `packages/reference-assets/data/sources/packages/webgpu/src/picking/id-buffer-pick.ts`<br>`packages/webgpu/src/picking/id-buffer-pick.ts` |
+| Code                               | Message                                     | Fix? | Emitted from                                    |
+| ---------------------------------- | ------------------------------------------- | ---- | ----------------------------------------------- |
+| `idBufferPick.missingPickPipeline` | Missing ID-buffer picking pipeline for '…'. | —    | `packages/webgpu/src/picking/id-buffer-pick.ts` |
 
 ## idBufferPick.pipelineCreationFailed (1)
 
-| Code                                  | Message                       | Fix? | Emitted from                                                                                                                              |
-| ------------------------------------- | ----------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `idBufferPick.pipelineCreationFailed` | (message composed at runtime) | —    | `packages/reference-assets/data/sources/packages/webgpu/src/picking/id-buffer-pick.ts`<br>`packages/webgpu/src/picking/id-buffer-pick.ts` |
+| Code                                  | Message                       | Fix? | Emitted from                                    |
+| ------------------------------------- | ----------------------------- | ---- | ----------------------------------------------- |
+| `idBufferPick.pipelineCreationFailed` | (message composed at runtime) | —    | `packages/webgpu/src/picking/id-buffer-pick.ts` |
 
 ## idBufferPick.pipelineLayoutUnavailable (1)
 
-| Code                                     | Message                                                                                               | Fix? | Emitted from                                                                                                                              |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `idBufferPick.pipelineLayoutUnavailable` | ID-buffer picking requires createBindGroupLayout and createPipelineLayout to share frame bind groups. | —    | `packages/reference-assets/data/sources/packages/webgpu/src/picking/id-buffer-pick.ts`<br>`packages/webgpu/src/picking/id-buffer-pick.ts` |
+| Code                                     | Message                                                                                               | Fix? | Emitted from                                    |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------- |
+| `idBufferPick.pipelineLayoutUnavailable` | ID-buffer picking requires createBindGroupLayout and createPipelineLayout to share frame bind groups. | —    | `packages/webgpu/src/picking/id-buffer-pick.ts` |
 
 ## idBufferPick.shaderCreationFailed (1)
 
-| Code                                | Message                                                 | Fix? | Emitted from                                                                                                                              |
-| ----------------------------------- | ------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `idBufferPick.shaderCreationFailed` | WebGPU ID-buffer picking requires createRenderPipeline. | —    | `packages/reference-assets/data/sources/packages/webgpu/src/picking/id-buffer-pick.ts`<br>`packages/webgpu/src/picking/id-buffer-pick.ts` |
+| Code                                | Message                                                 | Fix? | Emitted from                                    |
+| ----------------------------------- | ------------------------------------------------------- | ---- | ----------------------------------------------- |
+| `idBufferPick.shaderCreationFailed` | WebGPU ID-buffer picking requires createRenderPipeline. | —    | `packages/webgpu/src/picking/id-buffer-pick.ts` |
 
 ## idBufferPick.unsupportedBatchKey (1)
 
-| Code                               | Message                                                           | Fix? | Emitted from                                                                                                                              |
-| ---------------------------------- | ----------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `idBufferPick.unsupportedBatchKey` | ID-buffer picking currently supports rigid, unmorphed mesh draws. | —    | `packages/reference-assets/data/sources/packages/webgpu/src/picking/id-buffer-pick.ts`<br>`packages/webgpu/src/picking/id-buffer-pick.ts` |
+| Code                               | Message                                                           | Fix? | Emitted from                                    |
+| ---------------------------------- | ----------------------------------------------------------------- | ---- | ----------------------------------------------- |
+| `idBufferPick.unsupportedBatchKey` | ID-buffer picking currently supports rigid, unmorphed mesh draws. | —    | `packages/webgpu/src/picking/id-buffer-pick.ts` |
 
 ## indirectDraw.bufferCreationFailed (1)
 
@@ -2320,33 +2320,33 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## light.invalidAreaSize (1)
 
-| Code                    | Message                                              | Fix? | Emitted from                                                                                                                                                            |
-| ----------------------- | ---------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `light.invalidAreaSize` | Area lights require finite width > 0 and height > 0. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                    | Message                                              | Fix? | Emitted from                                                   |
+| ----------------------- | ---------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `light.invalidAreaSize` | Area lights require finite width > 0 and height > 0. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## light.invalidIntensity (1)
 
-| Code                     | Message                               | Fix? | Emitted from                                                                                                                                                            |
-| ------------------------ | ------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `light.invalidIntensity` | Light intensity must be non-negative. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                     | Message                               | Fix? | Emitted from                                                   |
+| ------------------------ | ------------------------------------- | ---- | -------------------------------------------------------------- |
+| `light.invalidIntensity` | Light intensity must be non-negative. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## light.invalidRange (1)
 
-| Code                 | Message                                  | Fix? | Emitted from                                                                                                                                                            |
-| -------------------- | ---------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `light.invalidRange` | Point and spot lights require range > 0. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                 | Message                                  | Fix? | Emitted from                                                   |
+| -------------------- | ---------------------------------------- | ---- | -------------------------------------------------------------- |
+| `light.invalidRange` | Point and spot lights require range > 0. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## light.invalidSpotCone (1)
 
-| Code                    | Message                                                    | Fix? | Emitted from                                                                                                                                                            |
-| ----------------------- | ---------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `light.invalidSpotCone` | Spot lights require 0 <= innerConeAngle <= outerConeAngle. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                    | Message                                                    | Fix? | Emitted from                                                   |
+| ----------------------- | ---------------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `light.invalidSpotCone` | Spot lights require 0 <= innerConeAngle <= outerConeAngle. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## light.zeroLayerMask (1)
 
-| Code                  | Message                           | Fix? | Emitted from                                                                                                                                                            |
-| --------------------- | --------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `light.zeroLayerMask` | Light layerMask must not be zero. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                  | Message                           | Fix? | Emitted from                                                   |
+| --------------------- | --------------------------------- | ---- | -------------------------------------------------------------- |
+| `light.zeroLayerMask` | Light layerMask must not be zero. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## lightBindGroup.missingLayoutKey (1)
 
@@ -2410,15 +2410,15 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## lightCookie.invalidIntensity (1)
 
-| Code                           | Message                                                      | Fix? | Emitted from                                                                                                                                                            |
-| ------------------------------ | ------------------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `lightCookie.invalidIntensity` | Light cookie intensity must be a finite non-negative number. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                           | Message                                                      | Fix? | Emitted from                                                   |
+| ------------------------------ | ------------------------------------------------------------ | ---- | -------------------------------------------------------------- |
+| `lightCookie.invalidIntensity` | Light cookie intensity must be a finite non-negative number. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## lightCookie.invalidTexture (1)
 
-| Code                         | Message                                              | Fix? | Emitted from                                                                                                                                                            |
-| ---------------------------- | ---------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `lightCookie.invalidTexture` | Light cookie texture must be a texture asset handle. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                         | Message                                              | Fix? | Emitted from                                                   |
+| ---------------------------- | ---------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `lightCookie.invalidTexture` | Light cookie texture must be a texture asset handle. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## lightGpuBuffer.creationFailed (1)
 
@@ -2470,9 +2470,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## loadGlbFromUri.fetchUnavailable (1)
 
-| Code                              | Message                                                                | Fix? | Emitted from                                                                                                                            |
-| --------------------------------- | ---------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `loadGlbFromUri.fetchUnavailable` | GLB URI loading requires globalThis.fetch or an explicit fetch option. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/glb-uri-loader.ts`<br>`packages/render/src/assets/glb-uri-loader.ts` |
+| Code                              | Message                                                                | Fix? | Emitted from                                   |
+| --------------------------------- | ---------------------------------------------------------------------- | ---- | ---------------------------------------------- |
+| `loadGlbFromUri.fetchUnavailable` | GLB URI loading requires globalThis.fetch or an explicit fetch option. | —    | `packages/render/src/assets/glb-uri-loader.ts` |
 
 ## loadGlbFromUri.imageReadFailed (1)
 
@@ -2482,15 +2482,15 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## loadGlbFromUri.invalidUrl (1)
 
-| Code                        | Message                                                                | Fix? | Emitted from                                                                                                                            |
-| --------------------------- | ---------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `loadGlbFromUri.invalidUrl` | GLB URI loading requires globalThis.fetch or an explicit fetch option. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/glb-uri-loader.ts`<br>`packages/render/src/assets/glb-uri-loader.ts` |
+| Code                        | Message                                                                | Fix? | Emitted from                                   |
+| --------------------------- | ---------------------------------------------------------------------- | ---- | ---------------------------------------------- |
+| `loadGlbFromUri.invalidUrl` | GLB URI loading requires globalThis.fetch or an explicit fetch option. | —    | `packages/render/src/assets/glb-uri-loader.ts` |
 
 ## loadGlbFromUri.loaderDiagnostic (1)
 
-| Code                              | Message                       | Fix? | Emitted from                                                                                                                            |
-| --------------------------------- | ----------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `loadGlbFromUri.loaderDiagnostic` | (message composed at runtime) | —    | `packages/reference-assets/data/sources/packages/render/src/assets/glb-uri-loader.ts`<br>`packages/render/src/assets/glb-uri-loader.ts` |
+| Code                              | Message                       | Fix? | Emitted from                                   |
+| --------------------------------- | ----------------------------- | ---- | ---------------------------------------------- |
+| `loadGlbFromUri.loaderDiagnostic` | (message composed at runtime) | —    | `packages/render/src/assets/glb-uri-loader.ts` |
 
 ## loadGlbFromUri.unsupportedBufferUri (1)
 
@@ -2506,9 +2506,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## loadGltfFromUri.fetchUnavailable (1)
 
-| Code                               | Message                                                                 | Fix? | Emitted from                                                                                                                              |
-| ---------------------------------- | ----------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `loadGltfFromUri.fetchUnavailable` | glTF URI loading requires globalThis.fetch or an explicit fetch option. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-uri-loader.ts`<br>`packages/render/src/assets/gltf-uri-loader.ts` |
+| Code                               | Message                                                                 | Fix? | Emitted from                                    |
+| ---------------------------------- | ----------------------------------------------------------------------- | ---- | ----------------------------------------------- |
+| `loadGltfFromUri.fetchUnavailable` | glTF URI loading requires globalThis.fetch or an explicit fetch option. | —    | `packages/render/src/assets/gltf-uri-loader.ts` |
 
 ## loadGltfFromUri.imageReadFailed (1)
 
@@ -2524,15 +2524,15 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## loadGltfFromUri.invalidUrl (1)
 
-| Code                         | Message                                                                 | Fix? | Emitted from                                                                                                                              |
-| ---------------------------- | ----------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `loadGltfFromUri.invalidUrl` | glTF URI loading requires globalThis.fetch or an explicit fetch option. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-uri-loader.ts`<br>`packages/render/src/assets/gltf-uri-loader.ts` |
+| Code                         | Message                                                                 | Fix? | Emitted from                                    |
+| ---------------------------- | ----------------------------------------------------------------------- | ---- | ----------------------------------------------- |
+| `loadGltfFromUri.invalidUrl` | glTF URI loading requires globalThis.fetch or an explicit fetch option. | —    | `packages/render/src/assets/gltf-uri-loader.ts` |
 
 ## loadGltfFromUri.loaderDiagnostic (1)
 
-| Code                               | Message                       | Fix? | Emitted from                                                                                                                              |
-| ---------------------------------- | ----------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `loadGltfFromUri.loaderDiagnostic` | (message composed at runtime) | —    | `packages/reference-assets/data/sources/packages/render/src/assets/gltf-uri-loader.ts`<br>`packages/render/src/assets/gltf-uri-loader.ts` |
+| Code                               | Message                       | Fix? | Emitted from                                    |
+| ---------------------------------- | ----------------------------- | ---- | ----------------------------------------------- |
+| `loadGltfFromUri.loaderDiagnostic` | (message composed at runtime) | —    | `packages/render/src/assets/gltf-uri-loader.ts` |
 
 ## loadGltfFromUri.unsupportedBufferUri (1)
 
@@ -2548,39 +2548,39 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## loadHdrFromUri.fetchFailed (1)
 
-| Code                         | Message                                  | Fix? | Emitted from                                                                                                                                      |
-| ---------------------------- | ---------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `loadHdrFromUri.fetchFailed` | Fetching HDR URI '…' failed with HTTP …. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/hdr-rgbe-uri-loader.ts`<br>`packages/render/src/assets/hdr-rgbe-uri-loader.ts` |
+| Code                         | Message                                  | Fix? | Emitted from                                        |
+| ---------------------------- | ---------------------------------------- | ---- | --------------------------------------------------- |
+| `loadHdrFromUri.fetchFailed` | Fetching HDR URI '…' failed with HTTP …. | —    | `packages/render/src/assets/hdr-rgbe-uri-loader.ts` |
 
 ## loadHdrFromUri.fetchUnavailable (1)
 
-| Code                              | Message                                                                | Fix? | Emitted from                                                                                                                                      |
-| --------------------------------- | ---------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `loadHdrFromUri.fetchUnavailable` | HDR URI loading requires globalThis.fetch or an explicit fetch option. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/hdr-rgbe-uri-loader.ts`<br>`packages/render/src/assets/hdr-rgbe-uri-loader.ts` |
+| Code                              | Message                                                                | Fix? | Emitted from                                        |
+| --------------------------------- | ---------------------------------------------------------------------- | ---- | --------------------------------------------------- |
+| `loadHdrFromUri.fetchUnavailable` | HDR URI loading requires globalThis.fetch or an explicit fetch option. | —    | `packages/render/src/assets/hdr-rgbe-uri-loader.ts` |
 
 ## loadHdrFromUri.httpError (1)
 
-| Code                       | Message                                  | Fix? | Emitted from                                                                                                                                      |
-| -------------------------- | ---------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `loadHdrFromUri.httpError` | Fetching HDR URI '…' failed with HTTP …. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/hdr-rgbe-uri-loader.ts`<br>`packages/render/src/assets/hdr-rgbe-uri-loader.ts` |
+| Code                       | Message                                  | Fix? | Emitted from                                        |
+| -------------------------- | ---------------------------------------- | ---- | --------------------------------------------------- |
+| `loadHdrFromUri.httpError` | Fetching HDR URI '…' failed with HTTP …. | —    | `packages/render/src/assets/hdr-rgbe-uri-loader.ts` |
 
 ## loadHdrFromUri.invalidUrl (1)
 
-| Code                        | Message                                                                | Fix? | Emitted from                                                                                                                                      |
-| --------------------------- | ---------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `loadHdrFromUri.invalidUrl` | HDR URI loading requires globalThis.fetch or an explicit fetch option. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/hdr-rgbe-uri-loader.ts`<br>`packages/render/src/assets/hdr-rgbe-uri-loader.ts` |
+| Code                        | Message                                                                | Fix? | Emitted from                                        |
+| --------------------------- | ---------------------------------------------------------------------- | ---- | --------------------------------------------------- |
+| `loadHdrFromUri.invalidUrl` | HDR URI loading requires globalThis.fetch or an explicit fetch option. | —    | `packages/render/src/assets/hdr-rgbe-uri-loader.ts` |
 
 ## loadHdrFromUri.parseDiagnostic (1)
 
-| Code                             | Message                       | Fix? | Emitted from                                                                                                                                      |
-| -------------------------------- | ----------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `loadHdrFromUri.parseDiagnostic` | (message composed at runtime) | —    | `packages/reference-assets/data/sources/packages/render/src/assets/hdr-rgbe-uri-loader.ts`<br>`packages/render/src/assets/hdr-rgbe-uri-loader.ts` |
+| Code                             | Message                       | Fix? | Emitted from                                        |
+| -------------------------------- | ----------------------------- | ---- | --------------------------------------------------- |
+| `loadHdrFromUri.parseDiagnostic` | (message composed at runtime) | —    | `packages/render/src/assets/hdr-rgbe-uri-loader.ts` |
 
 ## loadHdrFromUri.readFailed (1)
 
-| Code                        | Message                       | Fix? | Emitted from                                                                                                                                      |
-| --------------------------- | ----------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `loadHdrFromUri.readFailed` | (message composed at runtime) | —    | `packages/reference-assets/data/sources/packages/render/src/assets/hdr-rgbe-uri-loader.ts`<br>`packages/render/src/assets/hdr-rgbe-uri-loader.ts` |
+| Code                        | Message                       | Fix? | Emitted from                                        |
+| --------------------------- | ----------------------------- | ---- | --------------------------------------------------- |
+| `loadHdrFromUri.readFailed` | (message composed at runtime) | —    | `packages/render/src/assets/hdr-rgbe-uri-loader.ts` |
 
 ## localLightAtlasSlot.invalidRequest (1)
 
@@ -2890,57 +2890,57 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## material.incompatibleRenderState (1)
 
-| Code                               | Message                                    | Fix? | Emitted from                                                                                                                          |
-| ---------------------------------- | ------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `material.incompatibleRenderState` | Blend materials must disable depth writes. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/validation.ts`<br>`packages/render/src/materials/validation.ts` |
+| Code                               | Message                                    | Fix? | Emitted from                                  |
+| ---------------------------------- | ------------------------------------------ | ---- | --------------------------------------------- |
+| `material.incompatibleRenderState` | Blend materials must disable depth writes. | —    | `packages/render/src/materials/validation.ts` |
 
 ## material.invalidAlphaCutoff (1)
 
-| Code                          | Message                               | Fix? | Emitted from                                                                                                                          |
-| ----------------------------- | ------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `material.invalidAlphaCutoff` | Alpha cutoff must be between 0 and 1. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/validation.ts`<br>`packages/render/src/materials/validation.ts` |
+| Code                          | Message                               | Fix? | Emitted from                                  |
+| ----------------------------- | ------------------------------------- | ---- | --------------------------------------------- |
+| `material.invalidAlphaCutoff` | Alpha cutoff must be between 0 and 1. | —    | `packages/render/src/materials/validation.ts` |
 
 ## material.invalidTextureColorSpace (1)
 
-| Code                                | Message                               | Fix? | Emitted from                                                                                                                          |
-| ----------------------------------- | ------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `material.invalidTextureColorSpace` | Alpha cutoff must be between 0 and 1. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/validation.ts`<br>`packages/render/src/materials/validation.ts` |
+| Code                                | Message                               | Fix? | Emitted from                                  |
+| ----------------------------------- | ------------------------------------- | ---- | --------------------------------------------- |
+| `material.invalidTextureColorSpace` | Alpha cutoff must be between 0 and 1. | —    | `packages/render/src/materials/validation.ts` |
 
 ## material.invalidTextureColorSpaceFormat (1)
 
-| Code                                      | Message                               | Fix? | Emitted from                                                                                                                          |
-| ----------------------------------------- | ------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `material.invalidTextureColorSpaceFormat` | Alpha cutoff must be between 0 and 1. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/validation.ts`<br>`packages/render/src/materials/validation.ts` |
+| Code                                      | Message                               | Fix? | Emitted from                                  |
+| ----------------------------------------- | ------------------------------------- | ---- | --------------------------------------------- |
+| `material.invalidTextureColorSpaceFormat` | Alpha cutoff must be between 0 and 1. | —    | `packages/render/src/materials/validation.ts` |
 
 ## material.missingSamplerHandle (1)
 
-| Code                            | Message                        | Fix? | Emitted from                                                                                                                          |
-| ------------------------------- | ------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `material.missingSamplerHandle` | … is missing a sampler handle. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/validation.ts`<br>`packages/render/src/materials/validation.ts` |
+| Code                            | Message                        | Fix? | Emitted from                                  |
+| ------------------------------- | ------------------------------ | ---- | --------------------------------------------- |
+| `material.missingSamplerHandle` | … is missing a sampler handle. | —    | `packages/render/src/materials/validation.ts` |
 
 ## material.missingTextureHandle (1)
 
-| Code                            | Message                        | Fix? | Emitted from                                                                                                                          |
-| ------------------------------- | ------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `material.missingTextureHandle` | … is missing a texture handle. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/validation.ts`<br>`packages/render/src/materials/validation.ts` |
+| Code                            | Message                        | Fix? | Emitted from                                  |
+| ------------------------------- | ------------------------------ | ---- | --------------------------------------------- |
+| `material.missingTextureHandle` | … is missing a texture handle. | —    | `packages/render/src/materials/validation.ts` |
 
 ## material.unsupportedFeature (1)
 
-| Code                          | Message                           | Fix? | Emitted from                                                                                                                          |
-| ----------------------------- | --------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `material.unsupportedFeature` | MVP materials do not support '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/validation.ts`<br>`packages/render/src/materials/validation.ts` |
+| Code                          | Message                           | Fix? | Emitted from                                  |
+| ----------------------------- | --------------------------------- | ---- | --------------------------------------------- |
+| `material.unsupportedFeature` | MVP materials do not support '…'. | —    | `packages/render/src/materials/validation.ts` |
 
 ## materialDependency.materialNotReady (1)
 
-| Code                                  | Message                         | Fix? | Emitted from                                                                                                                                              |
-| ------------------------------------- | ------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `materialDependency.materialNotReady` | Material '…' is '…', not ready. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/dependency-readiness.ts`<br>`packages/render/src/materials/dependency-readiness.ts` |
+| Code                                  | Message                         | Fix? | Emitted from                                            |
+| ------------------------------------- | ------------------------------- | ---- | ------------------------------------------------------- |
+| `materialDependency.materialNotReady` | Material '…' is '…', not ready. | —    | `packages/render/src/materials/dependency-readiness.ts` |
 
 ## materialDependency.missingMaterial (1)
 
-| Code                                 | Message                         | Fix? | Emitted from                                                                                                                                              |
-| ------------------------------------ | ------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `materialDependency.missingMaterial` | Material '…' is not registered. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/dependency-readiness.ts`<br>`packages/render/src/materials/dependency-readiness.ts` |
+| Code                                 | Message                         | Fix? | Emitted from                                            |
+| ------------------------------------ | ------------------------------- | ---- | ------------------------------------------------------- |
+| `materialDependency.missingMaterial` | Material '…' is not registered. | —    | `packages/render/src/materials/dependency-readiness.ts` |
 
 ## materialDependency.missingSamplerResource (1)
 
@@ -2956,63 +2956,63 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## materialPack.missingSamplerHandle (1)
 
-| Code                                | Message                                                       | Fix? | Emitted from                                                                                                                                |
-| ----------------------------------- | ------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `materialPack.missingSamplerHandle` | Unlit base color texture binding is missing a sampler handle. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/unlit-packing.ts`<br>`packages/render/src/materials/unlit-packing.ts` |
+| Code                                | Message                                                       | Fix? | Emitted from                                     |
+| ----------------------------------- | ------------------------------------------------------------- | ---- | ------------------------------------------------ |
+| `materialPack.missingSamplerHandle` | Unlit base color texture binding is missing a sampler handle. | —    | `packages/render/src/materials/unlit-packing.ts` |
 
 ## materialPack.missingTextureHandle (1)
 
-| Code                                | Message                                                       | Fix? | Emitted from                                                                                                                                |
-| ----------------------------------- | ------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `materialPack.missingTextureHandle` | Unlit base color texture binding is missing a texture handle. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/unlit-packing.ts`<br>`packages/render/src/materials/unlit-packing.ts` |
+| Code                                | Message                                                       | Fix? | Emitted from                                     |
+| ----------------------------------- | ------------------------------------------------------------- | ---- | ------------------------------------------------ |
+| `materialPack.missingTextureHandle` | Unlit base color texture binding is missing a texture handle. | —    | `packages/render/src/materials/unlit-packing.ts` |
 
 ## materialPack.unsupportedMaterialKind (1)
 
-| Code                                   | Message                                                | Fix? | Emitted from                                                                                                                                |
-| -------------------------------------- | ------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `materialPack.unsupportedMaterialKind` | Unlit material packing does not support '…' materials. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/unlit-packing.ts`<br>`packages/render/src/materials/unlit-packing.ts` |
+| Code                                   | Message                                                | Fix? | Emitted from                                     |
+| -------------------------------------- | ------------------------------------------------------ | ---- | ------------------------------------------------ |
+| `materialPack.unsupportedMaterialKind` | Unlit material packing does not support '…' materials. | —    | `packages/render/src/materials/unlit-packing.ts` |
 
 ## materialQueue.missingPreparedResource (1)
 
-| Code                                    | Message                       | Fix? | Emitted from                                                                                                                                  |
-| --------------------------------------- | ----------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `materialQueue.missingPreparedResource` | (message composed at runtime) | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/material-queue.ts`<br>`packages/render/src/rendering/material-queue.ts` |
+| Code                                    | Message                       | Fix? | Emitted from                                      |
+| --------------------------------------- | ----------------------------- | ---- | ------------------------------------------------- |
+| `materialQueue.missingPreparedResource` | (message composed at runtime) | —    | `packages/render/src/rendering/material-queue.ts` |
 
 ## materialQueue.unknownMaterialFamily (1)
 
-| Code                                  | Message                                                               | Fix? | Emitted from                                                                                                                                  |
-| ------------------------------------- | --------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `materialQueue.unknownMaterialFamily` | Render object … uses unsupported material family in pipeline key '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/material-queue.ts`<br>`packages/render/src/rendering/material-queue.ts` |
+| Code                                  | Message                                                               | Fix? | Emitted from                                      |
+| ------------------------------------- | --------------------------------------------------------------------- | ---- | ------------------------------------------------- |
+| `materialQueue.unknownMaterialFamily` | Render object … uses unsupported material family in pipeline key '…'. | —    | `packages/render/src/rendering/material-queue.ts` |
 
 ## mesh.invalidSubmeshRange (1)
 
-| Code                       | Message                                                      | Fix? | Emitted from                                                                                                                |
-| -------------------------- | ------------------------------------------------------------ | ---- | --------------------------------------------------------------------------------------------------------------------------- |
-| `mesh.invalidSubmeshRange` | Submesh vertex or index range is outside mesh buffer bounds. | —    | `packages/reference-assets/data/sources/packages/render/src/mesh/validation.ts`<br>`packages/render/src/mesh/validation.ts` |
+| Code                       | Message                                                      | Fix? | Emitted from                             |
+| -------------------------- | ------------------------------------------------------------ | ---- | ---------------------------------------- |
+| `mesh.invalidSubmeshRange` | Submesh vertex or index range is outside mesh buffer bounds. | —    | `packages/render/src/mesh/validation.ts` |
 
 ## mesh.missingBounds (1)
 
-| Code                 | Message                                                   | Fix? | Emitted from                                                                                                                |
-| -------------------- | --------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------- |
-| `mesh.missingBounds` | Mesh asset is missing local AABB or bounding sphere data. | —    | `packages/reference-assets/data/sources/packages/render/src/mesh/validation.ts`<br>`packages/render/src/mesh/validation.ts` |
+| Code                 | Message                                                   | Fix? | Emitted from                             |
+| -------------------- | --------------------------------------------------------- | ---- | ---------------------------------------- |
+| `mesh.missingBounds` | Mesh asset is missing local AABB or bounding sphere data. | —    | `packages/render/src/mesh/validation.ts` |
 
 ## mesh.missingMaterialSlot (1)
 
-| Code                       | Message                                                      | Fix? | Emitted from                                                                                                                |
-| -------------------------- | ------------------------------------------------------------ | ---- | --------------------------------------------------------------------------------------------------------------------------- |
-| `mesh.missingMaterialSlot` | Submesh vertex or index range is outside mesh buffer bounds. | —    | `packages/reference-assets/data/sources/packages/render/src/mesh/validation.ts`<br>`packages/render/src/mesh/validation.ts` |
+| Code                       | Message                                                      | Fix? | Emitted from                             |
+| -------------------------- | ------------------------------------------------------------ | ---- | ---------------------------------------- |
+| `mesh.missingMaterialSlot` | Submesh vertex or index range is outside mesh buffer bounds. | —    | `packages/render/src/mesh/validation.ts` |
 
 ## mesh.missingPosition (1)
 
-| Code                   | Message                                                          | Fix? | Emitted from                                                                                                                |
-| ---------------------- | ---------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------- |
-| `mesh.missingPosition` | Renderable mesh assets must include a POSITION vertex attribute. | —    | `packages/reference-assets/data/sources/packages/render/src/mesh/validation.ts`<br>`packages/render/src/mesh/validation.ts` |
+| Code                   | Message                                                          | Fix? | Emitted from                             |
+| ---------------------- | ---------------------------------------------------------------- | ---- | ---------------------------------------- |
+| `mesh.missingPosition` | Renderable mesh assets must include a POSITION vertex attribute. | —    | `packages/render/src/mesh/validation.ts` |
 
 ## mesh.unsupportedTopology (1)
 
-| Code                       | Message                                                      | Fix? | Emitted from                                                                                                                |
-| -------------------------- | ------------------------------------------------------------ | ---- | --------------------------------------------------------------------------------------------------------------------------- |
-| `mesh.unsupportedTopology` | Submesh vertex or index range is outside mesh buffer bounds. | —    | `packages/reference-assets/data/sources/packages/render/src/mesh/validation.ts`<br>`packages/render/src/mesh/validation.ts` |
+| Code                       | Message                                                      | Fix? | Emitted from                             |
+| -------------------------- | ------------------------------------------------------------ | ---- | ---------------------------------------- |
+| `mesh.unsupportedTopology` | Submesh vertex or index range is outside mesh buffer bounds. | —    | `packages/render/src/mesh/validation.ts` |
 
 ## meshBuffer.emptyVertexUploads (1)
 
@@ -3052,9 +3052,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## meshMerge.emptyInput (1)
 
-| Code                   | Message                                                | Fix? | Emitted from                                                                                                                          |
-| ---------------------- | ------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `meshMerge.emptyInput` | Cannot merge mesh assets for batching without sources. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/mesh-merge.ts`<br>`packages/render/src/rendering/mesh-merge.ts` |
+| Code                   | Message                                                | Fix? | Emitted from                                  |
+| ---------------------- | ------------------------------------------------------ | ---- | --------------------------------------------- |
+| `meshMerge.emptyInput` | Cannot merge mesh assets for batching without sources. | —    | `packages/render/src/rendering/mesh-merge.ts` |
 
 ## meshMerge.incompatibleIndexPresence (1)
 
@@ -3106,27 +3106,27 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## meshUpload.invalidIndexData (1)
 
-| Code                          | Message                                                       | Fix? | Emitted from                                                                                                                  |
-| ----------------------------- | ------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `meshUpload.invalidIndexData` | Index buffer data is missing or incompatible with '…' format. | —    | `packages/reference-assets/data/sources/packages/render/src/mesh/upload-plan.ts`<br>`packages/render/src/mesh/upload-plan.ts` |
+| Code                          | Message                                                       | Fix? | Emitted from                              |
+| ----------------------------- | ------------------------------------------------------------- | ---- | ----------------------------------------- |
+| `meshUpload.invalidIndexData` | Index buffer data is missing or incompatible with '…' format. | —    | `packages/render/src/mesh/upload-plan.ts` |
 
 ## meshUpload.invalidUpdateRange (1)
 
-| Code                            | Message                                                                          | Fix? | Emitted from                                                                                                                  |
-| ------------------------------- | -------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `meshUpload.invalidUpdateRange` | Mesh update ranges must be 4-byte aligned byte windows inside the source buffer. | —    | `packages/reference-assets/data/sources/packages/render/src/mesh/upload-plan.ts`<br>`packages/render/src/mesh/upload-plan.ts` |
+| Code                            | Message                                                                          | Fix? | Emitted from                              |
+| ------------------------------- | -------------------------------------------------------------------------------- | ---- | ----------------------------------------- |
+| `meshUpload.invalidUpdateRange` | Mesh update ranges must be 4-byte aligned byte windows inside the source buffer. | —    | `packages/render/src/mesh/upload-plan.ts` |
 
 ## meshUpload.invalidVertexStreamData (1)
 
-| Code                                 | Message                                                                 | Fix? | Emitted from                                                                                                                  |
-| ------------------------------------ | ----------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `meshUpload.invalidVertexStreamData` | Vertex stream '…' data does not cover … vertices at … bytes per vertex. | —    | `packages/reference-assets/data/sources/packages/render/src/mesh/upload-plan.ts`<br>`packages/render/src/mesh/upload-plan.ts` |
+| Code                                 | Message                                                                 | Fix? | Emitted from                              |
+| ------------------------------------ | ----------------------------------------------------------------------- | ---- | ----------------------------------------- |
+| `meshUpload.invalidVertexStreamData` | Vertex stream '…' data does not cover … vertices at … bytes per vertex. | —    | `packages/render/src/mesh/upload-plan.ts` |
 
 ## meshUpload.missingVertexStreamData (1)
 
-| Code                                 | Message                                   | Fix? | Emitted from                                                                                                                  |
-| ------------------------------------ | ----------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `meshUpload.missingVertexStreamData` | Vertex stream '…' is missing source data. | —    | `packages/reference-assets/data/sources/packages/render/src/mesh/upload-plan.ts`<br>`packages/render/src/mesh/upload-plan.ts` |
+| Code                                 | Message                                   | Fix? | Emitted from                              |
+| ------------------------------------ | ----------------------------------------- | ---- | ----------------------------------------- |
+| `meshUpload.missingVertexStreamData` | Vertex stream '…' is missing source data. | —    | `packages/render/src/mesh/upload-plan.ts` |
 
 ## morphInstanceDescriptorBuffer.invalidUsageFlags (1)
 
@@ -3220,81 +3220,81 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## msdfFont.duplicateGlyph (1)
 
-| Code                      | Message                                    | Fix? | Emitted from                                                                                                                          |
-| ------------------------- | ------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `msdfFont.duplicateGlyph` | Duplicate MSDF glyph '…' (…) in atlas '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/text/msdf-font-atlas.ts`<br>`packages/render/src/text/msdf-font-atlas.ts` |
+| Code                      | Message                                    | Fix? | Emitted from                                  |
+| ------------------------- | ------------------------------------------ | ---- | --------------------------------------------- |
+| `msdfFont.duplicateGlyph` | Duplicate MSDF glyph '…' (…) in atlas '…'. | —    | `packages/render/src/text/msdf-font-atlas.ts` |
 
 ## msdfFont.invalidAtlasDimensions (1)
 
-| Code                              | Message                                                                              | Fix? | Emitted from                                                                                                                          |
-| --------------------------------- | ------------------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `msdfFont.invalidAtlasDimensions` | MSDF font atlas requires finite positive common.scaleW and common.scaleH dimensions. | —    | `packages/reference-assets/data/sources/packages/render/src/text/msdf-font-atlas.ts`<br>`packages/render/src/text/msdf-font-atlas.ts` |
+| Code                              | Message                                                                              | Fix? | Emitted from                                  |
+| --------------------------------- | ------------------------------------------------------------------------------------ | ---- | --------------------------------------------- |
+| `msdfFont.invalidAtlasDimensions` | MSDF font atlas requires finite positive common.scaleW and common.scaleH dimensions. | —    | `packages/render/src/text/msdf-font-atlas.ts` |
 
 ## msdfFont.invalidDistanceRange (1)
 
-| Code                            | Message                                                    | Fix? | Emitted from                                                                                                                          |
-| ------------------------------- | ---------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `msdfFont.invalidDistanceRange` | MSDF font atlas distanceRange must be finite and positive. | —    | `packages/reference-assets/data/sources/packages/render/src/text/msdf-font-atlas.ts`<br>`packages/render/src/text/msdf-font-atlas.ts` |
+| Code                            | Message                                                    | Fix? | Emitted from                                  |
+| ------------------------------- | ---------------------------------------------------------- | ---- | --------------------------------------------- |
+| `msdfFont.invalidDistanceRange` | MSDF font atlas distanceRange must be finite and positive. | —    | `packages/render/src/text/msdf-font-atlas.ts` |
 
 ## msdfFont.invalidFontSize (1)
 
-| Code                       | Message                                                                  | Fix? | Emitted from                                                                                                                          |
-| -------------------------- | ------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `msdfFont.invalidFontSize` | MSDF font atlas requires finite positive fontSize and lineHeight values. | —    | `packages/reference-assets/data/sources/packages/render/src/text/msdf-font-atlas.ts`<br>`packages/render/src/text/msdf-font-atlas.ts` |
+| Code                       | Message                                                                  | Fix? | Emitted from                                  |
+| -------------------------- | ------------------------------------------------------------------------ | ---- | --------------------------------------------- |
+| `msdfFont.invalidFontSize` | MSDF font atlas requires finite positive fontSize and lineHeight values. | —    | `packages/render/src/text/msdf-font-atlas.ts` |
 
 ## msdfFont.invalidGlyphBounds (1)
 
-| Code                          | Message                                              | Fix? | Emitted from                                                                                                                          |
-| ----------------------------- | ---------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `msdfFont.invalidGlyphBounds` | MSDF glyph '…' bounds must fit inside the …x… atlas. | —    | `packages/reference-assets/data/sources/packages/render/src/text/msdf-font-atlas.ts`<br>`packages/render/src/text/msdf-font-atlas.ts` |
+| Code                          | Message                                              | Fix? | Emitted from                                  |
+| ----------------------------- | ---------------------------------------------------- | ---- | --------------------------------------------- |
+| `msdfFont.invalidGlyphBounds` | MSDF glyph '…' bounds must fit inside the …x… atlas. | —    | `packages/render/src/text/msdf-font-atlas.ts` |
 
 ## msdfFont.invalidGlyphPage (1)
 
-| Code                        | Message                                                                | Fix? | Emitted from                                                                                                                          |
-| --------------------------- | ---------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `msdfFont.invalidGlyphPage` | MSDF glyph '…' references page …, but atlas '…' has … texture page(s). | —    | `packages/reference-assets/data/sources/packages/render/src/text/msdf-font-atlas.ts`<br>`packages/render/src/text/msdf-font-atlas.ts` |
+| Code                        | Message                                                                | Fix? | Emitted from                                  |
+| --------------------------- | ---------------------------------------------------------------------- | ---- | --------------------------------------------- |
+| `msdfFont.invalidGlyphPage` | MSDF glyph '…' references page …, but atlas '…' has … texture page(s). | —    | `packages/render/src/text/msdf-font-atlas.ts` |
 
 ## msdfFont.missingGlyphs (1)
 
-| Code                     | Message                                             | Fix? | Emitted from                                                                                                                          |
-| ------------------------ | --------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `msdfFont.missingGlyphs` | MSDF font atlas requires at least one glyph record. | —    | `packages/reference-assets/data/sources/packages/render/src/text/msdf-font-atlas.ts`<br>`packages/render/src/text/msdf-font-atlas.ts` |
+| Code                     | Message                                             | Fix? | Emitted from                                  |
+| ------------------------ | --------------------------------------------------- | ---- | --------------------------------------------- |
+| `msdfFont.missingGlyphs` | MSDF font atlas requires at least one glyph record. | —    | `packages/render/src/text/msdf-font-atlas.ts` |
 
 ## msdfFont.pageCountMismatch (1)
 
-| Code                         | Message                                               | Fix? | Emitted from                                                                                                                          |
-| ---------------------------- | ----------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `msdfFont.pageCountMismatch` | MSDF text layout requires a finite positive fontSize. | —    | `packages/reference-assets/data/sources/packages/render/src/text/msdf-font-atlas.ts`<br>`packages/render/src/text/msdf-font-atlas.ts` |
+| Code                         | Message                                               | Fix? | Emitted from                                  |
+| ---------------------------- | ----------------------------------------------------- | ---- | --------------------------------------------- |
+| `msdfFont.pageCountMismatch` | MSDF text layout requires a finite positive fontSize. | —    | `packages/render/src/text/msdf-font-atlas.ts` |
 
 ## msdfFont.texturePageMismatch (1)
 
-| Code                           | Message                                                                   | Fix? | Emitted from                                                                                                                          |
-| ------------------------------ | ------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `msdfFont.texturePageMismatch` | MSDF font atlas declares … page name(s) but received … texture handle(s). | —    | `packages/reference-assets/data/sources/packages/render/src/text/msdf-font-atlas.ts`<br>`packages/render/src/text/msdf-font-atlas.ts` |
+| Code                           | Message                                                                   | Fix? | Emitted from                                  |
+| ------------------------------ | ------------------------------------------------------------------------- | ---- | --------------------------------------------- |
+| `msdfFont.texturePageMismatch` | MSDF font atlas declares … page name(s) but received … texture handle(s). | —    | `packages/render/src/text/msdf-font-atlas.ts` |
 
 ## msdfText.invalidFontSize (1)
 
-| Code                       | Message                                               | Fix? | Emitted from                                                                                                                          |
-| -------------------------- | ----------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `msdfText.invalidFontSize` | MSDF text layout requires a finite positive fontSize. | —    | `packages/reference-assets/data/sources/packages/render/src/text/msdf-font-atlas.ts`<br>`packages/render/src/text/msdf-font-atlas.ts` |
+| Code                       | Message                                               | Fix? | Emitted from                                  |
+| -------------------------- | ----------------------------------------------------- | ---- | --------------------------------------------- |
+| `msdfText.invalidFontSize` | MSDF text layout requires a finite positive fontSize. | —    | `packages/render/src/text/msdf-font-atlas.ts` |
 
 ## msdfText.invalidMaxWidth (1)
 
-| Code                       | Message                                                   | Fix? | Emitted from                                                                                                                          |
-| -------------------------- | --------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `msdfText.invalidMaxWidth` | MSDF text layout maxWidth must be positive when provided. | —    | `packages/reference-assets/data/sources/packages/render/src/text/msdf-font-atlas.ts`<br>`packages/render/src/text/msdf-font-atlas.ts` |
+| Code                       | Message                                                   | Fix? | Emitted from                                  |
+| -------------------------- | --------------------------------------------------------- | ---- | --------------------------------------------- |
+| `msdfText.invalidMaxWidth` | MSDF text layout maxWidth must be positive when provided. | —    | `packages/render/src/text/msdf-font-atlas.ts` |
 
 ## msdfText.missingGlyph (1)
 
-| Code                    | Message                             | Fix? | Emitted from                                                                                                                          |
-| ----------------------- | ----------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `msdfText.missingGlyph` | MSDF font '…' has no glyph for '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/text/msdf-font-atlas.ts`<br>`packages/render/src/text/msdf-font-atlas.ts` |
+| Code                    | Message                             | Fix? | Emitted from                                  |
+| ----------------------- | ----------------------------------- | ---- | --------------------------------------------- |
+| `msdfText.missingGlyph` | MSDF font '…' has no glyph for '…'. | —    | `packages/render/src/text/msdf-font-atlas.ts` |
 
 ## msdfText.unsupportedShaping (1)
 
-| Code                          | Message                                                                                                                                  | Fix? | Emitted from                                                                                                                          |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `msdfText.unsupportedShaping` | M6 MSDF text supports basic left-to-right glyph layout only; complex shaping, bidi, and combining marks are not supported in this slice. | —    | `packages/reference-assets/data/sources/packages/render/src/text/msdf-font-atlas.ts`<br>`packages/render/src/text/msdf-font-atlas.ts` |
+| Code                          | Message                                                                                                                                  | Fix? | Emitted from                                  |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------- |
+| `msdfText.unsupportedShaping` | M6 MSDF text supports basic left-to-right glyph layout only; complex shaping, bidi, and combining marks are not supported in this slice. | —    | `packages/render/src/text/msdf-font-atlas.ts` |
 
 ## msdfTextFrame.createBindGroupUnavailable (1)
 
@@ -3370,57 +3370,57 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## particle.invalidBounds (1)
 
-| Code                     | Message                                                                                                       | Fix? | Emitted from                                                                                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `particle.invalidBounds` | Particle emitter bounds require a finite center and a non-negative radius; radius 0 enables automatic bounds. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                     | Message                                                                                                       | Fix? | Emitted from                                                    |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `particle.invalidBounds` | Particle emitter bounds require a finite center and a non-negative radius; radius 0 enables automatic bounds. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## particle.invalidCapacity (1)
 
-| Code                       | Message                                                       | Fix? | Emitted from                                                                                                                                                              |
-| -------------------------- | ------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `particle.invalidCapacity` | Particle emitter capacity must be zero or a positive integer. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                       | Message                                                       | Fix? | Emitted from                                                    |
+| -------------------------- | ------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `particle.invalidCapacity` | Particle emitter capacity must be zero or a positive integer. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## particle.invalidEffect (1)
 
-| Code                     | Message                                             | Fix? | Emitted from                                                                                                                                                              |
-| ------------------------ | --------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `particle.invalidEffect` | Particle emitters require a particle-effect handle. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                     | Message                                             | Fix? | Emitted from                                                    |
+| ------------------------ | --------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `particle.invalidEffect` | Particle emitters require a particle-effect handle. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## particle.invalidResetEpoch (1)
 
-| Code                         | Message                                                     | Fix? | Emitted from                                                                                                                                                              |
-| ---------------------------- | ----------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `particle.invalidResetEpoch` | Particle emitter resetEpoch must be a non-negative integer. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                         | Message                                                     | Fix? | Emitted from                                                    |
+| ---------------------------- | ----------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `particle.invalidResetEpoch` | Particle emitter resetEpoch must be a non-negative integer. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## particle.invalidSeed (1)
 
-| Code                   | Message                                   | Fix? | Emitted from                                                                                                                                                              |
-| ---------------------- | ----------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `particle.invalidSeed` | Particle emitter seed must be an integer. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                   | Message                                   | Fix? | Emitted from                                                    |
+| ---------------------- | ----------------------------------------- | ---- | --------------------------------------------------------------- |
+| `particle.invalidSeed` | Particle emitter seed must be an integer. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## particle.invalidSimulationSpace (1)
 
-| Code                              | Message                                                      | Fix? | Emitted from                                                                                                                                                              |
-| --------------------------------- | ------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `particle.invalidSimulationSpace` | Particle emitter simulationSpace must be 'world' or 'local'. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                              | Message                                                      | Fix? | Emitted from                                                    |
+| --------------------------------- | ------------------------------------------------------------ | ---- | --------------------------------------------------------------- |
+| `particle.invalidSimulationSpace` | Particle emitter simulationSpace must be 'world' or 'local'. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## particle.invalidTimeScale (1)
 
-| Code                        | Message                                                   | Fix? | Emitted from                                                                                                                                                              |
-| --------------------------- | --------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `particle.invalidTimeScale` | Particle emitter timeScale must be a non-negative number. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                        | Message                                                   | Fix? | Emitted from                                                    |
+| --------------------------- | --------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `particle.invalidTimeScale` | Particle emitter timeScale must be a non-negative number. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## particleEffect.partiallySupportedFeature (1)
 
-| Code                                       | Message                                                                                                                 | Fix? | Emitted from                                                                                                                  |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `particleEffect.partiallySupportedFeature` | Particle lifetime ranges are honored by worker-emitted bursts; continuous GPU emitters currently use lifetime.max only. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/particles.ts`<br>`packages/render/src/assets/particles.ts` |
+| Code                                       | Message                                                                                                                 | Fix? | Emitted from                              |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------- |
+| `particleEffect.partiallySupportedFeature` | Particle lifetime ranges are honored by worker-emitted bursts; continuous GPU emitters currently use lifetime.max only. | —    | `packages/render/src/assets/particles.ts` |
 
 ## particleEffect.unsupportedFeature (1)
 
-| Code                                | Message                                                                                                                                         | Fix? | Emitted from                                                                                                                  |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `particleEffect.unsupportedFeature` | Particle texture atlas animation is not implemented yet; atlasFrameCount values above 1 are accepted for authoring but ignored by the renderer. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/particles.ts`<br>`packages/render/src/assets/particles.ts` |
+| Code                                | Message                                                                                                                                         | Fix? | Emitted from                              |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------- |
+| `particleEffect.unsupportedFeature` | Particle texture atlas animation is not implemented yet; atlasFrameCount values above 1 are accepted for authoring but ignored by the renderer. | —    | `packages/render/src/assets/particles.ts` |
 
 ## particleFrame.beginComputeFailed (1)
 
@@ -3538,46 +3538,46 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## physics.characterController (1)
 
-| Code                                      | Message                                                                                                               | Fix? | Emitted from                                                                                                      |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------- |
-| `physics.characterController.unsupported` | The benchmark requested character movement, but the active backend does not expose PhysicsBackend.moveCharacter(...). | yes  | `packages/physics/src/benchmark.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/benchmark.ts` |
+| Code                                      | Message                                                                                                               | Fix? | Emitted from                        |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------- |
+| `physics.characterController.unsupported` | The benchmark requested character movement, but the active backend does not expose PhysicsBackend.moveCharacter(...). | yes  | `packages/physics/src/benchmark.ts` |
 
 ## physics.collider (9)
 
-| Code                                             | Message                                                                                                                                                                                 | Fix? | Emitted from                                                                                                                                                                                                                                                                   |
-| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `physics.collider.asset.empty`                   | Physics triangle mesh '…' has no triangles to cook.                                                                                                                                     | yes  | `packages/physics/src/collider-geometry.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/collider-geometry.ts`                                                                                                                                              |
-| `physics.collider.asset.invalid`                 | Physics collider asset '…' is not a MeshAsset.                                                                                                                                          | yes  | `packages/app/src/physics-collider-geometry.ts`<br>`packages/physics/src/collider-geometry.ts`<br>`packages/reference-assets/data/sources/packages/app/src/physics-collider-geometry.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/collider-geometry.ts` |
-| `physics.collider.asset.missing`                 | Physics collider mesh '…' is not registered as a source mesh asset.                                                                                                                     | yes  | `packages/app/src/physics-collider-geometry.ts`<br>`packages/reference-assets/data/sources/packages/app/src/physics-collider-geometry.ts`                                                                                                                                      |
-| `physics.collider.asset.notReady`                | Physics collider mesh '…' is '…', not ready.                                                                                                                                            | yes  | `packages/app/src/physics-collider-geometry.ts`<br>`packages/reference-assets/data/sources/packages/app/src/physics-collider-geometry.ts`                                                                                                                                      |
-| `physics.collider.assetShape.unsupported`        | Collider shape '…' is authored, but the active backend does not yet sync asset-backed collider geometry.                                                                                | yes  | `packages/physics-rapier/src/colliders.ts`<br>`packages/physics/src/backend.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/backend.ts`                                                                                                                    |
-| `physics.collider.cooking.failed`                | Rapier could not cook convex hull collider geometry '…'.                                                                                                                                | yes  | `packages/physics-rapier/src/colliders.ts`                                                                                                                                                                                                                                     |
-| `physics.collider.dynamicAssetShape.unsupported` | PhysicsJoint.kind is 'generic', but the active backend route does not yet expose a backend-neutral generic constraint axis/mask mapping.                                                | yes  | `packages/physics/src/backend.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/backend.ts`                                                                                                                                                                  |
-| `physics.collider.scale.approximated`            | Collider shape '…' has a non-uniform ECS scale that a … cannot represent exactly; the collider uses an enclosing (largest-axis) approximation that may not match the rendered geometry. | yes  | `packages/physics/src/backend.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/backend.ts`                                                                                                                                                                  |
-| `physics.collider.scale.unsupported`             | Collider shape '…' is asset-backed and authored with non-unit ECS scale, but this V1 sync path does not silently bake scale into backend collider geometry.                             | yes  | `packages/physics/src/backend.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/backend.ts`                                                                                                                                                                  |
+| Code                                             | Message                                                                                                                                                                                 | Fix? | Emitted from                                                                                   |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------------------------- |
+| `physics.collider.asset.empty`                   | Physics triangle mesh '…' has no triangles to cook.                                                                                                                                     | yes  | `packages/physics/src/collider-geometry.ts`                                                    |
+| `physics.collider.asset.invalid`                 | Physics collider asset '…' is not a MeshAsset.                                                                                                                                          | yes  | `packages/app/src/physics-collider-geometry.ts`<br>`packages/physics/src/collider-geometry.ts` |
+| `physics.collider.asset.missing`                 | Physics collider mesh '…' is not registered as a source mesh asset.                                                                                                                     | yes  | `packages/app/src/physics-collider-geometry.ts`                                                |
+| `physics.collider.asset.notReady`                | Physics collider mesh '…' is '…', not ready.                                                                                                                                            | yes  | `packages/app/src/physics-collider-geometry.ts`                                                |
+| `physics.collider.assetShape.unsupported`        | Collider shape '…' is authored, but the active backend does not yet sync asset-backed collider geometry.                                                                                | yes  | `packages/physics-rapier/src/colliders.ts`<br>`packages/physics/src/backend.ts`                |
+| `physics.collider.cooking.failed`                | Rapier could not cook convex hull collider geometry '…'.                                                                                                                                | yes  | `packages/physics-rapier/src/colliders.ts`                                                     |
+| `physics.collider.dynamicAssetShape.unsupported` | PhysicsJoint.kind is 'generic', but the active backend route does not yet expose a backend-neutral generic constraint axis/mask mapping.                                                | yes  | `packages/physics/src/backend.ts`                                                              |
+| `physics.collider.scale.approximated`            | Collider shape '…' has a non-uniform ECS scale that a … cannot represent exactly; the collider uses an enclosing (largest-axis) approximation that may not match the rendered geometry. | yes  | `packages/physics/src/backend.ts`                                                              |
+| `physics.collider.scale.unsupported`             | Collider shape '…' is asset-backed and authored with non-unit ECS scale, but this V1 sync path does not silently bake scale into backend collider geometry.                             | yes  | `packages/physics/src/backend.ts`                                                              |
 
 ## physics.debugGeometry (1)
 
-| Code                                | Message                                                                                                           | Fix? | Emitted from                                                                                                      |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------- |
-| `physics.debugGeometry.unsupported` | The benchmark requested debug geometry, but the active backend does not expose PhysicsBackend.debugGeometry(...). | yes  | `packages/physics/src/benchmark.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/benchmark.ts` |
+| Code                                | Message                                                                                                           | Fix? | Emitted from                        |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------- |
+| `physics.debugGeometry.unsupported` | The benchmark requested debug geometry, but the active backend does not expose PhysicsBackend.debugGeometry(...). | yes  | `packages/physics/src/benchmark.ts` |
 
 ## physics.joint (5)
 
-| Code                                        | Message                                                                                                                                                | Fix? | Emitted from                                                                                                  |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------- |
-| `physics.joint.breakForce.unsupported`      | PhysicsJoint.breakForce is authored on this joint, but the active backend cannot enforce joint break thresholds or emit truthful jointBreak events.    | yes  | `packages/physics/src/backend.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/backend.ts` |
-| `physics.joint.frameB.unsupported`          | PhysicsJoint.frameB is authored on a non-fixed joint, but the active backend cannot encode a paired body-B joint frame for this joint kind.            | yes  | `packages/physics/src/backend.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/backend.ts` |
-| `physics.joint.impulseReadback.unsupported` | The active physics route does not expose native joint impulse readback, so automatic breakForce thresholds cannot be enforced truthfully.              | yes  | `packages/physics/src/backend.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/backend.ts` |
-| `physics.joint.motorMaxForce.unsupported`   | PhysicsJoint.motorMaxForce is authored on this joint, but the active backend cannot enforce motor force limits through the current public adapter API. | yes  | `packages/physics/src/backend.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/backend.ts` |
-| `physics.joint.unsupported`                 | PhysicsJoint.kind is 'generic', but the active backend route does not yet expose a backend-neutral generic constraint axis/mask mapping.               | yes  | `packages/physics/src/backend.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/backend.ts` |
+| Code                                        | Message                                                                                                                                                | Fix? | Emitted from                      |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | --------------------------------- |
+| `physics.joint.breakForce.unsupported`      | PhysicsJoint.breakForce is authored on this joint, but the active backend cannot enforce joint break thresholds or emit truthful jointBreak events.    | yes  | `packages/physics/src/backend.ts` |
+| `physics.joint.frameB.unsupported`          | PhysicsJoint.frameB is authored on a non-fixed joint, but the active backend cannot encode a paired body-B joint frame for this joint kind.            | yes  | `packages/physics/src/backend.ts` |
+| `physics.joint.impulseReadback.unsupported` | The active physics route does not expose native joint impulse readback, so automatic breakForce thresholds cannot be enforced truthfully.              | yes  | `packages/physics/src/backend.ts` |
+| `physics.joint.motorMaxForce.unsupported`   | PhysicsJoint.motorMaxForce is authored on this joint, but the active backend cannot enforce motor force limits through the current public adapter API. | yes  | `packages/physics/src/backend.ts` |
+| `physics.joint.unsupported`                 | PhysicsJoint.kind is 'generic', but the active backend route does not yet expose a backend-neutral generic constraint axis/mask mapping.               | yes  | `packages/physics/src/backend.ts` |
 
 ## physics.rigidBody (2)
 
-| Code                                         | Message                                                                                                                                                                                                                     | Fix? | Emitted from                                                                                                  |
-| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------- |
-| `physics.rigidBody.ccd.unsupported`          | RigidBody.ccdEnabled is authored on this body, but the active backend does not implement continuous collision detection.                                                                                                    | yes  | `packages/physics/src/backend.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/backend.ts` |
-| `physics.rigidBody.parentedBody.unsupported` | RigidBody is authored on a parented entity whose world pose was not resolvable this step (no resolved WorldTransform, or a degenerate/non-decomposable world matrix), so the body cannot be synced to a backend world pose. | yes  | `packages/physics/src/backend.ts`<br>`packages/reference-assets/data/sources/packages/physics/src/backend.ts` |
+| Code                                         | Message                                                                                                                                                                                                                     | Fix? | Emitted from                      |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------- |
+| `physics.rigidBody.ccd.unsupported`          | RigidBody.ccdEnabled is authored on this body, but the active backend does not implement continuous collision detection.                                                                                                    | yes  | `packages/physics/src/backend.ts` |
+| `physics.rigidBody.parentedBody.unsupported` | RigidBody is authored on a parented entity whose world pose was not resolvable this step (no resolved WorldTransform, or a degenerate/non-decomposable world matrix), so the body cannot be synced to a backend world pose. | yes  | `packages/physics/src/backend.ts` |
 
 ## pipelineCacheIntegration.nullDescriptorPlan (1)
 
@@ -3689,27 +3689,27 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## preparedMaterialResource.invalidMaterial (1)
 
-| Code                                       | Message                       | Fix? | Emitted from                                                                                                                                        |
-| ------------------------------------------ | ----------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `preparedMaterialResource.invalidMaterial` | (message composed at runtime) | —    | `packages/reference-assets/data/sources/packages/render/src/materials/prepared-resource.ts`<br>`packages/render/src/materials/prepared-resource.ts` |
+| Code                                       | Message                       | Fix? | Emitted from                                         |
+| ------------------------------------------ | ----------------------------- | ---- | ---------------------------------------------------- |
+| `preparedMaterialResource.invalidMaterial` | (message composed at runtime) | —    | `packages/render/src/materials/prepared-resource.ts` |
 
 ## preparedMaterialResource.materialNotReady (1)
 
-| Code                                        | Message                         | Fix? | Emitted from                                                                                                                                        |
-| ------------------------------------------- | ------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `preparedMaterialResource.materialNotReady` | Material '…' is '…', not ready. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/prepared-resource.ts`<br>`packages/render/src/materials/prepared-resource.ts` |
+| Code                                        | Message                         | Fix? | Emitted from                                         |
+| ------------------------------------------- | ------------------------------- | ---- | ---------------------------------------------------- |
+| `preparedMaterialResource.materialNotReady` | Material '…' is '…', not ready. | —    | `packages/render/src/materials/prepared-resource.ts` |
 
 ## preparedMaterialResource.missingMaterial (1)
 
-| Code                                       | Message                         | Fix? | Emitted from                                                                                                                                        |
-| ------------------------------------------ | ------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `preparedMaterialResource.missingMaterial` | Material '…' is not registered. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/prepared-resource.ts`<br>`packages/render/src/materials/prepared-resource.ts` |
+| Code                                       | Message                         | Fix? | Emitted from                                         |
+| ------------------------------------------ | ------------------------------- | ---- | ---------------------------------------------------- |
+| `preparedMaterialResource.missingMaterial` | Material '…' is not registered. | —    | `packages/render/src/materials/prepared-resource.ts` |
 
 ## preparedMaterialResource.unsupportedMaterialKind (1)
 
-| Code                                               | Message                                                      | Fix? | Emitted from                                                                                                                                        |
-| -------------------------------------------------- | ------------------------------------------------------------ | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `preparedMaterialResource.unsupportedMaterialKind` | Prepared material resource descriptor expected '…', not '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/prepared-resource.ts`<br>`packages/render/src/materials/prepared-resource.ts` |
+| Code                                               | Message                                                      | Fix? | Emitted from                                         |
+| -------------------------------------------------- | ------------------------------------------------------------ | ---- | ---------------------------------------------------- |
+| `preparedMaterialResource.unsupportedMaterialKind` | Prepared material resource descriptor expected '…', not '…'. | —    | `packages/render/src/materials/prepared-resource.ts` |
 
 ## preparedResourceAppReuse.materialFacadeMismatch (1)
 
@@ -3845,51 +3845,51 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## proceduralSky.invalidColor (1)
 
-| Code                         | Message                                                       | Fix? | Emitted from                                                                                                                                                              |
-| ---------------------------- | ------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `proceduralSky.invalidColor` | Procedural sky colors must be finite non-negative RGB values. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                         | Message                                                       | Fix? | Emitted from                                                    |
+| ---------------------------- | ------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidColor` | Procedural sky colors must be finite non-negative RGB values. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## proceduralSky.invalidDither (1)
 
-| Code                          | Message                                                        | Fix? | Emitted from                                                                                                                                                              |
-| ----------------------------- | -------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `proceduralSky.invalidDither` | Procedural sky ditherStrength must be finite and non-negative. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                          | Message                                                        | Fix? | Emitted from                                                    |
+| ----------------------------- | -------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidDither` | Procedural sky ditherStrength must be finite and non-negative. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## proceduralSky.invalidHorizon (1)
 
-| Code                           | Message                                                                                              | Fix? | Emitted from                                                                                                                                                              |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `proceduralSky.invalidHorizon` | Procedural sky horizonPosition must be in [0,1] and horizonSoftness must be finite and non-negative. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                           | Message                                                                                              | Fix? | Emitted from                                                    |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidHorizon` | Procedural sky horizonPosition must be in [0,1] and horizonSoftness must be finite and non-negative. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## proceduralSky.invalidIntensity (1)
 
-| Code                             | Message                                                   | Fix? | Emitted from                                                                                                                                                              |
-| -------------------------------- | --------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `proceduralSky.invalidIntensity` | Procedural sky intensity must be finite and non-negative. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                             | Message                                                   | Fix? | Emitted from                                                    |
+| -------------------------------- | --------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidIntensity` | Procedural sky intensity must be finite and non-negative. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## proceduralSky.invalidModel (1)
 
-| Code                         | Message                                  | Fix? | Emitted from                                                                                                                                                              |
-| ---------------------------- | ---------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `proceduralSky.invalidModel` | Procedural sky model must be 'gradient'. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                         | Message                                  | Fix? | Emitted from                                                    |
+| ---------------------------- | ---------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidModel` | Procedural sky model must be 'gradient'. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## proceduralSky.invalidPriority (1)
 
-| Code                            | Message                                     | Fix? | Emitted from                                                                                                                                                              |
-| ------------------------------- | ------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `proceduralSky.invalidPriority` | Procedural sky priority must be an integer. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                            | Message                                     | Fix? | Emitted from                                                    |
+| ------------------------------- | ------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidPriority` | Procedural sky priority must be an integer. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## proceduralSky.invalidSun (1)
 
-| Code                       | Message                                                               | Fix? | Emitted from                                                                                                                                                              |
-| -------------------------- | --------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `proceduralSky.invalidSun` | Procedural sky sunRadius and sunGlow must be finite and non-negative. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                       | Message                                                               | Fix? | Emitted from                                                    |
+| -------------------------- | --------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidSun` | Procedural sky sunRadius and sunGlow must be finite and non-negative. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## proceduralSky.invalidSunDirection (1)
 
-| Code                                | Message                                                               | Fix? | Emitted from                                                                                                                                                              |
-| ----------------------------------- | --------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `proceduralSky.invalidSunDirection` | Procedural sky sunDirection must be a finite non-zero vec3 direction. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                                | Message                                                               | Fix? | Emitted from                                                    |
+| ----------------------------------- | --------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `proceduralSky.invalidSunDirection` | Procedural sky sunDirection must be a finite non-zero vec3 direction. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## proceduralSkyFrame.createBindGroupUnavailable (1)
 
@@ -4001,19 +4001,19 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## render.audio (1)
 
-| Code                           | Message                                       | Fix? | Emitted from                                                                                                                                              |
-| ------------------------------ | --------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `render.audio.oneShotOverflow` | Dropped … one-shot(s): queue at capacity (…). | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/audio-one-shot-queue.ts`<br>`packages/render/src/rendering/audio-one-shot-queue.ts` |
+| Code                           | Message                                       | Fix? | Emitted from                                            |
+| ------------------------------ | --------------------------------------------- | ---- | ------------------------------------------------------- |
+| `render.audio.oneShotOverflow` | Dropped … one-shot(s): queue at capacity (…). | —    | `packages/render/src/rendering/audio-one-shot-queue.ts` |
 
 ## render.particle (5)
 
-| Code                                  | Message                                                                                                                 | Fix? | Emitted from                                                                                                                                              |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `render.particle.boundsLarge`         | Derived … particle bounds radius … is unusually large; set boundsRadius/boundsCenter explicitly if this is intentional. | —    | `packages/render/src/rendering/extraction-particles.ts`                                                                                                   |
-| `render.particle.boundsUnavailable`   | Could not derive conservative … particle bounds; using a 1 unit fallback radius.                                        | —    | `packages/render/src/rendering/extraction-particles.ts`                                                                                                   |
-| `render.particle.burstEffectInvalid`  | Dropped particle burst: effect '…' is invalid.                                                                          | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/particle-burst-queue.ts`<br>`packages/render/src/rendering/particle-burst-queue.ts` |
-| `render.particle.burstEffectNotReady` | Dropped particle burst: effect '…' is not ready.                                                                        | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/particle-burst-queue.ts`<br>`packages/render/src/rendering/particle-burst-queue.ts` |
-| `render.particle.burstOverflow`       | Dropped … particle burst(s): queue at capacity (…).                                                                     | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/particle-burst-queue.ts`<br>`packages/render/src/rendering/particle-burst-queue.ts` |
+| Code                                  | Message                                                                                                                 | Fix? | Emitted from                                            |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------- |
+| `render.particle.boundsLarge`         | Derived … particle bounds radius … is unusually large; set boundsRadius/boundsCenter explicitly if this is intentional. | —    | `packages/render/src/rendering/extraction-particles.ts` |
+| `render.particle.boundsUnavailable`   | Could not derive conservative … particle bounds; using a 1 unit fallback radius.                                        | —    | `packages/render/src/rendering/extraction-particles.ts` |
+| `render.particle.burstEffectInvalid`  | Dropped particle burst: effect '…' is invalid.                                                                          | —    | `packages/render/src/rendering/particle-burst-queue.ts` |
+| `render.particle.burstEffectNotReady` | Dropped particle burst: effect '…' is not ready.                                                                        | —    | `packages/render/src/rendering/particle-burst-queue.ts` |
+| `render.particle.burstOverflow`       | Dropped … particle burst(s): queue at capacity (…).                                                                     | —    | `packages/render/src/rendering/particle-burst-queue.ts` |
 
 ## render.standardMaterialTexture (1)
 
@@ -4023,26 +4023,26 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## render.ui (2)
 
-| Code                            | Message                                             | Fix? | Emitted from                                                                                                                                |
-| ------------------------------- | --------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `render.ui.layoutDepthExceeded` | UI layout exceeded the maximum retained tree depth. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/extraction-ui.ts`<br>`packages/render/src/rendering/extraction-ui.ts` |
-| `render.ui.parentCycle`         | UI parent cycle detected; subtree skipped.          | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/extraction-ui.ts`<br>`packages/render/src/rendering/extraction-ui.ts` |
+| Code                            | Message                                             | Fix? | Emitted from                                     |
+| ------------------------------- | --------------------------------------------------- | ---- | ------------------------------------------------ |
+| `render.ui.layoutDepthExceeded` | UI layout exceeded the maximum retained tree depth. | —    | `packages/render/src/rendering/extraction-ui.ts` |
+| `render.ui.parentCycle`         | UI parent cycle detected; subtree skipped.          | —    | `packages/render/src/rendering/extraction-ui.ts` |
 
 ## renderAsset.customWgslMaterial (5)
 
-| Code                                                | Message                                                               | Fix? | Emitted from                                                                                                                                                                |
-| --------------------------------------------------- | --------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderAsset.customWgslMaterial.invalidShaderAsset` | Custom WGSL material '…' shader asset '…' is not a WGSL shader asset. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/custom-wgsl-material-preparation.ts`<br>`packages/render/src/assets/custom-wgsl-material-preparation.ts` |
-| `renderAsset.customWgslMaterial.shaderFailed`       | Custom WGSL material '…' shader asset '…' failed to load.             | —    | `packages/reference-assets/data/sources/packages/render/src/assets/custom-wgsl-material-preparation.ts`<br>`packages/render/src/assets/custom-wgsl-material-preparation.ts` |
-| `renderAsset.customWgslMaterial.shaderMissing`      | Custom WGSL material '…' references missing shader asset '…'.         | —    | `packages/reference-assets/data/sources/packages/render/src/assets/custom-wgsl-material-preparation.ts`<br>`packages/render/src/assets/custom-wgsl-material-preparation.ts` |
-| `renderAsset.customWgslMaterial.shaderNotReady`     | Custom WGSL material '…' shader asset '…' is '…'.                     | —    | `packages/reference-assets/data/sources/packages/render/src/assets/custom-wgsl-material-preparation.ts`<br>`packages/render/src/assets/custom-wgsl-material-preparation.ts` |
-| `renderAsset.customWgslMaterial.unloaded`           | Custom WGSL material '…' was unloaded.                                | —    | `packages/reference-assets/data/sources/packages/render/src/assets/custom-wgsl-material-preparation.ts`<br>`packages/render/src/assets/custom-wgsl-material-preparation.ts` |
+| Code                                                | Message                                                               | Fix? | Emitted from                                                     |
+| --------------------------------------------------- | --------------------------------------------------------------------- | ---- | ---------------------------------------------------------------- |
+| `renderAsset.customWgslMaterial.invalidShaderAsset` | Custom WGSL material '…' shader asset '…' is not a WGSL shader asset. | —    | `packages/render/src/assets/custom-wgsl-material-preparation.ts` |
+| `renderAsset.customWgslMaterial.shaderFailed`       | Custom WGSL material '…' shader asset '…' failed to load.             | —    | `packages/render/src/assets/custom-wgsl-material-preparation.ts` |
+| `renderAsset.customWgslMaterial.shaderMissing`      | Custom WGSL material '…' references missing shader asset '…'.         | —    | `packages/render/src/assets/custom-wgsl-material-preparation.ts` |
+| `renderAsset.customWgslMaterial.shaderNotReady`     | Custom WGSL material '…' shader asset '…' is '…'.                     | —    | `packages/render/src/assets/custom-wgsl-material-preparation.ts` |
+| `renderAsset.customWgslMaterial.unloaded`           | Custom WGSL material '…' was unloaded.                                | —    | `packages/render/src/assets/custom-wgsl-material-preparation.ts` |
 
 ## renderAsset.sourceMissing (1)
 
-| Code                        | Message                             | Fix? | Emitted from                                                                                                                                |
-| --------------------------- | ----------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderAsset.sourceMissing` | Source asset '…' is not registered. | —    | `packages/reference-assets/data/sources/packages/render/src/assets/preparation-core.ts`<br>`packages/render/src/assets/preparation-core.ts` |
+| Code                        | Message                             | Fix? | Emitted from                                     |
+| --------------------------- | ----------------------------------- | ---- | ------------------------------------------------ |
+| `renderAsset.sourceMissing` | Source asset '…' is not registered. | —    | `packages/render/src/assets/preparation-core.ts` |
 
 ## renderBundle.finishFailed (1)
 
@@ -4052,15 +4052,15 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## renderDrawPackage.blockedDraw (1)
 
-| Code                            | Message                                             | Fix? | Emitted from                                                                                                                                                                                                                                                                           |
-| ------------------------------- | --------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderDrawPackage.blockedDraw` | Render object … is blocked by missing resources: …. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/draw-package.ts`<br>`packages/reference-assets/data/sources/packages/render/src/rendering/render-queue.ts`<br>`packages/render/src/rendering/draw-package.ts`<br>`packages/render/src/rendering/render-queue.ts` |
+| Code                            | Message                                             | Fix? | Emitted from                                                                                       |
+| ------------------------------- | --------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------- |
+| `renderDrawPackage.blockedDraw` | Render object … is blocked by missing resources: …. | —    | `packages/render/src/rendering/draw-package.ts`<br>`packages/render/src/rendering/render-queue.ts` |
 
 ## renderDrawPackage.missingPackedTransform (1)
 
-| Code                                       | Message                                                      | Fix? | Emitted from                                                                                                                                                                                                                                                                           |
-| ------------------------------------------ | ------------------------------------------------------------ | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderDrawPackage.missingPackedTransform` | Render object … is ready but has no packed transform offset. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/draw-package.ts`<br>`packages/reference-assets/data/sources/packages/render/src/rendering/render-queue.ts`<br>`packages/render/src/rendering/draw-package.ts`<br>`packages/render/src/rendering/render-queue.ts` |
+| Code                                       | Message                                                      | Fix? | Emitted from                                                                                       |
+| ------------------------------------------ | ------------------------------------------------------------ | ---- | -------------------------------------------------------------------------------------------------- |
+| `renderDrawPackage.missingPackedTransform` | Render object … is ready but has no packed transform offset. | —    | `packages/render/src/rendering/draw-package.ts`<br>`packages/render/src/rendering/render-queue.ts` |
 
 ## rendererAssembly.frameNotReady (1)
 
@@ -4124,57 +4124,57 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## renderInstanceAttributePack.componentMismatch (1)
 
-| Code                                            | Message                                                          | Fix? | Emitted from                                                                                                                                                      |
-| ----------------------------------------------- | ---------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderInstanceAttributePack.componentMismatch` | Render id … instance attribute '…' has … components; expected …. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/transform-pack-instances.ts`<br>`packages/render/src/rendering/transform-pack-instances.ts` |
+| Code                                            | Message                                                          | Fix? | Emitted from                                                |
+| ----------------------------------------------- | ---------------------------------------------------------------- | ---- | ----------------------------------------------------------- |
+| `renderInstanceAttributePack.componentMismatch` | Render id … instance attribute '…' has … components; expected …. | —    | `packages/render/src/rendering/transform-pack-instances.ts` |
 
 ## renderInstanceAttributePack.missingAttribute (1)
 
-| Code                                           | Message                                        | Fix? | Emitted from                                                                                                                                                      |
-| ---------------------------------------------- | ---------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderInstanceAttributePack.missingAttribute` | Render id … is missing instance attribute '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/transform-pack-instances.ts`<br>`packages/render/src/rendering/transform-pack-instances.ts` |
+| Code                                           | Message                                        | Fix? | Emitted from                                                |
+| ---------------------------------------------- | ---------------------------------------------- | ---- | ----------------------------------------------------------- |
+| `renderInstanceAttributePack.missingAttribute` | Render id … is missing instance attribute '…'. | —    | `packages/render/src/rendering/transform-pack-instances.ts` |
 
 ## renderInstanceAttributePack.missingPackedTransform (1)
 
-| Code                                                 | Message                                                                                       | Fix? | Emitted from                                                                                                                                                      |
-| ---------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderInstanceAttributePack.missingPackedTransform` | Render id … references instance attributes, but no aligned packed transform offset was found. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/transform-pack-instances.ts`<br>`packages/render/src/rendering/transform-pack-instances.ts` |
+| Code                                                 | Message                                                                                       | Fix? | Emitted from                                                |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------- |
+| `renderInstanceAttributePack.missingPackedTransform` | Render id … references instance attributes, but no aligned packed transform offset was found. | —    | `packages/render/src/rendering/transform-pack-instances.ts` |
 
 ## renderInstanceAttributePack.missingPacket (1)
 
-| Code                                        | Message                                                                       | Fix? | Emitted from                                                                                                                                                      |
-| ------------------------------------------- | ----------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderInstanceAttributePack.missingPacket` | Render id … references instance attribute packet …, but only … packets exist. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/transform-pack-instances.ts`<br>`packages/render/src/rendering/transform-pack-instances.ts` |
+| Code                                        | Message                                                                       | Fix? | Emitted from                                                |
+| ------------------------------------------- | ----------------------------------------------------------------------------- | ---- | ----------------------------------------------------------- |
+| `renderInstanceAttributePack.missingPacket` | Render id … references instance attribute packet …, but only … packets exist. | —    | `packages/render/src/rendering/transform-pack-instances.ts` |
 
 ## renderInstanceAttributePack.missingValues (1)
 
-| Code                                        | Message                                                                                   | Fix? | Emitted from                                                                                                                                                      |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderInstanceAttributePack.missingValues` | Render id … instance attribute '…' references offset …, but attribute buffer length is …. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/transform-pack-instances.ts`<br>`packages/render/src/rendering/transform-pack-instances.ts` |
+| Code                                        | Message                                                                                   | Fix? | Emitted from                                                |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------- |
+| `renderInstanceAttributePack.missingValues` | Render id … instance attribute '…' references offset …, but attribute buffer length is …. | —    | `packages/render/src/rendering/transform-pack-instances.ts` |
 
 ## renderInstanceTintPack.missingPackedTransform (1)
 
-| Code                                            | Message                                                                                          | Fix? | Emitted from                                                                                                                                                                |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------ | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderInstanceTintPack.missingPackedTransform` | Render id … references instance tint offset …, but no aligned packed transform offset was found. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/transform-pack-instance-tints.ts`<br>`packages/render/src/rendering/transform-pack-instance-tints.ts` |
+| Code                                            | Message                                                                                          | Fix? | Emitted from                                                     |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------ | ---- | ---------------------------------------------------------------- |
+| `renderInstanceTintPack.missingPackedTransform` | Render id … references instance tint offset …, but no aligned packed transform offset was found. | —    | `packages/render/src/rendering/transform-pack-instance-tints.ts` |
 
 ## renderInstanceTintPack.missingTint (1)
 
-| Code                                 | Message                                                                     | Fix? | Emitted from                                                                                                                                                                |
-| ------------------------------------ | --------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderInstanceTintPack.missingTint` | Render id … references instance tint offset …, but tint buffer length is …. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/transform-pack-instance-tints.ts`<br>`packages/render/src/rendering/transform-pack-instance-tints.ts` |
+| Code                                 | Message                                                                     | Fix? | Emitted from                                                     |
+| ------------------------------------ | --------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------- |
+| `renderInstanceTintPack.missingTint` | Render id … references instance tint offset …, but tint buffer length is …. | —    | `packages/render/src/rendering/transform-pack-instance-tints.ts` |
 
 ## renderPackage.duplicateRenderId (1)
 
-| Code                              | Message                                          | Fix? | Emitted from                                                                                                                                          |
-| --------------------------------- | ------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderPackage.duplicateRenderId` | No render packages were provided for inspection. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/package-inspection.ts`<br>`packages/render/src/rendering/package-inspection.ts` |
+| Code                              | Message                                          | Fix? | Emitted from                                          |
+| --------------------------------- | ------------------------------------------------ | ---- | ----------------------------------------------------- |
+| `renderPackage.duplicateRenderId` | No render packages were provided for inspection. | —    | `packages/render/src/rendering/package-inspection.ts` |
 
 ## renderPackage.empty (1)
 
-| Code                  | Message                                          | Fix? | Emitted from                                                                                                                                          |
-| --------------------- | ------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderPackage.empty` | No render packages were provided for inspection. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/package-inspection.ts`<br>`packages/render/src/rendering/package-inspection.ts` |
+| Code                  | Message                                          | Fix? | Emitted from                                          |
+| --------------------- | ------------------------------------------------ | ---- | ----------------------------------------------------- |
+| `renderPackage.empty` | No render packages were provided for inspection. | —    | `packages/render/src/rendering/package-inspection.ts` |
 
 ## renderPassAttachment.invalidClearColor (1)
 
@@ -4262,9 +4262,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## renderPreviousTransformPack.missingCurrentTransform (1)
 
-| Code                                                  | Message                                                                                          | Fix? | Emitted from                                                                                                                                                  |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderPreviousTransformPack.missingCurrentTransform` | Render id … references packed transform offset …, but current packed transform data length is …. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/transform-pack-history.ts`<br>`packages/render/src/rendering/transform-pack-history.ts` |
+| Code                                                  | Message                                                                                          | Fix? | Emitted from                                              |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ---- | --------------------------------------------------------- |
+| `renderPreviousTransformPack.missingCurrentTransform` | Render id … references packed transform offset …, but current packed transform data length is …. | —    | `packages/render/src/rendering/transform-pack-history.ts` |
 
 ## renderResourceInspection.missingResource (1)
 
@@ -4286,27 +4286,27 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## renderSnapshot.empty (1)
 
-| Code                   | Message                              | Fix? | Emitted from                                                                                                                                            |
-| ---------------------- | ------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderSnapshot.empty` | Render snapshot contains no packets. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/snapshot-inspection.ts`<br>`packages/render/src/rendering/snapshot-inspection.ts` |
+| Code                   | Message                              | Fix? | Emitted from                                           |
+| ---------------------- | ------------------------------------ | ---- | ------------------------------------------------------ |
+| `renderSnapshot.empty` | Render snapshot contains no packets. | —    | `packages/render/src/rendering/snapshot-inspection.ts` |
 
 ## renderSnapshotClone.cloneFailed (1)
 
-| Code                              | Message                       | Fix? | Emitted from                                                                                                                                  |
-| --------------------------------- | ----------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderSnapshotClone.cloneFailed` | (message composed at runtime) | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/snapshot-clone.ts`<br>`packages/render/src/rendering/snapshot-clone.ts` |
+| Code                              | Message                       | Fix? | Emitted from                                      |
+| --------------------------------- | ----------------------------- | ---- | ------------------------------------------------- |
+| `renderSnapshotClone.cloneFailed` | (message composed at runtime) | —    | `packages/render/src/rendering/snapshot-clone.ts` |
 
 ## renderSnapshotClone.invalidTransformBuffer (1)
 
-| Code                                         | Message                                           | Fix? | Emitted from                                                                                                                                  |
-| -------------------------------------------- | ------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderSnapshotClone.invalidTransformBuffer` | RenderSnapshot.transforms must be a Float32Array. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/snapshot-clone.ts`<br>`packages/render/src/rendering/snapshot-clone.ts` |
+| Code                                         | Message                                           | Fix? | Emitted from                                      |
+| -------------------------------------------- | ------------------------------------------------- | ---- | ------------------------------------------------- |
+| `renderSnapshotClone.invalidTransformBuffer` | RenderSnapshot.transforms must be a Float32Array. | —    | `packages/render/src/rendering/snapshot-clone.ts` |
 
 ## renderSnapshotClone.invalidViewMatrixBuffer (1)
 
-| Code                                          | Message                                             | Fix? | Emitted from                                                                                                                                  |
-| --------------------------------------------- | --------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderSnapshotClone.invalidViewMatrixBuffer` | RenderSnapshot.viewMatrices must be a Float32Array. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/snapshot-clone.ts`<br>`packages/render/src/rendering/snapshot-clone.ts` |
+| Code                                          | Message                                             | Fix? | Emitted from                                      |
+| --------------------------------------------- | --------------------------------------------------- | ---- | ------------------------------------------------- |
+| `renderSnapshotClone.invalidViewMatrixBuffer` | RenderSnapshot.viewMatrices must be a Float32Array. | —    | `packages/render/src/rendering/snapshot-clone.ts` |
 
 ## renderTransformPack.missingTransform (1)
 
@@ -4322,57 +4322,57 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## renderWorld.empty (1)
 
-| Code                | Message                                  | Fix? | Emitted from                                                                                                                                                  |
-| ------------------- | ---------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderWorld.empty` | Render world has no active draw objects. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/render-world-readiness.ts`<br>`packages/render/src/rendering/render-world-readiness.ts` |
+| Code                | Message                                  | Fix? | Emitted from                                              |
+| ------------------- | ---------------------------------------- | ---- | --------------------------------------------------------- |
+| `renderWorld.empty` | Render world has no active draw objects. | —    | `packages/render/src/rendering/render-world-readiness.ts` |
 
 ## renderWorld.missingMaterialResource (1)
 
-| Code                                  | Message                                                 | Fix? | Emitted from                                                                                                                                                  |
-| ------------------------------------- | ------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderWorld.missingMaterialResource` | Render object … is missing a material resource binding. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/render-world-readiness.ts`<br>`packages/render/src/rendering/render-world-readiness.ts` |
+| Code                                  | Message                                                 | Fix? | Emitted from                                              |
+| ------------------------------------- | ------------------------------------------------------- | ---- | --------------------------------------------------------- |
+| `renderWorld.missingMaterialResource` | Render object … is missing a material resource binding. | —    | `packages/render/src/rendering/render-world-readiness.ts` |
 
 ## renderWorld.missingMeshResource (1)
 
-| Code                              | Message                                             | Fix? | Emitted from                                                                                                                                                  |
-| --------------------------------- | --------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderWorld.missingMeshResource` | Render object … is missing a mesh resource binding. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/render-world-readiness.ts`<br>`packages/render/src/rendering/render-world-readiness.ts` |
+| Code                              | Message                                             | Fix? | Emitted from                                              |
+| --------------------------------- | --------------------------------------------------- | ---- | --------------------------------------------------------- |
+| `renderWorld.missingMeshResource` | Render object … is missing a mesh resource binding. | —    | `packages/render/src/rendering/render-world-readiness.ts` |
 
 ## renderWorld.missingPreparedMaterialResource (1)
 
-| Code                                          | Message                                                    | Fix? | Emitted from                                                                                                                                                                    |
-| --------------------------------------------- | ---------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderWorld.missingPreparedMaterialResource` | Render object … has no prepared material resource for '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/render-world-prepared-materials.ts`<br>`packages/render/src/rendering/render-world-prepared-materials.ts` |
+| Code                                          | Message                                                    | Fix? | Emitted from                                                       |
+| --------------------------------------------- | ---------------------------------------------------------- | ---- | ------------------------------------------------------------------ |
+| `renderWorld.missingPreparedMaterialResource` | Render object … has no prepared material resource for '…'. | —    | `packages/render/src/rendering/render-world-prepared-materials.ts` |
 
 ## renderWorld.missingPreparedMeshResource (1)
 
-| Code                                      | Message                                                | Fix? | Emitted from                                                                                                                                                              |
-| ----------------------------------------- | ------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderWorld.missingPreparedMeshResource` | Render object … has no prepared mesh resource for '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/render-world-prepared-meshes.ts`<br>`packages/render/src/rendering/render-world-prepared-meshes.ts` |
+| Code                                      | Message                                                | Fix? | Emitted from                                                    |
+| ----------------------------------------- | ------------------------------------------------------ | ---- | --------------------------------------------------------------- |
+| `renderWorld.missingPreparedMeshResource` | Render object … has no prepared mesh resource for '…'. | —    | `packages/render/src/rendering/render-world-prepared-meshes.ts` |
 
 ## renderWorld.missingRenderId (1)
 
-| Code                          | Message                                                  | Fix? | Emitted from                                                                                                                              |
-| ----------------------------- | -------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderWorld.missingRenderId` | Cannot update resource bindings for missing render id …. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/render-world.ts`<br>`packages/render/src/rendering/render-world.ts` |
+| Code                          | Message                                                  | Fix? | Emitted from                                    |
+| ----------------------------- | -------------------------------------------------------- | ---- | ----------------------------------------------- |
+| `renderWorld.missingRenderId` | Cannot update resource bindings for missing render id …. | —    | `packages/render/src/rendering/render-world.ts` |
 
 ## runtimeUniform.invalidKey (1)
 
-| Code                        | Message                                         | Fix? | Emitted from                                                                                                                                                              |
-| --------------------------- | ----------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `runtimeUniform.invalidKey` | Runtime uniform key must be a non-empty string. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                        | Message                                         | Fix? | Emitted from                                                    |
+| --------------------------- | ----------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `runtimeUniform.invalidKey` | Runtime uniform key must be a non-empty string. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## runtimeUniform.invalidValues (1)
 
-| Code                           | Message                                                                                                              | Fix? | Emitted from                                                                                                                                                              |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `runtimeUniform.invalidValues` | Runtime uniform values must be a plain object of finite numbers, booleans, nulls, strings, or finite numeric arrays. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                           | Message                                                                                                              | Fix? | Emitted from                                                    |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `runtimeUniform.invalidValues` | Runtime uniform values must be a plain object of finite numbers, booleans, nulls, strings, or finite numeric arrays. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## runtimeUniform.invalidVersion (1)
 
-| Code                            | Message                                                      | Fix? | Emitted from                                                                                                                                                              |
-| ------------------------------- | ------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `runtimeUniform.invalidVersion` | Runtime uniform version must be a non-negative safe integer. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                            | Message                                                      | Fix? | Emitted from                                                    |
+| ------------------------------- | ------------------------------------------------------------ | ---- | --------------------------------------------------------------- |
+| `runtimeUniform.invalidVersion` | Runtime uniform version must be a non-negative safe integer. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## shaderMetadata.missingBinding (1)
 
@@ -4418,63 +4418,63 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## shadow.invalidBias (1)
 
-| Code                 | Message                                                | Fix? | Emitted from                                                                                                                                                            |
-| -------------------- | ------------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shadow.invalidBias` | Light shadow bias and normalBias must be non-negative. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                 | Message                                                | Fix? | Emitted from                                                   |
+| -------------------- | ------------------------------------------------------ | ---- | -------------------------------------------------------------- |
+| `shadow.invalidBias` | Light shadow bias and normalBias must be non-negative. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## shadow.invalidCascadeCount (1)
 
-| Code                         | Message                                                         | Fix? | Emitted from                                                                                                                                                            |
-| ---------------------------- | --------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shadow.invalidCascadeCount` | Directional shadow cascadeCount must be an integer from 1 to 4. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                         | Message                                                         | Fix? | Emitted from                                                   |
+| ---------------------------- | --------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `shadow.invalidCascadeCount` | Directional shadow cascadeCount must be an integer from 1 to 4. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## shadow.invalidFilterRadius (1)
 
-| Code                         | Message                                         | Fix? | Emitted from                                                                                                                                                            |
-| ---------------------------- | ----------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shadow.invalidFilterRadius` | Light shadow filterRadius must be non-negative. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                         | Message                                         | Fix? | Emitted from                                                   |
+| ---------------------------- | ----------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `shadow.invalidFilterRadius` | Light shadow filterRadius must be non-negative. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## shadow.invalidFixedCamera (1)
 
-| Code                        | Message                                                                       | Fix? | Emitted from                                                                                                                                                            |
-| --------------------------- | ----------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shadow.invalidFixedCamera` | Light shadow near, far, and lightDistance must be non-negative when authored. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                        | Message                                                                       | Fix? | Emitted from                                                   |
+| --------------------------- | ----------------------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `shadow.invalidFixedCamera` | Light shadow near, far, and lightDistance must be non-negative when authored. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## shadow.invalidMapSize (1)
 
-| Code                    | Message                                          | Fix? | Emitted from                                                                                                                                                            |
-| ----------------------- | ------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shadow.invalidMapSize` | Light shadow mapSize must be a positive integer. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                    | Message                                          | Fix? | Emitted from                                                   |
+| ----------------------- | ------------------------------------------------ | ---- | -------------------------------------------------------------- |
+| `shadow.invalidMapSize` | Light shadow mapSize must be a positive integer. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## shadow.invalidOrthographicSize (1)
 
-| Code                             | Message                                             | Fix? | Emitted from                                                                                                                                                            |
-| -------------------------------- | --------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shadow.invalidOrthographicSize` | Light shadow orthographicSize must be non-negative. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                             | Message                                             | Fix? | Emitted from                                                   |
+| -------------------------------- | --------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `shadow.invalidOrthographicSize` | Light shadow orthographicSize must be non-negative. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## shadow.invalidShadowType (1)
 
-| Code                       | Message                                                         | Fix? | Emitted from                                                                                                                                                            |
-| -------------------------- | --------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shadow.invalidShadowType` | Light shadow shadowType must be 0 (hard), 1 (PCF), or 2 (PCSS). | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                       | Message                                                         | Fix? | Emitted from                                                   |
+| -------------------------- | --------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `shadow.invalidShadowType` | Light shadow shadowType must be 0 (hard), 1 (PCF), or 2 (PCSS). | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## shadow.invalidSlopeBias (1)
 
-| Code                      | Message                                      | Fix? | Emitted from                                                                                                                                                            |
-| ------------------------- | -------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shadow.invalidSlopeBias` | Light shadow slopeBias must be non-negative. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                      | Message                                      | Fix? | Emitted from                                                   |
+| ------------------------- | -------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `shadow.invalidSlopeBias` | Light shadow slopeBias must be non-negative. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## shadow.invalidStrength (1)
 
-| Code                     | Message                                            | Fix? | Emitted from                                                                                                                                                            |
-| ------------------------ | -------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shadow.invalidStrength` | Light shadow strength must be in the range [0, 1]. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                     | Message                                            | Fix? | Emitted from                                                   |
+| ------------------------ | -------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `shadow.invalidStrength` | Light shadow strength must be in the range [0, 1]. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## shadow.zeroLayerMask (1)
 
-| Code                   | Message                                                        | Fix? | Emitted from                                                                                                                                                            |
-| ---------------------- | -------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shadow.zeroLayerMask` | Light shadow caster and receiver layer masks must not be zero. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-lights.ts`<br>`packages/render/src/rendering/authoring-validation-lights.ts` |
+| Code                   | Message                                                        | Fix? | Emitted from                                                   |
+| ---------------------- | -------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `shadow.zeroLayerMask` | Light shadow caster and receiver layer masks must not be zero. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## shadowCasterCommandPlan.commandEncodingDeferred (1)
 
@@ -5234,15 +5234,15 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## skybox.invalidIntensity (1)
 
-| Code                      | Message                                                | Fix? | Emitted from                                                                                                                                                              |
-| ------------------------- | ------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `skybox.invalidIntensity` | Skybox intensity must be a finite non-negative number. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                      | Message                                                | Fix? | Emitted from                                                    |
+| ------------------------- | ------------------------------------------------------ | ---- | --------------------------------------------------------------- |
+| `skybox.invalidIntensity` | Skybox intensity must be a finite non-negative number. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## skybox.invalidTexture (1)
 
-| Code                    | Message                                 | Fix? | Emitted from                                                                                                                                                              |
-| ----------------------- | --------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `skybox.invalidTexture` | Skyboxes require a cube texture handle. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                    | Message                                 | Fix? | Emitted from                                                    |
+| ----------------------- | --------------------------------------- | ---- | --------------------------------------------------------------- |
+| `skybox.invalidTexture` | Skyboxes require a cube texture handle. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## skyboxFrame.createBindGroupUnavailable (1)
 
@@ -5306,23 +5306,23 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## spatial.mesh (5)
 
-| Code                                       | Message                                                                                            | Fix? | Emitted from                                                                                                                                            |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `spatial.mesh.empty`                       | (message composed at runtime)                                                                      | —    | `packages/app/src/systems/spatial-index-population.ts`<br>`packages/reference-assets/data/sources/packages/app/src/systems/spatial-index-population.ts` |
-| `spatial.mesh.missing-position`            | Mesh '…' cannot be queried because it has no POSITION attribute.                                   | yes  | `packages/reference-assets/data/sources/packages/render/src/mesh/spatial-adapter.ts`<br>`packages/render/src/mesh/spatial-adapter.ts`                   |
-| `spatial.mesh.unsupported-index-format`    | Mesh '…' index format '…' is not supported for CPU spatial queries.                                | yes  | `packages/reference-assets/data/sources/packages/render/src/mesh/spatial-adapter.ts`<br>`packages/render/src/mesh/spatial-adapter.ts`                   |
-| `spatial.mesh.unsupported-position-format` | Mesh '…' POSITION format '…' is not supported for CPU spatial queries.                             | yes  | `packages/reference-assets/data/sources/packages/render/src/mesh/spatial-adapter.ts`<br>`packages/render/src/mesh/spatial-adapter.ts`                   |
-| `spatial.mesh.unsupported-topology`        | Mesh '…' submesh '…' uses topology '…', but CPU mesh queries currently support triangle-list only. | yes  | `packages/reference-assets/data/sources/packages/render/src/mesh/spatial-adapter.ts`<br>`packages/render/src/mesh/spatial-adapter.ts`                   |
+| Code                                       | Message                                                                                            | Fix? | Emitted from                                           |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `spatial.mesh.empty`                       | (message composed at runtime)                                                                      | —    | `packages/app/src/systems/spatial-index-population.ts` |
+| `spatial.mesh.missing-position`            | Mesh '…' cannot be queried because it has no POSITION attribute.                                   | yes  | `packages/render/src/mesh/spatial-adapter.ts`          |
+| `spatial.mesh.unsupported-index-format`    | Mesh '…' index format '…' is not supported for CPU spatial queries.                                | yes  | `packages/render/src/mesh/spatial-adapter.ts`          |
+| `spatial.mesh.unsupported-position-format` | Mesh '…' POSITION format '…' is not supported for CPU spatial queries.                             | yes  | `packages/render/src/mesh/spatial-adapter.ts`          |
+| `spatial.mesh.unsupported-topology`        | Mesh '…' submesh '…' uses topology '…', but CPU mesh queries currently support triangle-list only. | yes  | `packages/render/src/mesh/spatial-adapter.ts`          |
 
 ## spatial.mesh-bvh (5)
 
-| Code                                    | Message                                                                        | Fix? | Emitted from                                                                                                                          |
-| --------------------------------------- | ------------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `spatial.mesh-bvh.build-failed`         | Mesh BVH build failed.                                                         | yes  | `packages/reference-assets/data/sources/packages/simulation/src/spatial/mesh-bvh.ts`<br>`packages/simulation/src/spatial/mesh-bvh.ts` |
-| `spatial.mesh-bvh.stale`                | BVH cache entry for mesh '…' is stale for version '…'.                         | yes  | `packages/reference-assets/data/sources/packages/simulation/src/spatial/mesh-bvh.ts`<br>`packages/simulation/src/spatial/mesh-bvh.ts` |
-| `spatial.mesh-bvh.unsupported-morphed`  | Mesh '…' is morphed; exact deformed BVH queries are not active for this asset. | yes  | `packages/reference-assets/data/sources/packages/simulation/src/spatial/mesh-bvh.ts`<br>`packages/simulation/src/spatial/mesh-bvh.ts` |
-| `spatial.mesh-bvh.unsupported-skinned`  | Mesh '…' is skinned; exact deformed BVH queries are not active for this asset. | yes  | `packages/reference-assets/data/sources/packages/simulation/src/spatial/mesh-bvh.ts`<br>`packages/simulation/src/spatial/mesh-bvh.ts` |
-| `spatial.mesh-bvh.unsupported-topology` | Mesh '…' uses topology that the mesh BVH cannot query exactly.                 | yes  | `packages/reference-assets/data/sources/packages/simulation/src/spatial/mesh-bvh.ts`<br>`packages/simulation/src/spatial/mesh-bvh.ts` |
+| Code                                    | Message                                                                        | Fix? | Emitted from                                  |
+| --------------------------------------- | ------------------------------------------------------------------------------ | ---- | --------------------------------------------- |
+| `spatial.mesh-bvh.build-failed`         | Mesh BVH build failed.                                                         | yes  | `packages/simulation/src/spatial/mesh-bvh.ts` |
+| `spatial.mesh-bvh.stale`                | BVH cache entry for mesh '…' is stale for version '…'.                         | yes  | `packages/simulation/src/spatial/mesh-bvh.ts` |
+| `spatial.mesh-bvh.unsupported-morphed`  | Mesh '…' is morphed; exact deformed BVH queries are not active for this asset. | yes  | `packages/simulation/src/spatial/mesh-bvh.ts` |
+| `spatial.mesh-bvh.unsupported-skinned`  | Mesh '…' is skinned; exact deformed BVH queries are not active for this asset. | yes  | `packages/simulation/src/spatial/mesh-bvh.ts` |
+| `spatial.mesh-bvh.unsupported-topology` | Mesh '…' uses topology that the mesh BVH cannot query exactly.                 | yes  | `packages/simulation/src/spatial/mesh-bvh.ts` |
 
 ## spotShadowMatrix.invalidLightDirection (1)
 
@@ -5374,69 +5374,69 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## sprite.invalidAtlasFrame (1)
 
-| Code                       | Message                                           | Fix? | Emitted from                                                                                                                                                              |
-| -------------------------- | ------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sprite.invalidAtlasFrame` | Sprite atlasFrame must be a non-negative integer. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                       | Message                                           | Fix? | Emitted from                                                    |
+| -------------------------- | ------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `sprite.invalidAtlasFrame` | Sprite atlasFrame must be a non-negative integer. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## sprite.invalidBillboardMode (1)
 
-| Code                          | Message                                                                            | Fix? | Emitted from                                                                                                                                                              |
-| ----------------------------- | ---------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sprite.invalidBillboardMode` | Sprite billboardMode must be 'none', 'spherical', 'cylindrical', or 'axis-locked'. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                          | Message                                                                            | Fix? | Emitted from                                                    |
+| ----------------------------- | ---------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `sprite.invalidBillboardMode` | Sprite billboardMode must be 'none', 'spherical', 'cylindrical', or 'axis-locked'. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## sprite.invalidBlendMode (1)
 
-| Code                      | Message                                                                | Fix? | Emitted from                                                                                                                                                              |
-| ------------------------- | ---------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sprite.invalidBlendMode` | Sprite blendMode must be 'opaque', 'alpha', 'additive', or 'multiply'. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                      | Message                                                                | Fix? | Emitted from                                                    |
+| ------------------------- | ---------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `sprite.invalidBlendMode` | Sprite blendMode must be 'opaque', 'alpha', 'additive', or 'multiply'. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## sprite.invalidCoordinateMode (1)
 
-| Code                           | Message                                            | Fix? | Emitted from                                                                                                                                                              |
-| ------------------------------ | -------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sprite.invalidCoordinateMode` | Sprite coordinateMode must be 'world' or 'screen'. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                           | Message                                            | Fix? | Emitted from                                                    |
+| ------------------------------ | -------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `sprite.invalidCoordinateMode` | Sprite coordinateMode must be 'world' or 'screen'. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## sprite.invalidDepthMode (1)
 
-| Code                      | Message                                        | Fix? | Emitted from                                                                                                                                                              |
-| ------------------------- | ---------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sprite.invalidDepthMode` | Sprite depthMode must be 'test' or 'disabled'. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                      | Message                                        | Fix? | Emitted from                                                    |
+| ------------------------- | ---------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `sprite.invalidDepthMode` | Sprite depthMode must be 'test' or 'disabled'. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## sprite.invalidPivot (1)
 
-| Code                  | Message                                     | Fix? | Emitted from                                                                                                                                                              |
-| --------------------- | ------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sprite.invalidPivot` | Sprite pivot values must be finite numbers. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                  | Message                                     | Fix? | Emitted from                                                    |
+| --------------------- | ------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `sprite.invalidPivot` | Sprite pivot values must be finite numbers. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## sprite.invalidRotation (1)
 
-| Code                     | Message                                  | Fix? | Emitted from                                                                                                                                                              |
-| ------------------------ | ---------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sprite.invalidRotation` | Sprite rotation must be a finite number. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                     | Message                                  | Fix? | Emitted from                                                    |
+| ------------------------ | ---------------------------------------- | ---- | --------------------------------------------------------------- |
+| `sprite.invalidRotation` | Sprite rotation must be a finite number. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## sprite.invalidSize (1)
 
-| Code                 | Message                                           | Fix? | Emitted from                                                                                                                                                              |
-| -------------------- | ------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sprite.invalidSize` | Sprites require finite positive width and height. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                 | Message                                           | Fix? | Emitted from                                                    |
+| -------------------- | ------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `sprite.invalidSize` | Sprites require finite positive width and height. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## sprite.invalidSizeMode (1)
 
-| Code                     | Message                                                   | Fix? | Emitted from                                                                                                                                                              |
-| ------------------------ | --------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sprite.invalidSizeMode` | Sprite sizeMode must be 'world-units' or 'screen-pixels'. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                     | Message                                                   | Fix? | Emitted from                                                    |
+| ------------------------ | --------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `sprite.invalidSizeMode` | Sprite sizeMode must be 'world-units' or 'screen-pixels'. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## sprite.invalidTexture (1)
 
-| Code                    | Message                           | Fix? | Emitted from                                                                                                                                                              |
-| ----------------------- | --------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sprite.invalidTexture` | Sprites require a texture handle. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                    | Message                           | Fix? | Emitted from                                                    |
+| ----------------------- | --------------------------------- | ---- | --------------------------------------------------------------- |
+| `sprite.invalidTexture` | Sprites require a texture handle. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## sprite.invalidUvRect (1)
 
-| Code                   | Message                                                                 | Fix? | Emitted from                                                                                                                                                              |
-| ---------------------- | ----------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sprite.invalidUvRect` | Sprite uvRect values must be finite with non-negative width and height. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/authoring-validation-effects.ts`<br>`packages/render/src/rendering/authoring-validation-effects.ts` |
+| Code                   | Message                                                                 | Fix? | Emitted from                                                    |
+| ---------------------- | ----------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `sprite.invalidUvRect` | Sprite uvRect values must be finite with non-negative width and height. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## spriteFrame.createBindGroupUnavailable (1)
 
@@ -5566,21 +5566,21 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## standardMaterial.invalidColor (1)
 
-| Code                            | Message                                     | Fix? | Emitted from                                                                                                                                              |
-| ------------------------------- | ------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `standardMaterial.invalidColor` | … must contain finite numeric color values. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/standard-proof-point.ts`<br>`packages/render/src/materials/standard-proof-point.ts` |
+| Code                            | Message                                     | Fix? | Emitted from                                            |
+| ------------------------------- | ------------------------------------------- | ---- | ------------------------------------------------------- |
+| `standardMaterial.invalidColor` | … must contain finite numeric color values. | —    | `packages/render/src/materials/standard-proof-point.ts` |
 
 ## standardMaterial.invalidFactor (1)
 
-| Code                             | Message                                                    | Fix? | Emitted from                                                                                                                                              |
-| -------------------------------- | ---------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `standardMaterial.invalidFactor` | iridescenceIor must be a finite value between 1 and 2.333. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/standard-proof-point.ts`<br>`packages/render/src/materials/standard-proof-point.ts` |
+| Code                             | Message                                                    | Fix? | Emitted from                                            |
+| -------------------------------- | ---------------------------------------------------------- | ---- | ------------------------------------------------------- |
+| `standardMaterial.invalidFactor` | iridescenceIor must be a finite value between 1 and 2.333. | —    | `packages/render/src/materials/standard-proof-point.ts` |
 
 ## standardMaterial.unsupportedFeature (1)
 
-| Code                                  | Message                                                    | Fix? | Emitted from                                                                                                                                              |
-| ------------------------------------- | ---------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `standardMaterial.unsupportedFeature` | iridescenceIor must be a finite value between 1 and 2.333. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/standard-proof-point.ts`<br>`packages/render/src/materials/standard-proof-point.ts` |
+| Code                                  | Message                                                    | Fix? | Emitted from                                            |
+| ------------------------------------- | ---------------------------------------------------------- | ---- | ------------------------------------------------------- |
+| `standardMaterial.unsupportedFeature` | iridescenceIor must be a finite value between 1 and 2.333. | —    | `packages/render/src/materials/standard-proof-point.ts` |
 
 ## standardMaterialBindGroup.missingMaterialResource (1)
 
@@ -5932,9 +5932,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## standardMaterialSampler.materialNotReady (1)
 
-| Code                                       | Message                                                                       | Fix? | Emitted from                                                                                                                                                        |
-| ------------------------------------------ | ----------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `standardMaterialSampler.materialNotReady` | StandardMaterial sampler fidelity requires material '…' to be ready, not '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/standard-sampler-fidelity.ts`<br>`packages/render/src/materials/standard-sampler-fidelity.ts` |
+| Code                                       | Message                                                                       | Fix? | Emitted from                                                 |
+| ------------------------------------------ | ----------------------------------------------------------------------------- | ---- | ------------------------------------------------------------ |
+| `standardMaterialSampler.materialNotReady` | StandardMaterial sampler fidelity requires material '…' to be ready, not '…'. | —    | `packages/render/src/materials/standard-sampler-fidelity.ts` |
 
 ## standardMaterialSampler.mipmapFilterWithoutMips (1)
 
@@ -5944,9 +5944,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## standardMaterialSampler.missingMaterial (1)
 
-| Code                                      | Message                                                             | Fix? | Emitted from                                                                                                                                                        |
-| ----------------------------------------- | ------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `standardMaterialSampler.missingMaterial` | StandardMaterial sampler fidelity requires registered material '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/standard-sampler-fidelity.ts`<br>`packages/render/src/materials/standard-sampler-fidelity.ts` |
+| Code                                      | Message                                                             | Fix? | Emitted from                                                 |
+| ----------------------------------------- | ------------------------------------------------------------------- | ---- | ------------------------------------------------------------ |
+| `standardMaterialSampler.missingMaterial` | StandardMaterial sampler fidelity requires registered material '…'. | —    | `packages/render/src/materials/standard-sampler-fidelity.ts` |
 
 ## standardMaterialSampler.samplerNotReady (1)
 
@@ -5962,9 +5962,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## standardMaterialSampler.unsupportedMaterialKind (1)
 
-| Code                                              | Message                                                                 | Fix? | Emitted from                                                                                                                                                        |
-| ------------------------------------------------- | ----------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `standardMaterialSampler.unsupportedMaterialKind` | StandardMaterial sampler fidelity requires a StandardMaterial, not '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/standard-sampler-fidelity.ts`<br>`packages/render/src/materials/standard-sampler-fidelity.ts` |
+| Code                                              | Message                                                                 | Fix? | Emitted from                                                 |
+| ------------------------------------------------- | ----------------------------------------------------------------------- | ---- | ------------------------------------------------------------ |
+| `standardMaterialSampler.unsupportedMaterialKind` | StandardMaterial sampler fidelity requires a StandardMaterial, not '…'. | —    | `packages/render/src/materials/standard-sampler-fidelity.ts` |
 
 ## standardMaterialShadow.missingPassPlan (1)
 
@@ -6184,15 +6184,15 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## standardMaterialTexture.materialNotReady (1)
 
-| Code                                       | Message                                                                        | Fix? | Emitted from                                                                                                                                                          |
-| ------------------------------------------ | ------------------------------------------------------------------------------ | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `standardMaterialTexture.materialNotReady` | StandardMaterial texture readiness requires material '…' to be ready, not '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/standard-texture-readiness.ts`<br>`packages/render/src/materials/standard-texture-readiness.ts` |
+| Code                                       | Message                                                                        | Fix? | Emitted from                                                  |
+| ------------------------------------------ | ------------------------------------------------------------------------------ | ---- | ------------------------------------------------------------- |
+| `standardMaterialTexture.materialNotReady` | StandardMaterial texture readiness requires material '…' to be ready, not '…'. | —    | `packages/render/src/materials/standard-texture-readiness.ts` |
 
 ## standardMaterialTexture.missingMaterial (1)
 
-| Code                                      | Message                                                              | Fix? | Emitted from                                                                                                                                                          |
-| ----------------------------------------- | -------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `standardMaterialTexture.missingMaterial` | StandardMaterial texture readiness requires registered material '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/standard-texture-readiness.ts`<br>`packages/render/src/materials/standard-texture-readiness.ts` |
+| Code                                      | Message                                                              | Fix? | Emitted from                                                  |
+| ----------------------------------------- | -------------------------------------------------------------------- | ---- | ------------------------------------------------------------- |
+| `standardMaterialTexture.missingMaterial` | StandardMaterial texture readiness requires registered material '…'. | —    | `packages/render/src/materials/standard-texture-readiness.ts` |
 
 ## standardMaterialTexture.missingSamplerHandle (1)
 
@@ -6220,9 +6220,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## standardMaterialTexture.unsupportedMaterialKind (1)
 
-| Code                                              | Message                                                                  | Fix? | Emitted from                                                                                                                                                          |
-| ------------------------------------------------- | ------------------------------------------------------------------------ | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `standardMaterialTexture.unsupportedMaterialKind` | StandardMaterial texture readiness requires a StandardMaterial, not '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/standard-texture-readiness.ts`<br>`packages/render/src/materials/standard-texture-readiness.ts` |
+| Code                                              | Message                                                                  | Fix? | Emitted from                                                  |
+| ------------------------------------------------- | ------------------------------------------------------------------------ | ---- | ------------------------------------------------------------- |
+| `standardMaterialTexture.unsupportedMaterialKind` | StandardMaterial texture readiness requires a StandardMaterial, not '…'. | —    | `packages/render/src/materials/standard-texture-readiness.ts` |
 
 ## standardMaterialTexture.unsupportedTexCoord (1)
 
@@ -6238,15 +6238,15 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## standardNormalMap.missingTangents (1)
 
-| Code                                | Message                                                                                                                | Fix? | Emitted from                                                                                                                                                                |
-| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `standardNormalMap.missingTangents` | StandardMaterial normalTexture requires mesh TANGENT vertex attributes before tangent-space normal mapping can render. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/standard-normal-map-readiness.ts`<br>`packages/render/src/materials/standard-normal-map-readiness.ts` |
+| Code                                | Message                                                                                                                | Fix? | Emitted from                                                     |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------- |
+| `standardNormalMap.missingTangents` | StandardMaterial normalTexture requires mesh TANGENT vertex attributes before tangent-space normal mapping can render. | —    | `packages/render/src/materials/standard-normal-map-readiness.ts` |
 
 ## standardNormalMap.unsupportedMaterialKind (1)
 
-| Code                                        | Message                                                                     | Fix? | Emitted from                                                                                                                                                                |
-| ------------------------------------------- | --------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `standardNormalMap.unsupportedMaterialKind` | Standard normal-map tangent readiness requires a StandardMaterial, not '…'. | —    | `packages/reference-assets/data/sources/packages/render/src/materials/standard-normal-map-readiness.ts`<br>`packages/render/src/materials/standard-normal-map-readiness.ts` |
+| Code                                        | Message                                                                     | Fix? | Emitted from                                                     |
+| ------------------------------------------- | --------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------- |
+| `standardNormalMap.unsupportedMaterialKind` | Standard normal-map tangent readiness requires a StandardMaterial, not '…'. | —    | `packages/render/src/materials/standard-normal-map-readiness.ts` |
 
 ## standardPipeline.deferredFeature (1)
 
@@ -6670,27 +6670,27 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## viewUniform.duplicateViewId (1)
 
-| Code                          | Message                                 | Fix? | Emitted from                                                                                                                                                                                                                                                                           |
-| ----------------------------- | --------------------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `viewUniform.duplicateViewId` | Duplicate view id … in render snapshot. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/view-pack-write.ts`<br>`packages/reference-assets/data/sources/packages/render/src/rendering/view-pack.ts`<br>`packages/render/src/rendering/view-pack-write.ts`<br>`packages/render/src/rendering/view-pack.ts` |
+| Code                          | Message                                 | Fix? | Emitted from                                                                                       |
+| ----------------------------- | --------------------------------------- | ---- | -------------------------------------------------------------------------------------------------- |
+| `viewUniform.duplicateViewId` | Duplicate view id … in render snapshot. | —    | `packages/render/src/rendering/view-pack-write.ts`<br>`packages/render/src/rendering/view-pack.ts` |
 
 ## viewUniform.emptySnapshot (1)
 
-| Code                        | Message                               | Fix? | Emitted from                                                                                                                                                                                                                                                                           |
-| --------------------------- | ------------------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `viewUniform.emptySnapshot` | Render snapshot has no views to pack. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/view-pack-write.ts`<br>`packages/reference-assets/data/sources/packages/render/src/rendering/view-pack.ts`<br>`packages/render/src/rendering/view-pack-write.ts`<br>`packages/render/src/rendering/view-pack.ts` |
+| Code                        | Message                               | Fix? | Emitted from                                                                                       |
+| --------------------------- | ------------------------------------- | ---- | -------------------------------------------------------------------------------------------------- |
+| `viewUniform.emptySnapshot` | Render snapshot has no views to pack. | —    | `packages/render/src/rendering/view-pack-write.ts`<br>`packages/render/src/rendering/view-pack.ts` |
 
 ## viewUniform.matrixOutOfRange (1)
 
-| Code                           | Message                                                                      | Fix? | Emitted from                                                                                                                                                                                                                                                                           |
-| ------------------------------ | ---------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `viewUniform.matrixOutOfRange` | View … view-projection matrix offset … is outside snapshot view matrix data. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/view-pack-write.ts`<br>`packages/reference-assets/data/sources/packages/render/src/rendering/view-pack.ts`<br>`packages/render/src/rendering/view-pack-write.ts`<br>`packages/render/src/rendering/view-pack.ts` |
+| Code                           | Message                                                                      | Fix? | Emitted from                                                                                       |
+| ------------------------------ | ---------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------- |
+| `viewUniform.matrixOutOfRange` | View … view-projection matrix offset … is outside snapshot view matrix data. | —    | `packages/render/src/rendering/view-pack-write.ts`<br>`packages/render/src/rendering/view-pack.ts` |
 
 ## viewUniform.missingMatrixData (1)
 
-| Code                            | Message                                                             | Fix? | Emitted from                                                                                                                                                                                                                                                                           |
-| ------------------------------- | ------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `viewUniform.missingMatrixData` | View … cannot be packed because snapshot view matrix data is empty. | —    | `packages/reference-assets/data/sources/packages/render/src/rendering/view-pack-write.ts`<br>`packages/reference-assets/data/sources/packages/render/src/rendering/view-pack.ts`<br>`packages/render/src/rendering/view-pack-write.ts`<br>`packages/render/src/rendering/view-pack.ts` |
+| Code                            | Message                                                             | Fix? | Emitted from                                                                                       |
+| ------------------------------- | ------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------- |
+| `viewUniform.missingMatrixData` | View … cannot be packed because snapshot view matrix data is empty. | —    | `packages/render/src/rendering/view-pack-write.ts`<br>`packages/render/src/rendering/view-pack.ts` |
 
 ## viewUniformBuffer.emptyData (1)
 
@@ -6798,9 +6798,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## webGpuApp.materialDependenciesNotReady (1)
 
-| Code                                     | Message                       | Fix? | Emitted from                                                                                                                                                      |
-| ---------------------------------------- | ----------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `webGpuApp.materialDependenciesNotReady` | (message composed at runtime) | —    | `packages/reference-assets/data/sources/packages/webgpu/src/app/app.ts`<br>`packages/webgpu/src/app/app.ts`<br>`packages/webgpu/src/app/material-dependencies.ts` |
+| Code                                     | Message                       | Fix? | Emitted from                                                                           |
+| ---------------------------------------- | ----------------------------- | ---- | -------------------------------------------------------------------------------------- |
+| `webGpuApp.materialDependenciesNotReady` | (message composed at runtime) | —    | `packages/webgpu/src/app/app.ts`<br>`packages/webgpu/src/app/material-dependencies.ts` |
 
 ## webGpuApp.materialQueueAssetMismatch (1)
 
@@ -6972,9 +6972,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## webGpuApp.workerSnapshotRenderFailed (1)
 
-| Code                                   | Message                       | Fix? | Emitted from                                                                                                                                                  |
-| -------------------------------------- | ----------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `webGpuApp.workerSnapshotRenderFailed` | (message composed at runtime) | —    | `packages/reference-assets/data/sources/packages/webgpu/src/app/app.ts`<br>`packages/webgpu/src/app/app.ts`<br>`packages/webgpu/src/app/create-webgpu-app.ts` |
+| Code                                   | Message                       | Fix? | Emitted from                                                                       |
+| -------------------------------------- | ----------------------------- | ---- | ---------------------------------------------------------------------------------- |
+| `webGpuApp.workerSnapshotRenderFailed` | (message composed at runtime) | —    | `packages/webgpu/src/app/app.ts`<br>`packages/webgpu/src/app/create-webgpu-app.ts` |
 
 ## webGpuMsaaColorTexture.createTextureUnavailable (1)
 
