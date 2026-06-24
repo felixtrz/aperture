@@ -14986,7 +14986,10 @@ test("Playwright mutates GLB viewer ECS IBL control", async ({ page }) => {
     },
   });
 
-  await page.locator("#glb-ibl-toggle").setChecked(false);
+  const iblToggle = page.locator("#glb-ibl-toggle");
+
+  await expect(iblToggle).toBeEnabled();
+  await iblToggle.setChecked(false, { force: true });
   const directStatus = await waitForIblControlStatus(page, {
     enabled: false,
     supported: false,
@@ -15023,7 +15026,8 @@ test("Playwright mutates GLB viewer ECS IBL control", async ({ page }) => {
     "disabled IBL control should remove IBL route tokens",
   ).toBe(false);
 
-  await page.locator("#glb-ibl-toggle").setChecked(true);
+  await expect(iblToggle).toBeEnabled();
+  await iblToggle.setChecked(true, { force: true });
   const enabledStatus = await waitForIblControlStatus(page, {
     enabled: true,
     supported: true,

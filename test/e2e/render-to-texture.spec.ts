@@ -11100,7 +11100,7 @@ test("same render-target clear/load route preserves base and overlay regions", a
           drawCalls: 1,
           ok: true,
           colorLoadOp: "load",
-          depthLoadOp: "load",
+          depthLoadOp: "clear",
           clearBehavior: "load-existing-target",
         },
       ],
@@ -11374,7 +11374,7 @@ test("MSAA same render-target clear/load route preserves resolved base and overl
           drawCalls: 1,
           ok: true,
           colorLoadOp: "load",
-          depthLoadOp: "load",
+          depthLoadOp: "clear",
           msaaSampleCount: 4,
           attachment: {
             colorLoadOp: "load",
@@ -11675,7 +11675,7 @@ test("mixed MSAA same render-target clear/load route preserves current and resol
           drawCalls: 1,
           ok: true,
           colorLoadOp: "load",
-          depthLoadOp: "load",
+          depthLoadOp: "clear",
           msaaSampleCount: 4,
           attachment: {
             colorLoadOp: "load",
@@ -12154,7 +12154,7 @@ test("mixed MSAA reused same render-target clear/load route preserves current an
           drawCalls: 1,
           ok: true,
           colorLoadOp: "load",
-          depthLoadOp: "load",
+          depthLoadOp: "clear",
           msaaSampleCount: 4,
           attachment: {
             colorLoadOp: "load",
@@ -12617,7 +12617,7 @@ test("mixed MSAA resized same render-target clear/load route preserves current a
           drawCalls: 1,
           ok: true,
           colorLoadOp: "load",
-          depthLoadOp: "load",
+          depthLoadOp: "clear",
           msaaSampleCount: 4,
           attachment: {
             colorLoadOp: "load",

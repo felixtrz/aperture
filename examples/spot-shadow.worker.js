@@ -134,7 +134,7 @@ function createWorkerScene(aperture, canvasSize) {
   );
 
   app.spawn(
-    aperture.withTransform({ translation: [0, 1.05, 2.15] }),
+    aperture.withTransform({ translation: [0.55, 1.05, 2.15] }),
     aperture.withLight({
       kind: aperture.LightKind.Spot,
       color: [1, 0.94, 0.82, 1],
@@ -149,6 +149,9 @@ function createWorkerScene(aperture, canvasSize) {
       mapSize: shadowIntent.mapSize,
       bias: shadowIntent.depthBias,
       normalBias: shadowIntent.normalBias,
+      strength: 1,
+      shadowType: 0,
+      filterRadius: 0,
       casterLayerMask: 1,
       receiverLayerMask: 1,
     }),

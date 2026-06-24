@@ -2001,6 +2001,12 @@ describe("built-in standard material WGSL shader metadata", () => {
       "max(shadowDepthBias(lightIndex), STANDARD_SHADOW_DEPTH_BIAS)",
     );
     expect(shader.code).toContain(
+      "let sampledDepth = textureLoad(\n      directionalShadowMap,",
+    );
+    expect(shader.code).toContain(
+      "return select(0.0, 1.0, receiverDepth <= sampledDepth);",
+    );
+    expect(shader.code).toContain(
       "let shadowFactor = localLightClusterSpotShadowFactor(position, lightIndex);",
     );
     expect(shader.code).toContain(

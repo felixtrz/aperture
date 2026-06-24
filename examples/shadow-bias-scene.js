@@ -8,6 +8,7 @@
 export const clearColor = [0.01, 0.015, 0.022, 1];
 
 export const shadowBiasIntent = {
+  key: "shadow-bias:directional-csm",
   mapSize: 1024,
   cascadeCount: 4,
   shadowDistance: 24,
@@ -58,7 +59,14 @@ export function registerShadowBiasScene(aperture, registry) {
     { id: "shadow-bias-pillar-matte" },
   );
 
-  return { floorMesh, floorMaterial, pillarMesh, pillarMaterial };
+  return {
+    floorMesh,
+    floorMaterial,
+    pillarMesh,
+    pillarMaterial,
+    floorMeshKey: aperture.assetHandleKey(floorMesh),
+    pillarMeshKey: aperture.assetHandleKey(pillarMesh),
+  };
 }
 
 export function createShadowBiasLightRotation() {
