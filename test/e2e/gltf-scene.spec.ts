@@ -2397,11 +2397,36 @@ function expectSpecularIblProofActivation(status: GltfSceneStatus): void {
       };
     }
   ).report.diagnosticsSummary?.routedResourceSet.byPipeline;
+  const appFrameRoute = status.ibl?.appFrameRoute;
 
   expect(
     status.ibl?.sampling.specularProof,
     "GLTF scene should report placeholder specular IBL proof sampling ready.",
   ).toBe(true);
+
+  if (appFrameRoute?.status === "deferred") {
+    expect(
+      appFrameRoute.sections.shaderSampling,
+      "Deferred GLTF scene IBL app-frame routing should report shader sampling as unavailable.",
+    ).toBe(false);
+    expect(
+      routedPipelines,
+      "Deferred GLTF scene IBL route should keep standard materials on the non-IBL shadow pipeline.",
+    ).toEqual(
+      expect.arrayContaining([
+        {
+          pipelineKey: "standard|shadowMap|opaque|back|less|none",
+          itemCount: 2,
+        },
+      ]),
+    );
+    return;
+  }
+
+  expect(
+    appFrameRoute?.status,
+    "GLTF scene IBL app-frame route should be ready or explicitly deferred.",
+  ).toBe("ready");
   expect(
     routedPipelines,
     "GLTF scene should route standard materials through the specular IBL proof pipeline.",
