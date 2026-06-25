@@ -82,6 +82,23 @@ const GLTF_FRONT_SIDE_MATERIALS = {
 // Preserve the GLB material render state. The weapon camera/layer pass makes
 // the viewmodel draw over the world while keeping normal depth for self-occlusion.
 export const WEAPON_VIEWMODEL_MATERIALS = {} as const;
+// Use a fixed arena-scale sun shadow camera instead of the renderer's
+// single-cascade receiver fit. The automatic fit is sharper in some views but
+// changes its footprint when visible receivers/casters change, which makes the
+// FPS showcase shadow edge visibly sharpen/blur while looking around.
+export const FPS_SUN_SHADOW_SETTINGS = {
+  mapSize: 4096,
+  cascadeCount: 1,
+  shadowType: 1,
+  strength: SOURCE_SUN_SHADOW_STRENGTH,
+  filterRadius: 2,
+  normalBias: 0.04,
+  center: [2, 2, 0],
+  orthographicSize: 42,
+  near: 1,
+  far: 72,
+  lightDistance: 36,
+} as const;
 
 const PLAYER_SHADOW_MATERIAL_ID = "player.blob-shadow.material";
 const PLAYER_SHADOW_SAMPLER_ID = "player.blob-shadow.sampler";
@@ -202,14 +219,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       transform: {
         rotation: FPS_RENDER_SUN_ROTATION,
       },
-      shadow: {
-        mapSize: 2048,
-        cascadeCount: 1,
-        shadowType: 1,
-        strength: SOURCE_SUN_SHADOW_STRENGTH,
-        filterRadius: 2,
-        normalBias: 0.04,
-      },
+      shadow: FPS_SUN_SHADOW_SETTINGS,
     });
 
     this.spawn.light({
