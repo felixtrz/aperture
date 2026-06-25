@@ -7,6 +7,7 @@ import type {
 } from "@aperture-engine/simulation";
 import type {
   ParticleEffectAssetInput,
+  ParticleRendererModuleInput,
   TextureColorSpace,
   TextureSemantic,
 } from "@aperture-engine/render";
@@ -54,9 +55,15 @@ export interface ApertureTextureAssetOptions extends ApertureAssetOptions {
 export interface ApertureParticleEffectAssetOptions
   extends
     ApertureAssetOptions,
-    Omit<ParticleEffectAssetInput, "label" | "texture" | "sampler"> {
-  readonly texture?: string | null;
-  readonly sampler?: string | null;
+    Omit<ParticleEffectAssetInput, "label" | "renderer" | "version"> {
+  readonly version?: 2;
+  readonly renderer?: Omit<
+    ParticleRendererModuleInput,
+    "texture" | "sampler"
+  > & {
+    readonly texture?: string | null;
+    readonly sampler?: string | null;
+  };
 }
 
 export interface ApertureConfigAssetDescriptor<
@@ -85,10 +92,11 @@ export interface ApertureAudioAssetDescriptor extends ApertureConfigAssetDescrip
 }
 export interface ApertureParticleEffectAssetDescriptor extends Omit<
   ApertureParticleEffectAssetOptions,
-  "preload"
+  "preload" | "version"
 > {
   readonly kind: "particle-effect";
   readonly preload: AssetPreloadPolicy;
+  readonly version: 2;
 }
 
 export type ApertureConfigAsset =
@@ -488,44 +496,38 @@ export const asset: ApertureConfigAssetHelpers = Object.freeze({
     return Object.freeze({
       kind: "particle-effect",
       preload,
+      version: 2,
       ...(options.label === undefined ? {} : { label: options.label }),
-      ...(options.capacity === undefined ? {} : { capacity: options.capacity }),
-      ...(options.duration === undefined ? {} : { duration: options.duration }),
-      ...(options.looping === undefined ? {} : { looping: options.looping }),
-      ...(options.prewarm === undefined ? {} : { prewarm: options.prewarm }),
-      ...(options.emissionRate === undefined
+      ...(options.main === undefined ? {} : { main: options.main }),
+      ...(options.emission === undefined ? {} : { emission: options.emission }),
+      ...(options.shape === undefined ? {} : { shape: options.shape }),
+      ...(options.renderer === undefined ? {} : { renderer: options.renderer }),
+      ...(options.textureSheetAnimation === undefined
         ? {}
-        : { emissionRate: options.emissionRate }),
-      ...(options.bursts === undefined ? {} : { bursts: options.bursts }),
-      ...(options.lifetime === undefined ? {} : { lifetime: options.lifetime }),
-      ...(options.startSpeed === undefined
-        ? {}
-        : { startSpeed: options.startSpeed }),
-      ...(options.startSize === undefined
-        ? {}
-        : { startSize: options.startSize }),
-      ...(options.startColor === undefined
-        ? {}
-        : { startColor: options.startColor }),
-      ...(options.endColor === undefined ? {} : { endColor: options.endColor }),
-      ...(options.gravity === undefined ? {} : { gravity: options.gravity }),
-      ...(options.linearDamping === undefined
-        ? {}
-        : { linearDamping: options.linearDamping }),
-      ...(options.blendMode === undefined
-        ? {}
-        : { blendMode: options.blendMode }),
-      ...(options.texture === undefined ? {} : { texture: options.texture }),
-      ...(options.sampler === undefined ? {} : { sampler: options.sampler }),
-      ...(options.atlasFrameCount === undefined
-        ? {}
-        : { atlasFrameCount: options.atlasFrameCount }),
-      ...(options.sizeOverLifetime === undefined
-        ? {}
-        : { sizeOverLifetime: options.sizeOverLifetime }),
+        : { textureSheetAnimation: options.textureSheetAnimation }),
       ...(options.colorOverLifetime === undefined
         ? {}
         : { colorOverLifetime: options.colorOverLifetime }),
+      ...(options.sizeOverLifetime === undefined
+        ? {}
+        : { sizeOverLifetime: options.sizeOverLifetime }),
+      ...(options.rotationOverLifetime === undefined
+        ? {}
+        : { rotationOverLifetime: options.rotationOverLifetime }),
+      ...(options.velocityOverLifetime === undefined
+        ? {}
+        : { velocityOverLifetime: options.velocityOverLifetime }),
+      ...(options.forceOverLifetime === undefined
+        ? {}
+        : { forceOverLifetime: options.forceOverLifetime }),
+      ...(options.limitVelocityOverLifetime === undefined
+        ? {}
+        : { limitVelocityOverLifetime: options.limitVelocityOverLifetime }),
+      ...(options.noise === undefined ? {} : { noise: options.noise }),
+      ...(options.subEmitters === undefined
+        ? {}
+        : { subEmitters: options.subEmitters }),
+      ...(options.source === undefined ? {} : { source: options.source }),
       ...(options.curveSampleCount === undefined
         ? {}
         : { curveSampleCount: options.curveSampleCount }),

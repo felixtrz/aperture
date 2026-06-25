@@ -92,10 +92,14 @@ describe("validateApertureConfig", () => {
               channels: 2,
             }),
             smoke: asset.particleEffect({
-              texture: "floorColor",
-              capacity: 1280,
-              lifetime: { min: 2.5, max: 2.5 },
-              blendMode: "alpha",
+              main: {
+                maxParticles: 1280,
+                startLifetime: { min: 2.5, max: 2.5 },
+              },
+              renderer: {
+                texture: "floorColor",
+                blendMode: "alpha",
+              },
             }),
           },
           audio: { autoUnlock: true },
@@ -172,8 +176,12 @@ describe("validateApertureConfig", () => {
           mode: "headless",
           assets: {
             smoke: asset.particleEffect({
-              texture: "9smoke",
-              capacity: 0,
+              main: {
+                maxParticles: 0,
+              },
+              renderer: {
+                texture: "9smoke",
+              },
             }),
           },
         }),

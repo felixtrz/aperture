@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   assetHandleKey,
+  createMeshHandle,
   createParticleEffectHandle,
   createSamplerHandle,
   createTextureHandle,
@@ -14,28 +15,49 @@ import {
 import {
   ParticleSimulationSpace,
   analyzeParticleEffectRuntimeFeatures,
+  createParticleCompositeEffectAsset,
+  createRenderAssetCollections,
   createParticleEffectAsset,
   packParticleEffectCurves,
+  particleEffectDependencies,
   validateParticleEffectAsset,
+  validateParticleEffectInput,
   type ParticleEffectAssetInput,
 } from "@aperture-engine/render";
 
 describe("particle effect assets and emitter extraction (M6-T7)", () => {
   it("validates and packs scalar curves plus color gradients", () => {
     const asset = createParticleEffectAsset({
-      capacity: 128,
-      emissionRate: 12,
-      lifetime: { min: 0.5, max: 2 },
-      startSize: { min: 0.1, max: 0.5 },
-      sizeOverLifetime: [
-        { t: 0, value: 0 },
-        { t: 0.5, value: 2 },
-        { t: 1, value: 0 },
-      ],
-      colorOverLifetime: [
-        { t: 0, color: [1, 0, 0, 1] },
-        { t: 1, color: [0, 0, 1, 0] },
-      ],
+      version: 2,
+      main: {
+        maxParticles: 128,
+        startLifetime: { min: 0.5, max: 2 },
+        startSize: { min: 0.1, max: 0.5 },
+      },
+      emission: {
+        rateOverTime: 12,
+      },
+      sizeOverLifetime: {
+        enabled: true,
+        size: {
+          mode: "curve",
+          curve: [
+            { t: 0, value: 0 },
+            { t: 0.5, value: 2 },
+            { t: 1, value: 0 },
+          ],
+        },
+      },
+      colorOverLifetime: {
+        enabled: true,
+        color: {
+          mode: "gradient",
+          gradient: [
+            { t: 0, color: [1, 0, 0, 1] },
+            { t: 1, color: [0, 0, 1, 0] },
+          ],
+        },
+      },
       curveSampleCount: 5,
     });
 
@@ -49,8 +71,8 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
     ]);
 
     const packed = packParticleEffectCurves({
-      sizeOverLifetime: asset.sizeOverLifetime,
-      colorOverLifetime: asset.colorOverLifetime,
+      sizeOverLifetime: asset.runtime.sizeOverLifetime,
+      colorOverLifetime: asset.runtime.colorOverLifetime,
       sampleCount: 3,
     });
 
@@ -58,10 +80,22 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
     expect(Array.from(packed.sizeOverLifetime)).toEqual([0, 2, 0]);
 
     const invalid = createParticleEffectAsset({
-      capacity: 0,
-      lifetime: { min: 2, max: 1 },
-      linearDamping: -1,
-      colorOverLifetime: [],
+      version: 2,
+      main: {
+        maxParticles: 0,
+        startLifetime: { min: 2, max: 1 },
+      },
+      limitVelocityOverLifetime: {
+        enabled: true,
+        dampen: -1,
+      },
+      colorOverLifetime: {
+        enabled: true,
+        color: {
+          mode: "gradient",
+          gradient: [],
+        },
+      },
     });
 
     expect(validateParticleEffectAsset(invalid).valid).toBe(false);
@@ -73,57 +107,148 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
     ).toContain("particleEffect.invalidLinearDamping");
   });
 
-  it("reports V1 runtime support for every accepted particle effect field", () => {
+  it("reports v2 runtime support for every canonical particle module", () => {
     const acceptedFields = [
+      "version",
       "label",
-      "capacity",
-      "duration",
-      "looping",
-      "prewarm",
-      "emissionRate",
-      "bursts",
-      "lifetime",
-      "startSpeed",
-      "startSize",
-      "startColor",
-      "endColor",
-      "gravity",
-      "linearDamping",
-      "blendMode",
-      "texture",
-      "sampler",
-      "atlasFrameCount",
-      "sizeOverLifetime",
+      "main",
+      "emission",
+      "shape",
+      "renderer",
+      "textureSheetAnimation",
       "colorOverLifetime",
+      "sizeOverLifetime",
+      "rotationOverLifetime",
+      "velocityOverLifetime",
+      "forceOverLifetime",
+      "limitVelocityOverLifetime",
+      "noise",
+      "speedOverLifetime",
+      "colorBySpeed",
+      "sizeBySpeed",
+      "rotationBySpeed",
+      "orbitalVelocityOverLifetime",
+      "trails",
+      "collision",
+      "subEmitters",
+      "source",
       "curveSampleCount",
     ] satisfies readonly (keyof ParticleEffectAssetInput)[];
     const report = analyzeParticleEffectRuntimeFeatures({
+      version: 2,
       label: "Truthful particle schema",
-      capacity: 128,
-      duration: 2,
-      looping: true,
-      prewarm: true,
-      emissionRate: 12,
-      bursts: [{ time: 0.2, count: 5 }],
-      lifetime: { min: 0.5, max: 1.5 },
-      startSpeed: { min: 0.2, max: 1 },
-      startSize: { min: 0.1, max: 0.5 },
-      startColor: [1, 0, 0, 1],
-      endColor: [0, 0, 1, 0],
-      gravity: [0, -1, 0],
-      linearDamping: 0.5,
-      blendMode: "alpha",
-      texture: createTextureHandle("texture-placeholder"),
-      sampler: createSamplerHandle("sampler-placeholder"),
-      atlasFrameCount: 4,
-      sizeOverLifetime: [
-        { t: 0, value: 1 },
-        { t: 1, value: 0 },
+      main: {
+        maxParticles: 128,
+        duration: 2,
+        loop: true,
+        prewarm: true,
+        startLifetime: { min: 0.5, max: 1.5 },
+        startSpeed: { min: 0.2, max: 1 },
+        startSize: { min: 0.1, max: 0.5 },
+        startColor: [1, 0, 0, 1],
+      },
+      emission: {
+        rateOverTime: 12,
+        bursts: [{ time: 0.2, count: 5 }],
+      },
+      shape: {
+        type: "cone",
+        radius: 0.5,
+      },
+      renderer: {
+        renderMode: "stretched-billboard",
+        blendMode: "alpha",
+        texture: createTextureHandle("texture-placeholder"),
+        sampler: createSamplerHandle("sampler-placeholder"),
+        softParticles: true,
+      },
+      textureSheetAnimation: {
+        enabled: true,
+        tiles: [2, 2],
+      },
+      sizeOverLifetime: {
+        enabled: true,
+        size: {
+          mode: "curve",
+          curve: [
+            { t: 0, value: 1 },
+            { t: 1, value: 0 },
+          ],
+        },
+      },
+      colorOverLifetime: {
+        enabled: true,
+        color: {
+          mode: "gradient",
+          gradient: [
+            { t: 0, color: [1, 1, 1, 1] },
+            { t: 1, color: [1, 1, 1, 0] },
+          ],
+        },
+      },
+      rotationOverLifetime: {
+        enabled: true,
+        angularVelocity: 1,
+      },
+      velocityOverLifetime: {
+        enabled: true,
+        velocity: [0, 1, 0],
+      },
+      forceOverLifetime: {
+        enabled: true,
+        force: [0, -1, 0],
+      },
+      limitVelocityOverLifetime: {
+        enabled: true,
+        dampen: 0.5,
+      },
+      noise: {
+        enabled: true,
+        strength: 0.25,
+      },
+      speedOverLifetime: {
+        enabled: true,
+        speed: 0.5,
+      },
+      colorBySpeed: {
+        enabled: true,
+        color: [1, 0.5, 0.25, 1],
+        speedRange: { min: 0, max: 10 },
+      },
+      sizeBySpeed: {
+        enabled: true,
+        size: 0.5,
+        speedRange: { min: 0, max: 10 },
+      },
+      rotationBySpeed: {
+        enabled: true,
+        angularVelocity: 1,
+        speedRange: { min: 0, max: 10 },
+      },
+      orbitalVelocityOverLifetime: {
+        enabled: true,
+        orbital: [0, 1, 0],
+      },
+      trails: {
+        enabled: true,
+        lifetime: 0.5,
+      },
+      collision: {
+        enabled: true,
+        mode: "world",
+      },
+      subEmitters: [
+        {
+          type: "birth",
+          effect: "spark-child",
+        },
       ],
-      colorOverLifetime: [
-        { t: 0, color: [1, 1, 1, 1] },
-        { t: 1, color: [1, 1, 1, 0] },
-      ],
+      source: {
+        format: "shuriken",
+        version: "2022.3",
+        sourceName: "Truthful particle schema",
+        unsupportedFeatures: ["lights"],
+      },
       curveSampleCount: 8,
     });
     const coveredFields = new Set([
@@ -136,77 +261,233 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
       true,
     );
     expect(report.supportedFields).toEqual([
-      "blendMode",
-      "capacity",
+      "collision",
+      "colorBySpeed",
       "colorOverLifetime",
       "curveSampleCount",
-      "endColor",
+      "emission",
+      "forceOverLifetime",
       "label",
-      "sampler",
+      "limitVelocityOverLifetime",
+      "main",
+      "noise",
+      "orbitalVelocityOverLifetime",
+      "renderer",
+      "rotationBySpeed",
+      "rotationOverLifetime",
+      "shape",
+      "sizeBySpeed",
       "sizeOverLifetime",
-      "startColor",
-      "startSize",
-      "texture",
+      "source",
+      "speedOverLifetime",
+      "subEmitters",
+      "textureSheetAnimation",
+      "trails",
+      "velocityOverLifetime",
+      "version",
     ]);
     expect(report.partiallySupportedFields).toEqual([
-      "gravity",
-      "lifetime",
-      "linearDamping",
-      "startSpeed",
+      "collision",
+      "colorBySpeed",
+      "noise",
+      "orbitalVelocityOverLifetime",
+      "renderer.softParticles",
+      "rotationBySpeed",
+      "sizeBySpeed",
+      "speedOverLifetime",
+      "trails",
     ]);
-    expect(report.unsupportedFields).toEqual([
-      "atlasFrameCount",
-      "bursts",
-      "duration",
-      "emissionRate",
-      "looping",
-      "prewarm",
-    ]);
+    expect(report.unsupportedFields).toEqual(["subEmitters"]);
     expect(report.diagnostics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           code: "particleEffect.unsupportedFeature",
-          field: "emissionRate",
+          field: "subEmitters",
           unsupportedModes: ["burst", "continuous"],
         }),
         expect.objectContaining({
-          code: "particleEffect.unsupportedFeature",
-          field: "bursts",
-          message: expect.stringContaining("this.particles.emit"),
-        }),
-        expect.objectContaining({
           code: "particleEffect.partiallySupportedFeature",
-          field: "gravity",
-          supportedModes: ["burst"],
-          unsupportedModes: ["continuous"],
-        }),
-        expect.objectContaining({
-          code: "particleEffect.partiallySupportedFeature",
-          field: "lifetime",
-          supportedModes: ["burst"],
-          unsupportedModes: ["continuous"],
+          field: "speedOverLifetime",
+          supportedModes: ["continuous"],
+          unsupportedModes: ["burst"],
         }),
       ]),
     );
 
+    const legacyReport = analyzeParticleEffectRuntimeFeatures({
+      capacity: 128,
+    } as unknown as ParticleEffectAssetInput);
+    expect(legacyReport.unsupportedFields).toEqual(["capacity"]);
+    expect(legacyReport.diagnostics[0]).toMatchObject({
+      code: "particleEffect.unsupportedFeature",
+      field: "capacity",
+      message: expect.stringContaining("Legacy particle field"),
+    });
     expect(
-      createParticleEffectAsset({
-        emissionRate: 0,
-        lifetime: { min: 1, max: 1 },
-        startSize: { min: 0.5, max: 1 },
+      validateParticleEffectInput({
+        version: 2,
+        capacity: 128,
+      }).diagnostics,
+    ).toEqual([
+      expect.objectContaining({
+        code: "particleEffect.legacyField",
+        field: "capacity",
+      }),
+    ]);
+  });
+
+  it("preserves source metadata while allowing valid partial imports", () => {
+    const asset = createParticleEffectAsset({
+      version: 2,
+      label: "ConvertedQuarksSmoke",
+      main: {
+        maxParticles: 64,
+        startLifetime: 1,
+        startSpeed: 0,
+      },
+      emission: {
+        rateOverTime: 8,
+      },
+      shape: {
+        type: "sphere",
+        radius: 0.25,
+      },
+      renderer: {
         blendMode: "alpha",
-      }).runtimeFeatures.unsupportedFields,
-    ).toEqual(["emissionRate"]);
+      },
+      trails: {
+        enabled: true,
+        lifetime: 0.5,
+      },
+      source: {
+        format: "three.quarks",
+        version: "0.14",
+        sourceName: "SmokeTrail.json",
+        unsupportedFeatures: ["TrailRenderer.widthOverTrail"],
+      },
+    });
+
+    expect(validateParticleEffectAsset(asset).valid).toBe(true);
+    expect(asset.source).toEqual({
+      format: "three.quarks",
+      version: "0.14",
+      sourceName: "SmokeTrail.json",
+      unsupportedFeatures: ["TrailRenderer.widthOverTrail"],
+    });
+    expect(asset.runtimeFeatures.partiallySupportedFields).toContain("trails");
+    expect(asset.runtimeFeatures.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "particleEffect.partiallySupportedFeature",
+          field: "trails",
+        }),
+      ]),
+    );
+  });
+
+  it("tracks mesh-surface source meshes as particle effect dependencies", () => {
+    const mesh = createMeshHandle("emitter-surface");
+    const texture = createTextureHandle("smoke");
+    const asset = createParticleEffectAsset({
+      version: 2,
+      shape: {
+        type: "mesh-surface",
+        mesh,
+        box: [1, 1, 1],
+      },
+      renderer: {
+        texture,
+      },
+    });
+
+    expect(particleEffectDependencies(asset).map(assetHandleKey)).toEqual([
+      "texture:smoke",
+      "mesh:emitter-surface",
+    ]);
+  });
+
+  it("normalizes composite VFX assets with child emitter transforms and dependencies", () => {
+    const smoke = createParticleEffectHandle("smoke");
+    const sparks = createParticleEffectHandle("sparks");
+    const composite = createParticleCompositeEffectAsset({
+      version: 1,
+      label: "ExplosionComposite",
+      emitters: [
+        {
+          label: "Smoke",
+          effect: smoke,
+          delay: 0.05,
+          duration: 1.5,
+          transform: {
+            translation: [0, 0.5, 0],
+          },
+        },
+        {
+          label: "Sparks",
+          effect: sparks,
+          delay: 0,
+          timeScale: 2,
+          transform: {
+            rotation: [0, 0, 0, 1],
+            scale: [0.5, 0.5, 0.5],
+          },
+        },
+        {
+          label: "Smoke echo",
+          effect: smoke,
+          delay: 0.2,
+        },
+      ],
+      source: {
+        format: "three.quarks",
+        sourceName: "explosion.json",
+        unsupportedFeatures: ["SubEmitter.inheritColor"],
+      },
+    });
+    const collections = createRenderAssetCollections();
+    const handle = collections.particleCompositeEffects.add(composite, {
+      id: "explosion",
+    });
+    const entry = collections.registry.get(handle);
+
+    expect(composite).toMatchObject({
+      kind: "particle-composite-effect",
+      version: 1,
+      label: "ExplosionComposite",
+      source: {
+        format: "three.quarks",
+        sourceName: "explosion.json",
+      },
+    });
+    expect(composite.emitters.map((emitter) => emitter.label)).toEqual([
+      "Smoke",
+      "Sparks",
+      "Smoke echo",
+    ]);
+    expect(composite.emitters[0]?.transform).toEqual({
+      translation: [0, 0.5, 0],
+      rotation: [0, 0, 0, 1],
+      scale: [1, 1, 1],
+    });
+    expect(composite.emitters[1]?.duration).toBeNull();
+    expect(composite.emitters[1]?.timeScale).toBe(2);
+    expect(composite.dependencies).toEqual([smoke, sparks]);
+    expect(entry?.dependencies).toEqual([smoke, sparks]);
   });
 
   it("extracts stable emitter packets keyed by effect version without live particles", () => {
     const app = createExtractionApp();
     const effect = createParticleEffectHandle("spark");
     const asset = createParticleEffectAsset({
-      capacity: 64,
-      emissionRate: 16,
-      startSpeed: { min: 1, max: 3 },
-      startSize: { min: 0.1, max: 0.3 },
+      version: 2,
+      main: {
+        maxParticles: 64,
+        startSpeed: { min: 1, max: 3 },
+        startSize: { min: 0.1, max: 0.3 },
+      },
+      emission: {
+        rateOverTime: 16,
+      },
     });
 
     app.assets.register(effect);
@@ -263,15 +544,27 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
     const app = createExtractionApp();
     const effect = createParticleEffectHandle("auto-bounds");
     const asset = createParticleEffectAsset({
-      capacity: 64,
-      lifetime: { min: 2, max: 2 },
-      startSpeed: { min: 2, max: 3 },
-      startSize: { min: 0.5, max: 1 },
-      gravity: [0, -1, 0],
-      sizeOverLifetime: [
-        { t: 0, value: 1 },
-        { t: 1, value: 2 },
-      ],
+      version: 2,
+      main: {
+        maxParticles: 64,
+        startLifetime: { min: 2, max: 2 },
+        startSpeed: { min: 2, max: 3 },
+        startSize: { min: 0.5, max: 1 },
+      },
+      forceOverLifetime: {
+        enabled: true,
+        force: [0, -1, 0],
+      },
+      sizeOverLifetime: {
+        enabled: true,
+        size: {
+          mode: "curve",
+          curve: [
+            { t: 0, value: 1 },
+            { t: 1, value: 2 },
+          ],
+        },
+      },
     });
 
     app.assets.register(effect);
@@ -309,7 +602,7 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
     expect(snapshot.diagnostics).toEqual([]);
   });
 
-  it("culls off-screen particle emitters using automatic bounds", () => {
+  it("retains off-screen continuous particle emitters to preserve GPU state", () => {
     const app = createExtractionApp();
     const effect = createParticleEffectHandle("culled-auto-bounds");
 
@@ -317,9 +610,12 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
     app.assets.markReady(
       effect,
       createParticleEffectAsset({
-        capacity: 16,
-        lifetime: { min: 1, max: 1 },
-        startSize: { min: 0.25, max: 0.25 },
+        version: 2,
+        main: {
+          maxParticles: 16,
+          startLifetime: { min: 1, max: 1 },
+          startSize: { min: 0.25, max: 0.25 },
+        },
       }),
     );
     app.spawn(
@@ -339,13 +635,9 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
 
     const snapshot = app.extract(1);
 
-    expect(snapshot.report.particleEmitters).toBe(0);
-    expect(snapshot.bounds).toHaveLength(0);
-    expect(snapshot.report.cullStats?.[0]).toMatchObject({
-      tested: 1,
-      culled: 1,
-      included: 0,
-    });
+    expect(snapshot.report.particleEmitters).toBe(1);
+    expect(snapshot.bounds).toHaveLength(1);
+    expect(snapshot.particleEmitters?.[0]?.effect).toEqual(effect);
     expect(snapshot.diagnostics).toEqual([]);
   });
 });

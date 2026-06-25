@@ -40,11 +40,17 @@ describe("app particle emitter spawning", () => {
         assets: {
           smokeEffect: asset.particleEffect({
             preload: "blocking",
-            capacity: 64,
-            emissionRate: 16,
-            lifetime: { min: 1, max: 2 },
-            startSize: { min: 0.5, max: 1 },
-            blendMode: "alpha",
+            main: {
+              maxParticles: 64,
+              startLifetime: { min: 1, max: 2 },
+              startSize: { min: 0.5, max: 1 },
+            },
+            emission: {
+              rateOverTime: 16,
+            },
+            renderer: {
+              blendMode: "alpha",
+            },
           }),
         },
       }),
@@ -108,11 +114,17 @@ describe("app particle emitter spawning", () => {
         assets: {
           smokeEffect: asset.particleEffect({
             preload: "blocking",
-            capacity: 64,
-            emissionRate: 0,
-            lifetime: { min: 1, max: 1 },
-            startSize: { min: 0.5, max: 1 },
-            blendMode: "alpha",
+            main: {
+              maxParticles: 64,
+              startLifetime: { min: 1, max: 1 },
+              startSize: { min: 0.5, max: 1 },
+            },
+            emission: {
+              rateOverTime: 0,
+            },
+            renderer: {
+              blendMode: "alpha",
+            },
           }),
         },
       }),
@@ -187,11 +199,17 @@ describe("app particle emitter spawning", () => {
         assets: {
           smokeEffect: asset.particleEffect({
             preload: "blocking",
-            capacity: 1280,
-            emissionRate: 0,
-            lifetime: { min: 2.5, max: 2.5 },
-            startSize: { min: 0.5, max: 1 },
-            blendMode: "alpha",
+            main: {
+              maxParticles: 1280,
+              startLifetime: { min: 2.5, max: 2.5 },
+              startSize: { min: 0.5, max: 1 },
+            },
+            emission: {
+              rateOverTime: 0,
+            },
+            renderer: {
+              blendMode: "alpha",
+            },
           }),
         },
       }),

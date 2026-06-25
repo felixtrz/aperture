@@ -4,7 +4,9 @@ import {
   PARTICLE_COMPUTE_WGSL,
   PARTICLE_RENDER_WGSL,
   createParticleComputePipelineResource,
+  createParticleRenderShaderSource,
   createParticleRenderPipelineResource,
+  particleBurstRenderPipelineCacheKey,
   particleComputePipelineCacheKey,
   particleRenderPipelineCacheKey,
   type ParticlePipelineDeviceLike,
@@ -162,9 +164,145 @@ describe("particle render pipeline output-stage tonemap/encode (AI-17)", () => {
       outputColorSpace: "linear",
     });
 
-    expect(shaderCodes[0]).toBe(PARTICLE_RENDER_WGSL);
+    expect(shaderCodes[0]).toBe(createParticleRenderShaderSource());
     expect(render.resource?.cacheKey).toBe(
       particleRenderPipelineCacheKey("bgra8unorm", "depth24plus"),
+    );
+  });
+
+  it("builds distinct shader variants for non-billboard render modes", async () => {
+    const { device, shaderCodes } = recordingDevice();
+    const stretched = await createParticleRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      renderMode: "stretched-billboard",
+    });
+    const horizontalBurst = await createParticleRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      variant: "burst",
+      renderMode: "horizontal-billboard",
+    });
+    const trail = await createParticleRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      renderMode: "trail",
+    });
+    const mesh = await createParticleRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      renderMode: "mesh",
+    });
+
+    expect(stretched.valid).toBe(true);
+    expect(horizontalBurst.valid).toBe(true);
+    expect(trail.valid).toBe(true);
+    expect(mesh.valid).toBe(true);
+    expect(shaderCodes[0]).toContain("const PARTICLE_RENDER_MODE: u32 = 1u;");
+    expect(shaderCodes[1]).toContain("const PARTICLE_RENDER_MODE: u32 = 2u;");
+    expect(shaderCodes[2]).toContain("const PARTICLE_RENDER_MODE: u32 = 4u;");
+    expect(shaderCodes[3]).toContain("const PARTICLE_RENDER_MODE: u32 = 5u;");
+    expect(stretched.resource?.cacheKey).toBe(
+      particleRenderPipelineCacheKey(
+        "bgra8unorm",
+        "depth24plus",
+        1,
+        "additive",
+        "none",
+        "linear",
+        "stretched-billboard",
+      ),
+    );
+    expect(horizontalBurst.resource?.cacheKey).toBe(
+      particleBurstRenderPipelineCacheKey(
+        "bgra8unorm",
+        "depth24plus",
+        1,
+        "additive",
+        "none",
+        "linear",
+        "horizontal-billboard",
+      ),
+    );
+    expect(trail.resource?.cacheKey).toBe(
+      particleRenderPipelineCacheKey(
+        "bgra8unorm",
+        "depth24plus",
+        1,
+        "additive",
+        "none",
+        "linear",
+        "trail",
+      ),
+    );
+    expect(mesh.resource?.cacheKey).toBe(
+      particleRenderPipelineCacheKey(
+        "bgra8unorm",
+        "depth24plus",
+        1,
+        "additive",
+        "none",
+        "linear",
+        "mesh",
+      ),
+    );
+  });
+
+  it("builds soft-particle depth-fade render variants", async () => {
+    const { device, shaderCodes } = recordingDevice();
+    const render = await createParticleRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      softParticles: true,
+    });
+    const burst = await createParticleRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      variant: "burst",
+      softParticles: true,
+    });
+
+    expect(render.valid).toBe(true);
+    expect(burst.valid).toBe(true);
+    expect(shaderCodes[0]).toContain(
+      "@group(3) @binding(0) var particleSceneDepth: texture_depth_2d;",
+    );
+    expect(shaderCodes[0]).toContain(
+      "@group(3) @binding(1) var<uniform> particleSoftParams",
+    );
+    expect(shaderCodes[0]).toContain("textureLoad(particleSceneDepth");
+    expect(shaderCodes[1]).toContain(
+      "@group(4) @binding(0) var particleSceneDepth: texture_depth_2d;",
+    );
+    expect(render.resource?.cacheKey).toBe(
+      particleRenderPipelineCacheKey(
+        "bgra8unorm",
+        "depth24plus",
+        1,
+        "additive",
+        "none",
+        "linear",
+        "billboard",
+        true,
+      ),
+    );
+    expect(burst.resource?.cacheKey).toBe(
+      particleBurstRenderPipelineCacheKey(
+        "bgra8unorm",
+        "depth24plus",
+        1,
+        "additive",
+        "none",
+        "linear",
+        "billboard",
+        true,
+      ),
     );
   });
 });

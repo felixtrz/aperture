@@ -32,6 +32,7 @@ import {
   type Ktx2TextureCompressionSupport,
   type MeshoptBufferDecoder,
   type ParticleEffectAsset,
+  type ParticleRendererModuleInput,
   type TextureAsset,
   type TextureColorSpace,
   type TextureSemantic,
@@ -565,21 +566,21 @@ function createSystemAssetHandle(
       error: createSignal<ApertureSystemDiagnostic | null>(null),
       renderHandle: createParticleEffectHandle(id),
       descriptor: particleEffect,
-      ...(particleEffect.texture === undefined
+      ...(particleEffect.renderer?.texture === undefined
         ? {}
         : {
             texture:
-              particleEffect.texture === null
+              particleEffect.renderer.texture === null
                 ? null
-                : createTextureHandle(particleEffect.texture),
+                : createTextureHandle(particleEffect.renderer.texture),
           }),
-      ...(particleEffect.sampler === undefined
+      ...(particleEffect.renderer?.sampler === undefined
         ? {}
         : {
             sampler:
-              particleEffect.sampler === null
+              particleEffect.renderer.sampler === null
                 ? null
-                : createSamplerHandle(particleEffect.sampler),
+                : createSamplerHandle(particleEffect.renderer.sampler),
           }),
     } as SystemParticleEffectAssetHandle;
   }
@@ -603,59 +604,42 @@ function loadSystemParticleEffectAsset(
   handle: SystemParticleEffectAssetHandle,
 ): ParticleEffectAsset {
   const descriptor = handle.descriptor;
+  const renderer = createResolvedParticleRendererModule(descriptor, handle);
   const asset = createParticleEffectAsset({
+    version: 2,
     label: handle.label ?? handle.id,
-    ...(descriptor.capacity === undefined
+    ...(descriptor.main === undefined ? {} : { main: descriptor.main }),
+    ...(descriptor.emission === undefined
       ? {}
-      : { capacity: descriptor.capacity }),
-    ...(descriptor.duration === undefined
+      : { emission: descriptor.emission }),
+    ...(descriptor.shape === undefined ? {} : { shape: descriptor.shape }),
+    renderer,
+    ...(descriptor.textureSheetAnimation === undefined
       ? {}
-      : { duration: descriptor.duration }),
-    ...(descriptor.looping === undefined
-      ? {}
-      : { looping: descriptor.looping }),
-    ...(descriptor.prewarm === undefined
-      ? {}
-      : { prewarm: descriptor.prewarm }),
-    ...(descriptor.emissionRate === undefined
-      ? {}
-      : { emissionRate: descriptor.emissionRate }),
-    ...(descriptor.bursts === undefined ? {} : { bursts: descriptor.bursts }),
-    ...(descriptor.lifetime === undefined
-      ? {}
-      : { lifetime: descriptor.lifetime }),
-    ...(descriptor.startSpeed === undefined
-      ? {}
-      : { startSpeed: descriptor.startSpeed }),
-    ...(descriptor.startSize === undefined
-      ? {}
-      : { startSize: descriptor.startSize }),
-    ...(descriptor.startColor === undefined
-      ? {}
-      : { startColor: descriptor.startColor }),
-    ...(descriptor.endColor === undefined
-      ? {}
-      : { endColor: descriptor.endColor }),
-    ...(descriptor.gravity === undefined
-      ? {}
-      : { gravity: descriptor.gravity }),
-    ...(descriptor.linearDamping === undefined
-      ? {}
-      : { linearDamping: descriptor.linearDamping }),
-    ...(descriptor.blendMode === undefined
-      ? {}
-      : { blendMode: descriptor.blendMode }),
-    ...(handle.texture === undefined ? {} : { texture: handle.texture }),
-    ...(handle.sampler === undefined ? {} : { sampler: handle.sampler }),
-    ...(descriptor.atlasFrameCount === undefined
-      ? {}
-      : { atlasFrameCount: descriptor.atlasFrameCount }),
-    ...(descriptor.sizeOverLifetime === undefined
-      ? {}
-      : { sizeOverLifetime: descriptor.sizeOverLifetime }),
+      : { textureSheetAnimation: descriptor.textureSheetAnimation }),
     ...(descriptor.colorOverLifetime === undefined
       ? {}
       : { colorOverLifetime: descriptor.colorOverLifetime }),
+    ...(descriptor.sizeOverLifetime === undefined
+      ? {}
+      : { sizeOverLifetime: descriptor.sizeOverLifetime }),
+    ...(descriptor.rotationOverLifetime === undefined
+      ? {}
+      : { rotationOverLifetime: descriptor.rotationOverLifetime }),
+    ...(descriptor.velocityOverLifetime === undefined
+      ? {}
+      : { velocityOverLifetime: descriptor.velocityOverLifetime }),
+    ...(descriptor.forceOverLifetime === undefined
+      ? {}
+      : { forceOverLifetime: descriptor.forceOverLifetime }),
+    ...(descriptor.limitVelocityOverLifetime === undefined
+      ? {}
+      : { limitVelocityOverLifetime: descriptor.limitVelocityOverLifetime }),
+    ...(descriptor.noise === undefined ? {} : { noise: descriptor.noise }),
+    ...(descriptor.subEmitters === undefined
+      ? {}
+      : { subEmitters: descriptor.subEmitters }),
+    ...(descriptor.source === undefined ? {} : { source: descriptor.source }),
     ...(descriptor.curveSampleCount === undefined
       ? {}
       : { curveSampleCount: descriptor.curveSampleCount }),
@@ -684,6 +668,33 @@ function loadSystemParticleEffectAsset(
       blocksStartup: handle.preload === "blocking",
     },
   );
+}
+
+function createResolvedParticleRendererModule(
+  descriptor: ApertureParticleEffectAssetDescriptor,
+  handle: SystemParticleEffectAssetHandle,
+): ParticleRendererModuleInput {
+  const renderer = descriptor.renderer;
+
+  return {
+    ...(renderer?.renderMode === undefined
+      ? {}
+      : { renderMode: renderer.renderMode }),
+    ...(renderer?.blendMode === undefined
+      ? {}
+      : { blendMode: renderer.blendMode }),
+    ...(renderer?.sortMode === undefined
+      ? {}
+      : { sortMode: renderer.sortMode }),
+    ...(renderer?.renderOrder === undefined
+      ? {}
+      : { renderOrder: renderer.renderOrder }),
+    ...(renderer?.softParticles === undefined
+      ? {}
+      : { softParticles: renderer.softParticles }),
+    ...(handle.texture === undefined ? {} : { texture: handle.texture }),
+    ...(handle.sampler === undefined ? {} : { sampler: handle.sampler }),
+  };
 }
 
 async function loadSystemTextureAsset(

@@ -287,7 +287,7 @@ function particleBurstTtlSeconds(
   effect: ParticleEffectAsset,
   request: ParticleBurstRequest,
 ): number {
-  const lifetimeSeconds = Math.max(effect.lifetime.max, 0.001);
+  const lifetimeSeconds = Math.max(effect.runtime.lifetime.max, 0.001);
   const timeScale = Math.max(0.001, finite(request.timeScale ?? 1));
 
   return lifetimeSeconds / timeScale + 2 / DEFAULT_FRAME_RATE;

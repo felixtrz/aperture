@@ -21,21 +21,39 @@ describe("app particle effect asset config", () => {
           smokeEffect: asset.particleEffect({
             preload: "blocking",
             label: "Smoke effect",
-            texture: "smoke",
-            capacity: 1280,
-            duration: 2.5,
-            emissionRate: 0,
-            lifetime: { min: 2.5, max: 2.5 },
-            startSize: { min: 0.5, max: 1 },
-            blendMode: "alpha",
-            sizeOverLifetime: [
-              { t: 0, value: 0.5 },
-              { t: 1, value: 3 },
-            ],
-            colorOverLifetime: [
-              { t: 0, color: [0.37, 0.37, 0.42, 0.25] },
-              { t: 1, color: [0.37, 0.37, 0.42, 0] },
-            ],
+            main: {
+              maxParticles: 1280,
+              duration: 2.5,
+              startLifetime: { min: 2.5, max: 2.5 },
+              startSize: { min: 0.5, max: 1 },
+            },
+            emission: {
+              rateOverTime: 0,
+            },
+            renderer: {
+              texture: "smoke",
+              blendMode: "alpha",
+            },
+            sizeOverLifetime: {
+              enabled: true,
+              size: {
+                mode: "curve",
+                curve: [
+                  { t: 0, value: 0.5 },
+                  { t: 1, value: 3 },
+                ],
+              },
+            },
+            colorOverLifetime: {
+              enabled: true,
+              color: {
+                mode: "gradient",
+                gradient: [
+                  { t: 0, color: [0.37, 0.37, 0.42, 0.25] },
+                  { t: 1, color: [0.37, 0.37, 0.42, 0] },
+                ],
+              },
+            },
           }),
         },
       }),
@@ -56,9 +74,10 @@ describe("app particle effect asset config", () => {
     expect(entry?.status).toBe("ready");
     expect(entry?.asset?.kind).toBe("particle-effect");
     expect(entry?.asset?.label).toBe("Smoke effect");
-    expect(entry?.asset?.texture).toEqual(textureHandle);
-    expect(entry?.asset?.capacity).toBe(1280);
-    expect(entry?.asset?.blendMode).toBe("alpha");
+    expect(entry?.asset?.renderer.texture).toEqual(textureHandle);
+    expect(entry?.asset?.runtime.texture).toEqual(textureHandle);
+    expect(entry?.asset?.runtime.capacity).toBe(1280);
+    expect(entry?.asset?.runtime.blendMode).toBe("alpha");
     expect(entry?.dependencies.map(assetHandleKey)).toEqual(["texture:smoke"]);
   });
 });

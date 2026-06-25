@@ -170,16 +170,6 @@ export function extractParticleEmitters(
       radius,
     );
 
-    if (
-      !isVisibleInAnyMatchingView(
-        boundsPacket.worldAabb,
-        layerMask,
-        viewCullContexts,
-      )
-    ) {
-      continue;
-    }
-
     const stableId = createStableRenderId(entityRef(entity));
     const effectKey = assetHandleKey(effect);
     const boundsIndex = bounds.length;
@@ -209,7 +199,7 @@ export function extractParticleEmitters(
     const capacity = Math.trunc(
       finitePositive(
         entity.getValue(ParticleEmitter, "capacity"),
-        effectEntry.asset.capacity,
+        effectEntry.asset.runtime.capacity,
       ),
     );
 
@@ -445,22 +435,22 @@ function createAutomaticParticleBurstBoundsPacket(input: {
   const x = particleDisplacementRange(
     input.velocityRange.min[0],
     input.velocityRange.max[0],
-    input.effect.gravity[0],
-    input.effect.linearDamping,
+    input.effect.runtime.gravity[0],
+    input.effect.runtime.linearDamping,
     lifetime,
   );
   const y = particleDisplacementRange(
     input.velocityRange.min[1],
     input.velocityRange.max[1],
-    input.effect.gravity[1],
-    input.effect.linearDamping,
+    input.effect.runtime.gravity[1],
+    input.effect.runtime.linearDamping,
     lifetime,
   );
   const z = particleDisplacementRange(
     input.velocityRange.min[2],
     input.velocityRange.max[2],
-    input.effect.gravity[2],
-    input.effect.linearDamping,
+    input.effect.runtime.gravity[2],
+    input.effect.runtime.linearDamping,
     lifetime,
   );
   const worldAabb: Aabb = {
@@ -556,7 +546,7 @@ function deriveContinuousParticleBoundsRadius(input: {
   readonly entity: RenderEntityRef;
   readonly effectKey: string;
 }): number {
-  const spawnRadius = Math.max(0.01, input.effect.startSpeed.max);
+  const spawnRadius = Math.max(0.01, input.effect.runtime.startSpeed.max);
   const radius =
     maxParticleBillboardRadius(input.effect) +
     spawnRadius +
@@ -609,7 +599,7 @@ function checkedAutoParticleBoundsRadius(
 }
 
 function particleLifetimeMax(effect: ParticleEffectAsset): number {
-  return Math.max(0, effect.lifetime.min, effect.lifetime.max);
+  return Math.max(0, effect.runtime.lifetime.min, effect.runtime.lifetime.max);
 }
 
 function maxParticleBillboardRadius(effect: ParticleEffectAsset): number {
@@ -622,7 +612,7 @@ function maxParticleBillboardRadius(effect: ParticleEffectAsset): number {
 
   return Math.max(
     MIN_AUTO_PARTICLE_BOUNDS_RADIUS,
-    Math.max(0, effect.startSize.min, effect.startSize.max) *
+    Math.max(0, effect.runtime.startSize.min, effect.runtime.startSize.max) *
       Math.max(0, maxCurve) *
       Math.SQRT1_2,
   );

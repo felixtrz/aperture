@@ -171,7 +171,7 @@ function createWorkerScene(aperture, canvasSize) {
     aperture.withTransform({ translation: [0, 0, 0] }),
     aperture.withParticleEmitter({
       effect: registered.particles.effect,
-      capacity: registered.expected.liveParticles,
+      capacity: registered.expected.particleCapacity,
       seed: 2026,
       resetEpoch: 0,
       timeScale: 1,

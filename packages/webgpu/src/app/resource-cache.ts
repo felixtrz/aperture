@@ -158,6 +158,7 @@ export interface WebGpuAppResourceCache {
     ParticleBurstBatchGpuStateResource
   >;
   particleViewUniformBuffer: ParticleViewUniformBufferResource | null;
+  readonly particleSoftParams: Map<string, ParticleSoftParamsResource>;
   readonly skyboxPipelines: Map<
     string,
     CreateSkyboxRenderPipelineResourceResult
@@ -229,6 +230,8 @@ export interface ParticleEmitterGpuStateResource {
 export interface ParticleEmitterCpuStateResource {
   readonly positions: Float32Array;
   readonly velocities: Float32Array;
+  readonly rotations: Float32Array;
+  readonly angularVelocities: Float32Array;
   readonly ages: Float32Array;
   readonly lifetimes: Float32Array;
   readonly baseSizes: Float32Array;
@@ -239,6 +242,14 @@ export interface ParticleEmitterCpuStateResource {
   liveCount: number;
   maxLifetime: number;
   uniformLifetime: boolean;
+  spawnAccumulator: number;
+  distanceAccumulator: number;
+  lastOriginX: number;
+  lastOriginY: number;
+  lastOriginZ: number;
+  hasLastOrigin: boolean;
+  spawnCursor: number;
+  spawnSerial: number;
 }
 
 export interface ParticleBurstBatchSlot {
@@ -267,6 +278,12 @@ export interface ParticleBurstBatchGpuStateResource {
 }
 
 export interface ParticleViewUniformBufferResource {
+  readonly buffer: unknown;
+  readonly byteLength: number;
+}
+
+export interface ParticleSoftParamsResource {
+  readonly key: string;
   readonly buffer: unknown;
   readonly byteLength: number;
 }
@@ -374,6 +391,7 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     particleBurstCpuStates: new Map(),
     particleBurstBatchStates: new Map(),
     particleViewUniformBuffer: null,
+    particleSoftParams: new Map(),
     skyboxPipelines: new Map(),
     proceduralSkyPipelines: new Map(),
     proceduralSkyUniforms: new Map(),

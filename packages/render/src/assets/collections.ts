@@ -5,6 +5,7 @@ import {
   createFontAtlasHandle,
   createMaterialHandle,
   createMeshHandle,
+  createParticleCompositeEffectHandle,
   createParticleEffectHandle,
   createShaderHandle,
   type AssetDiagnostic,
@@ -32,7 +33,9 @@ import {
   type MsdfFontAtlasAsset,
 } from "../text/index.js";
 import {
+  particleCompositeEffectDependencies,
   particleEffectDependencies,
+  type ParticleCompositeEffectAsset,
   type ParticleEffectAsset,
 } from "./particles.js";
 
@@ -49,6 +52,10 @@ export interface RenderAssetCollections {
   readonly particleEffects: TypedAssetCollection<
     "particle-effect",
     ParticleEffectAsset
+  >;
+  readonly particleCompositeEffects: TypedAssetCollection<
+    "particle-composite-effect",
+    ParticleCompositeEffectAsset
   >;
 }
 
@@ -227,6 +234,17 @@ export function createRenderAssetCollections(
       idPrefix: "particle-effect",
       label: (asset) => asset.label,
       dependencies: particleEffectDependencies,
+    }),
+    particleCompositeEffects: new TypedAssetCollection<
+      "particle-composite-effect",
+      ParticleCompositeEffectAsset
+    >({
+      registry,
+      kind: "particle-composite-effect",
+      createHandle: createParticleCompositeEffectHandle,
+      idPrefix: "particle-composite-effect",
+      label: (asset) => asset.label,
+      dependencies: particleCompositeEffectDependencies,
     }),
   };
 }

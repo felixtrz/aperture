@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1278
+Every structured diagnostic code the engine can emit (1280
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -3410,23 +3410,23 @@ suggestedFix accompanies it, and where it is emitted.
 | --------------------------- | --------------------------------------------------------- | ---- | --------------------------------------------------------------- |
 | `particle.invalidTimeScale` | Particle emitter timeScale must be a non-negative number. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
+## particleEffect.legacyField (1)
+
+| Code                         | Message                                                                                                                        | Fix? | Emitted from                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---- | ----------------------------------------- |
+| `particleEffect.legacyField` | Legacy particle field '…' was removed. Use version: 2 with Shuriken-style modules such as main, emission, shape, and renderer. | —    | `packages/render/src/assets/particles.ts` |
+
 ## particleEffect.partiallySupportedFeature (1)
 
-| Code                                       | Message                                                                                                                 | Fix? | Emitted from                              |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------- |
-| `particleEffect.partiallySupportedFeature` | Particle lifetime ranges are honored by worker-emitted bursts; continuous GPU emitters currently use lifetime.max only. | —    | `packages/render/src/assets/particles.ts` |
+| Code                                       | Message                       | Fix? | Emitted from                              |
+| ------------------------------------------ | ----------------------------- | ---- | ----------------------------------------- |
+| `particleEffect.partiallySupportedFeature` | (message composed at runtime) | —    | `packages/render/src/assets/particles.ts` |
 
 ## particleEffect.unsupportedFeature (1)
 
-| Code                                | Message                                                                                                                                         | Fix? | Emitted from                              |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------- |
-| `particleEffect.unsupportedFeature` | Particle texture atlas animation is not implemented yet; atlasFrameCount values above 1 are accepted for authoring but ignored by the renderer. | —    | `packages/render/src/assets/particles.ts` |
-
-## particleFrame.beginComputeFailed (1)
-
-| Code                               | Message                                | Fix? | Emitted from                           |
-| ---------------------------------- | -------------------------------------- | ---- | -------------------------------------- |
-| `particleFrame.beginComputeFailed` | Particle compute pass could not begin. | —    | `packages/webgpu/src/app/particles.ts` |
+| Code                                | Message                                                                                                        | Fix? | Emitted from                              |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------- |
+| `particleEffect.unsupportedFeature` | Legacy particle field '…' was removed. Use Shuriken-style modules such as main, emission, shape, and renderer. | —    | `packages/render/src/assets/particles.ts` |
 
 ## particleFrame.burstBatchBufferFailed (1)
 
@@ -3476,6 +3476,18 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------------------- | ----------------------------------------------------- | ---- | -------------------------------------- |
 | `particleFrame.burstWriteBufferUnavailable` | Particle burst simulation requires queue.writeBuffer. | —    | `packages/webgpu/src/app/particles.ts` |
 
+## particleFrame.continuousStateMissing (1)
+
+| Code                                   | Message                                                          | Fix? | Emitted from                           |
+| -------------------------------------- | ---------------------------------------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.continuousStateMissing` | Continuous particle emitter is missing renderer lifecycle state. | —    | `packages/webgpu/src/app/particles.ts` |
+
+## particleFrame.continuousWriteBufferUnavailable (1)
+
+| Code                                             | Message                                                    | Fix? | Emitted from                           |
+| ------------------------------------------------ | ---------------------------------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.continuousWriteBufferUnavailable` | Continuous particle simulation requires queue.writeBuffer. | —    | `packages/webgpu/src/app/particles.ts` |
+
 ## particleFrame.effectNotReady (1)
 
 | Code                           | Message                           | Fix? | Emitted from                           |
@@ -3484,15 +3496,15 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## particleFrame.missingBindGroupSupport (1)
 
-| Code                                    | Message                                                            | Fix? | Emitted from                           |
-| --------------------------------------- | ------------------------------------------------------------------ | ---- | -------------------------------------- |
-| `particleFrame.missingBindGroupSupport` | Particle frame resources require bind groups and pipeline layouts. | —    | `packages/webgpu/src/app/particles.ts` |
+| Code                                    | Message                                               | Fix? | Emitted from                           |
+| --------------------------------------- | ----------------------------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.missingBindGroupSupport` | Particle frame resources require bind group creation. | —    | `packages/webgpu/src/app/particles.ts` |
 
-## particleFrame.paramBufferFailed (1)
+## particleFrame.softParamsFailed (1)
 
-| Code                              | Message                       | Fix? | Emitted from                           |
-| --------------------------------- | ----------------------------- | ---- | -------------------------------------- |
-| `particleFrame.paramBufferFailed` | (message composed at runtime) | —    | `packages/webgpu/src/app/particles.ts` |
+| Code                             | Message                       | Fix? | Emitted from                           |
+| -------------------------------- | ----------------------------- | ---- | -------------------------------------- |
+| `particleFrame.softParamsFailed` | (message composed at runtime) | —    | `packages/webgpu/src/app/particles.ts` |
 
 ## particleFrame.stateBufferFailed (1)
 
