@@ -191,6 +191,8 @@ pnpm exec playwright test --config=playwright.ci.config.ts
 
 ## Known Follow-Up Work
 
+- Implement unified leaf/composite particle effect composition as described in
+  [PARTICLE_EFFECT_COMPOSITION_TODO.md](./PARTICLE_EFFECT_COMPOSITION_TODO.md).
 - Complete one uninterrupted full E2E run in cloud.
 - Review generated diagnostics wording one more time against the intended public
   API tone.
