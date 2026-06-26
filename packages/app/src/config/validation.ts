@@ -4,6 +4,7 @@ import type {
   ApertureConfig,
   ApertureAudioAssetDescriptor,
   ApertureConfigAsset,
+  ApertureParticleCompositeEffectAssetDescriptor,
   ApertureParticleEffectAssetDescriptor,
   ApertureTextureAssetDescriptor,
   AssetPreloadPolicy,
@@ -267,6 +268,11 @@ function validateParticleEffectAssetDescriptor(
   id: string,
   descriptor: ApertureParticleEffectAssetDescriptor,
 ): void {
+  if (descriptor.type === "composite") {
+    validateParticleCompositeEffectAssetDescriptor(id, descriptor);
+    return;
+  }
+
   validateAssetReference(id, "texture", descriptor.renderer?.texture);
   validateAssetReference(id, "sampler", descriptor.renderer?.sampler);
 
@@ -302,6 +308,50 @@ function validateParticleEffectAssetDescriptor(
     id,
     diagnostic?.field ?? "effect",
     diagnostic?.message ?? "Particle effect options are invalid.",
+  );
+}
+
+function validateParticleCompositeEffectAssetDescriptor(
+  id: string,
+  descriptor: ApertureParticleCompositeEffectAssetDescriptor,
+): void {
+  const emitters = descriptor.emitters;
+
+  if (!Array.isArray(emitters) || emitters.length === 0) {
+    throw invalidParticleEffectAsset(
+      id,
+      "emitters",
+      "A composite particle effect must declare at least one child emitter.",
+    );
+  }
+
+  for (let index = 0; index < emitters.length; index += 1) {
+    const emitter = emitters[index];
+    const field = `emitters.${index}.effect`;
+
+    if (
+      typeof emitter?.effect !== "string" ||
+      !/^[A-Za-z_][A-Za-z0-9_.-]*$/.test(emitter.effect)
+    ) {
+      throw invalidParticleEffectAsset(
+        id,
+        field,
+        `child effect reference '${String(emitter?.effect)}' is not a valid config asset id.`,
+      );
+    }
+  }
+
+  const report = validateParticleEffectInput(descriptor);
+
+  if (report.valid) {
+    return;
+  }
+
+  const diagnostic = report.diagnostics[0];
+  throw invalidParticleEffectAsset(
+    id,
+    diagnostic?.field ?? "emitters",
+    diagnostic?.message ?? "Particle composite effect options are invalid.",
   );
 }
 

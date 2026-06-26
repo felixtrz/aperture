@@ -191,8 +191,16 @@ pnpm exec playwright test --config=playwright.ci.config.ts
 
 ## Known Follow-Up Work
 
-- Implement unified leaf/composite particle effect composition as described in
-  [PARTICLE_EFFECT_COMPOSITION_TODO.md](./PARTICLE_EFFECT_COMPOSITION_TODO.md).
+- ~~Implement unified leaf/composite particle effect composition as described in
+  [PARTICLE_EFFECT_COMPOSITION_TODO.md](./PARTICLE_EFFECT_COMPOSITION_TODO.md).~~
+  Done: leaf and composite effects now share one `particle-effect` asset kind
+  discriminated by `type: "emitter" | "composite"`, one `asset.particleEffect(...)`
+  / `createParticleEffectAsset(...)` entry point, and one `withParticleEmitter(...)`
+  spawn path. Composites expand into leaf emitter packets during extraction; the
+  renderer and GPU simulation only ever receive leaf packets. See
+  [PARTICLE_EFFECT_COMPOSITION_TODO.md](./PARTICLE_EFFECT_COMPOSITION_TODO.md) for
+  the implemented design and the remaining deferred items (sub-emitter runtime
+  spawning, per-child delay/duration time-gating, nested composites).
 - Complete one uninterrupted full E2E run in cloud.
 - Review generated diagnostics wording one more time against the intended public
   API tone.

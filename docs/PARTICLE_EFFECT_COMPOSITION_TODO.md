@@ -1,5 +1,52 @@
 # Unified Particle Effect Composition TODO
 
+## Implementation Status
+
+This design is **implemented**. The notes below describe what shipped and where
+it intentionally differs from this plan.
+
+Implemented:
+
+- One asset entry point `asset.particleEffect(...)` /
+  `createParticleEffectAsset(...)` that dispatches to leaf or composite based on
+  the input shape (`type: "composite"` or an `emitters` array).
+- One spawn entry point `withParticleEmitter(...)`; the ECS `ParticleEmitter`
+  component still references a single `particle-effect` handle for either form.
+- A discriminated union for both authoring input and the normalized asset
+  (`ParticleEmitterEffectAsset | ParticleCompositeEffectAsset`), discriminated by
+  `type` while sharing `kind: "particle-effect"`.
+- Validation that rejects mixing composite emitters with Shuriken leaf modules,
+  composites without emitters, and invalid child references.
+- Extraction that expands a composite into one leaf `ParticleEmitterPacket` per
+  child: parent world transform composed with each child's local transform,
+  child `timeScale` multiplied onto the parent's, and a stable, deterministic
+  child emitter id derived from the parent id and child index.
+- A renderer-side guard so WebGPU only ever receives leaf packets.
+- Config authoring of composites (`asset.particleEffect({ type: "composite",
+emitters: [{ effect: "child-id" }] })`) with string child references resolved
+  to handles at load time.
+
+Deviations from the draft schema above:
+
+- Composite effects use `version: 2` with `type: "composite"` (not the
+  `version: 1` shape sketched below) so both forms share one asset version.
+- The normalized asset keeps `kind: "particle-effect"` for both forms (not a
+  separate kind) so the registry and the ECS component resolve either through a
+  single `AssetHandle<"particle-effect">`.
+
+Deferred (tracked as follow-up):
+
+- Per-child `delay` / `duration` time-gating. Values are normalized and carried
+  on the composite asset, but continuous emitters have no per-emitter activation
+  clock at the stateless extraction layer, so gating is not yet applied.
+- Sub-emitter runtime spawning (schema- and diagnostic-only, as before).
+- Nested composites — rejected during extraction with a
+  `render.particle.nestedComposite` diagnostic.
+- Composite one-shot bursts — rejected with a
+  `render.particle.burstCompositeUnsupported` diagnostic; emit a leaf effect.
+
+The remainder of this document is the original design plan, kept for reference.
+
 ## Goal
 
 Make Aperture particle effects support both single Shuriken-style emitters and

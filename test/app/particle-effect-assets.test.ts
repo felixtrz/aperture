@@ -7,7 +7,7 @@ import {
   createParticleEffectHandle,
   createTextureHandle,
 } from "@aperture-engine/simulation";
-import type { ParticleEffectAsset } from "@aperture-engine/render";
+import type { ParticleEmitterEffectAsset } from "@aperture-engine/render";
 
 describe("app particle effect asset config", () => {
   it("preloads particle-effect source assets with texture dependencies", async () => {
@@ -69,7 +69,7 @@ describe("app particle effect asset config", () => {
 
     const entry = app.context.assetsRegistry.get<
       "particle-effect",
-      ParticleEffectAsset
+      ParticleEmitterEffectAsset
     >(handle.renderHandle);
     expect(entry?.status).toBe("ready");
     expect(entry?.asset?.kind).toBe("particle-effect");

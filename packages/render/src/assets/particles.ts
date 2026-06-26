@@ -344,23 +344,26 @@ export interface ParticleCompositeEmitter {
 }
 
 export interface ParticleCompositeEffectAssetInput {
-  readonly version: 1;
+  readonly version: 2;
+  readonly type: "composite";
   readonly label?: string;
-  readonly emitters?: readonly ParticleCompositeEmitterInput[];
+  readonly emitters: readonly ParticleCompositeEmitterInput[];
   readonly source?: ParticleSourceMetadata;
 }
 
 export interface ParticleCompositeEffectAsset {
-  readonly kind: "particle-composite-effect";
-  readonly version: 1;
+  readonly kind: "particle-effect";
+  readonly type: "composite";
+  readonly version: 2;
   readonly label: string;
   readonly emitters: readonly ParticleCompositeEmitter[];
   readonly dependencies: readonly AssetHandle<"particle-effect">[];
   readonly source?: ParticleSourceMetadata;
 }
 
-export interface ParticleEffectAssetInput {
+export interface ParticleEmitterEffectAssetInput {
   readonly version: 2;
+  readonly type?: "emitter";
   readonly label?: string;
   readonly main?: ParticleMainModuleInput;
   readonly emission?: ParticleEmissionModuleInput;
@@ -385,6 +388,17 @@ export interface ParticleEffectAssetInput {
   readonly source?: ParticleSourceMetadata;
   readonly curveSampleCount?: number;
 }
+
+/**
+ * Authoring input for a particle effect. An effect is either a single
+ * Shuriken-style leaf emitter ({@link ParticleEmitterEffectAssetInput}) or a
+ * composite ({@link ParticleCompositeEffectAssetInput}) whose children each
+ * reference another particle effect. The two forms must not be mixed in one
+ * object; {@link validateParticleEffectInput} rejects that.
+ */
+export type ParticleEffectAssetInput =
+  | ParticleEmitterEffectAssetInput
+  | ParticleCompositeEffectAssetInput;
 
 export interface ParticleEffectRuntime {
   readonly capacity: number;
@@ -449,8 +463,9 @@ export interface ParticleEffectCurveTable {
   readonly colorOverLifetime: Float32Array;
 }
 
-export interface ParticleEffectAsset {
+export interface ParticleEmitterEffectAsset {
   readonly kind: "particle-effect";
+  readonly type: "emitter";
   readonly version: 2;
   readonly label: string;
   readonly main: Required<ParticleMainModuleInput>;
@@ -483,6 +498,32 @@ export interface ParticleEffectAsset {
   readonly runtime: ParticleEffectRuntime;
   readonly curves: ParticleEffectCurveTable;
   readonly runtimeFeatures: ParticleEffectRuntimeFeatureReport;
+}
+
+/**
+ * A normalized, runtime-ready particle effect asset. Both variants share
+ * `kind: "particle-effect"` so a single `AssetHandle<"particle-effect">` (and a
+ * single ECS {@link ParticleEmitter}) can reference either form. The `type`
+ * field discriminates a leaf emitter from a composite. The renderer and GPU
+ * simulation only ever consume leaf {@link ParticleEmitterEffectAsset}s;
+ * composites are expanded into leaf emitter packets during extraction.
+ */
+export type ParticleEffectAsset =
+  | ParticleEmitterEffectAsset
+  | ParticleCompositeEffectAsset;
+
+/** Narrows a particle effect asset to a leaf emitter effect. */
+export function isParticleEmitterEffectAsset(
+  asset: ParticleEffectAsset,
+): asset is ParticleEmitterEffectAsset {
+  return asset.type === "emitter";
+}
+
+/** Narrows a particle effect asset to a composite effect. */
+export function isParticleCompositeEffectAsset(
+  asset: ParticleEffectAsset,
+): asset is ParticleCompositeEffectAsset {
+  return asset.type === "composite";
 }
 
 export type ParticleEffectRuntimeMode = "burst" | "continuous";
@@ -524,7 +565,11 @@ export type ParticleEffectDiagnosticCode =
   | "particleEffect.invalidGradient"
   | "particleEffect.invalidModule"
   | "particleEffect.invalidShape"
-  | "particleEffect.invalidRenderer";
+  | "particleEffect.invalidRenderer"
+  | "particleEffect.invalidComposite"
+  | "particleEffect.compositeMixedModules"
+  | "particleEffect.invalidCompositeEmitter"
+  | "particleEffect.invalidCompositeChildEffect";
 
 export interface ParticleEffectDiagnostic {
   readonly code: ParticleEffectDiagnosticCode;
@@ -562,9 +607,40 @@ const LEGACY_PARTICLE_MODULE_FIELD_SHAPES = new Set([
   "colorOverLifetime",
 ]);
 
+/**
+ * Detects whether a particle effect input describes a composite effect. An
+ * input is composite when it sets `type: "composite"` or carries an `emitters`
+ * array. Leaf Shuriken modules (`main`, `emission`, ...) belong to the emitter
+ * form; mixing the two is rejected by {@link validateParticleEffectInput}.
+ */
+export function isCompositeEffectInput(
+  input: ParticleEffectAssetInput,
+): input is ParticleCompositeEffectAssetInput {
+  return (
+    (input as { readonly type?: unknown }).type === "composite" ||
+    Array.isArray((input as { readonly emitters?: unknown }).emitters)
+  );
+}
+
+/**
+ * Normalizes a particle effect input into a runtime-ready asset. Dispatches to
+ * the leaf emitter or composite normalizer based on the input shape, so a
+ * single authoring entry point covers both Shuriken-style emitters and
+ * Unity-prefab-style composite VFX.
+ */
 export function createParticleEffectAsset(
   input: ParticleEffectAssetInput = { version: 2 },
 ): ParticleEffectAsset {
+  if (isCompositeEffectInput(input)) {
+    return createParticleCompositeEffectAsset(input);
+  }
+
+  return createParticleEmitterEffectAsset(input);
+}
+
+export function createParticleEmitterEffectAsset(
+  input: ParticleEmitterEffectAssetInput = { version: 2 },
+): ParticleEmitterEffectAsset {
   const main = normalizeMainModule(input.main);
   const emission = normalizeEmissionModule(input.emission);
   const shape = normalizeShapeModule(input.shape);
@@ -630,6 +706,7 @@ export function createParticleEffectAsset(
 
   return Object.freeze({
     kind: "particle-effect",
+    type: "emitter",
     version: 2,
     label: input.label ?? "ParticleEffect",
     main,
@@ -664,7 +741,11 @@ export function createParticleEffectAsset(
 }
 
 export function createParticleCompositeEffectAsset(
-  input: ParticleCompositeEffectAssetInput = { version: 1 },
+  input: ParticleCompositeEffectAssetInput = {
+    version: 2,
+    type: "composite",
+    emitters: [],
+  },
 ): ParticleCompositeEffectAsset {
   const emitters = (input.emitters ?? []).map((emitter, index) =>
     normalizeCompositeEmitter(emitter, index),
@@ -679,8 +760,9 @@ export function createParticleCompositeEffectAsset(
   }
 
   return Object.freeze({
-    kind: "particle-composite-effect",
-    version: 1,
+    kind: "particle-effect",
+    type: "composite",
+    version: 2,
     label: input.label ?? "ParticleCompositeEffect",
     emitters,
     dependencies: [...dependencies.values()],
@@ -691,6 +773,16 @@ export function createParticleCompositeEffectAsset(
 export function analyzeParticleEffectRuntimeFeatures(
   input: ParticleEffectRuntimeFeatureInput = { version: 2 },
 ): ParticleEffectRuntimeFeatureReport {
+  if (isCompositeEffectInput(input)) {
+    return {
+      version: 2,
+      supportedFields: ["emitters", "type", "version"],
+      partiallySupportedFields: [],
+      unsupportedFields: [],
+      diagnostics: [],
+    };
+  }
+
   const supportedFields = new Set<string>();
   const partiallySupportedFields = new Set<string>();
   const unsupportedFields = new Set<string>();
@@ -719,6 +811,7 @@ export function analyzeParticleEffectRuntimeFeatures(
 
     switch (field) {
       case "version":
+      case "type":
       case "label":
       case "main":
       case "emission":
@@ -768,6 +861,10 @@ export function analyzeParticleEffectRuntimeFeatures(
 export function validateParticleEffectAsset(
   asset: ParticleEffectAsset,
 ): ParticleEffectValidationReport {
+  if (asset.type === "composite") {
+    return validateParticleCompositeEffectAsset(asset);
+  }
+
   const diagnostics: ParticleEffectDiagnostic[] = [];
 
   if (asset.version !== 2) {
@@ -972,6 +1069,50 @@ export function validateParticleEffectAsset(
   return { valid: diagnostics.length === 0, diagnostics };
 }
 
+export function validateParticleCompositeEffectAsset(
+  asset: ParticleCompositeEffectAsset,
+): ParticleEffectValidationReport {
+  const diagnostics: ParticleEffectDiagnostic[] = [];
+
+  if (asset.version !== 2) {
+    diagnostics.push(diagnostic("particleEffect.invalidVersion", "version"));
+  }
+  if (asset.emitters.length === 0) {
+    diagnostics.push(diagnostic("particleEffect.invalidComposite", "emitters"));
+  }
+
+  for (let index = 0; index < asset.emitters.length; index += 1) {
+    const emitter = asset.emitters[index] as ParticleCompositeEmitter;
+    const field = `emitters.${index}`;
+
+    if (
+      emitter.effect.kind !== "particle-effect" ||
+      emitter.effect.id.length === 0
+    ) {
+      diagnostics.push(
+        diagnostic(
+          "particleEffect.invalidCompositeChildEffect",
+          `${field}.effect`,
+        ),
+      );
+    }
+    if (
+      !nonNegativeFinite(emitter.delay) ||
+      (emitter.duration !== null && !nonNegativeFinite(emitter.duration)) ||
+      !positiveFinite(emitter.timeScale) ||
+      !tuple3(emitter.transform.translation).every(Number.isFinite) ||
+      !tuple4(emitter.transform.rotation).every(Number.isFinite) ||
+      !tuple3(emitter.transform.scale).every(Number.isFinite)
+    ) {
+      diagnostics.push(
+        diagnostic("particleEffect.invalidCompositeEmitter", field),
+      );
+    }
+  }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
 export function validateParticleEffectInput(
   input: unknown,
 ): ParticleEffectValidationReport {
@@ -982,6 +1123,10 @@ export function validateParticleEffectInput(
       valid: false,
       diagnostics: [diagnostic("particleEffect.invalidModule", "effect")],
     };
+  }
+
+  if (isCompositeEffectInputCandidate(input)) {
+    return validateParticleCompositeEffectInput(input);
   }
 
   for (const key of Object.keys(input)) {
@@ -1010,6 +1155,121 @@ export function validateParticleEffectInput(
 
   return validateParticleEffectAsset(
     createParticleEffectAsset(input as ParticleEffectAssetInput),
+  );
+}
+
+const LEAF_PARTICLE_MODULE_FIELDS = new Set([
+  "main",
+  "emission",
+  "shape",
+  "renderer",
+  "textureSheetAnimation",
+  "colorOverLifetime",
+  "sizeOverLifetime",
+  "rotationOverLifetime",
+  "velocityOverLifetime",
+  "forceOverLifetime",
+  "limitVelocityOverLifetime",
+  "noise",
+  "speedOverLifetime",
+  "colorBySpeed",
+  "sizeBySpeed",
+  "rotationBySpeed",
+  "orbitalVelocityOverLifetime",
+  "trails",
+  "collision",
+  "subEmitters",
+  "curveSampleCount",
+]);
+
+function isCompositeEffectInputCandidate(input: object): boolean {
+  // Must match isCompositeEffectInput so the validator and the factory agree on
+  // whether an input is composite (a stray non-array `emitters` stays leaf).
+  return (
+    (input as { readonly type?: unknown }).type === "composite" ||
+    Array.isArray((input as { readonly emitters?: unknown }).emitters)
+  );
+}
+
+function validateParticleCompositeEffectInput(
+  input: object,
+): ParticleEffectValidationReport {
+  const diagnostics: ParticleEffectDiagnostic[] = [];
+  const record = input as Record<string, unknown>;
+
+  for (const key of Object.keys(record)) {
+    if (LEAF_PARTICLE_MODULE_FIELDS.has(key)) {
+      diagnostics.push({
+        code: "particleEffect.compositeMixedModules",
+        field: key,
+        message:
+          'Particle effect cannot mix composite emitters with Shuriken modules. Use either type: "composite" with emitters, or leaf modules like main/emission/renderer.',
+      });
+    }
+  }
+
+  if (record.version !== 2) {
+    diagnostics.push(diagnostic("particleEffect.invalidVersion", "version"));
+  }
+
+  const emitters = record.emitters;
+  if (!Array.isArray(emitters) || emitters.length === 0) {
+    diagnostics.push(diagnostic("particleEffect.invalidComposite", "emitters"));
+    return { valid: false, diagnostics };
+  }
+
+  for (let index = 0; index < emitters.length; index += 1) {
+    const emitter = emitters[index] as Record<string, unknown> | null;
+    const field = `emitters.${index}`;
+
+    if (typeof emitter !== "object" || emitter === null) {
+      diagnostics.push(
+        diagnostic("particleEffect.invalidCompositeEmitter", field),
+      );
+      continue;
+    }
+    if (!isParticleEffectReference(emitter.effect)) {
+      diagnostics.push(
+        diagnostic(
+          "particleEffect.invalidCompositeChildEffect",
+          `${field}.effect`,
+        ),
+      );
+    }
+    if (
+      !optionalNonNegativeFinite(emitter.delay) ||
+      !optionalNonNegativeFinite(emitter.duration) ||
+      !optionalPositiveFinite(emitter.timeScale)
+    ) {
+      diagnostics.push(
+        diagnostic("particleEffect.invalidCompositeEmitter", field),
+      );
+    }
+  }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
+function isParticleEffectReference(value: unknown): boolean {
+  if (typeof value === "string") {
+    return value.length > 0;
+  }
+  if (typeof value === "object" && value !== null) {
+    const handle = value as { readonly kind?: unknown; readonly id?: unknown };
+    return handle.kind === "particle-effect" && typeof handle.id === "string";
+  }
+  return false;
+}
+
+function optionalNonNegativeFinite(value: unknown): boolean {
+  return (
+    value === undefined || (Number.isFinite(value) && (value as number) >= 0)
+  );
+}
+
+function optionalPositiveFinite(value: unknown): boolean {
+  return (
+    value === undefined || (Number.isFinite(value) && (value as number) > 0)
   );
 }
 
@@ -1046,6 +1306,10 @@ export function packParticleEffectCurves(input: {
 export function particleEffectDependencies(
   asset: ParticleEffectAsset,
 ): readonly AssetHandle[] {
+  if (asset.type === "composite") {
+    return asset.dependencies;
+  }
+
   const dependencies: AssetHandle[] = [];
 
   if (asset.runtime.texture !== undefined && asset.runtime.texture !== null) {
@@ -1059,12 +1323,6 @@ export function particleEffectDependencies(
   }
 
   return dependencies;
-}
-
-export function particleCompositeEffectDependencies(
-  asset: ParticleCompositeEffectAsset,
-): readonly AssetHandle[] {
-  return asset.dependencies;
 }
 
 function normalizeMainModule(
@@ -1122,7 +1380,7 @@ function normalizeShapeModule(
 
 function normalizeRendererModule(
   input: ParticleRendererModuleInput | undefined,
-): ParticleEffectAsset["renderer"] {
+): ParticleEmitterEffectAsset["renderer"] {
   return {
     renderMode: input?.renderMode ?? "billboard",
     blendMode: input?.blendMode ?? SpriteBlendMode.Additive,
@@ -1146,7 +1404,10 @@ function normalizeCompositeEmitter(
       input.duration === undefined
         ? null
         : Math.max(0, finiteOr(input.duration, 0)),
-    timeScale: Math.max(0, finiteOr(input.timeScale, 1)),
+    // Keep the authored value (defaulting only undefined/non-finite) so a
+    // non-positive time scale is rejected by validation instead of being
+    // silently clamped to an invalid 0.
+    timeScale: finiteOr(input.timeScale, 1),
     transform: {
       translation: tuple3(input.transform?.translation ?? [0, 0, 0]),
       rotation: tuple4(input.transform?.rotation ?? [0, 0, 0, 1]),
@@ -1324,7 +1585,7 @@ function normalizeCollisionModule(
 function normalizeRuntime(input: {
   readonly main: Required<ParticleMainModuleInput>;
   readonly emission: Required<ParticleEmissionModuleInput>;
-  readonly renderer: ParticleEffectAsset["renderer"];
+  readonly renderer: ParticleEmitterEffectAsset["renderer"];
   readonly textureSheetAnimation: Required<ParticleTextureSheetAnimationModuleInput>;
   readonly colorOverLifetime: Required<ParticleColorOverLifetimeModuleInput>;
   readonly sizeOverLifetime: Required<ParticleSizeOverLifetimeModuleInput>;
@@ -1705,7 +1966,7 @@ function vec3ValueMax(
 }
 
 function markUnsupportedModuleFeatures(
-  input: ParticleEffectRuntimeFeatureInput,
+  input: ParticleEmitterEffectAssetInput,
   partiallySupportedFields: Set<string>,
   unsupportedFields: Set<string>,
   diagnostics: ParticleEffectRuntimeFeatureDiagnostic[],
@@ -2039,7 +2300,7 @@ function validateShapeModule(
 }
 
 function validateRendererModule(
-  renderer: ParticleEffectAsset["renderer"],
+  renderer: ParticleEmitterEffectAsset["renderer"],
   diagnostics: ParticleEffectDiagnostic[],
 ): void {
   if (

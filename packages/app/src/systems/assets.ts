@@ -63,7 +63,9 @@ import type {
   ApertureConfig,
   ApertureAudioAssetDescriptor,
   ApertureConfigAsset,
+  ApertureParticleCompositeEffectAssetDescriptor,
   ApertureParticleEffectAssetDescriptor,
+  ApertureParticleEmitterEffectAssetDescriptor,
   ApertureTextureAssetDescriptor,
   AssetPreloadPolicy,
   ConfigAssetKind,
@@ -557,6 +559,8 @@ function createSystemAssetHandle(
 
   if (descriptor.kind === "particle-effect") {
     const particleEffect = descriptor as ApertureParticleEffectAssetDescriptor;
+    const leafRenderer =
+      particleEffect.type === "composite" ? undefined : particleEffect.renderer;
     return {
       id,
       kind: descriptor.kind,
@@ -566,21 +570,21 @@ function createSystemAssetHandle(
       error: createSignal<ApertureSystemDiagnostic | null>(null),
       renderHandle: createParticleEffectHandle(id),
       descriptor: particleEffect,
-      ...(particleEffect.renderer?.texture === undefined
+      ...(leafRenderer?.texture === undefined
         ? {}
         : {
             texture:
-              particleEffect.renderer.texture === null
+              leafRenderer.texture === null
                 ? null
-                : createTextureHandle(particleEffect.renderer.texture),
+                : createTextureHandle(leafRenderer.texture),
           }),
-      ...(particleEffect.renderer?.sampler === undefined
+      ...(leafRenderer?.sampler === undefined
         ? {}
         : {
             sampler:
-              particleEffect.renderer.sampler === null
+              leafRenderer.sampler === null
                 ? null
-                : createSamplerHandle(particleEffect.renderer.sampler),
+                : createSamplerHandle(leafRenderer.sampler),
           }),
     } as SystemParticleEffectAssetHandle;
   }
@@ -604,9 +608,68 @@ function loadSystemParticleEffectAsset(
   handle: SystemParticleEffectAssetHandle,
 ): ParticleEffectAsset {
   const descriptor = handle.descriptor;
-  const renderer = createResolvedParticleRendererModule(descriptor, handle);
-  const asset = createParticleEffectAsset({
+  const asset =
+    descriptor.type === "composite"
+      ? loadCompositeParticleEffectAsset(handle, descriptor)
+      : loadEmitterParticleEffectAsset(handle, descriptor);
+  const report = validateParticleEffectAsset(asset);
+
+  if (report.valid) {
+    return asset;
+  }
+
+  throw new ApertureSystemError(
+    "aperture.asset.particleEffectInvalid",
+    `Particle effect asset '${handle.id}' is invalid. ${formatReportDiagnostics(
+      report.diagnostics.map((diagnostic) => ({
+        code: diagnostic.code,
+        severity: "error" as const,
+        message: diagnostic.message,
+      })),
+    )}`,
+    "Check the asset.particleEffect() options in aperture.config.ts.",
+    {
+      asset: handle.id,
+      kind: handle.kind,
+      preload: handle.preload,
+      phase: "load",
+      blocksStartup: handle.preload === "blocking",
+    },
+  );
+}
+
+function loadCompositeParticleEffectAsset(
+  handle: SystemParticleEffectAssetHandle,
+  descriptor: ApertureParticleCompositeEffectAssetDescriptor,
+): ParticleEffectAsset {
+  return createParticleEffectAsset({
     version: 2,
+    type: "composite",
+    label: handle.label ?? handle.id,
+    emitters: descriptor.emitters.map((emitter) => ({
+      ...(emitter.label === undefined ? {} : { label: emitter.label }),
+      effect: createParticleEffectHandle(emitter.effect),
+      ...(emitter.delay === undefined ? {} : { delay: emitter.delay }),
+      ...(emitter.duration === undefined ? {} : { duration: emitter.duration }),
+      ...(emitter.timeScale === undefined
+        ? {}
+        : { timeScale: emitter.timeScale }),
+      ...(emitter.transform === undefined
+        ? {}
+        : { transform: emitter.transform }),
+    })),
+    ...(descriptor.source === undefined ? {} : { source: descriptor.source }),
+  });
+}
+
+function loadEmitterParticleEffectAsset(
+  handle: SystemParticleEffectAssetHandle,
+  descriptor: ApertureParticleEmitterEffectAssetDescriptor,
+): ParticleEffectAsset {
+  const renderer = createResolvedParticleRendererModule(descriptor, handle);
+  return createParticleEffectAsset({
+    version: 2,
+    type: "emitter",
     label: handle.label ?? handle.id,
     ...(descriptor.main === undefined ? {} : { main: descriptor.main }),
     ...(descriptor.emission === undefined
@@ -644,34 +707,10 @@ function loadSystemParticleEffectAsset(
       ? {}
       : { curveSampleCount: descriptor.curveSampleCount }),
   });
-  const report = validateParticleEffectAsset(asset);
-
-  if (report.valid) {
-    return asset;
-  }
-
-  throw new ApertureSystemError(
-    "aperture.asset.particleEffectInvalid",
-    `Particle effect asset '${handle.id}' is invalid. ${formatReportDiagnostics(
-      report.diagnostics.map((diagnostic) => ({
-        code: diagnostic.code,
-        severity: "error" as const,
-        message: diagnostic.message,
-      })),
-    )}`,
-    "Check the asset.particleEffect() options in aperture.config.ts.",
-    {
-      asset: handle.id,
-      kind: handle.kind,
-      preload: handle.preload,
-      phase: "load",
-      blocksStartup: handle.preload === "blocking",
-    },
-  );
 }
 
 function createResolvedParticleRendererModule(
-  descriptor: ApertureParticleEffectAssetDescriptor,
+  descriptor: ApertureParticleEmitterEffectAssetDescriptor,
   handle: SystemParticleEffectAssetHandle,
 ): ParticleRendererModuleInput {
   const renderer = descriptor.renderer;
