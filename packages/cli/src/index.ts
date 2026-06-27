@@ -62,6 +62,17 @@ export {
   type ApertureSnapshotBundle,
 } from "./headless/bundle.js";
 export { runHeadlessCommand } from "./commands/headless.js";
+export { runRenderCommand } from "./commands/render.js";
+export {
+  renderBundleToPng,
+  resolveApertureWebRoot,
+  type RenderBundleResult,
+} from "./render/driver.js";
+export {
+  isPngBlank,
+  summarizePngLuma,
+  type PngLumaSummary,
+} from "./tools/png-readback.js";
 export {
   runApertureMcpServer,
   type RunApertureMcpServerOptions,

@@ -64,6 +64,49 @@ interface PngImage {
   readonly pixels: Uint8Array;
 }
 
+export interface PngLumaSummary {
+  /** Fraction of pixels at or below the near-black luma threshold (0..1). */
+  readonly blackCoverage: number;
+  /** Maximum luma found in the image (0..255). */
+  readonly maxLuma: number;
+}
+
+/**
+ * Summarize image luminance to decide whether a render is blank/black. A fully
+ * black frame (every pixel ~0) means WebGPU produced no visible output.
+ */
+export function summarizePngLuma(png: Buffer): PngLumaSummary {
+  const image = readPngImage(png);
+  const pixelCount = image.width * image.height;
+  let blackPixels = 0;
+  let maxLuma = 0;
+
+  for (let index = 0; index < pixelCount; index += 1) {
+    const offset = index * image.bytesPerPixel;
+    const luma =
+      0.2126 * (image.pixels[offset] ?? 0) +
+      0.7152 * (image.pixels[offset + 1] ?? 0) +
+      0.0722 * (image.pixels[offset + 2] ?? 0);
+
+    if (luma <= 4) {
+      blackPixels += 1;
+    }
+    if (luma > maxLuma) {
+      maxLuma = luma;
+    }
+  }
+
+  return {
+    blackCoverage: pixelCount === 0 ? 1 : blackPixels / pixelCount,
+    maxLuma,
+  };
+}
+
+export function isPngBlank(png: Buffer): boolean {
+  const summary = summarizePngLuma(png);
+  return summary.blackCoverage >= 0.995 && summary.maxLuma <= 4;
+}
+
 export function readPngSamples(
   png: Buffer,
   payload: unknown,
