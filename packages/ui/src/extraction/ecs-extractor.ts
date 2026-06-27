@@ -119,14 +119,15 @@ function runExtraction(
 
   const resolve = (entity: Entity): UiLayoutNodeInput<Entity> => {
     const children = forest.get(entity) ?? [];
-    if (entity.hasComponent(UiScreen) && !entity.hasComponent(UiNode)) {
-      return {
-        style: {
-          width: finitePositive(entity.getValue(UiScreen, "width"), 960),
-          height: finitePositive(entity.getValue(UiScreen, "height"), 540),
-        },
-        children,
-      };
+    if (entity.hasComponent(UiScreen)) {
+      // A screen is a flex root: it may carry UiNode (padding/gap) and UiFlex
+      // (direction/justify/align), but its size comes from UiScreen and it is
+      // never absolutely positioned.
+      const style = nodeStyle(entity, "column") as MutableLayoutStyle;
+      style.width = finitePositive(entity.getValue(UiScreen, "width"), 960);
+      style.height = finitePositive(entity.getValue(UiScreen, "height"), 540);
+      style.positionType = "relative";
+      return { style, children };
     }
     return buildNodeInput(entity, parentLayoutMode(entity), children, options);
   };

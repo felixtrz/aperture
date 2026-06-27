@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "@aperture-engine/render": "workspace:^",
+    "@aperture-engine/runtime": "workspace:^",
     "@aperture-engine/simulation": "workspace:^",
     "yoga-layout": "^3.2.1"
   }

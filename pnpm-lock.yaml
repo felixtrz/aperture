@@ -243,6 +243,9 @@ importers:
       '@aperture-engine/render':
         specifier: workspace:^
         version: link:../render
+      '@aperture-engine/runtime':
+        specifier: workspace:^
+        version: link:../runtime
       '@aperture-engine/simulation':
         specifier: workspace:^
         version: link:../simulation
