@@ -73,7 +73,15 @@ export interface AssetRegistryEntry<
   readonly asset: TAsset | null;
   readonly dependencies: readonly AssetHandle[];
   readonly diagnostics: readonly AssetDiagnostic[];
+  /**
+   * Whether the ready asset is the real loaded payload or a structural
+   * placeholder (e.g. a Node headless run with no image decoder). Absent is
+   * treated as "loaded".
+   */
+  readonly provenance?: AssetProvenance;
 }
+
+export type AssetProvenance = "loaded" | "placeholder";
 
 export interface RegisterAssetOptions {
   readonly label?: string;
@@ -110,10 +118,16 @@ export interface AssetManifestDependencyEdge {
   readonly to: string;
 }
 
+export interface AssetManifestPlaceholders {
+  readonly count: number;
+  readonly ids: readonly string[];
+}
+
 export interface AssetManifestReport {
   readonly total: number;
   readonly byKind: Readonly<Record<AssetKind, number>>;
   readonly byStatus: Readonly<Record<AssetStatus, number>>;
   readonly dependencies: readonly AssetManifestDependencyEdge[];
   readonly diagnostics: readonly AssetDependencyDiagnostic[];
+  readonly placeholders: AssetManifestPlaceholders;
 }

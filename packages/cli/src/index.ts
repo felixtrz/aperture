@@ -46,9 +46,7 @@ export {
 } from "./headless/config-loader.js";
 export {
   createNodeApertureAssetLoader,
-  type NodeApertureAssetLoaderResult,
   type NodeAssetLoaderMode,
-  type PlaceholderedAsset,
 } from "./headless/node-asset-loader.js";
 export {
   applyApertureHeadlessInjectStep,
@@ -59,6 +57,7 @@ export {
   APERTURE_SNAPSHOT_BUNDLE_FORMAT,
   APERTURE_SNAPSHOT_BUNDLE_VERSION,
   createApertureSnapshotBundle,
+  type ApertureAssetProvenance,
   type ApertureSnapshotBundle,
 } from "./headless/bundle.js";
 export { runHeadlessCommand } from "./commands/headless.js";

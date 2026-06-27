@@ -23,14 +23,18 @@ export async function runRenderCommand(options: {
   readonly argv: readonly string[];
   readonly cwd: string;
   readonly stdout: (text: string) => void;
+  readonly stderr?: (text: string) => void;
 }): Promise<number> {
   if (options.argv.some(isHelpFlag)) {
     options.stdout(renderHelp());
     return 0;
   }
 
+  const stderr = options.stderr ?? (() => undefined);
   const parsed = parseRenderCommand(options.argv, options.cwd);
   const bundle = await readBundle(parsed.bundleFile);
+
+  warnOnPlaceholderAssets(bundle, stderr);
 
   const { png, frame } = await renderBundleToPng({
     bundle,
@@ -53,6 +57,34 @@ export async function runRenderCommand(options: {
   );
 
   return 0;
+}
+
+function warnOnPlaceholderAssets(
+  bundle: unknown,
+  stderr: (text: string) => void,
+): void {
+  const provenance = (bundle as { assetProvenance?: unknown }).assetProvenance;
+
+  if (
+    typeof provenance !== "object" ||
+    provenance === null ||
+    typeof (provenance as { placeholderCount?: unknown }).placeholderCount !==
+      "number"
+  ) {
+    return;
+  }
+
+  const { placeholderCount, placeholderIds } = provenance as {
+    placeholderCount: number;
+    placeholderIds?: readonly string[];
+  };
+
+  if (placeholderCount > 0) {
+    const ids = (placeholderIds ?? []).join(", ");
+    stderr(
+      `warning aperture.render.placeholderAssets: rendering ${placeholderCount} placeholder asset(s) [${ids}] — these pixels are stubbed, not real.\n`,
+    );
+  }
 }
 
 async function readBundle(bundleFile: string): Promise<unknown> {

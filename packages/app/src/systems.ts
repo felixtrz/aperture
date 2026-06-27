@@ -90,6 +90,8 @@ import {
   type InputActions,
   type InputSignals,
 } from "./systems/context.js";
+import type { ApertureRandom } from "./systems/random.js";
+import type { ApertureFrameTime } from "./systems/frame-time.js";
 export {
   createFollowCameraController,
   writeFollowCameraPose,
@@ -241,6 +243,7 @@ export type {
 } from "./systems/commands.js";
 export type {
   ApertureAssetLoader,
+  ApertureAssetLoadResult,
   SystemGltfAssetDecoderProvider,
   SystemGltfAssetDecoderProviderOptions,
   SystemAssetAccess,
@@ -470,6 +473,16 @@ export {
   createApertureSystemContext,
   installApertureSystemContext,
 } from "./systems/context.js";
+export {
+  createApertureRandom,
+  type ApertureRandom,
+} from "./systems/random.js";
+export {
+  advanceApertureFrameTime,
+  createApertureFrameTime,
+  resetApertureFrameTime,
+  type ApertureFrameTime,
+} from "./systems/frame-time.js";
 export type {
   SpatialIndexPopulationContext,
   SpatialIndexPopulationDiagnostic,
@@ -620,6 +633,14 @@ export function createSystem<
 
     get signals(): SignalStore {
       return this.#context.signals;
+    }
+
+    get random(): ApertureRandom {
+      return this.#context.random;
+    }
+
+    get time(): ApertureFrameTime {
+      return this.#context.time;
     }
 
     get resources(): ResourceStore {

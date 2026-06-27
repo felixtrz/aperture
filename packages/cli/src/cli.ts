@@ -105,6 +105,7 @@ export async function runApertureCli(
         argv: rest,
         cwd: options.cwd,
         stdout: io.stdout,
+        stderr: io.stderr,
       });
     }
 

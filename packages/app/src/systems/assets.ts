@@ -174,8 +174,15 @@ export interface SystemAssetAccess {
   list(): readonly SystemAssetHandle<SystemAssetKind>[];
 }
 
+export interface ApertureAssetLoadResult {
+  /** The loader fulfilled the asset with a structural placeholder, not real bytes. */
+  readonly placeholder?: boolean;
+}
+
 export interface ApertureAssetLoader {
-  load(asset: SystemAssetHandle<SystemAssetKind>): Promise<void>;
+  load(
+    asset: SystemAssetHandle<SystemAssetKind>,
+  ): Promise<void | ApertureAssetLoadResult>;
 }
 
 export interface SystemGltfAssetDecoderProvider {
@@ -269,9 +276,13 @@ export function createSystemAssetAccess(options: {
       options.registry.markLoading(registryHandle);
     }
 
+    let loaderResult: ApertureAssetLoadResult | undefined;
+
     try {
       if (options.loader !== undefined) {
-        await options.loader.load(handle);
+        const result = await options.loader.load(handle);
+        loaderResult =
+          typeof result === "object" && result !== null ? result : undefined;
       } else if (handle.kind === "gltf") {
         const scene = await loadSystemGltfAsset({
           handle: handle as SystemGltfAssetHandle,
@@ -322,12 +333,17 @@ export function createSystemAssetAccess(options: {
           return;
         }
 
-        options.registry.markReady(registryHandle, {
-          id: handle.id,
-          kind: handle.kind,
-          ...(handle.url === undefined ? {} : { url: handle.url }),
-          ...systemAssetReadyMetadata(handle),
-        });
+        options.registry.markReady(
+          registryHandle,
+          {
+            id: handle.id,
+            kind: handle.kind,
+            ...(handle.url === undefined ? {} : { url: handle.url }),
+            ...systemAssetReadyMetadata(handle),
+          },
+          [],
+          loaderResult?.placeholder === true ? "placeholder" : "loaded",
+        );
       }
       handle.ready.value = true;
       handle.error.value = null;

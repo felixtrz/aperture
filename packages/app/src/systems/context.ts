@@ -17,6 +17,11 @@ import {
   type SystemAssetAccess,
 } from "./assets.js";
 import { registerApertureAppComponents } from "./components.js";
+import { createApertureRandom, type ApertureRandom } from "./random.js";
+import {
+  createApertureFrameTime,
+  type ApertureFrameTime,
+} from "./frame-time.js";
 import { createCameraAccess, type CameraAccess } from "./cameras.js";
 import { createGltfInstanceAccess, type GltfInstanceAccess } from "./gltf.js";
 import { createHierarchyAccess, type HierarchyAccess } from "./hierarchy.js";
@@ -63,6 +68,10 @@ export type InputSignals = Omit<InputResourceBase, "actions"> & {
 export interface ApertureSystemContext {
   readonly world: unknown;
   readonly assetsRegistry: AssetRegistry;
+  /** Deterministic seeded RNG — use instead of Math.random() for replayability. */
+  readonly random: ApertureRandom;
+  /** Sanctioned sim-time — use instead of Date.now()/performance.now(). */
+  readonly time: ApertureFrameTime;
   readonly signals: SignalStore;
   readonly resources: ResourceStore;
   readonly startOptions: StartOptionsAccess;
@@ -96,6 +105,8 @@ export interface CreateApertureSystemContextOptions {
   readonly assetLoader?: ApertureAssetLoader;
   readonly gltfAssetDecoders?: SystemGltfAssetDecoderProvider;
   readonly registerFixedStepTask?: FixedStepTaskRegistrar;
+  /** Seed for the deterministic RNG (default 0) or a prebuilt RNG instance. */
+  readonly random?: number | ApertureRandom;
 }
 
 const APERTURE_SYSTEM_CONTEXT_KEY = "aperture.systemContext";
@@ -161,9 +172,17 @@ export function createApertureSystemContext(
   const interaction = createInteractionAccess(options.world);
   const html = createHtmlBridgeAccess(resources);
 
+  const random =
+    typeof options.random === "object"
+      ? options.random
+      : createApertureRandom(options.random ?? 0);
+  const time = createApertureFrameTime();
+
   const context: ApertureSystemContext = {
     world: options.world,
     assetsRegistry: options.assetsRegistry,
+    random,
+    time,
     signals,
     resources,
     startOptions,

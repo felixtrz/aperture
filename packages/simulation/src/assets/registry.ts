@@ -9,6 +9,7 @@ import type {
   AssetListFilter,
   AssetManifestDependencyEdge,
   AssetManifestReport,
+  AssetProvenance,
   AssetRegistryEntry,
   AssetStatus,
   RegisterAssetOptions,
@@ -87,11 +88,13 @@ export class AssetRegistry {
     handle: AssetHandle<TKind>,
     asset: TAsset,
     diagnostics: readonly AssetDiagnostic[] = [],
+    provenance: AssetProvenance = "loaded",
   ): AssetRegistryEntry<TKind, TAsset> {
     return this.update(handle, {
       status: "ready",
       asset,
       diagnostics,
+      provenance,
     });
   }
 
@@ -140,10 +143,15 @@ export class AssetRegistry {
     const byStatus = emptyStatusCounts();
     const dependencies: AssetManifestDependencyEdge[] = [];
     const diagnostics: AssetDependencyDiagnostic[] = [];
+    const placeholderIds: string[] = [];
 
     for (const entry of this.list()) {
       byKind[entry.kind] += 1;
       byStatus[entry.status] += 1;
+
+      if (entry.provenance === "placeholder") {
+        placeholderIds.push(entry.handle.id);
+      }
 
       for (const dependency of entry.dependencies) {
         dependencies.push({
@@ -161,6 +169,7 @@ export class AssetRegistry {
       byStatus,
       dependencies,
       diagnostics,
+      placeholders: { count: placeholderIds.length, ids: placeholderIds },
     };
   }
 
@@ -170,6 +179,7 @@ export class AssetRegistry {
       readonly status: AssetStatus;
       readonly asset: TAsset | null;
       readonly diagnostics?: readonly AssetDiagnostic[];
+      readonly provenance?: AssetProvenance;
     },
   ): AssetRegistryEntry<TKind, TAsset> {
     const current = this.get<TKind, TAsset>(handle);
@@ -187,6 +197,9 @@ export class AssetRegistry {
         patch.diagnostics === undefined
           ? current.diagnostics
           : [...patch.diagnostics],
+      ...(patch.provenance === undefined
+        ? {}
+        : { provenance: patch.provenance }),
     };
 
     this.#entries.set(assetHandleKey(handle), next as AssetRegistryEntry);

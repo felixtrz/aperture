@@ -7,9 +7,11 @@ import {
 import type { SystemConstructor, SystemQueries, SystemSchema } from "elics";
 import { resolveWorldTransforms } from "@aperture-engine/simulation";
 import {
+  advanceApertureFrameTime,
   createApertureSystemContext,
   flushApertureSystemEffects,
   type ApertureAssetLoader,
+  type ApertureRandom,
   type SystemGltfAssetDecoderProvider,
   type ApertureSystemConstructor,
   type ApertureSystemContext,
@@ -59,6 +61,8 @@ export interface CreateApertureAppOptions {
   readonly physics?: boolean | AperturePhysicsConfig;
   readonly physicsInterpolation?: boolean;
   readonly startOptions?: Readonly<Record<string, unknown>>;
+  /** Seed for the deterministic RNG (default 0) or a prebuilt RNG instance. */
+  readonly random?: number | ApertureRandom;
 }
 
 export interface AperturePreloadReport {
@@ -166,6 +170,7 @@ export async function createApertureApp(
     ...(options.gltfAssetDecoders === undefined
       ? {}
       : { gltfAssetDecoders: options.gltfAssetDecoders }),
+    ...(options.random === undefined ? {} : { random: options.random }),
   });
   const preload = preloadReport(config);
   const spatialIndexPopulation = createSpatialIndexPopulationState();
@@ -219,6 +224,8 @@ export async function createApertureApp(
     physics: physicsFacade,
     preload,
     step(delta = 0, time = 0) {
+      // Advance the sanctioned sim-clock before any system runs this frame.
+      advanceApertureFrameTime(context.time, delta, time);
       const timingStartedAt = nowMilliseconds();
       let timingCursor = timingStartedAt;
       const markTiming = (): number => {

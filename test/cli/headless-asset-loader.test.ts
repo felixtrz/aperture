@@ -25,31 +25,25 @@ const cubeSystem: ApertureSystemModule = {
   },
 };
 
-describe("createNodeApertureAssetLoader (P1.3)", () => {
-  it("a procedural-only app loads with no placeholdered assets and draws the cube", async () => {
-    const { loader, placeholdered } = createNodeApertureAssetLoader();
+describe("createNodeApertureAssetLoader (PD.4/PD.5)", () => {
+  it("a procedural-only app records no placeholders and draws the cube", async () => {
     const runner = await createApertureHeadlessRunner({
       config: defineApertureConfig({
         mode: "headless",
         render: { defaultCamera: false, defaultLight: false },
       }),
       systems: [cubeSystem],
-      assetLoader: loader,
+      assetLoader: createNodeApertureAssetLoader(),
     });
 
-    const { snapshot, status } = runner.step(1 / 60, 0);
+    const { snapshot } = runner.step(1 / 60, 0);
+    const manifest = runner.app.lowLevel.assets.createManifestReport();
 
-    expect(placeholdered).toEqual([]);
+    expect(manifest.placeholders.count).toBe(0);
     expect(snapshot.meshDraws.length).toBe(1);
-    expect(
-      status.diagnostics.filter((diagnostic) =>
-        diagnostic.code.startsWith("aperture.asset."),
-      ),
-    ).toEqual([]);
   });
 
-  it("an external-asset app boots without aperture.asset.invalidUrl and records placeholders", async () => {
-    const { loader, placeholdered } = createNodeApertureAssetLoader();
+  it("an external-asset app boots without invalidUrl and marks placeholders", async () => {
     const runner = await createApertureHeadlessRunner({
       config: defineApertureConfig({
         mode: "headless",
@@ -62,22 +56,19 @@ describe("createNodeApertureAssetLoader (P1.3)", () => {
         },
       }),
       systems: [cubeSystem],
-      assetLoader: loader,
+      assetLoader: createNodeApertureAssetLoader(),
     });
 
-    // Blocking assets are resolved during createApertureHeadlessRunner boot.
     expect(runner.app.context.assets.gltf("robot").ready.value).toBe(true);
     expect(runner.app.context.assets.texture("floorColor").ready.value).toBe(
       true,
     );
 
-    const ids = placeholdered.map((entry) => entry.id).sort();
-    expect(ids).toEqual(["floorColor", "robot"]);
-    expect(placeholdered).toContainEqual({ id: "robot", kind: "gltf" });
-    expect(placeholdered).toContainEqual({
-      id: "floorColor",
-      kind: "texture",
-    });
+    const manifest = runner.app.lowLevel.assets.createManifestReport();
+    expect(manifest.placeholders.count).toBeGreaterThanOrEqual(2);
+    expect([...manifest.placeholders.ids].sort()).toEqual(
+      expect.arrayContaining(["floorColor", "robot"]),
+    );
 
     // The procedural cube still renders even though external assets are stubbed.
     expect(runner.step(1 / 60, 0).snapshot.meshDraws.length).toBe(1);

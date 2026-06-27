@@ -50,19 +50,20 @@ export async function runHeadlessCommand(options: {
   }
 
   const injectSteps = await readInjectSteps(parsed.inject);
-  const { loader, placeholdered } = createNodeApertureAssetLoader();
 
   const runner = await createApertureHeadlessRunner({
     config: loaded.config,
     systems: loaded.systems,
-    assetLoader: loader,
+    assetLoader: createNodeApertureAssetLoader(),
   });
 
   await runner.app.preload;
 
-  for (const asset of placeholdered) {
+  const placeholders =
+    runner.app.lowLevel.assets.createManifestReport().placeholders;
+  for (const id of placeholders.ids) {
     stderr(
-      `warning aperture.headless.assetPlaceholder: asset '${asset.id}' (${asset.kind}) loaded as a Node placeholder; real pixels require 'aperture render'.\n`,
+      `warning aperture.headless.assetPlaceholder: asset '${id}' loaded as a Node placeholder; real pixels require 'aperture render'.\n`,
     );
   }
 
@@ -300,6 +301,10 @@ Options:
 Config loading: the config and *.system.ts are loaded by native Node
 TypeScript stripping, so they must be erasable TypeScript (no enums,
 decorators, namespaces, or parameter properties) and resolve @aperture-engine/*.
+
+Determinism: stepping replays bit-identically only if systems read
+context.random and context.time instead of Math.random()/Date.now()/
+performance.now().
 
 Assets: external/texture assets load as Node placeholders (no image decoder in
 Node); procedural meshes/materials are faithful. Render real pixels with
