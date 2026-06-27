@@ -31,6 +31,7 @@ import {
 import type { LayoutEngine } from "../layout/engine.js";
 import type { LayoutStyle, MeasureFn } from "../layout/types.js";
 import { UiLayoutTree, type UiLayoutNodeInput } from "../layout/tree.js";
+import { UiFlex, UI_FLEX_UNSET } from "../components/ui-flex.js";
 
 const MAX_UI_LAYOUT_DEPTH = 2048;
 
@@ -170,24 +171,15 @@ function buildNodeInput(
   return input;
 }
 
+type MutableLayoutStyle = {
+  -readonly [K in keyof LayoutStyle]: LayoutStyle[K];
+};
+
 function nodeStyle(
   entity: Entity,
   parentMode: UiLayoutModePacket,
 ): LayoutStyle {
-  const style: {
-    width?: number;
-    height?: number;
-    paddingTop?: number;
-    paddingRight?: number;
-    paddingBottom?: number;
-    paddingLeft?: number;
-    gap?: number;
-    flexDirection?: "row" | "column";
-    positionType?: "absolute";
-    left?: number;
-    top?: number;
-    overflow?: "hidden";
-  } = {};
+  const style: MutableLayoutStyle = {};
 
   if (entity.hasComponent(UiNode)) {
     const width = finiteNumber(entity.getValue(UiNode, "width"), 0);
@@ -227,7 +219,95 @@ function nodeStyle(
       : 0;
   }
 
+  if (entity.hasComponent(UiFlex)) {
+    applyFlexComponent(entity, style);
+  }
+
   return style;
+}
+
+/** Merge the full-flex {@link UiFlex} component over the legacy-derived style. */
+function applyFlexComponent(entity: Entity, style: MutableLayoutStyle): void {
+  style.flexDirection = entity.getValue(UiFlex, "flexDirection") as NonNullable<
+    LayoutStyle["flexDirection"]
+  >;
+  style.flexWrap = entity.getValue(UiFlex, "flexWrap") as NonNullable<
+    LayoutStyle["flexWrap"]
+  >;
+  style.justifyContent = entity.getValue(
+    UiFlex,
+    "justifyContent",
+  ) as NonNullable<LayoutStyle["justifyContent"]>;
+  style.alignItems = entity.getValue(UiFlex, "alignItems") as NonNullable<
+    LayoutStyle["alignItems"]
+  >;
+  style.alignSelf = entity.getValue(UiFlex, "alignSelf") as NonNullable<
+    LayoutStyle["alignSelf"]
+  >;
+  style.alignContent = entity.getValue(UiFlex, "alignContent") as NonNullable<
+    LayoutStyle["alignContent"]
+  >;
+  style.flexGrow = nonNegative(entity.getValue(UiFlex, "flexGrow"));
+  style.flexShrink = nonNegative(entity.getValue(UiFlex, "flexShrink"));
+  style.gap = nonNegative(entity.getValue(UiFlex, "gap"));
+
+  const rowGap = finiteNumber(entity.getValue(UiFlex, "rowGap"), UI_FLEX_UNSET);
+  if (rowGap >= 0) {
+    style.rowGap = rowGap;
+  }
+  const columnGap = finiteNumber(
+    entity.getValue(UiFlex, "columnGap"),
+    UI_FLEX_UNSET,
+  );
+  if (columnGap >= 0) {
+    style.columnGap = columnGap;
+  }
+
+  assignLength(style, "minWidth", entity.getValue(UiFlex, "minWidth"));
+  assignLength(style, "minHeight", entity.getValue(UiFlex, "minHeight"));
+  assignLength(style, "maxWidth", entity.getValue(UiFlex, "maxWidth"));
+  assignLength(style, "maxHeight", entity.getValue(UiFlex, "maxHeight"));
+
+  const widthPercent = finiteNumber(
+    entity.getValue(UiFlex, "widthPercent"),
+    UI_FLEX_UNSET,
+  );
+  if (widthPercent >= 0) {
+    style.width = `${widthPercent}%`;
+  }
+  const heightPercent = finiteNumber(
+    entity.getValue(UiFlex, "heightPercent"),
+    UI_FLEX_UNSET,
+  );
+  if (heightPercent >= 0) {
+    style.height = `${heightPercent}%`;
+  }
+
+  const aspect = finiteNumber(entity.getValue(UiFlex, "aspectRatio"), 0);
+  if (aspect > 0) {
+    style.aspectRatio = aspect;
+  }
+
+  if (entity.getValue(UiFlex, "positionType") === "absolute") {
+    style.positionType = "absolute";
+  }
+
+  const margin = entity.getVectorView(UiFlex, "margin");
+  style.marginTop = finiteNumber(margin[0], 0);
+  style.marginRight = finiteNumber(margin[1], 0);
+  style.marginBottom = finiteNumber(margin[2], 0);
+  style.marginLeft = finiteNumber(margin[3], 0);
+}
+
+function assignLength(
+  style: MutableLayoutStyle,
+  key: "minWidth" | "minHeight" | "maxWidth" | "maxHeight",
+  raw: unknown,
+): void {
+  const value = finiteNumber(raw, UI_FLEX_UNSET);
+  if (value >= 0) {
+    style[key] = value;
+  }
 }
 
 function emitScreen(
@@ -531,6 +611,14 @@ function parentLayoutMode(entity: Entity): UiLayoutModePacket {
   const parent = entity.getValue(Parent, "entity");
   if (parent === null || parent === undefined) {
     return "absolute";
+  }
+  // A parent carrying UiFlex is a flex container, so its children flow (they are
+  // not absolutely positioned) regardless of the legacy UiNode.layoutMode.
+  if (parent.hasComponent(UiFlex)) {
+    const direction = parent.getValue(UiFlex, "flexDirection");
+    return direction === "row" || direction === "row-reverse"
+      ? "row"
+      : "column";
   }
   return parent.hasComponent(UiNode) ? readLayoutMode(parent) : "absolute";
 }

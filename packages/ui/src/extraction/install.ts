@@ -3,6 +3,7 @@ import type { EcsWorld } from "@aperture-engine/simulation";
 import { createYogaLayoutEngine } from "../layout/yoga-engine.js";
 import { loadLayoutModule } from "../layout/yoga-loader.js";
 import type { LayoutEngineOptions } from "../layout/engine.js";
+import { registerUiComponents } from "../components/ui-flex.js";
 import {
   createEcsUiLayoutExtractor,
   type EcsUiLayoutExtractor,
@@ -31,6 +32,7 @@ export function installYogaUiLayout(
   yoga: Awaited<ReturnType<typeof loadLayoutModule>>,
   options: InstallUiLayoutOptions = {},
 ): InstalledUiLayout {
+  registerUiComponents(world);
   const engine = createYogaLayoutEngine(yoga, options);
   const extractor = createEcsUiLayoutExtractor(engine, options);
   setUiLayoutExtractor(world, extractor);
