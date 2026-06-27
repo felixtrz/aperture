@@ -31,6 +31,13 @@ export default defineConfig({
           .pathname,
       },
       {
+        find: "@aperture-engine/app/headless-tools",
+        replacement: new URL(
+          "./packages/app/src/headless-tools.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
         find: "@aperture-engine/app/headless",
         replacement: new URL("./packages/app/src/headless.ts", import.meta.url)
           .pathname,

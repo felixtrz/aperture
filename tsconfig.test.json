@@ -11,6 +11,9 @@
       "@aperture-engine/app/systems": ["packages/app/src/systems.ts"],
       "@aperture-engine/app/advanced": ["packages/app/src/advanced.ts"],
       "@aperture-engine/app/headless": ["packages/app/src/headless.ts"],
+      "@aperture-engine/app/headless-tools": [
+        "packages/app/src/headless-tools.ts"
+      ],
       "@aperture-engine/app/entity-lookup": [
         "packages/app/src/entity-lookup.ts"
       ],

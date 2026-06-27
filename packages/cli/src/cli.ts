@@ -4,6 +4,7 @@ import { runCreateCommand } from "./commands/create.js";
 import { createApertureProject } from "./create-project.js";
 import { runDevCommand } from "./commands/dev.js";
 import { runHeadlessCommand } from "./commands/headless.js";
+import { runHeadlessServeCommand } from "./commands/headless-serve.js";
 import { runRenderCommand } from "./commands/render.js";
 import { ApertureDevSessionError } from "./dev-session.js";
 import { ApertureCliError } from "./errors.js";
@@ -92,6 +93,14 @@ export async function runApertureCli(
     }
 
     if (command === "headless") {
+      if (rest[0] === "serve") {
+        return await runHeadlessServeCommand({
+          argv: rest.slice(1),
+          cwd: options.cwd,
+          stdout: io.stdout,
+          stderr: io.stderr,
+        });
+      }
       return await runHeadlessCommand({
         argv: rest,
         cwd: options.cwd,

@@ -61,6 +61,7 @@ export {
   type ApertureSnapshotBundle,
 } from "./headless/bundle.js";
 export { runHeadlessCommand } from "./commands/headless.js";
+export { runHeadlessServeCommand } from "./commands/headless-serve.js";
 export { runRenderCommand } from "./commands/render.js";
 export {
   renderBundleToPng,

@@ -43,6 +43,10 @@
       "types": "./dist/headless.d.ts",
       "import": "./dist/headless.js"
     },
+    "./headless-tools": {
+      "types": "./dist/headless-tools.d.ts",
+      "import": "./dist/headless-tools.js"
+    },
     "./entity-lookup": {
       "types": "./dist/entity-lookup.d.ts",
       "import": "./dist/entity-lookup.js"

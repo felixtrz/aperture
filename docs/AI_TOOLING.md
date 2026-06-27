@@ -72,6 +72,13 @@ pnpm exec aperture headless aperture.headless.config.ts --out snapshot.json --in
 `[{ "atFrame": 0, "pointer": { "position": [0.5, 0.5], "pressed": true } }]` or
 `{ "actions": { "jump": true } }`.
 
+For a tight iterate-and-inspect loop, `aperture headless serve <config>` boots
+once and reads newline-delimited JSON commands from stdin
+(`step` / `extract` / `inject` / `get-status` / `bundle` / `reset` /
+`tool {name:"ecs_*"}` / `shutdown`), writing one response line per request —
+the boot-once-then-step loop without rebooting per call. Stepping replays
+bit-identically given `--seed` when systems use `context.random` / `context.time`.
+
 Rendering stays out of the inner loop. When a picture is needed,
 `aperture render <bundle.json> --out <frame.png>` boots a headless-friendly
 browser on demand, rehydrates the bundle's source assets, applies the snapshot

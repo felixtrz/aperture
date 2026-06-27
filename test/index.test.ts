@@ -26,6 +26,7 @@ const APP_PUBLIC_SUBPATHS = [
   "./diagnostics",
   "./entity-lookup",
   "./headless",
+  "./headless-tools",
   "./systems",
   "./vite",
   "./worker",
