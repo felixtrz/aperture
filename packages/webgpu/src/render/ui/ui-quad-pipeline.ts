@@ -44,6 +44,9 @@ struct UiQuadData {
   rect: vec4f,
   uvRect: vec4f,
   clipRect: vec4f,
+  cornerRadii: vec4f,
+  borderWidths: vec4f,
+  borderColor: vec4f,
 };
 
 struct VertexOutput {
@@ -52,6 +55,11 @@ struct VertexOutput {
   @location(1) color: vec4f,
   @location(2) clipRect: vec4f,
   @location(3) screen: vec2f,
+  @location(4) local: vec2f,
+  @location(5) size: vec2f,
+  @location(6) cornerRadii: vec4f,
+  @location(7) borderWidths: vec4f,
+  @location(8) borderColor: vec4f,
 };
 
 @group(0) @binding(0) var<uniform> view: UiViewUniform;
@@ -89,7 +97,70 @@ fn vs_main(
   output.color = quad.color;
   output.clipRect = quad.clipRect;
   output.screen = screen;
+  output.local = unit;
+  output.size = quad.rect.zw;
+  output.cornerRadii = quad.cornerRadii;
+  output.borderWidths = quad.borderWidths;
+  output.borderColor = quad.borderColor;
   return output;
+}
+
+// Signed distance to a rounded box centered at the origin, with the given
+// half-extents and corner radius (negative inside).
+fn uiRoundBox(point: vec2f, half: vec2f, radius: f32) -> f32 {
+  let q = abs(point) - half + vec2f(radius);
+  return min(max(q.x, q.y), 0.0) + length(max(q, vec2f(0.0))) - radius;
+}
+
+// Pick the corner radius for the quadrant a point falls in. Corner order is
+// [topLeft, topRight, bottomRight, bottomLeft]; +x right, +y down.
+fn uiCornerRadius(radii: vec4f, point: vec2f) -> f32 {
+  let left = point.x < 0.0;
+  let top = point.y < 0.0;
+  if (left && top) { return radii.x; }
+  if (!left && top) { return radii.y; }
+  if (!left && !top) { return radii.z; }
+  return radii.w;
+}
+
+fn uiMax4(value: vec4f) -> f32 {
+  return max(max(value.x, value.y), max(value.z, value.w));
+}
+
+// Apply rounded-corner + per-side border shading over a fill color. Computed
+// unconditionally (so derivatives stay in uniform control flow) and selected
+// away for plain quads, which therefore render byte-identically.
+fn uiShade(input: VertexOutput, fill: vec4f) -> vec4f {
+  let size = max(input.size, vec2f(1.0));
+  let half = size * 0.5;
+  let point = input.local * size - half;
+  let maxRadius = min(half.x, half.y);
+  let radius = min(uiCornerRadius(input.cornerRadii, point), maxRadius);
+
+  let outerDist = uiRoundBox(point, half, radius);
+  let outerAa = max(fwidth(outerDist), 1e-4);
+  let coverage = 1.0 - smoothstep(-outerAa, outerAa, outerDist);
+
+  let bt = input.borderWidths.x;
+  let br = input.borderWidths.y;
+  let bb = input.borderWidths.z;
+  let bl = input.borderWidths.w;
+  let maxBorder = uiMax4(input.borderWidths);
+  let innerHalf = vec2f(
+    max(half.x - (bl + br) * 0.5, 0.0),
+    max(half.y - (bt + bb) * 0.5, 0.0),
+  );
+  let innerCenter = vec2f((bl - br) * 0.5, (bt - bb) * 0.5);
+  let innerRadius = max(radius - maxBorder, 0.0);
+  let innerDist = uiRoundBox(point - innerCenter, innerHalf, innerRadius);
+  let innerAa = max(fwidth(innerDist), 1e-4);
+  let borderMix = 1.0 - smoothstep(-innerAa, innerAa, innerDist);
+
+  let bodyColor = select(fill, mix(input.borderColor, fill, borderMix), maxBorder > 0.0);
+  let shaped = vec4f(bodyColor.rgb, bodyColor.a * coverage);
+
+  let hasShape = (uiMax4(input.cornerRadii) > 0.0) || (maxBorder > 0.0);
+  return select(fill, shaped, hasShape);
 }
 
 fn clipped(input: VertexOutput) -> bool {
@@ -116,7 +187,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
     discard;
   }
 
-  return input.color;
+  return uiShade(input, input.color);
 }
 `.trim();
 
@@ -132,7 +203,8 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
     discard;
   }
 
-  return textureSample(uiTexture, uiSampler, input.uv) * input.color;
+  let sampled = textureSample(uiTexture, uiSampler, input.uv) * input.color;
+  return uiShade(input, sampled);
 }
 `.trim();
 
