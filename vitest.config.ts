@@ -173,6 +173,9 @@ export default defineConfig({
       "node_modules/**",
       "dist/**",
       "packages/*/dist/**",
+      // Gitignored local research checkouts (e.g. references/uikit) carry their
+      // own vitest configs/tests and must not be swept into Aperture's suite.
+      "references/**",
     ],
     // AI-77: coverage thresholds gate CI (the dedicated coverage job runs
     // `pnpm run test:coverage`). Thresholds sit just below measured reality
