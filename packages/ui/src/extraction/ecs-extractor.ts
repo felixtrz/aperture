@@ -34,6 +34,7 @@ import { UiLayoutTree, type UiLayoutNodeInput } from "../layout/tree.js";
 import { UiFlex, UI_FLEX_UNSET } from "../components/ui-flex.js";
 import { isUiLayoutFrozen } from "../components/ui-freeze.js";
 import { UiBox } from "../components/ui-box.js";
+import { UiScrollbar } from "../components/ui-scrollbar.js";
 
 const MAX_UI_LAYOUT_DEPTH = 2048;
 
@@ -95,7 +96,12 @@ interface EmitState {
   readonly nodes: UiNodePacket[];
   readonly hitRegions: UiHitRegionPacket[];
   stackIndex: number;
+  scrollbarCount: number;
 }
+
+// Synthetic scrollbar-thumb uiIds live near MAX_SAFE_INTEGER, well above the
+// 32-bit ids createStableRenderId produces, so they never collide.
+const SCROLLBAR_ID_BASE = Number.MAX_SAFE_INTEGER;
 
 function runExtraction(
   tree: UiLayoutTree<Entity>,
@@ -134,7 +140,12 @@ function runExtraction(
 
   tree.reconcile(screens, resolve);
 
-  const state: EmitState = { nodes: [], hitRegions: [], stackIndex: 0 };
+  const state: EmitState = {
+    nodes: [],
+    hitRegions: [],
+    stackIndex: 0,
+    scrollbarCount: 0,
+  };
   for (const screen of screens) {
     const width = finitePositive(entityValue(screen, UiScreen, "width"), 960);
     const height = finitePositive(entityValue(screen, UiScreen, "height"), 540);
@@ -476,6 +487,99 @@ function emitNode(
       options: ctx.options,
     });
   }
+
+  emitScrollbar(tree, entity, ctx, rect, clip, opacity, uiId, scroll[1]);
+}
+
+/**
+ * Synthesize a vertical scrollbar thumb panel for a scroll node whose content
+ * overflows its viewport. Rendered through the normal panel pipeline (no special
+ * GPU path), positioned from the content/viewport ratio and scroll offset.
+ */
+function emitScrollbar(
+  tree: UiLayoutTree<Entity>,
+  entity: Entity,
+  ctx: EmitContext,
+  rect: UiRectPacket,
+  clip: UiRectPacket,
+  opacity: number,
+  parentUiId: number,
+  scrollY: number,
+): void {
+  if (
+    !entity.hasComponent(UiScroll) ||
+    entity.getValue(UiScroll, "enabled") === false
+  ) {
+    return;
+  }
+  if (
+    entity.hasComponent(UiScrollbar) &&
+    entity.getValue(UiScrollbar, "enabled") === false
+  ) {
+    return;
+  }
+
+  const tree_ = tree.absoluteRect(entity);
+  const paddingTop = tree_.paddingTop;
+  const paddingBottom = tree_.paddingBottom;
+  const viewportHeight = Math.max(0, tree_.height - paddingTop - paddingBottom);
+  if (viewportHeight <= 0) {
+    return;
+  }
+
+  const contentTop = tree_.top + paddingTop;
+  let maxBottom = contentTop;
+  for (const child of ctx.forest.get(entity) ?? []) {
+    const childRect = tree.absoluteRect(child);
+    maxBottom = Math.max(maxBottom, childRect.top + childRect.height);
+  }
+  const contentHeight = maxBottom - contentTop + paddingBottom;
+  const maxScroll = contentHeight - viewportHeight;
+  if (maxScroll <= 0.5) {
+    return;
+  }
+
+  const width = entity.hasComponent(UiScrollbar)
+    ? finitePositive(entity.getValue(UiScrollbar, "width"), 6)
+    : 6;
+  const minThumb = entity.hasComponent(UiScrollbar)
+    ? finitePositive(entity.getValue(UiScrollbar, "minThumb"), 16)
+    : 16;
+  const color: [number, number, number, number] = entity.hasComponent(
+    UiScrollbar,
+  )
+    ? vec4(entity.getVectorView(UiScrollbar, "color"))
+    : [1, 1, 1, 0.35];
+
+  const trackHeight = viewportHeight;
+  const thumbHeight = Math.min(
+    trackHeight,
+    Math.max(minThumb, (viewportHeight / contentHeight) * trackHeight),
+  );
+  const progress = Math.min(1, Math.max(0, scrollY / maxScroll));
+  const thumbY = rect.y + paddingTop + progress * (trackHeight - thumbHeight);
+  const thumbX = rect.x + rect.width - width - 2;
+  const thumbRect = rectPacket(thumbX, thumbY, width, thumbHeight);
+
+  ctx.state.scrollbarCount += 1;
+  ctx.state.nodes.push({
+    uiId: SCROLLBAR_ID_BASE - ctx.state.scrollbarCount,
+    screenId: ctx.screenId,
+    entity: entityRef(entity),
+    parentUiId,
+    kind: "panel",
+    rect: thumbRect,
+    clip: intersectRect(clip, thumbRect),
+    layoutMode: "absolute",
+    stackIndex: ctx.state.stackIndex,
+    zIndex: 0,
+    layerMask: ctx.layerMask,
+    opacity,
+    clipsChildren: false,
+    scrollOffset: [0, 0],
+    color,
+  });
+  ctx.state.stackIndex += 1;
 }
 
 function visualFields(entity: Entity, kind: UiNodeKind): Partial<UiNodePacket> {
