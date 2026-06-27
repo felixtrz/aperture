@@ -45,6 +45,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@aperture-engine/app": "workspace:^",
+    "@aperture-engine/render": "workspace:^",
+    "@aperture-engine/vite-plugin": "workspace:^",
     "@huggingface/transformers": "^3.1.2",
     "playwright": "^1.60.0",
     "tar": "^7.5.15",

@@ -172,6 +172,15 @@ importers:
 
   packages/cli:
     dependencies:
+      '@aperture-engine/app':
+        specifier: workspace:^
+        version: link:../app
+      '@aperture-engine/render':
+        specifier: workspace:^
+        version: link:../render
+      '@aperture-engine/vite-plugin':
+        specifier: workspace:^
+        version: link:../vite-plugin
       '@huggingface/transformers':
         specifier: ^3.1.2
         version: 3.8.1
