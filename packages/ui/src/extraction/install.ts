@@ -3,7 +3,7 @@ import type { EcsWorld } from "@aperture-engine/simulation";
 import { createYogaLayoutEngine } from "../layout/yoga-engine.js";
 import { loadLayoutModule } from "../layout/yoga-loader.js";
 import type { LayoutEngineOptions } from "../layout/engine.js";
-import { registerUiComponents } from "../components/ui-flex.js";
+import { registerUiComponents } from "../components/register.js";
 import {
   createEcsUiLayoutExtractor,
   type EcsUiLayoutExtractor,

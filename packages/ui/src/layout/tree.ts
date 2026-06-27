@@ -60,6 +60,10 @@ interface TreeEntry<K> {
   readonly handle: LayoutHandle;
   parent: K | null;
   children: K[];
+  /** Whether style/children have been applied at least once (vs. a freshly
+   * ensured placeholder). A node can only be frozen-preserved after it has been
+   * applied, so a node frozen from creation still gets its initial layout. */
+  applied: boolean;
   frozen: boolean;
   measureApplied: boolean;
   measureKey: string | number | undefined;
@@ -117,7 +121,7 @@ export class UiLayoutTree<K> {
     const existing = this.entries.get(key);
     const input = resolve(key);
 
-    if (existing !== undefined && input.frozen) {
+    if (existing !== undefined && existing.applied && input.frozen) {
       // Frozen subtree: preserve everything, just keep it alive.
       existing.parent = parent;
       this.markSubtreeVisited(key);
@@ -132,6 +136,7 @@ export class UiLayoutTree<K> {
     this.applyMeasure(entry, input);
     this.reconcileChildren(key, entry, input.children);
     entry.frozen = input.frozen ?? false;
+    entry.applied = true;
 
     for (const child of input.children) {
       this.visit(child, key, resolve);
@@ -143,6 +148,7 @@ export class UiLayoutTree<K> {
       handle: this.engine.createNode(),
       parent: null,
       children: [],
+      applied: false,
       frozen: false,
       measureApplied: false,
       measureKey: undefined,

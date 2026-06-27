@@ -32,6 +32,7 @@ import type { LayoutEngine } from "../layout/engine.js";
 import type { LayoutStyle, MeasureFn } from "../layout/types.js";
 import { UiLayoutTree, type UiLayoutNodeInput } from "../layout/tree.js";
 import { UiFlex, UI_FLEX_UNSET } from "../components/ui-flex.js";
+import { isUiLayoutFrozen } from "../components/ui-freeze.js";
 
 const MAX_UI_LAYOUT_DEPTH = 2048;
 
@@ -164,7 +165,8 @@ function buildNodeInput(
       options.measureKey?.(entity) ?? defaultMeasureKey(entity);
   }
 
-  if (options.isFrozen?.(entity) === true) {
+  const frozen = options.isFrozen?.(entity) ?? isUiLayoutFrozen(entity);
+  if (frozen) {
     input.frozen = true;
   }
 

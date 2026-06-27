@@ -170,12 +170,6 @@ export function createUiFlex(
   };
 }
 
-/** Register the UI package's authoring components on a world (idempotent). */
-export function registerUiComponents(world: EcsWorld): EcsWorld {
-  world.registerComponent(UiFlex);
-  return world;
-}
-
 /**
  * Spawn initializer that attaches a {@link UiFlex} component (registering it on
  * the world first). Compatible with `app.spawn(...)`.
@@ -184,7 +178,7 @@ export function withUiFlex(
   input: UiFlexInput = {},
 ): (entity: Entity, context: { readonly world: EcsWorld }) => void {
   return (entity, context) => {
-    registerUiComponents(context.world);
+    context.world.registerComponent(UiFlex);
     entity.addComponent(UiFlex, createUiFlex(input));
   };
 }
