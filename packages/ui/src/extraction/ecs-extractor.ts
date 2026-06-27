@@ -35,6 +35,13 @@ import { UiFlex, UI_FLEX_UNSET } from "../components/ui-flex.js";
 import { isUiLayoutFrozen } from "../components/ui-freeze.js";
 import { UiBox } from "../components/ui-box.js";
 import { UiScrollbar } from "../components/ui-scrollbar.js";
+import { UiInput, UiInputType } from "../input/ui-input.js";
+import {
+  caretGeometry,
+  monospaceAdvance,
+  selectionRect,
+} from "../input/caret.js";
+import { maskValue } from "../input/edit.js";
 
 const MAX_UI_LAYOUT_DEPTH = 2048;
 
@@ -489,6 +496,124 @@ function emitNode(
   }
 
   emitScrollbar(tree, entity, ctx, rect, clip, opacity, uiId, scroll[1]);
+  emitInputCaret(entity, ctx, rect, layout, clip, opacity, uiId);
+}
+
+/** Push a synthesized (non-entity-backed) panel, e.g. a scrollbar thumb or
+ * caret. Uses a collision-free synthetic uiId and the next stack slot. */
+function pushSyntheticPanel(
+  ctx: EmitContext,
+  rect: UiRectPacket,
+  clip: UiRectPacket,
+  color: [number, number, number, number],
+  opacity: number,
+  parentUiId: number,
+  entity: Entity,
+): void {
+  ctx.state.scrollbarCount += 1;
+  ctx.state.nodes.push({
+    uiId: SCROLLBAR_ID_BASE - ctx.state.scrollbarCount,
+    screenId: ctx.screenId,
+    entity: entityRef(entity),
+    parentUiId,
+    kind: "panel",
+    rect,
+    clip,
+    layoutMode: "absolute",
+    stackIndex: ctx.state.stackIndex,
+    zIndex: 0,
+    layerMask: ctx.layerMask,
+    opacity,
+    clipsChildren: false,
+    scrollOffset: [0, 0],
+    color,
+  });
+  ctx.state.stackIndex += 1;
+}
+
+/** Emit caret + selection panels for a focused text input. */
+function emitInputCaret(
+  entity: Entity,
+  ctx: EmitContext,
+  rect: UiRectPacket,
+  layout: { paddingLeft: number; paddingTop: number },
+  clip: UiRectPacket,
+  opacity: number,
+  parentUiId: number,
+): void {
+  if (
+    !entity.hasComponent(UiInput) ||
+    entity.getValue(UiInput, "focused") !== true
+  ) {
+    return;
+  }
+  const value = entity.getValue(UiInput, "value") ?? "";
+  const display =
+    entity.getValue(UiInput, "type") === UiInputType.Password
+      ? maskValue(value)
+      : value;
+  const fontSize = entity.hasComponent(UiText)
+    ? finitePositive(entity.getValue(UiText, "fontSize"), 16)
+    : 16;
+  const advance = monospaceAdvance(fontSize * 0.5);
+  const contentLeft = rect.x + layout.paddingLeft;
+  const contentTop = rect.y + layout.paddingTop;
+  const length = [...display].length;
+  const caret = clampIndex(
+    Math.trunc(finiteNumber(entity.getValue(UiInput, "caret"), 0)),
+    length,
+  );
+  const anchor = clampIndex(
+    Math.trunc(finiteNumber(entity.getValue(UiInput, "anchor"), caret)),
+    length,
+  );
+  const textColor: [number, number, number, number] = entity.hasComponent(
+    UiText,
+  )
+    ? vec4(entity.getVectorView(UiText, "color"))
+    : [1, 1, 1, 1];
+
+  if (anchor !== caret) {
+    const sel = selectionRect(display, caret, anchor, { advance, fontSize });
+    if (sel !== null) {
+      const r = rectPacket(
+        contentLeft + sel.x,
+        contentTop,
+        sel.width,
+        sel.height,
+      );
+      pushSyntheticPanel(
+        ctx,
+        r,
+        intersectRect(clip, r),
+        [0.4, 0.6, 1, 0.4],
+        opacity,
+        parentUiId,
+        entity,
+      );
+    }
+  }
+
+  const caretGeo = caretGeometry(display, caret, { advance, fontSize });
+  const caretR = rectPacket(
+    contentLeft + caretGeo.x,
+    contentTop,
+    2,
+    caretGeo.height,
+  );
+  pushSyntheticPanel(
+    ctx,
+    caretR,
+    intersectRect(clip, caretR),
+    textColor,
+    opacity,
+    parentUiId,
+    entity,
+  );
+}
+
+function clampIndex(value: number, length: number): number {
+  return Math.min(length, Math.max(0, value));
 }
 
 /**
@@ -600,18 +725,26 @@ function visualFields(entity: Entity, kind: UiNodeKind): Partial<UiNodePacket> {
     };
   }
   if (kind === "text") {
-    const text = entity.getValue(UiText, "text") ?? "";
+    const text = displayText(entity);
+    const hasText = entity.hasComponent(UiText);
     return {
       text,
-      fontAtlasId: entity.getValue(UiText, "fontAtlasId") ?? "",
-      fontSize: finitePositive(entity.getValue(UiText, "fontSize"), 16),
-      lineHeight: nonNegative(entity.getValue(UiText, "lineHeight")),
-      maxWidth: nonNegative(entity.getValue(UiText, "maxWidth")),
-      textAlign: (entity.getValue(UiText, "align") ?? "left") as
-        | "left"
-        | "center"
-        | "right",
-      color: vec4(entity.getVectorView(UiText, "color")),
+      fontAtlasId: hasText
+        ? (entity.getValue(UiText, "fontAtlasId") ?? "")
+        : "",
+      fontSize: hasText
+        ? finitePositive(entity.getValue(UiText, "fontSize"), 16)
+        : 16,
+      lineHeight: hasText
+        ? nonNegative(entity.getValue(UiText, "lineHeight"))
+        : 0,
+      maxWidth: hasText ? nonNegative(entity.getValue(UiText, "maxWidth")) : 0,
+      textAlign: (hasText
+        ? (entity.getValue(UiText, "align") ?? "left")
+        : "left") as "left" | "center" | "right",
+      color: hasText
+        ? vec4(entity.getVectorView(UiText, "color"))
+        : [1, 1, 1, 1],
       glyphCount: Array.from(text).filter(
         (char) =>
           char !== " " && char !== "\n" && char !== "\r" && char !== "\t",
@@ -619,6 +752,21 @@ function visualFields(entity: Entity, kind: UiNodeKind): Partial<UiNodePacket> {
     };
   }
   return {};
+}
+
+/** The string an entity displays: a UiInput's (masked) value or placeholder,
+ * else its UiText. */
+function displayText(entity: Entity): string {
+  if (entity.hasComponent(UiInput)) {
+    const value = entity.getValue(UiInput, "value") ?? "";
+    if (value.length === 0) {
+      return entity.getValue(UiInput, "placeholder") ?? "";
+    }
+    return entity.getValue(UiInput, "type") === UiInputType.Password
+      ? maskValue(value)
+      : value;
+  }
+  return entity.getValue(UiText, "text") ?? "";
 }
 
 function writeHitRegion(
@@ -807,7 +955,7 @@ function nodeOpacity(entity: Entity): number {
 }
 
 function nodeKind(entity: Entity): UiNodeKind {
-  if (entity.hasComponent(UiText)) {
+  if (entity.hasComponent(UiInput) || entity.hasComponent(UiText)) {
     return "text";
   }
   if (entity.hasComponent(UiImage)) {
