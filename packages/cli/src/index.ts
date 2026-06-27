@@ -40,6 +40,11 @@ export {
   type ApertureToolCallOptions,
 } from "./devtools-client.js";
 export {
+  loadApertureHeadlessApp,
+  type LoadApertureHeadlessAppOptions,
+  type LoadedApertureHeadlessApp,
+} from "./headless/config-loader.js";
+export {
   runApertureMcpServer,
   type RunApertureMcpServerOptions,
 } from "./mcp.js";
