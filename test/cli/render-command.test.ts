@@ -100,4 +100,20 @@ describe("aperture render command — argument handling (P2.3)", () => {
       "aperture.render.invalidBundle",
     );
   });
+
+  it("rejects a bundle with an unsupported version", async () => {
+    const futureBundle = await writeTemp(
+      "future.json",
+      JSON.stringify({
+        format: "aperture-render-snapshot",
+        version: 99,
+        snapshot: {},
+        sourceAssets: { entries: [] },
+      }),
+    );
+    await expectRejectedCode(
+      [futureBundle, "--out", path.join(tempDir!, "frame.png")],
+      "aperture.render.unsupportedBundleVersion",
+    );
+  });
 });

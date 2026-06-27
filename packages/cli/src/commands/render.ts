@@ -3,7 +3,10 @@ import path from "node:path";
 import { ApertureCliError } from "../errors.js";
 import { isPngBlank } from "../tools/png-readback.js";
 import { renderBundleToPng } from "../render/driver.js";
-import { APERTURE_SNAPSHOT_BUNDLE_FORMAT } from "../headless/bundle.js";
+import {
+  APERTURE_SNAPSHOT_BUNDLE_FORMAT,
+  APERTURE_SNAPSHOT_BUNDLE_VERSION,
+} from "../headless/bundle.js";
 
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 640;
@@ -87,6 +90,17 @@ async function readBundle(bundleFile: string): Promise<unknown> {
     throw new ApertureCliError(
       "aperture.render.invalidBundle",
       `Snapshot bundle '${bundleFile}' is not an Aperture render snapshot bundle (expected format "${APERTURE_SNAPSHOT_BUNDLE_FORMAT}"). Produce one with 'aperture headless ... --out <bundle>'.`,
+    );
+  }
+
+  const version = (bundle as { version?: unknown }).version;
+
+  if (version !== APERTURE_SNAPSHOT_BUNDLE_VERSION) {
+    throw new ApertureCliError(
+      "aperture.render.unsupportedBundleVersion",
+      `Snapshot bundle '${bundleFile}' has version ${String(
+        version,
+      )}, but this CLI supports version ${APERTURE_SNAPSHOT_BUNDLE_VERSION}. Re-export it with a matching 'aperture headless'.`,
     );
   }
 
