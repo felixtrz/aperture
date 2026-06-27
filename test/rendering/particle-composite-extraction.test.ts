@@ -207,6 +207,47 @@ describe("particle composite effect composition", () => {
     expect(sparksPacket?.timeScale).toBeCloseTo(1, 6);
   });
 
+  it("carries child delay and duration onto expanded leaf packets", () => {
+    const app = createExtractionApp();
+    const smoke = createParticleEffectHandle("smoke");
+    const sparks = createParticleEffectHandle("sparks");
+    const explosion = createParticleEffectHandle("explosion");
+
+    app.assets.register(smoke);
+    app.assets.markReady(smoke, leafEffect());
+    app.assets.register(sparks);
+    app.assets.markReady(sparks, leafEffect());
+    app.assets.register(explosion);
+    app.assets.markReady(
+      explosion,
+      createParticleEffectAsset({
+        version: 2,
+        type: "composite",
+        emitters: [
+          { effect: smoke, delay: 0.25, duration: 1.5 },
+          { effect: sparks },
+        ],
+      }),
+    );
+
+    spawnCamera(app);
+    app.spawn(
+      withTransform({ translation: [0, 0, 0] }),
+      withParticleEmitter({ effect: explosion }),
+    );
+
+    const packets = app.extract(1).particleEmitters ?? [];
+    const byEffect = new Map(
+      packets.map((packet) => [packet.effect.id, packet]),
+    );
+
+    expect(byEffect.get("smoke")?.delay).toBeCloseTo(0.25, 6);
+    expect(byEffect.get("smoke")?.duration).toBeCloseTo(1.5, 6);
+    // A child with no authored timing leaves the packet fields unset.
+    expect(byEffect.get("sparks")?.delay).toBeUndefined();
+    expect(byEffect.get("sparks")?.duration).toBeUndefined();
+  });
+
   it("derives stable, distinct child emitter ids across frames", () => {
     const app = createExtractionApp();
     const smoke = createParticleEffectHandle("smoke");

@@ -222,6 +222,8 @@ export function extractParticleEmitters(
       seed,
       resetEpoch,
       timeScale,
+      delay: 0,
+      duration: null,
       simulationSpace,
       layerMask,
       renderOrder,
@@ -271,6 +273,8 @@ interface LeafEmitterRequest {
   readonly seed: number;
   readonly resetEpoch: number;
   readonly timeScale: number;
+  readonly delay: number;
+  readonly duration: number | null;
   readonly simulationSpace: "local" | "world";
   readonly layerMask: number;
   readonly renderOrder: number;
@@ -356,6 +360,8 @@ function appendLeafEmitterPacket(
     seed: request.seed,
     resetEpoch: request.resetEpoch,
     timeScale: request.timeScale,
+    ...(request.delay !== 0 ? { delay: request.delay } : {}),
+    ...(request.duration !== null ? { duration: request.duration } : {}),
     simulationSpace: request.simulationSpace,
     worldTransformOffset,
     boundsIndex,
@@ -454,6 +460,8 @@ function expandCompositeParticleEmitter(
       seed: composeParticleChildSeed(request.seed, index),
       resetEpoch: request.resetEpoch,
       timeScale: request.timeScale * child.timeScale,
+      delay: child.delay,
+      duration: child.duration,
       simulationSpace: request.simulationSpace,
       layerMask: request.layerMask,
       renderOrder: request.renderOrder,

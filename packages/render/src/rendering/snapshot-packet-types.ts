@@ -142,6 +142,19 @@ export interface ParticleEmitterPacket {
   readonly seed: number;
   readonly resetEpoch: number;
   readonly timeScale: number;
+  /**
+   * Extra emission start delay, in effect-local seconds, added on top of the
+   * effect's own `main.startDelay`. Composite child emitters carry their
+   * authored `delay` here; direct emitters omit it (treated as 0).
+   */
+  readonly delay?: number;
+  /**
+   * Hard emission cutoff, in effect-local seconds measured after the combined
+   * start delay. When set, the emitter stops spawning once its local time
+   * exceeds this value, even for looping effects. Composite child emitters carry
+   * their authored `duration` here; `null`/omitted means no cutoff.
+   */
+  readonly duration?: number | null;
   readonly simulationSpace: ParticleSimulationSpacePacket;
   readonly worldTransformOffset: number;
   readonly boundsIndex: number;

@@ -2490,15 +2490,26 @@ function spawnParticleContinuousCpuData(options: {
       options.emitter.timeScale *
       options.effect.runtime.simulationSpeed,
   );
-  if (elapsed < options.effect.runtime.startDelay) {
+  // Composite child emitters add their authored delay on top of the effect's
+  // own start delay, and an authored duration acts as a hard emission cutoff
+  // (even for looping effects).
+  const startDelay =
+    options.effect.runtime.startDelay + Math.max(0, options.emitter.delay ?? 0);
+  if (elapsed < startDelay) {
     return;
   }
 
-  const localTime = elapsed - options.effect.runtime.startDelay;
+  const localTime = elapsed - startDelay;
+  const childDuration = options.emitter.duration;
+  const withinChildWindow =
+    childDuration === undefined ||
+    childDuration === null ||
+    localTime <= childDuration;
   const duration = Math.max(0.001, options.effect.runtime.duration);
   const emitting =
-    options.effect.runtime.looping ||
-    localTime <= options.effect.runtime.duration;
+    withinChildWindow &&
+    (options.effect.runtime.looping ||
+      localTime <= options.effect.runtime.duration);
 
   if (!emitting) {
     return;

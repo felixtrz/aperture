@@ -1058,6 +1058,121 @@ describe("GPU particle app frame resources", () => {
     expect(second.report.liveParticles).toBe(4);
   });
 
+  it("gates continuous emission by composite child delay", async () => {
+    const effect = createParticleEffectHandle("delayed-child");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "DelayedChild",
+        main: { maxParticles: 8, startLifetime: 5, startSpeed: 0 },
+        emission: { rateOverTime: 100 },
+        shape: { type: "point" },
+        renderer: { blendMode: "alpha" },
+      }),
+    );
+
+    const frame = (time: number) => {
+      const snapshot = createParticleSnapshot(effect, {
+        timeScale: 1,
+        delay: 1,
+      });
+      return prepareParticleFrameResourcesForSnapshot({
+        app: createParticleAppContext(fixture.device),
+        assets,
+        cache,
+        snapshot,
+        viewUniforms: writePackedSnapshotViewUniforms(
+          snapshot,
+          createPackedSnapshotViewUniformsScratch(),
+        ),
+        time,
+      });
+    };
+
+    await frame(0);
+    const beforeDelay = await frame(0.5);
+    const afterDelay = await frame(2);
+
+    expect(beforeDelay.report.liveParticles).toBe(0);
+    expect(afterDelay.report.liveParticles).toBeGreaterThan(0);
+  });
+
+  it("stops continuous emission past a composite child duration", async () => {
+    const effect = createParticleEffectHandle("bounded-child");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "BoundedChild",
+        main: { maxParticles: 8, startLifetime: 5, startSpeed: 0 },
+        emission: { rateOverTime: 100 },
+        shape: { type: "point" },
+        renderer: { blendMode: "alpha" },
+      }),
+    );
+
+    const frame = (time: number, duration: number | null) => {
+      const snapshot = createParticleSnapshot(effect, {
+        timeScale: 1,
+        ...(duration === null ? {} : { duration }),
+      });
+      return prepareParticleFrameResourcesForSnapshot({
+        app: createParticleAppContext(fixture.device),
+        assets,
+        cache,
+        snapshot,
+        viewUniforms: writePackedSnapshotViewUniforms(
+          snapshot,
+          createPackedSnapshotViewUniformsScratch(),
+        ),
+        time,
+      });
+    };
+
+    // A child duration of 0.5s is a hard emission cutoff: at t=1s (past the
+    // window) nothing spawns, whereas the same effect with no duration does.
+    await frame(0, 0.5);
+    const bounded = await frame(1, 0.5);
+    expect(bounded.report.liveParticles).toBe(0);
+
+    const unbounded = createParticleSnapshot(effect, { timeScale: 1 });
+    const controlCache = createWebGpuAppResourceCache();
+    await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache: controlCache,
+      snapshot: unbounded,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        unbounded,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 0,
+    });
+    const control = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache: controlCache,
+      snapshot: unbounded,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        unbounded,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 1,
+    });
+    expect(control.report.liveParticles).toBeGreaterThan(0);
+  });
+
   it("schedules continuous emission bursts with cycles and intervals", async () => {
     const effect = createParticleEffectHandle("scheduled-bursts");
     const assets = new AssetRegistry();

@@ -21,6 +21,11 @@ Implemented:
   child: parent world transform composed with each child's local transform,
   child `timeScale` multiplied onto the parent's, and a stable, deterministic
   child emitter id derived from the parent id and child index.
+- Per-child `delay` / `duration` time-gating: the child `delay` is added on top
+  of the effect's own `main.startDelay`, and `duration` is a hard emission
+  cutoff (even for looping effects). These ride the `ParticleEmitterPacket`
+  (snapshot encoding bumped to v15) and are applied by the continuous emitter
+  simulation, which already tracks a per-emitter activation clock.
 - A renderer-side guard so WebGPU only ever receives leaf packets.
 - Config authoring of composites (`asset.particleEffect({ type: "composite",
 emitters: [{ effect: "child-id" }] })`) with string child references resolved
@@ -36,9 +41,6 @@ Deviations from the draft schema above:
 
 Deferred (tracked as follow-up):
 
-- Per-child `delay` / `duration` time-gating. Values are normalized and carried
-  on the composite asset, but continuous emitters have no per-emitter activation
-  clock at the stateless extraction layer, so gating is not yet applied.
 - Sub-emitter runtime spawning (schema- and diagnostic-only, as before).
 - Nested composites — rejected during extraction with a
   `render.particle.nestedComposite` diagnostic.
