@@ -3,6 +3,7 @@ import { syncApertureAdapters } from "./adapter-sync.js";
 import { runCreateCommand } from "./commands/create.js";
 import { createApertureProject } from "./create-project.js";
 import { runDevCommand } from "./commands/dev.js";
+import { runHeadlessCommand } from "./commands/headless.js";
 import { ApertureDevSessionError } from "./dev-session.js";
 import { ApertureCliError } from "./errors.js";
 import { runMcpCommand } from "./commands/mcp.js";
@@ -89,6 +90,15 @@ export async function runApertureCli(
       });
     }
 
+    if (command === "headless") {
+      return await runHeadlessCommand({
+        argv: rest,
+        cwd: options.cwd,
+        stdout: io.stdout,
+        stderr: io.stderr,
+      });
+    }
+
     if (command === "tool") {
       return await runToolCommand({
         argv: rest,
@@ -140,6 +150,7 @@ Usage:
 Commands:
   aperture create <path>        Scaffold an Aperture app with AI tooling files.
   aperture dev <subcommand>     Manage an AI-enabled dev browser session.
+  aperture headless <config>    Run ECS/sim in Node and write a snapshot bundle.
   aperture tool <name>          Call one Aperture browser/ECS/render tool.
   aperture mcp stdio            Expose Aperture tools over MCP stdio.
   aperture adapter sync         Sync AI coding-tool adapter files.

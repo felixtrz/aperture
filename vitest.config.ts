@@ -55,6 +55,13 @@ export default defineConfig({
         ).pathname,
       },
       {
+        find: "@aperture-engine/app/asset-mirror",
+        replacement: new URL(
+          "./packages/app/src/asset-mirror.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
         find: "@aperture-engine/app/vite",
         replacement: new URL("./packages/app/src/vite.ts", import.meta.url)
           .pathname,

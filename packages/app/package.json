@@ -55,6 +55,10 @@
       "types": "./dist/diagnostics.d.ts",
       "import": "./dist/diagnostics.js"
     },
+    "./asset-mirror": {
+      "types": "./dist/asset-mirror.d.ts",
+      "import": "./dist/asset-mirror.js"
+    },
     "./vite": {
       "types": "./dist/vite.d.ts",
       "import": "./dist/vite.js"

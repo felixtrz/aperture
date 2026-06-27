@@ -45,6 +45,24 @@ export {
   type LoadedApertureHeadlessApp,
 } from "./headless/config-loader.js";
 export {
+  createNodeApertureAssetLoader,
+  type NodeApertureAssetLoaderResult,
+  type NodeAssetLoaderMode,
+  type PlaceholderedAsset,
+} from "./headless/node-asset-loader.js";
+export {
+  applyApertureHeadlessInjectStep,
+  parseApertureHeadlessInject,
+  type ApertureHeadlessInjectStep,
+} from "./headless/inject.js";
+export {
+  APERTURE_SNAPSHOT_BUNDLE_FORMAT,
+  APERTURE_SNAPSHOT_BUNDLE_VERSION,
+  createApertureSnapshotBundle,
+  type ApertureSnapshotBundle,
+} from "./headless/bundle.js";
+export { runHeadlessCommand } from "./commands/headless.js";
+export {
   runApertureMcpServer,
   type RunApertureMcpServerOptions,
 } from "./mcp.js";
