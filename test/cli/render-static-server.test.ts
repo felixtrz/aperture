@@ -2,7 +2,6 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { resolveApertureWebRoot } from "../../packages/cli/src/render/driver.js";
 import { startApertureStaticServer } from "../../packages/cli/src/render/static-server.js";
 
 let tempDir: string | undefined;
@@ -14,58 +13,44 @@ afterEach(async () => {
   }
 });
 
-describe("startApertureStaticServer (P2.3)", () => {
-  it("serves files under allowed top-level directories and rejects others", async () => {
+describe("startApertureStaticServer (mount table, PB.2)", () => {
+  it("serves the generated index at / and files from mounts", async () => {
     tempDir = await mkdtemp(path.join(os.tmpdir(), "aperture-static-"));
-    await mkdir(path.join(tempDir, "packages/demo"), { recursive: true });
-    await mkdir(path.join(tempDir, "secret"), { recursive: true });
+    await mkdir(path.join(tempDir, "pkg/dist"), { recursive: true });
     await writeFile(
-      path.join(tempDir, "packages/demo/app.js"),
+      path.join(tempDir, "pkg/dist/index.js"),
       "export const value = 1;\n",
     );
-    await writeFile(path.join(tempDir, "secret/keys.txt"), "nope");
 
-    const server = await startApertureStaticServer(tempDir);
+    const server = await startApertureStaticServer({
+      index: "<!doctype html><title>harness</title>",
+      mounts: [{ prefix: "/_engine/pkg/", dir: path.join(tempDir, "pkg") }],
+    });
 
     try {
-      const allowed = await fetch(`${server.url}/packages/demo/app.js`);
-      expect(allowed.status).toBe(200);
-      expect(allowed.headers.get("content-type")).toContain("text/javascript");
-      expect(await allowed.text()).toContain("export const value");
+      const index = await fetch(`${server.url}/`);
+      expect(index.status).toBe(200);
+      expect(index.headers.get("content-type")).toContain("text/html");
+      expect(await index.text()).toContain("harness");
 
-      // A directory outside the allow-list is not served even though it exists.
-      const blocked = await fetch(`${server.url}/secret/keys.txt`);
-      expect(blocked.status).toBe(404);
+      const mounted = await fetch(`${server.url}/_engine/pkg/dist/index.js`);
+      expect(mounted.status).toBe(200);
+      expect(mounted.headers.get("content-type")).toContain("text/javascript");
+      expect(await mounted.text()).toContain("export const value");
 
-      const missing = await fetch(`${server.url}/packages/demo/missing.js`);
+      const missing = await fetch(`${server.url}/_engine/pkg/dist/missing.js`);
       expect(missing.status).toBe(404);
 
-      // Path traversal never serves a file outside the web root (the HTTP
-      // client normalizes dot segments; the server's resolve guard backstops
-      // anything that slips through).
+      const unknownMount = await fetch(`${server.url}/_engine/other/x.js`);
+      expect(unknownMount.status).toBe(404);
+
+      // Traversal that escapes the mount is never served.
       const traversal = await fetch(
-        `${server.url}/packages/%2e%2e/%2e%2e/%2e%2e/etc/passwd`,
+        `${server.url}/_engine/pkg/%2e%2e/%2e%2e/etc/passwd`,
       );
       expect([403, 404]).toContain(traversal.status);
     } finally {
       await server.close();
     }
-  });
-});
-
-describe("resolveApertureWebRoot (P2.3)", () => {
-  it("walks up to the directory that holds the render harness", async () => {
-    const root = await resolveApertureWebRoot();
-    const fromNested = await resolveApertureWebRoot(
-      path.join(root, "packages/cli/src/render"),
-    );
-    expect(fromNested).toBe(root);
-  });
-
-  it("throws aperture.render.harnessNotFound when no harness exists above", async () => {
-    tempDir = await mkdtemp(path.join(os.tmpdir(), "aperture-noharness-"));
-    await expect(resolveApertureWebRoot(tempDir)).rejects.toMatchObject({
-      code: "aperture.render.harnessNotFound",
-    });
   });
 });

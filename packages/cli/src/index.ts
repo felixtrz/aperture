@@ -65,9 +65,19 @@ export { runHeadlessCommand } from "./commands/headless.js";
 export { runRenderCommand } from "./commands/render.js";
 export {
   renderBundleToPng,
-  resolveApertureWebRoot,
+  renderHarnessHtml,
   type RenderBundleResult,
 } from "./render/driver.js";
+export {
+  resolveEnginePackages,
+  type EngineMount,
+  type ResolvedEnginePackages,
+} from "./render/resolve-engine-packages.js";
+export {
+  startApertureStaticServer,
+  type ApertureStaticServer,
+  type StaticMount,
+} from "./render/static-server.js";
 export {
   isPngBlank,
   summarizePngLuma,

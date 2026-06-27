@@ -1,4 +1,4 @@
-import { createReadStream } from "node:fs";
+import { createReadStream, realpathSync } from "node:fs";
 import { stat } from "node:fs/promises";
 import { createServer, type Server, type ServerResponse } from "node:http";
 import path from "node:path";
@@ -17,9 +17,12 @@ const CONTENT_TYPES: Readonly<Record<string, string>> = {
   ".map": "application/json; charset=utf-8",
 };
 
-// Only the directory trees the render harness needs: its own page plus the
-// engine dist and third-party module files referenced by the import map.
-const ALLOWED_TOP_LEVEL = new Set(["examples", "packages", "node_modules"]);
+export interface StaticMount {
+  /** URL prefix, e.g. "/_engine/render/". Must start and end with "/". */
+  readonly prefix: string;
+  /** Absolute directory served under the prefix. */
+  readonly dir: string;
+}
 
 export interface ApertureStaticServer {
   readonly url: string;
@@ -27,15 +30,23 @@ export interface ApertureStaticServer {
 }
 
 /**
- * A minimal static file server rooted at the Aperture repo/install layout used
- * by the render harness. WebGPU is exposed on a secure context, and 127.0.0.1
- * counts as secure, so no TLS is needed.
+ * A minimal static file server for the render harness. It serves a single
+ * generated `index.html` at "/" and maps each {@link StaticMount} prefix to a
+ * real directory (the resolved engine/vendor package roots). 127.0.0.1 is a
+ * secure context, so WebGPU works without TLS.
  */
-export async function startApertureStaticServer(
-  webRoot: string,
-): Promise<ApertureStaticServer> {
+export async function startApertureStaticServer(options: {
+  readonly mounts: readonly StaticMount[];
+  readonly index: string;
+}): Promise<ApertureStaticServer> {
+  // Pre-resolve each mount's real root once for fast, escape-proof containment.
+  const mounts = options.mounts.map((mount) => ({
+    prefix: mount.prefix,
+    realDir: realpathSync(mount.dir),
+  }));
+
   const server: Server = createServer((req, res) => {
-    void serveRequest(webRoot, req.url ?? "/", res);
+    void serveRequest(mounts, options.index, req.url ?? "/", res);
   });
 
   await new Promise<void>((resolve, reject) => {
@@ -60,7 +71,8 @@ export async function startApertureStaticServer(
 }
 
 async function serveRequest(
-  webRoot: string,
+  mounts: ReadonlyArray<{ prefix: string; realDir: string }>,
+  index: string,
   requestUrl: string,
   res: ServerResponse,
 ): Promise<void> {
@@ -68,19 +80,26 @@ async function serveRequest(
     const pathname = decodeURIComponent(
       new URL(requestUrl, "http://localhost").pathname,
     );
-    const segments = pathname.split("/").filter((segment) => segment.length > 0);
-    const topLevel = segments[0];
 
-    if (topLevel === undefined || !ALLOWED_TOP_LEVEL.has(topLevel)) {
+    if (pathname === "/" || pathname === "/index.html") {
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.end(index);
+      return;
+    }
+
+    const mount = mounts.find((entry) => pathname.startsWith(entry.prefix));
+
+    if (mount === undefined) {
       res.statusCode = 404;
       res.end("Not found");
       return;
     }
 
-    const filePath = path.join(webRoot, ...segments);
-    const normalizedRoot = path.resolve(webRoot);
+    const relative = pathname.slice(mount.prefix.length);
+    const filePath = path.join(mount.realDir, relative);
 
-    if (!path.resolve(filePath).startsWith(normalizedRoot)) {
+    if (!path.resolve(filePath).startsWith(mount.realDir + path.sep)) {
       res.statusCode = 403;
       res.end("Forbidden");
       return;

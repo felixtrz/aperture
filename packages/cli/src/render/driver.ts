@@ -1,11 +1,20 @@
-import { stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium, type LaunchOptions } from "playwright";
 import { ApertureCliError } from "../errors.js";
-import { startApertureStaticServer } from "./static-server.js";
+import { resolveEnginePackages } from "./resolve-engine-packages.js";
+import {
+  startApertureStaticServer,
+  type StaticMount,
+} from "./static-server.js";
 
-const HARNESS_ROUTE = "/examples/render-harness/index.html";
+// The harness assets ship next to dist/ (see package.json "files"), so this
+// resolves both in the repo and from an installed package.
+const HARNESS_DIR = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../assets/render-harness",
+);
+const HARNESS_PREFIX = "/_harness/";
 
 // GPU-less software rendering (SwiftShader Vulkan) under a headed Chrome — the
 // same path the WebGPU e2e suite uses. Headless Chromium hides navigator.gpu,
@@ -30,47 +39,53 @@ interface HarnessStatus {
 }
 
 /**
- * Resolve the directory that contains the render harness and engine dist. In a
- * source/built checkout this is the repo root; the harness import map paths
- * (`/packages/...`, `/node_modules/...`) are served relative to it.
+ * Build the harness `index.html` with an import map generated from the resolved
+ * engine packages. The import map must be inline in the served HTML — module
+ * scripts resolve it at parse time, before any `addInitScript` can run.
  */
-export async function resolveApertureWebRoot(
-  startDir = path.dirname(fileURLToPath(import.meta.url)),
-): Promise<string> {
-  let current = startDir;
-
-  for (;;) {
-    const candidate = path.join(current, "examples/render-harness/index.html");
-    const exists = await stat(candidate)
-      .then((entry) => entry.isFile())
-      .catch(() => false);
-
-    if (exists) {
-      return current;
-    }
-
-    const parent = path.dirname(current);
-
-    if (parent === current) {
-      throw new ApertureCliError(
-        "aperture.render.harnessNotFound",
-        "Could not locate the Aperture render harness (examples/render-harness/index.html). The render command currently requires the Aperture source/built layout.",
-      );
-    }
-
-    current = parent;
-  }
+export function renderHarnessHtml(importMap: Readonly<Record<string, string>>): string {
+  const imports = JSON.stringify({ imports: importMap }, null, 2);
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Aperture Snapshot Render Harness</title>
+    <script type="importmap">
+${imports}
+    </script>
+    <script type="module" src="${HARNESS_PREFIX}render-harness.main.js"></script>
+  </head>
+  <body>
+    <canvas id="aperture-canvas" width="960" height="640"></canvas>
+  </body>
+</html>
+`;
 }
 
 export async function renderBundleToPng(options: {
   readonly bundle: unknown;
   readonly width: number;
   readonly height: number;
-  readonly webRoot?: string;
   readonly timeoutMs?: number;
 }): Promise<RenderBundleResult> {
-  const webRoot = options.webRoot ?? (await resolveApertureWebRoot());
-  const server = await startApertureStaticServer(webRoot);
+  const engine = resolveEnginePackages();
+
+  if (Object.keys(engine.importMap).length === 0) {
+    throw new ApertureCliError(
+      "aperture.render.engineNotResolved",
+      "Could not resolve the Aperture engine packages to render with. Ensure @aperture-engine/app and its dependencies are installed alongside the CLI.",
+    );
+  }
+
+  const mounts: StaticMount[] = [
+    ...engine.mounts.map((mount) => ({ prefix: mount.prefix, dir: mount.dir })),
+    { prefix: HARNESS_PREFIX, dir: HARNESS_DIR },
+  ];
+
+  const server = await startApertureStaticServer({
+    mounts,
+    index: renderHarnessHtml(engine.importMap),
+  });
   const browser = await chromium.launch(resolveLaunchOptions());
 
   try {
@@ -83,9 +98,7 @@ export async function renderBundleToPng(options: {
         bundle;
     }, options.bundle);
 
-    await page.goto(`${server.url}${HARNESS_ROUTE}`, {
-      waitUntil: "domcontentloaded",
-    });
+    await page.goto(`${server.url}/`, { waitUntil: "domcontentloaded" });
 
     const status = (await page
       .waitForFunction(

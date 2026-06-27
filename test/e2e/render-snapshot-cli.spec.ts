@@ -24,7 +24,10 @@ test.describe("aperture render CLI", () => {
     const out = path.join(tempDir, "frame.png");
 
     try {
+      // Run from a cwd OUTSIDE the repo to prove the command resolves the
+      // engine packages and harness from its own install, not the source tree.
       await execFileAsync("node", [CLI, "render", FIXTURE_BUNDLE, "--out", out], {
+        cwd: tempDir,
         env: { ...process.env },
       });
 
