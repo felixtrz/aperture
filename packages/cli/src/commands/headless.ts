@@ -297,6 +297,10 @@ Options:
   --json               Print the headless status report as JSON to stdout.
   -h, --help           Show help.
 
+Config loading: the config and *.system.ts are loaded by native Node
+TypeScript stripping, so they must be erasable TypeScript (no enums,
+decorators, namespaces, or parameter properties) and resolve @aperture-engine/*.
+
 Assets: external/texture assets load as Node placeholders (no image decoder in
 Node); procedural meshes/materials are faithful. Render real pixels with
 'aperture render <bundle> --out frame.png'.

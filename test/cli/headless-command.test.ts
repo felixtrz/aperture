@@ -24,20 +24,6 @@ const BAD_SYSTEM_CONFIG = path.join(
   "test/fixtures/headless-bad-system/aperture.headless.config.ts",
 );
 
-interface ExecFailure {
-  readonly code: number;
-  readonly stderr: string;
-  readonly stdout: string;
-}
-
-function isExecFailure(value: unknown): value is ExecFailure {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    typeof (value as { stderr?: unknown }).stderr === "string"
-  );
-}
-
 async function runInProcess(
   argv: readonly string[],
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
@@ -102,20 +88,8 @@ describe("aperture headless command — argument handling (P1.4)", () => {
   });
 });
 
-describe("aperture headless command — end to end (P1.4)", () => {
+describe("aperture headless command — end to end, in-process (PA.3)", () => {
   let tempDir: string;
-
-  beforeAll(async () => {
-    // The CLI runs as a subprocess so the engine loads once natively (the SSR
-    // loader externalizes to the same dist), avoiding the in-process module
-    // duplication vitest would otherwise cause. CI builds before tests; build
-    // on demand if a developer runs vitest without a prior build.
-    try {
-      await stat(CLI_BIN);
-    } catch {
-      await execFileAsync("pnpm", ["run", "build"], { cwd: REPO_ROOT });
-    }
-  }, 240_000);
 
   afterEach(async () => {
     if (tempDir !== undefined) {
@@ -127,9 +101,7 @@ describe("aperture headless command — end to end (P1.4)", () => {
     tempDir = await mkdtemp(path.join(os.tmpdir(), "aperture-headless-"));
     const out = path.join(tempDir, "snapshot.json");
 
-    const { stdout } = await execFileAsync("node", [
-      CLI_BIN,
-      "headless",
+    const { stdout } = await runInProcess([
       PROCEDURAL_CONFIG,
       "--frames",
       "5",
@@ -152,15 +124,13 @@ describe("aperture headless command — end to end (P1.4)", () => {
     expect(bundle.frame).toBe(4);
     expect(bundle.snapshot.meshDraws.length).toBe(1);
     expect(bundle.sourceAssets.entries.length).toBeGreaterThan(0);
-  }, 120_000);
+  });
 
   it("prints the headless status report with --json", async () => {
     tempDir = await mkdtemp(path.join(os.tmpdir(), "aperture-headless-"));
     const out = path.join(tempDir, "snapshot.json");
 
-    const { stdout } = await execFileAsync("node", [
-      CLI_BIN,
-      "headless",
+    const { stdout } = await runInProcess([
       PROCEDURAL_CONFIG,
       "--frames",
       "2",
@@ -172,41 +142,67 @@ describe("aperture headless command — end to end (P1.4)", () => {
     const status = JSON.parse(stdout) as { mode: string; nextFrame: number };
     expect(status.mode).toBe("headless");
     expect(status.nextFrame).toBe(2);
-  }, 120_000);
+  });
 
   it("rejects a non-headless config with aperture.headless.invalidMode", async () => {
     tempDir = await mkdtemp(path.join(os.tmpdir(), "aperture-headless-"));
-    const out = path.join(tempDir, "snapshot.json");
-
-    const failure = await execFileAsync("node", [
-      CLI_BIN,
-      "headless",
-      BROWSER_CONFIG,
-      "--out",
-      out,
-    ]).then(
-      () => null,
-      (error: unknown) => (isExecFailure(error) ? error : null),
+    await expectRejectedCode(
+      [BROWSER_CONFIG, "--out", path.join(tempDir, "s.json")],
+      "aperture.headless.invalidMode",
     );
-
-    expect(failure).not.toBeNull();
-    expect(failure?.code).toBe(1);
-    expect(failure?.stderr).toContain("aperture.headless.invalidMode");
-  }, 120_000);
+  });
 
   it("warns about a system without a default export but still writes a bundle", async () => {
     tempDir = await mkdtemp(path.join(os.tmpdir(), "aperture-headless-"));
     const out = path.join(tempDir, "snapshot.json");
 
-    const { stderr } = await execFileAsync("node", [
-      CLI_BIN,
-      "headless",
+    const { stderr } = await runInProcess([
       BAD_SYSTEM_CONFIG,
       "--out",
       out,
     ]);
 
     expect(stderr).toContain("aperture.system.missingDefaultExport");
+    const bundle = JSON.parse(await readFile(out, "utf8")) as { format: string };
+    expect(bundle.format).toBe("aperture-render-snapshot");
+  });
+});
+
+describe("aperture headless command — shipped binary smoke (PA.3)", () => {
+  let tempDir: string;
+
+  beforeAll(async () => {
+    // One subprocess test that the published binary actually boots and loads
+    // the engine natively (dist realm). CI builds before tests; build on demand
+    // if a developer runs vitest without a prior build.
+    try {
+      await stat(CLI_BIN);
+    } catch {
+      await execFileAsync("pnpm", ["run", "build"], { cwd: REPO_ROOT });
+    }
+  }, 240_000);
+
+  afterEach(async () => {
+    if (tempDir !== undefined) {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("runs the built CLI against a procedural config", async () => {
+    tempDir = await mkdtemp(path.join(os.tmpdir(), "aperture-headless-smoke-"));
+    const out = path.join(tempDir, "snapshot.json");
+
+    const { stdout } = await execFileAsync("node", [
+      CLI_BIN,
+      "headless",
+      PROCEDURAL_CONFIG,
+      "--frames",
+      "2",
+      "--out",
+      out,
+    ]);
+
+    expect(stdout).toContain("Wrote snapshot bundle");
     const bundle = JSON.parse(await readFile(out, "utf8")) as { format: string };
     expect(bundle.format).toBe("aperture-render-snapshot");
   }, 120_000);
