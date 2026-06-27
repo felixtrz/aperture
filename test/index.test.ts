@@ -19,6 +19,7 @@ import * as simulation from "@aperture-engine/simulation";
 const APP_PUBLIC_SUBPATHS = [
   ".",
   "./advanced",
+  "./asset-mirror",
   "./browser",
   "./commands",
   "./config",
