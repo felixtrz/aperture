@@ -17,4 +17,5 @@ export {
   withUiFreezeLayout,
   type UiFreezeLayoutInput,
 } from "./ui-freeze.js";
+export { UiBox, createUiBox, withUiBox, type UiBoxInput } from "./ui-box.js";
 export { registerUiComponents } from "./register.js";

@@ -249,6 +249,18 @@ export interface UiNodePacket {
   readonly opacity: number;
   readonly clipsChildren: boolean;
   readonly scrollOffset: readonly [number, number];
+  /**
+   * Per-corner border radius in pixels: `[topLeft, topRight, bottomRight,
+   * bottomLeft]`. Omitted when all corners are zero (sharp rectangle).
+   */
+  readonly cornerRadii?: readonly [number, number, number, number];
+  /**
+   * Per-side border width in pixels: `[top, right, bottom, left]`. Omitted when
+   * all sides are zero (no border).
+   */
+  readonly borderWidths?: readonly [number, number, number, number];
+  /** Border color (RGBA). Omitted when there is no border. */
+  readonly borderColor?: Vec4Like;
   readonly color?: Vec4Like;
   readonly texture?: TextureHandle | null;
   readonly sampler?: SamplerHandle | null;

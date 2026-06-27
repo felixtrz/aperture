@@ -1,6 +1,7 @@
 import type { EcsWorld } from "@aperture-engine/simulation";
 import { UiFlex } from "./ui-flex.js";
 import { UiFreezeLayout } from "./ui-freeze.js";
+import { UiBox } from "./ui-box.js";
 
 /**
  * Register all `@aperture-engine/ui` authoring components on a world
@@ -10,5 +11,6 @@ import { UiFreezeLayout } from "./ui-freeze.js";
 export function registerUiComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(UiFlex);
   world.registerComponent(UiFreezeLayout);
+  world.registerComponent(UiBox);
   return world;
 }

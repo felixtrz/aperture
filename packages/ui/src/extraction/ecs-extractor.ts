@@ -33,6 +33,7 @@ import type { LayoutStyle, MeasureFn } from "../layout/types.js";
 import { UiLayoutTree, type UiLayoutNodeInput } from "../layout/tree.js";
 import { UiFlex, UI_FLEX_UNSET } from "../components/ui-flex.js";
 import { isUiLayoutFrozen } from "../components/ui-freeze.js";
+import { UiBox } from "../components/ui-box.js";
 
 const MAX_UI_LAYOUT_DEPTH = 2048;
 
@@ -225,7 +226,48 @@ function nodeStyle(
     applyFlexComponent(entity, style);
   }
 
+  if (entity.hasComponent(UiBox)) {
+    // Border width insets content (CSS-like): children offset by the border.
+    const border = entity.getVectorView(UiBox, "borderWidth");
+    style.borderTop = nonNegative(border[0]);
+    style.borderRight = nonNegative(border[1]);
+    style.borderBottom = nonNegative(border[2]);
+    style.borderLeft = nonNegative(border[3]);
+  }
+
   return style;
+}
+
+/** Border/radius packet fields from a {@link UiBox} component, if present. */
+function boxFields(entity: Entity): Partial<UiNodePacket> {
+  if (!entity.hasComponent(UiBox)) {
+    return {};
+  }
+  const radius = entity.getVectorView(UiBox, "borderRadius");
+  const width = entity.getVectorView(UiBox, "borderWidth");
+  const cornerRadii: [number, number, number, number] = [
+    nonNegative(radius[0]),
+    nonNegative(radius[1]),
+    nonNegative(radius[2]),
+    nonNegative(radius[3]),
+  ];
+  const borderWidths: [number, number, number, number] = [
+    nonNegative(width[0]),
+    nonNegative(width[1]),
+    nonNegative(width[2]),
+    nonNegative(width[3]),
+  ];
+  const hasRadius = cornerRadii.some((value) => value > 0);
+  const hasBorder = borderWidths.some((value) => value > 0);
+  return {
+    ...(hasRadius ? { cornerRadii } : {}),
+    ...(hasBorder
+      ? {
+          borderWidths,
+          borderColor: vec4(entity.getVectorView(UiBox, "borderColor")),
+        }
+      : {}),
+  };
 }
 
 /** Merge the full-flex {@link UiFlex} component over the legacy-derived style. */
@@ -406,6 +448,7 @@ function emitNode(
     opacity,
     clipsChildren: clipsChildren(entity),
     scrollOffset: scroll,
+    ...boxFields(entity),
     ...visualFields(entity, kind),
   };
   ctx.state.nodes.push(packet);
