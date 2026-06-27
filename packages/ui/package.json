@@ -1,0 +1,54 @@
+{
+  "name": "@aperture-engine/ui",
+  "version": "0.2.0",
+  "description": "Flexbox UI for Aperture: Yoga layout, SDF panels, text input, scrollbars, conditional/responsive styling, and prebuilt kits.",
+  "author": "Felix Zhang",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felixtrz/aperture.git",
+    "directory": "packages/ui"
+  },
+  "homepage": "https://github.com/felixtrz/aperture/tree/main/packages/ui#readme",
+  "bugs": "https://github.com/felixtrz/aperture/issues",
+  "keywords": [
+    "aperture",
+    "ecs",
+    "ui",
+    "flexbox",
+    "yoga",
+    "webgpu",
+    "game-engine",
+    "typescript"
+  ],
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./test-support": {
+      "types": "./dist/test-support.d.ts",
+      "import": "./dist/test-support.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aperture-engine/render": "workspace:^",
+    "@aperture-engine/simulation": "workspace:^",
+    "yoga-layout": "^3.2.1"
+  }
+}

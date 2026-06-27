@@ -111,6 +111,18 @@ export default defineConfig({
           .pathname,
       },
       {
+        find: "@aperture-engine/ui/test-support",
+        replacement: new URL(
+          "./packages/ui/src/test-support.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
+        find: "@aperture-engine/ui",
+        replacement: new URL("./packages/ui/src/index.ts", import.meta.url)
+          .pathname,
+      },
+      {
         find: "@aperture-engine/runtime",
         replacement: new URL("./packages/runtime/src/index.ts", import.meta.url)
           .pathname,
