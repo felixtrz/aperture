@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1278
+Every structured diagnostic code the engine can emit (1279
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -101,12 +101,13 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.gltf.nodeMissing`     | No GLTF node named '…' exists in the spawned root subtree. | yes  | `packages/app/src/systems/gltf.ts` |
 | `aperture.gltf.rootInactive`    | Cannot look up a GLTF node from an inactive root entity.   | yes  | `packages/app/src/systems/gltf.ts` |
 
-## aperture.headless (2)
+## aperture.headless (3)
 
-| Code                            | Message                                             | Fix? | Emitted from                   |
-| ------------------------------- | --------------------------------------------------- | ---- | ------------------------------ |
-| `aperture.headless.failed`      | Aperture headless app failed.                       | yes  | `packages/app/src/headless.ts` |
-| `aperture.headless.invalidMode` | Aperture headless runner requires mode: 'headless'. | yes  | `packages/app/src/headless.ts` |
+| Code                                | Message                                                                                                                                        | Fix? | Emitted from                                  |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------- |
+| `aperture.headless.failed`          | Aperture headless app failed.                                                                                                                  | yes  | `packages/app/src/headless.ts`                |
+| `aperture.headless.invalidMode`     | Aperture headless runner requires mode: 'headless'.                                                                                            | yes  | `packages/app/src/headless.ts`                |
+| `aperture.headless.toolUnavailable` | Tool '…' is not available in a headless session (v1 routes ecs\_\* tools; use the inject command for input, and 'aperture render' for pixels). | —    | `packages/cli/src/commands/headless-serve.ts` |
 
 ## aperture.input (6)
 

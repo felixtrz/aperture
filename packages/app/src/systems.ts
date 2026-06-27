@@ -529,6 +529,8 @@ export interface ApertureSystemInstance {
   readonly queries: Record<string, Query>;
   readonly config: Record<string, Signal<unknown>>;
   readonly priority: number;
+  readonly random: ApertureRandom;
+  readonly time: ApertureFrameTime;
   readonly signals: SignalStore;
   readonly resources: ResourceStore;
   readonly startOptions: StartOptionsAccess;
