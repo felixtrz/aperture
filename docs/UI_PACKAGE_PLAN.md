@@ -15,8 +15,37 @@
 > (gitignored; exact source paths cited inline). Where a fact was confirmed,
 > it's stated plainly; remaining unknowns are flagged **[verify in M0]**.
 >
-> **Status:** proposal / design. Effort estimates are order-of-magnitude for one
-> engineer.
+> **Status:** implemented (M0–M5). See **Implementation status** below.
+
+---
+
+## Implementation status
+
+The `@aperture-engine/ui` package is built and wired into the monorepo. All six
+milestones are implemented with unit + integration tests (83 UI tests in
+`test/ui/`), the WebGPU UI e2e specs pass on SwiftShader, and the existing UI
+behavior is unchanged (the Yoga path is opt-in via `installYogaUiLayout`; the
+built-in render extractor remains the default until callers switch).
+
+| Milestone | Status | What shipped |
+|---|---|---|
+| **M0 Scaffold** | ✅ | `packages/ui` (tsc build, exports, LICENSE), wired into root `tsc -b`, `vitest`/`tsconfig.test` aliases, changeset fixed group, `yoga-layout` dep. |
+| **M1 Flexbox** | ✅ | Yoga `LayoutEngine` (async `loadYoga`, full flex style model), retained `UiLayoutTree` (reconcile/prune/reparent + absolute rects), render **DI seam** (`setUiLayoutExtractor`), ECS extractor mapping legacy components → flex, and the **`UiFlex`** component for full flexbox authoring (grow/shrink, justify/align, wrap, gap, min/max, %, aspect, margin). |
+| **M2 Styling + freeze** | ✅ | **`UiBox`** (per-corner radius, per-side border, color) + packet fields + **SDF rounded/border WGSL** in the panel/image pipeline (fwidth AA, plain quads byte-identical), GPU-validated. **`UiFreezeLayout`** freeze feature. |
+| **M3 Input + scrollbars** | ✅ | **Text input**: pure editing reducer, caret/selection geometry, `UiInput` component, value/password/placeholder + caret + selection rendering, hidden-DOM bridge. **Rendered scrollbars**: synthesized thumb panel from content/viewport ratio (`UiScrollbar`). |
+| **M4 Conditional/responsive** | ✅ core | Layered **`resolveStyle`** (important > focus > active > hover > dark > responsive > base) + `activeBreakpoints` (sm…2xl), fully tested. *Follow-up:* per-frame live restyle wiring needs interaction hover/active/focus state surfaced; `Viewport` scale mode needs view dimensions threaded into extraction. |
+| **M5 Builder + kit** | ✅ | Declarative **`ui.screen/box/row/column/text/image/button` + `mountUi`** compiling to ECS; game **widget kit** (`panel`, `label`, `hudBar`, `spacer`, `vstack/hstack`). |
+
+**Remaining integration (documented, not yet wired):** switching the worker
+bootstrap to call `installYogaUiLayout` by default (currently opt-in to guarantee
+no regression) and removing the legacy absolute/row/column pass; feeding the
+MSDF atlas into the extractor's text `measureText` for content-driven text
+sizing; surfacing interaction hover/active/focus state to drive `resolveStyle`
+per frame; and threading view dimensions for `UiScreenScaleMode.Viewport`.
+
+---
+
+> **Plan (original):** Effort estimates are order-of-magnitude for one engineer.
 
 ---
 
