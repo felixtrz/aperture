@@ -42,6 +42,7 @@ describe("Aperture CLI create command", () => {
     expect(topLevel.stdout).toContain("aperture adapter sync");
     expect(topLevel.stdout).toContain("aperture dev <subcommand>");
     expect(topLevel.stdout).toContain("aperture headless <config>");
+    expect(topLevel.stdout).toContain("aperture render <bundle>");
     expect(topLevel.stdout).toContain("aperture tool <name>");
     expect(topLevel.stdout).toContain("aperture mcp stdio");
     expect(create.exitCode).toBe(0);
