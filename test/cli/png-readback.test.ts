@@ -9,20 +9,22 @@ import {
 } from "../../packages/cli/src/tools/png-readback.js";
 
 describe("PNG luma blank detection (P2.3)", () => {
+  const BLACK: readonly [number, number, number] = [0, 0, 0];
+  const WHITE: readonly [number, number, number] = [255, 255, 255];
+
   it("flags an all-black image as blank", () => {
     const black = createRgbPng(
       4,
       4,
-      Array.from({ length: 16 }, () => [0, 0, 0] as const),
+      Array.from({ length: 16 }, () => BLACK),
     );
     expect(summarizePngLuma(black)).toMatchObject({ maxLuma: 0 });
     expect(isPngBlank(black)).toBe(true);
   });
 
   it("does not flag an image with bright pixels as blank", () => {
-    const litPixels = Array.from(
-      { length: 16 },
-      (_, index) => (index < 8 ? [255, 255, 255] : [0, 0, 0]) as const,
+    const litPixels = Array.from({ length: 16 }, (_, index) =>
+      index < 8 ? WHITE : BLACK,
     );
     const lit = createRgbPng(4, 4, litPixels);
     const summary = summarizePngLuma(lit);

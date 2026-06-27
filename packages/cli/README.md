@@ -26,6 +26,8 @@ your own scripts.
 ```sh
 aperture create <path>        # Scaffold an aperture app with AI tooling files
 aperture dev <subcommand>     # Manage an AI-enabled dev browser session
+aperture headless <config>    # Run ECS/sim in pure Node, write a snapshot bundle
+aperture render <bundle>      # Render one PNG on demand from a snapshot bundle
 aperture tool <name>          # Call one aperture browser/ECS/render tool
 aperture mcp stdio            # Expose aperture tools over MCP stdio
 aperture adapter sync         # Sync AI coding-tool adapter files

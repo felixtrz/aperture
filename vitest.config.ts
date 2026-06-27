@@ -178,6 +178,22 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["packages/*/src/**"],
+      // These two files can only run out of process and are verified by the
+      // `aperture render`/`aperture headless` subprocess + e2e tests rather
+      // than in-process unit tests (the same reason browser-only code lives
+      // behind test/e2e/**):
+      //  - render/driver.ts launches a real Playwright browser
+      //    (test/e2e/render-snapshot-cli.spec.ts, SwiftShader project).
+      //  - headless/config-loader.ts loads the engine through a Vite SSR
+      //    runner, which re-registers ECS components and so cannot share a
+      //    vitest worker with the source engine; it is exercised by the
+      //    headless command subprocess tests (test/cli/headless-command.test.ts).
+      // Their pure helpers (web-root resolution, static server, vite runtime,
+      // config-not-found path) stay covered by test/cli unit tests.
+      exclude: [
+        "packages/cli/src/render/driver.ts",
+        "packages/cli/src/headless/config-loader.ts",
+      ],
       thresholds: {
         statements: 85,
         branches: 73.5,

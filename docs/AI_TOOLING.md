@@ -53,6 +53,42 @@ input, camera, render, and reference tool contracts exposed over MCP. Browser
 backed tools require an active managed dev session. Reference tools can run
 after the reference corpus has been warmed.
 
+### Smaller validation loop: `aperture headless` + `aperture render`
+
+For a faster inner loop, the ECS/simulation layer can run in **pure Node** with
+no browser. `aperture headless <config> --out <bundle.json>` loads a
+`mode: "headless"` config and its `*.system.ts` (via an in-process Vite SSR
+runner), steps a fixed timestep, optionally injects input, and writes a
+self-contained **snapshot bundle** (the extracted `RenderSnapshot` plus the
+serialized source-asset registry):
+
+```sh
+pnpm exec aperture headless aperture.headless.config.ts --frames 30 --out snapshot.json
+pnpm exec aperture headless aperture.headless.config.ts --out snapshot.json --json   # status report
+pnpm exec aperture headless aperture.headless.config.ts --out snapshot.json --inject input.json
+```
+
+`--inject <file>` applies timed input steps before stepping, e.g.
+`[{ "atFrame": 0, "pointer": { "position": [0.5, 0.5], "pressed": true } }]` or
+`{ "actions": { "jump": true } }`.
+
+Rendering stays out of the inner loop. When a picture is needed,
+`aperture render <bundle.json> --out <frame.png>` boots a headless-friendly
+browser on demand, rehydrates the bundle's source assets, applies the snapshot
+through the WebGPU renderer, and writes one PNG — decoupled from any live
+simulation:
+
+```sh
+pnpm exec aperture render snapshot.json --out frame.png
+pnpm exec aperture render snapshot.json --out frame.png --width 1280 --height 720
+```
+
+Assets in Node: there is no image decoder or root-relative URL resolution in
+Node, so external/texture assets load as structural placeholders during
+`aperture headless` (a `aperture.headless.assetPlaceholder` warning is printed
+per asset); procedural meshes/materials are faithful. Real pixels for external
+assets come from `aperture render`.
+
 ### Headless CI / dev containers
 
 WebGPU is only exposed in a headed browser, so on a GPU-less Linux host
