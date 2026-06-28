@@ -284,6 +284,12 @@ fn quadUv(vertexIndex: u32) -> vec2f {
   return vec2f(u[vertexIndex], v[vertexIndex]);
 }
 
+fn rotate2(value: vec2f, radians: f32) -> vec2f {
+  let c = cos(radians);
+  let s = sin(radians);
+  return vec2f(value.x * c - value.y * s, value.x * s + value.y * c);
+}
+
 fn saturate(value: f32) -> f32 {
   return clamp(value, 0.0, 1.0);
 }
@@ -374,7 +380,8 @@ fn vs_main(
     params.motion.x
   );
   let size = max(0.0, particle.baseSizeTimeScale.x * sampleSizeCurve(lifeT) * alive);
-  let local = quadPosition(vertexIndex) * size;
+  let rotation = particle.baseSizeTimeScale.z + age * particle.baseSizeTimeScale.w;
+  let local = rotate2(quadPosition(vertexIndex) * size, rotation);
   let forwardRaw = view.cameraPosition.xyz - position;
   let forwardLength = max(length(forwardRaw), 0.0001);
   let forward = forwardRaw / forwardLength;

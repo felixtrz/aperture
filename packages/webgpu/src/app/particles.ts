@@ -973,7 +973,6 @@ function writeParticleBurstBatchCommands(options: {
     readonly liveParticles: number;
     readonly capacity: number;
   }[] = [];
-  const activeSlotKeys = new Set<string>();
   let totalCapacity = 0;
   let totalLiveParticles = 0;
   let statesCreated = 0;
@@ -989,7 +988,6 @@ function writeParticleBurstBatchCommands(options: {
     const slotKey = cpuState.key;
 
     options.activeBurstCpuStateKeys.add(cpuState.key);
-    activeSlotKeys.add(slotKey);
     statesCreated += cpuState.created ? 1 : 0;
     statesReused += cpuState.created ? 0 : 1;
 
@@ -1046,12 +1044,11 @@ function writeParticleBurstBatchCommands(options: {
   statesCreated += batchState.created ? 1 : 0;
   statesReused += batchState.created ? 0 : 1;
 
-  releaseInactiveParticleBurstBatchSlots(batchState.state, activeSlotKeys);
-
   const activeDrawRanges: {
     readonly firstInstance: number;
     readonly instanceCount: number;
   }[] = [];
+  resetParticleBurstBatchSlots(batchState.state);
   const uploadRanges: { byteOffset: number; byteLength: number }[] = [];
   for (const slice of liveSlices) {
     const slot = acquireParticleBurstBatchSlot(
@@ -1069,16 +1066,14 @@ function writeParticleBurstBatchCommands(options: {
       continue;
     }
 
-    if (slot.created) {
-      const upload = writeParticleBurstInitialSlotData({
-        state: batchState.state,
-        slot: slot.slot,
-        cpu: slice.cpu,
-        emitter: slice.emitter,
-      });
+    const upload = writeParticleBurstInitialSlotData({
+      state: batchState.state,
+      slot: slot.slot,
+      cpu: slice.cpu,
+      emitter: slice.emitter,
+    });
 
-      uploadRanges.push(upload);
-    }
+    uploadRanges.push(upload);
 
     activeDrawRanges.push({
       firstInstance: slot.slot.offset,
@@ -1086,7 +1081,7 @@ function writeParticleBurstBatchCommands(options: {
     });
   }
 
-  const drawRanges = mergeParticleBurstDrawRanges(activeDrawRanges);
+  const drawRanges = particleBurstDrawEnvelope(activeDrawRanges);
 
   if (drawRanges.length === 0) {
     return {
@@ -1220,7 +1215,7 @@ function writeParticleBurstBatchCommands(options: {
   };
 }
 
-function mergeParticleBurstDrawRanges(
+function particleBurstDrawEnvelope(
   ranges: readonly {
     readonly firstInstance: number;
     readonly instanceCount: number;
@@ -1229,68 +1224,25 @@ function mergeParticleBurstDrawRanges(
   readonly firstInstance: number;
   readonly instanceCount: number;
 }[] {
-  if (ranges.length <= 1) {
-    return ranges;
-  }
+  let start = Number.POSITIVE_INFINITY;
+  let end = 0;
 
-  const sorted = particleBurstDrawRangesAreOrdered(ranges)
-    ? ranges
-    : [...ranges].sort((a, b) => a.firstInstance - b.firstInstance);
-  const merged: { firstInstance: number; instanceCount: number }[] = [];
-  let currentStart = sorted[0]?.firstInstance ?? 0;
-  let currentEnd = currentStart + Math.max(0, sorted[0]?.instanceCount ?? 0);
-
-  for (let index = 1; index < sorted.length; index += 1) {
-    const range = sorted[index];
-
+  for (let index = 0; index < ranges.length; index += 1) {
+    const range = ranges[index];
     if (range === undefined || range.instanceCount <= 0) {
       continue;
     }
 
     const rangeEnd = range.firstInstance + range.instanceCount;
-
-    if (range.firstInstance <= currentEnd) {
-      currentEnd = Math.max(currentEnd, rangeEnd);
-      continue;
-    }
-
-    merged.push({
-      firstInstance: currentStart,
-      instanceCount: currentEnd - currentStart,
-    });
-    currentStart = range.firstInstance;
-    currentEnd = rangeEnd;
+    start = Math.min(start, range.firstInstance);
+    end = Math.max(end, rangeEnd);
   }
 
-  if (currentEnd > currentStart) {
-    merged.push({
-      firstInstance: currentStart,
-      instanceCount: currentEnd - currentStart,
-    });
+  if (!Number.isFinite(start) || end <= start) {
+    return [];
   }
 
-  return merged;
-}
-
-function particleBurstDrawRangesAreOrdered(
-  ranges: readonly {
-    readonly firstInstance: number;
-    readonly instanceCount: number;
-  }[],
-): boolean {
-  let previous = ranges[0]?.firstInstance ?? 0;
-
-  for (let index = 1; index < ranges.length; index += 1) {
-    const current = ranges[index]?.firstInstance ?? previous;
-
-    if (current < previous) {
-      return false;
-    }
-
-    previous = current;
-  }
-
-  return true;
+  return [{ firstInstance: start, instanceCount: end - start }];
 }
 
 function prepareParticleTextureSamplerResources(options: {
@@ -1610,18 +1562,12 @@ function getOrCreateParticleBurstBatchGpuState(options: {
   return { valid: true, state, created: true, diagnostics: [] };
 }
 
-function releaseInactiveParticleBurstBatchSlots(
+function resetParticleBurstBatchSlots(
   state: ParticleBurstBatchGpuStateResource,
-  activeKeys: ReadonlySet<string>,
 ): void {
-  for (const [key, slot] of state.slotsByBurstKey) {
-    if (activeKeys.has(key)) {
-      continue;
-    }
-
-    state.slotsByBurstKey.delete(key);
-    state.freeSlots.push({ offset: slot.offset, capacity: slot.capacity });
-  }
+  state.slotsByBurstKey.clear();
+  state.freeSlots.length = 0;
+  state.nextParticleSlot = 0;
 }
 
 function acquireParticleBurstBatchSlot(
@@ -1712,8 +1658,10 @@ function writeParticleBurstInitialSlotData(options: {
     options.state.bufferData[outputOffset + 8] =
       options.cpu.baseSizes[index] ?? 1;
     options.state.bufferData[outputOffset + 9] = options.emitter.timeScale;
-    options.state.bufferData[outputOffset + 10] = 0;
-    options.state.bufferData[outputOffset + 11] = 0;
+    options.state.bufferData[outputOffset + 10] =
+      options.cpu.rotations[index] ?? 0;
+    options.state.bufferData[outputOffset + 11] =
+      options.cpu.angularVelocities[index] ?? 0;
   }
 
   const byteOffset = startFloat * Float32Array.BYTES_PER_ELEMENT;
@@ -1902,6 +1850,8 @@ function createParticleEmitterCpuState(
     ages: new Float32Array(capacity),
     lifetimes: new Float32Array(capacity),
     baseSizes: new Float32Array(capacity),
+    rotations: new Float32Array(capacity),
+    angularVelocities: new Float32Array(capacity),
     bufferData: new Float32Array(capacity * PARTICLE_DATA_FLOAT_STRIDE),
     initialized: false,
     startTime: 0,
@@ -2104,6 +2054,7 @@ function initializeParticleBurstCpuState(options: {
     const r2 = hashUnit(options.emitter.seed ^ (index * 1442695041));
     const r3 = hashUnit(options.emitter.seed ^ (index * 1597334677));
     const r4 = hashUnit(options.emitter.seed ^ (index * 2891336453));
+    const r5 = hashUnit(options.emitter.seed ^ (index * 1181783497));
 
     options.cpu.positions[offset] =
       burst.position[0] +
@@ -2140,6 +2091,8 @@ function initializeParticleBurstCpuState(options: {
       0.001,
       lerp(options.effect.startSize.min, options.effect.startSize.max, r4),
     );
+    options.cpu.rotations[index] = r5 * Math.PI * 2;
+    options.cpu.angularVelocities[index] = 0;
   }
 
   options.cpu.maxLifetime = maxLifetime;

@@ -485,7 +485,8 @@ describe("GPU particle app frame resources", () => {
 
     expect(reused.valid).toBe(true);
     expect(reused.report.statesReused).toBeGreaterThanOrEqual(3);
-    expect(reusedBatchWrites).toHaveLength(1);
+    expect(reusedBatchWrites).toHaveLength(2);
+    expect(reusedBatchWrites[1]?.size).toBe(6 * 12 * 4);
     expect(paramWrites).toMatchObject([{ size: 88 * 4 }, { size: 88 * 4 }]);
     const firstParamBytes = bytesUpload(paramWrites[0]);
     const firstParams = new Float32Array(
@@ -516,7 +517,7 @@ describe("GPU particle app frame resources", () => {
     ).toBe(true);
   });
 
-  it("splits burst batch draws around freed slot gaps", async () => {
+  it("compacts gapped burst batches into one draw", async () => {
     const effect = createParticleEffectHandle("gapped-smoke-burst");
     const assets = new AssetRegistry();
     const cache = createWebGpuAppResourceCache();
@@ -620,6 +621,7 @@ describe("GPU particle app frame resources", () => {
         particleEmitters: 2,
       },
     };
+    const writesBeforeGapped = fixture.writes.length;
     const gapped = await prepareParticleFrameResourcesForSnapshot({
       app: createParticleAppContext(fixture.device),
       assets,
@@ -641,19 +643,19 @@ describe("GPU particle app frame resources", () => {
         kind: "draw",
         renderId: 99,
         vertexCount: 6,
-        instanceCount: 3,
+        instanceCount: 6,
         firstVertex: 0,
         firstInstance: 0,
       },
-      {
-        kind: "draw",
-        renderId: 99,
-        vertexCount: 6,
-        instanceCount: 3,
-        firstVertex: 0,
-        firstInstance: 6,
-      },
     ]);
+    const gappedWrites = fixture.writes.slice(writesBeforeGapped);
+    const compactedBatchWrite = gappedWrites.find(
+      (write) =>
+        write.label.startsWith("Particle/BurstBatch/") &&
+        write.dataOffset === 0 &&
+        write.size === 6 * 12 * 4,
+    );
+    expect(compactedBatchWrite).toBeDefined();
   });
 
   it("reports per-frame particle texture and sampler reuse deltas", async () => {

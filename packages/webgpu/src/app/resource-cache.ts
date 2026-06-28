@@ -232,6 +232,8 @@ export interface ParticleEmitterCpuStateResource {
   readonly ages: Float32Array;
   readonly lifetimes: Float32Array;
   readonly baseSizes: Float32Array;
+  readonly rotations: Float32Array;
+  readonly angularVelocities: Float32Array;
   readonly bufferData: Float32Array;
   initialized: boolean;
   startTime: number;
