@@ -489,6 +489,18 @@ function systemAssetDependencies(
 
   const particleEffect = handle as SystemParticleEffectAssetHandle;
   const dependencies: AssetHandle[] = [];
+  const descriptor = particleEffect.descriptor;
+
+  if (descriptor.type === "composite") {
+    const childEffects = new Map<string, ParticleEffectHandle>();
+
+    for (const emitter of descriptor.emitters) {
+      const childEffect = createParticleEffectHandle(emitter.effect);
+      childEffects.set(assetHandleKey(childEffect), childEffect);
+    }
+
+    return [...childEffects.values()];
+  }
 
   if (particleEffect.texture !== undefined && particleEffect.texture !== null) {
     dependencies.push(particleEffect.texture);

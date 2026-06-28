@@ -80,4 +80,36 @@ describe("app particle effect asset config", () => {
     expect(entry?.asset?.runtime.blendMode).toBe("alpha");
     expect(entry?.dependencies.map(assetHandleKey)).toEqual(["texture:smoke"]);
   });
+
+  it("registers composite particle-effect child dependencies", async () => {
+    const app = await createApertureApp({
+      config: defineApertureConfig({
+        mode: "headless",
+        assets: {
+          smoke: asset.particleEffect({
+            main: { maxParticles: 16 },
+          }),
+          sparks: asset.particleEffect({
+            main: { maxParticles: 16 },
+          }),
+          explosion: asset.particleEffect({
+            type: "composite",
+            emitters: [
+              { effect: "smoke", delay: 0.05 },
+              { effect: "sparks", timeScale: 2 },
+              { effect: "smoke", duration: 0.5 },
+            ],
+          }),
+        },
+      }),
+    });
+
+    const handle = app.context.assets.particleEffect("explosion");
+    const entry = app.context.assetsRegistry.get(handle.renderHandle);
+
+    expect(entry?.dependencies.map(assetHandleKey)).toEqual([
+      "particle-effect:smoke",
+      "particle-effect:sparks",
+    ]);
+  });
 });
