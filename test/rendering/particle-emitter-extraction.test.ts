@@ -18,16 +18,17 @@ import {
   createParticleCompositeEffectAsset,
   createRenderAssetCollections,
   createParticleEffectAsset,
+  createParticleEmitterEffectAsset,
   packParticleEffectCurves,
   particleEffectDependencies,
   validateParticleEffectAsset,
   validateParticleEffectInput,
-  type ParticleEffectAssetInput,
+  type ParticleEmitterEffectAssetInput,
 } from "@aperture-engine/render";
 
 describe("particle effect assets and emitter extraction (M6-T7)", () => {
   it("validates and packs scalar curves plus color gradients", () => {
-    const asset = createParticleEffectAsset({
+    const asset = createParticleEmitterEffectAsset({
       version: 2,
       main: {
         maxParticles: 128,
@@ -133,7 +134,7 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
       "subEmitters",
       "source",
       "curveSampleCount",
-    ] satisfies readonly (keyof ParticleEffectAssetInput)[];
+    ] satisfies readonly (keyof ParticleEmitterEffectAssetInput)[];
     const report = analyzeParticleEffectRuntimeFeatures({
       version: 2,
       label: "Truthful particle schema",
@@ -316,7 +317,7 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
 
     const legacyReport = analyzeParticleEffectRuntimeFeatures({
       capacity: 128,
-    } as unknown as ParticleEffectAssetInput);
+    } as unknown as ParticleEmitterEffectAssetInput);
     expect(legacyReport.unsupportedFields).toEqual(["capacity"]);
     expect(legacyReport.diagnostics[0]).toMatchObject({
       code: "particleEffect.unsupportedFeature",
@@ -337,7 +338,7 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
   });
 
   it("preserves source metadata while allowing valid partial imports", () => {
-    const asset = createParticleEffectAsset({
+    const asset = createParticleEmitterEffectAsset({
       version: 2,
       label: "ConvertedQuarksSmoke",
       main: {
@@ -410,7 +411,8 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
     const smoke = createParticleEffectHandle("smoke");
     const sparks = createParticleEffectHandle("sparks");
     const composite = createParticleCompositeEffectAsset({
-      version: 1,
+      version: 2,
+      type: "composite",
       label: "ExplosionComposite",
       emitters: [
         {
@@ -445,14 +447,15 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
       },
     });
     const collections = createRenderAssetCollections();
-    const handle = collections.particleCompositeEffects.add(composite, {
+    const handle = collections.particleEffects.add(composite, {
       id: "explosion",
     });
     const entry = collections.registry.get(handle);
 
     expect(composite).toMatchObject({
-      kind: "particle-composite-effect",
-      version: 1,
+      kind: "particle-effect",
+      type: "composite",
+      version: 2,
       label: "ExplosionComposite",
       source: {
         format: "three.quarks",

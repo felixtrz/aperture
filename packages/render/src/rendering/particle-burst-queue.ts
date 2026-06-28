@@ -8,6 +8,7 @@ import {
 import {
   validateParticleEffectAsset,
   type ParticleEffectAsset,
+  type ParticleEmitterEffectAsset,
 } from "../assets/particles.js";
 import type { RenderDiagnostic } from "./snapshot.js";
 
@@ -138,6 +139,17 @@ export function createParticleBurstQueue(
             message: `Dropped particle burst: effect '${assetHandleKey(request.effect)}' is not ready.`,
           });
           rejectedNotReady += 1;
+          continue;
+        }
+
+        if (effect.type !== "emitter") {
+          input.diagnostics.push({
+            code: "render.particle.burstCompositeUnsupported",
+            severity: "warning",
+            assetKey: assetHandleKey(request.effect),
+            message: `Dropped particle burst: composite effect '${assetHandleKey(request.effect)}' cannot be emitted as a one-shot burst. Emit a leaf particle effect instead.`,
+          });
+          rejectedInvalid += 1;
           continue;
         }
 
@@ -284,7 +296,7 @@ export function particleBurstVelocityRange(
 }
 
 function particleBurstTtlSeconds(
-  effect: ParticleEffectAsset,
+  effect: ParticleEmitterEffectAsset,
   request: ParticleBurstRequest,
 ): number {
   const lifetimeSeconds = Math.max(effect.runtime.lifetime.max, 0.001);

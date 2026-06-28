@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1280
+Every structured diagnostic code the engine can emit (1283
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -3410,6 +3410,12 @@ suggestedFix accompanies it, and where it is emitted.
 | --------------------------- | --------------------------------------------------------- | ---- | --------------------------------------------------------------- |
 | `particle.invalidTimeScale` | Particle emitter timeScale must be a non-negative number. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
+## particleEffect.compositeMixedModules (1)
+
+| Code                                   | Message                       | Fix? | Emitted from                              |
+| -------------------------------------- | ----------------------------- | ---- | ----------------------------------------- |
+| `particleEffect.compositeMixedModules` | (message composed at runtime) | —    | `packages/render/src/assets/particles.ts` |
+
 ## particleEffect.legacyField (1)
 
 | Code                         | Message                                                                                                                        | Fix? | Emitted from                              |
@@ -3475,6 +3481,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                        | Message                                               | Fix? | Emitted from                           |
 | ------------------------------------------- | ----------------------------------------------------- | ---- | -------------------------------------- |
 | `particleFrame.burstWriteBufferUnavailable` | Particle burst simulation requires queue.writeBuffer. | —    | `packages/webgpu/src/app/particles.ts` |
+
+## particleFrame.compositeEffect (1)
+
+| Code                            | Message                                                                                                                                 | Fix? | Emitted from                           |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.compositeEffect` | Particle effect '…' is composite; composites must be expanded into leaf emitter packets during extraction before reaching the renderer. | —    | `packages/webgpu/src/app/particles.ts` |
 
 ## particleFrame.continuousStateMissing (1)
 
@@ -4017,15 +4029,16 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------ | --------------------------------------------- | ---- | ------------------------------------------------------- |
 | `render.audio.oneShotOverflow` | Dropped … one-shot(s): queue at capacity (…). | —    | `packages/render/src/rendering/audio-one-shot-queue.ts` |
 
-## render.particle (5)
+## render.particle (6)
 
-| Code                                  | Message                                                                                                                 | Fix? | Emitted from                                            |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------- |
-| `render.particle.boundsLarge`         | Derived … particle bounds radius … is unusually large; set boundsRadius/boundsCenter explicitly if this is intentional. | —    | `packages/render/src/rendering/extraction-particles.ts` |
-| `render.particle.boundsUnavailable`   | Could not derive conservative … particle bounds; using a 1 unit fallback radius.                                        | —    | `packages/render/src/rendering/extraction-particles.ts` |
-| `render.particle.burstEffectInvalid`  | Dropped particle burst: effect '…' is invalid.                                                                          | —    | `packages/render/src/rendering/particle-burst-queue.ts` |
-| `render.particle.burstEffectNotReady` | Dropped particle burst: effect '…' is not ready.                                                                        | —    | `packages/render/src/rendering/particle-burst-queue.ts` |
-| `render.particle.burstOverflow`       | Dropped … particle burst(s): queue at capacity (…).                                                                     | —    | `packages/render/src/rendering/particle-burst-queue.ts` |
+| Code                                        | Message                                                                                                                  | Fix? | Emitted from                                            |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ---- | ------------------------------------------------------- |
+| `render.particle.boundsLarge`               | Derived … particle bounds radius … is unusually large; set boundsRadius/boundsCenter explicitly if this is intentional.  | —    | `packages/render/src/rendering/extraction-particles.ts` |
+| `render.particle.boundsUnavailable`         | Could not derive conservative … particle bounds; using a 1 unit fallback radius.                                         | —    | `packages/render/src/rendering/extraction-particles.ts` |
+| `render.particle.burstCompositeUnsupported` | Dropped particle burst: composite effect '…' cannot be emitted as a one-shot burst. Emit a leaf particle effect instead. | —    | `packages/render/src/rendering/particle-burst-queue.ts` |
+| `render.particle.burstEffectInvalid`        | Dropped particle burst: effect '…' is invalid.                                                                           | —    | `packages/render/src/rendering/particle-burst-queue.ts` |
+| `render.particle.burstEffectNotReady`       | Dropped particle burst: effect '…' is not ready.                                                                         | —    | `packages/render/src/rendering/particle-burst-queue.ts` |
+| `render.particle.burstOverflow`             | Dropped … particle burst(s): queue at capacity (…).                                                                      | —    | `packages/render/src/rendering/particle-burst-queue.ts` |
 
 ## render.standardMaterialTexture (1)
 

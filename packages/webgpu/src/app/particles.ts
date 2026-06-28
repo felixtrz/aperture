@@ -8,6 +8,7 @@ import {
   type PackedSnapshotViewUniforms,
   type ParticleGradientKeyframe,
   type ParticleEffectAsset,
+  type ParticleEmitterEffectAsset,
   type ParticleScalarRange,
   type ParticleEmitterPacket,
   type RenderSnapshot,
@@ -128,7 +129,7 @@ interface ParticleSoftResources {
 interface PreparedParticleEmitterRecord {
   readonly emitter: ParticleEmitterPacket;
   readonly effectKey: string;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly renderPipeline: {
     readonly getBindGroupLayout: (group: number) => unknown;
   };
@@ -141,7 +142,7 @@ interface PreparedParticleEmitterRecord {
 
 interface PreparedParticleEmitterFrameResources {
   readonly effectKey: string;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly renderPipeline: {
     readonly getBindGroupLayout: (group: number) => unknown;
   };
@@ -258,8 +259,8 @@ export function getOrCreateWebGpuAppParticleComputePipeline(
 export function getOrCreateWebGpuAppParticleRenderPipeline(
   app: WebGpuAppParticleContext,
   cache: WebGpuAppResourceCache,
-  blendMode: ParticleEffectAsset["runtime"]["blendMode"],
-  renderMode: ParticleEffectAsset["runtime"]["renderMode"],
+  blendMode: ParticleEmitterEffectAsset["runtime"]["blendMode"],
+  renderMode: ParticleEmitterEffectAsset["runtime"]["renderMode"],
   softParticles = false,
 ): MaybePromise<CreateParticleRenderPipelineResourceResult> {
   const colorFormat = webGpuAppScenePassColorFormat(app);
@@ -305,8 +306,8 @@ export function getOrCreateWebGpuAppParticleRenderPipeline(
 export function getOrCreateWebGpuAppParticleBurstRenderPipeline(
   app: WebGpuAppParticleContext,
   cache: WebGpuAppResourceCache,
-  blendMode: ParticleEffectAsset["runtime"]["blendMode"],
-  renderMode: ParticleEffectAsset["runtime"]["renderMode"],
+  blendMode: ParticleEmitterEffectAsset["runtime"]["blendMode"],
+  renderMode: ParticleEmitterEffectAsset["runtime"]["renderMode"],
   softParticles = false,
 ): MaybePromise<CreateParticleRenderPipelineResourceResult> {
   const colorFormat = webGpuAppScenePassColorFormat(app);
@@ -362,8 +363,8 @@ function isPromiseLike<T>(value: MaybePromise<T>): value is Promise<T> {
 }
 
 function particlePipelineRenderMode(
-  renderMode: ParticleEffectAsset["runtime"]["renderMode"],
-): ParticleEffectAsset["runtime"]["renderMode"] {
+  renderMode: ParticleEmitterEffectAsset["runtime"]["renderMode"],
+): ParticleEmitterEffectAsset["runtime"]["renderMode"] {
   switch (renderMode) {
     case "stretched-billboard":
     case "horizontal-billboard":
@@ -815,6 +816,14 @@ async function prepareParticleEmitterFrameResources(options: {
     options.emitterResourceFrameCache.set(cacheKey, null);
     return null;
   }
+  if (effect.type !== "emitter") {
+    options.diagnostics.push({
+      code: "particleFrame.compositeEffect",
+      message: `Particle effect '${effectKey}' is composite; composites must be expanded into leaf emitter packets during extraction before reaching the renderer.`,
+    });
+    options.emitterResourceFrameCache.set(cacheKey, null);
+    return null;
+  }
 
   const renderPipelineMode = particlePipelineRenderMode(
     effect.runtime.renderMode,
@@ -925,7 +934,7 @@ function prepareParticleSoftResources(options: {
   readonly app: WebGpuAppParticleContext;
   readonly cache: WebGpuAppResourceCache;
   readonly device: unknown;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly emitter: ParticleEmitterPacket;
   readonly snapshot: RenderSnapshot;
   readonly diagnostics: unknown[];
@@ -1077,7 +1086,7 @@ function isBatchableParticleBurst(emitter: ParticleEmitterPacket): boolean {
 }
 
 function particleTextureSamplerFrameCacheKey(
-  effect: ParticleEffectAsset,
+  effect: ParticleEmitterEffectAsset,
 ): string {
   const textureKey =
     effect.runtime.texture === undefined || effect.runtime.texture === null
@@ -1170,11 +1179,10 @@ function writeParticleBurstBatchCommands(options: {
     readonly key: string;
     readonly cpu: ParticleEmitterCpuStateResource;
     readonly emitter: ParticleEmitterPacket;
-    readonly effect: ParticleEffectAsset;
+    readonly effect: ParticleEmitterEffectAsset;
     readonly liveParticles: number;
     readonly capacity: number;
   }[] = [];
-  const activeSlotKeys = new Set<string>();
   let totalCapacity = 0;
   let totalLiveParticles = 0;
   let statesCreated = 0;
@@ -1190,7 +1198,6 @@ function writeParticleBurstBatchCommands(options: {
     const slotKey = cpuState.key;
 
     options.activeBurstCpuStateKeys.add(cpuState.key);
-    activeSlotKeys.add(slotKey);
     statesCreated += cpuState.created ? 1 : 0;
     statesReused += cpuState.created ? 0 : 1;
 
@@ -1247,12 +1254,11 @@ function writeParticleBurstBatchCommands(options: {
   statesCreated += batchState.created ? 1 : 0;
   statesReused += batchState.created ? 0 : 1;
 
-  releaseInactiveParticleBurstBatchSlots(batchState.state, activeSlotKeys);
-
   const activeDrawRanges: {
     readonly firstInstance: number;
     readonly instanceCount: number;
   }[] = [];
+  resetParticleBurstBatchSlots(batchState.state);
   const uploadRanges: { byteOffset: number; byteLength: number }[] = [];
   for (const slice of liveSlices) {
     const slot = acquireParticleBurstBatchSlot(
@@ -1270,16 +1276,14 @@ function writeParticleBurstBatchCommands(options: {
       continue;
     }
 
-    if (slot.created) {
-      const upload = writeParticleBurstInitialSlotData({
-        state: batchState.state,
-        slot: slot.slot,
-        cpu: slice.cpu,
-        emitter: slice.emitter,
-      });
+    const upload = writeParticleBurstInitialSlotData({
+      state: batchState.state,
+      slot: slot.slot,
+      cpu: slice.cpu,
+      emitter: slice.emitter,
+    });
 
-      uploadRanges.push(upload);
-    }
+    uploadRanges.push(upload);
 
     activeDrawRanges.push({
       firstInstance: slot.slot.offset,
@@ -1287,7 +1291,7 @@ function writeParticleBurstBatchCommands(options: {
     });
   }
 
-  const drawRanges = mergeParticleBurstDrawRanges(activeDrawRanges);
+  const drawRanges = particleBurstDrawEnvelope(activeDrawRanges);
 
   if (drawRanges.length === 0) {
     return {
@@ -1443,7 +1447,7 @@ function writeParticleBurstBatchCommands(options: {
   };
 }
 
-function mergeParticleBurstDrawRanges(
+function particleBurstDrawEnvelope(
   ranges: readonly {
     readonly firstInstance: number;
     readonly instanceCount: number;
@@ -1452,75 +1456,32 @@ function mergeParticleBurstDrawRanges(
   readonly firstInstance: number;
   readonly instanceCount: number;
 }[] {
-  if (ranges.length <= 1) {
-    return ranges;
-  }
+  let start = Number.POSITIVE_INFINITY;
+  let end = 0;
 
-  const sorted = particleBurstDrawRangesAreOrdered(ranges)
-    ? ranges
-    : [...ranges].sort((a, b) => a.firstInstance - b.firstInstance);
-  const merged: { firstInstance: number; instanceCount: number }[] = [];
-  let currentStart = sorted[0]?.firstInstance ?? 0;
-  let currentEnd = currentStart + Math.max(0, sorted[0]?.instanceCount ?? 0);
-
-  for (let index = 1; index < sorted.length; index += 1) {
-    const range = sorted[index];
-
+  for (let index = 0; index < ranges.length; index += 1) {
+    const range = ranges[index];
     if (range === undefined || range.instanceCount <= 0) {
       continue;
     }
 
     const rangeEnd = range.firstInstance + range.instanceCount;
-
-    if (range.firstInstance <= currentEnd) {
-      currentEnd = Math.max(currentEnd, rangeEnd);
-      continue;
-    }
-
-    merged.push({
-      firstInstance: currentStart,
-      instanceCount: currentEnd - currentStart,
-    });
-    currentStart = range.firstInstance;
-    currentEnd = rangeEnd;
+    start = Math.min(start, range.firstInstance);
+    end = Math.max(end, rangeEnd);
   }
 
-  if (currentEnd > currentStart) {
-    merged.push({
-      firstInstance: currentStart,
-      instanceCount: currentEnd - currentStart,
-    });
+  if (!Number.isFinite(start) || end <= start) {
+    return [];
   }
 
-  return merged;
-}
-
-function particleBurstDrawRangesAreOrdered(
-  ranges: readonly {
-    readonly firstInstance: number;
-    readonly instanceCount: number;
-  }[],
-): boolean {
-  let previous = ranges[0]?.firstInstance ?? 0;
-
-  for (let index = 1; index < ranges.length; index += 1) {
-    const current = ranges[index]?.firstInstance ?? previous;
-
-    if (current < previous) {
-      return false;
-    }
-
-    previous = current;
-  }
-
-  return true;
+  return [{ firstInstance: start, instanceCount: end - start }];
 }
 
 function prepareParticleTextureSamplerResources(options: {
   readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
   readonly device: unknown;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly reuse: AppTextureSamplerResourceReuseReport;
   readonly diagnostics: unknown[];
 }): ParticleTextureSampler | null {
@@ -1833,18 +1794,12 @@ function getOrCreateParticleBurstBatchGpuState(options: {
   return { valid: true, state, created: true, diagnostics: [] };
 }
 
-function releaseInactiveParticleBurstBatchSlots(
+function resetParticleBurstBatchSlots(
   state: ParticleBurstBatchGpuStateResource,
-  activeKeys: ReadonlySet<string>,
 ): void {
-  for (const [key, slot] of state.slotsByBurstKey) {
-    if (activeKeys.has(key)) {
-      continue;
-    }
-
-    state.slotsByBurstKey.delete(key);
-    state.freeSlots.push({ offset: slot.offset, capacity: slot.capacity });
-  }
+  state.slotsByBurstKey.clear();
+  state.freeSlots.length = 0;
+  state.nextParticleSlot = 0;
 }
 
 function acquireParticleBurstBatchSlot(
@@ -2030,7 +1985,7 @@ function getOrUpdateParticleBurstRenderParams(options: {
     };
   };
   readonly state: ParticleBurstBatchGpuStateResource;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly time: number;
 }): {
   readonly valid: boolean;
@@ -2158,7 +2113,7 @@ function createParticleEmitterCpuState(
 function updateParticleBurstAnalyticCpuData(options: {
   readonly cpu: ParticleEmitterCpuStateResource;
   readonly emitter: ParticleEmitterPacket;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly time: number;
 }): {
   readonly liveParticles: number;
@@ -2215,7 +2170,7 @@ function updateParticleBurstCpuState(options: {
   };
   readonly state: ParticleEmitterGpuStateResource;
   readonly emitter: ParticleEmitterPacket;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly time: number;
 }): {
   readonly liveParticles: number;
@@ -2281,7 +2236,7 @@ function updateParticleContinuousCpuState(options: {
   };
   readonly state: ParticleEmitterGpuStateResource;
   readonly emitter: ParticleEmitterPacket;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly snapshot: RenderSnapshot;
   readonly time: number;
 }): {
@@ -2339,7 +2294,7 @@ function updateParticleContinuousCpuState(options: {
 function updateParticleContinuousCpuData(options: {
   readonly cpu: ParticleEmitterCpuStateResource;
   readonly emitter: ParticleEmitterPacket;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly snapshot: RenderSnapshot;
   readonly time: number;
 }): {
@@ -2372,7 +2327,7 @@ function updateParticleContinuousCpuData(options: {
 function updateParticleBurstCpuData(options: {
   readonly cpu: ParticleEmitterCpuStateResource;
   readonly emitter: ParticleEmitterPacket;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly time: number;
 }): {
   readonly liveParticles: number;
@@ -2413,7 +2368,7 @@ function updateParticleBurstCpuData(options: {
 function ensureParticleContinuousCpuInitialized(options: {
   readonly cpu: ParticleEmitterCpuStateResource;
   readonly emitter: ParticleEmitterPacket;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly snapshot: RenderSnapshot;
   readonly time: number;
 }): void {
@@ -2433,7 +2388,7 @@ function ensureParticleContinuousCpuInitialized(options: {
 function prewarmParticleContinuousCpuData(options: {
   readonly cpu: ParticleEmitterCpuStateResource;
   readonly emitter: ParticleEmitterPacket;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly snapshot: RenderSnapshot;
 }): void {
   const duration = Math.max(0, options.effect.runtime.duration);
@@ -2457,7 +2412,7 @@ function prewarmParticleContinuousCpuData(options: {
 function spawnParticleContinuousCpuData(options: {
   readonly cpu: ParticleEmitterCpuStateResource;
   readonly emitter: ParticleEmitterPacket;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly snapshot: RenderSnapshot;
   readonly time: number;
   readonly delta: number;
@@ -2481,15 +2436,26 @@ function spawnParticleContinuousCpuData(options: {
       options.emitter.timeScale *
       options.effect.runtime.simulationSpeed,
   );
-  if (elapsed < options.effect.runtime.startDelay) {
+  // Composite child emitters add their authored delay on top of the effect's
+  // own start delay, and an authored duration acts as a hard emission cutoff
+  // (even for looping effects).
+  const startDelay =
+    options.effect.runtime.startDelay + Math.max(0, options.emitter.delay ?? 0);
+  if (elapsed < startDelay) {
     return;
   }
 
-  const localTime = elapsed - options.effect.runtime.startDelay;
+  const localTime = elapsed - startDelay;
+  const childDuration = options.emitter.duration;
+  const withinChildWindow =
+    childDuration === undefined ||
+    childDuration === null ||
+    localTime <= childDuration;
   const duration = Math.max(0.001, options.effect.runtime.duration);
   const emitting =
-    options.effect.runtime.looping ||
-    localTime <= options.effect.runtime.duration;
+    withinChildWindow &&
+    (options.effect.runtime.looping ||
+      localTime <= options.effect.runtime.duration);
 
   if (!emitting) {
     return;
@@ -2543,7 +2509,7 @@ function spawnParticleContinuousCpuData(options: {
 function spawnParticleContinuousCount(options: {
   readonly cpu: ParticleEmitterCpuStateResource;
   readonly emitter: ParticleEmitterPacket;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly snapshot: RenderSnapshot;
   readonly count: number;
   readonly age: number;
@@ -2573,7 +2539,7 @@ function spawnParticleContinuousCount(options: {
 function spawnParticleContinuousBurstWindow(options: {
   readonly cpu: ParticleEmitterCpuStateResource;
   readonly emitter: ParticleEmitterPacket;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly snapshot: RenderSnapshot;
   readonly startTime: number;
   readonly endTime: number;
@@ -2667,7 +2633,7 @@ function nextDeadParticleSlot(cpu: ParticleEmitterCpuStateResource): number {
 function spawnParticleContinuousSlot(options: {
   readonly cpu: ParticleEmitterCpuStateResource;
   readonly emitter: ParticleEmitterPacket;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly snapshot: RenderSnapshot;
   readonly index: number;
   readonly ageT: number;
@@ -2772,7 +2738,7 @@ function spawnParticleContinuousSlot(options: {
 }
 
 function sampleContinuousParticleShape(options: {
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly snapshot: RenderSnapshot;
   readonly emitter: ParticleEmitterPacket;
   readonly random: readonly [number, number, number, number, number, number];
@@ -3019,7 +2985,7 @@ function gridCoordinate(index: number, count: number, extent: number): number {
 function ensureParticleBurstCpuInitialized(options: {
   readonly cpu: ParticleEmitterCpuStateResource;
   readonly emitter: ParticleEmitterPacket;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly time: number;
 }): void {
   if (options.cpu.initialized) {
@@ -3039,7 +3005,7 @@ function ensureParticleBurstCpuInitialized(options: {
 function initializeParticleBurstCpuState(options: {
   readonly cpu: ParticleEmitterCpuStateResource;
   readonly emitter: ParticleEmitterPacket;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
 }): void {
   const burst = options.emitter.burst;
   if (burst === undefined) {
@@ -3113,7 +3079,7 @@ function initializeParticleBurstCpuState(options: {
 
 function writeParticleCpuBuffer(options: {
   readonly cpu: ParticleEmitterCpuStateResource;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly delta: number;
   readonly origin: readonly [number, number, number];
   readonly applyContinuousModules: boolean;
@@ -3326,7 +3292,7 @@ function writeParticleCpuBuffer(options: {
 }
 
 function continuousParticleMotionModules(options: {
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly position: readonly [number, number, number];
   readonly origin: readonly [number, number, number];
   readonly index: number;
@@ -3432,7 +3398,7 @@ function hashUnit(value: number): number {
 
 function writeParticleBurstRenderCurveData(
   floats: Float32Array,
-  effect: ParticleEffectAsset,
+  effect: ParticleEmitterEffectAsset,
 ): void {
   for (let index = 0; index < PARTICLE_CURVE_SAMPLE_COUNT; index += 1) {
     const t = index / (PARTICLE_CURVE_SAMPLE_COUNT - 1);
@@ -3453,7 +3419,7 @@ function writeParticleFrameData(
   floats: Float32Array,
   offset: number,
   options: {
-    readonly effect: ParticleEffectAsset;
+    readonly effect: ParticleEmitterEffectAsset;
     readonly lifeT: number;
     readonly rotation: number;
   },
@@ -3465,7 +3431,7 @@ function writeParticleFrameData(
 }
 
 function particleAtlasFrameIndex(
-  effect: ParticleEffectAsset,
+  effect: ParticleEmitterEffectAsset,
   lifeT: number,
 ): number {
   const frameCount = Math.max(1, Math.trunc(effect.runtime.atlasFrameCount));
@@ -3486,14 +3452,14 @@ function particleAtlasFrameIndex(
 }
 
 function samplePackedParticleSizeCurve(
-  effect: ParticleEffectAsset,
+  effect: ParticleEmitterEffectAsset,
   t: number,
 ): number {
   return samplePackedScalarTable(effect.curves.sizeOverLifetime, t);
 }
 
 function samplePackedParticleColorCurve(
-  effect: ParticleEffectAsset,
+  effect: ParticleEmitterEffectAsset,
   t: number,
 ): readonly [number, number, number, number] {
   const color = effect.curves.colorOverLifetime;

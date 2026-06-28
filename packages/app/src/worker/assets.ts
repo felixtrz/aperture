@@ -1,9 +1,13 @@
 import {
   analyzeParticleEffectRuntimeFeatures,
   type ParticleEffectAssetInput,
+  type ParticleEmitterEffectAssetInput,
   type ParticleEffectRuntimeFeatureReport,
 } from "@aperture-engine/render";
-import type { ApertureParticleEffectAssetDescriptor } from "../config/index.js";
+import type {
+  ApertureParticleEffectAssetDescriptor,
+  ApertureParticleEmitterEffectAssetDescriptor,
+} from "../config/index.js";
 import {
   systemAssetReadyMetadata,
   type SystemAssetHandle,
@@ -69,6 +73,12 @@ function particleRuntimeFeatures(
 function createParticleRuntimeFeatureInput(
   descriptor: ApertureParticleEffectAssetDescriptor,
 ): ParticleEffectAssetInput {
+  if (descriptor.type === "composite") {
+    // Composite effects expose no leaf modules; runtime-feature analysis only
+    // inspects the discriminant, so an empty emitter list is sufficient here.
+    return { version: 2, type: "composite", emitters: [] };
+  }
+
   const renderer = createParticleRuntimeFeatureRenderer(descriptor.renderer);
 
   return {
@@ -113,8 +123,8 @@ function createParticleRuntimeFeatureInput(
 }
 
 function createParticleRuntimeFeatureRenderer(
-  renderer: ApertureParticleEffectAssetDescriptor["renderer"],
-): ParticleEffectAssetInput["renderer"] | undefined {
+  renderer: ApertureParticleEmitterEffectAssetDescriptor["renderer"],
+): ParticleEmitterEffectAssetInput["renderer"] | undefined {
   if (renderer === undefined) {
     return undefined;
   }

@@ -58,6 +58,11 @@ export function writeParticleEmitterPacket(
   writeVec3(words, offset + 46, burst?.velocityMin ?? [0, 0, 0]);
   writeVec3(words, offset + 52, burst?.velocityMax ?? [0, 0, 0]);
   writeFloat64(words, offset + 58, burst?.startTime ?? 0);
+
+  writeFloat64(words, offset + 60, packet.delay ?? 0);
+  words[offset + 62] =
+    packet.duration === undefined || packet.duration === null ? 0 : 1;
+  writeFloat64(words, offset + 63, packet.duration ?? 0);
 }
 
 export function readParticleEmitterPacket(
@@ -66,6 +71,9 @@ export function readParticleEmitterPacket(
   registry: SnapshotPacketEncodingRegistry,
 ): ParticleEmitterPacket {
   const mode = particleEmitterModeValue(words[offset + 14] ?? 0);
+  const delay = readFloat64(words, offset + 60);
+  const hasDuration = (words[offset + 62] ?? 0) === 1;
+  const duration = readFloat64(words, offset + 63);
   const packet: ParticleEmitterPacket = {
     emitterId: words[offset] ?? 0,
     entity: {
@@ -101,6 +109,8 @@ export function readParticleEmitterPacket(
 
   return {
     ...packet,
+    ...(delay !== 0 ? { delay } : {}),
+    ...(hasDuration ? { duration } : {}),
     ...(mode === undefined ? {} : { mode }),
     ...(mode !== "burst"
       ? {}

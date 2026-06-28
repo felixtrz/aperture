@@ -1058,6 +1058,121 @@ describe("GPU particle app frame resources", () => {
     expect(second.report.liveParticles).toBe(4);
   });
 
+  it("gates continuous emission by composite child delay", async () => {
+    const effect = createParticleEffectHandle("delayed-child");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "DelayedChild",
+        main: { maxParticles: 8, startLifetime: 5, startSpeed: 0 },
+        emission: { rateOverTime: 100 },
+        shape: { type: "point" },
+        renderer: { blendMode: "alpha" },
+      }),
+    );
+
+    const frame = (time: number) => {
+      const snapshot = createParticleSnapshot(effect, {
+        timeScale: 1,
+        delay: 1,
+      });
+      return prepareParticleFrameResourcesForSnapshot({
+        app: createParticleAppContext(fixture.device),
+        assets,
+        cache,
+        snapshot,
+        viewUniforms: writePackedSnapshotViewUniforms(
+          snapshot,
+          createPackedSnapshotViewUniformsScratch(),
+        ),
+        time,
+      });
+    };
+
+    await frame(0);
+    const beforeDelay = await frame(0.5);
+    const afterDelay = await frame(2);
+
+    expect(beforeDelay.report.liveParticles).toBe(0);
+    expect(afterDelay.report.liveParticles).toBeGreaterThan(0);
+  });
+
+  it("stops continuous emission past a composite child duration", async () => {
+    const effect = createParticleEffectHandle("bounded-child");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "BoundedChild",
+        main: { maxParticles: 8, startLifetime: 5, startSpeed: 0 },
+        emission: { rateOverTime: 100 },
+        shape: { type: "point" },
+        renderer: { blendMode: "alpha" },
+      }),
+    );
+
+    const frame = (time: number, duration: number | null) => {
+      const snapshot = createParticleSnapshot(effect, {
+        timeScale: 1,
+        ...(duration === null ? {} : { duration }),
+      });
+      return prepareParticleFrameResourcesForSnapshot({
+        app: createParticleAppContext(fixture.device),
+        assets,
+        cache,
+        snapshot,
+        viewUniforms: writePackedSnapshotViewUniforms(
+          snapshot,
+          createPackedSnapshotViewUniformsScratch(),
+        ),
+        time,
+      });
+    };
+
+    // A child duration of 0.5s is a hard emission cutoff: at t=1s (past the
+    // window) nothing spawns, whereas the same effect with no duration does.
+    await frame(0, 0.5);
+    const bounded = await frame(1, 0.5);
+    expect(bounded.report.liveParticles).toBe(0);
+
+    const unbounded = createParticleSnapshot(effect, { timeScale: 1 });
+    const controlCache = createWebGpuAppResourceCache();
+    await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache: controlCache,
+      snapshot: unbounded,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        unbounded,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 0,
+    });
+    const control = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache: controlCache,
+      snapshot: unbounded,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        unbounded,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 1,
+    });
+    expect(control.report.liveParticles).toBeGreaterThan(0);
+  });
+
   it("schedules continuous emission bursts with cycles and intervals", async () => {
     const effect = createParticleEffectHandle("scheduled-bursts");
     const assets = new AssetRegistry();
@@ -1208,6 +1323,83 @@ describe("GPU particle app frame resources", () => {
         instanceCount: 3,
       }),
     );
+  });
+
+  it("packs authored burst billboard rotation and angular velocity", async () => {
+    const effect = createParticleEffectHandle("rotating-smoke-burst");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect, {
+      mode: "burst",
+      capacity: 1,
+      resetEpoch: 12,
+      burst: {
+        burstId: 1,
+        startFrame: 12,
+        count: 1,
+        position: [0, 0, 0],
+        positionJitterMin: [0, 0, 0],
+        positionJitterMax: [0, 0, 0],
+        velocityMin: [0, 0, 0],
+        velocityMax: [0, 0, 0],
+      },
+    });
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "RotatingSmokeBurst",
+        main: {
+          maxParticles: 1,
+          startLifetime: 1,
+          startSize: 1,
+          startRotation: 0.5,
+        },
+        emission: {
+          rateOverTime: 0,
+        },
+        renderer: {
+          blendMode: "alpha",
+        },
+        rotationOverLifetime: {
+          enabled: true,
+          angularVelocity: 2,
+        },
+      }),
+    );
+
+    const frame = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 12 / 60,
+    });
+
+    expect(frame.valid).toBe(true);
+    expect(frame.diagnostics).toEqual([]);
+
+    const [batchWrite] = fixture.writes.filter((write) =>
+      write.label.startsWith("Particle/BurstBatch/"),
+    );
+    expect(batchWrite).toBeDefined();
+
+    const upload = bytesUpload(batchWrite!);
+    const floats = new Float32Array(
+      upload.buffer,
+      upload.byteOffset,
+      upload.byteLength / 4,
+    );
+
+    expect(floats[10]).toBeCloseTo(0.5, 6);
+    expect(floats[11]).toBeCloseTo(2, 6);
   });
 
   it("batches adjacent compatible burst emitters into one shared draw", async () => {
@@ -1362,7 +1554,8 @@ describe("GPU particle app frame resources", () => {
 
     expect(reused.valid).toBe(true);
     expect(reused.report.statesReused).toBeGreaterThanOrEqual(3);
-    expect(reusedBatchWrites).toHaveLength(1);
+    expect(reusedBatchWrites).toHaveLength(2);
+    expect(reusedBatchWrites[1]?.size).toBe(6 * 12 * 4);
     expect(paramWrites).toMatchObject([{ size: 108 * 4 }, { size: 108 * 4 }]);
     const firstParamBytes = bytesUpload(paramWrites[0]);
     const firstParams = new Float32Array(
@@ -1395,7 +1588,7 @@ describe("GPU particle app frame resources", () => {
     ).toBe(true);
   });
 
-  it("splits burst batch draws around freed slot gaps", async () => {
+  it("compacts gapped burst batches into one draw", async () => {
     const effect = createParticleEffectHandle("gapped-smoke-burst");
     const assets = new AssetRegistry();
     const cache = createWebGpuAppResourceCache();
@@ -1506,6 +1699,7 @@ describe("GPU particle app frame resources", () => {
         particleEmitters: 2,
       },
     };
+    const writesBeforeGapped = fixture.writes.length;
     const gapped = await prepareParticleFrameResourcesForSnapshot({
       app: createParticleAppContext(fixture.device),
       assets,
@@ -1527,19 +1721,19 @@ describe("GPU particle app frame resources", () => {
         kind: "draw",
         renderId: 99,
         vertexCount: 6,
-        instanceCount: 3,
+        instanceCount: 6,
         firstVertex: 0,
         firstInstance: 0,
       },
-      {
-        kind: "draw",
-        renderId: 99,
-        vertexCount: 6,
-        instanceCount: 3,
-        firstVertex: 0,
-        firstInstance: 6,
-      },
     ]);
+    const gappedWrites = fixture.writes.slice(writesBeforeGapped);
+    const compactedBatchWrite = gappedWrites.find(
+      (write) =>
+        write.label.startsWith("Particle/BurstBatch/") &&
+        write.dataOffset === 0 &&
+        write.size === 6 * 12 * 4,
+    );
+    expect(compactedBatchWrite).toBeDefined();
   });
 
   it("reports per-frame particle texture and sampler reuse deltas", async () => {
