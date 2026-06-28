@@ -56,3 +56,6 @@ references/
 
 # Node module compile cache (NODE_COMPILE_CACHE) build artifact.
 node-compile-cache/
+
+# Local CodeGraph index.
+.codegraph/
