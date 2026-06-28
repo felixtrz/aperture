@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Badge, MonoTag } from "lumin";
 import type { ShowcaseEntry } from "../content/showcases.js";
+import { useMessages } from "../i18n/react.js";
 
 export interface ShowcaseCardsProps {
   readonly showcases: readonly ShowcaseEntry[];
@@ -16,6 +17,7 @@ function withBase(href: string) {
 }
 
 export function ShowcaseCards({ showcases }: ShowcaseCardsProps) {
+  const m = useMessages();
   const [activeShowcaseId, setActiveShowcaseId] = useState(
     showcases[0]?.id ?? "",
   );
@@ -27,49 +29,66 @@ export function ShowcaseCards({ showcases }: ShowcaseCardsProps) {
     return null;
   }
 
+  // Localized copy overlays the structural manifest entry; English fields stay
+  // as the fallback when a translation is missing.
+  const localize = (showcase: ShowcaseEntry) => {
+    const copy = m.showcases.items[showcase.id];
+    return {
+      name: copy?.name ?? showcase.name,
+      description: copy?.description ?? showcase.description,
+      capabilities: copy?.capabilities ?? showcase.capabilities,
+      statusLabel: m.showcases.status[showcase.status] ?? showcase.status,
+    };
+  };
+
+  const activeCopy = localize(activeShowcase);
+
   return (
     <section className="docs-browser" aria-label="Showcase browser">
       <aside className="docs-browser-sidebar" aria-label="Showcase list">
         <div className="docs-browser-sidebar-header">
-          <span>Showcases</span>
+          <span>{m.showcases.sidebarTitle}</span>
           <strong>{showcases.length}</strong>
         </div>
         <div className="docs-browser-list">
-          {showcases.map((showcase) => (
-            <button
-              key={showcase.id}
-              className="docs-browser-item"
-              data-active={String(showcase.id === activeShowcase.id)}
-              type="button"
-              onClick={() => setActiveShowcaseId(showcase.id)}
-            >
-              <span className="docs-browser-item-title">
-                <span>{showcase.name}</span>
-                <Badge tone={showcase.status === "active" ? "ok" : "warn"} dot>
-                  {showcase.status}
-                </Badge>
-              </span>
-              <span className="docs-browser-item-description">
-                {showcase.description}
-              </span>
-            </button>
-          ))}
+          {showcases.map((showcase) => {
+            const copy = localize(showcase);
+            return (
+              <button
+                key={showcase.id}
+                className="docs-browser-item"
+                data-active={String(showcase.id === activeShowcase.id)}
+                type="button"
+                onClick={() => setActiveShowcaseId(showcase.id)}
+              >
+                <span className="docs-browser-item-title">
+                  <span>{copy.name}</span>
+                  <Badge tone={showcase.status === "active" ? "ok" : "warn"} dot>
+                    {copy.statusLabel}
+                  </Badge>
+                </span>
+                <span className="docs-browser-item-description">
+                  {copy.description}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </aside>
 
       <div className="docs-browser-preview">
         <div className="docs-browser-frame-header">
           <div>
-            <h2>{activeShowcase.name}</h2>
-            <p>{activeShowcase.description}</p>
+            <h2>{activeCopy.name}</h2>
+            <p>{activeCopy.description}</p>
           </div>
           <div className="docs-actions">
-            <a href={withBase(activeShowcase.href)}>Open</a>
-            <a href={activeShowcase.sourceHref}>Source</a>
+            <a href={withBase(activeShowcase.href)}>{m.showcases.open}</a>
+            <a href={activeShowcase.sourceHref}>{m.showcases.source}</a>
           </div>
         </div>
         <div className="docs-tag-row">
-          {activeShowcase.capabilities.map((capability) => (
+          {activeCopy.capabilities.map((capability) => (
             <MonoTag key={capability}>{capability}</MonoTag>
           ))}
         </div>
@@ -77,7 +96,7 @@ export function ShowcaseCards({ showcases }: ShowcaseCardsProps) {
           allow="fullscreen; gamepad; webgpu"
           className="docs-browser-frame"
           src={withBase(activeShowcase.href)}
-          title={`${activeShowcase.name} showcase`}
+          title={`${activeCopy.name} showcase`}
         />
       </div>
     </section>

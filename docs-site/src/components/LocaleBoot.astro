@@ -1,0 +1,76 @@
+---
+// Runs before first paint so the document is tagged with the resolved locale
+// (saved preference, otherwise the browser's languages) ahead of any text
+// swap. Kept dependency-free and inline so it executes synchronously in <head>.
+// The detection logic mirrors src/i18n/locale.ts.
+---
+
+<script is:inline>
+  (function () {
+    var STORAGE_KEY = "aperture-docs-locale";
+
+    function normalize(value) {
+      if (!value) return null;
+      var tag = String(value).trim().toLowerCase();
+      if (!tag) return null;
+      if (
+        tag === "en" ||
+        tag.indexOf("en-") === 0 ||
+        tag.indexOf("en_") === 0 ||
+        tag === "english"
+      ) {
+        return "en";
+      }
+      if (
+        tag === "zh" ||
+        tag.indexOf("zh-") === 0 ||
+        tag.indexOf("zh_") === 0 ||
+        tag.indexOf("hans") !== -1 ||
+        tag.indexOf("hant") !== -1 ||
+        tag.indexOf("chinese") !== -1
+      ) {
+        return "zh";
+      }
+      return null;
+    }
+
+    var locale = null;
+    try {
+      locale = normalize(window.localStorage.getItem(STORAGE_KEY));
+    } catch (error) {
+      locale = null;
+    }
+
+    if (!locale) {
+      var languages =
+        navigator.languages && navigator.languages.length > 0
+          ? navigator.languages
+          : [navigator.language];
+      for (var index = 0; index < languages.length; index += 1) {
+        var resolved = normalize(languages[index]);
+        if (resolved) {
+          locale = resolved;
+          break;
+        }
+      }
+    }
+
+    if (!locale) locale = "en";
+
+    var root = document.documentElement;
+    root.setAttribute("data-locale", locale);
+    root.setAttribute("lang", locale === "zh" ? "zh-Hans" : "en");
+  })();
+</script>
+
+<style is:global>
+  /*
+   * The static HTML ships in English (the build default). When a non-default
+   * locale is detected, hide translatable text until the runtime has swapped it
+   * so visitors never see a flash of English. English visitors match the build
+   * and are never hidden.
+   */
+  html[data-locale="zh"]:not([data-i18n-ready]) [data-i18n] {
+    visibility: hidden;
+  }
+</style>

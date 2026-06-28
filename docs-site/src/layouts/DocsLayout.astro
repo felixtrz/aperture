@@ -2,6 +2,10 @@
 import "lumin/styles.css";
 import "lumin/fonts.css";
 import "../styles/docs.css";
+import LocaleBoot from "../components/LocaleBoot.astro";
+import LanguageToggle from "../components/LanguageToggle.astro";
+import { DEFAULT_LOCALE } from "../i18n/locale.js";
+import { getMessages } from "../i18n/messages.js";
 
 interface Props {
   title: string;
@@ -12,10 +16,11 @@ interface Props {
 const { title, description, mainClass = "" } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
+const m = getMessages(DEFAULT_LOCALE);
 const navItems = [
-  ["About", "about/"],
-  ["Showcases", "showcases/"],
-  ["Examples", "examples/"],
+  { key: "nav.about", label: m.nav.about, href: "about/" },
+  { key: "nav.showcases", label: m.nav.showcases, href: "showcases/" },
+  { key: "nav.examples", label: m.nav.examples, href: "examples/" },
 ] as const;
 ---
 
@@ -27,6 +32,7 @@ const navItems = [
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href={withBase("aperture.svg")} />
+    <LocaleBoot />
   </head>
   <body class="docs-body">
     <header class="docs-topbar">
@@ -34,16 +40,21 @@ const navItems = [
         <img src={withBase("aperture.svg")} alt="" />
         <span>
           <strong>Aperture</strong>
-          <small>3D engine for the agentic age.</small>
+          <small data-i18n="nav.tagline">3D engine for the agentic age.</small>
         </span>
       </a>
       <nav class="docs-nav" aria-label="Site navigation">
         {
-          navItems.map(([label, href]) => (
-            <a href={withBase(href)}>{label}</a>
+          navItems.map(({ key, label, href }) => (
+            <a href={withBase(href)} data-i18n={key}>
+              {label}
+            </a>
           ))
         }
-        <a href="https://github.com/felixtrz/aperture">GitHub</a>
+        <a href="https://github.com/felixtrz/aperture" data-i18n="nav.github">
+          GitHub
+        </a>
+        <LanguageToggle variant="docs" />
       </nav>
     </header>
     <main class:list={["docs-main", mainClass]}>

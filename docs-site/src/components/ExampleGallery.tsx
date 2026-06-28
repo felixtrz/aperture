@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { Badge, Input, MonoTag } from "lumin";
+import { useMessages } from "../i18n/react.js";
 
 export interface ExampleEntry {
   readonly id: string;
@@ -35,10 +36,13 @@ export function ExampleGallery({
   // Internal conformance fixtures (render-target / MSAA / multi-camera
   // permutations) stay in the manifest for tooling but are kept out of the
   // public gallery so it reads as a curated showcase.
+  const m = useMessages();
   const examples = useMemo(
     () => allExamples.filter((example) => example.internal !== true),
     [allExamples],
   );
+  const categoryLabel = (value: string) =>
+    value === "All" ? m.examples.all : (m.examples.categories[value] ?? value);
   const defaultExample =
     examples.find((example) => example.id === defaultExampleId) ?? examples[0];
   const [query, setQuery] = useState("");
@@ -108,8 +112,8 @@ export function ExampleGallery({
           onSubmit={(event) => event.preventDefault()}
         >
           <Input
-            aria-label="Search examples"
-            placeholder="Search examples"
+            aria-label={m.examples.searchLabel}
+            placeholder={m.examples.searchPlaceholder}
             value={query}
             onChange={handleQueryChange}
           />
@@ -123,7 +127,7 @@ export function ExampleGallery({
               type="button"
               onClick={() => setCategory(item)}
             >
-              {item}
+              {categoryLabel(item)}
             </button>
           ))}
         </div>
@@ -132,7 +136,7 @@ export function ExampleGallery({
       <section className="docs-browser" aria-label="Example browser">
         <aside className="docs-browser-sidebar" aria-label="Example list">
           <div className="docs-browser-sidebar-header">
-            <span>Examples</span>
+            <span>{m.examples.sidebarTitle}</span>
             <strong>
               {visibleExamples.length}/{examples.length}
             </strong>
@@ -152,7 +156,7 @@ export function ExampleGallery({
                 >
                   <span className="docs-browser-item-title">
                     <span>{example.title}</span>
-                    <Badge tone="mcp">{example.category}</Badge>
+                    <Badge tone="mcp">{categoryLabel(example.category)}</Badge>
                   </span>
                   <span className="docs-browser-item-description">
                     {example.file}
@@ -172,12 +176,12 @@ export function ExampleGallery({
               </p>
             </div>
             <div className="docs-actions">
-              <a href={withBase(activeExample.href)}>Open</a>
-              <a href={activeExample.localDevUrl}>Local</a>
+              <a href={withBase(activeExample.href)}>{m.examples.open}</a>
+              <a href={activeExample.localDevUrl}>{m.examples.local}</a>
               <a
                 href={`https://github.com/felixtrz/aperture/tree/main/${activeExample.sourceFiles[0]}`}
               >
-                Source
+                {m.examples.source}
               </a>
             </div>
           </div>

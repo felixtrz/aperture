@@ -2,122 +2,39 @@
 import DocsLayout from "../../layouts/DocsLayout.astro";
 import { ReferenceSearch } from "../../components/ReferenceSearch";
 import referenceAssetsPackage from "../../../../packages/reference-assets/package.json";
+import { DEFAULT_LOCALE } from "../../i18n/locale.js";
+import { getMessages } from "../../i18n/messages.js";
 
-interface EngineFact {
-  readonly id: string;
-  readonly title: string;
-  readonly status: string;
-  readonly summary: string;
-  readonly points: readonly string[];
-}
+const m = getMessages(DEFAULT_LOCALE);
 
-interface Assumption {
-  readonly id: string;
-  readonly index: string;
-  readonly title: string;
-  readonly status: "validated" | "open" | "contested";
-  readonly statusLabel: string;
-  readonly summary: string;
-}
+// Anchor ids and the non-translated index/status metadata stay here; the visible
+// copy is sourced from the locale catalog so it can be swapped at runtime.
+const factIds = [
+  "ecs-source",
+  "worker-runtime",
+  "webgpu-renderer",
+  "agent-tooling",
+] as const;
 
-const engineFacts: readonly EngineFact[] = [
-  {
-    id: "ecs-source",
-    title: "ECS is authoritative",
-    status: "Implemented",
-    summary:
-      "Gameplay state lives in ECS. Rendering, input, physics, and tooling read from that data boundary instead of a renderer-owned scene graph.",
-    points: [
-      "Entities, transforms, hierarchy, resources, and gameplay state are ECS data.",
-      "Rendering is derived from extracted snapshots.",
-      "The renderer does not own authoritative game objects.",
-    ],
-  },
-  {
-    id: "worker-runtime",
-    title: "Worker-first runtime",
-    status: "Implemented",
-    summary:
-      "The default browser shape keeps simulation portable to a worker while the main thread owns the canvas, WebGPU, input, and UI.",
-    points: [
-      "Simulation and extraction can run off the main thread.",
-      "Render snapshots are structured data passed across the boundary.",
-      "The split makes deterministic stepping and inspection easier.",
-    ],
-  },
-  {
-    id: "webgpu-renderer",
-    title: "WebGPU-only renderer",
-    status: "Implemented",
-    summary:
-      "Aperture targets the modern browser GPU stack directly, including materials, shadows, post effects, readback, and diagnostics.",
-    points: [
-      "No WebGL fallback in the core renderer.",
-      "Examples exercise cameras, lighting, materials, physics, particles, and UI.",
-      "Showcase apps prove the path beyond small demos.",
-    ],
-  },
-  {
-    id: "agent-tooling",
-    title: "Agent-readable tooling",
-    status: "Active thesis",
-    summary:
-      "The engine is built around structured diagnostics, generated API references, runtime inspection, and reproducible routes.",
-    points: [
-      "Errors should explain what failed and what to inspect next.",
-      "Examples and showcases double as verification surfaces.",
-      "Reference search gives agents and humans the same indexed corpus.",
-    ],
-  },
-];
+const assumptionMeta = [
+  { id: "solo-plus-agents", index: "01", status: "validated" },
+  { id: "agent-native-tooling", index: "02", status: "open" },
+  { id: "worker-default", index: "03", status: "open" },
+  { id: "headless-agent-work", index: "04", status: "open" },
+  { id: "ecosystem-moat", index: "05", status: "open" },
+] as const;
 
-const assumptions: readonly Assumption[] = [
-  {
-    id: "solo-plus-agents",
-    index: "01",
-    title: "Building a 3D engine is becoming a one-person job",
-    status: "validated",
-    statusLabel: "Validated",
-    summary:
-      "Agents can carry enough implementation, migration, and verification work that a single developer can own engine-scale scope. The open question is how far that holds under production pressure.",
-  },
-  {
-    id: "agent-native-tooling",
-    index: "02",
-    title: "Agent-native structure can beat training-data familiarity",
-    status: "open",
-    statusLabel: "Active thesis",
-    summary:
-      "For hard iterative work, inspectable state, deterministic checks, and machine-readable diagnostics may matter more than ecosystem popularity.",
-  },
-  {
-    id: "worker-default",
-    index: "03",
-    title: "Web 3D should be worker-first by default",
-    status: "open",
-    statusLabel: "Active thesis",
-    summary:
-      "Keeping simulation off the main thread improves responsiveness and gives tools a clean data boundary to step, diff, and replay.",
-  },
-  {
-    id: "headless-agent-work",
-    index: "04",
-    title: "Agentic 3D work moves toward headless validation",
-    status: "open",
-    statusLabel: "Active thesis",
-    summary:
-      "Agents should be able to change ECS systems and validate state before paying the cost of browser and GPU rendering.",
-  },
-  {
-    id: "ecosystem-moat",
-    index: "05",
-    title: "The ecosystem moat may weaken",
-    status: "open",
-    statusLabel: "Active thesis",
-    summary:
-      "If agents can study and port ideas quickly, engine architecture may matter more, though mature ecosystems still matter a lot today.",
-  },
-];
+const facts = m.about.facts.map((fact, index) => ({
+  ...fact,
+  id: factIds[index] ?? "",
+}));
+
+const assumptions = m.about.assumptions.map((assumption, index) => ({
+  ...assumption,
+  id: assumptionMeta[index]?.id ?? "",
+  index: assumptionMeta[index]?.index ?? "",
+  status: assumptionMeta[index]?.status ?? "open",
+}));
 ---
 
 <DocsLayout
@@ -126,9 +43,9 @@ const assumptions: readonly Assumption[] = [
 >
   <section class="about-section about-intro" aria-labelledby="what-it-is">
     <div class="about-section-head">
-      <p class="docs-eyebrow">About</p>
-      <h1 id="what-it-is">What Aperture is.</h1>
-      <p>
+      <p class="docs-eyebrow" data-i18n="about.eyebrow">About</p>
+      <h1 id="what-it-is" data-i18n="about.heading">What Aperture is.</h1>
+      <p data-i18n="about.intro">
         Aperture is a WebGPU-only, ECS-native 3D runtime built around a simple
         architecture: ECS is authoritative, rendering is derived from
         snapshots, simulation can live in a worker, and coding agents are
@@ -144,6 +61,7 @@ const assumptions: readonly Assumption[] = [
             type="button"
             aria-label="Copy command"
             title="Copy command"
+            data-i18n-attr="aria-label:about.copyCommand;title:about.copyCommand"
             data-command="npx @aperture-engine/cli create my-app"
           >
             <svg
@@ -161,16 +79,20 @@ const assumptions: readonly Assumption[] = [
 
     <div class="docs-section-grid about-fact-grid">
       {
-        engineFacts.map((fact) => (
+        facts.map((fact, index) => (
           <article class="docs-panel about-fact-card" id={fact.id}>
             <div class="about-card-head">
-              <h3>{fact.title}</h3>
-              <span>{fact.status}</span>
+              <h3 data-i18n={`about.facts.${index}.title`}>{fact.title}</h3>
+              <span data-i18n={`about.facts.${index}.status`}>
+                {fact.status}
+              </span>
             </div>
-            <p>{fact.summary}</p>
+            <p data-i18n={`about.facts.${index}.summary`}>{fact.summary}</p>
             <ul>
-              {fact.points.map((point) => (
-                <li>{point}</li>
+              {fact.points.map((point, pointIndex) => (
+                <li data-i18n={`about.facts.${index}.points.${pointIndex}`}>
+                  {point}
+                </li>
               ))}
             </ul>
           </article>
@@ -181,9 +103,11 @@ const assumptions: readonly Assumption[] = [
 
   <section class="about-section" aria-labelledby="assumptions">
     <div class="about-section-head">
-      <p class="docs-eyebrow">Assumptions</p>
-      <h2 id="assumptions">The bets being tested.</h2>
-      <p>
+      <p class="docs-eyebrow" data-i18n="about.assumptionsEyebrow">Assumptions</p>
+      <h2 id="assumptions" data-i18n="about.assumptionsHeading">
+        The bets being tested.
+      </h2>
+      <p data-i18n="about.assumptionsIntro">
         Aperture began as research, so these are intentionally short working
         hypotheses, not launch claims. Some of them may be wrong.
       </p>
@@ -191,16 +115,24 @@ const assumptions: readonly Assumption[] = [
 
     <ol class="docs-section-grid assumption-list">
       {
-        assumptions.map((assumption) => (
+        assumptions.map((assumption, index) => (
           <li class="docs-panel assumption-card" id={assumption.id}>
             <div class="about-card-head">
               <span class="assumption-index">{assumption.index}</span>
-              <span class="assumption-status" data-status={assumption.status}>
+              <span
+                class="assumption-status"
+                data-status={assumption.status}
+                data-i18n={`about.assumptions.${index}.statusLabel`}
+              >
                 {assumption.statusLabel}
               </span>
             </div>
-            <h3>{assumption.title}</h3>
-            <p>{assumption.summary}</p>
+            <h3 data-i18n={`about.assumptions.${index}.title`}>
+              {assumption.title}
+            </h3>
+            <p data-i18n={`about.assumptions.${index}.summary`}>
+              {assumption.summary}
+            </p>
           </li>
         ))
       }
@@ -209,9 +141,11 @@ const assumptions: readonly Assumption[] = [
 
   <section class="about-section about-search" aria-labelledby="search">
     <div class="about-section-head">
-      <p class="docs-eyebrow">Search</p>
-      <h2 id="search">Transformer-powered search.</h2>
-      <p>
+      <p class="docs-eyebrow" data-i18n="about.searchEyebrow">Search</p>
+      <h2 id="search" data-i18n="about.searchHeading">
+        Transformer-powered search.
+      </h2>
+      <p data-i18n="about.searchIntro">
         The reference index is part of the experiment: humans and agents can
         search the same generated docs, public APIs, examples, diagnostics, and
         curated source chunks.

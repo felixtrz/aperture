@@ -1,4 +1,7 @@
 ---
+import LocaleBoot from "../components/LocaleBoot.astro";
+import LanguageToggle from "../components/LanguageToggle.astro";
+
 const base = import.meta.env.BASE_URL;
 const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
 ---
@@ -13,6 +16,7 @@ const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
     />
     <title>Aperture — the agent-first 3D engine</title>
     <link rel="icon" type="image/svg+xml" href={withBase("aperture.svg")} />
+    <LocaleBoot />
     <style is:global>
       :root {
         color-scheme: dark;
@@ -226,6 +230,43 @@ const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
       #nav .links a:focus-visible {
         outline: 2px solid rgba(255, 255, 255, 0.72);
         outline-offset: 3px;
+      }
+      #nav .lang-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        padding: 2px;
+        background: var(--glass);
+        border: 1px solid var(--hairline);
+        border-radius: 999px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        pointer-events: auto;
+      }
+      #nav .lang-toggle .lang-option {
+        min-height: 28px;
+        padding: 0 11px;
+        color: #fff;
+        background: transparent;
+        border: 0;
+        border-radius: 999px;
+        font: var(--ui);
+        opacity: 0.78;
+        cursor: pointer;
+        transition:
+          opacity 0.16s ease,
+          background 0.16s ease;
+      }
+      #nav .lang-toggle .lang-option:hover {
+        opacity: 1;
+      }
+      #nav .lang-toggle .lang-option:focus-visible {
+        outline: 2px solid rgba(255, 255, 255, 0.72);
+        outline-offset: 2px;
+      }
+      #nav .lang-toggle .lang-option[data-active="true"] {
+        opacity: 1;
+        background: rgba(255, 255, 255, 0.16);
       }
       #nav .mobile-hero {
         display: none;
@@ -583,7 +624,9 @@ const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
           <img src={withBase("aperture.svg")} alt="" />
           <span class="brand-copy">
             <span class="brand-name">Aperture</span>
-            <span class="brand-tagline">3D engine for the agentic age.</span>
+            <span class="brand-tagline" data-i18n="nav.tagline">
+              3D engine for the agentic age.
+            </span>
           </span>
         </span>
         <button
@@ -598,13 +641,18 @@ const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
         </button>
       </span>
       <span id="nav-links" class="links">
-        <a href={withBase("about/")}>About</a>
-        <a href={withBase("examples/")}>Examples</a>
-        <a href={withBase("showcases/")}>Showcases</a>
-        <a href="https://github.com/felixtrz/aperture">GitHub</a>
+        <a href={withBase("about/")} data-i18n="nav.about">About</a>
+        <a href={withBase("examples/")} data-i18n="nav.examples">Examples</a>
+        <a href={withBase("showcases/")} data-i18n="nav.showcases">Showcases</a>
+        <a href="https://github.com/felixtrz/aperture" data-i18n="nav.github">
+          GitHub
+        </a>
+        <LanguageToggle variant="landing" />
       </span>
       <span class="mobile-hero">
-        <span class="mobile-tagline">3D engine for the agentic age.</span>
+        <span class="mobile-tagline" data-i18n="nav.tagline">
+          3D engine for the agentic age.
+        </span>
         <span class="mobile-command">
           <span class="mobile-command-prompt" aria-hidden="true">$</span>
           <code>npx @aperture-engine/cli create my-app</code>
@@ -657,7 +705,24 @@ const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
         dispatchApertureHtmlEvent,
         observeApertureHtmlSlots,
       } from "@aperture-engine/app/browser";
+      import { getMessages } from "/src/i18n/messages.ts";
+      import { getCurrentLocale, onLocaleChange } from "/src/i18n/runtime.ts";
       import "virtual:aperture/browser-entry";
+
+      let activeLocale = getCurrentLocale();
+
+      // Resolve the localized label/title/body for a story moment, falling back
+      // to the English copy carried on the moment itself.
+      function momentCopy(moment) {
+        const copy = getMessages(activeLocale).hero.moments[moment.id];
+        return (
+          copy ?? {
+            label: moment.label,
+            title: moment.title,
+            body: moment.body,
+          }
+        );
+      }
 
       const segments = document.querySelector("#story-segments");
       const card = document.querySelector("#story-card");
@@ -914,8 +979,9 @@ const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
         const moment = HERO_STORY_MOMENTS[index];
         if (!moment) return;
         activeIndex = index;
-        title.textContent = moment.title;
-        body.textContent = moment.body;
+        const copy = momentCopy(moment);
+        title.textContent = copy.title;
+        body.textContent = copy.body;
         for (const [buttonIndex, button] of [
           ...segments.querySelectorAll(".story-segment"),
         ].entries()) {
@@ -923,6 +989,22 @@ const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
             "aria-current",
             String(buttonIndex === activeIndex),
           );
+        }
+      }
+
+      // Refresh the segment tablist labels (aria-label + visible label) for the
+      // active locale without rebuilding the buttons.
+      function updateSegmentsCopy() {
+        const buttons = [...segments.querySelectorAll(".story-segment")];
+        for (const [index, button] of buttons.entries()) {
+          const moment = HERO_STORY_MOMENTS[index];
+          if (!moment) continue;
+          const copy = momentCopy(moment);
+          button.setAttribute("aria-label", copy.title);
+          const labelSpan = button.querySelector("span");
+          if (labelSpan) {
+            labelSpan.textContent = copy.label;
+          }
         }
       }
 
@@ -1062,8 +1144,9 @@ const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
 
         let maxHeight = 0;
         for (const moment of HERO_STORY_MOMENTS) {
-          title.textContent = moment.title;
-          body.textContent = moment.body;
+          const copy = momentCopy(moment);
+          title.textContent = copy.title;
+          body.textContent = copy.body;
           maxHeight = Math.max(
             maxHeight,
             Math.ceil(card.getBoundingClientRect().height),
@@ -1081,11 +1164,14 @@ const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
       }
 
       for (const [index, moment] of HERO_STORY_MOMENTS.entries()) {
+        const copy = momentCopy(moment);
         const button = document.createElement("button");
         button.className = "story-segment";
         button.type = "button";
-        button.setAttribute("aria-label", moment.title);
-        button.innerHTML = `<span>${moment.label}</span>`;
+        button.setAttribute("aria-label", copy.title);
+        const labelSpan = document.createElement("span");
+        labelSpan.textContent = copy.label;
+        button.append(labelSpan);
         button.addEventListener("click", () => {
           navigateToIndex(index, { interrupt: true });
         });
@@ -1254,6 +1340,13 @@ const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
       });
       syncStoryPhase(true);
       primeInitialStoryPhase();
+
+      onLocaleChange((locale) => {
+        activeLocale = locale;
+        updateSegmentsCopy();
+        renderStory(activeIndex);
+        syncResponsiveLayout(true);
+      });
     </script>
   </body>
 </html>

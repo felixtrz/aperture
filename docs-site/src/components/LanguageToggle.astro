@@ -1,0 +1,46 @@
+---
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  LOCALE_NATIVE_LABEL,
+  LOCALE_SHORT_LABEL,
+} from "../i18n/locale.js";
+import { getMessages } from "../i18n/messages.js";
+
+interface Props {
+  /** Styling context: the docs top bar or the landing page nav. */
+  readonly variant?: "docs" | "landing";
+}
+
+const { variant = "docs" } = Astro.props;
+const m = getMessages(DEFAULT_LOCALE);
+---
+
+<div
+  class:list={["lang-toggle", `lang-toggle--${variant}`]}
+  role="group"
+  aria-label={m.language.label}
+  data-i18n-attr="aria-label:language.label"
+>
+  {
+    LOCALES.map((locale) => (
+      <button
+        type="button"
+        class="lang-option"
+        lang={locale === "zh" ? "zh-Hans" : "en"}
+        data-locale-option={locale}
+        data-active={String(locale === DEFAULT_LOCALE)}
+        aria-pressed={String(locale === DEFAULT_LOCALE)}
+        title={LOCALE_NATIVE_LABEL[locale]}
+      >
+        {LOCALE_SHORT_LABEL[locale]}
+      </button>
+    ))
+  }
+</div>
+
+<script>
+  import { initI18n } from "../i18n/runtime.js";
+
+  initI18n();
+</script>

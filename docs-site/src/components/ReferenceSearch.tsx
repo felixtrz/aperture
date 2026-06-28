@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { Badge, Input, MonoTag } from "lumin";
+import { useMessages } from "../i18n/react.js";
 
 interface ReferenceModelFile {
   readonly relativePath: string;
@@ -128,10 +129,13 @@ let embedderPromise: Promise<
 > | null = null;
 
 export function ReferenceSearch({ assetsVersion }: ReferenceSearchProps) {
+  const m = useMessages();
   const [query, setQuery] = useState("");
   const [sourceCategory, setSourceCategory] = useState("any");
   const [status, setStatus] = useState<SearchStatus>("idle");
-  const [statusText, setStatusText] = useState("Ready");
+  // `null` means "no explicit status yet"; render the localized idle label so
+  // the status reflects the active locale even before the first search.
+  const [statusText, setStatusText] = useState<string | null>(null);
   const [results, setResults] = useState<readonly ReferenceSearchResult[]>([]);
   const [activeAsset, setActiveAsset] =
     useState<LoadedReferenceSearchAsset | null>(null);
@@ -157,17 +161,17 @@ export function ReferenceSearch({ assetsVersion }: ReferenceSearchProps) {
       setResults([]);
       setModelProgress(null);
       setStatus("idle");
-      setStatusText("Ready");
+      setStatusText(null);
       return;
     }
 
     try {
       setModelProgress(null);
       setStatus("loading");
-      setStatusText("Loading reference corpus");
+      setStatusText(m.reference.loadingCorpus);
       const loaded = await loadReferenceSearchAsset(assetsVersion);
       setActiveAsset(loaded);
-      setStatusText("Loading embedding model");
+      setStatusText(m.reference.loadingModel);
       const embed = await loadQueryEmbedder(loaded.asset.model, (progress) => {
         const nextProgress = formatModelLoadProgress(progress);
 
@@ -177,9 +181,9 @@ export function ReferenceSearch({ assetsVersion }: ReferenceSearchProps) {
         }
       });
       setModelProgress(null);
-      setStatusText("Embedding query");
+      setStatusText(m.reference.embedding);
       const queryEmbedding = await embed(normalizedQuery);
-      setStatusText("Ranking results");
+      setStatusText(m.reference.ranking);
       const nextResults = searchAsset(loaded, {
         query: normalizedQuery,
         queryEmbedding,
@@ -191,8 +195,8 @@ export function ReferenceSearch({ assetsVersion }: ReferenceSearchProps) {
       setStatus("ready");
       setStatusText(
         nextResults.length === 0
-          ? "No matching references"
-          : `${nextResults.length} references`,
+          ? m.reference.noResults
+          : m.reference.results(nextResults.length),
       );
     } catch (error) {
       setModelProgress(null);
@@ -205,15 +209,12 @@ export function ReferenceSearch({ assetsVersion }: ReferenceSearchProps) {
     <section className="api-reference-search">
       <div className="api-reference-search-header">
         <div>
-          <p>
-            Enter a question or capability and rank matches with the pinned
-            local embedding contract.
-          </p>
+          <p>{m.reference.intro}</p>
         </div>
         <div className="api-reference-search-meta">
           <strong>
             {activeAsset?.asset.corpus.chunks.toLocaleString() ?? "3,374"}{" "}
-            chunks
+            {m.reference.chunksSuffix}
           </strong>
           <span>
             {activeAsset?.asset.model.model ??
@@ -224,15 +225,15 @@ export function ReferenceSearch({ assetsVersion }: ReferenceSearchProps) {
 
       <form className="api-reference-search-form" onSubmit={runSearch}>
         <Input
-          aria-label="Search Aperture references"
-          placeholder="Search systems, diagnostics, examples, materials..."
+          aria-label={m.reference.searchLabel}
+          placeholder={m.reference.placeholder}
           value={query}
           onChange={(event: ChangeEvent<HTMLInputElement>) =>
             setQuery(event.currentTarget.value)
           }
         />
         <button className="api-reference-search-submit" type="submit">
-          Search
+          {m.reference.search}
         </button>
       </form>
 
@@ -249,7 +250,7 @@ export function ReferenceSearch({ assetsVersion }: ReferenceSearchProps) {
               type="button"
               onClick={() => setSourceCategory(value)}
             >
-              {label}
+              {m.reference.filters[value] ?? label}
             </button>
           ))}
         </div>
@@ -270,9 +271,9 @@ export function ReferenceSearch({ assetsVersion }: ReferenceSearchProps) {
       </div>
 
       <p className="api-reference-search-status" data-status={status}>
-        {statusText}
+        {statusText ?? m.reference.ready}
         {results.length > 0 && sourceCategory !== "any"
-          ? ` · ${filteredResultCount} visible in filter`
+          ? ` · ${m.reference.visibleInFilter(filteredResultCount)}`
           : ""}
       </p>
       {modelProgress !== null ? (
