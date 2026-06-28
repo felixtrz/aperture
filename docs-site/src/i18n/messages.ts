@@ -312,7 +312,7 @@ const zh: Messages = {
       "ecs-native": {
         label: "ECS",
         title: "原生 ECS，而非场景图",
-        body: "你的游戏状态是渲染器读取的纯数据，而不是你手动改动的可变对象树。实体与组件是权威来源，渲染只是派生出的快照。正是这一设计让 Aperture 快速、可并行、对智能体友好，也是场景图引擎无法事后补上的。",
+        body: "你的游戏状态是渲染器读取的纯数据，而不是你手动改动的可变对象树。实体与组件是权威来源，渲染只是派生出的快照。正是这一设计让 Aperture 快速、可并行、对智能体友好，也是场景图引擎事后无法改造的。",
       },
       "agent-first": {
         label: "智能体",
@@ -322,12 +322,12 @@ const zh: Messages = {
       multithreaded: {
         label: "Worker",
         title: "默认多线程",
-        body: "在 Web 上你一直都在主线程编码。而在这里，你在 Worker 中编码，主线程交给渲染器。模拟开箱即用地运行在主线程之外，快照边界也已为你解决。你的游戏逻辑再也不会拖垮帧率。",
+        body: "在 Web 上你一直都在主线程编码。而在这里，你在 Worker 中编码，主线程交给渲染器。模拟开箱即用，默认运行在主线程之外，快照边界也已为你解决。你的游戏逻辑再也不会拖累帧率。",
       },
       "webgpu-rendering": {
         label: "WebGPU",
-        title: "顶尖的 WebGPU 渲染",
-        body: "所绘制的一切都没有 WebGL 时代的妥协。基于物理的材质、真实面光源、聚簇光照、级联阴影、基于图像的光照，以及现代后期处理栈：TAA、泛光、SSAO、SSR，自始至终构建于 WebGPU 之上。",
+        title: "最先进的 WebGPU 渲染",
+        body: "所绘制的一切都没有 WebGL 时代的妥协。基于物理的材质、真实面光源、聚簇光照、级联阴影、基于图像的光照，以及一整套现代后处理效果：TAA、泛光、SSAO、SSR，自始至终构建于 WebGPU 之上。",
       },
     }),
   },
@@ -364,7 +364,7 @@ const zh: Messages = {
         title: "纯 WebGPU 渲染器",
         status: "已实现",
         summary:
-          "Aperture 直接面向现代浏览器 GPU 栈，涵盖材质、阴影、后期效果、回读和诊断。",
+          "Aperture 直接面向现代浏览器的 GPU 技术栈，涵盖材质、阴影、后处理效果、回读和诊断。",
         points: [
           "核心渲染器没有 WebGL 回退。",
           "示例覆盖相机、光照、材质、物理、粒子和 UI。",
@@ -378,7 +378,7 @@ const zh: Messages = {
           "引擎围绕结构化诊断、生成式 API 参考、运行时检查和可复现路由而构建。",
         points: [
           "错误信息应说明失败原因以及接下来该检查什么。",
-          "示例和案例同时充当验证面。",
+          "示例和案例既是演示，也是验证场景。",
           "参考检索为智能体与人类提供同一份索引语料。",
         ],
       },
@@ -386,13 +386,13 @@ const zh: Messages = {
     assumptionsEyebrow: "假设",
     assumptionsHeading: "正在验证的赌注。",
     assumptionsIntro:
-      "Aperture 始于研究，因此这些是有意写得简短的工作假设，而非发布宣言。其中有些可能是错的。",
+      "Aperture 始于研究，因此这些是有意写得简短的工作假设，而非营销话术。其中有些可能是错的。",
     assumptions: [
       {
         title: "构建 3D 引擎正在变成一个人的工作",
         statusLabel: "已验证",
         summary:
-          "智能体可以承担足够多的实现、迁移和验证工作，使单个开发者就能掌控引擎规模的范畴。悬而未决的问题是，这在生产压力下能坚持多久。",
+          "智能体可以承担足够多的实现、迁移和验证工作，使单个开发者就能独自掌控引擎规模的工作范围。悬而未决的是，这一点在生产环境的压力下能成立到什么程度。",
       },
       {
         title: "智能体原生的结构可以胜过训练数据的熟悉度",
@@ -432,7 +432,7 @@ const zh: Messages = {
     items: {
       "city-builder": {
         name: "城市建造",
-        description: "一个类工具的场景，用于 ECS 编排的摆放、选择和城市规模的组合。",
+        description: "一个类工具的场景，用于 ECS 编排的放置、选择和城市规模的组合。",
         capabilities: ["ECS 编排", "布局工具", "3D 编辑"],
       },
       fps: {
@@ -447,7 +447,7 @@ const zh: Messages = {
       },
       racing: {
         name: "竞速",
-        description: "一个性能密集的驾驶场景，用于渲染节奏、动态网格、粒子、阴影和音频。",
+        description: "一个对性能要求较高的驾驶场景，用于考验渲染节奏、动态网格、粒子、阴影和音频。",
         capabilities: ["渲染节奏", "粒子", "阴影", "音频"],
       },
     },
@@ -470,11 +470,11 @@ const zh: Messages = {
       Materials: "材质",
       "Particles And UI": "粒子与 UI",
       Physics: "物理",
-      "Post Processing": "后期处理",
+      "Post Processing": "后处理",
     },
   },
   reference: {
-    intro: "输入一个问题或能力，并用固定的本地嵌入约定对匹配项排序。",
+    intro: "输入一个问题或能力，使用固定的本地嵌入模型对匹配项排序。",
     chunksSuffix: "个片段",
     placeholder: "搜索系统、诊断、示例、材质……",
     searchLabel: "搜索 Aperture 参考",
