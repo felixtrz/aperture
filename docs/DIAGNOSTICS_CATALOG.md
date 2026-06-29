@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1283
+Every structured diagnostic code the engine can emit (1285
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -6374,6 +6374,13 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                 | Message                                                                                       | Fix? | Emitted from                                                  |
 | ------------------------------------ | --------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------- |
 | `textureResource.uploadDataTooSmall` | Texture upload data for resource '…' mip level … must contain at least … byte(s); received …. | —    | `packages/webgpu/src/resources/textures/texture-resources.ts` |
+
+## ui.layout (2)
+
+| Code                      | Message                                             | Fix? | Emitted from                                  |
+| ------------------------- | --------------------------------------------------- | ---- | --------------------------------------------- |
+| `ui.layout.depthExceeded` | UI layout exceeded the maximum retained tree depth. | —    | `packages/ui/src/extraction/ecs-extractor.ts` |
+| `ui.layout.parentCycle`   | UI parent cycle detected; subtree skipped.          | —    | `packages/ui/src/extraction/ecs-extractor.ts` |
 
 ## uiFrame.createBindGroupUnavailable (1)
 

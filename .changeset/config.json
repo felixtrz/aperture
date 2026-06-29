@@ -11,6 +11,7 @@
       "@aperture-engine/physics",
       "@aperture-engine/physics-rapier",
       "@aperture-engine/render",
+      "@aperture-engine/ui",
       "@aperture-engine/runtime",
       "@aperture-engine/webgpu",
       "@aperture-engine/audio",
