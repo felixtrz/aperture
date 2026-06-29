@@ -92,10 +92,14 @@ describe("validateApertureConfig", () => {
               channels: 2,
             }),
             smoke: asset.particleEffect({
-              texture: "floorColor",
-              capacity: 1280,
-              lifetime: { min: 2.5, max: 2.5 },
-              blendMode: "alpha",
+              main: {
+                maxParticles: 1280,
+                startLifetime: { min: 2.5, max: 2.5 },
+              },
+              renderer: {
+                texture: "floorColor",
+                blendMode: "alpha",
+              },
             }),
           },
           audio: { autoUnlock: true },
@@ -172,8 +176,12 @@ describe("validateApertureConfig", () => {
           mode: "headless",
           assets: {
             smoke: asset.particleEffect({
-              texture: "9smoke",
-              capacity: 0,
+              main: {
+                maxParticles: 0,
+              },
+              renderer: {
+                texture: "9smoke",
+              },
             }),
           },
         }),
@@ -181,6 +189,81 @@ describe("validateApertureConfig", () => {
 
       expect(error.code).toBe("aperture.config.invalidParticleEffectAsset");
       expect(error.message).toContain("texture");
+    });
+
+    it("accepts a valid composite particle effect", () => {
+      expect(() =>
+        validateApertureConfig({
+          mode: "headless",
+          assets: {
+            smoke: asset.particleEffect({ main: { maxParticles: 16 } }),
+            sparks: asset.particleEffect({ main: { maxParticles: 16 } }),
+            explosion: asset.particleEffect({
+              type: "composite",
+              emitters: [
+                { effect: "smoke", delay: 0.05 },
+                { effect: "sparks", timeScale: 2 },
+              ],
+            }),
+          },
+        }),
+      ).not.toThrow();
+    });
+
+    it("rejects a raw composite descriptor that mixes leaf modules", () => {
+      // The typed asset.particleEffect() helper makes mixing a compile error and
+      // simply drops stray fields, so feed a raw descriptor to exercise the
+      // runtime mixing-rejection path in config validation.
+      const error = configError(() =>
+        validateApertureConfig({
+          mode: "headless",
+          assets: {
+            explosion: {
+              kind: "particle-effect",
+              preload: "manual",
+              version: 2,
+              type: "composite",
+              emitters: [{ effect: "smoke" }],
+              main: { maxParticles: 16 },
+            },
+          } as never,
+        }),
+      );
+
+      expect(error.code).toBe("aperture.config.invalidParticleEffectAsset");
+    });
+
+    it("rejects a composite with an invalid child effect reference", () => {
+      const error = configError(() =>
+        validateApertureConfig({
+          mode: "headless",
+          assets: {
+            explosion: asset.particleEffect({
+              type: "composite",
+              emitters: [{ effect: "9smoke" }],
+            }),
+          },
+        }),
+      );
+
+      expect(error.code).toBe("aperture.config.invalidParticleEffectAsset");
+      expect(error.message).toContain("effect");
+    });
+
+    it("rejects a composite without emitters", () => {
+      const error = configError(() =>
+        validateApertureConfig({
+          mode: "headless",
+          assets: {
+            explosion: asset.particleEffect({
+              type: "composite",
+              emitters: [],
+            }),
+          },
+        }),
+      );
+
+      expect(error.code).toBe("aperture.config.invalidParticleEffectAsset");
     });
 
     it("rejects asset descriptors with empty URLs", () => {

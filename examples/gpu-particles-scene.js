@@ -12,27 +12,47 @@ export const gpuParticlesReadbackSamples = [
 export function registerGpuParticlesScene(aperture, registry) {
   const effect = aperture.createParticleEffectHandle(gpuParticlesEffectId);
   const asset = aperture.createParticleEffectAsset({
+    version: 2,
     label: "GpuParticlesSparks",
-    capacity: gpuParticlesCapacity,
-    duration: 3,
-    looping: true,
-    emissionRate: 160,
-    lifetime: { min: 0.8, max: 1.8 },
-    startSpeed: { min: 0.35, max: 1.55 },
-    startSize: { min: 0.055, max: 0.34 },
-    startColor: [1, 0.34, 0.08, 0.92],
-    endColor: [0.08, 0.72, 1, 0.56],
-    gravity: [0, -0.1, 0],
-    sizeOverLifetime: [
-      { t: 0, value: 0.8 },
-      { t: 0.2, value: 1.5 },
-      { t: 1, value: 0.2 },
-    ],
-    colorOverLifetime: [
-      { t: 0, color: [1, 0.34, 0.08, 0.92] },
-      { t: 0.55, color: [0.18, 0.92, 1, 0.76] },
-      { t: 1, color: [0.08, 0.18, 1, 0] },
-    ],
+    main: {
+      maxParticles: gpuParticlesCapacity,
+      duration: 3,
+      loop: true,
+      prewarm: true,
+      startLifetime: { min: 0.8, max: 1.8 },
+      startSpeed: { min: 0.35, max: 1.55 },
+      startSize: { min: 0.055, max: 0.34 },
+      startColor: [1, 0.34, 0.08, 0.92],
+    },
+    emission: {
+      rateOverTime: 160,
+    },
+    forceOverLifetime: {
+      enabled: true,
+      force: [0, -0.1, 0],
+    },
+    sizeOverLifetime: {
+      enabled: true,
+      size: {
+        mode: "curve",
+        curve: [
+          { t: 0, value: 0.8 },
+          { t: 0.2, value: 1.5 },
+          { t: 1, value: 0.2 },
+        ],
+      },
+    },
+    colorOverLifetime: {
+      enabled: true,
+      color: {
+        mode: "gradient",
+        gradient: [
+          { t: 0, color: [1, 0.34, 0.08, 0.92] },
+          { t: 0.55, color: [0.18, 0.92, 1, 0.76] },
+          { t: 1, color: [0.08, 0.18, 1, 0] },
+        ],
+      },
+    },
     curveSampleCount: 16,
   });
 
@@ -45,8 +65,8 @@ export function registerGpuParticlesScene(aperture, registry) {
     curves: particleCurveStatus(asset),
     expected: {
       particleEmitters: 1,
-      liveParticles: gpuParticlesCapacity,
-      dispatches: 1,
+      minLiveParticles: Math.floor(gpuParticlesCapacity * 0.9),
+      dispatches: 0,
       drawCalls: 1,
     },
     samples: gpuParticlesReadbackSamples,

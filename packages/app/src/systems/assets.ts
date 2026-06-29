@@ -32,6 +32,7 @@ import {
   type Ktx2TextureCompressionSupport,
   type MeshoptBufferDecoder,
   type ParticleEffectAsset,
+  type ParticleRendererModuleInput,
   type TextureAsset,
   type TextureColorSpace,
   type TextureSemantic,
@@ -62,7 +63,9 @@ import type {
   ApertureConfig,
   ApertureAudioAssetDescriptor,
   ApertureConfigAsset,
+  ApertureParticleCompositeEffectAssetDescriptor,
   ApertureParticleEffectAssetDescriptor,
+  ApertureParticleEmitterEffectAssetDescriptor,
   ApertureTextureAssetDescriptor,
   AssetPreloadPolicy,
   ConfigAssetKind,
@@ -486,6 +489,18 @@ function systemAssetDependencies(
 
   const particleEffect = handle as SystemParticleEffectAssetHandle;
   const dependencies: AssetHandle[] = [];
+  const descriptor = particleEffect.descriptor;
+
+  if (descriptor.type === "composite") {
+    const childEffects = new Map<string, ParticleEffectHandle>();
+
+    for (const emitter of descriptor.emitters) {
+      const childEffect = createParticleEffectHandle(emitter.effect);
+      childEffects.set(assetHandleKey(childEffect), childEffect);
+    }
+
+    return [...childEffects.values()];
+  }
 
   if (particleEffect.texture !== undefined && particleEffect.texture !== null) {
     dependencies.push(particleEffect.texture);
@@ -556,6 +571,8 @@ function createSystemAssetHandle(
 
   if (descriptor.kind === "particle-effect") {
     const particleEffect = descriptor as ApertureParticleEffectAssetDescriptor;
+    const leafRenderer =
+      particleEffect.type === "composite" ? undefined : particleEffect.renderer;
     return {
       id,
       kind: descriptor.kind,
@@ -565,21 +582,21 @@ function createSystemAssetHandle(
       error: createSignal<ApertureSystemDiagnostic | null>(null),
       renderHandle: createParticleEffectHandle(id),
       descriptor: particleEffect,
-      ...(particleEffect.texture === undefined
+      ...(leafRenderer?.texture === undefined
         ? {}
         : {
             texture:
-              particleEffect.texture === null
+              leafRenderer.texture === null
                 ? null
-                : createTextureHandle(particleEffect.texture),
+                : createTextureHandle(leafRenderer.texture),
           }),
-      ...(particleEffect.sampler === undefined
+      ...(leafRenderer?.sampler === undefined
         ? {}
         : {
             sampler:
-              particleEffect.sampler === null
+              leafRenderer.sampler === null
                 ? null
-                : createSamplerHandle(particleEffect.sampler),
+                : createSamplerHandle(leafRenderer.sampler),
           }),
     } as SystemParticleEffectAssetHandle;
   }
@@ -603,63 +620,10 @@ function loadSystemParticleEffectAsset(
   handle: SystemParticleEffectAssetHandle,
 ): ParticleEffectAsset {
   const descriptor = handle.descriptor;
-  const asset = createParticleEffectAsset({
-    label: handle.label ?? handle.id,
-    ...(descriptor.capacity === undefined
-      ? {}
-      : { capacity: descriptor.capacity }),
-    ...(descriptor.duration === undefined
-      ? {}
-      : { duration: descriptor.duration }),
-    ...(descriptor.looping === undefined
-      ? {}
-      : { looping: descriptor.looping }),
-    ...(descriptor.prewarm === undefined
-      ? {}
-      : { prewarm: descriptor.prewarm }),
-    ...(descriptor.emissionRate === undefined
-      ? {}
-      : { emissionRate: descriptor.emissionRate }),
-    ...(descriptor.bursts === undefined ? {} : { bursts: descriptor.bursts }),
-    ...(descriptor.lifetime === undefined
-      ? {}
-      : { lifetime: descriptor.lifetime }),
-    ...(descriptor.startSpeed === undefined
-      ? {}
-      : { startSpeed: descriptor.startSpeed }),
-    ...(descriptor.startSize === undefined
-      ? {}
-      : { startSize: descriptor.startSize }),
-    ...(descriptor.startColor === undefined
-      ? {}
-      : { startColor: descriptor.startColor }),
-    ...(descriptor.endColor === undefined
-      ? {}
-      : { endColor: descriptor.endColor }),
-    ...(descriptor.gravity === undefined
-      ? {}
-      : { gravity: descriptor.gravity }),
-    ...(descriptor.linearDamping === undefined
-      ? {}
-      : { linearDamping: descriptor.linearDamping }),
-    ...(descriptor.blendMode === undefined
-      ? {}
-      : { blendMode: descriptor.blendMode }),
-    ...(handle.texture === undefined ? {} : { texture: handle.texture }),
-    ...(handle.sampler === undefined ? {} : { sampler: handle.sampler }),
-    ...(descriptor.atlasFrameCount === undefined
-      ? {}
-      : { atlasFrameCount: descriptor.atlasFrameCount }),
-    ...(descriptor.sizeOverLifetime === undefined
-      ? {}
-      : { sizeOverLifetime: descriptor.sizeOverLifetime }),
-    ...(descriptor.colorOverLifetime === undefined
-      ? {}
-      : { colorOverLifetime: descriptor.colorOverLifetime }),
-    ...(descriptor.curveSampleCount === undefined
-      ? {}
-      : { curveSampleCount: descriptor.curveSampleCount }),
-  });
+  const asset =
+    descriptor.type === "composite"
+      ? loadCompositeParticleEffectAsset(handle, descriptor)
+      : loadEmitterParticleEffectAsset(handle, descriptor);
   const report = validateParticleEffectAsset(asset);
 
   if (report.valid) {
@@ -684,6 +648,104 @@ function loadSystemParticleEffectAsset(
       blocksStartup: handle.preload === "blocking",
     },
   );
+}
+
+function loadCompositeParticleEffectAsset(
+  handle: SystemParticleEffectAssetHandle,
+  descriptor: ApertureParticleCompositeEffectAssetDescriptor,
+): ParticleEffectAsset {
+  return createParticleEffectAsset({
+    version: 2,
+    type: "composite",
+    label: handle.label ?? handle.id,
+    emitters: descriptor.emitters.map((emitter) => ({
+      ...(emitter.label === undefined ? {} : { label: emitter.label }),
+      effect: createParticleEffectHandle(emitter.effect),
+      ...(emitter.delay === undefined ? {} : { delay: emitter.delay }),
+      ...(emitter.duration === undefined ? {} : { duration: emitter.duration }),
+      ...(emitter.timeScale === undefined
+        ? {}
+        : { timeScale: emitter.timeScale }),
+      ...(emitter.transform === undefined
+        ? {}
+        : { transform: emitter.transform }),
+    })),
+    ...(descriptor.source === undefined ? {} : { source: descriptor.source }),
+  });
+}
+
+function loadEmitterParticleEffectAsset(
+  handle: SystemParticleEffectAssetHandle,
+  descriptor: ApertureParticleEmitterEffectAssetDescriptor,
+): ParticleEffectAsset {
+  const renderer = createResolvedParticleRendererModule(descriptor, handle);
+  return createParticleEffectAsset({
+    version: 2,
+    type: "emitter",
+    label: handle.label ?? handle.id,
+    ...(descriptor.main === undefined ? {} : { main: descriptor.main }),
+    ...(descriptor.emission === undefined
+      ? {}
+      : { emission: descriptor.emission }),
+    ...(descriptor.shape === undefined ? {} : { shape: descriptor.shape }),
+    renderer,
+    ...(descriptor.textureSheetAnimation === undefined
+      ? {}
+      : { textureSheetAnimation: descriptor.textureSheetAnimation }),
+    ...(descriptor.colorOverLifetime === undefined
+      ? {}
+      : { colorOverLifetime: descriptor.colorOverLifetime }),
+    ...(descriptor.sizeOverLifetime === undefined
+      ? {}
+      : { sizeOverLifetime: descriptor.sizeOverLifetime }),
+    ...(descriptor.rotationOverLifetime === undefined
+      ? {}
+      : { rotationOverLifetime: descriptor.rotationOverLifetime }),
+    ...(descriptor.velocityOverLifetime === undefined
+      ? {}
+      : { velocityOverLifetime: descriptor.velocityOverLifetime }),
+    ...(descriptor.forceOverLifetime === undefined
+      ? {}
+      : { forceOverLifetime: descriptor.forceOverLifetime }),
+    ...(descriptor.limitVelocityOverLifetime === undefined
+      ? {}
+      : { limitVelocityOverLifetime: descriptor.limitVelocityOverLifetime }),
+    ...(descriptor.noise === undefined ? {} : { noise: descriptor.noise }),
+    ...(descriptor.subEmitters === undefined
+      ? {}
+      : { subEmitters: descriptor.subEmitters }),
+    ...(descriptor.source === undefined ? {} : { source: descriptor.source }),
+    ...(descriptor.curveSampleCount === undefined
+      ? {}
+      : { curveSampleCount: descriptor.curveSampleCount }),
+  });
+}
+
+function createResolvedParticleRendererModule(
+  descriptor: ApertureParticleEmitterEffectAssetDescriptor,
+  handle: SystemParticleEffectAssetHandle,
+): ParticleRendererModuleInput {
+  const renderer = descriptor.renderer;
+
+  return {
+    ...(renderer?.renderMode === undefined
+      ? {}
+      : { renderMode: renderer.renderMode }),
+    ...(renderer?.blendMode === undefined
+      ? {}
+      : { blendMode: renderer.blendMode }),
+    ...(renderer?.sortMode === undefined
+      ? {}
+      : { sortMode: renderer.sortMode }),
+    ...(renderer?.renderOrder === undefined
+      ? {}
+      : { renderOrder: renderer.renderOrder }),
+    ...(renderer?.softParticles === undefined
+      ? {}
+      : { softParticles: renderer.softParticles }),
+    ...(handle.texture === undefined ? {} : { texture: handle.texture }),
+    ...(handle.sampler === undefined ? {} : { sampler: handle.sampler }),
+  };
 }
 
 async function loadSystemTextureAsset(

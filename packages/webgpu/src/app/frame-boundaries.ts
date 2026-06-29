@@ -89,6 +89,8 @@ import {
 } from "./user-pass.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 
+const SOFT_PARTICLE_PIPELINE_KEY_SUFFIX = ":soft-particles";
+
 export interface WebGpuAppFrameBoundaryAssemblyResult {
   readonly valid: boolean;
   readonly boundary: FrameBoundaryAssemblyReport | null;
@@ -457,8 +459,17 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
 
     const overlayCommands =
       target.source === "swapchain" ? (options.overlayCommands ?? []) : [];
-    const commandsForBoundaryWithOverlay =
-      overlayCommands.length === 0
+    const overlayNeedsReadOnlyDepth =
+      containsSoftParticleOverlayCommands(overlayCommands);
+    const encodeOverlaySeparately =
+      overlayNeedsReadOnlyDepth &&
+      overlayCommands.length > 0 &&
+      target.source === "swapchain" &&
+      activePostEffects.length === 0 &&
+      msaaColorTarget.resource === null;
+    const commandsForBoundaryWithOverlay = encodeOverlaySeparately
+      ? commandsForBoundary
+      : overlayCommands.length === 0
         ? commandsForBoundary
         : [...commandsForBoundary, ...overlayCommands];
 
@@ -765,7 +776,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     // (depth report, planned counts, submission count for the next target's
     // load/clear) happens here so subsequent targets compute load/clear identically.
     if (forwardGraph !== null) {
-      registerForwardGraphTarget({
+      const forwardEntry = registerForwardGraphTarget({
         graph: forwardGraph,
         payloads: forwardGraphPayloads,
         entries: forwardGraphEntries,
@@ -785,12 +796,34 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         gpuTimingPassName: gpuTiming?.passName ?? targetPassName,
         shadowReads: forwardGraphShadowReads,
       });
+      if (encodeOverlaySeparately && overlayCommands.length > 0) {
+        registerForwardGraphOverlayPass({
+          graph: forwardGraph,
+          payloads: forwardGraphPayloads,
+          host: forwardEntry,
+          label: `${options.label}:${target.renderTargetKey ?? "swapchain"}:overlay`,
+          commands: snapshotForwardGraphCommands(
+            options.cache.frameScratch.forwardGraphCommandLists,
+            forwardGraphPayloads.size,
+            overlayCommands,
+          ),
+          context: options.app.initialization.context as Parameters<
+            typeof buildFrameBoundaryTargetPlan
+          >[0]["context"],
+          viewport: viewRectangles.viewport,
+          scissor: viewRectangles.scissor,
+        });
+      }
       firstDepthAttachment ??= createWebGpuAppDepthAttachmentReport(
         options.snapshot,
         depthAttachment,
       );
       plannedCommands += commandsForBoundaryWithOverlay.length;
       drawCalls += countDrawCommands(commandsForBoundaryWithOverlay);
+      if (encodeOverlaySeparately && overlayCommands.length > 0) {
+        plannedCommands += overlayCommands.length;
+        drawCalls += countDrawCommands(overlayCommands);
+      }
       submittedTargetCounts.set(
         targetSubmissionKey,
         previousTargetSubmissions + 1,
@@ -837,6 +870,41 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       });
     }
 
+    const overlayBoundary =
+      encodeOverlaySeparately && overlayCommands.length > 0
+        ? assembleFrameBoundary({
+            context: options.app.initialization.context as Parameters<
+              typeof assembleFrameBoundary
+            >[0]["context"],
+            device: options.app.initialization.device as Parameters<
+              typeof assembleFrameBoundary
+            >[0]["device"],
+            queue: (
+              options.app.initialization.device as { readonly queue: unknown }
+            ).queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
+            commands: overlayCommands,
+            label: `${options.label}:${target.renderTargetKey ?? "swapchain"}:overlay`,
+            colorLoadOp: "load",
+            viewport: viewRectangles.viewport,
+            scissor: viewRectangles.scissor,
+            depthTarget: {
+              view: depthAttachment.view,
+              depthLoadOp: "load",
+              depthStoreOp: "store",
+              depthReadOnly: true,
+            },
+          })
+        : null;
+
+    if (overlayBoundary !== null) {
+      boundaries.push(overlayBoundary);
+      allTargetsValid &&= overlayBoundary.valid;
+    }
+
+    const targetDrawCalls =
+      (boundary.execution?.drawCalls ?? 0) +
+      (overlayBoundary?.execution?.drawCalls ?? 0);
+
     renderTargets.push({
       viewId: target.view.viewId,
       source: target.source,
@@ -844,14 +912,18 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       width: target.width,
       height: target.height,
       format: target.format,
-      ok: boundary.valid,
-      drawCalls: boundary.execution?.drawCalls ?? 0,
+      ok: boundary.valid && (overlayBoundary?.valid ?? true),
+      drawCalls: targetDrawCalls,
       ...(msaaColorTarget.resource === null
         ? {}
         : { msaaSampleCount: msaaColorTarget.resource.sampleCount }),
     });
     plannedCommands += commandsForBoundaryWithOverlay.length;
     drawCalls += countDrawCommands(commandsForBoundaryWithOverlay);
+    if (overlayBoundary !== null) {
+      plannedCommands += overlayCommands.length;
+      drawCalls += countDrawCommands(overlayCommands);
+    }
     diagnostics.push(
       ...boundary.texture.diagnostics,
       ...(boundary.attachments?.diagnostics ?? []),
@@ -864,6 +936,17 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       ...(boundary.rectangle?.diagnostics ?? []),
       ...(boundary.finish?.diagnostics ?? []),
       ...(boundary.submit?.diagnostics ?? []),
+      ...(overlayBoundary?.texture.diagnostics ?? []),
+      ...(overlayBoundary?.attachments?.diagnostics ?? []),
+      ...(overlayBoundary?.encoder?.diagnostics ?? []),
+      ...(overlayBoundary?.begin?.diagnostics ?? []),
+      ...(overlayBoundary?.execution?.diagnostics ?? []),
+      ...(overlayBoundary?.renderBundle?.diagnostics ?? []),
+      ...(overlayBoundary?.end?.diagnostics ?? []),
+      ...(overlayBoundary?.occlusionQueries?.diagnostics ?? []),
+      ...(overlayBoundary?.rectangle?.diagnostics ?? []),
+      ...(overlayBoundary?.finish?.diagnostics ?? []),
+      ...(overlayBoundary?.submit?.diagnostics ?? []),
     );
   }
 
@@ -1184,6 +1267,7 @@ interface ForwardGraphShadowEntry {
 
 interface ForwardGraphTargetEntry {
   readonly nodeName: string;
+  readonly device: Parameters<typeof assembleFrameBoundary>[0]["device"];
   readonly texture: ReturnType<typeof buildFrameBoundaryTargetPlan>["texture"];
   readonly attachments: ReturnType<
     typeof buildFrameBoundaryTargetPlan
@@ -1225,7 +1309,7 @@ function registerForwardGraphTarget(args: {
   // M3-T5: shadow depth handles this forward node reads so the compiler orders
   // the shadow caster nodes strictly before it (one shared encoder).
   readonly shadowReads?: readonly string[];
-}): void {
+}): ForwardGraphTargetEntry {
   const opts = args.boundaryOptions;
   const plan = buildFrameBoundaryTargetPlan({
     context: opts.context,
@@ -1296,8 +1380,9 @@ function registerForwardGraphTarget(args: {
       ? {}
       : { renderBundle: opts.renderBundle }),
   });
-  args.entries.push({
+  const entry: ForwardGraphTargetEntry = {
     nodeName,
+    device: opts.device,
     texture: plan.texture,
     attachments: plan.attachments,
     target: args.target,
@@ -1308,6 +1393,57 @@ function registerForwardGraphTarget(args: {
     handle,
     colorTarget: opts.colorTarget,
     depthView: opts.depthTarget?.view ?? null,
+  };
+
+  args.entries.push(entry);
+  return entry;
+}
+
+function registerForwardGraphOverlayPass(args: {
+  readonly graph: ReturnType<typeof createFrameGraph>;
+  readonly payloads: Map<string, FrameGraphRenderNodeBoundary>;
+  readonly host: ForwardGraphTargetEntry;
+  readonly label: string;
+  readonly commands: readonly RenderPassCommand[];
+  readonly context: Parameters<
+    typeof buildFrameBoundaryTargetPlan
+  >[0]["context"];
+  readonly viewport: Parameters<typeof assembleFrameBoundary>[0]["viewport"];
+  readonly scissor: Parameters<typeof assembleFrameBoundary>[0]["scissor"];
+}): void {
+  const plan = buildFrameBoundaryTargetPlan({
+    context: args.context,
+    ...(args.host.colorTarget === undefined
+      ? {}
+      : { colorTarget: args.host.colorTarget }),
+    colorLoadOp: "load",
+    depthTarget: {
+      view: args.host.depthView,
+      depthLoadOp: "load",
+      depthStoreOp: "store",
+      depthReadOnly: true,
+    },
+  });
+  const nodeName = `${args.label}:fg-overlay`;
+
+  args.graph.addRenderPass({
+    name: nodeName,
+    reads: [],
+    writes: [{ handle: args.host.handle, attachment: "load" }],
+    commands: args.commands,
+  });
+  args.payloads.set(nodeName, {
+    device: args.host.device,
+    attachments: plan.attachments,
+    commands: args.commands,
+    label: args.label,
+    colorTargetSource:
+      args.host.colorTarget?.source === "offscreen-target"
+        ? "offscreen-target"
+        : "current-texture",
+    readbackTexture: plan.texture.texture,
+    ...(args.viewport === undefined ? {} : { viewport: args.viewport }),
+    ...(args.scissor === undefined ? {} : { scissor: args.scissor }),
   });
 }
 
@@ -1332,6 +1468,16 @@ function snapshotForwardGraphCommands(
   }
 
   return target;
+}
+
+function containsSoftParticleOverlayCommands(
+  commands: readonly RenderPassCommand[],
+): boolean {
+  return commands.some(
+    (command) =>
+      command.kind === "setPipeline" &&
+      command.pipelineKey.endsWith(SOFT_PARTICLE_PIPELINE_KEY_SUFFIX),
+  );
 }
 
 type ForwardGraphUserPassNodeEntry =

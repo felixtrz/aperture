@@ -1,5 +1,5 @@
 export const SNAPSHOT_PACKET_ENCODING_MAGIC = 0x4150_5350; // "APSP"
-export const SNAPSHOT_PACKET_ENCODING_VERSION = 14;
+export const SNAPSHOT_PACKET_ENCODING_VERSION = 15;
 
 export const SNAPSHOT_PACKET_HEADER_WORDS = 14;
 export const VIEW_PACKET_WORDS = 36;
@@ -7,7 +7,9 @@ export const MESH_DRAW_PACKET_WORDS = 34;
 export const LIGHT_PACKET_WORDS = 31;
 export const ENVIRONMENT_PACKET_WORDS = 13;
 export const FOG_PACKET_WORDS = 19;
-export const PARTICLE_EMITTER_PACKET_WORDS = 60;
+// 0-59: ids/handles/transform/sort key/burst sub-struct (burst startTime at
+// 58-59); 60-61: delay (float64); 62: durationFlag; 63-64: duration (float64).
+export const PARTICLE_EMITTER_PACKET_WORDS = 65;
 export const AUDIO_EMITTER_PACKET_WORDS = 54;
 export const AUDIO_LISTENER_PACKET_WORDS = 6;
 // 0-5: ids/kind/masks/cascadeCount; 6: shadowType; 7-9: strength/filterRadius/

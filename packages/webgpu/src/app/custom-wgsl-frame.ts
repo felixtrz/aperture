@@ -27,7 +27,10 @@ import {
   readWebGpuAppOcclusionQueries,
   releaseWebGpuAppGpuTimingReadbacks,
 } from "./gpu-readback.js";
-import { prepareParticleFrameResourcesForSnapshot } from "./particles.js";
+import {
+  mergeSnapshotSortedRenderPassCommands,
+  prepareParticleFrameResourcesForSnapshot,
+} from "./particles.js";
 import { renderSnapshotTimeSeconds } from "./snapshot.js";
 import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
 import {
@@ -326,20 +329,21 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     });
   }
 
-  const frameCommands =
-    particleFrame.commands.length === 0
-      ? framePlan.commandPlan.commands
-      : [...framePlan.commandPlan.commands, ...particleFrame.commands];
+  const frameCommands = mergeSnapshotSortedRenderPassCommands({
+    snapshot: options.snapshot,
+    baseCommands: framePlan.commandPlan.commands,
+    overlayCommands: particleFrame.commands,
+  });
   const indirectDraws = prepareWebGpuAppIndirectDrawCommands({
     app: options.app,
     cache: options.cache,
     commands: frameCommands,
     label: options.label ?? "aperture-custom-wgsl-app",
   });
-  const renderBundleCommands = indirectDraws.commands.slice(
-    0,
-    framePlan.commandPlan.commands.length,
-  );
+  const renderBundleCommands =
+    particleFrame.commands.length === 0
+      ? indirectDraws.commands.slice(0, framePlan.commandPlan.commands.length)
+      : [];
   options.phaseTimer.start("submit");
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app: options.app,
@@ -348,7 +352,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     snapshot: options.snapshot,
     commands: indirectDraws.commands,
     renderBundleCommands,
-    overlayCommands: uiFrame.commands,
+    overlayCommands: [...particleFrame.overlayCommands, ...uiFrame.commands],
     label: options.label ?? "aperture-custom-wgsl-app",
     reuse: options.reuse,
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(

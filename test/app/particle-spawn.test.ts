@@ -40,11 +40,17 @@ describe("app particle emitter spawning", () => {
         assets: {
           smokeEffect: asset.particleEffect({
             preload: "blocking",
-            capacity: 64,
-            emissionRate: 16,
-            lifetime: { min: 1, max: 2 },
-            startSize: { min: 0.5, max: 1 },
-            blendMode: "alpha",
+            main: {
+              maxParticles: 64,
+              startLifetime: { min: 1, max: 2 },
+              startSize: { min: 0.5, max: 1 },
+            },
+            emission: {
+              rateOverTime: 16,
+            },
+            renderer: {
+              blendMode: "alpha",
+            },
           }),
         },
       }),
@@ -73,6 +79,57 @@ describe("app particle emitter spawning", () => {
     expect(Array.from(snapshot.bounds[0]?.worldSphere.center ?? [])).toEqual([
       1, 3, 0,
     ]);
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("expands config-authored composite effects into leaf emitter packets", async () => {
+    class CompositeSetupSystem extends createSystem({ priority: 0 }) {
+      override init(): void {
+        this.spawn.camera({
+          key: "camera.particles",
+          transform: { translation: [0, 0, 8], lookAt: [0, 0, 0] },
+          camera: { frustumCulling: false },
+        });
+        this.spawn.particles({
+          key: "explosion.emitter",
+          effect: this.assets.particleEffect("explosion"),
+          transform: { translation: [0, 0, 0] },
+        });
+      }
+    }
+
+    const leaf = {
+      preload: "blocking" as const,
+      main: { maxParticles: 32, startLifetime: { min: 1, max: 1 } },
+      emission: { rateOverTime: 8 },
+    };
+
+    const app = await createApertureApp({
+      config: defineApertureConfig({
+        mode: "headless",
+        assets: {
+          smoke: asset.particleEffect(leaf),
+          sparks: asset.particleEffect(leaf),
+          explosion: asset.particleEffect({
+            preload: "blocking",
+            type: "composite",
+            emitters: [
+              { effect: "smoke", transform: { translation: [0, 0.5, 0] } },
+              { effect: "sparks", timeScale: 2 },
+            ],
+          }),
+        },
+      }),
+      systems: [{ default: CompositeSetupSystem }],
+    });
+
+    const snapshot = app.extract(5);
+    const ids = new Set(
+      (snapshot.particleEmitters ?? []).map((packet) => packet.effect.id),
+    );
+
+    expect(snapshot.report.particleEmitters).toBe(2);
+    expect(ids).toEqual(new Set(["smoke", "sparks"]));
     expect(snapshot.diagnostics).toEqual([]);
   });
 
@@ -108,11 +165,17 @@ describe("app particle emitter spawning", () => {
         assets: {
           smokeEffect: asset.particleEffect({
             preload: "blocking",
-            capacity: 64,
-            emissionRate: 0,
-            lifetime: { min: 1, max: 1 },
-            startSize: { min: 0.5, max: 1 },
-            blendMode: "alpha",
+            main: {
+              maxParticles: 64,
+              startLifetime: { min: 1, max: 1 },
+              startSize: { min: 0.5, max: 1 },
+            },
+            emission: {
+              rateOverTime: 0,
+            },
+            renderer: {
+              blendMode: "alpha",
+            },
           }),
         },
       }),
@@ -187,11 +250,17 @@ describe("app particle emitter spawning", () => {
         assets: {
           smokeEffect: asset.particleEffect({
             preload: "blocking",
-            capacity: 1280,
-            emissionRate: 0,
-            lifetime: { min: 2.5, max: 2.5 },
-            startSize: { min: 0.5, max: 1 },
-            blendMode: "alpha",
+            main: {
+              maxParticles: 1280,
+              startLifetime: { min: 2.5, max: 2.5 },
+              startSize: { min: 0.5, max: 1 },
+            },
+            emission: {
+              rateOverTime: 0,
+            },
+            renderer: {
+              blendMode: "alpha",
+            },
           }),
         },
       }),

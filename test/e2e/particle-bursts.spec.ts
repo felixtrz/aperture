@@ -85,27 +85,20 @@ test("browser renders worker-emitted textured particle bursts", async ({
       effect: {
         ready: true,
         runtimeFeatures: {
-          version: 1,
+          version: 2,
           supportedFields: expect.arrayContaining([
-            "capacity",
-            "startSize",
-            "blendMode",
-            "texture",
+            "version",
+            "label",
+            "main",
+            "emission",
+            "renderer",
+            "forceOverLifetime",
             "sizeOverLifetime",
             "colorOverLifetime",
           ]),
-          partiallySupportedFields: ["gravity", "lifetime"],
-          unsupportedFields: ["duration", "emissionRate"],
-          diagnostics: expect.arrayContaining([
-            expect.objectContaining({
-              code: "particleEffect.unsupportedFeature",
-              field: "emissionRate",
-            }),
-            expect.objectContaining({
-              code: "particleEffect.partiallySupportedFeature",
-              field: "gravity",
-            }),
-          ]),
+          partiallySupportedFields: [],
+          unsupportedFields: [],
+          diagnostics: [],
         },
       },
     },

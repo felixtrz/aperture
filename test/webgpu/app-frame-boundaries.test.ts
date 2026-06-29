@@ -29,6 +29,7 @@ interface RenderPassDescriptorLike {
   readonly depthStencilAttachment?: {
     readonly view?: unknown;
     readonly depthLoadOp?: string;
+    readonly depthReadOnly?: boolean;
   };
 }
 
@@ -103,6 +104,58 @@ describe("WebGPU app frame boundary assembly", () => {
     expect(events.filter((event) => event.startsWith("submit:"))).toEqual([
       "submit:1",
     ]);
+  });
+
+  it("keeps UI-only overlay commands on the main swapchain pass", async () => {
+    const events: string[] = [];
+    const harness = appHarness(events);
+    const result = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets: new AssetRegistry(),
+      cache: createWebGpuAppResourceCache(),
+      snapshot: appSnapshot([appView({ viewId: 1 })]),
+      commands: [drawCommand(1)],
+      overlayCommands: [drawCommand(2)],
+      label: "frame",
+      reuse: resourceReuseReport(),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.boundaries).toHaveLength(1);
+    expect(result.renderTargets).toMatchObject([{ drawCalls: 2 }]);
+    expect(result.plannedCommands).toBe(2);
+    expect(result.drawCalls).toBe(2);
+    expect(harness.passDescriptors).toHaveLength(1);
+    expect(events.filter((event) => event === "draw")).toHaveLength(2);
+  });
+
+  it("uses a read-only depth overlay pass for soft particles", async () => {
+    const events: string[] = [];
+    const harness = appHarness(events);
+    const result = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets: new AssetRegistry(),
+      cache: createWebGpuAppResourceCache(),
+      snapshot: appSnapshot([appView({ viewId: 1 })]),
+      commands: [drawCommand(1)],
+      overlayCommands: [softParticlePipelineCommand(2), drawCommand(2)],
+      label: "frame",
+      reuse: resourceReuseReport(),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.boundaries).toHaveLength(2);
+    expect(result.renderTargets).toMatchObject([{ drawCalls: 2 }]);
+    expect(result.plannedCommands).toBe(3);
+    expect(result.drawCalls).toBe(2);
+    expect(harness.passDescriptors).toHaveLength(2);
+    expect(harness.passDescriptors[1]?.colorAttachments[0]).toMatchObject({
+      loadOp: "load",
+    });
+    expect(harness.passDescriptors[1]?.depthStencilAttachment).toMatchObject({
+      depthLoadOp: "load",
+      depthReadOnly: true,
+    });
   });
 
   it("records occlusion query readbacks on the legacy path", async () => {
@@ -982,5 +1035,15 @@ function drawCommand(renderId: number): RenderPassCommand {
     instanceCount: 1,
     firstVertex: 0,
     firstInstance: 0,
+  };
+}
+
+function softParticlePipelineCommand(renderId: number): RenderPassCommand {
+  return {
+    kind: "setPipeline",
+    renderId,
+    pipelineKey:
+      "aperture/gpu-particles-render:bgra8unorm:depth24plus:samples-1:blend-alpha:soft-particles",
+    pipeline: {},
   };
 }

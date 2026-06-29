@@ -6,7 +6,10 @@ import type {
   TextureHandle,
 } from "@aperture-engine/simulation";
 import type {
-  ParticleEffectAssetInput,
+  ParticleCompositeEmitterTransformInput,
+  ParticleEmitterEffectAssetInput,
+  ParticleRendererModuleInput,
+  ParticleSourceMetadata,
   TextureColorSpace,
   TextureSemantic,
 } from "@aperture-engine/render";
@@ -51,13 +54,45 @@ export interface ApertureTextureAssetOptions extends ApertureAssetOptions {
   readonly mimeType?: string;
 }
 
-export interface ApertureParticleEffectAssetOptions
+export interface ApertureParticleEmitterEffectAssetOptions
   extends
     ApertureAssetOptions,
-    Omit<ParticleEffectAssetInput, "label" | "texture" | "sampler"> {
-  readonly texture?: string | null;
-  readonly sampler?: string | null;
+    Omit<
+      ParticleEmitterEffectAssetInput,
+      "label" | "renderer" | "version" | "type"
+    > {
+  readonly version?: 2;
+  readonly type?: "emitter";
+  readonly renderer?: Omit<
+    ParticleRendererModuleInput,
+    "texture" | "sampler"
+  > & {
+    readonly texture?: string | null;
+    readonly sampler?: string | null;
+  };
 }
+
+/** A composite-effect child emitter authored against a string effect id. */
+export interface ApertureParticleCompositeEmitterOptions {
+  readonly label?: string;
+  readonly effect: string;
+  readonly delay?: number;
+  readonly duration?: number;
+  readonly timeScale?: number;
+  readonly transform?: ParticleCompositeEmitterTransformInput;
+}
+
+export interface ApertureParticleCompositeEffectAssetOptions extends ApertureAssetOptions {
+  readonly version?: 2;
+  readonly type: "composite";
+  readonly label?: string;
+  readonly emitters: readonly ApertureParticleCompositeEmitterOptions[];
+  readonly source?: ParticleSourceMetadata;
+}
+
+export type ApertureParticleEffectAssetOptions =
+  | ApertureParticleEmitterEffectAssetOptions
+  | ApertureParticleCompositeEffectAssetOptions;
 
 export interface ApertureConfigAssetDescriptor<
   TKind extends ConfigUrlAssetKind = ConfigUrlAssetKind,
@@ -83,13 +118,29 @@ export interface ApertureAudioAssetDescriptor extends ApertureConfigAssetDescrip
   readonly channels?: number;
   readonly captionTrackId?: string;
 }
-export interface ApertureParticleEffectAssetDescriptor extends Omit<
-  ApertureParticleEffectAssetOptions,
-  "preload"
+export interface ApertureParticleEmitterEffectAssetDescriptor extends Omit<
+  ApertureParticleEmitterEffectAssetOptions,
+  "preload" | "version"
 > {
   readonly kind: "particle-effect";
   readonly preload: AssetPreloadPolicy;
+  readonly version: 2;
+  readonly type?: "emitter";
 }
+
+export interface ApertureParticleCompositeEffectAssetDescriptor extends Omit<
+  ApertureParticleCompositeEffectAssetOptions,
+  "preload" | "version"
+> {
+  readonly kind: "particle-effect";
+  readonly preload: AssetPreloadPolicy;
+  readonly version: 2;
+  readonly type: "composite";
+}
+
+export type ApertureParticleEffectAssetDescriptor =
+  | ApertureParticleEmitterEffectAssetDescriptor
+  | ApertureParticleCompositeEffectAssetDescriptor;
 
 export type ApertureConfigAsset =
   | ApertureGltfAssetDescriptor
@@ -485,47 +536,55 @@ export const asset: ApertureConfigAssetHelpers = Object.freeze({
       );
     }
 
+    if (options.type === "composite" || "emitters" in options) {
+      const composite = options as ApertureParticleCompositeEffectAssetOptions;
+      return Object.freeze({
+        kind: "particle-effect",
+        preload,
+        version: 2,
+        type: "composite",
+        ...(composite.label === undefined ? {} : { label: composite.label }),
+        emitters: composite.emitters,
+        ...(composite.source === undefined ? {} : { source: composite.source }),
+      });
+    }
+
     return Object.freeze({
       kind: "particle-effect",
       preload,
+      version: 2,
+      type: "emitter",
       ...(options.label === undefined ? {} : { label: options.label }),
-      ...(options.capacity === undefined ? {} : { capacity: options.capacity }),
-      ...(options.duration === undefined ? {} : { duration: options.duration }),
-      ...(options.looping === undefined ? {} : { looping: options.looping }),
-      ...(options.prewarm === undefined ? {} : { prewarm: options.prewarm }),
-      ...(options.emissionRate === undefined
+      ...(options.main === undefined ? {} : { main: options.main }),
+      ...(options.emission === undefined ? {} : { emission: options.emission }),
+      ...(options.shape === undefined ? {} : { shape: options.shape }),
+      ...(options.renderer === undefined ? {} : { renderer: options.renderer }),
+      ...(options.textureSheetAnimation === undefined
         ? {}
-        : { emissionRate: options.emissionRate }),
-      ...(options.bursts === undefined ? {} : { bursts: options.bursts }),
-      ...(options.lifetime === undefined ? {} : { lifetime: options.lifetime }),
-      ...(options.startSpeed === undefined
-        ? {}
-        : { startSpeed: options.startSpeed }),
-      ...(options.startSize === undefined
-        ? {}
-        : { startSize: options.startSize }),
-      ...(options.startColor === undefined
-        ? {}
-        : { startColor: options.startColor }),
-      ...(options.endColor === undefined ? {} : { endColor: options.endColor }),
-      ...(options.gravity === undefined ? {} : { gravity: options.gravity }),
-      ...(options.linearDamping === undefined
-        ? {}
-        : { linearDamping: options.linearDamping }),
-      ...(options.blendMode === undefined
-        ? {}
-        : { blendMode: options.blendMode }),
-      ...(options.texture === undefined ? {} : { texture: options.texture }),
-      ...(options.sampler === undefined ? {} : { sampler: options.sampler }),
-      ...(options.atlasFrameCount === undefined
-        ? {}
-        : { atlasFrameCount: options.atlasFrameCount }),
-      ...(options.sizeOverLifetime === undefined
-        ? {}
-        : { sizeOverLifetime: options.sizeOverLifetime }),
+        : { textureSheetAnimation: options.textureSheetAnimation }),
       ...(options.colorOverLifetime === undefined
         ? {}
         : { colorOverLifetime: options.colorOverLifetime }),
+      ...(options.sizeOverLifetime === undefined
+        ? {}
+        : { sizeOverLifetime: options.sizeOverLifetime }),
+      ...(options.rotationOverLifetime === undefined
+        ? {}
+        : { rotationOverLifetime: options.rotationOverLifetime }),
+      ...(options.velocityOverLifetime === undefined
+        ? {}
+        : { velocityOverLifetime: options.velocityOverLifetime }),
+      ...(options.forceOverLifetime === undefined
+        ? {}
+        : { forceOverLifetime: options.forceOverLifetime }),
+      ...(options.limitVelocityOverLifetime === undefined
+        ? {}
+        : { limitVelocityOverLifetime: options.limitVelocityOverLifetime }),
+      ...(options.noise === undefined ? {} : { noise: options.noise }),
+      ...(options.subEmitters === undefined
+        ? {}
+        : { subEmitters: options.subEmitters }),
+      ...(options.source === undefined ? {} : { source: options.source }),
       ...(options.curveSampleCount === undefined
         ? {}
         : { curveSampleCount: options.curveSampleCount }),

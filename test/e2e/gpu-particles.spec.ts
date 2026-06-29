@@ -28,7 +28,7 @@ interface GpuParticlesStatus extends ExampleStatusBase {
     };
     readonly expected: {
       readonly particleEmitters: number;
-      readonly liveParticles: number;
+      readonly minLiveParticles: number;
       readonly dispatches: number;
       readonly drawCalls: number;
     };
@@ -109,8 +109,8 @@ test("browser renders worker-authored GPU particle emitter", async ({
       },
       expected: {
         particleEmitters: 1,
-        liveParticles: 384,
-        dispatches: 1,
+        minLiveParticles: 345,
+        dispatches: 0,
         drawCalls: 1,
       },
     },
@@ -128,14 +128,16 @@ test("browser renders worker-authored GPU particle emitter", async ({
       },
       particles: {
         emitters: 1,
-        liveParticles: 384,
         statesCreated: 1,
         statesReused: 0,
         staleStatesRemoved: 0,
-        dispatches: 1,
+        dispatches: 0,
       },
     },
   });
+  expect(status.frame?.particles?.liveParticles ?? 0).toBeGreaterThanOrEqual(
+    status.particles?.expected.minLiveParticles ?? 345,
+  );
   const curves = status.particles?.curves;
 
   expect(curves).toBeDefined();

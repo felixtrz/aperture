@@ -9,6 +9,7 @@ _euler-verify.mjs
 /racing-*.png
 /shadow-lab-*.png
 .aperture/
+.codegraph/
 .playwright-mcp/
 docs-site/.astro/
 docs-site/tmp/

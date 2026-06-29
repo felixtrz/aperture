@@ -77,7 +77,10 @@ import {
 import { prepareSpriteFrameResourcesForSnapshot } from "./sprites.js";
 import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
 import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
-import { prepareParticleFrameResourcesForSnapshot } from "./particles.js";
+import {
+  mergeSnapshotSortedRenderPassCommands,
+  prepareParticleFrameResourcesForSnapshot,
+} from "./particles.js";
 import {
   collectMultiUnlitAppResourceSet,
   createMultiUnlitAppFrameResources,
@@ -941,25 +944,26 @@ export async function renderWebGpuAppFrame(
     });
   }
 
-  const overlayCommands = [
+  const sortedOverlayCommands = [
     ...spriteFrame.resources.commands,
     ...textFrame.resources.commands,
     ...particleFrame.commands,
   ];
-  const frameCommands =
-    overlayCommands.length === 0
-      ? framePlan.commandPlan.commands
-      : [...framePlan.commandPlan.commands, ...overlayCommands];
+  const frameCommands = mergeSnapshotSortedRenderPassCommands({
+    snapshot,
+    baseCommands: framePlan.commandPlan.commands,
+    overlayCommands: sortedOverlayCommands,
+  });
   const indirectDraws = prepareWebGpuAppIndirectDrawCommands({
     app,
     cache: resourceCache,
     commands: frameCommands,
     label: options.label ?? "aperture-webgpu-app",
   });
-  const renderBundleCommands = indirectDraws.commands.slice(
-    0,
-    framePlan.commandPlan.commands.length,
-  );
+  const renderBundleCommands =
+    sortedOverlayCommands.length === 0
+      ? indirectDraws.commands.slice(0, framePlan.commandPlan.commands.length)
+      : [];
   phaseTimer.start("submit");
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app,
@@ -968,7 +972,7 @@ export async function renderWebGpuAppFrame(
     snapshot,
     commands: indirectDraws.commands,
     renderBundleCommands,
-    overlayCommands: uiFrame.commands,
+    overlayCommands: [...particleFrame.overlayCommands, ...uiFrame.commands],
     label: options.label ?? "aperture-webgpu-app",
     reuse,
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(

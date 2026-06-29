@@ -11,7 +11,10 @@ import {
   type SpriteFrameResources,
 } from "./sprites.js";
 import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
-import { prepareParticleFrameResourcesForSnapshot } from "./particles.js";
+import {
+  mergeSnapshotSortedRenderPassCommands,
+  prepareParticleFrameResourcesForSnapshot,
+} from "./particles.js";
 import { renderSnapshotTimeSeconds } from "./snapshot.js";
 import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
 import {
@@ -220,12 +223,16 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     assets: sourceAssets,
     cache: resourceCache,
     snapshot: options.snapshot,
-    commands: [
-      ...spriteResources.commands,
-      ...textFrame.resources.commands,
-      ...particleFrame.commands,
-    ],
-    overlayCommands: uiFrame.commands,
+    commands: mergeSnapshotSortedRenderPassCommands({
+      snapshot: options.snapshot,
+      baseCommands: [],
+      overlayCommands: [
+        ...spriteResources.commands,
+        ...textFrame.resources.commands,
+        ...particleFrame.commands,
+      ],
+    }),
+    overlayCommands: [...particleFrame.overlayCommands, ...uiFrame.commands],
     label: options.label ?? "aperture-webgpu-sprite-app",
     reuse,
     ...(options.gpuTimings === undefined
