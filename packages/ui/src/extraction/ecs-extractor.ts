@@ -32,7 +32,7 @@ import type { LayoutEngine } from "../layout/engine.js";
 import type { LayoutStyle, MeasureFn } from "../layout/types.js";
 import { UiLayoutTree, type UiLayoutNodeInput } from "../layout/tree.js";
 import { UiFlex, UI_FLEX_UNSET } from "../components/ui-flex.js";
-import { isUiLayoutFrozen } from "../components/ui-freeze.js";
+import { UiFreezeLayout, isUiLayoutFrozen } from "../components/ui-freeze.js";
 import { UiBox } from "../components/ui-box.js";
 import { UiScrollbar } from "../components/ui-scrollbar.js";
 import { UiInput, UiInputType } from "../input/ui-input.js";
@@ -973,8 +973,13 @@ function isUiLayoutEntity(entity: Entity): boolean {
     entity.hasComponent(UiPanel) ||
     entity.hasComponent(UiImage) ||
     entity.hasComponent(UiText) ||
+    entity.hasComponent(UiFlex) ||
+    entity.hasComponent(UiBox) ||
+    entity.hasComponent(UiFreezeLayout) ||
+    entity.hasComponent(UiInput) ||
     entity.hasComponent(UiHitTarget) ||
-    entity.hasComponent(UiScroll)
+    entity.hasComponent(UiScroll) ||
+    entity.hasComponent(UiScrollbar)
   );
 }
 

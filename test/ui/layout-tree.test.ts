@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+  type ComputedRect,
   UiLayoutTree,
   type LayoutEngine,
+  type LayoutHandle,
   type LayoutStyle,
   type UiLayoutNodeInput,
 } from "@aperture-engine/ui";
@@ -105,6 +107,31 @@ describe("UiLayoutTree — pruning & reparenting", () => {
     tree.dispose();
   });
 
+  it("does not detach a pruned child twice", () => {
+    const strictEngine = createStrictDetachEngine();
+    const tree = new UiLayoutTree<string>(strictEngine);
+    tree.reconcile(
+      ["root"],
+      makeResolver({
+        root: { style: { width: 100, height: 100 }, children: ["a", "b"] },
+        a: { style: { height: 20 } },
+        b: { style: { height: 20 } },
+      }),
+    );
+
+    expect(() =>
+      tree.reconcile(
+        ["root"],
+        makeResolver({
+          root: { style: { width: 100, height: 100 }, children: ["a"] },
+          a: { style: { height: 20 } },
+        }),
+      ),
+    ).not.toThrow();
+    tree.dispose();
+    strictEngine.dispose();
+  });
+
   it("moves a child to a new parent", () => {
     const tree = new UiLayoutTree<string>(engine);
     const build = (childUnder: "a" | "b"): Record<string, NodeSpec> => ({
@@ -133,6 +160,84 @@ describe("UiLayoutTree — pruning & reparenting", () => {
     tree.dispose();
   });
 });
+
+function createStrictDetachEngine(): LayoutEngine {
+  let nextId = 1;
+  const childrenById = new Map<number, number[]>();
+  const parentById = new Map<number, number>();
+  const rect: ComputedRect = {
+    left: 0,
+    top: 0,
+    width: 0,
+    height: 0,
+    paddingTop: 0,
+    paddingRight: 0,
+    paddingBottom: 0,
+    paddingLeft: 0,
+    borderTop: 0,
+    borderRight: 0,
+    borderBottom: 0,
+    borderLeft: 0,
+  };
+
+  const createNode = (): LayoutHandle => {
+    const handle = { id: nextId++ };
+    childrenById.set(handle.id, []);
+    return handle;
+  };
+
+  return {
+    createNode,
+    setStyle(): void {},
+    setMeasure(): void {},
+    insertChild(
+      parent: LayoutHandle,
+      child: LayoutHandle,
+      index: number,
+    ): void {
+      const existingParent = parentById.get(child.id);
+      if (existingParent !== undefined) {
+        throw new Error(
+          `child ${child.id} already has parent ${existingParent}`,
+        );
+      }
+      childrenById.get(parent.id)?.splice(index, 0, child.id);
+      parentById.set(child.id, parent.id);
+    },
+    removeChild(parent: LayoutHandle, child: LayoutHandle): void {
+      const children = childrenById.get(parent.id) ?? [];
+      const index = children.indexOf(child.id);
+      if (index < 0) {
+        throw new Error(`child ${child.id} is not attached to ${parent.id}`);
+      }
+      children.splice(index, 1);
+      parentById.delete(child.id);
+    },
+    childCount(handle: LayoutHandle): number {
+      return childrenById.get(handle.id)?.length ?? 0;
+    },
+    markDirty(): void {},
+    isDirty(): boolean {
+      return false;
+    },
+    calculate(): void {},
+    getComputed(): ComputedRect {
+      return rect;
+    },
+    free(handle: LayoutHandle): void {
+      childrenById.delete(handle.id);
+      parentById.delete(handle.id);
+    },
+    freeRecursive(handle: LayoutHandle): void {
+      childrenById.delete(handle.id);
+      parentById.delete(handle.id);
+    },
+    dispose(): void {
+      childrenById.clear();
+      parentById.clear();
+    },
+  };
+}
 
 describe("UiLayoutTree — freeze", () => {
   it("preserves a frozen subtree's layout across reconciles", () => {

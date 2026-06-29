@@ -27,6 +27,7 @@ const publishablePackages = [
   "packages/physics",
   "packages/physics-rapier",
   "packages/render",
+  "packages/ui",
   "packages/runtime",
   "packages/webgpu",
   "packages/audio",

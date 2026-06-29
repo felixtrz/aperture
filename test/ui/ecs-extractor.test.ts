@@ -16,6 +16,7 @@ import {
 import {
   installYogaUiLayout,
   loadLayoutModule,
+  withUiFlex,
   type InstalledUiLayout,
   type Yoga,
 } from "@aperture-engine/ui";
@@ -71,6 +72,25 @@ describe("ECS Yoga extractor — wiring & seam", () => {
 });
 
 describe("ECS Yoga extractor — real flexbox", () => {
+  it("includes entities authored only with the new UiFlex component", () => {
+    app = createExtractionApp();
+    const screen = app.spawn(
+      withUiScreen({ width: 200, height: 100 }),
+      withUiFlex({ flexDirection: "column" }),
+    );
+    const child = app.spawn(
+      withTransform({ parent: screen }),
+      withUiFlex({ alignSelf: "flex-start", minWidth: 50, minHeight: 20 }),
+    );
+
+    install(app);
+    const byEntity = nodesByEntity(app.extract(0));
+    expect(byEntity.get(child.index)).toMatchObject({
+      kind: "node",
+      rect: { x: 0, y: 0, width: 50, height: 20 },
+    });
+  });
+
   it("distributes a row with flexGrow via padding/gap", () => {
     app = createExtractionApp();
     const screen = app.spawn(withUiScreen({ width: 320, height: 100 }));

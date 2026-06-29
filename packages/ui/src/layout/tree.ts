@@ -192,6 +192,7 @@ export class UiLayoutTree<K> {
       const child = this.entries.get(entry.children[i]!);
       if (child !== undefined) {
         this.engine.removeChild(entry.handle, child.handle);
+        child.parent = null;
       }
     }
     children.forEach((childKey, index) => {
