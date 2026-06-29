@@ -1,4 +1,5 @@
 ---
+import "../styles/cjk.css";
 import LocaleBoot from "../components/LocaleBoot.astro";
 import LanguageToggle from "../components/LanguageToggle.astro";
 
@@ -21,7 +22,10 @@ const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
       :root {
         color-scheme: dark;
         --ui:
-          600 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          600 13px -apple-system, BlinkMacSystemFont, "Segoe UI",
+          "Noto Sans SC Web", "PingFang SC", "HarmonyOS Sans SC",
+          "Microsoft YaHei", "微软雅黑", "Source Han Sans SC", "Noto Sans SC",
+          sans-serif;
         --glass: rgba(8, 11, 16, 0.58);
         --hairline: rgba(255, 255, 255, 0.12);
         --muted: rgba(255, 255, 255, 0.68);
@@ -50,7 +54,10 @@ const withBase = (path: string) => `${base}${path.replace(/^\//u, "")}`;
         background:
           linear-gradient(180deg, rgb(71 117 209), rgb(184 128 77)),
           #0c0f14;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC Web",
+          "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "微软雅黑",
+          "Source Han Sans SC", "Noto Sans SC", sans-serif;
         overscroll-behavior: none;
         touch-action: none;
       }

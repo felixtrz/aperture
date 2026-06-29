@@ -1,0 +1,59 @@
+/*
+ * Self-hosted Simplified Chinese typography.
+ *
+ * Noto Sans SC (思源黑体) is the open-source (SIL OFL) sans that Chinese product
+ * teams reach for when a brand webfont is warranted — clean, neutral, and
+ * tuned for screen UI. It is subset here to exactly the glyphs used by the
+ * localized interface (~440 characters, ~65 KB per weight) and fetched from the
+ * Google Fonts `text=` API, then vendored so mainland-China visitors are never
+ * served from a blocked origin.
+ *
+ * `unicode-range` scopes the font to CJK code points, so Latin and digits keep
+ * rendering in Inter / SF / Geist and the file is only ever downloaded on pages
+ * that actually show Chinese text.
+ */
+
+@font-face {
+  font-family: "Noto Sans SC Web";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/noto-sans-sc-400.woff2") format("woff2");
+  unicode-range: U+2010-2027, U+3000-303F, U+4E00-9FFF, U+FE30-FE4F,
+    U+FF00-FFEF;
+}
+
+@font-face {
+  font-family: "Noto Sans SC Web";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./fonts/noto-sans-sc-500.woff2") format("woff2");
+  unicode-range: U+2010-2027, U+3000-303F, U+4E00-9FFF, U+FE30-FE4F,
+    U+FF00-FFEF;
+}
+
+@font-face {
+  font-family: "Noto Sans SC Web";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./fonts/noto-sans-sc-700.woff2") format("woff2");
+  unicode-range: U+2010-2027, U+3000-303F, U+4E00-9FFF, U+FE30-FE4F,
+    U+FF00-FFEF;
+}
+
+/*
+ * Append a CJK cascade to Lumin's Latin-first type tokens. The webfont leads;
+ * the rest are the system fonts mainland product sites rely on — PingFang SC
+ * (macOS/iOS), HarmonyOS Sans / Microsoft YaHei (Windows), Source Han Sans —
+ * so Chinese still looks intentional if the webfont is unavailable.
+ */
+:root {
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system,
+    "Noto Sans SC Web", "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei",
+    "微软雅黑", "Source Han Sans SC", "Noto Sans SC", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, "Noto Sans SC Web",
+    "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "微软雅黑",
+    "Source Han Sans SC", "Noto Sans SC", monospace;
+}
