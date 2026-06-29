@@ -130,6 +130,18 @@ export default defineConfig({
           .pathname,
       },
       {
+        find: "@aperture-engine/ui/test-support",
+        replacement: new URL(
+          "./packages/ui/src/test-support.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
+        find: "@aperture-engine/ui",
+        replacement: new URL("./packages/ui/src/index.ts", import.meta.url)
+          .pathname,
+      },
+      {
         find: "@aperture-engine/runtime",
         replacement: new URL("./packages/runtime/src/index.ts", import.meta.url)
           .pathname,
@@ -180,6 +192,9 @@ export default defineConfig({
       "node_modules/**",
       "dist/**",
       "packages/*/dist/**",
+      // Gitignored local research checkouts (e.g. references/uikit) carry their
+      // own vitest configs/tests and must not be swept into Aperture's suite.
+      "references/**",
     ],
     // AI-77: coverage thresholds gate CI (the dedicated coverage job runs
     // `pnpm run test:coverage`). Thresholds sit just below measured reality

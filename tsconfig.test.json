@@ -34,6 +34,8 @@
       "@aperture-engine/render/test-support": [
         "packages/render/src/test-support.ts"
       ],
+      "@aperture-engine/ui": ["packages/ui/src/index.ts"],
+      "@aperture-engine/ui/test-support": ["packages/ui/src/test-support.ts"],
       "@aperture-engine/runtime": ["packages/runtime/src/index.ts"],
       "@aperture-engine/math": ["packages/math/src/index.ts"],
       "@aperture-engine/math/kernel": ["packages/math/src/kernel/index.ts"],

@@ -6,6 +6,8 @@ export * from "./extraction-audio.js";
 export * from "./audio-one-shot-queue.js";
 export * from "./particle-burst-queue.js";
 export * from "./extraction-ui.js";
+export { entityRef } from "./extraction-diagnostics.js";
+export { parseSamplerHandle, parseTextureHandle } from "./extraction-inputs.js";
 export * from "./material-queue.js";
 export * from "./mesh-merge.js";
 export * from "./prepared-mesh-queue-resolver.js";

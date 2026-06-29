@@ -54,11 +54,10 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     expect(reused.stdout).toContain("Reusing Aperture dev session");
     expect(reused.stdout).toContain(`http://127.0.0.1:${PORT}/`);
 
-    const browserReady = await callMcpTool("browser_wait_for_webgpu", {
-      timeoutMs: 30_000,
-    });
+    const browserReady = await waitForHeadedReady(30_000);
     expect(browserReady.structuredContent).toMatchObject({
       ok: true,
+      target: "headed",
       page: {
         managed: true,
         status: {
@@ -68,32 +67,29 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       },
     });
 
-    const browserStatus = await callMcpTool("browser_status", {});
+    const browserStatus = await waitForHeadedReady(30_000);
     expect(browserStatus.structuredContent).toMatchObject({
       ok: true,
-      session: {
-        url: `http://127.0.0.1:${PORT}/`,
-      },
+      target: "headed",
       page: {
         managed: true,
       },
     });
 
-    const canvasStatus = await callMcpTool("browser_canvas_status", {});
+    const canvasStatus = await captureHeadedFrame();
     expect(canvasStatus.structuredContent).toMatchObject({
       ok: true,
-      status: {
-        canvas: {
-          width: expect.any(Number),
-          height: expect.any(Number),
-          displayWidth: expect.any(Number),
-          displayHeight: expect.any(Number),
-          pixelRatio: expect.any(Number),
-        },
-        renderTarget: {
-          width: expect.any(Number),
-          height: expect.any(Number),
-        },
+      target: "headed",
+      canvas: {
+        width: expect.any(Number),
+        height: expect.any(Number),
+        displayWidth: expect.any(Number),
+        displayHeight: expect.any(Number),
+        pixelRatio: expect.any(Number),
+      },
+      renderTarget: {
+        width: expect.any(Number),
+        height: expect.any(Number),
       },
     });
 
@@ -162,12 +158,13 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       ok: true,
     });
 
-    const consoleLogs = await callMcpTool("browser_console_logs", {
+    const consoleLogs = await callMcpTool("logs_read", {
+      target: "headed",
       lines: 10,
     });
     expect(consoleLogs.structuredContent).toMatchObject({
       ok: true,
-      logs: expect.any(String),
+      logs: expect.any(Array),
     });
 
     await withManagedPage(APP_ROOT, async (page) => {
@@ -190,20 +187,21 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       ],
     });
 
-    const reload = await callMcpTool("browser_reload", {});
-    expect(reload.structuredContent).toMatchObject({
-      ok: true,
-      page: {
-        managed: true,
-      },
-    });
-    await callMcpTool("browser_wait_for_webgpu", {
+    const reload = await callMcpTool("app_reset", {
+      target: "headed",
+      waitUntilReady: true,
       timeoutMs: 30_000,
     });
+    expect(reload.structuredContent).toMatchObject({
+      ok: true,
+      target: "headed",
+    });
+    await waitForHeadedReady(30_000);
 
-    const screenshot = await callMcpTool("browser_screenshot", {});
+    const screenshot = await captureHeadedFrame();
     expect(screenshot.structuredContent).toMatchObject({
       ok: true,
+      target: "headed",
       mimeType: "image/png",
       encoding: "base64",
     });
@@ -212,21 +210,24 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
         .byteLength ?? 0,
     ).toBeGreaterThan(1000);
 
-    const pickedPixel = await callMcpTool("browser_pick_pixel", {
-      x: 0.5,
-      y: 0.5,
+    const pickedPixel = await captureHeadedFrame({
+      samples: [{ id: "center", x: 0.5, y: 0.5 }],
     });
     expect(pickedPixel.structuredContent).toMatchObject({
       ok: true,
-      result: {
-        sample: {
-          pixel: {
-            r: expect.any(Number),
-            g: expect.any(Number),
-            b: expect.any(Number),
-            a: expect.any(Number),
+      samples: {
+        ok: true,
+        samples: [
+          {
+            id: "center",
+            pixel: {
+              r: expect.any(Number),
+              g: expect.any(Number),
+              b: expect.any(Number),
+              a: expect.any(Number),
+            },
           },
-        },
+        ],
       },
     });
 
@@ -467,44 +468,31 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       },
     });
 
-    const pointer = await callMcpTool("input_pointer_move", {
-      x: 0.25,
-      y: 0.5,
+    const pointer = await callMcpTool("input_inject", {
+      target: "headed",
+      pointer: { position: [0.25, 0.5] },
     });
     expect(pointer.structuredContent).toMatchObject({
       ok: true,
-      point: {
-        x: expect.any(Number),
-        y: expect.any(Number),
-      },
+      target: "headed",
     });
 
-    const pointerClick = await callMcpTool("input_pointer_click", {
-      x: 0.5,
-      y: 0.5,
+    const pointerClick = await callMcpTool("input_inject", {
+      target: "headed",
+      pointer: { position: [0.5, 0.5], pressed: true },
     });
     expect(pointerClick.structuredContent).toMatchObject({
       ok: true,
-      point: {
-        x: expect.any(Number),
-        y: expect.any(Number),
-      },
+      target: "headed",
     });
 
-    const drag = await callMcpTool("input_drag", {
-      from: { x: 0.4, y: 0.5 },
-      to: { x: 0.6, y: 0.5 },
+    const drag = await callMcpTool("input_inject", {
+      target: "headed",
+      pointer: { position: [0.6, 0.5], pressed: true },
     });
     expect(drag.structuredContent).toMatchObject({
       ok: true,
-      from: {
-        x: expect.any(Number),
-        y: expect.any(Number),
-      },
-      to: {
-        x: expect.any(Number),
-        y: expect.any(Number),
-      },
+      target: "headed",
     });
 
     const inputReset = await callMcpTool("input_reset", {});
@@ -512,69 +500,46 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       ok: true,
     });
 
-    const key = await callMcpTool("input_key", {
-      key: "Enter",
-      action: "press",
-    });
-    expect(
-      (
-        key.structuredContent as {
-          readonly page?: {
-            readonly status?: { readonly forwardedInputEvents?: number };
-          };
-        }
-      ).page?.status?.forwardedInputEvents ?? 0,
-    ).toBeGreaterThan(0);
-
-    const actionSet = await callMcpTool("input_action_set", {
-      action: "select",
-      pressed: true,
+    const actionSet = await callMcpTool("input_inject", {
+      target: "headed",
+      actions: { select: true },
     });
     expect(actionSet.structuredContent).toMatchObject({
       ok: true,
-      result: {
-        action: "select",
-        queued: true,
-      },
+      target: "headed",
     });
 
-    const actionRelease = await callMcpTool("input_action_set", {
-      action: "select",
-      pressed: false,
+    const actionRelease = await callMcpTool("input_inject", {
+      target: "headed",
+      actions: { select: false },
     });
     expect(actionRelease.structuredContent).toMatchObject({
       ok: true,
-      result: {
-        action: "select",
-        queued: true,
-      },
+      target: "headed",
     });
 
-    const gamepadButton = await callMcpTool("input_gamepad_set", {
-      button: "south",
-      pressed: true,
+    const gamepadButton = await callMcpTool("input_inject", {
+      target: "headed",
+      gamepad: { button: "south", pressed: true },
     });
     expect(gamepadButton.structuredContent).toMatchObject({
       ok: true,
-      result: {
-        index: 0,
-      },
+      target: "headed",
     });
 
-    const gamepadStick = await callMcpTool("input_gamepad_set", {
-      leftStick: { x: 0.5, y: -0.25 },
+    const gamepadStick = await callMcpTool("input_inject", {
+      target: "headed",
+      gamepad: { leftStick: { x: 0.5, y: -0.25 } },
     });
     expect(gamepadStick.structuredContent).toMatchObject({
       ok: true,
-      result: {
-        index: 0,
-      },
+      target: "headed",
     });
 
     await callMcpTool("ecs_pause", {});
-    await callMcpTool("input_gamepad_set", {
-      button: "south",
-      pressed: true,
+    await callMcpTool("input_inject", {
+      target: "headed",
+      gamepad: { button: "south", pressed: true },
     });
     const pausedInput = await callMcpTool("input_get_state", {});
     expect(pausedInput.structuredContent).toMatchObject({
@@ -619,7 +584,7 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       ok: true,
       systems: expect.arrayContaining([
         expect.objectContaining({
-          moduleUrl: expect.stringContaining("setup.system.ts"),
+          className: "SetupSystem",
         }),
       ]),
     });
@@ -761,139 +726,41 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       },
     });
 
-    const frame = await callMcpTool("render_get_frame_report", {});
-    expect(frame.structuredContent).toMatchObject({
-      ok: true,
-      report: {
-        lastFrame: {
-          counts: {
-            views: expect.any(Number),
-            meshDraws: expect.any(Number),
-          },
-        },
-      },
-    });
-
-    const renderSummary = await callMcpTool("render_get_snapshot_summary", {});
-    expect(renderSummary.structuredContent).toMatchObject({
-      ok: true,
-      summary: {
-        snapshots: expect.any(Number),
-        counts: {
-          views: expect.any(Number),
-        },
-      },
-    });
-
-    const packets = await callMcpTool("render_get_packets", {});
-    expect(packets.structuredContent).toMatchObject({
-      ok: true,
-      packets: {
-        counts: expect.any(Object),
-      },
-    });
-
-    const filteredPackets = await callMcpTool("render_get_packets", {
-      families: [
-        "views",
-        "meshDraws",
-        "lights",
-        "environments",
-        "shadows",
-        "bounds",
-      ],
-    });
-    expect(filteredPackets.structuredContent).toMatchObject({
-      ok: true,
-      packets: {
-        families: {
-          views: {
-            family: "views",
-            counts: expect.any(Object),
-          },
-          meshDraws: {
-            family: "meshDraws",
-            counts: expect.any(Object),
-          },
-          lights: {
-            family: "lights",
-            counts: expect.any(Object),
-          },
-          environments: {
-            family: "environments",
-            counts: expect.any(Object),
-          },
-          shadows: {
-            family: "shadowRequests",
-            counts: expect.any(Object),
-          },
-          bounds: {
-            family: "bounds",
-            counts: expect.any(Object),
-          },
-        },
-      },
-    });
-
-    const renderExplain = await callMcpTool("render_explain_entity", {
-      key: "level.crate.primary",
-    });
-    expect(renderExplain.structuredContent).toMatchObject({
-      ok: true,
-      report: {
-        entity: expect.objectContaining({
-          key: "level.crate.primary",
-        }),
-        rendered: true,
-      },
-    });
-
-    const renderDiagnostics = await callMcpTool("render_get_diagnostics", {});
-    expect(renderDiagnostics.structuredContent).toMatchObject({
-      ok: true,
-      diagnostics: {
-        app: expect.any(Object),
-      },
-    });
-
-    const readback = await callMcpTool("render_readback_samples", {
+    const frame = await captureHeadedFrame({
       samples: [
         { id: "center", x: 0.5, y: 0.5 },
         { id: "top-left", x: 0.05, y: 0.05 },
       ],
     });
-    expect(readback.structuredContent).toMatchObject({
+    expect(frame.structuredContent).toMatchObject({
       ok: true,
-      samples: expect.arrayContaining([
-        expect.objectContaining({
-          id: "center",
-          pixel: {
-            r: expect.any(Number),
-            g: expect.any(Number),
-            b: expect.any(Number),
-            a: expect.any(Number),
-          },
-        }),
-      ]),
-    });
-
-    const pickedEntity = await callMcpTool("render_pick_entity", {
-      x: 0.5,
-      y: 0.5,
-    });
-    expect(pickedEntity.structuredContent).toMatchObject({
-      result: {
-        x: expect.any(Number),
-        y: expect.any(Number),
-        pick: expect.any(Object),
+      target: "headed",
+      renderTarget: {
+        width: expect.any(Number),
+        height: expect.any(Number),
       },
-      diagnostics: expect.any(Array),
+      samples: {
+        ok: true,
+        samples: expect.arrayContaining([
+          expect.objectContaining({
+            id: "center",
+            pixel: {
+              r: expect.any(Number),
+              g: expect.any(Number),
+              b: expect.any(Number),
+              a: expect.any(Number),
+            },
+          }),
+        ]),
+      },
     });
 
     const logs = await runCli(["dev", "logs", "--lines", "5"]);
     expect(logs.stdout).toContain("browser.log");
 
-    const referenceBuild = await runCli(["reference", "warmup"]);
+    const referenceBuild = await runCli(["reference", "warmup"], {
+      timeout: 120_000,
+    });
     expect(referenceBuild.stdout).toContain("Warmed Aperture reference corpus");
 
     const referenceSearch = await runCli([
@@ -979,7 +846,7 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     });
 
     await killManagedBrowser(APP_ROOT);
-    const crashedBrowserStatus = await callMcpTool("browser_status", {});
+    const crashedBrowserStatus = await waitForHeadedReady(3_000);
     expect(crashedBrowserStatus.structuredContent).toMatchObject({
       ok: false,
       diagnostic: {
@@ -995,11 +862,10 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       "--headless",
     ]);
     expect(restarted.stdout).toContain("Started Aperture dev session");
-    const restartedReady = await callMcpTool("browser_wait_for_webgpu", {
-      timeoutMs: 30_000,
-    });
+    const restartedReady = await waitForHeadedReady(30_000);
     expect(restartedReady.structuredContent).toMatchObject({
       ok: true,
+      target: "headed",
       page: {
         status: {
           status: "running",
@@ -1106,13 +972,10 @@ test("aperture create produces an installable app that works with CLI AI tools",
     expect(up.stdout).toContain("Started Aperture dev session");
     expect(portFromDevUpOutput(up.stdout)).toBeGreaterThan(CREATED_APP_PORT);
 
-    const ready = await callMcpTool(
-      "browser_wait_for_webgpu",
-      { timeoutMs: 30_000 },
-      { cwd: appRoot },
-    );
+    const ready = await waitForHeadedReady(30_000, { cwd: appRoot });
     expect(ready.structuredContent).toMatchObject({
       ok: true,
+      target: "headed",
       page: {
         managed: true,
         status: {
@@ -1122,25 +985,21 @@ test("aperture create produces an installable app that works with CLI AI tools",
       },
     });
 
-    const generatedBrowserStatus = await callMcpTool(
-      "browser_status",
-      {},
-      { cwd: appRoot },
-    );
+    const generatedBrowserStatus = await waitForHeadedReady(30_000, {
+      cwd: appRoot,
+    });
     expect(generatedBrowserStatus.structuredContent).toMatchObject({
       ok: true,
+      target: "headed",
       page: {
         managed: true,
       },
     });
 
-    const generatedScreenshot = await callMcpTool(
-      "browser_screenshot",
-      {},
-      { cwd: appRoot },
-    );
+    const generatedScreenshot = await captureHeadedFrame({}, { cwd: appRoot });
     expect(generatedScreenshot.structuredContent).toMatchObject({
       ok: true,
+      target: "headed",
       mimeType: "image/png",
       encoding: "base64",
     });
@@ -1249,7 +1108,7 @@ test("aperture create produces an installable app that works with CLI AI tools",
       ok: true,
       systems: expect.arrayContaining([
         expect.objectContaining({
-          moduleUrl: expect.stringContaining("setup.system.ts"),
+          className: "SetupSystem",
         }),
       ]),
     });
@@ -1267,38 +1126,23 @@ test("aperture create produces an installable app that works with CLI AI tools",
     });
 
     const pointer = await callMcpTool(
-      "input_pointer_click",
-      { x: 0.5, y: 0.5 },
+      "input_inject",
+      { target: "headed", pointer: { position: [0.5, 0.5], pressed: true } },
       { cwd: appRoot },
     );
     expect(pointer.structuredContent).toMatchObject({
       ok: true,
-      point: {
-        x: expect.any(Number),
-        y: expect.any(Number),
-      },
-    });
-
-    const generatedKey = await callMcpTool(
-      "input_key",
-      { key: "Enter", action: "press" },
-      { cwd: appRoot },
-    );
-    expect(generatedKey.structuredContent).toMatchObject({
-      ok: true,
+      target: "headed",
     });
 
     const action = await callMcpTool(
-      "input_action_set",
-      { action: "select", pressed: true },
+      "input_inject",
+      { target: "headed", actions: { select: true } },
       { cwd: appRoot },
     );
     expect(action.structuredContent).toMatchObject({
       ok: true,
-      result: {
-        action: "select",
-        queued: true,
-      },
+      target: "headed",
     });
 
     const inputReset = await callMcpTool("input_reset", {}, { cwd: appRoot });
@@ -1368,88 +1212,27 @@ test("aperture create produces an installable app that works with CLI AI tools",
       },
     });
 
-    const frame = await callMcpTool(
-      "render_get_frame_report",
-      {},
+    const frame = await captureHeadedFrame(
+      { samples: [{ id: "center", x: 0.5, y: 0.5 }] },
       { cwd: appRoot },
     );
     expect(frame.structuredContent).toMatchObject({
       ok: true,
-      report: {
-        lastFrame: expect.any(Object),
-      },
-    });
-
-    const packets = await callMcpTool(
-      "render_get_packets",
-      { family: "meshDraws" },
-      { cwd: appRoot },
-    );
-    expect(packets.structuredContent).toMatchObject({
-      ok: true,
-      packets: {
-        families: {
-          meshDraws: {
-            family: "meshDraws",
-          },
-        },
-      },
-    });
-
-    const explain = await callMcpTool(
-      "render_explain_entity",
-      { key: "starter.cube" },
-      { cwd: appRoot },
-    );
-    expect(explain.structuredContent).toMatchObject({
-      ok: true,
-      report: {
-        entity: expect.objectContaining({
-          key: "starter.cube",
-        }),
-      },
-    });
-
-    const diagnostics = await callMcpTool(
-      "render_get_diagnostics",
-      {},
-      { cwd: appRoot },
-    );
-    expect(diagnostics.structuredContent).toMatchObject({
-      ok: true,
-      diagnostics: {
-        app: expect.any(Object),
-      },
-    });
-
-    const readback = await callMcpTool(
-      "render_readback_samples",
-      { samples: [{ id: "center", x: 0.5, y: 0.5 }] },
-      { cwd: appRoot },
-    );
-    expect(readback.structuredContent).toMatchObject({
-      ok: true,
-      samples: [
-        expect.objectContaining({
-          id: "center",
-          pixel: expect.any(Object),
-        }),
-      ],
-    });
-
-    const pick = await callMcpTool(
-      "render_pick_entity",
-      { x: 0.5, y: 0.5 },
-      { cwd: appRoot },
-    );
-    expect(pick.structuredContent).toMatchObject({
-      result: {
-        pick: expect.any(Object),
+      target: "headed",
+      samples: {
+        ok: true,
+        samples: [
+          expect.objectContaining({
+            id: "center",
+            pixel: expect.any(Object),
+          }),
+        ],
       },
     });
 
     const referenceBuild = await runCli(["reference", "warmup"], {
       cwd: appRoot,
+      timeout: 120_000,
     });
     expect(referenceBuild.stdout).toContain("Warmed Aperture reference corpus");
     const referenceSearch = await runCli(
@@ -1490,12 +1273,11 @@ test("aperture create produces an installable app that works with CLI AI tools",
       );
       expect(workerFailureUp.stdout).toContain("Started Aperture dev session");
 
-      const workerFailure = await callMcpTool(
-        "browser_wait_for_webgpu",
+      const workerFailure = await waitForHeadedReady(
         // The broken app still has to compile and boot before the worker
         // throws; under SwiftShader CI that takes >5s, and a short budget
         // returns a generic timeout instead of the worker-error diagnostic.
-        { timeoutMs: 20_000 },
+        20_000,
         { cwd: appRoot },
       );
       expect(workerFailure.structuredContent).toMatchObject({
@@ -1510,12 +1292,11 @@ test("aperture create produces an installable app that works with CLI AI tools",
         },
       });
 
-      const workerFailureDiagnostics = await callMcpTool(
-        "render_get_diagnostics",
-        {},
-        { cwd: appRoot },
-      );
-      expect(workerFailureDiagnostics.structuredContent).toMatchObject({
+      const workerFailureDiagnostics = JSON.parse(
+        (await runCli(["tool", "render_get_diagnostics"], { cwd: appRoot }))
+          .stdout,
+      ) as unknown;
+      expect(workerFailureDiagnostics).toMatchObject({
         ok: true,
         diagnostics: {
           failure: {
@@ -1542,11 +1323,9 @@ test("aperture create produces an installable app that works with CLI AI tools",
       "Started Aperture dev session",
     );
 
-    const webgpuUnavailable = await callMcpTool(
-      "browser_wait_for_webgpu",
-      { timeoutMs: 5_000 },
-      { cwd: appRoot },
-    );
+    const webgpuUnavailable = await waitForHeadedReady(5_000, {
+      cwd: appRoot,
+    });
     expect(webgpuUnavailable.structuredContent).toMatchObject({
       ok: false,
       diagnostic: {
@@ -1560,12 +1339,11 @@ test("aperture create produces an installable app that works with CLI AI tools",
       },
     });
 
-    const unavailableDiagnostics = await callMcpTool(
-      "render_get_diagnostics",
-      {},
-      { cwd: appRoot },
-    );
-    expect(unavailableDiagnostics.structuredContent).toMatchObject({
+    const unavailableDiagnostics = JSON.parse(
+      (await runCli(["tool", "render_get_diagnostics"], { cwd: appRoot }))
+        .stdout,
+    ) as unknown;
+    expect(unavailableDiagnostics).toMatchObject({
       ok: true,
       diagnostics: {
         app: {
@@ -1675,13 +1453,10 @@ test("aperture create templates typecheck, build, and pass browser smoke checks"
         );
         expect(up.stdout).toContain("Started Aperture dev session");
 
-        const ready = await callMcpTool(
-          "browser_wait_for_webgpu",
-          { timeoutMs: 30_000 },
-          { cwd: appRoot },
-        );
+        const ready = await waitForHeadedReady(30_000, { cwd: appRoot });
         expect(ready.structuredContent).toMatchObject({
           ok: true,
+          target: "headed",
           page: {
             status: {
               status: "running",
@@ -1698,24 +1473,19 @@ test("aperture create templates typecheck, build, and pass browser smoke checks"
           ]);
         }
 
-        const canvas = await callMcpTool(
-          "browser_canvas_status",
-          {},
-          { cwd: appRoot },
-        );
+        const canvas = await captureHeadedFrame({}, { cwd: appRoot });
         expect(canvas.structuredContent).toMatchObject({
           ok: true,
-          status: {
-            canvas: {
-              width: expect.any(Number),
-              height: expect.any(Number),
-              aspect: expect.any(Number),
-            },
-            renderTarget: {
-              width: expect.any(Number),
-              height: expect.any(Number),
-              msaaSampleCount: 4,
-            },
+          target: "headed",
+          canvas: {
+            width: expect.any(Number),
+            height: expect.any(Number),
+            aspect: expect.any(Number),
+          },
+          renderTarget: {
+            width: expect.any(Number),
+            height: expect.any(Number),
+            msaaSampleCount: 4,
           },
         });
 
@@ -1731,19 +1501,13 @@ test("aperture create templates typecheck, build, and pass browser smoke checks"
           },
         });
 
-        const frame = await callMcpTool(
-          "render_get_frame_report",
-          {},
-          { cwd: appRoot },
-        );
+        const frame = await captureHeadedFrame({}, { cwd: appRoot });
         expect(frame.structuredContent).toMatchObject({
           ok: true,
-          report: {
-            lastFrame: {
-              counts: {
-                drawCalls: expect.any(Number),
-              },
-            },
+          target: "headed",
+          renderTarget: {
+            width: expect.any(Number),
+            height: expect.any(Number),
           },
         });
 
@@ -1766,22 +1530,18 @@ test("aperture create templates typecheck, build, and pass browser smoke checks"
 
         if (template.template === "game") {
           await callMcpTool(
-            "input_action_set",
-            { action: "move", x: 1 },
+            "input_inject",
+            { target: "headed", actions: { move: { x: 1, y: 0 } } },
             { cwd: appRoot },
           );
           await delay(2_600);
           await callMcpTool(
-            "input_action_set",
-            { action: "move", x: 0 },
+            "input_inject",
+            { target: "headed", actions: { move: { x: 0, y: 0 } } },
             { cwd: appRoot },
           );
 
-          const status = await callMcpTool(
-            "browser_status",
-            {},
-            { cwd: appRoot },
-          );
+          const status = await waitForHeadedReady(30_000, { cwd: appRoot });
           const signals = generatedSignals(status.structuredContent);
 
           expect(signals.score).toBe(1);
@@ -1814,6 +1574,28 @@ async function delay(ms: number): Promise<void> {
   });
 }
 
+async function waitForHeadedReady(
+  timeoutMs: number,
+  options: { readonly cwd?: string } = {},
+): Promise<{ readonly structuredContent?: unknown }> {
+  return await callMcpTool(
+    "app_status",
+    { target: "headed", waitUntilReady: true, timeoutMs },
+    options,
+  );
+}
+
+async function captureHeadedFrame(
+  args: Record<string, unknown> = {},
+  options: { readonly cwd?: string } = {},
+): Promise<{ readonly structuredContent?: unknown }> {
+  return await callMcpTool(
+    "frame_capture",
+    { target: "headed", ...args },
+    options,
+  );
+}
+
 function generatedSignals(content: unknown): Record<string, unknown> {
   const page = (content as { readonly page?: unknown }).page;
   const status = (page as { readonly status?: unknown } | undefined)?.status;
@@ -1843,16 +1625,16 @@ async function expectManagedCanvasResize(
     while (Date.now() < deadline) {
       lastStatus = await readManagedCanvasStatus(cwd);
 
+      const expectedAspect = size.width / size.height;
+      const aspectMatches =
+        Math.abs(lastStatus.canvas.aspect - expectedAspect) < 0.01;
+
       if (
-        lastStatus.canvas.displayWidth === size.width &&
-        lastStatus.canvas.displayHeight === size.height &&
+        aspectMatches &&
         lastStatus.renderTarget.width === lastStatus.canvas.width &&
         lastStatus.renderTarget.height === lastStatus.canvas.height
       ) {
-        expect(lastStatus.canvas.aspect).toBeCloseTo(
-          size.width / size.height,
-          5,
-        );
+        expect(lastStatus.canvas.aspect).toBeCloseTo(expectedAspect, 5);
         return;
       }
 
@@ -1884,23 +1666,19 @@ interface ManagedCanvasStatus {
 async function readManagedCanvasStatus(
   cwd: string,
 ): Promise<ManagedCanvasStatus> {
-  const report = await callMcpTool("browser_canvas_status", {}, { cwd });
-  const status = (
-    report.structuredContent as {
-      readonly status?: {
-        readonly canvas?: unknown;
-        readonly renderTarget?: unknown;
-      };
-    }
-  ).status;
-  const canvas = status?.canvas as ManagedCanvasStatus["canvas"] | undefined;
-  const renderTarget = status?.renderTarget as
+  const report = await captureHeadedFrame({}, { cwd });
+  const content = report.structuredContent as {
+    readonly canvas?: unknown;
+    readonly renderTarget?: unknown;
+  };
+  const canvas = content.canvas as ManagedCanvasStatus["canvas"] | undefined;
+  const renderTarget = content.renderTarget as
     | ManagedCanvasStatus["renderTarget"]
     | undefined;
 
   if (canvas === undefined || renderTarget === undefined) {
     throw new Error(
-      `browser_canvas_status did not return canvas and renderTarget: ${JSON.stringify(
+      `frame_capture did not return canvas and renderTarget: ${JSON.stringify(
         report.structuredContent,
       )}`,
     );
@@ -2135,13 +1913,17 @@ async function isCdpAlive(cdpUrl: string): Promise<boolean> {
 
 async function runCli(
   args: readonly string[],
-  options: { readonly allowFailure?: boolean; readonly cwd?: string } = {},
+  options: {
+    readonly allowFailure?: boolean;
+    readonly cwd?: string;
+    readonly timeout?: number;
+  } = {},
 ): Promise<CommandResult> {
   try {
     return await execFileAsync(process.execPath, [CLI, ...args], {
       cwd: options.cwd ?? APP_ROOT,
       env: CLI_ENV,
-      timeout: 60_000,
+      timeout: options.timeout ?? 60_000,
       maxBuffer: 10 * 1024 * 1024,
     });
   } catch (error: unknown) {

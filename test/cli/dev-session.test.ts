@@ -182,14 +182,23 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     const root = await tempRoot();
     const stdin = new PassThrough();
     const stdout = new PassThrough();
+    const stderr = new PassThrough();
     const chunks: string[] = [];
+    const errors: string[] = [];
 
     stdout.on("data", (chunk: Buffer) => {
       chunks.push(chunk.toString());
     });
+    stderr.on("data", (chunk: Buffer) => {
+      errors.push(chunk.toString());
+    });
 
-    const done = runApertureMcpServer({ cwd: root, stdin, stdout });
+    const done = runApertureMcpServer({ cwd: root, stdin, stdout, stderr });
 
+    stdin.write("{not json\n");
+    stdin.write(
+      `${JSON.stringify({ jsonrpc: "2.0", method: "tools/list" })}\n`,
+    );
     stdin.write(
       `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize" })}\n`,
     );
@@ -207,6 +216,24 @@ describe("Aperture CLI dev session and MCP command surface", () => {
         },
       })}\n`,
     );
+    stdin.write(
+      `${JSON.stringify({ jsonrpc: "2.0", id: 4, method: "nope" })}\n`,
+    );
+    stdin.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: 5,
+        method: "tools/call",
+      })}\n`,
+    );
+    stdin.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: 6,
+        method: "tools/call",
+        params: {},
+      })}\n`,
+    );
     stdin.end();
     await done;
 
@@ -218,7 +245,12 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     const initialize = messages.find((message) => message.id === 1);
     const tools = messages.find((message) => message.id === 2);
     const call = messages.find((message) => message.id === 3);
+    const unsupported = messages.find((message) => message.id === 4);
+    const missingParams = messages.find((message) => message.id === 5);
+    const missingTool = messages.find((message) => message.id === 6);
 
+    expect(errors.join("")).toContain("aperture.mcp.invalidJson");
+    expect(messages.some((message) => message.id === undefined)).toBe(false);
     expect(initialize?.result).toMatchObject({
       capabilities: { tools: {} },
       serverInfo: { name: "aperture" },
@@ -311,6 +343,18 @@ describe("Aperture CLI dev session and MCP command surface", () => {
           code: "aperture.mcp.sessionMissing",
         },
       },
+    });
+    expect(unsupported?.error).toMatchObject({
+      code: -32_000,
+      message: "Unsupported MCP method 'nope'.",
+    });
+    expect(missingParams?.error).toMatchObject({
+      code: -32_000,
+      message: "MCP tools/call requires params.",
+    });
+    expect(missingTool?.error).toMatchObject({
+      code: -32_000,
+      message: "MCP tools/call requires a tool name.",
     });
   });
 
@@ -489,6 +533,63 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     });
   });
 
+  it("preflights headless frame_capture bundles before rendering placeholder assets", async () => {
+    const root = await placeholderGltfFixture();
+    const messages = await runMcpRequestSequence(process.cwd(), [
+      {
+        name: "app_start",
+        arguments: {
+          target: "headless",
+          config: path.join(root, "aperture.headless.config.ts"),
+          assetMode: "placeholder",
+          seed: 3,
+        },
+      },
+      {
+        name: "frame_capture",
+        arguments: {
+          target: "headless",
+          width: 64,
+          height: 64,
+        },
+      },
+      {
+        name: "app_stop",
+        arguments: { target: "headless" },
+      },
+    ]);
+
+    expect(structured(messages, 1)).toMatchObject({
+      ok: true,
+      target: "headless",
+    });
+    expect(structured(messages, 2)).toMatchObject({
+      ok: false,
+      target: "headless",
+      mode: "headless",
+      source: "render-bundle",
+      bundlePath: expect.stringMatching(/headless-frame-\d+\.bundle\.json$/u),
+      renderTarget: {
+        width: 64,
+        height: 64,
+      },
+      diagnostics: [
+        expect.objectContaining({
+          code: "aperture.render.incompleteBundle",
+          severity: "error",
+          data: expect.objectContaining({
+            placeholders: expect.arrayContaining([expect.any(String)]),
+          }),
+        }),
+      ],
+    });
+    expect(structured(messages, 2)).not.toHaveProperty("pngPath");
+    expect(structured(messages, 3)).toMatchObject({
+      ok: true,
+      stopped: true,
+    });
+  });
+
   it("returns shared MCP envelopes for successful and expected-error tool calls", async () => {
     const messages = await runMcpRequestSequence(process.cwd(), [
       {
@@ -554,6 +655,135 @@ describe("Aperture CLI dev session and MCP command surface", () => {
           code: "aperture.mcp.targetMissing",
         }),
       ],
+    });
+  });
+
+  it("returns diagnostics for headless-only MCP validation paths", async () => {
+    const outRoot = await tempRoot();
+    const messages = await runMcpRequestSequence(process.cwd(), [
+      {
+        name: "app_start",
+        arguments: {
+          target: "headless",
+          config: HEADLESS_CONFIG,
+          seed: 1,
+        },
+      },
+      {
+        name: "render_bundle",
+        arguments: { target: "headless" },
+      },
+      {
+        name: "session_snapshot_save",
+        arguments: { target: "headless" },
+      },
+      {
+        name: "session_snapshot_restore",
+        arguments: { target: "headless" },
+      },
+      {
+        name: "render_bundle",
+        arguments: {
+          target: "headed",
+          out: path.join(outRoot, "invalid.bundle.json"),
+        },
+      },
+      {
+        name: "app_reset",
+        arguments: { target: "headless", seed: 19 },
+      },
+      {
+        name: "app_status",
+        arguments: { target: "headless" },
+      },
+      {
+        name: "render_bundle",
+        arguments: {
+          target: "headless",
+          out: path.join(outRoot, "frame.bundle.json"),
+          includeBundle: true,
+          digest: true,
+          width: 320,
+          height: 200,
+        },
+      },
+      {
+        name: "app_stop",
+        arguments: { target: "headless" },
+      },
+      {
+        name: "app_stop",
+        arguments: { target: "headless" },
+      },
+    ]);
+
+    expect(structured(messages, 2)).toMatchObject({
+      ok: false,
+      diagnostics: [
+        expect.objectContaining({ code: "aperture.mcp.outputMissing" }),
+      ],
+    });
+    expect(structured(messages, 3)).toMatchObject({
+      ok: false,
+      diagnostics: [
+        expect.objectContaining({ code: "aperture.mcp.outputMissing" }),
+      ],
+    });
+    expect(structured(messages, 4)).toMatchObject({
+      ok: false,
+      diagnostics: [
+        expect.objectContaining({ code: "aperture.mcp.snapshotMissing" }),
+      ],
+    });
+    expect(structured(messages, 5)).toMatchObject({
+      ok: false,
+      diagnostics: [
+        expect.objectContaining({ code: "aperture.mcp.invalidTarget" }),
+      ],
+    });
+    expect(structured(messages, 6)).toMatchObject({
+      ok: true,
+      target: "headless",
+      mode: "headless",
+      result: {
+        reset: true,
+        status: { seed: 19 },
+      },
+    });
+    expect(structured(messages, 7)).toMatchObject({
+      ok: true,
+      target: "headless",
+      mode: "headless",
+      running: true,
+      status: { mode: "headless" },
+    });
+    expect(structured(messages, 8)).toMatchObject({
+      ok: true,
+      target: "headless",
+      mode: "headless",
+      path: path.join(outRoot, "frame.bundle.json"),
+      bundle: {
+        format: "aperture.render-bundle",
+        renderTarget: {
+          width: 320,
+          height: 200,
+        },
+        digest: {
+          hash: expect.stringMatching(/^[0-9a-f]{8}$/u),
+        },
+      },
+    });
+    expect(structured(messages, 9)).toMatchObject({
+      ok: true,
+      target: "headless",
+      stopped: true,
+      hadSession: true,
+    });
+    expect(structured(messages, 10)).toMatchObject({
+      ok: true,
+      target: "headless",
+      stopped: false,
+      hadSession: false,
     });
   });
 
@@ -1118,6 +1348,60 @@ function logCodes(value: unknown): readonly unknown[] {
 
 function isRecord(value: unknown): value is JsonRecord {
   return typeof value === "object" && value !== null;
+}
+
+async function placeholderGltfFixture(): Promise<string> {
+  const root = await tempRoot();
+  const systemsDir = path.join(root, "src", "systems");
+  await mkdir(systemsDir, { recursive: true });
+  await writeFile(
+    path.join(root, "aperture.headless.config.ts"),
+    `import { asset, defineApertureConfig } from "@aperture-engine/app/config";
+
+export default defineApertureConfig({
+  mode: "headless",
+  systems: ["src/systems/**/*.system.ts"],
+  assets: {
+    missingStudio: asset.hdr("/assets/missing.hdr", { preload: "blocking" }),
+  },
+  render: { defaultCamera: false, defaultLight: false },
+});
+`,
+    "utf8",
+  );
+  await writeFile(
+    path.join(systemsDir, "placeholder.system.ts"),
+    `import { createSystem, material, mesh } from "@aperture-engine/app/systems";
+
+export default class PlaceholderSystem extends createSystem({ priority: 0 }) {
+  override init(): void {
+    const studio = this.assets.hdr("missingStudio");
+
+    this.spawn.camera({
+      key: "camera.main",
+      transform: { translation: [0, 1, 6], lookAt: [0, 0, 0] },
+      fovYDegrees: 60,
+    });
+    this.spawn.mesh({
+      key: "cube",
+      mesh: mesh.box({ size: [1, 1, 1] }),
+      material: material.standard(),
+      transform: { translation: [0, 0, 0] },
+    });
+    this.spawn.light({
+      key: "environment",
+      kind: "environment",
+      light: {
+        environmentMap: studio.renderHandle,
+      },
+    });
+  }
+}
+`,
+    "utf8",
+  );
+
+  return root;
 }
 
 async function tempRoot(): Promise<string> {

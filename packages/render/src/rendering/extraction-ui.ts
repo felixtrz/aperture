@@ -64,6 +64,57 @@ interface UiNodeMetrics {
 const MAX_UI_LAYOUT_DEPTH = 2048;
 const DEFAULT_UI_CHILD_HEIGHT = 32;
 
+/**
+ * Result of a UI layout pass: the screen-space node packets plus the hit
+ * regions interaction reads. Stable contract shared by the built-in
+ * absolute/row/column extractor and any injected replacement.
+ */
+export interface UiLayoutExtractionResult {
+  readonly nodes: readonly UiNodePacket[];
+  readonly hitRegions: readonly UiHitRegionPacket[];
+}
+
+/**
+ * Pluggable UI layout extractor. The default is the built-in
+ * absolute/row/column pass below; `@aperture-engine/ui` injects a Yoga-backed
+ * flexbox extractor through {@link setUiLayoutExtractor}. Keeping the wire
+ * contract (packet types + `RenderSnapshot` fields) in `@aperture-engine/render`
+ * while the implementation lives in `@aperture-engine/ui` avoids a circular
+ * dependency (see docs/UI_PACKAGE_PLAN.md §3.2).
+ */
+export interface InjectedUiLayoutExtractor {
+  extract(
+    world: EcsWorld,
+    diagnostics: RenderDiagnostic[],
+    cameraLayerMask: number,
+  ): UiLayoutExtractionResult;
+}
+
+const uiLayoutExtractors = new WeakMap<EcsWorld, InjectedUiLayoutExtractor>();
+
+/**
+ * Register (or clear, with `null`) a replacement UI layout extractor for a
+ * world. Keyed by world instance in a module-level `WeakMap`, so different
+ * worlds can use different extractors, tests can register without a global
+ * singleton, and entries are released when the world is collected.
+ */
+export function setUiLayoutExtractor(
+  world: EcsWorld,
+  extractor: InjectedUiLayoutExtractor | null,
+): void {
+  if (extractor === null) {
+    uiLayoutExtractors.delete(world);
+  } else {
+    uiLayoutExtractors.set(world, extractor);
+  }
+}
+
+function getUiLayoutExtractor(
+  world: EcsWorld,
+): InjectedUiLayoutExtractor | null {
+  return uiLayoutExtractors.get(world) ?? null;
+}
+
 export function extractUiLayout(
   world: EcsWorld,
   diagnostics: RenderDiagnostic[],
@@ -72,6 +123,11 @@ export function extractUiLayout(
   readonly nodes: readonly UiNodePacket[];
   readonly hitRegions: readonly UiHitRegionPacket[];
 } {
+  const injected = getUiLayoutExtractor(world);
+  if (injected !== null) {
+    return injected.extract(world, diagnostics, cameraLayerMask);
+  }
+
   const screenQuery = world.queryManager.registerQuery({
     required: [UiScreen],
   });

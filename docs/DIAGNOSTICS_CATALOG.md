@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1345
+Every structured diagnostic code the engine can emit (1347
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -260,13 +260,13 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.render.blankFrame`                | The rendered frame is blank/black. This usually means the snapshot's source assets did not resolve or WebGPU produced no output. Re-run with --allow-blank to write it anyway.     | —    | `packages/cli/src/commands/render.ts`                                                              |
 | `aperture.render.canvasMissing`             | No HTML canvas was found for managed-browser entity pick.                                                                                                                          | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
 | `aperture.render.engineNotResolved`         | Could not resolve the Aperture engine packages to render with. Ensure @aperture-engine/app and its dependencies are installed alongside the CLI.                                   | —    | `packages/cli/src/render/driver.ts`                                                                |
-| `aperture.render.incompleteBundle`          | Snapshot bundle '…' is not render-complete: …. Re-export it with 'aperture headless' after assets are ready, or pass --allow-placeholders only when stubbed pixels are acceptable. | —    | `packages/cli/src/commands/render.ts`                                                              |
+| `aperture.render.incompleteBundle`          | Snapshot bundle '…' is not render-complete: …. Re-export it with 'aperture headless' after assets are ready, or pass --allow-placeholders only when stubbed pixels are acceptable. | yes  | `packages/cli/src/commands/render.ts`<br>`packages/cli/src/mcp-session-manager.ts`                 |
 | `aperture.render.invalidBundle`             | (message composed at runtime)                                                                                                                                                      | —    | `packages/cli/src/commands/render.ts`                                                              |
 | `aperture.render.invalidOption`             | Option '…' must be a positive integer.                                                                                                                                             | —    | `packages/cli/src/commands/render.ts`                                                              |
 | `aperture.render.missingOutput`             | The render command requires --out <path.png> to write the rendered image.                                                                                                          | —    | `packages/cli/src/commands/render.ts`                                                              |
 | `aperture.render.missingSnapshot`           | The render command requires a render bundle path, for example 'aperture render snapshot.json --out frame.png'.                                                                     | —    | `packages/cli/src/commands/render.ts`                                                              |
 | `aperture.render.pickOutOfBounds`           | Pick point is outside the …x… canvas.                                                                                                                                              | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
-| `aperture.render.placeholderAssets`         | (message composed at runtime)                                                                                                                                                      | —    | `packages/cli/src/commands/render.ts`                                                              |
+| `aperture.render.placeholderAssets`         | (message composed at runtime)                                                                                                                                                      | —    | `packages/cli/src/commands/render.ts`<br>`packages/cli/src/mcp-session-manager.ts`                 |
 | `aperture.render.readbackSampleOutOfBounds` | Readback sample '…' is outside the …x… canvas.                                                                                                                                     | —    | `packages/app/src/browser/devtools/canvas-readback.ts`<br>`packages/cli/src/tools/png-readback.ts` |
 | `aperture.render.renderFailed`              | Snapshot render failed in the browser: …                                                                                                                                           | —    | `packages/cli/src/render/driver.ts`                                                                |
 | `aperture.render.sampleCount.clamped`       | WebGPU generated apps currently support MSAA sample counts 1 and 4; this value will be clamped by the WebGPU backend.                                                              | yes  | `packages/app/src/browser/render.ts`                                                               |
@@ -6481,6 +6481,13 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                 | Message                                                                                       | Fix? | Emitted from                                                  |
 | ------------------------------------ | --------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------- |
 | `textureResource.uploadDataTooSmall` | Texture upload data for resource '…' mip level … must contain at least … byte(s); received …. | —    | `packages/webgpu/src/resources/textures/texture-resources.ts` |
+
+## ui.layout (2)
+
+| Code                      | Message                                             | Fix? | Emitted from                                  |
+| ------------------------- | --------------------------------------------------- | ---- | --------------------------------------------- |
+| `ui.layout.depthExceeded` | UI layout exceeded the maximum retained tree depth. | —    | `packages/ui/src/extraction/ecs-extractor.ts` |
+| `ui.layout.parentCycle`   | UI parent cycle detected; subtree skipped.          | —    | `packages/ui/src/extraction/ecs-extractor.ts` |
 
 ## uiFrame.createBindGroupUnavailable (1)
 

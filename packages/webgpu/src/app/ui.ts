@@ -96,7 +96,7 @@ interface UiTextBatch {
 }
 
 const UI_VIEWPORT_FLOAT_OFFSET = 20;
-const UI_QUAD_FLOAT_STRIDE = 16;
+const UI_QUAD_FLOAT_STRIDE = 28;
 const UI_GLYPH_FLOAT_STRIDE = 24;
 
 export async function prepareUiFrameResourcesForSnapshot(options: {
@@ -990,7 +990,30 @@ function writeUiQuadData(
   data[offset + 13] = node.clip.y;
   data[offset + 14] = node.clip.width;
   data[offset + 15] = node.clip.height;
+
+  const radii = node.cornerRadii ?? ZERO_VEC4;
+  data[offset + 16] = radii[0];
+  data[offset + 17] = radii[1];
+  data[offset + 18] = radii[2];
+  data[offset + 19] = radii[3];
+
+  const borders = node.borderWidths ?? ZERO_VEC4;
+  data[offset + 20] = borders[0];
+  data[offset + 21] = borders[1];
+  data[offset + 22] = borders[2];
+  data[offset + 23] = borders[3];
+
+  const borderRgba =
+    node.borderColor === undefined
+      ? ZERO_VEC4
+      : withOpacity(node.borderColor, node.opacity);
+  data[offset + 24] = borderRgba[0];
+  data[offset + 25] = borderRgba[1];
+  data[offset + 26] = borderRgba[2];
+  data[offset + 27] = borderRgba[3];
 }
+
+const ZERO_VEC4: readonly [number, number, number, number] = [0, 0, 0, 0];
 
 function writeUiTextTransform(
   transforms: Float32Array,

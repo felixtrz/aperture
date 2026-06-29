@@ -13,6 +13,7 @@ import { apertureRuntimeDir } from "./session.js";
 import { readPngDimensions, readPngSamples } from "./tools/png-readback.js";
 import { renderBundleToPng } from "./render/driver.js";
 import { ApertureCliError } from "./errors.js";
+import { preflightApertureSnapshotBundle } from "./headless/bundle.js";
 import {
   createHeadlessSessionControllerFromConfig,
   type HeadlessSessionController,
@@ -225,6 +226,7 @@ export class ApertureMcpSessionManager {
           includeData: { type: "boolean" },
           width: { type: "number" },
           height: { type: "number" },
+          allowPlaceholders: { type: "boolean" },
           waitUntilReady: { type: "boolean" },
           timeoutMs: { type: "number" },
           region: { enum: ["canvas", "viewport"] },
@@ -837,6 +839,30 @@ export class ApertureMcpSessionManager {
       "height",
       numberArg(args, "height") ?? 640,
     );
+    const allowPlaceholders = args["allowPlaceholders"] === true;
+    const preflight = preflightApertureSnapshotBundle(bundle, {
+      allowPlaceholders,
+    });
+    const preflightDiagnostics = bundlePreflightDiagnostics(
+      preflight,
+      allowPlaceholders,
+    );
+
+    if (!preflight.ok) {
+      return {
+        ok: false,
+        target: "headless",
+        mode: "headless",
+        source: "render-bundle",
+        bundlePath: isRecord(bundleResult) ? bundleResult["path"] : undefined,
+        renderTarget,
+        assetProvenance: isRecord(bundleResult)
+          ? bundleResult["assetProvenance"]
+          : undefined,
+        diagnostics: preflightDiagnostics,
+      };
+    }
+
     const rendered = await renderBundleToPng({ bundle, width, height });
     const pngPath = artifacts.png;
     await mkdir(path.dirname(pngPath), { recursive: true });
@@ -868,7 +894,7 @@ export class ApertureMcpSessionManager {
       ...(args["includeData"] === true
         ? { includeData: true, data: rendered.png.toString("base64") }
         : {}),
-      diagnostics: [],
+      diagnostics: preflightDiagnostics,
     };
   }
 
@@ -1275,6 +1301,44 @@ function diagnosticsFrom(...values: unknown[]): readonly unknown[] {
         ? [value["diagnostic"]]
         : [],
   );
+}
+
+function bundlePreflightDiagnostics(
+  preflight: ReturnType<typeof preflightApertureSnapshotBundle>,
+  allowPlaceholders: boolean,
+): readonly Record<string, unknown>[] {
+  const diagnostics: Record<string, unknown>[] = [];
+
+  if (!preflight.ok) {
+    diagnostics.push({
+      code: "aperture.render.incompleteBundle",
+      severity: "error",
+      message: `Snapshot bundle is not render-complete: ${preflight.violations.join(
+        "; ",
+      )}.`,
+      suggestedFix:
+        "Re-export after assets are ready, or pass allowPlaceholders only when stubbed pixels are acceptable.",
+      data: {
+        violations: preflight.violations,
+        missing: preflight.closure.missing,
+        unready: preflight.closure.unready,
+        placeholders: preflight.closure.placeholders,
+      },
+    });
+  }
+
+  if (allowPlaceholders && preflight.closure.placeholders.length > 0) {
+    diagnostics.push({
+      code: "aperture.render.placeholderAssets",
+      severity: "warn",
+      message: `Rendering ${preflight.closure.placeholders.length} placeholder asset(s); these pixels are stubbed, not real.`,
+      data: {
+        placeholders: preflight.closure.placeholders,
+      },
+    });
+  }
+
+  return diagnostics;
 }
 
 function semanticActionCalls(
