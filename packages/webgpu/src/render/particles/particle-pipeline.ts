@@ -19,6 +19,7 @@ import {
 } from "../../output/output-stage-color-space.js";
 import {
   SpriteBlendMode,
+  type ParticleRenderMode,
   type SpriteBlendMode as SpriteBlendModeValue,
 } from "@aperture-engine/render";
 
@@ -32,7 +33,7 @@ const PARTICLE_CURVE_SAMPLE_COUNT: u32 = 16u;
 
 struct ParticleParams {
   frameSeedCapacityFlags: vec4u,
-  originRadiusTime: vec4f,
+  originTime: vec4f,
   colorA: vec4f,
   colorB: vec4f,
   sizeSpeedLife: vec4f,
@@ -89,7 +90,7 @@ fn sampleColorCurve(life: f32) -> vec4f {
 }
 
 fn particleLife(offset: f32) -> f32 {
-  return fract(params.originRadiusTime.z / max(params.sizeSpeedLife.z, 0.001) + offset);
+  return fract(params.originTime.w / max(params.sizeSpeedLife.z, 0.001) + offset);
 }
 
 @compute @workgroup_size(64)
@@ -104,9 +105,9 @@ fn cs_main(@builtin(global_invocation_id) id: vec3u) {
   if (index == 0u) {
     let life = particleLife(0.0);
     particles[index].positionSize = vec4f(
-      params.originRadiusTime.x,
-      params.originRadiusTime.y,
-      0.0,
+      params.originTime.x,
+      params.originTime.y,
+      params.originTime.z,
       max(0.001, max(params.sizeSpeedLife.x, params.sizeSpeedLife.y) * sampleSizeCurve(life))
     );
     particles[index].color = sampleColorCurve(life);
@@ -119,17 +120,17 @@ fn cs_main(@builtin(global_invocation_id) id: vec3u) {
   let b = hash(seed ^ (index * 277803737u) ^ (frame * 1597334677u));
   let c = hash(seed ^ (index * 1442695041u));
   let angle = a * 6.2831853;
-  let radius = sqrt(b) * params.originRadiusTime.w;
-  let drift = sin(params.originRadiusTime.z + f32(index) * 0.073) * 0.18;
+  let radius = sqrt(b) * params.sizeSpeedLife.w;
+  let drift = sin(params.originTime.w + f32(index) * 0.073) * 0.18;
   let life = particleLife(c);
   let baseSize = mix(params.sizeSpeedLife.x, params.sizeSpeedLife.y, c);
   let size = max(0.001, baseSize * sampleSizeCurve(life));
   let color = sampleColorCurve(life);
 
   particles[index].positionSize = vec4f(
-    params.originRadiusTime.x + cos(angle) * radius,
-    params.originRadiusTime.y + sin(angle) * radius + drift,
-    0.0,
+    params.originTime.x + cos(angle) * radius,
+    params.originTime.y + sin(angle) * radius + drift,
+    params.originTime.z,
     size
   );
   particles[index].color = color;
@@ -148,6 +149,13 @@ struct ViewProjectionUniform {
 struct ParticleData {
   positionSize: vec4f,
   color: vec4f,
+  frameData: vec4f,
+  motionData: vec4f,
+};
+
+struct ParticleAxes {
+  right: vec3f,
+  up: vec3f,
 };
 
 struct VertexOutput {
@@ -161,6 +169,9 @@ struct VertexOutput {
 @group(1) @binding(0) var<storage, read> particles: array<ParticleData>;
 @group(2) @binding(0) var particleTexture: texture_2d<f32>;
 @group(2) @binding(1) var particleSampler: sampler;
+// PARTICLE_SOFT_BINDINGS
+
+const PARTICLE_RENDER_MODE: u32 = 0u;
 
 fn quadPosition(vertexIndex: u32) -> vec2f {
   let x = array<f32, 6>(-0.5, 0.5, 0.5, -0.5, 0.5, -0.5);
@@ -172,6 +183,101 @@ fn quadUv(vertexIndex: u32) -> vec2f {
   let u = array<f32, 6>(0.0, 1.0, 1.0, 0.0, 1.0, 0.0);
   let v = array<f32, 6>(1.0, 1.0, 0.0, 1.0, 0.0, 0.0);
   return vec2f(u[vertexIndex], v[vertexIndex]);
+}
+
+fn rotate2(value: vec2f, radians: f32) -> vec2f {
+  let c = cos(radians);
+  let s = sin(radians);
+  return vec2f(value.x * c - value.y * s, value.x * s + value.y * c);
+}
+
+fn billboardAxes(position: vec3f) -> ParticleAxes {
+  let forwardRaw = view.cameraPosition.xyz - position;
+  let forwardLength = max(length(forwardRaw), 0.0001);
+  let forward = forwardRaw / forwardLength;
+  let rightRaw = cross(vec3f(0.0, 1.0, 0.0), forward);
+  let rightLength = length(rightRaw);
+  var right = rightRaw / max(rightLength, 0.0001);
+
+  if (rightLength < 0.0001) {
+    right = vec3f(1.0, 0.0, 0.0);
+  }
+
+  return ParticleAxes(right, normalize(cross(forward, right)));
+}
+
+fn horizontalAxes() -> ParticleAxes {
+  return ParticleAxes(vec3f(1.0, 0.0, 0.0), vec3f(0.0, 0.0, 1.0));
+}
+
+fn verticalAxes(position: vec3f) -> ParticleAxes {
+  let cameraOffset = view.cameraPosition.xyz - position;
+  let projectedForwardRaw = vec3f(cameraOffset.x, 0.0, cameraOffset.z);
+  let projectedLength = length(projectedForwardRaw);
+  var projectedForward = projectedForwardRaw / max(projectedLength, 0.0001);
+
+  if (projectedLength < 0.0001) {
+    projectedForward = vec3f(0.0, 0.0, 1.0);
+  }
+
+  let up = vec3f(0.0, 1.0, 0.0);
+  let rightRaw = cross(up, projectedForward);
+  let rightLength = length(rightRaw);
+  var right = rightRaw / max(rightLength, 0.0001);
+
+  if (rightLength < 0.0001) {
+    right = vec3f(1.0, 0.0, 0.0);
+  }
+
+  return ParticleAxes(right, up);
+}
+
+fn stretchedAxes(position: vec3f, motion: vec3f) -> ParticleAxes {
+  var axes = billboardAxes(position);
+  let motionLength = length(motion);
+
+  if (motionLength > 0.0001) {
+    axes.up = motion / motionLength;
+    let forwardRaw = view.cameraPosition.xyz - position;
+    let forward = forwardRaw / max(length(forwardRaw), 0.0001);
+    let rightRaw = cross(axes.up, forward);
+    let rightLength = length(rightRaw);
+
+    if (rightLength > 0.0001) {
+      axes.right = rightRaw / rightLength;
+    }
+  }
+
+  return axes;
+}
+
+fn particleAxes(position: vec3f, motion: vec3f) -> ParticleAxes {
+  if (PARTICLE_RENDER_MODE == 1u || PARTICLE_RENDER_MODE == 4u) {
+    return stretchedAxes(position, motion);
+  }
+  if (PARTICLE_RENDER_MODE == 2u) {
+    return horizontalAxes();
+  }
+  if (PARTICLE_RENDER_MODE == 3u) {
+    return verticalAxes(position);
+  }
+
+  return billboardAxes(position);
+}
+
+fn atlasUv(uv: vec2f, frameData: vec4f) -> vec2f {
+  let columns = max(floor(frameData.x + 0.5), 1.0);
+  let rows = max(floor(frameData.y + 0.5), 1.0);
+  let frameCount = columns * rows;
+
+  if (frameCount <= 1.0) {
+    return uv;
+  }
+
+  let frame = clamp(floor(frameData.z), 0.0, frameCount - 1.0);
+  let column = frame - floor(frame / columns) * columns;
+  let row = floor(frame / columns);
+  return (vec2f(column, row) + uv) / vec2f(columns, rows);
 }
 
 fn saturate(value: f32) -> f32 {
@@ -198,31 +304,34 @@ fn applyParticleFog(color: vec3f, distanceToCamera: f32) -> vec3f {
   return mix(color, view.fogColor.rgb, saturate(fogFactor * view.fogColor.a));
 }
 
+// PARTICLE_SOFT_FUNCTIONS
+
 @vertex
 fn vs_main(
   @builtin(vertex_index) vertexIndex: u32,
   @builtin(instance_index) instanceIndex: u32,
 ) -> VertexOutput {
   let particle = particles[instanceIndex];
-  let local = quadPosition(vertexIndex) * particle.positionSize.w;
-  let forwardRaw = view.cameraPosition.xyz - particle.positionSize.xyz;
-  let forwardLength = max(length(forwardRaw), 0.0001);
-  let forward = forwardRaw / forwardLength;
-  let rightRaw = cross(vec3f(0.0, 1.0, 0.0), forward);
-  let rightLength = length(rightRaw);
-  var right = rightRaw / max(rightLength, 0.0001);
+  let quad = quadPosition(vertexIndex);
+  var local = rotate2(quad, particle.frameData.w) * particle.positionSize.w;
 
-  if (rightLength < 0.0001) {
-    right = vec3f(1.0, 0.0, 0.0);
+  if (PARTICLE_RENDER_MODE == 1u) {
+    local.y = local.y * max(1.0, 1.0 + particle.motionData.w);
+  }
+  if (PARTICLE_RENDER_MODE == 4u) {
+    local = vec2f(
+      quad.x * particle.positionSize.w,
+      (quad.y - 0.5) * max(particle.positionSize.w, particle.motionData.w)
+    );
   }
 
-  let up = normalize(cross(forward, right));
-  let world = particle.positionSize.xyz + right * local.x + up * local.y;
+  let axes = particleAxes(particle.positionSize.xyz, particle.motionData.xyz);
+  let world = particle.positionSize.xyz + axes.right * local.x + axes.up * local.y;
   var output: VertexOutput;
 
   output.position = view.viewProjection * vec4f(world, 1.0);
   output.color = particle.color;
-  output.uv = quadUv(vertexIndex);
+  output.uv = atlasUv(quadUv(vertexIndex), particle.frameData);
   output.distanceToCamera = length(view.cameraPosition.xyz - world);
   return output;
 }
@@ -231,7 +340,10 @@ fn vs_main(
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   let texel = textureSample(particleTexture, particleSampler, input.uv);
   let color = input.color * texel;
-  return vec4f(applyParticleFog(color.rgb, input.distanceToCamera), color.a);
+  return vec4f(
+    applyParticleFog(color.rgb, input.distanceToCamera),
+    color.a * particleSoftFade(input.position)
+  );
 }
 `.trim();
 
@@ -255,7 +367,9 @@ struct ParticleBurstData {
 struct ParticleBurstParams {
   timeGravity: vec4f,
   motion: vec4f,
+  textureSheet: vec4f,
   sizeCurve: array<vec4f, 4>,
+  frameCurve: array<vec4f, 4>,
   colorCurve: array<vec4f, 16>,
 };
 
@@ -271,6 +385,14 @@ struct VertexOutput {
 @group(2) @binding(0) var particleTexture: texture_2d<f32>;
 @group(2) @binding(1) var particleSampler: sampler;
 @group(3) @binding(0) var<uniform> params: ParticleBurstParams;
+// PARTICLE_SOFT_BINDINGS
+
+const PARTICLE_RENDER_MODE: u32 = 0u;
+
+struct ParticleAxes {
+  right: vec3f,
+  up: vec3f,
+};
 
 fn quadPosition(vertexIndex: u32) -> vec2f {
   let x = array<f32, 6>(-0.5, 0.5, 0.5, -0.5, 0.5, -0.5);
@@ -288,6 +410,80 @@ fn rotate2(value: vec2f, radians: f32) -> vec2f {
   let c = cos(radians);
   let s = sin(radians);
   return vec2f(value.x * c - value.y * s, value.x * s + value.y * c);
+}
+
+fn billboardAxes(position: vec3f) -> ParticleAxes {
+  let forwardRaw = view.cameraPosition.xyz - position;
+  let forwardLength = max(length(forwardRaw), 0.0001);
+  let forward = forwardRaw / forwardLength;
+  let rightRaw = cross(vec3f(0.0, 1.0, 0.0), forward);
+  let rightLength = length(rightRaw);
+  var right = rightRaw / max(rightLength, 0.0001);
+
+  if (rightLength < 0.0001) {
+    right = vec3f(1.0, 0.0, 0.0);
+  }
+
+  return ParticleAxes(right, normalize(cross(forward, right)));
+}
+
+fn horizontalAxes() -> ParticleAxes {
+  return ParticleAxes(vec3f(1.0, 0.0, 0.0), vec3f(0.0, 0.0, 1.0));
+}
+
+fn verticalAxes(position: vec3f) -> ParticleAxes {
+  let cameraOffset = view.cameraPosition.xyz - position;
+  let projectedForwardRaw = vec3f(cameraOffset.x, 0.0, cameraOffset.z);
+  let projectedLength = length(projectedForwardRaw);
+  var projectedForward = projectedForwardRaw / max(projectedLength, 0.0001);
+
+  if (projectedLength < 0.0001) {
+    projectedForward = vec3f(0.0, 0.0, 1.0);
+  }
+
+  let up = vec3f(0.0, 1.0, 0.0);
+  let rightRaw = cross(up, projectedForward);
+  let rightLength = length(rightRaw);
+  var right = rightRaw / max(rightLength, 0.0001);
+
+  if (rightLength < 0.0001) {
+    right = vec3f(1.0, 0.0, 0.0);
+  }
+
+  return ParticleAxes(right, up);
+}
+
+fn stretchedAxes(position: vec3f, motion: vec3f) -> ParticleAxes {
+  var axes = billboardAxes(position);
+  let motionLength = length(motion);
+
+  if (motionLength > 0.0001) {
+    axes.up = motion / motionLength;
+    let forwardRaw = view.cameraPosition.xyz - position;
+    let forward = forwardRaw / max(length(forwardRaw), 0.0001);
+    let rightRaw = cross(axes.up, forward);
+    let rightLength = length(rightRaw);
+
+    if (rightLength > 0.0001) {
+      axes.right = rightRaw / rightLength;
+    }
+  }
+
+  return axes;
+}
+
+fn particleAxes(position: vec3f, motion: vec3f) -> ParticleAxes {
+  if (PARTICLE_RENDER_MODE == 1u || PARTICLE_RENDER_MODE == 4u) {
+    return stretchedAxes(position, motion);
+  }
+  if (PARTICLE_RENDER_MODE == 2u) {
+    return horizontalAxes();
+  }
+  if (PARTICLE_RENDER_MODE == 3u) {
+    return verticalAxes(position);
+  }
+
+  return billboardAxes(position);
 }
 
 fn saturate(value: f32) -> f32 {
@@ -314,6 +510,8 @@ fn applyParticleFog(color: vec3f, distanceToCamera: f32) -> vec3f {
   return mix(color, view.fogColor.rgb, saturate(fogFactor * view.fogColor.a));
 }
 
+// PARTICLE_SOFT_FUNCTIONS
+
 fn sizeCurveValue(index: u32) -> f32 {
   let packed = params.sizeCurve[index / 4u];
   let component = index % 4u;
@@ -336,6 +534,30 @@ fn sampleSizeCurve(life: f32) -> f32 {
   let lower = u32(floor(scaled));
   let upper = min(lower + 1u, maxIndex);
   return mix(sizeCurveValue(lower), sizeCurveValue(upper), fract(scaled));
+}
+
+fn frameCurveValue(index: u32) -> f32 {
+  let packed = params.frameCurve[index / 4u];
+  let component = index % 4u;
+
+  if (component == 0u) {
+    return packed.x;
+  }
+  if (component == 1u) {
+    return packed.y;
+  }
+  if (component == 2u) {
+    return packed.z;
+  }
+  return packed.w;
+}
+
+fn sampleFrameCurve(life: f32) -> f32 {
+  let maxIndex = PARTICLE_CURVE_SAMPLE_COUNT - 1u;
+  let scaled = clamp(life, 0.0, 1.0) * f32(maxIndex);
+  let lower = u32(floor(scaled));
+  let upper = min(lower + 1u, maxIndex);
+  return mix(frameCurveValue(lower), frameCurveValue(upper), fract(scaled));
 }
 
 fn sampleColorCurve(life: f32) -> vec4f {
@@ -363,6 +585,32 @@ fn particleDisplacement(
   return velocityTerm + gravityTerm;
 }
 
+fn positiveModulo(value: f32, divisor: f32) -> f32 {
+  return value - floor(value / divisor) * divisor;
+}
+
+fn atlasUvForFrame(uv: vec2f, columns: f32, rows: f32, frame: f32) -> vec2f {
+  let column = frame - floor(frame / columns) * columns;
+  let row = floor(frame / columns);
+  return (vec2f(column, row) + uv) / vec2f(columns, rows);
+}
+
+fn atlasUvForLife(uv: vec2f, life: f32) -> vec2f {
+  let columns = max(floor(params.textureSheet.x + 0.5), 1.0);
+  let rows = max(floor(params.textureSheet.y + 0.5), 1.0);
+  let frameCount = columns * rows;
+
+  if (frameCount <= 1.0) {
+    return uv;
+  }
+
+  let cycleCount = max(params.textureSheet.w, 0.0);
+  let rawFrame =
+    params.textureSheet.z + sampleFrameCurve(life) * frameCount * cycleCount;
+  let frame = floor(positiveModulo(rawFrame, frameCount));
+  return atlasUvForFrame(uv, columns, rows, frame);
+}
+
 @vertex
 fn vs_main(
   @builtin(vertex_index) vertexIndex: u32,
@@ -380,26 +628,28 @@ fn vs_main(
     params.motion.x
   );
   let size = max(0.0, particle.baseSizeTimeScale.x * sampleSizeCurve(lifeT) * alive);
-  let rotation = particle.baseSizeTimeScale.z + age * particle.baseSizeTimeScale.w;
-  let local = rotate2(quadPosition(vertexIndex) * size, rotation);
-  let forwardRaw = view.cameraPosition.xyz - position;
-  let forwardLength = max(length(forwardRaw), 0.0001);
-  let forward = forwardRaw / forwardLength;
-  let rightRaw = cross(vec3f(0.0, 1.0, 0.0), forward);
-  let rightLength = length(rightRaw);
-  var right = rightRaw / max(rightLength, 0.0001);
+  let rotation = particle.baseSizeTimeScale.z + particle.baseSizeTimeScale.w * age;
+  let motion = particle.velocityLifetime.xyz + params.timeGravity.yzw * age;
+  let quad = quadPosition(vertexIndex);
+  var local = rotate2(quad, rotation) * size;
 
-  if (rightLength < 0.0001) {
-    right = vec3f(1.0, 0.0, 0.0);
+  if (PARTICLE_RENDER_MODE == 1u) {
+    local.y = local.y * max(1.0, 1.0 + length(motion));
+  }
+  if (PARTICLE_RENDER_MODE == 4u) {
+    local = vec2f(
+      quad.x * size,
+      (quad.y - 0.5) * max(size, length(motion))
+    );
   }
 
-  let up = normalize(cross(forward, right));
-  let world = position + right * local.x + up * local.y;
+  let axes = particleAxes(position, motion);
+  let world = position + axes.right * local.x + axes.up * local.y;
   var output: VertexOutput;
 
   output.position = view.viewProjection * vec4f(world, 1.0);
   output.color = sampleColorCurve(lifeT) * alive;
-  output.uv = quadUv(vertexIndex);
+  output.uv = atlasUvForLife(quadUv(vertexIndex), lifeT);
   output.distanceToCamera = length(view.cameraPosition.xyz - world);
   return output;
 }
@@ -408,7 +658,10 @@ fn vs_main(
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   let texel = textureSample(particleTexture, particleSampler, input.uv);
   let color = input.color * texel;
-  return vec4f(applyParticleFog(color.rgb, input.distanceToCamera), color.a);
+  return vec4f(
+    applyParticleFog(color.rgb, input.distanceToCamera),
+    color.a * particleSoftFade(input.position)
+  );
 }
 `.trim();
 
@@ -468,13 +721,18 @@ export function particleRenderPipelineCacheKey(
   blendMode: SpriteBlendModeValue = SpriteBlendMode.Additive,
   tonemap: TonemapOperator = "none",
   outputColorSpace: OutputColorSpace = "linear",
+  renderMode: ParticleRenderMode = "billboard",
+  softParticles = false,
 ): string {
   const outputStage =
     tonemap === "none" && outputColorSpace === "linear"
       ? ""
       : `:${createTonemapPipelineKey(tonemap)}:${createOutputColorSpacePipelineKey(outputColorSpace)}`;
+  const renderModeStage =
+    renderMode === "billboard" ? "" : `:mode-${renderMode}`;
+  const softParticlesStage = softParticles ? ":soft-particles" : "";
 
-  return `${PARTICLE_RENDER_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}:blend-${blendMode}${outputStage}`;
+  return `${PARTICLE_RENDER_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}:blend-${blendMode}${renderModeStage}${softParticlesStage}${outputStage}`;
 }
 
 export function particleBurstRenderPipelineCacheKey(
@@ -484,13 +742,125 @@ export function particleBurstRenderPipelineCacheKey(
   blendMode: SpriteBlendModeValue = SpriteBlendMode.Additive,
   tonemap: TonemapOperator = "none",
   outputColorSpace: OutputColorSpace = "linear",
+  renderMode: ParticleRenderMode = "billboard",
+  softParticles = false,
 ): string {
   const outputStage =
     tonemap === "none" && outputColorSpace === "linear"
       ? ""
       : `:${createTonemapPipelineKey(tonemap)}:${createOutputColorSpacePipelineKey(outputColorSpace)}`;
+  const renderModeStage =
+    renderMode === "billboard" ? "" : `:mode-${renderMode}`;
+  const softParticlesStage = softParticles ? ":soft-particles" : "";
 
-  return `${PARTICLE_BURST_RENDER_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}:blend-${blendMode}${outputStage}`;
+  return `${PARTICLE_BURST_RENDER_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}:blend-${blendMode}${renderModeStage}${softParticlesStage}${outputStage}`;
+}
+
+export function createParticleRenderShaderSource(
+  options: {
+    readonly variant?: "computed" | "burst";
+    readonly renderMode?: ParticleRenderMode;
+    readonly softParticles?: boolean;
+  } = {},
+): string {
+  const burst = options.variant === "burst";
+
+  return particleRenderShaderSource(
+    burst ? PARTICLE_BURST_RENDER_WGSL : PARTICLE_RENDER_WGSL,
+    supportedParticleRenderMode(options.renderMode),
+    options.softParticles === true,
+    burst ? 4 : 3,
+  );
+}
+
+function particleRenderShaderSource(
+  source: string,
+  renderMode: ParticleRenderMode,
+  softParticles: boolean,
+  softGroup: number,
+): string {
+  return source
+    .replace(
+      "const PARTICLE_RENDER_MODE: u32 = 0u;",
+      `const PARTICLE_RENDER_MODE: u32 = ${particleRenderModeCode(renderMode)}u;`,
+    )
+    .replace(
+      "// PARTICLE_SOFT_BINDINGS",
+      softParticles ? particleSoftBindingsWgsl(softGroup) : "",
+    )
+    .replace(
+      "// PARTICLE_SOFT_FUNCTIONS",
+      softParticles ? PARTICLE_SOFT_FADE_WGSL : PARTICLE_SOFT_FADE_NOOP_WGSL,
+    );
+}
+
+const PARTICLE_SOFT_FADE_NOOP_WGSL = `
+fn particleSoftFade(_fragmentPosition: vec4f) -> f32 {
+  return 1.0;
+}
+`.trim();
+
+const PARTICLE_SOFT_FADE_WGSL = `
+fn particleSoftFade(fragmentPosition: vec4f) -> f32 {
+  let dimensions = textureDimensions(particleSceneDepth);
+  let maxCoord = vec2i(dimensions) - vec2i(1, 1);
+  let coord = clamp(vec2i(fragmentPosition.xy), vec2i(0, 0), maxCoord);
+  let sceneDepth = textureLoad(particleSceneDepth, coord, 0);
+
+  if (sceneDepth >= 0.9999) {
+    return 1.0;
+  }
+
+  let particleDepth = clamp(fragmentPosition.z, 0.0, 1.0);
+  let delta = sceneDepth - particleDepth;
+  let nearFade = max(particleSoftParams.fade.x, 0.0);
+  let farFade = max(particleSoftParams.fade.y, nearFade + 0.000001);
+
+  return clamp((delta - nearFade) / (farFade - nearFade), 0.0, 1.0);
+}
+`.trim();
+
+function particleSoftBindingsWgsl(group: number): string {
+  return `
+struct ParticleSoftParams {
+  fade: vec4f,
+};
+
+@group(${group}) @binding(0) var particleSceneDepth: texture_depth_2d;
+@group(${group}) @binding(1) var<uniform> particleSoftParams: ParticleSoftParams;
+`.trim();
+}
+
+function supportedParticleRenderMode(
+  renderMode: ParticleRenderMode | undefined,
+): ParticleRenderMode {
+  switch (renderMode) {
+    case "stretched-billboard":
+    case "horizontal-billboard":
+    case "vertical-billboard":
+    case "mesh":
+    case "trail":
+      return renderMode;
+    default:
+      return "billboard";
+  }
+}
+
+function particleRenderModeCode(renderMode: ParticleRenderMode): number {
+  switch (renderMode) {
+    case "stretched-billboard":
+      return 1;
+    case "horizontal-billboard":
+      return 2;
+    case "vertical-billboard":
+      return 3;
+    case "trail":
+      return 4;
+    case "mesh":
+      return 5;
+    default:
+      return 0;
+  }
 }
 
 export async function createParticleComputePipelineResource(options: {
@@ -581,6 +951,8 @@ export async function createParticleRenderPipelineResource(options: {
   readonly tonemap?: TonemapOperator;
   readonly outputColorSpace?: OutputColorSpace;
   readonly variant?: "computed" | "burst";
+  readonly renderMode?: ParticleRenderMode;
+  readonly softParticles?: boolean;
 }): Promise<CreateParticleRenderPipelineResourceResult> {
   // AI-17: no-op by default (none + linear) so the pipeline is byte-identical
   // unless the caller opts into the output stage.
@@ -588,6 +960,8 @@ export async function createParticleRenderPipelineResource(options: {
   const outputColorSpace = options.outputColorSpace ?? "linear";
   const blendMode = options.blendMode ?? SpriteBlendMode.Additive;
   const burst = options.variant === "burst";
+  const renderMode = supportedParticleRenderMode(options.renderMode);
+  const softParticles = options.softParticles === true;
   const shaderModule = await createWebGpuShaderModule({
     device: options.device,
     descriptor: {
@@ -595,7 +969,11 @@ export async function createParticleRenderPipelineResource(options: {
         ? PARTICLE_BURST_RENDER_PIPELINE_KEY
         : PARTICLE_RENDER_PIPELINE_KEY,
       code: applyOutputStageToFragmentWgsl(
-        burst ? PARTICLE_BURST_RENDER_WGSL : PARTICLE_RENDER_WGSL,
+        createParticleRenderShaderSource({
+          variant: burst ? "burst" : "computed",
+          renderMode,
+          softParticles,
+        }),
         tonemap,
         outputColorSpace,
         burst
@@ -662,6 +1040,8 @@ export async function createParticleRenderPipelineResource(options: {
               blendMode,
               tonemap,
               outputColorSpace,
+              renderMode,
+              softParticles,
             )
           : particleRenderPipelineCacheKey(
               options.colorFormat,
@@ -670,6 +1050,8 @@ export async function createParticleRenderPipelineResource(options: {
               blendMode,
               tonemap,
               outputColorSpace,
+              renderMode,
+              softParticles,
             ),
         shaderModule: shaderModule.module,
         pipeline: options.device.createRenderPipeline(descriptor),

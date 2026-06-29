@@ -214,7 +214,7 @@ function createContentShowcaseStatus(scene, loop, diagnostics) {
       counts?.quadInstances === scene.expected.textGlyphs &&
       counts?.uiNodes === scene.expected.uiNodes &&
       counts?.particleEmitters === scene.expected.particleEmitters &&
-      particles?.liveParticles === scene.expected.liveParticles &&
+      (particles?.liveParticles ?? 0) >= scene.expected.minLiveParticles &&
       interaction?.blocks3dPick === true &&
       (loop.frame?.diagnosticCodes?.length ?? 0) === 0,
     phase: "submit",

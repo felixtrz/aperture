@@ -7,6 +7,7 @@ import type {
   MaterialHandle,
   MeshHandle,
   MorphTargetSetHandle,
+  ParticleCompositeEffectHandle,
   ParticleEffectHandle,
   PrefabHandle,
   RenderTargetHandle,
@@ -87,6 +88,12 @@ export function createFontAtlasHandle(id: string): FontAtlasHandle {
 
 export function createParticleEffectHandle(id: string): ParticleEffectHandle {
   return createAssetHandle("particle-effect", id);
+}
+
+export function createParticleCompositeEffectHandle(
+  id: string,
+): ParticleCompositeEffectHandle {
+  return createAssetHandle("particle-composite-effect", id);
 }
 
 export function createAudioClipHandle(id: string): AudioClipHandle {

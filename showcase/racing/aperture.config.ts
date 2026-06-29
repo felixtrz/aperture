@@ -40,28 +40,49 @@ export default defineApertureConfig({
     "smoke-effect": asset.particleEffect({
       preload: "blocking",
       label: "Smoke effect",
-      texture: "smoke",
-      capacity: 1280,
-      duration: 2.5,
-      emissionRate: 0,
-      lifetime: { min: 2.5, max: 2.5 },
-      // Starter-Kit-Racing authors smoke as THREE.Points. Aperture particles are
-      // world-space billboards, so convert Three's perspective point size to
-      // equivalent world units for the shared 40 degree camera FOV.
-      startSize: {
-        min: 0.5 * SMOKE_POINT_SIZE_TO_WORLD_SCALE,
-        max: 1 * SMOKE_POINT_SIZE_TO_WORLD_SCALE,
+      main: {
+        maxParticles: 1280,
+        duration: 2.5,
+        startLifetime: { min: 2.5, max: 2.5 },
+        // Starter-Kit-Racing authors smoke as THREE.Points. Aperture particles
+        // are world-space billboards, so convert Three's perspective point size
+        // to equivalent world units for the shared 40 degree camera FOV.
+        startSize: {
+          min: 0.5 * SMOKE_POINT_SIZE_TO_WORLD_SCALE,
+          max: 1 * SMOKE_POINT_SIZE_TO_WORLD_SCALE,
+        },
       },
-      linearDamping: 1,
-      blendMode: "alpha",
-      sizeOverLifetime: [
-        { t: 0, value: 0.5 },
-        { t: 1, value: 3 },
-      ],
-      colorOverLifetime: [
-        { t: 0, color: smokeColor },
-        { t: 1, color: smokeFadeColor },
-      ],
+      emission: {
+        rateOverTime: 0,
+      },
+      renderer: {
+        texture: "smoke",
+        blendMode: "alpha",
+      },
+      limitVelocityOverLifetime: {
+        enabled: true,
+        dampen: 1,
+      },
+      sizeOverLifetime: {
+        enabled: true,
+        size: {
+          mode: "curve",
+          curve: [
+            { t: 0, value: 0.5 },
+            { t: 1, value: 3 },
+          ],
+        },
+      },
+      colorOverLifetime: {
+        enabled: true,
+        color: {
+          mode: "gradient",
+          gradient: [
+            { t: 0, color: smokeColor },
+            { t: 1, color: smokeFadeColor },
+          ],
+        },
+      },
     }),
     engine: asset.audio(assetUrl("audio/engine.ogg"), {
       preload: "blocking",

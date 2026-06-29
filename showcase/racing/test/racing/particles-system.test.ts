@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { createApertureApp } from "@aperture-engine/app";
 import { asset, defineApertureConfig } from "@aperture-engine/app/config";
 import { createSystem } from "@aperture-engine/app/systems";
+import type { ParticleEffectAsset } from "@aperture-engine/render";
+import { assetHandleKey } from "@aperture-engine/simulation";
 import { VehicleResource } from "../../src/lib/vehicle-resource.js";
 import ParticlesSystem from "../../src/systems/particles.system.js";
 
@@ -42,13 +44,23 @@ describe("racing smoke particles", () => {
             }),
             "smoke-effect": asset.particleEffect({
               preload: "blocking",
-              texture: "smoke",
-              capacity: 1280,
-              emissionRate: 0,
-              lifetime: { min: 2.5, max: 2.5 },
-              startSize: { min: 0.5, max: 1 },
-              linearDamping: 1,
-              blendMode: "alpha",
+              main: {
+                maxParticles: 1280,
+                duration: 2.5,
+                startLifetime: { min: 2.5, max: 2.5 },
+                startSize: { min: 0.5, max: 1 },
+              },
+              emission: {
+                rateOverTime: 0,
+              },
+              renderer: {
+                texture: "smoke",
+                blendMode: "alpha",
+              },
+              limitVelocityOverLifetime: {
+                enabled: true,
+                dampen: 1,
+              },
             }),
           },
         }),
@@ -63,6 +75,24 @@ describe("racing smoke particles", () => {
       expect(
         snapshot.particleEmitters?.map((packet) => packet.burst?.count),
       ).toEqual([3, 3]);
+      const effectHandle = app.context.assets.particleEffect("smoke-effect");
+      const effectEntry = app.context.assetsRegistry.get<
+        "particle-effect",
+        ParticleEffectAsset
+      >(effectHandle.renderHandle);
+      expect(effectEntry?.status).toBe("ready");
+      expect(effectEntry?.dependencies.map(assetHandleKey)).toEqual([
+        "texture:smoke",
+      ]);
+      expect(effectEntry?.asset?.runtime).toMatchObject({
+        capacity: 1280,
+        duration: 2.5,
+        emissionRate: 0,
+        lifetime: { min: 2.5, max: 2.5 },
+        startSize: { min: 0.5, max: 1 },
+        linearDamping: 1,
+        blendMode: "alpha",
+      });
       expect(app.context.particles.summary()).toMatchObject({
         active: 2,
         dropped: 0,

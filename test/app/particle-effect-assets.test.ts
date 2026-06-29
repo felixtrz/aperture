@@ -7,7 +7,7 @@ import {
   createParticleEffectHandle,
   createTextureHandle,
 } from "@aperture-engine/simulation";
-import type { ParticleEffectAsset } from "@aperture-engine/render";
+import type { ParticleEmitterEffectAsset } from "@aperture-engine/render";
 
 describe("app particle effect asset config", () => {
   it("preloads particle-effect source assets with texture dependencies", async () => {
@@ -21,21 +21,39 @@ describe("app particle effect asset config", () => {
           smokeEffect: asset.particleEffect({
             preload: "blocking",
             label: "Smoke effect",
-            texture: "smoke",
-            capacity: 1280,
-            duration: 2.5,
-            emissionRate: 0,
-            lifetime: { min: 2.5, max: 2.5 },
-            startSize: { min: 0.5, max: 1 },
-            blendMode: "alpha",
-            sizeOverLifetime: [
-              { t: 0, value: 0.5 },
-              { t: 1, value: 3 },
-            ],
-            colorOverLifetime: [
-              { t: 0, color: [0.37, 0.37, 0.42, 0.25] },
-              { t: 1, color: [0.37, 0.37, 0.42, 0] },
-            ],
+            main: {
+              maxParticles: 1280,
+              duration: 2.5,
+              startLifetime: { min: 2.5, max: 2.5 },
+              startSize: { min: 0.5, max: 1 },
+            },
+            emission: {
+              rateOverTime: 0,
+            },
+            renderer: {
+              texture: "smoke",
+              blendMode: "alpha",
+            },
+            sizeOverLifetime: {
+              enabled: true,
+              size: {
+                mode: "curve",
+                curve: [
+                  { t: 0, value: 0.5 },
+                  { t: 1, value: 3 },
+                ],
+              },
+            },
+            colorOverLifetime: {
+              enabled: true,
+              color: {
+                mode: "gradient",
+                gradient: [
+                  { t: 0, color: [0.37, 0.37, 0.42, 0.25] },
+                  { t: 1, color: [0.37, 0.37, 0.42, 0] },
+                ],
+              },
+            },
           }),
         },
       }),
@@ -51,14 +69,47 @@ describe("app particle effect asset config", () => {
 
     const entry = app.context.assetsRegistry.get<
       "particle-effect",
-      ParticleEffectAsset
+      ParticleEmitterEffectAsset
     >(handle.renderHandle);
     expect(entry?.status).toBe("ready");
     expect(entry?.asset?.kind).toBe("particle-effect");
     expect(entry?.asset?.label).toBe("Smoke effect");
-    expect(entry?.asset?.texture).toEqual(textureHandle);
-    expect(entry?.asset?.capacity).toBe(1280);
-    expect(entry?.asset?.blendMode).toBe("alpha");
+    expect(entry?.asset?.renderer.texture).toEqual(textureHandle);
+    expect(entry?.asset?.runtime.texture).toEqual(textureHandle);
+    expect(entry?.asset?.runtime.capacity).toBe(1280);
+    expect(entry?.asset?.runtime.blendMode).toBe("alpha");
     expect(entry?.dependencies.map(assetHandleKey)).toEqual(["texture:smoke"]);
+  });
+
+  it("registers composite particle-effect child dependencies", async () => {
+    const app = await createApertureApp({
+      config: defineApertureConfig({
+        mode: "headless",
+        assets: {
+          smoke: asset.particleEffect({
+            main: { maxParticles: 16 },
+          }),
+          sparks: asset.particleEffect({
+            main: { maxParticles: 16 },
+          }),
+          explosion: asset.particleEffect({
+            type: "composite",
+            emitters: [
+              { effect: "smoke", delay: 0.05 },
+              { effect: "sparks", timeScale: 2 },
+              { effect: "smoke", duration: 0.5 },
+            ],
+          }),
+        },
+      }),
+    });
+
+    const handle = app.context.assets.particleEffect("explosion");
+    const entry = app.context.assetsRegistry.get(handle.renderHandle);
+
+    expect(entry?.dependencies.map(assetHandleKey)).toEqual([
+      "particle-effect:smoke",
+      "particle-effect:sparks",
+    ]);
   });
 });

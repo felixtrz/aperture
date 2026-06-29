@@ -147,17 +147,47 @@ export const particleShowcaseConfig = defineApertureConfig({
       asset.particleEffect({
         preload: "blocking",
         label: effect.label,
-        texture: effect.texture,
-        capacity: effect.capacity,
-        lifetime: effect.lifetime,
-        startSize: effect.startSize,
-        startColor: effect.startColor,
-        endColor: effect.endColor,
-        gravity: effect.gravity,
-        linearDamping: effect.linearDamping,
-        blendMode: effect.blendMode,
-        sizeOverLifetime: effect.sizeOverLifetime,
-        colorOverLifetime: effect.colorOverLifetime,
+        main: {
+          maxParticles: effect.capacity,
+          startLifetime: effect.lifetime,
+          startSpeed: 0,
+          startSize: effect.startSize,
+          startRotation: { min: 0, max: Math.PI * 2 },
+          startColor: effect.startColor,
+          gravityModifier: 0,
+        },
+        emission: {
+          rateOverTime: 0,
+        },
+        shape: {
+          type: "point",
+        },
+        renderer: {
+          texture: effect.texture,
+          blendMode: effect.blendMode,
+        },
+        forceOverLifetime: {
+          enabled: true,
+          force: effect.gravity,
+        },
+        limitVelocityOverLifetime: {
+          enabled: true,
+          dampen: effect.linearDamping,
+        },
+        sizeOverLifetime: {
+          enabled: true,
+          size: {
+            mode: "curve",
+            curve: effect.sizeOverLifetime,
+          },
+        },
+        colorOverLifetime: {
+          enabled: true,
+          color: {
+            mode: "gradient",
+            gradient: effect.colorOverLifetime,
+          },
+        },
       }),
     ]),
   ]),

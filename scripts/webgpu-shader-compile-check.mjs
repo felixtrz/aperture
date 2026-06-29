@@ -32,7 +32,7 @@ import {
 import { MATCAP_MESH_SHADER } from "../packages/webgpu/dist/materials/matcap/matcap-shader.js";
 import { DEBUG_NORMAL_MESH_SHADER } from "../packages/webgpu/dist/materials/debug-normal/debug-normal-shader.js";
 import { SPRITE_WGSL } from "../packages/webgpu/dist/render/sprites/sprite-pipeline.js";
-import { PARTICLE_RENDER_WGSL } from "../packages/webgpu/dist/render/particles/particle-pipeline.js";
+import { createParticleRenderShaderSource } from "../packages/webgpu/dist/render/particles/particle-pipeline.js";
 import {
   UI_IMAGE_WGSL,
   UI_PANEL_WGSL,
@@ -52,7 +52,8 @@ const MESH_MODULES = {
 };
 const STRING_FAMILIES = {
   sprite: SPRITE_WGSL,
-  particle: PARTICLE_RENDER_WGSL,
+  particle: createParticleRenderShaderSource(),
+  "particle-soft": createParticleRenderShaderSource({ softParticles: true }),
   "ui-panel": UI_PANEL_WGSL,
   "ui-image": UI_IMAGE_WGSL,
   "msdf-text": MSDF_TEXT_WGSL,
