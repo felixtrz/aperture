@@ -95,6 +95,36 @@ describe("asset handles and registry", () => {
     expect(registry.list({ status: "ready" })).toEqual([ready]);
   });
 
+  it("records ready-asset provenance and clears it on non-ready transitions", () => {
+    const registry = new AssetRegistry();
+    const texture = createTextureHandle("albedo");
+
+    registry.register(texture);
+
+    const placeholder = registry.markReady(
+      texture,
+      { width: 1, height: 1 },
+      [],
+      "placeholder",
+    );
+
+    expect(placeholder.provenance).toBe("placeholder");
+    expect(registry.createManifestReport().placeholders).toEqual({
+      count: 1,
+      ids: ["albedo"],
+    });
+
+    const loading = registry.markLoading(texture);
+    expect(loading.provenance).toBeUndefined();
+    expect(registry.createManifestReport().placeholders).toEqual({
+      count: 0,
+      ids: [],
+    });
+
+    const loaded = registry.markReady(texture, { width: 2, height: 2 });
+    expect(loaded.provenance).toBe("loaded");
+  });
+
   it("records failed assets and returns undefined for missing handles", () => {
     const registry = new AssetRegistry();
     const texture = createTextureHandle("missing-albedo");

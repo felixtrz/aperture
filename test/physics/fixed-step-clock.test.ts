@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   advanceFixedStepClock,
   createFixedStepClock,
+  restoreFixedStepClock,
   resetFixedStepClock,
+  snapshotFixedStepClock,
 } from "@aperture-engine/physics";
 
 describe("fixed-step clock", () => {
@@ -62,6 +64,22 @@ describe("fixed-step clock", () => {
       fixedStepIndex: 0,
       overstepAlpha: 0,
       droppedTime: 0,
+    });
+  });
+
+  it("exports and restores deterministic accumulator state", () => {
+    const source = createFixedStepClock({ fixedDelta: 0.1, maxSubsteps: 4 });
+    advanceFixedStepClock(source, 0.15);
+    const state = snapshotFixedStepClock(source);
+    const restored = createFixedStepClock({ fixedDelta: 0.1, maxSubsteps: 4 });
+
+    restoreFixedStepClock(restored, state);
+
+    expect(restored).toMatchObject(state);
+    expect(advanceFixedStepClock(restored, 0.05)).toMatchObject({
+      substeps: 1,
+      fixedStepStart: 1,
+      fixedStepEnd: 2,
     });
   });
 

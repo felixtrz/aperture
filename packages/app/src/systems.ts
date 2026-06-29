@@ -90,6 +90,8 @@ import {
   type InputActions,
   type InputSignals,
 } from "./systems/context.js";
+import type { ApertureRandom } from "./systems/random.js";
+import type { ApertureFrameTime } from "./systems/frame-time.js";
 export {
   createFollowCameraController,
   writeFollowCameraPose,
@@ -220,6 +222,12 @@ export {
 } from "./systems/start-options.js";
 
 export type {
+  ApertureDeterminismDiagnosticsMode,
+  ApertureDeterminismDiagnosticsOptions,
+  ApertureDeterminismRunPhase,
+} from "./systems/determinism.js";
+
+export type {
   ApertureSystemDiagnostic,
   SystemDiagnostics,
 } from "./systems/diagnostics.js";
@@ -240,7 +248,9 @@ export type {
   CommandChannelEntry,
 } from "./systems/commands.js";
 export type {
+  ApertureAssetLoadContext,
   ApertureAssetLoader,
+  ApertureAssetLoadResult,
   SystemGltfAssetDecoderProvider,
   SystemGltfAssetDecoderProviderOptions,
   SystemAssetAccess,
@@ -252,6 +262,7 @@ export type {
   SystemGltfLoadedScene,
   SystemParticleEffectAssetHandle,
   SystemShaderAssetHandle,
+  SystemTextureAssetHandle,
 } from "./systems/assets.js";
 export { createDefaultSystemGltfAssetDecoderProvider } from "./systems/assets.js";
 export { systemAssetReadyMetadata } from "./systems/assets.js";
@@ -470,6 +481,22 @@ export {
   createApertureSystemContext,
   installApertureSystemContext,
 } from "./systems/context.js";
+export {
+  createApertureRandom,
+  restoreApertureRandom,
+  snapshotApertureRandom,
+  type ApertureRandom,
+  type ApertureRandomState,
+} from "./systems/random.js";
+export {
+  advanceApertureFrameTime,
+  createApertureFrameTime,
+  restoreApertureFrameTime,
+  resetApertureFrameTime,
+  snapshotApertureFrameTime,
+  type ApertureFrameTime,
+  type ApertureFrameTimeState,
+} from "./systems/frame-time.js";
 export type {
   SpatialIndexPopulationContext,
   SpatialIndexPopulationDiagnostic,
@@ -516,6 +543,8 @@ export interface ApertureSystemInstance {
   readonly queries: Record<string, Query>;
   readonly config: Record<string, Signal<unknown>>;
   readonly priority: number;
+  readonly random: ApertureRandom;
+  readonly time: ApertureFrameTime;
   readonly signals: SignalStore;
   readonly resources: ResourceStore;
   readonly startOptions: StartOptionsAccess;
@@ -543,11 +572,29 @@ export interface ApertureSystemInstance {
   readonly html: HtmlBridgeAccess;
   readonly diagnostics: SystemDiagnostics;
   readonly effects: ScheduledEffects;
+  readonly determinism: ApertureSystemContext["determinism"];
   createEntity(): Entity;
   init(): void;
   update(delta: number, time: number): void;
   fixedUpdate?(context: SimulationFixedStepContext): void;
+  snapshotState?(context: ApertureSystemSnapshotContext): unknown;
+  restoreState?(
+    payload: unknown,
+    context: ApertureSystemRestoreContext,
+    remapEntityRef: (oldEntityRef: Entity | string) => Entity | undefined,
+  ): void;
+  afterRestore?(context: ApertureSystemRestoreContext): void;
   destroy(): void;
+}
+
+export interface ApertureSystemSnapshotContext {
+  readonly world: EcsWorld;
+  readonly context: ApertureSystemContext;
+}
+
+export interface ApertureSystemRestoreContext {
+  readonly world: EcsWorld;
+  readonly context: ApertureSystemContext;
 }
 
 export type ApertureSystemConfigSignals<TSchema extends SystemSchema> = {
@@ -613,13 +660,29 @@ export function createSystem<
     constructor(...args: ConstructorParameters<typeof Base>) {
       super(...args);
       this.#context = getApertureSystemContext(this.world as EcsWorld);
-      this.#effects = createScheduledEffects();
+      const systemName = this.#deterministicSystemName();
+      this.#effects = createScheduledEffects({
+        runCallback: ({ phase, callback }) =>
+          this.#context.determinism.run(
+            { system: systemName, phase: `effect:${phase}` },
+            callback,
+          ),
+      });
+      this.#wrapDeterministicLifecycle(systemName);
       registerSystemEffects(this, this.#effects);
       this.#disposeFixedStep = this.#registerFixedUpdate(args[2]);
     }
 
     get signals(): SignalStore {
       return this.#context.signals;
+    }
+
+    get random(): ApertureRandom {
+      return this.#context.random;
+    }
+
+    get time(): ApertureFrameTime {
+      return this.#context.time;
     }
 
     get resources(): ResourceStore {
@@ -726,9 +789,45 @@ export function createSystem<
       return this.#effects;
     }
 
+    get determinism(): ApertureSystemContext["determinism"] {
+      return this.#context.determinism;
+    }
+
     override destroy(): void {
       this.#disposeFixedStep?.();
       this.#effects.dispose();
+    }
+
+    #deterministicSystemName(): string {
+      return (
+        (this.constructor as { readonly name?: string }).name ||
+        "AnonymousApertureSystem"
+      );
+    }
+
+    #wrapDeterministicLifecycle(systemName: string): void {
+      this.#wrapDeterministicMethod("init", systemName);
+      this.#wrapDeterministicMethod("update", systemName);
+      this.#wrapDeterministicMethod("fixedUpdate", systemName);
+    }
+
+    #wrapDeterministicMethod(
+      phase: "init" | "update" | "fixedUpdate",
+      systemName: string,
+    ): void {
+      const original = (this as unknown as Record<string, unknown>)[phase];
+
+      if (typeof original !== "function") {
+        return;
+      }
+
+      Object.defineProperty(this, phase, {
+        configurable: true,
+        value: (...methodArgs: unknown[]) =>
+          this.#context.determinism.run({ system: systemName, phase }, () =>
+            original.apply(this, methodArgs),
+          ),
+      });
     }
 
     #registerFixedUpdate(priorityArg: number | undefined): (() => void) | null {

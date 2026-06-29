@@ -137,6 +137,39 @@ describe("generated app source asset mirroring", () => {
     ).toEqual([]);
   });
 
+  it("serializes and mirrors source asset provenance", () => {
+    const workerRegistry = new AssetRegistry();
+    const mainRegistry = new AssetRegistry();
+    const shader = createShaderHandle("placeholder-shader");
+
+    workerRegistry.register(shader, { label: "Placeholder WGSL" });
+    workerRegistry.markReady(
+      shader,
+      createWgslShaderAsset({
+        label: "Placeholder WGSL",
+        source: "fn fs_main() -> vec4f { return vec4f(1.0); }",
+      }),
+      [],
+      "placeholder",
+    );
+
+    const serialized = serializeSourceAssetRegistry(workerRegistry);
+    expect(serialized.entries[0]).toMatchObject({
+      provenance: "placeholder",
+    });
+
+    const report = mirrorSourceAssetRegistryFromMessage(mainRegistry, {
+      sourceAssets: serialized,
+    });
+
+    expect(report).toEqual({ mirrored: 1, skipped: 0 });
+    expect(mainRegistry.get(shader)?.provenance).toBe("placeholder");
+    expect(mainRegistry.createManifestReport().placeholders).toEqual({
+      count: 1,
+      ids: ["placeholder-shader"],
+    });
+  });
+
   it("serializes same-layout mesh revisions as byte-range patches", () => {
     const workerRegistry = new AssetRegistry();
     const mainRegistry = new AssetRegistry();

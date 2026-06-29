@@ -51,6 +51,7 @@ import {
   type AnimationClip,
   type AnimationClipHandle,
   type AudioClipHandle,
+  type EnvironmentMapHandle,
   type AssetRegistry,
   type AssetHandle,
   type ParticleEffectHandle,
@@ -95,9 +96,11 @@ export interface SystemAssetHandle<TKind extends SystemAssetKind> {
         ? AudioClipHandle
         : TKind extends "texture"
           ? TextureHandle
-          : TKind extends "particle-effect"
-            ? ParticleEffectHandle
-            : unknown;
+          : TKind extends "hdr"
+            ? EnvironmentMapHandle
+            : TKind extends "particle-effect"
+              ? ParticleEffectHandle
+              : unknown;
 }
 
 export type SystemGltfAssetHandle = SystemAssetHandle<"gltf"> & {
@@ -177,8 +180,22 @@ export interface SystemAssetAccess {
   list(): readonly SystemAssetHandle<SystemAssetKind>[];
 }
 
+export interface ApertureAssetLoadResult {
+  /** Return false to let the built-in asset loader handle this asset. */
+  readonly handled?: boolean;
+  /** The loader fulfilled the asset with a structural placeholder, not real bytes. */
+  readonly placeholder?: boolean;
+}
+
+export interface ApertureAssetLoadContext {
+  readonly registry: AssetRegistry;
+}
+
 export interface ApertureAssetLoader {
-  load(asset: SystemAssetHandle<SystemAssetKind>): Promise<void>;
+  load(
+    asset: SystemAssetHandle<SystemAssetKind>,
+    context: ApertureAssetLoadContext,
+  ): Promise<void | ApertureAssetLoadResult>;
 }
 
 export interface SystemGltfAssetDecoderProvider {
@@ -272,10 +289,20 @@ export function createSystemAssetAccess(options: {
       options.registry.markLoading(registryHandle);
     }
 
+    let loaderResult: ApertureAssetLoadResult | undefined;
+    let useBuiltInLoader = options.loader === undefined;
+
     try {
       if (options.loader !== undefined) {
-        await options.loader.load(handle);
-      } else if (handle.kind === "gltf") {
+        const result = await options.loader.load(handle, {
+          registry: options.registry,
+        });
+        loaderResult =
+          typeof result === "object" && result !== null ? result : undefined;
+        useBuiltInLoader = loaderResult?.handled === false;
+      }
+
+      if (useBuiltInLoader && handle.kind === "gltf") {
         const scene = await loadSystemGltfAsset({
           handle: handle as SystemGltfAssetHandle,
           registry: options.registry,
@@ -286,12 +313,12 @@ export function createSystemAssetAccess(options: {
             : { gltfAssetDecoders: options.gltfAssetDecoders }),
         });
         (handle as SystemGltfAssetHandle).scene.value = scene;
-      } else if (handle.kind === "shader") {
+      } else if (useBuiltInLoader && handle.kind === "shader") {
         const shaderAsset = await loadSystemShaderAsset(
           handle as SystemShaderAssetHandle,
         );
         options.registry.markReady(registryHandle as ShaderHandle, shaderAsset);
-      } else if (handle.kind === "audio") {
+      } else if (useBuiltInLoader && handle.kind === "audio") {
         const audioAsset = await loadSystemAudioAsset(
           handle as SystemAudioAssetHandle,
         );
@@ -299,7 +326,7 @@ export function createSystemAssetAccess(options: {
           registryHandle as AudioClipHandle,
           audioAsset,
         );
-      } else if (handle.kind === "texture") {
+      } else if (useBuiltInLoader && handle.kind === "texture") {
         const textureAsset = await loadSystemTextureAsset(
           handle as SystemTextureAssetHandle,
         );
@@ -307,7 +334,7 @@ export function createSystemAssetAccess(options: {
           registryHandle as TextureHandle,
           textureAsset,
         );
-      } else if (handle.kind === "particle-effect") {
+      } else if (useBuiltInLoader && handle.kind === "particle-effect") {
         const particleEffectAsset = loadSystemParticleEffectAsset(
           handle as SystemParticleEffectAssetHandle,
         );
@@ -317,7 +344,10 @@ export function createSystemAssetAccess(options: {
         );
       }
 
-      if (handle.kind !== "shader" && handle.kind !== "audio") {
+      if (
+        !useBuiltInLoader ||
+        (handle.kind !== "shader" && handle.kind !== "audio")
+      ) {
         const loadedEntry = options.registry.get(registryHandle);
         if (loadedEntry?.status === "ready") {
           handle.ready.value = true;
@@ -325,12 +355,17 @@ export function createSystemAssetAccess(options: {
           return;
         }
 
-        options.registry.markReady(registryHandle, {
-          id: handle.id,
-          kind: handle.kind,
-          ...(handle.url === undefined ? {} : { url: handle.url }),
-          ...systemAssetReadyMetadata(handle),
-        });
+        options.registry.markReady(
+          registryHandle,
+          {
+            id: handle.id,
+            kind: handle.kind,
+            ...(handle.url === undefined ? {} : { url: handle.url }),
+            ...systemAssetReadyMetadata(handle),
+          },
+          [],
+          loaderResult?.placeholder === true ? "placeholder" : "loaded",
+        );
       }
       handle.ready.value = true;
       handle.error.value = null;

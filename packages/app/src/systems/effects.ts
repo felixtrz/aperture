@@ -40,6 +40,13 @@ export interface ApertureQuery {
 
 export type ScheduledEffects = ApertureEffects;
 
+export interface ScheduledEffectsOptions {
+  readonly runCallback?: (input: {
+    readonly phase: ApertureEffectPhase;
+    readonly callback: () => void;
+  }) => void;
+}
+
 const APERTURE_EFFECTS = Symbol("aperture.effects");
 
 export function flushApertureSystemEffects(
@@ -56,7 +63,14 @@ export function flushApertureSystemEffects(
   return flushed;
 }
 
-export function createScheduledEffects(): ScheduledEffects {
+export function createScheduledEffects(
+  options: ScheduledEffectsOptions = {},
+): ScheduledEffects {
+  const runCallback =
+    options.runCallback ??
+    ((input: { readonly callback: () => void }) => {
+      input.callback();
+    });
   const entries = new Set<{
     readonly phase: ApertureEffectPhase;
     readonly priority: number;
@@ -133,7 +147,12 @@ export function createScheduledEffects(): ScheduledEffects {
         flushed += pending.length;
 
         for (const value of pending) {
-          entry.callback(value as never);
+          runCallback({
+            phase,
+            callback: () => {
+              entry.callback(value as never);
+            },
+          });
         }
       }
 

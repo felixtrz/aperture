@@ -111,11 +111,11 @@ function point(
   runner: ApertureHeadlessRunner,
   position: readonly [number, number],
 ): void {
-  runner.app.context.input.pointer.primary.position.value = position;
+  runner.enqueueInput({ kind: "pointer", pointer: "primary", position });
 }
 
 function press(runner: ApertureHeadlessRunner, pressed: boolean): void {
-  runner.app.context.input.pointer.primary.pressed.value = pressed;
+  runner.enqueueInput({ kind: "pointer", pointer: "primary", pressed });
 }
 
 describe("pointer interaction route (M7-T8)", () => {
@@ -171,15 +171,15 @@ describe("pointer interaction route (M7-T8)", () => {
     // A slow frame drains the full down+up pair in one advance: the
     // end-of-frame pressed sample stays false and only the reset-frame edge
     // signals witness the press. The interaction frame must still click.
-    runner.app.context.input.advanceFrame([
+    runner.enqueueInputBatch([
       { kind: "pointer", pointer: "primary", pressed: true },
       { kind: "pointer", pointer: "primary", pressed: false },
     ]);
+    runner.step(1 / 60, 0.1);
     expect(runner.app.context.input.pointer.primary.pressed.value).toBe(false);
     expect(
       runner.app.context.input.pointer.primary.pressedThisFrame.value,
     ).toBe(true);
-    runner.step(1 / 60, 0.1);
 
     expect(counts.down).toBe(1);
     expect(counts.up).toBe(1);

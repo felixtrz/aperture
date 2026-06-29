@@ -14,6 +14,16 @@ export interface FixedStepClock {
   droppedTime: number;
 }
 
+export interface FixedStepClockState {
+  readonly fixedDelta: number;
+  readonly maxSubsteps: number;
+  readonly maxAccumulatedTime: number;
+  readonly accumulator: number;
+  readonly fixedStepIndex: number;
+  readonly overstepAlpha: number;
+  readonly droppedTime: number;
+}
+
 export interface FixedStepAdvanceResult {
   readonly substeps: number;
   readonly fixedDelta: number;
@@ -109,6 +119,55 @@ export function resetFixedStepClock(clock: FixedStepClock): void {
   clock.droppedTime = 0;
 }
 
+export function snapshotFixedStepClock(
+  clock: FixedStepClock,
+): FixedStepClockState {
+  return {
+    fixedDelta: clock.fixedDelta,
+    maxSubsteps: clock.maxSubsteps,
+    maxAccumulatedTime: clock.maxAccumulatedTime,
+    accumulator: clock.accumulator,
+    fixedStepIndex: clock.fixedStepIndex,
+    overstepAlpha: clock.overstepAlpha,
+    droppedTime: clock.droppedTime,
+  };
+}
+
+export function restoreFixedStepClock(
+  clock: FixedStepClock,
+  state: FixedStepClockState,
+): void {
+  assertPositiveFinite("fixedDelta", state.fixedDelta);
+  assertPositiveInteger("maxSubsteps", state.maxSubsteps);
+  assertPositiveFinite("maxAccumulatedTime", state.maxAccumulatedTime);
+  assertNonNegativeFinite("accumulator", state.accumulator);
+  assertNonNegativeFinite("overstepAlpha", state.overstepAlpha);
+  assertNonNegativeFinite("droppedTime", state.droppedTime);
+
+  if (!Number.isInteger(state.fixedStepIndex) || state.fixedStepIndex < 0) {
+    throw new RangeError("fixedStepIndex must be a non-negative integer.");
+  }
+
+  if (
+    state.fixedDelta !== clock.fixedDelta ||
+    state.maxSubsteps !== clock.maxSubsteps ||
+    state.maxAccumulatedTime !== clock.maxAccumulatedTime
+  ) {
+    throw new RangeError(
+      "Fixed-step clock snapshot options do not match the target clock.",
+    );
+  }
+
+  if (state.accumulator - Number.EPSILON > clock.maxAccumulatedTime) {
+    throw new RangeError("accumulator must not exceed maxAccumulatedTime.");
+  }
+
+  clock.accumulator = state.accumulator;
+  clock.fixedStepIndex = state.fixedStepIndex;
+  clock.overstepAlpha = state.overstepAlpha;
+  clock.droppedTime = state.droppedTime;
+}
+
 function assertPositiveFinite(field: string, value: number): void {
   if (!Number.isFinite(value) || value <= 0) {
     throw new RangeError(`${field} must be a positive finite number.`);
@@ -118,5 +177,11 @@ function assertPositiveFinite(field: string, value: number): void {
 function assertPositiveInteger(field: string, value: number): void {
   if (!Number.isInteger(value) || value <= 0) {
     throw new RangeError(`${field} must be a positive integer.`);
+  }
+}
+
+function assertNonNegativeFinite(field: string, value: number): void {
+  if (!Number.isFinite(value) || value < 0) {
+    throw new RangeError(`${field} must be a finite non-negative number.`);
   }
 }

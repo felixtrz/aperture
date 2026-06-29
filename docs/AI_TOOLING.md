@@ -19,10 +19,8 @@ Run a managed dev session from an Aperture app root:
 
 ```sh
 pnpm exec aperture dev up --headless
-pnpm exec aperture dev status
-pnpm exec aperture tool browser_canvas_status
-pnpm exec aperture tool asset_list
 pnpm exec aperture mcp stdio
+pnpm exec aperture dev status
 pnpm exec aperture dev down
 ```
 
@@ -48,10 +46,127 @@ Use `APERTURE_REFERENCE_ASSETS_BASE_URL` for unpublished hosted payloads.
 `.aperture/runtime/session.json`. MCP tools use that session file rather than
 hard-coded ports.
 
-`aperture tool <name> [--json <object>]` calls the same browser, ECS, asset,
-input, camera, render, and reference tool contracts exposed over MCP. Browser
-backed tools require an active managed dev session. Reference tools can run
-after the reference corpus has been warmed.
+`aperture mcp stdio` is the agent-facing surface. It exposes shared intent-level
+tools for both the managed browser slot and the warm headless slot:
+
+- `app_status`, `app_start`, `app_stop`, `app_reset`
+- `ecs_*`, `resource_*`, `asset_list`
+- `input_inject`, `input_get_state`, `input_reset`
+- `camera_*`
+- `frame_capture`
+- `logs_read`
+- headless artifact tools: `render_bundle`, `session_snapshot_*`,
+  `determinism_report`
+
+The public MCP catalog intentionally avoids backend-mechanics names such as
+`browser_screenshot` or `browser_canvas_status`; use `frame_capture` for image,
+canvas, render-target, WebGPU, and sample metadata.
+
+`aperture tool <name> [--json <object>]` remains a low-level direct devtools
+bridge for manual debugging of an already running managed browser session. It is
+not the public agent tool catalog.
+
+### Smaller validation loop: `aperture headless` + `aperture render`
+
+For a faster inner loop, the ECS/simulation layer can run in **pure Node** with
+no browser. `aperture headless <config> --out <bundle.json>` loads a
+`mode: "headless"` config and its `*.system.ts` (via an in-process Vite SSR
+runner), steps a fixed timestep, optionally injects input, and writes a
+self-contained `aperture.render-bundle` (the extracted `RenderSnapshot`, typed
+asset closure, render target, schema metadata, diagnostics, and digest):
+
+```sh
+pnpm exec aperture headless aperture.headless.config.ts --frames 30 --out snapshot.json
+pnpm exec aperture headless aperture.headless.config.ts --out snapshot.json --json   # status report
+pnpm exec aperture headless aperture.headless.config.ts --out snapshot.json --inject input.json
+pnpm exec aperture headless aperture.headless.config.ts --out snapshot.json --asset-mode strict
+pnpm exec aperture headless aperture.headless.config.ts --out snapshot.json --determinism error
+pnpm exec aperture headless aperture.headless.config.ts --out snapshot.json --render-width 1280 --render-height 720
+```
+
+`--inject <file>` applies timed input steps before stepping, e.g.
+`[{ "atFrame": 0, "pointer": { "position": [0.5, 0.5], "pressed": true } }]` or
+`{ "actions": { "jump": true } }`.
+
+For a tight iterate-and-inspect loop, `aperture headless serve <config>` boots
+once and reads newline-delimited JSON commands from stdin
+(`step` / `extract` / `inject` / `get-status` / `bundle` / `reset` /
+`tool {name:"ecs_*" | "camera_*" | "asset_list" | "resource_*" | "input_*"}` /
+`shutdown`), writing one response line per request — the boot-once-then-step
+loop without rebooting per call. Stepping replays bit-identically given `--seed`
+when systems use `context.random` / `context.time`.
+
+Determinism diagnostics are opt-in. `--determinism warn` records and prints
+system lifecycle calls to nondeterministic globals (`Math.random`, `Date.now`,
+`new Date()`, `performance.now()`); `--determinism error` records them as errors
+and fails one-shot `aperture headless` runs. Use `context.random` and
+`context.time` for replayable systems. V1 wraps system `init`, `update`,
+`fixedUpdate`, and queued effect callbacks.
+
+Rendering stays out of the inner loop. When a picture is needed,
+`aperture render <bundle.json> --out <frame.png>` boots a headless-friendly
+browser on demand, rehydrates the bundle's source assets, applies the snapshot
+through the WebGPU renderer, and writes one PNG — decoupled from any live
+simulation. The render command preflights the bundle before launching the
+browser: every referenced source asset, including transitive dependencies, must
+be present and ready. Placeholder assets fail by default; pass
+`--allow-placeholders` only when stubbed pixels are acceptable. Without
+`--width`/`--height`, `aperture render` uses the bundle's recorded render
+target. Pass `--json` to print renderer diagnostics including browser channel,
+WebGPU adapter metadata where available, requested dimensions, actual PNG
+dimensions, and the bundle digest:
+
+```sh
+pnpm exec aperture render snapshot.json --out frame.png
+pnpm exec aperture render snapshot.json --out frame.png --width 1280 --height 720
+pnpm exec aperture render snapshot.json --out frame.png --allow-placeholders
+pnpm exec aperture render snapshot.json --out frame.png --json
+```
+
+Assets in Node: the default `placeholder` mode keeps boot fast and structural;
+external assets are marked with `aperture.headless.assetPlaceholder`.
+`--asset-mode strict` loads supported local assets with real bytes (GLB/glTF,
+WGSL shaders, audio bytes, PNG/JPEG textures, RGBE HDR environment maps, and
+decoder-backed Draco/meshopt/Basis-KTX2 GLBs when `--decoder-assets-dir` is
+supplied) and fails unsupported assets. `--asset-mode hybrid` loads the
+supported set and records explicit placeholders for the rest. `aperture render
+--allow-placeholders` is useful only for structural/layout inspection of stubbed
+bundles. HTTP(S) asset reads remain off by default for reproducibility; pass
+`--allow-http-assets` only when the run is allowed to depend on network
+responses.
+
+Release gates for this loop:
+
+```sh
+pnpm run check:headless-boundaries     # no browser/WebGPU imports in headless paths
+pnpm run check:render-bundles          # fixture bundles are closure-complete
+pnpm run check:pack-cli                # packed CLI can run installed headless
+pnpm run check:pack-cli:render         # optional browser-backed packed render smoke
+pnpm run test:e2e:render-bundle        # browser render pixels/dimensions from fixture
+```
+
+### Session snapshots
+
+`@aperture-engine/app/headless` exposes `createApertureSessionSnapshot(runner)`
+and `restoreApertureHeadlessRunnerFromSessionSnapshot(...)` for a first
+simulation restore artifact. SessionSnapshot v1 is JSON-safe and captures the
+bootstrap manifest, ECS scene document, component registry ids, configured
+signal entries, resource entries, source assets, deterministic frame time,
+fixed-step clock accumulator/index state, and built-in RNG state. The runtime
+section records both `frame` and legacy `nextFrame`, plus `randomStreams` for
+stream-oriented tooling. Restore creates a fresh headless runner, clears
+app-created entities, loads the saved scene, mirrors source assets, restores
+resources/signals, and resumes at the saved frame.
+
+V1 also supports opt-in private system state through `snapshotState()`,
+`restoreState(payload, ctx, remapEntityRef)`, and `afterRestore()` methods on
+app systems. Hook payloads must be JSON-safe after typed-array encoding.
+Tooling can attach a CLI-created render bundle at `inspection.renderBundle` for
+pixel inspection of the saved frame; restore still treats that bundle as a
+sidecar, not simulation authority.
+SessionSnapshot v1 still does not serialize live callbacks, promises, DOM/GPU
+handles, or warm physics backend internals. Physics is marked as
+`rebuild-from-ecs-authoring`.
 
 ### Headless CI / dev containers
 
@@ -65,7 +180,7 @@ virtual display with the software backend:
 # managed browser (its CDP endpoint then reports `browserConnectFailed`).
 xvfb-run -a bash -lc '
   pnpm exec aperture dev up --software   # SwiftShader WebGPU, see --gpu
-  pnpm exec aperture tool browser_status
+  pnpm exec aperture dev status
   pnpm exec aperture dev down
 '
 ```
@@ -78,7 +193,7 @@ SwiftShader on GPU-less hosts; `--software` / `APERTURE_GPU=software` force it.
 The whole loop above is CI-gated from a clean scaffold:
 `scripts/cold-start-proof.sh` creates a fresh app in a temp directory from the
 workspace-linked CLI, installs, typechecks, builds, starts a headless managed
-dev session, exercises the MCP browser/ECS tools, and tears down. CI runs the
+dev session, exercises the MCP app/ECS/frame tools, and tears down. CI runs the
 underlying spec (`test/e2e/cli-ai-tools.spec.ts`) in the sharded e2e matrix.
 
 ## State Ownership
@@ -96,13 +211,16 @@ has prepared the curated developer-facing corpus. The shipped reference payload
 contains precomputed embeddings and allowed source snippets; model weights are
 downloaded separately from pinned public URLs during warmup. The on-disk index
 records the model contract and reports `aperture.reference.modelMismatch` when
-an older hash-embedding corpus is stale. Browser, ECS, input, camera, and
-render tools require an active managed dev session.
+an older hash-embedding corpus is stale. Shared MCP tools require a matching
+started slot: headed browser tools need the managed browser slot, while
+headless tools need the warm Node slot.
 
 Useful inspection tools include:
 
-- `browser_canvas_status`: CSS size, backing size, effective DPR, aspect, and
-  render target size.
+- `app_status`: slot readiness, frame, asset summary, diagnostics, and WebGPU
+  readiness for headed sessions.
+- `frame_capture`: PNG plus canvas, viewport, render-target, frame, WebGPU, and
+  optional pixel sample metadata.
 - `asset_list`: configured asset ids, kind, URL, preload policy, readiness, and
   load errors.
 - `ecs_find_entities`, `ecs_get_entity`, `ecs_get_hierarchy`: ECS lookup and
@@ -149,16 +267,19 @@ state:
   over that path is a tracked follow-up.
 
 - `ecs_pause`, `ecs_resume`, `ecs_step`: change simulation control state in the
-  generated worker.
+  generated worker. For deterministic parity checks, pass
+  `ecs_step` payload `{ "delta": 0.0166666667, "time": 0 }` so the worker uses
+  the same fixed clock as headless.
 - `input_key`, `input_pointer_move`, `input_pointer_click`, `input_drag`,
   `input_action_set`, `input_gamepad_set`, `input_get_state`, `input_reset`:
   drive or inspect the same generated input path used by real browser events.
 - `camera_create_agent`, `camera_set_transform`, `camera_look_at`,
   `camera_orbit`, `camera_fit_entity`, `camera_use_agent_view`: create or
-  mutate camera entities for inspection in the managed browser.
+  mutate ECS camera entities for inspection in either slot.
 - `camera_save` and `camera_restore`: store and restore camera state in the
   devtools session.
-- `browser_reload`: reloads the managed page but does not directly mutate ECS.
+- `app_reset`: reloads the headed experience or rebuilds the warm headless
+  runner.
 
 ## Diagnostics Lookup
 

@@ -14,10 +14,16 @@ import {
   remap,
   remapClamped,
   rotateVec3ByQuat,
+  vec3Add,
   vec3Cross,
+  vec3Distance,
   vec3Dot,
+  vec3Length,
+  vec3LengthSq,
   vec3Normalize,
   vec3ProjectOnPlane,
+  vec3Scale,
+  vec3Subtract,
 } from "@aperture-engine/simulation";
 
 describe("public math helpers", () => {
@@ -35,8 +41,14 @@ describe("public math helpers", () => {
   });
 
   it("provides vec3 helpers with readonly tuple inputs", () => {
+    expect(Array.from(vec3Add([1, 2, 3], [4, 5, 6]))).toEqual([5, 7, 9]);
+    expect(Array.from(vec3Subtract([4, 6, 8], [1, 2, 3]))).toEqual([3, 4, 5]);
+    expect(Array.from(vec3Scale([2, -3, 4], 2))).toEqual([4, -6, 8]);
     expect(vec3Dot([1, 2, 3], [4, 5, 6])).toBe(32);
     expect(Array.from(vec3Cross([1, 0, 0], [0, 1, 0]))).toEqual([0, 0, 1]);
+    expect(vec3Length([2, 3, 6])).toBe(7);
+    expect(vec3LengthSq([2, 3, 6])).toBe(49);
+    expect(vec3Distance([1, 2, 3], [3, 6, 9])).toBeCloseTo(Math.sqrt(56));
     expect(Array.from(vec3Normalize([0, 0, 2]))).toEqual([0, 0, 1]);
     expect(Array.from(vec3ProjectOnPlane([1, 2, 3], [0, 1, 0]))).toEqual([
       1, 0, 3,

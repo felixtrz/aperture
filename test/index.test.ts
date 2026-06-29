@@ -8,6 +8,7 @@ import * as browser from "@aperture-engine/app/browser";
 import * as cli from "@aperture-engine/cli";
 import * as config from "@aperture-engine/app/config";
 import * as headless from "@aperture-engine/app/headless";
+import * as input from "@aperture-engine/app/input";
 import * as systems from "@aperture-engine/app/systems";
 import * as vite from "@aperture-engine/app/vite";
 import * as worker from "@aperture-engine/app/worker";
@@ -19,12 +20,15 @@ import * as simulation from "@aperture-engine/simulation";
 const APP_PUBLIC_SUBPATHS = [
   ".",
   "./advanced",
+  "./asset-mirror",
   "./browser",
   "./commands",
   "./config",
   "./diagnostics",
   "./entity-lookup",
   "./headless",
+  "./headless-tools",
+  "./input",
   "./systems",
   "./vite",
   "./worker",
@@ -61,6 +65,7 @@ describe("Aperture package entrypoints", () => {
     expect("createSystem" in systems).toBe(true);
     expect("createApertureApp" in advanced).toBe(true);
     expect("createApertureHeadlessRunner" in headless).toBe(true);
+    expect("createGeneratedInputEventMessage" in input).toBe(true);
     expect("startGeneratedBrowserApp" in browser).toBe(true);
     expect("startGeneratedSimulationWorker" in worker).toBe(true);
     expect("aperture" in vite).toBe(true);

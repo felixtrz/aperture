@@ -23,8 +23,9 @@ import type { ApertureSystemModule } from "../advanced.js";
 import {
   createGeneratedDevtoolsBridge,
   type GeneratedDevtoolsBridge,
+  type GeneratedDevtoolsStepInput,
 } from "./devtools/bridge.js";
-import type { GeneratedEntityToolBridge } from "./devtools/entities.js";
+import type { GeneratedEntityToolBridge } from "../devtools/entities.js";
 import {
   createGeneratedWorkerSnapshotTransport,
   createGeneratedWorkerSummaryCadence,
@@ -146,15 +147,20 @@ export async function runGeneratedWorkerLoop(options: {
           scheduleTick();
         }
       },
-      step(delta) {
+      step(input: GeneratedDevtoolsStepInput) {
         paused = true;
         const now = performance.now();
         previousTime = now;
-        const report = publishSnapshot(delta, now / 1000);
+        const report = publishSnapshot(input.delta, input.time ?? now / 1000);
 
         return {
           paused,
           frame,
+          time: {
+            delta: app.context.time.delta,
+            elapsed: app.context.time.elapsed,
+            frame: app.context.time.frame,
+          },
           fixedStep: report.step.fixedStep,
           physics: app.context.physics.summary(),
         };

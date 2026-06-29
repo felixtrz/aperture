@@ -7,7 +7,11 @@
     "types": ["node"],
     "tsBuildInfoFile": "./.tsbuildinfo"
   },
-  "references": [],
+  "references": [
+    { "path": "../app" },
+    { "path": "../render" },
+    { "path": "../vite-plugin" }
+  ],
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]
 }

@@ -40,6 +40,73 @@ export {
   type ApertureToolCallOptions,
 } from "./devtools-client.js";
 export {
+  loadApertureHeadlessApp,
+  type LoadApertureHeadlessAppOptions,
+  type LoadedApertureHeadlessApp,
+} from "./headless/config-loader.js";
+export {
+  createNodeApertureAssetLoader,
+  type NodeAssetLoaderMode,
+} from "./headless/node-asset-loader.js";
+export {
+  applyApertureHeadlessInjectStep,
+  createApertureHeadlessInjectEvents,
+  parseApertureHeadlessInject,
+  parseApertureHeadlessInjectStep,
+  type ApertureHeadlessInjectStep,
+} from "./headless/inject.js";
+export {
+  APERTURE_LEGACY_SNAPSHOT_BUNDLE_FORMAT,
+  APERTURE_LEGACY_SNAPSHOT_BUNDLE_VERSION,
+  APERTURE_RENDER_BUNDLE_FORMAT,
+  APERTURE_RENDER_BUNDLE_VERSION,
+  APERTURE_RENDER_SNAPSHOT_SCHEMA,
+  APERTURE_SNAPSHOT_BUNDLE_FORMAT,
+  APERTURE_SNAPSHOT_BUNDLE_VERSION,
+  APERTURE_SOURCE_ASSET_SCHEMA,
+  APERTURE_TYPED_ARRAY_JSON_CODEC,
+  collectApertureSnapshotAssetKeys,
+  createApertureSnapshotBundle,
+  createApertureSnapshotBundleClosure,
+  getApertureSnapshotBundleRenderTarget,
+  normalizeApertureSnapshotBundle,
+  preflightApertureSnapshotBundle,
+  type ApertureAssetProvenance,
+  type ApertureLegacySnapshotBundle,
+  type ApertureRenderBundle,
+  type ApertureRenderBundleDiagnostic,
+  type ApertureRenderBundleDigest,
+  type ApertureRenderBundleRequirements,
+  type ApertureRenderBundleTarget,
+  type ApertureSnapshotBundleClosure,
+  type ApertureSnapshotBundlePreflightOptions,
+  type ApertureSnapshotBundlePreflightResult,
+  type ApertureSnapshotBundle,
+} from "./headless/bundle.js";
+export { runHeadlessCommand } from "./commands/headless.js";
+export { runHeadlessServeCommand } from "./commands/headless-serve.js";
+export { runRenderCommand } from "./commands/render.js";
+export {
+  renderBundleToPng,
+  renderHarnessHtml,
+  type RenderBundleResult,
+} from "./render/driver.js";
+export {
+  resolveEnginePackages,
+  type EngineMount,
+  type ResolvedEnginePackages,
+} from "./render/resolve-engine-packages.js";
+export {
+  startApertureStaticServer,
+  type ApertureStaticServer,
+  type StaticMount,
+} from "./render/static-server.js";
+export {
+  isPngBlank,
+  summarizePngLuma,
+  type PngLumaSummary,
+} from "./tools/png-readback.js";
+export {
   runApertureMcpServer,
   type RunApertureMcpServerOptions,
 } from "./mcp.js";

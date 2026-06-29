@@ -26,7 +26,10 @@ export interface AperturePage {
   reload(options?: {
     readonly waitUntil?: "domcontentloaded";
   }): Promise<unknown>;
-  screenshot(options?: { readonly type?: "png" }): Promise<Buffer>;
+  screenshot(options?: {
+    readonly type?: "png";
+    readonly clip?: ApertureScreenshotClip;
+  }): Promise<Buffer>;
   evaluate<R, A = unknown>(
     pageFunction: string | ((arg: A) => R | Promise<R>),
     arg?: A,
@@ -46,6 +49,13 @@ export interface AperturePage {
       options?: { readonly button?: AperturePointerButton },
     ): Promise<void>;
   };
+}
+
+interface ApertureScreenshotClip {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
 }
 
 export async function connectToManagedPage(
@@ -121,9 +131,17 @@ export async function waitForWebGpu(
   timeoutMs: number,
 ): Promise<unknown> {
   const deadline = Date.now() + Math.max(0, timeoutMs);
-  let pageStatus = await readGeneratedStatus(page);
 
   for (;;) {
+    let pageStatus: unknown = null;
+    try {
+      pageStatus = await readGeneratedStatus(page);
+    } catch (error: unknown) {
+      if (!isTransientNavigationError(error)) {
+        throw error;
+      }
+    }
+
     const status = generatedAppStatus(pageStatus);
 
     if (status?.webgpuOk === true && status.status === "running") {
@@ -172,7 +190,6 @@ export async function waitForWebGpu(
     }
 
     await delay(100);
-    pageStatus = await readGeneratedStatus(page);
   }
 }
 
@@ -183,9 +200,15 @@ export async function screenshot(
     readonly path?: unknown;
     readonly outputPath?: unknown;
     readonly includeData?: unknown;
+    readonly region?: unknown;
   } = {},
 ): Promise<unknown> {
-  const bytes = await page.screenshot({ type: "png" });
+  const clip =
+    options.region === "canvas" ? await canvasScreenshotClip(page) : undefined;
+  const bytes = await page.screenshot({
+    type: "png",
+    ...(clip === undefined ? {} : { clip }),
+  });
   const outputPath = screenshotOutputPath(options);
   const includeData = outputPath === null || options.includeData === true;
 
@@ -199,10 +222,52 @@ export async function screenshot(
     mimeType: "image/png",
     encoding: "base64",
     byteLength: bytes.byteLength,
+    region: options.region === "viewport" ? "viewport" : "canvas",
+    ...(clip === undefined ? {} : { clip }),
     ...(outputPath === null ? {} : { path: outputPath }),
     ...(options.includeData === true ? { includeData: true } : {}),
     ...(includeData ? { data: bytes.toString("base64") } : {}),
   };
+}
+
+async function canvasScreenshotClip(
+  page: AperturePage,
+): Promise<ApertureScreenshotClip | undefined> {
+  const clip = await page.evaluate(() => {
+    const canvas = document.querySelector("canvas");
+    if (!(canvas instanceof HTMLCanvasElement)) {
+      return null;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: rect.left + window.scrollX,
+      y: rect.top + window.scrollY,
+      width: rect.width,
+      height: rect.height,
+    };
+  });
+
+  return isFinitePositiveClip(clip) ? clip : undefined;
+}
+
+function isFinitePositiveClip(value: unknown): value is ApertureScreenshotClip {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    isFiniteNumber(value["x"]) &&
+    isFiniteNumber(value["y"]) &&
+    isFiniteNumber(value["width"]) &&
+    isFiniteNumber(value["height"]) &&
+    value["width"] > 0 &&
+    value["height"] > 0
+  );
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
 }
 
 function screenshotOutputPath(options: {
@@ -290,6 +355,15 @@ function generatedAppStatus(value: unknown): {
     ...(statusValue === undefined ? {} : { status: statusValue }),
     ...(webgpuOkValue === undefined ? {} : { webgpuOk: webgpuOkValue }),
   };
+}
+
+function isTransientNavigationError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes("Execution context was destroyed") ||
+    message.includes("Cannot find context with specified id") ||
+    message.includes("most likely because of a navigation")
+  );
 }
 
 async function delay(ms: number): Promise<void> {

@@ -5,6 +5,7 @@ import {
   type AssetDiagnostic,
   type AssetHandle,
   type AssetKind,
+  type AssetProvenance,
   type AssetRegistry,
   type AssetRegistryEntry,
   type AssetStatus,
@@ -58,6 +59,7 @@ interface SerializedSourceAssetEntry {
   readonly asset: unknown;
   readonly dependencies: readonly SerializedAssetHandle[];
   readonly diagnostics: readonly AssetDiagnostic[];
+  readonly provenance?: AssetProvenance;
 }
 
 export interface SerializedSourceAssetRegistry {
@@ -169,6 +171,7 @@ function serializeSourceAssetEntry(
     asset: serializeSourceAssetPayload(entry, state),
     dependencies: entry.dependencies.map(serializeAssetHandle),
     diagnostics: entry.diagnostics.map((diagnostic) => ({ ...diagnostic })),
+    ...(entry.provenance === undefined ? {} : { provenance: entry.provenance }),
   };
 }
 
@@ -245,7 +248,8 @@ function isSerializedSourceAssetEntry(
     typeof entry.version === "number" &&
     Array.isArray(entry.dependencies) &&
     entry.dependencies.every(isSerializedHandle) &&
-    Array.isArray(entry.diagnostics)
+    Array.isArray(entry.diagnostics) &&
+    (entry.provenance === undefined || isAssetProvenance(entry.provenance))
   );
 }
 
@@ -267,6 +271,10 @@ function isAssetStatus(value: unknown): value is AssetStatus {
   );
 }
 
+function isAssetProvenance(value: unknown): value is AssetProvenance {
+  return value === "loaded" || value === "placeholder";
+}
+
 function ensureRegistered(
   registry: AssetRegistry,
   handle: AssetHandle,
@@ -280,6 +288,7 @@ function ensureRegistered(
     label: entry.label,
     dependencies: entry.dependencies.map(deserializeAssetHandle),
     diagnostics: entry.diagnostics,
+    ...(entry.provenance === undefined ? {} : { provenance: entry.provenance }),
   });
 }
 
@@ -308,7 +317,7 @@ function writeEntryStatus(
     return false;
   }
 
-  registry.markReady(handle, asset);
+  registry.markReady(handle, asset, entry.diagnostics, entry.provenance);
   return true;
 }
 

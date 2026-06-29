@@ -159,6 +159,8 @@ function createSuccessMessage(
 Next steps:
   cd ${displayTarget}
   pnpm install
-  pnpm run dev
+  pnpm exec aperture mcp stdio
+  # In MCP: app_start({ target: "headless", config: "aperture.headless.config.ts", assetMode: "hybrid" })
+  # Use pnpm run dev / app_start({ target: "headed" }) for browser-specific checks.
 `;
 }

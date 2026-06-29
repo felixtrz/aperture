@@ -2,6 +2,7 @@ import { updateSkeletonPalettes } from "./skinning-palette-system.js";
 import {
   createSimulationFixedStepRunner,
   type SimulationFixedStepCallback,
+  type SimulationFixedStepClockState,
   type SimulationFixedStepFrameReport,
   type SimulationFixedStepOptions,
   type SimulationFixedStepTaskOptions,
@@ -12,6 +13,8 @@ import {
   updateAnimationDrivers,
   type AnimationClipBinding,
 } from "./animation-driver-system.js";
+
+export type { SimulationFixedStepClockState } from "./fixed-step-schedule.js";
 import {
   AssetRegistry,
   DebugMetadata,
@@ -267,6 +270,8 @@ export interface SimulationApp {
     options?: SimulationFixedStepTaskOptions,
   ): () => void;
   resetFixedStepClock(): void;
+  snapshotFixedStepClock(): SimulationFixedStepClockState | null;
+  restoreFixedStepClock(state: SimulationFixedStepClockState | null): boolean;
   registerSystem(
     system: Parameters<EcsWorld["registerSystem"]>[0],
   ): SimulationApp;
@@ -329,6 +334,12 @@ export function createSimulationApp(
     },
     resetFixedStepClock() {
       fixedStep.reset();
+    },
+    snapshotFixedStepClock() {
+      return fixedStep.snapshot();
+    },
+    restoreFixedStepClock(state) {
+      return fixedStep.restore(state);
     },
     step(delta = 0, time = 0) {
       const timingStartedAt = nowMilliseconds();

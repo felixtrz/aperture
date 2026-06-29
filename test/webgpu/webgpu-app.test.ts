@@ -128,6 +128,12 @@ async function createWebGpuApp(
     resetFixedStepClock() {
       extraction.resetFixedStepClock();
     },
+    snapshotFixedStepClock() {
+      return extraction.snapshotFixedStepClock();
+    },
+    restoreFixedStepClock(state) {
+      return extraction.restoreFixedStepClock(state);
+    },
     step(delta = 0, time = 0) {
       return extraction.step(delta, time);
     },

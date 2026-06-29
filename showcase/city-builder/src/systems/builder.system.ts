@@ -18,7 +18,7 @@ import {
   lerp,
   snapToGrid,
   type CityBuildCommand,
-} from "../lib/city-data.js";
+} from "../lib/city-data.ts";
 
 interface PlacedCell {
   readonly ref: EcsEntityRef;

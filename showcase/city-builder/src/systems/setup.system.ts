@@ -5,7 +5,7 @@ import {
   CAMERA_FOV_Y_DEGREES,
   GRID_HALF_EXTENT,
   cameraOffset,
-} from "../lib/city-data.js";
+} from "../lib/city-data.ts";
 
 const CITY_SHADOW_MAP_SIZE = 2048;
 const CITY_SHADOW_ORTHOGRAPHIC_SIZE = GRID_HALF_EXTENT * 2 * Math.SQRT2 + 4;

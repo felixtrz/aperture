@@ -21,6 +21,7 @@ export function startViteServer(input: {
     String(input.port),
     "--config",
     VITE_CONFIG_FILE,
+    "--force",
   ];
 
   if (input.strictPort) {

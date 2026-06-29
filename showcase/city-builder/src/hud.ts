@@ -7,7 +7,7 @@ import {
   CITY_CAMERA_CHANNEL,
   type CityBuildCommand,
   type CityCameraCommand,
-} from "./lib/city-data.js";
+} from "./lib/city-data.ts";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#aperture");
 const amountEl = document.querySelector<HTMLElement>("#cash .amount");

@@ -4,7 +4,12 @@ import type { TemplateFile } from "../types.js";
 
 export function glbViewerTemplateFiles(): readonly TemplateFile[] {
   return [
+    textTemplateFile("aperture.shared-config.ts", glbViewerSharedConfigTs()),
     textTemplateFile("aperture.config.ts", glbViewerConfigTs()),
+    textTemplateFile(
+      "aperture.headless.config.ts",
+      glbViewerHeadlessConfigTs(),
+    ),
     binaryTemplateFile("public/assets/sample-cube.glb", SAMPLE_CUBE_GLB_BASE64),
     textTemplateFile("src/systems/setup.system.ts", glbViewerSetupSystemTs()),
     textTemplateFile("src/systems/orbit.system.ts", glbViewerOrbitSystemTs()),
@@ -12,34 +17,67 @@ export function glbViewerTemplateFiles(): readonly TemplateFile[] {
 }
 
 function glbViewerConfigTs(): string {
+  return `import { createApertureAppConfig } from "./aperture.shared-config.ts";
+
+export default createApertureAppConfig({
+  mode: "browser",
+  baseUrl: import.meta.env.BASE_URL,
+  canvas: "#aperture",
+});
+`;
+}
+
+function glbViewerHeadlessConfigTs(): string {
+  return `import { createApertureAppConfig } from "./aperture.shared-config.ts";
+
+export default createApertureAppConfig({
+  mode: "headless",
+  baseUrl: "/",
+});
+`;
+}
+
+function glbViewerSharedConfigTs(): string {
   return `import { asset, defineApertureConfig, input } from "@aperture-engine/app/config";
 
-export default defineApertureConfig({
-  mode: "browser",
-  canvas: "#aperture",
-  systems: ["src/systems/**/*.system.ts"],
-  assets: {
-    sampleCube: asset.gltf("/assets/sample-cube.glb", {
-      preload: "blocking",
-      label: "Sample Cube",
-    }),
-  },
-  input: {
-    actions: {
-      resetView: input.button([input.key("KeyR")]),
+interface ApertureAppConfigOptions {
+  readonly mode: "browser" | "headless";
+  readonly baseUrl: string;
+  readonly canvas?: string;
+}
+
+export function createApertureAppConfig(options: ApertureAppConfigOptions) {
+  const assetUrl = (path: string) => \`\${options.baseUrl}\${path}\`;
+
+  return defineApertureConfig({
+    mode: options.mode,
+    ...(options.mode === "browser"
+      ? { canvas: options.canvas ?? "#aperture" }
+      : {}),
+    systems: ["src/systems/**/*.system.ts"],
+    assets: {
+      sampleCube: asset.gltf(assetUrl("assets/sample-cube.glb"), {
+        preload: "blocking",
+        label: "Sample Cube",
+      }),
     },
-  },
-  render: {
-    clearColor: [0.03, 0.035, 0.04, 1],
-    defaultCamera: false,
-    defaultLight: false,
-    sampleCount: 4,
-    maxPixelRatio: 2,
-  },
-  diagnostics: {
-    level: "info",
-  },
-});
+    input: {
+      actions: {
+        resetView: input.button([input.key("KeyR")]),
+      },
+    },
+    render: {
+      clearColor: [0.03, 0.035, 0.04, 1],
+      defaultCamera: false,
+      defaultLight: false,
+      sampleCount: 4,
+      maxPixelRatio: 2,
+    },
+    diagnostics: {
+      level: "info",
+    },
+  });
+}
 `;
 }
 

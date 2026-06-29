@@ -5,6 +5,7 @@ import type {
   AssetHandle,
   AssetKind,
   AssetListFilter,
+  AssetProvenance,
   AssetRegistryEntry,
   RegisterAssetOptions,
 } from "./types.js";
@@ -83,7 +84,7 @@ export class TypedAssetCollection<TKind extends AssetKind, TAsset> {
         diagnostics,
       }),
     );
-    this.#registry.markReady(handle, asset, diagnostics);
+    this.#registry.markReady(handle, asset, diagnostics, options.provenance);
     return handle;
   }
 
@@ -122,11 +123,12 @@ export class TypedAssetCollection<TKind extends AssetKind, TAsset> {
     handle: AssetHandle<TKind>,
     asset: TAsset,
     diagnostics?: readonly AssetDiagnostic[],
+    provenance?: AssetProvenance,
   ): AssetRegistryEntry<TKind, TAsset> {
     this.assertHandleKind(handle);
-    return diagnostics === undefined
+    return diagnostics === undefined && provenance === undefined
       ? this.#registry.markReady(handle, asset)
-      : this.#registry.markReady(handle, asset, diagnostics);
+      : this.#registry.markReady(handle, asset, diagnostics, provenance);
   }
 
   markFailed(
@@ -193,6 +195,9 @@ export class TypedAssetCollection<TKind extends AssetKind, TAsset> {
         : {}),
       ...(options.diagnostics !== undefined
         ? { diagnostics: options.diagnostics }
+        : {}),
+      ...(options.provenance !== undefined
+        ? { provenance: options.provenance }
         : {}),
     };
   }

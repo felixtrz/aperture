@@ -3,6 +3,36 @@ import { deflateSync } from "node:zlib";
 import { describe, expect, it, vi } from "vitest";
 
 import { callBrowserBackedTool } from "../../packages/cli/src/tools/dispatch.js";
+import {
+  isPngBlank,
+  summarizePngLuma,
+} from "../../packages/cli/src/tools/png-readback.js";
+
+describe("PNG luma blank detection (P2.3)", () => {
+  const BLACK: readonly [number, number, number] = [0, 0, 0];
+  const WHITE: readonly [number, number, number] = [255, 255, 255];
+
+  it("flags an all-black image as blank", () => {
+    const black = createRgbPng(
+      4,
+      4,
+      Array.from({ length: 16 }, () => BLACK),
+    );
+    expect(summarizePngLuma(black)).toMatchObject({ maxLuma: 0 });
+    expect(isPngBlank(black)).toBe(true);
+  });
+
+  it("does not flag an image with bright pixels as blank", () => {
+    const litPixels = Array.from({ length: 16 }, (_, index) =>
+      index < 8 ? WHITE : BLACK,
+    );
+    const lit = createRgbPng(4, 4, litPixels);
+    const summary = summarizePngLuma(lit);
+    expect(summary.maxLuma).toBeGreaterThan(250);
+    expect(summary.blackCoverage).toBeLessThan(0.6);
+    expect(isPngBlank(lit)).toBe(false);
+  });
+});
 
 describe("Aperture CLI PNG readback tools", () => {
   it("samples the canvas region from browser screenshots", async () => {

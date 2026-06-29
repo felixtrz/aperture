@@ -51,10 +51,18 @@ function tsconfigJson(): string {
     "strict": true,
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
+    "allowImportingTsExtensions": true,
     "skipLibCheck": true,
     "types": ["vite/client"]
   },
-  "include": ["aperture.config.ts", "vite.config.ts", "src/**/*.ts", ".aperture/generated/**/*.d.ts"]
+  "include": [
+    "aperture.config.ts",
+    "aperture.headless.config.ts",
+    "aperture.shared-config.ts",
+    "vite.config.ts",
+    "src/**/*.ts",
+    ".aperture/generated/**/*.d.ts"
+  ]
 }
 `;
 }

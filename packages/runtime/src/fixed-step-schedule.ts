@@ -1,10 +1,13 @@
 import {
   advanceFixedStepClock,
   createFixedStepClock,
+  restoreFixedStepClock,
   resetFixedStepClock,
+  snapshotFixedStepClock,
   type FixedStepAdvanceResult,
   type FixedStepClock,
   type FixedStepClockOptions,
+  type FixedStepClockState,
 } from "@aperture-engine/physics";
 import type { AssetRegistry, EcsWorld } from "@aperture-engine/simulation";
 
@@ -47,6 +50,8 @@ export interface SimulationFixedStepFrameReport {
   readonly clamped: boolean;
 }
 
+export type SimulationFixedStepClockState = FixedStepClockState;
+
 export interface SimulationFixedStepRunner {
   readonly enabled: boolean;
   registerTask(
@@ -55,6 +60,8 @@ export interface SimulationFixedStepRunner {
   ): () => void;
   step(delta: number, time: number): SimulationFixedStepFrameReport;
   reset(): void;
+  snapshot(): SimulationFixedStepClockState | null;
+  restore(state: SimulationFixedStepClockState | null): boolean;
 }
 
 interface SimulationFixedStepRunnerContext {
@@ -98,6 +105,12 @@ export function createSimulationFixedStepRunner(
       },
       reset() {
         // No clock state exists when fixed stepping is disabled.
+      },
+      snapshot() {
+        return null;
+      },
+      restore(state) {
+        return state === null;
       },
     };
   }
@@ -151,6 +164,17 @@ export function createSimulationFixedStepRunner(
     },
     reset() {
       resetFixedStepClock(clock);
+    },
+    snapshot() {
+      return snapshotFixedStepClock(clock);
+    },
+    restore(state) {
+      if (state === null) {
+        return false;
+      }
+
+      restoreFixedStepClock(clock, state);
+      return true;
     },
   };
 }

@@ -20,7 +20,7 @@ import type { GeneratedDevtoolsBridge } from "./devtools/bridge.js";
 import {
   createGeneratedEntityToolBridge,
   type GeneratedEntityToolBridge,
-} from "./devtools/entities.js";
+} from "../devtools/entities.js";
 import { runGeneratedWorkerLoop } from "./loop.js";
 
 export interface StartGeneratedSimulationWorkerOptions {

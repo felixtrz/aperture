@@ -102,11 +102,11 @@ const assumptions: readonly Assumption[] = [
   {
     id: "headless-agent-work",
     index: "04",
-    title: "Agentic 3D work moves toward headless validation",
+    title: "Agentic 3D work moves toward smaller validation loops",
     status: "open",
     statusLabel: "Active thesis",
     summary:
-      "Agents should be able to change ECS systems and validate state before paying the cost of browser and GPU rendering.",
+      "Because ECS state is authoritative, the logic layer can run in pure Node: an agent owns the timestep, injects input, inspects and diffs state, and only renders a snapshot to an image when visuals actually matter. The aperture headless and render commands make that split concrete.",
   },
   {
     id: "ecosystem-moat",

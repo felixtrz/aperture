@@ -11,11 +11,16 @@
       "@aperture-engine/app/systems": ["packages/app/src/systems.ts"],
       "@aperture-engine/app/advanced": ["packages/app/src/advanced.ts"],
       "@aperture-engine/app/headless": ["packages/app/src/headless.ts"],
+      "@aperture-engine/app/headless-tools": [
+        "packages/app/src/headless-tools.ts"
+      ],
+      "@aperture-engine/app/input": ["packages/app/src/input.ts"],
       "@aperture-engine/app/entity-lookup": [
         "packages/app/src/entity-lookup.ts"
       ],
       "@aperture-engine/app/commands": ["packages/app/src/commands.ts"],
       "@aperture-engine/app/diagnostics": ["packages/app/src/diagnostics.ts"],
+      "@aperture-engine/app/asset-mirror": ["packages/app/src/asset-mirror.ts"],
       "@aperture-engine/app/vite": ["packages/app/src/vite.ts"],
       "@aperture-engine/app/browser": ["packages/app/src/browser.ts"],
       "@aperture-engine/app/worker": ["packages/app/src/worker.ts"],

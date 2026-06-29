@@ -18,10 +18,7 @@ import {
 } from "@aperture-engine/app/headless";
 import type { ApertureSystemModule } from "@aperture-engine/app/advanced";
 import type { UiScrollInput } from "@aperture-engine/render";
-import {
-  advanceInputResource,
-  type ApertureGeneratedInputEvent,
-} from "../../packages/app/src/input/state.js";
+import type { ApertureGeneratedInputEvent } from "@aperture-engine/app/input";
 
 // AI-47: the worker-side UiScroll wheel/drag mapping system. The scene is a
 // 400x300 UiScreen with a 200x100 column scroll panel at (100, 50) holding
@@ -98,7 +95,7 @@ function stepWithInput(
 ): void {
   // Mirror the generated worker loop: the per-frame input drain advances the
   // resource, then the app steps (which runs the interaction + scroll frame).
-  advanceInputResource(runner.app.context.input, events);
+  runner.enqueueInputBatch(events);
   runner.step(1 / 60, 0);
 }
 

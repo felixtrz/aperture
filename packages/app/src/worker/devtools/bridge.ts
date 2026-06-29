@@ -32,7 +32,7 @@ import {
   type ApertureDevtoolsRequest,
 } from "../../commands.js";
 import type { ApertureGeneratedInputEvent } from "../../input.js";
-import { createAssetSummary } from "../assets.js";
+import { createAssetSummary } from "../../devtools/assets.js";
 import { resolveActiveEntity } from "../../entities/lookup/resolve.js";
 import { entityRefKey, entitySummary } from "../../entities/lookup/summary.js";
 import type { AperturePhysicsJointSummary } from "../../entities/lookup/types.js";
@@ -43,15 +43,15 @@ import {
   stringFromValue,
   tuple3FromValue,
   tuple4FromValue,
-} from "../payload.js";
-import { callCameraTool, type CameraToolState } from "./camera.js";
+} from "../../devtools/payload.js";
+import { callCameraTool, type CameraToolState } from "../../devtools/camera.js";
 import {
   entityRefFromValue,
   type GeneratedEntityToolBridge,
-} from "./entities.js";
-import { callInputDevtoolsTool } from "./input.js";
+} from "../../devtools/entities.js";
+import { callInputDevtoolsTool } from "../../devtools/input.js";
 import { ApertureSystemError } from "../../systems/errors.js";
-import type { GeneratedDevtoolsToolResult } from "./types.js";
+import type { GeneratedDevtoolsToolResult } from "../../devtools/types.js";
 
 type MutablePhysicsCharacterControllerSettings = {
   -readonly [Key in keyof PhysicsCharacterControllerSettings]?: PhysicsCharacterControllerSettings[Key];
@@ -65,13 +65,20 @@ export interface GeneratedDevtoolsBridge {
   handle(request: ApertureDevtoolsRequest): void;
 }
 
+export interface GeneratedDevtoolsStepInput {
+  readonly delta: number;
+  readonly time?: number;
+}
+
 export function createGeneratedDevtoolsBridge(options: {
   readonly app: ApertureApp;
   readonly entityTools: GeneratedEntityToolBridge;
   readonly port: SimulationMessagePort;
   readonly enqueueInputEvent: (event: ApertureGeneratedInputEvent) => void;
   readonly setPaused: (paused: boolean) => void;
-  readonly step: (delta: number) => Readonly<Record<string, unknown>>;
+  readonly step: (
+    input: GeneratedDevtoolsStepInput,
+  ) => Readonly<Record<string, unknown>>;
   readonly getSimulationState: () => Readonly<Record<string, unknown>>;
 }): GeneratedDevtoolsBridge {
   const savedCameraStates = new Map<string, CameraToolState>();
@@ -116,7 +123,9 @@ function callGeneratedDevtoolsTool(
     readonly entityTools: GeneratedEntityToolBridge;
     readonly enqueueInputEvent: (event: ApertureGeneratedInputEvent) => void;
     readonly setPaused: (paused: boolean) => void;
-    readonly step: (delta: number) => Readonly<Record<string, unknown>>;
+    readonly step: (
+      input: GeneratedDevtoolsStepInput,
+    ) => Readonly<Record<string, unknown>>;
     readonly getSimulationState: () => Readonly<Record<string, unknown>>;
   },
   request: ApertureDevtoolsRequest,
@@ -135,12 +144,16 @@ function callGeneratedDevtoolsTool(
   if (request.tool === "ecs_step") {
     return {
       ok: true,
-      result: bridge.step(devtoolsStepDelta(request.payload)),
+      result: bridge.step(devtoolsStepInput(request.payload)),
     };
   }
 
   if (request.tool === "ecs_step_and_diff") {
     return callStepAndDiffTool(bridge, request.payload);
+  }
+
+  if (request.tool === "ecs_list_systems") {
+    return callListSystemsTool(bridge.app);
   }
 
   if (request.tool.startsWith("input_")) {
@@ -250,10 +263,42 @@ function callGeneratedDevtoolsTool(
   return bridge.entityTools.call(request.tool, request.payload);
 }
 
+function callListSystemsTool(app: ApertureApp): GeneratedDevtoolsToolResult {
+  const systems = (app.lowLevel.world.getSystems() as readonly unknown[]).map(
+    (system, index) => {
+      const constructor = isRecord(system) ? system["constructor"] : undefined;
+      const className =
+        typeof constructor === "function" && constructor.name.length > 0
+          ? constructor.name
+          : `System ${index}`;
+      const aperture =
+        typeof constructor === "function"
+          ? (constructor as unknown as Record<string, unknown>)["aperture"]
+          : undefined;
+      const schedule = isRecord(aperture) ? aperture["schedule"] : undefined;
+      const priority =
+        isRecord(schedule) && typeof schedule["priority"] === "number"
+          ? schedule["priority"]
+          : null;
+
+      return {
+        index,
+        moduleId: className,
+        className,
+        schedule: { priority },
+      };
+    },
+  );
+
+  return { ok: true, result: { systems } };
+}
+
 function callStepAndDiffTool(
   bridge: {
     readonly entityTools: GeneratedEntityToolBridge;
-    readonly step: (delta: number) => Readonly<Record<string, unknown>>;
+    readonly step: (
+      input: GeneratedDevtoolsStepInput,
+    ) => Readonly<Record<string, unknown>>;
   },
   payload: unknown,
 ): GeneratedDevtoolsToolResult {
@@ -273,7 +318,7 @@ function callStepAndDiffTool(
     };
   }
 
-  const step = bridge.step(devtoolsStepDelta(payload));
+  const step = bridge.step(devtoolsStepInput(payload));
   const diff = bridge.entityTools.call("ecs_diff", payload);
 
   return {
@@ -288,11 +333,15 @@ function callStepAndDiffTool(
   };
 }
 
-function devtoolsStepDelta(payload: unknown): number {
+function devtoolsStepInput(payload: unknown): GeneratedDevtoolsStepInput {
   const record = isRecord(payload) ? payload : {};
   const delta = numberFromValue(record["delta"]);
+  const time = numberFromValue(record["time"]);
 
-  return delta === undefined || delta < 0 ? 1 / 60 : delta;
+  return {
+    delta: delta === undefined || delta < 0 ? 1 / 60 : delta,
+    ...(time === undefined || time < 0 ? {} : { time }),
+  };
 }
 
 function callResourceGetTool(
