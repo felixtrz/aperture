@@ -60,6 +60,30 @@ export async function inputPointerClick(
   };
 }
 
+export async function inputPointerSet(
+  page: AperturePage,
+  args: Record<string, unknown>,
+): Promise<unknown> {
+  const point = await canvasPoint(page, args);
+  const button = pointerButtonFromArgs(args);
+  const pressed = args["pressed"] === true;
+
+  await page.mouse.move(point.x, point.y);
+  if (pressed) {
+    await page.mouse.down({ button });
+  } else {
+    await page.mouse.up({ button });
+  }
+
+  return {
+    ok: true,
+    point,
+    button,
+    pressed,
+    page: await readGeneratedStatus(page),
+  };
+}
+
 export async function inputDrag(
   page: AperturePage,
   args: Record<string, unknown>,

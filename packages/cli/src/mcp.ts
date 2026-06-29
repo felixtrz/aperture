@@ -1,11 +1,11 @@
-import { callApertureTool } from "./devtools-client.js";
-import { APERTURE_REFERENCE_TOOL_CONTRACT } from "./reference.js";
+import { ApertureMcpSessionManager } from "./mcp-session-manager.js";
 import { APERTURE_CLI_VERSION } from "./version.js";
 
 const MCP_PROTOCOL_VERSION = "2025-06-18";
 
 export interface RunApertureMcpServerOptions {
   readonly cwd: string;
+  readonly entryPoint?: string;
   readonly stdin?: McpInputStream;
   readonly stdout?: McpOutputStream;
   readonly stderr?: McpOutputStream;
@@ -16,16 +16,6 @@ interface JsonRpcRequest {
   readonly id?: string | number | null;
   readonly method?: string;
   readonly params?: unknown;
-}
-
-interface McpToolDefinition {
-  readonly name: string;
-  readonly description: string;
-  readonly inputSchema: {
-    readonly type: "object";
-    readonly properties?: Record<string, unknown>;
-    readonly additionalProperties?: boolean;
-  };
 }
 
 interface McpInputStream {
@@ -44,8 +34,15 @@ export async function runApertureMcpServer(
   const stdin = options.stdin ?? process.stdin;
   const stdout = options.stdout ?? process.stdout;
   const stderr = options.stderr ?? process.stderr;
+  const manager = new ApertureMcpSessionManager({
+    cwd: options.cwd,
+    ...(options.entryPoint === undefined
+      ? {}
+      : { entryPoint: options.entryPoint }),
+  });
   let buffer = "";
   const pending = new Set<Promise<void>>();
+  let chain = Promise.resolve();
 
   stdin.setEncoding?.("utf8");
   stdin.on("data", (chunk: Buffer | string) => {
@@ -64,9 +61,12 @@ export async function runApertureMcpServer(
         continue;
       }
 
-      const task = handleLine(line, options.cwd, stdout, stderr).finally(() => {
-        pending.delete(task);
-      });
+      const task = chain
+        .then(() => handleLine(line, manager, stdout, stderr))
+        .finally(() => {
+          pending.delete(task);
+        });
+      chain = task.catch(() => undefined);
       pending.add(task);
     }
   });
@@ -80,7 +80,7 @@ export async function runApertureMcpServer(
 
 async function handleLine(
   line: string,
-  cwd: string,
+  manager: ApertureMcpSessionManager,
   stdout: McpOutputStream,
   stderr: McpOutputStream,
 ): Promise<void> {
@@ -102,7 +102,7 @@ async function handleLine(
   }
 
   try {
-    const result = await handleRequest(request, cwd);
+    const result = await handleRequest(request, manager);
     writeJson(stdout, {
       jsonrpc: "2.0",
       id: request.id,
@@ -122,7 +122,7 @@ async function handleLine(
 
 async function handleRequest(
   request: JsonRpcRequest,
-  cwd: string,
+  manager: ApertureMcpSessionManager,
 ): Promise<unknown> {
   switch (request.method) {
     case "initialize":
@@ -138,10 +138,10 @@ async function handleRequest(
       };
     case "tools/list":
       return {
-        tools: toolDefinitions(),
+        tools: manager.toolDefinitions(),
       };
     case "tools/call":
-      return callTool(request.params, cwd);
+      return callTool(request.params, manager);
     default:
       throw new Error(
         `Unsupported MCP method '${request.method ?? "<missing>"}'.`,
@@ -149,7 +149,10 @@ async function handleRequest(
   }
 }
 
-async function callTool(params: unknown, cwd: string): Promise<unknown> {
+async function callTool(
+  params: unknown,
+  manager: ApertureMcpSessionManager,
+): Promise<unknown> {
   if (!isRecord(params)) {
     throw new Error("MCP tools/call requires params.");
   }
@@ -163,14 +166,12 @@ async function callTool(params: unknown, cwd: string): Promise<unknown> {
     throw new Error("MCP tools/call requires a tool name.");
   }
 
-  const result = await callApertureTool({
-    cwd,
+  const result = await manager.call({
     name,
-    arguments: args,
-    keepBrowserConnection: true,
+    args,
   });
 
-  // If a tool returns an image payload (e.g. browser_screenshot), emit a real MCP
+  // If a tool returns an image payload (e.g. frame_capture), emit a real MCP
   // `image` content block so clients render it directly. Otherwise the base64 was
   // stringified into a `text` block, forcing callers to decode it to a file (and
   // overflowing text token limits on every screenshot).
@@ -231,212 +232,6 @@ function isImageToolResult(value: unknown): value is {
 
 function writeJson(stdout: McpOutputStream, value: unknown): void {
   stdout.write(`${JSON.stringify(value)}\n`);
-}
-
-function toolDefinitions(): readonly McpToolDefinition[] {
-  return [
-    tool("browser_status", "Read the active Aperture browser/session status."),
-    tool(
-      "browser_canvas_status",
-      "Read canvas CSS size, backing size, DPR policy, and render-target size.",
-    ),
-    tool("browser_screenshot", "Capture a PNG screenshot of the managed tab.", {
-      path: { type: "string" },
-      outputPath: { type: "string" },
-      includeData: { type: "boolean" },
-    }),
-    tool("browser_console_logs", "Read recent managed-browser console logs.", {
-      lines: { type: "number" },
-    }),
-    tool("browser_reload", "Reload the managed Aperture tab."),
-    tool(
-      "browser_wait_for_webgpu",
-      "Wait until the generated app reports WebGPU readiness.",
-      {
-        timeoutMs: { type: "number" },
-      },
-    ),
-    tool(
-      "browser_pick_pixel",
-      "Sample a pixel from the managed browser render output.",
-      {
-        x: { type: "number" },
-        y: { type: "number" },
-        coordinateSpace: { enum: ["auto", "normalized", "pixel"] },
-      },
-    ),
-    tool(
-      "ecs_find_entities",
-      "Find ECS entities by key, name, tags, components, or source metadata.",
-    ),
-    tool("ecs_get_entity", "Read one ECS entity summary."),
-    tool("ecs_query", "Run a structured ECS query."),
-    tool("ecs_get_component_schema", "Inspect an ECS component schema."),
-    tool("ecs_snapshot", "Capture an ECS entity summary snapshot."),
-    tool(
-      "ecs_diff",
-      "Diff the current ECS entity summary against the last snapshot.",
-    ),
-    tool("ecs_list_systems", "List generated systems and schedule metadata."),
-    tool("ecs_pause", "Pause generated simulation."),
-    tool("ecs_resume", "Resume generated simulation."),
-    tool("ecs_step", "Single-step generated simulation."),
-    tool(
-      "ecs_set_component_field",
-      "Mutate an allowlisted ECS component field.",
-    ),
-    tool("ecs_get_hierarchy", "Return a derived ECS parent/child hierarchy."),
-    tool("asset_list", "List configured Aperture assets and readiness state."),
-    tool(
-      "resource_get",
-      "Read generated app resources by id, or list all initialized resources.",
-      {
-        id: { type: "string" },
-      },
-    ),
-    tool("resource_set", "Patch an initialized generated app resource by id.", {
-      id: { type: "string" },
-      values: { type: "object" },
-    }),
-    tool("input_key", "Send keyboard input through the managed browser.", {
-      key: { type: "string" },
-      action: { enum: ["press", "down", "up"] },
-    }),
-    tool("input_pointer_move", "Move the pointer over the Aperture canvas.", {
-      x: { type: "number" },
-      y: { type: "number" },
-    }),
-    tool("input_pointer_click", "Click the Aperture canvas.", {
-      x: { type: "number" },
-      y: { type: "number" },
-      button: { enum: ["left", "middle", "right"] },
-    }),
-    tool("input_drag", "Drag across the Aperture canvas.", {
-      from: { type: "object" },
-      to: { type: "object" },
-      button: { enum: ["left", "middle", "right"] },
-    }),
-    tool("input_action_set", "Set a generated Aperture input action.", {
-      action: { type: "string" },
-      pressed: { type: "boolean" },
-      value: { type: "number" },
-      x: { type: "number" },
-      y: { type: "number" },
-    }),
-    tool(
-      "input_gamepad_set",
-      "Set a standard virtual gamepad button or stick.",
-      {
-        index: { type: "number" },
-        button: { type: "string" },
-        pressed: { type: "boolean" },
-        value: { type: "number" },
-        leftStick: { type: "object" },
-        rightStick: { type: "object" },
-        axes: { type: "array" },
-      },
-    ),
-    tool(
-      "input_get_state",
-      "Inspect resolved keyboard, pointer, gamepad, and action state.",
-    ),
-    tool(
-      "input_reset",
-      "Release keyboard, pointer, gamepad, and virtual action input.",
-    ),
-    tool("camera_list", "List app and agent cameras."),
-    tool("camera_get", "Read a camera transform and projection."),
-    tool("camera_save", "Save camera state for later restoration."),
-    tool("camera_restore", "Restore saved camera state."),
-    tool("camera_create_agent", "Create an agent inspection camera."),
-    tool("camera_set_transform", "Set an agent camera transform."),
-    tool("camera_look_at", "Point an agent camera at a target."),
-    tool("camera_orbit", "Orbit an agent camera around a target."),
-    tool("camera_fit_entity", "Fit an entity in the agent camera view."),
-    tool(
-      "camera_use_agent_view",
-      "Render the managed browser from the agent camera.",
-    ),
-    tool(
-      "render_get_frame_report",
-      "Read the latest render frame report from generated diagnostics.",
-      { summaryOnly: { type: "boolean" } },
-    ),
-    tool(
-      "render_get_snapshot_summary",
-      "Read latest render snapshot counts and diagnostics.",
-    ),
-    tool("render_get_packets", "Inspect render packets.", {
-      family: {
-        enum: [
-          "views",
-          "meshDraws",
-          "lights",
-          "environments",
-          "shadows",
-          "bounds",
-        ],
-      },
-      families: {
-        type: "array",
-        items: {
-          enum: [
-            "views",
-            "meshDraws",
-            "lights",
-            "environments",
-            "shadows",
-            "bounds",
-          ],
-        },
-      },
-    }),
-    tool(
-      "render_explain_entity",
-      "Explain why an entity did or did not render.",
-    ),
-    tool("render_get_diagnostics", "Read render diagnostics."),
-    tool(
-      "render_set_post_effect_enabled",
-      "Enable or disable a named generated WebGPU post effect.",
-      {
-        effectId: { type: "string" },
-        id: { type: "string" },
-        enabled: { type: "boolean" },
-      },
-    ),
-    tool("render_readback_samples", "Read JSON-safe pixel samples.", {
-      samples: { type: "array" },
-    }),
-    tool("render_pick_entity", "Pick a rendered entity.", {
-      x: { type: "number" },
-      y: { type: "number" },
-      coordinateSpace: { enum: ["auto", "normalized", "pixel"] },
-    }),
-    ...APERTURE_REFERENCE_TOOL_CONTRACT.map((definition) =>
-      tool(
-        definition.name,
-        definition.description,
-        definition.properties ?? {},
-      ),
-    ),
-  ];
-}
-
-function tool(
-  name: string,
-  description: string,
-  properties: Record<string, unknown> = {},
-): McpToolDefinition {
-  return {
-    name,
-    description,
-    inputSchema: {
-      type: "object",
-      properties,
-      additionalProperties: true,
-    },
-  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

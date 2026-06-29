@@ -156,7 +156,22 @@ export function loadScene(
 }
 
 function activeEntities(world: EcsWorld): Entity[] {
-  return [...world.queryManager.registerQuery({ required: [] }).entities]
+  const manager = world.entityManager as unknown as {
+    readonly entityIndex?: number;
+    getEntityByIndex(index: number): Entity | null;
+  };
+  const entities: Entity[] = [];
+  const count = manager.entityIndex ?? 0;
+
+  for (let index = 0; index < count; index += 1) {
+    const entity = manager.getEntityByIndex(index);
+
+    if (entity !== null) {
+      entities.push(entity);
+    }
+  }
+
+  return entities
     .filter((entity) => entity.active)
     .sort((a, b) => a.index - b.index || a.generation - b.generation);
 }

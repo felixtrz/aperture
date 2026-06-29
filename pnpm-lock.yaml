@@ -172,9 +172,24 @@ importers:
 
   packages/cli:
     dependencies:
+      '@aperture-engine/app':
+        specifier: workspace:^
+        version: link:../app
+      '@aperture-engine/render':
+        specifier: workspace:^
+        version: link:../render
+      '@aperture-engine/simulation':
+        specifier: workspace:^
+        version: link:../simulation
+      '@aperture-engine/vite-plugin':
+        specifier: workspace:^
+        version: link:../vite-plugin
       '@huggingface/transformers':
         specifier: ^3.1.2
         version: 3.8.1
+      jpeg-js:
+        specifier: ^0.4.4
+        version: 0.4.4
       playwright:
         specifier: ^1.60.0
         version: 1.60.0
@@ -3280,6 +3295,9 @@ packages:
   jiti@2.7.0:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
+
+  jpeg-js@0.4.4:
+    resolution: {integrity: sha512-WZzeDOEtTOBK4Mdsar0IqEU5sMr3vSV2RqkAIzUEV2BHnUfKGyswWFPFwK5EeDo93K3FohSHbLAjj0s1Wzd+dg==}
 
   js-tokens@10.0.0:
     resolution: {integrity: sha512-lM/UBzQmfJRo9ABXbPWemivdCW8V2G8FHaHdypQaIy523snUjog0W71ayWXTjiR+ixeMyVHN2XcpnTd/liPg/Q==}
@@ -7688,6 +7706,8 @@ snapshots:
       istanbul-lib-report: 3.0.1
 
   jiti@2.7.0: {}
+
+  jpeg-js@0.4.4: {}
 
   js-tokens@10.0.0: {}
 

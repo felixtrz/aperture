@@ -41,6 +41,8 @@ describe("Aperture CLI create command", () => {
     expect(topLevel.stdout).toContain("aperture create");
     expect(topLevel.stdout).toContain("aperture adapter sync");
     expect(topLevel.stdout).toContain("aperture dev <subcommand>");
+    expect(topLevel.stdout).toContain("aperture headless <config>");
+    expect(topLevel.stdout).toContain("aperture render <bundle>");
     expect(topLevel.stdout).toContain("aperture tool <name>");
     expect(topLevel.stdout).toContain("aperture mcp stdio");
     expect(create.exitCode).toBe(0);
@@ -143,7 +145,9 @@ describe("Aperture CLI create command", () => {
       expect.arrayContaining([
         "package.json",
         "index.html",
+        "aperture.shared-config.ts",
         "aperture.config.ts",
+        "aperture.headless.config.ts",
         "vite.config.ts",
         "src/systems/setup.system.ts",
         "src/systems/spin.system.ts",
@@ -177,8 +181,24 @@ describe("Aperture CLI create command", () => {
       path.join(report.targetDir, "aperture.config.ts"),
       "utf8",
     );
+    const headlessConfig = await readFile(
+      path.join(report.targetDir, "aperture.headless.config.ts"),
+      "utf8",
+    );
+    const sharedConfig = await readFile(
+      path.join(report.targetDir, "aperture.shared-config.ts"),
+      "utf8",
+    );
     const setupSystem = await readFile(
       path.join(report.targetDir, "src/systems/setup.system.ts"),
+      "utf8",
+    );
+    const agentNotes = await readFile(
+      path.join(report.targetDir, "AGENTS.md"),
+      "utf8",
+    );
+    const claudeNotes = await readFile(
+      path.join(report.targetDir, "CLAUDE.md"),
       "utf8",
     );
     const codexConfig = await readFile(
@@ -208,10 +228,24 @@ describe("Aperture CLI create command", () => {
     ).not.toContain("workspace:*");
     expect(viteConfig).toContain('mode: "agent"');
     expect(indexHtml).toContain('<link rel="icon" href="data:," />');
-    expect(apertureConfig).toContain("sampleCount: 4");
-    expect(apertureConfig).toContain("maxPixelRatio: 2");
+    expect(apertureConfig).toContain("createApertureAppConfig");
+    expect(apertureConfig).toContain('mode: "browser"');
+    expect(headlessConfig).toContain("createApertureAppConfig");
+    expect(headlessConfig).toContain('mode: "headless"');
+    expect(sharedConfig).toContain("sampleCount: 4");
+    expect(sharedConfig).toContain("maxPixelRatio: 2");
     expect(setupSystem).toContain("this.spawn.camera");
     expect(setupSystem).toContain("starter.cube");
+    expect(agentNotes).toContain("Agent Happy Path");
+    expect(agentNotes).toContain("MCP Tooling Rules");
+    expect(agentNotes).toContain("aperture.headless.config.ts");
+    expect(agentNotes).toContain("frame_capture");
+    expect(agentNotes).toContain("browser-mechanics tools");
+    expect(agentNotes).toContain('assetMode: "strict"');
+    expect(claudeNotes).toContain("Default Tooling Loop");
+    expect(claudeNotes).toContain("Start the warm");
+    expect(claudeNotes).toContain("headless slot");
+    expect(claudeNotes).toContain("default to headless");
     expect(codexConfig).toContain("aperture");
     expect(codexConfig).toContain("mcp");
   });
@@ -264,6 +298,8 @@ describe("Aperture CLI create command", () => {
     expect(report.files).toEqual(
       expect.arrayContaining([
         "aperture.config.ts",
+        "aperture.shared-config.ts",
+        "aperture.headless.config.ts",
         "public/assets/sample-cube.glb",
         "src/systems/setup.system.ts",
         "src/systems/orbit.system.ts",
@@ -277,6 +313,14 @@ describe("Aperture CLI create command", () => {
       path.join(report.targetDir, "aperture.config.ts"),
       "utf8",
     );
+    const headlessConfig = await readFile(
+      path.join(report.targetDir, "aperture.headless.config.ts"),
+      "utf8",
+    );
+    const sharedConfig = await readFile(
+      path.join(report.targetDir, "aperture.shared-config.ts"),
+      "utf8",
+    );
     const setupSystem = await readFile(
       path.join(report.targetDir, "src/systems/setup.system.ts"),
       "utf8",
@@ -287,10 +331,12 @@ describe("Aperture CLI create command", () => {
     );
 
     expect(asset.size).toBeGreaterThan(100);
-    expect(config).toContain(
-      'sampleCube: asset.gltf("/assets/sample-cube.glb"',
+    expect(config).toContain("import.meta.env.BASE_URL");
+    expect(headlessConfig).toContain('mode: "headless"');
+    expect(sharedConfig).toContain(
+      'sampleCube: asset.gltf(assetUrl("assets/sample-cube.glb")',
     );
-    expect(config).toContain("sampleCount: 4");
+    expect(sharedConfig).toContain("sampleCount: 4");
     expect(setupSystem).toContain("this.spawn.gltf");
     expect(setupSystem).toContain("viewer.sampleCube");
     expect(orbitSystem).toContain("priority: 20");
@@ -308,6 +354,8 @@ describe("Aperture CLI create command", () => {
     expect(report.files).toEqual(
       expect.arrayContaining([
         "aperture.config.ts",
+        "aperture.shared-config.ts",
+        "aperture.headless.config.ts",
         "public/assets/goal-cube.glb",
         "src/systems/setup.system.ts",
         "src/systems/player.system.ts",
@@ -322,6 +370,14 @@ describe("Aperture CLI create command", () => {
       path.join(report.targetDir, "aperture.config.ts"),
       "utf8",
     );
+    const headlessConfig = await readFile(
+      path.join(report.targetDir, "aperture.headless.config.ts"),
+      "utf8",
+    );
+    const sharedConfig = await readFile(
+      path.join(report.targetDir, "aperture.shared-config.ts"),
+      "utf8",
+    );
     const playerSystem = await readFile(
       path.join(report.targetDir, "src/systems/player.system.ts"),
       "utf8",
@@ -332,11 +388,15 @@ describe("Aperture CLI create command", () => {
     );
 
     expect(asset.size).toBeGreaterThan(100);
-    expect(config).toContain('goal: asset.gltf("/assets/goal-cube.glb"');
-    expect(config).toContain("score: signal.number(0)");
-    expect(config).toContain("goalReached: signal.boolean(false)");
-    expect(config).toContain("move: input.axis2d");
-    expect(config).toContain('input.gamepadButton("south")');
+    expect(config).toContain("import.meta.env.BASE_URL");
+    expect(headlessConfig).toContain('mode: "headless"');
+    expect(sharedConfig).toContain(
+      'goal: asset.gltf(assetUrl("assets/goal-cube.glb")',
+    );
+    expect(sharedConfig).toContain("score: signal.number(0)");
+    expect(sharedConfig).toContain("goalReached: signal.boolean(false)");
+    expect(sharedConfig).toContain("move: input.axis2d");
+    expect(sharedConfig).toContain('input.gamepadButton("south")');
     expect(playerSystem).toContain("priority: 20");
     expect(playerSystem).toContain("this.actions.move");
     expect(playerSystem).toContain("game.collectible.collected");
@@ -355,6 +415,9 @@ describe("Aperture CLI create command", () => {
 
     const forced = await runCli(["create", "existing", "--force"], root);
     expect(forced.exitCode).toBe(0);
+    expect(forced.stdout).toContain("pnpm exec aperture mcp stdio");
+    expect(forced.stdout).toContain("aperture.headless.config.ts");
+    expect(forced.stdout).toContain("browser-specific checks");
     expect(await readdir(target)).toEqual(
       expect.arrayContaining(["keep.txt", "package.json", "src"]),
     );
@@ -420,6 +483,9 @@ describe("Aperture CLI create command", () => {
     expect(agentNotes).toContain("User-owned agent notes.");
     expect(claudeNotes).toContain("custom Claude notes");
     expect(claudeNotes).toContain("structured diagnostics");
+    expect(claudeNotes).toContain("Default Tooling Loop");
+    expect(claudeNotes).toContain("Start the warm");
+    expect(claudeNotes).toContain("headless slot");
     expect(mcpJson.mcpServers).toMatchObject({
       custom: { command: "custom-tool" },
       aperture: { command: "pnpm" },

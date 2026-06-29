@@ -13,6 +13,7 @@ import {
   inputKey,
   inputPointerClick,
   inputPointerMove,
+  inputPointerSet,
   releaseAllPointerButtons,
 } from "./input.js";
 import {
@@ -48,6 +49,7 @@ export async function callBrowserBackedTool(
         path: args["path"],
         outputPath: args["outputPath"],
         includeData: args["includeData"],
+        region: args["region"],
       });
     case "browser_console_logs":
       return {
@@ -107,6 +109,8 @@ export async function callBrowserBackedTool(
       return inputPointerMove(page, args);
     case "input_pointer_click":
       return inputPointerClick(page, args);
+    case "input_pointer_set":
+      return inputPointerSet(page, args);
     case "input_drag":
       return inputDrag(page, args);
     case "input_action_set":

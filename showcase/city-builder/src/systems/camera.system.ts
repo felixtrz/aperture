@@ -24,7 +24,7 @@ import {
   cameraOffset,
   lerp,
   type CityCameraCommand,
-} from "../lib/city-data.js";
+} from "../lib/city-data.ts";
 
 // Smooth isometric orbit rig (scripts/view.gd). A focus point glides over the
 // ground; the camera sits back along the rig direction by `zoom` metres and

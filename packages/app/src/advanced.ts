@@ -2,14 +2,18 @@ import {
   createExtractionApp,
   type CreateExtractionAppOptions,
   type ExtractionApp,
+  type SimulationFixedStepClockState,
   type SimulationStepResult,
 } from "@aperture-engine/runtime";
 import type { SystemConstructor, SystemQueries, SystemSchema } from "elics";
 import { resolveWorldTransforms } from "@aperture-engine/simulation";
 import {
+  advanceApertureFrameTime,
   createApertureSystemContext,
   flushApertureSystemEffects,
   type ApertureAssetLoader,
+  type ApertureDeterminismDiagnosticsOptions,
+  type ApertureRandom,
   type SystemGltfAssetDecoderProvider,
   type ApertureSystemConstructor,
   type ApertureSystemContext,
@@ -59,6 +63,9 @@ export interface CreateApertureAppOptions {
   readonly physics?: boolean | AperturePhysicsConfig;
   readonly physicsInterpolation?: boolean;
   readonly startOptions?: Readonly<Record<string, unknown>>;
+  /** Seed for the deterministic RNG (default 0) or a prebuilt RNG instance. */
+  readonly random?: number | ApertureRandom;
+  readonly determinism?: ApertureDeterminismDiagnosticsOptions;
 }
 
 export interface AperturePreloadReport {
@@ -100,6 +107,8 @@ export interface ApertureApp {
     options?: Parameters<ExtractionApp["registerFixedStepTask"]>[1],
   ): () => void;
   resetFixedStepClock(): void;
+  snapshotFixedStepClock(): SimulationFixedStepClockState | null;
+  restoreFixedStepClock(state: SimulationFixedStepClockState | null): boolean;
   stepAndExtract(
     delta?: number,
     time?: number,
@@ -166,6 +175,10 @@ export async function createApertureApp(
     ...(options.gltfAssetDecoders === undefined
       ? {}
       : { gltfAssetDecoders: options.gltfAssetDecoders }),
+    ...(options.random === undefined ? {} : { random: options.random }),
+    ...(options.determinism === undefined
+      ? {}
+      : { determinism: options.determinism }),
   });
   const preload = preloadReport(config);
   const spatialIndexPopulation = createSpatialIndexPopulationState();
@@ -219,6 +232,8 @@ export async function createApertureApp(
     physics: physicsFacade,
     preload,
     step(delta = 0, time = 0) {
+      // Advance the sanctioned sim-clock before any system runs this frame.
+      advanceApertureFrameTime(context.time, delta, time);
       const timingStartedAt = nowMilliseconds();
       let timingCursor = timingStartedAt;
       const markTiming = (): number => {
@@ -303,6 +318,12 @@ export async function createApertureApp(
     },
     resetFixedStepClock() {
       lowLevel.resetFixedStepClock();
+    },
+    snapshotFixedStepClock() {
+      return lowLevel.snapshotFixedStepClock();
+    },
+    restoreFixedStepClock(state) {
+      return lowLevel.restoreFixedStepClock(state);
     },
     stepAndExtract(delta = 0, time = 0, frame = 0) {
       apertureApp.step(delta, time);

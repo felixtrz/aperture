@@ -3,38 +3,68 @@ import type { TemplateFile } from "../types.js";
 
 export function minimalTemplateFiles(): readonly TemplateFile[] {
   return [
+    textTemplateFile("aperture.shared-config.ts", apertureSharedConfigTs()),
     textTemplateFile("aperture.config.ts", apertureConfigTs()),
+    textTemplateFile("aperture.headless.config.ts", apertureHeadlessConfigTs()),
     textTemplateFile("src/systems/setup.system.ts", setupSystemTs()),
     textTemplateFile("src/systems/spin.system.ts", spinSystemTs()),
   ];
 }
 
 function apertureConfigTs(): string {
-  return `import { defineApertureConfig, input, signal } from "@aperture-engine/app/config";
+  return `import { createApertureAppConfig } from "./aperture.shared-config.ts";
 
-export default defineApertureConfig({
+export default createApertureAppConfig({
   mode: "browser",
   canvas: "#aperture",
-  systems: ["src/systems/**/*.system.ts"],
-  signals: {
-    selectedEntity: signal.ref(null),
-  },
-  input: {
-    actions: {
-      select: input.button([input.pointer("primary"), input.key("Enter")]),
-    },
-  },
-  render: {
-    clearColor: [0.03, 0.035, 0.04, 1],
-    defaultCamera: false,
-    defaultLight: false,
-    sampleCount: 4,
-    maxPixelRatio: 2,
-  },
-  diagnostics: {
-    level: "info",
-  },
 });
+`;
+}
+
+function apertureHeadlessConfigTs(): string {
+  return `import { createApertureAppConfig } from "./aperture.shared-config.ts";
+
+export default createApertureAppConfig({
+  mode: "headless",
+});
+`;
+}
+
+function apertureSharedConfigTs(): string {
+  return `import { defineApertureConfig, input, signal } from "@aperture-engine/app/config";
+
+interface ApertureAppConfigOptions {
+  readonly mode: "browser" | "headless";
+  readonly canvas?: string;
+}
+
+export function createApertureAppConfig(options: ApertureAppConfigOptions) {
+  return defineApertureConfig({
+    mode: options.mode,
+    ...(options.mode === "browser"
+      ? { canvas: options.canvas ?? "#aperture" }
+      : {}),
+    systems: ["src/systems/**/*.system.ts"],
+    signals: {
+      selectedEntity: signal.ref(null),
+    },
+    input: {
+      actions: {
+        select: input.button([input.pointer("primary"), input.key("Enter")]),
+      },
+    },
+    render: {
+      clearColor: [0.03, 0.035, 0.04, 1],
+      defaultCamera: false,
+      defaultLight: false,
+      sampleCount: 4,
+      maxPixelRatio: 2,
+    },
+    diagnostics: {
+      level: "info",
+    },
+  });
+}
 `;
 }
 

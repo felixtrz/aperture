@@ -43,6 +43,14 @@
       "types": "./dist/headless.d.ts",
       "import": "./dist/headless.js"
     },
+    "./headless-tools": {
+      "types": "./dist/headless-tools.d.ts",
+      "import": "./dist/headless-tools.js"
+    },
+    "./input": {
+      "types": "./dist/input.d.ts",
+      "import": "./dist/input.js"
+    },
     "./entity-lookup": {
       "types": "./dist/entity-lookup.d.ts",
       "import": "./dist/entity-lookup.js"
@@ -54,6 +62,10 @@
     "./diagnostics": {
       "types": "./dist/diagnostics.d.ts",
       "import": "./dist/diagnostics.js"
+    },
+    "./asset-mirror": {
+      "types": "./dist/asset-mirror.d.ts",
+      "import": "./dist/asset-mirror.js"
     },
     "./vite": {
       "types": "./dist/vite.d.ts",

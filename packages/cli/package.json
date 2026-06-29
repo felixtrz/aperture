@@ -35,6 +35,7 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
+    "assets",
     "LICENSE"
   ],
   "publishConfig": {
@@ -45,7 +46,12 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@aperture-engine/app": "workspace:^",
+    "@aperture-engine/render": "workspace:^",
+    "@aperture-engine/simulation": "workspace:^",
+    "@aperture-engine/vite-plugin": "workspace:^",
     "@huggingface/transformers": "^3.1.2",
+    "jpeg-js": "^0.4.4",
     "playwright": "^1.60.0",
     "tar": "^7.5.15",
     "ts-morph": "^28.0.0",

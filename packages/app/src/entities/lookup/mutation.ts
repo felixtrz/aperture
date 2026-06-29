@@ -41,7 +41,7 @@ import type {
   ApertureEntitySetComponentFieldRequest,
 } from "./types.js";
 import { DebugMetadata } from "../../systems.js";
-import { tuple3FromValue, tuple4FromValue } from "../../worker/payload.js";
+import { tuple3FromValue, tuple4FromValue } from "../../devtools/payload.js";
 
 export function setApertureEntityComponentField(
   world: EcsWorld,

@@ -1821,20 +1821,25 @@ describe("developer-facing app API", () => {
       },
     });
 
-    runner.app.context.input.pointer.primary.position.value = [0.25, 0.5];
-    requireButtonAction(runner.app.context.input.actions.select).pressed.value =
-      true;
     // select.system now reacts to a pointer click (interaction.onClick): drive a
     // down+up over the crate to trigger the selection.
-    runner.app.context.input.pointer.primary.pressed.value = true;
+    runner.enqueueInputBatch([
+      { kind: "pointer", pointer: "primary", position: [0.25, 0.5] },
+      { kind: "pointer", pointer: "primary", pressed: true },
+    ]);
     runner.step(1 / 60, 1);
-    runner.app.context.input.pointer.primary.pressed.value = false;
+    runner.enqueueInput({
+      kind: "pointer",
+      pointer: "primary",
+      pressed: false,
+    });
     const selected = runner.step(1 / 60, 1.05);
 
     expect(selected.status.input.actions.select).toMatchObject({
       kind: "button",
-      pressed: true,
-      value: true,
+      pressed: false,
+      value: false,
+      up: true,
     });
     expect(selected.status.signals.selectedEntity).toMatchObject({
       index: expect.any(Number),
@@ -2008,13 +2013,17 @@ describe("developer-facing app API", () => {
       label: "before-select",
       key: "level.crate.primary",
     });
-    runner.app.context.input.pointer.primary.position.value = [0.25, 0.5];
-    requireButtonAction(runner.app.context.input.actions.select).pressed.value =
-      true;
     // select.system reacts to a pointer click now: drive a down+up over the crate.
-    runner.app.context.input.pointer.primary.pressed.value = true;
+    runner.enqueueInputBatch([
+      { kind: "pointer", pointer: "primary", position: [0.25, 0.5] },
+      { kind: "pointer", pointer: "primary", pressed: true },
+    ]);
     runner.step(1 / 60, 1);
-    runner.app.context.input.pointer.primary.pressed.value = false;
+    runner.enqueueInput({
+      kind: "pointer",
+      pointer: "primary",
+      pressed: false,
+    });
     runner.step(1 / 60, 1.05);
     const afterSelect = runner.entities.snapshot({
       label: "after-select",
@@ -2303,6 +2312,55 @@ describe("developer-facing app API", () => {
       expect(workerSystemsModule).toContain(
         "{ default: SystemModule0.default }",
       );
+    } finally {
+      await rm(root, { force: true, recursive: true });
+    }
+  });
+
+  it("discovers worker systems from a local shared config factory", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "aperture-plugin-"));
+
+    try {
+      await mkdir(path.join(root, "src/systems"), { recursive: true });
+      await writeFile(
+        path.join(root, "aperture.config.ts"),
+        [
+          `import { createConfig } from "./aperture.shared-config.ts";`,
+          `export default createConfig("browser");`,
+          "",
+        ].join("\n"),
+      );
+      await writeFile(
+        path.join(root, "aperture.shared-config.ts"),
+        [
+          `import { defineApertureConfig } from "@aperture-engine/app/config";`,
+          `export function createConfig(mode: "browser" | "headless") {`,
+          `  return defineApertureConfig({`,
+          `    mode,`,
+          `    systems: ["src/systems/**/*.system.ts"],`,
+          `  });`,
+          `}`,
+          "",
+        ].join("\n"),
+      );
+      await writeFile(
+        path.join(root, "src/systems/factory.system.ts"),
+        [
+          `import { createSystem } from "@aperture-engine/app/systems";`,
+          `export default class FactorySystem extends createSystem({ priority: 3 }) {}`,
+          "",
+        ].join("\n"),
+      );
+
+      const manifest = await createApertureSystemManifest({ root });
+
+      expect(manifest.diagnostics).toEqual([]);
+      expect(manifest.systems).toEqual([
+        expect.objectContaining({
+          file: path.join(root, "src/systems/factory.system.ts"),
+          schedule: { priority: 3 },
+        }),
+      ]);
     } finally {
       await rm(root, { force: true, recursive: true });
     }

@@ -1,5 +1,5 @@
 import type { AperturePage } from "./browser.js";
-import { RUNTIME_GLOBAL, STATUS_GLOBAL } from "./types.js";
+import { RUNTIME_GLOBAL } from "./types.js";
 
 export async function callGeneratedRuntimeTool(
   page: AperturePage,
@@ -56,18 +56,5 @@ export async function callGeneratedRuntimeTool(
 export async function listGeneratedSystems(
   page: AperturePage,
 ): Promise<unknown> {
-  const systems = await page.evaluate(
-    ({ statusGlobal }) => {
-      const status = (globalThis as unknown as Record<string, unknown>)[
-        statusGlobal
-      ] as {
-        readonly systems?: unknown;
-      } | null;
-
-      return Array.isArray(status?.systems) ? status.systems : [];
-    },
-    { statusGlobal: STATUS_GLOBAL },
-  );
-
-  return { ok: true, systems };
+  return callGeneratedRuntimeTool(page, "ecs_list_systems", {});
 }

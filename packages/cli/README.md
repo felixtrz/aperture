@@ -26,6 +26,8 @@ your own scripts.
 ```sh
 aperture create <path>        # Scaffold an aperture app with AI tooling files
 aperture dev <subcommand>     # Manage an AI-enabled dev browser session
+aperture headless <config>    # Run ECS/sim in pure Node, write a render bundle
+aperture render <bundle>      # Render one PNG on demand from a render bundle
 aperture tool <name>          # Call one aperture browser/ECS/render tool
 aperture mcp stdio            # Expose aperture tools over MCP stdio
 aperture adapter sync         # Sync AI coding-tool adapter files
@@ -34,6 +36,29 @@ aperture reference <command>  # Warm and query the aperture reference corpus
 aperture --help               # Show all commands
 aperture --version            # Show the CLI version
 ```
+
+`aperture render` validates a bundle's referenced source-asset closure before
+launching the browser renderer. Missing, unready, or placeholder assets fail by
+default; use `--allow-placeholders` only when stubbed pixels are acceptable.
+When `--width`/`--height` are omitted, render uses the bundle's recorded render
+target. Use `--json` to print a machine-readable report with renderer
+diagnostics: browser channel, WebGPU adapter metadata when the browser exposes
+it, requested dimensions, actual PNG dimensions, and bundle digest.
+`aperture headless` defaults to `--asset-mode placeholder`; use
+`--asset-mode strict` for supported real local assets (GLB/glTF, WGSL, audio,
+PNG/JPEG textures, RGBE HDR environment maps, plus Draco/meshopt/Basis-KTX2
+GLBs when `--decoder-assets-dir` points at local decoder files) or
+`--asset-mode hybrid` to load supported assets and record placeholders for the
+rest. HTTP(S) asset reads stay disabled unless `--allow-http-assets` is passed.
+Use `--determinism warn` or `--determinism error` to report app systems that
+call nondeterministic globals during `init`, `update`, or `fixedUpdate`;
+`error` mode fails one-shot runs so CI can enforce use of `context.random` and
+`context.time`.
+
+The monorepo gates this flow with `pnpm run check:headless-boundaries`,
+`pnpm run check:render-bundles`, and `pnpm run check:pack-cli`. Use
+`pnpm run check:pack-cli:render` when you also want to prove a packed install
+can drive the browser render harness.
 
 ## Reference corpus
 

@@ -28,8 +28,8 @@ import {
 } from "../input.js";
 import { createSignalSummary } from "../systems.js";
 import type { ApertureApp } from "../advanced.js";
-import { createAssetSummary } from "./assets.js";
-import type { GeneratedEntityToolBridge } from "./devtools/entities.js";
+import { createAssetSummary } from "../devtools/assets.js";
+import type { GeneratedEntityToolBridge } from "../devtools/entities.js";
 
 export interface GeneratedWorkerSnapshotPublishReport {
   readonly nextFrame: number;

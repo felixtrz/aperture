@@ -4,7 +4,9 @@ import type { TemplateFile } from "../types.js";
 
 export function gameTemplateFiles(): readonly TemplateFile[] {
   return [
+    textTemplateFile("aperture.shared-config.ts", gameSharedConfigTs()),
     textTemplateFile("aperture.config.ts", gameConfigTs()),
+    textTemplateFile("aperture.headless.config.ts", gameHeadlessConfigTs()),
     binaryTemplateFile("public/assets/goal-cube.glb", SAMPLE_CUBE_GLB_BASE64),
     textTemplateFile("src/systems/setup.system.ts", gameSetupSystemTs()),
     textTemplateFile("src/systems/player.system.ts", gamePlayerSystemTs()),
@@ -16,51 +18,84 @@ export function gameTemplateFiles(): readonly TemplateFile[] {
 }
 
 function gameConfigTs(): string {
+  return `import { createApertureAppConfig } from "./aperture.shared-config.ts";
+
+export default createApertureAppConfig({
+  mode: "browser",
+  baseUrl: import.meta.env.BASE_URL,
+  canvas: "#aperture",
+});
+`;
+}
+
+function gameHeadlessConfigTs(): string {
+  return `import { createApertureAppConfig } from "./aperture.shared-config.ts";
+
+export default createApertureAppConfig({
+  mode: "headless",
+  baseUrl: "/",
+});
+`;
+}
+
+function gameSharedConfigTs(): string {
   return `import { asset, defineApertureConfig, input, signal } from "@aperture-engine/app/config";
 
-export default defineApertureConfig({
-  mode: "browser",
-  canvas: "#aperture",
-  systems: ["src/systems/**/*.system.ts"],
-  assets: {
-    goal: asset.gltf("/assets/goal-cube.glb", {
-      preload: "blocking",
-      label: "Goal Cube",
-    }),
-  },
-  signals: {
-    score: signal.number(0),
-    playerX: signal.number(0),
-    goalReached: signal.boolean(false),
-  },
-  input: {
-    actions: {
-      move: input.axis2d([
-        input.keyboard2d({
-          negativeX: ["ArrowLeft", "KeyA"],
-          positiveX: ["ArrowRight", "KeyD"],
-        }),
-        input.gamepadStick("left"),
-      ]),
-      jump: input.button([
-        input.key("Space"),
-        input.key("KeyW"),
-        input.gamepadButton("south"),
-      ]),
-      reset: input.button([input.key("KeyR")]),
+interface ApertureAppConfigOptions {
+  readonly mode: "browser" | "headless";
+  readonly baseUrl: string;
+  readonly canvas?: string;
+}
+
+export function createApertureAppConfig(options: ApertureAppConfigOptions) {
+  const assetUrl = (path: string) => \`\${options.baseUrl}\${path}\`;
+
+  return defineApertureConfig({
+    mode: options.mode,
+    ...(options.mode === "browser"
+      ? { canvas: options.canvas ?? "#aperture" }
+      : {}),
+    systems: ["src/systems/**/*.system.ts"],
+    assets: {
+      goal: asset.gltf(assetUrl("assets/goal-cube.glb"), {
+        preload: "blocking",
+        label: "Goal Cube",
+      }),
     },
-  },
-  render: {
-    clearColor: [0.08, 0.12, 0.16, 1],
-    defaultCamera: false,
-    defaultLight: false,
-    sampleCount: 4,
-    maxPixelRatio: 2,
-  },
-  diagnostics: {
-    level: "info",
-  },
-});
+    signals: {
+      score: signal.number(0),
+      playerX: signal.number(0),
+      goalReached: signal.boolean(false),
+    },
+    input: {
+      actions: {
+        move: input.axis2d([
+          input.keyboard2d({
+            negativeX: ["ArrowLeft", "KeyA"],
+            positiveX: ["ArrowRight", "KeyD"],
+          }),
+          input.gamepadStick("left"),
+        ]),
+        jump: input.button([
+          input.key("Space"),
+          input.key("KeyW"),
+          input.gamepadButton("south"),
+        ]),
+        reset: input.button([input.key("KeyR")]),
+      },
+    },
+    render: {
+      clearColor: [0.08, 0.12, 0.16, 1],
+      defaultCamera: false,
+      defaultLight: false,
+      sampleCount: 4,
+      maxPixelRatio: 2,
+    },
+    diagnostics: {
+      level: "info",
+    },
+  });
+}
 `;
 }
 

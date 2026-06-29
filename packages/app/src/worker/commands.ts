@@ -1,6 +1,6 @@
 import type { ApertureApp } from "../advanced.js";
 import type { ApertureGeneratedCommandMessage } from "../commands.js";
-import type { GeneratedEntityToolBridge } from "./devtools/entities.js";
+import type { GeneratedEntityToolBridge } from "../devtools/entities.js";
 import { applyViewportResizeCommand } from "./viewport.js";
 
 export function applyGeneratedCommand(

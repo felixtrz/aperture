@@ -31,8 +31,20 @@ export default defineConfig({
           .pathname,
       },
       {
+        find: "@aperture-engine/app/headless-tools",
+        replacement: new URL(
+          "./packages/app/src/headless-tools.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
         find: "@aperture-engine/app/headless",
         replacement: new URL("./packages/app/src/headless.ts", import.meta.url)
+          .pathname,
+      },
+      {
+        find: "@aperture-engine/app/input",
+        replacement: new URL("./packages/app/src/input.ts", import.meta.url)
           .pathname,
       },
       {
@@ -51,6 +63,13 @@ export default defineConfig({
         find: "@aperture-engine/app/diagnostics",
         replacement: new URL(
           "./packages/app/src/diagnostics.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
+        find: "@aperture-engine/app/asset-mirror",
+        replacement: new URL(
+          "./packages/app/src/asset-mirror.ts",
           import.meta.url,
         ).pathname,
       },
@@ -171,6 +190,12 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["packages/*/src/**"],
+      // render/driver.ts launches a real Playwright browser, so it can only run
+      // out of process; it is verified by the committed e2e
+      // (test/e2e/render-snapshot-cli.spec.ts, SwiftShader project), the same
+      // way browser-only code lives behind test/e2e/**. Its pure helpers
+      // (web-root resolution, the static server) stay covered by unit tests.
+      exclude: ["packages/cli/src/render/driver.ts"],
       thresholds: {
         statements: 85,
         branches: 73.5,
