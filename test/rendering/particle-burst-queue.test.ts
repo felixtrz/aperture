@@ -17,7 +17,10 @@ describe("particle burst queue", () => {
     assets.markReady(
       effect,
       createParticleEffectAsset({
-        lifetime: { min: 1, max: 1 },
+        version: 2,
+        main: {
+          startLifetime: { min: 1, max: 1 },
+        },
       }),
     );
     const diagnostics: RenderDiagnostic[] = [];

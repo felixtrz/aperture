@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { existsSync } from "node:fs";
 
 import { loadExampleStatus } from "./webgpu-status.js";
 
@@ -38,6 +39,13 @@ const MAX_DIFF_PIXELS = 1500;
 
 for (const route of GOLDEN_ROUTES) {
   test(`golden baseline: ${route}`, async ({ page }) => {
+    const snapshotPath = test.info().snapshotPath(`${route}.png`);
+
+    test.skip(
+      !existsSync(snapshotPath),
+      `No committed golden baseline exists for ${test.info().project.name} on ${process.platform}.`,
+    );
+
     const status = await loadExampleStatus(
       page,
       `/examples/${route}.html`,

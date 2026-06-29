@@ -264,11 +264,17 @@ describe("generated simulation worker start messages", () => {
         assets: {
           spark: asset.particleEffect({
             preload: "blocking",
-            capacity: 32,
-            emissionRate: 0,
-            lifetime: { min: 1, max: 1 },
-            startSize: { min: 0.2, max: 0.4 },
-            blendMode: "alpha",
+            main: {
+              maxParticles: 32,
+              startLifetime: { min: 1, max: 1 },
+              startSize: { min: 0.2, max: 0.4 },
+            },
+            emission: {
+              rateOverTime: 0,
+            },
+            renderer: {
+              blendMode: "alpha",
+            },
           }),
         },
       }),
@@ -301,21 +307,15 @@ describe("generated simulation worker start messages", () => {
         kind: "particle-effect",
         ready: true,
         runtimeFeatures: expect.objectContaining({
-          version: 1,
+          version: 2,
           supportedFields: expect.arrayContaining([
-            "capacity",
-            "lifetime",
-            "startSize",
-            "blendMode",
+            "version",
+            "main",
+            "emission",
+            "renderer",
           ]),
-          unsupportedFields: ["emissionRate"],
-          diagnostics: [
-            expect.objectContaining({
-              code: "particleEffect.unsupportedFeature",
-              field: "emissionRate",
-              message: expect.stringContaining("emissionRate"),
-            }),
-          ],
+          unsupportedFields: [],
+          diagnostics: [],
         }),
       }),
     );

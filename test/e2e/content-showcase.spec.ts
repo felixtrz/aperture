@@ -25,7 +25,7 @@ interface ContentShowcaseStatus extends ExampleStatusBase {
       readonly textGlyphs: number;
       readonly textBatches: number;
       readonly particleEmitters: number;
-      readonly liveParticles: number;
+      readonly minLiveParticles: number;
     };
   };
   readonly worker?: {
@@ -103,7 +103,7 @@ test("browser route combines sprites, text, UI, interaction, and particles", asy
         textGlyphs: 6,
         textBatches: 2,
         particleEmitters: 1,
-        liveParticles: 384,
+        minLiveParticles: 345,
       },
     },
     frame: {
@@ -118,8 +118,7 @@ test("browser route combines sprites, text, UI, interaction, and particles", asy
         diagnostics: 0,
       },
       particles: {
-        liveParticles: 384,
-        dispatches: 1,
+        dispatches: 0,
       },
       interaction: {
         blocksInput: true,
@@ -127,6 +126,9 @@ test("browser route combines sprites, text, UI, interaction, and particles", asy
       },
     },
   });
+  expect(status.frame?.particles?.liveParticles ?? 0).toBeGreaterThanOrEqual(
+    status.content?.expected.minLiveParticles ?? 345,
+  );
   expect(status.frame?.interaction?.target).toEqual(
     status.worker?.scene?.uiTarget,
   );

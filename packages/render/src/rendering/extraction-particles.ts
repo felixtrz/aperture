@@ -1,6 +1,8 @@
 import {
   assetHandleKey,
+  composeTrsMatrix,
   Enabled,
+  multiplyMat4,
   transformPoint,
   type Aabb,
   type AssetRegistry,
@@ -8,6 +10,7 @@ import {
   type EcsWorld,
   type Entity,
   type Mat4,
+  type ParticleEffectHandle,
   type Vec3Like,
   WorldTransform,
 } from "@aperture-engine/simulation";
@@ -20,7 +23,9 @@ import {
 } from "./authoring.js";
 import {
   validateParticleEffectAsset,
+  type ParticleCompositeEffectAsset,
   type ParticleEffectAsset,
+  type ParticleEmitterEffectAsset,
 } from "../assets/particles.js";
 import {
   computeViewDepth,
@@ -149,95 +154,81 @@ export function extractParticleEmitters(
       entity.getValue(ParticleEmitter, "boundsRadius"),
       0,
     );
-    const center = Array.from(
+    const boundsCenter = Array.from(
       entity.getVectorView(ParticleEmitter, "boundsCenter"),
     ) as [number, number, number];
     const worldMatrix = readWorldMatrix(entity);
-    const radius =
-      authoredRadius > 0
-        ? authoredRadius
-        : deriveContinuousParticleBoundsRadius({
-            effect: effectEntry.asset,
-            diagnostics,
-            entity: entityRef(entity),
-            effectKey: assetHandleKey(effect),
-          });
-    const boundsPacket = createParticleBoundsPacket(
-      bounds.length,
-      entity,
-      worldMatrix,
-      center,
-      radius,
+    const parentEmitterId = createStableRenderId(entityRef(entity));
+    const seed = finiteInteger(entity.getValue(ParticleEmitter, "seed"), 1);
+    const resetEpoch = Math.max(
+      0,
+      finiteInteger(entity.getValue(ParticleEmitter, "resetEpoch"), 0),
     );
+    const timeScale = Math.max(
+      0,
+      finiteNumber(entity.getValue(ParticleEmitter, "timeScale"), 1),
+    );
+    const simulationSpace =
+      entity.getValue(ParticleEmitter, "simulationSpace") ===
+      ParticleSimulationSpace.Local
+        ? "local"
+        : "world";
+    const renderOrder = entity.hasComponent(RenderOrder)
+      ? (entity.getValue(RenderOrder, "value") ?? 0)
+      : 0;
 
-    if (
-      !isVisibleInAnyMatchingView(
-        boundsPacket.worldAabb,
+    const context: LeafEmitterExtractionContext = {
+      assets,
+      transforms,
+      bounds,
+      diagnostics,
+      viewCullContexts,
+      packets,
+    };
+
+    if (effectEntry.asset.type === "composite") {
+      expandCompositeParticleEmitter(context, {
+        entity,
+        composite: effectEntry.asset,
+        parentWorldMatrix: worldMatrix,
+        parentEmitterId,
+        seed,
+        resetEpoch,
+        timeScale,
+        simulationSpace,
         layerMask,
-        viewCullContexts,
-      )
-    ) {
+        renderOrder,
+        boundsCenter,
+        authoredRadius,
+      });
       continue;
     }
 
-    const stableId = createStableRenderId(entityRef(entity));
-    const effectKey = assetHandleKey(effect);
-    const boundsIndex = bounds.length;
-    const worldTransformOffset = pushMatrix(transforms, worldMatrix);
-    const sortView = firstMatchingSortView(layerMask, viewCullContexts);
-    const sortViewId = sortView?.viewId ?? 0;
-    const sortDepth =
-      sortView === undefined
-        ? 0
-        : computeViewDepth(
-            sortView.viewMatrix,
-            boundsPacket.worldSphere.center,
-          );
-    const sortKey = createRenderSortKey({
-      queue: "transparent",
-      viewId: sortViewId,
-      layer: layerMask,
-      order: entity.hasComponent(RenderOrder)
-        ? (entity.getValue(RenderOrder, "value") ?? 0)
-        : 0,
-      depth: sortDepth,
-      pipelineKey: "gpu-particles",
-      materialKey: effectKey,
-      meshKey: "particle-quad",
-      stableId,
-    });
     const capacity = Math.trunc(
       finitePositive(
         entity.getValue(ParticleEmitter, "capacity"),
-        effectEntry.asset.capacity,
+        effectEntry.asset.runtime.capacity,
       ),
     );
 
-    bounds.push(boundsPacket);
-    packets.push({
-      emitterId: stableId,
-      entity: entityRef(entity),
+    appendLeafEmitterPacket(context, {
+      entity,
       effect,
+      asset: effectEntry.asset,
       effectVersion: effectEntry.version,
+      worldMatrix,
+      emitterId: parentEmitterId,
       capacity,
-      seed: finiteInteger(entity.getValue(ParticleEmitter, "seed"), 1),
-      resetEpoch: Math.max(
-        0,
-        finiteInteger(entity.getValue(ParticleEmitter, "resetEpoch"), 0),
-      ),
-      timeScale: Math.max(
-        0,
-        finiteNumber(entity.getValue(ParticleEmitter, "timeScale"), 1),
-      ),
-      simulationSpace:
-        entity.getValue(ParticleEmitter, "simulationSpace") ===
-        ParticleSimulationSpace.Local
-          ? "local"
-          : "world",
-      worldTransformOffset,
-      boundsIndex,
+      seed,
+      resetEpoch,
+      timeScale,
+      delay: 0,
+      duration: null,
+      simulationSpace,
       layerMask,
-      sortKey,
+      renderOrder,
+      boundsCenter,
+      authoredRadius,
     });
   }
 
@@ -260,6 +251,248 @@ export function extractParticleEmitters(
   }
 
   return packets;
+}
+
+interface LeafEmitterExtractionContext {
+  readonly assets: AssetRegistry;
+  readonly transforms: number[];
+  readonly bounds: BoundsPacket[];
+  readonly diagnostics: RenderDiagnostic[];
+  readonly viewCullContexts: readonly ViewCullContext[];
+  readonly packets: ParticleEmitterPacket[];
+}
+
+interface LeafEmitterRequest {
+  readonly entity: Entity;
+  readonly effect: ParticleEffectHandle;
+  readonly asset: ParticleEmitterEffectAsset;
+  readonly effectVersion: number;
+  readonly worldMatrix: Mat4;
+  readonly emitterId: number;
+  readonly capacity: number;
+  readonly seed: number;
+  readonly resetEpoch: number;
+  readonly timeScale: number;
+  readonly delay: number;
+  readonly duration: number | null;
+  readonly simulationSpace: "local" | "world";
+  readonly layerMask: number;
+  readonly renderOrder: number;
+  readonly boundsCenter: readonly [number, number, number];
+  readonly authoredRadius: number;
+}
+
+interface CompositeEmitterRequest {
+  readonly entity: Entity;
+  readonly composite: ParticleCompositeEffectAsset;
+  readonly parentWorldMatrix: Mat4;
+  readonly parentEmitterId: number;
+  readonly seed: number;
+  readonly resetEpoch: number;
+  readonly timeScale: number;
+  readonly simulationSpace: "local" | "world";
+  readonly layerMask: number;
+  readonly renderOrder: number;
+  readonly boundsCenter: readonly [number, number, number];
+  readonly authoredRadius: number;
+}
+
+/**
+ * Builds one leaf particle emitter packet (bounds, sort key, transform) and
+ * appends it to the snapshot. Shared by the direct leaf path and by composite
+ * expansion so both produce identical packet shapes; the renderer only ever
+ * sees leaf packets.
+ */
+function appendLeafEmitterPacket(
+  context: LeafEmitterExtractionContext,
+  request: LeafEmitterRequest,
+): void {
+  const effectKey = assetHandleKey(request.effect);
+  const radius =
+    request.authoredRadius > 0
+      ? request.authoredRadius
+      : deriveContinuousParticleBoundsRadius({
+          effect: request.asset,
+          diagnostics: context.diagnostics,
+          entity: entityRef(request.entity),
+          effectKey,
+        });
+  const boundsPacket = createParticleBoundsPacket(
+    context.bounds.length,
+    request.entity,
+    request.worldMatrix,
+    request.boundsCenter,
+    radius,
+  );
+  const boundsIndex = context.bounds.length;
+  const worldTransformOffset = pushMatrix(
+    context.transforms,
+    request.worldMatrix,
+  );
+  const sortView = firstMatchingSortView(
+    request.layerMask,
+    context.viewCullContexts,
+  );
+  const sortViewId = sortView?.viewId ?? 0;
+  const sortDepth =
+    sortView === undefined
+      ? 0
+      : computeViewDepth(sortView.viewMatrix, boundsPacket.worldSphere.center);
+  const sortKey = createRenderSortKey({
+    queue: "transparent",
+    viewId: sortViewId,
+    layer: request.layerMask,
+    order: request.renderOrder,
+    depth: sortDepth,
+    pipelineKey: "gpu-particles",
+    materialKey: effectKey,
+    meshKey: "particle-quad",
+    stableId: request.emitterId,
+  });
+
+  context.bounds.push(boundsPacket);
+  context.packets.push({
+    emitterId: request.emitterId,
+    entity: entityRef(request.entity),
+    effect: request.effect,
+    effectVersion: request.effectVersion,
+    capacity: request.capacity,
+    seed: request.seed,
+    resetEpoch: request.resetEpoch,
+    timeScale: request.timeScale,
+    ...(request.delay !== 0 ? { delay: request.delay } : {}),
+    ...(request.duration !== null ? { duration: request.duration } : {}),
+    simulationSpace: request.simulationSpace,
+    worldTransformOffset,
+    boundsIndex,
+    layerMask: request.layerMask,
+    sortKey,
+  });
+}
+
+/**
+ * Expands a composite particle effect into one leaf emitter packet per child.
+ * Each child's local transform is composed onto the parent world matrix, the
+ * child time scale multiplies the parent's, and a stable, deterministic emitter
+ * id is derived from the parent id and child index so GPU state stays attached
+ * across frames. Nested composites are rejected for now.
+ */
+function expandCompositeParticleEmitter(
+  context: LeafEmitterExtractionContext,
+  request: CompositeEmitterRequest,
+): void {
+  const { composite } = request;
+
+  for (let index = 0; index < composite.emitters.length; index += 1) {
+    const child = composite.emitters[index];
+    if (child === undefined) {
+      continue;
+    }
+
+    const childEntry = context.assets.get<
+      "particle-effect",
+      ParticleEffectAsset
+    >(child.effect);
+
+    if (childEntry === undefined) {
+      context.diagnostics.push(
+        diagnostic(
+          "render.particle.effectMissing",
+          request.entity,
+          child.effect,
+        ),
+      );
+      continue;
+    }
+    if (childEntry.status !== "ready" || childEntry.asset === null) {
+      context.diagnostics.push(
+        diagnostic(
+          `render.particle.effect.${childEntry.status}`,
+          request.entity,
+          child.effect,
+        ),
+      );
+      continue;
+    }
+    if (childEntry.asset.type === "composite") {
+      context.diagnostics.push(
+        diagnostic(
+          "render.particle.nestedComposite",
+          request.entity,
+          child.effect,
+        ),
+      );
+      continue;
+    }
+
+    const childValidation = validateParticleEffectAsset(childEntry.asset);
+    if (!childValidation.valid) {
+      for (const childDiagnostic of childValidation.diagnostics) {
+        context.diagnostics.push(
+          diagnostic(
+            `render.${childDiagnostic.code}`,
+            request.entity,
+            child.effect,
+          ),
+        );
+      }
+      continue;
+    }
+
+    const childLocalMatrix = composeTrsMatrix(
+      child.transform.translation,
+      child.transform.rotation,
+      child.transform.scale,
+    );
+    const childWorldMatrix = multiplyMat4(
+      request.parentWorldMatrix,
+      childLocalMatrix,
+    );
+
+    appendLeafEmitterPacket(context, {
+      entity: request.entity,
+      effect: child.effect,
+      asset: childEntry.asset,
+      effectVersion: childEntry.version,
+      worldMatrix: childWorldMatrix,
+      emitterId: composeParticleChildEmitterId(request.parentEmitterId, index),
+      capacity: childEntry.asset.runtime.capacity,
+      seed: composeParticleChildSeed(request.seed, index),
+      resetEpoch: request.resetEpoch,
+      timeScale: request.timeScale * child.timeScale,
+      delay: child.delay,
+      duration: child.duration,
+      simulationSpace: request.simulationSpace,
+      layerMask: request.layerMask,
+      renderOrder: request.renderOrder,
+      boundsCenter: request.boundsCenter,
+      authoredRadius: request.authoredRadius,
+    });
+  }
+}
+
+/**
+ * Derives a stable, well-distributed 32-bit emitter id for a composite child
+ * from the parent emitter id and child index. Like {@link createStableRenderId}
+ * this accepts the small, well-understood risk of hash collisions in exchange
+ * for an id that is stable across frames without per-emitter state.
+ */
+function composeParticleChildEmitterId(
+  parentEmitterId: number,
+  childIndex: number,
+): number {
+  let hash = (parentEmitterId ^ Math.imul(childIndex + 1, 0x9e3779b1)) >>> 0;
+  hash = Math.imul(hash ^ (hash >>> 16), 0x85ebca6b) >>> 0;
+  hash = Math.imul(hash ^ (hash >>> 13), 0xc2b2ae35) >>> 0;
+  return (hash ^ (hash >>> 16)) >>> 0;
+}
+
+/** Derives a deterministic, distinct RNG seed for a composite child emitter. */
+function composeParticleChildSeed(
+  parentSeed: number,
+  childIndex: number,
+): number {
+  return (parentSeed + Math.imul(childIndex + 1, 0x9e3779b1)) | 0;
 }
 
 function extractParticleBursts(
@@ -292,6 +525,11 @@ function extractParticleBursts(
       effect === undefined ||
       effect === null
     ) {
+      continue;
+    }
+    // Composite effects are rejected when promoted in the burst queue, so this
+    // only narrows the union for the bounds derivation below.
+    if (effect.type !== "emitter") {
       continue;
     }
 
@@ -436,7 +674,7 @@ function createAutomaticParticleBurstBoundsPacket(input: {
   readonly positionRange: ReturnType<typeof particleBurstPositionRange>;
   readonly velocityRange: ReturnType<typeof particleBurstVelocityRange>;
   readonly centerOverride?: Vec3Like;
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly diagnostics: RenderDiagnostic[];
   readonly effectKey: string;
 }): BoundsPacket {
@@ -445,22 +683,22 @@ function createAutomaticParticleBurstBoundsPacket(input: {
   const x = particleDisplacementRange(
     input.velocityRange.min[0],
     input.velocityRange.max[0],
-    input.effect.gravity[0],
-    input.effect.linearDamping,
+    input.effect.runtime.gravity[0],
+    input.effect.runtime.linearDamping,
     lifetime,
   );
   const y = particleDisplacementRange(
     input.velocityRange.min[1],
     input.velocityRange.max[1],
-    input.effect.gravity[1],
-    input.effect.linearDamping,
+    input.effect.runtime.gravity[1],
+    input.effect.runtime.linearDamping,
     lifetime,
   );
   const z = particleDisplacementRange(
     input.velocityRange.min[2],
     input.velocityRange.max[2],
-    input.effect.gravity[2],
-    input.effect.linearDamping,
+    input.effect.runtime.gravity[2],
+    input.effect.runtime.linearDamping,
     lifetime,
   );
   const worldAabb: Aabb = {
@@ -551,12 +789,12 @@ const LARGE_AUTO_PARTICLE_BOUNDS_RADIUS = 256;
 const CONTINUOUS_PARTICLE_DRIFT_AMPLITUDE = 0.18;
 
 function deriveContinuousParticleBoundsRadius(input: {
-  readonly effect: ParticleEffectAsset;
+  readonly effect: ParticleEmitterEffectAsset;
   readonly diagnostics: RenderDiagnostic[];
   readonly entity: RenderEntityRef;
   readonly effectKey: string;
 }): number {
-  const spawnRadius = Math.max(0.01, input.effect.startSpeed.max);
+  const spawnRadius = Math.max(0.01, input.effect.runtime.startSpeed.max);
   const radius =
     maxParticleBillboardRadius(input.effect) +
     spawnRadius +
@@ -608,11 +846,13 @@ function checkedAutoParticleBoundsRadius(
   return result;
 }
 
-function particleLifetimeMax(effect: ParticleEffectAsset): number {
-  return Math.max(0, effect.lifetime.min, effect.lifetime.max);
+function particleLifetimeMax(effect: ParticleEmitterEffectAsset): number {
+  return Math.max(0, effect.runtime.lifetime.min, effect.runtime.lifetime.max);
 }
 
-function maxParticleBillboardRadius(effect: ParticleEffectAsset): number {
+function maxParticleBillboardRadius(
+  effect: ParticleEmitterEffectAsset,
+): number {
   let maxCurve = 0;
   for (const value of effect.curves.sizeOverLifetime) {
     if (Number.isFinite(value)) {
@@ -622,7 +862,7 @@ function maxParticleBillboardRadius(effect: ParticleEffectAsset): number {
 
   return Math.max(
     MIN_AUTO_PARTICLE_BOUNDS_RADIUS,
-    Math.max(0, effect.startSize.min, effect.startSize.max) *
+    Math.max(0, effect.runtime.startSize.min, effect.runtime.startSize.max) *
       Math.max(0, maxCurve) *
       Math.SQRT1_2,
   );

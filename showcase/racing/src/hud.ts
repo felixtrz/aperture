@@ -3,7 +3,6 @@ import {
   type GeneratedSignalSummary,
   subscribeGeneratedSignals,
 } from "@aperture-engine/app/browser";
-import { clamp } from "@aperture-engine/simulation";
 
 const lapEl = document.querySelector<HTMLElement>("#lap-timer .lap");
 const currentEl = document.querySelector<HTMLElement>("#lap-timer .current");
@@ -19,6 +18,10 @@ function formatTime(t: number | null): string {
 
 function readNumber(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }
 
 function writeText(el: HTMLElement | null, value: string): void {

@@ -1,12 +1,10 @@
 import { ApertureConfigError } from "./errors.js";
-import {
-  createParticleEffectAsset,
-  validateParticleEffectAsset,
-} from "@aperture-engine/render";
+import { validateParticleEffectInput } from "@aperture-engine/render";
 import type {
   ApertureConfig,
   ApertureAudioAssetDescriptor,
   ApertureConfigAsset,
+  ApertureParticleCompositeEffectAssetDescriptor,
   ApertureParticleEffectAssetDescriptor,
   ApertureTextureAssetDescriptor,
   AssetPreloadPolicy,
@@ -270,79 +268,36 @@ function validateParticleEffectAssetDescriptor(
   id: string,
   descriptor: ApertureParticleEffectAssetDescriptor,
 ): void {
-  validateAssetReference(id, "texture", descriptor.texture);
-  validateAssetReference(id, "sampler", descriptor.sampler);
+  if (descriptor.type === "composite") {
+    validateParticleCompositeEffectAssetDescriptor(id, descriptor);
+    return;
+  }
+
+  validateAssetReference(id, "texture", descriptor.renderer?.texture);
+  validateAssetReference(id, "sampler", descriptor.renderer?.sampler);
 
   if (
-    descriptor.blendMode !== undefined &&
-    !PARTICLE_BLEND_MODES.has(descriptor.blendMode)
+    descriptor.renderer?.blendMode !== undefined &&
+    !PARTICLE_BLEND_MODES.has(descriptor.renderer.blendMode)
   ) {
     throw invalidParticleEffectAsset(
       id,
-      "blendMode",
-      `Unsupported particle blendMode '${String(descriptor.blendMode)}'.`,
+      "renderer.blendMode",
+      `Unsupported particle blendMode '${String(descriptor.renderer.blendMode)}'.`,
     );
   }
 
-  const report = validateParticleEffectAsset(
-    createParticleEffectAsset({
-      ...(descriptor.label === undefined ? {} : { label: descriptor.label }),
-      ...(descriptor.capacity === undefined
-        ? {}
-        : { capacity: descriptor.capacity }),
-      ...(descriptor.duration === undefined
-        ? {}
-        : { duration: descriptor.duration }),
-      ...(descriptor.looping === undefined
-        ? {}
-        : { looping: descriptor.looping }),
-      ...(descriptor.prewarm === undefined
-        ? {}
-        : { prewarm: descriptor.prewarm }),
-      ...(descriptor.emissionRate === undefined
-        ? {}
-        : { emissionRate: descriptor.emissionRate }),
-      ...(descriptor.bursts === undefined ? {} : { bursts: descriptor.bursts }),
-      ...(descriptor.lifetime === undefined
-        ? {}
-        : { lifetime: descriptor.lifetime }),
-      ...(descriptor.startSpeed === undefined
-        ? {}
-        : { startSpeed: descriptor.startSpeed }),
-      ...(descriptor.startSize === undefined
-        ? {}
-        : { startSize: descriptor.startSize }),
-      ...(descriptor.startColor === undefined
-        ? {}
-        : { startColor: descriptor.startColor }),
-      ...(descriptor.endColor === undefined
-        ? {}
-        : { endColor: descriptor.endColor }),
-      ...(descriptor.gravity === undefined
-        ? {}
-        : { gravity: descriptor.gravity }),
-      ...(descriptor.linearDamping === undefined
-        ? {}
-        : { linearDamping: descriptor.linearDamping }),
-      ...(descriptor.blendMode === undefined
-        ? {}
-        : { blendMode: descriptor.blendMode }),
-      ...(descriptor.texture === null ? { texture: null } : {}),
-      ...(descriptor.sampler === null ? { sampler: null } : {}),
-      ...(descriptor.atlasFrameCount === undefined
-        ? {}
-        : { atlasFrameCount: descriptor.atlasFrameCount }),
-      ...(descriptor.sizeOverLifetime === undefined
-        ? {}
-        : { sizeOverLifetime: descriptor.sizeOverLifetime }),
-      ...(descriptor.colorOverLifetime === undefined
-        ? {}
-        : { colorOverLifetime: descriptor.colorOverLifetime }),
-      ...(descriptor.curveSampleCount === undefined
-        ? {}
-        : { curveSampleCount: descriptor.curveSampleCount }),
-    }),
-  );
+  const report = validateParticleEffectInput({
+    ...descriptor,
+    renderer:
+      descriptor.renderer === undefined
+        ? undefined
+        : {
+            ...descriptor.renderer,
+            ...(descriptor.renderer.texture === null ? { texture: null } : {}),
+            ...(descriptor.renderer.sampler === null ? { sampler: null } : {}),
+          },
+  });
 
   if (report.valid) {
     return;
@@ -353,6 +308,50 @@ function validateParticleEffectAssetDescriptor(
     id,
     diagnostic?.field ?? "effect",
     diagnostic?.message ?? "Particle effect options are invalid.",
+  );
+}
+
+function validateParticleCompositeEffectAssetDescriptor(
+  id: string,
+  descriptor: ApertureParticleCompositeEffectAssetDescriptor,
+): void {
+  const emitters = descriptor.emitters;
+
+  if (!Array.isArray(emitters) || emitters.length === 0) {
+    throw invalidParticleEffectAsset(
+      id,
+      "emitters",
+      "A composite particle effect must declare at least one child emitter.",
+    );
+  }
+
+  for (let index = 0; index < emitters.length; index += 1) {
+    const emitter = emitters[index];
+    const field = `emitters.${index}.effect`;
+
+    if (
+      typeof emitter?.effect !== "string" ||
+      !/^[A-Za-z_][A-Za-z0-9_.-]*$/.test(emitter.effect)
+    ) {
+      throw invalidParticleEffectAsset(
+        id,
+        field,
+        `child effect reference '${String(emitter?.effect)}' is not a valid config asset id.`,
+      );
+    }
+  }
+
+  const report = validateParticleEffectInput(descriptor);
+
+  if (report.valid) {
+    return;
+  }
+
+  const diagnostic = report.diagnostics[0];
+  throw invalidParticleEffectAsset(
+    id,
+    diagnostic?.field ?? "emitters",
+    diagnostic?.message ?? "Particle composite effect options are invalid.",
   );
 }
 
@@ -382,7 +381,7 @@ function invalidParticleEffectAsset(
   return new ApertureConfigError(
     "aperture.config.invalidParticleEffectAsset",
     `Asset '${id}' has invalid particle effect ${field}. ${message}`,
-    "Use asset.particleEffect({ texture: 'smoke', capacity: 1280 }) with finite plain-data options.",
+    "Use asset.particleEffect({ main: { maxParticles: 1280 }, renderer: { texture: 'smoke' } }) with finite plain-data options.",
   );
 }
 

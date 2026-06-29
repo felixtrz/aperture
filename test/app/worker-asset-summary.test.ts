@@ -10,13 +10,24 @@ import { createAssetSummary } from "../../packages/app/src/worker/assets.js";
 describe("worker asset summary", () => {
   it("caches particle runtime feature analysis until the descriptor changes", () => {
     const firstDescriptor = asset.particleEffect({
-      capacity: 64,
-      emissionRate: 0,
+      main: {
+        maxParticles: 64,
+      },
+      emission: {
+        rateOverTime: 0,
+      },
     });
     const secondDescriptor = asset.particleEffect({
-      capacity: 64,
-      duration: 2,
-      emissionRate: 0,
+      main: {
+        maxParticles: 64,
+        duration: 2,
+      },
+      emission: {
+        rateOverTime: 0,
+      },
+      renderer: {
+        renderMode: "mesh",
+      },
     });
     const handle = {
       id: "smoke",
@@ -46,7 +57,9 @@ describe("worker asset summary", () => {
       createAssetSummary([handle]),
     );
     expect(refreshedRuntimeFeatures).not.toBe(firstRuntimeFeatures);
-    expect(refreshedRuntimeFeatures.unsupportedFields).toContain("duration");
+    expect(refreshedRuntimeFeatures.partiallySupportedFields).toContain(
+      "renderer.renderMode",
+    );
   });
 });
 

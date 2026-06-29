@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   AssetRegistry,
+  createMaterialHandle,
+  createMeshHandle,
   createPackedSnapshotViewUniformsScratch,
   createParticleEffectAsset,
   createParticleEffectHandle,
@@ -8,13 +10,76 @@ import {
   createTextureAsset,
   createTextureHandle,
   createWebGpuAppResourceCache,
+  mergeSnapshotSortedRenderPassCommands,
   prepareParticleFrameResourcesForSnapshot,
   writePackedSnapshotViewUniforms,
   type RenderSnapshot,
 } from "@aperture-engine/webgpu/test-support";
 
 describe("GPU particle app frame resources", () => {
-  it("creates, reuses, dispatches, and cleans particle emitter GPU state", async () => {
+  it("merges particle commands by snapshot transparent sort key", () => {
+    const effect = createParticleEffectHandle("sorted-particles");
+    const mesh = createMeshHandle("transparent-mesh");
+    const material = createMaterialHandle("transparent-material");
+    const particleSortKey = createRenderSortKey({
+      queue: "transparent",
+      viewId: 1,
+      depth: 10,
+      stableId: 99,
+      pipelineKey: "gpu-particles",
+      materialKey: "particle-effect:sorted-particles",
+      meshKey: "particle-quad",
+    });
+    const meshSortKey = createRenderSortKey({
+      queue: "transparent",
+      viewId: 1,
+      depth: 1,
+      stableId: 11,
+      pipelineKey: "standard",
+      materialKey: "material:transparent-material",
+      meshKey: "mesh:transparent-mesh",
+    });
+    const snapshot: RenderSnapshot = {
+      ...createParticleSnapshot(effect, { sortKey: particleSortKey }),
+      meshDraws: [
+        {
+          renderId: 11,
+          entity: { index: 11, generation: 1 },
+          mesh,
+          material,
+          submesh: 0,
+          materialSlot: 0,
+          worldTransformOffset: 0,
+          boundsIndex: 0,
+          layerMask: 1,
+          sortKey: meshSortKey,
+          batchKey: {
+            pipelineKey: "standard",
+            materialKey: "material:transparent-material",
+            meshLayoutKey: "mesh:transparent-mesh",
+            topology: "triangle-list",
+            instanced: false,
+            skinned: false,
+            morphed: false,
+          },
+        },
+      ],
+    };
+    const meshCommands = renderCommandGroup(11);
+    const particleCommands = renderCommandGroup(99);
+
+    const merged = mergeSnapshotSortedRenderPassCommands({
+      snapshot,
+      baseCommands: meshCommands,
+      overlayCommands: particleCommands,
+    });
+
+    expect(
+      merged.map((command) => `${command.kind}:${command.renderId}`),
+    ).toEqual(["setPipeline:99", "draw:99", "setPipeline:11", "draw:11"]);
+  });
+
+  it("creates, reuses, updates, and cleans particle emitter GPU state", async () => {
     const effect = createParticleEffectHandle("spark-burst");
     const texture = createTextureHandle("spark-smoke");
     const assets = new AssetRegistry();
@@ -48,24 +113,50 @@ describe("GPU particle app frame resources", () => {
     assets.markReady(
       effect,
       createParticleEffectAsset({
+        version: 2,
         label: "SparkBurst",
-        capacity: 8,
-        blendMode: "alpha",
-        texture,
-        startSpeed: { min: 0.5, max: 1.5 },
-        startSize: { min: 0.2, max: 0.4 },
-        startColor: [1, 0.25, 0.1, 0.8],
-        endColor: [0.1, 0.6, 1, 0.5],
-        sizeOverLifetime: [
-          { t: 0, value: 0.5 },
-          { t: 0.5, value: 2 },
-          { t: 1, value: 0.25 },
-        ],
-        colorOverLifetime: [
-          { t: 0, color: [1, 0, 0, 1] },
-          { t: 0.5, color: [0, 1, 0.5, 0.75] },
-          { t: 1, color: [0, 0, 1, 0] },
-        ],
+        main: {
+          maxParticles: 8,
+          startSpeed: 0,
+          startSize: { min: 0.2, max: 0.4 },
+          startColor: [1, 0.25, 0.1, 0.8],
+        },
+        shape: {
+          type: "point",
+        },
+        renderer: {
+          blendMode: "alpha",
+          texture,
+        },
+        textureSheetAnimation: {
+          enabled: true,
+          tiles: [2, 2],
+          startFrame: 2,
+          frameOverTime: 0,
+          cycleCount: 1,
+        },
+        sizeOverLifetime: {
+          enabled: true,
+          size: {
+            mode: "curve",
+            curve: [
+              { t: 0, value: 0.5 },
+              { t: 0.5, value: 2 },
+              { t: 1, value: 0.25 },
+            ],
+          },
+        },
+        colorOverLifetime: {
+          enabled: true,
+          color: {
+            mode: "gradient",
+            gradient: [
+              { t: 0, color: [1, 0, 0, 1] },
+              { t: 0.5, color: [0, 1, 0.5, 0.75] },
+              { t: 1, color: [0, 0, 1, 0] },
+            ],
+          },
+        },
       }),
     );
 
@@ -91,7 +182,7 @@ describe("GPU particle app frame resources", () => {
       statesCreated: 1,
       statesReused: 0,
       staleStatesRemoved: 0,
-      dispatches: 1,
+      dispatches: 0,
       textureResourcesCreated: 1,
       textureResourcesReused: 0,
       samplerResourcesCreated: 1,
@@ -130,12 +221,13 @@ describe("GPU particle app frame resources", () => {
         firstInstance: 0,
       },
     ]);
-    expect(fixture.dispatches).toEqual([[1, 1, 1]]);
-    expect(fixture.submissions).toHaveLength(1);
+    expect(fixture.dispatches).toEqual([]);
+    expect(fixture.submissions).toHaveLength(0);
     expect(cache.particleEmitterStates).toHaveLength(1);
-    expect(
-      fixture.writes.filter((write) => write.label === "Particle/State/99"),
-    ).toHaveLength(1);
+    const stateWrites = fixture.writes.filter(
+      (write) => write.label === "Particle/State/99",
+    );
+    expect(stateWrites).toHaveLength(2);
     expect(fixture.textureWrites).toEqual([
       expect.objectContaining({
         layout: { bytesPerRow: 8 },
@@ -150,27 +242,25 @@ describe("GPU particle app frame resources", () => {
       }),
     ]);
 
-    const paramUpload = fixture.writes.find(
-      (write) => write.label === "Particle/Params/99",
-    );
-    const params = bytesUpload(paramUpload);
-    const words = new Uint32Array(params.buffer, params.byteOffset, 4);
-    const floats = new Float32Array(
-      params.buffer,
-      params.byteOffset + 16,
-      (params.byteLength - 16) / 4,
+    const stateUpload = bytesUpload(stateWrites[1]);
+    const stateFloats = new Float32Array(
+      stateUpload.buffer,
+      stateUpload.byteOffset,
+      stateUpload.byteLength / 4,
     );
 
-    expect(params.byteLength).toBe(400);
-    expect(Array.from(words)).toEqual([3, 7, 4, 16]);
-    expect(roundFloats(Array.from(floats.slice(0, 16)))).toEqual([
-      2, 3, 5, 1.5, 1, 0.25, 0.1, 0.8, 0.1, 0.6, 1, 0.5, 0.2, 0.4, 1, 0,
-    ]);
-    expect(roundFloats(Array.from(floats.slice(16, 20)))).toEqual([
-      0.5, 0.7, 0.9, 1.1,
-    ]);
-    expect(roundFloats(Array.from(floats.slice(32, 36)))).toEqual([1, 0, 0, 1]);
-    expect(roundFloats(Array.from(floats.slice(92, 96)))).toEqual([0, 0, 1, 0]);
+    expect(stateUpload.byteLength).toBe(4 * 16 * 4);
+    for (let particle = 0; particle < 4; particle += 1) {
+      const offset = particle * 16;
+
+      expect(
+        roundFloats(Array.from(stateFloats.slice(offset, offset + 4))),
+      ).toEqual([2, 3, -1, expect.any(Number)]);
+      expect(stateFloats[offset + 3]).toBeGreaterThan(0);
+      expect(Array.from(stateFloats.slice(offset + 8, offset + 12))).toEqual([
+        2, 2, 2, 0,
+      ]);
+    }
 
     const second = await prepareParticleFrameResourcesForSnapshot({
       app: {
@@ -187,7 +277,7 @@ describe("GPU particle app frame resources", () => {
 
     expect(second.report.statesCreated).toBe(0);
     expect(second.report.statesReused).toBe(1);
-    expect(second.report.dispatches).toBe(1);
+    expect(second.report.dispatches).toBe(0);
     expect(second.report.textureResourcesCreated).toBe(0);
     expect(second.report.textureResourcesReused).toBe(1);
     expect(second.report.samplerResourcesCreated).toBe(0);
@@ -195,7 +285,7 @@ describe("GPU particle app frame resources", () => {
     expect(cache.particleEmitterStates).toHaveLength(1);
     expect(
       fixture.writes.filter((write) => write.label === "Particle/State/99"),
-    ).toHaveLength(1);
+    ).toHaveLength(3);
     expect(
       fixture.createdBuffers.filter(
         (buffer) => buffer.label === "Particle/ViewUniforms",
@@ -269,6 +359,876 @@ describe("GPU particle app frame resources", () => {
     ).toHaveLength(1);
   });
 
+  it("packs velocity and billboard rotation modules for continuous emitters", async () => {
+    const effect = createParticleEffectHandle("module-motion");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect, { timeScale: 1 });
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "ModuleMotion",
+        main: {
+          maxParticles: 4,
+          startLifetime: 1,
+          startSpeed: 0,
+          startSize: 1,
+          startRotation: 0.25,
+        },
+        emission: {
+          rateOverTime: 60,
+        },
+        shape: {
+          type: "point",
+        },
+        renderer: {
+          blendMode: "alpha",
+        },
+        velocityOverLifetime: {
+          enabled: true,
+          velocity: [1, 0, 0],
+        },
+        rotationOverLifetime: {
+          enabled: true,
+          angularVelocity: 1,
+        },
+      }),
+    );
+
+    const frame = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 1 / 15,
+    });
+
+    expect(frame.valid).toBe(true);
+    expect(frame.diagnostics).toEqual([]);
+    expect(frame.report.liveParticles).toBe(4);
+
+    const stateWrites = fixture.writes.filter(
+      (write) => write.label === "Particle/State/99",
+    );
+    const stateUpload = bytesUpload(stateWrites.at(-1));
+    const stateFloats = new Float32Array(
+      stateUpload.buffer,
+      stateUpload.byteOffset,
+      stateUpload.byteLength / 4,
+    );
+
+    expect(stateFloats[0]).toBeGreaterThan(2);
+    expect(stateFloats[8]).toBe(1);
+    expect(stateFloats[9]).toBe(1);
+    expect(stateFloats[10]).toBe(0);
+    expect(stateFloats[11]).toBeGreaterThan(0.25);
+  });
+
+  it("routes soft particles through overlay commands with scene-depth bindings", async () => {
+    const effect = createParticleEffectHandle("soft-smoke");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect, { timeScale: 1 });
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "SoftSmoke",
+        main: {
+          maxParticles: 4,
+          startLifetime: 1,
+          startSpeed: 0,
+          startSize: 1,
+        },
+        emission: {
+          rateOverTime: 60,
+        },
+        shape: {
+          type: "point",
+        },
+        renderer: {
+          blendMode: "alpha",
+          softParticles: {
+            enabled: true,
+            nearFade: 0.001,
+            farFade: 0.2,
+          },
+        },
+      }),
+    );
+
+    const frame = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 1 / 15,
+    });
+
+    expect(frame.valid).toBe(true);
+    expect(frame.diagnostics).toEqual([]);
+    expect(frame.report.liveParticles).toBe(4);
+    expect(frame.commands).toEqual([]);
+    expect(frame.overlayCommands).toEqual([
+      expect.objectContaining({
+        kind: "setPipeline",
+        renderId: 99,
+        pipelineKey:
+          "aperture/gpu-particles-render:bgra8unorm:depth24plus:samples-1:blend-alpha:soft-particles",
+      }),
+      expect.objectContaining({ kind: "setBindGroup", renderId: 99, index: 0 }),
+      expect.objectContaining({ kind: "setBindGroup", renderId: 99, index: 1 }),
+      expect.objectContaining({ kind: "setBindGroup", renderId: 99, index: 2 }),
+      expect.objectContaining({
+        kind: "setBindGroup",
+        renderId: 99,
+        index: 3,
+        resourceKey: "particle:soft:0.001:0.2:depth:320x180",
+      }),
+      {
+        kind: "draw",
+        renderId: 99,
+        vertexCount: 6,
+        instanceCount: 4,
+        firstVertex: 0,
+        firstInstance: 0,
+      },
+    ]);
+    expect(cache.particleSoftParams).toHaveLength(1);
+    expect(
+      fixture.createdBuffers.some(
+        (buffer) =>
+          buffer.label === "Particle/SoftParams/particle:soft:0.001:0.2",
+      ),
+    ).toBe(true);
+    expect(
+      fixture.createdTextures.some(
+        (texture) =>
+          typeof texture === "object" &&
+          texture !== null &&
+          "format" in texture &&
+          texture.format === "depth24plus",
+      ),
+    ).toBe(true);
+  });
+
+  it("applies continuous speed, speed-limit, and speed-by modules", async () => {
+    const effect = createParticleEffectHandle("speed-modules");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect, { timeScale: 1 });
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "SpeedModules",
+        main: {
+          maxParticles: 4,
+          startLifetime: 1,
+          startSpeed: 1,
+          startSize: 1,
+          startColor: [1, 1, 1, 1],
+        },
+        emission: {
+          rateOverTime: 60,
+        },
+        shape: {
+          type: "point",
+        },
+        renderer: {
+          blendMode: "alpha",
+        },
+        speedOverLifetime: {
+          enabled: true,
+          speed: 2,
+        },
+        limitVelocityOverLifetime: {
+          enabled: true,
+          speed: 0.5,
+        },
+        colorBySpeed: {
+          enabled: true,
+          color: {
+            mode: "gradient",
+            gradient: [
+              { t: 0, color: [1, 1, 1, 1] },
+              { t: 1, color: [0, 0.5, 1, 0.25] },
+            ],
+          },
+          speedRange: { min: 0, max: 1 },
+        },
+        sizeBySpeed: {
+          enabled: true,
+          size: {
+            mode: "curve",
+            curve: [
+              { t: 0, value: 2 },
+              { t: 1, value: 4 },
+            ],
+          },
+          speedRange: { min: 0, max: 1 },
+        },
+        rotationBySpeed: {
+          enabled: true,
+          angularVelocity: { min: 0, max: 2 },
+          speedRange: { min: 0, max: 1 },
+        },
+      }),
+    );
+
+    const frame = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 1 / 15,
+    });
+
+    expect(frame.valid).toBe(true);
+    expect(frame.diagnostics).toEqual([]);
+    expect(frame.report.liveParticles).toBe(4);
+
+    const stateFloats = lastParticleStateFloats(fixture);
+    const distanceFromOrigin = Math.hypot(
+      (stateFloats[0] ?? 0) - 2,
+      (stateFloats[1] ?? 0) - 3,
+      (stateFloats[2] ?? 0) + 1,
+    );
+
+    expect(distanceFromOrigin).toBeCloseTo(0.5 / 15, 4);
+    expect(roundFloats(Array.from(stateFloats.slice(3, 8)))).toEqual([
+      3, 0.5, 0.75, 1, 0.625,
+    ]);
+    expect(stateFloats[11]).toBeCloseTo(1 / 15, 5);
+  });
+
+  it("applies continuous noise and orbital motion modules", async () => {
+    const moduleCases = [
+      {
+        label: "noise",
+        shape: { type: "point" },
+        modules: {
+          noise: {
+            enabled: true,
+            strength: 1,
+            frequency: 1,
+            scrollSpeed: 0,
+          },
+        },
+        assertParticle: (floats: Float32Array) => {
+          expect(floats[15]).toBeCloseTo(1, 5);
+          expect(
+            Math.hypot(
+              (floats[0] ?? 0) - 2,
+              (floats[1] ?? 0) - 3,
+              (floats[2] ?? 0) + 1,
+            ),
+          ).toBeCloseTo(1 / 15, 5);
+        },
+      },
+      {
+        label: "orbital",
+        shape: { type: "circle", radius: 1 },
+        modules: {
+          orbitalVelocityOverLifetime: {
+            enabled: true,
+            orbital: [0, 0, 1],
+          },
+        },
+        assertParticle: (floats: Float32Array) => {
+          expect(floats[15]).toBeGreaterThan(0);
+          expect(Math.hypot(floats[12] ?? 0, floats[13] ?? 0)).toBeGreaterThan(
+            0,
+          );
+        },
+      },
+    ] as const;
+
+    for (const moduleCase of moduleCases) {
+      const effect = createParticleEffectHandle(`module-${moduleCase.label}`);
+      const assets = new AssetRegistry();
+      const cache = createWebGpuAppResourceCache();
+      const fixture = createParticleDeviceFixture();
+      const snapshot = createParticleSnapshot(effect, { timeScale: 1 });
+
+      assets.register(effect);
+      assets.markReady(
+        effect,
+        createParticleEffectAsset({
+          version: 2,
+          label: `Module${moduleCase.label}`,
+          main: {
+            maxParticles: 4,
+            startLifetime: 1,
+            startSpeed: 0,
+            startSize: 1,
+          },
+          emission: {
+            rateOverTime: 60,
+          },
+          shape: moduleCase.shape,
+          renderer: {
+            blendMode: "alpha",
+          },
+          ...moduleCase.modules,
+        }),
+      );
+
+      const frame = await prepareParticleFrameResourcesForSnapshot({
+        app: createParticleAppContext(fixture.device),
+        assets,
+        cache,
+        snapshot,
+        viewUniforms: writePackedSnapshotViewUniforms(
+          snapshot,
+          createPackedSnapshotViewUniformsScratch(),
+        ),
+        time: 1 / 15,
+      });
+
+      expect(frame.valid).toBe(true);
+      expect(frame.diagnostics).toEqual([]);
+      moduleCase.assertParticle(lastParticleStateFloats(fixture));
+    }
+  });
+
+  it("samples donut, rectangle, and grid continuous emitter shapes", async () => {
+    const cases = [
+      {
+        label: "donut",
+        shape: { type: "donut", radius: 2, radiusThickness: 0.25 },
+        assertParticle: (floats: Float32Array, offset: number) => {
+          const radius = Math.hypot(
+            (floats[offset] ?? 0) - 2,
+            (floats[offset + 1] ?? 0) - 3,
+          );
+
+          expect(radius).toBeGreaterThanOrEqual(1.5);
+          expect(radius).toBeLessThanOrEqual(2);
+          expect(floats[offset + 2]).toBeCloseTo(-1, 6);
+        },
+      },
+      {
+        label: "rectangle",
+        shape: { type: "rectangle", box: [4, 2, 8] },
+        assertParticle: (floats: Float32Array, offset: number) => {
+          expect(floats[offset]).toBeGreaterThanOrEqual(0);
+          expect(floats[offset]).toBeLessThanOrEqual(4);
+          expect(floats[offset + 1]).toBeGreaterThanOrEqual(2);
+          expect(floats[offset + 1]).toBeLessThanOrEqual(4);
+          expect(floats[offset + 2]).toBeCloseTo(-1, 6);
+        },
+      },
+      {
+        label: "grid",
+        shape: { type: "grid", box: [4, 2, 6], scale: [3, 2, 2] },
+        assertParticle: (floats: Float32Array, offset: number) => {
+          expectCloseToOneOf(floats[offset] ?? 0, [0, 2, 4]);
+          expectCloseToOneOf(floats[offset + 1] ?? 0, [2, 4]);
+          expectCloseToOneOf(floats[offset + 2] ?? 0, [-4, 2]);
+        },
+      },
+    ] as const;
+
+    for (const fixtureCase of cases) {
+      const effect = createParticleEffectHandle(`shape-${fixtureCase.label}`);
+      const assets = new AssetRegistry();
+      const cache = createWebGpuAppResourceCache();
+      const fixture = createParticleDeviceFixture();
+      const snapshot = createParticleSnapshot(effect, { timeScale: 1 });
+
+      assets.register(effect);
+      assets.markReady(
+        effect,
+        createParticleEffectAsset({
+          version: 2,
+          label: `Shape${fixtureCase.label}`,
+          main: {
+            maxParticles: 4,
+            startLifetime: 1,
+            startSpeed: 0,
+            startSize: 1,
+          },
+          emission: {
+            rateOverTime: 60,
+          },
+          shape: fixtureCase.shape,
+          renderer: {
+            blendMode: "alpha",
+          },
+        }),
+      );
+
+      const frame = await prepareParticleFrameResourcesForSnapshot({
+        app: createParticleAppContext(fixture.device),
+        assets,
+        cache,
+        snapshot,
+        viewUniforms: writePackedSnapshotViewUniforms(
+          snapshot,
+          createPackedSnapshotViewUniformsScratch(),
+        ),
+        time: 1 / 15,
+      });
+
+      expect(frame.valid).toBe(true);
+      expect(frame.diagnostics).toEqual([]);
+
+      const stateFloats = lastParticleStateFloats(fixture);
+
+      expect(frame.report.liveParticles).toBe(4);
+      for (let particle = 0; particle < 4; particle += 1) {
+        fixtureCase.assertParticle(stateFloats, particle * 16);
+      }
+    }
+  });
+
+  it("packs trail render mode motion length for continuous emitters", async () => {
+    const effect = createParticleEffectHandle("trail-motion");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect, { timeScale: 1 });
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "TrailMotion",
+        main: {
+          maxParticles: 4,
+          startLifetime: 1,
+          startSpeed: 2,
+          startSize: 1,
+        },
+        emission: {
+          rateOverTime: 60,
+        },
+        shape: {
+          type: "point",
+        },
+        renderer: {
+          blendMode: "alpha",
+          renderMode: "trail",
+        },
+        trails: {
+          enabled: true,
+          lifetime: 2,
+          ratio: 0.5,
+          minVertexDistance: 0.25,
+        },
+      }),
+    );
+
+    const frame = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 1 / 15,
+    });
+
+    expect(frame.valid).toBe(true);
+    expect(frame.diagnostics).toEqual([]);
+    expect(frame.commands).toContainEqual(
+      expect.objectContaining({
+        kind: "setPipeline",
+        pipelineKey:
+          "aperture/gpu-particles-render:bgra8unorm:depth24plus:samples-1:blend-alpha:mode-trail",
+      }),
+    );
+
+    const stateFloats = lastParticleStateFloats(fixture);
+
+    expect(stateFloats[15]).toBeCloseTo(2, 5);
+  });
+
+  it("applies continuous world-plane collision response", async () => {
+    const effect = createParticleEffectHandle("collision-plane");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect, { timeScale: 1 });
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "CollisionPlane",
+        main: {
+          maxParticles: 4,
+          startLifetime: 1,
+          startSpeed: 0,
+          startSize: 1,
+        },
+        emission: {
+          rateOverTime: 60,
+        },
+        shape: {
+          type: "point",
+        },
+        renderer: {
+          blendMode: "alpha",
+        },
+        forceOverLifetime: {
+          enabled: true,
+          force: [0, -15, 0],
+        },
+        collision: {
+          enabled: true,
+          mode: "world",
+          bounce: 0.5,
+          dampen: 0,
+          lifetimeLoss: 0,
+        },
+      }),
+    );
+
+    const frame = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 1 / 15,
+    });
+
+    expect(frame.valid).toBe(true);
+    expect(frame.diagnostics).toEqual([]);
+
+    const stateFloats = lastParticleStateFloats(fixture);
+
+    expect(stateFloats[1]).toBeCloseTo(3, 6);
+    expect(stateFloats[13]).toBeGreaterThan(0);
+    expect(stateFloats[15]).toBeCloseTo(0.5, 5);
+  });
+
+  it("samples mesh-surface continuous emitters on authored bounds", async () => {
+    const effect = createParticleEffectHandle("mesh-surface-shape");
+    const mesh = createMeshHandle("surface-source");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect, { timeScale: 1 });
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "MeshSurfaceShape",
+        main: {
+          maxParticles: 4,
+          startLifetime: 1,
+          startSpeed: 0,
+          startSize: 1,
+        },
+        emission: {
+          rateOverTime: 60,
+        },
+        shape: {
+          type: "mesh-surface",
+          mesh,
+          box: [4, 2, 6],
+        },
+        renderer: {
+          blendMode: "alpha",
+        },
+      }),
+    );
+
+    const frame = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 1 / 15,
+    });
+
+    expect(frame.valid).toBe(true);
+    expect(frame.diagnostics).toEqual([]);
+
+    const stateFloats = lastParticleStateFloats(fixture);
+
+    for (let particle = 0; particle < 4; particle += 1) {
+      const offset = particle * 16;
+      const onSurface =
+        isCloseToOneOf(stateFloats[offset] ?? 0, [0, 4]) ||
+        isCloseToOneOf(stateFloats[offset + 1] ?? 0, [2, 4]) ||
+        isCloseToOneOf(stateFloats[offset + 2] ?? 0, [-4, 2]);
+
+      expect(onSurface).toBe(true);
+    }
+  });
+
+  it("spawns continuous particles from rate over distance", async () => {
+    const effect = createParticleEffectHandle("distance-emission");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const firstSnapshot = createParticleSnapshot(effect, { timeScale: 1 });
+    const movedSnapshot = createParticleSnapshot(effect, { timeScale: 1 });
+
+    movedSnapshot.transforms[12] = 4;
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "DistanceEmission",
+        main: {
+          maxParticles: 4,
+          startLifetime: 1,
+          startSpeed: 0,
+        },
+        emission: {
+          rateOverTime: 0,
+          rateOverDistance: 2,
+        },
+        shape: {
+          type: "point",
+        },
+        renderer: {
+          blendMode: "alpha",
+        },
+      }),
+    );
+
+    const first = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot: firstSnapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        firstSnapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 1 / 15,
+    });
+    const second = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot: movedSnapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        movedSnapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 2 / 15,
+    });
+
+    expect(first.report.liveParticles).toBe(0);
+    expect(second.valid).toBe(true);
+    expect(second.diagnostics).toEqual([]);
+    expect(second.report.liveParticles).toBe(4);
+  });
+
+  it("gates continuous emission by composite child delay", async () => {
+    const effect = createParticleEffectHandle("delayed-child");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "DelayedChild",
+        main: { maxParticles: 8, startLifetime: 5, startSpeed: 0 },
+        emission: { rateOverTime: 100 },
+        shape: { type: "point" },
+        renderer: { blendMode: "alpha" },
+      }),
+    );
+
+    const frame = (time: number) => {
+      const snapshot = createParticleSnapshot(effect, {
+        timeScale: 1,
+        delay: 1,
+      });
+      return prepareParticleFrameResourcesForSnapshot({
+        app: createParticleAppContext(fixture.device),
+        assets,
+        cache,
+        snapshot,
+        viewUniforms: writePackedSnapshotViewUniforms(
+          snapshot,
+          createPackedSnapshotViewUniformsScratch(),
+        ),
+        time,
+      });
+    };
+
+    await frame(0);
+    const beforeDelay = await frame(0.5);
+    const afterDelay = await frame(2);
+
+    expect(beforeDelay.report.liveParticles).toBe(0);
+    expect(afterDelay.report.liveParticles).toBeGreaterThan(0);
+  });
+
+  it("stops continuous emission past a composite child duration", async () => {
+    const effect = createParticleEffectHandle("bounded-child");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "BoundedChild",
+        main: { maxParticles: 8, startLifetime: 5, startSpeed: 0 },
+        emission: { rateOverTime: 100 },
+        shape: { type: "point" },
+        renderer: { blendMode: "alpha" },
+      }),
+    );
+
+    const frame = (time: number, duration: number | null) => {
+      const snapshot = createParticleSnapshot(effect, {
+        timeScale: 1,
+        ...(duration === null ? {} : { duration }),
+      });
+      return prepareParticleFrameResourcesForSnapshot({
+        app: createParticleAppContext(fixture.device),
+        assets,
+        cache,
+        snapshot,
+        viewUniforms: writePackedSnapshotViewUniforms(
+          snapshot,
+          createPackedSnapshotViewUniformsScratch(),
+        ),
+        time,
+      });
+    };
+
+    // A child duration of 0.5s is a hard emission cutoff: at t=1s (past the
+    // window) nothing spawns, whereas the same effect with no duration does.
+    await frame(0, 0.5);
+    const bounded = await frame(1, 0.5);
+    expect(bounded.report.liveParticles).toBe(0);
+
+    const unbounded = createParticleSnapshot(effect, { timeScale: 1 });
+    const controlCache = createWebGpuAppResourceCache();
+    await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache: controlCache,
+      snapshot: unbounded,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        unbounded,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 0,
+    });
+    const control = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache: controlCache,
+      snapshot: unbounded,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        unbounded,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 1,
+    });
+    expect(control.report.liveParticles).toBeGreaterThan(0);
+  });
+
+  it("schedules continuous emission bursts with cycles and intervals", async () => {
+    const effect = createParticleEffectHandle("scheduled-bursts");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect, { timeScale: 1 });
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "ScheduledBursts",
+        main: {
+          maxParticles: 4,
+          startLifetime: 1,
+          startSpeed: 0,
+        },
+        emission: {
+          rateOverTime: 0,
+          bursts: [
+            {
+              time: 0,
+              count: 2,
+              cycle: 2,
+              interval: 0.05,
+              probability: 1,
+            },
+          ],
+        },
+        shape: {
+          type: "point",
+        },
+        renderer: {
+          blendMode: "alpha",
+        },
+      }),
+    );
+
+    const frame = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 0.06,
+    });
+
+    expect(frame.valid).toBe(true);
+    expect(frame.diagnostics).toEqual([]);
+    expect(frame.report.liveParticles).toBe(4);
+  });
+
   it("uploads burst particle state without running the continuous compute pass", async () => {
     const effect = createParticleEffectHandle("smoke-burst");
     const assets = new AssetRegistry();
@@ -294,17 +1254,33 @@ describe("GPU particle app frame resources", () => {
     assets.markReady(
       effect,
       createParticleEffectAsset({
+        version: 2,
         label: "SmokeBurst",
-        capacity: 16,
-        emissionRate: 0,
-        lifetime: { min: 1, max: 1 },
-        startSize: { min: 0.5, max: 1 },
-        linearDamping: 0.75,
-        blendMode: "alpha",
-        colorOverLifetime: [
-          { t: 0, color: [0.4, 0.4, 0.45, 0.25] },
-          { t: 1, color: [0.4, 0.4, 0.45, 0] },
-        ],
+        main: {
+          maxParticles: 16,
+          startLifetime: { min: 1, max: 1 },
+          startSize: { min: 0.5, max: 1 },
+        },
+        emission: {
+          rateOverTime: 0,
+        },
+        renderer: {
+          blendMode: "alpha",
+        },
+        limitVelocityOverLifetime: {
+          enabled: true,
+          dampen: 0.75,
+        },
+        colorOverLifetime: {
+          enabled: true,
+          color: {
+            mode: "gradient",
+            gradient: [
+              { t: 0, color: [0.4, 0.4, 0.45, 0.25] },
+              { t: 1, color: [0.4, 0.4, 0.45, 0] },
+            ],
+          },
+        },
       }),
     );
 
@@ -347,6 +1323,83 @@ describe("GPU particle app frame resources", () => {
         instanceCount: 3,
       }),
     );
+  });
+
+  it("packs authored burst billboard rotation and angular velocity", async () => {
+    const effect = createParticleEffectHandle("rotating-smoke-burst");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect, {
+      mode: "burst",
+      capacity: 1,
+      resetEpoch: 12,
+      burst: {
+        burstId: 1,
+        startFrame: 12,
+        count: 1,
+        position: [0, 0, 0],
+        positionJitterMin: [0, 0, 0],
+        positionJitterMax: [0, 0, 0],
+        velocityMin: [0, 0, 0],
+        velocityMax: [0, 0, 0],
+      },
+    });
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "RotatingSmokeBurst",
+        main: {
+          maxParticles: 1,
+          startLifetime: 1,
+          startSize: 1,
+          startRotation: 0.5,
+        },
+        emission: {
+          rateOverTime: 0,
+        },
+        renderer: {
+          blendMode: "alpha",
+        },
+        rotationOverLifetime: {
+          enabled: true,
+          angularVelocity: 2,
+        },
+      }),
+    );
+
+    const frame = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 12 / 60,
+    });
+
+    expect(frame.valid).toBe(true);
+    expect(frame.diagnostics).toEqual([]);
+
+    const [batchWrite] = fixture.writes.filter((write) =>
+      write.label.startsWith("Particle/BurstBatch/"),
+    );
+    expect(batchWrite).toBeDefined();
+
+    const upload = bytesUpload(batchWrite!);
+    const floats = new Float32Array(
+      upload.buffer,
+      upload.byteOffset,
+      upload.byteLength / 4,
+    );
+
+    expect(floats[10]).toBeCloseTo(0.5, 6);
+    expect(floats[11]).toBeCloseTo(2, 6);
   });
 
   it("batches adjacent compatible burst emitters into one shared draw", async () => {
@@ -406,17 +1459,33 @@ describe("GPU particle app frame resources", () => {
     assets.markReady(
       effect,
       createParticleEffectAsset({
+        version: 2,
         label: "BatchedSmokeBurst",
-        capacity: 16,
-        emissionRate: 0,
-        lifetime: { min: 1, max: 1 },
-        startSize: { min: 0.5, max: 1 },
-        linearDamping: 0.75,
-        blendMode: "alpha",
-        colorOverLifetime: [
-          { t: 0, color: [0.4, 0.4, 0.45, 0.25] },
-          { t: 1, color: [0.4, 0.4, 0.45, 0] },
-        ],
+        main: {
+          maxParticles: 16,
+          startLifetime: { min: 1, max: 1 },
+          startSize: { min: 0.5, max: 1 },
+        },
+        emission: {
+          rateOverTime: 0,
+        },
+        renderer: {
+          blendMode: "alpha",
+        },
+        limitVelocityOverLifetime: {
+          enabled: true,
+          dampen: 0.75,
+        },
+        colorOverLifetime: {
+          enabled: true,
+          color: {
+            mode: "gradient",
+            gradient: [
+              { t: 0, color: [0.4, 0.4, 0.45, 0.25] },
+              { t: 1, color: [0.4, 0.4, 0.45, 0] },
+            ],
+          },
+        },
       }),
     );
 
@@ -485,8 +1554,9 @@ describe("GPU particle app frame resources", () => {
 
     expect(reused.valid).toBe(true);
     expect(reused.report.statesReused).toBeGreaterThanOrEqual(3);
-    expect(reusedBatchWrites).toHaveLength(1);
-    expect(paramWrites).toMatchObject([{ size: 88 * 4 }, { size: 88 * 4 }]);
+    expect(reusedBatchWrites).toHaveLength(2);
+    expect(reusedBatchWrites[1]?.size).toBe(6 * 12 * 4);
+    expect(paramWrites).toMatchObject([{ size: 108 * 4 }, { size: 108 * 4 }]);
     const firstParamBytes = bytesUpload(paramWrites[0]);
     const firstParams = new Float32Array(
       firstParamBytes.buffer,
@@ -494,6 +1564,8 @@ describe("GPU particle app frame resources", () => {
       firstParamBytes.byteLength / 4,
     );
     expect(firstParams[4]).toBeCloseTo(0.75, 6);
+    expect(Array.from(firstParams.slice(8, 12))).toEqual([1, 1, 0, 1]);
+    expect(firstParams[28]).toBe(0);
 
     const empty = await prepareParticleFrameResourcesForSnapshot({
       app: createParticleAppContext(fixture.device),
@@ -516,7 +1588,7 @@ describe("GPU particle app frame resources", () => {
     ).toBe(true);
   });
 
-  it("splits burst batch draws around freed slot gaps", async () => {
+  it("compacts gapped burst batches into one draw", async () => {
     const effect = createParticleEffectHandle("gapped-smoke-burst");
     const assets = new AssetRegistry();
     const cache = createWebGpuAppResourceCache();
@@ -576,12 +1648,19 @@ describe("GPU particle app frame resources", () => {
     assets.markReady(
       effect,
       createParticleEffectAsset({
+        version: 2,
         label: "GappedSmokeBurst",
-        capacity: 16,
-        emissionRate: 0,
-        lifetime: { min: 1, max: 1 },
-        startSize: { min: 0.5, max: 1 },
-        blendMode: "alpha",
+        main: {
+          maxParticles: 16,
+          startLifetime: { min: 1, max: 1 },
+          startSize: { min: 0.5, max: 1 },
+        },
+        emission: {
+          rateOverTime: 0,
+        },
+        renderer: {
+          blendMode: "alpha",
+        },
       }),
     );
 
@@ -620,6 +1699,7 @@ describe("GPU particle app frame resources", () => {
         particleEmitters: 2,
       },
     };
+    const writesBeforeGapped = fixture.writes.length;
     const gapped = await prepareParticleFrameResourcesForSnapshot({
       app: createParticleAppContext(fixture.device),
       assets,
@@ -641,19 +1721,19 @@ describe("GPU particle app frame resources", () => {
         kind: "draw",
         renderId: 99,
         vertexCount: 6,
-        instanceCount: 3,
+        instanceCount: 6,
         firstVertex: 0,
         firstInstance: 0,
       },
-      {
-        kind: "draw",
-        renderId: 99,
-        vertexCount: 6,
-        instanceCount: 3,
-        firstVertex: 0,
-        firstInstance: 6,
-      },
     ]);
+    const gappedWrites = fixture.writes.slice(writesBeforeGapped);
+    const compactedBatchWrite = gappedWrites.find(
+      (write) =>
+        write.label.startsWith("Particle/BurstBatch/") &&
+        write.dataOffset === 0 &&
+        write.size === 6 * 12 * 4,
+    );
+    expect(compactedBatchWrite).toBeDefined();
   });
 
   it("reports per-frame particle texture and sampler reuse deltas", async () => {
@@ -673,9 +1753,14 @@ describe("GPU particle app frame resources", () => {
     assets.markReady(
       effect,
       createParticleEffectAsset({
+        version: 2,
         label: "SparkDelta",
-        capacity: 4,
-        blendMode: "alpha",
+        main: {
+          maxParticles: 4,
+        },
+        renderer: {
+          blendMode: "alpha",
+        },
       }),
     );
 
@@ -733,12 +1818,19 @@ describe("GPU particle app frame resources", () => {
     assets.markReady(
       effect,
       createParticleEffectAsset({
+        version: 2,
         label: "HdrSmokeBurst",
-        capacity: 2,
-        emissionRate: 0,
-        lifetime: { min: 1, max: 1 },
-        startSize: { min: 0.5, max: 1 },
-        blendMode: "alpha",
+        main: {
+          maxParticles: 2,
+          startLifetime: { min: 1, max: 1 },
+          startSize: { min: 0.5, max: 1 },
+        },
+        emission: {
+          rateOverTime: 0,
+        },
+        renderer: {
+          blendMode: "alpha",
+        },
       }),
     );
 
@@ -1002,6 +2094,48 @@ function bytesUpload(upload: BufferWriteRecord | undefined): Uint8Array {
   );
 }
 
+function lastParticleStateFloats(
+  fixture: ReturnType<typeof createParticleDeviceFixture>,
+): Float32Array {
+  const stateWrites = fixture.writes.filter(
+    (write) => write.label === "Particle/State/99",
+  );
+  const stateUpload = bytesUpload(stateWrites.at(-1));
+
+  return new Float32Array(
+    stateUpload.buffer,
+    stateUpload.byteOffset,
+    stateUpload.byteLength / 4,
+  );
+}
+
+function expectCloseToOneOf(value: number, expected: readonly number[]): void {
+  expect(isCloseToOneOf(value, expected)).toBe(true);
+}
+
+function isCloseToOneOf(value: number, expected: readonly number[]): boolean {
+  return expected.some((candidate) => Math.abs(value - candidate) <= 0.0001);
+}
+
 function roundFloats(values: readonly number[]): number[] {
   return values.map((value) => Math.round(value * 1000) / 1000);
+}
+
+function renderCommandGroup(renderId: number) {
+  return [
+    {
+      kind: "setPipeline" as const,
+      renderId,
+      pipelineKey: `pipeline:${renderId}`,
+      pipeline: {},
+    },
+    {
+      kind: "draw" as const,
+      renderId,
+      vertexCount: 6,
+      instanceCount: 1,
+      firstVertex: 0,
+      firstInstance: 0,
+    },
+  ];
 }

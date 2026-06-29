@@ -47,7 +47,8 @@ export function registerContentShowcaseScene(aperture, registry) {
       textGlyphs: 6,
       textBatches: 2,
       particleEmitters: 1,
-      liveParticles: gpuParticlesCapacity,
+      particleCapacity: gpuParticlesCapacity,
+      minLiveParticles: Math.floor(gpuParticlesCapacity * 0.9),
     },
     readbackSamples: contentShowcaseReadbackSamples,
   };

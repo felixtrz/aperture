@@ -32,6 +32,7 @@ export interface RenderPassDepthAttachmentInput {
   readonly depthClearValue?: number;
   readonly depthLoadOp?: RenderPassAttachmentLoadOp;
   readonly depthStoreOp?: RenderPassAttachmentStoreOp;
+  readonly depthReadOnly?: boolean;
 }
 
 export interface PlannedRenderPassColorAttachment {
@@ -52,6 +53,7 @@ export interface PlannedRenderPassDepthStencilAttachment {
   readonly depthClearValue?: number;
   readonly depthLoadOp: RenderPassAttachmentLoadOp;
   readonly depthStoreOp: RenderPassAttachmentStoreOp;
+  readonly depthReadOnly?: boolean;
 }
 
 export interface RenderPassAttachmentDescriptorPlan {
@@ -181,6 +183,7 @@ function createDepthAttachment(
       target.depthLoadOp ??
       (target.depthClearValue === undefined ? "load" : "clear"),
     depthStoreOp: target.depthStoreOp ?? "store",
+    ...(target.depthReadOnly === true ? { depthReadOnly: true } : {}),
   };
 
   if (target.depthClearValue !== undefined) {

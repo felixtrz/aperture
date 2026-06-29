@@ -171,7 +171,7 @@ function createGpuParticlesStatus(scene, loop, diagnostics) {
     ok:
       snapshot?.particleEmitters === scene.expected.particleEmitters &&
       counts?.particleEmitters === scene.expected.particleEmitters &&
-      particles?.liveParticles === scene.expected.liveParticles &&
+      (particles?.liveParticles ?? 0) >= scene.expected.minLiveParticles &&
       particles?.dispatches === scene.expected.dispatches &&
       counts?.drawCalls === scene.expected.drawCalls &&
       (loop.frame?.diagnosticCodes?.length ?? 0) === 0,
