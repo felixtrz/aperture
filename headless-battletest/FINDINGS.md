@@ -189,3 +189,7 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 
 ## Extreme-value robustness (graceful, minor codec nuance)
 - Injecting an absurd transform (scale 1e308) doesn't crash extraction/bundling: bundle stays valid JSON, deterministic digest, no NaN/Infinity strings. But the value overflows float32 -> Infinity -> the json-typed-array snapshot codec serializes it as `null` (1 null entry observed). So a strict bundle consumer should know non-finite snapshot values are encoded as null. Edge case (needs absurd input); pipeline is graceful. Systems that own an entity (player/hazard) overwrite injected extremes on the next step (self-sanitizing).
+
+## Rapier determinism in Node (PASS) + a collider-config note
+- Rapier physics is DETERMINISTIC in Node: single-body free-fall identical across runs (endY 5.237042427062988); an 8-body contact stack produced identical position digests (96516c7b) across runs. So IF config.physics were wired to the headless CLI (F12), physics validation would be reproducible/trustworthy.
+- Observation (not chased): in the multi-body probe the dynamic boxes fell THROUGH the fixed ground (settled at y~-42) with `collider: true` alone. Likely the collider shape isn't auto-derived from the box mesh without `colliderGeometry` config (the platformer showcase sets `physics.colliderGeometry`). Not investigated further since physics is unreachable via the headless CLI (F12). Flagging in case `collider: true` is meant to auto-size.
