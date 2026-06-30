@@ -5,6 +5,8 @@
 **Environment:** Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64, 4 vCPU, **no hardware GPU** (Chromium falls back to SwiftShader/Vulkan)
 **Engine under test:** `@aperture-engine/*` v0.2.0, installed **from freshly-built tarballs** (not the workspace), to mirror a real npm consumer.
 
+> **TL;DR — if you read nothing else.** The headless flow is excellent and I used it as a real dev/TDD loop to build four apps. Three things to fix, in order: **(1)** `aperture render` emits an all-**white** frame in the headless-browser path yet reports success, and the CI render smoke passes on it — `isPngBlank` only catches black (F1/F2; drop-in detector included). **(2)** A `physics` block in a *headless* config is silently ignored — `config.physics` is never wired into the headless runner, so `fixedUpdate`/physics games can't be validated headlessly (F12). **(3)** The determinism gate and the powerful SessionSnapshot/checkpoint feature exist but aren't exposed in the warm `serve`/MCP loop — the loop people (and agents) actually use (F11, F15). Everything else — packing, scaffolding, the headless dev loop, determinism + bit-identical replay, input, queries, interaction/picking, spatial raycasts, assets (GLB/HDR/animation/skinning/audio/custom-WGSL), and headless↔headed sim parity — **works**.
+
 ---
 
 ## 1. What I did
