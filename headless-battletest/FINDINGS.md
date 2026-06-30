@@ -180,3 +180,6 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 
 ## Spatial queries work headless (PASS)
 - this.spatial.raycastFirst/overlapSphere/closestPoint work EXACTLY in pure Node against BVH-backed box meshes: raycast from (0,0,5) toward -Z hit the 2x2x2 box at distance 4 (face at z=1); overlapSphere([0,0,0],2) found 1 entity; closestPoint([5,0,0])=4 (face at x=1). BVHs are built headlessly. So core gameplay queries (AI line-of-sight, area-of-effect, targeting, collision) are headless-validatable.
+
+## Custom WGSL material authoring works headless (PASS)
+- material.customWgsl with shader.inlineWgsl authors headlessly: the custom material + inline shader source are captured as real assets (provenance real:2, mesh+material in closure), exit 0, no GPU needed. Shader COMPILATION is deferred to render time (browser); AUTHORING the shader source is headless. Confirms the boundary: all authoring (even custom shaders) is headless; only pixel production is browser-only.
