@@ -160,3 +160,6 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 - camera_look_at (rotation re-aimed), camera_orbit (yaw/pitch/radius/target → repositioned to [4.31,2.74,6.16]) work. camera_fit_entity's {key} selects the CAMERA, not the entity to frame (minor arg nuance; returned camera.notFound for key:player).
 - ecs_diff is precise: snapshot -> ecs_set_component_field(player translation) -> diff reports exactly 1 changed entity with fields:["localTransform"] + before/after. Structure: added/removed/changed/unchanged/counts.
 - Full devtools tool surface now exercised: ecs_query/get_entity/set_component_field/snapshot/diff/get_hierarchy/get_component_schema/list_systems/pause/resume/step, input_action_set/gamepad_set/get_state/reset (pointer_move/set browser-only), resource_get/set, asset_list, camera_get/list/save/restore/set_transform/look_at/orbit/fit_entity.
+
+## Render bundle input validation (PASS, exemplary)
+- aperture render gives clean structured errors for bad input (all exit 1): nonexistent -> aperture.render.snapshotNotFound; malformed JSON / truncated -> aperture.render.invalidBundle (not valid JSON); valid JSON wrong shape -> invalidBundle (expected format "aperture.render-bundle"). Contrast with F9: render INPUT validation is exemplary even though render OUTPUT capture is broken headless (F1).
