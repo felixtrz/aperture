@@ -149,3 +149,6 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 ## ECS render-feature authoring works headless (PASS) + more F17 evidence
 - spawn.fog, spawn.proceduralSky, spawn.particles all create ECS entities headlessly. These are renderer-independent ECS entities, so structural authoring is validatable in Node (pixels still need the headed path).
 - F17 again: my first attempt used type-INVALID options (spawn.fog {kind} should be {mode}; spawn.particles effect kind "burst" should be "particle-effect"). Headless ran them silently and created entities; tsc flagged both (TS2353/TS2322). Fixed to correct types -> tsc clean + headless clean. tsconfig.battletest.json typechecks all authored systems.
+
+## glTF animation works headless (PASS)
+- Animated cube glb loaded in strict Node mode (clips=1). this.spawn.animation(model).playClip advances during headless step: Cube rotation interpolated [-0.7071,...] (f3) -> [-0.7052,0.0514,...] (f43). The runtime animation driver runs headlessly; playback is time-driven (deterministic). So skeletal/node animation logic is headless-validatable.
