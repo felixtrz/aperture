@@ -163,3 +163,7 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 
 ## Render bundle input validation (PASS, exemplary)
 - aperture render gives clean structured errors for bad input (all exit 1): nonexistent -> aperture.render.snapshotNotFound; malformed JSON / truncated -> aperture.render.invalidBundle (not valid JSON); valid JSON wrong shape -> invalidBundle (expected format "aperture.render-bundle"). Contrast with F9: render INPUT validation is exemplary even though render OUTPUT capture is broken headless (F1).
+
+## Long-run stability + arbitrary delta (PASS)
+- Boids 5000 steps: all signals finite (no NaN/explosion), avgSpeed in [MIN,MAX], center bounded. Stable over long runs.
+- Non-default fixed delta (1/30): hazardX matches 1+2.5*sin(elapsed*1.6) with elapsed=(frame-1)*delta to <1e-4. The sim handles arbitrary fixed deltas deterministically; the time-at-start-of-step convention holds for any delta.
