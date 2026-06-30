@@ -142,3 +142,6 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 ## Determinism gate completeness + audio (PASS)
 - Determinism gate catches ALL 4 documented globals across init AND update: Math.random, Date.now, performance.now, new Date (verified new Date in init + performance.now in update → both errored, exit 1).
 - Audio authoring works headlessly: this.audio.loop / playOneShot create ECS emitter entities (audio.loop.test.loop, audio.oneshot.test.oneshot) with no audio device; audio assets are tracked (ready:false, not played). Confirms the documented boundary: ECS audio authoring is headless-validatable; device playback is browser-only.
+
+## Strict-mode advanced assets in Node (PASS)
+- RGBE HDR environment map (asset.hdr): strict mode loaded it for real in pure Node (assetProvenance real:1, placeholderCount:0). Confirms the documented strict-asset capability (GLB/glTF verified earlier; HDR here). KTX2/Draco/meshopt require --decoder-assets-dir (not exercised; no local decoder set).

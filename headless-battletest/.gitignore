@@ -6,3 +6,6 @@ packs/
 *.log
 # Large stress bundle (regenerate via stress/ config)
 app/artifacts/stress.bundle.json
+app/public/hdri/
+*.hdr
+*.ktx2
