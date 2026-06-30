@@ -138,3 +138,7 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 ## Hierarchy + cascade despawn (PASS) and the no-typecheck footgun (F17)
 - transform:{ parent } parenting works: ecs_get_hierarchy shows tree.parent -> [child.0,1,2]; despawnRecursive(parent) cascades (all tree entities removed).
 - FOOTGUN: `parent` is a field of transform (SystemTransformInput), not a top-level spawn option. I initially passed top-level `parent` to spawn.mesh — silently IGNORED (children unparented, no cascade, no error). Because the headless loader uses native TS stripping with NO type-checking, option-shape mistakes that tsc would reject pass silently and produce wrong behavior. The scaffold's `pnpm typecheck` catches it, but `aperture headless` itself does not. Recommend pairing headless runs with tsc, or validating known spawn option shapes.
+
+## Determinism gate completeness + audio (PASS)
+- Determinism gate catches ALL 4 documented globals across init AND update: Math.random, Date.now, performance.now, new Date (verified new Date in init + performance.now in update → both errored, exit 1).
+- Audio authoring works headlessly: this.audio.loop / playOneShot create ECS emitter entities (audio.loop.test.loop, audio.oneshot.test.oneshot) with no audio device; audio assets are tracked (ready:false, not played). Confirms the documented boundary: ECS audio authoring is headless-validatable; device playback is browser-only.
