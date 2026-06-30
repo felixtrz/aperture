@@ -170,3 +170,7 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 
 ## reset is a clean rebuild (PASS)
 - After stepping the game 200 frames (score 1, hits 3, coins 3), reset {seed} returns frame 0 with all signals at initial (score/hits/coins 0, goalReached false) and the player entity back at spawn (-3.5). System private state (jump count, dash cooldown, velocity) resets because systems are reconstructed. Only issue: reset doesn't report the applied seed (F7).
+
+## Multi-camera + devtools mutation guard (PASS)
+- Multi-camera extraction: 2 cameras -> extract views:2 (multi-view works headlessly; each view culls independently).
+- ecs_set_component_field is allow-listed to mutable components: it mutates LocalTransform.translation fine, but rejects aperture.metadata.enabled with a clear structured error (aperture.entityLookup.componentMutationUnsupported, "not mutable through the developer entity helper"). Sensible guard against corrupting structural/metadata state; entity enable/disable must be done in a system, not via the devtools tool.
