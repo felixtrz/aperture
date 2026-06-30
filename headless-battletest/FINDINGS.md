@@ -124,3 +124,8 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 
 ## Physics capability in Node (F12 proof)
 - createApertureApp with explicit physics:{backend:rapier,gravity}+fixedStep ran fixedUpdate 10/10 steps, populated fixedStepClock (maxSubsteps 4), initialized rapier 0.19.3 in pure Node. Confirms F12 is wiring-only. (edge/physics-capability-probe.mjs)
+
+## Resources + query filters (PASS)
+- defineResource("id", {field: resource.number/string/vec3/...}) works. resource_get exposes field schema (name+kind) + values + version. resource_set live-mutates fields (set ticks=999, version bumps, system update continued from 999→1000). Earlier resources=0 was just because the game app defined none.
+- this.resources.read(R) / this.resources.write(R, next => {...}) — clean API; init-time write + per-step write both work.
+- ecs_query filters all work: key, tags[array], withComponents[array] (mesh-only returned ground/player/finish/hazard), namePattern ("Light"→Key/Fill Light), limit. Only the singular `tag` typo silently no-ops (F4).
