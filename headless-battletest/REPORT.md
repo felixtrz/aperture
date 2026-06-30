@@ -109,6 +109,20 @@ This is something you fundamentally cannot get cheaply in a browser RAF loop, an
 ### 4.6 A headless test harness caught a real regression (the loop's whole point)
 I wrote a ~60-line client over the `serve` NDJSON protocol (`app/test/headless-harness.mjs`) and a gameplay-invariant suite (`app/test/game.test.mjs`, **17 assertions, all green**). It immediately earned its keep: when I added the patrol hazard, the suite showed the level had become **unwinnable** — the hazard's collision was Y-agnostic, so jumping couldn't avoid it and `goalReached` never flipped under any input. I made the hazard only catch a *grounded* player; the suite's `winnableByJumping` test then passed (`hits=0`, `goalReached=true`) while `hazardBlocksGrounded` still documents the obstacle. That's the full write→detect-regression→fix→confirm loop, run in **pure Node in seconds**, no browser — exactly what headless mode is for. The same harness drives a boids suite too (`app/test/boids.test.mjs`: containment, speed-clamp, determinism). I also added a **double-jump mechanic test-first** (`app/test/double-jump.test.mjs`): wrote the invariant, watched it go RED against the single-jump code, implemented `#jumpsRemaining`, watched it go GREEN — and the loop immediately flagged that double-jump changed the `winnableByJumping` trajectory (a now-too-strict `hits===0`), which I relaxed. That's real TDD in pure Node. I then added a **dash** ability the same way — including defining a *new* `dash` input action in `aperture.shared-config.ts` and driving it through `inject` — RED→implement→GREEN, no regressions. The same harness also drives the Game of Life suite (block/blinker invariants + determinism). Across all three apps it runs **32 green assertions + 3 capability probes** via one `node test/all.mjs` (8/8 checks). This is the single most convincing thing I can say about the headless flow: it is good enough to be your gameplay test/TDD harness.
 
+### 4.7 Engine features that work headlessly (verified)
+A consolidated list of what I confirmed runs in pure Node (no browser), since the boundary is broader than the docs spell out:
+
+- **Core:** ECS authoring, fixed-step stepping, render extraction (with real frustum culling), render bundles + stable digests, multi-camera (2 cameras → 2 views).
+- **Determinism:** `context.random`/`context.time`, bit-identical replay, the determinism gate (all 4 nondeterministic globals across init/update), SessionSnapshot capture/restore (library API).
+- **Input:** button/axis (via gamepad)/pointer injection; **pointer picking** (`interaction.onClick/onDown/hoveredEntity` fire from injected pointer raycasts).
+- **Queries:** `ecs_query`/`get_entity`/`snapshot`/`diff`/`hierarchy`/`component_schema`; **spatial queries** (`raycastFirst`/`overlapSphere`/`closestPoint` — exact, BVH-backed); hierarchy parenting + recursive despawn.
+- **Resources & signals:** `defineResource` + `resource_get`/`set`; signals.
+- **Assets (strict, real bytes in Node):** glTF/GLB (incl. **animation** playback), RGBE **HDR** environment maps, audio clips.
+- **ECS render features (authored as entities):** fog, procedural sky, particles, audio emitters (`audio.loop`/`playOneShot`).
+- **Physics:** rapier **simulates** in Node via the low-level API (a body falls under gravity) — just not wired to the headless CLI (F12).
+
+The genuinely browser-only parts are: real WebGPU **pixels** (the headed render/`frame_capture`/`dev` paths), DOM/native input, audio **device** playback, and host-dispatched **commands** (F16).
+
 ---
 
 ## 5. Headless vs headed: the comparison
