@@ -146,6 +146,8 @@ With `APERTURE_RENDER_HEADLESS=1` (the default the CI render smoke uses), the re
 
 **F14 — `ecs_list_systems` lists systems in execution order but omits the numeric `priority`.** Minor, but priority is the thing you actually want when debugging ordering.
 
+**F15 — SessionSnapshot capture/restore works and is deterministic, but is library-only — not exposed to serve/MCP.** `createApertureSessionSnapshot(runner)` + `runner.restoreSessionSnapshot()` round-trip exactly (restored to frame-30 state; continuation bit-identical, RNG+time captured — `edge/session-snapshot-probe.mjs`). But the warm `serve`/MCP protocol only offers `reset` (full rebuild), so an agent-driven loop can't checkpoint/branch a session. This is the single biggest *missing* lever for the recommended interactive loop — exposing `snapshot`/`restore` serve commands would enable "explore a branch, roll back, try another" without re-stepping from frame 0.
+
 ---
 
 ## 7. Performance notes

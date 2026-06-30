@@ -117,3 +117,10 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 - adapter sync: clean dir writes 7 files; re-run is idempotent (Unchanged:7, no conflicts).
 - ecs_list_systems lists systems in execution/priority order (Setup,Player,Spawner,Hazard,CameraFollow) but does NOT expose the numeric priority value.
 - render of a placeholder bundle without --allow-placeholders SUCCEEDS when the placeholder asset isn't in the draw closure (closure validates REFERENCED assets only — correct behavior).
+
+## SessionSnapshot capture/restore (PASS, but library-only) — F15
+- createApertureSessionSnapshot(runner) + runner.restoreSessionSnapshot(snap) work and are DETERMINISTIC: restore returns exact frame-30 state (acc30==acc30_restored), and continuation after restore is bit-identical (acc50_a==acc50_b). RNG + time state captured. (edge/session-snapshot-probe.mjs)
+- BUT this powerful checkpoint/continuation capability is NOT exposed in the `aperture headless serve` / MCP protocol — serve only offers `reset` (full rebuild). An agent-driven loop can't branch/checkpoint a session. Recommend exposing snapshot/restore as serve commands.
+
+## Physics capability in Node (F12 proof)
+- createApertureApp with explicit physics:{backend:rapier,gravity}+fixedStep ran fixedUpdate 10/10 steps, populated fixedStepClock (maxSubsteps 4), initialized rapier 0.19.3 in pure Node. Confirms F12 is wiring-only. (edge/physics-capability-probe.mjs)
