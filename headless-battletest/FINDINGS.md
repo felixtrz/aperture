@@ -167,3 +167,6 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 ## Long-run stability + arbitrary delta (PASS)
 - Boids 5000 steps: all signals finite (no NaN/explosion), avgSpeed in [MIN,MAX], center bounded. Stable over long runs.
 - Non-default fixed delta (1/30): hazardX matches 1+2.5*sin(elapsed*1.6) with elapsed=(frame-1)*delta to <1e-4. The sim handles arbitrary fixed deltas deterministically; the time-at-start-of-step convention holds for any delta.
+
+## reset is a clean rebuild (PASS)
+- After stepping the game 200 frames (score 1, hits 3, coins 3), reset {seed} returns frame 0 with all signals at initial (score/hits/coins 0, goalReached false) and the player entity back at spawn (-3.5). System private state (jump count, dash cooldown, velocity) resets because systems are reconstructed. Only issue: reset doesn't report the applied seed (F7).
