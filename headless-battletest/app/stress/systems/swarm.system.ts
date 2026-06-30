@@ -2,7 +2,7 @@ import {
   AppEntityKey, LocalTransform, createSystem, material, mesh, quatFromAxisAngle,
 } from "@aperture-engine/app/systems";
 
-const COUNT = 2000;
+const COUNT = Number(process.env.SWARM_COUNT) || 2000;
 const SIDE = 45;
 
 export default class SwarmSystem extends createSystem({
