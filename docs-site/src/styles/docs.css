@@ -826,9 +826,23 @@
 
 @media (max-width: 780px) {
   .docs-topbar {
-    position: static;
+    position: relative;
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .docs-brand {
+    /* Reserve room for the pinned toggle so a long tagline wraps instead of
+       sliding under it on very narrow screens. */
+    max-width: calc(100% - 120px);
+  }
+
+  /* Pin the language toggle to the top-right, on the brand row, where users
+     expect a language switch on mobile. */
+  .docs-topbar .lang-toggle {
+    position: absolute;
+    top: 18px;
+    right: clamp(20px, 5vw, 72px);
   }
 
   .docs-nav {
