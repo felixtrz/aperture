@@ -179,6 +179,9 @@ With `APERTURE_RENDER_HEADLESS=1` (the default the CI render smoke uses), the re
 **F11 — The determinism hard-gate is one-shot-only; warm serve never enforces it.**
 `aperture headless --determinism error` aborts with exit 1 on a violation (`assertDeterminismPolicy`). The warm `serve` session has no equivalent — with `--determinism error` it kept stepping happily on a system calling `Math.random()`/`Date.now()`. Worse, serve surfaces the diagnostics **only** in `get-status.diagnostics` — not in `step` results and not on stderr — so an agent watching `step` output sees nothing. Since `serve`/MCP is the *recommended* interactive loop (per the scaffolded `CLAUDE.md`), the determinism feature is effectively off in the loop people will actually use. *Fix:* honor the determinism mode in serve (either fail the offending `step`, or at least echo diagnostics in every `step` result).
 
+**F16 — The command bus is host-driven, so serve/MCP can't dispatch app commands.**
+System `CommandAccess` is drain-only (`drain<T>(channel)`); systems can't dispatch. App commands originate from the browser host/HUD (e.g. city-builder's `hud.ts` → worker `postMessage`). The headless serve/MCP protocol has no command-dispatch verb (only input `inject` + devtools `tool`s), so **command-channel gameplay can't be exercised headlessly** (input-*action*-driven gameplay is fine — it's injectable). *Fix:* add a serve `command`/`dispatch` verb (+ MCP tool) that posts an app command to the headless runner.
+
 ### Low / polish
 
 **F6 — The render-bundle digest is not a pure-simulation digest.** `engine.createdBy` (and other provenance metadata) is inside the digested object (`headless/bundle.ts:165–201`), so identical simulations produced by different commands (`headless` vs `serve`) get different digests. Anyone using the bundle digest to assert "same sim across tools" will get false mismatches. Consider a separate `snapshotDigest` over `snapshot.value` only.
