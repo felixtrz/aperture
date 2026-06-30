@@ -7,6 +7,7 @@ import {
 const GROUND_Y = 0.55;
 const GRAVITY = -18;
 const JUMP_VELOCITY = 7;
+const MAX_JUMPS = 2;
 
 export default class PlayerSystem extends createSystem({
   priority: 20,
@@ -15,6 +16,7 @@ export default class PlayerSystem extends createSystem({
   },
 }) {
   #verticalVelocity = 0;
+  #jumpsRemaining = MAX_JUMPS;
 
   override update(delta: number): void {
     const player = this.findByKey("player");
@@ -59,15 +61,20 @@ export default class PlayerSystem extends createSystem({
     // `inject` command. Integration uses the fixed delta for deterministic arcs.
     const currentY = playerTranslation[1] ?? GROUND_Y;
     const grounded = currentY <= GROUND_Y + 1e-4 && this.#verticalVelocity <= 0;
+    if (grounded) {
+      this.#jumpsRemaining = MAX_JUMPS;
+    }
     const jump = this.actions.jump;
-    if (grounded && jump?.kind === "button" && jump.down()) {
+    if (jump?.kind === "button" && jump.down() && this.#jumpsRemaining > 0) {
       this.#verticalVelocity = JUMP_VELOCITY;
+      this.#jumpsRemaining -= 1;
     }
     this.#verticalVelocity += GRAVITY * delta;
     let nextY = currentY + this.#verticalVelocity * delta;
     if (nextY <= GROUND_Y) {
       nextY = GROUND_Y;
       this.#verticalVelocity = 0;
+      this.#jumpsRemaining = MAX_JUMPS;
     }
     playerTranslation[1] = nextY;
 
