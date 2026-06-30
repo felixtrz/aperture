@@ -54,6 +54,7 @@ This is exactly the thesis the architecture docs sell ("headless is the default 
 | F13 | Low | `reference` CLI subcommand is `search` but docs/API say `query` |
 | F14 | Low | `ecs_list_systems` omits the numeric priority |
 | F15 | Low | SessionSnapshot capture/restore works but is library-only (not in serve/MCP) |
+| F18 | Low | No step-without-extract; serve `step {frames:N}` does N+1 full extractions (~99.8% of per-step cost at scale) |
 
 Everything else — packing, scaffolding, type closure, the headless dev loop, determinism, replay, input, entities, resources, hierarchy, audio, strict assets, headless↔headed sim parity — **works** (details below).
 
@@ -183,6 +184,9 @@ The headless config-loader strips types natively (fast, no `tsc`), which means a
 
 **F14 — `ecs_list_systems` lists systems in execution order but omits the numeric `priority`.** Minor, but priority is the thing you actually want when debugging ordering.
 
+**F18 — No step-without-extract; the warm `serve` loop pays full render extraction every frame (N+1 extractions per `step`).**
+The headless runner's `step` is `stepAndExtract`, and `serve`'s `step {frames:N}` extracts once up front *and* once per frame. Since extraction is ~99.8% of per-step cost at scale (§7), the warm interactive loop — the recommended one — is needlessly slow for large scenes, and there's no escape hatch. *Fix:* a runner-level `step()` that doesn't extract, plus a serve flag to extract only on demand.
+
 **F15 — SessionSnapshot capture/restore works and is deterministic, but is library-only — not exposed to serve/MCP.** `createApertureSessionSnapshot(runner)` + `runner.restoreSessionSnapshot()` round-trip exactly (restored to frame-30 state; continuation bit-identical, RNG+time captured — `edge/session-snapshot-probe.mjs`). But the warm `serve`/MCP protocol only offers `reset` (full rebuild), so an agent-driven loop can't checkpoint/branch a session. This is the single biggest *missing* lever for the recommended interactive loop — exposing `snapshot`/`restore` serve commands would enable "explore a branch, roll back, try another" without re-stepping from frame 0.
 
 ---
@@ -217,7 +221,7 @@ The headless config-loader strips types natively (fast, no `tsc`), which means a
 7. **Level up asset/runtime error diagnostics (F9)** to match the (excellent) determinism diagnostics.
 8. **Guard against the no-typecheck footgun (F17):** document that `aperture headless` does not type-check (pair it with the scaffold's `pnpm typecheck`), and/or have the loader warn on unknown spawn/option keys.
 9. **Expose session snapshot/restore (F15) and command dispatch (F16) in serve/MCP** so the interactive loop can checkpoint/branch and drive command-channel gameplay.
-10. **Smaller polish:** sim-only `snapshotDigest` (F6), step-without-extract for large scenes (§7), `reference query` alias (F13), priority in `ecs_list_systems` (F14).
+10. **Smaller polish:** sim-only `snapshotDigest` (F6), step-without-extract for the warm loop (F18 — biggest perf lever at scale), `reference query` alias (F13), priority in `ecs_list_systems` (F14).
 
 None of these block using headless mode for real development today — I did exactly that. They're about making the *headed pixel gate* honest, the *headless/headed parity* complete (F12), and the *tool ergonomics* strict.
 
