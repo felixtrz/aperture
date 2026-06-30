@@ -146,5 +146,6 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 ## Strict-mode advanced assets in Node (PASS)
 - RGBE HDR environment map (asset.hdr): strict mode loaded it for real in pure Node (assetProvenance real:1, placeholderCount:0). Confirms the documented strict-asset capability (GLB/glTF verified earlier; HDR here). KTX2/Draco/meshopt require --decoder-assets-dir (not exercised; no local decoder set).
 
-## ECS render-feature authoring works headless (PASS)
-- spawn.fog, spawn.proceduralSky, spawn.particles all create ECS entities headlessly (cam,sun,cube,fog,sky,sparks). These are renderer-independent ECS entities, so the structural authoring is validatable in Node (pixels still need the headed path).
+## ECS render-feature authoring works headless (PASS) + more F17 evidence
+- spawn.fog, spawn.proceduralSky, spawn.particles all create ECS entities headlessly. These are renderer-independent ECS entities, so structural authoring is validatable in Node (pixels still need the headed path).
+- F17 again: my first attempt used type-INVALID options (spawn.fog {kind} should be {mode}; spawn.particles effect kind "burst" should be "particle-effect"). Headless ran them silently and created entities; tsc flagged both (TS2353/TS2322). Fixed to correct types -> tsc clean + headless clean. tsconfig.battletest.json typechecks all authored systems.

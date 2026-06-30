@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "aperture.shared-config.ts",
+    "src/**/*.ts",
+    "boids/**/*.ts",
+    "res/**/*.ts",
+    "hier/**/*.ts",
+    "audio/**/*.ts",
+    "authoring/**/*.ts",
+    "hdr/**/*.ts",
+    "edge/det/**/*.ts",
+    "edge/fixed/**/*.ts",
+    "stress/**/*.ts"
+  ]
+}
