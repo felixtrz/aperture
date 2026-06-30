@@ -16,12 +16,14 @@ findings. [`FINDINGS.md`](./FINDINGS.md) is the raw running log.
 | `packs/` | The 12 engine `.tgz` tarballs (gitignored; regenerate — see below) |
 | `overrides.json` | Maps each `@aperture-engine/*` → its tarball (`pnpm.overrides`) |
 | `toolbox/` | Minimal install of the packed CLI used to scaffold the app |
-| `app/` | The scaffolded `game` app, extended + verified headless-first |
-| `app/src/systems/` | Game systems (setup, player+jump, spawner, hazard, camera-follow) |
-| `app/boids/` | An original deterministic flocking sim, developed headless-first |
-| `app/res/`, `app/hier/`, `app/audio/`, `app/edge/`, `app/stress/` | Focused probes (resources, hierarchy, audio, error/edge cases, scale) |
-| `app/test/` | Reusable serve-protocol harness + gameplay/boids invariant suites + `all.mjs` runner |
-| `app/artifacts/` | Render bundles + PNGs (headless-browser white vs xvfb correct) |
+| `app/` | The scaffolded `game` app + 3 more apps, all developed headless-first |
+| `app/src/systems/` | **App 1 — game:** setup, player (move/jump/double-jump/dash), spawner, hazard, camera-follow |
+| `app/boids/` | **App 2 — boids:** deterministic O(N²) flocking sim |
+| `app/life/` | **App 3 — Game of Life:** non-3D grid cellular automaton |
+| `app/platformer/` | **App 4 — platformer:** complete level (platforms, pit + fall-death, traversal, goal) |
+| `app/{res,hier,audio,anim,wgsl,spatial,pick,multicam,authoring,hdr,edge,stress}/` | Focused feature probes (resources, hierarchy, audio, animation/skinning, custom WGSL, spatial queries, picking, multi-camera, render features, HDR, errors, scale) |
+| `app/test/` | Reusable serve harness + invariant suites (game/boids/life/platformer/double-jump/dash) + capability probes + `all.mjs` runner (9/9, 38 assertions) |
+| `app/artifacts/` | Render bundles + PNGs (incl. `F1-side-by-side.png`: headless-white vs xvfb-correct) |
 | `serve-driver.mjs` | NDJSON client for `aperture headless serve` |
 | `mcp-driver.mjs` | Minimal MCP stdio client (`aperture mcp stdio`) |
 | `detect-blank-render.mjs` | Drop-in CI guard for the F1/F2 blank-render false-positive (flags near-uniform frames) |
