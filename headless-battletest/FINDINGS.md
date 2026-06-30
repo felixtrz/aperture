@@ -152,3 +152,6 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 
 ## glTF animation works headless (PASS)
 - Animated cube glb loaded in strict Node mode (clips=1). this.spawn.animation(model).playClip advances during headless step: Cube rotation interpolated [-0.7071,...] (f3) -> [-0.7052,0.0514,...] (f43). The runtime animation driver runs headlessly; playback is time-driven (deterministic). So skeletal/node animation logic is headless-validatable.
+
+## Rapier physics SIMULATES in Node (F12 strengthened)
+- Beyond init: a dynamic rigid body dropped from Y=10 fell to Y=5.24 over 60 fixed steps (drop 4.76m ~= 0.5*9.81*1^2; bodyCount=1, colliderCount=1). Full rapier dynamics work in pure Node via low-level createApertureApp. Confirms F12 is purely the missing config.physics wiring in the headless CLI; the capability is complete.
