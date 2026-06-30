@@ -198,7 +198,9 @@ The headless config-loader strips types natively (fast, no `tsc`), which means a
   | 1000 | 27.5 ms | ~36 fps |
   | 2000 | 57.5 ms | ~17 fps |
 
-  So the warm interactive loop sustains real-time up to ~1000 entities; boot also grows with entity count (1.48 s → 2.32 s for 10 → 2000). Each serve `step` runs a full render extraction, which dominates at scale.
+  So the warm interactive loop sustains real-time up to ~1000 entities; boot also grows with entity count (1.48 s → 2.32 s for 10 → 2000).
+
+  **The cost is extraction, not simulation.** A one-shot run (which extracts only the final frame) steps the same 2000-entity scene at **~0.1 ms/step** — so render extraction is **~99.8 %** of the warm-serve per-step cost at scale; the ECS sim itself is nearly free. This is why one-shot `headless --frames N` is so much faster, and why a **step-without-extract option for the warm `serve` loop** (extract on demand) would be the single highest-leverage perf win for large-scene headless validation.
 - By contrast, one-shot `headless --frames N` extracts only the *final* frame, so it's much cheaper per step: **5000 frames in 2.98 s (~0.3 ms/frame incl. boot)**. So the "step-without-extract for large scenes" lever already exists for one-shot multi-frame runs — it's the warm `serve` loop (the interactive one) that lacks a step-without-extract option.
 - A 2000-entity scene authored with per-entity `mesh.box(...)`/`material.standard(...)` produced **4000 distinct source assets** and a 9.5 MB bundle — there's no automatic mesh/material dedup, so authoring guidance should emphasize sharing asset handles.
 
