@@ -9,6 +9,7 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 const checks = [
   ["game invariants", "game.test.mjs"],
   ["double-jump (TDD)", "double-jump.test.mjs"],
+  ["dash (TDD, new input action)", "dash.test.mjs"],
   ["boids invariants", "boids.test.mjs"],
   ["game of life invariants", "life.test.mjs"],
   ["physics capability probe", "../edge/physics-capability-probe.mjs"],

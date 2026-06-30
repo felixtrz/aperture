@@ -8,6 +8,9 @@ const GROUND_Y = 0.55;
 const GRAVITY = -18;
 const JUMP_VELOCITY = 7;
 const MAX_JUMPS = 2;
+const DASH_SPEED = 12;
+const DASH_FRAMES = 6;
+const DASH_COOLDOWN = 30;
 
 export default class PlayerSystem extends createSystem({
   priority: 20,
@@ -17,6 +20,9 @@ export default class PlayerSystem extends createSystem({
 }) {
   #verticalVelocity = 0;
   #jumpsRemaining = MAX_JUMPS;
+  #dashFrames = 0;
+  #dashCooldown = 0;
+  #dashDir = 1;
 
   override update(delta: number): void {
     const player = this.findByKey("player");
@@ -48,10 +54,33 @@ export default class PlayerSystem extends createSystem({
 
     const move = this.actions.move;
     const direction = move?.kind === "axis2d" ? move.x.value : 0;
+
+    // Dash: a button-triggered horizontal burst on a cooldown. Direction is the
+    // current move direction (defaults to facing right).
+    if (this.#dashCooldown > 0) {
+      this.#dashCooldown -= 1;
+    }
+    const dash = this.actions.dash;
+    if (
+      dash?.kind === "button" &&
+      dash.down() &&
+      this.#dashFrames <= 0 &&
+      this.#dashCooldown <= 0
+    ) {
+      this.#dashFrames = DASH_FRAMES;
+      this.#dashCooldown = DASH_COOLDOWN;
+      this.#dashDir = direction >= 0 ? 1 : -1;
+    }
+    let dashContribution = 0;
+    if (this.#dashFrames > 0) {
+      dashContribution = this.#dashDir * DASH_SPEED;
+      this.#dashFrames -= 1;
+    }
+
     const playerCurrentX = playerTranslation[0] ?? -3.5;
     const playerNextX = Math.max(
       -4,
-      Math.min(4.2, playerCurrentX + direction * delta * 3),
+      Math.min(4.2, playerCurrentX + (direction * 3 + dashContribution) * delta),
     );
     playerTranslation[0] = playerNextX;
     playerX.value = playerNextX;

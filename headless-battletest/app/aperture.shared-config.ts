@@ -44,6 +44,10 @@ export function createApertureAppConfig(options: ApertureAppConfigOptions) {
           input.gamepadButton("south"),
         ]),
         reset: input.button([input.key("KeyR")]),
+        dash: input.button([
+          input.key("ShiftLeft"),
+          input.gamepadButton("east"),
+        ]),
       },
     },
     render: {
