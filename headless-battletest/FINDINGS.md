@@ -155,3 +155,8 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 
 ## Rapier physics SIMULATES in Node (F12 strengthened)
 - Beyond init: a dynamic rigid body dropped from Y=10 fell to Y=5.24 over 60 fixed steps (drop 4.76m ~= 0.5*9.81*1^2; bodyCount=1, colliderCount=1). Full rapier dynamics work in pure Node via low-level createApertureApp. Confirms F12 is purely the missing config.physics wiring in the headless CLI; the capability is complete.
+
+## Camera tools + ecs_diff (PASS, complete tool coverage)
+- camera_look_at (rotation re-aimed), camera_orbit (yaw/pitch/radius/target → repositioned to [4.31,2.74,6.16]) work. camera_fit_entity's {key} selects the CAMERA, not the entity to frame (minor arg nuance; returned camera.notFound for key:player).
+- ecs_diff is precise: snapshot -> ecs_set_component_field(player translation) -> diff reports exactly 1 changed entity with fields:["localTransform"] + before/after. Structure: added/removed/changed/unchanged/counts.
+- Full devtools tool surface now exercised: ecs_query/get_entity/set_component_field/snapshot/diff/get_hierarchy/get_component_schema/list_systems/pause/resume/step, input_action_set/gamepad_set/get_state/reset (pointer_move/set browser-only), resource_get/set, asset_list, camera_get/list/save/restore/set_transform/look_at/orbit/fit_entity.
