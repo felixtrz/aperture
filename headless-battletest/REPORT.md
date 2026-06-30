@@ -141,7 +141,7 @@ For an identical 12-frame jump schedule, `aperture headless --inject` and `serve
 
 **F1 — `aperture render` produces an all-white frame in the headless-browser path, and reports success.**
 With `APERTURE_RENDER_HEADLESS=1` (the default the CI render smoke uses), the rendered PNG is **100% `255,255,255`** for *every* bundle (mine and the repo's own `headless-procedural` fixture). The same bundles render correctly under `xvfb-run` (165–278 distinct colors, materials visible). Root cause: the CLI captures via Playwright `#aperture-canvas` element screenshot (`render/driver.ts:176`) with no GPU-readback fallback; the project's own `docs/BROWSER_E2E_RENDERING.md` (lines 112–130) already documents that headless screenshot captures come back blank and that the e2e suite trusts **GPU readback** instead. The CLI render path never got that treatment.
-*Repro:* `APERTURE_RENDER_HEADLESS=1 aperture render <bundle> --out f.png` → inspect: all white.
+*Repro:* `APERTURE_RENDER_HEADLESS=1 aperture render <bundle> --out f.png` → inspect: all white. See `app/artifacts/F1-side-by-side.png` (same bundle: blank-white headless browser vs correct scene under xvfb).
 
 **F2 — `isPngBlank` only detects all-black, so blank-white renders pass as "ok" (false positive).**
 `tools/png-readback.ts`: `blackCoverage >= 0.995 && maxLuma <= 4`. An all-white frame has `maxLuma=255`, so it is never flagged. Combined with F1, this means **`check:pack-cli:render` passes on a completely blank render** — I confirmed the gate's exact 64×64 path is 100% white yet exits 0. CI "pixel confidence" is illusory in any GPU-less/headless-browser environment (CI, dev containers, this sandbox).
