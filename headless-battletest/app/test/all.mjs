@@ -12,6 +12,7 @@ const checks = [
   ["dash (TDD, new input action)", "dash.test.mjs"],
   ["boids invariants", "boids.test.mjs"],
   ["game of life invariants", "life.test.mjs"],
+  ["platformer (complete level)", "platformer.test.mjs"],
   ["physics capability probe", "../edge/physics-capability-probe.mjs"],
   ["physics simulation probe", "../edge/physics-sim-probe.mjs"],
   ["session snapshot/restore probe", "../edge/session-snapshot-probe.mjs"],

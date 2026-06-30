@@ -11,6 +11,7 @@
     "hdr/**/*.ts",
     "edge/det/**/*.ts",
     "edge/fixed/**/*.ts",
-    "stress/**/*.ts"
+    "stress/**/*.ts",
+    "platformer/**/*.ts"
   ]
 }
