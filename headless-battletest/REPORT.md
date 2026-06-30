@@ -148,6 +148,9 @@ With `APERTURE_RENDER_HEADLESS=1` (the default the CI render smoke uses), the re
 
 **F8 — One-shot `aperture headless` has no `--seed`** (only `serve` does). The one-shot is effectively pinned to seed 0 (confirmed: its 85-frame snapshot equals `serve --seed 0`). Any RNG-dependent one-shot validation can't vary the seed. *Fix:* add `--seed` to the one-shot command for parity.
 
+**F17 — Headless loads systems with no type-checking, so option-shape mistakes are silently ignored.**
+The headless config-loader strips types natively (fast, no `tsc`), which means authoring mistakes that `tsc` would reject pass silently and produce wrong behavior with no error. Concrete bite I hit: `spawn.mesh`'s parent goes in `transform: { parent }` (it's a `SystemTransformInput` field), but I wrote a top-level `parent` — it was silently dropped, so children spawned unparented, `ecs_get_hierarchy` showed them as roots, and `despawnRecursive` didn't cascade. With the option in the right place, all three work perfectly (parent → 3 children; recursive despawn removes the whole subtree). The scaffold's `pnpm typecheck` catches the mistake, but `aperture headless` itself never will. *Fix/guidance:* pair headless runs with `tsc --noEmit` in CI (the scaffold already provides the script), and/or have the loader validate known option shapes and warn on unknown keys.
+
 **F9 — Error surfaces are uneven.** Missing config → structured `configNotFound`; non-erasable TS → an excellent, actionable `configLoadFailed` ("enum not supported in strip-only mode"). But a **missing strict asset** leaks a raw `ENOENT … realpath`, and a **throwing system** surfaces a generic `aperture.cli.failed: <message>` with no system/phase attribution. The determinism diagnostics show how good these *can* be; asset/runtime errors should match.
 
 **F10 — `#aperture-canvas` screenshots include page chrome.** The xvfb render captured page scrollbars around the canvas, implying the harness page overflows the viewport. Cosmetic, but it pollutes any future screenshot-diff baseline.
@@ -176,7 +179,9 @@ With `APERTURE_RENDER_HEADLESS=1` (the default the CI render smoke uses), the re
 5. **Enforce determinism in serve/MCP (F11),** the loop people actually use — fail the step or echo diagnostics per-step, not only in `get-status`.
 6. **Add `--seed` to one-shot `headless` (F8)** and surface the active seed in `reset`/status (F7).
 7. **Level up asset/runtime error diagnostics (F9)** to match the (excellent) determinism diagnostics.
-8. **Smaller polish:** sim-only `snapshotDigest` (F6), step-without-extract for large scenes (§7), `reference query` alias (F13), priority in `ecs_list_systems` (F14).
+8. **Guard against the no-typecheck footgun (F17):** document that `aperture headless` does not type-check (pair it with the scaffold's `pnpm typecheck`), and/or have the loader warn on unknown spawn/option keys.
+9. **Expose session snapshot/restore (F15) and command dispatch (F16) in serve/MCP** so the interactive loop can checkpoint/branch and drive command-channel gameplay.
+10. **Smaller polish:** sim-only `snapshotDigest` (F6), step-without-extract for large scenes (§7), `reference query` alias (F13), priority in `ecs_list_systems` (F14).
 
 None of these block using headless mode for real development today — I did exactly that. They're about making the *headed pixel gate* honest, the *headless/headed parity* complete (F12), and the *tool ergonomics* strict.
 

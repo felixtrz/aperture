@@ -129,3 +129,12 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 - defineResource("id", {field: resource.number/string/vec3/...}) works. resource_get exposes field schema (name+kind) + values + version. resource_set live-mutates fields (set ticks=999, version bumps, system update continued from 999→1000). Earlier resources=0 was just because the game app defined none.
 - this.resources.read(R) / this.resources.write(R, next => {...}) — clean API; init-time write + per-step write both work.
 - ecs_query filters all work: key, tags[array], withComponents[array] (mesh-only returned ground/player/finish/hazard), namePattern ("Light"→Key/Fill Light), limit. Only the singular `tag` typo silently no-ops (F4).
+
+## Command bus is host-driven; not dispatchable in headless (F16)
+- System CommandAccess is drain-only (drain<T>(channel)); systems can't dispatch. App commands originate from the browser host/HUD (e.g. city-builder hud.ts dispatchCommand → worker postMessage).
+- The headless serve/MCP protocol has NO command-dispatch path (only input `inject` + devtools `tool`s). So command-driven gameplay (city-builder builder/camera) can't be exercised headlessly. Input-ACTION-driven gameplay is fine (injectable); command-CHANNEL-driven is not.
+- Suggestion: add a serve `command`/`dispatch` verb (and MCP tool) to post app commands to the headless runner.
+
+## Hierarchy + cascade despawn (PASS) and the no-typecheck footgun (F17)
+- transform:{ parent } parenting works: ecs_get_hierarchy shows tree.parent -> [child.0,1,2]; despawnRecursive(parent) cascades (all tree entities removed).
+- FOOTGUN: `parent` is a field of transform (SystemTransformInput), not a top-level spawn option. I initially passed top-level `parent` to spawn.mesh — silently IGNORED (children unparented, no cascade, no error). Because the headless loader uses native TS stripping with NO type-checking, option-shape mistakes that tsc would reject pass silently and produce wrong behavior. The scaffold's `pnpm typecheck` catches it, but `aperture headless` itself does not. Recommend pairing headless runs with tsc, or validating known spawn option shapes.
