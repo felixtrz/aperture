@@ -122,7 +122,7 @@ With `APERTURE_RENDER_HEADLESS=1` (the default the CI render smoke uses), the re
 `entityRefFromPayload` accepts an explicit `{index,generation}` or reuses `lastFind[0]`/`lastGet`. Passing `{key:"player"}` "works" only if you happened to `ecs_query` that key first; otherwise it errors (no prior find) or, worse, returns a **different** entity (whatever was queried last). This is a real footgun for agents/scripts. *Fix:* either resolve `{key}` directly in `ecs_get_entity`, or reject unknown payload keys instead of silently falling back.
 
 **F4 — `ecs_query`/`input inject` have silent-no-op parameter mismatches.**
-`ecs_query` filters on `tags: [...]` (array); a singular `tags:"coin"`… actually `tag:"coin"` is silently ignored and returns *everything* (up to the limit). Similarly, `inject`/`--inject` only support `pointer` + `button` actions — an `axis2d` action like `move` cannot be injected through `inject` at all (you must use the `input_action_set` tool with `{x,y}`). Both are "silent wrong-result" rather than "loud error" ergonomics. *Fix:* reject unknown filter keys; document/extend `inject` to cover axis actions, or error when handed one.
+`ecs_query` filters on `tags: [...]` (an array); the singular `tag: "coin"` is silently ignored and returns *everything* (up to the limit). Similarly, `inject`/`--inject` only support `pointer` + `button` actions — an `axis2d` action like `move` cannot be injected through `inject` at all (you must use the `input_action_set` tool with `{x,y}`). Both are "silent wrong-result" rather than "loud error" ergonomics. *Fix:* reject unknown filter keys; document/extend `inject` to cover axis actions, or error when handed one.
 
 **F5 — MCP `frame_capture` launches a *headed* browser with no auto-xvfb, so it dies without a display.**
 `frame_capture` → `browserType.launch: ... launched a headed browser without having a XServer running`. By contrast `aperture dev` auto-provisions its own xvfb (`:99 1280x800x24`) and works. So three headed entry points behave three different ways in a GPU-less env: `dev` (auto-xvfb, works), `render` (headless browser, white), `frame_capture` (headed, crashes). Under `xvfb-run`, `frame_capture` produces correct pixels (278 colors). *Fix:* make `frame_capture`/`render` share `dev`'s display-provisioning and GPU-mode logic.
@@ -151,7 +151,8 @@ With `APERTURE_RENDER_HEADLESS=1` (the default the CI render smoke uses), the re
 ---
 
 ## 7. Performance notes
-- Warm-serve per-step: **0.6 ms** at 7 entities, **65.9 ms** at 2000 entities. Per-step cost scales with scene size because **each `step` also runs a full render extraction**. For large-world headless validation, an option to step-without-extract (extract on demand) would help.
+- Warm-serve per-step: **0.6 ms** at 7 entities, **65.9 ms** at 2000 entities. Per-step cost scales with scene size because **each serve `step` also runs a full render extraction**.
+- By contrast, one-shot `headless --frames N` extracts only the *final* frame, so it's much cheaper per step: **5000 frames in 2.98 s (~0.3 ms/frame incl. boot)**. So the "step-without-extract for large scenes" lever already exists for one-shot multi-frame runs — it's the warm `serve` loop (the interactive one) that lacks a step-without-extract option.
 - A 2000-entity scene authored with per-entity `mesh.box(...)`/`material.standard(...)` produced **4000 distinct source assets** and a 9.5 MB bundle — there's no automatic mesh/material dedup, so authoring guidance should emphasize sharing asset handles.
 
 ---
