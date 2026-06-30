@@ -186,3 +186,6 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 
 ## Skinned/skeletal character works headless (PASS)
 - A rigged Soldier.glb (2.1MB) loaded strict in Node: 4 animation clips, playClip → playing=true, and the full skeleton instantiated as a 50-entity ECS subtree (bones). Skeletal animation advances on the CPU headlessly; GPU skinning happens at render. So even complex rigged characters are headless-validatable for logic/animation-state. (2.1MB GLB gitignored.)
+
+## Extreme-value robustness (graceful, minor codec nuance)
+- Injecting an absurd transform (scale 1e308) doesn't crash extraction/bundling: bundle stays valid JSON, deterministic digest, no NaN/Infinity strings. But the value overflows float32 -> Infinity -> the json-typed-array snapshot codec serializes it as `null` (1 null entry observed). So a strict bundle consumer should know non-finite snapshot values are encoded as null. Edge case (needs absurd input); pipeline is graceful. Systems that own an entity (player/hazard) overwrite injected extremes on the next step (self-sanitizing).
