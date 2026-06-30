@@ -27,6 +27,7 @@ findings. [`FINDINGS.md`](./FINDINGS.md) is the raw running log.
 | `serve-driver.mjs` | NDJSON client for `aperture headless serve` |
 | `mcp-driver.mjs` | Minimal MCP stdio client (`aperture mcp stdio`) |
 | `detect-blank-render.mjs` | Drop-in CI guard for the F1/F2 blank-render false-positive (flags near-uniform frames) |
+| `determinism-regression.mjs` | Runs all 4 apps twice and asserts bit-identical bundle digests (4/4 ✓) |
 
 ## Reproduce
 

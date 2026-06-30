@@ -10,3 +10,4 @@ app/public/hdri/
 *.hdr
 *.ktx2
 app/public/skin/
+app/artifacts/det.*.json
