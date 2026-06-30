@@ -174,3 +174,6 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 ## Multi-camera + devtools mutation guard (PASS)
 - Multi-camera extraction: 2 cameras -> extract views:2 (multi-view works headlessly; each view culls independently).
 - ecs_set_component_field is allow-listed to mutable components: it mutates LocalTransform.translation fine, but rejects aperture.metadata.enabled with a clear structured error (aperture.entityLookup.componentMutationUnsupported, "not mutable through the developer entity helper"). Sensible guard against corrupting structural/metadata state; entity enable/disable must be done in a system, not via the devtools tool.
+
+## Pointer picking / interaction works headless (PASS)
+- this.interaction.onClick/onDown/hoveredEntity() fire headlessly: injecting a normalized pointer [0.5,0.5] over a centered cube + press/release fired onDown (downs=1) and onClick (clicks=1), and hoveredEntity() resolved. runInteractionFrame runs in the app step path (advanced.js:140); raycasting from the injected pointer through the camera against mesh bounds works in pure Node. Meshes are pickable by default (no special component). One-frame hover latency observed (hover registered by the press frame). So click-to-select / UI interaction logic is headless-validatable.
