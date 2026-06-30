@@ -10,6 +10,7 @@ const checks = [
   ["game invariants", "game.test.mjs"],
   ["double-jump (TDD)", "double-jump.test.mjs"],
   ["boids invariants", "boids.test.mjs"],
+  ["game of life invariants", "life.test.mjs"],
   ["physics capability probe", "../edge/physics-capability-probe.mjs"],
   ["physics simulation probe", "../edge/physics-sim-probe.mjs"],
   ["session snapshot/restore probe", "../edge/session-snapshot-probe.mjs"],

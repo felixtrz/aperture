@@ -18,7 +18,7 @@ The goal: stand up a sub-directory, build the engine packages to `.tgz`, install
    - `spawner.system.ts` — coin spawner using `this.random` (seeded RNG) with runtime spawn/despawn.
    - jump + gravity added to `player.system.ts` — a `button`-action mechanic.
 4. **Verified each feature headlessly** via `aperture headless` (one-shot) and `aperture headless serve` (warm NDJSON session), the MCP server (`aperture mcp stdio`), entity/camera/input/resource tools, determinism gating, and replay digests.
-5. **Built a second, original app headless-first** — a deterministic **boids/flocking simulation** (`boids/`, 36 agents, O(N²) neighbor steering, all `context.random`/`context.time`) developed and verified entirely in Node, then rendered under xvfb (`app/artifacts/boids.s1.xvfb.png`). Determinism held (seed 1 → `733e4e71` twice; seed 2 → `9f5890c2`).
+5. **Built two more original apps headless-first** — (a) a deterministic **boids/flocking sim** (`boids/`, 36 agents, O(N²) steering) rendered under xvfb (`app/artifacts/boids.s1.xvfb.png`), determinism held (seed 1 → `733e4e71` twice; seed 2 → `9f5890c2`); and (b) a **Conway's Game of Life** (`life/`, a non-3D grid cellular automaton) verified against classic invariants headlessly (block still-life: liveCount conserved; blinker: period-2 oscillation) — showing headless suits sim domains beyond 3D games.
 6. **Compared against the headed flow**: `aperture render` (bundle → PNG via real WebGPU), MCP `frame_capture`, the live `aperture dev` session, and `vite build`.
 
 All reproduction artifacts live under `headless-battletest/` (`packs/`, `app/`, `app/artifacts/*.bundle.json`, `app/artifacts/*.png`, `serve-driver.mjs`, `mcp-driver.mjs`, `FINDINGS.md`).
