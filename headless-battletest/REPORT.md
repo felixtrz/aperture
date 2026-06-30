@@ -72,7 +72,13 @@ This is exactly the thesis the architecture docs sell ("headless is the default 
 - Diagnostics name the **system, API, phase, and suggested fix**. A deliberately-bad system using `Math.random()`/`Date.now()` was caught precisely; my real systems (using `this.time`/`this.random`) pass.
 - **Replay is bit-identical**: seed 1 produced byte-for-byte identical bundle digests across runs (`8a19ecd1`, 32394 bytes); seed 2 differed (`b750fc82`). `reset {seed}` re-seeds deterministically and matches boot-`--seed` layouts.
 
-This is something you fundamentally cannot get cheaply in a browser RAF loop, and it's the best argument for the whole headless approach.
+This is something you fundamentally cannot get cheaply in a browser RAF loop, and it's the best argument for the whole headless approach. **Caveat (F11):** this hard gate only fires in the *one-shot* command — the warm `serve` session never aborts on `--determinism error` and only exposes violations via `get-status.diagnostics`.
+
+### 4.5 Input, camera, and template coverage (all work)
+- **Driving an `axis2d` action:** `input_gamepad_set {axes:[x,…]}` drives the `move` action through its `gamepadStick("left")` binding and the value *persists* across steps (verified: left-stick X=1 → +3.0 units / 60 frames). This is the clean way to hold an analog input; `input_action_set {x,y}` queues a one-shot virtual event instead.
+- **Pointer:** `input_pointer_move/set` are browser-only (`toolUnavailable` in headless); use `inject {pointer}`. Pointer position is **normalized [0,1]** and clamped (`[0.5,0.25]`→as-is, `[-3,9]`→`[0,1]`).
+- **Camera:** `camera_set_transform` mutates the authoritative ECS camera; `camera_save`/`camera_restore` round-trip exactly ([0,3,7]→[0,99,0.1]→[0,3,7]).
+- **All three scaffold templates** (`minimal`, `game`, `glb-viewer`) scaffold from the packed CLI and run headlessly; `glb-viewer` loaded its GLB in strict mode (provenance real:4).
 
 ---
 
@@ -117,6 +123,9 @@ With `APERTURE_RENDER_HEADLESS=1` (the default the CI render smoke uses), the re
 
 **F5 — MCP `frame_capture` launches a *headed* browser with no auto-xvfb, so it dies without a display.**
 `frame_capture` → `browserType.launch: ... launched a headed browser without having a XServer running`. By contrast `aperture dev` auto-provisions its own xvfb (`:99 1280x800x24`) and works. So three headed entry points behave three different ways in a GPU-less env: `dev` (auto-xvfb, works), `render` (headless browser, white), `frame_capture` (headed, crashes). Under `xvfb-run`, `frame_capture` produces correct pixels (278 colors). *Fix:* make `frame_capture`/`render` share `dev`'s display-provisioning and GPU-mode logic.
+
+**F11 — The determinism hard-gate is one-shot-only; warm serve never enforces it.**
+`aperture headless --determinism error` aborts with exit 1 on a violation (`assertDeterminismPolicy`). The warm `serve` session has no equivalent — with `--determinism error` it kept stepping happily on a system calling `Math.random()`/`Date.now()`. Worse, serve surfaces the diagnostics **only** in `get-status.diagnostics` — not in `step` results and not on stderr — so an agent watching `step` output sees nothing. Since `serve`/MCP is the *recommended* interactive loop (per the scaffolded `CLAUDE.md`), the determinism feature is effectively off in the loop people will actually use. *Fix:* honor the determinism mode in serve (either fail the offending `step`, or at least echo diagnostics in every `step` result).
 
 ### Low / polish
 

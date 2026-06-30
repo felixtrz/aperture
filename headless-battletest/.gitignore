@@ -1,9 +1,8 @@
 # Heavy / generated — not committed
 packs/
-toolbox/node_modules/
-app/node_modules/
-app/dist/
-app/.aperture/
+**/node_modules/
+**/dist/
+**/.aperture/
 *.log
 # Large stress bundle (regenerate via stress/ config)
 app/artifacts/stress.bundle.json

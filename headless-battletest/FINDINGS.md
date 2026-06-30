@@ -92,3 +92,14 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 
 ## Headed build pipeline
 - vite build (packed @aperture-engine/vite-plugin): PASS. 603 modules, 789ms. Emits worker-entry chunk (worker/main split), main+audio chunks, copies goal-cube.glb. Packed plugin produces a working production bundle.
+
+## Determinism enforcement is one-shot-only (F11)
+- Serve mode does NOT abort on --determinism error (no assertDeterminismPolicy in serve). Session keeps running.
+- Serve surfaces determinism diagnostics ONLY in get-status.diagnostics (count 2 for Math.random+Date.now) — NOT in step results and NOT on stderr. Easy to miss.
+- One-shot `aperture headless --determinism error` is the only hard gate (exit 1).
+
+## Input paths (detailed)
+- input_gamepad_set {index,axes:[x,y,..]} drives axis2d move via gamepadStick("left"). Stick value PERSISTS across steps (cleaner than input_action_set which queues a one-shot virtualAction). Verified: left-stick X=1 → player +3.0 units / 60 frames.
+- input_pointer_move / input_pointer_set: UNAVAILABLE in headless (aperture.headless.toolUnavailable) — browser-only. Use inject {pointer} instead.
+- inject pointer position is NORMALIZED [0,1] (not pixels) and CLAMPED: [0.5,0.25]→as-is, [-3,9]→[0,1], [10,20]→[1,1]. Help text doesn't say this. Minor doc gap.
+- input_get_state, input_reset: available in headless.
