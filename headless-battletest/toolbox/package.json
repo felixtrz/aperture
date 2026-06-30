@@ -1,0 +1,24 @@
+{
+  "name": "aperture-toolbox",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@aperture-engine/cli": "file:/home/user/aperture/headless-battletest/packs/aperture-engine-cli-0.2.0.tgz"
+  },
+  "pnpm": {
+    "overrides": {
+      "@aperture-engine/app": "file:/home/user/aperture/headless-battletest/packs/aperture-engine-app-0.2.0.tgz",
+      "@aperture-engine/audio": "file:/home/user/aperture/headless-battletest/packs/aperture-engine-audio-0.2.0.tgz",
+      "@aperture-engine/cli": "file:/home/user/aperture/headless-battletest/packs/aperture-engine-cli-0.2.0.tgz",
+      "@aperture-engine/math": "file:/home/user/aperture/headless-battletest/packs/aperture-engine-math-0.2.0.tgz",
+      "@aperture-engine/physics": "file:/home/user/aperture/headless-battletest/packs/aperture-engine-physics-0.2.0.tgz",
+      "@aperture-engine/physics-rapier": "file:/home/user/aperture/headless-battletest/packs/aperture-engine-physics-rapier-0.2.0.tgz",
+      "@aperture-engine/render": "file:/home/user/aperture/headless-battletest/packs/aperture-engine-render-0.2.0.tgz",
+      "@aperture-engine/runtime": "file:/home/user/aperture/headless-battletest/packs/aperture-engine-runtime-0.2.0.tgz",
+      "@aperture-engine/simulation": "file:/home/user/aperture/headless-battletest/packs/aperture-engine-simulation-0.2.0.tgz",
+      "@aperture-engine/ui": "file:/home/user/aperture/headless-battletest/packs/aperture-engine-ui-0.2.0.tgz",
+      "@aperture-engine/vite-plugin": "file:/home/user/aperture/headless-battletest/packs/aperture-engine-vite-plugin-0.2.0.tgz",
+      "@aperture-engine/webgpu": "file:/home/user/aperture/headless-battletest/packs/aperture-engine-webgpu-0.2.0.tgz"
+    }
+  }
+}

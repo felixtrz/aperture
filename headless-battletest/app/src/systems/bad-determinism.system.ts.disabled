@@ -1,0 +1,14 @@
+import { createSystem } from "@aperture-engine/app/systems";
+
+// DELIBERATELY non-deterministic — used to prove the headless determinism gate
+// flags nondeterministic globals. Renamed to *.system.ts to activate, back to
+// *.disabled to deactivate. Not part of the shipping app.
+export default class BadDeterminismSystem extends createSystem({ priority: 99 }) {
+  override update(): void {
+    const jitter = Math.random();
+    const wallClock = Date.now();
+    if (jitter > 2 || wallClock < 0) {
+      this.diagnostics.info("never", { jitter, wallClock });
+    }
+  }
+}
