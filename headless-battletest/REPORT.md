@@ -103,7 +103,10 @@ The headless bundle's closure for a mid-field frame listed exactly six meshes �
 ### 5.2 Asset mode is consistent across the headless↔headed boundary
 Rendering the same game state from a **strict** bundle vs a **placeholder** bundle (both under xvfb) differs exactly as the headless closures predict: the strict closure has the GLB `goal:mesh:0:primitive:0` and the rendered image shows the teal gem; the placeholder closure drops it (5 vs 6 meshes) and the rendered image has no gem — everything else identical. So "placeholder mode" omits unsupported geometry consistently in both the structural snapshot and the pixels. (`app/artifacts/midfield.xvfb.png` vs `…/midfield.placeholder.xvfb.png`.)
 
-### 5.3 One-shot and serve are the same simulator
+### 5.3 Headless and headed run the *same* simulation
+I checked the core "headless mirrors the sim" promise directly. The hazard's position is a pure function of sim time: `x = 1 + 2.5·sin(elapsed·1.6)`. Headless matched that analytical curve to **6 decimals** (against `elapsed=(frame−1)·dt`). I then started the live `aperture dev` browser, paused it, stepped it, and read the hazard entity — its X matched `1 + 2.5·sin(elapsed·1.6)` for the *browser's own* elapsed to **1.26e-8** (float-exact). Same system module, same result. The only difference is the **time source**: headless drives a clean fixed-step clock; the browser accumulates wall-clock/RAF time (so its `elapsed` values differ, and bit-identical cross-runtime replay requires stepping the browser with a fixed clock + identical seed/input — which `ecs_step` does). For routine logic/3D-math/replay work, headless genuinely *is* the simulation.
+
+### 5.4 One-shot and serve are the same simulator
 For an identical 12-frame jump schedule, `aperture headless --inject` and `serve` `inject` produced **byte-identical** `snapshot.value`, `closure`, and `assetProvenance`. The only difference was the full-bundle digest — because `engine.createdBy` ("aperture headless" vs "aperture serve") is folded into the digest (see Finding F6).
 
 ---
