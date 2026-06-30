@@ -96,7 +96,10 @@ This is something you fundamentally cannot get cheaply in a browser RAF loop, an
 ### 5.1 The structural↔pixel bridge is real and accurate
 The headless bundle's closure for a mid-field frame listed exactly six meshes — `level.ground`, `player`, `goal:mesh:0:primitive:0` (the GLB gem), `hazard.patrol`, `finish.flag`, `coin.2`. Rendering that same bundle under **xvfb** produced an image with exactly those six objects (green ground, blue player, teal gem, brown hazard, red flag, gold coin). **Headless structural truth and headed pixels agree.** (`app/artifacts/midfield.xvfb.png`, `app/artifacts/frame_capture.xvfb.png`.)
 
-### 5.2 One-shot and serve are the same simulator
+### 5.2 Asset mode is consistent across the headless↔headed boundary
+Rendering the same game state from a **strict** bundle vs a **placeholder** bundle (both under xvfb) differs exactly as the headless closures predict: the strict closure has the GLB `goal:mesh:0:primitive:0` and the rendered image shows the teal gem; the placeholder closure drops it (5 vs 6 meshes) and the rendered image has no gem — everything else identical. So "placeholder mode" omits unsupported geometry consistently in both the structural snapshot and the pixels. (`app/artifacts/midfield.xvfb.png` vs `…/midfield.placeholder.xvfb.png`.)
+
+### 5.3 One-shot and serve are the same simulator
 For an identical 12-frame jump schedule, `aperture headless --inject` and `serve` `inject` produced **byte-identical** `snapshot.value`, `closure`, and `assetProvenance`. The only difference was the full-bundle digest — because `engine.createdBy` ("aperture headless" vs "aperture serve") is folded into the digest (see Finding F6).
 
 ---
