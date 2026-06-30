@@ -121,7 +121,7 @@ A consolidated list of what I confirmed runs in pure Node (no browser), since th
 - **ECS render features (authored as entities):** fog, procedural sky, particles, audio emitters (`audio.loop`/`playOneShot`), and **custom WGSL materials** (inline-shader source captured as an asset; GPU compilation deferred to render).
 - **Physics:** rapier **simulates** in Node via the low-level API (a body falls under gravity) — just not wired to the headless CLI (F12).
 
-The genuinely browser-only parts are: real WebGPU **pixels** (the headed render/`frame_capture`/`dev` paths), DOM/native input, audio **device** playback, and host-dispatched **commands** (F16).
+The genuinely browser-only parts are: real WebGPU **pixels** (the headed render/`frame_capture`/`dev` paths), DOM/native input, audio **device** playback, host-dispatched **commands** (F16), and the **HTML/UI layer** (`@aperture-engine/ui` + the HTML bridge — not wired into the ECS systems surface, so inherently DOM-bound).
 
 ---
 
