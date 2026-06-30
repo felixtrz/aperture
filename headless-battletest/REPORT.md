@@ -122,6 +122,7 @@ A consolidated list of what I confirmed runs in pure Node (no browser), since th
 - **Assets (strict, real bytes in Node):** glTF/GLB (incl. **animation** playback), RGBE **HDR** environment maps, audio clips.
 - **ECS render features (authored as entities):** fog, procedural sky, particles, audio emitters (`audio.loop`/`playOneShot`), **custom WGSL materials** (inline-shader source captured as an asset; GPU compilation deferred to render), and **trails** (`trails.groundRibbon().track()` builds a dynamic ribbon mesh that extracts as a draw).
 - **Physics:** rapier **simulates** in Node via the low-level API (a body falls under gravity) — just not wired to the headless CLI (F12).
+- **Agent loop & docs:** all 46 MCP tools work; the exact loop the scaffolded `CLAUDE.md` prescribes runs **9/9 green** end-to-end (`app_start → ecs_step → ecs_find_entities → resource_get → asset_list → input_get_state → logs_read → app_reset → app_status`; only `frame_capture` needs a display, F5). The **reference RAG** subsystem works too — `reference warmup` built a 758-entry corpus + local embedding model, and `reference_search`/`explain_diagnostic`/`find_examples`/`api_lookup` return relevant hits.
 
 The genuinely browser-only parts are: real WebGPU **pixels** (the headed render/`frame_capture`/`dev` paths), DOM/native input, audio **device** playback, host-dispatched **commands** (F16), and the **HTML/UI layer** (`@aperture-engine/ui` + the HTML bridge — not wired into the ECS systems surface, so inherently DOM-bound).
 
