@@ -33,6 +33,30 @@ All reproduction artifacts live under `headless-battletest/` (`packs/`, `app/`, 
 
 This is exactly the thesis the architecture docs sell ("headless is the default loop; the browser is the pixel gate") — but the pixel gate is currently a gate that's stuck open.
 
+### Findings at a glance
+
+| # | Sev | One-liner |
+|---|-----|-----------|
+| F1 | High | `aperture render` (headless browser) outputs an all-white frame yet reports success |
+| F2 | High | `isPngBlank` only detects black → blank-white renders pass CI (`check:pack-cli:render`) |
+| F12 | High | A `physics` block in a headless config is silently ignored; `fixedUpdate` never fires headlessly (wiring gap — proven to work in Node) |
+| F3 | Med | `ecs_get_entity` silently ignores `{key}`, falls back to last query's first result |
+| F4 | Med | `ecs_query` singular `tag` / un-injectable axis actions silently no-op |
+| F5 | Med | MCP `frame_capture` launches a headed browser with no auto-xvfb → crashes headless |
+| F11 | Med | Determinism hard-gate is one-shot-only; warm serve never enforces it |
+| F16 | Med | Command bus is host-driven; serve/MCP can't dispatch app commands |
+| F17 | Med | Headless loads systems with no type-checking → misplaced options silently ignored |
+| F6 | Low | Render-bundle digest folds in `createdBy` → not a pure-sim digest |
+| F7 | Low | `reset {seed}` re-seeds correctly but reports `seed: undefined` |
+| F8 | Low | One-shot `headless` has no `--seed` (pinned to 0) |
+| F9 | Low | Asset/runtime errors leak raw messages vs the great determinism diagnostics |
+| F10 | Low | `#aperture-canvas` screenshot includes page chrome (scrollbars) |
+| F13 | Low | `reference` CLI subcommand is `search` but docs/API say `query` |
+| F14 | Low | `ecs_list_systems` omits the numeric priority |
+| F15 | Low | SessionSnapshot capture/restore works but is library-only (not in serve/MCP) |
+
+Everything else — packing, scaffolding, type closure, the headless dev loop, determinism, replay, input, entities, resources, hierarchy, audio, strict assets, headless↔headed sim parity — **works** (details below).
+
 ---
 
 ## 3. The packing → install → scaffold flow (works)
