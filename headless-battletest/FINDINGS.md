@@ -103,3 +103,17 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 - input_pointer_move / input_pointer_set: UNAVAILABLE in headless (aperture.headless.toolUnavailable) — browser-only. Use inject {pointer} instead.
 - inject pointer position is NORMALIZED [0,1] (not pixels) and CLAMPED: [0.5,0.25]→as-is, [-3,9]→[0,1], [10,20]→[1,1]. Help text doesn't say this. Minor doc gap.
 - input_get_state, input_reset: available in headless.
+
+## fixedUpdate / physics NOT wired in headless (F12 — significant)
+- A system's fixedUpdate() never fires through `aperture headless` (one-shot OR serve). fixedTicks=0, fixedStepClock=null after stepping; update() fires normally.
+- Adding `physics: { backend:"rapier", gravity }` to the headless config changes NOTHING (still fixedStepClock=null, no diagnostic, exit 0).
+- Root cause: createApertureApp (advanced.ts:142) reads physics from `options.physics`, never `options.config.physics`. The worker/browser loop (worker/loop.ts:63,82) translates config.physics → options.physics; the headless runner (headless.ts) calls createApertureApp({...options, config}) WITHOUT that translation, so config.physics is silently dropped.
+- Consequence: physics-based games + any fixedUpdate system can't be validated headlessly; and a SHARED config with a physics block diverges silently between browser (physics on) and headless (physics off). No warning.
+- Corroboration: only the non-physics city-builder showcase has a headless config; fps/platformer/racing (all physics) do not.
+- Suggested fix: headless runner should mirror resolveConfigPhysicsOption(config.physics) like worker/loop.ts, or at minimum emit a diagnostic when config.physics is present but dropped.
+
+## Misc CLI surfaces
+- reference status/search work; unwarmed search fails gracefully ("corpus is not warmed"). CLI subcommand is `search`, but package README/programmatic API call it `query` (naming mismatch).
+- adapter sync: clean dir writes 7 files; re-run is idempotent (Unchanged:7, no conflicts).
+- ecs_list_systems lists systems in execution/priority order (Setup,Player,Spawner,Hazard,CameraFollow) but does NOT expose the numeric priority value.
+- render of a placeholder bundle without --allow-placeholders SUCCEEDS when the placeholder asset isn't in the draw closure (closure validates REFERENCED assets only — correct behavior).

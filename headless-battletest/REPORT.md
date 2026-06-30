@@ -113,6 +113,9 @@ With `APERTURE_RENDER_HEADLESS=1` (the default the CI render smoke uses), the re
 `tools/png-readback.ts`: `blackCoverage >= 0.995 && maxLuma <= 4`. An all-white frame has `maxLuma=255`, so it is never flagged. Combined with F1, this means **`check:pack-cli:render` passes on a completely blank render** — I confirmed the gate's exact 64×64 path is 100% white yet exits 0. CI "pixel confidence" is illusory in any GPU-less/headless-browser environment (CI, dev containers, this sandbox).
 *Fix:* detect low-variance/near-uniform frames in general (white, single-color, NaN→white), not just black; and/or adopt GPU readback in the render CLI as the e2e suite does.
 
+**F12 — A `physics` block in a headless config is silently ignored; `fixedUpdate` never fires headlessly.**
+`fixedUpdate()` never ran through `aperture headless` (one-shot or serve): `fixedTicks=0`, `fixedStepClock=null`, while `update()` ran every step. Adding `physics: { backend: "rapier", gravity }` to the headless config changed nothing — no fixed-step, no diagnostic, exit 0. Root cause: `createApertureApp` (`advanced.ts:142`) derives physics/fixed-step from `options.physics`, never `options.config.physics`. The **worker/browser** loop translates `config.physics → options.physics` (`worker/loop.ts:63,82`); the **headless runner** (`headless.ts`) calls `createApertureApp({ ...options, config })` *without* that translation, so `config.physics` is dropped. Consequences: (a) physics-based games and any `fixedUpdate` system **cannot be validated headlessly**; (b) a **shared config** with a physics block (the scaffold pattern!) silently diverges — physics on in the browser, off in headless — with no warning, which directly undermines the "headless mirrors the sim" promise. Corroboration: only the physics-free `city-builder` showcase ships a headless config; `fps`/`platformer`/`racing` don't. *Fix:* have the headless runner mirror `resolveConfigPhysicsOption(config.physics)` like the worker loop, or at minimum emit a diagnostic when `config.physics` is present but dropped.
+
 ### Medium
 
 **F3 — `ecs_get_entity` silently ignores `{key}` and falls back to the last query's first result.**
@@ -139,6 +142,10 @@ With `APERTURE_RENDER_HEADLESS=1` (the default the CI render smoke uses), the re
 
 **F10 — `#aperture-canvas` screenshots include page chrome.** The xvfb render captured page scrollbars around the canvas, implying the harness page overflows the viewport. Cosmetic, but it pollutes any future screenshot-diff baseline.
 
+**F13 — `reference` subcommand is `search`, but the package README + programmatic API call it `query`** (`searchApertureReferences`, "Warm and query"). `aperture reference query …` → `unknownSubcommand`. Align the docs or add a `query` alias.
+
+**F14 — `ecs_list_systems` lists systems in execution order but omits the numeric `priority`.** Minor, but priority is the thing you actually want when debugging ordering.
+
 ---
 
 ## 7. Performance notes
@@ -150,13 +157,15 @@ With `APERTURE_RENDER_HEADLESS=1` (the default the CI render smoke uses), the re
 ## 8. Recommendations (prioritized)
 
 1. **Fix the blank-render false-positive (F1+F2).** This is the one that erodes trust: make `render` use GPU readback (the e2e path already proves it works) or, at minimum, make `isPngBlank` reject near-uniform frames and have the render smoke assert non-blank pixels. Today a green CI render check means nothing in GPU-less envs.
-2. **Unify headed display/GPU provisioning (F5).** `render` and `frame_capture` should reuse `dev`'s auto-xvfb + `--gpu auto` so "it renders" doesn't depend on which entry point you picked.
-3. **Make tool inputs strict (F3, F4).** Resolve `{key}` in `ecs_get_entity`; reject unknown query filter keys and un-injectable action kinds. Silent wrong-results are the worst failure mode for an agent-driven loop.
-4. **Add `--seed` to one-shot `headless` (F8)** and surface the active seed in `reset`/status (F7).
-5. **Level up asset/runtime error diagnostics (F9)** to match the (excellent) determinism diagnostics.
-6. **Consider a sim-only `snapshotDigest` (F6)** and a step-without-extract mode for large scenes (§7).
+2. **Wire `config.physics` into the headless runner, or warn loudly (F12).** Right now a physics/`fixedUpdate` game silently behaves differently headless vs headed. Mirror `resolveConfigPhysicsOption(config.physics)` in `headless.ts`; if headless physics is intentionally out of scope, emit a diagnostic when a dropped `physics` block is detected.
+3. **Unify headed display/GPU provisioning (F5).** `render` and `frame_capture` should reuse `dev`'s auto-xvfb + `--gpu auto` so "it renders" doesn't depend on which entry point you picked.
+4. **Make tool inputs strict (F3, F4).** Resolve `{key}` in `ecs_get_entity`; reject unknown query filter keys and un-injectable action kinds. Silent wrong-results are the worst failure mode for an agent-driven loop.
+5. **Enforce determinism in serve/MCP (F11),** the loop people actually use — fail the step or echo diagnostics per-step, not only in `get-status`.
+6. **Add `--seed` to one-shot `headless` (F8)** and surface the active seed in `reset`/status (F7).
+7. **Level up asset/runtime error diagnostics (F9)** to match the (excellent) determinism diagnostics.
+8. **Smaller polish:** sim-only `snapshotDigest` (F6), step-without-extract for large scenes (§7), `reference query` alias (F13), priority in `ecs_list_systems` (F14).
 
-None of these block using headless mode for real development today — I did exactly that. They're about making the *headed pixel gate* honest and the *tool ergonomics* strict.
+None of these block using headless mode for real development today — I did exactly that. They're about making the *headed pixel gate* honest, the *headless/headed parity* complete (F12), and the *tool ergonomics* strict.
 
 ---
 
