@@ -118,7 +118,7 @@ A consolidated list of what I confirmed runs in pure Node (no browser), since th
 - **Queries:** `ecs_query`/`get_entity`/`snapshot`/`diff`/`hierarchy`/`component_schema`; **spatial queries** (`raycastFirst`/`overlapSphere`/`closestPoint` — exact, BVH-backed); hierarchy parenting + recursive despawn.
 - **Resources & signals:** `defineResource` + `resource_get`/`set`; signals.
 - **Assets (strict, real bytes in Node):** glTF/GLB (incl. **animation** playback), RGBE **HDR** environment maps, audio clips.
-- **ECS render features (authored as entities):** fog, procedural sky, particles, audio emitters (`audio.loop`/`playOneShot`), and **custom WGSL materials** (inline-shader source captured as an asset; GPU compilation deferred to render).
+- **ECS render features (authored as entities):** fog, procedural sky, particles, audio emitters (`audio.loop`/`playOneShot`), **custom WGSL materials** (inline-shader source captured as an asset; GPU compilation deferred to render), and **trails** (`trails.groundRibbon().track()` builds a dynamic ribbon mesh that extracts as a draw).
 - **Physics:** rapier **simulates** in Node via the low-level API (a body falls under gravity) — just not wired to the headless CLI (F12).
 
 The genuinely browser-only parts are: real WebGPU **pixels** (the headed render/`frame_capture`/`dev` paths), DOM/native input, audio **device** playback, host-dispatched **commands** (F16), and the **HTML/UI layer** (`@aperture-engine/ui` + the HTML bridge — not wired into the ECS systems surface, so inherently DOM-bound).
