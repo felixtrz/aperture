@@ -9,3 +9,4 @@ app/artifacts/stress.bundle.json
 app/public/hdri/
 *.hdr
 *.ktx2
+app/public/skin/

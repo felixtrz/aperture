@@ -183,3 +183,6 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 
 ## Custom WGSL material authoring works headless (PASS)
 - material.customWgsl with shader.inlineWgsl authors headlessly: the custom material + inline shader source are captured as real assets (provenance real:2, mesh+material in closure), exit 0, no GPU needed. Shader COMPILATION is deferred to render time (browser); AUTHORING the shader source is headless. Confirms the boundary: all authoring (even custom shaders) is headless; only pixel production is browser-only.
+
+## Skinned/skeletal character works headless (PASS)
+- A rigged Soldier.glb (2.1MB) loaded strict in Node: 4 animation clips, playClip → playing=true, and the full skeleton instantiated as a 50-entity ECS subtree (bones). Skeletal animation advances on the CPU headlessly; GPU skinning happens at render. So even complex rigged characters are headless-validatable for logic/animation-state. (2.1MB GLB gitignored.)
