@@ -196,3 +196,7 @@ Start: 2026-06-30T19:08:00Z. Env: Node v22.22.2, pnpm 10.x, Linux 6.18.5 x86_64,
 
 ## MCP and serve interfaces are consistent (PASS)
 - The two documented agent-facing loops produce IDENTICAL deterministic results: seed-1 step-85 coin layout is coin.0,coin.2,coin.3 via BOTH `aperture headless serve` (NDJSON) and `aperture mcp stdio` (app_start+ecs_step+ecs_query). Agents can use either interface interchangeably. Report appendix reproduce commands all verified working.
+
+## Reference RAG subsystem works end-to-end (PASS)
+- `aperture reference warmup` downloaded + built the corpus from the CDN (758 entries, 3277 chunks, 758 sources) AND fetched the pinned local Transformers.js embedding model — exit 0 in this proxied env.
+- `aperture reference search "how do I spawn a mesh in a system"` returned semantically-relevant hits with scores: runtime withMesh (0.88), docs/AUTHORING.md Primitive-and-GLB-Spawning with the exact this.spawn.mesh example (0.85), spawn descriptors (0.84). The full RAG flow (local query embedding + retrieval) works — relevant to the AI-agent dev loop (agents can query engine docs/source headlessly).
