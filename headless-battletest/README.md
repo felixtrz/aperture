@@ -24,6 +24,7 @@ findings. [`FINDINGS.md`](./FINDINGS.md) is the raw running log.
 | `app/artifacts/` | Render bundles + PNGs (headless-browser white vs xvfb correct) |
 | `serve-driver.mjs` | NDJSON client for `aperture headless serve` |
 | `mcp-driver.mjs` | Minimal MCP stdio client (`aperture mcp stdio`) |
+| `detect-blank-render.mjs` | Drop-in CI guard for the F1/F2 blank-render false-positive (flags near-uniform frames) |
 
 ## Reproduce
 
