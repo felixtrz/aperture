@@ -81,6 +81,9 @@ This is something you fundamentally cannot get cheaply in a browser RAF loop, an
 - **Camera:** `camera_set_transform` mutates the authoritative ECS camera; `camera_save`/`camera_restore` round-trip exactly ([0,3,7]→[0,99,0.1]→[0,3,7]).
 - **All three scaffold templates** (`minimal`, `game`, `glb-viewer`) scaffold from the packed CLI and run headlessly; `glb-viewer` loaded its GLB in strict mode (provenance real:4).
 
+### 4.6 A headless test harness caught a real regression (the loop's whole point)
+I wrote a ~60-line client over the `serve` NDJSON protocol (`app/test/headless-harness.mjs`) and a gameplay-invariant suite (`app/test/game.test.mjs`, **17 assertions, all green**). It immediately earned its keep: when I added the patrol hazard, the suite showed the level had become **unwinnable** — the hazard's collision was Y-agnostic, so jumping couldn't avoid it and `goalReached` never flipped under any input. I made the hazard only catch a *grounded* player; the suite's `winnableByJumping` test then passed (`hits=0`, `goalReached=true`) while `hazardBlocksGrounded` still documents the obstacle. That's the full write→detect-regression→fix→confirm loop, run in **pure Node in seconds**, no browser — exactly what headless mode is for. This is the single most convincing thing I can say about the headless flow: it is good enough to be your gameplay test harness.
+
 ---
 
 ## 5. Headless vs headed: the comparison

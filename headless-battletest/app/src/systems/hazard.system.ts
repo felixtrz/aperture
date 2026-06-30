@@ -16,6 +16,10 @@ const PATROL_RATE = 1.6; // radians/second
 const HAZARD_Y = 0.55;
 const PLAYER_SPAWN_X = -3.5;
 const HIT_RADIUS = 0.55;
+// The hazard only catches a grounded player; jumping above this height clears
+// it. (Without a Y check the level is unwinnable — a regression the headless
+// gameplay test caught when the hazard was first added.)
+const HIT_HEIGHT = 1.0;
 
 export default class HazardSystem extends createSystem({
   priority: 30,
@@ -59,8 +63,9 @@ export default class HazardSystem extends createSystem({
 
     const playerTranslation = player.getVectorView(LocalTransform, "translation");
     const playerX = playerTranslation[0] ?? PLAYER_SPAWN_X;
+    const playerY = playerTranslation[1] ?? HAZARD_Y;
 
-    if (Math.abs(playerX - x) < HIT_RADIUS) {
+    if (Math.abs(playerX - x) < HIT_RADIUS && playerY < HIT_HEIGHT) {
       playerTranslation[0] = PLAYER_SPAWN_X;
       if (hits !== undefined) {
         hits.value = Number(hits.value) + 1;
