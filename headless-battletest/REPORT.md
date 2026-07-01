@@ -22,7 +22,7 @@ ran Rapier physics in Node, decoded real GLBs, and rendered every result to PNG
 through the auto-provisioned SwiftShader WebGPU path. Authoring and rendering
 **parity between headless and headed is excellent**.
 
-That said, battle-testing surfaced **15 findings and 14 observations**, including
+That said, battle-testing surfaced **15 findings and 15 observations**, including
 **two HIGH-severity bugs**, each root-caused and each with a verified fix: (1) a
 **crash** on `reset`/`app_reset` for custom-component apps (traced to a single
 elics guard), and (2) **skeletal GLB animation silently frozen at bind pose**
@@ -71,7 +71,7 @@ throughput.
 | F11 | LOW | errors | Browser config → cryptic `BASE_URL` error | traced |
 | F12 | LOW | types | Scaffold tsconfig only checks `src/**` | **verified** |
 
-Wins (W1–W25) are in §4; observations (O1–O14) in §7.
+Wins (W1–W25) are in §4; observations (O1–O15) in §7.
 
 **Coverage exercised:** CLI — `create` (minimal/game/glb-viewer), `headless`
 (all flags: frames/delta/seed/inject/asset-mode/determinism/render-dims/json/
@@ -317,6 +317,15 @@ at `det = EPSILON`:
 | 0.02 | 8.0e-6 | 612 elems change | animates |
 | 1.0 | 1.0 | 588 elems change | animates |
 
+**Contrast — the bug is skinning-specific, not an animation bug.** I hand-built a
+minimal glTF with **node/TRS** animation (a cube spinning about Y) authored at the
+same **0.01 node scale** (`det = 1e-6`, the freezing boundary). It animates fine
+headless→render (`nodeanim_spincube.png`; frame 5 ≠ frame 20; world transform
+changes each frame). Node animation shares the exact same `updateAnimationDrivers`
+path but never calls `invertMat4(meshWorld)` — only the *skin*-palette derivation
+does — so it is unaffected. This isolates F15 precisely to the skinning-palette
+inversion.
+
 The animation *simulation* is perfect; only the *skin-palette derivation* drops
 it, and only because a perfectly well-conditioned matrix (its inverse is just
 scale-100) is misclassified as singular. Any uniform scale ≤ 0.01 triggers it
@@ -553,6 +562,14 @@ parity gaps above (F7/F10/F5, O3) being the main rough edges.
   **and** the MCP `frame_capture`/`render_bundle` tools) `chromium.launch()`es a
   fresh browser + provisions Xvfb on every call and closes them in `finally` —
   there is no browser reuse, so each on-demand capture pays the full boot.
+- **O15 — the Node glTF loader rejects data-URI buffers.** A spec-valid `.gltf`
+  with an embedded `buffers[].uri = data:application/octet-stream;base64,…` fails
+  strict load with "this loader currently expects same-origin external buffer
+  files … bytes were not provided for POSITION/INDICES." An external `.bin`
+  sidecar (or `.glb`) works. Data-URI buffers are common exporter output and are
+  valid glTF 2.0, so an author embedding buffers inline hits an avoidable wall;
+  the message is at least clear and suggests `--asset-mode hybrid`. (Found while
+  building the F15 node-animation contrast asset.)
 
 ---
 

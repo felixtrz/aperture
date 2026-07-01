@@ -50,6 +50,8 @@
     "anim.headless.config.ts",
     "anim-src/**/*.ts",
     "batch.headless.config.ts",
-    "batch-src/**/*.ts"
+    "batch-src/**/*.ts",
+    "nodeanim.headless.config.ts",
+    "nodeanim-src/**/*.ts"
   ]
 }
