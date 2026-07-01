@@ -22,7 +22,7 @@ ran Rapier physics in Node, decoded real GLBs, and rendered every result to PNG
 through the auto-provisioned SwiftShader WebGPU path. Authoring and rendering
 **parity between headless and headed is excellent**.
 
-That said, battle-testing surfaced **15 findings and 13 observations**, including
+That said, battle-testing surfaced **15 findings and 14 observations**, including
 **two HIGH-severity bugs**, each root-caused and each with a verified fix: (1) a
 **crash** on `reset`/`app_reset` for custom-component apps (traced to a single
 elics guard), and (2) **skeletal GLB animation silently frozen at bind pose**
@@ -71,7 +71,7 @@ throughput.
 | F11 | LOW | errors | Browser config → cryptic `BASE_URL` error | traced |
 | F12 | LOW | types | Scaffold tsconfig only checks `src/**` | **verified** |
 
-Wins (W1–W25) are in §4; observations (O1–O13) in §7.
+Wins (W1–W25) are in §4; observations (O1–O14) in §7.
 
 **Coverage exercised:** CLI — `create` (minimal/game/glb-viewer), `headless`
 (all flags: frames/delta/seed/inject/asset-mode/determinism/render-dims/json/
@@ -540,6 +540,15 @@ parity gaps above (F7/F10/F5, O3) being the main rough edges.
   the hier despawn didn't fire post-restore until I added them). And even fully
   snapshot-aware, restore reassigns entity indices, so the `snapshotDigest` isn't
   bit-identical (semantic state is). `restore.ok:true` gives false confidence.
+- **O14 — `aperture render` cost is boot-dominated (~4 s floor), ~flat in scene
+  size.** Measured wall-time: 1 mesh ≈ 5.3 s, 16 meshes ≈ 4.2 s, 600 meshes ≈
+  4.2 s — rasterizing 600 draws costs the same as 16, so the Chrome + Xvfb +
+  SwiftShader-Vulkan boot dominates, not the GPU work (bundle/asset size matters
+  more than draw count — the skinned 2.1 MB soldier bundle is the slowest). So in
+  the headless→render loop, the *step* is cheap (~2,600/s, W7) but each *render*
+  is a fixed ~4–5 s tax. Iterate on simulation state headlessly and render
+  sparingly; a warm render slot (à la `serve` for stepping) would remove the
+  biggest per-frame cost when many frames are needed.
 
 ---
 

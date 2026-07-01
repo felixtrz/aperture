@@ -23,5 +23,5 @@ them.
 | **F11** | LOW | `aperture headless aperture.config.ts` (the browser config) | `Cannot read properties of undefined (reading 'BASE_URL')` (not a mode-mismatch message) | traced |
 | **F12** | LOW | put a type-error system in `phys-src/`, `pnpm typecheck` | passes (scaffold tsconfig only includes `src/**`); same file in `src/systems/` errors | ✅ broaden `tsconfig.include` (this repo's `app/tsconfig.json` shows the fix) |
 
-Observations O1–O13 and wins W1–W24 are in `FINDINGS.md`; the polished writeup is
+Observations O1–O14 and wins W1–W25 are in `FINDINGS.md`; the polished writeup is
 `REPORT.md`.

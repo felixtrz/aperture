@@ -290,3 +290,10 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 
 ### WIN W25 — instanced GLB via spawn.gltfBatch works headless→render
 - `batch.headless.config.ts` + `batch-src/setup.system.ts`: a single `this.spawn.gltfBatch(this.assets.gltf("blaster"), { instances })` with 16 per-instance transforms (4×4 grid, distinct translation + yaw) returns **16 roots**; extraction reports **meshDraws:16, bounds:16** (one draw per instance), and `aperture render` produces the textured blaster grid at distinct positions/yaws (`artifacts/batch_grid.png`, hybrid asset mode). Two runs byte-identical (`snapshotDigest 1821ed3e`). Per-instance `transform` overrides apply correctly. Instanced/batched GLB spawning is fully headless-capable.
+
+### OBSERVATION O14 — aperture render cost is boot-dominated (~4 s floor), flat in scene size
+- Measured `aperture render` wall-time (Node process start → PNG written, SwiftShader Vulkan under Xvfb), two passes:
+  - 1 mesh (skinned soldier, 2.1 MB bundle): 5472 / 5296 ms
+  - 16 meshes (blaster batch): 4388 / 4180 ms
+  - 600 meshes (scale scene): 4331 / 4139 / 4213 ms
+- Rasterizing 600 draws costs the SAME as 16 (≈4.2 s) — the Chrome + Xvfb + SwiftShader boot dominates, not GPU work. Bundle/asset size matters more than draw count (the skinned 2.1 MB soldier bundle is consistently the slowest despite having 1 draw). Contrast W7: the headless *step* is ~2,600/s but each *render* is a fixed ~4–5 s tax. Implication for the headless→render loop: iterate simulation state headlessly (cheap) and render sparingly; a warm render slot (à la `serve` for stepping, or a persistent `frame_capture` browser) would amortize the dominant per-frame cost when many frames are needed.
