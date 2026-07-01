@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { chromium, type LaunchOptions } from "playwright";
 import { ApertureCliError } from "../errors.js";
 import { readPngDimensions } from "../tools/png-readback.js";
+import { hasDisplay, startVirtualDisplay } from "../dev/xvfb.js";
 import { resolveEnginePackages } from "./resolve-engine-packages.js";
 import {
   startApertureStaticServer,
@@ -18,8 +19,12 @@ const HARNESS_DIR = path.resolve(
 const HARNESS_PREFIX = "/_harness/";
 
 // GPU-less software rendering (SwiftShader Vulkan) under a headed Chrome — the
-// same path the WebGPU e2e suite uses. Headless Chromium hides navigator.gpu,
-// so the harness must run headed (under xvfb on CI/Linux).
+// same path the WebGPU e2e suite uses. A headless Chromium does not composite
+// the WebGPU canvas into element screenshots (it comes back a flat white
+// frame), so the harness must run HEADED. On a GPU-less Linux host (CI runner,
+// dev container) headed Chrome needs an X display; renderBundleToPng
+// auto-provisions an Xvfb virtual display when DISPLAY is unset, mirroring
+// `aperture dev`, so the same command renders on macOS, Windows, and Linux.
 const DEFAULT_BROWSER_ARGS = [
   "--enable-unsafe-webgpu",
   "--use-vulkan=swiftshader",
@@ -96,6 +101,20 @@ export function renderHarnessHtml(
   <head>
     <meta charset="utf-8" />
     <title>Aperture Snapshot Render Harness</title>
+    <style>
+      /* Pin the page to the canvas so the element screenshot never picks up
+         default body margins or scrollbars (see finding F10). */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+      }
+      #aperture-canvas {
+        display: block;
+      }
+    </style>
     <script type="importmap">
 ${imports}
     </script>
@@ -135,10 +154,45 @@ export async function renderBundleToPng(options: {
       height: options.height,
     }),
   });
+
+  // A headed browser on a GPU-less Linux host needs an X display. Provision an
+  // Xvfb one when none exists (matching `aperture dev`), so `render` and
+  // `frame_capture` do not crash with "launched a headed browser without
+  // having a XServer running". macOS/Windows and Linux hosts that already have
+  // DISPLAY set fall through unchanged.
+  let virtualDisplay: Awaited<ReturnType<typeof startVirtualDisplay>> | null =
+    null;
   const launch = resolveLaunchOptions();
+  try {
+    if (
+      !launch.launchOptions.headless &&
+      process.platform === "linux" &&
+      !hasDisplay(process.env)
+    ) {
+      // Size the virtual screen to comfortably hold the render window; floor at
+      // the dev display default so large canvases still fit.
+      virtualDisplay = await startVirtualDisplay({
+        width: Math.max(options.width, 1280),
+        height: Math.max(options.height, 800),
+      });
+    }
+  } catch (error: unknown) {
+    await server.close();
+    throw error;
+  }
+
+  const launchOptions: LaunchOptions =
+    virtualDisplay === null
+      ? launch.launchOptions
+      : {
+          ...launch.launchOptions,
+          env: { ...process.env, DISPLAY: virtualDisplay.display },
+        };
+
   const browser = await chromium
-    .launch(launch.launchOptions)
+    .launch(launchOptions)
     .catch(async (error: unknown) => {
+      await virtualDisplay?.close();
       await server.close();
       throw error;
     });
@@ -195,6 +249,7 @@ export async function renderBundleToPng(options: {
   } finally {
     await browser.close();
     await server.close();
+    await virtualDisplay?.close();
   }
 }
 

@@ -25,6 +25,7 @@ import type { ApertureDeterminismDiagnosticsMode } from "@aperture-engine/app/sy
 import type { ApertureConfig } from "@aperture-engine/app/config";
 import type { ApertureSystemModule } from "@aperture-engine/app/advanced";
 import type { RenderSnapshot } from "@aperture-engine/render";
+import { ApertureCliError } from "../errors.js";
 import { loadApertureHeadlessApp } from "./config-loader.js";
 import {
   createNodeApertureAssetLoader,
@@ -74,6 +75,12 @@ export interface HeadlessStepInput {
   readonly time?: number;
   readonly frames?: number;
   readonly digest?: boolean;
+  /**
+   * When false, advance the simulation without running render extraction each
+   * frame (finding F18). Counts in the result then reflect the last extracted
+   * frame; call extract()/bundle to refresh render data. Defaults to true.
+   */
+  readonly extract?: boolean;
 }
 
 export interface HeadlessExtractInput {
@@ -109,6 +116,10 @@ export interface HeadlessSessionController {
     readonly result: unknown;
   };
   inject(input: unknown): GeneratedDevtoolsToolResult;
+  dispatchCommand(input: {
+    readonly channel: string;
+    readonly payload?: unknown;
+  }): unknown;
   reset(input?: HeadlessResetInput): Promise<unknown>;
   callTool(input: HeadlessToolInput): GeneratedDevtoolsToolResult;
   createBundle(input: HeadlessBundleInput): Promise<unknown>;
@@ -197,7 +208,14 @@ export async function createHeadlessSessionController(
 
   function status(input: { readonly digest?: boolean } = {}): unknown {
     const current = state.runner.getStatus();
-    return withOptionalDigests(current, input, current);
+    // The active seed is a session-level concept the runner status does not
+    // carry; surface it here so get-status reports the seed instead of leaving
+    // it undefined (finding F7).
+    return withOptionalDigests(
+      { ...current, seed: state.seed },
+      input,
+      current,
+    );
   }
 
   function step(input: HeadlessStepInput = {}): unknown {
@@ -207,24 +225,60 @@ export async function createHeadlessSessionController(
       input.time,
       state.runner.getStatus().nextFrame * delta,
     );
-    let report:
-      | ReturnType<ApertureHeadlessRunner["step"]>
-      | ReturnType<ApertureHeadlessRunner["extract"]> = state.runner.extract(
-      state.runner.getStatus().nextFrame,
-    );
+    const shouldExtract = input.extract !== false;
 
-    for (let index = 0; index < frames; index += 1) {
-      report = state.runner.step(delta, baseTime + index * delta);
+    let status: ApertureHeadlessStatus;
+    let snapshot: RenderSnapshot | undefined;
+
+    if (shouldExtract) {
+      let report:
+        | ReturnType<ApertureHeadlessRunner["step"]>
+        | ReturnType<ApertureHeadlessRunner["extract"]> = state.runner.extract(
+        state.runner.getStatus().nextFrame,
+      );
+      for (let index = 0; index < frames; index += 1) {
+        report = state.runner.step(delta, baseTime + index * delta);
+      }
+      status = report.status;
+      snapshot = report.snapshot;
+    } else {
+      // Step-without-extract escape hatch (F18): skip the up-front and
+      // per-frame extraction entirely.
+      let stepStatus = state.runner.getStatus();
+      for (let index = 0; index < frames; index += 1) {
+        stepStatus = state.runner.stepWithoutExtract(
+          delta,
+          baseTime + index * delta,
+        ).status;
+      }
+      status = stepStatus;
+    }
+
+    // Surface determinism violations in every step result (not only in
+    // get-status), and honor `--determinism error` in the warm loop by failing
+    // the step — matching the one-shot's hard gate (finding F11).
+    const violations = determinismViolations(status.diagnostics);
+    if (violations.length > 0 && options.determinism === "error") {
+      throw new ApertureCliError(
+        "aperture.headless.determinismViolation",
+        `Headless determinism policy failed with ${violations.length} nondeterministic global use(s): ${describeDeterminismViolations(
+          violations,
+        )}`,
+      );
     }
 
     return withOptionalDigests(
       {
-        nextFrame: report.status.nextFrame,
-        counts: report.status.lastSnapshot?.counts ?? null,
+        nextFrame: status.nextFrame,
+        counts: status.lastSnapshot?.counts ?? null,
+        extracted: shouldExtract,
+        ...(violations.length === 0
+          ? {}
+          : { determinism: { mode: options.determinism, violations } }),
       },
       input,
-      report.status,
-      report.snapshot,
+      status,
+      snapshot,
     );
   }
 
@@ -256,6 +310,28 @@ export async function createHeadlessSessionController(
       state.runner.getStatus().nextFrame,
     );
     return { ok: true, result: { injected: true } };
+  }
+
+  function dispatchCommand(input: {
+    readonly channel: string;
+    readonly payload?: unknown;
+  }): unknown {
+    // Post an app command onto the shared command bus. Systems drain it via
+    // context.commands.drain(channel) on the next step. Without this verb the
+    // command channel — driven by the browser host/HUD in the browser — could
+    // not be exercised headlessly (finding F16).
+    if (typeof input.channel !== "string" || input.channel.length === 0) {
+      throw new ApertureCliError(
+        "aperture.headless.invalidCommand",
+        "The command dispatch requires a non-empty 'channel'.",
+      );
+    }
+    state.runner.app.context.commands.queue(input.channel, input.payload);
+    return {
+      dispatched: true,
+      channel: input.channel,
+      summary: state.runner.app.context.commands.summary(),
+    };
   }
 
   async function reset(input: HeadlessResetInput = {}): Promise<unknown> {
@@ -484,6 +560,7 @@ export async function createHeadlessSessionController(
     step,
     extract,
     inject,
+    dispatchCommand,
     reset,
     callTool,
     createBundle,
@@ -550,16 +627,26 @@ function listHeadlessSystems(
           ? (constructor as unknown as Record<string, unknown>)["aperture"]
           : undefined;
       const schedule = isRecord(aperture) ? aperture["schedule"] : undefined;
-      const priority =
+      const metadataPriority =
         isRecord(schedule) && typeof schedule["priority"] === "number"
           ? schedule["priority"]
           : null;
+      // The registered system instance carries the priority the world orders
+      // execution by — authoritative for built-in systems that lack the
+      // `aperture` static metadata. Surface it as a top-level numeric priority
+      // (F14) while keeping the nested value for back-compat.
+      const instancePriority =
+        isRecord(system) && typeof system["priority"] === "number"
+          ? system["priority"]
+          : null;
+      const priority = instancePriority ?? metadataPriority;
 
       return {
         index,
         moduleId: className,
         className,
-        schedule: { priority },
+        priority,
+        schedule: { priority: metadataPriority },
       };
     },
   );
@@ -745,6 +832,50 @@ function jsonSafeRestoreReport(value: unknown): unknown {
     fixedStepClock: value["fixedStepClock"],
     systems: value["systems"],
   };
+}
+
+interface DeterminismViolation {
+  readonly code: string;
+  readonly system: string;
+  readonly phase: string;
+  readonly api: string;
+  readonly suggestedApi: string;
+}
+
+function determinismViolations(
+  diagnostics: ApertureHeadlessStatus["diagnostics"],
+): DeterminismViolation[] {
+  return diagnostics
+    .filter(
+      (diagnostic) =>
+        diagnostic.code === "aperture.determinism.nondeterministicGlobal",
+    )
+    .map((diagnostic) => {
+      const data = (diagnostic.data ?? {}) as Record<string, unknown>;
+      const stringField = (key: string, fallback: string): string =>
+        typeof data[key] === "string" ? (data[key] as string) : fallback;
+      return {
+        code: diagnostic.code,
+        system: stringField("system", "unknown system"),
+        phase: stringField("phase", "unknown phase"),
+        api: stringField("api", "unknown API"),
+        suggestedApi: stringField(
+          "suggestedApi",
+          "context.random/context.time",
+        ),
+      };
+    });
+}
+
+function describeDeterminismViolations(
+  violations: readonly DeterminismViolation[],
+): string {
+  return violations
+    .map(
+      (violation) =>
+        `${violation.system} called ${violation.api} during ${violation.phase} (use ${violation.suggestedApi})`,
+    )
+    .join("; ");
 }
 
 function withOptionalDigests<T extends object>(

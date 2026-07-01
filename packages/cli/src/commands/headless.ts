@@ -39,6 +39,7 @@ interface ParsedHeadlessCommand {
   readonly determinism: ApertureDeterminismDiagnosticsMode;
   readonly renderWidth: number;
   readonly renderHeight: number;
+  readonly seed: number;
   readonly json: boolean;
 }
 
@@ -70,6 +71,10 @@ export async function runHeadlessCommand(options: {
   const runner = await createApertureHeadlessRunner({
     config: loaded.config,
     systems: loaded.systems,
+    // Seed the deterministic RNG (context.random). Passing the seed as `random`
+    // matches how `serve` seeds its runner, so a one-shot run reproduces a
+    // `serve --seed N` layout for the same schedule (finding F8).
+    random: parsed.seed,
     assetLoader: createNodeApertureAssetLoader({
       mode: parsed.assetMode,
       root: parsed.root ?? path.dirname(parsed.configFile),
@@ -126,7 +131,9 @@ export async function runHeadlessCommand(options: {
   await writeBundle(parsed.out, bundle);
 
   if (parsed.json) {
-    options.stdout(`${JSON.stringify(report.status, null, 2)}\n`);
+    options.stdout(
+      `${JSON.stringify({ ...report.status, seed: parsed.seed }, null, 2)}\n`,
+    );
   } else {
     options.stdout(summarize(parsed, report.status, bundle));
   }
@@ -172,6 +179,7 @@ function summarize(
 ): string {
   return [
     `Stepped ${parsed.frames} frame(s) at dt=${parsed.delta.toFixed(6)}s.`,
+    `Seed: ${parsed.seed}.`,
     `Asset mode: ${parsed.assetMode}.`,
     `Render target: ${parsed.renderWidth}x${parsed.renderHeight}.`,
     `Wrote render bundle (frame ${bundle.frame}) to ${parsed.out}.`,
@@ -197,6 +205,7 @@ function parseHeadlessCommand(
   let determinism: ApertureDeterminismDiagnosticsMode = "off";
   let renderWidth = DEFAULT_RENDER_WIDTH;
   let renderHeight = DEFAULT_RENDER_HEIGHT;
+  let seed = 0;
   let json = false;
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -279,6 +288,12 @@ function parseHeadlessCommand(
       continue;
     }
 
+    if (arg === "--seed") {
+      index += 1;
+      seed = parseInteger(readOptionValue(argv, index, arg), arg);
+      continue;
+    }
+
     if (arg === "--json") {
       json = true;
       continue;
@@ -329,6 +344,7 @@ function parseHeadlessCommand(
     determinism,
     renderWidth,
     renderHeight,
+    seed,
     json,
   };
 }
@@ -446,6 +462,19 @@ function parsePositiveInteger(value: string, option: string): number {
   return parsed;
 }
 
+function parseInteger(value: string, option: string): number {
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed)) {
+    throw new ApertureCliError(
+      "aperture.headless.invalidOption",
+      `Option '${option}' must be an integer.`,
+    );
+  }
+
+  return parsed;
+}
+
 function parsePositiveNumber(value: string, option: string): number {
   const parsed = Number(value);
 
@@ -478,6 +507,7 @@ Options:
   --out <path>         Required. File to write the render bundle JSON.
   --frames <n>         Fixed steps to advance before extracting (default 1).
   --delta <seconds>    Fixed timestep delta (default ${DEFAULT_DELTA.toFixed(6)}).
+  --seed <n>           Deterministic RNG seed for context.random (default 0).
   --inject <file>      JSON file of timed input steps to apply while stepping.
   --root <dir>         App root the system globs resolve against (default: config dir).
   --public-dir <dir>   Vite public directory for root-relative assets (default public).
@@ -494,6 +524,10 @@ Options:
 Config loading: the config and *.system.ts are loaded by native Node
 TypeScript stripping, so they must be erasable TypeScript (no enums,
 decorators, namespaces, or parameter properties) and resolve @aperture-engine/*.
+This strips types but does NOT type-check: a misplaced or misspelled option
+(e.g. a top-level 'parent' that belongs in transform: { parent }) is silently
+ignored. Run 'tsc --noEmit' (or the scaffold's 'pnpm typecheck') alongside
+headless runs to catch these; spawn.mesh also warns on unrecognized options.
 
 Determinism: stepping replays bit-identically only if systems read
 context.random and context.time instead of Math.random()/Date.now()/

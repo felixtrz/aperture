@@ -184,6 +184,36 @@ describe("createApertureSnapshotBundle (P1.6)", () => {
     );
   });
 
+  it("exposes a snapshotDigest that is stable across the producing command (F6)", async () => {
+    const runner = await createApertureHeadlessRunner({
+      config: defineApertureConfig({
+        mode: "headless",
+        render: { defaultCamera: false, defaultLight: false },
+      }),
+      systems: [cubeSystem],
+    });
+    const { snapshot } = runner.step(1 / 60, 0);
+
+    const fromHeadless = createApertureSnapshotBundle({
+      snapshot,
+      assets: runner.app.lowLevel.assets,
+      options: { createdBy: "aperture headless" },
+    });
+    const fromServe = createApertureSnapshotBundle({
+      snapshot,
+      assets: runner.app.lowLevel.assets,
+      options: { createdBy: "aperture serve" },
+    });
+
+    expect(fromHeadless.snapshotDigest.hash).toMatch(/^[0-9a-f]{8}$/u);
+    // The whole-bundle digest folds in createdBy, so it differs by command...
+    expect(fromHeadless.digest.hash).not.toBe(fromServe.digest.hash);
+    // ...but the pure-simulation snapshotDigest is identical across commands.
+    expect(fromHeadless.snapshotDigest.hash).toBe(
+      fromServe.snapshotDigest.hash,
+    );
+  });
+
   it("co-persists a source-asset entry for every mesh draw handle", async () => {
     const runner = await createApertureHeadlessRunner({
       config: defineApertureConfig({

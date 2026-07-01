@@ -327,6 +327,7 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       "session_snapshot_save",
       "session_snapshot_restore",
       "determinism_report",
+      "command_dispatch",
       "reference_search",
       "reference_api_lookup",
       "reference_file_content",

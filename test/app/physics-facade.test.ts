@@ -56,6 +56,53 @@ describe("app physics facade", () => {
     expect(readY(body)).toBeLessThan(beforeY);
   });
 
+  it("wires a declarative config.physics block through the headless runner (F12)", async () => {
+    // Physics is declared ONLY in the config — nothing is passed as the
+    // imperative `physics` option. Before the fix the headless runner dropped
+    // config.physics: fixedUpdate never fired and no backend was installed.
+    const runner = await createApertureHeadlessRunner({
+      config: defineApertureConfig({
+        mode: "headless",
+        systems: [],
+        physics: { backend: "rapier", gravity: [0, -9.81, 0] },
+        render: { defaultCamera: false, defaultLight: false },
+      }),
+    });
+    const context = runner.app.context;
+    const box = context.spawn.physics({
+      key: "physics.config.box",
+      transform: { translation: [0, 6, 0] },
+      physics: {
+        rigidBody: { type: PhysicsRigidBodyType.Dynamic },
+        collider: { shape: { kind: "box", halfExtents: [0.5, 0.5, 0.5] } },
+      },
+    });
+    context.spawn.physics({
+      key: "physics.config.ground",
+      transform: { translation: [0, 0, 0] },
+      physics: {
+        rigidBody: { type: PhysicsRigidBodyType.Static },
+        collider: { shape: { kind: "box", halfExtents: [5, 0.5, 5] } },
+      },
+    });
+
+    for (let frame = 0; frame < 180; frame += 1) {
+      runner.step(1 / 60, frame / 60);
+    }
+
+    // The backend installed from config.physics, the fixed-step clock advanced,
+    // and the dynamic box came to rest on the static ground (contacts resolve):
+    // ground top 0.5 + box half-height 0.5 ≈ 1.0.
+    expect(runner.app.physics?.backend.kind).toBe("rapier");
+    expect(context.physics.summary().step).toMatchObject({
+      enabled: true,
+      bodyCount: 2,
+      colliderCount: 2,
+    });
+    expect(readY(box)).toBeGreaterThan(0.9);
+    expect(readY(box)).toBeLessThan(1.1);
+  });
+
   it("installs custom backends through the same facade and supports character movement", async () => {
     const runner = await createPhysicsRunner({
       physics: { backend: () => createTestPhysicsBackend() },

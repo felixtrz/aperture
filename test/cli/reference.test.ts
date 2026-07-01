@@ -220,6 +220,17 @@ describe(
         ],
         root,
       );
+      // F13: `query` is a documented alias for `search`.
+      const query = await runCli(
+        [
+          "reference",
+          "query",
+          "aperture.entityLookup.notFound",
+          "--limit",
+          "2",
+        ],
+        root,
+      );
 
       expect(build.exitCode).toBe(0);
       expect(build.stdout).toContain("Warmed Aperture reference corpus");
@@ -228,6 +239,8 @@ describe(
       expect(search.exitCode).toBe(0);
       expect(search.stdout).toContain("diagnostics.ts");
       expect(search.stdout).toContain("aperture.entityLookup.notFound");
+      expect(query.exitCode).toBe(0);
+      expect(query.stdout).toBe(search.stdout);
     });
 
     it("caps oversized embedding inputs while preserving indexed chunk content", async () => {

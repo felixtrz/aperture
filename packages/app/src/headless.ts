@@ -136,6 +136,15 @@ export interface ApertureHeadlessRunner {
   ): void;
   getStatus(): ApertureHeadlessStatus;
   step(delta?: number, time?: number): ApertureHeadlessStepReport;
+  /**
+   * Advance the simulation without running render extraction (finding F18).
+   * Returns only the status; the last extracted snapshot is preserved so
+   * callers can extract() on demand after reaching the target state.
+   */
+  stepWithoutExtract(
+    delta?: number,
+    time?: number,
+  ): { readonly status: ApertureHeadlessStatus };
   extract(frame?: number): ApertureHeadlessStepReport;
   restoreSessionSnapshot(
     snapshot: ApertureSessionSnapshot,
@@ -321,6 +330,29 @@ export async function createApertureHeadlessRunner(
 
       return {
         snapshot: lastSnapshot,
+        status: createHeadlessStatus(app, nextFrame, lastSnapshot),
+      };
+    },
+    stepWithoutExtract(delta = 0, time = 0) {
+      // Advance the simulation without running render extraction. Extraction is
+      // ~99.8% of per-step cost at scale, so a warm loop that only needs to
+      // reach a target state (then extract once) is far cheaper this way
+      // (finding F18). lastSnapshot is intentionally left untouched; callers
+      // extract() on demand when they want fresh render data.
+      const frame = nextFrame;
+      const events = drainGeneratedInputEventMessagesForFrame(
+        pendingInput,
+        frame,
+      );
+      advanceGeneratedInputFrame({
+        signals: app.context.input,
+        config,
+        events,
+      });
+      nextFrame += 1;
+      app.step(delta, time);
+
+      return {
         status: createHeadlessStatus(app, nextFrame, lastSnapshot),
       };
     },

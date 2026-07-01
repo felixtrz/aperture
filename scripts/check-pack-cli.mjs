@@ -202,6 +202,12 @@ async function runHeadlessSmoke() {
 async function runRenderSmoke() {
   const bundle = path.join(installDir, "headless.bundle.json");
   const out = path.join(installDir, "frame.png");
+  // Render headed (the default). `aperture render` auto-provisions an Xvfb
+  // virtual display on a GPU-less Linux host, so the browser composites real
+  // WebGPU pixels. Forcing APERTURE_RENDER_HEADLESS=1 here would produce an
+  // all-white frame that the (now uniformity-aware) blank guard rejects — the
+  // smoke must exercise the same path real users get. Omitting --allow-blank
+  // makes the command fail if the frame comes back blank.
   runCli(
     [
       "render",
@@ -215,7 +221,6 @@ async function runRenderSmoke() {
       "--allow-placeholders",
     ],
     installDir,
-    { APERTURE_RENDER_HEADLESS: "1" },
   );
 }
 

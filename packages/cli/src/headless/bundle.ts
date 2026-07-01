@@ -124,7 +124,19 @@ export interface ApertureRenderBundle {
   readonly assetProvenance: ApertureAssetProvenance;
   readonly closure: ApertureSnapshotBundleClosure;
   readonly diagnostics: readonly ApertureRenderBundleDiagnostic[];
+  /**
+   * Digest of the whole bundle, including provenance such as `engine.createdBy`.
+   * Two identical simulations exported by different commands (`headless` vs
+   * `serve`) therefore get different `digest` hashes.
+   */
   readonly digest: ApertureRenderBundleDigest;
+  /**
+   * Digest of the deterministic simulation output only (`snapshot.value`), with
+   * no provenance/tool metadata folded in. Use this to assert "same simulation
+   * across tools" — it is stable regardless of which command produced the
+   * bundle (finding F6).
+   */
+  readonly snapshotDigest: ApertureRenderBundleDigest;
 }
 
 export interface ApertureLegacySnapshotBundle {
@@ -194,10 +206,14 @@ export function createApertureSnapshotBundle(args: {
     assetProvenance,
     closure,
     diagnostics: collectBundleDiagnostics(encodedSourceAssets),
-  } satisfies Omit<ApertureRenderBundle, "digest">;
+  } satisfies Omit<ApertureRenderBundle, "digest" | "snapshotDigest">;
 
   return {
     ...bundleWithoutDigest,
+    // Pure-simulation digest (snapshot.value only) — stable across the command
+    // that produced the bundle. Kept outside the whole-bundle digest so the
+    // existing `digest` semantics and hashes are unchanged.
+    snapshotDigest: createStableDigest(snapshotValue),
     digest: createStableDigest(bundleWithoutDigest),
   };
 }

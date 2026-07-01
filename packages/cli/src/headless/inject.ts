@@ -73,7 +73,9 @@ export function applyApertureHeadlessInjectStep(
       if (action.kind !== "button") {
         throw new ApertureCliError(
           "aperture.headless.invalidInject",
-          `Input action '${name}' is a ${action.kind} action; only button actions can be injected as pressed/released.`,
+          `Input action '${name}' is a ${action.kind} action; inject only drives button actions as pressed/released. ` +
+            `Drive an axis/analog action with the 'input_action_set' tool ({ action: '${name}', x, y }) ` +
+            `or hold it via 'input_gamepad_set'.`,
         );
       }
 

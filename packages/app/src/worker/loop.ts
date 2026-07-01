@@ -5,12 +5,8 @@ import {
   type SimulationWorkerStartOptions,
 } from "@aperture-engine/runtime";
 import type { Ktx2TextureCompressionSupport } from "@aperture-engine/render";
-import {
-  createApertureApp,
-  type ApertureApp,
-  type CreateApertureAppOptions,
-} from "../advanced.js";
-import type { AperturePhysicsAppConfig } from "../config.js";
+import { createApertureApp, type ApertureApp } from "../advanced.js";
+import { resolveConfigPhysicsOption } from "../config-physics.js";
 import { createDefaultSystemGltfAssetDecoderProvider } from "../systems.js";
 import { createSourceAssetSerializationState } from "../asset-mirror.js";
 import type { ApertureConfig } from "../config.js";
@@ -172,8 +168,13 @@ export async function runGeneratedWorkerLoop(options: {
     options.setApp(app, entityTools, devtools);
 
     const reportRuntimeFailure = (error: unknown): void => {
+      // `reason` is the worker protocol's failure CATEGORY (tick vs startup),
+      // not the underlying error's code. A thrown app-system error now carries
+      // its own attributed code (aperture.system.lifecycleFailed, finding F9),
+      // which belongs in the diagnostic — not in place of the protocol reason.
+      const reason = "aperture.generatedWorker.tickFailed";
       const diagnostic = errorToApertureDiagnostic(error, {
-        code: "aperture.generatedWorker.tickFailed",
+        code: reason,
         severity: "error",
         message:
           "Generated Aperture simulation worker threw during a frame tick.",
@@ -184,7 +185,7 @@ export async function runGeneratedWorkerLoop(options: {
 
       options.port.postMessage({
         type: SIMULATION_WORKER_PROTOCOL.error,
-        reason: diagnostic.code,
+        reason,
         message: diagnostic.message,
         diagnostics: [diagnostic],
       });
@@ -239,8 +240,12 @@ export async function runGeneratedWorkerLoop(options: {
       running = false;
     }
   } catch (error: unknown) {
+    // Protocol failure category for the startup phase; the specific error code
+    // (e.g. a system's aperture.system.lifecycleFailed from init) is preserved
+    // in the diagnostic, not substituted for the reason.
+    const reason = "aperture.generatedWorker.failed";
     const diagnostic = errorToApertureDiagnostic(error, {
-      code: "aperture.generatedWorker.failed",
+      code: reason,
       severity: "error",
       message: "Generated Aperture simulation worker failed during startup.",
       suggestedFix:
@@ -250,7 +255,7 @@ export async function runGeneratedWorkerLoop(options: {
 
     options.port.postMessage({
       type: SIMULATION_WORKER_PROTOCOL.error,
-      reason: diagnostic.code,
+      reason,
       message: diagnostic.message,
       diagnostics: [diagnostic],
     });
@@ -480,30 +485,6 @@ function readWorkerFixedStepOptions(
   copyNumberOption(record, fixedStep, "maxAccumulatedTime");
 
   return fixedStep;
-}
-
-function resolveConfigPhysicsOption(
-  physics: boolean | AperturePhysicsAppConfig | undefined,
-): CreateApertureAppOptions["physics"] {
-  if (physics === undefined || physics === false) {
-    return undefined;
-  }
-
-  if (physics === true) {
-    return true;
-  }
-
-  if (physics.enabled === false) {
-    return undefined;
-  }
-
-  return {
-    ...(physics.backend === undefined ? {} : { backend: physics.backend }),
-    ...(physics.gravity === undefined ? {} : { gravity: physics.gravity }),
-    ...(physics.colliderGeometry === undefined
-      ? {}
-      : { colliderGeometry: physics.colliderGeometry }),
-  };
 }
 
 function readWorkerPhysicsInterpolationOption(
