@@ -152,6 +152,13 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 - Impact: any multi-viewport layout is un-renderable via the headless render path (and the blank-guard's message misattributes it to unresolved assets / headless compositing, which is misleading here).
 - Recommendation: honor `view.viewport`/`view.scissor` in the render harness, or document that `aperture render` composites only full-frame single views.
 
+### WIN W16 — robust error handling & input resilience
+- Large-scale determinism holds: the 600-entity/300-frame scene replays **byte-identical**.
+- Asset errors are clean and actionable: missing file in strict → `aperture.headless.assetNotFound` with the resolved path + "use --asset-mode hybrid"; HTTP asset without the flag → `assetLoadFailed: Node asset loader does not fetch 'https:' assets unless allowHttp is enabled`. Both exit 1.
+- Mid-run exception: a system throwing in `update()` aborts with `aperture.cli.failed: System 'Boom' threw during update(): …` — attributed to the system + phase.
+- `serve` is resilient to bad input: a non-JSON line returns `{ok:false, error:"Invalid JSON command…"}` and the session keeps processing subsequent commands; an unknown command returns `{ok:false, error:"Unknown command 'x'."}`. One bad line does not kill the session.
+- OBSERVATION O12: system-exception errors end with "the original stack is preserved below", but the CLI prints only the message — there is no stack "below" on stderr. Minor but misleading when debugging.
+
 ### WIN W15 — deterministic input replay + one-shot≡serve equivalence
 - Input replay: a timed `--inject` file (`[{atFrame:0,actions:{magnet:true}},{atFrame:40,actions:{magnet:false}}]`) is a reproducible recording — it changed the sim (digest `c0f9001b` vs no-input `eab193ea`) and two replays are byte-identical. Timed `atFrame` sequences fire at the right frames.
 - Entry-point equivalence: one-shot `aperture headless --frames 90` and `serve` stepping 90 produce **byte-identical `snapshot.value`** and the same `snapshotDigest` hash (`0f4c82b2`). The two headless entry points are consistent.

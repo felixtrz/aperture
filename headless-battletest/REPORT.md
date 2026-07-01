@@ -22,7 +22,7 @@ ran Rapier physics in Node, decoded real GLBs, and rendered every result to PNG
 through the auto-provisioned SwiftShader WebGPU path. Authoring and rendering
 **parity between headless and headed is excellent**.
 
-That said, battle-testing surfaced **13 findings and 10 observations**, including
+That said, battle-testing surfaced **13 findings and 12 observations**, including
 one **HIGH-severity crash** (whose root cause I traced to a single elics guard
 and verified a one-line fix for), and a cluster of **custom components /
 user-defined types being second-class citizens** across `reset`, session
@@ -144,6 +144,10 @@ modules).
   file is a reproducible input recording (replay changed the sim and two replays
   are byte-identical); one-shot `--frames 90` and `serve` stepping 90 produce
   byte-identical `snapshot.value` (`snapshotDigest 0f4c82b2`).
+- **W16 — Robust errors & input resilience:** 600-entity replay byte-identical;
+  missing/HTTP assets fail with clear, actionable messages; a system throwing in
+  `update()` aborts with an attributed error; `serve` survives malformed NDJSON
+  (bad line → error, session continues).
 
 Rendered proof frames: `artifacts/starfall_f150.png` (game), `physics.png`
 (stack), `viewer_strict.png` (GLB), `compare_headed.png` vs `compare_headless.png`
@@ -368,6 +372,9 @@ parity gaps above (F7/F10/F5, O3) being the main rough edges.
   identical content from different tools (one-shot vs serve) has different
   top-level digests; use `snapshotDigest` for content comparison. Both digest
   fields are objects `{algorithm,hash,byteLength}` — compare `.hash`.
+- **O12 — Misleading error tail:** system-exception messages end with "the
+  original stack is preserved below", but the CLI prints only the message — no
+  stack follows on stderr.
 
 ---
 
