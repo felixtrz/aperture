@@ -137,6 +137,7 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 ### WIN W8 — strict/hybrid GLB asset loading decodes real glTF in Node
 - `--asset-mode strict` on the glb-viewer decoded the real `sample-cube.glb` (8 verts, 36 indices, POSITION-only) into a real mesh+material closure (`real:4, placeholderCount:0`, referenced `mesh:sampleCube:mesh:0:primitive:0`). Rendered to a PNG via the headed path.
 - OBSERVATION O5: the shipped `sample-cube.glb` has only a POSITION attribute (no NORMAL/TEXCOORD). Under the default lit standard material it renders as a flat, unshaded shape rather than a shaded cube — a render/material concern common to both headed and headless, and a poor "sample" asset for a template.
+- REAL-WORLD GLB: strict mode loads a production multi-material GLB (`blaster.glb`, mesh:1/material:2/texture:1/sampler:1) including resolving its **external** texture reference (`Textures/colormap.png`) relative to the GLB — closure-complete, no placeholders — and renders a correctly-textured, PBR-shaded model (`artifacts/glbscene.png`). When the external texture is missing, the error is clear and actionable ("Fetching GLB URI '…/colormap.png' failed with HTTP 404 … use --asset-mode hybrid"). Production game assets work end-to-end headless.
 
 ### FINDING F10 (MEDIUM) — `input_inject` is documented as a shared headless tool but is headed-only
 - Calling `input_inject` against a headless session returns `{ok:false, aperture.headless.toolUnavailable: "Tool 'input_inject' is not available in a headless session."}`.

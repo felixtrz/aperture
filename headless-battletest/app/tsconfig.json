@@ -44,6 +44,8 @@
     "wgsl.headless.config.ts",
     "wgsl-src/**/*.ts",
     "spatial.headless.config.ts",
-    "spatial-src/**/*.ts"
+    "spatial-src/**/*.ts",
+    "glbscene.headless.config.ts",
+    "glb-src/**/*.ts"
   ]
 }
