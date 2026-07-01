@@ -20,8 +20,19 @@ export interface VirtualDisplay {
  * Playwright screenshots/readbacks when the browser is headed, and headed Chrome
  * needs an X display — Xvfb provides one without real hardware.
  */
+/** True when the environment already exposes a usable X display. */
+export function hasDisplay(env: NodeJS.ProcessEnv): boolean {
+  const display = env["DISPLAY"];
+  return typeof display === "string" && display.trim().length > 0;
+}
+
 export async function startVirtualDisplay(input: {
-  readonly log: WriteStream;
+  /**
+   * Optional log sink for the Xvfb child's stdout/stderr and readiness notes.
+   * The dev daemon passes its browser log stream; one-shot callers (render,
+   * frame_capture) omit it.
+   */
+  readonly log?: WriteStream;
   readonly width?: number;
   readonly height?: number;
   readonly depth?: number;
@@ -45,7 +56,9 @@ export async function startVirtualDisplay(input: {
     ],
     { stdio: ["ignore", "pipe", "pipe"] },
   );
-  pipeChildOutput(child, input.log);
+  if (input.log !== undefined) {
+    pipeChildOutput(child, input.log);
+  }
 
   let closed = false;
   const close = async (): Promise<void> => {
@@ -72,10 +85,12 @@ export async function startVirtualDisplay(input: {
     throw error;
   }
 
-  await appendLog(
-    input.log,
-    `[xvfb] virtual display ready at ${display} (${width}x${height}x${depth})`,
-  );
+  if (input.log !== undefined) {
+    await appendLog(
+      input.log,
+      `[xvfb] virtual display ready at ${display} (${width}x${height}x${depth})`,
+    );
+  }
 
   return { display, close };
 }

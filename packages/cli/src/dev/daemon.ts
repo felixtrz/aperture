@@ -18,7 +18,11 @@ import {
 import { findAvailablePort, resolveApertureDevServerPort } from "./ports.js";
 import { stopChild } from "./process.js";
 import { startViteServer, waitForHttp } from "./server.js";
-import { startVirtualDisplay, type VirtualDisplay } from "./xvfb.js";
+import {
+  hasDisplay,
+  startVirtualDisplay,
+  type VirtualDisplay,
+} from "./xvfb.js";
 import {
   DEFAULT_HOST,
   DEFAULT_PORT,
@@ -211,9 +215,4 @@ export async function runApertureDevSessionDaemon(
   }
 
   await new Promise(() => undefined);
-}
-
-function hasDisplay(env: NodeJS.ProcessEnv): boolean {
-  const display = env["DISPLAY"];
-  return typeof display === "string" && display.trim().length > 0;
 }

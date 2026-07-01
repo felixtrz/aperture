@@ -276,16 +276,27 @@ function callListSystemsTool(app: ApertureApp): GeneratedDevtoolsToolResult {
           ? (constructor as unknown as Record<string, unknown>)["aperture"]
           : undefined;
       const schedule = isRecord(aperture) ? aperture["schedule"] : undefined;
-      const priority =
+      const metadataPriority =
         isRecord(schedule) && typeof schedule["priority"] === "number"
           ? schedule["priority"]
           : null;
+      // The elics System instance carries the priority the world actually
+      // registered it with and orders execution by. This is authoritative for
+      // every system — including built-in systems that lack the `aperture`
+      // static metadata — so surface it as a top-level numeric `priority`
+      // (F14: the list previously only exposed a frequently-null nested value).
+      const instancePriority =
+        isRecord(system) && typeof system["priority"] === "number"
+          ? system["priority"]
+          : null;
+      const priority = instancePriority ?? metadataPriority;
 
       return {
         index,
         moduleId: className,
         className,
-        schedule: { priority },
+        priority,
+        schedule: { priority: metadataPriority },
       };
     },
   );

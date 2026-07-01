@@ -40,6 +40,7 @@ import {
   type AperturePhysicsConfig,
   type AperturePhysicsFacade,
 } from "./physics-facade.js";
+import { resolveConfigPhysicsOption } from "./config-physics.js";
 
 export interface ApertureSystemModule {
   readonly default?: ApertureSystemConstructor;
@@ -139,7 +140,14 @@ export async function createApertureApp(
   options: CreateApertureAppOptions,
 ): Promise<ApertureApp> {
   const config = defineApertureConfig(options.config);
-  const physicsConfig = normalizePhysicsConfig(options.physics);
+  // Honor a declarative `config.physics` block when no imperative `physics`
+  // option was passed. The worker/browser loop resolves this itself before
+  // calling in; deriving it here as well means the headless runner, the
+  // one-shot CLI, and any direct `createApertureApp` caller wire physics
+  // identically from a shared config — closing the headless/browser gap (F12).
+  const physicsConfig = normalizePhysicsConfig(
+    options.physics ?? resolveConfigPhysicsOption(config.physics),
+  );
 
   if (physicsConfig !== null && options.fixedStep === false) {
     throw new ApertureAppError({

@@ -85,6 +85,15 @@ export function createGeneratedEntityToolBridge(
   return {
     handle(command) {
       if (command.channel === APERTURE_ENTITY_FIND_COMMAND_CHANNEL) {
+        const queryDiagnostics = unknownQueryFilterDiagnostics(command.payload);
+        if (queryDiagnostics.length > 0) {
+          finds += 1;
+          lastRequest = entityToolRequest(command);
+          lastFind = null;
+          diagnostics = queryDiagnostics;
+          return true;
+        }
+
         const report = findApertureEntities(
           world,
           findQueryFromPayload(command.payload, 50),
@@ -98,14 +107,17 @@ export function createGeneratedEntityToolBridge(
       }
 
       if (command.channel === APERTURE_ENTITY_GET_COMMAND_CHANNEL) {
-        const ref = entityRefFromPayload(command.payload, lastFind, lastGet);
+        const resolved = resolveEntityRefFromPayload(
+          world,
+          command.payload,
+          lastFind,
+          lastGet,
+          command.channel,
+        );
         const report =
-          ref === null
-            ? {
-                ok: false as const,
-                diagnostic: missingEntityRefDiagnostic(command.channel),
-              }
-            : getApertureEntitySummary(world, ref);
+          "diagnostic" in resolved
+            ? { ok: false as const, diagnostic: resolved.diagnostic }
+            : getApertureEntitySummary(world, resolved.ref);
 
         gets += 1;
         lastRequest = entityToolRequest(command);
@@ -116,6 +128,7 @@ export function createGeneratedEntityToolBridge(
 
       if (command.channel === APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL) {
         const request = setComponentRequestFromPayload(
+          world,
           command.payload,
           lastFind,
           lastGet,
@@ -205,6 +218,22 @@ export function createGeneratedEntityToolBridge(
     },
     call(tool, payload) {
       if (tool === "ecs_find_entities" || tool === "ecs_query") {
+        const queryDiagnostics = unknownQueryFilterDiagnostics(payload);
+        if (queryDiagnostics.length > 0) {
+          finds += 1;
+          lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+          lastFind = null;
+          diagnostics = queryDiagnostics;
+          return {
+            ok: false,
+            diagnostics: queryDiagnostics,
+            result: {
+              summaries: [],
+              diagnostics: queryDiagnostics,
+            },
+          };
+        }
+
         const report = findApertureEntities(
           world,
           findQueryFromPayload(payload, 50),
@@ -222,14 +251,17 @@ export function createGeneratedEntityToolBridge(
       }
 
       if (tool === "ecs_get_entity") {
-        const ref = entityRefFromPayload(payload, lastFind, lastGet);
+        const resolved = resolveEntityRefFromPayload(
+          world,
+          payload,
+          lastFind,
+          lastGet,
+          tool,
+        );
         const report =
-          ref === null
-            ? {
-                ok: false as const,
-                diagnostic: missingEntityRefDiagnostic(tool),
-              }
-            : getApertureEntitySummary(world, ref);
+          "diagnostic" in resolved
+            ? { ok: false as const, diagnostic: resolved.diagnostic }
+            : getApertureEntitySummary(world, resolved.ref);
 
         gets += 1;
         lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
@@ -242,6 +274,7 @@ export function createGeneratedEntityToolBridge(
 
       if (tool === "ecs_set_component_field") {
         const request = setComponentRequestFromPayload(
+          world,
           payload,
           lastFind,
           lastGet,
@@ -468,7 +501,7 @@ function findQueryFromPayload(
   const key = stringFromValue(query["key"]);
   const namePattern = stringFromValue(query["namePattern"]);
   const withComponents = stringArrayFromValue(query["withComponents"]);
-  const tags = stringArrayFromValue(query["tags"]);
+  const tags = tagsFromQuery(query);
   const limit = numberFromValue(query["limit"]);
 
   return {
@@ -481,28 +514,140 @@ function findQueryFromPayload(
   };
 }
 
-function entityRefFromPayload(
+// Recognized filter keys on an entity query. Anything else is a typo/misuse
+// that would otherwise be silently ignored (finding F4).
+const KNOWN_QUERY_FILTER_KEYS: ReadonlySet<string> = new Set([
+  "source",
+  "key",
+  "namePattern",
+  "withComponents",
+  "tags",
+  "tag",
+  "limit",
+]);
+
+/**
+ * Resolve the tag filter, accepting both the array form (`tags: ["coin"]`) and
+ * the singular string form (`tag: "coin"`). The singular form was previously
+ * ignored, so a `tag` filter silently returned every entity (F4).
+ */
+function tagsFromQuery(query: Record<string, unknown>): string[] | undefined {
+  const tags = stringArrayFromValue(query["tags"]) ?? [];
+  const singular = stringFromValue(query["tag"]);
+  const merged = singular === undefined ? tags : [...tags, singular];
+
+  return merged.length === 0 ? undefined : [...new Set(merged)];
+}
+
+/**
+ * Diagnostics for query filter keys that are not recognized, so a typo like
+ * `tagz` or a misplaced option is rejected instead of silently matching
+ * everything (F4).
+ */
+function unknownQueryFilterDiagnostics(
+  payload: unknown,
+): ApertureEntityLookupDiagnostic[] {
+  const record = isRecord(payload) ? payload : {};
+  const query = isRecord(record["query"]) ? record["query"] : record;
+  const unknown = Object.keys(query).filter(
+    (queryKey) => !KNOWN_QUERY_FILTER_KEYS.has(queryKey),
+  );
+
+  if (unknown.length === 0) {
+    return [];
+  }
+
+  return [
+    {
+      code: "aperture.entityTools.unknownQueryFilter",
+      severity: "error",
+      message: `Unrecognized entity query filter(s): ${unknown.join(", ")}.`,
+      data: { unknown, recognized: [...KNOWN_QUERY_FILTER_KEYS] },
+      suggestedFix:
+        "Use one of key, namePattern, withComponents, tags (array) / tag (string), source, or limit.",
+    },
+  ];
+}
+
+type ResolvedEntityRef =
+  | { readonly ref: EcsEntityRef }
+  | { readonly diagnostic: ApertureEntityLookupDiagnostic };
+
+/**
+ * Resolve the entity an entity-tool command should act on. Precedence:
+ *
+ * 1. An explicit `{ index, generation }` reference (top-level or under `entity`).
+ * 2. A piped find-report payload (`{ summaries: [{ entity }] }`).
+ * 3. A `{ key }` / `{ namePattern }` selector — resolved directly against the
+ *    world. If the selector matches nothing we return a precise diagnostic and
+ *    deliberately do NOT fall back to the last query's result: that returned a
+ *    different, wrong entity (finding F3).
+ * 4. No selector at all — operate on the last found/gotten entity, the
+ *    documented convenience for chained calls.
+ */
+function resolveEntityRefFromPayload(
+  world: EcsWorld,
   payload: unknown,
   lastFind: ApertureEntityFindReport | null,
   lastGet: ApertureEntityGetReport | null,
-): EcsEntityRef | null {
+  channel: string,
+): ResolvedEntityRef {
   const record = isRecord(payload) ? payload : {};
   const explicit = entityRefFromValue(record["entity"] ?? record);
 
   if (explicit !== null) {
-    return explicit;
+    return { ref: explicit };
   }
 
   const queryRef = firstEntityFromFindReportPayload(payload);
   if (queryRef !== null) {
-    return queryRef;
+    return { ref: queryRef };
+  }
+
+  const key = stringFromValue(record["key"]);
+  const namePattern = stringFromValue(record["namePattern"]);
+  if (key !== undefined || namePattern !== undefined) {
+    const report = findApertureEntities(world, {
+      ...(key === undefined ? {} : { key }),
+      ...(namePattern === undefined ? {} : { namePattern }),
+      limit: 1,
+    });
+    const ref = report.summaries[0]?.entity ?? null;
+
+    if (ref !== null) {
+      return { ref };
+    }
+
+    return {
+      diagnostic: {
+        code: "aperture.entityTools.entitySelectorNotFound",
+        severity: "error",
+        message: `No entity matched the requested ${
+          key !== undefined
+            ? `key '${key}'`
+            : `namePattern '${namePattern ?? ""}'`
+        }.`,
+        data: {
+          channel,
+          ...(key === undefined ? {} : { key }),
+          ...(namePattern === undefined ? {} : { namePattern }),
+        },
+        suggestedFix:
+          "Confirm the key/name with ecs_find_entities, or pass an explicit { index, generation } entity reference.",
+      },
+    };
   }
 
   if (lastGet?.ok) {
-    return lastGet.summary.entity;
+    return { ref: lastGet.summary.entity };
   }
 
-  return lastFind?.summaries[0]?.entity ?? null;
+  const lastRef = lastFind?.summaries[0]?.entity ?? null;
+  if (lastRef !== null) {
+    return { ref: lastRef };
+  }
+
+  return { diagnostic: missingEntityRefDiagnostic(channel) };
 }
 
 function firstEntityFromFindReportPayload(
@@ -518,6 +663,7 @@ function firstEntityFromFindReportPayload(
 }
 
 function setComponentRequestFromPayload(
+  world: EcsWorld,
   payload: unknown,
   lastFind: ApertureEntityFindReport | null,
   lastGet: ApertureEntityGetReport | null,
@@ -525,17 +671,21 @@ function setComponentRequestFromPayload(
   | ApertureEntitySetComponentFieldRequest
   | { readonly diagnostic: ApertureEntityLookupDiagnostic } {
   const record = isRecord(payload) ? payload : {};
-  const entity = entityRefFromPayload(payload, lastFind, lastGet);
+  const resolved = resolveEntityRefFromPayload(
+    world,
+    payload,
+    lastFind,
+    lastGet,
+    APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL,
+  );
   const component = stringFromValue(record["component"]);
   const field = stringFromValue(record["field"]);
 
-  if (entity === null) {
-    return {
-      diagnostic: missingEntityRefDiagnostic(
-        APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL,
-      ),
-    };
+  if ("diagnostic" in resolved) {
+    return { diagnostic: resolved.diagnostic };
   }
+
+  const entity = resolved.ref;
 
   if (component === undefined || field === undefined) {
     return {

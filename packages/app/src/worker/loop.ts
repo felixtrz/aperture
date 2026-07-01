@@ -5,12 +5,8 @@ import {
   type SimulationWorkerStartOptions,
 } from "@aperture-engine/runtime";
 import type { Ktx2TextureCompressionSupport } from "@aperture-engine/render";
-import {
-  createApertureApp,
-  type ApertureApp,
-  type CreateApertureAppOptions,
-} from "../advanced.js";
-import type { AperturePhysicsAppConfig } from "../config.js";
+import { createApertureApp, type ApertureApp } from "../advanced.js";
+import { resolveConfigPhysicsOption } from "../config-physics.js";
 import { createDefaultSystemGltfAssetDecoderProvider } from "../systems.js";
 import { createSourceAssetSerializationState } from "../asset-mirror.js";
 import type { ApertureConfig } from "../config.js";
@@ -172,6 +168,7 @@ export async function runGeneratedWorkerLoop(options: {
     options.setApp(app, entityTools, devtools);
 
     const reportRuntimeFailure = (error: unknown): void => {
+      const reason = "aperture.generatedWorker.tickFailed";
       const diagnostic = errorToApertureDiagnostic(error, {
         code: "aperture.generatedWorker.tickFailed",
         severity: "error",
@@ -184,7 +181,7 @@ export async function runGeneratedWorkerLoop(options: {
 
       options.port.postMessage({
         type: SIMULATION_WORKER_PROTOCOL.error,
-        reason: diagnostic.code,
+        reason,
         message: diagnostic.message,
         diagnostics: [diagnostic],
       });
@@ -480,30 +477,6 @@ function readWorkerFixedStepOptions(
   copyNumberOption(record, fixedStep, "maxAccumulatedTime");
 
   return fixedStep;
-}
-
-function resolveConfigPhysicsOption(
-  physics: boolean | AperturePhysicsAppConfig | undefined,
-): CreateApertureAppOptions["physics"] {
-  if (physics === undefined || physics === false) {
-    return undefined;
-  }
-
-  if (physics === true) {
-    return true;
-  }
-
-  if (physics.enabled === false) {
-    return undefined;
-  }
-
-  return {
-    ...(physics.backend === undefined ? {} : { backend: physics.backend }),
-    ...(physics.gravity === undefined ? {} : { gravity: physics.gravity }),
-    ...(physics.colliderGeometry === undefined
-      ? {}
-      : { colliderGeometry: physics.colliderGeometry }),
-  };
 }
 
 function readWorkerPhysicsInterpolationOption(

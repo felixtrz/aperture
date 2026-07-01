@@ -71,6 +71,34 @@ export interface PngLumaSummary {
   readonly maxLuma: number;
 }
 
+export interface PngUniformitySummary {
+  /**
+   * Number of distinct RGB colors found, counted up to an internal cap. When
+   * the scan hits the cap it stops early (the image is clearly not uniform) and
+   * `distinctColorsCapped` is set.
+   */
+  readonly distinctColors: number;
+  /** True when the distinct-color scan hit its cap and stopped counting. */
+  readonly distinctColorsCapped: boolean;
+  /** Fraction of pixels sharing the single most common color (0..1). */
+  readonly dominantCoverage: number;
+  /** Fraction of pixels at or below the near-black luma threshold (0..1). */
+  readonly blackCoverage: number;
+  /** Fraction of pixels at or above the near-white luma threshold (0..1). */
+  readonly whiteCoverage: number;
+  /** Minimum luma found in the image (0..255). */
+  readonly minLuma: number;
+  /** Maximum luma found in the image (0..255). */
+  readonly maxLuma: number;
+}
+
+// Above this many distinct colors an image is unambiguously a real render, so
+// the scan can stop counting. A blank/near-blank frame has a single-digit
+// number of distinct colors (a solid clear plus at most a few stray pixels).
+const DISTINCT_COLOR_CAP = 256;
+const NEAR_BLACK_MAX_LUMA = 4;
+const NEAR_WHITE_MIN_LUMA = 251;
+
 export interface PngDimensions {
   readonly width: number;
   readonly height: number;
@@ -126,9 +154,106 @@ export function summarizePngLuma(png: Buffer): PngLumaSummary {
   };
 }
 
+/**
+ * Summarize how uniform an image is: distinct-color count, the coverage of the
+ * single most common color, and near-black/near-white luma coverage. This is
+ * what distinguishes a real render (many distinct colors, no single dominant
+ * one) from a blank capture, whatever the clear color happened to be.
+ */
+export function summarizePngUniformity(png: Buffer): PngUniformitySummary {
+  const image = readPngImage(png);
+  const pixelCount = image.width * image.height;
+
+  if (pixelCount === 0) {
+    return {
+      distinctColors: 0,
+      distinctColorsCapped: false,
+      dominantCoverage: 1,
+      blackCoverage: 1,
+      whiteCoverage: 1,
+      minLuma: 0,
+      maxLuma: 0,
+    };
+  }
+
+  const counts = new Map<number, number>();
+  let capped = false;
+  let blackPixels = 0;
+  let whitePixels = 0;
+  let minLuma = 255;
+  let maxLuma = 0;
+
+  for (let index = 0; index < pixelCount; index += 1) {
+    const offset = index * image.bytesPerPixel;
+    const r = image.pixels[offset] ?? 0;
+    const g = image.pixels[offset + 1] ?? 0;
+    const b = image.pixels[offset + 2] ?? 0;
+    const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+    if (luma <= NEAR_BLACK_MAX_LUMA) {
+      blackPixels += 1;
+    }
+    if (luma >= NEAR_WHITE_MIN_LUMA) {
+      whitePixels += 1;
+    }
+    if (luma < minLuma) {
+      minLuma = luma;
+    }
+    if (luma > maxLuma) {
+      maxLuma = luma;
+    }
+
+    if (!capped) {
+      const key = (r << 16) | (g << 8) | b;
+      const existing = counts.get(key);
+      if (existing === undefined) {
+        if (counts.size >= DISTINCT_COLOR_CAP) {
+          capped = true;
+        } else {
+          counts.set(key, 1);
+        }
+      } else {
+        counts.set(key, existing + 1);
+      }
+    }
+  }
+
+  let dominant = 0;
+  for (const count of counts.values()) {
+    if (count > dominant) {
+      dominant = count;
+    }
+  }
+
+  return {
+    distinctColors: counts.size,
+    distinctColorsCapped: capped,
+    dominantCoverage: dominant / pixelCount,
+    blackCoverage: blackPixels / pixelCount,
+    whiteCoverage: whitePixels / pixelCount,
+    minLuma,
+    maxLuma,
+  };
+}
+
+/**
+ * Decide whether a render is blank — i.e. the capture came back as a single
+ * flat clear color rather than a real image. This deliberately catches ANY
+ * uniform frame (all-black, all-white, or any solid color), because the
+ * headless-browser element-screenshot path returns an all-white frame when
+ * WebGPU output is never composited, and an all-black frame when the device
+ * produced nothing. A real render always has many distinct colors (shading,
+ * anti-aliased edges), so single-/near-single-color frames are unambiguous.
+ */
 export function isPngBlank(png: Buffer): boolean {
-  const summary = summarizePngLuma(png);
-  return summary.blackCoverage >= 0.995 && summary.maxLuma <= 4;
+  const summary = summarizePngUniformity(png);
+  return (
+    summary.distinctColors <= 1 ||
+    (!summary.distinctColorsCapped && summary.dominantCoverage >= 0.9995) ||
+    (summary.blackCoverage >= 0.995 &&
+      summary.maxLuma <= NEAR_BLACK_MAX_LUMA) ||
+    (summary.whiteCoverage >= 0.995 && summary.minLuma >= NEAR_WHITE_MIN_LUMA)
+  );
 }
 
 export function readPngSamples(

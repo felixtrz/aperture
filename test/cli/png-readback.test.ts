@@ -6,6 +6,7 @@ import { callBrowserBackedTool } from "../../packages/cli/src/tools/dispatch.js"
 import {
   isPngBlank,
   summarizePngLuma,
+  summarizePngUniformity,
 } from "../../packages/cli/src/tools/png-readback.js";
 
 describe("PNG luma blank detection (P2.3)", () => {
@@ -31,6 +32,54 @@ describe("PNG luma blank detection (P2.3)", () => {
     expect(summary.maxLuma).toBeGreaterThan(250);
     expect(summary.blackCoverage).toBeLessThan(0.6);
     expect(isPngBlank(lit)).toBe(false);
+  });
+});
+
+describe("PNG uniform blank detection (F2)", () => {
+  const BLACK: readonly [number, number, number] = [0, 0, 0];
+  const WHITE: readonly [number, number, number] = [255, 255, 255];
+
+  it("flags an all-white frame as blank (headless-browser capture regression)", () => {
+    // The headless-browser element-screenshot path returns an all-white frame
+    // when WebGPU output is never composited. maxLuma is 255, so the legacy
+    // black-only heuristic missed it; the uniformity check must catch it.
+    const white = createRgbPng(
+      8,
+      8,
+      Array.from({ length: 64 }, () => WHITE),
+    );
+    expect(summarizePngUniformity(white)).toMatchObject({
+      distinctColors: 1,
+      whiteCoverage: 1,
+    });
+    expect(isPngBlank(white)).toBe(true);
+  });
+
+  it("flags any single solid color as blank", () => {
+    const grey = createRgbPng(
+      8,
+      8,
+      Array.from({ length: 64 }, () => [40, 40, 40] as const),
+    );
+    expect(isPngBlank(grey)).toBe(true);
+  });
+
+  it("does not flag a sparse but real render as blank", () => {
+    // Mostly-black background (a real render's clear color) with a handful of
+    // distinct lit pixels — this must NOT be treated as blank.
+    const pixels = Array.from({ length: 64 }, (_, index) => {
+      if (index === 20) return [200, 40, 40] as const;
+      if (index === 21) return [180, 60, 20] as const;
+      if (index === 28) return [40, 200, 80] as const;
+      if (index === 35) return [60, 90, 220] as const;
+      return BLACK;
+    });
+    const sparse = createRgbPng(8, 8, pixels);
+    const summary = summarizePngUniformity(sparse);
+    expect(summary.distinctColors).toBeGreaterThan(1);
+    expect(summary.blackCoverage).toBeGreaterThan(0.9);
+    expect(summary.maxLuma).toBeGreaterThan(4);
+    expect(isPngBlank(sparse)).toBe(false);
   });
 });
 
