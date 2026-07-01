@@ -209,10 +209,16 @@ error) when a non-button action is injected one-shot, matching the other path.*
 `aperture.serialization.unregisteredComponent` for `starfall.star`/`starfall.basket`
 (skipped) and resource `starfall.director` `missing`. Restored entities lose all
 custom-component state; signals/RNG/fixed-clock restore fine. **Isolated:** a
-standard-component scene (hier) restores cleanly (`scene.ok:true`, 0
-diagnostics), so the machinery is sound — user-defined types are the gap.
-Secondary bug: the failed restore is wrapped in a top-level `ok:true`. *Same fix
-family as F5.*
+standard-component scene (hier) restores cleanly, so the machinery is sound.
+**Root cause (verified by instrumentation):** the decode registry
+`componentRegistryFromWorld(restoreWorld)` returns **50 components at save
+(incl. both custom ones) but only 48 at restore** — the user components are
+absent from the restore world (they're only ever registered by system
+queries/`addComponent` at runtime, which restore doesn't reproduce before
+`loadScene`), and `componentRegistryFromWorld` also breaks at the first null
+typeId. Secondary bug: the failed restore is wrapped in a top-level `ok:true`.
+*Fix: register the app's declared components at restore (the manifest already
+stores `componentRegistry.ids`) and make the registry scan skip null typeIds.*
 
 ### F7 — MEDIUM — `frame_capture` return shape & dimensions differ between targets
 Same tool, same args `{width:480,height:320}`: **headed** returns an inline MCP
@@ -226,10 +232,15 @@ image + metadata) and honor width/height for headed.*
 With 2 live `star.*` entities, the schema catalog lists app components +
 `starfall.basket` but **omits `starfall.star`** (`componentSchemaNotFound`),
 even though those entities report `starfall.star` in `componentIds` and match
-`ecs_query {withComponents}`. Three tools disagree about the same component. The
-catalog is built by scanning `entity.getComponents()` over an ad-hoc
-`registerQuery({required:[]})` (entities.ts:454) rather than the world's
-registered-component set. *Fix: build the catalog from registered components.*
+`ecs_query {withComponents}`. Three tools disagree about the same component.
+**Root cause (verified by instrumentation):** the catalog scans
+`registerQuery({required:[]}).entities`, which held only **5** entities
+(indices 0-4, init-spawned) vs `indexLookup`'s **7** — the runtime-spawned stars
+(5-6) are absent because an empty-required elics query doesn't pick up entities
+spawned after it was registered. So `basket` (init) is found and `star`
+(runtime) is missed. *Fix: enumerate via `collectActiveEntities(world)` (which
+prefers `entityManager.indexLookup`), the same helper `findApertureEntities`
+uses.*
 
 ### F10 — MEDIUM — `input_inject` is documented as a shared headless tool but is headed-only
 `input_inject` against a headless session → `aperture.headless.toolUnavailable`.
@@ -326,10 +337,14 @@ parity gaps above (F7/F10/F5, O3) being the main rough edges.
 1. **Fix F5 (HIGH).** Make user components survive runner re-boot, or the whole
    `reset`/`app_reset` inner loop is unusable for real (custom-component) apps.
    This is the single most impactful fix.
-2. **Address the "custom types are second-class" cluster (F5/F6/F8).** One root
-   fix — consistent world-scoped registration of user `defineComponent`/
-   `defineResource` — resolves the reset crash, snapshot restore, and schema
-   introspection together.
+2. **Address the "custom types are second-class" cluster (F5/F6/F8).** All three
+   trace to user components being registered only lazily (via system
+   queries/`addComponent`) and not surviving world re-creation or alternate
+   enumeration. Concretely: (F5) fix the elics `addComponent` guard / reset
+   component identity; (F6) register the app's declared components at restore and
+   make `componentRegistryFromWorld` skip null typeIds instead of breaking; (F8)
+   enumerate the schema catalog via `collectActiveEntities`. Each has a verified
+   root cause and a concrete fix in this report.
 3. **Fix the GLB default (F9)** so the shipped `glb-viewer` renders on its
    documented default path (stub geometry or a clearer diagnostic / `hybrid`
    default).
