@@ -16,7 +16,11 @@ export default class AnimSystem extends createSystem({ priority: 0, queries: { a
     this.spawn.camera({ key: "camera.main", transform: { translation: [0, 1.5, 4], lookAt: [0, 1, 0] }, camera: { clearColor: [0.1, 0.12, 0.16, 1] } });
     this.spawn.light({ key: "sun", kind: "directional", illuminance: 5, transform: { rotationEulerDegrees: [-40, 25, 0] } });
     this.spawn.light({ key: "amb", kind: "ambient", intensity: 0.6 });
-    this.spawn.gltf(this.assets.gltf("soldier"), { key: "soldier", transform: { translation: [0, 0, 0] } });
+    // Optional uniform-scale override (F15 boundary sweep). Default 1 keeps the
+    // model's authored 0.01 scale, which sits exactly on invertMat4's epsilon.
+    const s = Number(process.env.ANIM_SCALE ?? "1");
+    const scale: [number, number, number] = [s, s, s];
+    this.spawn.gltf(this.assets.gltf("soldier"), { key: "soldier", transform: { translation: [0, 0, 0], scale } });
   }
   override update(): void {
     if (this.#started || this.time.frame < 1) return;

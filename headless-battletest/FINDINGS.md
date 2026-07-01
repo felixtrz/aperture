@@ -272,3 +272,18 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 
 ### OBSERVATION (F10-adjacent) — `logs_read` is also unavailable in a headless serve session
 - Calling MCP/serve `logs_read` against a headless slot → `aperture.headless.toolUnavailable: Tool 'logs_read' is not available in a headless session.` Same shape as F10's `input_inject` gap: a tool the docs/`CLAUDE.md` present as part of the headless inspection loop ("`logs_read` for recent diagnostics") is headed-only. Headless `diagnostics.info()` output therefore has no read-back channel from the tool surface (it only surfaces in the final bundle's `diagnostics`, filtered).
+
+### F15 addendum — scale-threshold sweep (shipped engine, no patch) pins the boundary at det=1e-6
+- `anim-src/setup.system.ts` reads `ANIM_SCALE` (default 1 = authored 0.01). Sweeping the uniform scale multiplier and comparing the extracted `bones` palette at frame 5 vs 45:
+
+  | scale mult | effective scale | det=eff³ | bones Δ (f5 vs f45) | verdict |
+  |---|---|---|---|---|
+  | 0.5 | 5.0e-3 | 1.25e-7 | 0 | FROZEN |
+  | 1 | 1.0e-2 | 1.00e-6 (= EPSILON) | 0 | FROZEN |
+  | 1.01 | 1.01e-2 | 1.03e-6 | 612 | ANIMATES |
+  | 1.02 | 1.02e-2 | 1.06e-6 | 612 | ANIMATES |
+  | 2 | 2.0e-2 | 8.0e-6 | 612 | ANIMATES |
+  | 5 | 5.0e-2 | 1.25e-4 | 588 | ANIMATES |
+  | 100 | 1.0 | 1.0 | 588 | ANIMATES |
+
+- The freeze/animate boundary is EXACTLY at `det = 1e-6` (`<=` includes the authored 0.01): scale 0.01 → frozen, 0.0101 → animates. Confirms F15 is precisely the `Math.abs(det) <= EPSILON` gate in `invertMat4`, reproducible with the shipped engine (no source patch). Repro: `for S in 0.5 1 1.01 2 100; do ANIM_SCALE=$S aperture headless anim.headless.config.ts --frames 45 ... ; done` and diff the bundle `snapshot.value.bones`.

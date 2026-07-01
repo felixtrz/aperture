@@ -301,6 +301,17 @@ animation never appears in the picture.
    constant (bind pose) every frame — I confirmed the palette hash is bit-identical
    across frames 5/40/80 while the joint worlds underneath are visibly changing.
 
+A **scale sweep with the shipped engine** (no patching) pins the boundary exactly
+at `det = EPSILON`:
+
+| uniform scale | det(meshWorld) = scale³ | skin palette f5→f45 | result |
+|---|---|---|---|
+| 0.005 | 1.25e-7 | 0 elems change | **FROZEN** |
+| **0.01** (authored) | **1.00e-6** (= EPSILON) | 0 elems change | **FROZEN** |
+| 0.0101 | 1.03e-6 | 612 elems change | animates |
+| 0.02 | 8.0e-6 | 612 elems change | animates |
+| 1.0 | 1.0 | 588 elems change | animates |
+
 The animation *simulation* is perfect; only the *skin-palette derivation* drops
 it, and only because a perfectly well-conditioned matrix (its inverse is just
 scale-100) is misclassified as singular. Any uniform scale ≤ 0.01 triggers it
