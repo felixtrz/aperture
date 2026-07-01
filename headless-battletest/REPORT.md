@@ -22,7 +22,7 @@ ran Rapier physics in Node, decoded real GLBs, and rendered every result to PNG
 through the auto-provisioned SwiftShader WebGPU path. Authoring and rendering
 **parity between headless and headed is excellent**.
 
-That said, battle-testing surfaced **14 findings and 12 observations**, including
+That said, battle-testing surfaced **14 findings and 13 observations**, including
 one **HIGH-severity crash** (whose root cause I traced to a single elics guard
 and verified a one-line fix for), and a cluster of **custom components /
 user-defined types being second-class citizens** across `reset`, session
@@ -445,6 +445,12 @@ parity gaps above (F7/F10/F5, O3) being the main rough edges.
 - **O12 — Misleading error tail:** system-exception messages end with "the
   original stack is preserved below", but the CLI prints only the message — no
   stack follows on stderr.
+- **O13 — Restore fidelity needs snapshot-aware systems.** Even a cleanly-
+  restoring standard-component app diverges after restore if a system holds
+  state in a private field without `snapshotState()`/`restoreState()` (verified:
+  the hier despawn didn't fire post-restore until I added them). And even fully
+  snapshot-aware, restore reassigns entity indices, so the `snapshotDigest` isn't
+  bit-identical (semantic state is). `restore.ok:true` gives false confidence.
 
 ---
 
