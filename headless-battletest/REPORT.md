@@ -22,14 +22,19 @@ ran Rapier physics in Node, decoded real GLBs, and rendered every result to PNG
 through the auto-provisioned SwiftShader WebGPU path. Authoring and rendering
 **parity between headless and headed is excellent**.
 
-That said, battle-testing surfaced **14 findings and 13 observations**, including
-one **HIGH-severity crash** (whose root cause I traced to a single elics guard
-and verified a one-line fix for), and a cluster of **custom components /
-user-defined types being second-class citizens** across `reset`, session
-snapshots, and schema introspection. Several **documentation-vs-reality gaps** in
-the agent-facing tooling will trip up an agent that follows the scaffold's own
-instructions. I also confirmed the flow scales (600 entities → coherent render),
-particles/physics/GLB all work headless, and quantified throughput.
+That said, battle-testing surfaced **15 findings and 13 observations**, including
+**two HIGH-severity bugs**, each root-caused and each with a verified fix: (1) a
+**crash** on `reset`/`app_reset` for custom-component apps (traced to a single
+elics guard), and (2) **skeletal GLB animation silently frozen at bind pose**
+for any model at uniform scale ≤ 0.01 (F15 — traced to a mat4 singularity
+epsilon in shared runtime math, so it hits the headed browser too, not just
+headless). There is also a cluster of **custom components / user-defined types
+being second-class citizens** across `reset`, session snapshots, and schema
+introspection, and several **documentation-vs-reality gaps** in the agent-facing
+tooling that will trip up an agent that follows the scaffold's own instructions.
+I also confirmed the flow scales (600 entities → coherent render),
+particles/physics/GLB/skeletal-rig all decode and step headless, and quantified
+throughput.
 
 **Headline results**
 
@@ -43,6 +48,7 @@ particles/physics/GLB all work headless, and quantified throughput.
 | GLB strict/hybrid asset decode in Node | ✅ Real geometry; ⚠️ default `placeholder` breaks GLB scenes (F9) |
 | MCP stdio agent surface (47 tools) | ✅ Full lifecycle; ⚠️ `app_reset` (F5), `frame_capture` (F7), `input_inject` (F10) |
 | Headless vs headed parity | ✅ Identical authoring + rendering; deterministic divergence by design |
+| Skeletal GLB animation (rigged mesh + clips) | ⚠️ Sim animates; **render frozen at bind pose for scale ≤ 0.01 (F15, HIGH, shared)** |
 | `reset` / `app_reset` for custom-component apps | ❌ **Crashes (F5, HIGH)** |
 
 ### Findings at a glance
@@ -50,6 +56,7 @@ particles/physics/GLB all work headless, and quantified throughput.
 | # | Sev | Area | One-liner | Root cause |
 |---|-----|------|-----------|------------|
 | F5 | HIGH | reset | `reset`/`app_reset` crashes for module-scope custom components | **verified** (elics guard) |
+| F15 | HIGH | animation | Skinned GLB animation frozen at bind pose for uniform scale ≤ 0.01 | **verified** (mat4 singularity epsilon) |
 | F6 | MED | snapshot | Session restore drops custom components/resources | **verified** (registry missing them) |
 | F8 | MED | tooling | `ecs_get_component_schema` misses live custom components | **verified** (empty-query enum) |
 | F9 | MED | assets | Default `placeholder` → empty un-renderable bundle for GLB scenes | traced |
@@ -64,7 +71,7 @@ particles/physics/GLB all work headless, and quantified throughput.
 | F11 | LOW | errors | Browser config → cryptic `BASE_URL` error | traced |
 | F12 | LOW | types | Scaffold tsconfig only checks `src/**` | **verified** |
 
-Wins (W1–W23) are in §4; observations (O1–O12) in §7.
+Wins (W1–W24) are in §4; observations (O1–O13) in §7.
 
 **Coverage exercised:** CLI — `create` (minimal/game/glb-viewer), `headless`
 (all flags: frames/delta/seed/inject/asset-mode/determinism/render-dims/json/
@@ -75,7 +82,9 @@ allow-blank/allow-placeholders/json/preflight), `tool`, `mcp stdio` (47 tools),
 warmup/status/search`. Subsystems — ECS + custom components/resources, RNG
 (+fork)/time determinism, input (axis/button/pointer/replay), physics (dynamic +
 kinematic character), hierarchy, assets (GLB/WAV/PNG strict), particles, audio,
-shadows, fog, procedural sky, custom WGSL materials, spatial raycast/overlap, multi-view, scale (600 entities). Comparison —
+shadows, fog, procedural sky, custom WGSL materials, spatial raycast/overlap,
+multi-view, scale (600 entities), skeletal animation (49-joint rigged GLB +
+clip playback). Comparison —
 headed vs headless authoring/render/tool parity.
 
 ---
@@ -205,13 +214,20 @@ modules).
 - **W23 — Spatial queries** (recipe verified): `spatial.raycastFirst` picks the
   right cube via the auto-populated mesh BVH; `overlapSphere` finds the in-range
   mesh — line-of-sight/picking/AoE work in pure Node.
+- **W24 — Skeletal rig decode + animation *simulation* work headless.** A
+  49-joint rigged `Soldier.glb` decodes in strict mode (2 meshes, 3 materials, 2
+  textures, 4 clips); `spawn.animation().clipIds` enumerates the clips;
+  `playClip` drives the mixer, which advances and writes all 156 joint channels
+  into joint `LocalTransform`s every step (verified by instrumentation). The
+  *animated pose is not visible in the render*, but only because of F15's
+  palette-inversion bug — the ECS/animation half is solid in pure Node.
 - **Also:** determinism holds under different `--delta`, across 5 seeds, in
   parallel (4 concurrent runs byte-identical to serial), and over 10k frames
   (bounded, no leak); physics restitution bounces with correct energy loss.
 
 Rendered proof frames: `artifacts/starfall_f150.png` (game), `physics.png`
 (stack), `viewer_strict.png` (GLB), `compare_headed.png` vs `compare_headless.png`
-(parity).
+(parity), `anim_compare.png` (F15 skinned-animation before/after).
 
 ---
 
@@ -224,7 +240,9 @@ misleading behavior or a real DX trap with a workaround; **LOW** = papercut.
 F9 is adjacent to the known "placeholder-asset honesty" gap (but the "0 mesh
 draws → `emptySnapshot`" case is undocumented), and F6 lands in the acknowledged
 "session snapshots are v1" area (with a specific, verified root cause here). The
-rest (F1–F5, F7, F8, F10–F14) are not tracked in those proposals.
+rest (F1–F5, F7, F8, F10–F15) are not tracked in those proposals; F15 (skinned
+animation frozen for small-scale rigs) is a shared-runtime math bug I have not
+seen documented anywhere.
 
 ### F5 — HIGH — `reset` / `app_reset` crashes for any app with module-scope custom components
 Booting the headless runner a second time in one process (what `serve`'s `reset`
@@ -256,6 +274,56 @@ path.*
 **Parity:** `app_reset` on the **headed** slot (same app) returns `ok:true` and
 keeps running — the browser reloads the page (fresh JS realm), so F5 is specific
 to the **headless in-process reboot**, matching the root cause exactly.
+
+### F15 — HIGH — skinned GLB animation is silently frozen at bind pose for any model at uniform scale ≤ 0.01
+A rigged `Soldier.glb` (49 joints, 4 clips: `Idle`/`Run`/`TPose`/`Walk`) loads
+cleanly headless (`mesh:2, material:3, texture:2, animation-clip:4`),
+`spawn.animation(root).clipIds` enumerates all four, and `playClip("Idle")` sets
+`activeClipId`. But `aperture render` of the bundle at frame 10 vs frame 45 is
+**byte-identical** and shows the model **stuck in its bind (T-)pose** — the
+animation never appears in the picture.
+
+**Root cause (traced + verified, three layers deep):**
+1. The animation mixer is *correct*. Instrumenting the engine's
+   `updateAnimationDrivers` shows it advancing every headless step
+   (`active=Idle`, `time` ticks 0.0166→0.0333→…) and writing **all 156 joint
+   channels** into the joints' `LocalTransform`s (`hit=156, miss=0`). Resolved
+   joint **world** transforms drift correctly frame-to-frame.
+2. `updateSkeletonPalettes` (runtime) rebuilds each skin palette as
+   `inverse(meshWorld) · jointWorld · inverseBind`. It calls
+   `invertMat4(meshWorld)` — and **Soldier.glb is authored at a uniform 0.01
+   scale**, so its mesh-entity world matrix has determinant `0.01³ = 1e-6`.
+3. `invertMat4` (`@aperture-engine/math/matrix.ts`) rejects a matrix as singular
+   when `Math.abs(determinant) <= EPSILON`, and `EPSILON = 1e-6`. The 0.01-scale
+   determinant lands **exactly on the boundary** (`1e-6 <= 1e-6` → true), so
+   `invertMat4` returns `null`, and the palette loop falls into its degenerate
+   branch and writes an **identity block for every joint**. The palette is thus a
+   constant (bind pose) every frame — I confirmed the palette hash is bit-identical
+   across frames 5/40/80 while the joint worlds underneath are visibly changing.
+
+The animation *simulation* is perfect; only the *skin-palette derivation* drops
+it, and only because a perfectly well-conditioned matrix (its inverse is just
+scale-100) is misclassified as singular. Any uniform scale ≤ 0.01 triggers it
+(`det = s³`), and cm-/mm-authored GLBs (Blender/Maya/Mixamo defaults) routinely
+land there — Soldier.glb is a stock three.js sample. It is also **not
+headless-specific**: `updateSkeletonPalettes` + `invertMat4` are shared runtime
+math, so the same frozen palette is computed in any runtime `step()`, headed or
+headless (unlike F5, which is headless-only). I surfaced it via the
+headless→render path, the natural place it shows up when battle-testing headless.
+
+**Verified fix (two independent confirmations):** (a) lowering `EPSILON` to
+`1e-12` in the packed math copy makes the *unchanged* 0.01-scale soldier animate
+(palette hash now varies every frame; render frame10 ≠ frame45); (b) scaling the
+model up so `det(meshWorld) > 1e-6` (e.g. `scale:[100,100,100]`) also restores
+animation with the shipped engine. `artifacts/anim_compare.png` shows the same
+bundle/frame before (frozen T-pose, also mis-scaled) and after (live `Idle`
+pose). *Aperture fix path: the singularity test in `invertMat4` is far too
+coarse — a 1e-6 determinant is not singular. Use a much smaller absolute epsilon
+(≈1e-12) or a scale-relative/condition-number test; and/or make
+`updateSkeletonPalettes` compute the mesh inverse without the epsilon gate (fall
+back to identity only on a true non-finite result) so small-scale rigs skin
+correctly.* Workaround today: author/spawn skinned models at a scale whose
+world-matrix determinant exceeds 1e-6 (uniform scale > 0.01).
 
 ### F9 — MEDIUM — default `--asset-mode placeholder` yields an empty, un-renderable bundle for GLB-only scenes
 The shipped `glb-viewer` template, run through the documented default path,
@@ -403,7 +471,8 @@ Driven through **one MCP server** talking to both slots (the live
 | `frame_capture` | text + pngPath, honors dims | inline image, live canvas dims | ⚠️ F7 |
 | `input_inject` | ❌ unavailable (F10) | ✅ | ⚠️ gap |
 | `app_reset` | ❌ crash w/ custom comps (F5) | ✅ ok (page reload) | ⚠️ F5 headless-only |
-| `logs_read` | diagnostic entries | log files | ⚠️ O3 shape differs |
+| Skinned animation (scale ≤ 0.01 rig) | ❌ frozen bind pose (F15) | ❌ frozen bind pose (F15) | ⚠️ **shared** runtime bug (not a parity gap) |
+| `logs_read` | diagnostic entries | log files (also unavailable in headless serve) | ⚠️ O3 shape differs |
 
 **Takeaway:** the engine's central thesis — "simulation is authoritative,
 rendering is a derived view" — holds: the *authored simulation* and the *rendered
@@ -459,6 +528,12 @@ parity gaps above (F7/F10/F5, O3) being the main rough edges.
 1. **Fix F5 (HIGH).** Make user components survive runner re-boot, or the whole
    `reset`/`app_reset` inner loop is unusable for real (custom-component) apps.
    This is the single most impactful fix.
+1b. **Fix F15 (HIGH).** Loosen the `invertMat4` singularity epsilon (1e-6 is far
+   too coarse — it rejects any rig at uniform scale ≤ 0.01, silently freezing
+   all skinned animation at bind pose) and/or drop the epsilon gate in
+   `updateSkeletonPalettes`. This is a shared-runtime fix that also fixes the
+   headed browser, and it's the difference between "skeletal animation works" and
+   "skeletal animation silently does nothing" for a huge class of stock GLBs.
 2. **Address the "custom types are second-class" cluster (F5/F6/F8).** All three
    trace to user components being registered only lazily (via system
    queries/`addComponent`) and not surviving world re-creation or alternate
@@ -521,11 +596,16 @@ bundles into pixels via SwiftShader WebGPU; the MCP surface exposes 47 tools; an
 headless↔headed authoring and rendering parity is excellent. The release gates
 pass.
 
-The rough edges cluster in one place: **user-defined types (custom `defineComponent`/
-`defineResource`) are second-class across the runner-re-creation and
-alternate-enumeration paths** — F5 (reset crash, HIGH), F6 (snapshot restore), and
-F8 (schema introspection), each with a verified root cause and concrete fix here.
-Fixing that cluster plus the GLB default (F9) and the documented-tool gaps
-(F10/F2/F1) would make the headless-first, simulation-authoritative workflow the
-scaffold advertises hold end-to-end for real apps — which, custom types aside, it
-already nearly does.
+Two HIGH-severity bugs stand out. The first is a cluster: **user-defined types
+(custom `defineComponent`/`defineResource`) are second-class across the
+runner-re-creation and alternate-enumeration paths** — F5 (reset crash), F6
+(snapshot restore), and F8 (schema introspection), each with a verified root
+cause and concrete fix here. The second is independent and, if anything, more
+surprising: **F15 — skinned GLB animation is silently frozen at bind pose for any
+model at uniform scale ≤ 0.01**, because a 1e-6-determinant matrix is
+misclassified as singular by the skinning-palette compute; the sim animates
+perfectly, only the render is frozen, and because it lives in shared runtime math
+it hits the headed browser too. Fixing those two, plus the GLB default (F9) and
+the documented-tool gaps (F10/F2/F1), would make the headless-first,
+simulation-authoritative workflow the scaffold advertises hold end-to-end for
+real apps — which, those aside, it already nearly does.

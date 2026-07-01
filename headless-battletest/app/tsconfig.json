@@ -46,6 +46,8 @@
     "spatial.headless.config.ts",
     "spatial-src/**/*.ts",
     "glbscene.headless.config.ts",
-    "glb-src/**/*.ts"
+    "glb-src/**/*.ts",
+    "anim.headless.config.ts",
+    "anim-src/**/*.ts"
   ]
 }
