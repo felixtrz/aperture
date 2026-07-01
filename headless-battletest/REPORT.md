@@ -319,8 +319,12 @@ scale-100) is misclassified as singular. Any uniform scale ≤ 0.01 triggers it
 land there — Soldier.glb is a stock three.js sample. It is also **not
 headless-specific**: `updateSkeletonPalettes` + `invertMat4` are shared runtime
 math, so the same frozen palette is computed in any runtime `step()`, headed or
-headless (unlike F5, which is headless-only). I surfaced it via the
-headless→render path, the natural place it shows up when battle-testing headless.
+headless (unlike F5, which is headless-only). And the renderer's skin extraction
+(`readSkinning`, render pkg) reads `Skin.jointMatrices` **by reference** — it
+never recomputes skinning from joint worlds — so the live headed GPU path
+consumes the identical frozen palette; there is no path that recovers the pose
+downstream. I surfaced it via the headless→render path, the natural place it
+shows up when battle-testing headless.
 
 **Verified fix (two independent confirmations):** (a) lowering `EPSILON` to
 `1e-12` in the packed math copy makes the *unchanged* 0.01-scale soldier animate
