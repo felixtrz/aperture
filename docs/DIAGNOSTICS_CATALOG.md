@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1351
+Every structured diagnostic code the engine can emit (1354
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -129,7 +129,14 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.entityTools.entitySelectorNotFound` | No entity matched the requested ${ key !== undefined ?                  | yes  | `packages/app/src/devtools/entities.ts` |
 | `aperture.entityTools.invalidMutationRequest` | Entity mutation requires component and field string values.             | yes  | `packages/app/src/devtools/entities.ts` |
 | `aperture.entityTools.missingEntityRef`       | Entity tool command requires an entity { index, generation } reference. | yes  | `packages/app/src/devtools/entities.ts` |
-| `aperture.entityTools.unknownQueryFilter`     | Ignoring unrecognized entity query filter(s): ….                        | yes  | `packages/app/src/devtools/entities.ts` |
+| `aperture.entityTools.unknownQueryFilter`     | Unrecognized entity query filter(s): ….                                 | yes  | `packages/app/src/devtools/entities.ts` |
+
+## aperture.generatedWorker (2)
+
+| Code                                  | Message                                                         | Fix? | Emitted from                      |
+| ------------------------------------- | --------------------------------------------------------------- | ---- | --------------------------------- |
+| `aperture.generatedWorker.failed`     | Generated Aperture simulation worker failed during startup.     | yes  | `packages/app/src/worker/loop.ts` |
+| `aperture.generatedWorker.tickFailed` | Generated Aperture simulation worker threw during a frame tick. | yes  | `packages/app/src/worker/loop.ts` |
 
 ## aperture.gltf (4)
 
@@ -306,12 +313,13 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.session.invalidSystemState`  | System '…' returned a non-serializable SessionSnapshot state payload. | yes  | `packages/app/src/headless.ts` |
 | `aperture.session.unsupportedSnapshot` | Unsupported Aperture session snapshot '…' version ….                  | yes  | `packages/app/src/headless.ts` |
 
-## aperture.spawn (2)
+## aperture.spawn (3)
 
-| Code                                         | Message                                    | Fix? | Emitted from                                 |
-| -------------------------------------------- | ------------------------------------------ | ---- | -------------------------------------------- |
-| `aperture.spawn.gltfMaterialOverrideSkipped` | (message composed at runtime)              | —    | `packages/app/src/systems/spawn/gltf.ts`     |
-| `aperture.spawn.unknownOption`               | spawn.… ignored unrecognized option(s): …. | yes  | `packages/app/src/systems/spawn/commands.ts` |
+| Code                                         | Message                                                         | Fix? | Emitted from                                 |
+| -------------------------------------------- | --------------------------------------------------------------- | ---- | -------------------------------------------- |
+| `aperture.spawn.gltfMaterialOverrideSkipped` | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/gltf.ts`     |
+| `aperture.spawn.invalidParticleEffectHandle` | spawn.particles expected effect to be a particle-effect handle. | yes  | `packages/app/src/systems/spawn/commands.ts` |
+| `aperture.spawn.unknownOption`               | Spawn ignored unrecognized option(s).                           | yes  | `packages/app/src/systems/spawn/commands.ts` |
 
 ## aperture.system (3)
 

@@ -1,10 +1,10 @@
 name: CI
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
+  # CI is intentionally manual-only. The WebGPU, coverage, shader, and full
+  # workspace jobs are expensive; maintainers run `pnpm run check` and targeted
+  # validation locally before merging.
+  workflow_dispatch:
 
 permissions:
   contents: read

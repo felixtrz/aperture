@@ -68,13 +68,12 @@ import type {
   SkyboxTextureDescriptorInput,
 } from "./types.js";
 
-// Recognized top-level keys of `spawn.mesh`. The headless config loader strips
-// types but does not type-check (finding F17), so a misplaced option — e.g. a
-// top-level `parent` that belongs in `transform: { parent }` — would otherwise
-// be silently ignored. Warning on unrecognized keys surfaces the mistake in the
-// diagnostics stream. `spawn.mesh` is the most-used builder and has a stable,
-// enumerable shape; other builders that mix in wide render-descriptor inputs
-// are left to `tsc`/`pnpm typecheck` to avoid false-positive warnings.
+// Recognized top-level keys for narrow spawn builders. The headless config
+// loader strips types but does not type-check (finding F17), so misplaced
+// options — e.g. a top-level `parent` that belongs in `transform: { parent }`,
+// or fog `kind` that should be `mode` — would otherwise be silently ignored.
+// Wide builders that mix in render descriptor inputs are still left to
+// `tsc`/`pnpm typecheck` to avoid false-positive warnings.
 const MESH_SPAWN_KEYS: ReadonlySet<string> = new Set([
   "name",
   "key",
@@ -85,6 +84,34 @@ const MESH_SPAWN_KEYS: ReadonlySet<string> = new Set([
   "physics",
   "castShadow",
   "receiveShadow",
+]);
+
+const FOG_SPAWN_KEYS: ReadonlySet<string> = new Set([
+  "name",
+  "key",
+  "tags",
+  "transform",
+  "mode",
+  "color",
+  "density",
+  "start",
+  "end",
+]);
+
+const PARTICLES_SPAWN_KEYS: ReadonlySet<string> = new Set([
+  "name",
+  "key",
+  "tags",
+  "transform",
+  "effect",
+  "capacity",
+  "seed",
+  "resetEpoch",
+  "timeScale",
+  "simulationSpace",
+  "boundsCenter",
+  "boundsRadius",
+  "visible",
 ]);
 
 function warnUnknownSpawnKeys(
@@ -106,14 +133,49 @@ function warnUnknownSpawnKeys(
   }
 
   diagnostics.warn("aperture.spawn.unknownOption", {
-    message: `spawn.${spawnKind} ignored unrecognized option(s): ${unknown.join(
-      ", ",
-    )}.`,
+    message: "Spawn ignored unrecognized option(s).",
     spawnKind,
     unknown,
     recognized: [...known],
     suggestedFix:
       "Check the option placement (e.g. a mesh parent goes in transform: { parent }). aperture headless does not type-check — run 'tsc --noEmit' / 'pnpm typecheck' to catch these.",
+  });
+}
+
+function warnInvalidParticleEffectHandle(
+  diagnostics: SystemDiagnostics,
+  input: unknown,
+): void {
+  if (input === null || typeof input !== "object") {
+    return;
+  }
+
+  const effect = (input as { readonly effect?: unknown }).effect;
+  if (effect === null || typeof effect !== "object") {
+    return;
+  }
+
+  if ("renderHandle" in effect) {
+    return;
+  }
+
+  const record = effect as Record<string, unknown>;
+  if (
+    record["kind"] === "particle-effect" &&
+    typeof record["id"] === "string" &&
+    record["id"].length > 0
+  ) {
+    return;
+  }
+
+  diagnostics.warn("aperture.spawn.invalidParticleEffectHandle", {
+    message: "spawn.particles expected effect to be a particle-effect handle.",
+    received: {
+      kind: record["kind"],
+      hasId: typeof record["id"] === "string" && record["id"].length > 0,
+    },
+    suggestedFix:
+      "Pass effect: particleEffect('id') / this.assets.particleEffect(id).renderHandle. aperture headless does not type-check — run 'tsc --noEmit' / 'pnpm typecheck' to catch bad handle shapes.",
   });
 }
 
@@ -163,6 +225,7 @@ export function createSpawnCommands(options: {
       return entity;
     },
     fog(input = {}) {
+      warnUnknownSpawnKeys(options.diagnostics, "fog", input, FOG_SPAWN_KEYS);
       const entity = createEntityWithMetadata(options.world, input, "fog");
       addTransform(entity, input.transform);
       entity.addComponent(Fog, createFog(input));
@@ -234,6 +297,13 @@ export function createSpawnCommands(options: {
       return entity;
     },
     particles(input) {
+      warnUnknownSpawnKeys(
+        options.diagnostics,
+        "particles",
+        input,
+        PARTICLES_SPAWN_KEYS,
+      );
+      warnInvalidParticleEffectHandle(options.diagnostics, input);
       const entity = createEntityWithMetadata(
         options.world,
         input,

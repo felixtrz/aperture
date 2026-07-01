@@ -79,13 +79,11 @@ async function checkWorkflows() {
   const release = await readText(".github/workflows/release.yml");
 
   expectTextIncludes("ci.yml", ci, [
-    "pull_request:",
-    "push:",
-    "branches:",
-    "main",
+    "workflow_dispatch:",
     "pnpm install --frozen-lockfile",
     "pnpm run check",
   ]);
+  expectTextExcludes("ci.yml", ci, ["pull_request:", "push:", "branches:"]);
   expectTextIncludes("release.yml", release, [
     "workflow_dispatch:",
     "tags:",
@@ -251,6 +249,16 @@ function expectTextIncludes(label, value, expected) {
   for (const expectedValue of expectedValues) {
     if (!value.includes(expectedValue)) {
       fail(`${label} must include '${expectedValue}'.`);
+    }
+  }
+}
+
+function expectTextExcludes(label, value, rejected) {
+  const rejectedValues = Array.isArray(rejected) ? rejected : [rejected];
+
+  for (const rejectedValue of rejectedValues) {
+    if (value.includes(rejectedValue)) {
+      fail(`${label} must not include '${rejectedValue}'.`);
     }
   }
 }

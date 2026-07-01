@@ -168,13 +168,9 @@ export async function runGeneratedWorkerLoop(options: {
     options.setApp(app, entityTools, devtools);
 
     const reportRuntimeFailure = (error: unknown): void => {
-      // `reason` is the worker protocol's failure CATEGORY (tick vs startup),
-      // not the underlying error's code. A thrown app-system error now carries
-      // its own attributed code (aperture.system.lifecycleFailed, finding F9),
-      // which belongs in the diagnostic — not in place of the protocol reason.
       const reason = "aperture.generatedWorker.tickFailed";
       const diagnostic = errorToApertureDiagnostic(error, {
-        code: reason,
+        code: "aperture.generatedWorker.tickFailed",
         severity: "error",
         message:
           "Generated Aperture simulation worker threw during a frame tick.",
@@ -240,12 +236,8 @@ export async function runGeneratedWorkerLoop(options: {
       running = false;
     }
   } catch (error: unknown) {
-    // Protocol failure category for the startup phase; the specific error code
-    // (e.g. a system's aperture.system.lifecycleFailed from init) is preserved
-    // in the diagnostic, not substituted for the reason.
-    const reason = "aperture.generatedWorker.failed";
     const diagnostic = errorToApertureDiagnostic(error, {
-      code: reason,
+      code: "aperture.generatedWorker.failed",
       severity: "error",
       message: "Generated Aperture simulation worker failed during startup.",
       suggestedFix:
@@ -255,7 +247,7 @@ export async function runGeneratedWorkerLoop(options: {
 
     options.port.postMessage({
       type: SIMULATION_WORKER_PROTOCOL.error,
-      reason,
+      reason: diagnostic.code,
       message: diagnostic.message,
       diagnostics: [diagnostic],
     });

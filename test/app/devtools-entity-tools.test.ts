@@ -106,13 +106,15 @@ describe("devtools entity tool selectors", () => {
     expect(keys).toEqual(["coin.0", "coin.1"]);
   });
 
-  it("warns on an unrecognized query filter key (F4)", async () => {
+  it("rejects an unrecognized query filter key (F4)", async () => {
     const bridge = await createBridge();
 
     const result = bridge.call("ecs_query", { tagz: "coin" }) as {
+      ok?: boolean;
       diagnostics?: readonly { code?: string }[];
     };
 
+    expect(result.ok).toBe(false);
     expect(
       (result.diagnostics ?? []).map((diagnostic) => diagnostic.code),
     ).toContain("aperture.entityTools.unknownQueryFilter");

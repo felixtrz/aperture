@@ -1091,6 +1091,7 @@ function sharedStepSchema(): Record<string, unknown> {
     delta: { type: "number" },
     time: { type: "number" },
     digest: { type: "boolean" },
+    extract: { type: "boolean" },
   };
 }
 

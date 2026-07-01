@@ -85,6 +85,15 @@ export function createGeneratedEntityToolBridge(
   return {
     handle(command) {
       if (command.channel === APERTURE_ENTITY_FIND_COMMAND_CHANNEL) {
+        const queryDiagnostics = unknownQueryFilterDiagnostics(command.payload);
+        if (queryDiagnostics.length > 0) {
+          finds += 1;
+          lastRequest = entityToolRequest(command);
+          lastFind = null;
+          diagnostics = queryDiagnostics;
+          return true;
+        }
+
         const report = findApertureEntities(
           world,
           findQueryFromPayload(command.payload, 50),
@@ -93,10 +102,7 @@ export function createGeneratedEntityToolBridge(
         finds += 1;
         lastRequest = entityToolRequest(command);
         lastFind = report;
-        diagnostics = [
-          ...report.diagnostics,
-          ...unknownQueryFilterDiagnostics(command.payload),
-        ];
+        diagnostics = report.diagnostics;
         return true;
       }
 
@@ -212,23 +218,35 @@ export function createGeneratedEntityToolBridge(
     },
     call(tool, payload) {
       if (tool === "ecs_find_entities" || tool === "ecs_query") {
+        const queryDiagnostics = unknownQueryFilterDiagnostics(payload);
+        if (queryDiagnostics.length > 0) {
+          finds += 1;
+          lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+          lastFind = null;
+          diagnostics = queryDiagnostics;
+          return {
+            ok: false,
+            diagnostics: queryDiagnostics,
+            result: {
+              summaries: [],
+              diagnostics: queryDiagnostics,
+            },
+          };
+        }
+
         const report = findApertureEntities(
           world,
           findQueryFromPayload(payload, 50),
         );
-        const merged = [
-          ...report.diagnostics,
-          ...unknownQueryFilterDiagnostics(payload),
-        ];
 
         finds += 1;
         lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
         lastFind = report;
-        diagnostics = merged;
+        diagnostics = report.diagnostics;
         return {
           ok: true,
           result: report,
-          diagnostics: merged,
+          diagnostics: report.diagnostics,
         };
       }
 
@@ -523,8 +541,8 @@ function tagsFromQuery(query: Record<string, unknown>): string[] | undefined {
 
 /**
  * Diagnostics for query filter keys that are not recognized, so a typo like
- * `tagz` or a misplaced option surfaces as a warning instead of silently
- * matching everything (F4).
+ * `tagz` or a misplaced option is rejected instead of silently matching
+ * everything (F4).
  */
 function unknownQueryFilterDiagnostics(
   payload: unknown,
@@ -542,8 +560,8 @@ function unknownQueryFilterDiagnostics(
   return [
     {
       code: "aperture.entityTools.unknownQueryFilter",
-      severity: "warning",
-      message: `Ignoring unrecognized entity query filter(s): ${unknown.join(", ")}.`,
+      severity: "error",
+      message: `Unrecognized entity query filter(s): ${unknown.join(", ")}.`,
       data: { unknown, recognized: [...KNOWN_QUERY_FILTER_KEYS] },
       suggestedFix:
         "Use one of key, namePattern, withComponents, tags (array) / tag (string), source, or limit.",
