@@ -157,6 +157,9 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 - Impact: any multi-viewport layout is un-renderable via the headless render path (and the blank-guard's message misattributes it to unresolved assets / headless compositing, which is misleading here).
 - Recommendation: honor `view.viewport`/`view.scissor` in the render harness, or document that `aperture render` composites only full-frame single views.
 
+### WIN W19 — fog + procedural sky work headless→render
+- `spawn.fog({mode:"linear", …})` extracts (`fogs:1`) and `aperture render` clearly fades receding pillars toward the fog color; `spawn.proceduralSky` renders a gradient sky with a sun glow (`artifacts/sky.png`). (Minor: proceduralSky isn't counted in the snapshot's `skyboxes` array — tracked elsewhere — but renders fine.)
+
 ### WIN W18 — shadow mapping works headless→render
 - A directional light with `shadow: true` + a `castShadow` cube over a `receiveShadow` ground extracts `shadowRequests: 1` in headless; `aperture render` produces a correct cast shadow on the ground with proper PBR shading (`artifacts/shadow.png`). The full lighting + shadow-map + PBR pipeline works from a Node-produced bundle through SwiftShader WebGPU.
 

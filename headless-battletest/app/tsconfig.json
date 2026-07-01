@@ -36,6 +36,8 @@
     "shadow.headless.config.ts",
     "shadow-src/**/*.ts",
     "bloom.headless.config.ts",
-    "bloom-src/**/*.ts"
+    "bloom-src/**/*.ts",
+    "sky.headless.config.ts",
+    "sky-src/**/*.ts"
   ]
 }
