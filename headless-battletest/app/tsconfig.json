@@ -40,6 +40,8 @@
     "sky.headless.config.ts",
     "sky-src/**/*.ts",
     "bounce.headless.config.ts",
-    "bounce-src/**/*.ts"
+    "bounce-src/**/*.ts",
+    "wgsl.headless.config.ts",
+    "wgsl-src/**/*.ts"
   ]
 }

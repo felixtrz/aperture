@@ -166,6 +166,10 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 - Impact: any multi-viewport layout is un-renderable via the headless render path (and the blank-guard's message misattributes it to unresolved assets / headless compositing, which is misleading here).
 - Recommendation: honor `view.viewport`/`view.scissor` in the render harness, or document that `aperture render` composites only full-frame single views.
 
+### WIN W22 — custom WGSL materials work headless→render (documented recipe verified)
+- Followed `docs/recipes/custom-wgsl-material.md`: `asset.shader("/shaders/water.wgsl")` + `material.customWgsl({ shader: shader.asset(...), entryPoints:{vertex,fragment}, bindings:[material.uniform(...)] })` on a plane.
+- `--asset-mode strict` decodes the WGSL in Node (`shader: ready`); the mesh draw uses the custom pipeline family (`pipelineKey: test/water|bindings:0:uniform-buffer|specialization:…`). `aperture render` compiles + runs the shader through WebGPU, producing the exact UV-gradient from `fs_main` (`band = 0.35 + 0.65*uv.y` × water color) — `artifacts/wgsl.png`. Power-user custom shaders work end-to-end headless.
+
 ### WIN W21 — all three scaffold templates work end-to-end from the packed CLI
 - `aperture create --template minimal|game|glb-viewer` each scaffold, install from tarballs, typecheck, `aperture headless`, and `aperture render` cleanly. The `minimal` template's spinning cube renders as a lit, slightly-rotated blue cube (`artifacts/minimal.png`); `game`→Starfall; `glb-viewer`→GLB (with the F9 asset-mode caveat). Template + pack→install→headless→render coverage is complete.
 
