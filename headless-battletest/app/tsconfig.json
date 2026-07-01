@@ -8,7 +8,9 @@
     "noUncheckedIndexedAccess": true,
     "allowImportingTsExtensions": true,
     "skipLibCheck": true,
-    "types": ["vite/client"]
+    "types": [
+      "vite/client"
+    ]
   },
   "include": [
     "aperture.config.ts",
@@ -28,6 +30,8 @@
     "multi-src/**/*.ts",
     "audio-src/**/*.ts",
     "scale-src/**/*.ts",
-    ".aperture/generated/**/*.d.ts"
+    ".aperture/generated/**/*.d.ts",
+    "char.headless.config.ts",
+    "char-src/**/*.ts"
   ]
 }

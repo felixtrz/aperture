@@ -133,6 +133,9 @@ modules).
 - **W12 — Audio + RNG fork + multi-view:** strict WAV decode in Node +
   `playOneShot` (no device); independent deterministic `random.fork()` streams;
   2-camera extraction yields 2 views (rendering them is F13).
+- **W13 — Kinematic character controller:** a capsule walks into a wall and
+  stops at x=2.34 (expected ~2.35) via `moveCharacter`+`setKinematicTarget` in
+  `fixedUpdate` — Rapier collision resolution + snap-to-ground in pure Node.
 
 Rendered proof frames: `artifacts/starfall_f150.png` (game), `physics.png`
 (stack), `viewer_strict.png` (GLB), `compare_headed.png` vs `compare_headless.png`
@@ -144,6 +147,12 @@ Rendered proof frames: `artifacts/starfall_f150.png` (game), `physics.png`
 
 Severity: **HIGH** = breaks a documented core workflow; **MEDIUM** = wrong/
 misleading behavior or a real DX trap with a workaround; **LOW** = papercut.
+
+*Prior art:* checked against `docs/proposals/headless-*`. Most findings are new;
+F9 is adjacent to the known "placeholder-asset honesty" gap (but the "0 mesh
+draws → `emptySnapshot`" case is undocumented), and F6 lands in the acknowledged
+"session snapshots are v1" area (with a specific, verified root cause here). F5,
+F7, F8, F10, F11, F12, F13 are not tracked in those proposals.
 
 ### F5 — HIGH — `reset` / `app_reset` crashes for any app with module-scope custom components
 Booting the headless runner a second time in one process (what `serve`'s `reset`

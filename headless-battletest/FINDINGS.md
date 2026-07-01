@@ -151,6 +151,10 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 - Impact: any multi-viewport layout is un-renderable via the headless render path (and the blank-guard's message misattributes it to unresolved assets / headless compositing, which is misleading here).
 - Recommendation: honor `view.viewport`/`view.scissor` in the render harness, or document that `aperture render` composites only full-frame single views.
 
+### WIN W13 — Rapier kinematic character controller resolves collisions in headless (via fixedUpdate)
+- A kinematic-position capsule with a `characterController` walks +x toward a static wall (face at x=2.75, capsule radius 0.4). Driving it via `this.physics.moveCharacter({ entity: serializeEntityRef(body), desiredTranslation })` + `setKinematicTarget` inside `fixedUpdate`, after 120 frames it **stops at x=2.34** (expected ~2.35) — collision resolved, snapped to ground (y=1.008), not passing through. Deterministic character movement + `fixedUpdate` both work in pure Node.
+- Incidentally reconfirms O6: `moveCharacter` takes a `serializeEntityRef` **string** while `setKinematicTarget` takes the **Entity** — both used in the same call site.
+
 ### WIN W12 — audio, RNG fork, and multi-view extraction all work headless
 - **Audio:** `--asset-mode strict` decodes a real WAV in Node (`audio-clip: ready:1, failed:0`); `this.audio.playOneShot("key", { clip: this.audio.clip("blip"), gain })` creates an emitter entity with no audio device and no crash. (An earlier crash was API misuse — `position` isn't an `AudioOneShotOptions` field — caught by tsc only after adding `audio-src` to the include: another instance of F12.)
 - **RNG fork:** `context.random.fork("stream-a")` vs `fork("stream-b")` produce independent sequences (`[957,178,83]` vs `[4,424,11]`), and the whole run stays deterministic — good for per-feature independent streams.
