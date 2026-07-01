@@ -38,6 +38,8 @@
     "bloom.headless.config.ts",
     "bloom-src/**/*.ts",
     "sky.headless.config.ts",
-    "sky-src/**/*.ts"
+    "sky-src/**/*.ts",
+    "bounce.headless.config.ts",
+    "bounce-src/**/*.ts"
   ]
 }

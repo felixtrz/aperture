@@ -222,6 +222,7 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 - After 180 frames they fell and **stacked** with correct collision resolution: box.0 y=0.499 (floor top +0.5), box.1 y=1.497 (on box.0), box.2 y=2.496 (on box.1). Fixed-step clock advanced to index 180. Rendered PNG shows the leaning tower on the floor.
 - Determinism: two runs byte-identical (digest `136be813`). Rapier WASM loads and simulates in Node with no browser.
 - OBSERVATION O4: a Rapier init deprecation warning leaks to stderr on every physics headless boot: `using deprecated parameters for the initialization function; pass a single object instead`. Cosmetic but noisy for agents that treat stderr as errors.
+- Restitution too: a ball with restitution 0.9 dropped from y=5 bounces with monotonically-decreasing apexes (5 → 4.20 → 3.49 → 2.92 → 2.50 — correct energy loss) and replays byte-identically. Combined with W13 (kinematic character), physics is thoroughly headless-capable: dynamic stacking, kinematic collision, and restitution all work deterministically.
 
 ### WIN W7 — headless throughput is fast; boot cost motivates `serve`
 - One-shot fixed cost (Vite-SSR config load + runner boot + extract + write): **~1.85s** for both Starfall and physics (boot-only, 0 frames).
