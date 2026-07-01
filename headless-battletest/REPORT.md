@@ -140,6 +140,10 @@ modules).
   browser/WebGPU imports in headless paths), `check:render-bundles`, and
   `check:pack-cli` (the pack→install→headless smoke I did by hand) all green —
   the flow is genuinely CI-gated.
+- **W15 — Deterministic replay + entry-point equivalence:** a timed `--inject`
+  file is a reproducible input recording (replay changed the sim and two replays
+  are byte-identical); one-shot `--frames 90` and `serve` stepping 90 produce
+  byte-identical `snapshot.value` (`snapshotDigest 0f4c82b2`).
 
 Rendered proof frames: `artifacts/starfall_f150.png` (game), `physics.png`
 (stack), `viewer_strict.png` (GLB), `compare_headed.png` vs `compare_headless.png`
@@ -360,6 +364,10 @@ parity gaps above (F7/F10/F5, O3) being the main rough edges.
   scenes via `ecs_find_entities` filters/`limit`.
 - **O10 — Render bundle grows ~linearly** (~4.7 KB/entity → 2.84 MB for 600); a
   10k-entity scene ≈ 47 MB. Marginal step rate ~101/s at 600 entities.
+- **O11 — The full bundle `digest` covers provenance** (`createdBy`), so
+  identical content from different tools (one-shot vs serve) has different
+  top-level digests; use `snapshotDigest` for content comparison. Both digest
+  fields are objects `{algorithm,hash,byteLength}` — compare `.hash`.
 
 ---
 

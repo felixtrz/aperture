@@ -152,6 +152,11 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 - Impact: any multi-viewport layout is un-renderable via the headless render path (and the blank-guard's message misattributes it to unresolved assets / headless compositing, which is misleading here).
 - Recommendation: honor `view.viewport`/`view.scissor` in the render harness, or document that `aperture render` composites only full-frame single views.
 
+### WIN W15 — deterministic input replay + one-shot≡serve equivalence
+- Input replay: a timed `--inject` file (`[{atFrame:0,actions:{magnet:true}},{atFrame:40,actions:{magnet:false}}]`) is a reproducible recording — it changed the sim (digest `c0f9001b` vs no-input `eab193ea`) and two replays are byte-identical. Timed `atFrame` sequences fire at the right frames.
+- Entry-point equivalence: one-shot `aperture headless --frames 90` and `serve` stepping 90 produce **byte-identical `snapshot.value`** and the same `snapshotDigest` hash (`0f4c82b2`). The two headless entry points are consistent.
+- OBSERVATION O11: the full bundle `digest` also covers provenance (`createdBy` = "aperture headless" vs "aperture serve"), so identical content gets different **full** digests across tools (`eab193ea` vs `c0158f1c`). Use `snapshotDigest` (content-only) to compare "is this the same render?", not the top-level `digest`. (Also: `snapshotDigest`/`digest` are objects `{algorithm,hash,byteLength}` — compare `.hash`, not the object, or `===` always says "different".)
+
 ### WIN W13 — Rapier kinematic character controller resolves collisions in headless (via fixedUpdate)
 - A kinematic-position capsule with a `characterController` walks +x toward a static wall (face at x=2.75, capsule radius 0.4). Driving it via `this.physics.moveCharacter({ entity: serializeEntityRef(body), desiredTranslation })` + `setKinematicTarget` inside `fixedUpdate`, after 120 frames it **stops at x=2.34** (expected ~2.35) — collision resolved, snapped to ground (y=1.008), not passing through. Deterministic character movement + `fixedUpdate` both work in pure Node.
 - Incidentally reconfirms O6: `moveCharacter` takes a `serializeEntityRef` **string** while `setKinematicTarget` takes the **Entity** — both used in the same call site.
