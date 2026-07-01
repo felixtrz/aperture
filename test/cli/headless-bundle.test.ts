@@ -155,13 +155,13 @@ describe("render/post config carried in bundles (#73)", () => {
         sampleCount: 4,
         tonemap: "aces",
         exposure: 1.2,
-        bloom: { threshold: 0.7, intensity: 1.5 },
+        bloom: { threshold: 0.7, intensity: 1.5, radiusPixels: 24 },
       }),
     ).toEqual({
       sampleCount: 4,
       toneMapping: "aces",
       exposure: 1.2,
-      bloom: { threshold: 0.7, intensity: 1.5 },
+      bloom: { threshold: 0.7, intensity: 1.5, radiusPixels: 24 },
     });
     // bloom: true implies exposure (the HDR scene buffer), like the browser.
     expect(renderBundleTargetFromRenderDefaults({ bloom: true })).toEqual({
@@ -192,7 +192,7 @@ describe("render/post config carried in bundles (#73)", () => {
       options: {
         renderTarget: {
           ...renderBundleTargetFromRenderDefaults({
-            bloom: true,
+            bloom: { radiusPixels: 24 },
             exposure: 1.2,
             tonemap: "aces",
           }),
@@ -207,17 +207,18 @@ describe("render/post config carried in bundles (#73)", () => {
       height: 240,
       toneMapping: "aces",
       exposure: 1.2,
-      bloom: {},
+      bloom: { radiusPixels: 24 },
     });
 
-    // The consumer-side normalization keeps the post fields intact.
+    // The consumer-side normalization keeps the post fields intact,
+    // including the legacy radiusPixels blur radius.
     const roundTripped = getApertureSnapshotBundleRenderTarget(
       JSON.parse(JSON.stringify(bundle)),
     );
     expect(roundTripped).toMatchObject({
       toneMapping: "aces",
       exposure: 1.2,
-      bloom: {},
+      bloom: { radiusPixels: 24 },
     });
   });
 });

@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createApertureHeadlessRunner } from "@aperture-engine/app/headless";
+import type { RenderSnapshot } from "@aperture-engine/render";
 import type {
   ApertureDeterminismDiagnosticsMode,
   ApertureSystemDiagnostic,
@@ -140,9 +141,9 @@ export async function runHeadlessCommand(options: {
 
   // Name the likely cause of an un-renderable bundle up front instead of
   // leaving it to `aperture render`'s generic emptySnapshot failure (#66).
-  if (report.snapshot.meshDraws.length === 0) {
+  if (!snapshotHasRenderableDraws(report.snapshot)) {
     stderr(
-      `warning aperture.headless.emptyBundle: the extracted snapshot has 0 mesh draws${
+      `warning aperture.headless.emptyBundle: the extracted snapshot has no renderable draws (mesh, sprite, sky, glyph, UI, or particle)${
         placeholders.ids.length > 0
           ? " (placeholder assets carry no geometry — use --asset-mode hybrid or strict so Node loads the real assets)"
           : ""
@@ -164,6 +165,21 @@ export async function runHeadlessCommand(options: {
   }
 
   return 0;
+}
+
+// Mirrors the renderer's own renderable-family check (webgpu frame-loop): a
+// snapshot renders when ANY draw family is present — sprite/sky/glyph/UI/
+// particle-only scenes are valid without a single mesh draw.
+function snapshotHasRenderableDraws(snapshot: RenderSnapshot): boolean {
+  return (
+    snapshot.meshDraws.length > 0 ||
+    (snapshot.spriteDraws ?? []).length > 0 ||
+    (snapshot.skyboxes ?? []).length > 0 ||
+    (snapshot.proceduralSkies ?? []).length > 0 ||
+    (snapshot.quadBatches ?? []).some((batch) => batch.kind === "glyph") ||
+    (snapshot.uiNodes ?? []).length > 0 ||
+    (snapshot.particleEmitters ?? []).length > 0
+  );
 }
 
 async function readInjectSteps(

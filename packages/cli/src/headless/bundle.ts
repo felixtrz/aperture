@@ -58,6 +58,8 @@ export interface ApertureRenderBundleBloom {
   readonly threshold?: number;
   readonly intensity?: number;
   readonly radius?: number;
+  /** Legacy Aperture blur radius fallback; prefer `radius` for new code. */
+  readonly radiusPixels?: number;
   readonly levels?: number;
 }
 
@@ -107,6 +109,9 @@ export function renderBundleTargetFromRenderDefaults(
             ...(render.bloom.radius === undefined
               ? {}
               : { radius: render.bloom.radius }),
+            ...(render.bloom.radiusPixels === undefined
+              ? {}
+              : { radiusPixels: render.bloom.radiusPixels }),
             ...(render.bloom.levels === undefined
               ? {}
               : { levels: render.bloom.levels }),
@@ -650,7 +655,13 @@ function readRenderTargetBloom(
   }
 
   const bloom: Record<string, number> = {};
-  for (const field of ["threshold", "intensity", "radius", "levels"] as const) {
+  for (const field of [
+    "threshold",
+    "intensity",
+    "radius",
+    "radiusPixels",
+    "levels",
+  ] as const) {
     const fieldValue = value[field];
     if (fieldValue === undefined) {
       continue;
