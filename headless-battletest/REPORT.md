@@ -294,9 +294,9 @@ even though those entities report `starfall.star` in `componentIds` and match
 (indices 0-4, init-spawned) vs `indexLookup`'s **7** — the runtime-spawned stars
 (5-6) are absent because an empty-required elics query doesn't pick up entities
 spawned after it was registered. So `basket` (init) is found and `star`
-(runtime) is missed. *Fix: enumerate via `collectActiveEntities(world)` (which
-prefers `entityManager.indexLookup`), the same helper `findApertureEntities`
-uses.*
+(runtime) is missed. **Verified fix:** patching the scan to enumerate via
+`entityManager.indexLookup` (as `collectActiveEntities`/`findApertureEntities`
+do) makes `starfall.star`'s schema resolve (was missed).
 
 ### F10 — MEDIUM — `input_inject` is documented as a shared headless tool but is headed-only
 `input_inject` against a headless session → `aperture.headless.toolUnavailable`.
