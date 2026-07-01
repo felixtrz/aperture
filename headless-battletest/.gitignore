@@ -1,0 +1,14 @@
+# Machine-specific / heavy / generated — regenerate with the scripts here.
+node_modules/
+packs/
+*.tgz
+tarballs.json
+toolbox/
+pnpm-lock.yaml
+pnpm-workspace.yaml
+dist/
+.aperture/
+# Large binary proof artifacts (a curated few are force-added).
+artifacts/*.json
+*.err.txt
+*.status.json

@@ -1,0 +1,25 @@
+import { spawn } from "node:child_process";
+import { createInterface } from "node:readline";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+const here = path.dirname(fileURLToPath(import.meta.url));
+const appDir = path.join(here, "app");
+const cli = path.join(appDir, "node_modules/@aperture-engine/cli/dist/bin/aperture.js");
+const child = spawn("node", [cli, "headless", "serve", "aperture.headless.config.ts", "--seed", "1"], { cwd: appDir });
+const rl = createInterface({ input: child.stdout });
+const pending = new Map(); let nextId = 1, rr;
+const ready = new Promise((r) => (rr = r));
+rl.on("line", (l) => { if (!l.trim()) return; let m; try { m = JSON.parse(l); } catch { return; } if (m.ready && m.id === undefined) return rr(m); const p = pending.get(m.id); if (p) { pending.delete(m.id); p(m); } });
+child.stderr.on("data", (d) => process.stderr.write(`[serve] ${d}`));
+const send = (cmd, params = {}) => new Promise((res) => { const id = nextId++; pending.set(id, res); child.stdin.write(JSON.stringify({ id, cmd, params }) + "\n"); });
+
+await ready;
+await send("step", { frames: 90 });
+const before = (await send("get-status")).result.signals;
+await send("snapshot", { out: "../artifacts/starfall.session.json" });
+const restore = await send("restore", { in: "../artifacts/starfall.session.json" });
+console.log("signals before snapshot:", JSON.stringify(before));
+console.log("\nFULL restore response:");
+console.log(JSON.stringify(restore, null, 1).slice(0, 2000));
+await send("shutdown");
+child.stdin.end();

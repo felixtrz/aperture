@@ -1,0 +1,16 @@
+---
+description: Aperture app architecture
+alwaysApply: true
+---
+
+<!-- aperture-managed:start aperture-ai-tools -->
+Use Aperture's ECS-first API. Author runtime behavior as systems under
+`src/systems/**/*.system.ts`. Rendering is derived from ECS components and
+assets; do not add a renderer-owned scene graph.
+
+For agent/tooling iteration, use the Aperture MCP warm headless slot first:
+`app_start({ target: "headless", config: "aperture.headless.config.ts" })`,
+then shared tools such as `ecs_step`, `asset_list`, `input_inject`,
+`camera_*`, and `frame_capture({ target: "headless" })`. Use the headed
+browser slot only when browser-specific behavior must be verified.
+<!-- aperture-managed:end aperture-ai-tools -->

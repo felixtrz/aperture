@@ -1,0 +1,33 @@
+import { spawn } from "node:child_process";
+import { createInterface } from "node:readline";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+const here = path.dirname(fileURLToPath(import.meta.url));
+const appDir = path.join(here, "app");
+const cli = path.join(appDir, "node_modules/@aperture-engine/cli/dist/bin/aperture.js");
+const child = spawn("node", [cli, "mcp", "stdio"], { cwd: appDir });
+const rl = createInterface({ input: child.stdout });
+const pending = new Map(); let nextId = 1;
+rl.on("line", (l) => { if (!l.trim()) return; let m; try { m = JSON.parse(l); } catch { return; } if (m.id !== undefined && pending.has(m.id)) { const r = pending.get(m.id); pending.delete(m.id); r(m); } });
+child.stderr.on("data", () => {});
+const rpc = (method, params) => new Promise((res) => { const id = nextId++; pending.set(id, res); child.stdin.write(JSON.stringify({ jsonrpc: "2.0", id, method, params }) + "\n"); });
+const notify = (method, params) => child.stdin.write(JSON.stringify({ jsonrpc: "2.0", method, params }) + "\n");
+const call = (name, args) => rpc("tools/call", { name, arguments: args });
+const describe = (label, res) => {
+  const content = res.result?.content ?? [];
+  const types = content.map((c) => c.type);
+  const t = content.find((c) => c.type === "text");
+  let p; try { p = JSON.parse(t?.text ?? "{}"); } catch { p = {}; }
+  const dims = p.actualDimensions ?? p.dimensions ?? (p.width ? `${p.width}x${p.height}` : "?");
+  const img = content.find((c) => c.type === "image");
+  const imgDims = img ? `${Math.round((img.data?.length ?? 0) * 0.75)}B` : "none";
+  console.log(`${label}: contentTypes=${JSON.stringify(types)} actualDims=${JSON.stringify(dims)} source=${p.source ?? "?"} pngPath=${p.pngPath ? "yes" : "no"} inlineImg=${imgDims}`);
+};
+await rpc("initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "fc", version: "0" } });
+notify("notifications/initialized", {});
+describe("headed  frame_capture(480x320)", await call("frame_capture", { target: "headed", width: 480, height: 320 }));
+await call("app_start", { target: "headless", config: "aperture.headless.config.ts", seed: 1, assetMode: "hybrid" });
+await call("ecs_step", { target: "headless", frames: 60 });
+describe("headless frame_capture(480x320)", await call("frame_capture", { target: "headless", width: 480, height: 320 }));
+await call("app_stop", { target: "headless" });
+child.stdin.end(); setTimeout(() => process.exit(0), 400);

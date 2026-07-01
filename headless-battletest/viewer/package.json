@@ -1,0 +1,22 @@
+{
+  "name": "viewer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "aperture": "aperture"
+  },
+  "dependencies": {
+    "@aperture-engine/app": "^0.2.0",
+    "@aperture-engine/vite-plugin": "^0.2.0"
+  },
+  "devDependencies": {
+    "@aperture-engine/cli": "^0.2.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.13"
+  }
+}
