@@ -34,6 +34,8 @@
     "char.headless.config.ts",
     "char-src/**/*.ts",
     "shadow.headless.config.ts",
-    "shadow-src/**/*.ts"
+    "shadow-src/**/*.ts",
+    "bloom.headless.config.ts",
+    "bloom-src/**/*.ts"
   ]
 }

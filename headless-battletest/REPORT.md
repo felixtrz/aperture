@@ -22,7 +22,7 @@ ran Rapier physics in Node, decoded real GLBs, and rendered every result to PNG
 through the auto-provisioned SwiftShader WebGPU path. Authoring and rendering
 **parity between headless and headed is excellent**.
 
-That said, battle-testing surfaced **13 findings and 12 observations**, including
+That said, battle-testing surfaced **14 findings and 12 observations**, including
 one **HIGH-severity crash** (whose root cause I traced to a single elics guard
 and verified a one-line fix for), and a cluster of **custom components /
 user-defined types being second-class citizens** across `reset`, session
@@ -59,6 +59,7 @@ particles/physics/GLB all work headless, and quantified throughput.
 | F7 | MED | tooling | `frame_capture` shape/dims differ headed vs headless | observed |
 | F10 | MED | docs | `input_inject` documented as headless but is headed-only | observed |
 | F13 | MED | render | `aperture render` renders fractional viewports all-black | observed |
+| F14 | MED | render | `aperture render` omits post-effects (bloom/exposure); bundle lacks render config | traced |
 | F3 | LOW | types | `this.signals.*` never typed; no headless codegen | traced |
 | F11 | LOW | errors | Browser config → cryptic `BASE_URL` error | traced |
 | F12 | LOW | types | Scaffold tsconfig only checks `src/**` | **verified** |
@@ -176,6 +177,9 @@ modules).
   multiplier, a difficulty-ramped level, and game-over — all built via
   edit→`tsc`→`serve`→inspect, no browser. Autoplay reached score 31 / combo 9 /
   level 4; passive hit game-over at tick 187. Determinism preserved.
+- **W18 — Shadow mapping headless→render:** a directional light with `shadow:true`
+  extracts `shadowRequests` and `aperture render` produces a correct cast shadow
+  with PBR shading (`artifacts/shadow.png`).
 
 Rendered proof frames: `artifacts/starfall_f150.png` (game), `physics.png`
 (stack), `viewer_strict.png` (GLB), `compare_headed.png` vs `compare_headless.png`
@@ -328,6 +332,16 @@ split-screen/PiP/minimap layouts are un-renderable via the headless render path,
 and the blank-guard message misattributes the cause. *Fix: honor
 `view.viewport`/`scissor` in the harness, or document the single-full-view
 limitation.*
+
+### F14 — MEDIUM — `aperture render` omits app-level post-effects; the bundle doesn't capture render config
+A config with `render:{bloom:true, exposure:1.2}` + a bright emissive sphere
+renders as a **hard-clamped white disc with no bloom halo** (`artifacts/bloom.png`);
+the bundle has no `bloom`/`exposure`/`postEffect`/`tonemap` keys. Generalizes F1:
+the bundle carries the `RenderSnapshot` (geometry/lighting/camera view) but not
+app-level render/post-processing config, so `aperture render` and headless
+`frame_capture` are geometry/lighting previews without post-effects — not
+final-look-accurate. *Fix: carry render/post config in the bundle (or sidecar)
+and apply it, or document the preview limitation.*
 
 ### F3 — LOW — `this.signals.*` is never strongly typed; no headless type-regen
 `SignalStore = Record<string, Signal<unknown>>` and nothing generates per-signal
