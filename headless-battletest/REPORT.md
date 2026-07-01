@@ -548,7 +548,11 @@ parity gaps above (F7/F10/F5, O3) being the main rough edges.
   the headless→render loop, the *step* is cheap (~2,600/s, W7) but each *render*
   is a fixed ~4–5 s tax. Iterate on simulation state headlessly and render
   sparingly; a warm render slot (à la `serve` for stepping) would remove the
-  biggest per-frame cost when many frames are needed.
+  biggest per-frame cost when many frames are needed. Confirmed at the source:
+  `renderBundleToPng` (`render/driver.ts`, shared by the CLI `render` command
+  **and** the MCP `frame_capture`/`render_bundle` tools) `chromium.launch()`es a
+  fresh browser + provisions Xvfb on every call and closes them in `finally` —
+  there is no browser reuse, so each on-demand capture pays the full boot.
 
 ---
 
