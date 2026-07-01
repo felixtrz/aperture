@@ -257,7 +257,7 @@ misleading behavior or a real DX trap with a workaround; **LOW** = papercut.
 F9 is adjacent to the known "placeholder-asset honesty" gap (but the "0 mesh
 draws → `emptySnapshot`" case is undocumented), and F6 lands in the acknowledged
 "session snapshots are v1" area (with a specific, verified root cause here). The
-rest (F1–F5, F7, F8, F10–F15) are not tracked in those proposals; F15 (skinned
+rest (F1–F5, F7, F8, F10–F16) are not tracked in those proposals; F15 (skinned
 animation frozen for small-scale rigs) is a shared-runtime math bug I have not
 seen documented anywhere.
 
