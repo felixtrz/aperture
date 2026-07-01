@@ -32,10 +32,14 @@ import {
   type NodeAssetLoaderMode,
 } from "./node-asset-loader.js";
 import {
+  assertInjectActionsDriveButtons,
   createApertureHeadlessInjectEvents,
   parseApertureHeadlessInjectStep,
 } from "./inject.js";
-import { createApertureSnapshotBundle } from "./bundle.js";
+import {
+  createApertureSnapshotBundle,
+  renderBundleTargetFromRenderDefaults,
+} from "./bundle.js";
 
 export const DEFAULT_HEADLESS_DELTA = 1 / 60;
 export const DEFAULT_HEADLESS_RENDER_WIDTH = 960;
@@ -164,9 +168,24 @@ export async function createHeadlessSessionControllerFromConfig(
   });
 }
 
+const MAX_SESSION_LOG_ENTRIES = 200;
+
 export async function createHeadlessSessionController(
   options: HeadlessSessionControllerOptions,
 ): Promise<HeadlessSessionController> {
+  // Session-local log ring so `logs_read` works against the warm headless
+  // session itself (#71), not only through the MCP manager's buffer.
+  const logEntries: HeadlessSessionLogEntry[] = [];
+  const loggedDiagnostics = new Set<string>();
+
+  function log(entry: HeadlessSessionLogEntry): void {
+    logEntries.push(entry);
+    if (logEntries.length > MAX_SESSION_LOG_ENTRIES) {
+      logEntries.shift();
+    }
+    options.log?.(entry);
+  }
+
   const state: MutableControllerState = {
     runner: await bootRunner(options, options.seed),
     entityTools: undefined as unknown as GeneratedEntityToolBridge,
@@ -177,7 +196,7 @@ export async function createHeadlessSessionController(
     state.runner.app.lowLevel.world,
   );
   await state.runner.app.preload;
-  logPlaceholders(options, state.runner);
+  logPlaceholders(log, state.runner);
 
   async function boot(seed: number): Promise<void> {
     const previous = state.runner;
@@ -189,7 +208,7 @@ export async function createHeadlessSessionController(
     );
     state.savedCameraStates = new Map();
     state.seed = seed;
-    logPlaceholders(options, state.runner);
+    logPlaceholders(log, state.runner);
   }
 
   function compactStatus(): unknown {
@@ -305,6 +324,14 @@ export async function createHeadlessSessionController(
 
   function inject(input: unknown): GeneratedDevtoolsToolResult {
     const stepInput = parseApertureHeadlessInjectStep(input);
+    if (stepInput.actions !== undefined) {
+      // Fail loudly on a non-button action instead of silently dropping the
+      // event downstream (#69).
+      assertInjectActionsDriveButtons(
+        state.runner.app.context.input,
+        stepInput.actions,
+      );
+    }
     state.runner.enqueueInputBatch(
       createApertureHeadlessInjectEvents(stepInput),
       state.runner.getStatus().nextFrame,
@@ -352,6 +379,9 @@ export async function createHeadlessSessionController(
       options: {
         createdBy: input.createdBy ?? "aperture headless",
         renderTarget: {
+          // Carry the app's render/post config (tonemap/exposure/bloom/msaa)
+          // so on-demand renders reproduce the final look (#73).
+          ...renderBundleTargetFromRenderDefaults(options.config.render),
           width: positiveIntegerValue(
             input.width,
             DEFAULT_HEADLESS_RENDER_WIDTH,
@@ -479,6 +509,17 @@ export async function createHeadlessSessionController(
       }
     }
 
+    // Composite inject verb (#71): documented as part of the headless loop,
+    // it fans out to inject()/input_action_set/input_gamepad_set exactly like
+    // the MCP manager's input_inject.
+    if (input.name === "input_inject") {
+      return inputInjectTool(asRecord(args));
+    }
+
+    if (input.name === "logs_read") {
+      return logsReadTool(asRecord(args));
+    }
+
     if (input.name === "asset_list") {
       return {
         ok: true,
@@ -510,6 +551,82 @@ export async function createHeadlessSessionController(
     }
 
     return unavailable(input.name);
+  }
+
+  function inputInjectTool(
+    payload: Record<string, unknown>,
+  ): GeneratedDevtoolsToolResult {
+    const results: GeneratedDevtoolsToolResult[] = [];
+
+    if (isRecord(payload["pointer"])) {
+      results.push(inject({ pointer: payload["pointer"] }));
+    }
+
+    const actions = isRecord(payload["actions"]) ? payload["actions"] : {};
+    for (const [action, value] of Object.entries(actions)) {
+      const actionArguments =
+        typeof value === "boolean"
+          ? { action, pressed: value }
+          : typeof value === "number"
+            ? { action, value }
+            : isRecord(value)
+              ? { action, ...value }
+              : { action, value };
+      results.push(
+        callTool({ name: "input_action_set", arguments: actionArguments }),
+      );
+    }
+
+    if (isRecord(payload["gamepad"])) {
+      results.push(
+        callTool({ name: "input_gamepad_set", arguments: payload["gamepad"] }),
+      );
+    }
+
+    const diagnostics = results.flatMap(
+      (result) => result.diagnostics ?? [],
+    );
+    return {
+      ok: results.every((result) => result.ok),
+      result: { injected: true, results },
+      ...(diagnostics.length === 0 ? {} : { diagnostics }),
+    };
+  }
+
+  function logsReadTool(
+    payload: Record<string, unknown>,
+  ): GeneratedDevtoolsToolResult {
+    recordStatusDiagnostics();
+    const lines = Math.max(
+      1,
+      Math.floor(finiteNumber(payload["lines"], 80)),
+    );
+    return { ok: true, result: { entries: logEntries.slice(-lines) } };
+  }
+
+  // Fold the runner's current status diagnostics into the session log ring
+  // (deduplicated), so logs_read surfaces step-time diagnostics too.
+  function recordStatusDiagnostics(): void {
+    for (const diagnostic of state.runner.getStatus().diagnostics) {
+      const key = `${diagnostic.code}:${diagnostic.message}`;
+      if (loggedDiagnostics.has(key)) {
+        continue;
+      }
+      loggedDiagnostics.add(key);
+      log({
+        time: new Date().toISOString(),
+        level:
+          diagnostic.severity === "error"
+            ? "error"
+            : diagnostic.severity === "warning"
+              ? "warn"
+              : "info",
+        source: "headless-status",
+        code: diagnostic.code,
+        message: diagnostic.message,
+        data: diagnostic,
+      });
+    }
   }
 
   function determinismReport(): unknown {
@@ -595,13 +712,13 @@ async function bootRunner(
 }
 
 function logPlaceholders(
-  options: HeadlessSessionControllerOptions,
+  log: (entry: HeadlessSessionLogEntry) => void,
   runner: ApertureHeadlessRunner,
 ): void {
   const placeholders =
     runner.app.lowLevel.assets.createManifestReport().placeholders;
   for (const id of placeholders.ids) {
-    options.log?.({
+    log({
       time: new Date().toISOString(),
       level: "warn",
       source: "asset-loader",
@@ -912,7 +1029,9 @@ function unavailable(name: string): GeneratedDevtoolsToolResult {
     diagnostics: [
       {
         code: "aperture.headless.toolUnavailable",
-        message: `Tool '${name}' is not available in a headless session.`,
+        message:
+          `Tool '${name}' is not available in a headless session. ` +
+          "Headless sessions support ecs_*, input_* (including input_inject and input_action_set), camera_*, asset_list, resource_get/resource_set, and logs_read.",
       },
     ],
   };

@@ -138,7 +138,9 @@ describe("aperture headless command — end to end, in-process (PA.3)", () => {
     ]);
 
     expect(stdout).toContain("Wrote render bundle");
-    expect(stdout).toContain("Asset mode: placeholder");
+    // Hybrid is the default asset mode (#66): the placeholder default made
+    // GLB-only scenes extract zero mesh draws out of the box.
+    expect(stdout).toContain("Asset mode: hybrid");
     expect(stdout).toContain("Render target: 960x640");
 
     const bundle = JSON.parse(await readFile(out, "utf8")) as {

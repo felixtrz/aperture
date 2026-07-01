@@ -10,8 +10,11 @@ export {
 import { resolveConfigFile } from "./file-utils.js";
 import { writeApertureGeneratedActionTypes } from "./generated-action-types.js";
 export {
+  apertureGeneratedTypeEntriesFromConfig,
   createApertureGeneratedActionTypes,
+  renderApertureGeneratedTypes,
   writeApertureGeneratedActionTypes,
+  type ApertureGeneratedTypeEntries,
 } from "./generated-action-types.js";
 export {
   createApertureSystemManifest,

@@ -58,28 +58,45 @@ export function applyApertureHeadlessInjectStep(
   }
 
   if (step.actions !== undefined) {
+    assertInjectActionsDriveButtons(input, step.actions);
     for (const [name, pressed] of Object.entries(step.actions)) {
       const action = input.actions[name];
-
-      if (action === undefined) {
-        throw new ApertureCliError(
-          "aperture.headless.invalidInject",
-          `Unknown input action '${name}'. Available actions: ${
-            Object.keys(input.actions).join(", ") || "(none)"
-          }.`,
-        );
+      if (action?.kind === "button") {
+        action.pressed.value = pressed;
       }
+    }
+  }
+}
 
-      if (action.kind !== "button") {
-        throw new ApertureCliError(
-          "aperture.headless.invalidInject",
-          `Input action '${name}' is a ${action.kind} action; inject only drives button actions as pressed/released. ` +
-            `Drive an axis/analog action with the 'input_action_set' tool ({ action: '${name}', x, y }) ` +
-            `or hold it via 'input_gamepad_set'.`,
-        );
-      }
+/**
+ * Validate that every injected action exists and is a button. Inject only
+ * carries pressed/released semantics, so an axis/analog action would be
+ * silently ignored downstream — fail loudly instead (#69), matching the
+ * diagnostic the interactive input_action_set path already emits.
+ */
+export function assertInjectActionsDriveButtons(
+  input: Pick<InputSignals, "actions">,
+  actions: Readonly<Record<string, boolean>>,
+): void {
+  for (const name of Object.keys(actions)) {
+    const action = input.actions[name];
 
-      action.pressed.value = pressed;
+    if (action === undefined) {
+      throw new ApertureCliError(
+        "aperture.headless.invalidInject",
+        `Unknown input action '${name}'. Available actions: ${
+          Object.keys(input.actions).join(", ") || "(none)"
+        }.`,
+      );
+    }
+
+    if (action.kind !== "button") {
+      throw new ApertureCliError(
+        "aperture.headless.invalidInject",
+        `Input action '${name}' is a ${action.kind} action; inject only drives button actions as pressed/released. ` +
+          `Drive an axis/analog action with the 'input_action_set' tool ({ action: '${name}', x, y }) ` +
+          `or hold it via 'input_gamepad_set'.`,
+      );
     }
   }
 }

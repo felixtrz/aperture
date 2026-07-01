@@ -195,7 +195,12 @@ export type {
   ParticleEmitterInput,
 } from "@aperture-engine/render";
 
-export type { SignalStore, SignalSummary } from "./systems/signals.js";
+export type {
+  ApertureGeneratedSignalMap,
+  Signal,
+  SignalStore,
+  SignalSummary,
+} from "./systems/signals.js";
 export { createSignalSummary } from "./systems/signals.js";
 export type {
   ApertureResourceDescriptor,

@@ -127,12 +127,34 @@ ${imports}
 `;
 }
 
-export async function renderBundleToPng(options: {
+export interface ApertureRenderSessionRenderOptions {
   readonly bundle: unknown;
   readonly width: number;
   readonly height: number;
   readonly timeoutMs?: number;
-}): Promise<RenderBundleResult> {
+}
+
+/**
+ * A warm render slot (#61): one browser + static server + (on GPU-less Linux)
+ * Xvfb display, reused across many bundles so only the first render pays the
+ * multi-second boot. Each render still runs in a FRESH page — the bundle is
+ * injected per navigation — so no state leaks between bundles, and renders are
+ * serialized because the served harness page's canvas dimensions are session
+ * state.
+ */
+export interface ApertureRenderSession {
+  readonly browser: RenderBundleBrowserMetadata;
+  render(options: ApertureRenderSessionRenderOptions): Promise<RenderBundleResult>;
+  dispose(): Promise<void>;
+}
+
+export async function createApertureRenderSession(
+  options: {
+    /** Minimum virtual-display size when Xvfb is auto-provisioned. */
+    readonly displayWidth?: number;
+    readonly displayHeight?: number;
+  } = {},
+): Promise<ApertureRenderSession> {
   const engine = resolveEnginePackages();
 
   if (Object.keys(engine.importMap).length === 0) {
@@ -147,12 +169,12 @@ export async function renderBundleToPng(options: {
     { prefix: HARNESS_PREFIX, dir: HARNESS_DIR },
   ];
 
+  // The canvas size is baked into the served index.html, so the index is a
+  // per-request getter reading the CURRENT render's dimensions.
+  let dimensions = { width: 960, height: 640 };
   const server = await startApertureStaticServer({
     mounts,
-    index: renderHarnessHtml(engine.importMap, {
-      width: options.width,
-      height: options.height,
-    }),
+    index: () => renderHarnessHtml(engine.importMap, dimensions),
   });
 
   // A headed browser on a GPU-less Linux host needs an X display. Provision an
@@ -172,8 +194,8 @@ export async function renderBundleToPng(options: {
       // Size the virtual screen to comfortably hold the render window; floor at
       // the dev display default so large canvases still fit.
       virtualDisplay = await startVirtualDisplay({
-        width: Math.max(options.width, 1280),
-        height: Math.max(options.height, 800),
+        width: Math.max(options.displayWidth ?? 0, 1280),
+        height: Math.max(options.displayHeight ?? 0, 800),
       });
     }
   } catch (error: unknown) {
@@ -197,59 +219,111 @@ export async function renderBundleToPng(options: {
       throw error;
     });
 
-  try {
-    const page = await browser.newPage({
-      viewport: { width: options.width, height: options.height },
-    });
+  let disposed = false;
+  let chain: Promise<unknown> = Promise.resolve();
 
-    await page.addInitScript((bundle) => {
-      (globalThis as Record<string, unknown>)["__APERTURE_RENDER_BUNDLE__"] =
-        bundle;
-    }, options.bundle);
-
-    await page.goto(`${server.url}/`, { waitUntil: "domcontentloaded" });
-
-    const status = (await page
-      .waitForFunction(
-        () =>
-          (globalThis as Record<string, unknown>)[
-            "__APERTURE_RENDER_STATUS__"
-          ] ?? null,
-        undefined,
-        { timeout: options.timeoutMs ?? 60_000 },
-      )
-      .then((handle) => handle.jsonValue())) as HarnessStatus | null;
-
-    if (status === null || status.ok !== true) {
-      throw new ApertureCliError(
-        "aperture.render.renderFailed",
-        `Snapshot render failed in the browser: ${describeFailure(status)}`,
-      );
-    }
-
-    const png = await page.locator("#aperture-canvas").screenshot({
-      type: "png",
-    });
-    const actualDimensions = readPngDimensions(png);
-
-    return {
-      png,
-      frame: status.frame ?? null,
-      metadata: {
-        browser: launch.metadata,
-        requestedDimensions: {
-          width: options.width,
-          height: options.height,
-        },
-        actualDimensions,
-        bundleDigest: readRenderBundleDigestMetadata(options.bundle),
-        webgpu: normalizeRenderBundleWebGpuMetadata(status.metadata?.webgpu),
-      },
+  async function renderOnce(
+    renderOptions: ApertureRenderSessionRenderOptions,
+  ): Promise<RenderBundleResult> {
+    dimensions = {
+      width: renderOptions.width,
+      height: renderOptions.height,
     };
+    const page = await browser.newPage({ viewport: dimensions });
+
+    try {
+      await page.addInitScript((bundle) => {
+        (globalThis as Record<string, unknown>)["__APERTURE_RENDER_BUNDLE__"] =
+          bundle;
+      }, renderOptions.bundle);
+
+      await page.goto(`${server.url}/`, { waitUntil: "domcontentloaded" });
+
+      const status = (await page
+        .waitForFunction(
+          () =>
+            (globalThis as Record<string, unknown>)[
+              "__APERTURE_RENDER_STATUS__"
+            ] ?? null,
+          undefined,
+          { timeout: renderOptions.timeoutMs ?? 60_000 },
+        )
+        .then((handle) => handle.jsonValue())) as HarnessStatus | null;
+
+      if (status === null || status.ok !== true) {
+        throw new ApertureCliError(
+          "aperture.render.renderFailed",
+          `Snapshot render failed in the browser: ${describeFailure(status)}`,
+        );
+      }
+
+      const png = await page.locator("#aperture-canvas").screenshot({
+        type: "png",
+      });
+      const actualDimensions = readPngDimensions(png);
+
+      return {
+        png,
+        frame: status.frame ?? null,
+        metadata: {
+          browser: launch.metadata,
+          requestedDimensions: {
+            width: renderOptions.width,
+            height: renderOptions.height,
+          },
+          actualDimensions,
+          bundleDigest: readRenderBundleDigestMetadata(renderOptions.bundle),
+          webgpu: normalizeRenderBundleWebGpuMetadata(status.metadata?.webgpu),
+        },
+      };
+    } finally {
+      await page.close().catch(() => undefined);
+    }
+  }
+
+  return {
+    browser: launch.metadata,
+    render(renderOptions) {
+      if (disposed) {
+        return Promise.reject(
+          new ApertureCliError(
+            "aperture.render.sessionDisposed",
+            "This render session has been disposed; create a new one.",
+          ),
+        );
+      }
+      const result = chain.then(() => renderOnce(renderOptions));
+      chain = result.catch(() => undefined);
+      return result;
+    },
+    async dispose() {
+      if (disposed) {
+        return;
+      }
+      disposed = true;
+      await chain.catch(() => undefined);
+      await browser.close();
+      await server.close();
+      await virtualDisplay?.close();
+    },
+  };
+}
+
+export async function renderBundleToPng(options: {
+  readonly bundle: unknown;
+  readonly width: number;
+  readonly height: number;
+  readonly timeoutMs?: number;
+}): Promise<RenderBundleResult> {
+  const session = await createApertureRenderSession({
+    displayWidth: options.width,
+    displayHeight: options.height,
+  });
+
+  try {
+    return await session.render(options);
   } finally {
-    await browser.close();
-    await server.close();
-    await virtualDisplay?.close();
+    await session.dispose();
   }
 }
 

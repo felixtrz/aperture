@@ -54,7 +54,8 @@ describe("aperture headless serve (PC.2/PC.5)", () => {
     ]);
 
     expect(responses[0]?.ready).toBe(true);
-    expect(responses[0]?.status?.assetMode).toBe("placeholder");
+    // Hybrid is the default asset mode (#66), matching the one-shot command.
+    expect(responses[0]?.status?.assetMode).toBe("hybrid");
     expect(responses[0]?.status?.allowHttpAssets).toBe(false);
     expect(responses.slice(1).map((r) => r.id)).toEqual([1, 2, 3, 4]);
     expect(responses[2]?.result?.["nextFrame"]).toBe(1);

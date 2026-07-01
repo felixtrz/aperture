@@ -184,14 +184,24 @@ export function createSpawnCommands(options: {
   readonly registry: AssetRegistry;
   readonly diagnostics: SystemDiagnostics;
   readonly assets: SystemAssetAccess;
+  /** App-level render defaults applied to spawned entities (#67). */
+  readonly renderDefaults?: {
+    readonly clearColor?: readonly [number, number, number, number];
+  };
 }): SpawnCommands {
   const commands: SpawnCommands = {
     camera(input = {}) {
       const entity = createEntityWithMetadata(options.world, input, "camera");
       addTransform(entity, input.transform);
+      const defaultClearColor = options.renderDefaults?.clearColor;
       entity.addComponent(
         Camera,
         createCamera({
+          // config.render.clearColor is the app-wide default background; an
+          // explicit per-camera clearColor still wins (#67).
+          ...(defaultClearColor === undefined
+            ? {}
+            : { clearColor: defaultClearColor }),
           ...(input.camera ?? {}),
           ...(input.fovYDegrees === undefined
             ? {}

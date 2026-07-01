@@ -101,6 +101,17 @@ async function importModule(
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
 
+    // A browser config typically reads `import.meta.env.BASE_URL`, which only
+    // exists in a Vite build — in Node the access throws before the mode
+    // check can run. Name the real mistake instead of the symptom (#74).
+    if (kind === "config" && /BASE_URL|import\.meta\.env/u.test(message)) {
+      throw new ApertureCliError(
+        "aperture.headless.invalidMode",
+        `Config '${absolutePath}' reads import.meta.env, which only exists in a Vite browser build — this looks like the browser config (aperture.config.ts). ` +
+          `The aperture headless command expects a config with mode: "headless" (typically aperture.headless.config.ts). (${message})`,
+      );
+    }
+
     throw new ApertureCliError(
       "aperture.headless.configLoadFailed",
       `Failed to load ${kind} module '${absolutePath}': ${message}. ` +

@@ -1,4 +1,4 @@
-import { execFile } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { mkdtemp, readFile, rm, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -116,6 +116,124 @@ test.describe("aperture render CLI", () => {
       const center = readPngImagePixel(image, 0.5, 0.5);
       const luma = 0.2126 * center.r + 0.7152 * center.g + 0.0722 * center.b;
       expect(luma).toBeGreaterThan(20);
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("renders both halves of a split-screen fractional-viewport bundle (#72)", async () => {
+    test.setTimeout(180_000);
+    const tempDir = await mkdtemp(
+      path.join(os.tmpdir(), "aperture-split-viewport-e2e-"),
+    );
+    const out = path.join(tempDir, "split.png");
+    const fixture = path.resolve(
+      "test/e2e/fixtures/split-viewport.bundle.json",
+    );
+
+    try {
+      // Two cameras with viewport/scissor [0,0,0.5,1] and [0.5,0,0.5,1], both
+      // looking at a lit cube. The render harness must honor the fractional
+      // rects — regression for the all-black split-screen render (#72).
+      await execFileAsync("node", [CLI, "render", fixture, "--out", out], {
+        cwd: tempDir,
+        env: { ...process.env },
+      });
+
+      const png = await readFile(out);
+      const image = readPngImage(png);
+      expect(image.width).toBe(960);
+      expect(image.height).toBe(640);
+
+      for (const x of [0.25, 0.75]) {
+        const pixel = readPngImagePixel(image, x, 0.5);
+        const luma = 0.2126 * pixel.r + 0.7152 * pixel.g + 0.0722 * pixel.b;
+        expect(luma).toBeGreaterThan(20);
+      }
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("render serve reuses one warm browser across bundles (#61)", async () => {
+    test.setTimeout(180_000);
+    const tempDir = await mkdtemp(
+      path.join(os.tmpdir(), "aperture-render-serve-e2e-"),
+    );
+    const out1 = path.join(tempDir, "one.png");
+    const out2 = path.join(tempDir, "two.png");
+
+    try {
+      const requests = [
+        JSON.stringify({
+          id: 1,
+          cmd: "render",
+          params: { in: FIXTURE_BUNDLE, out: out1 },
+        }),
+        JSON.stringify({
+          id: 2,
+          cmd: "render",
+          params: {
+            in: path.resolve("test/e2e/fixtures/split-viewport.bundle.json"),
+            out: out2,
+            width: 480,
+            height: 320,
+          },
+        }),
+        JSON.stringify({ id: 3, cmd: "shutdown" }),
+      ].join("\n");
+
+      const stdout = await new Promise<string>((resolve, reject) => {
+        const child = spawn("node", [CLI, "render", "serve"], {
+          cwd: tempDir,
+          env: { ...process.env },
+          stdio: ["pipe", "pipe", "pipe"],
+        });
+        let output = "";
+        let errorOutput = "";
+        child.stdout.on("data", (chunk: Buffer) => {
+          output += chunk.toString();
+        });
+        child.stderr.on("data", (chunk: Buffer) => {
+          errorOutput += chunk.toString();
+        });
+        child.on("error", reject);
+        child.on("close", (code) => {
+          if (code === 0) {
+            resolve(output);
+          } else {
+            reject(
+              new Error(`render serve exited with ${code}: ${errorOutput}`),
+            );
+          }
+        });
+        child.stdin.write(`${requests}\n`);
+        child.stdin.end();
+      });
+
+      const lines = stdout
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line) as Record<string, unknown>);
+
+      expect(lines[0]?.["ready"]).toBe(true);
+      expect(lines[1]).toMatchObject({ id: 1, ok: true });
+      expect(lines[2]).toMatchObject({ id: 2, ok: true });
+      expect(lines[3]).toMatchObject({ id: 3, ok: true, shutdown: true });
+
+      const first = readPngImage(await readFile(out1));
+      expect(first.width).toBe(960);
+      expect(first.height).toBe(640);
+      const center = readPngImagePixel(first, 0.5, 0.5);
+      expect(
+        0.2126 * center.r + 0.7152 * center.g + 0.0722 * center.b,
+      ).toBeGreaterThan(20);
+
+      // The second render reuses the same warm browser but honors its own
+      // dimensions.
+      const second = readPngImage(await readFile(out2));
+      expect(second.width).toBe(480);
+      expect(second.height).toBe(320);
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }

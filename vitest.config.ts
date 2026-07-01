@@ -205,12 +205,16 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["packages/*/src/**"],
-      // render/driver.ts launches a real Playwright browser, so it can only run
-      // out of process; it is verified by the committed e2e
-      // (test/e2e/render-snapshot-cli.spec.ts, SwiftShader project), the same
-      // way browser-only code lives behind test/e2e/**. Its pure helpers
-      // (web-root resolution, the static server) stay covered by unit tests.
-      exclude: ["packages/cli/src/render/driver.ts"],
+      // render/driver.ts and commands/render-serve.ts launch a real Playwright
+      // browser, so they can only run out of process; they are verified by the
+      // committed e2e (test/e2e/render-snapshot-cli.spec.ts, SwiftShader
+      // project), the same way browser-only code lives behind test/e2e/**.
+      // Their pure helpers (web-root resolution, the static server) stay
+      // covered by unit tests.
+      exclude: [
+        "packages/cli/src/render/driver.ts",
+        "packages/cli/src/commands/render-serve.ts",
+      ],
       thresholds: {
         statements: 85,
         branches: 73.5,

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   applyApertureHeadlessInjectStep,
+  assertInjectActionsDriveButtons,
   createApertureHeadlessInjectEvents,
   parseApertureHeadlessInject,
 } from "@aperture-engine/cli";
@@ -33,7 +34,10 @@ async function createRunner() {
       mode: "headless",
       render: { defaultCamera: false, defaultLight: false },
       input: {
-        actions: { jump: input.button([input.key("Space")]) },
+        actions: {
+          jump: input.button([input.key("Space")]),
+          move: input.axis2d([input.gamepadStick("left")]),
+        },
       },
     }),
     systems: [cubeSystem],
@@ -146,5 +150,32 @@ describe("applyApertureHeadlessInjectStep (P1.5)", () => {
     ).toThrowError(
       expect.objectContaining({ code: "aperture.headless.invalidInject" }),
     );
+  });
+
+  it("rejects an axis2d action with a pointer at input_action_set (#69)", async () => {
+    const runner = await createRunner();
+
+    // The shared guard used by both the one-shot --inject path and the
+    // serve/MCP inject verb: a non-button action must fail loudly instead of
+    // silently leaving the driven value at 0.
+    expect(() =>
+      assertInjectActionsDriveButtons(runner.app.context.input, {
+        move: true,
+      }),
+    ).toThrowError(/axis2d action.*input_action_set/u);
+    expect(() =>
+      applyApertureHeadlessInjectStep(runner.app.context.input, {
+        actions: { move: true },
+      }),
+    ).toThrowError(
+      expect.objectContaining({ code: "aperture.headless.invalidInject" }),
+    );
+
+    // Button actions keep working through the same guard.
+    expect(() =>
+      assertInjectActionsDriveButtons(runner.app.context.input, {
+        jump: true,
+      }),
+    ).not.toThrow();
   });
 });

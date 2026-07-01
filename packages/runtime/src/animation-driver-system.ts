@@ -93,6 +93,32 @@ function readDriverState(entity: Entity): AnimationDriverState | null {
   return state ?? null;
 }
 
+// Unknown-clip warnings are deduplicated per mixer so a typo'd id inside a
+// per-frame update() logs once instead of flooding the console.
+const warnedUnknownClips = new WeakMap<AnimationMixer, Set<string>>();
+
+function warnUnknownClip(
+  method: "playClip" | "crossFade",
+  mixer: AnimationMixer,
+  clipId: string,
+): void {
+  let warned = warnedUnknownClips.get(mixer);
+  if (warned === undefined) {
+    warned = new Set<string>();
+    warnedUnknownClips.set(mixer, warned);
+  }
+  const key = `${method}:${clipId}`;
+  if (warned.has(key)) {
+    return;
+  }
+  warned.add(key);
+  console.warn(
+    `[aperture] animation.${method}: unknown clip id "${clipId}" ignored; ` +
+      `available clips: ${mixer.clipIds.join(", ")}. ` +
+      "Check anim.clipIds for the ids this rig actually provides.",
+  );
+}
+
 /** Engine-owned animation controls for `entity`; no-op when it has no driver. */
 export function createAnimationAccess(entity: Entity): AnimationAccess {
   const state = readDriverState(entity);
@@ -108,10 +134,22 @@ export function createAnimationAccess(entity: Entity): AnimationAccess {
       if (mixer.clipIds.length === 0) {
         return;
       }
+      // An unknown clip id no-ops with a diagnostic instead of throwing —
+      // consistent with the graceful empty-rig path above, so a typo'd or
+      // model-specific clip name can't abort the whole simulation.
+      if (!mixer.hasClip(clipId)) {
+        warnUnknownClip("playClip", mixer, clipId);
+        return;
+      }
       mixer.play(clipId, options);
     },
     crossFade(fromClipId, toClipId, durationSeconds) {
       if (mixer.clipIds.length === 0) {
+        return;
+      }
+      if (!mixer.hasClip(fromClipId) || !mixer.hasClip(toClipId)) {
+        const unknown = mixer.hasClip(fromClipId) ? toClipId : fromClipId;
+        warnUnknownClip("crossFade", mixer, unknown);
         return;
       }
       if (mixer.activeClipId !== fromClipId) {

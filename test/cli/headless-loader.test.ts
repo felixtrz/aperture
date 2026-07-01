@@ -34,6 +34,16 @@ describe("loadApertureHeadlessApp (native loader, PA.1/PA.4)", () => {
     ).rejects.toMatchObject({ code: "aperture.headless.invalidMode" });
   });
 
+  it("names the mode mismatch when a browser config reads import.meta.env (#74)", async () => {
+    const promise = loadApertureHeadlessApp({
+      configFile: fixture("headless-procedural/aperture.vite-env.config.ts"),
+    });
+    await expect(promise).rejects.toMatchObject({
+      code: "aperture.headless.invalidMode",
+    });
+    await expect(promise).rejects.toThrowError(/mode: "headless"/u);
+  });
+
   it("rejects a missing config path with an ApertureCliError", async () => {
     const promise = loadApertureHeadlessApp({
       configFile: fixture("headless-procedural/does-not-exist.config.ts"),

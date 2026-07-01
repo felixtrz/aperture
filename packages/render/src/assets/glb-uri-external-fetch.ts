@@ -14,6 +14,10 @@ import type {
   FetchExternalBuffersResult,
   FetchExternalImagesResult,
 } from "./glb-uri-external-fetch-types.js";
+import {
+  decodeDataUriBytes,
+  truncateUriForDiagnostic,
+} from "./gltf-uri-shared.js";
 
 export type {
   FetchExternalBuffersResult,
@@ -41,6 +45,24 @@ export async function fetchExternalBuffers(input: {
     }
 
     if (input.provided?.has(bufferIndex) === true) {
+      return;
+    }
+
+    // Inline base64 buffers decode directly, consistent with the .gltf
+    // loader and the embedded BIN chunk (#62).
+    if (buffer.uri.startsWith("data:")) {
+      const decoded = decodeDataUriBytes(buffer.uri);
+      if (decoded === null) {
+        diagnostics.push({
+          code: "loadGlbFromUri.unsupportedBufferUri",
+          severity: "error",
+          bufferIndex,
+          uri: truncateUriForDiagnostic(buffer.uri),
+          message: `GLB external buffer ${bufferIndex} data URI could not be decoded; expected a base64 payload ('data:<mime>;base64,…').`,
+        });
+      } else {
+        bytes.set(bufferIndex, decoded);
+      }
       return;
     }
 

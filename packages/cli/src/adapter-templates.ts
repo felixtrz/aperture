@@ -74,6 +74,8 @@ ${managedBlock(
 - \`pnpm run dev\`: start the Vite app.
 - \`pnpm run typecheck\`: type-check the app.
 - \`pnpm run build\`: build the app.
+- \`pnpm exec aperture codegen\`: regenerate \`.aperture/generated\` typed
+  action/signal maps without a vite build (headless-first loop).
 - \`pnpm exec aperture mcp stdio\`: expose Aperture tools over MCP once AI tooling is available.
 - \`pnpm exec aperture dev up --open\`: start the managed Aperture browser when browser-specific validation is needed.
 

@@ -154,6 +154,7 @@ export function entitySummary(entity: Entity): ApertureEntitySummary {
     ...(enabled === null ? {} : { enabled }),
     componentIds: entity
       .getComponents()
+      .filter((component) => component !== null)
       .map((component) => component.id)
       .sort((a, b) => a.localeCompare(b)),
     ...(tags.length === 0 ? {} : { tags }),
@@ -329,9 +330,12 @@ function physicsColliderSummary(
 }
 
 function entityHasComponentId(entity: Entity, componentId: string): boolean {
+  // getComponents() resolves bitmask bits through the world's component
+  // manager; a bit whose component is not registered in this world (e.g. a
+  // stale module-scope component after an in-process reset) yields null.
   return entity
     .getComponents()
-    .some((component) => component.id === componentId);
+    .some((component) => component !== null && component.id === componentId);
 }
 
 function physicsVelocitySummary(

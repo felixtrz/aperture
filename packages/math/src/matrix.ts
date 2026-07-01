@@ -1,5 +1,5 @@
 import { mat4 as kmat4, quat as kquat, vec3 as kvec3 } from "./kernel/index.js";
-import { EPSILON } from "./constants.js";
+import { EPSILON, MAT4_SINGULARITY_EPSILON } from "./constants.js";
 import { mat4, quat, vec3 } from "./constructors.js";
 import type {
   Mat4,
@@ -85,7 +85,10 @@ export function decomposeTrsMatrix(matrix: Mat4Like): TransformValues | null {
 export function invertMat4(matrix: Mat4Like, out: Mat4 = mat4()): Mat4 | null {
   const determinant = kmat4.determinant(matrix);
 
-  if (Math.abs(determinant) <= EPSILON) {
+  if (
+    !Number.isFinite(determinant) ||
+    Math.abs(determinant) <= MAT4_SINGULARITY_EPSILON
+  ) {
     return null;
   }
 

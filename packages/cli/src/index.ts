@@ -50,6 +50,7 @@ export {
 } from "./headless/node-asset-loader.js";
 export {
   applyApertureHeadlessInjectStep,
+  assertInjectActionsDriveButtons,
   createApertureHeadlessInjectEvents,
   parseApertureHeadlessInject,
   parseApertureHeadlessInjectStep,
@@ -71,9 +72,11 @@ export {
   getApertureSnapshotBundleRenderTarget,
   normalizeApertureSnapshotBundle,
   preflightApertureSnapshotBundle,
+  renderBundleTargetFromRenderDefaults,
   type ApertureAssetProvenance,
   type ApertureLegacySnapshotBundle,
   type ApertureRenderBundle,
+  type ApertureRenderBundleBloom,
   type ApertureRenderBundleDiagnostic,
   type ApertureRenderBundleDigest,
   type ApertureRenderBundleRequirements,
@@ -85,10 +88,17 @@ export {
 } from "./headless/bundle.js";
 export { runHeadlessCommand } from "./commands/headless.js";
 export { runHeadlessServeCommand } from "./commands/headless-serve.js";
-export { runRenderCommand } from "./commands/render.js";
 export {
+  readApertureRenderBundleFile,
+  runRenderCommand,
+} from "./commands/render.js";
+export { runRenderServeCommand } from "./commands/render-serve.js";
+export {
+  createApertureRenderSession,
   renderBundleToPng,
   renderHarnessHtml,
+  type ApertureRenderSession,
+  type ApertureRenderSessionRenderOptions,
   type RenderBundleResult,
 } from "./render/driver.js";
 export {

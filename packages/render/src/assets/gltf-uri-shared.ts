@@ -45,6 +45,60 @@ export function isSupportedImageMimeType(mimeType: string): boolean {
   );
 }
 
+// Dependency-free base64 decode: the glTF loader runs in pure Node (headless
+// asset loading) and in the browser, so it cannot rely on `Buffer` or `atob`.
+const BASE64_ALPHABET =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const BASE64_LOOKUP: Readonly<Record<string, number>> = Object.fromEntries(
+  [...BASE64_ALPHABET].map((char, index) => [char, index]),
+);
+
+/**
+ * Decode a base64 `data:` URI (e.g. `data:application/octet-stream;base64,…`)
+ * into its raw bytes. Returns null when the URI is not a data URI, is not
+ * base64-encoded, or carries an invalid payload.
+ */
+export function decodeDataUriBytes(uri: string): ArrayBuffer | null {
+  const match = uri.match(/^data:([^,]*),/u);
+  if (match === null) {
+    return null;
+  }
+
+  const metadata = match[1] ?? "";
+  if (!metadata.split(";").includes("base64")) {
+    return null;
+  }
+
+  const payload = uri.slice(match[0].length).replace(/=+$/u, "");
+  const bytes = new Uint8Array(Math.floor((payload.length * 6) / 8));
+  let bitBuffer = 0;
+  let bitCount = 0;
+  let writeIndex = 0;
+
+  for (const char of payload) {
+    const sextet = BASE64_LOOKUP[char];
+    if (sextet === undefined) {
+      return null;
+    }
+
+    bitBuffer = (bitBuffer << 6) | sextet;
+    bitCount += 6;
+
+    if (bitCount >= 8) {
+      bitCount -= 8;
+      bytes[writeIndex] = (bitBuffer >> bitCount) & 0xff;
+      writeIndex += 1;
+    }
+  }
+
+  return bytes.buffer;
+}
+
+/** A data URI trimmed for diagnostics (payloads can be megabytes long). */
+export function truncateUriForDiagnostic(uri: string): string {
+  return uri.length > 64 ? `${uri.slice(0, 64)}…` : uri;
+}
+
 export function bytesView(bytes: ArrayBuffer | ArrayBufferView): Uint8Array {
   return bytes instanceof ArrayBuffer
     ? new Uint8Array(bytes)

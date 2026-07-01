@@ -257,7 +257,13 @@ async function createServeSession(args: {
             (JSON.parse(
               await readFile(path.resolve(args.root, inPath as string), "utf8"),
             ) as ApertureSessionSnapshot);
-          return ok(id, await controller.restoreSessionSnapshot({ snapshot }));
+          const restored = await controller.restoreSessionSnapshot({
+            snapshot,
+          });
+          // Surface a partial/failed restore at the envelope level instead of
+          // hiding `result.ok === false` under a top-level ok:true (#64).
+          const restoredOk = !(isRecord(restored) && restored["ok"] === false);
+          return { id, ok: restoredOk, result: restored };
         }
         case "determinism": {
           return ok(id, controller.determinismReport());
@@ -335,7 +341,8 @@ function parseServeCommand(
   let publicDir = "public";
   let decoderAssetsDir: string | undefined;
   let allowHttpAssets = false;
-  let assetMode: NodeAssetLoaderMode = "placeholder";
+  // Hybrid by default, matching the one-shot headless command (#66).
+  let assetMode: NodeAssetLoaderMode = "hybrid";
   let determinism: ApertureDeterminismDiagnosticsMode = "off";
   let seed = 0;
 
@@ -510,7 +517,7 @@ Options:
   --decoder-assets-dir <dir>
                        Local decoder assets root for Draco, meshopt, and Basis/KTX2.
   --allow-http-assets  Allow HTTP(S) asset reads in Node asset loading (off by default).
-  --asset-mode <mode>  Asset loading mode: placeholder, hybrid, strict (default placeholder).
+  --asset-mode <mode>  Asset loading mode: placeholder, hybrid, strict (default hybrid).
   --determinism <mode> Nondeterministic global diagnostics: off, warn, error (default off).
   --seed <n>           Deterministic RNG seed (default 0).
   -h, --help           Show help.

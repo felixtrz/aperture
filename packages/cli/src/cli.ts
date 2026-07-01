@@ -1,11 +1,13 @@
 import { runAdapterCommand } from "./commands/adapter.js";
 import { syncApertureAdapters } from "./adapter-sync.js";
+import { runCodegenCommand } from "./commands/codegen.js";
 import { runCreateCommand } from "./commands/create.js";
 import { createApertureProject } from "./create-project.js";
 import { runDevCommand } from "./commands/dev.js";
 import { runHeadlessCommand } from "./commands/headless.js";
 import { runHeadlessServeCommand } from "./commands/headless-serve.js";
 import { runRenderCommand } from "./commands/render.js";
+import { runRenderServeCommand } from "./commands/render-serve.js";
 import { ApertureDevSessionError } from "./dev-session.js";
 import { ApertureCliError } from "./errors.js";
 import { runMcpCommand } from "./commands/mcp.js";
@@ -110,11 +112,27 @@ export async function runApertureCli(
     }
 
     if (command === "render") {
+      if (rest[0] === "serve") {
+        return await runRenderServeCommand({
+          argv: rest.slice(1),
+          cwd: options.cwd,
+          stdout: io.stdout,
+          stderr: io.stderr,
+        });
+      }
       return await runRenderCommand({
         argv: rest,
         cwd: options.cwd,
         stdout: io.stdout,
         stderr: io.stderr,
+      });
+    }
+
+    if (command === "codegen") {
+      return await runCodegenCommand({
+        argv: rest,
+        cwd: options.cwd,
+        stdout: io.stdout,
       });
     }
 
@@ -149,6 +167,14 @@ export async function runApertureCli(
 
     const message = error instanceof Error ? error.message : String(error);
     io.stderr(`aperture.cli.failed: ${message}\n`);
+    // Lifecycle errors promise "the original stack is preserved below" —
+    // honor that by actually printing the attributed cause stack.
+    if (error instanceof Error && typeof error.stack === "string") {
+      const causeIndex = error.stack.indexOf("Caused by:");
+      if (causeIndex !== -1) {
+        io.stderr(`${error.stack.slice(causeIndex)}\n`);
+      }
+    }
     return 1;
   }
 }
@@ -171,6 +197,8 @@ Commands:
   aperture dev <subcommand>     Manage an AI-enabled dev browser session.
   aperture headless <config>    Run ECS/sim in Node and write a snapshot bundle.
   aperture render <bundle>      Render one PNG on demand from a snapshot bundle.
+  aperture render serve         Warm render slot: reuse one browser for many renders.
+  aperture codegen [config]     Regenerate .aperture/generated typed maps.
   aperture tool <name>          Call one Aperture browser/ECS/render tool.
   aperture mcp stdio            Expose Aperture tools over MCP stdio.
   aperture adapter sync         Sync AI coding-tool adapter files.

@@ -173,6 +173,79 @@ describe("glTF URI loader", () => {
     expect(JSON.stringify(report.loader?.status)).not.toContain("Uint8Array");
   });
 
+  it("loads a .gltf whose buffer is an inline base64 data URI (#62)", async () => {
+    const binBytes = triangleBytes();
+    const base64 = Buffer.from(binBytes).toString("base64");
+    const root = {
+      ...triangleRoot(),
+      buffers: [
+        {
+          uri: `data:application/octet-stream;base64,${base64}`,
+          byteLength: 44,
+        },
+      ],
+    };
+    const sourceBytes = encodeJson(root);
+    const fetched: string[] = [];
+    const report = await loadGltfFromUri(GLTF_URL, {
+      keyPrefix: "inline",
+      createAssetMapping: true,
+      createMeshAssets: true,
+      fetch: async (url) => {
+        fetched.push(url);
+        return {
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          arrayBuffer: async () => {
+            if (url === GLTF_URL) {
+              return sourceBytes;
+            }
+            throw new Error(`Unexpected URL ${url}`);
+          },
+        };
+      },
+    });
+
+    expect(report.ok).toBe(true);
+    // The inline buffer decodes locally; only the .gltf itself is fetched.
+    expect(fetched).toEqual([GLTF_URL]);
+    expect(JSON.stringify(report.loader?.status)).not.toContain(
+      "unsupportedBufferUri",
+    );
+    expect(report.loader?.outputSummary.meshConstruction).toMatchObject({
+      status: "ready",
+      meshCount: 1,
+      submeshCount: 1,
+      vertexCount: 3,
+      indexCount: 3,
+    });
+  });
+
+  it("reports a clear diagnostic for a non-base64 data URI buffer (#62)", async () => {
+    const root = {
+      ...triangleRoot(),
+      buffers: [{ uri: "data:application/octet-stream,not-base64", byteLength: 44 }],
+    };
+    const sourceBytes = encodeJson(root);
+    const report = await loadGltfFromUri(GLTF_URL, {
+      keyPrefix: "inline-bad",
+      createAssetMapping: true,
+      createMeshAssets: true,
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        arrayBuffer: async () => sourceBytes,
+      }),
+    });
+
+    expect(report.ok).toBe(false);
+    const serialized = JSON.stringify(report.diagnostics);
+    expect(serialized).toContain("unsupportedBufferUri");
+    expect(serialized).toContain("base64");
+  });
+
   it("deduplicates repeated external buffer URI fetches", async () => {
     const root = {
       ...triangleRoot(),

@@ -6,6 +6,7 @@ import {
 } from "@aperture-engine/render";
 import {
   componentRegistryFromWorld,
+  findDefinedComponent,
   loadScene,
   saveScene,
   serializeEntityRef,
@@ -33,7 +34,10 @@ import {
   type ApertureSystemInstance,
   type SignalSummary,
 } from "./systems.js";
-import type { ApertureResourceSummaryEntry } from "./systems/resources.js";
+import {
+  findDefinedResource,
+  type ApertureResourceSummaryEntry,
+} from "./systems/resources.js";
 import {
   mirrorSourceAssetRegistryFromMessage,
   serializeSourceAssetRegistry,
@@ -752,6 +756,18 @@ function restoreApertureSessionSnapshotIntoRunner(
   assertSupportedSessionSnapshot(snapshot);
 
   destroyActiveEntities(target.app.lowLevel.world);
+  // Pre-register every component the saving world knew about (#64): user
+  // components are registered lazily (first addComponent/query), so a freshly
+  // booted restore world may not have them yet and loadScene would skip their
+  // records as `unregisteredComponent`. Module-scope defineComponent
+  // singletons are recorded in the process-global registry, so the manifest
+  // ids resolve back to the live component objects.
+  for (const id of snapshot.simulation.componentRegistry.ids) {
+    const component = findDefinedComponent(id);
+    if (component !== undefined) {
+      target.app.lowLevel.world.registerComponent(component);
+    }
+  }
   const scene = loadScene(
     target.app.lowLevel.world,
     snapshot.simulation.scene,
@@ -869,7 +885,17 @@ function restoreSessionResources(
   const missing: string[] = [];
 
   for (const entry of sessionResourceEntries(snapshotResources)) {
-    const patched = resources.patchById(entry.id, entry.values);
+    let patched = resources.patchById(entry.id, entry.values);
+    if (patched === null) {
+      // The owning system hasn't touched the store yet this session, so the
+      // entry doesn't exist. Materialize it from the module-scope descriptor
+      // recorded at defineResource time, then apply the snapshot values (#64).
+      const descriptor = findDefinedResource(entry.id);
+      if (descriptor !== undefined) {
+        resources.reset(descriptor);
+        patched = resources.patchById(entry.id, entry.values);
+      }
+    }
     if (patched === null) {
       missing.push(entry.id);
     } else {
