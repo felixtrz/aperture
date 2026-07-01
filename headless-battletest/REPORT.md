@@ -64,7 +64,7 @@ particles/physics/GLB all work headless, and quantified throughput.
 | F11 | LOW | errors | Browser config → cryptic `BASE_URL` error | traced |
 | F12 | LOW | types | Scaffold tsconfig only checks `src/**` | **verified** |
 
-Wins (W1–W20) are in §4; observations (O1–O12) in §7.
+Wins (W1–W23) are in §4; observations (O1–O12) in §7.
 
 **Coverage exercised:** CLI — `create` (minimal/game/glb-viewer), `headless`
 (all flags: frames/delta/seed/inject/asset-mode/determinism/render-dims/json/
@@ -75,7 +75,7 @@ allow-blank/allow-placeholders/json/preflight), `tool`, `mcp stdio` (47 tools),
 warmup/status/search`. Subsystems — ECS + custom components/resources, RNG
 (+fork)/time determinism, input (axis/button/pointer/replay), physics (dynamic +
 kinematic character), hierarchy, assets (GLB/WAV/PNG strict), particles, audio,
-shadows, fog, procedural sky, multi-view, scale (600 entities). Comparison —
+shadows, fog, procedural sky, custom WGSL materials, spatial raycast/overlap, multi-view, scale (600 entities). Comparison —
 headed vs headless authoring/render/tool parity.
 
 ---
@@ -197,6 +197,17 @@ modules).
 - **W20 — RAG reference tooling:** `aperture reference warmup` fetched the corpus
   + embeddings model (758 entries); semantic `search` and all 8 granular MCP
   `reference_*` tools return relevant, ranked results.
+- **W21 — All 3 scaffold templates** (minimal/game/glb-viewer) scaffold → install
+  from tarballs → typecheck → headless → render cleanly.
+- **W22 — Custom WGSL materials** (recipe verified): strict WGSL asset decode in
+  Node + `material.customWgsl` extracts a custom pipeline family; `aperture render`
+  compiles+runs the shader through WebGPU with the exact UV-gradient (`wgsl.png`).
+- **W23 — Spatial queries** (recipe verified): `spatial.raycastFirst` picks the
+  right cube via the auto-populated mesh BVH; `overlapSphere` finds the in-range
+  mesh — line-of-sight/picking/AoE work in pure Node.
+- **Also:** determinism holds under different `--delta`, across 5 seeds, in
+  parallel (4 concurrent runs byte-identical to serial), and over 10k frames
+  (bounded, no leak); physics restitution bounces with correct energy loss.
 
 Rendered proof frames: `artifacts/starfall_f150.png` (game), `physics.png`
 (stack), `viewer_strict.png` (GLB), `compare_headed.png` vs `compare_headless.png`
