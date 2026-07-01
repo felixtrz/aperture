@@ -22,7 +22,7 @@ ran Rapier physics in Node, decoded real GLBs, and rendered every result to PNG
 through the auto-provisioned SwiftShader WebGPU path. Authoring and rendering
 **parity between headless and headed is excellent**.
 
-That said, battle-testing surfaced **15 findings and 15 observations**, including
+That said, battle-testing surfaced **16 findings and 15 observations**, including
 **two HIGH-severity bugs**, each root-caused and each with a verified fix: (1) a
 **crash** on `reset`/`app_reset` for custom-component apps (traced to a single
 elics guard), and (2) **skeletal GLB animation silently frozen at bind pose**
@@ -70,6 +70,7 @@ throughput.
 | F3 | LOW | types | `this.signals.*` never typed; no headless codegen | traced |
 | F11 | LOW | errors | Browser config → cryptic `BASE_URL` error | traced |
 | F12 | LOW | types | Scaffold tsconfig only checks `src/**` | **verified** |
+| F16 | LOW | animation | `playClip`/`crossFade` with an unknown clip id throws a raw `Error`, aborting the run | **verified** |
 
 Wins (W1–W26) are in §4; observations (O1–O15) in §7.
 
@@ -493,6 +494,22 @@ types, so under `noUncheckedIndexedAccess` every signal read needs
 `.aperture/generated` is only refreshed by a **vite** build — a pure headless
 workflow (`aperture headless`/`serve` + `tsc`) never regenerates it; there's no
 `aperture codegen`. *Fix: generate typed signals; add a headless codegen command.*
+
+### F16 — LOW — `animation().playClip()`/`crossFade()` throw a raw `Error` on an unknown clip id, aborting the whole run
+`anim.playClip("Bogus")` (or `crossFade` to a clip that isn't imported) on a rig
+that *has* clips throws an uncaught `Error: AnimationMixer.play: unknown clip id
+"Bogus"`; in a system's `update()` that aborts the entire headless run with exit
+1 (`aperture.cli.failed: System 'X' threw during update()`). The **sibling case
+is guarded** — `playClip` no-ops when the rig has *zero* clips
+(`if (mixer.clipIds.length === 0) return`) — so "no clips at all" is graceful but
+"clips exist, this one's a typo" is fatal, an odd asymmetry. A mistyped clip
+name, or a clip name valid for one model but not another spawned through the same
+code, kills the sim. The thrown value is also a bare `Error`, not the engine's
+usual `ApertureSystemError` with a stable code + hint (and it ends with "the
+original stack is preserved below" though none follows — O12). *Fix: validate the
+clip id in `playClip`/`crossFade` and no-op-with-diagnostic (or throw a coded
+`ApertureSystemError`) on a miss, mirroring the empty-clips guard.* Workaround:
+gate on `anim.clipIds.includes(id)` before playing.
 
 ### F11 — LOW — browser config in `aperture headless` → cryptic `BASE_URL` error
 `aperture headless aperture.config.ts` fails with `Cannot read properties of

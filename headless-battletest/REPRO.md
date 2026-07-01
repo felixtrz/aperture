@@ -22,6 +22,7 @@ them.
 | **F3** | LOW | edit a signal in the config, `pnpm typecheck` | `this.signals.*` stays `unknown`/possibly-undefined; no regen outside vite | traced |
 | **F11** | LOW | `aperture headless aperture.config.ts` (the browser config) | `Cannot read properties of undefined (reading 'BASE_URL')` (not a mode-mismatch message) | traced |
 | **F12** | LOW | put a type-error system in `phys-src/`, `pnpm typecheck` | passes (scaffold tsconfig only includes `src/**`); same file in `src/systems/` errors | ✅ broaden `tsconfig.include` (this repo's `app/tsconfig.json` shows the fix) |
+| **F16** | LOW | `anim.playClip("Bogus")` (unknown clip id) on a rig that has clips, in a system `update()` | whole run aborts exit 1: `AnimationMixer.play: unknown clip id "Bogus"` (raw Error; the empty-clips case IS guarded) | ✅ gate on `anim.clipIds.includes(id)`; fix: validate id in playClip/crossFade |
 
 Observations O1–O15 and wins W1–W26 are in `FINDINGS.md`; the polished writeup is
 `REPORT.md`.
