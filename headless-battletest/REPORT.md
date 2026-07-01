@@ -361,6 +361,13 @@ back to identity only on a true non-finite result) so small-scale rigs skin
 correctly.* Workaround today: author/spawn skinned models at a scale whose
 world-matrix determinant exceeds 1e-6 (uniform scale > 0.01).
 
+**The `EPSILON→1e-12` fix is safe (verified):** feeding `invertMat4` the F15
+matrix (`det=1e-6`) under `EPSILON=1e-12` returns the correct inverse (the
+scale-100 diagonal `[100,0,0,…]`), while a genuinely singular matrix (a zeroed
+axis, `det=0`) is still rejected → `null` → the same identity fallback, no NaN.
+So lowering the epsilon fixes the false-positive without weakening true-singularity
+rejection (`det=0` is 12 orders of magnitude below the new threshold).
+
 ### F9 — MEDIUM — default `--asset-mode placeholder` yields an empty, un-renderable bundle for GLB-only scenes
 The shipped `glb-viewer` template, run through the documented default path,
 produces `meshDraws: 0` in `placeholder` mode (a placeholder gltf has no

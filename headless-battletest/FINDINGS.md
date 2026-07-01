@@ -310,3 +310,9 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 ### WIN W26 — animation crossFade/blending works headless (on a skinning-safe scale)
 - `xfade.headless.config.ts` + `xfade-src/setup.system.ts`: soldier at scale 2 (effective 0.02, mesh-world det=8e-6 > 1e-6, so skinning is not frozen by F15). Play "Idle", then at frame 30 `anim.crossFade("Idle", "Run", 0.5)`.
 - Extracted skeleton palette (612 floats) is distinct at each phase: Idle(f25) vs mid-crossfade(f32) = 612 elems differ; mid(f32) vs Run(f70) = 612 differ; Idle(f25) vs Run(f70) = 612 differ. Rendered frames all distinct (`artifacts/xfade_run.png` shows a clear running pose; `xfade_blend.png` the mid-blend). AnimationMixer.crossFadeTo blends joint transforms correctly in pure Node — animation blending is headless-capable.
+
+### F15 fix-safety check — EPSILON=1e-12 fixes the false-positive without weakening singularity rejection
+- Directly exercised `invertMat4` (packed math, temporarily patched to EPSILON=1e-12):
+  - well-conditioned F15 matrix (uniform 0.01 scale, det=1e-6) → inverts correctly to the scale-100 diagonal `[100,0,0,...]` (the bug's fix).
+  - truly singular matrix (zeroed Y axis, det=0) → still REJECTED (returns null → safe identity fallback, no NaN/crash).
+- Conclusion: lowering the singularity epsilon from 1e-6 to 1e-12 is safe — det=0 is 12 orders of magnitude below the new threshold, so genuine singularities are still rejected while well-conditioned small-scale matrices (the F15 false-positives) now invert. Restored EPSILON=1e-6 in the packed copy afterward.
