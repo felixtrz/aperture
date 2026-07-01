@@ -45,6 +45,26 @@ particles/physics/GLB all work headless, and quantified throughput.
 | Headless vs headed parity | ✅ Identical authoring + rendering; deterministic divergence by design |
 | `reset` / `app_reset` for custom-component apps | ❌ **Crashes (F5, HIGH)** |
 
+### Findings at a glance
+
+| # | Sev | Area | One-liner | Root cause |
+|---|-----|------|-----------|------------|
+| F5 | HIGH | reset | `reset`/`app_reset` crashes for module-scope custom components | **verified** (elics guard) |
+| F6 | MED | snapshot | Session restore drops custom components/resources | **verified** (registry missing them) |
+| F8 | MED | tooling | `ecs_get_component_schema` misses live custom components | **verified** (empty-query enum) |
+| F9 | MED | assets | Default `placeholder` → empty un-renderable bundle for GLB scenes | traced |
+| F1 | MED | config | `render.clearColor` is a no-op | traced (unwired) |
+| F2 | MED | types | Generated action types don't resolve a factory config | traced (AST parse) |
+| F4 | MED | input | One-shot `--inject` silently ignores axis actions | traced |
+| F7 | MED | tooling | `frame_capture` shape/dims differ headed vs headless | observed |
+| F10 | MED | docs | `input_inject` documented as headless but is headed-only | observed |
+| F13 | MED | render | `aperture render` renders fractional viewports all-black | observed |
+| F3 | LOW | types | `this.signals.*` never typed; no headless codegen | traced |
+| F11 | LOW | errors | Browser config → cryptic `BASE_URL` error | traced |
+| F12 | LOW | types | Scaffold tsconfig only checks `src/**` | **verified** |
+
+Wins (W1–W17) are in §4; observations (O1–O12) in §7.
+
 ---
 
 ## 2. Methodology & environment
@@ -124,8 +144,9 @@ modules).
 - **W7 — Throughput:** ~1.85 s fixed boot, then **~2,600 Starfall steps/s** and
   **~2,070 physics steps/s** (excluding boot). Fast enough for tight iteration;
   the boot cost is why `serve` exists.
-- **W8 — GLB strict/hybrid decode** parses real glTF in Node (8-vert/36-index
-  cube → real mesh+material closure, `placeholderCount:0`).
+- **W8 — Strict/hybrid asset decode in Node** across formats: GLB glTF
+  (8-vert/36-index cube → real mesh+material closure), WAV audio, and PNG
+  textures all decode with real bytes (`placeholderCount:0`).
 - **W9 — Hierarchy** parent∘child world composition is exact; `despawnRecursive`
   tears down a subtree (`despawned:4`).
 - **W10 — Particles emit headless** with correct `{count, position}` options and
@@ -437,3 +458,26 @@ node mcp-sweep.mjs        # broad MCP tool coverage
 Key artifacts: `FINDINGS.md` (raw chronological journal with every command and
 output), `artifacts/*.png` (proof frames), `artifacts/*.bundle.json` (render
 bundles), `artifacts/*.session.json` (session snapshots).
+
+---
+
+## 10. Bottom line
+
+The headless flow delivers on its core promise. I packed the engine to tarballs,
+installed them like an npm user, and built a real, deterministic game entirely in
+pure Node — RNG-driven spawning, runtime spawn/despawn, custom components,
+combo/level/game-over progression, Rapier dynamic + kinematic physics, hierarchy,
+GLB/audio/texture assets, and multi-view extraction all work and replay
+bit-identically. `serve` gives a fast warm inner loop; `aperture render` turns
+bundles into pixels via SwiftShader WebGPU; the MCP surface exposes 47 tools; and
+headless↔headed authoring and rendering parity is excellent. The release gates
+pass.
+
+The rough edges cluster in one place: **user-defined types (custom `defineComponent`/
+`defineResource`) are second-class across the runner-re-creation and
+alternate-enumeration paths** — F5 (reset crash, HIGH), F6 (snapshot restore), and
+F8 (schema introspection), each with a verified root cause and concrete fix here.
+Fixing that cluster plus the GLB default (F9) and the documented-tool gaps
+(F10/F2/F1) would make the headless-first, simulation-authoritative workflow the
+scaffold advertises hold end-to-end for real apps — which, custom types aside, it
+already nearly does.
