@@ -22,7 +22,7 @@ ran Rapier physics in Node, decoded real GLBs, and rendered every result to PNG
 through the auto-provisioned SwiftShader WebGPU path. Authoring and rendering
 **parity between headless and headed is excellent**.
 
-That said, battle-testing surfaced **12 findings and 10 observations**, including
+That said, battle-testing surfaced **13 findings and 10 observations**, including
 one **HIGH-severity crash** (whose root cause I traced to a single elics guard
 and verified a one-line fix for), and a cluster of **custom components /
 user-defined types being second-class citizens** across `reset`, session
@@ -130,6 +130,9 @@ modules).
   strongly typed inside `src/`.
 - **W11 — Scale:** 600 entities → all 600 draws extracted and rendered to a
   coherent grid (`artifacts/scale.png`); 300 frames in 4.8 s.
+- **W12 — Audio + RNG fork + multi-view:** strict WAV decode in Node +
+  `playOneShot` (no device); independent deterministic `random.fork()` streams;
+  2-camera extraction yields 2 views (rendering them is F13).
 
 Rendered proof frames: `artifacts/starfall_f150.png` (game), `physics.png`
 (stack), `viewer_strict.png` (GLB), `compare_headed.png` vs `compare_headless.png`
@@ -261,6 +264,17 @@ the identical probe under `src/systems/` produced 3 `error TS…` (the facades A
 precisely typed — the file was simply never checked). *Fix: broaden the scaffold
 `include` to match the config's `systems` glob, and/or have `aperture headless`
 optionally type-check.*
+
+### F13 — MEDIUM — `aperture render` renders cameras with a fractional `viewport` fully black
+Extraction is correct (two cameras with `viewport:[0,0,0.5,1]`/`[0.5,0,0.5,1]`
+→ 2 views with the right rects), but `aperture render` returns
+`aperture.render.blankFrame`; `--allow-blank` writes an **all-black** PNG. A
+single camera with a fractional viewport is also black, while the default full
+`[0,0,1,1]` renders. So the render harness doesn't honor viewport rects —
+split-screen/PiP/minimap layouts are un-renderable via the headless render path,
+and the blank-guard message misattributes the cause. *Fix: honor
+`view.viewport`/`scissor` in the harness, or document the single-full-view
+limitation.*
 
 ### F3 — LOW — `this.signals.*` is never strongly typed; no headless type-regen
 `SignalStore = Record<string, Signal<unknown>>` and nothing generates per-signal

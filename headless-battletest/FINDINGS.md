@@ -145,6 +145,17 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 - An earlier `undefined[0]` crash on `this.particles.emit` was **my error** (wrong options in an unchecked `fx-src` file). With correct `ParticleEmitOptions` (`{ count, position }`) and a config-declared inline `asset.particleEffect(...)`, headless emits with no crash (`emit → true`, 30 frames stepped). Particle effect assets also load fine headless (declaring one alone boots). The system facades (`this.spawn`, `this.particles`, …) are strongly typed inside `src/`.
 - OBSERVATION O8: a missing required particle emit option produces a cryptic runtime `Cannot read properties of undefined (reading '0')` at `render/dist/rendering/particle-burst-queue.js:209` (`tuple3(request.position)`), with no argument validation. Combined with F12/type-stripping this is easy to hit; a "position/count are required" guard would help.
 
+### FINDING F13 (MEDIUM) — `aperture render` produces an all-black frame for cameras with a fractional `viewport` (split-screen / PiP)
+- Extraction is fine: two cameras with `viewport:[0,0,0.5,1]` and `[0.5,0,0.5,1]` produce **2 views** in the snapshot with the correct viewport rects.
+- But `aperture render` returns `aperture.render.blankFrame`; with `--allow-blank` the PNG is **entirely black** (verified visually). A SINGLE camera with `viewport:[0,0,0.5,1]` is also all-black, while the same camera with the default full `[0,0,1,1]` renders the scene. So the render harness does not honor fractional viewport rects — split-screen/PiP/minimap setups render nothing.
+- Impact: any multi-viewport layout is un-renderable via the headless render path (and the blank-guard's message misattributes it to unresolved assets / headless compositing, which is misleading here).
+- Recommendation: honor `view.viewport`/`view.scissor` in the render harness, or document that `aperture render` composites only full-frame single views.
+
+### WIN W12 — audio, RNG fork, and multi-view extraction all work headless
+- **Audio:** `--asset-mode strict` decodes a real WAV in Node (`audio-clip: ready:1, failed:0`); `this.audio.playOneShot("key", { clip: this.audio.clip("blip"), gain })` creates an emitter entity with no audio device and no crash. (An earlier crash was API misuse — `position` isn't an `AudioOneShotOptions` field — caught by tsc only after adding `audio-src` to the include: another instance of F12.)
+- **RNG fork:** `context.random.fork("stream-a")` vs `fork("stream-b")` produce independent sequences (`[957,178,83]` vs `[4,424,11]`), and the whole run stays deterministic — good for per-feature independent streams.
+- **Multi-view:** two cameras with distinct viewports extract as **2 views** with correct rects (rendering them is F13).
+
 ### WIN W11 — headless handles scale (600 entities) and renders it
 - 600 cubes + camera + light: 300 frames in 4.8 s wall; all 600 draws extracted (in-frustum) and rendered to a coherent 640×480 grid image.
 - OBSERVATION O9 — entity summaries truncate at 50: `entities.total:602, summaries:50, truncated:true`. Sensible cap, but an agent inspecting a large scene sees only 50 by default and must filter/paginate (`ecs_find_entities` with `tags`/`withComponents`/`limit`). Worth documenting.

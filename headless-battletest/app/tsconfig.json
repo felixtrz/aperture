@@ -17,11 +17,17 @@
     "physics.headless.config.ts",
     "hier.headless.config.ts",
     "fx.headless.config.ts",
+    "multi.headless.config.ts",
+    "audio.headless.config.ts",
+    "scale.headless.config.ts",
     "vite.config.ts",
     "src/**/*.ts",
     "phys-src/**/*.ts",
     "hier-src/**/*.ts",
     "fx-src/**/*.ts",
+    "multi-src/**/*.ts",
+    "audio-src/**/*.ts",
+    "scale-src/**/*.ts",
     ".aperture/generated/**/*.d.ts"
   ]
 }
