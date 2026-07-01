@@ -104,7 +104,9 @@ export {
 export {
   isPngBlank,
   summarizePngLuma,
+  summarizePngUniformity,
   type PngLumaSummary,
+  type PngUniformitySummary,
 } from "./tools/png-readback.js";
 export {
   runApertureMcpServer,

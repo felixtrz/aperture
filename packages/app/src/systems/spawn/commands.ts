@@ -68,6 +68,55 @@ import type {
   SkyboxTextureDescriptorInput,
 } from "./types.js";
 
+// Recognized top-level keys of `spawn.mesh`. The headless config loader strips
+// types but does not type-check (finding F17), so a misplaced option — e.g. a
+// top-level `parent` that belongs in `transform: { parent }` — would otherwise
+// be silently ignored. Warning on unrecognized keys surfaces the mistake in the
+// diagnostics stream. `spawn.mesh` is the most-used builder and has a stable,
+// enumerable shape; other builders that mix in wide render-descriptor inputs
+// are left to `tsc`/`pnpm typecheck` to avoid false-positive warnings.
+const MESH_SPAWN_KEYS: ReadonlySet<string> = new Set([
+  "name",
+  "key",
+  "tags",
+  "mesh",
+  "material",
+  "transform",
+  "physics",
+  "castShadow",
+  "receiveShadow",
+]);
+
+function warnUnknownSpawnKeys(
+  diagnostics: SystemDiagnostics,
+  spawnKind: string,
+  input: unknown,
+  known: ReadonlySet<string>,
+): void {
+  if (input === null || typeof input !== "object") {
+    return;
+  }
+
+  const unknown = Object.keys(input as Record<string, unknown>).filter(
+    (key) => !known.has(key),
+  );
+
+  if (unknown.length === 0) {
+    return;
+  }
+
+  diagnostics.warn("aperture.spawn.unknownOption", {
+    message: `spawn.${spawnKind} ignored unrecognized option(s): ${unknown.join(
+      ", ",
+    )}.`,
+    spawnKind,
+    unknown,
+    recognized: [...known],
+    suggestedFix:
+      "Check the option placement (e.g. a mesh parent goes in transform: { parent }). aperture headless does not type-check — run 'tsc --noEmit' / 'pnpm typecheck' to catch these.",
+  });
+}
+
 export function createSpawnCommands(options: {
   readonly world: EcsWorld;
   readonly registry: AssetRegistry;
@@ -156,6 +205,7 @@ export function createSpawnCommands(options: {
       return entity;
     },
     mesh(input) {
+      warnUnknownSpawnKeys(options.diagnostics, "mesh", input, MESH_SPAWN_KEYS);
       const entity = createEntityWithMetadata(options.world, input, "mesh");
       const meshHandle = resolveMeshHandle(options, input);
       const materialHandle = resolveMaterialHandle(options, input);

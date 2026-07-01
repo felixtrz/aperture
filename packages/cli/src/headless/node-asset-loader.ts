@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { inflateSync } from "node:zlib";
 import { decode as decodeJpeg } from "jpeg-js";
+import { ApertureCliError } from "../errors.js";
 import type {
   ApertureAssetLoadContext,
   ApertureAssetLoader,
@@ -143,10 +144,50 @@ export function createNodeApertureAssetLoader(
           return { placeholder: true };
         }
 
-        throw error;
+        throw wrapStrictAssetLoadError(handle, error);
       }
     },
   };
+}
+
+/**
+ * Give strict-mode asset failures a structured, actionable message instead of
+ * leaking a raw filesystem error. A missing file otherwise surfaced as a bare
+ * `ENOENT ... realpath` with no asset id or remedy (finding F9).
+ */
+function wrapStrictAssetLoadError(
+  handle: SystemAssetHandle<SystemAssetKind>,
+  error: unknown,
+): unknown {
+  if (error instanceof ApertureCliError) {
+    return error;
+  }
+
+  const id = typeof handle.id === "string" ? handle.id : "(unknown)";
+  const kind = handle.kind;
+
+  if (isErrnoException(error) && error.code === "ENOENT") {
+    const target = error.path ?? "(unknown path)";
+    return new ApertureCliError(
+      "aperture.headless.assetNotFound",
+      `Strict asset '${id}' (${kind}) was not found on disk at '${target}'. ` +
+        `Check the asset path relative to --public-dir / --root, or use --asset-mode hybrid to substitute a placeholder.`,
+    );
+  }
+
+  const message = error instanceof Error ? error.message : String(error);
+  return new ApertureCliError(
+    "aperture.headless.assetLoadFailed",
+    `Strict asset '${id}' (${kind}) failed to load: ${message}. ` +
+      `Use --asset-mode hybrid to substitute a placeholder for assets Node cannot load.`,
+  );
+}
+
+function isErrnoException(error: unknown): error is NodeJS.ErrnoException {
+  return (
+    error instanceof Error &&
+    typeof (error as NodeJS.ErrnoException).code === "string"
+  );
 }
 
 async function loadRealNodeAsset(input: {

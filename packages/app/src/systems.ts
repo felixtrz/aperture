@@ -825,7 +825,9 @@ export function createSystem<
         configurable: true,
         value: (...methodArgs: unknown[]) =>
           this.#context.determinism.run({ system: systemName, phase }, () =>
-            original.apply(this, methodArgs),
+            runSystemLifecyclePhase(systemName, phase, () =>
+              original.apply(this, methodArgs),
+            ),
           ),
       });
     }
@@ -870,4 +872,63 @@ function normalizeSystemPriority(priority: number | undefined): number {
   }
 
   return normalized;
+}
+
+/**
+ * Run one system lifecycle phase, attributing any thrown error to the system
+ * and phase. Without this an exception in init()/update()/fixedUpdate() surfaces
+ * as a bare, unattributed message (e.g. `aperture.cli.failed: <message>`), so a
+ * consumer cannot tell which system failed (finding F9). Handles both
+ * synchronous throws and rejected promises (async lifecycles).
+ */
+function runSystemLifecyclePhase(
+  systemName: string,
+  phase: "init" | "update" | "fixedUpdate",
+  call: () => unknown,
+): unknown {
+  try {
+    const result = call();
+
+    if (
+      result !== null &&
+      typeof result === "object" &&
+      typeof (result as PromiseLike<unknown>).then === "function"
+    ) {
+      return (result as Promise<unknown>).then(
+        (value) => value,
+        (error: unknown) => {
+          throw attributeSystemLifecycleError(systemName, phase, error);
+        },
+      );
+    }
+
+    return result;
+  } catch (error: unknown) {
+    throw attributeSystemLifecycleError(systemName, phase, error);
+  }
+}
+
+function attributeSystemLifecycleError(
+  systemName: string,
+  phase: "init" | "update" | "fixedUpdate",
+  error: unknown,
+): unknown {
+  // Preserve errors that already carry structured Aperture attribution.
+  if (error instanceof ApertureSystemError) {
+    return error;
+  }
+
+  const message = error instanceof Error ? error.message : String(error);
+  const wrapped = new ApertureSystemError(
+    "aperture.system.lifecycleFailed",
+    `System '${systemName}' threw during ${phase}(): ${message}`,
+    `Fix the exception raised in ${systemName}.${phase}(); the original stack is preserved below.`,
+    { system: systemName, phase },
+  );
+
+  if (error instanceof Error && typeof error.stack === "string") {
+    wrapped.stack = `${wrapped.stack ?? wrapped.message}\nCaused by: ${error.stack}`;
+  }
+
+  return wrapped;
 }

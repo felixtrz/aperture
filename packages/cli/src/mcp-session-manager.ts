@@ -265,6 +265,15 @@ export class ApertureMcpSessionManager {
           target: targetSchema(),
         },
       ),
+      tool(
+        "command_dispatch",
+        "Post an app command onto the headless command bus for systems to drain on the next step.",
+        {
+          target: targetSchema(),
+          channel: { type: "string" },
+          payload: {},
+        },
+      ),
       ...APERTURE_REFERENCE_TOOL_CONTRACT.map((definition) =>
         tool(
           definition.name,
@@ -319,6 +328,8 @@ export class ApertureMcpSessionManager {
         return this.#sessionSnapshotRestore(input.args);
       case "determinism_report":
         return this.#determinismReport(input.args);
+      case "command_dispatch":
+        return this.#commandDispatch(input.args);
       case "input_inject":
         return this.#inputInject(input.args);
       default:
@@ -991,6 +1002,25 @@ export class ApertureMcpSessionManager {
     return normalizeResult(
       "headless",
       this.#requireHeadless().controller.determinismReport(),
+    );
+  }
+
+  #commandDispatch(args: Record<string, unknown>): unknown {
+    requiredHeadlessTarget(args, "command_dispatch");
+    const channel = stringArg(args, "channel");
+    if (channel === undefined) {
+      return diagnosticResult(
+        "headless",
+        "aperture.mcp.commandMissing",
+        "command_dispatch requires a non-empty channel.",
+      );
+    }
+    return normalizeResult(
+      "headless",
+      this.#requireHeadless().controller.dispatchCommand({
+        channel,
+        payload: args["payload"],
+      }),
     );
   }
 

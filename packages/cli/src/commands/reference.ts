@@ -69,7 +69,10 @@ async function runReferenceCommandInner(options: {
     return 0;
   }
 
-  if (subcommand === "search") {
+  // `query` is an alias for `search`: the package README and the programmatic
+  // API (`searchApertureReferences`, "Warm and query") call it "query", so the
+  // CLI accepts both (finding F13).
+  if (subcommand === "search" || subcommand === "query") {
     const parsed = parseReferenceSearchCommand(subcommandRest);
     options.stdout(
       referenceSearchMessage(
@@ -85,7 +88,7 @@ async function runReferenceCommandInner(options: {
 
   throw new ApertureCliError(
     "aperture.reference.unknownSubcommand",
-    "The reference command supports warmup, status, build, and search. Run 'aperture reference --help' for usage.",
+    "The reference command supports warmup, status, build, and search (alias: query). Run 'aperture reference --help' for usage.",
   );
 }
 
@@ -192,7 +195,7 @@ function referenceHelp(): string {
   aperture reference warmup [--from <path-or-url>]
   aperture reference status
   aperture reference build
-  aperture reference search <query> [--limit <count>]
+  aperture reference search <query> [--limit <count>]   (alias: query)
 
 Warms, validates, and searches the Aperture RAG reference corpus.
 By default, warmup downloads the versioned @aperture-engine/reference-assets

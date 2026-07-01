@@ -1,6 +1,8 @@
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { createInterface } from "node:readline";
 import type { Readable } from "node:stream";
+import type { ApertureSessionSnapshot } from "@aperture-engine/app/headless";
 import type { ApertureDeterminismDiagnosticsMode } from "@aperture-engine/app/systems";
 import type { ApertureConfig } from "@aperture-engine/app/config";
 import type { ApertureSystemModule } from "@aperture-engine/app/advanced";
@@ -212,6 +214,53 @@ async function createServeSession(args: {
               ? {}
               : { diagnostics: toolResult.diagnostics }),
           };
+        }
+        case "command": {
+          const channel = stringParam(params["channel"]);
+          if (channel === undefined) {
+            return fail(id, "The command command requires params.channel.");
+          }
+          return ok(
+            id,
+            controller.dispatchCommand({
+              channel,
+              payload: params["payload"],
+            }),
+          );
+        }
+        case "snapshot": {
+          const out = stringParam(params["out"]);
+          if (out === undefined) {
+            return fail(id, "The snapshot command requires params.out.");
+          }
+          return ok(
+            id,
+            await controller.saveSessionSnapshot({
+              out: path.resolve(args.root, out),
+            }),
+          );
+        }
+        case "restore": {
+          const inline = isRecord(params["snapshot"])
+            ? (params["snapshot"] as unknown as ApertureSessionSnapshot)
+            : undefined;
+          const inPath =
+            stringParam(params["in"]) ?? stringParam(params["path"]);
+          if (inline === undefined && inPath === undefined) {
+            return fail(
+              id,
+              "The restore command requires params.in (a snapshot file path) or params.snapshot (an inline snapshot).",
+            );
+          }
+          const snapshot =
+            inline ??
+            (JSON.parse(
+              await readFile(path.resolve(args.root, inPath as string), "utf8"),
+            ) as ApertureSessionSnapshot);
+          return ok(id, await controller.restoreSessionSnapshot({ snapshot }));
+        }
+        case "determinism": {
+          return ok(id, controller.determinismReport());
         }
         case "reset": {
           return ok(
@@ -434,15 +483,26 @@ boot-once-then-step loop. Commands run strictly in order.
 On start it emits: { "ready": true, "status": { ... } }
 
 Each request is { "id": <any>, "cmd": <string>, "params"?: <object> }:
-  step      { delta?, time? }      Advance one fixed step.
+  step      { delta?, time?, frames?, extract? } Advance fixed step(s). Pass
+                                   extract:false to skip per-frame render
+                                   extraction (much faster at scale).
   extract   { frame? }             Extract the current render snapshot.
   inject    { pointer?, actions? } Apply input (see 'aperture headless --inject').
-  get-status                       Full headless status report.
+  command   { channel, payload? }  Post an app command onto the command bus for
+                                   systems to drain on the next step.
+  get-status                       Full headless status report (includes seed).
   bundle    { out, width?, height? } Write a render bundle to a file.
+  snapshot  { out }                Save a SessionSnapshot (checkpoint) to a file.
+  restore   { in | snapshot }      Restore a SessionSnapshot from a file or inline.
+  determinism                      Determinism report (violations + digests).
   tool      { name, arguments? }   Call ECS, camera, asset, resource, or input
                                    tools against the warm headless session.
   reset     { seed? }              Rebuild a fresh deterministic world.
   shutdown                         Exit the session.
+
+Determinism: with --determinism error, a step that uses a nondeterministic
+global (Math.random/Date.now/performance.now) fails; every step result also
+echoes any determinism violations under result.determinism.
 
 Options:
   --root <dir>         App root the system globs resolve against (default: config dir).
