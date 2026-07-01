@@ -152,6 +152,11 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 - Impact: any multi-viewport layout is un-renderable via the headless render path (and the blank-guard's message misattributes it to unresolved assets / headless compositing, which is misleading here).
 - Recommendation: honor `view.viewport`/`view.scissor` in the render harness, or document that `aperture render` composites only full-frame single views.
 
+### WIN W17 — the headless loop is a real development environment (extended the game through it)
+- Added combo/multiplier scoring, a score-derived level with a difficulty ramp (spawn interval shrinks with level), and a game-over-at-10-misses state — five new signals, a new `progression.system`, and edits to `catch`/`director`. Developed entirely via edit → `tsc` → `aperture headless serve` → inspect signals → iterate; no browser needed.
+- Verified through the serve loop (`game-progression.mjs`): PASSIVE play reaches **gameOver at tick 187** (misses hit the cap; director then stops spawning, `activeStars:0`). AUTOPLAY reaches **score 31, bestCombo 9, peak multiplier 2, level 4** with the difficulty ramp visibly increasing spawn density (7 active stars). All new mechanics behave as designed.
+- Determinism preserved: `--determinism error` exits 0 and the 300-frame replay stays byte-identical after the feature work. This is the "simulation-first, headless-first" development story working for real, non-trivial gameplay.
+
 ### WIN W16 — robust error handling & input resilience
 - Large-scale determinism holds: the 600-entity/300-frame scene replays **byte-identical**.
 - Asset errors are clean and actionable: missing file in strict → `aperture.headless.assetNotFound` with the resolved path + "use --asset-mode hybrid"; HTTP asset without the flag → `assetLoadFailed: Node asset loader does not fetch 'https:' assets unless allowHttp is enabled`. Both exit 1.

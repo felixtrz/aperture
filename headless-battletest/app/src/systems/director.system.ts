@@ -22,6 +22,11 @@ export default class DirectorSystem extends createSystem({
       activeStars.value = active;
     }
 
+    // Stop spawning once the game is over.
+    if (this.signals.gameOver?.value === true) {
+      return;
+    }
+
     const director = this.resources.read(DirectorState);
     const countdown = director.spawnCountdown - delta;
 
@@ -38,8 +43,13 @@ export default class DirectorSystem extends createSystem({
     const fallSpeed = this.random.range(2, 4.5);
     const swayAmplitude = this.random.range(0, 0.8);
     const swayPhase = this.random.range(0, TAU);
-    // Next interval: quicker as the game goes on, but bounded.
-    const nextInterval = this.random.range(0.3, 0.8);
+    // Next interval: quicker as the level rises (difficulty ramp), floored so
+    // it never becomes impossible. Stays deterministic (level derives from score).
+    const level = Number(this.signals.level?.value ?? 1);
+    const nextInterval = Math.max(
+      0.12,
+      this.random.range(0.3, 0.8) / (1 + (level - 1) * 0.18),
+    );
 
     const hue = this.random.range(0.1, 0.9);
     const star = this.spawn.mesh({

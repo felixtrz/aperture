@@ -30,6 +30,12 @@ export function createStarfallConfig(options: StarfallOptions) {
       basketX: signal.number(0),
       magnetActive: signal.boolean(false),
       lastCatchFrame: signal.number(-1),
+      // Progression: combo multiplier, level (ramps difficulty), game-over.
+      combo: signal.number(0),
+      bestCombo: signal.number(0),
+      multiplier: signal.number(1),
+      level: signal.number(1),
+      gameOver: signal.boolean(false),
     },
     input: {
       actions: {

@@ -68,17 +68,35 @@ export default class CatchSystem extends createSystem({
       this.hierarchy.despawnRecursive(star);
     }
 
+    const combo = this.signals.combo;
+    const multiplier = this.signals.multiplier;
+    const bestCombo = this.signals.bestCombo;
     const score = this.signals.score;
     const lastCatchFrame = this.signals.lastCatchFrame;
-    if (caughtStars.length > 0 && score !== undefined) {
-      score.value = Number(score.value ?? 0) + caughtStars.length;
-      if (lastCatchFrame !== undefined) {
-        lastCatchFrame.value = this.time.frame;
+    if (caughtStars.length > 0) {
+      // Each catch grows the combo; the multiplier steps up every 5 combo.
+      let nextCombo = Number(combo?.value ?? 0);
+      let awarded = 0;
+      for (let i = 0; i < caughtStars.length; i += 1) {
+        nextCombo += 1;
+        awarded += 1 + Math.floor(nextCombo / 5);
       }
+      if (combo !== undefined) combo.value = nextCombo;
+      if (multiplier !== undefined) multiplier.value = 1 + Math.floor(nextCombo / 5);
+      if (bestCombo !== undefined) {
+        bestCombo.value = Math.max(Number(bestCombo.value ?? 0), nextCombo);
+      }
+      if (score !== undefined) score.value = Number(score.value ?? 0) + awarded;
+      if (lastCatchFrame !== undefined) lastCatchFrame.value = this.time.frame;
     }
     const missed = this.signals.missed;
-    if (missedStars.length > 0 && missed !== undefined) {
-      missed.value = Number(missed.value ?? 0) + missedStars.length;
+    if (missedStars.length > 0) {
+      if (missed !== undefined) {
+        missed.value = Number(missed.value ?? 0) + missedStars.length;
+      }
+      // A miss breaks the combo.
+      if (combo !== undefined) combo.value = 0;
+      if (multiplier !== undefined) multiplier.value = 1;
     }
   }
 

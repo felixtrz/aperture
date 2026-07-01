@@ -83,7 +83,10 @@ users get. All work lives under `headless-battletest/`.
     hue; deterministic time (`context.time`) for sway.
   - `axis2d` move + `button` magnet input; app signals (score/missed/…).
   - Runtime **spawn and despawn** (stars) via `spawn.mesh` + `hierarchy.despawnRecursive`.
-  - 4 systems: `setup` (priority −100), `director` (10), `fall` (20), `catch` (30).
+  - Progression: combo/multiplier scoring, a score-derived **level** with a
+    difficulty ramp, and a **game-over** state — all developed and verified
+    through the headless loop (edit → `tsc` → `serve` → inspect signals), never
+    a browser. 5 systems: `setup`/`director`/`fall`/`catch`/`progression`.
 - **Physics probe** (`app/phys-src/` + `physics.headless.config.ts`): Rapier
   backend, static floor + 3 dynamic cubes → stacking.
 - **Hierarchy probe** (`app/hier-src/` + `hier.headless.config.ts`): parent∘child
@@ -148,6 +151,10 @@ modules).
   missing/HTTP assets fail with clear, actionable messages; a system throwing in
   `update()` aborts with an attributed error; `serve` survives malformed NDJSON
   (bad line → error, session continues).
+- **W17 — Headless is a real dev environment:** extended Starfall with combo/
+  multiplier, a difficulty-ramped level, and game-over — all built via
+  edit→`tsc`→`serve`→inspect, no browser. Autoplay reached score 31 / combo 9 /
+  level 4; passive hit game-over at tick 187. Determinism preserved.
 
 Rendered proof frames: `artifacts/starfall_f150.png` (game), `physics.png`
 (stack), `viewer_strict.png` (GLB), `compare_headed.png` vs `compare_headless.png`
