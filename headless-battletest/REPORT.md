@@ -136,6 +136,10 @@ modules).
 - **W13 — Kinematic character controller:** a capsule walks into a wall and
   stops at x=2.34 (expected ~2.35) via `moveCharacter`+`setKinematicTarget` in
   `fixedUpdate` — Rapier collision resolution + snap-to-ground in pure Node.
+- **W14 — Release gates pass:** `check:headless-boundaries` (11 files, no
+  browser/WebGPU imports in headless paths), `check:render-bundles`, and
+  `check:pack-cli` (the pack→install→headless smoke I did by hand) all green —
+  the flow is genuinely CI-gated.
 
 Rendered proof frames: `artifacts/starfall_f150.png` (game), `physics.png`
 (stack), `viewer_strict.png` (GLB), `compare_headed.png` vs `compare_headless.png`
@@ -180,6 +184,10 @@ copy and the double-boot repro went from CRASH to "boot2 (reset) ok … no crash
 reverting restores the crash. *Aperture fix path: upstream the elics guard fix +
 bump, or reset user components' `typeId`/`bitmask` in the `reset`/`bootRunner`
 path.*
+
+**Parity:** `app_reset` on the **headed** slot (same app) returns `ok:true` and
+keeps running — the browser reloads the page (fresh JS realm), so F5 is specific
+to the **headless in-process reboot**, matching the root cause exactly.
 
 ### F9 — MEDIUM — default `--asset-mode placeholder` yields an empty, un-renderable bundle for GLB-only scenes
 The shipped `glb-viewer` template, run through the documented default path,
@@ -316,7 +324,7 @@ Driven through **one MCP server** talking to both slots (the live
 | `ecs_*`, `resource_get`, `camera_*` | ✅ | ✅ | ✅ parity |
 | `frame_capture` | text + pngPath, honors dims | inline image, live canvas dims | ⚠️ F7 |
 | `input_inject` | ❌ unavailable (F10) | ✅ | ⚠️ gap |
-| `app_reset` | ❌ crash w/ custom comps (F5) | (page reload) | ⚠️ gap |
+| `app_reset` | ❌ crash w/ custom comps (F5) | ✅ ok (page reload) | ⚠️ F5 headless-only |
 | `logs_read` | diagnostic entries | log files | ⚠️ O3 shape differs |
 
 **Takeaway:** the engine's central thesis — "simulation is authoritative,
