@@ -95,6 +95,7 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 ### WIN W5 — MCP stdio agent surface is complete and functional
 - `aperture mcp stdio` speaks MCP `2025-06-18`, advertises **47 tools** (app lifecycle, ecs_*, camera_*, input_*, frame_capture, logs_read, render_bundle, session_snapshot_*, determinism_report, reference_*).
 - End-to-end headless drive works: `app_start(headless)` → `app_status(running:true)` → `ecs_step(90)` (meshDraws 4) → `ecs_find_entities(star)` (2) → `frame_capture(320x240)` (renders via bundle) → `app_stop`. Only `app_reset` is broken (F5).
+- ECS debugging tools are genuinely useful: `ecs_snapshot` + `ecs_diff` between two frames reports `{added:1, removed:0, changed:1, unchanged:5}` with full detail of the spawned/mutated entities — a real state-diffing workflow for headless simulation debugging. `ecs_get_hierarchy`, `ecs_query`, camera_* all verified working (F8 is the one gap: `ecs_get_component_schema` misses dynamically-spawned custom components).
 
 ### FINDING F7 (MEDIUM) — `frame_capture` return shape & dimension handling differ between headed and headless
 - Same tool, same args `{width:480, height:320}`, opposite results:
