@@ -306,3 +306,7 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 
 ### OBSERVATION O15 — Node glTF loader rejects data-URI buffers
 - A spec-valid `.gltf` with `buffers[].uri = "data:application/octet-stream;base64,…"` fails strict load: `aperture.headless.assetLoadFailed: … glTF buffer 0 uses a data URI; this loader currently expects same-origin external buffer files. Buffer 0 bytes were not provided for POSITION. … Use --asset-mode hybrid …`. Writing the buffer as an external `.bin` sidecar (relative `uri`) loads fine. Data-URI buffers are valid glTF 2.0 and common exporter output, so inline-buffer authors hit an avoidable wall (message is clear, though). Found while building the F15 node-animation contrast asset.
+
+### WIN W26 — animation crossFade/blending works headless (on a skinning-safe scale)
+- `xfade.headless.config.ts` + `xfade-src/setup.system.ts`: soldier at scale 2 (effective 0.02, mesh-world det=8e-6 > 1e-6, so skinning is not frozen by F15). Play "Idle", then at frame 30 `anim.crossFade("Idle", "Run", 0.5)`.
+- Extracted skeleton palette (612 floats) is distinct at each phase: Idle(f25) vs mid-crossfade(f32) = 612 elems differ; mid(f32) vs Run(f70) = 612 differ; Idle(f25) vs Run(f70) = 612 differ. Rendered frames all distinct (`artifacts/xfade_run.png` shows a clear running pose; `xfade_blend.png` the mid-blend). AnimationMixer.crossFadeTo blends joint transforms correctly in pure Node — animation blending is headless-capable.

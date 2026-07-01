@@ -71,7 +71,7 @@ throughput.
 | F11 | LOW | errors | Browser config → cryptic `BASE_URL` error | traced |
 | F12 | LOW | types | Scaffold tsconfig only checks `src/**` | **verified** |
 
-Wins (W1–W25) are in §4; observations (O1–O15) in §7.
+Wins (W1–W26) are in §4; observations (O1–O15) in §7.
 
 **Coverage exercised:** CLI — `create` (minimal/game/glb-viewer), `headless`
 (all flags: frames/delta/seed/inject/asset-mode/determinism/render-dims/json/
@@ -226,6 +226,13 @@ modules).
   independent mesh draws (+16 bounds), and `aperture render` produces a 4×4 grid
   of the textured blaster at distinct positions/yaws (`artifacts/batch_grid.png`);
   two runs byte-identical (`1821ed3e`). Per-instance transform overrides apply.
+- **W26 — Animation blending (`crossFade`) works headless.** On the soldier at a
+  skinning-safe scale (×2, det 8e-6), playing `Idle` then `crossFade("Idle",
+  "Run", 0.5s)` at frame 30 yields three distinct skeleton palettes and three
+  distinct rendered poses — Idle (f25) ≠ mid-blend (f32) ≠ Run (f70), all 612
+  palette elements changing between phases (`artifacts/xfade_run.png`,
+  `xfade_blend.png`). The `AnimationMixer` crossfade blends joint transforms
+  correctly in pure Node.
 - **Also:** determinism holds under different `--delta`, across 5 seeds, in
   parallel (4 concurrent runs byte-identical to serial), and over 10k frames
   (bounded, no leak); physics restitution bounces with correct energy loss.

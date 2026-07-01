@@ -52,6 +52,8 @@
     "batch.headless.config.ts",
     "batch-src/**/*.ts",
     "nodeanim.headless.config.ts",
-    "nodeanim-src/**/*.ts"
+    "nodeanim-src/**/*.ts",
+    "xfade.headless.config.ts",
+    "xfade-src/**/*.ts"
   ]
 }
