@@ -48,6 +48,8 @@
     "glbscene.headless.config.ts",
     "glb-src/**/*.ts",
     "anim.headless.config.ts",
-    "anim-src/**/*.ts"
+    "anim-src/**/*.ts",
+    "batch.headless.config.ts",
+    "batch-src/**/*.ts"
   ]
 }

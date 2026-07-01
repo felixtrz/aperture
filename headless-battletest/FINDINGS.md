@@ -287,3 +287,6 @@ This is the raw running journal. The polished report is in `REPORT.md`.
   | 100 | 1.0 | 1.0 | 588 | ANIMATES |
 
 - The freeze/animate boundary is EXACTLY at `det = 1e-6` (`<=` includes the authored 0.01): scale 0.01 → frozen, 0.0101 → animates. Confirms F15 is precisely the `Math.abs(det) <= EPSILON` gate in `invertMat4`, reproducible with the shipped engine (no source patch). Repro: `for S in 0.5 1 1.01 2 100; do ANIM_SCALE=$S aperture headless anim.headless.config.ts --frames 45 ... ; done` and diff the bundle `snapshot.value.bones`.
+
+### WIN W25 — instanced GLB via spawn.gltfBatch works headless→render
+- `batch.headless.config.ts` + `batch-src/setup.system.ts`: a single `this.spawn.gltfBatch(this.assets.gltf("blaster"), { instances })` with 16 per-instance transforms (4×4 grid, distinct translation + yaw) returns **16 roots**; extraction reports **meshDraws:16, bounds:16** (one draw per instance), and `aperture render` produces the textured blaster grid at distinct positions/yaws (`artifacts/batch_grid.png`, hybrid asset mode). Two runs byte-identical (`snapshotDigest 1821ed3e`). Per-instance `transform` overrides apply correctly. Instanced/batched GLB spawning is fully headless-capable.

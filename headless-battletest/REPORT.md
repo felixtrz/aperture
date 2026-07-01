@@ -71,7 +71,7 @@ throughput.
 | F11 | LOW | errors | Browser config → cryptic `BASE_URL` error | traced |
 | F12 | LOW | types | Scaffold tsconfig only checks `src/**` | **verified** |
 
-Wins (W1–W24) are in §4; observations (O1–O13) in §7.
+Wins (W1–W25) are in §4; observations (O1–O13) in §7.
 
 **Coverage exercised:** CLI — `create` (minimal/game/glb-viewer), `headless`
 (all flags: frames/delta/seed/inject/asset-mode/determinism/render-dims/json/
@@ -221,6 +221,11 @@ modules).
   into joint `LocalTransform`s every step (verified by instrumentation). The
   *animated pose is not visible in the render*, but only because of F15's
   palette-inversion bug — the ECS/animation half is solid in pure Node.
+- **W25 — Instanced GLB (`spawn.gltfBatch`) works headless→render.** One
+  `gltfBatch` call with 16 per-instance transforms returns 16 roots, extracts 16
+  independent mesh draws (+16 bounds), and `aperture render` produces a 4×4 grid
+  of the textured blaster at distinct positions/yaws (`artifacts/batch_grid.png`);
+  two runs byte-identical (`1821ed3e`). Per-instance transform overrides apply.
 - **Also:** determinism holds under different `--delta`, across 5 seeds, in
   parallel (4 concurrent runs byte-identical to serial), and over 10k frames
   (bounded, no leak); physics restitution bounces with correct energy loss.
