@@ -165,6 +165,10 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 - Impact: any multi-viewport layout is un-renderable via the headless render path (and the blank-guard's message misattributes it to unresolved assets / headless compositing, which is misleading here).
 - Recommendation: honor `view.viewport`/`view.scissor` in the render harness, or document that `aperture render` composites only full-frame single views.
 
+### WIN W20 — RAG reference tooling works (semantic code search over the corpus)
+- `aperture reference warmup` downloaded the versioned corpus + pinned Transformers.js embeddings model through the proxy (758 entries / 3277 chunks / 758 sources); `reference status` → ready.
+- `aperture reference search "spawn a mesh with a physics body"` returned highly relevant ranked code — `withMesh` (0.87), `withPhysicsMaterial` (0.82), the `physics` descriptor helpers (0.80), `withRigidBody` (0.80). A genuinely useful natural-language API-discovery tool for building Aperture apps. (CLI exposes warmup/status/search; MCP exposes 8 granular `reference_*` tools.)
+
 ### WIN W19 — fog + procedural sky work headless→render
 - `spawn.fog({mode:"linear", …})` extracts (`fogs:1`) and `aperture render` clearly fades receding pillars toward the fog color; `spawn.proceduralSky` renders a gradient sky with a sun glow (`artifacts/sky.png`). (Minor: proceduralSky isn't counted in the snapshot's `skyboxes` array — tracked elsewhere — but renders fine.)
 
