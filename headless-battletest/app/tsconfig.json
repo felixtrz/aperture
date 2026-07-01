@@ -14,8 +14,14 @@
     "aperture.config.ts",
     "aperture.headless.config.ts",
     "aperture.shared-config.ts",
+    "physics.headless.config.ts",
+    "hier.headless.config.ts",
+    "fx.headless.config.ts",
     "vite.config.ts",
     "src/**/*.ts",
+    "phys-src/**/*.ts",
+    "hier-src/**/*.ts",
+    "fx-src/**/*.ts",
     ".aperture/generated/**/*.d.ts"
   ]
 }

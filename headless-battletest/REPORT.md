@@ -22,13 +22,14 @@ ran Rapier physics in Node, decoded real GLBs, and rendered every result to PNG
 through the auto-provisioned SwiftShader WebGPU path. Authoring and rendering
 **parity between headless and headed is excellent**.
 
-That said, battle-testing surfaced **11 findings and 7 observations**, including
-one **HIGH-severity crash** that breaks a core, documented inner-loop command
-for the common case (apps with custom components), and a cluster of **custom
-components / user-defined types being second-class citizens** across `reset`,
-session snapshots, and schema introspection. Several **documentation-vs-reality
-gaps** in the agent-facing tooling will trip up an agent that follows the
-scaffold's own instructions.
+That said, battle-testing surfaced **12 findings and 10 observations**, including
+one **HIGH-severity crash** (whose root cause I traced to a single elics guard
+and verified a one-line fix for), and a cluster of **custom components /
+user-defined types being second-class citizens** across `reset`, session
+snapshots, and schema introspection. Several **documentation-vs-reality gaps** in
+the agent-facing tooling will trip up an agent that follows the scaffold's own
+instructions. I also confirmed the flow scales (600 entities → coherent render),
+particles/physics/GLB all work headless, and quantified throughput.
 
 **Headline results**
 
@@ -87,6 +88,9 @@ users get. All work lives under `headless-battletest/`.
   backend, static floor + 3 dynamic cubes → stacking.
 - **Hierarchy probe** (`app/hier-src/` + `hier.headless.config.ts`): parent∘child
   world-transform composition + recursive subtree despawn.
+- **Particle probe** (`app/fx-src/` + `fx.headless.config.ts`): inline
+  `asset.particleEffect` + `particles.emit`.
+- **Scale probe** (`app/scale-src/` + `scale.headless.config.ts`): 600 entities.
 - **glb-viewer** (`viewer/`): the shipped template, to test GLB asset loading.
 
 Everything typechecks (`tsc --noEmit`, `exactOptionalPropertyTypes`,
@@ -121,6 +125,11 @@ modules).
   cube → real mesh+material closure, `placeholderCount:0`).
 - **W9 — Hierarchy** parent∘child world composition is exact; `despawnRecursive`
   tears down a subtree (`despawned:4`).
+- **W10 — Particles emit headless** with correct `{count, position}` options and
+  a config-declared inline `asset.particleEffect(...)`; no crash. Facades are
+  strongly typed inside `src/`.
+- **W11 — Scale:** 600 entities → all 600 draws extracted and rendered to a
+  coherent grid (`artifacts/scale.png`); 300 frames in 4.8 s.
 
 Rendered proof frames: `artifacts/starfall_f150.png` (game), `physics.png`
 (stack), `viewer_strict.png` (GLB), `compare_headed.png` vs `compare_headless.png`
@@ -139,15 +148,26 @@ and the MCP `app_reset` do) with a module-singleton `defineComponent` crashes on
 the next entity-summary read: `Cannot read properties of null (reading 'id')` at
 `dist/entities/lookup/summary.js:224` (`entityHasComponentId`). Isolated with an
 in-process double-boot repro (`app/repro-reset.mjs`); no crash without a custom
-component. App components survive re-boot because `registerApertureAppComponents`
-re-registers them uniformly; user `defineComponent`s are registered lazily and
-their `typeId`/`bitmask` (mutated by world #1) are stale on world #2, so an
-entity's bitmask typeId resolves to `null`. **Confirmed on the MCP surface:**
-`app_reset` returns JSON-RPC `-32000` and leaves the session unusable. Since the
-scaffold's own `CLAUDE.md` tells agents to "Use `app_reset` for rebuild/reset",
-this breaks the recommended loop for the common case. *Fix: reset user-component
-identity on new-world construction, or register discovered user components
-through the stable app path; guard the null lookup.*
+component. **Confirmed on the MCP surface:** `app_reset` returns JSON-RPC
+`-32000` and leaves the session unusable — and the scaffold's own `CLAUDE.md`
+tells agents to "Use `app_reset` for rebuild/reset", so this breaks the
+recommended loop for the common case.
+
+**Root cause (traced + verified):** elics `Entity.addComponent`
+(`elics@3.4.2/lib/entity.js:20`) re-registers a component only when
+`component.bitmask === null`. A module-singleton `defineComponent` keeps a
+non-null `bitmask`/`typeId` from world #1, so on world #2 `addComponent` **skips**
+re-registration and OR's the stale world-1 typeId bit into the new entity's
+bitmask; that typeId then resolves to `null` on world #2's component manager.
+App components escape this because `registerApertureAppComponents` explicitly
+re-registers them (fresh bitmask) each boot.
+
+**Verified one-line fix:** change the guard to consult the current world —
+`if (!this.componentManager.hasComponent(component))`. I patched the app's elics
+copy and the double-boot repro went from CRASH to "boot2 (reset) ok … no crash";
+reverting restores the crash. *Aperture fix path: upstream the elics guard fix +
+bump, or reset user components' `typeId`/`bitmask` in the `reset`/`bootRunner`
+path.*
 
 ### F9 — MEDIUM — default `--asset-mode placeholder` yields an empty, un-renderable bundle for GLB-only scenes
 The shipped `glb-viewer` template, run through the documented default path,
@@ -218,6 +238,19 @@ headless loop, and MCP advertises it. The real headless path is
 `input_action_set`. An agent following the scaffold hits a wall on step 1. *Fix:
 implement it for headless, or correct the docs/CLAUDE.md.*
 
+### F12 — LOW-MEDIUM — scaffold `tsconfig` only typechecks `src/**`; systems elsewhere are silently unchecked
+The scaffold `tsconfig` `include` is `["…configs…", "src/**/*.ts", ".aperture/generated"]`.
+Systems placed outside `src/` (I used `phys-src/`, `hier-src/`, `fx-src/` for
+isolated probes) are loaded and run by the headless CLI (which globs from the
+config's `systems` field) but are **excluded from `tsc --noEmit`**. Because the
+headless config-loader strips types (no check) and the docs rely on "run `tsc`
+alongside", a non-`src` layout gets **silent zero type coverage** with a green
+`typecheck`. Proven: an invalid-options probe under `fx-src/` passed `typecheck`;
+the identical probe under `src/systems/` produced 3 `error TS…` (the facades ARE
+precisely typed — the file was simply never checked). *Fix: broaden the scaffold
+`include` to match the config's `systems` glob, and/or have `aperture headless`
+optionally type-check.*
+
 ### F3 — LOW — `this.signals.*` is never strongly typed; no headless type-regen
 `SignalStore = Record<string, Signal<unknown>>` and nothing generates per-signal
 types, so under `noUncheckedIndexedAccess` every signal read needs
@@ -279,6 +312,12 @@ parity gaps above (F7/F10/F5, O3) being the main rough edges.
   Not interchangeable; mixing them yields `invalidRef` (diagnosed, not silent).
 - **O7 — `--frames -3` reports "requires a value"** (negative numbers look like
   flags).
+- **O8 — Missing required particle-emit option → cryptic `undefined[0]`** at
+  `particle-burst-queue.js:209` (no argument validation).
+- **O9 — Entity summaries truncate at 50** (`truncated:true`); inspect large
+  scenes via `ecs_find_entities` filters/`limit`.
+- **O10 — Render bundle grows ~linearly** (~4.7 KB/entity → 2.84 MB for 600); a
+  10k-entity scene ≈ 47 MB. Marginal step rate ~101/s at 600 entities.
 
 ---
 
