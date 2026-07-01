@@ -52,3 +52,8 @@ docs/worker-modules/
 docs/aperture.svg
 docs/hero-city/
 READINESS_AUDIT.md
+
+# Headless battle-test sandbox: packed tarballs, scaffolded template apps, and
+# dogfooding driver scripts. A generated reproduction artifact, not shipped
+# source, so it is excluded from formatting like other generated directories.
+headless-battletest/
