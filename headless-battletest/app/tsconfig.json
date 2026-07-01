@@ -42,6 +42,8 @@
     "bounce.headless.config.ts",
     "bounce-src/**/*.ts",
     "wgsl.headless.config.ts",
-    "wgsl-src/**/*.ts"
+    "wgsl-src/**/*.ts",
+    "spatial.headless.config.ts",
+    "spatial-src/**/*.ts"
   ]
 }

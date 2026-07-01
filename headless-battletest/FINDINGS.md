@@ -166,6 +166,9 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 - Impact: any multi-viewport layout is un-renderable via the headless render path (and the blank-guard's message misattributes it to unresolved assets / headless compositing, which is misleading here).
 - Recommendation: honor `view.viewport`/`view.scissor` in the render harness, or document that `aperture render` composites only full-frame single views.
 
+### WIN W23 — spatial queries (raycast/overlap) work headless (documented recipe verified)
+- Followed `docs/recipes/spatial-queries-from-systems.md`: a center-screen ray (`cameras.main.rayFromPointer([0.5,0.5])`) → `spatial.raycastFirst` correctly picked the `target` cube at the origin (not the `offside` cube at x=4), `source:"mesh-bvh"`, distance 5.4 (camera z=6 → front face). `spatial.overlapSphere([0,0,0],1.5)` found exactly 1 mesh (target in range, offside out). The BVH auto-populates from ECS bounds — line-of-sight/picking/AoE all work in pure Node. (tsc caught my invalid `source` option on `overlapSphere` — another F12 instance.)
+
 ### WIN W22 — custom WGSL materials work headless→render (documented recipe verified)
 - Followed `docs/recipes/custom-wgsl-material.md`: `asset.shader("/shaders/water.wgsl")` + `material.customWgsl({ shader: shader.asset(...), entryPoints:{vertex,fragment}, bindings:[material.uniform(...)] })` on a plane.
 - `--asset-mode strict` decodes the WGSL in Node (`shader: ready`); the mesh draw uses the custom pipeline family (`pipelineKey: test/water|bindings:0:uniform-buffer|specialization:…`). `aperture render` compiles + runs the shader through WebGPU, producing the exact UV-gradient from `fs_main` (`band = 0.35 + 0.65*uv.y` × water color) — `artifacts/wgsl.png`. Power-user custom shaders work end-to-end headless.
