@@ -4,6 +4,7 @@ import {
   mesh,
   serializeEntityRef,
 } from "@aperture-engine/app/systems";
+import type { Entity } from "@aperture-engine/app/systems";
 
 // Verifies parent/child transform composition and despawnRecursive on a subtree.
 // A parent bar is translated to x=5 and rotated 90° about Z; three children sit
@@ -63,6 +64,32 @@ export default class HierSetupSystem extends createSystem({ priority: 0 }) {
         ok: viaObject.ok,
       });
       this.parentEntity = null;
+    }
+  }
+
+  // Opt-in private-state serialization (SessionSnapshot v1) — without this the
+  // cached parent handle is lost on restore and the frame-61 despawn never fires
+  // (see O13). remapEntityRef maps the saved ref to the restored world's entity.
+  override snapshotState(): unknown {
+    return { parentRef: this.parentRef };
+  }
+
+  override restoreState(
+    payload: unknown,
+    _context: unknown,
+    remapEntityRef: (oldRef: Entity | string) => Entity | undefined,
+  ): void {
+    const ref = (payload as { parentRef?: string | null })?.parentRef;
+    if (typeof ref !== "string") {
+      return;
+    }
+    const entity = remapEntityRef(ref);
+    if (entity !== undefined) {
+      this.parentRef = serializeEntityRef(entity);
+      this.parentEntity = {
+        index: entity.index,
+        generation: entity.generation,
+      };
     }
   }
 }
