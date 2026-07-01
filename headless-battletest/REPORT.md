@@ -236,6 +236,10 @@ modules).
 - **Also:** determinism holds under different `--delta`, across 5 seeds, in
   parallel (4 concurrent runs byte-identical to serial), and over 10k frames
   (bounded, no leak); physics restitution bounces with correct energy loss.
+  Skeletal animation is deterministic too — the skeletal-play (`a3d2bfee`) and
+  crossFade-blend (`f7693536`) scenes each replay byte-identically across runs,
+  so the animation driver is part of the reproducible simulation, not a
+  wall-clock side effect.
 
 Rendered proof frames: `artifacts/starfall_f150.png` (game), `physics.png`
 (stack), `viewer_strict.png` (GLB), `compare_headed.png` vs `compare_headless.png`
