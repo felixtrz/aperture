@@ -152,6 +152,9 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 - Impact: any multi-viewport layout is un-renderable via the headless render path (and the blank-guard's message misattributes it to unresolved assets / headless compositing, which is misleading here).
 - Recommendation: honor `view.viewport`/`view.scissor` in the render harness, or document that `aperture render` composites only full-frame single views.
 
+### WIN W18 — shadow mapping works headless→render
+- A directional light with `shadow: true` + a `castShadow` cube over a `receiveShadow` ground extracts `shadowRequests: 1` in headless; `aperture render` produces a correct cast shadow on the ground with proper PBR shading (`artifacts/shadow.png`). The full lighting + shadow-map + PBR pipeline works from a Node-produced bundle through SwiftShader WebGPU.
+
 ### WIN W17 — the headless loop is a real development environment (extended the game through it)
 - Added combo/multiplier scoring, a score-derived level with a difficulty ramp (spawn interval shrinks with level), and a game-over-at-10-misses state — five new signals, a new `progression.system`, and edits to `catch`/`director`. Developed entirely via edit → `tsc` → `aperture headless serve` → inspect signals → iterate; no browser needed.
 - Verified through the serve loop (`game-progression.mjs`): PASSIVE play reaches **gameOver at tick 187** (misses hit the cap; director then stops spawning, `activeStars:0`). AUTOPLAY reaches **score 31, bestCombo 9, peak multiplier 2, level 4** with the difficulty ramp visibly increasing spawn density (7 active stars). All new mechanics behave as designed.
