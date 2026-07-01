@@ -64,7 +64,7 @@ particles/physics/GLB all work headless, and quantified throughput.
 | F11 | LOW | errors | Browser config → cryptic `BASE_URL` error | traced |
 | F12 | LOW | types | Scaffold tsconfig only checks `src/**` | **verified** |
 
-Wins (W1–W17) are in §4; observations (O1–O12) in §7.
+Wins (W1–W19) are in §4; observations (O1–O12) in §7.
 
 ---
 

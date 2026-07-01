@@ -49,6 +49,14 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 - PASSIVE (no input): score 5, missed 5, basketX 0. AUTOPLAY (steer basket toward lowest star): **score 8, missed 3, basketX 2.81**. Input demonstrably changes the sim; the read→decide→act→step loop an agent would use works end-to-end over stdin NDJSON.
 - `input_action_set` correctly drives the `axis2d` move action in serve mode (the path the one-shot `--inject` cannot reach — see F4).
 
+### FINDING F4 (MEDIUM) — one-shot `aperture headless --inject` silently ignores axis/analog actions
+- `--inject [{atFrame:0, actions:{magnet:true}}]` (button) held magnetActive true across 60 frames; a pointer inject reflected in `input.pointer.primary`. But `--inject {actions:{move:true}}` for the `axis2d` move action produced **basketX=0 with no warning and no effect** — the one-shot enqueue path (`createApertureHeadlessInjectEvents`) accepts any action name and silently no-ops non-buttons, while the sibling `applyApertureHeadlessInjectStep` path throws a helpful "inject only drives button actions… use input_action_set" error.
+- Axis/analog actions can only be driven via `serve`/`input_action_set` (verified: `{action:"move",x:1}` held for 30 steps → basketX 3.5). The one-shot inject schema has no way to pass an axis value at all.
+- Recommendation: warn (or error) when a non-button action is injected one-shot, matching the other path.
+
+### WIN W14 — headless release gates pass
+- `check:headless-boundaries` (11 files — no browser/WebGPU imports in headless paths), `check:render-bundles` (fixture closure-complete), and `check:pack-cli` (packs internal packages, installs, runs a headless smoke — the exact flow I did by hand) all pass. The headless flow is genuinely CI-gated.
+
 ### FINDING F5 (HIGH) — `reset` / second runner boot crashes for apps with module-scope custom components
 - `aperture headless serve` → `{"cmd":"reset"}` returns `{ok:false, error:"Cannot read properties of null (reading 'id')"}`. The MCP `app_reset` tool and the scaffold's recommended loop ("Use `app_reset` for rebuild/reset") drive the same `bootRunner` path.
 - Isolated with an in-process repro (`app/repro-reset.mjs`): calling `createApertureHeadlessRunner` **twice** in one process with the SAME module-singleton `defineComponent` crashes on the second boot's first entity-summary read. With no custom component, the double boot is clean.
