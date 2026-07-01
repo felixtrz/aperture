@@ -37,16 +37,25 @@ export interface ApertureStaticServer {
  */
 export async function startApertureStaticServer(options: {
   readonly mounts: readonly StaticMount[];
-  readonly index: string;
+  /**
+   * The generated index.html, or a getter evaluated per request so a warm
+   * render session can vary the canvas dimensions between renders (#61).
+   */
+  readonly index: string | (() => string);
 }): Promise<ApertureStaticServer> {
   // Pre-resolve each mount's real root once for fast, escape-proof containment.
   const mounts = options.mounts.map((mount) => ({
     prefix: mount.prefix,
     realDir: realpathSync(mount.dir),
   }));
+  const configuredIndex = options.index;
+  const index =
+    typeof configuredIndex === "function"
+      ? configuredIndex
+      : () => configuredIndex;
 
   const server: Server = createServer((req, res) => {
-    void serveRequest(mounts, options.index, req.url ?? "/", res);
+    void serveRequest(mounts, index(), req.url ?? "/", res);
   });
 
   await new Promise<void>((resolve, reject) => {

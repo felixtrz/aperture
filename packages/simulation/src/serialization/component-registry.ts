@@ -62,12 +62,26 @@ export function componentRegistryFromWorld(
   options: ComponentRegistryOptions = {},
 ): ComponentRegistry {
   const components: AnyEcsComponent[] = [];
-  for (let typeId = 0; ; typeId += 1) {
-    const component = world.componentManager.getComponentByTypeId(typeId);
-    if (component === null) {
-      break;
+  // Scan the manager's dense typeId array directly when available so a hole
+  // (a null typeId slot) skips that slot instead of silently truncating every
+  // component registered after it (#64).
+  const manager = world.componentManager as unknown as {
+    readonly componentsByTypeId?: readonly (AnyEcsComponent | null)[];
+  };
+  if (Array.isArray(manager.componentsByTypeId)) {
+    for (const component of manager.componentsByTypeId) {
+      if (component !== null && component !== undefined) {
+        components.push(component);
+      }
     }
-    components.push(component);
+  } else {
+    for (let typeId = 0; ; typeId += 1) {
+      const component = world.componentManager.getComponentByTypeId(typeId);
+      if (component === null) {
+        break;
+      }
+      components.push(component);
+    }
   }
   return createComponentRegistry(components, options);
 }

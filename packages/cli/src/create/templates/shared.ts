@@ -55,13 +55,17 @@ function tsconfigJson(): string {
     "skipLibCheck": true,
     "types": ["vite/client"]
   },
+  // 'aperture headless' executes whatever the config's \`systems\` globs
+  // match — anywhere in the project — with types stripped, so typecheck the
+  // whole tree rather than just src/** to avoid silent zero coverage for
+  // systems that live elsewhere.
   "include": [
-    "aperture.config.ts",
-    "aperture.headless.config.ts",
-    "aperture.shared-config.ts",
-    "vite.config.ts",
-    "src/**/*.ts",
+    "**/*.ts",
     ".aperture/generated/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
   ]
 }
 `;

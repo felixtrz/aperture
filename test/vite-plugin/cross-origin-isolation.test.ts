@@ -206,11 +206,14 @@ async function waitForGeneratedTypes(root: string): Promise<void> {
 }
 
 async function waitForFile(file: string): Promise<string> {
-  for (let attempt = 0; attempt < 50; attempt += 1) {
+  // Codegen now EVALUATES the config through the module loader before falling
+  // back to the AST parse (#68), so the write can take noticeably longer than
+  // the old parse-only path — poll generously.
+  for (let attempt = 0; attempt < 400; attempt += 1) {
     try {
       return await readFile(file, "utf8");
     } catch {
-      await new Promise((resolve) => setTimeout(resolve, 5));
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
   }
 

@@ -133,6 +133,12 @@ function warnOnPlaceholderAssets(
   }
 }
 
+export async function readApertureRenderBundleFile(
+  bundleFile: string,
+): Promise<ApertureSnapshotBundle> {
+  return readBundle(bundleFile);
+}
+
 async function readBundle(bundleFile: string): Promise<ApertureSnapshotBundle> {
   let raw: string;
 
@@ -329,6 +335,9 @@ Renders one image on demand from a render bundle written by
 display on a GPU-less Linux host), rehydrates the bundle's source assets,
 applies the snapshot through the WebGPU renderer, and screenshots the result —
 decoupled from any live simulation.
+
+Rendering many frames? 'aperture render serve' keeps one warm browser and
+renders bundles from stdin, paying the multi-second boot only once.
 
 Arguments:
   <bundle>             Path to a render bundle JSON from 'aperture headless'.

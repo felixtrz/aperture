@@ -54,6 +54,15 @@ export interface ApertureSnapshotBundleClosure {
   readonly placeholders: readonly string[];
 }
 
+export interface ApertureRenderBundleBloom {
+  readonly threshold?: number;
+  readonly intensity?: number;
+  readonly radius?: number;
+  /** Legacy Aperture blur radius fallback; prefer `radius` for new code. */
+  readonly radiusPixels?: number;
+  readonly levels?: number;
+}
+
 export interface ApertureRenderBundleTarget {
   readonly width: number;
   readonly height: number;
@@ -61,6 +70,64 @@ export interface ApertureRenderBundleTarget {
   readonly sampleCount: number;
   readonly toneMapping?: string;
   readonly exposure?: number;
+  /** UnrealBloom-style bloom settings; presence enables the effect (#73). */
+  readonly bloom?: ApertureRenderBundleBloom;
+}
+
+/**
+ * Derive the render/post fields of a bundle target from the app's
+ * config.render defaults (#73): tonemap, exposure, bloom, and sampleCount
+ * travel with the bundle so `aperture render` and headless frame_capture
+ * reproduce the app's final look instead of a geometry+lighting-only preview.
+ */
+export function renderBundleTargetFromRenderDefaults(
+  render:
+    | {
+        readonly sampleCount?: number;
+        readonly tonemap?: string;
+        readonly exposure?: number;
+        readonly bloom?: boolean | ApertureRenderBundleBloom;
+      }
+    | undefined,
+): Partial<ApertureRenderBundleTarget> {
+  if (render === undefined) {
+    return {};
+  }
+
+  const bloom =
+    render.bloom === undefined || render.bloom === false
+      ? undefined
+      : render.bloom === true
+        ? {}
+        : {
+            ...(render.bloom.threshold === undefined
+              ? {}
+              : { threshold: render.bloom.threshold }),
+            ...(render.bloom.intensity === undefined
+              ? {}
+              : { intensity: render.bloom.intensity }),
+            ...(render.bloom.radius === undefined
+              ? {}
+              : { radius: render.bloom.radius }),
+            ...(render.bloom.radiusPixels === undefined
+              ? {}
+              : { radiusPixels: render.bloom.radiusPixels }),
+            ...(render.bloom.levels === undefined
+              ? {}
+              : { levels: render.bloom.levels }),
+          };
+  // Bloom needs the HDR scene-buffer path; opting into bloom implies exposure,
+  // matching the browser runtime.
+  const exposure = render.exposure ?? (bloom === undefined ? undefined : 1);
+
+  return {
+    ...(render.sampleCount === undefined
+      ? {}
+      : { sampleCount: render.sampleCount }),
+    ...(render.tonemap === undefined ? {} : { toneMapping: render.tonemap }),
+    ...(exposure === undefined ? {} : { exposure }),
+    ...(bloom === undefined ? {} : { bloom }),
+  };
 }
 
 export interface ApertureRenderBundleRequirements {
@@ -447,6 +514,7 @@ function normalizeRenderTarget(
       ? {}
       : { toneMapping: value.toneMapping }),
     ...(value?.exposure === undefined ? {} : { exposure: value.exposure }),
+    ...(value?.bloom === undefined ? {} : { bloom: value.bloom }),
   };
 }
 
@@ -534,6 +602,7 @@ function readRenderTarget(
   const colorSpace = value["colorSpace"];
   const toneMapping = value["toneMapping"];
   const exposure = value["exposure"];
+  const bloom = readRenderTargetBloom(value["bloom"], violations);
 
   if (typeof width !== "number" || !Number.isInteger(width) || width <= 0) {
     violations.push("renderTarget.width must be a positive integer");
@@ -568,7 +637,45 @@ function readRenderTarget(
     ),
     ...(typeof toneMapping === "string" ? { toneMapping } : {}),
     ...(typeof exposure === "number" ? { exposure } : {}),
+    ...(bloom === undefined ? {} : { bloom }),
   };
+}
+
+function readRenderTargetBloom(
+  value: unknown,
+  violations: string[],
+): ApertureRenderBundleBloom | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!isRecord(value)) {
+    violations.push("renderTarget.bloom must be an object when present");
+    return undefined;
+  }
+
+  const bloom: Record<string, number> = {};
+  for (const field of [
+    "threshold",
+    "intensity",
+    "radius",
+    "radiusPixels",
+    "levels",
+  ] as const) {
+    const fieldValue = value[field];
+    if (fieldValue === undefined) {
+      continue;
+    }
+    if (typeof fieldValue !== "number" || !Number.isFinite(fieldValue)) {
+      violations.push(
+        `renderTarget.bloom.${field} must be a finite number when present`,
+      );
+      continue;
+    }
+    bloom[field] = fieldValue;
+  }
+
+  return bloom;
 }
 
 function readClosure(value: unknown): ApertureSnapshotBundleClosure | null {

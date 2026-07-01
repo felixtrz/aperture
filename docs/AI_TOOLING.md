@@ -88,6 +88,12 @@ pnpm exec aperture headless aperture.headless.config.ts --out snapshot.json --re
 `[{ "atFrame": 0, "pointer": { "position": [0.5, 0.5], "pressed": true } }]` or
 `{ "actions": { "jump": true } }`.
 
+`aperture codegen [config]` regenerates `.aperture/generated/aperture-env.d.ts`
+(the typed `this.actions.*` and `this.signals.*` maps) outside of a vite
+build, so the pure headless loop (`edit → codegen → tsc → serve`) keeps typed
+actions and signals. The config is evaluated through the module loader, so
+factory/shared configs (`aperture.shared-config.ts`) are seen.
+
 For a tight iterate-and-inspect loop, `aperture headless serve <config>` boots
 once and reads newline-delimited JSON commands from stdin
 (`step` / `extract` / `inject` / `get-status` / `bundle` / `reset` /
@@ -123,15 +129,31 @@ pnpm exec aperture render snapshot.json --out frame.png --allow-placeholders
 pnpm exec aperture render snapshot.json --out frame.png --json
 ```
 
-Assets in Node: the default `placeholder` mode keeps boot fast and structural;
-external assets are marked with `aperture.headless.assetPlaceholder`.
-`--asset-mode strict` loads supported local assets with real bytes (GLB/glTF,
-WGSL shaders, audio bytes, PNG/JPEG textures, RGBE HDR environment maps, and
-decoder-backed Draco/meshopt/Basis-KTX2 GLBs when `--decoder-assets-dir` is
-supplied) and fails unsupported assets. `--asset-mode hybrid` loads the
-supported set and records explicit placeholders for the rest. `aperture render
---allow-placeholders` is useful only for structural/layout inspection of stubbed
-bundles. HTTP(S) asset reads remain off by default for reproducibility; pass
+Rendering many frames (an animation, a sweep, a montage)? `aperture render
+serve` is the warm counterpart to `headless serve`: it boots the browser (and,
+on GPU-less Linux, the Xvfb display) once and reads newline-delimited JSON
+render requests from stdin (`render { in, out, width?, height?, allowBlank?,
+allowPlaceholders? }` / `shutdown`), so only the first render pays the
+multi-second boot. Each render still runs in a fresh page — no state leaks
+between bundles. The MCP `frame_capture` tool reuses a warm render slot the
+same way for the lifetime of the headless session.
+
+Bundles carry the app's render/post configuration (`render.tonemap`,
+`render.exposure`, `render.bloom`, `render.sampleCount`) in their
+`renderTarget`, and the render harness applies it, so on-demand renders
+reproduce the app's final look rather than a geometry+lighting preview.
+
+Assets in Node: the default `hybrid` mode loads what Node supports and records
+explicit placeholders for the rest; placeholder-loaded assets are marked with
+`aperture.headless.assetPlaceholder`. `--asset-mode strict` loads supported
+local assets with real bytes (GLB/glTF, WGSL shaders, audio bytes, PNG/JPEG
+textures, RGBE HDR environment maps, and decoder-backed
+Draco/meshopt/Basis-KTX2 GLBs when `--decoder-assets-dir` is supplied) and
+fails unsupported assets. `--asset-mode placeholder` keeps boot fast and purely
+structural (no real bytes; GLB-only scenes extract zero mesh draws). `aperture
+render --allow-placeholders` is useful only for structural/layout inspection of
+stubbed bundles. HTTP(S) asset reads remain off by default for reproducibility;
+pass
 `--allow-http-assets` only when the run is allowed to depend on network
 responses.
 

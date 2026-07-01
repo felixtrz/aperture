@@ -8,6 +8,7 @@
 // `window.__APERTURE_RENDER_BUNDLE__`.
 import {
   createWebGpuApp,
+  createWebGpuBloomPostEffect,
   prepareWebGpuAppEnvironmentAssets,
 } from "@aperture-engine/webgpu";
 import { AssetRegistry } from "@aperture-engine/simulation";
@@ -271,9 +272,19 @@ async function main() {
   });
 
   const renderTarget = bundleRenderTarget(bundle);
+  // App-level bloom travels with the bundle (#73); rebuild the same post
+  // effect the browser runtime derives from config.render.bloom. Bloom needs
+  // the HDR scene buffer, so the bundle producer implies exposure alongside.
+  const bloom =
+    renderTarget?.bloom !== null && typeof renderTarget?.bloom === "object"
+      ? renderTarget.bloom
+      : null;
+  const postEffects =
+    bloom === null ? [] : [createWebGpuBloomPostEffect(bloom)];
   const result = await createWebGpuApp({
     canvas,
     sourceAssets,
+    ...(postEffects.length === 0 ? {} : { postEffects }),
     ...(Number.isInteger(renderTarget?.sampleCount)
       ? { msaaSampleCount: renderTarget.sampleCount }
       : {}),

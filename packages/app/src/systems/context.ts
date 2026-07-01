@@ -159,6 +159,13 @@ export function createApertureSystemContext(
     get assets() {
       return assets;
     },
+    // Wire config.render defaults into spawns so render.clearColor is the
+    // app-wide default camera background instead of a dead config knob (#67).
+    ...(options.config?.render?.clearColor === undefined
+      ? {}
+      : {
+          renderDefaults: { clearColor: options.config.render.clearColor },
+        }),
   });
   const cameras = createCameraAccess(options.world, {
     contextKey: APERTURE_SYSTEM_CONTEXT_KEY,

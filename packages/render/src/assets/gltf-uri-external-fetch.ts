@@ -13,7 +13,11 @@ import type {
   FetchExternalBuffersResult,
   FetchExternalImagesResult,
 } from "./gltf-uri-external-fetch-types.js";
-import { isRecord } from "./gltf-uri-shared.js";
+import {
+  decodeDataUriBytes,
+  isRecord,
+  truncateUriForDiagnostic,
+} from "./gltf-uri-shared.js";
 
 export type {
   FetchExternalBuffersResult,
@@ -34,6 +38,25 @@ export async function fetchExternalBuffers(input: {
 
   buffers.forEach((buffer, bufferIndex) => {
     if (!isRecord(buffer) || typeof buffer.uri !== "string") {
+      return;
+    }
+
+    // Spec-valid inline buffers (`data:application/octet-stream;base64,…`)
+    // decode directly — the third standard buffer source next to external
+    // .bin files and the GLB BIN chunk (#62). No network fetch is involved.
+    if (buffer.uri.startsWith("data:")) {
+      const decoded = decodeDataUriBytes(buffer.uri);
+      if (decoded === null) {
+        diagnostics.push({
+          code: "loadGltfFromUri.unsupportedBufferUri",
+          severity: "error",
+          bufferIndex,
+          uri: truncateUriForDiagnostic(buffer.uri),
+          message: `glTF buffer ${bufferIndex} data URI could not be decoded; expected a base64 payload ('data:<mime>;base64,…').`,
+        });
+      } else {
+        bytes.set(bufferIndex, decoded);
+      }
       return;
     }
 

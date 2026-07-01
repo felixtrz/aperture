@@ -132,6 +132,37 @@ describe("Aperture matrix math", () => {
     expect(invertMat4(mat4())).toBeNull();
   });
 
+  it("inverts small-uniform-scale matrices instead of misclassifying them as singular", () => {
+    // Regression for #59: cm-/mm-authored glTF content sits at uniform scale
+    // <= 0.01, so the world-matrix determinant is s^3 <= 1e-6. That is a
+    // well-conditioned matrix, not a singular one; the skinning palette must
+    // not freeze at bind pose for these models.
+    for (const scale of [0.01, 0.005, 0.001]) {
+      const matrix = composeTrsMatrix(
+        [0, 0, 0],
+        quatFromAxisAngle([1, 0, 0], -Math.PI / 2),
+        [scale, scale, scale],
+      );
+      const inverse = invertMat4(matrix);
+
+      expect(inverse).not.toBeNull();
+      expectMat4(multiplyMat4(matrix, inverse as Mat4Like), identityMat4());
+    }
+  });
+
+  it("still rejects genuinely singular and non-finite matrices", () => {
+    const zeroedAxis = composeTrsMatrix(
+      [1, 2, 3],
+      quatFromAxisAngle([0, 1, 0], Math.PI / 5),
+      [1, 0, 1],
+    );
+    expect(invertMat4(zeroedAxis)).toBeNull();
+
+    const nonFinite = identityMat4();
+    nonFinite[0] = Number.NaN;
+    expect(invertMat4(nonFinite)).toBeNull();
+  });
+
   it("matches wgpu-matrix point and vector transforms", () => {
     const matrix = composeTrsMatrix(
       [3, -2, 5],

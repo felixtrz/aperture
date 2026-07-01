@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createApertureHeadlessRunner } from "@aperture-engine/app/headless";
+import type { RenderSnapshot } from "@aperture-engine/render";
 import type {
   ApertureDeterminismDiagnosticsMode,
   ApertureSystemDiagnostic,
@@ -12,12 +13,14 @@ import {
   type NodeAssetLoaderMode,
 } from "../headless/node-asset-loader.js";
 import {
+  assertInjectActionsDriveButtons,
   createApertureHeadlessInjectEvents,
   parseApertureHeadlessInject,
   type ApertureHeadlessInjectStep,
 } from "../headless/inject.js";
 import {
   createApertureSnapshotBundle,
+  renderBundleTargetFromRenderDefaults,
   type ApertureSnapshotBundle,
 } from "../headless/bundle.js";
 
@@ -89,6 +92,14 @@ export async function runHeadlessCommand(options: {
 
   await runner.app.preload;
 
+  // Fail loudly on a non-button --inject action instead of silently leaving
+  // the driven value at 0 (#69) — same diagnostic as the interactive path.
+  for (const step of injectSteps) {
+    if (step.actions !== undefined) {
+      assertInjectActionsDriveButtons(runner.app.context.input, step.actions);
+    }
+  }
+
   const placeholders =
     runner.app.lowLevel.assets.createManifestReport().placeholders;
   for (const id of placeholders.ids) {
@@ -118,12 +129,27 @@ export async function runHeadlessCommand(options: {
     options: {
       createdBy: "aperture headless",
       renderTarget: {
+        // Carry the app's render/post config (tonemap/exposure/bloom/msaa)
+        // so `aperture render` reproduces the final look (#73).
+        ...renderBundleTargetFromRenderDefaults(loaded.config.render),
         width: parsed.renderWidth,
         height: parsed.renderHeight,
       },
       allowPlaceholders: parsed.assetMode !== "strict",
     },
   });
+
+  // Name the likely cause of an un-renderable bundle up front instead of
+  // leaving it to `aperture render`'s generic emptySnapshot failure (#66).
+  if (!snapshotHasRenderableDraws(report.snapshot)) {
+    stderr(
+      `warning aperture.headless.emptyBundle: the extracted snapshot has no renderable draws (mesh, sprite, sky, glyph, UI, or particle)${
+        placeholders.ids.length > 0
+          ? " (placeholder assets carry no geometry — use --asset-mode hybrid or strict so Node loads the real assets)"
+          : ""
+      }; 'aperture render' will reject this bundle as an empty snapshot.\n`,
+    );
+  }
 
   emitDeterminismDiagnostics(report.status.diagnostics, stderr);
   assertDeterminismPolicy(parsed.determinism, report.status.diagnostics);
@@ -139,6 +165,21 @@ export async function runHeadlessCommand(options: {
   }
 
   return 0;
+}
+
+// Mirrors the renderer's own renderable-family check (webgpu frame-loop): a
+// snapshot renders when ANY draw family is present — sprite/sky/glyph/UI/
+// particle-only scenes are valid without a single mesh draw.
+function snapshotHasRenderableDraws(snapshot: RenderSnapshot): boolean {
+  return (
+    snapshot.meshDraws.length > 0 ||
+    (snapshot.spriteDraws ?? []).length > 0 ||
+    (snapshot.skyboxes ?? []).length > 0 ||
+    (snapshot.proceduralSkies ?? []).length > 0 ||
+    (snapshot.quadBatches ?? []).some((batch) => batch.kind === "glyph") ||
+    (snapshot.uiNodes ?? []).length > 0 ||
+    (snapshot.particleEmitters ?? []).length > 0
+  );
 }
 
 async function readInjectSteps(
@@ -201,7 +242,10 @@ function parseHeadlessCommand(
   let publicDir = "public";
   let decoderAssetsDir: string | undefined;
   let allowHttpAssets = false;
-  let assetMode: NodeAssetLoaderMode = "placeholder";
+  // Hybrid by default (#66): the placeholder default left GLB-only scenes
+  // with zero mesh draws, which `aperture render` rejects as an empty
+  // snapshot; the scaffold docs already recommend hybrid.
+  let assetMode: NodeAssetLoaderMode = "hybrid";
   let determinism: ApertureDeterminismDiagnosticsMode = "off";
   let renderWidth = DEFAULT_RENDER_WIDTH;
   let renderHeight = DEFAULT_RENDER_HEIGHT;
@@ -514,7 +558,7 @@ Options:
   --decoder-assets-dir <dir>
                        Local decoder assets root for Draco, meshopt, and Basis/KTX2.
   --allow-http-assets  Allow HTTP(S) asset reads in Node asset loading (off by default).
-  --asset-mode <mode>  Asset loading mode: placeholder, hybrid, strict (default placeholder).
+  --asset-mode <mode>  Asset loading mode: placeholder, hybrid, strict (default hybrid).
   --determinism <mode> Nondeterministic global diagnostics: off, warn, error (default off).
   --render-width <n>   Bundle render target width (default ${DEFAULT_RENDER_WIDTH}).
   --render-height <n>  Bundle render target height (default ${DEFAULT_RENDER_HEIGHT}).

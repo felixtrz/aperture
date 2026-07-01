@@ -87,10 +87,25 @@ export function defineResource<
   validateResourceId(id);
   validateResourceSchema(id, schema);
 
-  return Object.freeze({
+  const descriptor = Object.freeze({
     id,
     schema,
   }) as ApertureResourceDescriptor<ApertureResourceStateFromSchema<TSchema>>;
+  definedResources.set(id, descriptor);
+  return descriptor;
+}
+
+// Process-global registry of resource descriptors by id, recorded at
+// defineResource time (mirrors elics' component registry). Lets a session
+// snapshot restore materialize a resource whose owning system has not touched
+// the store yet in this session (#64).
+const definedResources = new Map<string, ApertureResourceDescriptor>();
+
+/** Look up a module-scope resource descriptor by id (latest wins). */
+export function findDefinedResource(
+  id: string,
+): ApertureResourceDescriptor | undefined {
+  return definedResources.get(id);
 }
 
 export const resource = Object.freeze({

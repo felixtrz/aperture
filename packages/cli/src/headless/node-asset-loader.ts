@@ -96,7 +96,12 @@ interface NodeReadableFetchResponse extends NodeFetchResponse {
   readonly text: () => Promise<string>;
 }
 
-const DEFAULT_NODE_ASSET_MODE: NodeAssetLoaderMode = "placeholder";
+// Hybrid by default (#66): pure-placeholder mode gives GLB-only scenes zero
+// mesh draws, which `aperture render` then rejects as an empty snapshot — a
+// broken out-of-the-box path for the glb-viewer template. Hybrid loads what
+// Node supports and records placeholders for the rest, matching the scaffold
+// docs' recommendation.
+const DEFAULT_NODE_ASSET_MODE: NodeAssetLoaderMode = "hybrid";
 const DEFAULT_PUBLIC_DIR = "public";
 
 // Node can now materialize local files for the asset families that are

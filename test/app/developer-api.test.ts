@@ -194,6 +194,48 @@ describe("developer-facing app API", () => {
     });
   });
 
+  it("applies config render.clearColor as the default camera background (#67)", async () => {
+    class TwoCameraSystem extends createSystem({ priority: 0 }) {
+      override init(): void {
+        this.spawn.camera({
+          key: "camera.default-clear",
+          transform: { translation: [0, 0, 4], lookAt: [0, 0, 0] },
+        });
+        this.spawn.camera({
+          key: "camera.explicit-clear",
+          transform: { translation: [0, 0, 8], lookAt: [0, 0, 0] },
+          camera: { clearColor: [0.5, 0.25, 0.125, 1], priority: 1 },
+        });
+      }
+    }
+
+    const runner = await createApertureHeadlessRunner({
+      config: defineApertureConfig({
+        mode: "headless",
+        render: {
+          clearColor: [0.08, 0.12, 0.16, 1],
+          defaultCamera: false,
+          defaultLight: false,
+        },
+      }),
+      systems: [{ default: TwoCameraSystem }],
+    });
+
+    const report = runner.step(1 / 60, 0);
+    const clearColors = report.snapshot.views
+      .map((view) => Array.from(view.clearColor))
+      .sort((a, b) => (a[0] ?? 0) - (b[0] ?? 0));
+
+    // A camera spawned without clearColor inherits the config default
+    // (Float32-rounded); an explicit per-camera clearColor still wins.
+    expect(clearColors).toHaveLength(2);
+    expect(clearColors[0]?.[0]).toBeCloseTo(0.08, 5);
+    expect(clearColors[0]?.[1]).toBeCloseTo(0.12, 5);
+    expect(clearColors[0]?.[2]).toBeCloseTo(0.16, 5);
+    expect(clearColors[0]?.[3]).toBe(1);
+    expect(clearColors[1]).toEqual([0.5, 0.25, 0.125, 1]);
+  });
+
   it("loads shader config assets for system-authored custom WGSL materials", async () => {
     const source = [
       "@group(0) @binding(0) var<uniform> view: mat4x4f;",

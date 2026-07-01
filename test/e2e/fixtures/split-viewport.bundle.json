@@ -1,0 +1,344 @@
+{
+  "format": "aperture.render-bundle",
+  "version": 1,
+  "engine": {
+    "apertureVersion": "0.2.0",
+    "snapshotSchema": "aperture.render-snapshot.v1",
+    "assetSchema": "aperture.source-assets.v1",
+    "createdBy": "aperture headless"
+  },
+  "frame": 2,
+  "renderTarget": {
+    "width": 960,
+    "height": 640,
+    "colorSpace": "srgb",
+    "sampleCount": 4
+  },
+  "requirements": { "webgpuFeatures": [], "textureFormats": [] },
+  "snapshot": {
+    "codec": "json-typed-array-v1",
+    "value": {
+      "frame": 2,
+      "time": 0.03333333333333333,
+      "views": [
+        {
+          "viewId": 0,
+          "camera": { "index": 0, "generation": 0 },
+          "priority": 0,
+          "layerMask": 1,
+          "viewMatrixOffset": 0,
+          "projectionMatrixOffset": 16,
+          "viewProjectionMatrixOffset": 32,
+          "viewport": [0, 0, 0.5, 1],
+          "scissor": [0, 0, 0.5, 1],
+          "clearColor": [0, 0, 0, 1],
+          "clearDepth": 1,
+          "clearStencil": 0,
+          "renderTarget": null
+        },
+        {
+          "viewId": 1,
+          "camera": { "index": 1, "generation": 0 },
+          "priority": 1,
+          "layerMask": 1,
+          "viewMatrixOffset": 48,
+          "projectionMatrixOffset": 64,
+          "viewProjectionMatrixOffset": 80,
+          "viewport": [0.5, 0, 0.5, 1],
+          "scissor": [0.5, 0, 0.5, 1],
+          "clearColor": [0, 0, 0, 1],
+          "clearDepth": 1,
+          "clearStencil": 0,
+          "renderTarget": null
+        }
+      ],
+      "meshDraws": [
+        {
+          "renderId": 3,
+          "entity": { "index": 3, "generation": 0 },
+          "mesh": { "kind": "mesh", "id": "cube.mesh" },
+          "material": { "kind": "material", "id": "cube.material" },
+          "submesh": 0,
+          "materialSlot": 0,
+          "vertexStart": 0,
+          "vertexCount": 24,
+          "indexStart": 0,
+          "indexCount": 36,
+          "layerMask": 1,
+          "castsShadow": true,
+          "receivesShadow": true,
+          "sortKey": {
+            "queue": "opaque",
+            "viewId": 0,
+            "layer": 1,
+            "order": 0,
+            "pipelineKey": "",
+            "materialKey": "material:cube.material",
+            "meshKey": "mesh:cube.mesh",
+            "depth": 4,
+            "stableId": 3
+          },
+          "batchKey": {
+            "pipelineKey": "standard|opaque|back|less|none",
+            "materialKey": "material:cube.material",
+            "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+            "topology": "triangle-list",
+            "instanced": false,
+            "skinned": false,
+            "morphed": false
+          },
+          "worldTransformOffset": 16,
+          "boundsIndex": 0
+        }
+      ],
+      "spriteDraws": [],
+      "skyboxes": [],
+      "fogs": [],
+      "lights": [
+        {
+          "lightId": 2,
+          "entity": { "index": 2, "generation": 0 },
+          "kind": "directional",
+          "shape": "rect",
+          "color": [1, 1, 1, 1],
+          "intensity": 1,
+          "range": 10,
+          "innerConeAngle": 0.39269909262657166,
+          "outerConeAngle": 0.5235987901687622,
+          "width": 2,
+          "height": 2,
+          "worldTransformOffset": 0,
+          "layerMask": 1
+        }
+      ],
+      "environments": [],
+      "shadowRequests": [],
+      "bounds": [
+        {
+          "boundsId": 0,
+          "entity": { "index": 3, "generation": 0 },
+          "localAabb": {
+            "min": [-0.75, -0.75, -0.75],
+            "max": [0.75, 0.75, 0.75]
+          },
+          "worldAabb": {
+            "min": {
+              "$typedArray": "Float32Array",
+              "base64": "AABAvwAAQL8AAEC/",
+              "length": 3
+            },
+            "max": {
+              "$typedArray": "Float32Array",
+              "base64": "AABAPwAAQD8AAEA/",
+              "length": 3
+            }
+          },
+          "localSphere": { "center": [0, 0, 0], "radius": 1.299038105676658 },
+          "worldSphere": {
+            "center": {
+              "$typedArray": "Float32Array",
+              "base64": "AAAAAAAAAAAAAAAA",
+              "length": 3
+            },
+            "radius": 1.299038105676658
+          }
+        }
+      ],
+      "transforms": {
+        "$typedArray": "Float32Array",
+        "base64": "PwFVP+iKHrLVAA6/AAAAAGn00r6WZis/TjcevwAAAADsJr4+6iY+PzGdDj8AAAAAAAAAQAAAgEAAAEBAAACAPwAAgD8AAAAAAAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAAAAAAAAAAAAgD8=",
+        "length": 32
+      },
+      "instanceTints": {
+        "$typedArray": "Float32Array",
+        "base64": "",
+        "length": 0
+      },
+      "viewMatrices": {
+        "$typedArray": "Float32Array",
+        "base64": "AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAIDAAACAP9ez3T8AAAAAAAAAAAAAAAAAAAAA17PdPwAAAAAAAAAAAAAAAAAAAABHA4C/AACAvwAAAAAAAAAAC9LMvQAAAADXs90/AAAAAAAAAAAAAAAAAAAAANez3T8AAAAAAAAAAAAAAAAAAAAARwOAvwAAgL8AAAAAAAAAAP6feUAAAIBArwITMwAAAIABAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAABAIC/AAAAAK8CEzMAAAAArwITtAAAAAABAIDAAACAP9ez3T8AAAAAAAAAAAAAAAAAAAAA17PdPwAAAAAAAAAAAAAAAAAAAABHA4C/AACAvwAAAAAAAAAAC9LMvQAAAAAvoX4zAAAAAEgDgL8BAIC/AAAAANez3T8AAAAAAAAAANmz3b8AAAAAcwYTs68CE7MvoX60AAAAAACgeUABAIBA",
+        "length": 96
+      },
+      "diagnostics": [],
+      "report": {
+        "views": 2,
+        "meshDraws": 1,
+        "spriteDraws": 0,
+        "particleEmitters": 0,
+        "audioEmitters": 0,
+        "quadInstances": 0,
+        "quadBatches": 0,
+        "uiNodes": 0,
+        "uiHitRegions": 0,
+        "skyboxes": 0,
+        "proceduralSkies": 0,
+        "runtimeUniforms": 0,
+        "fogs": 0,
+        "lights": 1,
+        "environments": 0,
+        "shadowRequests": 0,
+        "bounds": 1,
+        "diagnostics": 0,
+        "cullStats": [
+          {
+            "viewId": 0,
+            "camera": { "index": 0, "generation": 0 },
+            "tested": 1,
+            "culled": 0,
+            "included": 1
+          },
+          {
+            "viewId": 1,
+            "camera": { "index": 1, "generation": 0 },
+            "tested": 1,
+            "culled": 0,
+            "included": 1
+          }
+        ]
+      }
+    }
+  },
+  "assets": {
+    "schema": "aperture.source-assets.v1",
+    "completeness": "complete",
+    "allowPlaceholders": true,
+    "entries": [
+      {
+        "handle": { "kind": "mesh", "id": "cube.mesh" },
+        "label": "cube.mesh",
+        "status": "ready",
+        "version": 1,
+        "asset": {
+          "kind": "mesh",
+          "label": "Box",
+          "vertexStreams": [
+            {
+              "id": "primitive-interleaved",
+              "arrayStride": 32,
+              "vertexCount": 24,
+              "attributes": [
+                { "semantic": "POSITION", "format": "float32x3", "offset": 0 },
+                { "semantic": "NORMAL", "format": "float32x3", "offset": 12 },
+                {
+                  "semantic": "TEXCOORD_0",
+                  "format": "float32x2",
+                  "offset": 24
+                }
+              ],
+              "data": {
+                "$typedArray": "Float32Array",
+                "base64": "AABAvwAAQL8AAEA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAEA/AABAvwAAQD8AAAAAAAAAAAAAgD8AAIA/AAAAAAAAQD8AAEA/AABAPwAAAAAAAAAAAACAPwAAgD8AAIA/AABAvwAAQD8AAEA/AAAAAAAAAAAAAIA/AAAAAAAAgD8AAEA/AABAvwAAQL8AAAAAAAAAAAAAgL8AAAAAAAAAAAAAQL8AAEC/AABAvwAAAAAAAAAAAACAvwAAgD8AAAAAAABAvwAAQD8AAEC/AAAAAAAAAAAAAIC/AACAPwAAgD8AAEA/AABAPwAAQL8AAAAAAAAAAAAAgL8AAAAAAACAPwAAQD8AAEC/AABAPwAAgD8AAAAAAAAAAAAAAAAAAAAAAABAPwAAQL8AAEC/AACAPwAAAAAAAAAAAACAPwAAAAAAAEA/AABAPwAAQL8AAIA/AAAAAAAAAAAAAIA/AACAPwAAQD8AAEA/AABAPwAAgD8AAAAAAAAAAAAAAAAAAIA/AABAvwAAQL8AAEC/AACAvwAAAAAAAAAAAAAAAAAAAAAAAEC/AABAvwAAQD8AAIC/AAAAAAAAAAAAAIA/AAAAAAAAQL8AAEA/AABAPwAAgL8AAAAAAAAAAAAAgD8AAIA/AABAvwAAQD8AAEC/AACAvwAAAAAAAAAAAAAAAAAAgD8AAEC/AABAPwAAQD8AAAAAAACAPwAAAAAAAAAAAAAAAAAAQD8AAEA/AABAPwAAAAAAAIA/AAAAAAAAgD8AAAAAAABAPwAAQD8AAEC/AAAAAAAAgD8AAAAAAACAPwAAgD8AAEC/AABAPwAAQL8AAAAAAACAPwAAAAAAAAAAAACAPwAAQL8AAEC/AABAvwAAAAAAAIC/AAAAAAAAAAAAAAAAAABAPwAAQL8AAEC/AAAAAAAAgL8AAAAAAACAPwAAAAAAAEA/AABAvwAAQD8AAAAAAACAvwAAAAAAAIA/AACAPwAAQL8AAEC/AABAPwAAAAAAAIC/AAAAAAAAAAAAAIA/",
+                "length": 192
+              }
+            }
+          ],
+          "indexBuffer": {
+            "format": "uint16",
+            "data": {
+              "$typedArray": "Uint16Array",
+              "base64": "AAABAAIAAAACAAMABAAFAAYABAAGAAcACAAJAAoACAAKAAsADAANAA4ADAAOAA8AEAARABIAEAASABMAFAAVABYAFAAWABcA",
+              "length": 36
+            }
+          },
+          "submeshes": [
+            {
+              "label": "default",
+              "topology": "triangle-list",
+              "materialSlot": 0,
+              "vertexStart": 0,
+              "vertexCount": 24,
+              "indexStart": 0,
+              "indexCount": 36
+            }
+          ],
+          "materialSlots": [{ "index": 0, "label": "default" }],
+          "localAabb": {
+            "min": [-0.75, -0.75, -0.75],
+            "max": [0.75, 0.75, 0.75]
+          },
+          "localSphere": { "center": [0, 0, 0], "radius": 1.299038105676658 }
+        },
+        "dependencies": [],
+        "diagnostics": [],
+        "provenance": "loaded"
+      },
+      {
+        "handle": { "kind": "material", "id": "cube.material" },
+        "label": "Standard Material",
+        "status": "ready",
+        "version": 1,
+        "asset": {
+          "kind": "standard",
+          "label": "Standard Material",
+          "renderState": {
+            "alphaMode": "opaque",
+            "alphaCutoff": 0.5,
+            "cullMode": "back",
+            "frontFace": "ccw",
+            "depth": { "test": true, "write": true, "compare": "less" },
+            "blend": { "preset": "none" },
+            "colorWriteMask": "all"
+          },
+          "baseColorFactor": {
+            "$typedArray": "Float32Array",
+            "base64": "ZmZmP83MzD7NzMw9AACAPw==",
+            "length": 4
+          },
+          "baseColorTexture": null,
+          "metallicFactor": 1,
+          "roughnessFactor": 1,
+          "clearcoatFactor": 0,
+          "clearcoatTexture": null,
+          "clearcoatRoughnessFactor": 0,
+          "clearcoatRoughnessTexture": null,
+          "transmissionFactor": 0,
+          "transmissionTexture": null,
+          "ior": 1.5,
+          "thickness": 0,
+          "attenuationColor": [1, 1, 1],
+          "attenuationDistance": 0,
+          "sheenColorFactor": [0, 0, 0],
+          "sheenColorTexture": null,
+          "sheenRoughnessFactor": 0,
+          "sheenRoughnessTexture": null,
+          "iridescenceFactor": 0,
+          "iridescenceTexture": null,
+          "iridescenceThicknessTexture": null,
+          "iridescenceIor": 1.3,
+          "iridescenceThicknessMinimum": 100,
+          "iridescenceThicknessMaximum": 400,
+          "metallicRoughnessTexture": null,
+          "normalTexture": null,
+          "normalScale": 1,
+          "occlusionTexture": null,
+          "occlusionStrength": 1,
+          "emissiveFactor": [0, 0, 0],
+          "emissiveTexture": null,
+          "unsupportedFeatures": []
+        },
+        "dependencies": [],
+        "diagnostics": [],
+        "provenance": "loaded"
+      }
+    ]
+  },
+  "assetProvenance": { "real": 2, "placeholderCount": 0, "placeholderIds": [] },
+  "closure": {
+    "roots": ["material:cube.material", "mesh:cube.mesh"],
+    "referenced": ["material:cube.material", "mesh:cube.mesh"],
+    "missing": [],
+    "unready": [],
+    "placeholders": []
+  },
+  "diagnostics": [],
+  "snapshotDigest": {
+    "algorithm": "fnv1a32-stable-json-v1",
+    "hash": "04d23af4",
+    "byteLength": 3546
+  },
+  "digest": {
+    "algorithm": "fnv1a32-stable-json-v1",
+    "hash": "7f5049e2",
+    "byteLength": 7628
+  }
+}

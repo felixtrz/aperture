@@ -7,7 +7,9 @@ import {
   createApertureSnapshotBundle,
   createApertureSnapshotBundleClosure,
   createNodeApertureAssetLoader,
+  getApertureSnapshotBundleRenderTarget,
   preflightApertureSnapshotBundle,
+  renderBundleTargetFromRenderDefaults,
 } from "@aperture-engine/cli";
 import {
   createApertureHeadlessRunner,
@@ -144,6 +146,82 @@ function preflightBundle(
     },
   });
 }
+
+describe("render/post config carried in bundles (#73)", () => {
+  it("derives bundle target fields from config.render defaults", () => {
+    expect(renderBundleTargetFromRenderDefaults(undefined)).toEqual({});
+    expect(
+      renderBundleTargetFromRenderDefaults({
+        sampleCount: 4,
+        tonemap: "aces",
+        exposure: 1.2,
+        bloom: { threshold: 0.7, intensity: 1.5, radiusPixels: 24 },
+      }),
+    ).toEqual({
+      sampleCount: 4,
+      toneMapping: "aces",
+      exposure: 1.2,
+      bloom: { threshold: 0.7, intensity: 1.5, radiusPixels: 24 },
+    });
+    // bloom: true implies exposure (the HDR scene buffer), like the browser.
+    expect(renderBundleTargetFromRenderDefaults({ bloom: true })).toEqual({
+      exposure: 1,
+      bloom: {},
+    });
+    expect(renderBundleTargetFromRenderDefaults({ bloom: false })).toEqual({});
+  });
+
+  it("round-trips bloom/tonemap/exposure through a produced bundle", async () => {
+    const runner = await createApertureHeadlessRunner({
+      config: defineApertureConfig({
+        mode: "headless",
+        render: {
+          defaultCamera: false,
+          defaultLight: false,
+          bloom: true,
+          exposure: 1.2,
+          tonemap: "aces",
+        },
+      }),
+      systems: [cubeSystem],
+    });
+    const report = runner.step(1 / 60, 0);
+    const bundle = createApertureSnapshotBundle({
+      snapshot: report.snapshot,
+      assets: runner.app.lowLevel.assets,
+      options: {
+        renderTarget: {
+          ...renderBundleTargetFromRenderDefaults({
+            bloom: { radiusPixels: 24 },
+            exposure: 1.2,
+            tonemap: "aces",
+          }),
+          width: 320,
+          height: 240,
+        },
+      },
+    });
+
+    expect(bundle.renderTarget).toMatchObject({
+      width: 320,
+      height: 240,
+      toneMapping: "aces",
+      exposure: 1.2,
+      bloom: { radiusPixels: 24 },
+    });
+
+    // The consumer-side normalization keeps the post fields intact,
+    // including the legacy radiusPixels blur radius.
+    const roundTripped = getApertureSnapshotBundleRenderTarget(
+      JSON.parse(JSON.stringify(bundle)),
+    );
+    expect(roundTripped).toMatchObject({
+      toneMapping: "aces",
+      exposure: 1.2,
+      bloom: { radiusPixels: 24 },
+    });
+  });
+});
 
 describe("createApertureSnapshotBundle (P1.6)", () => {
   it("emits a versioned bundle whose snapshot round-trips through the codec", async () => {

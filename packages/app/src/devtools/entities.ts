@@ -27,6 +27,7 @@ import {
   type ApertureEntitySetComponentFieldRequest,
   type ApertureEntitySnapshotDiff,
 } from "../entity-lookup.js";
+import { collectActiveEntities } from "../entities/lookup/summary.js";
 import {
   isRecord,
   jsonSafeValue,
@@ -451,10 +452,16 @@ function createComponentSchemaReport(
     }
   >();
 
-  for (const entity of world.queryManager.registerQuery({ required: [] })
-    .entities) {
+  // Enumerate via the entity manager (like collectActiveEntities /
+  // findApertureEntities): an empty-required query registered here would only
+  // hold the entities that existed at registration time, hiding components
+  // that runtime-spawned entities added afterwards (#65).
+  for (const entity of collectActiveEntities(world)) {
     for (const component of entity.getComponents()) {
-      if (requested !== undefined && component.id !== requested) {
+      if (
+        component === null ||
+        (requested !== undefined && component.id !== requested)
+      ) {
         continue;
       }
 

@@ -1,9 +1,10 @@
-import { World } from "elics";
+import { ComponentRegistry, World } from "elics";
 import type {
   AnyComponent,
   Component,
   DataType,
   Entity,
+  QueryConfig,
   TypedSchema,
   WorldOptions,
 } from "elics";
@@ -69,8 +70,60 @@ export const DEFAULT_ENTITY_CAPACITY = 16384;
 
 export function createWorld(options: Partial<WorldOptions> = {}): EcsWorld {
   return installEntityVersionTracking(
-    new World({ entityCapacity: DEFAULT_ENTITY_CAPACITY, ...options }),
+    installComponentReRegistration(
+      new World({ entityCapacity: DEFAULT_ENTITY_CAPACITY, ...options }),
+    ),
   );
+}
+
+/**
+ * Look up a component by id in elics' process-global component registry
+ * (populated by every `defineComponent` call). Used to pre-register app
+ * components declared in a snapshot manifest before a scene decode.
+ */
+export function findDefinedComponent(id: string): AnyEcsComponent | undefined {
+  return ComponentRegistry.getById(id);
+}
+
+/**
+ * elics registers a component lazily and only when `component.bitmask` is
+ * still null. A module-scope `defineComponent` singleton that was registered
+ * by a PREVIOUS world in the same process keeps that world's typeId/bitmask,
+ * so on the next world elics skips re-registration and ORs stale bits into
+ * fresh entities (whose typeIds then resolve to `null` here) — crashing
+ * summaries and silently corrupting queries after an in-process reset.
+ * Consult the CURRENT world instead and re-register on first use, exactly
+ * like `registerApertureAppComponents` already does for built-ins each boot.
+ * (Worlds are sequential per process — reset disposes the old runner first.)
+ */
+function ensureWorldComponent(world: World, component: AnyComponent): void {
+  if (
+    component.bitmask !== null &&
+    !world.componentManager.hasComponent(component)
+  ) {
+    world.registerComponent(component);
+  }
+}
+
+function installComponentReRegistration(world: World): World {
+  const registerQuery = world.queryManager.registerQuery.bind(
+    world.queryManager,
+  );
+
+  world.queryManager.registerQuery = (query: QueryConfig) => {
+    for (const component of query.required) {
+      ensureWorldComponent(world, component);
+    }
+    for (const component of query.excluded ?? []) {
+      ensureWorldComponent(world, component);
+    }
+    for (const predicate of query.where ?? []) {
+      ensureWorldComponent(world, predicate.component);
+    }
+    return registerQuery(query);
+  };
+
+  return world;
 }
 
 type VectorView = {
@@ -132,6 +185,9 @@ function installEntityVersionTracking(world: World): EcsWorld {
       component: AnyComponent,
       initialData?: Record<string, unknown>,
     ) {
+      // Re-register a component carrying a stale registration from a previous
+      // world before elics ORs its old bitmask into this entity.
+      ensureWorldComponent(world, component);
       const result = addComponent.call(this, component, initialData);
 
       if (this.active) {
@@ -145,6 +201,14 @@ function installEntityVersionTracking(world: World): EcsWorld {
       this: Entity,
       component: AnyComponent,
     ) {
+      // A component never registered in THIS world cannot be present on the
+      // entity; its stale bitmask would clear an unrelated component's bit.
+      if (
+        component.bitmask !== null &&
+        !world.componentManager.hasComponent(component)
+      ) {
+        return this;
+      }
       const hadComponent =
         this.active &&
         component.bitmask !== null &&

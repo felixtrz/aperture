@@ -62,7 +62,9 @@ export function serializeEntityComponents(
   const serialized: SerializedComponent[] = [];
 
   for (const component of entity.getComponents()) {
-    if (excluded.has(component.id)) {
+    // Skip bits whose component is not registered in this world (stale
+    // module-scope registrations from a previous in-process world).
+    if (component === null || excluded.has(component.id)) {
       continue;
     }
     serialized.push({

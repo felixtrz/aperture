@@ -205,6 +205,10 @@ describe("Aperture CLI create command", () => {
       path.join(report.targetDir, ".codex/config.toml"),
       "utf8",
     );
+    const tsconfig = await readFile(
+      path.join(report.targetDir, "tsconfig.json"),
+      "utf8",
+    );
 
     expect(packageJson.scripts).toMatchObject({
       dev: "vite --host 127.0.0.1",
@@ -248,6 +252,10 @@ describe("Aperture CLI create command", () => {
     expect(claudeNotes).toContain("default to headless");
     expect(codexConfig).toContain("aperture");
     expect(codexConfig).toContain("mcp");
+    // #75: 'aperture headless' runs systems from anywhere the config's globs
+    // point, so the scaffold must typecheck the whole tree, not just src/**.
+    expect(tsconfig).toContain('"**/*.ts"');
+    expect(tsconfig).toContain('".aperture/generated/**/*.d.ts"');
   });
 
   it("keeps a local workspace dependency escape for in-repo scaffolds", async () => {

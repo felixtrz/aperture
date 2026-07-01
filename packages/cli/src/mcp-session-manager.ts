@@ -11,7 +11,10 @@ import {
 } from "./dev-session.js";
 import { apertureRuntimeDir } from "./session.js";
 import { readPngDimensions, readPngSamples } from "./tools/png-readback.js";
-import { renderBundleToPng } from "./render/driver.js";
+import {
+  createApertureRenderSession,
+  type ApertureRenderSession,
+} from "./render/driver.js";
 import { ApertureCliError } from "./errors.js";
 import { preflightApertureSnapshotBundle } from "./headless/bundle.js";
 import {
@@ -60,10 +63,33 @@ export class ApertureMcpSessionManager {
   readonly #entryPoint: string;
   #headed: HeadedSlot | null = null;
   #headless: HeadlessSlot | null = null;
+  // Warm render slot (#61): the browser + Xvfb boot (~4-5s) dominates every
+  // on-demand render, so frame_capture reuses one session across calls and
+  // only the first capture pays it. Released on app_stop.
+  #renderSession: Promise<ApertureRenderSession> | null = null;
 
   constructor(options: ApertureMcpSessionManagerOptions) {
     this.#cwd = path.resolve(options.cwd);
     this.#entryPoint = options.entryPoint ?? process.argv[1] ?? "aperture";
+  }
+
+  #warmRenderSession(): Promise<ApertureRenderSession> {
+    this.#renderSession ??= createApertureRenderSession({
+      displayWidth: 1920,
+      displayHeight: 1080,
+    });
+    return this.#renderSession;
+  }
+
+  async #disposeRenderSession(): Promise<void> {
+    const pending = this.#renderSession;
+    this.#renderSession = null;
+    if (pending !== null) {
+      await pending.then(
+        (session) => session.dispose(),
+        () => undefined,
+      );
+    }
   }
 
   toolDefinitions(): readonly SharedMcpToolDefinition[] {
@@ -217,7 +243,7 @@ export class ApertureMcpSessionManager {
       ),
       tool(
         "frame_capture",
-        "Capture the current frame as a PNG with metadata.",
+        "Capture the current frame as a PNG with metadata. width/height set the render size on the headless target; the headed target captures the live canvas at its natural size (a diagnostic reports any mismatch).",
         {
           target: targetSchema(),
           appRoot: { type: "string" },
@@ -574,6 +600,7 @@ export class ApertureMcpSessionManager {
     const hadSession = previous !== null;
     this.#headless = null;
     previous?.controller.dispose();
+    await this.#disposeRenderSession();
     return { ok: true, target, mode: target, hadSession, stopped: hadSession };
   }
 
@@ -806,6 +833,7 @@ export class ApertureMcpSessionManager {
       png !== null && Array.isArray(args["samples"])
         ? readPngSamples(png, { samples: args["samples"] })
         : undefined;
+    const dimensions = png === null ? undefined : readPngDimensions(png);
 
     return {
       ...imageResultFields(screenshot),
@@ -814,12 +842,17 @@ export class ApertureMcpSessionManager {
       source: "live-browser-canvas",
       frame: readFrameFromCanvasStatus(canvas),
       pngPath: isRecord(screenshot) ? screenshot["path"] : undefined,
-      dimensions: png === null ? undefined : readPngDimensions(png),
+      dimensions,
       canvas: capture.canvas,
       viewport: capture.viewport,
       renderTarget: capture.renderTarget,
       ...(samples === undefined ? {} : { samples }),
-      diagnostics: diagnosticsFrom(screenshot, canvas),
+      diagnostics: [
+        ...diagnosticsFrom(screenshot, canvas),
+        // The headed target captures the LIVE canvas at its natural size —
+        // say so explicitly instead of silently ignoring width/height (#70).
+        ...headedCaptureSizeDiagnostics(args, dimensions),
+      ],
     };
   }
 
@@ -874,7 +907,15 @@ export class ApertureMcpSessionManager {
       };
     }
 
-    const rendered = await renderBundleToPng({ bundle, width, height });
+    const session = await this.#warmRenderSession();
+    const rendered = await session
+      .render({ bundle, width, height })
+      .catch(async (error: unknown) => {
+        // A dead browser poisons the warm slot; drop it so the next capture
+        // boots a fresh one instead of failing forever.
+        await this.#disposeRenderSession();
+        throw error;
+      });
     const pngPath = artifacts.png;
     await mkdir(path.dirname(pngPath), { recursive: true });
     await writeFile(pngPath, rendered.png);
@@ -902,9 +943,13 @@ export class ApertureMcpSessionManager {
         ? bundleResult["assetProvenance"]
         : undefined,
       ...(samples === undefined ? {} : { samples }),
-      ...(args["includeData"] === true
-        ? { includeData: true, data: rendered.png.toString("base64") }
+      // Mirror the headed envelope (#70): return the PNG inline (an MCP image
+      // block) unless the caller redirected the capture to an explicit `out`
+      // file; includeData still forces both.
+      ...(args["includeData"] === true || stringArg(args, "out") === undefined
+        ? { data: rendered.png.toString("base64") }
         : {}),
+      ...(args["includeData"] === true ? { includeData: true } : {}),
       diagnostics: preflightDiagnostics,
     };
   }
@@ -1311,9 +1356,10 @@ function diagnosticLogLevel(value: unknown): HeadlessSessionLogEntry["level"] {
 }
 
 function nodeAssetLoaderMode(value: unknown): NodeAssetLoaderMode {
+  // Hybrid by default, matching the headless CLI commands (#66).
   return value === "strict" || value === "hybrid" || value === "placeholder"
     ? value
-    : "placeholder";
+    : "hybrid";
 }
 
 function determinismMode(value: unknown): "off" | "warn" | "error" {
@@ -1429,6 +1475,35 @@ function imageResultFields(value: unknown): Record<string, unknown> {
     return { ok: false, diagnostics: [{ code: "aperture.mcp.captureFailed" }] };
   }
   return { ...value };
+}
+
+function headedCaptureSizeDiagnostics(
+  args: Record<string, unknown>,
+  dimensions: { readonly width: number; readonly height: number } | undefined,
+): readonly Record<string, unknown>[] {
+  const width = numberArg(args, "width");
+  const height = numberArg(args, "height");
+  if (width === undefined && height === undefined) {
+    return [];
+  }
+  if (
+    dimensions !== undefined &&
+    (width === undefined || width === dimensions.width) &&
+    (height === undefined || height === dimensions.height)
+  ) {
+    return [];
+  }
+  return [
+    {
+      code: "aperture.mcp.frameCaptureSizeIgnored",
+      severity: "info",
+      message:
+        `frame_capture on the headed target captures the live canvas at its natural size` +
+        `${dimensions === undefined ? "" : ` (${dimensions.width}x${dimensions.height})`}; ` +
+        `the requested ${width ?? "?"}x${height ?? "?"} was not applied. ` +
+        'Use target: "headless" when exact output dimensions are required.',
+    },
+  ];
 }
 
 async function imageBufferFromCaptureResult(
