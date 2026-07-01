@@ -64,7 +64,19 @@ particles/physics/GLB all work headless, and quantified throughput.
 | F11 | LOW | errors | Browser config → cryptic `BASE_URL` error | traced |
 | F12 | LOW | types | Scaffold tsconfig only checks `src/**` | **verified** |
 
-Wins (W1–W19) are in §4; observations (O1–O12) in §7.
+Wins (W1–W20) are in §4; observations (O1–O12) in §7.
+
+**Coverage exercised:** CLI — `create` (minimal/game/glb-viewer), `headless`
+(all flags: frames/delta/seed/inject/asset-mode/determinism/render-dims/json/
+public-dir), `headless serve` (step/extract/inject/tool/bundle/snapshot/restore/
+reset/determinism/command/shutdown + malformed-input resilience), `render` (dims/
+allow-blank/allow-placeholders/json/preflight), `tool`, `mcp stdio` (47 tools),
+`dev up/status/down` (headed, software WebGPU), `adapter sync`, `reference
+warmup/status/search`. Subsystems — ECS + custom components/resources, RNG
+(+fork)/time determinism, input (axis/button/pointer/replay), physics (dynamic +
+kinematic character), hierarchy, assets (GLB/WAV/PNG strict), particles, audio,
+shadows, fog, procedural sky, multi-view, scale (600 entities). Comparison —
+headed vs headless authoring/render/tool parity.
 
 ---
 
@@ -180,6 +192,11 @@ modules).
 - **W18 — Shadow mapping headless→render:** a directional light with `shadow:true`
   extracts `shadowRequests` and `aperture render` produces a correct cast shadow
   with PBR shading (`artifacts/shadow.png`).
+- **W19 — Fog + procedural sky** render correctly headless→render (distance-fade
+  fog + gradient sky, `artifacts/sky.png`).
+- **W20 — RAG reference tooling:** `aperture reference warmup` fetched the corpus
+  + embeddings model (758 entries); semantic `search` and all 8 granular MCP
+  `reference_*` tools return relevant, ranked results.
 
 Rendered proof frames: `artifacts/starfall_f150.png` (game), `physics.png`
 (stack), `viewer_strict.png` (GLB), `compare_headed.png` vs `compare_headless.png`
