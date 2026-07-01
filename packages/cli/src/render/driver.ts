@@ -144,7 +144,9 @@ export interface ApertureRenderSessionRenderOptions {
  */
 export interface ApertureRenderSession {
   readonly browser: RenderBundleBrowserMetadata;
-  render(options: ApertureRenderSessionRenderOptions): Promise<RenderBundleResult>;
+  render(
+    options: ApertureRenderSessionRenderOptions,
+  ): Promise<RenderBundleResult>;
   dispose(): Promise<void>;
 }
 

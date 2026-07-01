@@ -43,10 +43,12 @@ describe("generated types from evaluated configs (#68, #76)", () => {
     const entries = apertureGeneratedTypeEntriesFromConfig(
       createApertureAppConfig({ mode: "headless" }),
     );
-    const rendered = renderApertureGeneratedTypes(entries ?? {
-      actions: [],
-      signals: [],
-    });
+    const rendered = renderApertureGeneratedTypes(
+      entries ?? {
+        actions: [],
+        signals: [],
+      },
+    );
 
     expect(rendered).toContain("readonly jump: InputButtonAction;");
     expect(rendered).toContain("readonly throttle: InputAxis1dAction;");

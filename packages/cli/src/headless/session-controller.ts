@@ -583,9 +583,7 @@ export async function createHeadlessSessionController(
       );
     }
 
-    const diagnostics = results.flatMap(
-      (result) => result.diagnostics ?? [],
-    );
+    const diagnostics = results.flatMap((result) => result.diagnostics ?? []);
     return {
       ok: results.every((result) => result.ok),
       result: { injected: true, results },
@@ -597,10 +595,7 @@ export async function createHeadlessSessionController(
     payload: Record<string, unknown>,
   ): GeneratedDevtoolsToolResult {
     recordStatusDiagnostics();
-    const lines = Math.max(
-      1,
-      Math.floor(finiteNumber(payload["lines"], 80)),
-    );
+    const lines = Math.max(1, Math.floor(finiteNumber(payload["lines"], 80)));
     return { ok: true, result: { entries: logEntries.slice(-lines) } };
   }
 

@@ -225,7 +225,9 @@ describe("glTF URI loader", () => {
   it("reports a clear diagnostic for a non-base64 data URI buffer (#62)", async () => {
     const root = {
       ...triangleRoot(),
-      buffers: [{ uri: "data:application/octet-stream,not-base64", byteLength: 44 }],
+      buffers: [
+        { uri: "data:application/octet-stream,not-base64", byteLength: 44 },
+      ],
     };
     const sourceBytes = encodeJson(root);
     const report = await loadGltfFromUri(GLTF_URL, {

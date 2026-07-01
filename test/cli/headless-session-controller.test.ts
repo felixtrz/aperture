@@ -264,7 +264,10 @@ describe("HeadlessSessionController", () => {
       // return aperture.headless.toolUnavailable.
       const injected = controller.callTool({
         name: "input_inject",
-        arguments: { actions: { jump: true }, pointer: { position: [0.5, 0.5] } },
+        arguments: {
+          actions: { jump: true },
+          pointer: { position: [0.5, 0.5] },
+        },
       });
       expect(injected.ok).toBe(true);
       expect(JSON.stringify(injected)).not.toContain("toolUnavailable");
