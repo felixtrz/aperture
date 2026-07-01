@@ -166,6 +166,9 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 - Impact: any multi-viewport layout is un-renderable via the headless render path (and the blank-guard's message misattributes it to unresolved assets / headless compositing, which is misleading here).
 - Recommendation: honor `view.viewport`/`view.scissor` in the render harness, or document that `aperture render` composites only full-frame single views.
 
+### WIN W21 — all three scaffold templates work end-to-end from the packed CLI
+- `aperture create --template minimal|game|glb-viewer` each scaffold, install from tarballs, typecheck, `aperture headless`, and `aperture render` cleanly. The `minimal` template's spinning cube renders as a lit, slightly-rotated blue cube (`artifacts/minimal.png`); `game`→Starfall; `glb-viewer`→GLB (with the F9 asset-mode caveat). Template + pack→install→headless→render coverage is complete.
+
 ### WIN W20 — RAG reference tooling works (semantic code search over the corpus)
 - `aperture reference warmup` downloaded the versioned corpus + pinned Transformers.js embeddings model through the proxy (758 entries / 3277 chunks / 758 sources); `reference status` → ready.
 - `aperture reference search "spawn a mesh with a physics body"` returned highly relevant ranked code — `withMesh` (0.87), `withPhysicsMaterial` (0.82), the `physics` descriptor helpers (0.80), `withRigidBody` (0.80). A genuinely useful natural-language API-discovery tool for building Aperture apps.
