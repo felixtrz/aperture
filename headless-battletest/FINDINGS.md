@@ -191,6 +191,7 @@ This is the raw running journal. The polished report is in `REPORT.md`.
 - Mid-run exception: a system throwing in `update()` aborts with `aperture.cli.failed: System 'Boom' threw during update(): …` — attributed to the system + phase.
 - `serve` is resilient to bad input: a non-JSON line returns `{ok:false, error:"Invalid JSON command…"}` and the session keeps processing subsequent commands; an unknown command returns `{ok:false, error:"Unknown command 'x'."}`. One bad line does not kill the session.
 - OBSERVATION O12: system-exception errors end with "the original stack is preserved below", but the CLI prints only the message — there is no stack "below" on stderr. Minor but misleading when debugging.
+- Long-running stability: a 10,000-frame run completes in ~3.9 s (exit 0) with entity count bounded (5 static entities after game-over halts spawning) — no crash, no unbounded growth over long sessions.
 - Multi-seed determinism: seeds 1-5 each replay byte-identically AND produce 5 distinct `snapshotDigest`s — determinism holds across the seed space with genuine per-seed variation.
 - The documented "erasable TypeScript only" loader restriction fails cleanly: a TS `enum` in a system → `aperture.headless.configLoadFailed: … TypeScript enum is not supported in strip-only mode` (confirms the loader now uses native Node type-stripping, per the `headless-route-hardening` Track A plan), with the erasable-TS hint. Exit 1.
 
