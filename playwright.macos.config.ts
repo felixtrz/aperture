@@ -27,7 +27,10 @@ export default defineConfig({
   fullyParallel: false,
   retries: 0,
   workers: 1,
-  timeout: 150000,
+  // Matches playwright.ci.config.ts: the CI-excluded SwiftShader-heavy specs
+  // (csm-directional-shadow, clustered-lights) run 2-3 minutes locally, so a
+  // 150s budget made them guaranteed local timeout flakes.
+  timeout: 240000,
   reporter: [["list"]],
   use: {
     baseURL: "http://127.0.0.1:4173",

@@ -685,7 +685,6 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
   // Walks many asset switches, each worth ~5s under SwiftShader since real
   // specular prefiltering (AI-87); 60s exhausted mid-test once the per-wait
   // budgets were raised to match.
-  test.setTimeout(120_000);
 
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
@@ -14878,8 +14877,6 @@ test("Playwright mutates GLB viewer ECS shadow controls", async ({ page }) => {
 });
 
 test("Playwright routes the lit brass sample through IBL", async ({ page }) => {
-  test.setTimeout(90_000);
-
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
   const directStatus = await loadBrassViewerSample(
@@ -14956,8 +14953,6 @@ test("Playwright routes the lit brass sample through IBL", async ({ page }) => {
 });
 
 test("Playwright mutates GLB viewer ECS IBL control", async ({ page }) => {
-  test.setTimeout(90_000);
-
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
   const initialStatus = await loadBrassViewerSample(
@@ -19194,8 +19189,6 @@ test("Playwright renders a Meshopt-compressed GLB mesh in the viewer", async ({
 test("Playwright renders a real-world KTX2 + Draco GLB sample in the viewer", async ({
   page,
 }) => {
-  test.setTimeout(60_000);
-
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
   await page.goto("/examples/glb-viewer.html?asset=abeautifulgame-ktx-draco");
@@ -23533,8 +23526,6 @@ test("Playwright renders GLB viewer mesh-draw identity rows", async ({
 test("Playwright renders GLB viewer prepared-resource reuse rows", async ({
   page,
 }) => {
-  test.setTimeout(90_000);
-
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
   const summaryPanel = page.locator("#glb-prepared-resource-reuse-summary");
   const reuseRow = (key: string) =>
@@ -23861,8 +23852,6 @@ test("Playwright renders GLB viewer render-diagnostics section rows", async ({
 test("Playwright renders GLB viewer source-output summary rows", async ({
   page,
 }) => {
-  test.setTimeout(90_000);
-
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
   const summaryPanel = page.locator("#glb-source-output-summary");
   const outputRow = (key: string) =>
@@ -24236,8 +24225,6 @@ test("Playwright renders GLB viewer material-factor rows", async ({ page }) => {
 });
 
 test("Playwright renders GLB viewer material-alpha rows", async ({ page }) => {
-  test.setTimeout(120_000);
-
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
   const summaryPanel = page.locator("#glb-material-alpha-summary");
   const alphaRow = (meshIndex: number, primitiveIndex: number) =>
@@ -25332,8 +25319,6 @@ test("Playwright renders GLB viewer texture handle-key rows", async ({
 });
 
 test("Playwright renders GLB viewer texture-sampler rows", async ({ page }) => {
-  test.setTimeout(90_000);
-
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
   const summaryPanel = page.locator("#glb-texture-sampler-summary");
   const samplerRow = (

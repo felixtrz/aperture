@@ -1,11 +1,14 @@
 import { spawn, type ChildProcess } from "node:child_process";
+import net from "node:net";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 
 import { pixelDistance, readPngImage, type RgbaPixel } from "./png.js";
 
-const DEVELOPER_API_PORT = 5175;
-const DEVELOPER_API_URL = `http://127.0.0.1:${DEVELOPER_API_PORT}/`;
+// Allocated per run in beforeAll: a fixed port with --strictPort made any
+// stale process (e.g. a previous crashed run) fail the whole file's setup.
+let developerApiPort = 0;
+let developerApiUrl = "";
 
 type GeneratedStatusGlobal = typeof globalThis & {
   readonly __APERTURE_GENERATED_APP__?: GeneratedBrowserAppStatus;
@@ -389,6 +392,8 @@ let server: ChildProcess | null = null;
 let serverOutput = "";
 
 test.beforeAll(async () => {
+  developerApiPort = await allocateEphemeralPort();
+  developerApiUrl = `http://127.0.0.1:${developerApiPort}/`;
   server = spawn(
     process.execPath,
     [
@@ -396,7 +401,7 @@ test.beforeAll(async () => {
       "--host",
       "127.0.0.1",
       "--port",
-      String(DEVELOPER_API_PORT),
+      String(developerApiPort),
       "--strictPort",
       "--config",
       "vite.config.ts",
@@ -425,7 +430,7 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
   context,
   page,
 }) => {
-  await page.goto(DEVELOPER_API_URL, { waitUntil: "domcontentloaded" });
+  await page.goto(developerApiUrl, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(
     () => {
       const status = (globalThis as GeneratedStatusGlobal)
@@ -925,6 +930,27 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
   await context.close();
 });
 
+async function allocateEphemeralPort(): Promise<number> {
+  const probe = net.createServer();
+  const port = await new Promise<number>((resolve, reject) => {
+    probe.once("error", reject);
+    probe.listen(0, "127.0.0.1", () => {
+      const address = probe.address();
+
+      if (typeof address === "object" && address !== null) {
+        resolve(address.port);
+      } else {
+        reject(new Error("Failed to allocate an ephemeral port."));
+      }
+    });
+  });
+
+  await new Promise<void>((resolve, reject) => {
+    probe.close((error) => (error ? reject(error) : resolve()));
+  });
+  return port;
+}
+
 async function waitForDeveloperApiServer(): Promise<void> {
   const deadline = Date.now() + 30000;
   let lastError: unknown = null;
@@ -937,7 +963,7 @@ async function waitForDeveloperApiServer(): Promise<void> {
     }
 
     try {
-      const response = await fetch(DEVELOPER_API_URL);
+      const response = await fetch(developerApiUrl);
       if (response.ok) {
         await response.body?.cancel();
         return;

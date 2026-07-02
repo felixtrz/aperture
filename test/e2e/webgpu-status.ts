@@ -78,10 +78,25 @@ export function attachWebGpuValidationConsoleGuard(
 export async function waitForExampleStatus<T>(
   page: Page,
 ): Promise<T | undefined> {
-  await page.waitForFunction(
-    () =>
-      (globalThis as ExampleGlobal).__APERTURE_EXAMPLE_STATUS__ !== undefined,
-  );
+  // Several routes publish a transient {ok:false, phase:"loading"} status
+  // before the real one. Resolving on ANY defined status pushed a second
+  // "wait for ok" onto every consumer (and specs that forgot it asserted
+  // against the loading snapshot on slow shards), and let
+  // skipIfUnsupportedWebGpu miss an "unsupported" reason published after
+  // "loading". Same predicate as render-control's waitForControlOrStatus.
+  await page.waitForFunction(() => {
+    const status = (globalThis as ExampleGlobal).__APERTURE_EXAMPLE_STATUS__;
+    const ok =
+      typeof status === "object" &&
+      status !== null &&
+      (status as { readonly ok?: unknown }).ok === true;
+    const phase =
+      typeof status === "object" && status !== null
+        ? (status as { readonly phase?: unknown }).phase
+        : undefined;
+
+    return status !== undefined && (ok || phase !== "loading");
+  });
 
   return page.evaluate(
     () => (globalThis as ExampleGlobal).__APERTURE_EXAMPLE_STATUS__ as T,

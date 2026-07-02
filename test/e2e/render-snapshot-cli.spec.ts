@@ -19,7 +19,6 @@ const FIXTURE_BUNDLE = path.resolve(
 // so it does not use the example webServer.
 test.describe("aperture render CLI", () => {
   test("renders a non-blank PNG from a render bundle", async () => {
-    test.setTimeout(180_000);
     const tempDir = await mkdtemp(
       path.join(os.tmpdir(), "aperture-render-e2e-"),
     );
@@ -122,7 +121,6 @@ test.describe("aperture render CLI", () => {
   });
 
   test("renders both halves of a split-screen fractional-viewport bundle (#72)", async () => {
-    test.setTimeout(180_000);
     const tempDir = await mkdtemp(
       path.join(os.tmpdir(), "aperture-split-viewport-e2e-"),
     );
@@ -156,7 +154,6 @@ test.describe("aperture render CLI", () => {
   });
 
   test("render serve reuses one warm browser across bundles (#61)", async () => {
-    test.setTimeout(180_000);
     const tempDir = await mkdtemp(
       path.join(os.tmpdir(), "aperture-render-serve-e2e-"),
     );
@@ -240,7 +237,6 @@ test.describe("aperture render CLI", () => {
   });
 
   test("renders known pixels from a bundle extracted after SessionSnapshot restore", async () => {
-    test.setTimeout(180_000);
     const tempDir = await mkdtemp(
       path.join(os.tmpdir(), "aperture-session-render-e2e-"),
     );

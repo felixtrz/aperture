@@ -207,10 +207,14 @@ test("browser renders Rapier hinge and prismatic joints from a simulation worker
 async function waitForPhysicsJointsStatus(
   page: Page,
 ): Promise<PhysicsJointsStatus | undefined> {
+  // waitForFunction(fn, ARG, options): the options object must sit in the
+  // third slot — in the second slot it silently becomes the page-function
+  // argument and the intended timeout is ignored.
   await page.waitForFunction(
     () =>
       (globalThis as PhysicsJointsGlobal).__APERTURE_EXAMPLE_STATUS__ !==
       undefined,
+    undefined,
     { timeout: 30000 },
   );
 

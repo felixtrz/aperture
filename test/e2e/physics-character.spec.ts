@@ -172,10 +172,14 @@ test("browser renders Rapier character-controller movement from a simulation wor
 async function waitForPhysicsCharacterStatus(
   page: Page,
 ): Promise<PhysicsCharacterStatus | undefined> {
+  // waitForFunction(fn, ARG, options): the options object must sit in the
+  // third slot — in the second slot it silently becomes the page-function
+  // argument and the intended timeout is ignored.
   await page.waitForFunction(
     () =>
       (globalThis as PhysicsCharacterGlobal).__APERTURE_EXAMPLE_STATUS__ !==
       undefined,
+    undefined,
     { timeout: 30000 },
   );
 
