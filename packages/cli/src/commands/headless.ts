@@ -7,6 +7,7 @@ import type {
   ApertureSystemDiagnostic,
 } from "@aperture-engine/app/systems";
 import { ApertureCliError } from "../errors.js";
+import { syncAutoAspectCameras } from "../headless/auto-aspect.js";
 import { loadApertureHeadlessApp } from "../headless/config-loader.js";
 import {
   createNodeApertureAssetLoader,
@@ -108,7 +109,13 @@ export async function runHeadlessCommand(options: {
     );
   }
 
-  let report = runner.extract(0);
+  // Keep autoAspect cameras matched to the requested render target so the
+  // recorded projection fits the output pixels (finding F4).
+  syncAutoAspectCameras(
+    runner.app.lowLevel.world,
+    parsed.renderWidth,
+    parsed.renderHeight,
+  );
 
   for (let frame = 0; frame < parsed.frames; frame += 1) {
     for (const step of injectSteps) {
@@ -120,8 +127,14 @@ export async function runHeadlessCommand(options: {
       }
     }
 
-    report = runner.step(parsed.delta, frame * parsed.delta);
+    runner.stepWithoutExtract(parsed.delta, frame * parsed.delta);
   }
+  syncAutoAspectCameras(
+    runner.app.lowLevel.world,
+    parsed.renderWidth,
+    parsed.renderHeight,
+  );
+  const report = runner.extract(Math.max(0, runner.getStatus().nextFrame - 1));
 
   const bundle = createApertureSnapshotBundle({
     snapshot: report.snapshot,

@@ -6,6 +6,7 @@ import {
   parseApertureHeadlessInject,
 } from "@aperture-engine/cli";
 import { createApertureHeadlessRunner } from "@aperture-engine/app/headless";
+import { callInputDevtoolsTool } from "@aperture-engine/app/headless-tools";
 import { defineApertureConfig, input } from "@aperture-engine/app/config";
 import { createSystem, material, mesh } from "@aperture-engine/app/systems";
 import type { ApertureSystemModule } from "@aperture-engine/app/advanced";
@@ -177,5 +178,40 @@ describe("applyApertureHeadlessInjectStep (P1.5)", () => {
         jump: true,
       }),
     ).not.toThrow();
+  });
+
+  it("rejects unknown input_gamepad_set fields instead of no-opping (F23)", async () => {
+    const runner = await createRunner();
+
+    // A typo'd payload used to register a zeroed pad and return ok:true.
+    const rejected = callInputDevtoolsTool(
+      runner.app,
+      "input_gamepad_set",
+      { stick: "left", x: 1 },
+      {},
+    );
+    expect(rejected?.ok).toBe(false);
+    expect(rejected?.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "aperture.input.unknownGamepadFields",
+        data: expect.objectContaining({ unknownFields: ["stick", "x"] }),
+      }),
+    );
+
+    // The documented shape drives the gamepad-bound axis action.
+    const accepted = callInputDevtoolsTool(
+      runner.app,
+      "input_gamepad_set",
+      { left: { x: 1, y: 0 } },
+      {},
+    );
+    expect(accepted?.ok).toBe(true);
+
+    runner.step(1 / 60, 0);
+    const move = runner.app.context.input.actions["move"];
+    expect(move?.kind).toBe("axis2d");
+    if (move?.kind === "axis2d") {
+      expect(move.x.value).toBe(1);
+    }
   });
 });

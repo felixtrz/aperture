@@ -143,6 +143,9 @@ async function createWebGpuApp(
     stepAndExtract(delta = 0, time = 0, frame = 0) {
       return extraction.stepAndExtract(delta, time, frame);
     },
+    primeExtractionTime(time) {
+      extraction.primeExtractionTime(time);
+    },
     async render(renderOptions = {}) {
       const { snapshot: explicitSnapshot, ...rendererRenderOptions } =
         renderOptions;

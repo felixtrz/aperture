@@ -60,23 +60,29 @@ export function createApertureDeterminismDiagnostics(options: {
               return;
             }
             reported.add(key);
+            const suggestedApi =
+              api === "Math.random" ? "context.random" : "context.time";
             const data = {
               api,
               phase: input.phase,
               system: input.system,
-              suggestedApi:
-                api === "Math.random" ? "context.random" : "context.time",
+              suggestedApi,
             };
+            // Carry the human sentence in the diagnostic itself so JSON
+            // consumers see more than the bare code (battletest finding F8).
+            const message = `${input.system} called ${api} during ${input.phase}; use ${suggestedApi} for deterministic replay.`;
 
             if (mode === "error") {
               options.diagnostics.error(
                 "aperture.determinism.nondeterministicGlobal",
                 data,
+                message,
               );
             } else {
               options.diagnostics.warn(
                 "aperture.determinism.nondeterministicGlobal",
                 data,
+                message,
               );
             }
           },

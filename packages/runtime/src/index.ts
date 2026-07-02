@@ -281,6 +281,13 @@ export interface SimulationApp {
 export interface ExtractionApp extends SimulationApp {
   extract(frame?: number): RenderSnapshot;
   stepAndExtract(delta?: number, time?: number, frame?: number): RenderSnapshot;
+  /**
+   * Re-seed the time stamped into extracted snapshots. Extraction time
+   * normally follows step(); a state restore replaces simulation time without
+   * stepping, so the restorer must prime it or the first post-restore
+   * extract reports time 0.
+   */
+  primeExtractionTime(time: number): void;
 }
 
 export interface CreateSimulationAppOptions {
@@ -417,6 +424,9 @@ export function createExtractionApp(
         time: currentTime,
         cache,
       });
+    },
+    primeExtractionTime(time) {
+      currentTime = time;
     },
     stepAndExtract(delta = 0, time = 0, frame = 0) {
       currentTime = time;

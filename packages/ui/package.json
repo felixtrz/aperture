@@ -31,7 +31,8 @@
     "./test-support": {
       "types": "./dist/test-support.d.ts",
       "import": "./dist/test-support.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

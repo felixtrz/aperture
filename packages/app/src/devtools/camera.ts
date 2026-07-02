@@ -69,7 +69,18 @@ export function callCameraTool(
     return { ok: true, result: cameraSummary(entity) };
   }
 
-  const entity = resolveCameraEntity(app.lowLevel.world, payload);
+  // camera_use_agent_view is a mutating tool; with no explicit selector it
+  // must target the agent camera (the key camera_create_agent defaults to),
+  // never fall back to the first camera — that silently promoted the
+  // user-authored main camera (battletest finding F9).
+  const resolvePayload =
+    request.tool === "camera_use_agent_view" &&
+    stringFromValue(payload["key"]) === undefined &&
+    entityRefFromValue(payload["entity"] ?? null) === null
+      ? { ...payload, key: "camera.agent" }
+      : payload;
+
+  const entity = resolveCameraEntity(app.lowLevel.world, resolvePayload);
   if (entity === null) {
     return {
       ok: false,

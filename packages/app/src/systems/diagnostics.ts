@@ -1,7 +1,7 @@
 export interface SystemDiagnostics {
-  info(code: string, data?: Record<string, unknown>): void;
-  warn(code: string, data?: Record<string, unknown>): void;
-  error(code: string, data?: Record<string, unknown>): void;
+  info(code: string, data?: Record<string, unknown>, message?: string): void;
+  warn(code: string, data?: Record<string, unknown>, message?: string): void;
+  error(code: string, data?: Record<string, unknown>, message?: string): void;
   list(): readonly ApertureSystemDiagnostic[];
 }
 
@@ -20,24 +20,27 @@ export function createDiagnostics(): SystemDiagnostics {
     severity: ApertureSystemDiagnostic["severity"],
     code: string,
     data?: Record<string, unknown>,
+    message?: string,
   ): void {
     diagnostics.push({
       code,
       severity,
-      message: code,
+      // A human message when the emitter provides one; the stable code
+      // otherwise, so machine consumers can always key on `code`.
+      message: message ?? code,
       ...(data === undefined ? {} : { data }),
     });
   }
 
   return {
-    info(code, data) {
-      push("info", code, data);
+    info(code, data, message) {
+      push("info", code, data, message);
     },
-    warn(code, data) {
-      push("warning", code, data);
+    warn(code, data, message) {
+      push("warning", code, data, message);
     },
-    error(code, data) {
-      push("error", code, data);
+    error(code, data, message) {
+      push("error", code, data, message);
     },
     list() {
       return diagnostics.map((diagnostic) => ({ ...diagnostic }));

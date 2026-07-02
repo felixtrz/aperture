@@ -186,7 +186,13 @@ export type {
 
 export {
   AudioSimulationSpace,
+  // Render authoring components apps commonly need to query or mutate from
+  // systems (e.g. a camera-aspect system) without reaching into the
+  // transitive @aperture-engine/render package (battletest finding F28).
+  Camera,
+  Light,
   ParticleSimulationSpace,
+  Visibility,
 } from "@aperture-engine/render";
 export type {
   AudioDistanceModel,

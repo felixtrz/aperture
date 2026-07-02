@@ -61,7 +61,7 @@ export async function runRenderCommand(options: {
     );
   }
 
-  warnOnPlaceholderAssets(preflight.closure, stderr);
+  warnOnPlaceholderAssets(preflight.closure, bundle, stderr);
 
   const { png, frame, metadata } = await renderBundleToPng({
     bundle,
@@ -123,12 +123,25 @@ function createRenderCommandJsonReport(input: {
 
 function warnOnPlaceholderAssets(
   closure: ApertureSnapshotBundleClosure,
+  bundle: ApertureSnapshotBundle,
   stderr: (text: string) => void,
 ): void {
   if (closure.placeholders.length > 0) {
     const ids = closure.placeholders.join(", ");
     stderr(
       `warning aperture.render.placeholderAssets: rendering ${closure.placeholders.length} placeholder asset(s) [${ids}] — these pixels are stubbed, not real.\n`,
+    );
+    return;
+  }
+
+  // Placeholder-loaded assets that extracted zero draws never enter the
+  // closure, so preflight passes while their content is silently absent from
+  // the frame (battletest finding F12). Surface that as a warning.
+  const provenance = bundle.assetProvenance;
+  if (provenance !== undefined && provenance.placeholderCount > 0) {
+    const ids = provenance.placeholderIds.join(", ");
+    stderr(
+      `warning aperture.render.placeholderProvenance: the source session loaded ${provenance.placeholderCount} asset(s) as placeholders [${ids}]; their content is absent from this frame. Re-export with --asset-mode strict for real bytes.\n`,
     );
   }
 }

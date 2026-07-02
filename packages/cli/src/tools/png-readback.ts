@@ -264,7 +264,7 @@ export function readPngSamples(
   const image = readPngImage(png);
   const region = resolveReadbackRegion(image, options.region ?? null);
   const diagnostics: unknown[] = [];
-  const samples = pixelSampleRequestsFromPayload(payload)
+  const samples = pixelSampleRequestsFromPayload(payload, diagnostics)
     .map((sample) => {
       const pixel = pixelFromSample(region, sample);
       if (pixel === null) {
@@ -304,14 +304,27 @@ export function readPngSamples(
 
 function pixelSampleRequestsFromPayload(
   payload: unknown,
+  diagnostics: unknown[],
 ): readonly PixelSampleRequest[] {
   const record = isRecord(payload) ? payload : {};
   const samples = Array.isArray(record["samples"]) ? record["samples"] : null;
 
   if (samples !== null && samples.length > 0) {
-    return samples.map((sample, index) =>
-      pixelSampleRequestFromValue(sample, index),
-    );
+    // Reject malformed entries instead of silently sampling the frame center
+    // — a bare [x, y] pair previously read as two center samples with ok:true
+    // (battletest finding F27).
+    return samples.flatMap((sample, index) => {
+      if (Array.isArray(sample) || !isRecord(sample)) {
+        diagnostics.push({
+          code: "aperture.render.readbackSampleInvalid",
+          severity: "error",
+          message: `Readback sample ${index} must be an object like { x, y, coordinateSpace?: "pixel" | "normalized" }.`,
+          data: { index, received: sample },
+        });
+        return [];
+      }
+      return [pixelSampleRequestFromValue(sample, index)];
+    });
   }
 
   return [pixelSampleRequestFromValue(record, 0)];

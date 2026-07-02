@@ -40,6 +40,7 @@ import {
   createApertureSnapshotBundle,
   renderBundleTargetFromRenderDefaults,
 } from "./bundle.js";
+import { syncAutoAspectCameras } from "./auto-aspect.js";
 
 export const DEFAULT_HEADLESS_DELTA = 1 / 60;
 export const DEFAULT_HEADLESS_RENDER_WIDTH = 960;
@@ -55,6 +56,9 @@ export interface HeadlessSessionControllerOptions {
   readonly decoderAssetsDir?: string;
   readonly allowHttpAssets: boolean;
   readonly determinism: ApertureDeterminismDiagnosticsMode;
+  /** Session render target; drives autoAspect cameras. Defaults to 960x640. */
+  readonly renderWidth?: number;
+  readonly renderHeight?: number;
   readonly log?: (entry: HeadlessSessionLogEntry) => void;
 }
 
@@ -186,6 +190,15 @@ export async function createHeadlessSessionController(
     options.log?.(entry);
   }
 
+  const sessionRenderWidth = positiveIntegerValue(
+    options.renderWidth,
+    DEFAULT_HEADLESS_RENDER_WIDTH,
+  );
+  const sessionRenderHeight = positiveIntegerValue(
+    options.renderHeight,
+    DEFAULT_HEADLESS_RENDER_HEIGHT,
+  );
+
   const state: MutableControllerState = {
     runner: await bootRunner(options, options.seed),
     entityTools: undefined as unknown as GeneratedEntityToolBridge,
@@ -197,6 +210,17 @@ export async function createHeadlessSessionController(
   );
   await state.runner.app.preload;
   logPlaceholders(log, state.runner);
+  syncAspect();
+
+  // Keep autoAspect cameras matched to the render target that snapshots will
+  // be rendered at (finding F4). Runs before every extraction so cameras
+  // spawned later in the session are covered too.
+  function syncAspect(
+    width = sessionRenderWidth,
+    height = sessionRenderHeight,
+  ): void {
+    syncAutoAspectCameras(state.runner.app.lowLevel.world, width, height);
+  }
 
   async function boot(seed: number): Promise<void> {
     const previous = state.runner;
@@ -209,6 +233,7 @@ export async function createHeadlessSessionController(
     state.savedCameraStates = new Map();
     state.seed = seed;
     logPlaceholders(log, state.runner);
+    syncAspect();
   }
 
   function compactStatus(): unknown {
@@ -238,6 +263,7 @@ export async function createHeadlessSessionController(
   }
 
   function step(input: HeadlessStepInput = {}): unknown {
+    syncAspect();
     const frames = positiveIntegerValue(input.frames, 1);
     const delta = finiteNumber(input.delta, DEFAULT_HEADLESS_DELTA);
     const baseTime = finiteNumber(
@@ -250,14 +276,13 @@ export async function createHeadlessSessionController(
     let snapshot: RenderSnapshot | undefined;
 
     if (shouldExtract) {
-      let report:
-        | ReturnType<ApertureHeadlessRunner["step"]>
-        | ReturnType<ApertureHeadlessRunner["extract"]> = state.runner.extract(
-        state.runner.getStatus().nextFrame,
-      );
       for (let index = 0; index < frames; index += 1) {
-        report = state.runner.step(delta, baseTime + index * delta);
+        state.runner.stepWithoutExtract(delta, baseTime + index * delta);
       }
+      syncAspect();
+      const report = state.runner.extract(
+        Math.max(0, state.runner.getStatus().nextFrame - 1),
+      );
       status = report.status;
       snapshot = report.snapshot;
     } else {
@@ -305,6 +330,7 @@ export async function createHeadlessSessionController(
     readonly snapshot: RenderSnapshot;
     readonly result: unknown;
   } {
+    syncAspect();
     const report = state.runner.extract(
       finiteNumber(input.frame, state.runner.getStatus().nextFrame),
     );
@@ -372,6 +398,12 @@ export async function createHeadlessSessionController(
       current.lastSnapshot === null
         ? current.nextFrame
         : current.lastSnapshot.frame;
+    // Re-extract with autoAspect cameras matched to THIS bundle's render
+    // target so the recorded projection fits the requested output size.
+    syncAspect(
+      positiveIntegerValue(input.width, DEFAULT_HEADLESS_RENDER_WIDTH),
+      positiveIntegerValue(input.height, DEFAULT_HEADLESS_RENDER_HEIGHT),
+    );
     const report = state.runner.extract(frame);
     const bundle = createApertureSnapshotBundle({
       snapshot: report.snapshot,
@@ -453,6 +485,7 @@ export async function createHeadlessSessionController(
       state.runner.app.lowLevel.world,
     );
     state.savedCameraStates = new Map();
+    syncAspect();
 
     return {
       ok: restored.restore.ok,
@@ -1026,7 +1059,14 @@ function unavailable(name: string): GeneratedDevtoolsToolResult {
         code: "aperture.headless.toolUnavailable",
         message:
           `Tool '${name}' is not available in a headless session. ` +
-          "Headless sessions support ecs_*, input_* (including input_inject and input_action_set), camera_*, asset_list, resource_get/resource_set, and logs_read.",
+          "Headless sessions support ecs_* (except ecs_step_and_diff), " +
+          "camera_*, asset_list, resource_get/resource_set, logs_read, and " +
+          "these input tools: input_inject, input_action_set, " +
+          "input_gamepad_set, input_get_state, input_reset. Raw-device " +
+          "tools (input_key, input_pointer_*) need the headed browser slot; " +
+          "headlessly, drive the action layer with " +
+          "input_action_set({ action, x, y }) or the gamepad path with " +
+          "input_gamepad_set({ left: { x, y } }) instead.",
       },
     ],
   };

@@ -148,7 +148,10 @@ export async function callBrowserBackedTool(
     case "render_pick_entity":
       return callGeneratedRuntimeTool(page, name, args);
     default:
-      return unsupportedTool(name, "Unknown Aperture MCP tool.");
+      return unsupportedTool(
+        name,
+        `'${name}' is not a devtools-bridge tool. 'aperture tool' drives the low-level browser/ECS/render bridge of a running dev session; intent-level tools such as app_status, app_start, frame_capture, and session_snapshot_* live in the MCP catalog — call them through 'aperture mcp stdio' instead.`,
+      );
   }
 }
 
