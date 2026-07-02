@@ -77,6 +77,7 @@ import {
 } from "./queries.js";
 import { boundingRadiusForShape } from "./shapes.js";
 import type { TestBody, TestJoint } from "./types.js";
+import { compareStableStrings } from "../stable-order.js";
 
 export interface TestPhysicsBackendOptions {
   readonly gravity?: PhysicsVec3;
@@ -305,7 +306,7 @@ export function createTestPhysicsBackend(
       out.bodies.length = 0;
       out.events.length = 0;
       const sortedBodies = [...bodies.values()].sort((a, b) =>
-        a.entity.localeCompare(b.entity),
+        compareStableStrings(a.entity, b.entity),
       );
       for (const body of sortedBodies) {
         out.bodies.push(bodyResult(body));
@@ -343,8 +344,8 @@ export function createTestPhysicsBackend(
       return hits.sort(
         (a, b) =>
           a.distance - b.distance ||
-          a.entity.localeCompare(b.entity) ||
-          (a.collider ?? "").localeCompare(b.collider ?? ""),
+          compareStableStrings(a.entity, b.entity) ||
+          compareStableStrings(a.collider ?? "", b.collider ?? ""),
       );
     },
     overlapShape(
@@ -355,7 +356,7 @@ export function createTestPhysicsBackend(
       queryCount += 1;
       const queryRadius = boundingRadiusForShape(shape);
       const sortedBodies = [...bodies.values()].sort((a, b) =>
-        a.entity.localeCompare(b.entity),
+        compareStableStrings(a.entity, b.entity),
       );
       return sortedBodies.flatMap((body) =>
         body.colliders
@@ -397,8 +398,8 @@ export function createTestPhysicsBackend(
         hits.sort(
           (a, b) =>
             a.timeOfImpact - b.timeOfImpact ||
-            a.entity.localeCompare(b.entity) ||
-            (a.collider ?? "").localeCompare(b.collider ?? ""),
+            compareStableStrings(a.entity, b.entity) ||
+            compareStableStrings(a.collider ?? "", b.collider ?? ""),
         )[0] ?? null
       );
     },
@@ -422,8 +423,8 @@ export function createTestPhysicsBackend(
         projections.sort(
           (a, b) =>
             a.distance - b.distance ||
-            a.entity.localeCompare(b.entity) ||
-            (a.collider ?? "").localeCompare(b.collider ?? ""),
+            compareStableStrings(a.entity, b.entity) ||
+            compareStableStrings(a.collider ?? "", b.collider ?? ""),
         )[0] ?? null
       );
     },
@@ -525,7 +526,7 @@ export function createTestPhysicsBackend(
     debugGeometry(options: PhysicsDebugOptions = {}): PhysicsDebugGeometry {
       const lines: PhysicsDebugLine[] = [];
       const sortedBodies = [...bodies.values()].sort((a, b) =>
-        a.entity.localeCompare(b.entity),
+        compareStableStrings(a.entity, b.entity),
       );
 
       if (options.colliderWireframes === true) {
@@ -554,7 +555,7 @@ export function createTestPhysicsBackend(
         lines.push(
           ...jointFrameDebugLines(
             [...joints.values()].sort((a, b) =>
-              a.entity.localeCompare(b.entity),
+              compareStableStrings(a.entity, b.entity),
             ),
             bodies,
             options,

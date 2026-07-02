@@ -466,36 +466,52 @@ describe("developer-facing app API", () => {
   });
 
   it("generates the browser AI bridge only for dev AI mode", async () => {
-    const root = process.cwd();
-    const enabledPlugin = apertureFromVitePlugin();
-    enabledPlugin.configResolved?.({ root });
-    const enabledId = enabledPlugin.resolveId?.(
-      "virtual:aperture/browser-entry",
-    );
-    const enabledModule =
-      enabledId === null || enabledId === undefined
-        ? null
-        : await enabledPlugin.load?.(enabledId);
+    // A temp root, never process.cwd(): configResolved fires an unawaited
+    // codegen write against the root, which polluted the checkout with
+    // .aperture/generated and raced a second unawaited write to the same
+    // file. Awaiting the generated file below also keeps that write from
+    // outliving the test.
+    const root = await mkdtemp(path.join(os.tmpdir(), "aperture-vite-ai-"));
 
-    const disabledPlugin = apertureFromVitePlugin({ ai: { mode: "off" } });
-    disabledPlugin.configResolved?.({ root });
-    const disabledId = disabledPlugin.resolveId?.(
-      "virtual:aperture/browser-entry",
-    );
-    const disabledModule =
-      disabledId === null || disabledId === undefined
-        ? null
-        : await disabledPlugin.load?.(disabledId);
+    try {
+      const enabledPlugin = apertureFromVitePlugin();
+      enabledPlugin.configResolved?.({ root });
+      await readEventually(
+        path.join(root, ".aperture/generated/aperture-env.d.ts"),
+      );
+      const enabledId = enabledPlugin.resolveId?.(
+        "virtual:aperture/browser-entry",
+      );
+      const enabledModule =
+        enabledId === null || enabledId === undefined
+          ? null
+          : await enabledPlugin.load?.(enabledId);
 
-    expect(enabledModule).toContain(
-      "const apertureDevtoolsEnabled = true && import.meta.env.DEV;",
-    );
-    expect(enabledModule).toContain(
-      "devtools: { enabled: apertureDevtoolsEnabled },",
-    );
-    expect(disabledModule).toContain(
-      "const apertureDevtoolsEnabled = false && import.meta.env.DEV;",
-    );
+      const disabledPlugin = apertureFromVitePlugin({ ai: { mode: "off" } });
+      disabledPlugin.configResolved?.({ root });
+      await readEventually(
+        path.join(root, ".aperture/generated/aperture-env.d.ts"),
+      );
+      const disabledId = disabledPlugin.resolveId?.(
+        "virtual:aperture/browser-entry",
+      );
+      const disabledModule =
+        disabledId === null || disabledId === undefined
+          ? null
+          : await disabledPlugin.load?.(disabledId);
+
+      expect(enabledModule).toContain(
+        "const apertureDevtoolsEnabled = true && import.meta.env.DEV;",
+      );
+      expect(enabledModule).toContain(
+        "devtools: { enabled: apertureDevtoolsEnabled },",
+      );
+      expect(disabledModule).toContain(
+        "const apertureDevtoolsEnabled = false && import.meta.env.DEV;",
+      );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it("registers a dev websocket bridge and writes AI session metadata in serve mode", async () => {
@@ -2773,16 +2789,26 @@ function createCanvasMeasureElement(input: {
 }
 
 async function readEventually(file: string): Promise<string> {
-  const deadline = Date.now() + 1000;
-  let lastError: unknown;
+  // Generous deadline (resolves as soon as the file lands): the watched
+  // writes come from unawaited async plugin work, and 1s starved under
+  // coverage instrumentation. Empty reads retry — the plugin writers are
+  // atomic (temp + rename), but the guard keeps this helper safe for any
+  // future non-atomic producer.
+  const deadline = Date.now() + 10_000;
+  let lastError: unknown = new Error(`Timed out waiting for ${file}.`);
 
   while (Date.now() < deadline) {
     try {
-      return await readFile(file, "utf8");
+      const contents = await readFile(file, "utf8");
+
+      if (contents.length > 0) {
+        return contents;
+      }
+      lastError = new Error(`File ${file} is still empty.`);
     } catch (error: unknown) {
       lastError = error;
-      await new Promise((resolve) => setTimeout(resolve, 10));
     }
+    await new Promise((resolve) => setTimeout(resolve, 10));
   }
 
   throw lastError instanceof Error ? lastError : new Error(String(lastError));

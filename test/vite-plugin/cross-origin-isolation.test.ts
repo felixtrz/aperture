@@ -208,13 +208,23 @@ async function waitForGeneratedTypes(root: string): Promise<void> {
 async function waitForFile(file: string): Promise<string> {
   // Codegen now EVALUATES the config through the module loader before falling
   // back to the AST parse (#68), so the write can take noticeably longer than
-  // the old parse-only path — poll generously.
-  for (let attempt = 0; attempt < 400; attempt += 1) {
+  // the old parse-only path. Wait on a generous DEADLINE — iteration-count
+  // budgets starve under coverage instrumentation — and treat an empty read
+  // as not-ready: the plugin's writers are atomic (temp + rename), but the
+  // guard keeps this helper safe for any future non-atomic producer.
+  const deadline = Date.now() + 30_000;
+
+  while (Date.now() < deadline) {
     try {
-      return await readFile(file, "utf8");
+      const contents = await readFile(file, "utf8");
+
+      if (contents.length > 0) {
+        return contents;
+      }
     } catch {
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      // Not yet written.
     }
+    await new Promise((resolve) => setTimeout(resolve, 10));
   }
 
   throw new Error(`Timed out waiting for ${file}.`);

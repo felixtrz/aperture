@@ -9,7 +9,7 @@ import {
 } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createApertureProject,
   runApertureCli,
@@ -20,7 +20,16 @@ import { defaultApertureDependencySpec } from "../../packages/cli/src/create/pac
 const tempRoots: string[] = [];
 
 describe("Aperture CLI create command", () => {
+  beforeEach(() => {
+    // defaultApertureDependencySpec() reads APERTURE_LOCAL from the ambient
+    // environment; a developer or CI runner exporting it would fail the
+    // published-spec assertions below in a deterministic-but-mysterious way.
+    // Tests that need the local escape set it explicitly.
+    vi.stubEnv("APERTURE_LOCAL", undefined);
+  });
+
   afterEach(async () => {
+    vi.unstubAllEnvs();
     for (const root of tempRoots.splice(0)) {
       await rm(root, { force: true, recursive: true });
     }

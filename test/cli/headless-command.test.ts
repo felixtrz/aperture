@@ -269,15 +269,14 @@ describe("aperture headless command — shipped binary smoke (PA.3)", () => {
     tempDir = await mkdtemp(path.join(os.tmpdir(), "aperture-headless-smoke-"));
     const out = path.join(tempDir, "snapshot.json");
 
-    const { stdout } = await execFileAsync("node", [
-      CLI_BIN,
-      "headless",
-      PROCEDURAL_CONFIG,
-      "--frames",
-      "2",
-      "--out",
-      out,
-    ]);
+    // timeout + SIGKILL: if the built CLI hangs, kill the child instead of
+    // letting it outlive the failed test and eat a core for the rest of the
+    // run (the vitest test timeout alone does not reap the subprocess).
+    const { stdout } = await execFileAsync(
+      "node",
+      [CLI_BIN, "headless", PROCEDURAL_CONFIG, "--frames", "2", "--out", out],
+      { timeout: 100_000, killSignal: "SIGKILL" },
+    );
 
     expect(stdout).toContain("Wrote render bundle");
     const bundle = JSON.parse(await readFile(out, "utf8")) as {

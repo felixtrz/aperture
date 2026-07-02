@@ -55,6 +55,7 @@ import {
 } from "./components.js";
 import { multiplyQuat, normalizeQuat, rotateVec3ByQuat } from "./math.js";
 import { isNonUnitScale, scaleColliderShape } from "./collider-scale.js";
+import { compareStableStrings } from "./stable-order.js";
 
 export interface PhysicsWorldSyncState {
   readonly knownEntities: Set<string>;
@@ -304,18 +305,18 @@ function compareBodyResults(
   left: PhysicsBodyResult,
   right: PhysicsBodyResult,
 ): number {
-  return left.entity.localeCompare(right.entity);
+  return compareStableStrings(left.entity, right.entity);
 }
 
 function comparePhysicsEvents(left: PhysicsEvent, right: PhysicsEvent): number {
   return (
     left.fixedStep - right.fixedStep ||
     left.substep - right.substep ||
-    left.kind.localeCompare(right.kind) ||
-    left.entityA.localeCompare(right.entityA) ||
-    left.entityB.localeCompare(right.entityB) ||
-    left.colliderA.localeCompare(right.colliderA) ||
-    left.colliderB.localeCompare(right.colliderB)
+    compareStableStrings(left.kind, right.kind) ||
+    compareStableStrings(left.entityA, right.entityA) ||
+    compareStableStrings(left.entityB, right.entityB) ||
+    compareStableStrings(left.colliderA, right.colliderA) ||
+    compareStableStrings(left.colliderB, right.colliderB)
   );
 }
 

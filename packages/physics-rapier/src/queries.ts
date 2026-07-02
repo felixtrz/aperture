@@ -19,6 +19,7 @@ import {
 } from "./math.js";
 import { queryShape, queryShapeRotation } from "./shapes.js";
 import type { RapierBodyEntry, RapierColliderEntry } from "./types.js";
+import { compareStableStrings } from "./stable-order.js";
 
 export function queryFilterFlags(
   options: PhysicsQueryOptions,
@@ -85,8 +86,8 @@ export function castShapeFirstByCollider(
     hits.sort(
       (left, right) =>
         left.timeOfImpact - right.timeOfImpact ||
-        left.entity.localeCompare(right.entity) ||
-        (left.collider ?? "").localeCompare(right.collider ?? ""),
+        compareStableStrings(left.entity, right.entity) ||
+        compareStableStrings(left.collider ?? "", right.collider ?? ""),
     )[0] ?? null
   );
 }
@@ -127,8 +128,8 @@ export function projectPointByCollider(
     projections.sort(
       (left, right) =>
         left.distance - right.distance ||
-        left.entity.localeCompare(right.entity) ||
-        (left.collider ?? "").localeCompare(right.collider ?? ""),
+        compareStableStrings(left.entity, right.entity) ||
+        compareStableStrings(left.collider ?? "", right.collider ?? ""),
     )[0] ?? null
   );
 }

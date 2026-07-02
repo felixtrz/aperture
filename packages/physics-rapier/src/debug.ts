@@ -31,6 +31,7 @@ import type {
   RapierContactManifold,
   RapierJointEntry,
 } from "./types.js";
+import { compareStableStrings } from "./stable-order.js";
 
 export function debugGeometryFromRapierBuffers(buffers: {
   readonly vertices: Float32Array;
@@ -65,7 +66,7 @@ export function broadphaseAabbDebugLines(
 ): PhysicsDebugLine[] {
   return createPhysicsAabbDebugLines(
     [...bodies.values()]
-      .sort((a, b) => a.entity.localeCompare(b.entity))
+      .sort((a, b) => compareStableStrings(a.entity, b.entity))
       .flatMap((entry) =>
         entry.colliders.map((collider) => ({ entry, collider })),
       )
@@ -203,7 +204,7 @@ export function bodyStateDebugLines(
   const sleepingColor = options.sleepingBodyColor ?? [0.65, 0.7, 0.78, 1];
 
   return [...bodies.values()]
-    .sort((a, b) => a.entity.localeCompare(b.entity))
+    .sort((a, b) => compareStableStrings(a.entity, b.entity))
     .map((entry) => {
       const translation = entry.body.translation();
       const from: PhysicsVec3 = [translation.x, translation.y, translation.z];
@@ -229,7 +230,7 @@ export function jointFrameDebugLines(
   const axisLength = finitePositive(options.jointFrameLength, 0.4);
 
   for (const entry of [...joints.values()].sort((a, b) =>
-    a.entity.localeCompare(b.entity),
+    compareStableStrings(a.entity, b.entity),
   )) {
     const bodyA = bodies.get(entry.bodyARef);
     const bodyB = bodies.get(entry.bodyBRef);

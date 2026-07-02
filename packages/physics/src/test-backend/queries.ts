@@ -10,6 +10,7 @@ import type { PhysicsVec3 } from "../components.js";
 import { bodyRadius, colliderCenter, cloneTransform } from "./bodies.js";
 import { add, addScaled, dot, normalize, scale, subtract } from "./math.js";
 import type { TestBody, TestCollider } from "./types.js";
+import { compareStableStrings } from "../stable-order.js";
 
 export function raycastSphere(
   ray: PhysicsRay,
@@ -158,8 +159,8 @@ export function nearestCharacterHit(
     hits.sort(
       (left, right) =>
         left.timeOfImpact - right.timeOfImpact ||
-        left.entity.localeCompare(right.entity) ||
-        (left.collider ?? "").localeCompare(right.collider ?? ""),
+        compareStableStrings(left.entity, right.entity) ||
+        compareStableStrings(left.collider ?? "", right.collider ?? ""),
     )[0] ?? null
   );
 }

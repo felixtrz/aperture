@@ -140,7 +140,13 @@ async function workerEntryContents(root: string): Promise<string> {
 }
 
 async function waitFor(predicate: () => boolean): Promise<void> {
-  for (let attempt = 0; attempt < 20; attempt += 1) {
+  // Deadline-based wait: the watched work happens behind an unawaited async
+  // chain (config read, then watcher.add), and the old 20x5ms iteration
+  // budget starved on saturated CI workers. Polling costs nothing once the
+  // predicate holds.
+  const deadline = Date.now() + 10_000;
+
+  while (Date.now() < deadline) {
     if (predicate()) {
       return;
     }

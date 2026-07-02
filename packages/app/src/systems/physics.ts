@@ -718,16 +718,24 @@ function jointBreakEvent(
   };
 }
 
+// Locale-independent event ordering: bare localeCompare() derives collation
+// from LC_ALL/LANG under full-ICU Node, so id ordering — and tests asserting
+// it — could differ across machines. Codepoint comparison is identical
+// everywhere.
+function compareStableStrings(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
 function comparePhysicsEvents(left: PhysicsEvent, right: PhysicsEvent): number {
   return (
     left.fixedStep - right.fixedStep ||
     left.substep - right.substep ||
-    left.kind.localeCompare(right.kind) ||
-    (left.joint ?? "").localeCompare(right.joint ?? "") ||
-    left.entityA.localeCompare(right.entityA) ||
-    left.entityB.localeCompare(right.entityB) ||
-    left.colliderA.localeCompare(right.colliderA) ||
-    left.colliderB.localeCompare(right.colliderB)
+    compareStableStrings(left.kind, right.kind) ||
+    compareStableStrings(left.joint ?? "", right.joint ?? "") ||
+    compareStableStrings(left.entityA, right.entityA) ||
+    compareStableStrings(left.entityB, right.entityB) ||
+    compareStableStrings(left.colliderA, right.colliderA) ||
+    compareStableStrings(left.colliderB, right.colliderB)
   );
 }
 

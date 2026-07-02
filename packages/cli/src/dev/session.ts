@@ -81,13 +81,24 @@ export async function startApertureDevSession(
 
   child.unref();
 
-  const session = await waitForSessionReady({
-    cwd: appRoot,
-    daemonPid: child.pid ?? null,
-    timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-  });
+  try {
+    const session = await waitForSessionReady({
+      cwd: appRoot,
+      daemonPid: child.pid ?? null,
+      timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+    });
 
-  return { session, reused: false };
+    return { session, reused: false };
+  } catch (error) {
+    // The daemon is detached and unref'd; if it never becomes ready the
+    // session file may not exist yet, so `dev down` cannot find it later.
+    // Kill the child we just spawned instead of leaking it past the failure.
+    if (child.pid !== undefined && isProcessAlive(child.pid)) {
+      terminateProcess(child.pid);
+      await waitForProcessExit(child.pid, 5_000);
+    }
+    throw error;
+  }
 }
 
 export async function readApertureDevStatus(

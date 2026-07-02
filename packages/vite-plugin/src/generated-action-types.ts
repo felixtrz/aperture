@@ -2,7 +2,11 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import * as ts from "typescript";
-import { readOptionalText, resolveConfigFile } from "./file-utils.js";
+import {
+  readOptionalText,
+  resolveConfigFile,
+  writeFileAtomic,
+} from "./file-utils.js";
 import {
   isNamedPropertyAssignment,
   propertyNameText,
@@ -46,7 +50,7 @@ export async function writeApertureGeneratedActionTypes(options: {
   const file = path.join(directory, APERTURE_GENERATED_TYPES_FILE);
 
   await fs.mkdir(directory, { recursive: true });
-  await fs.writeFile(file, contents, "utf8");
+  await writeFileAtomic(file, contents);
   return file;
 }
 
