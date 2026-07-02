@@ -6,6 +6,7 @@ import {
   expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
+  waitForPresentedFrames,
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
 
@@ -338,7 +339,7 @@ test("app diagnostics example exposes app-facade failure reports", async ({
   expectSamplerFidelitySummary(status.samplerFidelitySummary);
   expectSamplerFidelitySummaryOmitsHandles(status.samplerFidelitySummary);
 
-  await page.waitForTimeout(100);
+  await waitForPresentedFrames(page);
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
 

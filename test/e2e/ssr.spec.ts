@@ -7,6 +7,7 @@ import {
   expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
+  waitForPresentedFrames,
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
 
@@ -79,7 +80,7 @@ test("browser blends visible screen-space reflections from scene depth", async (
     },
   });
 
-  await page.waitForTimeout(100);
+  await waitForPresentedFrames(page);
 
   const rawScreenshot = await page.locator("#ssr-canvas-raw").screenshot();
   const ssrScreenshot = await page.locator("#ssr-canvas-ssr").screenshot();

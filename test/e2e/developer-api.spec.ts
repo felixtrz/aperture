@@ -4,6 +4,7 @@ import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 
 import { pixelDistance, readPngImage, type RgbaPixel } from "./png.js";
+import { waitForPresentedFrames } from "./webgpu-status.js";
 
 // Allocated per run in beforeAll: a fixed port with --strictPort made any
 // stale process (e.g. a previous crashed run) fail the whole file's setup.
@@ -449,7 +450,7 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
     { timeout: 30000 },
   );
 
-  await page.waitForTimeout(500);
+  await waitForPresentedFrames(page);
 
   const status = await readGeneratedFrameStatus(page);
 

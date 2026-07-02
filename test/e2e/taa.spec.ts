@@ -7,6 +7,7 @@ import {
   expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
+  waitForPresentedFrames,
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
 
@@ -151,7 +152,7 @@ test("browser accumulates jittered frames through TAA history and motion vectors
   );
   expect(status.worker?.step?.objectOffset ?? 0).not.toBe(0);
 
-  await page.waitForTimeout(100);
+  await waitForPresentedFrames(page);
 
   const rawScreenshot = await page.locator("#taa-canvas-raw").screenshot();
   const taaScreenshot = await page.locator("#taa-canvas-taa").screenshot();
@@ -255,7 +256,7 @@ test("browser converges TAA through the FrameGraph history path (?graph=1)", asy
     },
   });
 
-  await page.waitForTimeout(100);
+  await waitForPresentedFrames(page);
 
   const rawScreenshot = await page.locator("#taa-canvas-raw").screenshot();
   const taaScreenshot = await page.locator("#taa-canvas-taa").screenshot();

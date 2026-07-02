@@ -103,6 +103,38 @@ export async function waitForExampleStatus<T>(
   );
 }
 
+/**
+ * Deterministic replacement for waitForTimeout before canvas screenshots.
+ *
+ * A published status says the app's state changed, not that the frame
+ * reflecting it has been rendered AND presented — the gap the old
+ * 100-2500ms sleeps papered over. Each awaited requestAnimationFrame tick
+ * marks one compositor frame commit, so after N ticks every present queued
+ * before the fence began has reached the canvas. Unlike a sleep this scales
+ * with actual frame production: under a loaded SwiftShader shard the fence
+ * waits longer; on a fast machine it returns in a few ms.
+ */
+export async function waitForPresentedFrames(
+  page: Page,
+  frames = 6,
+): Promise<void> {
+  await page.evaluate(async (target: number) => {
+    await new Promise<void>((resolve) => {
+      let ticks = 0;
+      const tick = (): void => {
+        ticks += 1;
+        if (ticks >= target) {
+          resolve();
+        } else {
+          requestAnimationFrame(tick);
+        }
+      };
+
+      requestAnimationFrame(tick);
+    });
+  }, frames);
+}
+
 export async function attachExampleStatus(
   name: string,
   status: unknown,

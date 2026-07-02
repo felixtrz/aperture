@@ -59,6 +59,12 @@ const control = {
   getFrameState() {
     return callHandler("getFrameState", defaultGetFrameState);
   },
+  // Present fence: resolves after `frames` compositor frame commits, so any
+  // present queued before the call has reached the canvas. Agents and tests
+  // use this instead of sleeping before screenshots.
+  waitForPresentedFrames(frames = 1) {
+    return defaultWaitForPresentedFrames(frames);
+  },
 };
 
 globalThis.__APERTURE_EXAMPLE_CONTROL__ = control;
@@ -122,6 +128,29 @@ function defaultGetStatus() {
 
 function defaultGetWarnings() {
   return webGpuWarnings.slice();
+}
+
+async function defaultWaitForPresentedFrames(frames) {
+  const target =
+    typeof frames === "number" && Number.isFinite(frames) && frames >= 1
+      ? Math.floor(frames)
+      : 1;
+
+  await new Promise((resolve) => {
+    let ticks = 0;
+    const tick = () => {
+      ticks += 1;
+      if (ticks >= target) {
+        resolve();
+      } else {
+        requestAnimationFrame(tick);
+      }
+    };
+
+    requestAnimationFrame(tick);
+  });
+
+  return { ok: true, frames: target };
 }
 
 function defaultGetFrameState() {

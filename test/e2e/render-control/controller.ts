@@ -59,10 +59,26 @@ type ExampleControlGlobal = typeof globalThis & {
 export async function startBrowser(
   options: StartBrowserOptions = {},
 ): Promise<RenderControlBrowser> {
+  // Mirror the playwright.*.config.ts launch environment instead of a
+  // hardcoded headed `chrome`: a bespoke channel/GPU stack made specs using
+  // this helper render on a DIFFERENT rasterizer than every other spec in
+  // the same run (and the headed chrome channel is the binary documented to
+  // hang on close after WebGPU on macOS).
+  const showBrowserWindow = process.env["APERTURE_E2E_SHOW_BROWSER"] === "1";
+  const headless = options.headless ?? !showBrowserWindow;
   const browserServer = await chromium.launchServer({
-    channel: options.channel ?? "chrome",
-    headless: options.headless ?? false,
-    args: ["--enable-unsafe-webgpu"],
+    channel: options.channel ?? (showBrowserWindow ? "chrome" : "chromium"),
+    headless,
+    args: headless
+      ? [
+          "--enable-unsafe-webgpu",
+          "--disable-frame-rate-limit",
+          "--disable-gpu-vsync",
+          "--disable-backgrounding-occluded-windows",
+          "--disable-renderer-backgrounding",
+          "--disable-background-timer-throttling",
+        ]
+      : ["--enable-unsafe-webgpu"],
   });
   const browser = await chromium.connect(browserServer.wsEndpoint());
   const page = await browser.newPage({

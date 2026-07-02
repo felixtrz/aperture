@@ -7,6 +7,7 @@ import {
   expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
+  waitForPresentedFrames,
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
 
@@ -126,7 +127,7 @@ test("browser darkens contact regions through depth-fed SSAO with MSAA depth", a
       snapshotsReceived: 1,
     },
   });
-  await page.waitForTimeout(1000);
+  await waitForPresentedFrames(page, 10);
 
   const rawScreenshot = await page.locator("#ssao-canvas-raw").screenshot();
   const ssaoScreenshot = await page.locator("#ssao-canvas-ssao").screenshot();

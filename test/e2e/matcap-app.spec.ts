@@ -6,6 +6,7 @@ import {
   expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
+  waitForPresentedFrames,
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
 
@@ -184,8 +185,6 @@ test("Playwright shows an ECS-authored MatcapMaterial app facade cube", async ({
   await page.getByRole("button", { name: "Pause" }).click();
 
   const pausedStatus = await waitForPausedExecution(page);
-  const pausedFrame = pausedStatus.animation?.frames ?? 0;
-  const pausedRotation = pausedStatus.animation?.rotationRadians ?? 0;
 
   expect(pausedStatus).toMatchObject({
     ok: true,
@@ -195,7 +194,16 @@ test("Playwright shows an ECS-authored MatcapMaterial app facade cube", async ({
   await expect(page.getByRole("button", { name: "Play" })).toBeEnabled();
   await expect(page.getByRole("button", { name: "Pause" })).toBeDisabled();
 
-  await page.waitForTimeout(200);
+  // Frame-based pause proof: first fence drains any frame already in flight
+  // when the paused status published (which previously flaked a fixed-window
+  // 200ms sleep), THEN the baseline is read; if the app were still stepping,
+  // its loop would advance during the second fence's compositor commits.
+  await waitForPresentedFrames(page);
+  const settledStatus = await readExampleStatus(page);
+  const pausedFrame = settledStatus.animation?.frames ?? 0;
+  const pausedRotation = settledStatus.animation?.rotationRadians ?? 0;
+
+  await waitForPresentedFrames(page);
 
   const stillPausedStatus = await readExampleStatus(page);
 

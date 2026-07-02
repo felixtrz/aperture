@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { existsSync } from "node:fs";
 
-import { loadExampleStatus } from "./webgpu-status.js";
+import { loadExampleStatus, waitForPresentedFrames } from "./webgpu-status.js";
 
 // AI-74 (R1.5): committed golden-image baselines over deterministic example
 // routes. Each route renders a static scene (verified frame-to-frame stable
@@ -71,9 +71,11 @@ for (const route of GOLDEN_ROUTES) {
 
     // Let the steady-state frame present before capturing (these routes are
     // static; the wait absorbs first-frame resource preparation only).
-    await page.waitForTimeout(1500);
+    await waitForPresentedFrames(page, 10);
 
-    await expect(page.locator("canvas").first()).toHaveScreenshot(
+    // The id every other spec targets; "first canvas on the page" would
+    // silently re-target if a route ever gained a second canvas.
+    await expect(page.locator("#aperture-canvas")).toHaveScreenshot(
       `${route}.png`,
       { maxDiffPixels: MAX_DIFF_PIXELS },
     );

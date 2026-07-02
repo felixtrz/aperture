@@ -14,6 +14,7 @@ import {
   expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
+  waitForPresentedFrames,
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
 
@@ -148,7 +149,7 @@ test("Playwright renders a combined directional, spot, and point shadow scene", 
 
   skipIfUnsupportedWebGpu(status);
   status = await waitForMultiLightShadowFrame(page, 4, true);
-  await page.waitForTimeout(100);
+  await waitForPresentedFrames(page);
   await attachExampleStatus("multi-light-shadow-status", status);
   expectStatusJsonSafeForGpu(status);
 
@@ -293,7 +294,7 @@ test("multi-light shadows render visibly when ALL casters are FOLDED into the si
   }
   skipIfUnsupportedWebGpu(status);
   await waitForMultiLightShadowFrame(page, 4);
-  await page.waitForTimeout(100);
+  await waitForPresentedFrames(page);
   const noShadowScreenshot = await captureCanvasPageScreenshot(page);
 
   await page.goto("/examples/multi-light-shadow.html?graph=1");
@@ -307,7 +308,7 @@ test("multi-light shadows render visibly when ALL casters are FOLDED into the si
   }
   skipIfUnsupportedWebGpu(status);
   status = await waitForMultiLightShadowFrame(page, 4);
-  await page.waitForTimeout(100);
+  await waitForPresentedFrames(page);
   expect(status.ok, "multi-light folded-caster graph frame ok").toBe(true);
   expectStatusJsonSafeForGpu(status);
 
