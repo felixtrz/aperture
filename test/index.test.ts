@@ -29,6 +29,8 @@ const APP_PUBLIC_SUBPATHS = [
   "./headless",
   "./headless-tools",
   "./input",
+  // Standard metadata self-export; not an importable module subpath.
+  "./package.json",
   "./systems",
   "./vite",
   "./worker",
@@ -36,9 +38,9 @@ const APP_PUBLIC_SUBPATHS = [
 
 const APP_PUBLIC_IMPORTS = new Set([
   "@aperture-engine/app",
-  ...APP_PUBLIC_SUBPATHS.filter((subpath) => subpath !== ".").map(
-    (subpath) => `@aperture-engine/app/${subpath.slice(2)}`,
-  ),
+  ...APP_PUBLIC_SUBPATHS.filter(
+    (subpath) => subpath !== "." && subpath !== "./package.json",
+  ).map((subpath) => `@aperture-engine/app/${subpath.slice(2)}`),
 ]);
 
 const PUBLISHABLE_PACKAGE_DIRS = [
@@ -127,7 +129,7 @@ describe("Aperture package entrypoints", () => {
     expect(Object.keys(appPackage.exports).sort()).toEqual(
       [...APP_PUBLIC_SUBPATHS].sort(),
     );
-    expect(Object.keys(cliPackage.exports)).toEqual(["."]);
+    expect(Object.keys(cliPackage.exports)).toEqual([".", "./package.json"]);
     expect(cliPackage.exports).not.toHaveProperty("./reference");
     expect(cliPackage.exports).not.toHaveProperty("./tools/client");
     expect(cliPackage.exports).not.toHaveProperty("./dev/session");
@@ -189,6 +191,11 @@ describe("Aperture package entrypoints", () => {
       }
 
       for (const target of collectExportTargets(packageJson.exports)) {
+        // The metadata self-export is the one allowed non-dist target.
+        if (target.path === "./package.json") {
+          continue;
+        }
+
         expect(target.path, `${packageDir} ${target.label}`).toMatch(
           /^\.\/dist\//u,
         );
@@ -215,7 +222,9 @@ describe("Aperture package entrypoints", () => {
         .filter((alias) => alias.startsWith("@aperture-engine/app/"))
         .sort(),
     ).toEqual(
-      APP_PUBLIC_SUBPATHS.filter((subpath) => subpath !== ".")
+      APP_PUBLIC_SUBPATHS.filter(
+        (subpath) => subpath !== "." && subpath !== "./package.json",
+      )
         .map((subpath) => `@aperture-engine/app/${subpath.slice(2)}`)
         .sort(),
     );
