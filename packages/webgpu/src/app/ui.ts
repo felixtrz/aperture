@@ -950,17 +950,26 @@ function createUiTextInput(
   };
 }
 
+/** Allocation-free predicate for gating UI frame preparation. */
+export function snapshotHasUiFrameWork(snapshot: RenderSnapshot): boolean {
+  return (snapshot.uiNodes ?? []).some(isRenderableUiNode);
+}
+
+function isRenderableUiNode(node: UiNodePacket): boolean {
+  return (
+    (node.kind === "panel" ||
+      node.kind === "image" ||
+      (node.kind === "text" && (node.text ?? "").length > 0)) &&
+    node.rect.width > 0 &&
+    node.rect.height > 0
+  );
+}
+
 function sortedRenderableUiNodes(
   snapshot: RenderSnapshot,
 ): readonly UiNodePacket[] {
-  return [...(snapshot.uiNodes ?? [])]
-    .filter(
-      (node) =>
-        node.kind === "panel" ||
-        node.kind === "image" ||
-        (node.kind === "text" && (node.text ?? "").length > 0),
-    )
-    .filter((node) => node.rect.width > 0 && node.rect.height > 0)
+  return (snapshot.uiNodes ?? [])
+    .filter(isRenderableUiNode)
     .sort((a, b) => a.stackIndex - b.stackIndex || a.uiId - b.uiId);
 }
 

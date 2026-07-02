@@ -54,9 +54,40 @@ export function validateApertureConfig(config: ApertureConfig): void {
   }
 
   validateAssetDecoderConfig(config.assetDecoders);
+  validateFeatureConfig(config.features);
   validateAudioConfig(config.audio);
   validatePhysicsConfig(config.physics);
   validateInputActions(config.input?.actions ?? {});
+}
+
+function validateFeatureConfig(features: ApertureConfig["features"]): void {
+  if (features === undefined) {
+    return;
+  }
+
+  if (!Array.isArray(features)) {
+    throw new ApertureConfigError(
+      "aperture.config.invalidFeatures",
+      "Aperture features config must be an array.",
+      "Use features: [myFeature()] or omit features.",
+    );
+  }
+
+  for (const [index, feature] of features.entries()) {
+    if (
+      typeof feature !== "object" ||
+      feature === null ||
+      Array.isArray(feature) ||
+      typeof feature.id !== "string" ||
+      feature.id.trim().length === 0
+    ) {
+      throw new ApertureConfigError(
+        "aperture.config.invalidFeature",
+        `Aperture feature at index ${index} must be an object with a non-empty string id.`,
+        "Return feature descriptors from helpers such as particlesFeature() or remove the invalid feature entry.",
+      );
+    }
+  }
 }
 
 function validateAudioConfig(audio: ApertureConfig["audio"]): void {

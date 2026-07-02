@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   createHiddenInputBridge,
   type HiddenInputElementLike,
-  type InputState,
-} from "@aperture-engine/ui";
+} from "@aperture-engine/ui/browser";
+import type { InputState } from "@aperture-engine/ui";
 
 class FakeInput implements HiddenInputElementLike {
   value = "";

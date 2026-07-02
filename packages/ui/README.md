@@ -21,6 +21,14 @@ It provides:
 
 See `docs/UI_PACKAGE_PLAN.md` for the full design and roadmap.
 
+## Entry Points
+
+- `@aperture-engine/ui` - worker-safe UI layout, components, extraction, input
+  state, and style contracts.
+- `@aperture-engine/ui/app` - structural app feature descriptor for
+  feature-based composition.
+- `@aperture-engine/ui/browser` - DOM-backed hidden input and IME bridge APIs.
+
 ## Status
 
 Under active development. The layout engine and style model are available; SDF

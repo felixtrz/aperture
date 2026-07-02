@@ -10,6 +10,7 @@
       "@aperture-engine/simulation",
       "@aperture-engine/physics",
       "@aperture-engine/physics-rapier",
+      "@aperture-engine/particles",
       "@aperture-engine/render",
       "@aperture-engine/ui",
       "@aperture-engine/runtime",

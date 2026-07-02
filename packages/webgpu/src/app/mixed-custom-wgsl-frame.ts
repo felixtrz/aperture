@@ -53,11 +53,11 @@ import {
 import { prepareSpriteFrameResourcesForSnapshot } from "./sprites.js";
 import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
 import {
-  mergeSnapshotSortedRenderPassCommands,
-  prepareParticleFrameResourcesForSnapshot,
-} from "./particles.js";
-import { renderSnapshotTimeSeconds } from "./snapshot.js";
-import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
+  prepareWebGpuFeatureFrameResources,
+  webGpuFeatureReports,
+  webGpuParticleFrameReport,
+} from "./built-in-feature-realizers.js";
+import { mergeSnapshotSortedRenderPassCommands } from "./feature-command-groups.js";
 import { prepareQueuedBuiltInFrameResources } from "./queued-frame-resources.js";
 import { QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION } from "./queued-built-in-adapters.js";
 import { getWebGpuAppPipelineLayouts } from "./pipeline-layouts.js";
@@ -450,16 +450,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     worldTransforms: packedTransforms,
     reuse: options.reuse,
   });
-  const particleFrame = await prepareParticleFrameResourcesForSnapshot({
-    app: options.app,
-    assets: options.assets,
-    cache: options.cache,
-    snapshot: options.snapshot,
-    viewUniforms: packedViews,
-    reuse: options.reuse,
-    time: renderSnapshotTimeSeconds(options.snapshot),
-  });
-  const uiFrame = await prepareUiFrameResourcesForSnapshot({
+  const featureFrame = await prepareWebGpuFeatureFrameResources({
     app: options.app,
     assets: options.assets,
     cache: options.cache,
@@ -467,13 +458,14 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     viewUniforms: packedViews,
     reuse: options.reuse,
   });
+  const particleReport = webGpuParticleFrameReport(featureFrame);
+  const featureReports = webGpuFeatureReports(featureFrame);
   options.phaseTimer.finish("prepare");
 
   if (
     !spriteFrame.resources.valid ||
     !textFrame.resources.valid ||
-    !particleFrame.valid ||
-    !uiFrame.valid
+    !featureFrame.valid
   ) {
     return renderReport({
       ok: false,
@@ -494,8 +486,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
         ...packedInstanceTints.diagnostics,
         ...spriteFrame.resources.diagnostics,
         ...textFrame.resources.diagnostics,
-        ...particleFrame.diagnostics,
-        ...uiFrame.diagnostics,
+        ...featureFrame.diagnostics,
       ],
     });
   }
@@ -503,21 +494,21 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
   const sortedOverlayCommands = [
     ...spriteFrame.resources.commands,
     ...textFrame.resources.commands,
-    ...particleFrame.commands,
   ];
-  const frameCommands = mergeSnapshotSortedRenderPassCommands({
+  const merged = mergeSnapshotSortedRenderPassCommands({
     snapshot: options.snapshot,
     baseCommands: framePlan.commandPlan.commands,
     overlayCommands: sortedOverlayCommands,
+    featureGroups: featureFrame.sceneGroups,
   });
   const indirectDraws = prepareWebGpuAppIndirectDrawCommands({
     app: options.app,
     cache: options.cache,
-    commands: frameCommands,
+    commands: merged.commands,
     label: options.label ?? "aperture-mixed-custom-wgsl-app",
   });
   const renderBundleCommands =
-    sortedOverlayCommands.length === 0
+    sortedOverlayCommands.length === 0 && featureFrame.sceneGroups.length === 0
       ? indirectDraws.commands.slice(0, framePlan.commandPlan.commands.length)
       : [];
   options.phaseTimer.start("submit");
@@ -528,7 +519,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     snapshot: options.snapshot,
     commands: indirectDraws.commands,
     renderBundleCommands,
-    overlayCommands: [...particleFrame.overlayCommands, ...uiFrame.commands],
+    overlayCommands: featureFrame.overlayCommands,
     label: options.label ?? "aperture-mixed-custom-wgsl-app",
     reuse: options.reuse,
     transmissionSceneColorResources: transmissionGrabResources.resources,
@@ -578,8 +569,9 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     framePlan.commandPlan.valid &&
     spriteFrame.resources.diagnostics.length === 0 &&
     textFrame.resources.diagnostics.length === 0 &&
-    particleFrame.diagnostics.length === 0 &&
-    uiFrame.diagnostics.length === 0 &&
+    featureFrame.valid &&
+    featureFrame.diagnostics.length === 0 &&
+    merged.diagnostics.length === 0 &&
     boundaries.valid &&
     (occlusionQueries === undefined ||
       occlusionQueries.status !== "unsupported");
@@ -622,7 +614,8 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
       ? {}
       : { indirectDraws: indirectDraws.report }),
     localLightCookieResources: options.localLightCookieResources,
-    particles: particleFrame.report,
+    particles: particleReport,
+    ...(featureReports === undefined ? {} : { features: featureReports }),
     resourceReuse: options.reuse,
     diagnosticsSummary: finalDiagnosticsSummary,
     drawPackages: framePlan.packages.packages.length,
@@ -641,8 +634,8 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
       ...framePlan.commandPlan.diagnostics,
       ...spriteFrame.resources.diagnostics,
       ...textFrame.resources.diagnostics,
-      ...particleFrame.diagnostics,
-      ...uiFrame.diagnostics,
+      ...featureFrame.diagnostics,
+      ...merged.diagnostics,
       ...boundaries.diagnostics,
       ...newOcclusionQueryDiagnostics(
         occlusionQueries,

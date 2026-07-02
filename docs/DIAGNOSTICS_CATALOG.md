@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1364
+Every structured diagnostic code the engine can emit (1376
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -139,6 +139,20 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.entityTools.missingEntityRef`       | Entity tool command requires an entity { index, generation } reference. | yes  | `packages/app/src/devtools/entities.ts` |
 | `aperture.entityTools.unknownQueryFilter`     | Unrecognized entity query filter(s): ….                                 | yes  | `packages/app/src/devtools/entities.ts` |
 
+## aperture.feature (9)
+
+| Code                                        | Message                                                                      | Fix? | Emitted from                   |
+| ------------------------------------------- | ---------------------------------------------------------------------------- | ---- | ------------------------------ |
+| `aperture.feature.conflict`                 | Feature '…' conflicts with configured feature '…'.                           | yes  | `packages/app/src/features.ts` |
+| `aperture.feature.dependencyCycle`          | Feature dependency cycle includes '…'.                                       | yes  | `packages/app/src/features.ts` |
+| `aperture.feature.disposeFailed`            | Feature disposer failed.                                                     | yes  | `packages/app/src/features.ts` |
+| `aperture.feature.duplicate`                | Feature '…' was configured more than once.                                   | yes  | `packages/app/src/features.ts` |
+| `aperture.feature.extractorRegistryMissing` | Feature '…' attempted to register extraction without an extraction registry. | yes  | `packages/app/src/features.ts` |
+| `aperture.feature.installFailed`            | Aperture feature installation failed.                                        | yes  | `packages/app/src/features.ts` |
+| `aperture.feature.missingRequired`          | Feature '…' requires missing feature '…'.                                    | yes  | `packages/app/src/features.ts` |
+| `aperture.feature.resolutionFailed`         | Aperture feature resolution failed.                                          | yes  | `packages/app/src/features.ts` |
+| `aperture.feature.unknownPacketFamily`      | (message composed at runtime)                                                | —    | `packages/app/src/advanced.ts` |
+
 ## aperture.fixedStep (1)
 
 | Code                                   | Message                       | Fix? | Emitted from                   |
@@ -161,7 +175,7 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.gltf.nodeMissing`     | No GLTF node named '…' exists in the spawned root subtree. | yes  | `packages/app/src/systems/gltf.ts` |
 | `aperture.gltf.rootInactive`    | Cannot look up a GLTF node from an inactive root entity.   | yes  | `packages/app/src/systems/gltf.ts` |
 
-## aperture.headless (19)
+## aperture.headless (20)
 
 | Code                                     | Message                                                                                                                                                              | Fix? | Emitted from                                                                                       |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------- |
@@ -181,6 +195,7 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.headless.invalidOption`        | Option '--seed' must be a finite number.                                                                                                                             | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`           |
 | `aperture.headless.missingConfig`        | The serve command requires a config path: 'aperture headless serve aperture.headless.config.ts'.                                                                     | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`           |
 | `aperture.headless.missingOutput`        | The headless command requires --out <path> to write the render bundle.                                                                                               | —    | `packages/cli/src/commands/headless.ts`                                                            |
+| `aperture.headless.runnerDisposeFailed`  | resource_get id must be a non-empty string.                                                                                                                          | yes  | `packages/cli/src/headless/session-controller.ts`                                                  |
 | `aperture.headless.toolUnavailable`      | Tool '…' is not available in a headless session.                                                                                                                     | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/headless/session-controller.ts` |
 | `aperture.headless.tooManyArguments`     | The serve command accepts one config path.                                                                                                                           | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`           |
 | `aperture.headless.unknownOption`        | Unknown serve option '…'. Run 'aperture headless serve --help'.                                                                                                      | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`           |
@@ -313,9 +328,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## aperture.scene (1)
 
-| Code                                  | Message                                                                             | Fix? | Emitted from                                              |
-| ------------------------------------- | ----------------------------------------------------------------------------------- | ---- | --------------------------------------------------------- |
-| `aperture.scene.unknownFormatVersion` | Unsupported scene document formatVersion '…'; expected …. Nothing was instantiated. | —    | `packages/simulation/src/serialization/scene-document.ts` |
+| Code                                  | Message                                                                                  | Fix? | Emitted from                                              |
+| ------------------------------------- | ---------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------- |
+| `aperture.scene.unknownFormatVersion` | Unsupported scene sceneDocument formatVersion '…'; expected …. Nothing was instantiated. | —    | `packages/simulation/src/serialization/scene-document.ts` |
 
 ## aperture.serialization (4)
 
@@ -3546,27 +3561,27 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## particleEffect.compositeMixedModules (1)
 
-| Code                                   | Message                       | Fix? | Emitted from                              |
-| -------------------------------------- | ----------------------------- | ---- | ----------------------------------------- |
-| `particleEffect.compositeMixedModules` | (message composed at runtime) | —    | `packages/render/src/assets/particles.ts` |
+| Code                                   | Message                       | Fix? | Emitted from                        |
+| -------------------------------------- | ----------------------------- | ---- | ----------------------------------- |
+| `particleEffect.compositeMixedModules` | (message composed at runtime) | —    | `packages/particles/src/effects.ts` |
 
 ## particleEffect.legacyField (1)
 
-| Code                         | Message                                                                                                                        | Fix? | Emitted from                              |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---- | ----------------------------------------- |
-| `particleEffect.legacyField` | Legacy particle field '…' was removed. Use version: 2 with Shuriken-style modules such as main, emission, shape, and renderer. | —    | `packages/render/src/assets/particles.ts` |
+| Code                         | Message                                                                                                                        | Fix? | Emitted from                        |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---- | ----------------------------------- |
+| `particleEffect.legacyField` | Legacy particle field '…' was removed. Use version: 2 with Shuriken-style modules such as main, emission, shape, and renderer. | —    | `packages/particles/src/effects.ts` |
 
 ## particleEffect.partiallySupportedFeature (1)
 
-| Code                                       | Message                       | Fix? | Emitted from                              |
-| ------------------------------------------ | ----------------------------- | ---- | ----------------------------------------- |
-| `particleEffect.partiallySupportedFeature` | (message composed at runtime) | —    | `packages/render/src/assets/particles.ts` |
+| Code                                       | Message                       | Fix? | Emitted from                        |
+| ------------------------------------------ | ----------------------------- | ---- | ----------------------------------- |
+| `particleEffect.partiallySupportedFeature` | (message composed at runtime) | —    | `packages/particles/src/effects.ts` |
 
 ## particleEffect.unsupportedFeature (1)
 
-| Code                                | Message                                                                                                        | Fix? | Emitted from                              |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------- |
-| `particleEffect.unsupportedFeature` | Legacy particle field '…' was removed. Use Shuriken-style modules such as main, emission, shape, and renderer. | —    | `packages/render/src/assets/particles.ts` |
+| Code                                | Message                                                                                                        | Fix? | Emitted from                        |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------- |
+| `particleEffect.unsupportedFeature` | Legacy particle field '…' was removed. Use Shuriken-style modules such as main, emission, shape, and renderer. | —    | `packages/particles/src/effects.ts` |
 
 ## particleFrame.burstBatchBufferFailed (1)
 
@@ -4162,6 +4177,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                           | Message                                       | Fix? | Emitted from                                            |
 | ------------------------------ | --------------------------------------------- | ---- | ------------------------------------------------------- |
 | `render.audio.oneShotOverflow` | Dropped … one-shot(s): queue at capacity (…). | —    | `packages/render/src/rendering/audio-one-shot-queue.ts` |
+
+## render.extraction (1)
+
+| Code                                             | Message                                                                                                                                                                                                               | Fix? | Emitted from                                  |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------- |
+| `render.extraction.featureGatedWithLiveEntities` | Render feature '…' is disabled by the app feature configuration, but the world contains live … entities; their packets are not extracted. Add the '…' feature to the app config (or despawn the entities) to resolve. | —    | `packages/render/src/rendering/extraction.ts` |
 
 ## render.particle (6)
 
@@ -7141,6 +7162,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                   | Message                       | Fix? | Emitted from                                                                       |
 | -------------------------------------- | ----------------------------- | ---- | ---------------------------------------------------------------------------------- |
 | `webGpuApp.workerSnapshotRenderFailed` | (message composed at runtime) | —    | `packages/webgpu/src/app/app.ts`<br>`packages/webgpu/src/app/create-webgpu-app.ts` |
+
+## webGpuFeatureCommandGroup.missingSortKey (1)
+
+| Code                                       | Message                       | Fix? | Emitted from                                        |
+| ------------------------------------------ | ----------------------------- | ---- | --------------------------------------------------- |
+| `webGpuFeatureCommandGroup.missingSortKey` | (message composed at runtime) | —    | `packages/webgpu/src/app/feature-command-groups.ts` |
 
 ## webGpuMsaaColorTexture.createTextureUnavailable (1)
 

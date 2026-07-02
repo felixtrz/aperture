@@ -59,12 +59,12 @@ export function validateColliderInput(
 }
 
 export function validatePhysicsSceneAssetReferences(
-  document: ApertureSceneDocument,
+  sceneDocument: ApertureSceneDocument,
   options: PhysicsSceneAssetReferenceValidationOptions = {},
 ): PhysicsValidationDiagnostic[] {
   const diagnostics: PhysicsValidationDiagnostic[] = [];
 
-  for (const entity of document.entities) {
+  for (const entity of sceneDocument.entities) {
     for (const component of entity.components) {
       if (component.id !== "aperture.physics.collider") {
         continue;

@@ -5,6 +5,7 @@ import {
   type SimulationFixedStepClockState,
   type SimulationStepResult,
 } from "@aperture-engine/runtime";
+import type { RenderExtractionFeatureOptions } from "@aperture-engine/render";
 import type { SystemConstructor, SystemQueries, SystemSchema } from "elics";
 import { resolveWorldTransforms } from "@aperture-engine/simulation";
 import {
@@ -36,11 +37,18 @@ import {
   type AssetPreloadPolicy,
 } from "./config.js";
 import {
-  installApertureAppPhysics,
   type AperturePhysicsConfig,
   type AperturePhysicsFacade,
 } from "./physics-facade.js";
 import { resolveConfigPhysicsOption } from "./config-physics.js";
+import {
+  ApertureFeatureError,
+  installApertureWorkerFeatures,
+  type InstalledApertureWorkerFeatures,
+  type MaybePromise,
+  type RegisterExtractor,
+} from "./features.js";
+import { createAperturePhysicsFeature } from "./physics-feature.js";
 
 export interface ApertureSystemModule {
   readonly default?: ApertureSystemConstructor;
@@ -99,6 +107,7 @@ export interface ApertureApp {
   readonly config: ApertureConfig;
   readonly lowLevel: ExtractionApp;
   readonly context: ApertureSystemContext;
+  readonly features: InstalledApertureWorkerFeatures;
   readonly physics: AperturePhysicsFacade | null;
   readonly preload: AperturePreloadReport;
   step(delta?: number, time?: number): ApertureAppStepResult;
@@ -110,6 +119,7 @@ export interface ApertureApp {
   resetFixedStepClock(): void;
   snapshotFixedStepClock(): SimulationFixedStepClockState | null;
   restoreFixedStepClock(state: SimulationFixedStepClockState | null): boolean;
+  dispose(): MaybePromise<void>;
   stepAndExtract(
     delta?: number,
     time?: number,
@@ -148,6 +158,9 @@ export async function createApertureApp(
   const physicsConfig = normalizePhysicsConfig(
     options.physics ?? resolveConfigPhysicsOption(config.physics),
   );
+  const featureExtractorRegistry = createFeatureExtractorRegistry(
+    resolveRenderExtractionFeatures(config),
+  );
 
   if (physicsConfig !== null && options.fixedStep === false) {
     throw new ApertureAppError({
@@ -172,6 +185,7 @@ export async function createApertureApp(
       ? {}
       : { worldOptions: options.worldOptions }),
     ...(fixedStep === undefined ? {} : { fixedStep }),
+    renderFeatures: () => featureExtractorRegistry.renderFeatures(),
   });
   const context = createApertureSystemContext({
     world: lowLevel.world,
@@ -211,17 +225,18 @@ export async function createApertureApp(
       lowLevel.registerFixedStepTask(task, taskOptions),
   });
   const physicsInterpolation = options.physicsInterpolation === true;
-  const physicsFacade =
+  const physicsFeature =
     physicsConfig === null
       ? null
-      : await installApertureAppPhysics({
-          world: lowLevel.world,
-          assets: lowLevel.assets,
-          physics: context.physics,
+      : createAperturePhysicsFeature({
           config: physicsConfig,
-          registerFixedStepTask: (task, taskOptions) =>
-            lowLevel.registerFixedStepTask(task, taskOptions),
+          physics: context.physics,
         });
+  const workerFeatures =
+    physicsFeature === null
+      ? (config.features ?? [])
+      : [...(config.features ?? []), physicsFeature];
+  let installedFeatures: InstalledApertureWorkerFeatures | null = null;
   let lastFixedStep: ReturnType<ExtractionApp["step"]>["fixedStep"] | null =
     null;
   const refreshSpatialIndex = () =>
@@ -234,127 +249,147 @@ export async function createApertureApp(
       spatialIndexPopulation,
     );
 
-  await preloadAssets(context, "blocking");
-  startBackgroundPreloads(context);
-  installRenderDefaults(config, context);
-  registerApertureSystemModules(lowLevel, options.systems ?? []);
-  resolveWorldTransforms(lowLevel.world);
-  refreshSpatialIndex();
-  // AI-60 (cheap half): the pre-step resolve + spatial refresh only repeat
-  // when the world actually changed since the post-step refresh (between-step
-  // spawns, devtools writes, interaction or postUpdate effects). Steady-state
-  // frames run exactly one resolve (inside lowLevel.step, after fixed-step
-  // physics writeback) and one spatial refresh per step.
-  let worldVersionAtRefresh = lowLevel.world.worldChangeVersion();
+  try {
+    installedFeatures = await installApertureWorkerFeatures({
+      features: workerFeatures,
+      world: lowLevel.world,
+      assets: lowLevel.assets,
+      registerFixedStepTask: (task, taskOptions) =>
+        lowLevel.registerFixedStepTask(task, taskOptions),
+      registerExtractor: featureExtractorRegistry.registerExtractor,
+    });
 
-  const apertureApp: ApertureApp = {
-    mode: config.mode,
-    config,
-    lowLevel,
-    context,
-    physics: physicsFacade,
-    preload,
-    step(delta = 0, time = 0) {
-      // Advance the sanctioned sim-clock before any system runs this frame.
-      advanceApertureFrameTime(context.time, delta, time);
-      const timingStartedAt = nowMilliseconds();
-      let timingCursor = timingStartedAt;
-      const markTiming = (): number => {
-        const now = nowMilliseconds();
-        const elapsed = Math.max(0, now - timingCursor);
+    const physicsFacade = physicsFeature?.getFacade() ?? null;
 
-        timingCursor = now;
-        return elapsed;
-      };
-      const preStepWorldChanged =
-        lowLevel.world.worldChangeVersion() !== worldVersionAtRefresh;
+    await preloadAssets(context, "blocking");
+    startBackgroundPreloads(context);
+    installRenderDefaults(config, context);
+    registerApertureSystemModules(lowLevel, options.systems ?? []);
+    resolveWorldTransforms(lowLevel.world);
+    refreshSpatialIndex();
+    // AI-60 (cheap half): the pre-step resolve + spatial refresh only repeat
+    // when the world actually changed since the post-step refresh (between-step
+    // spawns, devtools writes, interaction or postUpdate effects). Steady-state
+    // frames run exactly one resolve (inside lowLevel.step, after fixed-step
+    // physics writeback) and one spatial refresh per step.
+    let worldVersionAtRefresh = lowLevel.world.worldChangeVersion();
 
-      runHtmlBridgeFrame({
-        commands: context.commands,
-        resources: context.resources,
-      });
+    const apertureApp: ApertureApp = {
+      mode: config.mode,
+      config,
+      lowLevel,
+      context,
+      features: installedFeatures,
+      physics: physicsFacade,
+      preload,
+      step(delta = 0, time = 0) {
+        // Advance the sanctioned sim-clock before any system runs this frame.
+        advanceApertureFrameTime(context.time, delta, time);
+        const timingStartedAt = nowMilliseconds();
+        let timingCursor = timingStartedAt;
+        const markTiming = (): number => {
+          const now = nowMilliseconds();
+          const elapsed = Math.max(0, now - timingCursor);
 
-      if (preStepWorldChanged) {
-        resolveWorldTransforms(lowLevel.world);
+          timingCursor = now;
+          return elapsed;
+        };
+        const preStepWorldChanged =
+          lowLevel.world.worldChangeVersion() !== worldVersionAtRefresh;
+
+        runHtmlBridgeFrame({
+          commands: context.commands,
+          resources: context.resources,
+        });
+
+        if (preStepWorldChanged) {
+          resolveWorldTransforms(lowLevel.world);
+          refreshSpatialIndex();
+        }
+        const preStepResolveSpatialMilliseconds = markTiming();
+        flushApertureSystemEffects(lowLevel.world, "input");
+        const inputEffectsMilliseconds = markTiming();
+        const result = lowLevel.step(delta, time);
+        const lowLevelStepMilliseconds = markTiming();
+        flushApertureSystemEffects(lowLevel.world, "update");
+        const updateEffectsMilliseconds = markTiming();
+        lastFixedStep = result.fixedStep;
+        const framing = runScreenSpaceFramingFrame(context, delta);
+        if (framing.updated > 0) {
+          resolveWorldTransforms(lowLevel.world);
+        }
         refreshSpatialIndex();
-      }
-      const preStepResolveSpatialMilliseconds = markTiming();
-      flushApertureSystemEffects(lowLevel.world, "input");
-      const inputEffectsMilliseconds = markTiming();
-      const result = lowLevel.step(delta, time);
-      const lowLevelStepMilliseconds = markTiming();
-      flushApertureSystemEffects(lowLevel.world, "update");
-      const updateEffectsMilliseconds = markTiming();
-      lastFixedStep = result.fixedStep;
-      const framing = runScreenSpaceFramingFrame(context, delta);
-      if (framing.updated > 0) {
-        resolveWorldTransforms(lowLevel.world);
-      }
-      refreshSpatialIndex();
-      const postStepSpatialMilliseconds = markTiming();
-      worldVersionAtRefresh = lowLevel.world.worldChangeVersion();
-      // Synthesize pointer-on-object events from post-update world state, after
-      // fixed-step physics writeback has refreshed transforms and picking data.
-      runInteractionFrame(context, time);
-      const interactionMilliseconds = markTiming();
-      flushApertureSystemEffects(lowLevel.world, "postUpdate");
-      const postUpdateEffectsMilliseconds = markTiming();
-      return {
-        ...result,
-        timing: {
-          totalMilliseconds: Math.max(0, nowMilliseconds() - timingStartedAt),
-          preStepResolveSpatialMilliseconds,
-          inputEffectsMilliseconds,
-          lowLevelStepMilliseconds,
-          updateEffectsMilliseconds,
-          postStepSpatialMilliseconds,
-          interactionMilliseconds,
-          postUpdateEffectsMilliseconds,
-          preStepWorldChanged,
-          lowLevel: result.timing,
-        },
-      };
-    },
-    extract(frame = 0) {
-      const snapshot = lowLevel.extract(frame);
+        const postStepSpatialMilliseconds = markTiming();
+        worldVersionAtRefresh = lowLevel.world.worldChangeVersion();
+        // Synthesize pointer-on-object events from post-update world state, after
+        // fixed-step physics writeback has refreshed transforms and picking data.
+        runInteractionFrame(context, time);
+        const interactionMilliseconds = markTiming();
+        flushApertureSystemEffects(lowLevel.world, "postUpdate");
+        const postUpdateEffectsMilliseconds = markTiming();
+        return {
+          ...result,
+          timing: {
+            totalMilliseconds: Math.max(0, nowMilliseconds() - timingStartedAt),
+            preStepResolveSpatialMilliseconds,
+            inputEffectsMilliseconds,
+            lowLevelStepMilliseconds,
+            updateEffectsMilliseconds,
+            postStepSpatialMilliseconds,
+            interactionMilliseconds,
+            postUpdateEffectsMilliseconds,
+            preStepWorldChanged,
+            lowLevel: result.timing,
+          },
+        };
+      },
+      extract(frame = 0) {
+        const snapshot = lowLevel.extract(frame);
 
-      if (physicsInterpolation && lastFixedStep !== null) {
-        applyPhysicsSnapshotInterpolation({
-          snapshot,
-          world: lowLevel.world,
-          alpha: lastFixedStep.overstepAlpha,
-        });
-      }
+        if (physicsInterpolation && lastFixedStep !== null) {
+          applyPhysicsSnapshotInterpolation({
+            snapshot,
+            world: lowLevel.world,
+            alpha: lastFixedStep.overstepAlpha,
+          });
+        }
 
-      if (lastFixedStep !== null) {
-        applyRenderSnapshotInterpolation({
-          snapshot,
-          world: lowLevel.world,
-          alpha: lastFixedStep.overstepAlpha,
-        });
-      }
+        if (lastFixedStep !== null) {
+          applyRenderSnapshotInterpolation({
+            snapshot,
+            world: lowLevel.world,
+            alpha: lastFixedStep.overstepAlpha,
+          });
+        }
 
-      return snapshot;
-    },
-    registerFixedStepTask(task, taskOptions) {
-      return lowLevel.registerFixedStepTask(task, taskOptions);
-    },
-    resetFixedStepClock() {
-      lowLevel.resetFixedStepClock();
-    },
-    snapshotFixedStepClock() {
-      return lowLevel.snapshotFixedStepClock();
-    },
-    restoreFixedStepClock(state) {
-      return lowLevel.restoreFixedStepClock(state);
-    },
-    stepAndExtract(delta = 0, time = 0, frame = 0) {
-      apertureApp.step(delta, time);
-      return apertureApp.extract(frame);
-    },
-  };
+        return snapshot;
+      },
+      registerFixedStepTask(task, taskOptions) {
+        return lowLevel.registerFixedStepTask(task, taskOptions);
+      },
+      resetFixedStepClock() {
+        lowLevel.resetFixedStepClock();
+      },
+      snapshotFixedStepClock() {
+        return lowLevel.snapshotFixedStepClock();
+      },
+      restoreFixedStepClock(state) {
+        return lowLevel.restoreFixedStepClock(state);
+      },
+      stepAndExtract(delta = 0, time = 0, frame = 0) {
+        apertureApp.step(delta, time);
+        return apertureApp.extract(frame);
+      },
+      dispose() {
+        return installedFeatures?.dispose();
+      },
+    };
 
-  return apertureApp;
+    return apertureApp;
+  } catch (error) {
+    await installedFeatures?.dispose();
+    throw error;
+  }
 }
 
 function normalizePhysicsConfig(
@@ -497,6 +532,135 @@ function preloadReport(config: ApertureConfig): AperturePreloadReport {
 
 function nowMilliseconds(): number {
   return typeof performance === "undefined" ? Date.now() : performance.now();
+}
+
+type MutableRenderExtractionFeatureOptions = {
+  -readonly [Key in keyof RenderExtractionFeatureOptions]?: RenderExtractionFeatureOptions[Key];
+};
+
+interface FeatureExtractorRegistry {
+  readonly registerExtractor: RegisterExtractor;
+  renderFeatures(): RenderExtractionFeatureOptions | undefined;
+}
+
+const RENDER_PACKET_FAMILY_FEATURES = new Map<
+  string,
+  keyof RenderExtractionFeatureOptions
+>([
+  ["particleEmitters", "particles"],
+  ["uiNodes", "ui"],
+  ["uiHitRegions", "ui"],
+]);
+
+function createFeatureExtractorRegistry(
+  initialFeatures: RenderExtractionFeatureOptions | undefined,
+): FeatureExtractorRegistry {
+  const baseFeatures =
+    initialFeatures === undefined ? undefined : { ...initialFeatures };
+  const featureCounts = new Map<keyof RenderExtractionFeatureOptions, number>();
+
+  const registerExtractor: RegisterExtractor = (hook) => {
+    const featureKeys = new Set<keyof RenderExtractionFeatureOptions>();
+    const unknownFamilies = hook.packetFamilies.filter(
+      (packetFamily) => !RENDER_PACKET_FAMILY_FEATURES.has(packetFamily),
+    );
+
+    // An unknown family can never produce packets, so a successful-looking
+    // registration would be a silent no-op. Fail the install instead.
+    if (unknownFamilies.length > 0) {
+      const message = `Feature '${hook.id}' registered an extractor for unknown packet ${unknownFamilies.length === 1 ? "family" : "families"}: ${unknownFamilies
+        .map((family) => `'${family}'`)
+        .join(", ")}.`;
+      const suggestedFix = `Use a packet family the render extraction contract defines (${[
+        ...RENDER_PACKET_FAMILY_FEATURES.keys(),
+      ].join(", ")}) or extend the contract before registering the extractor.`;
+
+      throw new ApertureFeatureError({
+        code: "aperture.feature.unknownPacketFamily",
+        message,
+        suggestedFix,
+        diagnostics: [
+          {
+            code: "aperture.feature.unknownPacketFamily",
+            severity: "error",
+            featureId: hook.id,
+            message,
+            suggestedFix,
+            data: {
+              packetFamilies: [...hook.packetFamilies],
+              unknownFamilies,
+            },
+          },
+        ],
+      });
+    }
+
+    for (const packetFamily of hook.packetFamilies) {
+      const featureKey = RENDER_PACKET_FAMILY_FEATURES.get(packetFamily);
+
+      if (featureKey !== undefined) {
+        featureKeys.add(featureKey);
+      }
+    }
+
+    for (const featureKey of featureKeys) {
+      featureCounts.set(featureKey, (featureCounts.get(featureKey) ?? 0) + 1);
+    }
+
+    let disposed = false;
+    return () => {
+      if (disposed) {
+        return;
+      }
+
+      disposed = true;
+      for (const featureKey of featureKeys) {
+        const next = (featureCounts.get(featureKey) ?? 0) - 1;
+
+        if (next <= 0) {
+          featureCounts.delete(featureKey);
+        } else {
+          featureCounts.set(featureKey, next);
+        }
+      }
+    };
+  };
+
+  return {
+    registerExtractor,
+    renderFeatures() {
+      if (baseFeatures === undefined && featureCounts.size === 0) {
+        return undefined;
+      }
+
+      const resolved: MutableRenderExtractionFeatureOptions = {
+        ...(baseFeatures ?? {}),
+      };
+
+      for (const [featureKey, count] of featureCounts) {
+        if (count > 0) {
+          resolved[featureKey] = true;
+        }
+      }
+
+      return resolved;
+    },
+  };
+}
+
+function resolveRenderExtractionFeatures(
+  config: ApertureConfig,
+): RenderExtractionFeatureOptions | undefined {
+  if (config.features === undefined) {
+    return undefined;
+  }
+
+  const featureIds = new Set(config.features.map((feature) => feature.id));
+
+  return {
+    particles: featureIds.has("particles"),
+    ui: featureIds.has("ui"),
+  };
 }
 
 function installRenderDefaults(

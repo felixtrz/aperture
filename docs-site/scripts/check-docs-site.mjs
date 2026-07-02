@@ -152,6 +152,7 @@ const packageNames = new Set(api.packages.map((entry) => entry.name));
 for (const packageName of [
   "@aperture-engine/app",
   "@aperture-engine/simulation",
+  "@aperture-engine/particles",
   "@aperture-engine/render",
   "@aperture-engine/webgpu",
   "@aperture-engine/runtime",
@@ -176,6 +177,7 @@ for (const [packageName, symbolName] of [
   ["@aperture-engine/app", "createSystem"],
   ["@aperture-engine/simulation", "defineComponent"],
   ["@aperture-engine/simulation", "saveScene"],
+  ["@aperture-engine/particles", "ParticleEmitterInput"],
   ["@aperture-engine/webgpu", "createWebGpuApp"],
 ]) {
   if (!hasApiSymbol(packageName, symbolName)) {

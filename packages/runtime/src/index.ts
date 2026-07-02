@@ -13,6 +13,11 @@ import {
   updateAnimationDrivers,
   type AnimationClipBinding,
 } from "./animation-driver-system.js";
+import {
+  ParticleSimulationSpace as ParticleSimulationSpaceValue,
+  type ParticleEmitterInput,
+  type ParticleSimulationSpace as ParticleSimulationSpaceType,
+} from "@aperture-engine/particles";
 
 export type { SimulationFixedStepClockState } from "./fixed-step-schedule.js";
 import {
@@ -123,8 +128,8 @@ import {
   type AudioEmitterInput,
   type AudioListenerInput,
   type OcclusionQueryInput,
-  type ParticleEmitterInput,
   type ProceduralSkyInput,
+  type RenderExtractionFeatureOptions,
   type RenderSnapshot,
   type RuntimeUniformInput,
   type SkinInput,
@@ -184,6 +189,12 @@ export * from "./skinning-palette-system.js";
 export * from "./animation-driver-system.js";
 export * from "./fixed-step-schedule.js";
 export * from "@aperture-engine/physics";
+
+export const ParticleSimulationSpace = ParticleSimulationSpaceValue;
+
+export type ParticleSimulationSpace = ParticleSimulationSpaceType;
+
+export type { ParticleEmitterInput };
 
 // Re-export the most fundamental ECS types from the umbrella so a consumer can
 // NAME them (they appear throughout the public spawn/component API above but
@@ -297,7 +308,15 @@ export interface CreateSimulationAppOptions {
   readonly fixedStep?: SimulationFixedStepOptions | false;
 }
 
-export type CreateExtractionAppOptions = CreateSimulationAppOptions;
+export type RenderExtractionFeatureResolver = () =>
+  | RenderExtractionFeatureOptions
+  | undefined;
+
+export interface CreateExtractionAppOptions extends CreateSimulationAppOptions {
+  readonly renderFeatures?:
+    | RenderExtractionFeatureOptions
+    | RenderExtractionFeatureResolver;
+}
 
 export interface ApplyGltfEcsCommandPlanToAppOptions {
   readonly app: SimulationApp;
@@ -410,6 +429,9 @@ export function createExtractionApp(
   // Output stays byte-identical to a cold extraction (writeback tracks entity
   // versions); the cache stores derived packet data only, never live ECS refs.
   const cache = createRenderExtractionCache();
+  const resolveRenderFeatures = createRenderExtractionFeatureResolver(
+    options.renderFeatures,
+  );
   let currentTime = 0;
 
   return {
@@ -419,10 +441,12 @@ export function createExtractionApp(
       return app.step(delta, time);
     },
     extract(frame = 0) {
+      const renderFeatures = resolveRenderFeatures();
       return extractRenderSnapshot(app.world, app.assets, {
         frame,
         time: currentTime,
         cache,
+        ...(renderFeatures === undefined ? {} : { features: renderFeatures }),
       });
     },
     primeExtractionTime(time) {
@@ -431,13 +455,25 @@ export function createExtractionApp(
     stepAndExtract(delta = 0, time = 0, frame = 0) {
       currentTime = time;
       app.step(delta, time);
+      const renderFeatures = resolveRenderFeatures();
       return extractRenderSnapshot(app.world, app.assets, {
         frame,
         time,
         cache,
+        ...(renderFeatures === undefined ? {} : { features: renderFeatures }),
       });
     },
   };
+}
+
+function createRenderExtractionFeatureResolver(
+  renderFeatures: CreateExtractionAppOptions["renderFeatures"],
+): RenderExtractionFeatureResolver {
+  if (typeof renderFeatures === "function") {
+    return renderFeatures;
+  }
+
+  return () => renderFeatures;
 }
 
 export function applyGltfEcsCommandPlanToApp(

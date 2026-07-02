@@ -124,8 +124,14 @@ import {
   type QueuedBuiltInSharedFrameResourceCache,
 } from "./queued-frame-shared-resources.js";
 import type { RenderShadowFrameReport } from "../shadows/render-shadow-frame.js";
+import {
+  createWebGpuFeatureRealizerRegistry,
+  type WebGpuFeatureRealizerRegistry,
+} from "./feature-command-groups.js";
+import { registerBuiltInWebGpuFeatureRealizers } from "./built-in-feature-realizers.js";
 
 export interface WebGpuAppResourceCache {
+  readonly featureRealizers: WebGpuFeatureRealizerRegistry<unknown>;
   readonly pipelines: Map<string, WebGpuAppPipelineResourceResult>;
   readonly spritePipelines: Map<
     string,
@@ -379,7 +385,8 @@ export interface WebGpuAppPipelinePlanResult {
 }
 
 export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
-  return {
+  const cache: WebGpuAppResourceCache = {
+    featureRealizers: createWebGpuFeatureRealizerRegistry(),
     pipelines: new Map(),
     spritePipelines: new Map(),
     msdfTextPipelines: new Map(),
@@ -445,6 +452,9 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     msaaColor: createWebGpuMsaaColorTextureCacheSlot(),
     msaaColorByRenderTarget: new Map(),
   };
+
+  registerBuiltInWebGpuFeatureRealizers(cache);
+  return cache;
 }
 
 function createWebGpuAppFrameResourceCacheSlot<

@@ -21,6 +21,7 @@
       ],
       "@aperture-engine/app/commands": ["packages/app/src/commands.ts"],
       "@aperture-engine/app/diagnostics": ["packages/app/src/diagnostics.ts"],
+      "@aperture-engine/app/features": ["packages/app/src/features.ts"],
       "@aperture-engine/app/asset-mirror": ["packages/app/src/asset-mirror.ts"],
       "@aperture-engine/app/vite": ["packages/app/src/vite.ts"],
       "@aperture-engine/app/browser": ["packages/app/src/browser.ts"],
@@ -31,11 +32,15 @@
         "packages/physics-rapier/src/index.ts"
       ],
       "@aperture-engine/physics/testing": ["packages/physics/src/testing.ts"],
+      "@aperture-engine/particles": ["packages/particles/src/index.ts"],
+      "@aperture-engine/particles/app": ["packages/particles/src/app.ts"],
       "@aperture-engine/render": ["packages/render/src/index.ts"],
       "@aperture-engine/render/test-support": [
         "packages/render/src/test-support.ts"
       ],
       "@aperture-engine/ui": ["packages/ui/src/index.ts"],
+      "@aperture-engine/ui/app": ["packages/ui/src/app.ts"],
+      "@aperture-engine/ui/browser": ["packages/ui/src/browser.ts"],
       "@aperture-engine/ui/test-support": ["packages/ui/src/test-support.ts"],
       "@aperture-engine/runtime": ["packages/runtime/src/index.ts"],
       "@aperture-engine/math": ["packages/math/src/index.ts"],

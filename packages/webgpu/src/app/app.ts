@@ -4,6 +4,7 @@ import type {
   MaterialAssetDependencyReadinessReportJsonValue,
   PreparedMaterialStoreJsonValue,
   PreparedMeshStoreJsonValue,
+  PackedSnapshotViewUniforms,
   RenderEntityRef,
   RenderSnapshot,
   RenderSnapshotChangeSet,
@@ -76,8 +77,20 @@ import { type WebGpuAppPipelineResourceResult } from "./pipeline-resources.js";
 import { type WebGpuAppMsaaReport } from "./attachments.js";
 import type { RenderShadowFrameReport } from "../shadows/render-shadow-frame.js";
 import type { ParticleFrameReport } from "./particles.js";
+import type { WebGpuFeatureRealizer } from "./feature-command-groups.js";
 
 export type { WebGpuAppMsaaReport };
+
+export interface WebGpuAppFeatureRealizerInput {
+  readonly app: WebGpuApp;
+  readonly assets: AssetRegistry;
+  readonly snapshot: RenderSnapshot;
+  readonly viewUniforms: PackedSnapshotViewUniforms;
+  readonly reuse: WebGpuAppResourceReuseReport;
+}
+
+export type WebGpuAppFeatureRealizer =
+  WebGpuFeatureRealizer<WebGpuAppFeatureRealizerInput>;
 
 export interface WebGpuAppRenderOptions {
   readonly frame?: number;
@@ -448,6 +461,8 @@ export interface WebGpuAppRenderReport {
   readonly localLightCookies?: WebGpuAppLocalLightCookieReport;
   readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
   readonly particles?: ParticleFrameReport;
+  /** Per-feature realizer frame reports keyed by realizer id ('particles' stays typed above). */
+  readonly features?: Readonly<Record<string, unknown>>;
 }
 
 export type WebGpuAppMotionVectorStatus =
@@ -533,6 +548,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly localLightCookies?: WebGpuAppLocalLightCookieReport;
   readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
   readonly particles?: WebGpuAppJsonValue;
+  readonly features?: WebGpuAppJsonValue;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
 }
 
@@ -615,6 +631,13 @@ export interface WebGpuApp {
   readonly userPassRegistry: WebGpuAppUserPassRegistry;
   start(options?: WebGpuAppStartOptions): void;
   stop(): void;
+  /**
+   * Stops the app and disposes every registered feature realizer (built-in
+   * and user-registered) in reverse registration order. Realizers that
+   * allocate GPU resources release them here without callers having to track
+   * individual unregister handles.
+   */
+  dispose(): Promise<void>;
   getDiagnostics(options?: WebGpuAppDiagnosticsOptions): WebGpuAppDiagnostics;
   pick(x: number, y: number): Promise<RenderEntityRef | null>;
   renderSnapshot(
@@ -628,6 +651,15 @@ export interface WebGpuApp {
   addComputePass(descriptor: WebGpuAppComputePassDescriptor): void;
   /** Remove a user pass by name; returns true if one was registered. */
   removePass(name: string): boolean;
+  /**
+   * Register a renderer-side feature realizer that converts extracted snapshot
+   * packets into ordered WebGPU render commands. The built-in ids
+   * ('particles', 'ui') are registered at app creation, so re-registering one
+   * throws synchronously here rather than failing later inside a frame.
+   */
+  registerFeatureRealizer(
+    realizer: WebGpuAppFeatureRealizer,
+  ): () => Promise<void>;
   /** Enable or disable a configured post effect by id; returns true if found. */
   setPostEffectEnabled(id: string, enabled: boolean): boolean;
 }

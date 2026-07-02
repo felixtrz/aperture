@@ -72,6 +72,39 @@ describe("validateApertureConfig", () => {
     });
   });
 
+  describe("features", () => {
+    it("accepts structural feature descriptors", () => {
+      expect(() =>
+        validateApertureConfig({
+          mode: "headless",
+          features: [{ id: "particles" }],
+        }),
+      ).not.toThrow();
+    });
+
+    it("rejects non-array feature config", () => {
+      const error = configError(() =>
+        validateApertureConfig({
+          mode: "headless",
+          features: { id: "particles" },
+        } as unknown as ApertureConfig),
+      );
+
+      expect(error.code).toBe("aperture.config.invalidFeatures");
+    });
+
+    it("rejects feature entries without an id", () => {
+      const error = configError(() =>
+        validateApertureConfig({
+          mode: "headless",
+          features: [{} as never],
+        }),
+      );
+
+      expect(error.code).toBe("aperture.config.invalidFeature");
+    });
+  });
+
   describe("assets", () => {
     it("accepts declared asset descriptors", () => {
       expect(() =>

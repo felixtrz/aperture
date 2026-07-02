@@ -67,6 +67,11 @@ export default defineConfig({
         ).pathname,
       },
       {
+        find: "@aperture-engine/app/features",
+        replacement: new URL("./packages/app/src/features.ts", import.meta.url)
+          .pathname,
+      },
+      {
         find: "@aperture-engine/app/asset-mirror",
         replacement: new URL(
           "./packages/app/src/asset-mirror.ts",
@@ -118,6 +123,18 @@ export default defineConfig({
           .pathname,
       },
       {
+        find: "@aperture-engine/particles/app",
+        replacement: new URL("./packages/particles/src/app.ts", import.meta.url)
+          .pathname,
+      },
+      {
+        find: "@aperture-engine/particles",
+        replacement: new URL(
+          "./packages/particles/src/index.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
         find: "@aperture-engine/render/test-support",
         replacement: new URL(
           "./packages/render/src/test-support.ts",
@@ -135,6 +152,16 @@ export default defineConfig({
           "./packages/ui/src/test-support.ts",
           import.meta.url,
         ).pathname,
+      },
+      {
+        find: "@aperture-engine/ui/app",
+        replacement: new URL("./packages/ui/src/app.ts", import.meta.url)
+          .pathname,
+      },
+      {
+        find: "@aperture-engine/ui/browser",
+        replacement: new URL("./packages/ui/src/browser.ts", import.meta.url)
+          .pathname,
       },
       {
         find: "@aperture-engine/ui",

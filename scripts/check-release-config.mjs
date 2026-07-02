@@ -14,6 +14,7 @@ const publishablePackages = [
   { dir: "packages/simulation", name: "@aperture-engine/simulation" },
   { dir: "packages/physics", name: "@aperture-engine/physics" },
   { dir: "packages/physics-rapier", name: "@aperture-engine/physics-rapier" },
+  { dir: "packages/particles", name: "@aperture-engine/particles" },
   { dir: "packages/render", name: "@aperture-engine/render" },
   { dir: "packages/ui", name: "@aperture-engine/ui" },
   { dir: "packages/runtime", name: "@aperture-engine/runtime" },

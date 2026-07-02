@@ -1,9 +1,9 @@
 import {
   assetHandleKey,
   type AssetRegistry,
+  type MaybePromise,
 } from "@aperture-engine/simulation";
 import {
-  compareRenderSortKeys,
   createSamplerAsset,
   type PackedSnapshotViewUniforms,
   type ParticleGradientKeyframe,
@@ -12,7 +12,6 @@ import {
   type ParticleScalarRange,
   type ParticleEmitterPacket,
   type RenderSnapshot,
-  type RenderSortKey,
 } from "@aperture-engine/render";
 import type { WebGpuCanvasLike } from "../gpu/initialize-webgpu.js";
 import { createWebGpuBuffer, destroyWebGpuBuffer } from "../gpu/buffer.js";
@@ -208,33 +207,6 @@ export async function prepareParticleFrameResourcesForSnapshot(options: {
   });
 }
 
-export function mergeSnapshotSortedRenderPassCommands(options: {
-  readonly snapshot: RenderSnapshot;
-  readonly baseCommands: readonly RenderPassCommand[];
-  readonly overlayCommands: readonly RenderPassCommand[];
-}): readonly RenderPassCommand[] {
-  if (options.overlayCommands.length === 0) {
-    return options.baseCommands;
-  }
-
-  const commands = [...options.baseCommands, ...options.overlayCommands];
-  const sortKeys = snapshotRenderSortKeysByRenderId(options.snapshot);
-  const groups = renderPassCommandGroups(commands, sortKeys);
-
-  if (groups.some((group) => group.sortKey === undefined)) {
-    return commands;
-  }
-
-  return [...groups]
-    .sort((a, b) => {
-      const aSortKey = a.sortKey as RenderSortKey;
-      const bSortKey = b.sortKey as RenderSortKey;
-
-      return compareRenderSortKeys(aSortKey, bSortKey) || a.ordinal - b.ordinal;
-    })
-    .flatMap((group) => group.commands);
-}
-
 export function getOrCreateWebGpuAppParticleComputePipeline(
   app: WebGpuAppParticleContext,
   cache: WebGpuAppResourceCache,
@@ -350,8 +322,6 @@ export function getOrCreateWebGpuAppParticleBurstRenderPipeline(
     return result;
   });
 }
-
-type MaybePromise<T> = T | Promise<T>;
 
 function isPromiseLike<T>(value: MaybePromise<T>): value is Promise<T> {
   return (
@@ -3754,7 +3724,7 @@ function nextPowerOfTwo(value: number): number {
   return 2 ** Math.ceil(Math.log2(value));
 }
 
-function emptyParticleFrameReport(emitters = 0): ParticleFrameReport {
+export function emptyParticleFrameReport(emitters = 0): ParticleFrameReport {
   return {
     emitters,
     liveParticles: 0,
@@ -3788,66 +3758,6 @@ function particleTextureSamplerReuseSnapshot(
     samplerResourcesCreated: reuse.samplerResourcesCreated,
     samplerResourcesReused: reuse.samplerResourcesReused,
   };
-}
-
-interface RenderPassCommandGroup {
-  readonly renderId: number;
-  readonly sortKey?: RenderSortKey;
-  readonly ordinal: number;
-  readonly commands: readonly RenderPassCommand[];
-}
-
-function snapshotRenderSortKeysByRenderId(
-  snapshot: RenderSnapshot,
-): Map<number, RenderSortKey> {
-  const sortKeys = new Map<number, RenderSortKey>();
-
-  for (const draw of snapshot.meshDraws) {
-    sortKeys.set(draw.renderId, draw.sortKey);
-  }
-  for (const draw of snapshot.spriteDraws ?? []) {
-    sortKeys.set(draw.renderId, draw.sortKey);
-  }
-  for (const batch of snapshot.quadBatches ?? []) {
-    sortKeys.set(batch.batchId, batch.sortKey);
-  }
-  for (const emitter of snapshot.particleEmitters ?? []) {
-    sortKeys.set(emitter.emitterId, emitter.sortKey);
-  }
-
-  return sortKeys;
-}
-
-function renderPassCommandGroups(
-  commands: readonly RenderPassCommand[],
-  sortKeys: ReadonlyMap<number, RenderSortKey>,
-): readonly RenderPassCommandGroup[] {
-  const groups: RenderPassCommandGroup[] = [];
-  let current:
-    | {
-        readonly renderId: number;
-        readonly sortKey?: RenderSortKey;
-        readonly ordinal: number;
-        readonly commands: RenderPassCommand[];
-      }
-    | undefined;
-
-  for (const command of commands) {
-    if (current === undefined || current.renderId !== command.renderId) {
-      const sortKey = sortKeys.get(command.renderId);
-      current = {
-        renderId: command.renderId,
-        ordinal: groups.length,
-        commands: [],
-        ...(sortKey === undefined ? {} : { sortKey }),
-      };
-      groups.push(current);
-    }
-
-    current.commands.push(command);
-  }
-
-  return groups;
 }
 
 type MutableParticleFrameReport = {

@@ -10,8 +10,10 @@ export const DEFAULT_HEADLESS_PACKAGES = [
   "simulation",
   "physics",
   "physics-rapier",
+  "particles",
   "render",
   "runtime",
+  "ui",
 ];
 
 export const FORBIDDEN_WEBGPU_PACKAGE = "@aperture-engine/webgpu";
@@ -58,6 +60,50 @@ export const FORBIDDEN_WEBAUDIO_GLOBALS = [
   "webkitAudioContext",
 ];
 
+// The invariant is the WORKER IMPORT GRAPH: headless-package code (outside a
+// package's browser entry) must run in workers and Node, so only
+// MAIN-THREAD-ONLY globals are banned. Worker-available APIs (Blob, Response,
+// Request, File, OffscreenCanvas, ImageBitmap, EventTarget, ...) are
+// deliberately absent — render's texture decode legitimately uses them from
+// the worker with feature detection.
+export const FORBIDDEN_BROWSER_GLOBALS = [
+  "CSSStyleSheet",
+  "Document",
+  "Element",
+  "Gamepad",
+  "HTMLCanvasElement",
+  "HTMLElement",
+  "HTMLInputElement",
+  "HTMLTextAreaElement",
+  "Image",
+  "KeyboardEvent",
+  "MouseEvent",
+  "PointerEvent",
+  "WheelEvent",
+  "Window",
+  "cancelAnimationFrame",
+  "document",
+  "localStorage",
+  "requestAnimationFrame",
+  "sessionStorage",
+  "window",
+];
+
+// Browser-only code in a headless package must live behind the package's
+// browser entry: `src/browser.ts`/`src/browser.tsx` plus anything under
+// `src/browser/`. Every other source file is part of the worker import graph
+// and must stay free of browser globals. The exemption is structural so the
+// next feature package with a browser split is covered with zero edits here.
+function isBrowserEntrySubpath(sourceDir, filePath) {
+  const relative = path.relative(sourceDir, filePath);
+
+  return (
+    relative === "browser.ts" ||
+    relative === "browser.tsx" ||
+    relative.startsWith(`browser${path.sep}`)
+  );
+}
+
 const SOURCE_EXTENSIONS = new Set([
   ".cjs",
   ".cts",
@@ -85,6 +131,9 @@ export function checkPackageBoundaries(options = {}) {
   );
   const forbiddenAudioGlobals = new Set(
     options.forbiddenAudioGlobals ?? FORBIDDEN_WEBAUDIO_GLOBALS,
+  );
+  const forbiddenBrowserGlobals = new Set(
+    options.forbiddenBrowserGlobals ?? FORBIDDEN_BROWSER_GLOBALS,
   );
   const forbiddenPackage = options.forbiddenPackage ?? FORBIDDEN_WEBGPU_PACKAGE;
   const violations = [];
@@ -122,6 +171,8 @@ export function checkPackageBoundaries(options = {}) {
         forbiddenPackage,
         forbiddenGlobals,
         forbiddenAudioGlobals,
+        forbiddenBrowserGlobals,
+        isBrowserEntryFile: isBrowserEntrySubpath(sourceDir, filePath),
         violations,
       });
     }
@@ -264,6 +315,19 @@ function collectSourceViolations(options) {
         "forbidden-global",
         node.text,
         `Headless package references browser Web Audio global '${node.text}'.`,
+      );
+    }
+
+    if (
+      !options.isBrowserEntryFile &&
+      ts.isIdentifier(node) &&
+      options.forbiddenBrowserGlobals.has(node.text)
+    ) {
+      report(
+        node,
+        "forbidden-global",
+        node.text,
+        `Headless package references browser global '${node.text}'. Move browser-only code behind the package's browser entry (src/browser.ts or src/browser/).`,
       );
     }
 

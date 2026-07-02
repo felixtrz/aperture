@@ -22,7 +22,7 @@
   "private": true,
   "packageManager": "pnpm@10.12.1",
   "scripts": {
-    "build": "tsc -b packages/math packages/simulation packages/physics packages/physics-rapier packages/render packages/runtime packages/ui packages/webgpu packages/audio packages/vite-plugin packages/app packages/cli",
+    "build": "tsc -b packages/math packages/simulation packages/physics packages/physics-rapier packages/particles packages/render packages/runtime packages/ui packages/webgpu packages/audio packages/vite-plugin packages/app packages/cli",
     "typecheck": "pnpm run build",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "check:boundaries": "node scripts/check-package-boundaries.mjs",

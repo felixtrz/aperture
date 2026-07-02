@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { readPngImage, readPngImagePixel, type PngImage } from "./png.js";
 import {
@@ -113,8 +113,8 @@ test("browser resolves MSAA render targets with visibly smoother edges", async (
 
   await page.waitForTimeout(100);
 
-  const oneXScreenshot = await page.locator("#msaa-canvas-1x").screenshot();
-  const eightXScreenshot = await page.locator("#msaa-canvas-8x").screenshot();
+  const oneXScreenshot = await readCanvasPng(page, "#msaa-canvas-1x");
+  const eightXScreenshot = await readCanvasPng(page, "#msaa-canvas-8x");
   const oneXImage = readPngImage(oneXScreenshot);
   const eightXImage = readPngImage(eightXScreenshot);
   const oneXPartialPixels = countPartialEdgePixels(oneXImage);
@@ -154,6 +154,18 @@ test("browser resolves MSAA render targets with visibly smoother edges", async (
   webGpuValidation.expectNoWarnings();
   await page.close({ runBeforeUnload: false });
 });
+
+async function readCanvasPng(page: Page, selector: string): Promise<Buffer> {
+  const dataUrl = await page.locator(selector).evaluate((element) => {
+    if (!(element instanceof HTMLCanvasElement)) {
+      throw new Error("Selected element is not a canvas.");
+    }
+    return element.toDataURL("image/png");
+  });
+  const encoded = dataUrl.replace(/^data:image\/png;base64,/u, "");
+
+  return Buffer.from(encoded, "base64");
+}
 
 function countPartialEdgePixels(image: PngImage): number {
   let count = 0;

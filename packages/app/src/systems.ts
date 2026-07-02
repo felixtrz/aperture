@@ -191,15 +191,15 @@ export {
   // transitive @aperture-engine/render package (battletest finding F28).
   Camera,
   Light,
-  ParticleSimulationSpace,
   Visibility,
 } from "@aperture-engine/render";
 export type {
   AudioDistanceModel,
   AudioEmitterInput,
   AudioPanningModel,
-  ParticleEmitterInput,
 } from "@aperture-engine/render";
+export { ParticleSimulationSpace } from "@aperture-engine/particles";
+export type { ParticleEmitterInput } from "@aperture-engine/particles";
 
 export type {
   ApertureGeneratedSignalMap,

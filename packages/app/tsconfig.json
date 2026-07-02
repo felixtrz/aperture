@@ -8,6 +8,7 @@
   },
   "references": [
     { "path": "../simulation" },
+    { "path": "../particles" },
     { "path": "../physics" },
     { "path": "../render" },
     { "path": "../runtime" },

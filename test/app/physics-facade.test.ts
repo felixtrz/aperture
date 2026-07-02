@@ -142,6 +142,29 @@ describe("app physics facade", () => {
     });
   });
 
+  it("disposes physics through the app feature lifecycle", async () => {
+    const runner = await createPhysicsRunner({
+      physics: { backend: () => createTestPhysicsBackend() },
+    });
+    const context = runner.app.context;
+
+    runner.step(1 / 60, 0);
+
+    expect(context.physics.summary().backend).toMatchObject({ kind: "test" });
+
+    await runner.app.dispose();
+    await runner.app.dispose();
+
+    expect(context.physics.summary()).toMatchObject({
+      backend: null,
+      sync: null,
+      step: null,
+      readback: null,
+      writeback: null,
+      eventCount: 0,
+    });
+  });
+
   it("threads asset-backed collider geometry into Rapier without direct backend construction", async () => {
     const runner = await createPhysicsRunner({
       physics: {

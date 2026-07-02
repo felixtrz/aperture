@@ -95,9 +95,18 @@ export function errorToApertureDiagnostic(
     ? sourceFromDiagnostic(error, fallback.source)
     : fallback.source;
   const detail = isRecord(error) ? readRecord(error["detail"]) : undefined;
+  // ApertureFeatureError carries the per-feature diagnostics that explain the
+  // failure; without this they would be dropped at the worker error boundary.
+  const attachedDiagnostics =
+    isRecord(error) && Array.isArray(error["diagnostics"])
+      ? error["diagnostics"].filter(isRecord)
+      : [];
   const data = {
     ...(fallback.data ?? {}),
     ...(detail ?? {}),
+    ...(attachedDiagnostics.length === 0
+      ? {}
+      : { diagnostics: attachedDiagnostics }),
   };
 
   return {

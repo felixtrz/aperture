@@ -37,6 +37,10 @@ const workerModuleImportMap = new Map([
     "/worker-modules/packages/physics/dist/index.js",
   ],
   [
+    "@aperture-engine/particles",
+    "/worker-modules/packages/particles/dist/index.js",
+  ],
+  [
     "@aperture-engine/physics-rapier",
     "/worker-modules/packages/physics-rapier/dist/index.js",
   ],

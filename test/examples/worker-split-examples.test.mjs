@@ -349,7 +349,8 @@ describe("worker-split examples", () => {
     expect(viewer).toContain("ktx2TextureCompression");
     expect(texture).toContain('typeof createImageBitmap !== "function"');
     expect(texture).toContain('typeof OffscreenCanvas === "function"');
-    expect(texture).toContain('typeof document !== "undefined"');
+    // Worker-safe by construction: no main-thread DOM canvas fallback.
+    expect(texture).not.toContain("document.createElement");
   });
 
   it("keeps the no-op simulation worker compatible with renderer bootstrap", async () => {

@@ -50,11 +50,13 @@ export interface InstantiatePrefabResult {
 
 export function instantiatePrefab(
   world: EcsWorld,
-  document: ApertureSceneDocument,
+  sceneDocument: ApertureSceneDocument,
   options: InstantiatePrefabOptions,
 ): InstantiatePrefabResult {
   // Deep-clone so two instances of the same prefab never share document arrays.
-  const cloned = JSON.parse(JSON.stringify(document)) as ApertureSceneDocument;
+  const cloned = JSON.parse(
+    JSON.stringify(sceneDocument),
+  ) as ApertureSceneDocument;
 
   const loaded = loadScene(world, cloned, { registry: options.registry });
   if (loaded.entities.length === 0) {
@@ -100,9 +102,9 @@ export function instantiatePrefab(
 }
 
 function findRootRecord(
-  document: ApertureSceneDocument,
+  sceneDocument: ApertureSceneDocument,
 ): ApertureSceneEntity | null {
-  for (const record of document.entities) {
+  for (const record of sceneDocument.entities) {
     const parent = record.components.find(
       (component) => component.id === Parent.id,
     );
@@ -110,7 +112,7 @@ function findRootRecord(
       return record;
     }
   }
-  return document.entities[0] ?? null;
+  return sceneDocument.entities[0] ?? null;
 }
 
 function applyTransformOverride(

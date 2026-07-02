@@ -69,6 +69,39 @@ describe("package boundary guard", () => {
     );
   });
 
+  it("reports browser globals in any headless package outside its browser entry", () => {
+    const root = createTempWorkspace();
+
+    // Browser globals in a headless package root are violations — for EVERY
+    // headless package, not just ui.
+    writePackage(root, "particles", {
+      "src/effects.ts": "export const width = window.innerWidth;\n",
+    });
+    // The structural browser-entry exemption: src/browser.ts and src/browser/
+    // may use browser globals, with zero per-package script edits.
+    writePackage(root, "ui", {
+      "src/browser.ts": "export const doc = document.title;\n",
+      "src/browser/dom-bridge.ts":
+        'export const bridge = document.createElement("input");\n',
+      "src/index.ts": 'export const ok = "headless";\n',
+    });
+    // Worker-available APIs (Blob/Response/OffscreenCanvas) are NOT banned:
+    // the invariant is the worker import graph, not browser flavor.
+    writePackage(root, "render", {
+      "src/decode.ts":
+        'export const supported = typeof Blob !== "undefined" && typeof OffscreenCanvas === "function" && typeof Response !== "undefined";\n',
+    });
+
+    const violations = checkPackageBoundaries({ rootDir: root });
+
+    expect(
+      violations.map((violation) => [violation.packageName, violation.name]),
+    ).toEqual([["particles", "window"]]);
+    expect(formatPackageBoundaryViolations(violations)).toContain(
+      "browser entry (src/browser.ts or src/browser/)",
+    );
+  });
+
   it("reports Web Audio globals in headless packages", () => {
     const root = createTempWorkspace();
 

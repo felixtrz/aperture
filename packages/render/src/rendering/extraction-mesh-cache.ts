@@ -19,6 +19,11 @@ export interface RenderExtractionCache {
    * previously returned snapshot.
    */
   readonly scratch: RenderExtractionScratch;
+  /**
+   * Feature families already reported as gated-off-with-live-entities, so the
+   * warning fires once per family per cache lifetime instead of every frame.
+   */
+  readonly gatedFeatureFamiliesReported: Set<string>;
   clear(): void;
 }
 
@@ -62,6 +67,7 @@ export function createRenderExtractionCache(): RenderExtractionCache {
   return {
     meshDrawEntities,
     shadowCasterDrawEntities,
+    gatedFeatureFamiliesReported: new Set(),
     scratch: {
       transforms: [],
       bones: [],

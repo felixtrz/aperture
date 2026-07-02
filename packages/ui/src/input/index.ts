@@ -24,9 +24,3 @@ export {
   withUiInput,
   type UiInputInput,
 } from "./ui-input.js";
-export {
-  createHiddenInputBridge,
-  createHiddenInputElement,
-  type HiddenInputBridge,
-  type HiddenInputElementLike,
-} from "./dom-bridge.js";

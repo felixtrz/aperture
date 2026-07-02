@@ -3,14 +3,24 @@ import type {
   EnvironmentMapHandle,
   FontAtlasHandle,
   MaterialHandle,
-  ParticleEffectHandle,
   SamplerHandle,
   TextureHandle,
   Vec2Like,
   Vec3Like,
   Vec4Like,
 } from "@aperture-engine/simulation";
+import { ParticleSimulationSpace as ParticleSimulationSpaceValue } from "@aperture-engine/particles";
+import type {
+  ParticleEmitterInput,
+  ParticleSimulationSpace as ParticleSimulationSpaceType,
+} from "@aperture-engine/particles";
 import type { InstanceDataValues, JsonPrimitive } from "../materials/index.js";
+
+export { type ParticleEmitterInput };
+
+export const ParticleSimulationSpace = ParticleSimulationSpaceValue;
+
+export type ParticleSimulationSpace = ParticleSimulationSpaceType;
 
 export const CameraProjection = {
   Perspective: "perspective",
@@ -98,14 +108,6 @@ export const SpriteDepthMode = {
 
 export type SpriteDepthMode =
   (typeof SpriteDepthMode)[keyof typeof SpriteDepthMode];
-
-export const ParticleSimulationSpace = {
-  World: "world",
-  Local: "local",
-} as const;
-
-export type ParticleSimulationSpace =
-  (typeof ParticleSimulationSpace)[keyof typeof ParticleSimulationSpace];
 
 export const AudioSimulationSpace = {
   /** Spatialized through a PannerNode from the emitter's world transform. */
@@ -287,20 +289,6 @@ export interface SpriteInput {
   readonly sizeMode?: SpriteSizeMode;
   readonly blendMode?: SpriteBlendMode;
   readonly depthMode?: SpriteDepthMode;
-}
-
-export interface ParticleEmitterInput {
-  readonly effect: ParticleEffectHandle;
-  readonly capacity?: number;
-  readonly seed?: number;
-  readonly resetEpoch?: number;
-  readonly timeScale?: number;
-  readonly simulationSpace?: ParticleSimulationSpace;
-  /** Local-space culling center override. Omit for the effect-derived center. */
-  readonly boundsCenter?: Vec3Like;
-  /** Positive culling radius override. Omit or pass 0 for automatic bounds. */
-  readonly boundsRadius?: number;
-  readonly visible?: boolean;
 }
 
 export interface AudioEmitterInput {

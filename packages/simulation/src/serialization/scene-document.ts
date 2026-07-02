@@ -88,14 +88,14 @@ export function saveScene(
  */
 export function loadScene(
   world: EcsWorld,
-  document: ApertureSceneDocument,
+  sceneDocument: ApertureSceneDocument,
   options: LoadSceneOptions,
 ): LoadSceneResult {
-  if (!isSupportedDocument(document)) {
+  if (!isSupportedDocument(sceneDocument)) {
     return {
       ok: false,
       entities: [],
-      diagnostics: [unknownFormatVersionDiagnostic(document)],
+      diagnostics: [unknownFormatVersionDiagnostic(sceneDocument)],
     };
   }
 
@@ -105,7 +105,7 @@ export function loadScene(
   // elics binds component storage to the most recently registering world, so a
   // module-level component reused from another world must be (re)registered here.
   registerTransformComponents(world);
-  for (const id of uniqueComponentIds(document)) {
+  for (const id of uniqueComponentIds(sceneDocument)) {
     const component = options.registry.get(id);
     if (component !== undefined) {
       world.registerComponent(component);
@@ -114,7 +114,7 @@ export function loadScene(
 
   // Pass 1: create every entity so all Entity-typed refs are resolvable in pass 2.
   const oldIdToEntity = new Map<string, Entity>();
-  const created: Entity[] = document.entities.map((record) => {
+  const created: Entity[] = sceneDocument.entities.map((record) => {
     const entity = world.createEntity();
     oldIdToEntity.set(record.id, entity);
     return entity;
@@ -122,7 +122,7 @@ export function loadScene(
   const resolveEntity = (token: string) => oldIdToEntity.get(token) ?? null;
 
   // Pass 2: deserialize, remapping Entity-typed fields through the id map.
-  document.entities.forEach((record, index) => {
+  sceneDocument.entities.forEach((record, index) => {
     const result = deserializeEntityComponents(
       created[index]!,
       record.components,
@@ -204,9 +204,9 @@ function rebuildChildrenIndex(created: readonly Entity[]): void {
   }
 }
 
-function uniqueComponentIds(document: ApertureSceneDocument): string[] {
+function uniqueComponentIds(sceneDocument: ApertureSceneDocument): string[] {
   const ids = new Set<string>();
-  for (const entity of document.entities) {
+  for (const entity of sceneDocument.entities) {
     for (const component of entity.components) {
       ids.add(component.id);
     }
@@ -215,26 +215,26 @@ function uniqueComponentIds(document: ApertureSceneDocument): string[] {
 }
 
 function isSupportedDocument(
-  document: ApertureSceneDocument | null | undefined,
-): document is ApertureSceneDocument {
+  sceneDocument: ApertureSceneDocument | null | undefined,
+): sceneDocument is ApertureSceneDocument {
   return (
-    document !== null &&
-    document !== undefined &&
-    document.formatVersion === APERTURE_SCENE_FORMAT_VERSION &&
-    Array.isArray(document.entities)
+    sceneDocument !== null &&
+    sceneDocument !== undefined &&
+    sceneDocument.formatVersion === APERTURE_SCENE_FORMAT_VERSION &&
+    Array.isArray(sceneDocument.entities)
   );
 }
 
 function unknownFormatVersionDiagnostic(
-  document: ApertureSceneDocument | null | undefined,
+  sceneDocument: ApertureSceneDocument | null | undefined,
 ): SceneDocumentDiagnostic {
   return {
     code: "aperture.scene.unknownFormatVersion",
-    message: `Unsupported scene document formatVersion '${String(
-      document?.formatVersion,
+    message: `Unsupported scene sceneDocument formatVersion '${String(
+      sceneDocument?.formatVersion,
     )}'; expected ${APERTURE_SCENE_FORMAT_VERSION}. Nothing was instantiated.`,
     data: {
-      formatVersion: document?.formatVersion ?? null,
+      formatVersion: sceneDocument?.formatVersion ?? null,
       expected: APERTURE_SCENE_FORMAT_VERSION,
     },
   };

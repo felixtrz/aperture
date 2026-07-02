@@ -42,6 +42,7 @@ const CANDIDATES: readonly SpecifierEntry[] = [
   { spec: "@aperture-engine/render", anchor: "app" },
   { spec: "@aperture-engine/app/asset-mirror", anchor: "cli" },
   { spec: "@aperture-engine/runtime", anchor: "app" },
+  { spec: "@aperture-engine/particles", anchor: "app" },
   { spec: "@aperture-engine/physics", anchor: "app" },
   { spec: "@aperture-engine/webgpu", anchor: "app" },
   { spec: "@aperture-engine/simulation", anchor: "app" },

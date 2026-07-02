@@ -50,11 +50,11 @@ import {
 import { prepareSpriteFrameResourcesForSnapshot } from "./sprites.js";
 import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
 import {
-  mergeSnapshotSortedRenderPassCommands,
-  prepareParticleFrameResourcesForSnapshot,
-} from "./particles.js";
-import { renderSnapshotTimeSeconds } from "./snapshot.js";
-import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
+  prepareWebGpuFeatureFrameResources,
+  webGpuFeatureReports,
+  webGpuParticleFrameReport,
+} from "./built-in-feature-realizers.js";
+import { mergeSnapshotSortedRenderPassCommands } from "./feature-command-groups.js";
 import { prepareQueuedBuiltInFrameResources } from "./queued-frame-resources.js";
 import { QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION } from "./queued-built-in-adapters.js";
 import { getWebGpuAppPipelineLayouts } from "./pipeline-layouts.js";
@@ -594,43 +594,28 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
           })
         : emptyMsdfTextFrameResources(),
   );
-  const particleFrame = await measureRenderPhaseDetailAsync(
+  const featureFrame = await measureRenderPhaseDetailAsync(
     options.phaseTimer,
-    "prepareOverlayParticles",
+    "prepareOverlayFeatures",
     () =>
-      prepareParticleFrameResourcesForSnapshot({
+      prepareWebGpuFeatureFrameResources({
         app: options.app,
         assets: options.assets,
         cache: options.cache,
         snapshot: options.snapshot,
         viewUniforms: packedViews,
         reuse: options.reuse,
-        time: renderSnapshotTimeSeconds(options.snapshot),
       }),
   );
-  const uiFrame = await measureRenderPhaseDetailAsync(
-    options.phaseTimer,
-    "prepareOverlayUi",
-    () =>
-      snapshotHasUiFrameWork(options.snapshot)
-        ? prepareUiFrameResourcesForSnapshot({
-            app: options.app,
-            assets: options.assets,
-            cache: options.cache,
-            snapshot: options.snapshot,
-            viewUniforms: packedViews,
-            reuse: options.reuse,
-          })
-        : emptyUiFrameResources(),
-  );
+  const particleReport = webGpuParticleFrameReport(featureFrame);
+  const featureReports = webGpuFeatureReports(featureFrame);
   options.phaseTimer.finishDetail("prepareOverlays");
   options.phaseTimer.finish("prepare");
 
   if (
     !spriteFrame.resources.valid ||
     !textFrame.resources.valid ||
-    !particleFrame.valid ||
-    !uiFrame.valid
+    !featureFrame.valid
   ) {
     return renderReport({
       ok: false,
@@ -651,8 +636,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
         ...packedInstanceTints.diagnostics,
         ...spriteFrame.resources.diagnostics,
         ...textFrame.resources.diagnostics,
-        ...particleFrame.diagnostics,
-        ...uiFrame.diagnostics,
+        ...featureFrame.diagnostics,
       ],
     });
   }
@@ -660,21 +644,21 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   const sortedOverlayCommands = [
     ...spriteFrame.resources.commands,
     ...textFrame.resources.commands,
-    ...particleFrame.commands,
   ];
-  const frameCommands = mergeSnapshotSortedRenderPassCommands({
+  const merged = mergeSnapshotSortedRenderPassCommands({
     snapshot: options.snapshot,
     baseCommands: framePlan.commandPlan.commands,
     overlayCommands: sortedOverlayCommands,
+    featureGroups: featureFrame.sceneGroups,
   });
   const indirectDraws = prepareWebGpuAppIndirectDrawCommands({
     app: options.app,
     cache: options.cache,
-    commands: frameCommands,
+    commands: merged.commands,
     label: options.label ?? "aperture-webgpu-app",
   });
   const renderBundleCommands =
-    sortedOverlayCommands.length === 0
+    sortedOverlayCommands.length === 0 && featureFrame.sceneGroups.length === 0
       ? indirectDraws.commands.slice(0, framePlan.commandPlan.commands.length)
       : [];
   options.phaseTimer.start("submit");
@@ -685,7 +669,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     snapshot: options.snapshot,
     commands: indirectDraws.commands,
     renderBundleCommands,
-    overlayCommands: [...particleFrame.overlayCommands, ...uiFrame.commands],
+    overlayCommands: featureFrame.overlayCommands,
     label: options.label ?? "aperture-webgpu-app",
     reuse: options.reuse,
     motionVectorColorFormat,
@@ -763,8 +747,9 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     framePlan.commandPlan.valid &&
     spriteFrame.resources.diagnostics.length === 0 &&
     textFrame.resources.diagnostics.length === 0 &&
-    particleFrame.diagnostics.length === 0 &&
-    uiFrame.diagnostics.length === 0 &&
+    featureFrame.valid &&
+    featureFrame.diagnostics.length === 0 &&
+    merged.diagnostics.length === 0 &&
     boundaries.valid &&
     (occlusionQueries === undefined ||
       occlusionQueries.status !== "unsupported");
@@ -808,7 +793,8 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ? {}
       : { indirectDraws: indirectDraws.report }),
     localLightCookieResources: options.localLightCookieResources,
-    particles: particleFrame.report,
+    particles: particleReport,
+    ...(featureReports === undefined ? {} : { features: featureReports }),
     resourceReuse: options.reuse,
     diagnosticsSummary: finalDiagnosticsSummary,
     drawPackages: framePlan.packages.packages.length,
@@ -829,8 +815,8 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ...framePlan.commandPlan.diagnostics,
       ...spriteFrame.resources.diagnostics,
       ...textFrame.resources.diagnostics,
-      ...particleFrame.diagnostics,
-      ...uiFrame.diagnostics,
+      ...featureFrame.diagnostics,
+      ...merged.diagnostics,
       ...boundaries.diagnostics,
       ...newOcclusionQueryDiagnostics(
         occlusionQueries,
@@ -1248,14 +1234,6 @@ const EMPTY_MSDF_TEXT_FRAME_RESOURCES = {
   ReturnType<typeof prepareMsdfTextFrameResourcesForSnapshot>
 >;
 
-const EMPTY_UI_FRAME_RESOURCES = {
-  valid: true,
-  commands: [],
-  diagnostics: [],
-} as const satisfies Awaited<
-  ReturnType<typeof prepareUiFrameResourcesForSnapshot>
->;
-
 function emptySpriteFrameResources(): Awaited<
   ReturnType<typeof prepareSpriteFrameResourcesForSnapshot>
 > {
@@ -1268,12 +1246,6 @@ function emptyMsdfTextFrameResources(): Awaited<
   return EMPTY_MSDF_TEXT_FRAME_RESOURCES;
 }
 
-function emptyUiFrameResources(): Awaited<
-  ReturnType<typeof prepareUiFrameResourcesForSnapshot>
-> {
-  return EMPTY_UI_FRAME_RESOURCES;
-}
-
 function snapshotHasSpriteFrameWork(snapshot: RenderSnapshot): boolean {
   if ((snapshot.spriteDraws ?? []).length > 0) {
     return true;
@@ -1284,17 +1256,6 @@ function snapshotHasSpriteFrameWork(snapshot: RenderSnapshot): boolean {
 
 function snapshotHasMsdfTextFrameWork(snapshot: RenderSnapshot): boolean {
   return (snapshot.quadBatches ?? []).some((batch) => batch.kind === "glyph");
-}
-
-function snapshotHasUiFrameWork(snapshot: RenderSnapshot): boolean {
-  return (snapshot.uiNodes ?? []).some(
-    (node) =>
-      (node.kind === "panel" ||
-        node.kind === "image" ||
-        (node.kind === "text" && (node.text ?? "").length > 0)) &&
-      node.rect.width > 0 &&
-      node.rect.height > 0,
-  );
 }
 
 function snapshotNeedsRawOffsetWorldTransforms(

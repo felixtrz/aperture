@@ -74,8 +74,9 @@ describe("GPU particle app frame resources", () => {
       overlayCommands: particleCommands,
     });
 
+    expect(merged.diagnostics).toEqual([]);
     expect(
-      merged.map((command) => `${command.kind}:${command.renderId}`),
+      merged.commands.map((command) => `${command.kind}:${command.renderId}`),
     ).toEqual(["setPipeline:99", "draw:99", "setPipeline:11", "draw:11"]);
   });
 
