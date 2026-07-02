@@ -359,7 +359,7 @@ export function createPhysicsAccess(
         entity
           .getVectorView(KinematicTarget, "rotation")
           .set(transform.rotation);
-      } else if (entity.hasComponent(LocalTransform)) {
+      } else if (hasRegisteredComponent(entity, LocalTransform)) {
         // No rotation supplied: keep the body's current orientation rather than
         // snapping it to the kinematic target's default (see GH #28).
         entity
@@ -378,7 +378,7 @@ export function createPhysicsAccess(
         : false;
     },
     breakJoint(entity, options = {}) {
-      if (!entity.hasComponent(PhysicsJoint)) {
+      if (!hasRegisteredComponent(entity, PhysicsJoint)) {
         return false;
       }
       if (entity.getValue(PhysicsJoint, "enabled") !== true) {
@@ -743,12 +743,26 @@ function stringValue(value: unknown, fallback: string): string {
   return typeof value === "string" && value.length > 0 ? value : fallback;
 }
 
+/**
+ * elics' Entity.hasComponent throws on a component whose registration never
+ * ran (its bitmask is still null), and registration lives on the module-global
+ * component singletons rather than the world. Reads through the physics facade
+ * must treat "never registered" as "absent" so headless consumers can query
+ * physics state before any physics component or system has touched the world.
+ */
+function hasRegisteredComponent(
+  entity: Entity,
+  component: Parameters<Entity["hasComponent"]>[0],
+): boolean {
+  return component.bitmask !== null && entity.hasComponent(component);
+}
+
 function ensureExternalForce(
   world: EcsWorld | undefined,
   entity: Entity,
 ): void {
   prepareMutation(world, entity);
-  if (!entity.hasComponent(ExternalForce)) {
+  if (!hasRegisteredComponent(entity, ExternalForce)) {
     entity.addComponent(ExternalForce, createExternalForce());
   }
 }
@@ -758,7 +772,7 @@ function ensureExternalImpulse(
   entity: Entity,
 ): void {
   prepareMutation(world, entity);
-  if (!entity.hasComponent(ExternalImpulse)) {
+  if (!hasRegisteredComponent(entity, ExternalImpulse)) {
     entity.addComponent(ExternalImpulse, createExternalImpulse());
   }
 }
@@ -768,7 +782,7 @@ function ensurePhysicsVelocity(
   entity: Entity,
 ): void {
   prepareMutation(world, entity);
-  if (!entity.hasComponent(PhysicsVelocity)) {
+  if (!hasRegisteredComponent(entity, PhysicsVelocity)) {
     entity.addComponent(PhysicsVelocity, createPhysicsVelocity());
   }
 }
@@ -778,7 +792,7 @@ function ensureKinematicTarget(
   entity: Entity,
 ): void {
   prepareMutation(world, entity);
-  if (!entity.hasComponent(KinematicTarget)) {
+  if (!hasRegisteredComponent(entity, KinematicTarget)) {
     entity.addComponent(KinematicTarget, createKinematicTarget());
   }
 }
@@ -826,7 +840,7 @@ function readPhysicsVelocityField(
   entity: Entity,
   field: "linear" | "angular",
 ): PhysicsVec3 {
-  if (!entity.hasComponent(PhysicsVelocity)) {
+  if (!hasRegisteredComponent(entity, PhysicsVelocity)) {
     return [0, 0, 0];
   }
   const view = entity.getVectorView(PhysicsVelocity, field);
@@ -850,7 +864,7 @@ function torqueForForceAtPoint(
 }
 
 function entityCenter(entity: Entity): PhysicsVec3 {
-  if (!entity.hasComponent(LocalTransform)) {
+  if (!hasRegisteredComponent(entity, LocalTransform)) {
     return [0, 0, 0];
   }
 

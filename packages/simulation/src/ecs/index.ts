@@ -176,9 +176,27 @@ function installEntityVersionTracking(world: World): EcsWorld {
 
     const addComponent = entity.addComponent;
     const removeComponent = entity.removeComponent;
+    const hasComponent = entity.hasComponent;
     const setValue = entity.setValue;
     const getVectorView = entity.getVectorView;
     const destroy = entity.destroy;
+
+    entity.hasComponent = function patchedHasComponent(
+      this: Entity,
+      component: AnyComponent,
+    ) {
+      // A component never registered in THIS world cannot be present on the
+      // entity. elics' raw hasComponent crashes on a null bitmask (component
+      // never registered anywhere) and can false-positive on a stale bitmask
+      // from a previous world whose typeId this world reassigned.
+      if (
+        component.bitmask === null ||
+        !world.componentManager.hasComponent(component)
+      ) {
+        return false;
+      }
+      return hasComponent.call(this, component);
+    } as Entity["hasComponent"];
 
     entity.addComponent = function patchedAddComponent(
       this: Entity,

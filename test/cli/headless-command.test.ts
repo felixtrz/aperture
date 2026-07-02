@@ -244,14 +244,20 @@ describe("aperture headless command — shipped binary smoke (PA.3)", () => {
 
   beforeAll(async () => {
     // One subprocess test that the published binary actually boots and loads
-    // the engine natively (dist realm). CI builds before tests; build on demand
-    // if a developer runs vitest without a prior build.
+    // the engine natively (dist realm). Tests must never build the workspace
+    // themselves: an on-demand build here mutates packages/*/dist while
+    // parallel vitest workers (e.g. test/index.test.ts) read those same
+    // artifacts, making fresh-checkout runs scheduling-dependent.
     try {
       await stat(CLI_BIN);
     } catch {
-      await execFileAsync("pnpm", ["run", "build"], { cwd: REPO_ROOT });
+      throw new Error(
+        `Missing built CLI binary at ${CLI_BIN}. ` +
+          "Run `pnpm run build` before `pnpm test` — the shipped-binary " +
+          "smoke test needs the dist realm and never builds it on demand.",
+      );
     }
-  }, 240_000);
+  });
 
   afterEach(async () => {
     if (tempDir !== undefined) {

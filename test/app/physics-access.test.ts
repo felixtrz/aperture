@@ -25,10 +25,22 @@ import {
 } from "@aperture-engine/simulation";
 import { createApertureSystemContext } from "@aperture-engine/app/systems";
 
+/**
+ * elics keeps component registration on module-global singletons, so a bare
+ * createWorld() only "sees" components some earlier test happened to
+ * register. Every test here registers the physics components itself so it
+ * passes in isolation and under shuffled test order.
+ */
+function createPhysicsWorld(
+  options?: Parameters<typeof createWorld>[0],
+): ReturnType<typeof createWorld> {
+  return registerPhysicsComponents(createWorld(options));
+}
+
 describe("physics system access", () => {
   it("returns empty query results until a backend is installed", () => {
     const context = createApertureSystemContext({
-      world: createWorld(),
+      world: createPhysicsWorld(),
       assetsRegistry: new AssetRegistry(),
     });
 
@@ -85,7 +97,7 @@ describe("physics system access", () => {
 
   it("reports backend capabilities through physics summaries", () => {
     const context = createApertureSystemContext({
-      world: createWorld(),
+      world: createPhysicsWorld(),
       assetsRegistry: new AssetRegistry(),
     });
     const backend = createTestPhysicsBackend();
@@ -114,7 +126,7 @@ describe("physics system access", () => {
   });
 
   it("authors fixed-step physics command components through gameplay helpers", () => {
-    const world = createWorld({ entityCapacity: 2 });
+    const world = createPhysicsWorld({ entityCapacity: 2 });
     const context = createApertureSystemContext({
       world,
       assetsRegistry: new AssetRegistry(),
@@ -162,7 +174,7 @@ describe("physics system access", () => {
   });
 
   it("reads authored velocities and proxies explicit sleep or wake requests", () => {
-    const world = createWorld({ entityCapacity: 2 });
+    const world = createPhysicsWorld({ entityCapacity: 2 });
     const context = createApertureSystemContext({
       world,
       assetsRegistry: new AssetRegistry(),
@@ -211,7 +223,7 @@ describe("physics system access", () => {
   });
 
   it("computes off-center impulse torque relative to the origin without LocalTransform", () => {
-    const world = createWorld({ entityCapacity: 1 });
+    const world = createPhysicsWorld({ entityCapacity: 1 });
     const context = createApertureSystemContext({
       world,
       assetsRegistry: new AssetRegistry(),
@@ -228,7 +240,7 @@ describe("physics system access", () => {
   });
 
   it("preserves current orientation when setKinematicTarget omits rotation (#28)", () => {
-    const world = createWorld({ entityCapacity: 1 });
+    const world = createPhysicsWorld({ entityCapacity: 1 });
     const context = createApertureSystemContext({
       world,
       assetsRegistry: new AssetRegistry(),
@@ -263,7 +275,7 @@ describe("physics system access", () => {
   });
 
   it("keeps the previous kinematic target rotation when no LocalTransform is present", () => {
-    const world = createWorld({ entityCapacity: 1 });
+    const world = createPhysicsWorld({ entityCapacity: 1 });
     const context = createApertureSystemContext({
       world,
       assetsRegistry: new AssetRegistry(),
@@ -290,7 +302,7 @@ describe("physics system access", () => {
   });
 
   it("breaks ECS-authored joints explicitly and emits a jointBreak event", () => {
-    const world = createWorld({ entityCapacity: 3 });
+    const world = createPhysicsWorld({ entityCapacity: 3 });
     const context = createApertureSystemContext({
       world,
       assetsRegistry: new AssetRegistry(),
@@ -337,7 +349,7 @@ describe("physics system access", () => {
 
   it("provides filtered gameplay event views while preserving events()", () => {
     const context = createApertureSystemContext({
-      world: createWorld(),
+      world: createPhysicsWorld(),
       assetsRegistry: new AssetRegistry(),
     });
     const events: readonly PhysicsEvent[] = [
@@ -420,7 +432,7 @@ describe("physics system access", () => {
 
   it("publishes frame sync reports and unsupported features in the physics summary", () => {
     const context = createApertureSystemContext({
-      world: createWorld(),
+      world: createPhysicsWorld(),
       assetsRegistry: new AssetRegistry(),
     });
     const syncReport: PhysicsSyncReport = {
@@ -499,7 +511,7 @@ describe("physics system access", () => {
 
   it("publishes fixed-step readback and ECS writeback reports in the physics summary", () => {
     const context = createApertureSystemContext({
-      world: createWorld(),
+      world: createPhysicsWorld(),
       assetsRegistry: new AssetRegistry(),
     });
     const report: PhysicsWorldStepReport = {
@@ -590,7 +602,7 @@ describe("physics system access", () => {
 
   it("forwards synchronous raycasts and frame events from the installed backend", () => {
     const context = createApertureSystemContext({
-      world: createWorld(),
+      world: createPhysicsWorld(),
       assetsRegistry: new AssetRegistry(),
     });
     const backend = createTestPhysicsBackend();
@@ -818,7 +830,7 @@ describe("physics system access", () => {
 
   it("emits grounded-change events from app-level character movement edges", () => {
     const context = createApertureSystemContext({
-      world: createWorld(),
+      world: createPhysicsWorld(),
       assetsRegistry: new AssetRegistry(),
     });
     const backend = createTestPhysicsBackend();
