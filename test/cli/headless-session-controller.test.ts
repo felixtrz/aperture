@@ -528,6 +528,8 @@ describe("HeadlessSessionController", () => {
       systems: [
         {
           default: class AspectSetupSystem extends createSystem() {
+            #spawnedDuringStep = false;
+
             override init(): void {
               // Default camera opts into autoAspect; the explicit-aspect
               // camera must keep its authored projection untouched.
@@ -546,6 +548,19 @@ describe("HeadlessSessionController", () => {
                 mesh: mesh.box({ size: [1, 1, 1] }),
                 material: material.standard(),
                 transform: { translation: [0, 0, 0] },
+              });
+            }
+
+            override update(): void {
+              if (this.#spawnedDuringStep) {
+                return;
+              }
+              this.#spawnedDuringStep = true;
+              this.spawn.camera({
+                key: "cam.spawned-during-step",
+                transform: { translation: [0, 3, 6], lookAt: [0, 0, 0] },
+                fovYDegrees: 60,
+                camera: { priority: 2 },
               });
             }
           },
@@ -569,6 +584,10 @@ describe("HeadlessSessionController", () => {
 
       // Session default render target is 960x640 => aspect 1.5.
       expect(cameraAspect(controller, "cam.auto")).toBeCloseTo(1.5, 5);
+      expect(cameraAspect(controller, "cam.spawned-during-step")).toBeCloseTo(
+        1.5,
+        5,
+      );
       expect(cameraAspect(controller, "cam.fixed")).toBeCloseTo(0.75, 5);
 
       // A bundle re-extracts against its own render target => aspect 2.

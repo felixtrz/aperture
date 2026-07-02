@@ -138,19 +138,16 @@ Determinism is what makes the headless loop trustworthy. Protect it:
 
 ## Exact Tool Payload Shapes
 
-Several input tools silently accept-and-ignore unknown fields (they return
-\`ok: true\` while doing nothing). Use these exact shapes, and after any
-mutating call, read state back (\`input_get_state\`, \`ecs_get_entity\`)
-instead of trusting \`ok\`:
+Use these exact shapes, and after any mutating call, read state back
+(\`input_get_state\`, \`ecs_get_entity\`) instead of trusting \`ok\` alone:
 
 - Axis actions: \`input_action_set({ action: "move", x: 1, y: 0 })\`.
 - Buttons: \`input_action_set({ action: "jump", pressed: true })\` or
   \`input_inject({ actions: { jump: true } })\`.
 - Gamepad stick: \`input_gamepad_set({ left: { x: 1, y: 0 } })\` — NOT
-  \`{ stick: "left", x: 1 }\`, which no-ops silently.
+  \`{ stick: "left", x: 1 }\`, which is rejected.
 - Pixel probes: \`frame_capture({ width: 960, height: 640, samples: [{ x: 0.5, y: 0.5, coordinateSpace: "normalized" }] })\`
-  — sample entries must be objects; bare \`[x, y]\` pairs silently sample the
-  frame center.
+  — sample entries must be objects; bare \`[x, y]\` pairs are rejected.
 - The one-shot CLI \`aperture headless --inject <file>\` drives buttons and
   pointer only; drive axis actions through the serve/MCP tools above.
 - \`input_key\` (raw keyboard) works only against the headed slot; headlessly,
@@ -160,16 +157,14 @@ instead of trusting \`ok\`:
 
 Know these before making pixel- or parity-equivalence claims:
 
-- **Camera aspect:** headless has no auto-aspect; cameras default to a square
-  projection and non-square renders stretch. Spawn cameras with an explicit
-  \`camera: { aspect: <width/height> }\` matching your render size, or set
-  \`aperture.render.camera.aspect\` via \`ecs_set_component_field\` before
-  bundling.
+- **Camera aspect:** headless auto-aspect cameras follow the current session or
+  bundle render target. Cameras with \`autoAspect: false\` and offscreen
+  render-target cameras keep their authored aspect, so set those explicitly.
 - **Multi-view bundles:** offline rendering draws the lowest-priority view;
   the live browser presents the highest-priority camera. Verify agent-camera
   views (\`camera_create_agent\` + \`camera_use_agent_view\`) in the headed
-  slot, and pass an explicit \`key\` to \`camera_use_agent_view\` — with no
-  arguments it mutates the main camera.
+  slot. With no selector, \`camera_use_agent_view\` targets
+  \`camera.agent\`.
 - **Fixed-step tasks:** \`this.fixedStep.register(...)\` only runs when
   physics is enabled in the config; \`fixedStep.available === true\` does not
   mean the task is scheduled.
@@ -282,13 +277,12 @@ mechanics. Use \`frame_capture\`, \`app_reset\`, \`app_status\`, and
   never \`Math.random()\`/\`Date.now()\`/\`performance.now()\`. Gate with
   \`aperture headless <config> --determinism error\`.
 - After any mutating tool call, read state back instead of trusting
-  \`ok: true\` — some input tools silently ignore unknown payload fields.
-  Exact shapes: \`input_action_set({ action, x, y })\` for axes,
+  \`ok: true\` alone. Exact shapes:
+  \`input_action_set({ action, x, y })\` for axes,
   \`input_gamepad_set({ left: { x, y } })\` for sticks, and
   \`frame_capture\` samples as \`[{ x, y, coordinateSpace }]\` objects.
-- Give cameras an explicit \`camera: { aspect: <width/height> }\` at spawn:
-  headless has no auto-aspect, and default (square) projections stretch
-  non-square renders.
+- Headless auto-aspect cameras follow the session/bundle render target; give
+  explicit aspects only to fixed-aspect and offscreen render-target cameras.
 - \`this.fixedStep.register(...)\` only runs with physics enabled in config.
 - Systems with private fields need \`snapshotState()\`/\`restoreState()\` to
   survive session snapshot restore.

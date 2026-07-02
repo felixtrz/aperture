@@ -276,14 +276,13 @@ export async function createHeadlessSessionController(
     let snapshot: RenderSnapshot | undefined;
 
     if (shouldExtract) {
-      let report:
-        | ReturnType<ApertureHeadlessRunner["step"]>
-        | ReturnType<ApertureHeadlessRunner["extract"]> = state.runner.extract(
-        state.runner.getStatus().nextFrame,
-      );
       for (let index = 0; index < frames; index += 1) {
-        report = state.runner.step(delta, baseTime + index * delta);
+        state.runner.stepWithoutExtract(delta, baseTime + index * delta);
       }
+      syncAspect();
+      const report = state.runner.extract(
+        Math.max(0, state.runner.getStatus().nextFrame - 1),
+      );
       status = report.status;
       snapshot = report.snapshot;
     } else {

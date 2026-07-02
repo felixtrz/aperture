@@ -116,7 +116,6 @@ export async function runHeadlessCommand(options: {
     parsed.renderWidth,
     parsed.renderHeight,
   );
-  let report = runner.extract(0);
 
   for (let frame = 0; frame < parsed.frames; frame += 1) {
     for (const step of injectSteps) {
@@ -128,13 +127,14 @@ export async function runHeadlessCommand(options: {
       }
     }
 
-    syncAutoAspectCameras(
-      runner.app.lowLevel.world,
-      parsed.renderWidth,
-      parsed.renderHeight,
-    );
-    report = runner.step(parsed.delta, frame * parsed.delta);
+    runner.stepWithoutExtract(parsed.delta, frame * parsed.delta);
   }
+  syncAutoAspectCameras(
+    runner.app.lowLevel.world,
+    parsed.renderWidth,
+    parsed.renderHeight,
+  );
+  const report = runner.extract(Math.max(0, runner.getStatus().nextFrame - 1));
 
   const bundle = createApertureSnapshotBundle({
     snapshot: report.snapshot,
