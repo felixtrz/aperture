@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1360
+Every structured diagnostic code the engine can emit (1361
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -268,7 +268,7 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.reference.unknownOption`     | Unknown reference search option '…'. Run 'aperture reference --help' for supported options.                                 | —    | `packages/cli/src/commands/reference.ts`                                           |
 | `aperture.reference.unknownSubcommand` | The reference command supports warmup, status, build, and search (alias: query). Run 'aperture reference --help' for usage. | —    | `packages/cli/src/commands/reference.ts`                                           |
 
-## aperture.render (21)
+## aperture.render (22)
 
 | Code                                        | Message                                                                                                                                                                                                                     | Fix? | Emitted from                                                                                       |
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------- |
@@ -281,7 +281,8 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.render.missingOutput`             | The render command requires --out <path.png> to write the rendered image.                                                                                                                                                   | —    | `packages/cli/src/commands/render.ts`                                                              |
 | `aperture.render.missingSnapshot`           | The render command requires a render bundle path, for example 'aperture render snapshot.json --out frame.png'.                                                                                                              | —    | `packages/cli/src/commands/render.ts`                                                              |
 | `aperture.render.pickOutOfBounds`           | Pick point is outside the …x… canvas.                                                                                                                                                                                       | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
-| `aperture.render.placeholderAssets`         | (message composed at runtime)                                                                                                                                                                                               | —    | `packages/cli/src/commands/render.ts`<br>`packages/cli/src/mcp-session-manager.ts`                 |
+| `aperture.render.placeholderAssets`         | rendering ${closure.placeholders.length} placeholder asset(s) [${ids}] — these pixels are stubbed, not real.                                                                                                                | —    | `packages/cli/src/commands/render.ts`<br>`packages/cli/src/mcp-session-manager.ts`                 |
+| `aperture.render.placeholderProvenance`     | (message composed at runtime)                                                                                                                                                                                               | —    | `packages/cli/src/commands/render.ts`                                                              |
 | `aperture.render.readbackSampleOutOfBounds` | Readback sample '…' is outside the …x… canvas.                                                                                                                                                                              | —    | `packages/app/src/browser/devtools/canvas-readback.ts`<br>`packages/cli/src/tools/png-readback.ts` |
 | `aperture.render.renderFailed`              | Snapshot render failed in the browser: …                                                                                                                                                                                    | —    | `packages/cli/src/render/driver.ts`                                                                |
 | `aperture.render.sampleCount.clamped`       | WebGPU generated apps currently support MSAA sample counts 1 and 4; this value will be clamped by the WebGPU backend.                                                                                                       | yes  | `packages/app/src/browser/render.ts`                                                               |

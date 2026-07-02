@@ -1060,7 +1060,14 @@ function unavailable(name: string): GeneratedDevtoolsToolResult {
         code: "aperture.headless.toolUnavailable",
         message:
           `Tool '${name}' is not available in a headless session. ` +
-          "Headless sessions support ecs_*, input_* (including input_inject and input_action_set), camera_*, asset_list, resource_get/resource_set, and logs_read.",
+          "Headless sessions support ecs_* (except ecs_step_and_diff), " +
+          "camera_*, asset_list, resource_get/resource_set, logs_read, and " +
+          "these input tools: input_inject, input_action_set, " +
+          "input_gamepad_set, input_get_state, input_reset. Raw-device " +
+          "tools (input_key, input_pointer_*) need the headed browser slot; " +
+          "headlessly, drive the action layer with " +
+          "input_action_set({ action, x, y }) or the gamepad path with " +
+          "input_gamepad_set({ left: { x, y } }) instead.",
       },
     ],
   };
