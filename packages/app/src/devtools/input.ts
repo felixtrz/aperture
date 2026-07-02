@@ -140,6 +140,24 @@ function callInputActionTool(
   };
 }
 
+const GAMEPAD_TOOL_FIELDS = new Set([
+  "index",
+  "mapping",
+  "id",
+  "connected",
+  "button",
+  "pressed",
+  "touched",
+  "value",
+  "axes",
+  "left",
+  "leftStick",
+  "right",
+  "rightStick",
+  "target",
+  "appRoot",
+]);
+
 function callInputGamepadTool(
   app: ApertureApp,
   payload: unknown,
@@ -148,6 +166,29 @@ function callInputGamepadTool(
   },
 ): GeneratedDevtoolsToolResult {
   const record = isRecord(payload) ? payload : {};
+
+  // Reject unrecognized fields instead of silently zeroing the pad — a typo
+  // like { stick: "left", x: 1 } previously returned ok:true while driving
+  // nothing (battletest finding F23).
+  const unknownFields = Object.keys(record).filter(
+    (key) => !GAMEPAD_TOOL_FIELDS.has(key),
+  );
+  if (unknownFields.length > 0) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "aperture.input.unknownGamepadFields",
+          severity: "error",
+          message: `input_gamepad_set does not recognize field(s): ${unknownFields.join(", ")}.`,
+          data: { unknownFields, accepted: [...GAMEPAD_TOOL_FIELDS] },
+          suggestedFix:
+            "Drive sticks with { left: { x, y } } / { right: { x, y } } (or axes: [lx, ly, rx, ry]) and buttons with { button: 'south', pressed: true }.",
+        },
+      ],
+    };
+  }
+
   const index = Math.max(0, Math.floor(numberFromValue(record["index"]) ?? 0));
   const mapping = stringFromValue(record["mapping"]) ?? "standard";
   const buttons = Array.from({ length: 17 }, () => ({

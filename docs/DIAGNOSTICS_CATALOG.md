@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1361
+Every structured diagnostic code the engine can emit (1363
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -179,7 +179,7 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.headless.tooManyArguments`     | The serve command accepts one config path.                                                                                                                           | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`           |
 | `aperture.headless.unknownOption`        | Unknown serve option '…'. Run 'aperture headless serve --help'.                                                                                                      | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`           |
 
-## aperture.input (6)
+## aperture.input (7)
 
 | Code                                        | Message                                                                    | Fix? | Emitted from                         |
 | ------------------------------------------- | -------------------------------------------------------------------------- | ---- | ------------------------------------ |
@@ -188,6 +188,7 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.input.gamepad.invalidIndex`       | Ignored a gamepad snapshot with an invalid device index.                   | —    | `packages/app/src/input/gamepads.ts` |
 | `aperture.input.gamepad.unsupportedMapping` | Ignored a connected gamepad because its browser mapping is not 'standard'. | yes  | `packages/app/src/input/gamepads.ts` |
 | `aperture.input.unknownAction`              | Input action '…' is not configured.                                        | yes  | `packages/app/src/input/state.ts`    |
+| `aperture.input.unknownGamepadFields`       | input_gamepad_set does not recognize field(s): ….                          | yes  | `packages/app/src/devtools/input.ts` |
 | `aperture.input.unsupportedGamepadButton`   | Unsupported standard gamepad button '…'.                                   | yes  | `packages/app/src/devtools/input.ts` |
 
 ## aperture.materials (2)
@@ -268,7 +269,7 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.reference.unknownOption`     | Unknown reference search option '…'. Run 'aperture reference --help' for supported options.                                 | —    | `packages/cli/src/commands/reference.ts`                                           |
 | `aperture.reference.unknownSubcommand` | The reference command supports warmup, status, build, and search (alias: query). Run 'aperture reference --help' for usage. | —    | `packages/cli/src/commands/reference.ts`                                           |
 
-## aperture.render (22)
+## aperture.render (23)
 
 | Code                                        | Message                                                                                                                                                                                                                     | Fix? | Emitted from                                                                                       |
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------- |
@@ -283,6 +284,7 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.render.pickOutOfBounds`           | Pick point is outside the …x… canvas.                                                                                                                                                                                       | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
 | `aperture.render.placeholderAssets`         | rendering ${closure.placeholders.length} placeholder asset(s) [${ids}] — these pixels are stubbed, not real.                                                                                                                | —    | `packages/cli/src/commands/render.ts`<br>`packages/cli/src/mcp-session-manager.ts`                 |
 | `aperture.render.placeholderProvenance`     | (message composed at runtime)                                                                                                                                                                                               | —    | `packages/cli/src/commands/render.ts`                                                              |
+| `aperture.render.readbackSampleInvalid`     | Readback sample … must be an object like { x, y, coordinateSpace?: "pixel" \| "normalized" }.                                                                                                                               | —    | `packages/cli/src/tools/png-readback.ts`                                                           |
 | `aperture.render.readbackSampleOutOfBounds` | Readback sample '…' is outside the …x… canvas.                                                                                                                                                                              | —    | `packages/app/src/browser/devtools/canvas-readback.ts`<br>`packages/cli/src/tools/png-readback.ts` |
 | `aperture.render.renderFailed`              | Snapshot render failed in the browser: …                                                                                                                                                                                    | —    | `packages/cli/src/render/driver.ts`                                                                |
 | `aperture.render.sampleCount.clamped`       | WebGPU generated apps currently support MSAA sample counts 1 and 4; this value will be clamped by the WebGPU backend.                                                                                                       | yes  | `packages/app/src/browser/render.ts`                                                               |

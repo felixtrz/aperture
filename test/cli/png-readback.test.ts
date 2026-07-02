@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { callBrowserBackedTool } from "../../packages/cli/src/tools/dispatch.js";
 import {
   isPngBlank,
+  readPngSamples,
   summarizePngLuma,
   summarizePngUniformity,
 } from "../../packages/cli/src/tools/png-readback.js";
@@ -234,6 +235,37 @@ describe("Aperture CLI PNG readback tools", () => {
         },
       ],
     });
+  });
+
+  it("rejects malformed sample entries instead of sampling the center (F27)", () => {
+    const png = createRgbPng(2, 2, [
+      [255, 0, 0],
+      [0, 255, 0],
+      [0, 0, 255],
+      [255, 255, 255],
+    ]);
+
+    const result = readPngSamples(png, {
+      samples: [
+        [1, 1],
+        { id: "valid", x: 0, y: 0, coordinateSpace: "pixel" },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "aperture.render.readbackSampleInvalid",
+        data: expect.objectContaining({ index: 0 }),
+      }),
+    );
+    // The well-formed entry still resolves.
+    expect(result.samples).toEqual([
+      expect.objectContaining({
+        id: "valid",
+        pixel: { r: 255, g: 0, b: 0, a: 255 },
+      }),
+    ]);
   });
 });
 
