@@ -8404,20 +8404,23 @@ class TestGeneratedWorkerPort {
     }
 
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this.waiters = this.waiters.filter(
-          (waiter) => waiter.resolve !== resolve,
-        );
-        reject(new Error("Timed out waiting for generated worker message."));
-      }, 1000);
-
-      this.waiters.push({
+      // Generous deadline: the awaited messages arrive after a full
+      // in-process app boot (config eval, asset decode, physics init), which
+      // can exceed 1s under coverage instrumentation on a loaded runner. The
+      // wait resolves as soon as the message lands.
+      const waiter = {
         predicate,
-        resolve(message) {
+        resolve(message: unknown) {
           clearTimeout(timeout);
           resolve(message);
         },
-      });
+      };
+      const timeout = setTimeout(() => {
+        this.waiters = this.waiters.filter((candidate) => candidate !== waiter);
+        reject(new Error("Timed out waiting for generated worker message."));
+      }, 10_000);
+
+      this.waiters.push(waiter);
     });
   }
 }

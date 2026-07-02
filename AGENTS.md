@@ -141,6 +141,24 @@ the unsupported-WebGPU reason from Aperture's initialization helper.
 - **TypeScript-first with explicit types**, small modules, deterministic
   systems, data-driven schemas, and actionable error messages.
 
+## Test Reliability Conventions
+
+- **Relative-speed claims live in `*.bench.ts`**, which report timings without
+  gating. The gating unit suite may keep absolute catastrophic-regression
+  budgets (generous, like the 250ms extraction budget) but any relative
+  wall-clock comparison must use a min-based estimator (min of several
+  samples/attempts — immune to GC and scheduler excursions) **and** an
+  additive allowance (e.g. `max(baseline * 1.3, baseline + 8ms)`) so timer
+  noise on near-zero measurements cannot flip the comparison. Prove
+  optimizations structurally (draw counts, cache counters, key identity);
+  treat timing gates as backstops only.
+- **Waits are deadlines, not estimates.** Polling helpers that wait on real
+  async work must use generous caps (≥ 10s; they return as soon as the
+  condition holds) — never a "should be fast" guess. Tests that boot real
+  runners set an explicit vitest timeout (see `test/cli/reference.test.ts`)
+  instead of riding the 5s default, which coverage instrumentation routinely
+  blows through.
+
 ## Preferred Implementation Style
 
 - Explicit types over inference at public API boundaries.

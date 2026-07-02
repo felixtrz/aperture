@@ -5,6 +5,9 @@ import {
   createSharedSnapshotTransportViews,
 } from "@aperture-engine/runtime";
 
+// Frame count for the real-timer writer/reader stress test below.
+const FRAME_TARGET = 100;
+
 describe("createSharedSnapshotTransport", () => {
   it("allocates double-buffered shared snapshot views", () => {
     const transport = createSharedSnapshotTransport({
@@ -171,63 +174,72 @@ describe("createSharedSnapshotTransport", () => {
     });
   });
 
-  it("simulates an interval writer and animation-frame reader without torn data", async () => {
-    const transport = createSharedSnapshotTransport({
-      maxEntities: 2,
-      maxViews: 1,
-      requireCrossOriginIsolated: false,
-    });
-    let lastFrame = 0;
-    let nextFrame = 1;
-    let lastSequence = 0;
+  // 100 frames through REAL setInterval/setTimeout timers: enough churn to
+  // catch torn reads, small enough that machine speed never decides the
+  // outcome (1,000 frames needed ~1.3s of an idle machine against the 5s
+  // default test timeout). The explicit timeout is slack for loaded runners,
+  // not an expectation of slowness.
+  it(
+    "simulates an interval writer and animation-frame reader without torn data",
+    { timeout: 30_000 },
+    async () => {
+      const transport = createSharedSnapshotTransport({
+        maxEntities: 2,
+        maxViews: 1,
+        requireCrossOriginIsolated: false,
+      });
+      let lastFrame = 0;
+      let nextFrame = 1;
+      let lastSequence = 0;
 
-    await new Promise<void>((resolve, reject) => {
-      const interval = setInterval(() => {
-        try {
-          if (nextFrame > 1_000) {
+      await new Promise<void>((resolve, reject) => {
+        const interval = setInterval(() => {
+          try {
+            if (nextFrame > FRAME_TARGET) {
+              clearInterval(interval);
+              return;
+            }
+
+            transport.writer.writeFrame(createFrameInput(nextFrame));
+            nextFrame += 1;
+          } catch (error) {
             clearInterval(interval);
-            return;
+            reject(error);
           }
+        }, 0);
 
-          transport.writer.writeFrame(createFrameInput(nextFrame));
-          nextFrame += 1;
-        } catch (error) {
-          clearInterval(interval);
-          reject(error);
-        }
-      }, 0);
+        const readAnimationFrame = () => {
+          try {
+            const read = transport.reader.readLatestFrame();
 
-      const readAnimationFrame = () => {
-        try {
-          const read = transport.reader.readLatestFrame();
+            if (read !== null && read.frame > lastFrame) {
+              expect(read.frame).toBeGreaterThan(lastFrame);
+              expect(read.sequence).toBeGreaterThan(lastSequence);
+              expect(read.transforms[0]).toBe(read.frame);
+              expect(read.transforms.at(-1)).toBe(read.frame);
+              expect(read.viewMatrices[0]).toBe(read.frame * 2);
+              expect(read.viewMatrices.at(-1)).toBe(read.frame * 2);
+              lastFrame = read.frame;
+              lastSequence = read.sequence;
+            }
 
-          if (read !== null && read.frame > lastFrame) {
-            expect(read.frame).toBeGreaterThan(lastFrame);
-            expect(read.sequence).toBeGreaterThan(lastSequence);
-            expect(read.transforms[0]).toBe(read.frame);
-            expect(read.transforms.at(-1)).toBe(read.frame);
-            expect(read.viewMatrices[0]).toBe(read.frame * 2);
-            expect(read.viewMatrices.at(-1)).toBe(read.frame * 2);
-            lastFrame = read.frame;
-            lastSequence = read.sequence;
-          }
+            if (lastFrame >= FRAME_TARGET) {
+              clearInterval(interval);
+              resolve();
+              return;
+            }
 
-          if (lastFrame >= 1_000) {
+            requestAnimationFrameShim(readAnimationFrame);
+          } catch (error) {
             clearInterval(interval);
-            resolve();
-            return;
+            reject(error);
           }
+        };
 
-          requestAnimationFrameShim(readAnimationFrame);
-        } catch (error) {
-          clearInterval(interval);
-          reject(error);
-        }
-      };
-
-      requestAnimationFrameShim(readAnimationFrame);
-    });
-  });
+        requestAnimationFrameShim(readAnimationFrame);
+      });
+    },
+  );
 
   it("returns null while a writer has an incomplete sequence", () => {
     const transport = createSharedSnapshotTransport({

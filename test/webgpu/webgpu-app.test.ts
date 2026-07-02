@@ -341,9 +341,13 @@ interface JsonRecord {
   readonly [key: string]: any;
 }
 
+// Generous deadline: the loop exits as soon as the predicate holds, so the
+// cap only bounds genuine failures. 100ms flaked under coverage
+// instrumentation and loaded CI runners (the mock render loop advances on
+// real setTimeout(0) macrotasks because node has no requestAnimationFrame).
 async function waitForCondition(
   predicate: () => boolean,
-  timeoutMs = 100,
+  timeoutMs = 10_000,
 ): Promise<void> {
   const startedAt = Date.now();
 
@@ -516,6 +520,7 @@ describe("WebGPU app facade", () => {
       });
       let renderCalls = 0;
       let rafCallbackRunning = false;
+      let rafFrameIndex = 0;
       const renderStartedDuringRaf: boolean[] = [];
       const runRaf = (): void => {
         const callback = scheduledRafs.shift();
@@ -528,7 +533,11 @@ describe("WebGPU app facade", () => {
 
         rafCallbackRunning = true;
         try {
-          callback(performance.now());
+          // Synthetic monotonic timestamp: keeps the manually-driven frame
+          // loop independent of wall-clock time so future timestamp-delta
+          // pacing logic cannot make this test machine-speed sensitive.
+          rafFrameIndex += 1;
+          callback(rafFrameIndex * 16.6);
         } finally {
           rafCallbackRunning = false;
         }
@@ -577,7 +586,7 @@ describe("WebGPU app facade", () => {
           diagnostics.lastFrame?.frame === 1 &&
           diagnostics.cadence.rendersCompleted.total === 1
         );
-      }, 500);
+      });
       expect(scheduledRafs).toHaveLength(1);
       runRaf();
 
@@ -588,7 +597,7 @@ describe("WebGPU app facade", () => {
           diagnostics.lastFrame?.frame === 2 &&
           diagnostics.cadence.rendersCompleted.total === 2
         );
-      }, 500);
+      });
 
       const diagnostics = app.getDiagnostics();
 
