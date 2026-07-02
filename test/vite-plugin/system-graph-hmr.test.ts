@@ -12,6 +12,7 @@ import {
   APERTURE_VIRTUAL_MODULE_IDS,
   apertureGeneratedWorkerEntryFile,
 } from "../../packages/vite-plugin/src/virtual-modules.js";
+import { waitFor } from "../helpers/wait.js";
 
 const tempRoots: string[] = [];
 
@@ -137,24 +138,6 @@ async function writeSystem(
 
 async function workerEntryContents(root: string): Promise<string> {
   return readFile(apertureGeneratedWorkerEntryFile(root), "utf8");
-}
-
-async function waitFor(predicate: () => boolean): Promise<void> {
-  // Deadline-based wait: the watched work happens behind an unawaited async
-  // chain (config read, then watcher.add), and the old 20x5ms iteration
-  // budget starved on saturated CI workers. Polling costs nothing once the
-  // predicate holds.
-  const deadline = Date.now() + 10_000;
-
-  while (Date.now() < deadline) {
-    if (predicate()) {
-      return;
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 5));
-  }
-
-  throw new Error("Timed out waiting for predicate.");
 }
 
 function createFakeServer(root: string): ApertureViteDevServer & {

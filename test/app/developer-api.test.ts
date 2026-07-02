@@ -56,10 +56,7 @@ import {
   createSprite,
   createSpatialTriangleMeshFromMeshAsset,
 } from "@aperture-engine/render";
-import {
-  SIMULATION_WORKER_PROTOCOL,
-  type SimulationMessagePort,
-} from "@aperture-engine/runtime";
+import { SIMULATION_WORKER_PROTOCOL } from "@aperture-engine/runtime";
 import {
   AppEntityKey,
   AppEntitySource,
@@ -95,6 +92,8 @@ import SetupSystem from "../../examples/developer-api/src/systems/setup.system.j
 import AssetCommandSystem from "../../examples/developer-api/src/systems/asset-command.system.js";
 import SelectSystem from "../../examples/developer-api/src/systems/select.system.js";
 import SpinCrateSystem from "../../examples/developer-api/src/systems/spin-crate.system.js";
+import { TestGeneratedWorkerPort } from "../helpers/generated-worker-port.js";
+import { readEventually } from "../helpers/wait.js";
 
 function requireButtonAction(
   action: InputAction | undefined,
@@ -816,7 +815,7 @@ describe("developer-facing app API", () => {
   });
 
   it("returns worker-owned entity snapshot and diff reports through generated commands", async () => {
-    const port = new InlineGeneratedWorkerPort();
+    const port = new TestGeneratedWorkerPort();
     const config = defineApertureConfig({
       mode: "headless",
       systems: ["src/systems/**/*.system.ts"],
@@ -973,7 +972,7 @@ describe("developer-facing app API", () => {
   });
 
   it("applies generated viewport resize commands before the first camera snapshot", async () => {
-    const port = new InlineGeneratedWorkerPort();
+    const port = new TestGeneratedWorkerPort();
     const SetupSystemModule: ApertureSystemModule = {
       default: class ViewportResizeSetupSystem extends createSystem({
         priority: 0,
@@ -1032,7 +1031,7 @@ describe("developer-facing app API", () => {
   });
 
   it("advances generated worker input before effects and system updates", async () => {
-    const port = new InlineGeneratedWorkerPort();
+    const port = new TestGeneratedWorkerPort();
     const InputSystemModule: ApertureSystemModule = {
       default: class InputSystem extends createSystem({ priority: 0 }) {
         override update(): void {
@@ -1090,7 +1089,7 @@ describe("developer-facing app API", () => {
 
   it("registers generated worker systems using descriptor priority metadata", async () => {
     const events: string[] = [];
-    const port = new InlineGeneratedWorkerPort();
+    const port = new TestGeneratedWorkerPort();
     const EarlySystemModule: ApertureSystemModule = {
       default: class EarlySystem extends createSystem({
         priority: -10,
@@ -2515,7 +2514,7 @@ describe("developer-facing app API", () => {
       ],
     });
 
-    const port = new InlineGeneratedWorkerPort();
+    const port = new TestGeneratedWorkerPort();
     startGeneratedSimulationWorker({
       config: defineApertureConfig({ mode: "headless", systems: [] }),
       systems: [{}],
@@ -2602,78 +2601,6 @@ describe("developer-facing app API", () => {
     );
   });
 });
-
-class InlineGeneratedWorkerPort implements SimulationMessagePort {
-  private listeners = new Set<(event: MessageEvent<unknown>) => void>();
-  private posted: unknown[] = [];
-  private waiters: {
-    readonly predicate: (message: unknown) => boolean;
-    readonly resolve: (message: unknown) => void;
-  }[] = [];
-
-  postMessage(message: unknown): void {
-    this.posted.push(message);
-
-    for (const waiter of [...this.waiters]) {
-      if (waiter.predicate(message)) {
-        this.waiters = this.waiters.filter((entry) => entry !== waiter);
-        waiter.resolve(message);
-      }
-    }
-  }
-
-  addEventListener(
-    _type: "message",
-    listener: (event: MessageEvent<unknown>) => void,
-  ): void {
-    this.listeners.add(listener);
-  }
-
-  removeEventListener(
-    _type: "message",
-    listener: (event: MessageEvent<unknown>) => void,
-  ): void {
-    this.listeners.delete(listener);
-  }
-
-  start(): void {}
-
-  dispatch(message: unknown): void {
-    for (const listener of this.listeners) {
-      listener({ data: message } as MessageEvent<unknown>);
-    }
-  }
-
-  nextPostedMessage(
-    predicate: (message: unknown) => boolean,
-  ): Promise<unknown> {
-    const existing = this.posted.find(predicate);
-
-    if (existing !== undefined) {
-      return Promise.resolve(existing);
-    }
-
-    return new Promise((resolve, reject) => {
-      // Generous deadline: the awaited messages arrive after a full
-      // in-process app boot (config eval, asset decode, physics init), which
-      // can exceed 1s under coverage instrumentation on a loaded runner. The
-      // wait resolves as soon as the message lands.
-      const waiter = {
-        predicate,
-        resolve(message: unknown) {
-          clearTimeout(timeout);
-          resolve(message);
-        },
-      };
-      const timeout = setTimeout(() => {
-        this.waiters = this.waiters.filter((candidate) => candidate !== waiter);
-        reject(new Error("Timed out waiting for generated worker message."));
-      }, 10_000);
-
-      this.waiters.push(waiter);
-    });
-  }
-}
 
 function isSimulationWorkerErrorMessage(value: unknown): value is {
   readonly type: typeof SIMULATION_WORKER_PROTOCOL.error;
@@ -2786,30 +2713,4 @@ function createCanvasMeasureElement(input: {
       return { width: input.width, height: input.height };
     },
   };
-}
-
-async function readEventually(file: string): Promise<string> {
-  // Generous deadline (resolves as soon as the file lands): the watched
-  // writes come from unawaited async plugin work, and 1s starved under
-  // coverage instrumentation. Empty reads retry — the plugin writers are
-  // atomic (temp + rename), but the guard keeps this helper safe for any
-  // future non-atomic producer.
-  const deadline = Date.now() + 10_000;
-  let lastError: unknown = new Error(`Timed out waiting for ${file}.`);
-
-  while (Date.now() < deadline) {
-    try {
-      const contents = await readFile(file, "utf8");
-
-      if (contents.length > 0) {
-        return contents;
-      }
-      lastError = new Error(`File ${file} is still empty.`);
-    } catch (error: unknown) {
-      lastError = error;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 10));
-  }
-
-  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
