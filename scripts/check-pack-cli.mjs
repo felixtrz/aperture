@@ -21,6 +21,7 @@ const internalPackages = [
   "@aperture-engine/runtime",
   "@aperture-engine/webgpu",
   "@aperture-engine/audio",
+  "@aperture-engine/ui",
   "@aperture-engine/vite-plugin",
   "@aperture-engine/app",
   "@aperture-engine/cli",

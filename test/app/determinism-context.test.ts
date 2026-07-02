@@ -565,6 +565,56 @@ describe("context.random + context.time replay (PD.1/PD.2/PD.3)", () => {
     expect(originalSteps).toEqual([0, 1]);
     expect(restoredSteps).toEqual([1]);
   });
+
+  it("warns when a fixed-step task is registered while the runner is disabled (F16)", async () => {
+    const registeringSystem: ApertureSystemModule = {
+      default: class FixedStepRegistrar extends createSystem({
+        priority: 0,
+      }) {
+        override init(): void {
+          // available:true even when disabled — the warning is the only
+          // signal the task will never run.
+          expect(this.fixedStep.available).toBe(true);
+          this.fixedStep.register(() => {});
+        }
+      },
+    };
+
+    // No physics and no fixedStep options => runner disabled.
+    const runner = await createApertureHeadlessRunner({
+      config: defineApertureConfig({
+        mode: "headless",
+        render: { defaultCamera: false, defaultLight: false },
+      }),
+      systems: [registeringSystem],
+    });
+    runner.step(1 / 60, 0);
+    expect(runner.getStatus().diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "aperture.fixedStep.taskWhileDisabled",
+        severity: "warning",
+      }),
+    );
+
+    // With the clock enabled, registration stays silent.
+    const enabledRunner = await createApertureHeadlessRunner({
+      config: defineApertureConfig({
+        mode: "headless",
+        render: { defaultCamera: false, defaultLight: false },
+      }),
+      fixedStep: { fixedDelta: 1 / 60 },
+      systems: [registeringSystem],
+    });
+    enabledRunner.step(1 / 60, 0);
+    expect(
+      enabledRunner
+        .getStatus()
+        .diagnostics.filter(
+          (diagnostic) =>
+            diagnostic.code === "aperture.fixedStep.taskWhileDisabled",
+        ),
+    ).toEqual([]);
+  });
 });
 
 function nondeterministicDiagnosticApis(

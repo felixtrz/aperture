@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1363
+Every structured diagnostic code the engine can emit (1364
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -138,6 +138,12 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.entityTools.invalidMutationRequest` | Entity mutation requires component and field string values.             | yes  | `packages/app/src/devtools/entities.ts` |
 | `aperture.entityTools.missingEntityRef`       | Entity tool command requires an entity { index, generation } reference. | yes  | `packages/app/src/devtools/entities.ts` |
 | `aperture.entityTools.unknownQueryFilter`     | Unrecognized entity query filter(s): ….                                 | yes  | `packages/app/src/devtools/entities.ts` |
+
+## aperture.fixedStep (1)
+
+| Code                                   | Message                       | Fix? | Emitted from                   |
+| -------------------------------------- | ----------------------------- | ---- | ------------------------------ |
+| `aperture.fixedStep.taskWhileDisabled` | (message composed at runtime) | —    | `packages/app/src/advanced.ts` |
 
 ## aperture.generatedWorker (2)
 

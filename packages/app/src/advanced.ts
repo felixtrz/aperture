@@ -162,6 +162,9 @@ export async function createApertureApp(
     options.fixedStep === undefined && physicsConfig !== null
       ? {}
       : options.fixedStep;
+  // Mirrors createSimulationFixedStepRunner's disabled condition.
+  const fixedStepEnabled =
+    fixedStep !== undefined && fixedStep !== false && fixedStep.enabled !== false;
   const lowLevel = createExtractionApp({
     ...(options.worldOptions === undefined
       ? {}
@@ -172,8 +175,18 @@ export async function createApertureApp(
     world: lowLevel.world,
     assetsRegistry: lowLevel.assets,
     config,
-    registerFixedStepTask: (task, taskOptions) =>
-      lowLevel.registerFixedStepTask(task, taskOptions),
+    registerFixedStepTask: (task, taskOptions) => {
+      if (!fixedStepEnabled) {
+        // Registration against a disabled runner used to succeed silently
+        // and the task simply never ran (battletest finding F16).
+        context.diagnostics.warn(
+          "aperture.fixedStep.taskWhileDisabled",
+          { hasPhysicsConfig: physicsConfig !== null },
+          "A fixed-step task was registered but the fixed-step runner is disabled, so it will never run. Enable physics in the app config or pass fixedStep options to schedule fixed-step tasks.",
+        );
+      }
+      return lowLevel.registerFixedStepTask(task, taskOptions);
+    },
     ...(options.startOptions === undefined
       ? {}
       : { startOptions: options.startOptions }),

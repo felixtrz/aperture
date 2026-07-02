@@ -222,4 +222,37 @@ describe("generated devtools camera tools", () => {
     expect(camera["viewport"]).toEqual([0, 0, 1, 1]);
     expect(camera["scissor"]).toEqual([0, 0, 1, 1]);
   });
+
+  it("defaults camera_use_agent_view to the agent camera, never the first camera (F9)", async () => {
+    const { app, call } = await createCameraToolHarness();
+
+    // A user-authored main camera exists first (so it is cameraEntities[0]).
+    app.context.spawn.camera({
+      key: "camera.main",
+      transform: { translation: [0, 1, 6], lookAt: [0, 0, 0] },
+      fovYDegrees: 60,
+    });
+
+    // With no agent camera, an argument-less call must not silently promote
+    // the main camera.
+    const missing = call("camera_use_agent_view");
+    expect(missing.ok).toBe(false);
+    expect(diagnosticCode(missing)).toBe("aperture.camera.notFound");
+
+    const mainBefore = resultRecord(
+      call("camera_get", { key: "camera.main" }).result,
+    );
+    expect(resultRecord(mainBefore["camera"])["priority"]).not.toBe(10_000);
+
+    // With the agent camera present, the argument-less call targets it.
+    call("camera_create_agent", {});
+    const used = call("camera_use_agent_view");
+    expect(used.ok).toBe(true);
+    expect(resultRecord(used.result)["key"]).toBe("camera.agent");
+
+    const mainAfter = resultRecord(
+      call("camera_get", { key: "camera.main" }).result,
+    );
+    expect(resultRecord(mainAfter["camera"])["priority"]).not.toBe(10_000);
+  });
 });

@@ -331,6 +331,13 @@ function checkWorkspaceDependencySpecs(packageDir, dependencies, sectionName) {
 }
 
 async function checkPackagePath(packageDir, absoluteDir, packagePath, label) {
+  // The standard `"./package.json": "./package.json"` self-export lets
+  // consumers and tooling resolve package metadata; it is the one export
+  // allowed to point outside ./dist.
+  if (packagePath === "./package.json") {
+    return;
+  }
+
   if (!packagePath.startsWith("./dist/")) {
     fail(
       `${packageDir}/package.json ${label} must point into ./dist, got ${packagePath}`,
