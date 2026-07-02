@@ -136,6 +136,9 @@ importers:
       '@aperture-engine/audio':
         specifier: workspace:^
         version: link:../audio
+      '@aperture-engine/particles':
+        specifier: workspace:^
+        version: link:../particles
       '@aperture-engine/physics':
         specifier: workspace:^
         version: link:../physics
@@ -205,6 +208,12 @@ importers:
 
   packages/math: {}
 
+  packages/particles:
+    dependencies:
+      '@aperture-engine/simulation':
+        specifier: workspace:^
+        version: link:../simulation
+
   packages/physics:
     dependencies:
       '@aperture-engine/simulation':
@@ -228,12 +237,18 @@ importers:
 
   packages/render:
     dependencies:
+      '@aperture-engine/particles':
+        specifier: workspace:^
+        version: link:../particles
       '@aperture-engine/simulation':
         specifier: workspace:^
         version: link:../simulation
 
   packages/runtime:
     dependencies:
+      '@aperture-engine/particles':
+        specifier: workspace:^
+        version: link:../particles
       '@aperture-engine/physics':
         specifier: workspace:^
         version: link:../physics

@@ -225,7 +225,7 @@ export async function createHeadlessSessionController(
   async function boot(seed: number): Promise<void> {
     const previous = state.runner;
     const next = await bootRunner(options, seed);
-    disposeRunner(previous);
+    disposeRunner(previous, log);
     state.runner = next;
     state.entityTools = createGeneratedEntityToolBridge(
       state.runner.app.lowLevel.world,
@@ -479,7 +479,7 @@ export async function createHeadlessSessionController(
       snapshot: input.snapshot,
     });
 
-    disposeRunner(previous);
+    disposeRunner(previous, log);
     state.runner = restored.runner;
     state.entityTools = createGeneratedEntityToolBridge(
       state.runner.app.lowLevel.world,
@@ -690,7 +690,7 @@ export async function createHeadlessSessionController(
   }
 
   function dispose(): void {
-    disposeRunner(state.runner);
+    disposeRunner(state.runner, log);
   }
 
   return {
@@ -797,7 +797,10 @@ function listHeadlessSystems(
   );
 }
 
-function disposeRunner(runner: ApertureHeadlessRunner): void {
+function disposeRunner(
+  runner: ApertureHeadlessRunner,
+  log: (entry: HeadlessSessionLogEntry) => void,
+): void {
   const systems = runner.app.lowLevel.world.getSystems() as readonly unknown[];
   for (const system of systems) {
     if (isRecord(system) && typeof system["destroy"] === "function") {
@@ -805,7 +808,34 @@ function disposeRunner(runner: ApertureHeadlessRunner): void {
     }
   }
 
-  runner.app.physics?.dispose();
+  // app.dispose() is specified to reject when a feature disposer fails; left
+  // unobserved that rejection would take down the whole CLI process, so route
+  // it into the session log instead.
+  void Promise.resolve(runner.app.dispose()).catch((error: unknown) => {
+    log({
+      time: new Date().toISOString(),
+      level: "warn",
+      source: "session-controller",
+      code: "aperture.headless.runnerDisposeFailed",
+      message: disposeFailureMessage(error),
+      data: error instanceof Error ? { name: error.name } : { error },
+    });
+  });
+}
+
+function disposeFailureMessage(error: unknown): string {
+  if (error instanceof AggregateError) {
+    return [
+      error.message,
+      ...error.errors.map((nested) =>
+        nested instanceof Error ? nested.message : String(nested),
+      ),
+    ].join(" — ");
+  }
+
+  return error instanceof Error
+    ? error.message
+    : "Disposing the previous headless runner failed.";
 }
 
 function resourceGet(

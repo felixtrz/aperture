@@ -13,6 +13,7 @@ import type {
   TextureColorSpace,
   TextureSemantic,
 } from "@aperture-engine/render";
+import type { ApertureWorkerFeature } from "../features.js";
 import { ApertureConfigError } from "./errors.js";
 import { isPreloadPolicy, validateApertureConfig } from "./validation.js";
 
@@ -475,6 +476,7 @@ export interface ApertureConfig {
   readonly render?: ApertureRenderDefaults;
   readonly audio?: boolean | ApertureAudioAppConfig;
   readonly physics?: boolean | AperturePhysicsAppConfig;
+  readonly features?: readonly ApertureWorkerFeature[];
   readonly diagnostics?: ApertureDiagnosticsConfig;
   readonly assetDecoders?: ApertureAssetDecoderConfig;
 }

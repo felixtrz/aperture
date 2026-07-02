@@ -16,6 +16,42 @@ import type { ApertureSessionSnapshot } from "@aperture-engine/app/headless";
 import { createHeadlessSessionController } from "../../packages/cli/src/headless/session-controller.js";
 
 describe("HeadlessSessionController", () => {
+  it("keeps headless tooling status, step, and extract paths working", async () => {
+    const controller = await createHeadlessSessionController({
+      config: defineApertureConfig({
+        mode: "headless",
+        render: { defaultCamera: false, defaultLight: false },
+      }),
+      systems: [],
+      seed: 0,
+      assetMode: "placeholder",
+      root: process.cwd(),
+      publicDir: "public",
+      allowHttpAssets: false,
+      determinism: "off",
+    });
+
+    try {
+      expect(controller.status()).toMatchObject({
+        mode: "headless",
+        nextFrame: 0,
+      });
+      expect(controller.step({ frames: 1 })).toMatchObject({
+        nextFrame: 1,
+      });
+      expect(controller.extract({ digest: true }).result).toMatchObject({
+        frame: 1,
+        digests: {
+          snapshot: {
+            algorithm: "fnv1a32-stable-json-v1",
+          },
+        },
+      });
+    } finally {
+      controller.dispose();
+    }
+  });
+
   it("advances multi-frame step time by one delta per frame", async () => {
     const times: number[] = [];
     const controller = await createHeadlessSessionController({
@@ -516,6 +552,63 @@ describe("HeadlessSessionController", () => {
     } finally {
       controller.dispose();
       await rm(out, { force: true });
+    }
+  });
+
+  it("routes throwing feature disposers into the session log instead of crashing (P3.1)", async () => {
+    const logEntries: { code?: string; level: string; message: string }[] = [];
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown): void => {
+      unhandled.push(reason);
+    };
+    process.on("unhandledRejection", onUnhandled);
+
+    try {
+      const controller = await createHeadlessSessionController({
+        config: defineApertureConfig({
+          mode: "headless",
+          render: { defaultCamera: false, defaultLight: false },
+          features: [
+            {
+              id: "exploding-feature",
+              installRuntime: () => () => {
+                throw new Error("feature teardown failed");
+              },
+            },
+          ],
+        }),
+        systems: [],
+        seed: 0,
+        assetMode: "placeholder",
+        root: process.cwd(),
+        publicDir: "public",
+        allowHttpAssets: false,
+        determinism: "off",
+        log: (entry) => {
+          logEntries.push(entry);
+        },
+      });
+
+      controller.step({ frames: 1 });
+      controller.dispose();
+
+      // The rejection settles on a microtask; give it room to surface.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(unhandled).toEqual([]);
+      expect(
+        logEntries.filter(
+          (entry) => entry.code === "aperture.headless.runnerDisposeFailed",
+        ),
+      ).toEqual([
+        expect.objectContaining({
+          level: "warn",
+          message: expect.stringContaining("feature teardown failed"),
+        }),
+      ]);
+    } finally {
+      process.off("unhandledRejection", onUnhandled);
     }
   });
 

@@ -59,7 +59,6 @@ import { getOrCreateWebGpuAppPipeline } from "./pipeline-resources.js";
 import {
   createEmptyRenderSnapshot,
   createWebGpuAppSnapshotUpdateMetadata,
-  renderSnapshotTimeSeconds,
 } from "./snapshot.js";
 import {
   newOcclusionQueryDiagnostics,
@@ -76,11 +75,12 @@ import {
 } from "./queued-built-in-support.js";
 import { prepareSpriteFrameResourcesForSnapshot } from "./sprites.js";
 import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
-import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
 import {
-  mergeSnapshotSortedRenderPassCommands,
-  prepareParticleFrameResourcesForSnapshot,
-} from "./particles.js";
+  prepareWebGpuFeatureFrameResources,
+  webGpuFeatureReports,
+  webGpuParticleFrameReport,
+} from "./built-in-feature-realizers.js";
+import { mergeSnapshotSortedRenderPassCommands } from "./feature-command-groups.js";
 import {
   collectMultiUnlitAppResourceSet,
   createMultiUnlitAppFrameResources,
@@ -896,16 +896,7 @@ export async function renderWebGpuAppFrame(
     worldTransforms: packedTransforms,
     reuse,
   });
-  const particleFrame = await prepareParticleFrameResourcesForSnapshot({
-    app,
-    assets: sourceAssets,
-    cache: resourceCache,
-    snapshot,
-    viewUniforms: packedViews,
-    reuse,
-    time: renderSnapshotTimeSeconds(snapshot),
-  });
-  const uiFrame = await prepareUiFrameResourcesForSnapshot({
+  const featureFrame = await prepareWebGpuFeatureFrameResources({
     app,
     assets: sourceAssets,
     cache: resourceCache,
@@ -913,13 +904,14 @@ export async function renderWebGpuAppFrame(
     viewUniforms: packedViews,
     reuse,
   });
+  const particleReport = webGpuParticleFrameReport(featureFrame);
+  const featureReports = webGpuFeatureReports(featureFrame);
   phaseTimer.finish("prepare");
 
   if (
     !spriteFrame.resources.valid ||
     !textFrame.resources.valid ||
-    !particleFrame.valid ||
-    !uiFrame.valid
+    !featureFrame.valid
   ) {
     return renderReport({
       ok: false,
@@ -938,8 +930,7 @@ export async function renderWebGpuAppFrame(
         ...packedInstanceTints.diagnostics,
         ...spriteFrame.resources.diagnostics,
         ...textFrame.resources.diagnostics,
-        ...particleFrame.diagnostics,
-        ...uiFrame.diagnostics,
+        ...featureFrame.diagnostics,
       ],
     });
   }
@@ -947,21 +938,21 @@ export async function renderWebGpuAppFrame(
   const sortedOverlayCommands = [
     ...spriteFrame.resources.commands,
     ...textFrame.resources.commands,
-    ...particleFrame.commands,
   ];
-  const frameCommands = mergeSnapshotSortedRenderPassCommands({
+  const merged = mergeSnapshotSortedRenderPassCommands({
     snapshot,
     baseCommands: framePlan.commandPlan.commands,
     overlayCommands: sortedOverlayCommands,
+    featureGroups: featureFrame.sceneGroups,
   });
   const indirectDraws = prepareWebGpuAppIndirectDrawCommands({
     app,
     cache: resourceCache,
-    commands: frameCommands,
+    commands: merged.commands,
     label: options.label ?? "aperture-webgpu-app",
   });
   const renderBundleCommands =
-    sortedOverlayCommands.length === 0
+    sortedOverlayCommands.length === 0 && featureFrame.sceneGroups.length === 0
       ? indirectDraws.commands.slice(0, framePlan.commandPlan.commands.length)
       : [];
   phaseTimer.start("submit");
@@ -972,7 +963,7 @@ export async function renderWebGpuAppFrame(
     snapshot,
     commands: indirectDraws.commands,
     renderBundleCommands,
-    overlayCommands: [...particleFrame.overlayCommands, ...uiFrame.commands],
+    overlayCommands: featureFrame.overlayCommands,
     label: options.label ?? "aperture-webgpu-app",
     reuse,
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
@@ -1013,8 +1004,9 @@ export async function renderWebGpuAppFrame(
     framePlan.commandPlan.valid &&
     spriteFrame.resources.diagnostics.length === 0 &&
     textFrame.resources.diagnostics.length === 0 &&
-    particleFrame.diagnostics.length === 0 &&
-    uiFrame.diagnostics.length === 0 &&
+    featureFrame.valid &&
+    featureFrame.diagnostics.length === 0 &&
+    merged.diagnostics.length === 0 &&
     boundaries.valid &&
     (occlusionQueries === undefined ||
       occlusionQueries.status !== "unsupported");
@@ -1047,7 +1039,8 @@ export async function renderWebGpuAppFrame(
       ? {}
       : { indirectDraws: indirectDraws.report }),
     localLightCookieResources: localLightCookieResources.resources,
-    particles: particleFrame.report,
+    particles: particleReport,
+    ...(featureReports === undefined ? {} : { features: featureReports }),
     resourceReuse: reuse,
     phaseTimings: phaseTimer.report(
       resourceCache.phaseTimingHistory,
@@ -1068,8 +1061,8 @@ export async function renderWebGpuAppFrame(
       ...framePlan.commandPlan.diagnostics,
       ...spriteFrame.resources.diagnostics,
       ...textFrame.resources.diagnostics,
-      ...particleFrame.diagnostics,
-      ...uiFrame.diagnostics,
+      ...featureFrame.diagnostics,
+      ...merged.diagnostics,
       ...boundaries.diagnostics,
       ...newOcclusionQueryDiagnostics(
         occlusionQueries,

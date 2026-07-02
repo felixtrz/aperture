@@ -47,6 +47,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@aperture-engine/particles": "workspace:^",
     "@aperture-engine/simulation": "workspace:^"
   }
 }

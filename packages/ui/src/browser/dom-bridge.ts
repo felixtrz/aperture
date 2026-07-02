@@ -1,4 +1,4 @@
-import { type InputState } from "./edit.js";
+import { type InputState } from "../input/edit.js";
 
 /**
  * The subset of a DOM `<input>`/`<textarea>` the bridge needs. Modeled as an

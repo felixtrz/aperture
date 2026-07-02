@@ -26,7 +26,7 @@ export async function decodeImageBytesWithBrowserCanvas(
     const canvas = createImageDecodeCanvas(bitmap.width, bitmap.height);
     const context = canvas.getContext("2d", {
       willReadFrequently: true,
-    }) as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
+    }) as OffscreenCanvasRenderingContext2D | null;
 
     if (context === null) {
       throw new Error("Could not create a 2D canvas context for image decode.");
@@ -71,19 +71,15 @@ function blobPartFromBytes(
   return copiedBuffer;
 }
 
+// Worker-safe by construction: every WebGPU-capable environment ships
+// OffscreenCanvas, so there is no DOM-canvas fallback here. Environments
+// without it (e.g. Node) inject decodeImageData instead.
 function createImageDecodeCanvas(
   width: number,
   height: number,
-): OffscreenCanvas | HTMLCanvasElement {
+): OffscreenCanvas {
   if (typeof OffscreenCanvas === "function") {
     return new OffscreenCanvas(width, height);
-  }
-
-  if (typeof document !== "undefined") {
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    return canvas;
   }
 
   throw new Error(

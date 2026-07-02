@@ -23,6 +23,7 @@ const publicOutput = path.join(
 const packageDirs = [
   "packages/app",
   "packages/simulation",
+  "packages/particles",
   "packages/render",
   "packages/webgpu",
   "packages/runtime",

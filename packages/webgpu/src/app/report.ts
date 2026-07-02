@@ -200,6 +200,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.particles === undefined
       ? {}
       : { particles: toWebGpuAppJsonValue(report.particles) }),
+    ...(report.features === undefined
+      ? {}
+      : { features: toWebGpuAppJsonValue(report.features) }),
     ...(materialDependencyReadiness.length === 0
       ? {}
       : { materialDependencyReadiness }),
@@ -595,6 +598,7 @@ export function renderReport(input: {
     | undefined;
   readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
   readonly particles?: WebGpuAppRenderReport["particles"];
+  readonly features?: WebGpuAppRenderReport["features"];
   readonly drawPackages?: number;
   readonly drawCommands?: number;
   readonly drawCalls?: number;
@@ -695,6 +699,7 @@ export function renderReport(input: {
       ? {}
       : { occlusionQueries: input.occlusionQueries }),
     ...(input.particles === undefined ? {} : { particles: input.particles }),
+    ...(input.features === undefined ? {} : { features: input.features }),
   };
 }
 

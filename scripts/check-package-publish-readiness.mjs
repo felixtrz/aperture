@@ -26,6 +26,7 @@ const publishablePackages = [
   "packages/simulation",
   "packages/physics",
   "packages/physics-rapier",
+  "packages/particles",
   "packages/render",
   "packages/ui",
   "packages/runtime",
@@ -143,6 +144,12 @@ async function checkPackage(packageDir) {
   );
 
   if (!ASSET_ONLY_PACKAGES.has(packageDir)) {
+    if (packageJson.exports?.["./package.json"] !== "./package.json") {
+      fail(
+        `${packageDir}/package.json exports must include "./package.json": "./package.json"`,
+      );
+    }
+
     for (const [field, value] of [
       ["main", packageJson.main],
       ["types", packageJson.types],

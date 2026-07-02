@@ -28,11 +28,11 @@ import {
   releaseWebGpuAppGpuTimingReadbacks,
 } from "./gpu-readback.js";
 import {
-  mergeSnapshotSortedRenderPassCommands,
-  prepareParticleFrameResourcesForSnapshot,
-} from "./particles.js";
-import { renderSnapshotTimeSeconds } from "./snapshot.js";
-import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
+  prepareWebGpuFeatureFrameResources,
+  webGpuFeatureReports,
+  webGpuParticleFrameReport,
+} from "./built-in-feature-realizers.js";
+import { mergeSnapshotSortedRenderPassCommands } from "./feature-command-groups.js";
 import {
   customWgslMaterialRenderPipelineCacheKey,
   type CreateCustomWgslMaterialRenderPipelineResourceResult,
@@ -288,16 +288,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
   });
   options.phaseTimer.finish("queue");
   options.phaseTimer.start("prepare");
-  const particleFrame = await prepareParticleFrameResourcesForSnapshot({
-    app: options.app,
-    assets: options.assets,
-    cache: options.cache,
-    snapshot: options.snapshot,
-    viewUniforms: packedViews,
-    reuse: options.reuse,
-    time: renderSnapshotTimeSeconds(options.snapshot),
-  });
-  const uiFrame = await prepareUiFrameResourcesForSnapshot({
+  const featureFrame = await prepareWebGpuFeatureFrameResources({
     app: options.app,
     assets: options.assets,
     cache: options.cache,
@@ -305,9 +296,11 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     viewUniforms: packedViews,
     reuse: options.reuse,
   });
+  const particleReport = webGpuParticleFrameReport(featureFrame);
+  const featureReports = webGpuFeatureReports(featureFrame);
   options.phaseTimer.finish("prepare");
 
-  if (!particleFrame.valid || !uiFrame.valid) {
+  if (!featureFrame.valid) {
     return renderReport({
       ok: false,
       snapshot: options.snapshot,
@@ -323,25 +316,25 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
         ...packedViews.diagnostics,
         ...packedTransforms.diagnostics,
         ...resources.diagnostics,
-        ...particleFrame.diagnostics,
-        ...uiFrame.diagnostics,
+        ...featureFrame.diagnostics,
       ],
     });
   }
 
-  const frameCommands = mergeSnapshotSortedRenderPassCommands({
+  const merged = mergeSnapshotSortedRenderPassCommands({
     snapshot: options.snapshot,
     baseCommands: framePlan.commandPlan.commands,
-    overlayCommands: particleFrame.commands,
+    overlayCommands: [],
+    featureGroups: featureFrame.sceneGroups,
   });
   const indirectDraws = prepareWebGpuAppIndirectDrawCommands({
     app: options.app,
     cache: options.cache,
-    commands: frameCommands,
+    commands: merged.commands,
     label: options.label ?? "aperture-custom-wgsl-app",
   });
   const renderBundleCommands =
-    particleFrame.commands.length === 0
+    featureFrame.sceneGroups.length === 0
       ? indirectDraws.commands.slice(0, framePlan.commandPlan.commands.length)
       : [];
   options.phaseTimer.start("submit");
@@ -352,7 +345,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     snapshot: options.snapshot,
     commands: indirectDraws.commands,
     renderBundleCommands,
-    overlayCommands: [...particleFrame.overlayCommands, ...uiFrame.commands],
+    overlayCommands: featureFrame.overlayCommands,
     label: options.label ?? "aperture-custom-wgsl-app",
     reuse: options.reuse,
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
@@ -391,8 +384,9 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     framePlan.drawList.valid &&
     framePlan.resources.valid &&
     framePlan.commandPlan.valid &&
-    particleFrame.diagnostics.length === 0 &&
-    uiFrame.diagnostics.length === 0 &&
+    featureFrame.valid &&
+    featureFrame.diagnostics.length === 0 &&
+    merged.diagnostics.length === 0 &&
     boundaries.valid &&
     (occlusionQueries === undefined ||
       occlusionQueries.status !== "unsupported");
@@ -422,7 +416,8 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
       : { depthAttachment: boundaries.depthAttachment }),
     ...(readback === undefined ? {} : { readback }),
     ...(occlusionQueries === undefined ? {} : { occlusionQueries }),
-    particles: particleFrame.report,
+    particles: particleReport,
+    ...(featureReports === undefined ? {} : { features: featureReports }),
     resourceReuse: options.reuse,
     phaseTimings: options.phaseTimer.report(
       options.cache.phaseTimingHistory,
@@ -443,8 +438,8 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
       ...packedViews.diagnostics,
       ...packedTransforms.diagnostics,
       ...resources.diagnostics,
-      ...particleFrame.diagnostics,
-      ...uiFrame.diagnostics,
+      ...featureFrame.diagnostics,
+      ...merged.diagnostics,
       ...boundaries.diagnostics,
       ...newOcclusionQueryDiagnostics(
         occlusionQueries,

@@ -12,11 +12,11 @@ import {
 } from "./sprites.js";
 import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
 import {
-  mergeSnapshotSortedRenderPassCommands,
-  prepareParticleFrameResourcesForSnapshot,
-} from "./particles.js";
-import { renderSnapshotTimeSeconds } from "./snapshot.js";
-import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
+  prepareWebGpuFeatureFrameResources,
+  webGpuFeatureReports,
+  webGpuParticleFrameReport,
+} from "./built-in-feature-realizers.js";
+import { mergeSnapshotSortedRenderPassCommands } from "./feature-command-groups.js";
 import {
   createWebGpuAppResourceReuseReport,
   renderReport,
@@ -141,17 +141,18 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     });
   }
 
-  const particleFrame = await prepareParticleFrameResourcesForSnapshot({
+  const featureFrame = await prepareWebGpuFeatureFrameResources({
     app,
     assets: sourceAssets,
     cache: resourceCache,
     snapshot: options.snapshot,
     viewUniforms: packedViews,
     reuse,
-    time: renderSnapshotTimeSeconds(options.snapshot),
   });
+  const particleReport = webGpuParticleFrameReport(featureFrame);
+  const featureReports = webGpuFeatureReports(featureFrame);
 
-  if (!particleFrame.valid) {
+  if (!featureFrame.valid) {
     return renderReport({
       ok: false,
       snapshot: options.snapshot,
@@ -163,33 +164,7 @@ export async function renderSpriteOnlyWebGpuAppFrame(
         ...packedTransforms.diagnostics,
         ...spriteResources.diagnostics,
         ...textFrame.resources.diagnostics,
-        ...particleFrame.diagnostics,
-      ],
-    });
-  }
-
-  const uiFrame = await prepareUiFrameResourcesForSnapshot({
-    app,
-    assets: sourceAssets,
-    cache: resourceCache,
-    snapshot: options.snapshot,
-    viewUniforms: packedViews,
-    reuse,
-  });
-
-  if (!uiFrame.valid) {
-    return renderReport({
-      ok: false,
-      snapshot: options.snapshot,
-      pipeline,
-      resourceReuse: reuse,
-      diagnostics: [
-        ...options.snapshot.diagnostics,
-        ...packedViews.diagnostics,
-        ...packedTransforms.diagnostics,
-        ...spriteResources.diagnostics,
-        ...textFrame.resources.diagnostics,
-        ...uiFrame.diagnostics,
+        ...featureFrame.diagnostics,
       ],
     });
   }
@@ -218,21 +193,22 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     });
   }
 
+  const merged = mergeSnapshotSortedRenderPassCommands({
+    snapshot: options.snapshot,
+    baseCommands: [],
+    overlayCommands: [
+      ...spriteResources.commands,
+      ...textFrame.resources.commands,
+    ],
+    featureGroups: featureFrame.sceneGroups,
+  });
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app,
     assets: sourceAssets,
     cache: resourceCache,
     snapshot: options.snapshot,
-    commands: mergeSnapshotSortedRenderPassCommands({
-      snapshot: options.snapshot,
-      baseCommands: [],
-      overlayCommands: [
-        ...spriteResources.commands,
-        ...textFrame.resources.commands,
-        ...particleFrame.commands,
-      ],
-    }),
-    overlayCommands: [...particleFrame.overlayCommands, ...uiFrame.commands],
+    commands: merged.commands,
+    overlayCommands: featureFrame.overlayCommands,
     label: options.label ?? "aperture-webgpu-sprite-app",
     reuse,
     ...(options.gpuTimings === undefined
@@ -258,8 +234,9 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     packedTransforms.diagnostics.length === 0 &&
     spriteResources.diagnostics.length === 0 &&
     textFrame.resources.diagnostics.length === 0 &&
-    particleFrame.diagnostics.length === 0 &&
-    uiFrame.diagnostics.length === 0 &&
+    featureFrame.valid &&
+    featureFrame.diagnostics.length === 0 &&
+    merged.diagnostics.length === 0 &&
     boundaries.valid;
   const readback = await mapFrameBoundaryReadbackSamples(
     boundaries.readbackBoundary?.readback,
@@ -282,7 +259,8 @@ export async function renderSpriteOnlyWebGpuAppFrame(
       ? {}
       : { depthAttachment: boundaries.depthAttachment }),
     ...(readback === undefined ? {} : { readback }),
-    particles: particleFrame.report,
+    particles: particleReport,
+    ...(featureReports === undefined ? {} : { features: featureReports }),
     resourceReuse: reuse,
     drawCommands: boundaries.plannedCommands,
     drawCalls: boundaries.drawCalls,
@@ -292,8 +270,8 @@ export async function renderSpriteOnlyWebGpuAppFrame(
       ...packedTransforms.diagnostics,
       ...spriteResources.diagnostics,
       ...textFrame.resources.diagnostics,
-      ...particleFrame.diagnostics,
-      ...uiFrame.diagnostics,
+      ...featureFrame.diagnostics,
+      ...merged.diagnostics,
       ...boundaries.diagnostics,
     ],
   });

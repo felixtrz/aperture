@@ -15,6 +15,7 @@ const shouldRender = process.argv.includes("--render");
 const internalPackages = [
   "@aperture-engine/math",
   "@aperture-engine/simulation",
+  "@aperture-engine/particles",
   "@aperture-engine/render",
   "@aperture-engine/physics",
   "@aperture-engine/physics-rapier",
@@ -138,11 +139,20 @@ async function writeInstallPackageJson(tarballs) {
           "@aperture-engine/app": pathToFileURL(appTarball).href,
           "@aperture-engine/cli": pathToFileURL(cliTarball).href,
         },
-        pnpm: { overrides },
       },
       null,
       2,
     )}\n`,
+    "utf8",
+  );
+  await writeFile(
+    path.join(installDir, "pnpm-workspace.yaml"),
+    `overrides:\n${Object.entries(overrides)
+      .map(
+        ([name, tarball]) =>
+          `  ${JSON.stringify(name)}: ${JSON.stringify(tarball)}`,
+      )
+      .join("\n")}\n`,
     "utf8",
   );
 }

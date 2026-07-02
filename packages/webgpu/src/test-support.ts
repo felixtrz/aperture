@@ -139,6 +139,8 @@ export * from "./render/ui/ui-quad-pipeline.js";
 export * from "./app/ui.js";
 export * from "./render/particles/particle-pipeline.js";
 export * from "./app/particles.js";
+export * from "./app/feature-command-groups.js";
+export * from "./app/built-in-feature-realizers.js";
 export * from "./resources/meshes/prepared-mesh-cache.js";
 export * from "./resources/core/prepared-resource-app-reuse-alignment-summary.js";
 export * from "./resources/core/prepared-resource-lifetime-alignment-summary.js";

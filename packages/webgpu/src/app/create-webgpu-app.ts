@@ -301,6 +301,13 @@ export async function createWebGpuApp(
     removePass(name) {
       return userPassRegistry.removePass(name);
     },
+    registerFeatureRealizer(realizer) {
+      return resourceCache.featureRealizers.register(
+        realizer as Parameters<
+          typeof resourceCache.featureRealizers.register
+        >[0],
+      );
+    },
     setPostEffectEnabled(id, enabled) {
       const effectIndex = postEffects.findIndex((effect) => effect.id === id);
       if (effectIndex < 0) return false;
@@ -359,6 +366,10 @@ export async function createWebGpuApp(
             : { transport: transportStartPayload },
         ),
       );
+    },
+    async dispose() {
+      app.stop();
+      await resourceCache.featureRealizers.dispose();
     },
     stop() {
       if (!running) {
@@ -464,7 +475,11 @@ export async function createWebGpuApp(
       latestStatusReportJson = null;
       latestStatusReportJsonSource = null;
       previousSnapshotForUpdate = report.snapshot;
-      latestWorkerError = null;
+      // A failed report must not erase the worker-error signal: an ok:false
+      // frame is exactly when callers need the last failure to stay visible.
+      if (report.ok) {
+        latestWorkerError = null;
+      }
       return report;
     },
   };

@@ -4,6 +4,7 @@ import {
   registerTransformComponents,
 } from "@aperture-engine/simulation";
 import { registerRenderAuthoringComponents } from "./index.js";
+import { ParticleEmitter, UiScreen } from "./authoring.js";
 import {
   compareRenderSortKeys,
   createQuadSnapshotBuffers,
@@ -48,6 +49,12 @@ export interface RenderExtractionOptions {
   readonly frame?: number;
   readonly time?: number;
   readonly cache?: RenderExtractionCache;
+  readonly features?: RenderExtractionFeatureOptions;
+}
+
+export interface RenderExtractionFeatureOptions {
+  readonly particles?: boolean;
+  readonly ui?: boolean;
 }
 
 export function extractRenderSnapshot(
@@ -168,17 +175,27 @@ export function extractRenderSnapshot(
     quadInstanceWords,
     quadBatches,
   ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
-  const particleEmitters = extractParticleEmitters(
-    world,
-    assets,
-    options.frame ?? 0,
-    options.time ?? 0,
-    transforms,
-    bounds,
-    diagnostics,
-    cameraLayerMask,
-    viewCullContexts,
-  ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
+  const particleEmitters =
+    options.features?.particles === false
+      ? extractGatedFeatureFamilyPlaceholder({
+          world,
+          cache: options.cache,
+          family: "particles",
+          component: ParticleEmitter,
+          diagnostics,
+          placeholder: [],
+        })
+      : extractParticleEmitters(
+          world,
+          assets,
+          options.frame ?? 0,
+          options.time ?? 0,
+          transforms,
+          bounds,
+          diagnostics,
+          cameraLayerMask,
+          viewCullContexts,
+        ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
   // Audio is a derived view too: emitter/listener WORLD matrices ride the same
   // `transforms` array. Not frustum-culled — audibility virtualization is a
   // main-side concern (AU-9).
@@ -194,7 +211,17 @@ export function extractRenderSnapshot(
     diagnostics,
     audioEmitters.length > 0,
   );
-  const uiLayout = extractUiLayout(world, diagnostics, cameraLayerMask);
+  const uiLayout =
+    options.features?.ui === false
+      ? extractGatedFeatureFamilyPlaceholder({
+          world,
+          cache: options.cache,
+          family: "ui",
+          component: UiScreen,
+          diagnostics,
+          placeholder: { nodes: [], hitRegions: [] },
+        })
+      : extractUiLayout(world, diagnostics, cameraLayerMask);
   const skyboxes = extractSkyboxes(world, assets, diagnostics, cameraLayerMask);
   const proceduralSkies = extractProceduralSkies(
     world,
@@ -332,4 +359,50 @@ function diagnosticKey(diagnostic: RenderDiagnostic): string {
     diagnostic.samplerKey ?? "",
     diagnostic.field ?? "",
   ].join("|");
+}
+
+type RenderExtractionQueryComponent = Parameters<
+  EcsWorld["queryManager"]["registerQuery"]
+>[0]["required"][number];
+
+/**
+ * A gated-off feature family extracts nothing — but if the world still holds
+ * live entities of that family, silence would read as a rendering bug. Warn
+ * once per family per extraction-cache lifetime.
+ */
+function extractGatedFeatureFamilyPlaceholder<TPlaceholder>(input: {
+  readonly world: EcsWorld;
+  readonly cache: RenderExtractionCache | undefined;
+  readonly family: "particles" | "ui";
+  readonly component: RenderExtractionQueryComponent;
+  readonly diagnostics: RenderDiagnostic[];
+  readonly placeholder: TPlaceholder;
+}): TPlaceholder {
+  if (input.cache?.gatedFeatureFamiliesReported.has(input.family) === true) {
+    return input.placeholder;
+  }
+
+  const query = input.world.queryManager.registerQuery({
+    required: [input.component],
+  });
+
+  if (hasAnyEntity(query.entities)) {
+    input.cache?.gatedFeatureFamiliesReported.add(input.family);
+    input.diagnostics.push({
+      code: "render.extraction.featureGatedWithLiveEntities",
+      severity: "warning",
+      message: `Render feature '${input.family}' is disabled by the app feature configuration, but the world contains live ${input.family} entities; their packets are not extracted. Add the '${input.family}' feature to the app config (or despawn the entities) to resolve.`,
+    });
+  }
+
+  return input.placeholder;
+}
+
+function hasAnyEntity(entities: Iterable<unknown>): boolean {
+  for (const entity of entities) {
+    void entity;
+    return true;
+  }
+
+  return false;
 }

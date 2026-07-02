@@ -92,11 +92,17 @@ export async function installApertureAppPhysics(
 
     options.physics.setStepReport(report);
   });
+  let disposed = false;
 
   return {
     backend,
     unregister,
     dispose() {
+      if (disposed) {
+        return;
+      }
+
+      disposed = true;
       unregister();
       options.physics.setBackend(null);
       options.physics.clearEvents();

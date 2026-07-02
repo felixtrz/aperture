@@ -4,6 +4,7 @@
     { "path": "./packages/math" },
     { "path": "./packages/simulation" },
     { "path": "./packages/render" },
+    { "path": "./packages/particles" },
     { "path": "./packages/runtime" },
     { "path": "./packages/webgpu" },
     { "path": "./packages/audio" },

@@ -63,6 +63,10 @@
       "types": "./dist/diagnostics.d.ts",
       "import": "./dist/diagnostics.js"
     },
+    "./features": {
+      "types": "./dist/features.d.ts",
+      "import": "./dist/features.js"
+    },
     "./asset-mirror": {
       "types": "./dist/asset-mirror.d.ts",
       "import": "./dist/asset-mirror.js"
@@ -96,6 +100,7 @@
   },
   "dependencies": {
     "@aperture-engine/audio": "workspace:^",
+    "@aperture-engine/particles": "workspace:^",
     "@aperture-engine/physics": "workspace:^",
     "@aperture-engine/physics-rapier": "workspace:^",
     "@aperture-engine/render": "workspace:^",

@@ -22,6 +22,7 @@ export const WEBGPU_APP_RENDER_PHASE_DETAILS = [
   "prepareMainAutoShadow",
   "prepareMainResources",
   "prepareOverlays",
+  "prepareOverlayFeatures",
   "prepareOverlaySprites",
   "prepareOverlayText",
   "prepareOverlayParticles",

@@ -28,6 +28,14 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./app": {
+      "types": "./dist/app.d.ts",
+      "import": "./dist/app.js"
+    },
+    "./browser": {
+      "types": "./dist/browser.d.ts",
+      "import": "./dist/browser.js"
+    },
     "./test-support": {
       "types": "./dist/test-support.d.ts",
       "import": "./dist/test-support.js"

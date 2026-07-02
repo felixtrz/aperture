@@ -7,8 +7,11 @@ import * as advanced from "@aperture-engine/app/advanced";
 import * as browser from "@aperture-engine/app/browser";
 import * as cli from "@aperture-engine/cli";
 import * as config from "@aperture-engine/app/config";
+import * as features from "@aperture-engine/app/features";
 import * as headless from "@aperture-engine/app/headless";
 import * as input from "@aperture-engine/app/input";
+import * as particles from "@aperture-engine/particles";
+import * as particlesApp from "@aperture-engine/particles/app";
 import * as systems from "@aperture-engine/app/systems";
 import * as vite from "@aperture-engine/app/vite";
 import * as worker from "@aperture-engine/app/worker";
@@ -16,6 +19,10 @@ import * as render from "@aperture-engine/render";
 import * as renderTestSupport from "@aperture-engine/render/test-support";
 import * as runtime from "@aperture-engine/runtime";
 import * as simulation from "@aperture-engine/simulation";
+import * as ui from "@aperture-engine/ui";
+import * as uiApp from "@aperture-engine/ui/app";
+import * as uiBrowser from "@aperture-engine/ui/browser";
+import * as webgpu from "@aperture-engine/webgpu";
 
 const APP_PUBLIC_SUBPATHS = [
   ".",
@@ -26,6 +33,7 @@ const APP_PUBLIC_SUBPATHS = [
   "./config",
   "./diagnostics",
   "./entity-lookup",
+  "./features",
   "./headless",
   "./headless-tools",
   "./input",
@@ -45,6 +53,7 @@ const APP_PUBLIC_IMPORTS = new Set([
 
 const PUBLISHABLE_PACKAGE_DIRS = [
   "packages/simulation",
+  "packages/particles",
   "packages/render",
   "packages/runtime",
   "packages/webgpu",
@@ -66,6 +75,7 @@ describe("Aperture package entrypoints", () => {
     expect("defineApertureConfig" in config).toBe(true);
     expect("createSystem" in systems).toBe(true);
     expect("createApertureApp" in advanced).toBe(true);
+    expect("installApertureWorkerFeatures" in features).toBe(true);
     expect("createApertureHeadlessRunner" in headless).toBe(true);
     expect("createGeneratedInputEventMessage" in input).toBe(true);
     expect("startGeneratedBrowserApp" in browser).toBe(true);
@@ -75,8 +85,30 @@ describe("Aperture package entrypoints", () => {
 
   it("keeps focused lower-layer package surfaces available", () => {
     expect("createWorld" in simulation).toBe(true);
+    expect("ParticleSimulationSpace" in particles).toBe(true);
+    expect("ParticleBlendMode" in particles).toBe(true);
+    expect("createParticleEffectAsset" in particles).toBe(true);
+    expect(particlesApp.particlesFeature()).toEqual({ id: "particles" });
+    expect(render.ParticleBlendMode).toBe(particles.ParticleBlendMode);
+    expect(render.createParticleEffectAsset).toBe(
+      particles.createParticleEffectAsset,
+    );
+    expect(render.ParticleSimulationSpace).toBe(
+      particles.ParticleSimulationSpace,
+    );
+    expect(runtime.ParticleSimulationSpace).toBe(
+      particles.ParticleSimulationSpace,
+    );
+    expect(systems.ParticleSimulationSpace).toBe(
+      particles.ParticleSimulationSpace,
+    );
     expect("extractRenderSnapshot" in render).toBe(true);
     expect("createExtractionApp" in runtime).toBe(true);
+    expect(uiApp.uiFeature()).toEqual({ id: "ui" });
+    expect("createHiddenInputBridge" in ui).toBe(false);
+    expect("createHiddenInputBridge" in uiBrowser).toBe(true);
+    expect("createWebGpuFeatureRealizerRegistry" in webgpu).toBe(true);
+    expect("createWebGpuFeatureCommandGroupsFromCommands" in webgpu).toBe(true);
   });
 
   it("keeps render inspection diagnostics behind test support", () => {
@@ -161,6 +193,10 @@ describe("Aperture package entrypoints", () => {
       expect(packageJson.publishConfig, packageDir).toMatchObject({
         access: "public",
       });
+      expect(packageJson.exports, packageDir).toHaveProperty(
+        "./package.json",
+        "./package.json",
+      );
       await expectFileExists(path.join(packageDir, "LICENSE"));
 
       for (const [sectionName, dependencies] of [

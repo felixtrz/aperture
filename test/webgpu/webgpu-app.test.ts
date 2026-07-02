@@ -976,6 +976,266 @@ describe("WebGPU app facade", () => {
     }
   });
 
+  it("lets renderer apps register and unregister WebGPU feature realizers", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const preparedFrames: number[] = [];
+    const disposed: string[] = [];
+    const unregister = app.registerFeatureRealizer({
+      id: "custom-feature",
+      packetFamilies: ["customPackets"],
+      prepareFrame(input) {
+        preparedFrames.push(input.snapshot.frame);
+        expect(input.app.canvas).toBe(app.canvas);
+        expect(input.app.renderWorld).toBe(app.renderWorld);
+        expect(input.assets).toBe(app.assets);
+        return {
+          valid: true,
+          commandGroups: [],
+          report: { customDraws: 3 },
+        };
+      },
+      dispose() {
+        disposed.push("custom-feature");
+      },
+    });
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "White" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const firstFrame = await app.stepAndRender(1 / 60, 1, 21);
+
+    expect(firstFrame.ok).toBe(true);
+    expect(preparedFrames).toEqual([21]);
+    // Third-party realizer reports surface through the generic section.
+    expect(firstFrame.features?.["custom-feature"]).toEqual({ customDraws: 3 });
+    expect(firstFrame.particles).toBeDefined();
+
+    await unregister();
+
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 22);
+
+    expect(secondFrame.ok).toBe(true);
+    expect(preparedFrames).toEqual([21]);
+    expect(disposed).toEqual(["custom-feature"]);
+  });
+
+  it("rejects feature realizers that collide with built-in ids at registration time", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    for (const id of ["particles", "ui"]) {
+      expect(() =>
+        created.app.registerFeatureRealizer({
+          id,
+          packetFamilies: [],
+          prepareFrame: () => ({ valid: true, commandGroups: [] }),
+        }),
+      ).toThrow(`WebGPU feature realizer '${id}' is already registered.`);
+    }
+
+    // The failed registrations must not brick rendering.
+    const spawnScene = createRenderAssetCollections({
+      registry: created.app.assets,
+    });
+    const mesh = spawnScene.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = spawnScene.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "White" }),
+    );
+    created.app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    created.app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await created.app.stepAndRender(1 / 60, 1, 1);
+
+    expect(frame.ok).toBe(true);
+  });
+
+  it("renders through realizers that report advisory diagnostics or empty groups", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    app.registerFeatureRealizer({
+      id: "debug-lines",
+      packetFamilies: ["debugLines"],
+      prepareFrame: () => ({
+        valid: true,
+        commandGroups: [
+          {
+            featureId: "debug-lines",
+            phase: "overlay",
+            ordinal: 3_000,
+            commands: [],
+          },
+        ],
+        diagnostics: [
+          { code: "debugLines.idleFrame", message: "no lines this frame" },
+        ],
+      }),
+    });
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "White" }),
+    );
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 1);
+
+    // An advisory diagnostic must not prevent submission: the frame still
+    // draws and the diagnostic rides along in the report.
+    expect(frame.counts.drawCalls).toBeGreaterThan(0);
+    expect(frame.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "debugLines.idleFrame" }),
+      ]),
+    );
+  });
+
+  it("propagates feature realizer exceptions as loud render failures", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    app.registerFeatureRealizer({
+      id: "broken-feature",
+      packetFamilies: [],
+      prepareFrame: () => {
+        throw new Error("feature GPU state was destroyed");
+      },
+    });
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "White" }),
+    );
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    await expect(app.stepAndRender(1 / 60, 1, 1)).rejects.toThrow(
+      "feature GPU state was destroyed",
+    );
+  });
+
+  it("disposes registered feature realizers on app dispose", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const disposed: string[] = [];
+    created.app.registerFeatureRealizer({
+      id: "custom-feature",
+      packetFamilies: [],
+      prepareFrame: () => ({ valid: true, commandGroups: [] }),
+      dispose() {
+        disposed.push("custom-feature");
+      },
+    });
+
+    await created.app.dispose();
+    await created.app.dispose();
+
+    expect(disposed).toEqual(["custom-feature"]);
+  });
+
   it("initializes WebGPU and renders the unlit queue path from ECS-authored entities", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
@@ -1666,6 +1926,7 @@ describe("WebGPU app facade", () => {
       "prepareMainAutoShadow",
       "prepareMainResources",
       "prepareOverlays",
+      "prepareOverlayFeatures",
       "prepareOverlaySprites",
       "prepareOverlayText",
       "prepareOverlayParticles",
