@@ -489,6 +489,43 @@ describe("context.random + context.time replay (PD.1/PD.2/PD.3)", () => {
     expect(restored.runner.getStatus().signals["phase"]).toBe("frame:4");
   });
 
+  it("stamps restored simulation time into the first post-restore extract", async () => {
+    const config = defineApertureConfig({
+      mode: "headless",
+      render: { defaultCamera: false, defaultLight: false },
+      signals: {
+        phase: signal.string("boot"),
+      },
+    });
+    const systems = [sessionSnapshotSystem()];
+    const runner = await createApertureHeadlessRunner({
+      config,
+      systems,
+      random: 1,
+    });
+
+    runner.step(1 / 60, 0);
+    runner.step(1 / 60, 1 / 60);
+
+    const snapshot = JSON.parse(
+      JSON.stringify(createApertureSessionSnapshot(runner)),
+    ) as ApertureSessionSnapshot;
+    expect(snapshot.runtime.time.elapsed).toBeGreaterThan(0);
+
+    const restored = await restoreApertureHeadlessRunnerFromSessionSnapshot({
+      config,
+      systems,
+      random: 1,
+      snapshot,
+    });
+    expect(restored.restore.ok).toBe(true);
+
+    // Extract WITHOUT stepping first: the snapshot must carry the restored
+    // simulation time, not a zero re-initialized extraction clock.
+    const report = restored.runner.extract(snapshot.runtime.frame);
+    expect(report.snapshot.time).toBe(snapshot.runtime.time.elapsed);
+  });
+
   it("restores fixed-step accumulator state before continuing", async () => {
     const config = defineApertureConfig({
       mode: "headless",

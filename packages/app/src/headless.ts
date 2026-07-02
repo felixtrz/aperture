@@ -801,6 +801,10 @@ function restoreApertureSessionSnapshotIntoRunner(
   );
 
   restoreApertureFrameTime(target.app.context.time, snapshot.runtime.time);
+  // The extraction app tracks its own extract-time seeded by step(); restore
+  // replaces simulation time without stepping, so prime it here or the first
+  // post-restore extract stamps time 0 into the snapshot.
+  target.app.lowLevel.primeExtractionTime(snapshot.runtime.time.elapsed);
   const systems = restoreSessionSystemStates(
     target.app,
     snapshot.runtime.systems,
