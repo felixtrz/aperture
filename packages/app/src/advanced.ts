@@ -164,7 +164,9 @@ export async function createApertureApp(
       : options.fixedStep;
   // Mirrors createSimulationFixedStepRunner's disabled condition.
   const fixedStepEnabled =
-    fixedStep !== undefined && fixedStep !== false && fixedStep.enabled !== false;
+    fixedStep !== undefined &&
+    fixedStep !== false &&
+    fixedStep.enabled !== false;
   const lowLevel = createExtractionApp({
     ...(options.worldOptions === undefined
       ? {}

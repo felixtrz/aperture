@@ -246,10 +246,7 @@ describe("Aperture CLI PNG readback tools", () => {
     ]);
 
     const result = readPngSamples(png, {
-      samples: [
-        [1, 1],
-        { id: "valid", x: 0, y: 0, coordinateSpace: "pixel" },
-      ],
+      samples: [[1, 1], { id: "valid", x: 0, y: 0, coordinateSpace: "pixel" }],
     });
 
     expect(result.ok).toBe(false);
