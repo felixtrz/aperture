@@ -40,6 +40,7 @@ import {
   createApertureSnapshotBundle,
   renderBundleTargetFromRenderDefaults,
 } from "./bundle.js";
+import { syncAutoAspectCameras } from "./auto-aspect.js";
 
 export const DEFAULT_HEADLESS_DELTA = 1 / 60;
 export const DEFAULT_HEADLESS_RENDER_WIDTH = 960;
@@ -55,6 +56,9 @@ export interface HeadlessSessionControllerOptions {
   readonly decoderAssetsDir?: string;
   readonly allowHttpAssets: boolean;
   readonly determinism: ApertureDeterminismDiagnosticsMode;
+  /** Session render target; drives autoAspect cameras. Defaults to 960x640. */
+  readonly renderWidth?: number;
+  readonly renderHeight?: number;
   readonly log?: (entry: HeadlessSessionLogEntry) => void;
 }
 
@@ -186,6 +190,15 @@ export async function createHeadlessSessionController(
     options.log?.(entry);
   }
 
+  const sessionRenderWidth = positiveIntegerValue(
+    options.renderWidth,
+    DEFAULT_HEADLESS_RENDER_WIDTH,
+  );
+  const sessionRenderHeight = positiveIntegerValue(
+    options.renderHeight,
+    DEFAULT_HEADLESS_RENDER_HEIGHT,
+  );
+
   const state: MutableControllerState = {
     runner: await bootRunner(options, options.seed),
     entityTools: undefined as unknown as GeneratedEntityToolBridge,
@@ -197,6 +210,17 @@ export async function createHeadlessSessionController(
   );
   await state.runner.app.preload;
   logPlaceholders(log, state.runner);
+  syncAspect();
+
+  // Keep autoAspect cameras matched to the render target that snapshots will
+  // be rendered at (finding F4). Runs before every extraction so cameras
+  // spawned later in the session are covered too.
+  function syncAspect(
+    width = sessionRenderWidth,
+    height = sessionRenderHeight,
+  ): void {
+    syncAutoAspectCameras(state.runner.app.lowLevel.world, width, height);
+  }
 
   async function boot(seed: number): Promise<void> {
     const previous = state.runner;
@@ -209,6 +233,7 @@ export async function createHeadlessSessionController(
     state.savedCameraStates = new Map();
     state.seed = seed;
     logPlaceholders(log, state.runner);
+    syncAspect();
   }
 
   function compactStatus(): unknown {
@@ -238,6 +263,7 @@ export async function createHeadlessSessionController(
   }
 
   function step(input: HeadlessStepInput = {}): unknown {
+    syncAspect();
     const frames = positiveIntegerValue(input.frames, 1);
     const delta = finiteNumber(input.delta, DEFAULT_HEADLESS_DELTA);
     const baseTime = finiteNumber(
@@ -305,6 +331,7 @@ export async function createHeadlessSessionController(
     readonly snapshot: RenderSnapshot;
     readonly result: unknown;
   } {
+    syncAspect();
     const report = state.runner.extract(
       finiteNumber(input.frame, state.runner.getStatus().nextFrame),
     );
@@ -372,6 +399,12 @@ export async function createHeadlessSessionController(
       current.lastSnapshot === null
         ? current.nextFrame
         : current.lastSnapshot.frame;
+    // Re-extract with autoAspect cameras matched to THIS bundle's render
+    // target so the recorded projection fits the requested output size.
+    syncAspect(
+      positiveIntegerValue(input.width, DEFAULT_HEADLESS_RENDER_WIDTH),
+      positiveIntegerValue(input.height, DEFAULT_HEADLESS_RENDER_HEIGHT),
+    );
     const report = state.runner.extract(frame);
     const bundle = createApertureSnapshotBundle({
       snapshot: report.snapshot,
@@ -453,6 +486,7 @@ export async function createHeadlessSessionController(
       state.runner.app.lowLevel.world,
     );
     state.savedCameraStates = new Map();
+    syncAspect();
 
     return {
       ok: restored.restore.ok,

@@ -518,4 +518,95 @@ describe("HeadlessSessionController", () => {
       await rm(out, { force: true });
     }
   });
+
+  it("matches autoAspect camera projections to the render target (F4)", async () => {
+    const controller = await createHeadlessSessionController({
+      config: defineApertureConfig({
+        mode: "headless",
+        render: { defaultCamera: false, defaultLight: false },
+      }),
+      systems: [
+        {
+          default: class AspectSetupSystem extends createSystem() {
+            override init(): void {
+              // Default camera opts into autoAspect; the explicit-aspect
+              // camera must keep its authored projection untouched.
+              this.spawn.camera({
+                key: "cam.auto",
+                transform: { translation: [0, 1, 6], lookAt: [0, 0, 0] },
+                fovYDegrees: 60,
+              });
+              this.spawn.camera({
+                key: "cam.fixed",
+                transform: { translation: [0, 2, 6], lookAt: [0, 0, 0] },
+                camera: { aspect: 0.75, priority: 1 },
+              });
+              this.spawn.mesh({
+                key: "cube",
+                mesh: mesh.box({ size: [1, 1, 1] }),
+                material: material.standard(),
+                transform: { translation: [0, 0, 0] },
+              });
+            }
+          },
+        },
+      ],
+      seed: 0,
+      assetMode: "placeholder",
+      root: process.cwd(),
+      publicDir: "public",
+      allowHttpAssets: false,
+      determinism: "off",
+    });
+
+    const out = path.join(
+      os.tmpdir(),
+      `aperture-auto-aspect-${process.pid}.json`,
+    );
+
+    try {
+      controller.step({ frames: 1 });
+
+      // Session default render target is 960x640 => aspect 1.5.
+      expect(cameraAspect(controller, "cam.auto")).toBeCloseTo(1.5, 5);
+      expect(cameraAspect(controller, "cam.fixed")).toBeCloseTo(0.75, 5);
+
+      // A bundle re-extracts against its own render target => aspect 2.
+      await controller.createBundle({ out, width: 800, height: 400 });
+      expect(cameraAspect(controller, "cam.auto")).toBeCloseTo(2, 5);
+      expect(cameraAspect(controller, "cam.fixed")).toBeCloseTo(0.75, 5);
+
+      const bundle = JSON.parse(await readFile(out, "utf8")) as {
+        snapshot: {
+          value: { viewMatrices: { base64: string } };
+        };
+      };
+      const matrixBytes = Buffer.from(
+        bundle.snapshot.value.viewMatrices.base64,
+        "base64",
+      );
+      const floats = new Float32Array(
+        matrixBytes.buffer,
+        matrixBytes.byteOffset,
+        matrixBytes.byteLength / 4,
+      );
+      // Per-view packing: [view(16), projection(16), viewProjection(16)].
+      // P[1][1] / P[0][0] is the projection's recorded aspect.
+      expect((floats[21] ?? 0) / (floats[16] ?? 1)).toBeCloseTo(2, 4);
+    } finally {
+      controller.dispose();
+      await rm(out, { force: true });
+    }
+  });
 });
+
+function cameraAspect(
+  controller: Awaited<ReturnType<typeof createHeadlessSessionController>>,
+  key: string,
+): number {
+  const result = controller.callTool({
+    name: "camera_get",
+    arguments: { key },
+  }) as { result?: { camera?: { aspect?: number } } };
+  return result.result?.camera?.aspect ?? Number.NaN;
+}
