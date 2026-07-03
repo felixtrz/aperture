@@ -1,5 +1,19 @@
 # @aperture-engine/runtime
 
+## 0.3.0
+
+### Minor Changes
+
+- Move particle contracts behind compatibility exports, add feature-package plumbing for worker-safe app composition, and resolve runtime issues #59-#76 around animation controls and session snapshot restore.
+
+### Patch Changes
+
+- Updated dependencies:
+  - @aperture-engine/particles@0.3.0
+  - @aperture-engine/physics@0.3.0
+  - @aperture-engine/render@0.3.0
+  - @aperture-engine/simulation@0.3.0
+
 ## 0.2.0
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@aperture-engine/particles",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Particle authoring contracts and domain types for Aperture.",
   "author": "Felix Zhang",
   "repository": {

@@ -756,9 +756,12 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     const logs = await runCli(["dev", "logs", "--lines", "5"]);
     expect(logs.stdout).toContain("browser.log");
 
-    const referenceBuild = await runCli(["reference", "warmup"], {
-      timeout: 120_000,
-    });
+    const referenceBuild = await runCli(
+      ["reference", "warmup", "--from", "workspace"],
+      {
+        timeout: 120_000,
+      },
+    );
     expect(referenceBuild.stdout).toContain("Warmed Aperture reference corpus");
 
     const referenceSearch = await runCli([
@@ -782,6 +785,13 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
         }),
       ]),
     });
+    const spinCrateReference = (
+      mcpReferenceSearch.structuredContent as {
+        readonly results?: readonly { readonly file?: string }[];
+      }
+    ).results?.find((result) => result.file?.endsWith("spin-crate.system.ts"));
+    expect(spinCrateReference).toBeDefined();
+    const spinCrateReferenceFile = spinCrateReference?.file ?? "";
 
     const apiLookup = await callMcpTool("reference_api_lookup", {
       symbol: "createSystem",
@@ -792,12 +802,12 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     });
 
     const fileContent = await callMcpTool("reference_file_content", {
-      file: "examples/developer-api/src/systems/spin-crate.system.ts",
+      file: spinCrateReferenceFile,
     });
     expect(fileContent.structuredContent).toMatchObject({
       ok: true,
       entry: {
-        file: "examples/developer-api/src/systems/spin-crate.system.ts",
+        file: spinCrateReferenceFile,
       },
     });
 
@@ -1231,10 +1241,13 @@ test("aperture create produces an installable app that works with CLI AI tools",
       },
     });
 
-    const referenceBuild = await runCli(["reference", "warmup"], {
-      cwd: appRoot,
-      timeout: 120_000,
-    });
+    const referenceBuild = await runCli(
+      ["reference", "warmup", "--from", "workspace"],
+      {
+        cwd: appRoot,
+        timeout: 120_000,
+      },
+    );
     expect(referenceBuild.stdout).toContain("Warmed Aperture reference corpus");
     const referenceSearch = await runCli(
       ["reference", "search", "Starter Cube", "--limit", "3"],

@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { inflateSync } from "node:zlib";
 import { decode as decodeSourceMapMappings } from "@jridgewell/sourcemap-codec";
-import { chromium } from "playwright";
+import { chromium } from "@playwright/test";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_OUT_DIR = path.join(ROOT, "tmp", "racing-render-loop-traces");

@@ -1,6 +1,6 @@
 {
   "name": "@aperture-engine/reference-assets",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Producer pipeline and versioned reference corpus payloads for Aperture CLI reference tools.",
   "author": "Felix Zhang",
   "repository": {
@@ -32,6 +32,7 @@
     "ingest": "node ./scripts/ingest.mjs",
     "build:payload": "node ./scripts/build-payload.mjs",
     "build:payload:if-ready": "node ./scripts/build-payload.mjs --if-ready",
+    "build:payload:if-current": "node ./scripts/build-payload.mjs --if-current",
     "build": "node ./scripts/build-assets.mjs",
     "build:if-ready": "node ./scripts/build-assets.mjs --if-ready",
     "prepare": "pnpm run build:if-ready",

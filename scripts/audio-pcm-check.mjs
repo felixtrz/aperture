@@ -10,7 +10,7 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium } from "playwright";
+import { chromium } from "@playwright/test";
 
 const rootDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -186,10 +186,58 @@ try {
       return max;
     }
 
+    function createOfflineBackend(context) {
+      return {
+        get currentTime() {
+          return context.currentTime;
+        },
+        get state() {
+          return "running";
+        },
+        get sampleRate() {
+          return context.sampleRate;
+        },
+        get baseLatency() {
+          return context.baseLatency ?? 0;
+        },
+        get outputLatency() {
+          return context.outputLatency ?? 0;
+        },
+        get listener() {
+          return context.listener;
+        },
+        get destination() {
+          return context.destination;
+        },
+        resume: async () => {},
+        suspend: async () => {},
+        close: async () => {},
+        decode: (bytes) => context.decodeAudioData(bytes.slice(0)),
+        createGain: () => context.createGain(),
+        createSource: () => context.createBufferSource(),
+        createMediaSource: () => {
+          throw new Error(
+            "OfflineAudioContext does not support media sources.",
+          );
+        },
+        createStreamingSource: () => {
+          throw new Error(
+            "OfflineAudioContext does not support streamed sources.",
+          );
+        },
+        createPanner: () => context.createPanner(),
+        createBiquad: () => context.createBiquadFilter(),
+        createConvolver: () => context.createConvolver(),
+        createAnalyser: () => context.createAnalyser(),
+        createCompressor: () => context.createDynamicsCompressor(),
+        createWorkletLimiter: async () => null,
+      };
+    }
+
     async function render(emitters, listener, transforms, seconds) {
       const ctx = new OfflineAudioContext(2, Math.floor(SR * seconds), SR);
       const engine = createAudioEngineOrThrow({
-        web: { context: ctx },
+        backend: createOfflineBackend(ctx),
         resolveClip: () => ({
           bytes: makeWav(440, 1),
           streaming: false,

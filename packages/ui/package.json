@@ -1,6 +1,6 @@
 {
   "name": "@aperture-engine/ui",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Flexbox UI for Aperture: Yoga layout, SDF panels, text input, scrollbars, conditional/responsive styling, and prebuilt kits.",
   "author": "Felix Zhang",
   "repository": {

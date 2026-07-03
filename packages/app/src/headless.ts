@@ -71,7 +71,7 @@ import {
 export const APERTURE_SESSION_SNAPSHOT_FORMAT =
   "aperture.session-snapshot" as const;
 export const APERTURE_SESSION_SNAPSHOT_VERSION = 1 as const;
-export const APERTURE_SESSION_SNAPSHOT_APP_VERSION = "0.2.0" as const;
+export const APERTURE_SESSION_SNAPSHOT_APP_VERSION = "0.3.0" as const;
 
 export interface CreateApertureHeadlessRunnerOptions extends Omit<
   CreateApertureAppOptions,

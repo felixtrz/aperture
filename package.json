@@ -1,6 +1,6 @@
 {
   "name": "@aperture-engine/workspace",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "WebGPU-only, ECS-native 3D runtime where simulation is authoritative and rendering is a derived view.",
   "type": "module",
   "license": "MIT",
@@ -68,11 +68,12 @@
     "reference-assets:ingest": "pnpm --filter @aperture-engine/reference-assets run ingest",
     "reference-assets:build": "pnpm --filter @aperture-engine/reference-assets run build",
     "reference-assets:build-payload": "pnpm --filter @aperture-engine/reference-assets run build:payload",
-    "publish:dry-run": "pnpm run build && pnpm run reference-assets:build-payload && pnpm run check:publish:pack",
+    "reference-assets:build-payload:if-current": "pnpm --filter @aperture-engine/reference-assets run build:payload:if-current",
+    "publish:dry-run": "pnpm run build && pnpm run reference-assets:build-payload:if-current && pnpm run check:publish:pack",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release:dry-run": "pnpm run publish:dry-run",
-    "release:publish": "pnpm run build && pnpm run reference-assets:build-payload && pnpm run check:publish:pack && changeset publish",
+    "release:publish": "pnpm run build && pnpm run reference-assets:build-payload:if-current && pnpm run check:publish:pack && changeset publish",
     "check": "pnpm run check:boundaries && pnpm run check:headless-boundaries && pnpm run check:e2e-hygiene && pnpm run check:release-config && pnpm run typecheck && pnpm run check:publish && pnpm run check:render-bundles && pnpm run check:pack-cli && pnpm run typecheck:test && pnpm run check:examples && pnpm run check:docs && pnpm run check:diagnostics && pnpm run lint && pnpm run format:check && pnpm test",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

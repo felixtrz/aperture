@@ -406,10 +406,10 @@ describe("context.random + context.time replay (PD.1/PD.2/PD.3)", () => {
     ) as ApertureSessionSnapshot;
     expect(snapshot.format).toBe("aperture.session-snapshot");
     expect(snapshot.bootstrap).toMatchObject({
-      apertureVersion: "0.2.0",
+      apertureVersion: "0.3.0",
       appMode: "headless",
       packageVersions: {
-        "@aperture-engine/app": "0.2.0",
+        "@aperture-engine/app": "0.3.0",
       },
     });
     expect(snapshot.bootstrap.systemModules).toHaveLength(1);

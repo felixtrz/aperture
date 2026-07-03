@@ -176,7 +176,7 @@ describe("Aperture package entrypoints", () => {
 
     expect(rootPackage).toMatchObject({
       private: true,
-      version: "0.2.0",
+      version: "0.3.0",
       license: "MIT",
     });
     expect(rootLicense).toContain("MIT License");
