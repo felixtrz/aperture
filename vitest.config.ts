@@ -214,6 +214,14 @@ export default defineConfig({
     ],
   },
   test: {
+    // Shuffle file and test order on EVERY run — vitest prints the seed
+    // ('Running tests with seed "..."'; reproduce a failure with
+    // --sequence.shuffle --sequence.seed=<seed>). Order-dependent tests fail
+    // loudly at the developer's desk instead of intermittently in CI; every
+    // test must pass in isolation and in any order.
+    sequence: {
+      shuffle: true,
+    },
     exclude: [
       "test/e2e/**",
       "node_modules/**",

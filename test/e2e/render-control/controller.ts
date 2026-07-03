@@ -59,10 +59,24 @@ type ExampleControlGlobal = typeof globalThis & {
 export async function startBrowser(
   options: StartBrowserOptions = {},
 ): Promise<RenderControlBrowser> {
+  // Deliberately a HARDWARE-GPU chrome stack, not the SwiftShader project
+  // stack: the one spec driving this helper (dof) is excluded from the
+  // SwiftShader environments because its blur never converges under software
+  // rendering (see playwright.ci.config.ts testIgnore). Headed system chrome
+  // exposes the real adapter where one exists and the spec skips cleanly via
+  // skipIfUnsupportedWebGpu where none does. The throttling-decoupling flags
+  // match the other configs so frame pacing is comparable.
   const browserServer = await chromium.launchServer({
     channel: options.channel ?? "chrome",
     headless: options.headless ?? false,
-    args: ["--enable-unsafe-webgpu"],
+    args: [
+      "--enable-unsafe-webgpu",
+      "--disable-frame-rate-limit",
+      "--disable-gpu-vsync",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-renderer-backgrounding",
+      "--disable-background-timer-throttling",
+    ],
   });
   const browser = await chromium.connect(browserServer.wsEndpoint());
   const page = await browser.newPage({

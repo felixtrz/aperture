@@ -3,6 +3,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {
+  afterAll,
   afterEach,
   beforeAll,
   beforeEach,
@@ -22,6 +23,7 @@ const transformerMock = vi.hoisted(() => ({
 }));
 
 const tempRoots: string[] = [];
+let sharedCacheDir: string | null = null;
 const MOCK_EMBEDDING_DIMENSIONS = 768;
 const TRANSFORMERS_LOADER_GLOBAL = "__APERTURE_REFERENCE_TRANSFORMERS_LOADER__";
 let embeddedTexts: string[] = [];
@@ -44,6 +46,15 @@ describe(
   { timeout: REFERENCE_TEST_TIMEOUT_MS },
   () => {
     beforeAll(async () => {
+      // Every warm publishes the manifest/archive to the machine-global
+      // shared cache (~/.cache/aperture/reference on Linux). Point it at a
+      // per-run temp dir so ~12 warms per suite run neither pollute the
+      // developer's real cache nor race a concurrent checkout sharing $HOME.
+      sharedCacheDir = await mkdtemp(
+        path.join(os.tmpdir(), "aperture-reference-shared-cache-"),
+      );
+      vi.stubEnv("APERTURE_REFERENCE_CACHE_DIR", sharedCacheDir);
+
       const cli = await import("@aperture-engine/cli");
 
       apertureReferenceArchiveFile = cli.apertureReferenceArchiveFile;
@@ -87,6 +98,14 @@ describe(
           return new Response(body, { status: 200 });
         }),
       );
+    });
+
+    afterAll(async () => {
+      vi.unstubAllEnvs();
+      if (sharedCacheDir !== null) {
+        await rm(sharedCacheDir, { force: true, recursive: true });
+        sharedCacheDir = null;
+      }
     });
 
     afterEach(async () => {

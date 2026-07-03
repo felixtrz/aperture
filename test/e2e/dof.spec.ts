@@ -8,6 +8,7 @@ import {
   expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
+  waitForPresentedFrames,
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
 
@@ -89,7 +90,7 @@ test("browser submits depth of field post effect with focused output", async () 
     });
 
     await page.bringToFront().catch(() => undefined);
-    await page.waitForTimeout(1000);
+    await waitForPresentedFrames(page, 10);
 
     const dofScreenshot = await page.locator("#dof-canvas-dof").screenshot();
     const dofImage = readPngImage(dofScreenshot);

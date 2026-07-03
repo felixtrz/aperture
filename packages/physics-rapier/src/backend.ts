@@ -84,6 +84,7 @@ import {
   requireEventQueue,
   requireWorld,
 } from "./util.js";
+import { compareStableStrings } from "./stable-order.js";
 
 export interface RapierPhysicsBackendOptions {
   readonly gravity?: PhysicsVec3;
@@ -261,7 +262,7 @@ export function createRapierPhysicsBackend(
       out.events.length = 0;
 
       for (const entry of [...bodies.values()].sort((a, b) =>
-        a.entity.localeCompare(b.entity),
+        compareStableStrings(a.entity, b.entity),
       )) {
         out.bodies.push(bodyResult(entry));
       }
@@ -331,8 +332,8 @@ export function createRapierPhysicsBackend(
       return hits.sort(
         (a, b) =>
           a.distance - b.distance ||
-          a.entity.localeCompare(b.entity) ||
-          (a.collider ?? "").localeCompare(b.collider ?? ""),
+          compareStableStrings(a.entity, b.entity) ||
+          compareStableStrings(a.collider ?? "", b.collider ?? ""),
       );
     },
     overlapShape(
@@ -378,8 +379,8 @@ export function createRapierPhysicsBackend(
 
       return hits.sort(
         (a, b) =>
-          a.entity.localeCompare(b.entity) ||
-          (a.collider ?? "").localeCompare(b.collider ?? ""),
+          compareStableStrings(a.entity, b.entity) ||
+          compareStableStrings(a.collider ?? "", b.collider ?? ""),
       );
     },
     castShapeFirst(

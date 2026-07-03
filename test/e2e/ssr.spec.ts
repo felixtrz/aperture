@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { readPngImage, type PngImage } from "./png.js";
 import {
@@ -7,6 +7,7 @@ import {
   expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
+  waitForPresentedFrames,
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
 
@@ -57,70 +58,114 @@ test("browser blends visible screen-space reflections from scene depth", async (
   }
 
   skipIfUnsupportedWebGpu(status);
-  expectStatusJsonSafeForGpu(status);
-  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-    example: "ssr",
-    ok: true,
-    phase: "submit",
-    renderingBackend: "webgpu-explicit",
-    canvas: {
-      raw: { width: 512, height: 512 },
-      ssr: { width: 512, height: 512 },
-    },
-    extraction: {
-      views: 1,
-      meshDraws: 4,
-      diagnostics: 0,
-    },
-    ssr: {
+  try {
+    expectStatusJsonSafeForGpu(status);
+    expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+      example: "ssr",
       ok: true,
-      postEffects: [{ effectId: "ssr", output: "swapchain", ok: true }],
-      boundaries: 2,
-    },
-  });
+      phase: "submit",
+      renderingBackend: "webgpu-explicit",
+      canvas: {
+        raw: { width: 512, height: 512 },
+        ssr: { width: 512, height: 512 },
+      },
+      extraction: {
+        views: 1,
+        meshDraws: 4,
+        diagnostics: 0,
+      },
+      ssr: {
+        ok: true,
+        postEffects: [{ effectId: "ssr", output: "swapchain", ok: true }],
+        boundaries: 2,
+      },
+    });
 
-  await page.waitForTimeout(100);
+    await waitForPresentedFrames(page);
 
-  const rawScreenshot = await page.locator("#ssr-canvas-raw").screenshot();
-  const ssrScreenshot = await page.locator("#ssr-canvas-ssr").screenshot();
-  const rawImage = readPngImage(rawScreenshot);
-  const ssrImage = readPngImage(ssrScreenshot);
-  const changedFloorPixels = countChangedLowerHalfPixels(rawImage, ssrImage);
+    const rawScreenshot = await page.locator("#ssr-canvas-raw").screenshot();
+    const ssrScreenshot = await page.locator("#ssr-canvas-ssr").screenshot();
+    const rawImage = cropLocatorScreenshotToCanvas(readPngImage(rawScreenshot));
+    const ssrImage = cropLocatorScreenshotToCanvas(readPngImage(ssrScreenshot));
+    const changedFloorPixels = countChangedLowerHalfPixels(rawImage, ssrImage);
 
-  await test.info().attach("ssr-reflection-metrics", {
-    body: JSON.stringify({ changedFloorPixels }, null, 2),
-    contentType: "application/json",
-  });
-  await test.info().attach("ssr-raw-canvas", {
-    body: rawScreenshot,
-    contentType: "image/png",
-  });
-  await test.info().attach("ssr-canvas", {
-    body: ssrScreenshot,
-    contentType: "image/png",
-  });
+    await test.info().attach("ssr-reflection-metrics", {
+      body: JSON.stringify({ changedFloorPixels }, null, 2),
+      contentType: "application/json",
+    });
+    await test.info().attach("ssr-raw-canvas", {
+      body: rawScreenshot,
+      contentType: "image/png",
+    });
+    await test.info().attach("ssr-canvas", {
+      body: ssrScreenshot,
+      contentType: "image/png",
+    });
 
-  expect(rawImage.width).toBe(512);
-  expect(rawImage.height).toBe(512);
-  expect(ssrImage.width).toBe(512);
-  expect(ssrImage.height).toBe(512);
-  expect(
-    changedFloorPixels,
-    `SSR should visibly alter lower receiver pixels with reflected scene color; changedFloorPixels=${changedFloorPixels}`,
-  ).toBeGreaterThan(120);
+    expect(rawImage.width).toBe(512);
+    expect(rawImage.height).toBe(512);
+    expect(ssrImage.width).toBe(512);
+    expect(ssrImage.height).toBe(512);
+    expect(
+      changedFloorPixels,
+      `SSR should visibly alter lower receiver pixels with reflected scene color; changedFloorPixels=${changedFloorPixels}`,
+    ).toBeGreaterThan(120);
 
-  await page.evaluate(() => {
-    const stop = (
-      globalThis as typeof globalThis & {
-        readonly __APERTURE_SSR_STOP__?: () => void;
-      }
-    ).__APERTURE_SSR_STOP__;
-
-    stop?.();
-  });
-  webGpuValidation.expectNoWarnings();
-  await page.close({ runBeforeUnload: false });
+    webGpuValidation.expectNoWarnings();
+  } finally {
+    await stopSsrRuntime(page);
+  }
 });
+
+async function stopSsrRuntime(page: Page): Promise<void> {
+  await page
+    .evaluate(() => {
+      const stop = (
+        globalThis as typeof globalThis & {
+          readonly __APERTURE_SSR_STOP__?: () => void;
+        }
+      ).__APERTURE_SSR_STOP__;
+
+      stop?.();
+    })
+    .catch(() => {});
+  await page.close({ runBeforeUnload: false }).catch(() => {});
+}
+
+function cropLocatorScreenshotToCanvas(image: PngImage): PngImage {
+  // Locator screenshots can round a fractional element bound outward by one
+  // pixel. The canvas backing store and render target stay 512x512; trim only
+  // that benign screenshot overscan before pixel comparisons.
+  expect(image.width).toBeGreaterThanOrEqual(512);
+  expect(image.height).toBeGreaterThanOrEqual(512);
+  expect(image.width).toBeLessThanOrEqual(513);
+  expect(image.height).toBeLessThanOrEqual(513);
+
+  if (image.width === 512 && image.height === 512) {
+    return image;
+  }
+
+  const width = 512;
+  const height = 512;
+  const rowBytes = width * image.bytesPerPixel;
+  const sourceRowBytes = image.width * image.bytesPerPixel;
+  const pixels = new Uint8Array(rowBytes * height);
+
+  for (let y = 0; y < height; y += 1) {
+    const sourceOffset = y * sourceRowBytes;
+    pixels.set(
+      image.pixels.subarray(sourceOffset, sourceOffset + rowBytes),
+      y * rowBytes,
+    );
+  }
+
+  return {
+    width,
+    height,
+    bytesPerPixel: image.bytesPerPixel,
+    pixels,
+  };
+}
 
 function countChangedLowerHalfPixels(raw: PngImage, ssr: PngImage): number {
   const length = Math.min(raw.pixels.length, ssr.pixels.length);

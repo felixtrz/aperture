@@ -155,8 +155,6 @@ interface PhysicsBenchmarkReport {
 test("browser publishes simulation-worker physics backend benchmark status", async ({
   page,
 }) => {
-  test.setTimeout(60000);
-
   await page.goto("/examples/physics-benchmark.html", {
     waitUntil: "domcontentloaded",
     timeout: 30000,
@@ -435,6 +433,9 @@ test("browser publishes simulation-worker physics backend benchmark status", asy
 async function waitForPhysicsBenchmarkStatus(
   page: Page,
 ): Promise<PhysicsBenchmarkStatus | undefined> {
+  // waitForFunction(fn, ARG, options): the options object must sit in the
+  // third slot — in the second slot it silently becomes the page-function
+  // argument and the default 30s timeout applies instead.
   await page.waitForFunction(
     () => {
       const status = (globalThis as PhysicsBenchmarkGlobal)
@@ -442,6 +443,7 @@ async function waitForPhysicsBenchmarkStatus(
 
       return status?.phase === "benchmark" || status?.phase === "failed";
     },
+    undefined,
     { timeout: 60000 },
   );
 

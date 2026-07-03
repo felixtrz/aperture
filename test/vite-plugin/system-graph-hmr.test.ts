@@ -12,6 +12,7 @@ import {
   APERTURE_VIRTUAL_MODULE_IDS,
   apertureGeneratedWorkerEntryFile,
 } from "../../packages/vite-plugin/src/virtual-modules.js";
+import { waitFor } from "../helpers/wait.js";
 
 const tempRoots: string[] = [];
 
@@ -137,18 +138,6 @@ async function writeSystem(
 
 async function workerEntryContents(root: string): Promise<string> {
   return readFile(apertureGeneratedWorkerEntryFile(root), "utf8");
-}
-
-async function waitFor(predicate: () => boolean): Promise<void> {
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    if (predicate()) {
-      return;
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 5));
-  }
-
-  throw new Error("Timed out waiting for predicate.");
 }
 
 function createFakeServer(root: string): ApertureViteDevServer & {

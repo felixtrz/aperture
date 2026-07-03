@@ -244,14 +244,20 @@ describe("aperture headless command — shipped binary smoke (PA.3)", () => {
 
   beforeAll(async () => {
     // One subprocess test that the published binary actually boots and loads
-    // the engine natively (dist realm). CI builds before tests; build on demand
-    // if a developer runs vitest without a prior build.
+    // the engine natively (dist realm). Tests must never build the workspace
+    // themselves: an on-demand build here mutates packages/*/dist while
+    // parallel vitest workers (e.g. test/index.test.ts) read those same
+    // artifacts, making fresh-checkout runs scheduling-dependent.
     try {
       await stat(CLI_BIN);
     } catch {
-      await execFileAsync("pnpm", ["run", "build"], { cwd: REPO_ROOT });
+      throw new Error(
+        `Missing built CLI binary at ${CLI_BIN}. ` +
+          "Run `pnpm run build` before `pnpm test` — the shipped-binary " +
+          "smoke test needs the dist realm and never builds it on demand.",
+      );
     }
-  }, 240_000);
+  });
 
   afterEach(async () => {
     if (tempDir !== undefined) {
@@ -263,15 +269,14 @@ describe("aperture headless command — shipped binary smoke (PA.3)", () => {
     tempDir = await mkdtemp(path.join(os.tmpdir(), "aperture-headless-smoke-"));
     const out = path.join(tempDir, "snapshot.json");
 
-    const { stdout } = await execFileAsync("node", [
-      CLI_BIN,
-      "headless",
-      PROCEDURAL_CONFIG,
-      "--frames",
-      "2",
-      "--out",
-      out,
-    ]);
+    // timeout + SIGKILL: if the built CLI hangs, kill the child instead of
+    // letting it outlive the failed test and eat a core for the rest of the
+    // run (the vitest test timeout alone does not reap the subprocess).
+    const { stdout } = await execFileAsync(
+      "node",
+      [CLI_BIN, "headless", PROCEDURAL_CONFIG, "--frames", "2", "--out", out],
+      { timeout: 100_000, killSignal: "SIGKILL" },
+    );
 
     expect(stdout).toContain("Wrote render bundle");
     const bundle = JSON.parse(await readFile(out, "utf8")) as {

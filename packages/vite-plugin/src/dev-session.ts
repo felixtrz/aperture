@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import type { AddressInfo } from "node:net";
 import path from "node:path";
+import { writeFileAtomic } from "./file-utils.js";
 
 export const APERTURE_VITE_DEVTOOLS_WS_CHANNEL = "aperture:devtools";
 
@@ -99,7 +100,7 @@ async function writeApertureViteDevSession(input: {
   };
 
   await fs.mkdir(runtimeDir, { recursive: true });
-  await fs.writeFile(
+  await writeFileAtomic(
     path.join(runtimeDir, APERTURE_SESSION_FILE),
     `${JSON.stringify(
       {
@@ -132,7 +133,6 @@ async function writeApertureViteDevSession(input: {
       null,
       2,
     )}\n`,
-    "utf8",
   );
 }
 

@@ -169,6 +169,8 @@ describe("Aperture package entrypoints", () => {
   });
 
   it("keeps package manifests publishable and export targets resolvable", async () => {
+    await expectBuiltWorkspace();
+
     const rootPackage = await readPackageJson("package.json");
     const rootLicense = await readFile(path.resolve("LICENSE"), "utf8");
 
@@ -324,6 +326,25 @@ async function expectFileExists(file: string): Promise<void> {
   await expect(readFile(path.resolve(file), "utf8")).resolves.toEqual(
     expect.any(String),
   );
+}
+
+/**
+ * Deterministic, actionable failure on an unbuilt checkout. This suite
+ * verifies that published export targets resolve to BUILT dist files, and
+ * tests never build the workspace themselves (an on-demand build would race
+ * parallel workers reading packages/*\/dist) — so an unbuilt tree must fail
+ * identically on every run with a message that says what to do.
+ */
+async function expectBuiltWorkspace(): Promise<void> {
+  const sentinel = path.resolve("packages/simulation/dist/index.js");
+  try {
+    await readFile(sentinel, "utf8");
+  } catch {
+    throw new Error(
+      `Missing built dist artifacts (looked for ${sentinel}). ` +
+        "Run `pnpm run build` before `pnpm test`.",
+    );
+  }
 }
 
 function collectExportTargets(

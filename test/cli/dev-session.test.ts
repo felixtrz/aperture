@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   apertureRuntimeDir,
   apertureSessionFile,
@@ -41,6 +41,13 @@ const NONDETERMINISTIC_HEADLESS_CONFIG = fileURLToPath(
     import.meta.url,
   ),
 );
+
+// These tests boot real headless runners through the MCP surface (TS config
+// evaluation, stepping, digests, bundle writes). Under coverage
+// instrumentation that work regularly exceeds vitest's 5s default — the same
+// rationale as REFERENCE_TEST_TIMEOUT_MS in test/cli/reference.test.ts. Tests
+// still finish as fast as the machine allows; the timeout is only slack.
+vi.setConfig({ testTimeout: 60_000 });
 
 describe("Aperture CLI dev session and MCP command surface", () => {
   afterEach(async () => {

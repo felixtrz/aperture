@@ -10,11 +10,6 @@ import { chromium, expect, test, type Page } from "@playwright/test";
 const execFileAsync = promisify(execFile);
 const CLI = path.resolve("packages/cli/dist/bin/aperture.js");
 const APP_ROOT = path.resolve("examples/developer-api");
-const PORT = 5187;
-const CREATED_APP_PORT = 5193;
-const TEMPLATE_APP_PORT = 5201;
-const WORKER_FAILURE_PORT = 5196;
-const WEBGPU_UNAVAILABLE_PORT = 5197;
 const MCP_TOOL_TIMEOUT_MS = 60_000;
 const CLI_ENV =
   process.env.CI === "true"
@@ -24,6 +19,9 @@ const CLI_ENV =
 test.setTimeout(420_000);
 
 test("Aperture CLI manages a browser session and exposes browser/ECS tools over MCP", async () => {
+  // Ephemeral port: fixed ports fail immediately when an orphaned process
+  // from a crashed run (or anything else on the machine) already holds them.
+  const PORT = await allocateEphemeralPort();
   await runCli(["dev", "down"], { allowFailure: true });
 
   try {
@@ -885,6 +883,9 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
 test("aperture create produces an installable app that works with CLI AI tools", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "aperture-created-app-"));
   const appRoot = path.join(root, "starter");
+  const CREATED_APP_PORT = await allocateEphemeralPort();
+  const WORKER_FAILURE_PORT = await allocateEphemeralPort();
+  const WEBGPU_UNAVAILABLE_PORT = await allocateEphemeralPort();
 
   try {
     await runCli(["create", "starter"], { cwd: root });
@@ -1365,21 +1366,21 @@ test("aperture create templates typecheck, build, and pass browser smoke checks"
       template: "minimal",
       key: "starter.cube",
       assetId: undefined,
-      port: TEMPLATE_APP_PORT,
+      port: await allocateEphemeralPort(),
     },
     {
       name: "viewer",
       template: "glb-viewer",
       key: "viewer.sampleCube",
       assetId: "sampleCube",
-      port: TEMPLATE_APP_PORT + 1,
+      port: await allocateEphemeralPort(),
     },
     {
       name: "game",
       template: "game",
       key: "player",
       assetId: "goal",
-      port: TEMPLATE_APP_PORT + 2,
+      port: await allocateEphemeralPort(),
     },
   ] as const;
 
@@ -1706,6 +1707,25 @@ function firstEntityRef(content: unknown): Record<string, unknown> {
   }
 
   return entity;
+}
+
+async function allocateEphemeralPort(): Promise<number> {
+  const server = net.createServer();
+  const port = await new Promise<number>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+
+      if (typeof address === "object" && address !== null) {
+        resolve(address.port);
+      } else {
+        reject(new Error("Failed to allocate an ephemeral port."));
+      }
+    });
+  });
+
+  await closeServer(server);
+  return port;
 }
 
 async function listenOnPort(

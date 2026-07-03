@@ -7,6 +7,7 @@ import {
   expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
+  waitForPresentedFrames,
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
 
@@ -76,7 +77,7 @@ test("browser runs custom render + compute graph passes (addRenderPass/addComput
   expect(overlayIndex).toBeGreaterThan(sceneIndex);
   expect(presentIndex).toBeGreaterThan(overlayIndex);
 
-  await page.waitForTimeout(100);
+  await waitForPresentedFrames(page);
   const screenshot = await page
     .locator("#custom-graph-pass-canvas")
     .screenshot();

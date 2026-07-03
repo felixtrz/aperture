@@ -58,6 +58,7 @@ import {
   createSharedSnapshotTransport,
 } from "@aperture-engine/runtime";
 import { createGeneratedInputEventMessage } from "../../packages/app/src/input.js";
+import { TestGeneratedWorkerPort } from "../helpers/generated-worker-port.js";
 
 const GeneratedWorkerResourceProof = defineResource("test.generated.resource", {
   ready: resource.boolean(false),
@@ -8348,77 +8349,6 @@ class GeneratedWorkerRapierJointFrameProofSystem extends GeneratedWorkerRapierJo
     this.backend?.dispose();
     this.physics.setBackend(null);
     super.destroy();
-  }
-}
-
-class TestGeneratedWorkerPort {
-  readonly posted: unknown[] = [];
-  private readonly listeners = new Set<
-    (event: MessageEvent<unknown>) => void
-  >();
-  private waiters: {
-    readonly predicate: (message: unknown) => boolean;
-    readonly resolve: (message: unknown) => void;
-  }[] = [];
-
-  postMessage(message: unknown): void {
-    this.posted.push(message);
-
-    for (const waiter of [...this.waiters]) {
-      if (waiter.predicate(message)) {
-        this.waiters = this.waiters.filter((entry) => entry !== waiter);
-        waiter.resolve(message);
-      }
-    }
-  }
-
-  addEventListener(
-    _type: "message",
-    listener: (event: MessageEvent<unknown>) => void,
-  ): void {
-    this.listeners.add(listener);
-  }
-
-  removeEventListener(
-    _type: "message",
-    listener: (event: MessageEvent<unknown>) => void,
-  ): void {
-    this.listeners.delete(listener);
-  }
-
-  start(): void {}
-
-  dispatch(message: unknown): void {
-    for (const listener of this.listeners) {
-      listener({ data: message } as MessageEvent<unknown>);
-    }
-  }
-
-  nextPostedMessage(
-    predicate: (message: unknown) => boolean,
-  ): Promise<unknown> {
-    const existing = this.posted.find(predicate);
-
-    if (existing !== undefined) {
-      return Promise.resolve(existing);
-    }
-
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this.waiters = this.waiters.filter(
-          (waiter) => waiter.resolve !== resolve,
-        );
-        reject(new Error("Timed out waiting for generated worker message."));
-      }, 1000);
-
-      this.waiters.push({
-        predicate,
-        resolve(message) {
-          clearTimeout(timeout);
-          resolve(message);
-        },
-      });
-    });
   }
 }
 

@@ -10,6 +10,7 @@ import type {
 } from "./components.js";
 import type { PhysicsColliderGeometryProvider } from "./collider-geometry.js";
 import { isColliderScaleApproximated } from "./collider-scale.js";
+import { compareStableStrings } from "./stable-order.js";
 
 export type PhysicsBackendKind = "rapier" | "test";
 
@@ -880,7 +881,7 @@ export function summarizePhysicsDebugGeometry(
   }
 
   const colorSummaries = [...colors.values()].sort((left, right) =>
-    left.color.join(",").localeCompare(right.color.join(",")),
+    compareStableStrings(left.color.join(","), right.color.join(",")),
   );
 
   return {

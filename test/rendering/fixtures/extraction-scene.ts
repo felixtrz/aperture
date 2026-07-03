@@ -33,7 +33,10 @@ export interface ExtractionScene {
  * the same snapshot counts, so timing harnesses can assert structure while
  * keeping time thresholds generous.
  */
-export function buildExtractionScene(entityCount: number): ExtractionScene {
+export function buildExtractionScene(
+  entityCount: number,
+  options: { readonly frustumCulling?: boolean } = {},
+): ExtractionScene {
   const world = createWorld({ entityCapacity: entityCount + 8 });
   registerTransformComponents(world);
   registerMetadataComponents(world);
@@ -52,7 +55,14 @@ export function buildExtractionScene(entityCount: number): ExtractionScene {
     WorldTransform,
     createRootTransform({ translation: [0, 0, 50] }).world,
   );
-  camera.addComponent(Camera, createCamera({ priority: 0, layerMask: 1 }));
+  camera.addComponent(
+    Camera,
+    createCamera({
+      priority: 0,
+      layerMask: 1,
+      ...(options.frustumCulling === false ? { frustumCulling: false } : {}),
+    }),
+  );
 
   const gridSide = Math.max(1, Math.ceil(Math.cbrt(entityCount)));
 

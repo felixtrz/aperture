@@ -163,11 +163,14 @@ function nextSnapshot(
   start: () => void,
 ): Promise<RenderSnapshot> {
   return new Promise((resolve, reject) => {
+    // Generous guard: the round-trip builds a full extraction app in-process,
+    // which can take well over 1s under coverage instrumentation on a loaded
+    // runner. The wait resolves as soon as the snapshot arrives.
     const timeout = setTimeout(() => {
       unsubscribeSnapshot();
       unsubscribeError();
       reject(new Error("Timed out waiting for simulation worker snapshot."));
-    }, 1000);
+    }, 10_000);
     const unsubscribeSnapshot = worker.onSnapshot(
       (event: SimulationWorkerSnapshotEvent) => {
         clearTimeout(timeout);

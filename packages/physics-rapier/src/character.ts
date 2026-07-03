@@ -9,6 +9,7 @@ import { normalizeVec3, vec, vec3 } from "./math.js";
 import { queryAllowsCollider } from "./queries.js";
 import { finitePositive } from "./util.js";
 import type { RapierBodyEntry } from "./types.js";
+import { compareStableStrings } from "./stable-order.js";
 
 export function configureCharacterController(
   controller: RAPIER.KinematicCharacterController,
@@ -90,7 +91,7 @@ export function characterCollisions(
   return collisions.sort(
     (left, right) =>
       left.timeOfImpact - right.timeOfImpact ||
-      (left.entity ?? "").localeCompare(right.entity ?? ""),
+      compareStableStrings(left.entity ?? "", right.entity ?? ""),
   );
 }
 

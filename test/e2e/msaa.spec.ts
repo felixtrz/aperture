@@ -7,6 +7,7 @@ import {
   expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
+  waitForPresentedFrames,
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
 
@@ -111,7 +112,7 @@ test("browser resolves MSAA render targets with visibly smoother edges", async (
     },
   });
 
-  await page.waitForTimeout(100);
+  await waitForPresentedFrames(page);
 
   const oneXScreenshot = await readCanvasPng(page, "#msaa-canvas-1x");
   const eightXScreenshot = await readCanvasPng(page, "#msaa-canvas-8x");

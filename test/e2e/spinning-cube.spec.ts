@@ -11,6 +11,7 @@ import {
   expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
+  waitForPresentedFrames,
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
 
@@ -270,7 +271,12 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
   const firstAnimatedStatus = await waitForAnimationFrame(page, 3);
   const firstFrame = firstAnimatedStatus.animation?.frames ?? 0;
   const firstRotation = firstAnimatedStatus.animation?.rotationRadians ?? 0;
+  // Pause the free-running rotation before screenshotting so the capture is
+  // not racing the animation (the route exposes pause/resume through the
+  // example control API exactly for this).
+  await pauseSpinningCube(page);
   const firstScreenshot = await page.locator("#aperture-canvas").screenshot();
+  await resumeSpinningCube(page);
 
   await test.info().attach("spinning-cube-frame-a.png", {
     body: firstScreenshot,
@@ -295,7 +301,9 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
     firstRotation + 0.45,
   );
   const laterRotation = laterStatus.animation?.rotationRadians ?? 0;
+  await pauseSpinningCube(page);
   const laterScreenshot = await page.locator("#aperture-canvas").screenshot();
+  await resumeSpinningCube(page);
 
   await test.info().attach("spinning-cube-frame-b.png", {
     body: laterScreenshot,
@@ -775,6 +783,36 @@ function findBrightestCubeSample(
 
 function pixelLuminance(pixel: ReturnType<typeof readPngPixel>): number {
   return 0.2126 * pixel.r + 0.7152 * pixel.g + 0.0722 * pixel.b;
+}
+
+async function pauseSpinningCube(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    const control = (
+      globalThis as typeof globalThis & {
+        readonly __APERTURE_EXAMPLE_CONTROL__?: {
+          pause?: () => unknown | Promise<unknown>;
+        };
+      }
+    ).__APERTURE_EXAMPLE_CONTROL__;
+
+    await control?.pause?.();
+  });
+  // Let the last in-flight frame present before the screenshot.
+  await waitForPresentedFrames(page);
+}
+
+async function resumeSpinningCube(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    const control = (
+      globalThis as typeof globalThis & {
+        readonly __APERTURE_EXAMPLE_CONTROL__?: {
+          resume?: () => unknown | Promise<unknown>;
+        };
+      }
+    ).__APERTURE_EXAMPLE_CONTROL__;
+
+    await control?.resume?.();
+  });
 }
 
 async function waitForAnimationFrame(

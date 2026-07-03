@@ -14,6 +14,7 @@ import type {
   RapierColliderEntry,
   RapierColliderMatch,
 } from "./types.js";
+import { compareStableStrings } from "./stable-order.js";
 
 export interface RapierColliderDescOptions {
   readonly colliderGeometryProvider?: PhysicsColliderGeometryProvider;
@@ -288,11 +289,11 @@ export function colliderEntries(
   bodies: ReadonlyMap<string, RapierBodyEntry>,
 ): readonly RapierColliderMatch[] {
   return [...bodies.values()]
-    .sort((left, right) => left.entity.localeCompare(right.entity))
+    .sort((left, right) => compareStableStrings(left.entity, right.entity))
     .flatMap((body) =>
       body.colliders
         .slice()
-        .sort((left, right) => left.entity.localeCompare(right.entity))
+        .sort((left, right) => compareStableStrings(left.entity, right.entity))
         .map((collider) => ({ body, collider })),
     );
 }
@@ -359,7 +360,7 @@ export function compareColliderMatches(
   right: RapierColliderMatch,
 ): number {
   return (
-    left.body.entity.localeCompare(right.body.entity) ||
-    left.collider.entity.localeCompare(right.collider.entity)
+    compareStableStrings(left.body.entity, right.body.entity) ||
+    compareStableStrings(left.collider.entity, right.collider.entity)
   );
 }

@@ -72,8 +72,9 @@ export default defineConfig({
   retries: 0,
   workers: 1,
   // SwiftShader renders ~10s/load; specs that load several routes need headroom
-  // beyond Playwright's 30s default.
-  timeout: 150000,
+  // beyond Playwright's 30s default. Matches playwright.ci.config.ts — the
+  // CI-excluded SwiftShader-heavy specs run 2-3 minutes here.
+  timeout: 240000,
   reporter: [["list"]],
   use: {
     baseURL: "http://127.0.0.1:4173",

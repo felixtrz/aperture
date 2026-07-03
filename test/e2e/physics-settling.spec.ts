@@ -239,22 +239,42 @@ function hasDebugColor(
 function assertSettledPixels(screenshot: Buffer): void {
   const clear = rgbaColorToPixel({ r: 0.012, g: 0.017, b: 0.025, a: 1 });
   const background = readPngPixel(screenshot, 0.08, 0.16);
-  const ground = readPngPixel(screenshot, 0.5, 0.91);
-  const stackLower = readPngPixel(screenshot, 0.5, 0.8);
-  const stackMiddle = readPngPixel(screenshot, 0.5, 0.61);
-  const stackUpper = readPngPixel(screenshot, 0.5, 0.41);
 
   expect(pixelDistance(background, clear)).toBeLessThan(35);
-  expect(pixelDistance(ground, clear)).toBeGreaterThan(45);
+  // Scan a horizontal band per probe row instead of a single x=0.5 pixel:
+  // the exact lateral rest position of the stack is a solver detail (a
+  // Rapier upgrade or solver-order change can shift it slightly), while
+  // "a body covers this row near the center" is the behavioral claim.
+  expect(
+    bandMaxDistanceFromClear(screenshot, 0.91, clear),
+    "ground should be visible near the center row",
+  ).toBeGreaterThan(45);
 
-  for (const [id, pixel] of [
-    ["stack-lower", stackLower],
-    ["stack-middle", stackMiddle],
-    ["stack-upper", stackUpper],
+  for (const [id, yRatio] of [
+    ["stack-lower", 0.8],
+    ["stack-middle", 0.61],
+    ["stack-upper", 0.41],
   ] as const) {
     expect(
-      pixelDistance(pixel, clear),
+      bandMaxDistanceFromClear(screenshot, yRatio, clear),
       `${id} should hit a settled physics body`,
     ).toBeGreaterThan(45);
   }
+}
+
+function bandMaxDistanceFromClear(
+  screenshot: Buffer,
+  yRatio: number,
+  clear: ReturnType<typeof rgbaColorToPixel>,
+): number {
+  let max = 0;
+
+  for (let xRatio = 0.35; xRatio <= 0.651; xRatio += 0.02) {
+    max = Math.max(
+      max,
+      pixelDistance(readPngPixel(screenshot, xRatio, yRatio), clear),
+    );
+  }
+
+  return max;
 }

@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -8,6 +8,7 @@ import {
   type ApertureViteDevServer,
   aperture,
 } from "../../packages/vite-plugin/src/index.js";
+import { waitForFile } from "../helpers/wait.js";
 
 const tempRoots: string[] = [];
 
@@ -203,21 +204,6 @@ async function createFixtureRoot(): Promise<string> {
 
 async function waitForGeneratedTypes(root: string): Promise<void> {
   await waitForFile(path.join(root, ".aperture/generated/aperture-env.d.ts"));
-}
-
-async function waitForFile(file: string): Promise<string> {
-  // Codegen now EVALUATES the config through the module loader before falling
-  // back to the AST parse (#68), so the write can take noticeably longer than
-  // the old parse-only path — poll generously.
-  for (let attempt = 0; attempt < 400; attempt += 1) {
-    try {
-      return await readFile(file, "utf8");
-    } catch {
-      await new Promise((resolve) => setTimeout(resolve, 10));
-    }
-  }
-
-  throw new Error(`Timed out waiting for ${file}.`);
 }
 
 function createFakeServer(

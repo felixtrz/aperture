@@ -21,6 +21,7 @@ import {
   type PhysicsShape,
   type PhysicsVec3,
 } from "./components.js";
+import { compareStableStrings } from "./stable-order.js";
 
 export interface PhysicsBackendBenchmarkOptions {
   readonly dynamicBodyCount?: number;
@@ -1086,7 +1087,7 @@ function sortedEventKindCounts(
 ): PhysicsBackendBenchmarkEventKindCount[] {
   return [...counts.entries()]
     .map(([kind, count]) => ({ kind, count }))
-    .sort((left, right) => left.kind.localeCompare(right.kind));
+    .sort((left, right) => compareStableStrings(left.kind, right.kind));
 }
 
 function sumEventKindCounts(counts: ReadonlyMap<PhysicsEventKind, number>) {

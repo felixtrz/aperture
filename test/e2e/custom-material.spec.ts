@@ -7,6 +7,7 @@ import {
   attachWebGpuValidationConsoleGuard,
   expectStatusJsonSafeForGpu,
   loadExampleStatus,
+  waitForPresentedFrames,
 } from "./webgpu-status.js";
 
 interface CustomMaterialStatus extends SingleDrawExampleStatus {
@@ -146,30 +147,45 @@ test("visible WaterMaterial custom shader animates through WebGPU", async ({
 
   // The shader's `time` uniform reaches the GPU and the water visibly animates.
   // A single fixed center pixel is a fragile probe — the animation moves the
-  // ripple pattern around, so the exact center can stay near-constant while the
-  // frame as a whole changes by hundreds of units. Compare two whole frames a
-  // couple seconds apart over a wide grid and require a real change.
+  // ripple pattern around, so the exact center can stay near-constant while
+  // the frame as a whole changes by hundreds of units. Poll whole-frame grid
+  // deltas until the animation visibly changes: a single fixed-window sample
+  // false-failed whenever the compositor stalled inside the window, while the
+  // poll keeps fencing on real presented frames until the change appears.
   const beforeShot = await page.locator("#aperture-canvas").screenshot();
-  await page.waitForTimeout(2500);
-  const afterShot = await page.locator("#aperture-canvas").screenshot();
-  let maxFrameDelta = 0;
-  for (let gy = 0; gy < 17; gy += 1) {
-    for (let gx = 0; gx < 17; gx += 1) {
-      const xRatio = 0.15 + (0.7 * gx) / 16;
-      const yRatio = 0.15 + (0.7 * gy) / 16;
-      maxFrameDelta = Math.max(
-        maxFrameDelta,
-        pixelDistance(
-          readPngPixel(beforeShot, xRatio, yRatio),
-          readPngPixel(afterShot, xRatio, yRatio),
-        ),
-      );
+  const gridDeltaFromBaseline = (afterShot: Buffer): number => {
+    let maxFrameDelta = 0;
+    for (let gy = 0; gy < 17; gy += 1) {
+      for (let gx = 0; gx < 17; gx += 1) {
+        const xRatio = 0.15 + (0.7 * gx) / 16;
+        const yRatio = 0.15 + (0.7 * gy) / 16;
+        maxFrameDelta = Math.max(
+          maxFrameDelta,
+          pixelDistance(
+            readPngPixel(beforeShot, xRatio, yRatio),
+            readPngPixel(afterShot, xRatio, yRatio),
+          ),
+        );
+      }
     }
-  }
-  expect(
-    maxFrameDelta,
-    "WaterMaterial should animate: the rendered frame must change over time",
-  ).toBeGreaterThan(12);
+    return maxFrameDelta;
+  };
+
+  await expect
+    .poll(
+      async () => {
+        await waitForPresentedFrames(page);
+        return gridDeltaFromBaseline(
+          await page.locator("#aperture-canvas").screenshot(),
+        );
+      },
+      {
+        message:
+          "WaterMaterial should animate: the rendered frame must change over time",
+        timeout: 30_000,
+      },
+    )
+    .toBeGreaterThan(12);
   guard.expectNoWarnings();
 });
 

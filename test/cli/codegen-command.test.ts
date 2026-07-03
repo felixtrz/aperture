@@ -1,4 +1,11 @@
-import { readFile, rm } from "node:fs/promises";
+import {
+  copyFile,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+} from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
@@ -7,6 +14,28 @@ import { runApertureCli } from "@aperture-engine/cli";
 const FIXTURE_ROOT = fileURLToPath(
   new URL("../fixtures/codegen-factory", import.meta.url),
 );
+// Gitignored scratch area INSIDE the repo: the fixture config imports
+// @aperture-engine/app/config, which only resolves through the repo's
+// node_modules chain, so an os.tmpdir() copy would not evaluate.
+const TMP_BASE = fileURLToPath(new URL("../../tmp/vitest", import.meta.url));
+
+const tempRoots: string[] = [];
+
+/**
+ * Copy the fixture into a fresh temp root before mutating it. Committed
+ * fixtures are shared, read-only inputs: test/vite-plugin/generated-types
+ * exercises the same fixture from a parallel vitest worker, so writing (or
+ * cleaning) .aperture inside the committed fixture races that worker.
+ */
+async function copyFixture(): Promise<string> {
+  await mkdir(TMP_BASE, { recursive: true });
+  const root = await mkdtemp(path.join(TMP_BASE, "codegen-factory-"));
+  tempRoots.push(root);
+  for (const file of await readdir(FIXTURE_ROOT)) {
+    await copyFile(path.join(FIXTURE_ROOT, file), path.join(root, file));
+  }
+  return root;
+}
 
 async function runCli(
   argv: readonly string[],
@@ -33,10 +62,9 @@ async function runCli(
 
 describe("aperture codegen command (#76)", () => {
   afterEach(async () => {
-    await rm(path.join(FIXTURE_ROOT, ".aperture"), {
-      recursive: true,
-      force: true,
-    });
+    for (const root of tempRoots.splice(0)) {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it("prints help", async () => {
@@ -47,13 +75,14 @@ describe("aperture codegen command (#76)", () => {
   });
 
   it("regenerates typed action and signal maps outside a vite build", async () => {
-    const result = await runCli(["codegen"], FIXTURE_ROOT);
+    const root = await copyFixture();
+    const result = await runCli(["codegen"], root);
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("Wrote generated Aperture types to ");
 
     const contents = await readFile(
-      path.join(FIXTURE_ROOT, ".aperture/generated/aperture-env.d.ts"),
+      path.join(root, ".aperture/generated/aperture-env.d.ts"),
       "utf8",
     );
     expect(contents).toContain("readonly jump: InputButtonAction;");

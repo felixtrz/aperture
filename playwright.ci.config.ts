@@ -41,6 +41,11 @@ export default defineConfig({
   // and left others empty).
   fullyParallel: true,
   forbidOnly: isCi,
+  // retries absorb genuinely environmental hiccups, but a pass-on-retry is
+  // still intermittence: Playwright reports such tests as FLAKY (the list and
+  // github reporters print a dedicated "flaky" section, and the JSON report
+  // records the failed first attempt). Treat any flaky entry in a CI log as a
+  // bug to chase, never as noise — retries must not become a mask.
   retries: isCi ? 1 : 0,
   workers: 1,
   // SwiftShader renders ~10s/load; specs that load several routes need headroom

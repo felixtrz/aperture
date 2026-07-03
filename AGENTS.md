@@ -141,6 +141,46 @@ the unsupported-WebGPU reason from Aperture's initialization helper.
 - **TypeScript-first with explicit types**, small modules, deterministic
   systems, data-driven schemas, and actionable error messages.
 
+## Test Reliability Conventions
+
+- **Relative-speed claims live in `*.bench.ts`**, which report timings without
+  gating. The gating unit suite may keep absolute catastrophic-regression
+  budgets (generous, like the 250ms extraction budget) but any relative
+  wall-clock comparison must use a min-based estimator (min of several
+  samples/attempts — immune to GC and scheduler excursions) **and** an
+  additive allowance (e.g. `max(baseline * 1.3, baseline + 8ms)`) so timer
+  noise on near-zero measurements cannot flip the comparison. Prove
+  optimizations structurally (draw counts, cache counters, key identity);
+  treat timing gates as backstops only.
+- **Waits are deadlines, not estimates.** Polling helpers that wait on real
+  async work must use generous caps (≥ 10s; they return as soon as the
+  condition holds) — never a "should be fast" guess. Tests that boot real
+  runners set an explicit vitest timeout (see `test/cli/reference.test.ts`)
+  instead of riding the 5s default, which coverage instrumentation routinely
+  blows through. Use the shared helpers in `test/helpers/` (`waitFor`,
+  `waitForFile`, `readEventually`, `TestGeneratedWorkerPort`) instead of
+  re-implementing per file — per-file copies drift and flake fixes miss them.
+- **Every test file passes in isolation and in any order.** The vitest suite
+  runs shuffled on every invocation (seed printed; reproduce with
+  `--sequence.shuffle --sequence.seed=<seed>`). Never rely on a sibling test's
+  side effects — elics component registration in particular lives on
+  module-global singletons, so register the components your test needs
+  yourself.
+- **Tests never write inside the checkout.** Use `mkdtemp` under `os.tmpdir()`
+  (or under the gitignored `tmp/` when the file must resolve imports through
+  the repo's node_modules) and clean up in `afterEach`/`finally`. Committed
+  fixtures are read-only inputs: copy-on-use before mutating. Product code
+  that tests poll must write atomically (temp + rename).
+- **No sleeps in e2e specs.** `page.waitForTimeout` is banned by
+  `pnpm run check:e2e-hygiene`; use `waitForPresentedFrames`
+  (test/e2e/webgpu-status.ts) before canvas screenshots, or `expect.poll` on
+  the real condition. The same check rejects `waitForFunction(fn, { … })`
+  (options belong in the third slot) and per-test timeouts below the 240s
+  config default.
+- **Fixed ports only for fakes that never bind.** Anything that actually
+  listens allocates an ephemeral port (`listen(0)`) per run — a fixed port is
+  a collision with the previous crashed run waiting to happen.
+
 ## Preferred Implementation Style
 
 - Explicit types over inference at public API boundaries.
