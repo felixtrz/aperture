@@ -23536,8 +23536,6 @@ test("Playwright renders GLB viewer prepared-resource reuse rows", async ({
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
   const summaryPanel = page.locator("#glb-prepared-resource-reuse-summary");
-  const reuseRow = (key: string) =>
-    summaryPanel.locator(`[data-prepared-resource-reuse-row="${key}"]`);
   const count = (value: number | undefined) =>
     typeof value === "number" && Number.isFinite(value) ? String(value) : "0";
   const entries = (
@@ -23568,6 +23566,27 @@ test("Playwright renders GLB viewer prepared-resource reuse rows", async ({
       reuse.samplerResourcesReused,
     )}`,
   });
+  const readCurrentReuseRows = async () =>
+    page.evaluate(() => {
+      const status = (
+        globalThis as typeof globalThis & {
+          readonly __APERTURE_EXAMPLE_STATUS__?: GlbViewerStatus;
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const rows: Record<string, string> = {};
+
+      for (const element of document.querySelectorAll<HTMLElement>(
+        "#glb-prepared-resource-reuse-summary [data-prepared-resource-reuse-row]",
+      )) {
+        const key = element.getAttribute("data-prepared-resource-reuse-row");
+
+        if (key !== null) {
+          rows[key] = element.textContent ?? "";
+        }
+      }
+
+      return { rows, status };
+    });
   const waitForReuseRows = async (expected: {
     readonly id: string;
     readonly source: string;
@@ -23636,9 +23655,34 @@ test("Playwright renders GLB viewer prepared-resource reuse rows", async ({
       summaryPanel.locator("[data-prepared-resource-reuse-row]"),
     ).toHaveCount(5);
 
-    for (const [key, value] of Object.entries(expectedRows(reuse))) {
-      await expect(reuseRow(key)).toContainText(value);
-    }
+    await expect
+      .poll(
+        async () => {
+          const { rows, status: currentStatus } = await readCurrentReuseRows();
+          const currentReuse = currentStatus?.report?.resourceReuse;
+
+          if (currentReuse === undefined) {
+            return "resource reuse report missing";
+          }
+
+          const mismatches = Object.entries(expectedRows(currentReuse))
+            .filter(([key, value]) => !(rows[key] ?? "").includes(value))
+            .map(
+              ([key, value]) =>
+                `${key}: expected ${JSON.stringify(value)} in ${JSON.stringify(
+                  rows[key] ?? "",
+                )}`,
+            );
+
+          return mismatches.length === 0 ? "matched" : mismatches.join("\n");
+        },
+        {
+          message:
+            "prepared-resource reuse rows should match the current status counters",
+          timeout: 10000,
+        },
+      )
+      .toBe("matched");
   };
 
   await page.goto("/examples/glb-viewer.html?asset=cube");

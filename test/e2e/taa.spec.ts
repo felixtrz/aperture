@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { readPngImage, type PngImage } from "./png.js";
 import {
@@ -83,43 +83,56 @@ test("browser accumulates jittered frames through TAA history and motion vectors
   }
 
   skipIfUnsupportedWebGpu(status);
-  expectStatusJsonSafeForGpu(status);
-  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-    example: "taa",
-    ok: true,
-    phase: "submit",
-    renderingBackend: "webgpu-explicit",
-    canvas: {
-      raw: { width: 512, height: 512 },
-      taa: { width: 512, height: 512 },
-    },
-    extraction: {
-      frame: 24,
-      views: 1,
-      meshDraws: 1,
-      diagnostics: 0,
-    },
-    raw: {
+  try {
+    expectStatusJsonSafeForGpu(status);
+    expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+      example: "taa",
       ok: true,
-      renderTarget: {
-        width: 512,
-        height: 512,
-        drawCalls: 1,
+      phase: "submit",
+      renderingBackend: "webgpu-explicit",
+      canvas: {
+        raw: { width: 512, height: 512 },
+        taa: { width: 512, height: 512 },
       },
-      postEffects: [],
-    },
-    taa: {
-      ok: true,
-      renderTarget: {
-        width: 512,
-        height: 512,
-        drawCalls: 1,
+      extraction: {
+        frame: 24,
+        views: 1,
+        meshDraws: 1,
+        diagnostics: 0,
       },
-      postEffects: [
-        { effectId: "taa", output: "offscreen", ok: true },
-        { effectId: "taa-present", output: "swapchain", ok: true },
-      ],
-      boundaries: 3,
+      raw: {
+        ok: true,
+        renderTarget: {
+          width: 512,
+          height: 512,
+          drawCalls: 1,
+        },
+        postEffects: [],
+      },
+      taa: {
+        ok: true,
+        renderTarget: {
+          width: 512,
+          height: 512,
+          drawCalls: 1,
+        },
+        postEffects: [
+          { effectId: "taa", output: "offscreen", ok: true },
+          { effectId: "taa-present", output: "swapchain", ok: true },
+        ],
+        boundaries: 3,
+        motionVectors: {
+          required: true,
+          status: "scene-attachment",
+          objectTransforms: {
+            available: true,
+            total: 1,
+            used: 1,
+            fallback: 0,
+            stored: 1,
+          },
+        },
+      },
       motionVectors: {
         required: true,
         status: "scene-attachment",
@@ -131,76 +144,57 @@ test("browser accumulates jittered frames through TAA history and motion vectors
           stored: 1,
         },
       },
-    },
-    motionVectors: {
-      required: true,
-      status: "scene-attachment",
-      objectTransforms: {
-        available: true,
-        total: 1,
-        used: 1,
-        fallback: 0,
-        stored: 1,
+      worker: {
+        snapshotsReceived: 24,
       },
-    },
-    worker: {
-      snapshotsReceived: 24,
-    },
-  });
-  expect(status.motionVectors?.objectTransforms.resourceKey).toContain(
-    "PreviousWorldTransforms/storage",
-  );
-  expect(status.worker?.step?.objectOffset ?? 0).not.toBe(0);
+    });
+    expect(status.motionVectors?.objectTransforms.resourceKey).toContain(
+      "PreviousWorldTransforms/storage",
+    );
+    expect(status.worker?.step?.objectOffset ?? 0).not.toBe(0);
 
-  await waitForPresentedFrames(page);
+    await waitForPresentedFrames(page);
 
-  const rawScreenshot = await page.locator("#taa-canvas-raw").screenshot();
-  const taaScreenshot = await page.locator("#taa-canvas-taa").screenshot();
-  const rawImage = readPngImage(rawScreenshot);
-  const taaImage = readPngImage(taaScreenshot);
-  const rawPartialPixels = countPartialEdgePixels(rawImage);
-  const taaPartialPixels = countPartialEdgePixels(taaImage);
+    const rawScreenshot = await page.locator("#taa-canvas-raw").screenshot();
+    const taaScreenshot = await page.locator("#taa-canvas-taa").screenshot();
+    const rawImage = cropLocatorScreenshotToCanvas(readPngImage(rawScreenshot));
+    const taaImage = cropLocatorScreenshotToCanvas(readPngImage(taaScreenshot));
+    const rawPartialPixels = countPartialEdgePixels(rawImage);
+    const taaPartialPixels = countPartialEdgePixels(taaImage);
 
-  await test.info().attach("taa-edge-metrics", {
-    body: JSON.stringify(
-      {
-        rawPartialPixels,
-        taaPartialPixels,
-      },
-      null,
-      2,
-    ),
-    contentType: "application/json",
-  });
-  await test.info().attach("taa-raw-canvas", {
-    body: rawScreenshot,
-    contentType: "image/png",
-  });
-  await test.info().attach("taa-canvas", {
-    body: taaScreenshot,
-    contentType: "image/png",
-  });
+    await test.info().attach("taa-edge-metrics", {
+      body: JSON.stringify(
+        {
+          rawPartialPixels,
+          taaPartialPixels,
+        },
+        null,
+        2,
+      ),
+      contentType: "application/json",
+    });
+    await test.info().attach("taa-raw-canvas", {
+      body: rawScreenshot,
+      contentType: "image/png",
+    });
+    await test.info().attach("taa-canvas", {
+      body: taaScreenshot,
+      contentType: "image/png",
+    });
 
-  expect(rawImage.width).toBe(512);
-  expect(rawImage.height).toBe(512);
-  expect(taaImage.width).toBe(512);
-  expect(taaImage.height).toBe(512);
-  expect(
-    taaPartialPixels,
-    `TAA should accumulate more partial-coverage edge pixels than the raw jittered frame; raw=${rawPartialPixels}, taa=${taaPartialPixels}`,
-  ).toBeGreaterThan(Math.max(80, rawPartialPixels * 1.35));
+    expect(rawImage.width).toBe(512);
+    expect(rawImage.height).toBe(512);
+    expect(taaImage.width).toBe(512);
+    expect(taaImage.height).toBe(512);
+    expect(
+      taaPartialPixels,
+      `TAA should accumulate more partial-coverage edge pixels than the raw jittered frame; raw=${rawPartialPixels}, taa=${taaPartialPixels}`,
+    ).toBeGreaterThan(Math.max(80, rawPartialPixels * 1.35));
 
-  await page.evaluate(() => {
-    const stop = (
-      globalThis as typeof globalThis & {
-        readonly __APERTURE_TAA_STOP__?: () => void;
-      }
-    ).__APERTURE_TAA_STOP__;
-
-    stop?.();
-  });
-  webGpuValidation.expectNoWarnings();
-  await page.close({ runBeforeUnload: false });
+    webGpuValidation.expectNoWarnings();
+  } finally {
+    await stopTaaRuntime(page);
+  }
 });
 
 // M3-T6 Done-when #2 (+ #3 under the graph): with the whole frame routed through
@@ -227,74 +221,120 @@ test("browser converges TAA through the FrameGraph history path (?graph=1)", asy
   }
 
   skipIfUnsupportedWebGpu(status);
-  expectStatusJsonSafeForGpu(status);
-  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-    example: "taa",
-    useFrameGraph: true,
-    ok: true,
-    phase: "submit",
-    renderingBackend: "webgpu-explicit",
-    taa: {
+  try {
+    expectStatusJsonSafeForGpu(status);
+    expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+      example: "taa",
+      useFrameGraph: true,
       ok: true,
-      postEffects: [
-        { effectId: "taa", output: "offscreen", ok: true },
-        { effectId: "taa-present", output: "swapchain", ok: true },
-      ],
-      // history is owned by the graph, so the post stack still folds into the
-      // same per-target boundary set the legacy path reports
-      boundaries: 3,
-    },
-    // Done-when #3: motion vectors still report the SAME scene-attachment status
-    // (and would report the same fallback reason) under the graph path.
-    motionVectors: {
-      required: true,
-      status: "scene-attachment",
-      objectTransforms: {
-        available: true,
-        used: 1,
+      phase: "submit",
+      renderingBackend: "webgpu-explicit",
+      taa: {
+        ok: true,
+        postEffects: [
+          { effectId: "taa", output: "offscreen", ok: true },
+          { effectId: "taa-present", output: "swapchain", ok: true },
+        ],
+        // history is owned by the graph, so the post stack still folds into the
+        // same per-target boundary set the legacy path reports
+        boundaries: 3,
       },
-    },
-  });
+      // Done-when #3: motion vectors still report the SAME scene-attachment status
+      // (and would report the same fallback reason) under the graph path.
+      motionVectors: {
+        required: true,
+        status: "scene-attachment",
+        objectTransforms: {
+          available: true,
+          used: 1,
+        },
+      },
+    });
 
-  await waitForPresentedFrames(page);
+    await waitForPresentedFrames(page);
 
-  const rawScreenshot = await page.locator("#taa-canvas-raw").screenshot();
-  const taaScreenshot = await page.locator("#taa-canvas-taa").screenshot();
-  const rawImage = readPngImage(rawScreenshot);
-  const taaImage = readPngImage(taaScreenshot);
-  const rawPartialPixels = countPartialEdgePixels(rawImage);
-  const taaPartialPixels = countPartialEdgePixels(taaImage);
+    const rawScreenshot = await page.locator("#taa-canvas-raw").screenshot();
+    const taaScreenshot = await page.locator("#taa-canvas-taa").screenshot();
+    const rawImage = cropLocatorScreenshotToCanvas(readPngImage(rawScreenshot));
+    const taaImage = cropLocatorScreenshotToCanvas(readPngImage(taaScreenshot));
+    const rawPartialPixels = countPartialEdgePixels(rawImage);
+    const taaPartialPixels = countPartialEdgePixels(taaImage);
 
-  await test.info().attach("taa-graph-edge-metrics", {
-    body: JSON.stringify({ rawPartialPixels, taaPartialPixels }, null, 2),
-    contentType: "application/json",
-  });
-  await test.info().attach("taa-graph-canvas", {
-    body: taaScreenshot,
-    contentType: "image/png",
-  });
+    await test.info().attach("taa-graph-edge-metrics", {
+      body: JSON.stringify({ rawPartialPixels, taaPartialPixels }, null, 2),
+      contentType: "application/json",
+    });
+    await test.info().attach("taa-graph-canvas", {
+      body: taaScreenshot,
+      contentType: "image/png",
+    });
 
-  expect(taaImage.width).toBe(512);
-  expect(taaImage.height).toBe(512);
-  // The graph path converges just like the legacy path: history carried across
-  // frames smooths the jittered edge into more partial-coverage pixels.
-  expect(
-    taaPartialPixels,
-    `TAA over the graph should accumulate more partial-coverage edge pixels than the raw jittered frame; raw=${rawPartialPixels}, taa=${taaPartialPixels}`,
-  ).toBeGreaterThan(Math.max(80, rawPartialPixels * 1.35));
+    expect(rawImage.width).toBe(512);
+    expect(rawImage.height).toBe(512);
+    expect(taaImage.width).toBe(512);
+    expect(taaImage.height).toBe(512);
+    // The graph path converges just like the legacy path: history carried across
+    // frames smooths the jittered edge into more partial-coverage pixels.
+    expect(
+      taaPartialPixels,
+      `TAA over the graph should accumulate more partial-coverage edge pixels than the raw jittered frame; raw=${rawPartialPixels}, taa=${taaPartialPixels}`,
+    ).toBeGreaterThan(Math.max(80, rawPartialPixels * 1.35));
 
-  await page.evaluate(() => {
-    const stop = (
-      globalThis as typeof globalThis & {
-        readonly __APERTURE_TAA_STOP__?: () => void;
-      }
-    ).__APERTURE_TAA_STOP__;
-
-    stop?.();
-  });
-  webGpuValidation.expectNoWarnings();
-  await page.close({ runBeforeUnload: false });
+    webGpuValidation.expectNoWarnings();
+  } finally {
+    await stopTaaRuntime(page);
+  }
 });
+
+async function stopTaaRuntime(page: Page): Promise<void> {
+  await page
+    .evaluate(() => {
+      const stop = (
+        globalThis as typeof globalThis & {
+          readonly __APERTURE_TAA_STOP__?: () => void;
+        }
+      ).__APERTURE_TAA_STOP__;
+
+      stop?.();
+    })
+    .catch(() => {});
+  await page.close({ runBeforeUnload: false }).catch(() => {});
+}
+
+function cropLocatorScreenshotToCanvas(image: PngImage): PngImage {
+  // Locator screenshots can round a fractional element bound outward by one
+  // pixel. The canvas backing store and render target stay 512x512; trim only
+  // that benign screenshot overscan before pixel comparisons.
+  expect(image.width).toBeGreaterThanOrEqual(512);
+  expect(image.height).toBeGreaterThanOrEqual(512);
+  expect(image.width).toBeLessThanOrEqual(513);
+  expect(image.height).toBeLessThanOrEqual(513);
+
+  if (image.width === 512 && image.height === 512) {
+    return image;
+  }
+
+  const width = 512;
+  const height = 512;
+  const rowBytes = width * image.bytesPerPixel;
+  const sourceRowBytes = image.width * image.bytesPerPixel;
+  const pixels = new Uint8Array(rowBytes * height);
+
+  for (let y = 0; y < height; y += 1) {
+    const sourceOffset = y * sourceRowBytes;
+    pixels.set(
+      image.pixels.subarray(sourceOffset, sourceOffset + rowBytes),
+      y * rowBytes,
+    );
+  }
+
+  return {
+    width,
+    height,
+    bytesPerPixel: image.bytesPerPixel,
+    pixels,
+  };
+}
 
 function countPartialEdgePixels(image: PngImage): number {
   let count = 0;

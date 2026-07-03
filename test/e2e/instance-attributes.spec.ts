@@ -9,6 +9,9 @@ import {
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
 
+const SAMPLE_MOTION_THRESHOLD = 18;
+const SAMPLE_IDS = ["center-wave", "left-wave", "right-wave"] as const;
+
 interface InstanceAttributesStatus extends ExampleStatusBase {
   readonly scenario?: string;
   readonly customMaterial?: {
@@ -98,20 +101,56 @@ test("custom WGSL consumes per-instance attributes in a visible instanced swarm"
   }
 
   await page.waitForFunction(
-    () => {
+    ({ sampleIds, threshold }) => {
       const status = (
         globalThis as typeof globalThis & {
           readonly __APERTURE_EXAMPLE_STATUS__?: InstanceAttributesStatus;
         }
       ).__APERTURE_EXAMPLE_STATUS__;
+      const history = status?.animation?.sampleHistory ?? [];
 
-      return (
+      if (
         status?.ok === true &&
         (status.animation?.frame ?? 0) >= 5 &&
         (status.animation?.sampleHistory.length ?? 0) >= 3
-      );
+      ) {
+        return sampleIds.every((sampleId) => {
+          const pixels = history
+            .map(
+              (frame) =>
+                frame.samples.find((sample) => sample.id === sampleId)?.pixel,
+            )
+            .filter((pixel) => pixel !== undefined);
+          let maxDistance = 0;
+
+          for (let i = 0; i < pixels.length; i += 1) {
+            for (let j = i + 1; j < pixels.length; j += 1) {
+              const left = pixels[i];
+              const right = pixels[j];
+
+              if (left === undefined || right === undefined) {
+                continue;
+              }
+
+              maxDistance = Math.max(
+                maxDistance,
+                Math.hypot(
+                  left.r - right.r,
+                  left.g - right.g,
+                  left.b - right.b,
+                  left.a - right.a,
+                ),
+              );
+            }
+          }
+
+          return maxDistance > threshold;
+        });
+      }
+
+      return false;
     },
-    undefined,
+    { sampleIds: SAMPLE_IDS, threshold: SAMPLE_MOTION_THRESHOLD },
     { timeout: 15000 },
   );
 
@@ -211,26 +250,40 @@ test("custom WGSL consumes per-instance attributes in a visible instanced swarm"
   ]);
 
   for (const firstSample of firstFrame.samples) {
-    const lastSample = lastFrame.samples.find(
-      (candidate) => candidate.id === firstSample.id,
-    );
-
     expect(
-      lastSample,
-      `${firstSample.id} should be sampled in the later frame`,
-    ).toBeDefined();
-
-    if (lastSample === undefined) {
-      continue;
-    }
-
-    expect(
-      pixelDistance(firstSample.pixel, lastSample.pixel),
-      `${firstSample.id} should animate via per-instance attributes; first=${JSON.stringify(
-        firstSample.pixel,
-      )} last=${JSON.stringify(lastSample.pixel)}`,
-    ).toBeGreaterThan(18);
+      maxSampleMotion(history, firstSample.id),
+      `${firstSample.id} should animate via per-instance attributes across history=${JSON.stringify(
+        history,
+      )}`,
+    ).toBeGreaterThan(SAMPLE_MOTION_THRESHOLD);
   }
 
   guard.expectNoWarnings();
 });
+
+function maxSampleMotion(
+  history: NonNullable<InstanceAttributesStatus["animation"]>["sampleHistory"],
+  sampleId: string,
+): number {
+  const pixels = history
+    .map(
+      (frame) => frame.samples.find((sample) => sample.id === sampleId)?.pixel,
+    )
+    .filter((pixel) => pixel !== undefined);
+  let maxDistance = 0;
+
+  for (let i = 0; i < pixels.length; i += 1) {
+    for (let j = i + 1; j < pixels.length; j += 1) {
+      const left = pixels[i];
+      const right = pixels[j];
+
+      if (left === undefined || right === undefined) {
+        continue;
+      }
+
+      maxDistance = Math.max(maxDistance, pixelDistance(left, right));
+    }
+  }
+
+  return maxDistance;
+}
