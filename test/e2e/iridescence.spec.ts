@@ -176,7 +176,10 @@ test("browser renders scalar iridescence with a distinct thin-film color shift",
 /**
  * Sample a small normalized-coordinate patch instead of one hardcoded pixel:
  * a single-pixel probe flips on a one-pixel layout shift (fractional CSS
- * rounding of the canvas) or anti-aliasing variance at a panel edge.
+ * rounding of the canvas) or anti-aliasing variance at a panel edge. The
+ * patch is only a few device pixels wide (±~4px on the 960px canvas) — wide
+ * enough to absorb sub-pixel drift, tight enough that averaging does not
+ * dilute the thin-film gradient the cross-panel assertions measure.
  */
 function regionPixels(
   screenshot: Buffer,
@@ -188,7 +191,7 @@ function regionPixels(
   for (let dy = -2; dy <= 2; dy += 1) {
     for (let dx = -2; dx <= 2; dx += 1) {
       pixels.push(
-        readPngPixel(screenshot, centerX + dx * 0.01, centerY + dy * 0.01),
+        readPngPixel(screenshot, centerX + dx * 0.002, centerY + dy * 0.002),
       );
     }
   }

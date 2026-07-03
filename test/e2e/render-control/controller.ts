@@ -59,26 +59,24 @@ type ExampleControlGlobal = typeof globalThis & {
 export async function startBrowser(
   options: StartBrowserOptions = {},
 ): Promise<RenderControlBrowser> {
-  // Mirror the playwright.*.config.ts launch environment instead of a
-  // hardcoded headed `chrome`: a bespoke channel/GPU stack made specs using
-  // this helper render on a DIFFERENT rasterizer than every other spec in
-  // the same run (and the headed chrome channel is the binary documented to
-  // hang on close after WebGPU on macOS).
-  const showBrowserWindow = process.env["APERTURE_E2E_SHOW_BROWSER"] === "1";
-  const headless = options.headless ?? !showBrowserWindow;
+  // Deliberately a HARDWARE-GPU chrome stack, not the SwiftShader project
+  // stack: the one spec driving this helper (dof) is excluded from the
+  // SwiftShader environments because its blur never converges under software
+  // rendering (see playwright.ci.config.ts testIgnore). Headed system chrome
+  // exposes the real adapter where one exists and the spec skips cleanly via
+  // skipIfUnsupportedWebGpu where none does. The throttling-decoupling flags
+  // match the other configs so frame pacing is comparable.
   const browserServer = await chromium.launchServer({
-    channel: options.channel ?? (showBrowserWindow ? "chrome" : "chromium"),
-    headless,
-    args: headless
-      ? [
-          "--enable-unsafe-webgpu",
-          "--disable-frame-rate-limit",
-          "--disable-gpu-vsync",
-          "--disable-backgrounding-occluded-windows",
-          "--disable-renderer-backgrounding",
-          "--disable-background-timer-throttling",
-        ]
-      : ["--enable-unsafe-webgpu"],
+    channel: options.channel ?? "chrome",
+    headless: options.headless ?? false,
+    args: [
+      "--enable-unsafe-webgpu",
+      "--disable-frame-rate-limit",
+      "--disable-gpu-vsync",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-renderer-backgrounding",
+      "--disable-background-timer-throttling",
+    ],
   });
   const browser = await chromium.connect(browserServer.wsEndpoint());
   const page = await browser.newPage({
