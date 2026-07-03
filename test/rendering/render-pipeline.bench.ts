@@ -99,3 +99,22 @@ for (const entityCount of SCALES) {
     });
   });
 }
+
+// Culled-vs-opt-out extraction comparison. This claim gated in
+// test/rendering/extraction.test.ts twice and flaked twice (last: coverage
+// instrumentation inflating the per-entity frustum tests past a 1.3x/+8ms
+// allowance) — relative wall-clock claims report here without gating; the
+// culling OPTIMIZATION itself is proven structurally in extraction.test.ts
+// via draw-count/cullStats deltas.
+describe("frustum culling overhead @ 1,000 entities", () => {
+  const culled = buildExtractionScene(1_000);
+  const baseline = buildExtractionScene(1_000, { frustumCulling: false });
+
+  bench("extractRenderSnapshot (frustum culling on)", () => {
+    extractRenderSnapshot(culled.world, culled.assets);
+  });
+
+  bench("extractRenderSnapshot (frustum culling opted out)", () => {
+    extractRenderSnapshot(baseline.world, baseline.assets);
+  });
+});
