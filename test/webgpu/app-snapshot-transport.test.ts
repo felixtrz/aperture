@@ -430,6 +430,291 @@ describe("WebGPU app snapshot transport", () => {
     expect(thirdTransformX).toBe(3);
   });
 
+  it("skips frames that outpace the registry message and reports the lag once decoded", () => {
+    const transport = createWebGpuAppSnapshotTransport({
+      mode: "shared-array-buffer",
+      sharedSnapshotTransport: {
+        maxEntities: 4,
+        maxViews: 1,
+        maxPacketWords: 256,
+        requireCrossOriginIsolated: false,
+      },
+    });
+
+    expect(transport.mode).toBe("shared-array-buffer");
+
+    if (transport.mode !== "shared-array-buffer") {
+      return;
+    }
+
+    const registry = createSnapshotPacketRegistry();
+    const meshDraw = (material: ReturnType<typeof createMaterialHandle>) => ({
+      renderId: 1,
+      entity: { index: 1, generation: 0 },
+      mesh: createMeshHandle("car"),
+      material,
+      submesh: 0,
+      materialSlot: 0,
+      worldTransformOffset: 0,
+      boundsIndex: 0,
+      layerMask: 1,
+      sortKey: {
+        queue: "opaque" as const,
+        viewId: 0,
+        layer: 0,
+        order: 0,
+        pipelineKey: "standard|opaque|back|less|none",
+        materialKey: "material:paint",
+        meshKey: "mesh:car",
+        depth: 0,
+        stableId: 1,
+      },
+      batchKey: {
+        pipelineKey: "standard|opaque|back|less|none",
+        materialKey: "material:paint",
+        meshLayoutKey: "POSITION",
+        topology: "triangle-list" as const,
+        instanced: false,
+        skinned: false,
+        morphed: false,
+      },
+    });
+    const emptyFamilies = {
+      views: [],
+      lights: [],
+      environments: [],
+      shadowRequests: [],
+      bounds: [],
+    };
+
+    // Frame 1: encoded against registry v1, message carries the v1 snapshot.
+    const firstEncoded = encodeSnapshotPackets(
+      {
+        ...emptyFamilies,
+        meshDraws: [meshDraw(createMaterialHandle("paint"))],
+      },
+      { registry },
+    );
+    const staleMessage = {
+      transport: {
+        mode: "shared-array-buffer",
+        registry: registry.snapshot(),
+        diagnostics: [],
+      },
+    };
+    transport.shared.writer.writeFrame({
+      frame: 1,
+      transforms: new Float32Array(0),
+      viewMatrices: new Float32Array(0),
+      packetWords: firstEncoded.words,
+    });
+    expect(readWebGpuAppSharedSnapshot(transport, staleMessage)?.frame).toBe(1);
+
+    // Frame 2 interns a NEW handle and is published to the SharedArrayBuffer
+    // before its registry message is delivered (the worker posts the frame
+    // first). Reading with the stale v1 registry must skip the frame instead
+    // of throwing "Unknown snapshot packet handle id".
+    const secondEncoded = encodeSnapshotPackets(
+      {
+        ...emptyFamilies,
+        meshDraws: [meshDraw(createMaterialHandle("chrome"))],
+      },
+      { registry },
+    );
+    transport.shared.writer.writeFrame({
+      frame: 2,
+      transforms: new Float32Array(0),
+      viewMatrices: new Float32Array(0),
+      packetWords: secondEncoded.words,
+    });
+    expect(readWebGpuAppSharedSnapshot(transport, staleMessage)).toBeNull();
+
+    // The registry message arrives (the worker always posts on registry
+    // growth): the frame decodes and the skip surfaces as a diagnostic.
+    const freshMessage = {
+      transport: {
+        mode: "shared-array-buffer",
+        registry: registry.snapshot(),
+        diagnostics: [],
+      },
+    };
+    const decoded = readWebGpuAppSharedSnapshot(transport, freshMessage);
+    expect(decoded?.frame).toBe(2);
+    expect(decoded?.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "webGpuApp.sharedSnapshotRegistryLag",
+        severity: "info",
+        message: expect.stringContaining("Skipped 1 shared snapshot frame(s)"),
+      }),
+    ]);
+
+    // The lag report is one-shot: the next read carries no stale diagnostic.
+    const followUp = readWebGpuAppSharedSnapshot(transport, freshMessage);
+    expect(followUp?.diagnostics).toEqual([]);
+  });
+
+  it("resets the registry cache when a worker restart starts a fresh epoch", () => {
+    const transport = createWebGpuAppSnapshotTransport({
+      mode: "shared-array-buffer",
+      sharedSnapshotTransport: {
+        maxEntities: 4,
+        maxViews: 1,
+        maxPacketWords: 256,
+        requireCrossOriginIsolated: false,
+      },
+    });
+
+    expect(transport.mode).toBe("shared-array-buffer");
+
+    if (transport.mode !== "shared-array-buffer") {
+      return;
+    }
+
+    const emptyFamilies = {
+      views: [],
+      lights: [],
+      environments: [],
+      shadowRequests: [],
+      bounds: [],
+    };
+    const meshDraw = (
+      mesh: ReturnType<typeof createMeshHandle>,
+      material: ReturnType<typeof createMaterialHandle>,
+      renderId: number,
+    ) => ({
+      renderId,
+      entity: { index: renderId, generation: 0 },
+      mesh,
+      material,
+      submesh: 0,
+      materialSlot: 0,
+      worldTransformOffset: 0,
+      boundsIndex: 0,
+      layerMask: 1,
+      sortKey: {
+        queue: "opaque" as const,
+        viewId: 0,
+        layer: 0,
+        order: 0,
+        pipelineKey: "standard|opaque|back|less|none",
+        materialKey: "material:m",
+        meshKey: "mesh:m",
+        depth: 0,
+        stableId: renderId,
+      },
+      batchKey: {
+        pipelineKey: "standard|opaque|back|less|none",
+        materialKey: "material:m",
+        meshLayoutKey: "POSITION",
+        topology: "triangle-list" as const,
+        instanced: false,
+        skinned: false,
+        morphed: false,
+      },
+    });
+
+    // First worker epoch interns FOUR handles.
+    const firstRegistry = createSnapshotPacketRegistry();
+    const firstEncoded = encodeSnapshotPackets(
+      {
+        ...emptyFamilies,
+        meshDraws: [
+          meshDraw(createMeshHandle("car"), createMaterialHandle("paint"), 1),
+          meshDraw(createMeshHandle("tree"), createMaterialHandle("leaf"), 2),
+        ],
+      },
+      { registry: firstRegistry },
+    );
+    transport.shared.writer.writeFrame({
+      frame: 1,
+      transforms: new Float32Array(0),
+      viewMatrices: new Float32Array(0),
+      packetWords: firstEncoded.words,
+    });
+    const firstMessage = {
+      transport: {
+        mode: "shared-array-buffer",
+        registry: firstRegistry.snapshot(),
+        diagnostics: [],
+      },
+    };
+    expect(readWebGpuAppSharedSnapshot(transport, firstMessage)?.frame).toBe(1);
+
+    // Worker restart: a FRESH registry interns different assets whose ids
+    // overlap the first epoch's. Its snapshot is SMALLER than the cached one,
+    // so a newest-by-count heuristic would keep the stale registry and decode
+    // these packets into the WRONG assets without any error.
+    const restartRegistry = createSnapshotPacketRegistry();
+    const restartEncoded = encodeSnapshotPackets(
+      {
+        ...emptyFamilies,
+        meshDraws: [
+          meshDraw(createMeshHandle("rock"), createMaterialHandle("chrome"), 9),
+        ],
+      },
+      { registry: restartRegistry },
+    );
+    transport.shared.writer.writeFrame({
+      frame: 2,
+      transforms: new Float32Array(0),
+      viewMatrices: new Float32Array(0),
+      packetWords: restartEncoded.words,
+    });
+    const restartMessage = {
+      transport: {
+        mode: "shared-array-buffer",
+        registry: restartRegistry.snapshot(),
+        diagnostics: [],
+      },
+    };
+
+    const decoded = readWebGpuAppSharedSnapshot(transport, restartMessage);
+    expect(decoded?.frame).toBe(2);
+    // The handles must resolve against the NEW epoch's registry.
+    expect(decoded?.meshDraws[0]?.mesh.id).toBe("rock");
+    expect(decoded?.meshDraws[0]?.material?.id).toBe("chrome");
+  });
+
+  it("surfaces packet-buffer corruption as an error instead of skipping it", () => {
+    const transport = createWebGpuAppSnapshotTransport({
+      mode: "shared-array-buffer",
+      sharedSnapshotTransport: {
+        maxEntities: 1,
+        maxViews: 1,
+        maxPacketWords: 64,
+        requireCrossOriginIsolated: false,
+      },
+    });
+
+    expect(transport.mode).toBe("shared-array-buffer");
+
+    if (transport.mode !== "shared-array-buffer") {
+      return;
+    }
+
+    const registry = createSnapshotPacketRegistry();
+    const message = {
+      transport: {
+        mode: "shared-array-buffer",
+        registry: registry.snapshot(),
+        diagnostics: [],
+      },
+    };
+
+    // A packet buffer without its header is corruption, not registry lag: the
+    // read must throw so the caller reports workerSnapshotRenderFailed rather
+    // than silently skipping frames forever.
+    transport.shared.writer.writeFrame({
+      frame: 1,
+      transforms: new Float32Array(0),
+      viewMatrices: new Float32Array(0),
+      packetWords: new Uint32Array(2),
+    });
+    expect(() => readWebGpuAppSharedSnapshot(transport, message)).toThrow(
+      /header/u,
+    );
+  });
+
   it("reports a shared payload without rendering before the first complete frame", () => {
     const transport = createWebGpuAppSnapshotTransport({
       mode: "shared-array-buffer",

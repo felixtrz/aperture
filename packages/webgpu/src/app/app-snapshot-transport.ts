@@ -15,6 +15,7 @@ import {
   createQuadSnapshotBuffers,
   createSnapshotPacketRegistry,
   decodeSnapshotPackets,
+  SnapshotPacketRegistryMissError,
   type RenderDiagnostic,
   type RenderSnapshot,
   type RenderSnapshotChangeSet,
@@ -111,6 +112,21 @@ interface SharedSnapshotPacketDecodeCache {
     number,
     SharedSnapshotPacketDecodeCacheEntry
   >;
+  /**
+   * Newest registry snapshot received from the worker. The worker's interning
+   * registry is persistent and append-only, so ids are stable once assigned
+   * and decoding ANY frame with the newest known registry is always correct —
+   * while decoding a fresh SharedArrayBuffer frame with an older message's
+   * registry can hit ids interned after that snapshot was captured.
+   */
+  latestRegistry: SnapshotPacketRegistrySnapshot | null;
+  /**
+   * Frames skipped because their packets referenced registry entries newer
+   * than any received snapshot (the SAB frame is published before the
+   * postMessage carrying its registry additions is delivered). Reported as a
+   * diagnostic on the next successfully decoded snapshot.
+   */
+  registryLagSkips: number;
 }
 
 const SHARED_SNAPSHOT_PACKET_DECODE_CACHES = new WeakMap<
@@ -240,7 +256,32 @@ export function readWebGpuAppSharedSnapshot(
     frame.packetWords,
     payload.registry,
   );
-  const diagnostics = payload.diagnostics ?? [];
+
+  if (packets === null) {
+    // The sampled SAB frame references registry entries newer than any
+    // received snapshot: the worker publishes the frame before the
+    // postMessage carrying its registry additions is delivered. Skip the
+    // frame (the previous presented frame stays up); the registry message is
+    // already in flight — the worker always posts on registry growth — so the
+    // next read decodes. The skip is reported on the next decoded snapshot.
+    return null;
+  }
+
+  const cache = getSharedSnapshotPacketDecodeCache(transport.shared);
+  const skippedFrames = cache.registryLagSkips;
+  cache.registryLagSkips = 0;
+  const diagnostics: readonly RenderDiagnostic[] = [
+    ...(payload.diagnostics ?? []),
+    ...(skippedFrames === 0
+      ? []
+      : [
+          {
+            code: "webGpuApp.sharedSnapshotRegistryLag",
+            message: `Skipped ${skippedFrames} shared snapshot frame(s) whose packets referenced registry entries newer than the latest received registry snapshot; presentation resumed once the registry message arrived.`,
+            severity: "info" as const,
+          },
+        ]),
+  ];
 
   return {
     frame: frame.frame,
@@ -307,26 +348,119 @@ function decodeSharedSnapshotPackets(
   bufferIndex: number,
   words: Uint32Array,
   registrySnapshot: SnapshotPacketRegistrySnapshot,
-): SnapshotPacketBundle {
+): SnapshotPacketBundle | null {
   const cache = getSharedSnapshotPacketDecodeCache(shared);
+  const latestRegistry = reconcileRegistrySnapshot(cache, registrySnapshot);
   const cached = cache.entriesByBufferIndex.get(bufferIndex);
 
   if (
     cached !== undefined &&
-    cached.registry === registrySnapshot &&
+    cached.registry === latestRegistry &&
     uint32ArraysEqual(cached.words, words)
   ) {
     return cached.packets;
   }
 
-  const registry = createSnapshotPacketRegistry(registrySnapshot);
-  const packets = decodeSnapshotPackets(words, registry);
+  const registry = createSnapshotPacketRegistry(latestRegistry);
+
+  let packets: SnapshotPacketBundle;
+  try {
+    packets = decodeSnapshotPackets(words, registry);
+  } catch (error: unknown) {
+    if (error instanceof SnapshotPacketRegistryMissError) {
+      // Packets reference ids interned after the newest received registry
+      // snapshot. The registry message for this frame is in flight; count the
+      // skip and let the caller drop the frame instead of failing the render.
+      // Only the typed registry-miss is treated as transient — every other
+      // decode failure (truncated buffer, bad magic/version) is corruption
+      // and must surface as an error, not be skipped silently.
+      cache.registryLagSkips += 1;
+      return null;
+    }
+
+    throw error;
+  }
+
   cache.entriesByBufferIndex.set(bufferIndex, {
-    registry: registrySnapshot,
+    registry: latestRegistry,
     words: new Uint32Array(words),
     packets,
   });
   return packets;
+}
+
+/**
+ * Reconcile the incoming registry snapshot with the newest one seen. Within a
+ * worker lifetime the registry is append-only, so the snapshot with more
+ * entries — whose prefix matches the other — is the newer superset. A worker
+ * restart, however, starts a FRESH registry whose ids are unrelated: if the
+ * incoming snapshot is not a prefix-extension relative of the cached one, the
+ * epoch changed, and decoding with the old registry would silently resolve
+ * wrong assets. In that case reset the cache to the incoming registry.
+ */
+function reconcileRegistrySnapshot(
+  cache: SharedSnapshotPacketDecodeCache,
+  incoming: SnapshotPacketRegistrySnapshot,
+): SnapshotPacketRegistrySnapshot {
+  const current = cache.latestRegistry;
+
+  if (current === null || current === incoming) {
+    cache.latestRegistry = incoming;
+    return incoming;
+  }
+
+  const incomingLarger =
+    incoming.strings.length >= current.strings.length &&
+    incoming.handles.length >= current.handles.length;
+
+  if (incomingLarger && registryIsPrefixOf(current, incoming)) {
+    // Same epoch, newer (or identical) snapshot: safe to adopt.
+    cache.latestRegistry = incoming;
+    return incoming;
+  }
+
+  const currentLarger =
+    current.strings.length >= incoming.strings.length &&
+    current.handles.length >= incoming.handles.length;
+
+  if (currentLarger && registryIsPrefixOf(incoming, current)) {
+    // Same epoch, stale re-read of an older message: keep the newer registry.
+    return current;
+  }
+
+  // Epoch change (worker restart re-interned from scratch): every cached
+  // decode and lag counter belongs to the previous registry — reset.
+  cache.entriesByBufferIndex.clear();
+  cache.registryLagSkips = 0;
+  cache.latestRegistry = incoming;
+  return incoming;
+}
+
+/** True when `prefix`'s entries exactly match the start of `full`'s. */
+function registryIsPrefixOf(
+  prefix: SnapshotPacketRegistrySnapshot,
+  full: SnapshotPacketRegistrySnapshot,
+): boolean {
+  for (let index = 0; index < prefix.strings.length; index += 1) {
+    if (prefix.strings[index] !== full.strings[index]) {
+      return false;
+    }
+  }
+
+  for (let index = 0; index < prefix.handles.length; index += 1) {
+    const a = prefix.handles[index];
+    const b = full.handles[index];
+
+    if (a === undefined || b === undefined) {
+      return false;
+    }
+
+    if (a.kind !== b.kind || a.id !== b.id) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function getSharedSnapshotPacketDecodeCache(
@@ -340,6 +474,8 @@ function getSharedSnapshotPacketDecodeCache(
 
   const cache: SharedSnapshotPacketDecodeCache = {
     entriesByBufferIndex: new Map(),
+    latestRegistry: null,
+    registryLagSkips: 0,
   };
   SHARED_SNAPSHOT_PACKET_DECODE_CACHES.set(shared, cache);
   return cache;

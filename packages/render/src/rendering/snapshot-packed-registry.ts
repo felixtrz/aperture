@@ -10,6 +10,26 @@ export interface SnapshotPacketRegistrySnapshot {
   readonly handles: readonly SerializedAssetHandle[];
 }
 
+/**
+ * Thrown when packet words reference a string/handle id the registry has not
+ * interned. Typed (rather than a bare RangeError) so readers can distinguish
+ * a transient registry-message lag — packets newer than the last received
+ * registry snapshot, safe to skip — from genuine packet-buffer corruption
+ * (truncated words, bad magic), which must surface as an error. Extends
+ * RangeError so existing `instanceof RangeError` handling keeps working.
+ */
+export class SnapshotPacketRegistryMissError extends RangeError {
+  readonly kind: "string" | "handle";
+  readonly id: number;
+
+  constructor(kind: "string" | "handle", id: number) {
+    super(`Unknown snapshot packet ${kind} id '${id}'.`);
+    this.name = "SnapshotPacketRegistryMissError";
+    this.kind = kind;
+    this.id = id;
+  }
+}
+
 export interface SnapshotPacketEncodingRegistry extends SnapshotPacketRegistrySnapshot {
   stringId(value: string): number;
   stringValue(id: number): string;
@@ -59,7 +79,7 @@ export function createSnapshotPacketRegistry(
     },
     stringValue(id: number): string {
       if (id <= 0 || id > strings.length) {
-        throw new RangeError(`Unknown snapshot packet string id '${id}'.`);
+        throw new SnapshotPacketRegistryMissError("string", id);
       }
 
       return strings[id - 1] ?? "";
@@ -89,13 +109,13 @@ export function createSnapshotPacketRegistry(
       }
 
       if (id < 0 || id > handles.length) {
-        throw new RangeError(`Unknown snapshot packet handle id '${id}'.`);
+        throw new SnapshotPacketRegistryMissError("handle", id);
       }
 
       const handle = handles[id - 1];
 
       if (handle === undefined) {
-        throw new RangeError(`Unknown snapshot packet handle id '${id}'.`);
+        throw new SnapshotPacketRegistryMissError("handle", id);
       }
 
       return createAssetHandle(handle.kind, handle.id);
