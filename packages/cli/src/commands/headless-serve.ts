@@ -228,6 +228,35 @@ async function createServeSession(args: {
             }),
           );
         }
+        case "pick": {
+          // Deterministic bounds-ray viewport query (agent-stumble:
+          // pixel-hunt picking). The controller reports scene-state problems
+          // (no views, degenerate viewport) as structured diagnostics;
+          // surface those at the envelope level like the restore case (#64).
+          const x = numberParam(params["x"]);
+          const y = numberParam(params["y"]);
+          if (x === undefined || y === undefined) {
+            return fail(id, "The pick command requires numeric params.x/y.");
+          }
+          const coordinateSpace = stringParam(params["coordinateSpace"]);
+          const picked = controller.pick({
+            x,
+            y,
+            ...(coordinateSpace === "ndc" || coordinateSpace === "pixels"
+              ? { coordinateSpace }
+              : {}),
+            ...(numberParam(params["viewId"]) === undefined
+              ? {}
+              : { viewId: numberParam(params["viewId"]) as number }),
+            ...(numberParam(params["layerMask"]) === undefined
+              ? {}
+              : { layerMask: numberParam(params["layerMask"]) as number }),
+            ...(numberParam(params["maxHits"]) === undefined
+              ? {}
+              : { maxHits: numberParam(params["maxHits"]) as number }),
+          });
+          return { id, ok: picked.ok, result: picked };
+        }
         case "snapshot": {
           const out = stringParam(params["out"]);
           if (out === undefined) {
@@ -467,6 +496,12 @@ function positiveIntegerParam(value: unknown, fallback: number): number {
     : fallback;
 }
 
+function numberParam(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
+}
+
 function stringParam(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
@@ -490,13 +525,24 @@ boot-once-then-step loop. Commands run strictly in order.
 On start it emits: { "ready": true, "status": { ... } }
 
 Each request is { "id": <any>, "cmd": <string>, "params"?: <object> }:
-  step      { delta?, time?, frames?, extract? } Advance fixed step(s). Pass
-                                   extract:false to skip per-frame render
-                                   extraction (much faster at scale).
+  step      { delta?, time?, frames?, extract?, untilQuiescent?, maxFrames? }
+                                   Advance fixed step(s). Pass extract:false to
+                                   skip per-frame render extraction (much
+                                   faster at scale). Pass untilQuiescent:true
+                                   to step until the render digest stabilizes
+                                   and queues drain (bounded by maxFrames,
+                                   default 240); the result then carries a
+                                   quiescence report.
   extract   { frame? }             Extract the current render snapshot.
   inject    { pointer?, actions? } Apply input (see 'aperture headless --inject').
   command   { channel, payload? }  Post an app command onto the command bus for
                                    systems to drain on the next step.
+  pick      { x, y, coordinateSpace?, viewId?, layerMask?, maxHits? }
+                                   Deterministic CPU bounds-ray pick: what is
+                                   at viewport (x, y)? Pixels by default
+                                   (against the session render size); returns
+                                   distance-sorted bounds hits with stable
+                                   entity ids — not pixel-perfect GPU picking.
   get-status                       Full headless status report (includes seed).
   bundle    { out, width?, height? } Write a render bundle to a file.
   snapshot  { out }                Save a SessionSnapshot (checkpoint) to a file.
