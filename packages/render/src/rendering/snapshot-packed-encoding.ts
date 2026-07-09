@@ -6,7 +6,10 @@ import type {
   SnapshotPacketBundle,
 } from "./snapshot-packed-encoding-types.js";
 
-export { createSnapshotPacketRegistry } from "./snapshot-packed-registry.js";
+export {
+  createSnapshotPacketRegistry,
+  SnapshotPacketRegistryMissError,
+} from "./snapshot-packed-registry.js";
 export type {
   CreateSnapshotPacketRegistryOptions,
   SnapshotPacketEncodingRegistry,

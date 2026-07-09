@@ -540,6 +540,123 @@ export * from "./huge-reference.js";
       }
     });
 
+    it("auto-warms the corpus on the first reference tool call", async () => {
+      const producerRoot = await referenceWorkspace();
+      const consumerRoot = await tempRoot();
+      const baseUrl = "https://assets.example.test/aperture-reference";
+      const previousBaseUrl = process.env.APERTURE_REFERENCE_ASSETS_BASE_URL;
+
+      await warmApertureReferences({ cwd: producerRoot, from: "workspace" });
+      const payloadDir = path.dirname(
+        apertureReferenceManifestFile(producerRoot),
+      );
+      const manifestBody = await readFile(
+        path.join(payloadDir, "manifest.json"),
+      );
+      const archiveBody = await readFile(path.join(payloadDir, "data.tgz"));
+
+      process.env.APERTURE_REFERENCE_ASSETS_BASE_URL = baseUrl;
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async (input: string | URL | Request) => {
+          const url = String(input);
+
+          if (url === `${baseUrl}/manifest.json`) {
+            return new Response(manifestBody, { status: 200 });
+          }
+
+          if (url === `${baseUrl}/data.tgz`) {
+            return new Response(archiveBody, { status: 200 });
+          }
+
+          const body = url.endsWith("model_quantized.onnx")
+            ? "mock-onnx"
+            : "{}\n";
+
+          return new Response(body, { status: 200 });
+        }),
+      );
+
+      try {
+        // No prior warmup in consumerRoot: the first tool call must warm on
+        // demand and then serve the query, reporting the warmup via a
+        // structured diagnostic instead of failing (agent-stumble finding:
+        // "reference corpus is not warmed" on first reference_* MCP call).
+        const search = await callApertureTool({
+          cwd: consumerRoot,
+          name: "reference_search",
+          arguments: { query: "SpinSystem", limit: 3 },
+        });
+
+        expect(search).toMatchObject({
+          warmedOnDemand: true,
+          total: expect.any(Number),
+          diagnostics: expect.arrayContaining([
+            expect.objectContaining({
+              code: "aperture.reference.warmedOnDemand",
+            }),
+          ]),
+        });
+
+        // A second call serves from the warmed corpus without re-warming.
+        const followUp = await callApertureTool({
+          cwd: consumerRoot,
+          name: "reference_search",
+          arguments: { query: "SpinSystem", limit: 3 },
+        });
+        expect(followUp).not.toMatchObject({ warmedOnDemand: true });
+      } finally {
+        if (previousBaseUrl === undefined) {
+          delete process.env.APERTURE_REFERENCE_ASSETS_BASE_URL;
+        } else {
+          process.env.APERTURE_REFERENCE_ASSETS_BASE_URL = previousBaseUrl;
+        }
+      }
+    });
+
+    it("reports structured diagnostics when auto-warmup fails", async () => {
+      const consumerRoot = await tempRoot();
+      const baseUrl = "https://assets.example.test/aperture-reference";
+      const previousBaseUrl = process.env.APERTURE_REFERENCE_ASSETS_BASE_URL;
+
+      process.env.APERTURE_REFERENCE_ASSETS_BASE_URL = baseUrl;
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => {
+          throw new Error("network unreachable");
+        }),
+      );
+
+      try {
+        const result = await callApertureTool({
+          cwd: consumerRoot,
+          name: "reference_search",
+          arguments: { query: "SpinSystem" },
+        });
+
+        expect(result).toMatchObject({
+          ok: false,
+          diagnostics: [
+            expect.objectContaining({
+              code: "aperture.reference.notWarmed",
+            }),
+            expect.objectContaining({
+              code: "aperture.reference.autoWarmupFailed",
+              message: expect.stringContaining(
+                "Run 'aperture reference warmup' manually.",
+              ),
+            }),
+          ],
+        });
+      } finally {
+        if (previousBaseUrl === undefined) {
+          delete process.env.APERTURE_REFERENCE_ASSETS_BASE_URL;
+        } else {
+          process.env.APERTURE_REFERENCE_ASSETS_BASE_URL = previousBaseUrl;
+        }
+      }
+    });
+
     it("serves reference tools without a dev browser session", async () => {
       const root = await referenceWorkspace();
       await warmApertureReferences({ cwd: root, from: "workspace" });

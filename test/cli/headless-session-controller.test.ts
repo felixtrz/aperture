@@ -13,6 +13,7 @@ import {
   resource,
 } from "@aperture-engine/app/systems";
 import type { ApertureSessionSnapshot } from "@aperture-engine/app/headless";
+import { LocalTransform, Name } from "@aperture-engine/simulation";
 import { createHeadlessSessionController } from "../../packages/cli/src/headless/session-controller.js";
 
 describe("HeadlessSessionController", () => {
@@ -176,6 +177,74 @@ describe("HeadlessSessionController", () => {
       }) as { result?: { summaries?: readonly { key?: string }[] } };
       expect((found.result?.summaries ?? []).map((s) => s.key)).toEqual([
         "fromCommand",
+      ]);
+    } finally {
+      controller.dispose();
+    }
+  });
+
+  it("coerces JSON-string payloads into structured values before enqueue", async () => {
+    const drained: unknown[] = [];
+    const controller = await createHeadlessSessionController({
+      config: defineApertureConfig({
+        mode: "headless",
+        render: { defaultCamera: false, defaultLight: false },
+      }),
+      systems: [
+        {
+          default: class DrainSystem extends createSystem() {
+            override update(): void {
+              drained.push(...this.commands.drain("editor"));
+              drained.push(...this.commands.drain("note"));
+            }
+          },
+        },
+      ],
+      seed: 0,
+      assetMode: "placeholder",
+      root: process.cwd(),
+      publicDir: "public",
+      allowHttpAssets: false,
+      determinism: "off",
+    });
+
+    try {
+      // Structured payload serialized to a string by an MCP client: parsed
+      // back into a structured value, with a diagnostic reporting the
+      // coercion.
+      const coerced = controller.dispatchCommand({
+        channel: "editor",
+        payload: '[{"op":"scene.loadDemo"}]',
+      }) as {
+        dispatched: boolean;
+        payloadCoerced?: boolean;
+        diagnostics?: readonly { code: string }[];
+      };
+      expect(coerced.dispatched).toBe(true);
+      expect(coerced.payloadCoerced).toBe(true);
+      expect(coerced.diagnostics?.map((d) => d.code)).toEqual([
+        "aperture.headless.commandPayloadCoerced",
+      ]);
+
+      // Plain and non-JSON string payloads pass through untouched, with no
+      // coercion reported.
+      const plain = controller.dispatchCommand({
+        channel: "note",
+        payload: "hello world",
+      }) as { payloadCoerced?: boolean };
+      expect(plain.payloadCoerced).toBeUndefined();
+
+      const malformed = controller.dispatchCommand({
+        channel: "note",
+        payload: "{not json",
+      }) as { payloadCoerced?: boolean };
+      expect(malformed.payloadCoerced).toBeUndefined();
+
+      controller.step({ frames: 1 });
+      expect(drained).toEqual([
+        [{ op: "scene.loadDemo" }],
+        "hello world",
+        "{not json",
       ]);
     } finally {
       controller.dispose();
@@ -708,6 +777,306 @@ describe("HeadlessSessionController", () => {
     } finally {
       controller.dispose();
       await rm(out, { force: true });
+    }
+  });
+
+  it("steps until quiescent once a command-driven spawn settles (agent-stumble: brittle waits)", async () => {
+    const controller = await createHeadlessSessionController({
+      config: defineApertureConfig({
+        mode: "headless",
+        render: { defaultCamera: false, defaultLight: false },
+      }),
+      systems: [
+        {
+          default: class CommandSpawnSystem extends createSystem() {
+            override init(): void {
+              this.spawn.camera({
+                key: "quiesce.cam",
+                transform: { translation: [0, 1, 6], lookAt: [0, 0, 0] },
+                fovYDegrees: 60,
+              });
+            }
+
+            override update(): void {
+              for (const command of this.commands.drain<{ key: string }>(
+                "spawn",
+              )) {
+                this.spawn.mesh({
+                  key: command.key,
+                  mesh: mesh.box({ size: [1, 1, 1] }),
+                  material: material.standard(),
+                  transform: { translation: [0, 0, 0] },
+                });
+              }
+            }
+          },
+        },
+      ],
+      seed: 0,
+      assetMode: "placeholder",
+      root: process.cwd(),
+      publicDir: "public",
+      allowHttpAssets: false,
+      determinism: "off",
+    });
+
+    try {
+      controller.dispatchCommand({
+        channel: "spawn",
+        payload: { key: "quiesce.cube" },
+      });
+
+      const result = controller.step({ untilQuiescent: true }) as {
+        extracted: boolean;
+        quiescence: {
+          quiescent: boolean;
+          reason: string;
+          framesStepped: number;
+          pendingCommands: number;
+          pendingAssets: number;
+        };
+      };
+
+      expect(result.extracted).toBe(true);
+      expect(result.quiescence.quiescent).toBe(true);
+      expect(result.quiescence.reason).toBe("digest-stable");
+      // One frame drains the command and spawns the mesh, one confirms the
+      // digest holds — far below the 240-frame default cap.
+      expect(result.quiescence.framesStepped).toBeGreaterThanOrEqual(1);
+      expect(result.quiescence.framesStepped).toBeLessThanOrEqual(5);
+      expect(result.quiescence.pendingCommands).toBe(0);
+      expect(result.quiescence.pendingAssets).toBe(0);
+
+      const found = controller.callTool({
+        name: "ecs_query",
+        arguments: { key: "quiesce.cube" },
+      }) as { result?: { summaries?: readonly unknown[] } };
+      expect(found.result?.summaries).toHaveLength(1);
+    } finally {
+      controller.dispose();
+    }
+  });
+
+  it("reports max-frames instead of erroring when the sim never settles (agent-stumble: brittle waits)", async () => {
+    const controller = await createHeadlessSessionController({
+      config: defineApertureConfig({
+        mode: "headless",
+        render: { defaultCamera: false, defaultLight: false },
+      }),
+      systems: [
+        {
+          default: class MoverSystem extends createSystem({
+            queries: {
+              movers: {
+                required: [Name, LocalTransform],
+                where: [
+                  { component: Name, key: "value", op: "eq", value: "mover" },
+                ],
+              },
+            },
+          }) {
+            override init(): void {
+              this.spawn.camera({
+                key: "mover.cam",
+                transform: { translation: [0, 1, 6], lookAt: [0, 0, 0] },
+                fovYDegrees: 60,
+              });
+              this.spawn.mesh({
+                key: "mover",
+                name: "mover",
+                mesh: mesh.box({ size: [1, 1, 1] }),
+                material: material.standard(),
+                transform: { translation: [0, 0, 0] },
+              });
+            }
+
+            override update(delta: number): void {
+              // A continuously-animating sim: legitimately never quiescent.
+              for (const entity of this.queries.movers.entities) {
+                const translation = entity.getVectorView(
+                  LocalTransform,
+                  "translation",
+                );
+                translation.set([
+                  (translation[0] ?? 0) + delta,
+                  translation[1] ?? 0,
+                  translation[2] ?? 0,
+                ]);
+              }
+            }
+          },
+        },
+      ],
+      seed: 0,
+      assetMode: "placeholder",
+      root: process.cwd(),
+      publicDir: "public",
+      allowHttpAssets: false,
+      determinism: "off",
+    });
+
+    try {
+      const result = controller.step({
+        untilQuiescent: true,
+        maxFrames: 10,
+      }) as {
+        nextFrame: number;
+        quiescence: {
+          quiescent: boolean;
+          reason: string;
+          framesStepped: number;
+        };
+      };
+
+      // Hitting the cap is a report, not an error — the caller decides.
+      expect(result.quiescence.quiescent).toBe(false);
+      expect(result.quiescence.reason).toBe("max-frames");
+      expect(result.quiescence.framesStepped).toBe(10);
+      expect(result.nextFrame).toBe(10);
+    } finally {
+      controller.dispose();
+    }
+  });
+
+  it("picks the entity under a viewport point via deterministic bounds rays (agent-stumble: pixel-hunt picking)", async () => {
+    const controller = await createHeadlessSessionController({
+      config: defineApertureConfig({
+        mode: "headless",
+        render: { defaultCamera: false, defaultLight: false },
+      }),
+      systems: [
+        {
+          default: class PickSceneSystem extends createSystem() {
+            override init(): void {
+              this.spawn.camera({
+                key: "pick.cam",
+                transform: { translation: [0, 0, 5], lookAt: [0, 0, 0] },
+                fovYDegrees: 60,
+              });
+              this.spawn.mesh({
+                key: "pick.cube",
+                mesh: mesh.box({ size: [1, 1, 1] }),
+                material: material.standard(),
+                transform: { translation: [0, 0, 0] },
+              });
+            }
+          },
+        },
+      ],
+      seed: 0,
+      assetMode: "placeholder",
+      root: process.cwd(),
+      publicDir: "public",
+      allowHttpAssets: false,
+      determinism: "off",
+    });
+
+    try {
+      controller.step({ frames: 1 });
+
+      // Center of the default 960x640 session render target: the box sits on
+      // the camera axis.
+      const centerPick = controller.pick({ x: 480, y: 320 });
+      expect(centerPick.ok).toBe(true);
+      if (!centerPick.ok) {
+        throw new Error("unreachable: centerPick reported ok");
+      }
+      expect(centerPick.method).toBe("bounds-ray");
+      expect(centerPick.view.viewport).toEqual([0, 0, 1, 1]);
+      expect(centerPick.hits).toHaveLength(1);
+      expect(centerPick.hits[0]?.key).toBe("pick.cube");
+      // Camera sits at z=5, the box face at z=0.5; the ray originates on the
+      // near plane, so the first bounds contact is a little under 4.5 away.
+      expect(centerPick.hits[0]?.distance).toBeGreaterThan(3.5);
+      expect(centerPick.hits[0]?.distance).toBeLessThan(5);
+
+      // The hit carries the same stable { index, generation } id
+      // ecs_find_entities reports for the cube.
+      const found = controller.callTool({
+        name: "ecs_query",
+        arguments: { key: "pick.cube" },
+      }) as {
+        result?: {
+          summaries?: readonly {
+            entity?: { index: number; generation: number };
+          }[];
+        };
+      };
+      expect(centerPick.hits[0]?.entity).toEqual(
+        found.result?.summaries?.[0]?.entity,
+      );
+
+      // NDC coordinates address the same point directly.
+      const ndcPick = controller.pick({
+        x: 0,
+        y: 0,
+        coordinateSpace: "ndc",
+      });
+      expect(ndcPick.ok && ndcPick.hits).toHaveLength(1);
+
+      // A corner ray passes far outside the unit box: zero hits, still ok.
+      const cornerPick = controller.pick({ x: 4, y: 4 });
+      expect(cornerPick.ok).toBe(true);
+      expect(cornerPick.ok && cornerPick.hits).toEqual([]);
+
+      // A layer filter that matches nothing removes the hit.
+      const filteredPick = controller.pick({
+        x: 480,
+        y: 320,
+        layerMask: 0x8000,
+      });
+      expect(filteredPick.ok && filteredPick.hits).toEqual([]);
+
+      // Points the renderer never shades — outside the clamped viewport ∩
+      // scissor rectangle — must NOT return bounds hits (Codex review: pick
+      // honored raw viewport only, so clipped-away pixels could still "hit").
+      const outsidePixels = controller.pick({ x: 5000, y: 320 });
+      expect(outsidePixels.ok).toBe(false);
+      expect(
+        !outsidePixels.ok && outsidePixels.diagnostics.map((d) => d.code),
+      ).toEqual(["aperture.headless.pickOutsideView"]);
+
+      const outsideNdc = controller.pick({
+        x: 3,
+        y: 0,
+        coordinateSpace: "ndc",
+      });
+      expect(outsideNdc.ok).toBe(false);
+      expect(
+        !outsideNdc.ok && outsideNdc.diagnostics.map((d) => d.code),
+      ).toEqual(["aperture.headless.pickOutsideView"]);
+    } finally {
+      controller.dispose();
+    }
+  });
+
+  it("reports a structured diagnostic when picking without any views", async () => {
+    const controller = await createHeadlessSessionController({
+      config: defineApertureConfig({
+        mode: "headless",
+        render: { defaultCamera: false, defaultLight: false },
+      }),
+      systems: [],
+      seed: 0,
+      assetMode: "placeholder",
+      root: process.cwd(),
+      publicDir: "public",
+      allowHttpAssets: false,
+      determinism: "off",
+    });
+
+    try {
+      controller.step({ frames: 1 });
+      const picked = controller.pick({ x: 480, y: 320 });
+      expect(picked.ok).toBe(false);
+      if (picked.ok) {
+        throw new Error("unreachable: pick reported ok without views");
+      }
+      expect(picked.diagnostics.map((d) => d.code)).toEqual([
+        "aperture.headless.pickNoView",
+      ]);
+    } finally {
+      controller.dispose();
     }
   });
 });

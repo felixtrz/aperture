@@ -72,7 +72,7 @@ export async function runRenderCommand(options: {
   if (!parsed.allowBlank && isPngBlank(png)) {
     throw new ApertureCliError(
       "aperture.render.blankFrame",
-      "The rendered frame is blank (a single flat color). This usually means the snapshot's source assets did not resolve, WebGPU produced no output, or the browser ran headless (which does not composite the WebGPU canvas into the screenshot). Re-run with --allow-blank to write it anyway.",
+      "The rendered frame is blank (a single flat color). This usually means the snapshot's source assets did not resolve or WebGPU produced no output. If it only reproduces headless, re-run with APERTURE_RENDER_HEADLESS=0 to compare against a headed window. Re-run with --allow-blank to write it anyway.",
     );
   }
 
@@ -344,10 +344,11 @@ function renderHelp(): string {
   aperture render <bundle> --out <path.png> [options]
 
 Renders one image on demand from a render bundle written by
-'aperture headless'. Boots a headed Chrome (auto-provisioning an Xvfb virtual
-display on a GPU-less Linux host), rehydrates the bundle's source assets,
-applies the snapshot through the WebGPU renderer, and screenshots the result —
-decoupled from any live simulation.
+'aperture headless'. Boots Chrome in new headless mode (set
+APERTURE_RENDER_HEADLESS=0 for a headed window; that path auto-provisions an
+Xvfb virtual display on a GPU-less Linux host), rehydrates the bundle's source
+assets, applies the snapshot through the WebGPU renderer, and screenshots the
+result — decoupled from any live simulation.
 
 Rendering many frames? 'aperture render serve' keeps one warm browser and
 renders bundles from stdin, paying the multi-second boot only once.

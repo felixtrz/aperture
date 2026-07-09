@@ -19,6 +19,13 @@ export type Vec3Tuple = [number, number, number];
 export type Vec4Tuple = [number, number, number, number];
 export type QuatTuple = [number, number, number, number];
 export type ColorTuple = Vec4Tuple;
+// prettier-ignore
+export type Mat4Tuple = [
+  number, number, number, number,
+  number, number, number, number,
+  number, number, number, number,
+  number, number, number, number,
+];
 
 // `*Like` input types mirror the previous backend's "arg" types: a typed array
 // (the common case) or a readonly tuple literal for authoring convenience.

@@ -241,6 +241,17 @@ describe("Aperture CLI dev session and MCP command surface", () => {
         params: {},
       })}\n`,
     );
+    stdin.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: 7,
+        method: "tools/call",
+        params: {
+          name: "ecs_step",
+          arguments: { target: "headed", untilQuiescent: true },
+        },
+      })}\n`,
+    );
     stdin.end();
     await done;
 
@@ -255,12 +266,29 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     const unsupported = messages.find((message) => message.id === 4);
     const missingParams = messages.find((message) => message.id === 5);
     const missingTool = messages.find((message) => message.id === 6);
+    const headedQuiescent = messages.find((message) => message.id === 7);
+
+    // untilQuiescent is headless-only: the headed bridge steps one frame per
+    // call, so silently accepting the flag would fake a completed wait.
+    expect(headedQuiescent?.result).toMatchObject({
+      structuredContent: {
+        ok: false,
+        diagnostics: [
+          expect.objectContaining({
+            code: "aperture.mcp.untilQuiescentHeadlessOnly",
+          }),
+        ],
+      },
+    });
 
     expect(errors.join("")).toContain("aperture.mcp.invalidJson");
     expect(messages.some((message) => message.id === undefined)).toBe(false);
     expect(initialize?.result).toMatchObject({
       capabilities: { tools: {} },
       serverInfo: { name: "aperture" },
+      // Connect-time sanctioned-loop guidance for agents (agent-stumble:
+      // clients hand-rolled browser drivers instead of using this surface).
+      instructions: expect.stringContaining("simulation-first"),
     });
     const names = toolNames(tools?.result);
     expect(names).toEqual(
@@ -335,6 +363,7 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       "session_snapshot_restore",
       "determinism_report",
       "command_dispatch",
+      "viewport_pick",
       "reference_search",
       "reference_api_lookup",
       "reference_file_content",

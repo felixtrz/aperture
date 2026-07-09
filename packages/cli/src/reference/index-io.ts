@@ -1,9 +1,22 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { ApertureCliError } from "../errors.js";
 import { buildApertureReferenceIndex } from "./build.js";
 import { INDEX_VERSION, type ApertureReferenceIndex } from "./contracts.js";
 import { isNodeErrorCode } from "./files.js";
 import { apertureReferenceIndexFile } from "./paths.js";
+
+export const REFERENCE_NOT_WARMED_CODE = "aperture.reference.notWarmed";
+
+/** True when `error` is the typed "corpus is not warmed" failure. */
+export function isReferenceNotWarmedError(
+  error: unknown,
+): error is ApertureCliError {
+  return (
+    error instanceof ApertureCliError &&
+    error.code === REFERENCE_NOT_WARMED_CODE
+  );
+}
 
 interface ReadIndexOptions {
   readonly allowBuild?: boolean;
@@ -34,9 +47,12 @@ export async function readApertureReferenceIndex(
     }
 
     if (isNodeErrorCode(error, "ENOENT")) {
-      throw new Error(
+      // Typed so callers (e.g. the MCP reference tools) can recognize the
+      // missing-corpus case and warm on demand instead of surfacing a manual
+      // instruction (agent-stumble finding: first reference_* call failed).
+      throw new ApertureCliError(
+        REFERENCE_NOT_WARMED_CODE,
         `Aperture reference corpus is not warmed. Run 'aperture reference warmup'. Missing ${indexFile}.`,
-        { cause: error },
       );
     }
 

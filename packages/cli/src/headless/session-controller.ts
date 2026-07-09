@@ -24,7 +24,19 @@ import { createApertureDevtoolsRequest } from "@aperture-engine/app/commands";
 import type { ApertureDeterminismDiagnosticsMode } from "@aperture-engine/app/systems";
 import type { ApertureConfig } from "@aperture-engine/app/config";
 import type { ApertureSystemModule } from "@aperture-engine/app/advanced";
-import type { RenderSnapshot } from "@aperture-engine/render";
+import { getApertureEntitySummary } from "@aperture-engine/app/entity-lookup";
+import {
+  invertMat4,
+  raycast,
+  transformPoint,
+  vec3Normalize,
+  vec3Subtract,
+  vec3Tuple,
+  type EcsWorld,
+  type RaycastableBounds,
+  type RaycastHit,
+} from "@aperture-engine/simulation";
+import type { MeshDrawPacket, RenderSnapshot } from "@aperture-engine/render";
 import { ApertureCliError } from "../errors.js";
 import { loadApertureHeadlessApp } from "./config-loader.js";
 import {
@@ -45,6 +57,10 @@ import { syncAutoAspectCameras } from "./auto-aspect.js";
 export const DEFAULT_HEADLESS_DELTA = 1 / 60;
 export const DEFAULT_HEADLESS_RENDER_WIDTH = 960;
 export const DEFAULT_HEADLESS_RENDER_HEIGHT = 640;
+/** Frame cap for `untilQuiescent` stepping (agent-stumble: brittle waits). */
+export const DEFAULT_HEADLESS_QUIESCENT_MAX_FRAMES = 240;
+/** Default number of hits a viewport pick returns, nearest first. */
+export const DEFAULT_HEADLESS_PICK_MAX_HITS = 10;
 
 export interface HeadlessSessionControllerOptions {
   readonly config: ApertureConfig;
@@ -89,7 +105,82 @@ export interface HeadlessStepInput {
    * frame; call extract()/bundle to refresh render data. Defaults to true.
    */
   readonly extract?: boolean;
+  /**
+   * Step frame-by-frame until the session is quiescent — the extracted render
+   * digest stops changing, the command bus has drained, and no assets are
+   * still loading — or `maxFrames` is reached (agent-stumble: brittle waits).
+   * Replaces hand-rolled waitForRuntimeQuiescence polling with a bounded,
+   * machine-checkable wait. Overrides `frames` and always extracts; the step
+   * result then carries a `quiescence` report. Hitting `maxFrames` without
+   * settling is a legitimate outcome (a continuously-animating sim never
+   * settles), reported as `quiescent: false` — never an error.
+   */
+  readonly untilQuiescent?: boolean;
+  /** Frame cap for `untilQuiescent` (default 240). */
+  readonly maxFrames?: number;
 }
+
+/** Result payload attached to step results when `untilQuiescent` is set. */
+export interface HeadlessStepQuiescenceReport {
+  readonly quiescent: boolean;
+  readonly reason: "digest-stable" | "max-frames";
+  readonly framesStepped: number;
+  readonly pendingCommands: number;
+  readonly pendingAssets: number;
+}
+
+export interface HeadlessPickInput {
+  readonly x: number;
+  readonly y: number;
+  /**
+   * "pixels" (default) addresses the session render size with a top-left
+   * origin — the same space frame_capture renders; "ndc" is -1..1 with +Y up.
+   */
+  readonly coordinateSpace?: "ndc" | "pixels";
+  /** View to pick through; defaults to the primary (first) extracted view. */
+  readonly viewId?: number;
+  /**
+   * Optional extra layer filter. A draw is considered when it overlaps the
+   * view's layerMask AND (when given) this mask.
+   */
+  readonly layerMask?: number;
+  /** Maximum hits returned, nearest first (default 10). */
+  readonly maxHits?: number;
+}
+
+export interface HeadlessPickHit {
+  /** Stable id in the same { index, generation } shape ecs_find_entities reports. */
+  readonly entity: { readonly index: number; readonly generation: number };
+  readonly key?: string;
+  readonly name?: string;
+  readonly renderId: number;
+  readonly distance: number;
+  readonly point: readonly [number, number, number];
+  readonly boundsIndex: number;
+}
+
+export type HeadlessPickResult =
+  | {
+      readonly ok: true;
+      readonly method: "bounds-ray";
+      readonly frame: number;
+      readonly ray: {
+        readonly origin: readonly [number, number, number];
+        readonly direction: readonly [number, number, number];
+      };
+      readonly hits: readonly HeadlessPickHit[];
+      readonly view: {
+        readonly viewId: number;
+        readonly viewport: readonly [number, number, number, number];
+      };
+    }
+  | {
+      readonly ok: false;
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly message: string;
+      }[];
+    };
 
 export interface HeadlessExtractInput {
   readonly frame?: number;
@@ -124,6 +215,7 @@ export interface HeadlessSessionController {
     readonly result: unknown;
   };
   inject(input: unknown): GeneratedDevtoolsToolResult;
+  pick(input: HeadlessPickInput): HeadlessPickResult;
   dispatchCommand(input: {
     readonly channel: string;
     readonly payload?: unknown;
@@ -263,6 +355,9 @@ export async function createHeadlessSessionController(
   }
 
   function step(input: HeadlessStepInput = {}): unknown {
+    if (input.untilQuiescent === true) {
+      return stepUntilQuiescent(input);
+    }
     syncAspect();
     const frames = positiveIntegerValue(input.frames, 1);
     const delta = finiteNumber(input.delta, DEFAULT_HEADLESS_DELTA);
@@ -326,6 +421,110 @@ export async function createHeadlessSessionController(
     );
   }
 
+  // Quiescence-aware stepping (agent-stumble: brittle waits). Agents used to
+  // hand-roll waitForRuntimeQuiescence helpers around waitForFunction polling
+  // in the browser; headlessly the same question — "has the sim settled?" —
+  // is machine-checkable. A frame is quiescent when, after stepping it:
+  //   1. the extracted render snapshot digest equals the previous frame's,
+  //   2. the command bus has no queued commands left to drain, and
+  //   3. no assets are still loading per the manifest report.
+  function stepUntilQuiescent(input: HeadlessStepInput): unknown {
+    const delta = finiteNumber(input.delta, DEFAULT_HEADLESS_DELTA);
+    const baseTime = finiteNumber(
+      input.time,
+      state.runner.getStatus().nextFrame * delta,
+    );
+    const maxFrames = positiveIntegerValue(
+      input.maxFrames,
+      DEFAULT_HEADLESS_QUIESCENT_MAX_FRAMES,
+    );
+
+    syncAspect();
+    // Baseline digest of the pre-step extraction, so an already-settled sim
+    // is recognized after a single confirming frame.
+    let extraction = state.runner.extract(state.runner.getStatus().nextFrame);
+    let previousDigest = quiescenceDigestHash(extraction.snapshot);
+
+    let framesStepped = 0;
+    let quiescent = false;
+    let pendingCommands = countQueuedCommands();
+    let pendingAssets = countLoadingAssets();
+
+    while (framesStepped < maxFrames && !quiescent) {
+      state.runner.stepWithoutExtract(delta, baseTime + framesStepped * delta);
+      framesStepped += 1;
+      syncAspect();
+      extraction = state.runner.extract(
+        Math.max(0, state.runner.getStatus().nextFrame - 1),
+      );
+
+      // Honor the determinism policy on every frame of the wait loop, exactly
+      // like a plain step (F11).
+      const frameViolations = determinismViolations(
+        extraction.status.diagnostics,
+      );
+      if (frameViolations.length > 0 && options.determinism === "error") {
+        throw new ApertureCliError(
+          "aperture.headless.determinismViolation",
+          `Headless determinism policy failed with ${frameViolations.length} nondeterministic global use(s): ${describeDeterminismViolations(
+            frameViolations,
+          )}`,
+        );
+      }
+
+      const digest = quiescenceDigestHash(extraction.snapshot);
+      pendingCommands = countQueuedCommands();
+      pendingAssets = countLoadingAssets();
+      quiescent =
+        digest === previousDigest &&
+        pendingCommands === 0 &&
+        pendingAssets === 0;
+      previousDigest = digest;
+    }
+
+    const status = extraction.status;
+    const violations = determinismViolations(status.diagnostics);
+    // Hitting maxFrames without settling is NOT an error: a continuously
+    // animating sim legitimately never settles; the caller decides.
+    const quiescence: HeadlessStepQuiescenceReport = {
+      quiescent,
+      reason: quiescent ? "digest-stable" : "max-frames",
+      framesStepped,
+      pendingCommands,
+      pendingAssets,
+    };
+
+    return withOptionalDigests(
+      {
+        nextFrame: status.nextFrame,
+        counts: status.lastSnapshot?.counts ?? null,
+        extracted: true,
+        quiescence,
+        ...(violations.length === 0
+          ? {}
+          : { determinism: { mode: options.determinism, violations } }),
+      },
+      input,
+      status,
+      extraction.snapshot,
+    );
+  }
+
+  function countQueuedCommands(): number {
+    return Object.values(
+      state.runner.app.context.commands.summary().queuedByChannel,
+    ).reduce((total, count) => total + count, 0);
+  }
+
+  // The asset manifest report has no dedicated "pending" field; `byStatus`
+  // buckets every registered asset, and in-flight loads sit in the "loading"
+  // bucket. "registered" entries are declared-but-not-requested and may
+  // legitimately stay that way forever, so they do not block quiescence.
+  function countLoadingAssets(): number {
+    return state.runner.app.lowLevel.assets.createManifestReport().byStatus
+      .loading;
+  }
+
   function extract(input: HeadlessExtractInput = {}): {
     readonly snapshot: RenderSnapshot;
     readonly result: unknown;
@@ -345,6 +544,193 @@ export async function createHeadlessSessionController(
         report.status,
         report.snapshot,
       ),
+    };
+  }
+
+  // Deterministic viewport pick (agent-stumble: pixel-hunt picking). A
+  // transform-gizmo test was deleted after screenshot pixel-hunting failed;
+  // "what is at viewport x,y" is answerable from machine-checkable state
+  // instead: unproject (x, y) through the view's recorded view-projection
+  // matrix and intersect the ray against each mesh draw's world-space bounds.
+  // This is deliberately bounds-level CPU picking — a hit means "this
+  // entity's bounds are under the cursor", which is what editor controls and
+  // placement checks need — not pixel-perfect GPU/triangle picking.
+  function pick(input: HeadlessPickInput): HeadlessPickResult {
+    if (!Number.isFinite(input.x) || !Number.isFinite(input.y)) {
+      throw new ApertureCliError(
+        "aperture.headless.invalidPick",
+        "The pick requires finite numeric 'x' and 'y' coordinates.",
+      );
+    }
+
+    const { snapshot } = extract({});
+    const view =
+      input.viewId === undefined
+        ? snapshot.views[0]
+        : snapshot.views.find((candidate) => candidate.viewId === input.viewId);
+
+    if (view === undefined) {
+      return {
+        ok: false,
+        diagnostics: [
+          snapshot.views.length === 0
+            ? {
+                code: "aperture.headless.pickNoView",
+                message:
+                  "The extracted render snapshot has no views to pick through. Spawn a camera (or enable render.defaultCamera) and step a frame first.",
+              }
+            : {
+                code: "aperture.headless.pickViewNotFound",
+                message: `No extracted view has viewId ${input.viewId}. Available viewIds: ${snapshot.views
+                  .map((candidate) => candidate.viewId)
+                  .join(", ")}.`,
+              },
+        ],
+      };
+    }
+
+    // ViewPacket viewports are normalized rects resolved against the render
+    // target — here the session render size, the same size frame_capture
+    // renders and autoAspect cameras follow.
+    const viewport: readonly [number, number, number, number] = [
+      vecComponent(view.viewport, 0),
+      vecComponent(view.viewport, 1),
+      vecComponent(view.viewport, 2),
+      vecComponent(view.viewport, 3),
+    ];
+
+    // Mirror the renderer's rectangle semantics: it clamps the normalized
+    // viewport AND scissor to integer pixel rects against the render target
+    // and only shades fragments inside their intersection. A pick outside the
+    // rendered rectangle must report "nothing rendered here", not bounds hits
+    // for clipped-away pixels.
+    const viewportRect = resolvePickRect(
+      view.viewport,
+      sessionRenderWidth,
+      sessionRenderHeight,
+    );
+    const scissorRect = resolvePickRect(
+      view.scissor,
+      sessionRenderWidth,
+      sessionRenderHeight,
+    );
+    const effectiveRect = intersectPickRects(viewportRect, scissorRect);
+    if (viewportRect === null || effectiveRect === null) {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.headless.pickDegenerateViewport",
+            message: `View ${view.viewId} renders no pixels: viewport [${viewport.join(", ")}] and scissor clamp to an empty rectangle on the ${sessionRenderWidth}x${sessionRenderHeight} render target.`,
+          },
+        ],
+      };
+    }
+
+    let ndcX: number;
+    let ndcY: number;
+    let pixelX: number;
+    let pixelY: number;
+    if ((input.coordinateSpace ?? "pixels") === "ndc") {
+      ndcX = input.x;
+      ndcY = input.y;
+      // The GPU viewport transform maps NDC across the CLAMPED viewport rect.
+      pixelX = viewportRect.left + ((ndcX + 1) / 2) * viewportRect.width;
+      pixelY = viewportRect.top + ((1 - ndcY) / 2) * viewportRect.height;
+    } else {
+      pixelX = input.x;
+      pixelY = input.y;
+      // Pixel origin is top-left; NDC +Y is up.
+      ndcX = ((pixelX - viewportRect.left) / viewportRect.width) * 2 - 1;
+      ndcY = 1 - ((pixelY - viewportRect.top) / viewportRect.height) * 2;
+    }
+
+    if (
+      pixelX < effectiveRect.left ||
+      pixelX >= effectiveRect.right ||
+      pixelY < effectiveRect.top ||
+      pixelY >= effectiveRect.bottom
+    ) {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.headless.pickOutsideView",
+            message: `Pick (${input.x}, ${input.y}) falls outside view ${view.viewId}'s rendered rectangle [${effectiveRect.left}, ${effectiveRect.top}, ${effectiveRect.right}, ${effectiveRect.bottom}) (viewport ∩ scissor on the ${sessionRenderWidth}x${sessionRenderHeight} render target); nothing is rendered at that point.`,
+          },
+        ],
+      };
+    }
+
+    const matrixOffset = view.viewProjectionMatrixOffset;
+    const viewProjection = snapshot.viewMatrices.subarray(
+      matrixOffset,
+      matrixOffset + 16,
+    );
+    const inverseViewProjection =
+      viewProjection.length === 16 ? invertMat4(viewProjection) : null;
+    if (inverseViewProjection === null) {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.headless.pickSingularViewProjection",
+            message: `View ${view.viewId} has no invertible view-projection matrix; a pick ray cannot be reconstructed.`,
+          },
+        ],
+      };
+    }
+
+    // Unproject on the WebGPU [0, 1] clip-depth range: z=0 is the near plane
+    // (ray origin); z=0.5 samples a point inside the frustum for the
+    // direction (z=1 would hit the w=0 singularity of infinite-far
+    // projections).
+    const origin = transformPoint(inverseViewProjection, [ndcX, ndcY, 0]);
+    const interior = transformPoint(inverseViewProjection, [ndcX, ndcY, 0.5]);
+    const direction = vec3Normalize(vec3Subtract(interior, origin));
+
+    // A draw is pickable when its layers overlap the view's layerMask AND,
+    // when given, the caller's extra filter.
+    const candidates: RaycastableBounds<MeshDrawPacket>[] = [];
+    for (const draw of snapshot.meshDraws) {
+      if ((draw.layerMask & view.layerMask) === 0) {
+        continue;
+      }
+      if (
+        input.layerMask !== undefined &&
+        (draw.layerMask & input.layerMask) === 0
+      ) {
+        continue;
+      }
+      const bounds = snapshot.bounds[draw.boundsIndex];
+      if (bounds === undefined) {
+        continue;
+      }
+      candidates.push({
+        entity: draw,
+        worldAabb: bounds.worldAabb,
+        worldSphere: bounds.worldSphere,
+      });
+    }
+
+    const maxHits = positiveIntegerValue(
+      input.maxHits,
+      DEFAULT_HEADLESS_PICK_MAX_HITS,
+    );
+    const hits = raycast(candidates, origin, direction)
+      .slice(0, maxHits)
+      .map((hit) => pickHitFromRaycast(state.runner.app.lowLevel.world, hit));
+
+    return {
+      ok: true,
+      method: "bounds-ray",
+      frame: snapshot.frame,
+      ray: {
+        origin: vec3Tuple(origin),
+        direction: vec3Tuple(direction),
+      },
+      hits,
+      view: { viewId: view.viewId, viewport },
     };
   }
 
@@ -379,10 +765,30 @@ export async function createHeadlessSessionController(
         "The command dispatch requires a non-empty 'channel'.",
       );
     }
-    state.runner.app.context.commands.queue(input.channel, input.payload);
+    // Some MCP clients serialize structured tool arguments to JSON strings, so
+    // an object payload arrives here as '"[{\"op\":...}]"'. App-side decoders
+    // expect structured values and would reject (or silently drop) the string,
+    // making the dispatch report ok while the command no-ops. Coerce
+    // JSON-object/array-shaped strings back to structured values at this
+    // boundary and surface the coercion as a diagnostic; leave every other
+    // string payload untouched (a plain string is a legitimate command).
+    const coerced = coerceJsonStringPayload(input.payload);
+    state.runner.app.context.commands.queue(input.channel, coerced.payload);
     return {
       dispatched: true,
       channel: input.channel,
+      ...(coerced.wasCoerced
+        ? {
+            payloadCoerced: true,
+            diagnostics: [
+              {
+                code: "aperture.headless.commandPayloadCoerced",
+                message:
+                  "The command payload arrived as a JSON string and was parsed into a structured value before enqueue. Send structured payloads to avoid the coercion.",
+              },
+            ],
+          }
+        : {}),
       summary: state.runner.app.context.commands.summary(),
     };
   }
@@ -705,6 +1111,7 @@ export async function createHeadlessSessionController(
     step,
     extract,
     inject,
+    pick,
     dispatchCommand,
     reset,
     callTool,
@@ -1053,6 +1460,119 @@ function describeDeterminismViolations(
     .join("; ");
 }
 
+/**
+ * Digest used for quiescence comparison. Reuses the exact digest function the
+ * step/extract `digest: true` paths emit (createApertureRenderSnapshotDigest),
+ * with the `frame`/`time` stamps normalized out: they advance every step even
+ * in a fully settled scene, and quiescence compares extraction *content*, not
+ * timestamps (agent-stumble: brittle waits).
+ */
+function quiescenceDigestHash(snapshot: RenderSnapshot): string {
+  return createApertureRenderSnapshotDigest({ ...snapshot, frame: 0, time: 0 })
+    .hash;
+}
+
+/**
+ * Resolve a raycast hit's render entity ref to the same stable id shape
+ * ecs_find_entities reports ({ index, generation } plus key/name when the
+ * entity is alive and authored with them).
+ */
+function pickHitFromRaycast(
+  world: EcsWorld,
+  hit: RaycastHit<MeshDrawPacket>,
+): HeadlessPickHit {
+  const draw = hit.entity;
+  const report = getApertureEntitySummary(world, draw.entity);
+  const summary = report.ok ? report.summary : null;
+
+  return {
+    entity: { index: draw.entity.index, generation: draw.entity.generation },
+    ...(summary?.key === undefined ? {} : { key: summary.key }),
+    ...(summary === null ? {} : { name: summary.name }),
+    renderId: draw.renderId,
+    distance: hit.distance,
+    point: vec3Tuple(hit.point),
+    boundsIndex: draw.boundsIndex,
+  };
+}
+
+function vecComponent(values: ArrayLike<number>, index: number): number {
+  return values[index] ?? 0;
+}
+
+interface PickRect {
+  readonly left: number;
+  readonly top: number;
+  readonly right: number;
+  readonly bottom: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+/**
+ * Resolve a normalized view rectangle (viewport or scissor) to the integer
+ * pixel rect the renderer actually uses, mirroring its rounding-and-clamping
+ * rules (see packages/webgpu view-rectangle resolution). Returns null for an
+ * empty rectangle.
+ */
+function resolvePickRect(
+  rect: ArrayLike<number>,
+  targetWidth: number,
+  targetHeight: number,
+): PickRect | null {
+  const normalizedX = vecComponent(rect, 0);
+  const normalizedY = vecComponent(rect, 1);
+  const normalizedWidth = vecComponent(rect, 2);
+  const normalizedHeight = vecComponent(rect, 3);
+  const left = clampInteger(Math.round(normalizedX * targetWidth), targetWidth);
+  const top = clampInteger(
+    Math.round(normalizedY * targetHeight),
+    targetHeight,
+  );
+  const right = clampInteger(
+    Math.round((normalizedX + normalizedWidth) * targetWidth),
+    targetWidth,
+  );
+  const bottom = clampInteger(
+    Math.round((normalizedY + normalizedHeight) * targetHeight),
+    targetHeight,
+  );
+  const width = right - left;
+  const height = bottom - top;
+
+  if (width <= 0 || height <= 0) {
+    return null;
+  }
+
+  return { left, top, right, bottom, width, height };
+}
+
+function intersectPickRects(
+  a: PickRect | null,
+  b: PickRect | null,
+): PickRect | null {
+  if (a === null || b === null) {
+    return null;
+  }
+
+  const left = Math.max(a.left, b.left);
+  const top = Math.max(a.top, b.top);
+  const right = Math.min(a.right, b.right);
+  const bottom = Math.min(a.bottom, b.bottom);
+  const width = right - left;
+  const height = bottom - top;
+
+  if (width <= 0 || height <= 0) {
+    return null;
+  }
+
+  return { left, top, right, bottom, width, height };
+}
+
+function clampInteger(value: number, maximum: number): number {
+  return Math.min(Math.max(value, 0), maximum);
+}
+
 function withOptionalDigests<T extends object>(
   result: T,
   params: { readonly digest?: unknown },
@@ -1135,4 +1655,31 @@ function positiveIntegerValue(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isInteger(value) && value > 0
     ? value
     : fallback;
+}
+
+/**
+ * Parse a JSON-object/array-shaped string payload back into a structured
+ * value. Only strings whose first non-whitespace character is `{` or `[` are
+ * candidates — plain strings, numbers-as-strings, and malformed JSON pass
+ * through untouched so a legitimate string payload is never reinterpreted.
+ */
+function coerceJsonStringPayload(payload: unknown): {
+  readonly payload: unknown;
+  readonly wasCoerced: boolean;
+} {
+  if (typeof payload !== "string") {
+    return { payload, wasCoerced: false };
+  }
+
+  const first = payload.trimStart()[0];
+
+  if (first !== "{" && first !== "[") {
+    return { payload, wasCoerced: false };
+  }
+
+  try {
+    return { payload: JSON.parse(payload) as unknown, wasCoerced: true };
+  } catch {
+    return { payload, wasCoerced: false };
+  }
 }

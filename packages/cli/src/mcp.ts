@@ -3,6 +3,14 @@ import { APERTURE_CLI_VERSION } from "./version.js";
 
 const MCP_PROTOCOL_VERSION = "2025-06-18";
 
+/**
+ * Connect-time guidance for MCP clients (agents). Keep this short and
+ * operational: it is the first thing an agent reads about this server.
+ */
+const APERTURE_MCP_INSTRUCTIONS = `Aperture is a deterministic, simulation-first engine. Iterate headlessly: app_start({target:"headless"}), then ecs_step / ecs_find_entities / ecs_get_entity / ecs_snapshot / ecs_diff / resource_get. Assert on signals, transforms, and step digests — they are machine-checkable; render pixels (frame_capture) only when a human-visible artifact is the point. Do not drive the app through your own browser automation; the headed target exists for per-feature parity checks.
+
+Key contracts: after any mutating call, read state back instead of trusting ok:true. command_dispatch payloads should be structured JSON values (JSON-encoded strings are parsed with a commandPayloadCoerced diagnostic). ecs_step supports untilQuiescent/maxFrames and reports a quiescence block — prefer it over polling. viewport_pick answers "what is at viewport x,y" via deterministic bounds-ray picking (not GPU-accurate). reference_* tools warm their corpus automatically on first use.`;
+
 export interface RunApertureMcpServerOptions {
   readonly cwd: string;
   readonly entryPoint?: string;
@@ -135,6 +143,11 @@ async function handleRequest(
           name: "aperture",
           version: APERTURE_CLI_VERSION,
         },
+        // Sanctioned-loop guidance surfaced to MCP clients at connect time.
+        // Agent-session audits showed most tool friction came from not
+        // knowing this surface (hand-rolled browser drivers, screenshot
+        // pixel-hunting, string payloads), so state it up front.
+        instructions: APERTURE_MCP_INSTRUCTIONS,
       };
     case "tools/list":
       return {

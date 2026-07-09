@@ -18,11 +18,13 @@ const HARNESS_DIR = path.resolve(
 );
 const HARNESS_PREFIX = "/_harness/";
 
-// GPU-less software rendering (SwiftShader Vulkan) under a headed Chrome — the
-// same path the WebGPU e2e suite uses. A headless Chromium does not composite
-// the WebGPU canvas into element screenshots (it comes back a flat white
-// frame), so the harness must run HEADED. On a GPU-less Linux host (CI runner,
-// dev container) headed Chrome needs an X display; renderBundleToPng
+// GPU-less software rendering (SwiftShader Vulkan) — the same path the WebGPU
+// e2e suite uses. The harness runs in Chromium's NEW headless mode by
+// default, which composites the WebGPU canvas into element screenshots
+// correctly (verified byte-identical against a headed render of the same
+// bundle; the old headless mode returned a flat white frame, which is why
+// this used to require a headed window). APERTURE_RENDER_HEADLESS=0 forces a
+// headed window for debugging; on a GPU-less Linux host that path
 // auto-provisions an Xvfb virtual display when DISPLAY is unset, mirroring
 // `aperture dev`, so the same command renders on macOS, Windows, and Linux.
 const DEFAULT_BROWSER_ARGS = [
@@ -336,7 +338,13 @@ function resolveLaunchOptions(): ResolvedLaunchOptions {
     browserArgs === undefined
       ? [...DEFAULT_BROWSER_ARGS]
       : browserArgs.split(/\s+/u).filter((arg) => arg.length > 0);
-  const headless = process.env["APERTURE_RENDER_HEADLESS"] === "1";
+  // Headless by default: Chromium's new headless mode composites the WebGPU
+  // canvas correctly (verified byte-identical PNG output against a headed
+  // render of the same bundle), so on-demand renders no longer pop a browser
+  // window mid-session (agent-stumble: headed windows during verification).
+  // Set APERTURE_RENDER_HEADLESS=0 to force a headed window for debugging;
+  // "1" remains accepted from the era when headless was the opt-in.
+  const headless = process.env["APERTURE_RENDER_HEADLESS"] !== "0";
 
   return {
     launchOptions: {

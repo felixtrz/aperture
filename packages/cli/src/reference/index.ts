@@ -24,7 +24,11 @@ export type {
   WarmApertureReferenceOptions,
   WarmApertureReferenceReport,
 } from "./contracts.js";
-export { ensureApertureReferenceIndex } from "./index-io.js";
+export {
+  REFERENCE_NOT_WARMED_CODE,
+  ensureApertureReferenceIndex,
+  isReferenceNotWarmedError,
+} from "./index-io.js";
 export { disposeReferenceEmbeddingServices } from "./embedding.js";
 export {
   apertureReferenceArchiveFile,

@@ -126,7 +126,11 @@ export class ApertureMcpSessionManager {
         waitUntilReady: { type: "boolean" },
         timeoutMs: { type: "number" },
       }),
-      tool("ecs_step", "Advance authoritative simulation.", sharedStepSchema()),
+      tool(
+        "ecs_step",
+        "Advance authoritative simulation. Set untilQuiescent (headless target only) to step until the render digest stabilizes and queues drain (bounded by maxFrames, default 240); the result then carries a quiescence report.",
+        sharedStepSchema(),
+      ),
       tool("ecs_find_entities", "Find ECS entities.", sharedTargetSchema()),
       tool(
         "ecs_get_entity",
@@ -293,11 +297,28 @@ export class ApertureMcpSessionManager {
       ),
       tool(
         "command_dispatch",
-        "Post an app command onto the headless command bus for systems to drain on the next step.",
+        "Post an app command onto the headless command bus for systems to drain on the next step. Send `payload` as a structured JSON value (object/array); a JSON-encoded string payload is parsed back into a structured value and reported via a `commandPayloadCoerced` diagnostic.",
         {
           target: targetSchema(),
           channel: { type: "string" },
-          payload: {},
+          payload: {
+            description:
+              "Structured command payload delivered to systems verbatim. JSON-object/array-shaped strings are parsed before enqueue.",
+          },
+        },
+      ),
+      tool(
+        "viewport_pick",
+        "Report what is at viewport (x, y) in the headless session via deterministic CPU bounds-ray picking against the extracted render snapshot — a machine-checkable viewport query for editor controls and placement checks, not pixel-perfect GPU picking. Coordinates default to pixels against the session render size (top-left origin); returns distance-sorted bounds hits with stable entity ids.",
+        {
+          target: targetSchema(),
+          appRoot: { type: "string" },
+          x: { type: "number" },
+          y: { type: "number" },
+          coordinateSpace: { enum: ["ndc", "pixels"] },
+          viewId: { type: "number" },
+          layerMask: { type: "number" },
+          maxHits: { type: "number" },
         },
       ),
       ...APERTURE_REFERENCE_TOOL_CONTRACT.map((definition) =>
@@ -356,6 +377,8 @@ export class ApertureMcpSessionManager {
         return this.#determinismReport(input.args);
       case "command_dispatch":
         return this.#commandDispatch(input.args);
+      case "viewport_pick":
+        return this.#viewportPick(input.args);
       case "input_inject":
         return this.#inputInject(input.args);
       default:
@@ -649,6 +672,16 @@ export class ApertureMcpSessionManager {
     const toolArgs = withoutRoutingArgs(args);
 
     if (target === "headed") {
+      if (name === "ecs_step" && args["untilQuiescent"] === true) {
+        // The headed devtools bridge steps one frame per call and has no
+        // quiescence loop; silently stepping once would look accepted while
+        // ignoring the wait (Codex review finding). Fail loudly instead.
+        return diagnosticResult(
+          "headed",
+          "aperture.mcp.untilQuiescentHeadlessOnly",
+          "ecs_step untilQuiescent is only supported on the headless target. Run the quiescent wait headlessly, or step the headed session with explicit frames.",
+        );
+      }
       const appRoot = this.#headedAppRoot(args);
       if (name === "ecs_step" && numberArg(args, "frames") !== undefined) {
         let result: unknown = null;
@@ -1069,6 +1102,42 @@ export class ApertureMcpSessionManager {
     );
   }
 
+  #viewportPick(args: Record<string, unknown>): unknown {
+    // Deterministic bounds-ray viewport query for the headless slot
+    // (agent-stumble: pixel-hunt picking).
+    requiredHeadlessTarget(args, "viewport_pick");
+    const x = numberArg(args, "x");
+    const y = numberArg(args, "y");
+    if (x === undefined || y === undefined) {
+      return diagnosticResult(
+        "headless",
+        "aperture.mcp.pickCoordinatesMissing",
+        "viewport_pick requires numeric x and y coordinates.",
+      );
+    }
+
+    const coordinateSpace = stringArg(args, "coordinateSpace");
+    return normalizeResult(
+      "headless",
+      this.#requireHeadless().controller.pick({
+        x,
+        y,
+        ...(coordinateSpace === "ndc" || coordinateSpace === "pixels"
+          ? { coordinateSpace }
+          : {}),
+        ...(numberArg(args, "viewId") === undefined
+          ? {}
+          : { viewId: numberArg(args, "viewId") as number }),
+        ...(numberArg(args, "layerMask") === undefined
+          ? {}
+          : { layerMask: numberArg(args, "layerMask") as number }),
+        ...(numberArg(args, "maxHits") === undefined
+          ? {}
+          : { maxHits: numberArg(args, "maxHits") as number }),
+      }),
+    );
+  }
+
   #requireHeadless(): HeadlessSlot {
     if (this.#headless === null) {
       throw new ApertureCliError(
@@ -1137,6 +1206,8 @@ function sharedStepSchema(): Record<string, unknown> {
     time: { type: "number" },
     digest: { type: "boolean" },
     extract: { type: "boolean" },
+    untilQuiescent: { type: "boolean" },
+    maxFrames: { type: "number" },
   };
 }
 
