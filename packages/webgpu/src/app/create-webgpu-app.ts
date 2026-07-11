@@ -90,9 +90,6 @@ export async function createWebGpuApp(
   }
   const resourceCache = createWebGpuAppResourceCache();
   const userPassRegistry = createWebGpuAppUserPassRegistry();
-  let environmentFramePreparer: ReturnType<
-    typeof createWebGpuAppEnvironmentFramePreparer
-  >;
   const snapshotTransport = createWebGpuAppSnapshotTransport({
     ...(options.transport === undefined ? {} : { mode: options.transport }),
     ...(options.sharedSnapshotTransport === undefined
@@ -500,7 +497,9 @@ export async function createWebGpuApp(
     },
   };
 
-  environmentFramePreparer = createWebGpuAppEnvironmentFramePreparer({
+  // Declared after the app literal (it captures `app` for the per-app
+  // resource cache); renderSnapshot only reads it at call time.
+  const environmentFramePreparer = createWebGpuAppEnvironmentFramePreparer({
     app,
     registry: sourceAssets,
   });
