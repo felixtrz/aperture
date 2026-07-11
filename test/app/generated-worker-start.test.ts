@@ -332,7 +332,13 @@ describe("generated simulation worker start messages", () => {
     });
 
     startGeneratedSimulationWorker({
-      config: defineApertureConfig({ mode: "headless", systems: [] }),
+      // The transport is sized for an empty scene (maxEntities: 1) — keep the
+      // zero-config daylight environment's sky/light entities out of it.
+      config: defineApertureConfig({
+        mode: "headless",
+        systems: [],
+        render: { defaultEnvironment: false },
+      }),
       systems: [],
       port,
     });

@@ -120,6 +120,9 @@ export default defineApertureConfig({
     clearColor: [0.36, 0.39, 0.46, 1],
     defaultCamera: false,
     defaultLight: false,
+    // This showcase authors its own complete look (sky color, ambient, sun);
+    // keep the zero-config daylight environment out of it.
+    defaultEnvironment: false,
     sampleCount: 4,
     maxPixelRatio: 2,
     tonemap: "aces",

@@ -839,3 +839,61 @@ Consequences:
   prepared custom WGSL material pipeline keys.
 - Shared snapshot transports must either encode new packet families or fall
   back to transferable snapshots until packed encoding is extended.
+
+## 0023 — Generated Apps Default to a Filmic, Lit Baseline
+
+Date: 2026-07-11 (visual-quality defaults slice)
+
+Status: accepted
+
+Context:
+
+The engine had a deep, capable rendering feature set (ACES/AgX tonemapping,
+PMREM/irradiance IBL, cascaded shadows, a full post stack), but every piece of
+it was opt-in and the raw defaults were neutral: `tonemap: "none"`, no HDR
+path, no environment, black camera clear color, and glTF-spec
+`metallic: 1 / roughness: 1` on bare standard materials. A zero-config scene
+therefore rendered near-black and flat. The showcases opted into the good
+configuration by hand, but scaffolded apps — and especially apps built by AI
+coding agents, which inherit whatever the templates and defaults encode — did
+not, so agent-built Aperture apps consistently looked worse than the engine
+can render. Environment lights additionally only produced IBL in hand-written
+harnesses, because nothing in the generated render loop prepared environment
+assets from the registry.
+
+Decision:
+
+Generated apps (the `@aperture-engine/app` facade and the CLI headless render
+path) default to the configuration the showcases ship: `tonemap: "aces"`
+through the HDR scene buffer at `exposure: 1`; an explicit `tonemap: "none"`
+with no exposure/bloom keeps the legacy byte-identical 8-bit path for golden
+baselines. A zero-config **default daylight environment** — a procedural
+gradient sky plus matching image-based lighting synthesized from a small
+equirect gradient — installs after user setup systems unless the app authors
+its own `ProceduralSky`, `Skybox`, or environment light, or sets
+`render.defaultEnvironment: false`. `createWebGpuApp` now auto-prepares
+environment-map assets from the source registry per snapshot (memoized by
+asset version), so environment lights work in every app, not just harnesses.
+`material.standard()` defaults to a dielectric (`metallic: 0`) while glTF
+imports keep the spec default. SSAO joins bloom as a generated-app config
+field (`render.ssao`). The CLI templates author the reference recipe on top:
+shadow-casting sun, ground receiver, subtle bloom.
+
+The low-level `createWebGpuApp` tonemap default remains `"none"` so renderer
+unit tests and byte-exact baselines are unaffected unless they opt in.
+
+Consequences:
+
+- Zero-config and scaffolded scenes render lit, tonemapped, and grounded —
+  the out-of-the-box look now reflects what the engine can do.
+- Rendering output for existing generated apps changes unless they pinned
+  explicit render config; `tonemap: "none"` and
+  `render.defaultEnvironment: false` are the escape hatches.
+- Tests that assert pristine snapshots or byte-exact output must pin
+  `tonemap: "none"` and/or `defaultEnvironment: false` (mirroring the
+  existing `defaultCamera: false, defaultLight: false` pattern).
+- The default environment adds one small mirrored asset (a 64×32 rgba8
+  equirect) and a one-time PMREM/irradiance preparation per version.
+- Agent guidance now has a stable anchor: `docs/VISUAL_QUALITY.md` plus the
+  AGENTS.md "Visual Quality Defaults" section encode the recipe agents should
+  copy.

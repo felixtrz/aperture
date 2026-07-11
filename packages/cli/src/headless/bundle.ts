@@ -90,12 +90,8 @@ export function renderBundleTargetFromRenderDefaults(
       }
     | undefined,
 ): Partial<ApertureRenderBundleTarget> {
-  if (render === undefined) {
-    return {};
-  }
-
   const bloom =
-    render.bloom === undefined || render.bloom === false
+    render?.bloom === undefined || render.bloom === false
       ? undefined
       : render.bloom === true
         ? {}
@@ -116,15 +112,20 @@ export function renderBundleTargetFromRenderDefaults(
               ? {}
               : { levels: render.bloom.levels }),
           };
-  // Bloom needs the HDR scene-buffer path; opting into bloom implies exposure,
-  // matching the browser runtime.
-  const exposure = render.exposure ?? (bloom === undefined ? undefined : 1);
+  // Match the generated browser runtime's defaults so headless captures
+  // reproduce the app's final look: tonemap defaults to ACES through the HDR
+  // path at exposure 1; only an explicit tonemap "none" without bloom keeps
+  // the raw 8-bit path. Opting into bloom always implies exposure.
+  const toneMapping = render?.tonemap ?? "aces";
+  const exposure =
+    render?.exposure ??
+    (toneMapping === "none" && bloom === undefined ? undefined : 1);
 
   return {
-    ...(render.sampleCount === undefined
+    ...(render?.sampleCount === undefined
       ? {}
       : { sampleCount: render.sampleCount }),
-    ...(render.tonemap === undefined ? {} : { toneMapping: render.tonemap }),
+    toneMapping,
     ...(exposure === undefined ? {} : { exposure }),
     ...(bloom === undefined ? {} : { bloom }),
   };

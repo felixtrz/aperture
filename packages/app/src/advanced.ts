@@ -49,6 +49,17 @@ import {
   type RegisterExtractor,
 } from "./features.js";
 import { createAperturePhysicsFeature } from "./physics-feature.js";
+import { installDefaultEnvironment } from "./default-environment.js";
+
+export {
+  DEFAULT_ENVIRONMENT_ASSET_ID,
+  DEFAULT_ENVIRONMENT_IBL_COLORS,
+  DEFAULT_ENVIRONMENT_LIGHT_KEY,
+  DEFAULT_ENVIRONMENT_SKY_COLORS,
+  DEFAULT_ENVIRONMENT_SKY_KEY,
+  defaultEnvironmentEquirectRgba8,
+  installDefaultEnvironment,
+} from "./default-environment.js";
 
 export interface ApertureSystemModule {
   readonly default?: ApertureSystemConstructor;
@@ -265,6 +276,9 @@ export async function createApertureApp(
     startBackgroundPreloads(context);
     installRenderDefaults(config, context);
     registerApertureSystemModules(lowLevel, options.systems ?? []);
+    // After user setup systems have initialized, so an authored sky, skybox,
+    // or environment light suppresses the zero-config default environment.
+    installDefaultEnvironment({ config, context, world: lowLevel.world });
     resolveWorldTransforms(lowLevel.world);
     refreshSpatialIndex();
     // AI-60 (cheap half): the pre-step resolve + spatial refresh only repeat

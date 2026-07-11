@@ -1,10 +1,13 @@
 export {
+  DEFAULT_GENERATED_EXPOSURE,
   DEFAULT_GENERATED_MAX_PIXEL_RATIO,
   DEFAULT_GENERATED_MSAA_SAMPLE_COUNT,
+  DEFAULT_GENERATED_TONEMAP,
   measureGeneratedCanvasResize,
   readGeneratedRenderProfileEnvironment,
   resolveGeneratedEffectiveRenderDefaults,
   resolveGeneratedRenderSettings,
+  resolveGeneratedTonemapAndExposure,
 } from "./browser/render.js";
 export type {
   GeneratedBrowserEffectiveRenderDefaults,
@@ -15,6 +18,7 @@ export type {
   GeneratedCanvasResizeMeasurement,
   GeneratedCanvasResizeSource,
   GeneratedPixelRatioSource,
+  GeneratedTonemapAndExposure,
 } from "./browser/render.js";
 export {
   APERTURE_GENERATED_VIRTUAL_INPUT_EVENT,
@@ -57,7 +61,10 @@ export type {
   GeneratedSignalsListener,
   GeneratedSignalsSubscriptionOptions,
 } from "./browser/signals.js";
-export { startGeneratedBrowserApp } from "./browser/app.js";
+export {
+  resolveGeneratedPostEffects,
+  startGeneratedBrowserApp,
+} from "./browser/app.js";
 export type {
   GeneratedBrowserApp,
   StartGeneratedBrowserAppOptions,

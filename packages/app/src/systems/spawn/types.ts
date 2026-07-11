@@ -214,7 +214,14 @@ export type MaterialDescriptor =
 
 export interface StandardMaterialOptions {
   readonly baseColor?: Vec4Like;
+  /** Perceptual roughness (0 mirror → 1 diffuse). Defaults to 1. */
   readonly roughness?: number;
+  /**
+   * Metalness (0 dielectric → 1 metal). Defaults to 0: hand-authored
+   * materials are dielectric unless stated, unlike glTF imports which keep
+   * the spec default of 1. A metal with no environment map renders
+   * near-black, so only set 1 when the scene has image-based lighting.
+   */
   readonly metallic?: number;
   /**
    * Additive linear emissive color. Values may exceed 1 for HDR/bloom probes.

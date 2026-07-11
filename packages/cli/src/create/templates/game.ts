@@ -85,9 +85,14 @@ export function createApertureAppConfig(options: ApertureAppConfigOptions) {
       },
     },
     render: {
-      clearColor: [0.08, 0.12, 0.16, 1],
       defaultCamera: false,
       defaultLight: false,
+      // ACES tonemapping through the HDR scene buffer plus a subtle bloom;
+      // the daylight sky + image-based lighting install automatically via
+      // render.defaultEnvironment.
+      tonemap: "aces",
+      exposure: 1,
+      bloom: { threshold: 0.75, intensity: 0.04, radiusPixels: 2 },
       sampleCount: 4,
       maxPixelRatio: 2,
     },
@@ -114,21 +119,25 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       fovYDegrees: 50,
     });
 
+    // The sun. Ambient/fill light comes from the default daylight
+    // environment's image-based lighting; shadows ground the player and
+    // props against the level.
     this.spawn.light({
-      key: "light.key",
-      name: "Key Light",
+      key: "light.sun",
+      name: "Sun",
       kind: "directional",
       illuminance: 4,
       transform: {
         rotationEulerDegrees: [-45, 25, 0],
       },
-    });
-
-    this.spawn.light({
-      key: "light.fill",
-      name: "Fill Light",
-      kind: "ambient",
-      intensity: 0.45,
+      shadow: {
+        mapSize: 2048,
+        cascadeCount: 1,
+        shadowType: 1,
+        strength: 0.75,
+        filterRadius: 2,
+        normalBias: 0.04,
+      },
     });
 
     this.spawn.mesh({
@@ -141,6 +150,8 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         roughness: 0.65,
       }),
       transform: { translation: [0, -0.15, 0] },
+      castShadow: false,
+      receiveShadow: true,
     });
 
     this.spawn.mesh({
@@ -153,6 +164,8 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         roughness: 0.45,
       }),
       transform: { translation: [-3.5, 0.55, 0] },
+      castShadow: true,
+      receiveShadow: true,
     });
 
     this.spawn.gltf(this.assets.gltf("goal"), {
@@ -160,6 +173,8 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       name: "Goal Gem",
       tags: ["collectible", "goal"],
       transform: { translation: [1.8, 0.65, 0], scale: [0.35, 0.35, 0.35] },
+      castShadow: true,
+      receiveShadow: true,
     });
 
     this.spawn.mesh({
@@ -172,6 +187,8 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         roughness: 0.5,
       }),
       transform: { translation: [3.8, 0.6, 0] },
+      castShadow: true,
+      receiveShadow: true,
     });
   }
 }

@@ -274,9 +274,11 @@ function materialDescriptorToAsset(
     ...(descriptorValue.options.roughness === undefined
       ? {}
       : { roughnessFactor: descriptorValue.options.roughness }),
-    ...(descriptorValue.options.metallic === undefined
-      ? {}
-      : { metallicFactor: descriptorValue.options.metallic }),
+    // Hand-authored materials default to a dielectric (metallic 0). The raw
+    // factory keeps the glTF spec default (metallic 1) for imported assets,
+    // but a full metal without an environment map renders near-black — never
+    // what an untextured primitive is meant to look like.
+    metallicFactor: descriptorValue.options.metallic ?? 0,
     ...(descriptorValue.options.emissiveFactor === undefined
       ? {}
       : {

@@ -1,7 +1,7 @@
 # Getting Started
 
-> **Doc status (2026-06-23): CURRENT.** Matches the `aperture create` minimal
-> template and the `@aperture-engine/app` config/system APIs at 0.2.x.
+> **Doc status (2026-07-11): CURRENT.** Matches the `aperture create` minimal
+> template and the `@aperture-engine/app` config/system APIs at 0.3.x.
 
 This is the five-minute path from nothing to a spinning cube you can edit,
 then to your own systems and assets. For the full authoring model, see
@@ -22,8 +22,11 @@ pnpm run dev
 ```
 
 Open the printed URL (Vite defaults to `http://localhost:5173`). You should
-see a blue cube slowly spinning over a dark background, antialiased at 4x
-MSAA.
+see a blue cube spinning on a ground slab under a daylight gradient sky —
+lit by image-based lighting and a shadow-casting sun, ACES-tonemapped, with
+a subtle bloom and 4x MSAA. That polished baseline is the default: see
+[`VISUAL_QUALITY.md`](VISUAL_QUALITY.md) for what is on out of the box and
+which knobs to turn.
 
 > Working inside the aperture monorepo instead? Run
 > `node packages/cli/dist/bin/aperture.js create my-app` after `pnpm run build`.
@@ -106,8 +109,10 @@ With `pnpm run dev` still running:
 1. **Change the spin speed.** In `spin.system.ts`, change
    `speed: { ... default: 0.8 }` to `2.5`. The page hot-reloads and the cube
    spins faster.
-2. **Change the clear color.** In `aperture.config.ts`, edit
-   `render.clearColor`.
+2. **Make the sky your own.** In `setup.system.ts`, add
+   `this.spawn.proceduralSky({ key: "sky.main", topColor: [0.9, 0.4, 0.2] })`
+   — authoring a sky replaces the default daylight environment (see
+   [`VISUAL_QUALITY.md`](VISUAL_QUALITY.md)).
 3. **Spawn a second cube.** In `setup.system.ts`, duplicate the
    `this.spawn.mesh(...)` call with a different `key` and
    `transform: { translation: [2, 0.5, 0] }`.
@@ -174,6 +179,8 @@ const x = move?.kind === "axis2d" ? move.x.value : 0;
 
 ## Where to go next
 
+- [Visual quality](https://github.com/felixtrz/aperture/blob/main/docs/VISUAL_QUALITY.md) — the default look (ACES, daylight
+  environment, IBL), shadows, bloom/SSAO, and the flat-scene checklist.
 - [Authoring guide](https://github.com/felixtrz/aperture/blob/main/docs/AUTHORING.md) — the full metaframework guide: signals,
   asset handles, materials (standard PBR, unlit, custom WGSL), spatial
   queries, physics components, UI, diagnostics.

@@ -67,9 +67,14 @@ export function createApertureAppConfig(options: ApertureAppConfigOptions) {
       },
     },
     render: {
-      clearColor: [0.03, 0.035, 0.04, 1],
       defaultCamera: false,
       defaultLight: false,
+      // ACES tonemapping through the HDR scene buffer plus a subtle bloom;
+      // the daylight sky + image-based lighting install automatically via
+      // render.defaultEnvironment, so glTF PBR materials read correctly.
+      tonemap: "aces",
+      exposure: 1,
+      bloom: { threshold: 0.75, intensity: 0.04, radiusPixels: 2 },
       sampleCount: 4,
       maxPixelRatio: 2,
     },
@@ -82,7 +87,7 @@ export function createApertureAppConfig(options: ApertureAppConfigOptions) {
 }
 
 function glbViewerSetupSystemTs(): string {
-  return `import { createSystem } from "@aperture-engine/app/systems";
+  return `import { createSystem, material, mesh } from "@aperture-engine/app/systems";
 
 export default class SetupSystem extends createSystem({ priority: 0 }) {
   override init(): void {
@@ -96,27 +101,47 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       fovYDegrees: 50,
     });
 
+    // The sun. Ambient/fill light comes from the default daylight
+    // environment's image-based lighting, which also gives glTF PBR
+    // materials their reflections.
     this.spawn.light({
-      key: "light.key",
-      name: "Key Light",
+      key: "light.sun",
+      name: "Sun",
       kind: "directional",
       illuminance: 4,
       transform: {
         rotationEulerDegrees: [-40, 35, 0],
       },
+      shadow: {
+        mapSize: 2048,
+        cascadeCount: 1,
+        shadowType: 1,
+        strength: 0.75,
+        filterRadius: 2,
+        normalBias: 0.04,
+      },
     });
 
-    this.spawn.light({
-      key: "light.fill",
-      name: "Fill Light",
-      kind: "ambient",
-      intensity: 0.4,
+    this.spawn.mesh({
+      key: "viewer.ground",
+      name: "Ground",
+      tags: ["level", "ground"],
+      mesh: mesh.box({ size: [8, 0.2, 8] }),
+      material: material.standard({
+        baseColor: [0.72, 0.72, 0.7, 1],
+        roughness: 0.9,
+      }),
+      transform: { translation: [0, -0.6, 0] },
+      castShadow: false,
+      receiveShadow: true,
     });
 
     this.spawn.gltf(this.assets.gltf("sampleCube"), {
       key: "viewer.sampleCube",
       name: "Sample Cube",
       tags: ["asset", "gltf", "inspectable"],
+      castShadow: true,
+      receiveShadow: true,
     });
   }
 }

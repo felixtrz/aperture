@@ -9,6 +9,7 @@ import { createApertureDevtoolsRequest } from "../commands.js";
 import {
   createWebGpuApp,
   createWebGpuBloomPostEffect,
+  createWebGpuSsaoPostEffect,
   type CreateWebGpuAppResult,
   type WebGpuAppComputePassDescriptor,
   type WebGpuAppRenderPassDescriptor,
@@ -31,6 +32,7 @@ import {
   readGeneratedRenderProfileEnvironment,
   resolveGeneratedEffectiveRenderDefaults,
   resolveGeneratedRenderSettings,
+  resolveGeneratedTonemapAndExposure,
 } from "./render.js";
 import {
   installGeneratedRenderDiagnosticsAccessor,
@@ -142,9 +144,13 @@ export async function startGeneratedBrowserApp(
   const useFrameGraph = resolveUseFrameGraph(render, browserSearch);
   const gpuTimings = resolveGpuTimings(browserSearch);
   const postEffects = resolveGeneratedPostEffects(render);
-  // Bloom needs the HDR scene-buffer path; opting into bloom implies exposure.
-  const bloomEnabled = postEffects.length > 0;
-  const exposure = render?.exposure ?? (bloomEnabled ? 1 : undefined);
+  // Generated apps tonemap with ACES through the HDR path by default; post
+  // effects (bloom/SSAO) always imply the HDR path. An explicit tonemap
+  // "none" without them keeps the legacy byte-identical 8-bit path.
+  const { tonemap, exposure } = resolveGeneratedTonemapAndExposure(
+    render,
+    postEffects.length > 0,
+  );
   const audioOptions = resolveGeneratedAudioOptions(config, options.audio);
   const workerStartOptions = createGeneratedWorkerStartOptions({
     workerStartOptions: options.workerStartOptions,
@@ -166,7 +172,7 @@ export async function startGeneratedBrowserApp(
     },
     ...(gpuTimings === undefined ? {} : { gpuTimings }),
     ...(workerStartOptions === undefined ? {} : { workerStartOptions }),
-    ...(render?.tonemap === undefined ? {} : { tonemap: render.tonemap }),
+    tonemap,
     ...(exposure === undefined ? {} : { exposure }),
     ...(postEffects.length === 0 ? {} : { postEffects }),
   });
@@ -317,28 +323,51 @@ function resolveGeneratedAudioOptions(
   };
 }
 
-function resolveGeneratedPostEffects(
+export function resolveGeneratedPostEffects(
   render: ApertureConfig["render"],
 ): ReturnType<typeof createWebGpuBloomPostEffect>[] {
-  const bloom = render?.bloom;
-  if (bloom === undefined || bloom === false) {
-    return [];
+  const effects: ReturnType<typeof createWebGpuBloomPostEffect>[] = [];
+  const ssao = render?.ssao;
+
+  // SSAO runs before bloom: AO attenuates indirect light in the lit scene,
+  // then bloom blooms the occluded result.
+  if (ssao !== undefined && ssao !== false) {
+    const options = ssao === true ? {} : ssao;
+    effects.push(
+      createWebGpuSsaoPostEffect({
+        ...(options.radiusPixels === undefined
+          ? {}
+          : { radiusPixels: options.radiusPixels }),
+        ...(options.intensity === undefined
+          ? {}
+          : { intensity: options.intensity }),
+        ...(options.power === undefined ? {} : { power: options.power }),
+        ...(options.sampleCount === undefined
+          ? {}
+          : { sampleCount: options.sampleCount }),
+      }),
+    );
   }
 
-  const options = bloom === true ? {} : bloom;
-  return [
-    createWebGpuBloomPostEffect({
-      ...(options.threshold === undefined
-        ? {}
-        : { threshold: options.threshold }),
-      ...(options.intensity === undefined
-        ? {}
-        : { intensity: options.intensity }),
-      ...(options.radius === undefined ? {} : { radius: options.radius }),
-      ...(options.radiusPixels === undefined
-        ? {}
-        : { radiusPixels: options.radiusPixels }),
-      ...(options.levels === undefined ? {} : { levels: options.levels }),
-    }),
-  ];
+  const bloom = render?.bloom;
+  if (bloom !== undefined && bloom !== false) {
+    const options = bloom === true ? {} : bloom;
+    effects.push(
+      createWebGpuBloomPostEffect({
+        ...(options.threshold === undefined
+          ? {}
+          : { threshold: options.threshold }),
+        ...(options.intensity === undefined
+          ? {}
+          : { intensity: options.intensity }),
+        ...(options.radius === undefined ? {} : { radius: options.radius }),
+        ...(options.radiusPixels === undefined
+          ? {}
+          : { radiusPixels: options.radiusPixels }),
+        ...(options.levels === undefined ? {} : { levels: options.levels }),
+      }),
+    );
+  }
+
+  return effects;
 }
