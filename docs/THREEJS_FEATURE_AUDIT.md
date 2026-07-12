@@ -588,6 +588,9 @@ quality bar for those slices.
 
 ## 22. Ranked gap list & standing summary
 
+> A phased closure roadmap with acceptance criteria for every item below
+> lives in [`THREEJS_PARITY_PLAN.md`](THREEJS_PARITY_PLAN.md).
+
 ### 22.1 Top gaps (three.js has it, Aperture doesn't), ranked by impact
 
 (WebXR is intentionally excluded from this list: its absence is a recorded

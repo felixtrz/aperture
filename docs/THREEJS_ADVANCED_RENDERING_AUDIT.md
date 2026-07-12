@@ -313,6 +313,9 @@ the compute→rendering bridge — rather than twenty unrelated gaps.
 
 ## 10. Gap closures ranked by unlocked game-dev value
 
+> These closures are turned into a phased, acceptance-criteria-driven
+> roadmap in [`THREEJS_PARITY_PLAN.md`](THREEJS_PARITY_PLAN.md).
+
 Ordered by how many §9 scenarios each unblocks, weighted by how central they
 are to shipping games; constraints from `docs/DECISIONS.md` noted so closures
 stay inside the architecture.
