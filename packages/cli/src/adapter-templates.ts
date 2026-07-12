@@ -151,6 +151,30 @@ The app starts from a polished baseline — keep it:
   \`render.defaultEnvironment: false\`), or a material is a metal without
   image-based lighting, or \`render.tonemap\` was set to \`"none"\`.
 
+## Assets
+
+Prefer real models over untextured primitives for anything user-facing. The
+KMS model catalog is a static, agent-friendly source of CC0 GLB models with
+previews and metadata — usage doc:
+<https://felixtrz.github.io/kms/SKILL.md>, catalog root:
+<https://felixtrz.github.io/kms/>. If the catalog is unreachable, build with
+primitives and say so — never block on it.
+
+1. \`GET <root>/index.json\` for the pack list and \`baseUrl\` (all record
+   paths are relative to it).
+2. \`GET catalog.json\` and filter by \`name\`/\`tags\`/\`pack\`; respect
+   performance budgets via \`geometry.triangles\` and \`bounds.size\`.
+3. Confirm visually with a variant's \`preview.sheet\` (8-angle turntable)
+   before downloading anything.
+4. Download the chosen \`.glb\` into \`public/assets/\`, declare it with
+   \`asset.gltf(...)\` in the config, and spawn it with
+   \`spawn.gltf({ ..., castShadow: true, receiveShadow: true })\`.
+5. Credit: the models are CC0 by Kenney — add
+   \`3D models by Kenney (https://kenney.nl) — Creative Commons Zero\` to the
+   project's \`CREDITS.md\` (create it if missing) with a link to
+   <https://kenney.nl/donate>. This is a courtesy, not a CC0 obligation;
+   credit the work without implying endorsement of what you build.
+
 ## Determinism Discipline
 
 Determinism is what makes the headless loop trustworthy. Protect it:
@@ -313,6 +337,19 @@ supplies it). \`material.standard()\` is dielectric by default — roughness
 1 with \`render.bloom\` for glow. A near-black or flat scene means the default
 environment was suppressed, a material is a metal without IBL, or
 \`render.tonemap\` was set to \`"none"\`.
+
+## Assets
+
+Prefer real models over untextured primitives for user-facing scenes. The
+KMS model catalog (<https://felixtrz.github.io/kms/SKILL.md>) serves CC0
+Kenney GLBs with previews and metadata: fetch \`index.json\` →
+\`catalog.json\`, filter by tags and \`geometry.triangles\`, confirm with a
+preview sheet, download the \`.glb\` into \`public/assets/\`, declare via
+\`asset.gltf()\`, spawn with shadow flags. Add
+\`3D models by Kenney (https://kenney.nl) — Creative Commons Zero\` to the
+project's \`CREDITS.md\` (courtesy, not obligation; credit the work without
+implying endorsement). If the catalog is unreachable, use primitives and
+say so.
 
 ## Rules That Keep The Loop Trustworthy
 

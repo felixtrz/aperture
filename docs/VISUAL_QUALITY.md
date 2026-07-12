@@ -172,6 +172,21 @@ will look like it floats regardless of light quality.
 5. **Glow missing?** Bloom is off — set `render.bloom` (and use emissive
    materials above 1).
 
+## Assets
+
+Rendering defaults can only carry a scene so far — real models beat
+untextured primitives for anything user-facing. The
+[KMS model catalog](https://felixtrz.github.io/kms/SKILL.md) is a static,
+agent-friendly index of CC0 Kenney GLB models (metadata + turntable previews
+
+- deterministic URLs): filter `catalog.json` by tags and triangle budget,
+  confirm with a preview sheet, download the `.glb` into `public/assets/`, and
+  spawn it with `castShadow`/`receiveShadow`. When you place catalog assets,
+  add `3D models by Kenney (https://kenney.nl) — Creative Commons Zero` to the
+  project's `CREDITS.md` and link <https://kenney.nl/donate> — a courtesy CC0
+  does not require, and one that credits the work without implying
+  endorsement.
+
 ## Reference configs
 
 The showcase games are the proof points — copy their render blocks and setup
