@@ -123,6 +123,34 @@ Keep \`aperture.config.ts\` and \`aperture.headless.config.ts\` in sync through
 \`aperture.shared-config.ts\`; the headless config is what agents should boot by
 default.
 
+## Visual Quality
+
+State verifies behavior; it cannot verify that a scene looks good. Whenever
+you add or change anything a user will see, render at least one
+\`frame_capture\` and actually look at it before calling the work done.
+
+The app starts from a polished baseline — keep it:
+
+- ACES tonemapping through the HDR path and 4x MSAA are on by default, and a
+  **default daylight environment** (gradient sky + image-based lighting)
+  installs automatically unless the app authors its own \`ProceduralSky\`,
+  \`Skybox\`, or environment light. The environment supplies the ambient/fill
+  term and PBR reflections — do not add an \`ambient\` fill light on top, and
+  do not set a near-black \`clearColor\` "background" (the sky covers it).
+- Scene recipe (what the starter systems already do): one shadow-casting
+  directional sun (\`spawn.light({ kind: "directional", shadow: {...} })\`),
+  \`castShadow: true, receiveShadow: true\` on meshes, and a ground surface
+  that receives the shadows. Objects without a shadow receiver under them
+  read as floating.
+- \`material.standard()\` defaults to a dielectric (\`metallic: 0\`,
+  \`roughness: 1\`). Pick a roughness between 0.4 and 0.9 for most surfaces;
+  only set \`metallic: 1\` for actual metal. Use \`emissiveFactor\` above 1
+  with \`render.bloom\` to make things glow.
+- If a scene renders near-black or flat: the default environment was
+  suppressed (an authored sky/skybox/environment light exists, or
+  \`render.defaultEnvironment: false\`), or a material is a metal without
+  image-based lighting, or \`render.tonemap\` was set to \`"none"\`.
+
 ## Determinism Discipline
 
 Determinism is what makes the headless loop trustworthy. Protect it:
@@ -270,6 +298,21 @@ Do not default to browser screenshot/reload/canvas-status/WebGPU-wait/readback
 mechanics. Use \`frame_capture\`, \`app_reset\`, \`app_status\`, and
 \`logs_read\` instead. Keep \`aperture.config.ts\` and
 \`aperture.headless.config.ts\` in sync through \`aperture.shared-config.ts\`.
+
+## Visual Quality
+
+State verifies behavior, not looks — when you change anything a user sees,
+render one \`frame_capture\` and look at it. The app starts polished: ACES
+tonemapping + a default daylight environment (gradient sky + image-based
+lighting) are on unless the app authors its own sky/skybox/environment light
+or sets \`render.defaultEnvironment: false\`. Keep the recipe: one
+shadow-casting directional sun, \`castShadow\`/\`receiveShadow\` on meshes, a
+ground surface receiving the shadows, no extra ambient fill (the environment
+supplies it). \`material.standard()\` is dielectric by default — roughness
+0.4–0.9 for most surfaces, \`metallic: 1\` only for real metal, emissive above
+1 with \`render.bloom\` for glow. A near-black or flat scene means the default
+environment was suppressed, a material is a metal without IBL, or
+\`render.tonemap\` was set to \`"none"\`.
 
 ## Rules That Keep The Loop Trustworthy
 
