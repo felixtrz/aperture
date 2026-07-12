@@ -141,12 +141,12 @@ function customMaterialDependencies(
   >,
 ): {
   readonly field: string;
-  readonly kind: "texture" | "sampler" | "shader";
+  readonly kind: "texture" | "sampler" | "shader" | "buffer";
   readonly handle: AssetHandle;
 }[] {
   const dependencies: {
     readonly field: string;
-    readonly kind: "texture" | "sampler" | "shader";
+    readonly kind: "texture" | "sampler" | "shader" | "buffer";
     readonly handle: AssetHandle;
   }[] = [];
   const seen = new Set<string>();
@@ -187,6 +187,18 @@ function customMaterialDependencies(
         seen,
       );
     }
+
+    if (binding.kind === "storage-buffer" && binding.buffer !== undefined) {
+      appendCustomDependency(
+        {
+          field: binding.name,
+          kind: "buffer",
+          handle: binding.buffer,
+        },
+        dependencies,
+        seen,
+      );
+    }
   }
 
   return dependencies;
@@ -195,12 +207,12 @@ function customMaterialDependencies(
 function appendCustomDependency(
   dependency: {
     readonly field: string;
-    readonly kind: "texture" | "sampler" | "shader";
+    readonly kind: "texture" | "sampler" | "shader" | "buffer";
     readonly handle: AssetHandle;
   },
   dependencies: {
     readonly field: string;
-    readonly kind: "texture" | "sampler" | "shader";
+    readonly kind: "texture" | "sampler" | "shader" | "buffer";
     readonly handle: AssetHandle;
   }[],
   seen: Set<string>,

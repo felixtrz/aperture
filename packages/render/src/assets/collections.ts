@@ -250,6 +250,10 @@ export function materialAssetDependencies(
       if (binding.kind === "sampler") {
         appendDependency(binding.sampler, dependencies, seen);
       }
+
+      if (binding.kind === "storage-buffer" && binding.buffer !== undefined) {
+        appendDependency(binding.buffer, dependencies, seen);
+      }
     }
 
     return dependencies;

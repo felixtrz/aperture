@@ -28,6 +28,7 @@ export function createEmptyRenderSnapshot(frame: number): RenderSnapshot {
       skyboxes: 0,
       proceduralSkies: 0,
       runtimeUniforms: 0,
+      runtimeBuffers: 0,
       fogs: 0,
       lights: 0,
       environments: 0,

@@ -2,6 +2,7 @@ import { ASSET_KINDS, type AssetHandle, type AssetKind } from "./types.js";
 import type {
   AnimationClipHandle,
   AudioClipHandle,
+  BufferHandle,
   EnvironmentMapHandle,
   FontAtlasHandle,
   MaterialHandle,
@@ -48,6 +49,10 @@ export function createTextureHandle(id: string): TextureHandle {
 
 export function createSamplerHandle(id: string): SamplerHandle {
   return createAssetHandle("sampler", id);
+}
+
+export function createBufferHandle(id: string): BufferHandle {
+  return createAssetHandle("buffer", id);
 }
 
 export function createRenderTargetHandle(id: string): RenderTargetHandle {

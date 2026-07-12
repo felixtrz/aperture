@@ -316,6 +316,17 @@ export const RuntimeUniform = defineComponent(
   "Renderer-independent runtime uniform values keyed for material bindings and packed by the WebGPU backend.",
 );
 
+export const RuntimeBuffer = defineComponent(
+  "aperture.render.runtimeBuffer",
+  {
+    key: { type: EcsType.String, default: "" },
+    values: { type: EcsType.Object, default: null },
+    elementOffset: { type: EcsType.Int32, default: 0 },
+    version: { type: EcsType.Int32, default: 0 },
+  },
+  "Renderer-independent keyed storage-buffer element updates written into custom material buffer bindings by the WebGPU backend.",
+);
+
 export const Fog = defineComponent(
   "aperture.render.fog",
   {

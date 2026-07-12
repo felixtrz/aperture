@@ -1,3 +1,4 @@
+import type { BufferHandle } from "@aperture-engine/simulation";
 import type {
   CustomWgslBindingKind,
   CustomWgslMaterialAsset,
@@ -27,6 +28,14 @@ export interface PreparedCustomWgslBindingLayoutEntry {
   readonly fields?: CustomWgslUniformBindingDeclaration["fields"];
   readonly values?: CustomWgslUniformBindingDeclaration["values"];
   readonly runtimeUniformKey?: string;
+  /**
+   * Storage-buffer bindings only: source buffer asset handle plus the
+   * optional keyed dynamic-update channel. Value/handle identity stays out of
+   * the pipeline key — only the binding kind participates — so buffer content
+   * updates never rebuild pipelines (DECISIONS.md 0022).
+   */
+  readonly buffer?: BufferHandle;
+  readonly runtimeBufferKey?: string;
 }
 
 export interface PreparedCustomWgslBindingResourceEntry {

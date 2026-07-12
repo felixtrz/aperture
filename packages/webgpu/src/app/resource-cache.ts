@@ -103,6 +103,7 @@ import type {
   DebugNormalAppFrameResourceCacheSlot,
 } from "../materials/debug-normal/debug-normal-app-frame-resources.js";
 import type { CustomWgslRuntimeUniformBufferResource } from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
+import type { CustomWgslAppStorageBufferResource } from "./custom-wgsl-storage-buffer-resources.js";
 import type { StandardFrameShadowReceiverResources } from "../materials/standard/standard-frame-resources.js";
 import {
   createWebGpuPostPassTextureCacheSlot,
@@ -177,6 +178,10 @@ export interface WebGpuAppResourceCache {
   readonly customWgslRuntimeUniforms: Map<
     string,
     CustomWgslRuntimeUniformBufferResource
+  >;
+  readonly customWgslStorageBuffers: Map<
+    string,
+    CustomWgslAppStorageBufferResource
   >;
   readonly layouts: Map<string, WebGpuAppPipelineLayouts>;
   readonly textures: Map<string, TextureGpuResource>;
@@ -403,6 +408,7 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     proceduralSkyPipelines: new Map(),
     proceduralSkyUniforms: new Map(),
     customWgslRuntimeUniforms: new Map(),
+    customWgslStorageBuffers: new Map(),
     layouts: new Map(),
     textures: new Map(),
     samplers: new Map(),

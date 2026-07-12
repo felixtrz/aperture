@@ -3,6 +3,7 @@ export const ASSET_KINDS = [
   "material",
   "texture",
   "sampler",
+  "buffer",
   "render-target",
   "scene",
   "prefab",
@@ -33,6 +34,12 @@ export type MeshHandle = AssetHandle<"mesh">;
 export type MaterialHandle = AssetHandle<"material">;
 export type TextureHandle = AssetHandle<"texture">;
 export type SamplerHandle = AssetHandle<"sampler">;
+/**
+ * Handle for a renderer-independent GPU buffer source asset (`BufferAsset` in
+ * `@aperture-engine/render`): a typed element schema plus optional initial
+ * data, realized by the WebGPU backend as a storage buffer.
+ */
+export type BufferHandle = AssetHandle<"buffer">;
 export type RenderTargetHandle = AssetHandle<"render-target">;
 /**
  * Handle for a scene asset. Its registry payload (the `TAsset` of

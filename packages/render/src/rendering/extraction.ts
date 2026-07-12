@@ -34,6 +34,7 @@ import {
 } from "./extraction-meshes.js";
 import { extractParticleEmitters } from "./extraction-particles.js";
 import { extractProceduralSkies } from "./extraction-procedural-skies.js";
+import { extractRuntimeBuffers } from "./extraction-runtime-buffers.js";
 import { extractRuntimeUniforms } from "./extraction-runtime-uniforms.js";
 import { extractSkyboxes } from "./extraction-skyboxes.js";
 import { extractSpriteDraws } from "./extraction-sprites.js";
@@ -229,6 +230,7 @@ export function extractRenderSnapshot(
     cameraLayerMask,
   );
   const runtimeUniforms = extractRuntimeUniforms(world, diagnostics);
+  const runtimeBuffers = extractRuntimeBuffers(world, diagnostics);
 
   quadBatches.sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
 
@@ -258,6 +260,7 @@ export function extractRenderSnapshot(
     skyboxes,
     ...(proceduralSkies.length === 0 ? {} : { proceduralSkies }),
     ...(runtimeUniforms.length === 0 ? {} : { runtimeUniforms }),
+    ...(runtimeBuffers.length === 0 ? {} : { runtimeBuffers }),
     fogs,
     lights,
     environments,
@@ -301,6 +304,7 @@ export function extractRenderSnapshot(
       skyboxes: skyboxes.length,
       proceduralSkies: proceduralSkies.length,
       runtimeUniforms: runtimeUniforms.length,
+      runtimeBuffers: runtimeBuffers.length,
       fogs: fogs.length,
       lights: lights.length,
       environments: environments.length,

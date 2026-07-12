@@ -142,6 +142,7 @@ export interface WebGpuAppRenderCounts {
   readonly skyboxes: number;
   readonly proceduralSkies: number;
   readonly runtimeUniforms: number;
+  readonly runtimeBuffers: number;
   readonly fogs: number;
   readonly drawPackages: number;
   readonly drawCommands: number;
@@ -256,6 +257,8 @@ export interface WebGpuAppResourceReuseReport {
   textureSamplerCache: AppTextureSamplerResourceCacheSummary;
   samplerResourcesCreated: number;
   samplerResourcesReused: number;
+  storageBufferResourcesCreated: number;
+  storageBufferResourcesReused: number;
   bindGroupsCreated: number;
   bindGroupsReused: number;
   queuedBindGroupsCreated: number;

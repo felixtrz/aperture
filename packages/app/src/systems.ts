@@ -74,6 +74,7 @@ import type { HtmlBridgeAccess } from "./systems/html-bridge.js";
 import type { InteractionAccess } from "./interaction/access.js";
 import type { MaterialAccess } from "./systems/materials.js";
 import type { MeshAccess } from "./systems/meshes.js";
+import type { BufferAccess } from "./systems/buffers.js";
 import type { ParticleAccess } from "./systems/particles.js";
 import type { AudioAccess } from "./systems/audio.js";
 import type { TrailAccess } from "./systems/trails.js";
@@ -361,6 +362,8 @@ export type {
   MeshPublishResult,
 } from "./systems/meshes.js";
 export { createMeshAccess } from "./systems/meshes.js";
+export type { BufferAccess, BufferRegisterOptions } from "./systems/buffers.js";
+export { createBufferAccess } from "./systems/buffers.js";
 export type {
   GroundRibbonTrail,
   GroundRibbonTrailOptions,
@@ -447,6 +450,7 @@ export type {
   CustomWgslMaterialDescriptor,
   CustomWgslSamplerBindingOptions,
   CustomWgslShaderDescriptor,
+  CustomWgslStorageBindingOptions,
   CustomWgslTextureBindingOptions,
   CustomWgslUniformBindingOptions,
   CylinderMeshDescriptorOptions,
@@ -471,6 +475,8 @@ export type {
   SpawnParticlesOptions,
   SpawnPhysicsOptions,
   SpawnPrefabOptions,
+  SpawnRuntimeBufferOptions,
+  SpawnRuntimeUniformOptions,
   SpawnSkyboxOptions,
   StandardMaterialDescriptor,
   StandardMaterialOptions,
@@ -576,6 +582,7 @@ export interface ApertureSystemInstance {
   readonly audio: AudioAccess;
   readonly materials: MaterialAccess;
   readonly meshes: MeshAccess;
+  readonly buffers: BufferAccess;
   readonly trails: TrailAccess;
   readonly physics: PhysicsAccess;
   readonly fixedStep: FixedStepAccess;
@@ -770,6 +777,10 @@ export function createSystem<
 
     get meshes(): MeshAccess {
       return this.#context.meshes;
+    }
+
+    get buffers(): BufferAccess {
+      return this.#context.buffers;
     }
 
     get trails(): TrailAccess {

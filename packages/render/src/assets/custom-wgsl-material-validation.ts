@@ -398,6 +398,44 @@ function validateBindings(
         ),
       );
     }
+
+    if (binding.kind === "storage-buffer") {
+      if (
+        binding.buffer !== undefined &&
+        (binding.buffer === null ||
+          typeof binding.buffer !== "object" ||
+          binding.buffer.kind !== "buffer")
+      ) {
+        diagnostics.push(
+          invalidBinding(
+            assetKey,
+            `storage binding '${binding.name}' must reference a buffer handle.`,
+          ),
+        );
+      }
+
+      if (
+        binding.runtimeBufferKey !== undefined &&
+        (typeof binding.runtimeBufferKey !== "string" ||
+          binding.runtimeBufferKey.trim().length === 0)
+      ) {
+        diagnostics.push(
+          invalidBinding(
+            assetKey,
+            `storage binding '${binding.name}' runtimeBufferKey must be a non-empty string.`,
+          ),
+        );
+      }
+
+      if (binding.access !== undefined && binding.access !== "read") {
+        diagnostics.push(
+          invalidBinding(
+            assetKey,
+            `storage binding '${binding.name}' currently supports read-only access ('read').`,
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -461,10 +499,14 @@ function validateDependencies(
       continue;
     }
 
+    if (dependency.kind === "buffer" && dependency.handle?.kind === "buffer") {
+      continue;
+    }
+
     diagnostics.push(
       invalidDependency(
         assetKey,
-        "dependencies must reference shader, texture, or sampler handles.",
+        "dependencies must reference shader, texture, sampler, or buffer handles.",
       ),
     );
   }

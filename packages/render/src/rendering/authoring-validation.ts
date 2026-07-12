@@ -9,6 +9,7 @@ export {
   validateFogInput,
   validateParticleEmitterInput,
   validateProceduralSkyInput,
+  validateRuntimeBufferInput,
   validateRuntimeUniformInput,
   validateSkyboxInput,
   validateSpriteInput,

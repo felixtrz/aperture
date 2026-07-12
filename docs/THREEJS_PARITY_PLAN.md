@@ -95,6 +95,15 @@ includes (mirroring `docs/LIGHT_SHADER_WGSL_CONTRACT.md`).
 
 ### A2. Storage-buffer bindings for custom materials — **M** (blocks C2)
 
+Status: implemented (2026-07-12). Notes: `material.storage(name, { binding,
+visibility?, buffer, runtimeBufferKey? })` takes a `BufferHandle` (registered
+via `this.buffers.register(...)`) rather than a raw `bufferId` string;
+`vec3f` element schemas are rejected with a stride-explaining diagnostic
+(std430 16-byte array stride) in favor of `vec4f`; the AC3 e2e asserts draw
+counts, the runtime-buffer packet count, non-clear pixels, and pixel motion
+between presented frames instead of a golden baseline (wind animation makes a
+fixed baseline flaky by construction).
+
 Ship the renderer-independent buffer source asset already named as the
 blocker in `docs/RENDER_ASSET_PREPARATION.md`, and a `material.storage()`
 builder.

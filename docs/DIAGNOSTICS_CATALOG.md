@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1387
+Every structured diagnostic code the engine can emit (1406
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -437,6 +437,54 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------------- | ----------------------------- | ---- | --------------------------------------------------- |
 | `brdfLutResource.pipelineUnavailable` | (message composed at runtime) | —    | `packages/webgpu/src/lighting/brdf-lut-resource.ts` |
 
+## bufferAsset.dataLengthMismatch (1)
+
+| Code                             | Message                                                                      | Fix? | Emitted from                                 |
+| -------------------------------- | ---------------------------------------------------------------------------- | ---- | -------------------------------------------- |
+| `bufferAsset.dataLengthMismatch` | Buffer asset data length … does not match elementCount … x … = … components. | —    | `packages/render/src/assets/buffer-asset.ts` |
+
+## bufferAsset.dataTypeMismatch (1)
+
+| Code                           | Message                                            | Fix? | Emitted from                                 |
+| ------------------------------ | -------------------------------------------------- | ---- | -------------------------------------------- |
+| `bufferAsset.dataTypeMismatch` | Buffer asset data for elementType '…' must be a …. | —    | `packages/render/src/assets/buffer-asset.ts` |
+
+## bufferAsset.invalidElementCount (1)
+
+| Code                              | Message                                                                | Fix? | Emitted from                                 |
+| --------------------------------- | ---------------------------------------------------------------------- | ---- | -------------------------------------------- |
+| `bufferAsset.invalidElementCount` | Buffer asset elementCount must be a positive safe integer, received …. | —    | `packages/render/src/assets/buffer-asset.ts` |
+
+## bufferAsset.invalidElementType (1)
+
+| Code                             | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                 |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------- |
+| `bufferAsset.invalidElementType` | Buffer asset elementType 'vec3f' is not supported: a WGSL storage array of vec3f has a 16-byte std430 stride, so tightly-packed 12-byte CPU data would read sheared. Use 'vec4f' (padding the fourth component) or split int | —    | `packages/render/src/assets/buffer-asset.ts` |
+
+## bufferAsset.invalidLabel (1)
+
+| Code                       | Message                                        | Fix? | Emitted from                                 |
+| -------------------------- | ---------------------------------------------- | ---- | -------------------------------------------- |
+| `bufferAsset.invalidLabel` | Buffer asset should provide a non-empty label. | —    | `packages/render/src/assets/buffer-asset.ts` |
+
+## bufferAsset.invalidUsage (1)
+
+| Code                       | Message                                                                                                                                                                 | Fix? | Emitted from                                 |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------- |
+| `bufferAsset.invalidUsage` | Buffer asset data contains renderer-owned or non-serializable data. Provide a Float32Array, Uint32Array, or Int32Array; the WebGPU backend owns the realized GPUBuffer. | —    | `packages/render/src/assets/buffer-asset.ts` |
+
+## bufferAsset.liveRendererObject (1)
+
+| Code                             | Message                                                                                                                                                                 | Fix? | Emitted from                                 |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------- |
+| `bufferAsset.liveRendererObject` | Buffer asset data contains renderer-owned or non-serializable data. Provide a Float32Array, Uint32Array, or Int32Array; the WebGPU backend owns the realized GPUBuffer. | —    | `packages/render/src/assets/buffer-asset.ts` |
+
+## bufferAsset.vec3fUnsupported (1)
+
+| Code                           | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                 |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------- |
+| `bufferAsset.vec3fUnsupported` | Buffer asset elementType 'vec3f' is not supported: a WGSL storage array of vec3f has a 16-byte std430 stride, so tightly-packed 12-byte CPU data would read sheared. Use 'vec4f' (padding the fourth component) or split int | —    | `packages/render/src/assets/buffer-asset.ts` |
+
 ## camera.invalidClipRange (1)
 
 | Code                      | Message                                  | Fix? | Emitted from                                                   |
@@ -653,6 +701,24 @@ suggestedFix accompanies it, and where it is emitted.
 | ---------------------------------------------------- | -------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------ |
 | `customWgslAppFrameResources.missingPipelineLayouts` | Custom WGSL pipeline does not expose bind group layouts for app frame resources. | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-app-frame-resources.ts` |
 
+## customWgslAppFrameResources.runtimeBufferInvalidValues (1)
+
+| Code                                                     | Message                                                                                                                    | Fix? | Emitted from                                                      |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------- |
+| `customWgslAppFrameResources.runtimeBufferInvalidValues` | Runtime buffer '…' values must be a non-empty array of finite numbers with a multiple of … components for elementType '…'. | —    | `packages/webgpu/src/app/custom-wgsl-storage-buffer-resources.ts` |
+
+## customWgslAppFrameResources.runtimeBufferOutOfRange (1)
+
+| Code                                                  | Message                                                              | Fix? | Emitted from                                                      |
+| ----------------------------------------------------- | -------------------------------------------------------------------- | ---- | ----------------------------------------------------------------- |
+| `customWgslAppFrameResources.runtimeBufferOutOfRange` | Runtime buffer '…' writes elements […, …) outside buffer capacity …. | —    | `packages/webgpu/src/app/custom-wgsl-storage-buffer-resources.ts` |
+
+## customWgslAppFrameResources.runtimeBufferWriteFailed (1)
+
+| Code                                                   | Message                                                                        | Fix? | Emitted from                                                      |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------ | ---- | ----------------------------------------------------------------- |
+| `customWgslAppFrameResources.runtimeBufferWriteFailed` | WebGPU device cannot write runtime buffer '…' (queue.writeBuffer unavailable). | —    | `packages/webgpu/src/app/custom-wgsl-storage-buffer-resources.ts` |
+
 ## customWgslAppFrameResources.runtimeUniformBufferFailed (1)
 
 | Code                                                     | Message                       | Fix? | Emitted from                                                                   |
@@ -683,6 +749,30 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------------------------------- | ------------------------------------------------------- | ---- | ------------------------------------------------------------------------------ |
 | `customWgslAppFrameResources.runtimeUniformWriteFailed` | WebGPU device cannot write updated runtime uniform '…'. | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-app-frame-resources.ts` |
 
+## customWgslAppFrameResources.storageBufferCreationFailed (1)
+
+| Code                                                      | Message                       | Fix? | Emitted from                                                      |
+| --------------------------------------------------------- | ----------------------------- | ---- | ----------------------------------------------------------------- |
+| `customWgslAppFrameResources.storageBufferCreationFailed` | (message composed at runtime) | —    | `packages/webgpu/src/app/custom-wgsl-storage-buffer-resources.ts` |
+
+## customWgslAppFrameResources.storageBufferMissingHandle (1)
+
+| Code                                                     | Message                                                                                                                                                               | Fix? | Emitted from                                                      |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------- |
+| `customWgslAppFrameResources.storageBufferMissingHandle` | Custom WGSL storage binding … ('…') does not declare a buffer asset handle. Register a BufferAsset (this.buffers.register(...)) and pass it to material.storage(...). | —    | `packages/webgpu/src/app/custom-wgsl-storage-buffer-resources.ts` |
+
+## customWgslAppFrameResources.storageBufferResourceMissing (1)
+
+| Code                                                       | Message                                                                                                                       | Fix? | Emitted from                                                                   |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------ |
+| `customWgslAppFrameResources.storageBufferResourceMissing` | Custom WGSL storage binding … has no realized buffer resource; see the storage-buffer diagnostics for the failing dependency. | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-app-frame-resources.ts` |
+
+## customWgslAppFrameResources.storageBufferSourceNotReady (1)
+
+| Code                                                      | Message                                                                      | Fix? | Emitted from                                                      |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------- |
+| `customWgslAppFrameResources.storageBufferSourceNotReady` | Buffer source asset '…' is '…', not ready for custom WGSL storage binding …. | —    | `packages/webgpu/src/app/custom-wgsl-storage-buffer-resources.ts` |
+
 ## customWgslAppFrameResources.uniformBufferFailed (1)
 
 | Code                                              | Message                       | Fix? | Emitted from                                                                   |
@@ -691,9 +781,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## customWgslAppFrameResources.unsupportedBindingKind (1)
 
-| Code                                                 | Message                                                                    | Fix? | Emitted from                                                                   |
-| ---------------------------------------------------- | -------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------ |
-| `customWgslAppFrameResources.unsupportedBindingKind` | Custom WGSL app route currently supports uniform-buffer bindings, not '…'. | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-app-frame-resources.ts` |
+| Code                                                 | Message                                                                                                          | Fix? | Emitted from                                                                   |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------ |
+| `customWgslAppFrameResources.unsupportedBindingKind` | Custom WGSL app route currently supports uniform-buffer, storage-buffer, texture, and sampler bindings, not '…'. | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-app-frame-resources.ts` |
 
 ## customWgslMaterial.bindGroupCreationFailed (1)
 
@@ -4546,6 +4636,30 @@ suggestedFix accompanies it, and where it is emitted.
 | ----------------------------- | -------------------------------------------------------- | ---- | ----------------------------------------------- |
 | `renderWorld.missingRenderId` | Cannot update resource bindings for missing render id …. | —    | `packages/render/src/rendering/render-world.ts` |
 
+## runtimeBuffer.invalidElementOffset (1)
+
+| Code                                 | Message                                                           | Fix? | Emitted from                                                    |
+| ------------------------------------ | ----------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `runtimeBuffer.invalidElementOffset` | Runtime buffer elementOffset must be a non-negative safe integer. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## runtimeBuffer.invalidKey (1)
+
+| Code                       | Message                                        | Fix? | Emitted from                                                    |
+| -------------------------- | ---------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `runtimeBuffer.invalidKey` | Runtime buffer key must be a non-empty string. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## runtimeBuffer.invalidValues (1)
+
+| Code                          | Message                                                            | Fix? | Emitted from                                                    |
+| ----------------------------- | ------------------------------------------------------------------ | ---- | --------------------------------------------------------------- |
+| `runtimeBuffer.invalidValues` | Runtime buffer values must be a non-empty array of finite numbers. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## runtimeBuffer.invalidVersion (1)
+
+| Code                           | Message                                                     | Fix? | Emitted from                                                    |
+| ------------------------------ | ----------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `runtimeBuffer.invalidVersion` | Runtime buffer version must be a non-negative safe integer. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
 ## runtimeUniform.invalidKey (1)
 
 | Code                        | Message                                         | Fix? | Emitted from                                                    |
@@ -6947,9 +7061,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## webGpuApp.customWgslBindingNotPrepared (1)
 
-| Code                                     | Message                       | Fix? | Emitted from                                                       |
-| ---------------------------------------- | ----------------------------- | ---- | ------------------------------------------------------------------ |
-| `webGpuApp.customWgslBindingNotPrepared` | (message composed at runtime) | —    | `packages/webgpu/src/app/custom-wgsl-texture-sampler-resources.ts` |
+| Code                                     | Message                                                                    | Fix? | Emitted from                                                                                                                            |
+| ---------------------------------------- | -------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `webGpuApp.customWgslBindingNotPrepared` | Custom WGSL binding … was not present in the prepared material bind group. | —    | `packages/webgpu/src/app/custom-wgsl-storage-buffer-resources.ts`<br>`packages/webgpu/src/app/custom-wgsl-texture-sampler-resources.ts` |
 
 ## webGpuApp.customWgslMaterialNotPrepared (1)
 

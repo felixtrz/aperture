@@ -25,6 +25,7 @@ export type {
   RenderSnapshotReport,
   RenderSortKey,
   RenderSortKeyInput,
+  RuntimeBufferPacket,
   RuntimeUniformPacket,
   RuntimeUniformValuePacket,
   RuntimeUniformValueRecord,

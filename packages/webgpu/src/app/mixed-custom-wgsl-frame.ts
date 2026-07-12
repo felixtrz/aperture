@@ -16,6 +16,7 @@ import {
   type SourceMaterialAsset,
 } from "@aperture-engine/render";
 import { createCustomWgslAppFrameResources } from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
+import { prepareCustomWgslAppStorageBufferBindingResources } from "./custom-wgsl-storage-buffer-resources.js";
 import { prepareCustomWgslAppTextureSamplerBindingResources } from "./custom-wgsl-texture-sampler-resources.js";
 import type {
   CustomWgslMaterialBindGroupResource,
@@ -805,6 +806,16 @@ async function prepareCustomDrawResourceSet(options: {
       source: material,
       material: prepared,
     });
+  const storageBufferBindingResources =
+    prepareCustomWgslAppStorageBufferBindingResources({
+      assets: options.assets,
+      device: options.app.initialization.device,
+      cache: options.cache.customWgslStorageBuffers,
+      reuse: options.reuse,
+      source: material,
+      material: prepared,
+      runtimeBuffers: options.snapshot.runtimeBuffers ?? [],
+    });
 
   if (cachedPipeline === undefined) {
     options.reuse.pipelineMisses += 1;
@@ -824,8 +835,14 @@ async function prepareCustomDrawResourceSet(options: {
     depthFormat,
     sampleCount,
     ...(cachedPipeline === undefined ? {} : { pipelineResult: cachedPipeline }),
-    bindingResources: textureSamplerBindingResources.resources,
-    bindingResourceDiagnostics: textureSamplerBindingResources.diagnostics,
+    bindingResources: [
+      ...textureSamplerBindingResources.resources,
+      ...storageBufferBindingResources.resources,
+    ],
+    bindingResourceDiagnostics: [
+      ...textureSamplerBindingResources.diagnostics,
+      ...storageBufferBindingResources.diagnostics,
+    ],
     runtimeUniforms: options.snapshot.runtimeUniforms ?? [],
     runtimeUniformCache: options.cache.customWgslRuntimeUniforms,
     reuse: options.reuse,

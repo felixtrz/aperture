@@ -117,6 +117,7 @@ function snapshot(): RenderSnapshotInspectionReport {
       shadowRequests: 0,
       proceduralSkies: 0,
       runtimeUniforms: 0,
+      runtimeBuffers: 0,
       bounds: 0,
       transformFloats: 16,
       viewMatrixFloats: 48,

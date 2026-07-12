@@ -62,6 +62,7 @@ export {
   createCustomWgslMaterialRenderAssetAdapter,
   validateCustomMaterialSource,
 } from "./custom-wgsl-material-preparation.js";
+export { createPreparedCustomWgslMaterial } from "./custom-wgsl-material-prepared.js";
 export type {
   CustomWgslBindingDeclaration,
   CustomWgslBindingKind,

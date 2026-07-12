@@ -7,6 +7,7 @@ import type {
   LightShadowSettingsInput,
   ParticleEmitterInput,
   ProceduralSkyInput,
+  RuntimeBufferInput,
   RuntimeUniformInput,
   SkyboxInput,
   StandardMaterialPatch,
@@ -27,6 +28,7 @@ import type {
 } from "@aperture-engine/physics";
 import type { AnimationAccess } from "@aperture-engine/runtime";
 import type {
+  BufferHandle,
   Entity,
   LocalTransformInput,
   MaterialHandle,
@@ -114,6 +116,19 @@ export interface SpawnRuntimeUniformOptions extends SpawnMetadata {
   readonly uniformKey: RuntimeUniformInput["key"];
   readonly values: RuntimeUniformInput["values"];
   readonly version?: RuntimeUniformInput["version"];
+}
+
+export interface SpawnRuntimeBufferOptions extends SpawnMetadata {
+  /**
+   * Runtime buffer key matched by custom WGSL storage bindings declared with
+   * `runtimeBufferKey`. Reusing a key updates the existing runtime-buffer
+   * entity instead of spawning duplicates.
+   */
+  readonly bufferKey: RuntimeBufferInput["key"];
+  /** Flat element components written at elementOffset (in elements). */
+  readonly values: RuntimeBufferInput["values"];
+  readonly elementOffset?: RuntimeBufferInput["elementOffset"];
+  readonly version?: RuntimeBufferInput["version"];
 }
 
 export interface BoxMeshDescriptorOptions {
@@ -326,6 +341,17 @@ export interface CustomWgslSamplerBindingOptions {
   readonly label?: string;
 }
 
+export interface CustomWgslStorageBindingOptions {
+  readonly binding: number;
+  /** Defaults to ["vertex", "fragment"] for read-only storage bindings. */
+  readonly visibility?: CustomWgslMaterialAsset["bindings"][number]["visibility"];
+  /** Renderer-independent buffer source asset (this.buffers.register(...)). */
+  readonly buffer: BufferHandle;
+  /** Keyed dynamic-update channel fed by this.spawn.runtimeBuffer(...). */
+  readonly runtimeBufferKey?: string;
+  readonly label?: string;
+}
+
 export interface SpawnGltfOptions extends SpawnMetadata {
   readonly transform?: SystemTransformInput;
   /**
@@ -385,6 +411,8 @@ export interface SpawnCommands {
   proceduralSky(options?: SpawnProceduralSkyOptions): Entity;
   /** Spawn keyed runtime uniform values consumed by dynamic custom WGSL bindings. */
   runtimeUniform(options: SpawnRuntimeUniformOptions): Entity;
+  /** Spawn keyed storage-buffer element updates consumed by custom WGSL storage bindings. */
+  runtimeBuffer(options: SpawnRuntimeBufferOptions): Entity;
   mesh(options: SpawnMeshOptions): Entity;
   /** Spawn a renderer-independent particle emitter entity. */
   particles(options: SpawnParticlesOptions): Entity;

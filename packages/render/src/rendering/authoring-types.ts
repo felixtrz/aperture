@@ -419,6 +419,18 @@ export interface RuntimeUniformInput {
   readonly version?: number;
 }
 
+/**
+ * Flat numeric element components written into a keyed storage buffer at
+ * `elementOffset` (in elements, not bytes). Values are a plain number array so
+ * the packet stays JSON- and structured-clone-safe across the worker boundary.
+ */
+export interface RuntimeBufferInput {
+  readonly key: string;
+  readonly values: readonly number[];
+  readonly elementOffset?: number;
+  readonly version?: number;
+}
+
 export interface FogInput {
   readonly mode?: FogMode;
   readonly color?: Vec4Like;
@@ -527,6 +539,10 @@ export type RenderAuthoringDiagnosticCode =
   | "runtimeUniform.invalidKey"
   | "runtimeUniform.invalidValues"
   | "runtimeUniform.invalidVersion"
+  | "runtimeBuffer.invalidKey"
+  | "runtimeBuffer.invalidValues"
+  | "runtimeBuffer.invalidElementOffset"
+  | "runtimeBuffer.invalidVersion"
   | "fog.invalidMode"
   | "fog.invalidColor"
   | "fog.invalidDensity"

@@ -400,6 +400,10 @@ function customWgslMaterialDependencies(input: {
     if (binding.kind === "sampler") {
       dependencies.push({ kind: "sampler", handle: binding.sampler });
     }
+
+    if (binding.kind === "storage-buffer" && binding.buffer !== undefined) {
+      dependencies.push({ kind: "buffer", handle: binding.buffer });
+    }
   }
 
   return dependencies;

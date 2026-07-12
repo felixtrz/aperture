@@ -102,6 +102,7 @@ function snapshot(
       shadowRequests: counts.shadowRequests ?? 0,
       proceduralSkies: counts.proceduralSkies ?? 0,
       runtimeUniforms: counts.runtimeUniforms ?? 0,
+      runtimeBuffers: counts.runtimeBuffers ?? 0,
       bounds: counts.bounds ?? 0,
       transformFloats: counts.transformFloats ?? 16,
       viewMatrixFloats: counts.viewMatrixFloats ?? 48,

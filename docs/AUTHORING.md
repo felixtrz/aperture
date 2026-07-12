@@ -398,13 +398,78 @@ position (`vec3f`), `@location(1)` normal (`vec3f`), and `@location(2)` UV
 (`vec2f`). Use `runtimeUniformKey` on a group-2 uniform binding when per-frame
 values should come from `this.spawn.runtimeUniform(...)`.
 
+### Storage-buffer bindings
+
+Group-2 read-only storage bindings are backed by renderer-independent
+`BufferAsset` sources (asset kind `"buffer"`): a typed element schema
+(`f32`/`vec2f`/`vec4f`/`u32`/`i32`; `vec3f` is rejected because its WGSL
+storage-array stride is 16 bytes, not 12 — use `vec4f`), an element count, and
+optional initial typed-array data (absent data zero-initializes the GPU
+buffer). Register one from a worker system with `this.buffers.register(...)`
+and bind it with `material.storage(...)`:
+
+```ts
+export default class GrassSetupSystem extends createSystem({ priority: 0 }) {
+  override init(): void {
+    const bendParams = this.buffers.register({
+      id: "grass.bend",
+      elementType: "vec4f",
+      elementCount: 64,
+      data: new Float32Array(64 * 4),
+    });
+
+    this.spawn.mesh({
+      key: "grass",
+      mesh: mesh.plane({ size: [0.1, 0.9] }),
+      material: material.customWgsl({
+        familyKey: "app/grass",
+        label: "Grass",
+        shader: shader.asset(this.assets.shader("grass")),
+        entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+        bindings: [
+          material.storage("bendParams", {
+            binding: 0,
+            visibility: ["vertex"],
+            buffer: bendParams,
+            runtimeBufferKey: "grass.bend",
+          }),
+        ],
+      }),
+    });
+  }
+
+  override update(_delta: number, time: number): void {
+    // Dynamic ranges follow the RuntimeUniform pattern: keyed packets applied
+    // renderer-side with queue.writeBuffer — zero pipeline rebuilds.
+    this.spawn.runtimeBuffer({
+      bufferKey: "grass.bend",
+      values: computeBendValues(time), // flat element components
+      elementOffset: 0, // in elements, not bytes
+    });
+  }
+}
+```
+
+In WGSL the binding is an array of the element type, typically indexed by
+`@builtin(instance_index)` alongside the group(1) world transforms:
+`@group(2) @binding(0) var<storage, read> bendParams: array<vec4f>;`. The
+buffer handle joins the material's asset dependencies, so readiness gating and
+diagnostics behave like texture/sampler bindings. Re-registering the same
+buffer id publishes a new source version (full re-upload); `runtimeBuffer`
+packets update ranges of the existing GPU buffer without touching the asset.
+When a storage binding declares `runtimeBufferKey` but no matching
+`spawn.runtimeBuffer(...)` entity exists yet, the buffer simply keeps its
+source-asset contents. See `examples/storage-buffer-grass.html` for a complete
+instanced-grass field driven this way.
+
 Current limitations: WGSL only; no shader imports; no user-supplied WebGPU
 objects or callbacks; no arbitrary app-owned material adapter registration; and
 lighting/environment integration is deferred. App-route custom WGSL supports
-group-2 uniform buffers, texture bindings, sampler bindings, existing
-instance-attribute layouts, and mixed built-in/custom frames through the normal
-`createWebGpuApp()` path. Storage-buffer bindings are validated but reported as
-unsupported until a renderer-independent buffer source asset exists.
+group-2 uniform buffers, read-only storage buffers, texture bindings, sampler
+bindings, existing instance-attribute layouts, and mixed built-in/custom frames
+through the normal `createWebGpuApp()` path. Storage bindings are read-only in
+this slice (`access: "read"`); writable storage arrives with the compute→draw
+plumbing (parity plan C1).
 
 See [`recipes/custom-wgsl-material.md`](./recipes/custom-wgsl-material.md) for
 a complete shader and material setup.

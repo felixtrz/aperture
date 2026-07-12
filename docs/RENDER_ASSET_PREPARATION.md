@@ -11,6 +11,9 @@ Source assets live in typed collections backed by `AssetRegistry`:
 - `MaterialAsset` for built-ins
 - `CustomWgslMaterialAsset` for data-only custom WGSL materials
 - `WgslShaderAsset`
+- `BufferAsset` (asset kind `"buffer"`): renderer-independent buffer sources
+  with a typed element schema, element count, `read-only-storage` usage, and
+  optional typed-array initial data
 - future texture, sampler, scene, and animation assets
 
 Render preparation reads ready source assets and writes prepared render metadata
@@ -67,8 +70,15 @@ remains in `@aperture-engine/webgpu`.
 
 The WebGPU app route consumes prepared custom WGSL metadata to create
 renderer-owned shader modules, pipelines, uniform buffers, and bind groups.
-V1 supports uniform-buffer, texture, and sampler material bindings in the app
-route, plus existing instance-attribute layouts through the draw path.
-Storage-buffer declarations remain renderer-independent source data and must
-produce clear unsupported-resource diagnostics until a renderer-independent
-buffer source asset exists.
+The app route supports uniform-buffer, storage-buffer, texture, and sampler
+material bindings, plus existing instance-attribute layouts through the draw
+path. Storage-buffer declarations reference a `BufferAsset` handle; the WebGPU
+backend realizes it as a cached read-only `GPUBuffer` (keyed by handle id +
+source version, `STORAGE | COPY_DST` usage) and diagnoses missing, not-ready,
+and mis-sized buffer dependencies. Element strides are std430-style for
+storage arrays — which is why `vec3f` element schemas are rejected at
+validation (16-byte stride vs 12-byte packed data) in favor of `vec4f`. Keyed
+`RuntimeBuffer` packets (extraction mirror of `RuntimeUniform`, DECISIONS.md 0022) stream element-range updates into the cached buffer via
+`queue.writeBuffer` with zero pipeline rebuilds; shared-array-buffer snapshot
+transports fall back to transferable snapshots when runtime-buffer packets are
+present, exactly like runtime uniforms.

@@ -11,6 +11,7 @@ import type {
   ProceduralSkyPacket,
   QuadBatchPacket,
   RenderQueue,
+  RuntimeBufferPacket,
   RuntimeUniformPacket,
   ShadowRequestPacket,
   SkyboxPacket,
@@ -53,6 +54,7 @@ export interface RenderSnapshot {
   readonly skyboxes?: readonly SkyboxPacket[];
   readonly proceduralSkies?: readonly ProceduralSkyPacket[];
   readonly runtimeUniforms?: readonly RuntimeUniformPacket[];
+  readonly runtimeBuffers?: readonly RuntimeBufferPacket[];
   readonly fogs?: readonly FogPacket[];
   readonly lights: readonly LightPacket[];
   readonly environments: readonly EnvironmentPacket[];

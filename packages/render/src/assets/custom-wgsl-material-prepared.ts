@@ -42,6 +42,14 @@ export function createPreparedCustomWgslMaterial(input: {
             : { runtimeUniformKey: binding.runtimeUniformKey }),
         }
       : {}),
+    ...(binding.kind === "storage-buffer"
+      ? {
+          ...(binding.buffer === undefined ? {} : { buffer: binding.buffer }),
+          ...(binding.runtimeBufferKey === undefined
+            ? {}
+            : { runtimeBufferKey: binding.runtimeBufferKey }),
+        }
+      : {}),
   }));
 
   return {

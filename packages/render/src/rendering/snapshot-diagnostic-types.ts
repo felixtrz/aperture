@@ -18,6 +18,7 @@ export interface RenderDiagnostic {
   readonly textureKey?: string;
   readonly samplerKey?: string;
   readonly runtimeUniformKey?: string;
+  readonly runtimeBufferKey?: string;
   readonly dependencyKind?: string;
   readonly status?: string;
   readonly field?: string;
@@ -44,6 +45,7 @@ export interface RenderSnapshotReport {
   readonly skyboxes?: number;
   readonly proceduralSkies?: number;
   readonly runtimeUniforms?: number;
+  readonly runtimeBuffers?: number;
   readonly fogs?: number;
   readonly lights: number;
   readonly environments: number;

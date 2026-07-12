@@ -18,6 +18,7 @@ import type {
   CustomWgslMaterialDescriptor,
   CustomWgslSamplerBindingOptions,
   CustomWgslShaderDescriptor,
+  CustomWgslStorageBindingOptions,
   CustomWgslTextureBindingOptions,
   CustomWgslUniformBindingOptions,
   CylinderMeshDescriptorOptions,
@@ -77,7 +78,12 @@ export const material = Object.freeze({
       kind: "custom-wgsl",
       ...options,
       bindings: [...(options.bindings ?? [])],
-      dependencies: [...(options.dependencies ?? [])],
+      // Leave dependencies undefined unless explicitly provided so the asset
+      // factory derives them from the shader ref and binding declarations
+      // (texture/sampler/storage-buffer handles).
+      ...(options.dependencies === undefined
+        ? {}
+        : { dependencies: [...options.dependencies] }),
     });
   },
   uniform(name: string, options: CustomWgslUniformBindingOptions) {
@@ -111,6 +117,25 @@ export const material = Object.freeze({
       binding: options.binding,
       visibility: [...options.visibility],
       sampler: options.sampler,
+      ...(options.label === undefined ? {} : { label: options.label }),
+    });
+  },
+  /**
+   * Read-only storage-buffer binding backed by a renderer-independent
+   * `BufferAsset` handle (register one with `this.buffers.register(...)`).
+   * Declare `runtimeBufferKey` to stream element updates each frame via
+   * `this.spawn.runtimeBuffer(...)` without pipeline rebuilds.
+   */
+  storage(name: string, options: CustomWgslStorageBindingOptions) {
+    return Object.freeze({
+      kind: "storage-buffer" as const,
+      name,
+      binding: options.binding,
+      visibility: [...(options.visibility ?? ["vertex", "fragment"])],
+      buffer: options.buffer,
+      ...(options.runtimeBufferKey === undefined
+        ? {}
+        : { runtimeBufferKey: options.runtimeBufferKey }),
       ...(options.label === undefined ? {} : { label: options.label }),
     });
   },

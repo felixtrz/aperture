@@ -1,4 +1,5 @@
 import type {
+  BufferHandle,
   SamplerHandle,
   ShaderHandle,
   TextureHandle,
@@ -269,6 +270,18 @@ export interface CustomWgslStorageBindingDeclaration extends BaseCustomWgslBindi
   readonly kind: "storage-buffer";
   readonly access?: "read" | "read-write";
   readonly resourceKey?: string;
+  /**
+   * Renderer-independent buffer source asset realized as the read-only
+   * storage binding. Required for the app route: without a handle the
+   * binding cannot resolve a GPU buffer.
+   */
+  readonly buffer?: BufferHandle;
+  /**
+   * Keyed dynamic-update channel (mirror of `runtimeUniformKey`): when set,
+   * extracted `RuntimeBuffer` packets with this key write ranges of the
+   * realized GPU buffer via `queue.writeBuffer` with zero pipeline rebuilds.
+   */
+  readonly runtimeBufferKey?: string;
 }
 
 /** @public */
@@ -310,6 +323,10 @@ export type CustomMaterialDependencyDeclaration =
   | {
       readonly kind: "sampler";
       readonly handle: SamplerHandle;
+    }
+  | {
+      readonly kind: "buffer";
+      readonly handle: BufferHandle;
     };
 
 export interface CustomWgslMaterialPipelineKeyInput {

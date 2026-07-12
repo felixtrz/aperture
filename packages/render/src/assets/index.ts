@@ -1,3 +1,4 @@
+export * from "./buffer-asset.js";
 export * from "./collections.js";
 export * from "./gltf-asset-mapping.js";
 export * from "./gltf-accessor-decoding.js";

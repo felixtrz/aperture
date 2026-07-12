@@ -845,7 +845,7 @@ function readWorkerSummaryFullFlag(
 
 /**
  * True when a snapshot carries packet kinds the SAB packed codec cannot encode
- * (sprites, UI, skyboxes/procedural skies, runtime uniforms,
+ * (sprites, UI, skyboxes/procedural skies, runtime uniforms, runtime buffers,
  * skinning/morph buffers). Such a frame falls back to the transferable path,
  * preserving every packet.
  *
@@ -864,6 +864,7 @@ export function hasUnsupportedSharedSnapshotPayload(
     hasItems(snapshot.skyboxes) ||
     hasItems(snapshot.proceduralSkies) ||
     hasItems(snapshot.runtimeUniforms) ||
+    hasItems(snapshot.runtimeBuffers) ||
     hasItems(snapshot.instanceAttributePackets) ||
     hasBytes(snapshot.bones) ||
     hasBytes(snapshot.morphTargetWeights) ||

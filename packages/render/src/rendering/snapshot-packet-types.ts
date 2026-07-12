@@ -347,6 +347,22 @@ export interface RuntimeUniformPacket {
   readonly version: number;
 }
 
+/**
+ * Keyed storage-buffer element update extracted from `RuntimeBuffer`
+ * components. `values` are flat element components (JSON-safe number array)
+ * written at `elementOffset` (in elements) into the storage-buffer binding
+ * whose `runtimeBufferKey` matches `key`; the WebGPU backend applies them via
+ * `queue.writeBuffer` without pipeline rebuilds (DECISIONS.md 0022).
+ */
+export interface RuntimeBufferPacket {
+  readonly bufferId: number;
+  readonly entity: RenderEntityRef;
+  readonly key: string;
+  readonly values: readonly number[];
+  readonly elementOffset: number;
+  readonly version: number;
+}
+
 export interface FogPacket {
   readonly fogId: number;
   readonly entity: RenderEntityRef;

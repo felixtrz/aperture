@@ -382,10 +382,25 @@ function createCustomWgslBindingResources(options: {
       continue;
     }
 
+    // Storage bindings are realized by the app-layer buffer resource preparer
+    // (custom-wgsl-storage-buffer-resources.ts) and arrive as external
+    // resources above. Reaching this point means the backing buffer asset was
+    // missing or not ready; that failure carries its own diagnostics, so only
+    // add a resource-level marker here — never `unsupportedBindingKind`.
+    if (layout?.kind === "storage-buffer") {
+      diagnostics.push({
+        code: "customWgslAppFrameResources.storageBufferResourceMissing",
+        message: `Custom WGSL storage binding ${String(binding.binding)} has no realized buffer resource; see the storage-buffer diagnostics for the failing dependency.`,
+        binding: binding.binding,
+        resourceKey: binding.resourceKey,
+      });
+      continue;
+    }
+
     if (layout?.kind !== "uniform-buffer") {
       diagnostics.push({
         code: "customWgslAppFrameResources.unsupportedBindingKind",
-        message: `Custom WGSL app route currently supports uniform-buffer bindings, not '${layout?.kind ?? "unknown"}'.`,
+        message: `Custom WGSL app route currently supports uniform-buffer, storage-buffer, texture, and sampler bindings, not '${layout?.kind ?? "unknown"}'.`,
         binding: binding.binding,
         resourceKey: binding.resourceKey,
       });

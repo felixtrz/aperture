@@ -14,6 +14,7 @@ import {
   SpriteSizeMode,
   type FogInput,
   type ProceduralSkyInput,
+  type RuntimeBufferInput,
   type RuntimeUniformInput,
   type SkyboxInput,
   type SpriteInput,
@@ -21,6 +22,7 @@ import {
 import type {
   Fog,
   ProceduralSky,
+  RuntimeBuffer,
   RuntimeUniform,
   Skybox,
   Sprite,
@@ -92,6 +94,17 @@ export function createRuntimeUniform(
   return {
     key: input.key,
     values: { ...input.values },
+    version: input.version ?? 0,
+  };
+}
+
+export function createRuntimeBuffer(
+  input: RuntimeBufferInput,
+): ComponentInitialData<typeof RuntimeBuffer> {
+  return {
+    key: input.key,
+    values: [...input.values],
+    elementOffset: input.elementOffset ?? 0,
     version: input.version ?? 0,
   };
 }

@@ -20,6 +20,7 @@ import {
   ProceduralSky,
   RenderLayer,
   RenderOrder,
+  RuntimeBuffer,
   RuntimeUniform,
   ShadowCaster,
   ShadowReceiver,
@@ -59,6 +60,7 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(Skybox);
   world.registerComponent(ProceduralSky);
   world.registerComponent(RuntimeUniform);
+  world.registerComponent(RuntimeBuffer);
   world.registerComponent(Fog);
   world.registerComponent(Camera);
   world.registerComponent(Visibility);

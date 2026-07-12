@@ -12,6 +12,7 @@ import {
   type ProceduralSkyInput,
   type RenderAuthoringDiagnostic,
   type RenderAuthoringValidationReport,
+  type RuntimeBufferInput,
   type RuntimeUniformInput,
   type SkyboxInput,
   type SpriteInput,
@@ -20,6 +21,7 @@ import {
   createFog,
   createParticleEmitter,
   createProceduralSky,
+  createRuntimeBuffer,
   createRuntimeUniform,
   createSkybox,
   createSprite,
@@ -391,6 +393,67 @@ export function validateRuntimeUniformInput(
   }
 
   return { valid: diagnostics.length === 0, diagnostics };
+}
+
+export function validateRuntimeBufferInput(
+  input: RuntimeBufferInput,
+): RenderAuthoringValidationReport {
+  const buffer = createRuntimeBuffer(input);
+  const elementOffset = buffer.elementOffset ?? 0;
+  const version = buffer.version ?? 0;
+  const diagnostics: RenderAuthoringDiagnostic[] = [];
+
+  if (typeof buffer.key !== "string" || buffer.key.trim().length === 0) {
+    diagnostics.push({
+      code: "runtimeBuffer.invalidKey",
+      field: "key",
+      message: "Runtime buffer key must be a non-empty string.",
+    });
+  }
+
+  if (!runtimeBufferValuesValid(buffer.values)) {
+    diagnostics.push({
+      code: "runtimeBuffer.invalidValues",
+      field: "values",
+      message:
+        "Runtime buffer values must be a non-empty array of finite numbers.",
+    });
+  }
+
+  if (
+    !Number.isInteger(elementOffset) ||
+    elementOffset < 0 ||
+    !Number.isSafeInteger(elementOffset)
+  ) {
+    diagnostics.push({
+      code: "runtimeBuffer.invalidElementOffset",
+      field: "elementOffset",
+      message:
+        "Runtime buffer elementOffset must be a non-negative safe integer.",
+    });
+  }
+
+  if (
+    !Number.isInteger(version) ||
+    version < 0 ||
+    !Number.isSafeInteger(version)
+  ) {
+    diagnostics.push({
+      code: "runtimeBuffer.invalidVersion",
+      field: "version",
+      message: "Runtime buffer version must be a non-negative safe integer.",
+    });
+  }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
+function runtimeBufferValuesValid(value: unknown): boolean {
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every((entry) => typeof entry === "number" && Number.isFinite(entry))
+  );
 }
 
 export function validateFogInput(

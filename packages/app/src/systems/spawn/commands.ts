@@ -8,6 +8,7 @@ import {
   Mesh,
   ParticleEmitter,
   ProceduralSky,
+  RuntimeBuffer,
   RuntimeUniform,
   ShadowCaster,
   ShadowReceiver,
@@ -18,6 +19,7 @@ import {
   createLightShadowSettings,
   createParticleEmitter,
   createProceduralSky,
+  createRuntimeBuffer,
   createRuntimeUniform,
   createSkybox,
 } from "@aperture-engine/render";
@@ -64,6 +66,7 @@ import type {
   SpawnGltfBatchInstance,
   SpawnGltfBatchOptions,
   SpawnGltfOptions,
+  SpawnRuntimeBufferOptions,
   SpawnRuntimeUniformOptions,
   SkyboxTextureDescriptorInput,
 } from "./types.js";
@@ -275,6 +278,15 @@ export function createSpawnCommands(options: {
 
       applySpawnMetadata(options.world, entity, input, "runtime-uniform");
       writeRuntimeUniform(entity, input);
+      return entity;
+    },
+    runtimeBuffer(input) {
+      const entity =
+        runtimeBufferEntityForKey(options.world, input.bufferKey) ??
+        createEntityWithMetadata(options.world, input, "runtime-buffer");
+
+      applySpawnMetadata(options.world, entity, input, "runtime-buffer");
+      writeRuntimeBuffer(entity, input);
       return entity;
     },
     mesh(input) {
@@ -527,6 +539,47 @@ function writeRuntimeUniform(
   entity.setValue(RuntimeUniform, "key", input.uniformKey);
   entity.setValue(RuntimeUniform, "values", { ...input.values });
   entity.setValue(RuntimeUniform, "version", input.version ?? 0);
+}
+
+function runtimeBufferEntityForKey(
+  world: EcsWorld,
+  bufferKey: string,
+): Entity | null {
+  const query = world.queryManager.registerQuery({
+    required: [RuntimeBuffer],
+  });
+
+  for (const entity of query.entities) {
+    if (entity.getValue(RuntimeBuffer, "key") === bufferKey) {
+      return entity;
+    }
+  }
+
+  return null;
+}
+
+function writeRuntimeBuffer(
+  entity: Entity,
+  input: SpawnRuntimeBufferOptions,
+): void {
+  const buffer = createRuntimeBuffer({
+    key: input.bufferKey,
+    values: input.values,
+    ...(input.elementOffset === undefined
+      ? {}
+      : { elementOffset: input.elementOffset }),
+    ...(input.version === undefined ? {} : { version: input.version }),
+  });
+
+  if (!entity.hasComponent(RuntimeBuffer)) {
+    entity.addComponent(RuntimeBuffer, buffer);
+    return;
+  }
+
+  entity.setValue(RuntimeBuffer, "key", input.bufferKey);
+  entity.setValue(RuntimeBuffer, "values", [...input.values]);
+  entity.setValue(RuntimeBuffer, "elementOffset", input.elementOffset ?? 0);
+  entity.setValue(RuntimeBuffer, "version", input.version ?? 0);
 }
 
 function gltfBatchInstanceOptions(

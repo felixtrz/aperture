@@ -210,9 +210,10 @@ three.js offers three tiers: `ShaderMaterial` (arbitrary GLSL + lib uniforms),
 WGSL or GLSL, with compute, MRT, custom lighting models, a GLSL→TSL
 transpiler, and a node-graph inspector). Aperture deliberately ships a single
 narrow route: custom WGSL as a _data-only asset_ (`sourceDiscriminator:
-"custom-material-source"`) with typed uniform/texture/sampler bindings —
-storage buffers are diagnosed as unsupported on the app route, and lighting/
-environment integration for custom WGSL is deferred (`docs/AUTHORING.md`).
+"custom-material-source"`) with typed uniform/texture/sampler bindings and
+read-only storage-buffer bindings backed by `BufferAsset` sources (A2) —
+lighting/environment integration for custom WGSL is deferred
+(`docs/AUTHORING.md`).
 This is the widest expressiveness gap between the two projects, and it is
 partly a policy choice (no live GPU objects in ECS, `DECISIONS.md 0016`)
 rather than purely missing work.
@@ -599,8 +600,9 @@ quality bar for those slices.
 decision, not a gap — see §14 and `DECISIONS.md 0023`.)
 
 1. **Open shading/material extensibility** — no `ShaderMaterial`/TSL
-   equivalent; custom WGSL route lacks lighting integration, storage buffers
-   (app route), and any node/graph tooling (§5.3). Partly policy (🚫).
+   equivalent; custom WGSL route lacks lighting integration and any
+   node/graph tooling (storage-buffer bindings landed with A2) (§5.3).
+   Partly policy (🚫).
 2. **Asset format breadth + exporters** — glTF-only; no OBJ/FBX/USD/STL/PLY/
    EXR/…; no export of any kind (§11).
 3. **Animation depth** — no N-clip mixing, additive layers, arbitrary property
