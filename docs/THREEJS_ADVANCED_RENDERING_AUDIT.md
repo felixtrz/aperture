@@ -208,16 +208,16 @@ data) is missing, which is precisely the bridge GPU-driven game techniques
 
 ## 5. Dynamic content
 
-| Capability                       | three.js                                                                          | Aperture                                                                                                                                                              | Verdict         |
-| -------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
-| Per-frame CPU mesh deform        | ✅ mutate array + `needsUpdate` + `updateRanges` (partial uploads), `usage` hints | 🟡 `MeshBufferUpdateRange` partial `writeBuffer` uploads exist in the upload plan, but the ergonomic path is re-marking the mesh asset ready — no `mesh.update()` API | Partial         |
-| Procedural mesh regen            | Replace geometry                                                                  | Re-register mesh asset (full re-upload)                                                                                                                               | Parity          |
-| Built-in material param tuning   | Set property (auto uniform refresh)                                               | ✅ `patchStandardMaterial` / material-mutation route — no variant recompiles                                                                                          | Parity          |
-| PBR extension params via app API | ✅ all `MeshPhysicalMaterial` props settable directly                             | 🟡 transmission/clearcoat/sheen/iridescence render fine but are **not exposed on `material.standard()`** — glTF import or low-level assets only                       | Gap (cheap fix) |
-| Video / canvas textures          | ✅ `VideoTexture`, `CanvasTexture`, `HTMLTexture`, `VideoFrameTexture`            | ❌ no runtime texture updates at all; `writeTexture` is internal (IBL, cookies)                                                                                       | Gap             |
-| Data texture runtime updates     | ✅ `DataTexture` + `needsUpdate`, partial copies                                  | ❌ texture bytes upload once at asset preparation                                                                                                                     | Gap             |
-| Decals                           | ✅ `DecalGeometry`                                                                | ❌ nothing; nearest workaround is an overlay user pass                                                                                                                | Gap             |
-| Sprite/atlas animation           | Sprite + offset/repeat; `SpriteSheetUV` node                                      | ✅ sprite atlas frames + particle texture-sheet animation                                                                                                             | Parity          |
+| Capability                       | three.js                                                                          | Aperture                                                                                                                                                              | Verdict |
+| -------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Per-frame CPU mesh deform        | ✅ mutate array + `needsUpdate` + `updateRanges` (partial uploads), `usage` hints | 🟡 `MeshBufferUpdateRange` partial `writeBuffer` uploads exist in the upload plan, but the ergonomic path is re-marking the mesh asset ready — no `mesh.update()` API | Partial |
+| Procedural mesh regen            | Replace geometry                                                                  | Re-register mesh asset (full re-upload)                                                                                                                               | Parity  |
+| Built-in material param tuning   | Set property (auto uniform refresh)                                               | ✅ `patchStandardMaterial` / material-mutation route — no variant recompiles                                                                                          | Parity  |
+| PBR extension params via app API | ✅ all `MeshPhysicalMaterial` props settable directly                             | ✅ `material.standard()` exposes the full extension factor set + renderState; `materials.set` patches the same fields (parity plan A3)                                | Parity  |
+| Video / canvas textures          | ✅ `VideoTexture`, `CanvasTexture`, `HTMLTexture`, `VideoFrameTexture`            | ❌ no runtime texture updates at all; `writeTexture` is internal (IBL, cookies)                                                                                       | Gap     |
+| Data texture runtime updates     | ✅ `DataTexture` + `needsUpdate`, partial copies                                  | ❌ texture bytes upload once at asset preparation                                                                                                                     | Gap     |
+| Decals                           | ✅ `DecalGeometry`                                                                | ❌ nothing; nearest workaround is an overlay user pass                                                                                                                | Gap     |
+| Sprite/atlas animation           | Sprite + offset/repeat; `SpriteSheetUV` node                                      | ✅ sprite atlas frames + particle texture-sheet animation                                                                                                             | Parity  |
 
 ---
 
@@ -289,7 +289,7 @@ limits · ❌ not achievable today.
 | 7   | Planar mirror                                         | ✅       | ❌       | No Reflector, clipping planes, or stencil                                                                                                   |
 | 8   | Stencil portal / masked reveal                        | ✅       | ❌       | Stencil explicitly unsupported                                                                                                              |
 | 9   | Dynamic reflection probe (cube capture)               | ✅       | ❌       | No cube render targets                                                                                                                      |
-| 10  | Refraction / heat haze (grab pass)                    | ✅       | 🟡       | Automatic transmission grab for standard materials only; params via glTF/low-level                                                          |
+| 10  | Refraction / heat haze (grab pass)                    | ✅       | ✅       | Automatic transmission grab; params authorable on `material.standard()` (parity plan A3); custom-WGSL grab access remains #12's domain      |
 | 11  | Custom g-buffer / MRT technique                       | ✅       | ❌       | MRT internal-only                                                                                                                           |
 | 12  | Full-screen color grade / custom post chain           | ✅       | 🟡       | User render pass can only blend onto scene-color; built-in post list not user-extensible                                                    |
 | 13  | GPU particle/VFX sim (custom compute)                 | ✅\*     | 🟡       | Compute pass is general, but no compute→draw bridge; built-in Shuriken system covers most VFX needs ✅                                      |
@@ -305,7 +305,7 @@ limits · ❌ not achievable today.
 textures, and indirect.
 
 Score (of 20): three.js ✅ 16 / 🟡 2 / ❌ 0 (2 backend-caveated); Aperture
-✅ 4 / 🟡 7 / ❌ 9. The ❌ column clusters around four missing primitives —
+✅ 5 / 🟡 6 / ❌ 9. The ❌ column clusters around four missing primitives —
 lit/extended custom materials, MRT + flexible render targets, stencil, and
 the compute→rendering bridge — rather than twenty unrelated gaps.
 

@@ -27,11 +27,13 @@ import {
   type AssetRegistry,
   type MaterialHandle,
   type MeshHandle,
+  type Vec3Like,
 } from "@aperture-engine/simulation";
 import type {
   PrimitiveMeshDescriptor,
   SpawnMeshOptions,
   MaterialDescriptor,
+  StandardMaterialOptions,
 } from "./types.js";
 import { ApertureSystemError } from "../errors.js";
 
@@ -257,36 +259,92 @@ function materialDescriptorToAsset(
     });
   }
 
+  const standardOptions = descriptorValue.options;
   return createStandardMaterialAsset({
-    ...(descriptorValue.options.label === undefined
+    ...(standardOptions.label === undefined
       ? {}
-      : { label: descriptorValue.options.label }),
-    ...(descriptorValue.options.baseColor === undefined
+      : { label: standardOptions.label }),
+    ...(standardOptions.baseColor === undefined
       ? {}
       : {
           baseColorFactor: vec4(
-            read4(descriptorValue.options.baseColor, 0),
-            read4(descriptorValue.options.baseColor, 1),
-            read4(descriptorValue.options.baseColor, 2),
-            read4(descriptorValue.options.baseColor, 3),
+            read4(standardOptions.baseColor, 0),
+            read4(standardOptions.baseColor, 1),
+            read4(standardOptions.baseColor, 2),
+            read4(standardOptions.baseColor, 3),
           ),
         }),
-    ...(descriptorValue.options.roughness === undefined
+    ...(standardOptions.roughness === undefined
       ? {}
-      : { roughnessFactor: descriptorValue.options.roughness }),
-    ...(descriptorValue.options.metallic === undefined
+      : { roughnessFactor: standardOptions.roughness }),
+    ...(standardOptions.metallic === undefined
       ? {}
-      : { metallicFactor: descriptorValue.options.metallic }),
-    ...(descriptorValue.options.emissiveFactor === undefined
+      : { metallicFactor: standardOptions.metallic }),
+    ...(standardOptions.emissiveFactor === undefined
+      ? {}
+      : { emissiveFactor: readVec3Tuple(standardOptions.emissiveFactor) }),
+    ...(standardOptions.attenuationColor === undefined
       ? {}
       : {
-          emissiveFactor: [
-            read3(descriptorValue.options.emissiveFactor, 0),
-            read3(descriptorValue.options.emissiveFactor, 1),
-            read3(descriptorValue.options.emissiveFactor, 2),
-          ],
+          attenuationColor: readVec3Tuple(standardOptions.attenuationColor),
         }),
+    ...(standardOptions.sheenColorFactor === undefined
+      ? {}
+      : {
+          sheenColorFactor: readVec3Tuple(standardOptions.sheenColorFactor),
+        }),
+    ...definedScalarOptions(standardOptions, [
+      "normalScale",
+      "occlusionStrength",
+      "clearcoatFactor",
+      "clearcoatRoughnessFactor",
+      "transmissionFactor",
+      "ior",
+      "thickness",
+      "attenuationDistance",
+      "sheenRoughnessFactor",
+      "iridescenceFactor",
+      "iridescenceIor",
+      "iridescenceThicknessMinimum",
+      "iridescenceThicknessMaximum",
+    ]),
+    ...(standardOptions.renderState === undefined
+      ? {}
+      : { renderState: standardOptions.renderState }),
   });
+}
+
+type StandardScalarOptionKey =
+  | "normalScale"
+  | "occlusionStrength"
+  | "clearcoatFactor"
+  | "clearcoatRoughnessFactor"
+  | "transmissionFactor"
+  | "ior"
+  | "thickness"
+  | "attenuationDistance"
+  | "sheenRoughnessFactor"
+  | "iridescenceFactor"
+  | "iridescenceIor"
+  | "iridescenceThicknessMinimum"
+  | "iridescenceThicknessMaximum";
+
+function definedScalarOptions(
+  options: StandardMaterialOptions,
+  keys: readonly StandardScalarOptionKey[],
+): Partial<Record<StandardScalarOptionKey, number>> {
+  const defined: Partial<Record<StandardScalarOptionKey, number>> = {};
+  for (const key of keys) {
+    const value = options[key];
+    if (value !== undefined) {
+      defined[key] = value;
+    }
+  }
+  return defined;
+}
+
+function readVec3Tuple(value: Vec3Like): [number, number, number] {
+  return [read3(value, 0), read3(value, 1), read3(value, 2)];
 }
 
 function normalizeCustomWgslBinding(

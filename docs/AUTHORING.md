@@ -229,6 +229,57 @@ Current primitive descriptors include:
 - `mesh.cylinder({ radius, depth, segments? })`
 - `mesh.cone({ radius, depth, segments? })`
 
+### Standard Material Options
+
+`material.standard()` exposes the renderer's full factor set, so PBR extension
+authoring does not require glTF import or low-level asset construction. Beyond
+`baseColor`, `roughness`, `metallic`, and `emissiveFactor`, the options accept
+the glTF `KHR_materials_*` extension factors and render-state control:
+
+```ts
+material.standard({
+  baseColor: [0.42, 0.72, 1, 1],
+  metallic: 0,
+  roughness: 0.02,
+  // KHR_materials_transmission / _volume / _ior
+  transmissionFactor: 0.9,
+  ior: 1.31,
+  thickness: 0.4,
+  attenuationColor: [0.9, 0.95, 1],
+  attenuationDistance: 2.5,
+  // KHR_materials_clearcoat
+  clearcoatFactor: 0.6,
+  clearcoatRoughnessFactor: 0.25,
+  // KHR_materials_sheen
+  sheenColorFactor: [0.2, 0.1, 0.05],
+  sheenRoughnessFactor: 0.35,
+  // KHR_materials_iridescence
+  iridescenceFactor: 0.5,
+  iridescenceIor: 1.8,
+  iridescenceThicknessMinimum: 200,
+  iridescenceThicknessMaximum: 600,
+  // Texture-strength scalars
+  normalScale: 0.8,
+  occlusionStrength: 0.9,
+  renderState: {
+    alphaMode: "blend",
+    depth: { test: true, write: false, compare: "less" },
+    blend: { preset: "alpha" },
+    cullMode: "none",
+  },
+});
+```
+
+A non-zero extension factor enables the matching shader variant exactly like
+the glTF import route (`clearcoatFactor > 0` selects the clearcoat variant, and
+so on). Runtime mutation through `this.materials.set(handle, patch)` accepts
+the same fields; patches that stay inside the active variant (for example
+`clearcoatFactor: 0.2 -> 0.8`) keep the pipeline key stable and never
+recompile, while a patch that crosses a variant boundary (enabling a factor
+from zero) pays one pipeline build on the next prepared frame. The
+`transmission-app` example renders the transmission scene entirely through
+these options.
+
 ## Prefabs
 
 Prefabs are serialized `ApertureSceneDocument` blueprints. Author the source

@@ -220,6 +220,34 @@ export interface StandardMaterialOptions {
    * Additive linear emissive color. Values may exceed 1 for HDR/bloom probes.
    */
   readonly emissiveFactor?: Vec3Like;
+  /** Strength multiplier applied to the normal map (asset `normalScale`). */
+  readonly normalScale?: number;
+  /** Occlusion texture strength in [0, 1] (asset `occlusionStrength`). */
+  readonly occlusionStrength?: number;
+  /** `KHR_materials_clearcoat` layer intensity; > 0 enables the clearcoat variant. */
+  readonly clearcoatFactor?: number;
+  readonly clearcoatRoughnessFactor?: number;
+  /** `KHR_materials_transmission` factor; > 0 enables the transmission variant. */
+  readonly transmissionFactor?: number;
+  /** `KHR_materials_ior` index of refraction (default 1.5). */
+  readonly ior?: number;
+  /** `KHR_materials_volume` thickness in object space (0 = thin-walled). */
+  readonly thickness?: number;
+  readonly attenuationColor?: Vec3Like;
+  /**
+   * `KHR_materials_volume` attenuation distance. 0 is the JSON-safe sentinel
+   * for "no Beer-Lambert absorption" (glTF's default of +Infinity).
+   */
+  readonly attenuationDistance?: number;
+  /** `KHR_materials_sheen` color; any channel > 0 enables the sheen variant. */
+  readonly sheenColorFactor?: Vec3Like;
+  readonly sheenRoughnessFactor?: number;
+  /** `KHR_materials_iridescence` factor; > 0 enables the iridescence variant. */
+  readonly iridescenceFactor?: number;
+  readonly iridescenceIor?: number;
+  readonly iridescenceThicknessMinimum?: number;
+  readonly iridescenceThicknessMaximum?: number;
+  readonly renderState?: Partial<UnlitMaterialAsset["renderState"]>;
   readonly label?: string;
 }
 

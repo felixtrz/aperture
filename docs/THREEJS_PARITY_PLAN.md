@@ -114,6 +114,8 @@ builder.
 
 ### A3. Expose existing PBR extension params on `material.standard()` — **S**
 
+Status: implemented (2026-07-12).
+
 Pure API plumbing; the renderer already ships these.
 
 - AC1: `material.standard()` accepts transmission/thickness/ior/attenuation,

@@ -135,10 +135,13 @@ export function createStandardMaterialAsset(
 
 // M7-T6: runtime material parameter mutation. Each patch* returns a NEW frozen
 // asset with the provided scalar/color uniform fields merged over `prev` — `prev`
-// is never mutated. Scoped to same-variant uniform-level fields (color/scalar
-// factors); fields that flip a shader variant (e.g. enabling clearcoat) are out
-// of scope. Mutation flows through the versioned asset registry (markReady), not
-// GPU state, so the existing version-gated mirror re-prepares the GPU material.
+// is never mutated. Mutation flows through the versioned asset registry
+// (markReady), not GPU state, so the existing version-gated mirror re-prepares
+// the GPU material. Patches that stay inside the current shader variant (e.g.
+// clearcoatFactor 0.2 -> 0.8) keep the pipeline key stable and never recompile;
+// a patch that crosses a variant boundary (e.g. clearcoatFactor 0 -> 0.5 enables
+// the clearcoat feature) changes the pipeline key and pays one pipeline build on
+// the next prepared frame — still data-only, no live GPU objects involved.
 
 const COLOR4_PATCH_FIELDS = new Set<string>(["baseColorFactor"]);
 const VEC3_PATCH_FIELDS = new Set<string>([
@@ -162,7 +165,12 @@ export interface StandardMaterialPatch {
   readonly attenuationDistance?: number;
   readonly sheenColorFactor?: Vec3Like;
   readonly sheenRoughnessFactor?: number;
+  readonly clearcoatFactor?: number;
+  readonly clearcoatRoughnessFactor?: number;
   readonly iridescenceFactor?: number;
+  readonly iridescenceIor?: number;
+  readonly iridescenceThicknessMinimum?: number;
+  readonly iridescenceThicknessMaximum?: number;
   readonly label?: string;
 }
 

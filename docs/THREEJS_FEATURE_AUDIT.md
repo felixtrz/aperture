@@ -191,7 +191,9 @@ clearcoat (+roughness, both textured), transmission (+texture), volume
 (thickness, attenuation color/distance), IOR, sheen (color+roughness,
 textured), iridescence (factor/texture/thickness range/IOR), alpha modes
 opaque/mask/blend + cutoff, double-sided, vertex colors, TEXCOORD_1, texture
-transforms. Runtime parameter patching without shader-variant recompiles.
+transforms. Runtime parameter patching without shader-variant recompiles. The
+full factor set (including all the extension factors above) is authorable
+directly on the app facade via `material.standard()` (parity plan A3).
 
 Missing vs `MeshPhysicalMaterial`: **anisotropy**, **specular
 color/intensity** (`KHR_materials_specular`), **emissive strength >1 surface**

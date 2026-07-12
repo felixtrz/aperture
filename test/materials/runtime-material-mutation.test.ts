@@ -68,6 +68,56 @@ describe("runtime material mutation (M7-T6)", () => {
     );
   });
 
+  it("keeps the pipeline key stable for extension-factor patches inside the active variant", () => {
+    // A3 (three.js parity plan): patching factors without crossing a variant
+    // boundary must not change the pipeline key, so the prepared-pipeline
+    // cache keeps hitting and no shader recompile happens.
+    const prev = createStandardMaterialAsset({
+      clearcoatFactor: 0.2,
+      clearcoatRoughnessFactor: 0.1,
+      transmissionFactor: 0.5,
+      ior: 1.5,
+      thickness: 0.2,
+      sheenColorFactor: [0.2, 0.05, 0],
+      sheenRoughnessFactor: 0.4,
+      iridescenceFactor: 0.3,
+    });
+    const next = patchStandardMaterial(prev, {
+      clearcoatFactor: 0.8,
+      clearcoatRoughnessFactor: 0.6,
+      transmissionFactor: 0.9,
+      ior: 1.31,
+      thickness: 0.7,
+      attenuationColor: [0.9, 0.95, 1],
+      attenuationDistance: 3,
+      sheenColorFactor: [0.6, 0.2, 0.1],
+      sheenRoughnessFactor: 0.15,
+      iridescenceFactor: 0.9,
+      iridescenceIor: 1.9,
+      iridescenceThicknessMinimum: 150,
+      iridescenceThicknessMaximum: 700,
+    });
+
+    expect(next.clearcoatFactor).toBe(0.8);
+    expect(next.iridescenceIor).toBe(1.9);
+    expect(next.iridescenceThicknessMinimum).toBe(150);
+    expect(next.iridescenceThicknessMaximum).toBe(700);
+    expect(JSON.stringify(createMaterialPipelineKeyInput(next))).toBe(
+      JSON.stringify(createMaterialPipelineKeyInput(prev)),
+    );
+  });
+
+  it("changes the pipeline key only when a patch crosses a variant boundary", () => {
+    const prev = createStandardMaterialAsset({ clearcoatFactor: 0 });
+    const enabled = patchStandardMaterial(prev, { clearcoatFactor: 0.5 });
+
+    const prevKey = createMaterialPipelineKeyInput(prev);
+    const enabledKey = createMaterialPipelineKeyInput(enabled);
+    expect(prevKey.features).not.toEqual(expect.arrayContaining(["clearcoat"]));
+    expect(enabledKey.features).toEqual(expect.arrayContaining(["clearcoat"]));
+    expect(JSON.stringify(enabledKey)).not.toBe(JSON.stringify(prevKey));
+  });
+
   it("supports unlit and matcap equivalents", () => {
     const unlit = patchUnlitMaterial(
       createUnlitMaterialAsset({
