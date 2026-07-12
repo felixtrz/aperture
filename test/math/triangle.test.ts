@@ -66,11 +66,11 @@ describe("triangle area, normal, centroid", () => {
 
 describe("triangle barycentric coordinates", () => {
   it("recovers vertices, edge midpoints, and the centroid", () => {
-    expectVec3(triangleBarycentric(A, A, B, C), [1, 0, 0]);
-    expectVec3(triangleBarycentric(B, A, B, C), [0, 1, 0]);
-    expectVec3(triangleBarycentric(C, A, B, C), [0, 0, 1]);
-    expectVec3(triangleBarycentric([2, 0, 0], A, B, C), [0.5, 0.5, 0]);
-    expectVec3(triangleBarycentric(triangleCentroid(A, B, C), A, B, C), [
+    expectVec3(triangleBarycentric(A, A, B, C)!, [1, 0, 0]);
+    expectVec3(triangleBarycentric(B, A, B, C)!, [0, 1, 0]);
+    expectVec3(triangleBarycentric(C, A, B, C)!, [0, 0, 1]);
+    expectVec3(triangleBarycentric([2, 0, 0], A, B, C)!, [0.5, 0.5, 0]);
+    expectVec3(triangleBarycentric(triangleCentroid(A, B, C), A, B, C)!, [
       1 / 3,
       1 / 3,
       1 / 3,
