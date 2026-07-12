@@ -8,4 +8,8 @@ export * from "./matrix.js";
 export * from "./projection.js";
 export * from "./bounds.js";
 export * from "./ray.js";
+export * from "./triangle.js";
+export * from "./line3.js";
+export * from "./spherical.js";
+export * from "./easing.js";
 export * from "./tuples.js";

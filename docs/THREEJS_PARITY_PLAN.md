@@ -399,6 +399,8 @@ getLength`; deterministic, allocation-light, array-first API (respecting
 
 ### G3. Math utilities — **S**
 
+Status: implemented (2026-07-12).
+
 - AC1: `Triangle` ops (closest point, barycentric, area), `Line3` ops,
   spherical↔cartesian helpers, easing pack (standard Penner set) — all
   kernel-style functions over arrays, benched, no classes (0007).

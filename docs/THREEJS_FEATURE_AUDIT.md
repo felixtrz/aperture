@@ -325,7 +325,7 @@ gizmos (no rotate/scale transform gizmo).
 | Morph animation     | Weight tracks                                                                              | Weight channels → `MorphTargetWeights`                                                                 | ✅     |
 | IK                  | `CCDIKSolver` addon                                                                        | None                                                                                                   | ❌     |
 | Retargeting / utils | `SkeletonUtils.retargetClip`                                                               | None                                                                                                   | ❌     |
-| Tweening / easing   | External (tween.js bundled in examples)                                                    | None (lerp/slerp primitives only)                                                                      | ❌     |
+| Tweening / easing   | External (tween.js bundled in examples)                                                    | Penner easing pack in @aperture-engine/math (parity plan G3); no tween scheduler                       | 🟡     |
 
 Aperture's sampler quality is high (allocation-light, matches three.js
 `GLTFCubicSplineInterpolant` behavior), but the mixing model is one tier below
@@ -535,19 +535,19 @@ Status: ➕ vs three.js core (which has nothing); 🟡 vs `uikit` specifically.
 
 ## 19. Math
 
-| three.js class                                | Aperture                                                             | Status |
-| --------------------------------------------- | -------------------------------------------------------------------- | ------ |
-| `Vector2/3/4`, `Quaternion`, `Matrix4`        | `Vec2/3/4`, `Quat`, `Mat4` (Float32Array kernel + ergonomic API)     | ✅     |
-| `Matrix2/3`                                   | None                                                                 | ❌     |
-| `Euler`                                       | Euler→quat conversions (all 6 orders); no Euler type                 | 🟡     |
-| `Color` + `ColorManagement`                   | `Color` = Vec4 alias + `hexColor`; color-space logic lives in render | 🟡     |
-| `Box2/3`, `Sphere`, `Plane`, `Frustum`, `Ray` | `Aabb`, `BoundingSphere`, `Plane`, `Frustum`, `Ray` interfaces + ops | ✅     |
-| `Triangle`, `Line3`                           | None                                                                 | ❌     |
-| `Spherical`, `Cylindrical`                    | None (orbit controller does its own spherical math)                  | ❌     |
-| `SphericalHarmonics3`                         | None                                                                 | ❌     |
-| Interpolants / easing / curves                | lerp/slerp/lerpAngle/expSmoothingAlpha only; no curve/spline classes | ❌     |
-| `MathUtils` (clamp/lerp/damp/rand…)           | clamp/lerp/inverseLerp/remap + seeded RNG in app context             | ✅     |
-| Noise (addons: simplex/improved)              | Particle-module noise only; no reusable noise utility                | 🟡     |
+| three.js class                                | Aperture                                                                                             | Status |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------ |
+| `Vector2/3/4`, `Quaternion`, `Matrix4`        | `Vec2/3/4`, `Quat`, `Mat4` (Float32Array kernel + ergonomic API)                                     | ✅     |
+| `Matrix2/3`                                   | None                                                                                                 | ❌     |
+| `Euler`                                       | Euler→quat conversions (all 6 orders); no Euler type                                                 | 🟡     |
+| `Color` + `ColorManagement`                   | `Color` = Vec4 alias + `hexColor`; color-space logic lives in render                                 | 🟡     |
+| `Box2/3`, `Sphere`, `Plane`, `Frustum`, `Ray` | `Aabb`, `BoundingSphere`, `Plane`, `Frustum`, `Ray` interfaces + ops                                 | ✅     |
+| `Triangle`, `Line3`                           | Kernel triangle/segment ops: area/normal/barycentric/closest-point, segment queries (parity plan G3) | ✅     |
+| `Spherical`, `Cylindrical`                    | spherical/cylindrical ↔ cartesian helpers matching the orbit convention (parity plan G3)             | ✅     |
+| `SphericalHarmonics3`                         | None                                                                                                 | ❌     |
+| Interpolants / easing / curves                | Penner easing pack shipped (parity plan G3); curve/spline classes still missing (G2)                 | 🟡     |
+| `MathUtils` (clamp/lerp/damp/rand…)           | clamp/lerp/inverseLerp/remap + seeded RNG in app context                                             | ✅     |
+| Noise (addons: simplex/improved)              | Particle-module noise only; no reusable noise utility                                                | 🟡     |
 
 The kernel philosophy (array-first, wgpu-matrix conventions, Z 0..1) is a
 deliberate divergence (`DECISIONS.md 0007`); the functional gaps that matter
