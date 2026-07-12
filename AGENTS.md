@@ -181,6 +181,34 @@ the unsupported-WebGPU reason from Aperture's initialization helper.
   listens allocates an ephemeral port (`listen(0)`) per run — a fixed port is
   a collision with the previous crashed run waiting to happen.
 
+## Visual Quality Defaults
+
+Read [`docs/VISUAL_QUALITY.md`](docs/VISUAL_QUALITY.md) before authoring
+scenes, examples, templates, or anything else a user will look at. The short
+version:
+
+- Generated apps default to a **filmic, lit baseline**: ACES tonemapping
+  through the HDR path (`exposure: 1`), 4x MSAA, capped device pixel ratio,
+  and a **default daylight environment** (gradient sky + image-based
+  lighting, plus a soft sun when the app authors no lights at all) that
+  installs unless the app authors its own sky, skybox, or environment light —
+  or sets `render.defaultEnvironment: false`.
+- When building a scene: keep the default environment (it supplies the
+  ambient/fill term and PBR reflections), add a **shadow-casting directional
+  sun** with `castShadow`/`receiveShadow` on meshes, give shadows a ground
+  receiver, and enable a **subtle bloom**. The `showcase/` configs and the
+  `aperture create` templates are the reference recipes — copy them instead
+  of inventing new baselines.
+- `material.standard()` defaults to a **dielectric** (`metallic: 0`,
+  `roughness: 1`); only set `metallic: 1` when the scene has image-based
+  lighting. glTF imports keep the glTF spec default.
+- `tonemap: "none"` (with no exposure/bloom) keeps the raw byte-identical
+  8-bit path — use it for golden-image baselines and byte-exact render
+  tests, not for user-facing scenes.
+- Do not ship a user-facing example, template, or showcase that renders
+  unlit geometry on a black background; that is the failure mode these
+  defaults exist to prevent.
+
 ## Preferred Implementation Style
 
 - Explicit types over inference at public API boundaries.

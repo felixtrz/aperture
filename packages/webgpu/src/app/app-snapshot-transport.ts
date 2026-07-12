@@ -7,6 +7,7 @@ import {
   LIGHT_PACKET_WORDS,
   MESH_DRAW_PACKET_WORDS,
   PARTICLE_EMITTER_PACKET_WORDS,
+  PROCEDURAL_SKY_PACKET_WORDS,
   QUAD_BATCH_PACKET_WORDS,
   QUAD_INSTANCE_FLOAT_STRIDE,
   SHADOW_REQUEST_PACKET_WORDS,
@@ -308,6 +309,9 @@ export function readWebGpuAppSharedSnapshot(
     ...(packets.quadBatches === undefined
       ? {}
       : { quadBatches: packets.quadBatches }),
+    ...(packets.proceduralSkies === undefined
+      ? {}
+      : { proceduralSkies: packets.proceduralSkies }),
     transforms: frame.transforms,
     ...(frame.quadInstanceFloats.length === 0
       ? {}
@@ -336,6 +340,7 @@ export function readWebGpuAppSharedSnapshot(
       shadowRequests: packets.shadowRequests.length,
       bounds: packets.bounds.length,
       quadBatches: packets.quadBatches?.length ?? 0,
+      proceduralSkies: packets.proceduralSkies?.length ?? 0,
       quadInstances:
         frame.quadInstanceFloats.length / QUAD_INSTANCE_FLOAT_STRIDE,
       diagnostics: diagnostics.length,
@@ -591,6 +596,7 @@ function defaultSharedSnapshotPacketWords(input: {
   const maxLights = 64;
   const maxEnvironments = 16;
   const maxFogs = 16;
+  const maxProceduralSkies = 16;
   const maxShadowRequests = 64;
 
   return (
@@ -605,6 +611,7 @@ function defaultSharedSnapshotPacketWords(input: {
     maxLights * LIGHT_PACKET_WORDS +
     maxEnvironments * ENVIRONMENT_PACKET_WORDS +
     maxFogs * FOG_PACKET_WORDS +
+    maxProceduralSkies * PROCEDURAL_SKY_PACKET_WORDS +
     maxShadowRequests * SHADOW_REQUEST_PACKET_WORDS +
     input.maxEntities * BOUNDS_PACKET_WORDS
   );

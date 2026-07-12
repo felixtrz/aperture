@@ -50,6 +50,9 @@ const EXPECTED_HASHES_FILE = path.join(
 const APP_CONFIG = defineApertureConfig({
   mode: "headless",
   systems: [],
+  // The committed hash fixture captures exactly the recorded scene — keep the
+  // zero-config daylight environment (sky + environment light) out of it.
+  render: { defaultEnvironment: false },
   input: {
     actions: {
       move: input.axis2d([

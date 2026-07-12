@@ -2,10 +2,17 @@ import type { ApertureViewportResizeCommandPayload } from "../commands.js";
 import type {
   ApertureRenderDefaults,
   ApertureRenderDeviceProfile,
+  ApertureTonemapOperator,
 } from "../config.js";
 
 export const DEFAULT_GENERATED_MSAA_SAMPLE_COUNT = 4;
 export const DEFAULT_GENERATED_MAX_PIXEL_RATIO = 2;
+// Generated apps default to the filmic pipeline the showcases ship with:
+// ACES tonemapping applied through the HDR scene buffer at exposure 1.
+// The low-level createWebGpuApp default stays "none" so tests and golden
+// baselines keep the raw 8-bit path unless they opt in.
+export const DEFAULT_GENERATED_TONEMAP: ApertureTonemapOperator = "aces";
+export const DEFAULT_GENERATED_EXPOSURE = 1;
 
 export type GeneratedPixelRatioSource = "configured" | "device" | "capped";
 export type GeneratedCanvasResizeSource =
@@ -129,6 +136,33 @@ export function resolveGeneratedRenderSettings(
   };
 }
 
+export interface GeneratedTonemapAndExposure {
+  readonly tonemap: ApertureTonemapOperator;
+  /** Undefined keeps the legacy 8-bit in-material path (no HDR buffer). */
+  readonly exposure: number | undefined;
+}
+
+/**
+ * Resolve the generated app's tonemap operator and exposure. Defaults to the
+ * filmic pipeline (ACES through the HDR scene buffer at exposure 1); an
+ * explicit tonemap "none" without exposure or post effects keeps the legacy
+ * byte-identical 8-bit path, and configuring any post effect always implies
+ * the HDR path.
+ */
+export function resolveGeneratedTonemapAndExposure(
+  render: ApertureRenderDefaults | undefined,
+  postEffectsEnabled: boolean,
+): GeneratedTonemapAndExposure {
+  const tonemap = render?.tonemap ?? DEFAULT_GENERATED_TONEMAP;
+  const exposure =
+    render?.exposure ??
+    (tonemap === "none" && !postEffectsEnabled
+      ? undefined
+      : DEFAULT_GENERATED_EXPOSURE);
+
+  return { tonemap, exposure };
+}
+
 export function resolveGeneratedEffectiveRenderDefaults(
   render: ApertureRenderDefaults | undefined,
   environment: GeneratedBrowserRenderProfileEnvironment = {},
@@ -155,6 +189,7 @@ export function resolveGeneratedEffectiveRenderDefaults(
         : { maxPixelRatio: profile.maxPixelRatio }),
       ...(profile.exposure === undefined ? {} : { exposure: profile.exposure }),
       ...(profile.bloom === undefined ? {} : { bloom: profile.bloom }),
+      ...(profile.ssao === undefined ? {} : { ssao: profile.ssao }),
     },
     profile: profile.label ?? null,
   };

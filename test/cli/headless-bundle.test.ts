@@ -149,7 +149,12 @@ function preflightBundle(
 
 describe("render/post config carried in bundles (#73)", () => {
   it("derives bundle target fields from config.render defaults", () => {
-    expect(renderBundleTargetFromRenderDefaults(undefined)).toEqual({});
+    // Unset render config inherits the generated-app defaults: ACES through
+    // the HDR path at exposure 1, matching the browser runtime.
+    expect(renderBundleTargetFromRenderDefaults(undefined)).toEqual({
+      toneMapping: "aces",
+      exposure: 1,
+    });
     expect(
       renderBundleTargetFromRenderDefaults({
         sampleCount: 4,
@@ -165,10 +170,19 @@ describe("render/post config carried in bundles (#73)", () => {
     });
     // bloom: true implies exposure (the HDR scene buffer), like the browser.
     expect(renderBundleTargetFromRenderDefaults({ bloom: true })).toEqual({
+      toneMapping: "aces",
       exposure: 1,
       bloom: {},
     });
-    expect(renderBundleTargetFromRenderDefaults({ bloom: false })).toEqual({});
+    expect(renderBundleTargetFromRenderDefaults({ bloom: false })).toEqual({
+      toneMapping: "aces",
+      exposure: 1,
+    });
+    // Explicit tonemap "none" without bloom opts out of the HDR path and
+    // keeps the raw 8-bit look for golden baselines.
+    expect(renderBundleTargetFromRenderDefaults({ tonemap: "none" })).toEqual({
+      toneMapping: "none",
+    });
   });
 
   it("round-trips bloom/tonemap/exposure through a produced bundle", async () => {

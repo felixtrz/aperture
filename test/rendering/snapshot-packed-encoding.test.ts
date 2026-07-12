@@ -9,6 +9,7 @@ import {
   LIGHT_PACKET_WORDS,
   MESH_DRAW_PACKET_WORDS,
   PARTICLE_EMITTER_PACKET_WORDS,
+  PROCEDURAL_SKY_PACKET_WORDS,
   QUAD_BATCH_PACKET_WORDS,
   SHADOW_REQUEST_PACKET_WORDS,
   SNAPSHOT_PACKET_BYTE_STRIDES,
@@ -55,7 +56,62 @@ describe("snapshot packed packet encoding", () => {
       shadowRequests: packets.shadowRequests.length,
       bounds: packets.bounds.length,
       quadBatches: 0,
+      proceduralSkies: packets.proceduralSkies?.length ?? 0,
     });
+  });
+
+  it("round-trips procedural sky packets through the packed codec", () => {
+    const bundle: SnapshotPacketBundle = {
+      views: [],
+      meshDraws: [],
+      lights: [],
+      environments: [],
+      shadowRequests: [],
+      bounds: [],
+      proceduralSkies: [
+        {
+          skyId: 77,
+          entity: entity(77, 3),
+          model: "gradient",
+          priority: -5,
+          topColor: [0.015, 0.02, 0.08],
+          horizonColor: [0.04, 0.055, 0.13],
+          bottomColor: [0.006, 0.008, 0.025],
+          horizonPosition: 0.42,
+          horizonSoftness: 0.24,
+          intensity: 1.35,
+          sunDirection: [-0.6, 0.4, -0.7],
+          sunColor: [1, 0.72, 0.38],
+          sunRadius: 0.02,
+          sunGlow: 0.35,
+          ditherStrength: 0.003,
+          layerMask: 5,
+        },
+      ],
+    };
+
+    const encoded = encodeSnapshotPackets(bundle);
+    const decoded = decodeSnapshotPackets(encoded.words, encoded.registry);
+
+    expect(decoded.proceduralSkies).toEqual(bundle.proceduralSkies);
+    expect(encoded.counts.proceduralSkies).toBe(1);
+  });
+
+  it("omits the procedural sky family from decoded bundles when empty", () => {
+    const bundle: SnapshotPacketBundle = {
+      views: [],
+      meshDraws: [],
+      lights: [],
+      environments: [],
+      shadowRequests: [],
+      bounds: [],
+    };
+
+    const encoded = encodeSnapshotPackets(bundle);
+    const decoded = decodeSnapshotPackets(encoded.words, encoded.registry);
+
+    expect(decoded.proceduralSkies).toBeUndefined();
+    expect(encoded.counts.proceduralSkies).toBe(0);
   });
 
   it("round-trips quad batch packets through the packed snapshot registry", () => {
@@ -213,6 +269,7 @@ describe("snapshot packed packet encoding", () => {
       shadowRequest: SHADOW_REQUEST_PACKET_WORDS,
       bounds: BOUNDS_PACKET_WORDS,
       quadBatch: QUAD_BATCH_PACKET_WORDS,
+      proceduralSky: PROCEDURAL_SKY_PACKET_WORDS,
     });
     expect(SNAPSHOT_PACKET_BYTE_STRIDES).toEqual({
       header: SNAPSHOT_PACKET_HEADER_WORDS * Uint32Array.BYTES_PER_ELEMENT,
@@ -231,6 +288,8 @@ describe("snapshot packed packet encoding", () => {
         SHADOW_REQUEST_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
       bounds: BOUNDS_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
       quadBatch: QUAD_BATCH_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+      proceduralSky:
+        PROCEDURAL_SKY_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
     });
   });
 
@@ -559,6 +618,26 @@ function randomPacketBundle(): SnapshotPacketBundle {
       },
     ],
     bounds: [boundsPacket(0, random), boundsPacket(1, random)],
+    proceduralSkies: [
+      {
+        skyId: 60,
+        entity: entity(60, 2),
+        model: "gradient",
+        priority: 3,
+        topColor: vec3(random),
+        horizonColor: vec3(random),
+        bottomColor: vec3(random),
+        horizonPosition: scalar(random),
+        horizonSoftness: scalar(random),
+        intensity: scalar(random),
+        sunDirection: vec3(random),
+        sunColor: vec3(random),
+        sunRadius: scalar(random),
+        sunGlow: scalar(random),
+        ditherStrength: scalar(random),
+        layerMask: 0x0f,
+      },
+    ],
   };
 }
 

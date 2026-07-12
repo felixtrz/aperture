@@ -6,6 +6,7 @@ import {
   type RenderSnapshot,
 } from "@aperture-engine/render";
 import { registerWebGpuAppEnvironmentResourceCache } from "./app-environment-resources.js";
+import { createWebGpuAppEnvironmentFramePreparer } from "./app-environment-frame.js";
 import {
   createWebGpuAppSnapshotTransport,
   createWebGpuAppSnapshotTransportStartPayload,
@@ -441,11 +442,23 @@ export async function createWebGpuApp(
     async renderSnapshot(snapshot, renderOptions = {}) {
       const previousSnapshotForReport = previousSnapshotForUpdate;
       const resourceLifetimeFrame = nextPreparedResourceLifetimeFrame();
+      // Auto-wire IBL: when the caller does not hand in prepared environment
+      // resources (harnesses/examples that call
+      // prepareWebGpuAppEnvironmentAssets themselves still win), resolve the
+      // snapshot's active environment against ready environment-map assets in
+      // the source registry. Memoized per asset version — steady-state frames
+      // do not re-run the preparation compute chain.
+      const standardMaterialIblResources =
+        renderOptions.standardMaterialIblResources ??
+        environmentFramePreparer.resolve(snapshot);
       const report = await renderWebGpuAppFrame(
         { app, sourceAssets },
         resourceCache,
         {
           ...renderOptions,
+          ...(standardMaterialIblResources === undefined
+            ? {}
+            : { standardMaterialIblResources }),
           gpuTimings: renderOptions.gpuTimings ?? defaultGpuTimings,
           snapshot,
           previousSnapshotForUpdate,
@@ -484,6 +497,12 @@ export async function createWebGpuApp(
     },
   };
 
+  // Declared after the app literal (it captures `app` for the per-app
+  // resource cache); renderSnapshot only reads it at call time.
+  const environmentFramePreparer = createWebGpuAppEnvironmentFramePreparer({
+    app,
+    registry: sourceAssets,
+  });
   registerWebGpuAppEnvironmentResourceCache(
     app,
     resourceCache.environmentResources,

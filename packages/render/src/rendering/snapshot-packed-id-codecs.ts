@@ -1,5 +1,10 @@
 import type { MeshTopology } from "../mesh/index.js";
-import { FogMode, type AreaLightShape, type LightKind } from "./authoring.js";
+import {
+  FogMode,
+  ProceduralSkyModel,
+  type AreaLightShape,
+  type LightKind,
+} from "./authoring.js";
 import type {
   AudioEmitterPacket,
   AudioSimulationSpacePacket,
@@ -31,6 +36,10 @@ const FogModeId = Object.freeze({
   Linear: 1,
   Exp: 2,
   Exp2: 3,
+});
+
+const ProceduralSkyModelId = Object.freeze({
+  Gradient: 1,
 });
 
 const TopologyId = Object.freeze({
@@ -177,6 +186,24 @@ export function fogModeValue(id: number): FogMode {
       return FogMode.Exp2;
     default:
       throw new RangeError(`Unknown snapshot packet fog mode id '${id}'.`);
+  }
+}
+
+export function proceduralSkyModelId(model: ProceduralSkyModel): number {
+  switch (model) {
+    case ProceduralSkyModel.Gradient:
+      return ProceduralSkyModelId.Gradient;
+  }
+}
+
+export function proceduralSkyModelValue(id: number): ProceduralSkyModel {
+  switch (id) {
+    case ProceduralSkyModelId.Gradient:
+      return ProceduralSkyModel.Gradient;
+    default:
+      throw new RangeError(
+        `Unknown snapshot packet procedural sky model id '${id}'.`,
+      );
   }
 }
 

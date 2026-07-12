@@ -8,6 +8,7 @@ import {
   readLightPacket,
   readMeshDrawPacket,
   readParticleEmitterPacket,
+  readProceduralSkyPacket,
   readQuadBatchPacket,
   readShadowRequestPacket,
   readViewPacket,
@@ -21,6 +22,7 @@ import {
   LIGHT_PACKET_WORDS,
   MESH_DRAW_PACKET_WORDS,
   PARTICLE_EMITTER_PACKET_WORDS,
+  PROCEDURAL_SKY_PACKET_WORDS,
   QUAD_BATCH_PACKET_WORDS,
   SHADOW_REQUEST_PACKET_WORDS,
   SNAPSHOT_PACKET_HEADER_WORDS,
@@ -37,6 +39,7 @@ import type {
   LightPacket,
   MeshDrawPacket,
   ParticleEmitterPacket,
+  ProceduralSkyPacket,
   QuadBatchPacket,
   ShadowRequestPacket,
   ViewPacket,
@@ -60,7 +63,8 @@ export function decodeSnapshotPackets(
     counts.audioListeners * AUDIO_LISTENER_PACKET_WORDS +
     counts.shadowRequests * SHADOW_REQUEST_PACKET_WORDS +
     counts.bounds * BOUNDS_PACKET_WORDS +
-    counts.quadBatches * QUAD_BATCH_PACKET_WORDS;
+    counts.quadBatches * QUAD_BATCH_PACKET_WORDS +
+    counts.proceduralSkies * PROCEDURAL_SKY_PACKET_WORDS;
 
   if (words.length < expectedWords) {
     throw new RangeError(
@@ -80,6 +84,7 @@ export function decodeSnapshotPackets(
   const shadowRequests: ShadowRequestPacket[] = [];
   const bounds: BoundsPacket[] = [];
   const quadBatches: QuadBatchPacket[] = [];
+  const proceduralSkies: ProceduralSkyPacket[] = [];
   let offset = SNAPSHOT_PACKET_HEADER_WORDS;
 
   for (let index = 0; index < counts.views; index += 1) {
@@ -142,6 +147,11 @@ export function decodeSnapshotPackets(
     offset += QUAD_BATCH_PACKET_WORDS;
   }
 
+  for (let index = 0; index < counts.proceduralSkies; index += 1) {
+    proceduralSkies.push(readProceduralSkyPacket(words, offset));
+    offset += PROCEDURAL_SKY_PACKET_WORDS;
+  }
+
   return {
     views,
     meshDraws,
@@ -157,5 +167,6 @@ export function decodeSnapshotPackets(
     shadowRequests,
     bounds,
     ...(quadBatches.length === 0 ? {} : { quadBatches }),
+    ...(proceduralSkies.length === 0 ? {} : { proceduralSkies }),
   };
 }
