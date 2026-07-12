@@ -54,9 +54,12 @@ import { installDefaultEnvironment } from "./default-environment.js";
 export {
   DEFAULT_ENVIRONMENT_ASSET_ID,
   DEFAULT_ENVIRONMENT_IBL_COLORS,
+  DEFAULT_ENVIRONMENT_IBL_INTENSITY,
   DEFAULT_ENVIRONMENT_LIGHT_KEY,
   DEFAULT_ENVIRONMENT_SKY_COLORS,
   DEFAULT_ENVIRONMENT_SKY_KEY,
+  DEFAULT_ENVIRONMENT_SUN_ILLUMINANCE,
+  DEFAULT_ENVIRONMENT_SUN_KEY,
   defaultEnvironmentEquirectRgba8,
   installDefaultEnvironment,
 } from "./default-environment.js";

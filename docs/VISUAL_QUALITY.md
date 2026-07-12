@@ -65,7 +65,16 @@ render: {
 Plain directional/ambient/point lights do **not** suppress it — a sun plus
 the default sky is the intended combination. The environment contributes the
 ambient/fill term, so scenes generally do not need an `ambient` fill light on
-top of it.
+top of it. The illumination gradient is deliberately dimmer than the visible
+sky (`DEFAULT_ENVIRONMENT_IBL_INTENSITY`): it targets the ~0.35–0.45 ambient
+fill the showcases were tuned around so it can sit under a directional sun
+without washing the scene out.
+
+When the app authors **no analytic lights at all**, the default rig also adds
+a soft shadowless sun (`light.sun.default`, illuminance 2.2): the
+standard-material light buffer requires at least one analytic light, so an
+environment-only world would otherwise fail frame resource creation rather
+than render. Author any light of your own and the default sun stays out.
 
 To replace the look, author your own sky and keep IBL:
 `spawn.proceduralSky` for a gradient (see `createProceduralSky` for the

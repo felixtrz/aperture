@@ -96,7 +96,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       key: "light.sun",
       name: "Sun",
       kind: "directional",
-      illuminance: 4,
+      illuminance: 2.2,
       transform: {
         rotationEulerDegrees: [-45, 35, 0],
       },
@@ -116,7 +116,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       tags: ["level", "ground"],
       mesh: mesh.box({ size: [12, 0.2, 12] }),
       material: material.standard({
-        baseColor: [0.72, 0.72, 0.7, 1],
+        baseColor: [0.42, 0.44, 0.42, 1],
         roughness: 0.9,
       }),
       transform: { translation: [0, -0.1, 0] },
@@ -130,7 +130,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       tags: ["starter", "inspectable"],
       mesh: mesh.box({ size: [1, 1, 1] }),
       material: material.standard({
-        baseColor: [0.18, 0.58, 1, 1],
+        baseColor: [0.13, 0.45, 0.95, 1],
         roughness: 0.45,
       }),
       transform: {

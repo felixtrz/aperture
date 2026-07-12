@@ -4,6 +4,7 @@ import { createApertureApp, defineApertureConfig } from "@aperture-engine/app";
 import {
   DEFAULT_ENVIRONMENT_ASSET_ID,
   DEFAULT_ENVIRONMENT_IBL_COLORS,
+  DEFAULT_ENVIRONMENT_IBL_INTENSITY,
   DEFAULT_ENVIRONMENT_LIGHT_KEY,
   DEFAULT_ENVIRONMENT_SKY_KEY,
   defaultEnvironmentEquirectRgba8,
@@ -163,6 +164,24 @@ describe("default environment (zero-config daylight sky + IBL)", () => {
 
     expect(snapshot.proceduralSkies?.length).toBe(1);
     expect(snapshot.environments.length).toBe(1);
+    // The app authored an analytic light (render.defaultLight), so the
+    // default rig does not add its own sun on top.
+    expect(
+      snapshot.lights.filter((light) => light.kind === "directional").length,
+    ).toBe(1);
+  });
+
+  it("completes a light-less world with a soft default sun", async () => {
+    // The standard-material light buffer requires at least one analytic
+    // light; without this, an environment-only zero-config scene fails frame
+    // resource creation instead of rendering.
+    const app = await createApertureApp({ config: headlessConfig() });
+
+    app.step(1 / 60, 0);
+    const snapshot = app.extract(1);
+
+    expect(snapshot.lights.length).toBe(1);
+    expect(snapshot.lights[0]?.kind).toBe("directional");
   });
 
   it("spawns entities under the documented default keys", async () => {
@@ -204,11 +223,13 @@ describe("default environment (zero-config daylight sky + IBL)", () => {
     expect(data[4]).toBe(groundRed);
     expect(data[6]).toBe(groundBlue);
 
-    // Matches the documented illumination palette at the poles' shaping
-    // extremes (elevation → ±1 approaches top/bottom colors).
+    // Matches the documented illumination palette (scaled by the fill
+    // intensity) at the poles' shaping extremes.
     expect(
       Math.abs(
-        (groundRed ?? 0) / 255 - DEFAULT_ENVIRONMENT_IBL_COLORS.bottom[0],
+        (groundRed ?? 0) / 255 -
+          DEFAULT_ENVIRONMENT_IBL_COLORS.bottom[0] *
+            DEFAULT_ENVIRONMENT_IBL_INTENSITY,
       ),
     ).toBeLessThan(0.1);
   });

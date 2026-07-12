@@ -190,8 +190,9 @@ version:
 - Generated apps default to a **filmic, lit baseline**: ACES tonemapping
   through the HDR path (`exposure: 1`), 4x MSAA, capped device pixel ratio,
   and a **default daylight environment** (gradient sky + image-based
-  lighting) that installs unless the app authors its own sky, skybox, or
-  environment light — or sets `render.defaultEnvironment: false`.
+  lighting, plus a soft sun when the app authors no lights at all) that
+  installs unless the app authors its own sky, skybox, or environment light —
+  or sets `render.defaultEnvironment: false`.
 - When building a scene: keep the default environment (it supplies the
   ambient/fill term and PBR reflections), add a **shadow-casting directional
   sun** with `castShadow`/`receiveShadow` on meshes, give shadows a ground

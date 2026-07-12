@@ -126,7 +126,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       key: "light.sun",
       name: "Sun",
       kind: "directional",
-      illuminance: 4,
+      illuminance: 2.2,
       transform: {
         rotationEulerDegrees: [-45, 25, 0],
       },
@@ -160,7 +160,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       tags: ["player", "controllable"],
       mesh: mesh.box({ size: [0.5, 0.8, 0.5] }),
       material: material.standard({
-        baseColor: [0.18, 0.58, 1, 1],
+        baseColor: [0.13, 0.45, 0.95, 1],
         roughness: 0.45,
       }),
       transform: { translation: [-3.5, 0.55, 0] },

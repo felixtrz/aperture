@@ -40,9 +40,27 @@ export const DEFAULT_ENVIRONMENT_IBL_COLORS = {
   bottom: [0.807, 0.7758, 0.7454],
 } as const;
 
+/**
+ * Scale applied to the illumination gradient before it feeds the irradiance
+ * convolution. The convolution stores irradiance/π, so an unscaled ~0.75
+ * gradient would contribute ~0.75 × albedo of ambient diffuse — tuned for an
+ * IBL-only rig. The default environment is designed to sit UNDER a directional
+ * sun (the template/showcase recipe), so it targets the ~0.35–0.45 ambient
+ * fill the showcases were tuned around while keeping the sky's tint.
+ */
+export const DEFAULT_ENVIRONMENT_IBL_INTENSITY = 0.55;
+
 export const DEFAULT_ENVIRONMENT_ASSET_ID = "environment.default";
 export const DEFAULT_ENVIRONMENT_SKY_KEY = "sky.default";
 export const DEFAULT_ENVIRONMENT_LIGHT_KEY = "light.environment.default";
+export const DEFAULT_ENVIRONMENT_SUN_KEY = "light.sun.default";
+
+/**
+ * Illuminance of the soft default sun added when the app authors no analytic
+ * lights at all. Matches the showcase/template tuning (the city-builder sun)
+ * so a zero-config scene reads directional without washing out under ACES.
+ */
+export const DEFAULT_ENVIRONMENT_SUN_ILLUMINANCE = 2.2;
 
 const EQUIRECT_WIDTH = 64;
 const EQUIRECT_HEIGHT = 32;
@@ -68,7 +86,9 @@ export function installDefaultEnvironment(
     return false;
   }
 
-  if (worldHasAuthoredEnvironment(options.world)) {
+  const authored = readAuthoredEnvironmentState(options.world);
+
+  if (authored.hasEnvironment) {
     return false;
   }
 
@@ -115,6 +135,22 @@ export function installDefaultEnvironment(
     light: { environmentMap: handle },
   });
 
+  // The standard-material light buffer requires at least one analytic light —
+  // an environment-only world fails frame resource creation. When the app
+  // authored no lights at all, complete the daylight rig with a soft sun
+  // (no shadows; the templates author the shadow-casting sun).
+  if (!authored.hasAnalyticLight) {
+    options.context.spawn.light({
+      key: DEFAULT_ENVIRONMENT_SUN_KEY,
+      name: "default-sun",
+      kind: "directional",
+      illuminance: DEFAULT_ENVIRONMENT_SUN_ILLUMINANCE,
+      transform: {
+        rotationEulerDegrees: [-45, 35, 0],
+      },
+    });
+  }
+
   return true;
 }
 
@@ -139,9 +175,9 @@ export function defaultEnvironmentEquirectRgba8(
       elevation >= 0
         ? mix3(horizon, top, shaping)
         : mix3(horizon, bottom, shaping);
-    const r = channelToByte(color[0]);
-    const g = channelToByte(color[1]);
-    const b = channelToByte(color[2]);
+    const r = channelToByte(color[0] * DEFAULT_ENVIRONMENT_IBL_INTENSITY);
+    const g = channelToByte(color[1] * DEFAULT_ENVIRONMENT_IBL_INTENSITY);
+    const b = channelToByte(color[2] * DEFAULT_ENVIRONMENT_IBL_INTENSITY);
 
     for (let x = 0; x < width; x += 1) {
       const offset = (y * width + x) * 4;
@@ -156,21 +192,35 @@ export function defaultEnvironmentEquirectRgba8(
   return data;
 }
 
-function worldHasAuthoredEnvironment(
+interface AuthoredEnvironmentState {
+  /** An authored ProceduralSky, Skybox, or environment light exists. */
+  readonly hasEnvironment: boolean;
+  /** Any authored non-environment (analytic) light exists. */
+  readonly hasAnalyticLight: boolean;
+}
+
+function readAuthoredEnvironmentState(
   world: InstallDefaultEnvironmentOptions["world"],
-): boolean {
+): AuthoredEnvironmentState {
+  let hasEnvironment = false;
+  let hasAnalyticLight = false;
+
   const skies = world.queryManager.registerQuery({
     required: [ProceduralSky],
   });
 
   for (const _entity of skies.entities) {
-    return true;
+    hasEnvironment = true;
+    break;
   }
 
-  const skyboxes = world.queryManager.registerQuery({ required: [Skybox] });
+  if (!hasEnvironment) {
+    const skyboxes = world.queryManager.registerQuery({ required: [Skybox] });
 
-  for (const _entity of skyboxes.entities) {
-    return true;
+    for (const _entity of skyboxes.entities) {
+      hasEnvironment = true;
+      break;
+    }
   }
 
   const lights = world.queryManager.registerQuery({ required: [Light] });
@@ -181,11 +231,13 @@ function worldHasAuthoredEnvironment(
     ).getValue(Light, "kind");
 
     if (kind === LightKind.Environment) {
-      return true;
+      hasEnvironment = true;
+    } else {
+      hasAnalyticLight = true;
     }
   }
 
-  return false;
+  return { hasEnvironment, hasAnalyticLight };
 }
 
 function mix3(
