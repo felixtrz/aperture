@@ -5,6 +5,7 @@ import type {
   AudioListenerPacket,
   FogPacket,
   ParticleEmitterPacket,
+  ProceduralSkyPacket,
   RenderSnapshot,
 } from "@aperture-engine/render";
 import { FogMode } from "@aperture-engine/render";
@@ -60,6 +61,33 @@ describe("shared snapshot transport eligibility", () => {
           end: 50,
           layerMask: 1,
         } satisfies FogPacket,
+      ],
+    });
+
+    expect(hasUnsupportedSharedSnapshotPayload(snapshot)).toBe(false);
+  });
+
+  it("keeps procedural sky frames eligible for the SharedArrayBuffer path", () => {
+    const snapshot = baseSnapshot({
+      proceduralSkies: [
+        {
+          skyId: 1,
+          entity: { index: 1, generation: 1 },
+          model: "gradient",
+          priority: 0,
+          topColor: [0.015, 0.02, 0.08],
+          horizonColor: [0.04, 0.055, 0.13],
+          bottomColor: [0.006, 0.008, 0.025],
+          horizonPosition: 0.4,
+          horizonSoftness: 0.24,
+          intensity: 1,
+          sunDirection: [-0.6, 0.4, -0.7],
+          sunColor: [1, 0.72, 0.38],
+          sunRadius: 0.02,
+          sunGlow: 0.35,
+          ditherStrength: 0.003,
+          layerMask: 1,
+        } satisfies ProceduralSkyPacket,
       ],
     });
 

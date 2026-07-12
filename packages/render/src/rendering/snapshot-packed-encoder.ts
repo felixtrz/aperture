@@ -8,6 +8,7 @@ import {
   writeLightPacket,
   writeMeshDrawPacket,
   writeParticleEmitterPacket,
+  writeProceduralSkyPacket,
   writeQuadBatchPacket,
   writeShadowRequestPacket,
   writeViewPacket,
@@ -21,6 +22,7 @@ import {
   LIGHT_PACKET_WORDS,
   MESH_DRAW_PACKET_WORDS,
   PARTICLE_EMITTER_PACKET_WORDS,
+  PROCEDURAL_SKY_PACKET_WORDS,
   QUAD_BATCH_PACKET_WORDS,
   SHADOW_REQUEST_PACKET_WORDS,
   SNAPSHOT_PACKET_HEADER_WORDS,
@@ -43,6 +45,7 @@ export function snapshotPacketWordLength(
   const audioEmitters = packets.audioEmitters ?? [];
   const audioListeners =
     packets.audioListener === undefined ? [] : [packets.audioListener];
+  const proceduralSkies = packets.proceduralSkies ?? [];
 
   return (
     SNAPSHOT_PACKET_HEADER_WORDS +
@@ -57,7 +60,8 @@ export function snapshotPacketWordLength(
     audioListeners.length * AUDIO_LISTENER_PACKET_WORDS +
     packets.shadowRequests.length * SHADOW_REQUEST_PACKET_WORDS +
     packets.bounds.length * BOUNDS_PACKET_WORDS +
-    quadBatches.length * QUAD_BATCH_PACKET_WORDS
+    quadBatches.length * QUAD_BATCH_PACKET_WORDS +
+    proceduralSkies.length * PROCEDURAL_SKY_PACKET_WORDS
   );
 }
 
@@ -73,6 +77,7 @@ export function encodeSnapshotPackets(
   const audioEmitters = packets.audioEmitters ?? [];
   const audioListeners =
     packets.audioListener === undefined ? [] : [packets.audioListener];
+  const proceduralSkies = packets.proceduralSkies ?? [];
   const wordLength = snapshotPacketWordLength(packets);
   const buffer = options.buffer ?? new Uint32Array(wordLength);
 
@@ -98,6 +103,7 @@ export function encodeSnapshotPackets(
     shadowRequests: packets.shadowRequests.length,
     bounds: packets.bounds.length,
     quadBatches: quadBatches.length,
+    proceduralSkies: proceduralSkies.length,
   });
 
   for (const packet of packets.views) {
@@ -160,6 +166,11 @@ export function encodeSnapshotPackets(
     offset += QUAD_BATCH_PACKET_WORDS;
   }
 
+  for (const packet of proceduralSkies) {
+    writeProceduralSkyPacket(words, offset, packet);
+    offset += PROCEDURAL_SKY_PACKET_WORDS;
+  }
+
   return {
     words,
     registry,
@@ -176,6 +187,7 @@ export function encodeSnapshotPackets(
       shadowRequests: packets.shadowRequests.length,
       bounds: packets.bounds.length,
       quadBatches: quadBatches.length,
+      proceduralSkies: proceduralSkies.length,
     },
     wordLength,
     byteLength: wordLength * Uint32Array.BYTES_PER_ELEMENT,

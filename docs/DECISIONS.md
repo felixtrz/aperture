@@ -894,6 +894,10 @@ Consequences:
   existing `defaultCamera: false, defaultLight: false` pattern).
 - The default environment adds one small mirrored asset (a 64×32 rgba8
   equirect) and a one-time PMREM/irradiance preparation per version.
+- The packed snapshot encoding gained a procedural-sky packet family
+  (version 16) so sky-bearing scenes — including the default environment —
+  keep the SharedArrayBuffer transport instead of falling back to per-frame
+  transferable posting (the extension decision 0022 anticipated).
 - Agent guidance now has a stable anchor: `docs/VISUAL_QUALITY.md` plus the
   AGENTS.md "Visual Quality Defaults" section encode the recipe agents should
   copy.

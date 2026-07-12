@@ -1,7 +1,7 @@
 export const SNAPSHOT_PACKET_ENCODING_MAGIC = 0x4150_5350; // "APSP"
-export const SNAPSHOT_PACKET_ENCODING_VERSION = 15;
+export const SNAPSHOT_PACKET_ENCODING_VERSION = 16;
 
-export const SNAPSHOT_PACKET_HEADER_WORDS = 14;
+export const SNAPSHOT_PACKET_HEADER_WORDS = 15;
 export const VIEW_PACKET_WORDS = 36;
 export const MESH_DRAW_PACKET_WORDS = 34;
 export const LIGHT_PACKET_WORDS = 31;
@@ -19,6 +19,12 @@ export const AUDIO_LISTENER_PACKET_WORDS = 6;
 export const SHADOW_REQUEST_PACKET_WORDS = 20;
 export const BOUNDS_PACKET_WORDS = 43;
 export const QUAD_BATCH_PACKET_WORDS = 24;
+// 0: skyId; 1-2: entity; 3: modelId; 4: priority (signed32); 5-10: topColor
+// (vec3 float64); 11-16: horizonColor; 17-22: bottomColor; 23-24:
+// horizonPosition (float64); 25-26: horizonSoftness; 27-28: intensity; 29-34:
+// sunDirection (vec3 float64); 35-40: sunColor; 41-42: sunRadius; 43-44:
+// sunGlow; 45-46: ditherStrength; 47: layerMask.
+export const PROCEDURAL_SKY_PACKET_WORDS = 48;
 
 export const SNAPSHOT_PACKET_WORD_STRIDES = Object.freeze({
   header: SNAPSHOT_PACKET_HEADER_WORDS,
@@ -34,6 +40,7 @@ export const SNAPSHOT_PACKET_WORD_STRIDES = Object.freeze({
   shadowRequest: SHADOW_REQUEST_PACKET_WORDS,
   bounds: BOUNDS_PACKET_WORDS,
   quadBatch: QUAD_BATCH_PACKET_WORDS,
+  proceduralSky: PROCEDURAL_SKY_PACKET_WORDS,
 });
 
 export const SNAPSHOT_PACKET_BYTE_STRIDES = Object.freeze({
@@ -51,6 +58,7 @@ export const SNAPSHOT_PACKET_BYTE_STRIDES = Object.freeze({
   shadowRequest: SHADOW_REQUEST_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
   bounds: BOUNDS_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
   quadBatch: QUAD_BATCH_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+  proceduralSky: PROCEDURAL_SKY_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
 });
 
 export const SNAPSHOT_PACKET_DIAGNOSTIC_TRANSPORT_NOTE =
@@ -71,4 +79,5 @@ export const SNAPSHOT_PACKET_HEADER_WORD_INDEX = Object.freeze({
   ParticleEmitters: 11,
   AudioEmitters: 12,
   AudioListeners: 13,
+  ProceduralSkies: 14,
 });
