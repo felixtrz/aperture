@@ -1,0 +1,352 @@
+# Advanced Rendering Audit — Aperture vs three.js
+
+> **Scope.** A focused, code-verified audit of the advanced rendering surfaces
+> games actually build on: custom shaders, render targets / MRT /
+> render-to-texture, custom passes and GPU compute, dynamic content, masking
+> and stencil workflows, and GPU feedback. Companion to
+> [`THREEJS_FEATURE_AUDIT.md`](THREEJS_FEATURE_AUDIT.md), which covers the
+> full feature surface at lower resolution.
+>
+> **Versions compared.** Aperture `0.3.0` vs three.js r184 (`super-three`
+> checkout; nothing in this document depends on fork-only features).
+>
+> **Method.** Every Aperture claim was verified in package source and the
+> examples/e2e harnesses; every three.js claim was verified in its `src/` and
+> `examples/jsm/` trees. Because these use cases are exactly where developers
+> hit the API directly, each capability is rated not just by existence but by
+> **which tier it is reachable from**.
+>
+> **Aperture tiers.**
+>
+> | Tier          | Meaning                                                                                      |
+> | ------------- | -------------------------------------------------------------------------------------------- |
+> | **App**       | Supported authoring surface: `aperture.config.ts` assets, worker-system `spawn`/`material.*` |
+> | **Low-level** | Achievable by hand-wiring `@aperture-engine/webgpu` + raw `GPUDevice` objects                |
+> | **Internal**  | Code exists but has no user-reachable entry point                                            |
+> | **Absent**    | No code path at all                                                                          |
+>
+> **three.js paths.** `WebGL` = classic `WebGLRenderer` (GLSL,
+> `ShaderMaterial`). `WebGPU` = `WebGPURenderer` (TSL/NodeMaterial), which
+> runs on a WebGPU backend or a WebGL2 fallback backend; features marked
+> **WebGPU-backend-only** (compute atomics, storage textures, indirect
+> draw/dispatch, render bundles) do not work on that fallback.
+
+---
+
+## 1. Executive summary
+
+**Custom shaders are the widest gap, and most of it is policy, not absence of
+code.** three.js gives games three escalating tiers — `ShaderMaterial`,
+`onBeforeCompile` chunk patching, and the TSL node system where custom
+materials automatically inherit lighting, shadows, skinning, morphs, and
+instancing. Aperture deliberately ships one narrow, data-only custom-WGSL
+route (`DECISIONS.md` 0010–0012, 0016): uniforms, textures, samplers, and
+per-instance attributes work end-to-end from the app facade with live
+uniform updates that never rebuild pipelines (`RuntimeUniform`,
+`DECISIONS.md` 0022) — but custom materials render **unlit only** (no
+light/shadow/IBL/fog bindings), cannot bind storage buffers or the depth
+texture, get no skinning/morph inputs, and output to a single color target.
+
+**Render-to-texture is solid plumbing without an authoring story.**
+Per-camera `renderTargetId`, MSAA + resolve, handle-stable resize/reuse (the
+`render-target-*`/`mixed-*` example matrix proves the lifecycles), and
+readback all work — but allocating the target texture requires the low-level
+tier, there is no single-pass MRT surface (the engine itself uses a second
+color attachment internally for TAA motion vectors), no cube/3D/array
+targets, and no turnkey minimap/mirror/portal helper. three.js has MRT
+(`count > 1` / `MRTNode`), cube/3D/array targets, `CubeCamera`, `Reflector`,
+and grab-pass nodes.
+
+**Custom passes are Aperture's real escape hatch — with real limits.**
+`addRenderPass`/`addComputePass` are genuinely on the app facade and the
+frame graph schedules them by declared reads/writes; the compute path is
+fully general (own pipelines, storage buffers, readback). But render passes
+may only draw **onto scene-color** (writes to other targets are diagnosed,
+not honored), pass bodies are raw WebGPU rather than data, and indirect draw
+is internal-only. three.js counters with `EffectComposer` (WebGL) and TSL
+compute with atomics, storage textures, `storage().toAttribute()`
+compute-to-vertex plumbing, and indirect draws (WebGPU backend).
+
+**Confirmed absent in Aperture across this whole domain:** stencil, clipping
+planes, decals, MRT authoring, cube render targets, runtime texture/video
+updates, custom-material depth access, GPU-driven indirect rendering as a
+user API, and lit custom materials. §9 scores 20 concrete game scenarios;
+§10 ranks the gap closures by how much game-dev surface each unlocks.
+
+---
+
+## 2. Custom shaders
+
+### 2.1 Authoring model
+
+| Aspect            | three.js                                                                                                   | Aperture                                                                                                                |
+| ----------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Entry surface     | `ShaderMaterial`/`RawShaderMaterial` (WebGL); TSL `NodeMaterial` + `Fn()`/`wgslFn`/`glslFn` (WebGPU)       | `CustomWgslMaterialAsset`: data-only WGSL source asset + typed binding declarations (`material.customWgsl`)             |
+| Escalation tiers  | Stock material → `onBeforeCompile` patch → full custom → node graph                                        | Stock material → runtime param patch → full custom WGSL (no intermediate patching tier)                                 |
+| Partial overrides | `onBeforeCompile` chunk replacement; TSL slots (`colorNode`, `normalNode`, `positionNode`, `depthNode`, …) | None — custom WGSL replaces the whole vertex+fragment program                                                           |
+| Live GPU objects  | Materials own programs/uniforms directly                                                                   | Forbidden in ECS (`customMaterialSource.liveRendererObject` diagnostic); renderer realizes assets (`DECISIONS.md` 0016) |
+| Cache identity    | `customProgramCacheKey()` (manual for `onBeforeCompile`); auto-derived for node materials                  | Hash-derived pipeline key: source + render state + instance layout + binding visibility + uniform schema                |
+
+Aperture's asset route is in `packages/render/src/materials/types.ts`
+(`CustomWgslMaterialAsset`), realized by
+`packages/webgpu/src/materials/custom-wgsl/custom-wgsl-material.ts`, and
+authored from systems via `material.customWgsl` / `material.uniform` /
+`material.texture` / `material.sampler` / `shader.asset|inlineWgsl`
+(`packages/app/src/systems/spawn/descriptors.ts`). Worked example:
+`examples/custom-material.*`; recipe: `docs/recipes/custom-wgsl-material.md`.
+
+### 2.2 Data surface (bindings)
+
+| Binding kind             | three.js                                                              | Aperture                                                                                          | Verdict          |
+| ------------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------- |
+| Uniforms (typed)         | `uniforms` (WebGL), `uniform()` nodes                                 | ✅ App — typed fields (f32/i32/u32/vec2-4/color/mat4), std140-packed                              | Parity           |
+| Textures + samplers      | Texture uniforms; `texture()` nodes                                   | ✅ App — but layout hard-coded to float/2D/filtering: no cube, depth, comparison, or unfilterable | Partial          |
+| UBO groups               | `uniformsGroups` (WebGL), uniform nodes                               | ✅ App (one uniform buffer per declared binding)                                                  | Parity           |
+| Storage buffers          | `storage()`/`StorageBufferNode`, `instancedArray()` (WebGPU)          | ❌ Declared type exists but app route diagnoses `unsupportedBindingKind`; no `material.storage()` | Gap              |
+| Per-instance attributes  | `InstancedBufferAttribute`; instance nodes                            | ✅ App — `instanceAttributes` layout + `InstanceData` component (named values, `@location(6+)`)   | Parity           |
+| Per-object scalar params | `material.clone()` per object; `userData()`/`reference()` nodes       | ✅ App — `RuntimeUniform` keyed packets: `queue.writeBuffer` updates, **zero pipeline rebuilds**  | Aperture cleaner |
+| Scene depth              | `depthTexture` sampling; `viewportDepthTexture`/`linearDepth` nodes   | ❌ Not bindable by custom materials (post effects and user passes only)                           | Gap              |
+| Scene color (grab)       | `viewportSharedTexture`, `backdropNode`; transmission grab (internal) | ❌ Not bindable by custom materials (transmission grab is internal to standard materials)         | Gap              |
+
+The renderer's fixed bind contract for custom materials
+(`docs/AUTHORING.md`): `@group(0)` view uniform (viewProjection + camera
+position), `@group(1)` storage array of world transforms indexed by
+`instance_index`, `@group(2)` user bindings, `@group(3)` reserved. That
+reserved group is the natural future hook for lighting/shadow/depth
+integration.
+
+### 2.3 Vertex stage & geometry integration
+
+| Capability                   | three.js                                                                                     | Aperture                                                                                                                        | Verdict     |
+| ---------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| Vertex displacement          | ✅ both paths (`positionNode` on WebGPU)                                                     | ✅ user owns the vertex entry point                                                                                             | Parity      |
+| Available attributes         | Any geometry attribute                                                                       | Fixed: position/normal/uv (+ declared instance attrs); no tangent/color/uv1 in custom WGSL                                      | Partial     |
+| Skinning in custom shaders   | ✅ `#include` chunks (WebGL); automatic `SkinningNode` (WebGPU)                              | ❌ no joint/weight/palette bindings for custom pipelines                                                                        | Gap         |
+| Morphs in custom shaders     | ✅ chunks / automatic `MorphNode`                                                            | ❌                                                                                                                              | Gap         |
+| Shadow-casting displaced geo | ✅ `customDepthMaterial`/`customDistanceMaterial` (WebGL); `castShadowPositionNode` (WebGPU) | 🟡 custom meshes cast shadows, but the caster pass is a shared position-only pipeline — **shadows do not see the displacement** | Gap         |
+| Specialization constants     | `defines` (WebGL); node graph branches (WebGPU)                                              | 🟡 `pipelineKey.features/specialization` differentiate cached pipelines but are not fed to the module as WGSL overrides         | Partial     |
+| Render state                 | Full material state incl. stencil                                                            | ✅ alpha modes, cull, depth (test/write/compare/bias), blend presets, colorWriteMask — no stencil                               | Near-parity |
+| MRT outputs                  | GLSL3 `layout(location=N)` outs; `mrtNode`                                                   | ❌ exactly one color target per custom pipeline                                                                                 | Gap         |
+
+### 2.4 Lighting integration for custom materials
+
+three.js: `lights: true` + `UniformsLib.lights` merge (WebGL) or — far
+stronger — TSL materials that get lights, shadows, IBL, and fog composed
+automatically, plus custom `LightingModel` subclasses for bespoke BRDFs.
+
+Aperture: **none**. A custom material receives no light, shadow, IBL, or fog
+bindings; it renders unlit with no diagnostic (the bindings simply don't
+exist). `docs/AUTHORING.md` marks lighting/environment integration for custom
+WGSL as deferred. Consequence: every "custom but lit" effect — terrain
+splatting under sunlight, stylized lit water, custom car paint — is currently
+out of reach without forking a built-in material family inside the engine.
+
+### 2.5 Iteration speed
+
+three.js: `material.needsUpdate` recompile (WebGL); `NodeMaterialObserver`
+auto-refreshes uniforms vs rebuilds (WebGPU); no source hot-reload in core.
+Aperture: shader source is a versioned asset — re-registering changed WGSL
+recompiles via a new hash key; the Vite plugin provides system-graph HMR but
+no dedicated WGSL hot-reload; `RuntimeUniform` covers the parameter-tuning
+loop without any recompile. Verdict: roughly even, different shapes; neither
+has true shader HMR.
+
+---
+
+## 3. Render targets, MRT & render-to-texture
+
+### 3.1 Render target capabilities
+
+| Capability                  | three.js                                                         | Aperture                                                                                                                                           | Verdict           |
+| --------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| Offscreen color+depth       | ✅ `RenderTarget` (both renderers)                               | ✅ Low-level: `createWebGpuAppRenderTargetAsset` + ECS `Camera.renderTargetId`                                                                     | Parity (tier gap) |
+| App-facade allocation       | ✅ `new WebGLRenderTarget(w, h)` is the API                      | ❌ user must `device.createTexture` by hand; no facade helper pairs a target with a camera                                                         | Gap               |
+| Single-pass MRT             | ✅ `count > 1` + GLSL3 outs (WebGL); `MRTNode`/`setMRT` (WebGPU) | 🟡 Internal only — attachment planner takes N color targets and TAA motion vectors ride `@location(1)`, but no authoring surface                   | Gap               |
+| Float / half targets        | ✅ `type: FloatType/HalfFloatType`                               | ✅ any creatable format incl. `rgba16float` (the HDR path uses one)                                                                                | Parity            |
+| MSAA + resolve              | ✅ `samples` + auto resolve                                      | ✅ Low-level (`resolveTarget` first-class; `msaa` app option); proven by the `render-target-msaa*` matrix                                          | Parity            |
+| Resize / reuse lifecycles   | `setSize`, dispose                                               | ✅ handle-stable resize, cross-frame reuse, dual-size, sub-rect crops — the `render-target-*`/`mixed-*` e2e matrix exists precisely to prove these | Parity+ tested    |
+| Cube / 3D / array targets   | ✅ `WebGLCubeRenderTarget`, `RenderTarget3D`, array targets      | ❌ 2D only                                                                                                                                         | Gap               |
+| Depth texture attach+sample | ✅ `renderTarget.depthTexture`, depth nodes                      | ❌ user targets get a depth buffer but cannot sample it; scene depth reachable only in post/user passes                                            | Gap               |
+| Sample RT in a material     | ✅ `rt.texture` as any map                                       | 🟡 possible: create with `TEXTURE_BINDING`, register handle, bind to custom-WGSL texture — all hand-wired                                          | Partial           |
+| Mipmapped RTs               | ✅ `generateMipmaps`                                             | ❌ mip generation is internal; not exposed for user targets                                                                                        | Gap               |
+| Readback                    | ✅ `readRenderTargetPixels(Async)` incl. per-MRT-attachment      | ✅ frame-boundary readback samples + readback helpers, diagnostics-integrated                                                                      | Parity            |
+| Partial texture copies      | ✅ `copyTextureToTexture` with src region/mip                    | ❌ no user surface                                                                                                                                 | Gap               |
+
+### 3.2 Camera-to-texture recipes
+
+| Use case                  | three.js                                                             | Aperture today                                                                                                                                                                                                                                                                                   |
+| ------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Minimap / security camera | RT + second camera + HUD quad — routine                              | 🟡 buildable low-level: offscreen camera via `renderTargetId`, custom-WGSL quad samples the target                                                                                                                                                                                               |
+| Planar mirror             | `Reflector` addon (WebGL) / `ReflectorNode` (WebGPU)                 | ❌ no helper, **no clipping planes** for the oblique frustum, no stencil masking — a crude manual mirror only                                                                                                                                                                                    |
+| Portals                   | Stencil recipes + RTs                                                | ❌ stencil absent; layered cameras + RTs can fake restricted cases                                                                                                                                                                                                                               |
+| Dynamic env probe         | `CubeCamera` → cube RT                                               | ❌ no cube targets                                                                                                                                                                                                                                                                               |
+| Refraction / heat haze    | `viewportSharedTexture` grab + `backdropNode`; physical transmission | 🟡 transmission grab pass fires automatically for transmissive **standard** materials; not available to custom WGSL; note transmission params are authorable only via glTF or low-level assets — the app-facade `material.standard()` builder exposes just baseColor/roughness/metallic/emissive |
+| Ping-pong (feedback FX)   | `GPUComputationRenderer`, `AfterimagePass`, manual                   | 🟡 feasible low-level by alternating two targets; no helper; user render passes can't write them (§4)                                                                                                                                                                                            |
+
+---
+
+## 4. Custom passes & GPU compute
+
+| Capability               | three.js                                                                                                                                                                            | Aperture                                                                                                                                                                                 | Verdict               |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| Custom full-screen pass  | ✅ `ShaderPass` (WebGL); `RenderPipeline.outputNode` graphs (WebGPU)                                                                                                                | 🟡 user render passes draw **onto scene-color with LOAD** only; declared writes to other targets are diagnosed, not honored — no ping-pong, so nontrivial grading chains are constrained | Gap                   |
+| Pass scheduling          | Linear composer chain; node graph                                                                                                                                                   | ✅ frame-graph node with declared `reads`/`writes` (+`before`/`after`); requires `useFrameGraph` (default on)                                                                            | Aperture cleaner      |
+| Pass inputs              | Depth via `depthTexture`; `PassNode` gives viewZ/linearDepth/velocity/MRT taps                                                                                                      | ✅ `ctx.view("scene-color")`, `ctx.view("depth")`, own buffers/textures via `ctx.bindings`                                                                                               | Partial parity        |
+| Authoring level          | Materials/nodes (data)                                                                                                                                                              | Raw WebGPU in `encode(ctx)` — user builds pipelines/bind groups against the real device                                                                                                  | three.js higher-level |
+| General compute          | `renderer.compute()` + `ComputeNode`; atomics/barriers/workgroup memory/subgroups (WebGPU-backend-only); transform-feedback emulation on fallback; `GPUComputationRenderer` (WebGL) | ✅ `addComputePass` is fully general: own compute pipelines, storage buffers, `dispatchWorkgroups`, buffer readback (histogram example does exactly this)                                | Parity (tier gap)     |
+| Compute → rendering      | ✅ `storage().toAttribute()` feeds `positionNode`; storage textures; `geometryNode`                                                                                                 | ❌ no plumbing from compute output into mesh/instance streams; custom materials can't bind storage buffers                                                                               | Gap                   |
+| Indirect draw / dispatch | ✅ WebGPU backend: `IndirectStorageBufferAttribute`, `BatchedMesh` indirect, `dispatchWorkgroupsIndirect`                                                                           | ❌ internal optimization only (`indirect-draw-commands.ts` not exported; pass sinks expose only `draw/drawIndexed`)                                                                      | Gap                   |
+| Render bundles           | `BundleGroup` (WebGPU-backend-only)                                                                                                                                                 | Internal render-bundle support in the draw layer; not a user surface                                                                                                                     | —                     |
+| Built-in post stack      | Composer passes / TSL display nodes (large library)                                                                                                                                 | Ordered built-in effect array (FXAA/bloom/SSAO/SSR/TAA/DoF/tonemap); not user-extensible as data                                                                                         | See feature audit §13 |
+
+The takeaway: Aperture's compute escape hatch is real and app-reachable, but
+the **bridge back into rendering** (compute-written vertex/instance/indirect
+data) is missing, which is precisely the bridge GPU-driven game techniques
+(crowds, cloth, foliage, culling) need.
+
+---
+
+## 5. Dynamic content
+
+| Capability                       | three.js                                                                          | Aperture                                                                                                                                                              | Verdict         |
+| -------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| Per-frame CPU mesh deform        | ✅ mutate array + `needsUpdate` + `updateRanges` (partial uploads), `usage` hints | 🟡 `MeshBufferUpdateRange` partial `writeBuffer` uploads exist in the upload plan, but the ergonomic path is re-marking the mesh asset ready — no `mesh.update()` API | Partial         |
+| Procedural mesh regen            | Replace geometry                                                                  | Re-register mesh asset (full re-upload)                                                                                                                               | Parity          |
+| Built-in material param tuning   | Set property (auto uniform refresh)                                               | ✅ `patchStandardMaterial` / material-mutation route — no variant recompiles                                                                                          | Parity          |
+| PBR extension params via app API | ✅ all `MeshPhysicalMaterial` props settable directly                             | 🟡 transmission/clearcoat/sheen/iridescence render fine but are **not exposed on `material.standard()`** — glTF import or low-level assets only                       | Gap (cheap fix) |
+| Video / canvas textures          | ✅ `VideoTexture`, `CanvasTexture`, `HTMLTexture`, `VideoFrameTexture`            | ❌ no runtime texture updates at all; `writeTexture` is internal (IBL, cookies)                                                                                       | Gap             |
+| Data texture runtime updates     | ✅ `DataTexture` + `needsUpdate`, partial copies                                  | ❌ texture bytes upload once at asset preparation                                                                                                                     | Gap             |
+| Decals                           | ✅ `DecalGeometry`                                                                | ❌ nothing; nearest workaround is an overlay user pass                                                                                                                | Gap             |
+| Sprite/atlas animation           | Sprite + offset/repeat; `SpriteSheetUV` node                                      | ✅ sprite atlas frames + particle texture-sheet animation                                                                                                             | Parity          |
+
+---
+
+## 6. Masking, stencil, clipping
+
+three.js: full per-material stencil state (write/func/ref/masks/ops) enabling
+portal, mask, and outline recipes; clipping planes globally and per material
+(WebGL) plus `ClippingGroup` (WebGPU renderer); `MaskPass` for composer
+stencil masking.
+
+Aperture: **stencil is explicitly unsupported** (`unsupportedFeatures:
+"stencil"` in the material contract) and there are **no clipping planes**.
+Available substitutes: `colorWriteMask`, full depth-state control per
+material, `RenderOrder`, per-camera `RenderLayer` masks and viewport/scissor,
+and depth-tested overlay user passes. These cover HUD-style layering and some
+occlusion tricks but not true stencil portals, CSG-style cutaways, or
+stencil-outline highlighting. Verdict: hard gap, relevant to several §9
+scenarios.
+
+---
+
+## 7. GPU feedback & profiling
+
+| Capability        | three.js                                                            | Aperture                                                                                                  | Verdict                       |
+| ----------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| Draw/tri counters | `renderer.info`                                                     | ✅ JSON frame reports: draws per family, passes, dependency readiness, diagnostics                        | Aperture deeper               |
+| GPU timestamps    | `resolveTimestampsAsync` (both WebGPURenderer backends)             | ✅ `gpuTimings` option / `?gpuTimings` flag, per-pass timestamps in reports (`examples/gpu-profiler`)     | Parity                        |
+| Occlusion queries | WebGPURenderer only: `object.occlusionTest` + `renderer.isOccluded` | ✅ occlusion queries with feedback + fallback reasons in the frame report (`examples/occlusion-feedback`) | Parity+                       |
+| Pixel readback    | `readRenderTargetPixels(Async)`                                     | ✅ readback samples wired into reports and e2e assertions                                                 | Parity                        |
+| Inspector tooling | Inspector UI, browser devtools extension                            | Headless render bundles, golden baselines, MCP `frame_capture`/`render_*` tools                           | Different shapes, both strong |
+
+This is the one advanced area where Aperture is consistently at or above
+three.js — the diagnostics-first architecture pays off exactly here.
+
+---
+
+## 8. Where each engine is strong (advanced-surface verdict)
+
+**three.js advantages (this domain):** the entire custom-shading spectrum
+(especially TSL's automatic lighting/skinning/shadow composition and
+`wgslFn`/`glslFn` escape hatches), MRT, cube/3D/array targets and
+`CubeCamera`, grab-pass nodes, stencil + clipping, decals, video/canvas/data
+textures, compute→vertex plumbing and indirect draws, and a huge library of
+ready passes and helper objects.
+
+**Aperture advantages (this domain):** `RuntimeUniform` zero-rebuild live
+parameters with record/replay-safe command flow; frame-graph-scheduled user
+passes with declared dependencies; a fully general compute pass surface on
+the app facade; deterministic, worker-safe authoring of all of the above as
+data; occlusion/timestamp/readback feedback integrated into structured frame
+reports; and an e2e-tested render-target lifecycle matrix (resize/reuse/MSAA
+permutations) that three.js has no equivalent of.
+
+---
+
+## 9. Game-dev scenario scorecard
+
+✅ works on a supported surface · 🟡 achievable with hand-wiring or real
+limits · ❌ not achievable today.
+
+| #   | Scenario                                              | three.js | Aperture | Aperture notes                                                                                                                              |
+| --- | ----------------------------------------------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Unlit stylized shader (scrolling UVs, force field)    | ✅       | ✅       | Custom WGSL + `RuntimeUniform` time/params — the showcase water shader is exactly this                                                      |
+| 2   | Dissolve effect (noise mask + threshold)              | ✅       | ✅       | Mask texture + alphaMode `mask` + runtime threshold; edge glow stays unlit                                                                  |
+| 3   | Lit custom shader (terrain splat, stylized lit water) | ✅       | ❌       | No light/shadow/IBL bindings for custom materials                                                                                           |
+| 4   | Vertex-animated foliage/flags (wind)                  | ✅       | 🟡       | Displacement works; shadow pass ignores it (position-only caster pipeline); no custom skinned displacement                                  |
+| 5   | Custom shader on skinned characters                   | ✅       | ❌       | No skin/morph inputs in custom pipelines                                                                                                    |
+| 6   | Minimap / security-camera monitor                     | ✅       | 🟡       | Low-level RT + custom quad; no facade helper                                                                                                |
+| 7   | Planar mirror                                         | ✅       | ❌       | No Reflector, clipping planes, or stencil                                                                                                   |
+| 8   | Stencil portal / masked reveal                        | ✅       | ❌       | Stencil explicitly unsupported                                                                                                              |
+| 9   | Dynamic reflection probe (cube capture)               | ✅       | ❌       | No cube render targets                                                                                                                      |
+| 10  | Refraction / heat haze (grab pass)                    | ✅       | 🟡       | Automatic transmission grab for standard materials only; params via glTF/low-level                                                          |
+| 11  | Custom g-buffer / MRT technique                       | ✅       | ❌       | MRT internal-only                                                                                                                           |
+| 12  | Full-screen color grade / custom post chain           | ✅       | 🟡       | User render pass can only blend onto scene-color; built-in post list not user-extensible                                                    |
+| 13  | GPU particle/VFX sim (custom compute)                 | ✅\*     | 🟡       | Compute pass is general, but no compute→draw bridge; built-in Shuriken system covers most VFX needs ✅                                      |
+| 14  | GPU crowd (compute skinning + instanced draw)         | ✅\*     | ❌       | Needs storage-buffer materials or compute→instance plumbing                                                                                 |
+| 15  | GPU-driven culling / indirect draw                    | ✅\*     | ❌       | Indirect draw internal-only                                                                                                                 |
+| 16  | CPU cloth/jelly (per-frame vertex upload)             | ✅       | 🟡       | Update-range uploads exist; ergonomics are asset re-registration                                                                            |
+| 17  | Decals (bullet holes, blood)                          | ✅       | ❌       | Nothing; overlay pass is the only workaround                                                                                                |
+| 18  | In-world video/canvas screen (TV, scoreboard)         | ✅       | ❌       | No runtime texture updates                                                                                                                  |
+| 19  | Soft particles / depth-fade VFX                       | 🟡       | 🟡       | three.js: manual depth sampling. Aperture: built into the particle renderer (falls back on MSAA/offscreen); unavailable to custom materials |
+| 20  | Occlusion-driven gameplay (lens flare, AI visibility) | 🟡       | ✅       | three.js WebGPURenderer only; Aperture reports feedback with fallback reasons                                                               |
+
+\* WebGPU backend required; the WebGL2 fallback loses atomics, storage
+textures, and indirect.
+
+Score (of 20): three.js ✅ 16 / 🟡 2 / ❌ 0 (2 backend-caveated); Aperture
+✅ 4 / 🟡 7 / ❌ 9. The ❌ column clusters around four missing primitives —
+lit/extended custom materials, MRT + flexible render targets, stencil, and
+the compute→rendering bridge — rather than twenty unrelated gaps.
+
+---
+
+## 10. Gap closures ranked by unlocked game-dev value
+
+Ordered by how many §9 scenarios each unblocks, weighted by how central they
+are to shipping games; constraints from `docs/DECISIONS.md` noted so closures
+stay inside the architecture.
+
+1. **Lighting/shadow/IBL contract for custom WGSL** (unblocks #3, upgrades
+   #1/#2/#4). The reserved `@group(3)` is the designed extension point; a
+   read-only "lit surface" bind contract keeps materials data-only.
+2. **Storage-buffer bindings for custom materials + compute→draw plumbing**
+   (unblocks #13/#14, enables #15). The binding type and validation already
+   exist; the missing piece is a renderer-independent buffer source asset
+   (already named as the blocker in `docs/RENDER_ASSET_PREPARATION.md`).
+3. **Render-target authoring on the app facade + sampled-target wiring**
+   (unblocks #6, halves #7/#12): facade allocation, camera pairing, and a
+   documented sample-the-target route; cube targets would then unlock #9.
+4. **MRT authoring surface** (unblocks #11, strengthens #12): the attachment
+   planner and an internal second attachment already exist; expose color
+   target count on custom materials/passes and let user passes write
+   declared targets (also enables ping-pong).
+5. **Expose existing PBR extension params on `material.standard()`**
+   (upgrades #10): pure API plumbing — the renderer already ships
+   transmission/clearcoat/sheen/iridescence.
+6. **Custom shadow-caster displacement hook** (upgrades #4): a per-material
+   caster vertex entry point, the analog of `customDepthMaterial` /
+   `castShadowPositionNode`.
+7. **Runtime texture updates** (unblocks #18, helps #17): a
+   `writeTexture`-backed dynamic texture asset; video textures can follow.
+8. **Stencil state in the material/render contract** (unblocks #8, halves
+   #7): today it is the one render state explicitly marked unsupported.
+9. **Depth-texture binding for custom materials** (upgrades #19 for custom
+   VFX, enables intersection effects).
+10. **Skinning/morph inputs for custom pipelines** (unblocks #5) — the
+    heaviest lift; palettes and morph buffers exist for built-ins.
+11. **Decal system** (unblocks #17) — could compose from #4 + projected
+    rendering rather than a bespoke feature.
+12. **Indirect-draw user surface** (completes #15) — smallest audience,
+    biggest ceiling; the command layer already emits indirect draws
+    internally.

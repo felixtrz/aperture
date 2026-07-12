@@ -4,7 +4,9 @@
 > against [three.js](https://github.com/mrdoob/three.js), the de-facto standard
 > 3D library for the web. The goal is an honest parity map: what Aperture has,
 > what is partial, what is missing, what is deliberately out of scope, and
-> where Aperture is ahead of three.js.
+> where Aperture is ahead of three.js. For a deeper cut on custom shaders,
+> render targets/MRT, custom passes/compute, and other advanced game-dev use
+> cases, see [`THREEJS_ADVANCED_RENDERING_AUDIT.md`](THREEJS_ADVANCED_RENDERING_AUDIT.md).
 >
 > **Versions compared.** Aperture `0.3.0` (this repo, commit `09168bc`) vs
 > three.js **r184** (`v0.184.0`). The reference checkout used for this audit is
