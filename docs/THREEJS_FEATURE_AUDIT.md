@@ -57,17 +57,18 @@ frame graph with user render/compute passes, GPU picking, occlusion queries,
 and glTF with Draco/Meshopt/KTX2-Basis. All of it is exercised by ~160
 Playwright e2e specs.
 
-**The biggest genuine gaps** (detail in §22): WebXR (none at all — the
-starkest gap vs this fork in particular), an open shader/material extension
-model comparable to `ShaderMaterial`/TSL (Aperture's custom-WGSL route is
-deliberately narrow), asset format breadth (glTF only; no OBJ/FBX/USD/STL/…,
-no exporters), geometry primitive breadth (8 primitives vs 21+, no
-extrude/lathe/tube/text geometry), animation depth (single clip + one
+**The biggest genuine gaps** (detail in §22): an open shader/material
+extension model comparable to `ShaderMaterial`/TSL (Aperture's custom-WGSL
+route is deliberately narrow), asset format breadth (glTF only; no
+OBJ/FBX/USD/STL/…, no exporters), geometry primitive breadth (8 primitives vs
+21+, no extrude/lathe/tube/text geometry), animation depth (single clip + one
 crossfade lane vs three.js's N-action mixer with additive blending and
 property tracks), mesh LOD, dedicated line/point rendering (fat lines,
 point clouds), helpers/gizmos breadth, clipping planes/stencil, and the
 ecosystem itself (three.js's community, docs, and examples corpus have no
-Aperture equivalent).
+Aperture equivalent). WebXR is absent as well, but by decision, not omission:
+immersive use cases belong to IWSDK, the maintainer's dedicated WebXR
+framework (§14, `DECISIONS.md 0023`).
 
 **Where Aperture is ahead of three.js core:** deterministic fixed-step
 simulation with record/replay and session snapshots, worker-by-default
@@ -113,7 +114,7 @@ is an absence Aperture chose on purpose and documents in `docs/DECISIONS.md`.
 | Asset I/O               | 🟡       | Deep glTF (Draco/Meshopt/KTX2) but glTF-only; no other formats, no exporters                           |
 | Textures                | 🟡       | 2D/cube, BC/ETC2/ASTC, HDR/RGBE, mipmap gen; no video/3D/array/data textures                           |
 | Post-processing & color | 🟡       | Tonemap/FXAA/TAA/bloom/SSAO/SSR/DoF + custom passes; three.js's pass library is far broader            |
-| XR                      | ❌       | Nothing. three.js (esp. this fork) is the web-XR reference stack                                       |
+| XR                      | 🚫       | Non-goal by decision — immersive is IWSDK's domain; three.js (esp. this fork) is the web-XR reference  |
 | Audio                   | ➕       | Full game-audio engine vs three.js's five thin Web Audio wrappers                                      |
 | Physics                 | ➕       | First-class ECS physics + character controller vs example-level wrappers in three.js                   |
 | Particles               | ➕       | Built-in Shuriken-style GPU particles vs DIY `Points`/GPGPU in three.js                                |
@@ -393,19 +394,21 @@ SSAO/SSR/TAA/DoF).
 
 ## 14. XR
 
-**Aperture has no XR support of any kind** — no `navigator.xr`, no session
-management, no controller/hand input, no reference spaces (verified
-repo-wide). three.js core ships `WebXRManager` (VR+AR sessions, controllers,
-hand tracking, depth sensing, foveation) plus addon helpers
+**Aperture has no XR support, by design** (🚫, `DECISIONS.md 0023`) — no
+`navigator.xr`, no session management, no controller/hand input, no reference
+spaces (verified repo-wide). Immersive use cases are deliberately left to
+**IWSDK**, the maintainer's dedicated WebXR framework; Aperture stays a
+flat-screen WebGPU runtime so the two projects tell one story instead of
+competing. The split also fits the architecture: XR pose/input loops are
+main-thread browser APIs, which sits awkwardly with Aperture's
+worker-authoritative simulation boundary.
+
+For reference, three.js core ships `WebXRManager` (VR+AR sessions,
+controllers, hand tracking, depth sensing, foveation) plus addon helpers
 (VR/AR/XR buttons, controller/hand model factories, `XREstimatedLight`,
 `XRPlanes`); the `super-three` fork this audit ran against adds multiview
-rendering, compositor layers, and VR post-processing on top. For any
-VR/AR-adjacent use-case, three.js is currently the only option of the two.
-No `docs/DECISIONS.md` entry marks XR as a non-goal, so this is an
-unaddressed gap rather than a rejection — but note the architecture
-constraint: XR input/pose loops are main-thread browser APIs, so an Aperture
-XR story would have to cross the worker boundary that the engine is built
-around.
+rendering, compositor layers, and VR post-processing on top. For
+VR/AR-adjacent work, the intended pairing is three.js/IWSDK — not Aperture.
 
 ---
 
@@ -585,33 +588,34 @@ quality bar for those slices.
 
 ### 22.1 Top gaps (three.js has it, Aperture doesn't), ranked by impact
 
-1. **WebXR** — no VR/AR at all; the largest capability absence and undocumented
-   as a decision (§14).
-2. **Open shading/material extensibility** — no `ShaderMaterial`/TSL
+(WebXR is intentionally excluded from this list: its absence is a recorded
+decision, not a gap — see §14 and `DECISIONS.md 0023`.)
+
+1. **Open shading/material extensibility** — no `ShaderMaterial`/TSL
    equivalent; custom WGSL route lacks lighting integration, storage buffers
    (app route), and any node/graph tooling (§5.3). Partly policy (🚫).
-3. **Asset format breadth + exporters** — glTF-only; no OBJ/FBX/USD/STL/PLY/
+2. **Asset format breadth + exporters** — glTF-only; no OBJ/FBX/USD/STL/PLY/
    EXR/…; no export of any kind (§11).
-4. **Animation depth** — no N-clip mixing, additive layers, arbitrary property
+3. **Animation depth** — no N-clip mixing, additive layers, arbitrary property
    tracks, IK, or retargeting (§10).
-5. **Geometry authoring** — 8 primitives; no shape/extrude/lathe/tube/text
+4. **Geometry authoring** — 8 primitives; no shape/extrude/lathe/tube/text
    geometry, no platonic solids, no edges/wireframe derivation (§7).
-6. **Lines & points as first-class renderables** — no fat lines, dashes, point
+5. **Lines & points as first-class renderables** — no fat lines, dashes, point
    size/attenuation materials (§8).
-7. **Mesh LOD** — none (§4).
-8. **Clipping planes & stencil** — none; stencil explicitly unsupported (§4).
-9. **Camera/controls breadth** — no pointer-lock/trackball/arcball/map/drag
+6. **Mesh LOD** — none (§4).
+7. **Clipping planes & stencil** — none; stencil explicitly unsupported (§4).
+8. **Camera/controls breadth** — no pointer-lock/trackball/arcball/map/drag
    controls; no rotate/scale gizmos; no CubeCamera/StereoCamera (§9).
-10. **Post-processing tail** — no outline, motion blur, GTAO, SMAA, LUT,
-    god-rays, stylistic passes (§13).
-11. **Helpers & scene extras** — no axes/grid/light/camera/skeleton helpers,
+9. **Post-processing tail** — no outline, motion blur, GTAO, SMAA, LUT,
+   god-rays, stylistic passes (§13).
+10. **Helpers & scene extras** — no axes/grid/light/camera/skeleton helpers,
     Sky/Water/Reflector/Lensflare objects (§8).
-12. **Texture types** — no video/canvas/3D/array/data/depth/external textures
+11. **Texture types** — no video/canvas/3D/array/data/depth/external textures
     (§12).
-13. **Light probes / hemisphere light / IES** (§6).
-14. **Math utilities** — curves/splines, Triangle/Line3, Spherical, SH,
+12. **Light probes / hemisphere light / IES** (§6).
+13. **Math utilities** — curves/splines, Triangle/Line3, Spherical, SH,
     easing (§19).
-15. **Visual editor & ecosystem** — no editor; no community ecosystem (§21).
+14. **Visual editor & ecosystem** — no editor; no community ecosystem (§21).
 
 ### 22.2 Where Aperture is ahead of three.js core
 
@@ -638,7 +642,8 @@ quality bar for those slices.
 Mutable `Object3D`/scene graph; WebGL fallback; class-based math; open
 renderer plugin/material model; live GPU objects in ECS; three-mesh-bvh
 dependency; dynamic trimesh/heightfield bodies (V1); render-thread-owned
-state of any kind. See `docs/DECISIONS.md` 0001–0023.
+state of any kind; **WebXR** (immersive use cases belong to IWSDK, the
+maintainer's dedicated WebXR framework). See `docs/DECISIONS.md` 0001–0023.
 
 ---
 

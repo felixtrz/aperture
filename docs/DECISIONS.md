@@ -839,3 +839,39 @@ Consequences:
   prepared custom WGSL material pipeline keys.
 - Shared snapshot transports must either encode new packet families or fall
   back to transferable snapshots until packed encoding is extended.
+
+## 0023 — WebXR Is Out of Scope; IWSDK Owns the Immersive Story
+
+Date: 2026-07-12
+
+Status: accepted
+
+Context:
+
+Aperture ships no WebXR support of any kind — no sessions, reference spaces,
+controller or hand input. Feature comparisons against three.js (whose WebXR
+stack, especially in the `super-three` fork, is the web-XR reference) read
+that absence as the largest capability gap unless the intent is recorded.
+The maintainer also builds IWSDK, a dedicated WebXR framework, and two
+overlapping immersive runtimes from the same author would confuse positioning
+and compete with each other. Technically, XR pose/input loops are main-thread
+browser APIs, which sits awkwardly with Aperture's worker-authoritative
+simulation boundary.
+
+Decision:
+
+WebXR (VR/AR sessions, XR input, XR compositor integration) is a deliberate
+non-goal for Aperture. Immersive use cases are IWSDK's domain; Aperture stays
+a flat-screen WebGPU runtime and does not grow an XR surface.
+
+Consequences:
+
+- No `navigator.xr`, session management, or XR input code anywhere in
+  `packages/`.
+- Feature audits must count XR absence as a rejection, not an omission (see
+  `docs/THREEJS_FEATURE_AUDIT.md` §14).
+- XR-shaped feature requests should be redirected to IWSDK rather than
+  accepted into Aperture.
+- If that positioning ever changes, this decision must be revisited first,
+  including how an XR loop would cross the worker-authoritative simulation
+  boundary.
