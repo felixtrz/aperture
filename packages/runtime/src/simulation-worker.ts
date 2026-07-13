@@ -300,6 +300,9 @@ export function renderSnapshotTransferList(
     | "instanceTints"
     | "instanceAttributes"
     | "quads"
+    | "lineVertices"
+    | "pointVertices"
+    | "pointColors"
   >,
 ): Transferable[] {
   return renderSnapshotBufferTransferList(snapshot);
@@ -317,6 +320,9 @@ function renderSnapshotBufferTransferList(input: {
   readonly quads?: RenderSnapshot["quads"];
   readonly quadInstanceFloats?: Float32Array;
   readonly quadInstanceWords?: Uint32Array;
+  readonly lineVertices?: Float32Array;
+  readonly pointVertices?: Float32Array;
+  readonly pointColors?: Float32Array;
 }): Transferable[] {
   const transfer: Transferable[] = [
     input.transforms.buffer as ArrayBuffer,
@@ -381,6 +387,18 @@ function renderSnapshotBufferTransferList(input: {
     input.quadInstanceWords.byteLength > 0
   ) {
     transfer.push(input.quadInstanceWords.buffer as ArrayBuffer);
+  }
+
+  if (input.lineVertices !== undefined && input.lineVertices.byteLength > 0) {
+    transfer.push(input.lineVertices.buffer as ArrayBuffer);
+  }
+
+  if (input.pointVertices !== undefined && input.pointVertices.byteLength > 0) {
+    transfer.push(input.pointVertices.buffer as ArrayBuffer);
+  }
+
+  if (input.pointColors !== undefined && input.pointColors.byteLength > 0) {
+    transfer.push(input.pointColors.buffer as ArrayBuffer);
   }
 
   return transfer;

@@ -18,6 +18,14 @@ import {
   prepareDecalFrameResourcesForSnapshot,
   type DecalFrameReport,
 } from "./decals.js";
+import {
+  prepareLineFrameResourcesForSnapshot,
+  type LineFrameReport,
+} from "./lines.js";
+import {
+  preparePointFrameResourcesForSnapshot,
+  type PointFrameReport,
+} from "./points.js";
 import { renderSnapshotTimeSeconds } from "./snapshot.js";
 import {
   prepareUiFrameResourcesForSnapshot,
@@ -125,6 +133,66 @@ export function registerBuiltInWebGpuFeatureRealizers(
   });
 
   registry.register({
+    id: "lines",
+    packetFamilies: ["lines"],
+    async prepareFrame(input) {
+      const lineFrame = await prepareLineFrameResourcesForSnapshot({
+        app: input.app,
+        assets: input.assets,
+        cache,
+        snapshot: input.snapshot,
+        viewUniforms: input.viewUniforms,
+      });
+
+      return {
+        valid: lineFrame.valid,
+        commandGroups:
+          lineFrame.commands.length === 0
+            ? []
+            : createWebGpuFeatureCommandGroupsFromCommands({
+                featureId: "lines",
+                phase: "transparent",
+                commands: lineFrame.commands,
+                sortKeys: lineRenderSortKeys(input.snapshot),
+              }),
+        diagnostics: lineFrame.diagnostics,
+        ...(lineFrame.report === undefined ? {} : { report: lineFrame.report }),
+      };
+    },
+  });
+
+  registry.register({
+    id: "points",
+    packetFamilies: ["points"],
+    async prepareFrame(input) {
+      const pointFrame = await preparePointFrameResourcesForSnapshot({
+        app: input.app,
+        assets: input.assets,
+        cache,
+        snapshot: input.snapshot,
+        viewUniforms: input.viewUniforms,
+      });
+
+      return {
+        valid: pointFrame.valid,
+        commandGroups:
+          pointFrame.commands.length === 0
+            ? []
+            : createWebGpuFeatureCommandGroupsFromCommands({
+                featureId: "points",
+                phase: "transparent",
+                commands: pointFrame.commands,
+                sortKeys: pointRenderSortKeys(input.snapshot),
+              }),
+        diagnostics: pointFrame.diagnostics,
+        ...(pointFrame.report === undefined
+          ? {}
+          : { report: pointFrame.report }),
+      };
+    },
+  });
+
+  registry.register({
     id: "ui",
     packetFamilies: ["uiNodes", "uiHitRegions"],
     async prepareFrame(input) {
@@ -223,9 +291,47 @@ function decalRenderSortKeys(
   return sortKeys;
 }
 
+function lineRenderSortKeys(
+  snapshot: RenderSnapshot,
+): ReadonlyMap<number, RenderSortKey> {
+  const sortKeys = new Map<number, RenderSortKey>();
+
+  for (const line of snapshot.lines ?? []) {
+    sortKeys.set(line.renderId, line.sortKey);
+  }
+
+  return sortKeys;
+}
+
+function pointRenderSortKeys(
+  snapshot: RenderSnapshot,
+): ReadonlyMap<number, RenderSortKey> {
+  const sortKeys = new Map<number, RenderSortKey>();
+
+  for (const cloud of snapshot.points ?? []) {
+    sortKeys.set(cloud.renderId, cloud.sortKey);
+  }
+
+  return sortKeys;
+}
+
 /** Typed accessor for the built-in decal realizer's per-frame report. */
 export function webGpuDecalFrameReport(
   frame: WebGpuFeatureRegistryFrameResult,
 ): DecalFrameReport | undefined {
   return frame.reports.get("decals") as DecalFrameReport | undefined;
+}
+
+/** Typed accessor for the built-in fat-line realizer's per-frame report. */
+export function webGpuLineFrameReport(
+  frame: WebGpuFeatureRegistryFrameResult,
+): LineFrameReport | undefined {
+  return frame.reports.get("lines") as LineFrameReport | undefined;
+}
+
+/** Typed accessor for the built-in point-cloud realizer's per-frame report. */
+export function webGpuPointFrameReport(
+  frame: WebGpuFeatureRegistryFrameResult,
+): PointFrameReport | undefined {
+  return frame.reports.get("points") as PointFrameReport | undefined;
 }

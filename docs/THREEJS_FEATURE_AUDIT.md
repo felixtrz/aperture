@@ -65,8 +65,7 @@ route is deliberately narrow), asset format breadth (glTF only; no
 OBJ/FBX/USD/STL/…, no exporters), geometry primitive breadth (8 primitives vs
 21+, no extrude/lathe/tube/text geometry), animation depth (single clip + one
 crossfade lane vs three.js's N-action mixer with additive blending and
-property tracks), mesh LOD, dedicated line/point rendering (fat lines,
-point clouds), helpers/gizmos breadth, clipping planes/stencil, and the
+property tracks), mesh LOD, helpers/gizmos breadth, and the
 ecosystem itself (three.js's community, docs, and examples corpus have no
 Aperture equivalent). WebXR is absent as well, but by decision, not omission:
 immersive use cases belong to IWSDK, the maintainer's dedicated WebXR
@@ -110,7 +109,7 @@ is an absence Aperture chose on purpose and documents in `docs/DECISIONS.md`.
 | Materials & shading     | 🟡       | Strong PBR + extensions; 5 material families vs 18+, no open shader-graph system                       |
 | Lights & shadows        | ✅/➕    | CSM + PCSS + clustered + LTC area lights in core beat three.js core; no hemisphere light/light probes  |
 | Geometry & meshes       | 🟡       | Solid data model (morph/skin/multi-stream); 8 primitives vs 21+, no extrude/text/edges geometry        |
-| Objects & scene         | 🟡       | Sprites/instancing/batching/fog/sky yes; LOD, fat lines, points materials, helpers no                  |
+| Objects & scene         | 🟡       | Sprites/instancing/batching/fog/sky + fat lines & points materials (E1) yes; LOD, helpers no           |
 | Cameras & controls      | ✅/🟡    | Multi-camera/viewport/priority strong; 3 controllers vs 9, no cube/stereo camera                       |
 | Animation               | 🟡       | glTF clips, CUBICSPLINE, crossfade, skinning, morphs; no N-clip mixing, additive layers, IK            |
 | Asset I/O               | 🟡       | Deep glTF (Draco/Meshopt/KTX2) but glTF-only; no other formats, no exporters                           |
@@ -163,22 +162,22 @@ Aperture's diagnostics/reporting surface (readiness, dependency summaries,
 
 ### 5.1 Material families
 
-| three.js material                            | Aperture equivalent                                                           | Status |
-| -------------------------------------------- | ----------------------------------------------------------------------------- | ------ |
-| `MeshBasicMaterial`                          | `unlit` (baseColor factor + texture, vertex colors)                           | ✅     |
-| `MeshStandardMaterial`                       | `standard` (full metallic-roughness PBR)                                      | ✅     |
-| `MeshPhysicalMaterial`                       | `standard` extensions: clearcoat, sheen, transmission+volume+IOR, iridescence | 🟡     |
-| `MeshMatcapMaterial`                         | `matcap`                                                                      | ✅     |
-| `MeshNormalMaterial`                         | `debug-normal`                                                                | ✅     |
-| `MeshLambertMaterial` / `MeshPhongMaterial`  | — (use `standard`; no cheap legacy lighting models)                           | ❌     |
-| `MeshToonMaterial`                           | —                                                                             | ❌     |
-| `MeshDepthMaterial` / `MeshDistanceMaterial` | — (internal shadow pipelines cover the shadow use-case)                       | ✅\*   |
-| `ShadowMaterial`                             | —                                                                             | ❌     |
-| `SpriteMaterial`                             | `Sprite` component (billboard modes, blend modes, atlas frames)               | ✅     |
-| `PointsMaterial`                             | — (point-list topology renders, but no size/attenuation material)             | 🟡     |
-| `LineBasicMaterial` / `LineDashedMaterial`   | Line-list/strip topology + line-primitives example; no dashes/width           | 🟡     |
-| `ShaderMaterial` / `RawShaderMaterial`       | Custom WGSL material (data-only: source asset, entry points, typed bindings)  | 🟡     |
-| TSL node materials (`src/materials/nodes/`)  | — (🚫 open shader-graph model; closed union per `DECISIONS.md 0010`)          | 🚫     |
+| three.js material                            | Aperture equivalent                                                                                                                      | Status |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| `MeshBasicMaterial`                          | `unlit` (baseColor factor + texture, vertex colors)                                                                                      | ✅     |
+| `MeshStandardMaterial`                       | `standard` (full metallic-roughness PBR)                                                                                                 | ✅     |
+| `MeshPhysicalMaterial`                       | `standard` extensions: clearcoat, sheen, transmission+volume+IOR, iridescence                                                            | 🟡     |
+| `MeshMatcapMaterial`                         | `matcap`                                                                                                                                 | ✅     |
+| `MeshNormalMaterial`                         | `debug-normal`                                                                                                                           | ✅     |
+| `MeshLambertMaterial` / `MeshPhongMaterial`  | — (use `standard`; no cheap legacy lighting models)                                                                                      | ❌     |
+| `MeshToonMaterial`                           | —                                                                                                                                        | ❌     |
+| `MeshDepthMaterial` / `MeshDistanceMaterial` | — (internal shadow pipelines cover the shadow use-case)                                                                                  | ✅\*   |
+| `ShadowMaterial`                             | —                                                                                                                                        | ❌     |
+| `SpriteMaterial`                             | `Sprite` component (billboard modes, blend modes, atlas frames)                                                                          | ✅     |
+| `PointsMaterial`                             | ✅ `Points` subsystem: size + perspective attenuation, round/square, per-point color (parity plan E1)                                    | ✅     |
+| `LineBasicMaterial` / `LineDashedMaterial`   | ✅ `Line` fat-line subsystem: screen-space width + world-continuous dashes (parity plan E1); 🟡 round-only joins vs `LineDashedMaterial` | ✅     |
+| `ShaderMaterial` / `RawShaderMaterial`       | Custom WGSL material (data-only: source asset, entry points, typed bindings)                                                             | 🟡     |
+| TSL node materials (`src/materials/nodes/`)  | — (🚫 open shader-graph model; closed union per `DECISIONS.md 0010`)                                                                     | 🚫     |
 
 \* Aperture has no user-facing depth/distance materials, but its shadow caster
 pipelines fill the role those materials exist for in three.js.
@@ -276,22 +275,22 @@ stack simply has no counterpart.
 
 ## 8. Objects & scene features
 
-| three.js object                                                  | Aperture                                                                        | Status |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------------- | ------ |
-| `Group` / hierarchy                                              | `Parent`/`Children` components, world-preserving `setParent`, recursive despawn | ✅     |
-| `Mesh`                                                           | `Mesh` + `Material` components                                                  | ✅     |
-| `SkinnedMesh`                                                    | `Skin` + animation driver                                                       | ✅     |
-| `InstancedMesh`                                                  | Automatic instancing + `InstanceTint`/`InstanceData`                            | ✅     |
-| `BatchedMesh`                                                    | Static mesh merging (no dynamic per-instance geometry batching)                 | 🟡     |
-| `Sprite`                                                         | `Sprite` component (richer: billboard modes, screen/world sizing, atlases)      | ➕     |
-| `Points` + `PointsMaterial`                                      | point-list topology only; no size attenuation/point sprites material            | 🟡     |
-| `Line`/`LineSegments`/fat lines addon                            | line topology + `line-primitives` example; no width/dash                        | 🟡     |
-| `LOD`                                                            | None                                                                            | ❌     |
-| `ClippingGroup`                                                  | None (no clipping planes at all)                                                | ❌     |
-| Helpers (13 core + addons)                                       | Physics debug geometry (wireframes/contacts/AABBs/joints), translate gizmo      | 🟡     |
-| `Sky`, `Water`, `Reflector`, `Lensflare`, `MarchingCubes` addons | Procedural sky only; SSR pass covers some reflector use-cases                   | 🟡     |
-| Scene `.environment`/`.background`                               | Environment light kind + skybox/procedural sky per camera                       | ✅     |
-| `.overrideMaterial`                                              | None                                                                            | ❌     |
+| three.js object                                                  | Aperture                                                                                                                                                                                      | Status |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| `Group` / hierarchy                                              | `Parent`/`Children` components, world-preserving `setParent`, recursive despawn                                                                                                               | ✅     |
+| `Mesh`                                                           | `Mesh` + `Material` components                                                                                                                                                                | ✅     |
+| `SkinnedMesh`                                                    | `Skin` + animation driver                                                                                                                                                                     | ✅     |
+| `InstancedMesh`                                                  | Automatic instancing + `InstanceTint`/`InstanceData`                                                                                                                                          | ✅     |
+| `BatchedMesh`                                                    | Static mesh merging (no dynamic per-instance geometry batching)                                                                                                                               | 🟡     |
+| `Sprite`                                                         | `Sprite` component (richer: billboard modes, screen/world sizing, atlases)                                                                                                                    | ➕     |
+| `Points` + `PointsMaterial`                                      | ✅ point subsystem: camera-facing quads with pixel/world size + perspective attenuation, round/square shape, per-point color (parity plan E1, `examples/point-cloud`)                         | ✅     |
+| `Line`/`LineSegments`/fat lines addon                            | ✅ fat-line subsystem: screen-space pixel width, world-continuous dashes, round caps/joins (Line2-style instanced quads; parity plan E1, `examples/fat-lines`); 🟡 joins round-only, no miter | ✅     |
+| `LOD`                                                            | None                                                                                                                                                                                          | ❌     |
+| `ClippingGroup`                                                  | None (no clipping planes at all)                                                                                                                                                              | ❌     |
+| Helpers (13 core + addons)                                       | Physics debug geometry (wireframes/contacts/AABBs/joints), translate gizmo                                                                                                                    | 🟡     |
+| `Sky`, `Water`, `Reflector`, `Lensflare`, `MarchingCubes` addons | Procedural sky only; SSR pass covers some reflector use-cases                                                                                                                                 | 🟡     |
+| Scene `.environment`/`.background`                               | Environment light kind + skybox/procedural sky per camera                                                                                                                                     | ✅     |
+| `.overrideMaterial`                                              | None                                                                                                                                                                                          | ❌     |
 
 ---
 

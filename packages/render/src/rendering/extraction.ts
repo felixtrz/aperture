@@ -39,6 +39,8 @@ import { extractRuntimeUniforms } from "./extraction-runtime-uniforms.js";
 import { extractSkyboxes } from "./extraction-skyboxes.js";
 import { extractSpriteDraws } from "./extraction-sprites.js";
 import { extractDecals } from "./extraction-decals.js";
+import { extractLines } from "./extraction-lines.js";
+import { extractPoints } from "./extraction-points.js";
 import { extractUiLayout } from "./extraction-ui.js";
 import { extractViews } from "./extraction-views.js";
 
@@ -192,6 +194,32 @@ export function extractRenderSnapshot(
     viewCullContexts,
   );
   const decals = decalExtraction.decals;
+  const lineVertices: number[] = [];
+  const lineExtraction = extractLines(
+    world,
+    assets,
+    transforms,
+    lineVertices,
+    bounds,
+    diagnostics,
+    cameraLayerMask,
+    viewCullContexts,
+  );
+  const lines = lineExtraction.lines;
+  const pointVertices: number[] = [];
+  const pointColors: number[] = [];
+  const pointExtraction = extractPoints(
+    world,
+    assets,
+    transforms,
+    pointVertices,
+    pointColors,
+    bounds,
+    diagnostics,
+    cameraLayerMask,
+    viewCullContexts,
+  );
+  const points = pointExtraction.points;
   const particleEmitters =
     options.features?.particles === false
       ? extractGatedFeatureFamilyPlaceholder({
@@ -258,6 +286,17 @@ export function extractRenderSnapshot(
     ...(shadowCasterDraws.length === 0 ? {} : { shadowCasterDraws }),
     spriteDraws,
     ...(decals.length === 0 ? {} : { decals }),
+    ...(lines.length === 0 ? {} : { lines }),
+    ...(lineVertices.length === 0
+      ? {}
+      : { lineVertices: new Float32Array(lineVertices) }),
+    ...(points.length === 0 ? {} : { points }),
+    ...(pointVertices.length === 0
+      ? {}
+      : { pointVertices: new Float32Array(pointVertices) }),
+    ...(pointColors.length === 0
+      ? {}
+      : { pointColors: new Float32Array(pointColors) }),
     ...(particleEmitters.length === 0 ? {} : { particleEmitters }),
     ...(audioEmitters.length === 0 ? {} : { audioEmitters }),
     ...(audioListener === undefined ? {} : { audioListener }),
@@ -315,6 +354,12 @@ export function extractRenderSnapshot(
       ...(decalExtraction.report === undefined
         ? {}
         : { decals: decalExtraction.report }),
+      ...(lineExtraction.report === undefined
+        ? {}
+        : { lines: lineExtraction.report }),
+      ...(pointExtraction.report === undefined
+        ? {}
+        : { points: pointExtraction.report }),
       particleEmitters: particleEmitters.length,
       audioEmitters: audioEmitters.length,
       quadInstances: quadInstanceFloats.length / QUAD_INSTANCE_FLOAT_STRIDE,

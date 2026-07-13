@@ -1,6 +1,7 @@
 import {
   FogMode,
   ParticleSimulationSpace,
+  PointShape,
   ProceduralSkyModel,
   SpriteBillboardMode,
   SpriteBlendMode,
@@ -9,7 +10,9 @@ import {
   SpriteSizeMode,
   type DecalInput,
   type FogInput,
+  type LineInput,
   type ParticleEmitterInput,
+  type PointsInput,
   type ProceduralSkyInput,
   type RenderAuthoringDiagnostic,
   type RenderAuthoringValidationReport,
@@ -21,7 +24,9 @@ import {
 import {
   createDecal,
   createFog,
+  createLine,
   createParticleEmitter,
+  createPoints,
   createProceduralSky,
   createRuntimeBuffer,
   createRuntimeUniform,
@@ -84,6 +89,134 @@ export function validateDecalInput(
       code: "decal.invalidCapacity",
       field: "capacity",
       message: "Decal capacity must be a positive integer.",
+    });
+  }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
+export function validateLineInput(
+  input: LineInput,
+): RenderAuthoringValidationReport {
+  const line = createLine(input);
+  const positions = line.positions;
+  const width = line.width ?? 2;
+  const dashSize = line.dashSize ?? 0;
+  const gapSize = line.gapSize ?? 0;
+  const dashOffset = line.dashOffset ?? 0;
+  const color = line.color ?? [1, 1, 1, 1];
+  const diagnostics: RenderAuthoringDiagnostic[] = [];
+
+  if (
+    !(positions instanceof Float32Array) ||
+    positions.length < 6 ||
+    positions.length % 3 !== 0 ||
+    positions.some((value) => !Number.isFinite(value))
+  ) {
+    diagnostics.push({
+      code: "line.invalidPositions",
+      field: "positions",
+      message:
+        "Lines require a finite flat xyz position buffer with at least two vertices (length a multiple of 3, >= 6).",
+    });
+  }
+
+  if (!Number.isFinite(width) || width <= 0) {
+    diagnostics.push({
+      code: "line.invalidWidth",
+      field: "width",
+      message: "Line width must be a finite positive number of pixels.",
+    });
+  }
+
+  if (
+    !Number.isFinite(dashSize) ||
+    dashSize < 0 ||
+    !Number.isFinite(gapSize) ||
+    gapSize < 0 ||
+    !Number.isFinite(dashOffset)
+  ) {
+    diagnostics.push({
+      code: "line.invalidDash",
+      field: "dash",
+      message:
+        "Line dashSize/gapSize must be finite and non-negative, and dashOffset must be finite.",
+    });
+  }
+
+  if (Array.from(color).some((value) => !Number.isFinite(value))) {
+    diagnostics.push({
+      code: "line.invalidColor",
+      field: "color",
+      message: "Line color components must be finite numbers.",
+    });
+  }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
+export function validatePointsInput(
+  input: PointsInput,
+): RenderAuthoringValidationReport {
+  const points = createPoints(input);
+  const positions = points.positions;
+  const colors = points.colors;
+  const size = points.size ?? 4;
+  const shape = points.shape ?? PointShape.Round;
+  const color = points.color ?? [1, 1, 1, 1];
+  const diagnostics: RenderAuthoringDiagnostic[] = [];
+  const pointCount =
+    positions instanceof Float32Array ? Math.floor(positions.length / 3) : 0;
+
+  if (
+    !(positions instanceof Float32Array) ||
+    positions.length < 3 ||
+    positions.length % 3 !== 0 ||
+    positions.some((value) => !Number.isFinite(value))
+  ) {
+    diagnostics.push({
+      code: "points.invalidPositions",
+      field: "positions",
+      message:
+        "Points require a finite flat xyz position buffer with at least one point (length a multiple of 3, >= 3).",
+    });
+  }
+
+  if (
+    colors !== null &&
+    (!(colors instanceof Float32Array) ||
+      colors.length !== pointCount * 4 ||
+      colors.some((value) => !Number.isFinite(value)))
+  ) {
+    diagnostics.push({
+      code: "points.invalidColors",
+      field: "colors",
+      message:
+        "Point colors must be a finite flat RGBA buffer with four components per point.",
+    });
+  }
+
+  if (!Number.isFinite(size) || size <= 0) {
+    diagnostics.push({
+      code: "points.invalidSize",
+      field: "size",
+      message: "Point size must be a finite positive number.",
+    });
+  }
+
+  if (Array.from(color).some((value) => !Number.isFinite(value))) {
+    diagnostics.push({
+      code: "points.invalidColor",
+      field: "color",
+      message: "Point color components must be finite numbers.",
+    });
+  }
+
+  if (!Object.values(PointShape).includes(shape as PointShape)) {
+    diagnostics.push({
+      code: "points.invalidShape",
+      field: "shape",
+      message: "Point shape must be 'round' or 'square'.",
     });
   }
 

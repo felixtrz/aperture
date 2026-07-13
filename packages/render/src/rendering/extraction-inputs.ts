@@ -23,6 +23,9 @@ import {
   Fog,
   FogMode,
   Light,
+  Line,
+  Points,
+  PointShape,
   ProceduralSky,
   Sprite,
   Skybox,
@@ -30,6 +33,8 @@ import {
   type DecalInput,
   type FogInput,
   type LightInput,
+  type LineInput,
+  type PointsInput,
   type ProceduralSkyInput,
   type SpriteInput,
   type SkyboxInput,
@@ -243,6 +248,46 @@ export function decalInput(entity: Entity): DecalInput {
     depthBias: entity.getValue(Decal, "depthBias") ?? 0.02,
     capacity: entity.getValue(Decal, "capacity") ?? 256,
     sequence: entity.getValue(Decal, "sequence") ?? 0,
+  };
+}
+
+const EMPTY_FLOAT_BUFFER = new Float32Array(0);
+
+function readTypedBuffer(value: unknown): Float32Array {
+  return value instanceof Float32Array ? value : EMPTY_FLOAT_BUFFER;
+}
+
+export function lineInput(entity: Entity): LineInput {
+  return {
+    positions: readTypedBuffer(entity.getValue(Line, "positions")),
+    color: Array.from(entity.getVectorView(Line, "color")) as [
+      number,
+      number,
+      number,
+      number,
+    ],
+    width: entity.getValue(Line, "width") ?? 2,
+    dashSize: entity.getValue(Line, "dashSize") ?? 0,
+    gapSize: entity.getValue(Line, "gapSize") ?? 0,
+    dashOffset: entity.getValue(Line, "dashOffset") ?? 0,
+  };
+}
+
+export function pointsInput(entity: Entity): PointsInput {
+  const colors = entity.getValue(Points, "colors");
+
+  return {
+    positions: readTypedBuffer(entity.getValue(Points, "positions")),
+    ...(colors instanceof Float32Array ? { colors } : {}),
+    color: Array.from(entity.getVectorView(Points, "color")) as [
+      number,
+      number,
+      number,
+      number,
+    ],
+    size: entity.getValue(Points, "size") ?? 4,
+    sizeAttenuation: entity.getValue(Points, "sizeAttenuation") ?? false,
+    shape: (entity.getValue(Points, "shape") ?? PointShape.Round) as PointShape,
   };
 }
 

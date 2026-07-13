@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1500
+Every structured diagnostic code the engine can emit (1527
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -3053,6 +3053,84 @@ suggestedFix accompanies it, and where it is emitted.
 | --------------------------------------------- | -------------------------------------------------- | ---- | ------------------------------------------------------- |
 | `lightShaderReadiness.missingLightGpuBuffers` | Light shader readiness requires light GPU buffers. | —    | `packages/webgpu/src/lighting/light-shader-metadata.ts` |
 
+## line.invalidColor (1)
+
+| Code                | Message                                       | Fix? | Emitted from                                                    |
+| ------------------- | --------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `line.invalidColor` | Line color components must be finite numbers. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## line.invalidDash (1)
+
+| Code               | Message                                                                               | Fix? | Emitted from                                                    |
+| ------------------ | ------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `line.invalidDash` | Line dashSize/gapSize must be finite and non-negative, and dashOffset must be finite. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## line.invalidPositions (1)
+
+| Code                    | Message                                                                                                    | Fix? | Emitted from                                                    |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `line.invalidPositions` | Lines require a finite flat xyz position buffer with at least two vertices (length a multiple of 3, >= 6). | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## line.invalidWidth (1)
+
+| Code                | Message                                                | Fix? | Emitted from                                                    |
+| ------------------- | ------------------------------------------------------ | ---- | --------------------------------------------------------------- |
+| `line.invalidWidth` | Line width must be a finite positive number of pixels. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## lineFrame.createBindGroupUnavailable (1)
+
+| Code                                   | Message                                           | Fix? | Emitted from                       |
+| -------------------------------------- | ------------------------------------------------- | ---- | ---------------------------------- |
+| `lineFrame.createBindGroupUnavailable` | WebGPU device cannot create fat-line bind groups. | —    | `packages/webgpu/src/app/lines.ts` |
+
+## lineFrame.instanceBufferFailed (1)
+
+| Code                             | Message                                               | Fix? | Emitted from                       |
+| -------------------------------- | ----------------------------------------------------- | ---- | ---------------------------------- |
+| `lineFrame.instanceBufferFailed` | Fat-line pipeline does not expose bind group layouts. | —    | `packages/webgpu/src/app/lines.ts` |
+
+## lineFrame.missingPipelineLayouts (1)
+
+| Code                               | Message                                               | Fix? | Emitted from                       |
+| ---------------------------------- | ----------------------------------------------------- | ---- | ---------------------------------- |
+| `lineFrame.missingPipelineLayouts` | Fat-line pipeline does not expose bind group layouts. | —    | `packages/webgpu/src/app/lines.ts` |
+
+## lineFrame.missingView (1)
+
+| Code                    | Message                                                       | Fix? | Emitted from                       |
+| ----------------------- | ------------------------------------------------------------- | ---- | ---------------------------------- |
+| `lineFrame.missingView` | Fat-line rendering requires at least one view uniform record. | —    | `packages/webgpu/src/app/lines.ts` |
+
+## lineFrame.viewBufferFailed (1)
+
+| Code                         | Message                                               | Fix? | Emitted from                       |
+| ---------------------------- | ----------------------------------------------------- | ---- | ---------------------------------- |
+| `lineFrame.viewBufferFailed` | Fat-line pipeline does not expose bind group layouts. | —    | `packages/webgpu/src/app/lines.ts` |
+
+## lineRenderPipeline.createRenderPipelineUnavailable (1)
+
+| Code                                                 | Message                                                | Fix? | Emitted from                                        |
+| ---------------------------------------------------- | ------------------------------------------------------ | ---- | --------------------------------------------------- |
+| `lineRenderPipeline.createRenderPipelineUnavailable` | WebGPU device cannot create fat-line render pipelines. | —    | `packages/webgpu/src/render/lines/line-pipeline.ts` |
+
+## lineRenderPipeline.pipelineCreationFailed (1)
+
+| Code                                        | Message                       | Fix? | Emitted from                                        |
+| ------------------------------------------- | ----------------------------- | ---- | --------------------------------------------------- |
+| `lineRenderPipeline.pipelineCreationFailed` | (message composed at runtime) | —    | `packages/webgpu/src/render/lines/line-pipeline.ts` |
+
+## lineRenderPipeline.shaderCreationFailed (1)
+
+| Code                                      | Message                                                | Fix? | Emitted from                                        |
+| ----------------------------------------- | ------------------------------------------------------ | ---- | --------------------------------------------------- |
+| `lineRenderPipeline.shaderCreationFailed` | WebGPU device cannot create fat-line render pipelines. | —    | `packages/webgpu/src/render/lines/line-pipeline.ts` |
+
+## lineRenderPipeline.shaderDiagnostic (1)
+
+| Code                                  | Message                       | Fix? | Emitted from                                        |
+| ------------------------------------- | ----------------------------- | ---- | --------------------------------------------------- |
+| `lineRenderPipeline.shaderDiagnostic` | (message composed at runtime) | —    | `packages/webgpu/src/render/lines/line-pipeline.ts` |
+
 ## loadGlbFromUri.fetchUnavailable (1)
 
 | Code                              | Message                                                                | Fix? | Emitted from                                   |
@@ -4271,6 +4349,90 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                              | Message                       | Fix? | Emitted from                                            |
 | ------------------------------------------------- | ----------------------------- | ---- | ------------------------------------------------------- |
 | `pipelineCacheIntegration.pipelineCreationFailed` | (message composed at runtime) | —    | `packages/webgpu/src/gpu/pipeline-cache-integration.ts` |
+
+## pointFrame.createBindGroupUnavailable (1)
+
+| Code                                    | Message                                              | Fix? | Emitted from                        |
+| --------------------------------------- | ---------------------------------------------------- | ---- | ----------------------------------- |
+| `pointFrame.createBindGroupUnavailable` | WebGPU device cannot create point-cloud bind groups. | —    | `packages/webgpu/src/app/points.ts` |
+
+## pointFrame.instanceBufferFailed (1)
+
+| Code                              | Message                                                  | Fix? | Emitted from                        |
+| --------------------------------- | -------------------------------------------------------- | ---- | ----------------------------------- |
+| `pointFrame.instanceBufferFailed` | Point-cloud pipeline does not expose bind group layouts. | —    | `packages/webgpu/src/app/points.ts` |
+
+## pointFrame.missingPipelineLayouts (1)
+
+| Code                                | Message                                                  | Fix? | Emitted from                        |
+| ----------------------------------- | -------------------------------------------------------- | ---- | ----------------------------------- |
+| `pointFrame.missingPipelineLayouts` | Point-cloud pipeline does not expose bind group layouts. | —    | `packages/webgpu/src/app/points.ts` |
+
+## pointFrame.missingView (1)
+
+| Code                     | Message                                                          | Fix? | Emitted from                        |
+| ------------------------ | ---------------------------------------------------------------- | ---- | ----------------------------------- |
+| `pointFrame.missingView` | Point-cloud rendering requires at least one view uniform record. | —    | `packages/webgpu/src/app/points.ts` |
+
+## pointFrame.viewBufferFailed (1)
+
+| Code                          | Message                                                  | Fix? | Emitted from                        |
+| ----------------------------- | -------------------------------------------------------- | ---- | ----------------------------------- |
+| `pointFrame.viewBufferFailed` | Point-cloud pipeline does not expose bind group layouts. | —    | `packages/webgpu/src/app/points.ts` |
+
+## pointRenderPipeline.createRenderPipelineUnavailable (1)
+
+| Code                                                  | Message                                                   | Fix? | Emitted from                                          |
+| ----------------------------------------------------- | --------------------------------------------------------- | ---- | ----------------------------------------------------- |
+| `pointRenderPipeline.createRenderPipelineUnavailable` | WebGPU device cannot create point-cloud render pipelines. | —    | `packages/webgpu/src/render/points/point-pipeline.ts` |
+
+## pointRenderPipeline.pipelineCreationFailed (1)
+
+| Code                                         | Message                       | Fix? | Emitted from                                          |
+| -------------------------------------------- | ----------------------------- | ---- | ----------------------------------------------------- |
+| `pointRenderPipeline.pipelineCreationFailed` | (message composed at runtime) | —    | `packages/webgpu/src/render/points/point-pipeline.ts` |
+
+## pointRenderPipeline.shaderCreationFailed (1)
+
+| Code                                       | Message                                                   | Fix? | Emitted from                                          |
+| ------------------------------------------ | --------------------------------------------------------- | ---- | ----------------------------------------------------- |
+| `pointRenderPipeline.shaderCreationFailed` | WebGPU device cannot create point-cloud render pipelines. | —    | `packages/webgpu/src/render/points/point-pipeline.ts` |
+
+## pointRenderPipeline.shaderDiagnostic (1)
+
+| Code                                   | Message                       | Fix? | Emitted from                                          |
+| -------------------------------------- | ----------------------------- | ---- | ----------------------------------------------------- |
+| `pointRenderPipeline.shaderDiagnostic` | (message composed at runtime) | —    | `packages/webgpu/src/render/points/point-pipeline.ts` |
+
+## points.invalidColor (1)
+
+| Code                  | Message                                        | Fix? | Emitted from                                                    |
+| --------------------- | ---------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `points.invalidColor` | Point color components must be finite numbers. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## points.invalidColors (1)
+
+| Code                   | Message                                                                        | Fix? | Emitted from                                                    |
+| ---------------------- | ------------------------------------------------------------------------------ | ---- | --------------------------------------------------------------- |
+| `points.invalidColors` | Point colors must be a finite flat RGBA buffer with four components per point. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## points.invalidPositions (1)
+
+| Code                      | Message                                                                                                  | Fix? | Emitted from                                                    |
+| ------------------------- | -------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `points.invalidPositions` | Points require a finite flat xyz position buffer with at least one point (length a multiple of 3, >= 3). | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## points.invalidShape (1)
+
+| Code                  | Message                                  | Fix? | Emitted from                                                    |
+| --------------------- | ---------------------------------------- | ---- | --------------------------------------------------------------- |
+| `points.invalidShape` | Point shape must be 'round' or 'square'. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## points.invalidSize (1)
+
+| Code                 | Message                                      | Fix? | Emitted from                                                    |
+| -------------------- | -------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `points.invalidSize` | Point size must be a finite positive number. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## pointShadowMatrix.invalidFace (1)
 

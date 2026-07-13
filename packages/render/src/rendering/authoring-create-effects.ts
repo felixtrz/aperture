@@ -6,6 +6,7 @@ import {
 } from "@aperture-engine/simulation";
 import {
   FogMode,
+  PointShape,
   ProceduralSkyModel,
   SpriteBillboardMode,
   SpriteBlendMode,
@@ -14,6 +15,8 @@ import {
   SpriteSizeMode,
   type DecalInput,
   type FogInput,
+  type LineInput,
+  type PointsInput,
   type ProceduralSkyInput,
   type RuntimeBufferInput,
   type RuntimeUniformInput,
@@ -23,6 +26,8 @@ import {
 import type {
   Decal,
   Fog,
+  Line,
+  Points,
   ProceduralSky,
   RuntimeBuffer,
   RuntimeUniform,
@@ -75,6 +80,38 @@ export function createDecal(
     depthBias: input.depthBias ?? 0.02,
     capacity: input.capacity ?? 256,
     sequence: input.sequence ?? 0,
+  };
+}
+
+function toFloat32Array(values: ArrayLike<number>): Float32Array {
+  return values instanceof Float32Array
+    ? values
+    : Float32Array.from(Array.from(values, (value) => value));
+}
+
+export function createLine(
+  input: LineInput,
+): ComponentInitialData<typeof Line> {
+  return {
+    positions: toFloat32Array(input.positions),
+    color: toVec4Tuple(input.color ?? [1, 1, 1, 1]),
+    width: input.width ?? 2,
+    dashSize: input.dashSize ?? 0,
+    gapSize: input.gapSize ?? 0,
+    dashOffset: input.dashOffset ?? 0,
+  };
+}
+
+export function createPoints(
+  input: PointsInput,
+): ComponentInitialData<typeof Points> {
+  return {
+    positions: toFloat32Array(input.positions),
+    colors: input.colors === undefined ? null : toFloat32Array(input.colors),
+    color: toVec4Tuple(input.color ?? [1, 1, 1, 1]),
+    size: input.size ?? 4,
+    sizeAttenuation: input.sizeAttenuation ?? false,
+    shape: input.shape ?? PointShape.Round,
   };
 }
 

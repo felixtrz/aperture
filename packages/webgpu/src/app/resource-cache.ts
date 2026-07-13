@@ -48,6 +48,8 @@ import {
 } from "../render/frame/draw-order-transform-packing.js";
 import type { CreateSpriteRenderPipelineResourceResult } from "../render/sprites/sprite-pipeline.js";
 import type { CreateDecalRenderPipelineResourceResult } from "../render/decals/decal-pipeline.js";
+import type { CreateLineRenderPipelineResourceResult } from "../render/lines/line-pipeline.js";
+import type { CreatePointRenderPipelineResourceResult } from "../render/points/point-pipeline.js";
 import type { CreateMsdfTextRenderPipelineResourceResult } from "../render/text/msdf-text-pipeline.js";
 import type { CreateUiQuadRenderPipelineResourceResult } from "../render/ui/ui-quad-pipeline.js";
 import type {
@@ -150,6 +152,8 @@ export interface WebGpuAppResourceCache {
     CreateSpriteRenderPipelineResourceResult
   >;
   readonly decalPipelines: Map<string, CreateDecalRenderPipelineResourceResult>;
+  readonly linePipelines: Map<string, CreateLineRenderPipelineResourceResult>;
+  readonly pointPipelines: Map<string, CreatePointRenderPipelineResourceResult>;
   readonly msdfTextPipelines: Map<
     string,
     CreateMsdfTextRenderPipelineResourceResult
@@ -443,6 +447,8 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     pipelines: new Map(),
     spritePipelines: new Map(),
     decalPipelines: new Map(),
+    linePipelines: new Map(),
+    pointPipelines: new Map(),
     msdfTextPipelines: new Map(),
     uiPanelPipelines: new Map(),
     uiImagePipelines: new Map(),

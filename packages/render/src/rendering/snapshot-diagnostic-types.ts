@@ -41,6 +41,13 @@ export interface RenderSnapshotReport {
    * decal-free report is byte-identical to a pre-D4 report.
    */
   readonly decals?: DecalSnapshotReport;
+  /**
+   * Fat-line tally (E1). Absent when a frame carries no lines so a line-free
+   * report is byte-identical to a pre-E1 report.
+   */
+  readonly lines?: LineSnapshotReport;
+  /** Point-cloud tally (E1). Absent when a frame carries no points. */
+  readonly points?: PointsSnapshotReport;
   readonly particleEmitters?: number;
   readonly audioEmitters?: number;
   readonly quadInstances?: number;
@@ -71,6 +78,19 @@ export interface DecalSnapshotReport {
   readonly live: number;
   readonly evicted: number;
   readonly submitted: number;
+}
+
+/** Fat-line extraction tally (E1): line entities, total segments, total vertices. */
+export interface LineSnapshotReport {
+  readonly lines: number;
+  readonly segments: number;
+  readonly vertices: number;
+}
+
+/** Point-cloud extraction tally (E1): clouds and total points. */
+export interface PointsSnapshotReport {
+  readonly clouds: number;
+  readonly points: number;
 }
 
 export interface ViewCullStats {

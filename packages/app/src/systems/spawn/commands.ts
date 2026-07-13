@@ -6,9 +6,11 @@ import {
   Light,
   LightKind,
   LightShadowSettings,
+  Line,
   Material,
   Mesh,
   ParticleEmitter,
+  Points,
   ProceduralSky,
   RenderLayer,
   RuntimeBuffer,
@@ -22,7 +24,9 @@ import {
   createFog,
   createLight,
   createLightShadowSettings,
+  createLine,
   createParticleEmitter,
+  createPoints,
   createProceduralSky,
   createRuntimeBuffer,
   createRuntimeUniform,
@@ -120,6 +124,34 @@ const DECAL_SPAWN_KEYS: ReadonlySet<string> = new Set([
   "depthBias",
   "capacity",
   "sequence",
+  "layer",
+]);
+
+const LINE_SPAWN_KEYS: ReadonlySet<string> = new Set([
+  "name",
+  "key",
+  "tags",
+  "transform",
+  "positions",
+  "color",
+  "width",
+  "dashSize",
+  "gapSize",
+  "dashOffset",
+  "layer",
+]);
+
+const POINTS_SPAWN_KEYS: ReadonlySet<string> = new Set([
+  "name",
+  "key",
+  "tags",
+  "transform",
+  "positions",
+  "colors",
+  "color",
+  "size",
+  "sizeAttenuation",
+  "shape",
   "layer",
 ]);
 
@@ -389,6 +421,37 @@ export function createSpawnCommands(options: {
           sequence,
         }),
       );
+      return entity;
+    },
+    line(input) {
+      warnUnknownSpawnKeys(options.diagnostics, "line", input, LINE_SPAWN_KEYS);
+      const entity = createEntityWithMetadata(options.world, input, "line");
+
+      addTransform(entity, input.transform);
+
+      if (input.layer !== undefined) {
+        entity.addComponent(RenderLayer, { mask: input.layer });
+      }
+
+      entity.addComponent(Line, createLine(input));
+      return entity;
+    },
+    points(input) {
+      warnUnknownSpawnKeys(
+        options.diagnostics,
+        "points",
+        input,
+        POINTS_SPAWN_KEYS,
+      );
+      const entity = createEntityWithMetadata(options.world, input, "points");
+
+      addTransform(entity, input.transform);
+
+      if (input.layer !== undefined) {
+        entity.addComponent(RenderLayer, { mask: input.layer });
+      }
+
+      entity.addComponent(Points, createPoints(input));
       return entity;
     },
     particles(input) {

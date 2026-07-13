@@ -70,7 +70,9 @@ import {
   MorphTargetWeights,
   OcclusionQuery,
   Decal,
+  Line,
   ParticleEmitter,
+  Points,
   ProceduralSky,
   RenderLayer,
   RenderOrder,
@@ -97,12 +99,14 @@ import {
   createLight,
   createLightCookie,
   createLightShadowSettings,
+  createLine,
   createMaterialSlots,
   createMorphTargetWeights,
   createOcclusionQuery,
   createAudioEmitter,
   createAudioListener,
   createParticleEmitter,
+  createPoints,
   createProceduralSky,
   createRuntimeUniform,
   createSkin,
@@ -128,11 +132,13 @@ import {
   type LightCookieInput,
   type LightInput,
   type LightShadowSettingsInput,
+  type LineInput,
   type MaterialSlotsInput,
   type MorphTargetWeightsInput,
   type AudioEmitterInput,
   type AudioListenerInput,
   type OcclusionQueryInput,
+  type PointsInput,
   type ProceduralSkyInput,
   type RenderExtractionFeatureOptions,
   type RenderSnapshot,
@@ -566,6 +572,20 @@ export function withDecal(
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(Decal, createDecal(input));
+  };
+}
+
+export function withLine(input: LineInput): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(Line, createLine(input));
+  };
+}
+
+export function withPoints(input: PointsInput): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(Points, createPoints(input));
   };
 }
 

@@ -980,6 +980,56 @@ updates are wanted.
 
 ### E1. Fat lines & points materials — **M**
 
+Status: implemented (2026-07-13). AC1 (lines + points): both ship as instanced
+**screen-space primitive subsystems** modeled on the sprite/decal precedent — a
+`Line`/`Points` authoring component whose geometry is data (a flat typed vertex
+buffer held by reference), `extractLines`/`extractPoints` that copy geometry into
+new `snapshot.lineVertices` / `snapshot.pointVertices` (+ `pointColors`) transferable
+families and emit `LinePacket`/`PointsPacket`, ONE shared instanced pipeline each
+(`aperture/fat-line`, `aperture/point-cloud`), and dedicated `lines`/`points` feature
+realizers registered alongside particles/decals/UI that draw in the post-opaque
+transparent phase. **Rationale**: fat lines and points ARE instanced-quad
+screen-space primitives, so a dedicated shared pipeline per subsystem (a) keeps the
+mesh/point data as worker-safe data rather than baking it into a material, and (b)
+avoids the known multi-distinct-custom-WGSL black-frame bug (D3) — the examples use
+only these built-in subsystems, never custom WGSL. Fat lines: each polyline segment
+expands on the GPU into a capsule bounding-box quad (half the screen-space `width` in
+pixels perpendicular, plus half-width caps past each endpoint); a capsule SDF in the
+fragment shader discards beyond half-width, yielding round caps AND round joins for
+free. Width is in pixels (resolution-independent). Dashes discard on the
+**world-continuous arc length** accumulated from the world-transformed vertices, so
+`dashSize`/`gapSize` are world units and the pattern flows across joins. Points: each
+point draws a camera-facing quad sized in pixels, or (with `sizeAttenuation`) world
+units scaled by `0.5 * viewportHeight / clipW` (the three.js `PointsMaterial` model,
+so nearer points are larger); round points radial-discard outside the unit disc;
+optional per-point color rides `pointColors` (uniform tint folded per point when
+absent). The screen-space quad-expansion math, dash arc-length, point size
+attenuation, and instance packing are pure exported functions with vitest unit
+coverage (`test/webgpu/line-point-geometry.test.ts`).
+
+AC2 (examples + baselines): `examples/fat-lines` draws a dashed debug-path (a thick
+cyan "staple" polyline for the screen-space width band + a dashed amber line);
+`examples/point-cloud` draws a near/far attenuated white-probe pair plus a colorful
+decorative cloud. `test/e2e/fat-lines.spec.ts` asserts the cyan band spans a large
+fraction of the canvas height (scale-invariant proof it is far wider than a 1px line)
+AND that a background gap separates the amber dashes; `test/e2e/point-cloud.spec.ts`
+asserts the near probe disc covers more pixels than the far one (attenuation) and
+that a point renders as a multi-pixel disc. Advanced-audit §8 line + point rows →
+✅ (sub-rows 🟡 where honest — round-only joins, three.js-model attenuation).
+
+Byte-identity + determinism: a frame with no lines/points omits every family + report
+field, builds no pipeline, and submits no pass, so it is byte-identical to a pre-E1
+frame (pinned by no-primitive literal tests in
+`test/webgpu/line-point-frame-resources.test.ts` and
+`test/rendering/lines-points-extraction.test.ts`). The families route through the
+transferable transport (`hasUnsupportedSharedSnapshotPayload` +
+`renderSnapshotTransferList` gain the new buffers), so the SAB packed codec is
+unchanged and no determinism fixture uses lines/points — `test/determinism` is GREEN
+with NO refresh. Deviations (honest): line joins/caps are round-only (no miter/bevel);
+segments crossing behind the camera are not near-plane clipped (endpoint `w` clamps to
+a small positive); per-vertex line colors and per-point size are follow-ups; both
+pipelines project the primary view's matrix (single-camera).
+
 - AC1: Line material with screen-space width, dashes, joins (Line2-style
   instanced quads under the hood); point material with size + attenuation.
 - AC2: Examples: debug path visualization (lines) and a point-cloud viewer;

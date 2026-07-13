@@ -6,10 +6,12 @@ import type {
   CustomWgslTextureSampleType,
   FogInput,
   DecalInput,
+  LineInput,
   LineListMeshOptions,
   LightInput,
   LightShadowSettingsInput,
   ParticleEmitterInput,
+  PointsInput,
   ProceduralSkyInput,
   RuntimeBufferInput,
   RuntimeUniformInput,
@@ -315,6 +317,18 @@ export interface SpawnDecalOptions
   readonly layer?: number;
 }
 
+export interface SpawnLineOptions extends SpawnMetadata, LineInput {
+  readonly transform?: SystemTransformInput;
+  /** Render layer mask applied via a `RenderLayer` component (default 1). */
+  readonly layer?: number;
+}
+
+export interface SpawnPointsOptions extends SpawnMetadata, PointsInput {
+  readonly transform?: SystemTransformInput;
+  /** Render layer mask applied via a `RenderLayer` component (default 1). */
+  readonly layer?: number;
+}
+
 export type ParticleEffectDescriptorInput =
   | ParticleEffectHandle
   | SystemParticleEffectAssetHandle;
@@ -470,6 +484,17 @@ export interface SpawnCommands {
    * evicts in spawn order.
    */
   decal(options: SpawnDecalOptions): Entity;
+  /**
+   * Spawn a fat-line (Line2-style) entity (E1). Each polyline segment expands
+   * to a screen-space-width quad with round caps/joins; `dashSize`/`gapSize`
+   * drive world-continuous dashes.
+   */
+  line(options: SpawnLineOptions): Entity;
+  /**
+   * Spawn a point-cloud (PointsMaterial-style) entity (E1). Each point draws a
+   * camera-facing quad sized in pixels or (with `sizeAttenuation`) world units.
+   */
+  points(options: SpawnPointsOptions): Entity;
   /** Spawn a renderer-independent particle emitter entity. */
   particles(options: SpawnParticlesOptions): Entity;
   /** Spawn a non-render physics entity, useful for joints, triggers, and pure colliders. */

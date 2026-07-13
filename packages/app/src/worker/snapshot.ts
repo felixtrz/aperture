@@ -860,6 +860,8 @@ export function hasUnsupportedSharedSnapshotPayload(
   return (
     hasItems(snapshot.spriteDraws) ||
     hasItems(snapshot.decals) ||
+    hasItems(snapshot.lines) ||
+    hasItems(snapshot.points) ||
     hasItems(snapshot.uiNodes) ||
     hasItems(snapshot.uiHitRegions) ||
     hasItems(snapshot.skyboxes) ||

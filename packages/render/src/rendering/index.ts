@@ -9,6 +9,11 @@ export {
   extractDecals,
   selectRenderedDecals,
 } from "./extraction-decals.js";
+export { extractLines, type ExtractLinesResult } from "./extraction-lines.js";
+export {
+  extractPoints,
+  type ExtractPointsResult,
+} from "./extraction-points.js";
 export * from "./extraction-cube-capture.js";
 export * from "./audio-one-shot-queue.js";
 export * from "./particle-burst-queue.js";

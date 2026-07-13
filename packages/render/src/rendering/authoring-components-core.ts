@@ -10,6 +10,7 @@ import {
   AudioSimulationSpace,
   FogMode,
   ParticleSimulationSpace,
+  PointShape,
   ProceduralSkyModel,
   SpriteBillboardMode,
   SpriteBlendMode,
@@ -134,6 +135,44 @@ export const Decal = defineComponent(
     visible: { type: EcsType.Boolean, default: true },
   },
   "Renderer-independent projected decal authoring. The entity WORLD transform is the decal projector (position + orientation); the quad is depth-biased onto opaque scene geometry. `capacity` + `sequence` drive an oldest-first (ring-buffer) live-decal cap resolved at extraction.",
+);
+
+export const Line = defineComponent(
+  "aperture.render.line",
+  {
+    // Flat polyline vertex positions (xyz per vertex) held by reference as a
+    // typed buffer (same-thread); render extraction copies them into the
+    // snapshot `lineVertices` family. Null until authored.
+    positions: { type: EcsType.Object, default: null },
+    color: { type: EcsType.Color, default: tuple4(1, 1, 1, 1) },
+    width: { type: EcsType.Float32, default: 2 },
+    dashSize: { type: EcsType.Float32, default: 0 },
+    gapSize: { type: EcsType.Float32, default: 0 },
+    dashOffset: { type: EcsType.Float32, default: 0 },
+    visible: { type: EcsType.Boolean, default: true },
+  },
+  "Renderer-independent fat-line (Line2-style) authoring. Each polyline segment expands to a screen-space-width quad with round caps/joins; `dashSize`/`gapSize` drive world-continuous dashes. Width is in pixels (resolution-independent).",
+);
+
+export const Points = defineComponent(
+  "aperture.render.points",
+  {
+    // Flat point positions (xyz per point) held by reference; extraction copies
+    // them into the snapshot `pointVertices` family. Null until authored.
+    positions: { type: EcsType.Object, default: null },
+    // Optional flat per-point RGBA colors held by reference. Null uses `color`.
+    colors: { type: EcsType.Object, default: null },
+    color: { type: EcsType.Color, default: tuple4(1, 1, 1, 1) },
+    size: { type: EcsType.Float32, default: 4 },
+    sizeAttenuation: { type: EcsType.Boolean, default: false },
+    shape: {
+      type: EcsType.Enum,
+      enum: PointShape,
+      default: PointShape.Round,
+    },
+    visible: { type: EcsType.Boolean, default: true },
+  },
+  "Renderer-independent point-cloud (PointsMaterial-style) authoring. Each point draws a camera-facing quad sized in pixels, or world units with perspective size attenuation; round/square shape and optional per-point color.",
 );
 
 export const AudioEmitter = defineComponent(

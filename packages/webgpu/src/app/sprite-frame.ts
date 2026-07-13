@@ -55,6 +55,8 @@ export async function renderSpriteOnlyWebGpuAppFrame(
   const hasUiNodes = (options.snapshot.uiNodes ?? []).length > 0;
   const hasParticleEmitters =
     (options.snapshot.particleEmitters ?? []).length > 0;
+  const hasLines = (options.snapshot.lines ?? []).length > 0;
+  const hasPoints = (options.snapshot.points ?? []).length > 0;
   const packedViews = writePackedSnapshotViewUniforms(
     options.snapshot,
     resourceCache.frameScratch.viewUniforms,
@@ -176,7 +178,9 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     !hasSkyboxes &&
     !hasProceduralSkies &&
     !hasUiNodes &&
-    !hasParticleEmitters
+    !hasParticleEmitters &&
+    !hasLines &&
+    !hasPoints
   ) {
     return renderReport({
       ok: false,

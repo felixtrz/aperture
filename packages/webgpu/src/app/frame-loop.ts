@@ -246,6 +246,8 @@ export async function renderWebGpuAppFrame(
   );
   const hasUiNodes = (snapshot.uiNodes ?? []).length > 0;
   const hasParticleEmitters = (snapshot.particleEmitters ?? []).length > 0;
+  const hasLines = (snapshot.lines ?? []).length > 0;
+  const hasPoints = (snapshot.points ?? []).length > 0;
   const resourceSetPlan = createWebGpuAppDrawResourceSetPlan(snapshot);
 
   if (
@@ -256,7 +258,9 @@ export async function renderWebGpuAppFrame(
       proceduralSkies.length > 0 ||
       hasGlyphBatches ||
       hasUiNodes ||
-      hasParticleEmitters)
+      hasParticleEmitters ||
+      hasLines ||
+      hasPoints)
   ) {
     phaseTimer.finish("collect");
     phaseTimer.start("prepare");

@@ -8,7 +8,9 @@ export {
 export {
   validateDecalInput,
   validateFogInput,
+  validateLineInput,
   validateParticleEmitterInput,
+  validatePointsInput,
   validateProceduralSkyInput,
   validateRuntimeBufferInput,
   validateRuntimeUniformInput,

@@ -11,6 +11,7 @@ import {
   Light,
   LightCookie,
   LightShadowSettings,
+  Line,
   Material,
   MaterialSlots,
   Mesh,
@@ -19,6 +20,7 @@ import {
   OcclusionQuery,
   ParticleEmitter,
   Pickable,
+  Points,
   ProceduralSky,
   RenderLayer,
   RenderOrder,
@@ -50,6 +52,8 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(MaterialSlots);
   world.registerComponent(Sprite);
   world.registerComponent(Decal);
+  world.registerComponent(Line);
+  world.registerComponent(Points);
   world.registerComponent(ParticleEmitter);
   world.registerComponent(AudioEmitter);
   world.registerComponent(AudioListener);

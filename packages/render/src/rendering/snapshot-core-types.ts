@@ -7,8 +7,10 @@ import type {
   FogPacket,
   InstanceAttributePacket,
   LightPacket,
+  LinePacket,
   MeshDrawPacket,
   ParticleEmitterPacket,
+  PointsPacket,
   ProceduralSkyPacket,
   QuadBatchPacket,
   RenderQueue,
@@ -52,6 +54,24 @@ export interface RenderSnapshot {
    * tally ride `report.decals`.
    */
   readonly decals?: readonly DecalPacket[];
+  /**
+   * Fat-line (Line2-style) packets (E1). Absent when a frame carries no lines
+   * so a line-free snapshot is byte-identical to a pre-E1 snapshot. Vertex data
+   * rides the transferable `lineVertices` family.
+   */
+  readonly lines?: readonly LinePacket[];
+  /** Flat local-space polyline vertices (xyz per vertex) referenced by `lines`. */
+  readonly lineVertices?: Float32Array;
+  /**
+   * Point-cloud (PointsMaterial-style) packets (E1). Absent when a frame
+   * carries no points. Vertex/color data rides the transferable
+   * `pointVertices`/`pointColors` families.
+   */
+  readonly points?: readonly PointsPacket[];
+  /** Flat local-space point positions (xyz per point) referenced by `points`. */
+  readonly pointVertices?: Float32Array;
+  /** Flat per-point RGBA colors (four per point) referenced by `points`. */
+  readonly pointColors?: Float32Array;
   readonly particleEmitters?: readonly ParticleEmitterPacket[];
   readonly audioEmitters?: readonly AudioEmitterPacket[];
   readonly audioListener?: AudioListenerPacket;

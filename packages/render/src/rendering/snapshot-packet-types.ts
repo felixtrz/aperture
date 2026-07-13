@@ -136,6 +136,64 @@ export interface DecalPacket {
   readonly sortKey: RenderSortKey;
 }
 
+/**
+ * Fat-line (Line2-style) packet (E1). References a slice of the snapshot's
+ * `lineVertices` family — a polyline of `vertexCount` xyz vertices starting at
+ * point index `vertexOffset` — plus the screen-space width (pixels), tint, and
+ * dash parameters. Each of the polyline's `vertexCount - 1` segments expands to
+ * a screen-space-width quad at render time. Absent when a frame carries no
+ * lines so a line-free snapshot is byte-identical to a pre-E1 snapshot.
+ */
+export interface LinePacket {
+  readonly renderId: number;
+  readonly entity: RenderEntityRef;
+  /** Start point index into `snapshot.lineVertices` (float offset = index * 3). */
+  readonly vertexOffset: number;
+  /** Polyline vertex count (segments = vertexCount - 1). */
+  readonly vertexCount: number;
+  readonly color: Vec4Like;
+  /** Screen-space line width in pixels. */
+  readonly width: number;
+  /** Dash length in world units; 0 draws a solid line. */
+  readonly dashSize: number;
+  /** Gap length in world units between dashes. */
+  readonly gapSize: number;
+  /** World-unit dash phase offset. */
+  readonly dashOffset: number;
+  readonly worldTransformOffset: number;
+  readonly boundsIndex: number;
+  readonly layerMask: number;
+  readonly sortKey: RenderSortKey;
+}
+
+/**
+ * Point-cloud (PointsMaterial-style) packet (E1). References a slice of the
+ * snapshot's `pointVertices`/`pointColors` families — `vertexCount` points
+ * starting at point index `vertexOffset`. Each point draws a camera-facing quad
+ * sized in pixels, or world units with perspective size attenuation. Absent
+ * when a frame carries no points.
+ */
+export interface PointsPacket {
+  readonly renderId: number;
+  readonly entity: RenderEntityRef;
+  /** Start point index into `snapshot.pointVertices` (float offset = index * 3). */
+  readonly vertexOffset: number;
+  /** Point count in this cloud. */
+  readonly vertexCount: number;
+  /** Uniform tint (already folded per-point into `snapshot.pointColors`). */
+  readonly color: Vec4Like;
+  /** Point size: pixels when `sizeAttenuation` is false, else world units. */
+  readonly size: number;
+  /** Perspective size falloff (points shrink with view-space depth). */
+  readonly sizeAttenuation: boolean;
+  /** Round (radial discard) when true, square when false. */
+  readonly round: boolean;
+  readonly worldTransformOffset: number;
+  readonly boundsIndex: number;
+  readonly layerMask: number;
+  readonly sortKey: RenderSortKey;
+}
+
 export interface QuadBatchPacket {
   readonly batchId: number;
   readonly kind: QuadBatchKind;

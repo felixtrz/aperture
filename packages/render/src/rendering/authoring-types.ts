@@ -109,6 +109,13 @@ export const SpriteDepthMode = {
 export type SpriteDepthMode =
   (typeof SpriteDepthMode)[keyof typeof SpriteDepthMode];
 
+export const PointShape = {
+  Round: "round",
+  Square: "square",
+} as const;
+
+export type PointShape = (typeof PointShape)[keyof typeof PointShape];
+
 export const AudioSimulationSpace = {
   /** Spatialized through a PannerNode from the emitter's world transform. */
   World: "world",
@@ -331,6 +338,49 @@ export interface DecalInput {
   readonly capacity?: number;
   /** Spawn-order stamp used to evict the oldest decals first. */
   readonly sequence?: number;
+}
+
+export interface LineInput {
+  /**
+   * Flat polyline vertex positions in local space: `[x0,y0,z0, x1,y1,z1, ...]`.
+   * A polyline of N vertices draws N-1 segments; each segment expands to a
+   * screen-space-width quad (Line2-style). At least two vertices are required.
+   */
+  readonly positions: ArrayLike<number>;
+  /** RGB(A) line tint (uniform along the polyline). */
+  readonly color?: Vec4Like;
+  /** Screen-space line width in pixels (resolution-independent). */
+  readonly width?: number;
+  /** Dash length in world units along the polyline; 0 (default) draws solid. */
+  readonly dashSize?: number;
+  /** Gap length in world units between dashes; ignored when `dashSize` is 0. */
+  readonly gapSize?: number;
+  /** World-unit phase offset applied to the dash pattern. */
+  readonly dashOffset?: number;
+}
+
+export interface PointsInput {
+  /**
+   * Flat point positions in local space: `[x0,y0,z0, x1,y1,z1, ...]`. Each
+   * point draws a camera-facing quad. At least one point is required.
+   */
+  readonly positions: ArrayLike<number>;
+  /**
+   * Optional flat per-point RGBA colors: `[r0,g0,b0,a0, ...]`, four components
+   * per point. When omitted every point uses the uniform `color`.
+   */
+  readonly colors?: ArrayLike<number>;
+  /** Uniform point color used when `colors` is not supplied. */
+  readonly color?: Vec4Like;
+  /**
+   * Point size. Pixels when `sizeAttenuation` is false; world units (with
+   * perspective size falloff) when true.
+   */
+  readonly size?: number;
+  /** Perspective size falloff — points shrink with view-space depth. */
+  readonly sizeAttenuation?: boolean;
+  /** Round (radial discard) or square point sprite shape. */
+  readonly shape?: PointShape;
 }
 
 export interface AudioEmitterInput {
@@ -559,6 +609,15 @@ export type RenderAuthoringDiagnosticCode =
   | "decal.invalidOpacity"
   | "decal.invalidDepthBias"
   | "decal.invalidCapacity"
+  | "line.invalidPositions"
+  | "line.invalidWidth"
+  | "line.invalidColor"
+  | "line.invalidDash"
+  | "points.invalidPositions"
+  | "points.invalidColors"
+  | "points.invalidSize"
+  | "points.invalidColor"
+  | "points.invalidShape"
   | "particle.invalidEffect"
   | "particle.invalidCapacity"
   | "particle.invalidSeed"

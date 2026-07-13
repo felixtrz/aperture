@@ -1545,6 +1545,121 @@ follow-up that lifts these.
 See `examples/decals.html` for FPS-style bullet holes accumulating on a wall,
 hitting the cap and evicting the oldest.
 
+## Fat lines — parity plan E1
+
+A **fat line** is a polyline drawn with a **screen-space width in pixels** — the
+analog of three.js `Line2` / `LineMaterial` (the fat-lines addon), not a 1px GPU
+`line-list`. Each segment of the polyline is expanded on the GPU into an
+instanced quad: both endpoints project to pixel space, and the quad is a capsule
+bounding box (half the pixel width perpendicular to the segment, plus half-width
+caps past each endpoint). A capsule SDF in the fragment shader discards
+everything beyond half-width from the segment core, which gives **round caps and
+round joins for free**. Width is resolution-independent (it stays N pixels at any
+camera distance). All lines draw through ONE shared instanced pipeline in the
+post-opaque transparent phase, and a scene with no lines renders byte-identically
+to one authored before lines existed.
+
+Spawn one with the `spawn.line(...)` system command:
+
+```ts
+class PathDebugSystem extends createSystem({ priority: 0 }) {
+  override drawPath(waypoints: readonly Vec3[]): void {
+    this.spawn.line({
+      // Flat local-space xyz per vertex; N vertices -> N-1 segments.
+      positions: waypoints.flat(),
+      color: [0.1, 0.85, 1, 1], // RGBA tint (uniform along the polyline)
+      width: 6, // SCREEN-SPACE width in pixels
+      dashSize: 0.25, // world-unit dash length (0 = solid)
+      gapSize: 0.25, // world-unit gap between dashes
+      dashOffset: 0, // world-unit phase offset
+      layer: 1, // RenderLayer mask (defaults to 1)
+    });
+  }
+}
+```
+
+Fields (all optional except `positions`): `positions` (flat xyz, ≥ 2 vertices),
+`color`, `width` (pixels), `dashSize` / `gapSize` / `dashOffset` (world units),
+`layer`, `transform`. The lower-level trait `withLine(...)` and the
+`createLine(...)` component factory are available for `createExtractionApp` /
+trait-based spawning.
+
+**Dashes.** Dash phase uses the **world-continuous arc length** along the
+polyline (accumulated from the world-transformed vertices), so `dashSize` /
+`gapSize` are world units and the pattern flows unbroken across segments and
+joins. The fragment discards where `mod(arcLength + dashOffset, dashSize +
+gapSize) > dashSize`.
+
+**Report.** `snapshot.report.lines` = `{ lines, segments, vertices }`; the
+renderer's `report.features.lines` = `{ lines, segments, drawnSegments }`.
+
+**Diagnostics.** A degenerate polyline (`line.invalidPositions`, e.g. < 2
+vertices or a length not a multiple of 3), bad width (`line.invalidWidth`), bad
+dash params (`line.invalidDash`), or a non-finite color (`line.invalidColor`)
+fail authoring validation with NO packet; unavailable GPU resources emit
+`lineFrame.*` codes — never a raw WebGPU validation error.
+
+**Limitations (honest).** 🟡 Joins/caps are **round only** (the capsule SDF); no
+miter/bevel option. 🟡 Segments crossing behind the camera are not near-plane
+clipped (the endpoints clamp to a small positive `w`). Per-vertex line colors
+are a follow-up — the color is uniform per polyline today. Dashes are per-line
+world-continuous (not per-screen-pixel). The pipeline projects the primary
+view's matrix (single-camera scenes).
+
+See `examples/fat-lines.html` for a dashed debug-path visualization.
+
+## Points — parity plan E1
+
+A **point cloud** draws each point as a **camera-facing quad**, the analog of
+three.js `PointsMaterial`. Size is either in **pixels** (constant on screen) or,
+with `sizeAttenuation`, in **world units with perspective size falloff** — a
+point at clip depth `w` renders `size * 0.5 * viewportHeight / w` pixels wide, so
+nearer points are larger (matching three.js's attenuation). Points can be
+**round** (radial `discard` outside the unit disc) or **square**, with an
+optional **per-point color**. One shared instanced pipeline, transparent phase,
+byte-identical when unused.
+
+Spawn one with the `spawn.points(...)` system command:
+
+```ts
+class CloudSystem extends createSystem({ priority: 0 }) {
+  override showCloud(cloud: PointCloud): void {
+    this.spawn.points({
+      positions: cloud.xyz, // flat local-space xyz per point
+      colors: cloud.rgba, // OPTIONAL flat RGBA per point (4 per point)
+      color: [1, 1, 1, 1], // uniform tint when `colors` is omitted
+      size: 0.5, // world units (with attenuation) or pixels
+      sizeAttenuation: true, // perspective size falloff
+      shape: "round", // "round" (default) or "square"
+      layer: 1,
+    });
+  }
+}
+```
+
+Fields (all optional except `positions`): `positions` (flat xyz, ≥ 1 point),
+`colors` (flat RGBA, 4 per point), `color` (uniform fallback), `size`,
+`sizeAttenuation`, `shape`, `layer`, `transform`. The lower-level trait
+`withPoints(...)` and the `createPoints(...)` component factory are available for
+`createExtractionApp` / trait-based spawning.
+
+**Report.** `snapshot.report.points` = `{ clouds, points }`; the renderer's
+`report.features.points` = `{ clouds, points, drawnPoints }`.
+
+**Diagnostics.** Degenerate positions (`points.invalidPositions`), a per-point
+color buffer whose length ≠ `points * 4` (`points.invalidColors`), a bad size
+(`points.invalidSize`), a non-finite color (`points.invalidColor`), or an
+unknown shape (`points.invalidShape`) fail authoring validation with NO packet;
+unavailable GPU resources emit `pointFrame.*` codes.
+
+**Limitations (honest).** 🟡 Attenuation uses three.js's `0.5 * viewportHeight /
+w` model (FOV-independent scale), matching `PointsMaterial` rather than an
+exact-projection derivation. Per-point size is uniform per cloud (size is a
+cloud-level field). The pipeline projects the primary view's matrix
+(single-camera scenes).
+
+See `examples/point-cloud.html` for a near/far attenuated point-cloud viewer.
+
 ## Dynamic meshes — parity plan D5
 
 For geometry that changes every frame on the CPU (cloth, jelly, procedural
