@@ -138,7 +138,7 @@ export async function createCustomWgslAppFrameResources(options: {
 
   diagnostics.push(...worldTransforms.diagnostics);
 
-  const materialResources = createCustomWgslBindingResources({
+  const materialResources = createCustomWgslBindingGpuResources({
     device: options.device,
     material: options.material,
     externalResources: options.bindingResources ?? [],
@@ -342,12 +342,31 @@ async function createCustomWgslMaterialRenderResourcesFromPipeline(options: {
   };
 }
 
-function createCustomWgslBindingResources(options: {
+/**
+ * Resolve the GPU resources backing every group(2) binding of a prepared
+ * custom WGSL material: external texture/sampler/storage resources pass
+ * through, uniform bindings realize (and update) their backing buffers.
+ * Exported for the shadow-caster path (A4 `shadowVertex`), which builds a
+ * caster bind group over the SAME resources — pass the same
+ * `runtimeUniformCache` the main pass uses so runtime-uniform buffers are
+ * shared (one buffer, one write per change), and a `staticUniformCache` so
+ * value-baked uniform buffers are created once instead of per call.
+ */
+export function createCustomWgslBindingGpuResources(options: {
   readonly device: WebGpuBufferDeviceLike;
   readonly material: PreparedCustomWgslMaterial;
   readonly externalResources: readonly CustomWgslMaterialGpuResource[];
   readonly runtimeUniforms: readonly RuntimeUniformPacket[];
   readonly runtimeUniformCache?: Map<
+    string,
+    CustomWgslRuntimeUniformBufferResource
+  >;
+  /**
+   * When provided, uniform bindings WITHOUT a `runtimeUniformKey` are cached
+   * here (created once, rewritten only when their baked values change)
+   * instead of allocating a fresh buffer on every call.
+   */
+  readonly staticUniformCache?: Map<
     string,
     CustomWgslRuntimeUniformBufferResource
   >;
@@ -426,7 +445,18 @@ function createCustomWgslBindingResources(options: {
     const runtimeUniformKey = layout.runtimeUniformKey;
     const runtimeResource =
       runtimeUniformKey === undefined
-        ? null
+        ? options.staticUniformCache === undefined
+          ? null
+          : getOrCreateCustomWgslRuntimeUniformResource({
+              device: options.device,
+              material: options.material,
+              binding,
+              runtimeUniformKey: "static",
+              data: bytes,
+              cache: options.staticUniformCache,
+              ...(options.reuse === undefined ? {} : { reuse: options.reuse }),
+              diagnostics,
+            })
         : getOrCreateCustomWgslRuntimeUniformResource({
             device: options.device,
             material: options.material,
@@ -448,7 +478,10 @@ function createCustomWgslBindingResources(options: {
       continue;
     }
 
-    if (runtimeUniformKey !== undefined) {
+    if (
+      runtimeUniformKey !== undefined ||
+      options.staticUniformCache !== undefined
+    ) {
       continue;
     }
 

@@ -338,6 +338,28 @@ export interface CustomWgslMaterialPipelineKeyInput {
 export interface CustomWgslMaterialEntryPoints {
   readonly vertex: string;
   readonly fragment: string;
+  /**
+   * Optional shadow-caster vertex entry point (the analog of three.js
+   * `customDepthMaterial`/`castShadowPositionNode`). When present, meshes using
+   * this material render into shadow maps through a per-material depth-only
+   * caster pipeline whose vertex stage is compiled from the SAME WGSL module
+   * using this entry point, so vertex displacement applied by the main vertex
+   * entry can be mirrored into the shadow silhouette.
+   *
+   * Caster bind contract (mirrors the built-in position-only caster):
+   * - `@group(0) @binding(0) var<uniform>` — a struct whose first member is
+   *   the active shadow pass's light `viewProjection: mat4x4<f32>`.
+   * - `@group(0) @binding(1) var<storage, read> array<mat4x4<f32>>` — caster
+   *   world transforms, indexed by `@builtin(instance_index)`.
+   * - `@group(1)` — reserved (bound empty by the renderer).
+   * - `@group(2)` — this material's own bindings (uniform/texture/sampler/
+   *   storage), exactly as declared for the main pass; bindings the caster
+   *   entry point reads must include `"vertex"` visibility.
+   * - Vertex input: `@location(0) position: vec3f` (the mesh POSITION stream
+   *   only) plus `@builtin(instance_index)`; the output is
+   *   `@builtin(position) vec4f` (no fragment stage runs).
+   */
+  readonly shadowVertex?: string;
 }
 
 export interface CustomWgslMaterialAsset {

@@ -2,14 +2,19 @@ import {
   assetHandleKey,
   type AssetRegistry,
 } from "@aperture-engine/simulation";
-import type {
-  MeshAsset,
-  MeshDrawPacket,
-  RenderSnapshot,
-  ShadowRequestPacket,
+import {
+  isCustomWgslMaterialAsset,
+  type MeshAsset,
+  type MeshDrawPacket,
+  type PreparedCustomWgslMaterial,
+  type RenderSnapshot,
+  type ShadowRequestPacket,
+  type SourceMaterialAsset,
 } from "@aperture-engine/render";
 import { prepareAppMeshResource } from "../resources/meshes/prepared-app-mesh-resource.js";
 import type { GpuTimestampQueryResources } from "../gpu/gpu-timing.js";
+import { createCustomWgslBindingGpuResources } from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
+import type { WebGpuBufferDeviceLike } from "../gpu/buffer.js";
 import {
   createRenderShadowFrame,
   resolvePrimaryShadowCamera,
@@ -17,10 +22,13 @@ import {
   type RenderShadowFrameResult,
 } from "../shadows/render-shadow-frame.js";
 import type { ShadowCasterExecutableMeshResourceView } from "../shadows/shadow-caster-command-record-plan.js";
+import type { CustomWgslShadowCasterMaterialInput } from "../shadows/shadow-caster-custom-wgsl.js";
 import { isDepthOnlyShadowCasterDrawSupported } from "../shadows/shadow-caster-draw-list-plan.js";
 import type { ShadowCasterPreparedMeshResourceView } from "../shadows/shadow-caster-frame-resource-readiness.js";
 import type { WebGpuApp, WebGpuAppResourceReuseReport } from "./app.js";
 import { sourceAssetCacheKey } from "./app-texture-sampler-resources.js";
+import { prepareCustomWgslAppStorageBufferBindingResources } from "./custom-wgsl-storage-buffer-resources.js";
+import { prepareCustomWgslAppTextureSamplerBindingResources } from "./custom-wgsl-texture-sampler-resources.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 
 export type WebGpuAppAutoShadowPipelineKind =
@@ -97,12 +105,14 @@ export function createWebGpuAppAutoShadowFrame(options: {
     autoShadowNeedsCameraFrustumFitBounds(options.snapshot)
       ? computeShadowSceneMatrix(options.snapshot)
       : null;
+  const customWgslCasters = collectAutoShadowCustomWgslCasters(options);
 
-  return createRenderShadowFrame({
+  const frame = createRenderShadowFrame({
     device: options.app.initialization.device as RenderShadowFrameDeviceLike,
     snapshot: options.snapshot,
     preparedMeshes: meshViews.preparedMeshes,
     executableMeshes: meshViews.executableMeshes,
+    ...(customWgslCasters.length === 0 ? {} : { customWgslCasters }),
     cache: options.cache.environmentResources,
     ...(sceneMatrix === null ? {} : { matrix: sceneMatrix }),
     label: `${options.label ?? "aperture-webgpu-app"}:auto-shadow`,
@@ -112,6 +122,112 @@ export function createWebGpuAppAutoShadowFrame(options: {
       ? {}
       : { gpuTiming: options.gpuTiming }),
   });
+
+  options.reuse.customShadowCasterPipelinesCreated +=
+    frame.customWgslCasters.createdPipelineCount;
+  options.reuse.customShadowCasterPipelinesReused +=
+    frame.customWgslCasters.reusedPipelineCount;
+  options.reuse.customShadowCasterBindGroupsCreated +=
+    frame.customWgslCasters.createdBindGroupCount;
+  options.reuse.customShadowCasterBindGroupsReused +=
+    frame.customWgslCasters.reusedBindGroupCount;
+
+  return frame;
+}
+
+/**
+ * Collect the custom WGSL `shadowVertex` materials used by this snapshot's
+ * shadow casters, realizing their group(2) binding resources through the SAME
+ * cached channels as the main pass (texture/sampler cache, storage-buffer
+ * cache with runtime-buffer packets, runtime-uniform cache) so the caster
+ * bind group shares buffer identity with the forward draw — one buffer, one
+ * write per change. Materials whose prepared form or shadow entry point is
+ * not (yet) available are simply omitted: their draws keep the shared
+ * position-only caster for the frame.
+ */
+function collectAutoShadowCustomWgslCasters(options: {
+  readonly app: WebGpuApp;
+  readonly assets: AssetRegistry;
+  readonly cache: WebGpuAppResourceCache;
+  readonly reuse: WebGpuAppResourceReuseReport;
+  readonly snapshot: RenderSnapshot;
+}): readonly CustomWgslShadowCasterMaterialInput[] {
+  const casters: CustomWgslShadowCasterMaterialInput[] = [];
+  const seen = new Set<string>();
+
+  for (const draw of shadowCasterDrawsForSnapshot(options.snapshot)) {
+    if (!isSupportedShadowCasterDraw(draw, options.snapshot.shadowRequests)) {
+      continue;
+    }
+
+    const materialKey = assetHandleKey(draw.material);
+
+    if (seen.has(materialKey)) {
+      continue;
+    }
+
+    seen.add(materialKey);
+
+    const source = options.assets.get<"material", SourceMaterialAsset>(
+      draw.material,
+    )?.asset;
+
+    if (
+      source === null ||
+      source === undefined ||
+      !isCustomWgslMaterialAsset(source) ||
+      typeof source.entryPoints.shadowVertex !== "string" ||
+      source.entryPoints.shadowVertex.trim().length === 0
+    ) {
+      continue;
+    }
+
+    const prepared = options.cache.preparedMaterialFacade.get(draw.material)
+      ?.prepared as PreparedCustomWgslMaterial | undefined;
+
+    if (
+      prepared === undefined ||
+      prepared.resourceFamily !== "custom-wgsl-material" ||
+      prepared.shader.shadowVertexEntryPoint === undefined
+    ) {
+      continue;
+    }
+
+    const textureSampler = prepareCustomWgslAppTextureSamplerBindingResources({
+      assets: options.assets,
+      device: options.app.initialization.device,
+      cache: options.cache,
+      reuse: options.reuse,
+      source,
+      material: prepared,
+    });
+    const storage = prepareCustomWgslAppStorageBufferBindingResources({
+      assets: options.assets,
+      device: options.app.initialization.device,
+      cache: options.cache.customWgslStorageBuffers,
+      reuse: options.reuse,
+      source,
+      material: prepared,
+      runtimeBuffers: options.snapshot.runtimeBuffers ?? [],
+    });
+    const bindings = createCustomWgslBindingGpuResources({
+      device: options.app.initialization.device as WebGpuBufferDeviceLike,
+      material: prepared,
+      externalResources: [...textureSampler.resources, ...storage.resources],
+      runtimeUniforms: options.snapshot.runtimeUniforms ?? [],
+      runtimeUniformCache: options.cache.customWgslRuntimeUniforms,
+      staticUniformCache: options.cache.customWgslShadowStaticUniforms,
+      reuse: options.reuse,
+    });
+
+    casters.push({
+      materialKey,
+      material: prepared,
+      bindingResources: bindings.resources,
+    });
+  }
+
+  return casters;
 }
 
 export function createWebGpuAppAutoShadowFrameInputKey(

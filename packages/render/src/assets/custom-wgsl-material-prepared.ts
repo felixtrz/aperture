@@ -68,12 +68,18 @@ export function createPreparedCustomWgslMaterial(input: {
       sourceKey: input.shaderSourceKey,
       vertexEntryPoint: input.source.entryPoints.vertex,
       fragmentEntryPoint: input.source.entryPoints.fragment,
+      ...(input.source.entryPoints.shadowVertex === undefined
+        ? {}
+        : { shadowVertexEntryPoint: input.source.entryPoints.shadowVertex }),
     },
     pipeline: {
       pipelineKey,
       shaderModuleKey: moduleKey,
       vertexEntryPoint: input.source.entryPoints.vertex,
       fragmentEntryPoint: input.source.entryPoints.fragment,
+      ...(input.source.entryPoints.shadowVertex === undefined
+        ? {}
+        : { shadowVertexEntryPoint: input.source.entryPoints.shadowVertex }),
       renderState: input.source.renderState,
       instanceAttributes,
     },
@@ -103,6 +109,12 @@ function customWgslMaterialPipelineKey(
     `shader:${shaderHash}`,
     `vs:${source.entryPoints.vertex}`,
     `fs:${source.entryPoints.fragment}`,
+    // The shadow-caster entry point participates only when authored so
+    // materials without one keep byte-identical pipeline keys (zero
+    // regression for existing caches, snapshots, and goldens).
+    ...(source.entryPoints.shadowVertex === undefined
+      ? []
+      : [`shadow-vs:${source.entryPoints.shadowVertex}`]),
     `instance-attributes:${instanceAttributes?.layoutKey ?? "none"}`,
     `features:${source.pipelineKey.features.join(",")}`,
     `specialization:${stableStringHash(

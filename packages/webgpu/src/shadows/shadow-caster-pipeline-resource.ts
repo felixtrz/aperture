@@ -472,7 +472,12 @@ function report(input: {
   };
 }
 
-function resolveShadowCasterVertexBufferLayouts(
+/**
+ * Resolve the position-only vertex buffer layout for a caster pipeline from a
+ * mesh layout key (the shared depth-only caster and the per-material custom
+ * WGSL caster both consume POSITION at `@location(0)` from the first stream).
+ */
+export function resolveShadowCasterVertexBufferLayouts(
   meshLayoutKey: string | null,
 ): readonly UnlitPrimitiveVertexBufferLayout[] {
   const parsed = parseShadowCasterPositionLayout(meshLayoutKey);

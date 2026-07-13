@@ -147,6 +147,23 @@ export interface CreateShadowCasterCommandRecordPlanReportOptions {
    * caster shader computes `passLightVP * worldTransforms[instance] * local`.
    */
   readonly worldTransformIndexByPassDraw?: ReadonlyMap<string, number>;
+  /**
+   * Extra bind groups appended to draws routed to a per-material caster
+   * pipeline (custom WGSL `shadowVertex`): the reserved empty group(1) plus
+   * the material's group(2) bind group, keyed by the caster pipeline key.
+   * Draws on the shared position-only pipeline have no entry and keep the
+   * single group(0) matrix bind group.
+   */
+  readonly drawBindGroupsByPipelineKey?: ReadonlyMap<
+    string,
+    readonly ShadowCasterDrawExtraBindGroupView[]
+  >;
+}
+
+export interface ShadowCasterDrawExtraBindGroupView {
+  readonly group: number;
+  readonly resourceKey: string;
+  readonly bindGroup: unknown;
 }
 
 interface ShadowCasterResolvedDraw extends ResolvedRenderPassDraw {
@@ -352,6 +369,8 @@ export function createShadowCasterCommandRecordPlanReport(
       useBaked && options.bakedMatrixBindGroup !== undefined
         ? options.bakedMatrixBindGroup
         : matrixBindGroup;
+    const extraBindGroups =
+      options.drawBindGroupsByPipelineKey?.get(pipeline.pipelineKey) ?? [];
     const draw: ShadowCasterResolvedDraw = {
       renderId: record.renderId,
       renderIds: [record.renderId],
@@ -363,6 +382,11 @@ export function createShadowCasterCommandRecordPlanReport(
           resourceKey: activeBindGroup.resourceKey,
           bindGroup: activeBindGroup.bindGroup,
         },
+        ...extraBindGroups.map((bindGroup) => ({
+          group: bindGroup.group,
+          resourceKey: bindGroup.resourceKey,
+          bindGroup: bindGroup.bindGroup,
+        })),
       ],
       vertexBuffers,
       vertexCount: record.vertexCount ?? meshVertexCount(vertexBuffers),

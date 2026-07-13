@@ -60,12 +60,20 @@ export interface PreparedCustomWgslMaterial {
     readonly sourceKey: string;
     readonly vertexEntryPoint: string;
     readonly fragmentEntryPoint: string;
+    /**
+     * Optional shadow-caster vertex entry point compiled from the same module
+     * (see `CustomWgslMaterialEntryPoints.shadowVertex` for the bind
+     * contract). Present only when the source material declares it.
+     */
+    readonly shadowVertexEntryPoint?: string;
   };
   readonly pipeline: {
     readonly pipelineKey: string;
     readonly shaderModuleKey: string;
     readonly vertexEntryPoint: string;
     readonly fragmentEntryPoint: string;
+    /** Shadow-caster vertex entry point (mirrors `shader.shadowVertexEntryPoint`). */
+    readonly shadowVertexEntryPoint?: string;
     readonly renderState: RenderStateDescriptor;
     readonly instanceAttributes: InstanceAttributeLayout | null;
   };

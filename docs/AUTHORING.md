@@ -462,6 +462,84 @@ When a storage binding declares `runtimeBufferKey` but no matching
 source-asset contents. See `examples/storage-buffer-grass.html` for a complete
 instanced-grass field driven this way.
 
+### Shadow-casting displacement
+
+By default a custom-WGSL mesh casts shadows through the renderer's shared
+position-only caster pipeline, so vertex displacement applied by your main
+vertex entry does not reach the shadow map — the silhouette stays the
+undisplaced mesh (the same gap three.js closes with
+`customDepthMaterial`/`castShadowPositionNode`). Declare an optional
+`entryPoints.shadowVertex` to opt the material into a per-material caster
+pipeline whose vertex stage is compiled from the SAME WGSL module:
+
+```ts
+material.customWgsl({
+  familyKey: "app/flag",
+  label: "Wind Flag",
+  shader: shader.asset(this.assets.shader("flag")),
+  entryPoints: {
+    vertex: "vs_main",
+    fragment: "fs_main",
+    shadowVertex: "shadow_vs",
+  },
+  bindings: [
+    material.uniform("flagParams", {
+      binding: 0,
+      visibility: ["vertex"],
+      fields: { time: { type: EcsType.Float32 } },
+      runtimeUniformKey: "flag.time",
+    }),
+  ],
+});
+```
+
+The shadow caster pass binds a different, documented contract (mirroring the
+built-in position-only caster):
+
+- `@group(0) @binding(0)`: uniform struct whose first member is the active
+  shadow pass's light `viewProjection: mat4x4f` (one caster pass per
+  directional cascade / point face / spot map).
+- `@group(0) @binding(1)`: read-only storage array of caster world transforms
+  (`array<mat4x4f>`), indexed with `@builtin(instance_index)`.
+- `@group(1)`: reserved — the renderer binds it empty.
+- `@group(2)`: the material's OWN bindings, exactly as in the main pass
+  (uniform/texture/sampler/storage all resolve to the same GPU resources, so a
+  `runtimeUniformKey` time value drives both passes with one write). Bindings
+  the caster entry reads must include `"vertex"` visibility.
+- Vertex input: `@location(0) position: vec3f` (the mesh POSITION stream only)
+  plus `@builtin(instance_index)`; output is `@builtin(position) vec4f`. The
+  pipeline is depth-only — no fragment stage runs.
+
+Because the main pass uses `@group(0) @binding(0)` for the view uniform, your
+module declares BOTH sets of bindings; that is valid WGSL as long as no single
+entry point statically uses two variables on the same binding point. Keep the
+displacement in a shared function so the silhouette matches the mesh:
+
+```wgsl
+fn displace(world: vec3f, time: f32) -> vec3f { /* shared wave */ }
+
+@vertex fn vs_main(/* main contract */) -> VertexOutput { /* uses displace() */ }
+
+@vertex
+fn shadow_vs(
+  @location(0) position: vec3f,
+  @builtin(instance_index) i: u32,
+) -> @builtin(position) vec4f {
+  let world = shadowWorldTransforms[i] * vec4f(position, 1.0);
+  return shadowPassMatrix.viewProjection * vec4f(displace(world.xyz, params.time), 1.0);
+}
+```
+
+Materials without `shadowVertex` keep today's shared caster (byte-identical
+pipeline keys, zero behavior change). Caster pipelines are cached per material
+(create/reuse counters surface as `resourceReuse.customShadowCasterPipelines*`
+and `report.shadow.resourceReuse.customWgslPipelines*`), and failures
+(`customWgslMaterial.shadowCaster*` diagnostics — missing entry point, module
+or pipeline creation errors) fall back to the shared position-only caster so
+the mesh still casts an undisplaced shadow. Instance attributes are not
+available to the caster entry point. See `examples/shadow-displacement.html`
+for a wind-displaced flag whose shadow silhouette waves with the mesh.
+
 Current limitations: WGSL only; no shader imports; no user-supplied WebGPU
 objects or callbacks; no arbitrary app-owned material adapter registration; and
 lighting/environment integration is deferred. App-route custom WGSL supports

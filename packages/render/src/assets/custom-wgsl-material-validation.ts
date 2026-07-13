@@ -182,6 +182,7 @@ function validateEntryPoints(
 ): void {
   const vertex = source.entryPoints?.vertex;
   const fragment = source.entryPoints?.fragment;
+  const shadowVertex = source.entryPoints?.shadowVertex;
 
   validateEntryPointName(vertex, "entryPoints.vertex", assetKey, diagnostics);
   validateEntryPointName(
@@ -190,6 +191,15 @@ function validateEntryPoints(
     assetKey,
     diagnostics,
   );
+
+  if (shadowVertex !== undefined) {
+    validateEntryPointName(
+      shadowVertex,
+      "entryPoints.shadowVertex",
+      assetKey,
+      diagnostics,
+    );
+  }
 
   if (
     source.shader?.kind !== "inline-wgsl" ||
@@ -213,6 +223,19 @@ function validateEntryPoints(
     diagnostics.push({
       code: "customMaterialSource.invalidDependency",
       message: `Custom material '${assetKey}' is missing fragment entry point '${fragment}'.`,
+      severity: "error",
+      assetKey,
+    });
+  }
+
+  if (
+    typeof shadowVertex === "string" &&
+    /^[A-Za-z_][A-Za-z0-9_]*$/.test(shadowVertex) &&
+    !containsWgslEntrypoint(source.shader.code, shadowVertex)
+  ) {
+    diagnostics.push({
+      code: "customMaterialSource.invalidDependency",
+      message: `Custom material '${assetKey}' is missing shadow vertex entry point '${shadowVertex}'.`,
       severity: "error",
       assetKey,
     });

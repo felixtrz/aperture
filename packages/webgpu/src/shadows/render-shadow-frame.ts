@@ -77,6 +77,12 @@ import {
   type ShadowCasterExecutableMeshResourceView,
 } from "./shadow-caster-command-record-plan.js";
 import {
+  createCustomWgslShadowCasterResourceReport,
+  type CustomWgslShadowCasterMaterialInput,
+  type CustomWgslShadowCasterResourceCache,
+  type CustomWgslShadowCasterResourceReport,
+} from "./shadow-caster-custom-wgsl.js";
+import {
   createShadowCasterDrawListPlanReport,
   shadowCasterDrawListPlanReportToJsonValue,
   type ShadowCasterDrawListPlanReport,
@@ -232,6 +238,8 @@ export interface RenderShadowFrameCache {
     string,
     ShadowCasterCommandTopologyCacheEntry
   >;
+  /** Per-material custom WGSL caster pipelines/bind groups (A4). */
+  readonly customWgslShadowCasters?: CustomWgslShadowCasterResourceCache;
 }
 
 export interface RenderShadowFrameShadowMapOptions {
@@ -258,6 +266,14 @@ export interface CreateRenderShadowFrameOptions {
   readonly snapshot: RenderSnapshot;
   readonly preparedMeshes: readonly ShadowCasterPreparedMeshResourceView[];
   readonly executableMeshes: readonly ShadowCasterExecutableMeshResourceView[];
+  /**
+   * Custom WGSL materials declaring `entryPoints.shadowVertex` whose caster
+   * draws should render through a per-material depth-only pipeline instead of
+   * the shared position-only caster. Keyed by the caster draw materialKey;
+   * materials that fail to realize fall back to the shared caster with a
+   * `customWgslMaterial.shadowCaster*` diagnostic.
+   */
+  readonly customWgslCasters?: readonly CustomWgslShadowCasterMaterialInput[];
   readonly cache?: RenderShadowFrameCache;
   readonly shadowMap?: RenderShadowFrameShadowMapOptions;
   readonly matrix?: RenderShadowFrameMatrixOptions;
@@ -289,6 +305,7 @@ export interface RenderShadowFrameResult {
   readonly commandEncoding: ShadowPassCommandEncodingReport;
   readonly pipelineDescriptor: ShadowCasterPipelineDescriptorReport;
   readonly pipelineResource: ShadowCasterPipelineResourceReport;
+  readonly customWgslCasters: CustomWgslShadowCasterResourceReport;
   readonly matrixBindGroupResource: ShadowCasterMatrixBindGroupResourceReport;
   readonly frameResources: ShadowCasterFrameResourceReadinessReport;
   readonly commandRecords: ShadowCasterCommandRecordPlanReport;
@@ -330,6 +347,11 @@ export interface RenderShadowFrameReport {
     readonly pipelinesReused: number;
     readonly matrixBindGroupsCreated: number;
     readonly matrixBindGroupsReused: number;
+    /** Per-material custom WGSL caster pipelines (A4 `shadowVertex`). */
+    readonly customWgslPipelinesCreated: number;
+    readonly customWgslPipelinesReused: number;
+    readonly customWgslBindGroupsCreated: number;
+    readonly customWgslBindGroupsReused: number;
   };
   readonly commandBufferSubmission: {
     readonly status: ShadowPassCommandBufferSubmissionReport["status"];
@@ -622,6 +644,25 @@ export function createRenderShadowFrame(
       ? {}
       : { cache: options.cache.shadowCasterPipelines }),
   });
+  // Per-material custom WGSL caster pipelines (A4): draws whose material
+  // declares `entryPoints.shadowVertex` route to a depth-only pipeline built
+  // from the material's own WGSL module. Materials without one (and failed
+  // realizations) keep the shared position-only pipeline resolved above.
+  const customWgslCasters = createCustomWgslShadowCasterResourceReport({
+    device: options.device,
+    casters: options.customWgslCasters ?? [],
+    draws: casterDrawList.lists.flatMap((list) =>
+      list.draws.map((draw) => ({
+        materialKey: draw.materialKey,
+        meshLayoutKey: draw.meshLayoutKey,
+        casterCullMode: draw.casterCullMode,
+      })),
+    ),
+    ...maxAuthoredCasterSlopeBias(shadowRequests),
+    ...(options.cache?.customWgslShadowCasters === undefined
+      ? {}
+      : { cache: options.cache.customWgslShadowCasters }),
+  });
   const casterPassMatrices = createShadowCasterPassMatrixBuffers({
     device: options.device,
     matrices: matrixComputation,
@@ -679,6 +720,7 @@ export function createRenderShadowFrame(
       matrixBufferResource,
       pipelineResource,
       matrixBindGroupResource,
+      customWgslCasters,
     });
   const cachedShadowCasterCommandTopology =
     shadowCasterCommandTopologyKey === null
@@ -693,6 +735,9 @@ export function createRenderShadowFrame(
       preparedMeshes: options.preparedMeshes,
       matrixBufferResource,
       pipelineDescriptor,
+      ...(customWgslCasters.pipelineKeyByDraw.size === 0
+        ? {}
+        : { customCasterPipelineKeys: customWgslCasters.pipelineKeyByDraw }),
     });
 
   const commandRecords =
@@ -700,11 +745,24 @@ export function createRenderShadowFrame(
     createShadowCasterCommandRecordPlanReport({
       frameResources,
       commandPlan,
-      pipelines: pipelineResource.resources.map((resource) => ({
-        pipelineKey: resource.pipelineKey,
-        resourceKey: resource.resourceKey,
-        pipeline: resource.pipeline,
-      })),
+      pipelines: [
+        ...pipelineResource.resources.map((resource) => ({
+          pipelineKey: resource.pipelineKey,
+          resourceKey: resource.resourceKey,
+          pipeline: resource.pipeline,
+        })),
+        ...customWgslCasters.pipelines.map((resource) => ({
+          pipelineKey: resource.pipelineKey,
+          resourceKey: resource.resourceKey,
+          pipeline: resource.pipeline,
+        })),
+      ],
+      ...(customWgslCasters.drawBindGroupsByPipelineKey.size === 0
+        ? {}
+        : {
+            drawBindGroupsByPipelineKey:
+              customWgslCasters.drawBindGroupsByPipelineKey,
+          }),
       matrixBindGroups:
         matrixBindGroupResource.resources.length > 0
           ? matrixBindGroupResource.resources.map((resource) => ({
@@ -840,6 +898,7 @@ export function createRenderShadowFrame(
     matrixBufferResource,
     samplerResource,
     pipelineResource,
+    customWgslCasters,
     matrixBindGroupResource,
     commandBufferSubmission,
     receiverResources,
@@ -859,6 +918,7 @@ export function createRenderShadowFrame(
       commandEncoding,
       pipelineDescriptor,
       pipelineResource,
+      customWgslCasters,
       matrixBindGroupResource,
       frameResources,
       commandRecords,
@@ -885,6 +945,7 @@ export function createRenderShadowFrame(
     commandEncoding,
     pipelineDescriptor,
     pipelineResource,
+    customWgslCasters,
     matrixBindGroupResource,
     frameResources,
     commandRecords,
@@ -901,6 +962,7 @@ function createShadowCasterCommandTopologyCacheKey(input: {
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
   readonly pipelineResource: ShadowCasterPipelineResourceReport;
   readonly matrixBindGroupResource: ShadowCasterMatrixBindGroupResourceReport;
+  readonly customWgslCasters: CustomWgslShadowCasterResourceReport;
 }): string | null {
   if (
     input.casterDrawList.status === "not-required" ||
@@ -909,6 +971,15 @@ function createShadowCasterCommandTopologyCacheKey(input: {
     input.matrixBufferResource.resource === null ||
     input.pipelineResource.status !== "available" ||
     input.matrixBindGroupResource.status !== "available"
+  ) {
+    return null;
+  }
+
+  // Frames with requested-but-unrealized custom casters are not cached: the
+  // fallback routing would otherwise be replayed after the material recovers.
+  if (
+    input.customWgslCasters.status === "partial" ||
+    input.customWgslCasters.status === "missing"
   ) {
     return null;
   }
@@ -1004,6 +1075,32 @@ function createShadowCasterCommandTopologyCacheKey(input: {
     parts.push(
       ["pipeline", resource.pipelineKey, resource.resourceKey].join(":"),
     );
+  }
+
+  for (const resource of [...input.customWgslCasters.pipelines].sort((a, b) =>
+    compareStrings(a.pipelineKey, b.pipelineKey),
+  )) {
+    parts.push(
+      ["custom-pipeline", resource.pipelineKey, resource.resourceKey].join(":"),
+    );
+  }
+
+  for (const [pipelineKey, bindGroups] of [
+    ...input.customWgslCasters.drawBindGroupsByPipelineKey.entries(),
+  ].sort((a, b) => compareStrings(a[0], b[0]))) {
+    for (const bindGroup of bindGroups) {
+      // The bind-group resource key carries a generation suffix, so a rebuilt
+      // material bind group (e.g. reallocated storage buffer) changes the key
+      // and invalidates cached command topologies that embed the old one.
+      parts.push(
+        [
+          "custom-bind-group",
+          pipelineKey,
+          bindGroup.group,
+          bindGroup.resourceKey,
+        ].join(":"),
+      );
+    }
   }
 
   const bindGroups =
@@ -1879,6 +1976,7 @@ function createRenderShadowFrameReport(input: {
     typeof createShadowSamplerResourceReport
   >;
   readonly pipelineResource: ShadowCasterPipelineResourceReport;
+  readonly customWgslCasters: CustomWgslShadowCasterResourceReport;
   readonly matrixBindGroupResource: ShadowCasterMatrixBindGroupResourceReport;
   readonly commandBufferSubmission: ShadowPassCommandBufferSubmissionReport;
   readonly receiverResources: StandardFrameShadowReceiverResources | null;
@@ -1953,6 +2051,11 @@ function createRenderShadowFrameReport(input: {
         input.matrixBindGroupResource.createdBindGroupCount,
       matrixBindGroupsReused:
         input.matrixBindGroupResource.reusedBindGroupCount,
+      customWgslPipelinesCreated: input.customWgslCasters.createdPipelineCount,
+      customWgslPipelinesReused: input.customWgslCasters.reusedPipelineCount,
+      customWgslBindGroupsCreated:
+        input.customWgslCasters.createdBindGroupCount,
+      customWgslBindGroupsReused: input.customWgslCasters.reusedBindGroupCount,
     },
     commandBufferSubmission: {
       status: input.commandBufferSubmission.status,
@@ -1985,6 +2088,7 @@ interface RenderShadowFrameDiagnosticStages {
   readonly commandEncoding: ShadowPassCommandEncodingReport;
   readonly pipelineDescriptor: ShadowCasterPipelineDescriptorReport;
   readonly pipelineResource: ShadowCasterPipelineResourceReport;
+  readonly customWgslCasters: CustomWgslShadowCasterResourceReport;
   readonly matrixBindGroupResource: ShadowCasterMatrixBindGroupResourceReport;
   readonly frameResources: ShadowCasterFrameResourceReadinessReport;
   readonly commandRecords: ShadowCasterCommandRecordPlanReport;
@@ -2105,6 +2209,7 @@ function collectRenderShadowFrameDiagnostics(
       .diagnostics,
   );
   append("pipelineResource", stages.pipelineResource.diagnostics);
+  append("customWgslCasters", stages.customWgslCasters.diagnostics);
   append("matrixBindGroupResource", stages.matrixBindGroupResource.diagnostics);
   append(
     "frameResources",

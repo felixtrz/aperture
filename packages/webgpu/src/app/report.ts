@@ -893,6 +893,10 @@ export function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseRepo
     autoShadowFrameCache: {
       status: "not-evaluated",
     },
+    customShadowCasterPipelinesCreated: 0,
+    customShadowCasterPipelinesReused: 0,
+    customShadowCasterBindGroupsCreated: 0,
+    customShadowCasterBindGroupsReused: 0,
     dynamicBufferWrites: 0,
   };
 }

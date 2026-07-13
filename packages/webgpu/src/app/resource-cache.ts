@@ -179,6 +179,15 @@ export interface WebGpuAppResourceCache {
     string,
     CustomWgslRuntimeUniformBufferResource
   >;
+  /**
+   * Value-baked (non-runtime) uniform buffers realized for the custom WGSL
+   * shadow caster path (A4 `shadowVertex`), created once per material binding
+   * and rewritten only when the baked values change.
+   */
+  readonly customWgslShadowStaticUniforms: Map<
+    string,
+    CustomWgslRuntimeUniformBufferResource
+  >;
   readonly customWgslStorageBuffers: Map<
     string,
     CustomWgslAppStorageBufferResource
@@ -408,6 +417,7 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     proceduralSkyPipelines: new Map(),
     proceduralSkyUniforms: new Map(),
     customWgslRuntimeUniforms: new Map(),
+    customWgslShadowStaticUniforms: new Map(),
     customWgslStorageBuffers: new Map(),
     layouts: new Map(),
     textures: new Map(),

@@ -276,6 +276,11 @@ export interface WebGpuAppResourceReuseReport {
   autoShadowFramesCreated: number;
   autoShadowFramesReused: number;
   autoShadowFrameCache: WebGpuAppAutoShadowFrameCacheReport;
+  /** Per-material custom WGSL shadow caster pipelines (A4 `shadowVertex`). */
+  customShadowCasterPipelinesCreated: number;
+  customShadowCasterPipelinesReused: number;
+  customShadowCasterBindGroupsCreated: number;
+  customShadowCasterBindGroupsReused: number;
   dynamicBufferWrites: number;
 }
 

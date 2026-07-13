@@ -69,6 +69,10 @@ import type {
   ShadowCasterWorldTransformScratch,
 } from "../shadows/render-shadow-frame.js";
 import { createShadowCasterWorldTransformScratch } from "../shadows/render-shadow-frame.js";
+import {
+  createCustomWgslShadowCasterResourceCache,
+  type CustomWgslShadowCasterResourceCache,
+} from "../shadows/shadow-caster-custom-wgsl.js";
 
 export interface WebGpuEnvironmentResourceCache {
   readonly diffuseTextures: Map<string, TextureGpuResource>;
@@ -103,6 +107,8 @@ export interface WebGpuEnvironmentResourceCache {
     string,
     ShadowCasterCommandTopologyCacheEntry
   >;
+  /** Per-material custom WGSL caster pipelines/bind groups (A4 `shadowVertex`). */
+  readonly customWgslShadowCasters: CustomWgslShadowCasterResourceCache;
 }
 
 interface WebGpuEnvironmentBindGroupDeviceLike extends TextureGpuDeviceLike {
@@ -253,6 +259,7 @@ export function createWebGpuEnvironmentResourceCache(): WebGpuEnvironmentResourc
     shadowCasterWorldTransformScratch:
       createShadowCasterWorldTransformScratch(),
     shadowCasterCommandTopology: new Map(),
+    customWgslShadowCasters: createCustomWgslShadowCasterResourceCache(),
   };
 }
 

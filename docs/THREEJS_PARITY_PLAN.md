@@ -141,6 +141,16 @@ Pure API plumbing; the renderer already ships these.
 
 ### A4. Custom shadow-caster displacement hook — **M**
 
+Status: implemented (2026-07-12). Notes: the caster bind contract mirrors the
+shared position-only caster's group(0) (binding 0 = the pass's light
+view-projection uniform, binding 1 = caster world transforms indexed by
+`instance_index`) so the existing per-pass matrix bind groups are reused;
+group(1) is bound empty and group(2) carries the material's own bindings
+resolved to the same GPU resources as the main pass. The AC2 e2e asserts the
+shadow region's pixel motion between two presented-frame samples plus a
+dark-vs-lit ground margin instead of a golden baseline (the wave animation
+makes a fixed baseline flaky by construction, mirroring the A2 note).
+
 The analog of three.js `customDepthMaterial`/`castShadowPositionNode`: an
 optional caster vertex entry point in the custom material asset, used by the
 shadow caster pipeline for that mesh.

@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1406
+Every structured diagnostic code the engine can emit (1411
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -832,6 +832,36 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                  | Message                       | Fix? | Emitted from                                                        |
 | ------------------------------------- | ----------------------------- | ---- | ------------------------------------------------------------------- |
 | `customWgslMaterial.shaderDiagnostic` | (message composed at runtime) | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-material.ts` |
+
+## customWgslMaterial.shadowCasterBindGroupFailed (1)
+
+| Code                                             | Message                                                                                                                            | Fix? | Emitted from                                               |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------- |
+| `customWgslMaterial.shadowCasterBindGroupFailed` | Failed to create custom WGSL shadow caster bind group layout for '…': …; its casters fall back to the shared position-only caster. | —    | `packages/webgpu/src/shadows/shadow-caster-custom-wgsl.ts` |
+
+## customWgslMaterial.shadowCasterDeviceUnavailable (1)
+
+| Code                                               | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                               |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------- |
+| `customWgslMaterial.shadowCasterDeviceUnavailable` | WebGPU device cannot create per-material custom WGSL shadow caster pipelines (createShaderModule/createBindGroupLayout/createPipelineLayout/createRenderPipeline/createBindGroup required); affected casters fall back to th | —    | `packages/webgpu/src/shadows/shadow-caster-custom-wgsl.ts` |
+
+## customWgslMaterial.shadowCasterEntryPointMissing (1)
+
+| Code                                               | Message                                                                                                                                                           | Fix? | Emitted from                                               |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------- |
+| `customWgslMaterial.shadowCasterEntryPointMissing` | Custom WGSL material '…' declares shadow caster entry point '…' but its WGSL module does not define it; its casters fall back to the shared position-only caster. | —    | `packages/webgpu/src/shadows/shadow-caster-custom-wgsl.ts` |
+
+## customWgslMaterial.shadowCasterPipelineCreationFailed (1)
+
+| Code                                                    | Message                                                                                                               | Fix? | Emitted from                                               |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------- |
+| `customWgslMaterial.shadowCasterPipelineCreationFailed` | Failed to create custom WGSL shadow caster pipeline '…': …; its casters fall back to the shared position-only caster. | —    | `packages/webgpu/src/shadows/shadow-caster-custom-wgsl.ts` |
+
+## customWgslMaterial.shadowCasterShaderModuleFailed (1)
+
+| Code                                                | Message                                                                                                                                     | Fix? | Emitted from                                               |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------- |
+| `customWgslMaterial.shadowCasterShaderModuleFailed` | Failed to create the shadow caster shader module for custom WGSL material '…': …; its casters fall back to the shared position-only caster. | —    | `packages/webgpu/src/shadows/shadow-caster-custom-wgsl.ts` |
 
 ## debugNormalFrameResources.missingMaterial (1)
 

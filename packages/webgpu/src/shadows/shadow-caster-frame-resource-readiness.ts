@@ -87,6 +87,14 @@ export interface CreateShadowCasterFrameResourceReadinessReportOptions {
   readonly preparedMeshes: readonly ShadowCasterPreparedMeshResourceView[];
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
   readonly pipelineDescriptor: ShadowCasterPipelineDescriptorReport;
+  /**
+   * Per-material caster pipeline routing (custom WGSL `shadowVertex`
+   * materials): `${materialKey}|${meshLayoutKey}|${casterCullMode}` → live
+   * caster pipeline key. Draws with an entry use that pipeline instead of the
+   * shared position-only descriptor; entries exist only for pipelines that
+   * were actually created, so absent/failed materials keep today's routing.
+   */
+  readonly customCasterPipelineKeys?: ReadonlyMap<string, string>;
 }
 
 export function createShadowCasterFrameResourceReadinessReport(
@@ -140,15 +148,20 @@ export function createShadowCasterFrameResourceReadinessReport(
   for (const list of options.casterDrawList.lists) {
     for (const draw of list.draws) {
       const prepared = preparedByMesh.get(draw.meshKey);
+      const customPipelineKey =
+        options.customCasterPipelineKeys?.get(
+          `${draw.materialKey}|${draw.meshLayoutKey}|${draw.casterCullMode}`,
+        ) ?? null;
       const pipelineDescriptor =
-        pipelineDescriptors.length === 0
+        customPipelineKey !== null || pipelineDescriptors.length === 0
           ? null
           : resolvePipelineDescriptorForLayout(
               draw.meshLayoutKey,
               draw.casterCullMode,
               pipelineDescriptorByLayout,
             );
-      const pipelineKey = pipelineDescriptor?.pipelineKey ?? null;
+      const pipelineKey =
+        customPipelineKey ?? pipelineDescriptor?.pipelineKey ?? null;
 
       if (prepared === undefined) {
         diagnostics.push({
@@ -160,7 +173,11 @@ export function createShadowCasterFrameResourceReadinessReport(
         });
       }
 
-      if (pipelineDescriptors.length > 0 && pipelineDescriptor === null) {
+      if (
+        customPipelineKey === null &&
+        pipelineDescriptors.length > 0 &&
+        pipelineDescriptor === null
+      ) {
         diagnostics.push({
           code: "shadowCasterFrameResource.missingPipelineDescriptor",
           severity: "warning",

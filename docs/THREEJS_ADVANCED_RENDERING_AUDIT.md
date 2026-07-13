@@ -117,16 +117,16 @@ integration.
 
 ### 2.3 Vertex stage & geometry integration
 
-| Capability                   | three.js                                                                                     | Aperture                                                                                                                        | Verdict     |
-| ---------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| Vertex displacement          | ✅ both paths (`positionNode` on WebGPU)                                                     | ✅ user owns the vertex entry point                                                                                             | Parity      |
-| Available attributes         | Any geometry attribute                                                                       | Fixed: position/normal/uv (+ declared instance attrs); no tangent/color/uv1 in custom WGSL                                      | Partial     |
-| Skinning in custom shaders   | ✅ `#include` chunks (WebGL); automatic `SkinningNode` (WebGPU)                              | ❌ no joint/weight/palette bindings for custom pipelines                                                                        | Gap         |
-| Morphs in custom shaders     | ✅ chunks / automatic `MorphNode`                                                            | ❌                                                                                                                              | Gap         |
-| Shadow-casting displaced geo | ✅ `customDepthMaterial`/`customDistanceMaterial` (WebGL); `castShadowPositionNode` (WebGPU) | 🟡 custom meshes cast shadows, but the caster pass is a shared position-only pipeline — **shadows do not see the displacement** | Gap         |
-| Specialization constants     | `defines` (WebGL); node graph branches (WebGPU)                                              | 🟡 `pipelineKey.features/specialization` differentiate cached pipelines but are not fed to the module as WGSL overrides         | Partial     |
-| Render state                 | Full material state incl. stencil                                                            | ✅ alpha modes, cull, depth (test/write/compare/bias), blend presets, colorWriteMask — no stencil                               | Near-parity |
-| MRT outputs                  | GLSL3 `layout(location=N)` outs; `mrtNode`                                                   | ❌ exactly one color target per custom pipeline                                                                                 | Gap         |
+| Capability                   | three.js                                                                                     | Aperture                                                                                                                | Verdict     |
+| ---------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------- |
+| Vertex displacement          | ✅ both paths (`positionNode` on WebGPU)                                                     | ✅ user owns the vertex entry point                                                                                     | Parity      |
+| Available attributes         | Any geometry attribute                                                                       | Fixed: position/normal/uv (+ declared instance attrs); no tangent/color/uv1 in custom WGSL                              | Partial     |
+| Skinning in custom shaders   | ✅ `#include` chunks (WebGL); automatic `SkinningNode` (WebGPU)                              | ❌ no joint/weight/palette bindings for custom pipelines                                                                | Gap         |
+| Morphs in custom shaders     | ✅ chunks / automatic `MorphNode`                                                            | ❌                                                                                                                      | Gap         |
+| Shadow-casting displaced geo | ✅ `customDepthMaterial`/`customDistanceMaterial` (WebGL); `castShadowPositionNode` (WebGPU) | ✅ `entryPoints.shadowVertex` compiles a per-material depth-only caster from the same WGSL module (parity plan A4)      | Parity      |
+| Specialization constants     | `defines` (WebGL); node graph branches (WebGPU)                                              | 🟡 `pipelineKey.features/specialization` differentiate cached pipelines but are not fed to the module as WGSL overrides | Partial     |
+| Render state                 | Full material state incl. stencil                                                            | ✅ alpha modes, cull, depth (test/write/compare/bias), blend presets, colorWriteMask — no stencil                       | Near-parity |
+| MRT outputs                  | GLSL3 `layout(location=N)` outs; `mrtNode`                                                   | ❌ exactly one color target per custom pipeline                                                                         | Gap         |
 
 ### 2.4 Lighting integration for custom materials
 
@@ -278,34 +278,34 @@ permutations) that three.js has no equivalent of.
 ✅ works on a supported surface · 🟡 achievable with hand-wiring or real
 limits · ❌ not achievable today.
 
-| #   | Scenario                                              | three.js | Aperture | Aperture notes                                                                                                                              |
-| --- | ----------------------------------------------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Unlit stylized shader (scrolling UVs, force field)    | ✅       | ✅       | Custom WGSL + `RuntimeUniform` time/params — the showcase water shader is exactly this                                                      |
-| 2   | Dissolve effect (noise mask + threshold)              | ✅       | ✅       | Mask texture + alphaMode `mask` + runtime threshold; edge glow stays unlit                                                                  |
-| 3   | Lit custom shader (terrain splat, stylized lit water) | ✅       | ❌       | No light/shadow/IBL bindings for custom materials                                                                                           |
-| 4   | Vertex-animated foliage/flags (wind)                  | ✅       | 🟡       | Displacement works; shadow pass ignores it (position-only caster pipeline); no custom skinned displacement                                  |
-| 5   | Custom shader on skinned characters                   | ✅       | ❌       | No skin/morph inputs in custom pipelines                                                                                                    |
-| 6   | Minimap / security-camera monitor                     | ✅       | 🟡       | Low-level RT + custom quad; no facade helper                                                                                                |
-| 7   | Planar mirror                                         | ✅       | ❌       | No Reflector, clipping planes, or stencil                                                                                                   |
-| 8   | Stencil portal / masked reveal                        | ✅       | ❌       | Stencil explicitly unsupported                                                                                                              |
-| 9   | Dynamic reflection probe (cube capture)               | ✅       | ❌       | No cube render targets                                                                                                                      |
-| 10  | Refraction / heat haze (grab pass)                    | ✅       | ✅       | Automatic transmission grab; params authorable on `material.standard()` (parity plan A3); custom-WGSL grab access remains #12's domain      |
-| 11  | Custom g-buffer / MRT technique                       | ✅       | ❌       | MRT internal-only                                                                                                                           |
-| 12  | Full-screen color grade / custom post chain           | ✅       | 🟡       | User render pass can only blend onto scene-color; built-in post list not user-extensible                                                    |
-| 13  | GPU particle/VFX sim (custom compute)                 | ✅\*     | 🟡       | Compute pass is general, but no compute→draw bridge; built-in Shuriken system covers most VFX needs ✅                                      |
-| 14  | GPU crowd (compute skinning + instanced draw)         | ✅\*     | ❌       | Needs storage-buffer materials or compute→instance plumbing                                                                                 |
-| 15  | GPU-driven culling / indirect draw                    | ✅\*     | ❌       | Indirect draw internal-only                                                                                                                 |
-| 16  | CPU cloth/jelly (per-frame vertex upload)             | ✅       | 🟡       | Update-range uploads exist; ergonomics are asset re-registration                                                                            |
-| 17  | Decals (bullet holes, blood)                          | ✅       | ❌       | Nothing; overlay pass is the only workaround                                                                                                |
-| 18  | In-world video/canvas screen (TV, scoreboard)         | ✅       | ❌       | No runtime texture updates                                                                                                                  |
-| 19  | Soft particles / depth-fade VFX                       | 🟡       | 🟡       | three.js: manual depth sampling. Aperture: built into the particle renderer (falls back on MSAA/offscreen); unavailable to custom materials |
-| 20  | Occlusion-driven gameplay (lens flare, AI visibility) | 🟡       | ✅       | three.js WebGPURenderer only; Aperture reports feedback with fallback reasons                                                               |
+| #   | Scenario                                              | three.js | Aperture | Aperture notes                                                                                                                                 |
+| --- | ----------------------------------------------------- | -------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Unlit stylized shader (scrolling UVs, force field)    | ✅       | ✅       | Custom WGSL + `RuntimeUniform` time/params — the showcase water shader is exactly this                                                         |
+| 2   | Dissolve effect (noise mask + threshold)              | ✅       | ✅       | Mask texture + alphaMode `mask` + runtime threshold; edge glow stays unlit                                                                     |
+| 3   | Lit custom shader (terrain splat, stylized lit water) | ✅       | ❌       | No light/shadow/IBL bindings for custom materials                                                                                              |
+| 4   | Vertex-animated foliage/flags (wind)                  | ✅       | ✅       | Displacement works and `entryPoints.shadowVertex` mirrors it into the shadow map (parity plan A4); skinning in custom shaders remains #5's gap |
+| 5   | Custom shader on skinned characters                   | ✅       | ❌       | No skin/morph inputs in custom pipelines                                                                                                       |
+| 6   | Minimap / security-camera monitor                     | ✅       | 🟡       | Low-level RT + custom quad; no facade helper                                                                                                   |
+| 7   | Planar mirror                                         | ✅       | ❌       | No Reflector, clipping planes, or stencil                                                                                                      |
+| 8   | Stencil portal / masked reveal                        | ✅       | ❌       | Stencil explicitly unsupported                                                                                                                 |
+| 9   | Dynamic reflection probe (cube capture)               | ✅       | ❌       | No cube render targets                                                                                                                         |
+| 10  | Refraction / heat haze (grab pass)                    | ✅       | ✅       | Automatic transmission grab; params authorable on `material.standard()` (parity plan A3); custom-WGSL grab access remains #12's domain         |
+| 11  | Custom g-buffer / MRT technique                       | ✅       | ❌       | MRT internal-only                                                                                                                              |
+| 12  | Full-screen color grade / custom post chain           | ✅       | 🟡       | User render pass can only blend onto scene-color; built-in post list not user-extensible                                                       |
+| 13  | GPU particle/VFX sim (custom compute)                 | ✅\*     | 🟡       | Compute pass is general, but no compute→draw bridge; built-in Shuriken system covers most VFX needs ✅                                         |
+| 14  | GPU crowd (compute skinning + instanced draw)         | ✅\*     | ❌       | Needs storage-buffer materials or compute→instance plumbing                                                                                    |
+| 15  | GPU-driven culling / indirect draw                    | ✅\*     | ❌       | Indirect draw internal-only                                                                                                                    |
+| 16  | CPU cloth/jelly (per-frame vertex upload)             | ✅       | 🟡       | Update-range uploads exist; ergonomics are asset re-registration                                                                               |
+| 17  | Decals (bullet holes, blood)                          | ✅       | ❌       | Nothing; overlay pass is the only workaround                                                                                                   |
+| 18  | In-world video/canvas screen (TV, scoreboard)         | ✅       | ❌       | No runtime texture updates                                                                                                                     |
+| 19  | Soft particles / depth-fade VFX                       | 🟡       | 🟡       | three.js: manual depth sampling. Aperture: built into the particle renderer (falls back on MSAA/offscreen); unavailable to custom materials    |
+| 20  | Occlusion-driven gameplay (lens flare, AI visibility) | 🟡       | ✅       | three.js WebGPURenderer only; Aperture reports feedback with fallback reasons                                                                  |
 
 \* WebGPU backend required; the WebGL2 fallback loses atomics, storage
 textures, and indirect.
 
 Score (of 20): three.js ✅ 16 / 🟡 2 / ❌ 0 (2 backend-caveated); Aperture
-✅ 5 / 🟡 6 / ❌ 9. The ❌ column clusters around four missing primitives —
+✅ 6 / 🟡 5 / ❌ 9. The ❌ column clusters around four missing primitives —
 lit/extended custom materials, MRT + flexible render targets, stencil, and
 the compute→rendering bridge — rather than twenty unrelated gaps.
 
@@ -339,7 +339,8 @@ stay inside the architecture.
    transmission/clearcoat/sheen/iridescence.
 6. **Custom shadow-caster displacement hook** (upgrades #4): a per-material
    caster vertex entry point, the analog of `customDepthMaterial` /
-   `castShadowPositionNode`.
+   `castShadowPositionNode`. _Shipped_ — `entryPoints.shadowVertex` (parity
+   plan A4).
 7. **Runtime texture updates** (unblocks #18, helps #17): a
    `writeTexture`-backed dynamic texture asset; video textures can follow.
 8. **Stencil state in the material/render contract** (unblocks #8, halves

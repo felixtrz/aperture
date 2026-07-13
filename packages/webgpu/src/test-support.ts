@@ -186,6 +186,7 @@ export * from "./gpu/shader-resource.js";
 export * from "./gpu/shader.js";
 export * from "./shadows/shadow-caster-command-plan-readiness.js";
 export * from "./shadows/shadow-caster-command-record-plan.js";
+export * from "./shadows/shadow-caster-custom-wgsl.js";
 export * from "./shadows/shadow-caster-draw-list-plan.js";
 export * from "./shadows/shadow-caster-frame-resource-readiness.js";
 export * from "./shadows/shadow-caster-matrix-bind-group-resource.js";
