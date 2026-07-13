@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1448
+Every structured diagnostic code the engine can emit (1452
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -2579,6 +2579,12 @@ suggestedFix accompanies it, and where it is emitted.
 | ----------------------------------- | ----------------------------- | ---- | ----------------------------------------------------------- |
 | `indirectDraw.bufferCreationFailed` | (message composed at runtime) | —    | `packages/webgpu/src/render/draw/indirect-draw-commands.ts` |
 
+## indirectDraw.bufferUnresolved (1)
+
+| Code                            | Message                                                                                                                                                          | Fix? | Emitted from                                                     |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------- |
+| `indirectDraw.bufferUnresolved` | User pass '…' recorded … with an unresolved indirect buffer (ctx.buffer(id) returned undefined — the BufferAsset is missing or not ready). The draw was skipped. | —    | `packages/webgpu/src/render/draw/user-indirect-draw-commands.ts` |
+
 ## indirectDraw.createBufferUnavailable (1)
 
 | Code                                   | Message                                                       | Fix? | Emitted from                                                |
@@ -2591,11 +2597,29 @@ suggestedFix accompanies it, and where it is emitted.
 | --------------------------------------- | ------------------------------------------------------------------------------------------------ | ---- | ----------------------------------------------------------- |
 | `indirectDraw.firstInstanceUnsupported` | Indirect draws with non-zero firstInstance require the 'indirect-first-instance' WebGPU feature. | —    | `packages/webgpu/src/render/draw/indirect-draw-commands.ts` |
 
+## indirectDraw.offsetMisaligned (1)
+
+| Code                            | Message                                                                                                                                                                   | Fix? | Emitted from                                                     |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------- |
+| `indirectDraw.offsetMisaligned` | User pass '…' recorded … with indirect offset …, which is not a non-negative multiple of 4 bytes (WebGPU requires 4-byte-aligned indirect offsets). The draw was skipped. | —    | `packages/webgpu/src/render/draw/user-indirect-draw-commands.ts` |
+
 ## indirectDraw.queueWriteBufferUnavailable (1)
 
 | Code                                       | Message                                                            | Fix? | Emitted from                                                |
 | ------------------------------------------ | ------------------------------------------------------------------ | ---- | ----------------------------------------------------------- |
 | `indirectDraw.queueWriteBufferUnavailable` | WebGPU queue cannot upload indirect draw argument buffer contents. | —    | `packages/webgpu/src/render/draw/indirect-draw-commands.ts` |
+
+## indirectDraw.readbackFailed (1)
+
+| Code                          | Message                                                  | Fix? | Emitted from                                             |
+| ----------------------------- | -------------------------------------------------------- | ---- | -------------------------------------------------------- |
+| `indirectDraw.readbackFailed` | Reading back the indirect-draw argument buffer failed: … | —    | `packages/webgpu/src/app/user-indirect-draw-readback.ts` |
+
+## indirectDraw.readbackUnavailable (1)
+
+| Code                               | Message                                                                                                                                                                                             | Fix? | Emitted from                                             |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------- |
+| `indirectDraw.readbackUnavailable` | WebGPU device cannot read back the indirect-draw argument buffer (createBuffer/createCommandEncoder/queue.submit required); the GPU-driven drawn instance count is unavailable in the frame report. | —    | `packages/webgpu/src/app/user-indirect-draw-readback.ts` |
 
 ## instanceAttributeBuffer.emptyData (1)
 

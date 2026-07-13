@@ -39,8 +39,9 @@ export type BufferElementType =
  * - `"storage"` (C1, writable): the buffer may additionally be WRITTEN by a
  *   compute pass (`var<storage, read_write>`) and consumed the SAME frame as a
  *   read-only storage binding AND/OR a buffer-backed instance-attribute stream
- *   (a vertex buffer), with the frame graph ordering compute-before-draw.
- *   Realized `STORAGE | VERTEX | COPY_DST | COPY_SRC` so one GPU buffer serves
+ *   (a vertex buffer) AND/OR an indirect-draw argument region (C2), with the
+ *   frame graph ordering compute-before-draw. Realized
+ *   `STORAGE | VERTEX | COPY_DST | COPY_SRC | INDIRECT` so one GPU buffer serves
  *   every consumer with zero CPU copies (the compute output). The renderer
  *   still owns the GPUBuffer; the asset stays data-only (DECISIONS 0016 / 0025).
  */

@@ -24,6 +24,7 @@ import {
 } from "../render/frame/frame-boundary.js";
 import { type RenderBundleExecutionReport } from "../render/draw/render-bundle.js";
 import { type IndirectDrawCommandReport } from "../render/draw/indirect-draw-commands.js";
+import { type UserIndirectDrawCommandReport } from "../render/draw/user-indirect-draw-commands.js";
 import { type GpuPassTimingReport } from "../gpu/gpu-timing.js";
 import {
   type WebGpuAppRenderPhaseTimingReport,
@@ -169,6 +170,10 @@ export interface WebGpuAppUserPassReport {
   readonly kind: "render" | "compute";
   readonly ran: boolean;
   readonly executedCommands: number;
+  // C2: present only on a render pass that recorded ctx.drawIndirect /
+  // ctx.drawIndexedIndirect. Carries the GPU-read drawn instance count and any
+  // structured fallback reasons when the indirect path degraded.
+  readonly indirectDraws?: UserIndirectDrawCommandReport;
 }
 
 export interface WebGpuAppPostGraphReport {
@@ -483,6 +488,11 @@ export interface WebGpuAppRenderReport {
   readonly commandPressure?: RenderPassCommandPressureReport;
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
+  // C2: frame-wide aggregate of user-surface indirect draws (ctx.drawIndirect /
+  // ctx.drawIndexedIndirect) across every user render pass — the GPU-read total
+  // drawn instance count and any fallback reasons. Present only when a user pass
+  // recorded an indirect draw this frame.
+  readonly userIndirectDraws?: UserIndirectDrawCommandReport;
   readonly motionVectors?: WebGpuAppMotionVectorReport;
   readonly shadow?: RenderShadowFrameReport;
   readonly localLightClusters?: LocalLightClusterReport;
@@ -571,6 +581,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly commandPressure?: WebGpuAppJsonValue;
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
+  readonly userIndirectDraws?: UserIndirectDrawCommandReport;
   readonly motionVectors?: WebGpuAppMotionVectorReport;
   readonly shadow?: WebGpuAppJsonValue;
   readonly localLightClusters?: LocalLightClusterReport;

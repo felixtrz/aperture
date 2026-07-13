@@ -64,6 +64,8 @@ export * from "./lighting/ibl-texture-resource.js";
 export * from "./picking/id-buffer.js";
 export * from "./picking/id-buffer-pick.js";
 export * from "./render/draw/indirect-draw-commands.js";
+export * from "./render/draw/user-indirect-draw-commands.js";
+export * from "./app/user-indirect-draw-readback.js";
 export * from "./resources/attributes/instance-buffer.js";
 export * from "./resources/attributes/instance-attribute-buffer.js";
 export * from "./resources/attributes/instance-tint-buffer.js";

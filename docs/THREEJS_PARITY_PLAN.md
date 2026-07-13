@@ -486,6 +486,42 @@ pins the literal).
 
 ### C2. Indirect draw user surface — **M** (needs C1)
 
+Status: implemented (2026-07-13). AC1: the user-pass render sink gains
+`ctx.drawIndirect(indirectBuffer, indirectOffset)` and
+`ctx.drawIndexedIndirect(...)` (render-only, like `ctx.draw`), recording the
+existing `drawIndirect` / `drawIndexedIndirect` `RenderPassCommand` kinds fed to
+the single-encoder executor. `indirectBuffer` is a realized GPU buffer — a
+compute-written writable `BufferAsset` region resolved via `ctx.buffer(id)`
+(C1's resolver) — and writable buffers now realize with `INDIRECT` added
+(`STORAGE | VERTEX | COPY_DST | COPY_SRC | INDIRECT`; read-only buffers stay
+`STORAGE | COPY_DST` byte-identical, pinned by the usage-flags test). A headless
+core (`render/draw/user-indirect-draw-commands.ts`) validates each recorded
+indirect draw and DROPS a degraded one with a structured
+`IndirectDrawFallbackReason` (extending the internal `indirect-draw-commands`
+reason/diagnostic families with `indirect-buffer-unresolved` /
+`indirect-offset-misaligned` / `indirect-readback-unavailable` /
+`indirect-readback-failed`) instead of encoding a device error — surfaced both in
+a new per-pass report (`renderTargets[*].graph.userPasses[i].indirectDraws`) and
+a frame-wide aggregate `report.userIndirectDraws`, plus a frame warning.
+AC2: `examples/gpu-culling` — a compute pass culls a small instance row against a
+CPU-driven threshold, compacts survivors, and writes the survivor count into the
+indirect-argument buffer's `instanceCount` field; a single `ctx.drawIndirect(...)`
+consumes it. The drawn count is GPU-authoritative, so the forward-graph route
+reads it back off the argument buffer after the frame submit and reports it as
+`report.userIndirectDraws.drawnInstanceCount`; `test/e2e/gpu-culling.spec.ts`
+asserts that lowering the cull threshold reduces that reported count.
+AC3: advanced-audit scenario #15 → ✅. Deviations: (1) the drawn-count READBACK
+runs on the forward-graph route only (its assembler is async); the post route
+validates + drops degraded indirect draws and reports fallback reasons but leaves
+`drawnInstanceCount` null (its assembler is synchronous). (2) A user pass's
+`encode(ctx)` runs when the frame graph is (re)built and its recorded commands are
+REPLAYED on later frames, so a per-frame CPU input (the cull threshold) is
+uploaded to a params uniform from an animation-frame loop in the example, not from
+inside `encode`. (3) A hand-built indirect-draw pipeline must match the route's
+attachment sample count; the example opts out of MSAA (`render.sampleCount: 1`) so
+its single-sampled pipeline matches the forward route (a mismatch invalidates the
+whole command submit).
+
 - AC1: The user-pass render sink gains `drawIndirect`/`drawIndexedIndirect`
   taking a `BufferAsset` region; the internal `indirect-draw-commands`
   fallback reasons surface in the frame report when the path degrades.

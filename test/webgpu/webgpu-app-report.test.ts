@@ -366,6 +366,150 @@ function shadowReportWithDetails(): unknown {
   };
 }
 
+// C2 (three.js parity plan): the frame-wide `userIndirectDraws` aggregate is
+// derived from the per-pass indirect reports attached to each
+// renderTargets[*].graph.userPasses[*].indirectDraws.
+describe("user indirect-draw frame-report aggregate (C2)", () => {
+  it("sums the read-back drawn instance counts across user passes", () => {
+    const report = renderReport({
+      ok: true,
+      snapshot: emptySnapshot(1),
+      diagnostics: [],
+      renderTargets: [
+        {
+          viewId: 0,
+          source: "swapchain",
+          renderTargetKey: null,
+          width: 4,
+          height: 4,
+          format: "rgba8unorm",
+          ok: true,
+          drawCalls: 1,
+          graph: {
+            order: ["cull", "indirect-draw"],
+            userPasses: [
+              { name: "cull", kind: "compute", ran: true, executedCommands: 2 },
+              {
+                name: "indirect-draw",
+                kind: "render",
+                ran: true,
+                executedCommands: 3,
+                indirectDraws: {
+                  valid: true,
+                  status: "readback",
+                  indirectDraws: 1,
+                  nonIndexedIndirectDraws: 1,
+                  indexedIndirectDraws: 0,
+                  skippedDraws: 0,
+                  drawnInstanceCount: 9,
+                  fallbackReasons: [],
+                  diagnostics: [],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    expect(report.userIndirectDraws).toMatchObject({
+      status: "readback",
+      indirectDraws: 1,
+      drawnInstanceCount: 9,
+      valid: true,
+    });
+  });
+
+  it("aggregates a degraded pass into a fallback status", () => {
+    const report = renderReport({
+      ok: true,
+      snapshot: emptySnapshot(1),
+      diagnostics: [],
+      renderTargets: [
+        {
+          viewId: 0,
+          source: "swapchain",
+          renderTargetKey: null,
+          width: 4,
+          height: 4,
+          format: "rgba8unorm",
+          ok: true,
+          drawCalls: 0,
+          graph: {
+            order: ["indirect-draw"],
+            userPasses: [
+              {
+                name: "indirect-draw",
+                kind: "render",
+                ran: false,
+                executedCommands: 0,
+                indirectDraws: {
+                  valid: false,
+                  status: "fallback",
+                  indirectDraws: 0,
+                  nonIndexedIndirectDraws: 0,
+                  indexedIndirectDraws: 0,
+                  skippedDraws: 1,
+                  drawnInstanceCount: null,
+                  fallbackReasons: ["indirect-buffer-unresolved"],
+                  diagnostics: [
+                    {
+                      code: "indirectDraw.bufferUnresolved",
+                      reason: "indirect-buffer-unresolved",
+                      message: "unresolved",
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    expect(report.userIndirectDraws).toMatchObject({
+      status: "fallback",
+      skippedDraws: 1,
+      drawnInstanceCount: null,
+      valid: false,
+      fallbackReasons: ["indirect-buffer-unresolved"],
+    });
+  });
+
+  it("omits userIndirectDraws when no user pass recorded an indirect draw", () => {
+    const report = renderReport({
+      ok: true,
+      snapshot: emptySnapshot(1),
+      diagnostics: [],
+      renderTargets: [
+        {
+          viewId: 0,
+          source: "swapchain",
+          renderTargetKey: null,
+          width: 4,
+          height: 4,
+          format: "rgba8unorm",
+          ok: true,
+          drawCalls: 0,
+          graph: {
+            order: ["overlay"],
+            userPasses: [
+              {
+                name: "overlay",
+                kind: "render",
+                ran: true,
+                executedCommands: 2,
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    expect(report.userIndirectDraws).toBeUndefined();
+  });
+});
+
 function emptySnapshot(frame: number): RenderSnapshot {
   return {
     frame,

@@ -74,6 +74,27 @@ export interface WebGpuAppPassEncodeContext {
     baseVertex?: number,
     firstInstance?: number,
   ): void;
+  /**
+   * C2 (GPU-driven indirect rendering): record a non-indexed indirect draw
+   * whose vertex/instance counts are read on the GPU from an indirect-argument
+   * region — typically a WRITABLE `BufferAsset` a compute pass populated the
+   * same frame (`ctx.buffer(id)` resolves it; the buffer realizes with
+   * `INDIRECT` usage). The 4x u32 record at `indirectOffset` is
+   * `[vertexCount, instanceCount, firstVertex, firstInstance]`. This is the
+   * three.js WebGPU `IndirectStorageBufferAttribute` / indirect-draw analog: the
+   * drawn instance count lives on the GPU (never the CPU) and surfaces in the
+   * frame report's indirect-draws section via a readback. A degraded path (the
+   * buffer did not resolve, or the offset is not 4-byte aligned) is dropped with
+   * a structured `IndirectDrawFallbackReason` on the report instead of encoding
+   * a device error.
+   */
+  drawIndirect(indirectBuffer: unknown, indirectOffset?: number): void;
+  /**
+   * C2: record an indexed indirect draw. The 5x u32 record at `indirectOffset`
+   * is `[indexCount, instanceCount, firstIndex, baseVertex, firstInstance]`. An
+   * index buffer must be bound (`ctx.setIndexBuffer(...)`) as for `drawIndexed`.
+   */
+  drawIndexedIndirect(indirectBuffer: unknown, indirectOffset?: number): void;
 
   // --- compute command sink ---
   setComputePipeline(pipeline: unknown): void;
@@ -320,6 +341,44 @@ function createRecorderContext(
         firstIndex,
         baseVertex,
         firstInstance,
+      });
+    },
+    drawIndirect(indirectBuffer, indirectOffset = 0) {
+      if (kind !== "render") {
+        renderOnly("drawIndirect");
+      }
+      // The vertex/instance counts live in the GPU-side argument record; the
+      // recorded fields are placeholders the executor never reads (it dispatches
+      // passEncoder.drawIndirect(buffer, offset)). Validity (buffer resolved,
+      // offset aligned) is checked by the route so a degraded path reports a
+      // fallback reason instead of encoding a device error.
+      renderCommands.push({
+        kind: "drawIndirect",
+        renderId: 0,
+        resourceKey: key("indirect"),
+        buffer: indirectBuffer,
+        offset: indirectOffset,
+        vertexCount: 0,
+        instanceCount: 0,
+        firstVertex: 0,
+        firstInstance: 0,
+      });
+    },
+    drawIndexedIndirect(indirectBuffer, indirectOffset = 0) {
+      if (kind !== "render") {
+        renderOnly("drawIndexedIndirect");
+      }
+      renderCommands.push({
+        kind: "drawIndexedIndirect",
+        renderId: 0,
+        resourceKey: key("indexed-indirect"),
+        buffer: indirectBuffer,
+        offset: indirectOffset,
+        indexCount: 0,
+        instanceCount: 0,
+        firstIndex: 0,
+        baseVertex: 0,
+        firstInstance: 0,
       });
     },
     setComputePipeline(pipeline) {

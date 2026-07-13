@@ -23,13 +23,23 @@ export type IndirectDrawFallbackReason =
   | "first-instance-unsupported"
   | "create-buffer-unavailable"
   | "queue-write-buffer-unavailable"
-  | "buffer-creation-failed";
+  | "buffer-creation-failed"
+  // C2 (user-surface indirect draws via ctx.drawIndirect / drawIndexedIndirect):
+  | "indirect-buffer-unresolved"
+  | "indirect-offset-misaligned"
+  | "indirect-readback-unavailable"
+  | "indirect-readback-failed";
 
 export type IndirectDrawCommandDiagnosticCode =
   | "indirectDraw.firstInstanceUnsupported"
   | "indirectDraw.createBufferUnavailable"
   | "indirectDraw.queueWriteBufferUnavailable"
-  | "indirectDraw.bufferCreationFailed";
+  | "indirectDraw.bufferCreationFailed"
+  // C2 user-surface indirect draws:
+  | "indirectDraw.bufferUnresolved"
+  | "indirectDraw.offsetMisaligned"
+  | "indirectDraw.readbackUnavailable"
+  | "indirectDraw.readbackFailed";
 
 export interface IndirectDrawCommandDiagnostic {
   readonly code: IndirectDrawCommandDiagnosticCode;

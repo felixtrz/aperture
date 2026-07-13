@@ -630,6 +630,73 @@ reproducible — the "60-frame determinism with a fixed seed" — is the CPU/ECS
 authoring: identical seed bytes, entity/instance counts, and dispatch schedule.
 See `examples/boids.html` for the complete GPU-flocking example.
 
+### Indirect draws (GPU-driven culling) — parity plan C2
+
+A user render pass can draw with vertex/instance counts read **on the GPU** from
+an argument buffer instead of the CPU. The render sink gains
+`ctx.drawIndirect(indirectBuffer, indirectOffset)` and
+`ctx.drawIndexedIndirect(indirectBuffer, indirectOffset)` — the analog of
+three.js WebGPU `IndirectStorageBufferAttribute` / indirect draw. This closes the
+GPU-driven-culling loop: a compute pass culls instances and writes the survivor
+count into a writable `BufferAsset`, and the same frame an indirect draw consumes
+it — the CPU never sees or authors the drawn count.
+
+A writable buffer (`usage: "storage"`) now realizes with `INDIRECT` added to its
+usage (`STORAGE | VERTEX | COPY_DST | COPY_SRC | INDIRECT`), so one GPU buffer can
+serve the compute writer AND the indirect-argument source. The 4x-u32 record at
+`indirectOffset` is `[vertexCount, instanceCount, firstVertex, firstInstance]`
+(indexed: `[indexCount, instanceCount, firstIndex, baseVertex, firstInstance]`);
+the compute pass writes the `instanceCount` field with the survivor count.
+
+```ts
+// The compute pass writes the indirect args (instanceCount = survivors) AND a
+// compacted instance buffer; declaring the writes orders it before the draw.
+app.addComputePass({
+  name: "gpu-cull",
+  writes: [{ handle: "cull.args" }, { handle: "cull.instances" }],
+  encode(ctx) {
+    const args = ctx.buffer("cull.args"); // realized GPU buffer (INDIRECT usage)
+    const instances = ctx.buffer("cull.instances");
+    /* bind params + args + instances, dispatch — args[1] := survivor count */
+  },
+});
+
+// The render pass consumes the compute-written count with a single indirect draw.
+app.addRenderPass({
+  name: "gpu-cull-draw",
+  after: "gpu-cull", // ordered after the compute that fills the buffers
+  reads: ["cull.args", "cull.instances"],
+  writes: [{ handle: "scene-color", attachment: "load" }],
+  encode(ctx) {
+    const args = ctx.buffer("cull.args");
+    /* setPipeline + setBindGroup(compacted instances) */
+    ctx.drawIndirect(args, 0); // vertex + instance counts come from the GPU
+  },
+});
+```
+
+The drawn instance count is GPU-authoritative, so the renderer reads it back off
+the argument buffer after the frame's submit and surfaces it in the frame report:
+
+- Per pass: `renderTargets[*].graph.userPasses[i].indirectDraws.drawnInstanceCount`.
+- Frame-wide aggregate: `report.userIndirectDraws.drawnInstanceCount` (summed
+  across every user render pass that recorded an indirect draw).
+
+A degraded path never encodes a device error — it drops the offending draw and
+reports a structured `IndirectDrawFallbackReason` (in
+`report.userIndirectDraws.fallbackReasons` and as a frame warning):
+`indirect-buffer-unresolved` (the buffer id was missing / not ready),
+`indirect-offset-misaligned` (the offset is not a 4-byte multiple),
+`indirect-readback-unavailable` / `indirect-readback-failed` (the device could
+not read the count back — the draw still runs, the count is just unknown).
+
+Gotcha: the pipeline you build for the draw is yours to own, so its
+`multisample.count` (and depth-stencil sample count) MUST match the route's
+attachments. On the forward route MSAA is 4x by default; a single-sampled
+indirect-draw pipeline mismatches and invalidates the whole command submit. Set
+`render: { sampleCount: 1 }` (as `examples/gpu-culling` does) or build a 4x
+pipeline. See `examples/gpu-culling.html` for the complete example.
+
 ### Shadow-casting displacement
 
 By default a custom-WGSL mesh casts shadows through the renderer's shared

@@ -56,6 +56,13 @@ import {
 import { createWebGpuAppDepthAttachmentReport } from "./report.js";
 import { resolveAppBufferAssetResourceById } from "./custom-wgsl-storage-buffer-resources.js";
 import {
+  finalizeUserIndirectDrawReport,
+  resolveUserIndirectDrawCommands,
+  type UserIndirectDrawCommandReport,
+  type UserIndirectDrawTarget,
+} from "../render/draw/user-indirect-draw-commands.js";
+import { readUserIndirectDrawInstanceCounts } from "./user-indirect-draw-readback.js";
+import {
   createWebGpuAppDepthAttachmentForTarget,
   createWebGpuAppMsaaColorTargetForTarget,
   createWebGpuAppMsaaReport,
@@ -1201,6 +1208,52 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       }
     }
 
+    // C2: after the frame's submit, read the GPU-authoritative drawn instance
+    // count off each user render pass's indirect argument buffer(s) and finalize
+    // its report. The readback copy is queue-ordered behind the submit above, so
+    // it sees the compute pass's culling writes. Skipped (count stays null) when
+    // the submit failed or the pass recorded no valid indirect draw.
+    const userIndirectReports = new Map<
+      string,
+      UserIndirectDrawCommandReport
+    >();
+    for (const userNode of forwardUserPasses?.nodes ?? []) {
+      if (userNode.kind !== "render" || userNode.indirectReport === undefined) {
+        continue;
+      }
+      const targets = userNode.indirectTargets ?? [];
+      const readback =
+        frameOk && targets.length > 0
+          ? await readUserIndirectDrawInstanceCounts({
+              device,
+              targets,
+              label: `${options.label}:${userNode.nodeName}`,
+            })
+          : { drawnInstanceCount: null };
+      const finalized = finalizeUserIndirectDrawReport(
+        userNode.indirectReport,
+        readback,
+      );
+      userIndirectReports.set(userNode.nodeName, finalized);
+      // Loud-over-silent: mirror each structured fallback as a frame-level
+      // warning so a degraded indirect path shows up in the diagnostics stream,
+      // not just the per-pass indirect sub-report. Reuses the indirect
+      // diagnostic's own (cataloged) code so lookups resolve.
+      for (const diagnostic of finalized.diagnostics) {
+        diagnostics.push({
+          code: diagnostic.code,
+          severity: "warning",
+          message: diagnostic.message,
+          data: {
+            pass: userNode.nodeName,
+            ...(diagnostic.reason === undefined
+              ? {}
+              : { reason: diagnostic.reason }),
+          },
+        });
+      }
+    }
+
     // AI-12: additive graph sub-report (compiled order + per-user-pass
     // execution), mirroring the post route's renderTarget.graph shape. Present
     // only when user passes are registered so a no-user-pass frame's report is
@@ -1220,11 +1273,13 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
                   : node.kind === "compute"
                     ? (node.execution?.executedCommands ?? 0)
                     : (node.encode.execution?.executedCommands ?? 0);
+              const indirectDraws = userIndirectReports.get(userNode.nodeName);
               return {
                 name: userNode.nodeName,
                 kind: userNode.kind,
                 ran: (node?.valid ?? false) && executedCommands > 0,
                 executedCommands,
+                ...(indirectDraws === undefined ? {} : { indirectDraws }),
               };
             }),
           };
@@ -1825,6 +1880,11 @@ type ForwardGraphUserPassNodeEntry =
       readonly attachments: ReturnType<
         typeof buildFrameBoundaryTargetPlan
       >["attachments"];
+      // C2: the pass's validated indirect-draw report (before readback) and the
+      // GPU argument buffers to read the drawn instance count off of, present
+      // only when the pass recorded ctx.drawIndirect / ctx.drawIndexedIndirect.
+      readonly indirectReport?: UserIndirectDrawCommandReport;
+      readonly indirectTargets?: readonly UserIndirectDrawTarget[];
     }
   | {
       readonly kind: "compute";
@@ -2030,6 +2090,24 @@ function registerForwardGraphUserPasses(args: {
       }
     }
 
+    // C2: validate/filter this render pass's indirect draws BEFORE encoding — a
+    // degraded draw (unresolved buffer or misaligned offset) is dropped with a
+    // structured fallback reason rather than dispatched as a device error. The
+    // valid draws' GPU argument buffers are read back after the frame's submit
+    // for the drawn instance count that surfaces in the report.
+    const indirect = resolveUserIndirectDrawCommands({
+      commands: built.commands,
+      passName: built.name,
+    });
+    const builtCommands = indirect.commands;
+    const indirectEntryFields =
+      indirect.report.status === "inactive"
+        ? {}
+        : {
+            indirectReport: indirect.report,
+            indirectTargets: indirect.targets,
+          };
+
     if (writePlan !== null && !writePlan.usesSceneColor) {
       // B3: honored render-target writes — the pass attaches the realized
       // facade textures (first write is @location(0)) with per-write
@@ -2090,14 +2168,14 @@ function registerForwardGraphUserPasses(args: {
         name: built.name,
         reads,
         writes,
-        commands: built.commands,
+        commands: builtCommands,
         ...(built.before === undefined ? {} : { before: built.before }),
         ...(built.after === undefined ? {} : { after: built.after }),
       });
       args.payloads.set(built.name, {
         device,
         attachments: plan.attachments,
-        commands: built.commands,
+        commands: builtCommands,
         label: built.name,
         colorTargetSource: "offscreen-target",
         readbackTexture: plan.texture.texture,
@@ -2107,9 +2185,10 @@ function registerForwardGraphUserPasses(args: {
         nodeName: built.name,
         texture: plan.texture,
         attachments: plan.attachments,
+        ...indirectEntryFields,
       });
-      plannedCommands += built.commands.length;
-      drawCalls += countDrawCommands(built.commands);
+      plannedCommands += builtCommands.length;
+      drawCalls += countDrawCommands(builtCommands);
       continue;
     }
 
@@ -2134,14 +2213,14 @@ function registerForwardGraphUserPasses(args: {
       // Deliberately NOT also a read: a read edge from every writer would put
       // two load-writing user overlays in a cycle.
       writes: [{ handle: host.handle, attachment: "load" }],
-      commands: built.commands,
+      commands: builtCommands,
       ...(built.before === undefined ? {} : { before: built.before }),
       ...(built.after === undefined ? {} : { after: built.after }),
     });
     args.payloads.set(built.name, {
       device,
       attachments: plan.attachments,
-      commands: built.commands,
+      commands: builtCommands,
       label: built.name,
       colorTargetSource:
         host.colorTarget?.source === "offscreen-target"
@@ -2154,9 +2233,10 @@ function registerForwardGraphUserPasses(args: {
       nodeName: built.name,
       texture: plan.texture,
       attachments: plan.attachments,
+      ...indirectEntryFields,
     });
-    plannedCommands += built.commands.length;
-    drawCalls += countDrawCommands(built.commands);
+    plannedCommands += builtCommands.length;
+    drawCalls += countDrawCommands(builtCommands);
   }
 
   return {

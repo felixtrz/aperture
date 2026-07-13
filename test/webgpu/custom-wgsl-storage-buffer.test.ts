@@ -423,7 +423,7 @@ describe("writable buffer sharing + buffer-backed instance stream (C1)", () => {
     return { source, prepared };
   }
 
-  it("realizes a writable buffer with STORAGE|VERTEX|COPY_DST|COPY_SRC usage", () => {
+  it("realizes a writable buffer with STORAGE|VERTEX|COPY_DST|COPY_SRC|INDIRECT usage", () => {
     const { assets, handle } = writableRegistry("storage");
     const { source, prepared } = boidsMaterial(handle);
     const cache = new Map<string, CustomWgslAppStorageBufferResource>();
@@ -442,8 +442,11 @@ describe("writable buffer sharing + buffer-backed instance stream (C1)", () => {
     });
 
     expect(createdBuffers).toHaveLength(1);
-    // 0x80 STORAGE | 0x20 VERTEX | 0x08 COPY_DST | 0x04 COPY_SRC.
-    expect(createdBuffers[0]?.descriptor.usage).toBe(0x80 | 0x20 | 0x08 | 0x04);
+    // C2: 0x80 STORAGE | 0x20 VERTEX | 0x08 COPY_DST | 0x04 COPY_SRC | 0x100
+    // INDIRECT — the writable buffer can also back an indirect-draw arg region.
+    expect(createdBuffers[0]?.descriptor.usage).toBe(
+      0x80 | 0x20 | 0x08 | 0x04 | 0x100,
+    );
   });
 
   it("shares ONE GPU buffer across the storage binding, compute resolver, and instance stream", () => {

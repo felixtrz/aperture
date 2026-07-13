@@ -262,12 +262,16 @@ function getOrCreateStorageBufferResource(input: {
   return resource;
 }
 
-// C1: GPU usage flags for a realized BufferAsset. A read-only buffer keeps its
-// pre-C1 `STORAGE | COPY_DST` flags byte-for-byte. A writable (`usage:
+// C1/C2: GPU usage flags for a realized BufferAsset. A read-only buffer keeps
+// its pre-C1 `STORAGE | COPY_DST` flags byte-for-byte. A writable (`usage:
 // "storage"`) buffer additionally gains `VERTEX` (buffer-backed instance
-// stream), `COPY_SRC` (motion readback / e2e), and stays `COPY_DST` — one GPU
-// buffer serves the compute writer, the read-only storage binding, and the
-// instance-attribute vertex stream with zero CPU copies.
+// stream), `COPY_SRC` (motion readback / e2e), `INDIRECT` (C2 — the same GPU
+// buffer can back an `ctx.drawIndirect(...)` argument region a compute pass
+// wrote), and stays `COPY_DST` — one GPU buffer serves the compute writer, the
+// read-only storage binding, the instance-attribute vertex stream, and the
+// indirect-draw argument source with zero CPU copies. INDIRECT is unconditional
+// on writable buffers: it is cheap, and GPU-driven rendering is exactly what
+// writable buffers exist for.
 function appBufferAssetGpuUsage(asset: Pick<BufferAsset, "usage">): number {
   const flags = (
     globalThis as {
@@ -276,6 +280,7 @@ function appBufferAssetGpuUsage(asset: Pick<BufferAsset, "usage">): number {
         COPY_DST: number;
         COPY_SRC: number;
         VERTEX: number;
+        INDIRECT: number;
       };
     }
   ).GPUBufferUsage ?? {
@@ -283,10 +288,17 @@ function appBufferAssetGpuUsage(asset: Pick<BufferAsset, "usage">): number {
     COPY_DST: 0x08,
     COPY_SRC: 0x04,
     VERTEX: 0x20,
+    INDIRECT: 0x100,
   };
 
   if (bufferAssetUsageIsWritable(asset.usage)) {
-    return flags.STORAGE | flags.VERTEX | flags.COPY_DST | flags.COPY_SRC;
+    return (
+      flags.STORAGE |
+      flags.VERTEX |
+      flags.COPY_DST |
+      flags.COPY_SRC |
+      flags.INDIRECT
+    );
   }
 
   return flags.STORAGE | flags.COPY_DST;

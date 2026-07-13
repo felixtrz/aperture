@@ -52,6 +52,7 @@ import type {
   FrameBoundaryReadbackResult,
 } from "../render/frame/frame-boundary.js";
 import type { IndirectDrawCommandReport } from "../render/draw/indirect-draw-commands.js";
+import type { UserIndirectDrawCommandReport } from "../render/draw/user-indirect-draw-commands.js";
 import type { GpuPassTimingReport } from "../gpu/gpu-timing.js";
 import type { WebGpuAppRenderPhaseTimingReport } from "./app-phase-timing.js";
 import { parseMaterialPipelineRenderStateTokens } from "../materials/core/material-render-state.js";
@@ -188,6 +189,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.indirectDraws === undefined
       ? {}
       : { indirectDraws: report.indirectDraws }),
+    ...(report.userIndirectDraws === undefined
+      ? {}
+      : { userIndirectDraws: report.userIndirectDraws }),
     ...(report.motionVectors === undefined
       ? {}
       : { motionVectors: report.motionVectors }),
@@ -571,6 +575,73 @@ export function toWebGpuAppJsonValue(
   return result;
 }
 
+/**
+ * C2: merge the per-pass user indirect-draw reports (attached to each
+ * `renderTargets[*].graph.userPasses[*].indirectDraws`) into one frame-wide
+ * aggregate. Returns `undefined` when no user pass recorded an indirect draw, so
+ * a frame without them is byte-identical to before.
+ */
+function aggregateUserIndirectDrawReports(
+  renderTargets: readonly WebGpuAppRenderTargetSubmissionReport[] | undefined,
+): UserIndirectDrawCommandReport | undefined {
+  const reports: UserIndirectDrawCommandReport[] = [];
+  for (const target of renderTargets ?? []) {
+    for (const pass of target.graph?.userPasses ?? []) {
+      if (pass.indirectDraws !== undefined) {
+        reports.push(pass.indirectDraws);
+      }
+    }
+  }
+
+  if (reports.length === 0) {
+    return undefined;
+  }
+
+  const diagnostics = reports.flatMap((report) => report.diagnostics);
+  const fallbackReasons = [
+    ...new Set(reports.flatMap((report) => report.fallbackReasons)),
+  ];
+  const drawnCounts = reports
+    .map((report) => report.drawnInstanceCount)
+    .filter((count): count is number => count !== null);
+  const skippedDraws = reports.reduce(
+    (total, report) => total + report.skippedDraws,
+    0,
+  );
+  const indirectDraws = reports.reduce(
+    (total, report) => total + report.indirectDraws,
+    0,
+  );
+
+  return {
+    valid: diagnostics.length === 0,
+    status:
+      skippedDraws > 0
+        ? "fallback"
+        : drawnCounts.length > 0
+          ? "readback"
+          : indirectDraws > 0
+            ? "recorded"
+            : "inactive",
+    indirectDraws,
+    nonIndexedIndirectDraws: reports.reduce(
+      (total, report) => total + report.nonIndexedIndirectDraws,
+      0,
+    ),
+    indexedIndirectDraws: reports.reduce(
+      (total, report) => total + report.indexedIndirectDraws,
+      0,
+    ),
+    skippedDraws,
+    drawnInstanceCount:
+      drawnCounts.length === 0
+        ? null
+        : drawnCounts.reduce((total, count) => total + count, 0),
+    fallbackReasons,
+    diagnostics,
+  };
+}
+
 export function renderReport(input: {
   readonly ok: boolean;
   readonly snapshot: RenderSnapshot;
@@ -595,6 +666,12 @@ export function renderReport(input: {
   readonly commandPressure?: RenderPassCommandPressureReport;
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
+  /**
+   * C2: frame-wide aggregate of user-surface indirect draws. When omitted it is
+   * derived from the per-pass `renderTargets[*].graph.userPasses[*].indirectDraws`
+   * so every route surfaces it for free.
+   */
+  readonly userIndirectDraws?: UserIndirectDrawCommandReport;
   readonly motionVectors?: WebGpuAppMotionVectorReport;
   readonly shadow?: WebGpuAppRenderReport["shadow"];
   readonly localLightCookieResources?:
@@ -619,6 +696,9 @@ export function renderReport(input: {
   const localLightCookies = createWebGpuAppLocalLightCookieReport(
     input.localLightCookieResources ?? null,
   );
+  const userIndirectDraws =
+    input.userIndirectDraws ??
+    aggregateUserIndirectDrawReports(input.renderTargets);
   const diagnostics = [
     ...input.diagnostics,
     ...localLightClusterDeferredSamplingDiagnostics(localLightClusters),
@@ -702,6 +782,7 @@ export function renderReport(input: {
     ...(input.indirectDraws === undefined
       ? {}
       : { indirectDraws: input.indirectDraws }),
+    ...(userIndirectDraws === undefined ? {} : { userIndirectDraws }),
     ...(input.motionVectors === undefined
       ? {}
       : { motionVectors: input.motionVectors }),

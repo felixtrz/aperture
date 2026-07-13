@@ -75,19 +75,21 @@ bridge — a compute pass writes a writable `BufferAsset` that an instanced
 custom material consumes the same frame as a storage binding AND a
 buffer-backed instance stream, frame-graph-ordered compute-before-draw (the
 counterpart of three.js TSL `storage().toAttribute()` compute-to-vertex
-plumbing). Remaining limits: pass bodies are raw WebGPU rather than data, and
-indirect draw is still internal-only (a user surface is parity plan C2).
+plumbing), and C2 exposes GPU-driven indirect draws — a user render pass records
+`ctx.drawIndirect` / `drawIndexedIndirect` against a compute-written argument
+buffer, and the GPU-authoritative drawn instance count is read back into the
+frame report. Remaining limit: pass bodies are raw WebGPU rather than data.
 three.js counters with `EffectComposer` (WebGL) and TSL compute with atomics,
 storage textures, and indirect draws (WebGPU backend).
 
 **Confirmed absent in Aperture across this whole domain:** stencil, clipping
-planes, decals, 3D/array render targets, runtime texture/video updates,
-and GPU-driven indirect draw as a user
-API (cube render targets shipped as parity plan B2; MRT authoring and
-user-pass target writes shipped as parity plan B3; custom-material scene-depth
-access shipped as parity plan B4; the compute→draw / compute-to-vertex bridge
-shipped as parity plan C1). §9 scores 20 concrete game scenarios; §10
-ranks the gap closures by how much game-dev surface each unlocks.
+planes, decals, 3D/array render targets, and runtime texture/video updates
+(cube render targets shipped as parity plan B2; MRT authoring and user-pass
+target writes shipped as parity plan B3; custom-material scene-depth access
+shipped as parity plan B4; the compute→draw / compute-to-vertex bridge shipped as
+parity plan C1; the GPU-driven indirect-draw user surface shipped as parity plan
+C2). §9 scores 20 concrete game scenarios; §10 ranks the gap closures by how much
+game-dev surface each unlocks.
 
 ---
 
@@ -215,17 +217,17 @@ has true shader HMR.
 
 ## 4. Custom passes & GPU compute
 
-| Capability               | three.js                                                                                                                                                                            | Aperture                                                                                                                                                                                 | Verdict               |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| Custom full-screen pass  | ✅ `ShaderPass` (WebGL); `RenderPipeline.outputNode` graphs (WebGPU)                                                                                                                | 🟡 user render passes draw **onto scene-color with LOAD** only; declared writes to other targets are diagnosed, not honored — no ping-pong, so nontrivial grading chains are constrained | Gap                   |
-| Pass scheduling          | Linear composer chain; node graph                                                                                                                                                   | ✅ frame-graph node with declared `reads`/`writes` (+`before`/`after`); requires `useFrameGraph` (default on)                                                                            | Aperture cleaner      |
-| Pass inputs              | Depth via `depthTexture`; `PassNode` gives viewZ/linearDepth/velocity/MRT taps                                                                                                      | ✅ `ctx.view("scene-color")`, `ctx.view("depth")`, own buffers/textures via `ctx.bindings`                                                                                               | Partial parity        |
-| Authoring level          | Materials/nodes (data)                                                                                                                                                              | Raw WebGPU in `encode(ctx)` — user builds pipelines/bind groups against the real device                                                                                                  | three.js higher-level |
-| General compute          | `renderer.compute()` + `ComputeNode`; atomics/barriers/workgroup memory/subgroups (WebGPU-backend-only); transform-feedback emulation on fallback; `GPUComputationRenderer` (WebGL) | ✅ `addComputePass` is fully general: own compute pipelines, storage buffers, `dispatchWorkgroups`, buffer readback (histogram example does exactly this)                                | Parity (tier gap)     |
-| Compute → rendering      | ✅ `storage().toAttribute()` feeds `positionNode`; storage textures; `geometryNode`                                                                                                 | 🟡 custom materials bind read-only storage buffers (A2), but no plumbing yet from compute output into those buffers or mesh/instance streams (C1)                                        | Gap                   |
-| Indirect draw / dispatch | ✅ WebGPU backend: `IndirectStorageBufferAttribute`, `BatchedMesh` indirect, `dispatchWorkgroupsIndirect`                                                                           | ❌ internal optimization only (`indirect-draw-commands.ts` not exported; pass sinks expose only `draw/drawIndexed`)                                                                      | Gap                   |
-| Render bundles           | `BundleGroup` (WebGPU-backend-only)                                                                                                                                                 | Internal render-bundle support in the draw layer; not a user surface                                                                                                                     | —                     |
-| Built-in post stack      | Composer passes / TSL display nodes (large library)                                                                                                                                 | Ordered built-in effect array (FXAA/bloom/SSAO/SSR/TAA/DoF/tonemap); not user-extensible as data                                                                                         | See feature audit §13 |
+| Capability               | three.js                                                                                                                                                                            | Aperture                                                                                                                                                                                                                                    | Verdict               |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| Custom full-screen pass  | ✅ `ShaderPass` (WebGL); `RenderPipeline.outputNode` graphs (WebGPU)                                                                                                                | 🟡 user render passes draw **onto scene-color with LOAD** only; declared writes to other targets are diagnosed, not honored — no ping-pong, so nontrivial grading chains are constrained                                                    | Gap                   |
+| Pass scheduling          | Linear composer chain; node graph                                                                                                                                                   | ✅ frame-graph node with declared `reads`/`writes` (+`before`/`after`); requires `useFrameGraph` (default on)                                                                                                                               | Aperture cleaner      |
+| Pass inputs              | Depth via `depthTexture`; `PassNode` gives viewZ/linearDepth/velocity/MRT taps                                                                                                      | ✅ `ctx.view("scene-color")`, `ctx.view("depth")`, own buffers/textures via `ctx.bindings`                                                                                                                                                  | Partial parity        |
+| Authoring level          | Materials/nodes (data)                                                                                                                                                              | Raw WebGPU in `encode(ctx)` — user builds pipelines/bind groups against the real device                                                                                                                                                     | three.js higher-level |
+| General compute          | `renderer.compute()` + `ComputeNode`; atomics/barriers/workgroup memory/subgroups (WebGPU-backend-only); transform-feedback emulation on fallback; `GPUComputationRenderer` (WebGL) | ✅ `addComputePass` is fully general: own compute pipelines, storage buffers, `dispatchWorkgroups`, buffer readback (histogram example does exactly this)                                                                                   | Parity (tier gap)     |
+| Compute → rendering      | ✅ `storage().toAttribute()` feeds `positionNode`; storage textures; `geometryNode`                                                                                                 | 🟡 custom materials bind read-only storage buffers (A2), but no plumbing yet from compute output into those buffers or mesh/instance streams (C1)                                                                                           | Gap                   |
+| Indirect draw / dispatch | ✅ WebGPU backend: `IndirectStorageBufferAttribute`, `BatchedMesh` indirect, `dispatchWorkgroupsIndirect`                                                                           | ✅ App (draw) — user render passes record `ctx.drawIndirect` / `drawIndexedIndirect` against a compute-written argument buffer; drawn count read back into the frame report (parity plan C2). `dispatchWorkgroupsIndirect` remains internal | Parity (draw)         |
+| Render bundles           | `BundleGroup` (WebGPU-backend-only)                                                                                                                                                 | Internal render-bundle support in the draw layer; not a user surface                                                                                                                                                                        | —                     |
+| Built-in post stack      | Composer passes / TSL display nodes (large library)                                                                                                                                 | Ordered built-in effect array (FXAA/bloom/SSAO/SSR/TAA/DoF/tonemap); not user-extensible as data                                                                                                                                            | See feature audit §13 |
 
 The takeaway: Aperture's compute escape hatch is real and app-reachable, but
 the **bridge back into rendering** (compute-written vertex/instance/indirect
@@ -288,8 +290,9 @@ three.js — the diagnostics-first architecture pays off exactly here.
 (especially TSL's automatic lighting/skinning/shadow composition and
 `wgslFn`/`glslFn` escape hatches), MRT, cube/3D/array targets and
 `CubeCamera`, grab-pass nodes, stencil + clipping, decals, video/canvas/data
-textures, compute→vertex plumbing and indirect draws, and a huge library of
-ready passes and helper objects.
+textures, indirect COMPUTE dispatch (`dispatchWorkgroupsIndirect`), and a huge
+library of ready passes and helper objects (Aperture has since closed
+compute→vertex plumbing (C1) and the indirect-DRAW user surface (C2)).
 
 **Aperture advantages (this domain):** `RuntimeUniform` zero-rebuild live
 parameters with record/replay-safe command flow; frame-graph-scheduled user
@@ -322,7 +325,7 @@ limits · ❌ not achievable today.
 | 12  | Full-screen color grade / custom post chain           | ✅       | ✅       | User passes write facade targets (ping-pong chains) or scene-color (parity plan B3); built-in post list itself remains non-extensible                                                                                                                                                                       |
 | 13  | GPU particle/VFX sim (custom compute)                 | ✅\*     | ✅       | Compute→draw bridge shipped (parity plan C1): a compute pass writes a writable `BufferAsset` an instanced custom material consumes the same frame with zero CPU copies (`examples/boids`); the built-in Shuriken system also covers most VFX needs                                                          |
 | 14  | GPU crowd (compute skinning + instanced draw)         | ✅\*     | ✅       | Compute→instance plumbing shipped (parity plan C1): the writable buffer feeds both a `material.storage(...)` binding AND a buffer-backed instance stream (`instanceBuffer`), frame-graph-ordered compute-before-draw — the GPU crowd = boids + a built-in/custom instanced material via the instance stream |
-| 15  | GPU-driven culling / indirect draw                    | ✅\*     | ❌       | Indirect draw internal-only                                                                                                                                                                                                                                                                                 |
+| 15  | GPU-driven culling / indirect draw                    | ✅\*     | ✅       | Indirect-draw user surface shipped (parity plan C2): a user render pass records `ctx.drawIndirect` / `drawIndexedIndirect` against a compute-written argument buffer; the GPU-authoritative drawn count surfaces in the frame report (`examples/gpu-culling`)                                               |
 | 16  | CPU cloth/jelly (per-frame vertex upload)             | ✅       | 🟡       | Update-range uploads exist; ergonomics are asset re-registration                                                                                                                                                                                                                                            |
 | 17  | Decals (bullet holes, blood)                          | ✅       | ❌       | Nothing; overlay pass is the only workaround                                                                                                                                                                                                                                                                |
 | 18  | In-world video/canvas screen (TV, scoreboard)         | ✅       | ❌       | No runtime texture updates                                                                                                                                                                                                                                                                                  |
@@ -333,10 +336,10 @@ limits · ❌ not achievable today.
 textures, and indirect.
 
 Score (of 20): three.js ✅ 16 / 🟡 2 / ❌ 0 (2 backend-caveated); Aperture
-✅ 14 / 🟡 1 / ❌ 5. The ❌ column clusters around two missing primitives —
-extended custom materials (skinning/morph inputs) and stencil — plus
-GPU-driven indirect draw as a user API (parity plan C2); the compute→rendering
-bridge itself shipped as parity plan C1.
+✅ 15 / 🟡 1 / ❌ 4. The ❌ column clusters around two missing primitives —
+extended custom materials (skinning/morph inputs) and stencil; the
+compute→rendering bridge shipped as parity plan C1 and the GPU-driven
+indirect-draw user surface as parity plan C2.
 
 ---
 
@@ -394,4 +397,7 @@ stay inside the architecture.
     rendering rather than a bespoke feature.
 12. **Indirect-draw user surface** (completes #15) — smallest audience,
     biggest ceiling; the command layer already emits indirect draws
-    internally.
+    internally. _Shipped_ — `ctx.drawIndirect` / `ctx.drawIndexedIndirect` on
+    user render passes, consuming a compute-written argument buffer, with the
+    GPU-authoritative drawn count read back into the frame report (parity plan
+    C2, `examples/gpu-culling`).

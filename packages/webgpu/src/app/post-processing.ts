@@ -54,6 +54,10 @@ import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import { resolveAppBufferAssetResourceById } from "./custom-wgsl-storage-buffer-resources.js";
 import { encodePostPassMotionVectorClearColor } from "./motion-vectors.js";
 import { countDrawCommands } from "./view-commands.js";
+import {
+  resolveUserIndirectDrawCommands,
+  type UserIndirectDrawCommandReport,
+} from "../render/draw/user-indirect-draw-commands.js";
 import type {
   WebGpuApp,
   WebGpuAppPostEffectSubmissionReport,
@@ -1117,6 +1121,14 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
   // scene-color. Resolvers map the public built-in handle ids to this route's GPU
   // resources; user pipelines/buffers/bind groups are owned by the encode closure.
   const userPassNodeNames: string[] = [];
+  // C2: per-render-pass indirect-draw reports. The post route validates + drops
+  // degraded indirect draws (so none dispatches a device error) and surfaces the
+  // fallback reasons; the GPU drawn-count readback is the forward route's async
+  // job (this route's assembler is synchronous), so drawnInstanceCount stays null.
+  const userPassIndirectReports = new Map<
+    string,
+    UserIndirectDrawCommandReport
+  >();
   // Optional chaining: the real app always has a registry, but lightweight
   // callers/tests may omit it — treat a missing registry as no user passes.
   const userPasses = (options.app.userPassRegistry?.list() ?? []).filter(
@@ -1299,16 +1311,21 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
             : {}),
           ...(extras.length === 0 ? {} : { additionalColorTargets: extras }),
         });
+        const indirect = registerPostUserPassIndirectDraws({
+          built,
+          diagnostics,
+          reports: userPassIndirectReports,
+        });
         graph.addRenderPass({
           name: built.name,
           reads: [...built.reads],
           writes: writePlan.writes.map((entry) => entry.write),
-          commands: built.commands,
+          commands: indirect,
         });
         payloads.set(built.name, {
           device,
           attachments: plan.attachments,
-          commands: built.commands,
+          commands: indirect,
           label: built.name,
           colorTargetSource: "offscreen-target",
           readbackTexture: plan.texture.texture,
@@ -1319,8 +1336,8 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
           attachments: plan.attachments,
         });
         userPassNodeNames.push(built.name);
-        plannedCommands += built.commands.length;
-        drawCalls += countDrawCommands(built.commands);
+        plannedCommands += indirect.length;
+        drawCalls += countDrawCommands(indirect);
       } else {
         const plan = buildFrameBoundaryTargetPlan({
           context,
@@ -1335,18 +1352,23 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
             depthStoreOp: "store",
           },
         });
+        const indirect = registerPostUserPassIndirectDraws({
+          built,
+          diagnostics,
+          reports: userPassIndirectReports,
+        });
         graph.addRenderPass({
           name: built.name,
           // LOAD ⇒ also a read of scene-color, so the compiler orders this after
           // the scene node and forces it to store scene-color for the overlay.
           reads: [...built.reads, sceneColorHandle],
           writes: [{ handle: sceneColorHandle, attachment: "load" }],
-          commands: built.commands,
+          commands: indirect,
         });
         payloads.set(built.name, {
           device,
           attachments: plan.attachments,
-          commands: built.commands,
+          commands: indirect,
           label: built.name,
           colorTargetSource: "offscreen-target",
           readbackTexture: plan.texture.texture,
@@ -1357,8 +1379,8 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
           attachments: plan.attachments,
         });
         userPassNodeNames.push(built.name);
-        plannedCommands += built.commands.length;
-        drawCalls += countDrawCommands(built.commands);
+        plannedCommands += indirect.length;
+        drawCalls += countDrawCommands(indirect);
       }
     }
   }
@@ -1675,11 +1697,13 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
           : node.kind === "compute"
             ? (node.execution?.executedCommands ?? 0)
             : (node.encode.execution?.executedCommands ?? 0);
+      const indirectDraws = userPassIndirectReports.get(name);
       return {
         name,
         kind: node?.kind === "compute" ? "compute" : "render",
         ran: (node?.valid ?? false) && executedCommands > 0,
         executedCommands,
+        ...(indirectDraws === undefined ? {} : { indirectDraws }),
       };
     }),
   };
@@ -1949,6 +1973,47 @@ function assembleWebGpuAppPreparedPostEffectGraph(options: {
     plannedCommands,
     drawCalls,
   };
+}
+
+/**
+ * C2 (post route): validate a user render pass's indirect draws, drop any
+ * degraded draw (so it never dispatches a device error), record the report, and
+ * mirror each fallback as a frame warning. Returns the filtered command list.
+ * The GPU drawn-count readback is the forward route's async job; here
+ * `drawnInstanceCount` stays null (this assembler is synchronous).
+ */
+function registerPostUserPassIndirectDraws(input: {
+  readonly built: {
+    readonly name: string;
+    readonly commands: readonly RenderPassCommand[];
+  };
+  readonly diagnostics: unknown[];
+  readonly reports: Map<string, UserIndirectDrawCommandReport>;
+}): readonly RenderPassCommand[] {
+  const indirect = resolveUserIndirectDrawCommands({
+    commands: input.built.commands,
+    passName: input.built.name,
+  });
+
+  if (indirect.report.status === "inactive") {
+    return indirect.commands;
+  }
+
+  input.reports.set(input.built.name, indirect.report);
+  for (const diagnostic of indirect.report.diagnostics) {
+    input.diagnostics.push({
+      code: diagnostic.code,
+      severity: "warning",
+      message: diagnostic.message,
+      data: {
+        pass: input.built.name,
+        ...(diagnostic.reason === undefined
+          ? {}
+          : { reason: diagnostic.reason }),
+      },
+    });
+  }
+  return indirect.commands;
 }
 
 function appendFrameBoundaryDiagnostics(
