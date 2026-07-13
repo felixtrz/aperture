@@ -37,6 +37,7 @@ import {
   withStandardIblPipelineKeys,
   withStandardShadowPipelineKeys,
 } from "../materials/standard/standard-app-pipeline-keys.js";
+import { withClipPlanePipelineKeys } from "../materials/core/clip-plane-shader.js";
 import { writeRenderFramePlanFromSnapshot } from "../render/frame/render-frame-plan.js";
 import {
   prepareDrawOrderTransformPacking,
@@ -204,17 +205,25 @@ export async function renderWebGpuAppFrame(
     });
   }
 
-  const snapshot = withStandardClusteredLocalLightPipelineKeys(iblSnapshot, {
-    supportedCookieResources:
-      localLightCookieResources.resources?.supportedResources ?? [],
-    cookieTextureViewDimension:
-      localLightCookieResources.resources?.textureViewDimension ?? null,
-    reuseShadowMatricesForCookies:
-      canReuseClusteredLocalLightShadowMatricesForCookies(
-        options.standardMaterialShadowReceiverResources,
-        localLightCookieResources.resources,
-      ),
-  });
+  const clusteredSnapshot = withStandardClusteredLocalLightPipelineKeys(
+    iblSnapshot,
+    {
+      supportedCookieResources:
+        localLightCookieResources.resources?.supportedResources ?? [],
+      cookieTextureViewDimension:
+        localLightCookieResources.resources?.textureViewDimension ?? null,
+      reuseShadowMatricesForCookies:
+        canReuseClusteredLocalLightShadowMatricesForCookies(
+          options.standardMaterialShadowReceiverResources,
+          localLightCookieResources.resources,
+        ),
+    },
+  );
+  // D2 (clipping planes): append the `clip` feature token to every mesh-draw
+  // pipeline key when any view in the frame carries clip planes, so all built-in
+  // materials compile the fragment discard path. No-clip frames pass through
+  // untouched (byte-identical pipeline keys/shaders/pipelines).
+  const snapshot = withClipPlanePipelineKeys(clusteredSnapshot);
   // D1 (stencil support): select this frame's scene depth attachment format
   // BEFORE any route builds pipelines or the depth attachment. When a material
   // in the frame enables stencil the whole frame's scene depth becomes

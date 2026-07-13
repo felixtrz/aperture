@@ -30,6 +30,7 @@ export * from "./resources/attributes/instance-attribute-buffer.js";
 export * from "./render/frame/render-frame-plan.js";
 export * from "./gpu/gpu-timing.js";
 export * from "./materials/core/material-dependency-diagnostics-summary.js";
+export * from "./materials/core/clip-plane-shader.js";
 export * from "./lighting/lighting-resource-plan.js";
 export * from "./lighting/local-light-atlas-slot-allocator.js";
 export * from "./resources/meshes/mesh-buffer-descriptors.js";

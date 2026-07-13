@@ -82,13 +82,14 @@ frame report. Remaining limit: pass bodies are raw WebGPU rather than data.
 three.js counters with `EffectComposer` (WebGL) and TSL compute with atomics,
 storage textures, and indirect draws (WebGPU backend).
 
-**Confirmed absent in Aperture across this whole domain:** clipping
-planes, decals, 3D/array render targets, and runtime texture/video updates
-(cube render targets shipped as parity plan B2; MRT authoring and user-pass
-target writes shipped as parity plan B3; custom-material scene-depth access
-shipped as parity plan B4; the compute→draw / compute-to-vertex bridge shipped as
-parity plan C1; the GPU-driven indirect-draw user surface shipped as parity plan
-C2). §9 scores 20 concrete game scenarios; §10 ranks the gap closures by how much
+**Confirmed absent in Aperture across this whole domain:** decals,
+3D/array render targets, and runtime texture/video updates (cube render targets
+shipped as parity plan B2; MRT authoring and user-pass target writes shipped as
+parity plan B3; custom-material scene-depth access shipped as parity plan B4; the
+compute→draw / compute-to-vertex bridge shipped as parity plan C1; the GPU-driven
+indirect-draw user surface shipped as parity plan C2; per-camera and per-material
+clipping planes shipped as parity plan D2). §9 scores 20 concrete game scenarios;
+§10 ranks the gap closures by how much
 game-dev surface each unlocks.
 
 ---
@@ -207,7 +208,7 @@ has true shader HMR.
 | Use case                  | three.js                                                             | Aperture today                                                                                                                                                                                                                                                                                   |
 | ------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Minimap / security camera | RT + second camera + HUD quad — routine                              | ✅ buildable on the facade (B1): `renderTargets.register` + `spawn.camera({ renderTarget })` + a custom-WGSL HUD quad sampling via `material.texture` — shipped as `examples/minimap`                                                                                                            |
-| Planar mirror             | `Reflector` addon (WebGL) / `ReflectorNode` (WebGPU)                 | 🟡 per-material **stencil masking now available** (parity plan D1) to constrain the reflection to the mirror shape; still no `Reflector` helper and **no clipping planes** for the oblique frustum, so a hand-wired mirror only                                                                  |
+| Planar mirror             | `Reflector` addon (WebGL) / `ReflectorNode` (WebGPU)                 | 🟡 per-material **stencil masking** (parity plan D1) constrains the reflection to the mirror shape and **clipping planes now exist** (parity plan D2) for the oblique frustum; still no turnkey `Reflector` helper, so a hand-wired mirror only                                                  |
 | Portals                   | Stencil recipes + RTs                                                | ✅ per-material stencil (write/func/ref/masks/ops) enables the stencil-portal / masked-reveal recipe (parity plan D1, `examples/stencil-portal`), combinable with B1 render targets for portal content                                                                                           |
 | Dynamic env probe         | `CubeCamera` → cube RT                                               | ✅ B2: cube render target + capture camera (`capture: { every: N }` / on-demand `renderTargets.capture`) prefiltered into IBL via `renderTargetSource` — shipped as `examples/reflective-probe`                                                                                                  |
 | Refraction / heat haze    | `viewportSharedTexture` grab + `backdropNode`; physical transmission | 🟡 transmission grab pass fires automatically for transmissive **standard** materials; not available to custom WGSL; note transmission params are authorable only via glTF or low-level assets — the app-facade `material.standard()` builder exposes just baseColor/roughness/metallic/emissive |
@@ -265,11 +266,18 @@ three.js `stencilWrite`/`stencilFunc`/`stencilRef`/`stencilFuncMask`/
 depth-stencil attachment is selected automatically (`depth24plus-stencil8` on
 frames that use stencil, depth-only otherwise), and true stencil portals
 (`examples/stencil-portal`) and stencil-outline highlighting
-(`examples/stencil-outline`) now work. Combined with `colorWriteMask`, full
-depth-state control, `RenderOrder`, per-camera `RenderLayer` masks and
-viewport/scissor, and depth-tested overlay user passes, the remaining gap in
-this domain is **clipping planes** (no per-camera/per-material clip planes, so
-CSG-style cutaways and oblique-frustum mirrors are still out — parity plan D2).
+(`examples/stencil-outline`) now work. **Clipping planes are also supported**
+(parity plan D2) — per-camera (`camera.clipPlanes`, the three.js
+`renderer.clippingPlanes` analog) and per-material (`renderState.clipPlanes`,
+`Material.clippingPlanes`) world-space planes that UNION and cap at 8, mapping
+three.js's global + per-material clipping and `ClippingGroup`. WebGPU core has no
+`clip_distances` builtin, so clipping is a per-fragment `discard` injected into
+the built-in mesh shaders, driven by a per-view clip-plane uniform; a primitive
+cutaway (`examples/clipping-cutaway`) demonstrates the cut. Combined with
+`colorWriteMask`, full depth-state control, `RenderOrder`, per-camera
+`RenderLayer` masks and viewport/scissor, and depth-tested overlay user passes,
+this domain reaches parity except for a `MaskPass`-style composer stage and a
+turnkey `Reflector` mirror helper.
 
 ---
 
@@ -293,10 +301,12 @@ three.js — the diagnostics-first architecture pays off exactly here.
 **three.js advantages (this domain):** the entire custom-shading spectrum
 (especially TSL's automatic lighting/skinning/shadow composition and
 `wgslFn`/`glslFn` escape hatches), MRT, cube/3D/array targets and
-`CubeCamera`, grab-pass nodes, stencil + clipping, decals, video/canvas/data
-textures, indirect COMPUTE dispatch (`dispatchWorkgroupsIndirect`), and a huge
-library of ready passes and helper objects (Aperture has since closed
-compute→vertex plumbing (C1) and the indirect-DRAW user surface (C2)).
+`CubeCamera`, grab-pass nodes, node-graph stencil/clipping composition
+(`ClippingGroup`), decals, video/canvas/data textures, indirect COMPUTE dispatch
+(`dispatchWorkgroupsIndirect`), and a huge library of ready passes and helper
+objects (Aperture has since closed compute→vertex plumbing (C1), the indirect-DRAW
+user surface (C2), per-material stencil (D1), and per-camera/per-material clipping
+planes (D2)).
 
 **Aperture advantages (this domain):** `RuntimeUniform` zero-rebuild live
 parameters with record/replay-safe command flow; frame-graph-scheduled user
@@ -321,7 +331,7 @@ limits · ❌ not achievable today.
 | 4   | Vertex-animated foliage/flags (wind)                  | ✅       | ✅       | Displacement works and `entryPoints.shadowVertex` mirrors it into the shadow map (parity plan A4); skinning in custom shaders remains #5's gap                                                                                                                                                              |
 | 5   | Custom shader on skinned characters                   | ✅       | ❌       | No skin/morph inputs in custom pipelines                                                                                                                                                                                                                                                                    |
 | 6   | Minimap / security-camera monitor                     | ✅       | ✅       | Facade route (parity plan B1): `renderTargets.register` + `spawn.camera({ renderTarget })` + `material.texture` HUD quad (`examples/minimap`)                                                                                                                                                               |
-| 7   | Planar mirror                                         | ✅       | 🟡       | Per-material stencil masking now available (parity plan D1) to clip the reflection to the mirror shape; still no Reflector helper or clipping planes for the oblique frustum                                                                                                                                |
+| 7   | Planar mirror                                         | ✅       | 🟡       | Per-material stencil masking (parity plan D1) clips the reflection to the mirror shape AND per-camera/per-material clipping planes (parity plan D2) now cover the oblique frustum; remaining gap is a turnkey `Reflector` helper / shipped oblique-mirror example                                           |
 | 8   | Stencil portal / masked reveal                        | ✅       | ✅       | Per-material stencil (write/func/ref/masks/ops, all kinds) with automatic depth-stencil format selection (parity plan D1, `examples/stencil-portal` + `examples/stencil-outline`)                                                                                                                           |
 | 9   | Dynamic reflection probe (cube capture)               | ✅       | ✅       | Cube render targets + scheduled capture camera + IBL prefilter of the captured cube (parity plan B2, `examples/reflective-probe`)                                                                                                                                                                           |
 | 10  | Refraction / heat haze (grab pass)                    | ✅       | ✅       | Automatic transmission grab; params authorable on `material.standard()` (parity plan A3); custom-WGSL grab access remains #12's domain                                                                                                                                                                      |
@@ -343,8 +353,11 @@ Score (of 20): three.js ✅ 16 / 🟡 2 / ❌ 0 (2 backend-caveated); Aperture
 ✅ 16 / 🟡 2 / ❌ 2. The ❌ column now clusters around extended custom
 materials (skinning/morph inputs) and runtime texture/video updates; the
 compute→rendering bridge shipped as parity plan C1, the GPU-driven
-indirect-draw user surface as parity plan C2, and per-material stencil (scenario
-#8 → ✅, #7 → 🟡) as parity plan D1.
+indirect-draw user surface as parity plan C2, per-material stencil (scenario
+#8 → ✅) as parity plan D1, and per-camera/per-material clipping planes as parity
+plan D2. Scenario #7 (planar mirror) stays 🟡 — clipping planes now exist (the
+oblique-frustum blocker is gone), but a turnkey `Reflector` helper and a shipped
+oblique-mirror example are still missing.
 
 ---
 

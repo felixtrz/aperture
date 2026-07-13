@@ -28,6 +28,10 @@ import {
   type OutputColorSpace,
 } from "../../output/output-stage-color-space.js";
 import { createMotionVectorBuiltInShaderVariant } from "../../render/motion/motion-vector-shader.js";
+import {
+  pipelineKeyIncludesClip,
+  withInjectedClipPlanes,
+} from "../core/clip-plane-shader.js";
 import { createIndirectColorChannelShaderVariant } from "./standard-indirect-channel-shader.js";
 import {
   createWebGpuShaderModule,
@@ -115,7 +119,10 @@ export async function createStandardRenderPipelineResource(
   options: CreateStandardRenderPipelineResourceOptions,
 ): Promise<CreateStandardRenderPipelineResourceResult> {
   const baseShader = applyOutputTonemapToStandardShader(
-    resolveStandardShaderForBatchKey(options.batchKey, options.shader),
+    withInjectedClipPlanes(
+      resolveStandardShaderForBatchKey(options.batchKey, options.shader),
+      pipelineKeyIncludesClip(options.batchKey.pipelineKey),
+    ),
     options.tonemap ?? DEFAULT_TONEMAP_OPERATOR,
     options.outputColorSpace ?? DEFAULT_OUTPUT_COLOR_SPACE,
   );

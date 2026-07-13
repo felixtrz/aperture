@@ -648,6 +648,76 @@ Flips the one render state explicitly marked unsupported. Requires a
 
 ### D2. Clipping planes — **M**
 
+Status: implemented (2026-07-13). AC1: per-camera clip planes via a camera
+`clipPlanes` authoring surface (`spawn.camera({ camera: { clipPlanes } })` /
+`withCamera({ clipPlanes })`, which attaches a `CameraClipPlanes` companion
+component) AND optional per-material planes via `renderState.clipPlanes`; the two
+UNION (camera first) and are capped at `MAX_CLIP_PLANES = 8` (`resolveClipPlanes`
+in `packages/render/src/rendering/clip-planes.ts`). Planes are world-space
+`(nx, ny, nz, d)` with three.js `THREE.Plane` semantics — a fragment is KEPT
+where `dot(worldPos, (nx,ny,nz)) + d >= 0` and discarded otherwise. **Discard,
+not `clip_distances`:** WebGPU core WGSL has no `clip_distances` builtin (it is an
+optional feature absent on SwiftShader), so the universal implementation is a
+per-fragment `discard` loop injected into the built-in mesh shaders
+(`injectCameraClipPlanesWgsl`), not the "clip distances where available" split the
+original AC sketched — the discard path is the ONLY path. Overflow is diagnosed
+loud-over-silent: `camera.clipPlanesExceedLimit` (extraction) and
+`material.clipPlanesExceedLimit` (material validation), both cataloged. AC2:
+`examples/clipping-cutaway` — an orthographic camera carries a `(1,0,0,0)` plane
+that cuts a SYMMETRIC box in half; the kept half stays opaque while the clipped
+half discards to the background. `test/e2e/clipping-cutaway.spec.ts` asserts the
+cut by pixel samples (bright box on the kept side, dark background on the clipped
+side of the symmetric box, proving the asymmetry is the plane's doing) plus that
+the frame compiled the `clip` pipeline token and the view carries one plane.
+
+**group(0) / view-uniform contract decision.** The clip block lives in the
+per-view uniform at `@group(0) @binding(0)`, APPENDED after the fog block:
+`clipPlaneCount: vec4f` at float offset 44 (x = active count as f32, matching the
+fog-`mode` convention; yzw pad for std140), then `clipPlanes: array<vec4f, 8>` at
+offset 48, growing the packed view-uniform stride from 44 to 80 floats. Every
+pre-existing offset (viewProjection 0–15, cameraPosition 16–19,
+previousViewProjection 20–35, fogColor 36–39, fogParams 40–43) is UNCHANGED.
+Consequences: (1) clipping is applied ONLY to the four built-in material families
+(unlit/matcap/standard/debug-normal) via automatic shader rewrite — the rewrite
+extends the shader's `ViewProjectionUniform` struct and injects the discard loop
+in `fs_main`, gated frame-wide by a `clip` pipeline-key feature token appended by
+`withClipPlanePipelineKeys` when ANY view in the frame clips. (2) Custom-WGSL
+materials are NOT auto-clipped: they keep declaring the smaller view struct and
+read valid data because the grown buffer is a strict superset (WGSL permits the
+bound uniform buffer to exceed the declared struct); to opt in, a custom material
+must declare the extended view struct (reaching the clip block at offset 44/48)
+and implement the discard loop in its own fragment entry. (3) Per-camera semantics
+hold even though the token is frame-wide because the plane DATA is per-view: a
+draw rendered into a non-clipping view reads `clipPlaneCount == 0` and discards
+nothing.
+
+**Byte-identity / no-clip inertness.** Zero planes in ⇒ zero planes out: a
+camera/material with no clip planes produces the same pipeline keys, shader
+source, and pipelines as before D2. `withClipPlanePipelineKeys` returns the
+snapshot untouched when no view clips; `withInjectedClipPlanes(shader, false)`
+returns the exact same module; the packed view codec omits the `clipPlanes` field
+entirely for a non-clip view so it decodes deep-equal to its pre-D2 shape (mirrors
+the `renderTargetFace` sentinel). Pinned pre-change literals guard the no-clip
+paths in `test/webgpu/clip-plane-shader.test.ts` and `test/rendering/clip-planes.test.ts`.
+
+**Determinism fixtures did NOT shift.** The packed SAB encoding version bumped to
+17 and `VIEW_PACKET_WORDS` grew 37 → 70 (words 37 = count, 38–69 = 8 vec4 planes),
+but the determinism fixtures hash the EXTRACTED `RenderSnapshot` projection (frame,
+report counts, draws, transforms, viewMatrices, bounds, light/view counts), not
+the packed SAB bytes or the encoding version — and neither the replay nor boids
+scene uses clip planes, so no view carries a `clipPlanes` field. `test/determinism`
+passes with NO fixture refresh (confirmed by running it green before any refresh).
+
+AC3 (transport): the clip planes ride the SAB packed view record (codec version
+17); a view with no planes round-trips byte-identically (the field is absent).
+
+Deviations from the original AC sketch: (1) discard-only, no `clip_distances`
+branch (justified above). (2) The AC2 example is a primitive box cutaway, not a
+glTF building interior — a closed primitive cutaway is the intended lighter-weight
+proof and keeps the SwiftShader e2e tiny. (3) Scenario #7 (planar mirror) stays
+🟡: the oblique-clip mirror example was not shipped; clipping now EXISTS (the last
+missing ingredient), so #7 is unblocked but not yet demonstrated end-to-end.
+
 - AC1: Per-camera (and optional per-material) clip planes, implemented via
   WGSL clip distances where available with a discard fallback; count limit
   documented and diagnosed.

@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1466
+Every structured diagnostic code the engine can emit (1468
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -484,6 +484,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                           | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                 |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------- |
 | `bufferAsset.vec3fUnsupported` | Buffer asset elementType 'vec3f' is not supported: a WGSL storage array of vec3f has a 16-byte std430 stride, so tightly-packed 12-byte CPU data would read sheared. Use 'vec4f' (padding the fourth component) or split int | —    | `packages/render/src/assets/buffer-asset.ts` |
+
+## camera.clipPlanesExceedLimit (1)
+
+| Code                           | Message                                                              | Fix? | Emitted from                                        |
+| ------------------------------ | -------------------------------------------------------------------- | ---- | --------------------------------------------------- |
+| `camera.clipPlanesExceedLimit` | Camera requested … clip planes but the maximum is …; … were dropped. | —    | `packages/render/src/rendering/extraction-views.ts` |
 
 ## camera.invalidCaptureEvery (1)
 
@@ -3328,6 +3334,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                    | Message                       | Fix? | Emitted from                                              |
 | --------------------------------------- | ----------------------------- | ---- | --------------------------------------------------------- |
 | `matcapRenderPipeline.shaderDiagnostic` | (message composed at runtime) | —    | `packages/webgpu/src/materials/matcap/matcap-pipeline.ts` |
+
+## material.clipPlanesExceedLimit (1)
+
+| Code                             | Message                                                                                   | Fix? | Emitted from                                  |
+| -------------------------------- | ----------------------------------------------------------------------------------------- | ---- | --------------------------------------------- |
+| `material.clipPlanesExceedLimit` | A material may declare at most … clip planes; … were provided and the extras are dropped. | —    | `packages/render/src/materials/validation.ts` |
 
 ## material.incompatibleRenderState (1)
 

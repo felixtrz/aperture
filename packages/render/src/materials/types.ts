@@ -4,6 +4,7 @@ import type {
   SamplerHandle,
   ShaderHandle,
   TextureHandle,
+  Vec4Like,
 } from "@aperture-engine/simulation";
 import type { Color } from "@aperture-engine/simulation";
 import type { InstanceAttributeLayoutInput } from "./instance-attributes.js";
@@ -138,6 +139,13 @@ export interface RenderStateDescriptor {
   // (`depth24plus-stencil8`). Absent keeps byte-identical pipeline keys and the
   // depth-only attachment.
   readonly stencil?: StencilStateDescriptor;
+  // D2 (clipping planes): optional per-material world-space clip planes
+  // `(nx, ny, nz, d)`; three.js `Material.clippingPlanes` analog. These union
+  // with the per-camera planes (see `resolveClipPlanes`) capped at
+  // MAX_CLIP_PLANES. Absent keeps the material on the byte-identical no-clip
+  // path (the field never participates in the pipeline key). Rendering of
+  // per-material planes is applied on top of the per-camera view planes.
+  readonly clipPlanes?: readonly Vec4Like[];
 }
 
 export interface MaterialTextureBinding {
@@ -569,7 +577,8 @@ export type MaterialDiagnosticCode =
   | "material.invalidTextureColorSpace"
   | "material.invalidTextureColorSpaceFormat"
   | "material.incompatibleRenderState"
-  | "material.invalidStencilState";
+  | "material.invalidStencilState"
+  | "material.clipPlanesExceedLimit";
 
 export interface MaterialValidationDiagnostic {
   readonly code: MaterialDiagnosticCode;

@@ -54,6 +54,7 @@ import {
 } from "@aperture-engine/simulation";
 import {
   Camera,
+  CameraClipPlanes,
   Fog,
   InstanceData,
   InstanceTint,
@@ -87,6 +88,7 @@ import {
   UiText,
   Visibility,
   createCamera,
+  createCameraClipPlanes,
   createFog,
   createInstanceData,
   createInstanceTint,
@@ -687,6 +689,12 @@ export function withCamera(input: CameraInput = {}): SpawnEntityInitializer {
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(Camera, createCamera(input));
+    if (input.clipPlanes !== undefined) {
+      entity.addComponent(
+        CameraClipPlanes,
+        createCameraClipPlanes({ planes: input.clipPlanes }),
+      );
+    }
   };
 }
 

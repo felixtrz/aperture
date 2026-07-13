@@ -2,6 +2,7 @@ import {
   assetHandleKey,
   toVec4Tuple,
   type ComponentInitialData,
+  type Vec4Like,
 } from "@aperture-engine/simulation";
 import {
   AreaLightShape,
@@ -12,8 +13,10 @@ import {
   type LightInput,
   type LightShadowSettingsInput,
 } from "./authoring-types.js";
+import { normalizeClipPlanes, type ClipPlane } from "./clip-planes.js";
 import type {
   Camera,
+  CameraClipPlanes,
   Light,
   LightCookie,
   LightShadowSettings,
@@ -45,6 +48,20 @@ export function createCamera(
     captureEvery: input.captureEvery ?? 1,
     captureRequestFrame: input.captureRequestFrame ?? -1,
   };
+}
+
+/**
+ * D2: build the per-camera clip-planes component data from authored planes.
+ * Malformed planes (non-finite components) are dropped here; the count is capped
+ * (with a diagnostic) later at extraction, so this stores the full normalized
+ * list.
+ */
+export function createCameraClipPlanes(input: {
+  readonly planes?: readonly Vec4Like[];
+}): ComponentInitialData<typeof CameraClipPlanes> {
+  const planes: ClipPlane[] = normalizeClipPlanes(input.planes ?? null);
+
+  return { planes };
 }
 
 export function createLight(

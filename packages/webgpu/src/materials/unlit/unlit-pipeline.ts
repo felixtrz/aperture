@@ -24,6 +24,10 @@ import {
 } from "../core/material-render-state.js";
 import { createMotionVectorBuiltInShaderVariant } from "../../render/motion/motion-vector-shader.js";
 import {
+  pipelineKeyIncludesClip,
+  withInjectedClipPlanes,
+} from "../core/clip-plane-shader.js";
+import {
   applyOutputStageToBuiltInShader,
   type TonemapOperator,
 } from "../../output/output-stage-tonemap.js";
@@ -171,7 +175,10 @@ export async function createUnlitRenderPipelineResource(
   // and adds the motion output) wraps the tonemapped color. No-op on none + linear
   // (HDR-scene-buffer path), so it stays byte-identical there.
   const baseShader = applyOutputStageToBuiltInShader(
-    resolveUnlitShaderForBatchKey(options.batchKey, options.shader),
+    withInjectedClipPlanes(
+      resolveUnlitShaderForBatchKey(options.batchKey, options.shader),
+      pipelineKeyIncludesClip(options.batchKey.pipelineKey),
+    ),
     options.tonemap ?? "none",
     options.outputColorSpace ?? "linear",
   );

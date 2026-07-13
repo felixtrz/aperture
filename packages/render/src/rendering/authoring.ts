@@ -3,6 +3,7 @@ import {
   AudioEmitter,
   AudioListener,
   Camera,
+  CameraClipPlanes,
   Fog,
   InstanceData,
   InstanceTint,
@@ -63,6 +64,7 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(RuntimeBuffer);
   world.registerComponent(Fog);
   world.registerComponent(Camera);
+  world.registerComponent(CameraClipPlanes);
   world.registerComponent(Visibility);
   world.registerComponent(OcclusionQuery);
   world.registerComponent(RenderLayer);

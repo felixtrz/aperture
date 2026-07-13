@@ -340,6 +340,62 @@ stencil on a target whose format has no stencil aspect raises the
 `material.stencilRequiresStencilFormat` diagnostic and the pipeline is refused
 rather than producing a device error.
 
+## Clipping planes — parity plan D2
+
+Aperture supports world-space clipping planes at two scopes, mirroring three.js:
+
+- **Per-camera** (`renderer.clippingPlanes` analog): pass `clipPlanes` on the
+  camera authoring input. `spawn.camera({ camera: { clipPlanes: [...] } })` (app)
+  or `withCamera({ clipPlanes: [...] })` (runtime) attaches a `CameraClipPlanes`
+  companion component. These planes apply to every draw the camera renders.
+- **Per-material** (`Material.clippingPlanes` analog): set
+  `renderState.clipPlanes` on any built-in material. They apply on top of the
+  camera planes for draws using that material.
+
+A plane is a world-space tuple `[nx, ny, nz, d]` with three.js `THREE.Plane`
+semantics (`normal` = `(nx,ny,nz)`, `constant` = `d`): a fragment is **kept**
+where `dot(worldPos, (nx,ny,nz)) + d >= 0` and discarded otherwise.
+
+```ts
+import { withCamera, withTransform } from "@aperture-engine/runtime";
+
+// Keep only the world-space half where x >= 0; cut everything with x < 0 away.
+app.spawn(
+  withTransform({ translation: [0, 0, 4] }),
+  withCamera({ clipPlanes: [[1, 0, 0, 0]] }),
+);
+
+// Per-material planes union with the camera's (camera planes first).
+material.standard({
+  renderState: { clipPlanes: [[0, 1, 0, -0.5]] }, // keep y >= 0.5
+});
+```
+
+Camera and material planes **union** (camera first) and are capped at
+`MAX_CLIP_PLANES` (**8**) total. Overflow drops the extras and emits a structured
+diagnostic — `camera.clipPlanesExceedLimit` (from extraction) or
+`material.clipPlanesExceedLimit` (from material validation) — rather than
+crashing. Malformed planes (non-finite components) are silently dropped.
+
+**Discard, not `clip_distances`.** WebGPU core WGSL has no `clip_distances`
+builtin (it is an optional feature, absent on SwiftShader), so clipping is
+implemented as a per-fragment `discard`: the built-in mesh shaders
+(unlit/matcap/standard/debug-normal) get the discard loop injected automatically
+when any view in the frame carries clip planes. A frame with no clip planes keeps
+byte-identical pipeline keys, shaders, and pipelines. The primitive cutaway in
+`examples/clipping-cutaway` cuts a symmetric box in half with a camera plane.
+
+**group(0) / view-uniform contract (custom WGSL materials).** The active plane
+count and the plane array live in the per-view uniform at `@group(0) @binding(0)`,
+appended **after** the fog block (`clipPlaneCount: vec4f`, then
+`clipPlanes: array<vec4f, 8>`); every pre-existing field offset (viewProjection,
+cameraPosition, previousViewProjection, fog) is unchanged. Because the injection
+only rewrites the built-in shaders, **custom WGSL materials are not
+auto-clipped** — they keep declaring the smaller view struct and read valid data
+(the grown uniform buffer is a strict superset). To honor clip planes in a custom
+material, declare the extended view struct so you can read the appended clip
+block, and run the same discard loop in your fragment entry.
+
 ## Prefabs
 
 Prefabs are serialized `ApertureSceneDocument` blueprints. Author the source

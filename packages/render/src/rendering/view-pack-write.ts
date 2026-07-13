@@ -12,6 +12,8 @@ import type {
 import {
   PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
   VIEW_CAMERA_POSITION_FLOAT_OFFSET,
+  VIEW_CLIP_PLANE_COUNT_FLOAT_OFFSET,
+  VIEW_CLIP_PLANES_FLOAT_OFFSET,
   VIEW_FOG_COLOR_FLOAT_OFFSET,
   VIEW_FOG_PARAMS_FLOAT_OFFSET,
   VIEW_PREVIOUS_VIEW_PROJECTION_FLOAT_OFFSET,
@@ -20,6 +22,7 @@ import {
 import {
   hasMatrixRange,
   writeCameraPosition,
+  writeClipPlanes,
   writeFogParameters,
   writePreviousViewProjection,
 } from "./view-pack-writers.js";
@@ -120,6 +123,12 @@ export function writePackedSnapshotViewUniforms(
       result.floatCount + VIEW_FOG_PARAMS_FLOAT_OFFSET,
       snapshot.fogs ?? [],
       view,
+    );
+    writeClipPlanes(
+      scratch.data,
+      result.floatCount + VIEW_CLIP_PLANE_COUNT_FLOAT_OFFSET,
+      result.floatCount + VIEW_CLIP_PLANES_FLOAT_OFFSET,
+      view.clipPlanes,
     );
 
     const record = viewRecordAt(scratch, scratch.views.length);

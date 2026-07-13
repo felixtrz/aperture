@@ -57,6 +57,14 @@ export interface ViewPacket {
    * the view into the matching array layer of its cube render target.
    */
   readonly renderTargetFace?: number;
+  /**
+   * D2 (clipping planes). Per-camera world-space clip planes `(nx, ny, nz, d)`;
+   * a fragment is KEPT where `dot(worldPos, (nx,ny,nz)) + d >= 0` and discarded
+   * otherwise. Already resolved + capped to {@link MAX_CLIP_PLANES} at
+   * extraction. Absent (undefined) on views with no clipping so non-clip views
+   * decode deep-equal to their pre-D2 shape.
+   */
+  readonly clipPlanes?: readonly Vec4Like[];
 }
 
 export interface MeshDrawPacket {

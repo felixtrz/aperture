@@ -8,6 +8,8 @@ import type {
 import {
   PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
   VIEW_CAMERA_POSITION_FLOAT_OFFSET,
+  VIEW_CLIP_PLANE_COUNT_FLOAT_OFFSET,
+  VIEW_CLIP_PLANES_FLOAT_OFFSET,
   VIEW_FOG_COLOR_FLOAT_OFFSET,
   VIEW_FOG_PARAMS_FLOAT_OFFSET,
   VIEW_PREVIOUS_VIEW_PROJECTION_FLOAT_OFFSET,
@@ -16,6 +18,7 @@ import {
 import {
   hasMatrixRange,
   writeCameraPosition,
+  writeClipPlanes,
   writeFogParameters,
   writePreviousViewProjection,
 } from "./view-pack-writers.js";
@@ -25,8 +28,12 @@ export { writePackedSnapshotViewUniforms } from "./view-pack-write.js";
 export {
   PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
   VIEW_CAMERA_POSITION_FLOAT_OFFSET,
+  VIEW_CLIP_PLANE_COUNT_FLOAT_OFFSET,
+  VIEW_CLIP_PLANE_FLOAT_COUNT,
+  VIEW_CLIP_PLANES_FLOAT_OFFSET,
   VIEW_FOG_COLOR_FLOAT_OFFSET,
   VIEW_FOG_PARAMS_FLOAT_OFFSET,
+  VIEW_MAX_CLIP_PLANES,
   VIEW_PREVIOUS_VIEW_PROJECTION_FLOAT_OFFSET,
   VIEW_PROJECTION_FLOAT_COUNT,
 } from "./view-pack-types.js";
@@ -137,6 +144,12 @@ export function packSnapshotViewUniforms(
       packedOffset + VIEW_FOG_PARAMS_FLOAT_OFFSET,
       snapshot.fogs ?? [],
       view,
+    );
+    writeClipPlanes(
+      data,
+      packedOffset + VIEW_CLIP_PLANE_COUNT_FLOAT_OFFSET,
+      packedOffset + VIEW_CLIP_PLANES_FLOAT_OFFSET,
+      view.clipPlanes,
     );
     views.push({
       viewId: view.viewId,

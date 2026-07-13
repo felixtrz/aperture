@@ -1,6 +1,11 @@
+import type { Vec4Like } from "@aperture-engine/simulation";
 import { FogMode } from "./authoring.js";
+import { normalizeClipPlanes } from "./clip-planes.js";
 import type { FogPacket, ViewPacket } from "./snapshot.js";
-import { VIEW_PROJECTION_FLOAT_COUNT } from "./view-pack-types.js";
+import {
+  VIEW_MAX_CLIP_PLANES,
+  VIEW_PROJECTION_FLOAT_COUNT,
+} from "./view-pack-types.js";
 
 export function hasMatrixRange(
   values: Float32Array,
@@ -95,6 +100,38 @@ export function writeFogParameters(
   target[paramsOffset + 1] = fog.density;
   target[paramsOffset + 2] = fog.start;
   target[paramsOffset + 3] = fog.end;
+}
+
+/**
+ * D2: write the view's clip block into the packed uniform. `countOffset` is the
+ * `clipPlaneCount` vec4 (x = active count as f32; yzw pad); `planesOffset` is the
+ * start of the `array<vec4f, VIEW_MAX_CLIP_PLANES>`. Planes beyond the cap are
+ * dropped (extraction already resolves+diagnoses overflow); unused slots are
+ * zero-filled so a fragment loop bounded by the count never reads stale data.
+ */
+export function writeClipPlanes(
+  target: Float32Array,
+  countOffset: number,
+  planesOffset: number,
+  planes: readonly Vec4Like[] | undefined,
+): void {
+  const resolved = normalizeClipPlanes(planes ?? null);
+  const count = Math.min(resolved.length, VIEW_MAX_CLIP_PLANES);
+
+  target[countOffset] = count;
+  target[countOffset + 1] = 0;
+  target[countOffset + 2] = 0;
+  target[countOffset + 3] = 0;
+
+  for (let index = 0; index < VIEW_MAX_CLIP_PLANES; index += 1) {
+    const base = planesOffset + index * 4;
+    const plane = index < count ? resolved[index] : undefined;
+
+    target[base] = plane?.[0] ?? 0;
+    target[base + 1] = plane?.[1] ?? 0;
+    target[base + 2] = plane?.[2] ?? 0;
+    target[base + 3] = plane?.[3] ?? 0;
+  }
 }
 
 function selectFogForView(

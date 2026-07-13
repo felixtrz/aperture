@@ -1,4 +1,8 @@
-import type { AssetRegistry, EcsWorld } from "@aperture-engine/simulation";
+import type {
+  AssetRegistry,
+  EcsWorld,
+  Entity,
+} from "@aperture-engine/simulation";
 import {
   WorldTransform,
   identityMat4,
@@ -7,7 +11,12 @@ import {
   makePerspective,
   multiplyMat4,
 } from "@aperture-engine/simulation";
-import { Camera, validateCameraInput } from "./index.js";
+import { Camera, CameraClipPlanes, validateCameraInput } from "./index.js";
+import {
+  MAX_CLIP_PLANES,
+  resolveClipPlanes,
+  type ClipPlane,
+} from "./clip-planes.js";
 import {
   createStableRenderId,
   type RenderDiagnostic,
@@ -74,6 +83,7 @@ export function extractViews(
     const priority = entity.getValue(Camera, "priority") ?? 0;
     const worldMatrix = readWorldMatrix(entity);
     const renderTarget = readRenderTarget(entity, diagnostics);
+    const clipPlanes = readCameraClipPlanes(entity, diagnostics);
 
     // B2: a camera paired with a cube render target is a capture camera — it
     // emits six face views per scheduled capture (and none in between, so an
@@ -155,6 +165,7 @@ export function extractViews(
           clearStencil,
           renderTarget,
           renderTargetFace: face,
+          ...(clipPlanes === undefined ? {} : { clipPlanes }),
         });
       }
 
@@ -235,6 +246,7 @@ export function extractViews(
       clearDepth: entity.getValue(Camera, "clearDepth") ?? 1,
       clearStencil: entity.getValue(Camera, "clearStencil") ?? 0,
       renderTarget,
+      ...(clipPlanes === undefined ? {} : { clipPlanes }),
     });
   }
 
@@ -242,6 +254,38 @@ export function extractViews(
     (a, b) => a.priority - b.priority || a.viewId - b.viewId,
   );
   return views.sort((a, b) => a.priority - b.priority || a.viewId - b.viewId);
+}
+
+/**
+ * D2: read a camera's authored clip planes (if any), resolve + cap them to
+ * {@link MAX_CLIP_PLANES}, and emit `camera.clipPlanesExceedLimit` when the cap
+ * drops planes. Returns `undefined` when the camera has no (finite) clip planes
+ * so the view stays on the byte-identical no-clip path.
+ */
+function readCameraClipPlanes(
+  entity: Entity,
+  diagnostics: RenderDiagnostic[],
+): readonly ClipPlane[] | undefined {
+  if (!entity.hasComponent(CameraClipPlanes)) {
+    return undefined;
+  }
+
+  const authored = entity.getValue(CameraClipPlanes, "planes") as
+    | readonly (readonly [number, number, number, number])[]
+    | null
+    | undefined;
+  const resolved = resolveClipPlanes({ cameraPlanes: authored ?? null });
+
+  if (resolved.exceeded) {
+    diagnostics.push({
+      code: "camera.clipPlanesExceedLimit",
+      severity: "warning",
+      entity: entityRef(entity),
+      message: `Camera requested ${resolved.requested} clip planes but the maximum is ${MAX_CLIP_PLANES}; ${resolved.dropped} were dropped.`,
+    });
+  }
+
+  return resolved.planes.length === 0 ? undefined : resolved.planes;
 }
 
 /**

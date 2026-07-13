@@ -1,5 +1,6 @@
 import {
   Camera,
+  CameraClipPlanes,
   Fog,
   Light,
   LightKind,
@@ -14,6 +15,7 @@ import {
   ShadowReceiver,
   Skybox,
   createCamera,
+  createCameraClipPlanes,
   createFog,
   createLight,
   createLightShadowSettings,
@@ -226,6 +228,12 @@ export function createSpawnCommands(options: {
             : { captureEvery: input.capture.every }),
         }),
       );
+      if (input.camera?.clipPlanes !== undefined) {
+        entity.addComponent(
+          CameraClipPlanes,
+          createCameraClipPlanes({ planes: input.camera.clipPlanes }),
+        );
+      }
       return entity;
     },
     light(input = {}) {

@@ -5,7 +5,16 @@ export const VIEW_CAMERA_POSITION_FLOAT_OFFSET = 16;
 export const VIEW_PREVIOUS_VIEW_PROJECTION_FLOAT_OFFSET = 20;
 export const VIEW_FOG_COLOR_FLOAT_OFFSET = 36;
 export const VIEW_FOG_PARAMS_FLOAT_OFFSET = 40;
-export const PACKED_VIEW_UNIFORM_FLOAT_STRIDE = 44;
+// D2 (clipping planes): the clip block is APPENDED after fog so the existing
+// viewProjection/cameraPosition/previousViewProjection/fog offsets stay put and
+// custom-WGSL shaders that declare only the smaller struct keep reading valid
+// data. `clipPlaneCount` is a vec4 (x = active count, packed as f32; yzw pad for
+// std140 16-byte alignment); `clipPlanes` is `array<vec4f, MAX_CLIP_PLANES>`.
+export const VIEW_CLIP_PLANE_COUNT_FLOAT_OFFSET = 44;
+export const VIEW_CLIP_PLANES_FLOAT_OFFSET = 48;
+export const VIEW_CLIP_PLANE_FLOAT_COUNT = 4;
+export const VIEW_MAX_CLIP_PLANES = 8;
+export const PACKED_VIEW_UNIFORM_FLOAT_STRIDE = 80;
 
 export type SnapshotViewUniformPackDiagnosticCode =
   | "viewUniform.emptySnapshot"

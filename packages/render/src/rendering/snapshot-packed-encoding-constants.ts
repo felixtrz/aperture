@@ -1,10 +1,14 @@
 export const SNAPSHOT_PACKET_ENCODING_MAGIC = 0x4150_5350; // "APSP"
-export const SNAPSHOT_PACKET_ENCODING_VERSION = 16;
+// D2 (clipping planes) grew the view packet with a clip block (count + 8 vec4
+// planes), so the packed encoding is version 17.
+export const SNAPSHOT_PACKET_ENCODING_VERSION = 17;
 
 export const SNAPSHOT_PACKET_HEADER_WORDS = 14;
 // 0-35: ids/handles/matrix offsets/rects/clear values/render target; 36:
-// cube-capture face index (signed; -1 = not a cube face) (B2).
-export const VIEW_PACKET_WORDS = 37;
+// cube-capture face index (signed; -1 = not a cube face) (B2); 37: active clip
+// plane count; 38-69: up to 8 world-space clip planes (vec4 each, zero-filled
+// past the count) (D2).
+export const VIEW_PACKET_WORDS = 70;
 export const MESH_DRAW_PACKET_WORDS = 34;
 export const LIGHT_PACKET_WORDS = 31;
 export const ENVIRONMENT_PACKET_WORDS = 13;

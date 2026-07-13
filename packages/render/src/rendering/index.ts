@@ -1,5 +1,6 @@
 export * from "./authoring.js";
 export * from "./batching-report.js";
+export * from "./clip-planes.js";
 export * from "./draw-package.js";
 export * from "./extraction.js";
 export * from "./extraction-audio.js";

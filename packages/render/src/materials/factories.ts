@@ -39,6 +39,11 @@ export function createDefaultRenderState(
     // object stays byte-identical (absent ⇒ no pipeline-key token, depth-only
     // attachment).
     ...(overrides.stencil === undefined ? {} : { stencil: overrides.stencil }),
+    // D2: per-material clip planes are present ONLY when authored (never in the
+    // pipeline key), so non-clipping materials stay byte-identical.
+    ...(overrides.clipPlanes === undefined
+      ? {}
+      : { clipPlanes: overrides.clipPlanes }),
   };
 }
 

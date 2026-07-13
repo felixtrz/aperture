@@ -7,6 +7,7 @@ import {
   DEBUG_NORMAL_SHADER_VARIANT,
   validateDebugNormalShaderMetadata,
 } from "./debug-normal-shader.js";
+import { CLIP_PLANE_PIPELINE_FEATURE } from "../core/clip-plane-shader.js";
 import {
   createWebGpuRenderPipelineCacheKey,
   type WebGpuRenderPipelineCacheKeyInput,
@@ -250,7 +251,13 @@ function validateDebugNormalPipelineTokens(
 }
 
 function isRenderStateFeatureToken(feature: string): boolean {
-  return feature === "front-face:cw" || feature.startsWith("depth-bias:");
+  return (
+    feature === "front-face:cw" ||
+    feature.startsWith("depth-bias:") ||
+    // D2: the frame-level clip token is a renderer-owned feature (it only gates
+    // the fragment discard path), not a material-authored one, so accept it.
+    feature === CLIP_PLANE_PIPELINE_FEATURE
+  );
 }
 
 function validateDebugNormalVertexLayout(

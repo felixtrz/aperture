@@ -42,6 +42,23 @@ export const Camera = defineComponent(
   "Renderer-independent camera authoring component.",
 );
 
+/**
+ * D2 (clipping planes). Optional per-camera clip planes. `planes` holds an array
+ * of world-space `[nx, ny, nz, d]` tuples; a fragment is kept where
+ * `dot(worldPos, (nx,ny,nz)) + d >= 0`. Stored as a plain object (not packed
+ * ECS floats) because it is a small, variable-length authoring payload read once
+ * per frame by extraction; the count is capped at MAX_CLIP_PLANES there with a
+ * diagnostic. A separate component (rather than a Camera field) keeps
+ * non-clipping cameras byte-identical.
+ */
+export const CameraClipPlanes = defineComponent(
+  "aperture.render.cameraClipPlanes",
+  {
+    planes: { type: EcsType.Object, default: null },
+  },
+  "Renderer-independent per-camera world-space clip planes.",
+);
+
 export const Light = defineComponent(
   "aperture.render.light",
   {

@@ -1,3 +1,4 @@
+import { MAX_CLIP_PLANES } from "../rendering/clip-planes.js";
 import { materialTextureBindings } from "./bindings.js";
 import type {
   MaterialAsset,
@@ -114,6 +115,17 @@ function validateRenderState(
 
   if (renderState.stencil !== undefined) {
     validateStencilState(renderState.stencil, diagnostics);
+  }
+
+  if (
+    renderState.clipPlanes !== undefined &&
+    renderState.clipPlanes.length > MAX_CLIP_PLANES
+  ) {
+    diagnostics.push({
+      code: "material.clipPlanesExceedLimit",
+      field: "renderState.clipPlanes",
+      message: `A material may declare at most ${MAX_CLIP_PLANES} clip planes; ${renderState.clipPlanes.length} were provided and the extras are dropped.`,
+    });
   }
 }
 

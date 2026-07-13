@@ -24,6 +24,10 @@ import {
 } from "../../gpu/shader.js";
 import { createMotionVectorBuiltInShaderVariant } from "../../render/motion/motion-vector-shader.js";
 import {
+  pipelineKeyIncludesClip,
+  withInjectedClipPlanes,
+} from "../core/clip-plane-shader.js";
+import {
   applyOutputStageToBuiltInShader,
   type TonemapOperator,
 } from "../../output/output-stage-tonemap.js";
@@ -90,7 +94,10 @@ export async function createDebugNormalRenderPipelineResource(
   // AI-17: apply the shared output stage to the base color shader before the MV
   // variant (no-op on none + linear). See unlit-pipeline.ts for the rationale.
   const baseShader = applyOutputStageToBuiltInShader(
-    options.shader ?? DEBUG_NORMAL_MESH_SHADER,
+    withInjectedClipPlanes(
+      options.shader ?? DEBUG_NORMAL_MESH_SHADER,
+      pipelineKeyIncludesClip(options.batchKey.pipelineKey),
+    ),
     options.tonemap ?? "none",
     options.outputColorSpace ?? "linear",
   );

@@ -229,6 +229,14 @@ export interface CameraInput {
    * means no pending request). `renderTargets.capture(...)` sets this.
    */
   readonly captureRequestFrame?: number;
+  /**
+   * D2 (clipping planes): per-camera world-space clip planes `(nx, ny, nz, d)`;
+   * a fragment is kept where `dot(worldPos, (nx,ny,nz)) + d >= 0`. Up to
+   * {@link MAX_CLIP_PLANES}; extras are dropped with a diagnostic. Absent/empty
+   * keeps the camera on the byte-identical no-clip path. Spawns a
+   * `CameraClipPlanes` companion component.
+   */
+  readonly clipPlanes?: readonly Vec4Like[];
 }
 
 export interface LightInput {
