@@ -11,6 +11,7 @@ import {
   createWebGpuBloomPostEffect,
   type CreateWebGpuAppResult,
   type WebGpuAppComputePassDescriptor,
+  type WebGpuAppComputeKernelPassDescriptor,
   type WebGpuAppRenderPassDescriptor,
   type WebGpuCanvasLike,
 } from "@aperture-engine/webgpu";
@@ -76,6 +77,9 @@ export interface GeneratedBrowserApp {
   // `.webgpu.app`. No-ops (with a console warning) if WebGPU failed to start.
   addRenderPass(descriptor: WebGpuAppRenderPassDescriptor): void;
   addComputePass(descriptor: WebGpuAppComputePassDescriptor): void;
+  // C3: dispatch a DATA-DESCRIBED compute kernel (WGSL + typed bindings) without
+  // touching GPUDevice — the compute-ergonomics surface over addComputePass.
+  addComputeKernelPass(descriptor: WebGpuAppComputeKernelPassDescriptor): void;
   removePass(name: string): boolean;
 }
 
@@ -218,6 +222,11 @@ export async function startGeneratedBrowserApp(
     addComputePass(descriptor) {
       if (webgpu.ok) {
         webgpu.app.addComputePass(descriptor);
+      }
+    },
+    addComputeKernelPass(descriptor) {
+      if (webgpu.ok) {
+        webgpu.app.addComputeKernelPass(descriptor);
       }
     },
     removePass(name) {

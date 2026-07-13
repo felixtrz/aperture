@@ -1,5 +1,9 @@
 import type { AssetRegistry } from "@aperture-engine/simulation";
-import type { RenderSnapshot } from "@aperture-engine/render";
+import type {
+  ComputeKernelAsset,
+  ComputeKernelWorkgroups,
+  RenderSnapshot,
+} from "@aperture-engine/render";
 import {
   assembleFrameBoundary,
   buildFrameBoundaryTargetPlan,
@@ -52,6 +56,7 @@ import {
 import type { WebGpuAppFrameBoundaryTarget } from "./frame-target.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import { resolveAppBufferAssetResourceById } from "./custom-wgsl-storage-buffer-resources.js";
+import { realizeComputeKernelDispatch } from "./compute-kernel-resources.js";
 import { encodePostPassMotionVectorClearColor } from "./motion-vectors.js";
 import { countDrawCommands } from "./view-commands.js";
 import {
@@ -1151,6 +1156,12 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       storageBufferResourcesReused: 0,
       dynamicBufferWrites: 0,
     };
+    const postUserPassKernelTextureReuse = {
+      textureResourcesCreated: 0,
+      textureResourcesReused: 0,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 0,
+    };
     const userResolvers: WebGpuAppPassResolvers = {
       view: (handle) => {
         if (handle === "scene-color") {
@@ -1187,6 +1198,37 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         (
           device as { createBindGroup?: (descriptor: unknown) => unknown }
         ).createBindGroup?.(entries),
+      // C3: realize a data-described compute-kernel dispatch (parity with the
+      // forward route). Wired only when a source-asset registry is available;
+      // a degraded binding returns null with a structured diagnostic.
+      ...(options.assets === undefined
+        ? {}
+        : {
+            realizeComputeKernel: (
+              kernel: ComputeKernelAsset,
+              workgroups: ComputeKernelWorkgroups,
+              passName: string,
+            ) => {
+              const result = realizeComputeKernelDispatch({
+                device: options.app.initialization.device,
+                assets: options.assets as AssetRegistry,
+                storageBuffers: options.cache.customWgslStorageBuffers,
+                storageReuse: postUserPassBufferReuse,
+                textureSamplers: {
+                  textures: options.cache.textures,
+                  samplers: options.cache.samplers,
+                  renderTargets: options.cache.renderTargets,
+                },
+                textureSamplerReuse: postUserPassKernelTextureReuse,
+                pipelineCache: options.cache.computeKernelPipelines,
+                kernel,
+                workgroups,
+                passName,
+              });
+              diagnostics.push(...result.diagnostics);
+              return result.realization;
+            },
+          }),
     };
     for (const descriptor of userPasses) {
       // B3: resolve declared render-target writes BEFORE encoding; a pass

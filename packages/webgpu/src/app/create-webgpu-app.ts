@@ -306,6 +306,9 @@ export async function createWebGpuApp(
     addComputePass(descriptor) {
       userPassRegistry.addComputePass(descriptor);
     },
+    addComputeKernelPass(descriptor) {
+      userPassRegistry.addComputeKernelPass(descriptor);
+    },
     removePass(name) {
       return userPassRegistry.removePass(name);
     },

@@ -20,12 +20,17 @@
 // graph.
 
 import type {
+  ComputeKernelAsset,
+  ComputeKernelWorkgroups,
+} from "@aperture-engine/render";
+import type {
   PassWrite,
   RenderPassNodeInput,
   ComputePassNodeInput,
 } from "../render/graph/frame-graph.js";
 import type { RenderPassCommand } from "../render/passes/render-pass-commands.js";
 import type { ComputePassCommand } from "../render/passes/compute-pass-commands.js";
+import type { ComputeKernelDispatchRealization } from "./compute-kernel-resources.js";
 
 /**
  * A write target for a user pass: a handle id, optionally with attachment
@@ -135,9 +140,42 @@ export interface WebGpuAppComputePassDescriptor extends WebGpuAppPassDescriptorB
   readonly writes?: readonly WebGpuAppPassWriteInput[];
 }
 
+/**
+ * C3: a DATA-DESCRIBED compute-kernel dispatch (the compute sibling of a custom
+ * material). Instead of an `encode(ctx)` callback that hand-builds a pipeline +
+ * bind group, the pass carries a {@link ComputeKernelAsset} (WGSL + typed
+ * bindings) and `workgroups`; the route realizes the compute pipeline + bind
+ * group from the data and records the dispatch. The user touches no
+ * `GPUDevice`. A kernel's WRITABLE (`usage: "storage"`) buffer bindings are
+ * auto-declared as pass writes (compute-before-draw ordering), so `writes` is
+ * usually only needed for extra ordering handles. The raw `addComputePass`
+ * encode path remains for full control.
+ */
+export interface WebGpuAppComputeKernelPassDescriptor {
+  readonly name: string;
+  readonly kind?: "compute";
+  readonly kernel: ComputeKernelAsset;
+  readonly workgroups: ComputeKernelWorkgroups;
+  /** Handle ids this pass reads — drives ordering. */
+  readonly reads?: readonly string[];
+  /** Extra write handles beyond the kernel's auto-declared storage outputs. */
+  readonly writes?: readonly WebGpuAppPassWriteInput[];
+  readonly before?: string;
+  readonly after?: string;
+  readonly enabled?: boolean;
+}
+
 export type WebGpuAppPassDescriptor =
   | WebGpuAppRenderPassDescriptor
-  | WebGpuAppComputePassDescriptor;
+  | WebGpuAppComputePassDescriptor
+  | WebGpuAppComputeKernelPassDescriptor;
+
+/** True when a descriptor is a data-described compute-kernel dispatch (C3). */
+export function isComputeKernelPassDescriptor(
+  descriptor: WebGpuAppPassDescriptor,
+): descriptor is WebGpuAppComputeKernelPassDescriptor {
+  return "kernel" in descriptor && descriptor.kernel !== undefined;
+}
 
 /**
  * A graph-ready node built from a user descriptor: a RenderPassNodeInput or
@@ -153,6 +191,17 @@ export interface WebGpuAppPassResolvers {
   view(handle: string): unknown;
   buffer(handle: string): unknown;
   createBindGroup(entries: Readonly<Record<string, unknown>>): unknown;
+  /**
+   * C3: realize a data-described compute-kernel dispatch into a pipeline + bind
+   * group (the route injects a GPU realizer; a headless caller/test may omit
+   * it). A `null` return means the dispatch degraded — the realizer pushed a
+   * structured diagnostic — and the kernel pass records no commands.
+   */
+  realizeComputeKernel?(
+    kernel: ComputeKernelAsset,
+    workgroups: ComputeKernelWorkgroups,
+    passName: string,
+  ): ComputeKernelDispatchRealization | null;
 }
 
 /**
@@ -164,6 +213,8 @@ export interface WebGpuAppPassResolvers {
 export interface WebGpuAppUserPassRegistry {
   addRenderPass(descriptor: WebGpuAppRenderPassDescriptor): void;
   addComputePass(descriptor: WebGpuAppComputePassDescriptor): void;
+  /** C3: register a data-described compute-kernel dispatch pass. */
+  addComputeKernelPass(descriptor: WebGpuAppComputeKernelPassDescriptor): void;
   /** Remove a pass by name; returns true if one was removed. */
   removePass(name: string): boolean;
   has(name: string): boolean;
@@ -188,6 +239,9 @@ export function createWebGpuAppUserPassRegistry(): WebGpuAppUserPassRegistry {
       add({ ...descriptor, kind: "render" });
     },
     addComputePass(descriptor) {
+      add({ ...descriptor, kind: "compute" });
+    },
+    addComputeKernelPass(descriptor) {
       add({ ...descriptor, kind: "compute" });
     },
     removePass(name) {
@@ -418,6 +472,10 @@ export function buildUserPassNode(
   descriptor: WebGpuAppPassDescriptor,
   resolvers: WebGpuAppPassResolvers,
 ): WebGpuAppBuiltPassNode {
+  if (isComputeKernelPassDescriptor(descriptor)) {
+    return buildComputeKernelPassNode(descriptor, resolvers);
+  }
+
   const kind = descriptor.kind === "compute" ? "compute" : "render";
   const recorder = createRecorderContext(descriptor.name, kind, resolvers);
   descriptor.encode(recorder.ctx);
@@ -437,6 +495,76 @@ export function buildUserPassNode(
     return { ...shared, kind: "compute", commands: recorder.computeCommands };
   }
   return { ...shared, kind: "render", commands: recorder.renderCommands };
+}
+
+/**
+ * C3: build a graph-ready compute node from a data-described kernel dispatch.
+ * Realizes the pipeline + bind group via the injected `realizeComputeKernel`
+ * resolver and records setComputePipeline / setBindGroup(0) / dispatchWorkgroups
+ * — the exact commands the raw encode path records, but from data. A degraded
+ * realization (resolver absent or returned null) yields an empty command list;
+ * the pass reports as "did not run" and the realizer's diagnostic explains why.
+ * The kernel's WRITABLE storage outputs are merged into the node writes so a
+ * draw reading the same id is ordered after the dispatch.
+ */
+function buildComputeKernelPassNode(
+  descriptor: WebGpuAppComputeKernelPassDescriptor,
+  resolvers: WebGpuAppPassResolvers,
+): WebGpuAppBuiltPassNode {
+  const realization =
+    resolvers.realizeComputeKernel?.(
+      descriptor.kernel,
+      descriptor.workgroups,
+      descriptor.name,
+    ) ?? null;
+
+  const commands: ComputePassCommand[] = [];
+  const autoWrites: PassWrite[] = [];
+
+  if (realization !== null) {
+    commands.push({
+      kind: "setComputePipeline",
+      pipelineKey: `user:${descriptor.name}:kernel-pipeline`,
+      pipeline: realization.pipeline,
+    });
+    commands.push({
+      kind: "setComputeBindGroup",
+      index: 0,
+      resourceKey: `user:${descriptor.name}:kernel-bind`,
+      bindGroup: realization.bindGroup,
+    });
+    const [x, y, z] = realization.workgroups;
+    commands.push({
+      kind: "dispatchWorkgroups",
+      workgroupCountX: x,
+      workgroupCountY: y,
+      workgroupCountZ: z,
+    });
+    for (const bufferId of realization.writableBufferIds) {
+      autoWrites.push({ handle: bufferId, attachment: "load" });
+    }
+  }
+
+  const declaredWrites = normalizeUserPassWrites(descriptor.writes);
+  const writes = [...declaredWrites];
+  for (const autoWrite of autoWrites) {
+    if (!writes.some((write) => write.handle === autoWrite.handle)) {
+      writes.push(autoWrite);
+    }
+  }
+
+  return {
+    name: descriptor.name,
+    kind: "compute",
+    reads: descriptor.reads ?? [],
+    writes,
+    ...(descriptor.before === undefined ? {} : { before: descriptor.before }),
+    ...(descriptor.after === undefined ? {} : { after: descriptor.after }),
+    ...(descriptor.enabled === undefined
+      ? {}
+      : { enabled: descriptor.enabled }),
+    commands,
+  };
 }
 
 /** Build graph-ready nodes for every enabled pass in the registry, in order. */

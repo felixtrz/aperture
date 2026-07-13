@@ -1,4 +1,5 @@
 export * from "./types.js";
+export * from "./compute-kernel.js";
 export * from "./factories.js";
 export * from "./validation.js";
 export * from "./dependency-readiness.js";

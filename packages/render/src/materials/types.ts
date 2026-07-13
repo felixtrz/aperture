@@ -201,7 +201,11 @@ export type MaterialAsset =
 
 export type SourceMaterialAsset = MaterialAsset | CustomWgslMaterialAsset;
 
-export type CustomWgslShaderStage = "vertex" | "fragment";
+// "compute" (C3) is used only by data-described compute kernels
+// (ComputeKernelAsset) whose bindings reuse this union; custom MATERIAL binding
+// validation still restricts visibility to vertex/fragment, so materials keep
+// byte-identical pipeline keys.
+export type CustomWgslShaderStage = "vertex" | "fragment" | "compute";
 
 /**
  * Lighting integration mode for a custom WGSL material. `"unlit"` (the

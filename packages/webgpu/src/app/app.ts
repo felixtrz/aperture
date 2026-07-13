@@ -65,6 +65,7 @@ import { type WebGpuIdBufferPickReadbackResult } from "../picking/id-buffer-pick
 import { type WebGpuPostEffect } from "../post/post-pass.js";
 import {
   type WebGpuAppComputePassDescriptor,
+  type WebGpuAppComputeKernelPassDescriptor,
   type WebGpuAppRenderPassDescriptor,
   type WebGpuAppUserPassRegistry,
 } from "./user-pass.js";
@@ -689,6 +690,11 @@ export interface WebGpuApp {
   // forward (no-post) graph and the post-effect graph; see userPassRegistry.
   addRenderPass(descriptor: WebGpuAppRenderPassDescriptor): void;
   addComputePass(descriptor: WebGpuAppComputePassDescriptor): void;
+  // C3: insert a DATA-DESCRIBED compute-kernel dispatch (WGSL + typed bindings)
+  // — the route realizes the pipeline + bind group from the kernel description,
+  // so the user never touches GPUDevice. The raw addComputePass encode path
+  // stays for full control.
+  addComputeKernelPass(descriptor: WebGpuAppComputeKernelPassDescriptor): void;
   /** Remove a user pass by name; returns true if one was registered. */
   removePass(name: string): boolean;
   /**

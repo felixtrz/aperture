@@ -532,7 +532,48 @@ whole command submit).
 
 ### C3. Compute ergonomics: data-described kernels — **M** (optional polish)
 
-Reduce the raw-WebGPU surface area of `addComputePass` for common cases.
+Status: implemented (2026-07-13). Architectural choice: the **app-facade
+command** route (the plan explicitly blesses it over worker-authored dispatch as
+also satisfying AC1). `app.addComputeKernelPass({ name, kernel, workgroups })`
+internally wraps the EXISTING `addComputePass` user-pass machinery but builds the
+pipeline + bind group from the data description, so the user writes zero
+`GPUDevice` code. Rationale: `addComputePass` is already a main-thread app-facade
+call whose `encode(ctx)` runs on the FrameGraph routes with device access
+(exactly like boids/gpu-culling); mirroring the worker→snapshot→realize material
+pipeline would have required a new snapshot packet family + a determinism-fixture
+refresh for zero behavioural gain on an "optional polish" item. The app-facade
+route is strictly less invasive: no snapshot field, no determinism change, and it
+reuses C1's shared buffer cache + the material texture/sampler/uniform wiring
+verbatim. AC1: a `ComputeKernelAsset` (render pkg, data-only DECISIONS 0016) is
+the compute sibling of `CustomWgslMaterialAsset` — a `CustomWgslShaderRef` + a
+compute `entryPoint` + a typed `bindings` array reusing the SAME
+`CustomWgslBindingDeclaration` union. `validateComputeKernelAsset` mirrors the
+material validator (structured `computeKernel.*` codes); `CustomWgslShaderStage`
+gains `"compute"` (material binding validation still restricts visibility to
+vertex/fragment, so material pipeline keys stay byte-identical — a type widening
+with no runtime effect on existing materials). The WebGPU realizer
+(`realizeComputeKernelDispatch`) builds the `layout: "auto"` compute pipeline
+(cached per resolved-source + entry point) and resolves each binding through the
+EXISTING wiring — storage via C1's `resolveAppBufferAssetResource` (shared GPU
+buffer, zero-copy), uniform via a std140 packer, texture/sampler via the app
+caches — then `createBindGroup` from `getBindGroupLayout(0)`. Wired into BOTH the
+forward-graph and post-effect-graph user-pass resolvers. A kernel's writable
+storage outputs are auto-declared as pass writes (writer-before-reader ordering).
+AC2: `examples/luminance-histogram` computes a single-threaded luminance histogram
+TWO ways from one input pixel buffer — a RAW `addComputePass` dispatch (hand-built
+pipeline + bind group) and a DATA-DESCRIBED `addComputeKernelPass` dispatch — into
+two storage buffers; `test/e2e/luminance-histogram.spec.ts` reads both back and
+asserts they are byte-identical (each histogram also sums to the pixel count, so
+it is a real, non-degenerate result). Deviations: (1) app-facade command instead
+of worker-authored dispatch (recorded above). (2) No audit-scenario flip — this is
+optional polish; no scenario newly qualifies (the compute-ergonomics surface is a
+DX improvement over C1/C2, not a new rendering capability). (3) Kernel bindings
+are bound to `@group(0)` (compute has no view/transform groups); the realizer uses
+`layout: "auto"`, so binding `visibility` is accepted (must be `["compute"]`) but
+not consumed. (4) The example uses a single-threaded dispatch (no atomics) so the
+result is deterministic under SwiftShader; the raw and kernel shaders are the same
+source, so the equality assertion isolates the dispatch PLUMBING (data-described
+pipeline/bind-group construction binds the right buffers in the right order).
 
 - AC1: A `computeKernel` asset (WGSL source + typed bindings, same shape as
   custom materials) can be dispatched from a system command without touching

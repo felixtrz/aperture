@@ -697,6 +697,84 @@ indirect-draw pipeline mismatches and invalidates the whole command submit. Set
 `render: { sampleCount: 1 }` (as `examples/gpu-culling` does) or build a 4x
 pipeline. See `examples/gpu-culling.html` for the complete example.
 
+### Data-described compute kernels — parity plan C3
+
+`app.addComputePass({ encode })` (above) is the raw, full-control path: you hand
+the engine a callback that builds a `GPUComputePipeline` + `GPUBindGroup` and
+records the dispatch. For the common case, `app.addComputeKernelPass(...)` lets
+you dispatch a WGSL kernel from **data** — a `ComputeKernelAsset` (WGSL source +
+typed `bindings`, the SAME `material.customWgsl` binding union) plus a workgroup
+count — and the engine builds the pipeline + bind group for you. You never touch
+`createComputePipeline` / `createBindGroup` / `createBuffer`. This is the analog
+of three.js TSL `wgslFn` / `computeShader` data-described compute.
+
+```ts
+import { createComputeKernelAsset } from "@aperture-engine/render";
+import { createBufferHandle } from "@aperture-engine/simulation";
+
+// A worker system registers the buffers (read-only input, writable output):
+//   this.buffers.register({ id: "hist.pixels", elementType: "vec4f", ... });
+//   this.buffers.register({ id: "hist.bins", elementType: "u32",
+//     elementCount: 16, usage: "storage" });
+
+const kernel = createComputeKernelAsset({
+  label: "Luminance Histogram",
+  shader: { kind: "inline-wgsl", code: histogramWgsl }, // or a ShaderHandle ref
+  entryPoint: "main",
+  bindings: [
+    // Same declarations as material.storage / material.uniform, bound to @group(0).
+    {
+      name: "pixels",
+      binding: 0,
+      kind: "storage-buffer",
+      visibility: ["compute"],
+      buffer: createBufferHandle("hist.pixels"),
+    },
+    {
+      name: "histogram",
+      binding: 1,
+      kind: "storage-buffer",
+      visibility: ["compute"],
+      buffer: createBufferHandle("hist.bins"),
+    },
+    {
+      name: "params",
+      binding: 2,
+      kind: "uniform-buffer",
+      visibility: ["compute"],
+      fields: { pixelCount: { type: "uint32" }, binCount: { type: "uint32" } },
+      values: { pixelCount: 64, binCount: 16 },
+    },
+  ],
+});
+
+app.addComputeKernelPass({ name: "histogram", kernel, workgroups: 1 });
+```
+
+- **Bindings** reuse the material union and resolve through the same wiring: a
+  `storage-buffer` binding realizes its `BufferAsset` handle through C1's shared
+  cache (so a compute kernel and a `material.storage(...)` binding referencing the
+  same id bind the identical GPU buffer, zero-copy); a `uniform-buffer` binding is
+  std140-packed from its `fields`/`values`; `texture`/`sampler` bindings resolve
+  through the app texture/sampler caches. Bindings sit on `@group(0)`.
+- **Workgroups** is a count (`4` → `[4, 1, 1]`) or a tuple (`[8, 2]` →
+  `[8, 2, 1]`).
+- **Ordering**: a kernel's WRITABLE (`usage: "storage"`) storage outputs are
+  auto-declared as the pass's writes, so a draw (or a later pass) reading the same
+  id is ordered after the dispatch — no manual `writes` list needed for them.
+- **Pipeline caching**: the compute pipeline is built once (keyed by the resolved
+  WGSL source + entry point) and reused across frames; only the bind group is
+  rebuilt.
+- **Degradation is loud, never a device error**: a malformed kernel, an
+  unresolved binding, or a device without compute support surfaces a structured
+  `computeKernel.*` diagnostic on the frame and the pass records no commands.
+
+Keep the raw `addComputePass(encode)` path when you need full control (multiple
+dispatches, indirect dispatch, or bindings the kernel surface does not cover). See
+`examples/luminance-histogram.html`, which computes a histogram BOTH ways — a raw
+dispatch and a data-described kernel — into two buffers and asserts the readbacks
+are byte-identical.
+
 ### Shadow-casting displacement
 
 By default a custom-WGSL mesh casts shadows through the renderer's shared

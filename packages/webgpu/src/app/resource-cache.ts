@@ -104,6 +104,7 @@ import type {
 } from "../materials/debug-normal/debug-normal-app-frame-resources.js";
 import type { CustomWgslRuntimeUniformBufferResource } from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
 import type { CustomWgslAppStorageBufferResource } from "./custom-wgsl-storage-buffer-resources.js";
+import type { ComputeKernelPipelineCacheEntry } from "./compute-kernel-resources.js";
 import {
   createCustomWgslLitFrameCache,
   type CustomWgslLitFrameCache,
@@ -200,6 +201,14 @@ export interface WebGpuAppResourceCache {
     string,
     CustomWgslAppStorageBufferResource
   >;
+  /**
+   * C3: realized compute-kernel pipelines keyed by the kernel's resolved shader
+   * source + entry point, so a data-described `app.addComputeKernelPass(...)`
+   * dispatch reuses one `GPUComputePipeline` across frames (the user-pass
+   * encode runs every frame). The bind group is rebuilt per frame from the
+   * shared buffer/texture/sampler caches; static uniform buffers are held here.
+   */
+  readonly computeKernelPipelines: Map<string, ComputeKernelPipelineCacheEntry>;
   /**
    * Renderer-owned resources for the custom WGSL lit contract (A1): the
    * group(3) layouts, fallback textures/buffers, packed light buffers, and
@@ -441,6 +450,7 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     customWgslRuntimeUniforms: new Map(),
     customWgslShadowStaticUniforms: new Map(),
     customWgslStorageBuffers: new Map(),
+    computeKernelPipelines: new Map(),
     customWgslLit: createCustomWgslLitFrameCache(),
     layouts: new Map(),
     textures: new Map(),

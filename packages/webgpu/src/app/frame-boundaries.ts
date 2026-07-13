@@ -55,6 +55,7 @@ import {
 } from "./app.js";
 import { createWebGpuAppDepthAttachmentReport } from "./report.js";
 import { resolveAppBufferAssetResourceById } from "./custom-wgsl-storage-buffer-resources.js";
+import { realizeComputeKernelDispatch } from "./compute-kernel-resources.js";
 import {
   finalizeUserIndirectDrawReport,
   resolveUserIndirectDrawCommands,
@@ -1155,6 +1156,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
           assets: options.assets,
           renderTargetState: options.cache.renderTargets,
           storageBuffers: options.cache.customWgslStorageBuffers,
+          cache: options.cache,
           graph: forwardGraph,
           payloads: forwardGraphPayloads,
           entries: forwardGraphEntries,
@@ -1919,6 +1921,9 @@ function registerForwardGraphUserPasses(args: {
   // ctx.buffer(id) resolves the SAME GPUBuffer a material.storage binding or a
   // buffer-backed instance stream uses (zero-copy compute→draw hand-off).
   readonly storageBuffers: WebGpuAppResourceCache["customWgslStorageBuffers"];
+  // C3: the full resource cache — the compute-kernel realizer needs the kernel
+  // pipeline cache + the texture/sampler caches to build a dispatch from data.
+  readonly cache: WebGpuAppResourceCache;
   readonly graph: ReturnType<typeof createFrameGraph>;
   readonly payloads: Map<string, FrameGraphRenderNodeBoundary>;
   readonly entries: readonly ForwardGraphTargetEntry[];
@@ -1988,6 +1993,15 @@ function registerForwardGraphUserPasses(args: {
     storageBufferResourcesReused: 0,
     dynamicBufferWrites: 0,
   };
+  // C3: discardable reuse counter for the compute-kernel realizer's
+  // texture/sampler resolution (counts are not surfaced — the shared caches
+  // report their own reuse elsewhere).
+  const userPassKernelTextureReuse = {
+    textureResourcesCreated: 0,
+    textureResourcesReused: 0,
+    samplerResourcesCreated: 0,
+    samplerResourcesReused: 0,
+  };
   const resolvers: WebGpuAppPassResolvers = {
     view: (handle) => {
       if (handle === "scene-color") {
@@ -2032,6 +2046,30 @@ function registerForwardGraphUserPasses(args: {
       (
         device as { createBindGroup?: (descriptor: unknown) => unknown }
       ).createBindGroup?.(entries),
+    // C3: realize a data-described compute-kernel dispatch (pipeline + bind
+    // group built from the kernel's WGSL + typed bindings) — the user never
+    // touches createComputePipeline/createBindGroup. Diagnostics surface on the
+    // frame; a degraded realization returns null (the pass records no commands).
+    realizeComputeKernel: (kernel, workgroups, passName) => {
+      const result = realizeComputeKernelDispatch({
+        device: args.app.initialization.device,
+        assets: args.assets,
+        storageBuffers: args.storageBuffers,
+        storageReuse: userPassBufferReuse,
+        textureSamplers: {
+          textures: args.cache.textures,
+          samplers: args.cache.samplers,
+          renderTargets: args.cache.renderTargets,
+        },
+        textureSamplerReuse: userPassKernelTextureReuse,
+        pipelineCache: args.cache.computeKernelPipelines,
+        kernel,
+        workgroups,
+        passName,
+      });
+      args.diagnostics.push(...result.diagnostics);
+      return result.realization;
+    },
   };
 
   const nodes: ForwardGraphUserPassNodeEntry[] = [];

@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1452
+Every structured diagnostic code the engine can emit (1464
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -610,6 +610,78 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                    | Message                  | Fix? | Emitted from                                            |
 | --------------------------------------- | ------------------------ | ---- | ------------------------------------------------------- |
 | `commandSubmissionMetrics.submitFailed` | Queue submission failed. | —    | `packages/webgpu/src/gpu/command-submission-metrics.ts` |
+
+## computeKernel.bindGroupCreationFailed (1)
+
+| Code                                    | Message                              | Fix? | Emitted from                                          |
+| --------------------------------------- | ------------------------------------ | ---- | ----------------------------------------------------- |
+| `computeKernel.bindGroupCreationFailed` | … failed to create its bind group: … | —    | `packages/webgpu/src/app/compute-kernel-resources.ts` |
+
+## computeKernel.bindingResourceUnavailable (1)
+
+| Code                                       | Message | Fix? | Emitted from                                          |
+| ------------------------------------------ | ------- | ---- | ----------------------------------------------------- |
+| `computeKernel.bindingResourceUnavailable` | … …     | —    | `packages/webgpu/src/app/compute-kernel-resources.ts` |
+
+## computeKernel.deviceUnavailable (1)
+
+| Code                              | Message                                                                                       | Fix? | Emitted from                                          |
+| --------------------------------- | --------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------- |
+| `computeKernel.deviceUnavailable` | … requires a WebGPU device exposing createShaderModule/createComputePipeline/createBindGroup. | —    | `packages/webgpu/src/app/compute-kernel-resources.ts` |
+
+## computeKernel.invalidAsset (1)
+
+| Code                         | Message                           | Fix? | Emitted from                                          |
+| ---------------------------- | --------------------------------- | ---- | ----------------------------------------------------- |
+| `computeKernel.invalidAsset` | … dispatched an invalid kernel: … | —    | `packages/webgpu/src/app/compute-kernel-resources.ts` |
+
+## computeKernel.invalidBindingDeclaration (1)
+
+| Code                                      | Message              | Fix? | Emitted from                                      |
+| ----------------------------------------- | -------------------- | ---- | ------------------------------------------------- |
+| `computeKernel.invalidBindingDeclaration` | Compute kernel '…' … | —    | `packages/render/src/materials/compute-kernel.ts` |
+
+## computeKernel.invalidEntryPoint (1)
+
+| Code                              | Message                                                     | Fix? | Emitted from                                      |
+| --------------------------------- | ----------------------------------------------------------- | ---- | ------------------------------------------------- |
+| `computeKernel.invalidEntryPoint` | Compute kernel '…' entryPoint must be a WGSL function name. | —    | `packages/render/src/materials/compute-kernel.ts` |
+
+## computeKernel.invalidKind (1)
+
+| Code                        | Message                                                | Fix? | Emitted from                                      |
+| --------------------------- | ------------------------------------------------------ | ---- | ------------------------------------------------- |
+| `computeKernel.invalidKind` | Compute kernel '…' must declare kind 'compute-kernel'. | —    | `packages/render/src/materials/compute-kernel.ts` |
+
+## computeKernel.invalidLabel (1)
+
+| Code                         | Message                                              | Fix? | Emitted from                                      |
+| ---------------------------- | ---------------------------------------------------- | ---- | ------------------------------------------------- |
+| `computeKernel.invalidLabel` | Compute kernel '…' should provide a non-empty label. | —    | `packages/render/src/materials/compute-kernel.ts` |
+
+## computeKernel.invalidShader (1)
+
+| Code                          | Message                                                                           | Fix? | Emitted from                                      |
+| ----------------------------- | --------------------------------------------------------------------------------- | ---- | ------------------------------------------------- |
+| `computeKernel.invalidShader` | Compute kernel '…' shader must be an inline WGSL source or a shader-asset handle. | —    | `packages/render/src/materials/compute-kernel.ts` |
+
+## computeKernel.missingEntryPoint (1)
+
+| Code                              | Message                                                | Fix? | Emitted from                                      |
+| --------------------------------- | ------------------------------------------------------ | ---- | ------------------------------------------------- |
+| `computeKernel.missingEntryPoint` | Compute kernel '…' is missing compute entry point '…'. | —    | `packages/render/src/materials/compute-kernel.ts` |
+
+## computeKernel.pipelineCreationFailed (1)
+
+| Code                                   | Message                                    | Fix? | Emitted from                                          |
+| -------------------------------------- | ------------------------------------------ | ---- | ----------------------------------------------------- |
+| `computeKernel.pipelineCreationFailed` | … failed to create its compute pipeline: … | —    | `packages/webgpu/src/app/compute-kernel-resources.ts` |
+
+## computeKernel.shaderSourceUnavailable (1)
+
+| Code                                    | Message                                                                              | Fix? | Emitted from                                          |
+| --------------------------------------- | ------------------------------------------------------------------------------------ | ---- | ----------------------------------------------------- |
+| `computeKernel.shaderSourceUnavailable` | … could not resolve its WGSL shader source (a shader-asset handle may not be ready). | —    | `packages/webgpu/src/app/compute-kernel-resources.ts` |
 
 ## computePassCommand.invalidWorkgroupCount (1)
 
