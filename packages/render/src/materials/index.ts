@@ -3,6 +3,7 @@ export * from "./factories.js";
 export * from "./validation.js";
 export * from "./dependency-readiness.js";
 export * from "./pipeline-key.js";
+export * from "./color-targets.js";
 export * from "./family-key.js";
 export * from "./prepared-resource.js";
 export * from "./lit-contract.js";

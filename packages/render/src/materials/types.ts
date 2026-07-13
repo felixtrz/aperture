@@ -1,5 +1,6 @@
 import type {
   BufferHandle,
+  RenderTargetHandle,
   SamplerHandle,
   ShaderHandle,
   TextureHandle,
@@ -374,6 +375,31 @@ export interface CustomWgslMaterialEntryPoints {
   readonly shadowVertex?: string;
 }
 
+/**
+ * One declared color target of an MRT custom material (B3). Index in the
+ * `colorTargets` array is the fragment `@location` the target binds to:
+ * - Index 0 is the pass color the camera renders into and must declare
+ *   `format: "swapchain"` (the sentinel for "the pass's own color format")
+ *   with no `renderTarget` pairing.
+ * - Every index >= 1 must pair a facade `RenderTargetAsset` handle whose
+ *   realized color texture the frame attaches at that location; the declared
+ *   format must match the target's realized format at render time.
+ * `writeMask` defaults to `"all"`. Declarations are data-only (handles, not
+ * textures) and participate in the pipeline key ONLY when present, so
+ * materials without `colorTargets` keep byte-identical keys.
+ */
+export interface CustomWgslColorTargetDeclaration {
+  readonly format:
+    | "swapchain"
+    | "rgba8unorm"
+    | "rgba8unorm-srgb"
+    | "bgra8unorm"
+    | "bgra8unorm-srgb"
+    | "rgba16float";
+  readonly writeMask?: ColorWriteMask;
+  readonly renderTarget?: RenderTargetHandle;
+}
+
 export interface CustomWgslMaterialAsset {
   readonly sourceDiscriminator: "custom-material-source";
   readonly shaderLanguage: "wgsl";
@@ -383,6 +409,11 @@ export interface CustomWgslMaterialAsset {
   readonly entryPoints: CustomWgslMaterialEntryPoints;
   /** Opt-in group(3) lit contract; absent means `"unlit"` (see the type). */
   readonly lighting?: CustomWgslMaterialLighting;
+  /**
+   * MRT declaration (B3): N color targets the fragment entry writes via
+   * `@location(0..N-1)`. Absent means the single pass color target.
+   */
+  readonly colorTargets?: readonly CustomWgslColorTargetDeclaration[];
   readonly renderState: RenderStateDescriptor;
   readonly pipelineKey: CustomWgslMaterialPipelineKeyInput;
   readonly bindings: readonly CustomWgslBindingDeclaration[];

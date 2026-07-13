@@ -6,6 +6,7 @@ import type {
 } from "./preparation-types.js";
 import { createPreparedCustomWgslMaterial } from "./custom-wgsl-material-prepared.js";
 import {
+  validateCustomWgslFragmentOutputLocations,
   validateCustomWgslMaterialSource,
   type ValidateCustomMaterialSourceOptions,
 } from "./custom-wgsl-material-validation.js";
@@ -73,6 +74,25 @@ export function createCustomWgslMaterialRenderAssetAdapter(
           status: shader.status,
           diagnostics: [...diagnostics, ...shader.diagnostics],
         };
+      }
+
+      // B3: shader-asset sources expose their code only here — validate the
+      // fragment entry's @location outputs against the colorTargets
+      // declaration once the code resolves (inline sources were validated
+      // above; re-checking them would double-report).
+      if (input.source.shader.kind !== "inline-wgsl") {
+        const mismatch = validateCustomWgslFragmentOutputLocations(
+          input.source,
+          shader.code,
+          input.assetKey,
+        );
+
+        if (mismatch !== null) {
+          return {
+            status: "failed",
+            diagnostics: [...diagnostics, mismatch],
+          };
+        }
       }
 
       // Lit materials must not declare the renderer-owned @group(3). Inline

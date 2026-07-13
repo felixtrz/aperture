@@ -1,3 +1,4 @@
+import type { AssetRegistry } from "@aperture-engine/simulation";
 import type { RenderSnapshot } from "@aperture-engine/render";
 import {
   assembleFrameBoundary,
@@ -35,8 +36,15 @@ import {
 import {
   buildUserPassNode,
   createUserPassSkippedOnLegacyRouteDiagnostic,
+  normalizeUserPassWrites,
   type WebGpuAppPassResolvers,
 } from "./user-pass.js";
+import {
+  planWebGpuAppUserPassColorWrites,
+  resolveWebGpuAppUserPassRenderTarget,
+  userPassWriteAttachmentInput,
+  type WebGpuAppUserPassTargetContext,
+} from "./user-pass-targets.js";
 import {
   buildShadowCasterDepthAttachmentPlan,
   type ShadowCasterGraphPass,
@@ -70,6 +78,13 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   readonly app: WebGpuApp;
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
+  /**
+   * B3: source-asset registry used to resolve user-pass render-target writes
+   * and reads (facade `RenderTargetAsset` realization). Optional so
+   * lightweight callers/tests without target-writing passes stay unchanged;
+   * absent, a target write is diagnosed as unavailable.
+   */
+  readonly assets?: AssetRegistry;
   readonly target: Extract<
     WebGpuAppFrameBoundaryTarget,
     { source: "swapchain" }
@@ -1108,13 +1123,35 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
   );
   if (userPasses.length > 0) {
     const sceneView = sceneTexture.resource.texture.createView?.();
+    // B3: facade render-target reads/writes need the source-asset registry;
+    // lightweight callers without one keep the scene-color-only surface.
+    const targetContext: WebGpuAppUserPassTargetContext | null =
+      options.assets === undefined
+        ? null
+        : {
+            assets: options.assets,
+            device: options.app.initialization.device,
+            state: options.cache.renderTargets,
+          };
     const userResolvers: WebGpuAppPassResolvers = {
-      view: (handle) =>
-        handle === "scene-color"
-          ? sceneView
-          : handle === "depth"
-            ? options.depthAttachment.view
-            : undefined,
+      view: (handle) => {
+        if (handle === "scene-color") {
+          return sceneView;
+        }
+        if (handle === "depth") {
+          return options.depthAttachment.view;
+        }
+        if (targetContext !== null) {
+          const resolution = resolveWebGpuAppUserPassRenderTarget(
+            targetContext,
+            handle,
+          );
+          if (resolution.ok && resolution.realized.sampleable) {
+            return resolution.realized.view;
+          }
+        }
+        return undefined;
+      },
       buffer: () => undefined,
       createBindGroup: (entries) =>
         (
@@ -1122,6 +1159,42 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         ).createBindGroup?.(entries),
     };
     for (const descriptor of userPasses) {
+      // B3: resolve declared render-target writes BEFORE encoding; a pass
+      // whose targets cannot be attached is skipped loudly without running.
+      const normalizedWrites =
+        descriptor.kind === "compute"
+          ? []
+          : normalizeUserPassWrites(descriptor.writes);
+      const targetWrites = normalizedWrites.filter(
+        (write) => write.handle !== "scene-color",
+      );
+      let writePlan: ReturnType<
+        typeof planWebGpuAppUserPassColorWrites
+      > | null = null;
+      if (descriptor.kind !== "compute" && targetWrites.length > 0) {
+        if (targetContext === null) {
+          diagnostics.push({
+            code: "webgpu.userPass.renderWriteTargetUnavailable",
+            severity: "warning",
+            message: `User render pass '${descriptor.name}' declared render-target writes but this route has no source-asset registry to resolve them. The pass was skipped.`,
+            data: {
+              pass: descriptor.name,
+              handle: targetWrites[0]?.handle ?? "",
+              reason: "unknown",
+            },
+          });
+          continue;
+        }
+        writePlan = planWebGpuAppUserPassColorWrites({
+          context: targetContext,
+          passName: descriptor.name,
+          writes: normalizedWrites,
+          diagnostics,
+        });
+        if (writePlan === null) {
+          continue;
+        }
+      }
       const built = buildUserPassNode(descriptor, userResolvers);
       if (built.kind === "compute") {
         for (const write of built.writes) {
@@ -1135,22 +1208,102 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         graph.addComputePass(built);
         userPassNodeNames.push(built.name);
         plannedCommands += built.commands.length;
-      } else {
-        // M3-T7 scope (audit B5): a user RENDER pass is drawn over scene-color with
-        // LOAD; a declared write to anything other than scene-color is not honored
-        // for render passes (compute passes do honor their declared transient
-        // writes). Surface the coercion instead of dropping it silently.
-        const coercedWrites = (descriptor.writes ?? [])
-          .map((write) => (typeof write === "string" ? write : write.handle))
-          .filter((handle) => handle !== "scene-color");
-        if (coercedWrites.length > 0) {
-          diagnostics.push({
-            code: "webgpu.userPass.renderWriteCoercedToSceneColor",
-            severity: "warning",
-            message: `User render pass '${built.name}' declared write target(s) ${JSON.stringify(coercedWrites)} that are not honored; it is drawn over scene-color (LOAD). Use a compute pass for arbitrary writable targets, or write to "scene-color".`,
-            data: { pass: built.name, coercedWrites },
-          });
+      } else if (writePlan !== null && !writePlan.usesSceneColor) {
+        // B3: honored render-target writes — attach the realized facade
+        // textures in declaration order (clear/load per write intent, always
+        // stored, no depth attachment).
+        const primary = writePlan.writes[0];
+        const primaryTarget = primary?.realized;
+        if (
+          primary === undefined ||
+          primaryTarget === null ||
+          primaryTarget === undefined ||
+          targetContext === null
+        ) {
+          continue;
         }
+        for (const entry of writePlan.writes) {
+          const realized = entry.realized;
+          if (
+            realized !== null &&
+            graph.handle(entry.write.handle) === undefined
+          ) {
+            graph.declareResource({
+              id: entry.write.handle,
+              descriptor: {
+                kind: "color-texture",
+                lifetime: "persistent",
+                width: realized.width,
+                height: realized.height,
+                format: realized.format,
+              },
+            });
+          }
+        }
+        for (const read of built.reads) {
+          if (
+            read === "scene-color" ||
+            read === "depth" ||
+            graph.handle(read) !== undefined
+          ) {
+            continue;
+          }
+          const resolution = resolveWebGpuAppUserPassRenderTarget(
+            targetContext,
+            read,
+          );
+          if (resolution.ok) {
+            graph.declareResource({
+              id: read,
+              descriptor: {
+                kind: "color-texture",
+                lifetime: "persistent",
+                width: resolution.realized.width,
+                height: resolution.realized.height,
+                format: resolution.realized.format,
+              },
+            });
+          }
+        }
+        const extras = writePlan.writes
+          .slice(1)
+          .map(userPassWriteAttachmentInput);
+        const plan = buildFrameBoundaryTargetPlan({
+          context,
+          colorTarget: {
+            source: "offscreen-target",
+            texture: primaryTarget.texture,
+            view: primaryTarget.view,
+          },
+          colorLoadOp: primary.write.attachment,
+          ...(primary.write.attachment === "clear"
+            ? { clearColor: primary.write.clearColor ?? [0, 0, 0, 0] }
+            : {}),
+          ...(extras.length === 0 ? {} : { additionalColorTargets: extras }),
+        });
+        graph.addRenderPass({
+          name: built.name,
+          reads: [...built.reads],
+          writes: writePlan.writes.map((entry) => entry.write),
+          commands: built.commands,
+        });
+        payloads.set(built.name, {
+          device,
+          attachments: plan.attachments,
+          commands: built.commands,
+          label: built.name,
+          colorTargetSource: "offscreen-target",
+          readbackTexture: plan.texture.texture,
+        });
+        records.push({
+          name: built.name,
+          texture: plan.texture,
+          attachments: plan.attachments,
+        });
+        userPassNodeNames.push(built.name);
+        plannedCommands += built.commands.length;
+        drawCalls += countDrawCommands(built.commands);
+      } else {
         const plan = buildFrameBoundaryTargetPlan({
           context,
           colorTarget: {
@@ -1479,6 +1632,11 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     resolveRenderBoundary: (node) => payloads.get(node.name) ?? null,
   };
   const compiled = compileFrameGraph(graph);
+  // B3/AC4: a rejected compile (write cycles among user passes) surfaces its
+  // structured diagnostics — frameGraph.cyclicDependency names the passes.
+  if (!compiled.ok) {
+    diagnostics.push(...compiled.diagnostics);
+  }
   const exec = executeFrameGraph({
     device,
     queue,

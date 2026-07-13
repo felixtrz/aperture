@@ -841,6 +841,23 @@ async function prepareCustomDrawResourceSet(options: {
     };
   }
 
+  // B3: the mixed route shares its passes between built-in and custom
+  // pipelines, so an MRT material's N-target pipeline can never match the
+  // shared single-target attachments — refuse loudly before pipeline
+  // creation (the single-custom-material route hosts MRT materials).
+  if (prepared.pipeline.colorTargets !== undefined) {
+    return {
+      resource: null,
+      diagnostics: [
+        {
+          code: "webGpuApp.customWgslColorTargetsRouteUnsupported",
+          message: `Custom material '${prepared.sourceMaterialKey}' declares colorTargets (MRT), which the mixed built-in/custom route cannot host — its passes share single-target attachments. Render MRT materials through scenes whose mesh draws use only that material (the single-custom-material route).`,
+          renderId: options.draw.renderId,
+        },
+      ],
+    };
+  }
+
   const colorFormat = webGpuAppScenePassColorFormat(options.app);
   const depthFormat = "depth24plus";
   const sampleCount = options.app.msaa.sampleCount;

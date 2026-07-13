@@ -1,6 +1,11 @@
-import type { BufferHandle } from "@aperture-engine/simulation";
 import type {
+  BufferHandle,
+  RenderTargetHandle,
+} from "@aperture-engine/simulation";
+import type {
+  ColorWriteMask,
   CustomWgslBindingKind,
+  CustomWgslColorTargetDeclaration,
   CustomWgslMaterialAsset,
   CustomWgslShaderRef,
   CustomWgslShaderStage,
@@ -44,6 +49,18 @@ export interface PreparedCustomWgslBindingResourceEntry {
   readonly resourceKey: string;
 }
 
+/**
+ * One normalized color target of an MRT custom material (B3): the declared
+ * format (index 0 keeps the "swapchain" sentinel resolved renderer-side),
+ * the write mask (defaulted), and — for indices >= 1 — the paired facade
+ * render-target handle whose realized texture attaches at @location(index).
+ */
+export interface PreparedCustomWgslColorTarget {
+  readonly format: CustomWgslColorTargetDeclaration["format"];
+  readonly writeMask: ColorWriteMask;
+  readonly renderTarget?: RenderTargetHandle;
+}
+
 export interface PreparedCustomWgslMaterial {
   readonly resourceFamily: "custom-wgsl-material";
   readonly sourceMaterialKey: string;
@@ -83,6 +100,12 @@ export interface PreparedCustomWgslMaterial {
     readonly shadowVertexEntryPoint?: string;
     readonly renderState: RenderStateDescriptor;
     readonly instanceAttributes: InstanceAttributeLayout | null;
+    /**
+     * MRT declaration (B3), normalized (writeMask defaulted to "all").
+     * Present ONLY when the source declared colorTargets so materials
+     * without one stay byte-identical.
+     */
+    readonly colorTargets?: readonly PreparedCustomWgslColorTarget[];
   };
   readonly bindGroupLayout: {
     readonly resourceKey: string;

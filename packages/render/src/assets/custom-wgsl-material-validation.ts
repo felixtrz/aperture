@@ -1,7 +1,12 @@
 import {
+  CUSTOM_WGSL_COLOR_TARGET_FORMATS,
+  CUSTOM_WGSL_COLOR_WRITE_MASKS,
+  MAX_CUSTOM_WGSL_COLOR_TARGETS,
   isBuiltInMaterialKind,
   isValidCustomMaterialFamilyKey,
+  parseWgslFragmentOutputLocations,
   wgslSourceDeclaresLitBindGroup,
+  type ColorWriteMask,
   type CustomWgslMaterialAsset,
   type CustomWgslShaderStage,
   type JsonValue,
@@ -32,6 +37,7 @@ export function validateCustomWgslMaterialSource(
   validateShader(source, assetKey, diagnostics);
   validateEntryPoints(source, assetKey, diagnostics);
   validateLighting(source, assetKey, diagnostics);
+  validateColorTargets(source, assetKey, diagnostics);
   validateRenderState(source, assetKey, diagnostics);
   validatePipelineKeyInput(source, assetKey, diagnostics);
   validateBindings(
@@ -274,6 +280,210 @@ function validateLighting(
       assetKey,
     });
   }
+}
+
+// B3: MRT declaration — N color targets with formats + write masks. Target 0
+// is the pass color ("swapchain" sentinel, no render-target pairing); every
+// extra target pairs a facade render-target handle realized as the
+// @location(index) attachment. Mismatched fragment outputs are rejected here
+// (structured diagnostics, never a device error at pipeline creation).
+function validateColorTargets(
+  source: CustomWgslMaterialSource,
+  assetKey: string,
+  diagnostics: RenderAssetPreparationDiagnostic[],
+): void {
+  const colorTargets = source.colorTargets;
+
+  if (colorTargets === undefined) {
+    validateFragmentOutputLocations(source, assetKey, diagnostics);
+    return;
+  }
+
+  if (!Array.isArray(colorTargets) || colorTargets.length === 0) {
+    diagnostics.push(
+      invalidColorTargets(assetKey, "colorTargets must be a non-empty array."),
+    );
+    return;
+  }
+
+  if (colorTargets.length > MAX_CUSTOM_WGSL_COLOR_TARGETS) {
+    diagnostics.push(
+      invalidColorTargets(
+        assetKey,
+        `declares ${String(colorTargets.length)} color targets; at most ${String(MAX_CUSTOM_WGSL_COLOR_TARGETS)} are supported.`,
+      ),
+    );
+    return;
+  }
+
+  const seenRenderTargets = new Set<string>();
+
+  for (let index = 0; index < colorTargets.length; index += 1) {
+    const target = colorTargets[index];
+
+    if (typeof target !== "object" || target === null) {
+      diagnostics.push(
+        invalidColorTargets(
+          assetKey,
+          `colorTargets[${String(index)}] must be an object.`,
+        ),
+      );
+      continue;
+    }
+
+    if (!CUSTOM_WGSL_COLOR_TARGET_FORMATS.includes(target.format)) {
+      diagnostics.push(
+        invalidColorTargets(
+          assetKey,
+          `colorTargets[${String(index)}] format '${String(target.format)}' must be one of ${CUSTOM_WGSL_COLOR_TARGET_FORMATS.join(", ")}.`,
+        ),
+      );
+    }
+
+    if (
+      target.writeMask !== undefined &&
+      !CUSTOM_WGSL_COLOR_WRITE_MASKS.includes(
+        target.writeMask as ColorWriteMask,
+      )
+    ) {
+      diagnostics.push(
+        invalidColorTargets(
+          assetKey,
+          `colorTargets[${String(index)}] writeMask '${String(target.writeMask)}' must be one of ${CUSTOM_WGSL_COLOR_WRITE_MASKS.join(", ")}.`,
+        ),
+      );
+    }
+
+    if (index === 0) {
+      if (target.renderTarget !== undefined) {
+        diagnostics.push(
+          invalidColorTargets(
+            assetKey,
+            "colorTargets[0] is the pass color the camera renders into and must not pair a renderTarget handle.",
+          ),
+        );
+      }
+
+      if (target.format !== "swapchain") {
+        diagnostics.push(
+          invalidColorTargets(
+            assetKey,
+            `colorTargets[0] must declare format "swapchain" (the pass's own color format), not '${String(target.format)}'.`,
+          ),
+        );
+      }
+      continue;
+    }
+
+    if (
+      target.renderTarget === undefined ||
+      target.renderTarget === null ||
+      typeof target.renderTarget !== "object" ||
+      target.renderTarget.kind !== "render-target" ||
+      typeof target.renderTarget.id !== "string"
+    ) {
+      diagnostics.push(
+        invalidColorTargets(
+          assetKey,
+          `colorTargets[${String(index)}] must pair a render-target handle whose realized color texture is attached at @location(${String(index)}).`,
+        ),
+      );
+      continue;
+    }
+
+    if (seenRenderTargets.has(target.renderTarget.id)) {
+      diagnostics.push(
+        invalidColorTargets(
+          assetKey,
+          `colorTargets[${String(index)}] reuses render target '${target.renderTarget.id}' already paired with another target.`,
+        ),
+      );
+    }
+
+    seenRenderTargets.add(target.renderTarget.id);
+  }
+
+  validateFragmentOutputLocations(source, assetKey, diagnostics);
+}
+
+/**
+ * Validate the fragment entry point's `@location` outputs against the
+ * colorTargets declaration for inline sources (shader-asset sources are
+ * validated at prepare time once the code resolves — the lit-check pattern).
+ * Exposed so preparation can reuse it with resolved shader code.
+ */
+export function validateCustomWgslFragmentOutputLocations(
+  source: Pick<CustomWgslMaterialSource, "colorTargets" | "entryPoints">,
+  shaderCode: string,
+  assetKey: string,
+): RenderAssetPreparationDiagnostic | null {
+  const fragment = source.entryPoints?.fragment;
+
+  if (typeof fragment !== "string") {
+    return null;
+  }
+
+  const locations = parseWgslFragmentOutputLocations(shaderCode, fragment);
+
+  if (locations === null) {
+    return null;
+  }
+
+  const declaredCount = source.colorTargets?.length ?? 1;
+  const expected = Array.from({ length: declaredCount }, (_, index) => index);
+  const matches =
+    locations.length === expected.length &&
+    expected.every((location, index) => locations[index] === location);
+
+  if (matches) {
+    return null;
+  }
+
+  return {
+    code: "customMaterialSource.colorTargetMismatch",
+    message: `Custom material '${assetKey}' fragment entry '${fragment}' writes @location(${locations.join("), @location(")}) but ${
+      source.colorTargets === undefined
+        ? "declares no colorTargets (a single @location(0) output is expected)"
+        : `declares ${String(declaredCount)} colorTargets (@location(0..${String(declaredCount - 1)}))`
+    }. Declare one colorTargets entry per fragment output location.`,
+    severity: "error",
+    assetKey,
+  };
+}
+
+function validateFragmentOutputLocations(
+  source: CustomWgslMaterialSource,
+  assetKey: string,
+  diagnostics: RenderAssetPreparationDiagnostic[],
+): void {
+  if (
+    source.shader?.kind !== "inline-wgsl" ||
+    typeof source.shader.code !== "string"
+  ) {
+    return;
+  }
+
+  const mismatch = validateCustomWgslFragmentOutputLocations(
+    source,
+    source.shader.code,
+    assetKey,
+  );
+
+  if (mismatch !== null) {
+    diagnostics.push(mismatch);
+  }
+}
+
+function invalidColorTargets(
+  assetKey: string,
+  message: string,
+): RenderAssetPreparationDiagnostic {
+  return {
+    code: "customMaterialSource.invalidColorTargets",
+    message: `Custom material '${assetKey}' ${message}`,
+    severity: "error",
+    assetKey,
+  };
 }
 
 function validateEntryPointName(

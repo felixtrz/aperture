@@ -306,6 +306,44 @@ reject `msaa: 4` rather than resolving per face.
 
 Expose what the attachment planner already supports internally.
 
+Status: implemented (2026-07-13). AC1: `material.customWgsl({ colorTargets })`
+declares N targets — index = fragment `@location`, target 0 is the pass color
+(`"swapchain"` sentinel), extras pair facade render targets (B1 assets) with
+per-target `format` and `writeMask` (`all|rgb|alpha|none`). Fragment outputs
+are validated against the declaration at preparation
+(`customMaterialSource.colorTargetMismatch`), never as a device error; the
+`color-targets:` pipeline-key segment participates only when declared, so
+undeclared materials keep byte-identical keys (locked by a hardcoded
+pre-change key literal in tests). Realization checks (registered/2d/
+single-sample/format- and size-matched extras, no `{ msaa: 4 }` app) surface
+as `webGpuApp.customWgslColorTarget*` diagnostics; extra targets clear to
+transparent black at pass start and always store. AC2: user render passes
+write facade render targets — `writes` attach the realized textures in
+declaration order with per-write clear/load intent (always stored, no depth
+attachment); reads resolve to realized sampleable views with frame-graph
+ordering edges; ping-pong between two persistent user targets works across
+frames (unit-tested on the forward graph). Mixing scene-color with target
+writes, size mismatches, and unavailable targets skip the pass loudly
+(`webgpu.userPass.renderWrite*`). AC3: `examples/gbuffer` — one MRT material
+writes albedo/world-normal/object-ID to three facade targets, a user pass
+resolves them into three scene-color bands; `test/e2e/gbuffer.spec.ts`
+asserts graph pass order (G-buffer camera node before resolve), user-pass
+execution counts, per-target draw calls, and five screenshot pixel samples
+(albedo, encoded +Z normal, and three ID bands). AC4: write cycles among
+user passes are rejected at frame-graph compile with the cycle diagnostic
+surfaced into the render report; the legacy route reports user passes as
+skipped exactly as before (covered by unit tests). Deviations: (1) "golden
+baseline" replaced by screenshot pixel-sample assertions (repo pattern,
+matching A1/B1/B2); (2) MRT draw targets are facade render targets rather
+than anonymous transient textures — persistent, resizable, and samplable
+assets are the repo's render-target model (transient textures remain
+internal to the frame graph); (3) MRT materials require the
+single-custom-material route — frames mixing MRT materials with built-in
+families are rejected with `webGpuApp.customWgslColorTargetsRouteUnsupported`
+(the mixed route's shared pass model can't host per-material attachment
+sets); (4) scene-color user passes keep their previous LOAD-over-scene
+semantics unchanged.
+
 - AC1: Custom materials may declare N color targets (formats + write masks);
   fragment entry points with multiple `@location` outputs validate against
   the declaration; mismatches produce a structured diagnostic, not a device

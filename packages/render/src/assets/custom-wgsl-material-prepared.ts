@@ -2,10 +2,12 @@ import {
   APERTURE_LIT_PIPELINE_FEATURE,
   APERTURE_LIT_WGSL_HEADER,
   createInstanceAttributeLayout,
+  customWgslColorTargetsPipelineKeySegment,
   type InstanceAttributeLayout,
 } from "../materials/index.js";
 import type {
   CustomWgslMaterialSource,
+  PreparedCustomWgslColorTarget,
   PreparedCustomWgslMaterial,
 } from "./custom-wgsl-material-types.js";
 
@@ -94,6 +96,21 @@ export function createPreparedCustomWgslMaterial(input: {
         : { shadowVertexEntryPoint: input.source.entryPoints.shadowVertex }),
       renderState: input.source.renderState,
       instanceAttributes,
+      // Present only when declared (B3) so undeclared prepared materials
+      // stay byte-identical.
+      ...(input.source.colorTargets === undefined
+        ? {}
+        : {
+            colorTargets: input.source.colorTargets.map(
+              (target): PreparedCustomWgslColorTarget => ({
+                format: target.format,
+                writeMask: target.writeMask ?? "all",
+                ...(target.renderTarget === undefined
+                  ? {}
+                  : { renderTarget: target.renderTarget }),
+              }),
+            ),
+          }),
     },
     bindGroupLayout: {
       resourceKey: bindGroupLayoutResourceKey,
@@ -131,6 +148,10 @@ function customWgslMaterialPipelineKey(
     // (same byte-identity rule); it carries the contract version so future
     // group(3) layout changes cannot collide with cached pipelines.
     ...(source.lighting === "lit" ? [APERTURE_LIT_PIPELINE_FEATURE] : []),
+    // The MRT segment participates only when colorTargets is declared (B3,
+    // same byte-identity rule) and must sit BEFORE the trailing render-state
+    // segments the webgpu render-state parser slices off the key's tail.
+    ...colorTargetsSegments(source),
     `instance-attributes:${instanceAttributes?.layoutKey ?? "none"}`,
     `features:${source.pipelineKey.features.join(",")}`,
     `specialization:${stableStringHash(
@@ -145,6 +166,14 @@ function customWgslMaterialPipelineKey(
     source.renderState.depth.compare,
     source.renderState.blend.preset,
   ].join("|");
+}
+
+function colorTargetsSegments(
+  source: CustomWgslMaterialSource,
+): readonly string[] {
+  const segment = customWgslColorTargetsPipelineKeySegment(source.colorTargets);
+
+  return segment === null ? [] : [segment];
 }
 
 function customWgslBindingLayoutSignature(

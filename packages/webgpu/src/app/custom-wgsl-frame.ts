@@ -43,6 +43,7 @@ import {
   customWgslMaterialRenderPipelineCacheKey,
   type CreateCustomWgslMaterialRenderPipelineResourceResult,
 } from "../materials/custom-wgsl/custom-wgsl-material.js";
+import { resolveWebGpuAppCustomMaterialColorTargets } from "./user-pass-targets.js";
 import {
   renderReport,
   frameBoundariesNeedGpuDrain,
@@ -184,6 +185,36 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     depthFormat,
     sampleCount,
   });
+  // B3: realize the facade render targets an MRT material pairs with
+  // @location(1..N-1) BEFORE any pipeline work — a declaration that cannot be
+  // attached fails the frame with structured diagnostics, never a device
+  // error from mismatched pipeline/pass attachment counts.
+  const customColorTargets = resolveWebGpuAppCustomMaterialColorTargets({
+    assets: options.assets,
+    device: options.app.initialization.device,
+    state: options.cache.renderTargets,
+    material: prepared,
+    pipelineCacheKey,
+    passColorFormat: colorFormat,
+    appFormat: options.app.initialization.format,
+    sampleCount,
+  });
+
+  if (!customColorTargets.valid) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      resourceReuse: options.reuse,
+      phaseTimings: options.phaseTimer.report(
+        options.cache.phaseTimingHistory,
+        options.snapshot.frame,
+      ),
+      diagnostics: [
+        ...options.snapshot.diagnostics,
+        ...customColorTargets.diagnostics,
+      ],
+    });
+  }
   const cachedPipeline = customWgslPipelineResultFromCache(
     options.cache.pipelines.get(pipelineCacheKey),
     pipelineCacheKey,
@@ -425,6 +456,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     overlayCommands: featureFrame.overlayCommands,
     label: options.label ?? "aperture-custom-wgsl-app",
     reuse: options.reuse,
+    customColorTargets: customColorTargets.plan,
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
       options.snapshotUpdateSchedule,
     ),

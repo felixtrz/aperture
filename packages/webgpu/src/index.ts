@@ -40,6 +40,7 @@ export * from "./post/post-dof.js";
 export * from "./post/post-fxaa.js";
 export * from "./post/post-tonemap.js";
 export * from "./app/user-pass.js";
+export * from "./app/user-pass-targets.js";
 export * from "./app/feature-command-groups.js";
 export * from "./app/text.js";
 export * from "./app/ui.js";

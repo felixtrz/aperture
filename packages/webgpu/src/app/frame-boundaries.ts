@@ -18,7 +18,10 @@ import {
   type FrameBoundaryEncodeReport,
   type FrameBoundaryReadbackSampleRequest,
 } from "../render/frame/frame-boundary.js";
-import { createFrameGraph } from "../render/graph/frame-graph.js";
+import {
+  createFrameGraph,
+  type PassWrite,
+} from "../render/graph/frame-graph.js";
 import { compileFrameGraph } from "../render/graph/frame-graph-compile.js";
 import {
   executeFrameGraph,
@@ -36,6 +39,7 @@ import type { RenderPassCommand } from "../render/passes/render-pass-commands.js
 import type {
   RenderPassAttachmentLoadOp,
   RenderPassAttachmentStoreOp,
+  RenderPassColorAttachmentInput,
 } from "../render/passes/render-pass-attachments.js";
 import {
   type WebGpuApp,
@@ -90,8 +94,16 @@ import { assembleWebGpuAppPostProcessedSwapchainTarget } from "./post-processing
 import {
   buildUserPassNode,
   createUserPassSkippedOnLegacyRouteDiagnostic,
+  normalizeUserPassWrites,
   type WebGpuAppPassResolvers,
 } from "./user-pass.js";
+import {
+  planWebGpuAppUserPassColorWrites,
+  resolveWebGpuAppUserPassRenderTarget,
+  userPassWriteAttachmentInput,
+  type WebGpuAppCustomColorTargetsPlan,
+  type WebGpuAppUserPassTargetContext,
+} from "./user-pass-targets.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import { bumpWebGpuAppRenderTargetCaptureGeneration } from "./render-target-resources.js";
 
@@ -140,6 +152,14 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   // M3-T5: shadow caster passes to fold into the forward encoder as depth-only
   // graph nodes the opaque pass reads (only used when useFrameGraph is on).
   readonly shadowCasterGraphPasses?: readonly ShadowCasterGraphPass[];
+  /**
+   * B3: MRT attachment plan for a custom material declaring colorTargets.
+   * Passes whose commands set this plan's pipeline attach the extra color
+   * targets at @location(1..N-1); incompatible passes (size mismatch, mixed
+   * pipelines, the post scene route) are stripped with a structured
+   * diagnostic instead of encoding a device error.
+   */
+  readonly customColorTargets?: WebGpuAppCustomColorTargetsPlan | null;
   /**
    * B2 cube captures: per-target view-uniform selection. The app frame routes
    * bind one shared view-uniform buffer whose record 0 every pass reads; on
@@ -522,14 +542,30 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         ? commandsForBoundary
         : [...commandsForBoundary, ...overlayCommands];
 
+    // B3: passes drawing an MRT custom material attach its declared extra
+    // color targets; incompatible passes are stripped loudly (never a device
+    // error from mismatched pipeline/pass attachment counts).
+    const mrt = evaluateWebGpuAppCustomColorTargetsForPass({
+      plan: options.customColorTargets ?? null,
+      commands: commandsForBoundaryWithOverlay,
+      targetWidth: target.width,
+      targetHeight: target.height,
+      postRoute: target.source === "swapchain" && activePostEffects.length > 0,
+      passLabel: targetPassName,
+      diagnostics,
+    });
+    allTargetsValid &&= mrt.valid;
+    const passCommands = mrt.commands;
+
     if (target.source === "swapchain" && activePostEffects.length > 0) {
       const postTarget = assembleWebGpuAppPostProcessedSwapchainTarget({
         app: options.app,
         cache: options.cache,
         snapshot: options.snapshot,
+        assets: options.assets,
         target,
-        commands: commandsForBoundary,
-        overlayCommands,
+        commands: mrt.stripped ? [] : commandsForBoundary,
+        overlayCommands: mrt.stripped ? [] : overlayCommands,
         depthAttachment,
         effects: activePostEffects,
         label: options.label,
@@ -739,7 +775,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       >[0]["device"],
       queue: (options.app.initialization.device as { readonly queue: unknown })
         .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
-      commands: commandsForBoundaryWithOverlay,
+      commands: passCommands,
       label: `${options.label}:${target.renderTargetKey ?? "swapchain"}`,
       colorLoadOp,
       viewport: viewRectangles.viewport,
@@ -756,6 +792,11 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
           }
         : {}),
       ...(colorLoadOp === "clear" ? { clearColor: targetClearColor } : {}),
+      // B3: the MRT custom material's extra color targets ride this pass at
+      // @location(1..N-1).
+      ...(mrt.additionalColorTargets === null
+        ? {}
+        : { additionalColorTargets: mrt.additionalColorTargets }),
       depthTarget: {
         view: depthAttachment.view,
         ...(depthLoadOp === "clear"
@@ -764,9 +805,12 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         depthLoadOp,
         depthStoreOp: "store",
       },
-      ...(commandsForBoundaryWithOverlay.length === 0 ||
+      ...(passCommands.length === 0 ||
       renderBundleCommands.length === 0 ||
       options.enableRenderBundles === false ||
+      // Render bundles describe a single color format; MRT passes attach
+      // more, so bundling is skipped for them (B3).
+      mrt.additionalColorTargets !== null ||
       (overlayCommands.length > 0 &&
         options.renderBundleCommands === undefined) ||
       occlusionRenderIds.length > 0
@@ -837,7 +881,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
           commands: snapshotForwardGraphCommands(
             options.cache.frameScratch.forwardGraphCommandLists,
             forwardGraphPayloads.size,
-            commandsForBoundaryWithOverlay,
+            passCommands,
           ),
         },
         target,
@@ -847,6 +891,13 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         occlusionRenderIds,
         gpuTimingPassName: gpuTiming?.passName ?? targetPassName,
         shadowReads: forwardGraphShadowReads,
+        // B3: the MRT extras this pass writes, declared as persistent graph
+        // handles so user passes reading them get read-after-write edges.
+        ...(mrt.additionalColorTargets === null ||
+        options.customColorTargets === undefined ||
+        options.customColorTargets === null
+          ? {}
+          : { mrtPlan: options.customColorTargets }),
       });
       if (encodeOverlaySeparately && overlayCommands.length > 0) {
         registerForwardGraphOverlayPass({
@@ -870,8 +921,8 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         options.snapshot,
         depthAttachment,
       );
-      plannedCommands += commandsForBoundaryWithOverlay.length;
-      drawCalls += countDrawCommands(commandsForBoundaryWithOverlay);
+      plannedCommands += passCommands.length;
+      drawCalls += countDrawCommands(passCommands);
       if (encodeOverlaySeparately && overlayCommands.length > 0) {
         plannedCommands += overlayCommands.length;
         drawCalls += countDrawCommands(overlayCommands);
@@ -973,8 +1024,8 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         ? { face: target.face }
         : {}),
     });
-    plannedCommands += commandsForBoundaryWithOverlay.length;
-    drawCalls += countDrawCommands(commandsForBoundaryWithOverlay);
+    plannedCommands += passCommands.length;
+    drawCalls += countDrawCommands(passCommands);
     if (overlayBoundary !== null) {
       plannedCommands += overlayCommands.length;
       drawCalls += countDrawCommands(overlayCommands);
@@ -1014,6 +1065,8 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       ? null
       : registerForwardGraphUserPasses({
           app: options.app,
+          assets: options.assets,
+          renderTargetState: options.cache.renderTargets,
           graph: forwardGraph,
           payloads: forwardGraphPayloads,
           entries: forwardGraphEntries,
@@ -1039,6 +1092,12 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       options.app.initialization.device as { readonly queue: unknown }
     ).queue as Parameters<typeof assembleFrameBoundary>[0]["queue"];
     const compiled = compileFrameGraph(forwardGraph);
+    // B3/AC4: a rejected compile (write cycles among user passes, duplicate
+    // node names) surfaces its structured diagnostics on the frame —
+    // frameGraph.cyclicDependency names the stuck passes.
+    if (!compiled.ok) {
+      diagnostics.push(...compiled.diagnostics);
+    }
     const exec = executeFrameGraph({
       device,
       queue,
@@ -1357,6 +1416,9 @@ interface ForwardGraphTargetEntry {
     typeof assembleFrameBoundary
   >[0]["colorTarget"];
   readonly depthView: unknown;
+  // B3: facade ids of the MRT extras this target node also writes (empty for
+  // non-MRT targets) — user passes reading them get read-after-write edges.
+  readonly mrtTargetIds: readonly string[];
 }
 
 // M3-T4: convert one per-target assembleFrameBoundary options object into a
@@ -1379,6 +1441,9 @@ function registerForwardGraphTarget(args: {
   // M3-T5: shadow depth handles this forward node reads so the compiler orders
   // the shadow caster nodes strictly before it (one shared encoder).
   readonly shadowReads?: readonly string[];
+  // B3: MRT plan whose extra targets this pass writes as additional color
+  // attachments — declared as persistent graph handles under their facade ids.
+  readonly mrtPlan?: WebGpuAppCustomColorTargetsPlan;
 }): ForwardGraphTargetEntry {
   const opts = args.boundaryOptions;
   const plan = buildFrameBoundaryTargetPlan({
@@ -1396,6 +1461,10 @@ function registerForwardGraphTarget(args: {
     ...(opts.msaaColorStoreOp === undefined
       ? {}
       : { msaaColorStoreOp: opts.msaaColorStoreOp }),
+    // B3: the MRT custom material's extra color targets ride this pass.
+    ...(opts.additionalColorTargets === undefined
+      ? {}
+      : { additionalColorTargets: opts.additionalColorTargets }),
     ...(opts.depthTarget === undefined
       ? {}
       : { depthTarget: opts.depthTarget }),
@@ -1420,12 +1489,34 @@ function registerForwardGraphTarget(args: {
     }
   }
 
+  // B3: an MRT pass also writes its extra facade targets — declared under
+  // their plain facade ids (persistent: the realizer owns the textures across
+  // frames) so user passes reading those ids are ordered after this node.
+  const mrtTargetIds = args.mrtPlan?.targetIds ?? [];
+  for (const targetId of mrtTargetIds) {
+    if (args.graph.handle(targetId) === undefined) {
+      args.graph.declareResource({
+        id: targetId,
+        descriptor: {
+          kind: "color-texture",
+          lifetime: "persistent",
+          width: args.mrtPlan?.width ?? 0,
+          height: args.mrtPlan?.height ?? 0,
+        },
+      });
+    }
+  }
+
   const nodeName = `${opts.label}:fg:${args.entries.length}`;
   args.graph.addRenderPass({
     name: nodeName,
     reads: args.shadowReads ?? [],
     writes: [
       { handle, attachment: opts.colorLoadOp === "load" ? "load" : "clear" },
+      ...mrtTargetIds.map((targetId) => ({
+        handle: targetId,
+        attachment: "clear" as const,
+      })),
     ],
     commands: opts.commands,
   });
@@ -1463,6 +1554,7 @@ function registerForwardGraphTarget(args: {
     handle,
     colorTarget: opts.colorTarget,
     depthView: opts.depthTarget?.view ?? null,
+    mrtTargetIds,
   };
 
   args.entries.push(entry);
@@ -1550,6 +1642,85 @@ function containsSoftParticleOverlayCommands(
   );
 }
 
+interface CustomColorTargetsPassEvaluation {
+  readonly commands: readonly RenderPassCommand[];
+  readonly additionalColorTargets:
+    | readonly RenderPassColorAttachmentInput[]
+    | null;
+  readonly valid: boolean;
+  /** True when the pass's commands were dropped (incompatible MRT host). */
+  readonly stripped: boolean;
+}
+
+// B3: decide whether a target pass hosts the MRT custom material's draws and,
+// if so, whether it CAN — the pass must match the extra attachments'
+// dimensions, contain only the MRT pipeline (a one-target pipeline inside an
+// N-target pass is a device error), and not be the post-effect scene route.
+// Incompatible passes render empty with a structured diagnostic: loud, and
+// never a device error.
+function evaluateWebGpuAppCustomColorTargetsForPass(args: {
+  readonly plan: WebGpuAppCustomColorTargetsPlan | null;
+  readonly commands: readonly RenderPassCommand[];
+  readonly targetWidth: number;
+  readonly targetHeight: number;
+  readonly postRoute: boolean;
+  readonly passLabel: string;
+  readonly diagnostics: unknown[];
+}): CustomColorTargetsPassEvaluation {
+  const plan = args.plan;
+  const compatible: CustomColorTargetsPassEvaluation = {
+    commands: args.commands,
+    additionalColorTargets: null,
+    valid: true,
+    stripped: false,
+  };
+
+  if (plan === null) {
+    return compatible;
+  }
+
+  const pipelineKeys = new Set<string>();
+  for (const command of args.commands) {
+    if (command.kind === "setPipeline") {
+      pipelineKeys.add(command.pipelineKey);
+    }
+  }
+
+  if (!pipelineKeys.has(plan.pipelineKey)) {
+    return compatible;
+  }
+
+  const reason = args.postRoute
+    ? "post-route"
+    : pipelineKeys.size > 1
+      ? "mixed-pipelines"
+      : args.targetWidth !== plan.width || args.targetHeight !== plan.height
+        ? "size-mismatch"
+        : null;
+
+  if (reason === null) {
+    return { ...compatible, additionalColorTargets: plan.attachments };
+  }
+
+  args.diagnostics.push({
+    code: "webGpuApp.customWgslColorTargetsPassIncompatible",
+    message:
+      reason === "post-route"
+        ? `Pass '${args.passLabel}' would draw the MRT custom material inside the post-effect scene route, which cannot attach its extra color targets. Render the material through a camera paired with a size-matched facade render target; the pass was skipped.`
+        : reason === "mixed-pipelines"
+          ? `Pass '${args.passLabel}' mixes the MRT custom material with other pipelines (background/features), which cannot share its ${String(plan.attachments.length + 1)}-target attachment layout. Scope the material's meshes to their own camera via render layers; the pass was skipped.`
+          : `Pass '${args.passLabel}' (${String(args.targetWidth)}x${String(args.targetHeight)}) does not match the MRT extra targets' size (${String(plan.width)}x${String(plan.height)}); every attachment of the MRT pass must share dimensions. The pass was skipped.`,
+    data: { pass: args.passLabel, reason },
+  });
+
+  return {
+    commands: [],
+    additionalColorTargets: null,
+    valid: false,
+    stripped: true,
+  };
+}
+
 type ForwardGraphUserPassNodeEntry =
   | {
       readonly kind: "render";
@@ -1577,14 +1748,19 @@ interface ForwardGraphUserPassRegistration {
 // AI-12: user passes (app.addRenderPass / app.addComputePass) on the FORWARD
 // (no-post) graph route, mirroring the post route's wiring
 // (post-processing.ts user-pass block). The presented swapchain target is the
-// forward route's "scene-color": user RENDER passes draw over it with LOAD
-// (depth-tested against the target's depth attachment, also LOADed) and user
-// COMPUTE passes run on the same shared encoder, declaring transient buffers
-// for their writes. Resolvers map the public handle ids ("scene-color" /
-// "depth") to this route's GPU resources; user pipelines/buffers/bind groups
-// are owned by the encode closure.
+// forward route's "scene-color": user RENDER passes writing it draw over it
+// with LOAD (depth-tested against the target's depth attachment, also
+// LOADed); user RENDER passes writing facade render targets attach the
+// realized target textures directly (B3 — clear/load per declared intent, no
+// depth); user COMPUTE passes run on the same shared encoder, declaring
+// transient buffers for their writes. Resolvers map the public handle ids
+// ("scene-color" / "depth" / facade render-target ids) to this route's GPU
+// resources; user pipelines/buffers/bind groups are owned by the encode
+// closure.
 function registerForwardGraphUserPasses(args: {
   readonly app: WebGpuApp;
+  readonly assets: AssetRegistry;
+  readonly renderTargetState: WebGpuAppResourceCache["renderTargets"];
   readonly graph: ReturnType<typeof createFrameGraph>;
   readonly payloads: Map<string, FrameGraphRenderNodeBoundary>;
   readonly entries: readonly ForwardGraphTargetEntry[];
@@ -1640,13 +1816,37 @@ function registerForwardGraphUserPasses(args: {
   const sceneColorView = (
     host.texture.texture as { createView?: () => unknown } | undefined
   )?.createView?.();
+  const targetContext: WebGpuAppUserPassTargetContext = {
+    assets: args.assets,
+    device: args.app.initialization.device,
+    state: args.renderTargetState,
+  };
   const resolvers: WebGpuAppPassResolvers = {
-    view: (handle) =>
-      handle === "scene-color"
-        ? sceneColorView
-        : handle === "depth"
-          ? host.depthView
-          : undefined,
+    view: (handle) => {
+      if (handle === "scene-color") {
+        return sceneColorView;
+      }
+      if (handle === "depth") {
+        return host.depthView;
+      }
+      // B3: facade render-target reads resolve to the realized sampleable
+      // view (same-frame content when a camera or an earlier user pass wrote
+      // it this frame; last frame's content otherwise — the ping-pong read).
+      const resolution = resolveWebGpuAppUserPassRenderTarget(
+        targetContext,
+        handle,
+      );
+      if (resolution.ok && resolution.realized.sampleable) {
+        return resolution.realized.view;
+      }
+      args.diagnostics.push({
+        code: "webgpu.userPass.readTargetUnavailable",
+        severity: "warning",
+        message: `A user pass read handle '${handle}' that resolves to no sampleable resource${resolution.ok ? " (the render target is not sampleable)" : `: ${resolution.message}`}`,
+        data: { handle },
+      });
+      return undefined;
+    },
     buffer: () => undefined,
     createBindGroup: (entries) =>
       (
@@ -1659,6 +1859,22 @@ function registerForwardGraphUserPasses(args: {
   let drawCalls = 0;
 
   for (const descriptor of userPasses) {
+    // B3: resolve the declared writes BEFORE encoding — a pass whose write
+    // targets cannot be attached is skipped loudly without running encode().
+    const writePlan =
+      descriptor.kind === "compute"
+        ? null
+        : planWebGpuAppUserPassColorWrites({
+            context: targetContext,
+            passName: descriptor.name,
+            writes: normalizeUserPassWrites(descriptor.writes),
+            diagnostics: args.diagnostics,
+          });
+
+    if (descriptor.kind !== "compute" && writePlan === null) {
+      continue;
+    }
+
     const built = buildUserPassNode(descriptor, resolvers);
     if (built.kind === "compute") {
       for (const write of built.writes) {
@@ -1675,21 +1891,106 @@ function registerForwardGraphUserPasses(args: {
       continue;
     }
 
-    // M3-T7 scope (audit B5): a user RENDER pass is drawn over scene-color with
-    // LOAD; a declared write to anything other than scene-color is not honored
-    // for render passes (compute passes do honor their declared transient
-    // writes). Surface the coercion instead of dropping it silently — the same
-    // diagnostic the post route emits.
-    const coercedWrites = (descriptor.writes ?? [])
-      .map((write) => (typeof write === "string" ? write : write.handle))
-      .filter((handle) => handle !== "scene-color");
-    if (coercedWrites.length > 0) {
-      args.diagnostics.push({
-        code: "webgpu.userPass.renderWriteCoercedToSceneColor",
-        severity: "warning",
-        message: `User render pass '${built.name}' declared write target(s) ${JSON.stringify(coercedWrites)} that are not honored; it is drawn over scene-color (LOAD). Use a compute pass for arbitrary writable targets, or write to "scene-color".`,
-        data: { pass: built.name, coercedWrites },
+    // Reads: as declared, plus ordering edges onto the forward target nodes
+    // that rendered a read/written facade target this frame (their graph
+    // handles are internal `forward:*` ids the plain facade id cannot reach).
+    const reads = [...built.reads];
+    for (const read of built.reads) {
+      if (read === "scene-color" || read === "depth") {
+        continue;
+      }
+      declareUserPassTargetHandle(args.graph, targetContext, read);
+      for (const entry of args.entries) {
+        if (
+          entry.target.renderTargetKey === `render-target:${read}` &&
+          !reads.includes(entry.handle)
+        ) {
+          reads.push(entry.handle);
+        }
+      }
+    }
+
+    if (writePlan !== null && !writePlan.usesSceneColor) {
+      // B3: honored render-target writes — the pass attaches the realized
+      // facade textures (first write is @location(0)) with per-write
+      // clear/load intent, stores them (they exist to be read later), and
+      // attaches no depth (facade depth buffers belong to camera passes).
+      const primary = writePlan.writes[0];
+      const primaryTarget = primary?.realized;
+
+      if (
+        primary === undefined ||
+        primaryTarget === null ||
+        primaryTarget === undefined
+      ) {
+        continue;
+      }
+
+      const extras = writePlan.writes
+        .slice(1)
+        .map(userPassWriteAttachmentInput);
+      const plan = buildFrameBoundaryTargetPlan({
+        context,
+        colorTarget: {
+          source: "offscreen-target",
+          texture: primaryTarget.texture,
+          view: primaryTarget.view,
+        },
+        colorLoadOp: primary.write.attachment,
+        ...(primary.write.attachment === "clear"
+          ? { clearColor: primary.write.clearColor ?? [0, 0, 0, 0] }
+          : {}),
+        ...(extras.length === 0 ? {} : { additionalColorTargets: extras }),
       });
+      const writes: PassWrite[] = [];
+      for (const entry of writePlan.writes) {
+        const realized = entry.realized;
+        if (realized === null) {
+          continue;
+        }
+        declareUserPassTargetHandle(
+          args.graph,
+          targetContext,
+          entry.write.handle,
+        );
+        writes.push(entry.write);
+        // Write-after-write edge onto a forward node that also rendered this
+        // target this frame (its own write lives under a `forward:*` handle).
+        for (const targetEntry of args.entries) {
+          if (
+            targetEntry.target.renderTargetKey ===
+            `render-target:${entry.write.handle}`
+          ) {
+            writes.push({ handle: targetEntry.handle, attachment: "load" });
+          }
+        }
+      }
+
+      args.graph.addRenderPass({
+        name: built.name,
+        reads,
+        writes,
+        commands: built.commands,
+        ...(built.before === undefined ? {} : { before: built.before }),
+        ...(built.after === undefined ? {} : { after: built.after }),
+      });
+      args.payloads.set(built.name, {
+        device,
+        attachments: plan.attachments,
+        commands: built.commands,
+        label: built.name,
+        colorTargetSource: "offscreen-target",
+        readbackTexture: plan.texture.texture,
+      });
+      nodes.push({
+        kind: "render",
+        nodeName: built.name,
+        texture: plan.texture,
+        attachments: plan.attachments,
+      });
+      plannedCommands += built.commands.length;
+      drawCalls += countDrawCommands(built.commands);
+      continue;
     }
 
     const plan = buildFrameBoundaryTargetPlan({
@@ -1706,7 +2007,7 @@ function registerForwardGraphUserPasses(args: {
     });
     args.graph.addRenderPass({
       name: built.name,
-      reads: [...built.reads],
+      reads,
       // The LOAD write of the forward color orders this node after the forward
       // target node(s) (write-after-write keeps insertion order) and forces
       // them to store the contents the overlay loads (store-on-no-clear).
@@ -1744,6 +2045,39 @@ function registerForwardGraphUserPasses(args: {
     plannedCommands,
     drawCalls,
   };
+}
+
+/**
+ * Declare a persistent color-texture graph handle for a facade render target
+ * a user pass reads or writes, so compiled reports carry no unknown-handle
+ * noise and read/write edges resolve. Already-declared handles (e.g. an MRT
+ * extra written by a forward target node) are left untouched.
+ */
+function declareUserPassTargetHandle(
+  graph: ReturnType<typeof createFrameGraph>,
+  context: WebGpuAppUserPassTargetContext,
+  handleId: string,
+): void {
+  if (graph.handle(handleId) !== undefined) {
+    return;
+  }
+
+  const resolution = resolveWebGpuAppUserPassRenderTarget(context, handleId);
+
+  if (!resolution.ok) {
+    return;
+  }
+
+  graph.declareResource({
+    id: handleId,
+    descriptor: {
+      kind: "color-texture",
+      lifetime: "persistent",
+      width: resolution.realized.width,
+      height: resolution.realized.height,
+      format: resolution.realized.format,
+    },
+  });
 }
 
 function isTransparentOverlayClearColor(

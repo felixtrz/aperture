@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { createRenderTargetHandle } from "@aperture-engine/simulation";
+
 import {
   PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
   createBoxMeshAsset,
@@ -71,6 +73,78 @@ describe("custom WGSL material WebGPU resources", () => {
         ],
       },
     );
+  });
+
+  it("assembles N fragment targets from a colorTargets declaration (B3): formats resolved, write masks applied, blend on target 0 only", () => {
+    const base = customWaterMaterial();
+    const material: PreparedCustomWgslMaterial = {
+      ...base,
+      // alpha blend so target 0's blend state is observable
+      pipelineKey: base.pipelineKey
+        .replace("|opaque|", "|blend|")
+        .replace(/\|none$/, "|alpha"),
+      pipeline: {
+        ...base.pipeline,
+        pipelineKey: base.pipeline.pipelineKey
+          .replace("|opaque|", "|blend|")
+          .replace(/\|none$/, "|alpha"),
+        colorTargets: [
+          { format: "swapchain", writeMask: "rgb" },
+          {
+            format: "rgba8unorm",
+            writeMask: "all",
+            renderTarget: createRenderTargetHandle("gbuffer.normal"),
+          },
+          {
+            format: "swapchain",
+            writeMask: "alpha",
+            renderTarget: createRenderTargetHandle("gbuffer.id"),
+          },
+        ],
+      },
+    };
+
+    const descriptor = createBrowserCustomWgslMaterialPipelineDescriptor({
+      material,
+      shaderModule: { kind: "shader-module" },
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+    });
+    const targets = (
+      descriptor as {
+        fragment: {
+          targets: readonly {
+            format: string;
+            blend?: unknown;
+            writeMask?: number;
+          }[];
+        };
+      }
+    ).fragment.targets;
+
+    expect(targets).toHaveLength(3);
+    // target 0: the pass color format + the material blend + mask override
+    expect(targets[0]?.format).toBe("bgra8unorm");
+    expect(targets[0]?.blend).toBeDefined();
+    expect(targets[0]?.writeMask).toBe(0x7);
+    // extra targets: declared formats ("swapchain" resolves to the pass
+    // color format), no blend, masks applied ("all" keeps the default)
+    expect(targets[1]).toEqual({ format: "rgba8unorm" });
+    expect(targets[2]).toEqual({ format: "bgra8unorm", writeMask: 0x8 });
+  });
+
+  it("keeps the single byte-identical fragment target for undeclared materials", () => {
+    const descriptor = createBrowserCustomWgslMaterialPipelineDescriptor({
+      material: customWaterMaterial(),
+      shaderModule: { kind: "shader-module" },
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+    });
+
+    expect(
+      (descriptor as { fragment: { targets: readonly unknown[] } }).fragment
+        .targets,
+    ).toEqual([{ format: "bgra8unorm" }]);
   });
 
   it("omits custom material depth state when no depth format is provided", () => {

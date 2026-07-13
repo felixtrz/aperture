@@ -46,8 +46,9 @@ end-to-end from the app facade with live uniform updates that never rebuild
 pipelines (`RuntimeUniform`, `DECISIONS.md` 0022), and custom materials can
 now opt into the renderer-owned lit contract (`lighting: "lit"`, parity plan
 A1 — packed lights, directional shadow, IBL, fog via `aperture*` WGSL
-helpers). Remaining custom-shader gaps: no depth-texture binding, no
-skinning/morph inputs, and a single color target.
+helpers) and declare multiple color targets (`colorTargets`, parity plan B3).
+Remaining custom-shader gaps: no depth-texture binding and no skinning/morph
+inputs.
 
 **Render-to-texture is solid plumbing with a young authoring story.**
 Per-camera `renderTargetId`, MSAA + resolve, handle-stable resize/reuse (the
@@ -55,26 +56,28 @@ Per-camera `renderTargetId`, MSAA + resolve, handle-stable resize/reuse (the
 readback all work, and B1 added facade allocation + camera pairing +
 sampled-target wiring (`this.renderTargets.register`, `spawn.camera({
 renderTarget })`, `material.texture` against the target id — the minimap
-recipe is now app-tier). Still missing: a single-pass MRT surface (the
-engine itself uses a second color attachment internally for TAA motion
-vectors), cube/3D/array targets, and mirror/portal helpers. three.js has MRT
-(`count > 1` / `MRTNode`), cube/3D/array targets, `CubeCamera`, `Reflector`,
-and grab-pass nodes.
+recipe is now app-tier), B2 added cube targets with a scheduled capture
+camera feeding IBL (`dimension: "cube"`, the reflective-probe recipe), and
+B3 added the single-pass MRT authoring surface (`colorTargets`, the gbuffer
+recipe). Still missing: 3D/array targets and mirror/portal helpers. three.js
+has MRT (`count > 1` / `MRTNode`), cube/3D/array targets, `CubeCamera`,
+`Reflector`, and grab-pass nodes.
 
 **Custom passes are Aperture's real escape hatch — with real limits.**
 `addRenderPass`/`addComputePass` are genuinely on the app facade and the
 frame graph schedules them by declared reads/writes; the compute path is
-fully general (own pipelines, storage buffers, readback). But render passes
-may only draw **onto scene-color** (writes to other targets are diagnosed,
-not honored), pass bodies are raw WebGPU rather than data, and indirect draw
-is internal-only. three.js counters with `EffectComposer` (WebGL) and TSL
+fully general (own pipelines, storage buffers, readback), and B3 lets render
+passes write facade render targets (clear/load intent, MRT attachments,
+cross-frame ping-pong) as well as scene-color. Remaining limits: pass bodies
+are raw WebGPU rather than data, and indirect draw is internal-only. three.js counters with `EffectComposer` (WebGL) and TSL
 compute with atomics, storage textures, `storage().toAttribute()`
 compute-to-vertex plumbing, and indirect draws (WebGPU backend).
 
 **Confirmed absent in Aperture across this whole domain:** stencil, clipping
-planes, decals, MRT authoring, 3D/array render targets, runtime
-texture/video updates, custom-material depth access, and GPU-driven indirect
-rendering as a user API (cube render targets shipped as parity plan B2). §9 scores 20 concrete game scenarios; §10 ranks the gap
+planes, decals, 3D/array render targets, runtime texture/video updates,
+custom-material depth access, and GPU-driven indirect rendering as a user
+API (cube render targets shipped as parity plan B2; MRT authoring and
+user-pass target writes shipped as parity plan B3). §9 scores 20 concrete game scenarios; §10 ranks the gap
 closures by how much game-dev surface each unlocks.
 
 ---
@@ -173,20 +176,20 @@ has true shader HMR.
 
 ### 3.1 Render target capabilities
 
-| Capability                  | three.js                                                         | Aperture                                                                                                                                           | Verdict           |
-| --------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Offscreen color+depth       | ✅ `RenderTarget` (both renderers)                               | ✅ Low-level: `createWebGpuAppRenderTargetAsset` + ECS `Camera.renderTargetId`                                                                     | Parity (tier gap) |
-| App-facade allocation       | ✅ `new WebGLRenderTarget(w, h)` is the API                      | ✅ B1: `this.renderTargets.register({ id, width, height, ... })` + `spawn.camera({ renderTarget })`; handle-stable `resize`                        | Parity            |
-| Single-pass MRT             | ✅ `count > 1` + GLSL3 outs (WebGL); `MRTNode`/`setMRT` (WebGPU) | 🟡 Internal only — attachment planner takes N color targets and TAA motion vectors ride `@location(1)`, but no authoring surface                   | Gap               |
-| Float / half targets        | ✅ `type: FloatType/HalfFloatType`                               | ✅ any creatable format incl. `rgba16float` (the HDR path uses one)                                                                                | Parity            |
-| MSAA + resolve              | ✅ `samples` + auto resolve                                      | ✅ Low-level (`resolveTarget` first-class; `msaa` app option); proven by the `render-target-msaa*` matrix                                          | Parity            |
-| Resize / reuse lifecycles   | `setSize`, dispose                                               | ✅ handle-stable resize, cross-frame reuse, dual-size, sub-rect crops — the `render-target-*`/`mixed-*` e2e matrix exists precisely to prove these | Parity+ tested    |
-| Cube / 3D / array targets   | ✅ `WebGLCubeRenderTarget`, `RenderTarget3D`, array targets      | 🟡 B2: cube targets (`dimension: "cube"` + cube-capture camera, IBL consumption); 3D and array targets remain unsupported                          | Partial (cube ✅) |
-| Depth texture attach+sample | ✅ `renderTarget.depthTexture`, depth nodes                      | ❌ user targets get a depth buffer but cannot sample it; scene depth reachable only in post/user passes                                            | Gap               |
-| Sample RT in a material     | ✅ `rt.texture` as any map                                       | ✅ B1 app tier: texture handles resolve to the facade target's realized color texture (`renderTargets.colorTexture(id)` → `material.texture`)      | App-tier          |
-| Mipmapped RTs               | ✅ `generateMipmaps`                                             | ❌ mip generation is internal; not exposed for user targets                                                                                        | Gap               |
-| Readback                    | ✅ `readRenderTargetPixels(Async)` incl. per-MRT-attachment      | ✅ frame-boundary readback samples + readback helpers, diagnostics-integrated                                                                      | Parity            |
-| Partial texture copies      | ✅ `copyTextureToTexture` with src region/mip                    | ❌ no user surface                                                                                                                                 | Gap               |
+| Capability                  | three.js                                                         | Aperture                                                                                                                                                          | Verdict           |
+| --------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| Offscreen color+depth       | ✅ `RenderTarget` (both renderers)                               | ✅ Low-level: `createWebGpuAppRenderTargetAsset` + ECS `Camera.renderTargetId`                                                                                    | Parity (tier gap) |
+| App-facade allocation       | ✅ `new WebGLRenderTarget(w, h)` is the API                      | ✅ B1: `this.renderTargets.register({ id, width, height, ... })` + `spawn.camera({ renderTarget })`; handle-stable `resize`                                       | Parity            |
+| Single-pass MRT             | ✅ `count > 1` + GLSL3 outs (WebGL); `MRTNode`/`setMRT` (WebGPU) | ✅ B3: `material.customWgsl({ colorTargets })` — N declared targets (formats + write masks) validated against fragment outputs, extras ride facade render targets | Parity            |
+| Float / half targets        | ✅ `type: FloatType/HalfFloatType`                               | ✅ any creatable format incl. `rgba16float` (the HDR path uses one)                                                                                               | Parity            |
+| MSAA + resolve              | ✅ `samples` + auto resolve                                      | ✅ Low-level (`resolveTarget` first-class; `msaa` app option); proven by the `render-target-msaa*` matrix                                                         | Parity            |
+| Resize / reuse lifecycles   | `setSize`, dispose                                               | ✅ handle-stable resize, cross-frame reuse, dual-size, sub-rect crops — the `render-target-*`/`mixed-*` e2e matrix exists precisely to prove these                | Parity+ tested    |
+| Cube / 3D / array targets   | ✅ `WebGLCubeRenderTarget`, `RenderTarget3D`, array targets      | 🟡 B2: cube targets (`dimension: "cube"` + cube-capture camera, IBL consumption); 3D and array targets remain unsupported                                         | Partial (cube ✅) |
+| Depth texture attach+sample | ✅ `renderTarget.depthTexture`, depth nodes                      | ❌ user targets get a depth buffer but cannot sample it; scene depth reachable only in post/user passes                                                           | Gap               |
+| Sample RT in a material     | ✅ `rt.texture` as any map                                       | ✅ B1 app tier: texture handles resolve to the facade target's realized color texture (`renderTargets.colorTexture(id)` → `material.texture`)                     | App-tier          |
+| Mipmapped RTs               | ✅ `generateMipmaps`                                             | ❌ mip generation is internal; not exposed for user targets                                                                                                       | Gap               |
+| Readback                    | ✅ `readRenderTargetPixels(Async)` incl. per-MRT-attachment      | ✅ frame-boundary readback samples + readback helpers, diagnostics-integrated                                                                                     | Parity            |
+| Partial texture copies      | ✅ `copyTextureToTexture` with src region/mip                    | ❌ no user surface                                                                                                                                                | Gap               |
 
 ### 3.2 Camera-to-texture recipes
 
@@ -306,8 +309,8 @@ limits · ❌ not achievable today.
 | 8   | Stencil portal / masked reveal                        | ✅       | ❌       | Stencil explicitly unsupported                                                                                                                 |
 | 9   | Dynamic reflection probe (cube capture)               | ✅       | ✅       | Cube render targets + scheduled capture camera + IBL prefilter of the captured cube (parity plan B2, `examples/reflective-probe`)              |
 | 10  | Refraction / heat haze (grab pass)                    | ✅       | ✅       | Automatic transmission grab; params authorable on `material.standard()` (parity plan A3); custom-WGSL grab access remains #12's domain         |
-| 11  | Custom g-buffer / MRT technique                       | ✅       | ❌       | MRT internal-only                                                                                                                              |
-| 12  | Full-screen color grade / custom post chain           | ✅       | 🟡       | User render pass can only blend onto scene-color; built-in post list not user-extensible                                                       |
+| 11  | Custom g-buffer / MRT technique                       | ✅       | ✅       | `colorTargets` MRT declaration on custom materials + user-pass resolve (parity plan B3, `examples/gbuffer`)                                    |
+| 12  | Full-screen color grade / custom post chain           | ✅       | ✅       | User passes write facade targets (ping-pong chains) or scene-color (parity plan B3); built-in post list itself remains non-extensible          |
 | 13  | GPU particle/VFX sim (custom compute)                 | ✅\*     | 🟡       | Compute pass is general, but no compute→draw bridge; built-in Shuriken system covers most VFX needs ✅                                         |
 | 14  | GPU crowd (compute skinning + instanced draw)         | ✅\*     | ❌       | Needs storage-buffer materials or compute→instance plumbing                                                                                    |
 | 15  | GPU-driven culling / indirect draw                    | ✅\*     | ❌       | Indirect draw internal-only                                                                                                                    |
@@ -321,10 +324,9 @@ limits · ❌ not achievable today.
 textures, and indirect.
 
 Score (of 20): three.js ✅ 16 / 🟡 2 / ❌ 0 (2 backend-caveated); Aperture
-✅ 9 / 🟡 4 / ❌ 7. The ❌ column clusters around four missing primitives —
-extended custom materials (skinning/morph/depth inputs), MRT + flexible
-render targets, stencil, and the compute→rendering bridge — rather than
-twenty unrelated gaps.
+✅ 11 / 🟡 3 / ❌ 6. The ❌ column clusters around three missing primitives —
+extended custom materials (skinning/morph/depth inputs), stencil, and the
+compute→rendering bridge — rather than twenty unrelated gaps.
 
 ---
 
@@ -358,6 +360,9 @@ stay inside the architecture.
    planner and an internal second attachment already exist; expose color
    target count on custom materials/passes and let user passes write
    declared targets (also enables ping-pong).
+   _Shipped_ — `colorTargets` declarations on custom WGSL materials and
+   user-pass facade-target writes with ping-pong landed as parity plan B3
+   (`examples/gbuffer`).
 5. **Expose existing PBR extension params on `material.standard()`**
    (upgrades #10): pure API plumbing — the renderer already ships
    transmission/clearcoat/sheen/iridescence.

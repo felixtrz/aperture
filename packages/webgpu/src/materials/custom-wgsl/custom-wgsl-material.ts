@@ -1,12 +1,15 @@
 import type {
+  ColorWriteMask,
   PreparedCustomWgslBindingLayoutEntry,
   PreparedCustomWgslBindingResourceEntry,
   PreparedCustomWgslMaterial,
 } from "@aperture-engine/render";
+import { resolveCustomWgslColorTargetFormat } from "@aperture-engine/render";
 import {
   createWebGpuColorTargetDescriptor,
   createWebGpuDepthStencilDescriptor,
   resolveWebGpuPipelineRenderState,
+  type WebGpuBlendState,
 } from "../core/material-render-state.js";
 import type {
   WebGpuRenderPipelineCreateDescriptor,
@@ -303,7 +306,11 @@ export function createBrowserCustomWgslMaterialPipelineDescriptor(
     fragment: {
       module: input.shaderModule,
       entryPoint: input.material.shader.fragmentEntryPoint,
-      targets: [colorTarget],
+      targets: createCustomWgslFragmentTargets(
+        input.material,
+        colorTarget,
+        input.colorFormat,
+      ),
     },
     primitive: {
       topology: "triangle-list",
@@ -324,6 +331,62 @@ export function createBrowserCustomWgslMaterialPipelineDescriptor(
   }
 
   return { ...descriptor, depthStencil };
+}
+
+/**
+ * Fragment color targets for a custom material pipeline (B3). Materials
+ * without a colorTargets declaration keep the single, byte-identical target
+ * of the pre-MRT path. Declared materials map declaration index -> target:
+ * index 0 keeps the pass color format + the material's blend state (with an
+ * optional write-mask override), extra indices use their declared format
+ * (resolved against the pass color format) with no blending — mirroring the
+ * built-in second attachments (motion vectors / indirect color), which are
+ * data channels rather than blended color.
+ */
+function createCustomWgslFragmentTargets(
+  material: PreparedCustomWgslMaterial,
+  colorTarget: { readonly format: string; readonly blend?: WebGpuBlendState },
+  colorFormat: string,
+): readonly {
+  readonly format: string;
+  readonly blend?: WebGpuBlendState;
+  readonly writeMask?: number;
+}[] {
+  const colorTargets = material.pipeline.colorTargets;
+
+  if (colorTargets === undefined || colorTargets.length === 0) {
+    return [colorTarget];
+  }
+
+  return colorTargets.map((target, index) => {
+    const writeMask = webGpuColorWriteMaskFlags(target.writeMask);
+
+    if (index === 0) {
+      return writeMask === null ? colorTarget : { ...colorTarget, writeMask };
+    }
+
+    return {
+      format: resolveCustomWgslColorTargetFormat(target.format, colorFormat),
+      ...(writeMask === null ? {} : { writeMask }),
+    };
+  });
+}
+
+const WEBGPU_COLOR_WRITE_RGB = 0x7;
+const WEBGPU_COLOR_WRITE_ALPHA = 0x8;
+
+/** GPUColorWriteFlags for a declared mask; null keeps the default ("all"). */
+function webGpuColorWriteMaskFlags(mask: ColorWriteMask): number | null {
+  switch (mask) {
+    case "none":
+      return 0;
+    case "rgb":
+      return WEBGPU_COLOR_WRITE_RGB;
+    case "alpha":
+      return WEBGPU_COLOR_WRITE_ALPHA;
+    case "all":
+      return null;
+  }
 }
 
 export function createCustomWgslMaterialBindGroupLayoutDescriptor(

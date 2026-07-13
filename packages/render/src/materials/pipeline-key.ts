@@ -1,4 +1,5 @@
 import { materialTextureBindings } from "./bindings.js";
+import { customWgslColorTargetsPipelineKeySegment } from "./color-targets.js";
 import { isCustomWgslMaterialAsset } from "./family-key.js";
 import { APERTURE_LIT_PIPELINE_FEATURE } from "./lit-contract.js";
 import type {
@@ -21,6 +22,9 @@ export function createMaterialPipelineKeyInput(
         // the shadow-vs segment rule), and carries the contract version so a
         // future group(3) layout change cannot collide with cached pipelines.
         ...(material.lighting === "lit" ? [APERTURE_LIT_PIPELINE_FEATURE] : []),
+        // The MRT feature participates ONLY when colorTargets is declared
+        // (B3, same byte-identity rule as the lit segment).
+        ...customWgslColorTargetFeatures(material.colorTargets),
         `specialization:${stableStringHash(
           JSON.stringify(material.pipelineKey.specialization),
         )}`,
@@ -72,6 +76,14 @@ export function createMaterialPipelineKeyInput(
     blend: material.renderState.blend,
     colorWriteMask: material.renderState.colorWriteMask,
   };
+}
+
+function customWgslColorTargetFeatures(
+  colorTargets: Parameters<typeof customWgslColorTargetsPipelineKeySegment>[0],
+): readonly string[] {
+  const segment = customWgslColorTargetsPipelineKeySegment(colorTargets);
+
+  return segment === null ? [] : [segment];
 }
 
 function usesStandardTexCoord1(material: MaterialAsset): boolean {

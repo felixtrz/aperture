@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1432
+Every structured diagnostic code the engine can emit (1443
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -647,11 +647,23 @@ suggestedFix accompanies it, and where it is emitted.
 | --------------------------------------- | ------------------------------------------------------ | ---- | -------------------------------------------------------------- |
 | `currentTextureView.missingTextureView` | WebGPU current texture did not provide a texture view. | —    | `packages/webgpu/src/app/presentation/current-texture-view.ts` |
 
+## customMaterialSource.colorTargetMismatch (1)
+
+| Code                                       | Message                                                                                                                                                                       | Fix? | Emitted from                                                    |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `customMaterialSource.colorTargetMismatch` | Custom material '…' fragment entry '…' writes @location(…) but ${ source.colorTargets === undefined ? "declares no colorTargets (a single @location(0) output is expected)" : | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
+
 ## customMaterialSource.invalidBindingDeclaration (1)
 
 | Code                                             | Message               | Fix? | Emitted from                                                    |
 | ------------------------------------------------ | --------------------- | ---- | --------------------------------------------------------------- |
 | `customMaterialSource.invalidBindingDeclaration` | Custom material '…' … | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
+
+## customMaterialSource.invalidColorTargets (1)
+
+| Code                                       | Message               | Fix? | Emitted from                                                    |
+| ------------------------------------------ | --------------------- | ---- | --------------------------------------------------------------- |
+| `customMaterialSource.invalidColorTargets` | Custom material '…' … | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
 
 ## customMaterialSource.invalidDependency (1)
 
@@ -7165,13 +7177,16 @@ suggestedFix accompanies it, and where it is emitted.
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------- |
 | `webgpu.postGraph.shadowCasterGraphDeclined` | Post-processing graph execution was required to fold shadow caster passes into the frame, but this post route is not graph-compatible. | —    | `packages/webgpu/src/app/post-processing.ts` |
 
-## webgpu.userPass (3)
+## webgpu.userPass (6)
 
-| Code                                             | Message                                                                                                                                                                                  | Fix? | Emitted from                                                                                  |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------- |
-| `webgpu.userPass.forwardTargetUnavailable`       | Registered user passes were skipped: the forward FrameGraph route rendered no swapchain target this frame to host them.                                                                  | —    | `packages/webgpu/src/app/frame-boundaries.ts`                                                 |
-| `webgpu.userPass.renderWriteCoercedToSceneColor` | User render pass '…' declared write target(s) … that are not honored; it is drawn over scene-color (LOAD). Use a compute pass for arbitrary writable targets, or write to "scene-color". | —    | `packages/webgpu/src/app/frame-boundaries.ts`<br>`packages/webgpu/src/app/post-processing.ts` |
-| `webgpu.userPass.skippedOnLegacyRoute`           | Registered user passes … run only on the FrameGraph routes (forward graph or post-effect graph); the legacy multi-submit route skipped them. Enable useFrameGraph to run them.           | —    | `packages/webgpu/src/app/user-pass.ts`                                                        |
+| Code                                              | Message                                                                                                                                                                                | Fix? | Emitted from                                                                                   |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------------------------- |
+| `webgpu.userPass.forwardTargetUnavailable`        | Registered user passes were skipped: the forward FrameGraph route rendered no swapchain target this frame to host them.                                                                | —    | `packages/webgpu/src/app/frame-boundaries.ts`                                                  |
+| `webgpu.userPass.readTargetUnavailable`           | A user pass read handle '…' that resolves to no sampleable resource${resolution.ok ? " (the render target is not sampleable)" :                                                        | —    | `packages/webgpu/src/app/frame-boundaries.ts`                                                  |
+| `webgpu.userPass.renderWriteMixedSceneAndTargets` | User render pass '…' declares both "scene-color" and render-target writes; a render pass writes either scene-color or its own targets. Split it into two passes. The pass was skipped. | —    | `packages/webgpu/src/app/user-pass-targets.ts`                                                 |
+| `webgpu.userPass.renderWriteSizeMismatch`         | User render pass '…' declared write targets with mismatched sizes (${resolved .map((entry) => entry.realized === null ? "scene-color" :                                                | —    | `packages/webgpu/src/app/user-pass-targets.ts`                                                 |
+| `webgpu.userPass.renderWriteTargetUnavailable`    | User render pass '…' declared render-target writes but this route has no source-asset registry to resolve them. The pass was skipped.                                                  | —    | `packages/webgpu/src/app/post-processing.ts`<br>`packages/webgpu/src/app/user-pass-targets.ts` |
+| `webgpu.userPass.skippedOnLegacyRoute`            | Registered user passes … run only on the FrameGraph routes (forward graph or post-effect graph); the legacy multi-submit route skipped them. Enable useFrameGraph to run them.         | —    | `packages/webgpu/src/app/user-pass.ts`                                                         |
 
 ## webGpuApp.clusteredLocalCookieSamplingDeferred (1)
 
@@ -7190,6 +7205,42 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                     | Message                                                                    | Fix? | Emitted from                                                                                                                            |
 | ---------------------------------------- | -------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `webGpuApp.customWgslBindingNotPrepared` | Custom WGSL binding … was not present in the prepared material bind group. | —    | `packages/webgpu/src/app/custom-wgsl-storage-buffer-resources.ts`<br>`packages/webgpu/src/app/custom-wgsl-texture-sampler-resources.ts` |
+
+## webGpuApp.customWgslColorTargetFormatMismatch (1)
+
+| Code                                            | Message                                                                                                                                        | Fix? | Emitted from                                   |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------- |
+| `webGpuApp.customWgslColorTargetFormatMismatch` | Custom material '…' colorTargets[…] declares format '…' but render target '…' realized as '…'. Align the declaration with the target's format. | —    | `packages/webgpu/src/app/user-pass-targets.ts` |
+
+## webGpuApp.customWgslColorTargetSizeMismatch (1)
+
+| Code                                          | Message                                                                                                                                                               | Fix? | Emitted from                                   |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------- |
+| `webGpuApp.customWgslColorTargetSizeMismatch` | Custom material '…' colorTargets pair render targets with mismatched sizes; every attachment of the MRT pass must share dimensions (target '…' is …x…, expected …x…). | —    | `packages/webgpu/src/app/user-pass-targets.ts` |
+
+## webGpuApp.customWgslColorTargetsMsaaUnsupported (1)
+
+| Code                                              | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                   |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------- |
+| `webGpuApp.customWgslColorTargetsMsaaUnsupported` | Custom material '…' declares … color targets, but the app renders at sample count …; MRT custom materials require a single-sample app (extra attachments have no MSAA resolve). Create the app without { msaa: 4 } or drop t | —    | `packages/webgpu/src/app/user-pass-targets.ts` |
+
+## webGpuApp.customWgslColorTargetsPassIncompatible (1)
+
+| Code                                               | Message                       | Fix? | Emitted from                                  |
+| -------------------------------------------------- | ----------------------------- | ---- | --------------------------------------------- |
+| `webGpuApp.customWgslColorTargetsPassIncompatible` | (message composed at runtime) | —    | `packages/webgpu/src/app/frame-boundaries.ts` |
+
+## webGpuApp.customWgslColorTargetsRouteUnsupported (1)
+
+| Code                                               | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                         |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------- |
+| `webGpuApp.customWgslColorTargetsRouteUnsupported` | Custom material '…' declares colorTargets (MRT), which the mixed built-in/custom route cannot host — its passes share single-target attachments. Render MRT materials through scenes whose mesh draws use only that material | —    | `packages/webgpu/src/app/mixed-custom-wgsl-frame.ts` |
+
+## webGpuApp.customWgslColorTargetUnavailable (1)
+
+| Code                                         | Message                                                            | Fix? | Emitted from                                   |
+| -------------------------------------------- | ------------------------------------------------------------------ | ---- | ---------------------------------------------- |
+| `webGpuApp.customWgslColorTargetUnavailable` | Custom material '…' colorTargets[…] pairs no render-target handle. | —    | `packages/webgpu/src/app/user-pass-targets.ts` |
 
 ## webGpuApp.customWgslMaterialNotPrepared (1)
 

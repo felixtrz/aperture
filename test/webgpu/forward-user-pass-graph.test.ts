@@ -4,7 +4,10 @@ import {
   AssetRegistry,
   createRenderTargetHandle,
 } from "@aperture-engine/simulation";
-import type { RenderSnapshot } from "@aperture-engine/render";
+import {
+  createRenderTargetAsset,
+  type RenderSnapshot,
+} from "@aperture-engine/render";
 import {
   createWebGpuAppResourceCache,
   createWebGpuAppUserPassRegistry,
@@ -21,7 +24,8 @@ import type {
 // route's wiring: a user render pass is a depth-tested overlay drawn over the
 // presented swapchain target with LOAD, a user compute pass runs on the same
 // shared encoder (one submit), ordering follows registry insertion order plus
-// before/after sugar, non-scene-color render writes coerce loudly, and a frame
+// before/after sugar, render-target writes attach the realized facade
+// textures (B3 — unresolvable targets skip the pass loudly), and a frame
 // with no registered passes is byte-identical to before. The legacy
 // multi-submit route reads the registry too — to surface a structured
 // diagnostic instead of silently no-oping.
@@ -137,15 +141,17 @@ describe("forward-route user passes (AI-12)", () => {
     expect(result.diagnostics).toEqual([]);
   });
 
-  it("still draws a render pass that writes a non-scene-color handle and emits the coercion diagnostic", async () => {
+  it("skips a render pass whose write target names no facade render target, with a structured diagnostic", async () => {
     const events: string[] = [];
     const harness = appHarness(events);
+    let encoded = false;
 
     harness.registry.addRenderPass({
       name: "history-overlay",
       reads: [],
       writes: [{ handle: "history-color", attachment: "clear" }],
       encode(ctx) {
+        encoded = true;
         ctx.setPipeline({ id: "history" });
         ctx.draw(3);
       },
@@ -161,21 +167,241 @@ describe("forward-route user passes (AI-12)", () => {
       reuse: resourceReuseReport(),
     });
 
+    // B3: unresolvable writes skip the pass (encode never runs) instead of
+    // the former silent coercion onto scene-color...
     expect(result.valid).toBe(true);
-    // drawn over scene-color with LOAD rather than dropped...
-    expect(events.filter((event) => event === "draw")).toHaveLength(2);
-    expect(harness.passDescriptors[1]?.colorAttachments[0]?.loadOp).toBe(
-      "load",
-    );
-    expect(result.renderTargets[0]?.graph?.userPasses).toMatchObject([
-      { name: "history-overlay", kind: "render", ran: true },
-    ]);
-    // ...with the structured coercion diagnostic (loud, not silent).
+    expect(encoded).toBe(false);
+    expect(events.filter((event) => event === "draw")).toHaveLength(1);
+    expect(result.renderTargets[0]?.graph?.userPasses ?? []).toHaveLength(0);
+    // ...with the structured unavailable-target diagnostic (loud, not silent).
     expect(result.diagnostics).toMatchObject([
       {
-        code: "webgpu.userPass.renderWriteCoercedToSceneColor",
+        code: "webgpu.userPass.renderWriteTargetUnavailable",
         severity: "warning",
-        data: { pass: "history-overlay", coercedWrites: ["history-color"] },
+        data: {
+          pass: "history-overlay",
+          handle: "history-color",
+          reason: "unknown",
+        },
+      },
+    ]);
+  });
+
+  it("honors render-target writes: attaches the realized facade texture and orders the pass after the camera that rendered it", async () => {
+    const events: string[] = [];
+    const harness = appHarness(events);
+    const assets = new AssetRegistry();
+    const targetHandle = createRenderTargetHandle("user.color");
+    assets.register(targetHandle);
+    assets.markReady(
+      targetHandle,
+      createRenderTargetAsset({ width: 8, height: 4, label: "UserColor" }),
+    );
+
+    harness.registry.addRenderPass({
+      name: "target-writer",
+      reads: [],
+      writes: [{ handle: "user.color", attachment: "clear" }],
+      encode(ctx) {
+        ctx.setPipeline({ id: "writer" });
+        ctx.draw(3);
+      },
+    });
+
+    const cache = createWebGpuAppResourceCache();
+    const result = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets,
+      cache,
+      snapshot: appSnapshot([appView({ viewId: 1 })]),
+      commands: [drawCommand(1)],
+      label: "frame",
+      reuse: resourceReuseReport(),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    // the pass ran, writing the realized render-target texture (clear, no
+    // depth attachment — user-target passes attach no depth)
+    expect(result.renderTargets[0]?.graph?.userPasses).toMatchObject([
+      { name: "target-writer", kind: "render", ran: true },
+    ]);
+    const writerPass = harness.passDescriptors[1];
+    expect(writerPass?.colorAttachments[0]?.loadOp).toBe("clear");
+    expect(writerPass?.colorAttachments[0]?.view).toMatchObject({
+      label: "view:aperture/webgpu-app/render-target/user.color",
+    });
+    expect(writerPass?.depthStencilAttachment).toBeUndefined();
+    // the realizer owns exactly one texture for the handle
+    expect(cache.renderTargets.counters.renderTargetTexturesCreated).toBe(1);
+  });
+
+  it("ping-pongs between two user targets across frames (persistent textures, honored writes)", async () => {
+    const events: string[] = [];
+    const harness = appHarness(events);
+    const assets = new AssetRegistry();
+    for (const id of ["ping.rt", "pong.rt"]) {
+      const handle = createRenderTargetHandle(id);
+      assets.register(handle);
+      assets.markReady(
+        handle,
+        createRenderTargetAsset({ width: 8, height: 4, label: id }),
+      );
+    }
+    const cache = createWebGpuAppResourceCache();
+
+    const renderFrame = async (readId: string, writeId: string) => {
+      harness.registry.addRenderPass({
+        name: "feedback",
+        reads: [readId],
+        writes: [{ handle: writeId, attachment: "load" }],
+        encode(ctx) {
+          ctx.setBindGroup(0, ctx.bindings({ src: ctx.view(readId) }));
+          ctx.setPipeline({ id: "feedback" });
+          ctx.draw(3);
+        },
+      });
+      return assembleWebGpuAppFrameBoundaries({
+        app: harness.app,
+        assets,
+        cache,
+        snapshot: appSnapshot([appView({ viewId: 1 })]),
+        commands: [drawCommand(1)],
+        label: "frame",
+        reuse: resourceReuseReport(),
+      });
+    };
+
+    // frame 1: read pong, write ping — frame 2 flips the roles.
+    const first = await renderFrame("pong.rt", "ping.rt");
+    const second = await renderFrame("ping.rt", "pong.rt");
+
+    expect(first.valid).toBe(true);
+    expect(second.valid).toBe(true);
+    expect(first.diagnostics).toEqual([]);
+    expect(second.diagnostics).toEqual([]);
+    expect(first.renderTargets[0]?.graph?.userPasses).toMatchObject([
+      { name: "feedback", kind: "render", ran: true },
+    ]);
+    expect(second.renderTargets[0]?.graph?.userPasses).toMatchObject([
+      { name: "feedback", kind: "render", ran: true },
+    ]);
+    // both targets realized ONCE and reused across frames (ping-pong reads
+    // last frame's write; a re-create would wipe it)
+    expect(cache.renderTargets.counters.renderTargetTexturesCreated).toBe(2);
+    expect(cache.renderTargets.counters.renderTargetTexturesDestroyed).toBe(0);
+    expect(
+      cache.renderTargets.counters.renderTargetTexturesReused,
+    ).toBeGreaterThan(0);
+    // frame 1 attached ping as the write target, frame 2 attached pong
+    const frameOnePass = harness.passDescriptors[1];
+    const frameTwoPass = harness.passDescriptors[3];
+    expect(frameOnePass?.colorAttachments[0]?.view).toMatchObject({
+      label: "view:aperture/webgpu-app/render-target/ping.rt",
+    });
+    expect(frameTwoPass?.colorAttachments[0]?.view).toMatchObject({
+      label: "view:aperture/webgpu-app/render-target/pong.rt",
+    });
+  });
+
+  it("rejects a write cycle between user passes with the structured cyclicDependency diagnostic", async () => {
+    const events: string[] = [];
+    const harness = appHarness(events);
+    const assets = new AssetRegistry();
+    for (const id of ["cycle.a", "cycle.b"]) {
+      const handle = createRenderTargetHandle(id);
+      assets.register(handle);
+      assets.markReady(
+        handle,
+        createRenderTargetAsset({ width: 8, height: 4, label: id }),
+      );
+    }
+
+    // A reads b and writes a; B reads a and writes b — a read-after-write
+    // cycle no topological order satisfies.
+    harness.registry.addRenderPass({
+      name: "cycle-a",
+      reads: ["cycle.b"],
+      writes: [{ handle: "cycle.a", attachment: "clear" }],
+      encode(ctx) {
+        ctx.setPipeline({ id: "a" });
+        ctx.draw(3);
+      },
+    });
+    harness.registry.addRenderPass({
+      name: "cycle-b",
+      reads: ["cycle.a"],
+      writes: [{ handle: "cycle.b", attachment: "clear" }],
+      encode(ctx) {
+        ctx.setPipeline({ id: "b" });
+        ctx.draw(3);
+      },
+    });
+
+    const result = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets,
+      cache: createWebGpuAppResourceCache(),
+      snapshot: appSnapshot([appView({ viewId: 1 })]),
+      commands: [drawCommand(1)],
+      label: "frame",
+      reuse: resourceReuseReport(),
+    });
+
+    // the frame refuses to execute (never a device error)...
+    expect(result.valid).toBe(false);
+    expect(events.filter((event) => event === "draw")).toHaveLength(0);
+    // ...and names the stuck passes in the structured compile diagnostic.
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "frameGraph.cyclicDependency",
+          message: expect.stringContaining("cycle-a"),
+        }),
+        expect.objectContaining({
+          code: "frameGraphExecute.compileNotOk",
+        }),
+      ]),
+    );
+  });
+
+  it("skips a pass mixing scene-color and render-target writes with a structured diagnostic", async () => {
+    const events: string[] = [];
+    const harness = appHarness(events);
+    const assets = new AssetRegistry();
+    const handle = createRenderTargetHandle("mixed.rt");
+    assets.register(handle);
+    assets.markReady(
+      handle,
+      createRenderTargetAsset({ width: 8, height: 4, label: "Mixed" }),
+    );
+
+    harness.registry.addRenderPass({
+      name: "mixed-writer",
+      writes: ["scene-color", "mixed.rt"],
+      encode(ctx) {
+        ctx.setPipeline({ id: "mixed" });
+        ctx.draw(3);
+      },
+    });
+
+    const result = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets,
+      cache: createWebGpuAppResourceCache(),
+      snapshot: appSnapshot([appView({ viewId: 1 })]),
+      commands: [drawCommand(1)],
+      label: "frame",
+      reuse: resourceReuseReport(),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(events.filter((event) => event === "draw")).toHaveLength(1);
+    expect(result.diagnostics).toMatchObject([
+      {
+        code: "webgpu.userPass.renderWriteMixedSceneAndTargets",
+        severity: "warning",
+        data: { pass: "mixed-writer" },
       },
     ]);
   });
@@ -292,6 +518,16 @@ describe("forward-route user passes (AI-12)", () => {
         ctx.draw(3);
       },
     });
+    // B3: a pass writing user render targets is reported skipped exactly the
+    // same way (the legacy route runs NO user passes, target-writing or not).
+    harness.registry.addRenderPass({
+      name: "target-writer",
+      writes: [{ handle: "user.color", attachment: "clear" }],
+      encode(ctx) {
+        ctx.setPipeline({});
+        ctx.draw(3);
+      },
+    });
     harness.registry.addRenderPass({
       name: "disabled-overlay",
       enabled: false,
@@ -302,9 +538,17 @@ describe("forward-route user passes (AI-12)", () => {
       },
     });
 
+    const assets = new AssetRegistry();
+    const targetHandle = createRenderTargetHandle("user.color");
+    assets.register(targetHandle);
+    assets.markReady(
+      targetHandle,
+      createRenderTargetAsset({ width: 8, height: 4, label: "UserColor" }),
+    );
+
     const result = await assembleWebGpuAppFrameBoundaries({
       app: harness.app,
-      assets: new AssetRegistry(),
+      assets,
       cache: createWebGpuAppResourceCache(),
       snapshot: appSnapshot([appView({ viewId: 1 })]),
       commands: [drawCommand(1)],
@@ -312,16 +556,16 @@ describe("forward-route user passes (AI-12)", () => {
       reuse: resourceReuseReport(),
     });
 
-    // the frame renders, but the user pass did NOT run...
+    // the frame renders, but the user passes did NOT run...
     expect(result.valid).toBe(true);
     expect(events.filter((event) => event === "draw")).toHaveLength(1);
     expect(result.boundaries).toHaveLength(1);
-    // ...and the skip is loud, naming only the enabled pass.
+    // ...and the skip is loud, naming every enabled pass.
     expect(result.diagnostics).toMatchObject([
       {
         code: "webgpu.userPass.skippedOnLegacyRoute",
         severity: "warning",
-        data: { passes: ["wireframe-overlay"] },
+        data: { passes: ["wireframe-overlay", "target-writer"] },
       },
     ]);
   });

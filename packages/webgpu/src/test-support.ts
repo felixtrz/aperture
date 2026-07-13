@@ -16,6 +16,7 @@ export * from "./app/custom-wgsl-lit-resources.js";
 export * from "./app/post-processing.js";
 export * from "./app/resource-cache.js";
 export * from "./app/user-pass.js";
+export * from "./app/user-pass-targets.js";
 export * from "./gpu/buffer.js";
 export * from "./materials/core/built-in-material-app-resource-adapter.js";
 export * from "./materials/core/built-in-material-queue-adapter.js";

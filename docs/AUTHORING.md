@@ -615,15 +615,87 @@ the mesh still casts an undisplaced shadow. Instance attributes are not
 available to the caster entry point. See `examples/shadow-displacement.html`
 for a wind-displaced flag whose shadow silhouette waves with the mesh.
 
+### Multiple render targets (MRT)
+
+A custom material may declare N color targets (parity plan B3), turning its
+draw into a single-pass MRT write — the classic custom G-buffer. The
+declaration is data-only: index = the fragment `@location`, target 0 is the
+pass color the camera renders into (always the `"swapchain"` sentinel), and
+every extra target pairs a facade render-target handle whose realized color
+texture the frame attaches at that location:
+
+```ts
+const normalTarget = this.renderTargets.register({
+  id: "gbuffer.normal",
+  width: 256,
+  height: 256,
+  format: "rgba8unorm",
+});
+const idTarget = this.renderTargets.register({
+  id: "gbuffer.id",
+  width: 256,
+  height: 256,
+  format: "rgba8unorm",
+});
+
+material.customWgsl({
+  familyKey: "app/gbuffer",
+  label: "GBuffer Material",
+  shader: { kind: "inline-wgsl", code: gbufferWgsl },
+  entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+  colorTargets: [
+    { format: "swapchain" }, // @location(0): the camera's own target
+    { format: "rgba8unorm", renderTarget: normalTarget }, // @location(1)
+    { format: "rgba8unorm", writeMask: "rgb", renderTarget: idTarget }, // @location(2)
+  ],
+  // ...bindings...
+});
+```
+
+The fragment entry must output exactly `@location(0..N-1)` (typically a
+struct return); mismatches between the outputs and the declaration are
+rejected at validation with `customMaterialSource.colorTargetMismatch` —
+before any pipeline exists, never as a device error. Each entry takes a
+`format` (the render-target format set; `"swapchain"` resolves to the pass
+color format) and an optional `writeMask` (`"all"` | `"rgb"` | `"alpha"` |
+`"none"`). The `color-targets:` pipeline-key segment participates only when
+declared, so materials without `colorTargets` keep byte-identical keys.
+
+MRT semantics and constraints:
+
+- **Camera pairing.** Render the material through a camera paired with a
+  facade render target whose size matches the extra targets (all attachments
+  of one pass share dimensions); scope its meshes to that camera with render
+  layers. The extra targets clear to transparent black at the start of the
+  MRT pass and always store.
+- **One material family per pass.** A pass hosting MRT draws cannot mix in
+  single-target pipelines (background, other materials); incompatible hosts
+  render empty with `webGpuApp.customWgslColorTargetsPassIncompatible`. MRT
+  materials run on the single-custom-material route — a scene mixing them
+  with built-in materials is rejected with
+  `webGpuApp.customWgslColorTargetsRouteUnsupported`.
+- **Realization checks.** Extra targets must be registered, 2d,
+  single-sample, and format-matched to their declaration
+  (`webGpuApp.customWgslColorTarget*` diagnostics); MRT requires a
+  single-sample app (no `{ msaa: 4 }`).
+- **Consuming the targets.** Sample the extras like any facade render target
+  (`material.texture(...)`), or read them from a user render pass that
+  resolves them into scene color (see
+  [User-pass render-target writes](#user-pass-render-target-writes)).
+
+See `examples/gbuffer.html` for a complete custom G-buffer (albedo + normal +
+object ID) resolved by a user pass into scene color.
+
 Current limitations: WGSL only; no shader imports; no user-supplied WebGPU
 objects or callbacks; and no arbitrary app-owned material adapter
 registration. App-route custom WGSL supports group-2 uniform buffers,
 read-only storage buffers, texture bindings, sampler bindings, existing
 instance-attribute layouts, the opt-in group(3) lit contract
-(`lighting: "lit"`), and mixed built-in/custom frames through the normal
-`createWebGpuApp()` path. Storage bindings are read-only in this slice
-(`access: "read"`); writable storage arrives with the compute→draw plumbing
-(parity plan C1).
+(`lighting: "lit"`), multi-target output declarations (`colorTargets`), and
+mixed built-in/custom frames through the normal `createWebGpuApp()` path
+(MRT materials excepted — they need the single-custom-material route).
+Storage bindings are read-only in this slice (`access: "read"`); writable
+storage arrives with the compute→draw plumbing (parity plan C1).
 
 See [`recipes/custom-wgsl-material.md`](./recipes/custom-wgsl-material.md) for
 a complete shader and material setup.
@@ -782,6 +854,65 @@ specularResourceKey, renderTargetSource: { renderTarget: "probe.env" } }] })`
 
 See `examples/reflective-probe.html` for a mirror sphere lit by a
 periodically re-captured probe of a moving scene.
+
+### User-pass render-target writes
+
+User render passes (`app.addRenderPass`) may write facade render targets
+directly (parity plan B3), lifting the old scene-color-only restriction. A
+pass's `writes` declare its color targets in declaration order — each write
+carries a clear/load intent, the attached targets always store, and no depth
+attachment is made (facade depth buffers belong to camera passes). Reads of
+facade target ids resolve to the realized sampleable views, and the declared
+read/write edges order the pass inside the frame graph — after the camera
+node that rendered a read target this frame, before any later pass that reads
+what it wrote:
+
+```js
+app.addRenderPass({
+  name: "gbuffer-resolve",
+  reads: ["gbuffer.albedo", "gbuffer.normal", "gbuffer.id"],
+  writes: [{ handle: "scene-color", attachment: "load" }],
+  encode(ctx) {
+    const albedo = ctx.view("gbuffer.albedo"); // realized facade texture view
+    // ...bind + fullscreen draw...
+  },
+});
+```
+
+Writing user targets instead of scene-color:
+
+```js
+app.addRenderPass({
+  name: "blur-horizontal",
+  reads: ["ping"],
+  writes: [{ handle: "pong", attachment: "clear" }],
+  encode(ctx) {
+    /* sample ping, write pong */
+  },
+});
+```
+
+Semantics and constraints:
+
+- **Scene-color or own targets, not both.** A pass writes either
+  `"scene-color"` (drawn over the presented scene with LOAD, depth-tested)
+  or one or more facade target ids; mixing the two is rejected with
+  `webgpu.userPass.renderWriteMixedSceneAndTargets`.
+- **Ping-pong works across frames.** A pass that reads target A and writes
+  target B this frame reads B's stored contents next frame after swapping —
+  facade targets are persistent graph resources.
+- **Multiple writes are MRT.** Declaring several facade targets attaches them
+  in order (`@location(0..N-1)` in the pass's own pipelines); all attachments
+  of one pass must share dimensions
+  (`webgpu.userPass.renderWriteSizeMismatch`).
+- **Failures are loud skips.** Unregistered/not-realized targets skip the
+  pass with `webgpu.userPass.renderWriteTargetUnavailable`; unresolvable
+  reads warn with `webgpu.userPass.readTargetUnavailable`. Write cycles among
+  user passes are rejected at frame-graph compile with the graph's cycle
+  diagnostic, and the legacy (non-frame-graph) route reports user passes as
+  skipped exactly as before.
+
+See `examples/gbuffer.html` for the complete G-buffer resolve recipe.
 
 ## Runtime Systems
 

@@ -94,11 +94,14 @@ interface WebGpuAppPassDescriptorBase {
 export interface WebGpuAppRenderPassDescriptor extends WebGpuAppPassDescriptorBase {
   readonly kind?: "render";
   /**
-   * Render targets declared by this pass. M3-T7 scope: a render pass is currently
-   * drawn over the `"scene-color"` overlay target with LOAD (depth-tested against
-   * scene depth); a declared write to a transient/history/swapchain is NOT yet
-   * honored for render passes and is reported as a diagnostic. Use a compute pass
-   * for arbitrary writable targets (those DO honor their declared writes).
+   * Render targets declared by this pass. Writing `"scene-color"` draws over
+   * the presented scene with LOAD (depth-tested against scene depth). Writing
+   * one or more facade render-target ids (B3) attaches those realized
+   * textures as the pass's color targets in declaration order — clear/load
+   * per write intent, always stored, no depth attachment — which is what
+   * enables ping-pong between two user targets across frames. A pass writes
+   * either scene-color or its own targets (not both); unavailable targets
+   * skip the pass with a structured diagnostic.
    */
   readonly writes: readonly WebGpuAppPassWriteInput[];
 }
@@ -181,7 +184,12 @@ export function createWebGpuAppUserPassRegistry(): WebGpuAppUserPassRegistry {
   };
 }
 
-function normalizeWrites(
+/**
+ * Normalize the public write inputs (bare strings default to LOAD) into
+ * graph-ready PassWrites. Exported so the routes can resolve a pass's write
+ * targets BEFORE invoking its encode() callback (B3).
+ */
+export function normalizeUserPassWrites(
   writes: readonly WebGpuAppPassWriteInput[] | undefined,
 ): PassWrite[] {
   return (writes ?? []).map((write) =>
@@ -358,7 +366,7 @@ export function buildUserPassNode(
   const shared = {
     name: descriptor.name,
     reads: descriptor.reads ?? [],
-    writes: normalizeWrites(descriptor.writes),
+    writes: normalizeUserPassWrites(descriptor.writes),
     ...(descriptor.before === undefined ? {} : { before: descriptor.before }),
     ...(descriptor.after === undefined ? {} : { after: descriptor.after }),
     ...(descriptor.enabled === undefined
