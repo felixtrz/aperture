@@ -69,6 +69,14 @@ import {
   type WebGpuAppRenderPassDescriptor,
   type WebGpuAppUserPassRegistry,
 } from "./user-pass.js";
+import type {
+  WebGpuAppDynamicTextureDescriptor,
+  WebGpuAppDynamicTextureExternalImageUpdate,
+  WebGpuAppDynamicTextureRegistration,
+  WebGpuAppDynamicTextureReport,
+  WebGpuAppDynamicTextureUpdate,
+  WebGpuAppDynamicTextureUpdateResult,
+} from "./dynamic-texture-resources.js";
 import {
   type InitializeWebGpuOptions,
   type WebGpuCanvasLike,
@@ -481,6 +489,11 @@ export interface WebGpuAppRenderReport {
   readonly renderTargetCaptures?: readonly WebGpuAppRenderTargetCaptureReport[];
   readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
   readonly transmissionGrabPass?: WebGpuAppTransmissionGrabPassReport;
+  // D3: runtime texture update counters (per-frame update rate + bytes uploaded,
+  // cumulative totals, per-texture stats). Present only when at least one
+  // dynamic texture has been registered, so apps that do not use the feature
+  // keep a byte-identical frame report.
+  readonly dynamicTextures?: WebGpuAppDynamicTextureReport;
   readonly msaa?: WebGpuAppMsaaReport;
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
@@ -575,6 +588,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly renderTargetCaptures?: readonly WebGpuAppRenderTargetCaptureReport[];
   readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
   readonly transmissionGrabPass?: WebGpuAppTransmissionGrabPassReport;
+  readonly dynamicTextures?: WebGpuAppDynamicTextureReport;
   readonly msaa?: WebGpuAppMsaaReport;
   readonly readback?: WebGpuAppJsonValue;
   readonly gpuTimings?: GpuPassTimingReport;
@@ -697,6 +711,34 @@ export interface WebGpuApp {
   addComputeKernelPass(descriptor: WebGpuAppComputeKernelPassDescriptor): void;
   /** Remove a user pass by name; returns true if one was registered. */
   removePass(name: string): boolean;
+  // D3 (three.js parity plan): runtime texture updates (dynamic + video). These
+  // are MAIN-THREAD app-facade methods — the ECS worker never touches the DOM.
+  /**
+   * Register a dynamic texture: a real `TextureAsset` on the source-asset
+   * registry with `copy-dst` (and, for `externalImage: true`,
+   * `render-attachment`) usage. A worker-authored material samples it by
+   * `createTextureHandle(id)`. Returns the texture handle + any diagnostics.
+   */
+  registerDynamicTexture(
+    descriptor: WebGpuAppDynamicTextureDescriptor,
+  ): WebGpuAppDynamicTextureRegistration;
+  /**
+   * AC1: apply a CPU-side update (full-image OR sub-rect) to a dynamic texture
+   * via `queue.writeTexture`. A bad region / bytesPerRow / data length emits a
+   * structured diagnostic instead of a raw WebGPU validation error.
+   */
+  updateDynamicTexture(
+    id: string,
+    update: WebGpuAppDynamicTextureUpdate,
+  ): WebGpuAppDynamicTextureUpdateResult;
+  /**
+   * AC2: import a DOM image source (`HTMLVideoElement` / `VideoFrame` / canvas /
+   * `ImageBitmap`) into a dynamic texture via `queue.copyExternalImageToTexture`.
+   */
+  updateDynamicTextureFromExternalImage(
+    id: string,
+    update: WebGpuAppDynamicTextureExternalImageUpdate,
+  ): WebGpuAppDynamicTextureUpdateResult;
   /**
    * Register a renderer-side feature realizer that converts extracted snapshot
    * packets into ordered WebGPU render commands. The built-in ids

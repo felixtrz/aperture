@@ -1373,6 +1373,100 @@ Semantics and constraints:
 
 See `examples/gbuffer.html` for the complete G-buffer resolve recipe.
 
+## Dynamic and video textures — parity plan D3
+
+The analog of three.js `CanvasTexture` / `VideoTexture` /
+`DataTexture.needsUpdate`: a texture whose CONTENTS change every frame while its
+handle stays stable. The ECS simulation runs in a worker that must never touch
+the DOM (`HTMLVideoElement`, `<canvas>`, `ImageBitmap`), so the split is: the
+**worker DECLARES** the dynamic texture (DOM-free metadata) and authors the
+material that samples it; the **main thread UPLOADS** its pixels (the DOM/GPU
+side).
+
+Declare it in a worker system with `this.textures.register(...)` (mirrors
+`this.buffers.register` / `this.renderTargets.register`). A material-sampled
+texture MUST be declared here — extraction validates the material's texture
+handle against the worker registry:
+
+```ts
+// worker system init()
+this.textures.register({
+  id: "hud.tv",
+  width: 64,
+  height: 64,
+  externalImage: true, // adds render-attachment usage for copyExternalImageToTexture
+  data: new Uint8Array(64 * 64 * 4), // optional initial contents (DOM-free bytes)
+});
+
+this.spawn.mesh({
+  mesh: mesh.plane({ size: [1, 1] }),
+  material: material.customWgsl({
+    familyKey: "app/tv",
+    shader: { kind: "inline-wgsl", code: tvWgsl },
+    entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+    bindings: [
+      material.texture("tv", {
+        binding: 0,
+        visibility: ["fragment"],
+        texture: createTextureHandle("hud.tv"),
+      }),
+    ],
+  }),
+});
+```
+
+Then upload new contents each animation frame on the main thread
+(`app.webgpu.app` from a generated browser app):
+
+```js
+// main thread (never the worker)
+const app = webgpu.app;
+
+function frame() {
+  // AC1 — raw CPU bytes via queue.writeTexture (full-image OR sub-rect):
+  app.updateDynamicTexture("hud.tv", { data: rgbaBytes }); // full image
+  app.updateDynamicTexture("hud.tv", {
+    region: { x: 8, y: 8, width: 16, height: 16 },
+    bytesPerRow: 16 * 4,
+    data: patchBytes,
+  }); // sub-rect
+
+  // AC2 — an HTMLVideoElement / VideoFrame / canvas / ImageBitmap via
+  // queue.copyExternalImageToTexture:
+  app.updateDynamicTextureFromExternalImage("hud.tv", { source: videoElement });
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+```
+
+For a texture sampled OUTSIDE the extracted-material path (e.g. a user render
+pass), `app.registerDynamicTexture({ id, width, height, ... })` registers the
+same kind of texture directly on the renderer.
+
+- **Supported formats:** `rgba8unorm`, `rgba8unorm-srgb`, `bgra8unorm`,
+  `bgra8unorm-srgb`, `r8unorm`, `rg8unorm`, `rgba16float` (each is renderable and
+  has a fixed texel byte size for sub-rect validation). Default `rgba8unorm`.
+- **Frame report.** The frame report gains a `dynamicTextures` section — the
+  per-frame update rate + bytes (`frameUpdates` / `frameBytesUploaded`),
+  cumulative totals, and per-texture stats — present only once at least one
+  dynamic texture has been registered.
+- **Failures are structured, never device errors.** A bad sub-rect
+  (`dynamicTexture.invalidRegion`), sub-minimum `bytesPerRow`
+  (`dynamicTexture.invalidBytesPerRow`), undersized data
+  (`dynamicTexture.uploadDataTooSmall`), unsupported format / bad descriptor
+  (`dynamicTexture.invalidDescriptor`), missing external source
+  (`dynamicTexture.missingSource`), an id that was never registered
+  (`dynamicTexture.notRegistered`), a texture no material has sampled yet
+  (`dynamicTexture.notRealized`), or a device upload failure
+  (`dynamicTexture.uploadFailed`) each return a diagnostic on the update result.
+- **Byte-identity.** A dynamic texture realizes byte-for-byte like any texture
+  with the same usages, so existing (non-dynamic) textures are unaffected; no
+  worker→renderer packet or determinism fixture changes.
+
+See `examples/runtime-texture.html` for an in-scene video wall — a canvas
+scoreboard, a canvas-animated TV, and a CPU-bytes ticker.
+
 ## Runtime Systems
 
 Systems map to EliCS systems and can query ECS components directly.

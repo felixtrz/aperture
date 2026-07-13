@@ -727,6 +727,87 @@ missing ingredient), so #7 is unblocked but not yet demonstrated end-to-end.
 
 ### D3. Runtime texture updates (dynamic + video) — **M**
 
+Status: implemented (2026-07-13). AC1 (CPU bytes): `app.updateDynamicTexture(id,
+{ data, bytesPerRow?, rowsPerImage?, dataOffset?, region? })` applies a full-image
+OR sub-rect CPU update via `queue.writeTexture`; the origin/extent, `bytesPerRow`
+(>= row minimum), and byte length are validated up front so a bad update returns a
+structured diagnostic instead of a raw WebGPU error. AC2 (video/canvas):
+`app.updateDynamicTextureFromExternalImage(id, { source, flipY?, sourceOrigin?,
+region? })` imports an `HTMLVideoElement` / `VideoFrame` / canvas / `ImageBitmap`
+via `queue.copyExternalImageToTexture`. Update rate (count) + bytes uploaded appear
+in the frame report's new `dynamicTextures` section (per-frame + cumulative +
+per-texture; present only when a dynamic texture exists, so unrelated reports stay
+byte-identical). AC3: `examples/runtime-texture` — an in-scene video wall: ONE
+dynamic texture atlas (three stacked 64×64 regions) sampled by one screen-space
+custom-WGSL quad, whose scoreboard + TV regions are canvas-uploaded via
+`copyExternalImageToTexture` (sub-rect destination origins) and whose ticker
+region is CPU-bytes-uploaded via `writeTexture` (full-region + a smaller sub-rect
+band). `test/e2e/runtime-texture.spec.ts` asserts wall pixels CHANGE between two
+captures and that the report counters (external-image + CPU-bytes updates) are
+non-zero with zero failures. Advanced-audit scenario #18 → ✅.
+
+**Registration site (extraction constraint).** A material's texture handle is
+validated at EXTRACTION (in the worker) against the worker asset registry, so a
+sampled dynamic texture must be registered there: `this.textures.register(...)`
+(new `@aperture-engine/app` facade mirroring `this.buffers.register`) declares it
+as DOM-free metadata and mirrors it to the renderer. `app.registerDynamicTexture(...)`
+(main-thread) remains for textures sampled outside the extracted-material path.
+The example consolidates to ONE atlas texture + ONE custom material because the
+multi-distinct-custom-material frame route is a separate, out-of-scope concern —
+one material keeps the frame on the proven single/mixed custom-WGSL draw path, and
+a texture atlas with sub-rect destination origins is the natural shape anyway.
+
+**Worker/DOM architecture decision + rationale.** The ECS simulation runs in a
+worker; the DOM (video, canvas, ImageBitmap) is main-thread only. So D3 is an
+**app-facade feature on the main thread**, mirroring C3's `addComputeKernelPass`
+and B1's render-target facade — NOT a worker-authored snapshot packet. A dynamic
+texture is a real `TextureAsset` that `app.registerDynamicTexture(...)` registers
+on the renderer's source-asset registry with `copy-dst` (and, for `externalImage`,
+`render-attachment`) usage; a worker-authored material samples it by
+`createTextureHandle(id)` exactly like a facade render target (extraction never
+gates on the texture, so the draw appears once the main thread registers it). The
+CPU-bytes update path (AC1) uses this SAME facade rather than the RuntimeUniform
+packet the AC sketched, because (a) AC2 must be app-facade regardless (DOM stays
+off the worker), and one coherent slice beats two transports, and (b) the plan
+blesses the app-facade route (C3 precedent) precisely to avoid packet-family /
+determinism churn. The whole feature therefore touches NO worker snapshot, NO
+packed-SAB encoding, and NO determinism fixtures.
+
+**Byte-identity story.** A dynamic texture realizes byte-for-byte like any texture
+with the same usage flags (`textureUsageFlags` unchanged; the realize path
+unchanged), so every existing (non-dynamic) texture is unaffected — pinned by
+`test/webgpu/dynamic-texture-resources.test.ts` asserting the registered asset's
+usage array + format. The frame report's `dynamicTextures` field is omitted
+entirely when no dynamic texture was registered, so a report from an app that does
+not use the feature is byte-identical to before D3.
+
+**Determinism outcome.** Determinism fixtures hash the extracted `RenderSnapshot`
+projection, not GPU bytes. Registration happens on the main thread (not in the
+snapshot) and updates are GPU-side (`writeTexture` / `copyExternalImageToTexture`),
+so no fixture uses a dynamic texture and none shifts. `test/determinism` passes
+GREEN with NO refresh (confirmed in the full vitest run: 3069 tests, 0 fixture
+changes).
+
+**Diagnostics.** Every failure path emits a structured, cataloged `dynamicTexture.*`
+code (`invalidDescriptor`, `notRegistered`, `notRealized`, `invalidRegion`,
+`invalidBytesPerRow`, `uploadDataTooSmall`, `missingSource`, `uploadUnavailable`,
+`uploadFailed`) rather than a device validation error; the code list is the single
+source of truth from which the diagnostic-code type is derived.
+
+Deviations from the original AC sketch: (1) AC1 rides the app-facade command, not
+a RuntimeUniform-style packet (justified above; the app-facade route was blessed by
+the plan for exactly this determinism reason). (2) The example is a single
+screen-space video-wall quad sampling a three-region atlas (a HUD-style video wall)
+rather than three separate perspective in-world quads — one custom material keeps
+the frame on the proven custom-WGSL draw path (the multi-distinct-custom-material
+route is a separate concern) and the atlas is the natural shape for sub-rect
+uploads; the scoreboard/TV/ticker semantics are unchanged. (3) The video row of
+scenario #7-style "real HTMLVideoElement" playback is
+demonstrated with a canvas standing in for the video source, because SwiftShader /
+headless Chromium has no video decoder; the import path itself accepts an
+`HTMLVideoElement` identically (typed + documented). Cube / 3D-array dynamic
+targets remain out of scope.
+
 - AC1: A `dynamic-texture` asset accepts CPU-side updates (full and
   sub-rect) via a keyed command (RuntimeUniform-style packets;
   `queue.writeTexture` renderer-side); update rate and bytes appear in the

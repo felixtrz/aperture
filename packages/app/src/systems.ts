@@ -75,6 +75,7 @@ import type { InteractionAccess } from "./interaction/access.js";
 import type { MaterialAccess } from "./systems/materials.js";
 import type { MeshAccess } from "./systems/meshes.js";
 import type { BufferAccess } from "./systems/buffers.js";
+import type { TextureAccess } from "./systems/textures.js";
 import type { RenderTargetAccess } from "./systems/render-targets.js";
 import type { ParticleAccess } from "./systems/particles.js";
 import type { AudioAccess } from "./systems/audio.js";
@@ -367,6 +368,11 @@ export { createMeshAccess } from "./systems/meshes.js";
 export type { BufferAccess, BufferRegisterOptions } from "./systems/buffers.js";
 export { createBufferAccess } from "./systems/buffers.js";
 export type {
+  TextureAccess,
+  TextureRegisterOptions,
+} from "./systems/textures.js";
+export { createTextureAccess } from "./systems/textures.js";
+export type {
   RenderTargetAccess,
   RenderTargetRegisterOptions,
   RenderTargetResizeOptions,
@@ -591,6 +597,7 @@ export interface ApertureSystemInstance {
   readonly materials: MaterialAccess;
   readonly meshes: MeshAccess;
   readonly buffers: BufferAccess;
+  readonly textures: TextureAccess;
   readonly renderTargets: RenderTargetAccess;
   readonly trails: TrailAccess;
   readonly physics: PhysicsAccess;
@@ -790,6 +797,10 @@ export function createSystem<
 
     get buffers(): BufferAccess {
       return this.#context.buffers;
+    }
+
+    get textures(): TextureAccess {
+      return this.#context.textures;
     }
 
     get renderTargets(): RenderTargetAccess {

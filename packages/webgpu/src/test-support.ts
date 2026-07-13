@@ -13,6 +13,7 @@ export * from "./app/app-snapshot-transport.js";
 export * from "./app/app-texture-sampler-resources.js";
 export * from "./app/custom-wgsl-storage-buffer-resources.js";
 export * from "./app/compute-kernel-resources.js";
+export * from "./app/dynamic-texture-resources.js";
 export * from "./app/custom-wgsl-texture-sampler-resources.js";
 export { containsSceneDepthSamplingCommands } from "./app/frame-boundaries.js";
 export * from "./app/custom-wgsl-lit-resources.js";

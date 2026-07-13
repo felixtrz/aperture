@@ -170,6 +170,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.transmissionGrabPass === undefined
       ? {}
       : { transmissionGrabPass: report.transmissionGrabPass }),
+    ...(report.dynamicTextures === undefined
+      ? {}
+      : { dynamicTextures: report.dynamicTextures }),
     ...(report.msaa === undefined ? {} : { msaa: report.msaa }),
     ...(report.readback === undefined
       ? {}

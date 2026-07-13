@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1468
+Every structured diagnostic code the engine can emit (1477
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -1306,6 +1306,60 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                              | Message                                    | Fix? | Emitted from                                      |
 | --------------------------------- | ------------------------------------------ | ---- | ------------------------------------------------- |
 | `drawCommand.missingMeshResource` | Missing mesh resource '…' for render id …. | —    | `packages/webgpu/src/render/draw/draw-command.ts` |
+
+## dynamicTexture.invalidBytesPerRow (1)
+
+| Code                                | Message                                                                                         | Fix? | Emitted from                                           |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `dynamicTexture.invalidBytesPerRow` | A dynamic texture update bytesPerRow is not an integer at least the row minimum for the region. | —    | `packages/webgpu/src/app/dynamic-texture-resources.ts` |
+
+## dynamicTexture.invalidDescriptor (1)
+
+| Code                               | Message                                                                                             | Fix? | Emitted from                                           |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `dynamicTexture.invalidDescriptor` | A dynamic texture descriptor was invalid: empty id, unsupported format, or non-positive dimensions. | —    | `packages/webgpu/src/app/dynamic-texture-resources.ts` |
+
+## dynamicTexture.invalidRegion (1)
+
+| Code                           | Message                                                                           | Fix? | Emitted from                                           |
+| ------------------------------ | --------------------------------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `dynamicTexture.invalidRegion` | A dynamic texture update sub-rect is out of bounds, non-integer, or non-positive. | —    | `packages/webgpu/src/app/dynamic-texture-resources.ts` |
+
+## dynamicTexture.missingSource (1)
+
+| Code                           | Message                                                                                                             | Fix? | Emitted from                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `dynamicTexture.missingSource` | A dynamic texture external-image update was given no source (HTMLVideoElement / VideoFrame / canvas / ImageBitmap). | —    | `packages/webgpu/src/app/dynamic-texture-resources.ts` |
+
+## dynamicTexture.notRealized (1)
+
+| Code                         | Message                                                                                           | Fix? | Emitted from                                           |
+| ---------------------------- | ------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `dynamicTexture.notRealized` | A dynamic texture has not been realized on the GPU yet (no material has sampled it this session). | —    | `packages/webgpu/src/app/dynamic-texture-resources.ts` |
+
+## dynamicTexture.notRegistered (1)
+
+| Code                           | Message                                                                                           | Fix? | Emitted from                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `dynamicTexture.notRegistered` | No dynamic texture is registered under the given id — call app.registerDynamicTexture(...) first. | —    | `packages/webgpu/src/app/dynamic-texture-resources.ts` |
+
+## dynamicTexture.uploadDataTooSmall (1)
+
+| Code                                | Message                                                                                | Fix? | Emitted from                                           |
+| ----------------------------------- | -------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `dynamicTexture.uploadDataTooSmall` | A dynamic texture update's data (from its offset) is shorter than the region requires. | —    | `packages/webgpu/src/app/dynamic-texture-resources.ts` |
+
+## dynamicTexture.uploadFailed (1)
+
+| Code                          | Message                                                                                    | Fix? | Emitted from                                           |
+| ----------------------------- | ------------------------------------------------------------------------------------------ | ---- | ------------------------------------------------------ |
+| `dynamicTexture.uploadFailed` | A dynamic texture upload (writeTexture / copyExternalImageToTexture) threw a device error. | —    | `packages/webgpu/src/app/dynamic-texture-resources.ts` |
+
+## dynamicTexture.uploadUnavailable (1)
+
+| Code                               | Message                                                                                                  | Fix? | Emitted from                                           |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `dynamicTexture.uploadUnavailable` | The WebGPU queue does not expose the required upload method (writeTexture / copyExternalImageToTexture). | —    | `packages/webgpu/src/app/dynamic-texture-resources.ts` |
 
 ## environmentMapReadiness.missingResource (1)
 

@@ -8,6 +8,14 @@ import {
 import { registerWebGpuAppEnvironmentResourceCache } from "./app-environment-resources.js";
 import { registerWebGpuAppRenderTargetResourceState } from "./render-target-resources.js";
 import {
+  createWebGpuAppDynamicTextureState,
+  registerWebGpuAppDynamicTexture,
+  registerWebGpuAppDynamicTextureState,
+  updateWebGpuAppDynamicTexture,
+  updateWebGpuAppDynamicTextureFromExternalImage,
+  webGpuAppDynamicTextureReport,
+} from "./dynamic-texture-resources.js";
+import {
   createWebGpuAppSnapshotTransport,
   createWebGpuAppSnapshotTransportStartPayload,
   hasWebGpuAppSharedSnapshotPayload,
@@ -97,6 +105,10 @@ export async function createWebGpuApp(
   resourceCache.renderTargets.appSampleCount = msaa.sampleCount;
 
   const userPassRegistry = createWebGpuAppUserPassRegistry();
+  // D3: main-thread dynamic-texture registry (the DOM/GPU upload path lives on
+  // the renderer, never the worker). Registered textures live as real
+  // TextureAssets in `sourceAssets`; updates target the realized GPU texture.
+  const dynamicTextures = createWebGpuAppDynamicTextureState();
   const snapshotTransport = createWebGpuAppSnapshotTransport({
     ...(options.transport === undefined ? {} : { mode: options.transport }),
     ...(options.sharedSnapshotTransport === undefined
@@ -312,6 +324,33 @@ export async function createWebGpuApp(
     removePass(name) {
       return userPassRegistry.removePass(name);
     },
+    registerDynamicTexture(descriptor) {
+      return registerWebGpuAppDynamicTexture({
+        state: dynamicTextures,
+        registry: sourceAssets,
+        descriptor,
+      });
+    },
+    updateDynamicTexture(id, update) {
+      return updateWebGpuAppDynamicTexture({
+        state: dynamicTextures,
+        registry: sourceAssets,
+        textures: resourceCache.textures,
+        device: initialization.device,
+        id,
+        update,
+      });
+    },
+    updateDynamicTextureFromExternalImage(id, update) {
+      return updateWebGpuAppDynamicTextureFromExternalImage({
+        state: dynamicTextures,
+        registry: sourceAssets,
+        textures: resourceCache.textures,
+        device: initialization.device,
+        id,
+        update,
+      });
+    },
     registerFeatureRealizer(realizer) {
       return resourceCache.featureRealizers.register(
         realizer as Parameters<
@@ -452,7 +491,7 @@ export async function createWebGpuApp(
     async renderSnapshot(snapshot, renderOptions = {}) {
       const previousSnapshotForReport = previousSnapshotForUpdate;
       const resourceLifetimeFrame = nextPreparedResourceLifetimeFrame();
-      const report = await renderWebGpuAppFrame(
+      const baseReport = await renderWebGpuAppFrame(
         { app, sourceAssets },
         resourceCache,
         {
@@ -463,6 +502,19 @@ export async function createWebGpuApp(
           resourceLifetimeFrame,
         },
       );
+      // D3: fold the dynamic-texture update counters (this frame's rate + bytes,
+      // cumulative totals) into the frame report. `reset: true` clears the
+      // per-frame accumulators so the next frame reports its own rate. Returns
+      // undefined (report left untouched) when no dynamic texture was ever
+      // registered, so unrelated apps keep a byte-identical report.
+      const dynamicTextureReport = webGpuAppDynamicTextureReport(
+        dynamicTextures,
+        { reset: true },
+      );
+      const report =
+        dynamicTextureReport === undefined
+          ? baseReport
+          : { ...baseReport, dynamicTextures: dynamicTextureReport };
 
       prepareWebGpuAppSourceAssetFacades({
         registry: sourceAssets,
@@ -502,6 +554,8 @@ export async function createWebGpuApp(
   // B2: reachable render-target realization state so environment-asset
   // preparation can resolve `renderTargetSource` cube captures from the app.
   registerWebGpuAppRenderTargetResourceState(app, resourceCache.renderTargets);
+  // D3: reachable dynamic-texture state (mirrors the render-target facade).
+  registerWebGpuAppDynamicTextureState(app, dynamicTextures);
 
   if (options.autoStart === true) {
     app.start(options.workerStartOptions);
