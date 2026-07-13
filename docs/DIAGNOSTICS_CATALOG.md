@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1445
+Every structured diagnostic code the engine can emit (1448
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -682,6 +682,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                    | Message                                                  | Fix? | Emitted from                                                    |
 | --------------------------------------- | -------------------------------------------------------- | ---- | --------------------------------------------------------------- |
 | `customMaterialSource.invalidFamilyKey` | Custom material '…' must provide a namespaced familyKey. | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
+
+## customMaterialSource.invalidInstanceBuffer (1)
+
+| Code                                         | Message               | Fix? | Emitted from                                                    |
+| -------------------------------------------- | --------------------- | ---- | --------------------------------------------------------------- |
+| `customMaterialSource.invalidInstanceBuffer` | Custom material '…' … | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
 
 ## customMaterialSource.invalidLabel (1)
 
@@ -7295,6 +7301,18 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                           | Message                                                              | Fix? | Emitted from                                                                            |
 | ------------------------------ | -------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------- |
 | `webGpuApp.frameResourceRoute` | WebGPU app frame resource preparation failed for '…' material route. | —    | `packages/webgpu/src/render/queues/queued-material-frame-resource-route-diagnostics.ts` |
+
+## webGpuApp.instanceBufferLayoutMismatch (1)
+
+| Code                                     | Message                                                                                                                                                                                   | Fix? | Emitted from                                                      |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------- |
+| `webGpuApp.instanceBufferLayoutMismatch` | Buffer-backed instance stream '…' byte length … is not a multiple of the declared instance stride … (attributes packed stride). Match the buffer element type to the instance attributes. | —    | `packages/webgpu/src/app/custom-wgsl-storage-buffer-resources.ts` |
+
+## webGpuApp.instanceBufferSourceNotReady (1)
+
+| Code                                     | Message                                                                                      | Fix? | Emitted from                                                      |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------- |
+| `webGpuApp.instanceBufferSourceNotReady` | Buffer-backed instance stream for custom material '…' could not resolve its BufferAsset '…'. | —    | `packages/webgpu/src/app/custom-wgsl-storage-buffer-resources.ts` |
 
 ## webGpuApp.materialDependenciesNotReady (1)
 

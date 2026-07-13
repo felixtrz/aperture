@@ -68,19 +68,25 @@ has MRT (`count > 1` / `MRTNode`), cube/3D/array targets, `CubeCamera`,
 **Custom passes are Aperture's real escape hatch — with real limits.**
 `addRenderPass`/`addComputePass` are genuinely on the app facade and the
 frame graph schedules them by declared reads/writes; the compute path is
-fully general (own pipelines, storage buffers, readback), and B3 lets render
+fully general (own pipelines, storage buffers, readback), B3 lets render
 passes write facade render targets (clear/load intent, MRT attachments,
-cross-frame ping-pong) as well as scene-color. Remaining limits: pass bodies
-are raw WebGPU rather than data, and indirect draw is internal-only. three.js counters with `EffectComposer` (WebGL) and TSL
-compute with atomics, storage textures, `storage().toAttribute()`
-compute-to-vertex plumbing, and indirect draws (WebGPU backend).
+cross-frame ping-pong) as well as scene-color, and C1 closes the compute→draw
+bridge — a compute pass writes a writable `BufferAsset` that an instanced
+custom material consumes the same frame as a storage binding AND a
+buffer-backed instance stream, frame-graph-ordered compute-before-draw (the
+counterpart of three.js TSL `storage().toAttribute()` compute-to-vertex
+plumbing). Remaining limits: pass bodies are raw WebGPU rather than data, and
+indirect draw is still internal-only (a user surface is parity plan C2).
+three.js counters with `EffectComposer` (WebGL) and TSL compute with atomics,
+storage textures, and indirect draws (WebGPU backend).
 
 **Confirmed absent in Aperture across this whole domain:** stencil, clipping
 planes, decals, 3D/array render targets, runtime texture/video updates,
-and GPU-driven indirect rendering as a user
+and GPU-driven indirect draw as a user
 API (cube render targets shipped as parity plan B2; MRT authoring and
 user-pass target writes shipped as parity plan B3; custom-material scene-depth
-access shipped as parity plan B4). §9 scores 20 concrete game scenarios; §10
+access shipped as parity plan B4; the compute→draw / compute-to-vertex bridge
+shipped as parity plan C1). §9 scores 20 concrete game scenarios; §10
 ranks the gap closures by how much game-dev surface each unlocks.
 
 ---
@@ -300,36 +306,37 @@ permutations) that three.js has no equivalent of.
 ✅ works on a supported surface · 🟡 achievable with hand-wiring or real
 limits · ❌ not achievable today.
 
-| #   | Scenario                                              | three.js | Aperture | Aperture notes                                                                                                                                                                                                        |
-| --- | ----------------------------------------------------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Unlit stylized shader (scrolling UVs, force field)    | ✅       | ✅       | Custom WGSL + `RuntimeUniform` time/params — the showcase water shader is exactly this; can now also opt into scene lighting (A1)                                                                                     |
-| 2   | Dissolve effect (noise mask + threshold)              | ✅       | ✅       | Mask texture + alphaMode `mask` + runtime threshold; the surviving surface can be lit via the A1 contract                                                                                                             |
-| 3   | Lit custom shader (terrain splat, stylized lit water) | ✅       | ✅       | `lighting: "lit"` binds the group(3) lit contract; `aperture*` helpers reproduce the StandardMaterial response (parity plan A1)                                                                                       |
-| 4   | Vertex-animated foliage/flags (wind)                  | ✅       | ✅       | Displacement works and `entryPoints.shadowVertex` mirrors it into the shadow map (parity plan A4); skinning in custom shaders remains #5's gap                                                                        |
-| 5   | Custom shader on skinned characters                   | ✅       | ❌       | No skin/morph inputs in custom pipelines                                                                                                                                                                              |
-| 6   | Minimap / security-camera monitor                     | ✅       | ✅       | Facade route (parity plan B1): `renderTargets.register` + `spawn.camera({ renderTarget })` + `material.texture` HUD quad (`examples/minimap`)                                                                         |
-| 7   | Planar mirror                                         | ✅       | ❌       | No Reflector, clipping planes, or stencil                                                                                                                                                                             |
-| 8   | Stencil portal / masked reveal                        | ✅       | ❌       | Stencil explicitly unsupported                                                                                                                                                                                        |
-| 9   | Dynamic reflection probe (cube capture)               | ✅       | ✅       | Cube render targets + scheduled capture camera + IBL prefilter of the captured cube (parity plan B2, `examples/reflective-probe`)                                                                                     |
-| 10  | Refraction / heat haze (grab pass)                    | ✅       | ✅       | Automatic transmission grab; params authorable on `material.standard()` (parity plan A3); custom-WGSL grab access remains #12's domain                                                                                |
-| 11  | Custom g-buffer / MRT technique                       | ✅       | ✅       | `colorTargets` MRT declaration on custom materials + user-pass resolve (parity plan B3, `examples/gbuffer`)                                                                                                           |
-| 12  | Full-screen color grade / custom post chain           | ✅       | ✅       | User passes write facade targets (ping-pong chains) or scene-color (parity plan B3); built-in post list itself remains non-extensible                                                                                 |
-| 13  | GPU particle/VFX sim (custom compute)                 | ✅\*     | 🟡       | Compute pass is general, but no compute→draw bridge; built-in Shuriken system covers most VFX needs ✅                                                                                                                |
-| 14  | GPU crowd (compute skinning + instanced draw)         | ✅\*     | ❌       | Needs storage-buffer materials or compute→instance plumbing                                                                                                                                                           |
-| 15  | GPU-driven culling / indirect draw                    | ✅\*     | ❌       | Indirect draw internal-only                                                                                                                                                                                           |
-| 16  | CPU cloth/jelly (per-frame vertex upload)             | ✅       | 🟡       | Update-range uploads exist; ergonomics are asset re-registration                                                                                                                                                      |
-| 17  | Decals (bullet holes, blood)                          | ✅       | ❌       | Nothing; overlay pass is the only workaround                                                                                                                                                                          |
-| 18  | In-world video/canvas screen (TV, scoreboard)         | ✅       | ❌       | No runtime texture updates                                                                                                                                                                                            |
-| 19  | Soft particles / depth-fade VFX                       | 🟡       | ✅       | three.js: manual depth sampling. Aperture: built into the particle renderer AND B4 lets any transparent custom material sample scene depth read-only (`source: "scene-depth"`, MSAA-aware) — the `forcefield` example |
-| 20  | Occlusion-driven gameplay (lens flare, AI visibility) | 🟡       | ✅       | three.js WebGPURenderer only; Aperture reports feedback with fallback reasons                                                                                                                                         |
+| #   | Scenario                                              | three.js | Aperture | Aperture notes                                                                                                                                                                                                                                                                                              |
+| --- | ----------------------------------------------------- | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Unlit stylized shader (scrolling UVs, force field)    | ✅       | ✅       | Custom WGSL + `RuntimeUniform` time/params — the showcase water shader is exactly this; can now also opt into scene lighting (A1)                                                                                                                                                                           |
+| 2   | Dissolve effect (noise mask + threshold)              | ✅       | ✅       | Mask texture + alphaMode `mask` + runtime threshold; the surviving surface can be lit via the A1 contract                                                                                                                                                                                                   |
+| 3   | Lit custom shader (terrain splat, stylized lit water) | ✅       | ✅       | `lighting: "lit"` binds the group(3) lit contract; `aperture*` helpers reproduce the StandardMaterial response (parity plan A1)                                                                                                                                                                             |
+| 4   | Vertex-animated foliage/flags (wind)                  | ✅       | ✅       | Displacement works and `entryPoints.shadowVertex` mirrors it into the shadow map (parity plan A4); skinning in custom shaders remains #5's gap                                                                                                                                                              |
+| 5   | Custom shader on skinned characters                   | ✅       | ❌       | No skin/morph inputs in custom pipelines                                                                                                                                                                                                                                                                    |
+| 6   | Minimap / security-camera monitor                     | ✅       | ✅       | Facade route (parity plan B1): `renderTargets.register` + `spawn.camera({ renderTarget })` + `material.texture` HUD quad (`examples/minimap`)                                                                                                                                                               |
+| 7   | Planar mirror                                         | ✅       | ❌       | No Reflector, clipping planes, or stencil                                                                                                                                                                                                                                                                   |
+| 8   | Stencil portal / masked reveal                        | ✅       | ❌       | Stencil explicitly unsupported                                                                                                                                                                                                                                                                              |
+| 9   | Dynamic reflection probe (cube capture)               | ✅       | ✅       | Cube render targets + scheduled capture camera + IBL prefilter of the captured cube (parity plan B2, `examples/reflective-probe`)                                                                                                                                                                           |
+| 10  | Refraction / heat haze (grab pass)                    | ✅       | ✅       | Automatic transmission grab; params authorable on `material.standard()` (parity plan A3); custom-WGSL grab access remains #12's domain                                                                                                                                                                      |
+| 11  | Custom g-buffer / MRT technique                       | ✅       | ✅       | `colorTargets` MRT declaration on custom materials + user-pass resolve (parity plan B3, `examples/gbuffer`)                                                                                                                                                                                                 |
+| 12  | Full-screen color grade / custom post chain           | ✅       | ✅       | User passes write facade targets (ping-pong chains) or scene-color (parity plan B3); built-in post list itself remains non-extensible                                                                                                                                                                       |
+| 13  | GPU particle/VFX sim (custom compute)                 | ✅\*     | ✅       | Compute→draw bridge shipped (parity plan C1): a compute pass writes a writable `BufferAsset` an instanced custom material consumes the same frame with zero CPU copies (`examples/boids`); the built-in Shuriken system also covers most VFX needs                                                          |
+| 14  | GPU crowd (compute skinning + instanced draw)         | ✅\*     | ✅       | Compute→instance plumbing shipped (parity plan C1): the writable buffer feeds both a `material.storage(...)` binding AND a buffer-backed instance stream (`instanceBuffer`), frame-graph-ordered compute-before-draw — the GPU crowd = boids + a built-in/custom instanced material via the instance stream |
+| 15  | GPU-driven culling / indirect draw                    | ✅\*     | ❌       | Indirect draw internal-only                                                                                                                                                                                                                                                                                 |
+| 16  | CPU cloth/jelly (per-frame vertex upload)             | ✅       | 🟡       | Update-range uploads exist; ergonomics are asset re-registration                                                                                                                                                                                                                                            |
+| 17  | Decals (bullet holes, blood)                          | ✅       | ❌       | Nothing; overlay pass is the only workaround                                                                                                                                                                                                                                                                |
+| 18  | In-world video/canvas screen (TV, scoreboard)         | ✅       | ❌       | No runtime texture updates                                                                                                                                                                                                                                                                                  |
+| 19  | Soft particles / depth-fade VFX                       | 🟡       | ✅       | three.js: manual depth sampling. Aperture: built into the particle renderer AND B4 lets any transparent custom material sample scene depth read-only (`source: "scene-depth"`, MSAA-aware) — the `forcefield` example                                                                                       |
+| 20  | Occlusion-driven gameplay (lens flare, AI visibility) | 🟡       | ✅       | three.js WebGPURenderer only; Aperture reports feedback with fallback reasons                                                                                                                                                                                                                               |
 
 \* WebGPU backend required; the WebGL2 fallback loses atomics, storage
 textures, and indirect.
 
 Score (of 20): three.js ✅ 16 / 🟡 2 / ❌ 0 (2 backend-caveated); Aperture
-✅ 12 / 🟡 2 / ❌ 6. The ❌ column clusters around three missing primitives —
-extended custom materials (skinning/morph inputs), stencil, and the
-compute→rendering bridge — rather than twenty unrelated gaps.
+✅ 14 / 🟡 1 / ❌ 5. The ❌ column clusters around two missing primitives —
+extended custom materials (skinning/morph inputs) and stencil — plus
+GPU-driven indirect draw as a user API (parity plan C2); the compute→rendering
+bridge itself shipped as parity plan C1.
 
 ---
 

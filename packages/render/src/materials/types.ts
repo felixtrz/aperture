@@ -421,6 +421,27 @@ export interface CustomWgslColorTargetDeclaration {
   readonly renderTarget?: RenderTargetHandle;
 }
 
+/**
+ * Buffer-backed instance-attribute stream (C1): the per-instance vertex data at
+ * `@location(6+)` is sourced DIRECTLY from a realized {@link BufferAsset}
+ * (zero CPU copies) instead of from CPU-authored `InstanceData` values. The
+ * `attributes` layout drives the same instance-step vertex-buffer layout as
+ * `defineInstanceAttributes` (slot 1, `stepMode: "instance"`); the `buffer`
+ * handle is realized once per handle@version and shared with any storage
+ * binding referencing the same buffer, so a compute pass can write it and the
+ * draw consumes it the same frame (frame graph orders compute-before-draw).
+ *
+ * The buffer's element layout must match the declared attributes' packed
+ * stride (`attributes` `strideFloats * 4`); rows are indexed by the draw's
+ * `firstInstance + instanceIndex` (spawn/packed-transform order). A material
+ * sources its instance stream from EITHER `instanceAttributes` (CPU) OR
+ * `instanceBuffer` (GPU), never both.
+ */
+export interface CustomWgslInstanceBufferDeclaration {
+  readonly buffer: BufferHandle;
+  readonly attributes: InstanceAttributeLayoutInput;
+}
+
 export interface CustomWgslMaterialAsset {
   readonly sourceDiscriminator: "custom-material-source";
   readonly shaderLanguage: "wgsl";
@@ -440,6 +461,12 @@ export interface CustomWgslMaterialAsset {
   readonly bindings: readonly CustomWgslBindingDeclaration[];
   readonly dependencies: readonly CustomMaterialDependencyDeclaration[];
   readonly instanceAttributes?: InstanceAttributeLayoutInput;
+  /**
+   * Buffer-backed instance-attribute stream (C1). Present ⇒ the instance
+   * vertex buffer (slot 1) is the realized `instanceBuffer.buffer` asset,
+   * consumed zero-copy; mutually exclusive with `instanceAttributes`.
+   */
+  readonly instanceBuffer?: CustomWgslInstanceBufferDeclaration;
   readonly metadata?: JsonRecord;
 }
 

@@ -130,6 +130,16 @@ export interface PreparedCustomWgslMaterial {
     readonly renderState: RenderStateDescriptor;
     readonly instanceAttributes: InstanceAttributeLayout | null;
     /**
+     * Buffer-backed instance stream (C1): present ONLY when the source declared
+     * `instanceBuffer`, marking that slot 1's instance vertex buffer is the
+     * realized `buffer` asset (shared zero-copy with any storage binding on the
+     * same handle) rather than CPU-packed InstanceData. `instanceAttributes`
+     * still describes the layout. Absent ⇒ byte-identical prepared shape.
+     */
+    readonly instanceBuffer?: {
+      readonly buffer: BufferHandle;
+    };
+    /**
      * MRT declaration (B3), normalized (writeMask defaulted to "all").
      * Present ONLY when the source declared colorTargets so materials
      * without one stay byte-identical.

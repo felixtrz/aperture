@@ -26,8 +26,12 @@ export function createPreparedCustomWgslMaterial(input: {
     ? `${APERTURE_LIT_WGSL_HEADER}\n${input.shaderCode}`
     : input.shaderCode;
   const shaderHash = stableStringHash(shaderCode);
+  // C1: a buffer-backed instance stream drives the SAME instance-step vertex
+  // layout as CPU-authored InstanceData (slot 1, @location(6+)); the two are
+  // mutually exclusive, so one layout feeds both the pipeline key and the
+  // vertex state regardless of where the per-instance bytes come from.
   const instanceAttributes = createInstanceAttributeLayout(
-    input.source.instanceAttributes,
+    input.source.instanceBuffer?.attributes ?? input.source.instanceAttributes,
   );
   const moduleKey = `custom-wgsl-module:${input.shaderSourceKey}:${shaderHash}`;
   const pipelineKey = customWgslMaterialPipelineKey(
@@ -122,6 +126,13 @@ export function createPreparedCustomWgslMaterial(input: {
         : { shadowVertexEntryPoint: input.source.entryPoints.shadowVertex }),
       renderState: input.source.renderState,
       instanceAttributes,
+      // C1: present only when the instance stream is buffer-backed, so the
+      // frame binds the realized BufferAsset at slot 1 (zero-copy) instead of
+      // the CPU-packed InstanceData buffer. Absent ⇒ byte-identical prepared
+      // shape for every pre-C1 material.
+      ...(input.source.instanceBuffer === undefined
+        ? {}
+        : { instanceBuffer: { buffer: input.source.instanceBuffer.buffer } }),
       // Present only when declared (B3) so undeclared prepared materials
       // stay byte-identical.
       ...(input.source.colorTargets === undefined

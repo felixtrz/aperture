@@ -22,6 +22,7 @@ import {
 } from "../draw/draw-command.js";
 import type { MeshGpuBufferResource } from "../../resources/meshes/mesh-buffer-resources.js";
 import type { InstanceTintGpuBufferResource } from "../../resources/attributes/instance-tint-buffer.js";
+import type { InstanceAttributeGpuBufferResource } from "../../resources/attributes/instance-attribute-buffer.js";
 import type { GetOrCreateRenderPipelineResult } from "../../gpu/pipeline-cache-integration.js";
 import {
   createRenderPassCommandScratch,
@@ -69,6 +70,9 @@ export interface PlanRenderFrameFromSnapshotInput {
   readonly resolveMaterialResourceKey: (draw: MeshDrawPacket) => string | null;
   readonly meshResources: readonly MeshGpuBufferResource[];
   readonly instanceTintResources?: readonly InstanceTintGpuBufferResource[];
+  // C1: buffer-backed instance-attribute streams (slot 1) — a realized
+  // BufferAsset consumed zero-copy. Threaded like instanceTintResources.
+  readonly instanceAttributeResources?: readonly InstanceAttributeGpuBufferResource[];
   readonly pipelineKeysByRenderId?: ReadonlyMap<number, string>;
   readonly pipelines: readonly GetOrCreateRenderPipelineResult[];
   readonly bindGroups: readonly UnlitBindGroupResource[];
@@ -285,6 +289,9 @@ export function writeRenderFramePlanFromSnapshot(
       ...(input.instanceTintResources === undefined
         ? {}
         : { instanceTintResources: input.instanceTintResources }),
+      ...(input.instanceAttributeResources === undefined
+        ? {}
+        : { instanceAttributeResources: input.instanceAttributeResources }),
       ...(input.pipelineKeysByRenderId === undefined
         ? {}
         : { pipelineKeysByRenderId: input.pipelineKeysByRenderId }),
@@ -317,6 +324,9 @@ export function writeRenderFramePlanFromSnapshot(
       ...(input.instanceTintResources === undefined
         ? {}
         : { instanceTintResources: input.instanceTintResources }),
+      ...(input.instanceAttributeResources === undefined
+        ? {}
+        : { instanceAttributeResources: input.instanceAttributeResources }),
     },
     input.scratch.resourcesScratch,
   );

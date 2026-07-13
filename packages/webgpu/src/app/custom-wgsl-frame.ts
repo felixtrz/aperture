@@ -19,7 +19,10 @@ import {
   prepareCustomWgslLitFrameResources,
   type CustomWgslLitDiagnostic,
 } from "./custom-wgsl-lit-resources.js";
-import { prepareCustomWgslAppStorageBufferBindingResources } from "./custom-wgsl-storage-buffer-resources.js";
+import {
+  prepareCustomWgslAppStorageBufferBindingResources,
+  prepareCustomWgslWritableBufferStream,
+} from "./custom-wgsl-storage-buffer-resources.js";
 import { prepareCustomWgslAppTextureSamplerBindingResources } from "./custom-wgsl-texture-sampler-resources.js";
 import { resolveWebGpuAppSwapchainSceneDepth } from "./attachments.js";
 import { mapFrameBoundaryReadbackSamples } from "../render/frame/frame-boundary.js";
@@ -251,6 +254,17 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
       material: prepared,
       runtimeBuffers: options.snapshot.runtimeBuffers ?? [],
     });
+  // C1: writable-buffer reads + buffer-backed instance stream (shares the same
+  // customWgslStorageBuffers cache as the storage binding above → zero copy).
+  const writableBufferStream = prepareCustomWgslWritableBufferStream({
+    assets: options.assets,
+    device: options.app.initialization.device,
+    cache: options.cache.customWgslStorageBuffers,
+    reuse: options.reuse,
+    material,
+    prepared,
+    renderId: draw.renderId,
+  });
 
   if (cachedPipeline === undefined) {
     options.reuse.pipelineMisses += 1;
@@ -402,6 +416,13 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
         ? frameResources.material.resourceKey
         : null,
     meshResources: [frameResources.mesh],
+    ...(writableBufferStream.instanceAttributeResource === null
+      ? {}
+      : {
+          instanceAttributeResources: [
+            writableBufferStream.instanceAttributeResource,
+          ],
+        }),
     pipelineKeysByRenderId,
     pipelines: [pipelineResult],
     bindGroups: frameResources.bindGroups,
@@ -470,6 +491,11 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     label: options.label ?? "aperture-custom-wgsl-app",
     reuse: options.reuse,
     customColorTargets: customColorTargets.plan,
+    // C1: writable-buffer ids consumed this frame → the scene node reads them so
+    // a compute pass writing the same id is ordered before the draw.
+    ...(writableBufferStream.writableBufferIds.length === 0
+      ? {}
+      : { bufferReads: writableBufferStream.writableBufferIds }),
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
       options.snapshotUpdateSchedule,
     ),
@@ -564,6 +590,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
       ...packedViews.diagnostics,
       ...packedTransforms.diagnostics,
       ...resources.diagnostics,
+      ...writableBufferStream.diagnostics,
       ...featureFrame.diagnostics,
       ...merged.diagnostics,
       ...boundaries.diagnostics,

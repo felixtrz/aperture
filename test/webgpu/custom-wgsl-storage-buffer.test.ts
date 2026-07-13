@@ -7,7 +7,9 @@ import {
   createCustomWgslMaterialAsset,
   createDefaultRenderState,
   createPreparedCustomWgslMaterial,
+  defineInstanceAttributes,
   type BufferAssetData,
+  type BufferAssetUsage,
   type BufferElementType,
   type CustomWgslMaterialAsset,
   type PackedSnapshotTransforms,
@@ -23,6 +25,8 @@ import {
 import {
   createCustomWgslAppFrameResources,
   prepareCustomWgslAppStorageBufferBindingResources,
+  prepareCustomWgslWritableBufferStream,
+  resolveAppBufferAssetResourceById,
   type CustomWgslAppStorageBufferResource,
   type WebGpuRenderPipelineCreateDescriptor,
   type WebGpuShaderCreateDescriptor,
@@ -357,6 +361,167 @@ describe("custom WGSL storage-buffer app frame resources", () => {
         runtimeBufferKey: "grass.bend",
       },
     ]);
+  });
+});
+
+// C1 (three.js parity plan): a WRITABLE buffer is realized ONCE per handle@version
+// and shared zero-copy by the material storage binding, the compute pass buffer
+// resolver, and the buffer-backed instance stream.
+describe("writable buffer sharing + buffer-backed instance stream (C1)", () => {
+  function writableRegistry(usage: BufferAssetUsage): {
+    assets: AssetRegistry;
+    handle: BufferHandle;
+  } {
+    const assets = new AssetRegistry();
+    const handle = createBufferHandle("boids.positions");
+    assets.register(handle, { label: "Flock" });
+    assets.markReady(
+      handle,
+      createBufferAsset({
+        label: "Flock",
+        elementType: "vec4f",
+        elementCount: 160,
+        usage,
+        data: new Float32Array(160 * 4),
+      }),
+    );
+    return { assets, handle };
+  }
+
+  function boidsMaterial(handle: BufferHandle): {
+    source: CustomWgslMaterialAsset;
+    prepared: PreparedCustomWgslMaterial;
+  } {
+    const source = createCustomWgslMaterialAsset({
+      familyKey: "test/boids",
+      label: "Boids",
+      shader: { kind: "inline-wgsl", code: GRASS_WGSL, virtualPath: "b.wgsl" },
+      entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+      renderState: createDefaultRenderState({ cullMode: "none" }),
+      bindings: [
+        {
+          name: "boids",
+          binding: 0,
+          kind: "storage-buffer",
+          visibility: ["vertex"],
+          buffer: handle,
+        },
+      ],
+      instanceBuffer: {
+        buffer: handle,
+        attributes: defineInstanceAttributes([
+          { name: "instanceState", format: "float32x4" },
+        ]),
+      },
+    });
+    const prepared = createPreparedCustomWgslMaterial({
+      source,
+      assetKey: "material:boids",
+      shaderCode: GRASS_WGSL,
+      shaderSourceKey: "inline:material:boids",
+    });
+    return { source, prepared };
+  }
+
+  it("realizes a writable buffer with STORAGE|VERTEX|COPY_DST|COPY_SRC usage", () => {
+    const { assets, handle } = writableRegistry("storage");
+    const { source, prepared } = boidsMaterial(handle);
+    const cache = new Map<string, CustomWgslAppStorageBufferResource>();
+    const reuse = newReuseCounters();
+    const createdBuffers: { descriptor: { usage: number; size: number } }[] =
+      [];
+    const device = storageDevice(createdBuffers);
+
+    prepareCustomWgslAppStorageBufferBindingResources({
+      assets,
+      device,
+      cache,
+      reuse,
+      source,
+      material: prepared,
+    });
+
+    expect(createdBuffers).toHaveLength(1);
+    // 0x80 STORAGE | 0x20 VERTEX | 0x08 COPY_DST | 0x04 COPY_SRC.
+    expect(createdBuffers[0]?.descriptor.usage).toBe(0x80 | 0x20 | 0x08 | 0x04);
+  });
+
+  it("shares ONE GPU buffer across the storage binding, compute resolver, and instance stream", () => {
+    const { assets, handle } = writableRegistry("storage");
+    const { source, prepared } = boidsMaterial(handle);
+    const cache = new Map<string, CustomWgslAppStorageBufferResource>();
+    const reuse = newReuseCounters();
+    const createdBuffers: { descriptor: { usage: number; size: number } }[] =
+      [];
+    const device = storageDevice(createdBuffers);
+
+    // (a) material storage binding realizes the buffer.
+    const storage = prepareCustomWgslAppStorageBufferBindingResources({
+      assets,
+      device,
+      cache,
+      reuse,
+      source,
+      material: prepared,
+    });
+    const storageBuffer = (
+      storage.resources[0]?.resource as
+        | { readonly buffer?: unknown }
+        | undefined
+    )?.buffer;
+
+    // (b) compute pass resolver resolves by string id (the graph handle).
+    const computeBuffer = resolveAppBufferAssetResourceById({
+      assets,
+      device,
+      cache,
+      reuse,
+      bufferId: "boids.positions",
+    })?.buffer;
+
+    // (c) buffer-backed instance stream.
+    const stream = prepareCustomWgslWritableBufferStream({
+      assets,
+      device,
+      cache,
+      reuse,
+      material: source,
+      prepared,
+      renderId: 1,
+    });
+
+    // ONE createBuffer call — all three consumers share the identical object.
+    expect(createdBuffers).toHaveLength(1);
+    expect(storageBuffer).toBe(computeBuffer);
+    expect(stream.instanceAttributeResource?.buffer).toBe(storageBuffer);
+    expect(stream.instanceAttributeResource?.bufferBacked).toBe(true);
+    // 160 boids × vec4f (16-byte stride) ÷ 16-byte instance stride = 160 rows.
+    expect(stream.instanceAttributeResource?.vertexCount).toBe(160);
+    // The writable buffer is reported so the scene node reads it (ordering).
+    expect(stream.writableBufferIds).toEqual(["boids.positions"]);
+    expect(stream.diagnostics).toEqual([]);
+  });
+
+  it("does NOT list a read-only buffer as a writable read (grass stays byte-identical)", () => {
+    const { assets, handle } = writableRegistry("read-only-storage");
+    // A read-only material (no instanceBuffer) — mirrors grass.
+    const { source, prepared } = storageMaterial(handle);
+    const cache = new Map<string, CustomWgslAppStorageBufferResource>();
+    const reuse = newReuseCounters();
+    const device = storageDevice([]);
+
+    const stream = prepareCustomWgslWritableBufferStream({
+      assets,
+      device,
+      cache,
+      reuse,
+      material: source,
+      prepared,
+      renderId: 1,
+    });
+
+    expect(stream.writableBufferIds).toEqual([]);
+    expect(stream.instanceAttributeResource).toBeNull();
   });
 });
 

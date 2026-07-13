@@ -3,6 +3,7 @@ import {
   validateBufferAsset,
   type BufferAsset,
   type BufferAssetData,
+  type BufferAssetUsage,
   type BufferElementType,
 } from "@aperture-engine/render";
 import {
@@ -28,6 +29,15 @@ export interface BufferRegisterOptions {
   /** Optional initial contents; absent data zero-initializes the GPU buffer. */
   readonly data?: BufferAssetData;
   readonly label?: string;
+  /**
+   * C1: `"storage"` makes the buffer WRITABLE — a compute pass may write it
+   * (`app.addComputePass`) and the same realized GPU buffer is consumed the
+   * same frame as a read-only `material.storage(...)` binding AND/OR a
+   * buffer-backed instance stream (`material.customWgsl({ instanceBuffer })`),
+   * with the frame graph ordering compute-before-draw. Defaults to
+   * `"read-only-storage"` (A2), which stays byte-identical to today.
+   */
+  readonly usage?: BufferAssetUsage;
 }
 
 export interface BufferAccess {
@@ -45,6 +55,7 @@ export function createBufferAccess(registry: AssetRegistry): BufferAccess {
         label: options.label ?? options.id,
         elementType: options.elementType,
         elementCount: options.elementCount,
+        ...(options.usage === undefined ? {} : { usage: options.usage }),
         ...(options.data === undefined ? {} : { data: options.data }),
       });
       const report = validateBufferAsset(asset);

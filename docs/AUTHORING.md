@@ -537,6 +537,99 @@ When a storage binding declares `runtimeBufferKey` but no matching
 source-asset contents. See `examples/storage-buffer-grass.html` for a complete
 instanced-grass field driven this way.
 
+### Compute→draw plumbing (writable buffers) — parity plan C1
+
+A `BufferAsset` registered with `usage: "storage"` is WRITABLE: a compute pass
+may write it on the GPU and the SAME realized buffer is consumable the same
+frame as (a) a `material.storage(...)` binding AND (b) a buffer-backed
+instance-attribute stream — with zero CPU copies (the GPU counterpart of
+three.js WebGPU `storage().toAttribute()`). The renderer realizes one GPU buffer
+per handle@version (`STORAGE | VERTEX | COPY_DST | COPY_SRC`) and shares it
+across all three consumers; the frame graph orders compute-before-draw.
+
+1. A worker system registers the writable buffer and spawns the instanced draw.
+   The material reads the buffer as a storage binding AND declares an
+   `instanceBuffer` — the per-instance vertex data at `@location(6+)` comes
+   directly from the buffer (no per-entity `InstanceData`, no CPU pack):
+
+   ```ts
+   const flock = this.buffers.register({
+     id: "boids.positions",
+     elementType: "vec4f", // (posX, posY, velX, velY)
+     elementCount: 160,
+     usage: "storage", // WRITABLE — a compute pass writes it
+     data: seedFlock(160), // deterministic seed (see determinism below)
+   });
+
+   const boidMaterial = material.customWgsl({
+     familyKey: "example/boids",
+     shader: { kind: "inline-wgsl", code: BOIDS_WGSL },
+     entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+     bindings: [
+       // (a) read the whole flock array read-only.
+       material.storage("boids", {
+         binding: 0,
+         visibility: ["vertex"],
+         buffer: flock,
+       }),
+     ],
+     // (b) source slot-1 instance data (@location(6)) from the same buffer.
+     instanceBuffer: {
+       buffer: flock,
+       attributes: defineInstanceAttributes([
+         { name: "instanceState", format: "float32x4" },
+       ]),
+     },
+   });
+   ```
+
+   The instance buffer's element byte-stride must match the declared attributes'
+   packed stride (here `vec4f` = 16 bytes = one `float32x4`); rows are indexed by
+   the draw's `firstInstance + instanceIndex` (spawn/packed order). A material
+   sources its instance stream from EITHER `instanceAttributes` (CPU) OR
+   `instanceBuffer` (GPU), never both.
+
+2. The main thread registers a compute pass that WRITES the buffer id.
+   `ctx.buffer(id)` resolves the exact realized GPUBuffer the draw consumes:
+
+   ```ts
+   const app = await startGeneratedBrowserApp({
+     config,
+     workerEntry,
+     systemManifest,
+   });
+   const device = app.webgpu.app.initialization.device;
+   const pipeline = device.createComputePipeline({
+     /* boids integrator */
+   });
+
+   app.addComputePass({
+     name: "boids-sim",
+     writes: [{ handle: "boids.positions" }], // → ordered BEFORE the draw
+     encode(ctx) {
+       const boids = ctx.buffer("boids.positions"); // the shared GPU buffer
+       const bindGroup = device.createBindGroup({
+         layout: pipeline.getBindGroupLayout(0),
+         entries: [{ binding: 0, resource: { buffer: boids } } /* params */],
+       });
+       ctx.setComputePipeline(pipeline);
+       ctx.setBindGroup(0, bindGroup);
+       ctx.dispatchWorkgroups(Math.ceil(160 / 64));
+     },
+   });
+   ```
+
+The scene node reads every writable-buffer id the frame's draws consume, so the
+compute writer is ordered first (a mutual read/write is rejected as
+`frameGraph.cyclicDependency`). The compute shader's WGSL, pipeline, and params
+uniform are yours to own — the same raw-WebGPU escape hatch as any user pass.
+
+Determinism: the boids SIMULATION runs on the GPU, whose float positions differ
+across adapters and are never part of a determinism hash. What is
+reproducible — the "60-frame determinism with a fixed seed" — is the CPU/ECS
+authoring: identical seed bytes, entity/instance counts, and dispatch schedule.
+See `examples/boids.html` for the complete GPU-flocking example.
+
 ### Shadow-casting displacement
 
 By default a custom-WGSL mesh casts shadows through the renderer's shared
@@ -793,13 +886,14 @@ against the opaque scene depth.
 Current limitations: WGSL only; no shader imports; no user-supplied WebGPU
 objects or callbacks; and no arbitrary app-owned material adapter
 registration. App-route custom WGSL supports group-2 uniform buffers,
-read-only storage buffers, texture bindings, sampler bindings, existing
-instance-attribute layouts, the opt-in group(3) lit contract
-(`lighting: "lit"`), multi-target output declarations (`colorTargets`), and
-mixed built-in/custom frames through the normal `createWebGpuApp()` path
-(MRT materials excepted — they need the single-custom-material route).
-Storage bindings are read-only in this slice (`access: "read"`); writable
-storage arrives with the compute→draw plumbing (parity plan C1).
+read-only storage buffers, texture bindings, sampler bindings, CPU-authored
+instance-attribute layouts AND buffer-backed instance streams (parity plan
+C1), the opt-in group(3) lit contract (`lighting: "lit"`), multi-target output
+declarations (`colorTargets`), and mixed built-in/custom frames through the
+normal `createWebGpuApp()` path (MRT materials excepted — they need the
+single-custom-material route). Material storage bindings are read-only
+(`access: "read"`); a compute pass supplies writable-buffer writes via
+`usage: "storage"` buffers (see Compute→draw plumbing above).
 
 See [`recipes/custom-wgsl-material.md`](./recipes/custom-wgsl-material.md) for
 a complete shader and material setup.

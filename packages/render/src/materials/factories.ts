@@ -385,6 +385,9 @@ export function createCustomWgslMaterialAsset(
     ...(input.instanceAttributes === undefined
       ? {}
       : { instanceAttributes: input.instanceAttributes }),
+    ...(input.instanceBuffer === undefined
+      ? {}
+      : { instanceBuffer: input.instanceBuffer }),
     ...(input.metadata === undefined ? {} : { metadata: input.metadata }),
   };
 }
@@ -392,11 +395,21 @@ export function createCustomWgslMaterialAsset(
 function customWgslMaterialDependencies(input: {
   readonly shader: CustomWgslShaderRef;
   readonly bindings?: CustomWgslMaterialAsset["bindings"];
+  readonly instanceBuffer?: CustomWgslMaterialAsset["instanceBuffer"];
 }): readonly CustomMaterialDependencyDeclaration[] {
   const dependencies: CustomMaterialDependencyDeclaration[] = [];
 
   if (input.shader.kind === "shader-asset") {
     dependencies.push({ kind: "shader", handle: input.shader.handle });
+  }
+
+  // C1: a buffer-backed instance stream gates material readiness on its
+  // BufferAsset exactly like a storage binding's buffer does.
+  if (input.instanceBuffer !== undefined) {
+    dependencies.push({
+      kind: "buffer",
+      handle: input.instanceBuffer.buffer,
+    });
   }
 
   for (const binding of input.bindings ?? []) {

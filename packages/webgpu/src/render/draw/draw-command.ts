@@ -182,8 +182,14 @@ export function writeDrawCommandDescriptors(
       continue;
     }
 
+    // C1: the instance-attribute vertex stream (slot 1) exists on the material's
+    // resolved pipeline key (which embeds the prepared pipeline key's
+    // `instance-attributes:<layoutKey>` segment). The authored batch key does
+    // NOT carry it for app custom materials, so the resolved key is the correct
+    // signal for whether the pipeline binds slot 1 — otherwise a buffer-backed
+    // instance material would leave slot 1 unset and fail validation.
     if (
-      pipelineUsesInstanceAttributes(authoredPipelineKey) &&
+      pipelineUsesInstanceAttributes(resolvedPipelineKey) &&
       appendInstanceAttributeBufferKey(
         drawPackage,
         descriptor,
@@ -234,22 +240,28 @@ function appendInstanceAttributeBufferKey(
 ): boolean {
   const instanceAttributes = options.instanceAttributeResources?.[0];
 
-  if (drawPackage.packet.instanceAttributePacketIndex === undefined) {
-    scratch.diagnostics.push({
-      code: "drawCommand.missingInstanceAttributePacket",
-      renderId: drawPackage.renderId,
-      resourceKey: drawPackage.materialResourceKey,
-      message: `Render id ${drawPackage.renderId} uses an instance-attribute pipeline but has no instance attribute packet.`,
-    });
-    return false;
-  }
-
   if (instanceAttributes === undefined) {
     scratch.diagnostics.push({
       code: "drawCommand.missingInstanceAttributeResource",
       renderId: drawPackage.renderId,
       resourceKey: drawPackage.materialResourceKey,
       message: `Render id ${drawPackage.renderId} uses an instance-attribute pipeline but no instance attribute vertex buffer is available.`,
+    });
+    return false;
+  }
+
+  // C1: a buffer-backed instance stream (a compute-written BufferAsset) indexes
+  // rows by the draw's firstInstance + instanceIndex, so it needs NO per-entity
+  // instance attribute packet. CPU-authored InstanceData still requires one.
+  if (
+    instanceAttributes.bufferBacked !== true &&
+    drawPackage.packet.instanceAttributePacketIndex === undefined
+  ) {
+    scratch.diagnostics.push({
+      code: "drawCommand.missingInstanceAttributePacket",
+      renderId: drawPackage.renderId,
+      resourceKey: drawPackage.materialResourceKey,
+      message: `Render id ${drawPackage.renderId} uses an instance-attribute pipeline but has no instance attribute packet.`,
     });
     return false;
   }

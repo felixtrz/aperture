@@ -941,3 +941,62 @@ Consequences:
 - The render package owns the contract constants; the WebGPU backend derives
   its layout from the same table, and a unit test pins the packing-stride
   equality so the two packages cannot drift.
+
+## 0025 — One Realized GPU Buffer Per BufferAsset Handle@Version, Shared Across Consumers
+
+Date: 2026-07-13
+
+Status: accepted
+
+Context:
+
+Compute→draw plumbing (parity plan C1) requires a compute pass to WRITE a
+buffer that the SAME frame's draw READS — as a `material.storage(...)` binding
+AND as a buffer-backed instance-attribute stream — with zero CPU copies. Assets
+are data-only (0016): the ECS/worker carries a `BufferAsset` handle, never a
+live GPU object, and the WebGPU backend owns the realized `GPUBuffer`. For the
+hand-off to be zero-copy, all three consumers plus the compute writer must bind
+the IDENTICAL `GPUBuffer` object; two realizations of the same handle would
+silently decouple the compute output from the draw input. The compute pass is
+main-thread raw WebGPU (`app.addComputePass`) while the storage binding + the
+instance stream are realized deep in the forward frame routes, so the sharing
+point cannot be a single call site.
+
+Decision:
+
+The WebGPU backend realizes exactly ONE `GPUBuffer` per `BufferAsset`
+handle@version, cached in the app resource cache (`customWgslStorageBuffers`)
+keyed by `assetHandleKey(handle)@version`. Every consumer — the
+`material.storage(...)` binding, the buffer-backed instance stream, and the
+compute pass's `ctx.buffer(id)` resolver — resolves through the same
+get-or-create (`resolveAppBufferAssetResource`); the first caller in a frame
+realizes it, the rest reuse the identical object.
+
+- A `usage: "storage"` (writable) `BufferAsset` is realized with
+  `STORAGE | VERTEX | COPY_DST | COPY_SRC` so one buffer serves as a storage
+  binding, an instance vertex stream, a compute read_write target, and a
+  readback source. `usage: "read-only-storage"` (the default) keeps its pre-C1
+  `STORAGE | COPY_DST` flags byte-for-byte.
+- Ordering is a pure graph-handle-string match: the compute pass declares
+  `writes: [{ handle: id }]` and the forward scene node declares `reads: [id]`
+  for every writable buffer its draws consume, so the frame graph's
+  writer-before-reader edge (0022's frame-graph model) orders
+  compute-before-draw. The graph handle id is the buffer's registered string id
+  (the same id the compute pass names), NOT the versioned cache key.
+- Lifetime is the realizer's: the buffer lives across frames (one per
+  handle@version); re-registering the handle bumps the version and realizes a
+  fresh buffer (the old one is evicted like any versioned source resource). GPU
+  float contents are renderer-owned and never round-trip to the ECS.
+
+Consequences:
+
+- The compute output and the draw input are guaranteed to be the same bytes
+  with zero copies, on both the single-custom and mixed forward routes.
+- The buffer id shares the frame-graph resource namespace with facade render
+  targets; buffer ids must not collide with render-target ids (documented in
+  AUTHORING.md).
+- GPU-computed buffer contents are non-deterministic across adapters; they are
+  never part of a determinism hash. Determinism is the CPU/ECS authoring
+  (seed bytes, entity counts, dispatch schedule), which flows through the
+  existing data-only asset mirror — no new snapshot packet family, so C1 does
+  not refresh the determinism fixtures.

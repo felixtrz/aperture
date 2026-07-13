@@ -46,6 +46,7 @@ export function validateCustomWgslMaterialSource(
     diagnostics,
   );
   validateSceneDepthPhase(source, assetKey, diagnostics);
+  validateInstanceStream(source, assetKey, diagnostics);
   validateDependencies(
     (source as { readonly dependencies?: unknown }).dependencies,
     assetKey,
@@ -895,6 +896,60 @@ function invalidBinding(
     severity: "error",
     assetKey,
   };
+}
+
+// C1: a buffer-backed instance stream sources slot 1 from a realized
+// BufferAsset. It requires a buffer handle + at least one attribute, and is
+// mutually exclusive with CPU-authored instanceAttributes (both would compete
+// for the same instance vertex-buffer slot).
+function validateInstanceStream(
+  source: CustomWgslMaterialSource,
+  assetKey: string,
+  diagnostics: RenderAssetPreparationDiagnostic[],
+): void {
+  const instanceBuffer = (
+    source as {
+      readonly instanceBuffer?: {
+        readonly buffer?: unknown;
+        readonly attributes?: { readonly attributes?: unknown };
+      };
+    }
+  ).instanceBuffer;
+
+  if (instanceBuffer === undefined) {
+    return;
+  }
+
+  const invalid = (message: string): void => {
+    diagnostics.push({
+      code: "customMaterialSource.invalidInstanceBuffer",
+      message: `Custom material '${assetKey}' ${message}`,
+      severity: "error",
+      assetKey,
+    });
+  };
+
+  if (source.instanceAttributes !== undefined) {
+    invalid(
+      "declares both instanceAttributes (CPU) and instanceBuffer (GPU); an instance stream must source from exactly one.",
+    );
+  }
+
+  if (
+    instanceBuffer.buffer === null ||
+    typeof instanceBuffer.buffer !== "object" ||
+    (instanceBuffer.buffer as { readonly kind?: unknown }).kind !== "buffer"
+  ) {
+    invalid("instanceBuffer must reference a buffer handle.");
+  }
+
+  const attributes = instanceBuffer.attributes?.attributes;
+
+  if (!Array.isArray(attributes) || attributes.length === 0) {
+    invalid(
+      "instanceBuffer must declare at least one attribute (defineInstanceAttributes([...])).",
+    );
+  }
 }
 
 function validateDependencies(

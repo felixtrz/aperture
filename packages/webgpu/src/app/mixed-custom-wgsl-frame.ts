@@ -22,7 +22,11 @@ import {
   type CustomWgslLitDiagnostic,
   type PrepareCustomWgslLitFrameResourcesResult,
 } from "./custom-wgsl-lit-resources.js";
-import { prepareCustomWgslAppStorageBufferBindingResources } from "./custom-wgsl-storage-buffer-resources.js";
+import {
+  prepareCustomWgslAppStorageBufferBindingResources,
+  prepareCustomWgslWritableBufferStream,
+} from "./custom-wgsl-storage-buffer-resources.js";
+import type { InstanceAttributeGpuBufferResource } from "../resources/attributes/instance-attribute-buffer.js";
 import { prepareCustomWgslAppTextureSamplerBindingResources } from "./custom-wgsl-texture-sampler-resources.js";
 import { resolveWebGpuAppSwapchainSceneDepth } from "./attachments.js";
 import type {
@@ -150,6 +154,13 @@ interface PreparedCustomDrawResources {
   readonly resourcesResult: Awaited<
     ReturnType<typeof createCustomWgslAppFrameResources>
   >;
+  // C1: ids of WRITABLE BufferAssets this material consumes (storage binding
+  // and/or buffer-backed instance stream) → the scene node reads them so a
+  // compute pass writing the same id is ordered first.
+  readonly writableBufferIds: readonly string[];
+  // C1: the buffer-backed instance-attribute stream (slot 1) realized as a
+  // zero-copy vertex buffer, or null when the material has no instanceBuffer.
+  readonly instanceAttributeResource: InstanceAttributeGpuBufferResource | null;
 }
 
 export async function renderMixedCustomWgslWebGpuAppFrame(options: {
@@ -398,6 +409,23 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     ...customPipelineKeysByRenderId,
   ]);
   const frameResources = resourcesResult.resources;
+  // C1: buffer-backed instance streams (slot 1) and the writable-buffer ids the
+  // frame's draws consume. `bufferBackedInstanceAttributeResources[0]` feeds the
+  // draw builder's single instance-attribute slot; `writableBufferReads` become
+  // the scene node's reads for compute-before-draw ordering.
+  const bufferBackedInstanceAttributeResources = preparedCustom.resources
+    .map((resource) => resource.instanceAttributeResource)
+    .filter(
+      (resource): resource is InstanceAttributeGpuBufferResource =>
+        resource !== null,
+    );
+  const writableBufferReads = [
+    ...new Set(
+      preparedCustom.resources.flatMap(
+        (resource) => resource.writableBufferIds,
+      ),
+    ),
+  ];
   const framePlan = writeRenderFramePlanFromSnapshot({
     snapshot: options.snapshot,
     snapshotChangeSet: options.snapshotChangeSet,
@@ -415,6 +443,11 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     instanceTintResources: collectInstanceTintResources(
       preparedBuiltIn.resources,
     ),
+    ...(bufferBackedInstanceAttributeResources.length === 0
+      ? {}
+      : {
+          instanceAttributeResources: bufferBackedInstanceAttributeResources,
+        }),
     pipelineKeysByRenderId,
     pipelines: [
       ...preparedBuiltIn.pipelineResults,
@@ -540,6 +573,11 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     label: options.label ?? "aperture-mixed-custom-wgsl-app",
     reuse: options.reuse,
     transmissionSceneColorResources: transmissionGrabResources.resources,
+    // C1: writable-buffer ids consumed this frame → the scene node reads them so
+    // a compute pass writing the same id is ordered before the draw.
+    ...(writableBufferReads.length === 0
+      ? {}
+      : { bufferReads: writableBufferReads }),
     ...(options.gpuTimings === undefined
       ? {}
       : { gpuTimings: options.gpuTimings }),
@@ -903,6 +941,17 @@ async function prepareCustomDrawResourceSet(options: {
       material: prepared,
       runtimeBuffers: options.snapshot.runtimeBuffers ?? [],
     });
+  // C1: writable-buffer reads + buffer-backed instance stream (shares the same
+  // customWgslStorageBuffers cache as the storage binding above → zero copy).
+  const writableBufferStream = prepareCustomWgslWritableBufferStream({
+    assets: options.assets,
+    device: options.app.initialization.device,
+    cache: options.cache.customWgslStorageBuffers,
+    reuse: options.reuse,
+    material,
+    prepared,
+    renderId: options.draw.renderId,
+  });
 
   if (cachedPipeline === undefined) {
     options.reuse.pipelineMisses += 1;
@@ -1007,8 +1056,13 @@ async function prepareCustomDrawResourceSet(options: {
       materialResourceKey: resources.resources.material.resourceKey,
       resources: resources.resources,
       resourcesResult: resources,
+      writableBufferIds: writableBufferStream.writableBufferIds,
+      instanceAttributeResource: writableBufferStream.instanceAttributeResource,
     },
-    diagnostics: resources.diagnostics,
+    diagnostics: [
+      ...resources.diagnostics,
+      ...writableBufferStream.diagnostics,
+    ],
   };
 }
 

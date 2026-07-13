@@ -1,10 +1,12 @@
 import {
   assetHandleKey,
+  createBufferHandle,
   type AssetRegistry,
   type BufferHandle,
 } from "@aperture-engine/simulation";
 import {
   bufferAssetByteLength,
+  bufferAssetUsageIsWritable,
   bufferElementByteStride,
   bufferElementComponentCount,
   validateBufferAsset,
@@ -17,6 +19,10 @@ import {
 import { createWebGpuBuffer } from "../gpu/buffer.js";
 import type { CustomWgslMaterialGpuResource } from "../materials/custom-wgsl/custom-wgsl-material.js";
 import { sourceAssetCacheKey } from "./app-texture-sampler-resources.js";
+import {
+  createBufferBackedInstanceAttributeResource,
+  type InstanceAttributeGpuBufferResource,
+} from "../resources/attributes/instance-attribute-buffer.js";
 
 // A2 (three.js parity plan): realize renderer-independent `BufferAsset`
 // sources as read-only storage-buffer bindings for custom WGSL materials.
@@ -220,18 +226,12 @@ function getOrCreateStorageBufferResource(input: {
 
   const byteLength = bufferAssetByteLength(asset);
   const initialData = packStorageBufferInitialData(asset);
-  const bufferUsage = (
-    globalThis as { GPUBufferUsage?: { STORAGE: number; COPY_DST: number } }
-  ).GPUBufferUsage ?? {
-    STORAGE: 0x80,
-    COPY_DST: 0x08,
-  };
   const created = createWebGpuBuffer({
     device: input.device as Parameters<typeof createWebGpuBuffer>[0]["device"],
     descriptor: {
       label: `custom-wgsl-storage:${bufferKey}`,
       size: byteLength,
-      usage: bufferUsage.STORAGE | bufferUsage.COPY_DST,
+      usage: appBufferAssetGpuUsage(asset),
       ...(initialData === null ? {} : { initialData }),
     },
   });
@@ -260,6 +260,229 @@ function getOrCreateStorageBufferResource(input: {
   input.cache.set(cacheKey, resource);
   input.reuse.storageBufferResourcesCreated += 1;
   return resource;
+}
+
+// C1: GPU usage flags for a realized BufferAsset. A read-only buffer keeps its
+// pre-C1 `STORAGE | COPY_DST` flags byte-for-byte. A writable (`usage:
+// "storage"`) buffer additionally gains `VERTEX` (buffer-backed instance
+// stream), `COPY_SRC` (motion readback / e2e), and stays `COPY_DST` — one GPU
+// buffer serves the compute writer, the read-only storage binding, and the
+// instance-attribute vertex stream with zero CPU copies.
+function appBufferAssetGpuUsage(asset: Pick<BufferAsset, "usage">): number {
+  const flags = (
+    globalThis as {
+      GPUBufferUsage?: {
+        STORAGE: number;
+        COPY_DST: number;
+        COPY_SRC: number;
+        VERTEX: number;
+      };
+    }
+  ).GPUBufferUsage ?? {
+    STORAGE: 0x80,
+    COPY_DST: 0x08,
+    COPY_SRC: 0x04,
+    VERTEX: 0x20,
+  };
+
+  if (bufferAssetUsageIsWritable(asset.usage)) {
+    return flags.STORAGE | flags.VERTEX | flags.COPY_DST | flags.COPY_SRC;
+  }
+
+  return flags.STORAGE | flags.COPY_DST;
+}
+
+/**
+ * C1: resolve (get-or-create) the ONE realized GPU buffer for a BufferAsset
+ * handle from the shared `customWgslStorageBuffers` cache. This is the
+ * zero-copy sharing point: a `material.storage(...)` binding, a buffer-backed
+ * instance stream, and an `app.addComputePass(...)` buffer resolver all call
+ * this with the SAME handle@version, so they bind the identical GPUBuffer. The
+ * first caller in a frame realizes it (with writable usage flags when the asset
+ * opts in); the rest reuse. Returns `null` when the asset is missing/not-ready/
+ * invalid — callers surface their own diagnostic.
+ */
+export function resolveAppBufferAssetResource(input: {
+  readonly assets: AssetRegistry;
+  readonly device: unknown;
+  readonly cache: Map<string, CustomWgslAppStorageBufferResource>;
+  readonly reuse: CustomWgslAppStorageBufferReuseCounters;
+  readonly handle: BufferHandle;
+}): CustomWgslAppStorageBufferResource | null {
+  const entry = input.assets.get<"buffer", BufferAsset>(input.handle);
+
+  if (entry === undefined || entry.status !== "ready" || entry.asset === null) {
+    return null;
+  }
+
+  const cacheKey = sourceAssetCacheKey(input.handle, entry.version);
+  const cached = input.cache.get(cacheKey);
+
+  if (cached !== undefined) {
+    input.reuse.storageBufferResourcesReused += 1;
+    return cached;
+  }
+
+  const asset = entry.asset;
+
+  if (!validateBufferAsset(asset).valid) {
+    return null;
+  }
+
+  const byteLength = bufferAssetByteLength(asset);
+  const initialData = packStorageBufferInitialData(asset);
+  const created = createWebGpuBuffer({
+    device: input.device as Parameters<typeof createWebGpuBuffer>[0]["device"],
+    descriptor: {
+      label: `app-buffer-asset:${assetHandleKey(input.handle)}`,
+      size: byteLength,
+      usage: appBufferAssetGpuUsage(asset),
+      ...(initialData === null ? {} : { initialData }),
+    },
+  });
+
+  if (!created.ok) {
+    return null;
+  }
+
+  const resource: CustomWgslAppStorageBufferResource = {
+    cacheKey,
+    buffer: created.buffer,
+    byteLength,
+    elementType: asset.elementType,
+    elementCount: asset.elementCount,
+    appliedRuntimeValueKeys: new Map(),
+  };
+
+  input.cache.set(cacheKey, resource);
+  input.reuse.storageBufferResourcesCreated += 1;
+  return resource;
+}
+
+/**
+ * C1: resolve a realized BufferAsset GPU buffer by its registered string id
+ * (the graph-handle convention shared by `app.addComputePass` write handles and
+ * the scene node's buffer reads). Used by the compute-pass `ctx.buffer(id)`
+ * resolver.
+ */
+export function resolveAppBufferAssetResourceById(input: {
+  readonly assets: AssetRegistry;
+  readonly device: unknown;
+  readonly cache: Map<string, CustomWgslAppStorageBufferResource>;
+  readonly reuse: CustomWgslAppStorageBufferReuseCounters;
+  readonly bufferId: string;
+}): CustomWgslAppStorageBufferResource | null {
+  return resolveAppBufferAssetResource({
+    assets: input.assets,
+    device: input.device,
+    cache: input.cache,
+    reuse: input.reuse,
+    handle: createBufferHandle(input.bufferId),
+  });
+}
+
+export interface CustomWgslWritableBufferStreamResult {
+  /**
+   * Registered ids of WRITABLE (`usage: "storage"`) BufferAssets this material
+   * consumes — the scene node reads them for compute-before-draw ordering.
+   */
+  readonly writableBufferIds: readonly string[];
+  /**
+   * The buffer-backed instance-attribute stream (slot 1) realized zero-copy, or
+   * null when the material declared no `instanceBuffer`.
+   */
+  readonly instanceAttributeResource: InstanceAttributeGpuBufferResource | null;
+  readonly diagnostics: readonly unknown[];
+}
+
+/**
+ * C1 (compute→draw plumbing): collect the WRITABLE (`usage: "storage"`)
+ * BufferAsset ids a custom material consumes — from `material.storage(...)`
+ * bindings and/or a buffer-backed instance stream — so the scene node can read
+ * them (writer-before-reader ordering onto the compute pass that writes them),
+ * and realize the buffer-backed instance stream (slot 1) as a ZERO-COPY vertex
+ * buffer sharing the exact GPUBuffer the storage cache holds. Read-only buffers
+ * (A2 grass) are never listed, so their frames stay byte-identical.
+ *
+ * Shared by the single-custom and mixed custom/built-in forward routes.
+ */
+export function prepareCustomWgslWritableBufferStream(options: {
+  readonly assets: AssetRegistry;
+  readonly device: unknown;
+  readonly cache: Map<string, CustomWgslAppStorageBufferResource>;
+  readonly reuse: CustomWgslAppStorageBufferReuseCounters;
+  readonly material: CustomWgslMaterialAsset;
+  readonly prepared: PreparedCustomWgslMaterial;
+  readonly renderId: number;
+}): CustomWgslWritableBufferStreamResult {
+  const writableBufferIds: string[] = [];
+  const diagnostics: unknown[] = [];
+
+  const addWritable = (handle: BufferHandle | undefined): void => {
+    if (handle === undefined) {
+      return;
+    }
+    const entry = options.assets.get<"buffer", BufferAsset>(handle);
+    if (
+      entry?.status === "ready" &&
+      entry.asset !== null &&
+      bufferAssetUsageIsWritable(entry.asset.usage) &&
+      !writableBufferIds.includes(handle.id)
+    ) {
+      writableBufferIds.push(handle.id);
+    }
+  };
+
+  for (const binding of options.material.bindings) {
+    if (binding.kind === "storage-buffer") {
+      addWritable(binding.buffer);
+    }
+  }
+
+  const instanceBuffer = options.prepared.pipeline.instanceBuffer;
+  const layout = options.prepared.pipeline.instanceAttributes;
+  let instanceAttributeResource: InstanceAttributeGpuBufferResource | null =
+    null;
+
+  if (instanceBuffer !== undefined && layout !== null) {
+    addWritable(instanceBuffer.buffer);
+    const entry = options.assets.get<"buffer", BufferAsset>(
+      instanceBuffer.buffer,
+    );
+    const resolved = resolveAppBufferAssetResource({
+      assets: options.assets,
+      device: options.device,
+      cache: options.cache,
+      reuse: options.reuse,
+      handle: instanceBuffer.buffer,
+    });
+
+    if (resolved === null || entry === undefined) {
+      diagnostics.push({
+        code: "webGpuApp.instanceBufferSourceNotReady",
+        message: `Buffer-backed instance stream for custom material '${options.prepared.sourceMaterialKey}' could not resolve its BufferAsset '${instanceBuffer.buffer.id}'.`,
+        renderId: options.renderId,
+      });
+    } else if (resolved.byteLength % layout.stride !== 0) {
+      diagnostics.push({
+        code: "webGpuApp.instanceBufferLayoutMismatch",
+        message: `Buffer-backed instance stream '${instanceBuffer.buffer.id}' byte length ${String(resolved.byteLength)} is not a multiple of the declared instance stride ${String(layout.stride)} (attributes packed stride). Match the buffer element type to the instance attributes.`,
+        renderId: options.renderId,
+      });
+    } else {
+      instanceAttributeResource = createBufferBackedInstanceAttributeResource({
+        resourceKey: `instance-buffer:${sourceAssetCacheKey(
+          instanceBuffer.buffer,
+          entry.version,
+        )}`,
+        buffer: resolved.buffer,
+        layout,
+        instanceCount: resolved.byteLength / layout.stride,
+      });
+    }
+  }
+
+  return { writableBufferIds, instanceAttributeResource, diagnostics };
 }
 
 /**

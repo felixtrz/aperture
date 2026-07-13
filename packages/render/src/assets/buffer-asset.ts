@@ -1,10 +1,17 @@
 // A2 (three.js parity plan): renderer-independent GPU buffer source asset.
 // `BufferAsset` is the data-only source for custom-material storage-buffer
-// bindings (and, later, compute→draw plumbing). It registers in the
+// bindings and, as of C1, for compute→draw plumbing. It registers in the
 // `AssetRegistry` under a `BufferHandle` like any other source asset, is
 // structured-clone-safe for the worker asset mirror (typed-array data), and
 // never carries live GPU objects; the WebGPU backend owns the realized
 // `GPUBuffer`.
+//
+// C1 (compute→draw plumbing): a `usage: "storage"` buffer is WRITABLE — a
+// compute pass may write it (`var<storage, read_write>`) and the same realized
+// GPU buffer is consumable the same frame as a read-only storage binding AND a
+// buffer-backed instance-attribute stream (a vertex buffer), with the frame
+// graph ordering compute-before-draw. See {@link BufferAssetUsage} and
+// DECISIONS 0025 for the single-buffer-per-handle@version sharing contract.
 
 /**
  * Typed element schema for a {@link BufferAsset}.
@@ -24,7 +31,35 @@ export type BufferElementType =
   | "u32"
   | "i32";
 
-export type BufferAssetUsage = "read-only-storage";
+/**
+ * How the WebGPU backend realizes the buffer's GPU usage flags.
+ *
+ * - `"read-only-storage"` (default, A2): the buffer is a `var<storage, read>`
+ *   source for custom-material storage bindings. Realized `STORAGE | COPY_DST`.
+ * - `"storage"` (C1, writable): the buffer may additionally be WRITTEN by a
+ *   compute pass (`var<storage, read_write>`) and consumed the SAME frame as a
+ *   read-only storage binding AND/OR a buffer-backed instance-attribute stream
+ *   (a vertex buffer), with the frame graph ordering compute-before-draw.
+ *   Realized `STORAGE | VERTEX | COPY_DST | COPY_SRC` so one GPU buffer serves
+ *   every consumer with zero CPU copies (the compute output). The renderer
+ *   still owns the GPUBuffer; the asset stays data-only (DECISIONS 0016 / 0025).
+ */
+export type BufferAssetUsage = "read-only-storage" | "storage";
+
+const BUFFER_ASSET_USAGES: readonly BufferAssetUsage[] = [
+  "read-only-storage",
+  "storage",
+];
+
+/**
+ * True when the buffer opts into compute-writable + vertex-consumable usage
+ * (C1). Read-only buffers keep their pre-C1 realization byte-for-byte.
+ */
+export function bufferAssetUsageIsWritable(
+  usage: BufferAssetUsage | undefined,
+): boolean {
+  return usage === "storage";
+}
 
 export type BufferAssetData = Float32Array | Uint32Array | Int32Array;
 
@@ -190,12 +225,12 @@ export function validateBufferAsset(
     });
   }
 
-  if (asset.usage !== "read-only-storage") {
+  if (!BUFFER_ASSET_USAGES.includes(asset.usage)) {
     diagnostics.push({
       code: "bufferAsset.invalidUsage",
       severity: "error",
       field: "usage",
-      message: `Buffer asset usage '${String(asset.usage)}' must be 'read-only-storage'.`,
+      message: `Buffer asset usage '${String(asset.usage)}' must be one of ${BUFFER_ASSET_USAGES.join(", ")}.`,
     });
   }
 

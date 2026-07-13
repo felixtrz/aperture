@@ -51,6 +51,7 @@ import {
 } from "./shadow-caster-graph-pass.js";
 import type { WebGpuAppFrameBoundaryTarget } from "./frame-target.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
+import { resolveAppBufferAssetResourceById } from "./custom-wgsl-storage-buffer-resources.js";
 import { encodePostPassMotionVectorClearColor } from "./motion-vectors.js";
 import { countDrawCommands } from "./view-commands.js";
 import type {
@@ -1133,6 +1134,11 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
             device: options.app.initialization.device,
             state: options.cache.renderTargets,
           };
+    const postUserPassBufferReuse = {
+      storageBufferResourcesCreated: 0,
+      storageBufferResourcesReused: 0,
+      dynamicBufferWrites: 0,
+    };
     const userResolvers: WebGpuAppPassResolvers = {
       view: (handle) => {
         if (handle === "scene-color") {
@@ -1152,7 +1158,19 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         }
         return undefined;
       },
-      buffer: () => undefined,
+      // C1: resolve a compute pass's declared buffer handle to the realized
+      // BufferAsset GPUBuffer via the shared cache (parity with the forward
+      // route). A missing registry / not-ready id resolves to undefined.
+      buffer: (handle) =>
+        options.assets === undefined
+          ? undefined
+          : resolveAppBufferAssetResourceById({
+              assets: options.assets,
+              device: options.app.initialization.device,
+              cache: options.cache.customWgslStorageBuffers,
+              reuse: postUserPassBufferReuse,
+              bufferId: handle,
+            })?.buffer,
       createBindGroup: (entries) =>
         (
           device as { createBindGroup?: (descriptor: unknown) => unknown }

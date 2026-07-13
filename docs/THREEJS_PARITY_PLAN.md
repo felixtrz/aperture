@@ -426,6 +426,52 @@ the existing `custom-graph-pass` e2e), so B4 adds only the custom-material half.
 
 ### C1. Compute→draw plumbing — **L** (needs A2)
 
+Status: implemented (2026-07-13). AC1: `BufferAsset` gains a writable
+`usage: "storage"` (the A2 `"read-only-storage"` stays the default,
+byte-identical). The WebGPU backend realizes ONE GPU buffer per handle@version
+(`STORAGE | VERTEX | COPY_DST | COPY_SRC`) and shares that identical buffer,
+zero-copy, across every consumer via the existing `customWgslStorageBuffers`
+cache (`resolveAppBufferAssetResource`): (a) a `material.storage(...)` binding
+reads it, (b) a NEW `material.customWgsl({ instanceBuffer: { buffer,
+attributes } })` sources the slot-1 `stepMode: "instance"` vertex stream
+(`@location(6+)`) directly from it (no per-entity `InstanceData` packet, no CPU
+pack — the draw builder's slot-1 append now keys off the RESOLVED pipeline key
+and a `bufferBacked` marker so it needs no packet), and the main-thread
+`app.addComputePass(...)` WRITES it — `ctx.buffer(id)` now resolves the realized
+GPUBuffer (previously a `() => undefined` stub on both graph routes).
+Compute-before-draw ordering: the forward scene node declares a READ on every
+writable-buffer id the frame's draws consume, so a compute pass writing the same
+id gets the frame graph's writer-before-reader edge (a mutual read/write is
+rejected as `frameGraph.cyclicDependency`, surfaced on the frame — no new edge
+machinery, the B3 pattern). AC2: `examples/boids` (worker registers the seeded
+writable buffer + spawns 160 instanced boids; main thread owns the flocking
+compute pipeline) with `test/e2e/boids.spec.ts` asserting 160 mesh draws
+collapsing into one instanced draw, a motion readback proving the positions
+change on the GPU between two frames, and compute-before-draw from the graph
+report. AC3: advanced-audit scenarios #13 and #14 → ✅. Deviations: (1) the
+buffer-backed instance source landed as a material-source `instanceBuffer`
+declaration (one shared buffer for the whole instanced draw) rather than on the
+per-entity `InstanceData` component — a GPU instance stream is inherently one
+shared buffer indexed by `firstInstance + instanceIndex`, not per-entity CPU
+values; a material sources its instance stream from EITHER `instanceAttributes`
+(CPU) OR `instanceBuffer` (GPU), never both (`customMaterialSource.invalidInstanceBuffer`).
+(2) Determinism is resolved as CPU/ECS-authoritative: the boids SIM is GPU-side
+(float positions differ per adapter and are NEVER hashed); the "60-frame
+determinism with a fixed seed" is proven by `test/determinism/boids-authoring.test.ts`
+(two fresh headless runs produce identical seed bytes + instanced authoring over
+60 frames) and the e2e's stable compute-before-draw schedule. No new snapshot
+packet family was needed (the writable buffer flows through the existing
+data-only asset mirror), so the committed determinism fixtures are unchanged.
+(3) Material storage bindings stay read-only (`access: "read"`); "writable" is
+the buffer's realization usage, written by the compute pass, not a read-write
+material binding. (4) The buffer-backed instance stream is one instance buffer
+per frame (the pre-existing single-shared-instance-buffer draw limitation).
+Pipeline-key stability: the buffer-backed stream participates only via the
+existing `instance-attributes:<layoutKey>` segment (absent → `:none`) and the
+buffer SOURCE never enters the key, so every pre-C1 material keeps a
+byte-identical pipeline key (`test/materials/custom-wgsl-instance-buffer.test.ts`
+pins the literal).
+
 - AC1: A compute pass may declare a `BufferAsset` as writable; the same
   buffer is consumable the same frame as (a) a custom-material storage
   binding and (b) an instance-attribute stream (`InstanceData` gains a

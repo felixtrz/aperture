@@ -221,6 +221,90 @@ describe("draw command descriptor planning", () => {
     expect(result.descriptors[0]?.vertexBufferKeys).toEqual(["mesh:a/vertex"]);
   });
 
+  // C1: a buffer-backed instance stream (a compute-written BufferAsset) indexes
+  // rows by firstInstance + instanceIndex, so it needs NO per-entity packet.
+  it("appends a buffer-backed instance stream WITHOUT a per-entity packet (C1)", () => {
+    const packetlessPackage = {
+      renderId: 1,
+      batchKey: {
+        ...BATCH,
+        pipelineKey: "custom|instance-attributes:abc123|opaque",
+      },
+      meshResourceKey: "mesh:a",
+      materialResourceKey: "material:a",
+      // No instanceAttributePacketIndex — the stream is buffer-backed.
+      packet: { instanceTintOffset: 0 },
+      transformPackedOffset: 16,
+    } as unknown as RenderWorldDrawPackage;
+
+    const result = createDrawCommandDescriptors(
+      [packetlessPackage],
+      [meshResource("mesh:a", true)],
+      {
+        instanceAttributeResources: [
+          {
+            streamId: "instanceAttributes",
+            resourceKey: "instance-buffer:buffer:flock@0",
+            buffer: {},
+            vertexCount: 160,
+            layout: {
+              attributes: [],
+              stride: 16,
+              strideFloats: 4,
+              layoutKey: "abc123",
+            },
+            offsets: [],
+            bufferBacked: true,
+          },
+        ],
+      },
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.descriptors[0]?.vertexBufferKeys).toEqual([
+      "mesh:a/vertex",
+      "instance-buffer:buffer:flock@0",
+    ]);
+  });
+
+  // C1: app custom materials carry the instance-attributes segment on the
+  // RESOLVED pipeline key (the batch key does not), so slot 1 must be decided
+  // from the resolved key.
+  it("decides the instance-attribute stream from the resolved pipeline key (C1)", () => {
+    const result = createDrawCommandDescriptors(
+      // Authored batch key WITHOUT the instance-attributes segment.
+      [drawPackage(1, "mesh:a", "custom|opaque")],
+      [meshResource("mesh:a", true)],
+      {
+        pipelineKeysByRenderId: new Map([
+          [1, "custom-wgsl|shader:x|instance-attributes:abc123|opaque"],
+        ]),
+        instanceAttributeResources: [
+          {
+            streamId: "instanceAttributes",
+            resourceKey: "instance-buffer:buffer:flock@0",
+            buffer: {},
+            vertexCount: 160,
+            layout: {
+              attributes: [],
+              stride: 16,
+              strideFloats: 4,
+              layoutKey: "abc123",
+            },
+            offsets: [],
+            bufferBacked: true,
+          },
+        ],
+      },
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.descriptors[0]?.vertexBufferKeys).toEqual([
+      "mesh:a/vertex",
+      "instance-buffer:buffer:flock@0",
+    ]);
+  });
+
   it("diagnoses instance-tint pipelines without a tint buffer", () => {
     const result = createDrawCommandDescriptors(
       [

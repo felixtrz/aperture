@@ -61,6 +61,14 @@ export interface InstanceAttributeGpuBufferResource {
   readonly vertexCount: number;
   readonly layout: InstanceAttributeLayout;
   readonly offsets: InstanceAttributeBufferDescriptorPlan["offsets"];
+  /**
+   * C1: true when `buffer` is a realized {@link @aperture-engine/render#BufferAsset}
+   * consumed zero-copy (compute output) rather than a CPU-packed InstanceData
+   * upload. Buffer-backed streams index rows by the draw's `firstInstance +
+   * instanceIndex`, so the draw builder does NOT require a per-entity instance
+   * attribute packet for them.
+   */
+  readonly bufferBacked?: boolean;
 }
 
 export interface CreateInstanceAttributeGpuBufferOptions {
@@ -156,6 +164,31 @@ export function createInstanceAttributeBufferDescriptor(
       vertexCount,
     },
     diagnostics,
+  };
+}
+
+/**
+ * C1: wrap an already-realized BufferAsset GPU buffer as a buffer-backed
+ * instance-attribute stream (zero copy — no CPU pack, no per-frame upload). The
+ * `layout` (from the material's `instanceBuffer.attributes`) supplies the
+ * slot-1 `stepMode: "instance"` vertex layout; `instanceCount` is the number of
+ * rows the buffer holds. The resource key is stable per buffer id + version so
+ * the draw builder's vertex-buffer key and the resolver map line up.
+ */
+export function createBufferBackedInstanceAttributeResource(options: {
+  readonly resourceKey: string;
+  readonly buffer: unknown;
+  readonly layout: InstanceAttributeLayout;
+  readonly instanceCount: number;
+}): InstanceAttributeGpuBufferResource {
+  return {
+    streamId: "instanceAttributes",
+    resourceKey: options.resourceKey,
+    buffer: options.buffer,
+    vertexCount: options.instanceCount,
+    layout: options.layout,
+    offsets: [],
+    bufferBacked: true,
   };
 }
 

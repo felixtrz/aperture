@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   bufferAssetByteLength,
+  bufferAssetUsageIsWritable,
   bufferElementByteStride,
   bufferElementComponentCount,
   createBufferAsset,
@@ -158,19 +159,42 @@ describe("buffer source assets", () => {
     ]);
   });
 
-  it("rejects usages other than read-only-storage", () => {
+  it("rejects unknown usages", () => {
     const report = validateBufferAsset({
       kind: "buffer",
       label: "Wrong Usage",
       elementType: "f32",
       elementCount: 4,
-      usage: "storage" as unknown as BufferAsset["usage"],
+      usage: "vertex" as unknown as BufferAsset["usage"],
     });
 
     expect(report.valid).toBe(false);
     expect(report.diagnostics).toMatchObject([
       { code: "bufferAsset.invalidUsage" },
     ]);
+  });
+
+  // C1 (three.js parity plan): a writable buffer a compute pass can write and
+  // the same frame's draw consumes as a storage binding + instance stream.
+  it("accepts the writable 'storage' usage (C1)", () => {
+    const asset = createBufferAsset({
+      label: "Flock",
+      elementType: "vec4f",
+      elementCount: 160,
+      usage: "storage",
+    });
+
+    expect(asset.usage).toBe("storage");
+    expect(validateBufferAsset(asset).valid).toBe(true);
+    expect(bufferAssetUsageIsWritable(asset.usage)).toBe(true);
+    expect(bufferAssetUsageIsWritable("read-only-storage")).toBe(false);
+    expect(bufferAssetUsageIsWritable(undefined)).toBe(false);
+  });
+
+  it("defaults usage to read-only-storage (writable is opt-in)", () => {
+    const asset = createBufferAsset({ elementType: "vec4f", elementCount: 4 });
+    expect(asset.usage).toBe("read-only-storage");
+    expect(bufferAssetUsageIsWritable(asset.usage)).toBe(false);
   });
 
   it("flags empty labels as warnings without failing validation alone", () => {

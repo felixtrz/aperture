@@ -54,6 +54,7 @@ import {
   type WebGpuAppTransmissionGrabPassReport,
 } from "./app.js";
 import { createWebGpuAppDepthAttachmentReport } from "./report.js";
+import { resolveAppBufferAssetResourceById } from "./custom-wgsl-storage-buffer-resources.js";
 import {
   createWebGpuAppDepthAttachmentForTarget,
   createWebGpuAppMsaaColorTargetForTarget,
@@ -155,6 +156,15 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   // M3-T5: shadow caster passes to fold into the forward encoder as depth-only
   // graph nodes the opaque pass reads (only used when useFrameGraph is on).
   readonly shadowCasterGraphPasses?: readonly ShadowCasterGraphPass[];
+  /**
+   * C1 (compute→draw plumbing): registered ids of WRITABLE BufferAssets this
+   * frame's draws consume (a `material.storage(...)` binding or a buffer-backed
+   * instance stream referencing a `usage: "storage"` buffer). The scene node
+   * declares a READ on each so a compute pass writing the same id is ordered
+   * before the draw (writer-before-reader edge). Read-only buffers (A2 grass)
+   * are never listed, so their frames stay byte-identical.
+   */
+  readonly bufferReads?: readonly string[];
   /**
    * B3: MRT attachment plan for a custom material declaring colorTargets.
    * Passes whose commands set this plan's pipeline attach the extra color
@@ -341,6 +351,27 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         key: shadowPass.key,
       });
       forwardGraphShadowReads.push(handle);
+    }
+  }
+
+  // C1: declare the writable-buffer resources this frame's draws consume so the
+  // scene node can READ them (writer-before-reader ordering onto any compute
+  // pass writing the same id). Declared `persistent` because the realizer owns
+  // the GPU buffer across frames (one buffer per handle@version). Deduped; an
+  // id already declared by a compute-pass write reuses that handle.
+  const forwardGraphBufferReads: string[] = [];
+  if (forwardGraph !== null) {
+    for (const bufferId of options.bufferReads ?? []) {
+      if (forwardGraphBufferReads.includes(bufferId)) {
+        continue;
+      }
+      if (forwardGraph.handle(bufferId) === undefined) {
+        forwardGraph.declareResource({
+          id: bufferId,
+          descriptor: { kind: "buffer", lifetime: "persistent" },
+        });
+      }
+      forwardGraphBufferReads.push(bufferId);
     }
   }
 
@@ -937,6 +968,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         occlusionRenderIds,
         gpuTimingPassName: gpuTiming?.passName ?? targetPassName,
         shadowReads: forwardGraphShadowReads,
+        // C1: writable-buffer reads so a compute pass writing the same id is
+        // ordered before this draw (writer-before-reader edge).
+        bufferReads: forwardGraphBufferReads,
         // B3: the MRT extras this pass writes, declared as persistent graph
         // handles so user passes reading them get read-after-write edges.
         ...(mrt.additionalColorTargets === null ||
@@ -1113,6 +1147,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
           app: options.app,
           assets: options.assets,
           renderTargetState: options.cache.renderTargets,
+          storageBuffers: options.cache.customWgslStorageBuffers,
           graph: forwardGraph,
           payloads: forwardGraphPayloads,
           entries: forwardGraphEntries,
@@ -1488,6 +1523,8 @@ function registerForwardGraphTarget(args: {
   // M3-T5: shadow depth handles this forward node reads so the compiler orders
   // the shadow caster nodes strictly before it (one shared encoder).
   readonly shadowReads?: readonly string[];
+  /** C1: writable-buffer ids this draw reads (compute-before-draw ordering). */
+  readonly bufferReads?: readonly string[];
   // B3: MRT plan whose extra targets this pass writes as additional color
   // attachments — declared as persistent graph handles under their facade ids.
   readonly mrtPlan?: WebGpuAppCustomColorTargetsPlan;
@@ -1557,7 +1594,7 @@ function registerForwardGraphTarget(args: {
   const nodeName = `${opts.label}:fg:${args.entries.length}`;
   args.graph.addRenderPass({
     name: nodeName,
-    reads: args.shadowReads ?? [],
+    reads: [...(args.shadowReads ?? []), ...(args.bufferReads ?? [])],
     writes: [
       { handle, attachment: opts.colorLoadOp === "load" ? "load" : "clear" },
       ...mrtTargetIds.map((targetId) => ({
@@ -1818,6 +1855,10 @@ function registerForwardGraphUserPasses(args: {
   readonly app: WebGpuApp;
   readonly assets: AssetRegistry;
   readonly renderTargetState: WebGpuAppResourceCache["renderTargets"];
+  // C1: the shared BufferAsset realization cache so a compute pass's
+  // ctx.buffer(id) resolves the SAME GPUBuffer a material.storage binding or a
+  // buffer-backed instance stream uses (zero-copy compute→draw hand-off).
+  readonly storageBuffers: WebGpuAppResourceCache["customWgslStorageBuffers"];
   readonly graph: ReturnType<typeof createFrameGraph>;
   readonly payloads: Map<string, FrameGraphRenderNodeBoundary>;
   readonly entries: readonly ForwardGraphTargetEntry[];
@@ -1878,6 +1919,15 @@ function registerForwardGraphUserPasses(args: {
     device: args.app.initialization.device,
     state: args.renderTargetState,
   };
+  // Discardable reuse counters for on-demand compute-pass buffer resolution:
+  // the material.storage path (which reports through the frame reuse counters)
+  // has already realized the shared buffer this frame, so these are almost
+  // always cache-hit reuses; the counts are not surfaced.
+  const userPassBufferReuse = {
+    storageBufferResourcesCreated: 0,
+    storageBufferResourcesReused: 0,
+    dynamicBufferWrites: 0,
+  };
   const resolvers: WebGpuAppPassResolvers = {
     view: (handle) => {
       if (handle === "scene-color") {
@@ -1904,7 +1954,20 @@ function registerForwardGraphUserPasses(args: {
       });
       return undefined;
     },
-    buffer: () => undefined,
+    // C1: resolve a compute pass's declared buffer handle to the realized
+    // BufferAsset GPUBuffer (get-or-create in the shared cache). Same buffer
+    // the frame's material.storage binding / instance stream use → the compute
+    // pass writes exactly what the draws read, zero copies. A non-buffer or
+    // not-ready id resolves to undefined (the callback's bind group then fails
+    // loudly rather than silently binding the wrong resource).
+    buffer: (handle) =>
+      resolveAppBufferAssetResourceById({
+        assets: args.assets,
+        device: args.app.initialization.device,
+        cache: args.storageBuffers,
+        reuse: userPassBufferReuse,
+        bufferId: handle,
+      })?.buffer,
     createBindGroup: (entries) =>
       (
         device as { createBindGroup?: (descriptor: unknown) => unknown }
