@@ -875,3 +875,69 @@ Consequences:
 - If that positioning ever changes, this decision must be revisited first,
   including how an XR loop would cross the worker-authoritative simulation
   boundary.
+
+## 0024 — Custom WGSL Lit Contract Is a Versioned Renderer-Owned @group(3)
+
+Date: 2026-07-13
+
+Status: accepted
+
+Context:
+
+Custom WGSL materials rendered unlit only: groups 0-2 carried the view
+uniform, world transforms, and user bindings, and group(3) was reserved.
+Making custom materials "real game materials" (parity plan A1, three.js
+scenario "custom shader receiving scene lighting/shadows/IBL") requires the
+renderer to hand shaders its lighting data without breaking the data-only
+material policy (0010-0012) or letting app code touch GPU resources. Custom
+pipelines also compiled with `layout: "auto"`, and auto bind-group layouts
+are exclusive to their pipeline — a renderer-owned lighting bind group cannot
+be shared across materials that way. Finally, whatever layout ships will be
+cached into pipeline keys, so it must be able to evolve without silently
+colliding with pipelines built against an older layout.
+
+Decision:
+
+`CustomWgslMaterialAsset` gains an opt-in `lighting: "unlit" | "lit"` field
+(default `"unlit"`). When `"lit"`:
+
+- The renderer owns `@group(3)` with a FIXED v1 layout (packed light
+  storage buffers + params uniform + directional shadow matrices/map/
+  comparison sampler + IBL irradiance/specular/BRDF-LUT textures + sampler),
+  defined renderer-independently in `@aperture-engine/render`
+  (`APERTURE_LIT_BINDING_METADATA`, documented in
+  `docs/LIGHT_SHADER_WGSL_CONTRACT.md`). Bindings without a frame resource
+  bind renderer-owned fallbacks (zeroed buffer, 1x1 black textures) so one
+  layout works every frame; `apertureLitParams` counts/flags are the
+  authoritative presence signal.
+- The renderer PREPENDS `APERTURE_LIT_WGSL_HEADER` (group(3) declarations +
+  `aperture*` helper functions with StandardMaterial math parity) to the
+  material's WGSL module; user source declaring `@group(3)` is rejected
+  (`customMaterialSource.litReservedBindGroup`).
+- Lit pipelines compile against an EXPLICIT pipeline layout so the single
+  renderer-owned group(3) bind group is shared across all lit custom
+  materials and cached across frames; unlit materials keep `layout: "auto"`
+  byte-for-byte.
+- The contract is versioned: `lit:v<APERTURE_LIT_CONTRACT_VERSION>`
+  participates in the material pipeline key and the extraction pipeline-key
+  features ONLY when lit. A future layout change bumps the version, which
+  rekeys every lit pipeline (no cache collisions) while absent/`"unlit"`
+  materials keep byte-identical keys forever.
+
+Consequences:
+
+- Custom materials can consume lights/shadows/IBL/fog with zero app-side GPU
+  wiring, and the bound resources are the SAME renderer-owned objects the
+  StandardMaterial path uses (packed light buffers, auto-shadow receiver
+  resources, environment IBL textures) — no duplicate resource ownership.
+- The v1 surface is a deliberate subset: single directional shadow receiver
+  (all filter modes evaluate as 3x3 PCF), diffuse-only rect-area
+  approximation, fragment-stage helpers only. Extending it (cascade
+  selection, clustered local lights, LTC area lights, vertex-stage access)
+  means a v2 header + layout behind a version bump.
+- Lit custom materials pay the fixed group(3) bind cost even when a frame
+  has no lights/shadows/environment (fallback resources keep the pipeline
+  layout stable); unlit materials pay nothing.
+- The render package owns the contract constants; the WebGPU backend derives
+  its layout from the same table, and a unit test pins the packing-stride
+  equality so the two packages cannot drift.

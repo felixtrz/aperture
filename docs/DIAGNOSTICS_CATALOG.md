@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1411
+Every structured diagnostic code the engine can emit (1416
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -665,6 +665,12 @@ suggestedFix accompanies it, and where it is emitted.
 | ----------------------------------- | --------------------------------------------------- | ---- | --------------------------------------------------------------- |
 | `customMaterialSource.invalidLabel` | Custom material '…' must provide a non-empty label. | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
 
+## customMaterialSource.invalidLighting (1)
+
+| Code                                   | Message                                                         | Fix? | Emitted from                                                    |
+| -------------------------------------- | --------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `customMaterialSource.invalidLighting` | Custom material '…' lighting must be 'unlit' or 'lit', not '…'. | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
+
 ## customMaterialSource.invalidMetadata (1)
 
 | Code                                   | Message                                                                                                                                 | Fix? | Emitted from                                                    |
@@ -682,6 +688,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                      | Message                                                    | Fix? | Emitted from                                                    |
 | ----------------------------------------- | ---------------------------------------------------------- | ---- | --------------------------------------------------------------- |
 | `customMaterialSource.invalidRenderState` | Custom material '…' has an invalid renderState descriptor. | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
+
+## customMaterialSource.litReservedBindGroup (1)
+
+| Code                                        | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                                                                                                        |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `customMaterialSource.litReservedBindGroup` | Custom material '…' declares @group(3) in its WGSL source, but lighting: 'lit' reserves group(3) for the renderer's lit contract (the aperture lit header is prepended automatically). Remove the @group(3) declarations and | —    | `packages/render/src/assets/custom-wgsl-material-preparation.ts`<br>`packages/render/src/assets/custom-wgsl-material-validation.ts` |
 
 ## customMaterialSource.liveRendererObject (1)
 
@@ -802,6 +814,24 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                                 | Message                                                   | Fix? | Emitted from                                                        |
 | ---------------------------------------------------- | --------------------------------------------------------- | ---- | ------------------------------------------------------------------- |
 | `customWgslMaterial.createRenderPipelineUnavailable` | WebGPU device cannot create custom WGSL render pipelines. | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-material.ts` |
+
+## customWgslMaterial.litBindGroupCreationFailed (1)
+
+| Code                                            | Message                                                     | Fix? | Emitted from                                           |
+| ----------------------------------------------- | ----------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `customWgslMaterial.litBindGroupCreationFailed` | Failed to create the custom WGSL lit group(3) bind group: … | —    | `packages/webgpu/src/app/custom-wgsl-lit-resources.ts` |
+
+## customWgslMaterial.litContractUnavailable (1)
+
+| Code                                        | Message                                                                                                                           | Fix? | Emitted from                                           |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `customWgslMaterial.litContractUnavailable` | Custom WGSL lit pipeline layout creation requires the prepared lit contract layouts (createBindGroupLayout/createPipelineLayout). | —    | `packages/webgpu/src/app/custom-wgsl-lit-resources.ts` |
+
+## customWgslMaterial.litResourceCreationFailed (1)
+
+| Code                                           | Message                                                         | Fix? | Emitted from                                           |
+| ---------------------------------------------- | --------------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `customWgslMaterial.litResourceCreationFailed` | Failed to create the custom WGSL lit pipeline layout for '…': … | —    | `packages/webgpu/src/app/custom-wgsl-lit-resources.ts` |
 
 ## customWgslMaterial.missingBindingResource (1)
 

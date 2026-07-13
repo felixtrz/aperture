@@ -16,12 +16,19 @@ import {
   type SourceMaterialAsset,
 } from "@aperture-engine/render";
 import { createCustomWgslAppFrameResources } from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
+import {
+  getOrCreateCustomWgslLitPipelineLayout,
+  prepareCustomWgslLitFrameResources,
+  type CustomWgslLitDiagnostic,
+  type PrepareCustomWgslLitFrameResourcesResult,
+} from "./custom-wgsl-lit-resources.js";
 import { prepareCustomWgslAppStorageBufferBindingResources } from "./custom-wgsl-storage-buffer-resources.js";
 import { prepareCustomWgslAppTextureSamplerBindingResources } from "./custom-wgsl-texture-sampler-resources.js";
 import type {
   CustomWgslMaterialBindGroupResource,
   CreateCustomWgslMaterialRenderPipelineResourceResult,
 } from "../materials/custom-wgsl/custom-wgsl-material.js";
+import type { CustomWgslLitBindGroupResource } from "../materials/custom-wgsl/custom-wgsl-lit-contract.js";
 import { customWgslMaterialRenderPipelineCacheKey } from "../materials/custom-wgsl/custom-wgsl-material.js";
 import type { UnlitBindGroupResource } from "../materials/unlit/unlit-bind-group.js";
 import type { MeshGpuBufferResource } from "../resources/meshes/mesh-buffer-resources.js";
@@ -314,6 +321,14 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
     reuse: options.reuse,
+    // A1: lit custom materials reuse the SAME renderer-owned shadow receiver
+    // and IBL resources the standard materials in this frame bind.
+    ...(standardMaterialShadowReceiverResources === undefined
+      ? {}
+      : { shadowReceiverResources: standardMaterialShadowReceiverResources }),
+    ...(options.standardMaterialIblResources === undefined
+      ? {}
+      : { iblResources: options.standardMaterialIblResources }),
   });
   const firstCustomPipeline = preparedCustom.resources[0]?.pipelineResult;
   const firstPipeline =
@@ -658,6 +673,10 @@ async function prepareCustomDrawResources(options: {
     typeof createCustomWgslAppFrameResources
   >[0]["worldTransforms"];
   readonly reuse: WebGpuAppResourceReuseReport;
+  readonly shadowReceiverResources?:
+    | StandardFrameShadowReceiverResources
+    | undefined;
+  readonly iblResources?: StandardFrameIblResources | undefined;
 }): Promise<{
   readonly valid: boolean;
   readonly resources: readonly PreparedCustomDrawResources[];
@@ -669,6 +688,28 @@ async function prepareCustomDrawResources(options: {
   const customDraws = options.snapshot.meshDraws.filter((draw) =>
     isCustomWgslDraw(options.assets, draw),
   );
+  // A1: the shared group(3) lit bind group is prepared at most once per
+  // frame, on the first lit material encountered, and reused by every other
+  // lit material (memoized including failures).
+  let litFrame: PrepareCustomWgslLitFrameResourcesResult | null = null;
+  const getLitFrame = (): PrepareCustomWgslLitFrameResourcesResult => {
+    litFrame ??= prepareCustomWgslLitFrameResources({
+      device: options.app.initialization.device as Parameters<
+        typeof prepareCustomWgslLitFrameResources
+      >[0]["device"],
+      snapshot: options.snapshot,
+      viewUniforms: options.viewUniforms,
+      cache: options.cache.customWgslLit,
+      reuse: options.reuse,
+      ...(options.shadowReceiverResources === undefined
+        ? {}
+        : { shadowReceiverResources: options.shadowReceiverResources }),
+      ...(options.iblResources === undefined
+        ? {}
+        : { iblResources: options.iblResources }),
+    });
+    return litFrame;
+  };
 
   for (const draw of customDraws) {
     const drawMeshKey = assetHandleKey(draw.mesh);
@@ -689,6 +730,7 @@ async function prepareCustomDrawResources(options: {
       draw,
       meshKey: drawMeshKey,
       materialKey: drawMaterialKey,
+      getLitFrame,
     });
 
     diagnostics.push(...prepared.diagnostics);
@@ -730,6 +772,7 @@ async function prepareCustomDrawResourceSet(options: {
     typeof createCustomWgslAppFrameResources
   >[0]["worldTransforms"];
   readonly reuse: WebGpuAppResourceReuseReport;
+  readonly getLitFrame: () => PrepareCustomWgslLitFrameResourcesResult;
 }): Promise<{
   readonly resource: PreparedCustomDrawResources | null;
   readonly diagnostics: readonly unknown[];
@@ -823,6 +866,40 @@ async function prepareCustomDrawResourceSet(options: {
     options.reuse.pipelineHits += 1;
   }
 
+  // A1: lit materials receive the shared group(3) lit bind group and compile
+  // against an explicit pipeline layout instead of "auto".
+  let litFrameInput:
+    | Parameters<typeof createCustomWgslAppFrameResources>[0]["lit"]
+    | undefined;
+
+  if (prepared.lighting === "lit") {
+    const litFrame = options.getLitFrame();
+    const litDiagnostics: CustomWgslLitDiagnostic[] = [];
+    const litPipelineLayout =
+      litFrame.valid && litFrame.bindGroup !== null
+        ? getOrCreateCustomWgslLitPipelineLayout({
+            device: options.app.initialization.device as Parameters<
+              typeof getOrCreateCustomWgslLitPipelineLayout
+            >[0]["device"],
+            cache: options.cache.customWgslLit,
+            material: prepared,
+            diagnostics: litDiagnostics,
+          })
+        : null;
+
+    if (litFrame.bindGroup === null || litPipelineLayout === null) {
+      return {
+        resource: null,
+        diagnostics: [...litFrame.diagnostics, ...litDiagnostics],
+      };
+    }
+
+    litFrameInput = {
+      pipelineLayout: litPipelineLayout,
+      bindGroup: litFrame.bindGroup,
+    };
+  }
+
   const resources = await createCustomWgslAppFrameResources({
     device: options.app.initialization.device as Parameters<
       typeof createCustomWgslAppFrameResources
@@ -846,6 +923,7 @@ async function prepareCustomDrawResourceSet(options: {
     runtimeUniforms: options.snapshot.runtimeUniforms ?? [],
     runtimeUniformCache: options.cache.customWgslRuntimeUniforms,
     reuse: options.reuse,
+    ...(litFrameInput === undefined ? {} : { lit: litFrameInput }),
   });
 
   if (
@@ -976,7 +1054,10 @@ function customWgslPipelineResultFromCache(
 }
 
 function asUnlitBindGroupResource(
-  bindGroup: UnlitBindGroupResource | CustomWgslMaterialBindGroupResource,
+  bindGroup:
+    | UnlitBindGroupResource
+    | CustomWgslMaterialBindGroupResource
+    | CustomWgslLitBindGroupResource,
 ): UnlitBindGroupResource {
   return bindGroup;
 }

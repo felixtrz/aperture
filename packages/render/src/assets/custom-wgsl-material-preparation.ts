@@ -1,4 +1,5 @@
 import type { AssetRegistry } from "@aperture-engine/simulation";
+import { wgslSourceDeclaresLitBindGroup } from "../materials/index.js";
 import type {
   RenderAssetAdapter,
   RenderAssetPreparationDiagnostic,
@@ -71,6 +72,27 @@ export function createCustomWgslMaterialRenderAssetAdapter(
         return {
           status: shader.status,
           diagnostics: [...diagnostics, ...shader.diagnostics],
+        };
+      }
+
+      // Lit materials must not declare the renderer-owned @group(3). Inline
+      // sources are rejected at validation; shader-asset sources only expose
+      // their code here, after the asset resolves.
+      if (
+        input.source.lighting === "lit" &&
+        wgslSourceDeclaresLitBindGroup(shader.code)
+      ) {
+        return {
+          status: "failed",
+          diagnostics: [
+            ...diagnostics,
+            {
+              code: "customMaterialSource.litReservedBindGroup",
+              message: `Custom material '${input.assetKey}' declares @group(3) in its WGSL source, but lighting: 'lit' reserves group(3) for the renderer's lit contract (the aperture lit header is prepended automatically). Remove the @group(3) declarations and use the aperture* helpers instead.`,
+              severity: "error",
+              assetKey: input.assetKey,
+            },
+          ],
         };
       }
 

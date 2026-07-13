@@ -391,12 +391,87 @@ V1 custom WGSL shaders use fixed renderer groups:
 - `@group(1) @binding(0)`: read-only storage array of world transforms,
   renderer-owned. Index with `@builtin(instance_index)`.
 - `@group(2)`: custom material bindings declared by `material.customWgsl(...)`.
-- `@group(3)`: reserved for future renderer extensions.
+- `@group(3)`: renderer-owned. Bound only for `lighting: "lit"` materials
+  (the lit contract below); unlit materials must leave it untouched.
 
 Mesh vertex locations follow the built-in instance layout: `@location(0)`
 position (`vec3f`), `@location(1)` normal (`vec3f`), and `@location(2)` UV
 (`vec2f`). Use `runtimeUniformKey` on a group-2 uniform binding when per-frame
 values should come from `this.spawn.runtimeUniform(...)`.
+
+### Lit custom materials
+
+Declare `lighting: "lit"` to opt a custom material into the renderer-owned
+lit contract (parity plan A1): the renderer binds `@group(3)` with the
+frame's packed lights, the directional shadow receiver resources, the active
+environment's IBL textures, and the fog parameters — the SAME renderer-owned
+resources StandardMaterial consumes — and prepends a WGSL contract header to
+your module, so the shader calls `aperture*` helpers with zero app-side GPU
+wiring:
+
+```ts
+material.customWgsl({
+  familyKey: "app/lit-surface",
+  label: "Lit Surface",
+  lighting: "lit",
+  shader: shader.asset(this.assets.shader("litSurface")),
+  entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+});
+```
+
+```wgsl
+@fragment
+fn fs_main(input: VertexOutput) -> @location(0) vec4f {
+  let normal = normalize(input.worldNormal);
+  let viewDir = normalize(view.cameraPosition.xyz - input.worldPosition);
+  let shadow = apertureDirectionalShadow(input.worldPosition, normal);
+  var color = vec3f(0.0);
+
+  for (var i = 0u; i < apertureCountLights(); i = i + 1u) {
+    var term = apertureEvaluateLightSurface(
+      i, input.worldPosition, normal, viewDir, albedo, metallic, roughness);
+    if (apertureLightKind(i) == APERTURE_LIT_LIGHT_KIND_DIRECTIONAL) {
+      term = term * shadow;
+    }
+    color = color + term;
+  }
+
+  color = color + apertureSampleIblIrradiance(normal) * albedo * (1.0 - metallic);
+  color = apertureApplyFog(color, input.worldPosition, view.cameraPosition.xyz);
+  return vec4f(apertureLinearToSrgb(color), 1.0);
+}
+```
+
+Helpers (fragment stage, StandardMaterial math parity):
+`apertureCountLights()`, `apertureEvaluateLight(index, worldPos, normal,
+viewDir)` (white-dielectric convenience), `apertureEvaluateLightSurface(...,
+baseColor, metallic, roughness)` (exact Lambert+GGX for ambient/directional/
+point/spot; rect-area is a diffuse-only approximation),
+`apertureDirectionalShadow(worldPos, normal)` (1.0 when the frame has no
+directional shadow resources; all filter modes evaluate as 3x3 PCF in v1),
+`apertureSampleIblIrradiance(normal)`, `apertureSampleIblSpecular(reflectDir,
+roughness)`, `apertureEnvironmentBrdf(roughness, nDotV)` (split-sum
+scale/bias), `apertureApplyFog(color, worldPos, cameraPos)`, and
+`apertureLinearToSrgb(color)` (matches the StandardMaterial sRGB output
+stage on default browser apps).
+
+Rules and behavior:
+
+- Your WGSL must NOT declare `@group(3)` — the renderer owns it and prepends
+  the header (`customMaterialSource.litReservedBindGroup` rejects it) — and
+  must not redeclare `aperture*` symbols.
+- Bindings without a frame resource fall back to renderer-owned stand-ins
+  (zeroed buffers, 1x1 black textures), so the same shader works with or
+  without lights, shadows, or an environment; `apertureLitParams` counts and
+  flags are authoritative.
+- The pipeline key gains a `lit:v1` contract-version segment ONLY when
+  `lighting: "lit"`; absent/`"unlit"` materials keep byte-identical keys and
+  behavior. A future contract layout change bumps the version instead of
+  colliding with cached pipelines (`DECISIONS.md` 0024).
+- The full binding table lives in
+  [`LIGHT_SHADER_WGSL_CONTRACT.md`](./LIGHT_SHADER_WGSL_CONTRACT.md). See
+  `examples/lit-custom-material.html` for a lit custom sphere reproducing the
+  StandardMaterial response next to a reference sphere.
 
 ### Storage-buffer bindings
 
@@ -541,13 +616,14 @@ available to the caster entry point. See `examples/shadow-displacement.html`
 for a wind-displaced flag whose shadow silhouette waves with the mesh.
 
 Current limitations: WGSL only; no shader imports; no user-supplied WebGPU
-objects or callbacks; no arbitrary app-owned material adapter registration; and
-lighting/environment integration is deferred. App-route custom WGSL supports
-group-2 uniform buffers, read-only storage buffers, texture bindings, sampler
-bindings, existing instance-attribute layouts, and mixed built-in/custom frames
-through the normal `createWebGpuApp()` path. Storage bindings are read-only in
-this slice (`access: "read"`); writable storage arrives with the compute→draw
-plumbing (parity plan C1).
+objects or callbacks; and no arbitrary app-owned material adapter
+registration. App-route custom WGSL supports group-2 uniform buffers,
+read-only storage buffers, texture bindings, sampler bindings, existing
+instance-attribute layouts, the opt-in group(3) lit contract
+(`lighting: "lit"`), and mixed built-in/custom frames through the normal
+`createWebGpuApp()` path. Storage bindings are read-only in this slice
+(`access: "read"`); writable storage arrives with the compute→draw plumbing
+(parity plan C1).
 
 See [`recipes/custom-wgsl-material.md`](./recipes/custom-wgsl-material.md) for
 a complete shader and material setup.

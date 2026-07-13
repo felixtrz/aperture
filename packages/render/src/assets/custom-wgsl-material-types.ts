@@ -50,6 +50,13 @@ export interface PreparedCustomWgslMaterial {
   readonly materialKey: string;
   readonly label: string;
   readonly materialFamily: MaterialFamilyKey;
+  /**
+   * Present (as `"lit"`) only when the source opted into the group(3) lit
+   * contract: `shader.code` then starts with `APERTURE_LIT_WGSL_HEADER`, the
+   * pipeline key carries the `lit:v<N>` segment, and the renderer binds the
+   * lit bind group at group(3).
+   */
+  readonly lighting?: "lit";
   readonly pipelineKey: string;
   readonly materialResourceKey: string;
   readonly bindGroupResourceKey: string;

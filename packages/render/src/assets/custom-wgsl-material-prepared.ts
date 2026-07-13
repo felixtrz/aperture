@@ -1,4 +1,6 @@
 import {
+  APERTURE_LIT_PIPELINE_FEATURE,
+  APERTURE_LIT_WGSL_HEADER,
   createInstanceAttributeLayout,
   type InstanceAttributeLayout,
 } from "../materials/index.js";
@@ -13,7 +15,15 @@ export function createPreparedCustomWgslMaterial(input: {
   readonly shaderCode: string;
   readonly shaderSourceKey: string;
 }): PreparedCustomWgslMaterial {
-  const shaderHash = stableStringHash(input.shaderCode);
+  const lit = input.source.lighting === "lit";
+  // Lit materials get the renderer-owned group(3) contract header prepended
+  // to the module (A1): the shader hash therefore covers the header, so a
+  // contract-header change rebuilds lit pipelines while unlit materials stay
+  // byte-identical to today.
+  const shaderCode = lit
+    ? `${APERTURE_LIT_WGSL_HEADER}\n${input.shaderCode}`
+    : input.shaderCode;
+  const shaderHash = stableStringHash(shaderCode);
   const instanceAttributes = createInstanceAttributeLayout(
     input.source.instanceAttributes,
   );
@@ -58,13 +68,15 @@ export function createPreparedCustomWgslMaterial(input: {
     materialKey: input.assetKey,
     label: input.source.label,
     materialFamily: input.source.familyKey,
+    // Present only when lit so unlit prepared materials stay byte-identical.
+    ...(lit ? { lighting: "lit" as const } : {}),
     pipelineKey,
     materialResourceKey: bindGroupResourceKey,
     bindGroupResourceKey,
     shader: {
       language: "wgsl",
       moduleKey,
-      code: input.shaderCode,
+      code: shaderCode,
       sourceKey: input.shaderSourceKey,
       vertexEntryPoint: input.source.entryPoints.vertex,
       fragmentEntryPoint: input.source.entryPoints.fragment,
@@ -115,6 +127,10 @@ function customWgslMaterialPipelineKey(
     ...(source.entryPoints.shadowVertex === undefined
       ? []
       : [`shadow-vs:${source.entryPoints.shadowVertex}`]),
+    // The lit-contract segment participates only when lighting is "lit"
+    // (same byte-identity rule); it carries the contract version so future
+    // group(3) layout changes cannot collide with cached pipelines.
+    ...(source.lighting === "lit" ? [APERTURE_LIT_PIPELINE_FEATURE] : []),
     `instance-attributes:${instanceAttributes?.layoutKey ?? "none"}`,
     `features:${source.pipelineKey.features.join(",")}`,
     `specialization:${stableStringHash(

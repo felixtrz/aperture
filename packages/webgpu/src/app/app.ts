@@ -281,6 +281,9 @@ export interface WebGpuAppResourceReuseReport {
   customShadowCasterPipelinesReused: number;
   customShadowCasterBindGroupsCreated: number;
   customShadowCasterBindGroupsReused: number;
+  /** Shared group(3) lit bind group for lit custom WGSL materials (A1). */
+  litBindGroupsCreated: number;
+  litBindGroupsReused: number;
   dynamicBufferWrites: number;
 }
 

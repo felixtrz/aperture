@@ -1,6 +1,7 @@
 import {
   isBuiltInMaterialKind,
   isValidCustomMaterialFamilyKey,
+  wgslSourceDeclaresLitBindGroup,
   type CustomWgslMaterialAsset,
   type CustomWgslShaderStage,
   type JsonValue,
@@ -30,6 +31,7 @@ export function validateCustomWgslMaterialSource(
   validateLabel(source, assetKey, diagnostics);
   validateShader(source, assetKey, diagnostics);
   validateEntryPoints(source, assetKey, diagnostics);
+  validateLighting(source, assetKey, diagnostics);
   validateRenderState(source, assetKey, diagnostics);
   validatePipelineKeyInput(source, assetKey, diagnostics);
   validateBindings(
@@ -236,6 +238,38 @@ function validateEntryPoints(
     diagnostics.push({
       code: "customMaterialSource.invalidDependency",
       message: `Custom material '${assetKey}' is missing shadow vertex entry point '${shadowVertex}'.`,
+      severity: "error",
+      assetKey,
+    });
+  }
+}
+
+function validateLighting(
+  source: CustomWgslMaterialSource,
+  assetKey: string,
+  diagnostics: RenderAssetPreparationDiagnostic[],
+): void {
+  const lighting = source.lighting;
+
+  if (lighting !== undefined && lighting !== "unlit" && lighting !== "lit") {
+    diagnostics.push({
+      code: "customMaterialSource.invalidLighting",
+      message: `Custom material '${assetKey}' lighting must be 'unlit' or 'lit', not '${String(lighting)}'.`,
+      severity: "error",
+      assetKey,
+    });
+    return;
+  }
+
+  if (
+    lighting === "lit" &&
+    source.shader?.kind === "inline-wgsl" &&
+    typeof source.shader.code === "string" &&
+    wgslSourceDeclaresLitBindGroup(source.shader.code)
+  ) {
+    diagnostics.push({
+      code: "customMaterialSource.litReservedBindGroup",
+      message: `Custom material '${assetKey}' declares @group(3) in its WGSL source, but lighting: 'lit' reserves group(3) for the renderer's lit contract (the aperture lit header is prepended automatically). Remove the @group(3) declarations and use the aperture* helpers instead.`,
       severity: "error",
       assetKey,
     });

@@ -1,5 +1,6 @@
 import { materialTextureBindings } from "./bindings.js";
 import { isCustomWgslMaterialAsset } from "./family-key.js";
+import { APERTURE_LIT_PIPELINE_FEATURE } from "./lit-contract.js";
 import type {
   MaterialAsset,
   MaterialPipelineKeyInput,
@@ -15,6 +16,11 @@ export function createMaterialPipelineKeyInput(
       shaderFamily: material.familyKey,
       features: [
         ...material.pipelineKey.features,
+        // The lit-contract feature participates ONLY when lighting is "lit"
+        // so unlit/absent materials keep byte-identical keys (A1, mirroring
+        // the shadow-vs segment rule), and carries the contract version so a
+        // future group(3) layout change cannot collide with cached pipelines.
+        ...(material.lighting === "lit" ? [APERTURE_LIT_PIPELINE_FEATURE] : []),
         `specialization:${stableStringHash(
           JSON.stringify(material.pipelineKey.specialization),
         )}`,

@@ -38,6 +38,69 @@ import {
   UI_PANEL_WGSL,
 } from "../packages/webgpu/dist/render/ui/ui-quad-pipeline.js";
 import { MSDF_TEXT_WGSL } from "../packages/webgpu/dist/render/text/msdf-text-pipeline.js";
+import { APERTURE_LIT_WGSL_HEADER } from "../packages/render/dist/materials/lit-contract.js";
+
+// A1: the lit custom-material contract header is renderer-prepended WGSL that
+// only the browser compiles — validate it (plus a sample lit material that
+// statically uses every helper) against real Dawn like the family shaders.
+const LIT_SAMPLE_WGSL = `${APERTURE_LIT_WGSL_HEADER}
+struct ViewProjectionUniform {
+  viewProjection: mat4x4f,
+  cameraPosition: vec4f,
+};
+
+@group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
+@group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
+
+struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) worldPosition: vec3f,
+  @location(1) worldNormal: vec3f,
+};
+
+@vertex
+fn vs_main(
+  @location(0) position: vec3f,
+  @location(1) normal: vec3f,
+  @location(2) uv: vec2f,
+  @builtin(instance_index) instanceIndex: u32,
+) -> VertexOutput {
+  let world = worldTransforms[instanceIndex];
+  let worldPosition = world * vec4f(position, 1.0);
+  var output: VertexOutput;
+  output.position = view.viewProjection * worldPosition;
+  output.worldPosition = worldPosition.xyz;
+  output.worldNormal = normalize((world * vec4f(normal, 0.0)).xyz);
+  return output;
+}
+
+@fragment
+fn fs_main(input: VertexOutput) -> @location(0) vec4f {
+  let normal = normalize(input.worldNormal);
+  let viewDir = normalize(view.cameraPosition.xyz - input.worldPosition);
+  let shadow = apertureDirectionalShadow(input.worldPosition, normal);
+  var color = vec3f(0.0);
+
+  for (var i = 0u; i < apertureCountLights(); i = i + 1u) {
+    var term = apertureEvaluateLightSurface(
+      i, input.worldPosition, normal, viewDir, vec3f(0.8), 0.0, 0.5);
+    if (apertureLightKind(i) == APERTURE_LIT_LIGHT_KIND_DIRECTIONAL) {
+      term = term * shadow;
+    }
+    color = color + apertureEvaluateLight(i, input.worldPosition, normal, viewDir) * 0.0 + term;
+  }
+
+  color = color + apertureSampleIblIrradiance(normal) * vec3f(0.8);
+  let reflectDir = reflect(-viewDir, normal);
+  let envBrdf = apertureEnvironmentBrdf(0.5, max(dot(normal, viewDir), 0.0));
+  color = color + apertureSampleIblSpecular(reflectDir, 0.5) *
+    (vec3f(0.04) * envBrdf.x + envBrdf.y);
+  color = color + textureSampleLevel(
+    apertureIblBrdfLutTexture, apertureIblSampler, vec2f(0.5), 0.0).rgb * 0.0;
+  color = apertureApplyFog(color, input.worldPosition, view.cameraPosition.xyz);
+  return vec4f(apertureLinearToSrgb(color), 1.0);
+}
+`;
 
 const OPERATORS = ["aces", "neutral", "agx", "reinhard", "linear"];
 
@@ -90,6 +153,10 @@ function buildCases() {
       });
     }
   }
+  cases.push({
+    name: "custom-wgsl lit contract header + sample",
+    code: LIT_SAMPLE_WGSL,
+  });
   return cases;
 }
 

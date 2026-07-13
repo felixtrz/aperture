@@ -201,6 +201,18 @@ export type MaterialAsset =
 export type SourceMaterialAsset = MaterialAsset | CustomWgslMaterialAsset;
 
 export type CustomWgslShaderStage = "vertex" | "fragment";
+
+/**
+ * Lighting integration mode for a custom WGSL material. `"unlit"` (the
+ * default when absent) keeps today's contract: groups 0-2 bound, group(3)
+ * reserved and untouched. `"lit"` opts into the renderer-owned group(3) lit
+ * contract (`APERTURE_LIT_WGSL_HEADER` is prepended to the module; user code
+ * must not declare `@group(3)` itself). Only `"lit"` participates in
+ * validation and the pipeline key — absent/`"unlit"` materials keep
+ * byte-identical keys.
+ */
+export type CustomWgslMaterialLighting = "unlit" | "lit";
+
 export type CustomWgslBindingKind =
   | "uniform-buffer"
   | "storage-buffer"
@@ -369,6 +381,8 @@ export interface CustomWgslMaterialAsset {
   readonly label: string;
   readonly shader: CustomWgslShaderRef;
   readonly entryPoints: CustomWgslMaterialEntryPoints;
+  /** Opt-in group(3) lit contract; absent means `"unlit"` (see the type). */
+  readonly lighting?: CustomWgslMaterialLighting;
   readonly renderState: RenderStateDescriptor;
   readonly pipelineKey: CustomWgslMaterialPipelineKeyInput;
   readonly bindings: readonly CustomWgslBindingDeclaration[];

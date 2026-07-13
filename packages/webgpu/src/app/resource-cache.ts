@@ -104,6 +104,10 @@ import type {
 } from "../materials/debug-normal/debug-normal-app-frame-resources.js";
 import type { CustomWgslRuntimeUniformBufferResource } from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
 import type { CustomWgslAppStorageBufferResource } from "./custom-wgsl-storage-buffer-resources.js";
+import {
+  createCustomWgslLitFrameCache,
+  type CustomWgslLitFrameCache,
+} from "./custom-wgsl-lit-resources.js";
 import type { StandardFrameShadowReceiverResources } from "../materials/standard/standard-frame-resources.js";
 import {
   createWebGpuPostPassTextureCacheSlot,
@@ -192,6 +196,13 @@ export interface WebGpuAppResourceCache {
     string,
     CustomWgslAppStorageBufferResource
   >;
+  /**
+   * Renderer-owned resources for the custom WGSL lit contract (A1): the
+   * group(3) layouts, fallback textures/buffers, packed light buffers, and
+   * the shared per-frame lit bind group (reused across frames while the
+   * underlying resource identities are stable).
+   */
+  readonly customWgslLit: CustomWgslLitFrameCache;
   readonly layouts: Map<string, WebGpuAppPipelineLayouts>;
   readonly textures: Map<string, TextureGpuResource>;
   readonly samplers: Map<string, SamplerGpuResource>;
@@ -419,6 +430,7 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     customWgslRuntimeUniforms: new Map(),
     customWgslShadowStaticUniforms: new Map(),
     customWgslStorageBuffers: new Map(),
+    customWgslLit: createCustomWgslLitFrameCache(),
     layouts: new Map(),
     textures: new Map(),
     samplers: new Map(),

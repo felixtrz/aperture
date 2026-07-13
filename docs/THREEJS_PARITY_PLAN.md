@@ -69,6 +69,28 @@ The single highest-leverage phase: it converts the custom-WGSL route from
 
 ### A1. Lit-surface bind contract for custom WGSL (`@group(3)`) — **L**
 
+Status: implemented (2026-07-13). Notes: the opt-in field is
+`lighting: "lit"` on `material.customWgsl(...)`; the renderer PREPENDS the
+contract header (`APERTURE_LIT_WGSL_HEADER`) instead of the user including
+it, and rejects user `@group(3)` declarations. V1 exposes the documented
+subset (packed lights + params, single directional shadow receiver with 3x3
+PCF, IBL irradiance/PMREM/BRDF-LUT, fog); clustered indices and LTC area
+lights stay behind a future contract version (`lit:v1` pipeline-key segment,
+DECISIONS.md 0024). AC2's example is `examples/lit-custom-material` (lit
+striped sphere + StandardMaterial reference sphere + shadow-receiving
+ground; the shadow lands in the main view rather than a second camera view)
+with pixel assertions instead of a golden baseline, mirroring the A2/A4
+notes. AC3 achieved the STRONG form via readback pairs in the e2e: the
+custom sphere implements the exact Lambert+GGX response through
+`apertureEvaluateLightSurface`, and 18 mirrored pixel pairs on the two
+spheres' surfaces asserted a MEDIAN per-channel diff ≤ 14/255 (measured 9,
+with 10/18 pairs ≤ 9 and 5 byte-identical; the tail is the procedural
+stripe band that makes the surface visibly custom). AC4's per-frame
+allocation guard is structural (persistent light-buffer scratch +
+dirty-window `queue.writeBuffer`, bind group reused across frames with
+cache counters) rather than a wall-clock bench, per the test reliability
+conventions.
+
 Give custom materials an opt-in, renderer-owned lit contract on the reserved
 bind group: packed lights, clustered indices, shadow atlas + comparison
 sampler, IBL resources, and fog params, plus a WGSL contract header the user

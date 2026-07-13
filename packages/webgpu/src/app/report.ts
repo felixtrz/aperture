@@ -897,6 +897,8 @@ export function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseRepo
     customShadowCasterPipelinesReused: 0,
     customShadowCasterBindGroupsCreated: 0,
     customShadowCasterBindGroupsReused: 0,
+    litBindGroupsCreated: 0,
+    litBindGroupsReused: 0,
     dynamicBufferWrites: 0,
   };
 }

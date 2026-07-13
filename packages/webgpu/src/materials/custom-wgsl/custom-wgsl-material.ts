@@ -54,6 +54,12 @@ export interface BrowserCustomWgslMaterialPipelineDescriptorInput {
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
+  /**
+   * Explicit GPUPipelineLayout for lit materials (A1): the lit group(3) bind
+   * group is renderer-owned and shared across pipelines, which `"auto"`
+   * layouts cannot express. Absent (every unlit material) keeps `"auto"`.
+   */
+  readonly pipelineLayout?: unknown;
 }
 
 export interface CreateCustomWgslMaterialRenderPipelineResourceOptions {
@@ -62,6 +68,8 @@ export interface CreateCustomWgslMaterialRenderPipelineResourceOptions {
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
+  /** Explicit pipeline layout for lit materials; absent keeps `"auto"`. */
+  readonly pipelineLayout?: unknown;
 }
 
 export interface CustomWgslMaterialRenderPipelineResource {
@@ -225,6 +233,9 @@ export async function createCustomWgslMaterialRenderPipelineResource(
     ...(options.depthFormat === undefined
       ? {}
       : { depthFormat: options.depthFormat }),
+    ...(options.pipelineLayout === undefined
+      ? {}
+      : { pipelineLayout: options.pipelineLayout }),
   });
 
   try {
@@ -275,7 +286,7 @@ export function createBrowserCustomWgslMaterialPipelineDescriptor(
   );
   const descriptor: WebGpuRenderPipelineCreateDescriptor = {
     label: `${input.material.label}:${input.colorFormat}:triangle-list`,
-    layout: "auto",
+    layout: input.pipelineLayout ?? "auto",
     vertex: {
       module: input.shaderModule,
       entryPoint: input.material.shader.vertexEntryPoint,

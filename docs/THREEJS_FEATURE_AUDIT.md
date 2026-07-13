@@ -210,13 +210,15 @@ three.js offers three tiers: `ShaderMaterial` (arbitrary GLSL + lib uniforms),
 WGSL or GLSL, with compute, MRT, custom lighting models, a GLSL→TSL
 transpiler, and a node-graph inspector). Aperture deliberately ships a single
 narrow route: custom WGSL as a _data-only asset_ (`sourceDiscriminator:
-"custom-material-source"`) with typed uniform/texture/sampler bindings and
-read-only storage-buffer bindings backed by `BufferAsset` sources (A2) —
-lighting/environment integration for custom WGSL is deferred
-(`docs/AUTHORING.md`).
-This is the widest expressiveness gap between the two projects, and it is
-partly a policy choice (no live GPU objects in ECS, `DECISIONS.md 0016`)
-rather than purely missing work.
+"custom-material-source"`) with typed uniform/texture/sampler bindings,
+read-only storage-buffer bindings backed by `BufferAsset` sources (A2), and
+an opt-in lit contract (`lighting: "lit"`, A1) that binds the renderer's
+packed lights/directional shadow/IBL/fog at `@group(3)` with
+StandardMaterial-parity WGSL helpers (`docs/LIGHT_SHADER_WGSL_CONTRACT.md`,
+`DECISIONS.md 0024`). The node/graph tooling tier — TSL-style composition,
+chunk patching, transpilers, inspectors — remains absent, and that is now
+the main expressiveness gap; it is partly a policy choice (no live GPU
+objects in ECS, `DECISIONS.md 0016`) rather than purely missing work.
 
 ---
 
@@ -600,9 +602,9 @@ quality bar for those slices.
 decision, not a gap — see §14 and `DECISIONS.md 0023`.)
 
 1. **Open shading/material extensibility** — no `ShaderMaterial`/TSL
-   equivalent; custom WGSL route lacks lighting integration and any
-   node/graph tooling (storage-buffer bindings landed with A2) (§5.3).
-   Partly policy (🚫).
+   equivalent; the custom WGSL route lacks any node/graph tooling
+   (storage-buffer bindings landed with A2; the lit contract landed with A1)
+   (§5.3). Partly policy (🚫).
 2. **Asset format breadth + exporters** — glTF-only; no OBJ/FBX/USD/STL/PLY/
    EXR/…; no export of any kind (§11).
 3. **Animation depth** — no N-clip mixing, additive layers, arbitrary property

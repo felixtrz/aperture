@@ -42,6 +42,17 @@ import {
   type CreateCustomWgslMaterialRenderResourcesResult,
   type CustomWgslMaterialRenderResources,
 } from "./custom-wgsl-material.js";
+import type { CustomWgslLitBindGroupResource } from "./custom-wgsl-lit-contract.js";
+
+/**
+ * A1: lit-contract inputs for a `lighting: "lit"` material — the explicit
+ * pipeline layout (groups 0-3) used instead of `"auto"`, and the shared
+ * renderer-owned group(3) bind group prepared once per frame.
+ */
+export interface CustomWgslAppLitFrameInput {
+  readonly pipelineLayout: unknown;
+  readonly bindGroup: CustomWgslLitBindGroupResource;
+}
 
 interface CustomWgslAppFrameResources {
   readonly mesh: MeshGpuBufferResource;
@@ -52,6 +63,7 @@ interface CustomWgslAppFrameResources {
   readonly bindGroups: readonly (
     | UnlitBindGroupResource
     | CustomWgslMaterialBindGroupResource
+    | CustomWgslLitBindGroupResource
   )[];
 }
 
@@ -92,6 +104,8 @@ export async function createCustomWgslAppFrameResources(options: {
     CustomWgslRuntimeUniformBufferResource
   >;
   readonly reuse?: CustomWgslRuntimeUniformReuseCounters;
+  /** Present only for `lighting: "lit"` materials (A1). */
+  readonly lit?: CustomWgslAppLitFrameInput;
 }): Promise<CreateCustomWgslAppFrameResourcesResult> {
   const diagnostics: unknown[] = [];
 
@@ -163,6 +177,9 @@ export async function createCustomWgslAppFrameResources(options: {
           ...(options.sampleCount === undefined
             ? {}
             : { sampleCount: options.sampleCount }),
+          ...(options.lit === undefined
+            ? {}
+            : { pipelineLayout: options.lit.pipelineLayout }),
           resources: materialResources.resources,
         })
       : await createCustomWgslMaterialRenderResourcesFromPipeline({
@@ -268,6 +285,18 @@ export async function createCustomWgslAppFrameResources(options: {
         customFrameResources.pipeline.cacheKey,
       ),
   );
+  // The shared lit group(3) bind group joins this material's bind groups
+  // with the pipeline cache key as a match key, so the draw-list binder
+  // pipeline-scopes it exactly like the shared view/transform groups.
+  const litBindGroups =
+    options.lit === undefined
+      ? []
+      : [
+          withCustomWgslLitPipelineMatchKey(
+            options.lit.bindGroup,
+            customFrameResources.pipeline.cacheKey,
+          ),
+        ];
 
   return {
     valid: true,
@@ -282,10 +311,23 @@ export async function createCustomWgslAppFrameResources(options: {
       bindGroups: [
         ...pipelineScopedSharedBindGroups,
         customFrameResources.bindGroup,
+        ...litBindGroups,
       ],
     },
     diagnostics,
   };
+}
+
+function withCustomWgslLitPipelineMatchKey(
+  bindGroup: CustomWgslLitBindGroupResource,
+  pipelineKey: string,
+): CustomWgslLitBindGroupResource {
+  return bindGroup.entryResourceKeys.includes(pipelineKey)
+    ? bindGroup
+    : {
+        ...bindGroup,
+        entryResourceKeys: [...bindGroup.entryResourceKeys, pipelineKey],
+      };
 }
 
 function withCustomWgslPipelineMatchKey(

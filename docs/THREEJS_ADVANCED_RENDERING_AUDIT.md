@@ -40,12 +40,14 @@ code.** three.js gives games three escalating tiers — `ShaderMaterial`,
 `onBeforeCompile` chunk patching, and the TSL node system where custom
 materials automatically inherit lighting, shadows, skinning, morphs, and
 instancing. Aperture deliberately ships one narrow, data-only custom-WGSL
-route (`DECISIONS.md` 0010–0012, 0016): uniforms, textures, samplers, and
-per-instance attributes work end-to-end from the app facade with live
-uniform updates that never rebuild pipelines (`RuntimeUniform`,
-`DECISIONS.md` 0022) — but custom materials render **unlit only** (no
-light/shadow/IBL/fog bindings), cannot bind storage buffers or the depth
-texture, get no skinning/morph inputs, and output to a single color target.
+route (`DECISIONS.md` 0010–0012, 0016): uniforms, textures, samplers,
+read-only storage buffers (parity plan A2), and per-instance attributes work
+end-to-end from the app facade with live uniform updates that never rebuild
+pipelines (`RuntimeUniform`, `DECISIONS.md` 0022), and custom materials can
+now opt into the renderer-owned lit contract (`lighting: "lit"`, parity plan
+A1 — packed lights, directional shadow, IBL, fog via `aperture*` WGSL
+helpers). Remaining custom-shader gaps: no depth-texture binding, no
+skinning/morph inputs, and a single color target.
 
 **Render-to-texture is solid plumbing without an authoring story.**
 Per-camera `renderTargetId`, MSAA + resolve, handle-stable resize/reuse (the
@@ -69,9 +71,9 @@ compute-to-vertex plumbing, and indirect draws (WebGPU backend).
 
 **Confirmed absent in Aperture across this whole domain:** stencil, clipping
 planes, decals, MRT authoring, cube render targets, runtime texture/video
-updates, custom-material depth access, GPU-driven indirect rendering as a
-user API, and lit custom materials. §9 scores 20 concrete game scenarios;
-§10 ranks the gap closures by how much game-dev surface each unlocks.
+updates, custom-material depth access, and GPU-driven indirect rendering as
+a user API. §9 scores 20 concrete game scenarios; §10 ranks the gap
+closures by how much game-dev surface each unlocks.
 
 ---
 
@@ -111,9 +113,10 @@ authored from systems via `material.customWgsl` / `material.uniform` /
 The renderer's fixed bind contract for custom materials
 (`docs/AUTHORING.md`): `@group(0)` view uniform (viewProjection + camera
 position), `@group(1)` storage array of world transforms indexed by
-`instance_index`, `@group(2)` user bindings, `@group(3)` reserved. That
-reserved group is the natural future hook for lighting/shadow/depth
-integration.
+`instance_index`, `@group(2)` user bindings, `@group(3)` renderer-owned —
+formerly reserved, now realized as the versioned lit contract for
+`lighting: "lit"` materials (parity plan A1, `DECISIONS.md` 0024); depth
+access remains a future hook (B4).
 
 ### 2.3 Vertex stage & geometry integration
 
@@ -134,12 +137,23 @@ three.js: `lights: true` + `UniformsLib.lights` merge (WebGL) or — far
 stronger — TSL materials that get lights, shadows, IBL, and fog composed
 automatically, plus custom `LightingModel` subclasses for bespoke BRDFs.
 
-Aperture: **none**. A custom material receives no light, shadow, IBL, or fog
-bindings; it renders unlit with no diagnostic (the bindings simply don't
-exist). `docs/AUTHORING.md` marks lighting/environment integration for custom
-WGSL as deferred. Consequence: every "custom but lit" effect — terrain
-splatting under sunlight, stylized lit water, custom car paint — is currently
-out of reach without forking a built-in material family inside the engine.
+Aperture: an **opt-in lit contract** (parity plan A1, `DECISIONS.md` 0024).
+`material.customWgsl({ lighting: "lit", ... })` makes the renderer bind a
+versioned `@group(3)` (packed light buffers, directional shadow receiver
+resources, IBL irradiance/PMREM/BRDF-LUT, fog params — the SAME
+renderer-owned resources StandardMaterial consumes, with fallbacks when a
+frame lacks them) and prepend a WGSL header exposing `aperture*` helpers
+with StandardMaterial math parity (`apertureEvaluateLightSurface`,
+`apertureDirectionalShadow`, `apertureSampleIbl*`, `apertureApplyFog`; see
+`docs/LIGHT_SHADER_WGSL_CONTRACT.md`). "Custom but lit" effects — terrain
+splatting under sunlight, stylized lit water, custom car paint — are now
+authorable as data (`examples/lit-custom-material.*` proves A/B parity
+against a StandardMaterial reference sphere). Differences vs three.js: the
+lighting model is fixed Lambert+GGX helpers, not pluggable `LightingModel`
+subclasses; v1 exposes a single directional shadow receiver (3x3 PCF),
+diffuse-only rect-area lights, and no clustered local-light indices —
+extensions arrive behind a contract version bump. Unlit remains the default;
+a material that never opts in still renders unlit with no diagnostic.
 
 ### 2.5 Iteration speed
 
@@ -280,9 +294,9 @@ limits · ❌ not achievable today.
 
 | #   | Scenario                                              | three.js | Aperture | Aperture notes                                                                                                                                 |
 | --- | ----------------------------------------------------- | -------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Unlit stylized shader (scrolling UVs, force field)    | ✅       | ✅       | Custom WGSL + `RuntimeUniform` time/params — the showcase water shader is exactly this                                                         |
-| 2   | Dissolve effect (noise mask + threshold)              | ✅       | ✅       | Mask texture + alphaMode `mask` + runtime threshold; edge glow stays unlit                                                                     |
-| 3   | Lit custom shader (terrain splat, stylized lit water) | ✅       | ❌       | No light/shadow/IBL bindings for custom materials                                                                                              |
+| 1   | Unlit stylized shader (scrolling UVs, force field)    | ✅       | ✅       | Custom WGSL + `RuntimeUniform` time/params — the showcase water shader is exactly this; can now also opt into scene lighting (A1)              |
+| 2   | Dissolve effect (noise mask + threshold)              | ✅       | ✅       | Mask texture + alphaMode `mask` + runtime threshold; the surviving surface can be lit via the A1 contract                                      |
+| 3   | Lit custom shader (terrain splat, stylized lit water) | ✅       | ✅       | `lighting: "lit"` binds the group(3) lit contract; `aperture*` helpers reproduce the StandardMaterial response (parity plan A1)                |
 | 4   | Vertex-animated foliage/flags (wind)                  | ✅       | ✅       | Displacement works and `entryPoints.shadowVertex` mirrors it into the shadow map (parity plan A4); skinning in custom shaders remains #5's gap |
 | 5   | Custom shader on skinned characters                   | ✅       | ❌       | No skin/morph inputs in custom pipelines                                                                                                       |
 | 6   | Minimap / security-camera monitor                     | ✅       | 🟡       | Low-level RT + custom quad; no facade helper                                                                                                   |
@@ -305,9 +319,10 @@ limits · ❌ not achievable today.
 textures, and indirect.
 
 Score (of 20): three.js ✅ 16 / 🟡 2 / ❌ 0 (2 backend-caveated); Aperture
-✅ 6 / 🟡 5 / ❌ 9. The ❌ column clusters around four missing primitives —
-lit/extended custom materials, MRT + flexible render targets, stencil, and
-the compute→rendering bridge — rather than twenty unrelated gaps.
+✅ 7 / 🟡 5 / ❌ 8. The ❌ column clusters around four missing primitives —
+extended custom materials (skinning/morph/depth inputs), MRT + flexible
+render targets, stencil, and the compute→rendering bridge — rather than
+twenty unrelated gaps.
 
 ---
 
@@ -323,6 +338,7 @@ stay inside the architecture.
 1. **Lighting/shadow/IBL contract for custom WGSL** (unblocks #3, upgrades
    #1/#2/#4). The reserved `@group(3)` is the designed extension point; a
    read-only "lit surface" bind contract keeps materials data-only.
+   _Shipped_ — `lighting: "lit"` (parity plan A1, `DECISIONS.md` 0024).
 2. **Storage-buffer bindings for custom materials + compute→draw plumbing**
    (unblocks #13/#14, enables #15). The binding type and validation already
    exist; the missing piece is a renderer-independent buffer source asset

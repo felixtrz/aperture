@@ -368,6 +368,7 @@ export function createCustomWgslMaterialAsset(
     label: input.label,
     shader: input.shader,
     entryPoints: input.entryPoints,
+    ...(input.lighting === undefined ? {} : { lighting: input.lighting }),
     renderState: createDefaultRenderState(input.renderState),
     pipelineKey: {
       features: input.pipelineKey?.features ?? [],

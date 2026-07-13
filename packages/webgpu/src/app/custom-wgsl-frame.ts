@@ -14,6 +14,11 @@ import {
   type SourceMaterialAsset,
 } from "@aperture-engine/render";
 import { createCustomWgslAppFrameResources } from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
+import {
+  getOrCreateCustomWgslLitPipelineLayout,
+  prepareCustomWgslLitFrameResources,
+  type CustomWgslLitDiagnostic,
+} from "./custom-wgsl-lit-resources.js";
 import { prepareCustomWgslAppStorageBufferBindingResources } from "./custom-wgsl-storage-buffer-resources.js";
 import { prepareCustomWgslAppTextureSamplerBindingResources } from "./custom-wgsl-texture-sampler-resources.js";
 import { mapFrameBoundaryReadbackSamples } from "../render/frame/frame-boundary.js";
@@ -209,6 +214,60 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     options.reuse.pipelineHits += 1;
   }
 
+  // A1: lit materials bind the renderer-owned group(3) lit contract. The
+  // single-custom route has no standard shadow/IBL preparation, so the lit
+  // bind group carries the packed snapshot lights plus fallback shadow/IBL
+  // resources (apertureDirectionalShadow returns 1.0, IBL samples black).
+  let litFrameInput:
+    | Parameters<typeof createCustomWgslAppFrameResources>[0]["lit"]
+    | undefined;
+
+  if (prepared.lighting === "lit") {
+    const litDevice = options.app.initialization.device as Parameters<
+      typeof prepareCustomWgslLitFrameResources
+    >[0]["device"];
+    const litFrame = prepareCustomWgslLitFrameResources({
+      device: litDevice,
+      snapshot: options.snapshot,
+      viewUniforms: packedViews,
+      cache: options.cache.customWgslLit,
+      reuse: options.reuse,
+    });
+    const litDiagnostics: CustomWgslLitDiagnostic[] = [...litFrame.diagnostics];
+    const litPipelineLayout =
+      litFrame.valid && litFrame.bindGroup !== null
+        ? getOrCreateCustomWgslLitPipelineLayout({
+            device: litDevice,
+            cache: options.cache.customWgslLit,
+            material: prepared,
+            diagnostics: litDiagnostics,
+          })
+        : null;
+
+    if (litFrame.bindGroup === null || litPipelineLayout === null) {
+      return renderReport({
+        ok: false,
+        snapshot: options.snapshot,
+        resourceReuse: options.reuse,
+        phaseTimings: options.phaseTimer.report(
+          options.cache.phaseTimingHistory,
+          options.snapshot.frame,
+        ),
+        diagnostics: [
+          ...options.snapshot.diagnostics,
+          ...packedViews.diagnostics,
+          ...packedTransforms.diagnostics,
+          ...litDiagnostics,
+        ],
+      });
+    }
+
+    litFrameInput = {
+      pipelineLayout: litPipelineLayout,
+      bindGroup: litFrame.bindGroup,
+    };
+  }
+
   const resources = await createCustomWgslAppFrameResources({
     device: options.app.initialization.device as Parameters<
       typeof createCustomWgslAppFrameResources
@@ -232,6 +291,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     runtimeUniforms: options.snapshot.runtimeUniforms ?? [],
     runtimeUniformCache: options.cache.customWgslRuntimeUniforms,
     reuse: options.reuse,
+    ...(litFrameInput === undefined ? {} : { lit: litFrameInput }),
   });
 
   if (
