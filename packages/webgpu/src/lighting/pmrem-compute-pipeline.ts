@@ -34,6 +34,12 @@ export interface PmremComputePipelineResource {
 export interface CreatePmremComputePipelineOptions {
   readonly device: PmremComputeDeviceLike;
   readonly storageFormat?: PmremComputeStorageFormat;
+  /**
+   * Sample the source cube with a negated X direction (B2 cube-capture
+   * convention): captured render targets store the X-mirrored environment so
+   * face passes keep proper winding; the prefilter unmirrors at read time.
+   */
+  readonly sourceFlipX?: boolean;
   readonly label?: string;
 }
 
@@ -56,6 +62,7 @@ export function createPmremComputePipeline(
 ): CreatePmremComputePipelineResult {
   const label = options.label ?? "aperture-pmrem-compute";
   const storageFormat = options.storageFormat ?? "rgba16float";
+  const sourceFlipX = options.sourceFlipX === true;
 
   if (options.device.createShaderModule === undefined) {
     return failure(
@@ -90,7 +97,7 @@ export function createPmremComputePipeline(
   try {
     shaderModule = options.device.createShaderModule({
       label: `${label}:shader`,
-      code: pmremComputeShader(storageFormat),
+      code: pmremComputeShader(storageFormat, sourceFlipX),
     });
   } catch (error) {
     return failure(
@@ -200,7 +207,10 @@ export function createPmremComputeDispatchSize(input: {
   };
 }
 
-function pmremComputeShader(format: PmremComputeStorageFormat): string {
+function pmremComputeShader(
+  format: PmremComputeStorageFormat,
+  sourceFlipX: boolean,
+): string {
   return `
 struct PmremParams {
   width: u32,
@@ -240,6 +250,10 @@ fn cubeDirection(face: u32, uv: vec2f) -> vec3f {
       return normalize(vec3f(-xy.x, -xy.y, -1.0));
     }
   }
+}
+
+fn sourceDirection(direction: vec3f) -> vec3f {
+  return vec3f(${sourceFlipX ? "-direction.x" : "direction.x"}, direction.y, direction.z);
 }
 
 fn radicalInverseVdc(inputBits: u32) -> f32 {
@@ -289,7 +303,7 @@ fn roughnessFromMipLevel(mipLevel: u32) -> f32 {
 }
 
 fn roughnessColor(direction: vec3f) -> vec4f {
-  let baseColor = textureSampleLevel(sourceCube, sourceSampler, direction, 0.0);
+  let baseColor = textureSampleLevel(sourceCube, sourceSampler, sourceDirection(direction), 0.0);
 
   if (params.sourceMipLevel == 0u) {
     return baseColor;
@@ -310,7 +324,7 @@ fn roughnessColor(direction: vec3f) -> vec4f {
     let sampleWeight = max(dot(normal, sampleDirection), 0.0);
 
     if (sampleWeight > 0.0) {
-      let sampleColor = textureSampleLevel(sourceCube, sourceSampler, sampleDirection, 0.0);
+      let sampleColor = textureSampleLevel(sourceCube, sourceSampler, sourceDirection(sampleDirection), 0.0);
       prefilteredColor += sampleColor.rgb * sampleWeight;
       totalWeight += sampleWeight;
     }

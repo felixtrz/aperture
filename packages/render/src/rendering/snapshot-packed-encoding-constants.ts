@@ -1,8 +1,10 @@
 export const SNAPSHOT_PACKET_ENCODING_MAGIC = 0x4150_5350; // "APSP"
-export const SNAPSHOT_PACKET_ENCODING_VERSION = 15;
+export const SNAPSHOT_PACKET_ENCODING_VERSION = 16;
 
 export const SNAPSHOT_PACKET_HEADER_WORDS = 14;
-export const VIEW_PACKET_WORDS = 36;
+// 0-35: ids/handles/matrix offsets/rects/clear values/render target; 36:
+// cube-capture face index (signed; -1 = not a cube face) (B2).
+export const VIEW_PACKET_WORDS = 37;
 export const MESH_DRAW_PACKET_WORDS = 34;
 export const LIGHT_PACKET_WORDS = 31;
 export const ENVIRONMENT_PACKET_WORDS = 13;

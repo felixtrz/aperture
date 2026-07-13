@@ -184,9 +184,23 @@ export interface WebGpuAppRenderTargetSubmissionReport {
   readonly ok: boolean;
   readonly drawCalls: number;
   readonly msaaSampleCount?: number;
+  // B2: present only on cube-capture face passes (0..5, WebGPU layer order).
+  readonly face?: number;
   // M3-T7: present only on the single-encoder graph path; existing fields above
   // are unchanged (per D4).
   readonly graph?: WebGpuAppPostGraphReport;
+}
+
+/**
+ * One completed cube capture this frame (B2): all six face passes of the
+ * target were submitted. `captureGeneration` is the cumulative completed
+ * capture count for the target — e2e specs assert re-render cadence from it.
+ */
+export interface WebGpuAppRenderTargetCaptureReport {
+  readonly renderTargetKey: string;
+  readonly faces: number;
+  readonly ok: boolean;
+  readonly captureGeneration: number;
 }
 
 export interface WebGpuAppPostEffectSubmissionReport {
@@ -456,6 +470,7 @@ export interface WebGpuAppRenderReport {
   readonly boundary: FrameBoundaryAssemblyReport | null;
   readonly boundaries?: readonly FrameBoundaryAssemblyReport[];
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
+  readonly renderTargetCaptures?: readonly WebGpuAppRenderTargetCaptureReport[];
   readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
   readonly transmissionGrabPass?: WebGpuAppTransmissionGrabPassReport;
   readonly msaa?: WebGpuAppMsaaReport;
@@ -544,6 +559,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly resourceReuse: WebGpuAppResourceReuseReport;
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
+  readonly renderTargetCaptures?: readonly WebGpuAppRenderTargetCaptureReport[];
   readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
   readonly transmissionGrabPass?: WebGpuAppTransmissionGrabPassReport;
   readonly msaa?: WebGpuAppMsaaReport;

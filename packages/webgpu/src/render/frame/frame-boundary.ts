@@ -177,6 +177,11 @@ export interface FrameBoundaryCurrentTextureTarget {
 export interface FrameBoundaryOffscreenTarget {
   readonly source: "offscreen-target";
   readonly texture: CurrentTextureLike | null | undefined;
+  /**
+   * Pre-created color view to attach instead of the texture's default view
+   * (cube-capture face passes render into one array layer — B2).
+   */
+  readonly view?: unknown;
 }
 
 export type FrameBoundaryColorTarget =
@@ -458,6 +463,7 @@ export function buildFrameBoundaryTargetPlan(
     colorTarget.source === "offscreen-target"
       ? createOffscreenColorTarget({
           texture: colorTarget.texture,
+          ...(colorTarget.view === undefined ? {} : { view: colorTarget.view }),
           loadOp: options.colorLoadOp ?? "clear",
           ...(options.clearColor === undefined
             ? {}

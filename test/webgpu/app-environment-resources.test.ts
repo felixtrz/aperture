@@ -5,6 +5,8 @@ import {
   createIblResourceDescriptorReport,
   createIblSamplerDescriptorReadinessReport,
   createIblTexturePreparationReport,
+  createRenderTargetAsset,
+  createRenderTargetHandle,
   prepareWebGpuAppEnvironmentAssets,
   prepareWebGpuAppIblResourceReports,
   webGpuPreparedEnvironmentAssetSetToJsonValue,
@@ -12,6 +14,12 @@ import {
   type TextureGpuDeviceLike,
   type TextureGpuResource,
 } from "@aperture-engine/webgpu/test-support";
+import {
+  bumpWebGpuAppRenderTargetCaptureGeneration,
+  createWebGpuAppRenderTargetResourceState,
+  realizeWebGpuAppRenderTarget,
+  registerWebGpuAppRenderTargetResourceState,
+} from "../../packages/webgpu/src/app/render-target-resources.js";
 
 describe("WebGPU app environment resource cache", () => {
   it("creates then reuses app-owned IBL texture and sampler resources", () => {
@@ -386,6 +394,189 @@ describe("WebGPU app environment resource cache", () => {
     }
   });
 
+  it("consumes a captured cube render target as the IBL environment source (B2)", () => {
+    const calls: string[] = [];
+    const device = pmremDevice(calls);
+    const app = { initialization: { device } };
+    const state = createWebGpuAppRenderTargetResourceState();
+
+    state.appFormat = "bgra8unorm";
+    registerWebGpuAppRenderTargetResourceState(app, state);
+
+    const targetHandle = createRenderTargetHandle("probe.env");
+    const realizeResult = realizeWebGpuAppRenderTarget({
+      device,
+      state,
+      handle: targetHandle,
+      asset: createRenderTargetAsset({ dimension: "cube", size: 4 }),
+      version: 1,
+    });
+
+    expect(realizeResult.ok).toBe(true);
+    bumpWebGpuAppRenderTargetCaptureGeneration(
+      state,
+      "render-target:probe.env",
+    );
+
+    const handle = createEnvironmentMapHandle("probe-env");
+    const prepared = prepareWebGpuAppEnvironmentAssets({
+      app,
+      assets: [
+        {
+          handle,
+          label: "probe-env",
+          diffuseResourceKey: "texture:probe-env:diffuse",
+          specularResourceKey: "texture:probe-env:specular",
+          renderTargetSource: { renderTarget: "probe.env" },
+        },
+      ],
+      activeHandle: handle,
+    });
+    const json = webGpuPreparedEnvironmentAssetSetToJsonValue(prepared);
+
+    expect(prepared.active?.ready).toBe(true);
+    expect(prepared.active?.renderTargetProjection).toMatchObject({
+      ready: true,
+      renderTargetKey: "render-target:probe.env",
+      faceSize: 4,
+      captureGeneration: 1,
+    });
+    // Capture-generation versioned resource keys drive re-prefiltering.
+    expect(prepared.active?.diffuseResourceKey).toBe(
+      "texture:probe-env:diffuse@capture1",
+    );
+    expect(prepared.active?.specularTextureResource.sections.prefiltering).toBe(
+      true,
+    );
+    expect(prepared.active?.diffuseTextureResource.convolved).toBe(true);
+    // One irradiance dispatch plus three PMREM mips (faceSize 4 -> 4, 2, 1).
+    expect(calls.filter((call) => call === "dispatch")).toHaveLength(4);
+    expect(JSON.stringify(json)).not.toMatch(
+      /GPUTexture|GPUTextureView|GPUSampler|GPUBindGroup|"raw"/,
+    );
+  });
+
+  it("stays not-ready until the probe's first capture completes (B2)", () => {
+    const calls: string[] = [];
+    const device = pmremDevice(calls);
+    const app = { initialization: { device } };
+    const state = createWebGpuAppRenderTargetResourceState();
+
+    state.appFormat = "bgra8unorm";
+    registerWebGpuAppRenderTargetResourceState(app, state);
+
+    const handle = createEnvironmentMapHandle("probe-env");
+    const assetInput = {
+      handle,
+      diffuseResourceKey: "texture:probe-env:diffuse",
+      specularResourceKey: "texture:probe-env:specular",
+      renderTargetSource: { renderTarget: "probe.env" },
+    };
+
+    // Not realized yet.
+    const unrealized = prepareWebGpuAppEnvironmentAssets({
+      app,
+      assets: [assetInput],
+      activeHandle: handle,
+    });
+
+    expect(unrealized.active?.ready).toBe(false);
+    expect(
+      unrealized.active?.renderTargetProjection?.diagnostics.map(
+        (diagnostic) => diagnostic.code,
+      ),
+    ).toEqual(["iblRenderTargetSource.notRealized"]);
+
+    // Realized but never captured.
+    realizeWebGpuAppRenderTarget({
+      device,
+      state,
+      handle: createRenderTargetHandle("probe.env"),
+      asset: createRenderTargetAsset({ dimension: "cube", size: 4 }),
+      version: 1,
+    });
+
+    const uncaptured = prepareWebGpuAppEnvironmentAssets({
+      app,
+      assets: [assetInput],
+      activeHandle: handle,
+    });
+
+    expect(uncaptured.active?.ready).toBe(false);
+    expect(
+      uncaptured.active?.renderTargetProjection?.diagnostics.map(
+        (diagnostic) => diagnostic.code,
+      ),
+    ).toEqual(["iblRenderTargetSource.notCaptured"]);
+  });
+
+  it("re-prefilters and evicts superseded textures per capture generation (B2)", () => {
+    const calls: string[] = [];
+    const destroyed: string[] = [];
+    const device = pmremDevice(calls, destroyed);
+    const app = { initialization: { device } };
+    const state = createWebGpuAppRenderTargetResourceState();
+
+    state.appFormat = "bgra8unorm";
+    registerWebGpuAppRenderTargetResourceState(app, state);
+    realizeWebGpuAppRenderTarget({
+      device,
+      state,
+      handle: createRenderTargetHandle("probe.env"),
+      asset: createRenderTargetAsset({ dimension: "cube", size: 4 }),
+      version: 1,
+    });
+    bumpWebGpuAppRenderTargetCaptureGeneration(
+      state,
+      "render-target:probe.env",
+    );
+
+    const handle = createEnvironmentMapHandle("probe-env");
+    const assetInput = {
+      handle,
+      diffuseResourceKey: "texture:probe-env:diffuse",
+      specularResourceKey: "texture:probe-env:specular",
+      renderTargetSource: { renderTarget: "probe.env" },
+    };
+    const first = prepareWebGpuAppEnvironmentAssets({
+      app,
+      assets: [assetInput],
+      activeHandle: handle,
+    });
+
+    // Re-capture: the generation advances, keys re-version, prefilter re-runs,
+    // and the superseded prefilter textures are destroyed (no per-capture leak).
+    bumpWebGpuAppRenderTargetCaptureGeneration(
+      state,
+      "render-target:probe.env",
+    );
+
+    const second = prepareWebGpuAppEnvironmentAssets({
+      app,
+      assets: [assetInput],
+      activeHandle: handle,
+    });
+
+    expect(first.active?.diffuseResourceKey).toBe(
+      "texture:probe-env:diffuse@capture1",
+    );
+    expect(second.active?.diffuseResourceKey).toBe(
+      "texture:probe-env:diffuse@capture2",
+    );
+    expect(second.totals.diffuseTextureResourcesCreated).toBe(1);
+    expect(second.totals.specularTextureResourcesCreated).toBe(1);
+    expect(second.cacheSummary.diffuseTextureEntries).toBe(1);
+    expect(second.cacheSummary.specularTextureEntries).toBe(1);
+    // The superseded diffuse + specular prefilter cubes were destroyed.
+    expect(
+      destroyed.filter(
+        (label) =>
+          label.includes("diffuse-ibl-irradiance") ||
+          label.includes("specular-ibl-pmrem-mip-chain"),
+      ),
+    ).toHaveLength(2);
+  });
+
   it("emits a single truthful source-not-prepared diagnostic for sourceless assets", () => {
     const calls: string[] = [];
     const app = {
@@ -537,7 +728,7 @@ function cubemapDirectAsset(
   };
 }
 
-function pmremDevice(calls: string[]) {
+function pmremDevice(calls: string[], destroyed: string[] = []) {
   return {
     createShaderModule: (descriptor: unknown) => ({ descriptor }),
     createBindGroupLayout: (descriptor: unknown) => ({ descriptor }),
@@ -549,6 +740,11 @@ function pmremDevice(calls: string[]) {
         descriptor,
         viewDescriptor,
       }),
+      destroy: () => {
+        destroyed.push(
+          (descriptor as { readonly label?: string }).label ?? "unlabeled",
+        );
+      },
     }),
     createSampler: (descriptor: unknown) => ({ descriptor }),
     createBuffer: (descriptor: unknown) => ({ descriptor }),

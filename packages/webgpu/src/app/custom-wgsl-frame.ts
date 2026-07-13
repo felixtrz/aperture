@@ -484,6 +484,9 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     boundaries: boundaries.boundaries,
     commandPressure: framePlan.commandPlan.pressure,
     renderTargets: boundaries.renderTargets,
+    ...(boundaries.renderTargetCaptures.length === 0
+      ? {}
+      : { renderTargetCaptures: boundaries.renderTargetCaptures }),
     postEffects: boundaries.postEffects,
     ...(boundaries.renderBundles === undefined
       ? {}

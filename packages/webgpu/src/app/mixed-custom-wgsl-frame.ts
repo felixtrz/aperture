@@ -551,6 +551,17 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     ...(options.readbackSamples === undefined
       ? {}
       : { readbackSamples: options.readbackSamples }),
+    // B2: per-target view-uniform selection for cube-capture face passes.
+    // Built-in materials only — custom WGSL draws keep the frame's first
+    // record (documented capture limitation).
+    ...(preparedBuiltIn.resources === null
+      ? {}
+      : {
+          viewUniformCapture: {
+            viewUniforms: packedViews,
+            buffers: [preparedBuiltIn.resources.viewUniform.buffer],
+          },
+        }),
   });
 
   if (frameBoundariesNeedGpuDrain(boundaries)) {
@@ -607,6 +618,9 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     boundary: boundaries.boundary,
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
+    ...(boundaries.renderTargetCaptures.length === 0
+      ? {}
+      : { renderTargetCaptures: boundaries.renderTargetCaptures }),
     postEffects: boundaries.postEffects,
     ...(autoShadowFrame === null ? {} : { shadow: autoShadowFrame.report }),
     ...(boundaries.renderBundles === undefined

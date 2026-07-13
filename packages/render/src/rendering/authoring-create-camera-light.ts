@@ -42,6 +42,8 @@ export function createCamera(
     frustumCulling: input.frustumCulling ?? true,
     temporalJitterX: input.temporalJitter?.[0] ?? 0,
     temporalJitterY: input.temporalJitter?.[1] ?? 0,
+    captureEvery: input.captureEvery ?? 1,
+    captureRequestFrame: input.captureRequestFrame ?? -1,
   };
 }
 

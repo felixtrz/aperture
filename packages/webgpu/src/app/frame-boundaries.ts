@@ -1,5 +1,9 @@
 import type { AssetRegistry } from "@aperture-engine/simulation";
-import type { RenderSnapshot } from "@aperture-engine/render";
+import {
+  PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+  type PackedSnapshotViewUniforms,
+  type RenderSnapshot,
+} from "@aperture-engine/render";
 import {
   countWebGpuAppFrameBoundaryTargetSubmissions,
   createWebGpuAppFrameBoundaryTargets,
@@ -39,6 +43,7 @@ import {
   type WebGpuAppPostEffectSubmissionReport,
   type WebGpuAppPostGraphReport,
   type WebGpuAppRenderBundleReport,
+  type WebGpuAppRenderTargetCaptureReport,
   type WebGpuAppRenderTargetSubmissionReport,
   type WebGpuAppResourceReuseReport,
   type WebGpuAppTransmissionGrabPassReport,
@@ -88,6 +93,7 @@ import {
   type WebGpuAppPassResolvers,
 } from "./user-pass.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
+import { bumpWebGpuAppRenderTargetCaptureGeneration } from "./render-target-resources.js";
 
 const SOFT_PARTICLE_PIPELINE_KEY_SUFFIX = ":soft-particles";
 
@@ -96,6 +102,7 @@ export interface WebGpuAppFrameBoundaryAssemblyResult {
   readonly boundary: FrameBoundaryAssemblyReport | null;
   readonly boundaries: readonly FrameBoundaryAssemblyReport[];
   readonly renderTargets: readonly WebGpuAppRenderTargetSubmissionReport[];
+  readonly renderTargetCaptures: readonly WebGpuAppRenderTargetCaptureReport[];
   readonly postEffects: readonly WebGpuAppPostEffectSubmissionReport[];
   readonly transmissionGrabPass?: WebGpuAppTransmissionGrabPassReport;
   readonly msaa?: WebGpuAppMsaaReport;
@@ -133,6 +140,19 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   // M3-T5: shadow caster passes to fold into the forward encoder as depth-only
   // graph nodes the opaque pass reads (only used when useFrameGraph is on).
   readonly shadowCasterGraphPasses?: readonly ShadowCasterGraphPass[];
+  /**
+   * B2 cube captures: per-target view-uniform selection. The app frame routes
+   * bind one shared view-uniform buffer whose record 0 every pass reads; on
+   * frames with cube-capture face passes the boundary rewrites record 0 with
+   * each target's own packed record before that target's submission (and
+   * restores it afterwards), so the six faces (and the main camera) render
+   * with their own matrices. Scoped to capture frames — frames without cube
+   * faces stay byte-identical to the pre-B2 path.
+   */
+  readonly viewUniformCapture?: {
+    readonly viewUniforms: PackedSnapshotViewUniforms;
+    readonly buffers: readonly unknown[];
+  };
 }): Promise<WebGpuAppFrameBoundaryAssemblyResult> {
   const targetPlan = createWebGpuAppFrameBoundaryTargets(
     options.app,
@@ -147,6 +167,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       boundary: null,
       boundaries: [],
       renderTargets: [],
+      renderTargetCaptures: [],
       postEffects: [],
       readbackBoundary: null,
       gpuTimingReadbacks: [],
@@ -196,11 +217,36 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     targetPlan.targets,
   );
 
+  // B2: cube-capture face passes need per-target view uniforms, which are
+  // synced by rewriting the shared view-uniform buffer between submissions —
+  // impossible inside the single-encoder graph, so capture frames take the
+  // legacy multi-submit route (like frames with post effects).
+  const hasCubeCaptureFaces = targetPlan.targets.some(
+    (target) => target.source === "offscreen" && target.face !== null,
+  );
+  const viewUniformSync =
+    hasCubeCaptureFaces && options.viewUniformCapture !== undefined
+      ? createWebGpuAppTargetViewUniformSync({
+          device: options.app.initialization.device,
+          capture: options.viewUniformCapture,
+        })
+      : null;
+
+  if (hasCubeCaptureFaces && viewUniformSync === null) {
+    diagnostics.push({
+      code: "webGpuApp.renderTargetCubeCaptureViewUniformsUnavailable",
+      message:
+        "Cube-capture face passes are present but this render route did not provide per-target view-uniform selection; every face would render with the frame's first view record. Use a built-in material route (standard/unlit/matcap/debug-normal) for cube captures.",
+    });
+  }
+
   // M3-T4: route the whole multi-target forward frame through ONE FrameGraph
   // (single command buffer) when useFrameGraph is on and there are no post
   // effects or transmission-grab pass (those keep the legacy path for now).
   const forwardGraphEligible =
-    options.app.useFrameGraph === true && activePostEffects.length === 0;
+    options.app.useFrameGraph === true &&
+    activePostEffects.length === 0 &&
+    !hasCubeCaptureFaces;
   const forwardGraph = forwardGraphEligible ? createFrameGraph() : null;
   // AI-12: the public user-pass API (app.addRenderPass / app.addComputePass)
   // runs on the FrameGraph routes only — the forward (no-post) graph below and
@@ -372,6 +418,8 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       occlusionQueries === null || occlusionQueries.valid || occlusionFallback;
     diagnostics.push(...background.diagnostics);
     allTargetsValid &&= background.valid;
+    // B2: select this target's view record before anything submits for it.
+    viewUniformSync?.writeRecordForView(target.view.viewId, diagnostics);
     const depthAttachment = createWebGpuAppDepthAttachmentForTarget(
       options.app,
       options.cache,
@@ -701,6 +749,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
             colorTarget: {
               source: "offscreen-target" as const,
               texture: target.texture,
+              // B2: cube-capture face passes attach their pre-created layer
+              // view instead of the texture's default (cube) view.
+              ...(target.colorView === null ? {} : { view: target.colorView }),
             },
           }
         : {}),
@@ -918,6 +969,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       ...(msaaColorTarget.resource === null
         ? {}
         : { msaaSampleCount: msaaColorTarget.resource.sampleCount }),
+      ...(target.source === "offscreen" && target.face !== null
+        ? { face: target.face }
+        : {}),
     });
     plannedCommands += commandsForBoundaryWithOverlay.length;
     drawCalls += countDrawCommands(commandsForBoundaryWithOverlay);
@@ -1140,6 +1194,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         ...(entry.msaaSampleCount === null
           ? {}
           : { msaaSampleCount: entry.msaaSampleCount }),
+        ...(entry.target.source === "offscreen" && entry.target.face !== null
+          ? { face: entry.target.face }
+          : {}),
         // AI-12: the presented target that hosts the user passes carries the
         // graph order/user-pass report (same field the post route reports on).
         ...(userPassGraphReport !== null &&
@@ -1204,7 +1261,18 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     }
   }
 
+  // B2: restore the packed record 0 so the shared buffer matches the packed
+  // data again (the per-frame dirty-window upload assumes it does).
+  viewUniformSync?.restore();
+
   const renderBundleReport = createWebGpuAppRenderBundleReport(boundaries);
+  // B2: one completed capture per cube target whose face passes were all
+  // submitted OK this frame — bumps the persistent capture generation the
+  // environment-map `renderTargetSource` keys its re-prefiltering off.
+  const renderTargetCaptures = collectWebGpuAppRenderTargetCaptures(
+    renderTargets,
+    options.cache,
+  );
 
   return {
     valid:
@@ -1215,6 +1283,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     boundary: firstBoundary,
     boundaries,
     renderTargets,
+    renderTargetCaptures,
     postEffects,
     ...(transmissionGrabPassReport === undefined
       ? {}
@@ -1686,4 +1755,128 @@ function isTransparentOverlayClearColor(
 
 function renderLayerMasksOverlap(a: number, b: number): boolean {
   return (a & b) !== 0;
+}
+
+/**
+ * Fold this frame's cube-capture face submissions into per-target capture
+ * reports (B2), bumping the persistent capture generation once per target
+ * whose six faces all submitted OK.
+ */
+function collectWebGpuAppRenderTargetCaptures(
+  renderTargets: readonly WebGpuAppRenderTargetSubmissionReport[],
+  cache: WebGpuAppResourceCache,
+): WebGpuAppRenderTargetCaptureReport[] {
+  const faceCounts = new Map<string, { faces: number; ok: boolean }>();
+
+  for (const submission of renderTargets) {
+    if (submission.face === undefined || submission.renderTargetKey === null) {
+      continue;
+    }
+
+    const entry = faceCounts.get(submission.renderTargetKey) ?? {
+      faces: 0,
+      ok: true,
+    };
+
+    entry.faces += 1;
+    entry.ok &&= submission.ok;
+    faceCounts.set(submission.renderTargetKey, entry);
+  }
+
+  const captures: WebGpuAppRenderTargetCaptureReport[] = [];
+
+  for (const [renderTargetKey, entry] of faceCounts) {
+    captures.push({
+      renderTargetKey,
+      faces: entry.faces,
+      ok: entry.ok,
+      captureGeneration: entry.ok
+        ? bumpWebGpuAppRenderTargetCaptureGeneration(
+            cache.renderTargets,
+            renderTargetKey,
+          )
+        : (cache.renderTargets.captureGenerations.get(renderTargetKey) ?? 0),
+    });
+  }
+
+  return captures;
+}
+
+interface WebGpuAppViewUniformSyncQueueLike {
+  readonly writeBuffer?: (
+    buffer: unknown,
+    bufferOffset: number,
+    data: Float32Array,
+    dataOffset?: number,
+    size?: number,
+  ) => void;
+}
+
+/**
+ * Per-target view-uniform selection for cube-capture frames (B2): rewrite
+ * record 0 of every shared view-uniform buffer with the target view's packed
+ * record before that target's submission. `queue.writeBuffer` is ordered
+ * against subsequent submits, so each target's passes read their own
+ * matrices; `restore()` puts the packed record 0 back afterwards.
+ */
+function createWebGpuAppTargetViewUniformSync(input: {
+  readonly device: unknown;
+  readonly capture: NonNullable<
+    Parameters<typeof assembleWebGpuAppFrameBoundaries>[0]["viewUniformCapture"]
+  >;
+}): {
+  writeRecordForView(viewId: number, diagnostics: unknown[]): void;
+  restore(): void;
+} | null {
+  const queue = (
+    input.device as { readonly queue?: WebGpuAppViewUniformSyncQueueLike }
+  ).queue;
+
+  if (queue?.writeBuffer === undefined || input.capture.buffers.length === 0) {
+    return null;
+  }
+
+  const writeBuffer = queue.writeBuffer.bind(queue);
+  const { data, views } = input.capture.viewUniforms;
+  const missingRecordViewIds = new Set<number>();
+  let dirty = false;
+  const writeRecord = (packedOffset: number): void => {
+    for (const buffer of input.capture.buffers) {
+      writeBuffer(
+        buffer,
+        0,
+        data,
+        packedOffset,
+        PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+      );
+    }
+  };
+
+  return {
+    writeRecordForView(viewId, diagnostics) {
+      const record = views.find((candidate) => candidate.viewId === viewId);
+
+      if (record === undefined) {
+        if (!missingRecordViewIds.has(viewId)) {
+          missingRecordViewIds.add(viewId);
+          diagnostics.push({
+            code: "webGpuApp.renderTargetCubeCaptureViewUniformsUnavailable",
+            viewId,
+            message: `Cube-capture view ${String(viewId)} has no packed view-uniform record; its target renders with the previously selected record.`,
+          });
+        }
+        return;
+      }
+
+      writeRecord(record.packedOffset);
+      dirty = true;
+    },
+    restore() {
+      const first = views[0];
+
+      if (dirty && first !== undefined) {
+        writeRecord(first.packedOffset);
+      }
+    },
+  };
 }

@@ -31,6 +31,7 @@ export function writeViewPacket(
   writeFloat64(words, offset + 32, packet.clearDepth);
   writeSigned32(words, offset + 34, packet.clearStencil);
   words[offset + 35] = registry.handleId(packet.renderTarget) >>> 0;
+  writeSigned32(words, offset + 36, packet.renderTargetFace ?? -1);
 }
 
 export function readViewPacket(
@@ -38,6 +39,8 @@ export function readViewPacket(
   offset: number,
   registry: SnapshotPacketEncodingRegistry,
 ): ViewPacket {
+  const renderTargetFace = readSigned32(words, offset + 36);
+
   return {
     viewId: words[offset] ?? 0,
     camera: readEntity(words, offset + 1),
@@ -54,5 +57,8 @@ export function readViewPacket(
     renderTarget: readNullableHandle(registry, words[offset + 35] ?? 0, [
       "render-target",
     ]),
+    // -1 is the "not a cube face" sentinel so decoded packets stay deep-equal
+    // to their pre-encoding shape (the field is absent on ordinary views).
+    ...(renderTargetFace < 0 ? {} : { renderTargetFace }),
   };
 }

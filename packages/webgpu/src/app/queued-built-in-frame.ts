@@ -690,6 +690,11 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     ...(shadowCasterGraphPasses.length === 0
       ? {}
       : { shadowCasterGraphPasses }),
+    // B2: per-target view-uniform selection for cube-capture face passes.
+    viewUniformCapture: {
+      viewUniforms: packedViews,
+      buffers: [prepared.resources.viewUniform.buffer],
+    },
   });
   rememberCurrentViewProjectionMatrices(
     options.snapshot,
@@ -769,6 +774,9 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     boundary: boundaries.boundary,
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
+    ...(boundaries.renderTargetCaptures.length === 0
+      ? {}
+      : { renderTargetCaptures: boundaries.renderTargetCaptures }),
     postEffects: boundaries.postEffects,
     ...(autoShadowReport === undefined ? {} : { shadow: autoShadowReport }),
     motionVectors: motionVectorReport,

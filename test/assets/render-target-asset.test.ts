@@ -17,6 +17,7 @@ describe("render target source assets", () => {
       label: "Render Target",
       width: 256,
       height: 128,
+      dimension: "2d",
       format: "swapchain",
       msaa: 1,
       depth: true,
@@ -24,6 +25,75 @@ describe("render target source assets", () => {
     });
     expect(validateRenderTargetAsset(asset).valid).toBe(true);
     expect(isRenderTargetAsset(asset)).toBe(true);
+  });
+
+  it("creates cube assets from a single size (B2)", () => {
+    const asset = createRenderTargetAsset({ dimension: "cube", size: 128 });
+
+    expect(asset).toMatchObject({
+      dimension: "cube",
+      width: 128,
+      height: 128,
+    });
+    expect(validateRenderTargetAsset(asset).valid).toBe(true);
+  });
+
+  it("rejects non-square cube targets", () => {
+    const report = validateRenderTargetAsset(
+      createRenderTargetAsset({ dimension: "cube", width: 128, height: 64 }),
+    );
+
+    expect(report.valid).toBe(false);
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "renderTargetAsset.cubeSizeNotSquare",
+        severity: "error",
+        field: "size",
+      },
+    ]);
+  });
+
+  it("rejects msaa: 4 on cube targets", () => {
+    const report = validateRenderTargetAsset(
+      createRenderTargetAsset({ dimension: "cube", size: 64, msaa: 4 }),
+    );
+
+    expect(report.valid).toBe(false);
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "renderTargetAsset.cubeMsaaUnsupported",
+        severity: "error",
+        field: "msaa",
+      },
+    ]);
+  });
+
+  it("rejects unknown dimensions and missing sizes", () => {
+    const dimensionReport = validateRenderTargetAsset(
+      createRenderTargetAsset({
+        width: 64,
+        height: 64,
+        dimension: "3d" as unknown as RenderTargetAsset["dimension"],
+      }),
+    );
+
+    expect(dimensionReport.valid).toBe(false);
+    expect(
+      dimensionReport.diagnostics.some(
+        (diagnostic) =>
+          diagnostic.code === "renderTargetAsset.invalidDimension",
+      ),
+    ).toBe(true);
+
+    // Neither width/height nor size: loud invalid-size errors, not NaN soup.
+    const sizeReport = validateRenderTargetAsset(createRenderTargetAsset({}));
+
+    expect(sizeReport.valid).toBe(false);
+    expect(
+      sizeReport.diagnostics.filter(
+        (diagnostic) => diagnostic.code === "renderTargetAsset.invalidSize",
+      ),
+    ).toHaveLength(2);
   });
 
   it("resolves the swapchain format renderer-side and keeps concrete formats", () => {

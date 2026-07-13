@@ -221,6 +221,9 @@ export function createSpawnCommands(options: {
             ? {}
             : { fovYRadians: (input.fovYDegrees * Math.PI) / 180 }),
           ...(renderTargetId === undefined ? {} : { renderTargetId }),
+          ...(input.capture?.every === undefined
+            ? {}
+            : { captureEvery: input.capture.every }),
         }),
       );
       return entity;

@@ -33,11 +33,22 @@ export type RenderTargetAssetFormat =
  */
 export type RenderTargetAssetMsaa = 1 | 4;
 
+/**
+ * Texture shape of the target. `"2d"` (the default) is a single color image a
+ * camera renders into. `"cube"` (B2) is a 6-face cube map captured by a
+ * cube-capture camera (`Camera.renderTargetId` pointing at a cube target emits
+ * six 90-degree face views per scheduled capture); cube targets must be square
+ * and are consumable as an IBL environment source
+ * (`prepareWebGpuAppEnvironmentAssets` `renderTargetSource`).
+ */
+export type RenderTargetAssetDimension = "2d" | "cube";
+
 export interface RenderTargetAsset {
   readonly kind: "render-target";
   readonly label: string;
   readonly width: number;
   readonly height: number;
+  readonly dimension: RenderTargetAssetDimension;
   readonly format: RenderTargetAssetFormat;
   readonly msaa: RenderTargetAssetMsaa;
   /**
@@ -59,6 +70,9 @@ export interface RenderTargetAsset {
 export type RenderTargetAssetDiagnosticCode =
   | "renderTargetAsset.invalidLabel"
   | "renderTargetAsset.invalidSize"
+  | "renderTargetAsset.invalidDimension"
+  | "renderTargetAsset.cubeSizeNotSquare"
+  | "renderTargetAsset.cubeMsaaUnsupported"
   | "renderTargetAsset.invalidFormat"
   | "renderTargetAsset.invalidMsaa"
   | "renderTargetAsset.depthDisabledUnsupported"
@@ -78,8 +92,11 @@ export interface RenderTargetAssetValidationReport {
 
 export interface CreateRenderTargetAssetInput {
   readonly label?: string;
-  readonly width: number;
-  readonly height: number;
+  readonly width?: number;
+  readonly height?: number;
+  /** Square-size convenience (cube targets): sets width and height at once. */
+  readonly size?: number;
+  readonly dimension?: RenderTargetAssetDimension;
   readonly format?: RenderTargetAssetFormat;
   readonly msaa?: RenderTargetAssetMsaa;
   readonly depth?: boolean;
@@ -92,8 +109,9 @@ export function createRenderTargetAsset(
   return {
     kind: "render-target",
     label: input.label ?? "Render Target",
-    width: input.width,
-    height: input.height,
+    width: input.width ?? input.size ?? Number.NaN,
+    height: input.height ?? input.size ?? Number.NaN,
+    dimension: input.dimension ?? "2d",
     format: input.format ?? "swapchain",
     msaa: input.msaa ?? 1,
     depth: input.depth ?? true,
@@ -158,6 +176,34 @@ export function validateRenderTargetAsset(
 
   validateRenderTargetAssetDimension(asset.width, "width", diagnostics);
   validateRenderTargetAssetDimension(asset.height, "height", diagnostics);
+
+  if (asset.dimension !== "2d" && asset.dimension !== "cube") {
+    diagnostics.push({
+      code: "renderTargetAsset.invalidDimension",
+      severity: "error",
+      field: "dimension",
+      message: `Render target asset dimension '${String(asset.dimension)}' must be "2d" or "cube".`,
+    });
+  }
+
+  if (asset.dimension === "cube" && asset.width !== asset.height) {
+    diagnostics.push({
+      code: "renderTargetAsset.cubeSizeNotSquare",
+      severity: "error",
+      field: "size",
+      message: `Cube render target assets must be square; received ${String(asset.width)}x${String(asset.height)}. Declare a single size (or equal width/height).`,
+    });
+  }
+
+  if (asset.dimension === "cube" && asset.msaa !== 1) {
+    diagnostics.push({
+      code: "renderTargetAsset.cubeMsaaUnsupported",
+      severity: "error",
+      field: "msaa",
+      message:
+        "Cube render target assets do not support msaa: 4 yet — capture faces render into single-sample cube layers. Drop the msaa declaration.",
+    });
+  }
 
   if (!RENDER_TARGET_ASSET_FORMATS.includes(asset.format)) {
     diagnostics.push({

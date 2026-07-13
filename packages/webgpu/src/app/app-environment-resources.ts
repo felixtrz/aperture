@@ -1,8 +1,15 @@
 import type { EnvironmentPacket } from "@aperture-engine/render";
 import {
   assetHandleKey,
+  createRenderTargetHandle,
   type EnvironmentMapHandle,
+  type RenderTargetHandle,
 } from "@aperture-engine/simulation";
+import {
+  getWebGpuAppRenderTargetResourceState,
+  webGpuAppRenderTargetCaptureGeneration,
+  type WebGpuAppRealizedRenderTarget,
+} from "./render-target-resources.js";
 import {
   createDiffuseIblTextureResourceReport,
   createSpecularIblTextureResourceReport,
@@ -39,10 +46,11 @@ import {
   iblResourceDescriptorReportToJsonValue,
   type IblResourceDescriptorReport,
 } from "../lighting/ibl-resource-descriptor.js";
-import type {
-  SamplerGpuResource,
-  TextureGpuDeviceLike,
-  TextureGpuResource,
+import {
+  WEBGPU_TEXTURE_USAGE_FLAGS,
+  type SamplerGpuResource,
+  type TextureGpuDeviceLike,
+  type TextureGpuResource,
 } from "../resources/textures/texture-resources.js";
 import {
   createStandardMaterialIblBindGroupDescriptorReadinessReport,
@@ -165,6 +173,44 @@ export interface PrepareWebGpuAppIblResourceReportsOptions {
   readonly specularPmremSources?: readonly SpecularIblPmremSource[];
 }
 
+/**
+ * Dynamic environment probe source (B2): consume a cube render target
+ * (`renderTargets.register({ dimension: "cube" })` + a cube-capture camera) as
+ * the IBL environment. The realized cube feeds the PMREM/irradiance prefilter
+ * directly (no CPU copies); every completed capture bumps the target's
+ * capture generation, which versions the derived resource keys so the
+ * prefilter re-runs and superseded textures are destroyed.
+ */
+export interface WebGpuAppEnvironmentRenderTargetSource {
+  /** Cube render-target handle (or bare id) registered on the app facade. */
+  readonly renderTarget: RenderTargetHandle | string;
+  /** Prefilter output storage format (default "rgba8unorm"). */
+  readonly format?: EquirectToCubeStorageFormat;
+  /** Specular PMREM mip chain length (default derived from face size). */
+  readonly mipLevelCount?: number;
+  readonly label?: string;
+}
+
+export interface WebGpuAppEnvironmentRenderTargetSourceReport {
+  readonly ready: boolean;
+  readonly renderTargetKey: string;
+  readonly faceSize: number | null;
+  readonly format: EquirectToCubeStorageFormat;
+  /** Completed captures consumed by this preparation (0 = none yet). */
+  readonly captureGeneration: number;
+  readonly diagnostics: readonly WebGpuAppEnvironmentRenderTargetSourceDiagnostic[];
+}
+
+export interface WebGpuAppEnvironmentRenderTargetSourceDiagnostic {
+  readonly code:
+    | "iblRenderTargetSource.stateUnavailable"
+    | "iblRenderTargetSource.notRealized"
+    | "iblRenderTargetSource.notCube"
+    | "iblRenderTargetSource.notCaptured";
+  readonly severity: "warning";
+  readonly message: string;
+}
+
 export interface WebGpuAppEnvironmentAssetInput {
   readonly handle: EnvironmentMapHandle;
   readonly label?: string;
@@ -174,6 +220,7 @@ export interface WebGpuAppEnvironmentAssetInput {
   readonly equirectSource?: WebGpuAppEnvironmentEquirectSource;
   readonly diffuseSource?: DiffuseIblCubeSource;
   readonly specularPmremSource?: SpecularIblPmremSource;
+  readonly renderTargetSource?: WebGpuAppEnvironmentRenderTargetSource;
   readonly standardMaterialCount?: number;
 }
 
@@ -206,6 +253,7 @@ export interface WebGpuPreparedEnvironmentAsset {
   readonly texturePreparation: IblTexturePreparationReport;
   readonly samplerDescriptors: IblSamplerDescriptorReadinessReport;
   readonly equirectProjection?: EquirectToCubeResourceReport;
+  readonly renderTargetProjection?: WebGpuAppEnvironmentRenderTargetSourceReport;
   readonly diffuseTextureResource: DiffuseIblTextureResourceReport;
   readonly specularTextureResource: SpecularIblTextureResourceReport;
   readonly samplerResources: IblSamplerResourceReport;
@@ -460,8 +508,18 @@ function prepareWebGpuAppEnvironmentAsset(input: {
   readonly environmentId: number;
 }): WebGpuPreparedEnvironmentAsset {
   const environmentMapResourceKey = assetHandleKey(input.asset.handle);
-  const version =
-    input.asset.version === undefined ? null : String(input.asset.version);
+  const renderTargetProjection = renderTargetProjectionForAsset({
+    app: input.app,
+    asset: input.asset,
+  });
+  // B2: every completed cube capture bumps the generation, versioning the
+  // derived resource keys so the prefilter re-runs against fresh content.
+  const version = combineEnvironmentVersions(
+    input.asset.version === undefined ? null : String(input.asset.version),
+    renderTargetProjection === undefined
+      ? null
+      : `capture${renderTargetProjection.report.captureGeneration}`,
+  );
   const diffuseResourceKey = versionedEnvironmentResourceKey(
     input.asset.diffuseResourceKey,
     version,
@@ -470,6 +528,21 @@ function prepareWebGpuAppEnvironmentAsset(input: {
     input.asset.specularResourceKey,
     version,
   );
+
+  // Dynamic probes re-key on every capture: destroy the superseded prefilter
+  // textures (and drop their bind groups) so periodic re-captures never leak.
+  if (renderTargetProjection !== undefined) {
+    evictSupersededEnvironmentResources(
+      input.cache,
+      input.asset.diffuseResourceKey,
+      `${diffuseResourceKey}:texture`,
+    );
+    evictSupersededEnvironmentResources(
+      input.cache,
+      input.asset.specularResourceKey,
+      `${specularResourceKey}:texture`,
+    );
+  }
   const descriptorReport = createIblResourceDescriptorReport({
     snapshot: [environmentPacket(input.environmentId, input.asset.handle)],
     descriptors: [
@@ -499,12 +572,14 @@ function prepareWebGpuAppEnvironmentAsset(input: {
     environmentMapResourceKey,
     diffuseResourceKey,
     ...(equirectProjection === undefined ? {} : { equirectProjection }),
+    ...(renderTargetProjection === undefined ? {} : { renderTargetProjection }),
   });
   const specularPmremSources = specularSourcesForAsset({
     asset: input.asset,
     environmentMapResourceKey,
     specularResourceKey,
     ...(equirectProjection === undefined ? {} : { equirectProjection }),
+    ...(renderTargetProjection === undefined ? {} : { renderTargetProjection }),
   });
   const resources = prepareWebGpuAppIblResourceReports({
     app: input.app,
@@ -548,6 +623,7 @@ function prepareWebGpuAppEnvironmentAsset(input: {
     version,
     ready:
       (equirectProjection?.ready ?? true) &&
+      (renderTargetProjection?.report.ready ?? true) &&
       resources.diffuseTextureResource.ready &&
       resources.specularTextureResource.ready &&
       resources.samplerResources.ready &&
@@ -562,6 +638,9 @@ function prepareWebGpuAppEnvironmentAsset(input: {
     texturePreparation,
     samplerDescriptors,
     ...(equirectProjection === undefined ? {} : { equirectProjection }),
+    ...(renderTargetProjection === undefined
+      ? {}
+      : { renderTargetProjection: renderTargetProjection.report }),
     diffuseTextureResource: resources.diffuseTextureResource,
     specularTextureResource: resources.specularTextureResource,
     samplerResources: resources.samplerResources,
@@ -621,6 +700,20 @@ function webGpuPreparedEnvironmentAssetToJsonValue(
               asset.equirectProjection,
             ),
           }),
+      ...(asset.renderTargetProjection === undefined
+        ? {}
+        : {
+            renderTargetProjection: {
+              ready: asset.renderTargetProjection.ready,
+              renderTargetKey: asset.renderTargetProjection.renderTargetKey,
+              faceSize: asset.renderTargetProjection.faceSize,
+              format: asset.renderTargetProjection.format,
+              captureGeneration: asset.renderTargetProjection.captureGeneration,
+              diagnostics: asset.renderTargetProjection.diagnostics.map(
+                (diagnostic) => ({ ...diagnostic }),
+              ),
+            },
+          }),
       diffuseTexture: diffuseIblTextureResourceReportToJsonValue(
         asset.diffuseTextureResource,
       ),
@@ -639,6 +732,191 @@ function webGpuPreparedEnvironmentAssetToJsonValue(
       ),
     },
   };
+}
+
+interface ResolvedEnvironmentRenderTargetSource {
+  readonly report: WebGpuAppEnvironmentRenderTargetSourceReport;
+  /** Realized cube target wrapped for the IBL sourceTexture seam. */
+  readonly sourceTexture: TextureGpuResource;
+  readonly faceSize: number;
+  readonly format: EquirectToCubeStorageFormat;
+}
+
+/**
+ * Resolve a `renderTargetSource` against the app's realized render targets
+ * (B2). Not-ready states report structured diagnostics instead of failing:
+ * the environment asset stays `ready: false` until the probe's first capture
+ * completes, exactly like a still-loading equirect source.
+ */
+function renderTargetProjectionForAsset(input: {
+  readonly app: object;
+  readonly asset: WebGpuAppEnvironmentAssetInput;
+}): ResolvedEnvironmentRenderTargetSource | undefined {
+  const source = input.asset.renderTargetSource;
+
+  if (source === undefined) {
+    return undefined;
+  }
+
+  const handle =
+    typeof source.renderTarget === "string"
+      ? createRenderTargetHandle(
+          source.renderTarget.startsWith("render-target:")
+            ? source.renderTarget.slice("render-target:".length)
+            : source.renderTarget,
+        )
+      : source.renderTarget;
+  const renderTargetKey = assetHandleKey(handle);
+  const format = source.format ?? "rgba8unorm";
+  const state = getWebGpuAppRenderTargetResourceState(input.app);
+  const notReady = (
+    code: WebGpuAppEnvironmentRenderTargetSourceDiagnostic["code"],
+    message: string,
+    realized?: WebGpuAppRealizedRenderTarget,
+  ): ResolvedEnvironmentRenderTargetSource => ({
+    report: {
+      ready: false,
+      renderTargetKey,
+      faceSize: realized?.width ?? null,
+      format,
+      captureGeneration:
+        state === undefined
+          ? 0
+          : webGpuAppRenderTargetCaptureGeneration(state, renderTargetKey),
+      diagnostics: [{ code, severity: "warning", message }],
+    },
+    sourceTexture: PLACEHOLDER_RENDER_TARGET_SOURCE_TEXTURE,
+    faceSize: realized?.width ?? 0,
+    format,
+  });
+
+  if (state === undefined) {
+    return notReady(
+      "iblRenderTargetSource.stateUnavailable",
+      `Environment map '${assetHandleKey(input.asset.handle)}' declares renderTargetSource '${renderTargetKey}', but no render-target realization state is registered for this app (create it with createWebGpuApp).`,
+    );
+  }
+
+  const realized = state.targets.get(renderTargetKey);
+
+  if (realized === undefined) {
+    return notReady(
+      "iblRenderTargetSource.notRealized",
+      `Environment map renderTargetSource '${renderTargetKey}' has not been realized yet — register the cube target and render a capture camera into it first.`,
+    );
+  }
+
+  if (realized.dimension !== "cube" || realized.view === null) {
+    return notReady(
+      "iblRenderTargetSource.notCube",
+      `Environment map renderTargetSource '${renderTargetKey}' must be a cube render target (dimension: "cube"); received a ${realized.dimension} target.`,
+      realized,
+    );
+  }
+
+  const captureGeneration = webGpuAppRenderTargetCaptureGeneration(
+    state,
+    renderTargetKey,
+  );
+
+  if (captureGeneration === 0) {
+    return notReady(
+      "iblRenderTargetSource.notCaptured",
+      `Environment map renderTargetSource '${renderTargetKey}' has no completed capture yet; the probe becomes ready after its capture camera's first frame.`,
+      realized,
+    );
+  }
+
+  return {
+    report: {
+      ready: true,
+      renderTargetKey,
+      faceSize: realized.width,
+      format,
+      captureGeneration,
+      diagnostics: [],
+    },
+    sourceTexture: {
+      resourceKey: `${realized.cacheKey}:capture${captureGeneration}`,
+      texture: realized.texture,
+      view: realized.view,
+      descriptor: {
+        size: [realized.width, realized.height, 6],
+        format: realized.format,
+        usage:
+          WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT |
+          WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING,
+      },
+      viewDescriptor: { dimension: "cube" },
+    },
+    faceSize: realized.width,
+    format,
+  };
+}
+
+// Inert placeholder for not-ready renderTargetSource resolutions: the sources
+// are never built from a not-ready projection, so this texture is never bound.
+const PLACEHOLDER_RENDER_TARGET_SOURCE_TEXTURE: TextureGpuResource = {
+  resourceKey: "ibl:render-target-source:unready",
+  texture: null,
+  view: null,
+  descriptor: { size: [0, 0, 0], format: "rgba8unorm", usage: 0 },
+};
+
+function combineEnvironmentVersions(
+  userVersion: string | null,
+  captureVersion: string | null,
+): string | null {
+  if (userVersion === null) {
+    return captureVersion;
+  }
+
+  return captureVersion === null
+    ? userVersion
+    : `${userVersion}:${captureVersion}`;
+}
+
+/**
+ * Destroy and drop every cached prefilter texture derived from
+ * `baseResourceKey` except the current versioned one, plus the IBL bind
+ * groups that referenced them (their keys embed the texture keys). Dynamic
+ * probes (B2) re-key per capture, so without eviction each capture would leak
+ * one diffuse + one specular cube.
+ */
+function evictSupersededEnvironmentResources(
+  cache: WebGpuEnvironmentResourceCache,
+  baseResourceKey: string,
+  currentTextureKey: string,
+): void {
+  for (const textures of [cache.diffuseTextures, cache.specularTextures]) {
+    for (const [key, resource] of textures) {
+      if (
+        key === currentTextureKey ||
+        !isVersionedEnvironmentTextureKey(key, baseResourceKey)
+      ) {
+        continue;
+      }
+
+      (resource.texture as { destroy?: () => void } | null)?.destroy?.();
+      textures.delete(key);
+
+      for (const bindGroupKey of cache.standardIblBindGroups.keys()) {
+        if (bindGroupKey.includes(key)) {
+          cache.standardIblBindGroups.delete(bindGroupKey);
+        }
+      }
+    }
+  }
+}
+
+function isVersionedEnvironmentTextureKey(
+  key: string,
+  baseResourceKey: string,
+): boolean {
+  return (
+    key === `${baseResourceKey}:texture` ||
+    (key.startsWith(`${baseResourceKey}@`) && key.endsWith(":texture"))
+  );
 }
 
 function equirectProjectionForAsset(input: {
@@ -743,6 +1021,7 @@ function diffuseSourcesForAsset(input: {
   readonly environmentMapResourceKey: string;
   readonly diffuseResourceKey: string;
   readonly equirectProjection?: EquirectToCubeResourceReport;
+  readonly renderTargetProjection?: ResolvedEnvironmentRenderTargetSource;
 }): readonly DiffuseIblCubeSource[] | undefined {
   const source = input.asset.diffuseSource;
 
@@ -755,6 +1034,27 @@ function diffuseSourcesForAsset(input: {
         environmentMapResourceKey: input.environmentMapResourceKey,
         label:
           source.label ?? input.asset.label ?? input.environmentMapResourceKey,
+      },
+    ];
+  }
+
+  // B2: a ready cube render target feeds the irradiance convolution directly.
+  // Captured cubes store the X-mirrored environment (proper face winding), so
+  // the convolution samples with sourceFlipX.
+  if (input.renderTargetProjection?.report.ready === true) {
+    return [
+      {
+        resourceKey: `${input.diffuseResourceKey}:texture`,
+        sourceResourceKey: input.diffuseResourceKey,
+        environmentMapResourceKey: input.environmentMapResourceKey,
+        label:
+          input.asset.renderTargetSource?.label ??
+          input.asset.label ??
+          input.environmentMapResourceKey,
+        faceSize: input.renderTargetProjection.faceSize,
+        format: input.renderTargetProjection.format,
+        sourceTexture: input.renderTargetProjection.sourceTexture,
+        sourceFlipX: true,
       },
     ];
   }
@@ -787,6 +1087,7 @@ function specularSourcesForAsset(input: {
   readonly environmentMapResourceKey: string;
   readonly specularResourceKey: string;
   readonly equirectProjection?: EquirectToCubeResourceReport;
+  readonly renderTargetProjection?: ResolvedEnvironmentRenderTargetSource;
 }): readonly SpecularIblPmremSource[] | undefined {
   const source = input.asset.specularPmremSource;
 
@@ -799,6 +1100,29 @@ function specularSourcesForAsset(input: {
         environmentMapResourceKey: input.environmentMapResourceKey,
         label:
           source.label ?? input.asset.label ?? input.environmentMapResourceKey,
+      },
+    ];
+  }
+
+  // B2: a ready cube render target is PMREM-prefiltered directly (sampled
+  // with sourceFlipX — see diffuseSourcesForAsset).
+  if (input.renderTargetProjection?.report.ready === true) {
+    return [
+      {
+        resourceKey: `${input.specularResourceKey}:texture`,
+        sourceResourceKey: input.specularResourceKey,
+        environmentMapResourceKey: input.environmentMapResourceKey,
+        label:
+          input.asset.renderTargetSource?.label ??
+          input.asset.label ??
+          input.environmentMapResourceKey,
+        faceSize: input.renderTargetProjection.faceSize,
+        format: input.renderTargetProjection.format,
+        sourceTexture: input.renderTargetProjection.sourceTexture,
+        sourceFlipX: true,
+        ...(input.asset.renderTargetSource?.mipLevelCount === undefined
+          ? {}
+          : { mipLevelCount: input.asset.renderTargetSource.mipLevelCount }),
       },
     ];
   }

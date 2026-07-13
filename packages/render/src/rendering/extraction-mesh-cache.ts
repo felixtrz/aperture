@@ -24,7 +24,19 @@ export interface RenderExtractionCache {
    * warning fires once per family per cache lifetime instead of every frame.
    */
   readonly gatedFeatureFamiliesReported: Set<string>;
+  /**
+   * Cube-capture bookkeeping (B2), keyed by the capture camera's stable view
+   * id: the last frame the six faces were emitted plus the last one-shot
+   * `Camera.captureRequestFrame` value that was honored (so each new request
+   * value fires exactly once).
+   */
+  readonly cubeCaptures: Map<number, CubeCaptureCacheEntry>;
   clear(): void;
+}
+
+export interface CubeCaptureCacheEntry {
+  lastCaptureFrame: number;
+  lastRequestFrame: number;
 }
 
 export type MeshDrawEntityCacheScope = "mesh" | "shadow-caster";
@@ -63,11 +75,13 @@ interface CachedMeshDrawEntity {
 export function createRenderExtractionCache(): RenderExtractionCache {
   const meshDrawEntities = new Map<string, CachedMeshDrawEntity>();
   const shadowCasterDrawEntities = new Map<string, CachedMeshDrawEntity>();
+  const cubeCaptures = new Map<number, CubeCaptureCacheEntry>();
 
   return {
     meshDrawEntities,
     shadowCasterDrawEntities,
     gatedFeatureFamiliesReported: new Set(),
+    cubeCaptures,
     scratch: {
       transforms: [],
       bones: [],
@@ -83,6 +97,7 @@ export function createRenderExtractionCache(): RenderExtractionCache {
     clear() {
       meshDrawEntities.clear();
       shadowCasterDrawEntities.clear();
+      cubeCaptures.clear();
     },
   };
 }

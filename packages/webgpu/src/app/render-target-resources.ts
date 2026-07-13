@@ -38,6 +38,7 @@ function sourceAssetCacheKey(
 // `msaaColorByRenderTarget`), mirroring the proven low-level lifecycle.
 
 interface RenderTargetTextureLike extends CurrentTextureLike {
+  createView?: (descriptor?: unknown) => unknown;
   destroy?: () => void;
 }
 
@@ -51,12 +52,21 @@ export interface WebGpuAppRealizedRenderTarget {
   /** `render-target:<id>` — stable across republishes. */
   readonly renderTargetKey: string;
   readonly texture: RenderTargetTextureLike;
-  /** Reused color view for texture-binding consumers. */
+  /**
+   * Reused color view for texture-binding consumers: the default 2d view for
+   * 2d targets, a `dimension: "cube"` view for cube targets (B2).
+   */
   readonly view: unknown;
   readonly width: number;
   readonly height: number;
   /** Concrete resolved format ("swapchain" already substituted). */
   readonly format: string;
+  readonly dimension: RenderTargetAsset["dimension"];
+  /**
+   * Cube targets only (B2): one reused 2d render-attachment view per cube
+   * layer (+X, -X, +Y, -Y, +Z, -Z) the capture face passes render into.
+   */
+  readonly faceViews: readonly unknown[] | null;
   readonly sampleable: boolean;
   readonly msaa: RenderTargetAsset["msaa"];
 }
@@ -70,6 +80,13 @@ export interface WebGpuAppRenderTargetResourceCounters {
 export interface WebGpuAppRenderTargetResourceState {
   /** Live realizations keyed by stable render-target handle key. */
   readonly targets: Map<string, WebGpuAppRealizedRenderTarget>;
+  /**
+   * Completed cube captures per stable render-target handle key (B2). Bumped
+   * once per frame in which the target's face passes were submitted; IBL
+   * consumption (`renderTargetSource`) folds it into the versioned resource
+   * keys so the prefilter re-runs after every capture.
+   */
+  readonly captureGenerations: Map<string, number>;
   readonly counters: WebGpuAppRenderTargetResourceCounters;
   /**
    * Swapchain/canvas format used to resolve `format: "swapchain"`. Written by
@@ -85,6 +102,7 @@ export interface WebGpuAppRenderTargetResourceState {
 export function createWebGpuAppRenderTargetResourceState(): WebGpuAppRenderTargetResourceState {
   return {
     targets: new Map(),
+    captureGenerations: new Map(),
     counters: {
       renderTargetTexturesCreated: 0,
       renderTargetTexturesReused: 0,
@@ -161,12 +179,13 @@ export function realizeWebGpuAppRenderTarget(options: {
     };
   }
 
+  const isCube = options.asset.dimension === "cube";
   let texture: RenderTargetTextureLike;
 
   try {
     texture = device.createTexture({
       label: `aperture/webgpu-app/render-target/${options.handle.id}`,
-      size: [options.asset.width, options.asset.height, 1],
+      size: [options.asset.width, options.asset.height, isCube ? 6 : 1],
       format,
       usage,
     });
@@ -189,10 +208,32 @@ export function realizeWebGpuAppRenderTarget(options: {
     cacheKey,
     renderTargetKey,
     texture,
-    view: texture.createView?.() ?? null,
+    // Cube targets bind as a cube view (IBL / cube consumers); 2d targets
+    // keep the whole-texture default view.
+    view: isCube
+      ? (texture.createView?.({
+          label: `aperture/webgpu-app/render-target/${options.handle.id}/cube`,
+          dimension: "cube",
+          baseArrayLayer: 0,
+          arrayLayerCount: 6,
+        }) ?? null)
+      : (texture.createView?.() ?? null),
     width: options.asset.width,
     height: options.asset.height,
     format,
+    dimension: options.asset.dimension,
+    faceViews: isCube
+      ? Array.from(
+          { length: 6 },
+          (_, face) =>
+            texture.createView?.({
+              label: `aperture/webgpu-app/render-target/${options.handle.id}/face${face}`,
+              dimension: "2d",
+              baseArrayLayer: face,
+              arrayLayerCount: 1,
+            }) ?? null,
+        )
+      : null,
     sampleable: options.asset.sampleable,
     msaa: options.asset.msaa,
   };
@@ -210,6 +251,10 @@ export type ResolveWebGpuAppRenderTargetColorTextureResult =
       readonly assetStatus: string;
     }
   | { readonly status: "not-sampleable"; readonly renderTargetKey: string }
+  | {
+      readonly status: "cube-binding-unsupported";
+      readonly renderTargetKey: string;
+    }
   | {
       readonly status: "failed";
       readonly renderTargetKey: string;
@@ -258,6 +303,14 @@ export function resolveWebGpuAppRenderTargetColorTexture(options: {
     return { status: "not-sampleable", renderTargetKey };
   }
 
+  // B2 deviation: user texture bindings are 2d-only (custom-WGSL layouts are
+  // hard-coded to viewDimension "2d"), so a cube target cannot serve a plain
+  // `material.texture` binding — consume it through the environment-map
+  // `renderTargetSource` (IBL) instead.
+  if (entry.asset.dimension === "cube") {
+    return { status: "cube-binding-unsupported", renderTargetKey };
+  }
+
   const realizeResult = realizeWebGpuAppRenderTarget({
     device: options.device,
     state: options.state,
@@ -292,4 +345,51 @@ export function resolveWebGpuAppRenderTargetColorTexture(options: {
       },
     },
   };
+}
+
+/**
+ * Completed-capture count for a cube render target (0 before its first
+ * capture). Stable handle key input (`render-target:<id>`).
+ */
+export function webGpuAppRenderTargetCaptureGeneration(
+  state: WebGpuAppRenderTargetResourceState,
+  renderTargetKey: string,
+): number {
+  return state.captureGenerations.get(renderTargetKey) ?? 0;
+}
+
+/**
+ * Record one completed cube capture (all face passes submitted this frame).
+ * Called by the frame boundary assembly; returns the new generation.
+ */
+export function bumpWebGpuAppRenderTargetCaptureGeneration(
+  state: WebGpuAppRenderTargetResourceState,
+  renderTargetKey: string,
+): number {
+  const generation = (state.captureGenerations.get(renderTargetKey) ?? 0) + 1;
+
+  state.captureGenerations.set(renderTargetKey, generation);
+  return generation;
+}
+
+// B2: the app's render-target realization state, reachable from the app
+// object (mirrors registerWebGpuAppEnvironmentResourceCache) so the
+// environment-asset orchestration can resolve `renderTargetSource` cubes
+// without threading the resource cache through every caller.
+const APP_RENDER_TARGET_RESOURCE_STATES = new WeakMap<
+  object,
+  WebGpuAppRenderTargetResourceState
+>();
+
+export function registerWebGpuAppRenderTargetResourceState(
+  app: object,
+  state: WebGpuAppRenderTargetResourceState,
+): void {
+  APP_RENDER_TARGET_RESOURCE_STATES.set(app, state);
+}
+
+export function getWebGpuAppRenderTargetResourceState(
+  app: object,
+): WebGpuAppRenderTargetResourceState | undefined {
+  return APP_RENDER_TARGET_RESOURCE_STATES.get(app);
 }

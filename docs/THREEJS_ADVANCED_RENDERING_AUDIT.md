@@ -72,9 +72,9 @@ compute with atomics, storage textures, `storage().toAttribute()`
 compute-to-vertex plumbing, and indirect draws (WebGPU backend).
 
 **Confirmed absent in Aperture across this whole domain:** stencil, clipping
-planes, decals, MRT authoring, cube render targets, runtime texture/video
-updates, custom-material depth access, and GPU-driven indirect rendering as
-a user API. §9 scores 20 concrete game scenarios; §10 ranks the gap
+planes, decals, MRT authoring, 3D/array render targets, runtime
+texture/video updates, custom-material depth access, and GPU-driven indirect
+rendering as a user API (cube render targets shipped as parity plan B2). §9 scores 20 concrete game scenarios; §10 ranks the gap
 closures by how much game-dev surface each unlocks.
 
 ---
@@ -181,7 +181,7 @@ has true shader HMR.
 | Float / half targets        | ✅ `type: FloatType/HalfFloatType`                               | ✅ any creatable format incl. `rgba16float` (the HDR path uses one)                                                                                | Parity            |
 | MSAA + resolve              | ✅ `samples` + auto resolve                                      | ✅ Low-level (`resolveTarget` first-class; `msaa` app option); proven by the `render-target-msaa*` matrix                                          | Parity            |
 | Resize / reuse lifecycles   | `setSize`, dispose                                               | ✅ handle-stable resize, cross-frame reuse, dual-size, sub-rect crops — the `render-target-*`/`mixed-*` e2e matrix exists precisely to prove these | Parity+ tested    |
-| Cube / 3D / array targets   | ✅ `WebGLCubeRenderTarget`, `RenderTarget3D`, array targets      | ❌ 2D only                                                                                                                                         | Gap               |
+| Cube / 3D / array targets   | ✅ `WebGLCubeRenderTarget`, `RenderTarget3D`, array targets      | 🟡 B2: cube targets (`dimension: "cube"` + cube-capture camera, IBL consumption); 3D and array targets remain unsupported                          | Partial (cube ✅) |
 | Depth texture attach+sample | ✅ `renderTarget.depthTexture`, depth nodes                      | ❌ user targets get a depth buffer but cannot sample it; scene depth reachable only in post/user passes                                            | Gap               |
 | Sample RT in a material     | ✅ `rt.texture` as any map                                       | ✅ B1 app tier: texture handles resolve to the facade target's realized color texture (`renderTargets.colorTexture(id)` → `material.texture`)      | App-tier          |
 | Mipmapped RTs               | ✅ `generateMipmaps`                                             | ❌ mip generation is internal; not exposed for user targets                                                                                        | Gap               |
@@ -195,7 +195,7 @@ has true shader HMR.
 | Minimap / security camera | RT + second camera + HUD quad — routine                              | ✅ buildable on the facade (B1): `renderTargets.register` + `spawn.camera({ renderTarget })` + a custom-WGSL HUD quad sampling via `material.texture` — shipped as `examples/minimap`                                                                                                            |
 | Planar mirror             | `Reflector` addon (WebGL) / `ReflectorNode` (WebGPU)                 | ❌ no helper, **no clipping planes** for the oblique frustum, no stencil masking — a crude manual mirror only                                                                                                                                                                                    |
 | Portals                   | Stencil recipes + RTs                                                | ❌ stencil absent; layered cameras + RTs can fake restricted cases                                                                                                                                                                                                                               |
-| Dynamic env probe         | `CubeCamera` → cube RT                                               | ❌ no cube targets                                                                                                                                                                                                                                                                               |
+| Dynamic env probe         | `CubeCamera` → cube RT                                               | ✅ B2: cube render target + capture camera (`capture: { every: N }` / on-demand `renderTargets.capture`) prefiltered into IBL via `renderTargetSource` — shipped as `examples/reflective-probe`                                                                                                  |
 | Refraction / heat haze    | `viewportSharedTexture` grab + `backdropNode`; physical transmission | 🟡 transmission grab pass fires automatically for transmissive **standard** materials; not available to custom WGSL; note transmission params are authorable only via glTF or low-level assets — the app-facade `material.standard()` builder exposes just baseColor/roughness/metallic/emissive |
 | Ping-pong (feedback FX)   | `GPUComputationRenderer`, `AfterimagePass`, manual                   | 🟡 feasible low-level by alternating two targets; no helper; user render passes can't write them (§4)                                                                                                                                                                                            |
 
@@ -304,7 +304,7 @@ limits · ❌ not achievable today.
 | 6   | Minimap / security-camera monitor                     | ✅       | ✅       | Facade route (parity plan B1): `renderTargets.register` + `spawn.camera({ renderTarget })` + `material.texture` HUD quad (`examples/minimap`)  |
 | 7   | Planar mirror                                         | ✅       | ❌       | No Reflector, clipping planes, or stencil                                                                                                      |
 | 8   | Stencil portal / masked reveal                        | ✅       | ❌       | Stencil explicitly unsupported                                                                                                                 |
-| 9   | Dynamic reflection probe (cube capture)               | ✅       | ❌       | No cube render targets                                                                                                                         |
+| 9   | Dynamic reflection probe (cube capture)               | ✅       | ✅       | Cube render targets + scheduled capture camera + IBL prefilter of the captured cube (parity plan B2, `examples/reflective-probe`)              |
 | 10  | Refraction / heat haze (grab pass)                    | ✅       | ✅       | Automatic transmission grab; params authorable on `material.standard()` (parity plan A3); custom-WGSL grab access remains #12's domain         |
 | 11  | Custom g-buffer / MRT technique                       | ✅       | ❌       | MRT internal-only                                                                                                                              |
 | 12  | Full-screen color grade / custom post chain           | ✅       | 🟡       | User render pass can only blend onto scene-color; built-in post list not user-extensible                                                       |
@@ -321,7 +321,7 @@ limits · ❌ not achievable today.
 textures, and indirect.
 
 Score (of 20): three.js ✅ 16 / 🟡 2 / ❌ 0 (2 backend-caveated); Aperture
-✅ 8 / 🟡 4 / ❌ 8. The ❌ column clusters around four missing primitives —
+✅ 9 / 🟡 4 / ❌ 7. The ❌ column clusters around four missing primitives —
 extended custom materials (skinning/morph/depth inputs), MRT + flexible
 render targets, stencil, and the compute→rendering bridge — rather than
 twenty unrelated gaps.
@@ -348,10 +348,12 @@ stay inside the architecture.
 3. **Render-target authoring on the app facade + sampled-target wiring**
    (unblocks #6, halves #7/#12): facade allocation, camera pairing, and a
    documented sample-the-target route; cube targets would then unlock #9.
-   _Partially shipped_ — facade allocation (`this.renderTargets.register`),
-   camera pairing (`spawn.camera({ renderTarget })`), handle-stable resize,
-   and sampled-target wiring landed as parity plan B1 (2D targets); cube
-   targets remain B2.
+   _Shipped_ — facade allocation (`this.renderTargets.register`), camera
+   pairing (`spawn.camera({ renderTarget })`), handle-stable resize, and
+   sampled-target wiring landed as parity plan B1 (2D targets); cube targets
+   with a scheduled capture camera and IBL consumption landed as parity plan
+   B2 (unblocking #9). 3D/array targets and cube-as-material-texture binding
+   remain open.
 4. **MRT authoring surface** (unblocks #11, strengthens #12): the attachment
    planner and an internal second attachment already exist; expose color
    target count on custom materials/passes and let user passes write

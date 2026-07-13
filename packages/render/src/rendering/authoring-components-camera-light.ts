@@ -33,6 +33,11 @@ export const Camera = defineComponent(
     frustumCulling: { type: EcsType.Boolean, default: true },
     temporalJitterX: { type: EcsType.Float32, default: 0 },
     temporalJitterY: { type: EcsType.Float32, default: 0 },
+    // B2 cube-capture scheduling (meaningful only when renderTargetId names a
+    // cube render target): capture every N frames (0 = on-demand only) plus a
+    // one-shot request stamp (-1 = none; fires once per new value).
+    captureEvery: { type: EcsType.Int32, default: 1 },
+    captureRequestFrame: { type: EcsType.Int32, default: -1 },
   },
   "Renderer-independent camera authoring component.",
 );

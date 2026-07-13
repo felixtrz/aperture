@@ -6,6 +6,7 @@ import {
   type RenderSnapshot,
 } from "@aperture-engine/render";
 import { registerWebGpuAppEnvironmentResourceCache } from "./app-environment-resources.js";
+import { registerWebGpuAppRenderTargetResourceState } from "./render-target-resources.js";
 import {
   createWebGpuAppSnapshotTransport,
   createWebGpuAppSnapshotTransportStartPayload,
@@ -495,6 +496,9 @@ export async function createWebGpuApp(
     app,
     resourceCache.environmentResources,
   );
+  // B2: reachable render-target realization state so environment-asset
+  // preparation can resolve `renderTargetSource` cube captures from the app.
+  registerWebGpuAppRenderTargetResourceState(app, resourceCache.renderTargets);
 
   if (options.autoStart === true) {
     app.start(options.workerStartOptions);

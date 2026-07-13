@@ -40,6 +40,11 @@ export interface DiffuseIblCubeSource {
   readonly faces?: readonly Uint8Array[];
   readonly sourceTexture?: TextureGpuResource;
   readonly format?: PmremComputeStorageFormat;
+  /**
+   * Sample the source cube with negated X (B2 cube-capture convention:
+   * captured render targets store the X-mirrored environment).
+   */
+  readonly sourceFlipX?: boolean;
 }
 
 export interface SpecularIblPmremSource {
@@ -52,6 +57,11 @@ export interface SpecularIblPmremSource {
   readonly sourceTexture?: TextureGpuResource;
   readonly format?: PmremComputeStorageFormat;
   readonly mipLevelCount?: number;
+  /**
+   * Sample the source cube with negated X (B2 cube-capture convention:
+   * captured render targets store the X-mirrored environment).
+   */
+  readonly sourceFlipX?: boolean;
 }
 
 export interface CreateDiffuseIblTextureResourceOptions {

@@ -35,6 +35,12 @@ export type WebGpuAppFrameBoundaryTarget =
       readonly view: RenderSnapshot["views"][number];
       readonly renderTargetKey: string;
       readonly texture: CurrentTextureLike;
+      /**
+       * Cube-capture face this pass renders into (B2): the pre-created 2d
+       * layer view + its index. Null for 2d targets (whole-texture view).
+       */
+      readonly colorView: unknown | null;
+      readonly face: number | null;
       readonly width: number;
       readonly height: number;
       readonly format: string;
@@ -194,11 +200,25 @@ export function createWebGpuAppFrameBoundaryTargets(
         continue;
       }
 
+      // B2: cube targets render per capture face — each of the six views the
+      // capture camera emitted selects its pre-created layer view. A view
+      // without a face index on a cube target defaults to face 0 (loudness is
+      // extraction's job; hand-built snapshots keep working).
+      const face =
+        realizeResult.realized.dimension === "cube"
+          ? (view.renderTargetFace ?? 0)
+          : null;
+
       targets.push({
         source: "offscreen",
         view,
         renderTargetKey,
         texture: realizeResult.realized.texture,
+        colorView:
+          face === null
+            ? null
+            : (realizeResult.realized.faceViews?.[face] ?? null),
+        face,
         width: realizeResult.realized.width,
         height: realizeResult.realized.height,
         format: realizeResult.realized.format,
@@ -237,6 +257,8 @@ export function createWebGpuAppFrameBoundaryTargets(
       view,
       renderTargetKey,
       texture: asset.texture,
+      colorView: null,
+      face: null,
       width: asset.width,
       height: asset.height,
       format: assetFormat,
@@ -275,9 +297,15 @@ export function countWebGpuAppFrameBoundaryTargetSubmissions(
 export function webGpuAppFrameBoundaryTargetSubmissionKey(
   target: WebGpuAppFrameBoundaryTarget,
 ): string {
-  return target.source === "swapchain"
-    ? "swapchain"
-    : `offscreen:${target.renderTargetKey}`;
+  if (target.source === "swapchain") {
+    return "swapchain";
+  }
+
+  // Cube faces are independent attachments: load/clear bookkeeping must not
+  // treat face passes as repeated submissions of one image (B2).
+  return target.face === null
+    ? `offscreen:${target.renderTargetKey}`
+    : `offscreen:${target.renderTargetKey}#face${target.face}`;
 }
 
 export function resolveWebGpuAppTargetViewRectangles(

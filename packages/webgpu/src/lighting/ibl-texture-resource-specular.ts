@@ -128,6 +128,9 @@ function createSpecularIblPmremTextureResource(input: {
   const pipeline = createPmremComputePipeline({
     device,
     storageFormat: format,
+    ...(input.source.sourceFlipX === undefined
+      ? {}
+      : { sourceFlipX: input.source.sourceFlipX }),
     label: `${label}:pmrem`,
   });
 

@@ -956,6 +956,14 @@ export async function renderWebGpuAppFrame(
       ? indirectDraws.commands.slice(0, framePlan.commandPlan.commands.length)
       : [];
   phaseTimer.start("submit");
+  // B2: per-target view-uniform selection for cube-capture face passes (the
+  // family resources share one view-uniform buffer whose record 0 every pass
+  // reads).
+  const familyViewUniformBuffer = (
+    resources.resources as {
+      readonly viewUniform?: { readonly buffer?: unknown };
+    } | null
+  )?.viewUniform?.buffer;
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app,
     assets: sourceAssets,
@@ -978,6 +986,14 @@ export async function renderWebGpuAppFrame(
     ...(options.readbackSamples === undefined
       ? {}
       : { readbackSamples: options.readbackSamples }),
+    ...(familyViewUniformBuffer === undefined
+      ? {}
+      : {
+          viewUniformCapture: {
+            viewUniforms: packedViews,
+            buffers: [familyViewUniformBuffer],
+          },
+        }),
   });
 
   if (frameBoundariesNeedGpuDrain(boundaries)) {
@@ -1026,6 +1042,9 @@ export async function renderWebGpuAppFrame(
     boundary: boundaries.boundary,
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
+    ...(boundaries.renderTargetCaptures.length === 0
+      ? {}
+      : { renderTargetCaptures: boundaries.renderTargetCaptures }),
     postEffects: boundaries.postEffects,
     ...(boundaries.renderBundles === undefined
       ? {}

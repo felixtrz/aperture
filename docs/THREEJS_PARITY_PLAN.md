@@ -247,6 +247,52 @@ frame graph preserves this order via its insertion-index tiebreak).
 
 ### B2. Cube render targets + scene capture camera — **M** (needs B1)
 
+Status: implemented (2026-07-13). AC1: `renderTargets.register({ id, size,
+dimension: "cube" })` extends the B1 facade asset (square-only validation;
+`msaa: 4` rejected on cubes); a camera paired with a cube target becomes a
+capture camera — extraction emits six 90° square face views per scheduled
+capture (`ViewPacket.renderTargetFace`, packed-encoding version 15→16), the
+realizer creates one 6-layer cube texture with per-face attachment views plus
+a cube sampling view, and each face renders as its own frame-boundary pass
+(face-aware submission keys keep per-face clear/load semantics). Face view
+ids fold the face into the stable render id's generation byte, so ids can
+never collide across live cameras. Faces are world-axis aligned at the
+camera position (rotation ignored, like three.js CubeCamera) and use proper
+(winding-preserving) rotations, so the captured cube stores the X-mirrored
+environment; the PMREM/irradiance kernels compensate with a `sourceFlipX`
+shader variant — the three.js `flipEnvMap` convention. IBL consumption goes
+through `prepareWebGpuAppEnvironmentAssets` `renderTargetSource` (the repo's
+existing IBL tier): the realized cube feeds the prefilter directly, each
+completed capture bumps a persistent capture generation that re-versions the
+derived resource keys (re-prefilter + eviction of superseded textures), and
+the environment asset stays not-ready until the first capture. AC2:
+`examples/reflective-probe` (mirror sphere + orbiting unlit boxes captured
+every 4 frames; ibl-equirect example structure) with
+`test/e2e/reflective-probe.spec.ts` asserting exact capture cadence from the
+frame report, per-capture generation increments, reflection motion across
+captures, first-capture red-dominance, and background stability — readback
+pixel assertions instead of a golden baseline, consistent with A1/A2/B1.
+AC3: `Camera.captureEvery` (0 = on-demand; first sight always primes) +
+one-shot `Camera.captureRequestFrame` stamps honored exactly once via the
+persistent extraction cache; `this.renderTargets.capture(id)` arms every
+paired camera; frame report gains per-face `renderTargets[].face` entries
+and `renderTargetCaptures` (faces + cumulative generation). Deviations:
+(1) "usable as a cube texture binding" is IBL-only — custom-material texture
+bindings are hard-coded 2d (`webGpuApp.renderTargetCubeBindingUnsupported`
+diagnoses direct sampling), as the plan's B2 context sanctioned; (2)
+"usable as environmentMapId" is at the renderer tier
+(`prepareWebGpuAppEnvironmentAssets`), matching where ALL environment-map
+consumption lives today — the app facade has no environment-map surface;
+(3) golden baseline replaced by readback pixel assertions (repo pattern);
+(4) capture frames render through the legacy multi-submit route (not the
+single-encoder graph) because per-target view uniforms are selected by
+rewriting the shared view-uniform buffer between submissions — a pre-existing
+app-route limitation (every pass reads packed record 0) that B2 fixes ONLY on
+frames containing cube-capture faces to keep all other frames byte-identical;
+built-in material routes are wired, custom-WGSL draws inside captured layers
+keep the first view record (documented in AUTHORING.md); (5) cube targets
+reject `msaa: 4` rather than resolving per face.
+
 - AC1: `asset.renderTarget({ dimension: "cube", size })` + a capture camera
   mode that renders 6 faces; result usable as `environmentMapId` and as a
   cube texture binding.

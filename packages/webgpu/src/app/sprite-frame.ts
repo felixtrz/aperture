@@ -250,6 +250,9 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     boundary: boundaries.boundary,
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
+    ...(boundaries.renderTargetCaptures.length === 0
+      ? {}
+      : { renderTargetCaptures: boundaries.renderTargetCaptures }),
     postEffects: boundaries.postEffects,
     ...(boundaries.renderBundles === undefined
       ? {}

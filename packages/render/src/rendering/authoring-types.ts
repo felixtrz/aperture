@@ -215,6 +215,20 @@ export interface CameraInput {
   readonly renderTargetId?: string;
   readonly frustumCulling?: boolean;
   readonly temporalJitter?: readonly [number, number];
+  /**
+   * Cube-capture cadence (B2): when `renderTargetId` names a cube render
+   * target, capture the six faces every N extracted frames (`frame % N === 0`).
+   * `1` (the default) captures every frame; `0` disables the schedule so the
+   * camera captures only on demand (`captureRequestFrame`). Ignored for 2d
+   * targets and swapchain cameras.
+   */
+  readonly captureEvery?: number;
+  /**
+   * One-shot cube-capture request (B2): capture on the first extracted frame
+   * whose index is >= this value (each new value fires exactly once; `-1`
+   * means no pending request). `renderTargets.capture(...)` sets this.
+   */
+  readonly captureRequestFrame?: number;
 }
 
 export interface LightInput {
@@ -492,6 +506,8 @@ export type RenderAuthoringDiagnosticCode =
   | "camera.invalidClipRange"
   | "camera.zeroLayerMask"
   | "camera.invalidTemporalJitter"
+  | "camera.invalidCaptureEvery"
+  | "camera.invalidCaptureRequestFrame"
   | "light.invalidIntensity"
   | "light.invalidRange"
   | "light.invalidSpotCone"

@@ -73,6 +73,7 @@ import type {
   WebGpuAppRenderBundleReport,
   WebGpuAppRenderReport,
   WebGpuAppRenderReportJsonValue,
+  WebGpuAppRenderTargetCaptureReport,
   WebGpuAppRenderTargetSubmissionReport,
   WebGpuAppResourceReuseReport,
   WebGpuAppTransmissionGrabPassReport,
@@ -159,6 +160,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.renderTargets === undefined
       ? {}
       : { renderTargets: report.renderTargets }),
+    ...(report.renderTargetCaptures === undefined
+      ? {}
+      : { renderTargetCaptures: report.renderTargetCaptures }),
     ...(report.postEffects === undefined
       ? {}
       : { postEffects: report.postEffects }),
@@ -580,6 +584,7 @@ export function renderReport(input: {
   readonly boundary?: FrameBoundaryAssemblyReport | null;
   readonly boundaries?: readonly FrameBoundaryAssemblyReport[];
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
+  readonly renderTargetCaptures?: readonly WebGpuAppRenderTargetCaptureReport[];
   readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
   readonly transmissionGrabPass?: WebGpuAppTransmissionGrabPassReport;
   readonly msaa?: WebGpuAppMsaaReport;
@@ -666,6 +671,9 @@ export function renderReport(input: {
     ...(input.renderTargets === undefined
       ? {}
       : { renderTargets: input.renderTargets }),
+    ...(input.renderTargetCaptures === undefined
+      ? {}
+      : { renderTargetCaptures: input.renderTargetCaptures }),
     ...(input.postEffects === undefined
       ? {}
       : { postEffects: input.postEffects }),

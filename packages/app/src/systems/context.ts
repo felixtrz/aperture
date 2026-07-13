@@ -185,7 +185,11 @@ export function createApertureSystemContext(
   const materials = createMaterialAccess(options.assetsRegistry);
   const meshes = createMeshAccess(options.assetsRegistry);
   const buffers = createBufferAccess(options.assetsRegistry);
-  const renderTargets = createRenderTargetAccess(options.assetsRegistry);
+  const time = createApertureFrameTime();
+  const renderTargets = createRenderTargetAccess(options.assetsRegistry, {
+    world: options.world,
+    time,
+  });
   const trails = createTrailAccess({
     registry: options.assetsRegistry,
     meshes,
@@ -199,7 +203,6 @@ export function createApertureSystemContext(
     typeof options.random === "object"
       ? options.random
       : createApertureRandom(options.random ?? 0);
-  const time = createApertureFrameTime();
   const determinism = createApertureDeterminismDiagnostics({
     diagnostics,
     ...(options.determinism?.globals === undefined

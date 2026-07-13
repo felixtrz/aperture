@@ -32,6 +32,11 @@ export interface CreateCurrentTextureColorTargetOptions {
 
 export interface CreateOffscreenColorTargetOptions {
   readonly texture: CurrentTextureLike | null | undefined;
+  /**
+   * Pre-created color view to attach instead of the texture's default view
+   * (cube-capture face passes render into one array layer — B2).
+   */
+  readonly view?: unknown;
   readonly clearColor?: readonly number[];
   readonly loadOp?: RenderPassAttachmentLoadOp;
   readonly storeOp?: RenderPassAttachmentStoreOp;
@@ -125,9 +130,9 @@ export function createOffscreenColorTarget(
     };
   }
 
-  const view = texture.createView?.();
+  const view = options.view ?? texture.createView?.();
 
-  if (view === undefined) {
+  if (view === undefined || view === null) {
     return {
       valid: false,
       texture,

@@ -73,9 +73,17 @@ export interface SpawnCameraOptions extends SpawnMetadata {
   /**
    * Render into an offscreen render target instead of the canvas (B1).
    * Accepts the handle returned by `this.renderTargets.register(...)` or its
-   * id; wins over `camera.renderTargetId` when both are provided.
+   * id; wins over `camera.renderTargetId` when both are provided. Pairing
+   * with a cube target (`dimension: "cube"`) makes this a cube-capture camera
+   * that renders six 90-degree faces per scheduled capture (B2).
    */
   readonly renderTarget?: RenderTargetHandle | string;
+  /**
+   * Cube-capture schedule sugar (B2): `{ every: N }` captures the six faces
+   * every N extracted frames (`every: 0` = on-demand only via
+   * `this.renderTargets.capture(...)`). Wins over `camera.captureEvery`.
+   */
+  readonly capture?: { readonly every?: number };
 }
 
 export interface SpawnLightOptions extends SpawnMetadata {

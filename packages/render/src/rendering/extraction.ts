@@ -92,9 +92,14 @@ export function extractRenderSnapshot(
   const viewCullContexts: ViewCullContext[] = [];
   const views = extractViews(
     world,
+    assets,
     viewMatrices,
     diagnostics,
     viewCullContexts,
+    {
+      ...(options.frame === undefined ? {} : { frame: options.frame }),
+      ...(options.cache === undefined ? {} : { cache: options.cache }),
+    },
   );
   const cameraLayerMask = views.reduce(
     (mask, view) => mask | view.layerMask,

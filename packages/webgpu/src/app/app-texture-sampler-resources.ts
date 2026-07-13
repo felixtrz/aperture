@@ -32,6 +32,7 @@ export interface WebGpuAppPreparedTextureSamplerDiagnostic {
     | "webGpuApp.textureSourceNotReady"
     | "webGpuApp.samplerSourceNotReady"
     | "webGpuApp.renderTargetNotSampleable"
+    | "webGpuApp.renderTargetCubeBindingUnsupported"
     | "webGpuApp.renderTargetCreationFailed";
   readonly message: string;
   readonly resourceKey: string;
@@ -461,6 +462,19 @@ function prepareAppRenderTargetTextureFallback(options: {
       resourceKey,
       status: resolved.assetStatus,
       message: `Texture binding '${resourceKey}' references render target '${resolved.renderTargetKey}' with status '${resolved.assetStatus}', expected 'ready'.`,
+    });
+    return null;
+  }
+
+  // B2 deviation: material texture bindings are 2d-only today, so a cube
+  // capture target cannot be sampled directly — it feeds IBL through the
+  // environment-map `renderTargetSource` instead.
+  if (resolved.status === "cube-binding-unsupported") {
+    options.diagnostics.push({
+      code: "webGpuApp.renderTargetCubeBindingUnsupported",
+      resourceKey,
+      status: "cube-binding-unsupported",
+      message: `Texture binding '${resourceKey}' references cube render target '${resolved.renderTargetKey}'. Custom-material texture bindings are 2d-only; consume the cube capture as an environment map (prepareWebGpuAppEnvironmentAssets renderTargetSource) instead.`,
     });
     return null;
   }

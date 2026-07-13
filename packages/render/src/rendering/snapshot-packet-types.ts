@@ -50,6 +50,13 @@ export interface ViewPacket {
   readonly clearDepth: number;
   readonly clearStencil: number;
   readonly renderTarget: RenderTargetHandle | null;
+  /**
+   * Cube-capture face index (B2). Present only on the six views a cube-capture
+   * camera emits per scheduled capture (0..5 in WebGPU cube-layer order: +X,
+   * -X, +Y, -Y, +Z, -Z); absent on ordinary views. The frame boundary renders
+   * the view into the matching array layer of its cube render target.
+   */
+  readonly renderTargetFace?: number;
 }
 
 export interface MeshDrawPacket {

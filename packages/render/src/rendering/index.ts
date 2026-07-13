@@ -3,6 +3,7 @@ export * from "./batching-report.js";
 export * from "./draw-package.js";
 export * from "./extraction.js";
 export * from "./extraction-audio.js";
+export * from "./extraction-cube-capture.js";
 export * from "./audio-one-shot-queue.js";
 export * from "./particle-burst-queue.js";
 export * from "./extraction-ui.js";

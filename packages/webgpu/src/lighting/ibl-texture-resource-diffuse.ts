@@ -255,12 +255,16 @@ function convolveDiffuseIrradiance(input: {
   readonly sourceTexture?: TextureGpuResource;
   readonly format: "rgba8unorm" | "rgba16float";
   readonly targetFaceSize: number;
+  readonly sourceFlipX?: boolean;
 }): CreateTextureGpuResourceResult {
   const device = input.device;
   const { label, format, sourceFaceSize, targetFaceSize } = input;
   const pipeline = createIrradianceConvolutionComputePipeline({
     device,
     storageFormat: format,
+    ...(input.sourceFlipX === undefined
+      ? {}
+      : { sourceFlipX: input.sourceFlipX }),
     label: `${label}:irradiance`,
   });
 
@@ -485,6 +489,9 @@ function createDiffuseIblCubeTextureResource(input: {
           ...(input.source.sourceTexture === undefined
             ? {}
             : { sourceTexture: input.source.sourceTexture }),
+          ...(input.source.sourceFlipX === undefined
+            ? {}
+            : { sourceFlipX: input.source.sourceFlipX }),
           format,
           targetFaceSize: input.irradianceFaceSize,
         }),

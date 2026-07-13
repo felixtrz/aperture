@@ -71,5 +71,26 @@ export function validateCameraInput(
     });
   }
 
+  const captureEvery = camera.captureEvery ?? 1;
+  const captureRequestFrame = camera.captureRequestFrame ?? -1;
+
+  if (!Number.isInteger(captureEvery) || captureEvery < 0) {
+    diagnostics.push({
+      code: "camera.invalidCaptureEvery",
+      field: "captureEvery",
+      message:
+        "Camera captureEvery must be a non-negative integer (0 = on-demand captures only).",
+    });
+  }
+
+  if (!Number.isInteger(captureRequestFrame) || captureRequestFrame < -1) {
+    diagnostics.push({
+      code: "camera.invalidCaptureRequestFrame",
+      field: "captureRequestFrame",
+      message:
+        "Camera captureRequestFrame must be an integer >= -1 (-1 = no pending capture request).",
+    });
+  }
+
   return { valid: diagnostics.length === 0, diagnostics };
 }

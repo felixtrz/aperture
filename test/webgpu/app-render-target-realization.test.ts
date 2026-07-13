@@ -4,6 +4,7 @@ import {
   AssetRegistry,
   createRenderTargetHandle,
   createTextureHandle,
+  type RenderTargetHandle,
 } from "@aperture-engine/simulation";
 import {
   createRenderTargetAsset,
@@ -30,7 +31,10 @@ interface FakeTexture {
   readonly usage: number;
   readonly size: readonly number[];
   destroyed: boolean;
-  createView: () => { readonly label: string };
+  createView: (descriptor?: {
+    readonly dimension?: string;
+    readonly baseArrayLayer?: number;
+  }) => { readonly label: string };
   destroy: () => void;
 }
 
@@ -405,6 +409,38 @@ describe("WebGPU app facade render-target realization (B1)", () => {
     expect(renderTargetTextures(harness.textures)).toHaveLength(0);
   });
 
+  it("diagnoses sampling a cube target through a 2d material texture binding", () => {
+    const harness = fakeApp();
+    const cache = createWebGpuAppResourceCache();
+    const assets = new AssetRegistry();
+    const handle = createRenderTargetHandle("probe.env");
+
+    assets.register(handle);
+    assets.markReady(
+      handle,
+      createRenderTargetAsset({ dimension: "cube", size: 32 }),
+    );
+    cache.renderTargets.appFormat = "bgra8unorm";
+
+    const diagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[] = [];
+    const prepared = prepareAppTextureResource({
+      assets,
+      device: harness.device,
+      cache,
+      handle: createTextureHandle("probe.env"),
+      reuse: textureSamplerReuseReport(),
+      diagnostics,
+    });
+
+    expect(prepared).toBeNull();
+    expect(diagnostics).toMatchObject([
+      {
+        code: "webGpuApp.renderTargetCubeBindingUnsupported",
+        resourceKey: "texture:probe.env",
+      },
+    ]);
+  });
+
   it("diagnoses sampling a target registered with sampleable: false", () => {
     const harness = fakeApp();
     const cache = createWebGpuAppResourceCache();
@@ -438,6 +474,249 @@ describe("WebGPU app facade render-target realization (B1)", () => {
   });
 });
 
+describe("WebGPU app cube render-target capture (B2)", () => {
+  const cubeCaptureViews = (
+    handle: RenderTargetHandle,
+  ): RenderSnapshot["views"] => [
+    ...Array.from({ length: 6 }, (_, face) =>
+      appView({
+        viewId: 100 + face,
+        renderTarget: handle,
+        renderTargetFace: face,
+      }),
+    ),
+    appView({ viewId: 1 }),
+  ];
+  // Fake shared view-uniform buffer + packed records for the 6 faces and the
+  // swapchain view; records are 44 floats apart (PACKED_VIEW_UNIFORM stride).
+  const fakeViewUniformCapture = (writes: number[]) => {
+    const viewIds = [100, 101, 102, 103, 104, 105, 1];
+
+    return {
+      viewUniforms: {
+        data: new Float32Array(44 * viewIds.length),
+        floatCount: 44 * viewIds.length,
+        views: viewIds.map((viewId, index) => ({
+          viewId,
+          sourceOffset: 0,
+          packedOffset: index * 44,
+        })),
+        diagnostics: [],
+      },
+      buffers: [
+        {
+          label: "fake-view-uniform-buffer",
+          recordWrite: (dataOffset: number) => writes.push(dataOffset),
+        },
+      ],
+    };
+  };
+
+  for (const useFrameGraph of [false, true]) {
+    it(`renders six face passes into cube layers (useFrameGraph: ${String(useFrameGraph)})`, async () => {
+      const harness = fakeApp({ useFrameGraph });
+      const cache = createWebGpuAppResourceCache();
+      const assets = new AssetRegistry();
+      const handle = createRenderTargetHandle("probe.env");
+
+      assets.register(handle);
+      assets.markReady(
+        handle,
+        createRenderTargetAsset({ dimension: "cube", size: 64 }),
+      );
+
+      const viewUniformWrites: number[] = [];
+      const result = await assembleWebGpuAppFrameBoundaries({
+        app: harness.app,
+        assets,
+        cache,
+        snapshot: appSnapshot(cubeCaptureViews(handle)),
+        commands: [drawCommand(1)],
+        label: "frame",
+        reuse: resourceReuseReport(),
+        viewUniformCapture: fakeViewUniformCapture(viewUniformWrites),
+      });
+
+      expect(result.diagnostics).toEqual([]);
+      expect(result.valid).toBe(true);
+
+      // Each target selected its own packed view record before submitting
+      // (six faces + the swapchain view), then record 0 was restored.
+      expect(viewUniformWrites).toEqual([0, 44, 88, 132, 176, 220, 264, 0]);
+
+      // One realized 6-layer cube texture, not six 2d textures.
+      const realized = renderTargetTextures(harness.textures);
+
+      expect(realized).toHaveLength(1);
+      expect(realized[0]).toMatchObject({
+        size: [64, 64, 6],
+        format: "bgra8unorm",
+        destroyed: false,
+      });
+
+      // Six offscreen face submissions (face-tagged) plus the swapchain view.
+      const faceSubmissions = result.renderTargets.filter(
+        (submission) => submission.face !== undefined,
+      );
+
+      expect(faceSubmissions).toHaveLength(6);
+      expect(faceSubmissions.map((submission) => submission.face)).toEqual([
+        0, 1, 2, 3, 4, 5,
+      ]);
+      expect(
+        faceSubmissions.every(
+          (submission) =>
+            submission.ok &&
+            submission.renderTargetKey === "render-target:probe.env",
+        ),
+      ).toBe(true);
+
+      // One completed capture: generation 1.
+      expect(result.renderTargetCaptures).toEqual([
+        {
+          renderTargetKey: "render-target:probe.env",
+          faces: 6,
+          ok: true,
+          captureGeneration: 1,
+        },
+      ]);
+      expect(
+        cache.renderTargets.captureGenerations.get("render-target:probe.env"),
+      ).toBe(1);
+
+      // Each face pass attaches its own layer view (never the cube view).
+      const attachmentLabels = harness.passDescriptors
+        .map(
+          (descriptor) =>
+            descriptor.colorAttachments[0]?.view?.label ?? "missing",
+        )
+        .filter((label) => label.includes("render-target/probe.env"));
+
+      expect(attachmentLabels).toEqual(
+        Array.from(
+          { length: 6 },
+          (_, face) =>
+            `view:aperture/webgpu-app/render-target/probe.env#layer${face}`,
+        ),
+      );
+    });
+  }
+
+  it("bumps the capture generation per captured frame and survives resize", async () => {
+    const harness = fakeApp();
+    const cache = createWebGpuAppResourceCache();
+    const assets = new AssetRegistry();
+    const handle = createRenderTargetHandle("probe.env");
+
+    assets.register(handle);
+    assets.markReady(
+      handle,
+      createRenderTargetAsset({ dimension: "cube", size: 32 }),
+    );
+
+    const first = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets,
+      cache,
+      snapshot: appSnapshot(cubeCaptureViews(handle)),
+      commands: [drawCommand(1)],
+      label: "frame-1",
+      reuse: resourceReuseReport(),
+      viewUniformCapture: fakeViewUniformCapture([]),
+    });
+    const second = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets,
+      cache,
+      snapshot: appSnapshot(cubeCaptureViews(handle)),
+      commands: [drawCommand(1)],
+      label: "frame-2",
+      reuse: resourceReuseReport(),
+      viewUniformCapture: fakeViewUniformCapture([]),
+    });
+
+    expect(first.renderTargetCaptures[0]?.captureGeneration).toBe(1);
+    expect(second.renderTargetCaptures[0]?.captureGeneration).toBe(2);
+    expect(cache.renderTargets.counters).toMatchObject({
+      renderTargetTexturesCreated: 1,
+      renderTargetTexturesReused: 5 + 6,
+    });
+
+    // A frame without capture views leaves the generation untouched.
+    const idle = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets,
+      cache,
+      snapshot: appSnapshot([appView({ viewId: 1 })]),
+      commands: [drawCommand(1)],
+      label: "frame-idle",
+      reuse: resourceReuseReport(),
+      viewUniformCapture: fakeViewUniformCapture([]),
+    });
+
+    expect(idle.renderTargetCaptures).toEqual([]);
+    expect(
+      cache.renderTargets.captureGenerations.get("render-target:probe.env"),
+    ).toBe(2);
+
+    // Handle-stable resize: destroy + recreate, generation keeps counting.
+    assets.markReady(
+      handle,
+      createRenderTargetAsset({ dimension: "cube", size: 64 }),
+    );
+
+    const resized = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets,
+      cache,
+      snapshot: appSnapshot(cubeCaptureViews(handle)),
+      commands: [drawCommand(1)],
+      label: "frame-resized",
+      reuse: resourceReuseReport(),
+      viewUniformCapture: fakeViewUniformCapture([]),
+    });
+
+    expect(resized.renderTargetCaptures[0]?.captureGeneration).toBe(3);
+
+    const realized = renderTargetTextures(harness.textures);
+
+    expect(realized).toHaveLength(2);
+    expect(realized[0]).toMatchObject({ size: [32, 32, 6], destroyed: true });
+    expect(realized[1]).toMatchObject({ size: [64, 64, 6], destroyed: false });
+    expect(cache.renderTargets.counters.renderTargetTexturesDestroyed).toBe(1);
+  });
+
+  it("diagnoses msaa: 4 cube targets as invalid assets", async () => {
+    const harness = fakeApp({ msaaSampleCount: 4 });
+    const assets = new AssetRegistry();
+    const handle = createRenderTargetHandle("probe.env");
+
+    assets.register(handle);
+    assets.markReady(handle, {
+      ...createRenderTargetAsset({ dimension: "cube", size: 32 }),
+      msaa: 4,
+    });
+
+    const result = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets,
+      cache: createWebGpuAppResourceCache(),
+      snapshot: appSnapshot([
+        appView({ viewId: 100, renderTarget: handle, renderTargetFace: 0 }),
+      ]),
+      commands: [drawCommand(1)],
+      label: "frame",
+      reuse: resourceReuseReport(),
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.diagnostics).toMatchObject([
+      { code: "webGpuApp.renderTargetInvalid", viewId: 100 },
+    ]);
+    expect(renderTargetTextures(harness.textures)).toHaveLength(0);
+  });
+});
+
 function fakeApp(
   options: {
     readonly useFrameGraph?: boolean;
@@ -455,7 +734,14 @@ function fakeApp(
   const device = {
     features: { has: () => false },
     queue: {
-      writeBuffer: () => {},
+      writeBuffer: (
+        buffer: { recordWrite?: (dataOffset: number) => void },
+        _bufferOffset: number,
+        _data: unknown,
+        dataOffset?: number,
+      ) => {
+        buffer.recordWrite?.(dataOffset ?? 0);
+      },
       writeTexture: () => {},
       submit: () => {},
     },
@@ -479,8 +765,19 @@ function fakeApp(
         usage: descriptor.usage ?? 0,
         size,
         destroyed: false,
-        createView: () => ({
-          label: `view:${descriptor.label ?? "unlabeled"}`,
+        // Cube realizations create labeled sub-views (a cube sampling view +
+        // one 2d view per layer); default views keep the plain label.
+        createView: (viewDescriptor?: {
+          readonly dimension?: string;
+          readonly baseArrayLayer?: number;
+        }) => ({
+          label:
+            viewDescriptor?.dimension === "cube"
+              ? `view:${descriptor.label ?? "unlabeled"}#cube`
+              : viewDescriptor?.dimension === "2d" &&
+                  viewDescriptor.baseArrayLayer !== undefined
+                ? `view:${descriptor.label ?? "unlabeled"}#layer${viewDescriptor.baseArrayLayer}`
+                : `view:${descriptor.label ?? "unlabeled"}`,
         }),
         destroy: () => {
           texture.destroyed = true;
@@ -578,6 +875,7 @@ function appSnapshot(views: RenderSnapshot["views"]): RenderSnapshot {
 function appView(options: {
   readonly viewId: number;
   readonly renderTarget?: RenderSnapshot["views"][number]["renderTarget"];
+  readonly renderTargetFace?: number;
 }): RenderSnapshot["views"][number] {
   return {
     viewId: options.viewId,
@@ -593,6 +891,9 @@ function appView(options: {
     clearDepth: 1,
     clearStencil: 0,
     renderTarget: options.renderTarget ?? null,
+    ...(options.renderTargetFace === undefined
+      ? {}
+      : { renderTargetFace: options.renderTargetFace }),
   };
 }
 

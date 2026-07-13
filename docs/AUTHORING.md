@@ -711,6 +711,78 @@ setup, and `examples/render-to-texture.html` for the low-level route (a
 `createWebGpuAppRenderTargetAsset` wrapping an app-owned texture, which
 remains supported).
 
+### Cube capture probes
+
+`dimension: "cube"` turns a render target into a six-face capture probe
+(parity plan B2). A camera paired with a cube target becomes a cube-capture
+camera: on every scheduled capture, extraction emits six 90-degree square
+face views (world-axis aligned at the camera's position — the entity rotation
+is ignored, like three.js `CubeCamera`), and the renderer draws each face
+into its own cube layer. Between captures the camera emits nothing, so an
+idle probe costs nothing.
+
+```ts
+class ProbeSystem extends createSystem({ priority: 0 }) {
+  init(): void {
+    const probe = this.renderTargets.register({
+      id: "probe.env",
+      size: 128, // cube targets are square: one size instead of width/height
+      dimension: "cube",
+    });
+
+    // Capture the six faces every 8 frames; capture: { every: 0 } disables
+    // the schedule so the probe only captures on demand.
+    this.spawn.camera({
+      renderTarget: probe,
+      capture: { every: 8 },
+      camera: { near: 0.1, far: 50, layerMask: 2, priority: 0 },
+      transform: { translation: [0, 1, 0] },
+    });
+  }
+
+  update(): void {
+    if (somethingMovedALot) {
+      // One-shot capture on the next extracted frame (idempotent per frame).
+      this.renderTargets.capture("probe.env");
+    }
+  }
+}
+```
+
+Capture semantics:
+
+- **Scheduling.** `capture: { every: N }` (or `camera: { captureEvery: N }`)
+  captures on frames where `frame % N === 0`; the first extracted frame
+  always primes a never-captured probe. `every: 0` is on-demand only.
+  `this.renderTargets.capture(id)` arms every camera paired with the cube
+  target for a one-shot capture. The frame report exposes the cost: each face
+  pass appears in `report.renderTargets` with a `face` index (0-5), and
+  `report.renderTargetCaptures` carries one entry per completed capture with
+  the cumulative `captureGeneration`.
+- **IBL consumption.** The captured cube feeds image-based lighting through
+  the environment-asset orchestration (renderer tier):
+  `prepareWebGpuAppEnvironmentAssets({ assets: [{ handle, diffuseResourceKey,
+specularResourceKey, renderTargetSource: { renderTarget: "probe.env" } }] })`
+  prefilters the realized cube into the diffuse irradiance + specular PMREM
+  resources a standard material's environment light samples. Every completed
+  capture bumps the target's capture generation, which re-versions the
+  derived resources (the prefilter re-runs and superseded textures are
+  destroyed). The environment asset stays `ready: false` until the probe's
+  first capture completes.
+- **Limitations.** Cube targets must be square and reject `msaa: 4`. Plain
+  `material.texture(...)` bindings are 2d-only, so sampling a cube target
+  directly is rejected with `webGpuApp.renderTargetCubeBindingUnsupported` —
+  consume it as an environment map instead. Capture frames render through the
+  per-target (multi-submit) route; built-in materials (standard, unlit,
+  matcap, debug-normal) render with correct per-face matrices, while custom
+  WGSL draws inside captured layers keep the frame's first view record. The
+  captured cube stores the X-mirrored environment (proper face winding); the
+  IBL prefilter kernels compensate (`sourceFlipX`), so prefiltered lighting
+  is canonical.
+
+See `examples/reflective-probe.html` for a mirror sphere lit by a
+periodically re-captured probe of a moving scene.
+
 ## Runtime Systems
 
 Systems map to EliCS systems and can query ECS components directly.
@@ -786,7 +858,7 @@ runtime packages directly.
 | `this.particles` / `this.trails`               | particle emitters / motion trails                                                                                                                                          |
 | `this.hierarchy`                               | parent/child relationships                                                                                                                                                 |
 | `this.materials` / `this.meshes` / `this.gltf` | runtime material / mesh / glTF-instance access                                                                                                                             |
-| `this.renderTargets`                           | offscreen render targets (`register`, `resize`, `colorTexture`) — see [Render Targets](#render-targets)                                                                    |
+| `this.renderTargets`                           | offscreen render targets (`register`, `resize`, `colorTexture`, cube-capture `capture`) — see [Render Targets](#render-targets)                                            |
 | `this.prefabs`                                 | register and instantiate prefab blueprints                                                                                                                                 |
 | `this.interaction` / `this.html`               | pointer interaction state / DOM HTML bridge                                                                                                                                |
 | `this.fixedStep`                               | register fixed-step tasks                                                                                                                                                  |

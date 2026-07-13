@@ -229,6 +229,7 @@ function viewPacketsEqual(
     previous.clearDepth === next.clearDepth &&
     previous.clearStencil === next.clearStencil &&
     nullableHandlesEqual(previous.renderTarget, next.renderTarget) &&
+    (previous.renderTargetFace ?? -1) === (next.renderTargetFace ?? -1) &&
     numericRangeEqual(
       previousSnapshot?.viewMatrices,
       previous.viewMatrixOffset,

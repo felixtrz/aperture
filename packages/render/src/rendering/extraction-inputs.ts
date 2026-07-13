@@ -114,6 +114,8 @@ export function cameraInput(entity: Entity): CameraInput {
       readCameraNumber(entity, "temporalJitterX"),
       readCameraNumber(entity, "temporalJitterY"),
     ],
+    captureEvery: entity.getValue(Camera, "captureEvery") ?? 1,
+    captureRequestFrame: entity.getValue(Camera, "captureRequestFrame") ?? -1,
   };
 }
 

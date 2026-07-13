@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1425
+Every structured diagnostic code the engine can emit (1432
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -484,6 +484,18 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                           | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                 |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------- |
 | `bufferAsset.vec3fUnsupported` | Buffer asset elementType 'vec3f' is not supported: a WGSL storage array of vec3f has a 16-byte std430 stride, so tightly-packed 12-byte CPU data would read sheared. Use 'vec4f' (padding the fourth component) or split int | —    | `packages/render/src/assets/buffer-asset.ts` |
+
+## camera.invalidCaptureEvery (1)
+
+| Code                         | Message                                                                           | Fix? | Emitted from                                                   |
+| ---------------------------- | --------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `camera.invalidCaptureEvery` | Camera captureEvery must be a non-negative integer (0 = on-demand captures only). | —    | `packages/render/src/rendering/authoring-validation-camera.ts` |
+
+## camera.invalidCaptureRequestFrame (1)
+
+| Code                                | Message                                                                                | Fix? | Emitted from                                                   |
+| ----------------------------------- | -------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `camera.invalidCaptureRequestFrame` | Camera captureRequestFrame must be an integer >= -1 (-1 = no pending capture request). | —    | `packages/render/src/rendering/authoring-validation-camera.ts` |
 
 ## camera.invalidClipRange (1)
 
@@ -4648,11 +4660,29 @@ suggestedFix accompanies it, and where it is emitted.
 | --------------------------------------------- | --------------------------------------------------- | ---- | ------------------------------------------------- |
 | `renderSnapshotClone.invalidViewMatrixBuffer` | RenderSnapshot.viewMatrices must be a Float32Array. | —    | `packages/render/src/rendering/snapshot-clone.ts` |
 
+## renderTargetAsset.cubeMsaaUnsupported (1)
+
+| Code                                    | Message                                                                                                                                | Fix? | Emitted from                                        |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------- |
+| `renderTargetAsset.cubeMsaaUnsupported` | Cube render target assets do not support msaa: 4 yet — capture faces render into single-sample cube layers. Drop the msaa declaration. | —    | `packages/render/src/assets/render-target-asset.ts` |
+
+## renderTargetAsset.cubeSizeNotSquare (1)
+
+| Code                                  | Message                                                                                                                                | Fix? | Emitted from                                        |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------- |
+| `renderTargetAsset.cubeSizeNotSquare` | Cube render target assets do not support msaa: 4 yet — capture faces render into single-sample cube layers. Drop the msaa declaration. | —    | `packages/render/src/assets/render-target-asset.ts` |
+
 ## renderTargetAsset.depthDisabledUnsupported (1)
 
 | Code                                         | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                        |
 | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------- |
 | `renderTargetAsset.depthDisabledUnsupported` | Render target asset depth: false is not supported yet: the app frame path always renders offscreen views with the renderer-owned per-target depth buffer (pipelines share one depth contract). Omit depth or set it to true. | —    | `packages/render/src/assets/render-target-asset.ts` |
+
+## renderTargetAsset.invalidDimension (1)
+
+| Code                                 | Message                                                                                                                                | Fix? | Emitted from                                        |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------- |
+| `renderTargetAsset.invalidDimension` | Cube render target assets do not support msaa: 4 yet — capture faces render into single-sample cube layers. Drop the msaa declaration. | —    | `packages/render/src/assets/render-target-asset.ts` |
 
 ## renderTargetAsset.invalidFormat (1)
 
@@ -7298,6 +7328,18 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                   | Message                                                  | Fix? | Emitted from                                                                                            |
 | -------------------------------------- | -------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------- |
 | `webGpuApp.renderTargetCreationFailed` | Sampler source asset '…' is not ready for app rendering. | —    | `packages/webgpu/src/app/app-texture-sampler-resources.ts`<br>`packages/webgpu/src/app/frame-target.ts` |
+
+## webGpuApp.renderTargetCubeBindingUnsupported (1)
+
+| Code                                           | Message                                                                                                                                                                                                             | Fix? | Emitted from                                               |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------- |
+| `webGpuApp.renderTargetCubeBindingUnsupported` | Texture binding '…' references cube render target '…'. Custom-material texture bindings are 2d-only; consume the cube capture as an environment map (prepareWebGpuAppEnvironmentAssets renderTargetSource) instead. | —    | `packages/webgpu/src/app/app-texture-sampler-resources.ts` |
+
+## webGpuApp.renderTargetCubeCaptureViewUniformsUnavailable (1)
+
+| Code                                                       | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                  |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------- |
+| `webGpuApp.renderTargetCubeCaptureViewUniformsUnavailable` | Cube-capture face passes are present but this render route did not provide per-target view-uniform selection; every face would render with the frame's first view record. Use a built-in material route (standard/unlit/matc | —    | `packages/webgpu/src/app/frame-boundaries.ts` |
 
 ## webGpuApp.renderTargetFormatMismatch (1)
 

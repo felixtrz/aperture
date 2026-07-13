@@ -57,6 +57,7 @@ describe("app render-target facade authoring (B1)", () => {
       label: "Minimap Target",
       width: 256,
       height: 256,
+      dimension: "2d",
       format: "swapchain",
       msaa: 1,
       depth: true,
@@ -160,6 +161,79 @@ describe("app render-target facade authoring (B1)", () => {
       format: "swapchain",
     });
     expect(versions[1]).toBeGreaterThan(versions[0] ?? 0);
+  });
+
+  it("registers cube probes and drives on-demand captures (B2)", async () => {
+    const refs: { capture: (() => number) | null } = { capture: null };
+
+    class ProbeSystem extends createSystem({ priority: 0 }) {
+      override init(): void {
+        const probe = this.renderTargets.register({
+          id: "probe.env",
+          size: 64,
+          dimension: "cube",
+        });
+
+        // captureEvery 0: on-demand only (after the initial probe priming).
+        this.spawn.camera({
+          key: "camera.probe",
+          renderTarget: probe,
+          capture: { every: 0 },
+          camera: { priority: 0 },
+        });
+        this.spawn.camera({ key: "camera.main", camera: { priority: 1 } });
+        refs.capture = () => this.renderTargets.capture("probe.env");
+      }
+    }
+
+    const app = await createApertureApp({
+      config: defineApertureConfig({ mode: "headless" }),
+      systems: [{ default: ProbeSystem }],
+    });
+
+    // First extraction primes the probe: six face views + the main camera.
+    const primed = app.extract(0);
+
+    expect(primed.views).toHaveLength(7);
+    expect(
+      primed.views.filter((view) => view.renderTargetFace !== undefined),
+    ).toHaveLength(6);
+
+    // Idle frames emit no capture views (opt-in cost).
+    expect(app.extract(1).views).toHaveLength(1);
+
+    // On-demand command: arm the paired capture camera, fire exactly once.
+    app.step(1 / 60, 1 / 60);
+    expect(refs.capture?.()).toBe(1);
+    expect(app.extract(2).views).toHaveLength(7);
+    expect(app.extract(3).views).toHaveLength(1);
+  });
+
+  it("rejects capture requests for 2d and unknown targets (B2)", async () => {
+    const failures: string[] = [];
+
+    class FlatCaptureSystem extends createSystem({ priority: 0 }) {
+      override init(): void {
+        this.renderTargets.register({ id: "flat", width: 32, height: 32 });
+
+        for (const id of ["flat", "never.registered"]) {
+          try {
+            this.renderTargets.capture(id);
+          } catch (error) {
+            failures.push(error instanceof Error ? error.message : "unknown");
+          }
+        }
+      }
+    }
+
+    await createApertureApp({
+      config: defineApertureConfig({ mode: "headless" }),
+      systems: [{ default: FlatCaptureSystem }],
+    });
+
+    expect(failures).toHaveLength(2);
+    expect(failures[0]).toContain("only cube targets");
+    expect(failures[1]).toContain("no ready render-target asset");
   });
 
   it("rejects invalid registrations and unknown resizes with structured errors", async () => {

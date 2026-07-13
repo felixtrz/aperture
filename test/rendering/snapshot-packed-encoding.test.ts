@@ -329,6 +329,8 @@ function randomPacketBundle(): SnapshotPacketBundle {
         clearDepth: scalar(random),
         clearStencil: 7,
         renderTarget,
+        // B2: cube-capture face index round-trips (absent on ordinary views).
+        renderTargetFace: 3,
       },
       {
         viewId: 11,

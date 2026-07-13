@@ -44,6 +44,12 @@ export interface IrradianceConvolutionPipelineResource {
 export interface CreateIrradianceConvolutionComputePipelineOptions {
   readonly device: IrradianceConvolutionDeviceLike;
   readonly storageFormat?: IrradianceConvolutionStorageFormat;
+  /**
+   * Sample the source cube with a negated X direction (B2 cube-capture
+   * convention): captured render targets store the X-mirrored environment so
+   * face passes keep proper winding; the convolution unmirrors at read time.
+   */
+  readonly sourceFlipX?: boolean;
   readonly label?: string;
 }
 
@@ -69,6 +75,7 @@ export function createIrradianceConvolutionComputePipeline(
 ): CreateIrradianceConvolutionComputePipelineResult {
   const label = options.label ?? "aperture-irradiance-convolution";
   const storageFormat = options.storageFormat ?? "rgba8unorm";
+  const sourceFlipX = options.sourceFlipX === true;
 
   if (options.device.createShaderModule === undefined) {
     return failure(
@@ -103,7 +110,7 @@ export function createIrradianceConvolutionComputePipeline(
   try {
     shaderModule = options.device.createShaderModule({
       label: `${label}:shader`,
-      code: irradianceConvolutionShader(storageFormat),
+      code: irradianceConvolutionShader(storageFormat, sourceFlipX),
     });
   } catch (error) {
     return failure(
@@ -275,6 +282,7 @@ export function convolveIrradianceDirection(
 
 function irradianceConvolutionShader(
   format: IrradianceConvolutionStorageFormat,
+  sourceFlipX: boolean,
 ): string {
   return `
 struct IrradianceParams {
@@ -302,6 +310,10 @@ fn cubeDirection(face: u32, uv: vec2f) -> vec3f {
     case 4u: { return normalize(vec3f(xy.x, -xy.y, 1.0)); }
     default: { return normalize(vec3f(-xy.x, -xy.y, -1.0)); }
   }
+}
+
+fn sourceDirection(direction: vec3f) -> vec3f {
+  return vec3f(${sourceFlipX ? "-direction.x" : "direction.x"}, direction.y, direction.z);
 }
 
 fn radicalInverseVdc(inputBits: u32) -> f32 {
@@ -345,7 +357,7 @@ fn main(@builtin(global_invocation_id) globalId: vec3u) {
     let direction = normalize(
       tangentSample.x * right + tangentSample.y * realUp + tangentSample.z * normal,
     );
-    irradiance += textureSampleLevel(sourceCube, sourceSampler, direction, 0.0).rgb;
+    irradiance += textureSampleLevel(sourceCube, sourceSampler, sourceDirection(direction), 0.0).rgb;
   }
 
   irradiance = irradiance / f32(params.sampleCount);
