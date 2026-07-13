@@ -554,6 +554,11 @@ function textureDescriptorFromAsset(
     semantic: texture.semantic,
     mipLevelCount: texture.mipLevelCount,
     usage: textureUsageFlags(texture.usage),
+    // E5: a "3d" volume texture needs an explicit WebGPU storage dimension;
+    // "2d"/"cube"/"2d-array" all use the implicit "2d" storage (a "2d-array"
+    // texture is 2d storage + N layers + a "2d-array" view), so the field is
+    // omitted for them and their descriptors stay byte-identical.
+    ...(texture.dimension === "3d" ? { dimension: "3d" as const } : {}),
   };
 }
 

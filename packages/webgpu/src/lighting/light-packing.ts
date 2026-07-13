@@ -31,6 +31,9 @@ export const PackedLightKindId = {
   Spot: 3,
   Environment: 4,
   RectArea: 5,
+  // Hemisphere (E5): sky color in slots 0-2, ground color in slots 6-8,
+  // intensity in slot 4; the shader blends them along world +Y.
+  Hemisphere: 6,
 } as const;
 
 export type PackedLightKindId =
@@ -306,6 +309,10 @@ export function writePackedLightPackets(
             light.range,
           );
     const transformData = packedLightTransformData(light, transforms);
+    // Hemisphere lights (E5): sky color already lives in slots 0-2; ground color
+    // reuses slots 6-8 (the cone/width terms a hemisphere light never uses).
+    const hemisphereGround =
+      light.kind === "hemisphere" ? (light.groundColor ?? [0, 0, 0]) : null;
 
     scratch.floats.set(
       [
@@ -315,9 +322,13 @@ export function writePackedLightPackets(
         light.color[3] ?? 1,
         light.intensity,
         directionalShadow?.cascadeCount ?? light.range,
-        directionalFarBounds?.[0] ?? light.innerConeAngle,
-        directionalFarBounds?.[1] ?? light.outerConeAngle,
-        directionalFarBounds?.[2] ?? light.width ?? 0,
+        hemisphereGround?.[0] ??
+          directionalFarBounds?.[0] ??
+          light.innerConeAngle,
+        hemisphereGround?.[1] ??
+          directionalFarBounds?.[1] ??
+          light.outerConeAngle,
+        hemisphereGround?.[2] ?? directionalFarBounds?.[2] ?? light.width ?? 0,
         directionalFarBounds?.[3] ?? light.height ?? 0,
         directionalShadow?.matrixBaseIndex ??
           packedAreaLightShapeId(light.shape),
@@ -998,6 +1009,8 @@ export function packedLightKindId(kind: LightKind): PackedLightKindId {
       return PackedLightKindId.Environment;
     case "rect-area":
       return PackedLightKindId.RectArea;
+    case "hemisphere":
+      return PackedLightKindId.Hemisphere;
   }
 }
 

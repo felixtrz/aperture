@@ -392,8 +392,64 @@ describe("light packet packing", () => {
         "spot",
         "environment",
         "rect-area",
+        "hemisphere",
       ].map((kind) => packedLightKindId(kind as LightPacket["kind"])),
-    ).toEqual([0, 1, 2, 3, 4, 5]);
+    ).toEqual([0, 1, 2, 3, 4, 5, 6]);
+  });
+
+  it("packs a hemisphere light's sky/ground colors into the GPU float layout", () => {
+    // Sky color rides in slots 0-2, ground color in slots 6-8 (the cone/width
+    // terms a hemisphere light never uses), intensity in slot 4. A hemisphere
+    // light needs no transform, so its position/direction slots stay zeroed.
+    const hemisphere: LightPacket = {
+      lightId: 200,
+      entity: { index: 7, generation: 0 },
+      kind: "hemisphere",
+      // Exactly-representable float32 values so the packed readback is exact.
+      color: [0.5, 0.25, 0.75, 1],
+      groundColor: [0.125, 0.0625, 0.375],
+      intensity: 1.5,
+      range: 0,
+      innerConeAngle: 0,
+      outerConeAngle: 0,
+      width: 0,
+      height: 0,
+      worldTransformOffset: 0,
+      layerMask: 1,
+    };
+
+    const packed = packLightPackets([hemisphere]);
+
+    expect(packed.count).toBe(1);
+    // slots 0-2 sky, 4 intensity, 6-8 ground.
+    expect(Array.from(packed.floats.slice(0, 9))).toEqual([
+      0.5, 0.25, 0.75, 1, 1.5, 0, 0.125, 0.0625, 0.375,
+    ]);
+    expect(metadataColumn(packed.metadata, 0)).toEqual([
+      PackedLightKindId.Hemisphere,
+    ]);
+  });
+
+  it("keeps a black hemisphere ground color at zero (nullish, not falsy, coalescing)", () => {
+    const packed = packLightPackets([
+      {
+        lightId: 201,
+        entity: { index: 8, generation: 0 },
+        kind: "hemisphere",
+        color: [1, 1, 1, 1],
+        groundColor: [0, 0, 0],
+        intensity: 1,
+        range: 0,
+        innerConeAngle: 0,
+        outerConeAngle: 0,
+        width: 0,
+        height: 0,
+        worldTransformOffset: 0,
+        layerMask: 1,
+      },
+    ]);
+
+    expect(Array.from(packed.floats.slice(6, 9))).toEqual([0, 0, 0]);
   });
 });
 

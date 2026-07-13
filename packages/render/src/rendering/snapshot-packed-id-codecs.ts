@@ -19,6 +19,7 @@ const LightKindId = Object.freeze({
   Point: 4,
   Spot: 5,
   RectArea: 6,
+  Hemisphere: 7,
 });
 
 const AreaLightShapeId = Object.freeze({
@@ -107,6 +108,8 @@ export function lightKindId(kind: LightKind): number {
       return LightKindId.Spot;
     case "rect-area":
       return LightKindId.RectArea;
+    case "hemisphere":
+      return LightKindId.Hemisphere;
   }
 }
 
@@ -124,6 +127,8 @@ export function lightKindValue(id: number): LightKind {
       return "spot";
     case LightKindId.RectArea:
       return "rect-area";
+    case LightKindId.Hemisphere:
+      return "hemisphere";
     default:
       throw new RangeError(`Unknown snapshot packet light kind id '${id}'.`);
   }

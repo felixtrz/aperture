@@ -64,6 +64,7 @@ import {
   QUAD_INSTANCE_WORD_STRIDE,
   packSnapshotInstanceTints,
   registerRenderAuthoringComponents,
+  validateLightInput,
   type LightInput,
   type MaterialAsset,
   type MeshAsset,
@@ -2914,6 +2915,76 @@ describe("render extraction", () => {
       "render.lightMissingTransform",
       "render.lightMissingTransform",
     ]);
+  });
+
+  it("extracts a transformless hemisphere light with sky/ground colors (E5)", () => {
+    const world = createRuntimeWorld();
+    const hemisphere = createTransformlessLightEntity(world, {
+      kind: LightKind.Hemisphere,
+      color: [0.4, 0.55, 0.9, 1],
+      groundColor: [0.2, 0.16, 0.12, 1],
+      intensity: 0.8,
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.lights).toHaveLength(1);
+    const light = required(snapshot.lights[0]);
+    expect(light.kind).toBe(LightKind.Hemisphere);
+    expect(light.entity.index).toBe(hemisphere.index);
+    const color = Array.from(light.color);
+    expect(color[0]).toBeCloseTo(0.4, 5);
+    expect(color[1]).toBeCloseTo(0.55, 5);
+    expect(color[2]).toBeCloseTo(0.9, 5);
+    expect(color[3]).toBeCloseTo(1, 5);
+    expect(light.groundColor).toEqual([
+      expect.closeTo(0.2, 5),
+      expect.closeTo(0.16, 5),
+      expect.closeTo(0.12, 5),
+    ]);
+    expect(light.intensity).toBeCloseTo(0.8, 5);
+    // The range/cone slots carry the ground color in the packed codec, so the
+    // packet zeros them; a hemisphere light needs no transform.
+    expect(light.range).toBe(0);
+    expect(light.innerConeAngle).toBe(0);
+    expect(light.outerConeAngle).toBe(0);
+    expect(snapshot.report).toMatchObject({ lights: 1, diagnostics: 0 });
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("validates hemisphere sky/ground colors are finite and non-negative (E5)", () => {
+    // The Color component clamps stored values to [0, 1], so the diagnostic is
+    // exercised through the direct authoring-validation API (the path used for
+    // programmatic LightInput validation before component storage).
+    expect(
+      validateLightInput({
+        kind: LightKind.Hemisphere,
+        color: [1, 1, 1, 1],
+        groundColor: [0.2, 0.1, 0.05, 1],
+        intensity: 1,
+      }).valid,
+    ).toBe(true);
+
+    const invalid = validateLightInput({
+      kind: LightKind.Hemisphere,
+      color: [1, 1, 1, 1],
+      groundColor: [-0.1, 0, 0, 1],
+      intensity: 1,
+    });
+    expect(invalid.valid).toBe(false);
+    expect(invalid.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+      "light.invalidHemisphereColor",
+    );
+
+    // A non-hemisphere light with the same (unused) groundColor stays valid.
+    expect(
+      validateLightInput({
+        kind: LightKind.Directional,
+        groundColor: [-0.1, 0, 0, 1],
+        intensity: 1,
+      }).valid,
+    ).toBe(true);
   });
 
   it("propagates authored environment map handles into environment packets", () => {

@@ -405,6 +405,26 @@ function randomPacketBundle(): SnapshotPacketBundle {
         worldTransformOffset: 128,
         layerMask: 0x0f,
       },
+      {
+        // Hemisphere light (E5): sky color in `color`, ground color in the new
+        // `groundColor` field. The codec transports ground through the range/
+        // cone slots, so range/inner/outer read back as 0 — set them so here so
+        // the round-trip is byte-exact.
+        lightId: 22,
+        entity: entity(22, 1),
+        kind: "hemisphere",
+        shape: "rect",
+        color: vec4(random),
+        groundColor: [scalar(random), scalar(random), scalar(random)],
+        intensity: scalar(random),
+        range: 0,
+        innerConeAngle: 0,
+        outerConeAngle: 0,
+        width: 2,
+        height: 2,
+        worldTransformOffset: 144,
+        layerMask: 0x33,
+      },
     ],
     environments: [
       {

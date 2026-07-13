@@ -20,6 +20,8 @@ export function validateLightInput(
   const outerConeAngle = light.outerConeAngle ?? Math.PI / 6;
   const width = light.width ?? 2;
   const height = light.height ?? 2;
+  const skyColor = light.color ?? [1, 1, 1, 1];
+  const groundColor = light.groundColor ?? [0.1, 0.1, 0.1, 1];
   const layerMask = light.layerMask ?? 1;
   const diagnostics: RenderAuthoringDiagnostic[] = [];
 
@@ -66,6 +68,19 @@ export function validateLightInput(
     });
   }
 
+  if (
+    kind === LightKind.Hemisphere &&
+    (!isFiniteNonNegativeColor(skyColor) ||
+      !isFiniteNonNegativeColor(groundColor))
+  ) {
+    diagnostics.push({
+      code: "light.invalidHemisphereColor",
+      field: "color/groundColor",
+      message:
+        "Hemisphere lights require finite, non-negative sky (color) and ground (groundColor) colors.",
+    });
+  }
+
   if (layerMask === 0) {
     diagnostics.push({
       code: "light.zeroLayerMask",
@@ -75,6 +90,20 @@ export function validateLightInput(
   }
 
   return { valid: diagnostics.length === 0, diagnostics };
+}
+
+function isFiniteNonNegativeColor(color: {
+  readonly [index: number]: number | undefined;
+}): boolean {
+  for (let index = 0; index < 3; index += 1) {
+    const component = color[index] ?? 0;
+
+    if (!Number.isFinite(component) || component < 0) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export function validateLightCookieInput(

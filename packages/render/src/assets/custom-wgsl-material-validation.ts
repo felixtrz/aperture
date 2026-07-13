@@ -777,12 +777,14 @@ function validateTextureBinding(
   if (
     binding.viewDimension !== undefined &&
     binding.viewDimension !== "2d" &&
-    binding.viewDimension !== "cube"
+    binding.viewDimension !== "cube" &&
+    binding.viewDimension !== "3d" &&
+    binding.viewDimension !== "2d-array"
   ) {
     diagnostics.push(
       invalidBinding(
         assetKey,
-        `texture binding '${binding.name}' viewDimension must be '2d' or 'cube'.`,
+        `texture binding '${binding.name}' viewDimension must be '2d', 'cube', '3d', or '2d-array'.`,
       ),
     );
   }

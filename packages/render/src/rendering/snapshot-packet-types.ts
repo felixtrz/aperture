@@ -495,6 +495,13 @@ export interface LightPacket {
   readonly kind: LightKind;
   readonly shape?: AreaLightShape;
   readonly color: Vec4Like;
+  /**
+   * Hemisphere light ground color (E5), present ONLY on `kind: "hemisphere"`
+   * packets (`color` then carries the sky color). The packed light codec
+   * transports it through the otherwise-unused range/innerConeAngle/
+   * outerConeAngle slots, so every other light kind stays byte-identical.
+   */
+  readonly groundColor?: Vec3Like;
   readonly intensity: number;
   readonly range: number;
   readonly innerConeAngle: number;

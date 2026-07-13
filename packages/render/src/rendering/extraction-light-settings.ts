@@ -21,7 +21,9 @@ import { diagnostic, entityRef } from "./extraction-diagnostics.js";
 import { parseSamplerHandle, parseTextureHandle } from "./extraction-inputs.js";
 
 export function requiresLightTransform(kind: LightPacket["kind"]): boolean {
-  return kind !== "ambient" && kind !== "environment";
+  // Hemisphere lights read a fixed world-+Y gradient axis (like ambient), so
+  // they need no world transform.
+  return kind !== "ambient" && kind !== "environment" && kind !== "hemisphere";
 }
 
 export function readShadowSettings(

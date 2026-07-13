@@ -149,11 +149,24 @@ export function lightInput(entity: Entity): LightInput {
       | "directional"
       | "point"
       | "spot"
-      | "rect-area",
+      | "rect-area"
+      | "hemisphere",
     shape: (entity.getValue(Light, "shape") ?? "rect") as
       | "rect"
       | "disk"
       | "sphere",
+    color: Array.from(entity.getVectorView(Light, "color")) as [
+      number,
+      number,
+      number,
+      number,
+    ],
+    groundColor: Array.from(entity.getVectorView(Light, "groundColor")) as [
+      number,
+      number,
+      number,
+      number,
+    ],
     intensity: entity.getValue(Light, "intensity") ?? 1,
     range: entity.getValue(Light, "range") ?? 10,
     innerConeAngle: entity.getValue(Light, "innerConeAngle") ?? Math.PI / 8,

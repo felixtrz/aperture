@@ -38,6 +38,13 @@ export const LightKind = {
   Point: "point",
   Spot: "spot",
   RectArea: "rect-area",
+  /**
+   * Hemisphere light (E5): a soft two-color ambient gradient. `color` carries
+   * the sky color, `groundColor` the ground color; the receiver reads
+   * `mix(groundColor, skyColor, 0.5 + 0.5*dot(N, up))` along world +Y. Needs no
+   * transform (like ambient/environment) — the three.js `HemisphereLight`.
+   */
+  Hemisphere: "hemisphere",
 } as const;
 
 export type LightKind = (typeof LightKind)[keyof typeof LightKind];
@@ -251,6 +258,12 @@ export interface LightInput {
   readonly kind?: LightKind;
   readonly shape?: AreaLightShape;
   readonly color?: Vec4Like;
+  /**
+   * Hemisphere light ground color (E5). Only meaningful when
+   * `kind === "hemisphere"`; `color` then carries the sky color. Ignored by
+   * every other light kind.
+   */
+  readonly groundColor?: Vec4Like;
   readonly intensity?: number;
   readonly range?: number;
   readonly innerConeAngle?: number;
@@ -621,6 +634,7 @@ export type RenderAuthoringDiagnosticCode =
   | "light.invalidRange"
   | "light.invalidSpotCone"
   | "light.invalidAreaSize"
+  | "light.invalidHemisphereColor"
   | "light.zeroLayerMask"
   | "lightCookie.invalidTexture"
   | "lightCookie.invalidIntensity"

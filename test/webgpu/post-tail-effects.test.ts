@@ -9,6 +9,7 @@ import {
   outlineSelectedRenderIds,
   createWebGpuSsaoPostEffect,
   lutPostEffectWgsl,
+  reshapeLutStripToVolume,
   motionBlurPostEffectWgsl,
   outlineIdentityWgsl,
   outlinePostEffectWgsl,
@@ -134,14 +135,34 @@ describe("LUT color grade post effect (E4)", () => {
     ]);
   });
 
-  it("samples the LUT strip via trilinear textureLoad in WGSL", () => {
+  it("samples a real texture_3d LUT with hardware trilinear filtering in WGSL", () => {
+    // E5: the LUT migrated from a 2D strip + manual textureLoad to a real
+    // texture_3d volume sampled with textureSampleLevel (hardware trilinear).
     const wgsl = lutPostEffectWgsl({ size: 16, intensity: 1 });
     expect(wgsl).toContain("fn sampleLut(");
-    expect(wgsl).toContain("textureLoad(lutTexture");
+    expect(wgsl).toContain("var lutTexture: texture_3d<f32>;");
+    expect(wgsl).toContain("textureSampleLevel(lutTexture");
+    expect(wgsl).not.toContain("textureLoad(lutTexture");
     expect(wgsl).toContain("const LUT_SIZE: f32 = 16.000000;");
   });
 
-  it("prepares a draw + uploads the LUT strip when the device can write", () => {
+  it("reshapes an identity LUT strip into a dense N^3 volume", () => {
+    // The strip endpoints (black at r=g=b=0, white at r=g=b=N-1) must land at
+    // the matching volume corners after reshape.
+    const strip = createIdentityLutStripData(2);
+    const volume = reshapeLutStripToVolume(strip, 2);
+    expect(volume.length).toBe(2 * 2 * 2 * 4);
+    expect([volume[0], volume[1], volume[2], volume[3]]).toEqual([
+      0, 0, 0, 255,
+    ]);
+    // (r=1,g=1,b=1) → volume offset (1*4 + 1*2 + 1)*4 = last texel.
+    const white = (1 * 4 + 1 * 2 + 1) * 4;
+    expect([volume[white], volume[white + 1], volume[white + 2]]).toEqual([
+      255, 255, 255,
+    ]);
+  });
+
+  it("prepares a draw + uploads the LUT volume when the device can write", () => {
     const writes: string[] = [];
     const effect = createWebGpuLutColorGradePostEffect({ size: 8 });
     const prepared = effect.prepare(

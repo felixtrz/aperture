@@ -87,6 +87,13 @@ export function prepareCustomWgslAppTextureSamplerBindingResources(options: {
         textureKeys.push(`scene-depth:${options.material.materialKey}`);
       }
     } else if (binding.kind === "texture" && binding.texture !== undefined) {
+      // E5: a "3d" or "2d-array" texture binding needs an explicit texture VIEW
+      // dimension so it matches the declared bind-group layout. "2d" (default)
+      // and "cube" keep the pre-E5 realization (no view descriptor) so their
+      // cache keys and resources stay byte-identical.
+      const viewDimension = binding.viewDimension;
+      const layeredView =
+        viewDimension === "3d" || viewDimension === "2d-array";
       const texture = prepareAppTextureResource({
         assets: options.assets,
         device: options.device,
@@ -94,6 +101,12 @@ export function prepareCustomWgslAppTextureSamplerBindingResources(options: {
         handle: binding.texture,
         reuse: options.reuse,
         diagnostics: textureSamplerDiagnostics,
+        ...(layeredView
+          ? {
+              viewDescriptor: { dimension: viewDimension },
+              viewDescriptorKey: viewDimension,
+            }
+          : {}),
       });
 
       if (texture !== null) {

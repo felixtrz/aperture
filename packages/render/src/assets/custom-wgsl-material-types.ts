@@ -51,7 +51,7 @@ export interface PreparedCustomWgslBindingLayoutEntry {
    * byte-identical layout entries + pipeline keys.
    */
   readonly sampleType?: CustomWgslTextureSampleType;
-  readonly viewDimension?: "2d" | "cube";
+  readonly viewDimension?: "2d" | "cube" | "3d" | "2d-array";
   readonly multisampled?: boolean;
   /**
    * Renderer-owned texture source for a texture binding (B4, e.g.

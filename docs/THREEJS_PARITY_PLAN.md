@@ -1249,6 +1249,51 @@ SSAO slot.
 
 ### E5. Additional lights & texture types — **M**
 
+Status: implemented (2026-07-13). AC1 (hemisphere light) + AC2 (3D / 2D-array
+textures + the LUT-to-3D migration) ship and are pixel-proven; AC3 (light
+probes / SH) is deferred (decision below). A scene with no hemisphere light and
+no 3D/array texture is byte-identical to a pre-E5 scene — pinned by literal
+tests — so `test/determinism` stays GREEN with **no** fixture refresh.
+
+AC1 (hemisphere light): a new `LightKind.Hemisphere` — the three.js
+`HemisphereLight`. `color` carries the sky color, a new `groundColor` authoring
+field the ground color; the lit shader adds an ambient branch
+`mix(groundColor, skyColor, saturate(0.5 + 0.5*dot(N, +Y))) * intensity`
+alongside the existing ambient branch (present in BOTH the direct and clustered
+light-loop variants), so an up-facing surface reads the sky and a down-facing one
+the ground. Like ambient/environment the light needs no transform. **The packed
+light record does NOT grow**: the codec transports the ground color through the
+otherwise-unused range/innerConeAngle/outerConeAngle float slots (extraction
+zeroes those for a hemisphere light so the packet round-trips byte-exact), and
+the GPU float layout reuses the cone/width slots 6-8 — so `LIGHT_PACKET_WORDS`
+stays 31 and every other light kind is byte-identical (pinned by a codec
+round-trip + a packing literal test). `examples/hemisphere-light` lights a sphere
+and an e2e proves the top reads sky-blue and the bottom reads ground-warm.
+
+AC2 (3D + 2D-array textures): `TextureDimension` gains `"3d"` and `"2d-array"`,
+and a custom-material texture binding's `viewDimension` gains them too
+(`texture_3d<f32>` / `texture_2d_array<f32>`). The realizer threads the WebGPU
+storage `dimension: "3d"` for volume textures (uploading every depth slice in one
+`writeTexture`) and passes an explicit `"3d"`/`"2d-array"` texture VIEW for those
+custom bindings; 2d/cube keep their pre-E5 descriptors byte-for-byte. The
+viewDimension participates in the pipeline key ONLY when non-default (a `dim:3d`/
+`dim:2d-array` token), pinned by a literal byte-identity test for the 2d case.
+`examples/volume-texture-lut` samples a real `texture_3d` LUT volume from ONE
+custom material (avoiding the known multi-distinct-custom-material black-render
+bug) and an e2e proves the depth sampling coordinate selects the right slice.
+**LUT migration:** `post-lut.ts` now uploads a real N×N×N `texture_3d<f32>` and
+samples it with hardware trilinear filtering (`textureSampleLevel` + a linear
+clamp-to-edge sampler and the standard half-texel scale/bias), reshaping the
+existing public strip data into the volume layout at upload time so the `data`
+API and example grades are unchanged. `examples/post-tail`'s LUT e2e stays GREEN.
+
+AC3 (light probes / SH): **deferred** — see `docs/DECISIONS.md` 0028. The
+hemisphere light covers the two-color ambient case and diffuse IBL the captured-
+environment case; a full `LightProbe`/`SphericalHarmonics3` system (SH storage,
+probe placement + blend, a bake pipeline) is a follow-up requiring an end-to-end
+indirect-lighting proof, recorded explicitly so the audit's light-probe row stays
+honestly ❌.
+
 - AC1: Hemisphere light kind (sky/ground colors) packed like other lights;
   example + baseline; feature-audit §6 row → ✅.
 - AC2: 3D and 2D-array texture assets (upload + sampling in custom

@@ -32,9 +32,30 @@ export function writeLightPacket(
   words[offset + 3] = lightKindId(packet.kind);
   writeVec4(words, offset + 4, packet.color);
   writeFloat64(words, offset + 12, packet.intensity);
-  writeFloat64(words, offset + 14, packet.range);
-  writeFloat64(words, offset + 16, packet.innerConeAngle);
-  writeFloat64(words, offset + 18, packet.outerConeAngle);
+  // Hemisphere lights (E5) carry no range/cone terms; those three float64 slots
+  // transport the ground color instead so the packet stays 31 words wide (no
+  // stride growth ⇒ every other light kind is byte-identical).
+  const hemisphereGround =
+    packet.kind === "hemisphere" ? (packet.groundColor ?? [0, 0, 0]) : null;
+  writeFloat64(
+    words,
+    offset + 14,
+    hemisphereGround === null ? packet.range : (hemisphereGround[0] ?? 0),
+  );
+  writeFloat64(
+    words,
+    offset + 16,
+    hemisphereGround === null
+      ? packet.innerConeAngle
+      : (hemisphereGround[1] ?? 0),
+  );
+  writeFloat64(
+    words,
+    offset + 18,
+    hemisphereGround === null
+      ? packet.outerConeAngle
+      : (hemisphereGround[2] ?? 0),
+  );
   writeFloat64(words, offset + 20, packet.width ?? 0);
   writeFloat64(words, offset + 22, packet.height ?? 0);
   words[offset + 24] = areaLightShapeId(packet.shape);
@@ -56,18 +77,31 @@ export function readLightPacket(
   const cookieSampler = readNullableHandle(registry, words[offset + 28] ?? 0, [
     "sampler",
   ]);
+  const kind = lightKindValue(words[offset + 3] ?? 0);
+  const isHemisphere = kind === "hemisphere";
   const packet: LightPacket = {
     lightId: words[offset] ?? 0,
     entity: readEntity(words, offset + 1),
-    kind: lightKindValue(words[offset + 3] ?? 0),
+    kind,
     shape: areaLightShapeValue(
       words[offset + 24] ?? DEFAULT_PACKED_AREA_LIGHT_SHAPE_ID,
     ),
     color: readVec4(words, offset + 4),
+    // Hemisphere ground color rides in the range/inner/outer slots (see the
+    // encoder); range/cones read back as 0 for hemisphere lights.
+    ...(isHemisphere
+      ? {
+          groundColor: [
+            readFloat64(words, offset + 14),
+            readFloat64(words, offset + 16),
+            readFloat64(words, offset + 18),
+          ],
+        }
+      : {}),
     intensity: readFloat64(words, offset + 12),
-    range: readFloat64(words, offset + 14),
-    innerConeAngle: readFloat64(words, offset + 16),
-    outerConeAngle: readFloat64(words, offset + 18),
+    range: isHemisphere ? 0 : readFloat64(words, offset + 14),
+    innerConeAngle: isHemisphere ? 0 : readFloat64(words, offset + 16),
+    outerConeAngle: isHemisphere ? 0 : readFloat64(words, offset + 18),
     width: readFloat64(words, offset + 20),
     height: readFloat64(words, offset + 22),
     worldTransformOffset: words[offset + 25] ?? 0,

@@ -1,3 +1,4 @@
+import type { LightKind } from "@aperture-engine/render";
 import type {
   ShadowAtlasRegion,
   ShadowMapDescriptorReport,
@@ -10,13 +11,7 @@ export type ShadowTextureResourceDiagnosticCode =
 export interface ShadowTextureResourceDescriptor {
   readonly shadowId: number;
   readonly lightId: number;
-  readonly lightKind:
-    | "directional"
-    | "point"
-    | "spot"
-    | "ambient"
-    | "environment"
-    | "rect-area";
+  readonly lightKind: LightKind;
   readonly resourceKey: string;
   readonly textureKey: string;
   readonly viewKey: string;

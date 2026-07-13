@@ -1,12 +1,16 @@
-// LUT color-grading post stage (E4). Remaps scene color through a 3D color
-// lookup table stored as a 2D horizontal strip (the "3D-texture-lite" layout:
-// N slices of an N x N red/green tile laid side by side, indexed by blue). This
-// avoids depending on 3D textures (E5) while giving a full trilinear 3D LUT.
+// LUT color-grading post stage (E4 shipped a 2D-strip "3D-texture-lite" LUT;
+// E5 migrates it to a real `texture_3d<f32>`). Remaps scene color through a 3D
+// color lookup table now uploaded as a genuine N x N x N volume texture and
+// sampled with hardware trilinear filtering (`textureSampleLevel` + a linear
+// sampler), with the standard half-texel scale/bias so the LUT endpoints land on
+// texel centers.
 //
-// The strip is uploaded once (cached) from CPU RGBA bytes via queue.writeTexture
-// and sampled with textureLoad + manual trilinear interpolation so tile seams do
-// not bleed. `intensity` blends the graded result against the original color, so
-// intensity 0 is a pass-through and a missing/blank LUT degrades to identity.
+// The public `data` contract is unchanged — callers still pass the N-slice strip
+// (N slices of an N x N red/green tile indexed by blue), so existing LUT authors
+// (`createIdentityLutStripData`, example grades) need no change. The strip bytes
+// are reshaped into the volume layout at upload time. `intensity` blends the
+// graded result against the original color, so intensity 0 is a pass-through and
+// a missing/blank LUT degrades to identity.
 
 import type {
   WebGpuPostEffect,
@@ -130,7 +134,7 @@ export function createWebGpuLutColorGradePostEffect(
       cachedPipeline = pipelineResult;
 
       if (cachedLut === null || cachedLut.size !== size) {
-        cachedLut = createLutStripTexture({
+        cachedLut = createLut3dTexture({
           device: prepareOptions.device,
           size,
           data: lutData as Uint8Array,
@@ -302,7 +306,7 @@ function createLutPostPipeline(options: {
   return { key: options.key, pipeline };
 }
 
-function createLutStripTexture(options: {
+function createLut3dTexture(options: {
   readonly device: WebGpuPostPassDeviceLike;
   readonly size: number;
   readonly data: Uint8Array;
@@ -313,13 +317,12 @@ function createLutStripTexture(options: {
     options.diagnostics.push({
       code: "webGpuPostPass.createTextureUnavailable",
       effectId: options.effectId,
-      message: `LUT post effect '${options.effectId}' cannot create the LUT strip texture.`,
+      message: `LUT post effect '${options.effectId}' cannot create the LUT volume texture.`,
     });
     return null;
   }
 
-  const width = options.size * options.size;
-  const height = options.size;
+  const n = options.size;
   const queue = (
     options.device as {
       readonly queue?: {
@@ -337,7 +340,7 @@ function createLutStripTexture(options: {
     options.diagnostics.push({
       code: "webGpuPostPass.writeBufferUnavailable",
       effectId: options.effectId,
-      message: `LUT post effect '${options.effectId}' cannot upload the LUT strip (queue.writeTexture unavailable).`,
+      message: `LUT post effect '${options.effectId}' cannot upload the LUT volume (queue.writeTexture unavailable).`,
     });
     return null;
   }
@@ -345,18 +348,22 @@ function createLutStripTexture(options: {
   try {
     const texture = options.device.createTexture({
       label: `aperture/post/${options.effectId}/lut`,
-      size: { width, height },
+      size: { width: n, height: n, depthOrArrayLayers: n },
+      dimension: "3d",
       format: "rgba8unorm",
       usage:
         WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
         WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST,
     }) as { readonly createView?: () => unknown };
 
+    // Reshape the N-slice strip (blue-indexed tiles of an N x N red/green plane)
+    // into the volume layout WebGPU expects: red fastest (width), then green
+    // (height/row), then blue (depth/slice).
     queue.writeTexture(
       { texture },
-      options.data,
-      { bytesPerRow: width * 4, rowsPerImage: height },
-      { width, height, depthOrArrayLayers: 1 },
+      reshapeLutStripToVolume(options.data, n),
+      { bytesPerRow: n * 4, rowsPerImage: n },
+      { width: n, height: n, depthOrArrayLayers: n },
     );
 
     return { size: options.size, texture };
@@ -364,12 +371,41 @@ function createLutStripTexture(options: {
     options.diagnostics.push({
       code: "webGpuPostPass.textureCreationFailed",
       effectId: options.effectId,
-      message: `LUT post effect '${options.effectId}' LUT strip creation failed: ${
+      message: `LUT post effect '${options.effectId}' LUT volume creation failed: ${
         cause instanceof Error ? cause.message : String(cause)
       }`,
     });
     return null;
   }
+}
+
+/**
+ * Reshape an N-slice LUT strip (`x = b*N + r`, `y = g`, row-major RGBA) into a
+ * dense N x N x N volume (`r` fastest, then `g`, then `b`) suitable for a single
+ * `queue.writeTexture` into a `dimension: "3d"` texture. Pure + covered by a unit
+ * test so the LUT-to-3D migration is verifiable without a GPU.
+ */
+export function reshapeLutStripToVolume(
+  strip: Uint8Array,
+  size: number,
+): Uint8Array {
+  const n = clampInteger(size, 2, 64);
+  const volume = new Uint8Array(n * n * n * 4);
+
+  for (let b = 0; b < n; b += 1) {
+    for (let g = 0; g < n; g += 1) {
+      for (let r = 0; r < n; r += 1) {
+        const stripOffset = (g * (n * n) + (b * n + r)) * 4;
+        const volumeOffset = (b * n * n + g * n + r) * 4;
+        volume[volumeOffset] = strip[stripOffset] ?? 0;
+        volume[volumeOffset + 1] = strip[stripOffset + 1] ?? 0;
+        volume[volumeOffset + 2] = strip[stripOffset + 2] ?? 0;
+        volume[volumeOffset + 3] = strip[stripOffset + 3] ?? 255;
+      }
+    }
+  }
+
+  return volume;
 }
 
 function createLutPostSampler(options: {
@@ -393,6 +429,9 @@ function createLutPostSampler(options: {
     mipmapFilter: "nearest",
     addressModeU: "clamp-to-edge",
     addressModeV: "clamp-to-edge",
+    // The same sampler filters the 3D LUT volume; clamp the depth (blue) axis so
+    // the LUT endpoints do not wrap.
+    addressModeW: "clamp-to-edge",
   });
 }
 
@@ -451,10 +490,13 @@ struct VertexOutput {
 
 @group(0) @binding(0) var inputSampler: sampler;
 @group(0) @binding(1) var inputTexture: texture_2d<f32>;
-@group(0) @binding(2) var lutTexture: texture_2d<f32>;
+@group(0) @binding(2) var lutTexture: texture_3d<f32>;
 
 const LUT_SIZE: f32 = ${wgslFloat(options.size)};
-const LUT_MAX: f32 = ${wgslFloat(options.size - 1)};
+// Half-texel scale/bias so color 0 maps to the first texel center and color 1
+// to the last, matching the standard 3D-LUT sampling convention.
+const LUT_SCALE: f32 = (LUT_SIZE - 1.0) / LUT_SIZE;
+const LUT_BIAS: f32 = 0.5 / LUT_SIZE;
 const INTENSITY: f32 = ${wgslFloat(options.intensity)};
 
 @vertex
@@ -475,34 +517,11 @@ fn vs(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
   return output;
 }
 
-// Bilinear fetch of a single blue slice's red/green plane.
-fn sampleLutSlice(rg: vec2f, sliceIndex: i32) -> vec3f {
-  let coord = clamp(rg, vec2f(0.0), vec2f(1.0)) * LUT_MAX;
-  let base = vec2f(floor(coord.x), floor(coord.y));
-  let frac = coord - base;
-  let x0 = i32(base.x);
-  let y0 = i32(base.y);
-  let x1 = min(x0 + 1, i32(LUT_MAX));
-  let y1 = min(y0 + 1, i32(LUT_MAX));
-  let tileX = sliceIndex * i32(LUT_SIZE);
-  let c00 = textureLoad(lutTexture, vec2i(tileX + x0, y0), 0).rgb;
-  let c10 = textureLoad(lutTexture, vec2i(tileX + x1, y0), 0).rgb;
-  let c01 = textureLoad(lutTexture, vec2i(tileX + x0, y1), 0).rgb;
-  let c11 = textureLoad(lutTexture, vec2i(tileX + x1, y1), 0).rgb;
-  let top = mix(c00, c10, frac.x);
-  let bottom = mix(c01, c11, frac.x);
-  return mix(top, bottom, frac.y);
-}
-
+// Hardware trilinear fetch of the N x N x N LUT volume (r=u, g=v, b=w).
 fn sampleLut(color: vec3f) -> vec3f {
   let c = clamp(color, vec3f(0.0), vec3f(1.0));
-  let blue = c.b * LUT_MAX;
-  let b0 = i32(floor(blue));
-  let b1 = min(b0 + 1, i32(LUT_MAX));
-  let fb = blue - floor(blue);
-  let slice0 = sampleLutSlice(c.rg, b0);
-  let slice1 = sampleLutSlice(c.rg, b1);
-  return mix(slice0, slice1, fb);
+  let uvw = c * LUT_SCALE + vec3f(LUT_BIAS);
+  return textureSampleLevel(lutTexture, inputSampler, uvw, 0.0).rgb;
 }
 
 @fragment

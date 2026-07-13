@@ -33,7 +33,11 @@ export type DepthCompare =
 export type BlendPreset = "none" | "alpha" | "premultiplied-alpha" | "additive";
 export type ColorWriteMask = "all" | "none" | "rgb" | "alpha";
 
-export type TextureDimension = "2d" | "cube";
+// E5 adds "3d" (volume textures — the migrated LUT) and "2d-array" (layered
+// atlases) to the pre-E5 "2d"/"cube" set. Only surfaces that opt in (a custom
+// material texture binding declaring the matching viewDimension) exercise them;
+// every 2d/cube asset stays byte-identical.
+export type TextureDimension = "2d" | "cube" | "3d" | "2d-array";
 export type TextureColorSpace = "srgb" | "linear" | "data";
 export type TextureSemantic =
   | "base-color"
@@ -391,7 +395,10 @@ export interface CustomWgslTextureBindingDeclaration extends BaseCustomWgslBindi
   readonly texture?: TextureHandle;
   readonly source?: CustomWgslTextureBindingSource;
   readonly sampleType?: CustomWgslTextureSampleType;
-  readonly viewDimension?: "2d" | "cube";
+  // E5 extends the B4 "2d"/"cube" set with "3d" (`texture_3d<f32>`) and
+  // "2d-array" (`texture_2d_array<f32>`). Non-"2d" values append a `dim:` token
+  // to the pipeline key so 2d bindings keep byte-identical keys.
+  readonly viewDimension?: "2d" | "cube" | "3d" | "2d-array";
   readonly multisampled?: boolean;
 }
 

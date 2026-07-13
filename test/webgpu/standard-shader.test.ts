@@ -186,6 +186,27 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(STANDARD_MESH_WGSL).toContain("standardAreaLightLtcMatrixTexture");
   });
 
+  it("evaluates hemisphere lights as a world-up sky/ground gradient (E5)", () => {
+    expect(STANDARD_MESH_WGSL).toContain(
+      `const LIGHT_KIND_HEMISPHERE: i32 = ${PackedLightKindId.Hemisphere};`,
+    );
+    // The soft-gradient contract: blend ground→sky by 0.5 + 0.5*dot(N, +Y).
+    expect(STANDARD_MESH_WGSL).toContain("fn hemisphereLightRadiance(");
+    expect(STANDARD_MESH_WGSL).toContain(
+      "let blend = saturate(0.5 + 0.5 * dot(normalize(normal), up));",
+    );
+    expect(STANDARD_MESH_WGSL).toContain(
+      "return mix(groundColor, skyColor, blend) * intensity;",
+    );
+    // The main lighting loop routes the hemisphere kind into the ambient term.
+    expect(STANDARD_MESH_WGSL).toContain(
+      "if (kind == LIGHT_KIND_HEMISPHERE) {",
+    );
+    expect(STANDARD_MESH_WGSL).toContain(
+      "ambient = ambient + hemisphereLightRadiance(lightIndex, normal);",
+    );
+  });
+
   it("models StandardMaterial fragment color assembly as a composition contract", () => {
     const composer = new StandardFragmentComposer();
 
@@ -411,6 +432,14 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
     expect(shader.code.match(/if \(kind == LIGHT_KIND_SPOT\)/g)).toHaveLength(
       1,
+    );
+    // E5: the hemisphere branch (a global light, like ambient) survives the
+    // clustered-light transform and stays in the main loop exactly once.
+    expect(
+      shader.code.match(/if \(kind == LIGHT_KIND_HEMISPHERE\)/g),
+    ).toHaveLength(1);
+    expect(shader.code).toContain(
+      "ambient = ambient + hemisphereLightRadiance(lightIndex, normal);",
     );
   });
 

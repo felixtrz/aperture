@@ -153,6 +153,66 @@ describe("texture GPU resource creation", () => {
     ]);
   });
 
+  it("realizes a 3D volume texture with dimension:'3d' and uploads every slice (E5)", () => {
+    const texture = textureWithView({ label: "lut-3d-view" });
+    const created: unknown[] = [];
+    const writes: unknown[] = [];
+    const descriptor = textureDescriptor({
+      label: "lut-3d",
+      size: [2, 2, 2],
+      dimension: "3d",
+    });
+    const result = createTextureGpuResource({
+      device: {
+        createTexture: (input) => {
+          created.push(input);
+          return texture;
+        },
+        queue: {
+          writeTexture: (destination, data, layout, size) => {
+            writes.push({ destination, data, layout, size });
+          },
+        },
+      },
+      resourceKey: "texture:lut-3d",
+      descriptor,
+      upload: {
+        data: new Uint8Array(2 * 2 * 2 * 4),
+        bytesPerRow: 8,
+        rowsPerImage: 2,
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    // The WebGPU storage dimension is threaded through for 3D textures.
+    expect(created).toMatchObject([{ dimension: "3d", size: [2, 2, 2] }]);
+    // The copy covers all 2 depth slices in one writeTexture.
+    expect(writes).toMatchObject([
+      { layout: { bytesPerRow: 8, rowsPerImage: 2 }, size: [2, 2, 2] },
+    ]);
+  });
+
+  it("omits the storage dimension from 2D/cube WebGPU descriptors (byte-identity, E5)", () => {
+    const created: Array<Record<string, unknown>> = [];
+    createTextureGpuResource({
+      device: {
+        createTexture: (input) => {
+          created.push(input as Record<string, unknown>);
+          return textureWithView({});
+        },
+      },
+      resourceKey: "texture:no-dimension",
+      // A plain 2d descriptor never sets `dimension`.
+      descriptor: textureDescriptor(),
+    });
+
+    expect(created).toHaveLength(1);
+    expect(Object.prototype.hasOwnProperty.call(created[0], "dimension")).toBe(
+      false,
+    );
+  });
+
   it("diagnoses texture descriptor color-space and format mismatches before GPU creation", () => {
     const created: unknown[] = [];
     const result = createTextureGpuResource({

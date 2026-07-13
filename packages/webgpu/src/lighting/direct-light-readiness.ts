@@ -21,6 +21,12 @@ export interface DirectLightKindCounts {
   readonly spot: number;
   readonly rectArea: number;
   readonly environment: number;
+  /**
+   * Hemisphere light count (E5). Present ONLY when the snapshot contains at
+   * least one hemisphere light, so scenes without one produce byte-identical
+   * count reports (the key is simply absent).
+   */
+  readonly hemisphere?: number;
   readonly areaShapes: DirectAreaLightShapeCounts;
 }
 
@@ -239,6 +245,9 @@ function incrementLightKindCount(
       return;
     case "environment":
       counts.environment += 1;
+      return;
+    case "hemisphere":
+      counts.hemisphere = (counts.hemisphere ?? 0) + 1;
       return;
   }
 }

@@ -298,6 +298,10 @@ fn localLightClusterPointCookieColor(position: vec3f, lightIndex: u32, lightPosi
       ambient = ambient + lightRadiance(lightIndex);
     }
 
+    if (kind == LIGHT_KIND_HEMISPHERE) {
+      ambient = ambient + hemisphereLightRadiance(lightIndex, normal);
+    }
+
     if (kind == LIGHT_KIND_DIRECTIONAL) {
       direct = direct + evaluateDirectLight(
         normal,
@@ -600,6 +604,10 @@ fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> @lo
 
     if (kind == LIGHT_KIND_AMBIENT) {
       ambient = ambient + lightRadiance(lightIndex);
+    }
+
+    if (kind == LIGHT_KIND_HEMISPHERE) {
+      ambient = ambient + hemisphereLightRadiance(lightIndex, normal);
     }
 
     if (kind == LIGHT_KIND_DIRECTIONAL) {

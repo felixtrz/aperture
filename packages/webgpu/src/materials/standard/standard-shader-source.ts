@@ -92,6 +92,7 @@ const LIGHT_KIND_DIRECTIONAL: i32 = ${PackedLightKindId.Directional};
 const LIGHT_KIND_POINT: i32 = ${PackedLightKindId.Point};
 const LIGHT_KIND_SPOT: i32 = ${PackedLightKindId.Spot};
 const LIGHT_KIND_RECT_AREA: i32 = ${PackedLightKindId.RectArea};
+const LIGHT_KIND_HEMISPHERE: i32 = ${PackedLightKindId.Hemisphere};
 const AREA_LIGHT_SHAPE_RECT: i32 = ${PackedAreaLightShapeId.Rect};
 const AREA_LIGHT_SHAPE_DISK: i32 = ${PackedAreaLightShapeId.Disk};
 const AREA_LIGHT_SHAPE_SPHERE: i32 = ${PackedAreaLightShapeId.Sphere};
@@ -220,6 +221,28 @@ fn lightRadiance(lightIndex: u32) -> vec3f {
   );
   let intensity = lightFloats[offset + 4u];
   return color * intensity;
+}
+
+// Hemisphere light (E5): a soft two-color ambient gradient. Sky color rides in
+// slots 0-2, ground color in slots 6-8, intensity in slot 4. The receiver
+// normal is blended against world +Y so up-facing surfaces read the sky color
+// and down-facing surfaces read the ground color (three.js HemisphereLight).
+fn hemisphereLightRadiance(lightIndex: u32, normal: vec3f) -> vec3f {
+  let offset = lightFloatOffset(lightIndex);
+  let skyColor = vec3f(
+    lightFloats[offset],
+    lightFloats[offset + 1u],
+    lightFloats[offset + 2u],
+  );
+  let groundColor = vec3f(
+    lightFloats[offset + 6u],
+    lightFloats[offset + 7u],
+    lightFloats[offset + 8u],
+  );
+  let intensity = lightFloats[offset + 4u];
+  let up = vec3f(0.0, 1.0, 0.0);
+  let blend = saturate(0.5 + 0.5 * dot(normalize(normal), up));
+  return mix(groundColor, skyColor, blend) * intensity;
 }
 
 fn packedLightPosition(lightIndex: u32) -> vec3f {
@@ -670,6 +693,10 @@ ${createStandardFragmentComposer().emitMetallicRoughnessBlock()}
 
     if (kind == LIGHT_KIND_AMBIENT) {
       ambient = ambient + lightRadiance(lightIndex);
+    }
+
+    if (kind == LIGHT_KIND_HEMISPHERE) {
+      ambient = ambient + hemisphereLightRadiance(lightIndex, normal);
     }
 
     if (kind == LIGHT_KIND_DIRECTIONAL) {

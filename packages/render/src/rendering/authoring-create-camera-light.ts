@@ -71,6 +71,7 @@ export function createLight(
     kind: input.kind ?? LightKind.Directional,
     shape: input.shape ?? AreaLightShape.Rect,
     color: toVec4Tuple(input.color ?? [1, 1, 1, 1]),
+    groundColor: toVec4Tuple(input.groundColor ?? [0.1, 0.1, 0.1, 1]),
     intensity: input.intensity ?? 1,
     range: input.range ?? 10,
     innerConeAngle: input.innerConeAngle ?? Math.PI / 8,

@@ -73,6 +73,10 @@ export const Light = defineComponent(
       default: AreaLightShape.Rect,
     },
     color: { type: EcsType.Color, default: tuple4(1, 1, 1, 1) },
+    // Hemisphere light ground color (E5). Meaningful only when
+    // kind === Hemisphere; `color` then carries the sky color. Kept a distinct
+    // field so no other light kind's authoring/packing is affected.
+    groundColor: { type: EcsType.Color, default: tuple4(0.1, 0.1, 0.1, 1) },
     intensity: { type: EcsType.Float32, default: 1 },
     range: { type: EcsType.Float32, default: 10 },
     innerConeAngle: { type: EcsType.Float32, default: Math.PI / 8 },

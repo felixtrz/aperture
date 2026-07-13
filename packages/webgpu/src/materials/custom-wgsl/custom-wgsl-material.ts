@@ -103,9 +103,9 @@ export interface CustomWgslMaterialBindGroupLayoutEntryDescriptor {
     // B4: the layout variant (defaulting to the pre-B4 float/2d/single-sample
     // values). depth / unfilterable-float / sint / uint sample types, cube
     // views, and multisampled textures now flow through instead of the old
-    // hard-coded literals.
+    // hard-coded literals. E5 adds "3d" and "2d-array" view dimensions.
     readonly sampleType: CustomWgslTextureSampleType;
-    readonly viewDimension: "2d" | "cube";
+    readonly viewDimension: "2d" | "cube" | "3d" | "2d-array";
     readonly multisampled: boolean;
   };
   readonly sampler?: {

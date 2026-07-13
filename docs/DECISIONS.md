@@ -1123,3 +1123,48 @@ Consequences:
   contact-shadow pixel golden or a reference-AO comparison), not just a distinct
   pipeline key — the byte-identity-when-off bar alone is necessary but not
   sufficient to call an AO integration "working".
+
+## 0028 — Light Probes / Spherical Harmonics Deferred (E5 AC3)
+
+Date: 2026-07-13
+
+Status: accepted
+
+Context:
+
+Parity plan E5 ("Additional lights & texture types") shipped the hemisphere
+light (AC1) and 3D / 2D-array texture assets with the LUT-to-3D migration (AC2).
+AC3 scoped a decision about light probes / spherical-harmonics (SH) irradiance —
+the three.js `LightProbe` + `SphericalHarmonics3` (and the probe-generator addon)
+— which bake a low-frequency irradiance field (an SH-projected environment) that
+receivers sample as soft indirect ambient. Aperture already ships diffuse image-
+based lighting (a convolved irradiance cube per environment) and now a hemisphere
+light, so the two-color and single-environment ambient cases are covered. A real
+probe system is a much larger body of work than a light kind: it needs an SH
+basis representation in the packed light/environment path, a probe placement +
+blend model (nearest-probe or tetrahedral/trilinear interpolation across a probe
+volume), a bake/capture pipeline (either offline SH projection of a captured cube
+or a runtime convolution), and per-receiver probe selection. None of that can be
+pixel-proven end-to-end here as a small, honest increment, and packing an SH
+vector into the light buffer would be a determinism-fixture-affecting format
+change made speculatively.
+
+Decision:
+
+Light probes / SH irradiance are **deferred**, not shipped. E5 delivers the
+hemisphere light and the 3D / 2D-array texture types only. The hemisphere light
+covers the "cheap two-color ambient gradient" use case; diffuse IBL covers the
+"single captured environment" case. A probe/SH system is recorded here as an
+explicit follow-up rather than left as an implicit gap, so the feature audit's
+light-probe row stays honestly ❌.
+
+Consequences:
+
+- The `THREEJS_FEATURE_AUDIT.md` §6 "Light probes / SH" row remains ❌ (absent);
+  only the "Hemisphere light" row flips to ✅. No `LightProbe`/`SphericalHarmonics3`
+  surface is exposed, so there is no half-finished probe API to support.
+- No SH vector is added to the packed light or environment records, so the
+  determinism fixtures are untouched by E5 and no format grows speculatively.
+- A future probe follow-up must land WITH a probe placement + blend model and an
+  end-to-end indirect-lighting proof (a probe-lit pixel golden), not just an SH
+  storage slot — mirroring the GTAO bar in decision 0027.

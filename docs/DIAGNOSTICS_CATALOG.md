@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1540
+Every structured diagnostic code the engine can emit (1541
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -2938,6 +2938,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                    | Message                                              | Fix? | Emitted from                                                   |
 | ----------------------- | ---------------------------------------------------- | ---- | -------------------------------------------------------------- |
 | `light.invalidAreaSize` | Area lights require finite width > 0 and height > 0. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
+
+## light.invalidHemisphereColor (1)
+
+| Code                           | Message                                                                                     | Fix? | Emitted from                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
+| `light.invalidHemisphereColor` | Hemisphere lights require finite, non-negative sky (color) and ground (groundColor) colors. | —    | `packages/render/src/rendering/authoring-validation-lights.ts` |
 
 ## light.invalidIntensity (1)
 
@@ -8127,9 +8133,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## webGpuPostPass.createTextureUnavailable (1)
 
-| Code                                      | Message                                                  | Fix? | Emitted from                                                                      |
-| ----------------------------------------- | -------------------------------------------------------- | ---- | --------------------------------------------------------------------------------- |
-| `webGpuPostPass.createTextureUnavailable` | LUT post effect '…' cannot create the LUT strip texture. | —    | `packages/webgpu/src/post/post-lut.ts`<br>`packages/webgpu/src/post/post-pass.ts` |
+| Code                                      | Message                                                   | Fix? | Emitted from                                                                      |
+| ----------------------------------------- | --------------------------------------------------------- | ---- | --------------------------------------------------------------------------------- |
+| `webGpuPostPass.createTextureUnavailable` | LUT post effect '…' cannot create the LUT volume texture. | —    | `packages/webgpu/src/post/post-lut.ts`<br>`packages/webgpu/src/post/post-pass.ts` |
 
 ## webGpuPostPass.depthTextureUnavailable (1)
 
@@ -8169,9 +8175,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## webGpuPostPass.textureCreationFailed (1)
 
-| Code                                   | Message                                          | Fix? | Emitted from                                                                      |
-| -------------------------------------- | ------------------------------------------------ | ---- | --------------------------------------------------------------------------------- |
-| `webGpuPostPass.textureCreationFailed` | LUT post effect '…' LUT strip creation failed: … | —    | `packages/webgpu/src/post/post-lut.ts`<br>`packages/webgpu/src/post/post-pass.ts` |
+| Code                                   | Message                                           | Fix? | Emitted from                                                                      |
+| -------------------------------------- | ------------------------------------------------- | ---- | --------------------------------------------------------------------------------- |
+| `webGpuPostPass.textureCreationFailed` | LUT post effect '…' LUT volume creation failed: … | —    | `packages/webgpu/src/post/post-lut.ts`<br>`packages/webgpu/src/post/post-pass.ts` |
 
 ## webGpuPostPass.writeBufferUnavailable (1)
 

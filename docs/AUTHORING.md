@@ -1902,6 +1902,111 @@ motion-blurred mover (four side-by-side canvases), with a pixel + report e2e tha
 smears the mover, pushes the scene bluer, and makes the warm outline ring appear
 (selected) / vanish (deselected).
 
+## Hemisphere light — parity plan E5
+
+A hemisphere light is a soft, two-color ambient gradient — the three.js
+`HemisphereLight`. Author it with `kind: "hemisphere"`: `color` is the **sky**
+color, `groundColor` is the **ground** color, and `intensity` scales both. A
+receiver's shading blends the two along world **+Y**:
+`mix(groundColor, skyColor, 0.5 + 0.5 * dot(N, up))` — an up-facing surface reads
+the sky color, a down-facing one the ground color. Like ambient/environment
+lights it needs **no transform** (the gradient axis is fixed world-+Y).
+
+```ts
+this.spawn.light({
+  key: "light.sky",
+  kind: "hemisphere",
+  color: [0.3, 0.5, 1.0, 1], // sky (blue)
+  groundColor: [0.95, 0.55, 0.2, 1], // ground (warm)
+  intensity: 3.6,
+});
+```
+
+`groundColor` is meaningful **only** for hemisphere lights; every other light
+kind ignores it. Under the hood the packed light record does not grow — the
+ground color rides in the otherwise-unused range/cone slots — so adding a
+hemisphere light never perturbs other lights' packed output. See
+`examples/hemisphere-light.html` (a sphere whose top reads sky-blue and bottom
+reads ground-warm, with a pixel e2e).
+
+Light probes / spherical-harmonics irradiance (`LightProbe` /
+`SphericalHarmonics3`) are **not** shipped — see `docs/DECISIONS.md` decision 0028.
+
+## 3D and 2D-array texture assets — parity plan E5
+
+Texture assets support two more dimensions beyond `2d`/`cube`:
+
+- **`3d`** — a volume texture (`width` × `height` × `depthOrLayers` = the depth).
+  Realized with a WebGPU `dimension: "3d"` storage texture; sampled in WGSL as
+  `texture_3d<f32>` with a `vec3f` coordinate (hardware trilinear filtering).
+- **`2d-array`** — N stacked 2D layers (`depthOrLayers` = the layer count).
+  Realized as 2D storage with a `2d-array` view; sampled as
+  `texture_2d_array<f32>` with a `vec2f` coordinate + an integer layer index.
+
+Author the bytes for every slice/layer contiguously (slice 0's `width`×`height`
+texels, then slice 1's, …) with `bytesPerRow` = one row and `rowsPerImage` =
+`height`:
+
+```ts
+const texture = createTextureAsset({
+  label: "VolumeLut",
+  dimension: "3d",
+  width: 4,
+  height: 4,
+  depthOrLayers: 4, // 4 depth slices
+  format: "rgba8unorm",
+  colorSpace: "data",
+  semantic: "data",
+  usage: ["sampled", "copy-dst"],
+  sourceData: {
+    bytes: volumeBytes, // 4*4*4 RGBA texels, red fastest, then row, then slice
+    bytesPerRow: 4 * 4,
+    rowsPerImage: 4,
+  },
+});
+```
+
+Sample it from a **custom WGSL material** by declaring a texture binding with the
+matching `viewDimension`:
+
+```ts
+bindings: [
+  {
+    name: "volumeTexture",
+    binding: 0,
+    kind: "texture",
+    visibility: ["fragment"],
+    texture, // the 3d TextureAsset handle
+    sampleType: "float",
+    viewDimension: "3d", // or "2d-array"
+  },
+  {
+    name: "volumeSampler",
+    binding: 1,
+    kind: "sampler",
+    visibility: ["fragment"],
+    sampler,
+    samplerType: "filtering",
+  },
+];
+```
+
+and in the shader (group `2`):
+
+```wgsl
+@group(2) @binding(0) var volumeTexture: texture_3d<f32>;
+@group(2) @binding(1) var volumeSampler: sampler;
+// ...
+let color = textureSampleLevel(volumeTexture, volumeSampler, vec3f(u, v, w), 0.0);
+```
+
+The `viewDimension` participates in the material's pipeline key **only** when it
+is not the default `2d`, so 2d/cube bindings keep byte-identical keys. Sample a
+`2d-array` with `textureSample(tex, samp, vec2f(u, v), layerIndex)`. The LUT
+color-grade post effect (`createWebGpuLutColorGradePostEffect`) is itself a real
+`texture_3d<f32>` internally. See `examples/volume-texture-lut.html` (one custom
+material samples a 4×4×4 LUT volume; the depth coordinate selects the slice).
+
 ## Dynamic meshes — parity plan D5
 
 For geometry that changes every frame on the CPU (cloth, jelly, procedural

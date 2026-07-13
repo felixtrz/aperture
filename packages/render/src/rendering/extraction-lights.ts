@@ -102,6 +102,14 @@ export function extractLights(
       hasWorldTransform ? readWorldMatrix(entity) : identityMat4(),
     );
 
+    // Hemisphere lights (E5) carry no range/cone/area terms; those slots are
+    // reused by the packed light codec to transport the ground color, so we
+    // zero them here to keep the packet round-trip-identical.
+    const isHemisphere = kind === "hemisphere";
+    const groundColor = Array.from(
+      entity.getVectorView(Light, "groundColor"),
+    ) as [number, number, number, number];
+
     lights.push({
       lightId: createStableRenderId(entityRef(entity)),
       entity: entityRef(entity),
@@ -116,10 +124,17 @@ export function extractLights(
         number,
         number,
       ],
+      ...(isHemisphere
+        ? { groundColor: [groundColor[0], groundColor[1], groundColor[2]] }
+        : {}),
       intensity: entity.getValue(Light, "intensity") ?? 1,
-      range: entity.getValue(Light, "range") ?? 10,
-      innerConeAngle: entity.getValue(Light, "innerConeAngle") ?? Math.PI / 8,
-      outerConeAngle: entity.getValue(Light, "outerConeAngle") ?? Math.PI / 6,
+      range: isHemisphere ? 0 : (entity.getValue(Light, "range") ?? 10),
+      innerConeAngle: isHemisphere
+        ? 0
+        : (entity.getValue(Light, "innerConeAngle") ?? Math.PI / 8),
+      outerConeAngle: isHemisphere
+        ? 0
+        : (entity.getValue(Light, "outerConeAngle") ?? Math.PI / 6),
       width: entity.getValue(Light, "width") ?? 2,
       height: entity.getValue(Light, "height") ?? 2,
       ...(cookie === null

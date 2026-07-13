@@ -17,7 +17,7 @@
 >
 > **Method.** Aperture capabilities were inventoried directly from package
 > source (`packages/*`), examples, and the e2e suite; negative claims (no XR,
-> no video textures, no hemisphere light, no wireframe, no stencil)
+> no video textures, no light probes, no wireframe, no stencil)
 > were re-verified by repo-wide search. three.js capabilities were enumerated
 > from its `src/` and `examples/jsm/` trees in the checkout above. Planned or
 > documented-only work is never counted as implemented, on either side.
@@ -107,13 +107,13 @@ is an absence Aperture chose on purpose and documents in `docs/DECISIONS.md`.
 | ----------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Rendering core          | 🟡       | Frame graph, MSAA, instancing, culling, occlusion queries; no clipping planes/stencil/wireframe                                                          |
 | Materials & shading     | 🟡       | Strong PBR + extensions; 5 material families vs 18+, no open shader-graph system                                                                         |
-| Lights & shadows        | ✅/➕    | CSM + PCSS + clustered + LTC area lights in core beat three.js core; no hemisphere light/light probes                                                    |
+| Lights & shadows        | ✅/➕    | CSM + PCSS + clustered + LTC area lights + hemisphere in core beat three.js core; no light probes/SH (deferred, DECISIONS 0028)                          |
 | Geometry & meshes       | 🟡       | Solid data model (morph/skin/multi-stream); 8 primitives vs 21+, no extrude/text/edges geometry                                                          |
 | Objects & scene         | 🟡       | Sprites/instancing/batching/fog/sky + fat lines & points (E1) + mesh LOD (E2) + debug-draw helpers (E3) yes; no `.overrideMaterial`                      |
 | Cameras & controls      | ✅/🟡    | Multi-camera/viewport/priority strong; 3 controllers vs 9, no cube/stereo camera                                                                         |
 | Animation               | 🟡       | glTF clips, CUBICSPLINE, crossfade, skinning, morphs; no N-clip mixing, additive layers, IK                                                              |
 | Asset I/O               | 🟡       | Deep glTF (Draco/Meshopt/KTX2) but glTF-only; no other formats, no exporters                                                                             |
-| Textures                | 🟡       | 2D/cube, BC/ETC2/ASTC, HDR/RGBE, mipmap gen; no video/3D/array/data textures                                                                             |
+| Textures                | 🟡       | 2D/cube/3D/2D-array, BC/ETC2/ASTC, HDR/RGBE, mipmap gen; no video/data textures                                                                          |
 | Post-processing & color | 🟡       | Tonemap/FXAA/TAA/bloom/SSAO/SSR/DoF/outline/motion-blur/LUT + custom passes; three.js's pass library is still far broader (god-rays/SMAA/GTAO/stylistic) |
 | XR                      | 🚫       | Non-goal by decision — immersive is IWSDK's domain; three.js (esp. this fork) is the web-XR reference                                                    |
 | Audio                   | ➕       | Full game-audio engine vs three.js's five thin Web Audio wrappers                                                                                        |
@@ -230,8 +230,8 @@ objects in ECS, `DECISIONS.md 0016`) rather than purely missing work.
 | Point light              | `PointLight`                                               | `point` kind (+range)                                                                              | ✅     |
 | Spot light               | `SpotLight` (+map projection)                              | `spot` kind (+inner/outer cones) + `LightCookie` projected textures                                | ✅     |
 | Rect area light          | `RectAreaLight` (LTC, rect only, no shadows)               | `rect-area` with **rect/disk/sphere** LTC shapes                                                   | ➕     |
-| Hemisphere light         | `HemisphereLight`                                          | None                                                                                               | ❌     |
-| Light probes / SH        | `LightProbe`, `SphericalHarmonics3`, probe generator addon | None                                                                                               | ❌     |
+| Hemisphere light         | `HemisphereLight`                                          | `hemisphere` kind (sky/ground colors, world-+Y gradient)                                           | ✅     |
+| Light probes / SH        | `LightProbe`, `SphericalHarmonics3`, probe generator addon | None (deferred — see DECISIONS 0028)                                                               | ❌     |
 | IES profiles / projector | `IESSpotLight`, `ProjectorLight` (WebGPU)                  | Light cookies cover projector-style use; no IES                                                    | 🟡     |
 | Environment/IBL          | `Scene.environment` + `PMREMGenerator`                     | `environment` light kind: equirect→cube, irradiance convolution, PMREM, BRDF LUT (all GPU compute) | ✅     |
 | Many-light scaling       | Forward uniform arrays (limits); TSL tiled lights addon    | Clustered forward local lights, growable storage buffer, no hard cap                               | ➕     |
@@ -362,17 +362,17 @@ else it is a hard gap.
 
 ## 12. Textures
 
-| Feature                 | three.js                                                               | Aperture                                                            | Status |
-| ----------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------- | ------ | --- |
-| 2D / cube               | Yes                                                                    | Yes (`dimension: 2d                                                 | cube`) | ✅  |
-| 3D / array textures     | `Data3DTexture`, `DataArrayTexture`, compressed variants               | None (internal shadow arrays only)                                  | ❌     |
-| Video / canvas / HTML   | `VideoTexture`, `VideoFrameTexture`, `CanvasTexture`, `HTMLTexture`    | None                                                                | ❌     |
-| Data / depth / external | `DataTexture`, `DepthTexture`, `ExternalTexture`, `FramebufferTexture` | Explicit mip `sourceData` uploads; no user depth/external textures  | 🟡     |
-| Compressed              | BC/ETC2/ASTC via KTX2/DDS/PVR/KTX loaders                              | BC1/3/7, ETC2, ASTC-4x4 via KTX2/Basis with device-driven transcode | ✅     |
-| HDR                     | RGBE/EXR/UltraHDR loaders, half/float                                  | RGBE parser + rgba16float pipeline                                  | 🟡     |
-| Samplers                | Wrap/filter/anisotropy on texture                                      | Full sampler assets: address modes, filters, LOD clamps, anisotropy | ✅     |
-| Mipmaps                 | Auto-generation                                                        | GPU mipmap generation                                               | ✅     |
-| Color-space handling    | `ColorManagement` + per-texture colorSpace                             | Per-texture colorSpace (srgb/linear/data) + semantic validation     | ✅     |
+| Feature                 | three.js                                                               | Aperture                                                                                                   | Status |
+| ----------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------ | --- |
+| 2D / cube               | Yes                                                                    | Yes (`dimension: 2d                                                                                        | cube`) | ✅  |
+| 3D / array textures     | `Data3DTexture`, `DataArrayTexture`, compressed variants               | `dimension: 3d` volume + `2d-array` texture assets, sampled in custom materials (LUT is a real 3D texture) | ✅     |
+| Video / canvas / HTML   | `VideoTexture`, `VideoFrameTexture`, `CanvasTexture`, `HTMLTexture`    | None                                                                                                       | ❌     |
+| Data / depth / external | `DataTexture`, `DepthTexture`, `ExternalTexture`, `FramebufferTexture` | Explicit mip `sourceData` uploads; no user depth/external textures                                         | 🟡     |
+| Compressed              | BC/ETC2/ASTC via KTX2/DDS/PVR/KTX loaders                              | BC1/3/7, ETC2, ASTC-4x4 via KTX2/Basis with device-driven transcode                                        | ✅     |
+| HDR                     | RGBE/EXR/UltraHDR loaders, half/float                                  | RGBE parser + rgba16float pipeline                                                                         | 🟡     |
+| Samplers                | Wrap/filter/anisotropy on texture                                      | Full sampler assets: address modes, filters, LOD clamps, anisotropy                                        | ✅     |
+| Mipmaps                 | Auto-generation                                                        | GPU mipmap generation                                                                                      | ✅     |
+| Color-space handling    | `ColorManagement` + per-texture colorSpace                             | Per-texture colorSpace (srgb/linear/data) + semantic validation                                            | ✅     |
 
 ---
 
@@ -625,9 +625,10 @@ decision, not a gap — see §14 and `DECISIONS.md 0023`.)
 10. **Scene extras** — axes/grid/light/camera/skeleton/box/sphere helpers now
     ship as an immediate-mode debug-draw overlay (parity plan E3, §8); remaining
     gap is the `Sky`/`Water`/`Reflector`/`Lensflare` scene objects (§8).
-11. **Texture types** — no video/canvas/3D/array/data/depth/external textures
-    (§12).
-12. **Light probes / hemisphere light / IES** (§6).
+11. **Texture types** — no video/canvas/data/depth/external textures; 3D +
+    2D-array now ship (§12).
+12. **Light probes / SH / IES** — hemisphere light now ships; probes/SH deferred
+    (DECISIONS 0028) (§6).
 13. **Math utilities** — curves/splines, Triangle/Line3, Spherical, SH,
     easing (§19).
 14. **Visual editor & ecosystem** — no editor; no community ecosystem (§21).

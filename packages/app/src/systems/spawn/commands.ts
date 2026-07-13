@@ -304,6 +304,9 @@ export function createSpawnCommands(options: {
           ...(input.light ?? {}),
           kind: input.kind ?? input.light?.kind ?? LightKind.Directional,
           ...(input.color === undefined ? {} : { color: input.color }),
+          ...(input.groundColor === undefined
+            ? {}
+            : { groundColor: input.groundColor }),
           intensity:
             input.illuminance ?? input.intensity ?? input.light?.intensity ?? 1,
         }),

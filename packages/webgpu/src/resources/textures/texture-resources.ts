@@ -82,6 +82,14 @@ export interface TextureDescriptorInput {
   readonly semantic?: TextureSemantic;
   readonly mipLevelCount?: number;
   readonly label?: string;
+  /**
+   * WebGPU storage dimension (E5). Present only for `"3d"` volume textures;
+   * omitted (defaulting to the implicit `"2d"`) for 2d/cube/2d-array so those
+   * descriptors stay byte-identical to the pre-E5 shape. A `"2d-array"` texture
+   * uses `"2d"` storage with N array layers and a `"2d-array"` VIEW, so it never
+   * sets this either.
+   */
+  readonly dimension?: "3d";
 }
 
 export interface TextureUploadInput {

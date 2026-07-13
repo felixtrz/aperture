@@ -96,6 +96,11 @@ export interface SpawnLightOptions extends SpawnMetadata {
   readonly transform?: SystemTransformInput;
   readonly kind?: LightInput["kind"];
   readonly color?: Vec4Like;
+  /**
+   * Hemisphere light ground color (E5). Meaningful only for
+   * `kind: "hemisphere"`, where `color` is the sky color; ignored otherwise.
+   */
+  readonly groundColor?: Vec4Like;
   readonly illuminance?: number;
   readonly intensity?: number;
   readonly light?: LightInput;
