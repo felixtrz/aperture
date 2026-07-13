@@ -1,10 +1,11 @@
-import type {
-  AssetRegistry,
-  Entity,
-  EnvironmentMapHandle,
-  MaterialHandle,
-  SamplerHandle,
-  TextureHandle,
+import {
+  createRenderTargetHandle,
+  type AssetRegistry,
+  type Entity,
+  type EnvironmentMapHandle,
+  type MaterialHandle,
+  type SamplerHandle,
+  type TextureHandle,
 } from "@aperture-engine/simulation";
 import type {
   SourceMaterialAsset,
@@ -12,6 +13,7 @@ import type {
   TextureAsset,
 } from "../materials/index.js";
 import { isCustomWgslMaterialAsset } from "../materials/index.js";
+import { isRenderTargetAsset } from "../assets/render-target-asset.js";
 import { diagnostic } from "./extraction-diagnostics.js";
 import type { RenderDiagnostic } from "./snapshot.js";
 
@@ -116,13 +118,50 @@ export function validateTextureAssetState(
   const entry = assets.get<"texture", TextureAsset>(handle);
 
   if (entry === undefined) {
-    diagnostics.push(diagnostic("render.texture.missing", entity, handle));
-    return false;
+    // B1: a texture handle may reference the color texture of a facade
+    // render-target source asset registered under the same id — the WebGPU
+    // layer serves the realized target texture for it, so extraction accepts
+    // a ready, sampleable render target in place of a texture asset.
+    return validateRenderTargetColorTextureState(
+      handle,
+      assets,
+      entity,
+      diagnostics,
+    );
   }
 
   if (entry.status !== "ready" || entry.asset === null) {
     diagnostics.push(
       diagnostic(`render.texture.${entry.status}`, entity, handle),
+    );
+    return false;
+  }
+
+  return true;
+}
+
+function validateRenderTargetColorTextureState(
+  handle: TextureHandle,
+  assets: AssetRegistry,
+  entity: Entity,
+  diagnostics: RenderDiagnostic[],
+): boolean {
+  const entry = assets.get<"render-target", unknown>(
+    createRenderTargetHandle(handle.id),
+  );
+
+  if (
+    entry === undefined ||
+    entry.status !== "ready" ||
+    !isRenderTargetAsset(entry.asset)
+  ) {
+    diagnostics.push(diagnostic("render.texture.missing", entity, handle));
+    return false;
+  }
+
+  if (!entry.asset.sampleable) {
+    diagnostics.push(
+      diagnostic("render.texture.renderTargetNotSampleable", entity, handle),
     );
     return false;
   }

@@ -88,6 +88,13 @@ export async function createWebGpuApp(
     );
   }
   const resourceCache = createWebGpuAppResourceCache();
+
+  // B1: the facade render-target realizer resolves format "swapchain" and the
+  // per-target MSAA declaration against the app configuration; seed it here so
+  // texture-binding fallbacks work before the first frame-boundary resolution.
+  resourceCache.renderTargets.appFormat = initialization.format;
+  resourceCache.renderTargets.appSampleCount = msaa.sampleCount;
+
   const userPassRegistry = createWebGpuAppUserPassRegistry();
   const snapshotTransport = createWebGpuAppSnapshotTransport({
     ...(options.transport === undefined ? {} : { mode: options.transport }),

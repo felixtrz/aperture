@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1416
+Every structured diagnostic code the engine can emit (1425
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -4648,6 +4648,42 @@ suggestedFix accompanies it, and where it is emitted.
 | --------------------------------------------- | --------------------------------------------------- | ---- | ------------------------------------------------- |
 | `renderSnapshotClone.invalidViewMatrixBuffer` | RenderSnapshot.viewMatrices must be a Float32Array. | —    | `packages/render/src/rendering/snapshot-clone.ts` |
 
+## renderTargetAsset.depthDisabledUnsupported (1)
+
+| Code                                         | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                        |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------- |
+| `renderTargetAsset.depthDisabledUnsupported` | Render target asset depth: false is not supported yet: the app frame path always renders offscreen views with the renderer-owned per-target depth buffer (pipelines share one depth contract). Omit depth or set it to true. | —    | `packages/render/src/assets/render-target-asset.ts` |
+
+## renderTargetAsset.invalidFormat (1)
+
+| Code                              | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                        |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------- |
+| `renderTargetAsset.invalidFormat` | Render target asset depth: false is not supported yet: the app frame path always renders offscreen views with the renderer-owned per-target depth buffer (pipelines share one depth contract). Omit depth or set it to true. | —    | `packages/render/src/assets/render-target-asset.ts` |
+
+## renderTargetAsset.invalidLabel (1)
+
+| Code                             | Message                                               | Fix? | Emitted from                                        |
+| -------------------------------- | ----------------------------------------------------- | ---- | --------------------------------------------------- |
+| `renderTargetAsset.invalidLabel` | Render target asset should provide a non-empty label. | —    | `packages/render/src/assets/render-target-asset.ts` |
+
+## renderTargetAsset.invalidMsaa (1)
+
+| Code                            | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                        |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------- |
+| `renderTargetAsset.invalidMsaa` | Render target asset depth: false is not supported yet: the app frame path always renders offscreen views with the renderer-owned per-target depth buffer (pipelines share one depth contract). Omit depth or set it to true. | —    | `packages/render/src/assets/render-target-asset.ts` |
+
+## renderTargetAsset.invalidSize (1)
+
+| Code                            | Message                                                       | Fix? | Emitted from                                        |
+| ------------------------------- | ------------------------------------------------------------- | ---- | --------------------------------------------------- |
+| `renderTargetAsset.invalidSize` | Render target asset … must be a positive integer, received …. | —    | `packages/render/src/assets/render-target-asset.ts` |
+
+## renderTargetAsset.liveRendererObject (1)
+
+| Code                                   | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                        |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------- |
+| `renderTargetAsset.liveRendererObject` | Render target asset must stay data-only: it may not carry a live GPU texture or other renderer-owned objects. The WebGPU backend realizes and owns the GPUTexture; use createWebGpuAppRenderTargetAsset only for the low-lev | —    | `packages/render/src/assets/render-target-asset.ts` |
+
 ## renderTransformPack.missingTransform (1)
 
 | Code                                   | Message                                                                      | Fix? | Emitted from                                             |
@@ -7257,11 +7293,17 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------------ | ----------------------------- | ---- | ---------------------------------------------------------------------- |
 | `webGpuApp.preparedMaterialFallback` | (message composed at runtime) | —    | `packages/webgpu/src/materials/core/prepared-app-material-resource.ts` |
 
+## webGpuApp.renderTargetCreationFailed (1)
+
+| Code                                   | Message                                                  | Fix? | Emitted from                                                                                            |
+| -------------------------------------- | -------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------- |
+| `webGpuApp.renderTargetCreationFailed` | Sampler source asset '…' is not ready for app rendering. | —    | `packages/webgpu/src/app/app-texture-sampler-resources.ts`<br>`packages/webgpu/src/app/frame-target.ts` |
+
 ## webGpuApp.renderTargetFormatMismatch (1)
 
-| Code                                   | Message                                                                               | Fix? | Emitted from                              |
-| -------------------------------------- | ------------------------------------------------------------------------------------- | ---- | ----------------------------------------- |
-| `webGpuApp.renderTargetFormatMismatch` | View … targets render target '…' with format '…', but the app pipeline format is '…'. | —    | `packages/webgpu/src/app/frame-target.ts` |
+| Code                                   | Message                                                                                                                                                      | Fix? | Emitted from                              |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | ----------------------------------------- |
+| `webGpuApp.renderTargetFormatMismatch` | View … targets render target '…' with format '…', but the app pipeline format is '…'. Declare format: "swapchain" (the default) to follow the canvas format. | —    | `packages/webgpu/src/app/frame-target.ts` |
 
 ## webGpuApp.renderTargetInvalid (1)
 
@@ -7275,11 +7317,23 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------- | ----------------------------------------------- | ---- | ----------------------------------------- |
 | `webGpuApp.renderTargetMissing` | View … targets missing render target asset '…'. | —    | `packages/webgpu/src/app/frame-target.ts` |
 
+## webGpuApp.renderTargetMsaaUnavailable (1)
+
+| Code                                    | Message                                                                                                                                                                                          | Fix? | Emitted from                              |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | ----------------------------------------- |
+| `webGpuApp.renderTargetMsaaUnavailable` | View … targets render target '…' declaring msaa 4, but the app renders at sample count …. Create the app with { msaa: 4 } so the target resolves 4x MSAA, or drop the target's msaa declaration. | —    | `packages/webgpu/src/app/frame-target.ts` |
+
 ## webGpuApp.renderTargetNotReady (1)
 
 | Code                             | Message                                                             | Fix? | Emitted from                              |
 | -------------------------------- | ------------------------------------------------------------------- | ---- | ----------------------------------------- |
 | `webGpuApp.renderTargetNotReady` | View … targets render target '…' with status '…', expected 'ready'. | —    | `packages/webgpu/src/app/frame-target.ts` |
+
+## webGpuApp.renderTargetNotSampleable (1)
+
+| Code                                  | Message                                                                                                                                                                                | Fix? | Emitted from                                               |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------- |
+| `webGpuApp.renderTargetNotSampleable` | Texture binding '…' references render target '…', which was registered with sampleable: false (no TEXTURE_BINDING usage). Register it with sampleable: true to sample it in materials. | —    | `packages/webgpu/src/app/app-texture-sampler-resources.ts` |
 
 ## webGpuApp.samplerSourceNotReady (1)
 

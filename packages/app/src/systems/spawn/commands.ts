@@ -197,6 +197,17 @@ export function createSpawnCommands(options: {
       const entity = createEntityWithMetadata(options.world, input, "camera");
       addTransform(entity, input.transform);
       const defaultClearColor = options.renderDefaults?.clearColor;
+      // B1 convenience: pair the camera with a facade render target. The ECS
+      // component stores the full "render-target:<id>" key (what extraction
+      // parses); a bare id is prefixed for ergonomics.
+      const renderTargetId =
+        input.renderTarget === undefined
+          ? undefined
+          : typeof input.renderTarget === "string"
+            ? input.renderTarget.startsWith("render-target:")
+              ? input.renderTarget
+              : `render-target:${input.renderTarget}`
+            : assetHandleKey(input.renderTarget);
       entity.addComponent(
         Camera,
         createCamera({
@@ -209,6 +220,7 @@ export function createSpawnCommands(options: {
           ...(input.fovYDegrees === undefined
             ? {}
             : { fovYRadians: (input.fovYDegrees * Math.PI) / 180 }),
+          ...(renderTargetId === undefined ? {} : { renderTargetId }),
         }),
       );
       return entity;

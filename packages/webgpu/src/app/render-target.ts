@@ -45,7 +45,9 @@ export function createWebGpuAppRenderTargetDiagnostic(input: {
     | "webGpuApp.renderTargetMissing"
     | "webGpuApp.renderTargetNotReady"
     | "webGpuApp.renderTargetInvalid"
-    | "webGpuApp.renderTargetFormatMismatch";
+    | "webGpuApp.renderTargetFormatMismatch"
+    | "webGpuApp.renderTargetMsaaUnavailable"
+    | "webGpuApp.renderTargetCreationFailed";
   readonly viewId: number;
   readonly renderTarget: RenderTargetHandle;
   readonly message: string;

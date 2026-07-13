@@ -138,6 +138,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     options.app,
     options.assets,
     options.snapshot,
+    { renderTargets: options.cache.renderTargets },
   );
 
   if (targetPlan.diagnostics.length > 0) {

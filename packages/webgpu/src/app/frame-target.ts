@@ -2,7 +2,10 @@ import {
   type AssetRegistry,
   assetHandleKey,
 } from "@aperture-engine/simulation";
-import type { RenderSnapshot } from "@aperture-engine/render";
+import {
+  isRenderTargetAsset,
+  type RenderSnapshot,
+} from "@aperture-engine/render";
 import type { FrameBoundaryViewRectangle } from "../render/frame/frame-boundary.js";
 import { resolveNormalizedViewRectangle } from "../resources/views/view-rectangle.js";
 import type { WebGpuCanvasLike } from "../gpu/initialize-webgpu.js";
@@ -13,6 +16,10 @@ import {
   isWebGpuAppRenderTargetAsset,
   type WebGpuAppRenderTargetAsset,
 } from "./render-target.js";
+import {
+  realizeWebGpuAppRenderTarget,
+  type WebGpuAppRenderTargetResourceState,
+} from "./render-target-resources.js";
 
 export type WebGpuAppFrameBoundaryTarget =
   | {
@@ -37,6 +44,10 @@ interface WebGpuAppFrameBoundaryTargetApp {
   readonly canvas: WebGpuCanvasLike;
   readonly initialization: {
     readonly format: string;
+    readonly device?: unknown;
+  };
+  readonly msaa?: {
+    readonly sampleCount: number;
   };
 }
 
@@ -44,6 +55,14 @@ export function createWebGpuAppFrameBoundaryTargets(
   app: WebGpuAppFrameBoundaryTargetApp,
   assets: AssetRegistry,
   snapshot: RenderSnapshot,
+  options: {
+    /**
+     * B1: realization state for renderer-independent `RenderTargetAsset`
+     * sources. Without it, facade render-target assets cannot be realized
+     * and surface `webGpuApp.renderTargetCreationFailed`.
+     */
+    readonly renderTargets?: WebGpuAppRenderTargetResourceState;
+  } = {},
 ): {
   readonly targets: readonly WebGpuAppFrameBoundaryTarget[];
   readonly diagnostics: readonly unknown[];
@@ -51,6 +70,15 @@ export function createWebGpuAppFrameBoundaryTargets(
   const targets: WebGpuAppFrameBoundaryTarget[] = [];
   const diagnostics: unknown[] = [];
   const canvasDimensions = webGpuAppCanvasDimensions(app.canvas);
+  const renderTargetState = options.renderTargets ?? null;
+
+  if (renderTargetState !== null) {
+    // Keep the realizer's swapchain-format and MSAA knowledge authoritative
+    // for out-of-band consumers (the texture-binding sampling fallback).
+    renderTargetState.appFormat = app.initialization.format;
+    renderTargetState.appSampleCount =
+      app.msaa?.sampleCount ?? renderTargetState.appSampleCount;
+  }
 
   for (const view of snapshot.views) {
     if (view.renderTarget === null) {
@@ -95,6 +123,88 @@ export function createWebGpuAppFrameBoundaryTargets(
     }
 
     const asset = entry.asset;
+
+    // B1: renderer-independent render-target source assets are realized into
+    // renderer-owned GPU textures here (keyed handle + version; version bumps
+    // destroy and recreate). The low-level live-texture route below is
+    // untouched.
+    if (isRenderTargetAsset(asset)) {
+      const appSampleCount =
+        app.msaa?.sampleCount ?? renderTargetState?.appSampleCount ?? 1;
+
+      if (asset.msaa === 4 && appSampleCount !== 4) {
+        diagnostics.push(
+          createWebGpuAppRenderTargetDiagnostic({
+            code: "webGpuApp.renderTargetMsaaUnavailable",
+            viewId: view.viewId,
+            renderTarget: view.renderTarget,
+            message: `View ${view.viewId} targets render target '${renderTargetKey}' declaring msaa 4, but the app renders at sample count ${String(appSampleCount)}. Create the app with { msaa: 4 } so the target resolves 4x MSAA, or drop the target's msaa declaration.`,
+          }),
+        );
+        continue;
+      }
+
+      const resolvedFormat =
+        asset.format === "swapchain" ? app.initialization.format : asset.format;
+
+      if (resolvedFormat !== app.initialization.format) {
+        diagnostics.push(
+          createWebGpuAppRenderTargetDiagnostic({
+            code: "webGpuApp.renderTargetFormatMismatch",
+            viewId: view.viewId,
+            renderTarget: view.renderTarget,
+            message: `View ${view.viewId} targets render target '${renderTargetKey}' with format '${resolvedFormat}', but the app pipeline format is '${app.initialization.format}'. Declare format: "swapchain" (the default) to follow the canvas format.`,
+          }),
+        );
+        continue;
+      }
+
+      if (renderTargetState === null) {
+        diagnostics.push(
+          createWebGpuAppRenderTargetDiagnostic({
+            code: "webGpuApp.renderTargetCreationFailed",
+            viewId: view.viewId,
+            renderTarget: view.renderTarget,
+            message: `View ${view.viewId} targets render target '${renderTargetKey}' but no render-target realization state was provided to the frame boundary.`,
+          }),
+        );
+        continue;
+      }
+
+      const realizeResult = realizeWebGpuAppRenderTarget({
+        device: app.initialization.device,
+        state: renderTargetState,
+        handle: view.renderTarget,
+        asset,
+        version: entry.version,
+      });
+
+      if (!realizeResult.ok) {
+        diagnostics.push(
+          createWebGpuAppRenderTargetDiagnostic({
+            code:
+              realizeResult.reason === "invalid-asset"
+                ? "webGpuApp.renderTargetInvalid"
+                : "webGpuApp.renderTargetCreationFailed",
+            viewId: view.viewId,
+            renderTarget: view.renderTarget,
+            message: `View ${view.viewId} targets render target '${renderTargetKey}': ${realizeResult.message}`,
+          }),
+        );
+        continue;
+      }
+
+      targets.push({
+        source: "offscreen",
+        view,
+        renderTargetKey,
+        texture: realizeResult.realized.texture,
+        width: realizeResult.realized.width,
+        height: realizeResult.realized.height,
+        format: realizeResult.realized.format,
+      });
+      continue;
+    }
 
     if (!isWebGpuAppRenderTargetAsset(asset)) {
       diagnostics.push(

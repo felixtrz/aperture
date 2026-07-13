@@ -75,6 +75,7 @@ import type { InteractionAccess } from "./interaction/access.js";
 import type { MaterialAccess } from "./systems/materials.js";
 import type { MeshAccess } from "./systems/meshes.js";
 import type { BufferAccess } from "./systems/buffers.js";
+import type { RenderTargetAccess } from "./systems/render-targets.js";
 import type { ParticleAccess } from "./systems/particles.js";
 import type { AudioAccess } from "./systems/audio.js";
 import type { TrailAccess } from "./systems/trails.js";
@@ -192,6 +193,7 @@ export {
   // transitive @aperture-engine/render package (battletest finding F28).
   Camera,
   Light,
+  RenderLayer,
   Visibility,
 } from "@aperture-engine/render";
 export type {
@@ -364,6 +366,12 @@ export type {
 export { createMeshAccess } from "./systems/meshes.js";
 export type { BufferAccess, BufferRegisterOptions } from "./systems/buffers.js";
 export { createBufferAccess } from "./systems/buffers.js";
+export type {
+  RenderTargetAccess,
+  RenderTargetRegisterOptions,
+  RenderTargetResizeOptions,
+} from "./systems/render-targets.js";
+export { createRenderTargetAccess } from "./systems/render-targets.js";
 export type {
   GroundRibbonTrail,
   GroundRibbonTrailOptions,
@@ -583,6 +591,7 @@ export interface ApertureSystemInstance {
   readonly materials: MaterialAccess;
   readonly meshes: MeshAccess;
   readonly buffers: BufferAccess;
+  readonly renderTargets: RenderTargetAccess;
   readonly trails: TrailAccess;
   readonly physics: PhysicsAccess;
   readonly fixedStep: FixedStepAccess;
@@ -781,6 +790,10 @@ export function createSystem<
 
     get buffers(): BufferAccess {
       return this.#context.buffers;
+    }
+
+    get renderTargets(): RenderTargetAccess {
+      return this.#context.renderTargets;
     }
 
     get trails(): TrailAccess {

@@ -22,11 +22,17 @@ import {
   type TextureGpuResourceDiagnostic,
   type TextureUploadInput,
 } from "../resources/textures/texture-resources.js";
+import {
+  resolveWebGpuAppRenderTargetColorTexture,
+  type WebGpuAppRenderTargetResourceState,
+} from "./render-target-resources.js";
 
 export interface WebGpuAppPreparedTextureSamplerDiagnostic {
   readonly code:
     | "webGpuApp.textureSourceNotReady"
-    | "webGpuApp.samplerSourceNotReady";
+    | "webGpuApp.samplerSourceNotReady"
+    | "webGpuApp.renderTargetNotSampleable"
+    | "webGpuApp.renderTargetCreationFailed";
   readonly message: string;
   readonly resourceKey: string;
   readonly status: string;
@@ -48,6 +54,14 @@ export interface PreparedAppTextureSamplerResources {
 export interface AppTextureSamplerResourceCache {
   readonly textures: Map<string, TextureGpuResource>;
   readonly samplers: Map<string, SamplerGpuResource>;
+  /**
+   * B1: when present, texture handles with no texture source asset fall back
+   * to the facade render target registered under the same id, serving its
+   * realized color texture (offscreen cameras render into the same GPU
+   * texture materials sample). The app resource cache always provides this;
+   * standalone `{ textures, samplers }` caches simply skip the fallback.
+   */
+  readonly renderTargets?: WebGpuAppRenderTargetResourceState;
 }
 
 export interface AppTextureSamplerResourceCacheSummary {
@@ -339,6 +353,14 @@ export function prepareAppTextureResource(options: {
   const entry = options.assets.get<"texture", TextureAsset>(options.handle);
 
   if (entry === undefined || entry.status !== "ready" || entry.asset === null) {
+    // B1: no ready texture source asset — serve the facade render target
+    // registered under the same id, if any (texture assets keep precedence).
+    const renderTarget = prepareAppRenderTargetTextureFallback(options);
+
+    if (renderTarget !== "no-render-target") {
+      return renderTarget;
+    }
+
     options.diagnostics.push({
       code: "webGpuApp.textureSourceNotReady",
       resourceKey,
@@ -382,6 +404,78 @@ export function prepareAppTextureResource(options: {
   options.cache.textures.set(cacheKey, result.resource);
   options.reuse.textureResourcesCreated += 1;
   return { cacheKey, resource: result.resource };
+}
+
+/**
+ * B1 sampling fallback: resolve a texture handle against the facade render
+ * target registered under the same id. Returns "no-render-target" when the
+ * caller should keep its normal texture-source diagnostics; `null` when a
+ * render target matched but cannot be served (a diagnostic was pushed).
+ */
+function prepareAppRenderTargetTextureFallback(options: {
+  readonly assets: AssetRegistry;
+  readonly device: unknown;
+  readonly cache: AppTextureSamplerResourceCache;
+  readonly handle: TextureHandle;
+  readonly reuse: AppTextureSamplerResourceReuseReport;
+  readonly diagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[];
+  readonly viewDescriptorKey?: string;
+}):
+  | { readonly cacheKey: string; readonly resource: TextureGpuResource }
+  | null
+  | "no-render-target" {
+  const state = options.cache.renderTargets;
+
+  // Render targets realize 2d color views only; view-descriptor consumers
+  // (cube skyboxes) keep the texture-asset route.
+  if (state === undefined || options.viewDescriptorKey !== undefined) {
+    return "no-render-target";
+  }
+
+  const resolved = resolveWebGpuAppRenderTargetColorTexture({
+    assets: options.assets,
+    device: options.device,
+    state,
+    handle: options.handle,
+  });
+
+  if (resolved.status === "no-render-target") {
+    return "no-render-target";
+  }
+
+  const resourceKey = assetHandleKey(options.handle);
+
+  if (resolved.status === "not-sampleable") {
+    options.diagnostics.push({
+      code: "webGpuApp.renderTargetNotSampleable",
+      resourceKey,
+      status: "not-sampleable",
+      message: `Texture binding '${resourceKey}' references render target '${resolved.renderTargetKey}', which was registered with sampleable: false (no TEXTURE_BINDING usage). Register it with sampleable: true to sample it in materials.`,
+    });
+    return null;
+  }
+
+  if (resolved.status === "not-ready") {
+    options.diagnostics.push({
+      code: "webGpuApp.textureSourceNotReady",
+      resourceKey,
+      status: resolved.assetStatus,
+      message: `Texture binding '${resourceKey}' references render target '${resolved.renderTargetKey}' with status '${resolved.assetStatus}', expected 'ready'.`,
+    });
+    return null;
+  }
+
+  if (resolved.status === "failed") {
+    options.diagnostics.push({
+      code: "webGpuApp.renderTargetCreationFailed",
+      resourceKey,
+      status: "failed",
+      message: resolved.message,
+    });
+    return null;
+  }
+
+  return { cacheKey: resolved.cacheKey, resource: resolved.resource };
 }
 
 export function prepareAppSamplerResource(options: {

@@ -1,5 +1,6 @@
 import {
   assetHandleKey,
+  createRenderTargetHandle,
   type AssetHandle,
   type AssetRegistry,
 } from "@aperture-engine/simulation";
@@ -10,6 +11,7 @@ import type {
   MaterialAssetDependencySlotReadiness,
   MaterialDependencyKind,
 } from "./dependency-readiness-types.js";
+import { isRenderTargetAsset } from "../assets/render-target-asset.js";
 
 export interface InspectMaterialDependencySlotInput {
   readonly registry: AssetRegistry;
@@ -54,7 +56,20 @@ export function inspectMaterialDependencySlot(
 
   const dependencyKey = assetHandleKey(input.handle);
   const entry = input.registry.get(input.handle);
-  const status = entry?.status ?? "missing";
+  let status: MaterialAssetDependencyReadinessStatus =
+    entry?.status ?? "missing";
+
+  // B1: a texture dependency with no texture source asset is satisfied by a
+  // ready, sampleable facade render target registered under the same id (the
+  // renderer serves the realized target color texture for the binding).
+  if (
+    status !== "ready" &&
+    input.dependencyKind === "texture" &&
+    input.handle.kind === "texture" &&
+    renderTargetSatisfiesTextureDependency(input.registry, input.handle.id)
+  ) {
+    status = "ready";
+  }
 
   input.slots.push({
     field: input.field,
@@ -80,6 +95,20 @@ export function inspectMaterialDependencySlot(
     status,
     message: `${input.field} ${input.dependencyKind} dependency '${dependencyKey}' is '${status}'.`,
   });
+}
+
+function renderTargetSatisfiesTextureDependency(
+  registry: AssetRegistry,
+  id: string,
+): boolean {
+  const entry = registry.get(createRenderTargetHandle(id));
+
+  return (
+    entry !== undefined &&
+    entry.status === "ready" &&
+    isRenderTargetAsset(entry.asset) &&
+    entry.asset.sampleable
+  );
 }
 
 function missingHandleDiagnosticCode(

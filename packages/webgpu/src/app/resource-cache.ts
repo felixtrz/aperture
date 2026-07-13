@@ -134,6 +134,10 @@ import {
   type WebGpuFeatureRealizerRegistry,
 } from "./feature-command-groups.js";
 import { registerBuiltInWebGpuFeatureRealizers } from "./built-in-feature-realizers.js";
+import {
+  createWebGpuAppRenderTargetResourceState,
+  type WebGpuAppRenderTargetResourceState,
+} from "./render-target-resources.js";
 
 export interface WebGpuAppResourceCache {
   readonly featureRealizers: WebGpuFeatureRealizerRegistry<unknown>;
@@ -238,6 +242,13 @@ export interface WebGpuAppResourceCache {
     string,
     WebGpuMsaaColorTextureCacheSlot
   >;
+  /**
+   * B1: realized facade render-target color textures (one live texture per
+   * handle, keyed handle+version; version bumps destroy and recreate). Shared
+   * between the frame-target resolution and the texture-binding sampling
+   * fallback so both see the same GPU texture.
+   */
+  readonly renderTargets: WebGpuAppRenderTargetResourceState;
 }
 
 export interface CachedWebGpuAppAutoShadowFrame {
@@ -479,6 +490,7 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     depthByRenderTarget: new Map(),
     msaaColor: createWebGpuMsaaColorTextureCacheSlot(),
     msaaColorByRenderTarget: new Map(),
+    renderTargets: createWebGpuAppRenderTargetResourceState(),
   };
 
   registerBuiltInWebGpuFeatureRealizers(cache);

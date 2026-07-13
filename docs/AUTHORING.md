@@ -628,6 +628,89 @@ instance-attribute layouts, the opt-in group(3) lit contract
 See [`recipes/custom-wgsl-material.md`](./recipes/custom-wgsl-material.md) for
 a complete shader and material setup.
 
+## Render Targets
+
+Offscreen render targets are data-only source assets (parity plan B1): a
+worker system registers one with `this.renderTargets.register(...)`, pairs a
+camera with it, and samples its color texture from materials — no
+`device.createTexture` or renderer objects in user code. The WebGPU backend
+realizes (and owns) the GPU texture, keyed by handle + version.
+
+```ts
+class MinimapSystem extends createSystem({ priority: 0 }) {
+  init(): void {
+    const minimap = this.renderTargets.register({
+      id: "minimap.rt",
+      width: 256,
+      height: 256,
+      // format?: "swapchain" (default) | "rgba8unorm" | "bgra8unorm" | ...
+      // msaa?: 1 (default) | 4    depth?: true    sampleable?: true
+    });
+
+    // Offscreen camera: LOWER priority renders before the main camera, so
+    // materials sampling the target see this frame's content.
+    this.spawn.camera({
+      renderTarget: minimap, // or camera: { renderTargetId: "render-target:minimap.rt" }
+      camera: { projection: "orthographic", priority: 0, layerMask: 1 },
+      transform: { translation: [0, 20, 0], rotationEulerDegrees: [-90, 0, 0] },
+    });
+    this.spawn.camera({ camera: { priority: 1, layerMask: 1 | 2 } });
+
+    // Sample the target's color texture: this.renderTargets.colorTexture(id)
+    // returns a TextureHandle the renderer serves from the realized target.
+    this.spawn.mesh({
+      mesh: mesh.plane({ size: [1, 1] }),
+      material: material.customWgsl({
+        // ...shader with a texture binding at group(2)...
+        bindings: [
+          material.texture("minimapTexture", {
+            binding: 0,
+            visibility: ["fragment"],
+            texture: this.renderTargets.colorTexture(minimap),
+          }),
+        ],
+      }),
+    });
+  }
+}
+```
+
+Key semantics:
+
+- **Camera pairing.** `spawn.camera({ renderTarget })` accepts the handle or
+  its id and fills `Camera.renderTargetId`. Views render in ascending camera
+  `priority` order (ties by view id); give the offscreen camera a lower
+  priority than any camera that samples its target, otherwise consumers see
+  the previous frame's content (one-frame latency).
+- **Sampling.** A texture handle whose id matches a registered render target
+  resolves to the target's realized color texture — in custom-WGSL
+  `material.texture(...)` bindings and in sprite `textureId` references. A
+  texture source asset registered under the same id keeps precedence.
+  Registering with `sampleable: false` drops `TEXTURE_BINDING` usage and
+  sampling surfaces `webGpuApp.renderTargetNotSampleable`. Exclude sampling
+  meshes from the target's own camera via render layers — a pass may not
+  sample the texture it is rendering into.
+- **Resize.** `this.renderTargets.resize(handle, { width, height })`
+  republishes the same handle at a new size (a version bump): the renderer
+  destroys the old texture and creates the new one; camera pairings and
+  texture bindings keep working untouched.
+- **Format.** `"swapchain"` (the default) follows the canvas format. A
+  concrete format that differs from the app pipeline format fails the frame
+  with `webGpuApp.renderTargetFormatMismatch` (offscreen views render through
+  the same forward pipelines as the canvas).
+- **MSAA and depth.** MSAA is app-level: declare `msaa: 4` on the target AND
+  create the app with `{ msaa: 4 }`; the renderer then renders the target's
+  view into a per-target MSAA color texture that resolves into the sampleable
+  color texture (declaring `msaa: 4` without app MSAA fails loudly with
+  `webGpuApp.renderTargetMsaaUnavailable`). Depth is renderer-owned per
+  target; `depth: false` is not supported yet and is rejected at
+  registration.
+
+See `examples/minimap.html` for the complete overhead-camera + HUD-quad
+setup, and `examples/render-to-texture.html` for the low-level route (a
+`createWebGpuAppRenderTargetAsset` wrapping an app-owned texture, which
+remains supported).
+
 ## Runtime Systems
 
 Systems map to EliCS systems and can query ECS components directly.
@@ -703,6 +786,7 @@ runtime packages directly.
 | `this.particles` / `this.trails`               | particle emitters / motion trails                                                                                                                                          |
 | `this.hierarchy`                               | parent/child relationships                                                                                                                                                 |
 | `this.materials` / `this.meshes` / `this.gltf` | runtime material / mesh / glTF-instance access                                                                                                                             |
+| `this.renderTargets`                           | offscreen render targets (`register`, `resize`, `colorTexture`) — see [Render Targets](#render-targets)                                                                    |
 | `this.prefabs`                                 | register and instantiate prefab blueprints                                                                                                                                 |
 | `this.interaction` / `this.html`               | pointer interaction state / DOM HTML bridge                                                                                                                                |
 | `this.fixedStep`                               | register fixed-step tasks                                                                                                                                                  |

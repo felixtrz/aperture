@@ -1,11 +1,13 @@
 import {
   assetHandleKey,
+  createRenderTargetHandle,
   type AssetDependencyDiagnostic,
   type AssetHandle,
   type AssetKind,
   type AssetRegistry,
   type AssetRegistryEntry,
 } from "@aperture-engine/simulation";
+import { isRenderTargetAsset } from "./render-target-asset.js";
 import type { PreparedRenderAssetStore } from "./preparation-store.js";
 import type {
   PreparedRenderAssetEntry,
@@ -183,9 +185,26 @@ export function createRenderAssetDependencyState<
   registry: AssetRegistry,
   entry: AssetRegistryEntry<TKind, TAsset>,
 ): RenderAssetDependencyState {
-  const diagnostics = registry.inspectDependencies(entry.handle).diagnostics;
+  // B1: a missing texture dependency is satisfied by a ready, sampleable
+  // facade render target registered under the same id — the renderer serves
+  // the realized target color texture for the binding, so preparation must
+  // not retry forever on the (intentionally unregistered) texture asset.
+  const diagnostics = registry
+    .inspectDependencies(entry.handle)
+    .diagnostics.filter(
+      (diagnostic) =>
+        !(
+          diagnostic.code === "asset.dependencyMissing" &&
+          renderTargetSubstituteEntry(registry, diagnostic.dependencyKey) !==
+            undefined
+        ),
+    );
   const dependencyStatuses = entry.dependencies.map((dependency) => {
-    const dependencyEntry = registry.get(dependency);
+    const dependencyEntry =
+      registry.get(dependency) ??
+      (dependency.kind === "texture"
+        ? renderTargetSubstituteEntry(registry, assetHandleKey(dependency))
+        : undefined);
     return `${assetHandleKey(dependency)}:${dependencyEntry?.status ?? "missing"}:${dependencyEntry?.version ?? -1}`;
   });
 
@@ -209,6 +228,34 @@ function skippedReport<TKind extends AssetKind, TPrepared>(
     assetKey,
     diagnostics: [diagnostic, ...extraDiagnostics],
   };
+}
+
+const TEXTURE_DEPENDENCY_KEY_PREFIX = "texture:";
+
+/**
+ * B1: resolve the facade render-target entry that stands in for a missing
+ * `texture:<id>` dependency (ready + sampleable), or undefined when none does.
+ */
+function renderTargetSubstituteEntry(
+  registry: AssetRegistry,
+  dependencyKey: string,
+): AssetRegistryEntry | undefined {
+  if (!dependencyKey.startsWith(TEXTURE_DEPENDENCY_KEY_PREFIX)) {
+    return undefined;
+  }
+
+  const entry = registry.get(
+    createRenderTargetHandle(
+      dependencyKey.slice(TEXTURE_DEPENDENCY_KEY_PREFIX.length),
+    ),
+  );
+
+  return entry !== undefined &&
+    entry.status === "ready" &&
+    isRenderTargetAsset(entry.asset) &&
+    entry.asset.sampleable
+    ? entry
+    : undefined;
 }
 
 function diagnosticKey(diagnostic: AssetDependencyDiagnostic): string {

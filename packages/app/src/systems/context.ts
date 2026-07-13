@@ -41,6 +41,10 @@ import { createPrefabAccess, type PrefabAccess } from "./prefabs.js";
 import { createParticleAccess, type ParticleAccess } from "./particles.js";
 import { createAudioAccess, type AudioAccess } from "./audio.js";
 import { createBufferAccess, type BufferAccess } from "./buffers.js";
+import {
+  createRenderTargetAccess,
+  type RenderTargetAccess,
+} from "./render-targets.js";
 import { createTrailAccess, type TrailAccess } from "./trails.js";
 import { createSignalStore, type SignalStore } from "./signals.js";
 import { createResourceStore, type ResourceStore } from "./resources.js";
@@ -95,6 +99,7 @@ export interface ApertureSystemContext {
   readonly materials: MaterialAccess;
   readonly meshes: MeshAccess;
   readonly buffers: BufferAccess;
+  readonly renderTargets: RenderTargetAccess;
   readonly trails: TrailAccess;
   readonly physics: PhysicsAccess;
   readonly fixedStep: FixedStepAccess;
@@ -180,6 +185,7 @@ export function createApertureSystemContext(
   const materials = createMaterialAccess(options.assetsRegistry);
   const meshes = createMeshAccess(options.assetsRegistry);
   const buffers = createBufferAccess(options.assetsRegistry);
+  const renderTargets = createRenderTargetAccess(options.assetsRegistry);
   const trails = createTrailAccess({
     registry: options.assetsRegistry,
     meshes,
@@ -223,6 +229,7 @@ export function createApertureSystemContext(
     materials,
     meshes,
     buffers,
+    renderTargets,
     trails,
     physics,
     fixedStep,

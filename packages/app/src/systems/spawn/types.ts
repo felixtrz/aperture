@@ -37,6 +37,7 @@ import type {
   PrefabFieldOverride,
   PrefabHandle,
   PrefabTransformOverride,
+  RenderTargetHandle,
   SamplerHandle,
   ShaderHandle,
   TextureHandle,
@@ -69,6 +70,12 @@ export interface SpawnCameraOptions extends SpawnMetadata {
   readonly transform?: SystemTransformInput;
   readonly fovYDegrees?: number;
   readonly camera?: CameraInput;
+  /**
+   * Render into an offscreen render target instead of the canvas (B1).
+   * Accepts the handle returned by `this.renderTargets.register(...)` or its
+   * id; wins over `camera.renderTargetId` when both are provided.
+   */
+  readonly renderTarget?: RenderTargetHandle | string;
 }
 
 export interface SpawnLightOptions extends SpawnMetadata {

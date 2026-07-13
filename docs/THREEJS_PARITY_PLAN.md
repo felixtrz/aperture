@@ -193,6 +193,44 @@ shadow caster pipeline for that mesh.
 
 ### B1. Render-target authoring on the app facade — **M**
 
+Status: implemented (2026-07-13). Notes and deviations: the authoring surface
+landed as the worker-side context facade `this.renderTargets.register({ id,
+width, height, format?, msaa?, depth?, sampleable? })` (mirroring A2's
+`this.buffers.register`) rather than an `aperture.config.ts` `asset.*` entry —
+targets are runtime-authored assets like buffers, and the mirror carries the
+data-only `RenderTargetAsset` to the renderer, which realizes and owns the
+GPU texture keyed by handle + version. `mips` was NOT included (mip
+generation is not exposed for user targets; audit §3.1 row unchanged);
+`depth: false` validates as unsupported (the app frame path always attaches
+its renderer-owned per-target depth buffer); `msaa: 4` is honored through
+the app-level MSAA machinery (per-target MSAA color + resolve into the
+sampleable color texture) and diagnoses
+`webGpuApp.renderTargetMsaaUnavailable` when the app was not created with
+`{ msaa: 4 }` — pipelines are compiled once per app sample count, so
+per-target sample counts that differ from the app's are out of scope. AC2:
+camera pairing works through the existing `Camera.renderTargetId` plus a new
+`spawn.camera({ renderTarget })` convenience; `material.texture` (and sprite
+`textureId`) bindings resolve texture handles to the facade target's
+realized color texture under the same id (texture source assets keep
+precedence); `renderTargets.resize` republishes the same handle (version
+bump → renderer destroys and recreates; fake-device tests assert the
+destroy/create counters). The low-level `render-target-*` e2e matrix is
+unchanged and green; app-facade lifecycle coverage lives in
+`test/webgpu/app-render-target-realization.test.ts` (initial/reuse/resize/
+MSAA-resolve wiring) rather than duplicated e2e twins. AC3:
+`examples/minimap` (overhead ortho camera → facade target → screen-space
+custom-WGSL HUD quad via textureLoad) with pixel assertions
+(landmark-vs-adjacent distinctness + motion between captures) instead of a
+golden baseline, consistent with A1/A2/A4. AC4: diagnostics shipped as
+`renderTargetAsset.*` (validation) plus `webGpuApp.renderTargetNotSampleable`
+(sampling without TEXTURE_BINDING), `webGpuApp.renderTargetMsaaUnavailable`,
+and `webGpuApp.renderTargetCreationFailed`; "MSAA target sampled without
+resolve" cannot occur by construction — sampling always sees the resolved
+single-sample color texture. Ordering: views render in ascending camera
+priority, so the offscreen camera must have a lower priority than its
+consumers for same-frame sampling (documented in AUTHORING.md; the forward
+frame graph preserves this order via its insertion-index tiebreak).
+
 - AC1: `asset.renderTarget({ width, height, format, msaa?, depth?, mips? })`
   in `aperture.config.ts` (and a worker-side creator) allocates the texture
   renderer-side; no `device.createTexture` in user code.
