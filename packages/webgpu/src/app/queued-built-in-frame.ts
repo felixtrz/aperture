@@ -66,6 +66,8 @@ import {
   rememberCurrentViewProjectionMatrices,
 } from "./motion-vectors.js";
 import { assembleWebGpuAppFrameBoundaries } from "./frame-boundaries.js";
+import { renderWebGpuAppOutlineSelectionMask } from "./outline-selection-mask.js";
+import { webGpuAppCanvasDimensions } from "./canvas.js";
 import {
   createShadowCasterGraphPasses,
   type ShadowCasterGraphPass,
@@ -661,6 +663,32 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     sortedOverlayCommands.length === 0 && featureFrame.sceneGroups.length === 0
       ? indirectDraws.commands.slice(0, framePlan.commandPlan.commands.length)
       : [];
+  // E4 (outline, AC2): when an outline effect is active AND the app has a
+  // selection, render the selection mask (reusing the picking ID-buffer
+  // pipeline) as a self-contained, occlusion-correct submit and feed it to the
+  // outline post effect. Inert (no submit, no report field) otherwise, so a
+  // frame without an active selection is byte-identical to a pre-E4 frame.
+  const outlineDimensions = webGpuAppCanvasDimensions(options.app.canvas);
+  const outlineMask =
+    options.app.outlineSelection.size > 0 &&
+    options.app.postEffects.some(
+      (effect) =>
+        effect.enabled !== false && effect.requiresSelectionMask === true,
+    )
+      ? await renderWebGpuAppOutlineSelectionMask({
+          app: options.app,
+          cache: options.cache,
+          snapshot: options.snapshot,
+          commands: framePlan.commandPlan.commands,
+          viewUniformBuffer: prepared.resources.viewUniform.buffer,
+          worldTransformBuffer: prepared.resources.worldTransforms.buffer,
+          pipelineKeysByRenderId: prepared.pipelineKeysByRenderId,
+          selection: options.app.outlineSelection,
+          width: outlineDimensions.width,
+          height: outlineDimensions.height,
+          label: options.label ?? "aperture-webgpu-app",
+        })
+      : null;
   options.phaseTimer.start("submit");
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app: options.app,
@@ -678,6 +706,9 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     ...(options.gpuTimings === undefined
       ? {}
       : { gpuTimings: options.gpuTimings }),
+    ...(outlineMask?.mask == null
+      ? {}
+      : { outlineSelectionMask: outlineMask.mask }),
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
       options.snapshotUpdateSchedule,
     ),
@@ -802,6 +833,15 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       : { indirectDraws: indirectDraws.report }),
     localLightCookieResources: options.localLightCookieResources,
     particles: particleReport,
+    ...(outlineMask === null
+      ? {}
+      : {
+          outline: {
+            selection: options.app.outlineSelection.size,
+            maskDrawCalls: outlineMask.drawCalls,
+            ok: outlineMask.ok,
+          },
+        }),
     ...(featureReports === undefined ? {} : { features: featureReports }),
     resourceReuse: options.reuse,
     diagnosticsSummary: finalDiagnosticsSummary,
@@ -826,6 +866,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ...featureFrame.diagnostics,
       ...merged.diagnostics,
       ...boundaries.diagnostics,
+      ...(outlineMask?.diagnostics ?? []),
       ...newOcclusionQueryDiagnostics(
         occlusionQueries,
         boundaries.occlusionQueryDiagnostics,

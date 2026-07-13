@@ -103,26 +103,26 @@ is an absence Aperture chose on purpose and documents in `docs/DECISIONS.md`.
 
 ## 3. Capability scorecard
 
-| Area                    | Standing | One-line takeaway                                                                                                                   |
-| ----------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Rendering core          | 🟡       | Frame graph, MSAA, instancing, culling, occlusion queries; no clipping planes/stencil/wireframe                                     |
-| Materials & shading     | 🟡       | Strong PBR + extensions; 5 material families vs 18+, no open shader-graph system                                                    |
-| Lights & shadows        | ✅/➕    | CSM + PCSS + clustered + LTC area lights in core beat three.js core; no hemisphere light/light probes                               |
-| Geometry & meshes       | 🟡       | Solid data model (morph/skin/multi-stream); 8 primitives vs 21+, no extrude/text/edges geometry                                     |
-| Objects & scene         | 🟡       | Sprites/instancing/batching/fog/sky + fat lines & points (E1) + mesh LOD (E2) + debug-draw helpers (E3) yes; no `.overrideMaterial` |
-| Cameras & controls      | ✅/🟡    | Multi-camera/viewport/priority strong; 3 controllers vs 9, no cube/stereo camera                                                    |
-| Animation               | 🟡       | glTF clips, CUBICSPLINE, crossfade, skinning, morphs; no N-clip mixing, additive layers, IK                                         |
-| Asset I/O               | 🟡       | Deep glTF (Draco/Meshopt/KTX2) but glTF-only; no other formats, no exporters                                                        |
-| Textures                | 🟡       | 2D/cube, BC/ETC2/ASTC, HDR/RGBE, mipmap gen; no video/3D/array/data textures                                                        |
-| Post-processing & color | 🟡       | Tonemap/FXAA/TAA/bloom/SSAO/SSR/DoF + custom passes; three.js's pass library is far broader                                         |
-| XR                      | 🚫       | Non-goal by decision — immersive is IWSDK's domain; three.js (esp. this fork) is the web-XR reference                               |
-| Audio                   | ➕       | Full game-audio engine vs three.js's five thin Web Audio wrappers                                                                   |
-| Physics                 | ➕       | First-class ECS physics + character controller vs example-level wrappers in three.js                                                |
-| Particles               | ➕       | Built-in Shuriken-style GPU particles vs DIY `Points`/GPGPU in three.js                                                             |
-| UI & text               | ➕/🟡    | Built-in flexbox UI + MSDF text + text input vs none in three.js core; screen-space only                                            |
-| Math                    | 🟡       | Lean kernel covers engine needs; no curves/Mat3/Euler-class/SH/triangle utilities                                                   |
-| Picking & spatial       | ✅/➕    | CPU raycast + BVH + overlap queries + GPU ID-buffer picking vs `Raycaster` (+ external three-mesh-bvh)                              |
-| Tooling & ecosystem     | ➕/❌    | Agent/headless/MCP tooling is unique; but no editor and a tiny ecosystem vs three.js's                                              |
+| Area                    | Standing | One-line takeaway                                                                                                                                        |
+| ----------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rendering core          | 🟡       | Frame graph, MSAA, instancing, culling, occlusion queries; no clipping planes/stencil/wireframe                                                          |
+| Materials & shading     | 🟡       | Strong PBR + extensions; 5 material families vs 18+, no open shader-graph system                                                                         |
+| Lights & shadows        | ✅/➕    | CSM + PCSS + clustered + LTC area lights in core beat three.js core; no hemisphere light/light probes                                                    |
+| Geometry & meshes       | 🟡       | Solid data model (morph/skin/multi-stream); 8 primitives vs 21+, no extrude/text/edges geometry                                                          |
+| Objects & scene         | 🟡       | Sprites/instancing/batching/fog/sky + fat lines & points (E1) + mesh LOD (E2) + debug-draw helpers (E3) yes; no `.overrideMaterial`                      |
+| Cameras & controls      | ✅/🟡    | Multi-camera/viewport/priority strong; 3 controllers vs 9, no cube/stereo camera                                                                         |
+| Animation               | 🟡       | glTF clips, CUBICSPLINE, crossfade, skinning, morphs; no N-clip mixing, additive layers, IK                                                              |
+| Asset I/O               | 🟡       | Deep glTF (Draco/Meshopt/KTX2) but glTF-only; no other formats, no exporters                                                                             |
+| Textures                | 🟡       | 2D/cube, BC/ETC2/ASTC, HDR/RGBE, mipmap gen; no video/3D/array/data textures                                                                             |
+| Post-processing & color | 🟡       | Tonemap/FXAA/TAA/bloom/SSAO/SSR/DoF/outline/motion-blur/LUT + custom passes; three.js's pass library is still far broader (god-rays/SMAA/GTAO/stylistic) |
+| XR                      | 🚫       | Non-goal by decision — immersive is IWSDK's domain; three.js (esp. this fork) is the web-XR reference                                                    |
+| Audio                   | ➕       | Full game-audio engine vs three.js's five thin Web Audio wrappers                                                                                        |
+| Physics                 | ➕       | First-class ECS physics + character controller vs example-level wrappers in three.js                                                                     |
+| Particles               | ➕       | Built-in Shuriken-style GPU particles vs DIY `Points`/GPGPU in three.js                                                                                  |
+| UI & text               | ➕/🟡    | Built-in flexbox UI + MSDF text + text input vs none in three.js core; screen-space only                                                                 |
+| Math                    | 🟡       | Lean kernel covers engine needs; no curves/Mat3/Euler-class/SH/triangle utilities                                                                        |
+| Picking & spatial       | ✅/➕    | CPU raycast + BVH + overlap queries + GPU ID-buffer picking vs `Raycaster` (+ external three-mesh-bvh)                                                   |
+| Tooling & ecosystem     | ➕/❌    | Agent/headless/MCP tooling is unique; but no editor and a tiny ecosystem vs three.js's                                                                   |
 
 ---
 
@@ -378,22 +378,24 @@ else it is a hard gap.
 
 ## 13. Post-processing & color
 
-| Feature          | three.js                                                                                                                                                   | Aperture                                                               | Status |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------ |
-| Tone mapping     | Linear, Reinhard, Cineon, ACESFilmic, AgX, Neutral, Custom                                                                                                 | none, linear, reinhard, aces, agx, neutral (three.js-faithful ports)   | ✅     |
-| Color management | sRGB/Linear working spaces, P3 support                                                                                                                     | linear working space, sRGB output, applied across all built-in shaders | ✅     |
-| HDR pipeline     | Renderer half-float targets                                                                                                                                | Opt-in rgba16float scene target + exposure                             | ✅     |
-| AA passes        | FXAA, SMAA, SSAA, TAA/TRAA/TAAU, MSAA                                                                                                                      | MSAA (1/4×), FXAA, TAA (motion vectors + history)                      | 🟡     |
-| Bloom            | `UnrealBloomPass` / `BloomNode`                                                                                                                            | Multi-level bloom (bright-pass, down/upsample chain)                   | ✅     |
-| AO               | SSAO, SAO, GTAO                                                                                                                                            | SSAO (+ indirect variant)                                              | 🟡     |
-| Reflections      | SSR pass/node, SSGI                                                                                                                                        | SSR                                                                    | ✅     |
-| Depth of field   | Bokeh pass, DepthOfFieldNode                                                                                                                               | DoF                                                                    | ✅     |
-| Everything else  | Outline, motion blur, god-rays, LUTs, film/glitch/halftone/pixelate/dot-screen/afterimage/lens-flare/sharpen/denoise/FSR/transition, ~40 TSL display nodes | None                                                                   | ❌     |
-| Composer model   | `EffectComposer` pass chain / TSL `PostProcessing` graphs                                                                                                  | Ordered `WebGpuPostEffect[]` on the app + custom frame-graph passes    | ✅     |
+| Feature          | three.js                                                                                                                                                   | Aperture                                                                                                                                  | Status |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Tone mapping     | Linear, Reinhard, Cineon, ACESFilmic, AgX, Neutral, Custom                                                                                                 | none, linear, reinhard, aces, agx, neutral (three.js-faithful ports)                                                                      | ✅     |
+| Color management | sRGB/Linear working spaces, P3 support                                                                                                                     | linear working space, sRGB output, applied across all built-in shaders                                                                    | ✅     |
+| HDR pipeline     | Renderer half-float targets                                                                                                                                | Opt-in rgba16float scene target + exposure                                                                                                | ✅     |
+| AA passes        | FXAA, SMAA, SSAA, TAA/TRAA/TAAU, MSAA                                                                                                                      | MSAA (1/4×), FXAA, TAA (motion vectors + history)                                                                                         | 🟡     |
+| Bloom            | `UnrealBloomPass` / `BloomNode`                                                                                                                            | Multi-level bloom (bright-pass, down/upsample chain)                                                                                      | ✅     |
+| AO               | SSAO, SAO, GTAO                                                                                                                                            | SSAO (+ indirect variant)                                                                                                                 | 🟡     |
+| Reflections      | SSR pass/node, SSGI                                                                                                                                        | SSR                                                                                                                                       | ✅     |
+| Depth of field   | Bokeh pass, DepthOfFieldNode                                                                                                                               | DoF                                                                                                                                       | ✅     |
+| Everything else  | Outline, motion blur, god-rays, LUTs, film/glitch/halftone/pixelate/dot-screen/afterimage/lens-flare/sharpen/denoise/FSR/transition, ~40 TSL display nodes | Outline (entity-selection), motion blur, LUT color grade (parity plan E4); god-rays/SMAA/film/glitch/halftone/lens-flare/etc. remain None | 🟡     |
+| Composer model   | `EffectComposer` pass chain / TSL `PostProcessing` graphs                                                                                                  | Ordered `WebGpuPostEffect[]` on the app + custom frame-graph passes                                                                       | ✅     |
 
 The core pipeline effects a shipped game needs (AA, bloom, AO, SSR, DoF,
-tonemap) all exist and are e2e-tested; the long tail of stylistic passes does
-not. `docs/POST_EFFECTS.md` under-documents the shipped set (it omits
+tonemap) all exist and are e2e-tested, and the E4 tail added
+outline/motion-blur/LUT; the remaining long tail of stylistic passes
+(god-rays/SMAA/film/glitch/halftone/lens-flare/etc.) and GTAO do not.
+`docs/POST_EFFECTS.md` under-documents the shipped set (it omits
 SSAO/SSR/TAA/DoF).
 
 ---
@@ -617,8 +619,9 @@ decision, not a gap — see §14 and `DECISIONS.md 0023`.)
 7. **Clipping planes & stencil** — none; stencil explicitly unsupported (§4).
 8. **Camera/controls breadth** — no pointer-lock/trackball/arcball/map/drag
    controls; no rotate/scale gizmos; no CubeCamera/StereoCamera (§9).
-9. **Post-processing tail** — no outline, motion blur, GTAO, SMAA, LUT,
-   god-rays, stylistic passes (§13).
+9. **Post-processing tail** — outline, motion blur, and LUT color grading now
+   ship (parity plan E4, §13); still no GTAO, SMAA, god-rays, or the stylistic
+   passes (§13).
 10. **Scene extras** — axes/grid/light/camera/skeleton/box/sphere helpers now
     ship as an immediate-mode debug-draw overlay (parity plan E3, §8); remaining
     gap is the `Sky`/`Water`/`Reflector`/`Lensflare` scene objects (§8).

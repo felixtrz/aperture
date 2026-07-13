@@ -1174,6 +1174,68 @@ depth-tested (three.js helper behavior), not a forced draw-over-everything pass.
 
 ### E4. Post-processing tail, prioritized subset — **L**
 
+Status: implemented (2026-07-13). The required trio — outline, motion blur, LUT —
+ships and is pixel-proven; the GTAO SSAO upgrade is deferred (decision below).
+Each effect is a self-contained full-screen `WebGpuPostEffect` that slots into the
+ordered post stack with per-effect frame-report diagnostics, exported from
+`@aperture-engine/webgpu` and wired into the generated app via new
+`render.motionBlur` / `render.lut` / `render.outline` config fields
+(`boolean | {…}`), built in the order bloom → motion blur → LUT → outline. All
+three are LDR-safe and — unlike bloom — do NOT force the HDR scene buffer, so the
+exposure gate now keys off `render.bloom` specifically (previously any post effect
+forced HDR).
+
+AC1 (each effect slots into the ordered post array with JSON params + per-effect
+report diagnostics):
+
+- **Motion blur** (`post-motion-blur.ts`): `requiresMotionVectors` reuses the TAA
+  motion-vector attachment; smears each pixel along its screen-space velocity.
+  Params `intensity`/`samples`/`maxVelocity`. A route/frame with no motion vectors
+  emits no commands and reports `webGpuPostPass.motionVectorTextureUnavailable`.
+- **LUT color grade** (`post-lut.ts`): a 3D LUT stored as a 2D N-slice strip
+  (`N*N`×`N`), trilinear `textureLoad`. Params `size`/`data`/`intensity`; omit
+  `data` for an identity pass-through; a bad `data` length reports
+  `webGpuPostPass.lutDataInvalid`. (The "3D-texture-lite via 2D strip" plan — real
+  3D textures remain a follow-up.)
+- **Outline** (`post-outline.ts` + `outline-selection-mask.ts`), AC2 below.
+
+AC2 (outline works from an entity/selection list): the new
+`app.setOutlineSelection(entities)` (accepting `RenderEntityRef`s or raw stable
+ids) + the live `app.outlineSelection` set drive the selection. On a frame with a
+non-empty selection AND an active outline effect, the renderer renders the
+selected entities into a per-frame `r32uint` mask by **reusing the existing
+ID-buffer picking pipeline** (`renderWebGpuAppOutlineSelectionMask` — the picking
+ID buffer already ships), storing `1` for a visible, depth-tested selected
+fragment and `0` elsewhere (occlusion via the mask pass's own depth). The mask is
+threaded through `assembleWebGpuAppFrameBoundaries` →
+`assembleWebGpuAppPostProcessedSwapchainTarget` into the effect's
+`prepare({ selectionMask })` on BOTH the default single-encoder FrameGraph post
+path AND the legacy multi-submit path (route parity), and the outline shader
+edge-detects it. Empty selection ⇒ no mask ⇒ the effect degrades to an exact
+identity copy, byte-identical to a non-outline frame. `report.outline =
+{ selection, maskDrawCalls, ok }`. Picking supports rigid, unmorphed,
+triangle-list mesh draws (skinned/morphed/non-triangle selections degrade to
+identity). AC2 is proven in `test/e2e/post-tail.spec.ts`, not the city-builder
+showcase: the outline app selects the target box → a warm silhouette ring appears
+(1036 warm ring px), then `setOutlineSelection([])` clears it → the ring vanishes
+(0 warm px, selection count → 0), and the two frames differ only by the ring.
+
+Determinism/byte-identity: a non-outline / empty-selection frame renders no mask
+and adds no report field, so `test/determinism` is GREEN with **no** fixture
+refresh; SSAO is untouched so `test/e2e/ssao.spec.ts` proves the post stack is
+unregressed. `examples/post-tail` shows all three effects (four side-by-side
+canvases) with a pixel + report e2e (motion smear, bluer LUT, outline ring
+appear/vanish). Feature-audit §13 outline/motion-blur/LUT rows → ✅ (god-rays /
+SMAA / film / bokeh / adaptive-tone / SSAA remain None).
+
+Deviation — **GTAO deferred** (see `docs/DECISIONS.md` 0027): the optional GTAO
+integration upgrade for the SSAO slot is NOT shipped. A horizon-based GTAO shader
+was prototyped as a strictly opt-in `quality: "gtao"` mode (byte-identical default
+key), but it could not be pixel-proven end-to-end in this environment, so rather
+than ship an unverified AO mode the SSAO effect is left byte-identical to pre-E4
+(pinned by a default-key literal test) and GTAO is a follow-up requiring an AO
+correctness golden. So the SSAO §13 "AO" row is unchanged.
+
 Order: outline (ID-buffer-based — the picking ID buffer already exists),
 motion blur (motion vectors already exist for TAA), LUT color grading
 (3D-texture-lite via 2D strip until 3D textures land), GTAO upgrade for the

@@ -366,6 +366,11 @@ export interface WebGpuAppPostPassCache {
   readonly motionVector: WebGpuPostPassTextureCacheSlot;
   readonly indirectColor: WebGpuPostPassTextureCacheSlot;
   readonly transmissionGrab: WebGpuPostPassTextureCacheSlot;
+  // E4 (outline): the per-frame r32uint selection mask (reusing the picking
+  // ID-buffer pipeline) + its own depth attachment. Present only on frames with
+  // an active outline effect and a non-empty selection; otherwise never touched.
+  readonly outlineSelectionMask: WebGpuPostPassTextureCacheSlot;
+  readonly outlineSelectionMaskDepth: WebGpuDepthTextureCacheSlot;
   // M3-T6: TAA color history as a double-buffered FrameGraph history pool
   // (current/previous), replacing the per-effect ping/pong closure for the
   // graph post path. Motion-vector GEOMETRY history (the previous* fields
@@ -492,6 +497,8 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
       motionVector: createWebGpuPostPassTextureCacheSlot(),
       indirectColor: createWebGpuPostPassTextureCacheSlot(),
       transmissionGrab: createWebGpuPostPassTextureCacheSlot(),
+      outlineSelectionMask: createWebGpuPostPassTextureCacheSlot(),
+      outlineSelectionMaskDepth: createWebGpuDepthTextureCacheSlot(),
       taaColorHistory: createWebGpuAppPostPassColorHistorySlot(),
       previousViewProjectionByViewId: new Map(),
       previousWorldTransformsByRenderId: new Map(),

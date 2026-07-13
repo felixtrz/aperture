@@ -40,6 +40,7 @@ import { createWebGpuAppUserPassRegistry } from "./user-pass.js";
 import { getOrCreateWebGpuAppPipeline } from "./pipeline-resources.js";
 import { QUEUED_BUILT_IN_MATERIAL_ADAPTERS } from "./queued-built-in-adapters.js";
 import { pickWebGpuAppEntity } from "./picking-frame.js";
+import { createWebGpuIdBufferIdForEntity } from "../picking/id-buffer.js";
 import { renderWebGpuAppFrame } from "./frame-loop.js";
 import type {
   CreateWebGpuAppOptions,
@@ -106,6 +107,9 @@ export async function createWebGpuApp(
   resourceCache.renderTargets.appSampleCount = msaa.sampleCount;
 
   const userPassRegistry = createWebGpuAppUserPassRegistry();
+  // E4 (outline): the current selection as stable render ids. Mutated in place
+  // so the frame path reads live membership through the stable set reference.
+  const outlineSelection = new Set<number>();
   // D3: main-thread dynamic-texture registry (the DOM/GPU upload path lives on
   // the renderer, never the worker). Registered textures live as real
   // TextureAssets in `sourceAssets`; updates target the realized GPU texture.
@@ -366,6 +370,17 @@ export async function createWebGpuApp(
       if (effect === undefined) return false;
       postEffects[effectIndex] = { ...effect, enabled };
       return true;
+    },
+    outlineSelection,
+    setOutlineSelection(entities) {
+      outlineSelection.clear();
+      for (const entity of entities) {
+        const stableId =
+          typeof entity === "number"
+            ? entity >>> 0
+            : createWebGpuIdBufferIdForEntity(entity);
+        outlineSelection.add(stableId);
+      }
     },
     start(startOptions = {}) {
       if (running) {

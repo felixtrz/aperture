@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1538
+Every structured diagnostic code the engine can emit (1540
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -7885,6 +7885,12 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------ | ---------------------------------------------------------- | ---- | --------------------------------------- |
 | `webGpuApp.missingSourceAsset` | WebGPU app render requires ready mesh and material assets. | —    | `packages/webgpu/src/app/frame-loop.ts` |
 
+## webGpuApp.outlineSelectionMaskBufferFailed (1)
+
+| Code                                         | Message                                                   | Fix? | Emitted from                                        |
+| -------------------------------------------- | --------------------------------------------------------- | ---- | --------------------------------------------------- |
+| `webGpuApp.outlineSelectionMaskBufferFailed` | Outline selection mask id storage could not be created: … | —    | `packages/webgpu/src/app/outline-selection-mask.ts` |
+
 ## webGpuApp.pickCreateBindGroupUnavailable (1)
 
 | Code                                       | Message                                                                       | Fix? | Emitted from                         |
@@ -8091,9 +8097,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## webGpuPostPass.createBindGroupUnavailable (1)
 
-| Code                                        | Message                                                            | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                          |
-| ------------------------------------------- | ------------------------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `webGpuPostPass.createBindGroupUnavailable` | Bloom post effect '…' cannot create a texture sampling bind group. | —    | `packages/webgpu/src/post/post-bloom.ts`<br>`packages/webgpu/src/post/post-dof.ts`<br>`packages/webgpu/src/post/post-fxaa.ts`<br>`packages/webgpu/src/post/post-pass.ts`<br>`packages/webgpu/src/post/post-ssao.ts`<br>`packages/webgpu/src/post/post-ssr.ts`<br>`packages/webgpu/src/post/post-taa.ts`<br>`packages/webgpu/src/post/post-tonemap.ts` |
+| Code                                        | Message                                                            | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------------------------- | ------------------------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `webGpuPostPass.createBindGroupUnavailable` | Bloom post effect '…' cannot create a texture sampling bind group. | —    | `packages/webgpu/src/post/post-bloom.ts`<br>`packages/webgpu/src/post/post-dof.ts`<br>`packages/webgpu/src/post/post-fxaa.ts`<br>`packages/webgpu/src/post/post-lut.ts`<br>`packages/webgpu/src/post/post-motion-blur.ts`<br>`packages/webgpu/src/post/post-outline.ts`<br>`packages/webgpu/src/post/post-pass.ts`<br>`packages/webgpu/src/post/post-ssao.ts`<br>`packages/webgpu/src/post/post-ssr.ts`<br>`packages/webgpu/src/post/post-taa.ts`<br>`packages/webgpu/src/post/post-tonemap.ts` |
 
 ## webGpuPostPass.createBufferUnavailable (1)
 
@@ -8103,27 +8109,27 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## webGpuPostPass.createRenderPipelineUnavailable (1)
 
-| Code                                             | Message                                                | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                          |
-| ------------------------------------------------ | ------------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `webGpuPostPass.createRenderPipelineUnavailable` | Bloom post effect '…' cannot create a render pipeline. | —    | `packages/webgpu/src/post/post-bloom.ts`<br>`packages/webgpu/src/post/post-dof.ts`<br>`packages/webgpu/src/post/post-fxaa.ts`<br>`packages/webgpu/src/post/post-pass.ts`<br>`packages/webgpu/src/post/post-ssao.ts`<br>`packages/webgpu/src/post/post-ssr.ts`<br>`packages/webgpu/src/post/post-taa.ts`<br>`packages/webgpu/src/post/post-tonemap.ts` |
+| Code                                             | Message                                                | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------------------------------ | ------------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `webGpuPostPass.createRenderPipelineUnavailable` | Bloom post effect '…' cannot create a render pipeline. | —    | `packages/webgpu/src/post/post-bloom.ts`<br>`packages/webgpu/src/post/post-dof.ts`<br>`packages/webgpu/src/post/post-fxaa.ts`<br>`packages/webgpu/src/post/post-lut.ts`<br>`packages/webgpu/src/post/post-motion-blur.ts`<br>`packages/webgpu/src/post/post-outline.ts`<br>`packages/webgpu/src/post/post-pass.ts`<br>`packages/webgpu/src/post/post-ssao.ts`<br>`packages/webgpu/src/post/post-ssr.ts`<br>`packages/webgpu/src/post/post-taa.ts`<br>`packages/webgpu/src/post/post-tonemap.ts` |
 
 ## webGpuPostPass.createSamplerUnavailable (1)
 
-| Code                                      | Message                                               | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                          |
-| ----------------------------------------- | ----------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `webGpuPostPass.createSamplerUnavailable` | Bloom post effect '…' cannot create an input sampler. | —    | `packages/webgpu/src/post/post-bloom.ts`<br>`packages/webgpu/src/post/post-dof.ts`<br>`packages/webgpu/src/post/post-fxaa.ts`<br>`packages/webgpu/src/post/post-pass.ts`<br>`packages/webgpu/src/post/post-ssao.ts`<br>`packages/webgpu/src/post/post-ssr.ts`<br>`packages/webgpu/src/post/post-taa.ts`<br>`packages/webgpu/src/post/post-tonemap.ts` |
+| Code                                      | Message                                               | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ----------------------------------------- | ----------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `webGpuPostPass.createSamplerUnavailable` | Bloom post effect '…' cannot create an input sampler. | —    | `packages/webgpu/src/post/post-bloom.ts`<br>`packages/webgpu/src/post/post-dof.ts`<br>`packages/webgpu/src/post/post-fxaa.ts`<br>`packages/webgpu/src/post/post-lut.ts`<br>`packages/webgpu/src/post/post-motion-blur.ts`<br>`packages/webgpu/src/post/post-outline.ts`<br>`packages/webgpu/src/post/post-pass.ts`<br>`packages/webgpu/src/post/post-ssao.ts`<br>`packages/webgpu/src/post/post-ssr.ts`<br>`packages/webgpu/src/post/post-taa.ts`<br>`packages/webgpu/src/post/post-tonemap.ts` |
 
 ## webGpuPostPass.createShaderModuleUnavailable (1)
 
-| Code                                           | Message                                              | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                          |
-| ---------------------------------------------- | ---------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `webGpuPostPass.createShaderModuleUnavailable` | Bloom post effect '…' cannot create a shader module. | —    | `packages/webgpu/src/post/post-bloom.ts`<br>`packages/webgpu/src/post/post-dof.ts`<br>`packages/webgpu/src/post/post-fxaa.ts`<br>`packages/webgpu/src/post/post-pass.ts`<br>`packages/webgpu/src/post/post-ssao.ts`<br>`packages/webgpu/src/post/post-ssr.ts`<br>`packages/webgpu/src/post/post-taa.ts`<br>`packages/webgpu/src/post/post-tonemap.ts` |
+| Code                                           | Message                                              | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------------------------------------- | ---------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `webGpuPostPass.createShaderModuleUnavailable` | Bloom post effect '…' cannot create a shader module. | —    | `packages/webgpu/src/post/post-bloom.ts`<br>`packages/webgpu/src/post/post-dof.ts`<br>`packages/webgpu/src/post/post-fxaa.ts`<br>`packages/webgpu/src/post/post-lut.ts`<br>`packages/webgpu/src/post/post-motion-blur.ts`<br>`packages/webgpu/src/post/post-outline.ts`<br>`packages/webgpu/src/post/post-pass.ts`<br>`packages/webgpu/src/post/post-ssao.ts`<br>`packages/webgpu/src/post/post-ssr.ts`<br>`packages/webgpu/src/post/post-taa.ts`<br>`packages/webgpu/src/post/post-tonemap.ts` |
 
 ## webGpuPostPass.createTextureUnavailable (1)
 
-| Code                                      | Message                                               | Fix? | Emitted from                            |
-| ----------------------------------------- | ----------------------------------------------------- | ---- | --------------------------------------- |
-| `webGpuPostPass.createTextureUnavailable` | WebGPU post pass cannot create intermediate textures. | —    | `packages/webgpu/src/post/post-pass.ts` |
+| Code                                      | Message                                                  | Fix? | Emitted from                                                                      |
+| ----------------------------------------- | -------------------------------------------------------- | ---- | --------------------------------------------------------------------------------- |
+| `webGpuPostPass.createTextureUnavailable` | LUT post effect '…' cannot create the LUT strip texture. | —    | `packages/webgpu/src/post/post-lut.ts`<br>`packages/webgpu/src/post/post-pass.ts` |
 
 ## webGpuPostPass.depthTextureUnavailable (1)
 
@@ -8133,15 +8139,21 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## webGpuPostPass.inputTextureViewUnavailable (1)
 
-| Code                                         | Message                                                | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                          |
-| -------------------------------------------- | ------------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `webGpuPostPass.inputTextureViewUnavailable` | Bloom post effect '…' cannot sample input texture '…'. | —    | `packages/webgpu/src/post/post-bloom.ts`<br>`packages/webgpu/src/post/post-dof.ts`<br>`packages/webgpu/src/post/post-fxaa.ts`<br>`packages/webgpu/src/post/post-pass.ts`<br>`packages/webgpu/src/post/post-ssao.ts`<br>`packages/webgpu/src/post/post-ssr.ts`<br>`packages/webgpu/src/post/post-taa.ts`<br>`packages/webgpu/src/post/post-tonemap.ts` |
+| Code                                         | Message                                                | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| -------------------------------------------- | ------------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `webGpuPostPass.inputTextureViewUnavailable` | Bloom post effect '…' cannot sample input texture '…'. | —    | `packages/webgpu/src/post/post-bloom.ts`<br>`packages/webgpu/src/post/post-dof.ts`<br>`packages/webgpu/src/post/post-fxaa.ts`<br>`packages/webgpu/src/post/post-lut.ts`<br>`packages/webgpu/src/post/post-motion-blur.ts`<br>`packages/webgpu/src/post/post-outline.ts`<br>`packages/webgpu/src/post/post-pass.ts`<br>`packages/webgpu/src/post/post-ssao.ts`<br>`packages/webgpu/src/post/post-ssr.ts`<br>`packages/webgpu/src/post/post-taa.ts`<br>`packages/webgpu/src/post/post-tonemap.ts` |
+
+## webGpuPostPass.lutDataInvalid (1)
+
+| Code                            | Message                                                             | Fix? | Emitted from                           |
+| ------------------------------- | ------------------------------------------------------------------- | ---- | -------------------------------------- |
+| `webGpuPostPass.lutDataInvalid` | LUT post effect '…' expects … bytes for a …^3 strip but received …. | —    | `packages/webgpu/src/post/post-lut.ts` |
 
 ## webGpuPostPass.motionVectorTextureUnavailable (1)
 
-| Code                                            | Message                                                              | Fix? | Emitted from                           |
-| ----------------------------------------------- | -------------------------------------------------------------------- | ---- | -------------------------------------- |
-| `webGpuPostPass.motionVectorTextureUnavailable` | TAA post effect '…' requires a renderer-owned motion-vector texture. | —    | `packages/webgpu/src/post/post-taa.ts` |
+| Code                                            | Message                                                                      | Fix? | Emitted from                                                                             |
+| ----------------------------------------------- | ---------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------------------- |
+| `webGpuPostPass.motionVectorTextureUnavailable` | Motion blur post effect '…' requires a renderer-owned motion-vector texture. | —    | `packages/webgpu/src/post/post-motion-blur.ts`<br>`packages/webgpu/src/post/post-taa.ts` |
 
 ## webGpuPostPass.outputTextureUnavailable (1)
 
@@ -8151,21 +8163,21 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## webGpuPostPass.pipelineLayoutUnavailable (1)
 
-| Code                                       | Message                                                                   | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                          |
-| ------------------------------------------ | ------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `webGpuPostPass.pipelineLayoutUnavailable` | Bloom post effect '…' pipeline does not expose group 0 bind-group layout. | —    | `packages/webgpu/src/post/post-bloom.ts`<br>`packages/webgpu/src/post/post-dof.ts`<br>`packages/webgpu/src/post/post-fxaa.ts`<br>`packages/webgpu/src/post/post-pass.ts`<br>`packages/webgpu/src/post/post-ssao.ts`<br>`packages/webgpu/src/post/post-ssr.ts`<br>`packages/webgpu/src/post/post-taa.ts`<br>`packages/webgpu/src/post/post-tonemap.ts` |
+| Code                                       | Message                                                                   | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------------------------ | ------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `webGpuPostPass.pipelineLayoutUnavailable` | Bloom post effect '…' pipeline does not expose group 0 bind-group layout. | —    | `packages/webgpu/src/post/post-bloom.ts`<br>`packages/webgpu/src/post/post-dof.ts`<br>`packages/webgpu/src/post/post-fxaa.ts`<br>`packages/webgpu/src/post/post-lut.ts`<br>`packages/webgpu/src/post/post-motion-blur.ts`<br>`packages/webgpu/src/post/post-outline.ts`<br>`packages/webgpu/src/post/post-pass.ts`<br>`packages/webgpu/src/post/post-ssao.ts`<br>`packages/webgpu/src/post/post-ssr.ts`<br>`packages/webgpu/src/post/post-taa.ts`<br>`packages/webgpu/src/post/post-tonemap.ts` |
 
 ## webGpuPostPass.textureCreationFailed (1)
 
-| Code                                   | Message                                     | Fix? | Emitted from                            |
-| -------------------------------------- | ------------------------------------------- | ---- | --------------------------------------- |
-| `webGpuPostPass.textureCreationFailed` | WebGPU post pass texture creation failed: … | —    | `packages/webgpu/src/post/post-pass.ts` |
+| Code                                   | Message                                          | Fix? | Emitted from                                                                      |
+| -------------------------------------- | ------------------------------------------------ | ---- | --------------------------------------------------------------------------------- |
+| `webGpuPostPass.textureCreationFailed` | LUT post effect '…' LUT strip creation failed: … | —    | `packages/webgpu/src/post/post-lut.ts`<br>`packages/webgpu/src/post/post-pass.ts` |
 
 ## webGpuPostPass.writeBufferUnavailable (1)
 
-| Code                                    | Message                                                     | Fix? | Emitted from                             |
-| --------------------------------------- | ----------------------------------------------------------- | ---- | ---------------------------------------- |
-| `webGpuPostPass.writeBufferUnavailable` | Bloom post effect '…' cannot upload blur parameter buffers. | —    | `packages/webgpu/src/post/post-bloom.ts` |
+| Code                                    | Message                                                     | Fix? | Emitted from                                                                       |
+| --------------------------------------- | ----------------------------------------------------------- | ---- | ---------------------------------------------------------------------------------- |
+| `webGpuPostPass.writeBufferUnavailable` | Bloom post effect '…' cannot upload blur parameter buffers. | —    | `packages/webgpu/src/post/post-bloom.ts`<br>`packages/webgpu/src/post/post-lut.ts` |
 
 ## worldTransformBuffer.emptyData (1)
 

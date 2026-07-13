@@ -1078,3 +1078,48 @@ Consequences:
 - `colorWriteMask` is still not plumbed to built-in materials, so a stencil-only
   MASK draw uses the "content overwrites the mask's color in the stencil region"
   technique in the shipped portal example rather than disabled color writes.
+
+## 0027 — GTAO Deferred; SSAO Stays Byte-Identical Through E4
+
+Date: 2026-07-13
+
+Status: accepted
+
+Context:
+
+Parity plan E4 (the post-processing tail) scoped, alongside the required outline
+
+- motion-blur + LUT trio, an OPTIONAL upgrade of the SSAO slot from the shipped
+  spiral SSAO to a horizon-based GTAO (ground-truth ambient occlusion) integration
+  (Jimenez et al. 2016 — per-slice horizon search + visible-cone integral). A GTAO
+  shader was prototyped as a strictly opt-in `quality: "gtao"` mode: it left the
+  default `quality: "ssao"` pipeline key and generated WGSL byte-identical (pinned
+  by a literal-key test) and shared the SSAO effect's bindings, so it could not
+  perturb any existing SSAO frame. But GTAO is subtle — the view-space position/
+  normal reconstruction from depth, the slice-plane projection, and the cone
+  integral are all easy to get subtly wrong — and its output could not be
+  pixel-proven end-to-end in this environment (SwiftShader e2e; no GTAO example or
+  golden existed, and building a correctness golden for horizon-based AO is a
+  project in itself). Shipping an AO mode that "produces some darkening" without a
+  correctness proof would over-claim.
+
+Decision:
+
+GTAO is **deferred**, not shipped. The SSAO effect (`post-ssao.ts`) is reverted
+to its exact pre-E4 behavior — no `quality`/`slice*` options, no
+`gtaoPostEffectWgsl`, default pipeline key and shader unchanged — and a
+default-pipeline-key literal test pins that byte-identity so a future SSAO edit
+is loud. E4 ships only the required, pixel-proven trio (outline, motion blur,
+LUT). GTAO is recorded here and in the plan §E4 status block as a follow-up.
+
+Consequences:
+
+- The shipped SSAO post effect is byte-identical to pre-E4; no SSAO example,
+  golden, determinism fixture, or e2e moves, and `test/e2e/ssao.spec.ts` proves
+  the post stack is unregressed.
+- No `quality`/GTAO surface is exposed on `createWebGpuSsaoPostEffect` or the
+  public/test-support exports, so there is no half-finished API to support.
+- A future GTAO follow-up must land WITH an end-to-end AO correctness proof (a
+  contact-shadow pixel golden or a reference-AO comparison), not just a distinct
+  pipeline key — the byte-identity-when-off bar alone is necessary but not
+  sufficient to call an AO integration "working".

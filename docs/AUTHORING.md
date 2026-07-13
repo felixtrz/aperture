@@ -1811,6 +1811,97 @@ See `examples/debug-draw.html` for a system drawing an AABB + sphere + axes +
 grid + a physics collider wireframe every frame, with a frame-report e2e asserting
 the exact primitive/segment counts and proving `?debug=off` drops them to zero.
 
+## Post-processing tail — parity plan E4
+
+Three post-processing effects — the analogs of three.js's `MotionBlur`,
+`LUTPass`, and `OutlinePass` — slot into the ordered post stack alongside the
+existing bloom / DoF / FXAA / tonemap / SSAO / SSR / TAA. Enable them from the app
+config `render` block (each is `boolean | { …params }`); the generated app builds
+them in the order bloom → motion blur → LUT → outline:
+
+```ts
+export default defineApertureConfig({
+  mode: "browser",
+  render: {
+    motionBlur: { intensity: 1.5, samples: 16, maxVelocity: 0.2 },
+    lut: { size: 16, data: coolGradeStrip, intensity: 1 },
+    outline: {
+      color: [1, 0.5, 0.05],
+      thickness: 3,
+      opacity: 1,
+      fillOpacity: 0,
+    },
+  },
+});
+```
+
+Unlike bloom (which needs the HDR scene buffer and implies `exposure`), all three
+are **LDR-safe** and do NOT force the HDR path — the exposure gate keys off
+`render.bloom` specifically. You can also construct the effects directly and pass
+them to `createWebGpuApp({ postEffects: [...] })` in the order you want them
+applied (`createWebGpuMotionBlurPostEffect`, `createWebGpuLutColorGradePostEffect`,
+`createWebGpuOutlinePostEffect`, exported from `@aperture-engine/webgpu`).
+
+**Motion blur** (`render.motionBlur`). Smears each pixel along its screen-space
+velocity, read from the renderer-owned motion-vector texture (the same plumbing
+TAA uses — it turns on automatically). Params: `intensity` (velocity multiplier,
+`0` disables, clamped `[0, 8]`, default `1`), `samples` (taps along the velocity
+vector, `[2, 32]`, default `12`), `maxVelocity` (UV-space smear clamp so a large
+frame-to-frame jump does not sample the whole screen, `(0, 0.5]`, default `0.1`).
+On a frame/route that cannot produce motion vectors (MSAA / sprite+skybox packets
+/ missing previous-transform history) the effect emits no commands and reports
+`webGpuPostPass.motionVectorTextureUnavailable` rather than a device error.
+
+**LUT color grade** (`render.lut`). Applies a 3D color LUT stored as a 2D N-slice
+strip (`N*N` wide by `N` tall), sampled with trilinear interpolation. Params:
+`size` (cube edge `N`, `[2, 64]`, default `16`), `data` (RGBA bytes for the strip,
+length must be `N*N*N*4`; omit for an identity LUT — a pass-through you can start
+from), `intensity` (blend of the graded color over the original, `[0, 1]`, default
+`1`). A `data` length that does not match `size` reports
+`webGpuPostPass.lutDataInvalid` and emits no commands.
+
+**Outline** (`render.outline`). Draws a colored silhouette ring around the
+entities you have SELECTED — the analog of `OutlinePass`. Params: `color` (linear
+RGB `[0,1]`, default orange), `thickness` (ring half-width in pixels, `[1, 8]`,
+default `2`), `opacity` (ring blend over the scene, `[0, 1]`, default `1`),
+`fillOpacity` (interior tint over the selected surface, `[0, 1]`, default `0` =
+outline only). Drive the selection at runtime with **`app.setOutlineSelection(entities)`**:
+
+```ts
+const { app } = await createWebGpuApp({
+  canvas,
+  postEffects: [
+    createWebGpuOutlinePostEffect({ color: [1, 0.5, 0.05], thickness: 3 }),
+  ],
+});
+
+// Outline the picked/hovered entities. Accepts the RenderEntityRef from a
+// snapshot's meshDraws (or a raw stable id). Pass [] to clear the outline.
+app.setOutlineSelection([targetDraw.entity]);
+app.setOutlineSelection([]); // deselect → the ring disappears
+```
+
+The renderer produces the outline by REUSING the existing ID-buffer picking
+pipeline: with a non-empty selection and an active outline effect it renders the
+selected entities into a per-frame `r32uint` mask (occlusion handled by the mask
+pass's own depth test), which the outline effect edge-detects. Selection membership
+is live on the read-only `app.outlineSelection` set, and each frame reports
+`report.outline = { selection, maskDrawCalls, ok }`. When the selection is empty
+(or no outline effect is active) the mask is never rendered and the effect is a
+pass-through, so a non-outline frame is byte-identical to one without the effect.
+Outline picking supports rigid, unmorphed, triangle-list mesh draws; skinned /
+morphed / non-triangle selections produce no mask and the outline degrades to an
+exact identity copy.
+
+> **GTAO note.** E4 scoped an optional GTAO upgrade for the SSAO slot; it was
+> deferred (it could not be pixel-proven end-to-end), so SSAO is unchanged. See
+> `docs/DECISIONS.md` decision 0027.
+
+See `examples/post-tail.html` for the outlined + LUT-graded target box beside a
+motion-blurred mover (four side-by-side canvases), with a pixel + report e2e that
+smears the mover, pushes the scene bluer, and makes the warm outline ring appear
+(selected) / vanish (deselected).
+
 ## Dynamic meshes — parity plan D5
 
 For geometry that changes every frame on the CPU (cloth, jelly, procedural

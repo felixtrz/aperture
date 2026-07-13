@@ -127,6 +127,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   // indirect channel / occlusion), so the flag is a safe no-op for those routes.
   readonly useFrameGraph?: boolean;
   readonly shadowCasterGraphPasses?: readonly ShadowCasterGraphPass[];
+  // E4 (outline): the per-frame r32uint selection mask forwarded to an outline
+  // effect's prepare(). Absent ⇒ the outline effect renders an identity copy.
+  readonly outlineSelectionMask?: WebGpuPostPassTextureResource;
 }): WebGpuAppPostProcessedSwapchainTargetResult {
   if (options.useFrameGraph === true) {
     const viaGraph =
@@ -492,6 +495,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
         ? {}
         : { indirectColor: indirectColorTexture }),
       ...(depthTexture === undefined ? {} : { depth: depthTexture }),
+      ...(options.outlineSelectionMask === undefined
+        ? {}
+        : { selectionMask: options.outlineSelectionMask }),
       ...(outputTexture === null ? {} : { output: outputTexture }),
       label: `${options.label}:post:${effect.id}`,
     });
@@ -1517,6 +1523,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         ...(motionVectorTexture === null
           ? {}
           : { motionVector: motionVectorTexture }),
+        ...(options.outlineSelectionMask === undefined
+          ? {}
+          : { selectionMask: options.outlineSelectionMask }),
         ...(historyForEffect === undefined
           ? {}
           : { history: historyForEffect }),

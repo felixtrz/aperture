@@ -131,6 +131,13 @@ export * from "./post/post-bloom.js";
 export * from "./post/post-dof.js";
 export * from "./post/post-fxaa.js";
 export * from "./post/post-tonemap.js";
+export * from "./post/post-motion-blur.js";
+export * from "./post/post-lut.js";
+export * from "./post/post-outline.js";
+export {
+  createWebGpuOutlineSelectionMaskIdValues,
+  outlineSelectedRenderIds,
+} from "./app/outline-selection-mask.js";
 export * from "./post/post-pass.js";
 export * from "./post/post-color-history.js";
 export * from "./post/post-ssao.js";

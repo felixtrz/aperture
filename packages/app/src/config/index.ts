@@ -369,6 +369,38 @@ export interface ApertureBloomConfig {
   readonly levels?: number;
 }
 
+/** E4: camera/object motion blur along the motion-vector velocity field. */
+export interface ApertureMotionBlurConfig {
+  /** Velocity multiplier (0 disables the smear). */
+  readonly intensity?: number;
+  /** Tap count along the velocity vector. */
+  readonly samples?: number;
+  /** Per-pixel velocity clamp in UV space (0..0.5). */
+  readonly maxVelocity?: number;
+}
+
+/** E4: LUT color grading through a 3D-lite 2D-strip lookup table. */
+export interface ApertureLutConfig {
+  /** LUT cube edge size N (strip is N*N wide by N tall). */
+  readonly size?: number;
+  /** RGBA bytes for the N-slice strip (length N*N*N*4); omit for identity. */
+  readonly data?: readonly number[];
+  /** Blend of the graded color over the original (0..1). */
+  readonly intensity?: number;
+}
+
+/** E4: entity-selection silhouette outline (see app.setOutlineSelection). */
+export interface ApertureOutlineConfig {
+  /** Outline color as linear RGB in [0, 1]. */
+  readonly color?: readonly [number, number, number];
+  /** Outline half-width in pixels (1..8). */
+  readonly thickness?: number;
+  /** Outline opacity over the scene (0..1). */
+  readonly opacity?: number;
+  /** Interior fill tint over selected surfaces (0..1). */
+  readonly fillOpacity?: number;
+}
+
 export interface ApertureRenderDeviceProfile {
   readonly label?: string;
   readonly minViewportWidth?: number;
@@ -412,6 +444,18 @@ export interface ApertureRenderDefaults {
   readonly exposure?: number;
   /** Enable UnrealBloom-style bloom (requires the HDR path; implies exposure). */
   readonly bloom?: boolean | ApertureBloomConfig;
+  /**
+   * E4: enable camera/object motion blur (LDR-safe; does not force the HDR
+   * path). Requires the TAA motion-vector plumbing, which turns on automatically.
+   */
+  readonly motionBlur?: boolean | ApertureMotionBlurConfig;
+  /** E4: enable LUT color grading (LDR-safe). Omit `data` for an identity LUT. */
+  readonly lut?: boolean | ApertureLutConfig;
+  /**
+   * E4: enable the entity-selection outline effect (LDR-safe). Drive the
+   * selection at runtime with `app.setOutlineSelection([...])`.
+   */
+  readonly outline?: boolean | ApertureOutlineConfig;
   /**
    * Route the generated app through the single-encoder FrameGraph (AI-25:
    * default ON at parity). Set `false` to force the legacy multi-submit route.

@@ -518,8 +518,21 @@ export interface WebGpuAppRenderReport {
   readonly localLightCookies?: WebGpuAppLocalLightCookieReport;
   readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
   readonly particles?: ParticleFrameReport;
+  // E4 (outline): the selection-mask render. Present only when an outline effect
+  // is active AND the app has a non-empty selection this frame (so a frame with
+  // nothing selected stays byte-identical to a pre-E4 report).
+  readonly outline?: WebGpuAppOutlineReport;
   /** Per-feature realizer frame reports keyed by realizer id ('particles' stays typed above). */
   readonly features?: Readonly<Record<string, unknown>>;
+}
+
+export interface WebGpuAppOutlineReport {
+  /** Number of selected entities in the app's outline selection this frame. */
+  readonly selection: number;
+  /** Draw calls the selection-mask pass submitted (0 if nothing pickable). */
+  readonly maskDrawCalls: number;
+  /** True when the mask pass produced a usable selection mask texture. */
+  readonly ok: boolean;
 }
 
 export type WebGpuAppMotionVectorStatus =
@@ -701,6 +714,18 @@ export interface WebGpuApp {
   dispose(): Promise<void>;
   getDiagnostics(options?: WebGpuAppDiagnosticsOptions): WebGpuAppDiagnostics;
   pick(x: number, y: number): Promise<RenderEntityRef | null>;
+  // E4 (outline, AC2): the current outline selection as stable render ids. The
+  // set reference is stable (mutated in place by setOutlineSelection), so the
+  // frame path reads live membership without a per-frame message. Empty ⇒ no
+  // selection mask ⇒ an active outline effect degrades to an identity copy.
+  readonly outlineSelection: ReadonlySet<number>;
+  /**
+   * Replace the outline selection with the given entities (accepts the
+   * `RenderEntityRef` a `pick(...)` returns, or a raw stable render id). Selected
+   * entities gain a silhouette outline when a `createWebGpuOutlinePostEffect`
+   * runs. Passing an empty list clears the selection (outline disappears).
+   */
+  setOutlineSelection(entities: readonly (RenderEntityRef | number)[]): void;
   renderSnapshot(
     snapshot: RenderSnapshot,
     options?: Omit<WebGpuAppRenderOptions, "snapshot">,

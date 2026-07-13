@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture Post Tail</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@aperture-engine/render": "/packages/render/dist/index.js",
+          "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
+          "@aperture-engine/physics": "/packages/physics/dist/index.js",
+          "@aperture-engine/particles": "/packages/particles/dist/index.js",
+          "@aperture-engine/math": "/packages/math/dist/index.js",
+          "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
+          "@aperture-engine/webgpu": "/packages/webgpu/dist/index.js",
+          "@aperture-engine/webgpu/test-support": "/packages/webgpu/dist/test-support.js",
+          "elics": "/node_modules/elics/lib/index.js",
+          "wgpu-matrix": "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+          "@preact/signals-core": "/node_modules/@preact/signals-core/dist/signals-core.mjs"
+        }
+      }
+    </script>
+    <script type="module" src="./example-control.js"></script>
+  </head>
+  <body>
+    <main class="runtime-shell">
+      <section
+        class="viewport-panel msaa-viewport-grid"
+        aria-label="Aperture post-processing tail comparison"
+      >
+        <figure class="msaa-canvas-frame">
+          <canvas
+            id="post-tail-canvas-raw"
+            class="msaa-canvas"
+            width="256"
+            height="256"
+            aria-label="Aperture WebGPU raw canvas"
+          ></canvas>
+          <figcaption>raw</figcaption>
+        </figure>
+        <figure class="msaa-canvas-frame">
+          <canvas
+            id="post-tail-canvas-mb"
+            class="msaa-canvas"
+            width="256"
+            height="256"
+            aria-label="Aperture WebGPU motion blur canvas"
+          ></canvas>
+          <figcaption>motion blur</figcaption>
+        </figure>
+        <figure class="msaa-canvas-frame">
+          <canvas
+            id="post-tail-canvas-lut"
+            class="msaa-canvas"
+            width="256"
+            height="256"
+            aria-label="Aperture WebGPU LUT canvas"
+          ></canvas>
+          <figcaption>LUT grade</figcaption>
+        </figure>
+        <figure class="msaa-canvas-frame">
+          <canvas
+            id="post-tail-canvas-outline"
+            class="msaa-canvas"
+            width="256"
+            height="256"
+            aria-label="Aperture WebGPU outline canvas"
+          ></canvas>
+          <figcaption>outline</figcaption>
+        </figure>
+      </section>
+      <aside class="status-panel" aria-label="Runtime status">
+        <div class="status-row">
+          <span>example</span>
+          <strong id="example-name">post-tail</strong>
+        </div>
+        <div class="status-row">
+          <span>state</span>
+          <strong id="example-state">loading</strong>
+        </div>
+        <nav class="example-links" aria-label="Examples">
+          <a href="/">clear</a>
+          <a href="/examples/post-effects.html">post effects</a>
+          <a href="/examples/ssao.html">ssao</a>
+          <a href="/examples/taa.html">taa</a>
+          <a href="/examples/dof.html">dof</a>
+          <a href="/examples/post-tail.html">post tail</a>
+        </nav>
+        <pre id="example-json">{}</pre>
+      </aside>
+    </main>
+    <script type="module" src="./post-tail.main.js"></script>
+  </body>
+</html>

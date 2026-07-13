@@ -101,6 +101,7 @@ import { countDrawCommands, writeCommandsForView } from "./view-commands.js";
 import { writeProceduralSkyCommandsForView } from "./procedural-sky.js";
 import { writeSkyboxCommandsForView } from "./skybox.js";
 import { assembleWebGpuAppPostProcessedSwapchainTarget } from "./post-processing.js";
+import type { WebGpuPostPassTextureResource } from "../post/post-pass.js";
 import {
   buildUserPassNode,
   createUserPassSkippedOnLegacyRouteDiagnostic,
@@ -194,6 +195,13 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     readonly viewUniforms: PackedSnapshotViewUniforms;
     readonly buffers: readonly unknown[];
   };
+  /**
+   * E4 (outline): the per-frame selection mask (r32uint) the queued-built-in
+   * route rendered from the app's outline selection. Forwarded to the post
+   * assembly so an outline effect edge-detects it. Absent ⇒ outline degrades to
+   * an identity copy (no visual change), keeping non-outline frames untouched.
+   */
+  readonly outlineSelectionMask?: WebGpuPostPassTextureResource;
 }): Promise<WebGpuAppFrameBoundaryAssemblyResult> {
   const targetPlan = createWebGpuAppFrameBoundaryTargets(
     options.app,
@@ -677,6 +685,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         ...((options.shadowCasterGraphPasses ?? []).length === 0
           ? {}
           : { shadowCasterGraphPasses: options.shadowCasterGraphPasses }),
+        ...(options.outlineSelectionMask === undefined
+          ? {}
+          : { outlineSelectionMask: options.outlineSelectionMask }),
       });
       const sceneOcclusionQueries =
         postTarget.boundaries[0]?.occlusionQueries ?? null;

@@ -686,6 +686,7 @@ export function renderReport(input: {
     | undefined;
   readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
   readonly particles?: WebGpuAppRenderReport["particles"];
+  readonly outline?: WebGpuAppRenderReport["outline"];
   readonly features?: WebGpuAppRenderReport["features"];
   readonly drawPackages?: number;
   readonly drawCommands?: number;
@@ -802,6 +803,7 @@ export function renderReport(input: {
       ? {}
       : { occlusionQueries: input.occlusionQueries }),
     ...(input.particles === undefined ? {} : { particles: input.particles }),
+    ...(input.outline === undefined ? {} : { outline: input.outline }),
     ...(input.features === undefined ? {} : { features: input.features }),
   };
 }

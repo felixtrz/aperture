@@ -16,7 +16,11 @@ export type WebGpuPostPassDiagnosticCode =
   | "webGpuPostPass.outputTextureUnavailable"
   | "webGpuPostPass.motionVectorTextureUnavailable"
   | "webGpuPostPass.depthTextureUnavailable"
-  | "webGpuPostPass.depthTextureUnsupportedSampleCount";
+  | "webGpuPostPass.depthTextureUnsupportedSampleCount"
+  // E4: outline effect could not bind the renderer-owned selection mask.
+  | "webGpuPostPass.selectionMaskTextureUnavailable"
+  // E4: LUT strip data length does not match the declared cube size.
+  | "webGpuPostPass.lutDataInvalid";
 
 export interface WebGpuPostPassDiagnostic {
   readonly code: WebGpuPostPassDiagnosticCode;
@@ -69,6 +73,12 @@ export interface WebGpuPostEffectPrepareOptions {
   // that requests it must still degrade gracefully when it is absent.
   readonly indirectColor?: WebGpuPostPassTextureResource;
   readonly depth?: WebGpuPostPassDepthTextureResource;
+  // E4: the per-frame selection mask (an r32uint texture) the renderer produces
+  // from the app's outline selection by reusing the ID-buffer picking pipeline.
+  // Present only when an effect set requiresSelectionMask AND the frame's route
+  // could produce it (a non-empty selection on the queued-built-in route).
+  // Absent → an outline effect degrades to an identity copy.
+  readonly selectionMask?: WebGpuPostPassTextureResource;
   readonly outputFormat: string;
   readonly width: number;
   readonly height: number;
@@ -160,6 +170,11 @@ export interface WebGpuPostEffect {
   // undefined and the effect must fall back.
   readonly requiresIndirectColor?: boolean;
   readonly requiresDepthTexture?: boolean;
+  // E4: the effect consumes the renderer-owned selection mask (outline). When
+  // set, the queued-built-in route renders the current selection into an r32uint
+  // mask (reusing the picking ID-buffer pipeline) and supplies it as
+  // prepareOptions.selectionMask; absent selection ⇒ no mask ⇒ identity.
+  readonly requiresSelectionMask?: boolean;
   prepare(
     options: WebGpuPostEffectPrepareOptions,
   ): WebGpuPreparedPostEffectPass;

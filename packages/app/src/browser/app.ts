@@ -9,11 +9,15 @@ import { createApertureDevtoolsRequest } from "../commands.js";
 import {
   createWebGpuApp,
   createWebGpuBloomPostEffect,
+  createWebGpuMotionBlurPostEffect,
+  createWebGpuLutColorGradePostEffect,
+  createWebGpuOutlinePostEffect,
   type CreateWebGpuAppResult,
   type WebGpuAppComputePassDescriptor,
   type WebGpuAppComputeKernelPassDescriptor,
   type WebGpuAppRenderPassDescriptor,
   type WebGpuCanvasLike,
+  type WebGpuPostEffect,
 } from "@aperture-engine/webgpu";
 import { defineApertureConfig, type ApertureConfig } from "../config.js";
 // Type-only: the audio module is imported DYNAMICALLY below, only when audio is
@@ -147,7 +151,9 @@ export async function startGeneratedBrowserApp(
   const gpuTimings = resolveGpuTimings(browserSearch);
   const postEffects = resolveGeneratedPostEffects(render);
   // Bloom needs the HDR scene-buffer path; opting into bloom implies exposure.
-  const bloomEnabled = postEffects.length > 0;
+  // The E4 tail effects (outline/motion-blur/LUT) work in LDR and must NOT
+  // force the HDR path, so the exposure gate keys off bloom specifically.
+  const bloomEnabled = render?.bloom !== undefined && render.bloom !== false;
   const exposure = render?.exposure ?? (bloomEnabled ? 1 : undefined);
   const audioOptions = resolveGeneratedAudioOptions(config, options.audio);
   const workerStartOptions = createGeneratedWorkerStartOptions({
@@ -328,26 +334,78 @@ function resolveGeneratedAudioOptions(
 
 function resolveGeneratedPostEffects(
   render: ApertureConfig["render"],
-): ReturnType<typeof createWebGpuBloomPostEffect>[] {
+): WebGpuPostEffect[] {
+  const effects: WebGpuPostEffect[] = [];
   const bloom = render?.bloom;
-  if (bloom === undefined || bloom === false) {
-    return [];
+
+  // Bloom first (it operates in HDR before tonemap).
+  if (bloom !== undefined && bloom !== false) {
+    const options = bloom === true ? {} : bloom;
+    effects.push(
+      createWebGpuBloomPostEffect({
+        ...(options.threshold === undefined
+          ? {}
+          : { threshold: options.threshold }),
+        ...(options.intensity === undefined
+          ? {}
+          : { intensity: options.intensity }),
+        ...(options.radius === undefined ? {} : { radius: options.radius }),
+        ...(options.radiusPixels === undefined
+          ? {}
+          : { radiusPixels: options.radiusPixels }),
+        ...(options.levels === undefined ? {} : { levels: options.levels }),
+      }),
+    );
   }
 
-  const options = bloom === true ? {} : bloom;
-  return [
-    createWebGpuBloomPostEffect({
-      ...(options.threshold === undefined
-        ? {}
-        : { threshold: options.threshold }),
-      ...(options.intensity === undefined
-        ? {}
-        : { intensity: options.intensity }),
-      ...(options.radius === undefined ? {} : { radius: options.radius }),
-      ...(options.radiusPixels === undefined
-        ? {}
-        : { radiusPixels: options.radiusPixels }),
-      ...(options.levels === undefined ? {} : { levels: options.levels }),
-    }),
-  ];
+  // E4 tail effects (LDR-safe): motion blur → LUT grade → outline, in that
+  // order so the outline draws over the final graded/blurred image.
+  const motionBlur = render?.motionBlur;
+  if (motionBlur !== undefined && motionBlur !== false) {
+    const options = motionBlur === true ? {} : motionBlur;
+    effects.push(
+      createWebGpuMotionBlurPostEffect({
+        ...(options.intensity === undefined
+          ? {}
+          : { intensity: options.intensity }),
+        ...(options.samples === undefined ? {} : { samples: options.samples }),
+        ...(options.maxVelocity === undefined
+          ? {}
+          : { maxVelocity: options.maxVelocity }),
+      }),
+    );
+  }
+
+  const lut = render?.lut;
+  if (lut !== undefined && lut !== false) {
+    const options = lut === true ? {} : lut;
+    effects.push(
+      createWebGpuLutColorGradePostEffect({
+        ...(options.size === undefined ? {} : { size: options.size }),
+        ...(options.data === undefined ? {} : { data: options.data }),
+        ...(options.intensity === undefined
+          ? {}
+          : { intensity: options.intensity }),
+      }),
+    );
+  }
+
+  const outline = render?.outline;
+  if (outline !== undefined && outline !== false) {
+    const options = outline === true ? {} : outline;
+    effects.push(
+      createWebGpuOutlinePostEffect({
+        ...(options.color === undefined ? {} : { color: options.color }),
+        ...(options.thickness === undefined
+          ? {}
+          : { thickness: options.thickness }),
+        ...(options.opacity === undefined ? {} : { opacity: options.opacity }),
+        ...(options.fillOpacity === undefined
+          ? {}
+          : { fillOpacity: options.fillOpacity }),
+      }),
+    );
+  }
+
+  return effects;
 }
