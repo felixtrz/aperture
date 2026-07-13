@@ -5,7 +5,6 @@ import {
 } from "@aperture-engine/render";
 import { createWebGpuBuffer, writeWebGpuBufferData } from "../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
-import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
 import {
   createProceduralSkyRenderPipelineResource,
   PROCEDURAL_SKY_UNIFORM_FLOAT_COUNT,
@@ -170,7 +169,7 @@ async function getOrCreateWebGpuAppProceduralSkyPipeline(
   const colorFormat = webGpuAppScenePassColorFormat(app);
   const key = proceduralSkyPipelineCacheKey(
     colorFormat,
-    WEBGPU_APP_DEPTH_FORMAT,
+    cache.sceneDepthFormat,
     app.msaa.sampleCount,
   );
   const cached = cache.proceduralSkyPipelines.get(key);
@@ -187,7 +186,7 @@ async function getOrCreateWebGpuAppProceduralSkyPipeline(
       typeof createProceduralSkyRenderPipelineResource
     >[0]["device"],
     colorFormat,
-    depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+    depthFormat: cache.sceneDepthFormat,
     sampleCount: app.msaa.sampleCount,
   });
 

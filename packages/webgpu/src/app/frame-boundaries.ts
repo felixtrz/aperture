@@ -33,7 +33,7 @@ import {
   planGpuOcclusionFeedbackCulling,
   type GpuOcclusionQueryDiagnostic,
 } from "../gpu/occlusion-query.js";
-import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
+import { isStencilCapableDepthFormat } from "../resources/textures/depth-texture-resource.js";
 import { SCENE_DEPTH_PIPELINE_KEY_SUFFIX } from "../materials/custom-wgsl/custom-wgsl-material.js";
 import type { StandardFrameTransmissionSceneColorResources } from "../materials/standard/standard-frame-resources.js";
 import type { RenderPassCommand } from "../render/passes/render-pass-commands.js";
@@ -814,7 +814,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     const sampleCount = msaaColorTarget.resource?.sampleCount ?? 1;
     const renderBundleDescriptor = {
       colorFormats: [target.format],
-      depthStencilFormat: WEBGPU_APP_DEPTH_FORMAT,
+      // D1: the per-frame scene depth format (stencil-capable when the frame
+      // uses stencil) so the render bundle encoder agrees with the pass.
+      depthStencilFormat: options.cache.sceneDepthFormat,
       sampleCount,
     };
     const renderBundleCommandCount = renderBundleCommandsForView.length;
@@ -878,6 +880,11 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
               : ("clear" as const),
             depthStoreOp: "store" as const,
             depthReadOnly: true as const,
+            // D1: a stencil-capable attachment must declare the stencil aspect
+            // too (here read-only, mirroring the read-only depth).
+            ...(isStencilCapableDepthFormat(options.cache.sceneDepthFormat)
+              ? { stencilReadOnly: true as const }
+              : {}),
           }
         : {
             view: depthAttachment.view,
@@ -886,6 +893,14 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
               : {}),
             depthLoadOp,
             depthStoreOp: "store",
+            // D1: on a stencil-capable attachment the stencil aspect load/store
+            // must be declared (mirroring depth) or WebGPU rejects the pass.
+            // The stencil buffer clears to 0 alongside a depth clear so a mask
+            // pass starts from a known state.
+            ...webGpuAppStencilAspectOps(
+              options.cache.sceneDepthFormat,
+              depthLoadOp,
+            ),
           },
       ...(passCommands.length === 0 ||
       renderBundleCommands.length === 0 ||
@@ -898,6 +913,10 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       // B4: a read-only-depth scene-depth submission skips the render-bundle
       // fast path (its depth-stencil attachment is read-only).
       targetSamplesSceneDepth ||
+      // D1: a render bundle encoder cannot `setStencilReference`, so stencil
+      // frames take the direct-encoder path where the reference is applied per
+      // pipeline bind. Only stencil frames are affected; others still bundle.
+      isStencilCapableDepthFormat(options.cache.sceneDepthFormat) ||
       occlusionRenderIds.length > 0
         ? {}
         : {
@@ -1083,6 +1102,10 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
               depthLoadOp: "load",
               depthStoreOp: "store",
               depthReadOnly: true,
+              // D1: declare the stencil aspect (read-only) on a stencil format.
+              ...(isStencilCapableDepthFormat(options.cache.sceneDepthFormat)
+                ? { stencilReadOnly: true as const }
+                : {}),
             },
           })
         : null;
@@ -1555,6 +1578,9 @@ interface ForwardGraphTargetEntry {
     typeof assembleFrameBoundary
   >[0]["colorTarget"];
   readonly depthView: unknown;
+  // D1: whether this target's depth attachment carries a stencil aspect, so a
+  // separately-encoded overlay pass declares the stencil aspect read-only too.
+  readonly depthHasStencil: boolean;
   // B3: facade ids of the MRT extras this target node also writes (empty for
   // non-MRT targets) — user passes reading them get read-after-write edges.
   readonly mrtTargetIds: readonly string[];
@@ -1695,6 +1721,9 @@ function registerForwardGraphTarget(args: {
     handle,
     colorTarget: opts.colorTarget,
     depthView: opts.depthTarget?.view ?? null,
+    depthHasStencil:
+      opts.depthTarget?.stencilLoadOp !== undefined ||
+      opts.depthTarget?.stencilReadOnly === true,
     mrtTargetIds,
   };
 
@@ -1725,6 +1754,8 @@ function registerForwardGraphOverlayPass(args: {
       depthLoadOp: "load",
       depthStoreOp: "store",
       depthReadOnly: true,
+      // D1: mirror the host target's stencil aspect (read-only) on the overlay.
+      ...(args.host.depthHasStencil ? { stencilReadOnly: true as const } : {}),
     },
   });
   const nodeName = `${args.label}:fg-overlay`;
@@ -2323,6 +2354,29 @@ function isTransparentOverlayClearColor(
 ): boolean {
   const alpha = clearColor?.[3];
   return typeof alpha === "number" && Number.isFinite(alpha) && alpha < 1;
+}
+
+// D1: the stencil aspect load/store ops for a scene depth attachment. Empty for
+// a depth-only format (byte-identical to pre-D1); for a stencil-capable format
+// the stencil aspect mirrors the depth aspect's load/store, clearing the
+// stencil buffer to 0 whenever depth clears so a mask pass starts clean.
+function webGpuAppStencilAspectOps(
+  sceneDepthFormat: string,
+  depthLoadOp: RenderPassAttachmentLoadOp,
+): {
+  readonly stencilLoadOp?: RenderPassAttachmentLoadOp;
+  readonly stencilStoreOp?: RenderPassAttachmentStoreOp;
+  readonly stencilClearValue?: number;
+} {
+  if (!isStencilCapableDepthFormat(sceneDepthFormat)) {
+    return {};
+  }
+
+  return {
+    stencilLoadOp: depthLoadOp,
+    stencilStoreOp: "store",
+    ...(depthLoadOp === "clear" ? { stencilClearValue: 0 } : {}),
+  };
 }
 
 function renderLayerMasksOverlap(a: number, b: number): boolean {

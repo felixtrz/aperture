@@ -3,6 +3,7 @@ import {
   APERTURE_LIT_WGSL_HEADER,
   createInstanceAttributeLayout,
   customWgslColorTargetsPipelineKeySegment,
+  materialStencilPipelineFeatures,
   type InstanceAttributeLayout,
 } from "../materials/index.js";
 import type {
@@ -198,6 +199,11 @@ function customWgslMaterialPipelineKey(
       .map(customWgslBindingLayoutSignature)
       .sort()
       .join(",")}`,
+    // D1: the stencil token participates only when stencil is authored (same
+    // byte-identity rule) and must sit BEFORE the trailing render-state
+    // segments the webgpu render-state parser slices off the key's tail, so the
+    // backend reconstructs the custom material's stencil state from the key.
+    ...materialStencilPipelineFeatures(source.renderState.stencil),
     source.renderState.alphaMode,
     source.renderState.cullMode,
     source.renderState.depth.compare,

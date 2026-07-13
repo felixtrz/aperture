@@ -7,6 +7,7 @@ import type {
   MaterialPipelineKeyInput,
   SamplerAsset,
   SourceMaterialAsset,
+  StencilStateDescriptor,
 } from "./types.js";
 
 export function createMaterialPipelineKeyInput(
@@ -39,6 +40,11 @@ export function createMaterialPipelineKeyInput(
       depth: material.renderState.depth,
       blend: material.renderState.blend,
       colorWriteMask: material.renderState.colorWriteMask,
+      // D1: present only when authored, so non-stencil custom materials keep
+      // byte-identical keys.
+      ...(material.renderState.stencil === undefined
+        ? {}
+        : { stencil: material.renderState.stencil }),
     };
   }
 
@@ -75,6 +81,11 @@ export function createMaterialPipelineKeyInput(
     depth: material.renderState.depth,
     blend: material.renderState.blend,
     colorWriteMask: material.renderState.colorWriteMask,
+    // D1: present only when authored, so non-stencil built-in materials keep
+    // byte-identical keys.
+    ...(material.renderState.stencil === undefined
+      ? {}
+      : { stencil: material.renderState.stencil }),
   };
 }
 
@@ -123,6 +134,7 @@ export function materialPipelineKeyInputToKey(
     ...input.features,
     ...materialFrontFacePipelineFeatures(input.frontFace),
     ...materialDepthBiasPipelineFeatures(input.depth),
+    ...materialStencilPipelineFeatures(input.stencil),
   ].sort();
 
   return [
@@ -133,6 +145,41 @@ export function materialPipelineKeyInputToKey(
     input.depth.compare,
     input.blend.preset,
   ].join("|");
+}
+
+// D1: the render state's trailing key segment is ALWAYS
+// `alphaMode|cullMode|depthCompare|blendPreset` (four parts the backend parses
+// as `parts.length - 4`). Stencil therefore rides a FEATURE token — like
+// `depth-bias:…` / `front-face:cw` — emitted ONLY when authored so non-stencil
+// materials keep byte-identical keys. The token is a single `|`-free string of
+// `:`-separated fields (no field contains `:`), so the backend round-trips the
+// full state from the key:
+//   stencil:<readMask>:<writeMask>:<reference>
+//     :<frontCompare>:<frontFail>:<frontDepthFail>:<frontPass>
+//     :<backCompare>:<backFail>:<backDepthFail>:<backPass>
+export function materialStencilPipelineFeatures(
+  stencil: StencilStateDescriptor | undefined,
+): readonly string[] {
+  return stencil === undefined ? [] : [materialStencilPipelineToken(stencil)];
+}
+
+export function materialStencilPipelineToken(
+  stencil: StencilStateDescriptor,
+): string {
+  return [
+    "stencil",
+    stencil.readMask >>> 0,
+    stencil.writeMask >>> 0,
+    stencil.reference >>> 0,
+    stencil.front.compare,
+    stencil.front.failOp,
+    stencil.front.depthFailOp,
+    stencil.front.passOp,
+    stencil.back.compare,
+    stencil.back.failOp,
+    stencil.back.depthFailOp,
+    stencil.back.passOp,
+  ].join(":");
 }
 
 function materialFrontFacePipelineFeatures(

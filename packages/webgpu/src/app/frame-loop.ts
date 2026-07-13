@@ -55,6 +55,7 @@ import {
 } from "./material-dependencies.js";
 import { getWebGpuAppPipelineLayouts } from "./pipeline-layouts.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
+import { webGpuAppSceneDepthFormat } from "./scene-depth-format.js";
 import { getOrCreateWebGpuAppPipeline } from "./pipeline-resources.js";
 import {
   createEmptyRenderSnapshot,
@@ -214,6 +215,13 @@ export async function renderWebGpuAppFrame(
         localLightCookieResources.resources,
       ),
   });
+  // D1 (stencil support): select this frame's scene depth attachment format
+  // BEFORE any route builds pipelines or the depth attachment. When a material
+  // in the frame enables stencil the whole frame's scene depth becomes
+  // stencil-capable so every pipeline in the pass agrees on the format;
+  // non-stencil frames keep `depth24plus` (byte-identical). Read downstream via
+  // `resourceCache.sceneDepthFormat`.
+  resourceCache.sceneDepthFormat = webGpuAppSceneDepthFormat(snapshot);
   const resourceLifetimeFrame = options.resourceLifetimeFrame ?? snapshot.frame;
   const updateMetadata = createWebGpuAppSnapshotUpdateMetadata(
     snapshot,

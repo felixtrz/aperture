@@ -16,10 +16,7 @@ import {
 import type { WebGpuCanvasLike } from "../gpu/initialize-webgpu.js";
 import { createWebGpuBuffer, destroyWebGpuBuffer } from "../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
-import {
-  createOrReuseWebGpuDepthTexture,
-  WEBGPU_APP_DEPTH_FORMAT,
-} from "../resources/textures/depth-texture-resource.js";
+import { createOrReuseWebGpuDepthTexture } from "../resources/textures/depth-texture-resource.js";
 import {
   createSamplerGpuResource,
   createTextureGpuResource,
@@ -243,7 +240,7 @@ export function getOrCreateWebGpuAppParticleRenderPipeline(
     : (app.outputColorSpace ?? "linear");
   const key = particleRenderPipelineCacheKey(
     colorFormat,
-    WEBGPU_APP_DEPTH_FORMAT,
+    cache.sceneDepthFormat,
     app.msaa.sampleCount,
     blendMode,
     tonemap,
@@ -262,7 +259,7 @@ export function getOrCreateWebGpuAppParticleRenderPipeline(
       typeof createParticleRenderPipelineResource
     >[0]["device"],
     colorFormat,
-    depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+    depthFormat: cache.sceneDepthFormat,
     sampleCount: app.msaa.sampleCount,
     blendMode,
     tonemap,
@@ -290,7 +287,7 @@ export function getOrCreateWebGpuAppParticleBurstRenderPipeline(
     : (app.outputColorSpace ?? "linear");
   const key = particleBurstRenderPipelineCacheKey(
     colorFormat,
-    WEBGPU_APP_DEPTH_FORMAT,
+    cache.sceneDepthFormat,
     app.msaa.sampleCount,
     blendMode,
     tonemap,
@@ -309,7 +306,7 @@ export function getOrCreateWebGpuAppParticleBurstRenderPipeline(
       typeof createParticleRenderPipelineResource
     >[0]["device"],
     colorFormat,
-    depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+    depthFormat: cache.sceneDepthFormat,
     sampleCount: app.msaa.sampleCount,
     blendMode,
     tonemap,
@@ -939,7 +936,7 @@ function prepareParticleSoftResources(options: {
     cache: options.cache.depth,
     width: dimensions.width,
     height: dimensions.height,
-    format: WEBGPU_APP_DEPTH_FORMAT,
+    format: options.cache.sceneDepthFormat,
     sampleCount: 1,
   }).resource;
   const nearFade = Math.max(

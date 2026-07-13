@@ -1,3 +1,4 @@
+import { stencilReferenceFromPipelineKey } from "../../materials/core/material-render-state.js";
 import type { RenderPassCommand } from "./render-pass-commands.js";
 
 export type RenderPassCommandExecutorDiagnosticCode =
@@ -24,6 +25,10 @@ export interface RenderPassCommandExecutorDiagnostic {
 
 export interface RenderPassEncoderLike {
   setPipeline?: (pipeline: unknown) => void;
+  // D1: applied after binding a stencil pipeline (the reference is dynamic, not
+  // part of the GPU pipeline). Absent on render-bundle encoders — stencil
+  // frames therefore take the direct-encoder path (see frame-boundaries).
+  setStencilReference?: (reference: number) => void;
   setBindGroup?: (index: number, bindGroup: unknown) => void;
   setVertexBuffer?: (slot: number, buffer: unknown) => void;
   setIndexBuffer?: (buffer: unknown, format: string) => void;
@@ -79,6 +84,19 @@ export function executeRenderPassCommands(
         }
 
         options.pass.setPipeline(command.pipeline);
+        // D1: a stencil pipeline carries its reference value in the pipeline
+        // key; apply it dynamically on bind. `stencilReferenceFromPipelineKey`
+        // returns null (a fast cached no-op) for non-stencil pipelines, so
+        // non-stencil frames emit no setStencilReference call.
+        const stencilReference = stencilReferenceFromPipelineKey(
+          command.pipelineKey,
+        );
+        if (
+          stencilReference !== null &&
+          options.pass.setStencilReference !== undefined
+        ) {
+          options.pass.setStencilReference(stencilReference);
+        }
         executedCommands += 1;
         break;
       }

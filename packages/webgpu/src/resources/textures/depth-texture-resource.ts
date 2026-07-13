@@ -2,6 +2,19 @@ import { WEBGPU_TEXTURE_USAGE_FLAGS } from "./texture-resources.js";
 
 export const WEBGPU_APP_DEPTH_FORMAT = "depth24plus";
 
+// D1 (stencil support): the stencil-capable scene depth format. A view's depth
+// attachment is selected as this format ONLY when a material in the frame
+// enables stencil (`renderState.stencil`); otherwise the depth-only
+// `WEBGPU_APP_DEPTH_FORMAT` is kept so non-stencil frames stay byte-identical.
+export const WEBGPU_APP_STENCIL_DEPTH_FORMAT = "depth24plus-stencil8";
+
+/** True when a depth-attachment format carries a stencil aspect (D1). */
+export function isStencilCapableDepthFormat(
+  format: string | null | undefined,
+): boolean {
+  return typeof format === "string" && format.endsWith("-stencil8");
+}
+
 interface WebGpuDepthTextureLike {
   createView(): unknown;
   destroy?(): void;

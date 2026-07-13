@@ -587,6 +587,53 @@ pipeline/bind-group construction binds the right buffers in the right order).
 
 ### D1. Stencil support — **M**
 
+Status: implemented (2026-07-13). AC1: `renderState.stencil`
+(readMask/writeMask/reference + per-face compare + fail/depthFail/pass ops) is a
+new optional sub-state on ALL material kinds (built-in standard/unlit/matcap/
+debug-normal AND custom WGSL), built ergonomically with `createStencilState`
+(three.js-shaped input). PRESENCE is the enable gate: it appends a single sorted
+`stencil:<readMask>:<writeMask>:<reference>:<front…>:<back…>` FEATURE token to
+the material pipeline key (the trailing `alphaMode|cullMode|depthCompare|blend`
+segment is untouched), so the backend reconstructs the full stencil state from
+the key exactly as it does `depth-bias`/`front-face`. `unsupportedFeatures`
+drops `"stencil"` (now `"custom-shader"` only). AC2: `examples/stencil-portal`
+(a mask stamps a portal region, content is revealed where stencil == ref) and
+`examples/stencil-outline` (a base writes stencil, a scaled copy draws where
+stencil != ref); `test/e2e/stencil-portal.spec.ts` +
+`test/e2e/stencil-outline.spec.ts` assert the masked/outlined result by pixel
+samples (green-center/dark-corner, blue-center/orange-halo). Advanced-audit #8 →
+✅ and #7 → 🟡. AC3: the stencil state rides the pipeline-key string (which the
+snapshot already transports, so no packed-encoding change and no SAB fallback is
+triggered — material assets are not part of the SAB packed transport per 0022);
+`material.stencilRequiresStencilFormat` (WebGPU) and `material.invalidStencilState`
+(render validation) diagnose stencil-on-a-format-without-stencil and out-of-range
+masks/reference.
+
+**Depth-stencil-format decision (the hard one): approach B at FRAME granularity.**
+WebGPU requires a pipeline's `depthStencil.format` to match the pass's depth
+attachment. Rather than always using `depth24plus-stencil8` (approach A — changes
+every existing pipeline/test/golden and must prove inertness), the frame's scene
+depth attachment is selected as `depth24plus-stencil8` ONLY when a material in
+the frame enables stencil, and `depth24plus` otherwise. The format is computed
+once per frame from the snapshot's mesh-draw pipeline keys
+(`webGpuAppSceneDepthFormat`) and threaded via `resourceCache.sceneDepthFormat`
+to the depth attachment, the mesh/background/overlay pipelines, and the
+render-bundle descriptor — so every pipeline in every pass of the frame agrees,
+frame granularity (not per-view) removing any intra-frame mismatch risk (C2's
+lesson). Non-stencil frames keep `depth24plus`, so pipeline keys, golden pixels,
+and determinism fixtures are byte-identical (proven: the full vitest suite incl.
+`test/determinism` passes unchanged, and a hardcoded pre-change key literal is
+pinned in `test/materials/stencil-state.test.ts`). The stencil `reference` is
+dynamic (`setStencilReference` on pipeline bind, derived from the key); because a
+render-bundle encoder cannot set it, stencil frames take the direct-encoder path
+(bundles skipped). Deviations: (1) `colorWriteMask` is still not plumbed to
+built-in materials, so the portal mask uses the "content overwrites the mask's
+color in the stencil region" technique rather than disabled color writes.
+(2) The diagnostic-refuse-to-build safety net (`material.stencilRequiresStencilFormat`)
+is unreachable in normal operation because the per-frame format selection
+guarantees a stencil material always lands on a stencil-capable attachment; it is
+wired into the standard descriptor + unit-tested as a defensive contract.
+
 Flips the one render state explicitly marked unsupported. Requires a
 `DECISIONS.md` amendment (it documents a contract change).
 

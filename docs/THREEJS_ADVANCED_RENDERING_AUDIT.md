@@ -82,7 +82,7 @@ frame report. Remaining limit: pass bodies are raw WebGPU rather than data.
 three.js counters with `EffectComposer` (WebGL) and TSL compute with atomics,
 storage textures, and indirect draws (WebGPU backend).
 
-**Confirmed absent in Aperture across this whole domain:** stencil, clipping
+**Confirmed absent in Aperture across this whole domain:** clipping
 planes, decals, 3D/array render targets, and runtime texture/video updates
 (cube render targets shipped as parity plan B2; MRT authoring and user-pass
 target writes shipped as parity plan B3; custom-material scene-depth access
@@ -136,16 +136,16 @@ access remains a future hook (B4).
 
 ### 2.3 Vertex stage & geometry integration
 
-| Capability                   | three.js                                                                                     | Aperture                                                                                                                | Verdict     |
-| ---------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------- |
-| Vertex displacement          | ✅ both paths (`positionNode` on WebGPU)                                                     | ✅ user owns the vertex entry point                                                                                     | Parity      |
-| Available attributes         | Any geometry attribute                                                                       | Fixed: position/normal/uv (+ declared instance attrs); no tangent/color/uv1 in custom WGSL                              | Partial     |
-| Skinning in custom shaders   | ✅ `#include` chunks (WebGL); automatic `SkinningNode` (WebGPU)                              | ❌ no joint/weight/palette bindings for custom pipelines                                                                | Gap         |
-| Morphs in custom shaders     | ✅ chunks / automatic `MorphNode`                                                            | ❌                                                                                                                      | Gap         |
-| Shadow-casting displaced geo | ✅ `customDepthMaterial`/`customDistanceMaterial` (WebGL); `castShadowPositionNode` (WebGPU) | ✅ `entryPoints.shadowVertex` compiles a per-material depth-only caster from the same WGSL module (parity plan A4)      | Parity      |
-| Specialization constants     | `defines` (WebGL); node graph branches (WebGPU)                                              | 🟡 `pipelineKey.features/specialization` differentiate cached pipelines but are not fed to the module as WGSL overrides | Partial     |
-| Render state                 | Full material state incl. stencil                                                            | ✅ alpha modes, cull, depth (test/write/compare/bias), blend presets, colorWriteMask — no stencil                       | Near-parity |
-| MRT outputs                  | GLSL3 `layout(location=N)` outs; `mrtNode`                                                   | ❌ exactly one color target per custom pipeline                                                                         | Gap         |
+| Capability                   | three.js                                                                                     | Aperture                                                                                                                                                              | Verdict |
+| ---------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Vertex displacement          | ✅ both paths (`positionNode` on WebGPU)                                                     | ✅ user owns the vertex entry point                                                                                                                                   | Parity  |
+| Available attributes         | Any geometry attribute                                                                       | Fixed: position/normal/uv (+ declared instance attrs); no tangent/color/uv1 in custom WGSL                                                                            | Partial |
+| Skinning in custom shaders   | ✅ `#include` chunks (WebGL); automatic `SkinningNode` (WebGPU)                              | ❌ no joint/weight/palette bindings for custom pipelines                                                                                                              | Gap     |
+| Morphs in custom shaders     | ✅ chunks / automatic `MorphNode`                                                            | ❌                                                                                                                                                                    | Gap     |
+| Shadow-casting displaced geo | ✅ `customDepthMaterial`/`customDistanceMaterial` (WebGL); `castShadowPositionNode` (WebGPU) | ✅ `entryPoints.shadowVertex` compiles a per-material depth-only caster from the same WGSL module (parity plan A4)                                                    | Parity  |
+| Specialization constants     | `defines` (WebGL); node graph branches (WebGPU)                                              | 🟡 `pipelineKey.features/specialization` differentiate cached pipelines but are not fed to the module as WGSL overrides                                               | Partial |
+| Render state                 | Full material state incl. stencil                                                            | ✅ alpha modes, cull, depth (test/write/compare/bias), blend presets, colorWriteMask, and per-material stencil (write/func/ref/masks/ops, all kinds — parity plan D1) | Parity  |
+| MRT outputs                  | GLSL3 `layout(location=N)` outs; `mrtNode`                                                   | ❌ exactly one color target per custom pipeline                                                                                                                       | Gap     |
 
 ### 2.4 Lighting integration for custom materials
 
@@ -207,8 +207,8 @@ has true shader HMR.
 | Use case                  | three.js                                                             | Aperture today                                                                                                                                                                                                                                                                                   |
 | ------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Minimap / security camera | RT + second camera + HUD quad — routine                              | ✅ buildable on the facade (B1): `renderTargets.register` + `spawn.camera({ renderTarget })` + a custom-WGSL HUD quad sampling via `material.texture` — shipped as `examples/minimap`                                                                                                            |
-| Planar mirror             | `Reflector` addon (WebGL) / `ReflectorNode` (WebGPU)                 | ❌ no helper, **no clipping planes** for the oblique frustum, no stencil masking — a crude manual mirror only                                                                                                                                                                                    |
-| Portals                   | Stencil recipes + RTs                                                | ❌ stencil absent; layered cameras + RTs can fake restricted cases                                                                                                                                                                                                                               |
+| Planar mirror             | `Reflector` addon (WebGL) / `ReflectorNode` (WebGPU)                 | 🟡 per-material **stencil masking now available** (parity plan D1) to constrain the reflection to the mirror shape; still no `Reflector` helper and **no clipping planes** for the oblique frustum, so a hand-wired mirror only                                                                  |
+| Portals                   | Stencil recipes + RTs                                                | ✅ per-material stencil (write/func/ref/masks/ops) enables the stencil-portal / masked-reveal recipe (parity plan D1, `examples/stencil-portal`), combinable with B1 render targets for portal content                                                                                           |
 | Dynamic env probe         | `CubeCamera` → cube RT                                               | ✅ B2: cube render target + capture camera (`capture: { every: N }` / on-demand `renderTargets.capture`) prefiltered into IBL via `renderTargetSource` — shipped as `examples/reflective-probe`                                                                                                  |
 | Refraction / heat haze    | `viewportSharedTexture` grab + `backdropNode`; physical transmission | 🟡 transmission grab pass fires automatically for transmissive **standard** materials; not available to custom WGSL; note transmission params are authorable only via glTF or low-level assets — the app-facade `material.standard()` builder exposes just baseColor/roughness/metallic/emissive |
 | Ping-pong (feedback FX)   | `GPUComputationRenderer`, `AfterimagePass`, manual                   | 🟡 feasible low-level by alternating two targets; no helper; user render passes can't write them (§4)                                                                                                                                                                                            |
@@ -258,14 +258,18 @@ portal, mask, and outline recipes; clipping planes globally and per material
 (WebGL) plus `ClippingGroup` (WebGPU renderer); `MaskPass` for composer
 stencil masking.
 
-Aperture: **stencil is explicitly unsupported** (`unsupportedFeatures:
-"stencil"` in the material contract) and there are **no clipping planes**.
-Available substitutes: `colorWriteMask`, full depth-state control per
-material, `RenderOrder`, per-camera `RenderLayer` masks and viewport/scissor,
-and depth-tested overlay user passes. These cover HUD-style layering and some
-occlusion tricks but not true stencil portals, CSG-style cutaways, or
-stencil-outline highlighting. Verdict: hard gap, relevant to several §9
-scenarios.
+Aperture: **per-material stencil state is supported** (parity plan D1) —
+`renderState.stencil` (write/func/ref/masks/ops) on every material kind, the
+three.js `stencilWrite`/`stencilFunc`/`stencilRef`/`stencilFuncMask`/
+`stencilWriteMask`/`stencilFail`/`stencilZFail`/`stencilZPass` surface. The
+depth-stencil attachment is selected automatically (`depth24plus-stencil8` on
+frames that use stencil, depth-only otherwise), and true stencil portals
+(`examples/stencil-portal`) and stencil-outline highlighting
+(`examples/stencil-outline`) now work. Combined with `colorWriteMask`, full
+depth-state control, `RenderOrder`, per-camera `RenderLayer` masks and
+viewport/scissor, and depth-tested overlay user passes, the remaining gap in
+this domain is **clipping planes** (no per-camera/per-material clip planes, so
+CSG-style cutaways and oblique-frustum mirrors are still out — parity plan D2).
 
 ---
 
@@ -317,8 +321,8 @@ limits · ❌ not achievable today.
 | 4   | Vertex-animated foliage/flags (wind)                  | ✅       | ✅       | Displacement works and `entryPoints.shadowVertex` mirrors it into the shadow map (parity plan A4); skinning in custom shaders remains #5's gap                                                                                                                                                              |
 | 5   | Custom shader on skinned characters                   | ✅       | ❌       | No skin/morph inputs in custom pipelines                                                                                                                                                                                                                                                                    |
 | 6   | Minimap / security-camera monitor                     | ✅       | ✅       | Facade route (parity plan B1): `renderTargets.register` + `spawn.camera({ renderTarget })` + `material.texture` HUD quad (`examples/minimap`)                                                                                                                                                               |
-| 7   | Planar mirror                                         | ✅       | ❌       | No Reflector, clipping planes, or stencil                                                                                                                                                                                                                                                                   |
-| 8   | Stencil portal / masked reveal                        | ✅       | ❌       | Stencil explicitly unsupported                                                                                                                                                                                                                                                                              |
+| 7   | Planar mirror                                         | ✅       | 🟡       | Per-material stencil masking now available (parity plan D1) to clip the reflection to the mirror shape; still no Reflector helper or clipping planes for the oblique frustum                                                                                                                                |
+| 8   | Stencil portal / masked reveal                        | ✅       | ✅       | Per-material stencil (write/func/ref/masks/ops, all kinds) with automatic depth-stencil format selection (parity plan D1, `examples/stencil-portal` + `examples/stencil-outline`)                                                                                                                           |
 | 9   | Dynamic reflection probe (cube capture)               | ✅       | ✅       | Cube render targets + scheduled capture camera + IBL prefilter of the captured cube (parity plan B2, `examples/reflective-probe`)                                                                                                                                                                           |
 | 10  | Refraction / heat haze (grab pass)                    | ✅       | ✅       | Automatic transmission grab; params authorable on `material.standard()` (parity plan A3); custom-WGSL grab access remains #12's domain                                                                                                                                                                      |
 | 11  | Custom g-buffer / MRT technique                       | ✅       | ✅       | `colorTargets` MRT declaration on custom materials + user-pass resolve (parity plan B3, `examples/gbuffer`)                                                                                                                                                                                                 |
@@ -336,10 +340,11 @@ limits · ❌ not achievable today.
 textures, and indirect.
 
 Score (of 20): three.js ✅ 16 / 🟡 2 / ❌ 0 (2 backend-caveated); Aperture
-✅ 15 / 🟡 1 / ❌ 4. The ❌ column clusters around two missing primitives —
-extended custom materials (skinning/morph inputs) and stencil; the
-compute→rendering bridge shipped as parity plan C1 and the GPU-driven
-indirect-draw user surface as parity plan C2.
+✅ 16 / 🟡 2 / ❌ 2. The ❌ column now clusters around extended custom
+materials (skinning/morph inputs) and runtime texture/video updates; the
+compute→rendering bridge shipped as parity plan C1, the GPU-driven
+indirect-draw user surface as parity plan C2, and per-material stencil (scenario
+#8 → ✅, #7 → 🟡) as parity plan D1.
 
 ---
 
@@ -386,7 +391,10 @@ stay inside the architecture.
 7. **Runtime texture updates** (unblocks #18, helps #17): a
    `writeTexture`-backed dynamic texture asset; video textures can follow.
 8. **Stencil state in the material/render contract** (unblocks #8, halves
-   #7): today it is the one render state explicitly marked unsupported.
+   #7): _Shipped_ — parity plan D1. `renderState.stencil` (write/func/ref/
+   masks/ops) on all material kinds; the depth-stencil attachment format is
+   selected automatically per frame; `examples/stencil-portal` +
+   `examples/stencil-outline`.
 9. **Depth-texture binding for custom materials** (upgrades #19 for custom
    VFX, enables intersection effects). _Shipped_ — `source: "scene-depth"`
    read-only binding + the depth/unfilterable/comparison/multisampled/cube

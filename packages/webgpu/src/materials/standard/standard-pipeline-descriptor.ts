@@ -14,6 +14,7 @@ import {
   createWebGpuDepthStencilDescriptor,
   createWebGpuDepthStencilStateKey,
   resolveWebGpuPipelineRenderState,
+  stencilDepthFormatDiagnostic,
 } from "../core/material-render-state.js";
 import {
   createStandardTextureShaderVariantKey,
@@ -58,7 +59,9 @@ export type StandardPipelineDescriptorDiagnosticCode =
   | "standardPipeline.unsupportedTopology"
   | "standardPipeline.missingBatchKeyField"
   | "standardPipeline.unsupportedShaderFamily"
-  | "standardPipeline.deferredFeature";
+  | "standardPipeline.deferredFeature"
+  // D1: a stencil material whose depth attachment format has no stencil aspect.
+  | "material.stencilRequiresStencilFormat";
 
 export interface StandardPipelineDescriptorDiagnostic {
   readonly code: StandardPipelineDescriptorDiagnosticCode;
@@ -175,6 +178,28 @@ export function createStandardPipelineDescriptorPlan(
     batchKey.pipelineKey,
     input.depthFormat,
   );
+  // D1: a stencil material MUST land on a stencil-capable depth attachment (the
+  // frame selects `depth24plus-stencil8` when any material uses stencil). If a
+  // stencil pipeline key reaches a depth-only format, refuse to build (a stencil
+  // state on such a format is a WebGPU validation error) and diagnose loudly.
+  const stencilFormatDiagnostic = stencilDepthFormatDiagnostic(
+    renderState,
+    input.depthFormat,
+  );
+  if (stencilFormatDiagnostic !== null) {
+    return {
+      valid: false,
+      plan: null,
+      diagnostics: [
+        ...diagnostics,
+        {
+          code: stencilFormatDiagnostic.code,
+          field: "renderState.stencil",
+          message: stencilFormatDiagnostic.message,
+        },
+      ],
+    };
+  }
   const depthStencil = createWebGpuDepthStencilStateKey(
     input.depthFormat,
     renderState,

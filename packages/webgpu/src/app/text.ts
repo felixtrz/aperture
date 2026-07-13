@@ -9,7 +9,6 @@ import {
 import type { WebGpuCanvasLike } from "../gpu/initialize-webgpu.js";
 import { createWebGpuBuffer } from "../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
-import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
 import type { TonemapOperator } from "../output/output-stage-tonemap.js";
 import type { OutputColorSpace } from "../output/output-stage-color-space.js";
 import {
@@ -369,7 +368,7 @@ export async function getOrCreateWebGpuAppMsdfTextPipeline(
     : (app.outputColorSpace ?? "linear");
   const key = msdfTextPipelineCacheKey(
     colorFormat,
-    WEBGPU_APP_DEPTH_FORMAT,
+    cache.sceneDepthFormat,
     app.msaa.sampleCount,
     tonemap,
     outputColorSpace,
@@ -385,7 +384,7 @@ export async function getOrCreateWebGpuAppMsdfTextPipeline(
       typeof createMsdfTextRenderPipelineResource
     >[0]["device"],
     colorFormat,
-    depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+    depthFormat: cache.sceneDepthFormat,
     sampleCount: app.msaa.sampleCount,
     tonemap,
     outputColorSpace,

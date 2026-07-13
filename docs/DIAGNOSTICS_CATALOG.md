@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1464
+Every structured diagnostic code the engine can emit (1466
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -3341,6 +3341,12 @@ suggestedFix accompanies it, and where it is emitted.
 | ----------------------------- | ------------------------------------- | ---- | --------------------------------------------- |
 | `material.invalidAlphaCutoff` | Alpha cutoff must be between 0 and 1. | —    | `packages/render/src/materials/validation.ts` |
 
+## material.invalidStencilState (1)
+
+| Code                           | Message                                                      | Fix? | Emitted from                                  |
+| ------------------------------ | ------------------------------------------------------------ | ---- | --------------------------------------------- |
+| `material.invalidStencilState` | … must be an unsigned 32-bit integer (0..4294967295), got …. | —    | `packages/render/src/materials/validation.ts` |
+
 ## material.invalidTextureColorSpace (1)
 
 | Code                                | Message                               | Fix? | Emitted from                                  |
@@ -3364,6 +3370,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                            | Message                        | Fix? | Emitted from                                  |
 | ------------------------------- | ------------------------------ | ---- | --------------------------------------------- |
 | `material.missingTextureHandle` | … is missing a texture handle. | —    | `packages/render/src/materials/validation.ts` |
+
+## material.stencilRequiresStencilFormat (1)
+
+| Code                                    | Message                                                                                                                                                   | Fix? | Emitted from                                                  |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------- |
+| `material.stencilRequiresStencilFormat` | Material declares stencil state but its depth attachment format '…' has no stencil aspect; select a stencil-capable format (e.g. 'depth24plus-stencil8'). | —    | `packages/webgpu/src/materials/core/material-render-state.ts` |
 
 ## material.unsupportedFeature (1)
 

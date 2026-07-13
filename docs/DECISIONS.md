@@ -1000,3 +1000,81 @@ Consequences:
   (seed bytes, entity counts, dispatch schedule), which flows through the
   existing data-only asset mirror — no new snapshot packet family, so C1 does
   not refresh the determinism fixtures.
+
+## 0026 — Per-Material Stencil State; Per-Frame Depth-Stencil Format Selection
+
+Date: 2026-07-13
+
+Status: accepted
+
+Context:
+
+Stencil was the one render state the material contract explicitly marked
+unsupported (`unsupportedFeatures: "stencil"`), blocking portal/mask/outline
+recipes (advanced-audit scenarios #7, #8). Adding it runs into a hard WebGPU
+constraint: a render pipeline's `depthStencil.format` must EXACTLY match the
+render pass's depth attachment format. The app's scene depth attachment is a
+depth-only `depth24plus`; enabling stencil for even one material forces that
+pass's depth attachment to a stencil-capable `depth24plus-stencil8`, and THEN
+every pipeline drawing into the pass must declare the same format — the same
+"all pipelines in a pass must agree" rule MSAA sample counts hit (C2). The
+render state is transported to the backend by the material pipeline KEY (the
+backend reconstructs alphaMode/cull/depth/blend/frontFace from the key string,
+as it already does for `depth-bias`/`front-face`), not by shipping the material
+asset, so byte-identity of that key for non-stencil materials is the bar every
+prior parity item met.
+
+Decision:
+
+Stencil is a per-material `renderState.stencil` sub-state (write/func/ref/
+masks/ops on ALL material kinds, built-in and custom WGSL); `unsupportedFeatures`
+drops `"stencil"`. It is transported and made byte-safe exactly like the other
+render state:
+
+- PRESENCE of `renderState.stencil` is the enable gate. It appends a single
+  sorted `stencil:<readMask>:<writeMask>:<reference>:<front…>:<back…>` FEATURE
+  token to the material pipeline key (the trailing
+  `alphaMode|cullMode|depthCompare|blend` segment is untouched, so the backend's
+  `parts.length - 4` parse is unchanged). Absent stencil ⇒ no token ⇒
+  byte-identical key, no depth-stencil format upgrade, unchanged determinism
+  fixtures and golden pixels.
+- **Depth-stencil format is selected per FRAME, not per material or per view
+  (approach B, frame granularity).** When ANY material in a frame enables
+  stencil, the whole frame's scene depth attachment becomes
+  `depth24plus-stencil8` and every scene pipeline in the frame declares it;
+  frames with no stencil keep `depth24plus`. Frame granularity (over per-view)
+  guarantees every pipeline in every pass of the frame agrees on the format with
+  zero risk of an intra-frame mismatch, while still keeping non-stencil frames
+  untouched. The chosen format is computed once per frame from the snapshot's
+  mesh-draw pipeline keys and threaded through the resource cache to the depth
+  attachment, the mesh/background/overlay pipelines, and the render-bundle
+  descriptor. This was chosen over "always `depth24plus-stencil8`" (approach A)
+  because A changes the depth format for every existing pipeline, test, and
+  golden and would have to prove behavioural inertness across all of them; B
+  preserves byte-identity by construction and only pays the format change on
+  frames that actually use stencil.
+- The stencil `reference` is dynamic (WebGPU sets it with
+  `setStencilReference`, not in the pipeline). The backend applies it on
+  pipeline bind, derived from the pipeline key. Because a render-bundle encoder
+  cannot set the stencil reference, stencil frames take the direct-encoder path
+  (render bundles are skipped for them).
+- A stencil-capable attachment requires the stencil aspect's load/store ops (or
+  read-only) on the render pass; the backend mirrors the depth aspect's ops onto
+  the stencil aspect only when the format carries stencil, clearing stencil to 0
+  alongside a depth clear.
+
+Consequences:
+
+- Portal/mask/outline recipes work with per-material stencil; advanced-audit
+  scenario #8 (stencil portal) qualifies and #7 (planar mirror) is partially
+  unblocked (stencil masking now available; still no Reflector/clipping planes).
+- Non-stencil materials and frames are byte-identical: the pipeline key gains no
+  token, the depth format stays `depth24plus`, and the determinism fixtures do
+  not shift.
+- Declaring stencil against a depth-only target raises the cataloged
+  `material.stencilRequiresStencilFormat` diagnostic and the pipeline is refused
+  (loud-over-silent) rather than emitting a WebGPU device error. Out-of-range
+  masks/reference raise `material.invalidStencilState` in material validation.
+- `colorWriteMask` is still not plumbed to built-in materials, so a stencil-only
+  MASK draw uses the "content overwrites the mask's color in the stencil region"
+  technique in the shipped portal example rather than disabled color writes.

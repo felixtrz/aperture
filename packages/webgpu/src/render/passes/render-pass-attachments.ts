@@ -33,6 +33,13 @@ export interface RenderPassDepthAttachmentInput {
   readonly depthLoadOp?: RenderPassAttachmentLoadOp;
   readonly depthStoreOp?: RenderPassAttachmentStoreOp;
   readonly depthReadOnly?: boolean;
+  // D1: a stencil-capable attachment (`depth24plus-stencil8`) MUST carry
+  // stencil load/store ops (or `stencilReadOnly`) — WebGPU rejects the pass
+  // otherwise. Absent for a depth-only attachment (byte-identical to pre-D1).
+  readonly stencilClearValue?: number;
+  readonly stencilLoadOp?: RenderPassAttachmentLoadOp;
+  readonly stencilStoreOp?: RenderPassAttachmentStoreOp;
+  readonly stencilReadOnly?: boolean;
 }
 
 export interface PlannedRenderPassColorAttachment {
@@ -56,6 +63,11 @@ export interface PlannedRenderPassDepthStencilAttachment {
   readonly depthLoadOp?: RenderPassAttachmentLoadOp;
   readonly depthStoreOp?: RenderPassAttachmentStoreOp;
   readonly depthReadOnly?: boolean;
+  // D1: stencil aspect ops for a stencil-capable attachment.
+  readonly stencilClearValue?: number;
+  readonly stencilLoadOp?: RenderPassAttachmentLoadOp;
+  readonly stencilStoreOp?: RenderPassAttachmentStoreOp;
+  readonly stencilReadOnly?: boolean;
 }
 
 export interface RenderPassAttachmentDescriptorPlan {
@@ -185,7 +197,14 @@ function createDepthAttachment(
   // view + depthReadOnly flag (the depth is neither cleared nor stored, just
   // tested + sampled).
   if (target.depthReadOnly === true) {
-    return { view: target.view, depthReadOnly: true };
+    return {
+      view: target.view,
+      depthReadOnly: true,
+      // D1: on a stencil-capable attachment the stencil aspect must also be
+      // declared read-only (mixed writable-stencil + read-only-depth is not
+      // needed by any current pass).
+      ...(target.stencilReadOnly === true ? { stencilReadOnly: true } : {}),
+    };
   }
 
   const attachment: PlannedRenderPassDepthStencilAttachment = {
@@ -194,6 +213,16 @@ function createDepthAttachment(
       target.depthLoadOp ??
       (target.depthClearValue === undefined ? "load" : "clear"),
     depthStoreOp: target.depthStoreOp ?? "store",
+    // D1: stencil aspect ops, present only for a stencil-capable attachment.
+    ...(target.stencilLoadOp === undefined
+      ? {}
+      : { stencilLoadOp: target.stencilLoadOp }),
+    ...(target.stencilStoreOp === undefined
+      ? {}
+      : { stencilStoreOp: target.stencilStoreOp }),
+    ...(target.stencilClearValue === undefined
+      ? {}
+      : { stencilClearValue: target.stencilClearValue }),
   };
 
   if (target.depthClearValue !== undefined) {

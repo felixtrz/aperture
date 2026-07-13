@@ -6,7 +6,6 @@ import {
 } from "@aperture-engine/render";
 import { createWebGpuBuffer } from "../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
-import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
 import {
   createSamplerGpuResource,
   type SamplerGpuResource,
@@ -243,7 +242,7 @@ async function getOrCreateWebGpuAppSkyboxPipeline(
   const colorFormat = webGpuAppScenePassColorFormat(app);
   const key = skyboxPipelineCacheKey(
     colorFormat,
-    WEBGPU_APP_DEPTH_FORMAT,
+    cache.sceneDepthFormat,
     app.msaa.sampleCount,
   );
   const cached = cache.skyboxPipelines.get(key);
@@ -260,7 +259,7 @@ async function getOrCreateWebGpuAppSkyboxPipeline(
       typeof createSkyboxRenderPipelineResource
     >[0]["device"],
     colorFormat,
-    depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+    depthFormat: cache.sceneDepthFormat,
     sampleCount: app.msaa.sampleCount,
   });
 

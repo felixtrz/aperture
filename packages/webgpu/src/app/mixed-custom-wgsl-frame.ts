@@ -899,7 +899,9 @@ async function prepareCustomDrawResourceSet(options: {
   }
 
   const colorFormat = webGpuAppScenePassColorFormat(options.app);
-  const depthFormat = "depth24plus";
+  // D1: the per-frame scene depth format (stencil-capable when the frame uses
+  // stencil); depth24plus otherwise so non-stencil frames stay byte-identical.
+  const depthFormat = options.cache.sceneDepthFormat;
   const sampleCount = options.app.msaa.sampleCount;
   const pipelineCacheKey = customWgslMaterialRenderPipelineCacheKey({
     material: prepared,

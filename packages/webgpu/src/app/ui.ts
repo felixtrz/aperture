@@ -38,7 +38,6 @@ import {
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import type { WebGpuAppResourceReuseReport } from "./app.js";
 import { webGpuAppCanvasDimensions } from "./canvas.js";
-import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
 import type { TonemapOperator } from "../output/output-stage-tonemap.js";
 import type { OutputColorSpace } from "../output/output-stage-color-space.js";
 import {
@@ -293,7 +292,7 @@ export async function getOrCreateWebGpuAppUiPanelPipeline(
   const colorFormat = webGpuAppScenePassColorFormat(app);
   const key = uiPanelPipelineCacheKey(
     colorFormat,
-    WEBGPU_APP_DEPTH_FORMAT,
+    cache.sceneDepthFormat,
     app.msaa.sampleCount,
     tonemap,
     outputColorSpace,
@@ -309,7 +308,7 @@ export async function getOrCreateWebGpuAppUiPanelPipeline(
       typeof createUiPanelRenderPipelineResource
     >[0]["device"],
     colorFormat,
-    depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+    depthFormat: cache.sceneDepthFormat,
     sampleCount: app.msaa.sampleCount,
     tonemap,
     outputColorSpace,
@@ -327,7 +326,7 @@ export async function getOrCreateWebGpuAppUiImagePipeline(
   const colorFormat = webGpuAppScenePassColorFormat(app);
   const key = uiImagePipelineCacheKey(
     colorFormat,
-    WEBGPU_APP_DEPTH_FORMAT,
+    cache.sceneDepthFormat,
     app.msaa.sampleCount,
     tonemap,
     outputColorSpace,
@@ -343,7 +342,7 @@ export async function getOrCreateWebGpuAppUiImagePipeline(
       typeof createUiImageRenderPipelineResource
     >[0]["device"],
     colorFormat,
-    depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+    depthFormat: cache.sceneDepthFormat,
     sampleCount: app.msaa.sampleCount,
     tonemap,
     outputColorSpace,

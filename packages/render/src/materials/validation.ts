@@ -4,6 +4,7 @@ import type {
   MaterialValidationDiagnostic,
   MaterialValidationReport,
   RenderStateDescriptor,
+  StencilStateDescriptor,
   TextureAsset,
 } from "./types.js";
 
@@ -110,4 +111,37 @@ function validateRenderState(
       message: "Blend materials must use a non-none blend preset.",
     });
   }
+
+  if (renderState.stencil !== undefined) {
+    validateStencilState(renderState.stencil, diagnostics);
+  }
+}
+
+// D1: the stencil sub-state's reference and masks must be unsigned 32-bit
+// integers (they encode into the pipeline key and, for the reference, drive
+// `setStencilReference`). `createStencilState` clamps these, so this catches
+// hand-built descriptors that bypass the factory.
+function validateStencilState(
+  stencil: StencilStateDescriptor,
+  diagnostics: MaterialValidationDiagnostic[],
+): void {
+  for (const [field, value] of [
+    ["renderState.stencil.reference", stencil.reference],
+    ["renderState.stencil.readMask", stencil.readMask],
+    ["renderState.stencil.writeMask", stencil.writeMask],
+  ] as const) {
+    if (!isUint32(value)) {
+      diagnostics.push({
+        code: "material.invalidStencilState",
+        field,
+        message: `${field} must be an unsigned 32-bit integer (0..4294967295), got ${String(
+          value,
+        )}.`,
+      });
+    }
+  }
+}
+
+function isUint32(value: number): boolean {
+  return Number.isInteger(value) && value >= 0 && value <= 0xffffffff;
 }

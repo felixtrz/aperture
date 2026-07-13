@@ -8,7 +8,6 @@ import {
 import {
   createOrReuseWebGpuDepthTexture,
   createWebGpuDepthTextureCacheSlot,
-  WEBGPU_APP_DEPTH_FORMAT,
   type CachedWebGpuDepthTextureResource,
   type WebGpuDepthTextureCacheSlot,
 } from "../resources/textures/depth-texture-resource.js";
@@ -63,7 +62,9 @@ export function createWebGpuAppDepthAttachmentForTarget(
     cache: depthCacheSlotForTarget(resourceCache, target),
     width: target.width,
     height: target.height,
-    format: WEBGPU_APP_DEPTH_FORMAT,
+    // D1: the per-frame scene depth format (`depth24plus`, or
+    // `depth24plus-stencil8` when the frame uses stencil).
+    format: resourceCache.sceneDepthFormat,
     sampleCount: app.msaa.sampleCount,
   }).resource;
 }

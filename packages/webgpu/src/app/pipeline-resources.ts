@@ -1,5 +1,4 @@
 import type { RenderSnapshot } from "@aperture-engine/render";
-import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
 import {
   createDebugNormalRenderPipelineResource,
   type CreateDebugNormalRenderPipelineResourceResult,
@@ -61,12 +60,17 @@ export function getOrCreateWebGpuAppPipeline(options: {
   const meshTonemap = options.kind === "standard" ? standardTonemap : "none";
   const meshOutputColorSpace =
     options.kind === "standard" ? standardOutputColorSpace : "linear";
+  // D1: the per-frame scene depth format (`depth24plus`, or the stencil-capable
+  // `depth24plus-stencil8` when the frame uses stencil). Threaded into the mesh
+  // pipeline cache key AND each descriptor's depthFormat so the pipeline agrees
+  // with the frame's depth attachment. Non-stencil frames keep `depth24plus`.
+  const depthFormat = options.cache.sceneDepthFormat;
   const key = [
     options.kind,
     options.app.sceneRenderFormat,
     `motion:${options.motionVectorColorFormat ?? "none"}`,
     `indirect:${options.indirectColorFormat ?? "none"}`,
-    WEBGPU_APP_DEPTH_FORMAT,
+    depthFormat,
     `samples:${options.app.msaa.sampleCount}`,
     options.pipelineKey,
     // The created resource bakes its vertex buffer layout from batchKey, so
@@ -104,7 +108,7 @@ export function getOrCreateWebGpuAppPipeline(options: {
           options.indirectColorFormat === null
             ? {}
             : { indirectColorFormat: options.indirectColorFormat }),
-          depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+          depthFormat,
           sampleCount: options.app.msaa.sampleCount,
           batchKey: options.batchKey,
           tonemap: meshTonemap,
@@ -119,7 +123,7 @@ export function getOrCreateWebGpuAppPipeline(options: {
             ...(options.motionVectorColorFormat === undefined
               ? {}
               : { motionVectorColorFormat: options.motionVectorColorFormat }),
-            depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+            depthFormat,
             sampleCount: options.app.msaa.sampleCount,
             batchKey: options.batchKey,
             tonemap: meshTonemap,
@@ -134,7 +138,7 @@ export function getOrCreateWebGpuAppPipeline(options: {
               ...(options.motionVectorColorFormat === undefined
                 ? {}
                 : { motionVectorColorFormat: options.motionVectorColorFormat }),
-              depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+              depthFormat,
               sampleCount: options.app.msaa.sampleCount,
               batchKey: options.batchKey,
               tonemap: meshTonemap,
@@ -148,7 +152,7 @@ export function getOrCreateWebGpuAppPipeline(options: {
               ...(options.motionVectorColorFormat === undefined
                 ? {}
                 : { motionVectorColorFormat: options.motionVectorColorFormat }),
-              depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+              depthFormat,
               sampleCount: options.app.msaa.sampleCount,
               batchKey: options.batchKey,
               tonemap: meshTonemap,

@@ -82,6 +82,49 @@ export interface BlendStateDescriptor {
   readonly preset: BlendPreset;
 }
 
+// D1 (stencil support). The stencil operation applied to a fragment's stored
+// stencil value; the WebGPU `GPUStencilOperation` set. three.js analog:
+// `Material.stencilFail`/`stencilZFail`/`stencilZPass` (keep/zero/replace/
+// invert/incr/decr wrap+clamp).
+export type StencilOperation =
+  | "keep"
+  | "zero"
+  | "replace"
+  | "invert"
+  | "increment-clamp"
+  | "decrement-clamp"
+  | "increment-wrap"
+  | "decrement-wrap";
+
+/**
+ * One face's stencil state (front or back). `compare` reuses {@link DepthCompare}
+ * (the WebGPU compare-function set); `failOp`/`depthFailOp`/`passOp` mirror
+ * three.js `stencilFail`/`stencilZFail`/`stencilZPass`.
+ */
+export interface StencilFaceStateDescriptor {
+  readonly compare: DepthCompare;
+  readonly failOp: StencilOperation;
+  readonly depthFailOp: StencilOperation;
+  readonly passOp: StencilOperation;
+}
+
+/**
+ * D1: per-material stencil state. PRESENCE on `renderState.stencil` enables
+ * stencil (the three.js `stencilWrite: true` gate); absence keeps today's
+ * contract byte-for-byte (no stencil pipeline-key token, no depth-stencil
+ * format upgrade). `reference` is the dynamic `setStencilReference` value
+ * (three.js `stencilRef`); `readMask`/`writeMask` are the compare/write masks
+ * (three.js `stencilFuncMask`/`stencilWriteMask`); `front`/`back` carry the
+ * per-face compare + operations.
+ */
+export interface StencilStateDescriptor {
+  readonly readMask: number;
+  readonly writeMask: number;
+  readonly reference: number;
+  readonly front: StencilFaceStateDescriptor;
+  readonly back: StencilFaceStateDescriptor;
+}
+
 export interface RenderStateDescriptor {
   readonly alphaMode: MaterialAlphaMode;
   readonly alphaCutoff: number;
@@ -90,6 +133,11 @@ export interface RenderStateDescriptor {
   readonly depth: DepthStateDescriptor;
   readonly blend: BlendStateDescriptor;
   readonly colorWriteMask: ColorWriteMask;
+  // D1: absent by default. Present ⇒ stencil is enabled for this material and
+  // its view's depth attachment is selected as a stencil-capable format
+  // (`depth24plus-stencil8`). Absent keeps byte-identical pipeline keys and the
+  // depth-only attachment.
+  readonly stencil?: StencilStateDescriptor;
 }
 
 export interface MaterialTextureBinding {
@@ -134,7 +182,10 @@ export interface BaseMaterialAsset {
   readonly unsupportedFeatures: readonly MaterialUnsupportedFeature[];
 }
 
-export type MaterialUnsupportedFeature = "stencil" | "custom-shader";
+// D1 dropped "stencil" — per-material stencil state is now supported through
+// `renderState.stencil`. "custom-shader" remains the one unsupported feature
+// flag for built-in materials.
+export type MaterialUnsupportedFeature = "custom-shader";
 
 export interface UnlitMaterialAsset extends BaseMaterialAsset {
   readonly kind: "unlit";
@@ -517,7 +568,8 @@ export type MaterialDiagnosticCode =
   | "material.unsupportedFeature"
   | "material.invalidTextureColorSpace"
   | "material.invalidTextureColorSpaceFormat"
-  | "material.incompatibleRenderState";
+  | "material.incompatibleRenderState"
+  | "material.invalidStencilState";
 
 export interface MaterialValidationDiagnostic {
   readonly code: MaterialDiagnosticCode;
@@ -539,4 +591,8 @@ export interface MaterialPipelineKeyInput {
   readonly depth: DepthStateDescriptor;
   readonly blend: BlendStateDescriptor;
   readonly colorWriteMask: ColorWriteMask;
+  // D1: present ⇒ a `stencil:…` feature token is appended to the key so a
+  // stencil material gets its own pipeline variant. Absent ⇒ no token, so
+  // non-stencil materials keep byte-identical keys.
+  readonly stencil?: StencilStateDescriptor;
 }

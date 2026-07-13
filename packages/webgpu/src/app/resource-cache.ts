@@ -66,6 +66,7 @@ import {
 } from "../render/queues/queued-built-in-frame-resource-set.js";
 import {
   createWebGpuDepthTextureCacheSlot,
+  WEBGPU_APP_DEPTH_FORMAT,
   type WebGpuDepthTextureCacheSlot,
 } from "../resources/textures/depth-texture-resource.js";
 import {
@@ -245,6 +246,11 @@ export interface WebGpuAppResourceCache {
   readonly standardFrame: StandardAppFrameResourceCacheSlot;
   readonly debugNormalFrame: DebugNormalAppFrameResourceCacheSlot;
   readonly depth: WebGpuDepthTextureCacheSlot;
+  // D1 (stencil support): the scene depth attachment format selected for the
+  // CURRENT frame. `depth24plus` by default; `depth24plus-stencil8` when a
+  // material in the frame enables stencil. Set once per frame (frame-loop) and
+  // read by every scene-depth pipeline + attachment so they agree on the format.
+  sceneDepthFormat: string;
   readonly depthByRenderTarget: Map<string, WebGpuDepthTextureCacheSlot>;
   readonly msaaColor: WebGpuMsaaColorTextureCacheSlot;
   readonly msaaColorByRenderTarget: Map<
@@ -497,6 +503,7 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     debugNormalFrame:
       createWebGpuAppFrameResourceCacheSlot<CachedDebugNormalAppFrameResources>(),
     depth: createWebGpuDepthTextureCacheSlot(),
+    sceneDepthFormat: WEBGPU_APP_DEPTH_FORMAT,
     depthByRenderTarget: new Map(),
     msaaColor: createWebGpuMsaaColorTextureCacheSlot(),
     msaaColorByRenderTarget: new Map(),

@@ -12,7 +12,6 @@ import {
 import type { WebGpuCanvasLike } from "../gpu/initialize-webgpu.js";
 import { createWebGpuBuffer } from "../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
-import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
 import {
   createSamplerGpuResource,
   type SamplerGpuResource,
@@ -440,7 +439,7 @@ export async function getOrCreateWebGpuAppSpritePipeline(
     : (app.outputColorSpace ?? "linear");
   const key = spritePipelineCacheKey(
     colorFormat,
-    WEBGPU_APP_DEPTH_FORMAT,
+    cache.sceneDepthFormat,
     app.msaa.sampleCount,
     tonemap,
     outputColorSpace,
@@ -457,7 +456,7 @@ export async function getOrCreateWebGpuAppSpritePipeline(
       typeof createSpriteRenderPipelineResource
     >[0]["device"],
     colorFormat,
-    depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+    depthFormat: cache.sceneDepthFormat,
     depthMode,
     sampleCount: app.msaa.sampleCount,
     tonemap,

@@ -6,11 +6,15 @@ import type {
   CustomWgslMaterialAsset,
   CustomWgslMaterialPipelineKeyInput,
   CustomWgslShaderRef,
+  DepthCompare,
   MaterialUnsupportedFeature,
   MatcapMaterialAsset,
   RenderStateDescriptor,
   SamplerAsset,
   StandardMaterialAsset,
+  StencilFaceStateDescriptor,
+  StencilOperation,
+  StencilStateDescriptor,
   TextureAsset,
   UnlitMaterialAsset,
   WgslShaderAsset,
@@ -31,7 +35,99 @@ export function createDefaultRenderState(
     },
     blend: overrides.blend ?? { preset: "none" },
     colorWriteMask: overrides.colorWriteMask ?? "all",
+    // D1: stencil is present ONLY when authored, so the default render state
+    // object stays byte-identical (absent ⇒ no pipeline-key token, depth-only
+    // attachment).
+    ...(overrides.stencil === undefined ? {} : { stencil: overrides.stencil }),
   };
+}
+
+// D1: the WebGPU defaults for a stencil face (a functional no-op) and masks
+// (0xFFFFFFFF read/write, reference 0). three.js uses the same all-pass keep
+// default when `stencilWrite` is first enabled.
+const STENCIL_DEFAULT_MASK = 0xffffffff;
+
+const DEFAULT_STENCIL_FACE: StencilFaceStateDescriptor = {
+  compare: "always",
+  failOp: "keep",
+  depthFailOp: "keep",
+  passOp: "keep",
+};
+
+/** @public */
+export interface StencilFaceStateInput {
+  readonly compare?: DepthCompare;
+  readonly failOp?: StencilOperation;
+  readonly depthFailOp?: StencilOperation;
+  readonly passOp?: StencilOperation;
+}
+
+/** @public */
+export interface StencilStateInput {
+  readonly reference?: number;
+  readonly readMask?: number;
+  readonly writeMask?: number;
+  // Shorthands applied to BOTH faces unless a per-face override is given.
+  readonly compare?: DepthCompare;
+  readonly failOp?: StencilOperation;
+  readonly depthFailOp?: StencilOperation;
+  readonly passOp?: StencilOperation;
+  readonly front?: StencilFaceStateInput;
+  readonly back?: StencilFaceStateInput;
+}
+
+/**
+ * D1: build a fully-defaulted {@link StencilStateDescriptor} from ergonomic,
+ * three.js-shaped input. Face shorthands (`compare`/`failOp`/`depthFailOp`/
+ * `passOp`) apply to both faces; `front`/`back` override per face. Masks
+ * default to 0xFFFFFFFF and the reference to 0 (the WebGPU/three.js defaults).
+ * Non-finite masks/reference are clamped to unsigned 32-bit integers so the
+ * pipeline-key token is deterministic.
+ */
+export function createStencilState(
+  input: StencilStateInput = {},
+): StencilStateDescriptor {
+  const shared: StencilFaceStateInput = {
+    ...(input.compare === undefined ? {} : { compare: input.compare }),
+    ...(input.failOp === undefined ? {} : { failOp: input.failOp }),
+    ...(input.depthFailOp === undefined
+      ? {}
+      : { depthFailOp: input.depthFailOp }),
+    ...(input.passOp === undefined ? {} : { passOp: input.passOp }),
+  };
+
+  return {
+    readMask: normalizeStencilMask(input.readMask, STENCIL_DEFAULT_MASK),
+    writeMask: normalizeStencilMask(input.writeMask, STENCIL_DEFAULT_MASK),
+    reference: normalizeStencilMask(input.reference, 0),
+    front: stencilFace(shared, input.front),
+    back: stencilFace(shared, input.back),
+  };
+}
+
+function stencilFace(
+  shared: StencilFaceStateInput,
+  face: StencilFaceStateInput | undefined,
+): StencilFaceStateDescriptor {
+  const merged = { ...shared, ...(face ?? {}) };
+
+  return {
+    compare: merged.compare ?? DEFAULT_STENCIL_FACE.compare,
+    failOp: merged.failOp ?? DEFAULT_STENCIL_FACE.failOp,
+    depthFailOp: merged.depthFailOp ?? DEFAULT_STENCIL_FACE.depthFailOp,
+    passOp: merged.passOp ?? DEFAULT_STENCIL_FACE.passOp,
+  };
+}
+
+function normalizeStencilMask(
+  value: number | undefined,
+  fallback: number,
+): number {
+  if (value === undefined || !Number.isFinite(value)) {
+    return fallback;
+  }
+
+  return Math.trunc(value) >>> 0;
 }
 
 export function createUnlitMaterialAsset(
@@ -273,7 +369,20 @@ function mergeRenderState(
       patch.blend === undefined
         ? (previous?.blend ?? fallback.blend)
         : { ...(previous?.blend ?? fallback.blend), ...patch.blend },
+    // D1: a patch's `stencil` replaces the whole sub-state (it is a small,
+    // fully-specified descriptor); an absent patch keeps the previous value so
+    // non-stencil merges stay byte-identical.
+    ...mergeRenderStateStencil(previous?.stencil, patch.stencil),
   });
+}
+
+function mergeRenderStateStencil(
+  previous: StencilStateDescriptor | undefined,
+  patch: StencilStateDescriptor | undefined,
+): Pick<Partial<RenderStateDescriptor>, "stencil"> {
+  const next = patch ?? previous;
+
+  return next === undefined ? {} : { stencil: next };
 }
 
 export function createDebugNormalMaterialAsset(

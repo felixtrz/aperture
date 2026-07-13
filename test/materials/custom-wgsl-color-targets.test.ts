@@ -80,6 +80,7 @@ function material(
     readonly colorTargets?: CustomWgslMaterialAsset["colorTargets"];
     readonly code?: string;
     readonly familyKey?: string;
+    readonly renderState?: CustomWgslMaterialAsset["renderState"] | object;
   } = {},
 ): CustomWgslMaterialAsset {
   return createCustomWgslMaterialAsset({
@@ -93,6 +94,9 @@ function material(
     ...(overrides.colorTargets === undefined
       ? {}
       : { colorTargets: overrides.colorTargets }),
+    ...(overrides.renderState === undefined
+      ? {}
+      : { renderState: overrides.renderState }),
     bindings: [],
   });
 }
@@ -294,6 +298,53 @@ describe("pipeline-key participation (byte-identity rule)", () => {
 
     expect(prepared.pipelineKey).toBe(BASELINE_PIPELINE_KEY);
     expect(prepared.pipeline.colorTargets).toBeUndefined();
+  });
+
+  it("threads the stencil token into the PREPARED custom-WGSL key only when authored (D1)", () => {
+    // Non-stencil ⇒ byte-identical to the baseline (no token).
+    const plain = createPreparedCustomWgslMaterial({
+      source: material({ renderState: {} }),
+      assetKey: "material:test/key-stability",
+      shaderCode: SINGLE_TARGET_WGSL,
+      shaderSourceKey: "inline:test",
+    });
+    expect(plain.pipelineKey).toBe(BASELINE_PIPELINE_KEY);
+
+    // Stencil ⇒ the token sits BEFORE the trailing render-state segments so the
+    // backend reconstructs the state from the key.
+    const stenciled = createPreparedCustomWgslMaterial({
+      source: material({
+        renderState: {
+          stencil: {
+            readMask: 255,
+            writeMask: 255,
+            reference: 1,
+            front: {
+              compare: "equal",
+              failOp: "keep",
+              depthFailOp: "keep",
+              passOp: "replace",
+            },
+            back: {
+              compare: "equal",
+              failOp: "keep",
+              depthFailOp: "keep",
+              passOp: "replace",
+            },
+          },
+        },
+      }),
+      assetKey: "material:test/key-stability",
+      shaderCode: SINGLE_TARGET_WGSL,
+      shaderSourceKey: "inline:test",
+    });
+    expect(stenciled.pipelineKey).toContain(
+      "|stencil:255:255:1:equal:keep:keep:replace:equal:keep:keep:replace|opaque|back|less|none",
+    );
+    // Removing the token yields the byte-identical non-stencil key.
+    expect(stenciled.pipelineKey.replace(/\|stencil:[^|]*/, "")).toBe(
+      BASELINE_PIPELINE_KEY,
+    );
   });
 
   it("adds the color-targets segment (formats + masks, no handle ids) only when declared", () => {

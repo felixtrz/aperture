@@ -226,7 +226,9 @@ describe("material, texture, sampler, and render-state schemas", () => {
   it("reports missing handles, invalid alpha cutoff, unsupported features, and incompatible render state", () => {
     const invalid = createStandardMaterialAsset({
       baseColorTexture: { texture: null, sampler: null },
-      unsupportedFeatures: ["stencil", "custom-shader"],
+      // D1 dropped "stencil" from the unsupported-feature set; "custom-shader"
+      // remains the one unsupported flag for built-in materials.
+      unsupportedFeatures: ["custom-shader"],
       renderState: {
         alphaMode: "blend",
         alphaCutoff: 1.5,
@@ -243,7 +245,6 @@ describe("material, texture, sampler, and render-state schemas", () => {
       "material.invalidAlphaCutoff",
       "material.incompatibleRenderState",
       "material.incompatibleRenderState",
-      "material.unsupportedFeature",
       "material.unsupportedFeature",
       "material.missingTextureHandle",
       "material.missingSamplerHandle",

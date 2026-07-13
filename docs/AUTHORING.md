@@ -280,6 +280,66 @@ from zero) pays one pipeline build on the next prepared frame. The
 `transmission-app` example renders the transmission scene entirely through
 these options.
 
+### Stencil (render state) — parity plan D1
+
+Any material kind (built-in `standard`/`unlit`/`matcap`/`debug-normal` and
+custom WGSL) can enable per-material stencil state through
+`renderState.stencil`. It is the three.js `Material.stencilWrite` /
+`stencilFunc` / `stencilRef` / `stencilFuncMask` / `stencilWriteMask` /
+`stencilFail` / `stencilZFail` / `stencilZPass` surface. Build the sub-state
+with `createStencilState` (ergonomic, three.js-shaped input; face shorthands
+apply to both faces, `front`/`back` override per face, masks default to
+`0xFFFFFFFF` and the reference to `0`):
+
+```ts
+import { createStencilState } from "@aperture-engine/render";
+
+// A stencil MASK: stamp reference 1 wherever this draws.
+material.unlit({
+  renderState: {
+    depth: { test: false, write: false, compare: "always" },
+    stencil: createStencilState({
+      compare: "always", // stencilFunc
+      passOp: "replace", // stencilZPass — write the reference
+      reference: 1, // stencilRef
+    }),
+  },
+});
+
+// Content revealed only where the mask wrote (stencilFunc "equal").
+material.unlit({
+  renderState: {
+    stencil: createStencilState({ compare: "equal", reference: 1 }),
+  },
+});
+```
+
+Presence of `renderState.stencil` is the enable gate (like `stencilWrite:
+true`); a material without it keeps byte-identical pipeline keys and the
+depth-only attachment. The `stencil` state participates in the pipeline key as a
+single sorted `stencil:…` feature token, so two materials that differ only in
+stencil (including the reference) get distinct pipelines. `compare` reuses the
+depth compare set (`always`/`equal`/`not-equal`/…); operations are `keep` /
+`zero` / `replace` / `invert` / `increment-clamp` / `decrement-clamp` /
+`increment-wrap` / `decrement-wrap`.
+
+Order stencil draws with `withRenderOrder` (the opaque queue sorts by render
+order before depth), so a mask writes before the content tests it in the same
+pass. Two recipes ship as examples: `examples/stencil-portal` (a mask reveals a
+scene view through a portal shape) and `examples/stencil-outline` (a mesh writes
+stencil, a scaled copy draws only where stencil `!= ref`).
+
+**Depth-stencil format is automatic.** WebGPU requires a pipeline's
+`depthStencil.format` to match the pass's depth attachment. When _any_ material
+in a frame enables stencil, Aperture selects the whole frame's scene depth
+attachment as `depth24plus-stencil8` (and every pipeline in the pass follows);
+frames with no stencil keep the depth-only `depth24plus` unchanged. The stencil
+`reference` is applied at draw time via `setStencilReference`, so stencil frames
+take the direct-encoder path (render bundles are skipped for them). Declaring
+stencil on a target whose format has no stencil aspect raises the
+`material.stencilRequiresStencilFormat` diagnostic and the pipeline is refused
+rather than producing a device error.
+
 ## Prefabs
 
 Prefabs are serialized `ApertureSceneDocument` blueprints. Author the source
