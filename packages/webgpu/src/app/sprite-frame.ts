@@ -57,6 +57,7 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     (options.snapshot.particleEmitters ?? []).length > 0;
   const hasLines = (options.snapshot.lines ?? []).length > 0;
   const hasPoints = (options.snapshot.points ?? []).length > 0;
+  const hasDebugLines = (options.snapshot.debugLines?.segmentCount ?? 0) > 0;
   const packedViews = writePackedSnapshotViewUniforms(
     options.snapshot,
     resourceCache.frameScratch.viewUniforms,
@@ -180,7 +181,8 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     !hasUiNodes &&
     !hasParticleEmitters &&
     !hasLines &&
-    !hasPoints
+    !hasPoints &&
+    !hasDebugLines
   ) {
     return renderReport({
       ok: false,

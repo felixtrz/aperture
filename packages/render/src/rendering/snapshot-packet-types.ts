@@ -194,6 +194,27 @@ export interface PointsPacket {
   readonly sortKey: RenderSortKey;
 }
 
+/**
+ * Immediate-mode debug-draw line soup (E3). A transient, per-frame family that
+ * is NOT tied to any ECS entity: systems accumulate debug primitives (aabb,
+ * sphere, axes, grid, frustum, bones, physics wireframes…) every frame via the
+ * immediate-mode `debugDraw` API and each primitive tessellates into world-space
+ * line segments here, then the accumulator is cleared. Rendered as an overlay
+ * through the shared E1 fat-line pipeline. Absent when a frame draws no debug
+ * primitives (or debug draw is disabled), so a debug-free snapshot is
+ * byte-identical to a pre-E3 snapshot.
+ */
+export interface DebugLinesSnapshot {
+  /** Number of world-space line segments accumulated this frame. */
+  readonly segmentCount: number;
+  /** Six floats per segment: `p0.xyz` then `p1.xyz` in world space. */
+  readonly positions: Float32Array;
+  /** Four floats per segment: the segment RGBA color. */
+  readonly colors: Float32Array;
+  /** One float per segment: the screen-space line width in pixels. */
+  readonly widths: Float32Array;
+}
+
 export interface QuadBatchPacket {
   readonly batchId: number;
   readonly kind: QuadBatchKind;

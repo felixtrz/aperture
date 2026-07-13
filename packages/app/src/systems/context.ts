@@ -1,4 +1,10 @@
 import type { AssetRegistry, EcsWorld } from "@aperture-engine/simulation";
+import {
+  createConfiguredDebugDrawAccumulator,
+  getDebugDrawAccumulator,
+  installDebugDrawAccumulator,
+  type DebugDrawApi,
+} from "@aperture-engine/render";
 import type { ApertureConfig } from "../config.js";
 import {
   createInputResource,
@@ -110,6 +116,13 @@ export interface ApertureSystemContext {
   readonly diagnostics: SystemDiagnostics;
   readonly effects: ScheduledEffects;
   readonly determinism: ApertureDeterminismDiagnostics;
+  /**
+   * Immediate-mode debug-draw API (E3). Systems call `this.debugDraw.aabb(...)`
+   * etc. every frame; each primitive tessellates into world-space line segments
+   * rendered as an overlay through the shared E1 fat-line pipeline and lasts
+   * exactly one frame. A shared no-op when `config.debugDraw` is `false`.
+   */
+  readonly debugDraw: DebugDrawApi;
 }
 
 export interface CreateApertureSystemContextOptions {
@@ -201,6 +214,15 @@ export function createApertureSystemContext(
   const fixedStep = createFixedStepAccess(options.registerFixedStepTask);
   const interaction = createInteractionAccess(options.world);
   const html = createHtmlBridgeAccess(resources);
+  // Share the debug-draw accumulator the extraction app already installed on the
+  // world globals; install a config-driven one only when the context is created
+  // standalone (e.g. unit tests) so `this.debugDraw` always has a target.
+  const debugDraw =
+    getDebugDrawAccumulator(options.world) ??
+    installDebugDrawAccumulator(
+      options.world,
+      createConfiguredDebugDrawAccumulator(options.config?.debugDraw !== false),
+    );
 
   const random =
     typeof options.random === "object"
@@ -245,6 +267,7 @@ export function createApertureSystemContext(
     diagnostics,
     effects: createScheduledEffects(),
     determinism,
+    debugDraw,
   };
 
   installApertureSystemContext(options.world, context);

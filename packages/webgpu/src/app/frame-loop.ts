@@ -248,6 +248,7 @@ export async function renderWebGpuAppFrame(
   const hasParticleEmitters = (snapshot.particleEmitters ?? []).length > 0;
   const hasLines = (snapshot.lines ?? []).length > 0;
   const hasPoints = (snapshot.points ?? []).length > 0;
+  const hasDebugLines = (snapshot.debugLines?.segmentCount ?? 0) > 0;
   const resourceSetPlan = createWebGpuAppDrawResourceSetPlan(snapshot);
 
   if (
@@ -260,7 +261,8 @@ export async function renderWebGpuAppFrame(
       hasUiNodes ||
       hasParticleEmitters ||
       hasLines ||
-      hasPoints)
+      hasPoints ||
+      hasDebugLines)
   ) {
     phaseTimer.finish("collect");
     phaseTimer.start("prepare");

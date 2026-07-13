@@ -2,6 +2,7 @@ import type {
   AudioEmitterPacket,
   AudioListenerPacket,
   BoundsPacket,
+  DebugLinesSnapshot,
   DecalPacket,
   EnvironmentPacket,
   FogPacket,
@@ -72,6 +73,14 @@ export interface RenderSnapshot {
   readonly pointVertices?: Float32Array;
   /** Flat per-point RGBA colors (four per point) referenced by `points`. */
   readonly pointColors?: Float32Array;
+  /**
+   * Immediate-mode debug-draw line soup (E3). Transient per-frame overlay
+   * geometry accumulated by the `debugDraw` API and rendered through the shared
+   * E1 fat-line pipeline. Absent when a frame draws no debug primitives so a
+   * debug-free snapshot is byte-identical to a pre-E3 snapshot. Rides the
+   * transferable transport (see `hasUnsupportedSharedSnapshotPayload`).
+   */
+  readonly debugLines?: DebugLinesSnapshot;
   readonly particleEmitters?: readonly ParticleEmitterPacket[];
   readonly audioEmitters?: readonly AudioEmitterPacket[];
   readonly audioListener?: AudioListenerPacket;

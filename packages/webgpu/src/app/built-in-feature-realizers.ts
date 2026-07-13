@@ -1,8 +1,9 @@
 import type { AssetRegistry } from "@aperture-engine/simulation";
-import type {
-  PackedSnapshotViewUniforms,
-  RenderSnapshot,
-  RenderSortKey,
+import {
+  createRenderSortKey,
+  type PackedSnapshotViewUniforms,
+  type RenderSnapshot,
+  type RenderSortKey,
 } from "@aperture-engine/render";
 import {
   createWebGpuFeatureCommandGroupsFromCommands,
@@ -22,6 +23,10 @@ import {
   prepareLineFrameResourcesForSnapshot,
   type LineFrameReport,
 } from "./lines.js";
+import {
+  prepareDebugLineFrameResourcesForSnapshot,
+  type DebugLineFrameReport,
+} from "./debug-lines.js";
 import {
   preparePointFrameResourcesForSnapshot,
   type PointFrameReport,
@@ -157,6 +162,37 @@ export function registerBuiltInWebGpuFeatureRealizers(
               }),
         diagnostics: lineFrame.diagnostics,
         ...(lineFrame.report === undefined ? {} : { report: lineFrame.report }),
+      };
+    },
+  });
+
+  registry.register({
+    id: "debug-draw",
+    packetFamilies: ["debugLines"],
+    async prepareFrame(input) {
+      const debugFrame = await prepareDebugLineFrameResourcesForSnapshot({
+        app: input.app,
+        assets: input.assets,
+        cache,
+        snapshot: input.snapshot,
+        viewUniforms: input.viewUniforms,
+      });
+
+      return {
+        valid: debugFrame.valid,
+        commandGroups:
+          debugFrame.commands.length === 0
+            ? []
+            : createWebGpuFeatureCommandGroupsFromCommands({
+                featureId: "debug-draw",
+                phase: "transparent",
+                commands: debugFrame.commands,
+                sortKeys: debugLineRenderSortKeys(),
+              }),
+        diagnostics: debugFrame.diagnostics,
+        ...(debugFrame.report === undefined
+          ? {}
+          : { report: debugFrame.report }),
       };
     },
   });
@@ -303,6 +339,28 @@ function lineRenderSortKeys(
   return sortKeys;
 }
 
+// The single stable renderId the debug-overlay draw batch uses, mirrored from
+// debug-lines.ts so the transparent-phase merge can resolve its sort key.
+const DEBUG_LINES_RENDER_ID = 0x7fff_fffe;
+
+// The debug overlay draws last within the transparent queue (a very high order)
+// so helper wireframes composite over the rest of the transparent geometry.
+function debugLineRenderSortKeys(): ReadonlyMap<number, RenderSortKey> {
+  return new Map([
+    [
+      DEBUG_LINES_RENDER_ID,
+      createRenderSortKey({
+        queue: "transparent",
+        order: 1_000_000,
+        pipelineKey: "aperture/fat-line",
+        materialKey: "debug-line",
+        meshKey: "debug-line-segment",
+        stableId: DEBUG_LINES_RENDER_ID,
+      }),
+    ],
+  ]);
+}
+
 function pointRenderSortKeys(
   snapshot: RenderSnapshot,
 ): ReadonlyMap<number, RenderSortKey> {
@@ -334,4 +392,11 @@ export function webGpuPointFrameReport(
   frame: WebGpuFeatureRegistryFrameResult,
 ): PointFrameReport | undefined {
   return frame.reports.get("points") as PointFrameReport | undefined;
+}
+
+/** Typed accessor for the built-in debug-draw overlay's per-frame report. */
+export function webGpuDebugLineFrameReport(
+  frame: WebGpuFeatureRegistryFrameResult,
+): DebugLineFrameReport | undefined {
+  return frame.reports.get("debug-draw") as DebugLineFrameReport | undefined;
 }

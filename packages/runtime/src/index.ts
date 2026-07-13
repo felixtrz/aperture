@@ -118,11 +118,14 @@ import {
   createUiImage,
   createUiNode,
   createUiPanel,
+  createConfiguredDebugDrawAccumulator,
   createRenderExtractionCache,
   createUiScreen,
   createUiScroll,
   createUiText,
   extractRenderSnapshot,
+  installDebugDrawAccumulator,
+  type DebugDrawAccumulator,
   replayGltfEcsAuthoringCommands,
   registerRenderAuthoringComponents,
   type CameraInput,
@@ -304,6 +307,14 @@ export interface SimulationApp {
 }
 
 export interface ExtractionApp extends SimulationApp {
+  /**
+   * Immediate-mode debug-draw accumulator (E3). Systems (or the frame loop)
+   * call `app.debugDraw.aabb(...)` etc. every frame; the accumulated primitives
+   * drain into a transient overlay family on the next `extract`/`stepAndExtract`
+   * and the accumulator clears. A no-op shared instance when debug draw is
+   * disabled, so calls stay byte-identical to a debug-free frame.
+   */
+  readonly debugDraw: DebugDrawAccumulator;
   extract(frame?: number): RenderSnapshot;
   stepAndExtract(delta?: number, time?: number, frame?: number): RenderSnapshot;
   /**
@@ -330,6 +341,13 @@ export interface CreateExtractionAppOptions extends CreateSimulationAppOptions {
   readonly renderFeatures?:
     | RenderExtractionFeatureOptions
     | RenderExtractionFeatureResolver;
+  /**
+   * Enable the immediate-mode debug-draw overlay (E3). Defaults to `true`. Pass
+   * `false` (production builds) to bind the shared no-op accumulator so
+   * `app.debugDraw.*` accumulates nothing and every frame is byte-identical to
+   * one without debug draw.
+   */
+  readonly debugDraw?: boolean;
 }
 
 export interface ApplyGltfEcsCommandPlanToAppOptions {
@@ -446,10 +464,18 @@ export function createExtractionApp(
   const resolveRenderFeatures = createRenderExtractionFeatureResolver(
     options.renderFeatures,
   );
+  // E3: install the immediate-mode debug-draw accumulator on world globals so
+  // `app.debugDraw` and the render extraction share exactly one per-frame
+  // buffer. Extraction drains + clears it every frame.
+  const debugDraw = installDebugDrawAccumulator(
+    app.world,
+    createConfiguredDebugDrawAccumulator(options.debugDraw !== false),
+  );
   let currentTime = 0;
 
   return {
     ...app,
+    debugDraw,
     step(delta = 0, time = 0) {
       currentTime = time;
       return app.step(delta, time);

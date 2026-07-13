@@ -303,6 +303,7 @@ export function renderSnapshotTransferList(
     | "lineVertices"
     | "pointVertices"
     | "pointColors"
+    | "debugLines"
   >,
 ): Transferable[] {
   return renderSnapshotBufferTransferList(snapshot);
@@ -323,6 +324,7 @@ function renderSnapshotBufferTransferList(input: {
   readonly lineVertices?: Float32Array;
   readonly pointVertices?: Float32Array;
   readonly pointColors?: Float32Array;
+  readonly debugLines?: RenderSnapshot["debugLines"];
 }): Transferable[] {
   const transfer: Transferable[] = [
     input.transforms.buffer as ArrayBuffer,
@@ -399,6 +401,18 @@ function renderSnapshotBufferTransferList(input: {
 
   if (input.pointColors !== undefined && input.pointColors.byteLength > 0) {
     transfer.push(input.pointColors.buffer as ArrayBuffer);
+  }
+
+  if (input.debugLines !== undefined) {
+    if (input.debugLines.positions.byteLength > 0) {
+      transfer.push(input.debugLines.positions.buffer as ArrayBuffer);
+    }
+    if (input.debugLines.colors.byteLength > 0) {
+      transfer.push(input.debugLines.colors.buffer as ArrayBuffer);
+    }
+    if (input.debugLines.widths.byteLength > 0) {
+      transfer.push(input.debugLines.widths.buffer as ArrayBuffer);
+    }
   }
 
   return transfer;

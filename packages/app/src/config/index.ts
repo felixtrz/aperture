@@ -479,6 +479,14 @@ export interface ApertureConfig {
   readonly features?: readonly ApertureWorkerFeature[];
   readonly diagnostics?: ApertureDiagnosticsConfig;
   readonly assetDecoders?: ApertureAssetDecoderConfig;
+  /**
+   * Immediate-mode debug-draw overlay (E3). Defaults to `true`. Set `false` for
+   * production builds to bind the shared no-op accumulator, so any
+   * `this.debugDraw.*` calls a system makes accumulate nothing and every frame
+   * stays byte-identical to one without debug draw (zero overhead when
+   * disabled).
+   */
+  readonly debugDraw?: boolean;
 }
 
 export type DefineApertureConfigInput<TConfig extends ApertureConfig> = TConfig;

@@ -39,6 +39,7 @@ import { extractRuntimeUniforms } from "./extraction-runtime-uniforms.js";
 import { extractSkyboxes } from "./extraction-skyboxes.js";
 import { extractSpriteDraws } from "./extraction-sprites.js";
 import { extractDecals } from "./extraction-decals.js";
+import { getDebugDrawAccumulator } from "./debug-draw.js";
 import { extractLines } from "./extraction-lines.js";
 import { extractLodSelection } from "./extraction-lod.js";
 import { extractPoints } from "./extraction-points.js";
@@ -287,6 +288,18 @@ export function extractRenderSnapshot(
 
   quadBatches.sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
 
+  // E3: drain this frame's immediate-mode debug-draw primitives into a transient
+  // overlay family and clear the accumulator. A frame with no debug calls (or a
+  // disabled/no-op accumulator) drains to null, so no family, no report field,
+  // and no diagnostics are attached — byte-identical to a pre-E3 snapshot.
+  const debugFrame = getDebugDrawAccumulator(world)?.drain() ?? null;
+
+  if (debugFrame !== null) {
+    for (const debugDiagnostic of debugFrame.diagnostics) {
+      diagnostics.push(debugDiagnostic);
+    }
+  }
+
   return {
     frame: options.frame ?? 0,
     time: options.time ?? 0,
@@ -306,6 +319,9 @@ export function extractRenderSnapshot(
     ...(pointColors.length === 0
       ? {}
       : { pointColors: new Float32Array(pointColors) }),
+    ...(debugFrame?.debugLines === undefined
+      ? {}
+      : { debugLines: debugFrame.debugLines }),
     ...(particleEmitters.length === 0 ? {} : { particleEmitters }),
     ...(audioEmitters.length === 0 ? {} : { audioEmitters }),
     ...(audioListener === undefined ? {} : { audioListener }),
@@ -369,6 +385,7 @@ export function extractRenderSnapshot(
       ...(pointExtraction.report === undefined
         ? {}
         : { points: pointExtraction.report }),
+      ...(debugFrame === null ? {} : { debugDraw: debugFrame.report }),
       ...(lodExtraction.report === undefined
         ? {}
         : { lod: lodExtraction.report }),

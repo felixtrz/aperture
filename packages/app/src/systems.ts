@@ -256,6 +256,7 @@ export type {
   ScheduledEffects,
 } from "./systems/effects.js";
 export { flushApertureSystemEffects } from "./systems/effects.js";
+export { runPhysicsDebugDrawFrame } from "./systems/physics-debug-draw.js";
 export type {
   CommandAccess,
   CommandAccessSummary,
@@ -835,6 +836,10 @@ export function createSystem<
 
     get diagnostics(): SystemDiagnostics {
       return this.#context.diagnostics;
+    }
+
+    get debugDraw(): ApertureSystemContext["debugDraw"] {
+      return this.#context.debugDraw;
     }
 
     get effects(): ScheduledEffects {

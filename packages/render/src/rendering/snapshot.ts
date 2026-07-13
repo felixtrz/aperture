@@ -5,6 +5,8 @@ export type {
   AudioVoiceKey,
   BatchCompatibilityKey,
   BoundsPacket,
+  DebugDrawSnapshotReport,
+  DebugLinesSnapshot,
   DecalPacket,
   DecalSnapshotReport,
   EnvironmentPacket,

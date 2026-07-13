@@ -24,7 +24,7 @@ import {
 import { webGpuAppCanvasDimensions } from "./canvas.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 
-interface WebGpuAppLineContext {
+export interface WebGpuAppLineContext {
   readonly canvas?: WebGpuCanvasLike;
   readonly initialization: {
     readonly device: unknown;
@@ -54,7 +54,7 @@ export interface LineFrameResources {
   readonly report?: LineFrameReport;
 }
 
-const LINE_VIEW_UNIFORM_FLOAT_COUNT = 20;
+export const LINE_VIEW_UNIFORM_FLOAT_COUNT = 20;
 
 export async function prepareLineFrameResourcesForSnapshot(options: {
   readonly app: WebGpuAppLineContext;
@@ -298,7 +298,7 @@ export async function getOrCreateWebGpuAppLinePipeline(
   return result;
 }
 
-function lineViewUniformData(
+export function lineViewUniformData(
   app: WebGpuAppLineContext,
   viewUniforms: PackedSnapshotViewUniforms,
   snapshot: RenderSnapshot,

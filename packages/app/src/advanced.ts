@@ -31,6 +31,7 @@ import {
 import { runInteractionFrame } from "./interaction/system.js";
 import { runHtmlBridgeFrame } from "./systems/html-bridge.js";
 import { runScreenSpaceFramingFrame } from "./systems/screen-space-framing.js";
+import { runPhysicsDebugDrawFrame } from "./systems/physics-debug-draw.js";
 import {
   defineApertureConfig,
   type ApertureConfig,
@@ -185,6 +186,9 @@ export async function createApertureApp(
       ? {}
       : { worldOptions: options.worldOptions }),
     ...(fixedStep === undefined ? {} : { fixedStep }),
+    // E3: honor `config.debugDraw` (default on) so the extraction app installs
+    // either a real immediate-mode accumulator or the shared no-op.
+    debugDraw: config.debugDraw !== false,
     renderFeatures: () => featureExtractorRegistry.renderFeatures(),
   });
   const context = createApertureSystemContext({
@@ -325,6 +329,12 @@ export async function createApertureApp(
         // fixed-step physics writeback has refreshed transforms and picking data.
         runInteractionFrame(context, time);
         const interactionMilliseconds = markTiming();
+        // E3 AC2: route the physics backend's debug geometry through the single
+        // immediate-mode debug-draw overlay (no bespoke physics render path).
+        // No-op unless a PhysicsDebug component enables a channel.
+        if (physicsConfig !== null) {
+          runPhysicsDebugDrawFrame(context, lowLevel.world);
+        }
         flushApertureSystemEffects(lowLevel.world, "postUpdate");
         const postUpdateEffectsMilliseconds = markTiming();
         return {

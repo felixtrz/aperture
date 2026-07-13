@@ -115,6 +115,7 @@ async function createWebGpuApp(
     ...renderer,
     world: extraction.world,
     assets: extraction.assets,
+    debugDraw: extraction.debugDraw,
     spawn(...initializers: SpawnEntityInitializer[]): Entity {
       return extraction.spawn(...initializers);
     },

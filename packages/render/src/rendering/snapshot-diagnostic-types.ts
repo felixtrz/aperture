@@ -49,6 +49,11 @@ export interface RenderSnapshotReport {
   /** Point-cloud tally (E1). Absent when a frame carries no points. */
   readonly points?: PointsSnapshotReport;
   /**
+   * Immediate-mode debug-draw tally (E3). Absent when a frame draws no debug
+   * primitives so a debug-free report is byte-identical to a pre-E3 report.
+   */
+  readonly debugDraw?: DebugDrawSnapshotReport;
+  /**
    * Mesh-LOD selection tally (E2). Absent when a frame carries no LOD entities
    * so a LOD-free report is byte-identical to a pre-E2 report.
    */
@@ -96,6 +101,19 @@ export interface LineSnapshotReport {
 export interface PointsSnapshotReport {
   readonly clouds: number;
   readonly points: number;
+}
+
+/**
+ * Immediate-mode debug-draw tally (E3): the number of high-level primitives
+ * (aabb/sphere/axes/grid/frustum/bones/…) drawn this frame, the total line
+ * segments they tessellated into, and the segment vertex count (`segments * 2`).
+ * `capped` is set when the per-frame segment cap dropped extra segments.
+ */
+export interface DebugDrawSnapshotReport {
+  readonly primitives: number;
+  readonly segments: number;
+  readonly vertices: number;
+  readonly capped?: boolean;
 }
 
 /**

@@ -1109,6 +1109,63 @@ handle only (shared material), not whole sub-objects with their own materials.
 
 ### E3. Debug helpers / debug-draw system — **M**
 
+Status: implemented (2026-07-13). AC1 (immediate-mode API + overlay +
+no-op-in-production): a system calls `this.debugDraw.line/aabb/box/sphere/axes/
+grid/frustum/bones/light(...)` every frame; each primitive lasts exactly one
+frame. Every primitive tessellates into world-space **line segments** via pure,
+unit-tested functions in `debug-draw-geometry.ts` (an AABB = 12 edges over 8
+corners, a sphere = 3 great-circle rings, axes = 3 colored segments, a grid =
+`2*(divisions+1)` segments, a frustum = 12 edges of the inverse-view-projection
+NDC cube, bones = a segment per joint link). Systems accumulate into a
+per-frame `DebugDrawAccumulator` (installed on world globals by
+`createExtractionApp`, exposed as `this.debugDraw` on the system base and
+`app.debugDraw` on the extraction app); render extraction **drains** it into a
+transient `snapshot.debugLines` family (flat world positions/colors/widths) plus
+a `report.debugDraw = { primitives, segments, vertices }` tally, then clears it.
+
+Overlay + E1 backend reuse: a `debug-draw` built-in webgpu realizer packs the
+segments into the **same per-segment instance layout** the E1 fat lines use and
+draws them with the **same** `aperture/fat-line` pipeline
+(`getOrCreateWebGpuAppLinePipeline`) — no second line rasterizer, a shared
+built-in material (never custom-WGSL, so the D3 black-frame bug never applies),
+in the transparent queue at a high order so helpers composite over the scene, and
+inheriting the E1 pipeline's sample count + depth handling (depth-tested, no depth
+write — three.js helper behavior). A debug-only frame (no meshes) renders through
+the sprite/overlay-only path (extended to recognize `debugLines` as content).
+
+No-op / byte-identity: when `config.debugDraw: false` (threaded into
+`createExtractionApp({ debugDraw })`), the bound accumulator is a shared frozen
+no-op — every `this.debugDraw.*` call accumulates nothing, `drain()` returns
+`null`, and the frame emits no `debugLines` family, no `report.debugDraw` field,
+and no overlay pass, byte-identical to a pre-E3 frame (pinned by a
+disabled-vs-empty literal test). A frame that makes no debug calls is likewise
+byte-identical whether debug draw is enabled or not.
+
+AC2 (physics re-plumb): the physics debug geometry (collider wireframes / contact
+normals / body-state markers / broadphase AABBs / joint frames) — previously
+data-only via `this.physics.debugGeometry()` and the `physics_debug_geometry`
+devtools tool, with **no render path at all** — now composites onto the **same**
+overlay: `debugDraw.physics(geometry)` feeds a `PhysicsDebugGeometry` line list
+through the identical sink, and a built-in app-step bridge
+(`runPhysicsDebugDrawFrame`) routes `physics.debugGeometry()` through it every
+frame when a `PhysicsDebug` component enables a channel. One overlay route; nothing
+left on a bespoke path (the devtools query tool remains as a data accessor).
+
+Determinism + transport: determinism scenes emit no debug primitives, so no
+family/report field appears and `test/determinism` is GREEN with **no** fixture
+refresh. The `debugLines` family rides the transferable transport (added to
+`hasUnsupportedSharedSnapshotPayload` + `renderSnapshotTransferList`), avoiding a
+packed-codec change. Failure paths emit structured `render.debugDraw.*`
+diagnostics (degenerate/non-finite primitive skipped, per-frame segment cap
+exceeded) rather than device errors. `examples/debug-draw` draws an AABB + sphere +
+axes + grid + a physics collider wireframe every frame; its e2e asserts the exact
+primitive/segment counts (1 AABB → 12 segments; 5 primitives → 89 segments),
+overlay pixels over the scene, and that `?debug=off` drops both to zero.
+Feature-audit §8 helper rows → ✅. Deviations (honest): `ArrowHelper` is covered by
+`line` + the light-gizmo aim ray (no dedicated cone-tipped arrow); the light gizmo
+is a coordinate frame + aim ray (not per-light-kind cone/sphere); the overlay is
+depth-tested (three.js helper behavior), not a forced draw-over-everything pass.
+
 - AC1: Immediate-mode debug draw API from systems (lines, AABBs, spheres,
   axes, grids, camera frusta, light gizmos, skeleton bones) rendered as an
   overlay layer, compiled out / no-op in production builds.

@@ -1741,6 +1741,76 @@ See `examples/mesh-lod.html` for a field of LOD'd rocks the camera dollies
 near→far, with a frame-report e2e proving the distribution shift and the
 no-popping hysteresis band.
 
+## Debug draw — parity plan E3
+
+An **immediate-mode debug-draw** overlay — the analog of three.js's helper
+objects (`Box3Helper`, `SphereHelper`, `AxesHelper`, `GridHelper`, `CameraHelper`,
+`SkeletonHelper`, `ArrowHelper`) — but as a single API you call **from a system,
+every frame**, instead of spawning helper entities. Each primitive lasts exactly
+one frame: draw it again next frame to keep it on screen.
+
+```ts
+class DebugSystem extends createSystem() {
+  update() {
+    // Skip the work entirely in production builds (see the no-op contract below).
+    if (!this.debugDraw.enabled) return;
+
+    this.debugDraw.line([0, 0, 0], [1, 1, 0], [1, 1, 1, 1]); // segment
+    this.debugDraw.aabb([-1, -1, -1], [1, 1, 1], [0.1, 0.9, 1, 1]); // Box3Helper
+    this.debugDraw.box([0, 2, 0], [0.5, 0.5, 0.5]); // center + half-extents
+    this.debugDraw.sphere([0, 0, 0], 2, [1, 0.2, 0.9, 1], { segments: 24 });
+    this.debugDraw.axes([0, 0, 0], 1); // X red, Y green, Z blue
+    this.debugDraw.grid({ size: 10, divisions: 10 }); // XZ-plane ground grid
+    this.debugDraw.frustum(inverseViewProjection); // CameraHelper
+    this.debugDraw.bones([{ from: hipWorld, to: kneeWorld }]); // SkeletonHelper
+    this.debugDraw.light({ position: sunPos, direction: sunDir }); // light gizmo
+  }
+}
+```
+
+Each primitive tessellates into **world-space line segments** and renders as an
+**overlay** through the same fat-line pipeline the E1 lines use (screen-space
+pixel width, round caps/joins), drawn after the scene in the transparent queue
+and depth-tested (matching three.js helpers). Optional trailing `color?`/`width?`
+arguments (and the `{ segments, width }` options on `sphere`/`grid`) tune each
+call; colors are RGBA, widths are in pixels.
+
+**Immediate-mode lifecycle.** Systems accumulate primitives during the worker
+frame; render extraction drains them into a transient `snapshot.debugLines`
+family and a `report.debugDraw = { primitives, segments, vertices }` tally, then
+clears the accumulator. Nothing persists between frames, and the geometry is not
+tied to any ECS entity.
+
+**No-op in production (zero overhead when disabled).** Set `debugDraw: false` in
+the app config to bind a shared no-op: every `this.debugDraw.*` call accumulates
+nothing, emits no snapshot family, builds no pipeline, and produces a frame that
+is **byte-identical** to one without debug draw. Gate expensive debug tessellation
+behind `if (this.debugDraw.enabled)`. A frame that simply makes no debug calls is
+already byte-identical whether debug draw is enabled or not.
+
+```ts
+export default defineApertureConfig({
+  mode: "browser",
+  debugDraw: false, // production: this.debugDraw.* is a no-op, zero overhead
+});
+```
+
+**Physics collider wireframes.** Physics debug geometry re-plumbs onto the same
+overlay. With physics enabled, add a `PhysicsDebug` component (via
+`withPhysicsDebug({ colliderWireframes: true, ... })`) and the engine routes
+`physics.debugGeometry()` — collider wireframes, contact normals, body-state
+markers, broadphase AABBs, joint frames — through the debug-draw overlay each
+frame automatically. You can also feed a `PhysicsDebugGeometry` in yourself with
+`this.debugDraw.physics(geometry)`.
+
+Degenerate primitives (non-finite coordinates/colors) and an exceeded per-frame
+segment cap are dropped with a structured `render.debugDraw.*` diagnostic rather
+than raising a device error.
+
+See `examples/debug-draw.html` for a system drawing an AABB + sphere + axes +
+grid + a physics collider wireframe every frame, with a frame-report e2e asserting
+the exact primitive/segment counts and proving `?debug=off` drops them to zero.
+
 ## Dynamic meshes — parity plan D5
 
 For geometry that changes every frame on the CPU (cloth, jelly, procedural

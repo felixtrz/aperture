@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1531
+Every structured diagnostic code the engine can emit (1538
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -1006,6 +1006,36 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                                | Message                                                                                                                                     | Fix? | Emitted from                                               |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------- |
 | `customWgslMaterial.shadowCasterShaderModuleFailed` | Failed to create the shadow caster shader module for custom WGSL material '…': …; its casters fall back to the shared position-only caster. | —    | `packages/webgpu/src/shadows/shadow-caster-custom-wgsl.ts` |
+
+## debugLineFrame.createBindGroupUnavailable (1)
+
+| Code                                        | Message                                             | Fix? | Emitted from                             |
+| ------------------------------------------- | --------------------------------------------------- | ---- | ---------------------------------------- |
+| `debugLineFrame.createBindGroupUnavailable` | WebGPU device cannot create debug-line bind groups. | —    | `packages/webgpu/src/app/debug-lines.ts` |
+
+## debugLineFrame.instanceBufferFailed (1)
+
+| Code                                  | Message                                                 | Fix? | Emitted from                             |
+| ------------------------------------- | ------------------------------------------------------- | ---- | ---------------------------------------- |
+| `debugLineFrame.instanceBufferFailed` | Debug-line pipeline does not expose bind group layouts. | —    | `packages/webgpu/src/app/debug-lines.ts` |
+
+## debugLineFrame.missingPipelineLayouts (1)
+
+| Code                                    | Message                                                 | Fix? | Emitted from                             |
+| --------------------------------------- | ------------------------------------------------------- | ---- | ---------------------------------------- |
+| `debugLineFrame.missingPipelineLayouts` | Debug-line pipeline does not expose bind group layouts. | —    | `packages/webgpu/src/app/debug-lines.ts` |
+
+## debugLineFrame.missingView (1)
+
+| Code                         | Message                                                         | Fix? | Emitted from                             |
+| ---------------------------- | --------------------------------------------------------------- | ---- | ---------------------------------------- |
+| `debugLineFrame.missingView` | Debug-line rendering requires at least one view uniform record. | —    | `packages/webgpu/src/app/debug-lines.ts` |
+
+## debugLineFrame.viewBufferFailed (1)
+
+| Code                              | Message                                                 | Fix? | Emitted from                             |
+| --------------------------------- | ------------------------------------------------------- | ---- | ---------------------------------------- |
+| `debugLineFrame.viewBufferFailed` | Debug-line pipeline does not expose bind group layouts. | —    | `packages/webgpu/src/app/debug-lines.ts` |
 
 ## debugNormalFrameResources.missingMaterial (1)
 
@@ -4871,6 +4901,13 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                           | Message                                       | Fix? | Emitted from                                            |
 | ------------------------------ | --------------------------------------------- | ---- | ------------------------------------------------------- |
 | `render.audio.oneShotOverflow` | Dropped … one-shot(s): queue at capacity (…). | —    | `packages/render/src/rendering/audio-one-shot-queue.ts` |
+
+## render.debugDraw (2)
+
+| Code                                   | Message                                                                                           | Fix? | Emitted from                                  |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------- |
+| `render.debugDraw.degeneratePrimitive` | Debug-draw '…' primitive had non-finite coordinates or color; the affected segments were skipped. | —    | `packages/render/src/rendering/debug-draw.ts` |
+| `render.debugDraw.segmentCapExceeded`  | Debug-draw segment cap (…) exceeded; extra segments were dropped this frame.                      | —    | `packages/render/src/rendering/debug-draw.ts` |
 
 ## render.extraction (1)
 

@@ -862,6 +862,7 @@ export function hasUnsupportedSharedSnapshotPayload(
     hasItems(snapshot.decals) ||
     hasItems(snapshot.lines) ||
     hasItems(snapshot.points) ||
+    hasDebugLines(snapshot) ||
     hasItems(snapshot.uiNodes) ||
     hasItems(snapshot.uiHitRegions) ||
     hasItems(snapshot.skyboxes) ||
@@ -986,6 +987,12 @@ function readSharedSnapshotTransportBuffers(
 
 function hasItems(value: readonly unknown[] | undefined): boolean {
   return value !== undefined && value.length > 0;
+}
+
+function hasDebugLines(snapshot: RenderSnapshot): boolean {
+  return (
+    snapshot.debugLines !== undefined && snapshot.debugLines.segmentCount > 0
+  );
 }
 
 function hasBytes(value: ArrayBufferView | undefined): boolean {

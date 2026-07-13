@@ -147,6 +147,7 @@ export * from "./app/decals.js";
 export * from "./render/lines/line-pipeline.js";
 export * from "./render/lines/line-geometry.js";
 export * from "./app/lines.js";
+export * from "./app/debug-lines.js";
 export * from "./render/points/point-pipeline.js";
 export * from "./render/points/point-geometry.js";
 export * from "./app/points.js";
