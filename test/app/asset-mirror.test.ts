@@ -266,6 +266,50 @@ describe("generated app source asset mirroring", () => {
     });
   });
 
+  it("reconstructs an unchanged index buffer with an empty range list so it is skipped (D5)", () => {
+    const workerRegistry = new AssetRegistry();
+    const mainRegistry = new AssetRegistry();
+    const state = createSourceAssetSerializationState();
+    const mesh = createMeshHandle("cloth");
+    const indices = new Uint16Array([0, 1, 2, 0, 2, 1]);
+
+    workerRegistry.register(mesh, { label: "Cloth" });
+    workerRegistry.markReady(
+      mesh,
+      indexedMesh(new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8]), indices),
+    );
+
+    const first = serializeSourceAssetRegistry(workerRegistry, { state });
+    commitSerializedSourceAssets(state, first);
+    mirrorSourceAssetRegistryFromMessage(mainRegistry, { sourceAssets: first });
+
+    // Update ONLY the vertex stream; leave the index buffer untouched (an empty
+    // range list), which is exactly what meshes.update(...) publishes.
+    workerRegistry.markReady(
+      mesh,
+      indexedMesh(new Float32Array([0, 1, 2, 30, 40, 50, 6, 7, 8]), indices, {
+        vertexUpdateRanges: [{ byteOffset: 12, byteLength: 12 }],
+        indexUpdateRanges: [],
+      }),
+    );
+
+    const second = serializeSourceAssetRegistry(workerRegistry, { state });
+    commitSerializedSourceAssets(state, second);
+    mirrorSourceAssetRegistryFromMessage(mainRegistry, {
+      sourceAssets: second,
+    });
+
+    const mirrored = mainRegistry.get<"mesh", MeshAsset>(mesh);
+
+    expect(mirrored?.version).toBe(2);
+    expect(mirrored?.asset?.vertexStreams[0]?.updateRanges).toEqual([
+      { byteOffset: 12, byteLength: 12 },
+    ]);
+    // D5: `[]`, not `undefined` — an empty list makes the renderer SKIP the
+    // index re-upload; `undefined` would trigger a full-buffer write.
+    expect(mirrored?.asset?.indexBuffer?.updateRanges).toEqual([]);
+  });
+
   it("treats an absent or empty sourceAssets field as a no-op (AI-70 send-on-change contract)", () => {
     const registry = new AssetRegistry();
 
@@ -287,6 +331,61 @@ describe("generated app source asset mirroring", () => {
     ).toEqual({ mirrored: 0, skipped: 0 });
   });
 });
+
+function indexedMesh(
+  data: Float32Array,
+  indices: Uint16Array,
+  options: {
+    readonly vertexUpdateRanges?: readonly {
+      readonly byteOffset: number;
+      readonly byteLength: number;
+    }[];
+    readonly indexUpdateRanges?: readonly {
+      readonly byteOffset: number;
+      readonly byteLength: number;
+    }[];
+  } = {},
+): MeshAsset {
+  const vertexCount = data.length / 3;
+
+  return {
+    kind: "mesh",
+    label: "Cloth",
+    vertexStreams: [
+      {
+        id: "positions",
+        arrayStride: 12,
+        vertexCount,
+        attributes: [{ semantic: "POSITION", format: "float32x3", offset: 0 }],
+        data,
+        ...(options.vertexUpdateRanges === undefined
+          ? {}
+          : { updateRanges: options.vertexUpdateRanges }),
+      },
+    ],
+    indexBuffer: {
+      format: "uint16",
+      data: indices,
+      ...(options.indexUpdateRanges === undefined
+        ? {}
+        : { updateRanges: options.indexUpdateRanges }),
+    },
+    submeshes: [
+      {
+        label: "default",
+        topology: "triangle-list",
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount,
+        indexStart: 0,
+        indexCount: indices.length,
+      },
+    ],
+    materialSlots: [{ index: 0, label: "default" }],
+    localAabb: { min: [0, 0, 0], max: [1, 1, 1] },
+    localSphere: { center: [0, 0, 0], radius: 1 },
+  };
+}
 
 function createTestMeshAsset(
   data: Float32Array,

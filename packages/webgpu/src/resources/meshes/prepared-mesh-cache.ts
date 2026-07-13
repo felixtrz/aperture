@@ -41,6 +41,57 @@ export interface PreparedMeshGpuResource {
 
 export interface PreparedMeshGpuResourceCache {
   readonly resources: Map<string, PreparedMeshGpuResource>;
+  /**
+   * D5: dynamic-mesh partial-upload accounting. Incremented only on the reuse
+   * path (a new source version whose layout matches an existing GPU buffer, so
+   * the changed bytes stream in via `queue.writeBuffer` instead of a fresh
+   * buffer + full re-realization). `frame*` are per-frame and reset by the
+   * report builder; `total*` are cumulative for the app's lifetime.
+   */
+  readonly uploads: PreparedMeshGpuUploadCounters;
+}
+
+export interface PreparedMeshGpuUploadCounters {
+  frameUpdates: number;
+  frameWrites: number;
+  frameBytes: number;
+  frameFullBytes: number;
+  totalUpdates: number;
+  totalWrites: number;
+  totalBytes: number;
+  totalFullBytes: number;
+}
+
+export function createPreparedMeshGpuUploadCounters(): PreparedMeshGpuUploadCounters {
+  return {
+    frameUpdates: 0,
+    frameWrites: 0,
+    frameBytes: 0,
+    frameFullBytes: 0,
+    totalUpdates: 0,
+    totalWrites: 0,
+    totalBytes: 0,
+    totalFullBytes: 0,
+  };
+}
+
+/**
+ * D5 frame-report section: the dynamic-mesh partial-upload counters. `frame*`
+ * are this frame's uploads (proof the update was partial: `frameBytes` is the
+ * summed update-range size, which is `< frameFullBytes`, the bytes a full
+ * re-realization of those buffers would have cost); `total*` are cumulative.
+ */
+export interface DynamicMeshGpuUploadReport {
+  readonly frameUpdates: number;
+  readonly frameWrites: number;
+  readonly frameBytes: number;
+  readonly frameFullBytes: number;
+  /** True when this frame's writes were partial (`frameBytes < frameFullBytes`). */
+  readonly partial: boolean;
+  readonly totalUpdates: number;
+  readonly totalWrites: number;
+  readonly totalBytes: number;
+  readonly totalFullBytes: number;
 }
 
 export interface PreparedMeshGpuResourceCacheSummaryLayout {
@@ -87,7 +138,102 @@ export interface PrepareMeshGpuResourceResult {
 }
 
 export function createPreparedMeshGpuResourceCache(): PreparedMeshGpuResourceCache {
-  return { resources: new Map() };
+  return {
+    resources: new Map(),
+    uploads: createPreparedMeshGpuUploadCounters(),
+  };
+}
+
+/**
+ * D5: read the dynamic-mesh partial-upload counters as a frame-report section.
+ * Returns `undefined` when NO dynamic upload happened this frame, so a frame
+ * without a mesh update stays byte-identical (the report field is omitted).
+ * `reset: true` clears the per-frame accumulators after reading so the next
+ * frame reports only its own uploads.
+ */
+export function dynamicMeshGpuUploadReport(
+  cache: PreparedMeshGpuResourceCache,
+  options: { readonly reset?: boolean } = {},
+): DynamicMeshGpuUploadReport | undefined {
+  const counters = cache.uploads;
+
+  if (counters.frameUpdates === 0) {
+    return undefined;
+  }
+
+  const report: DynamicMeshGpuUploadReport = {
+    frameUpdates: counters.frameUpdates,
+    frameWrites: counters.frameWrites,
+    frameBytes: counters.frameBytes,
+    frameFullBytes: counters.frameFullBytes,
+    partial: counters.frameBytes < counters.frameFullBytes,
+    totalUpdates: counters.totalUpdates,
+    totalWrites: counters.totalWrites,
+    totalBytes: counters.totalBytes,
+    totalFullBytes: counters.totalFullBytes,
+  };
+
+  if (options.reset === true) {
+    counters.frameUpdates = 0;
+    counters.frameWrites = 0;
+    counters.frameBytes = 0;
+    counters.frameFullBytes = 0;
+  }
+
+  return report;
+}
+
+function measureMeshUploadWrite(plan: MeshUploadBufferDescriptorPlan): {
+  readonly bytes: number;
+  readonly fullBytes: number;
+  readonly writes: number;
+} {
+  let bytes = 0;
+  let fullBytes = 0;
+  let writes = 0;
+
+  for (const vertex of plan.vertexBuffers) {
+    fullBytes += vertex.source.byteLength;
+    if (vertex.updateRanges === undefined) {
+      bytes += vertex.source.byteLength;
+      writes += 1;
+    } else {
+      for (const range of vertex.updateRanges) {
+        bytes += range.byteLength;
+        writes += 1;
+      }
+    }
+  }
+
+  if (plan.indexBuffer !== undefined) {
+    fullBytes += plan.indexBuffer.source.byteLength;
+    if (plan.indexBuffer.updateRanges === undefined) {
+      bytes += plan.indexBuffer.source.byteLength;
+      writes += 1;
+    } else {
+      for (const range of plan.indexBuffer.updateRanges) {
+        bytes += range.byteLength;
+        writes += 1;
+      }
+    }
+  }
+
+  return { bytes, fullBytes, writes };
+}
+
+function recordMeshUploadWrite(
+  counters: PreparedMeshGpuUploadCounters,
+  plan: MeshUploadBufferDescriptorPlan,
+): void {
+  const measured = measureMeshUploadWrite(plan);
+  counters.frameUpdates += 1;
+  counters.frameWrites += measured.writes;
+  counters.frameBytes += measured.bytes;
+  counters.frameFullBytes += measured.fullBytes;
+  counters.totalUpdates += 1;
+  counters.totalWrites += measured.writes;
+  counters.totalBytes += measured.bytes;
+  counters.totalFullBytes += measured.fullBytes;
 }
 
 export function createPreparedMeshGpuResourceCacheSummary(): PreparedMeshGpuResourceCacheSummary {
@@ -218,6 +364,12 @@ export function prepareMeshGpuResource(
       mesh: reusable.mesh,
     })
   ) {
+    // D5: the partial writeBuffer path ran — a new source version reused the
+    // existing GPU buffers and streamed only the plan's update ranges. Account
+    // the bytes so the frame report can prove the upload was partial, not a
+    // full re-realization.
+    recordMeshUploadWrite(options.cache.uploads, descriptors.plan);
+
     const resource: PreparedMeshGpuResource = {
       cacheKey,
       sourceMeshKey,

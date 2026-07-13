@@ -31,6 +31,7 @@ import {
   webGpuAppPickReportToJsonValue,
   webGpuAppRenderReportToJsonValue,
 } from "./report.js";
+import { dynamicMeshGpuUploadReport } from "../resources/meshes/prepared-mesh-cache.js";
 import { prepareWebGpuAppSourceAssetFacades } from "./source-assets.js";
 import { evictWebGpuAppPreparedResourceCaches } from "./prepared-resource-cache-eviction.js";
 import { getWebGpuAppPipelineLayouts } from "./pipeline-layouts.js";
@@ -511,10 +512,22 @@ export async function createWebGpuApp(
         dynamicTextures,
         { reset: true },
       );
-      const report =
-        dynamicTextureReport === undefined
-          ? baseReport
-          : { ...baseReport, dynamicTextures: dynamicTextureReport };
+      // D5: fold the dynamic-mesh partial-upload counters (this frame's
+      // update-range bytes + write count, cumulative totals) into the frame
+      // report. `reset: true` clears the per-frame accumulators. Returns
+      // undefined when no dynamic mesh was partially uploaded this frame, so a
+      // static frame keeps a byte-identical report.
+      const dynamicMeshUploadReport = dynamicMeshGpuUploadReport(
+        resourceCache.preparedMeshes,
+        { reset: true },
+      );
+      let report = baseReport;
+      if (dynamicTextureReport !== undefined) {
+        report = { ...report, dynamicTextures: dynamicTextureReport };
+      }
+      if (dynamicMeshUploadReport !== undefined) {
+        report = { ...report, dynamicMeshUploads: dynamicMeshUploadReport };
+      }
 
       prepareWebGpuAppSourceAssetFacades({
         registry: sourceAssets,

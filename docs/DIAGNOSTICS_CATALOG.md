@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1491
+Every structured diagnostic code the engine can emit (1500
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -3706,6 +3706,60 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                          | Message                                    | Fix? | Emitted from                                             |
 | ----------------------------- | ------------------------------------------ | ---- | -------------------------------------------------------- |
 | `meshMerge.invalidSourceMesh` | Source mesh '…' is invalid for batching: … | —    | `packages/render/src/rendering/mesh-merge-validation.ts` |
+
+## meshUpdate.emptyUpdate (1)
+
+| Code                     | Message                                                   | Fix? | Emitted from                         |
+| ------------------------ | --------------------------------------------------------- | ---- | ------------------------------------ |
+| `meshUpdate.emptyUpdate` | Mesh update for '…' named no streams and no index buffer. | —    | `packages/app/src/systems/meshes.ts` |
+
+## meshUpdate.indexLengthMismatch (1)
+
+| Code                             | Message                                                                                    | Fix? | Emitted from                         |
+| -------------------------------- | ------------------------------------------------------------------------------------------ | ---- | ------------------------------------ |
+| `meshUpdate.indexLengthMismatch` | Index buffer update data (… bytes, …) must match the registered index buffer (… bytes, …). | —    | `packages/app/src/systems/meshes.ts` |
+
+## meshUpdate.missingIndexBuffer (1)
+
+| Code                            | Message                                 | Fix? | Emitted from                         |
+| ------------------------------- | --------------------------------------- | ---- | ------------------------------------ |
+| `meshUpdate.missingIndexBuffer` | Mesh '…' has no index buffer to update. | —    | `packages/app/src/systems/meshes.ts` |
+
+## meshUpdate.notReady (1)
+
+| Code                  | Message                                                               | Fix? | Emitted from                         |
+| --------------------- | --------------------------------------------------------------------- | ---- | ------------------------------------ |
+| `meshUpdate.notReady` | Mesh '…' has no ready asset to update; publish an initial mesh first. | —    | `packages/app/src/systems/meshes.ts` |
+
+## meshUpdate.rangeMisaligned (1)
+
+| Code                         | Message                                                                     | Fix? | Emitted from                         |
+| ---------------------------- | --------------------------------------------------------------------------- | ---- | ------------------------------------ |
+| `meshUpdate.rangeMisaligned` | Update range […, +…) for the … must be 4-byte aligned in offset and length. | —    | `packages/app/src/systems/meshes.ts` |
+
+## meshUpdate.rangeOutOfBounds (1)
+
+| Code                          | Message                                       | Fix? | Emitted from                         |
+| ----------------------------- | --------------------------------------------- | ---- | ------------------------------------ |
+| `meshUpdate.rangeOutOfBounds` | Update range […, +…) is outside the …-byte …. | —    | `packages/app/src/systems/meshes.ts` |
+
+## meshUpdate.streamLengthMismatch (1)
+
+| Code                              | Message                                                                                                                                            | Fix? | Emitted from                         |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------ |
+| `meshUpdate.streamLengthMismatch` | Stream '…' update data (… bytes, …) must match the registered stream (… bytes, …); a partial update cannot change the buffer size or element type. | —    | `packages/app/src/systems/meshes.ts` |
+
+## meshUpdate.unknownHandle (1)
+
+| Code                       | Message                                                                                               | Fix? | Emitted from                         |
+| -------------------------- | ----------------------------------------------------------------------------------------------------- | ---- | ------------------------------------ |
+| `meshUpdate.unknownHandle` | No mesh is registered under '…'. Publish one (meshes.dynamic/publish) before calling meshes.update(). | —    | `packages/app/src/systems/meshes.ts` |
+
+## meshUpdate.unknownStream (1)
+
+| Code                       | Message                                      | Fix? | Emitted from                         |
+| -------------------------- | -------------------------------------------- | ---- | ------------------------------------ |
+| `meshUpdate.unknownStream` | Mesh '…' has no vertex stream '…' to update. | —    | `packages/app/src/systems/meshes.ts` |
 
 ## meshUpload.invalidIndexData (1)
 

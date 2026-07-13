@@ -14,6 +14,7 @@ import { type AppTextureSamplerResourceCacheSummary } from "./app-texture-sample
 import type { PreparedAppMaterialCacheSummary } from "../materials/core/prepared-app-material-resource.js";
 import type { PreparedBuiltInMaterialCacheEvictionReport } from "../materials/core/prepared-built-in-material-store.js";
 import type {
+  DynamicMeshGpuUploadReport,
   PreparedMeshGpuResourceCacheEvictionReport,
   PreparedMeshGpuResourceCacheSummary,
 } from "../resources/meshes/prepared-mesh-cache.js";
@@ -494,6 +495,10 @@ export interface WebGpuAppRenderReport {
   // dynamic texture has been registered, so apps that do not use the feature
   // keep a byte-identical frame report.
   readonly dynamicTextures?: WebGpuAppDynamicTextureReport;
+  // D5: dynamic-mesh partial-upload counters (this frame's update-range bytes +
+  // write count, cumulative totals). Present only when a dynamic mesh was
+  // partially updated this frame, so a static frame stays byte-identical.
+  readonly dynamicMeshUploads?: DynamicMeshGpuUploadReport;
   readonly msaa?: WebGpuAppMsaaReport;
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
@@ -589,6 +594,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
   readonly transmissionGrabPass?: WebGpuAppTransmissionGrabPassReport;
   readonly dynamicTextures?: WebGpuAppDynamicTextureReport;
+  readonly dynamicMeshUploads?: DynamicMeshGpuUploadReport;
   readonly msaa?: WebGpuAppMsaaReport;
   readonly readback?: WebGpuAppJsonValue;
   readonly gpuTimings?: GpuPassTimingReport;

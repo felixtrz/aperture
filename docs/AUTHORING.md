@@ -1545,6 +1545,93 @@ follow-up that lifts these.
 See `examples/decals.html` for FPS-style bullet holes accumulating on a wall,
 hitting the cap and evicting the oldest.
 
+## Dynamic meshes — parity plan D5
+
+For geometry that changes every frame on the CPU (cloth, jelly, procedural
+ribbons, waveforms), register a **dynamic mesh** and stream only the changed
+byte windows to the GPU with `this.meshes.update(...)` — the analog of three.js
+`BufferAttribute.needsUpdate` + `updateRange`. The update flows through the
+existing update-range plan: the changed windows re-publish as a new source
+version carrying `updateRanges`, the renderer reuses the same-layout GPU buffers,
+and writes only the named ranges via `queue.writeBuffer`. The asset is never
+re-registered and untouched buffers are never re-uploaded.
+
+```js
+class ClothSystem extends createSystem({ priority: 0 }) {
+  #positions = null; // interleaved backing array (POSITION/NORMAL/UV, stride 32)
+  #mesh = null;
+
+  init() {
+    const { positions, indices } = createClothGeometry();
+    this.#positions = positions;
+    // dynamic() registers + seeds the initial (full) mesh; the returned handle
+    // is stable, so spawn once and update forever.
+    this.#mesh = this.meshes.dynamic("cloth.mesh", {
+      label: "Cloth",
+      initial: createClothMeshAsset(positions, indices),
+    });
+    this.spawn.mesh({
+      mesh: this.#mesh.handle,
+      material: material.standard({ baseColor: [0.86, 0.16, 0.18, 1] }),
+    });
+  }
+
+  update(delta) {
+    deformCloth(this.#positions, this.time.elapsed); // mutate the array in place
+    // Upload ONLY the changed window. The index buffer (not named) is skipped.
+    this.#mesh.update({
+      streams: [
+        {
+          id: "cloth-surface",
+          data: this.#positions, // optional; omit to reuse the registered array
+          updateRanges: [{ byteOffset: 416, byteLength: 3744 }],
+        },
+      ],
+    });
+  }
+}
+```
+
+**The shape.** `meshes.update(id, { streams, index, updateRanges })` (or the
+`DynamicMesh.update(...)` convenience returned by `meshes.dynamic(...)`):
+
+- `streams: [{ id, data?, updateRanges? }]` — per named vertex stream. `data`
+  optionally swaps the backing typed array (it MUST match the registered
+  stream's byte length and element type — a partial update cannot resize or
+  relayout the buffer); omit it to reuse the stream's array (mutated in place).
+  `updateRanges` are the 4-byte-aligned `{ byteOffset, byteLength }` windows that
+  changed; omit them to re-upload the whole stream.
+- `index: { data?, updateRanges? }` — same contract for the index buffer.
+- `updateRanges` (top level) — a shared default applied to any named stream/index
+  that does not carry its own.
+- Streams and the index buffer NOT named are re-published with an empty range
+  list, so the renderer **skips** re-uploading them.
+
+**The byte counter.** On a frame where a dynamic mesh was partially updated, the
+frame report grows a `dynamicMeshUploads` section: `frameBytes` (the update-range
+bytes actually streamed this frame), `frameWrites`, `frameUpdates`,
+`frameFullBytes` (what a full re-realization of those buffers would have cost),
+a `partial` flag (`frameBytes < frameFullBytes`), and cumulative `total*`. It is
+present ONLY when a dynamic upload happened, so a frame with no mesh update stays
+byte-identical. This is the proof that the upload was partial rather than a full
+re-registration.
+
+**The contract: partial upload, no re-registration.** As long as the layout is
+stable (same stream ids, byte sizes, element types, attribute layout, and index
+format — bounds may change freely), the update reuses the existing GPU buffers
+and streams only the named ranges. Changing any of those forces a normal
+re-realization (fall back to `dynamic().publish(fullMesh)` for a wholesale swap).
+Every invalid input — unknown handle, unready asset, empty update, unknown
+stream, stream/index length-or-type mismatch, out-of-bounds or misaligned range,
+missing index buffer — is rejected with a structured `meshUpdate.*` diagnostic in
+`result.diagnostics` and NO publish, so a bad range never reaches WebGPU as a raw
+validation error. Keep dynamic meshes SMALL and set a generous static `localAabb`
+that already contains every deformed pose so the mesh is not frustum-culled and
+the bounds do not churn.
+
+See `examples/cloth-flag.html` for a CPU-simulated cloth banner deforming every
+frame, whose report byte counter stays partial across the run.
+
 ## Runtime Systems
 
 Systems map to EliCS systems and can query ECS components directly.

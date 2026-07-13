@@ -173,6 +173,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.dynamicTextures === undefined
       ? {}
       : { dynamicTextures: report.dynamicTextures }),
+    ...(report.dynamicMeshUploads === undefined
+      ? {}
+      : { dynamicMeshUploads: report.dynamicMeshUploads }),
     ...(report.msaa === undefined ? {} : { msaa: report.msaa }),
     ...(report.readback === undefined
       ? {}

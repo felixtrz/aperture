@@ -437,16 +437,15 @@ function applySerializedMeshAssetPatch(
       vertexCount: patchStream.vertexCount,
       attributes: patchStream.attributes.map((attribute) => ({ ...attribute })),
       data,
-      ...(patchStream.updates.length === 0
-        ? {}
-        : {
-            updateRanges: patchStream.updates.map(
-              ({ byteOffset, byteLength }) => ({
-                byteOffset,
-                byteLength,
-              }),
-            ),
-          }),
+      // D5: reconstruct an explicit update-range list (empty when this stream
+      // carried no changes) so the renderer's update-range plan re-uploads ONLY
+      // the changed windows and SKIPS untouched streams — an empty list makes a
+      // multi-buffer mesh's partial update genuinely partial instead of
+      // full-writing every unchanged stream each frame.
+      updateRanges: patchStream.updates.map(({ byteOffset, byteLength }) => ({
+        byteOffset,
+        byteLength,
+      })),
     });
   }
 
@@ -503,14 +502,12 @@ function applySerializedMeshIndexBufferPatch(
     format: patch.format,
     data,
     ...(patch.indexCount === undefined ? {} : { indexCount: patch.indexCount }),
-    ...(patch.updates.length === 0
-      ? {}
-      : {
-          updateRanges: patch.updates.map(({ byteOffset, byteLength }) => ({
-            byteOffset,
-            byteLength,
-          })),
-        }),
+    // D5: as with vertex streams, an explicit (possibly empty) range list lets
+    // the renderer skip re-uploading an unchanged index buffer.
+    updateRanges: patch.updates.map(({ byteOffset, byteLength }) => ({
+      byteOffset,
+      byteLength,
+    })),
   };
 }
 

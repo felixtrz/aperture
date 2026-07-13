@@ -897,6 +897,76 @@ tally is now ✅18/🟡2/❌0).
 
 ### D5. First-class dynamic mesh API — **S**
 
+Status: implemented (2026-07-13). AC1 + AC2 landed; scenario #16 → ✅.
+
+**AC1 — partial mesh update surface.** `meshes.update(id, { streams, index,
+updateRanges })` (with a `DynamicMesh.update(...)` convenience) on
+`MeshAccess` (`packages/app/src/systems/meshes.ts`) partially updates a
+registered mesh's vertex/index buffers WITHOUT re-registering the asset. It
+reads the currently-registered `MeshAsset`, rebuilds it reusing each stream's
+backing typed array (or a caller-supplied same-size/same-type replacement),
+stamps `updateRanges` on the NAMED streams (and index), and re-publishes it
+(`registry.markReady` → new source version). Streams/index NOT named are
+re-published with an EMPTY range list so they are skipped; a named stream
+without explicit ranges re-uploads its whole buffer. This routes entirely
+through the pre-existing update-range plan: `createMeshGpuUploadPlan` →
+`createMeshUploadBufferDescriptors` (which already model `updateRanges`) →
+`prepareMeshGpuResource`, whose same-layout reuse path
+(`updateReusableMeshGpuResource` → `writeMeshBufferDataOrRanges`) does one
+`queue.writeBuffer` per range against the EXISTING GPU buffer — no
+`createMeshGpuBuffers`, no re-realization. The renderer machinery was already
+present (trails drive it via a full `publish`); D5 adds the first-class
+partial-`update()` surface, up-front validation, and the byte counter on top.
+
+**Diagnostics.** Every invalid input is rejected with a structured `meshUpdate.*`
+diagnostic and NO publish (so a bad range never becomes a raw WebGPU validation
+error): `unknownHandle`, `notReady`, `emptyUpdate`, `unknownStream`,
+`streamLengthMismatch` (byte length or element type differs — a partial update
+cannot change the buffer size/layout), `missingIndexBuffer`,
+`indexLengthMismatch`, `rangeOutOfBounds`, `rangeMisaligned` (offset/length not
+4-byte aligned). Emitted as object literals with a `code:` field so the
+diagnostics-catalog generator lists all nine.
+
+**AC2 — byte counter + example.** The frame report gains a `dynamicMeshUploads`
+section (`prepared-mesh-cache.ts` accumulates on the reuse-update path;
+`create-webgpu-app.ts` folds it in and resets per frame, mirroring the D3
+dynamic-texture counter): per-frame `frameBytes`/`frameWrites`/`frameUpdates`,
+the `frameFullBytes` a full re-realization of those buffers would have cost, a
+`partial` flag = `frameBytes < frameFullBytes`, and cumulative `total*`.
+`examples/cloth-flag` is a small (13×10) CPU cloth banner pinned on its top row;
+each frame the worker deforms the moving rows and calls `meshes.update(...)` with
+one contiguous vertex window (3744 B) — the index buffer is skipped — so the
+report shows `frameBytes: 3744` vs `frameFullBytes: 5456` (`partial: true`) every
+frame, proving PARTIAL uploads, not full re-registration. `test/e2e/cloth-flag`
+asserts the flag visibly deforms between two captures AND that the per-frame
+counter stays at the partial size across many frames while `totalUpdates` climbs
+(no full-buffer re-upload). Uses a built-in double-sided `material.standard`
+(not custom WGSL, to avoid the known multi-custom-WGSL-black-frame bug).
+
+**Byte-identity.** The counter increments only on the reuse-update path (a NEW
+version whose layout matches an existing buffer). A static mesh hits the exact
+version cache key (no write), so `dynamicMeshUploads` is omitted and a frame with
+no dynamic mesh update is byte-identical to before (pinned by a webgpu unit test:
+created-only + same-version → report `undefined`). Also improves the worker→main
+mesh-asset mirror: an unchanged patched stream/index is now reconstructed with an
+empty range list instead of `undefined` (which full-wrote every untouched buffer
+each frame), making multi-buffer partial updates genuinely partial across the
+boundary — the serialized patch WIRE format is unchanged.
+
+**Determinism.** The byte counter is renderer-side (GPU write bytes) and lives on
+the WebGPU frame report, NOT the extracted `RenderSnapshot`; `meshes.update`
+rides the normal source-asset mirror (a plain republish) and no determinism
+fixture scene uses a dynamic mesh, so `test/determinism` passes GREEN with NO
+fixture refresh (confirmed).
+
+Deviations from the AC sketch: (1) the e2e proves partial via the byte counter
+being strictly below a full re-realization every frame (index skipped + pinned
+row), rather than counting exactly 60 frames; the "no full-buffer re-uploads"
+contract is the assertion. (2) The example uses a single interleaved
+vertex stream (the layout the built-in standard material expects); separate
+position/attribute streams would be a follow-up if per-attribute partial
+updates are wanted.
+
 - AC1: `meshes.update(handle, { streams, updateRanges })` from systems
   performs partial uploads through the existing update-range plan without
   re-registering the asset; invalid ranges diagnose.

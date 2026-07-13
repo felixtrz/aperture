@@ -90,12 +90,17 @@ compute→draw / compute-to-vertex bridge shipped as parity plan C1; the GPU-dri
 indirect-draw user surface shipped as parity plan C2; per-camera and per-material
 clipping planes shipped as parity plan D2; runtime CPU-bytes + canvas/video
 texture updates shipped as parity plan D3 — 2D only, cube/3D-array dynamic targets
-still absent). §9 now scores **Aperture ✅ 18 / 🟡 2 / ❌ 0 of 20 concrete game
-scenarios — no ❌ remains**: decals (scenario #17) shipped as parity plan D4 (a
-dedicated instanced decal pass projecting depth-biased quads onto opaque geometry
-with an oldest-first live-decal cap surfaced in the frame report), leaving only
-two 🟡 (planar mirror #7, CPU cloth #16). §10 ranks the gap closures by how much
-game-dev surface each unlocks.
+still absent; the first-class dynamic mesh update API — partial `meshes.update()`
+uploads through the existing update-range plan with a frame-report byte counter —
+shipped as parity plan D5). §9 now scores **Aperture ✅ 19 / 🟡 1 / ❌ 0 of 20
+concrete game scenarios — no ❌ remains**: decals (scenario #17) shipped as parity
+plan D4 (a dedicated instanced decal pass projecting depth-biased quads onto opaque
+geometry with an oldest-first live-decal cap surfaced in the frame report), and CPU
+cloth (scenario #16) shipped as parity plan D5 (a first-class
+`meshes.update(handle, { streams, updateRanges })` partial-upload surface whose
+per-frame report byte counter proves the uploads stay partial, not a full
+re-realization — shipped as `examples/cloth-flag`), leaving only one 🟡 (planar
+mirror #7). §10 ranks the gap closures by how much game-dev surface each unlocks.
 
 ---
 
@@ -246,7 +251,7 @@ data) is missing, which is precisely the bridge GPU-driven game techniques
 
 | Capability                       | three.js                                                                          | Aperture                                                                                                                                                                                                                                                                                                               | Verdict            |
 | -------------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| Per-frame CPU mesh deform        | ✅ mutate array + `needsUpdate` + `updateRanges` (partial uploads), `usage` hints | 🟡 `MeshBufferUpdateRange` partial `writeBuffer` uploads exist in the upload plan, but the ergonomic path is re-marking the mesh asset ready — no `mesh.update()` API                                                                                                                                                  | Partial            |
+| Per-frame CPU mesh deform        | ✅ mutate array + `needsUpdate` + `updateRanges` (partial uploads), `usage` hints | ✅ D5: `meshes.update(handle, { streams, updateRanges })` streams the named byte windows to the existing GPU buffers via the update-range plan — no asset re-registration; a `dynamicMeshUploads` frame-report byte counter proves the uploads are partial, invalid ranges diagnose (`examples/cloth-flag`)            | Parity             |
 | Procedural mesh regen            | Replace geometry                                                                  | Re-register mesh asset (full re-upload)                                                                                                                                                                                                                                                                                | Parity             |
 | Built-in material param tuning   | Set property (auto uniform refresh)                                               | ✅ `patchStandardMaterial` / material-mutation route — no variant recompiles                                                                                                                                                                                                                                           | Parity             |
 | PBR extension params via app API | ✅ all `MeshPhysicalMaterial` props settable directly                             | ✅ `material.standard()` exposes the full extension factor set + renderState; `materials.set` patches the same fields (parity plan A3)                                                                                                                                                                                 | Parity             |
@@ -345,7 +350,7 @@ limits · ❌ not achievable today.
 | 13  | GPU particle/VFX sim (custom compute)                 | ✅\*     | ✅       | Compute→draw bridge shipped (parity plan C1): a compute pass writes a writable `BufferAsset` an instanced custom material consumes the same frame with zero CPU copies (`examples/boids`); the built-in Shuriken system also covers most VFX needs                                                                                                                                                                                                                                               |
 | 14  | GPU crowd (compute skinning + instanced draw)         | ✅\*     | ✅       | Compute→instance plumbing shipped (parity plan C1): the writable buffer feeds both a `material.storage(...)` binding AND a buffer-backed instance stream (`instanceBuffer`), frame-graph-ordered compute-before-draw — the GPU crowd = boids + a built-in/custom instanced material via the instance stream                                                                                                                                                                                      |
 | 15  | GPU-driven culling / indirect draw                    | ✅\*     | ✅       | Indirect-draw user surface shipped (parity plan C2): a user render pass records `ctx.drawIndirect` / `drawIndexedIndirect` against a compute-written argument buffer; the GPU-authoritative drawn count surfaces in the frame report (`examples/gpu-culling`)                                                                                                                                                                                                                                    |
-| 16  | CPU cloth/jelly (per-frame vertex upload)             | ✅       | 🟡       | Update-range uploads exist; ergonomics are asset re-registration                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 16  | CPU cloth/jelly (per-frame vertex upload)             | ✅       | ✅       | D5: `meshes.update(handle, { streams, updateRanges })` partial-uploads the changed byte windows through the existing update-range plan (no asset re-registration); the `dynamicMeshUploads` frame-report byte counter proves the uploads stay partial, and invalid ranges diagnose (`examples/cloth-flag`)                                                                                                                                                                                       |
 | 17  | Decals (bullet holes, blood)                          | ✅       | ✅       | Parity plan D4: a `Decal` component + `spawn.decal(...)` project depth-biased quads onto opaque geometry through a dedicated instanced decal pass (no z-fighting), with an oldest-first live-decal cap + eviction surfaced in the frame report; the `decals` example is FPS bullet holes hitting the cap. 🟡 flat-surface projector, not mesh-conforming (deferred box-projector is the follow-up)                                                                                               |
 | 18  | In-world video/canvas screen (TV, scoreboard)         | ✅       | ✅       | Runtime dynamic + video/canvas texture updates (parity plan D3): `app.updateDynamicTexture` (CPU bytes, full + sub-rect) and `app.updateDynamicTextureFromExternalImage` (HTMLVideoElement / VideoFrame / canvas / ImageBitmap); the `runtime-texture` example ships a canvas scoreboard, a canvas-animated TV, and a CPU-bytes ticker with pixel-change e2e. (Video via a real `HTMLVideoElement` is import-path-ready but proven with a canvas standing in — SwiftShader has no video decode.) |
 | 19  | Soft particles / depth-fade VFX                       | 🟡       | ✅       | three.js: manual depth sampling. Aperture: built into the particle renderer AND B4 lets any transparent custom material sample scene depth read-only (`source: "scene-depth"`, MSAA-aware) — the `forcefield` example                                                                                                                                                                                                                                                                            |
@@ -362,12 +367,12 @@ live-decal cap + eviction surfaced in the frame report, shipped with the
 `decals` bullet-hole example. The compute→rendering bridge shipped as parity
 plan C1, the GPU-driven indirect-draw user surface as parity plan C2,
 per-material stencil (scenario #8 → ✅) as parity plan D1, per-camera/per-material
-clipping planes as parity plan D2, and runtime dynamic + video/canvas texture
-updates (scenario #18 → ✅) as parity plan D3. The two remaining 🟡 are scenario
+clipping planes as parity plan D2, runtime dynamic + video/canvas texture
+updates (scenario #18 → ✅) as parity plan D3, and the first-class dynamic mesh
+update API (scenario #16 → ✅) as parity plan D5. The one remaining 🟡 is scenario
 #7 (planar mirror — clipping planes now exist so the oblique-frustum blocker is
 gone, but a turnkey `Reflector` helper and a shipped oblique-mirror example are
-still missing) and scenario #16 (CPU cloth — update-range uploads exist but the
-ergonomic `mesh.update()` API does not).
+still missing).
 
 ---
 
@@ -443,3 +448,10 @@ stay inside the architecture.
     user render passes, consuming a compute-written argument buffer, with the
     GPU-authoritative drawn count read back into the frame report (parity plan
     C2, `examples/gpu-culling`).
+13. **First-class dynamic mesh API** (unblocks #16). _Shipped_ — parity plan
+    D5: `meshes.update(handle, { streams, updateRanges })` partial-uploads the
+    changed byte windows through the existing update-range plan (same-layout
+    GPU-buffer reuse + `queue.writeBuffer` per range) with no asset
+    re-registration; unchanged streams/index are skipped, invalid ranges emit
+    structured `meshUpdate.*` diagnostics, and a `dynamicMeshUploads` frame-report
+    byte counter proves the uploads stay partial (`examples/cloth-flag`).

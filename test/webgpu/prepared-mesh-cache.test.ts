@@ -4,6 +4,7 @@ import {
   createBoxMeshAsset,
   createMeshHandle,
   createPlaneMeshAsset,
+  dynamicMeshGpuUploadReport,
   evictPreparedMeshGpuResourceCacheEntries,
   createPreparedMeshGpuResourceCacheSummary,
   createPreparedMeshGpuResourceCache,
@@ -142,6 +143,94 @@ describe("prepared mesh GPU resource cache", () => {
         size: 16,
       },
     ]);
+  });
+
+  it("omits the dynamic-mesh upload report until a partial reuse happens (byte-identity)", () => {
+    const cache = createPreparedMeshGpuResourceCache();
+    const handle = createMeshHandle("static.mesh");
+    const mesh = createBoxMeshAsset({ label: "Static" });
+    const device = deviceWithBuffers([]);
+
+    // First prepare = "created" (fresh buffers, no reuse write) → no report.
+    prepareMeshGpuResource({ device, cache, handle, mesh, sourceVersion: 1 });
+    expect(dynamicMeshGpuUploadReport(cache)).toBeUndefined();
+
+    // Same version = exact cache hit (no write) → still no report.
+    prepareMeshGpuResource({ device, cache, handle, mesh, sourceVersion: 1 });
+    expect(dynamicMeshGpuUploadReport(cache, { reset: true })).toBeUndefined();
+  });
+
+  it("counts partial dynamic-mesh uploads and proves they are partial", () => {
+    const cache = createPreparedMeshGpuResourceCache();
+    const handle = createMeshHandle("dynamic.counted");
+    const device = deviceWithBuffers([]);
+
+    prepareMeshGpuResource({
+      device,
+      cache,
+      handle,
+      mesh: rangeMesh(new Float32Array(8)),
+      sourceVersion: 1,
+    });
+    const changed = new Float32Array(8);
+    changed[4] = 10;
+    prepareMeshGpuResource({
+      device,
+      cache,
+      handle,
+      mesh: rangeMesh(changed, [{ byteOffset: 16, byteLength: 16 }]),
+      sourceVersion: 2,
+    });
+
+    const report = dynamicMeshGpuUploadReport(cache, { reset: true });
+
+    // vertex stream: 32 bytes total, 16 uploaded via one range; index buffer:
+    // 4 bytes total, skipped (empty range list) → 0 writes.
+    expect(report).toEqual({
+      frameUpdates: 1,
+      frameWrites: 1,
+      frameBytes: 16,
+      frameFullBytes: 36,
+      partial: true,
+      totalUpdates: 1,
+      totalWrites: 1,
+      totalBytes: 16,
+      totalFullBytes: 36,
+    });
+
+    // reset cleared the per-frame accumulators → next frame omits the report.
+    expect(dynamicMeshGpuUploadReport(cache, { reset: true })).toBeUndefined();
+  });
+
+  it("marks a full-buffer reuse write as non-partial", () => {
+    const cache = createPreparedMeshGpuResourceCache();
+    const handle = createMeshHandle("dynamic.full-reupload");
+    const device = deviceWithBuffers([]);
+
+    prepareMeshGpuResource({
+      device,
+      cache,
+      handle,
+      mesh: fullMesh(new Float32Array(8)),
+      sourceVersion: 1,
+    });
+    const changed = new Float32Array(8);
+    changed[0] = 5;
+    prepareMeshGpuResource({
+      device,
+      cache,
+      handle,
+      mesh: fullMesh(changed),
+      sourceVersion: 2,
+    });
+
+    const report = dynamicMeshGpuUploadReport(cache, { reset: true });
+
+    // No update ranges anywhere → both buffers fully rewritten.
+    expect(report?.partial).toBe(false);
+    expect(report?.frameBytes).toBe(report?.frameFullBytes);
+    expect(report?.frameBytes).toBe(36);
+    expect(report?.frameWrites).toBe(2);
   });
 
   it("tracks last-used frames for prepared mesh backend cache entries", () => {
@@ -420,6 +509,38 @@ function rangeMesh(
       format: "uint16",
       data: new Uint16Array([0, 1]),
       updateRanges: [],
+    },
+    submeshes: [
+      {
+        label: "default",
+        topology: "line-list",
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount: 2,
+        indexStart: 0,
+        indexCount: 2,
+      },
+    ],
+    materialSlots: [{ index: 0, label: "default" }],
+  };
+}
+
+function fullMesh(data: Float32Array): MeshAsset {
+  return {
+    kind: "mesh",
+    label: "Full mesh",
+    vertexStreams: [
+      {
+        id: "positions",
+        arrayStride: 16,
+        vertexCount: 2,
+        attributes: [{ semantic: "POSITION", format: "float32x3", offset: 0 }],
+        data,
+      },
+    ],
+    indexBuffer: {
+      format: "uint16",
+      data: new Uint16Array([0, 1]),
     },
     submeshes: [
       {

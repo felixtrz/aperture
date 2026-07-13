@@ -361,8 +361,14 @@ export type {
   DynamicMesh,
   DynamicMeshOptions,
   MeshAccess,
+  MeshIndexUpdate,
   MeshPublishOptions,
   MeshPublishResult,
+  MeshStreamUpdate,
+  MeshUpdateDiagnostic,
+  MeshUpdateDiagnosticCode,
+  MeshUpdateOptions,
+  MeshUpdateResult,
 } from "./systems/meshes.js";
 export { createMeshAccess } from "./systems/meshes.js";
 export type { BufferAccess, BufferRegisterOptions } from "./systems/buffers.js";
