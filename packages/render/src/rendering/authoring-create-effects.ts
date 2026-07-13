@@ -16,6 +16,7 @@ import {
   type DecalInput,
   type FogInput,
   type LineInput,
+  type LodInput,
   type PointsInput,
   type ProceduralSkyInput,
   type RuntimeBufferInput,
@@ -27,6 +28,7 @@ import type {
   Decal,
   Fog,
   Line,
+  Lod,
   Points,
   ProceduralSky,
   RuntimeBuffer,
@@ -99,6 +101,20 @@ export function createLine(
     dashSize: input.dashSize ?? 0,
     gapSize: input.gapSize ?? 0,
     dashOffset: input.dashOffset ?? 0,
+  };
+}
+
+export function createLod(input: LodInput): ComponentInitialData<typeof Lod> {
+  // Levels are stored resolved (mesh handle id + distance), held by reference.
+  // Order is preserved verbatim (NOT sorted) so validation can flag
+  // out-of-order thresholds instead of silently repairing them.
+  return {
+    levels: (input.levels ?? []).map((level) => ({
+      meshId: assetHandleKey(level.mesh),
+      distance: level.distance,
+    })),
+    hysteresis: input.hysteresis ?? 0,
+    currentLevel: 0,
   };
 }
 

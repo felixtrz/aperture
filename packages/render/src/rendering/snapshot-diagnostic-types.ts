@@ -48,6 +48,11 @@ export interface RenderSnapshotReport {
   readonly lines?: LineSnapshotReport;
   /** Point-cloud tally (E1). Absent when a frame carries no points. */
   readonly points?: PointsSnapshotReport;
+  /**
+   * Mesh-LOD selection tally (E2). Absent when a frame carries no LOD entities
+   * so a LOD-free report is byte-identical to a pre-E2 report.
+   */
+  readonly lod?: LodSnapshotReport;
   readonly particleEmitters?: number;
   readonly audioEmitters?: number;
   readonly quadInstances?: number;
@@ -91,6 +96,18 @@ export interface LineSnapshotReport {
 export interface PointsSnapshotReport {
   readonly clouds: number;
   readonly points: number;
+}
+
+/**
+ * Mesh-LOD selection tally (E2). `entities` LOD entities selected a level this
+ * frame; `levels[i]` counts how many of them are currently at level `i` (index
+ * 0 = highest detail). The histogram length is the max level count across the
+ * frame's LOD entities. Draw-count shifts with camera distance (near → level 0,
+ * far → the last level) are asserted straight from this.
+ */
+export interface LodSnapshotReport {
+  readonly entities: number;
+  readonly levels: readonly number[];
 }
 
 export interface ViewCullStats {

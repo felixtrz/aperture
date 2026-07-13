@@ -9,6 +9,8 @@ export {
   validateDecalInput,
   validateFogInput,
   validateLineInput,
+  validateLodInput,
+  validateLodLevels,
   validateParticleEmitterInput,
   validatePointsInput,
   validateProceduralSkyInput,

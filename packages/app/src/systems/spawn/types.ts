@@ -293,6 +293,28 @@ export interface UnlitMaterialOptions {
   readonly renderState?: Partial<UnlitMaterialAsset["renderState"]>;
 }
 
+export interface SpawnLodLevelOptions {
+  /** Mesh drawn while this LOD level is active (descriptor or resolved handle). */
+  readonly mesh: PrimitiveMeshDescriptor | MeshHandle;
+  /** World-unit camera→object distance at which this level begins to show. */
+  readonly distance: number;
+}
+
+export interface SpawnLodOptions {
+  /**
+   * Ordered LOD levels (nearest/highest-detail first, strictly ascending
+   * distances) — the three.js `THREE.LOD` level list. Extraction selects one
+   * per frame by camera distance and overrides the drawn mesh with its handle.
+   */
+  readonly levels: readonly SpawnLodLevelOptions[];
+  /**
+   * Symmetric hysteresis band half-width in world units (>= 0). A level only
+   * switches once the distance crosses `threshold ± hysteresis`, so nudging the
+   * camera within the band never repicks (no popping).
+   */
+  readonly hysteresis?: number;
+}
+
 export interface SpawnMeshOptions extends SpawnMetadata {
   readonly mesh: PrimitiveMeshDescriptor | MeshHandle;
   readonly material: MaterialDescriptor | MaterialHandle;
@@ -302,6 +324,12 @@ export interface SpawnMeshOptions extends SpawnMetadata {
   readonly castShadow?: boolean;
   /** Attach a `ShadowReceiver` component so this mesh receives shadows. */
   readonly receiveShadow?: boolean;
+  /**
+   * Attach a `Lod` component (E2). The base `mesh` is the fallback; each level
+   * supplies its own mesh + distance and the shared `material` is reused. When
+   * omitted the mesh has no LOD and is byte-identical to today.
+   */
+  readonly lod?: SpawnLodOptions;
 }
 
 export type DecalTextureDescriptorInput =

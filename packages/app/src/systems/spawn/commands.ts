@@ -7,6 +7,7 @@ import {
   LightKind,
   LightShadowSettings,
   Line,
+  Lod,
   Material,
   Mesh,
   ParticleEmitter,
@@ -25,6 +26,7 @@ import {
   createLight,
   createLightShadowSettings,
   createLine,
+  createLod,
   createParticleEmitter,
   createPoints,
   createProceduralSky,
@@ -55,7 +57,11 @@ import type { SystemAssetAccess } from "../assets.js";
 import { AppEntitySource } from "../components.js";
 import type { SystemDiagnostics } from "../diagnostics.js";
 import { ApertureSystemError } from "../errors.js";
-import { resolveMaterialHandle, resolveMeshHandle } from "./assets.js";
+import {
+  resolveLodInput,
+  resolveMaterialHandle,
+  resolveMeshHandle,
+} from "./assets.js";
 import {
   applyGltfMaterialOverrides,
   applyGltfSourceMetadata,
@@ -97,6 +103,7 @@ const MESH_SPAWN_KEYS: ReadonlySet<string> = new Set([
   "physics",
   "castShadow",
   "receiveShadow",
+  "lod",
 ]);
 
 const FOG_SPAWN_KEYS: ReadonlySet<string> = new Set([
@@ -375,6 +382,13 @@ export function createSpawnCommands(options: {
       entity.addComponent(Material, {
         materialId: assetHandleKey(materialHandle),
       });
+      // E2: attach a Lod component (three.js THREE.LOD analog). The base mesh is
+      // the fallback; each level supplies its own mesh + distance and the shared
+      // material is reused. Extraction selects a level per frame by camera
+      // distance and overrides the drawn mesh handle.
+      if (input.lod !== undefined) {
+        entity.addComponent(Lod, createLod(resolveLodInput(options, input)));
+      }
       // Author both true and false explicitly: `castShadow: false` must attach
       // ShadowCaster{enabled:false} so it actually opts the mesh OUT of casting
       // (meshes cast by default when the component is absent). Leaving it

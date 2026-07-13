@@ -175,6 +175,27 @@ export const Points = defineComponent(
   "Renderer-independent point-cloud (PointsMaterial-style) authoring. Each point draws a camera-facing quad sized in pixels, or world units with perspective size attenuation; round/square shape and optional per-point color.",
 );
 
+export const Lod = defineComponent(
+  "aperture.render.lod",
+  {
+    // Resolved LOD levels held by reference as a `readonly LodResolvedLevel[]`
+    // (each `{ meshId, distance }`) — same-thread only, never snapshot-
+    // transported (only the selected level's mesh handle rides the mesh draw).
+    // Null until authored. Distances are ascending; level 0 is highest detail.
+    levels: { type: EcsType.Object, default: null },
+    // Symmetric hysteresis band half-width in world units. A level only switches
+    // once the distance crosses `threshold ± hysteresis`, so a camera loitering
+    // on a boundary keeps its level (no popping). 0 = three.js hard switch.
+    hysteresis: { type: EcsType.Float32, default: 0 },
+    // Deterministic cross-frame selection state: the level chosen last frame.
+    // Extraction rewrites this in place (bumping the entity version) only when
+    // the level actually changes, so the hysteresis state survives record/replay
+    // as ordinary ECS world state rather than renderer-side memory.
+    currentLevel: { type: EcsType.Int32, default: 0 },
+  },
+  "Renderer-independent mesh-LOD authoring (three.js THREE.LOD analog). N levels, each a mesh handle + an ascending distance threshold, plus a hysteresis band. Deterministic per-camera level selection runs in extraction and overrides the drawn mesh handle; `currentLevel` holds the sticky selection.",
+);
+
 export const AudioEmitter = defineComponent(
   "aperture.render.audioEmitter",
   {

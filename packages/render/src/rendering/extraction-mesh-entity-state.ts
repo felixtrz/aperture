@@ -19,6 +19,7 @@ import {
 import type { RenderDiagnostic } from "./snapshot.js";
 import { diagnostic } from "./extraction-diagnostics.js";
 import { parseMaterialHandle, parseMeshHandle } from "./extraction-inputs.js";
+import { resolveLodMeshId } from "./extraction-lod.js";
 import { readWorldMatrix } from "./extraction-matrices.js";
 
 export interface MeshEntityExtractionState {
@@ -89,8 +90,14 @@ export function readMeshEntityExtractionState(input: {
     return null;
   }
 
+  // A `Lod` entity draws its currently-selected level's mesh (resolved from the
+  // deterministic `currentLevel` written by extractLodSelection); it overrides
+  // the base `Mesh` handle. Non-LOD entities resolve null and keep the base
+  // handle, so their extraction is byte-identical to today.
   const meshHandle = parseMeshHandle(
-    input.entity.getValue(Mesh, "meshId") ?? "",
+    resolveLodMeshId(input.entity) ??
+      input.entity.getValue(Mesh, "meshId") ??
+      "",
   );
   const meshEntry =
     meshHandle === null

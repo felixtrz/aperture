@@ -11,6 +11,7 @@ import {
   type DecalInput,
   type FogInput,
   type LineInput,
+  type LodInput,
   type ParticleEmitterInput,
   type PointsInput,
   type ProceduralSkyInput,
@@ -25,6 +26,7 @@ import {
   createDecal,
   createFog,
   createLine,
+  createLod,
   createParticleEmitter,
   createPoints,
   createProceduralSky,
@@ -219,6 +221,91 @@ export function validatePointsInput(
       message: "Point shape must be 'round' or 'square'.",
     });
   }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
+/**
+ * Validate the RESOLVED LOD level list (`{ meshId, distance }[]`) + hysteresis
+ * as stored on the `Lod` component. Shared by {@link validateLodInput}
+ * (authoring) and render extraction (which re-validates the stored data and
+ * emits `render.lod.*` diagnostics before selecting a level), so both agree on
+ * every failure path. Returns the diagnostics; empty means valid.
+ */
+export function validateLodLevels(
+  levels: unknown,
+  hysteresis: number,
+): RenderAuthoringDiagnostic[] {
+  const diagnostics: RenderAuthoringDiagnostic[] = [];
+
+  if (!Array.isArray(levels) || levels.length === 0) {
+    diagnostics.push({
+      code: "lod.emptyLevels",
+      field: "levels",
+      message: "LOD requires at least one level (a mesh handle + distance).",
+    });
+    return diagnostics;
+  }
+
+  let invalidMesh = false;
+  let notAscending = false;
+  let previousDistance = Number.NEGATIVE_INFINITY;
+
+  for (const level of levels) {
+    const meshId = (level as { readonly meshId?: unknown }).meshId;
+    const distance = (level as { readonly distance?: unknown }).distance;
+
+    if (typeof meshId !== "string" || meshId.trim().length === 0) {
+      invalidMesh = true;
+    }
+
+    if (
+      typeof distance !== "number" ||
+      !Number.isFinite(distance) ||
+      distance < 0 ||
+      distance <= previousDistance
+    ) {
+      notAscending = true;
+    }
+
+    if (typeof distance === "number") {
+      previousDistance = distance;
+    }
+  }
+
+  if (invalidMesh) {
+    diagnostics.push({
+      code: "lod.invalidLevelMesh",
+      field: "levels",
+      message: "Each LOD level requires a non-empty mesh handle.",
+    });
+  }
+
+  if (notAscending) {
+    diagnostics.push({
+      code: "lod.thresholdsNotAscending",
+      field: "levels",
+      message:
+        "LOD level distances must be finite, non-negative, and strictly ascending.",
+    });
+  }
+
+  if (!Number.isFinite(hysteresis) || hysteresis < 0) {
+    diagnostics.push({
+      code: "lod.invalidHysteresis",
+      field: "hysteresis",
+      message: "LOD hysteresis must be a finite non-negative number.",
+    });
+  }
+
+  return diagnostics;
+}
+
+export function validateLodInput(
+  input: LodInput,
+): RenderAuthoringValidationReport {
+  const lod = createLod(input);
+  const diagnostics = validateLodLevels(lod.levels, lod.hysteresis ?? 0);
 
   return { valid: diagnostics.length === 0, diagnostics };
 }

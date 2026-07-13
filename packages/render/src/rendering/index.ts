@@ -11,6 +11,12 @@ export {
 } from "./extraction-decals.js";
 export { extractLines, type ExtractLinesResult } from "./extraction-lines.js";
 export {
+  extractLodSelection,
+  resolveLodMeshId,
+  type ExtractLodResult,
+} from "./extraction-lod.js";
+export * from "./lod-selection.js";
+export {
   extractPoints,
   type ExtractPointsResult,
 } from "./extraction-points.js";

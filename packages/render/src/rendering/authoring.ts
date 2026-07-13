@@ -12,6 +12,7 @@ import {
   LightCookie,
   LightShadowSettings,
   Line,
+  Lod,
   Material,
   MaterialSlots,
   Mesh,
@@ -86,5 +87,8 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(ShadowCaster);
   world.registerComponent(ShadowReceiver);
   world.registerComponent(LightShadowSettings);
+  // E2: registered last so the new component's type index does not shift any
+  // existing component's index (keeps determinism fixtures unmoved).
+  world.registerComponent(Lod);
   return world;
 }

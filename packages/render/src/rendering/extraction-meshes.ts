@@ -6,7 +6,7 @@ import {
   type MaterialHandle,
 } from "@aperture-engine/simulation";
 import { validateMeshAsset } from "../mesh/index.js";
-import { Material, MaterialSlots, Mesh, OcclusionQuery } from "./index.js";
+import { Lod, Material, MaterialSlots, Mesh, OcclusionQuery } from "./index.js";
 import {
   type BoundsPacket,
   type FogPacket,
@@ -26,6 +26,7 @@ import { readMeshDrawExtractionInputs } from "./extraction-mesh-draw-inputs.js";
 import { readMeshEntityExtractionState } from "./extraction-mesh-entity-state.js";
 import { readWorldMatrix } from "./extraction-matrices.js";
 import { readMaterialSlots } from "./extraction-mesh-materials.js";
+import { resolveLodMeshId } from "./extraction-lod.js";
 import { parseMaterialHandle, parseMeshHandle } from "./extraction-inputs.js";
 import {
   appendCachedMeshDrawEntity,
@@ -316,11 +317,22 @@ function readMeshDrawEntityAssetSignature(
   entity: Entity,
   assets: AssetRegistry,
 ): string | null {
-  const meshHandle = parseMeshHandle(entity.getValue(Mesh, "meshId") ?? "");
+  // A LOD entity's drawn mesh is its selected level's mesh, not the base `Mesh`
+  // handle — fold the resolved level id (+ the selected index) into the
+  // signature so a level switch OR a level-mesh readiness change invalidates the
+  // cache. Non-LOD entities resolve null → base handle → byte-identical.
+  const lodMeshId = resolveLodMeshId(entity);
+  const meshHandle = parseMeshHandle(
+    lodMeshId ?? entity.getValue(Mesh, "meshId") ?? "",
+  );
 
   if (meshHandle === null) {
     return null;
   }
+
+  const lodSegments = entity.hasComponent(Lod)
+    ? [`lod:${entity.getValue(Lod, "currentLevel") ?? 0}`]
+    : [];
 
   const meshEntry = assets.get(meshHandle);
 
@@ -372,6 +384,7 @@ function readMeshDrawEntityAssetSignature(
     `primary:${primaryMaterialHandle === null ? "none" : assetHandleKey(primaryMaterialHandle)}`,
     `slots:${materialSlots.slotsJson}`,
     ...materialSegments,
+    ...lodSegments,
   ].join("|");
 }
 

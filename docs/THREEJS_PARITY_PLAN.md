@@ -1037,6 +1037,69 @@ pipelines project the primary view's matrix (single-camera).
 
 ### E2. Mesh LOD — **M**
 
+Status: implemented (2026-07-13). AC1 (`Lod` component + extraction selection):
+a `Lod` authoring component holds N levels (each a mesh handle + an ascending
+distance threshold, held by reference as a resolved `{ meshId, distance }[]`), a
+`hysteresis` band, and a deterministic `currentLevel` selection state. Level
+selection runs **worker-side in extraction** (`extractLodSelection`, called once
+per frame before mesh extraction) against the **primary view**: it takes the
+camera→object world distance (the three.js `LOD.update` model — the object's
+world-transform origin, NOT a screen-coverage metric) and picks the level with the
+pure, unit-tested `selectLodLevel(distance, thresholds, currentLevel, hysteresis)`
+— the highest level whose threshold the distance has cleared, with a **symmetric
+hysteresis band** (switch up needs `distance >= threshold + hysteresis`, switch
+down needs `distance < threshold - hysteresis`, hold between). The selected level's
+mesh handle **overrides the drawn mesh** in `readMeshEntityExtractionState` (the
+exact line that reads `Mesh.meshId`), so LOD needs NO renderer/webgpu change — the
+existing `meshDraws` family carries a different handle per frame. **Rationale**:
+overriding the handle in extraction (a) keeps selection a pure, replay-deterministic
+CPU projection over authoritative ECS state, and (b) reuses the entire downstream
+mesh pipeline (batching, shadows, culling) unchanged.
+
+Hysteresis state location + rationale: the sticky `currentLevel` lives ON THE ECS
+COMPONENT (deterministic world state), NOT in renderer-side memory. Extraction
+rewrites it in place ONLY when the level actually changes; that `setValue` bumps the
+entity version, which invalidates this entity's mesh-draw cache so the new level
+mesh (and its asset signature — the resolved level id + index are folded in) is
+re-resolved. Unchanged frames neither write nor churn the cache. Because the state
+is ordinary deterministic ECS state, record/replay reproduces every selection
+exactly. Malformed ladders (empty levels, out-of-order thresholds, missing level
+mesh, negative hysteresis) emit a structured `render.lod.*` diagnostic and fall back
+to the base `Mesh` handle rather than raising a device error. The per-frame tally
+rides `snapshot.report.lod = { entities, levels }` (`levels[i]` = entities at level
+`i`).
+
+AC2 (example + e2e): `examples/mesh-lod` is a field of four LOD'd rocks (level 0 a
+high-poly sphere, level 1 a low-poly box, one shared unlit material — NOT multiple
+distinct custom-WGSL materials, avoiding the D3 black-frame bug) that the worker
+dollies the camera past on a fixed near→band→far schedule. `test/e2e/mesh-lod.spec.ts`
+asserts straight from `report.lod.levels`: (1) the per-level draw distribution shifts
+from all-high-detail near (`[4,0]`) to all-low-detail far (`[0,4]`) — draw counts
+change with distance; and (2) two band frames whose camera distances STRADDLE the raw
+threshold (19 → 21 across 20) but stay inside the hysteresis band report the IDENTICAL
+distribution — no popping. Both proofs are mirrored in `test/rendering` vitest
+(`selectLodLevel` boundary + band coverage, per-entity `currentLevel` write-only-on-
+change, report counters, and the no-LOD byte-identity literal).
+
+Byte-identity + determinism: a frame with no `Lod` entities writes nothing, omits
+`report.lod`, builds no state, and resolves every mesh handle exactly as before — so
+it is byte-identical to a pre-E2 snapshot/report (pinned by a no-LOD literal test).
+The new component is registered LAST so no existing component's type index shifts; no
+determinism fixture declares `Lod`, and `npx vitest run test/determinism` is GREEN
+with NO refresh (the LOD selection is deterministic, so a fixture using it would
+replay identically — a gate scene was left as an optional follow-up).
+
+Authoring surface: `Lod` + `createLod` + `validateLodInput`/`validateLodLevels`
+(`@aperture-engine/render`), the `withLod(...)` trait (`@aperture-engine/runtime`),
+and a `lod` option on `spawn.mesh(...)` (`@aperture-engine/app`) — the base `mesh` is
+the fallback and each level supplies its own mesh + distance while the shared
+`material` is reused (the `spawn.mesh` option was chosen over a separate `spawn.lod`
+because a LOD entity IS a mesh entity — one draw, one material, swapped geometry).
+Feature-audit §4 + §8 LOD rows → ✅. Deviations (honest): distance-based only (no
+screen-coverage metric); selects against the primary/active view (single-camera
+scenes; a multi-camera scene selects against the first view); LOD swaps the mesh
+handle only (shared material), not whole sub-objects with their own materials.
+
 - AC1: `Lod` component (levels: mesh handle + distance/screen-coverage
   threshold, hysteresis); selection runs in extraction using existing
   bounds; per-camera.

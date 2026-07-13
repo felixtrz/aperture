@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1527
+Every structured diagnostic code the engine can emit (1531
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -3328,6 +3328,30 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                        | Message                                            | Fix? | Emitted from                                                       |
 | ------------------------------------------- | -------------------------------------------------- | ---- | ------------------------------------------------------------------ |
 | `localLightClusterGpuBuffer.creationFailed` | Failed to create local-light cluster buffer '…': … | —    | `packages/webgpu/src/lighting/local-light-cluster-gpu-resource.ts` |
+
+## lod.emptyLevels (1)
+
+| Code              | Message                                                     | Fix? | Emitted from                                                    |
+| ----------------- | ----------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `lod.emptyLevels` | LOD requires at least one level (a mesh handle + distance). | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## lod.invalidHysteresis (1)
+
+| Code                    | Message                                              | Fix? | Emitted from                                                    |
+| ----------------------- | ---------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `lod.invalidHysteresis` | LOD hysteresis must be a finite non-negative number. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## lod.invalidLevelMesh (1)
+
+| Code                   | Message                                          | Fix? | Emitted from                                                    |
+| ---------------------- | ------------------------------------------------ | ---- | --------------------------------------------------------------- |
+| `lod.invalidLevelMesh` | Each LOD level requires a non-empty mesh handle. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## lod.thresholdsNotAscending (1)
+
+| Code                         | Message                                                                   | Fix? | Emitted from                                                    |
+| ---------------------------- | ------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `lod.thresholdsNotAscending` | LOD level distances must be finite, non-negative, and strictly ascending. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
 ## matcapFrameResources.missingMaterial (1)
 

@@ -3,6 +3,7 @@ import type {
   EnvironmentMapHandle,
   FontAtlasHandle,
   MaterialHandle,
+  MeshHandle,
   SamplerHandle,
   TextureHandle,
   Vec2Like,
@@ -383,6 +384,36 @@ export interface PointsInput {
   readonly shape?: PointShape;
 }
 
+export interface LodLevelInput {
+  /**
+   * Mesh drawn while this level is active. Levels are distinct meshes (e.g. a
+   * high-poly and a decimated low-poly rock); the material is shared (only the
+   * mesh handle is swapped).
+   */
+  readonly mesh: MeshHandle;
+  /**
+   * World-unit camera→object distance at which this level begins to show.
+   * Levels must be ordered by strictly ascending distance; the first level's
+   * distance is normally 0 (three.js `LOD.addLevel` distance).
+   */
+  readonly distance: number;
+}
+
+export interface LodInput {
+  /**
+   * Ordered LOD levels (nearest/highest-detail first) — the three.js
+   * `THREE.LOD` level list. At least one level is required; distances must be
+   * strictly ascending.
+   */
+  readonly levels: readonly LodLevelInput[];
+  /**
+   * Symmetric hysteresis band half-width in world units (>= 0, default 0). A
+   * level only switches once the distance crosses `threshold ± hysteresis`, so
+   * small camera nudges within the band never repick (no popping).
+   */
+  readonly hysteresis?: number;
+}
+
 export interface AudioEmitterInput {
   readonly clip: AudioClipHandle;
   readonly busId?: string;
@@ -618,6 +649,10 @@ export type RenderAuthoringDiagnosticCode =
   | "points.invalidSize"
   | "points.invalidColor"
   | "points.invalidShape"
+  | "lod.emptyLevels"
+  | "lod.invalidLevelMesh"
+  | "lod.thresholdsNotAscending"
+  | "lod.invalidHysteresis"
   | "particle.invalidEffect"
   | "particle.invalidCapacity"
   | "particle.invalidSeed"

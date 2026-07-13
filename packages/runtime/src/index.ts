@@ -71,6 +71,7 @@ import {
   OcclusionQuery,
   Decal,
   Line,
+  Lod,
   ParticleEmitter,
   Points,
   ProceduralSky,
@@ -100,6 +101,7 @@ import {
   createLightCookie,
   createLightShadowSettings,
   createLine,
+  createLod,
   createMaterialSlots,
   createMorphTargetWeights,
   createOcclusionQuery,
@@ -133,6 +135,7 @@ import {
   type LightInput,
   type LightShadowSettingsInput,
   type LineInput,
+  type LodInput,
   type MaterialSlotsInput,
   type MorphTargetWeightsInput,
   type AudioEmitterInput,
@@ -586,6 +589,21 @@ export function withPoints(input: PointsInput): SpawnEntityInitializer {
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(Points, createPoints(input));
+  };
+}
+
+/**
+ * Attach a `Lod` component (E2, three.js `THREE.LOD` analog) so this entity's
+ * drawn mesh is selected each frame by camera distance. Pair with `withMesh`
+ * (the base/fallback mesh) + `withMaterial`; extraction overrides the drawn mesh
+ * with the selected level's handle. Levels must be ordered by strictly ascending
+ * distance; `hysteresis` (world units) keeps the selection sticky near a
+ * boundary so small camera nudges never pop between levels.
+ */
+export function withLod(input: LodInput): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(Lod, createLod(input));
   };
 }
 

@@ -17,7 +17,7 @@
 >
 > **Method.** Aperture capabilities were inventoried directly from package
 > source (`packages/*`), examples, and the e2e suite; negative claims (no XR,
-> no LOD, no video textures, no hemisphere light, no wireframe, no stencil)
+> no video textures, no hemisphere light, no wireframe, no stencil)
 > were re-verified by repo-wide search. three.js capabilities were enumerated
 > from its `src/` and `examples/jsm/` trees in the checkout above. Planned or
 > documented-only work is never counted as implemented, on either side.
@@ -65,7 +65,7 @@ route is deliberately narrow), asset format breadth (glTF only; no
 OBJ/FBX/USD/STL/…, no exporters), geometry primitive breadth (8 primitives vs
 21+, no extrude/lathe/tube/text geometry), animation depth (single clip + one
 crossfade lane vs three.js's N-action mixer with additive blending and
-property tracks), mesh LOD, helpers/gizmos breadth, and the
+property tracks), helpers/gizmos breadth, and the
 ecosystem itself (three.js's community, docs, and examples corpus have no
 Aperture equivalent). WebXR is absent as well, but by decision, not omission:
 immersive use cases belong to IWSDK, the maintainer's dedicated WebXR
@@ -105,11 +105,11 @@ is an absence Aperture chose on purpose and documents in `docs/DECISIONS.md`.
 
 | Area                    | Standing | One-line takeaway                                                                                      |
 | ----------------------- | -------- | ------------------------------------------------------------------------------------------------------ |
-| Rendering core          | 🟡       | Frame graph, MSAA, instancing, culling, occlusion queries; no clipping planes/stencil/wireframe/LOD    |
+| Rendering core          | 🟡       | Frame graph, MSAA, instancing, culling, occlusion queries; no clipping planes/stencil/wireframe        |
 | Materials & shading     | 🟡       | Strong PBR + extensions; 5 material families vs 18+, no open shader-graph system                       |
 | Lights & shadows        | ✅/➕    | CSM + PCSS + clustered + LTC area lights in core beat three.js core; no hemisphere light/light probes  |
 | Geometry & meshes       | 🟡       | Solid data model (morph/skin/multi-stream); 8 primitives vs 21+, no extrude/text/edges geometry        |
-| Objects & scene         | 🟡       | Sprites/instancing/batching/fog/sky + fat lines & points materials (E1) yes; LOD, helpers no           |
+| Objects & scene         | 🟡       | Sprites/instancing/batching/fog/sky + fat lines & points (E1) + mesh LOD (E2) yes; helpers no          |
 | Cameras & controls      | ✅/🟡    | Multi-camera/viewport/priority strong; 3 controllers vs 9, no cube/stereo camera                       |
 | Animation               | 🟡       | glTF clips, CUBICSPLINE, crossfade, skinning, morphs; no N-clip mixing, additive layers, IK            |
 | Asset I/O               | 🟡       | Deep glTF (Draco/Meshopt/KTX2) but glTF-only; no other formats, no exporters                           |
@@ -128,27 +128,27 @@ is an absence Aperture chose on purpose and documents in `docs/DECISIONS.md`.
 
 ## 4. Rendering core
 
-| Feature                    | three.js                                                      | Aperture                                                                                   | Status |
-| -------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------ |
-| Render architecture        | Render lists/states; render bundles (WebGPU); no user graph   | Frame graph DAG (named passes/resources, clear/load intents), default-on, single encoder   | ➕     |
-| Custom passes              | `EffectComposer` passes; TSL `PassNode`; `onBeforeRender`     | `addRenderPass`/`addComputePass` user passes on the app facade                             | ✅     |
-| Compute                    | TSL `ComputeNode`, atomics, workgroups (WebGPU)               | Internal compute (IBL, mipmaps, particles, skinning palettes) + user compute passes        | 🟡     |
-| Render targets / offscreen | 2D/3D/array/cube render targets, MRT                          | Render-target assets, camera `renderTargetId`, multi-render-target example; 2D color+depth | 🟡     |
-| Readback                   | `readRenderTargetPixels`                                      | `gpu-readback` + frame-boundary readback samples + diagnostics                             | ✅     |
-| MSAA                       | Antialias flag; sample counts per target (WebGPU)             | 1× or 4× (WebGPU-guaranteed set), MSAA-aware post depth sampling                           | ✅     |
-| Instancing                 | `InstancedMesh`, instanced attributes                         | Automatic instanced draws for shared mesh+material, `InstanceTint`, custom instance data   | ✅     |
-| Batching                   | `BatchedMesh` (multi-draw)                                    | Static mesh merge + render-queue batching                                                  | 🟡     |
-| Frustum culling            | Per-object, sphere-based                                      | AABB vs 6 planes per view, per-camera toggle                                               | ✅     |
-| Occlusion culling          | ❌ (manual)                                                   | GPU occlusion queries with feedback + fallback reasons                                     | ➕     |
-| Sorting & transparency     | Opaque/transparent lists, `renderOrder`                       | Front-to-back opaque, stable back-to-front transparent, `RenderOrder` component            | ✅     |
-| Layers / visibility        | `Layers` bitmask, `visible`                                   | `RenderLayer` masks on cameras/lights/shadows, `Visibility` component                      | ✅     |
-| Clipping planes            | Global + per-material + `ClippingGroup`                       | None                                                                                       | ❌     |
-| Stencil                    | Full stencil state per material                               | Explicitly unsupported (`unsupportedFeatures: "stencil"`)                                  | ❌     |
-| Wireframe                  | `wireframe` flag on materials, `WireframeGeometry`            | None                                                                                       | ❌     |
-| Fog                        | Linear + exponential-squared                                  | Linear, exp, exp2 (`Fog` component)                                                        | ✅     |
-| Background / sky           | Scene background (color/texture/equirect + blur), `Sky` addon | Skybox (cube), procedural gradient sky with sun, per-camera clear                          | ✅     |
-| LOD                        | `LOD` object                                                  | None                                                                                       | ❌     |
-| Stats / profiling          | `WebGLRenderer.info`, TimestampQuery (WebGPU)                 | JSON frame reports (draw/pass/diagnostic counts), GPU timestamps, per-phase timing         | ➕     |
+| Feature                    | three.js                                                      | Aperture                                                                                                                                                                                                                         | Status |
+| -------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Render architecture        | Render lists/states; render bundles (WebGPU); no user graph   | Frame graph DAG (named passes/resources, clear/load intents), default-on, single encoder                                                                                                                                         | ➕     |
+| Custom passes              | `EffectComposer` passes; TSL `PassNode`; `onBeforeRender`     | `addRenderPass`/`addComputePass` user passes on the app facade                                                                                                                                                                   | ✅     |
+| Compute                    | TSL `ComputeNode`, atomics, workgroups (WebGPU)               | Internal compute (IBL, mipmaps, particles, skinning palettes) + user compute passes                                                                                                                                              | 🟡     |
+| Render targets / offscreen | 2D/3D/array/cube render targets, MRT                          | Render-target assets, camera `renderTargetId`, multi-render-target example; 2D color+depth                                                                                                                                       | 🟡     |
+| Readback                   | `readRenderTargetPixels`                                      | `gpu-readback` + frame-boundary readback samples + diagnostics                                                                                                                                                                   | ✅     |
+| MSAA                       | Antialias flag; sample counts per target (WebGPU)             | 1× or 4× (WebGPU-guaranteed set), MSAA-aware post depth sampling                                                                                                                                                                 | ✅     |
+| Instancing                 | `InstancedMesh`, instanced attributes                         | Automatic instanced draws for shared mesh+material, `InstanceTint`, custom instance data                                                                                                                                         | ✅     |
+| Batching                   | `BatchedMesh` (multi-draw)                                    | Static mesh merge + render-queue batching                                                                                                                                                                                        | 🟡     |
+| Frustum culling            | Per-object, sphere-based                                      | AABB vs 6 planes per view, per-camera toggle                                                                                                                                                                                     | ✅     |
+| Occlusion culling          | ❌ (manual)                                                   | GPU occlusion queries with feedback + fallback reasons                                                                                                                                                                           | ➕     |
+| Sorting & transparency     | Opaque/transparent lists, `renderOrder`                       | Front-to-back opaque, stable back-to-front transparent, `RenderOrder` component                                                                                                                                                  | ✅     |
+| Layers / visibility        | `Layers` bitmask, `visible`                                   | `RenderLayer` masks on cameras/lights/shadows, `Visibility` component                                                                                                                                                            | ✅     |
+| Clipping planes            | Global + per-material + `ClippingGroup`                       | None                                                                                                                                                                                                                             | ❌     |
+| Stencil                    | Full stencil state per material                               | Explicitly unsupported (`unsupportedFeatures: "stencil"`)                                                                                                                                                                        | ❌     |
+| Wireframe                  | `wireframe` flag on materials, `WireframeGeometry`            | None                                                                                                                                                                                                                             | ❌     |
+| Fog                        | Linear + exponential-squared                                  | Linear, exp, exp2 (`Fog` component)                                                                                                                                                                                              | ✅     |
+| Background / sky           | Scene background (color/texture/equirect + blur), `Sky` addon | Skybox (cube), procedural gradient sky with sun, per-camera clear                                                                                                                                                                | ✅     |
+| LOD                        | `LOD` object                                                  | ✅ `Lod` component: N mesh levels + distance thresholds + hysteresis, deterministic per-camera selection in extraction overriding the drawn mesh (parity plan E2, `examples/mesh-lod`); 🟡 distance-based, single-primary-camera | ✅     |
+| Stats / profiling          | `WebGLRenderer.info`, TimestampQuery (WebGPU)                 | JSON frame reports (draw/pass/diagnostic counts), GPU timestamps, per-phase timing                                                                                                                                               | ➕     |
 
 Notes: three.js render bundles and MRT on the node renderer have no direct
 Aperture equivalent yet (Aperture has render bundles internally in
@@ -275,22 +275,22 @@ stack simply has no counterpart.
 
 ## 8. Objects & scene features
 
-| three.js object                                                  | Aperture                                                                                                                                                                                      | Status |
-| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| `Group` / hierarchy                                              | `Parent`/`Children` components, world-preserving `setParent`, recursive despawn                                                                                                               | ✅     |
-| `Mesh`                                                           | `Mesh` + `Material` components                                                                                                                                                                | ✅     |
-| `SkinnedMesh`                                                    | `Skin` + animation driver                                                                                                                                                                     | ✅     |
-| `InstancedMesh`                                                  | Automatic instancing + `InstanceTint`/`InstanceData`                                                                                                                                          | ✅     |
-| `BatchedMesh`                                                    | Static mesh merging (no dynamic per-instance geometry batching)                                                                                                                               | 🟡     |
-| `Sprite`                                                         | `Sprite` component (richer: billboard modes, screen/world sizing, atlases)                                                                                                                    | ➕     |
-| `Points` + `PointsMaterial`                                      | ✅ point subsystem: camera-facing quads with pixel/world size + perspective attenuation, round/square shape, per-point color (parity plan E1, `examples/point-cloud`)                         | ✅     |
-| `Line`/`LineSegments`/fat lines addon                            | ✅ fat-line subsystem: screen-space pixel width, world-continuous dashes, round caps/joins (Line2-style instanced quads; parity plan E1, `examples/fat-lines`); 🟡 joins round-only, no miter | ✅     |
-| `LOD`                                                            | None                                                                                                                                                                                          | ❌     |
-| `ClippingGroup`                                                  | None (no clipping planes at all)                                                                                                                                                              | ❌     |
-| Helpers (13 core + addons)                                       | Physics debug geometry (wireframes/contacts/AABBs/joints), translate gizmo                                                                                                                    | 🟡     |
-| `Sky`, `Water`, `Reflector`, `Lensflare`, `MarchingCubes` addons | Procedural sky only; SSR pass covers some reflector use-cases                                                                                                                                 | 🟡     |
-| Scene `.environment`/`.background`                               | Environment light kind + skybox/procedural sky per camera                                                                                                                                     | ✅     |
-| `.overrideMaterial`                                              | None                                                                                                                                                                                          | ❌     |
+| three.js object                                                  | Aperture                                                                                                                                                                                                                                                            | Status |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| `Group` / hierarchy                                              | `Parent`/`Children` components, world-preserving `setParent`, recursive despawn                                                                                                                                                                                     | ✅     |
+| `Mesh`                                                           | `Mesh` + `Material` components                                                                                                                                                                                                                                      | ✅     |
+| `SkinnedMesh`                                                    | `Skin` + animation driver                                                                                                                                                                                                                                           | ✅     |
+| `InstancedMesh`                                                  | Automatic instancing + `InstanceTint`/`InstanceData`                                                                                                                                                                                                                | ✅     |
+| `BatchedMesh`                                                    | Static mesh merging (no dynamic per-instance geometry batching)                                                                                                                                                                                                     | 🟡     |
+| `Sprite`                                                         | `Sprite` component (richer: billboard modes, screen/world sizing, atlases)                                                                                                                                                                                          | ➕     |
+| `Points` + `PointsMaterial`                                      | ✅ point subsystem: camera-facing quads with pixel/world size + perspective attenuation, round/square shape, per-point color (parity plan E1, `examples/point-cloud`)                                                                                               | ✅     |
+| `Line`/`LineSegments`/fat lines addon                            | ✅ fat-line subsystem: screen-space pixel width, world-continuous dashes, round caps/joins (Line2-style instanced quads; parity plan E1, `examples/fat-lines`); 🟡 joins round-only, no miter                                                                       | ✅     |
+| `LOD`                                                            | ✅ `Lod` component: N mesh levels + ascending distance thresholds + hysteresis band; deterministic per-camera selection runs in extraction and overrides the drawn mesh handle (parity plan E2, `examples/mesh-lod`); 🟡 distance-based only, single-primary-camera | ✅     |
+| `ClippingGroup`                                                  | None (no clipping planes at all)                                                                                                                                                                                                                                    | ❌     |
+| Helpers (13 core + addons)                                       | Physics debug geometry (wireframes/contacts/AABBs/joints), translate gizmo                                                                                                                                                                                          | 🟡     |
+| `Sky`, `Water`, `Reflector`, `Lensflare`, `MarchingCubes` addons | Procedural sky only; SSR pass covers some reflector use-cases                                                                                                                                                                                                       | 🟡     |
+| Scene `.environment`/`.background`                               | Environment light kind + skybox/procedural sky per camera                                                                                                                                                                                                           | ✅     |
+| `.overrideMaterial`                                              | None                                                                                                                                                                                                                                                                | ❌     |
 
 ---
 
@@ -612,7 +612,8 @@ decision, not a gap — see §14 and `DECISIONS.md 0023`.)
    geometry, no platonic solids, no edges/wireframe derivation (§7).
 5. **Lines & points as first-class renderables** — no fat lines, dashes, point
    size/attenuation materials (§8).
-6. **Mesh LOD** — none (§4).
+6. **Mesh LOD** — shipped (E2): distance-based `Lod` with a hysteresis band and
+   deterministic per-camera selection in extraction; no screen-coverage metric (§4).
 7. **Clipping planes & stencil** — none; stencil explicitly unsupported (§4).
 8. **Camera/controls breadth** — no pointer-lock/trackball/arcball/map/drag
    controls; no rotate/scale gizmos; no CubeCamera/StereoCamera (§9).

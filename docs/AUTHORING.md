@@ -1660,6 +1660,87 @@ cloud-level field). The pipeline projects the primary view's matrix
 
 See `examples/point-cloud.html` for a near/far attenuated point-cloud viewer.
 
+## Mesh LOD — parity plan E2
+
+**Level of detail** swaps an entity's drawn mesh by camera distance — the analog
+of three.js `THREE.LOD`. A `Lod` component holds N **levels** (each a mesh handle
+
+- an ascending distance threshold) plus a **hysteresis** band. Selection runs
+  **worker-side in extraction**, is **deterministic**, and **overrides the drawn
+  mesh handle** — so LOD needs no renderer change; the ordinary mesh draw just
+  carries a different handle per frame. Byte-identical when unused.
+
+Author it as a `lod` option on `spawn.mesh(...)`. The base `mesh` is the fallback
+and the `material` is shared across levels (LOD swaps the mesh, not the whole
+sub-object):
+
+```ts
+class RockSystem extends createSystem({ priority: 0 }) {
+  override placeRock(position: Vec3): void {
+    this.spawn.mesh({
+      mesh: { kind: "sphere", options: { radius: 0.8, segments: 32 } }, // base/fallback
+      material: {
+        kind: "standard",
+        options: { baseColor: [0.6, 0.66, 0.72, 1] },
+      },
+      transform: { translation: position },
+      lod: {
+        levels: [
+          {
+            mesh: { kind: "sphere", options: { radius: 0.8, segments: 32 } },
+            distance: 0,
+          },
+          { mesh: { kind: "box", options: { size: 1.3 } }, distance: 20 },
+        ],
+        hysteresis: 3, // world units; keeps the selection sticky near a boundary
+      },
+    });
+  }
+}
+```
+
+Each level is a `{ mesh, distance }` where `mesh` is a primitive descriptor or a
+resolved `MeshHandle`. Levels are **nearest first** with **strictly ascending**
+distances (level 0 usually `distance: 0`). The lower-level trait `withLod(...)`
+and the `createLod(...)` / `validateLodInput(...)` factories
+(`@aperture-engine/render`) are available for `createExtractionApp` /
+trait-based spawning; pair `withLod(...)` with `withMesh(...)` + `withMaterial(...)`.
+
+**Selection + hysteresis.** Each frame extraction computes the camera→object
+world distance (the three.js `LOD.update` model — object world position, not a
+screen-coverage metric) and selects the highest level whose threshold the
+distance has cleared. A **symmetric hysteresis band** keeps the previously
+selected level sticky: a switch to a coarser level needs `distance >= threshold +
+hysteresis`, a switch back needs `distance < threshold - hysteresis`. Between
+those the level is held, so a camera loitering on a boundary never pops. The
+sticky state lives on the component (`Lod.currentLevel`) as ordinary
+deterministic ECS world state (NOT renderer memory), rewritten only on an actual
+change — so selections reproduce exactly under record/replay. The pure selection
+function `selectLodLevel(distance, thresholds, currentLevel, hysteresis)` is
+exported and unit-tested.
+
+**Report.** `snapshot.report.lod` = `{ entities, levels }`, where `levels[i]`
+counts the LOD entities currently at level `i` (index 0 = highest detail) — the
+per-level draw distribution that shifts near→far. Absent when a frame has no LOD
+entities.
+
+**Diagnostics.** Empty levels (`lod.emptyLevels`), out-of-order thresholds
+(`lod.thresholdsNotAscending`), a missing level mesh handle
+(`lod.invalidLevelMesh`), or a negative hysteresis (`lod.invalidHysteresis`) fail
+authoring validation; at extraction the same codes surface as `render.lod.*` and
+the entity falls back to drawing its base `Mesh` handle rather than raising a
+device error.
+
+**Limitations (honest).** 🟡 Distance-based only (no screen-coverage / bounding-
+sphere-pixel-size metric). Selection uses the **primary/active view**
+(single-camera scenes); a multi-camera scene selects against the first view.
+LOD swaps the **mesh handle** only (shared material), not whole sub-objects with
+their own materials.
+
+See `examples/mesh-lod.html` for a field of LOD'd rocks the camera dollies
+near→far, with a frame-report e2e proving the distribution shift and the
+no-popping hysteresis band.
+
 ## Dynamic meshes — parity plan D5
 
 For geometry that changes every frame on the CPU (cloth, jelly, procedural

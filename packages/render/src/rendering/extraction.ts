@@ -40,6 +40,7 @@ import { extractSkyboxes } from "./extraction-skyboxes.js";
 import { extractSpriteDraws } from "./extraction-sprites.js";
 import { extractDecals } from "./extraction-decals.js";
 import { extractLines } from "./extraction-lines.js";
+import { extractLodSelection } from "./extraction-lod.js";
 import { extractPoints } from "./extraction-points.js";
 import { extractUiLayout } from "./extraction-ui.js";
 import { extractViews } from "./extraction-views.js";
@@ -109,6 +110,14 @@ export function extractRenderSnapshot(
     0,
   );
   const viewCullSignature = createViewCullSignature(viewCullContexts);
+  // E2: deterministic mesh-LOD level selection runs BEFORE mesh extraction so a
+  // level switch has already rewritten each entity's `currentLevel` (bumping its
+  // version) by the time extractMeshDraws reads it and resolves the drawn mesh.
+  const lodExtraction = extractLodSelection(
+    world,
+    viewCullContexts,
+    diagnostics,
+  );
   const fogs = extractFogs(world, diagnostics, cameraLayerMask);
   const environments: EnvironmentPacket[] = [];
   const shadowRequests: ShadowRequestPacket[] = [];
@@ -360,6 +369,9 @@ export function extractRenderSnapshot(
       ...(pointExtraction.report === undefined
         ? {}
         : { points: pointExtraction.report }),
+      ...(lodExtraction.report === undefined
+        ? {}
+        : { lod: lodExtraction.report }),
       particleEmitters: particleEmitters.length,
       audioEmitters: audioEmitters.length,
       quadInstances: quadInstanceFloats.length / QUAD_INSTANCE_FLOAT_STRIDE,

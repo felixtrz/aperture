@@ -14,6 +14,7 @@ export type {
   LightPacket,
   LinePacket,
   LineSnapshotReport,
+  LodSnapshotReport,
   ParticleBurstPacket,
   ParticleEmitterModePacket,
   MeshDrawPacket,

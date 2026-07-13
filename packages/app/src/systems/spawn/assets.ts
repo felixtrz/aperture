@@ -35,6 +35,7 @@ import type {
   MaterialDescriptor,
   StandardMaterialOptions,
 } from "./types.js";
+import type { LodInput } from "@aperture-engine/render";
 import { ApertureSystemError } from "../errors.js";
 
 export function resolveMeshHandle(
@@ -55,6 +56,47 @@ export function resolveMeshHandle(
   }
 
   return input.mesh as MeshHandle;
+}
+
+/**
+ * Resolve a `spawn.mesh({ lod })` option into render-layer {@link LodInput}:
+ * each level's mesh descriptor is registered as a ready asset (or a supplied
+ * handle passed through), keyed uniquely per level off the entity's key/name so
+ * generated primitive meshes never collide. Distances/hysteresis are forwarded
+ * verbatim so `createLod`/`validateLodInput` see the authored order.
+ */
+export function resolveLodInput(
+  options: { readonly registry: AssetRegistry },
+  input: SpawnMeshOptions,
+): LodInput {
+  const lod = input.lod;
+  const baseId = input.key ?? input.name ?? "mesh";
+
+  return {
+    levels: (lod?.levels ?? []).map((level, index) => ({
+      mesh: resolveLodLevelMeshHandle(
+        options,
+        level.mesh,
+        `${baseId}.lod${index}.mesh`,
+      ),
+      distance: level.distance,
+    })),
+    ...(lod?.hysteresis === undefined ? {} : { hysteresis: lod.hysteresis }),
+  };
+}
+
+function resolveLodLevelMeshHandle(
+  options: { readonly registry: AssetRegistry },
+  mesh: PrimitiveMeshDescriptor | MeshHandle,
+  meshId: string,
+): MeshHandle {
+  if ("kind" in mesh && mesh.kind !== "mesh") {
+    const handle = createMeshHandle(meshId);
+    registerReadyAsset(options.registry, handle, primitiveToMeshAsset(mesh));
+    return handle;
+  }
+
+  return mesh as MeshHandle;
 }
 
 export function resolveMaterialHandle(
