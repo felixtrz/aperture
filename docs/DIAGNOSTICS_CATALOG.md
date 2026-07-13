@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1443
+Every structured diagnostic code the engine can emit (1445
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -730,6 +730,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                     | Message                                                                       | Fix? | Emitted from                                                    |
 | ---------------------------------------- | ----------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
 | `customMaterialSource.reservedFamilyKey` | Custom material '…' familyKey '…' is reserved for a built-in material family. | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
+
+## customMaterialSource.sceneDepthRequiresTransparent (1)
+
+| Code                                                 | Message                                                                                                                                                                                                          | Fix? | Emitted from                                                    |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `customMaterialSource.sceneDepthRequiresTransparent` | Custom material '…' binds scene-depth but renderState.alphaMode is '…'. Scene-depth sampling is a post-opaque (transparent) effect: set alphaMode to 'blend' so the draw runs after the opaque pass wrote depth. | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
 
 ## customWgslAppFrameResources.missingPipelineLayouts (1)
 
@@ -7265,6 +7271,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                             | Message                                                                             | Fix? | Emitted from                                   |
 | ------------------------------------------------ | ----------------------------------------------------------------------------------- | ---- | ---------------------------------------------- |
 | `webGpuApp.customWgslMultiResourceRouteDeferred` | The custom WGSL app route currently supports one custom mesh/material resource set. | —    | `packages/webgpu/src/app/custom-wgsl-frame.ts` |
+
+## webGpuApp.customWgslSceneDepthUnavailable (1)
+
+| Code                                        | Message                                                                                                                            | Fix? | Emitted from                                                       |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------ |
+| `webGpuApp.customWgslSceneDepthUnavailable` | Custom WGSL binding … requests scene-depth, but no scene depth attachment was available this frame (the route did not supply one). | —    | `packages/webgpu/src/app/custom-wgsl-texture-sampler-resources.ts` |
 
 ## webGpuApp.emptySnapshot (1)
 

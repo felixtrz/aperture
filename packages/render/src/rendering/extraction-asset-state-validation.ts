@@ -85,7 +85,8 @@ function validateCustomMaterialBindingDependencies(
   let valid = true;
 
   for (const binding of material.bindings) {
-    if (binding.kind === "texture") {
+    // B4: source-backed texture bindings (scene-depth) have no asset handle.
+    if (binding.kind === "texture" && binding.texture !== undefined) {
       valid =
         validateTextureAssetState(
           binding.texture,

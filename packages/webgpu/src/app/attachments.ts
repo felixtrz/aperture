@@ -12,7 +12,13 @@ import {
   type CachedWebGpuDepthTextureResource,
   type WebGpuDepthTextureCacheSlot,
 } from "../resources/textures/depth-texture-resource.js";
-import type { WebGpuAppFrameBoundaryTarget } from "./frame-target.js";
+import { type AssetRegistry } from "@aperture-engine/simulation";
+import { type RenderSnapshot } from "@aperture-engine/render";
+import {
+  createWebGpuAppFrameBoundaryTargets,
+  type WebGpuAppFrameBoundaryTarget,
+  type WebGpuAppFrameBoundaryTargetApp,
+} from "./frame-target.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 
 interface WebGpuAppAttachmentContext {
@@ -60,6 +66,50 @@ export function createWebGpuAppDepthAttachmentForTarget(
     format: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
   }).resource;
+}
+
+export interface WebGpuAppSceneDepthResource {
+  readonly view: unknown;
+  readonly sampleCount: number;
+}
+
+/**
+ * B4: resolve the frame's swapchain scene-depth attachment during the prepare
+ * phase so a `source: "scene-depth"` custom-material binding can bind it. It
+ * creates-or-reuses the SAME cached depth texture the frame-boundary loop
+ * attaches for the swapchain target (same dimensions + sample count → the cache
+ * returns the identical texture), so the bind group references the exact depth
+ * the opaque pass writes this frame. Returns null when no swapchain view exists.
+ */
+export function resolveWebGpuAppSwapchainSceneDepth(
+  app: WebGpuAppAttachmentContext & WebGpuAppFrameBoundaryTargetApp,
+  resourceCache: WebGpuAppResourceCache,
+  assets: AssetRegistry,
+  snapshot: RenderSnapshot,
+): WebGpuAppSceneDepthResource | null {
+  const targets = createWebGpuAppFrameBoundaryTargets(app, assets, snapshot, {
+    renderTargets: resourceCache.renderTargets,
+  }).targets;
+  const swapchainTarget = targets.find(
+    (
+      target,
+    ): target is Extract<
+      WebGpuAppFrameBoundaryTarget,
+      { source: "swapchain" }
+    > => target.source === "swapchain",
+  );
+
+  if (swapchainTarget === undefined) {
+    return null;
+  }
+
+  const depth = createWebGpuAppDepthAttachmentForTarget(
+    app,
+    resourceCache,
+    swapchainTarget,
+  );
+
+  return { view: depth.view, sampleCount: depth.sampleCount };
 }
 
 export function createWebGpuAppMsaaColorTargetForTarget(

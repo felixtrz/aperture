@@ -45,6 +45,7 @@ export function validateCustomWgslMaterialSource(
     assetKey,
     diagnostics,
   );
+  validateSceneDepthPhase(source, assetKey, diagnostics);
   validateDependencies(
     (source as { readonly dependencies?: unknown }).dependencies,
     assetKey,
@@ -638,18 +639,8 @@ function validateBindings(
       }
     }
 
-    if (
-      binding.kind === "texture" &&
-      (binding.texture === null ||
-        typeof binding.texture !== "object" ||
-        binding.texture.kind !== "texture")
-    ) {
-      diagnostics.push(
-        invalidBinding(
-          assetKey,
-          `texture binding '${binding.name}' must reference a texture handle.`,
-        ),
-      );
+    if (binding.kind === "texture") {
+      validateTextureBinding(binding, assetKey, diagnostics);
     }
 
     if (
@@ -662,6 +653,19 @@ function validateBindings(
         invalidBinding(
           assetKey,
           `sampler binding '${binding.name}' must reference a sampler handle.`,
+        ),
+      );
+    }
+
+    if (
+      binding.kind === "sampler" &&
+      binding.samplerType !== undefined &&
+      !isSamplerType(binding.samplerType)
+    ) {
+      diagnostics.push(
+        invalidBinding(
+          assetKey,
+          `sampler binding '${binding.name}' samplerType must be one of 'filtering' | 'non-filtering' | 'comparison'.`,
         ),
       );
     }
@@ -703,6 +707,164 @@ function validateBindings(
         );
       }
     }
+  }
+}
+
+// B4: a texture binding either references a texture handle (the pre-B4
+// contract) OR names a renderer-owned `source` (e.g. scene-depth) and then
+// carries no handle. The layout variants (sampleType/viewDimension/
+// multisampled) are validated as enums; a scene-depth source must sample as
+// `depth`.
+function validateTextureBinding(
+  binding: {
+    readonly name: string;
+    readonly texture?: unknown;
+    readonly source?: unknown;
+    readonly sampleType?: unknown;
+    readonly viewDimension?: unknown;
+    readonly multisampled?: unknown;
+  },
+  assetKey: string,
+  diagnostics: RenderAssetPreparationDiagnostic[],
+): void {
+  const hasSource = binding.source !== undefined;
+
+  if (hasSource && !isTextureBindingSource(binding.source)) {
+    diagnostics.push(
+      invalidBinding(
+        assetKey,
+        `texture binding '${binding.name}' source must be 'scene-depth'.`,
+      ),
+    );
+  }
+
+  if (
+    !hasSource &&
+    (binding.texture === null ||
+      typeof binding.texture !== "object" ||
+      (binding.texture as { readonly kind?: unknown }).kind !== "texture")
+  ) {
+    diagnostics.push(
+      invalidBinding(
+        assetKey,
+        `texture binding '${binding.name}' must reference a texture handle or a renderer-owned source.`,
+      ),
+    );
+  }
+
+  if (hasSource && binding.texture !== undefined) {
+    diagnostics.push(
+      invalidBinding(
+        assetKey,
+        `texture binding '${binding.name}' declares both a source and a texture handle; a source-backed binding must omit the handle.`,
+      ),
+    );
+  }
+
+  if (
+    binding.sampleType !== undefined &&
+    !isTextureSampleType(binding.sampleType)
+  ) {
+    diagnostics.push(
+      invalidBinding(
+        assetKey,
+        `texture binding '${binding.name}' sampleType must be one of 'float' | 'unfilterable-float' | 'depth' | 'sint' | 'uint'.`,
+      ),
+    );
+  }
+
+  if (
+    binding.viewDimension !== undefined &&
+    binding.viewDimension !== "2d" &&
+    binding.viewDimension !== "cube"
+  ) {
+    diagnostics.push(
+      invalidBinding(
+        assetKey,
+        `texture binding '${binding.name}' viewDimension must be '2d' or 'cube'.`,
+      ),
+    );
+  }
+
+  if (
+    binding.multisampled !== undefined &&
+    typeof binding.multisampled !== "boolean"
+  ) {
+    diagnostics.push(
+      invalidBinding(
+        assetKey,
+        `texture binding '${binding.name}' multisampled must be a boolean.`,
+      ),
+    );
+  }
+
+  if (binding.source === "scene-depth" && binding.sampleType !== "depth") {
+    diagnostics.push(
+      invalidBinding(
+        assetKey,
+        `texture binding '${binding.name}' binds scene-depth and must declare sampleType 'depth'.`,
+      ),
+    );
+  }
+}
+
+function isTextureBindingSource(value: unknown): boolean {
+  return value === "scene-depth";
+}
+
+function isTextureSampleType(value: unknown): boolean {
+  return (
+    value === "float" ||
+    value === "unfilterable-float" ||
+    value === "depth" ||
+    value === "sint" ||
+    value === "uint"
+  );
+}
+
+function isSamplerType(value: unknown): boolean {
+  return (
+    value === "filtering" || value === "non-filtering" || value === "comparison"
+  );
+}
+
+// B4: "post-opaque phase enforced by queue validation" — a material that binds
+// the scene depth must sit in the transparent queue so it renders AFTER the
+// opaque pass wrote (and stored) depth. The render queue derives the phase from
+// `renderState.alphaMode` (blend → transparent), so a scene-depth material must
+// declare alphaMode 'blend'; anything else would read depth it also helped
+// write in the same pass.
+function validateSceneDepthPhase(
+  source: CustomWgslMaterialSource,
+  assetKey: string,
+  diagnostics: RenderAssetPreparationDiagnostic[],
+): void {
+  const bindings = (source as { readonly bindings?: unknown }).bindings;
+
+  if (!Array.isArray(bindings)) {
+    return;
+  }
+
+  const bindsSceneDepth = bindings.some(
+    (binding: { readonly kind?: unknown; readonly source?: unknown }) =>
+      binding.kind === "texture" && binding.source === "scene-depth",
+  );
+
+  if (!bindsSceneDepth) {
+    return;
+  }
+
+  const alphaMode = source.renderState?.alphaMode;
+
+  if (alphaMode !== "blend") {
+    diagnostics.push({
+      code: "customMaterialSource.sceneDepthRequiresTransparent",
+      message: `Custom material '${assetKey}' binds scene-depth but renderState.alphaMode is '${String(
+        alphaMode,
+      )}'. Scene-depth sampling is a post-opaque (transparent) effect: set alphaMode to 'blend' so the draw runs after the opaque pass wrote depth.`,
+      severity: "error",
+      assetKey,
+    });
   }
 }
 

@@ -106,7 +106,18 @@ export const material = Object.freeze({
       name,
       binding: options.binding,
       visibility: [...options.visibility],
-      texture: options.texture,
+      // B4: a source-backed texture (scene-depth) carries no handle.
+      ...(options.texture === undefined ? {} : { texture: options.texture }),
+      ...(options.source === undefined ? {} : { source: options.source }),
+      ...(options.sampleType === undefined
+        ? {}
+        : { sampleType: options.sampleType }),
+      ...(options.viewDimension === undefined
+        ? {}
+        : { viewDimension: options.viewDimension }),
+      ...(options.multisampled === undefined
+        ? {}
+        : { multisampled: options.multisampled }),
       ...(options.label === undefined ? {} : { label: options.label }),
     });
   },
@@ -117,6 +128,9 @@ export const material = Object.freeze({
       binding: options.binding,
       visibility: [...options.visibility],
       sampler: options.sampler,
+      ...(options.samplerType === undefined
+        ? {}
+        : { samplerType: options.samplerType }),
       ...(options.label === undefined ? {} : { label: options.label }),
     });
   },

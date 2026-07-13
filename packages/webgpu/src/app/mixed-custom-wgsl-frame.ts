@@ -24,6 +24,7 @@ import {
 } from "./custom-wgsl-lit-resources.js";
 import { prepareCustomWgslAppStorageBufferBindingResources } from "./custom-wgsl-storage-buffer-resources.js";
 import { prepareCustomWgslAppTextureSamplerBindingResources } from "./custom-wgsl-texture-sampler-resources.js";
+import { resolveWebGpuAppSwapchainSceneDepth } from "./attachments.js";
 import type {
   CustomWgslMaterialBindGroupResource,
   CreateCustomWgslMaterialRenderPipelineResourceResult,
@@ -651,6 +652,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     drawPackages: framePlan.packages.packages.length,
     drawCommands: boundaries.plannedCommands,
     drawCalls: boundaries.drawCalls,
+    sceneDepthOverlays: boundaries.sceneDepthOverlays,
     commandPressure: framePlan.commandPlan.pressure,
     diagnostics: [
       ...options.snapshot.diagnostics,
@@ -871,6 +873,16 @@ async function prepareCustomDrawResourceSet(options: {
     options.cache.pipelines.get(pipelineCacheKey),
     pipelineCacheKey,
   );
+  // B4: bind the frame's swapchain scene depth (read-only) for a material that
+  // samples it. Resolved lazily so non-depth mixed frames touch nothing.
+  const sceneDepth = prepared.samplesSceneDepth
+    ? resolveWebGpuAppSwapchainSceneDepth(
+        options.app,
+        options.cache,
+        options.assets,
+        options.snapshot,
+      )
+    : null;
   const textureSamplerBindingResources =
     prepareCustomWgslAppTextureSamplerBindingResources({
       assets: options.assets,
@@ -879,6 +891,7 @@ async function prepareCustomDrawResourceSet(options: {
       reuse: options.reuse,
       source: material,
       material: prepared,
+      sceneDepth,
     });
   const storageBufferBindingResources =
     prepareCustomWgslAppStorageBufferBindingResources({

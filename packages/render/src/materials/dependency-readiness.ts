@@ -164,7 +164,9 @@ function customMaterialDependencies(
   }
 
   for (const binding of material.bindings) {
-    if (binding.kind === "texture") {
+    // B4: a source-backed texture binding (scene-depth) has no handle to gate
+    // readiness on — the frame supplies the resource.
+    if (binding.kind === "texture" && binding.texture !== undefined) {
       appendCustomDependency(
         {
           field: binding.name,

@@ -607,6 +607,7 @@ export function renderReport(input: {
   readonly drawPackages?: number;
   readonly drawCommands?: number;
   readonly drawCalls?: number;
+  readonly sceneDepthOverlays?: number;
 }): WebGpuAppRenderReport {
   const resourceReuse =
     input.resourceReuse ?? createWebGpuAppResourceReuseReport();
@@ -657,6 +658,9 @@ export function renderReport(input: {
       drawPackages: input.drawPackages ?? 0,
       drawCommands: input.drawCommands ?? 0,
       drawCalls: input.drawCalls ?? 0,
+      ...(input.sceneDepthOverlays === undefined
+        ? {}
+        : { sceneDepthOverlays: input.sceneDepthOverlays }),
       diagnostics: diagnostics.length,
     },
     diagnostics,

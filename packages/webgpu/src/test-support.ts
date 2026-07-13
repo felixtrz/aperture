@@ -12,6 +12,8 @@ export * from "./app/app-phase-timing.js";
 export * from "./app/app-snapshot-transport.js";
 export * from "./app/app-texture-sampler-resources.js";
 export * from "./app/custom-wgsl-storage-buffer-resources.js";
+export * from "./app/custom-wgsl-texture-sampler-resources.js";
+export { containsSceneDepthSamplingCommands } from "./app/frame-boundaries.js";
 export * from "./app/custom-wgsl-lit-resources.js";
 export * from "./app/post-processing.js";
 export * from "./app/resource-cache.js";

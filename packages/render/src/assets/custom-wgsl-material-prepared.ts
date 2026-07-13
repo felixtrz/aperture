@@ -62,7 +62,30 @@ export function createPreparedCustomWgslMaterial(input: {
             : { runtimeBufferKey: binding.runtimeBufferKey }),
         }
       : {}),
+    // B4: the texture/sampler layout variants. Each is carried ONLY when the
+    // declaration set it, so default (float/2d/filtering) bindings keep the
+    // pre-B4 prepared entry shape byte-for-byte.
+    ...(binding.kind === "texture"
+      ? {
+          ...(binding.sampleType === undefined
+            ? {}
+            : { sampleType: binding.sampleType }),
+          ...(binding.viewDimension === undefined
+            ? {}
+            : { viewDimension: binding.viewDimension }),
+          ...(binding.multisampled === undefined
+            ? {}
+            : { multisampled: binding.multisampled }),
+          ...(binding.source === undefined ? {} : { source: binding.source }),
+        }
+      : {}),
+    ...(binding.kind === "sampler" && binding.samplerType !== undefined
+      ? { samplerType: binding.samplerType }
+      : {}),
   }));
+  const samplesSceneDepth = bindings.some(
+    (binding) => binding.kind === "texture" && binding.source === "scene-depth",
+  );
 
   return {
     resourceFamily: "custom-wgsl-material",
@@ -72,6 +95,9 @@ export function createPreparedCustomWgslMaterial(input: {
     materialFamily: input.source.familyKey,
     // Present only when lit so unlit prepared materials stay byte-identical.
     ...(lit ? { lighting: "lit" as const } : {}),
+    // Present only when a scene-depth texture binding was declared (B4) so
+    // every other prepared material keeps its byte-identical shape.
+    ...(samplesSceneDepth ? { samplesSceneDepth: true as const } : {}),
     pipelineKey,
     materialResourceKey: bindGroupResourceKey,
     bindGroupResourceKey,
@@ -181,16 +207,67 @@ function customWgslBindingLayoutSignature(
 ): string {
   const visibility = [...binding.visibility].sort().join("+");
 
-  if (binding.kind !== "uniform-buffer") {
-    return `${binding.binding}:${binding.kind}:visibility:${visibility}`;
+  if (binding.kind === "uniform-buffer") {
+    const fields = Object.entries(binding.fields)
+      .map(([name, field]) => `${name}:${field.type}`)
+      .sort()
+      .join("+");
+
+    return `${binding.binding}:uniform-buffer:visibility:${visibility}:fields:${fields}`;
   }
 
-  const fields = Object.entries(binding.fields)
-    .map(([name, field]) => `${name}:${field.type}`)
-    .sort()
-    .join("+");
+  // B4: the texture/sampler layout variant participates in the pipeline key
+  // ONLY when the declaration set it to a non-default value. A float/2d/
+  // filtering texture and a filtering sampler append no variant suffix, so
+  // pre-B4 materials keep byte-identical keys (depth/unfilterable/comparison/
+  // multisampled/cube/scene-depth bindings each get their own pipeline).
+  const variant =
+    binding.kind === "texture"
+      ? customWgslTextureVariantSignature(binding)
+      : binding.kind === "sampler"
+        ? customWgslSamplerVariantSignature(binding)
+        : "";
 
-  return `${binding.binding}:uniform-buffer:visibility:${visibility}:fields:${fields}`;
+  return `${binding.binding}:${binding.kind}:visibility:${visibility}${variant}`;
+}
+
+function customWgslTextureVariantSignature(
+  binding: Extract<
+    CustomWgslMaterialSource["bindings"][number],
+    { kind: "texture" }
+  >,
+): string {
+  const tokens: string[] = [];
+
+  if (binding.sampleType !== undefined && binding.sampleType !== "float") {
+    tokens.push(`sample:${binding.sampleType}`);
+  }
+
+  if (binding.viewDimension !== undefined && binding.viewDimension !== "2d") {
+    tokens.push(`dim:${binding.viewDimension}`);
+  }
+
+  if (binding.multisampled === true) {
+    tokens.push("multisampled");
+  }
+
+  if (binding.source !== undefined) {
+    tokens.push(`source:${binding.source}`);
+  }
+
+  return tokens.length === 0 ? "" : `:${tokens.join(":")}`;
+}
+
+function customWgslSamplerVariantSignature(
+  binding: Extract<
+    CustomWgslMaterialSource["bindings"][number],
+    { kind: "sampler" }
+  >,
+): string {
+  return binding.samplerType !== undefined &&
+    binding.samplerType !== "filtering"
+    ? `:sampler:${binding.samplerType}`
+    : "";
 }
 
 function stableStringHash(value: string): string {

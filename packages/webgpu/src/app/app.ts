@@ -147,6 +147,8 @@ export interface WebGpuAppRenderCounts {
   readonly drawPackages: number;
   readonly drawCommands: number;
   readonly drawCalls: number;
+  /** B4: post-opaque read-only-depth boundaries that hosted a scene-depth draw. */
+  readonly sceneDepthOverlays?: number;
   readonly diagnostics: number;
 }
 

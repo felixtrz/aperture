@@ -1,5 +1,7 @@
 import type {
   ColorWriteMask,
+  CustomWgslSamplerType,
+  CustomWgslTextureSampleType,
   PreparedCustomWgslBindingLayoutEntry,
   PreparedCustomWgslBindingResourceEntry,
   PreparedCustomWgslMaterial,
@@ -98,12 +100,16 @@ export interface CustomWgslMaterialBindGroupLayoutEntryDescriptor {
     readonly type: "uniform" | "read-only-storage";
   };
   readonly texture?: {
-    readonly sampleType: "float";
-    readonly viewDimension: "2d";
-    readonly multisampled: false;
+    // B4: the layout variant (defaulting to the pre-B4 float/2d/single-sample
+    // values). depth / unfilterable-float / sint / uint sample types, cube
+    // views, and multisampled textures now flow through instead of the old
+    // hard-coded literals.
+    readonly sampleType: CustomWgslTextureSampleType;
+    readonly viewDimension: "2d" | "cube";
+    readonly multisampled: boolean;
   };
   readonly sampler?: {
-    readonly type: "filtering";
+    readonly type: CustomWgslSamplerType;
   };
 }
 
@@ -558,16 +564,24 @@ function createBindGroupLayoutEntryDescriptor(
     case "storage-buffer":
       return { ...base, buffer: { type: "read-only-storage" } };
     case "texture":
+      // B4: honor the declared layout variant (defaulting to the pre-B4
+      // float/2d/filtering values) so depth / unfilterable-float / sint / uint
+      // sample types, cube views, and multisampled textures — including the
+      // renderer-owned scene-depth binding — bind against a matching layout
+      // instead of the old hard-coded float/2d/single-sample entry.
       return {
         ...base,
         texture: {
-          sampleType: "float",
-          viewDimension: "2d",
-          multisampled: false,
+          sampleType: entry.sampleType ?? "float",
+          viewDimension: entry.viewDimension ?? "2d",
+          multisampled: entry.multisampled ?? false,
         },
       };
     case "sampler":
-      return { ...base, sampler: { type: "filtering" } };
+      return {
+        ...base,
+        sampler: { type: entry.samplerType ?? "filtering" },
+      };
   }
 }
 
@@ -623,19 +637,33 @@ function mapShaderDiagnostic(
   };
 }
 
+/**
+ * B4: trailing marker appended to the render pipeline cache key of a material
+ * that samples scene depth (mirrors the soft-particle marker). Frame-boundary
+ * assembly detects it via `pipelineKey.endsWith(...)` to peel the draw into a
+ * post-opaque read-only-depth boundary. Present ONLY for scene-depth materials,
+ * so every other material keeps a byte-identical cache key.
+ */
+export const SCENE_DEPTH_PIPELINE_KEY_SUFFIX = ":scene-depth";
+
 export function customWgslMaterialRenderPipelineCacheKey(input: {
   readonly material: PreparedCustomWgslMaterial;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
 }): string {
-  return [
-    "custom-wgsl",
-    input.colorFormat,
-    input.depthFormat ?? "none",
-    `samples-${input.sampleCount ?? 1}`,
-    input.material.pipeline.pipelineKey,
-  ].join("|");
+  return (
+    [
+      "custom-wgsl",
+      input.colorFormat,
+      input.depthFormat ?? "none",
+      `samples-${input.sampleCount ?? 1}`,
+      input.material.pipeline.pipelineKey,
+    ].join("|") +
+    (input.material.samplesSceneDepth === true
+      ? SCENE_DEPTH_PIPELINE_KEY_SUFFIX
+      : "")
+  );
 }
 
 function messageFromCause(cause: unknown): string {

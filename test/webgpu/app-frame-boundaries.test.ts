@@ -152,10 +152,17 @@ describe("WebGPU app frame boundary assembly", () => {
     expect(harness.passDescriptors[1]?.colorAttachments[0]).toMatchObject({
       loadOp: "load",
     });
+    // B4: a read-only depth attachment carries ONLY depthReadOnly — WebGPU
+    // forbids depthLoadOp/depthStoreOp when the depth is read-only.
     expect(harness.passDescriptors[1]?.depthStencilAttachment).toMatchObject({
-      depthLoadOp: "load",
       depthReadOnly: true,
     });
+    expect(
+      harness.passDescriptors[1]?.depthStencilAttachment,
+    ).not.toHaveProperty("depthLoadOp");
+    expect(
+      harness.passDescriptors[1]?.depthStencilAttachment,
+    ).not.toHaveProperty("depthStoreOp");
   });
 
   it("records occlusion query readbacks on the legacy path", async () => {

@@ -34,6 +34,7 @@ import {
   type GpuOcclusionQueryDiagnostic,
 } from "../gpu/occlusion-query.js";
 import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
+import { SCENE_DEPTH_PIPELINE_KEY_SUFFIX } from "../materials/custom-wgsl/custom-wgsl-material.js";
 import type { StandardFrameTransmissionSceneColorResources } from "../materials/standard/standard-frame-resources.js";
 import type { RenderPassCommand } from "../render/passes/render-pass-commands.js";
 import type {
@@ -129,6 +130,8 @@ export interface WebGpuAppFrameBoundaryAssemblyResult {
   readonly occlusionQueryCount: number;
   readonly plannedCommands: number;
   readonly drawCalls: number;
+  /** B4: post-opaque read-only-depth boundaries that hosted a scene-depth draw. */
+  readonly sceneDepthOverlays: number;
   readonly diagnostics: readonly unknown[];
 }
 
@@ -198,6 +201,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       occlusionQueryCount: 0,
       plannedCommands: 0,
       drawCalls: 0,
+      sceneDepthOverlays: 0,
       diagnostics: targetPlan.diagnostics,
     };
   }
@@ -224,6 +228,10 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   let drawCalls = 0;
   let occlusionQueryCount = 0;
   let msaaColorTargets = 0;
+  // B4: how many post-opaque read-only-depth boundaries hosted a scene-depth
+  // custom-material draw this frame (surfaced in the report so consumers can
+  // assert the depth-fade path ran).
+  let sceneDepthOverlays = 0;
   let msaaColorTexturesCreated = 0;
   let msaaColorTexturesReused = 0;
   let allTargetsValid = true;
@@ -528,6 +536,21 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
 
     const overlayCommands =
       target.source === "swapchain" ? (options.overlayCommands ?? []) : [];
+    // B4: peel scene-depth-sampling custom draws so they render in a
+    // read-only-depth pass so it can sample the depth the earlier opaque pass
+    // wrote + stored (a texture cannot be both a writable depth attachment and
+    // a sampled binding in one pass). Rather than peel draws, the scene-depth
+    // material renders through its OWN swapchain camera (a later submission of
+    // the same target): this reuses the multi-submission machinery that already
+    // composites + resolves correctly. Such a submission attaches its depth
+    // READ-ONLY and LOADS the earlier submission's depth so the draw can sample
+    // it while still depth-testing against the opaque geometry.
+    const targetSamplesSceneDepth =
+      target.source === "swapchain" &&
+      containsSceneDepthSamplingCommands(commandsForBoundary);
+    if (targetSamplesSceneDepth) {
+      sceneDepthOverlays += 1;
+    }
     const overlayNeedsReadOnlyDepth =
       containsSoftParticleOverlayCommands(overlayCommands);
     const encodeOverlaySeparately =
@@ -797,14 +820,34 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       ...(mrt.additionalColorTargets === null
         ? {}
         : { additionalColorTargets: mrt.additionalColorTargets }),
-      depthTarget: {
-        view: depthAttachment.view,
-        ...(depthLoadOp === "clear"
-          ? { depthClearValue: target.view.clearDepth }
-          : {}),
-        depthLoadOp,
-        depthStoreOp: "store",
-      },
+      // B4: a scene-depth-sampling submission LOADS the earlier submission's
+      // depth and attaches it READ-ONLY so the draw can sample it (and still
+      // depth-test against the opaque geometry) without the "attachment vs
+      // sampled" conflict.
+      depthTarget: targetSamplesSceneDepth
+        ? {
+            view: depthAttachment.view,
+            // Load the earlier submission's depth so the draw can sample the
+            // opaque geometry's depth (crossing layer masks deliberately — the
+            // whole point is to read another layer's depth). Clear only when
+            // there is no earlier submission to load.
+            ...(loadExistingTarget
+              ? {}
+              : { depthClearValue: target.view.clearDepth }),
+            depthLoadOp: loadExistingTarget
+              ? ("load" as const)
+              : ("clear" as const),
+            depthStoreOp: "store" as const,
+            depthReadOnly: true as const,
+          }
+        : {
+            view: depthAttachment.view,
+            ...(depthLoadOp === "clear"
+              ? { depthClearValue: target.view.clearDepth }
+              : {}),
+            depthLoadOp,
+            depthStoreOp: "store",
+          },
       ...(passCommands.length === 0 ||
       renderBundleCommands.length === 0 ||
       options.enableRenderBundles === false ||
@@ -813,6 +856,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       mrt.additionalColorTargets !== null ||
       (overlayCommands.length > 0 &&
         options.renderBundleCommands === undefined) ||
+      // B4: a read-only-depth scene-depth submission skips the render-bundle
+      // fast path (its depth-stencil attachment is read-only).
+      targetSamplesSceneDepth ||
       occlusionRenderIds.length > 0
         ? {}
         : {
@@ -1372,6 +1418,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     occlusionQueryCount,
     plannedCommands,
     drawCalls,
+    sceneDepthOverlays,
     diagnostics,
   };
 }
@@ -1639,6 +1686,16 @@ function containsSoftParticleOverlayCommands(
     (command) =>
       command.kind === "setPipeline" &&
       command.pipelineKey.endsWith(SOFT_PARTICLE_PIPELINE_KEY_SUFFIX),
+  );
+}
+
+export function containsSceneDepthSamplingCommands(
+  commands: readonly RenderPassCommand[],
+): boolean {
+  return commands.some(
+    (command) =>
+      command.kind === "setPipeline" &&
+      command.pipelineKey.endsWith(SCENE_DEPTH_PIPELINE_KEY_SUFFIX),
   );
 }
 

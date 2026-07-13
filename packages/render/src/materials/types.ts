@@ -298,15 +298,36 @@ export interface CustomWgslStorageBindingDeclaration extends BaseCustomWgslBindi
 }
 
 /** @public */
+export type CustomWgslTextureSampleType =
+  | "float"
+  | "unfilterable-float"
+  | "depth"
+  | "sint"
+  | "uint";
+
+/** @public */
+export type CustomWgslSamplerType =
+  | "filtering"
+  | "non-filtering"
+  | "comparison";
+
+/**
+ * Renderer-owned texture the frame binds in place of a source asset (B4,
+ * data-only per DECISIONS 0016). `"scene-depth"` binds the frame's stored
+ * scene depth attachment (written by the opaque pass, sampled read-only by the
+ * transparent draw) as a `texture_depth_2d` — or `texture_depth_multisampled_2d`
+ * when `multisampled` is set to match the app's MSAA sample count. A binding
+ * with a `source` needs no `texture` handle (and contributes no dependency);
+ * one WITHOUT a source keeps the pre-B4 contract (a required `texture`).
+ */
+export type CustomWgslTextureBindingSource = "scene-depth";
+
+/** @public */
 export interface CustomWgslTextureBindingDeclaration extends BaseCustomWgslBindingDeclaration {
   readonly kind: "texture";
-  readonly texture: TextureHandle;
-  readonly sampleType?:
-    | "float"
-    | "unfilterable-float"
-    | "depth"
-    | "sint"
-    | "uint";
+  readonly texture?: TextureHandle;
+  readonly source?: CustomWgslTextureBindingSource;
+  readonly sampleType?: CustomWgslTextureSampleType;
   readonly viewDimension?: "2d" | "cube";
   readonly multisampled?: boolean;
 }
@@ -315,7 +336,7 @@ export interface CustomWgslTextureBindingDeclaration extends BaseCustomWgslBindi
 export interface CustomWgslSamplerBindingDeclaration extends BaseCustomWgslBindingDeclaration {
   readonly kind: "sampler";
   readonly sampler: SamplerHandle;
-  readonly samplerType?: "filtering" | "non-filtering" | "comparison";
+  readonly samplerType?: CustomWgslSamplerType;
 }
 
 export type CustomWgslBindingDeclaration =
@@ -449,6 +470,13 @@ export interface SamplerAsset {
   readonly lodMinClamp: number;
   readonly lodMaxClamp: number;
   readonly maxAnisotropy: number;
+  /**
+   * Depth comparison function (B4): when set the sampler is a comparison
+   * sampler (`sampler_comparison` in WGSL, bound against a `samplerType:
+   * "comparison"` layout), sampled with `textureSampleCompare`. Absent for an
+   * ordinary filtering/non-filtering sampler.
+   */
+  readonly compare?: DepthCompare;
 }
 
 export type MaterialDiagnosticCode =

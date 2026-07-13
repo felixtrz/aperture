@@ -21,6 +21,7 @@ import {
 } from "./custom-wgsl-lit-resources.js";
 import { prepareCustomWgslAppStorageBufferBindingResources } from "./custom-wgsl-storage-buffer-resources.js";
 import { prepareCustomWgslAppTextureSamplerBindingResources } from "./custom-wgsl-texture-sampler-resources.js";
+import { resolveWebGpuAppSwapchainSceneDepth } from "./attachments.js";
 import { mapFrameBoundaryReadbackSamples } from "../render/frame/frame-boundary.js";
 import { writeRenderFramePlanFromSnapshot } from "../render/frame/render-frame-plan.js";
 import {
@@ -219,6 +220,17 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     options.cache.pipelines.get(pipelineCacheKey),
     pipelineCacheKey,
   );
+  // B4: a material that samples scene depth binds the frame's stored swapchain
+  // depth (read-only). Resolve it here (prepare phase) so the bind group
+  // references the exact depth texture the frame-boundary loop attaches.
+  const sceneDepth = prepared.samplesSceneDepth
+    ? resolveWebGpuAppSwapchainSceneDepth(
+        options.app,
+        options.cache,
+        options.assets,
+        options.snapshot,
+      )
+    : null;
   const textureSamplerBindingResources =
     prepareCustomWgslAppTextureSamplerBindingResources({
       assets: options.assets,
@@ -227,6 +239,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
       reuse: options.reuse,
       source: material,
       material: prepared,
+      sceneDepth,
     });
   const storageBufferBindingResources =
     prepareCustomWgslAppStorageBufferBindingResources({
@@ -538,6 +551,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     drawPackages: framePlan.packages.packages.length,
     drawCommands: boundaries.plannedCommands,
     drawCalls: boundaries.drawCalls,
+    sceneDepthOverlays: boundaries.sceneDepthOverlays,
     diagnostics: [
       ...options.snapshot.diagnostics,
       ...framePlan.bindingPlan.diagnostics,

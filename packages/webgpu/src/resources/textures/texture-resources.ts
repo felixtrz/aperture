@@ -123,6 +123,7 @@ export interface SamplerDescriptorInput {
   readonly lodMinClamp: number;
   readonly lodMaxClamp: number;
   readonly maxAnisotropy: number;
+  readonly compare?: SamplerAsset["compare"];
   readonly label?: string;
 }
 
@@ -613,6 +614,9 @@ function samplerDescriptor(sampler: SamplerAsset): SamplerDescriptorInput {
     lodMinClamp: sampler.lodMinClamp,
     lodMaxClamp: sampler.lodMaxClamp,
     maxAnisotropy: sampler.maxAnisotropy,
+    // B4: a comparison sampler carries its compare function into the WebGPU
+    // descriptor (bound against a `samplerType: "comparison"` layout).
+    ...(sampler.compare === undefined ? {} : { compare: sampler.compare }),
   };
 }
 

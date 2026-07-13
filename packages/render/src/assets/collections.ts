@@ -243,7 +243,8 @@ export function materialAssetDependencies(
     }
 
     for (const binding of material.bindings) {
-      if (binding.kind === "texture") {
+      // B4: source-backed texture bindings (scene-depth) carry no handle.
+      if (binding.kind === "texture" && binding.texture !== undefined) {
         appendDependency(binding.texture, dependencies, seen);
       }
 

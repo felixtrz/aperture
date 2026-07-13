@@ -1,6 +1,9 @@
 import type {
   CameraInput,
   CustomWgslMaterialAsset,
+  CustomWgslSamplerType,
+  CustomWgslTextureBindingSource,
+  CustomWgslTextureSampleType,
   FogInput,
   LineListMeshOptions,
   LightInput,
@@ -345,7 +348,22 @@ export interface CustomWgslUniformBindingOptions {
 export interface CustomWgslTextureBindingOptions {
   readonly binding: number;
   readonly visibility: CustomWgslMaterialAsset["bindings"][number]["visibility"];
-  readonly texture: TextureHandle;
+  /**
+   * A texture source asset (or facade render target). Omit when `source` names
+   * a renderer-owned texture (B4, e.g. `"scene-depth"`).
+   */
+  readonly texture?: TextureHandle;
+  /**
+   * Renderer-owned texture source (B4): `"scene-depth"` binds the frame's
+   * stored scene depth (read-only). A source-backed binding needs no `texture`
+   * handle and must sit in a transparent material (alphaMode `"blend"`).
+   */
+  readonly source?: CustomWgslTextureBindingSource;
+  /** Layout sample type (B4, default `"float"`). Scene-depth uses `"depth"`. */
+  readonly sampleType?: CustomWgslTextureSampleType;
+  readonly viewDimension?: "2d" | "cube";
+  /** Sample the MSAA-resolved-in-place scene depth as multisampled (B4). */
+  readonly multisampled?: boolean;
   readonly label?: string;
 }
 
@@ -353,6 +371,8 @@ export interface CustomWgslSamplerBindingOptions {
   readonly binding: number;
   readonly visibility: CustomWgslMaterialAsset["bindings"][number]["visibility"];
   readonly sampler: SamplerHandle;
+  /** Layout sampler type (B4, default `"filtering"`; `"comparison"` for depth). */
+  readonly samplerType?: CustomWgslSamplerType;
   readonly label?: string;
 }
 

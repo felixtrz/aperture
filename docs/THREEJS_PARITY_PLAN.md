@@ -361,6 +361,55 @@ semantics unchanged.
 
 ### B4. Depth access for custom materials + user passes — **M**
 
+Status: implemented (2026-07-13). AC1: a custom-WGSL texture binding gains a
+renderer-owned `source: "scene-depth"` (data-only, DECISIONS 0016) that binds
+the frame's stored scene depth read-only, plus the binding-layout variants that
+close the pre-B4 float/2d/filtering hard-coding: texture `sampleType`
+(`float | unfilterable-float | depth | sint | uint`), `viewDimension`
+(`2d | cube`), `multisampled`, and sampler `samplerType`
+(`filtering | non-filtering | comparison`, backed by a new `SamplerAsset.compare`).
+Each variant enters the bind-group layout AND the pipeline key ONLY when set to
+a non-default value, so pre-B4 materials keep byte-identical keys (locked by a
+hardcoded pre-change key literal in tests, mirroring
+`custom-wgsl-color-targets.test.ts`). "Post-opaque phase enforced by queue
+validation" is realized as material-source validation
+(`customMaterialSource.sceneDepthRequiresTransparent`): a scene-depth binding
+requires `alphaMode: "blend"` — the render queue derives the transparent phase
+from `alphaMode`, so a blend material always runs after the opaque pass wrote +
+stored depth. The `:scene-depth` render-pipeline-cache-key marker (mirroring
+`:soft-particles`) lets frame-boundary assembly detect a scene-depth submission
+and attach the depth READ-ONLY (a texture cannot be a writable attachment and a
+sampled binding in one pass). AC2: `examples/forcefield` — an opaque wall +
+a transparent slab whose custom material samples scene depth to glow at the
+intersection; `test/e2e/forcefield.spec.ts` asserts (readback-free screenshot
+sampling, repo pattern) that the RED glow appears only where the wall sits just
+behind the slab (near) and not over the far background, isolating the
+depth-driven fade; a second `test(...)` drives `forcefield-msaa.html` (msaa 8,
+`multisampled: true`, `texture_depth_multisampled_2d`) through the MSAA-aware
+read-only-depth submission, matching how `render-to-texture.spec.ts` splits MSAA
+variants into their own `test(...)` blocks. AC3: advanced-audit scenario #19
+flipped 🟡→✅, the §2.2 textures/samplers + depth-attach-sample rows updated, the
+§9 tally, §1 executive summary, and the §10 ranked list adjusted. Deviations:
+(1) rather than PEEL the scene-depth draw out of a shared pass (fragile with an
+elided command stream), the example + mechanism render the depth-sampling
+material through its OWN swapchain camera (a later submission of the same
+target) — this reuses the multi-submission machinery that composites + resolves
+(incl. MSAA store-for-later-load) correctly and is the repo-shaped "one draw per
+pass" model; the frame-boundary code detects a scene-depth submission and forces
+a read-only depth LOAD of the earlier submission's depth (deliberately crossing
+layer masks — the whole point is to read another layer's depth). (2) A latent
+pre-existing bug was fixed as part of this: the depth-attachment planner emitted
+`depthLoadOp`/`depthStoreOp` alongside `depthReadOnly: true`, which WebGPU
+forbids and silently failed every read-only-depth pass (soft particles hit it
+too but had no e2e); a read-only attachment now carries only the view +
+`depthReadOnly`. (3) "golden baseline" replaced by screenshot pixel-sample
+assertions (repo pattern, matching A1/B1/B2/B3). (4) The user-pass half of B4
+was already done (user passes read the built-in `"depth"` resource — verified by
+the existing `custom-graph-pass` e2e), so B4 adds only the custom-material half.
+(5) The comparison-sampler option is genuinely usable end-to-end
+(`SamplerAsset.compare` → GPU descriptor) but the forcefield uses `textureLoad`
+(no sampler), so the comparison layout variant is exercised by unit tests.
+
 - AC1: `material.texture` can bind the scene depth (read-only, post-opaque
   phase enforced by queue validation) with a comparison-capable sampler
   option; texture binding layouts gain depth/unfilterable/comparison

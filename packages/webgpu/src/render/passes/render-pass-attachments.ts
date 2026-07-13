@@ -51,8 +51,10 @@ export interface PlannedRenderPassColorAttachment {
 export interface PlannedRenderPassDepthStencilAttachment {
   readonly view: unknown;
   readonly depthClearValue?: number;
-  readonly depthLoadOp: RenderPassAttachmentLoadOp;
-  readonly depthStoreOp: RenderPassAttachmentStoreOp;
+  // Omitted for a read-only depth attachment (WebGPU forbids load/store ops
+  // when depthReadOnly is set).
+  readonly depthLoadOp?: RenderPassAttachmentLoadOp;
+  readonly depthStoreOp?: RenderPassAttachmentStoreOp;
   readonly depthReadOnly?: boolean;
 }
 
@@ -177,13 +179,21 @@ function createDepthAttachment(
     return undefined;
   }
 
+  // WebGPU forbids depthLoadOp/depthStoreOp (and a clear value) on a read-only
+  // depth attachment — supplying them is a validation error that silently
+  // fails the whole pass. A read-only attachment therefore carries ONLY the
+  // view + depthReadOnly flag (the depth is neither cleared nor stored, just
+  // tested + sampled).
+  if (target.depthReadOnly === true) {
+    return { view: target.view, depthReadOnly: true };
+  }
+
   const attachment: PlannedRenderPassDepthStencilAttachment = {
     view: target.view,
     depthLoadOp:
       target.depthLoadOp ??
       (target.depthClearValue === undefined ? "load" : "clear"),
     depthStoreOp: target.depthStoreOp ?? "store",
-    ...(target.depthReadOnly === true ? { depthReadOnly: true } : {}),
   };
 
   if (target.depthClearValue !== undefined) {

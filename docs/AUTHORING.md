@@ -686,6 +686,110 @@ MRT semantics and constraints:
 See `examples/gbuffer.html` for a complete custom G-buffer (albedo + normal +
 object ID) resolved by a user pass into scene color.
 
+### Sampling scene depth (depth-fade custom materials)
+
+A custom material can bind the renderer-owned scene depth read-only (parity
+plan B4) and fade against the opaque surfaces already drawn behind it — the
+classic force-field / soft-particle depth-fade. Declare a texture binding whose
+`source` is `"scene-depth"` and whose `sampleType` is `"depth"`; the renderer
+supplies the depth, so a source-backed binding needs no `texture` handle:
+
+```ts
+material.customWgsl({
+  familyKey: "app/forcefield",
+  label: "Forcefield",
+  shader: shader.asset(this.assets.shader("forcefield")),
+  entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+  // Scene-depth materials MUST be transparent (see below).
+  renderState: {
+    alphaMode: "blend",
+    blend: { preset: "alpha" },
+    depth: { test: true, write: false, compare: "less-equal" },
+  },
+  bindings: [
+    material.texture("sceneDepth", {
+      binding: 0,
+      visibility: ["fragment"],
+      source: "scene-depth", // renderer-owned; no texture handle needed
+      sampleType: "depth",
+    }),
+    material.uniform("params", {
+      binding: 1,
+      visibility: ["fragment"],
+      fields: {
+        color: { type: EcsType.Vec4, default: [0.2, 0.7, 1, 1] },
+        fadeDistance: { type: EcsType.Float32, default: 0.01 },
+      },
+    }),
+  ],
+});
+```
+
+In WGSL the binding is a `texture_depth_2d` at group 2 (`@group(0)` is the view
+uniform and `@group(1)` the world transforms, as always). Sample the stored
+depth at the fragment's own pixel with `textureLoad`, then compare it to
+`input.position.z` — the fragment's window-space depth — so a smaller delta
+means the opaque surface behind is closer:
+
+```wgsl
+@group(2) @binding(0) var sceneDepth: texture_depth_2d;
+
+struct Params {
+  color: vec4f,
+  fadeDistance: f32,
+}
+@group(2) @binding(1) var<uniform> params: Params;
+
+@fragment
+fn fs_main(input: VertexOutput) -> @location(0) vec4f {
+  // input.position is the @builtin(position) framebuffer coordinate: xy in
+  // pixels, z in window depth. Load the opaque depth stored at this pixel.
+  let coord = vec2i(i32(input.position.x), i32(input.position.y));
+  let sampledDepth = textureLoad(sceneDepth, coord, 0);
+
+  // A small delta means the surface behind is close: fade the field in.
+  let delta = sampledDepth - input.position.z;
+  let edge = 1.0 - saturate(delta / params.fadeDistance);
+  return vec4f(params.color.rgb, params.color.a * edge);
+}
+```
+
+Depth-fade semantics and constraints:
+
+- **Transparent only.** A scene-depth material must be transparent
+  (`renderState.alphaMode: "blend"`); an opaque one is rejected at material
+  preparation with `customMaterialSource.sceneDepthRequiresTransparent`.
+  Scene-depth sampling is a post-opaque effect — the material draws _after_ the
+  opaque pass has written depth.
+- **Read-only depth, own submission.** A texture cannot be both a writable
+  depth attachment and a sampled binding in one pass, so the depth-sampling
+  draw runs in a post-opaque submission that attaches the scene depth
+  read-only. Compose it with two swapchain cameras (the ascending-`priority`
+  rule from [Render Targets](#render-targets)): a lower-priority camera A
+  renders the opaque geometry and writes depth, and a higher-priority camera B
+  renders the transparent depth-sampling material, loading camera A's depth
+  read-only. Scope each camera's meshes with render layers.
+- **MSAA.** On a `{ msaa: 4 }` app the scene depth is multisampled: declare
+  `multisampled: true` on the binding and sample a
+  `texture_depth_multisampled_2d` with an explicit sample index
+  (`textureLoad(sceneDepth, coord, 0)`); a non-MSAA app uses `texture_depth_2d`.
+- **User passes read depth too.** The other half of depth access is on user
+  render passes: `app.addRenderPass({ reads: ["depth"], ... })` resolves
+  `ctx.view("depth")` to a `texture_depth_2d` (see `examples/custom-graph-pass`).
+- **Binding-layout variants.** The scene-depth binding rides on fully general
+  texture/sampler layouts. `material.texture(...)` accepts `sampleType`
+  (`"float"` default, `"unfilterable-float"`, `"depth"`, `"sint"`, `"uint"`),
+  `viewDimension` (`"2d"` default, `"cube"`), and `multisampled`;
+  `material.sampler(...)` accepts `samplerType` (`"filtering"` default,
+  `"non-filtering"`, `"comparison"`). A comparison sampler pairs with a sampler
+  asset carrying a compare op — `createSamplerAsset({ compare: "less" })` — for
+  hardware depth comparison. Each field participates in the pipeline key only
+  when set to a non-default value, so pre-B4 materials keep byte-identical keys.
+
+See `examples/forcefield-scene.js` (with `forcefield.main.js` /
+`forcefield.worker.js`) for a complete two-camera force-field that fades
+against the opaque scene depth.
+
 Current limitations: WGSL only; no shader imports; no user-supplied WebGPU
 objects or callbacks; and no arbitrary app-owned material adapter
 registration. App-route custom WGSL supports group-2 uniform buffers,

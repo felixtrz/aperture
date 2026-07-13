@@ -324,6 +324,9 @@ export function createSamplerAsset(
     lodMinClamp: input.lodMinClamp ?? 0,
     lodMaxClamp: input.lodMaxClamp ?? 32,
     maxAnisotropy: input.maxAnisotropy ?? 1,
+    // B4: present only for comparison samplers so ordinary samplers keep a
+    // byte-identical asset shape.
+    ...(input.compare === undefined ? {} : { compare: input.compare }),
   };
 }
 
@@ -397,7 +400,10 @@ function customWgslMaterialDependencies(input: {
   }
 
   for (const binding of input.bindings ?? []) {
-    if (binding.kind === "texture") {
+    // B4: a renderer-owned texture source (e.g. scene-depth) carries no
+    // handle, so it contributes no readiness dependency — the frame supplies
+    // the resource. Only handle-backed texture bindings gate readiness.
+    if (binding.kind === "texture" && binding.texture !== undefined) {
       dependencies.push({ kind: "texture", handle: binding.texture });
     }
 

@@ -7,8 +7,11 @@ import type {
   CustomWgslBindingKind,
   CustomWgslColorTargetDeclaration,
   CustomWgslMaterialAsset,
+  CustomWgslSamplerType,
   CustomWgslShaderRef,
   CustomWgslShaderStage,
+  CustomWgslTextureBindingSource,
+  CustomWgslTextureSampleType,
   CustomWgslUniformBindingDeclaration,
   MaterialFamilyKey,
   RenderStateDescriptor,
@@ -41,6 +44,23 @@ export interface PreparedCustomWgslBindingLayoutEntry {
    */
   readonly buffer?: BufferHandle;
   readonly runtimeBufferKey?: string;
+  /**
+   * Texture bindings (B4): the layout variant closing the pre-B4
+   * float/2d/filtering hard-coding. Each is present ONLY when the declaration
+   * set it to a non-default value, so materials that keep the defaults produce
+   * byte-identical layout entries + pipeline keys.
+   */
+  readonly sampleType?: CustomWgslTextureSampleType;
+  readonly viewDimension?: "2d" | "cube";
+  readonly multisampled?: boolean;
+  /**
+   * Renderer-owned texture source for a texture binding (B4, e.g.
+   * `"scene-depth"`). Present only when the declaration named one; the binding
+   * then needs no `texture` handle and the frame supplies the resource.
+   */
+  readonly source?: CustomWgslTextureBindingSource;
+  /** Sampler bindings (B4): the layout variant (default `"filtering"`). */
+  readonly samplerType?: CustomWgslSamplerType;
 }
 
 export interface PreparedCustomWgslBindingResourceEntry {
@@ -74,6 +94,15 @@ export interface PreparedCustomWgslMaterial {
    * lit bind group at group(3).
    */
   readonly lighting?: "lit";
+  /**
+   * Present (as `true`) only when at least one texture binding declared a
+   * renderer-owned `source: "scene-depth"` (B4): the renderer binds the
+   * frame's stored scene depth (read-only), routes the draw into a post-opaque
+   * read-only-depth boundary, and stamps the `:scene-depth` marker onto the
+   * render pipeline cache key. Absent for every other material so their keys
+   * and prepared shape stay byte-identical.
+   */
+  readonly samplesSceneDepth?: true;
   readonly pipelineKey: string;
   readonly materialResourceKey: string;
   readonly bindGroupResourceKey: string;

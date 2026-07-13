@@ -24,9 +24,22 @@ export interface CustomWgslAppTextureSamplerBindingResources {
 }
 
 interface CustomWgslAppTextureSamplerBindingDiagnostic {
-  readonly code: "webGpuApp.customWgslBindingNotPrepared";
+  readonly code:
+    | "webGpuApp.customWgslBindingNotPrepared"
+    | "webGpuApp.customWgslSceneDepthUnavailable";
   readonly message: string;
   readonly binding: number;
+}
+
+/**
+ * B4: the frame's stored scene depth, supplied by the render route so a
+ * `source: "scene-depth"` texture binding resolves to it (read-only). The
+ * `sampleCount` lets the route assert the material's `multisampled` declaration
+ * matches the app's MSAA state before binding.
+ */
+export interface CustomWgslAppSceneDepthResource {
+  readonly view: unknown;
+  readonly sampleCount: number;
 }
 
 export function prepareCustomWgslAppTextureSamplerBindingResources(options: {
@@ -36,6 +49,7 @@ export function prepareCustomWgslAppTextureSamplerBindingResources(options: {
   readonly reuse: AppTextureSamplerResourceReuseReport;
   readonly source: CustomWgslMaterialAsset;
   readonly material: PreparedCustomWgslMaterial;
+  readonly sceneDepth?: CustomWgslAppSceneDepthResource | null;
 }): CustomWgslAppTextureSamplerBindingResources {
   const diagnostics: CustomWgslAppTextureSamplerBindingDiagnostic[] = [];
   const textureSamplerDiagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[] =
@@ -55,7 +69,24 @@ export function prepareCustomWgslAppTextureSamplerBindingResources(options: {
       continue;
     }
 
-    if (binding.kind === "texture") {
+    if (binding.kind === "texture" && binding.source === "scene-depth") {
+      // B4: bind the frame's stored scene depth (read-only) — the opaque pass
+      // wrote it, this transparent draw samples it. The route peels the draw
+      // into a read-only-depth boundary so sampling the depth attachment is
+      // legal.
+      const sceneDepthView = options.sceneDepth?.view;
+
+      if (sceneDepthView === undefined || sceneDepthView === null) {
+        diagnostics.push({
+          code: "webGpuApp.customWgslSceneDepthUnavailable",
+          binding: binding.binding,
+          message: `Custom WGSL binding ${binding.binding} requests scene-depth, but no scene depth attachment was available this frame (the route did not supply one).`,
+        });
+      } else {
+        resources.push({ resourceKey, resource: sceneDepthView });
+        textureKeys.push(`scene-depth:${options.material.materialKey}`);
+      }
+    } else if (binding.kind === "texture" && binding.texture !== undefined) {
       const texture = prepareAppTextureResource({
         assets: options.assets,
         device: options.device,

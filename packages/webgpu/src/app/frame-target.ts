@@ -46,7 +46,7 @@ export type WebGpuAppFrameBoundaryTarget =
       readonly format: string;
     };
 
-interface WebGpuAppFrameBoundaryTargetApp {
+export interface WebGpuAppFrameBoundaryTargetApp {
   readonly canvas: WebGpuCanvasLike;
   readonly initialization: {
     readonly format: string;
