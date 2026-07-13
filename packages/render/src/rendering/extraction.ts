@@ -38,6 +38,7 @@ import { extractRuntimeBuffers } from "./extraction-runtime-buffers.js";
 import { extractRuntimeUniforms } from "./extraction-runtime-uniforms.js";
 import { extractSkyboxes } from "./extraction-skyboxes.js";
 import { extractSpriteDraws } from "./extraction-sprites.js";
+import { extractDecals } from "./extraction-decals.js";
 import { extractUiLayout } from "./extraction-ui.js";
 import { extractViews } from "./extraction-views.js";
 
@@ -181,6 +182,16 @@ export function extractRenderSnapshot(
     quadInstanceWords,
     quadBatches,
   ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
+  const decalExtraction = extractDecals(
+    world,
+    assets,
+    transforms,
+    bounds,
+    diagnostics,
+    cameraLayerMask,
+    viewCullContexts,
+  );
+  const decals = decalExtraction.decals;
   const particleEmitters =
     options.features?.particles === false
       ? extractGatedFeatureFamilyPlaceholder({
@@ -246,6 +257,7 @@ export function extractRenderSnapshot(
     meshDraws,
     ...(shadowCasterDraws.length === 0 ? {} : { shadowCasterDraws }),
     spriteDraws,
+    ...(decals.length === 0 ? {} : { decals }),
     ...(particleEmitters.length === 0 ? {} : { particleEmitters }),
     ...(audioEmitters.length === 0 ? {} : { audioEmitters }),
     ...(audioListener === undefined ? {} : { audioListener }),
@@ -300,6 +312,9 @@ export function extractRenderSnapshot(
         ? {}
         : { shadowCasterDraws: shadowCasterDraws.length }),
       spriteDraws: spriteDraws.length,
+      ...(decalExtraction.report === undefined
+        ? {}
+        : { decals: decalExtraction.report }),
       particleEmitters: particleEmitters.length,
       audioEmitters: audioEmitters.length,
       quadInstances: quadInstanceFloats.length / QUAD_INSTANCE_FLOAT_STRIDE,

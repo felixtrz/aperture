@@ -47,6 +47,7 @@ import {
   type DrawOrderTransformPackingScratch,
 } from "../render/frame/draw-order-transform-packing.js";
 import type { CreateSpriteRenderPipelineResourceResult } from "../render/sprites/sprite-pipeline.js";
+import type { CreateDecalRenderPipelineResourceResult } from "../render/decals/decal-pipeline.js";
 import type { CreateMsdfTextRenderPipelineResourceResult } from "../render/text/msdf-text-pipeline.js";
 import type { CreateUiQuadRenderPipelineResourceResult } from "../render/ui/ui-quad-pipeline.js";
 import type {
@@ -148,6 +149,7 @@ export interface WebGpuAppResourceCache {
     string,
     CreateSpriteRenderPipelineResourceResult
   >;
+  readonly decalPipelines: Map<string, CreateDecalRenderPipelineResourceResult>;
   readonly msdfTextPipelines: Map<
     string,
     CreateMsdfTextRenderPipelineResourceResult
@@ -440,6 +442,7 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     featureRealizers: createWebGpuFeatureRealizerRegistry(),
     pipelines: new Map(),
     spritePipelines: new Map(),
+    decalPipelines: new Map(),
     msdfTextPipelines: new Map(),
     uiPanelPipelines: new Map(),
     uiImagePipelines: new Map(),

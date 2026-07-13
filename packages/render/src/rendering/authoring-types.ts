@@ -313,6 +313,26 @@ export interface SpriteInput {
   readonly depthMode?: SpriteDepthMode;
 }
 
+export interface DecalInput {
+  readonly texture: TextureHandle;
+  readonly sampler?: SamplerHandle | null;
+  /** World-space width/height of the projected decal quad. */
+  readonly size?: number | readonly [number, number];
+  /** RGB tint (alpha multiplies the decal's overall fade). */
+  readonly color?: Vec4Like;
+  /** Overall fade in [0, 1]; multiplies into the tint alpha. */
+  readonly opacity?: number;
+  /**
+   * World-space toward-camera offset that keeps the projected quad off the
+   * surface it decals so it never z-fights. Small positive default.
+   */
+  readonly depthBias?: number;
+  /** Max live decals in this decal's shared pool (oldest-first eviction). */
+  readonly capacity?: number;
+  /** Spawn-order stamp used to evict the oldest decals first. */
+  readonly sequence?: number;
+}
+
 export interface AudioEmitterInput {
   readonly clip: AudioClipHandle;
   readonly busId?: string;
@@ -534,6 +554,11 @@ export type RenderAuthoringDiagnosticCode =
   | "sprite.invalidSizeMode"
   | "sprite.invalidBlendMode"
   | "sprite.invalidDepthMode"
+  | "decal.invalidTexture"
+  | "decal.invalidSize"
+  | "decal.invalidOpacity"
+  | "decal.invalidDepthBias"
+  | "decal.invalidCapacity"
   | "particle.invalidEffect"
   | "particle.invalidCapacity"
   | "particle.invalidSeed"

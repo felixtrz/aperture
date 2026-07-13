@@ -2,6 +2,7 @@ import type {
   AudioEmitterPacket,
   AudioListenerPacket,
   BoundsPacket,
+  DecalPacket,
   EnvironmentPacket,
   FogPacket,
   InstanceAttributePacket,
@@ -44,6 +45,13 @@ export interface RenderSnapshot {
    */
   readonly shadowCasterDraws?: readonly MeshDrawPacket[];
   readonly spriteDraws?: readonly SpriteDrawPacket[];
+  /**
+   * Projected decal packets (D4). Absent when a frame carries no decals so a
+   * scene without decals is byte-identical to a pre-D4 snapshot. Already capped
+   * + eviction-resolved (oldest-first) at extraction; the count and eviction
+   * tally ride `report.decals`.
+   */
+  readonly decals?: readonly DecalPacket[];
   readonly particleEmitters?: readonly ParticleEmitterPacket[];
   readonly audioEmitters?: readonly AudioEmitterPacket[];
   readonly audioListener?: AudioListenerPacket;

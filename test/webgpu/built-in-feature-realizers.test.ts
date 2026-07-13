@@ -18,13 +18,13 @@ describe("built-in WebGPU feature realizers", () => {
 
     expect(
       cache.featureRealizers.list().map((realizer) => realizer.id),
-    ).toEqual(["particles", "ui"]);
+    ).toEqual(["particles", "decals", "ui"]);
   });
 
   it("rejects realizers that collide with a built-in id at registration time", () => {
     const cache = createWebGpuAppResourceCache();
 
-    for (const id of ["particles", "ui"]) {
+    for (const id of ["particles", "decals", "ui"]) {
       expect(() =>
         cache.featureRealizers.register({
           id,
@@ -37,7 +37,7 @@ describe("built-in WebGPU feature realizers", () => {
     // The failed registrations must not disturb the built-ins.
     expect(
       cache.featureRealizers.list().map((realizer) => realizer.id),
-    ).toEqual(["particles", "ui"]);
+    ).toEqual(["particles", "decals", "ui"]);
   });
 
   it("prepares UI through an overlay command group and particles as an empty built-in feature", async () => {
@@ -74,9 +74,9 @@ describe("built-in WebGPU feature realizers", () => {
     ]);
     expect(
       cache.featureRealizers.list().map((realizer) => realizer.id),
-    ).toEqual(["particles", "ui"]);
+    ).toEqual(["particles", "decals", "ui"]);
     expect(secondFrame.overlayCommands).toHaveLength(4);
-    expect(cache.featureRealizers.list()).toHaveLength(2);
+    expect(cache.featureRealizers.list()).toHaveLength(3);
   });
 });
 

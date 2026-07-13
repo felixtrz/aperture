@@ -36,6 +36,11 @@ export interface RenderSnapshotReport {
   readonly meshDraws: number;
   readonly shadowCasterDraws?: number;
   readonly spriteDraws?: number;
+  /**
+   * Decal cap/eviction tally (D4). Absent when a frame carries no decals so a
+   * decal-free report is byte-identical to a pre-D4 report.
+   */
+  readonly decals?: DecalSnapshotReport;
   readonly particleEmitters?: number;
   readonly audioEmitters?: number;
   readonly quadInstances?: number;
@@ -53,6 +58,19 @@ export interface RenderSnapshotReport {
   readonly bounds: number;
   readonly diagnostics: number;
   readonly cullStats?: readonly ViewCullStats[];
+}
+
+/**
+ * Decal cap + eviction counters (D4). `submitted` live decal entities were
+ * gathered this frame; the newest `live` (== min(submitted, capacity)) survive
+ * the oldest-first ring-buffer cap and are rendered; `evicted` (== submitted -
+ * live) were dropped.
+ */
+export interface DecalSnapshotReport {
+  readonly capacity: number;
+  readonly live: number;
+  readonly evicted: number;
+  readonly submitted: number;
 }
 
 export interface ViewCullStats {

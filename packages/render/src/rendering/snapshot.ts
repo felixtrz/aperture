@@ -5,6 +5,8 @@ export type {
   AudioVoiceKey,
   BatchCompatibilityKey,
   BoundsPacket,
+  DecalPacket,
+  DecalSnapshotReport,
   EnvironmentPacket,
   FogPacket,
   InstanceAttributeFieldPacket,

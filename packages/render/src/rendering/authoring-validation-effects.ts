@@ -7,6 +7,7 @@ import {
   SpriteCoordinateMode,
   SpriteDepthMode,
   SpriteSizeMode,
+  type DecalInput,
   type FogInput,
   type ParticleEmitterInput,
   type ProceduralSkyInput,
@@ -18,6 +19,7 @@ import {
   type SpriteInput,
 } from "./authoring-types.js";
 import {
+  createDecal,
   createFog,
   createParticleEmitter,
   createProceduralSky,
@@ -27,6 +29,66 @@ import {
   createSprite,
 } from "./authoring-create.js";
 import { tuple4 } from "./authoring-utils.js";
+
+export function validateDecalInput(
+  input: DecalInput,
+): RenderAuthoringValidationReport {
+  const decal = createDecal(input);
+  const textureId = decal.textureId ?? "";
+  const width = decal.width ?? 1;
+  const height = decal.height ?? 1;
+  const opacity = decal.opacity ?? 1;
+  const depthBias = decal.depthBias ?? 0.02;
+  const capacity = decal.capacity ?? 256;
+  const diagnostics: RenderAuthoringDiagnostic[] = [];
+
+  if (textureId.trim().length === 0) {
+    diagnostics.push({
+      code: "decal.invalidTexture",
+      field: "texture",
+      message: "Decals require a texture handle.",
+    });
+  }
+
+  if (
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    diagnostics.push({
+      code: "decal.invalidSize",
+      field: "size",
+      message: "Decals require finite positive width and height.",
+    });
+  }
+
+  if (!Number.isFinite(opacity) || opacity < 0) {
+    diagnostics.push({
+      code: "decal.invalidOpacity",
+      field: "opacity",
+      message: "Decal opacity must be a finite non-negative number.",
+    });
+  }
+
+  if (!Number.isFinite(depthBias) || depthBias < 0) {
+    diagnostics.push({
+      code: "decal.invalidDepthBias",
+      field: "depthBias",
+      message: "Decal depthBias must be a finite non-negative number.",
+    });
+  }
+
+  if (!Number.isInteger(capacity) || capacity < 1) {
+    diagnostics.push({
+      code: "decal.invalidCapacity",
+      field: "capacity",
+      message: "Decal capacity must be a positive integer.",
+    });
+  }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
 
 export function validateSpriteInput(
   input: SpriteInput,

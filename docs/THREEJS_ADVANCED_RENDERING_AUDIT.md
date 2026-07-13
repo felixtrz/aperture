@@ -82,16 +82,19 @@ frame report. Remaining limit: pass bodies are raw WebGPU rather than data.
 three.js counters with `EffectComposer` (WebGL) and TSL compute with atomics,
 storage textures, and indirect draws (WebGPU backend).
 
-**Confirmed absent in Aperture across this whole domain:** decals and
-3D/array render targets (cube render targets
+**Confirmed absent in Aperture across this whole domain:**
+3D/array render targets (decals shipped as parity plan D4; cube render targets
 shipped as parity plan B2; MRT authoring and user-pass target writes shipped as
 parity plan B3; custom-material scene-depth access shipped as parity plan B4; the
 compute→draw / compute-to-vertex bridge shipped as parity plan C1; the GPU-driven
 indirect-draw user surface shipped as parity plan C2; per-camera and per-material
 clipping planes shipped as parity plan D2; runtime CPU-bytes + canvas/video
 texture updates shipped as parity plan D3 — 2D only, cube/3D-array dynamic targets
-still absent). §9 scores 20 concrete game scenarios;
-§10 ranks the gap closures by how much
+still absent). §9 now scores **Aperture ✅ 18 / 🟡 2 / ❌ 0 of 20 concrete game
+scenarios — no ❌ remains**: decals (scenario #17) shipped as parity plan D4 (a
+dedicated instanced decal pass projecting depth-biased quads onto opaque geometry
+with an oldest-first live-decal cap surfaced in the frame report), leaving only
+two 🟡 (planar mirror #7, CPU cloth #16). §10 ranks the gap closures by how much
 game-dev surface each unlocks.
 
 ---
@@ -241,16 +244,16 @@ data) is missing, which is precisely the bridge GPU-driven game techniques
 
 ## 5. Dynamic content
 
-| Capability                       | three.js                                                                          | Aperture                                                                                                                                                                                                                                                                                                        | Verdict |
-| -------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| Per-frame CPU mesh deform        | ✅ mutate array + `needsUpdate` + `updateRanges` (partial uploads), `usage` hints | 🟡 `MeshBufferUpdateRange` partial `writeBuffer` uploads exist in the upload plan, but the ergonomic path is re-marking the mesh asset ready — no `mesh.update()` API                                                                                                                                           | Partial |
-| Procedural mesh regen            | Replace geometry                                                                  | Re-register mesh asset (full re-upload)                                                                                                                                                                                                                                                                         | Parity  |
-| Built-in material param tuning   | Set property (auto uniform refresh)                                               | ✅ `patchStandardMaterial` / material-mutation route — no variant recompiles                                                                                                                                                                                                                                    | Parity  |
-| PBR extension params via app API | ✅ all `MeshPhysicalMaterial` props settable directly                             | ✅ `material.standard()` exposes the full extension factor set + renderState; `materials.set` patches the same fields (parity plan A3)                                                                                                                                                                          | Parity  |
-| Video / canvas textures          | ✅ `VideoTexture`, `CanvasTexture`, `HTMLTexture`, `VideoFrameTexture`            | 🟡 `app.updateDynamicTextureFromExternalImage` imports an `HTMLVideoElement` / `VideoFrame` / canvas / `ImageBitmap` via `copyExternalImageToTexture` (parity plan D3); the path is HTMLVideoElement-typed but the e2e proves it with a canvas standing in for video (SwiftShader/headless has no video decode) | Partial |
-| Data texture runtime updates     | ✅ `DataTexture` + `needsUpdate`, partial copies                                  | ✅ `app.registerDynamicTexture` / `this.textures.register` + `app.updateDynamicTexture` — full-image AND sub-rect CPU `writeTexture` updates with an update-rate/bytes frame report (parity plan D3)                                                                                                            | Parity  |
-| Decals                           | ✅ `DecalGeometry`                                                                | ❌ nothing; nearest workaround is an overlay user pass                                                                                                                                                                                                                                                          | Gap     |
-| Sprite/atlas animation           | Sprite + offset/repeat; `SpriteSheetUV` node                                      | ✅ sprite atlas frames + particle texture-sheet animation                                                                                                                                                                                                                                                       | Parity  |
+| Capability                       | three.js                                                                          | Aperture                                                                                                                                                                                                                                                                                                               | Verdict            |
+| -------------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| Per-frame CPU mesh deform        | ✅ mutate array + `needsUpdate` + `updateRanges` (partial uploads), `usage` hints | 🟡 `MeshBufferUpdateRange` partial `writeBuffer` uploads exist in the upload plan, but the ergonomic path is re-marking the mesh asset ready — no `mesh.update()` API                                                                                                                                                  | Partial            |
+| Procedural mesh regen            | Replace geometry                                                                  | Re-register mesh asset (full re-upload)                                                                                                                                                                                                                                                                                | Parity             |
+| Built-in material param tuning   | Set property (auto uniform refresh)                                               | ✅ `patchStandardMaterial` / material-mutation route — no variant recompiles                                                                                                                                                                                                                                           | Parity             |
+| PBR extension params via app API | ✅ all `MeshPhysicalMaterial` props settable directly                             | ✅ `material.standard()` exposes the full extension factor set + renderState; `materials.set` patches the same fields (parity plan A3)                                                                                                                                                                                 | Parity             |
+| Video / canvas textures          | ✅ `VideoTexture`, `CanvasTexture`, `HTMLTexture`, `VideoFrameTexture`            | 🟡 `app.updateDynamicTextureFromExternalImage` imports an `HTMLVideoElement` / `VideoFrame` / canvas / `ImageBitmap` via `copyExternalImageToTexture` (parity plan D3); the path is HTMLVideoElement-typed but the e2e proves it with a canvas standing in for video (SwiftShader/headless has no video decode)        | Partial            |
+| Data texture runtime updates     | ✅ `DataTexture` + `needsUpdate`, partial copies                                  | ✅ `app.registerDynamicTexture` / `this.textures.register` + `app.updateDynamicTexture` — full-image AND sub-rect CPU `writeTexture` updates with an update-rate/bytes frame report (parity plan D3)                                                                                                                   | Parity             |
+| Decals                           | ✅ `DecalGeometry`                                                                | ✅ D4: `Decal` component + `spawn.decal(...)` project a depth-biased quad onto opaque geometry through a dedicated instanced decal pass (no z-fighting), with an oldest-first live-decal cap surfaced in the frame report; 🟡 flat-surface projector (not mesh-conforming) — a deferred box-projector is the follow-up | ✅ (box projector) |
+| Sprite/atlas animation           | Sprite + offset/repeat; `SpriteSheetUV` node                                      | ✅ sprite atlas frames + particle texture-sheet animation                                                                                                                                                                                                                                                              | Parity             |
 
 ---
 
@@ -304,11 +307,11 @@ three.js — the diagnostics-first architecture pays off exactly here.
 (especially TSL's automatic lighting/skinning/shadow composition and
 `wgslFn`/`glslFn` escape hatches), MRT, cube/3D/array targets and
 `CubeCamera`, grab-pass nodes, node-graph stencil/clipping composition
-(`ClippingGroup`), decals, video/canvas/data textures, indirect COMPUTE dispatch
+(`ClippingGroup`), video/canvas/data textures, indirect COMPUTE dispatch
 (`dispatchWorkgroupsIndirect`), and a huge library of ready passes and helper
 objects (Aperture has since closed compute→vertex plumbing (C1), the indirect-DRAW
-user surface (C2), per-material stencil (D1), and per-camera/per-material clipping
-planes (D2)).
+user surface (C2), per-material stencil (D1), per-camera/per-material clipping
+planes (D2), and projected decals (D4)).
 
 **Aperture advantages (this domain):** `RuntimeUniform` zero-rebuild live
 parameters with record/replay-safe command flow; frame-graph-scheduled user
@@ -343,7 +346,7 @@ limits · ❌ not achievable today.
 | 14  | GPU crowd (compute skinning + instanced draw)         | ✅\*     | ✅       | Compute→instance plumbing shipped (parity plan C1): the writable buffer feeds both a `material.storage(...)` binding AND a buffer-backed instance stream (`instanceBuffer`), frame-graph-ordered compute-before-draw — the GPU crowd = boids + a built-in/custom instanced material via the instance stream                                                                                                                                                                                      |
 | 15  | GPU-driven culling / indirect draw                    | ✅\*     | ✅       | Indirect-draw user surface shipped (parity plan C2): a user render pass records `ctx.drawIndirect` / `drawIndexedIndirect` against a compute-written argument buffer; the GPU-authoritative drawn count surfaces in the frame report (`examples/gpu-culling`)                                                                                                                                                                                                                                    |
 | 16  | CPU cloth/jelly (per-frame vertex upload)             | ✅       | 🟡       | Update-range uploads exist; ergonomics are asset re-registration                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| 17  | Decals (bullet holes, blood)                          | ✅       | ❌       | Nothing; overlay pass is the only workaround                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| 17  | Decals (bullet holes, blood)                          | ✅       | ✅       | Parity plan D4: a `Decal` component + `spawn.decal(...)` project depth-biased quads onto opaque geometry through a dedicated instanced decal pass (no z-fighting), with an oldest-first live-decal cap + eviction surfaced in the frame report; the `decals` example is FPS bullet holes hitting the cap. 🟡 flat-surface projector, not mesh-conforming (deferred box-projector is the follow-up)                                                                                               |
 | 18  | In-world video/canvas screen (TV, scoreboard)         | ✅       | ✅       | Runtime dynamic + video/canvas texture updates (parity plan D3): `app.updateDynamicTexture` (CPU bytes, full + sub-rect) and `app.updateDynamicTextureFromExternalImage` (HTMLVideoElement / VideoFrame / canvas / ImageBitmap); the `runtime-texture` example ships a canvas scoreboard, a canvas-animated TV, and a CPU-bytes ticker with pixel-change e2e. (Video via a real `HTMLVideoElement` is import-path-ready but proven with a canvas standing in — SwiftShader has no video decode.) |
 | 19  | Soft particles / depth-fade VFX                       | 🟡       | ✅       | three.js: manual depth sampling. Aperture: built into the particle renderer AND B4 lets any transparent custom material sample scene depth read-only (`source: "scene-depth"`, MSAA-aware) — the `forcefield` example                                                                                                                                                                                                                                                                            |
 | 20  | Occlusion-driven gameplay (lens flare, AI visibility) | 🟡       | ✅       | three.js WebGPURenderer only; Aperture reports feedback with fallback reasons                                                                                                                                                                                                                                                                                                                                                                                                                    |
@@ -352,14 +355,19 @@ limits · ❌ not achievable today.
 textures, and indirect.
 
 Score (of 20): three.js ✅ 16 / 🟡 2 / ❌ 0 (2 backend-caveated); Aperture
-✅ 17 / 🟡 2 / ❌ 1. The lone remaining ❌ is scenario #17 (decals); the
-compute→rendering bridge shipped as parity plan C1, the GPU-driven
-indirect-draw user surface as parity plan C2, per-material stencil (scenario
-#8 → ✅) as parity plan D1, per-camera/per-material clipping planes as parity
-plan D2, and runtime dynamic + video/canvas texture updates (scenario #18 → ✅)
-as parity plan D3. Scenario #7 (planar mirror) stays 🟡 — clipping planes now
-exist (the oblique-frustum blocker is gone), but a turnkey `Reflector` helper and
-a shipped oblique-mirror example are still missing.
+✅ 18 / 🟡 2 / ❌ 0 — **there is no remaining ❌**. Scenario #17 (decals) flips
+to ✅ with parity plan D4: a dedicated instanced decal pass projects
+depth-biased quads onto opaque geometry (no z-fighting) with an oldest-first
+live-decal cap + eviction surfaced in the frame report, shipped with the
+`decals` bullet-hole example. The compute→rendering bridge shipped as parity
+plan C1, the GPU-driven indirect-draw user surface as parity plan C2,
+per-material stencil (scenario #8 → ✅) as parity plan D1, per-camera/per-material
+clipping planes as parity plan D2, and runtime dynamic + video/canvas texture
+updates (scenario #18 → ✅) as parity plan D3. The two remaining 🟡 are scenario
+#7 (planar mirror — clipping planes now exist so the oblique-frustum blocker is
+gone, but a turnkey `Reflector` helper and a shipped oblique-mirror example are
+still missing) and scenario #16 (CPU cloth — update-range uploads exist but the
+ergonomic `mesh.update()` API does not).
 
 ---
 
@@ -422,8 +430,13 @@ stay inside the architecture.
    layout variants (parity plan B4).
 10. **Skinning/morph inputs for custom pipelines** (unblocks #5) — the
     heaviest lift; palettes and morph buffers exist for built-ins.
-11. **Decal system** (unblocks #17) — could compose from #4 + projected
-    rendering rather than a bespoke feature.
+11. **Decal system** (unblocks #17). _Shipped_ — parity plan D4: a `Decal`
+    component + `spawn.decal(...)` render depth-biased projected quads onto
+    opaque geometry through a dedicated instanced decal pass (no z-fighting),
+    with an oldest-first live-decal cap + eviction surfaced in the frame report
+    (`examples/decals`, FPS bullet holes). 🟡 flat-surface projector — a
+    deferred box-projector (world-position reconstruction from scene depth) is
+    the mesh-conforming follow-up.
 12. **Indirect-draw user surface** (completes #15) — smallest audience,
     biggest ceiling; the command layer already emits indirect draws
     internally. _Shipped_ — `ctx.drawIndirect` / `ctx.drawIndexedIndirect` on

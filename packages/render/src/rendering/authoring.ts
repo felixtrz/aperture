@@ -4,6 +4,7 @@ import {
   AudioListener,
   Camera,
   CameraClipPlanes,
+  Decal,
   Fog,
   InstanceData,
   InstanceTint,
@@ -48,6 +49,7 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(Material);
   world.registerComponent(MaterialSlots);
   world.registerComponent(Sprite);
+  world.registerComponent(Decal);
   world.registerComponent(ParticleEmitter);
   world.registerComponent(AudioEmitter);
   world.registerComponent(AudioListener);

@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1477
+Every structured diagnostic code the engine can emit (1491
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -1204,6 +1204,90 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                         | Message                       | Fix? | Emitted from                                                          |
 | -------------------------------------------- | ----------------------------- | ---- | --------------------------------------------------------------------- |
 | `debugNormalRenderPipeline.shaderDiagnostic` | (message composed at runtime) | —    | `packages/webgpu/src/materials/debug-normal/debug-normal-pipeline.ts` |
+
+## decal.invalidCapacity (1)
+
+| Code                    | Message                                    | Fix? | Emitted from                                                    |
+| ----------------------- | ------------------------------------------ | ---- | --------------------------------------------------------------- |
+| `decal.invalidCapacity` | Decal capacity must be a positive integer. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## decal.invalidDepthBias (1)
+
+| Code                     | Message                                               | Fix? | Emitted from                                                    |
+| ------------------------ | ----------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `decal.invalidDepthBias` | Decal depthBias must be a finite non-negative number. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## decal.invalidOpacity (1)
+
+| Code                   | Message                                             | Fix? | Emitted from                                                    |
+| ---------------------- | --------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `decal.invalidOpacity` | Decal opacity must be a finite non-negative number. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## decal.invalidSize (1)
+
+| Code                | Message                                          | Fix? | Emitted from                                                    |
+| ------------------- | ------------------------------------------------ | ---- | --------------------------------------------------------------- |
+| `decal.invalidSize` | Decals require finite positive width and height. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## decal.invalidTexture (1)
+
+| Code                   | Message                          | Fix? | Emitted from                                                    |
+| ---------------------- | -------------------------------- | ---- | --------------------------------------------------------------- |
+| `decal.invalidTexture` | Decals require a texture handle. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
+## decalFrame.createBindGroupUnavailable (1)
+
+| Code                                    | Message                                        | Fix? | Emitted from                        |
+| --------------------------------------- | ---------------------------------------------- | ---- | ----------------------------------- |
+| `decalFrame.createBindGroupUnavailable` | WebGPU device cannot create decal bind groups. | —    | `packages/webgpu/src/app/decals.ts` |
+
+## decalFrame.instanceBufferFailed (1)
+
+| Code                              | Message                                            | Fix? | Emitted from                        |
+| --------------------------------- | -------------------------------------------------- | ---- | ----------------------------------- |
+| `decalFrame.instanceBufferFailed` | Decal pipeline does not expose bind group layouts. | —    | `packages/webgpu/src/app/decals.ts` |
+
+## decalFrame.missingPipelineLayouts (1)
+
+| Code                                | Message                                            | Fix? | Emitted from                        |
+| ----------------------------------- | -------------------------------------------------- | ---- | ----------------------------------- |
+| `decalFrame.missingPipelineLayouts` | Decal pipeline does not expose bind group layouts. | —    | `packages/webgpu/src/app/decals.ts` |
+
+## decalFrame.missingView (1)
+
+| Code                     | Message                                                    | Fix? | Emitted from                        |
+| ------------------------ | ---------------------------------------------------------- | ---- | ----------------------------------- |
+| `decalFrame.missingView` | Decal rendering requires at least one view uniform record. | —    | `packages/webgpu/src/app/decals.ts` |
+
+## decalFrame.viewBufferFailed (1)
+
+| Code                          | Message                                            | Fix? | Emitted from                        |
+| ----------------------------- | -------------------------------------------------- | ---- | ----------------------------------- |
+| `decalFrame.viewBufferFailed` | Decal pipeline does not expose bind group layouts. | —    | `packages/webgpu/src/app/decals.ts` |
+
+## decalRenderPipeline.createRenderPipelineUnavailable (1)
+
+| Code                                                  | Message                                             | Fix? | Emitted from                                          |
+| ----------------------------------------------------- | --------------------------------------------------- | ---- | ----------------------------------------------------- |
+| `decalRenderPipeline.createRenderPipelineUnavailable` | WebGPU device cannot create decal render pipelines. | —    | `packages/webgpu/src/render/decals/decal-pipeline.ts` |
+
+## decalRenderPipeline.pipelineCreationFailed (1)
+
+| Code                                         | Message                       | Fix? | Emitted from                                          |
+| -------------------------------------------- | ----------------------------- | ---- | ----------------------------------------------------- |
+| `decalRenderPipeline.pipelineCreationFailed` | (message composed at runtime) | —    | `packages/webgpu/src/render/decals/decal-pipeline.ts` |
+
+## decalRenderPipeline.shaderCreationFailed (1)
+
+| Code                                       | Message                                             | Fix? | Emitted from                                          |
+| ------------------------------------------ | --------------------------------------------------- | ---- | ----------------------------------------------------- |
+| `decalRenderPipeline.shaderCreationFailed` | WebGPU device cannot create decal render pipelines. | —    | `packages/webgpu/src/render/decals/decal-pipeline.ts` |
+
+## decalRenderPipeline.shaderDiagnostic (1)
+
+| Code                                   | Message                       | Fix? | Emitted from                                          |
+| -------------------------------------- | ----------------------------- | ---- | ----------------------------------------------------- |
+| `decalRenderPipeline.shaderDiagnostic` | (message composed at runtime) | —    | `packages/webgpu/src/render/decals/decal-pipeline.ts` |
 
 ## diffuseIblResourceSummary.resourceUnsupported (1)
 

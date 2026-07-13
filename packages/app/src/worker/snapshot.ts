@@ -845,9 +845,9 @@ function readWorkerSummaryFullFlag(
 
 /**
  * True when a snapshot carries packet kinds the SAB packed codec cannot encode
- * (sprites, UI, skyboxes/procedural skies, runtime uniforms, runtime buffers,
- * skinning/morph buffers). Such a frame falls back to the transferable path,
- * preserving every packet.
+ * (sprites, decals, UI, skyboxes/procedural skies, runtime uniforms, runtime
+ * buffers, skinning/morph buffers). Such a frame falls back to the transferable
+ * path, preserving every packet.
  *
  * Audio packets are part of the SAB packet stream; the placeholder sideband
  * remains as a compatibility/fallback path for callers that still subscribe to
@@ -859,6 +859,7 @@ export function hasUnsupportedSharedSnapshotPayload(
 ): boolean {
   return (
     hasItems(snapshot.spriteDraws) ||
+    hasItems(snapshot.decals) ||
     hasItems(snapshot.uiNodes) ||
     hasItems(snapshot.uiHitRegions) ||
     hasItems(snapshot.skyboxes) ||

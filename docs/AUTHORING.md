@@ -1467,6 +1467,84 @@ same kind of texture directly on the renderer.
 See `examples/runtime-texture.html` for an in-scene video wall — a canvas
 scoreboard, a canvas-animated TV, and a CPU-bytes ticker.
 
+## Decals — parity plan D4
+
+A **decal** is a textured quad projected onto opaque scene geometry — bullet
+holes, scorch marks, footprints, blood splats. Aperture renders decals as
+**depth-biased projected quads**: the quad lies in the projector's plane and is
+nudged toward the camera by a small `depthBias` so it wins the depth test
+against the surface it sits on WITHOUT z-fighting, then depth-tests (never
+writes) against the scene depth the opaque pass already wrote, so nearer
+geometry still occludes it. All decals draw through ONE shared instanced
+pipeline in the post-opaque transparent phase — no extra pass, and a scene with
+no decals renders byte-identically to one authored before decals existed.
+
+Spawn one with the `spawn.decal(...)` system command:
+
+```ts
+class GunSystem extends createSystem({ priority: 0 }) {
+  override onHit(point: Vec3, normal: Vec3): void {
+    this.spawn.decal({
+      texture: this.assets.texture("bulletHole"),
+      // The entity WORLD transform IS the projector: place it at the hit point
+      // and orient it to face along the surface normal (e.g. lookAt the shooter
+      // or rotate so +Z aligns with `normal`).
+      transform: {
+        translation: point,
+        lookAt: [
+          point[0] + normal[0],
+          point[1] + normal[1],
+          point[2] + normal[2],
+        ],
+      },
+      size: [0.4, 0.4], // world-space width/height of the quad
+      color: [1, 1, 1, 1], // tint; alpha multiplies `opacity`
+      opacity: 0.9, // overall fade in [0, 1]
+      depthBias: 0.02, // toward-camera offset (world units) — bump up on grazing walls
+      capacity: 64, // shared live-decal pool cap
+      layer: 1, // RenderLayer mask (defaults to 1)
+      // `sequence` is auto-stamped from the world change version so eviction
+      // follows firing order; pass it explicitly to control ordering.
+    });
+  }
+}
+```
+
+Fields (all optional except `texture`): `texture` / `sampler`, `size`
+(`number` for square or `[w, h]`), `color` (RGBA tint), `opacity` (fade folded
+into the tint alpha at extraction), `depthBias`, `capacity`, `sequence`,
+`layer`, `transform`. The lower-level trait `withDecal(...)` and the
+`createDecal(...)` component factory are available for `createExtractionApp` /
+trait-based spawning.
+
+**Cap + eviction (ring buffer).** Decals accumulate — an FPS wall fills with
+bullet holes — so the subsystem caps the LIVE decal count. Extraction keeps the
+newest `capacity` decals by `sequence` and evicts the rest **oldest-first**
+(`selectRenderedDecals` is the exported pure policy). The tally is surfaced two
+ways: `snapshot.report.decals` = `{ capacity, live, evicted, submitted }` and
+the renderer's `report.features.decals` (same tally plus `drawn` /
+`textureBatches`). `report.counts.decals` appears only when a frame has decals.
+
+**Layer mask.** A decal's `RenderLayer` mask gates which cameras render it
+(standard per-view layer filtering); a decal on a layer no camera sees is
+dropped at extraction with a `render.layerMismatch` diagnostic.
+
+**Diagnostics.** A missing/invalid texture (`decal.invalidTexture`), degenerate
+size (`decal.invalidSize`), bad opacity/`depthBias` (`decal.invalidOpacity` /
+`decal.invalidDepthBias`), or non-positive capacity (`decal.invalidCapacity`)
+each fail authoring validation; unavailable GPU resources emit `decalFrame.*`
+codes — never a raw WebGPU validation error.
+
+**Limitations (honest).** The projected-quad route is ideal for flat surfaces
+(walls, floors) and does not mesh-conform to arbitrary curved geometry; it
+projects the primary view's matrix (single-camera scenes); and the layer mask
+gates the decal per view, not per underlying-surface layer. A deferred
+box-projector reconstructing world position from the scene depth buffer is the
+follow-up that lifts these.
+
+See `examples/decals.html` for FPS-style bullet holes accumulating on a wall,
+hitting the cap and evicting the oldest.
+
 ## Runtime Systems
 
 Systems map to EliCS systems and can query ECS components directly.

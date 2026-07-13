@@ -19,6 +19,7 @@ import {
 import type { Entity } from "@aperture-engine/simulation";
 import {
   Camera,
+  Decal,
   Fog,
   FogMode,
   Light,
@@ -26,6 +27,7 @@ import {
   Sprite,
   Skybox,
   type CameraInput,
+  type DecalInput,
   type FogInput,
   type LightInput,
   type ProceduralSkyInput,
@@ -212,6 +214,35 @@ export function spriteInput(entity: Entity): SpriteInput {
     depthMode: (entity.getValue(Sprite, "depthMode") ?? "test") as
       | "test"
       | "disabled",
+  };
+}
+
+export function decalInput(entity: Entity): DecalInput {
+  const texture = parseTextureHandle(entity.getValue(Decal, "textureId") ?? "");
+  const samplerId = entity.getValue(Decal, "samplerId") ?? "";
+  const sampler = samplerId === "" ? null : parseSamplerHandle(samplerId);
+
+  return {
+    texture: texture ?? createTextureHandle("__invalid_decal_texture__"),
+    ...(samplerId === ""
+      ? {}
+      : {
+          sampler: sampler ?? createSamplerHandle("__invalid_decal_sampler__"),
+        }),
+    size: [
+      entity.getValue(Decal, "width") ?? 1,
+      entity.getValue(Decal, "height") ?? 1,
+    ],
+    color: Array.from(entity.getVectorView(Decal, "color")) as [
+      number,
+      number,
+      number,
+      number,
+    ],
+    opacity: entity.getValue(Decal, "opacity") ?? 1,
+    depthBias: entity.getValue(Decal, "depthBias") ?? 0.02,
+    capacity: entity.getValue(Decal, "capacity") ?? 256,
+    sequence: entity.getValue(Decal, "sequence") ?? 0,
   };
 }
 

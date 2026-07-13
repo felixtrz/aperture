@@ -69,6 +69,7 @@ import {
   Mesh,
   MorphTargetWeights,
   OcclusionQuery,
+  Decal,
   ParticleEmitter,
   ProceduralSky,
   RenderLayer,
@@ -89,6 +90,7 @@ import {
   Visibility,
   createCamera,
   createCameraClipPlanes,
+  createDecal,
   createFog,
   createInstanceData,
   createInstanceTint,
@@ -118,6 +120,7 @@ import {
   replayGltfEcsAuthoringCommands,
   registerRenderAuthoringComponents,
   type CameraInput,
+  type DecalInput,
   type FogInput,
   type GltfEcsAuthoringCommandPlan,
   type GltfEcsCommandReplayReport,
@@ -554,6 +557,15 @@ export function withSprite(
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(Sprite, createSprite(input));
+  };
+}
+
+export function withDecal(
+  input: Omit<DecalInput, "texture"> & { readonly texture: TextureHandle },
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(Decal, createDecal(input));
   };
 }
 

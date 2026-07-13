@@ -5,6 +5,7 @@ import type {
   CustomWgslTextureBindingSource,
   CustomWgslTextureSampleType,
   FogInput,
+  DecalInput,
   LineListMeshOptions,
   LightInput,
   LightShadowSettingsInput,
@@ -301,6 +302,19 @@ export interface SpawnMeshOptions extends SpawnMetadata {
   readonly receiveShadow?: boolean;
 }
 
+export type DecalTextureDescriptorInput =
+  | TextureHandle
+  | SystemTextureAssetHandle;
+
+export interface SpawnDecalOptions
+  extends SpawnMetadata, Omit<DecalInput, "texture" | "sampler"> {
+  readonly texture: DecalTextureDescriptorInput;
+  readonly sampler?: SamplerHandle | null;
+  readonly transform?: SystemTransformInput;
+  /** Render layer mask applied via a `RenderLayer` component (default 1). */
+  readonly layer?: number;
+}
+
 export type ParticleEffectDescriptorInput =
   | ParticleEffectHandle
   | SystemParticleEffectAssetHandle;
@@ -449,6 +463,13 @@ export interface SpawnCommands {
   /** Spawn keyed storage-buffer element updates consumed by custom WGSL storage bindings. */
   runtimeBuffer(options: SpawnRuntimeBufferOptions): Entity;
   mesh(options: SpawnMeshOptions): Entity;
+  /**
+   * Spawn a projected decal entity (D4). The entity transform is the decal
+   * projector; the quad is depth-biased onto opaque scene geometry. `sequence`
+   * defaults to a monotonic spawn stamp so the oldest-first live-decal cap
+   * evicts in spawn order.
+   */
+  decal(options: SpawnDecalOptions): Entity;
   /** Spawn a renderer-independent particle emitter entity. */
   particles(options: SpawnParticlesOptions): Entity;
   /** Spawn a non-render physics entity, useful for joints, triggers, and pure colliders. */

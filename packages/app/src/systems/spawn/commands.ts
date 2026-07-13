@@ -1,6 +1,7 @@
 import {
   Camera,
   CameraClipPlanes,
+  Decal,
   Fog,
   Light,
   LightKind,
@@ -9,6 +10,7 @@ import {
   Mesh,
   ParticleEmitter,
   ProceduralSky,
+  RenderLayer,
   RuntimeBuffer,
   RuntimeUniform,
   ShadowCaster,
@@ -16,6 +18,7 @@ import {
   Skybox,
   createCamera,
   createCameraClipPlanes,
+  createDecal,
   createFog,
   createLight,
   createLightShadowSettings,
@@ -63,6 +66,7 @@ import {
 import { applyPhysicsSpawnDescriptor } from "./physics.js";
 import { addTransform, writeTransform } from "./transforms.js";
 import type {
+  DecalTextureDescriptorInput,
   ParticleEffectDescriptorInput,
   SpawnCommands,
   SpawnGltfBatchInstance,
@@ -101,6 +105,22 @@ const FOG_SPAWN_KEYS: ReadonlySet<string> = new Set([
   "density",
   "start",
   "end",
+]);
+
+const DECAL_SPAWN_KEYS: ReadonlySet<string> = new Set([
+  "name",
+  "key",
+  "tags",
+  "transform",
+  "texture",
+  "sampler",
+  "size",
+  "color",
+  "opacity",
+  "depthBias",
+  "capacity",
+  "sequence",
+  "layer",
 ]);
 
 const PARTICLES_SPAWN_KEYS: ReadonlySet<string> = new Set([
@@ -341,6 +361,36 @@ export function createSpawnCommands(options: {
       });
       return entity;
     },
+    decal(input) {
+      warnUnknownSpawnKeys(
+        options.diagnostics,
+        "decal",
+        input,
+        DECAL_SPAWN_KEYS,
+      );
+      const entity = createEntityWithMetadata(options.world, input, "decal");
+
+      addTransform(entity, input.transform);
+
+      if (input.layer !== undefined) {
+        entity.addComponent(RenderLayer, { mask: input.layer });
+      }
+
+      // Auto-stamp a monotonic spawn order when the caller omits `sequence`, so
+      // the oldest-first live-decal cap evicts in spawn order without the caller
+      // threading its own counter.
+      const sequence = input.sequence ?? options.world.worldChangeVersion();
+
+      entity.addComponent(
+        Decal,
+        createDecal({
+          ...input,
+          texture: resolveDecalTexture(input.texture),
+          sequence,
+        }),
+      );
+      return entity;
+    },
     particles(input) {
       warnUnknownSpawnKeys(
         options.diagnostics,
@@ -519,6 +569,16 @@ function resolveParticleEffectHandle(input: ParticleEffectDescriptorInput) {
 
 function resolveSkyboxTexture(
   input: SkyboxTextureDescriptorInput,
+): TextureHandle {
+  if ("renderHandle" in input) {
+    return input.renderHandle;
+  }
+
+  return input;
+}
+
+function resolveDecalTexture(
+  input: DecalTextureDescriptorInput,
 ): TextureHandle {
   if ("renderHandle" in input) {
     return input.renderHandle;

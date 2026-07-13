@@ -724,6 +724,9 @@ export function renderReport(input: {
         ? {}
         : { shadowCasterDraws: input.snapshot.shadowCasterDraws.length }),
       spriteDraws: input.snapshot.spriteDraws?.length ?? 0,
+      ...(input.snapshot.decals === undefined
+        ? {}
+        : { decals: input.snapshot.decals.length }),
       particleEmitters: input.snapshot.particleEmitters?.length ?? 0,
       quadInstances:
         input.snapshot.quads === undefined

@@ -6,6 +6,7 @@ export {
   validateLightShadowSettingsInput,
 } from "./authoring-validation-lights.js";
 export {
+  validateDecalInput,
   validateFogInput,
   validateParticleEmitterInput,
   validateProceduralSkyInput,

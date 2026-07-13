@@ -12,6 +12,7 @@ import {
   SpriteCoordinateMode,
   SpriteDepthMode,
   SpriteSizeMode,
+  type DecalInput,
   type FogInput,
   type ProceduralSkyInput,
   type RuntimeBufferInput,
@@ -20,6 +21,7 @@ import {
   type SpriteInput,
 } from "./authoring-types.js";
 import type {
+  Decal,
   Fog,
   ProceduralSky,
   RuntimeBuffer,
@@ -52,6 +54,27 @@ export function createSprite(
     sizeMode: input.sizeMode ?? SpriteSizeMode.WorldUnits,
     blendMode: input.blendMode ?? SpriteBlendMode.Alpha,
     depthMode: input.depthMode ?? SpriteDepthMode.Test,
+  };
+}
+
+export function createDecal(
+  input: DecalInput,
+): ComponentInitialData<typeof Decal> {
+  const size = spriteSize(input.size);
+
+  return {
+    textureId: assetHandleKey(input.texture),
+    samplerId:
+      input.sampler === undefined || input.sampler === null
+        ? ""
+        : assetHandleKey(input.sampler),
+    color: toVec4Tuple(input.color ?? [1, 1, 1, 1]),
+    width: size[0],
+    height: size[1],
+    opacity: input.opacity ?? 1,
+    depthBias: input.depthBias ?? 0.02,
+    capacity: input.capacity ?? 256,
+    sequence: input.sequence ?? 0,
   };
 }
 

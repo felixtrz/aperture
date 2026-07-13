@@ -821,6 +821,73 @@ targets remain out of scope.
 
 ### D4. Decals — **M** (needs D1 or B3; prefer projected-decal route)
 
+Status: implemented (2026-07-13). AC1 (projected decals): a `Decal` authoring
+component (`textureId`/`samplerId`, `width`/`height` size, `color` tint,
+`opacity` fade, `depthBias`, `capacity`, `sequence`, `visible`) whose entity
+WORLD transform is the projector. Extraction (`extractDecals`) gathers live
+decals, folds `opacity` into the tint alpha, gates them by
+Enabled/Visibility/RenderLayer against the camera-union mask, and emits
+`snapshot.decals` packets. Rendering is a dedicated **decal feature realizer**
+(registered alongside particles/UI so EVERY frame route gets it) driving ONE
+shared instanced pipeline — the depth-biased projected-quad route, NOT
+per-decal custom-WGSL. Each quad lies in the projector's local plane and is
+nudged toward the camera by `depthOffset` so it wins the depth test against the
+coplanar surface without z-fighting; the pipeline depth-tests `less-equal` and
+never writes depth, so it composites over the scene depth the opaque pass wrote
+(nearer geometry still occludes it) in the post-opaque transparent phase — no
+extra pass submitted. AC2 (cap + eviction): the live-decal count is capped
+oldest-first (ring buffer) at extraction — keep the newest `capacity` by
+`sequence`, evict the rest — and the tally rides `snapshot.report.decals` =
+`{ capacity, live, evicted, submitted }` (mirrored into the renderer's
+`features.decals` with `drawn`/`textureBatches`, and a conditional
+`counts.decals`). `examples/decals` fires one bullet-hole shot per frame at a
+wall; `test/e2e/decals.spec.ts` asserts the report caps `live` at 6 while
+`evicted` climbs to 6 over 12 shots, a surviving decal turns a wall pixel orange,
+and an evicted slot returns to bare wall.
+
+**Technique chosen + rationale.** The projected-quad route (the plan's stated
+preference and the blessed fallback) drawn through a dedicated feature realizer,
+NOT the deferred box-projector. Rationale: the feature-realizer subsystem
+(particles/UI) is the existing first-class draw hook that runs in all frame
+routes, so ONE shared instanced pipeline in the transparent phase gets decals
+onto the wall in a single coherent slice with no new render pass, no read-only
+scene-depth submission, and no risk of the multi-distinct-custom-WGSL-material
+black-frame bug (D3). A full deferred box-projector reconstructing world
+position from the scene depth buffer is the mesh-conforming follow-up.
+
+**Byte-identity story.** The decal pass/pipeline is INERT with no decals: the
+realizer returns no commands, builds no pipeline (`cache.decalPipelines` stays
+empty), and reports nothing, so `features.decals` and `counts.decals` are both
+omitted and no extra pass is submitted — a decal-free frame renders
+byte-identically to a pre-D4 frame. Pinned by
+`test/webgpu/decal-frame-resources.test.ts` (empty commands + `report`
+undefined + empty pipeline cache) and the no-op pipeline-key literal.
+
+**Determinism outcome.** Decals ride the ECS snapshot as a plain-array family
+transported through the transferable path (a decal-carrying frame is added to
+`hasUnsupportedSharedSnapshotPayload`, so it skips the SAB packed codec — no
+codec/version change). The determinism fixtures hash the extracted
+`RenderSnapshot` projection and no determinism scene declares a decal, so
+`snapshot.decals`/`report.decals` are absent there and `test/determinism` passes
+GREEN with NO fixture refresh (confirmed).
+
+**Diagnostics.** Authoring validation emits `decal.invalidTexture` /
+`invalidSize` / `invalidOpacity` / `invalidDepthBias` / `invalidCapacity`; the
+realizer emits `decalFrame.*` (createBindGroupUnavailable, missingView,
+viewBufferFailed, instanceBufferFailed, missingPipelineLayouts) — every failure
+path is a structured diagnostic, never a raw WebGPU validation error. Normal
+capacity overflow is NOT a diagnostic — it is the expected condition reported via
+the `evicted` counter.
+
+Deviations from the AC sketch: (1) projected-quad route (deferred reconstruction
+declined for slice size, per "choose the route you can land cleanly"). (2) The
+"layer mask" gates the decal per view (standard engine per-view layer filtering),
+not per underlying-surface layer — per-fragment surface-layer rejection is a
+deferred-route feature (🟡). (3) The projector is flat-surface (walls/floors),
+not mesh-conforming, and renders the primary view's matrix (single-camera
+scenes). Scenario #17 → ✅ (the last ❌ in the advanced-audit scorecard; the
+tally is now ✅18/🟡2/❌0).
+
 - AC1: A decal component (texture, size, projection transform, layer mask,
   fade) renders projected onto opaque scene geometry without z-fighting
   (depth-bias or deferred-style reconstruction — implementation's choice,

@@ -4,6 +4,11 @@ export * from "./clip-planes.js";
 export * from "./draw-package.js";
 export * from "./extraction.js";
 export * from "./extraction-audio.js";
+export {
+  DEFAULT_DECAL_CAPACITY,
+  extractDecals,
+  selectRenderedDecals,
+} from "./extraction-decals.js";
 export * from "./extraction-cube-capture.js";
 export * from "./audio-one-shot-queue.js";
 export * from "./particle-burst-queue.js";

@@ -115,6 +115,27 @@ export interface SpriteDrawPacket {
   readonly sortKey: RenderSortKey;
 }
 
+export interface DecalPacket {
+  readonly renderId: number;
+  readonly entity: RenderEntityRef;
+  readonly texture: TextureHandle;
+  readonly sampler?: SamplerHandle | null;
+  /** RGB tint with the decal's fade (opacity) already folded into alpha. */
+  readonly color: Vec4Like;
+  readonly width: number;
+  readonly height: number;
+  /**
+   * World-space toward-camera offset applied to the projected quad so it wins
+   * the depth test against the coplanar surface without z-fighting (the
+   * "depth bias" of the depth-biased projected-quad technique).
+   */
+  readonly depthOffset: number;
+  readonly worldTransformOffset: number;
+  readonly boundsIndex: number;
+  readonly layerMask: number;
+  readonly sortKey: RenderSortKey;
+}
+
 export interface QuadBatchPacket {
   readonly batchId: number;
   readonly kind: QuadBatchKind;

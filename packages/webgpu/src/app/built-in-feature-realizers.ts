@@ -14,6 +14,10 @@ import {
   prepareParticleFrameResourcesForSnapshot,
   type ParticleFrameReport,
 } from "./particles.js";
+import {
+  prepareDecalFrameResourcesForSnapshot,
+  type DecalFrameReport,
+} from "./decals.js";
 import { renderSnapshotTimeSeconds } from "./snapshot.js";
 import {
   prepareUiFrameResourcesForSnapshot,
@@ -84,6 +88,38 @@ export function registerBuiltInWebGpuFeatureRealizers(
         ],
         diagnostics: particleFrame.diagnostics,
         report: particleFrame.report,
+      };
+    },
+  });
+
+  registry.register({
+    id: "decals",
+    packetFamilies: ["decals"],
+    async prepareFrame(input) {
+      const decalFrame = await prepareDecalFrameResourcesForSnapshot({
+        app: input.app,
+        assets: input.assets,
+        cache,
+        snapshot: input.snapshot,
+        viewUniforms: input.viewUniforms,
+        reuse: input.reuse,
+      });
+
+      return {
+        valid: decalFrame.valid,
+        commandGroups:
+          decalFrame.commands.length === 0
+            ? []
+            : createWebGpuFeatureCommandGroupsFromCommands({
+                featureId: "decals",
+                phase: "transparent",
+                commands: decalFrame.commands,
+                sortKeys: decalRenderSortKeys(input.snapshot),
+              }),
+        diagnostics: decalFrame.diagnostics,
+        ...(decalFrame.report === undefined
+          ? {}
+          : { report: decalFrame.report }),
       };
     },
   });
@@ -173,4 +209,23 @@ function particleEmitterRenderSortKeys(
   }
 
   return sortKeys;
+}
+
+function decalRenderSortKeys(
+  snapshot: RenderSnapshot,
+): ReadonlyMap<number, RenderSortKey> {
+  const sortKeys = new Map<number, RenderSortKey>();
+
+  for (const decal of snapshot.decals ?? []) {
+    sortKeys.set(decal.renderId, decal.sortKey);
+  }
+
+  return sortKeys;
+}
+
+/** Typed accessor for the built-in decal realizer's per-frame report. */
+export function webGpuDecalFrameReport(
+  frame: WebGpuFeatureRegistryFrameResult,
+): DecalFrameReport | undefined {
+  return frame.reports.get("decals") as DecalFrameReport | undefined;
 }

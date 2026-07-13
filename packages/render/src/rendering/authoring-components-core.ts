@@ -119,6 +119,23 @@ export const ParticleEmitter = defineComponent(
   "Renderer-independent GPU particle emitter authoring. ECS owns playback intent, seeds, reset epochs, optional bounds overrides, and effect handles; live particle buffers remain WebGPU-owned.",
 );
 
+export const Decal = defineComponent(
+  "aperture.render.decal",
+  {
+    textureId: { type: EcsType.String, default: "" },
+    samplerId: { type: EcsType.String, default: "" },
+    color: { type: EcsType.Color, default: tuple4(1, 1, 1, 1) },
+    width: { type: EcsType.Float32, default: 1 },
+    height: { type: EcsType.Float32, default: 1 },
+    opacity: { type: EcsType.Float32, default: 1 },
+    depthBias: { type: EcsType.Float32, default: 0.02 },
+    capacity: { type: EcsType.Int32, default: 256 },
+    sequence: { type: EcsType.Int32, default: 0 },
+    visible: { type: EcsType.Boolean, default: true },
+  },
+  "Renderer-independent projected decal authoring. The entity WORLD transform is the decal projector (position + orientation); the quad is depth-biased onto opaque scene geometry. `capacity` + `sequence` drive an oldest-first (ring-buffer) live-decal cap resolved at extraction.",
+);
+
 export const AudioEmitter = defineComponent(
   "aperture.render.audioEmitter",
   {
