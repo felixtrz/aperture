@@ -63,9 +63,9 @@ Playwright e2e specs.
 extension model comparable to `ShaderMaterial`/TSL (Aperture's custom-WGSL
 route is deliberately narrow), asset format breadth (glTF only; no
 OBJ/FBX/USD/STL/…, no exporters), geometry primitive breadth (8 primitives vs
-21+, no extrude/lathe/tube/text geometry), animation depth (single clip + one
-crossfade lane vs three.js's N-action mixer with additive blending and
-property tracks), helpers/gizmos breadth, and the
+21+, no extrude/lathe/tube/text geometry), animation depth (the mixer now does
+N-lane weighted blending + additive layers (F1), but still lacks IK, lane
+sync/events, and arbitrary-property tracks), helpers/gizmos breadth, and the
 ecosystem itself (three.js's community, docs, and examples corpus have no
 Aperture equivalent). WebXR is absent as well, but by decision, not omission:
 immersive use cases belong to IWSDK, the maintainer's dedicated WebXR
@@ -111,7 +111,7 @@ is an absence Aperture chose on purpose and documents in `docs/DECISIONS.md`.
 | Geometry & meshes       | 🟡       | Solid data model (morph/skin/multi-stream); 8 primitives vs 21+, no extrude/text/edges geometry                                                          |
 | Objects & scene         | 🟡       | Sprites/instancing/batching/fog/sky + fat lines & points (E1) + mesh LOD (E2) + debug-draw helpers (E3) yes; no `.overrideMaterial`                      |
 | Cameras & controls      | ✅/🟡    | Multi-camera/viewport/priority strong; 3 controllers vs 9, no cube/stereo camera                                                                         |
-| Animation               | 🟡       | glTF clips, CUBICSPLINE, crossfade, skinning, morphs; no N-clip mixing, additive layers, IK                                                              |
+| Animation               | 🟡       | glTF clips, CUBICSPLINE, skinning, morphs, N-lane weighted mixer + fade + additive layers (F1); no IK, no sync/events, no property tracks                |
 | Asset I/O               | 🟡       | Deep glTF (Draco/Meshopt/KTX2) but glTF-only; no other formats, no exporters                                                                             |
 | Textures                | 🟡       | 2D/cube/3D/2D-array, BC/ETC2/ASTC, HDR/RGBE, mipmap gen; no video/data textures                                                                          |
 | Post-processing & color | 🟡       | Tonemap/FXAA/TAA/bloom/SSAO/SSR/DoF/outline/motion-blur/LUT + custom passes; three.js's pass library is still far broader (god-rays/SMAA/GTAO/stylistic) |
@@ -316,23 +316,26 @@ gizmos (no rotate/scale transform gizmo).
 
 ## 10. Animation
 
-| Feature             | three.js                                                                                   | Aperture                                                                                               | Status |
-| ------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ | ------ |
-| Clip format         | `AnimationClip` + typed `KeyframeTrack`s (bool/color/number/quat/string/vector)            | `AnimationClip` channels: translation/rotation/scale/weights only                                      | 🟡     |
-| Interpolation       | Linear, discrete, cubic, Bezier, quaternion-linear                                         | LINEAR (quat hemisphere-aware), STEP, CUBICSPLINE Hermite (glTF-parity)                                | ✅     |
-| Mixer               | `AnimationMixer`: N simultaneous actions, weights, fade in/out, sync, time scaling, events | Single active clip + one crossfade lane; play/crossFade/pause/seek; once/repeat/pingpong; signed speed | 🟡     |
-| Additive blending   | `makeClipAdditive`, additive blend mode                                                    | None (weighted blend only)                                                                             | ❌     |
-| Property binding    | Animate any object property path                                                           | TRS + morph weights only (by design: ECS state is mutated by systems)                                  | 🟡     |
-| Skeletal animation  | `SkinnedMesh` + tracks                                                                     | glTF skins + joint-palette system                                                                      | ✅     |
-| Morph animation     | Weight tracks                                                                              | Weight channels → `MorphTargetWeights`                                                                 | ✅     |
-| IK                  | `CCDIKSolver` addon                                                                        | None                                                                                                   | ❌     |
-| Retargeting / utils | `SkeletonUtils.retargetClip`                                                               | None                                                                                                   | ❌     |
-| Tweening / easing   | External (tween.js bundled in examples)                                                    | Penner easing pack in @aperture-engine/math (parity plan G3); no tween scheduler                       | 🟡     |
+| Feature             | three.js                                                                                   | Aperture                                                                                                                        | Status |
+| ------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Clip format         | `AnimationClip` + typed `KeyframeTrack`s (bool/color/number/quat/string/vector)            | `AnimationClip` channels: translation/rotation/scale/weights only                                                               | 🟡     |
+| Interpolation       | Linear, discrete, cubic, Bezier, quaternion-linear                                         | LINEAR (quat hemisphere-aware), STEP, CUBICSPLINE Hermite (glTF-parity)                                                         | ✅     |
+| Mixer               | `AnimationMixer`: N simultaneous actions, weights, fade in/out, sync, time scaling, events | N weighted lanes + per-lane speed(timeScale)/loop + fade in/out + additive lanes; play/crossFade preserved; no sync/events (F1) | ✅     |
+| Additive blending   | `makeClipAdditive`, additive blend mode                                                    | `makeAdditiveClip` delta clips + additive lanes (TRS + morph) layered on the base blend (F1)                                    | ✅     |
+| Property binding    | Animate any object property path                                                           | TRS + morph weights only (by design: ECS state is mutated by systems)                                                           | 🟡     |
+| Skeletal animation  | `SkinnedMesh` + tracks                                                                     | glTF skins + joint-palette system                                                                                               | ✅     |
+| Morph animation     | Weight tracks                                                                              | Weight channels → `MorphTargetWeights`                                                                                          | ✅     |
+| IK                  | `CCDIKSolver` addon                                                                        | None                                                                                                                            | ❌     |
+| Retargeting / utils | `SkeletonUtils.retargetClip`                                                               | None                                                                                                                            | ❌     |
+| Tweening / easing   | External (tween.js bundled in examples)                                                    | Penner easing pack in @aperture-engine/math (parity plan G3); no tween scheduler                                                | 🟡     |
 
 Aperture's sampler quality is high (allocation-light, matches three.js
-`GLTFCubicSplineInterpolant` behavior), but the mixing model is one tier below
-`AnimationMixer`: no layered N-clip blending, no additive layers, no
-animation of arbitrary component fields.
+`GLTFCubicSplineInterpolant` behavior), and the mixer (F1) now blends N weighted
+lanes with per-lane speed/loop, fade in/out, and additive delta layers
+(`makeAdditiveClip`) — the layered-blend gap is closed. The remaining tiers below
+`AnimationMixer` are lane synchronization (`syncWith`), action events
+(`finished`/`loop`), and animation of arbitrary component fields (property
+tracks); clip channels stay TRS + morph weights.
 
 ---
 

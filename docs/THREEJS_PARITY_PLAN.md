@@ -1307,6 +1307,49 @@ honestly ❌.
 
 ### F1. Animation mixer v2: N-lane blending + additive — **L**
 
+Status: implemented (2026-07-13). AC1 (N-lane weighted blend + per-lane
+speed/loop + fade in/out + additive lanes + `makeAdditiveClip`, deterministic)
+and AC2 (locomotion blend space + additive head-look example with a pose-readback
+e2e) both ship. The v1 single-clip + one-crossfade API is preserved exactly, so
+every existing mixer/driver/app test and the glb-viewer / animation-skinning
+routes stay GREEN with no fixture refresh.
+
+AC1 (N-lane mixer): `AnimationMixer` (`@aperture-engine/runtime`) gains an N-lane
+action model — the three.js `AnimationAction` analog. `playLane(clipId, options)`
+adds a lane (without clearing others) and returns a live `AnimationLane` handle
+carrying `{ weight, speed (timeScale), loop, enabled, additive }` + fade state,
+with chainable `setWeight`/`setSpeed`/`setLoop`/`fadeIn`/`fadeOut`/`seek`/`stop`.
+Each `update(delta)` advances every enabled lane's time (reusing the once/repeat/
+pingpong + signed-speed loop logic), applies fades to an effective weight, blends
+NON-additive lanes with the existing normalized `blendAnimationClipSamples`
+(quaternion hemisphere-aware), then applies additive lanes on top: translation/
+scale add `weight·delta`, rotation premultiplies by `slerp(identity, delta,
+weight)`, morph weights add `weight·delta`. Additive-only targets synthesize a
+rest base so a head-look over an un-animated head still emits a channel.
+`makeAdditiveClip(clip, { referenceClip?, referenceTime? })` (the
+`AnimationUtils.makeClipAdditive` analog) converts a clip into per-keyframe deltas
+(`sampled − reference`; rotation `inverse(reference) ⊗ sampled`) as a LINEAR delta
+clip. All math is pure with no `Date.now()`/`Math.random()` (lane ids are a
+monotonic counter), so a replay-equality unit test runs the same fixed-step
+schedule twice over a three-lane blend + additive-look and asserts deep equality.
+
+AC2 (example + e2e): `examples/locomotion-blend` is a two-bone rig whose hip
+height is a speed-driven idle/walk/run blend space with an additive head-look
+layer on the head bone. The worker builds the clips + `makeAdditiveClip` head-look
+and drives the mixer's lanes headlessly through the ECS `AnimationDriverState`;
+the main thread renders the two markers. `test/e2e/locomotion-blend.spec.ts`
+drives the `speed` + `look` inputs to distinct values and asserts the sampled bone
+pose at a fixed frame: low speed → idle-dominant (hip low, idle weight ≈ 1), mid
+speeds → idle↔walk and walk↔run blends (hip at the weighted-average height), and
+the additive head-look yaws the head bone by the same ~40° at idle AND at the
+walk/run blend (independent of locomotion), with half look weight → half the yaw,
+plus a same-input replay for determinism.
+
+Honest deviations: clip channels stay TRS + morph weights (no property tracks);
+lane synchronization (`syncWith`) and `AnimationAction` events (`finished`/`loop`)
+are NOT implemented (feature-audit §10 mixer row notes this); IK is F2, not this
+item; `makeAdditiveClip` resamples CUBICSPLINE tangents to LINEAR keyframe values.
+
 - AC1: Mixer supports N simultaneous weighted clips (walk/run blend), per-lane
   speed/loop, fade in/out, and additive lanes (delta clips à la
   `makeClipAdditive`); deterministic under fixed seed/step (vitest replay

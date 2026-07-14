@@ -2094,6 +2094,97 @@ the bounds do not churn.
 See `examples/cloth-flag.html` for a CPU-simulated cloth banner deforming every
 frame, whose report byte counter stays partial across the run.
 
+## Animation mixer — parity plan F1
+
+The `AnimationMixer` (`@aperture-engine/runtime`) is a headless, deterministic
+playback driver — the three.js `AnimationMixer` / `AnimationAction` analog. It
+owns an **N-lane action model**: an arbitrary number of simultaneous lanes, each
+a `{ clip, weight, speed (timeScale), loop, enabled, additive }` plus fade state.
+Each `update(delta)` advances every enabled lane's local time, applies fades to
+get an effective weight, blends all NON-additive lanes into a normalized pose,
+then applies additive lanes on top. It never touches entities — the ECS
+`AnimationDriverState` (attached via `withAnimation(...)` / `spawn.animation`)
+owns a mixer per animated root and writes the blended TRS into the bound joint
+`LocalTransform`s (and morph weights into `MorphTargetWeights`) each step.
+
+**N-lane blend space.** Add a lane with `playLane(clipId, options)`; it returns a
+live `AnimationLane` handle (three.js `AnimationAction`). Unlike `play` it does
+NOT clear other lanes, so N weighted lanes compose a blend space. Drive the
+weights from a signal (e.g. a locomotion speed):
+
+```ts
+const mixer = root.getValue(Animation, "state").mixer;
+mixer.playLane("idle", { weight: 1, loop: "repeat" });
+mixer.playLane("walk", { weight: 0, loop: "repeat" });
+mixer.playLane("run", { weight: 0, loop: "repeat", speed: 1.25 });
+
+// Each frame, set lane weights from a speed signal (a 1D blend space):
+function setLocomotion(idleW: number, walkW: number, runW: number): void {
+  mixer.getLane("idle#0")?.setWeight(idleW);
+  mixer.getLane("walk#1")?.setWeight(walkW);
+  mixer.getLane("run#2")?.setWeight(runW);
+}
+```
+
+Non-additive lanes are blended by `blendAnimationClipSamples` — a **normalized**
+weighted average (quaternion hemisphere-aware), so weights need not sum to 1; the
+result is `Σ(weightᵢ · poseᵢ) / Σweightᵢ`. Each lane carries its own signed
+`speed` (timeScale) and `loop` mode (`once` / `repeat` / `pingpong`).
+
+**Fade in / out.** A lane handle fades its effective weight over a duration.
+`fadeIn(seconds)` ramps from 0 up to the lane's steady weight; `fadeOut(seconds)`
+ramps to 0 and (by default) removes the lane once fully faded — pass
+`{ stopWhenFaded: false }` to keep it parked at 0. `playLane(..., {
+fadeInSeconds })` fades a lane in on creation. The v1 `crossFadeTo(clip,
+duration)` is exactly a complementary `fadeOut(current)` + `fadeIn(new)`.
+
+**Additive lanes.** Mark a lane `additive: true` to layer a **delta clip** on top
+of the base blend — the three.js additive blend mode. Translation/scale add
+`weight · delta`, rotation premultiplies the base by a weight-scaled
+`slerp(identity, delta, weight)` delta quaternion, morph weights add
+`weight · delta`. An additive-only target (a head-look over a rig whose base
+clips never touch the head) synthesizes a rest base so the layer still emits a
+channel — so the additive offset is **independent of the base locomotion pose**:
+
+```ts
+import { makeAdditiveClip } from "@aperture-engine/runtime";
+
+// Build a head-look delta clip from a look pose vs. an identity head reference.
+const headLook = makeAdditiveClip(headLookPose, { referenceClip: headRest });
+mixer.addClip("headLook", headLook);
+const look = mixer.playLane("headLook", { additive: true, weight: 0 });
+look.setWeight(0.7); // 70% of the look rotation, layered on the locomotion pose
+```
+
+**`makeAdditiveClip(clip, { referenceClip?, referenceTime? })`** is the
+`AnimationUtils.makeClipAdditive` analog. It converts a clip into per-keyframe
+deltas relative to a reference pose sampled from `referenceClip` (default: the
+clip itself) at `referenceTime` (default `0`): `sampled − reference` for
+translation/scale/weights, `inverse(reference) ⊗ sampled` for rotation. The
+result is a LINEAR delta clip (CUBICSPLINE tangents are resampled to keyframe
+values). Supporting primitives (`multiplyQuaternions`, `conjugateQuaternion`,
+`slerpQuaternions`, `scaleQuaternionRotation`, `applyAdditiveAnimationChannels`,
+`applyAdditiveWeightDeltas`) are exported for custom pipelines.
+
+**v1 API preserved.** `play(clip, options)` (single clip, clears all lanes),
+`crossFadeTo(clip, duration)`, `pause` / `resume` / `seek`, and the getters
+`activeClipId` / `time` / `clamped` / `isCrossFading` / `state` /
+`weightChannels` behave exactly as before — they are thin wrappers over the lane
+model. `AnimationMixerState` gains a `laneCount`.
+
+**Determinism.** All math is pure array math with no `Date.now()` /
+`Math.random()` (lane ids are a monotonic per-mixer counter), so identical
+`(clips, lane setup, fixed delta sequence)` produces bit-identical output — safe
+for record/replay and pinned by a replay-equality unit test.
+
+**Limitations (honest).** 🟡 Clip channels are TRS + morph weights only (no
+property tracks). Lane **synchronization** (`syncWith`) and `AnimationAction`
+events (`finished` / `loop`) are not implemented. IK is a separate item (F2).
+
+See `examples/locomotion-blend.html` for a speed-driven idle/walk/run blend space
+with an additive head-look layer, and its e2e asserting the sampled bone pose at
+fixed frames.
+
 ## Runtime Systems
 
 Systems map to EliCS systems and can query ECS components directly.
