@@ -9,6 +9,7 @@ export * from "./projection.js";
 export * from "./bounds.js";
 export * from "./ray.js";
 export * from "./triangle.js";
+export * from "./ik.js";
 export * from "./line3.js";
 export * from "./spherical.js";
 export * from "./easing.js";

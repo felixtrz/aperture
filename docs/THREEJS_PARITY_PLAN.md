@@ -1360,6 +1360,62 @@ item; `makeAdditiveClip` resamples CUBICSPLINE tangents to LINEAR keyframe value
 
 ### F2. IK (two-bone + CCD) — **M** (needs F1)
 
+Status: implemented (2026-07-13). AC1 ships in full. The pure solver math lives
+in `@aperture-engine/math` (`ik.ts`): `solveTwoBoneIk(...)` is a law-of-cosines
+two-bone solver (root/mid/end world positions + target + optional pole → new
+root/mid WORLD rotations), clamping the target into the reachable annulus
+`[|l1-l2|, l1+l2]` so an over/under-reach straightens toward the target with no
+NaN, and placing the elbow/knee in the bend plane the pole selects;
+`solveCcdChain(...)` is a tip→root cyclic-coordinate-descent N-joint solver
+(shortest-arc per joint, optional `maxAngle` clamp, fixed iteration count or a
+`tolerance`). Both are array-first, allocation-light, and pure (no
+`Date.now()`/`Math.random()`), backed by new public
+`quatConjugate`/`quatDot`/`quatSlerp`/`shortestArcQuaternion` helpers, and
+unit-tested (two-bone reach / over-reach-clamp / pole-flip, CCD convergence /
+unreachable-stretch, replay equality).
+
+The fixed-step ECS system lives in `@aperture-engine/runtime` (`ik-system.ts`):
+an `Ik` component holds a live `IkSolverState` (a list of two-bone/CCD
+constraints) authored with `withIk({ constraints })`; because the state is held
+by reference (like the F1 mixer's driver state), a worker mutates
+`targetPosition`/`weight`/`enabled` per frame (e.g. from a physics raycast).
+`updateIkConstraints(world)` runs in the runtime `step()` **AFTER the animation
+driver + world-transform resolution and BEFORE the skinning palette**, reading
+the resolved joint WORLD transforms, solving, converting the world rotations to
+joint LOCAL rotations via the parent world rotations (root's parent unchanged; a
+child's parent is its predecessor's freshly-solved world rotation), blending from
+the animated base pose by `weight` (per-joint slerp), and writing the joint
+`LocalTransform` rotation; the step then **re-resolves world transforms only when
+a constraint actually wrote** so the corrected pose is same-frame. AC2's demo is
+`examples/foot-placement-ik` — a leg rig (hip → knee → foot parented chain)
+planted onto a tilted static ramp found by `backend.raycastFirst(...)` cast
+straight down under the foot; `test/e2e/foot-placement-ik.spec.ts` asserts the
+foot lands at the raycast hit height within tolerance, that moving the foot along
+the ramp lands it at a new raycast-found height, that a front/back pole flips the
+knee's bend direction while planting the foot identically, and a same-input replay
+to a bit-identical pose. The F1 `locomotion-blend` + `animation-skinning` e2e
+stay GREEN (no animation regression). Feature-audit §10 IK row → ✅.
+
+**Byte-identity + determinism.** A constraint at `weight 0` (or `enabled: false`)
+writes NOTHING and the second resolve is skipped, so a frame with no active IK is
+byte-identical to a pre-F2 frame (a no-op system test asserts `solved === 0` and
+untouched joint rotations). The `Ik` component is registered LAST so no existing
+component's type index shifts; no determinism fixture uses IK, so
+`test/determinism` is GREEN with NO refresh. Every skip path emits a structured
+`aperture.runtime.ik.*` diagnostic rather than throwing.
+
+Honest deviations: (1) no rotation/angle LIMITS or twist constraints beyond CCD's
+optional per-iteration `maxAngle` clamp (three.js `CCDIKSolver` exposes per-joint
+min/max Euler limits — not implemented, noted in the §10 row); (2) weight-blended
+reach is exact only at `weight 1` (a partial weight is a per-joint slerp toward
+the animated pose, so the effector lands short by design); (3) the solvers assume
+a direct parent chain with unit joint scale; (4) the physics raycast runs in the
+worker via the Rapier backend (mirroring `physics-settling`), not the app-facade
+`this.physics.raycastFirst`, because the demo drives the sim headlessly through
+the runtime `ExtractionApp`; (5) IK is authored through the runtime `withIk`
+trait (used by the demo worker directly) — no app-facade `spawn` option was
+added.
+
 - AC1: Two-bone IK (arms/legs, pole target) and CCD chain solver as
   fixed-step systems writing joint local transforms; deterministic; foot
   placement demo using physics raycasts; e2e pose assertions.

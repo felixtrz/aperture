@@ -66,6 +66,30 @@ export function quatNormalize(value: QuatLike, out: Quat = quat()): Quat {
   return kquat.normalize(value, out);
 }
 
+/** Conjugate of a quaternion (= inverse for a unit quaternion). */
+export function quatConjugate(value: QuatLike, out: Quat = quat()): Quat {
+  return kquat.conjugate(value, out);
+}
+
+/** Dot product of two quaternions (cos of half the angle between them). */
+export function quatDot(a: QuatLike, b: QuatLike): number {
+  return kquat.dot(a, b);
+}
+
+/**
+ * Spherical linear interpolation `slerp(a, b, t)` between unit quaternions,
+ * hemisphere-corrected and renormalized (falls back to a normalized lerp for
+ * nearly-parallel inputs).
+ */
+export function quatSlerp(
+  a: QuatLike,
+  b: QuatLike,
+  t: number,
+  out: Quat = quat(),
+): Quat {
+  return kquat.slerp(a, b, t, out);
+}
+
 export function quatFromEuler(
   x: number,
   y: number,

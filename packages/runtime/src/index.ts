@@ -14,6 +14,12 @@ import {
   type AnimationClipBinding,
 } from "./animation-driver-system.js";
 import {
+  Ik,
+  createIkSolverState,
+  updateIkConstraints,
+  type IkConstraintInput,
+} from "./ik-system.js";
+import {
   ParticleSimulationSpace as ParticleSimulationSpaceValue,
   type ParticleEmitterInput,
   type ParticleSimulationSpace as ParticleSimulationSpaceType,
@@ -204,6 +210,7 @@ export * from "./animation-clip.js";
 export * from "./animation-mixer.js";
 export * from "./skinning-palette-system.js";
 export * from "./animation-driver-system.js";
+export * from "./ik-system.js";
 export * from "./fixed-step-schedule.js";
 export * from "@aperture-engine/physics";
 
@@ -286,6 +293,7 @@ export interface SimulationStepTimingReport {
   readonly animationMilliseconds: number;
   readonly fixedStepMilliseconds: number;
   readonly transformMilliseconds: number;
+  readonly ikMilliseconds: number;
   readonly skeletonMilliseconds: number;
 }
 
@@ -421,8 +429,20 @@ export function createSimulationApp(
       // extracted render snapshot in the same frame.
       const fixedStepResult = fixedStep.step(delta, time);
       const fixedStepMilliseconds = markTiming();
-      const transform = resolveWorldTransforms(world);
+      let transform = resolveWorldTransforms(world);
       const transformMilliseconds = markTiming();
+      // F2: IK adjusts the animated base pose. It runs AFTER the animation
+      // driver + transform resolution (it needs the joints' resolved WORLD
+      // positions and the world-space target) and BEFORE the skinning palette,
+      // writing corrected joint LOCAL rotations. When any constraint solves we
+      // re-resolve so the corrected pose propagates into the world transforms
+      // the palette + extraction read; a frame with no active constraint writes
+      // nothing and skips the second resolve, staying byte-identical to pre-F2.
+      const ikResult = updateIkConstraints(world);
+      if (ikResult.solved > 0) {
+        transform = resolveWorldTransforms(world);
+      }
+      const ikMilliseconds = markTiming();
       // Compute skin joint palettes from same-frame resolved world transforms,
       // after resolution and before any extraction (M2-T6).
       updateSkeletonPalettes(world);
@@ -436,6 +456,7 @@ export function createSimulationApp(
           animationMilliseconds,
           fixedStepMilliseconds,
           transformMilliseconds,
+          ikMilliseconds,
           skeletonMilliseconds,
         },
       };
@@ -531,6 +552,8 @@ export function applyGltfEcsCommandPlanToApp(
 export function registerRuntimeComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(Spin);
   world.registerComponent(Animation);
+  // Registered last so no existing component's type index shifts (F2 IK).
+  world.registerComponent(Ik);
   return world;
 }
 
@@ -998,6 +1021,17 @@ export function withAnimation(input: {
     registerRuntimeComponents(context.world);
     entity.addComponent(Animation, {
       state: createAnimationDriverState(input),
+    });
+  };
+}
+
+export function withIk(input: {
+  readonly constraints: Iterable<IkConstraintInput>;
+}): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRuntimeComponents(context.world);
+    entity.addComponent(Ik, {
+      state: createIkSolverState(input),
     });
   };
 }

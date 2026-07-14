@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1541
+Every structured diagnostic code the engine can emit (1544
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -335,6 +335,14 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.resource.invalidDevtoolsId`     | resource_get id must be a non-empty string.     | yes  | `packages/app/src/worker/devtools/bridge.ts`<br>`packages/cli/src/headless/session-controller.ts` |
 | `aperture.resource.invalidDevtoolsValues` | resource_set values must be a non-empty object. | yes  | `packages/app/src/worker/devtools/bridge.ts`<br>`packages/cli/src/headless/session-controller.ts` |
 | `aperture.resource.notFound`              | resource_set id must be a non-empty string.     | yes  | `packages/app/src/worker/devtools/bridge.ts`<br>`packages/cli/src/headless/session-controller.ts` |
+
+## aperture.runtime (3)
+
+| Code                                        | Message                                                                                              | Fix? | Emitted from                        |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---- | ----------------------------------- |
+| `aperture.runtime.ik.invalidChain`          | CCD IK skipped: a chain needs at least two joints.                                                   | —    | `packages/runtime/src/ik-system.ts` |
+| `aperture.runtime.ik.missingTarget`         | Two-bone IK skipped: the constraint has neither a target entity nor a target position.               | —    | `packages/runtime/src/ik-system.ts` |
+| `aperture.runtime.ik.missingWorldTransform` | Two-bone IK skipped: a joint has no resolved WorldTransform. IK must run after transform resolution. | —    | `packages/runtime/src/ik-system.ts` |
 
 ## aperture.scene (1)
 

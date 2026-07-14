@@ -2179,11 +2179,125 @@ for record/replay and pinned by a replay-equality unit test.
 
 **Limitations (honest).** 🟡 Clip channels are TRS + morph weights only (no
 property tracks). Lane **synchronization** (`syncWith`) and `AnimationAction`
-events (`finished` / `loop`) are not implemented. IK is a separate item (F2).
+events (`finished` / `loop`) are not implemented. IK is a separate item — see
+**Inverse kinematics** below.
 
 See `examples/locomotion-blend.html` for a speed-driven idle/walk/run blend space
 with an additive head-look layer, and its e2e asserting the sampled bone pose at
 fixed frames.
+
+## Inverse kinematics — parity plan F2
+
+IK is a headless, deterministic, fixed-step ECS feature — a **two-bone** (arm/leg,
+law-of-cosines) analytic solver plus an N-joint **CCD** (cyclic-coordinate-
+descent) chain solver, the three.js `CCDIKSolver` analog. Both run in the runtime
+`step()` **AFTER the animation driver and world-transform resolution, but BEFORE
+the skinning palette**, so IK adjusts the animated base pose same-frame, writing
+joint **LOCAL** rotations. When any constraint solves, the step re-resolves world
+transforms so the corrected pose reaches the skin palette + extraction; a frame
+with no active constraint writes nothing and is byte-identical to a pre-IK frame.
+
+**Authoring.** Attach an `Ik` component with `withIk({ constraints })`. Each
+constraint targets a world position OR a target entity, carries a `weight`
+(0 = pure animated pose, 1 = full IK) and `enabled`, and names the chain by
+entity. The state is held by reference, so a worker mutates a constraint's
+`targetPosition` / `polePosition` / `weight` / `enabled` each frame.
+
+```ts
+import { withIk, Ik } from "@aperture-engine/runtime";
+
+// A leg chain: hip (root) → knee (mid) → foot (end), a parented transform chain.
+const solver = app.spawn(
+  withIk({
+    constraints: [
+      {
+        kind: "two-bone",
+        root: hip,
+        mid: knee,
+        end: foot,
+        targetPosition: [x, y, z], // where the foot should land (world space)
+        polePosition: [x, y, z + 1], // the knee bends toward this hint
+        weight: 1,
+      },
+    ],
+  }),
+);
+
+// Live state — mutate the target each frame (e.g. from a raycast, see below).
+const constraint = solver.getValue(Ik, "state").constraints[0];
+constraint.targetPosition = groundHit.point;
+```
+
+**Two-bone** (`kind: "two-bone"`) expects a direct `root → mid → end` parent
+chain. It clamps the target into the reachable range `[|l1-l2|, l1+l2]` (an
+over-reach straightens toward the target — no NaN) and orients the bend plane
+toward the **pole**: the mid joint (knee/elbow) points toward `polePosition` /
+`poleEntity`; flipping the pole to the other side flips the bend. Omit the pole to
+keep the current bend plane.
+
+**CCD** (`kind: "ccd"`) takes `joints` (root → tip, a direct parent chain), the
+effector entity `end`, `iterations`, and an optional `tolerance` / `maxAngle`
+(per-joint per-iteration clamp, radians). It iterates tip → root, swinging each
+joint to bring the effector toward the target, stopping at `tolerance` or the
+iteration cap. An unreachable target straightens the chain toward it.
+
+```ts
+withIk({
+  constraints: [
+    {
+      kind: "ccd",
+      joints: [j0, j1, j2, j3], // root → tip
+      end: tip,
+      targetPosition: [x, y, z],
+      iterations: 16,
+      tolerance: 1e-3,
+    },
+  ],
+});
+```
+
+**Weight blending.** Each solved joint rotation is `slerp`ed from the animated
+pose by `weight` (so `weight 0` is a byte-identical no-op and animating the weight
+fades IK in/out). Full effector reach is guaranteed only at `weight 1`; a partial
+weight lands the effector short by design (a per-joint blend toward the base pose).
+
+**Foot placement via a physics raycast.** The target is just a world position, so
+foot planting is: cast a ray straight down under the foot, and set the two-bone
+target to the hit point.
+
+```ts
+const hit = backend.raycastFirst({
+  origin: [footX, aboveGround, footZ],
+  direction: [0, -1, 0],
+  maxDistance: 10,
+});
+if (hit) {
+  constraint.targetPosition = [
+    hit.point[0],
+    hit.point[1] + footRadius,
+    hit.point[2],
+  ];
+}
+```
+
+**Determinism.** All solver math is pure array math with no `Date.now()` /
+`Math.random()`, so identical `(chain, target, pole, weight)` at a fixed step
+produces bit-identical joint output — safe for record/replay. Each skip path
+(a joint with no resolved `WorldTransform`, a missing target, a CCD chain shorter
+than two joints) emits a structured `aperture.runtime.ik.*` diagnostic rather than
+throwing. The pure solvers (`solveTwoBoneIk`, `solveCcdChain`,
+`shortestArcQuaternion`) are exported from `@aperture-engine/math` for custom
+pipelines.
+
+**Limitations (honest).** No rotation/angle LIMITS or twist constraints beyond
+CCD's optional `maxAngle` (three.js `CCDIKSolver` exposes per-joint min/max Euler
+limits — not implemented). The solvers assume a direct parent chain with unit
+joint scale. IK is authored through the runtime `withIk` trait (no app-facade
+`spawn` option).
+
+See `examples/foot-placement-ik.html` for a leg planted onto a tilted ramp found
+by a physics raycast, and its e2e asserting the foot lands at the raycast hit
+height and the pole controls the knee bend.
 
 ## Runtime Systems
 
