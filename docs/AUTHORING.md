@@ -2476,6 +2476,73 @@ See `examples/foot-placement-ik.html` for a leg planted onto a tilted ramp found
 by a physics raycast, and its e2e asserting the foot lands at the raycast hit
 height and the pole controls the knee bend.
 
+## Camera controllers — parity plan H1
+
+`@aperture-engine/app` ships reusable, **ECS-authoritative** camera controllers.
+Each is a factory returning a handle with state getters, input-mapping methods,
+and `applyTo(world)`. They are **input-agnostic** (you wire the DOM — pointer,
+pointer-lock, wheel, keyboard — and forward deltas to the methods) and
+**headless/worker-safe**: pure math + a `LocalTransform` write via the normal
+component path, never a cached scene-graph node and never a DOM read. `applyTo`
+resolves the camera through the generation-checked `EcsEntityRef` and returns
+`false` if the entity was destroyed. The base three are `createOrbitCameraController`
+(2-DOF azimuth/elevation orbit), `createFlyCameraController` (fly / free-look,
+moves along the pitched forward), and `createFollowCameraController` (smoothed
+chase cam). H1 adds three more:
+
+**`createFpsCameraController`** — pointer-lock first-person controller. Options:
+`camera`, `position?`, `yaw?`, `pitch?`, `minPitch?`/`maxPitch?`, `sensitivity?`
+(radians of look per **pixel** of pointer-lock movement; default `0.0022`).
+Methods: `lookFromPointerLock(dx, dy)` maps the RAW `movementX`/`movementY` pixel
+deltas from a pointer-lock session (not a normalized drag) to yaw/pitch — right
+turns right, down looks down — with pitch clamped just inside ±90° (no gimbal
+flip); `move(forwardAmount, rightAmount, upAmount)` walks **ground-constrained**:
+`forward()` is the horizontal projection of the look direction (its Y is always
+0, so you never gain altitude by looking up), `right()` is the horizontal strafe
+axis, and `upAmount` adjusts eye height; `lookDirection()` is the full pitched
+direction the camera faces. Wire WASD to `move` and the pointer-lock session to
+`lookFromPointerLock`. See `examples/fps-camera`.
+
+**`createMapCameraController`** — oblique/top-down pan/map controller (the
+`MapControls` analog). Options: `camera`, `target?`, `distance?`, `pitch?` (angle
+above the ground plane; π/2 = straight down, clamped strictly inside the poles),
+`heading?`, `minDistance?`/`maxDistance?`, `minPitch?`/`maxPitch?`, `panSpeed?`,
+`zoomSpeed?`. Methods: `panFromDrag(dx, dy)` slides the target across the ground
+(XZ) plane from a pointer drag — screen deltas map to world translation along the
+camera's ground-projected right/forward axes, scaled by the current distance so
+the grabbed point stays roughly under the cursor (grab-drag: drag right → world
+slides right); `zoomFromWheel(delta)` dollies the eye toward/away (positive =
+zoom out, changing distance and therefore height); `rotate(deltaHeading)` spins
+the heading around +Y. `applyTo` looks at the panned target from the configured
+pitch/height/heading. See `examples/map-camera`.
+
+**`createArcballCameraController`** — Shoemake virtual-trackball controller with
+full **3-DOF** rotation (unlike orbit's 2-DOF, the arcball can also roll).
+Options: `camera`, `target?`, `distance?`, `minDistance?`/`maxDistance?`,
+`orientation?` (initial quaternion), `zoomSpeed?`. Methods:
+`rotateFromDrag(fromX, fromY, toX, toY)` takes two normalized pointer positions
+(each in `[-1, 1]`, origin at center), projects them onto a virtual unit sphere,
+and accumulates the rotation that carries the first sphere point onto the second
+onto the running orientation quaternion; `beginDrag(x, y)` + `dragTo(x, y)` are
+the continuous-drag equivalent; `zoomFromWheel(delta)` dollies. The eye is
+`target + orientation · [0, 0, distance]`. Quaternion math is reused from
+`@aperture-engine/math` (`quatFromAxisAngle` / `quatMultiply` /
+`rotateVec3ByQuat`) rather than reimplemented. See `examples/arcball-camera`.
+
+```ts
+import { createFpsCameraController } from "@aperture-engine/app";
+
+const controller = createFpsCameraController({
+  camera: { index: camera.index, generation: camera.generation },
+  position: [0, 1.7, 8],
+  sensitivity: 0.0022,
+});
+// In your pointer-lock + WASD handlers (main thread), then once per frame:
+controller.lookFromPointerLock(event.movementX, event.movementY);
+controller.move(forwardHeld - backHeld, rightHeld - leftHeld, 0);
+controller.applyTo(world);
+```
+
 ## Runtime Systems
 
 Systems map to EliCS systems and can query ECS components directly.

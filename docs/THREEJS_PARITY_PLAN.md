@@ -1582,6 +1582,37 @@ Status: implemented (2026-07-12).
   existing controllers; per-controller example + e2e input-driven pose
   assertions.
 
+Status: implemented (2026-07-14). Added three controllers to
+`@aperture-engine/app/controllers`, wired through the barrel.
+`createFpsCameraController` — pointer-lock FPS: `lookFromPointerLock(dx, dy)`
+maps raw `movementX`/`movementY` **pixel** deltas × a radians-per-pixel
+sensitivity to yaw/pitch (pitch clamped just inside ±90°, no gimbal flip), and
+`move(forward, right, up)` walks **ground-constrained** — `forward()` is the
+horizontal projection of the look direction (Y always 0, so level walking),
+`right()` strafes, `up` sets eye height; `lookDirection()` is the pitched facing.
+`createMapCameraController` — oblique/top-down pan/map: `panFromDrag(dx, dy)`
+translates the target across the ground (XZ) plane along the heading's
+ground-projected right/forward axes scaled by distance (grab-drag keeps the
+grabbed point under the cursor), `zoomFromWheel` dollies the eye (distance +
+height), `rotate` spins the heading; pitch clamped strictly inside the poles.
+`createArcballCameraController` — Shoemake virtual-trackball with full 3-DOF
+(the 2-DOF orbit can't roll): `rotateFromDrag(fromX, fromY, toX, toY)` (or the
+`beginDrag`/`dragTo` pair) projects two normalized `[-1,1]` pointer positions
+onto a virtual unit sphere and accumulates the carrying rotation into the
+orientation quaternion (`eye = target + orientation·[0,0,distance]`), reusing
+`@aperture-engine/math` quaternion helpers rather than reimplementing quats;
+`zoomFromWheel` dollies. All three are pure math + a `LocalTransform` write via
+the ECS component path (generation-checked `EcsEntityRef`, `applyTo` returns
+`false` on a stale ref), no DOM access — headless/worker-safe exactly like the
+existing orbit/fly/follow controllers. Ships `examples/fps-camera`,
+`examples/map-camera`, `examples/arcball-camera` (registered in the gallery) and
+three Playwright e2e specs asserting input-driven pose deltas + pixel-grid
+readback deltas, plus `test/app/*-controller.test.ts` pure-math pose tests.
+Deviation from AC: the controllers are the core input→pose math only — no
+momentum/damping (three.js Trackball/Map inertia), no first-person
+collision/gravity, and no arcball on-screen gizmo; the audit stays 🟡 with a
+narrowed gap.
+
 ### H2. Transform gizmo completion — **M**
 
 - AC1: Rotate + scale gizmos joining the translate gizmo, with snapping;

@@ -111,7 +111,7 @@ is an absence Aperture chose on purpose and documents in `docs/DECISIONS.md`.
 | Lights & shadows        | ✅/➕    | CSM + PCSS + clustered + LTC area lights + hemisphere in core beat three.js core; no light probes/SH (deferred, DECISIONS 0028)                                 |
 | Geometry & meshes       | 🟡       | Solid data model (morph/skin/multi-stream); 20 primitives vs 21+ incl. platonic solids (G1) + extrude/lathe/tube (G2), no shape-path/text/edges geometry        |
 | Objects & scene         | 🟡       | Sprites/instancing/batching/fog/sky + fat lines & points (E1) + mesh LOD (E2) + debug-draw helpers (E3) yes; no `.overrideMaterial`                             |
-| Cameras & controls      | ✅/🟡    | Multi-camera/viewport/priority strong; 3 controllers vs 9, no cube/stereo camera                                                                                |
+| Cameras & controls      | ✅/🟡    | Multi-camera/viewport/priority strong; 6 controllers vs 9 (added FPS/map/arcball, H1), no trackball-damping/drag controls, no cube/stereo camera                |
 | Animation               | 🟡       | glTF clips, CUBICSPLINE, skinning, morphs, N-lane weighted mixer + fade + additive layers (F1), two-bone + CCD IK (F2); no lane sync/events, no property tracks |
 | Asset I/O               | 🟡       | Deep glTF (Draco/Meshopt/KTX2) but glTF-only; no other formats, no exporters                                                                                    |
 | Textures                | 🟡       | 2D/cube/3D/2D-array, BC/ETC2/ASTC, HDR/RGBE, mipmap gen; no video/data textures                                                                                 |
@@ -297,21 +297,24 @@ stack simply has no counterpart.
 
 ## 9. Cameras & controls
 
-| Feature              | three.js                                                                                 | Aperture                                                                                        | Status |
-| -------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------ |
-| Perspective / ortho  | Both                                                                                     | Both (`projection`, fovY, orthographicHeight, near/far, autoAspect)                             | ✅     |
-| Multi-camera         | Manual multi-pass; `ArrayCamera` for batched sub-views                                   | Priority-ordered cameras, per-camera viewport/scissor/clear/layer-mask/target                   | ➕     |
-| Viewport / scissor   | Renderer-level state                                                                     | Per-camera normalized viewport + scissor components                                             | ✅     |
-| `CubeCamera`         | 6-face environment capture                                                               | None (environment maps import; no live scene capture)                                           | ❌     |
-| `StereoCamera`       | L/R eye pair (VR/anaglyph)                                                               | None                                                                                            | ❌     |
-| TAA jitter           | Internal to TRAA/TAA passes                                                              | `temporalJitter` camera fields feeding TAA                                                      | ✅     |
-| Controls             | 9 addons: Orbit, Map, Trackball, Arcball, Fly, FirstPerson, PointerLock, Drag, Transform | Orbit, fly/first-person, follow controllers + translate gizmo; ECS-authoritative, headless-safe | 🟡     |
-| Screen-space framing | Manual                                                                                   | `ScreenSpaceFraming` component + camera fit/look-at APIs                                        | ➕     |
+| Feature              | three.js                                                                                 | Aperture                                                                                                                                                   | Status |
+| -------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Perspective / ortho  | Both                                                                                     | Both (`projection`, fovY, orthographicHeight, near/far, autoAspect)                                                                                        | ✅     |
+| Multi-camera         | Manual multi-pass; `ArrayCamera` for batched sub-views                                   | Priority-ordered cameras, per-camera viewport/scissor/clear/layer-mask/target                                                                              | ➕     |
+| Viewport / scissor   | Renderer-level state                                                                     | Per-camera normalized viewport + scissor components                                                                                                        | ✅     |
+| `CubeCamera`         | 6-face environment capture                                                               | None (environment maps import; no live scene capture)                                                                                                      | ❌     |
+| `StereoCamera`       | L/R eye pair (VR/anaglyph)                                                               | None                                                                                                                                                       | ❌     |
+| TAA jitter           | Internal to TRAA/TAA passes                                                              | `temporalJitter` camera fields feeding TAA                                                                                                                 | ✅     |
+| Controls             | 9 addons: Orbit, Map, Trackball, Arcball, Fly, FirstPerson, PointerLock, Drag, Transform | Orbit, fly/first-person, follow, pointer-lock FPS, map/pan, arcball (Shoemake, 3-DOF) controllers + translate gizmo; ECS-authoritative, headless-safe (H1) | 🟡     |
+| Screen-space framing | Manual                                                                                   | `ScreenSpaceFraming` component + camera fit/look-at APIs                                                                                                   | ➕     |
 
 Aperture's controllers are input-agnostic and worker/headless-safe (a design
-three.js controls can't offer), but the breadth gap is real: no
-trackball/arcball/map/pointer-lock/drag equivalents, and only translation
-gizmos (no rotate/scale transform gizmo).
+three.js controls can't offer). H1 added packaged pointer-lock FPS, oblique
+pan/map, and Shoemake arcball (full 3-DOF) controllers, so orbit/map/arcball/
+first-person/pointer-lock are now covered (6 controllers). The remaining breadth
+gap is real but narrower: no trackball-with-damping or `Drag`-controls
+equivalent, none of the controllers ship momentum/damping or collision, and the
+transform gizmo is translation-only (no rotate/scale — H2).
 
 ---
 

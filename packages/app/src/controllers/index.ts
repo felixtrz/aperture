@@ -1,8 +1,18 @@
 export {
+  createArcballCameraController,
+  type ArcballCameraController,
+  type ArcballCameraControllerOptions,
+} from "./arcball-camera.js";
+export {
   createFlyCameraController,
   type FlyCameraController,
   type FlyCameraControllerOptions,
 } from "./fly-camera.js";
+export {
+  createFpsCameraController,
+  type FpsCameraController,
+  type FpsCameraControllerOptions,
+} from "./fps-camera.js";
 export {
   createFollowCameraController,
   writeFollowCameraPose,
@@ -11,6 +21,11 @@ export {
   type FollowCameraPose,
   type FollowCameraUpdateInput,
 } from "./follow-camera.js";
+export {
+  createMapCameraController,
+  type MapCameraController,
+  type MapCameraControllerOptions,
+} from "./map-camera.js";
 export {
   createOrbitCameraController,
   type OrbitCameraController,
