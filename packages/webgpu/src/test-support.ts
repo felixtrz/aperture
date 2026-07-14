@@ -40,6 +40,7 @@ export * from "./app/presentation/current-texture-view.js";
 export * from "./materials/custom-wgsl/custom-wgsl-material.js";
 export * from "./materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
 export * from "./materials/custom-wgsl/custom-wgsl-lit-contract.js";
+export * from "./materials/custom-wgsl/custom-wgsl-skinning-contract.js";
 export * from "./materials/debug-normal/debug-normal-pipeline-descriptor.js";
 export * from "./materials/debug-normal/debug-normal-app-frame-resources.js";
 export * from "./materials/debug-normal/debug-normal-bind-group.js";

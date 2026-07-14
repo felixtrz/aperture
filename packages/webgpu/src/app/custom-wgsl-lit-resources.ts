@@ -36,6 +36,7 @@ import {
 
 export type { CustomWgslLitBindGroupResource } from "../materials/custom-wgsl/custom-wgsl-lit-contract.js";
 import { createCustomWgslMaterialBindGroupLayoutDescriptor } from "../materials/custom-wgsl/custom-wgsl-material.js";
+import { createCustomWgslSkinnedTransformBindGroupLayoutDescriptor } from "../materials/custom-wgsl/custom-wgsl-skinning-contract.js";
 import type {
   StandardFrameIblResources,
   StandardFrameShadowReceiverResources,
@@ -89,6 +90,14 @@ interface CustomWgslLitLayoutResources {
   readonly litLayout: unknown;
   readonly viewLayout: unknown;
   readonly transformLayout: unknown;
+  /**
+   * F3: the group(1) transforms layout WITH the joint palette (@binding 1)
+   * added, used as the explicit pipeline layout's group(1) for a lit+skinned
+   * material (created lazily on first need so lit-only frames stay
+   * byte-identical). The palette rides an extra binding in the transforms group
+   * rather than a new group, so the explicit pipeline layout stays 4 groups.
+   */
+  skinnedTransformLayout: unknown | null;
   /** Explicit group(2) layouts keyed by material bindGroupLayout.resourceKey. */
   readonly materialLayouts: Map<string, unknown>;
   /** Explicit pipeline layouts keyed by material bindGroupLayout.resourceKey. */
@@ -203,11 +212,27 @@ export function getOrCreateCustomWgslLitPipelineLayout(options: {
       layouts.materialLayouts.set(layoutKey, materialLayout);
     }
 
+    // F3: a lit+skinned material swaps group(1) for the transforms layout that
+    // also carries the joint palette (@binding 1), keeping the explicit pipeline
+    // layout at 4 groups [view, transform(+skin), material, lit]. A lit-only
+    // material keeps the byte-identical single-binding transform layout.
+    let transformLayout = layouts.transformLayout;
+
+    if (options.material.skinned === true) {
+      if (layouts.skinnedTransformLayout === null) {
+        layouts.skinnedTransformLayout = options.device.createBindGroupLayout(
+          createCustomWgslSkinnedTransformBindGroupLayoutDescriptor(),
+        );
+      }
+
+      transformLayout = layouts.skinnedTransformLayout;
+    }
+
     const pipelineLayout = options.device.createPipelineLayout({
       label: `custom-wgsl/lit/${options.material.materialKey}:pipeline-layout`,
       bindGroupLayouts: [
         layouts.viewLayout,
-        layouts.transformLayout,
+        transformLayout,
         materialLayout,
         layouts.litLayout,
       ],
@@ -281,6 +306,7 @@ export function prepareCustomWgslLitFrameResources(options: {
         transformLayout: device.createBindGroupLayout(
           createCustomWgslLitTransformBindGroupLayoutDescriptor(),
         ),
+        skinnedTransformLayout: null,
         materialLayouts: new Map(),
         pipelineLayouts: new Map(),
       };

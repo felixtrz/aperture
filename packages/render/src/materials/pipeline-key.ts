@@ -2,6 +2,7 @@ import { materialTextureBindings } from "./bindings.js";
 import { customWgslColorTargetsPipelineKeySegment } from "./color-targets.js";
 import { isCustomWgslMaterialAsset } from "./family-key.js";
 import { APERTURE_LIT_PIPELINE_FEATURE } from "./lit-contract.js";
+import { APERTURE_SKINNED_PIPELINE_FEATURE } from "./skinning-contract.js";
 import type {
   MaterialAsset,
   MaterialPipelineKeyInput,
@@ -23,6 +24,13 @@ export function createMaterialPipelineKeyInput(
         // the shadow-vs segment rule), and carries the contract version so a
         // future group(3) layout change cannot collide with cached pipelines.
         ...(material.lighting === "lit" ? [APERTURE_LIT_PIPELINE_FEATURE] : []),
+        // F3: the skinning-contract feature participates ONLY when
+        // `skinned: true` (same byte-identity rule as the lit segment), and
+        // carries the contract version so a future group(4) layout change
+        // cannot collide with cached pipelines.
+        ...(material.skinned === true
+          ? [APERTURE_SKINNED_PIPELINE_FEATURE]
+          : []),
         // The MRT feature participates ONLY when colorTargets is declared
         // (B3, same byte-identity rule as the lit segment).
         ...customWgslColorTargetFeatures(material.colorTargets),

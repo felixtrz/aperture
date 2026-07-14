@@ -1422,6 +1422,67 @@ added.
 
 ### F3. Skinning/morph inputs for custom WGSL — **L** (needs A1; unlocks #5)
 
+Status: implemented (2026-07-13). AC1: `material.customWgsl({ skinned: true })`
+(and the `createCustomWgslMaterialAsset({ skinned })` low-level factory) opts a
+custom material into the renderer-owned skinning contract. When set, the
+renderer prepends `APERTURE_SKINNED_WGSL_HEADER` (versioned `v1`), which exposes
+`apertureSkin(position, normal, joints0, weights0) -> ApertureSkinnedVertex`
+plus `apertureSkinMatrix` / `apertureSkinPosition` / `apertureSkinDirection` —
+byte-for-byte the StandardMaterial skinning WGSL, rebound to the contract's
+palette symbol. A custom **vertex** entry point calls `apertureSkin(...)` to get
+the skinned position + normal without touching the joint palette or the
+vertex-buffer layout itself. **Deviation from the AC's `apertureSkin(position,
+normal)` shorthand:** WGSL vertex attributes are per-invocation inputs, so the
+helper takes the four args `(position, normal, joints0, weights0)`; the user's
+vertex input struct still declares `@location(8) joints0: vec4u` +
+`@location(9) weights0: vec4f` (the renderer owns the layout, not the attribute
+names). **Group map** (why not a new group): the default `maxBindGroups` limit
+is 4 (indices 0-3) and A1's lit contract already owns `@group(3)`, so a
+`@group(4)` would exceed the limit and fail on SwiftShader/default devices.
+Instead the joint palette rides an extra **binding** inside the existing
+world-transforms group — `@group(1) @binding(1)` — which is exactly where the
+StandardMaterial skinned path binds `skinJointMatrices`, and does not collide
+with the lit `@group(3)`. So: `group(0)` view · `group(1)` world transforms
+(`@binding 0`) + joint palette (`@binding 1`) · `group(2)` material bindings ·
+`group(3)` A1 lit. The custom pipeline's vertex layout gains the `JOINTS_0`
+(uint4 `@location(8)`) + `WEIGHTS_0` (float4 `@location(9)`) attributes — the
+StandardMaterial skinned layout (stride 56), byte-identical. The palette buffer
+is the SAME snapshot bones the standard skinned path consumes
+(`draw.boneMatrixOffset`/`boneMatrixCount` into `snapshot.bones`); extraction
+leaves `batchKey.skinned` FALSE for custom materials (that flag drives the
+STANDARD skinned pipeline), so the custom route treats a draw as skinned when it
+carries a bone-matrix range and binds the palette itself.
+
+**Composes with A1**: `{ skinned: true, lighting: "lit" }` is supported — both
+headers prepend (skinning first, then lighting), both feature tokens
+(`skinned:v1`, `lit:v${A1}`) participate in the key, and the lit+skinned pipeline
+layout swaps `group(1)` for the transforms+palette layout while staying 4 groups
+(no group collision). **Byte-identity + determinism**: the `skinned:v1` token
+and the header participate in the pipeline key ONLY when declared, so a
+non-skinned custom material keeps byte-identical keys + vertex layout (pinned by
+a literal-key test); custom-material skinning is a renderer-side pipeline concern
+downstream of the RenderSnapshot, so `test/determinism` stays GREEN with no
+fixture refresh. **Validation** (structured `code:` diagnostics, never a device
+error): `customMaterialSource.invalidSkinned` (non-boolean),
+`…skinnedReservedBindGroup` (a user `@group(1) @binding(1)`),
+`…skinnedReservedSymbol` (redeclaring an `aperture*` skinning symbol), and the
+frame-time `customWgslMaterial.skinnedWithoutSkinData` (a skinned material drawn
+on a mesh with no valid bone-matrix range). Example + golden: instead of a
+committed image (the dissolve + bend animate, which makes a fixed baseline flaky
+by construction), `examples/skinned-custom-material.*` drives a procedural
+2-bone skinned strip with an animated noise-dissolve fragment shader, and the
+e2e proves (a) the skinned custom material renders through the app route
+(`skinned:v1` in the key, 2 bones), (b) a bind pose (`bend=0`) vs a bent pose
+(`bend=1`) at the SAME dissolve produce different pixels (skinning moves
+vertices), and (c) the dissolve animates between presented frames.
+**Honest deferral — morph deltas**: the v1 skinning contract ships skinning
+cleanly; **morph-target deltas for custom materials are NOT exposed** (the
+standard morph path binds three additional storage buffers + a per-instance
+descriptor, disproportionate to the skinning core). A morphed custom material is
+a separate future opt-in; today, author morph via a StandardMaterial or bake the
+deltas into a `material.storage()` binding. Recorded in the header, AUTHORING.md,
+the changeset, and scenario #5's audit note.
+
 - AC1: Opt-in `skinned: true` on custom materials binds the existing joint
   palettes + weights/joints attributes (and morph deltas) with a contract
   header helper `apertureSkin(position, normal)`; example: custom-shaded

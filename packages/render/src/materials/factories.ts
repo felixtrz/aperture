@@ -486,6 +486,9 @@ export function createCustomWgslMaterialAsset(
     shader: input.shader,
     entryPoints: input.entryPoints,
     ...(input.lighting === undefined ? {} : { lighting: input.lighting }),
+    // F3: present only when opted in, so non-skinned custom materials keep a
+    // byte-identical asset shape (no `skinned` key, no pipeline-key token).
+    ...(input.skinned === undefined ? {} : { skinned: input.skinned }),
     ...(input.colorTargets === undefined
       ? {}
       : { colorTargets: input.colorTargets }),

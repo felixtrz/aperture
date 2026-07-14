@@ -6,6 +6,8 @@ import {
   isValidCustomMaterialFamilyKey,
   parseWgslFragmentOutputLocations,
   wgslSourceDeclaresLitBindGroup,
+  wgslSourceDeclaresSkinnedBindGroup,
+  wgslSourceDeclaresSkinnedReservedSymbol,
   type ColorWriteMask,
   type CustomWgslMaterialAsset,
   type CustomWgslShaderStage,
@@ -37,6 +39,7 @@ export function validateCustomWgslMaterialSource(
   validateShader(source, assetKey, diagnostics);
   validateEntryPoints(source, assetKey, diagnostics);
   validateLighting(source, assetKey, diagnostics);
+  validateSkinning(source, assetKey, diagnostics);
   validateColorTargets(source, assetKey, diagnostics);
   validateRenderState(source, assetKey, diagnostics);
   validatePipelineKeyInput(source, assetKey, diagnostics);
@@ -278,6 +281,61 @@ function validateLighting(
     diagnostics.push({
       code: "customMaterialSource.litReservedBindGroup",
       message: `Custom material '${assetKey}' declares @group(3) in its WGSL source, but lighting: 'lit' reserves group(3) for the renderer's lit contract (the aperture lit header is prepended automatically). Remove the @group(3) declarations and use the aperture* helpers instead.`,
+      severity: "error",
+      assetKey,
+    });
+  }
+}
+
+// F3: the opt-in group(4) skinning contract (`skinned: true`). A skinned
+// material must be a boolean opt-in, must NOT declare the renderer-reserved
+// @group(4) itself, and must NOT redeclare any `aperture*` skinning symbol the
+// header defines — each would be a WGSL duplicate/collision at pipeline
+// creation, so it is rejected here as a structured diagnostic instead. (Drawing
+// a skinned material on a mesh WITHOUT skin data is a frame-time condition the
+// webgpu backend reports, since it depends on the mesh, not the material.)
+function validateSkinning(
+  source: CustomWgslMaterialSource,
+  assetKey: string,
+  diagnostics: RenderAssetPreparationDiagnostic[],
+): void {
+  const skinned = (source as { readonly skinned?: unknown }).skinned;
+
+  if (skinned !== undefined && typeof skinned !== "boolean") {
+    diagnostics.push({
+      code: "customMaterialSource.invalidSkinned",
+      message: `Custom material '${assetKey}' skinned must be a boolean, not '${String(skinned)}'.`,
+      severity: "error",
+      assetKey,
+    });
+    return;
+  }
+
+  if (
+    skinned !== true ||
+    source.shader?.kind !== "inline-wgsl" ||
+    typeof source.shader.code !== "string"
+  ) {
+    return;
+  }
+
+  if (wgslSourceDeclaresSkinnedBindGroup(source.shader.code)) {
+    diagnostics.push({
+      code: "customMaterialSource.skinnedReservedBindGroup",
+      message: `Custom material '${assetKey}' declares @group(4) in its WGSL source, but skinned: true reserves group(4) for the renderer's skinning contract (the aperture skinning header is prepended automatically). Remove the @group(4) declarations and use the aperture* skinning helpers instead.`,
+      severity: "error",
+      assetKey,
+    });
+  }
+
+  const reservedSymbol = wgslSourceDeclaresSkinnedReservedSymbol(
+    source.shader.code,
+  );
+
+  if (reservedSymbol !== null) {
+    diagnostics.push({
+      code: "customMaterialSource.skinnedReservedSymbol",
+      message: `Custom material '${assetKey}' redeclares the reserved skinning symbol '${reservedSymbol}', which the renderer-prepended skinning header defines. Remove the declaration and call the aperture* skinning helpers (e.g. apertureSkin(position, normal, joints0, weights0)) instead.`,
       severity: "error",
       assetKey,
     });

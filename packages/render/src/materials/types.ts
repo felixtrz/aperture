@@ -522,6 +522,18 @@ export interface CustomWgslMaterialAsset {
   /** Opt-in group(3) lit contract; absent means `"unlit"` (see the type). */
   readonly lighting?: CustomWgslMaterialLighting;
   /**
+   * F3: opt-in group(4) skinning contract. When `true`, the renderer prepends
+   * `APERTURE_SKINNED_WGSL_HEADER` (the `apertureSkin(...)` helpers), binds the
+   * mesh's joint palette at `@group(4)`, and adds the `JOINTS_0`/`WEIGHTS_0`
+   * vertex attributes — so a custom vertex entry point skins without any
+   * app-side GPU wiring. Composes with `lighting: "lit"` (group(4) does not
+   * collide with the lit group(3)). Absent/`false` keeps byte-identical
+   * pipeline keys + vertex layout. The material must be drawn on a mesh with
+   * `Skin` data (JOINTS_0/WEIGHTS_0 + a joint palette); drawing it on an
+   * un-skinned mesh emits a structured diagnostic, not a device error.
+   */
+  readonly skinned?: boolean;
+  /**
    * MRT declaration (B3): N color targets the fragment entry writes via
    * `@location(0..N-1)`. Absent means the single pass color target.
    */

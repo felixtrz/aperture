@@ -95,6 +95,15 @@ export interface PreparedCustomWgslMaterial {
    */
   readonly lighting?: "lit";
   /**
+   * Present (as `true`) only when the source opted into the group(4) skinning
+   * contract (`skinned: true`): `shader.code` then starts with
+   * `APERTURE_SKINNED_WGSL_HEADER`, the pipeline key carries the `skinned:v<N>`
+   * segment, the vertex layout gains the `JOINTS_0`/`WEIGHTS_0` attributes, and
+   * the renderer binds the joint palette at group(4). Absent for every
+   * non-skinned material so their keys + prepared shape stay byte-identical.
+   */
+  readonly skinned?: true;
+  /**
    * Present (as `true`) only when at least one texture binding declared a
    * renderer-owned `source: "scene-depth"` (B4): the renderer binds the
    * frame's stored scene depth (read-only), routes the draw into a post-opaque

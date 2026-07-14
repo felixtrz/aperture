@@ -8,6 +8,7 @@ export * from "./color-targets.js";
 export * from "./family-key.js";
 export * from "./prepared-resource.js";
 export * from "./lit-contract.js";
+export * from "./skinning-contract.js";
 export * from "./unlit-packing.js";
 export * from "./standard-proof-point.js";
 export * from "./standard-normal-map-readiness.js";

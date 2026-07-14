@@ -506,6 +506,9 @@ V1 custom WGSL shaders use fixed renderer groups:
   `{ viewProjection: mat4x4f, cameraPosition: vec4f }`.
 - `@group(1) @binding(0)`: read-only storage array of world transforms,
   renderer-owned. Index with `@builtin(instance_index)`.
+- `@group(1) @binding(1)`: renderer-owned. Bound only for `skinned: true`
+  materials (the joint palette; the skinning contract below); non-skinned
+  materials must leave it untouched.
 - `@group(2)`: custom material bindings declared by `material.customWgsl(...)`.
 - `@group(3)`: renderer-owned. Bound only for `lighting: "lit"` materials
   (the lit contract below); unlit materials must leave it untouched.
@@ -588,6 +591,91 @@ Rules and behavior:
   [`LIGHT_SHADER_WGSL_CONTRACT.md`](./LIGHT_SHADER_WGSL_CONTRACT.md). See
   `examples/lit-custom-material.html` for a lit custom sphere reproducing the
   StandardMaterial response next to a reference sphere.
+
+### Skinned custom materials
+
+Declare `skinned: true` to opt a custom material into the renderer-owned
+skinning contract (parity plan F3): the renderer binds the mesh's joint palette
+(the SAME snapshot bones StandardMaterial consumes) at `@group(1) @binding(1)`,
+adds the `JOINTS_0`/`WEIGHTS_0` vertex attributes to the pipeline's vertex
+layout, and prepends a WGSL contract header so a custom **vertex** entry point
+skins with zero app-side GPU wiring. The material must be drawn on a mesh with
+`Skin` data (JOINTS_0/WEIGHTS_0 attributes + a joint palette / skeleton).
+
+```ts
+material.customWgsl({
+  familyKey: "app/skinned-surface",
+  label: "Skinned Surface",
+  skinned: true,
+  shader: shader.asset(this.assets.shader("skinnedSurface")),
+  entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+});
+```
+
+Your vertex input struct declares the two skinning attributes at their reserved
+locations, then calls `apertureSkin(...)` to get the skinned object-space
+position + normal:
+
+```wgsl
+struct VertexInput {
+  @location(0) position: vec3f,
+  @location(1) normal: vec3f,
+  @location(2) uv: vec2f,
+  @location(8) joints0: vec4u,   // JOINTS_0 — reserved by the skinning contract
+  @location(9) weights0: vec4f,  // WEIGHTS_0 — reserved by the skinning contract
+  @builtin(instance_index) instanceIndex: u32,
+};
+
+@vertex
+fn vs_main(input: VertexInput) -> VertexOutput {
+  let skinned = apertureSkin(input.position, input.normal, input.joints0, input.weights0);
+  let world = worldTransforms[input.instanceIndex] * vec4f(skinned.position, 1.0);
+  var output: VertexOutput;
+  output.position = view.viewProjection * world;
+  output.worldNormal = skinned.normal;
+  output.uv = input.uv;
+  return output;
+}
+```
+
+Helpers (vertex stage, StandardMaterial math parity):
+`apertureSkin(position, normal, joints0, weights0) -> ApertureSkinnedVertex`
+(the `{ position, normal }` convenience — the normal is renormalized after the
+linear-blend transform), `apertureSkinMatrix(joints0, weights0)` (the blended
+joint matrix; zero-weight vertices fall back to identity = bind pose),
+`apertureSkinPosition(position, joints0, weights0)`, and
+`apertureSkinDirection(direction, joints0, weights0)`.
+
+Rules and behavior:
+
+- Your WGSL must NOT declare the reserved `@group(1) @binding(1)` (the joint
+  palette) — the renderer owns it and prepends the header
+  (`customMaterialSource.skinnedReservedBindGroup` rejects it). Your own
+  `@group(1) @binding(0)` world-transforms declaration stays yours. Do not
+  redeclare any `aperture*` skinning symbol
+  (`customMaterialSource.skinnedReservedSymbol`).
+- **Group map / limits**: the palette rides an extra BINDING inside the
+  transforms group (`@group(1) @binding(1)`), not a new bind group, because the
+  default `maxBindGroups` limit is 4 (indices 0-3) and `@group(3)` is the A1 lit
+  contract. This is exactly where StandardMaterial binds `skinJointMatrices`.
+- **Composes with `lighting: "lit"`**: `{ skinned: true, lighting: "lit" }` is
+  supported — the skinned vertex feeds the lit fragment; both contract headers
+  prepend, and the group map stays consistent (`group(1)` transforms + palette,
+  `group(3)` lit). The convenience `apertureSkin(...).normal` is the world-ready
+  normal to hand the lit helpers (uniform-scale skeletons).
+- The pipeline key gains a `skinned:v1` contract-version segment ONLY when
+  `skinned: true`; non-skinned materials keep byte-identical keys AND the
+  POSITION/NORMAL/UV vertex layout. A future contract layout change bumps the
+  version instead of colliding with cached pipelines.
+- Drawing a `skinned` material on a mesh WITHOUT valid skin data emits the
+  frame-time diagnostic `customWgslMaterial.skinnedWithoutSkinData` (a
+  structured error, never a device error).
+- **Morph deltas are NOT part of the v1 skinning contract** (an honest
+  deferral). For morph targets today, use a `material.standard()` mesh or bake
+  the deltas into a `material.storage(...)` binding you sample yourself.
+- See `examples/skinned-custom-material.html` for a procedural 2-bone skinned
+  strip whose custom vertex shader calls `apertureSkin(...)` and whose custom
+  fragment shader applies an animated noise dissolve.
 
 ### Storage-buffer bindings
 

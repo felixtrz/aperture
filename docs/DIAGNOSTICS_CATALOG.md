@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1544
+Every structured diagnostic code the engine can emit (1548
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -805,6 +805,12 @@ suggestedFix accompanies it, and where it is emitted.
 | ----------------------------------------- | ---------------------------------------------------------- | ---- | --------------------------------------------------------------- |
 | `customMaterialSource.invalidRenderState` | Custom material '…' has an invalid renderState descriptor. | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
 
+## customMaterialSource.invalidSkinned (1)
+
+| Code                                  | Message                                                 | Fix? | Emitted from                                                    |
+| ------------------------------------- | ------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `customMaterialSource.invalidSkinned` | Custom material '…' skinned must be a boolean, not '…'. | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
+
 ## customMaterialSource.litReservedBindGroup (1)
 
 | Code                                        | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                                                                                                        |
@@ -828,6 +834,18 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                                 | Message                                                                                                                                                                                                          | Fix? | Emitted from                                                    |
 | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
 | `customMaterialSource.sceneDepthRequiresTransparent` | Custom material '…' binds scene-depth but renderState.alphaMode is '…'. Scene-depth sampling is a post-opaque (transparent) effect: set alphaMode to 'blend' so the draw runs after the opaque pass wrote depth. | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
+
+## customMaterialSource.skinnedReservedBindGroup (1)
+
+| Code                                            | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                                    |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `customMaterialSource.skinnedReservedBindGroup` | Custom material '…' declares @group(4) in its WGSL source, but skinned: true reserves group(4) for the renderer's skinning contract (the aperture skinning header is prepended automatically). Remove the @group(4) declarat | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
+
+## customMaterialSource.skinnedReservedSymbol (1)
+
+| Code                                         | Message                                                                                                                                                                                                                       | Fix? | Emitted from                                                    |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `customMaterialSource.skinnedReservedSymbol` | Custom material '…' redeclares the reserved skinning symbol '…', which the renderer-prepended skinning header defines. Remove the declaration and call the aperture\* skinning helpers (e.g. apertureSkin(position, normal, j | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
 
 ## customWgslAppFrameResources.missingPipelineLayouts (1)
 
@@ -1014,6 +1032,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                                | Message                                                                                                                                     | Fix? | Emitted from                                               |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------- |
 | `customWgslMaterial.shadowCasterShaderModuleFailed` | Failed to create the shadow caster shader module for custom WGSL material '…': …; its casters fall back to the shared position-only caster. | —    | `packages/webgpu/src/shadows/shadow-caster-custom-wgsl.ts` |
+
+## customWgslMaterial.skinnedWithoutSkinData (1)
+
+| Code                                        | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                   |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------- |
+| `customWgslMaterial.skinnedWithoutSkinData` | Custom material '…' declares skinned: true but render id … draws a mesh with no valid skin data (no JOINTS_0/WEIGHTS_0 attributes + Skin component, or an out-of-range bone matrix range). Add a Skin component and JOINTS_0 | —    | `packages/webgpu/src/app/custom-wgsl-frame.ts` |
 
 ## debugLineFrame.createBindGroupUnavailable (1)
 

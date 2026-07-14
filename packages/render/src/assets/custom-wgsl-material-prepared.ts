@@ -1,6 +1,8 @@
 import {
   APERTURE_LIT_PIPELINE_FEATURE,
   APERTURE_LIT_WGSL_HEADER,
+  APERTURE_SKINNED_PIPELINE_FEATURE,
+  APERTURE_SKINNED_WGSL_HEADER,
   createInstanceAttributeLayout,
   customWgslColorTargetsPipelineKeySegment,
   materialStencilPipelineFeatures,
@@ -19,13 +21,23 @@ export function createPreparedCustomWgslMaterial(input: {
   readonly shaderSourceKey: string;
 }): PreparedCustomWgslMaterial {
   const lit = input.source.lighting === "lit";
+  const skinned = input.source.skinned === true;
   // Lit materials get the renderer-owned group(3) contract header prepended
-  // to the module (A1): the shader hash therefore covers the header, so a
-  // contract-header change rebuilds lit pipelines while unlit materials stay
-  // byte-identical to today.
-  const shaderCode = lit
-    ? `${APERTURE_LIT_WGSL_HEADER}\n${input.shaderCode}`
-    : input.shaderCode;
+  // to the module (A1); skinned materials get the group(4) skinning header
+  // (F3). Both are prepended (skinning first, then lighting) so the shader
+  // hash covers each active header — a contract-header change rebuilds those
+  // pipelines while materials that opt into neither stay byte-identical to
+  // today. group(4) does not collide with the lit group(3), so a material can
+  // declare both.
+  let shaderCode = input.shaderCode;
+
+  if (lit) {
+    shaderCode = `${APERTURE_LIT_WGSL_HEADER}\n${shaderCode}`;
+  }
+
+  if (skinned) {
+    shaderCode = `${APERTURE_SKINNED_WGSL_HEADER}\n${shaderCode}`;
+  }
   const shaderHash = stableStringHash(shaderCode);
   // C1: a buffer-backed instance stream drives the SAME instance-step vertex
   // layout as CPU-authored InstanceData (slot 1, @location(6+)); the two are
@@ -100,6 +112,9 @@ export function createPreparedCustomWgslMaterial(input: {
     materialFamily: input.source.familyKey,
     // Present only when lit so unlit prepared materials stay byte-identical.
     ...(lit ? { lighting: "lit" as const } : {}),
+    // F3: present only when skinned so non-skinned prepared materials stay
+    // byte-identical.
+    ...(skinned ? { skinned: true as const } : {}),
     // Present only when a scene-depth texture binding was declared (B4) so
     // every other prepared material keeps its byte-identical shape.
     ...(samplesSceneDepth ? { samplesSceneDepth: true as const } : {}),
@@ -186,6 +201,12 @@ function customWgslMaterialPipelineKey(
     // (same byte-identity rule); it carries the contract version so future
     // group(3) layout changes cannot collide with cached pipelines.
     ...(source.lighting === "lit" ? [APERTURE_LIT_PIPELINE_FEATURE] : []),
+    // F3: the skinning-contract segment participates only when `skinned: true`
+    // (same byte-identity rule); it carries the contract version so a future
+    // group(4) layout change cannot collide with cached pipelines, and it
+    // signals the webgpu backend to add the JOINTS_0/WEIGHTS_0 vertex layout +
+    // bind the group(4) joint palette.
+    ...(source.skinned === true ? [APERTURE_SKINNED_PIPELINE_FEATURE] : []),
     // The MRT segment participates only when colorTargets is declared (B3,
     // same byte-identity rule) and must sit BEFORE the trailing render-state
     // segments the webgpu render-state parser slices off the key's tail.

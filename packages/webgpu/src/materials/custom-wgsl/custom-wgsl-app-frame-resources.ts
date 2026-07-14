@@ -43,6 +43,7 @@ import {
   type CustomWgslMaterialRenderResources,
 } from "./custom-wgsl-material.js";
 import type { CustomWgslLitBindGroupResource } from "./custom-wgsl-lit-contract.js";
+import { APERTURE_SKINNED_BINDING } from "@aperture-engine/render";
 
 /**
  * A1: lit-contract inputs for a `lighting: "lit"` material — the explicit
@@ -52,6 +53,18 @@ import type { CustomWgslLitBindGroupResource } from "./custom-wgsl-lit-contract.
 export interface CustomWgslAppLitFrameInput {
   readonly pipelineLayout: unknown;
   readonly bindGroup: CustomWgslLitBindGroupResource;
+}
+
+/**
+ * F3: skinning-contract input for a `skinned: true` material — the realized
+ * joint-palette storage buffer the renderer binds at `@group(1) @binding(1)`
+ * (an extra binding in the world-transforms group). The buffer is the SAME
+ * skinning-joint buffer the standard skinned path builds from the snapshot
+ * bones.
+ */
+export interface CustomWgslAppSkinningFrameInput {
+  readonly buffer: unknown;
+  readonly resourceKey: string;
 }
 
 interface CustomWgslAppFrameResources {
@@ -106,6 +119,8 @@ export async function createCustomWgslAppFrameResources(options: {
   readonly reuse?: CustomWgslRuntimeUniformReuseCounters;
   /** Present only for `lighting: "lit"` materials (A1). */
   readonly lit?: CustomWgslAppLitFrameInput;
+  /** Present only for `skinned: true` materials (F3). */
+  readonly skin?: CustomWgslAppSkinningFrameInput;
 }): Promise<CreateCustomWgslAppFrameResourcesResult> {
   const diagnostics: unknown[] = [];
 
@@ -228,6 +243,31 @@ export async function createCustomWgslAppFrameResources(options: {
     };
   }
 
+  // F3: a skinned material adds the joint palette as an extra binding inside the
+  // group(1) transforms group (@group(1) @binding(1)), so the same shared bind
+  // group carries both the world transforms and the palette. Absent ⇒ the
+  // byte-identical single-binding group(1) of every other custom material.
+  const skinEntries =
+    options.skin === undefined
+      ? []
+      : [
+          {
+            group: 1,
+            binding: APERTURE_SKINNED_BINDING,
+            resourceKey: options.skin.resourceKey,
+            resourceKind: "buffer" as const,
+          },
+        ];
+  const skinBuffers =
+    options.skin === undefined
+      ? []
+      : [
+          {
+            resourceKey: options.skin.resourceKey,
+            buffer: options.skin.buffer,
+          },
+        ];
+
   const sharedBindGroups = createUnlitBindGroupsFromGpuResources({
     device: options.device,
     plan: {
@@ -246,6 +286,7 @@ export async function createCustomWgslAppFrameResources(options: {
           resourceKey: worldTransforms.resource.resourceKey,
           resourceKind: "buffer",
         },
+        ...skinEntries,
       ],
     },
     layouts: [0, 1].map((group) => ({
@@ -262,6 +303,7 @@ export async function createCustomWgslAppFrameResources(options: {
         resourceKey: worldTransforms.resource.resourceKey,
         buffer: worldTransforms.resource.buffer,
       },
+      ...skinBuffers,
     ],
     requiredGroups: [0, 1],
   });

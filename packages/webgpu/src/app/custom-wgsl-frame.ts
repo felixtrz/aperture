@@ -13,7 +13,15 @@ import {
   type RenderSnapshotUpdateSchedule,
   type SourceMaterialAsset,
 } from "@aperture-engine/render";
-import { createCustomWgslAppFrameResources } from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
+import {
+  createCustomWgslAppFrameResources,
+  type CustomWgslAppSkinningFrameInput,
+} from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
+import {
+  createSkinningJointGpuBuffer,
+  DEFAULT_SKINNING_JOINT_BUFFER_USAGE,
+  SKINNING_JOINT_MATRIX_FLOATS,
+} from "../resources/attributes/skinning-joint-buffer.js";
 import {
   getOrCreateCustomWgslLitPipelineLayout,
   prepareCustomWgslLitFrameResources,
@@ -328,6 +336,99 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     };
   }
 
+  // F3: a skinned custom material binds the mesh's joint palette at group(4).
+  // The palette is the SAME snapshot bones the standard skinned path consumes
+  // (draw.boneMatrixOffset/Count into snapshot.bones). Extraction leaves
+  // `batchKey.skinned` FALSE for custom materials (that flag drives the STANDARD
+  // skinned pipeline), so the buffer is built directly from the bones here — a
+  // custom draw is "skinned" when it carries a bone-matrix range. The
+  // single-custom route binds the FIRST draw's palette (one skinned resource
+  // set); a skinned material on a mesh WITHOUT skin data is a structured
+  // diagnostic, never a device error from a missing group(4) binding.
+  let skinFrameInput: CustomWgslAppSkinningFrameInput | undefined;
+
+  if (prepared.skinned) {
+    const boneMatrixOffset = draw.boneMatrixOffset;
+    const boneMatrixCount = draw.boneMatrixCount;
+    const bones = options.snapshot.bones ?? new Float32Array(0);
+    const paletteEnd =
+      boneMatrixOffset === undefined || boneMatrixCount === undefined
+        ? 0
+        : boneMatrixOffset + boneMatrixCount * SKINNING_JOINT_MATRIX_FLOATS;
+
+    if (
+      boneMatrixOffset === undefined ||
+      boneMatrixCount === undefined ||
+      boneMatrixCount <= 0 ||
+      boneMatrixOffset < 0 ||
+      boneMatrixOffset % SKINNING_JOINT_MATRIX_FLOATS !== 0 ||
+      paletteEnd > bones.length
+    ) {
+      return renderReport({
+        ok: false,
+        snapshot: options.snapshot,
+        resourceReuse: options.reuse,
+        phaseTimings: options.phaseTimer.report(
+          options.cache.phaseTimingHistory,
+          options.snapshot.frame,
+        ),
+        diagnostics: [
+          ...options.snapshot.diagnostics,
+          {
+            code: "customWgslMaterial.skinnedWithoutSkinData",
+            message: `Custom material '${drawMaterialKey}' declares skinned: true but render id ${draw.renderId} draws a mesh with no valid skin data (no JOINTS_0/WEIGHTS_0 attributes + Skin component, or an out-of-range bone matrix range). Add a Skin component and JOINTS_0/WEIGHTS_0 vertex attributes, or remove skinned: true.`,
+            renderId: draw.renderId,
+          },
+        ],
+      });
+    }
+
+    const paletteData = bones.slice(boneMatrixOffset, paletteEnd);
+    const skinBuffer = createSkinningJointGpuBuffer({
+      device: options.app.initialization.device as Parameters<
+        typeof createSkinningJointGpuBuffer
+      >[0]["device"],
+      plan: {
+        descriptor: {
+          label: `custom-wgsl-skin/render:${draw.renderId}`,
+          size: paletteData.byteLength,
+          usage: DEFAULT_SKINNING_JOINT_BUFFER_USAGE,
+          initialData: paletteData,
+        },
+        source: paletteData,
+        renderId: draw.renderId,
+        sourceOffset: boneMatrixOffset,
+        jointCount: boneMatrixCount,
+      },
+    });
+
+    if (!skinBuffer.valid || skinBuffer.resource === null) {
+      return renderReport({
+        ok: false,
+        snapshot: options.snapshot,
+        resourceReuse: options.reuse,
+        phaseTimings: options.phaseTimer.report(
+          options.cache.phaseTimingHistory,
+          options.snapshot.frame,
+        ),
+        diagnostics: [
+          ...options.snapshot.diagnostics,
+          ...skinBuffer.diagnostics,
+        ],
+      });
+    }
+
+    // Use a custom-route resource key (NOT the standard
+    // skinningJointBufferResourceKeyForRenderId) so the draw-list binder's
+    // world-transform selector does not mistake the group(1) bind group for a
+    // STANDARD draw-scoped skinned bind group (which is gated on the literal
+    // `skinned` pipeline-key token; the custom key uses `skinned:v1`).
+    skinFrameInput = {
+      buffer: skinBuffer.resource.buffer,
+      resourceKey: `custom-wgsl-skin:render:${draw.renderId}`,
+    };
+  }
+
   const resources = await createCustomWgslAppFrameResources({
     device: options.app.initialization.device as Parameters<
       typeof createCustomWgslAppFrameResources
@@ -352,6 +453,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     runtimeUniformCache: options.cache.customWgslRuntimeUniforms,
     reuse: options.reuse,
     ...(litFrameInput === undefined ? {} : { lit: litFrameInput }),
+    ...(skinFrameInput === undefined ? {} : { skin: skinFrameInput }),
   });
 
   if (

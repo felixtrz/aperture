@@ -25,6 +25,7 @@ import {
 } from "../../gpu/shader.js";
 import { createInstanceAttributeVertexBufferLayout } from "../../resources/attributes/instance-attribute-buffer.js";
 import { UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT } from "../unlit/unlit-pipeline.js";
+import { STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT } from "../standard/standard-vertex-layout.js";
 
 const WEBGPU_SHADER_STAGE_VERTEX = 1;
 const WEBGPU_SHADER_STAGE_FRAGMENT = 2;
@@ -301,9 +302,9 @@ export function createBrowserCustomWgslMaterialPipelineDescriptor(
       entryPoint: input.material.shader.vertexEntryPoint,
       buffers:
         input.material.pipeline.instanceAttributes === null
-          ? [UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT]
+          ? [customWgslPrimitiveVertexBufferLayout(input.material)]
           : [
-              UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+              customWgslPrimitiveVertexBufferLayout(input.material),
               createInstanceAttributeVertexBufferLayout(
                 input.material.pipeline.instanceAttributes,
               ),
@@ -337,6 +338,30 @@ export function createBrowserCustomWgslMaterialPipelineDescriptor(
   }
 
   return { ...descriptor, depthStencil };
+}
+
+/**
+ * The primitive (slot 0) vertex-buffer layout for a custom material pipeline.
+ * F3: a `skinned` material uses the StandardMaterial skinned layout (an extra
+ * `JOINTS_0` uint4 @location(8) + `WEIGHTS_0` float4 @location(9), stride 56)
+ * so the renderer's skinned vertex layout is byte-identical to the standard
+ * path's; every other material keeps the byte-identical POSITION/NORMAL/UV
+ * layout (stride 32).
+ */
+function customWgslPrimitiveVertexBufferLayout(
+  material: PreparedCustomWgslMaterial,
+): {
+  readonly arrayStride: number;
+  readonly stepMode: "vertex";
+  readonly attributes: readonly {
+    readonly shaderLocation: number;
+    readonly offset: number;
+    readonly format: string;
+  }[];
+} {
+  return material.skinned === true
+    ? STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT
+    : UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
 }
 
 /**
