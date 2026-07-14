@@ -38,3 +38,28 @@ export {
   type TranslateGizmoHandles,
   type TranslateGizmoOptions,
 } from "./translate-gizmo.js";
+export {
+  createRotateGizmo,
+  type RotateGizmo,
+  type RotateGizmoContext,
+  type RotateGizmoHandles,
+  type RotateGizmoOptions,
+} from "./rotate-gizmo.js";
+export {
+  createScaleGizmo,
+  type ScaleGizmo,
+  type ScaleGizmoContext,
+  type ScaleGizmoHandles,
+  type ScaleGizmoOptions,
+} from "./scale-gizmo.js";
+export {
+  closestPointParamOnAxis,
+  guardScale,
+  inPlaneRightAxis,
+  rayPlaneIntersection,
+  scaleFactorFromDelta,
+  signedAngleOnPlane,
+  snapToIncrement,
+  MIN_GIZMO_SCALE,
+  type GizmoVec3,
+} from "./gizmo-math.js";

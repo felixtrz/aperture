@@ -2543,6 +2543,89 @@ controller.move(forwardHeld - backHeld, rightHeld - leftHeld, 0);
 controller.applyTo(world);
 ```
 
+## Transform gizmos — parity plan H2
+
+`@aperture-engine/app` ships three **transform gizmos** — `createTranslateGizmo`,
+`createRotateGizmo`, and `createScaleGizmo` — the `TransformControls` analog. Each
+is a factory that spawns a small set of **Pickable handle entities parented to the
+target** (world-preserving `setParent`) and returns a handle with `{ target,
+handles, sync(world), dispose() }`. Like the camera controllers they are
+**ECS-authoritative and headless/worker-safe**: pure math + a `LocalTransform`
+write, no DOM, no renderer overlay. They are driven by the **same interaction
+frame** as any other pointer handler — each gizmo subscribes its handles through
+`context.interaction.onDrag(handleRef, …)` and reads the pointer ray from
+`context.cameras.main.rayFromPointer(event.position)`, so you only wire the
+pointer signal (position + pressed) and the interaction system dispatches the
+drags. Assemble the context from the system context
+(`{ world, spawn, hierarchy, interaction, cameras }`).
+
+All three share the options `{ target, size?, thickness?, layerMask?, tag? }`:
+`target` is the generation-checked `EcsEntityRef` whose `LocalTransform` is
+written; the handles sit on a separate Pickable `layerMask` (default `2`) and
+carry a `tag` (default `"gizmo"`) so the app can exclude them from normal scene
+picking via `interaction.setPickLayerMask(...)`. `sync(world)` re-aligns the
+handles to the **world axes** at the target each frame (call it once per frame
+after the target moves, so a rotated/scaled target keeps a world-aligned gizmo);
+`dispose()` unsubscribes the drag handlers and destroys the handle entities.
+
+- **`createTranslateGizmo`** — three axis-handle boxes (`handles.{x,y,z}`).
+  Dragging a handle projects the pointer ray onto the handle's **world axis**
+  (closest-point-on-axis) and writes the target's `LocalTransform` **translation**
+  along that axis only (converted world→parent-local for a parented target).
+
+- **`createRotateGizmo`** — three axis-**ring** handles built from `mesh.torus`
+  (`handles.{x,y,z}`, one ring per world axis). Dragging a ring projects the
+  pointer ray onto the ring's axis-plane through the target's world position,
+  measures the **signed angle swept** from the drag-start radial direction to the
+  current one, and composes that incremental rotation (an axis-angle quaternion
+  about the world axis, mapped into the parent frame) onto the drag-start
+  **rotation** quaternion — writing `LocalTransform.rotation`. Extra option
+  `snapAngle?` (radians) quantizes the applied angle to the nearest multiple
+  (e.g. `Math.PI / 4` for 45° steps); `0`/undefined = free rotation. The angle
+  projection is guarded against the degenerate edge-on frame (ray parallel to the
+  ring plane).
+
+- **`createScaleGizmo`** — three axis-handle boxes plus an optional **uniform**
+  center handle (`handles.{x,y,z}` + `handles.uniform?` when `uniform: true`).
+  Dragging an axis handle reuses the translate gizmo's closest-point-on-axis
+  projection to turn pointer motion into an axis-parameter delta, maps it to a
+  multiplicative **scale factor** (dragging the handle out by one `size` doubles
+  the axis), and writes `LocalTransform.scale` along that axis only; the uniform
+  handle measures horizontal pointer displacement on the camera-facing plane and
+  scales all three axes together. Extra option `snapIncrement?` quantizes the
+  **resulting** scale (`0`/undefined = free), and every write is clamped to a
+  small positive minimum so a drag can never produce a non-positive/degenerate
+  scale.
+
+The snapping / swept-angle / closest-point / scale-factor math is exported as
+pure functions (`snapToIncrement`, `signedAngleOnPlane`, `rayPlaneIntersection`,
+`closestPointParamOnAxis`, `scaleFactorFromDelta`, `guardScale`,
+`inPlaneRightAxis`) so it can be reused and unit-tested without a world.
+
+```ts
+import { createRotateGizmo, createScaleGizmo } from "@aperture-engine/app";
+
+const ctx = { world, spawn, hierarchy, interaction, cameras }; // system context
+const rotate = createRotateGizmo(ctx, {
+  target: { index: selected.index, generation: selected.generation },
+  snapAngle: Math.PI / 8, // 22.5° steps; omit for free rotation
+});
+const scale = createScaleGizmo(ctx, {
+  target: { index: selected.index, generation: selected.generation },
+  uniform: true,
+  snapIncrement: 0.25,
+});
+// Once per frame after forwarding the pointer signal:
+rotate.sync(world);
+scale.sync(world);
+```
+
+See `examples/rotate-gizmo` and `examples/scale-gizmo` (each scripts a pointer
+press + drag and proves the snapped component delta on the real GPU). The gizmos
+are world-space and world-axis aligned; there is no screen-space constant-size
+handle scaling or a local/world-space toggle yet (see the H2 note in the parity
+audit).
+
 ## Runtime Systems
 
 Systems map to EliCS systems and can query ECS components directly.

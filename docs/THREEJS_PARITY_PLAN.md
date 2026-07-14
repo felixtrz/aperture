@@ -1619,6 +1619,39 @@ narrowed gap.
   driven through the same interaction frame; e2e drag tests assert
   component deltas.
 
+Status: implemented (2026-07-14). `createRotateGizmo` and `createScaleGizmo`
+join `createTranslateGizmo` in `@aperture-engine/app` (flowing through the
+controllers barrel), sharing the translate gizmo's context shape / option surface
+(`target`, `size`, `thickness`, `layerMask`, `tag`) and its `sync(world)` +
+`dispose()` handle-management contract. **Rotate** spawns three axis-**ring**
+handles (`mesh.torus`, one per world axis, world-aligned by `sync`); a drag
+projects the pointer ray onto the ring's axis-plane through the target's world
+position (`rayPlaneIntersection`), measures the signed swept angle from the
+drag-start radial direction (`signedAngleOnPlane`), optionally snaps it
+(`snapAngle` radians), and composes an axis-angle quaternion about the
+(parent-mapped) world axis onto the drag-start rotation → `LocalTransform.rotation`.
+**Scale** spawns three axis-handle boxes plus an optional uniform center handle;
+an axis drag reuses the translate gizmo's closest-point-on-axis projection
+(`closestPointParamOnAxis`) to turn pointer motion into an axis-parameter delta,
+maps it to a multiplicative factor (`scaleFactorFromDelta`), snaps the resulting
+scale (`snapIncrement`), and clamps it to a small positive minimum
+(`guardScale`) before writing `LocalTransform.scale` — the uniform handle measures
+horizontal pointer displacement on the camera-facing plane and scales all three
+axes. Both are driven through the **same interaction frame** as the translate
+gizmo (`context.interaction.onDrag` + `context.cameras.main.rayFromPointer`) and
+are ECS-authoritative + headless-safe (pure math + `LocalTransform` writes, no
+DOM — `check:headless-boundaries` green). The snapping / angle / closest-point /
+scale-factor math is factored into pure exported functions and unit-tested
+(`test/app/gizmo-math.test.ts`); a headless route test drives both gizmos through
+the interaction frame (`test/app/transform-gizmos-route.test.ts`), and two
+Playwright e2e routes (`examples/rotate-gizmo`, `examples/scale-gizmo`) assert the
+snapped component deltas on the real GPU (rotate: a pure +Z rotation of π/4; scale:
+X → a 0.5-multiple, Y/Z fixed). Deviation from AC: the gizmos are world-space /
+world-axis only — no screen-space constant-size handle scaling and no
+local-vs-world-space toggle (three.js `TransformControls` has both); the audit
+Controls row stays 🟡 for the remaining camera-controls breadth gap
+(trackball-with-damping / `Drag`), with the gizmo aspect at parity.
+
 ---
 
 ## Explicitly deferred (recorded, not planned)
