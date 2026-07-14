@@ -25,3 +25,7 @@ export {
   createTetrahedronMeshAsset,
 } from "./primitives-polyhedron.js";
 export { createRoundedBoxMeshAsset } from "./primitives-rounded-box.js";
+export { createExtrudeMeshAsset } from "./primitives-extrude.js";
+export { createLatheMeshAsset } from "./primitives-lathe.js";
+export { createTubeMeshAsset } from "./primitives-tube.js";
+export { triangulateShape, type ShapePoint } from "./triangulate.js";

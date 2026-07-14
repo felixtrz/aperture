@@ -1,4 +1,4 @@
-import type { Aabb, BoundingSphere } from "@aperture-engine/simulation";
+import type { Aabb, BoundingSphere, Curve } from "@aperture-engine/simulation";
 
 export type MeshTopology =
   | "triangle-list"
@@ -295,4 +295,54 @@ export interface RoundedBoxMeshOptions {
   readonly depth?: number;
   readonly segments?: number;
   readonly radius?: number;
+}
+
+/** A 2D outline point `[x, y]` for shape/profile inputs. */
+export type ShapeOutlinePoint = readonly [number, number];
+
+/**
+ * Straight-depth extrude (three.js `ExtrudeGeometry` convention, sans bevel): a
+ * closed 2D `shape` outline (with optional `holes`) is triangulated in-house
+ * (ear clipping) into front/back caps at `±depth/2` on `Z` and joined by a side
+ * wall around every contour. `shape`/`holes` points are `[x, y]`; the shape
+ * lies in the XY plane and extrudes along `+Z`. Bevels and curve-based
+ * `Shape`/`ShapePath` inputs are out of scope.
+ */
+export interface ExtrudeMeshOptions {
+  readonly label?: string;
+  readonly shape: readonly ShapeOutlinePoint[];
+  readonly holes?: readonly (readonly ShapeOutlinePoint[])[];
+  /** Extrusion length along `Z` (centered on the origin). Default 1. */
+  readonly depth?: number;
+}
+
+/**
+ * Lathe (three.js `LatheGeometry` convention): revolve a 2D `profile` (points
+ * `[x, y]` with `x` = radius from the Y axis, `y` = height) around the Y axis
+ * over `segments` angular steps from `startAngle` to `endAngle`. Surface
+ * normals come from the profile tangents; `u` = angle fraction, `v` = profile
+ * index fraction.
+ */
+export interface LatheMeshOptions {
+  readonly label?: string;
+  readonly profile: readonly ShapeOutlinePoint[];
+  readonly segments?: number;
+  readonly startAngle?: number;
+  readonly endAngle?: number;
+}
+
+/**
+ * Tube (three.js `TubeGeometry` convention): sweep a circle of `radius` along a
+ * math {@link Curve} using a stable parallel-transport (rotation-minimizing)
+ * frame, over `tubularSegments` rings of `radialSegments` each. Normals point
+ * radially out from the curve; `u` = length fraction, `v` = angle fraction.
+ * `closed` applies the frame's twist correction so the seam ring aligns.
+ */
+export interface TubeMeshOptions {
+  readonly label?: string;
+  readonly curve: Curve;
+  readonly radius?: number;
+  readonly tubularSegments?: number;
+  readonly radialSegments?: number;
+  readonly closed?: boolean;
 }

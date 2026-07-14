@@ -1533,6 +1533,40 @@ getLength`; deterministic, allocation-light, array-first API (respecting
   produce meshes with correct normals/uvs/bounds; example: procedural
   racetrack tube; e2e baseline.
 
+Status: implemented (2026-07-14). AC1: `packages/math/src/curves.ts` adds a
+tagged-union `Curve` record — `line`, `quadratic-bezier`, `cubic-bezier`,
+`catmull-rom`, and `arc` (circular/elliptical, arbitrary plane) — built by the
+constructors `lineCurve` / `quadraticBezierCurve` / `cubicBezierCurve` /
+`catmullRomCurve(points, { closed?, alpha? })` / `arcCurve({...})` and evaluated
+uniformly by the free-function dispatchers `getCurvePoint(curve, t, out?)`,
+`getCurveTangent(curve, t, out?)` (unit tangent), and `getCurveLength(curve)`.
+Kernel-style, no classes (0007): control points are copied into plain tuples at
+construction and each evaluator reads them into locals before writing `out`
+(alias-safe). Catmull-Rom uses the Barry-Goldman non-uniform recurrence and
+defaults to the **centripetal** parametrization (`alpha` 0.5, matching three.js
+`CatmullRomCurve3`; 0 uniform, 1 chordal); tangents are analytic for
+line/Bézier/arc and central-difference for Catmull-Rom. `getCurveLength` is a
+deterministic **200-segment** uniform-parameter polyline sum (exact for a line;
+within ~4e-5 relative of `2πr` for a full circle). AC2:
+`packages/render/src/mesh/` gains `createExtrudeMeshAsset`,
+`createLatheMeshAsset`, and `createTubeMeshAsset` following G1's
+`primitives-builders` pattern (interleaved 32-byte vertices, `boundsFromPositions`,
+`validateMeshAsset`-clean). The tube uses a **parallel-transport
+(rotation-minimizing) frame** (three.js `computeFrenetFrames`), NOT a raw Frenet
+frame, with the closed-curve twist correction. The extruder triangulates caps
+with an **in-house ear clipper** (`triangulate.ts`, `triangulateShape`) — a
+doubly-linked-list clipper with hole bridging, CCW/CW winding normalization,
+collinear-ear skipping, and a fan fallback that guarantees termination — plus a
+per-contour side wall with outward normals. Deviations (honest): no **bevel** and
+no `Shape`/`ShapePath` **curve-based** shape input (outlines are `[x, y]` point
+arrays); text geometry stays deferred. AC3: `examples/racetrack-tube` sweeps a
+closed Catmull-Rom oval into one `createTubeMeshAsset` mesh, registered via
+`this.meshes.publish` and drawn through the app facade with a single built-in
+`material.standard()` (no custom-WGSL, avoiding the latent multi-material
+black-frame path); the Playwright e2e asserts one mesh draw + non-trivial canvas
+coverage. Feature-audit §7 "Shape/curve extrusion" is 🟡 (extrude/lathe/tube +
+holes ship; bevel/ShapePath/text do not) and the primitive count is 20.
+
 ### G3. Math utilities — **S**
 
 Status: implemented (2026-07-12).

@@ -251,6 +251,73 @@ Current primitive descriptors include:
   `segments` 4 per face edge, corner `radius` 0.1 (clamped to the shortest
   half-dimension).
 
+### Curves And Extrusion (extrude / lathe / tube) — parity plan G2
+
+Curves and the extrude/lathe/tube builders take rich control-point / curve
+inputs, so they are authored one level below the `mesh.*` descriptor sugar:
+build the `MeshAsset` with the render builder, register it with
+`this.meshes.publish(id, asset)` (or `this.meshes.dynamic`), and spawn the
+returned handle through `this.spawn.mesh({ mesh: handle, ... })`.
+
+**Curve primitives** live in `@aperture-engine/math` as small readonly data
+records plus free functions (decision 0007 — no classes). Constructors:
+`lineCurve(p0, p1)`, `quadraticBezierCurve(p0, p1, p2)`,
+`cubicBezierCurve(p0, p1, p2, p3)`,
+`catmullRomCurve(points, { closed?, alpha? })`, and
+`arcCurve({ center?, xRadius, yRadius?, startAngle?, endAngle?, xAxis?, yAxis? })`.
+Catmull-Rom defaults to the **centripetal** parametrization (`alpha` 0.5,
+matching three.js `CatmullRomCurve3`); `alpha` 0 is uniform, 1 chordal.
+`arcCurve`'s sweep defaults to a full turn and `yRadius` to `xRadius` (a
+circle). Evaluate any curve uniformly with the dispatchers
+`getCurvePoint(curve, t, out?)`, `getCurveTangent(curve, t, out?)` (unit
+tangent), and `getCurveLength(curve)` — `t ∈ [0, 1]` (clamped), and length is a
+deterministic 200-segment polyline sum.
+
+```ts
+import { catmullRomCurve } from "@aperture-engine/math";
+import { createTubeMeshAsset } from "@aperture-engine/render";
+
+const loop = catmullRomCurve(
+  [
+    [2.6, 0, 0],
+    [0, 0, 3.3],
+    [-2.6, 0, 0],
+    [0, 0, -3.3],
+  ],
+  { closed: true },
+);
+const { handle } = this.meshes.publish(
+  "track",
+  createTubeMeshAsset({
+    curve: loop,
+    radius: 0.34,
+    tubularSegments: 48,
+    radialSegments: 6,
+    closed: true,
+  }),
+);
+this.spawn.mesh({ mesh: handle, material: material.standard({ baseColor }) });
+```
+
+The three geometry builders (all in `@aperture-engine/render`):
+
+- `createTubeMeshAsset({ curve, radius?, tubularSegments?, radialSegments?, closed? })`
+  — sweeps a circle of `radius` (default 1) along any `Curve` using a stable
+  **parallel-transport (rotation-minimizing) frame**, so the cross-section
+  never flips at inflection points; `closed` twist-corrects the seam ring.
+  Defaults `tubularSegments` 64, `radialSegments` 8. Normals point radially out;
+  emits `(tubularSegments + 1) × (radialSegments + 1)` vertices.
+- `createExtrudeMeshAsset({ shape, holes?, depth? })` — extrudes a 2D `shape`
+  outline (`[x, y]` points, optional `holes`) along `Z`, centered on the
+  origin at `±depth/2` (default depth 1). Caps are triangulated by the in-house
+  ear clipper (`triangulateShape`), and a flat-shaded side wall wraps every
+  contour with outward normals. Bevels and curve-based `Shape`/`ShapePath`
+  inputs are out of scope.
+- `createLatheMeshAsset({ profile, segments?, startAngle?, endAngle? })` —
+  revolves a 2D `profile` (`[x, y]`, `x` = radius, `y` = height) around the Y
+  axis over `segments` steps (default 12). Normals come from the averaged
+  profile tangents; `u` = angle fraction, `v` = profile index.
+
 ### Standard Material Options
 
 `material.standard()` exposes the renderer's full factor set, so PBR extension
