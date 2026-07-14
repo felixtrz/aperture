@@ -1,13 +1,22 @@
 import {
   createBoxMeshAsset,
   createCapsuleMeshAsset,
+  createCircleMeshAsset,
   createConeMeshAsset,
   createCylinderMeshAsset,
   createCustomWgslMaterialAsset,
+  createDodecahedronMeshAsset,
+  createIcosahedronMeshAsset,
   createLineListMeshAsset,
+  createOctahedronMeshAsset,
   createPlaneMeshAsset,
+  createRingMeshAsset,
+  createRoundedBoxMeshAsset,
   createSphereMeshAsset,
   createStandardMaterialAsset,
+  createTetrahedronMeshAsset,
+  createTorusMeshAsset,
+  createTorusKnotMeshAsset,
   createUnlitMaterialAsset,
   materialAssetDependencies,
   validateCustomMaterialSource,
@@ -17,6 +26,7 @@ import {
   type LineListMeshSubmeshOptions,
   type LineListPosition,
   type MeshAsset,
+  type PlatonicSolidMeshOptions,
   type SourceMaterialAsset,
 } from "@aperture-engine/render";
 import {
@@ -30,6 +40,7 @@ import {
   type Vec3Like,
 } from "@aperture-engine/simulation";
 import type {
+  PlatonicSolidMeshDescriptorOptions,
   PrimitiveMeshDescriptor,
   SpawnMeshOptions,
   MaterialDescriptor,
@@ -196,9 +207,86 @@ function primitiveToMeshAsset(
         height: numberOption(descriptorValue.options.depth, 1),
         radialSegments: numberOption(descriptorValue.options.segments, 32),
       });
+    case "circle":
+      return createCircleMeshAsset({
+        radius: numberOption(descriptorValue.options.radius, 1),
+        segments: numberOption(descriptorValue.options.segments, 32),
+      });
+    case "ring":
+      return createRingMeshAsset({
+        innerRadius: numberOption(descriptorValue.options.innerRadius, 0.5),
+        outerRadius: numberOption(descriptorValue.options.outerRadius, 1),
+        thetaSegments: numberOption(descriptorValue.options.segments, 32),
+        phiSegments: numberOption(descriptorValue.options.phiSegments, 1),
+      });
+    case "torus":
+      return createTorusMeshAsset({
+        majorRadius: numberOption(descriptorValue.options.radius, 0.75),
+        tubeRadius: numberOption(descriptorValue.options.tube, 0.25),
+        // three.js `tubularSegments` wraps the ring; `radialSegments` wraps the
+        // tube cross-section, mapping onto the render builder's fields.
+        radialSegments: numberOption(
+          descriptorValue.options.tubularSegments,
+          32,
+        ),
+        tubeSegments: numberOption(descriptorValue.options.radialSegments, 12),
+      });
+    case "torus-knot":
+      return createTorusKnotMeshAsset({
+        radius: numberOption(descriptorValue.options.radius, 1),
+        tube: numberOption(descriptorValue.options.tube, 0.4),
+        tubularSegments: numberOption(
+          descriptorValue.options.tubularSegments,
+          64,
+        ),
+        radialSegments: numberOption(descriptorValue.options.radialSegments, 8),
+        p: numberOption(descriptorValue.options.p, 2),
+        q: numberOption(descriptorValue.options.q, 3),
+      });
+    case "tetrahedron":
+      return createTetrahedronMeshAsset(
+        platonicOptions(descriptorValue.options),
+      );
+    case "octahedron":
+      return createOctahedronMeshAsset(
+        platonicOptions(descriptorValue.options),
+      );
+    case "icosahedron":
+      return createIcosahedronMeshAsset(
+        platonicOptions(descriptorValue.options),
+      );
+    case "dodecahedron":
+      return createDodecahedronMeshAsset(
+        platonicOptions(descriptorValue.options),
+      );
+    case "rounded-box": {
+      const size = descriptorValue.options.size;
+      const tuple =
+        typeof size === "number"
+          ? [size, size, size]
+          : Array.isArray(size)
+            ? size
+            : [1, 1, 1];
+      return createRoundedBoxMeshAsset({
+        width: read3(tuple, 0),
+        height: read3(tuple, 1),
+        depth: read3(tuple, 2),
+        segments: numberOption(descriptorValue.options.segments, 4),
+        radius: numberOption(descriptorValue.options.radius, 0.1),
+      });
+    }
     case "line-list":
       return createLineListPrimitiveMeshAsset(descriptorValue.options);
   }
+}
+
+function platonicOptions(
+  options: PlatonicSolidMeshDescriptorOptions,
+): PlatonicSolidMeshOptions {
+  return {
+    radius: numberOption(options.radius, 1),
+    detail: numberOption(options.detail, 0),
+  };
 }
 
 function createLineListPrimitiveMeshAsset(

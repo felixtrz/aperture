@@ -1494,6 +1494,35 @@ the changeset, and scenario #5's audit note.
   builder), rounded box; all emit the standard interleaved layout + bounds;
   vitest golden vertex-count/normal checks; feature-audit §7 count updated.
 
+Status: implemented (2026-07-14). Shipped `createCircleMeshAsset`,
+`createRingMeshAsset`, `createTorusKnotMeshAsset`, one
+`createPolyhedronMeshAsset` with thin
+tetra/octa/icosa/dodecahedron wrappers over the canonical three.js
+vertex/index tables, and `createRoundedBoxMeshAsset` in `@aperture-engine/render`,
+all emitting the standard interleaved POSITION/NORMAL/TEXCOORD_0 layout with
+`localAabb` + `localSphere`. Surfaced on the app facade as
+`mesh.circle/ring/torus/torusKnot/tetrahedron/octahedron/icosahedron/dodecahedron/roundedBox`
+(the pre-existing torus builder was previously unsurfaced and is now exposed
+too), raising the audited primitive count from 8 to 17. Conventions: circle and
+ring lie in the XY plane facing +Z to match the existing plane primitive and
+three.js `CircleGeometry`/`RingGeometry` (full sweep only — analytic bounds).
+Torus knot ports the standard `(p, q)` parametric curve with three.js defaults
+`radius 1, tube 0.4, tubularSegments 64, radialSegments 8, p 2, q 3`. The
+polyhedron builder mirrors three.js `PolyhedronGeometry`: it subdivides each
+base face `(detail+1)^2` times and projects every vertex onto the sphere of
+`radius`; `detail 0` keeps flat-shaded raw faces, `detail > 0` uses smooth
+radial normals (bounds via the exact origin-centered sphere). Rounded box maps
+a subdivided cube onto the rounded surface by offsetting the nearest inner-box
+anchor along `normalize(pOuter − clamp(pOuter))`, giving flat faces,
+quarter-cylinder edges, sphere-octant corners, and exact per-vertex normals
+(bounds via `boundsFromPositions`). Golden vitest checks lock exact
+vertex/index counts, unit-length normals, tight enclosing bounds, outward
+winding, and the `detail 0 → 1` `4x` growth; a new `examples/geometry-gallery`
+app-facade example (one `material.standard()` per mesh) plus a Playwright
+coverage e2e prove all nine primitives render. Determinism fixtures unchanged.
+No AC deviation: all four builder families shipped; only three.js
+extrude/lathe/tube/shape/text/edges/wireframe remain (G2/deferred).
+
 ### G2. Curves + extrude/lathe/tube — **M** (feeds G1, E1, camera rails)
 
 - AC1: Math package (or a new `geometry` module) gains curve primitives

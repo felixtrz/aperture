@@ -219,3 +219,80 @@ export interface TorusMeshOptions {
   readonly radialSegments?: number;
   readonly tubeSegments?: number;
 }
+
+/**
+ * Flat disc (three.js `CircleGeometry` convention): a triangle fan in the XY
+ * plane facing +Z, matching the existing plane primitive's orientation.
+ */
+export interface CircleMeshOptions {
+  readonly label?: string;
+  readonly radius?: number;
+  readonly segments?: number;
+}
+
+/**
+ * Annulus (three.js `RingGeometry` convention) in the XY plane facing +Z.
+ * `thetaSegments` is the angular resolution; `phiSegments` is the number of
+ * concentric radial bands between the inner and outer radius.
+ */
+export interface RingMeshOptions {
+  readonly label?: string;
+  readonly innerRadius?: number;
+  readonly outerRadius?: number;
+  readonly thetaSegments?: number;
+  readonly phiSegments?: number;
+}
+
+/**
+ * Torus knot (three.js `TorusKnotGeometry` convention): a `(p, q)` knot swept
+ * with a circular tube of `tube` radius around a curve of `radius`.
+ */
+export interface TorusKnotMeshOptions {
+  readonly label?: string;
+  readonly radius?: number;
+  readonly tube?: number;
+  readonly tubularSegments?: number;
+  readonly radialSegments?: number;
+  readonly p?: number;
+  readonly q?: number;
+}
+
+/**
+ * Generic polyhedron builder (three.js `PolyhedronGeometry` convention): the
+ * `vertices`/`indices` describe a base solid whose faces are subdivided
+ * `detail` times and projected onto a sphere of `radius`. `detail: 0` keeps the
+ * raw faces (flat-shaded); `detail > 0` yields smooth radial normals.
+ */
+export interface PolyhedronMeshOptions {
+  readonly label?: string;
+  /** Flat `[x, y, z, ...]` base vertex positions. */
+  readonly vertices: readonly number[];
+  /** Triangle indices into {@link PolyhedronMeshOptions.vertices}. */
+  readonly indices: readonly number[];
+  readonly radius?: number;
+  readonly detail?: number;
+}
+
+/**
+ * Shared options for the platonic-solid wrappers
+ * (tetra/octa/icosa/dodecahedron) over {@link PolyhedronMeshOptions}.
+ */
+export interface PlatonicSolidMeshOptions {
+  readonly label?: string;
+  readonly radius?: number;
+  readonly detail?: number;
+}
+
+/**
+ * Rounded box (three.js community `RoundedBoxGeometry` convention): a box with
+ * rounded edges and corners. `segments` controls the tessellation per face edge
+ * and `radius` the corner radius (clamped to the shortest half-dimension).
+ */
+export interface RoundedBoxMeshOptions {
+  readonly label?: string;
+  readonly width?: number;
+  readonly height?: number;
+  readonly depth?: number;
+  readonly segments?: number;
+  readonly radius?: number;
+}

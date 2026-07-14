@@ -14,6 +14,7 @@ import type { ShaderHandle } from "@aperture-engine/simulation";
 import type {
   BoxMeshDescriptorOptions,
   CapsuleMeshDescriptorOptions,
+  CircleMeshDescriptorOptions,
   ConeMeshDescriptorOptions,
   CustomWgslMaterialDescriptor,
   CustomWgslSamplerBindingOptions,
@@ -24,12 +25,17 @@ import type {
   CylinderMeshDescriptorOptions,
   LineListMeshDescriptorOptions,
   PlaneMeshDescriptorOptions,
+  PlatonicSolidMeshDescriptorOptions,
   PrimitiveMeshDescriptor,
   PhysicsSpawnDescriptor,
+  RingMeshDescriptorOptions,
+  RoundedBoxMeshDescriptorOptions,
   SphereMeshDescriptorOptions,
   StandardMaterialDescriptor,
   StandardMaterialOptions,
   ShaderAssetDescriptorInput,
+  TorusKnotMeshDescriptorOptions,
+  TorusMeshDescriptorOptions,
   UnlitMaterialDescriptor,
   UnlitMaterialOptions,
 } from "./types.js";
@@ -54,6 +60,54 @@ export const mesh = Object.freeze({
   },
   cone(options: ConeMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
     return descriptor("cone", options);
+  },
+  /** Flat disc in the XY plane facing +Z (three.js `CircleGeometry`). */
+  circle(options: CircleMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("circle", options);
+  },
+  /** Annulus in the XY plane facing +Z (three.js `RingGeometry`). */
+  ring(options: RingMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("ring", options);
+  },
+  /** Torus (three.js `TorusGeometry`). */
+  torus(options: TorusMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("torus", options);
+  },
+  /** Torus knot (three.js `TorusKnotGeometry`). */
+  torusKnot(
+    options: TorusKnotMeshDescriptorOptions = {},
+  ): PrimitiveMeshDescriptor {
+    return descriptor("torus-knot", options);
+  },
+  /** Tetrahedron via the shared polyhedron builder. */
+  tetrahedron(
+    options: PlatonicSolidMeshDescriptorOptions = {},
+  ): PrimitiveMeshDescriptor {
+    return descriptor("tetrahedron", options);
+  },
+  /** Octahedron via the shared polyhedron builder. */
+  octahedron(
+    options: PlatonicSolidMeshDescriptorOptions = {},
+  ): PrimitiveMeshDescriptor {
+    return descriptor("octahedron", options);
+  },
+  /** Icosahedron via the shared polyhedron builder. */
+  icosahedron(
+    options: PlatonicSolidMeshDescriptorOptions = {},
+  ): PrimitiveMeshDescriptor {
+    return descriptor("icosahedron", options);
+  },
+  /** Dodecahedron via the shared polyhedron builder. */
+  dodecahedron(
+    options: PlatonicSolidMeshDescriptorOptions = {},
+  ): PrimitiveMeshDescriptor {
+    return descriptor("dodecahedron", options);
+  },
+  /** Box with rounded edges/corners (three.js `RoundedBoxGeometry`). */
+  roundedBox(
+    options: RoundedBoxMeshDescriptorOptions = {},
+  ): PrimitiveMeshDescriptor {
+    return descriptor("rounded-box", options);
   },
   /**
    * Native GPU line-list mesh. Positions are consumed in pairs unless indices
@@ -238,6 +292,42 @@ function descriptor(
   kind: "cone",
   options: ConeMeshDescriptorOptions,
 ): Extract<PrimitiveMeshDescriptor, { readonly kind: "cone" }>;
+function descriptor(
+  kind: "circle",
+  options: CircleMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "circle" }>;
+function descriptor(
+  kind: "ring",
+  options: RingMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "ring" }>;
+function descriptor(
+  kind: "torus",
+  options: TorusMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "torus" }>;
+function descriptor(
+  kind: "torus-knot",
+  options: TorusKnotMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "torus-knot" }>;
+function descriptor(
+  kind: "tetrahedron",
+  options: PlatonicSolidMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "tetrahedron" }>;
+function descriptor(
+  kind: "octahedron",
+  options: PlatonicSolidMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "octahedron" }>;
+function descriptor(
+  kind: "icosahedron",
+  options: PlatonicSolidMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "icosahedron" }>;
+function descriptor(
+  kind: "dodecahedron",
+  options: PlatonicSolidMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "dodecahedron" }>;
+function descriptor(
+  kind: "rounded-box",
+  options: RoundedBoxMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "rounded-box" }>;
 function descriptor(
   kind: "line-list",
   options: LineListMeshDescriptorOptions,

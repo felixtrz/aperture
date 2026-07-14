@@ -12,3 +12,16 @@ export {
   createCylinderMeshAsset,
 } from "./primitives-frustum.js";
 export { createLineListMeshAsset } from "./primitives-line-list.js";
+export {
+  createCircleMeshAsset,
+  createRingMeshAsset,
+} from "./primitives-circle-ring.js";
+export { createTorusKnotMeshAsset } from "./primitives-torus-knot.js";
+export {
+  createDodecahedronMeshAsset,
+  createIcosahedronMeshAsset,
+  createOctahedronMeshAsset,
+  createPolyhedronMeshAsset,
+  createTetrahedronMeshAsset,
+} from "./primitives-polyhedron.js";
+export { createRoundedBoxMeshAsset } from "./primitives-rounded-box.js";

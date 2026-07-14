@@ -228,6 +228,28 @@ Current primitive descriptors include:
 - `mesh.plane({ size, subdivisions? })`
 - `mesh.cylinder({ radius, depth, segments? })`
 - `mesh.cone({ radius, depth, segments? })`
+- `mesh.circle({ radius?, segments? })` — flat disc fan in the XY plane facing
+  +Z (three.js `CircleGeometry`); `radius` 1, `segments` 32.
+- `mesh.ring({ innerRadius?, outerRadius?, segments?, phiSegments? })` — annulus
+  in the XY plane facing +Z (three.js `RingGeometry`); `innerRadius` 0.5,
+  `outerRadius` 1, `segments` (angular) 32, `phiSegments` (radial bands) 1.
+- `mesh.torus({ radius?, tube?, radialSegments?, tubularSegments? })` — three.js
+  `TorusGeometry` naming (`radius` 0.75, `tube` 0.25, `radialSegments` 12 around
+  the tube, `tubularSegments` 32 around the ring).
+- `mesh.torusKnot({ radius?, tube?, tubularSegments?, radialSegments?, p?, q? })`
+  — three.js `TorusKnotGeometry`; `radius` 1, `tube` 0.4, `tubularSegments` 64,
+  `radialSegments` 8, `p` 2, `q` 3.
+- `mesh.tetrahedron({ radius?, detail? })`,
+  `mesh.octahedron({ radius?, detail? })`,
+  `mesh.icosahedron({ radius?, detail? })`,
+  `mesh.dodecahedron({ radius?, detail? })` — platonic solids built through one
+  shared polyhedron builder (three.js `PolyhedronGeometry`); `radius` 1,
+  `detail` 0 (raw flat-shaded faces). `detail > 0` subdivides each face
+  `(detail+1)^2` times and projects onto the sphere with smooth radial normals.
+- `mesh.roundedBox({ size?, segments?, radius? })` — box with rounded
+  edges/corners (three.js community `RoundedBoxGeometry`); `size` 1,
+  `segments` 4 per face edge, corner `radius` 0.1 (clamped to the shortest
+  half-dimension).
 
 ### Standard Material Options
 

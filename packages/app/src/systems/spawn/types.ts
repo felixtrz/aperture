@@ -191,6 +191,54 @@ export interface ConeMeshDescriptorOptions {
 
 export type LineListMeshDescriptorOptions = LineListMeshOptions;
 
+/** Flat disc in the XY plane facing +Z (three.js `CircleGeometry`). */
+export interface CircleMeshDescriptorOptions {
+  readonly radius?: number;
+  readonly segments?: number;
+}
+
+/** Annulus in the XY plane facing +Z (three.js `RingGeometry`). */
+export interface RingMeshDescriptorOptions {
+  readonly innerRadius?: number;
+  readonly outerRadius?: number;
+  readonly segments?: number;
+  readonly phiSegments?: number;
+}
+
+/** Torus (three.js `TorusGeometry` naming). */
+export interface TorusMeshDescriptorOptions {
+  readonly radius?: number;
+  readonly tube?: number;
+  readonly radialSegments?: number;
+  readonly tubularSegments?: number;
+}
+
+/** Torus knot (three.js `TorusKnotGeometry`). */
+export interface TorusKnotMeshDescriptorOptions {
+  readonly radius?: number;
+  readonly tube?: number;
+  readonly radialSegments?: number;
+  readonly tubularSegments?: number;
+  readonly p?: number;
+  readonly q?: number;
+}
+
+/**
+ * Shared options for the platonic-solid descriptors
+ * (tetra/octa/icosa/dodecahedron): sphere radius and subdivision `detail`.
+ */
+export interface PlatonicSolidMeshDescriptorOptions {
+  readonly radius?: number;
+  readonly detail?: number;
+}
+
+/** Rounded box (three.js community `RoundedBoxGeometry`). */
+export interface RoundedBoxMeshDescriptorOptions {
+  readonly size?: number | Vec3Like;
+  readonly segments?: number;
+  readonly radius?: number;
+}
+
 export type PrimitiveMeshDescriptor =
   | PrimitiveMeshDescriptorBase<"box", BoxMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"sphere", SphereMeshDescriptorOptions>
@@ -198,6 +246,27 @@ export type PrimitiveMeshDescriptor =
   | PrimitiveMeshDescriptorBase<"plane", PlaneMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"cylinder", CylinderMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"cone", ConeMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<"circle", CircleMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<"ring", RingMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<"torus", TorusMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<"torus-knot", TorusKnotMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<
+      "tetrahedron",
+      PlatonicSolidMeshDescriptorOptions
+    >
+  | PrimitiveMeshDescriptorBase<
+      "octahedron",
+      PlatonicSolidMeshDescriptorOptions
+    >
+  | PrimitiveMeshDescriptorBase<
+      "icosahedron",
+      PlatonicSolidMeshDescriptorOptions
+    >
+  | PrimitiveMeshDescriptorBase<
+      "dodecahedron",
+      PlatonicSolidMeshDescriptorOptions
+    >
+  | PrimitiveMeshDescriptorBase<"rounded-box", RoundedBoxMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"line-list", LineListMeshDescriptorOptions>;
 
 export interface PrimitiveMeshDescriptorBase<
