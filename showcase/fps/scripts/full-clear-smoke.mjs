@@ -744,7 +744,10 @@ async function main() {
     assertClearState(finalState);
 
     await mkdir(path.dirname(screenshotPath), { recursive: true });
-    await mcp.call("browser_screenshot", { path: screenshotPath });
+    await mcp.call("frame_capture", {
+      target: "headed",
+      out: screenshotPath,
+    });
 
     console.log(
       JSON.stringify(
