@@ -11,6 +11,7 @@ import type {
   RigidBodyInput,
 } from "@aperture-engine/physics";
 import type { ShaderHandle } from "@aperture-engine/simulation";
+import type { StandardMaterialPatch } from "@aperture-engine/render";
 import type {
   BoxMeshDescriptorOptions,
   CapsuleMeshDescriptorOptions,
@@ -22,6 +23,7 @@ import type {
   CustomWgslUniformBindingOptions,
   CylinderMeshDescriptorOptions,
   LineListMeshDescriptorOptions,
+  MaterialAppearancePresetName,
   PlaneMeshDescriptorOptions,
   PrimitiveMeshDescriptor,
   PhysicsSpawnDescriptor,
@@ -32,6 +34,7 @@ import type {
   UnlitMaterialDescriptor,
   UnlitMaterialOptions,
 } from "./types.js";
+import { createMaterialAppearancePreset } from "./material-presets.js";
 
 export const mesh = Object.freeze({
   box(options: BoxMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
@@ -69,6 +72,12 @@ export const material = Object.freeze({
   },
   unlit(options: UnlitMaterialOptions = {}): UnlitMaterialDescriptor {
     return Object.freeze({ kind: "unlit", options: { ...options } });
+  },
+  preset(
+    name: MaterialAppearancePresetName,
+    overrides: StandardMaterialPatch = {},
+  ) {
+    return createMaterialAppearancePreset(name, overrides);
   },
   customWgsl(
     options: Omit<CustomWgslMaterialDescriptor, "kind">,

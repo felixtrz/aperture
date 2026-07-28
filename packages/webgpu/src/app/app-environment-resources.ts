@@ -71,6 +71,7 @@ import type {
 import { createShadowCasterWorldTransformScratch } from "../shadows/render-shadow-frame.js";
 
 export interface WebGpuEnvironmentResourceCache {
+  readonly equirectProjections: Map<string, EquirectToCubeResourceReport>;
   readonly diffuseTextures: Map<string, TextureGpuResource>;
   readonly specularTextures: Map<string, TextureGpuResource>;
   readonly samplers: Map<string, SamplerGpuResource>;
@@ -111,6 +112,7 @@ interface WebGpuEnvironmentBindGroupDeviceLike extends TextureGpuDeviceLike {
 }
 
 export interface WebGpuEnvironmentResourceCacheSummary {
+  equirectProjectionEntries: number;
   diffuseTextureEntries: number;
   specularTextureEntries: number;
   samplerEntries: number;
@@ -238,6 +240,7 @@ const APP_ENVIRONMENT_RESOURCE_CACHES = new WeakMap<
 
 export function createWebGpuEnvironmentResourceCache(): WebGpuEnvironmentResourceCache {
   return {
+    equirectProjections: new Map(),
     diffuseTextures: new Map(),
     specularTextures: new Map(),
     samplers: new Map(),
@@ -279,6 +282,7 @@ export function getOrCreateWebGpuAppEnvironmentResourceCache(
 
 export function createWebGpuEnvironmentResourceCacheSummary(): WebGpuEnvironmentResourceCacheSummary {
   return {
+    equirectProjectionEntries: 0,
     diffuseTextureEntries: 0,
     specularTextureEntries: 0,
     samplerEntries: 0,
@@ -298,6 +302,7 @@ export function writeWebGpuEnvironmentResourceCacheSummary(
   summary: WebGpuEnvironmentResourceCacheSummary,
   cache: WebGpuEnvironmentResourceCache,
 ): WebGpuEnvironmentResourceCacheSummary {
+  summary.equirectProjectionEntries = cache.equirectProjections.size;
   summary.diffuseTextureEntries = cache.diffuseTextures.size;
   summary.specularTextureEntries = cache.specularTextures.size;
   summary.samplerEntries = cache.samplers.size;
@@ -312,6 +317,7 @@ export function writeWebGpuEnvironmentResourceCacheSummary(
   summary.shadowDepthTextureEntries = cache.shadowDepthTextures.size;
   summary.shadowMatrixBufferEntries = cache.shadowMatrixBuffers.size;
   summary.totalEntries =
+    summary.equirectProjectionEntries +
     summary.diffuseTextureEntries +
     summary.specularTextureEntries +
     summary.samplerEntries +
@@ -484,6 +490,7 @@ function prepareWebGpuAppEnvironmentAsset(input: {
   const equirectProjection = equirectProjectionForAsset({
     asset: input.asset,
     device: input.device,
+    cache: input.cache.equirectProjections,
     environmentMapResourceKey,
     version,
   });
@@ -637,6 +644,7 @@ function webGpuPreparedEnvironmentAssetToJsonValue(
 function equirectProjectionForAsset(input: {
   readonly asset: WebGpuAppEnvironmentAssetInput;
   readonly device: TextureGpuDeviceLike;
+  readonly cache: Map<string, EquirectToCubeResourceReport>;
   readonly environmentMapResourceKey: string;
   readonly version: string | null;
 }): EquirectToCubeResourceReport | undefined {
@@ -646,17 +654,27 @@ function equirectProjectionForAsset(input: {
     return undefined;
   }
 
-  return createEquirectToCubeResource({
+  const resourceKey = versionedEnvironmentResourceKey(
+    source.resourceKey ?? `${input.environmentMapResourceKey}:equirect-cube`,
+    input.version,
+  );
+  const cached = input.cache.get(resourceKey);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const report = createEquirectToCubeResource({
     device: input.device,
     equirect: source,
     ...(source.faceSize === undefined ? {} : { faceSize: source.faceSize }),
     ...(source.format === undefined ? {} : { format: source.format }),
-    resourceKey: versionedEnvironmentResourceKey(
-      source.resourceKey ?? `${input.environmentMapResourceKey}:equirect-cube`,
-      input.version,
-    ),
+    resourceKey,
     label: source.label ?? input.asset.label ?? input.environmentMapResourceKey,
   });
+  if (report.ready) {
+    input.cache.set(resourceKey, report);
+  }
+  return report;
 }
 
 function equirectToCubeResourceReportToJsonValue(

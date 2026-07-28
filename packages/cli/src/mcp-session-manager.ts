@@ -183,6 +183,14 @@ export class ApertureMcpSessionManager {
         "List configured assets and readiness.",
         sharedTargetSchema(),
       ),
+      tool(
+        "asset_inspect",
+        "Inspect glTF meshes and materials without a GPU.",
+        {
+          ...sharedTargetSchema(),
+          id: { type: "string" },
+        },
+      ),
       tool("resource_get", "Read initialized resources.", {
         ...sharedTargetSchema(),
         id: { type: "string" },
@@ -261,6 +269,26 @@ export class ApertureMcpSessionManager {
           timeoutMs: { type: "number" },
           region: { enum: ["canvas", "viewport"] },
           samples: { type: "array" },
+        },
+      ),
+      tool(
+        "render_diagnose",
+        "Report output, active lighting, visible material compatibility, and actionable warnings for the current frame.",
+        {
+          target: targetSchema(),
+          appRoot: { type: "string" },
+          width: { type: "number" },
+          height: { type: "number" },
+          allowPlaceholders: { type: "boolean" },
+        },
+      ),
+      tool(
+        "render_get_frame_report",
+        "Read the detailed latest submitted headed frame report.",
+        {
+          target: { enum: ["headed"] },
+          appRoot: { type: "string" },
+          summaryOnly: { type: "boolean" },
         },
       ),
       tool("logs_read", "Read recent headed/headless logs.", {
@@ -365,6 +393,10 @@ export class ApertureMcpSessionManager {
         return this.#appReset(input.args);
       case "frame_capture":
         return this.#frameCapture(input.args);
+      case "render_diagnose":
+        return this.#renderDiagnose(input.args);
+      case "render_get_frame_report":
+        return this.#headedFrameReport(input.args);
       case "logs_read":
         return this.#logsRead(input.args);
       case "render_bundle":
@@ -860,6 +892,13 @@ export class ApertureMcpSessionManager {
       arguments: {},
       keepBrowserConnection: true,
     });
+    const frameReport = await callApertureTool({
+      cwd: appRoot,
+      name: "render_get_frame_report",
+      arguments: { summaryOnly: false },
+      keepBrowserConnection: true,
+    });
+    const lightingHealth = lightingHealthFromFrameReport(frameReport);
     const capture = frameCaptureMetadataFromCanvasStatus(canvas);
     const png = await imageBufferFromCaptureResult(screenshot);
     const samples =
@@ -879,14 +918,98 @@ export class ApertureMcpSessionManager {
       canvas: capture.canvas,
       viewport: capture.viewport,
       renderTarget: capture.renderTarget,
+      lightingHealth,
       ...(samples === undefined ? {} : { samples }),
       diagnostics: [
         ...diagnosticsFrom(screenshot, canvas),
         // The headed target captures the LIVE canvas at its natural size —
         // say so explicitly instead of silently ignoring width/height (#70).
         ...headedCaptureSizeDiagnostics(args, dimensions),
+        ...lightingHealthWarnings(lightingHealth),
       ],
     };
+  }
+
+  async #renderDiagnose(args: Record<string, unknown>): Promise<unknown> {
+    const target = resolveTarget(args, this.#headless !== null);
+
+    if (target === "headed") {
+      const frameReport = await callApertureTool({
+        cwd: this.#headedAppRoot(args),
+        name: "render_get_frame_report",
+        arguments: { summaryOnly: false },
+        keepBrowserConnection: true,
+      });
+      const lightingHealth = lightingHealthFromFrameReport(frameReport);
+
+      if (!isRecord(lightingHealth)) {
+        return diagnosticResult(
+          "headed",
+          "aperture.renderDiagnose.unavailable",
+          "No submitted headed frame is available for render diagnosis.",
+        );
+      }
+
+      return {
+        ok: true,
+        target: "headed",
+        mode: "headed",
+        ...lightingHealth,
+        diagnostics: lightingHealthWarnings(lightingHealth),
+      };
+    }
+
+    const slot = this.#requireHeadless();
+    const capture = await this.#headlessFrameCapture({
+      ...args,
+      target: "headless",
+      includeData: false,
+      out: path.join(
+        slot.root,
+        ".aperture",
+        "diagnostics",
+        "render-diagnose.png",
+      ),
+    });
+    const lightingHealth = isRecord(capture) ? capture["lightingHealth"] : null;
+
+    if (
+      !isRecord(capture) ||
+      capture["ok"] !== true ||
+      !isRecord(lightingHealth)
+    ) {
+      return capture;
+    }
+
+    return {
+      ok: true,
+      target: "headless",
+      mode: "headless",
+      frame: capture["frame"],
+      ...lightingHealth,
+      diagnostics: lightingHealthWarnings(lightingHealth),
+    };
+  }
+
+  async #headedFrameReport(args: Record<string, unknown>): Promise<unknown> {
+    const target = optionalTarget(args) ?? "headed";
+    if (target !== "headed") {
+      return diagnosticResult(
+        target,
+        "aperture.mcp.invalidTarget",
+        "render_get_frame_report only supports target: 'headed'.",
+      );
+    }
+
+    return normalizeResult(
+      "headed",
+      await callApertureTool({
+        cwd: this.#headedAppRoot(args),
+        name: "render_get_frame_report",
+        arguments: withoutRoutingArgs(args),
+        keepBrowserConnection: true,
+      }),
+    );
   }
 
   async #headlessFrameCapture(args: Record<string, unknown>): Promise<unknown> {
@@ -972,6 +1095,7 @@ export class ApertureMcpSessionManager {
       viewport: headlessCanvasMetadata(width, height),
       renderTarget,
       webgpu: rendered.metadata.webgpu,
+      lightingHealth: rendered.metadata.lightingHealth,
       assetProvenance: isRecord(bundleResult)
         ? bundleResult["assetProvenance"]
         : undefined,
@@ -983,7 +1107,10 @@ export class ApertureMcpSessionManager {
         ? { data: rendered.png.toString("base64") }
         : {}),
       ...(args["includeData"] === true ? { includeData: true } : {}),
-      diagnostics: preflightDiagnostics,
+      diagnostics: [
+        ...preflightDiagnostics,
+        ...lightingHealthWarnings(rendered.metadata.lightingHealth),
+      ],
     };
   }
 
@@ -1220,6 +1347,7 @@ function isSharedRuntimeTool(name: string): boolean {
     name.startsWith("ecs_") ||
     name.startsWith("camera_") ||
     name === "asset_list" ||
+    name === "asset_inspect" ||
     name === "resource_get" ||
     name === "resource_set" ||
     name === "input_get_state" ||
@@ -1439,6 +1567,24 @@ function determinismMode(value: unknown): "off" | "warn" | "error" {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function lightingHealthWarnings(value: unknown): readonly unknown[] {
+  return isRecord(value) && Array.isArray(value["warnings"])
+    ? value["warnings"]
+    : [];
+}
+
+function lightingHealthFromFrameReport(value: unknown): unknown {
+  if (!isRecord(value)) {
+    return null;
+  }
+  const report = value["report"];
+  if (!isRecord(report)) {
+    return null;
+  }
+  const lastFrame = report["lastFrame"];
+  return isRecord(lastFrame) ? (lastFrame["lightingHealth"] ?? null) : null;
 }
 
 function diagnosticsFrom(...values: unknown[]): readonly unknown[] {

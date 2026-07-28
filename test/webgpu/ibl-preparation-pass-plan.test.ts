@@ -26,7 +26,6 @@ describe("IBL preparation pass planning", () => {
         texturePreparation: true,
         passPlans: true,
         passSubmission: false,
-        shaderSampling: false,
       },
       passes: [
         {
@@ -118,7 +117,6 @@ describe("IBL preparation pass planning", () => {
     expect(json.ready).toBe(true);
     expect(json.status).toBe("ready");
     expect(json.sections.passSubmission).toBe(true);
-    expect(json.sections.shaderSampling).toBe(false);
     expect(json.diagnostics).toEqual([]);
   });
 });

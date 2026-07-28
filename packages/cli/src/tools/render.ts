@@ -56,6 +56,7 @@ export async function renderFrameReport(
         renderTargets: frameRecord?.["renderTargets"] ?? null,
         postEffects: frameRecord?.["postEffects"] ?? null,
         diagnostics: frameRecord?.["diagnostics"] ?? [],
+        lightingHealth: frameRecord?.["lightingHealth"] ?? null,
       };
 
       if (summaryOnly) {

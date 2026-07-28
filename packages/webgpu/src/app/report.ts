@@ -151,6 +151,9 @@ export function webGpuAppRenderReportToJsonValue(
     diagnostics: report.diagnostics.map((diagnostic) =>
       toWebGpuAppJsonValue(diagnostic),
     ),
+    ...(report.lightingHealth === undefined
+      ? {}
+      : { lightingHealth: toWebGpuAppJsonValue(report.lightingHealth) }),
     ...(diagnosticsSummary === undefined ? {} : { diagnosticsSummary }),
     resourceReuse,
     ...(report.depthAttachment === undefined

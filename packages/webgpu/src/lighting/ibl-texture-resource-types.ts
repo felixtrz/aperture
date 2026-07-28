@@ -94,7 +94,6 @@ export interface DiffuseIblTextureResourceReport {
     readonly diffuseTextureResource: boolean;
     readonly gpuAllocation: boolean;
     readonly specularPrefiltering: false;
-    readonly shaderSampling: false;
   };
   readonly resources: readonly CreateTextureGpuResourceResult[];
   readonly diagnostics: readonly IblTextureResourceDiagnostic[];
@@ -114,7 +113,6 @@ export interface SpecularIblTextureResourceReport {
     readonly proofUpload: boolean;
     readonly prefiltering: boolean;
     readonly bindGroupResource: false;
-    readonly shaderSampling: false;
   };
   readonly resources: readonly CreateTextureGpuResourceResult[];
   readonly diagnostics: readonly IblTextureResourceDiagnostic[];

@@ -159,7 +159,7 @@ export default class SetupSystem extends createSystem({
       key: "light.key",
       name: "key-light",
       kind: "directional",
-      illuminance: 4,
+      intensity: 4,
       transform: {
         rotationEulerDegrees: [-45, 35, 0],
       },
@@ -219,6 +219,40 @@ The high-level GLB path hides loader reports, source asset transfer packages,
 renderer-side registration, primitive material resolution, ECS command planning,
 and ECS replay. Systems consume typed config handles and the generated runtime
 mirrors render assets to WebGPU.
+
+### Imported-model lighting and appearance
+
+Use `spawn.lightRig` for deterministic ECS-owned presentation lighting:
+
+```ts
+this.spawn.lightRig({
+  key: "lighting.presentation",
+  preset: "studio-neutral",
+  environmentMap: this.assets.hdr("studioEnvironment"),
+  shadows: true,
+});
+```
+
+The public presets are `studio-neutral`, `outdoor-neutral`, and `none`; their
+inspectable definitions are exported as `LIGHT_RIG_PRESETS`. The returned rig
+lists its root and light entities and has `remove()` to destroy everything it
+owns. Override `environment`, `keyLight`, or `rimLight` without introducing
+renderer-only state. `spawn.environment({ source, intensity })` is the direct
+single-entity form.
+
+Imported glTF materials use the source policy unless `materials` is provided.
+The option accepts `StandardMaterialPatch` or
+`material.preset("source" | "painted-stylized" | "matte" | "preview-safe",
+overrides?)`. Patches apply to cloned/reused materials for the spawned subtree;
+source assets are never mutated. See
+[Spawn a glTF scene](recipes/spawn-gltf-scene.md) for the complete field list
+and [Lighting imported models](recipes/lighting-imported-models.md) for the
+physically faithful and stylized paths.
+
+Light `intensity` is currently a unitless renderer scalar. `illuminance`
+continues to work for compatibility but is deprecated because Aperture does
+not perform lux conversion. When both are supplied, `intensity` wins and the
+authoring diagnostics report the conflict.
 
 Current primitive descriptors include:
 

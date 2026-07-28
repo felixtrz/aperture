@@ -10,9 +10,7 @@ export type StandardMaterialIblShadowBindingStatus =
 
 export type StandardMaterialIblShadowBindingDiagnosticCode =
   | "standardMaterialIblShadowBinding.missingIblPlan"
-  | "standardMaterialIblShadowBinding.missingShadowPlan"
-  | "standardMaterialIblShadowBinding.bindGroupDeferred"
-  | "standardMaterialIblShadowBinding.shaderSamplingDeferred";
+  | "standardMaterialIblShadowBinding.missingShadowPlan";
 
 export interface StandardMaterialIblShadowBindingSlot {
   readonly bindingKey: string;
@@ -40,8 +38,6 @@ export interface StandardMaterialIblShadowBindingReadinessReport {
   readonly sections: {
     readonly iblPassPlanning: boolean;
     readonly shadowPlanning: boolean;
-    readonly bindGroupLayout: false;
-    readonly shaderSampling: false;
   };
   readonly slots: readonly StandardMaterialIblShadowBindingSlot[];
   readonly diagnostics: readonly StandardMaterialIblShadowBindingDiagnostic[];
@@ -69,8 +65,6 @@ export function createStandardMaterialIblShadowBindingReadinessReport(
       sections: {
         iblPassPlanning: true,
         shadowPlanning: true,
-        bindGroupLayout: false,
-        shaderSampling: false,
       },
       slots: [],
       diagnostics: [],
@@ -128,21 +122,6 @@ export function createStandardMaterialIblShadowBindingReadinessReport(
     }
   }
 
-  if (slots.length > 0) {
-    diagnostics.push({
-      code: "standardMaterialIblShadowBinding.bindGroupDeferred",
-      severity: "warning",
-      message:
-        "StandardMaterial IBL/shadow binding slots are planned, but bind group layout changes are deferred.",
-    });
-    diagnostics.push({
-      code: "standardMaterialIblShadowBinding.shaderSamplingDeferred",
-      severity: "warning",
-      message:
-        "StandardMaterial IBL/shadow binding slots are planned, but shader sampling is deferred.",
-    });
-  }
-
   const status = diagnostics.some(
     (diagnostic) =>
       diagnostic.code === "standardMaterialIblShadowBinding.missingIblPlan" ||
@@ -163,8 +142,6 @@ export function createStandardMaterialIblShadowBindingReadinessReport(
       shadowPlanning:
         input.shadowViewProjection.status !== "missing" &&
         input.shadowCasterDrawList.status !== "missing",
-      bindGroupLayout: false,
-      shaderSampling: false,
     },
     slots,
     diagnostics,

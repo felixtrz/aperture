@@ -6,7 +6,11 @@ export {
   createGeneratedEntityToolBridge,
   type GeneratedEntityToolBridge,
 } from "./devtools/entities.js";
-export { createAssetSummary } from "./devtools/assets.js";
+export {
+  createAssetSummary,
+  inspectGltfAsset,
+  type GltfAssetInspectionReport,
+} from "./devtools/assets.js";
 export { callCameraTool, type CameraToolState } from "./devtools/camera.js";
 export { callInputDevtoolsTool } from "./devtools/input.js";
 export type { GeneratedDevtoolsToolResult } from "./devtools/types.js";

@@ -22,8 +22,7 @@ export type IblPreparationResourceSummaryDiagnosticCode =
   | "iblPreparationResourceSummary.textureUploadDeferred"
   | "iblPreparationResourceSummary.missingPassPlan"
   | "iblPreparationResourceSummary.unsupportedPassPlan"
-  | "iblPreparationResourceSummary.passSubmissionDeferred"
-  | "iblPreparationResourceSummary.shaderSamplingDeferred";
+  | "iblPreparationResourceSummary.passSubmissionDeferred";
 
 export interface IblPreparationResourceSummaryDiagnostic {
   readonly code: IblPreparationResourceSummaryDiagnosticCode;
@@ -49,7 +48,6 @@ export interface IblPreparationResourceSummaryReport {
     readonly textureUpload: boolean;
     readonly prefilterPassPlans: boolean;
     readonly passSubmission: boolean;
-    readonly shaderSampling: false;
   };
   readonly resourceKeys: {
     readonly environmentMaps: readonly string[];
@@ -122,7 +120,6 @@ export function createIblPreparationResourceSummaryScratch(): IblPreparationReso
         textureUpload: true,
         prefilterPassPlans: true,
         passSubmission: true,
-        shaderSampling: false,
       },
       resourceKeys: {
         environmentMaps: environmentMapKeys,
@@ -198,7 +195,6 @@ export function writeIblPreparationResourceSummaryReport(
         input.passPlan.status === "deferred" ||
         input.passPlan.status === "not-required",
       passSubmission: input.passPlan.sections.passSubmission,
-      shaderSampling: false,
     },
   );
 
@@ -295,13 +291,6 @@ function writeDiagnostics(
 
   addTextureDiagnostic(diagnostics, input.textures.status);
   addPassDiagnostic(diagnostics, input.passPlan.status);
-
-  diagnostics.push({
-    code: "iblPreparationResourceSummary.shaderSamplingDeferred",
-    severity: "warning",
-    message:
-      "IBL preparation resource status is data-only; StandardMaterial shader sampling remains deferred.",
-  });
 }
 
 function addTextureDiagnostic(
@@ -388,7 +377,6 @@ function writeReport(
   mutableSections.textureUpload = sections.textureUpload;
   mutableSections.prefilterPassPlans = sections.prefilterPassPlans;
   mutableSections.passSubmission = sections.passSubmission;
-  mutableSections.shaderSampling = sections.shaderSampling;
 }
 
 function pushUniqueSorted(values: string[], value: string): void {

@@ -52,7 +52,6 @@ export interface IblSamplerDescriptorReadinessReport {
     readonly samplerDescriptors: boolean;
     readonly gpuAllocation: boolean;
     readonly bindGroupLayout: false;
-    readonly shaderSampling: false;
   };
   readonly samplers: readonly IblSamplerDescriptorSlot[];
   readonly diagnostics: readonly IblSamplerDescriptorDiagnostic[];
@@ -83,7 +82,6 @@ export function createIblSamplerDescriptorReadinessReport(
         samplerDescriptors: true,
         gpuAllocation: true,
         bindGroupLayout: false,
-        shaderSampling: false,
       },
       samplers: [],
       diagnostics: [],
@@ -109,7 +107,6 @@ export function createIblSamplerDescriptorReadinessReport(
       samplerDescriptors: status === "ready" || status === "deferred",
       gpuAllocation: status === "ready",
       bindGroupLayout: false,
-      shaderSampling: false,
     },
     samplers,
     diagnostics,

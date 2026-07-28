@@ -30,6 +30,7 @@ import {
   type AssetRegistry,
   type EcsWorld,
   type Entity,
+  type EnvironmentMapHandle,
   type SamplerHandle,
   type TextureHandle,
 } from "@aperture-engine/simulation";
@@ -41,6 +42,13 @@ import {
 } from "@aperture-engine/runtime";
 import { PHYSICS_ENTITY_REF_STRING_FIELDS } from "@aperture-engine/physics";
 import type { SystemAssetAccess } from "../assets.js";
+import type {
+  EnvironmentAssetDescriptorInput,
+  SpawnEnvironmentOptions,
+  SpawnLightOptions,
+  SpawnedLightRig,
+} from "./types.js";
+import { LIGHT_RIG_PRESETS } from "./light-rig-presets.js";
 import { AppEntitySource } from "../components.js";
 import type { SystemDiagnostics } from "../diagnostics.js";
 import { ApertureSystemError } from "../errors.js";
@@ -211,6 +219,7 @@ export function createSpawnCommands(options: {
       return entity;
     },
     light(input = {}) {
+      reportLightIntensityDiagnostics(options.diagnostics, input);
       const entity = createEntityWithMetadata(options.world, input, "light");
       addTransform(entity, input.transform);
       entity.addComponent(
@@ -220,7 +229,7 @@ export function createSpawnCommands(options: {
           kind: input.kind ?? input.light?.kind ?? LightKind.Directional,
           ...(input.color === undefined ? {} : { color: input.color }),
           intensity:
-            input.illuminance ?? input.intensity ?? input.light?.intensity ?? 1,
+            input.intensity ?? input.illuminance ?? input.light?.intensity ?? 1,
         }),
       );
       if (input.shadow !== undefined && input.shadow !== false) {
@@ -233,6 +242,121 @@ export function createSpawnCommands(options: {
         );
       }
       return entity;
+    },
+    environment(input) {
+      const source = environmentMapHandle(input.source);
+      const entity = createEntityWithMetadata(
+        options.world,
+        input,
+        "environment",
+      );
+      addTransform(entity, input.transform);
+      entity.addComponent(
+        Light,
+        createLight({
+          kind: LightKind.Environment,
+          environmentMap: source,
+          intensity: input.intensity ?? 1,
+          ...(input.color === undefined ? {} : { color: input.color }),
+          ...(input.layerMask === undefined
+            ? {}
+            : { layerMask: input.layerMask }),
+        }),
+      );
+      return entity;
+    },
+    lightRig(input) {
+      const definition = LIGHT_RIG_PRESETS[input.preset];
+      const root = createEntityWithMetadata(options.world, input, "light-rig");
+      addTransform(root, input.transform);
+      const lights: Entity[] = [];
+      const rigKey = input.key ?? `light-rig.${input.preset}`;
+
+      if (definition.environment !== null && input.environment !== false) {
+        const environmentOverride = input.environment ?? {};
+        const source = environmentOverride.source ?? input.environmentMap;
+
+        if (source === undefined) {
+          root.destroy();
+          throw new ApertureSystemError(
+            "aperture.spawn.lightRigEnvironmentRequired",
+            `Light rig preset '${input.preset}' requires an environment map.`,
+            "Pass environmentMap: this.assets.hdr('studio') or select preset: 'none'.",
+          );
+        }
+
+        lights.push(
+          commands.environment({
+            ...definition.environment,
+            ...environmentOverride,
+            source,
+            key: environmentOverride.key ?? `${rigKey}.environment`,
+            name: environmentOverride.name ?? `${input.preset} environment`,
+            transform: mergeChildTransform(
+              definition.environment.transform,
+              environmentOverride.transform,
+              root,
+            ),
+          }),
+        );
+      }
+
+      if (definition.keyLight !== null && input.keyLight !== false) {
+        const keyOverride = input.keyLight ?? {};
+        lights.push(
+          commands.light({
+            ...mergeLightOptions(definition.keyLight, keyOverride),
+            key: keyOverride.key ?? `${rigKey}.key`,
+            name: keyOverride.name ?? `${input.preset} key light`,
+            transform: mergeChildTransform(
+              definition.keyLight.transform,
+              keyOverride.transform,
+              root,
+            ),
+            ...(input.shadows === undefined || input.shadows === false
+              ? {}
+              : { shadow: input.shadows }),
+          }),
+        );
+      }
+
+      if (definition.rimLight !== null && input.rimLight !== false) {
+        const rimOverride = input.rimLight ?? {};
+        lights.push(
+          commands.light({
+            ...mergeLightOptions(definition.rimLight, rimOverride),
+            key: rimOverride.key ?? `${rigKey}.rim`,
+            name: rimOverride.name ?? `${input.preset} rim light`,
+            transform: mergeChildTransform(
+              definition.rimLight.transform,
+              rimOverride.transform,
+              root,
+            ),
+          }),
+        );
+      }
+
+      let removed = false;
+      const rig: SpawnedLightRig = Object.freeze({
+        preset: input.preset,
+        root,
+        lights: Object.freeze([...lights]),
+        remove() {
+          if (removed) {
+            return;
+          }
+          removed = true;
+          for (const entity of [...lights].reverse()) {
+            if (entity.active) {
+              entity.destroy();
+            }
+          }
+          if (root.active) {
+            root.destroy();
+          }
+        },
+      });
+      return rig;
     },
     fog(input = {}) {
       warnUnknownSpawnKeys(options.diagnostics, "fog", input, FOG_SPAWN_KEYS);
@@ -472,6 +596,80 @@ export function createSpawnCommands(options: {
   };
 
   return commands;
+}
+
+function environmentMapHandle(
+  input: EnvironmentAssetDescriptorInput,
+): EnvironmentMapHandle {
+  if ("renderHandle" in input) {
+    if (input.kind !== "hdr" || input.renderHandle.kind !== "environment-map") {
+      throw new ApertureSystemError(
+        "aperture.spawn.invalidEnvironmentAssetKind",
+        "spawn.environment expected an HDR asset handle.",
+        "Pass this.assets.hdr(id) or an EnvironmentMapHandle.",
+        { receivedKind: input.kind },
+      );
+    }
+    return input.renderHandle;
+  }
+
+  const direct = input as { readonly kind?: unknown; readonly id?: unknown };
+  if (direct.kind !== "environment-map") {
+    throw new ApertureSystemError(
+      "aperture.spawn.invalidEnvironmentAssetKind",
+      "spawn.environment expected an environment-map handle.",
+      "Pass this.assets.hdr(id) or createEnvironmentMapHandle(id).",
+      { receivedKind: direct.kind },
+    );
+  }
+
+  return input as EnvironmentMapHandle;
+}
+
+function reportLightIntensityDiagnostics(
+  diagnostics: SystemDiagnostics,
+  input: SpawnLightOptions,
+): void {
+  if (input.illuminance !== undefined && input.intensity !== undefined) {
+    diagnostics.warn(
+      "aperture.spawn.lightIntensityConflict",
+      {
+        illuminance: input.illuminance,
+        intensity: input.intensity,
+        selected: "intensity",
+      },
+      "Both illuminance and intensity were provided; intensity takes precedence.",
+    );
+  }
+
+  if (input.illuminance !== undefined) {
+    diagnostics.warn(
+      "aperture.spawn.illuminanceDeprecated",
+      { illuminance: input.illuminance },
+      "illuminance is deprecated because Aperture currently uses a unitless light scalar; use intensity instead.",
+    );
+  }
+}
+
+function mergeLightOptions(
+  preset: Readonly<SpawnLightOptions>,
+  override: Partial<SpawnLightOptions>,
+): SpawnLightOptions {
+  return {
+    ...preset,
+    ...override,
+    ...(preset.light === undefined && override.light === undefined
+      ? {}
+      : { light: { ...preset.light, ...override.light } }),
+  };
+}
+
+function mergeChildTransform(
+  preset: SpawnEnvironmentOptions["transform"] | undefined,
+  override: SpawnEnvironmentOptions["transform"] | undefined,
+  parent: Entity,
+): NonNullable<SpawnEnvironmentOptions["transform"]> {
+  return { ...preset, ...override, parent };
 }
 
 function resolveParticleEffectHandle(input: ParticleEffectDescriptorInput) {

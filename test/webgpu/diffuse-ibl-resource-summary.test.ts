@@ -51,7 +51,6 @@ describe("diffuse IBL resource summary", () => {
         samplerResources: true,
         specularPrefiltering: false,
         bindGroupLayout: false,
-        shaderSampling: false,
       },
       resourceKeys: {
         diffuseTextures: ["texture:studio:diffuse-irradiance:texture"],

@@ -7,6 +7,7 @@ import {
   type GltfEcsCommandReplayReport,
   type MaterialAsset,
   type SourceMaterialAsset,
+  type StandardMaterialPatch,
 } from "@aperture-engine/render";
 import {
   assetHandleKey,
@@ -25,6 +26,7 @@ import { formatReportDiagnostics } from "../diagnostics.js";
 import type { SystemDiagnostics } from "../diagnostics.js";
 import { ApertureSystemError } from "../errors.js";
 import type { SpawnGltfMaterialOverrides } from "./types.js";
+import { resolveSpawnGltfMaterialOverrides } from "./material-presets.js";
 
 export function applyGltfSourceMetadata(
   world: EcsWorld,
@@ -89,7 +91,9 @@ export function applyGltfMaterialOverrides(input: {
   readonly replay: GltfEcsCommandReplayReport;
   readonly overrides: SpawnGltfMaterialOverrides | undefined;
 }): void {
-  if (!hasMaterialOverrides(input.overrides)) {
+  const overrides = resolveSpawnGltfMaterialOverrides(input.overrides);
+
+  if (!hasMaterialOverrides(overrides)) {
     return;
   }
 
@@ -112,7 +116,7 @@ export function applyGltfMaterialOverrides(input: {
         diagnostics: input.diagnostics,
         scene: input.scene,
         sourceMaterialKey,
-        overrides: input.overrides,
+        overrides,
       });
       if (replacement === null) {
         continue;
@@ -175,8 +179,8 @@ function sourceFromGltfEntityKey(
 }
 
 function hasMaterialOverrides(
-  overrides: SpawnGltfMaterialOverrides | undefined,
-): overrides is SpawnGltfMaterialOverrides {
+  overrides: StandardMaterialPatch | undefined,
+): overrides is StandardMaterialPatch {
   return (
     overrides !== undefined &&
     Object.values(overrides).some((value) => value !== undefined)
@@ -188,7 +192,7 @@ function cloneGltfMaterialForSpawn(input: {
   readonly diagnostics: SystemDiagnostics;
   readonly scene: SystemGltfLoadedScene;
   readonly sourceMaterialKey: string;
-  readonly overrides: SpawnGltfMaterialOverrides;
+  readonly overrides: StandardMaterialPatch;
 }): string | null {
   const sourceHandle = materialHandleFromKey(input.sourceMaterialKey);
   const sourceEntry = input.registry.get<"material", SourceMaterialAsset>(
@@ -243,7 +247,7 @@ function cloneGltfMaterialForSpawn(input: {
 
 function patchMaterialAsset(
   material: SourceMaterialAsset,
-  overrides: SpawnGltfMaterialOverrides,
+  overrides: StandardMaterialPatch,
 ): SourceMaterialAsset | null {
   switch (builtInMaterialKind(material)) {
     case "standard":
@@ -289,7 +293,7 @@ function materialIdFromHandleKey(handleKey: string): string {
     : handleKey;
 }
 
-function materialOverrideKey(overrides: SpawnGltfMaterialOverrides): string {
+function materialOverrideKey(overrides: StandardMaterialPatch): string {
   return hashString(JSON.stringify(overrides));
 }
 

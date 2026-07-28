@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1387
+Every structured diagnostic code the engine can emit (1388
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -21,6 +21,13 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                        | Message                       | Fix? | Emitted from                         |
 | --------------------------- | ----------------------------- | ---- | ------------------------------------ |
 | `aperture.asset.loadFailed` | (message composed at runtime) | yes  | `packages/app/src/systems/assets.ts` |
+
+## aperture.assetInspect (2)
+
+| Code                                      | Message                                                   | Fix? | Emitted from                                                                                      |
+| ----------------------------------------- | --------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------- |
+| `aperture.assetInspect.gltfAssetNotFound` | asset_inspect requires the id of a configured glTF asset. | —    | `packages/app/src/worker/devtools/bridge.ts`<br>`packages/cli/src/headless/session-controller.ts` |
+| `aperture.assetInspect.gltfNotReady`      | glTF asset '…' is not loaded and ready for inspection.    | —    | `packages/app/src/devtools/assets.ts`                                                             |
 
 ## aperture.camera (5)
 
@@ -358,12 +365,14 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.session.invalidSystemState`  | System '…' returned a non-serializable SessionSnapshot state payload. | yes  | `packages/app/src/headless.ts` |
 | `aperture.session.unsupportedSnapshot` | Unsupported Aperture session snapshot '…' version ….                  | yes  | `packages/app/src/headless.ts` |
 
-## aperture.spawn (3)
+## aperture.spawn (5)
 
 | Code                                         | Message                                                         | Fix? | Emitted from                                 |
 | -------------------------------------------- | --------------------------------------------------------------- | ---- | -------------------------------------------- |
 | `aperture.spawn.gltfMaterialOverrideSkipped` | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/gltf.ts`     |
+| `aperture.spawn.illuminanceDeprecated`       | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/commands.ts` |
 | `aperture.spawn.invalidParticleEffectHandle` | spawn.particles expected effect to be a particle-effect handle. | yes  | `packages/app/src/systems/spawn/commands.ts` |
+| `aperture.spawn.lightIntensityConflict`      | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/commands.ts` |
 | `aperture.spawn.unknownOption`               | Spawn ignored unrecognized option(s).                           | yes  | `packages/app/src/systems/spawn/commands.ts` |
 
 ## aperture.system (3)
@@ -2182,12 +2191,6 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                                   | Message                                                                  | Fix? | Emitted from                                                       |
 | ------------------------------------------------------ | ------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------ |
 | `iblPreparationResourceSummary.passSubmissionDeferred` | IBL preparation passes are planned, but GPU pass submission is deferred. | —    | `packages/webgpu/src/lighting/ibl-preparation-resource-summary.ts` |
-
-## iblPreparationResourceSummary.shaderSamplingDeferred (1)
-
-| Code                                                   | Message                                                                                          | Fix? | Emitted from                                                       |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------ |
-| `iblPreparationResourceSummary.shaderSamplingDeferred` | IBL preparation resource status is data-only; StandardMaterial shader sampling remains deferred. | —    | `packages/webgpu/src/lighting/ibl-preparation-resource-summary.ts` |
 
 ## iblPreparationResourceSummary.textureUploadDeferred (1)
 
@@ -4188,11 +4191,29 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------ | --------------------------------------------- | ---- | ------------------------------------------------------- |
 | `render.audio.oneShotOverflow` | Dropped … one-shot(s): queue at capacity (…). | —    | `packages/render/src/rendering/audio-one-shot-queue.ts` |
 
+## render.environment (1)
+
+| Code                                      | Message                                                                                        | Fix? | Emitted from                                       |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------- |
+| `render.environment.requestedButInactive` | An environment is authored but is not contributing to the submitted StandardMaterial pipeline. | —    | `packages/render/src/rendering/lighting-health.ts` |
+
 ## render.extraction (1)
 
 | Code                                             | Message                                                                                                                                                                                                               | Fix? | Emitted from                                  |
 | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------- |
 | `render.extraction.featureGatedWithLiveEntities` | Render feature '…' is disabled by the app feature configuration, but the world contains live … entities; their packets are not extracted. Add the '…' feature to the app config (or despawn the entities) to resolve. | —    | `packages/render/src/rendering/extraction.ts` |
+
+## render.material (1)
+
+| Code                                      | Message                                                                      | Fix? | Emitted from                                       |
+| ----------------------------------------- | ---------------------------------------------------------------------------- | ---- | -------------------------------------------------- |
+| `render.material.metalWithoutSpecularIbl` | Highly metallic materials are visible without specular environment lighting. | —    | `packages/render/src/rendering/lighting-health.ts` |
+
+## render.output (1)
+
+| Code                                  | Message                                                                                          | Fix? | Emitted from                                       |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------ | ---- | -------------------------------------------------- |
+| `render.output.untoneMappedHighRange` | Measured pre-output luminance exceeds the clipping-risk threshold while tonemapping is disabled. | —    | `packages/render/src/rendering/lighting-health.ts` |
 
 ## render.particle (6)
 
@@ -5894,21 +5915,33 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## standardMaterialIbl.missingDescriptors (1)
 
-| Code                                     | Message                                                                                      | Fix? | Emitted from                                                                |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------- |
-| `standardMaterialIbl.missingDescriptors` | StandardMaterial IBL requires renderer-owned IBL descriptors for extracted environment maps. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-readiness.ts` |
+| Code                                     | Message                                                                                | Fix? | Emitted from                                                                |
+| ---------------------------------------- | -------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------- |
+| `standardMaterialIbl.missingDescriptors` | An environment was requested, but its renderer-owned IBL source descriptor is missing. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-readiness.ts` |
 
-## standardMaterialIbl.shaderSamplingDeferred (1)
+## standardMaterialIbl.pipelineInactive (1)
 
-| Code                                         | Message                                                                                                  | Fix? | Emitted from                                                                |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------- |
-| `standardMaterialIbl.shaderSamplingDeferred` | StandardMaterial IBL descriptors are reported for readiness, but shader sampling is not implemented yet. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-readiness.ts` |
+| Code                                   | Message                                                                                            | Fix? | Emitted from                                                                |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------- |
+| `standardMaterialIbl.pipelineInactive` | IBL resources are ready, but the submitted StandardMaterial pipeline does not select IBL sampling. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-readiness.ts` |
 
-## standardMaterialIbl.unsupportedSlots (1)
+## standardMaterialIbl.pipelineResourceMismatch (1)
 
-| Code                                   | Message                                                                                                                  | Fix? | Emitted from                                                                |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ---- | --------------------------------------------------------------------------- |
-| `standardMaterialIbl.unsupportedSlots` | StandardMaterial IBL has descriptors, but at least one diffuse or specular IBL slot is still an unsupported placeholder. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-readiness.ts` |
+| Code                                           | Message                                                                                                           | Fix? | Emitted from                                                                |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------- |
+| `standardMaterialIbl.pipelineResourceMismatch` | The submitted StandardMaterial pipeline selects IBL, but the required prepared and bound resources are not ready. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-readiness.ts` |
+
+## standardMaterialIbl.preparationFailed (1)
+
+| Code                                    | Message                                                                               | Fix? | Emitted from                                                                |
+| --------------------------------------- | ------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------- |
+| `standardMaterialIbl.preparationFailed` | The requested environment source exists, but diffuse/specular IBL preparation failed. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-readiness.ts` |
+
+## standardMaterialIbl.preparationPending (1)
+
+| Code                                     | Message                                                                       | Fix? | Emitted from                                                                |
+| ---------------------------------------- | ----------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------- |
+| `standardMaterialIbl.preparationPending` | The requested environment source exists, but IBL preparation is not complete. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-readiness.ts` |
 
 ## standardMaterialIblBindGroup.invalidLayout (1)
 
@@ -5928,23 +5961,11 @@ suggestedFix accompanies it, and where it is emitted.
 | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------- |
 | `standardMaterialIblBindGroup.missingSamplerResource` | StandardMaterial IBL bind-group descriptor planning requires an available IBL sampler resource. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-bind-group.ts` |
 
-## standardMaterialIblBindGroup.shaderSamplingDeferred (1)
+## standardMaterialIblBindGroup.missingSpecularTextureResource (1)
 
-| Code                                                  | Message                                                                                            | Fix? | Emitted from                                                                 |
-| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------- |
-| `standardMaterialIblBindGroup.shaderSamplingDeferred` | StandardMaterial IBL bind-group descriptor keys are planned, but WGSL shader sampling is deferred. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-bind-group.ts` |
-
-## standardMaterialIblBindGroup.specularTextureResourceDeferred (1)
-
-| Code                                                           | Message                                                                                                                                     | Fix? | Emitted from                                                                 |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------- |
-| `standardMaterialIblBindGroup.specularTextureResourceDeferred` | StandardMaterial IBL bind-group descriptor planning requires a renderer-owned specular prefilter texture resource, which is still deferred. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-bind-group.ts` |
-
-## standardMaterialIblBindGroupLayout.bindGroupResourceDeferred (1)
-
-| Code                                                           | Message                                                                                                   | Fix? | Emitted from                                                                        |
-| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------- |
-| `standardMaterialIblBindGroupLayout.bindGroupResourceDeferred` | StandardMaterial IBL bind-group layout metadata is planned, but bind group resource creation is deferred. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-bind-group-layout.ts` |
+| Code                                                          | Message                                                                                                                       | Fix? | Emitted from                                                                 |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------- |
+| `standardMaterialIblBindGroup.missingSpecularTextureResource` | StandardMaterial IBL bind-group descriptor planning requires an available renderer-owned specular prefilter texture resource. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-bind-group.ts` |
 
 ## standardMaterialIblBindGroupLayout.invalidGroup (1)
 
@@ -5954,9 +5975,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## standardMaterialIblBindGroupLayout.invalidLayout (1)
 
-| Code                                               | Message                                                     | Fix? | Emitted from                                                                        |
-| -------------------------------------------------- | ----------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------- |
-| `standardMaterialIblBindGroupLayout.invalidLayout` | StandardMaterial IBL bind-group layout metadata is invalid. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-bind-group-layout.ts` |
+| Code                                               | Message                       | Fix? | Emitted from                                                                        |
+| -------------------------------------------------- | ----------------------------- | ---- | ----------------------------------------------------------------------------------- |
+| `standardMaterialIblBindGroupLayout.invalidLayout` | (message composed at runtime) | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-bind-group-layout.ts` |
 
 ## standardMaterialIblBindGroupLayout.missingBinding (1)
 
@@ -5969,12 +5990,6 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                                      | Message                                               | Fix? | Emitted from                                                                        |
 | --------------------------------------------------------- | ----------------------------------------------------- | ---- | ----------------------------------------------------------------------------------- |
 | `standardMaterialIblBindGroupLayout.resourceKindMismatch` | Standard material IBL binding … must be '…', not '…'. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-bind-group-layout.ts` |
-
-## standardMaterialIblBindGroupLayout.shaderSamplingDeferred (1)
-
-| Code                                                        | Message                                                                                           | Fix? | Emitted from                                                                        |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------- |
-| `standardMaterialIblBindGroupLayout.shaderSamplingDeferred` | StandardMaterial IBL bind-group layout metadata is planned, but WGSL shader sampling is deferred. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-bind-group-layout.ts` |
 
 ## standardMaterialIblBindGroupResource.creationFailed (1)
 
@@ -6006,18 +6021,6 @@ suggestedFix accompanies it, and where it is emitted.
 | --------------------------------------------------------- | -------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------- |
 | `standardMaterialIblBindGroupResource.nullDescriptorPlan` | StandardMaterial IBL bind-group creation requires a descriptor plan. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-bind-group.ts` |
 
-## standardMaterialIblBindGroupResource.shaderSamplingDeferred (1)
-
-| Code                                                          | Message                                                                                   | Fix? | Emitted from                                                                 |
-| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------- |
-| `standardMaterialIblBindGroupResource.shaderSamplingDeferred` | StandardMaterial IBL bind-group resources are live, but WGSL shader sampling is deferred. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-bind-group.ts` |
-
-## standardMaterialIblShadowBinding.bindGroupDeferred (1)
-
-| Code                                                 | Message                                                                                            | Fix? | Emitted from                                                                               |
-| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------ |
-| `standardMaterialIblShadowBinding.bindGroupDeferred` | StandardMaterial IBL/shadow binding slots are planned, but bind group layout changes are deferred. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-shadow-binding-readiness.ts` |
-
 ## standardMaterialIblShadowBinding.missingIblPlan (1)
 
 | Code                                              | Message                                                                        | Fix? | Emitted from                                                                               |
@@ -6030,29 +6033,17 @@ suggestedFix accompanies it, and where it is emitted.
 | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------ |
 | `standardMaterialIblShadowBinding.missingShadowPlan` | StandardMaterial shadow binding readiness requires shadow matrix and caster draw-list planning. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-shadow-binding-readiness.ts` |
 
-## standardMaterialIblShadowBinding.shaderSamplingDeferred (1)
+## standardMaterialIblShadowPipelineKey.featureInactive (1)
 
-| Code                                                      | Message                                                                                 | Fix? | Emitted from                                                                               |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------ |
-| `standardMaterialIblShadowBinding.shaderSamplingDeferred` | StandardMaterial IBL/shadow binding slots are planned, but shader sampling is deferred. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-shadow-binding-readiness.ts` |
-
-## standardMaterialIblShadowPipelineKey.deferredFeature (1)
-
-| Code                                                   | Message                                                                                                                          | Fix? | Emitted from                                                                                    |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------- |
-| `standardMaterialIblShadowPipelineKey.deferredFeature` | StandardMaterial IBL/shadow pipeline-key metadata is planned, but WGSL, bind-group layouts, and shader sampling remain deferred. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-shadow-pipeline-key-readiness.ts` |
+| Code                                                   | Message                                                                                      | Fix? | Emitted from                                                                                    |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------- |
+| `standardMaterialIblShadowPipelineKey.featureInactive` | … is required by binding state but is not active in the submitted StandardMaterial pipeline. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-shadow-pipeline-key-readiness.ts` |
 
 ## standardMaterialIblShadowPipelineKey.missingBindingReadiness (1)
 
-| Code                                                           | Message                                                                                 | Fix? | Emitted from                                                                                    |
-| -------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------- |
-| `standardMaterialIblShadowPipelineKey.missingBindingReadiness` | StandardMaterial IBL/shadow pipeline-key readiness requires binding readiness metadata. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-shadow-pipeline-key-readiness.ts` |
-
-## standardMaterialIblShadowPipelineKey.shaderSamplingDeferred (1)
-
-| Code                                                          | Message                                                                                                                          | Fix? | Emitted from                                                                                    |
-| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------- |
-| `standardMaterialIblShadowPipelineKey.shaderSamplingDeferred` | StandardMaterial IBL/shadow pipeline-key metadata is planned, but WGSL, bind-group layouts, and shader sampling remain deferred. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-shadow-pipeline-key-readiness.ts` |
+| Code                                                           | Message                                                                             | Fix? | Emitted from                                                                                    |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------- |
+| `standardMaterialIblShadowPipelineKey.missingBindingReadiness` | StandardMaterial IBL/shadow pipeline readiness requires available binding metadata. | —    | `packages/webgpu/src/materials/standard/standard-material-ibl-shadow-pipeline-key-readiness.ts` |
 
 ## standardMaterialPack.missingSamplerHandle (1)
 

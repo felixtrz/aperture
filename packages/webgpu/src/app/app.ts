@@ -9,6 +9,7 @@ import type {
   RenderSnapshot,
   RenderSnapshotChangeSet,
   RenderSnapshotUpdateSchedule,
+  LightingHealthReport,
 } from "@aperture-engine/render";
 import { type AppTextureSamplerResourceCacheSummary } from "./app-texture-sampler-resources.js";
 import type { PreparedAppMaterialCacheSummary } from "../materials/core/prepared-app-material-resource.js";
@@ -463,6 +464,7 @@ export interface WebGpuAppRenderReport {
   readonly particles?: ParticleFrameReport;
   /** Per-feature realizer frame reports keyed by realizer id ('particles' stays typed above). */
   readonly features?: Readonly<Record<string, unknown>>;
+  readonly lightingHealth?: LightingHealthReport;
 }
 
 export type WebGpuAppMotionVectorStatus =
@@ -549,6 +551,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
   readonly particles?: WebGpuAppJsonValue;
   readonly features?: WebGpuAppJsonValue;
+  readonly lightingHealth?: WebGpuAppJsonValue;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
 }
 

@@ -1,5 +1,13 @@
 export { createSpawnCommands } from "./commands.js";
 export { material, mesh, physics, shader } from "./descriptors.js";
+export {
+  MATERIAL_APPEARANCE_PRESETS,
+  MATERIAL_APPEARANCE_PRESET_VERSION,
+  createMaterialAppearancePreset,
+  isMaterialAppearancePreset,
+  resolveSpawnGltfMaterialOverrides,
+} from "./material-presets.js";
+export { LIGHT_RIG_PRESETS } from "./light-rig-presets.js";
 export type {
   BoxMeshDescriptorOptions,
   CapsuleMeshDescriptorOptions,
@@ -12,6 +20,10 @@ export type {
   CylinderMeshDescriptorOptions,
   LineListMeshDescriptorOptions,
   MaterialDescriptor,
+  MaterialAppearancePresetDescriptor,
+  MaterialAppearancePresetName,
+  EnvironmentAssetDescriptorInput,
+  LightRigPresetName,
   PlaneMeshDescriptorOptions,
   PrimitiveMeshDescriptor,
   PhysicsComponentDescriptor,
@@ -21,11 +33,14 @@ export type {
   SpawnCameraOptions,
   SpawnCommands,
   SpawnFogOptions,
+  SpawnEnvironmentOptions,
   SpawnGltfBatchInstance,
   SpawnGltfBatchOptions,
   SpawnGltfMaterialOverrides,
   SpawnGltfOptions,
   SpawnLightOptions,
+  SpawnLightRigOptions,
+  SpawnedLightRig,
   SpawnMeshOptions,
   SpawnMetadata,
   SpawnParticlesOptions,

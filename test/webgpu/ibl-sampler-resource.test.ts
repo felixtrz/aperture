@@ -31,7 +31,6 @@ describe("IBL sampler resource", () => {
         samplerDescriptors: true,
         gpuAllocation: true,
         bindGroupLayout: false,
-        shaderSampling: false,
       },
       resources: [
         {

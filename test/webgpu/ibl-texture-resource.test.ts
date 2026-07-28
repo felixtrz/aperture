@@ -35,7 +35,6 @@ describe("diffuse IBL texture resource", () => {
         diffuseTextureResource: true,
         gpuAllocation: true,
         specularPrefiltering: false,
-        shaderSampling: false,
       },
       resources: [
         {
@@ -129,7 +128,6 @@ describe("specular IBL texture resource", () => {
         gpuAllocation: true,
         proofUpload: true,
         prefiltering: false,
-        shaderSampling: false,
       },
       diagnostics: [
         expect.objectContaining({

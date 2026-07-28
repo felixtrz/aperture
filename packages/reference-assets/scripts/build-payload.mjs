@@ -82,12 +82,14 @@ async function verifyReferencePayloadCurrent() {
   const manifestFile = path.join(distDir, "manifest.json");
   const archiveFile = path.join(distDir, "data.tgz");
   const browserSearchFile = path.join(distDir, "browser-search.json");
+  const studioEnvironmentFile = path.join(distDir, "studio-neutral.hdr");
 
   for (const file of [
     embeddingsFile,
     manifestFile,
     archiveFile,
     browserSearchFile,
+    studioEnvironmentFile,
   ]) {
     if (!(await fileExists(file))) {
       return {
@@ -233,6 +235,16 @@ async function verifyReferencePayloadCurrent() {
     return {
       ok: false,
       reason: "browser search asset hash is stale",
+    };
+  }
+
+  const studioEnvironment = await fileManifest(distDir, studioEnvironmentFile);
+  if (
+    digestJson(studioEnvironment) !== digestJson(manifest.studioEnvironment)
+  ) {
+    return {
+      ok: false,
+      reason: "studio environment asset hash is stale",
     };
   }
 

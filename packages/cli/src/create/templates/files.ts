@@ -10,3 +10,10 @@ export function binaryTemplateFile(path: string, base64: string): TemplateFile {
     contents: Buffer.from(base64, "base64"),
   };
 }
+
+export function binaryBytesTemplateFile(
+  path: string,
+  contents: Uint8Array,
+): TemplateFile {
+  return { path, contents };
+}

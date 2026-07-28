@@ -50,10 +50,10 @@ hard-coded ports.
 tools for both the managed browser slot and the warm headless slot:
 
 - `app_status`, `app_start`, `app_stop`, `app_reset`
-- `ecs_*`, `resource_*`, `asset_list`
+- `ecs_*`, `resource_*`, `asset_list`, `asset_inspect`
 - `input_inject`, `input_get_state`, `input_reset`
 - `camera_*`
-- `frame_capture`
+- `frame_capture`, `render_diagnose`
 - `logs_read`
 - headless artifact tools: `render_bundle`, `session_snapshot_*`,
   `determinism_report`

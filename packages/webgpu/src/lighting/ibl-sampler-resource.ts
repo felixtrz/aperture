@@ -43,7 +43,6 @@ export interface IblSamplerResourceReport {
     readonly samplerDescriptors: boolean;
     readonly gpuAllocation: boolean;
     readonly bindGroupLayout: false;
-    readonly shaderSampling: false;
   };
   readonly resources: readonly CreateSamplerGpuResourceResult[];
   readonly diagnostics: readonly IblSamplerResourceDiagnostic[];
@@ -236,7 +235,6 @@ function report(input: {
         input.status !== "missing" && input.status !== "unsupported",
       gpuAllocation: input.status === "available",
       bindGroupLayout: false,
-      shaderSampling: false,
     },
     resources: input.resources,
     diagnostics: input.diagnostics,

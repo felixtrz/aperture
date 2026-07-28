@@ -141,6 +141,11 @@ glTF/GLB is the supported model format, including Draco and KTX2/Basis
 compression, skins, morph targets, and animations (see
 [`AUTHORING.md`](AUTHORING.md) for animation playback).
 
+For metallic/PBR assets, use the complete
+[Lighting imported models](recipes/lighting-imported-models.md) recipe. New
+`game` and `glb-viewer` scaffolds include ACES, an offline neutral studio HDR,
+and an ECS-owned studio light rig.
+
 ## 6. React to input
 
 Input actions are declared in config and arrive in systems fully typed:
@@ -183,3 +188,5 @@ const x = move?.kind === "axis2d" ? move.x.value : 0;
   pipeline and the invariants behind it.
 - [AI tooling](https://github.com/felixtrz/aperture/blob/main/docs/AI_TOOLING.md) — `aperture dev`, MCP tools, and the
   agent-facing inspection surface scaffolded into every new app.
+- [Lighting imported models](recipes/lighting-imported-models.md) — source-faithful
+  PBR lighting, optional material presets, and machine-readable diagnosis.

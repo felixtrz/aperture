@@ -40,7 +40,7 @@ describe("StandardMaterial IBL bind group descriptor planning", () => {
 
     expect(json).toEqual({
       ready: false,
-      status: "deferred",
+      status: "missing",
       standardMaterialCount: 2,
       group: 4,
       entryCount: 2,
@@ -50,8 +50,6 @@ describe("StandardMaterial IBL bind group descriptor planning", () => {
         diffuseTextureResource: true,
         specularTextureResource: false,
         samplerResource: true,
-        bindGroupResource: false,
-        shaderSampling: false,
       },
       plan: {
         valid: false,
@@ -73,29 +71,23 @@ describe("StandardMaterial IBL bind group descriptor planning", () => {
         ],
         diagnostics: [
           {
-            code: "standardMaterialIblBindGroup.specularTextureResourceDeferred",
+            code: "standardMaterialIblBindGroup.missingSpecularTextureResource",
             severity: "warning",
             binding: 1,
             resourceKey: "texture:studio:specular-prefilter:texture",
             message:
-              "StandardMaterial IBL bind-group descriptor planning requires a renderer-owned specular prefilter texture resource, which is still deferred.",
+              "StandardMaterial IBL bind-group descriptor planning requires an available renderer-owned specular prefilter texture resource.",
           },
         ],
       },
       diagnostics: [
         {
-          code: "standardMaterialIblBindGroup.specularTextureResourceDeferred",
+          code: "standardMaterialIblBindGroup.missingSpecularTextureResource",
           severity: "warning",
           binding: 1,
           resourceKey: "texture:studio:specular-prefilter:texture",
           message:
-            "StandardMaterial IBL bind-group descriptor planning requires a renderer-owned specular prefilter texture resource, which is still deferred.",
-        },
-        {
-          code: "standardMaterialIblBindGroup.shaderSamplingDeferred",
-          severity: "warning",
-          message:
-            "StandardMaterial IBL bind-group descriptor keys are planned, but WGSL shader sampling is deferred.",
+            "StandardMaterial IBL bind-group descriptor planning requires an available renderer-owned specular prefilter texture resource.",
         },
       ],
     });
@@ -174,7 +166,6 @@ describe("StandardMaterial IBL bind group descriptor planning", () => {
         textureResources: true,
         samplerResource: true,
         bindGroupResource: true,
-        shaderSampling: false,
       },
       resource: {
         group: 4,
@@ -185,12 +176,7 @@ describe("StandardMaterial IBL bind group descriptor planning", () => {
           "texture:studio:diffuse-irradiance:sampler",
         ],
       },
-      diagnostics: [
-        {
-          code: "standardMaterialIblBindGroupResource.shaderSamplingDeferred",
-          severity: "warning",
-        },
-      ],
+      diagnostics: [],
     });
     expect(createdLayouts).toHaveLength(1);
     expect(createdBindGroups).toHaveLength(1);

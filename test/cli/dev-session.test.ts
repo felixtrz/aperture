@@ -1,8 +1,10 @@
 import { spawn } from "node:child_process";
 import { PassThrough } from "node:stream";
 import {
+  copyFile,
   mkdtemp,
   mkdir,
+  readFile,
   readdir,
   realpath,
   rm,
@@ -17,6 +19,7 @@ import {
   apertureRuntimeDir,
   apertureSessionFile,
   callApertureTool,
+  createApertureProject,
   createApertureDevSession,
   isProcessAlive,
   readApertureDevSession,
@@ -27,6 +30,7 @@ import {
   stopApertureDevSession,
   writeApertureDevSession,
 } from "@aperture-engine/cli";
+import { createStudioNeutralHdr } from "../../packages/cli/src/create/templates/studio-neutral-hdr.js";
 
 const tempRoots: string[] = [];
 const HEADLESS_CONFIG = fileURLToPath(
@@ -341,6 +345,7 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       "ecs_set_component_field",
       "ecs_get_hierarchy",
       "asset_list",
+      "asset_inspect",
       "resource_get",
       "resource_set",
       "input_inject",
@@ -357,6 +362,8 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       "camera_fit_entity",
       "camera_use_agent_view",
       "frame_capture",
+      "render_diagnose",
+      "render_get_frame_report",
       "logs_read",
       "render_bundle",
       "session_snapshot_save",
@@ -625,6 +632,422 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       ok: true,
       stopped: true,
     });
+  });
+
+  it("loads and inspects all lighting fixtures in strict headless mode", async () => {
+    const root = await strictLightingFixtureProject();
+    const config = path.join(root, "aperture.headless.config.ts");
+    const messages = await runMcpRequestSequence(process.cwd(), [
+      {
+        name: "app_start",
+        arguments: {
+          target: "headless",
+          config,
+          assetMode: "strict",
+          seed: 1,
+        },
+      },
+      {
+        name: "asset_inspect",
+        arguments: { target: "headless", id: "metallic" },
+      },
+      {
+        name: "asset_inspect",
+        arguments: { target: "headless", id: "dielectric" },
+      },
+      {
+        name: "asset_inspect",
+        arguments: { target: "headless", id: "textured" },
+      },
+      {
+        name: "render_diagnose",
+        arguments: { target: "headless", width: 160, height: 120 },
+      },
+      {
+        name: "frame_capture",
+        arguments: {
+          target: "headless",
+          width: 160,
+          height: 120,
+          out: path.join(root, "metallic-no-environment.png"),
+          samples: [
+            { id: "red", x: 0.38, y: 0.52, coordinateSpace: "normalized" },
+            { id: "green", x: 0.5, y: 0.52, coordinateSpace: "normalized" },
+            { id: "blue", x: 0.62, y: 0.52, coordinateSpace: "normalized" },
+          ],
+        },
+      },
+      {
+        name: "ecs_step",
+        arguments: { target: "headless", frames: 1, digest: true },
+      },
+      {
+        name: "app_reset",
+        arguments: { target: "headless", seed: 1 },
+      },
+      {
+        name: "ecs_step",
+        arguments: { target: "headless", frames: 1, digest: true },
+      },
+      {
+        name: "app_stop",
+        arguments: { target: "headless" },
+      },
+    ]);
+
+    expect(structured(messages, 1)).toMatchObject({
+      ok: true,
+      target: "headless",
+      status: { assetMode: "strict" },
+    });
+    expect(structured(messages, 2)).toMatchObject({
+      ok: true,
+      result: {
+        ready: true,
+        nodes: 3,
+        meshes: 3,
+        primitives: 3,
+        materials: [
+          expect.objectContaining({
+            metallicFactor: 1,
+            roughnessFactor: 1,
+            textures: {
+              baseColor: false,
+              metallicRoughness: false,
+              normal: false,
+              emissive: false,
+            },
+          }),
+          expect.objectContaining({ metallicFactor: 1, roughnessFactor: 1 }),
+          expect.objectContaining({ metallicFactor: 1, roughnessFactor: 1 }),
+        ],
+        summary: {
+          imageCount: 0,
+          textureCount: 0,
+          highMetallicMaterialCount: 3,
+          patchedMaterialCount: 0,
+          truncatedMaterialCount: 0,
+          truncatedMeshPrimitiveCount: 0,
+        },
+      },
+      diagnostics: [],
+    });
+    expect(structured(messages, 3)).toMatchObject({
+      ok: true,
+      result: {
+        ready: true,
+        materials: [
+          expect.objectContaining({
+            metallicFactor: 0,
+            roughnessFactor: 0.6,
+          }),
+        ],
+        summary: { highMetallicMaterialCount: 0 },
+      },
+    });
+    expect(structured(messages, 4)).toMatchObject({
+      ok: true,
+      result: {
+        ready: true,
+        materials: [
+          expect.objectContaining({
+            textures: {
+              baseColor: true,
+              metallicRoughness: true,
+              normal: true,
+              emissive: false,
+            },
+            textureStatus: {
+              baseColor: expect.objectContaining({ status: "ready" }),
+              metallicRoughness: expect.objectContaining({ status: "ready" }),
+              normal: expect.objectContaining({ status: "ready" }),
+              emissive: expect.objectContaining({ status: "not-authored" }),
+            },
+          }),
+        ],
+        summary: { imageCount: 3, textureCount: 3 },
+      },
+      diagnostics: [],
+    });
+    expect(structured(messages, 5)).toMatchObject({
+      ok: true,
+      target: "headless",
+      output: expect.objectContaining({ tonemap: "none" }),
+      lighting: expect.objectContaining({
+        directional: 1,
+        ambient: 1,
+        environment: 0,
+        specularIblActive: false,
+      }),
+      materials: expect.objectContaining({
+        highMetallic: 3,
+        highMetallicWithoutIbl: 3,
+      }),
+      warnings: [
+        expect.objectContaining({
+          code: "render.material.metalWithoutSpecularIbl",
+          materialCount: 3,
+        }),
+      ],
+      diagnostics: [
+        expect.objectContaining({
+          code: "render.material.metalWithoutSpecularIbl",
+        }),
+      ],
+    });
+    expect(structured(messages, 6)).toMatchObject({
+      ok: true,
+      target: "headless",
+      lightingHealth: {
+        lighting: expect.objectContaining({ specularIblActive: false }),
+        materials: expect.objectContaining({ highMetallicWithoutIbl: 3 }),
+        warnings: [
+          expect.objectContaining({
+            code: "render.material.metalWithoutSpecularIbl",
+          }),
+        ],
+      },
+      diagnostics: [
+        expect.objectContaining({
+          code: "render.material.metalWithoutSpecularIbl",
+        }),
+      ],
+    });
+    const unlitMetalSamples = valueAt(structured(messages, 6), [
+      "samples",
+      "samples",
+    ]);
+    for (const id of ["red", "green", "blue"]) {
+      expect(
+        Math.max(
+          sampleChannel(unlitMetalSamples, id, "r"),
+          sampleChannel(unlitMetalSamples, id, "g"),
+          sampleChannel(unlitMetalSamples, id, "b"),
+        ),
+      ).toBeLessThan(100);
+    }
+    expect(
+      valueAt(structured(messages, 7), ["result", "digests", "ecs", "hash"]),
+    ).toBe(
+      valueAt(structured(messages, 9), ["result", "digests", "ecs", "hash"]),
+    );
+  });
+
+  it("activates submitted specular IBL for the strict studio lighting profile", async () => {
+    const root = await strictStudioLightingFixtureProject();
+    const messages = await runMcpRequestSequence(process.cwd(), [
+      {
+        name: "app_start",
+        arguments: {
+          target: "headless",
+          config: path.join(root, "aperture.headless.config.ts"),
+          assetMode: "strict",
+          seed: 1,
+        },
+      },
+      {
+        name: "render_diagnose",
+        arguments: { target: "headless", width: 960, height: 640 },
+      },
+      {
+        name: "frame_capture",
+        arguments: {
+          target: "headless",
+          width: 960,
+          height: 640,
+          out: path.join(root, "metallic-studio.png"),
+          samples: [
+            { id: "red", x: 0.38, y: 0.52, coordinateSpace: "normalized" },
+            { id: "green", x: 0.5, y: 0.52, coordinateSpace: "normalized" },
+            { id: "blue", x: 0.62, y: 0.52, coordinateSpace: "normalized" },
+          ],
+        },
+      },
+      {
+        name: "app_stop",
+        arguments: { target: "headless" },
+      },
+    ]);
+
+    expect(structured(messages, 1)).toMatchObject({
+      ok: true,
+      status: { assetMode: "strict" },
+    });
+    expect(structured(messages, 2)).toMatchObject({
+      ok: true,
+      output: {
+        tonemap: "aces",
+        exposure: 1,
+        hdr: true,
+        colorSpace: "srgb",
+      },
+      lighting: expect.objectContaining({
+        directional: 1,
+        area: 1,
+        environment: 1,
+        diffuseIblReady: true,
+        specularIblReady: true,
+        diffuseIblActive: true,
+        specularIblActive: true,
+        environmentPreparationStatus: "diffuse-specular-ready",
+      }),
+      materials: expect.objectContaining({
+        highMetallic: 3,
+        highMetallicWithoutIbl: 0,
+      }),
+      warnings: [],
+      diagnostics: [],
+    });
+    expect(structured(messages, 3)).toMatchObject({
+      ok: true,
+      dimensions: { width: 960, height: 640 },
+      lightingHealth: {
+        lighting: expect.objectContaining({ specularIblActive: true }),
+        materials: expect.objectContaining({ highMetallicWithoutIbl: 0 }),
+        warnings: [],
+      },
+      diagnostics: [],
+      samples: {
+        ok: true,
+        samples: expect.arrayContaining([
+          expect.objectContaining({ id: "red" }),
+          expect.objectContaining({ id: "green" }),
+          expect.objectContaining({ id: "blue" }),
+        ]),
+      },
+    });
+    const samples = valueAt(structured(messages, 3), ["samples", "samples"]);
+    expect(sampleChannel(samples, "red", "r")).toBeGreaterThan(
+      sampleChannel(samples, "red", "g") * 2,
+    );
+    expect(sampleChannel(samples, "green", "g")).toBeGreaterThan(
+      sampleChannel(samples, "green", "r") * 2,
+    );
+    expect(sampleChannel(samples, "blue", "b")).toBeGreaterThan(
+      sampleChannel(samples, "blue", "r") * 2,
+    );
+    for (const id of ["red", "green", "blue"]) {
+      const maximum = Math.max(
+        sampleChannel(samples, id, "r"),
+        sampleChannel(samples, id, "g"),
+        sampleChannel(samples, id, "b"),
+      );
+      expect(maximum).toBeGreaterThan(100);
+      expect(maximum).toBeLessThan(251);
+    }
+  });
+
+  it("passes the fresh GLB-viewer metallic-model evaluation three out of three times", async () => {
+    const calls: {
+      readonly name: string;
+      readonly arguments: Record<string, unknown>;
+    }[] = [];
+
+    for (let run = 1; run <= 3; run += 1) {
+      const root = await tempRoot();
+      const project = await createApertureProject({
+        cwd: root,
+        name: `viewer-${run}`,
+        template: "glb-viewer",
+      });
+      const fixtureName = "lighting-metallic.gltf";
+      await copyFile(
+        fileURLToPath(
+          new URL(`../assets/fixtures/${fixtureName}`, import.meta.url),
+        ),
+        path.join(project.targetDir, "public", "assets", fixtureName),
+      );
+      const sharedConfigPath = path.join(
+        project.targetDir,
+        "aperture.shared-config.ts",
+      );
+      const sharedConfig = await readFile(sharedConfigPath, "utf8");
+      await writeFile(
+        sharedConfigPath,
+        sharedConfig.replace("assets/sample-cube.glb", `assets/${fixtureName}`),
+        "utf8",
+      );
+
+      calls.push(
+        {
+          name: "app_start",
+          arguments: {
+            target: "headless",
+            config: path.join(project.targetDir, "aperture.headless.config.ts"),
+            assetMode: "strict",
+            seed: 1,
+          },
+        },
+        {
+          name: "asset_inspect",
+          arguments: { target: "headless", id: "sampleCube" },
+        },
+        {
+          name: "render_diagnose",
+          arguments: { target: "headless", width: 320, height: 200 },
+        },
+        {
+          name: "app_stop",
+          arguments: { target: "headless" },
+        },
+      );
+    }
+
+    const messages = await runMcpRequestSequence(process.cwd(), calls);
+    for (let run = 0; run < 3; run += 1) {
+      const firstId = run * 4 + 1;
+      expect(structured(messages, firstId)).toMatchObject({
+        ok: true,
+        status: { assetMode: "strict" },
+      });
+      expect(structured(messages, firstId + 1)).toMatchObject({
+        ok: true,
+        result: {
+          ready: true,
+          materials: [
+            expect.objectContaining({
+              metallicFactor: 1,
+              textureStatus: {
+                baseColor: expect.objectContaining({ status: "not-authored" }),
+                metallicRoughness: expect.objectContaining({
+                  status: "not-authored",
+                }),
+                normal: expect.objectContaining({ status: "not-authored" }),
+                emissive: expect.objectContaining({ status: "not-authored" }),
+              },
+            }),
+            expect.objectContaining({ metallicFactor: 1 }),
+            expect.objectContaining({ metallicFactor: 1 }),
+          ],
+          summary: {
+            imageCount: 0,
+            textureCount: 0,
+            highMetallicMaterialCount: 3,
+          },
+        },
+        diagnostics: [],
+      });
+      expect(structured(messages, firstId + 2)).toMatchObject({
+        ok: true,
+        output: {
+          tonemap: "aces",
+          exposure: 1,
+          hdr: true,
+          colorSpace: "srgb",
+        },
+        lighting: expect.objectContaining({
+          environment: 1,
+          specularIblActive: true,
+        }),
+        materials: expect.objectContaining({ highMetallicWithoutIbl: 0 }),
+        warnings: [],
+        diagnostics: [],
+      });
+      expect(structured(messages, firstId + 3)).toMatchObject({
+        ok: true,
+        stopped: true,
+      });
+    }
   });
 
   it("returns shared MCP envelopes for successful and expected-error tool calls", async () => {
@@ -1336,6 +1759,19 @@ function valueAt(value: unknown, pathSegments: readonly string[]): unknown {
   return current;
 }
 
+function sampleChannel(
+  value: unknown,
+  id: string,
+  channel: "r" | "g" | "b",
+): number {
+  const sample = Array.isArray(value)
+    ? value.find((entry) => isRecord(entry) && entry["id"] === id)
+    : undefined;
+  const pixel = isRecord(sample) ? sample["pixel"] : undefined;
+  const channelValue = isRecord(pixel) ? pixel[channel] : undefined;
+  return typeof channelValue === "number" ? channelValue : -1;
+}
+
 async function runMcpRequestSequence(
   cwd: string,
   calls: readonly {
@@ -1431,6 +1867,143 @@ export default class PlaceholderSystem extends createSystem({ priority: 0 }) {
       light: {
         environmentMap: studio.renderHandle,
       },
+    });
+  }
+}
+`,
+    "utf8",
+  );
+
+  return root;
+}
+
+async function strictLightingFixtureProject(): Promise<string> {
+  const root = await tempRoot();
+  const systemsDir = path.join(root, "src", "systems");
+  const assetsDir = path.join(root, "public", "assets");
+  await mkdir(systemsDir, { recursive: true });
+  await mkdir(assetsDir, { recursive: true });
+
+  for (const fixture of [
+    "lighting-metallic.gltf",
+    "lighting-dielectric.gltf",
+    "lighting-textured-pbr.gltf",
+  ]) {
+    await copyFile(
+      fileURLToPath(new URL(`../assets/fixtures/${fixture}`, import.meta.url)),
+      path.join(assetsDir, fixture),
+    );
+  }
+
+  await writeFile(
+    path.join(root, "aperture.headless.config.ts"),
+    `import { asset, defineApertureConfig } from "@aperture-engine/app/config";
+
+export default defineApertureConfig({
+  mode: "headless",
+  systems: ["src/systems/**/*.system.ts"],
+  assets: {
+    metallic: asset.gltf("/assets/lighting-metallic.gltf", { preload: "blocking" }),
+    dielectric: asset.gltf("/assets/lighting-dielectric.gltf", { preload: "blocking" }),
+    textured: asset.gltf("/assets/lighting-textured-pbr.gltf", { preload: "blocking" }),
+  },
+  render: { defaultCamera: false, defaultLight: false },
+});
+`,
+    "utf8",
+  );
+  await writeFile(
+    path.join(systemsDir, "lighting-fixtures.system.ts"),
+    `import { createSystem } from "@aperture-engine/app/systems";
+
+export default class LightingFixturesSystem extends createSystem({ priority: 0 }) {
+  override init(): void {
+    this.spawn.camera({
+      key: "camera.main",
+      transform: { translation: [0, 1.5, 7], lookAt: [0, 0, 0] },
+      fovYDegrees: 50,
+    });
+    this.spawn.gltf(this.assets.gltf("metallic"), { key: "fixture.metallic" });
+    this.spawn.light({
+      key: "lighting.ambient",
+      kind: "ambient",
+      light: { color: [1, 1, 1, 1], intensity: 0.25 },
+    });
+    this.spawn.light({
+      key: "lighting.key",
+      kind: "directional",
+      light: { color: [1, 1, 1, 1], intensity: 2 },
+      transform: { rotationEulerDegrees: [-35, 45, 0] },
+    });
+  }
+}
+`,
+    "utf8",
+  );
+
+  return root;
+}
+
+async function strictStudioLightingFixtureProject(): Promise<string> {
+  const root = await tempRoot();
+  const systemsDir = path.join(root, "src", "systems");
+  const assetsDir = path.join(root, "public", "assets");
+  await mkdir(systemsDir, { recursive: true });
+  await mkdir(assetsDir, { recursive: true });
+  await copyFile(
+    fileURLToPath(
+      new URL("../assets/fixtures/lighting-metallic.gltf", import.meta.url),
+    ),
+    path.join(assetsDir, "lighting-metallic.gltf"),
+  );
+  await writeFile(
+    path.join(assetsDir, "studio-neutral.hdr"),
+    createStudioNeutralHdr(),
+  );
+  await writeFile(
+    path.join(root, "aperture.headless.config.ts"),
+    `import { asset, defineApertureConfig } from "@aperture-engine/app/config";
+
+export default defineApertureConfig({
+  mode: "headless",
+  systems: ["src/systems/**/*.system.ts"],
+  assets: {
+    metallic: asset.gltf("/assets/lighting-metallic.gltf", { preload: "blocking" }),
+    studio: asset.hdr("/assets/studio-neutral.hdr", { preload: "blocking" }),
+  },
+  render: {
+    tonemap: "aces",
+    exposure: 1,
+    outputColorSpace: "srgb",
+    defaultCamera: false,
+    defaultLight: false,
+    sampleCount: 4,
+  },
+});
+`,
+    "utf8",
+  );
+  await writeFile(
+    path.join(systemsDir, "studio-lighting.system.ts"),
+    `import { createSystem } from "@aperture-engine/app/systems";
+
+export default class StudioLightingSystem extends createSystem({ priority: 0 }) {
+  override init(): void {
+    this.spawn.camera({
+      key: "camera.main",
+      transform: { translation: [0, 1.4, 6], lookAt: [0, 0, 0] },
+      fovYDegrees: 50,
+    });
+    this.spawn.lightRig({
+      key: "lighting.presentation",
+      preset: "studio-neutral",
+      environmentMap: this.assets.hdr("studio"),
+      shadows: true,
+    });
+    this.spawn.gltf(this.assets.gltf("metallic"), {
+      key: "fixture.metallic",
+      castShadow: true,
+      receiveShadow: true,
     });
   }
 }

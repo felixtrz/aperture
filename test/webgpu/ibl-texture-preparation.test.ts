@@ -36,7 +36,6 @@ describe("IBL texture preparation", () => {
         texturePreparation: true,
         textureUpload: false,
         prefiltering: false,
-        shaderSampling: false,
       },
       slots: [
         {
@@ -99,7 +98,6 @@ describe("IBL texture preparation", () => {
       texturePreparation: false,
       textureUpload: false,
       prefiltering: false,
-      shaderSampling: false,
     });
     expect(json.slots.map((slot) => slot.preparation)).toEqual([
       "unsupported",
@@ -146,7 +144,6 @@ describe("IBL texture preparation", () => {
     expect(ready.preparedSlotCount).toBe(2);
     expect(ready.sections.textureUpload).toBe(true);
     expect(ready.sections.prefiltering).toBe(true);
-    expect(ready.sections.shaderSampling).toBe(false);
     expect(ready.diagnostics).toEqual([]);
   });
 });

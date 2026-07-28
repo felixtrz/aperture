@@ -30,7 +30,6 @@ describe("IBL resource descriptors", () => {
       sections: {
         environmentResourcePlanning: true,
         iblDescriptors: true,
-        shaderSampling: false,
       },
       descriptors: [
         {
@@ -71,7 +70,6 @@ describe("IBL resource descriptors", () => {
     expect(json.sections).toEqual({
       environmentResourcePlanning: true,
       iblDescriptors: true,
-      shaderSampling: false,
     });
     expect(json.descriptors).toMatchObject([
       {
@@ -128,7 +126,6 @@ describe("IBL resource descriptors", () => {
       sections: {
         environmentResourcePlanning: true,
         iblDescriptors: true,
-        shaderSampling: false,
       },
       descriptors: [],
       diagnostics: [],

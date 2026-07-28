@@ -47,7 +47,6 @@ export interface IblResourceDescriptorReport {
   readonly sections: {
     readonly environmentResourcePlanning: boolean;
     readonly iblDescriptors: boolean;
-    readonly shaderSampling: false;
   };
   readonly descriptors: readonly IblResourceDescriptor[];
   readonly diagnostics: readonly IblResourceDescriptorDiagnostic[];
@@ -125,7 +124,6 @@ export function createIblResourceDescriptorReport(
         (diagnostic) =>
           diagnostic.code !== "iblResourceDescriptor.missingDescriptor",
       ),
-      shaderSampling: false,
     },
     descriptors,
     diagnostics,

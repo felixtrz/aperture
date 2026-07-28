@@ -38,8 +38,6 @@ describe("StandardMaterial IBL/shadow binding readiness", () => {
     expect(json.sections).toEqual({
       iblPassPlanning: true,
       shadowPlanning: true,
-      bindGroupLayout: false,
-      shaderSampling: false,
     });
     expect(json.slots.map((slot) => slot.kind)).toEqual([
       "ibl-diffuse",
@@ -47,10 +45,7 @@ describe("StandardMaterial IBL/shadow binding readiness", () => {
       "shadow-view-projection",
       "shadow-map",
     ]);
-    expect(json.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
-      "standardMaterialIblShadowBinding.bindGroupDeferred",
-      "standardMaterialIblShadowBinding.shaderSamplingDeferred",
-    ]);
+    expect(json.diagnostics).toEqual([]);
     expect(
       JSON.parse(standardMaterialIblShadowBindingReadinessReportToJson(report)),
     ).toEqual(json);

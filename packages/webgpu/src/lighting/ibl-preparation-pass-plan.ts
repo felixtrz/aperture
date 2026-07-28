@@ -46,7 +46,6 @@ export interface IblPreparationPassPlanReport {
     readonly texturePreparation: boolean;
     readonly passPlans: boolean;
     readonly passSubmission: boolean;
-    readonly shaderSampling: false;
   };
   readonly passes: readonly IblPreparationPass[];
   readonly diagnostics: readonly IblPreparationPassDiagnostic[];
@@ -75,7 +74,6 @@ export function createIblPreparationPassPlanReport(
         texturePreparation: true,
         passPlans: true,
         passSubmission: true,
-        shaderSampling: false,
       },
       passes: [],
       diagnostics: [],
@@ -144,7 +142,6 @@ export function createIblPreparationPassPlanReport(
         input.textures.status === "deferred",
       passPlans: status === "ready" || status === "deferred",
       passSubmission: status === "ready",
-      shaderSampling: false,
     },
     passes,
     diagnostics,

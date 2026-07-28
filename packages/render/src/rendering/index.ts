@@ -9,6 +9,7 @@ export * from "./extraction-ui.js";
 export { entityRef } from "./extraction-diagnostics.js";
 export { parseSamplerHandle, parseTextureHandle } from "./extraction-inputs.js";
 export * from "./material-queue.js";
+export * from "./lighting-health.js";
 export * from "./mesh-merge.js";
 export * from "./prepared-mesh-queue-resolver.js";
 export * from "./prepared-material-queue-resolver.js";

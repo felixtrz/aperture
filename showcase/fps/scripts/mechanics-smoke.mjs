@@ -67,12 +67,16 @@ async function resetGame(mcpClient) {
 
 async function provePrimaryMouseShoot(mcpClient) {
   const before = await readFpsState(mcpClient);
-  await mcpClient.call("input_pointer_click", {
-    x: 0.5,
-    y: 0.5,
-    button: "left",
+  await mcpClient.call("input_inject", {
+    target: "headed",
+    pointer: { position: [0.5, 0.5], pressed: true },
   });
-  await stepFrames(mcpClient, 4);
+  await stepFrames(mcpClient, 1);
+  await mcpClient.call("input_inject", {
+    target: "headed",
+    pointer: { position: [0.5, 0.5], pressed: false },
+  });
+  await stepFrames(mcpClient, 3);
   const after = await readFpsState(mcpClient);
 
   if (after.shotsFired <= before.shotsFired) {
@@ -87,14 +91,17 @@ async function provePrimaryMouseShoot(mcpClient) {
   });
 }
 
-async function proveMiddleMouseWeaponToggle(mcpClient) {
+async function proveWeaponToggle(mcpClient) {
   await resetGame(mcpClient);
 
   const before = await readFpsState(mcpClient);
-  const click = await mcpClient.call("input_pointer_click", {
-    x: 0.5,
-    y: 0.5,
-    button: "middle",
+  const injected = await mcpClient.call("input_inject", {
+    target: "headed",
+    actions: { switchWeapon: true },
+  });
+  await mcpClient.call("input_inject", {
+    target: "headed",
+    actions: { switchWeapon: false },
   });
   const expectedWeaponIndex = (before.weaponIndex + 1) % 2;
   let after = await readFpsState(mcpClient);
@@ -111,15 +118,17 @@ async function proveMiddleMouseWeaponToggle(mcpClient) {
     after.shotsFired !== before.shotsFired
   ) {
     throw new Error(
-      `middle mouse did not toggle weapon exactly once: ${JSON.stringify({
-        before: summarizeState(before),
-        after: summarizeState(after),
-        click,
-      })}`,
+      `switchWeapon input did not toggle the weapon exactly once: ${JSON.stringify(
+        {
+          before: summarizeState(before),
+          after: summarizeState(after),
+          injected,
+        },
+      )}`,
     );
   }
 
-  logProgress("middle-switch", {
+  logProgress("weapon-switch", {
     before: before.weaponIndex,
     after: after.weaponIndex,
     phase: after.weaponSwitchPhase,
@@ -160,15 +169,20 @@ async function proveCameraRelativeForward(mcpClient) {
   });
 }
 
-async function proveSpaceJumpTap(mcpClient) {
+async function proveJumpTap(mcpClient) {
   await resetGame(mcpClient);
 
   const before = await readFpsState(mcpClient);
-  await mcpClient.call("input_key", {
-    key: "Space",
-    action: "press",
+  await mcpClient.call("input_inject", {
+    target: "headed",
+    actions: { jump: true },
   });
-  await stepFrames(mcpClient, 4);
+  await stepFrames(mcpClient, 1);
+  await mcpClient.call("input_inject", {
+    target: "headed",
+    actions: { jump: false },
+  });
+  await stepFrames(mcpClient, 3);
   const after = await readFpsState(mcpClient);
 
   if (
@@ -177,7 +191,7 @@ async function proveSpaceJumpTap(mcpClient) {
     after.grounded === true
   ) {
     throw new Error(
-      `space jump tap failed: ${JSON.stringify({
+      `jump input tap failed: ${JSON.stringify({
         before: summarizeState(before),
         after: summarizeState(after),
       })}`,
@@ -516,13 +530,17 @@ async function main() {
 
   try {
     await mcp.start();
-    await mcp.call("browser_wait_for_webgpu", { timeoutMs: 30_000 });
+    await mcp.call("app_status", {
+      target: "headed",
+      waitUntilReady: true,
+      timeoutMs: 30_000,
+    });
     await readFpsState(mcp);
     await resetGame(mcp);
     await provePrimaryMouseShoot(mcp);
-    await proveMiddleMouseWeaponToggle(mcp);
+    await proveWeaponToggle(mcp);
     await proveCameraRelativeForward(mcp);
-    await proveSpaceJumpTap(mcp);
+    await proveJumpTap(mcp);
     await releaseInputs(mcp);
 
     const finalState = await readFpsState(mcp);

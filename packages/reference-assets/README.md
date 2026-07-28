@@ -2,6 +2,10 @@
 
 Versioned reference corpus payloads for `@aperture-engine/cli`.
 
+The package also ships `dist/studio-neutral.hdr`, Aperture's MIT-licensed,
+procedurally generated neutral studio environment for deterministic offline
+model previews. See [ASSETS.md](./ASSETS.md) for provenance and licensing.
+
 This package is not an application runtime dependency. It owns the producer
 workflow that generates precomputed reference embeddings and source snippets for
 the CLI/MCP reference tools and docs-site browser search. Published package

@@ -38,7 +38,6 @@ export interface DiffuseIblResourceSummaryReport {
     readonly samplerResources: boolean;
     readonly specularPrefiltering: false;
     readonly bindGroupLayout: false;
-    readonly shaderSampling: false;
   };
   readonly resourceKeys: {
     readonly diffuseTextures: readonly string[];
@@ -87,7 +86,6 @@ export function createDiffuseIblResourceSummaryReport(
       samplerResources: options.samplers.status === "available",
       specularPrefiltering: false,
       bindGroupLayout: false,
-      shaderSampling: false,
     },
     resourceKeys: {
       diffuseTextures,

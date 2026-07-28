@@ -287,45 +287,27 @@ only the invalid environment packet. Directional, point, and spot lights require
 orientation from ECS transform data; missing transforms should produce
 diagnostics instead of renderer-owned fallback state.
 
-Shadow settings are also ECS-owned authoring data. Extraction may emit a flat
-`ShadowRequestPacket` for supported lights or diagnostics for unsupported
-requests, but shadow maps, shadow cameras, atlases, passes, and GPU resources
-remain renderer-owned future work and must not be stored on ECS components.
+Shadow settings are also ECS-owned authoring data. Extraction emits flat
+`ShadowRequestPacket`s for supported lights or diagnostics for unsupported
+requests. Shadow cameras, maps, passes, filtering resources, and pipelines are
+renderer-owned derived state and are never stored on ECS components.
 
-Renderer-side light/environment resource preparation is derived from extracted
-packets, not ECS. Light packet packing may produce typed arrays and buffer
-descriptors from `LightPacket`s, and environment planning may produce stable
-resource keys from `EnvironmentPacket.handle`. Actual light GPU buffers are
-created only on the renderer side from descriptor plans with an injected WebGPU
-device. The snapshot adapter derives those renderer-owned float and metadata
-buffers from `RenderSnapshot` data and treats empty light snapshots as valid
-no-ops. Summary reports count created light GPU buffers separately from planned
-light buffers. Light bind group layout resources and descriptor plans are
-derived from renderer-owned light GPU buffer resources and stable layout keys,
-not ECS state; their inspection helpers omit raw buffers. Light bind group
-resource creation consumes those renderer-owned layout/descriptor resources with
-an injected WebGPU-like device and returns stable resource keys while omitting
-raw bind group handles from JSON helpers. The snapshot composition adapter can
-derive packed light buffers, renderer-owned light GPU buffers, a light bind group
-layout, descriptor plan, and bind group resource from `RenderSnapshot` data
-without reading ECS or making the renderer authoritative. Its summary adapter
-feeds planned light buffers, created light GPU buffers, and created light bind
-groups into renderer resource summary reports as inspection/readiness data. The
-focused snapshot light resource summary helper returns a standard
-`RenderResourceSummaryReport`, and its JSON helper delegates to the same
-JSON-safe resource summary format used by broader renderer assembly reports.
-Light shader binding metadata and readiness diagnostics can validate the future
-light bind group contract against renderer-owned resources, but this does not
-activate shader lighting. Their JSON helper is an inspection surface for
-readiness sections and stable diagnostics only, and their resource-summary bridge
-reports readiness failures as warnings without changing resource counts.
-Environment texture binding, shader lighting consumption, skybox passes, shader
-IBL consumption, and shadow maps remain deferred renderer-owned work.
-Snapshot-level lighting resource plans are therefore inspection/readiness data:
-they can summarize planned light-buffer bytes and environment-map requirements
-from a `RenderSnapshot`, but they do not make ECS own GPU resources and do not
-mean lighting shaders, skybox rendering, IBL, or shadow rendering are active.
-The packed-light WGSL declaration and JSON-safe shader inspection surfaces are
+Renderer-side light/environment preparation starts from extracted packets, not
+ECS. The renderer packs `LightPacket`s into GPU buffers and derives stable
+environment resource keys from `EnvironmentPacket.handle`. It owns the light
+bind groups, shadow resources, HDR projection, diffuse irradiance, specular
+PMREM, samplers, StandardMaterial IBL bind groups, and specialized pipelines.
+Empty lighting snapshots remain valid no-ops. Cache and readiness summaries
+expose stable keys, counts, versions, and diagnostics without raw WebGPU
+handles.
+
+StandardMaterial direct lighting and diffuse/specular IBL are executable paths.
+Frame readiness distinguishes resource preparation from what
+the submitted pipeline actually sampled; `iblDiffuse`, `iblSpecularBrdf`, and
+`iblSpecularProof` pipeline tokens are the activation record. The authoritative
+end-to-end IBL description and readiness states live in
+[`architecture/standard-material-ibl.md`](./architecture/standard-material-ibl.md).
+The packed-light WGSL declaration and JSON-safe inspection surfaces are
 documented in [`LIGHT_SHADER_WGSL_CONTRACT.md`](./LIGHT_SHADER_WGSL_CONTRACT.md).
 
 ## Assets and Handles

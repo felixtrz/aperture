@@ -7308,7 +7308,6 @@ describe("WebGPU app facade", () => {
           textureResources: true,
           samplerResource: true,
           bindGroupResource: true,
-          shaderSampling: false as const,
         },
         resource: {
           group: 4 as const,
@@ -7321,13 +7320,7 @@ describe("WebGPU app facade", () => {
             "texture:test:diffuse:sampler",
           ],
         },
-        diagnostics: [
-          {
-            code: "standardMaterialIblBindGroupResource.shaderSamplingDeferred",
-            severity: "warning" as const,
-            message: "StandardMaterial IBL shader sampling is deferred.",
-          },
-        ],
+        diagnostics: [],
       },
     } as const;
 
@@ -7671,6 +7664,7 @@ describe("WebGPU app facade", () => {
     const material = assets.materials.standard.add(
       createStandardMaterialAsset({
         label: "Auto Shadow Lit",
+        metallicFactor: 0,
         roughnessFactor: 0.7,
       }),
     );
@@ -10357,7 +10351,6 @@ function createReadyStandardIblFrameResources() {
         textureResources: true,
         samplerResource: true,
         bindGroupResource: true,
-        shaderSampling: false as const,
       },
       resource: group4Resource,
       diagnostics: [],
@@ -10374,7 +10367,6 @@ function createReadyStandardIblFrameResources() {
         diffuseTextureResource: true,
         gpuAllocation: true,
         specularPrefiltering: false as const,
-        shaderSampling: false as const,
       },
       resources: [
         {
@@ -10395,7 +10387,6 @@ function createReadyStandardIblFrameResources() {
         samplerDescriptors: true,
         gpuAllocation: true,
         bindGroupLayout: false as const,
-        shaderSampling: false as const,
       },
       resources: [
         {

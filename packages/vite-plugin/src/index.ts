@@ -1,3 +1,6 @@
+import { createRequire } from "node:module";
+import path from "node:path";
+
 import {
   registerApertureViteDevtoolsBridge,
   scheduleApertureViteSessionWrite,
@@ -59,11 +62,13 @@ export interface ApertureVitePluginAiOptions {
 
 export interface ApertureVitePlugin {
   readonly name: string;
-  config?(): {
+  config?(config?: { readonly root?: string }): {
     readonly server?: { readonly headers?: Record<string, string> };
     readonly preview?: { readonly headers?: Record<string, string> };
     readonly worker?: { readonly format?: "es" | "iife" };
-    readonly optimizeDeps?: { readonly include?: readonly string[] };
+    readonly optimizeDeps?: {
+      readonly include?: readonly string[];
+    };
   } | void;
   configResolved?(config: {
     readonly root: string;
@@ -100,23 +105,28 @@ export function aperture(
 
   const plugin: ApertureVitePlugin = {
     name: "aperture",
-    config() {
+    config(config = {}) {
+      const installedEngineEntries = resolveInstalledEngineEntries(
+        path.resolve(config.root ?? root),
+      );
       const base = {
         // Generated apps bundle an ES-module simulation worker that imports the
         // (code-split) @aperture-engine/app worker entry. Pin the worker format
         // to ES so `vite build` never falls back to IIFE, which Rollup rejects
         // for code-splitting builds (see GH #24).
         worker: { format: "es" as const },
-        // Pre-bundle the Aperture entry points the generated browser bootstrap,
-        // worker bootstrap, config, and user systems import, so the dev server
-        // doesn't discover them mid-load and trigger a dependency
-        // re-optimization + full page reload on first run (see GH #31).
+        // Pre-bundle the generated app entry points plus engine packages the
+        // consumer installed directly. This prevents a first-run discovery
+        // reload (GH #31) and lets esbuild share module singletons between app
+        // subpaths and direct user imports, without requiring transitive engine
+        // packages that pnpm intentionally keeps out of the app root.
         optimizeDeps: {
           include: [
             "@aperture-engine/app/config",
             "@aperture-engine/app/systems",
             "@aperture-engine/app/browser",
             "@aperture-engine/app/worker",
+            ...installedEngineEntries,
           ],
         },
       };
@@ -185,4 +195,28 @@ export function aperture(
   };
 
   return plugin;
+}
+
+const APERTURE_ENGINE_DEPENDENCY_ENTRIES = [
+  "@aperture-engine/audio",
+  "@aperture-engine/math",
+  "@aperture-engine/particles",
+  "@aperture-engine/physics",
+  "@aperture-engine/physics-rapier",
+  "@aperture-engine/render",
+  "@aperture-engine/runtime",
+  "@aperture-engine/simulation",
+  "@aperture-engine/webgpu",
+] as const;
+
+function resolveInstalledEngineEntries(root: string): readonly string[] {
+  const require = createRequire(path.join(root, "package.json"));
+  return APERTURE_ENGINE_DEPENDENCY_ENTRIES.filter((entry) => {
+    try {
+      require.resolve(`${entry}/package.json`);
+      return true;
+    } catch {
+      return false;
+    }
+  });
 }

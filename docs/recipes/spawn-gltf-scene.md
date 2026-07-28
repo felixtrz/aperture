@@ -9,6 +9,9 @@ with `this.spawn.gltf(...)`, so the loaded scene renders without any
 main-thread scene-graph code. Verify the asset loaded, the entities exist, and
 the draws reach the GPU.
 
+For presentation lighting, ACES, environment IBL, and metallic-material
+diagnosis, continue with [Lighting imported models](./lighting-imported-models.md).
+
 ## Code
 
 ### 1. Declare the GLB asset in config
@@ -111,6 +114,52 @@ this.spawn.gltf(this.assets.gltf("robot"), {
 
 Source: `examples/developer-api/src/systems/setup.system.ts`.
 
+### Source fidelity and material policies
+
+Omitting `materials` preserves the imported glTF values. To change appearance
+for one spawned subtree, pass a `StandardMaterialPatch`:
+
+```ts
+this.spawn.gltf(this.assets.gltf("robot"), {
+  key: "level.robot.stylized",
+  materials: {
+    baseColorFactor: [1, 0.9, 0.82, 1],
+    metallicFactor: 0.12,
+    roughnessFactor: 0.72,
+    emissiveFactor: [0.02, 0.01, 0],
+  },
+});
+```
+
+Supported StandardMaterial patch fields are `baseColorFactor`, `renderState`,
+`metallicFactor`, `roughnessFactor`, `emissiveFactor`, `occlusionStrength`,
+`normalScale`, `ior`, `transmissionFactor`, `thickness`, `attenuationColor`,
+`attenuationDistance`, `sheenColorFactor`, `sheenRoughnessFactor`,
+`iridescenceFactor`, and `label`. The `materials` option is typed as
+`StandardMaterialPatch | MaterialAppearancePresetDescriptor`.
+
+Patches clone and reuse derived material assets by source material plus patch;
+they never mutate the imported material assets. The policy applies to every
+supported material in the spawned subtree. Uniform-level fields are supported;
+unsupported kind/variant changes are skipped with an actionable diagnostic.
+
+Named, versioned policies are available for common cases:
+
+```ts
+import { material } from "@aperture-engine/app/systems";
+
+this.spawn.gltf(this.assets.gltf("robot"), {
+  materials: material.preset("painted-stylized", {
+    baseColorFactor: [0.95, 1, 0.95, 1],
+  }),
+});
+```
+
+The initial names are `source`, `painted-stylized`, `matte`, and
+`preview-safe`. `source` is an exact no-op. Preset values and version are
+exported as `MATERIAL_APPEARANCE_PRESETS` and
+`MATERIAL_APPEARANCE_PRESET_VERSION`.
+
 ## Verify
 
 The following tool calls were recorded against `examples/developer-api` (asset
@@ -140,6 +189,11 @@ expect(cliAssets).toMatchObject({
 
 Source: `test/e2e/cli-ai-tools.spec.ts` ("Aperture CLI manages a browser
 session and exposes browser/ECS tools over MCP").
+
+For a one-call material and geometry summary, use
+`asset_inspect({ id: "robot" })`. It reports source and spawn-patched values,
+authored-versus-failed texture slots, and normal/tangent/UV availability
+without initializing a GPU.
 
 2. The spawned entities exist, carry mesh/material components, and trace back
    to the asset id:

@@ -641,7 +641,6 @@ function specularReport(input: {
         (resource) => resource.resource?.prefiltered === true,
       ),
       bindGroupResource: false,
-      shaderSampling: false,
     },
     resources: input.resources,
     diagnostics: input.diagnostics,

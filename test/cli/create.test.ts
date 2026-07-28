@@ -255,6 +255,10 @@ describe("Aperture CLI create command", () => {
     expect(agentNotes).toContain("frame_capture");
     expect(agentNotes).toContain("browser-mechanics tools");
     expect(agentNotes).toContain('assetMode: "strict"');
+    expect(agentNotes).toContain("Imported Model Checkpoint");
+    expect(agentNotes).toContain("asset_inspect");
+    expect(agentNotes).toContain("render_diagnose");
+    expect(agentNotes).toContain("lighting-health warning");
     expect(claudeNotes).toContain("Default Tooling Loop");
     expect(claudeNotes).toContain("Start the warm");
     expect(claudeNotes).toContain("headless slot");
@@ -318,6 +322,7 @@ describe("Aperture CLI create command", () => {
         "aperture.shared-config.ts",
         "aperture.headless.config.ts",
         "public/assets/sample-cube.glb",
+        "public/assets/studio-neutral.hdr",
         "src/systems/setup.system.ts",
         "src/systems/orbit.system.ts",
       ]),
@@ -325,6 +330,9 @@ describe("Aperture CLI create command", () => {
 
     const asset = await stat(
       path.join(report.targetDir, "public/assets/sample-cube.glb"),
+    );
+    const studioEnvironment = await stat(
+      path.join(report.targetDir, "public/assets/studio-neutral.hdr"),
     );
     const config = await readFile(
       path.join(report.targetDir, "aperture.config.ts"),
@@ -348,12 +356,28 @@ describe("Aperture CLI create command", () => {
     );
 
     expect(asset.size).toBeGreaterThan(100);
+    expect(studioEnvironment.size).toBeGreaterThan(100);
+    expect(studioEnvironment.size).toBeLessThanOrEqual(512 * 1024);
     expect(config).toContain("import.meta.env.BASE_URL");
     expect(headlessConfig).toContain('mode: "headless"');
     expect(sharedConfig).toContain(
       'sampleCube: asset.gltf(assetUrl("assets/sample-cube.glb")',
     );
+    expect(sharedConfig).toContain(
+      'studioEnvironment: asset.hdr(assetUrl("assets/studio-neutral.hdr")',
+    );
+    expect(sharedConfig).toContain('tonemap: "aces"');
+    expect(sharedConfig).toContain("exposure: 1");
+    expect(sharedConfig).toContain('outputColorSpace: "srgb"');
+    expect(sharedConfig).toContain("defaultCamera: false");
+    expect(sharedConfig).toContain("defaultLight: false");
     expect(sharedConfig).toContain("sampleCount: 4");
+    expect(setupSystem).toContain("this.spawn.lightRig");
+    expect(setupSystem).toContain('preset: "studio-neutral"');
+    expect(setupSystem).toContain(
+      'environmentMap: this.assets.hdr("studioEnvironment")',
+    );
+    expect(setupSystem).not.toContain("illuminance");
     expect(setupSystem).toContain("this.spawn.gltf");
     expect(setupSystem).toContain("viewer.sampleCube");
     expect(orbitSystem).toContain("priority: 20");
@@ -374,6 +398,7 @@ describe("Aperture CLI create command", () => {
         "aperture.shared-config.ts",
         "aperture.headless.config.ts",
         "public/assets/goal-cube.glb",
+        "public/assets/studio-neutral.hdr",
         "src/systems/setup.system.ts",
         "src/systems/player.system.ts",
         "src/systems/camera-follow.system.ts",
@@ -382,6 +407,9 @@ describe("Aperture CLI create command", () => {
 
     const asset = await stat(
       path.join(report.targetDir, "public/assets/goal-cube.glb"),
+    );
+    const studioEnvironment = await stat(
+      path.join(report.targetDir, "public/assets/studio-neutral.hdr"),
     );
     const config = await readFile(
       path.join(report.targetDir, "aperture.config.ts"),
@@ -399,17 +427,34 @@ describe("Aperture CLI create command", () => {
       path.join(report.targetDir, "src/systems/player.system.ts"),
       "utf8",
     );
+    const setupSystem = await readFile(
+      path.join(report.targetDir, "src/systems/setup.system.ts"),
+      "utf8",
+    );
     const cameraSystem = await readFile(
       path.join(report.targetDir, "src/systems/camera-follow.system.ts"),
       "utf8",
     );
 
     expect(asset.size).toBeGreaterThan(100);
+    expect(studioEnvironment.size).toBeGreaterThan(100);
+    expect(studioEnvironment.size).toBeLessThanOrEqual(512 * 1024);
     expect(config).toContain("import.meta.env.BASE_URL");
     expect(headlessConfig).toContain('mode: "headless"');
     expect(sharedConfig).toContain(
       'goal: asset.gltf(assetUrl("assets/goal-cube.glb")',
     );
+    expect(sharedConfig).toContain(
+      'studioEnvironment: asset.hdr(assetUrl("assets/studio-neutral.hdr")',
+    );
+    expect(sharedConfig).toContain('tonemap: "aces"');
+    expect(sharedConfig).toContain("exposure: 1");
+    expect(sharedConfig).toContain('outputColorSpace: "srgb"');
+    expect(sharedConfig).toContain("defaultCamera: false");
+    expect(sharedConfig).toContain("defaultLight: false");
+    expect(sharedConfig).toContain("sampleCount: 4");
+    expect(setupSystem).toContain("this.spawn.lightRig");
+    expect(setupSystem).not.toContain("illuminance");
     expect(sharedConfig).toContain("score: signal.number(0)");
     expect(sharedConfig).toContain("goalReached: signal.boolean(false)");
     expect(sharedConfig).toContain("move: input.axis2d");

@@ -13,6 +13,7 @@ import {
 } from "@aperture-engine/webgpu";
 import { AssetRegistry } from "@aperture-engine/simulation";
 import {
+  analyzeLightingHealth,
   decodeTypedArrayTree,
   renderSnapshotFromJsonValue,
 } from "@aperture-engine/render";
@@ -308,9 +309,7 @@ async function main() {
     return;
   }
 
-  const metadata = {
-    webgpu: await webGpuMetadataFromInitialization(result.initialization),
-  };
+  const webgpu = await webGpuMetadataFromInitialization(result.initialization);
   const snapshot = renderSnapshotFromJsonValue(bundleSnapshotValue(bundle));
   const activeEnvironmentHandle = firstSnapshotEnvironmentHandle(snapshot);
   const environmentInputs = bundleEnvironmentAssetInputs(sourceAssets);
@@ -342,6 +341,30 @@ async function main() {
   }
 
   const report = await result.app.renderSnapshot(snapshot, renderOptions);
+  const toneMapping =
+    typeof renderTarget?.toneMapping === "string"
+      ? renderTarget.toneMapping
+      : "none";
+  const exposure = Number.isFinite(renderTarget?.exposure)
+    ? renderTarget.exposure
+    : 1;
+  // Prefer the renderer's submitted-frame report: it is derived after
+  // StandardMaterial pipeline selection and therefore carries the actual IBL
+  // tokens used by this frame. The pure analyzer remains a compatibility
+  // fallback for older renderer bundles.
+  const lightingHealth =
+    report.lightingHealth ??
+    analyzeLightingHealth({
+      snapshot: report.snapshot,
+      assets: sourceAssets,
+      output: {
+        tonemap: toneMapping,
+        exposure,
+        hdr: Number.isFinite(renderTarget?.exposure),
+        colorSpace: renderTarget?.colorSpace === "srgb" ? "srgb" : "linear",
+      },
+    });
+  const metadata = { webgpu, lightingHealth };
 
   globalThis.__APERTURE_RENDER_STATUS__ = {
     ok: report.ok === true,

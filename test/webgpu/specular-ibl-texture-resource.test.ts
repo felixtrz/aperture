@@ -36,7 +36,6 @@ describe("specular IBL texture resource", () => {
         proofUpload: false,
         prefiltering: false,
         bindGroupResource: false,
-        shaderSampling: false,
       },
       resources: [
         {

@@ -134,7 +134,8 @@ async function aimAtYaw(mcpClient, yaw) {
 
 async function readSkyboxViewSample(mcpClient, view) {
   const state = await aimAtYaw(mcpClient, view.yaw);
-  const readback = await mcpClient.call("render_readback_samples", {
+  const readback = await mcpClient.call("frame_capture", {
+    target: "headed",
     samples: [
       {
         id: `${view.id}-upper-center`,
@@ -158,10 +159,13 @@ async function readSkyboxViewSample(mcpClient, view) {
   }
 
   const upperCenter = requiredSample(
-    readback.samples,
+    readback.samples?.samples,
     `${view.id}-upper-center`,
   );
-  const upperLeft = requiredSample(readback.samples, `${view.id}-upper-left`);
+  const upperLeft = requiredSample(
+    readback.samples?.samples,
+    `${view.id}-upper-left`,
+  );
 
   assertSkyPixel(view.id, upperCenter.pixel);
   assertSkyPixel(view.id, upperLeft.pixel);
@@ -520,7 +524,11 @@ async function main() {
 
   try {
     await mcp.start();
-    await mcp.call("browser_wait_for_webgpu", { timeoutMs: 30_000 });
+    await mcp.call("app_status", {
+      target: "headed",
+      waitUntilReady: true,
+      timeoutMs: 30_000,
+    });
     await readFpsState(mcp);
     await resetGame(mcp);
 
@@ -536,7 +544,10 @@ async function main() {
 
     assertSkyboxRelationships(samples);
     await mkdir(path.dirname(screenshotPath), { recursive: true });
-    await mcp.call("browser_screenshot", { path: screenshotPath });
+    await mcp.call("frame_capture", {
+      target: "headed",
+      out: screenshotPath,
+    });
 
     console.log(
       JSON.stringify(

@@ -28,6 +28,30 @@ failure diagnostics.
 | `createPreparedResourceAppReuseAlignmentSummary()`       | `@aperture-engine/webgpu` | Compact comparison of render prepared facade counts against WebGPU app reuse prepared facade and resource counters.                        | Render-package ownership, backend cache maps, raw resources, default app report fields, or GPU handles.                                 | Allocating inspection helper.                     |
 | `createEnvironmentMapReadinessReport()`                  | `@aperture-engine/webgpu` | Extracted environment packet counts, null-handle counts, required environment-map resource keys, and optional renderer resource readiness. | Raw environment handles, WebGPU textures, texture views, samplers, bind groups, backend cache maps, source payloads, or IBL activation. | Allocating inspection helper.                     |
 
+## Lighting health
+
+`analyzeLightingHealth()` from `@aperture-engine/render` is a pure,
+headless-compatible analyzer over an extracted snapshot and source asset
+registry. `render_diagnose` exposes its compact `output`, `lighting`,
+`materials`, and `warnings` sections; `frame_capture` embeds the same report
+for the submitted PNG frame. The WebGPU app caches it by a health-relevant
+scene fingerprint so unchanged steady-state frames do not rescan materials.
+
+Current warnings are:
+
+- `render.material.metalWithoutSpecularIbl` for visible highly metallic
+  materials without submitted specular IBL;
+- `render.environment.requestedButInactive` when an authored environment does
+  not contribute to the submitted StandardMaterial pipeline; and
+- `render.output.untoneMappedHighRange`, only when measured pre-output
+  luminance exceeds the clipping threshold while tonemapping is `none`.
+
+The report includes stable material/entity facts and JSON values, not GPU
+handles, cache maps, source payloads, or hidden/culled materials. See
+[Lighting imported models](recipes/lighting-imported-models.md) for fixes and
+[StandardMaterial image-based lighting](architecture/standard-material-ibl.md)
+for the authoritative readiness path.
+
 ## StandardMaterial Texture Fidelity
 
 `createStandardMaterialTextureFidelitySummary()` summarizes existing

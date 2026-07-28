@@ -28,7 +28,6 @@ describe("IBL sampler descriptor readiness", () => {
         samplerDescriptors: true,
         gpuAllocation: false,
         bindGroupLayout: false,
-        shaderSampling: false,
       },
       samplers: [
         {
@@ -153,7 +152,6 @@ describe("IBL sampler descriptor readiness", () => {
       sections: {
         gpuAllocation: true,
         bindGroupLayout: false,
-        shaderSampling: false,
       },
       diagnostics: [],
     });
@@ -178,7 +176,6 @@ describe("IBL sampler descriptor readiness", () => {
         samplerDescriptors: true,
         gpuAllocation: true,
         bindGroupLayout: false,
-        shaderSampling: false,
       },
       diagnostics: [],
     });

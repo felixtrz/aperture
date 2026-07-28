@@ -17,16 +17,14 @@ describe("StandardMaterial IBL bind group layout", () => {
       standardMaterialIblBindGroupLayoutReadinessReportToJsonValue(report);
 
     expect(json).toEqual({
-      ready: false,
-      status: "deferred",
+      ready: true,
+      status: "available",
       standardMaterialCount: 2,
       group: 4,
       bindingCount: 3,
       sections: {
         layoutMetadata: true,
         layoutDescriptor: true,
-        bindGroupResource: false,
-        shaderSampling: false,
       },
       layout: {
         group: 4,
@@ -73,20 +71,7 @@ describe("StandardMaterial IBL bind group layout", () => {
           ],
         },
       },
-      diagnostics: [
-        {
-          code: "standardMaterialIblBindGroupLayout.bindGroupResourceDeferred",
-          severity: "warning",
-          message:
-            "StandardMaterial IBL bind-group layout metadata is planned, but bind group resource creation is deferred.",
-        },
-        {
-          code: "standardMaterialIblBindGroupLayout.shaderSamplingDeferred",
-          severity: "warning",
-          message:
-            "StandardMaterial IBL bind-group layout metadata is planned, but WGSL shader sampling is deferred.",
-        },
-      ],
+      diagnostics: [],
     });
     expect(
       JSON.parse(

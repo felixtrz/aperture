@@ -16,6 +16,7 @@ import {
   callInputDevtoolsTool,
   createAssetSummary,
   createGeneratedEntityToolBridge,
+  inspectGltfAsset,
   type CameraToolState,
   type GeneratedDevtoolsToolResult,
   type GeneratedEntityToolBridge,
@@ -969,6 +970,34 @@ export async function createHeadlessSessionController(
       };
     }
 
+    if (input.name === "asset_inspect") {
+      const id = stringValue(asRecord(args)["id"]);
+      const handle = state.runner.app.context.assets
+        .list()
+        .find((candidate) => candidate.id === id);
+
+      if (id === undefined || handle === undefined || handle.kind !== "gltf") {
+        return {
+          ok: false,
+          diagnostics: [
+            {
+              code: "aperture.assetInspect.gltfAssetNotFound",
+              message:
+                "asset_inspect requires the id of a configured glTF asset.",
+            },
+          ],
+        };
+      }
+
+      return {
+        ok: true,
+        result: inspectGltfAsset(
+          handle as Parameters<typeof inspectGltfAsset>[0],
+          state.runner.app.lowLevel.assets,
+        ),
+      };
+    }
+
     if (input.name === "resource_get") {
       return resourceGet(state.runner, args);
     }
@@ -1610,7 +1639,7 @@ function unavailable(name: string): GeneratedDevtoolsToolResult {
         message:
           `Tool '${name}' is not available in a headless session. ` +
           "Headless sessions support ecs_* (except ecs_step_and_diff), " +
-          "camera_*, asset_list, resource_get/resource_set, logs_read, and " +
+          "camera_*, asset_list, asset_inspect, resource_get/resource_set, logs_read, and " +
           "these input tools: input_inject, input_action_set, " +
           "input_gamepad_set, input_get_state, input_reset. Raw-device " +
           "tools (input_key, input_pointer_*) need the headed browser slot; " +

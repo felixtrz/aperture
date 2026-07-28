@@ -48,6 +48,7 @@ describe("WebGPU app environment resource cache", () => {
       samplerResourcesReused: 0,
     });
     expect(first.cacheSummary).toEqual({
+      equirectProjectionEntries: 0,
       diffuseTextureEntries: 1,
       specularTextureEntries: 1,
       samplerEntries: 2,
@@ -242,6 +243,29 @@ describe("WebGPU app environment resource cache", () => {
       ],
       activeHandle: handle,
     });
+    const reused = prepareWebGpuAppEnvironmentAssets({
+      app,
+      assets: [
+        {
+          handle,
+          label: "equirect-studio",
+          version: "v1",
+          diffuseResourceKey: "texture:equirect-studio:diffuse",
+          specularResourceKey: "texture:equirect-studio:specular",
+          equirectSource: {
+            label: "equirect-studio",
+            resourceKey: "texture:equirect-studio:projected-cube",
+            width: 8,
+            height: 4,
+            data: new Uint8Array(8 * 4 * 4),
+            faceSize: 4,
+            format: "rgba8unorm",
+            mipLevelCount: 3,
+          },
+        },
+      ],
+      activeHandle: handle,
+    });
     const json = webGpuPreparedEnvironmentAssetSetToJsonValue(prepared);
 
     expect(prepared.active?.ready).toBe(true);
@@ -256,6 +280,18 @@ describe("WebGPU app environment resource cache", () => {
     expect(prepared.active?.specularTextureResource.sections.prefiltering).toBe(
       true,
     );
+    expect(calls.filter((call) => call === "dispatch")).toHaveLength(5);
+    expect(reused.totals).toMatchObject({
+      diffuseTextureResourcesCreated: 0,
+      diffuseTextureResourcesReused: 1,
+      specularTextureResourcesCreated: 0,
+      specularTextureResourcesReused: 1,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 2,
+      standardIblBindGroupsCreated: 0,
+      standardIblBindGroupsReused: 1,
+    });
+    expect(reused.cacheSummary.equirectProjectionEntries).toBe(1);
     expect(calls.filter((call) => call === "dispatch")).toHaveLength(5);
     expect(json.assets[0]?.reports.equirectProjection).toMatchObject({
       ready: true,

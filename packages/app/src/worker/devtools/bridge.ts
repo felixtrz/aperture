@@ -32,7 +32,7 @@ import {
   type ApertureDevtoolsRequest,
 } from "../../commands.js";
 import type { ApertureGeneratedInputEvent } from "../../input.js";
-import { createAssetSummary } from "../../devtools/assets.js";
+import { createAssetSummary, inspectGltfAsset } from "../../devtools/assets.js";
 import { resolveActiveEntity } from "../../entities/lookup/resolve.js";
 import { entityRefKey, entitySummary } from "../../entities/lookup/summary.js";
 import type { AperturePhysicsJointSummary } from "../../entities/lookup/types.js";
@@ -175,6 +175,35 @@ function callGeneratedDevtoolsTool(
       result: {
         assets: createAssetSummary(bridge.app.context.assets.list()),
       },
+    };
+  }
+
+  if (request.tool === "asset_inspect") {
+    const payload = isRecord(request.payload) ? request.payload : {};
+    const id = stringFromValue(payload["id"]);
+    const handle = bridge.app.context.assets
+      .list()
+      .find((candidate) => candidate.id === id);
+
+    if (id === undefined || handle === undefined || handle.kind !== "gltf") {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.assetInspect.gltfAssetNotFound",
+            message:
+              "asset_inspect requires the id of a configured glTF asset.",
+          },
+        ],
+      };
+    }
+
+    return {
+      ok: true,
+      result: inspectGltfAsset(
+        handle as Parameters<typeof inspectGltfAsset>[0],
+        bridge.app.lowLevel.assets,
+      ),
     };
   }
 

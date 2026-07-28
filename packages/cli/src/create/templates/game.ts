@@ -1,5 +1,10 @@
-import { binaryTemplateFile, textTemplateFile } from "./files.js";
+import {
+  binaryBytesTemplateFile,
+  binaryTemplateFile,
+  textTemplateFile,
+} from "./files.js";
 import { SAMPLE_CUBE_GLB_BASE64 } from "./sample-cube.js";
+import { createStudioNeutralHdr } from "./studio-neutral-hdr.js";
 import type { TemplateFile } from "../types.js";
 
 export function gameTemplateFiles(): readonly TemplateFile[] {
@@ -8,6 +13,10 @@ export function gameTemplateFiles(): readonly TemplateFile[] {
     textTemplateFile("aperture.config.ts", gameConfigTs()),
     textTemplateFile("aperture.headless.config.ts", gameHeadlessConfigTs()),
     binaryTemplateFile("public/assets/goal-cube.glb", SAMPLE_CUBE_GLB_BASE64),
+    binaryBytesTemplateFile(
+      "public/assets/studio-neutral.hdr",
+      createStudioNeutralHdr(),
+    ),
     textTemplateFile("src/systems/setup.system.ts", gameSetupSystemTs()),
     textTemplateFile("src/systems/player.system.ts", gamePlayerSystemTs()),
     textTemplateFile(
@@ -61,6 +70,10 @@ export function createApertureAppConfig(options: ApertureAppConfigOptions) {
         preload: "blocking",
         label: "Goal Cube",
       }),
+      studioEnvironment: asset.hdr(assetUrl("assets/studio-neutral.hdr"), {
+        preload: "blocking",
+        label: "Neutral Studio Environment",
+      }),
     },
     signals: {
       score: signal.number(0),
@@ -86,6 +99,9 @@ export function createApertureAppConfig(options: ApertureAppConfigOptions) {
     },
     render: {
       clearColor: [0.08, 0.12, 0.16, 1],
+      tonemap: "aces",
+      exposure: 1,
+      outputColorSpace: "srgb",
       defaultCamera: false,
       defaultLight: false,
       sampleCount: 4,
@@ -114,21 +130,11 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       fovYDegrees: 50,
     });
 
-    this.spawn.light({
-      key: "light.key",
-      name: "Key Light",
-      kind: "directional",
-      illuminance: 4,
-      transform: {
-        rotationEulerDegrees: [-45, 25, 0],
-      },
-    });
-
-    this.spawn.light({
-      key: "light.fill",
-      name: "Fill Light",
-      kind: "ambient",
-      intensity: 0.45,
+    this.spawn.lightRig({
+      key: "lighting.presentation",
+      preset: "studio-neutral",
+      environmentMap: this.assets.hdr("studioEnvironment"),
+      shadows: true,
     });
 
     this.spawn.mesh({

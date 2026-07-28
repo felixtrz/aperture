@@ -13,6 +13,7 @@ import path from "node:path";
 import * as tar from "tar";
 import { fileURLToPath } from "node:url";
 import { writeBrowserSearchAsset } from "./browser-search-asset.mjs";
+import { createStudioNeutralHdr } from "./studio-neutral-hdr.mjs";
 
 const packageRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -23,16 +24,20 @@ const distDir = path.join(packageRoot, "dist");
 const manifestFile = path.join(distDir, "manifest.json");
 const archiveFile = path.join(distDir, "data.tgz");
 const browserSearchFile = path.join(distDir, "browser-search.json");
+const studioEnvironmentFile = path.join(distDir, "studio-neutral.hdr");
 const allowMissing = process.argv.includes("--if-ready");
 
 async function main() {
   const embeddingsFile = path.join(dataDir, "embeddings.json");
 
+  await rm(distDir, { force: true, recursive: true });
+  await mkdir(distDir, { recursive: true });
+  await writeFile(studioEnvironmentFile, createStudioNeutralHdr());
+
   if (!(await fileExists(embeddingsFile))) {
     if (allowMissing) {
-      await rm(distDir, { force: true, recursive: true });
       process.stdout.write(
-        "Skipping @aperture-engine/reference-assets dist build because data/embeddings.json is not present.\n",
+        "Built studio-neutral.hdr; skipped reference corpus payload because data/embeddings.json is not present.\n",
       );
       return;
     }
@@ -41,9 +46,6 @@ async function main() {
       'Missing data/embeddings.json. Run "pnpm --filter @aperture-engine/reference-assets run ingest" first.',
     );
   }
-
-  await rm(distDir, { force: true, recursive: true });
-  await mkdir(distDir, { recursive: true });
 
   await tar.c(
     {
@@ -78,6 +80,7 @@ async function main() {
     files,
     archive,
     browserSearch: await fileManifest(distDir, browserSearch.outputFile),
+    studioEnvironment: await fileManifest(distDir, studioEnvironmentFile),
   };
 
   await writeFile(

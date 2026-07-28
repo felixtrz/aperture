@@ -80,6 +80,7 @@ export async function callBrowserBackedTool(
     case "ecs_step":
       return callGeneratedRuntimeTool(page, name, args);
     case "asset_list":
+    case "asset_inspect":
     case "resource_get":
     case "resource_set":
       return callGeneratedRuntimeTool(page, name, args);

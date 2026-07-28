@@ -16,16 +16,15 @@ import {
 } from "./standard-material-ibl-bind-group-layout.js";
 
 export type StandardMaterialIblBindGroupDescriptorStatus =
-  | "deferred"
+  | "available"
   | "missing"
   | "not-required";
 
 export type StandardMaterialIblBindGroupDescriptorDiagnosticCode =
   | "standardMaterialIblBindGroup.invalidLayout"
   | "standardMaterialIblBindGroup.missingDiffuseTextureResource"
-  | "standardMaterialIblBindGroup.specularTextureResourceDeferred"
-  | "standardMaterialIblBindGroup.missingSamplerResource"
-  | "standardMaterialIblBindGroup.shaderSamplingDeferred";
+  | "standardMaterialIblBindGroup.missingSpecularTextureResource"
+  | "standardMaterialIblBindGroup.missingSamplerResource";
 
 export type StandardMaterialIblBindGroupResourceDiagnosticCode =
   | "standardMaterialIblBindGroupResource.nullDescriptorPlan"
@@ -34,8 +33,7 @@ export type StandardMaterialIblBindGroupResourceDiagnosticCode =
   | "standardMaterialIblBindGroupResource.missingDeviceSupport"
   | "standardMaterialIblBindGroupResource.missingTextureResource"
   | "standardMaterialIblBindGroupResource.missingSamplerResource"
-  | "standardMaterialIblBindGroupResource.creationFailed"
-  | "standardMaterialIblBindGroupResource.shaderSamplingDeferred";
+  | "standardMaterialIblBindGroupResource.creationFailed";
 
 export interface StandardMaterialIblBindGroupDescriptorDiagnostic {
   readonly code: StandardMaterialIblBindGroupDescriptorDiagnosticCode;
@@ -99,7 +97,6 @@ export interface StandardMaterialIblBindGroupResourceReport {
     readonly textureResources: boolean;
     readonly samplerResource: boolean;
     readonly bindGroupResource: boolean;
-    readonly shaderSampling: false;
   };
   readonly resource: StandardMaterialIblBindGroupResource | null;
   readonly diagnostics: readonly StandardMaterialIblBindGroupResourceDiagnostic[];
@@ -129,8 +126,6 @@ export interface StandardMaterialIblBindGroupDescriptorReadinessReport {
     readonly diffuseTextureResource: boolean;
     readonly specularTextureResource: boolean;
     readonly samplerResource: boolean;
-    readonly bindGroupResource: false;
-    readonly shaderSampling: false;
   };
   readonly plan: StandardMaterialIblBindGroupDescriptorPlan | null;
   readonly diagnostics: readonly StandardMaterialIblBindGroupDescriptorDiagnostic[];
@@ -212,14 +207,14 @@ export function createStandardMaterialIblBindGroupDescriptorPlan(
       options.textures,
     );
     diagnostics.push({
-      code: "standardMaterialIblBindGroup.specularTextureResourceDeferred",
+      code: "standardMaterialIblBindGroup.missingSpecularTextureResource",
       severity: "warning",
       binding: 1,
       ...(plannedSpecularResourceKey === null
         ? {}
         : { resourceKey: plannedSpecularResourceKey }),
       message:
-        "StandardMaterial IBL bind-group descriptor planning requires a renderer-owned specular prefilter texture resource, which is still deferred.",
+        "StandardMaterial IBL bind-group descriptor planning requires an available renderer-owned specular prefilter texture resource.",
     });
   } else {
     entries.push({
@@ -277,8 +272,6 @@ export function createStandardMaterialIblBindGroupDescriptorReadinessReport(
         diffuseTextureResource: true,
         specularTextureResource: false,
         samplerResource: true,
-        bindGroupResource: false,
-        shaderSampling: false,
       },
       plan: null,
       diagnostics: [],
@@ -286,29 +279,14 @@ export function createStandardMaterialIblBindGroupDescriptorReadinessReport(
   }
 
   const plan = createStandardMaterialIblBindGroupDescriptorPlan(options);
-  const hasBlockingMissingResources = plan.diagnostics.some(
-    (diagnostic) =>
-      diagnostic.code === "standardMaterialIblBindGroup.invalidLayout" ||
-      diagnostic.code ===
-        "standardMaterialIblBindGroup.missingDiffuseTextureResource" ||
-      diagnostic.code === "standardMaterialIblBindGroup.missingSamplerResource",
-  );
+  const hasBlockingMissingResources = !plan.valid;
   const diagnostics: StandardMaterialIblBindGroupDescriptorDiagnostic[] = [
     ...plan.diagnostics,
   ];
 
-  if (!hasBlockingMissingResources) {
-    diagnostics.push({
-      code: "standardMaterialIblBindGroup.shaderSamplingDeferred",
-      severity: "warning",
-      message:
-        "StandardMaterial IBL bind-group descriptor keys are planned, but WGSL shader sampling is deferred.",
-    });
-  }
-
   return {
-    ready: false,
-    status: hasBlockingMissingResources ? "missing" : "deferred",
+    ready: !hasBlockingMissingResources,
+    status: hasBlockingMissingResources ? "missing" : "available",
     standardMaterialCount: options.standardMaterialCount,
     group: 4,
     entryCount: plan.entries.length,
@@ -320,8 +298,6 @@ export function createStandardMaterialIblBindGroupDescriptorReadinessReport(
         (entry) => entry.binding === 1,
       ),
       samplerResource: plan.entries.some((entry) => entry.binding === 2),
-      bindGroupResource: false,
-      shaderSampling: false,
     },
     plan,
     diagnostics,
@@ -420,7 +396,7 @@ export function createStandardMaterialIblBindGroupResourceReport(
       createdBindGroupCount: 0,
       reusedBindGroupCount: 1,
       resource: cached,
-      diagnostics: shaderSamplingDiagnostics(),
+      diagnostics: [],
     });
   }
 
@@ -489,7 +465,7 @@ export function createStandardMaterialIblBindGroupResourceReport(
       createdBindGroupCount: 1,
       reusedBindGroupCount: 0,
       resource,
-      diagnostics: shaderSamplingDiagnostics(),
+      diagnostics: [],
     });
   } catch (cause) {
     return bindGroupResourceReport({
@@ -703,22 +679,10 @@ function bindGroupResourceReport(input: {
       textureResources: available,
       samplerResource: available,
       bindGroupResource: available,
-      shaderSampling: false,
     },
     resource: input.resource,
     diagnostics: input.diagnostics,
   };
-}
-
-function shaderSamplingDiagnostics(): readonly StandardMaterialIblBindGroupResourceDiagnostic[] {
-  return [
-    {
-      code: "standardMaterialIblBindGroupResource.shaderSamplingDeferred",
-      severity: "warning",
-      message:
-        "StandardMaterial IBL bind-group resources are live, but WGSL shader sampling is deferred.",
-    },
-  ];
 }
 
 function messageFromCause(cause: unknown): string {

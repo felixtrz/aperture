@@ -706,7 +706,6 @@ function report(input: {
       diffuseTextureResource: input.status === "available",
       gpuAllocation: input.status === "available",
       specularPrefiltering: false,
-      shaderSampling: false,
     },
     resources: input.resources,
     diagnostics: input.diagnostics,

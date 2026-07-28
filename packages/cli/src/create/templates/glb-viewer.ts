@@ -1,5 +1,10 @@
-import { binaryTemplateFile, textTemplateFile } from "./files.js";
+import {
+  binaryBytesTemplateFile,
+  binaryTemplateFile,
+  textTemplateFile,
+} from "./files.js";
 import { SAMPLE_CUBE_GLB_BASE64 } from "./sample-cube.js";
+import { createStudioNeutralHdr } from "./studio-neutral-hdr.js";
 import type { TemplateFile } from "../types.js";
 
 export function glbViewerTemplateFiles(): readonly TemplateFile[] {
@@ -11,6 +16,10 @@ export function glbViewerTemplateFiles(): readonly TemplateFile[] {
       glbViewerHeadlessConfigTs(),
     ),
     binaryTemplateFile("public/assets/sample-cube.glb", SAMPLE_CUBE_GLB_BASE64),
+    binaryBytesTemplateFile(
+      "public/assets/studio-neutral.hdr",
+      createStudioNeutralHdr(),
+    ),
     textTemplateFile("src/systems/setup.system.ts", glbViewerSetupSystemTs()),
     textTemplateFile("src/systems/orbit.system.ts", glbViewerOrbitSystemTs()),
   ];
@@ -60,6 +69,10 @@ export function createApertureAppConfig(options: ApertureAppConfigOptions) {
         preload: "blocking",
         label: "Sample Cube",
       }),
+      studioEnvironment: asset.hdr(assetUrl("assets/studio-neutral.hdr"), {
+        preload: "blocking",
+        label: "Neutral Studio Environment",
+      }),
     },
     input: {
       actions: {
@@ -68,6 +81,9 @@ export function createApertureAppConfig(options: ApertureAppConfigOptions) {
     },
     render: {
       clearColor: [0.03, 0.035, 0.04, 1],
+      tonemap: "aces",
+      exposure: 1,
+      outputColorSpace: "srgb",
       defaultCamera: false,
       defaultLight: false,
       sampleCount: 4,
@@ -96,27 +112,19 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       fovYDegrees: 50,
     });
 
-    this.spawn.light({
-      key: "light.key",
-      name: "Key Light",
-      kind: "directional",
-      illuminance: 4,
-      transform: {
-        rotationEulerDegrees: [-40, 35, 0],
-      },
-    });
-
-    this.spawn.light({
-      key: "light.fill",
-      name: "Fill Light",
-      kind: "ambient",
-      intensity: 0.4,
+    this.spawn.lightRig({
+      key: "lighting.presentation",
+      preset: "studio-neutral",
+      environmentMap: this.assets.hdr("studioEnvironment"),
+      shadows: true,
     });
 
     this.spawn.gltf(this.assets.gltf("sampleCube"), {
       key: "viewer.sampleCube",
       name: "Sample Cube",
       tags: ["asset", "gltf", "inspectable"],
+      castShadow: true,
+      receiveShadow: true,
     });
   }
 }

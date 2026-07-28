@@ -52,7 +52,6 @@ export interface IblTexturePreparationReport {
     readonly texturePreparation: boolean;
     readonly textureUpload: boolean;
     readonly prefiltering: boolean;
-    readonly shaderSampling: false;
   };
   readonly slots: readonly IblTexturePreparationSlot[];
   readonly diagnostics: readonly IblTexturePreparationDiagnostic[];
@@ -82,7 +81,6 @@ export function createIblTexturePreparationReport(
         texturePreparation: true,
         textureUpload: true,
         prefiltering: true,
-        shaderSampling: false,
       },
       slots: [],
       diagnostics: [],
@@ -175,7 +173,6 @@ export function createIblTexturePreparationReport(
       texturePreparation: status === "ready" || status === "deferred",
       textureUpload: status === "ready",
       prefiltering: status === "ready",
-      shaderSampling: false,
     },
     slots,
     diagnostics,

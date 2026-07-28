@@ -136,55 +136,15 @@ For one texture-backed material, extraction validates the texture dependency bef
 
 Environment-map handles follow the same extraction-before-renderer-resource
 boundary. ECS light authoring may store a stable `environment-map:*` handle, but
-WebGPU texture views, samplers, bind groups, skybox passes, prefiltered radiance
-maps, and IBL shader consumption remain renderer-owned future work.
+WebGPU textures, samplers, bind groups, PMREM data, and pipelines remain
+renderer-owned derived state.
 
-Renderer-side light/environment planning now starts after extraction. Light
-packet packing consumes `LightPacket[]` or `RenderSnapshot.lights` and produces
-typed arrays plus a light-buffer descriptor. A separate renderer-side helper can
-turn a non-empty descriptor plan into float and metadata WebGPU buffers with an
-injected device; that helper still does not read ECS, update bind groups, or
-imply shader lighting is active. Environment resource planning consumes
-`EnvironmentPacket[]` or
-`RenderSnapshot.environments` and reports stable environment-map resource keys
-for non-null handles; null handles remain valid no-op environment inputs.
-`planSnapshotLightingResources` composes those derived plans from a full
-`RenderSnapshot`, and its JSON helper exposes light counts/byte lengths plus
-environment-map resource keys without serializing typed-array payloads or raw
-handles. `createSnapshotLightGpuBuffers` is the renderer-side adapter for the
-next step: it derives the light-buffer descriptor plan from `RenderSnapshot`,
-treats empty light snapshots as valid no-ops, and creates renderer-owned float
-and metadata WebGPU buffers only when the descriptor plan is non-empty. Renderer
-resource summaries may count planned light buffers and created light GPU buffer
-resources separately, alongside environment-map requirements, but those counts
-are planning/readiness data, not WebGPU resource ownership by ECS. Light bind
-group layout resources and descriptor plans are also renderer-owned: they derive
-from created light GPU buffer resources and stable layout keys, and their
-JSON-safe summaries expose only binding/resource keys rather than raw buffers.
-Light bind group resource creation consumes those renderer-owned layout and
-descriptor resources with an injected `createBindGroup` device and returns a
-stable bind group resource key without exposing raw bind group, layout, or buffer
-handles through JSON helpers. `createSnapshotLightBindGroupResources` composes
-the full derived path from a `RenderSnapshot`: packed light buffers, WebGPU light
-buffers, light bind group layout, descriptor plan, and bind group resource. Empty
-light snapshots remain valid no-ops and diagnostics from each phase are
-preserved for inspection. `snapshotLightBindGroupResourcesToSummaryInput`
-adapts that result into renderer resource summaries so reports can count planned
-light buffers, created light GPU buffers, and created light bind groups together
-without serializing raw handles. `createSnapshotLightResourceSummaryReport`
-wraps the same data into a standard `RenderResourceSummaryReport`, and
-`snapshotLightResourceSummaryReportToJson` exposes the standard JSON-safe
-summary for diagnostics, tests, and future browser status plumbing. Shader
-binding metadata now defines the future light float and metadata storage
-bindings, and readiness diagnostics can report whether light buffers, layout,
-bind group, and metadata validation are present. These metadata/readiness helpers
-are still inspection contracts only. `lightShaderResourceReadinessReportToJson`
-serializes readiness sections and stable diagnostics without raw buffers,
-layouts, bind groups, or shader modules, while
-`lightShaderReadinessToResourceSummaryDiagnostics` exposes the same readiness
-failures as resource-summary warnings without changing resource counts. Shader
-lighting consumption, shadows, skyboxes, and IBL remain outside the current unlit
-frame path.
+After extraction, the renderer resolves the environment source, projects
+equirectangular HDR input to a cube, prepares diffuse irradiance and specular
+PMREM resources, creates the StandardMaterial IBL binding, and selects the
+submitted pipeline. Prepared resources are cached per app/device and source
+version, so unchanged steady-state frames reuse them without repeating
+projection, convolution, or prefiltering.
 
 `createEnvironmentMapReadinessReport` is the focused JSON-safe readiness helper
 for extracted environment packets. It reports environment packet counts,
@@ -192,15 +152,24 @@ null-handle counts, required environment-map resource keys, optional
 renderer-owned resource readiness, and stable diagnostics for missing renderer
 environment resources. Its JSON helper omits raw `EnvironmentMapHandle` objects,
 WebGPU textures, texture views, samplers, bind groups, backend cache maps, and
-source payloads. This report is diagnostics/planning only; it does not upload
-environment maps, render skyboxes, activate IBL shader sampling, or add shadow
-passes.
+source payloads. Resource readiness is distinct from frame activation.
+
+`createStandardMaterialIblReadinessReport` distinguishes no request, missing
+source, pending/failed preparation, diffuse readiness, diffuse-plus-specular
+readiness, and submitted-pipeline activation. The submitted pipeline key is the
+activation record: `iblDiffuse`, `iblSpecularBrdf`, or `iblSpecularProof` means
+the matching executable WGSL sampling path was used. No active readiness
+diagnostic describes that path as deferred.
 
 When an environment light references a missing, loading, or failed
 environment-map asset, extraction emits `render.environment.*` diagnostics with
 the stable asset key and omits only that `EnvironmentPacket`. Unrelated mesh
-draw extraction and unlit draw submission can still proceed because no renderer
-environment texture resource is required for the current unlit path.
+draw and direct-light submission can still proceed. If a valid extracted
+environment does not reach an IBL-enabled submitted StandardMaterial pipeline,
+lighting health reports `render.environment.requestedButInactive`.
+
+The authoritative resource, cache, readiness, and pipeline description is
+[`architecture/standard-material-ibl.md`](./architecture/standard-material-ibl.md).
 
 Test-only fixture chain:
 

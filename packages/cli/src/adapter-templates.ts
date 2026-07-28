@@ -123,6 +123,19 @@ Keep \`aperture.config.ts\` and \`aperture.headless.config.ts\` in sync through
 \`aperture.shared-config.ts\`; the headless config is what agents should boot by
 default.
 
+## Imported Model Checkpoint
+
+Before declaring imported-model visuals complete:
+
+1. Run \`asset_inspect\` and review the authored material values.
+2. For metallic materials, confirm an environment is active.
+3. Run \`render_diagnose\` and resolve every lighting-health warning.
+4. Capture one representative headless frame with pixel samples.
+5. Run one headed capture only for final visual parity.
+
+Prefer these machine-readable checks before subjective screenshot review; they
+are unnecessary for normal non-visual simulation work.
+
 ## Determinism Discipline
 
 Determinism is what makes the headless loop trustworthy. Protect it:
@@ -200,7 +213,7 @@ integration.
 - Prefer these shared tools:
   \`app_status\`, \`app_start\`, \`app_stop\`, \`app_reset\`, \`ecs_step\`,
   \`ecs_find_entities\`, \`ecs_get_entity\`, \`ecs_snapshot\`, \`ecs_diff\`,
-  \`asset_list\`, \`resource_get\`, \`resource_set\`, \`input_inject\`,
+  \`asset_list\`, \`asset_inspect\`, \`render_diagnose\`, \`resource_get\`, \`resource_set\`, \`input_inject\`,
   \`input_get_state\`, \`input_reset\`, \`camera_*\`, \`frame_capture\`,
   \`session_snapshot_save\`, \`determinism_report\`, and \`logs_read\`.
 - \`ecs_step\` batches frames on the headless slot

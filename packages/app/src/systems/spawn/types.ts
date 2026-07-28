@@ -28,6 +28,7 @@ import type {
 import type { AnimationAccess } from "@aperture-engine/runtime";
 import type {
   Entity,
+  EnvironmentMapHandle,
   LocalTransformInput,
   MaterialHandle,
   MeshHandle,
@@ -43,6 +44,7 @@ import type {
 } from "@aperture-engine/simulation";
 import type {
   SystemGltfAssetHandle,
+  SystemAssetHandle,
   SystemParticleEffectAssetHandle,
   SystemShaderAssetHandle,
   SystemTextureAssetHandle,
@@ -73,6 +75,7 @@ export interface SpawnLightOptions extends SpawnMetadata {
   readonly transform?: SystemTransformInput;
   readonly kind?: LightInput["kind"];
   readonly color?: Vec4Like;
+  /** @deprecated Use `intensity`; Aperture does not currently convert lux. */
   readonly illuminance?: number;
   readonly intensity?: number;
   readonly light?: LightInput;
@@ -83,6 +86,41 @@ export interface SpawnLightOptions extends SpawnMetadata {
    * `castShadow`/`receiveShadow` participate.
    */
   readonly shadow?: boolean | LightShadowSettingsInput;
+}
+
+export type EnvironmentAssetDescriptorInput =
+  | EnvironmentMapHandle
+  | SystemAssetHandle<"hdr">;
+
+export interface SpawnEnvironmentOptions extends SpawnMetadata {
+  readonly source: EnvironmentAssetDescriptorInput;
+  readonly intensity?: number;
+  readonly color?: Vec4Like;
+  readonly layerMask?: number;
+  readonly transform?: SystemTransformInput;
+}
+
+export type LightRigPresetName = "studio-neutral" | "outdoor-neutral" | "none";
+
+export interface SpawnLightRigOptions extends SpawnMetadata {
+  readonly preset: LightRigPresetName;
+  readonly environmentMap?: EnvironmentAssetDescriptorInput;
+  readonly shadows?: boolean | LightShadowSettingsInput;
+  readonly transform?: SystemTransformInput;
+  readonly environment?:
+    | (Partial<Omit<SpawnEnvironmentOptions, "source">> & {
+        readonly source?: EnvironmentAssetDescriptorInput;
+      })
+    | false;
+  readonly keyLight?: Partial<SpawnLightOptions> | false;
+  readonly rimLight?: Partial<SpawnLightOptions> | false;
+}
+
+export interface SpawnedLightRig {
+  readonly preset: LightRigPresetName;
+  readonly root: Entity;
+  readonly lights: readonly Entity[];
+  remove(): void;
 }
 
 export interface SpawnFogOptions extends SpawnMetadata, FogInput {
@@ -303,8 +341,10 @@ export interface SpawnGltfOptions extends SpawnMetadata {
   /**
    * Clone/reuse patched imported material assets for this spawned subtree
    * without mutating the source GLTF material assets.
-   * Useful for GLB render-state adjustments such as cull mode without scanning
-   * or mutating every registered material in the app.
+   * Accepts every uniform-level `StandardMaterialPatch` field or a versioned
+   * descriptor from `material.preset(...)`. Useful for appearance and GLB
+   * render-state adjustments without scanning or mutating source assets.
+   * @see StandardMaterialPatch
    */
   readonly materials?: SpawnGltfMaterialOverrides;
   /** Attach `ShadowCaster` to every mesh in the spawned subtree. */
@@ -332,7 +372,22 @@ export interface SpawnGltfBatchOptions {
   readonly instances: readonly SpawnGltfBatchInstance[];
 }
 
-export type SpawnGltfMaterialOverrides = StandardMaterialPatch;
+export type MaterialAppearancePresetName =
+  | "source"
+  | "painted-stylized"
+  | "matte"
+  | "preview-safe";
+
+export interface MaterialAppearancePresetDescriptor {
+  readonly kind: "material-preset";
+  readonly name: MaterialAppearancePresetName;
+  readonly version: 1;
+  readonly overrides: StandardMaterialPatch;
+}
+
+export type SpawnGltfMaterialOverrides =
+  | StandardMaterialPatch
+  | MaterialAppearancePresetDescriptor;
 
 export interface SpawnPrefabOptions extends SpawnMetadata {
   /** Per-field override of the instance root's local transform. */
@@ -349,6 +404,10 @@ export interface SpawnPhysicsOptions extends SpawnMetadata {
 export interface SpawnCommands {
   camera(options?: SpawnCameraOptions): Entity;
   light(options?: SpawnLightOptions): Entity;
+  /** Spawn an ECS environment-light entity with a direct HDR source. */
+  environment(options: SpawnEnvironmentOptions): Entity;
+  /** Spawn a deterministic, inspectable ECS-owned presentation light rig. */
+  lightRig(options: SpawnLightRigOptions): SpawnedLightRig;
   /** Spawn a distance-fog entity (linear/exp/exp2) consumed by render extraction. */
   fog(options?: SpawnFogOptions): Entity;
   /** Spawn an ECS-authored skybox consumed by render extraction. */

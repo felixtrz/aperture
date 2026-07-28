@@ -6,7 +6,7 @@ export type StandardMaterialIblShaderVisibility =
   | "compute";
 
 export type StandardMaterialIblBindGroupLayoutStatus =
-  | "deferred"
+  | "available"
   | "missing"
   | "not-required";
 
@@ -56,10 +56,7 @@ export interface StandardMaterialIblBindGroupLayoutPlan {
 }
 
 export interface StandardMaterialIblBindGroupLayoutReadinessDiagnostic {
-  readonly code:
-    | "standardMaterialIblBindGroupLayout.invalidLayout"
-    | "standardMaterialIblBindGroupLayout.bindGroupResourceDeferred"
-    | "standardMaterialIblBindGroupLayout.shaderSamplingDeferred";
+  readonly code: "standardMaterialIblBindGroupLayout.invalidLayout";
   readonly severity: "warning" | "error";
   readonly message: string;
 }
@@ -73,8 +70,6 @@ export interface StandardMaterialIblBindGroupLayoutReadinessReport {
   readonly sections: {
     readonly layoutMetadata: boolean;
     readonly layoutDescriptor: boolean;
-    readonly bindGroupResource: false;
-    readonly shaderSampling: false;
   };
   readonly layout: StandardMaterialIblBindGroupLayoutDescriptor | null;
   readonly diagnostics: readonly StandardMaterialIblBindGroupLayoutReadinessDiagnostic[];
@@ -190,8 +185,6 @@ export function createStandardMaterialIblBindGroupLayoutReadinessReport(
       sections: {
         layoutMetadata: true,
         layoutDescriptor: true,
-        bindGroupResource: false,
-        shaderSampling: false,
       },
       layout: null,
       diagnostics: [],
@@ -211,8 +204,6 @@ export function createStandardMaterialIblBindGroupLayoutReadinessReport(
       sections: {
         layoutMetadata: true,
         layoutDescriptor: false,
-        bindGroupResource: false,
-        shaderSampling: false,
       },
       layout: plan.layout,
       diagnostics: [
@@ -227,32 +218,17 @@ export function createStandardMaterialIblBindGroupLayoutReadinessReport(
   }
 
   return {
-    ready: false,
-    status: "deferred",
+    ready: true,
+    status: "available",
     standardMaterialCount: input.standardMaterialCount,
     group: 4,
     bindingCount: plan.layout.entries.length,
     sections: {
       layoutMetadata: true,
       layoutDescriptor: true,
-      bindGroupResource: false,
-      shaderSampling: false,
     },
     layout: plan.layout,
-    diagnostics: [
-      {
-        code: "standardMaterialIblBindGroupLayout.bindGroupResourceDeferred",
-        severity: "warning",
-        message:
-          "StandardMaterial IBL bind-group layout metadata is planned, but bind group resource creation is deferred.",
-      },
-      {
-        code: "standardMaterialIblBindGroupLayout.shaderSamplingDeferred",
-        severity: "warning",
-        message:
-          "StandardMaterial IBL bind-group layout metadata is planned, but WGSL shader sampling is deferred.",
-      },
-    ],
+    diagnostics: [],
   };
 }
 

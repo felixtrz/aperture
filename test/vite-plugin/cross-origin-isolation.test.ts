@@ -53,7 +53,9 @@ describe("Aperture Vite plugin cross-origin isolation", () => {
   });
 
   it("pins the worker format to es and pre-bundles the Aperture entries", () => {
-    const config = aperture().config?.();
+    const config = aperture().config?.({
+      root: path.resolve("showcase/fps"),
+    });
 
     expect(config?.worker).toEqual({ format: "es" });
     expect(config?.optimizeDeps?.include).toEqual(
@@ -62,6 +64,11 @@ describe("Aperture Vite plugin cross-origin isolation", () => {
         "@aperture-engine/app/systems",
         "@aperture-engine/app/browser",
         "@aperture-engine/app/worker",
+        "@aperture-engine/audio",
+        "@aperture-engine/physics",
+        "@aperture-engine/render",
+        "@aperture-engine/simulation",
+        "@aperture-engine/webgpu",
       ]),
     );
   });

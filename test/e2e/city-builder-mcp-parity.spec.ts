@@ -221,6 +221,21 @@ test.describe("City Builder shared MCP backend parity", () => {
         frameViewportAspect(headlessFrame),
         1,
       );
+      expect(lightingHealthReport(headedFrame)).toEqual(
+        lightingHealthReport(headlessFrame),
+      );
+
+      const headedDiagnosis = await mcp.call("render_diagnose", {
+        target: "headed",
+      });
+      const headlessDiagnosis = await mcp.call("render_diagnose", {
+        target: "headless",
+        width: 960,
+        height: 640,
+      });
+      expect(lightingHealthReport(headedDiagnosis)).toEqual(
+        lightingHealthReport(headlessDiagnosis),
+      );
     } finally {
       await mcp.call("app_stop", { target: "headless" }).catch(() => {
         // The MCP process may already have exited after a failed assertion.
@@ -435,6 +450,28 @@ function expectVisibleSamples(
 
 function frameViewportAspect(value: unknown): number {
   return numberPath(value, ["viewport", "aspect"]);
+}
+
+function lightingHealthReport(value: unknown): Record<string, unknown> {
+  const root = asRecord(value);
+  const report = asRecord(root?.["lightingHealth"]) ?? root;
+  if (
+    report === null ||
+    asRecord(report["output"]) === null ||
+    asRecord(report["lighting"]) === null ||
+    asRecord(report["materials"]) === null ||
+    !Array.isArray(report["warnings"])
+  ) {
+    throw new Error(
+      `Expected a lighting-health report in ${JSON.stringify(value)}`,
+    );
+  }
+  return {
+    output: report["output"],
+    lighting: report["lighting"],
+    materials: report["materials"],
+    warnings: report["warnings"],
+  };
 }
 
 function samplePixels(value: unknown): readonly Record<string, unknown>[] {

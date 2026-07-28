@@ -120,6 +120,85 @@ test("ibl-equirect auto-derives IBL from one equirect HDR and reflects it", asyn
   ).toBeGreaterThan(40);
 });
 
+test("ibl-equirect remains active at device pixel ratio 2", async ({
+  browser,
+  baseURL,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 960, height: 640 },
+    deviceScaleFactor: 2,
+  });
+  const page = await context.newPage();
+
+  try {
+    await page.goto(
+      `${baseURL ?? "http://127.0.0.1:4173"}/examples/ibl-equirect.html`,
+    );
+
+    const initial = await waitForExampleStatus<IblEquirectStatus>(page);
+    expect(initial, "ibl-equirect DPR 2 status should publish").toBeDefined();
+    if (initial === undefined) {
+      throw new Error("ibl-equirect DPR 2 status did not publish.");
+    }
+    skipIfUnsupportedWebGpu(initial);
+
+    await page.waitForFunction(() => {
+      const status = (
+        globalThis as typeof globalThis & {
+          readonly __APERTURE_EXAMPLE_STATUS__?: IblEquirectStatus;
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      return status?.ok === true && status.readback?.ok === true;
+    });
+
+    const status = await waitForExampleStatus<IblEquirectStatus>(page);
+    if (status === undefined) {
+      throw new Error("ibl-equirect DPR 2 status disappeared.");
+    }
+
+    await attachExampleStatus("ibl-equirect-dpr-2", status);
+    expectStatusJsonSafeForGpu(status);
+    expect(status.environment).toMatchObject({
+      specularPrefiltering: true,
+      diffuseConvolved: true,
+    });
+
+    const display = await page.evaluate(() => {
+      const canvas = document.querySelector("canvas");
+      if (canvas === null) {
+        return null;
+      }
+      const bounds = canvas.getBoundingClientRect();
+      return {
+        devicePixelRatio: globalThis.devicePixelRatio,
+        backingWidth: canvas.width,
+        backingHeight: canvas.height,
+        cssWidth: bounds.width,
+        cssHeight: bounds.height,
+      };
+    });
+    expect(display).not.toBeNull();
+    expect(display?.devicePixelRatio).toBe(2);
+    expect(display?.backingWidth).toBe(display?.cssWidth);
+    expect(display?.backingHeight).toBe(display?.cssHeight);
+    expect(display?.backingWidth ?? 0).toBeGreaterThan(0);
+    expect(display?.backingHeight ?? 0).toBeGreaterThan(0);
+
+    const reflect = findSample(status, "reflect-probe");
+    const clear = status.clearColor ?? { r: 0.015, g: 0.025, b: 0.035, a: 1 };
+    expect(
+      pixelDistance(reflect, {
+        r: Math.round(clear.r * 255),
+        g: Math.round(clear.g * 255),
+        b: Math.round(clear.b * 255),
+        a: 255,
+      }),
+    ).toBeGreaterThan(40);
+  } finally {
+    await context.close();
+  }
+});
+
 function findSample(status: IblEquirectStatus, id: string): RgbaPixel {
   const sample = status.readback?.samples?.find((s) => s.id === id);
   if (sample === undefined) {

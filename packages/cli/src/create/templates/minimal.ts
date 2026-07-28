@@ -90,7 +90,7 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       key: "light.key",
       name: "Key Light",
       kind: "directional",
-      illuminance: 4,
+      intensity: 4,
       transform: {
         rotationEulerDegrees: [-45, 35, 0],
       },

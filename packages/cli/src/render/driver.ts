@@ -46,6 +46,7 @@ export interface RenderBundleMetadata {
   readonly actualDimensions: RenderBundleDimensions;
   readonly bundleDigest: RenderBundleDigestMetadata | null;
   readonly webgpu: RenderBundleWebGpuMetadata | null;
+  readonly lightingHealth: unknown | null;
 }
 
 export interface RenderBundleBrowserMetadata {
@@ -80,6 +81,7 @@ interface HarnessStatus {
   readonly diagnostics?: readonly unknown[];
   readonly metadata?: {
     readonly webgpu?: unknown;
+    readonly lightingHealth?: unknown;
   } | null;
 }
 
@@ -278,6 +280,7 @@ export async function createApertureRenderSession(
           actualDimensions,
           bundleDigest: readRenderBundleDigestMetadata(renderOptions.bundle),
           webgpu: normalizeRenderBundleWebGpuMetadata(status.metadata?.webgpu),
+          lightingHealth: status.metadata?.lightingHealth ?? null,
         },
       };
     } finally {

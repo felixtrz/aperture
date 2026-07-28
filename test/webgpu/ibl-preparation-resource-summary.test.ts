@@ -40,7 +40,6 @@ describe("IBL preparation resource summary", () => {
         textureUpload: false,
         prefilterPassPlans: true,
         passSubmission: false,
-        shaderSampling: false,
       },
       resourceKeys: {
         environmentMaps: ["environment-map:studio"],
@@ -73,12 +72,6 @@ describe("IBL preparation resource summary", () => {
           severity: "warning",
           message:
             "IBL preparation passes are planned, but GPU pass submission is deferred.",
-        },
-        {
-          code: "iblPreparationResourceSummary.shaderSamplingDeferred",
-          severity: "warning",
-          message:
-            "IBL preparation resource status is data-only; StandardMaterial shader sampling remains deferred.",
         },
       ],
     });
@@ -130,7 +123,6 @@ describe("IBL preparation resource summary", () => {
       "iblPreparationResourceSummary.missingDescriptors",
       "iblPreparationResourceSummary.missingTexturePreparation",
       "iblPreparationResourceSummary.missingPassPlan",
-      "iblPreparationResourceSummary.shaderSamplingDeferred",
     ]);
     expect(unsupported.status).toBe("unsupported");
     expect(
@@ -138,7 +130,6 @@ describe("IBL preparation resource summary", () => {
     ).toEqual([
       "iblPreparationResourceSummary.unsupportedTexturePreparation",
       "iblPreparationResourceSummary.unsupportedPassPlan",
-      "iblPreparationResourceSummary.shaderSamplingDeferred",
     ]);
     expect(ready).toMatchObject({
       ready: true,
@@ -146,14 +137,8 @@ describe("IBL preparation resource summary", () => {
       sections: {
         textureUpload: true,
         passSubmission: true,
-        shaderSampling: false,
       },
-      diagnostics: [
-        {
-          code: "iblPreparationResourceSummary.shaderSamplingDeferred",
-          severity: "warning",
-        },
-      ],
+      diagnostics: [],
     });
   });
 

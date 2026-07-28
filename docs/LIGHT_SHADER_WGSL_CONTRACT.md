@@ -39,6 +39,10 @@ requirements while keeping the normal unlit WGSL source unchanged. It should not
 be routed into active rendering until a specific lighting integration task
 requires it.
 
-The active StandardMaterial proof path already consumes packed light buffers for
-ambient and directional direct lighting. Texture lighting, IBL, skybox
-consumption, and shadow maps remain separate renderer-owned work.
+The active StandardMaterial path consumes packed buffers for ambient,
+directional, point, spot, and area lighting as supported by its selected
+variant. Shadow and environment resources remain separate renderer-owned bind
+groups. Diffuse/specular IBL is executable, and activation is recorded by the
+submitted pipeline key; see the authoritative
+[StandardMaterial image-based lighting](architecture/standard-material-ibl.md)
+description.

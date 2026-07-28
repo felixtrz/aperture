@@ -1,7 +1,8 @@
 import type { StandardMaterialIblShadowBindingReadinessReport } from "./standard-material-ibl-shadow-binding-readiness.js";
 
 export type StandardMaterialIblShadowPipelineKeyStatus =
-  | "deferred"
+  | "available"
+  | "inactive"
   | "missing"
   | "not-required";
 
@@ -13,15 +14,14 @@ export type StandardMaterialIblShadowPipelineFeature =
 
 export type StandardMaterialIblShadowPipelineKeyDiagnosticCode =
   | "standardMaterialIblShadowPipelineKey.missingBindingReadiness"
-  | "standardMaterialIblShadowPipelineKey.deferredFeature"
-  | "standardMaterialIblShadowPipelineKey.shaderSamplingDeferred";
+  | "standardMaterialIblShadowPipelineKey.featureInactive";
 
 export interface StandardMaterialIblShadowPipelineKeyFeature {
   readonly feature: StandardMaterialIblShadowPipelineFeature;
   readonly pipelineKeyToken: string;
   readonly source: "ibl" | "shadow";
   readonly requiredBySlotCount: number;
-  readonly readiness: "deferred";
+  readonly readiness: "available" | "inactive";
 }
 
 export interface StandardMaterialIblShadowPipelineKeyDiagnostic {
@@ -32,16 +32,16 @@ export interface StandardMaterialIblShadowPipelineKeyDiagnostic {
 }
 
 export interface StandardMaterialIblShadowPipelineKeyReadinessReport {
-  readonly ready: false | true;
+  readonly ready: boolean;
   readonly status: StandardMaterialIblShadowPipelineKeyStatus;
   readonly standardMaterialCount: number;
   readonly featureCount: number;
   readonly sections: {
     readonly bindingReadiness: boolean;
     readonly pipelineKeyMetadata: boolean;
-    readonly pipelineDescriptor: false;
-    readonly bindGroupLayout: false;
-    readonly shaderSampling: false;
+    readonly pipelineDescriptor: boolean;
+    readonly bindGroupLayout: boolean;
+    readonly shaderSampling: boolean;
   };
   readonly features: readonly StandardMaterialIblShadowPipelineKeyFeature[];
   readonly diagnostics: readonly StandardMaterialIblShadowPipelineKeyDiagnostic[];
@@ -53,85 +53,75 @@ export type StandardMaterialIblShadowPipelineKeyReadinessReportJsonValue =
 export interface StandardMaterialIblShadowPipelineKeyReadinessInput {
   readonly standardMaterialCount: number;
   readonly bindingReadiness: StandardMaterialIblShadowBindingReadinessReport;
+  readonly submittedPipelineKeys?: readonly string[];
+  readonly bindGroupAvailable?: boolean;
 }
 
 export function createStandardMaterialIblShadowPipelineKeyReadinessReport(
   input: StandardMaterialIblShadowPipelineKeyReadinessInput,
 ): StandardMaterialIblShadowPipelineKeyReadinessReport {
   if (input.standardMaterialCount === 0) {
-    return {
-      ready: true,
-      status: "not-required",
-      standardMaterialCount: 0,
-      featureCount: 0,
-      sections: {
-        bindingReadiness: true,
-        pipelineKeyMetadata: true,
-        pipelineDescriptor: false,
-        bindGroupLayout: false,
-        shaderSampling: false,
-      },
-      features: [],
-      diagnostics: [],
-    };
+    return emptyReport("not-required", input.standardMaterialCount, true);
   }
 
   if (input.bindingReadiness.status === "missing") {
     return {
-      ready: false,
-      status: "missing",
-      standardMaterialCount: input.standardMaterialCount,
-      featureCount: 0,
-      sections: {
-        bindingReadiness: false,
-        pipelineKeyMetadata: false,
-        pipelineDescriptor: false,
-        bindGroupLayout: false,
-        shaderSampling: false,
-      },
-      features: [],
+      ...emptyReport("missing", input.standardMaterialCount, false),
       diagnostics: [
         {
           code: "standardMaterialIblShadowPipelineKey.missingBindingReadiness",
           severity: "warning",
           message:
-            "StandardMaterial IBL/shadow pipeline-key readiness requires binding readiness metadata.",
+            "StandardMaterial IBL/shadow pipeline readiness requires available binding metadata.",
         },
       ],
     };
   }
 
-  const features = summarizeFeatures(input.bindingReadiness);
-  const diagnostics: StandardMaterialIblShadowPipelineKeyDiagnostic[] =
-    features.flatMap((feature) => [
-      {
-        code: "standardMaterialIblShadowPipelineKey.deferredFeature" as const,
-        severity: "warning" as const,
-        feature: feature.feature,
-        message: `${feature.pipelineKeyToken} is a deferred StandardMaterial pipeline-key feature for future IBL/shadow sampling.`,
-      },
-    ]);
-
-  if (features.length > 0) {
-    diagnostics.push({
-      code: "standardMaterialIblShadowPipelineKey.shaderSamplingDeferred",
-      severity: "warning",
-      message:
-        "StandardMaterial IBL/shadow pipeline-key metadata is planned, but WGSL, bind-group layouts, and shader sampling remain deferred.",
-    });
-  }
+  const pipelineKeys = input.submittedPipelineKeys ?? [];
+  const features = summarizeFeatures(input.bindingReadiness).map((feature) => {
+    const token = selectedPipelineToken(feature.feature, pipelineKeys);
+    const slotsReady = input.bindingReadiness.slots
+      .filter((slot) => slotToFeature(slot.kind) === feature.feature)
+      .every((slot) => slot.readiness === "available");
+    const active =
+      slotsReady && pipelineKeys.some((key) => hasPipelineToken(key, token));
+    return {
+      ...feature,
+      pipelineKeyToken: token,
+      readiness: active ? ("available" as const) : ("inactive" as const),
+    };
+  });
+  const bindGroupAvailable =
+    input.bindGroupAvailable ?? input.bindingReadiness.status === "available";
+  const shaderSampling =
+    features.length > 0 &&
+    bindGroupAvailable &&
+    features.every((feature) => feature.readiness === "available");
+  const diagnostics = features.flatMap((feature) =>
+    feature.readiness === "available"
+      ? []
+      : [
+          {
+            code: "standardMaterialIblShadowPipelineKey.featureInactive" as const,
+            severity: "warning" as const,
+            feature: feature.feature,
+            message: `${feature.pipelineKeyToken} is required by binding state but is not active in the submitted StandardMaterial pipeline.`,
+          },
+        ],
+  );
 
   return {
-    ready: false,
-    status: "deferred",
+    ready: shaderSampling,
+    status: shaderSampling ? "available" : "inactive",
     standardMaterialCount: input.standardMaterialCount,
     featureCount: features.length,
     sections: {
-      bindingReadiness: true,
+      bindingReadiness: input.bindingReadiness.ready,
       pipelineKeyMetadata: true,
-      pipelineDescriptor: false,
-      bindGroupLayout: false,
-      shaderSampling: false,
+      pipelineDescriptor: pipelineKeys.length > 0,
+      bindGroupLayout: bindGroupAvailable,
+      shaderSampling,
     },
     features,
     diagnostics,
@@ -160,62 +150,78 @@ export function standardMaterialIblShadowPipelineKeyReadinessReportToJson(
   );
 }
 
+function emptyReport(
+  status: "not-required" | "missing",
+  standardMaterialCount: number,
+  ready: boolean,
+): StandardMaterialIblShadowPipelineKeyReadinessReport {
+  return {
+    ready,
+    status,
+    standardMaterialCount,
+    featureCount: 0,
+    sections: {
+      bindingReadiness: ready,
+      pipelineKeyMetadata: ready,
+      pipelineDescriptor: ready,
+      bindGroupLayout: ready,
+      shaderSampling: false,
+    },
+    features: [],
+    diagnostics: [],
+  };
+}
+
 function summarizeFeatures(
   bindingReadiness: StandardMaterialIblShadowBindingReadinessReport,
-): StandardMaterialIblShadowPipelineKeyFeature[] {
+): Omit<StandardMaterialIblShadowPipelineKeyFeature, "readiness">[] {
   const counts = new Map<StandardMaterialIblShadowPipelineFeature, number>();
 
   for (const slot of bindingReadiness.slots) {
-    counts.set(
-      slotToFeature(slot.kind),
-      (counts.get(slotToFeature(slot.kind)) ?? 0) + 1,
-    );
+    const feature = slotToFeature(slot.kind);
+    counts.set(feature, (counts.get(feature) ?? 0) + 1);
   }
 
   return [...counts.entries()]
     .map(([feature, requiredBySlotCount]) => ({
       feature,
-      pipelineKeyToken: pipelineKeyTokenForFeature(feature),
+      pipelineKeyToken: selectedPipelineToken(feature, []),
       source:
         feature === "ibl-diffuse-irradiance" ||
         feature === "ibl-specular-prefilter"
           ? ("ibl" as const)
           : ("shadow" as const),
       requiredBySlotCount,
-      readiness: "deferred" as const,
     }))
-    .sort((a, b) => a.pipelineKeyToken.localeCompare(b.pipelineKeyToken));
+    .sort((a, b) => a.feature.localeCompare(b.feature));
 }
 
 function slotToFeature(
   slotKind: StandardMaterialIblShadowBindingReadinessReport["slots"][number]["kind"],
 ): StandardMaterialIblShadowPipelineFeature {
-  if (slotKind === "ibl-diffuse") {
-    return "ibl-diffuse-irradiance";
-  }
-
-  if (slotKind === "ibl-specular") {
-    return "ibl-specular-prefilter";
-  }
-
-  if (slotKind === "shadow-view-projection") {
-    return "shadow-view-projection";
-  }
-
+  if (slotKind === "ibl-diffuse") return "ibl-diffuse-irradiance";
+  if (slotKind === "ibl-specular") return "ibl-specular-prefilter";
+  if (slotKind === "shadow-view-projection") return "shadow-view-projection";
   return "shadow-map";
 }
 
-function pipelineKeyTokenForFeature(
+function selectedPipelineToken(
   feature: StandardMaterialIblShadowPipelineFeature,
+  keys: readonly string[],
 ): string {
   switch (feature) {
     case "ibl-diffuse-irradiance":
-      return "iblDiffuseIrradiance";
+      return "iblDiffuse";
     case "ibl-specular-prefilter":
-      return "iblSpecularPrefilter";
+      return keys.some((key) => hasPipelineToken(key, "iblSpecularBrdf"))
+        ? "iblSpecularBrdf"
+        : "iblSpecularProof";
     case "shadow-view-projection":
-      return "shadowViewProjection";
     case "shadow-map":
       return "shadowMap";
   }
+}
+
+function hasPipelineToken(key: string, token: string): boolean {
+  return `|${key}|`.includes(`|${token}|`);
 }

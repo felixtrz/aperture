@@ -1,5 +1,7 @@
 import { AssetRegistry } from "@aperture-engine/simulation";
 import {
+  analyzeLightingHealth,
+  lightingHealthInputFingerprint,
   createRenderSnapshotChangeSet,
   createKtx2TextureCompressionSupportFromFeatures,
   RenderWorld,
@@ -31,6 +33,7 @@ import { getOrCreateWebGpuAppPipeline } from "./pipeline-resources.js";
 import { QUEUED_BUILT_IN_MATERIAL_ADAPTERS } from "./queued-built-in-adapters.js";
 import { pickWebGpuAppEntity } from "./picking-frame.js";
 import { renderWebGpuAppFrame } from "./frame-loop.js";
+import type { StandardFrameIblResources } from "../materials/standard/standard-frame-resources.js";
 import type {
   CreateWebGpuAppOptions,
   CreateWebGpuAppResult,
@@ -118,6 +121,9 @@ export async function createWebGpuApp(
   let latestPreviousSnapshotForUpdate: RenderSnapshot | null = null;
   let latestPickReportJson: WebGpuAppPickReportJsonValue | null = null;
   let latestWorkerError: WebGpuAppWorkerRenderErrorDiagnostic | null = null;
+  let latestLightingHealthFingerprint: number | null = null;
+  let latestLightingHealth: ReturnType<typeof analyzeLightingHealth> | null =
+    null;
   let preparedResourceLifetimeFrame = 0;
   const cadence = createWebGpuAppCadenceDiagnostics();
   const defaultGpuTimings =
@@ -441,7 +447,7 @@ export async function createWebGpuApp(
     async renderSnapshot(snapshot, renderOptions = {}) {
       const previousSnapshotForReport = previousSnapshotForUpdate;
       const resourceLifetimeFrame = nextPreparedResourceLifetimeFrame();
-      const report = await renderWebGpuAppFrame(
+      const renderedReport = await renderWebGpuAppFrame(
         { app, sourceAssets },
         resourceCache,
         {
@@ -452,6 +458,45 @@ export async function createWebGpuApp(
           resourceLifetimeFrame,
         },
       );
+
+      const iblResources = renderOptions.standardMaterialIblResources;
+      const lightingHealthFingerprint =
+        (lightingHealthInputFingerprint(renderedReport.snapshot, sourceAssets) ^
+          (iblResources === undefined ? 0 : 1) ^
+          (iblResources?.diffuseTextureResource?.ready === true ? 2 : 0) ^
+          (iblResources?.specularTextureResource?.ready === true ? 4 : 0) ^
+          (iblResources?.bindGroupResource.ready === true ? 8 : 0)) >>>
+        0;
+      if (
+        latestLightingHealth === null ||
+        latestLightingHealthFingerprint !== lightingHealthFingerprint
+      ) {
+        latestLightingHealth = analyzeLightingHealth({
+          snapshot: renderedReport.snapshot,
+          assets: sourceAssets,
+          output: {
+            tonemap: app.tonemap,
+            exposure: app.exposure,
+            hdr: app.sceneRenderFormat === "rgba16float",
+            colorSpace: app.outputColorSpace,
+          },
+          ...(renderedReport.snapshot.environments.length === 0
+            ? {}
+            : {
+                ibl: lightingHealthIblReadiness(iblResources),
+              }),
+        });
+        latestLightingHealthFingerprint = lightingHealthFingerprint;
+      }
+      const lightingHealth = latestLightingHealth;
+      const report: WebGpuAppRenderReport = {
+        ...renderedReport,
+        diagnostics: [
+          ...renderedReport.diagnostics,
+          ...lightingHealth.warnings,
+        ],
+        lightingHealth,
+      };
 
       prepareWebGpuAppSourceAssetFacades({
         registry: sourceAssets,
@@ -563,6 +608,34 @@ export async function createWebGpuApp(
       ),
     };
   }
+}
+
+function lightingHealthIblReadiness(
+  resources: StandardFrameIblResources | undefined,
+) {
+  if (resources === undefined) {
+    return {
+      diffuseReady: false,
+      specularReady: false,
+      preparationStatus: "source-missing" as const,
+    };
+  }
+
+  const bindGroupReady = resources.bindGroupResource.ready;
+  const diffuseReady =
+    resources.diffuseTextureResource?.ready === true && bindGroupReady;
+  const specularReady =
+    resources.specularTextureResource?.ready === true && bindGroupReady;
+  return {
+    diffuseReady,
+    specularReady,
+    preparationStatus:
+      diffuseReady && specularReady
+        ? ("diffuse-specular-ready" as const)
+        : diffuseReady
+          ? ("diffuse-ready" as const)
+          : ("preparation-failed" as const),
+  };
 }
 
 interface WebGpuAppCadenceDiagnostics {

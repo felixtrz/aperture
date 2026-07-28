@@ -22,6 +22,7 @@ import {
   type DracoMeshDecoder,
   type AudioClipAsset,
   type GltfAnimationImportReport,
+  type GltfImageBytesDecoder,
   type GltfEcsAuthoringCommandPlan,
   type GltfMeshSourceAssetRegistrationReport,
   type GltfPrimitiveMaterialResolutionReport,
@@ -152,6 +153,15 @@ export interface SystemGltfLoadedScene {
   readonly url: string;
   readonly sourceKind: "glb" | "gltf";
   readonly byteLength: number | null;
+  /** Counts from the authored glTF root, retained for bounded inspection tools. */
+  readonly sourceSummary: {
+    readonly nodeCount: number;
+    readonly meshCount: number;
+    readonly primitiveCount: number;
+    readonly materialCount: number;
+    readonly textureCount: number;
+    readonly imageCount: number;
+  };
   readonly importReport: GltfReportDrivenImportReport;
   readonly sourceRegistration: GltfSourceAssetRegistrationReport;
   readonly meshRegistration: GltfMeshSourceAssetRegistrationReport;
@@ -199,6 +209,8 @@ export interface ApertureAssetLoader {
 }
 
 export interface SystemGltfAssetDecoderProvider {
+  /** Optional image decoder used by headless/non-browser glTF loads. */
+  readonly decodeImageData?: GltfImageBytesDecoder;
   readonly createDracoDecoder?: () => PromiseLike<DracoMeshDecoder>;
   readonly createMeshoptDecoder?: () => PromiseLike<MeshoptBufferDecoder>;
   readonly createBasisKtx2Transcoder?: () => PromiseLike<Ktx2BasisTranscoder>;
@@ -1077,6 +1089,9 @@ async function loadSystemGltfAsset(input: {
           keyPrefix: input.handle.id,
           createAssetMapping: true,
           createMeshAssets: true,
+          ...(input.gltfAssetDecoders?.decodeImageData === undefined
+            ? {}
+            : { decodeImageData: input.gltfAssetDecoders.decodeImageData }),
           ...(input.gltfAssetDecoders?.createBasisKtx2Transcoder === undefined
             ? {}
             : {
@@ -1095,6 +1110,9 @@ async function loadSystemGltfAsset(input: {
           keyPrefix: input.handle.id,
           createAssetMapping: true,
           createMeshAssets: true,
+          ...(input.gltfAssetDecoders?.decodeImageData === undefined
+            ? {}
+            : { decodeImageData: input.gltfAssetDecoders.decodeImageData }),
           ...(input.gltfAssetDecoders?.createDracoDecoder === undefined
             ? {}
             : {
@@ -1244,6 +1262,13 @@ async function loadSystemGltfAsset(input: {
     url: loaded.url,
     sourceKind,
     byteLength: loaded.byteLength,
+    sourceSummary: gltfSourceSummary(
+      loaded.loader === null
+        ? null
+        : "root" in loaded.loader
+          ? loaded.loader.root
+          : loaded.loader.glbImportReport.container.container?.json,
+    ),
     importReport,
     sourceRegistration: registration.sourceRegistration,
     meshRegistration: registration.meshRegistration,
@@ -1253,6 +1278,43 @@ async function loadSystemGltfAsset(input: {
     skin: importReport.skinImport,
     clips,
     animationReport: importReport.animation.report,
+  };
+}
+
+function gltfSourceSummary(
+  root: unknown,
+): SystemGltfLoadedScene["sourceSummary"] {
+  if (root === null || typeof root !== "object" || Array.isArray(root)) {
+    return {
+      nodeCount: 0,
+      meshCount: 0,
+      primitiveCount: 0,
+      materialCount: 0,
+      textureCount: 0,
+      imageCount: 0,
+    };
+  }
+
+  const source = root as Record<string, unknown>;
+  const nodes = Array.isArray(source.nodes) ? source.nodes : [];
+  const meshes = Array.isArray(source.meshes) ? source.meshes : [];
+  const primitiveCount = meshes.reduce((count, mesh) => {
+    if (mesh === null || typeof mesh !== "object" || Array.isArray(mesh)) {
+      return count;
+    }
+    const primitives = (mesh as Record<string, unknown>).primitives;
+    return count + (Array.isArray(primitives) ? primitives.length : 0);
+  }, 0);
+
+  return {
+    nodeCount: nodes.length,
+    meshCount: meshes.length,
+    primitiveCount,
+    materialCount: Array.isArray(source.materials)
+      ? source.materials.length
+      : 0,
+    textureCount: Array.isArray(source.textures) ? source.textures.length : 0,
+    imageCount: Array.isArray(source.images) ? source.images.length : 0,
   };
 }
 
