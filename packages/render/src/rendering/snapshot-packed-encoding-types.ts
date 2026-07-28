@@ -8,6 +8,7 @@ import type {
   LightPacket,
   MeshDrawPacket,
   ParticleEmitterPacket,
+  ProceduralSkyPacket,
   QuadBatchPacket,
   RenderSnapshot,
   ShadowRequestPacket,
@@ -27,6 +28,7 @@ export interface SnapshotPacketBundle {
   readonly shadowRequests: readonly ShadowRequestPacket[];
   readonly bounds: readonly BoundsPacket[];
   readonly quadBatches?: readonly QuadBatchPacket[];
+  readonly proceduralSkies?: readonly ProceduralSkyPacket[];
 }
 
 export interface EncodeSnapshotPacketsOptions {
@@ -50,6 +52,7 @@ export interface EncodedSnapshotPackets {
     readonly shadowRequests: number;
     readonly bounds: number;
     readonly quadBatches: number;
+    readonly proceduralSkies: number;
   };
   readonly wordLength: number;
   readonly byteLength: number;
@@ -71,4 +74,5 @@ export type SnapshotPacketEncodingInput =
       | "shadowRequests"
       | "bounds"
       | "quadBatches"
+      | "proceduralSkies"
     >;

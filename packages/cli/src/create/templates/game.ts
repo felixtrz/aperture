@@ -98,12 +98,14 @@ export function createApertureAppConfig(options: ApertureAppConfigOptions) {
       },
     },
     render: {
-      clearColor: [0.08, 0.12, 0.16, 1],
-      tonemap: "aces",
-      exposure: 1,
-      outputColorSpace: "srgb",
       defaultCamera: false,
       defaultLight: false,
+      // ACES tonemapping through the HDR scene buffer plus a subtle bloom;
+      // the daylight sky + image-based lighting install automatically via
+      // render.defaultEnvironment.
+      tonemap: "aces",
+      exposure: 1,
+      bloom: { threshold: 0.75, intensity: 0.04, radiusPixels: 2 },
       sampleCount: 4,
       maxPixelRatio: 2,
     },
@@ -130,6 +132,9 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       fovYDegrees: 50,
     });
 
+    // Neutral studio rig: an HDR environment plus key/rim lights, with shadows
+    // grounding the player and props against the level. Authoring an
+    // environment light suppresses the automatic daylight rig.
     this.spawn.lightRig({
       key: "lighting.presentation",
       preset: "studio-neutral",
@@ -147,6 +152,8 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         roughness: 0.65,
       }),
       transform: { translation: [0, -0.15, 0] },
+      castShadow: false,
+      receiveShadow: true,
     });
 
     this.spawn.mesh({
@@ -155,10 +162,12 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       tags: ["player", "controllable"],
       mesh: mesh.box({ size: [0.5, 0.8, 0.5] }),
       material: material.standard({
-        baseColor: [0.18, 0.58, 1, 1],
+        baseColor: [0.13, 0.45, 0.95, 1],
         roughness: 0.45,
       }),
       transform: { translation: [-3.5, 0.55, 0] },
+      castShadow: true,
+      receiveShadow: true,
     });
 
     this.spawn.gltf(this.assets.gltf("goal"), {
@@ -166,6 +175,8 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       name: "Goal Gem",
       tags: ["collectible", "goal"],
       transform: { translation: [1.8, 0.65, 0], scale: [0.35, 0.35, 0.35] },
+      castShadow: true,
+      receiveShadow: true,
     });
 
     this.spawn.mesh({
@@ -178,6 +189,8 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
         roughness: 0.5,
       }),
       transform: { translation: [3.8, 0.6, 0] },
+      castShadow: true,
+      receiveShadow: true,
     });
   }
 }

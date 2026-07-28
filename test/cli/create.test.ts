@@ -368,7 +368,9 @@ describe("Aperture CLI create command", () => {
     );
     expect(sharedConfig).toContain('tonemap: "aces"');
     expect(sharedConfig).toContain("exposure: 1");
-    expect(sharedConfig).toContain('outputColorSpace: "srgb"');
+    // sRGB output is the engine default; the sky covers any clear color, so
+    // generated apps must not set one.
+    expect(sharedConfig).not.toContain("clearColor");
     expect(sharedConfig).toContain("defaultCamera: false");
     expect(sharedConfig).toContain("defaultLight: false");
     expect(sharedConfig).toContain("sampleCount: 4");
@@ -449,7 +451,9 @@ describe("Aperture CLI create command", () => {
     );
     expect(sharedConfig).toContain('tonemap: "aces"');
     expect(sharedConfig).toContain("exposure: 1");
-    expect(sharedConfig).toContain('outputColorSpace: "srgb"');
+    // sRGB output is the engine default; the sky covers any clear color, so
+    // generated apps must not set one.
+    expect(sharedConfig).not.toContain("clearColor");
     expect(sharedConfig).toContain("defaultCamera: false");
     expect(sharedConfig).toContain("defaultLight: false");
     expect(sharedConfig).toContain("sampleCount: 4");

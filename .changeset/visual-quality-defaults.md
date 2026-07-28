@@ -1,0 +1,17 @@
+---
+"@aperture-engine/app": minor
+"@aperture-engine/webgpu": minor
+"@aperture-engine/cli": minor
+---
+
+Generated apps now default to a filmic, lit baseline instead of a raw neutral one.
+
+- **ACES tonemapping by default**: generated apps (and the CLI headless render path) resolve `render.tonemap` to `"aces"` through the HDR scene buffer at `exposure: 1`. An explicit `tonemap: "none"` with no exposure/bloom keeps the legacy byte-identical 8-bit path for golden baselines. The low-level `createWebGpuApp` default is unchanged (`"none"`).
+- **Zero-config default environment**: a daylight gradient sky (`ProceduralSky`) plus matching image-based lighting (synthesized equirect fed through the PMREM/irradiance chain, scaled to a ~0.4 ambient fill so it sits under a sun without washing out) installs automatically unless the app authors its own `ProceduralSky`, `Skybox`, or environment light — or sets `render.defaultEnvironment: false`. When the app authors no analytic lights at all, the rig also adds a soft shadowless sun — the standard-material light buffer requires at least one analytic light, so an environment-only world would otherwise fail to render.
+- **ProceduralSky rides the SharedArrayBuffer snapshot transport**: the packed snapshot encoding gains a procedural-sky packet family (encoding version 16), so scenes with a sky — including the default environment — no longer force the per-frame transferable fallback (a silent transport downgrade decision 0022 anticipated extending).
+- **Environment lights now work in generated apps**: `createWebGpuApp` auto-prepares environment-map assets from the source registry per snapshot (memoized by asset version); previously `prepareWebGpuAppEnvironmentAssets` was only reachable from hand-written harnesses, so authored IBL never rendered in generated apps.
+- **`render.ssao`**: screen-space ambient occlusion is now reachable from generated-app config (boolean or `{ radiusPixels, intensity, power, sampleCount }`), wired before bloom.
+- **`material.standard()` defaults to a dielectric** (`metallic: 0`); glTF imports keep the glTF spec default (`metallicFactor: 1`).
+- **CLI templates upgraded to the showcase recipe**: shadow-casting sun (no ambient fill — the environment supplies it), ground shadow receiver, `castShadow`/`receiveShadow` on meshes, subtle bloom, and the ACES/HDR render block.
+
+New docs: `docs/VISUAL_QUALITY.md` (the default look, suppression rules, flat-scene checklist) and an AGENTS.md "Visual Quality Defaults" section; decision 0023 records the rationale.

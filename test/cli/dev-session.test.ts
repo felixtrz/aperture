@@ -1907,7 +1907,15 @@ export default defineApertureConfig({
     dielectric: asset.gltf("/assets/lighting-dielectric.gltf", { preload: "blocking" }),
     textured: asset.gltf("/assets/lighting-textured-pbr.gltf", { preload: "blocking" }),
   },
-  render: { defaultCamera: false, defaultLight: false },
+  // These fixtures exist to exercise the metal-without-IBL detection path, so
+  // opt out of the automatic daylight environment and of tonemapping: the
+  // scene must stay genuinely bare for the warning to be meaningful.
+  render: {
+    defaultCamera: false,
+    defaultLight: false,
+    defaultEnvironment: false,
+    tonemap: "none",
+  },
 });
 `,
     "utf8",

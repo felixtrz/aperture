@@ -132,6 +132,9 @@ export default defineApertureConfig({
     clearColor: [0xad / 255, 0xb2 / 255, 0xba / 255, 1],
     defaultCamera: false,
     defaultLight: false,
+    // This showcase authors its own complete look (sky color, ambient, sun);
+    // keep the zero-config daylight environment out of it.
+    defaultEnvironment: false,
     sampleCount: 4,
     // renderer.toneMapping = ACESFilmicToneMapping, exposure 1.0, HalfFloat HDR.
     tonemap: "aces",

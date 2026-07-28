@@ -24,6 +24,10 @@ export {
 } from "./snapshot-packed-quad-codec.js";
 export { readFogPacket, writeFogPacket } from "./snapshot-packed-fog-codec.js";
 export {
+  readProceduralSkyPacket,
+  writeProceduralSkyPacket,
+} from "./snapshot-packed-sky-codec.js";
+export {
   readParticleEmitterPacket,
   writeParticleEmitterPacket,
 } from "./snapshot-packed-particle-codec.js";

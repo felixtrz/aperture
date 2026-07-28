@@ -369,6 +369,17 @@ export interface ApertureBloomConfig {
   readonly levels?: number;
 }
 
+export interface ApertureSsaoConfig {
+  /** AO sampling radius in screen pixels (1..48). */
+  readonly radiusPixels?: number;
+  /** AO darkening strength (0..4). */
+  readonly intensity?: number;
+  /** Exponent shaping the AO falloff curve (0.25..8). */
+  readonly power?: number;
+  /** Number of AO depth samples per pixel (4..64). */
+  readonly sampleCount?: number;
+}
+
 export interface ApertureRenderDeviceProfile {
   readonly label?: string;
   readonly minViewportWidth?: number;
@@ -382,12 +393,21 @@ export interface ApertureRenderDeviceProfile {
   readonly maxPixelRatio?: number;
   readonly exposure?: number;
   readonly bloom?: boolean | ApertureBloomConfig;
+  readonly ssao?: boolean | ApertureSsaoConfig;
 }
 
 export interface ApertureRenderDefaults {
   readonly clearColor?: readonly [number, number, number, number];
   readonly defaultCamera?: boolean;
   readonly defaultLight?: boolean;
+  /**
+   * Zero-config daylight environment: a procedural gradient sky plus
+   * matching image-based lighting, installed automatically unless the app
+   * authors its own ProceduralSky, Skybox, or environment light. Defaults to
+   * true — without it (or authored lighting) StandardMaterial scenes render
+   * near-black on a black background. Set false to opt out entirely.
+   */
+  readonly defaultEnvironment?: boolean;
   readonly sampleCount?: number;
   readonly pixelRatio?: number;
   readonly maxPixelRatio?: number;
@@ -400,18 +420,27 @@ export interface ApertureRenderDefaults {
   readonly deviceProfiles?: readonly ApertureRenderDeviceProfile[];
   /**
    * Tonemap operator applied when converting the linear HDR scene to display.
-   * Defaults to "none". Use "aces" for filmic, "agx"/"neutral" for the
-   * three.js-faithful operators.
+   * Generated apps default to "aces" (filmic, the operator the showcases
+   * ship with); "agx"/"neutral" are the other three.js-faithful operators.
+   * Set "none" (without exposure/bloom) to opt out of tonemapping and keep
+   * the raw linear→sRGB 8-bit path, e.g. for golden-image baselines.
    */
   readonly tonemap?: ApertureTonemapOperator;
   /**
-   * HDR exposure scalar. Setting any finite value renders the scene into an
-   * rgba16float buffer and moves tonemap + exposure to a final post stage
-   * (required for post effects like bloom).
+   * HDR exposure scalar. Generated apps default to 1 whenever tonemapping or
+   * bloom is active: the scene renders into an rgba16float buffer and
+   * tonemap + exposure move to a final post stage (required for post effects
+   * like bloom). Only tonemap: "none" without bloom skips the HDR path.
    */
   readonly exposure?: number;
   /** Enable UnrealBloom-style bloom (requires the HDR path; implies exposure). */
   readonly bloom?: boolean | ApertureBloomConfig;
+  /**
+   * Enable screen-space ambient occlusion. AO attenuates indirect
+   * (ambient/IBL) light in creases and contact regions, grounding objects
+   * that otherwise look pasted onto the scene. Implies the HDR path.
+   */
+  readonly ssao?: boolean | ApertureSsaoConfig;
   /**
    * Route the generated app through the single-encoder FrameGraph (AI-25:
    * default ON at parity). Set `false` to force the legacy multi-submit route.

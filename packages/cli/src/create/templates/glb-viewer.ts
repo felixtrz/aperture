@@ -80,12 +80,14 @@ export function createApertureAppConfig(options: ApertureAppConfigOptions) {
       },
     },
     render: {
-      clearColor: [0.03, 0.035, 0.04, 1],
-      tonemap: "aces",
-      exposure: 1,
-      outputColorSpace: "srgb",
       defaultCamera: false,
       defaultLight: false,
+      // ACES tonemapping through the HDR scene buffer plus a subtle bloom;
+      // the daylight sky + image-based lighting install automatically via
+      // render.defaultEnvironment, so glTF PBR materials read correctly.
+      tonemap: "aces",
+      exposure: 1,
+      bloom: { threshold: 0.75, intensity: 0.04, radiusPixels: 2 },
       sampleCount: 4,
       maxPixelRatio: 2,
     },
@@ -98,7 +100,7 @@ export function createApertureAppConfig(options: ApertureAppConfigOptions) {
 }
 
 function glbViewerSetupSystemTs(): string {
-  return `import { createSystem } from "@aperture-engine/app/systems";
+  return `import { createSystem, material, mesh } from "@aperture-engine/app/systems";
 
 export default class SetupSystem extends createSystem({ priority: 0 }) {
   override init(): void {
@@ -112,11 +114,29 @@ export default class SetupSystem extends createSystem({ priority: 0 }) {
       fovYDegrees: 50,
     });
 
+    // Neutral studio rig: an HDR environment plus key/rim lights. Authoring an
+    // environment light suppresses the automatic daylight rig, so this stays
+    // the scene's only environment — and it gives glTF PBR materials their
+    // reflections.
     this.spawn.lightRig({
       key: "lighting.presentation",
       preset: "studio-neutral",
       environmentMap: this.assets.hdr("studioEnvironment"),
       shadows: true,
+    });
+
+    this.spawn.mesh({
+      key: "viewer.ground",
+      name: "Ground",
+      tags: ["level", "ground"],
+      mesh: mesh.box({ size: [8, 0.2, 8] }),
+      material: material.standard({
+        baseColor: [0.42, 0.44, 0.42, 1],
+        roughness: 0.9,
+      }),
+      transform: { translation: [0, -0.6, 0] },
+      castShadow: false,
+      receiveShadow: true,
     });
 
     this.spawn.gltf(this.assets.gltf("sampleCube"), {

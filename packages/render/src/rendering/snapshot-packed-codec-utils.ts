@@ -35,6 +35,8 @@ export {
   fogModeValue,
   lightKindId,
   lightKindValue,
+  proceduralSkyModelId,
+  proceduralSkyModelValue,
   queueId,
   queueValue,
   topologyId,
