@@ -131,28 +131,35 @@ export class ApertureMcpSessionManager {
         "Advance authoritative simulation. Set untilQuiescent (headless target only) to step until the render digest stabilizes and queues drain (bounded by maxFrames, default 240); the result then carries a quiescence report.",
         sharedStepSchema(),
       ),
-      tool("ecs_find_entities", "Find ECS entities.", sharedTargetSchema()),
-      tool(
-        "ecs_get_entity",
-        "Read one ECS entity summary.",
-        sharedTargetSchema(),
-      ),
-      tool("ecs_query", "Run a structured ECS query.", sharedTargetSchema()),
-      tool(
-        "ecs_get_component_schema",
-        "Inspect an ECS component schema.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "ecs_snapshot",
-        "Capture an ECS summary snapshot.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "ecs_diff",
-        "Diff against the previous ECS snapshot.",
-        sharedTargetSchema(),
-      ),
+      tool("ecs_find_entities", "Find ECS entities.", {
+        ...sharedTargetSchema(),
+        ...entityQuerySchema(),
+      }),
+      tool("ecs_get_entity", "Read one ECS entity summary.", {
+        ...sharedTargetSchema(),
+        ...entitySelectorSchema(),
+      }),
+      tool("ecs_query", "Run a structured ECS query.", {
+        ...sharedTargetSchema(),
+        ...entityQuerySchema(),
+      }),
+      tool("ecs_get_component_schema", "Inspect an ECS component schema.", {
+        ...sharedTargetSchema(),
+        component: {
+          type: "string",
+          description:
+            "Component id to inspect; omit to list every active component schema.",
+        },
+        id: { type: "string", description: "Alias of component." },
+      }),
+      tool("ecs_snapshot", "Capture an ECS summary snapshot.", {
+        ...sharedTargetSchema(),
+        ...entitySnapshotSchema(),
+      }),
+      tool("ecs_diff", "Diff against the previous ECS snapshot.", {
+        ...sharedTargetSchema(),
+        ...entitySnapshotSchema(),
+      }),
       tool(
         "ecs_list_systems",
         "List systems and schedule metadata.",
@@ -168,11 +175,19 @@ export class ApertureMcpSessionManager {
         "Resume headed simulation or no-op a headless slot.",
         sharedTargetSchema(),
       ),
-      tool(
-        "ecs_set_component_field",
-        "Mutate an allowlisted ECS field.",
-        sharedTargetSchema(),
-      ),
+      tool("ecs_set_component_field", "Mutate an allowlisted ECS field.", {
+        ...sharedTargetSchema(),
+        ...entitySelectorSchema(),
+        component: { type: "string", description: "Component id to mutate." },
+        field: {
+          type: "string",
+          description: "Field name on the component schema.",
+        },
+        value: {
+          description:
+            "New field value, sent as its natural JSON type (number, boolean, string, or array).",
+        },
+      }),
       tool(
         "ecs_get_hierarchy",
         "Read derived ECS hierarchy.",
@@ -198,13 +213,30 @@ export class ApertureMcpSessionManager {
       tool("resource_set", "Patch initialized resources.", {
         ...sharedTargetSchema(),
         id: { type: "string" },
-        values: { type: "object" },
+        values: {
+          type: "object",
+          description: "Field name → new value patch applied to the resource.",
+        },
+        fields: { type: "object", description: "Alias of values." },
       }),
-      tool(
-        "input_inject",
-        "Apply semantic input to a session.",
-        sharedTargetSchema(),
-      ),
+      tool("input_inject", "Apply semantic input to a session.", {
+        ...sharedTargetSchema(),
+        pointer: {
+          type: "object",
+          description:
+            "Primary pointer state { position: [x, y], pressed: boolean }.",
+        },
+        actions: {
+          type: "object",
+          description:
+            "Map of input action name to a pressed boolean, a numeric value, or an { x, y } axis object.",
+        },
+        gamepad: {
+          type: "object",
+          description:
+            "Gamepad state forwarded to input_gamepad_set: { left/right: { x, y }, axes: [lx, ly, rx, ry], button, pressed, value, index }.",
+        },
+      }),
       tool(
         "input_get_state",
         "Read generated input state.",
@@ -212,46 +244,82 @@ export class ApertureMcpSessionManager {
       ),
       tool("input_reset", "Clear generated input state.", sharedTargetSchema()),
       tool("camera_list", "List ECS cameras.", sharedTargetSchema()),
-      tool("camera_get", "Read ECS camera state.", sharedTargetSchema()),
-      tool(
-        "camera_save",
-        "Save camera state in the session slot.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "camera_restore",
-        "Restore camera state in the session slot.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "camera_create_agent",
-        "Create or reuse an ECS agent camera.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "camera_set_transform",
-        "Set ECS camera transform.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "camera_look_at",
-        "Aim ECS camera at a target.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "camera_orbit",
-        "Orbit ECS camera around a target.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "camera_fit_entity",
-        "Fit ECS camera to an entity or target.",
-        sharedTargetSchema(),
-      ),
+      tool("camera_get", "Read ECS camera state.", {
+        ...sharedTargetSchema(),
+        ...cameraSelectorSchema(),
+      }),
+      tool("camera_save", "Save camera state in the session slot.", {
+        ...sharedTargetSchema(),
+        ...cameraSelectorSchema(),
+        slot: {
+          type: "string",
+          description: 'Saved-state slot name (default "default").',
+        },
+      }),
+      tool("camera_restore", "Restore camera state in the session slot.", {
+        ...sharedTargetSchema(),
+        ...cameraSelectorSchema(),
+        slot: {
+          type: "string",
+          description: 'Saved-state slot name (default "default").',
+        },
+      }),
+      tool("camera_create_agent", "Create or reuse an ECS agent camera.", {
+        ...sharedTargetSchema(),
+        key: {
+          type: "string",
+          description: 'App key for the agent camera (default "camera.agent").',
+        },
+        translation: {
+          type: "array",
+          description: "Camera position [x, y, z] (default [0, 1.5, 5]).",
+        },
+        lookAt: {
+          type: "array",
+          description: "Point the camera looks at [x, y, z] (default origin).",
+        },
+      }),
+      tool("camera_set_transform", "Set ECS camera transform.", {
+        ...sharedTargetSchema(),
+        ...cameraSelectorSchema(),
+        translation: {
+          type: "array",
+          description: "Local translation [x, y, z].",
+        },
+        rotation: {
+          type: "array",
+          description: "Local rotation quaternion [x, y, z, w].",
+        },
+        scale: { type: "array", description: "Local scale [x, y, z]." },
+      }),
+      tool("camera_look_at", "Aim ECS camera at a target.", {
+        ...sharedTargetSchema(),
+        ...cameraSelectorSchema(),
+        translation: {
+          type: "array",
+          description:
+            "Camera position [x, y, z]; defaults to the current position.",
+        },
+        target: {
+          type: "array",
+          description: "Point to aim at [x, y, z] (default origin).",
+        },
+      }),
+      tool("camera_orbit", "Orbit ECS camera around a target.", {
+        ...sharedTargetSchema(),
+        ...cameraOrbitSchema(),
+      }),
+      tool("camera_fit_entity", "Fit ECS camera to an entity or target.", {
+        ...sharedTargetSchema(),
+        ...cameraOrbitSchema(),
+      }),
       tool(
         "camera_use_agent_view",
         "Promote a camera to primary render view.",
-        sharedTargetSchema(),
+        {
+          ...sharedTargetSchema(),
+          ...cameraSelectorSchema(),
+        },
       ),
       tool(
         "frame_capture",
@@ -1322,6 +1390,165 @@ function tool(
 
 function sharedTargetSchema(): Record<string, unknown> {
   return { target: targetSchema(), appRoot: { type: "string" } };
+}
+
+// MCP clients serialize tool arguments that are NOT declared in a tool's
+// input schema as JSON strings, and the handlers type-check structurally
+// (isRecord / Array.isArray / typeof number). An undeclared object, array, or
+// number parameter therefore silently arrived as a string and was dropped:
+// input_inject reported ok with an empty result and ecs_get_entity fell back
+// to the previous query's entity. Every non-string parameter a handler reads
+// must be declared below (the resource_set `values` pattern).
+
+/** Entity selector consumed by ecs_get_entity / ecs_set_component_field. */
+function entitySelectorSchema(): Record<string, unknown> {
+  return {
+    entity: {
+      type: "object",
+      description:
+        "Entity reference { index, generation } as reported by ecs_find_entities.",
+    },
+    index: {
+      type: "number",
+      description: "Entity index; with generation, an alternative to entity.",
+    },
+    generation: {
+      type: "number",
+      description: "Entity generation; with index, an alternative to entity.",
+    },
+    key: {
+      type: "string",
+      description: "Select the entity by its authored app key.",
+    },
+    namePattern: {
+      type: "string",
+      description: "Select the first entity whose name matches this pattern.",
+    },
+    summaries: {
+      type: "array",
+      description:
+        "Piped ecs_find_entities report; the first summary's entity reference is used.",
+    },
+  };
+}
+
+/** Query filters consumed by ecs_find_entities / ecs_query. */
+function entityQuerySchema(): Record<string, unknown> {
+  return {
+    query: {
+      type: "object",
+      description:
+        "Structured query { key, namePattern, withComponents, tags, source, limit }; the same filters are also accepted top-level.",
+    },
+    key: {
+      type: "string",
+      description: "Match the authored app key exactly.",
+    },
+    namePattern: {
+      type: "string",
+      description: "Match entity names against this pattern.",
+    },
+    withComponents: {
+      type: "array",
+      description: "Component ids the entity must have.",
+    },
+    tags: { type: "array", description: "Tags the entity must have." },
+    tag: { type: "string", description: "Single-tag shorthand for tags." },
+    source: {
+      type: "object",
+      description:
+        "Asset-source filter { assetId, gltfNodeIndex, gltfNodePath }.",
+    },
+    limit: {
+      type: "number",
+      description: "Maximum matches returned (default 50).",
+    },
+  };
+}
+
+/** Snapshot scope consumed by ecs_snapshot / ecs_diff (no `tag` shorthand). */
+function entitySnapshotSchema(): Record<string, unknown> {
+  const { tag: _tag, ...query } = entityQuerySchema();
+  return {
+    ...query,
+    label: {
+      type: "string",
+      description: "Label recorded on the snapshot.",
+    },
+    entities: {
+      type: "array",
+      description:
+        "Restrict the snapshot to explicit entity references [{ index, generation }].",
+    },
+  };
+}
+
+/** Camera selector consumed by the camera_* tools. */
+function cameraSelectorSchema(): Record<string, unknown> {
+  return {
+    key: {
+      type: "string",
+      description: 'Camera entity app key (e.g. "camera.main").',
+    },
+    entity: {
+      type: "object",
+      description: "Camera entity reference { index, generation }.",
+    },
+    index: {
+      type: "number",
+      description:
+        "Camera entity index; with generation, an alternative to entity.",
+    },
+    generation: {
+      type: "number",
+      description:
+        "Camera entity generation; with index, an alternative to entity.",
+    },
+  };
+}
+
+/**
+ * camera_orbit / camera_fit_entity parameters. Unlike the other camera tools,
+ * `entity` here is the orbit/fit TARGET; select the camera to move with `key`.
+ */
+function cameraOrbitSchema(): Record<string, unknown> {
+  return {
+    key: {
+      type: "string",
+      description: "App key of the camera to move.",
+    },
+    entity: {
+      type: "object",
+      description:
+        "Target entity reference { index, generation } whose world position is orbited or fitted; pass target for an explicit point.",
+    },
+    index: {
+      type: "number",
+      description:
+        "Camera entity index; with generation, selects the camera to move directly.",
+    },
+    generation: {
+      type: "number",
+      description:
+        "Camera entity generation; with index, selects the camera to move directly.",
+    },
+    target: {
+      type: "array",
+      description: "Explicit target point [x, y, z].",
+    },
+    radius: {
+      type: "number",
+      description: "Distance from the target (default 5).",
+    },
+    yawDegrees: {
+      type: "number",
+      description: "Yaw around the target in degrees (default 35).",
+    },
+    pitchDegrees: {
+      type: "number",
+      description: "Pitch above the target in degrees (default 20).",
+    },
+  };
 }
 
 function sharedStepSchema(): Record<string, unknown> {
