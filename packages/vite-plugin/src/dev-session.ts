@@ -34,7 +34,17 @@ export interface ApertureViteDevServer {
         },
       ) => void,
     ): void;
-    send?(event: string, payload: unknown): void;
+    /**
+     * Mirrors vite's overloaded WebSocketServer.send: the custom-event form
+     * carries devtools-bridge messages, the HMR-payload form lets system-graph
+     * HMR announce full reloads for regenerated worker entries (the generated
+     * output directory is excluded from the watcher, so vite never sees those
+     * writes itself).
+     */
+    send?: {
+      (event: string, payload: unknown): void;
+      (payload: { readonly type: "full-reload"; readonly path?: string }): void;
+    };
   };
 }
 

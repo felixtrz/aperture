@@ -1,6 +1,11 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { resolveConfigFile, toModuleUrl } from "./file-utils.js";
+import {
+  readOptionalText,
+  resolveConfigFile,
+  toModuleUrl,
+  writeFileAtomic,
+} from "./file-utils.js";
 import { writeApertureGeneratedActionTypes } from "./generated-action-types.js";
 import {
   createApertureSystemManifest,
@@ -75,7 +80,7 @@ export async function loadApertureVirtualModule(
   }
 
   if (virtualId === VIRTUAL_BROWSER_ENTRY) {
-    const workerEntryFile = await writeApertureGeneratedWorkerEntry({
+    const { file: workerEntryFile } = await writeApertureGeneratedWorkerEntry({
       root: options.root,
       configFile,
     });
@@ -105,14 +110,32 @@ export async function loadApertureVirtualModule(
   return null;
 }
 
+/**
+ * Watcher-ignore glob for the plugin's own generated outputs. The generated
+ * worker entry lives inside the app root, so vite's dev watcher would see
+ * every rewrite; because that file is in the module graph (imported via
+ * `?worker` from the browser entry), a rewrite on page load triggers a full
+ * reload, which loads the page again, which rewrites the file — an infinite
+ * reload loop. The plugin excludes the directory from the watcher and
+ * announces reloads for genuine system-graph changes itself (see
+ * system-graph-hmr.ts).
+ */
+export const APERTURE_GENERATED_WATCH_IGNORE_GLOB = "**/.aperture/generated/**";
+
 export function apertureGeneratedWorkerEntryFile(root: string): string {
   return path.join(root, ".aperture", "generated", "aperture-worker-entry.js");
+}
+
+export interface ApertureGeneratedWorkerEntryWrite {
+  readonly file: string;
+  /** True when the entry was (re)written; false when byte-identical on disk. */
+  readonly changed: boolean;
 }
 
 export async function writeApertureGeneratedWorkerEntry(options: {
   readonly root: string;
   readonly configFile: string;
-}): Promise<string> {
+}): Promise<ApertureGeneratedWorkerEntryWrite> {
   const manifest = await createApertureSystemManifest({
     root: options.root,
     configFile: options.configFile,
@@ -139,10 +162,18 @@ export async function writeApertureGeneratedWorkerEntry(options: {
     "",
   ].join("\n");
 
-  await fs.mkdir(directory, { recursive: true });
-  await fs.writeFile(file, contents, "utf8");
+  // Read-compare-write: the browser entry regenerates this file on every page
+  // load, so a byte-identical result must not touch the file at all — any
+  // watcher (vite's or the user's own tooling) treating the write as a change
+  // would reload the page and re-enter this code path forever.
+  if ((await readOptionalText(file)) === contents) {
+    return { file, changed: false };
+  }
 
-  return file;
+  await fs.mkdir(directory, { recursive: true });
+  await writeFileAtomic(file, contents);
+
+  return { file, changed: true };
 }
 
 export function injectApertureBrowserEntry(html: string): string {

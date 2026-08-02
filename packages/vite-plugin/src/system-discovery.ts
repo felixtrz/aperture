@@ -121,7 +121,7 @@ export async function createApertureSystemManifest(options: {
   };
 }
 
-export function parseApertureSystemGlobs(source: string | null): string[] {
+function parseApertureSystemGlobs(source: string | null): string[] {
   if (source === null) {
     return [];
   }
@@ -146,7 +146,14 @@ export function parseApertureSystemGlobs(source: string | null): string[] {
   return globs;
 }
 
-async function parseApertureSystemGlobsFromConfig(
+/**
+ * Resolve the `systems: [...]` globs for a config, following local imports
+ * when the entry config file itself declares none. The scaffold's recommended
+ * factory pattern (aperture.shared-config.ts) keeps the systems array out of
+ * aperture.config.ts entirely, so a text parse of the entry file alone sees
+ * no globs.
+ */
+export async function parseApertureSystemGlobsFromConfig(
   configFile: string,
   source: string | null,
 ): Promise<string[]> {

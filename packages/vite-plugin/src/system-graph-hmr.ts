@@ -8,7 +8,7 @@ import {
 import {
   apertureSystemFileMatchesGlobs,
   apertureSystemGlobBase,
-  parseApertureSystemGlobs,
+  parseApertureSystemGlobsFromConfig,
 } from "./system-discovery.js";
 import {
   APERTURE_VIRTUAL_MODULE_IDS,
@@ -19,6 +19,7 @@ type WatchEvent = "add" | "change" | "unlink";
 
 interface ApertureViteHmrModuleGraph {
   getModuleById?(id: string): unknown;
+  getModulesByFile?(file: string): Iterable<unknown> | undefined;
   invalidateModule?(module: unknown): void;
 }
 
@@ -36,6 +37,8 @@ export interface ApertureSystemGraphRefreshReport {
   readonly refreshed: boolean;
   readonly file: string;
   readonly workerEntryFile?: string;
+  /** True when the regenerated worker entry differed from the one on disk. */
+  readonly workerEntryChanged?: boolean;
 }
 
 export function installApertureSystemGraphHmr(
@@ -90,13 +93,28 @@ export async function refreshApertureGeneratedWorkerEntryForSystemGraphChange(op
     return { refreshed: false, file };
   }
 
-  const workerEntryFile = await writeApertureGeneratedWorkerEntry({
+  const workerEntry = await writeApertureGeneratedWorkerEntry({
     root: options.root,
     configFile,
   });
   invalidateApertureVirtualModules(options.server);
 
-  return { refreshed: true, file, workerEntryFile };
+  if (workerEntry.changed) {
+    // The generated output directory is excluded from vite's watcher (the
+    // plugin's own writes must never fan back into the full-reload pipeline),
+    // so a genuine system-graph change has to invalidate the on-disk entry
+    // module and announce the reload itself. Unchanged entries need neither:
+    // edits to existing system files already reload through the module graph.
+    invalidateApertureModulesForFile(options.server, workerEntry.file);
+    options.server?.ws.send?.({ type: "full-reload", path: "*" });
+  }
+
+  return {
+    refreshed: true,
+    file,
+    workerEntryFile: workerEntry.file,
+    workerEntryChanged: workerEntry.changed,
+  };
 }
 
 async function watchApertureSystemGraphFiles(
@@ -107,7 +125,10 @@ async function watchApertureSystemGraphFiles(
   },
 ): Promise<void> {
   const configSource = await readOptionalText(options.configFile);
-  const globs = parseApertureSystemGlobs(configSource);
+  const globs = await parseApertureSystemGlobsFromConfig(
+    options.configFile,
+    configSource,
+  );
   const watchPaths = [
     options.configFile,
     ...globs.map((glob) => apertureSystemGlobBase(options.root, glob)),
@@ -126,9 +147,9 @@ async function isApertureSystemGraphFile(options: {
   }
 
   const configSource = await readOptionalText(options.configFile);
-  const globs = parseApertureSystemGlobs(configSource).map((glob) =>
-    normalizePath(glob),
-  );
+  const globs = (
+    await parseApertureSystemGlobsFromConfig(options.configFile, configSource)
+  ).map((glob) => normalizePath(glob));
 
   return apertureSystemFileMatchesGlobs(options.root, options.file, globs);
 }
@@ -145,6 +166,24 @@ function invalidateApertureVirtualModules(
   for (const id of APERTURE_VIRTUAL_MODULE_IDS) {
     invalidateModuleById(moduleGraph, id);
     invalidateModuleById(moduleGraph, `\0${id}`);
+  }
+}
+
+function invalidateApertureModulesForFile(
+  server: ApertureViteDevServerWithHmr | undefined,
+  file: string,
+): void {
+  const moduleGraph = server?.moduleGraph;
+  const modules = moduleGraph?.getModulesByFile?.(normalizePath(file));
+
+  if (moduleGraph === undefined || modules === undefined) {
+    return;
+  }
+
+  for (const module of modules) {
+    if (module !== undefined && module !== null) {
+      moduleGraph.invalidateModule?.(module);
+    }
   }
 }
 

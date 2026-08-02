@@ -49,6 +49,13 @@ export async function writeApertureGeneratedActionTypes(options: {
   const directory = path.join(options.root, APERTURE_GENERATED_DIRECTORY);
   const file = path.join(directory, APERTURE_GENERATED_TYPES_FILE);
 
+  // Read-compare-write: this runs on every virtual-module load, so an
+  // unchanged config must not touch the generated file (watchers treat every
+  // write as a change; see APERTURE_GENERATED_WATCH_IGNORE_GLOB).
+  if ((await readOptionalText(file)) === contents) {
+    return file;
+  }
+
   await fs.mkdir(directory, { recursive: true });
   await writeFileAtomic(file, contents);
   return file;

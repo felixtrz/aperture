@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, stat, utimes, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -42,7 +42,7 @@ describe("Aperture Vite plugin cross-origin isolation", () => {
     const config = plugin.config?.();
 
     // Headers are gated on cross-origin isolation...
-    expect(config?.server).toBeUndefined();
+    expect(config?.server?.headers).toBeUndefined();
     expect(config?.preview).toBeUndefined();
     // ...but the worker format + dep pre-bundling are always configured
     // (see GH #24 / GH #31).
@@ -50,6 +50,49 @@ describe("Aperture Vite plugin cross-origin isolation", () => {
     expect(config?.optimizeDeps?.include).toEqual(
       expect.arrayContaining(["@aperture-engine/app/systems"]),
     );
+  });
+
+  it("excludes the plugin's generated outputs from the dev watcher", () => {
+    // The generated worker entry is rewritten on page load; if the watcher
+    // saw those writes, the resulting full reload would load the page again
+    // and rewrite the file — an infinite reload loop. Both config branches
+    // must carry the exclusion.
+    for (const plugin of [
+      aperture(),
+      aperture({ crossOriginIsolation: false }),
+    ]) {
+      const config = plugin.config?.();
+
+      expect(config?.server?.watch?.ignored).toContain(
+        "**/.aperture/generated/**",
+      );
+    }
+  });
+
+  it("leaves an unchanged worker entry untouched across repeated page loads", async () => {
+    const root = await createFixtureRoot();
+    const plugin = aperture({
+      ai: { mode: "off" },
+      configFile: "aperture.config.ts",
+    });
+
+    plugin.configResolved?.({ root, command: "serve" });
+    await waitForGeneratedTypes(root);
+
+    await plugin.load?.("\0virtual:aperture/browser-entry");
+    const entryFile = path.join(
+      root,
+      ".aperture/generated/aperture-worker-entry.js",
+    );
+    await utimes(entryFile, 0, 0);
+
+    await plugin.load?.("\0virtual:aperture/browser-entry");
+
+    // Loading the browser entry regenerates the worker entry; when the
+    // system graph is unchanged the bytes are identical and the file must
+    // not be rewritten (read-compare-write), or every page load feeds the
+    // watcher another change to reload on.
+    expect((await stat(entryFile)).mtimeMs).toBe(0);
   });
 
   it("pins the worker format to es and pre-bundles the Aperture entries", () => {

@@ -26,6 +26,7 @@ export {
   type DiscoveredApertureSystem,
 } from "./system-discovery.js";
 import {
+  APERTURE_GENERATED_WATCH_IGNORE_GLOB,
   injectApertureBrowserEntry,
   loadApertureVirtualModule,
   resolveApertureVirtualId,
@@ -63,7 +64,10 @@ export interface ApertureVitePluginAiOptions {
 export interface ApertureVitePlugin {
   readonly name: string;
   config?(config?: { readonly root?: string }): {
-    readonly server?: { readonly headers?: Record<string, string> };
+    readonly server?: {
+      readonly headers?: Record<string, string>;
+      readonly watch?: { readonly ignored?: readonly string[] };
+    };
     readonly preview?: { readonly headers?: Record<string, string> };
     readonly worker?: { readonly format?: "es" | "iife" };
     readonly optimizeDeps?: {
@@ -129,6 +133,13 @@ export function aperture(
             ...installedEngineEntries,
           ],
         },
+        // The plugin rewrites .aperture/generated on page load; keep those
+        // writes out of the dev watcher or the full-reload they trigger loads
+        // the page again and rewrites the file forever. Genuine system-graph
+        // changes announce their own reload (see system-graph-hmr.ts).
+        server: {
+          watch: { ignored: [APERTURE_GENERATED_WATCH_IGNORE_GLOB] },
+        },
       };
 
       if (!crossOriginIsolation) {
@@ -138,7 +149,7 @@ export function aperture(
       const headers = { ...APERTURE_CROSS_ORIGIN_ISOLATION_HEADERS };
       return {
         ...base,
-        server: { headers },
+        server: { ...base.server, headers },
         preview: { headers: { ...headers } },
       };
     },
