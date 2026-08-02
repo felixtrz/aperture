@@ -1,15 +1,19 @@
 export const SNAPSHOT_PACKET_ENCODING_MAGIC = 0x4150_5350; // "APSP"
-export const SNAPSHOT_PACKET_ENCODING_VERSION = 16;
+export const SNAPSHOT_PACKET_ENCODING_VERSION = 21;
 
-export const SNAPSHOT_PACKET_HEADER_WORDS = 15;
+export const SNAPSHOT_PACKET_HEADER_WORDS = 16;
 export const VIEW_PACKET_WORDS = 36;
 export const MESH_DRAW_PACKET_WORDS = 34;
 export const LIGHT_PACKET_WORDS = 31;
 export const ENVIRONMENT_PACKET_WORDS = 13;
 export const FOG_PACKET_WORDS = 19;
 // 0-59: ids/handles/transform/sort key/burst sub-struct (burst startTime at
-// 58-59); 60-61: delay (float64); 62: durationFlag; 63-64: duration (float64).
-export const PARTICLE_EMITTER_PACKET_WORDS = 65;
+// 58-59); 60-61: delay (float64); 62: durationFlag; 63-64: duration (float64);
+// 65-72: burst color tint (vec4 float64); 73-74: burst size scale (float64);
+// 75-78: burst speed/lifetime scales; 79-80: lifecycle start time (float64);
+// 81-82: authoritative accumulated playback time (float64); 83-90: optional
+// burst rotation quaternion (vec4 float64).
+export const PARTICLE_EMITTER_PACKET_WORDS = 91;
 export const AUDIO_EMITTER_PACKET_WORDS = 54;
 export const AUDIO_LISTENER_PACKET_WORDS = 6;
 // 0-5: ids/kind/masks/cascadeCount; 6: shadowType; 7-9: strength/filterRadius/
@@ -25,6 +29,9 @@ export const QUAD_BATCH_PACKET_WORDS = 24;
 // sunDirection (vec3 float64); 35-40: sunColor; 41-42: sunRadius; 43-44:
 // sunGlow; 45-46: ditherStrength; 47: layerMask.
 export const PROCEDURAL_SKY_PACKET_WORDS = 48;
+// 0: uniformId; 1-2: entity; 3: key registry id; 4: version; 5: value count;
+// 6-127: tagged runtime-uniform value entries.
+export const RUNTIME_UNIFORM_PACKET_WORDS = 128;
 
 export const SNAPSHOT_PACKET_WORD_STRIDES = Object.freeze({
   header: SNAPSHOT_PACKET_HEADER_WORDS,
@@ -41,6 +48,7 @@ export const SNAPSHOT_PACKET_WORD_STRIDES = Object.freeze({
   bounds: BOUNDS_PACKET_WORDS,
   quadBatch: QUAD_BATCH_PACKET_WORDS,
   proceduralSky: PROCEDURAL_SKY_PACKET_WORDS,
+  runtimeUniform: RUNTIME_UNIFORM_PACKET_WORDS,
 });
 
 export const SNAPSHOT_PACKET_BYTE_STRIDES = Object.freeze({
@@ -59,6 +67,7 @@ export const SNAPSHOT_PACKET_BYTE_STRIDES = Object.freeze({
   bounds: BOUNDS_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
   quadBatch: QUAD_BATCH_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
   proceduralSky: PROCEDURAL_SKY_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+  runtimeUniform: RUNTIME_UNIFORM_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
 });
 
 export const SNAPSHOT_PACKET_DIAGNOSTIC_TRANSPORT_NOTE =
@@ -80,4 +89,5 @@ export const SNAPSHOT_PACKET_HEADER_WORD_INDEX = Object.freeze({
   AudioEmitters: 12,
   AudioListeners: 13,
   ProceduralSkies: 14,
+  RuntimeUniforms: 15,
 });

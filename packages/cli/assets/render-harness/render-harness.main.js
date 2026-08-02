@@ -5,7 +5,8 @@
 // the Playwright driver knows when to screenshot.
 //
 // The bundle is injected by the driver before this module runs, via
-// `window.__APERTURE_RENDER_BUNDLE__`.
+// `window.__APERTURE_RENDER_BUNDLE__`, or fetches it from the harness server
+// for large bundles that cannot safely cross Playwright's CDP message channel.
 import {
   createWebGpuApp,
   createWebGpuBloomPostEffect,
@@ -249,11 +250,19 @@ function primitiveRecord(value) {
 }
 
 async function main() {
-  const bundle = globalThis.__APERTURE_RENDER_BUNDLE__;
+  let bundle = globalThis.__APERTURE_RENDER_BUNDLE__;
 
   if (bundle === undefined || bundle === null) {
-    fail("No render bundle was injected (window.__APERTURE_RENDER_BUNDLE__).");
-    return;
+    try {
+      const response = await fetch("/_aperture/render-bundle.json");
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      bundle = await response.json();
+    } catch (error) {
+      fail(`Could not load the render bundle: ${String(error)}`);
+      return;
+    }
   }
 
   const canvas = document.getElementById("aperture-canvas");
@@ -309,6 +318,20 @@ async function main() {
     return;
   }
 
+  const uncapturedErrors = [];
+  result.initialization.device.addEventListener?.(
+    "uncapturederror",
+    (event) => {
+      uncapturedErrors.push({
+        code: "webgpu.uncapturedError",
+        severity: "error",
+        message:
+          event?.error?.message ??
+          "WebGPU reported an uncaptured validation error.",
+      });
+    },
+  );
+
   const webgpu = await webGpuMetadataFromInitialization(result.initialization);
   const snapshot = renderSnapshotFromJsonValue(bundleSnapshotValue(bundle));
   const activeEnvironmentHandle = firstSnapshotEnvironmentHandle(snapshot);
@@ -341,6 +364,16 @@ async function main() {
   }
 
   const report = await result.app.renderSnapshot(snapshot, renderOptions);
+  try {
+    await result.initialization.device.queue?.onSubmittedWorkDone?.();
+  } catch {
+    // Draining the queue is a determinism nicety for the screenshot readback,
+    // not part of the render. On GPU-less hosts (SwiftShader CI) Chrome can
+    // reject this wait with "A valid external Instance reference no longer
+    // exists" during device teardown even though the frame submitted fine —
+    // the same OperationError packages/webgpu/src/app/picking-frame.ts guards
+    // against. The screenshot wait below still gates on the status flag.
+  }
   const toneMapping =
     typeof renderTarget?.toneMapping === "string"
       ? renderTarget.toneMapping
@@ -367,9 +400,12 @@ async function main() {
   const metadata = { webgpu, lightingHealth };
 
   globalThis.__APERTURE_RENDER_STATUS__ = {
-    ok: report.ok === true,
+    ok: report.ok === true && uncapturedErrors.length === 0,
     frame: report.snapshot?.frame ?? bundle.frame ?? null,
-    diagnostics: report.ok === true ? [] : (report.diagnostics ?? []),
+    diagnostics: [
+      ...(report.ok === true ? [] : (report.diagnostics ?? [])),
+      ...uncapturedErrors,
+    ],
     metadata,
   };
 }

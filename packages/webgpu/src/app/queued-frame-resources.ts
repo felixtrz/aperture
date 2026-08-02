@@ -178,6 +178,7 @@ export async function prepareQueuedBuiltInFrameResources(
   const prepared = await prepareQueuedBuiltInFrameResourceSet({
     resourceSet: options.resourceSet,
     scratch: options.cache.frameScratch.queuedBuiltInFrameResources,
+    sharedBindGroupCache: options.cache.queuedBuiltInSharedFrame.bindGroups,
     viewUniforms: options.viewUniforms,
     worldTransforms: options.worldTransforms,
     ...(options.instanceTints === undefined

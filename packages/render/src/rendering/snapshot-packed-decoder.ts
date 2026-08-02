@@ -10,6 +10,7 @@ import {
   readParticleEmitterPacket,
   readProceduralSkyPacket,
   readQuadBatchPacket,
+  readRuntimeUniformPacket,
   readShadowRequestPacket,
   readViewPacket,
 } from "./snapshot-packed-codecs.js";
@@ -24,6 +25,7 @@ import {
   PARTICLE_EMITTER_PACKET_WORDS,
   PROCEDURAL_SKY_PACKET_WORDS,
   QUAD_BATCH_PACKET_WORDS,
+  RUNTIME_UNIFORM_PACKET_WORDS,
   SHADOW_REQUEST_PACKET_WORDS,
   SNAPSHOT_PACKET_HEADER_WORDS,
   VIEW_PACKET_WORDS,
@@ -41,6 +43,7 @@ import type {
   ParticleEmitterPacket,
   ProceduralSkyPacket,
   QuadBatchPacket,
+  RuntimeUniformPacket,
   ShadowRequestPacket,
   ViewPacket,
 } from "./snapshot.js";
@@ -64,7 +67,8 @@ export function decodeSnapshotPackets(
     counts.shadowRequests * SHADOW_REQUEST_PACKET_WORDS +
     counts.bounds * BOUNDS_PACKET_WORDS +
     counts.quadBatches * QUAD_BATCH_PACKET_WORDS +
-    counts.proceduralSkies * PROCEDURAL_SKY_PACKET_WORDS;
+    counts.proceduralSkies * PROCEDURAL_SKY_PACKET_WORDS +
+    counts.runtimeUniforms * RUNTIME_UNIFORM_PACKET_WORDS;
 
   if (words.length < expectedWords) {
     throw new RangeError(
@@ -85,6 +89,7 @@ export function decodeSnapshotPackets(
   const bounds: BoundsPacket[] = [];
   const quadBatches: QuadBatchPacket[] = [];
   const proceduralSkies: ProceduralSkyPacket[] = [];
+  const runtimeUniforms: RuntimeUniformPacket[] = [];
   let offset = SNAPSHOT_PACKET_HEADER_WORDS;
 
   for (let index = 0; index < counts.views; index += 1) {
@@ -152,6 +157,11 @@ export function decodeSnapshotPackets(
     offset += PROCEDURAL_SKY_PACKET_WORDS;
   }
 
+  for (let index = 0; index < counts.runtimeUniforms; index += 1) {
+    runtimeUniforms.push(readRuntimeUniformPacket(words, offset, registry));
+    offset += RUNTIME_UNIFORM_PACKET_WORDS;
+  }
+
   return {
     views,
     meshDraws,
@@ -168,5 +178,6 @@ export function decodeSnapshotPackets(
     bounds,
     ...(quadBatches.length === 0 ? {} : { quadBatches }),
     ...(proceduralSkies.length === 0 ? {} : { proceduralSkies }),
+    ...(runtimeUniforms.length === 0 ? {} : { runtimeUniforms }),
   };
 }

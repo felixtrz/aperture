@@ -76,6 +76,10 @@ export function getOrCreateWebGpuAppPipeline(options: {
     // share one pipeline and the second draw fails Dawn validation with
     // "Vertex buffer slot N required ... was not set".
     `layout:${options.batchKey.meshLayoutKey}`,
+    // Primitive topology is baked into the render pipeline. Line and triangle
+    // meshes can otherwise collide when they share the same material variant
+    // and vertex layout, causing one topology to be rendered as the other.
+    `topology:${options.batchKey.topology}`,
     // The resolved pair keys the cache for every kind so a future per-target
     // resolution (AI-91) cannot collide cached variants.
     createTonemapPipelineKey(meshTonemap),

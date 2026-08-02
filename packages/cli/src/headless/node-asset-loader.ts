@@ -14,7 +14,6 @@ import type {
   SystemGltfAnimationClip,
   SystemGltfAssetHandle,
   SystemGltfLoadedScene,
-  SystemParticleEffectAssetHandle,
   SystemShaderAssetHandle,
   SystemTextureAssetHandle,
   SystemGltfAssetDecoderProvider,
@@ -23,7 +22,6 @@ import {
   assetHandleKey,
   createAnimationClipHandle,
   createMaterialHandle,
-  createParticleEffectHandle,
   type AnimationClip,
   type AssetHandle,
 } from "@aperture-engine/simulation";
@@ -36,7 +34,6 @@ import {
   createGltfPrimitiveMaterialResolutionReport,
   createGltfUriLoadCache,
   createMeshoptDecoder,
-  createParticleEffectAsset,
   createStandardMaterialAsset,
   createTextureAsset,
   createWgslShaderAsset,
@@ -46,7 +43,6 @@ import {
   parseHdrRgbe,
   registerGltfSourceAssetsFromReports,
   validateAudioClipAsset,
-  validateParticleEffectAsset,
   validateTextureAsset,
   type AudioClipAsset,
   type DracoMeshDecoder,
@@ -129,6 +125,13 @@ export function createNodeApertureAssetLoader(
       handle: SystemAssetHandle<SystemAssetKind>,
       context: ApertureAssetLoadContext,
     ): Promise<ApertureAssetLoadResult> {
+      // Particle effects are plain-data assets with no Node decode boundary.
+      // Delegate to the app's canonical loader so browser and every headless
+      // asset mode normalize exactly the same evolving authoring schema.
+      if (handle.kind === "particle-effect") {
+        return { handled: false };
+      }
+
       if (resolvedOptions.mode === "placeholder") {
         markPlaceholderReady(handle, context);
         return { placeholder: true };
@@ -280,18 +283,13 @@ async function loadRealNodeAsset(input: {
             : "rgba8unorm",
         colorSpace: textureHandle.colorSpace,
         semantic: textureHandle.semantic,
+        mipLevelCount: textureHandle.generateMipmaps
+          ? fullMipLevelCount(decoded.width, decoded.height)
+          : 1,
         sourceData: decoded.sourceData,
       }),
     );
     context.registry.markReady(registryHandle, asset);
-    return;
-  }
-
-  if (handle.kind === "particle-effect") {
-    const particleEffect = loadNodeParticleEffectAsset(
-      handle as SystemParticleEffectAssetHandle,
-    );
-    context.registry.markReady(registryHandle, particleEffect);
     return;
   }
 
@@ -705,117 +703,6 @@ async function readDecoderBinary(
   );
 }
 
-function loadNodeParticleEffectAsset(
-  handle: SystemParticleEffectAssetHandle,
-): ReturnType<typeof createParticleEffectAsset> {
-  const descriptor = handle.descriptor;
-  const asset =
-    descriptor.type === "composite"
-      ? createParticleEffectAsset({
-          version: 2,
-          type: "composite",
-          label: handle.label ?? handle.id,
-          emitters: descriptor.emitters.map((emitter) => ({
-            ...(emitter.label === undefined ? {} : { label: emitter.label }),
-            effect: createParticleEffectHandle(emitter.effect),
-            ...(emitter.delay === undefined ? {} : { delay: emitter.delay }),
-            ...(emitter.duration === undefined
-              ? {}
-              : { duration: emitter.duration }),
-            ...(emitter.timeScale === undefined
-              ? {}
-              : { timeScale: emitter.timeScale }),
-            ...(emitter.transform === undefined
-              ? {}
-              : { transform: emitter.transform }),
-          })),
-          ...(descriptor.source === undefined
-            ? {}
-            : { source: descriptor.source }),
-        })
-      : createParticleEffectAsset({
-          version: 2,
-          type: "emitter",
-          label: handle.label ?? handle.id,
-          ...(descriptor.main === undefined ? {} : { main: descriptor.main }),
-          ...(descriptor.emission === undefined
-            ? {}
-            : { emission: descriptor.emission }),
-          ...(descriptor.shape === undefined
-            ? {}
-            : { shape: descriptor.shape }),
-          renderer: {
-            ...(descriptor.renderer?.renderMode === undefined
-              ? {}
-              : { renderMode: descriptor.renderer.renderMode }),
-            ...(descriptor.renderer?.blendMode === undefined
-              ? {}
-              : { blendMode: descriptor.renderer.blendMode }),
-            ...(descriptor.renderer?.sortMode === undefined
-              ? {}
-              : { sortMode: descriptor.renderer.sortMode }),
-            ...(descriptor.renderer?.renderOrder === undefined
-              ? {}
-              : { renderOrder: descriptor.renderer.renderOrder }),
-            ...(descriptor.renderer?.softParticles === undefined
-              ? {}
-              : { softParticles: descriptor.renderer.softParticles }),
-            ...(handle.texture === undefined
-              ? {}
-              : { texture: handle.texture }),
-            ...(handle.sampler === undefined
-              ? {}
-              : { sampler: handle.sampler }),
-          },
-          ...(descriptor.textureSheetAnimation === undefined
-            ? {}
-            : { textureSheetAnimation: descriptor.textureSheetAnimation }),
-          ...(descriptor.colorOverLifetime === undefined
-            ? {}
-            : { colorOverLifetime: descriptor.colorOverLifetime }),
-          ...(descriptor.sizeOverLifetime === undefined
-            ? {}
-            : { sizeOverLifetime: descriptor.sizeOverLifetime }),
-          ...(descriptor.rotationOverLifetime === undefined
-            ? {}
-            : { rotationOverLifetime: descriptor.rotationOverLifetime }),
-          ...(descriptor.velocityOverLifetime === undefined
-            ? {}
-            : { velocityOverLifetime: descriptor.velocityOverLifetime }),
-          ...(descriptor.forceOverLifetime === undefined
-            ? {}
-            : { forceOverLifetime: descriptor.forceOverLifetime }),
-          ...(descriptor.limitVelocityOverLifetime === undefined
-            ? {}
-            : {
-                limitVelocityOverLifetime: descriptor.limitVelocityOverLifetime,
-              }),
-          ...(descriptor.noise === undefined
-            ? {}
-            : { noise: descriptor.noise }),
-          ...(descriptor.subEmitters === undefined
-            ? {}
-            : { subEmitters: descriptor.subEmitters }),
-          ...(descriptor.source === undefined
-            ? {}
-            : { source: descriptor.source }),
-          ...(descriptor.curveSampleCount === undefined
-            ? {}
-            : { curveSampleCount: descriptor.curveSampleCount }),
-        });
-  const report = validateParticleEffectAsset(asset);
-
-  if (!report.valid) {
-    throw new Error(
-      `Particle effect asset '${handle.id}' is invalid. ${report.diagnostics
-        .map((diagnostic) => diagnostic.message)
-        .join(" ")}`,
-    );
-  }
-
-  return asset;
-}
-
 function createNodeEnvironmentMapAsset(
   handle: SystemAssetHandle<"hdr">,
   image: HdrRgbeImage,
@@ -1070,6 +957,10 @@ function isHttpUrl(url: string): boolean {
   return url.startsWith("http://") || url.startsWith("https://");
 }
 
+function fullMipLevelCount(width: number, height: number): number {
+  return Math.floor(Math.log2(Math.max(1, width, height))) + 1;
+}
+
 async function decodeNodeImageAsset(input: {
   readonly url: string;
   readonly mimeType?: string;
@@ -1198,6 +1089,11 @@ function decodePngRgba8(
   let colorType = 0;
   let interlaceMethod = 0;
   const idatChunks: Uint8Array[] = [];
+  // Indexed PNGs (color type 3) carry their colors in PLTE and their optional
+  // per-entry alpha in tRNS. Both are copied out of the chunk view because the
+  // palette outlives the scan of `bytes`.
+  let palette: Uint8Array | undefined;
+  let paletteAlpha: Uint8Array | undefined;
 
   while (offset + 12 <= bytes.byteLength) {
     const length = readUint32(bytes, offset);
@@ -1219,6 +1115,10 @@ function decodePngRgba8(
       bitDepth = chunk[8] ?? 0;
       colorType = chunk[9] ?? 0;
       interlaceMethod = chunk[12] ?? 0;
+    } else if (type === "PLTE") {
+      palette = chunk.slice();
+    } else if (type === "tRNS") {
+      paletteAlpha = chunk.slice();
     } else if (type === "IDAT") {
       idatChunks.push(chunk);
     } else if (type === "IEND") {
@@ -1229,22 +1129,34 @@ function decodePngRgba8(
   if (width <= 0 || height <= 0) {
     throw new Error("PNG is missing a valid IHDR chunk.");
   }
-  if (bitDepth !== 8) {
-    throw new Error(
-      `Node PNG decoder supports 8-bit PNGs, not ${bitDepth}-bit.`,
-    );
-  }
-  if (![0, 2, 4, 6].includes(colorType)) {
+  if (![0, 2, 3, 4, 6].includes(colorType)) {
     throw new Error(
       `Node PNG decoder does not support color type ${colorType}.`,
+    );
+  }
+  // Indexed PNGs are the one color type the spec allows below 8 bits per
+  // sample, and palette-optimized textures routinely use 1/2/4. Every other
+  // supported color type stays 8-bit here.
+  const allowedBitDepths = colorType === 3 ? [1, 2, 4, 8] : [8];
+  if (!allowedBitDepths.includes(bitDepth)) {
+    throw new Error(
+      colorType === 3
+        ? `Node PNG decoder supports 1-, 2-, 4-, and 8-bit indexed PNGs, not ${bitDepth}-bit.`
+        : `Node PNG decoder supports 8-bit PNGs, not ${bitDepth}-bit.`,
     );
   }
   if (interlaceMethod !== 0) {
     throw new Error("Node PNG decoder does not support interlaced PNGs.");
   }
+  if (colorType === 3 && palette === undefined) {
+    throw new Error("Indexed PNG is missing its PLTE palette chunk.");
+  }
 
   const channels = pngChannels(colorType);
-  const scanlineBytes = width * channels;
+  // Sub-byte samples pack several pixels into one byte, so the scanline is
+  // measured in bits and rounded up, and the filter stride floors to 1 byte.
+  const scanlineBytes = Math.ceil((width * channels * bitDepth) / 8);
+  const filterStride = Math.max(1, Math.floor((channels * bitDepth) / 8));
   const inflated = inflateSync(concatBytes(idatChunks));
   const expectedBytes = height * (scanlineBytes + 1);
 
@@ -1263,8 +1175,17 @@ function decodePngRgba8(
       inflated.subarray(readOffset, readOffset + scanlineBytes),
     );
     readOffset += scanlineBytes;
-    unfilterPngScanline(current, previous, filter ?? 0, channels);
-    writeRgbaScanline({ source: current, target: rgba, y, width, colorType });
+    unfilterPngScanline(current, previous, filter ?? 0, filterStride);
+    writeRgbaScanline({
+      source: current,
+      target: rgba,
+      y,
+      width,
+      colorType,
+      bitDepth,
+      ...(palette === undefined ? {} : { palette }),
+      ...(paletteAlpha === undefined ? {} : { paletteAlpha }),
+    });
     previous = current;
   }
 
@@ -1329,15 +1250,52 @@ function unfilterPngScanline(
   }
 }
 
+/**
+ * Read one sample from a scanline that may pack several samples per byte.
+ * Bit depth 8 reduces to a plain byte read; 1/2/4 shift the sample out of its
+ * byte, most-significant sample first, as the PNG spec orders them.
+ */
+function readPackedSample(
+  source: Uint8Array,
+  index: number,
+  bitDepth: number,
+): number {
+  if (bitDepth === 8) {
+    return source[index] ?? 0;
+  }
+
+  const samplesPerByte = 8 / bitDepth;
+  const byte = source[Math.floor(index / samplesPerByte)] ?? 0;
+  const shift = 8 - bitDepth - (index % samplesPerByte) * bitDepth;
+  return (byte >> shift) & ((1 << bitDepth) - 1);
+}
+
 function writeRgbaScanline(input: {
   readonly source: Uint8Array;
   readonly target: Uint8Array;
   readonly y: number;
   readonly width: number;
   readonly colorType: number;
+  readonly bitDepth: number;
+  readonly palette?: Uint8Array;
+  readonly paletteAlpha?: Uint8Array;
 }): void {
   for (let x = 0; x < input.width; x += 1) {
     const targetOffset = (input.y * input.width + x) * 4;
+
+    if (input.colorType === 3) {
+      const paletteIndex = readPackedSample(input.source, x, input.bitDepth);
+      const paletteOffset = paletteIndex * 3;
+      const palette = input.palette;
+      input.target[targetOffset] = palette?.[paletteOffset] ?? 0;
+      input.target[targetOffset + 1] = palette?.[paletteOffset + 1] ?? 0;
+      input.target[targetOffset + 2] = palette?.[paletteOffset + 2] ?? 0;
+      // tRNS is optional and may be shorter than the palette; entries it does
+      // not cover are fully opaque.
+      input.target[targetOffset + 3] =
+        input.paletteAlpha?.[paletteIndex] ?? 255;
+      continue;
+    }
 
     if (input.colorType === 0) {
       const gray = input.source[x] ?? 0;
@@ -1418,6 +1376,9 @@ function pngChannels(colorType: number): number {
       return 1;
     case 2:
       return 3;
+    // Indexed pixels are a single palette-index sample.
+    case 3:
+      return 1;
     case 4:
       return 2;
     case 6:

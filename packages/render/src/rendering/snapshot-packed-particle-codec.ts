@@ -10,9 +10,11 @@ import {
   readRequiredHandle,
   readSigned32,
   readVec3,
+  readVec4,
   writeFloat64,
   writeSigned32,
   writeVec3,
+  writeVec4,
 } from "./snapshot-packed-codec-utils.js";
 import type { SnapshotPacketEncodingRegistry } from "./snapshot-packed-registry.js";
 
@@ -63,6 +65,17 @@ export function writeParticleEmitterPacket(
   words[offset + 62] =
     packet.duration === undefined || packet.duration === null ? 0 : 1;
   writeFloat64(words, offset + 63, packet.duration ?? 0);
+
+  // Appended at the END of the record on purpose: inserting mid-record would
+  // shift every offset below and silently corrupt reads that were not updated
+  // in lockstep. Writer and reader must always move together.
+  writeVec4(words, offset + 65, burst?.colorTint ?? [1, 1, 1, 1]);
+  writeFloat64(words, offset + 73, burst?.sizeScale ?? 1);
+  writeFloat64(words, offset + 75, burst?.speedScale ?? 1);
+  writeFloat64(words, offset + 77, burst?.lifetimeScale ?? 1);
+  writeFloat64(words, offset + 79, packet.lifecycleStartTime ?? -1);
+  writeFloat64(words, offset + 81, packet.playbackTime ?? -1);
+  writeVec4(words, offset + 83, burst?.rotation ?? [0, 0, 0, 1]);
 }
 
 export function readParticleEmitterPacket(
@@ -74,6 +87,11 @@ export function readParticleEmitterPacket(
   const delay = readFloat64(words, offset + 60);
   const hasDuration = (words[offset + 62] ?? 0) === 1;
   const duration = readFloat64(words, offset + 63);
+  const burstSpeedScale = readFloat64(words, offset + 75);
+  const burstLifetimeScale = readFloat64(words, offset + 77);
+  const lifecycleStartTime = readFloat64(words, offset + 79);
+  const playbackTime = readFloat64(words, offset + 81);
+  const burstRotation = readVec4(words, offset + 83);
   const packet: ParticleEmitterPacket = {
     emitterId: words[offset] ?? 0,
     entity: {
@@ -89,6 +107,8 @@ export function readParticleEmitterPacket(
     capacity: words[offset + 5] ?? 0,
     seed: readSigned32(words, offset + 6),
     resetEpoch: words[offset + 7] ?? 0,
+    ...(lifecycleStartTime >= 0 ? { lifecycleStartTime } : {}),
+    ...(playbackTime >= 0 ? { playbackTime } : {}),
     timeScale: readFloat64(words, offset + 8),
     simulationSpace: particleSimulationSpaceValue(words[offset + 10] ?? 0),
     worldTransformOffset: words[offset + 11] ?? 0,
@@ -125,6 +145,18 @@ export function readParticleEmitterPacket(
             positionJitterMax: readVec3(words, offset + 40),
             velocityMin: readVec3(words, offset + 46),
             velocityMax: readVec3(words, offset + 52),
+            colorTint: readVec4(words, offset + 65),
+            sizeScale: readFloat64(words, offset + 73),
+            ...(burstSpeedScale === 1 ? {} : { speedScale: burstSpeedScale }),
+            ...(burstLifetimeScale === 1
+              ? {}
+              : { lifetimeScale: burstLifetimeScale }),
+            ...(burstRotation[0] === 0 &&
+            burstRotation[1] === 0 &&
+            burstRotation[2] === 0 &&
+            burstRotation[3] === 1
+              ? {}
+              : { rotation: burstRotation }),
           },
         }),
   };

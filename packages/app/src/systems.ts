@@ -104,6 +104,11 @@ export type {
 } from "./controllers/follow-camera.js";
 
 export { createSpatialQueries } from "./spatial/index.js";
+// Sampler construction, so an app can supply the sampler a material texture
+// binding requires. Without these the `baseColorTexture` option cannot be used
+// from app code at all.
+export { createSamplerHandle } from "@aperture-engine/simulation";
+export { createSamplerAsset } from "@aperture-engine/render";
 export type {
   SimulationFixedStepContext,
   SimulationFixedStepTaskOptions,

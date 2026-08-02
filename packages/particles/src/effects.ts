@@ -162,6 +162,7 @@ export type ParticleShapeType =
   | "mesh-surface";
 
 export type ParticleShapeArcMode = "random" | "loop" | "ping-pong" | "burst";
+export type ParticleConeDirectionMode = "normalized" | "quarks";
 
 export interface ParticleShapeModuleInput {
   readonly enabled?: boolean;
@@ -174,6 +175,16 @@ export interface ParticleShapeModuleInput {
   readonly angle?: number;
   readonly box?: Vec3Like;
   readonly scale?: Vec3Like;
+  /** Spawn-velocity component multiplier applied after shape sampling. */
+  readonly directionScale?: Vec3Like;
+  /**
+   * Quarks-compatible spawn-velocity convention for cone and point shapes.
+   *
+   * `normalized` is Aperture's unit-vector direction. `quarks` reproduces
+   * three.quarks exactly: ConeEmitter keeps its sampled, unnormalized lateral
+   * fraction; PointEmitter multiplies its random unit direction by cbrt(r2).
+   */
+  readonly coneDirectionMode?: ParticleConeDirectionMode;
   readonly alignToDirection?: boolean;
   readonly randomDirectionAmount?: number;
   readonly sphericalDirectionAmount?: number;
@@ -184,10 +195,13 @@ export type ParticleRenderMode =
   | "stretched-billboard"
   | "horizontal-billboard"
   | "vertical-billboard"
+  | "sphere"
   | "mesh"
   | "trail";
 
 export type ParticleSortMode = "none" | "distance" | "oldest" | "youngest";
+export type ParticleRenderStage = "scene" | "post-tonemap";
+export type ParticleOutputColorSpace = "linear" | "srgb";
 
 export interface ParticleSoftParticleInput {
   readonly enabled?: boolean;
@@ -198,6 +212,33 @@ export interface ParticleSoftParticleInput {
 export interface ParticleRendererModuleInput {
   readonly renderMode?: ParticleRenderMode;
   readonly blendMode?: ParticleBlendMode;
+  /**
+   * Render into the linear scene target, or composite after the app's post
+   * stack. The latter matches engines such as Three where unlit VFX can own
+   * their output transform and blend directly into the presentation target.
+   */
+  readonly renderStage?: ParticleRenderStage;
+  /**
+   * Apply the app's tonemap operator in a post-tonemap particle pipeline.
+   * Scene-stage particles are tone-mapped by the app's final output pass.
+   */
+  readonly toneMapped?: boolean;
+  /**
+   * Transfer function written by a post-tonemap particle pipeline.
+   * `linear` deliberately omits an sRGB encode, matching custom shaders that
+   * write their tone-mapped value directly to an unorm presentation target.
+   */
+  readonly outputColorSpace?: ParticleOutputColorSpace;
+  /**
+   * Velocity multiplier used to orient and extend stretched billboards.
+   * Matches three.quarks' StretchedBillBoardSettings.speedFactor.
+   */
+  readonly stretchedSpeedFactor?: number;
+  /**
+   * Constant longitudinal extension used by stretched billboards.
+   * Matches three.quarks' StretchedBillBoardSettings.lengthFactor.
+   */
+  readonly stretchedLengthFactor?: number;
   readonly texture?: TextureHandle | null;
   readonly sampler?: SamplerHandle | null;
   readonly sortMode?: ParticleSortMode;
@@ -441,13 +482,20 @@ export interface ParticleEffectRuntime {
   readonly linearDamping: number;
   readonly renderMode: ParticleRenderMode;
   readonly blendMode: ParticleBlendMode;
+  readonly stretchedSpeedFactor: number;
+  readonly stretchedLengthFactor: number;
   readonly texture?: TextureHandle | null;
   readonly sampler?: SamplerHandle | null;
   readonly atlasFrameCount: number;
   readonly textureSheetTiles: readonly [number, number];
   readonly textureSheetStartFrame: number;
   readonly textureSheetCycleCount: number;
+  /** Lower curve used by per-particle random texture-sheet sampling. */
+  readonly textureSheetFrameOverTimeMin: readonly ParticleCurveKeyframe[];
+  /** Upper (or sole) texture-sheet frame curve. */
   readonly textureSheetFrameOverTime: readonly ParticleCurveKeyframe[];
+  /** Whether each particle keeps a fixed random interpolation of the curves. */
+  readonly textureSheetFrameOverTimeRandom: boolean;
   readonly sizeOverLifetime: readonly ParticleCurveKeyframe[];
   readonly colorOverLifetime: readonly ParticleGradientKeyframe[];
 }
@@ -1055,6 +1103,11 @@ export function validateParticleEffectAsset(
     diagnostics,
   );
   validateCurve(
+    asset.runtime.textureSheetFrameOverTimeMin,
+    "textureSheetAnimation.frameOverTime.min",
+    diagnostics,
+  );
+  validateCurve(
     asset.runtime.textureSheetFrameOverTime,
     "textureSheetAnimation.frameOverTime",
     diagnostics,
@@ -1368,6 +1421,8 @@ function normalizeShapeModule(
     angle: input?.angle ?? Math.PI / 6,
     box: tuple3(input?.box ?? [1, 1, 1]),
     scale: tuple3(input?.scale ?? [1, 1, 1]),
+    directionScale: tuple3(input?.directionScale ?? [1, 1, 1]),
+    coneDirectionMode: input?.coneDirectionMode ?? "normalized",
     mesh: input?.mesh ?? null,
     alignToDirection: input?.alignToDirection ?? false,
     randomDirectionAmount: input?.randomDirectionAmount ?? 0,
@@ -1381,6 +1436,11 @@ function normalizeRendererModule(
   return {
     renderMode: input?.renderMode ?? "billboard",
     blendMode: input?.blendMode ?? ParticleBlendMode.Additive,
+    renderStage: input?.renderStage ?? "scene",
+    toneMapped: input?.toneMapped ?? true,
+    outputColorSpace: input?.outputColorSpace ?? "srgb",
+    stretchedSpeedFactor: input?.stretchedSpeedFactor ?? 0,
+    stretchedLengthFactor: input?.stretchedLengthFactor ?? 2,
     ...(input?.texture === undefined ? {} : { texture: input.texture }),
     ...(input?.sampler === undefined ? {} : { sampler: input.sampler }),
     sortMode: input?.sortMode ?? "none",
@@ -1603,8 +1663,8 @@ function normalizeRuntime(input: {
   const colorCurve = input.colorOverLifetime.enabled
     ? colorValueGradient(input.colorOverLifetime.color, startColor)
     : [
-        { t: 0, color: startColor },
-        { t: 1, color: startColor },
+        { t: 0, color: [1, 1, 1, 1] },
+        { t: 1, color: [1, 1, 1, 1] },
       ];
   const sizeCurve = input.sizeOverLifetime.enabled
     ? scalarValueCurve(input.sizeOverLifetime.size, 1)
@@ -1666,11 +1726,18 @@ function normalizeRuntime(input: {
     Math.max(1, Math.trunc(tiles[1] ?? 1)),
   ];
   const textureSheetFrameOverTime = input.textureSheetAnimation.enabled
-    ? scalarValueCurve(input.textureSheetAnimation.frameOverTime, 0)
-    : [
-        { t: 0, value: 0 },
-        { t: 1, value: 0 },
-      ];
+    ? scalarValueCurveBounds(input.textureSheetAnimation.frameOverTime, 0)
+    : {
+        min: [
+          { t: 0, value: 0 },
+          { t: 1, value: 0 },
+        ],
+        max: [
+          { t: 0, value: 0 },
+          { t: 1, value: 0 },
+        ],
+        random: false,
+      };
 
   return {
     capacity: input.main.maxParticles,
@@ -1742,6 +1809,8 @@ function normalizeRuntime(input: {
       : 0,
     renderMode: input.renderer.renderMode,
     blendMode: input.renderer.blendMode,
+    stretchedSpeedFactor: input.renderer.stretchedSpeedFactor,
+    stretchedLengthFactor: input.renderer.stretchedLengthFactor,
     ...(input.renderer.texture === undefined
       ? {}
       : { texture: input.renderer.texture }),
@@ -1759,7 +1828,9 @@ function normalizeRuntime(input: {
       0,
     ).max,
     textureSheetCycleCount: input.textureSheetAnimation.cycleCount,
-    textureSheetFrameOverTime: sortedCurve(textureSheetFrameOverTime),
+    textureSheetFrameOverTimeMin: sortedCurve(textureSheetFrameOverTime.min),
+    textureSheetFrameOverTime: sortedCurve(textureSheetFrameOverTime.max),
+    textureSheetFrameOverTimeRandom: textureSheetFrameOverTime.random,
     sizeOverLifetime: sortedCurve(sizeCurve),
     colorOverLifetime: sortedGradient(colorCurve),
   };
@@ -1884,6 +1955,52 @@ function scalarValueCurve(
   return [
     { t: 0, value: range.max },
     { t: 1, value: range.max },
+  ];
+}
+
+function scalarValueCurveBounds(
+  input: ParticleScalarValue | ParticleVec3Value,
+  fallback: number,
+): {
+  readonly min: readonly ParticleCurveKeyframe[];
+  readonly max: readonly ParticleCurveKeyframe[];
+  readonly random: boolean;
+} {
+  if (typeof input === "object" && input !== null && !Array.isArray(input)) {
+    if ("mode" in input) {
+      if (input.mode === "random-between-two-curves") {
+        return {
+          min: input.minCurve,
+          max: input.maxCurve,
+          random: true,
+        };
+      }
+      if (input.mode === "random-between-two-constants") {
+        return {
+          min: constantCurve(input.min),
+          max: constantCurve(input.max),
+          random: input.min !== input.max,
+        };
+      }
+    }
+    if ("min" in input || "max" in input) {
+      const range = scalarValueRange(input, fallback, fallback);
+      return {
+        min: constantCurve(range.min),
+        max: constantCurve(range.max),
+        random: range.min !== range.max,
+      };
+    }
+  }
+
+  const curve = scalarValueCurve(input, fallback);
+  return { min: curve, max: curve, random: false };
+}
+
+function constantCurve(value: number): readonly ParticleCurveKeyframe[] {
+  return [
+    { t: 0, value },
+    { t: 1, value },
   ];
 }
 
@@ -2077,12 +2194,25 @@ function markUnsupportedModuleFeatures(
       supportedModes: ["continuous"],
       unsupportedModes: ["burst"],
     },
+    {
+      condition:
+        (input.subEmitters?.length ?? 0) > 0 &&
+        input.subEmitters?.every(
+          (subEmitter) => subEmitter.type === "birth",
+        ) === true,
+      field: "subEmitters",
+      message:
+        "Birth subemitters are implemented for continuous parent emitters, including child rate-over-time, rate-over-distance, and burst emission. Burst parents are not supported.",
+      supportedModes: ["continuous"],
+      unsupportedModes: ["burst"],
+    },
   ];
   const unsupported: readonly [boolean, string, string][] = [
     [
-      (input.subEmitters?.length ?? 0) > 0,
+      input.subEmitters?.some((subEmitter) => subEmitter.type !== "birth") ===
+        true,
       "subEmitters",
-      "Subemitters are represented in the schema for importers, but runtime spawning is not implemented yet.",
+      "Collision and death subemitter spawning is represented in the schema but is not implemented yet.",
     ],
   ];
 
@@ -2290,7 +2420,10 @@ function validateShapeModule(
     shape.randomDirectionAmount < 0 ||
     shape.sphericalDirectionAmount < 0 ||
     !tuple3(shape.box).every(Number.isFinite) ||
-    !tuple3(shape.scale).every(Number.isFinite)
+    !tuple3(shape.scale).every(Number.isFinite) ||
+    !tuple3(shape.directionScale).every(Number.isFinite) ||
+    (shape.coneDirectionMode !== "normalized" &&
+      shape.coneDirectionMode !== "quarks")
   ) {
     diagnostics.push(diagnostic("particleEffect.invalidShape", "shape"));
   }
@@ -2300,6 +2433,18 @@ function validateRendererModule(
   renderer: ParticleEmitterEffectAsset["renderer"],
   diagnostics: ParticleEffectDiagnostic[],
 ): void {
+  if (
+    (renderer.renderStage !== "scene" &&
+      renderer.renderStage !== "post-tonemap") ||
+    (renderer.outputColorSpace !== "linear" &&
+      renderer.outputColorSpace !== "srgb") ||
+    !Number.isFinite(renderer.stretchedSpeedFactor) ||
+    !Number.isFinite(renderer.stretchedLengthFactor) ||
+    renderer.stretchedSpeedFactor < 0 ||
+    renderer.stretchedLengthFactor < 0
+  ) {
+    diagnostics.push(diagnostic("particleEffect.invalidRenderer", "renderer"));
+  }
   if (
     renderer.softParticles.nearFade !== undefined &&
     renderer.softParticles.farFade !== undefined &&

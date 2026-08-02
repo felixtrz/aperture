@@ -201,8 +201,21 @@ describe("app particle emitter spawning", () => {
     expect(bounds?.worldSphere.center[0]).toBeCloseTo(1, 5);
     expect(bounds?.worldSphere.center[1]).toBeCloseTo(2.6, 5);
     expect(bounds?.worldSphere.center[2]).toBeCloseTo(3, 5);
+    // Auto burst bounds (createAutomaticParticleBurstBoundsPacket in
+    // packages/render/src/rendering/extraction-particles.ts) pad each axis of
+    // the jitter + velocity-travel AABB by the billboard half-diagonal
+    // (startSize.max 1 * maxSizeCurve 1 * SQRT1_2) plus the emitter shape
+    // radius, because burst births sample the effect's shape module
+    // (default shape: enabled sphere, radius 1). Per-axis half-extents:
+    //   x/z: 0.1 jitter + 0.1 velocity * 1s lifetime + pad
+    //   y:   0.1 jitter + 0.5 velocity half-spread * 1s lifetime + pad
+    const burstBoundsPad = 1 + Math.SQRT1_2;
     expect(bounds?.worldSphere.radius).toBeCloseTo(
-      Math.hypot(0.2 + Math.SQRT1_2, 0.6 + Math.SQRT1_2, 0.2 + Math.SQRT1_2),
+      Math.hypot(
+        0.2 + burstBoundsPad,
+        0.6 + burstBoundsPad,
+        0.2 + burstBoundsPad,
+      ),
       5,
     );
     expect(app.context.particles.summary()).toMatchObject({

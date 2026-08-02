@@ -17,6 +17,12 @@ describe("built-in material queue phase diagnostics", () => {
     expect(
       diagnostic("unlit", "transparent", "unlit|blend|none|less|alpha"),
     ).toBeNull();
+    // Post-tonemap additive VFX: transparent UnlitMaterial draws accept the
+    // "additive" blend preset (built-in-material-queue-phase.ts returns null
+    // for transparent unlit when blendPreset is "alpha" or "additive").
+    expect(
+      diagnostic("unlit", "transparent", "unlit|blend|none|less|additive"),
+    ).toBeNull();
   });
 
   it("diagnoses unsupported alpha-test and transparent families", () => {
@@ -35,7 +41,9 @@ describe("built-in material queue phase diagnostics", () => {
     });
   });
 
-  it("diagnoses unsupported StandardMaterial transparent blend presets", () => {
+  it("diagnoses unsupported transparent blend presets", () => {
+    // StandardMaterial transparent draws support only alpha blending, so
+    // "additive" remains diagnosed for the standard family.
     expect(
       diagnostic(
         "standard",
@@ -48,13 +56,20 @@ describe("built-in material queue phase diagnostics", () => {
       materialFamily: "standard",
       blendPreset: "additive",
     });
+    // UnlitMaterial transparent draws accept alpha and additive only;
+    // "premultiplied-alpha" (a real preset in material-render-state.ts)
+    // keeps the unlit blend-preset diagnostic path covered.
     expect(
-      diagnostic("unlit", "transparent", "unlit|blend|none|less|additive"),
+      diagnostic(
+        "unlit",
+        "transparent",
+        "unlit|blend|none|less|premultiplied-alpha",
+      ),
     ).toMatchObject({
       code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
       renderPhase: "transparent",
       materialFamily: "unlit",
-      blendPreset: "additive",
+      blendPreset: "premultiplied-alpha",
     });
   });
 

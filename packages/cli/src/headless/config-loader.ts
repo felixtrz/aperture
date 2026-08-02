@@ -1,6 +1,7 @@
 import path from "node:path";
 import { stat } from "node:fs/promises";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
+import { createServer, normalizePath, type ViteDevServer } from "vite";
 import {
   createApertureSystemManifest,
   type ApertureVitePluginDiagnostic,
@@ -26,11 +27,11 @@ export interface LoadedApertureHeadlessApp {
 
 /**
  * Load a headless aperture config and its discovered `*.system.ts` modules in
- * pure Node via native TypeScript import (type stripping). Because this is a
- * normal Node import, the config and systems resolve `@aperture-engine/*` to the
- * same module instances the CLI already holds — one ECS registration, no
- * separate module realm. Headless configs and systems must therefore be
- * erasable TypeScript (no enums/decorators/namespaces/parameter-properties).
+ * through a short-lived Vite SSR module graph. App-local dependencies are
+ * transformed and evaluated afresh on every call, while engine packages remain
+ * external Node imports shared with the CLI. This is important for long-lived
+ * MCP hosts: app_stop/app_start must observe edits to shared config, component,
+ * resource, and system modules without restarting the MCP process.
  */
 export async function loadApertureHeadlessApp(
   options: LoadApertureHeadlessAppOptions,
@@ -40,64 +41,109 @@ export async function loadApertureHeadlessApp(
 
   await assertConfigFileExists(configFile);
 
-  const configModule = await importModule(configFile, "config");
-  const config = configModule["default"] as ApertureConfig | undefined;
+  const moduleServer = await createHeadlessModuleServer(root);
+  try {
+    const configModule = await importModule(moduleServer, configFile, "config");
+    const config = configModule["default"] as ApertureConfig | undefined;
 
-  if (config === undefined) {
-    throw new ApertureCliError(
-      "aperture.headless.invalidConfig",
-      `Headless config '${configFile}' must default-export a defineApertureConfig() result.`,
-    );
-  }
-
-  if (config.mode !== "headless") {
-    throw new ApertureCliError(
-      "aperture.headless.invalidMode",
-      `Headless config '${configFile}' has mode '${String(
-        config.mode,
-      )}'. The aperture headless command requires mode: "headless".`,
-    );
-  }
-
-  const manifest = await createApertureSystemManifest({
-    root,
-    systemGlobs: config.systems ?? [],
-  });
-
-  const systems: ApertureSystemModule[] = [];
-
-  for (const discovered of manifest.systems) {
-    if (!discovered.hasDefaultExport) {
-      // A diagnostic is already recorded on the manifest; skip rather than
-      // import a module that lacks a default export.
-      continue;
+    if (config === undefined) {
+      throw new ApertureCliError(
+        "aperture.headless.invalidConfig",
+        `Headless config '${configFile}' must default-export a defineApertureConfig() result.`,
+      );
     }
 
-    const moduleRecord = await importModule(
-      path.resolve(root, discovered.file),
-      "system",
-    );
-    systems.push(moduleRecord as ApertureSystemModule);
-  }
+    if (config.mode !== "headless") {
+      throw new ApertureCliError(
+        "aperture.headless.invalidMode",
+        `Headless config '${configFile}' has mode '${String(
+          config.mode,
+        )}'. The aperture headless command requires mode: "headless".`,
+      );
+    }
 
-  return {
-    config,
-    systems,
-    diagnostics: manifest.diagnostics,
-    configFile,
+    const manifest = await createApertureSystemManifest({
+      root,
+      systemGlobs: config.systems ?? [],
+    });
+
+    const systems: ApertureSystemModule[] = [];
+
+    for (const discovered of manifest.systems) {
+      if (!discovered.hasDefaultExport) {
+        // A diagnostic is already recorded on the manifest; skip rather than
+        // import a module that lacks a default export.
+        continue;
+      }
+
+      const moduleRecord = await importModule(
+        moduleServer,
+        path.resolve(root, discovered.file),
+        "system",
+      );
+      systems.push(moduleRecord as ApertureSystemModule);
+    }
+
+    return {
+      config,
+      systems,
+      diagnostics: manifest.diagnostics,
+      configFile,
+      root,
+    };
+  } finally {
+    await moduleServer.close();
+  }
+}
+
+async function createHeadlessModuleServer(
+  root: string,
+): Promise<ViteDevServer> {
+  const cliResolutionAnchor = fileURLToPath(import.meta.url);
+
+  return createServer({
     root,
-  };
+    configFile: false,
+    appType: "custom",
+    logLevel: "silent",
+    plugins: [
+      {
+        name: "aperture-headless-engine-resolution",
+        enforce: "pre",
+        async resolveId(source, importer) {
+          if (!source.startsWith("@aperture-engine/")) {
+            return null;
+          }
+
+          const appResolution =
+            importer === undefined
+              ? null
+              : await this.resolve(source, importer, { skipSelf: true });
+          if (appResolution !== null) {
+            return appResolution;
+          }
+
+          // Fixture apps and intentionally minimal repro projects may not have
+          // their own node_modules tree. Resolve engine packages through the
+          // CLI installation in that case, matching the shared-runtime model
+          // used by the headless runner.
+          return this.resolve(source, cliResolutionAnchor, { skipSelf: true });
+        },
+      },
+    ],
+    server: { middlewareMode: true },
+  });
 }
 
 async function importModule(
+  server: ViteDevServer,
   absolutePath: string,
   kind: "config" | "system",
 ): Promise<Record<string, unknown>> {
   try {
-    return (await import(pathToFileURL(absolutePath).href)) as Record<
-      string,
-      unknown
-    >;
+    return (await server.ssrLoadModule(
+      `/@fs/${normalizePath(absolutePath)}`,
+    )) as Record<string, unknown>;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
 
@@ -115,7 +161,7 @@ async function importModule(
     throw new ApertureCliError(
       "aperture.headless.configLoadFailed",
       `Failed to load ${kind} module '${absolutePath}': ${message}. ` +
-        "Ensure @aperture-engine/* resolves from the app and that the file is erasable TypeScript (no enums/decorators/namespaces/parameter-properties).",
+        "Ensure @aperture-engine/* resolves from the app and that the module is valid TypeScript.",
     );
   }
 }

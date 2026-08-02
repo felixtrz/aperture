@@ -279,13 +279,16 @@ export function mergeSnapshotSortedRenderPassCommands(options: {
   const push = (group: WebGpuFeatureCommandGroup): void => {
     (group.sortKey === undefined ? keyless : sorted).push(group);
   };
-
-  for (const group of createWebGpuFeatureCommandGroupsFromCommands({
+  const snapshotGroups = createWebGpuFeatureCommandGroupsFromCommands({
     featureId: "snapshot-overlay",
     phase: "transparent",
     commands: [...options.baseCommands, ...options.overlayCommands],
     sortKeys,
-  })) {
+  });
+  const restoredSnapshotCommands =
+    renderStateRestoredCommandsByGroup(snapshotGroups);
+
+  for (const group of snapshotGroups) {
     push(group);
   }
   for (const group of featureGroups) {
@@ -311,14 +314,127 @@ export function mergeSnapshotSortedRenderPassCommands(options: {
   );
 
   const commands: RenderPassCommand[] = [];
-  for (const group of sorted) {
-    commands.push(...group.commands);
-  }
-  for (const group of keyless) {
-    commands.push(...group.commands);
+  let previousGroup: WebGpuFeatureCommandGroup | undefined;
+
+  for (const group of [...sorted, ...keyless]) {
+    const uninterruptedSnapshotSequence =
+      group.featureId === "snapshot-overlay" &&
+      ((previousGroup === undefined && group.ordinal === 0) ||
+        (previousGroup?.featureId === "snapshot-overlay" &&
+          previousGroup.ordinal + 1 === group.ordinal));
+    const groupCommands =
+      group.featureId === "snapshot-overlay" && !uninterruptedSnapshotSequence
+        ? (restoredSnapshotCommands.get(group) ?? group.commands)
+        : group.commands;
+
+    commands.push(...groupCommands);
+    previousGroup = group;
   }
 
   return { commands, diagnostics: validateWebGpuFeatureCommandGroups(keyless) };
+}
+
+/**
+ * Render command planning elides state that is unchanged from the preceding
+ * draw. Scene feature groups (particles, trails, etc.) may be sorted between
+ * those draws later, so a group following an interleaved feature must be able
+ * to restore the state its first draw inherited in the original sequence.
+ */
+function renderStateRestoredCommandsByGroup(
+  groups: readonly WebGpuFeatureCommandGroup[],
+): ReadonlyMap<WebGpuFeatureCommandGroup, readonly RenderPassCommand[]> {
+  let pipeline: RenderPassCommand | undefined;
+  const bindGroups = new Map<number, RenderPassCommand>();
+  const vertexBuffers = new Map<number, RenderPassCommand>();
+  let indexBuffer: RenderPassCommand | undefined;
+  const restored = new Map<
+    WebGpuFeatureCommandGroup,
+    readonly RenderPassCommand[]
+  >();
+
+  for (const group of groups) {
+    let hasPipeline = false;
+    const presentBindGroups = new Set<number>();
+    const presentVertexBuffers = new Set<number>();
+    let hasIndexBuffer = false;
+    let prefix: RenderPassCommand[] | undefined;
+
+    for (const command of group.commands) {
+      switch (command.kind) {
+        case "setPipeline":
+          pipeline = command;
+          if (prefix === undefined) hasPipeline = true;
+          break;
+        case "setBindGroup":
+          bindGroups.set(command.index, command);
+          if (prefix === undefined) presentBindGroups.add(command.index);
+          break;
+        case "setVertexBuffer":
+          vertexBuffers.set(command.slot, command);
+          if (prefix === undefined) presentVertexBuffers.add(command.slot);
+          break;
+        case "setIndexBuffer":
+          indexBuffer = command;
+          if (prefix === undefined) hasIndexBuffer = true;
+          break;
+        case "draw":
+        case "drawIndirect":
+        case "drawIndexed":
+        case "drawIndexedIndirect": {
+          if (prefix !== undefined) break;
+
+          prefix = [];
+          if (!hasPipeline && pipeline !== undefined) {
+            prefix.push(renderStateCommandForId(pipeline, command.renderId));
+          }
+          for (const [index, bindGroup] of [...bindGroups].sort(
+            ([a], [b]) => a - b,
+          )) {
+            if (!presentBindGroups.has(index)) {
+              prefix.push(renderStateCommandForId(bindGroup, command.renderId));
+            }
+          }
+          for (const [slot, vertexBuffer] of [...vertexBuffers].sort(
+            ([a], [b]) => a - b,
+          )) {
+            if (!presentVertexBuffers.has(slot)) {
+              prefix.push(
+                renderStateCommandForId(vertexBuffer, command.renderId),
+              );
+            }
+          }
+          if (
+            (command.kind === "drawIndexed" ||
+              command.kind === "drawIndexedIndirect") &&
+            !hasIndexBuffer &&
+            indexBuffer !== undefined
+          ) {
+            prefix.push(renderStateCommandForId(indexBuffer, command.renderId));
+          }
+          break;
+        }
+        case "beginOcclusionQuery":
+        case "endOcclusionQuery":
+          break;
+      }
+    }
+
+    restored.set(
+      group,
+      prefix === undefined || prefix.length === 0
+        ? group.commands
+        : [...prefix, ...group.commands],
+    );
+  }
+
+  return restored;
+}
+
+function renderStateCommandForId(
+  command: RenderPassCommand,
+  renderId: number,
+): RenderPassCommand {
+  return { ...command, renderId };
 }
 
 function requiresRenderSortKey(phase: WebGpuFeatureCommandPhase): boolean {

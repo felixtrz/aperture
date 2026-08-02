@@ -578,10 +578,10 @@ Options:
   --json               Print the headless status report as JSON to stdout.
   -h, --help           Show help.
 
-Config loading: the config and *.system.ts are loaded by native Node
-TypeScript stripping, so they must be erasable TypeScript (no enums,
-decorators, namespaces, or parameter properties) and resolve @aperture-engine/*.
-This strips types but does NOT type-check: a misplaced or misspelled option
+Config loading: the config and *.system.ts are loaded through a fresh Vite SSR
+module graph, so transitive app edits are visible to long-lived hosts and
+@aperture-engine/* must resolve from the app. This transforms TypeScript but
+does NOT type-check: a misplaced or misspelled option
 (e.g. a top-level 'parent' that belongs in transform: { parent }) is silently
 ignored. Run 'tsc --noEmit' (or the scaffold's 'pnpm typecheck') alongside
 headless runs to catch these; spawn.mesh also warns on unrecognized options.

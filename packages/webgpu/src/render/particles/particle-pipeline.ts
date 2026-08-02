@@ -116,9 +116,18 @@ fn cs_main(@builtin(global_invocation_id) id: vec3u) {
 
   let frame = params.frameSeedCapacityFlags.x;
   let seed = params.frameSeedCapacityFlags.y;
-  let a = hash(seed ^ (index * 747796405u) ^ (frame * 2891336453u));
-  let b = hash(seed ^ (index * 277803737u) ^ (frame * 1597334677u));
-  let c = hash(seed ^ (index * 1442695041u));
+  let fixedRandom = seed == 0x80000000u;
+  let a = select(
+    hash(seed ^ (index * 747796405u) ^ (frame * 2891336453u)),
+    0.5,
+    fixedRandom
+  );
+  let b = select(
+    hash(seed ^ (index * 277803737u) ^ (frame * 1597334677u)),
+    0.5,
+    fixedRandom
+  );
+  let c = select(hash(seed ^ (index * 1442695041u)), 0.5, fixedRandom);
   let angle = a * 6.2831853;
   let radius = sqrt(b) * params.sizeSpeedLife.w;
   let drift = sin(params.originTime.w + f32(index) * 0.073) * 0.18;
@@ -185,6 +194,30 @@ fn quadUv(vertexIndex: u32) -> vec2f {
   return vec2f(u[vertexIndex], v[vertexIndex]);
 }
 
+fn sphereUv(vertexIndex: u32) -> vec2f {
+  let cornerU = array<f32, 6>(0.0, 1.0, 1.0, 0.0, 1.0, 0.0);
+  let cornerV = array<f32, 6>(0.0, 0.0, 1.0, 0.0, 1.0, 1.0);
+  let cell = vertexIndex / 6u;
+  let segment = cell % 16u;
+  let ring = cell / 16u;
+  return vec2f(
+    (f32(segment) + cornerU[vertexIndex % 6u]) / 16.0,
+    (f32(ring) + cornerV[vertexIndex % 6u]) / 8.0
+  );
+}
+
+fn spherePosition(vertexIndex: u32) -> vec3f {
+  let uv = sphereUv(vertexIndex);
+  let longitude = uv.x * 6.283185307179586;
+  let latitude = uv.y * 3.141592653589793;
+  let ringRadius = sin(latitude) * 0.5;
+  return vec3f(
+    cos(longitude) * ringRadius,
+    cos(latitude) * 0.5,
+    sin(longitude) * ringRadius
+  );
+}
+
 fn rotate2(value: vec2f, radians: f32) -> vec2f {
   let c = cos(radians);
   let s = sin(radians);
@@ -236,7 +269,10 @@ fn stretchedAxes(position: vec3f, motion: vec3f) -> ParticleAxes {
   var axes = billboardAxes(position);
   let motionLength = length(motion);
 
-  if (motionLength > 0.0001) {
+  // three.quarks uses a 0.001 velocity scale when speedFactor is zero, then
+  // still normalizes that vector to orient the billboard. Do not discard
+  // small non-zero motion here: it carries the particle's radial direction.
+  if (motionLength > 0.0) {
     axes.up = motion / motionLength;
     let forwardRaw = view.cameraPosition.xyz - position;
     let forward = forwardRaw / max(length(forwardRaw), 0.0001);
@@ -312,26 +348,48 @@ fn vs_main(
   @builtin(instance_index) instanceIndex: u32,
 ) -> VertexOutput {
   let particle = particles[instanceIndex];
-  let quad = quadPosition(vertexIndex);
-  var local = rotate2(quad, particle.frameData.w) * particle.positionSize.w;
+  var world: vec3f;
+  var uv: vec2f;
+  if (PARTICLE_RENDER_MODE == 6u) {
+    world =
+      particle.positionSize.xyz +
+      spherePosition(vertexIndex) * particle.positionSize.w;
+    uv = sphereUv(vertexIndex);
+  } else {
+    let quad = quadPosition(vertexIndex);
+    var local = rotate2(quad, particle.frameData.w) * particle.positionSize.w;
+    if (PARTICLE_RENDER_MODE == 4u) {
+      local = vec2f(
+        quad.x * particle.positionSize.w,
+        (quad.y - 0.5) * max(particle.positionSize.w, particle.motionData.w)
+      );
+    }
 
-  if (PARTICLE_RENDER_MODE == 1u) {
-    local.y = local.y * max(1.0, 1.0 + particle.motionData.w);
+    let axes = particleAxes(particle.positionSize.xyz, particle.motionData.xyz);
+    if (PARTICLE_RENDER_MODE == 1u) {
+      // three.quarks-compatible stretched billboard: the particle position is
+      // the leading edge, width comes from authored size, and longitudinal
+      // extent is (scaled velocity + lengthFactor) * size.
+      let longitudinal =
+        (length(particle.motionData.xyz) + particle.motionData.w) *
+        particle.positionSize.w;
+      world =
+        particle.positionSize.xyz +
+        axes.right * (quad.y * particle.positionSize.w) -
+        axes.up * ((quad.x + 0.5) * longitudinal);
+    } else {
+      world =
+        particle.positionSize.xyz +
+        axes.right * local.x +
+        axes.up * local.y;
+    }
+    uv = atlasUv(quadUv(vertexIndex), particle.frameData);
   }
-  if (PARTICLE_RENDER_MODE == 4u) {
-    local = vec2f(
-      quad.x * particle.positionSize.w,
-      (quad.y - 0.5) * max(particle.positionSize.w, particle.motionData.w)
-    );
-  }
-
-  let axes = particleAxes(particle.positionSize.xyz, particle.motionData.xyz);
-  let world = particle.positionSize.xyz + axes.right * local.x + axes.up * local.y;
   var output: VertexOutput;
 
   output.position = view.viewProjection * vec4f(world, 1.0);
   output.color = particle.color;
-  output.uv = atlasUv(quadUv(vertexIndex), particle.frameData);
+  output.uv = uv;
   output.distanceToCamera = length(view.cameraPosition.xyz - world);
   return output;
 }
@@ -362,6 +420,9 @@ struct ParticleBurstData {
   originBirthTime: vec4f,
   velocityLifetime: vec4f,
   baseSizeTimeScale: vec4f,
+  // Per-burst RGBA tint, multiplied over the authored colour curve. Opaque
+  // white is the identity, so an untinted burst renders exactly as authored.
+  colorTint: vec4f,
 };
 
 struct ParticleBurstParams {
@@ -369,6 +430,7 @@ struct ParticleBurstParams {
   motion: vec4f,
   textureSheet: vec4f,
   sizeCurve: array<vec4f, 4>,
+  frameCurveMin: array<vec4f, 4>,
   frameCurve: array<vec4f, 4>,
   colorCurve: array<vec4f, 16>,
 };
@@ -404,6 +466,30 @@ fn quadUv(vertexIndex: u32) -> vec2f {
   let u = array<f32, 6>(0.0, 1.0, 1.0, 0.0, 1.0, 0.0);
   let v = array<f32, 6>(1.0, 1.0, 0.0, 1.0, 0.0, 0.0);
   return vec2f(u[vertexIndex], v[vertexIndex]);
+}
+
+fn sphereUv(vertexIndex: u32) -> vec2f {
+  let cornerU = array<f32, 6>(0.0, 1.0, 1.0, 0.0, 1.0, 0.0);
+  let cornerV = array<f32, 6>(0.0, 0.0, 1.0, 0.0, 1.0, 1.0);
+  let cell = vertexIndex / 6u;
+  let segment = cell % 16u;
+  let ring = cell / 16u;
+  return vec2f(
+    (f32(segment) + cornerU[vertexIndex % 6u]) / 16.0,
+    (f32(ring) + cornerV[vertexIndex % 6u]) / 8.0
+  );
+}
+
+fn spherePosition(vertexIndex: u32) -> vec3f {
+  let uv = sphereUv(vertexIndex);
+  let longitude = uv.x * 6.283185307179586;
+  let latitude = uv.y * 3.141592653589793;
+  let ringRadius = sin(latitude) * 0.5;
+  return vec3f(
+    cos(longitude) * ringRadius,
+    cos(latitude) * 0.5,
+    sin(longitude) * ringRadius
+  );
 }
 
 fn rotate2(value: vec2f, radians: f32) -> vec2f {
@@ -457,7 +543,10 @@ fn stretchedAxes(position: vec3f, motion: vec3f) -> ParticleAxes {
   var axes = billboardAxes(position);
   let motionLength = length(motion);
 
-  if (motionLength > 0.0001) {
+  // three.quarks uses a 0.001 velocity scale when speedFactor is zero, then
+  // still normalizes that vector to orient the billboard. Do not discard
+  // small non-zero motion here: it carries the particle's radial direction.
+  if (motionLength > 0.0) {
     axes.up = motion / motionLength;
     let forwardRaw = view.cameraPosition.xyz - position;
     let forward = forwardRaw / max(length(forwardRaw), 0.0001);
@@ -536,6 +625,22 @@ fn sampleSizeCurve(life: f32) -> f32 {
   return mix(sizeCurveValue(lower), sizeCurveValue(upper), fract(scaled));
 }
 
+fn frameCurveMinValue(index: u32) -> f32 {
+  let packed = params.frameCurveMin[index / 4u];
+  let component = index % 4u;
+
+  if (component == 0u) {
+    return packed.x;
+  }
+  if (component == 1u) {
+    return packed.y;
+  }
+  if (component == 2u) {
+    return packed.z;
+  }
+  return packed.w;
+}
+
 fn frameCurveValue(index: u32) -> f32 {
   let packed = params.frameCurve[index / 4u];
   let component = index % 4u;
@@ -552,12 +657,27 @@ fn frameCurveValue(index: u32) -> f32 {
   return packed.w;
 }
 
-fn sampleFrameCurve(life: f32) -> f32 {
+fn sampleFrameCurveMin(life: f32) -> f32 {
   let maxIndex = PARTICLE_CURVE_SAMPLE_COUNT - 1u;
   let scaled = clamp(life, 0.0, 1.0) * f32(maxIndex);
   let lower = u32(floor(scaled));
   let upper = min(lower + 1u, maxIndex);
-  return mix(frameCurveValue(lower), frameCurveValue(upper), fract(scaled));
+  return mix(frameCurveMinValue(lower), frameCurveMinValue(upper), fract(scaled));
+}
+
+fn sampleFrameCurve(life: f32, random: f32) -> f32 {
+  let maxIndex = PARTICLE_CURVE_SAMPLE_COUNT - 1u;
+  let scaled = clamp(life, 0.0, 1.0) * f32(maxIndex);
+  let lower = u32(floor(scaled));
+  let upper = min(lower + 1u, maxIndex);
+  let maximum = mix(frameCurveValue(lower), frameCurveValue(upper), fract(scaled));
+
+  if (params.motion.y < 0.5) {
+    return maximum;
+  }
+
+  let minimum = sampleFrameCurveMin(life);
+  return mix(minimum, maximum, random);
 }
 
 fn sampleColorCurve(life: f32) -> vec4f {
@@ -589,13 +709,21 @@ fn positiveModulo(value: f32, divisor: f32) -> f32 {
   return value - floor(value / divisor) * divisor;
 }
 
+fn particleFrameRandom(index: u32) -> f32 {
+  var value = index * 3266489917u + 374761393u;
+  value = ((value >> 16u) ^ value) * 0x45d9f3bu;
+  value = ((value >> 16u) ^ value) * 0x45d9f3bu;
+  value = (value >> 16u) ^ value;
+  return f32(value & 0x00ffffffu) / f32(0x01000000u);
+}
+
 fn atlasUvForFrame(uv: vec2f, columns: f32, rows: f32, frame: f32) -> vec2f {
   let column = frame - floor(frame / columns) * columns;
   let row = floor(frame / columns);
   return (vec2f(column, row) + uv) / vec2f(columns, rows);
 }
 
-fn atlasUvForLife(uv: vec2f, life: f32) -> vec2f {
+fn atlasUvForLife(uv: vec2f, life: f32, random: f32) -> vec2f {
   let columns = max(floor(params.textureSheet.x + 0.5), 1.0);
   let rows = max(floor(params.textureSheet.y + 0.5), 1.0);
   let frameCount = columns * rows;
@@ -606,7 +734,7 @@ fn atlasUvForLife(uv: vec2f, life: f32) -> vec2f {
 
   let cycleCount = max(params.textureSheet.w, 0.0);
   let rawFrame =
-    params.textureSheet.z + sampleFrameCurve(life) * frameCount * cycleCount;
+    params.textureSheet.z + sampleFrameCurve(life, random) * frameCount * cycleCount;
   let frame = floor(positiveModulo(rawFrame, frameCount));
   return atlasUvForFrame(uv, columns, rows, frame);
 }
@@ -630,26 +758,51 @@ fn vs_main(
   let size = max(0.0, particle.baseSizeTimeScale.x * sampleSizeCurve(lifeT) * alive);
   let rotation = particle.baseSizeTimeScale.z + particle.baseSizeTimeScale.w * age;
   let motion = particle.velocityLifetime.xyz + params.timeGravity.yzw * age;
-  let quad = quadPosition(vertexIndex);
-  var local = rotate2(quad, rotation) * size;
+  let stretchedMotion = motion * params.motion.z;
+  var world: vec3f;
+  var uv: vec2f;
+  if (PARTICLE_RENDER_MODE == 6u) {
+    world = position + spherePosition(vertexIndex) * size;
+    uv = sphereUv(vertexIndex);
+  } else {
+    let quad = quadPosition(vertexIndex);
+    var local = rotate2(quad, rotation) * size;
 
-  if (PARTICLE_RENDER_MODE == 1u) {
-    local.y = local.y * max(1.0, 1.0 + length(motion));
-  }
-  if (PARTICLE_RENDER_MODE == 4u) {
-    local = vec2f(
-      quad.x * size,
-      (quad.y - 0.5) * max(size, length(motion))
+    if (PARTICLE_RENDER_MODE == 4u) {
+      local = vec2f(
+        quad.x * size,
+        (quad.y - 0.5) * max(size, length(motion))
+      );
+    }
+
+    let axes = particleAxes(
+      position,
+      select(motion, stretchedMotion, PARTICLE_RENDER_MODE == 1u)
+    );
+    if (PARTICLE_RENDER_MODE == 1u) {
+      // three.quarks-compatible stretched billboard: the particle position is
+      // the leading edge, width comes from authored size, and longitudinal
+      // extent is (scaled velocity + lengthFactor) * size.
+      let longitudinal =
+        (length(stretchedMotion) + params.motion.w) * size;
+      world =
+        position +
+        axes.right * (quad.y * size) -
+        axes.up * ((quad.x + 0.5) * longitudinal);
+    } else {
+      world = position + axes.right * local.x + axes.up * local.y;
+    }
+    uv = atlasUvForLife(
+      quadUv(vertexIndex),
+      lifeT,
+      particleFrameRandom(instanceIndex)
     );
   }
-
-  let axes = particleAxes(position, motion);
-  let world = position + axes.right * local.x + axes.up * local.y;
   var output: VertexOutput;
 
   output.position = view.viewProjection * vec4f(world, 1.0);
-  output.color = sampleColorCurve(lifeT) * alive;
-  output.uv = atlasUvForLife(quadUv(vertexIndex), lifeT);
+  output.color = sampleColorCurve(lifeT) * particle.colorTint * alive;
+  output.uv = uv;
   output.distanceToCamera = length(view.cameraPosition.xyz - world);
   return output;
 }
@@ -838,6 +991,7 @@ function supportedParticleRenderMode(
     case "stretched-billboard":
     case "horizontal-billboard":
     case "vertical-billboard":
+    case "sphere":
     case "mesh":
     case "trail":
       return renderMode;
@@ -858,6 +1012,8 @@ function particleRenderModeCode(renderMode: ParticleRenderMode): number {
       return 4;
     case "mesh":
       return 5;
+    case "sphere":
+      return 6;
     default:
       return 0;
   }

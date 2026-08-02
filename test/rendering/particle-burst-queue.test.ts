@@ -35,7 +35,12 @@ describe("particle burst queue", () => {
 
     const slowBursts = queue.drain({ frame: 0, time: 0, assets, diagnostics });
     expect(slowBursts).toHaveLength(1);
-    expect(slowBursts[0]?.ttlSeconds).toBeCloseTo(2 + 2 / 60, 6);
+    // ttlSeconds is effect-local (particleBurstTtlSeconds): burst age now
+    // accumulates at the timeScale rate, so the authored lifetime.max (1s,
+    // times lifetimeScale 1) is no longer divided by timeScale. Only the
+    // two-frame retirement pad is multiplied by timeScale so the pad stays
+    // two real frames at the 60Hz default; real-time expiry is unchanged.
+    expect(slowBursts[0]?.ttlSeconds).toBeCloseTo(1 + (0.5 * 2) / 60, 6);
 
     expect(
       queue.drain({ frame: 122, time: 2 + 2 / 60, assets, diagnostics }),
@@ -58,7 +63,9 @@ describe("particle burst queue", () => {
       diagnostics,
     });
     expect(fastBursts).toHaveLength(1);
-    expect(fastBursts[0]?.ttlSeconds).toBeCloseTo(0.5 + 2 / 60, 6);
+    // Same rule: lifetime.max (1s) * lifetimeScale (1) + timeScale (2) * two
+    // 60Hz frames of retirement pad.
+    expect(fastBursts[0]?.ttlSeconds).toBeCloseTo(1 + (2 * 2) / 60, 6);
     expect(
       queue.drain({ frame: 232, time: 10.5 + 2 / 60, assets, diagnostics }),
     ).toHaveLength(1);

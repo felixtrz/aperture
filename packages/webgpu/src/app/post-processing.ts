@@ -587,6 +587,13 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   const overlayCommands = options.overlayCommands ?? [];
 
   if (overlayCommands.length > 0) {
+    const overlayDepthTarget =
+      options.depthAttachment.sampleCount === 1
+        ? {
+            view: options.depthAttachment.view,
+            depthReadOnly: true as const,
+          }
+        : undefined;
     const overlayBoundary = assembleFrameBoundary({
       context,
       device,
@@ -594,6 +601,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
       commands: overlayCommands,
       label: `${options.label}:post:ui-overlay`,
       colorLoadOp: "load",
+      ...(overlayDepthTarget === undefined
+        ? {}
+        : { depthTarget: overlayDepthTarget }),
       ...(options.readbackSamples === undefined
         ? {}
         : {
@@ -1447,6 +1457,13 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       : `${options.label}:post:ui-overlay`;
 
   if (overlayNodeName !== null) {
+    const overlayDepthTarget =
+      options.depthAttachment.sampleCount === 1
+        ? {
+            view: options.depthAttachment.view,
+            depthReadOnly: true as const,
+          }
+        : undefined;
     registerNode({
       name: overlayNodeName,
       reads: ["swapchain"],
@@ -1455,6 +1472,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       planOptions: {
         context,
         colorLoadOp: "load",
+        ...(overlayDepthTarget === undefined
+          ? {}
+          : { depthTarget: overlayDepthTarget }),
       },
       commands: overlayCommands,
       colorTargetSource: "current-texture",

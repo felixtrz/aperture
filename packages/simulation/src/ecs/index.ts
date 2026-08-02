@@ -1,4 +1,4 @@
-import { ComponentRegistry, World } from "elics";
+import { ComponentRegistry, World, createComponent } from "elics";
 import type {
   AnyComponent,
   Component,
@@ -9,11 +9,7 @@ import type {
   WorldOptions,
 } from "elics";
 
-export {
-  Types as EcsType,
-  createComponent as defineComponent,
-  createSystem,
-} from "elics";
+export { Types as EcsType, createSystem } from "elics";
 export type {
   ComponentInitialData,
   DataType,
@@ -56,6 +52,95 @@ export interface EntityVersionTracking {
 
 export type VersionedEcsWorld = World & EntityVersionTracking;
 export type EcsWorld = VersionedEcsWorld;
+
+/**
+ * Define an ECS component, reusing an identical process-global definition.
+ *
+ * Long-lived authoring hosts reload app modules after source edits. Re-running
+ * a module also re-runs its module-scope component declarations; elics rejects
+ * those duplicate ids even when the schema is unchanged. Returning the
+ * existing descriptor is safe because worlds own the component storage and
+ * `createWorld()` re-registers descriptors for every new world.
+ *
+ * A schema change remains an error: reusing storage with a different layout
+ * would corrupt queries and serialized state, so that case requires a host
+ * restart (and gets an explicit diagnostic instead of elics' generic duplicate
+ * id error).
+ */
+export function defineComponent<T extends DataType, S extends TypedSchema<T>>(
+  id: string,
+  schema: S,
+  description?: string,
+): Component<S> {
+  const existing = ComponentRegistry.getById(id);
+  if (existing === undefined) {
+    return createComponent(id, schema, description);
+  }
+
+  if (!componentSchemasEqual(existing.schema, schema)) {
+    throw new Error(
+      `Component with id '${id}' was redefined with an incompatible schema. ` +
+        "Restart the host after changing component fields or types.",
+    );
+  }
+
+  return existing as Component<S>;
+}
+
+function componentSchemasEqual(
+  left: TypedSchema<DataType>,
+  right: TypedSchema<DataType>,
+): boolean {
+  const leftKeys = Object.keys(left).sort();
+  const rightKeys = Object.keys(right).sort();
+  if (
+    leftKeys.length !== rightKeys.length ||
+    leftKeys.some((key, index) => key !== rightKeys[index])
+  ) {
+    return false;
+  }
+
+  return leftKeys.every((key) =>
+    componentSchemaFieldEqual(left[key], right[key]),
+  );
+}
+
+function componentSchemaFieldEqual(left: unknown, right: unknown): boolean {
+  if (left === right) {
+    return true;
+  }
+  if (
+    left === null ||
+    right === null ||
+    typeof left !== "object" ||
+    typeof right !== "object"
+  ) {
+    return false;
+  }
+  if (Array.isArray(left) || Array.isArray(right)) {
+    return (
+      Array.isArray(left) &&
+      Array.isArray(right) &&
+      left.length === right.length &&
+      left.every((value, index) =>
+        componentSchemaFieldEqual(value, right[index]),
+      )
+    );
+  }
+
+  const leftRecord = left as Record<string, unknown>;
+  const rightRecord = right as Record<string, unknown>;
+  const leftKeys = Object.keys(leftRecord).sort();
+  const rightKeys = Object.keys(rightRecord).sort();
+  return (
+    leftKeys.length === rightKeys.length &&
+    leftKeys.every(
+      (key, index) =>
+        key === rightKeys[index] &&
+        componentSchemaFieldEqual(leftRecord[key], rightRecord[key]),
+    )
+  );
+}
 
 /**
  * elics allocates each component's storage as a dense array sized to

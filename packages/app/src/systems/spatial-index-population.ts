@@ -9,7 +9,7 @@ import {
   type MeshAsset,
 } from "@aperture-engine/render";
 import {
-  Enabled,
+  isHierarchyEnabled,
   WorldTransform,
   createMeshBvhCache,
   createMeshHandle,
@@ -297,10 +297,7 @@ interface CachedSpatialMeshAsset {
 }
 
 function entityIsSpatiallyQueryable(entity: Entity): boolean {
-  if (
-    entity.hasComponent(Enabled) &&
-    entity.getValue(Enabled, "value") === false
-  ) {
+  if (!isHierarchyEnabled(entity)) {
     return false;
   }
 

@@ -11,6 +11,7 @@ import {
   PARTICLE_EMITTER_PACKET_WORDS,
   PROCEDURAL_SKY_PACKET_WORDS,
   QUAD_BATCH_PACKET_WORDS,
+  RUNTIME_UNIFORM_PACKET_WORDS,
   SHADOW_REQUEST_PACKET_WORDS,
   SNAPSHOT_PACKET_BYTE_STRIDES,
   SNAPSHOT_PACKET_DIAGNOSTIC_TRANSPORT_NOTE,
@@ -57,6 +58,7 @@ describe("snapshot packed packet encoding", () => {
       bounds: packets.bounds.length,
       quadBatches: 0,
       proceduralSkies: packets.proceduralSkies?.length ?? 0,
+      runtimeUniforms: packets.runtimeUniforms?.length ?? 0,
     });
   });
 
@@ -112,6 +114,115 @@ describe("snapshot packed packet encoding", () => {
 
     expect(decoded.proceduralSkies).toBeUndefined();
     expect(encoded.counts.proceduralSkies).toBe(0);
+  });
+
+  it("round-trips non-identity burst tint and scale modifiers exactly", () => {
+    const effect = createParticleEffectHandle("spark");
+    const bundle: SnapshotPacketBundle = {
+      views: [],
+      meshDraws: [],
+      lights: [],
+      environments: [],
+      shadowRequests: [],
+      bounds: [],
+      particleEmitters: [
+        {
+          emitterId: 44,
+          entity: entity(44, 2),
+          effect,
+          effectVersion: 2,
+          capacity: 32,
+          seed: 9,
+          resetEpoch: 1,
+          timeScale: 1.25,
+          simulationSpace: "world",
+          worldTransformOffset: 208,
+          boundsIndex: 3,
+          layerMask: 0xff,
+          sortKey: {
+            queue: "transparent",
+            viewId: 10,
+            layer: 0,
+            order: 2,
+            pipelineKey: "gpu-particles",
+            materialKey: "particle-effect:spark",
+            meshKey: "particle-quad",
+            depth: 4.5,
+            stableId: 44,
+          },
+          mode: "burst",
+          burst: {
+            burstId: 3,
+            startFrame: 24,
+            startTime: 7.375,
+            count: 48,
+            position: [1.5, -2.25, 0.75],
+            positionJitterMin: [-0.5, -0.25, -0.125],
+            positionJitterMax: [0.5, 0.25, 0.125],
+            velocityMin: [-1, 2, -3],
+            velocityMax: [1, 4, 3],
+            sizeScale: 2.5,
+            speedScale: 0.6,
+            lifetimeScale: 1.75,
+            colorTint: [0.25, 0.5, 0.75, 0.9],
+          },
+        },
+      ],
+    };
+
+    const encoded = encodeSnapshotPackets(bundle);
+    const decoded = decodeSnapshotPackets(encoded.words, encoded.registry);
+    const burst = decoded.particleEmitters?.[0]?.burst;
+
+    expect(burst).toBeDefined();
+    expect(burst?.colorTint).toEqual([0.25, 0.5, 0.75, 0.9]);
+    expect(burst?.sizeScale).toBe(2.5);
+    expect(burst?.speedScale).toBe(0.6);
+    expect(burst?.lifetimeScale).toBe(1.75);
+    expect(burst?.startTime).toBe(7.375);
+    expect(decoded.particleEmitters).toEqual(bundle.particleEmitters);
+  });
+
+  it("round-trips runtime uniform packets byte-exactly through the packed codec", () => {
+    const bundle: SnapshotPacketBundle = {
+      views: [],
+      meshDraws: [],
+      lights: [],
+      environments: [],
+      shadowRequests: [],
+      bounds: [],
+      runtimeUniforms: [
+        {
+          uniformId: 90,
+          entity: entity(90, 7),
+          key: "material:hologram",
+          version: 12,
+          values: {
+            scanlineSpeed: 2.125,
+            flickerEnabled: true,
+            depthFadeEnabled: false,
+            paletteName: "cyan-shift",
+            overrideSlot: null,
+            waveform: [0.125, -3.5, 42, 0.0625],
+          },
+        },
+      ],
+    };
+
+    const encoded = encodeSnapshotPackets(bundle);
+    const decoded = decodeSnapshotPackets(encoded.words, encoded.registry);
+
+    expect(decoded.runtimeUniforms).toEqual(bundle.runtimeUniforms);
+    expect(encoded.counts.runtimeUniforms).toBe(1);
+    expect(encoded.registry.snapshot().strings).toContain("material:hologram");
+    expect(encoded.registry.snapshot().strings).toContain("cyan-shift");
+
+    const reencoded = encodeSnapshotPackets(decoded, {
+      registry: encoded.registry,
+    });
+
+    expect(reencoded.byteLength).toBe(encoded.byteLength);
+    expect(reencoded.words).toEqual(encoded.words);
   });
 
   it("round-trips quad batch packets through the packed snapshot registry", () => {
@@ -270,6 +381,7 @@ describe("snapshot packed packet encoding", () => {
       bounds: BOUNDS_PACKET_WORDS,
       quadBatch: QUAD_BATCH_PACKET_WORDS,
       proceduralSky: PROCEDURAL_SKY_PACKET_WORDS,
+      runtimeUniform: RUNTIME_UNIFORM_PACKET_WORDS,
     });
     expect(SNAPSHOT_PACKET_BYTE_STRIDES).toEqual({
       header: SNAPSHOT_PACKET_HEADER_WORDS * Uint32Array.BYTES_PER_ELEMENT,
@@ -290,6 +402,8 @@ describe("snapshot packed packet encoding", () => {
       quadBatch: QUAD_BATCH_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
       proceduralSky:
         PROCEDURAL_SKY_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+      runtimeUniform:
+        RUNTIME_UNIFORM_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
     });
   });
 
@@ -527,6 +641,8 @@ function randomPacketBundle(): SnapshotPacketBundle {
           positionJitterMax: vec3(random),
           velocityMin: vec3(random),
           velocityMax: vec3(random),
+          sizeScale: 1,
+          colorTint: [1, 1, 1, 1],
         },
       },
       {

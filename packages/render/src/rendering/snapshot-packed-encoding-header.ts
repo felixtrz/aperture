@@ -19,6 +19,7 @@ export interface SnapshotPacketHeaderCounts {
   readonly quadBatches: number;
   readonly fogs: number;
   readonly proceduralSkies: number;
+  readonly runtimeUniforms: number;
 }
 
 export function writeSnapshotPacketHeader(
@@ -47,6 +48,8 @@ export function writeSnapshotPacketHeader(
     counts.audioListeners;
   words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.ProceduralSkies] =
     counts.proceduralSkies;
+  words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.RuntimeUniforms] =
+    counts.runtimeUniforms;
 }
 
 export function readSnapshotPacketHeaderCounts(
@@ -73,6 +76,8 @@ export function readSnapshotPacketHeaderCounts(
     fogs: words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Fogs] ?? 0,
     proceduralSkies:
       words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.ProceduralSkies] ?? 0,
+    runtimeUniforms:
+      words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.RuntimeUniforms] ?? 0,
   };
 }
 

@@ -106,6 +106,8 @@ export const ParticleEmitter = defineComponent(
     capacity: { type: EcsType.Int32, default: 0 },
     seed: { type: EcsType.Int32, default: 1 },
     resetEpoch: { type: EcsType.Int32, default: 0 },
+    lifecycleStartTime: { type: EcsType.Float32, default: -1 },
+    playbackTime: { type: EcsType.Float32, default: -1 },
     timeScale: { type: EcsType.Float32, default: 1 },
     simulationSpace: {
       type: EcsType.Enum,
@@ -115,8 +117,18 @@ export const ParticleEmitter = defineComponent(
     boundsCenter: { type: EcsType.Vec3, default: [0, 0, 0] },
     boundsRadius: { type: EcsType.Float32, default: 0 },
     visible: { type: EcsType.Boolean, default: true },
+    burstCount: { type: EcsType.Int32, default: 0 },
+    burstPosition: { type: EcsType.Vec3, default: [0, 0, 0] },
+    burstPositionJitterMin: { type: EcsType.Vec3, default: [0, 0, 0] },
+    burstPositionJitterMax: { type: EcsType.Vec3, default: [0, 0, 0] },
+    burstVelocityMin: { type: EcsType.Vec3, default: [0, 0, 0] },
+    burstVelocityMax: { type: EcsType.Vec3, default: [0, 0, 0] },
+    burstSizeScale: { type: EcsType.Float32, default: 1 },
+    burstSpeedScale: { type: EcsType.Float32, default: 1 },
+    burstLifetimeScale: { type: EcsType.Float32, default: 1 },
+    burstColor: { type: EcsType.Vec4, default: [1, 1, 1, 1] },
   },
-  "Renderer-independent GPU particle emitter authoring. ECS owns playback intent, seeds, reset epochs, optional bounds overrides, and effect handles; live particle buffers remain WebGPU-owned.",
+  "Renderer-independent GPU particle emitter authoring. ECS owns playback intent, seeds, reset epochs, optional one-shot bursts, bounds overrides, and effect handles; live particle buffers remain WebGPU-owned.",
 );
 
 export const AudioEmitter = defineComponent(

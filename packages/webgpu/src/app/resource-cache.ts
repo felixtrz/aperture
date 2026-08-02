@@ -103,6 +103,12 @@ import type {
   DebugNormalAppFrameResourceCacheSlot,
 } from "../materials/debug-normal/debug-normal-app-frame-resources.js";
 import type { CustomWgslRuntimeUniformBufferResource } from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
+import type { CustomWgslMaterialBindGroupResource } from "../materials/custom-wgsl/custom-wgsl-material.js";
+import type { UnlitBindGroupResource } from "../materials/unlit/unlit-bind-group.js";
+import {
+  createBindGroupResourceCache,
+  type BindGroupResourceCache,
+} from "../gpu/bind-group-resource-cache.js";
 import type { StandardFrameShadowReceiverResources } from "../materials/standard/standard-frame-resources.js";
 import {
   createWebGpuPostPassTextureCacheSlot,
@@ -178,6 +184,8 @@ export interface WebGpuAppResourceCache {
     string,
     CustomWgslRuntimeUniformBufferResource
   >;
+  readonly customWgslSharedBindGroups: BindGroupResourceCache<UnlitBindGroupResource>;
+  readonly customWgslMaterialBindGroups: BindGroupResourceCache<CustomWgslMaterialBindGroupResource>;
   readonly layouts: Map<string, WebGpuAppPipelineLayouts>;
   readonly textures: Map<string, TextureGpuResource>;
   readonly samplers: Map<string, SamplerGpuResource>;
@@ -239,12 +247,33 @@ export interface ParticleEmitterCpuStateResource {
   readonly rotations: Float32Array;
   readonly angularVelocities: Float32Array;
   readonly ages: Float32Array;
+  /**
+   * Curve-sampling age used for the currently packed presentation frame.
+   * Quarks samples behaviors before incrementing age; retaining this value
+   * keeps a zero-delta frame byte-stable while still allowing transforms to
+   * be repacked.
+   */
+  readonly presentationAges: Float32Array;
+  /** Post-integration age used by packed rotation on the current frame. */
+  readonly presentationRenderAges: Float32Array;
   readonly lifetimes: Float32Array;
   readonly baseSizes: Float32Array;
+  /** Spawn-time RGBA, one vec4 per particle. */
+  readonly startColors: Float32Array;
+  /** Fixed spawn-time random selector for texture-sheet frame ranges. */
+  readonly frameRandoms: Float32Array;
+  /** Monotonic spawn generation for each reusable particle slot. */
+  readonly spawnGenerations: Uint32Array;
+  /** Slots born during the current simulation update. */
+  readonly birthSlots: Int32Array;
+  /** Spawn positions for the current frame's born slots, xyz per slot. */
+  readonly birthPositions: Float32Array;
   readonly bufferData: Float32Array;
   initialized: boolean;
   startTime: number;
   lastTime: number;
+  /** Effect-local age accumulated across mutable time-scale changes. */
+  simulatedTime: number;
   liveCount: number;
   maxLifetime: number;
   uniformLifetime: boolean;
@@ -256,6 +285,26 @@ export interface ParticleEmitterCpuStateResource {
   hasLastOrigin: boolean;
   spawnCursor: number;
   spawnSerial: number;
+  birthCount: number;
+  readonly subEmissionTrackers: ParticleSubEmissionTracker[];
+  readonly subEmissionTrackerPool: ParticleSubEmissionTracker[];
+  /**
+   * Per-burst RGBA tint, multiplied over the sampled colour every frame.
+   * Held on the emitter rather than per particle because colour is resampled
+   * from the authored curves each frame, so a spawn-time write would be lost.
+   * Opaque white is the identity.
+   */
+  colorTint: [number, number, number, number];
+}
+
+export interface ParticleSubEmissionTracker {
+  parentSlot: number;
+  parentGeneration: number;
+  time: number;
+  spawnAccumulator: number;
+  previousX: number;
+  previousY: number;
+  previousZ: number;
 }
 
 export interface ParticleBurstBatchSlot {
@@ -278,9 +327,24 @@ export interface ParticleBurstBatchGpuStateResource {
   readonly slotsByBurstKey: Map<string, ParticleBurstBatchSlot>;
   readonly freeSlots: ParticleBurstBatchFreeSlot[];
   nextParticleSlot: number;
+  /** Stable emitter/layout signature retained while an entire batch is frozen. */
+  frozenLayoutKey: string | null;
+  /** Wall-clock value paired with the frozen particle data in the GPU buffer. */
+  frozenRenderTime: number | null;
   paramBuffer: unknown | null;
   paramByteLength: number;
   paramData: Float32Array | null;
+  viewBindGroup: unknown | null;
+  viewBindGroupBuffer: unknown | null;
+  particleBindGroup: unknown | null;
+  textureBindGroup: unknown | null;
+  textureBindGroupView: unknown | null;
+  textureBindGroupSampler: unknown | null;
+  paramBindGroup: unknown | null;
+  paramBindGroupBuffer: unknown | null;
+  softBindGroup: unknown | null;
+  softBindGroupDepthView: unknown | null;
+  softBindGroupParamsBuffer: unknown | null;
 }
 
 export interface ParticleViewUniformBufferResource {
@@ -403,6 +467,8 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     proceduralSkyPipelines: new Map(),
     proceduralSkyUniforms: new Map(),
     customWgslRuntimeUniforms: new Map(),
+    customWgslSharedBindGroups: createBindGroupResourceCache(),
+    customWgslMaterialBindGroups: createBindGroupResourceCache(),
     layouts: new Map(),
     textures: new Map(),
     samplers: new Map(),

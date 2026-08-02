@@ -17,6 +17,7 @@ const HARNESS_DIR = path.resolve(
   "../../assets/render-harness",
 );
 const HARNESS_PREFIX = "/_harness/";
+const RENDER_BUNDLE_PATH = "/_aperture/render-bundle.json";
 
 // GPU-less software rendering (SwiftShader Vulkan) — the same path the WebGPU
 // e2e suite uses. The harness runs in Chromium's NEW headless mode by
@@ -178,9 +179,18 @@ export async function createApertureRenderSession(
   // The canvas size is baked into the served index.html, so the index is a
   // per-request getter reading the CURRENT render's dimensions.
   let dimensions = { width: 960, height: 640 };
+  let renderBundleJson = "null";
   const server = await startApertureStaticServer({
     mounts,
     index: () => renderHarnessHtml(engine.importMap, dimensions),
+    resolveVirtualFile(pathname) {
+      return pathname === RENDER_BUNDLE_PATH
+        ? {
+            body: renderBundleJson,
+            contentType: "application/json; charset=utf-8",
+          }
+        : null;
+    },
   });
 
   // A headed browser on a GPU-less Linux host needs an X display. Provision an
@@ -235,14 +245,10 @@ export async function createApertureRenderSession(
       width: renderOptions.width,
       height: renderOptions.height,
     };
+    renderBundleJson = JSON.stringify(renderOptions.bundle);
     const page = await browser.newPage({ viewport: dimensions });
 
     try {
-      await page.addInitScript((bundle) => {
-        (globalThis as Record<string, unknown>)["__APERTURE_RENDER_BUNDLE__"] =
-          bundle;
-      }, renderOptions.bundle);
-
       await page.goto(`${server.url}/`, { waitUntil: "domcontentloaded" });
 
       const status = (await page

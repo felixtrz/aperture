@@ -1,5 +1,6 @@
 import {
   getOrCreateParticleBurstQueue,
+  type ParticleBurstBudget,
   type ParticleBurstQueueSummary,
   type ParticleBurstRequest,
   type ParticleVec3RangeInput,
@@ -8,6 +9,7 @@ import type {
   EcsWorld,
   ParticleEffectHandle,
   Vec3Like,
+  Vec4Like,
 } from "@aperture-engine/simulation";
 import type {
   SystemAssetAccess,
@@ -25,6 +27,30 @@ export interface ParticleEmitOptions {
   readonly layerMask?: number;
   readonly boundsCenter?: Vec3Like;
   readonly boundsRadius?: number;
+  /**
+   * Uniform multiplier applied to each particle's authored start size.
+   *
+   * Useful when one recipe represents a family of differently sized bursts
+   * (for example, a normal projectile and a heavy projectile). Omitted uses
+   * the authored size unchanged.
+   */
+  readonly sizeScale?: number;
+  /** Multiplier applied to the effect's authored launch speed. */
+  readonly speedScale?: number;
+  /** Multiplier applied to the effect's authored particle lifetime. */
+  readonly lifetimeScale?: number;
+  /**
+   * Per-burst RGBA tint, multiplied over the effect's authored colour.
+   *
+   * Lets one authored recipe serve a family that differs only in hue — a
+   * weapon-tier colour ramp, say — instead of duplicating the effect per
+   * variant. Omitted leaves the authored colour untouched.
+   */
+  readonly color?: Vec4Like;
+  /** World-space emitter rotation applied at particle birth. */
+  readonly rotation?: Vec4Like;
+  /** Hard admission ceiling shared by requests with the same budget key. */
+  readonly budget?: ParticleBurstBudget;
 }
 
 export interface ParticleAccess {
@@ -38,6 +64,10 @@ export interface ParticleAccess {
     effect: ParticleEffectDescriptorInput,
     options: ParticleEmitOptions,
   ): boolean;
+  /** Mutably scale all active transient bursts; zero freezes them in place. */
+  setTimeScale(timeScale: number): void;
+  /** Mutably translate all transient bursts through one shared world root. */
+  setOrigin(origin: Vec3Like): void;
   summary(): ParticleBurstQueueSummary;
 }
 
@@ -56,6 +86,12 @@ export function createParticleAccess(options: {
         ...emitOptions,
         effect: resolveParticleEffectHandle(effect),
       } satisfies ParticleBurstRequest);
+    },
+    setTimeScale(timeScale) {
+      queue.setTimeScale(timeScale);
+    },
+    setOrigin(origin) {
+      queue.setOrigin(origin);
     },
     summary() {
       return queue.summary();

@@ -20,6 +20,11 @@ import {
 } from "../../gpu/shader.js";
 import { createInstanceAttributeVertexBufferLayout } from "../../resources/attributes/instance-attribute-buffer.js";
 import { UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT } from "../unlit/unlit-pipeline.js";
+import {
+  readCachedBindGroupResource,
+  writeCachedBindGroupResource,
+  type BindGroupResourceCache,
+} from "../../gpu/bind-group-resource-cache.js";
 
 const WEBGPU_SHADER_STAGE_VERTEX = 1;
 const WEBGPU_SHADER_STAGE_FRAGMENT = 2;
@@ -127,6 +132,7 @@ export interface CreateCustomWgslMaterialBindGroupResourceOptions {
   readonly material: PreparedCustomWgslMaterial;
   readonly pipeline: CustomWgslMaterialPipelineLayoutProvider;
   readonly resources: readonly CustomWgslMaterialGpuResource[];
+  readonly bindGroupCache?: BindGroupResourceCache<CustomWgslMaterialBindGroupResource>;
 }
 
 export interface CustomWgslMaterialBindGroupResource {
@@ -155,6 +161,7 @@ export interface CreateCustomWgslMaterialRenderResourcesOptions extends Omit<
 > {
   readonly device: CustomWgslMaterialDeviceLike;
   readonly resources: readonly CustomWgslMaterialGpuResource[];
+  readonly bindGroupCache?: BindGroupResourceCache<CustomWgslMaterialBindGroupResource>;
 }
 
 export interface CustomWgslMaterialRenderResources {
@@ -348,6 +355,9 @@ export async function createCustomWgslMaterialRenderResources(
     pipeline: pipeline.resource
       .pipeline as CustomWgslMaterialPipelineLayoutProvider,
     resources: options.resources,
+    ...(options.bindGroupCache === undefined
+      ? {}
+      : { bindGroupCache: options.bindGroupCache }),
   });
   const valid = bindGroup.valid && bindGroup.resource !== null;
 
@@ -408,19 +418,29 @@ export function createCustomWgslMaterialBindGroupResource(
     return { valid: false, resource: null, diagnostics };
   }
 
+  const cacheKey = [
+    options.material.bindGroup.layoutResourceKey,
+    options.material.bindGroup.resourceKey,
+    ...options.resources.map((resource) => resource.resourceKey),
+  ].join("|");
+  const cached = readCachedBindGroupResource(options.bindGroupCache, cacheKey);
+  if (cached !== null) {
+    return { valid: true, resource: cached, diagnostics };
+  }
+
   try {
+    const resource: CustomWgslMaterialBindGroupResource = {
+      group: 2,
+      resourceKey: options.material.bindGroup.resourceKey,
+      layoutKey: options.material.bindGroup.layoutResourceKey,
+      bindGroup: options.device.createBindGroup(descriptor),
+      entryResourceKeys: customWgslMaterialBindGroupMatchKeys(options.material),
+      descriptor,
+    };
+    writeCachedBindGroupResource(options.bindGroupCache, cacheKey, resource);
     return {
       valid: true,
-      resource: {
-        group: 2,
-        resourceKey: options.material.bindGroup.resourceKey,
-        layoutKey: options.material.bindGroup.layoutResourceKey,
-        bindGroup: options.device.createBindGroup(descriptor),
-        entryResourceKeys: customWgslMaterialBindGroupMatchKeys(
-          options.material,
-        ),
-        descriptor,
-      },
+      resource,
       diagnostics,
     };
   } catch (cause) {

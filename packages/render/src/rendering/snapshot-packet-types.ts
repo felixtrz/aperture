@@ -131,6 +131,16 @@ export interface ParticleBurstPacket {
   readonly positionJitterMax: readonly [number, number, number];
   readonly velocityMin: readonly [number, number, number];
   readonly velocityMax: readonly [number, number, number];
+  /** Uniform multiplier applied to the effect's authored particle sizes. */
+  readonly sizeScale: number;
+  /** Multiplier applied to the effect's authored launch speed. */
+  readonly speedScale?: number;
+  /** Multiplier applied to the effect's authored particle lifetime. */
+  readonly lifetimeScale?: number;
+  /** Per-burst RGBA tint multiplied over the effect's authored colour. */
+  readonly colorTint: readonly [number, number, number, number];
+  /** World-space emitter rotation applied to birth position and velocity. */
+  readonly rotation?: readonly [number, number, number, number];
 }
 
 export interface ParticleEmitterPacket {
@@ -141,6 +151,14 @@ export interface ParticleEmitterPacket {
   readonly capacity: number;
   readonly seed: number;
   readonly resetEpoch: number;
+  /** Absolute simulation time when the current reset epoch began. */
+  readonly lifecycleStartTime?: number;
+  /**
+   * Authoritative accumulated emitter-local playback time, before the
+   * effect's own simulationSpeed. When present, render advances to this clock
+   * instead of deriving age from wall time and the current timeScale.
+   */
+  readonly playbackTime?: number;
   readonly timeScale: number;
   /**
    * Extra emission start delay, in effect-local seconds, added on top of the

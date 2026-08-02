@@ -24,6 +24,7 @@ import type {
 import { customWgslMaterialRenderPipelineCacheKey } from "../materials/custom-wgsl/custom-wgsl-material.js";
 import type { UnlitBindGroupResource } from "../materials/unlit/unlit-bind-group.js";
 import type { MeshGpuBufferResource } from "../resources/meshes/mesh-buffer-resources.js";
+import { prepareAppMeshResource } from "../resources/meshes/prepared-app-mesh-resource.js";
 import type {
   StandardFrameIblResources,
   StandardFrameShadowReceiverResources,
@@ -805,6 +806,26 @@ async function prepareCustomDrawResourceSet(options: {
       source: material,
       material: prepared,
     });
+  const preparedMesh = prepareAppMeshResource({
+    device: options.app.initialization.device,
+    mesh: meshEntry.asset,
+    meshHandle: options.draw.mesh,
+    meshKey: (() => {
+      const entry = options.cache.preparedMeshFacade.get(options.draw.mesh);
+      return entry === undefined
+        ? options.meshKey
+        : `${entry.assetKey}@${String(entry.sourceVersion)}`;
+    })(),
+    frame: options.snapshot.frame,
+    preparedMeshes: options.cache.preparedMeshes,
+  });
+  if (preparedMesh !== null) {
+    if (preparedMesh.status === "created") {
+      options.reuse.preparedMeshBuffersCreated += 1;
+    } else {
+      options.reuse.preparedMeshBuffersReused += 1;
+    }
+  }
 
   if (cachedPipeline === undefined) {
     options.reuse.pipelineMisses += 1;
@@ -828,6 +849,23 @@ async function prepareCustomDrawResourceSet(options: {
     bindingResourceDiagnostics: textureSamplerBindingResources.diagnostics,
     runtimeUniforms: options.snapshot.runtimeUniforms ?? [],
     runtimeUniformCache: options.cache.customWgslRuntimeUniforms,
+    ...(preparedMesh === null
+      ? {}
+      : { preparedMesh: preparedMesh.resource.mesh }),
+    ...(options.cache.queuedBuiltInSharedFrame.viewUniform === null
+      ? {}
+      : {
+          preparedViewUniform:
+            options.cache.queuedBuiltInSharedFrame.viewUniform.resource,
+        }),
+    ...(options.cache.queuedBuiltInSharedFrame.worldTransforms === null
+      ? {}
+      : {
+          preparedWorldTransforms:
+            options.cache.queuedBuiltInSharedFrame.worldTransforms.resource,
+        }),
+    sharedBindGroupCache: options.cache.customWgslSharedBindGroups,
+    materialBindGroupCache: options.cache.customWgslMaterialBindGroups,
     reuse: options.reuse,
   });
 

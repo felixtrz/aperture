@@ -5,10 +5,11 @@ import {
   loadApertureHeadlessApp,
 } from "@aperture-engine/cli";
 
-// With the native TypeScript loader (no Vite SSR runner), the config + systems
+// The loader serves app-local modules through a short-lived Vite SSR module
+// graph while keeping @aperture-engine/* external, so the config + systems
 // resolve the engine to the SAME module instances the test process already
-// holds — so this runs in-process with no "Component already exists" collision,
-// unlike the old Vite-runner path that had to be tested out of process.
+// holds — no duplicated ECS registries — while app edits between loads are
+// observed (see headless-loader-freshness.test.ts).
 
 function fixture(relativePath: string): string {
   return fileURLToPath(new URL(`../fixtures/${relativePath}`, import.meta.url));

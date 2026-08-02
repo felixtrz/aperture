@@ -1,5 +1,6 @@
 import {
   assetHandleKey,
+  isHierarchyEnabled,
   type AssetRegistry,
   type EcsWorld,
   type Entity,
@@ -88,6 +89,13 @@ export function extractMeshDraws(
 
   for (const entity of sortedEntities(query.entities)) {
     const cacheKey = entityCacheKey(entity);
+    // Effective Enabled state depends on ancestors, whose mutations do not
+    // increment the descendant entity version used by the extraction cache.
+    // Check it before the cache fast path and evict the stale child template.
+    if (!isHierarchyEnabled(entity)) {
+      activeCacheEntries?.delete(cacheKey);
+      continue;
+    }
     const entityVersion = world.entityVersion(entity);
     const transformVersion = world.entityTransformVersion(entity);
     const cached = activeCacheEntries?.get(cacheKey);

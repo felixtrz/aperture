@@ -28,6 +28,10 @@ export {
   writeProceduralSkyPacket,
 } from "./snapshot-packed-sky-codec.js";
 export {
+  readRuntimeUniformPacket,
+  writeRuntimeUniformPacket,
+} from "./snapshot-packed-runtime-uniform-codec.js";
+export {
   readParticleEmitterPacket,
   writeParticleEmitterPacket,
 } from "./snapshot-packed-particle-codec.js";

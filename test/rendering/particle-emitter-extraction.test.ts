@@ -287,6 +287,11 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
       "velocityOverLifetime",
       "version",
     ]);
+    // markUnsupportedModuleFeatures (packages/particles/src/effects.ts) now
+    // classifies all-"birth" subemitter lists as partially supported
+    // (implemented for continuous parent emitters, not burst parents); only
+    // non-"birth" subemitter types remain unsupported. This input has a
+    // single "birth" subemitter, so nothing lands in unsupportedFields.
     expect(report.partiallySupportedFields).toEqual([
       "collision",
       "colorBySpeed",
@@ -296,15 +301,17 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
       "rotationBySpeed",
       "sizeBySpeed",
       "speedOverLifetime",
+      "subEmitters",
       "trails",
     ]);
-    expect(report.unsupportedFields).toEqual(["subEmitters"]);
+    expect(report.unsupportedFields).toEqual([]);
     expect(report.diagnostics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          code: "particleEffect.unsupportedFeature",
+          code: "particleEffect.partiallySupportedFeature",
           field: "subEmitters",
-          unsupportedModes: ["burst", "continuous"],
+          supportedModes: ["continuous"],
+          unsupportedModes: ["burst"],
         }),
         expect.objectContaining({
           code: "particleEffect.partiallySupportedFeature",

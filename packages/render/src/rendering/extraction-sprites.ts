@@ -1,6 +1,6 @@
 import {
   assetHandleKey,
-  Enabled,
+  isHierarchyEnabled,
   type AssetRegistry,
   type EcsWorld,
   type Entity,
@@ -63,11 +63,7 @@ export function extractSpriteDraws(
   const draws: SpriteDrawPacket[] = [];
 
   for (const entity of sortedEntities(query.entities)) {
-    if (
-      entity.hasComponent(Enabled) &&
-      entity.getValue(Enabled, "value") === false
-    ) {
-      diagnostics.push(diagnostic("render.disabled", entity));
+    if (!isHierarchyEnabled(entity)) {
       continue;
     }
 

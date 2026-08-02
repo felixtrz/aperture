@@ -11,6 +11,7 @@ import type {
   ProceduralSkyPacket,
   QuadBatchPacket,
   RenderSnapshot,
+  RuntimeUniformPacket,
   ShadowRequestPacket,
   ViewPacket,
 } from "./snapshot.js";
@@ -29,6 +30,7 @@ export interface SnapshotPacketBundle {
   readonly bounds: readonly BoundsPacket[];
   readonly quadBatches?: readonly QuadBatchPacket[];
   readonly proceduralSkies?: readonly ProceduralSkyPacket[];
+  readonly runtimeUniforms?: readonly RuntimeUniformPacket[];
 }
 
 export interface EncodeSnapshotPacketsOptions {
@@ -53,6 +55,7 @@ export interface EncodedSnapshotPackets {
     readonly bounds: number;
     readonly quadBatches: number;
     readonly proceduralSkies: number;
+    readonly runtimeUniforms: number;
   };
   readonly wordLength: number;
   readonly byteLength: number;
@@ -75,4 +78,5 @@ export type SnapshotPacketEncodingInput =
       | "bounds"
       | "quadBatches"
       | "proceduralSkies"
+      | "runtimeUniforms"
     >;

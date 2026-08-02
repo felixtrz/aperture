@@ -115,11 +115,14 @@ const PARTICLES_SPAWN_KEYS: ReadonlySet<string> = new Set([
   "capacity",
   "seed",
   "resetEpoch",
+  "lifecycleStartTime",
+  "playbackTime",
   "timeScale",
   "simulationSpace",
   "boundsCenter",
   "boundsRadius",
   "visible",
+  "burst",
 ]);
 
 function warnUnknownSpawnKeys(

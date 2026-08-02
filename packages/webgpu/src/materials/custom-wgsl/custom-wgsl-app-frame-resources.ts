@@ -31,6 +31,7 @@ import {
   createUnlitBindGroupsFromGpuResources,
   type UnlitBindGroupResource,
 } from "../unlit/unlit-bind-group.js";
+import type { BindGroupResourceCache } from "../../gpu/bind-group-resource-cache.js";
 import {
   createCustomWgslMaterialBindGroupResource,
   createCustomWgslMaterialRenderResources,
@@ -91,6 +92,11 @@ export async function createCustomWgslAppFrameResources(options: {
     string,
     CustomWgslRuntimeUniformBufferResource
   >;
+  readonly preparedMesh?: MeshGpuBufferResource;
+  readonly preparedViewUniform?: ViewUniformGpuBufferResource;
+  readonly preparedWorldTransforms?: WorldTransformGpuBufferResource;
+  readonly sharedBindGroupCache?: BindGroupResourceCache<UnlitBindGroupResource>;
+  readonly materialBindGroupCache?: BindGroupResourceCache<CustomWgslMaterialBindGroupResource>;
   readonly reuse?: CustomWgslRuntimeUniformReuseCounters;
 }): Promise<CreateCustomWgslAppFrameResourcesResult> {
   const diagnostics: unknown[] = [];
@@ -105,10 +111,17 @@ export async function createCustomWgslAppFrameResources(options: {
 
   diagnostics.push(...meshDescriptors.diagnostics);
 
-  const meshResource = createMeshGpuBuffers({
-    device: options.device,
-    plan: meshDescriptors.plan,
-  });
+  const meshResource =
+    options.preparedMesh === undefined
+      ? createMeshGpuBuffers({
+          device: options.device,
+          plan: meshDescriptors.plan,
+        })
+      : {
+          valid: true,
+          resource: options.preparedMesh,
+          diagnostics: [],
+        };
 
   diagnostics.push(...meshResource.diagnostics);
 
@@ -118,10 +131,17 @@ export async function createCustomWgslAppFrameResources(options: {
 
   diagnostics.push(...viewDescriptor.diagnostics);
 
-  const viewUniform = createViewUniformGpuBuffer({
-    device: options.device,
-    plan: viewDescriptor.plan,
-  });
+  const viewUniform =
+    options.preparedViewUniform === undefined
+      ? createViewUniformGpuBuffer({
+          device: options.device,
+          plan: viewDescriptor.plan,
+        })
+      : {
+          valid: true,
+          resource: options.preparedViewUniform,
+          diagnostics: [],
+        };
 
   diagnostics.push(...viewUniform.diagnostics);
 
@@ -131,10 +151,17 @@ export async function createCustomWgslAppFrameResources(options: {
 
   diagnostics.push(...transformDescriptor.diagnostics);
 
-  const worldTransforms = createWorldTransformGpuBuffer({
-    device: options.device,
-    plan: transformDescriptor.plan,
-  });
+  const worldTransforms =
+    options.preparedWorldTransforms === undefined
+      ? createWorldTransformGpuBuffer({
+          device: options.device,
+          plan: transformDescriptor.plan,
+        })
+      : {
+          valid: true,
+          resource: options.preparedWorldTransforms,
+          diagnostics: [],
+        };
 
   diagnostics.push(...worldTransforms.diagnostics);
 
@@ -164,12 +191,18 @@ export async function createCustomWgslAppFrameResources(options: {
             ? {}
             : { sampleCount: options.sampleCount }),
           resources: materialResources.resources,
+          ...(options.materialBindGroupCache === undefined
+            ? {}
+            : { bindGroupCache: options.materialBindGroupCache }),
         })
       : await createCustomWgslMaterialRenderResourcesFromPipeline({
           device: options.device,
           material: options.material,
           pipelineResult: options.pipelineResult,
           resources: materialResources.resources,
+          ...(options.materialBindGroupCache === undefined
+            ? {}
+            : { bindGroupCache: options.materialBindGroupCache }),
         });
 
   diagnostics.push(...customResources.diagnostics);
@@ -247,6 +280,7 @@ export async function createCustomWgslAppFrameResources(options: {
       },
     ],
     requiredGroups: [0, 1],
+    bindGroupCache: options.sharedBindGroupCache,
   });
 
   diagnostics.push(...sharedBindGroups.diagnostics);
@@ -292,12 +326,21 @@ function withCustomWgslPipelineMatchKey(
   bindGroup: UnlitBindGroupResource,
   pipelineKey: string,
 ): UnlitBindGroupResource {
-  return bindGroup.entryResourceKeys.includes(pipelineKey)
-    ? bindGroup
-    : {
-        ...bindGroup,
-        entryResourceKeys: [...bindGroup.entryResourceKeys, pipelineKey],
-      };
+  const scopeSuffix = `|pipeline:${pipelineKey}`;
+  return {
+    ...bindGroup,
+    // Bind groups are layout-compatible only with the pipeline that created
+    // them. Keep the physical resource key pipeline-scoped as well as the
+    // selection metadata; otherwise the render-resource resolver collapses
+    // group 0/1 resources from multiple custom materials onto the first
+    // shared key and submits an incompatible bind group.
+    resourceKey: bindGroup.resourceKey.endsWith(scopeSuffix)
+      ? bindGroup.resourceKey
+      : `${bindGroup.resourceKey}${scopeSuffix}`,
+    entryResourceKeys: bindGroup.entryResourceKeys.includes(pipelineKey)
+      ? bindGroup.entryResourceKeys
+      : [...bindGroup.entryResourceKeys, pipelineKey],
+  };
 }
 
 async function createCustomWgslMaterialRenderResourcesFromPipeline(options: {
@@ -305,6 +348,7 @@ async function createCustomWgslMaterialRenderResourcesFromPipeline(options: {
   readonly material: PreparedCustomWgslMaterial;
   readonly pipelineResult: CreateCustomWgslMaterialRenderPipelineResourceResult;
   readonly resources: readonly CustomWgslMaterialGpuResource[];
+  readonly bindGroupCache?: BindGroupResourceCache<CustomWgslMaterialBindGroupResource>;
 }): Promise<CreateCustomWgslMaterialRenderResourcesResult> {
   const pipeline = options.pipelineResult.resource;
 
@@ -325,6 +369,9 @@ async function createCustomWgslMaterialRenderResourcesFromPipeline(options: {
       getBindGroupLayout?: (group: number) => unknown;
     },
     resources: options.resources,
+    ...(options.bindGroupCache === undefined
+      ? {}
+      : { bindGroupCache: options.bindGroupCache }),
   });
 
   return {

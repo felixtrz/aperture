@@ -1,5 +1,5 @@
 import {
-  Enabled,
+  isHierarchyEnabled,
   Parent,
   type EcsWorld,
   type Entity,
@@ -545,10 +545,7 @@ function isUiLayoutEntity(entity: Entity): boolean {
 }
 
 function isUiEntityVisible(entity: Entity): boolean {
-  if (
-    entity.hasComponent(Enabled) &&
-    entity.getValue(Enabled, "value") === false
-  ) {
+  if (!isHierarchyEnabled(entity)) {
     return false;
   }
 

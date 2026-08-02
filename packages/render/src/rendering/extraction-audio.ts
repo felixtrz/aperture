@@ -1,5 +1,5 @@
 import {
-  Enabled,
+  isHierarchyEnabled,
   WorldTransform,
   type AssetRegistry,
   type EcsWorld,
@@ -42,11 +42,7 @@ export function extractAudioEmitters(
   const packets: AudioEmitterPacket[] = [];
 
   for (const entity of sortedEntities(query.entities)) {
-    if (
-      entity.hasComponent(Enabled) &&
-      entity.getValue(Enabled, "value") === false
-    ) {
-      diagnostics.push(diagnostic("render.disabled", entity));
+    if (!isHierarchyEnabled(entity)) {
       continue;
     }
     if (entity.getValue(AudioEmitter, "active") === false) {
@@ -200,10 +196,7 @@ export function extractAudioListener(
   let chosen: AudioListenerPacket | undefined;
 
   for (const entity of sortedEntities(query.entities)) {
-    if (
-      entity.hasComponent(Enabled) &&
-      entity.getValue(Enabled, "value") === false
-    ) {
+    if (!isHierarchyEnabled(entity)) {
       continue;
     }
     if (entity.getValue(AudioListener, "active") === false) {
@@ -254,10 +247,7 @@ function highestPriorityCamera(world: EcsWorld): Entity | undefined {
   let bestPriority = Number.NEGATIVE_INFINITY;
 
   for (const entity of sortedEntities(query.entities)) {
-    if (
-      entity.hasComponent(Enabled) &&
-      entity.getValue(Enabled, "value") === false
-    ) {
+    if (!isHierarchyEnabled(entity)) {
       continue;
     }
     if (!entity.hasComponent(WorldTransform)) {

@@ -21,6 +21,7 @@ import {
 } from "@aperture-engine/math";
 import {
   Children,
+  Enabled,
   LocalTransform,
   Parent,
   WorldTransform,
@@ -149,6 +150,39 @@ export function getChildren(world: EcsWorld, entity: Entity): Entity[] {
     }
   }
   return live;
+}
+
+/**
+ * Return whether `entity` and every live transform ancestor are enabled.
+ *
+ * `Enabled` is inherited through the authoritative `Parent` chain: disabling
+ * a scene root must suppress imported glTF descendants even though those
+ * descendants do not duplicate the metadata component. Missing `Enabled`
+ * components are enabled by default. A malformed direct-Parent cycle is
+ * treated as disabled so render/spatial consumers fail closed instead of
+ * looping forever or exposing only part of the invalid subtree.
+ */
+export function isHierarchyEnabled(entity: Entity): boolean {
+  let cursor: Entity | null = entity;
+  const visited = new Set<string>();
+
+  while (cursor !== null) {
+    const key = refKey(cursor);
+    if (visited.has(key)) {
+      return false;
+    }
+    visited.add(key);
+
+    if (
+      cursor.hasComponent(Enabled) &&
+      cursor.getValue(Enabled, "value") === false
+    ) {
+      return false;
+    }
+    cursor = readParentEntity(cursor);
+  }
+
+  return true;
 }
 
 /**

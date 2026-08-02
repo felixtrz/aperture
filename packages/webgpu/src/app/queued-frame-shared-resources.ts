@@ -23,6 +23,12 @@ import {
   writeVersionedBufferData,
   type VersionedUploadStamp,
 } from "./app-frame-resource-utils.js";
+import {
+  createBindGroupResourceCache,
+  resetBindGroupResourceCache,
+  type BindGroupResourceCache,
+} from "../gpu/bind-group-resource-cache.js";
+import type { UnlitBindGroupResource } from "../materials/unlit/unlit-bind-group.js";
 
 interface SharedViewUniformResource {
   readonly resource: ViewUniformGpuBufferResource;
@@ -43,6 +49,7 @@ export interface QueuedBuiltInSharedFrameResourceCache {
   worldTransforms: SharedWorldTransformResource | null;
   readonly viewDescriptorScratch: ViewUniformBufferDescriptorScratch;
   readonly worldTransformDescriptorScratch: WorldTransformBufferDescriptorScratch;
+  readonly bindGroups: BindGroupResourceCache<UnlitBindGroupResource>;
 }
 
 export interface PrepareQueuedBuiltInSharedFrameResourcesResult {
@@ -59,6 +66,7 @@ export function createQueuedBuiltInSharedFrameResourceCache(): QueuedBuiltInShar
     viewDescriptorScratch: createViewUniformBufferDescriptorScratch(),
     worldTransformDescriptorScratch:
       createWorldTransformBufferDescriptorScratch(),
+    bindGroups: createBindGroupResourceCache(),
   };
 }
 
@@ -68,6 +76,9 @@ export function prepareQueuedBuiltInSharedFrameResources(input: {
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
 }): PrepareQueuedBuiltInSharedFrameResourcesResult {
+  const previousViewBuffer = input.cache.viewUniform?.resource.buffer ?? null;
+  const previousWorldBuffer =
+    input.cache.worldTransforms?.resource.buffer ?? null;
   const viewDescriptor = writeViewUniformBufferDescriptor(
     input.viewUniforms,
     input.cache.viewDescriptorScratch,
@@ -112,6 +123,17 @@ export function prepareQueuedBuiltInSharedFrameResources(input: {
     },
     diagnostics,
   );
+  if (
+    (previousViewBuffer !== null &&
+      previousViewBuffer !== viewUniform?.buffer) ||
+    (previousWorldBuffer !== null &&
+      previousWorldBuffer !== worldTransforms?.buffer)
+  ) {
+    resetBindGroupResourceCache(input.cache.bindGroups);
+  } else {
+    input.cache.bindGroups.created = 0;
+    input.cache.bindGroups.reused = 0;
+  }
 
   return {
     valid: viewUniform !== null && worldTransforms !== null,

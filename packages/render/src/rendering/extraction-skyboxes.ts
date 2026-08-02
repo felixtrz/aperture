@@ -1,5 +1,5 @@
 import {
-  Enabled,
+  isHierarchyEnabled,
   type AssetRegistry,
   type EcsWorld,
 } from "@aperture-engine/simulation";
@@ -32,11 +32,7 @@ export function extractSkyboxes(
   const packets: SkyboxPacket[] = [];
 
   for (const entity of sortedEntities(query.entities)) {
-    if (
-      entity.hasComponent(Enabled) &&
-      entity.getValue(Enabled, "value") === false
-    ) {
-      diagnostics.push(diagnostic("render.disabled", entity));
+    if (!isHierarchyEnabled(entity)) {
       continue;
     }
 

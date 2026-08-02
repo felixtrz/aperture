@@ -152,10 +152,17 @@ describe("WebGPU app frame boundary assembly", () => {
     expect(harness.passDescriptors[1]?.colorAttachments[0]).toMatchObject({
       loadOp: "load",
     });
-    expect(harness.passDescriptors[1]?.depthStencilAttachment).toMatchObject({
-      depthLoadOp: "load",
-      depthReadOnly: true,
-    });
+    // WebGPU validation rule (GPURenderPassDepthStencilAttachment): when
+    // depthReadOnly is true, depthLoadOp and depthStoreOp must NOT be
+    // provided — a read-only depth attachment is available for depth
+    // testing but the pass may not initialize or mutate it. So
+    // createDepthAttachment (render-pass-attachments.ts) emits only
+    // { view, depthReadOnly: true } and omits the load/store ops entirely,
+    // even though the frame-boundaries call site supplies them.
+    const overlayDepth = harness.passDescriptors[1]?.depthStencilAttachment;
+    expect(overlayDepth).toMatchObject({ depthReadOnly: true });
+    expect(overlayDepth).not.toHaveProperty("depthLoadOp");
+    expect(overlayDepth).not.toHaveProperty("depthStoreOp");
   });
 
   it("records occlusion query readbacks on the legacy path", async () => {

@@ -199,6 +199,8 @@ describe("WebGPU app snapshot transport", () => {
             positionJitterMax: [0.5, 1, 0.5],
             velocityMin: [0, 1, 0],
             velocityMax: [1, 2, 1],
+            sizeScale: 1,
+            colorTint: [1, 1, 1, 1],
           },
         },
       ],

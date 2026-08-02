@@ -180,6 +180,18 @@ describe("GPU particle app frame resources", () => {
       emitters: 1,
       liveParticles: 4,
       texturedEmitters: 1,
+      // The lone continuous emitter takes the single-emitter path (a
+      // one-record continuous batch collapses to "single"), which advances
+      // its CPU state once per frame.
+      simulatedEmitters: 1,
+      // batchGroups/batchedEmitters only count shared burst/continuous draw
+      // groups; the collapsed single emitter contributes to neither.
+      batchGroups: 0,
+      batchedEmitters: 0,
+      // One draw is issued because liveParticles (4) > 0.
+      drawCalls: 1,
+      // liveParticles (4) * PARTICLE_DATA_FLOAT_STRIDE (16) * 4 bytes.
+      uploadedBytes: 4 * 16 * 4,
       statesCreated: 1,
       statesReused: 0,
       staleStatesRemoved: 0,
@@ -618,11 +630,22 @@ describe("GPU particle app frame resources", () => {
       (stateFloats[2] ?? 0) + 1,
     );
 
-    expect(distanceFromOrigin).toBeCloseTo(0.5 / 15, 4);
+    // limitVelocityOverLifetime maps to runtime.maxSpeed + runtime.linearDamping
+    // (= dampen, default 0) and only damps when linearDamping > 0 — the
+    // Unity/three.quarks contract where Dampen 0 removes 0% of the excess
+    // speed. With dampen unset the module is inert, so the particle moves at
+    // startSpeed (1) * speedOverLifetime factor (2) = 2 for the single
+    // clamped frame delta of 1/15 s.
+    expect(distanceFromOrigin).toBeCloseTo(2 / 15, 4);
+    // motionSpeed = 2 saturates every speedRange {min: 0, max: 1} (t = 1):
+    // size  = startSize (1) * sizeBySpeed curve at t=1 -> 4
+    // color = colorBySpeed gradient at t=1 -> [0, 0.5, 1, 0.25]
     expect(roundFloats(Array.from(stateFloats.slice(3, 8)))).toEqual([
-      3, 0.5, 0.75, 1, 0.625,
+      4, 0, 0.5, 1, 0.25,
     ]);
-    expect(stateFloats[11]).toBeCloseTo(1 / 15, 5);
+    // rotationBySpeed angular velocity = lerp(0, 2, t=1) = 2 rad/s applied
+    // over the particle's render age of 1/15 s.
+    expect(stateFloats[11]).toBeCloseTo(2 / 15, 5);
   });
 
   it("applies continuous noise and orbital motion modules", async () => {
@@ -1248,6 +1271,8 @@ describe("GPU particle app frame resources", () => {
         positionJitterMax: [0.1, 0.2, 0.1],
         velocityMin: [-0.1, 0.5, -0.1],
         velocityMax: [0.1, 1, 0.1],
+        sizeScale: 1,
+        colorTint: [1, 1, 1, 1],
       },
     });
 
@@ -1311,11 +1336,13 @@ describe("GPU particle app frame resources", () => {
     expect(
       fixture.writes.filter((write) => write.label === "Particle/State/99"),
     ).toEqual([]);
+    // count (3) * PARTICLE_BURST_DATA_FLOAT_STRIDE (16, the 12-float record
+    // plus the appended startColor*colorTint vec4 at floats 12-15) * 4 bytes.
     expect(
       fixture.writes.filter((write) =>
         write.label.startsWith("Particle/BurstBatch/"),
       ),
-    ).toMatchObject([{ size: 3 * 12 * 4 }]);
+    ).toMatchObject([{ size: 3 * 16 * 4 }]);
     expect(burst.commands).toContainEqual(
       expect.objectContaining({
         kind: "draw",
@@ -1344,6 +1371,8 @@ describe("GPU particle app frame resources", () => {
         positionJitterMax: [0, 0, 0],
         velocityMin: [0, 0, 0],
         velocityMax: [0, 0, 0],
+        sizeScale: 1,
+        colorTint: [1, 1, 1, 1],
       },
     });
 
@@ -1421,6 +1450,8 @@ describe("GPU particle app frame resources", () => {
         positionJitterMax: [0.1, 0.2, 0.1],
         velocityMin: [-0.1, 0.5, -0.1],
         velocityMax: [0.1, 1, 0.1],
+        sizeScale: 1,
+        colorTint: [1, 1, 1, 1],
       },
     });
     const firstEmitter = baseSnapshot.particleEmitters?.[0];
@@ -1529,7 +1560,8 @@ describe("GPU particle app frame resources", () => {
       },
     ]);
     expect(batchWrites).toHaveLength(1);
-    expect(batchWrites[0]?.size).toBe(6 * 12 * 4);
+    // 6 particles * PARTICLE_BURST_DATA_FLOAT_STRIDE (16) * 4 bytes.
+    expect(batchWrites[0]?.size).toBe(6 * 16 * 4);
     expect(emitterStateWrites).toEqual([]);
     expect(cache.particleEmitterStates).toHaveLength(0);
     expect(cache.particleBurstCpuStates).toHaveLength(2);
@@ -1556,8 +1588,11 @@ describe("GPU particle app frame resources", () => {
     expect(reused.valid).toBe(true);
     expect(reused.report.statesReused).toBeGreaterThanOrEqual(3);
     expect(reusedBatchWrites).toHaveLength(2);
-    expect(reusedBatchWrites[1]?.size).toBe(6 * 12 * 4);
-    expect(paramWrites).toMatchObject([{ size: 108 * 4 }, { size: 108 * 4 }]);
+    expect(reusedBatchWrites[1]?.size).toBe(6 * 16 * 4);
+    // PARTICLE_BURST_RENDER_PARAM_FLOAT_COUNT = 4 (time+gravity) + 4
+    // (damping/flags) + 4 (texture sheet) + 16 (size curve) + 16 (frame-min
+    // curve, new) + 16 (frame curve) + 16*4 (color curve) = 124 floats.
+    expect(paramWrites).toMatchObject([{ size: 124 * 4 }, { size: 124 * 4 }]);
     const firstParamBytes = bytesUpload(paramWrites[0]);
     const firstParams = new Float32Array(
       firstParamBytes.buffer,
@@ -1607,6 +1642,8 @@ describe("GPU particle app frame resources", () => {
         positionJitterMax: [0.1, 0.2, 0.1],
         velocityMin: [-0.1, 0.5, -0.1],
         velocityMax: [0.1, 1, 0.1],
+        sizeScale: 1,
+        colorTint: [1, 1, 1, 1],
       },
     });
     const emitter = baseSnapshot.particleEmitters?.[0] as NonNullable<
@@ -1732,7 +1769,8 @@ describe("GPU particle app frame resources", () => {
       (write) =>
         write.label.startsWith("Particle/BurstBatch/") &&
         write.dataOffset === 0 &&
-        write.size === 6 * 12 * 4,
+        // 6 particles * PARTICLE_BURST_DATA_FLOAT_STRIDE (16) * 4 bytes.
+        write.size === 6 * 16 * 4,
     );
     expect(compactedBatchWrite).toBeDefined();
   });
@@ -1812,6 +1850,8 @@ describe("GPU particle app frame resources", () => {
         positionJitterMax: [0, 0, 0],
         velocityMin: [0, 1, 0],
         velocityMax: [0, 1, 0],
+        sizeScale: 1,
+        colorTint: [1, 1, 1, 1],
       },
     });
 

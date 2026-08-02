@@ -265,14 +265,48 @@ export interface StandardMaterialOptions {
    * Additive linear emissive color. Values may exceed 1 for HDR/bloom probes.
    */
   readonly emissiveFactor?: Vec3Like;
+  /** Base-colour texture, multiplied by `baseColor`. See MaterialTextureInput. */
+  readonly baseColorTexture?: MaterialTextureInput;
   readonly label?: string;
 }
 
 export interface UnlitMaterialOptions {
   readonly baseColor?: Vec4Like;
+  /**
+   * Base-colour texture, multiplied by `baseColor`.
+   *
+   * `transform` addresses a sub-rect, which is what makes texture atlases and
+   * sprite sheets usable: point several materials at one texture and give each
+   * a different offset/scale instead of shipping a texture per tile.
+   */
+  readonly baseColorTexture?: MaterialTextureInput;
   readonly label?: string;
   readonly renderState?: Partial<UnlitMaterialAsset["renderState"]>;
 }
+
+/**
+ * A texture binding for a hand-authored material.
+ *
+ * Accepts the `SystemTextureAssetHandle` returned by `this.assets.texture(id)`
+ * directly, so callers do not have to reach for `.renderHandle`.
+ */
+export interface MaterialTextureInput {
+  readonly texture: TextureDescriptorInput;
+  /**
+   * Sampler to read the texture with. Required by the renderer — a binding
+   * without one is dropped with `render.material.missingSamplerHandle`.
+   */
+  readonly sampler?: SamplerHandle;
+  /** Sub-rect / tiling. Offset and scale are in UV space. */
+  readonly transform?: {
+    readonly offset?: readonly [number, number];
+    readonly scale?: readonly [number, number];
+    readonly rotation?: number;
+  };
+  readonly texCoord?: number;
+}
+
+export type TextureDescriptorInput = TextureHandle | SystemTextureAssetHandle;
 
 export interface SpawnMeshOptions extends SpawnMetadata {
   readonly mesh: PrimitiveMeshDescriptor | MeshHandle;

@@ -116,12 +116,15 @@ export function createRenderBundleCommandKey(
   options: RenderBundleCommandKeyOptions,
   cache: RenderBundleCache,
 ): string {
+  const commands = options.commands.map((command) =>
+    commandKeyPart(command, cache),
+  );
   const key = {
     targetKey: options.targetKey,
     colorFormats: [...options.colorFormats],
     depthStencilFormat: options.depthStencilFormat ?? null,
     sampleCount: options.sampleCount ?? 1,
-    commands: options.commands.map((command) => commandKeyPart(command, cache)),
+    commands,
   };
 
   return JSON.stringify(key);

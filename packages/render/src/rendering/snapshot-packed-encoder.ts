@@ -10,6 +10,7 @@ import {
   writeParticleEmitterPacket,
   writeProceduralSkyPacket,
   writeQuadBatchPacket,
+  writeRuntimeUniformPacket,
   writeShadowRequestPacket,
   writeViewPacket,
 } from "./snapshot-packed-codecs.js";
@@ -24,6 +25,7 @@ import {
   PARTICLE_EMITTER_PACKET_WORDS,
   PROCEDURAL_SKY_PACKET_WORDS,
   QUAD_BATCH_PACKET_WORDS,
+  RUNTIME_UNIFORM_PACKET_WORDS,
   SHADOW_REQUEST_PACKET_WORDS,
   SNAPSHOT_PACKET_HEADER_WORDS,
   VIEW_PACKET_WORDS,
@@ -46,6 +48,7 @@ export function snapshotPacketWordLength(
   const audioListeners =
     packets.audioListener === undefined ? [] : [packets.audioListener];
   const proceduralSkies = packets.proceduralSkies ?? [];
+  const runtimeUniforms = packets.runtimeUniforms ?? [];
 
   return (
     SNAPSHOT_PACKET_HEADER_WORDS +
@@ -61,7 +64,8 @@ export function snapshotPacketWordLength(
     packets.shadowRequests.length * SHADOW_REQUEST_PACKET_WORDS +
     packets.bounds.length * BOUNDS_PACKET_WORDS +
     quadBatches.length * QUAD_BATCH_PACKET_WORDS +
-    proceduralSkies.length * PROCEDURAL_SKY_PACKET_WORDS
+    proceduralSkies.length * PROCEDURAL_SKY_PACKET_WORDS +
+    runtimeUniforms.length * RUNTIME_UNIFORM_PACKET_WORDS
   );
 }
 
@@ -78,6 +82,7 @@ export function encodeSnapshotPackets(
   const audioListeners =
     packets.audioListener === undefined ? [] : [packets.audioListener];
   const proceduralSkies = packets.proceduralSkies ?? [];
+  const runtimeUniforms = packets.runtimeUniforms ?? [];
   const wordLength = snapshotPacketWordLength(packets);
   const buffer = options.buffer ?? new Uint32Array(wordLength);
 
@@ -104,6 +109,7 @@ export function encodeSnapshotPackets(
     bounds: packets.bounds.length,
     quadBatches: quadBatches.length,
     proceduralSkies: proceduralSkies.length,
+    runtimeUniforms: runtimeUniforms.length,
   });
 
   for (const packet of packets.views) {
@@ -171,6 +177,11 @@ export function encodeSnapshotPackets(
     offset += PROCEDURAL_SKY_PACKET_WORDS;
   }
 
+  for (const packet of runtimeUniforms) {
+    writeRuntimeUniformPacket(words, offset, packet, registry);
+    offset += RUNTIME_UNIFORM_PACKET_WORDS;
+  }
+
   return {
     words,
     registry,
@@ -188,6 +199,7 @@ export function encodeSnapshotPackets(
       bounds: packets.bounds.length,
       quadBatches: quadBatches.length,
       proceduralSkies: proceduralSkies.length,
+      runtimeUniforms: runtimeUniforms.length,
     },
     wordLength,
     byteLength: wordLength * Uint32Array.BYTES_PER_ELEMENT,

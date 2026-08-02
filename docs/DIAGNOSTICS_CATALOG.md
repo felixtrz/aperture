@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1388
+Every structured diagnostic code the engine can emit (1393
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -3548,6 +3548,12 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------ | --------------------------------------------------- | ---- | --------------------------------------------------------------- |
 | `particle.invalidEffect` | Particle emitters require a particle-effect handle. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
 
+## particle.invalidLifecycleStartTime (1)
+
+| Code                                 | Message                                                                          | Fix? | Emitted from                                                    |
+| ------------------------------------ | -------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `particle.invalidLifecycleStartTime` | Particle emitter lifecycleStartTime must be a non-negative number when provided. | —    | `packages/render/src/rendering/authoring-validation-effects.ts` |
+
 ## particle.invalidResetEpoch (1)
 
 | Code                         | Message                                                     | Fix? | Emitted from                                                    |
@@ -3650,6 +3656,12 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------- |
 | `particleFrame.compositeEffect` | Particle effect '…' is composite; composites must be expanded into leaf emitter packets during extraction before reaching the renderer. | —    | `packages/webgpu/src/app/particles.ts` |
 
+## particleFrame.continuousBatchUnavailable (1)
+
+| Code                                       | Message                                                                  | Fix? | Emitted from                           |
+| ------------------------------------------ | ------------------------------------------------------------------------ | ---- | -------------------------------------- |
+| `particleFrame.continuousBatchUnavailable` | Particle continuous batching requires bind groups and queue.writeBuffer. | —    | `packages/webgpu/src/app/particles.ts` |
+
 ## particleFrame.continuousStateMissing (1)
 
 | Code                                   | Message                                                          | Fix? | Emitted from                           |
@@ -3685,6 +3697,24 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                              | Message                       | Fix? | Emitted from                           |
 | --------------------------------- | ----------------------------- | ---- | -------------------------------------- |
 | `particleFrame.stateBufferFailed` | (message composed at runtime) | —    | `packages/webgpu/src/app/particles.ts` |
+
+## particleFrame.subEmitterEffectNotReady (1)
+
+| Code                                     | Message                                                        | Fix? | Emitted from                           |
+| ---------------------------------------- | -------------------------------------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.subEmitterEffectNotReady` | Particle subemitter effect '…' is not ready as a leaf emitter. | —    | `packages/webgpu/src/app/particles.ts` |
+
+## particleFrame.subEmitterModeUnsupported (1)
+
+| Code                                      | Message                                                                  | Fix? | Emitted from                           |
+| ----------------------------------------- | ------------------------------------------------------------------------ | ---- | -------------------------------------- |
+| `particleFrame.subEmitterModeUnsupported` | Only birth subemitters are implemented for continuous particle emitters. | —    | `packages/webgpu/src/app/particles.ts` |
+
+## particleFrame.subEmitterParentStateMissing (1)
+
+| Code                                         | Message                                                                                 | Fix? | Emitted from                           |
+| -------------------------------------------- | --------------------------------------------------------------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.subEmitterParentStateMissing` | Birth subemitter simulation requires live CPU state for both parent and child emitters. | —    | `packages/webgpu/src/app/particles.ts` |
 
 ## particleFrame.viewBufferFailed (1)
 
@@ -7142,9 +7172,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## webGpuApp.unsupportedMaterialQueueBlendPreset (1)
 
-| Code                                            | Message                                                                                                   | Fix? | Emitted from                                                          |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------- |
-| `webGpuApp.unsupportedMaterialQueueBlendPreset` | WebGPU app material queue routing supports transparent … draws with alpha blending, not blend preset '…'. | —    | `packages/webgpu/src/materials/core/built-in-material-queue-phase.ts` |
+| Code                                            | Message                       | Fix? | Emitted from                                                          |
+| ----------------------------------------------- | ----------------------------- | ---- | --------------------------------------------------------------------- |
+| `webGpuApp.unsupportedMaterialQueueBlendPreset` | (message composed at runtime) | —    | `packages/webgpu/src/materials/core/built-in-material-queue-phase.ts` |
 
 ## webGpuApp.unsupportedMaterialQueueFamily (1)
 

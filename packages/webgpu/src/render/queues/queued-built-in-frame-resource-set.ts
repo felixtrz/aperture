@@ -170,6 +170,7 @@ export interface PrepareQueuedBuiltInFrameResourceSetOptions<
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly instanceTints?: PackedSnapshotInstanceTints | null;
+  readonly sharedBindGroupCache?: BindGroupResourceCache<UnlitBindGroupResource>;
   readonly callbacks: PrepareQueuedBuiltInFrameResourceSetCallbacks<
     TPipelineResult,
     TPipelinePlanResult,
@@ -235,6 +236,8 @@ export async function prepareQueuedBuiltInFrameResourceSet<
   >
 > {
   const scratch = resetQueuedBuiltInFrameResourceScratch(options.scratch);
+  const sharedBindGroupCache =
+    options.sharedBindGroupCache ?? scratch.sharedBindGroupCache;
   const prepared = await prepareQueuedMaterialFrameResourceSet<
     QueuedBuiltInAppResourceItem,
     TPipelineResult,
@@ -259,6 +262,7 @@ export async function prepareQueuedBuiltInFrameResourceSet<
           item.adapter.kind,
           item.draw.batchKey.pipelineKey,
           item.draw.batchKey.meshLayoutKey,
+          item.draw.batchKey.topology,
         ].join("|"),
       ...(options.callbacks.getPipelineResourceKey === undefined
         ? {}
@@ -297,7 +301,7 @@ export async function prepareQueuedBuiltInFrameResourceSet<
           ...(options.instanceTints === undefined
             ? {}
             : { instanceTints: options.instanceTints }),
-          sharedBindGroupCache: scratch.sharedBindGroupCache,
+          sharedBindGroupCache,
           lightBindGroupCache: scratch.lightBindGroupCache,
           standardLightShadowBindGroupCache:
             scratch.standardLightShadowBindGroupCache,
@@ -340,7 +344,12 @@ export async function prepareQueuedBuiltInFrameResourceSet<
   });
 
   const resources = prepared.valid ? prepared.firstResources : null;
-  const bindGroupReuse = createQueuedBuiltInBindGroupReuseReport(scratch);
+  const bindGroupReuse = createQueuedBuiltInBindGroupReuseReport({
+    sharedBindGroupCache,
+    lightBindGroupCache: scratch.lightBindGroupCache,
+    standardLightShadowBindGroupCache:
+      scratch.standardLightShadowBindGroupCache,
+  });
   const result: CreateQueuedBuiltInFrameResourcesResult = {
     valid: prepared.valid,
     bindGroupReuse,

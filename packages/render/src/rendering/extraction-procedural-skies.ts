@@ -1,4 +1,4 @@
-import { Enabled, type EcsWorld } from "@aperture-engine/simulation";
+import { isHierarchyEnabled, type EcsWorld } from "@aperture-engine/simulation";
 import {
   ProceduralSky,
   ProceduralSkyModel,
@@ -24,11 +24,7 @@ export function extractProceduralSkies(
   const packets: ProceduralSkyPacket[] = [];
 
   for (const entity of sortedEntities(query.entities)) {
-    if (
-      entity.hasComponent(Enabled) &&
-      entity.getValue(Enabled, "value") === false
-    ) {
-      diagnostics.push(diagnostic("render.disabled", entity));
+    if (!isHierarchyEnabled(entity)) {
       continue;
     }
 

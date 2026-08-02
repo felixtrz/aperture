@@ -66,7 +66,11 @@ export function createUnsupportedBuiltInMaterialQueuePhaseDiagnostic(
       queueItem.pipelineKey,
     );
 
-    if (tokens.blendPreset === "alpha") {
+    if (
+      tokens.blendPreset === "alpha" ||
+      (queueItem.materialFamily === "unlit" &&
+        tokens.blendPreset === "additive")
+    ) {
       return null;
     }
 
@@ -78,7 +82,10 @@ export function createUnsupportedBuiltInMaterialQueuePhaseDiagnostic(
       materialFamily: queueItem.materialFamily,
       blendPreset: tokens.blendPreset,
       ...optionalEntity(queueItem),
-      message: `WebGPU app material queue routing supports transparent ${materialFamilyLabel(queueItem.materialFamily)} draws with alpha blending, not blend preset '${String(tokens.blendPreset)}'.`,
+      message:
+        queueItem.materialFamily === "unlit"
+          ? `WebGPU app material queue routing supports transparent UnlitMaterial draws with alpha or additive blending, not blend preset '${String(tokens.blendPreset)}'.`
+          : `WebGPU app material queue routing supports transparent ${materialFamilyLabel(queueItem.materialFamily)} draws with alpha blending, not blend preset '${String(tokens.blendPreset)}'.`,
     };
   }
 

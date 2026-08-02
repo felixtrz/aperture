@@ -110,6 +110,14 @@ describe("built-in material queue route adapter factory", () => {
         queueItem("unlit", "transparent", "unlit|blend|none|less|alpha"),
       ),
     ).toBeNull();
+    // Post-tonemap additive VFX: transparent UnlitMaterial draws accept the
+    // "additive" blend preset (built-in-material-queue-phase.ts returns null
+    // for transparent unlit when blendPreset is "alpha" or "additive").
+    expect(
+      adapter(registry, "unlit").validateQueueItem(
+        queueItem("unlit", "transparent", "unlit|blend|none|less|additive"),
+      ),
+    ).toBeNull();
     expect(
       adapter(registry, "matcap").validateQueueItem(
         queueItem("matcap", "transparent"),
@@ -133,15 +141,22 @@ describe("built-in material queue route adapter factory", () => {
       materialFamily: "standard",
       blendPreset: "additive",
     });
+    // UnlitMaterial transparent draws accept alpha and additive only;
+    // "premultiplied-alpha" (a real preset in material-render-state.ts)
+    // keeps the unlit blend-preset diagnostic path covered.
     expect(
       adapter(registry, "unlit").validateQueueItem(
-        queueItem("unlit", "transparent", "unlit|blend|none|less|additive"),
+        queueItem(
+          "unlit",
+          "transparent",
+          "unlit|blend|none|less|premultiplied-alpha",
+        ),
       ),
     ).toMatchObject({
       code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
       renderPhase: "transparent",
       materialFamily: "unlit",
-      blendPreset: "additive",
+      blendPreset: "premultiplied-alpha",
     });
   });
 });

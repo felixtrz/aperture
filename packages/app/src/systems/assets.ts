@@ -13,6 +13,7 @@ import {
   createTextureAsset,
   createStandardMaterialAsset,
   decodeImageUrlToTextureSource,
+  loadHdrFromUri,
   loadGlbFromUri,
   loadGltfFromUri,
   registerGltfSourceAssetsFromReports,
@@ -22,6 +23,7 @@ import {
   type DracoMeshDecoder,
   type AudioClipAsset,
   type GltfAnimationImportReport,
+  type HdrRgbeImage,
   type GltfImageBytesDecoder,
   type GltfEcsAuthoringCommandPlan,
   type GltfMeshSourceAssetRegistrationReport,
@@ -130,6 +132,7 @@ export type SystemTextureAssetHandle = SystemAssetHandle<"texture"> & {
   readonly colorSpace: TextureColorSpace;
   readonly semantic: TextureSemantic;
   readonly mimeType?: string;
+  readonly generateMipmaps: boolean;
 };
 
 export type SystemParticleEffectAssetHandle =
@@ -345,6 +348,14 @@ export function createSystemAssetAccess(options: {
         options.registry.markReady(
           registryHandle as TextureHandle,
           textureAsset,
+        );
+      } else if (useBuiltInLoader && handle.kind === "hdr") {
+        const environmentAsset = await loadSystemHdrAsset(
+          handle as SystemAssetHandle<"hdr">,
+        );
+        options.registry.markReady(
+          registryHandle as EnvironmentMapHandle,
+          environmentAsset,
         );
       } else if (useBuiltInLoader && handle.kind === "particle-effect") {
         const particleEffectAsset = loadSystemParticleEffectAsset(
@@ -613,6 +624,7 @@ function createSystemAssetHandle(
       colorSpace: texture.colorSpace ?? "srgb",
       semantic: texture.semantic ?? "base-color",
       ...(texture.mimeType === undefined ? {} : { mimeType: texture.mimeType }),
+      generateMipmaps: texture.generateMipmaps === true,
     } as SystemTextureAssetHandle;
   }
 
@@ -758,6 +770,27 @@ function loadEmitterParticleEffectAsset(
       ? {}
       : { limitVelocityOverLifetime: descriptor.limitVelocityOverLifetime }),
     ...(descriptor.noise === undefined ? {} : { noise: descriptor.noise }),
+    ...(descriptor.speedOverLifetime === undefined
+      ? {}
+      : { speedOverLifetime: descriptor.speedOverLifetime }),
+    ...(descriptor.colorBySpeed === undefined
+      ? {}
+      : { colorBySpeed: descriptor.colorBySpeed }),
+    ...(descriptor.sizeBySpeed === undefined
+      ? {}
+      : { sizeBySpeed: descriptor.sizeBySpeed }),
+    ...(descriptor.rotationBySpeed === undefined
+      ? {}
+      : { rotationBySpeed: descriptor.rotationBySpeed }),
+    ...(descriptor.orbitalVelocityOverLifetime === undefined
+      ? {}
+      : {
+          orbitalVelocityOverLifetime: descriptor.orbitalVelocityOverLifetime,
+        }),
+    ...(descriptor.trails === undefined ? {} : { trails: descriptor.trails }),
+    ...(descriptor.collision === undefined
+      ? {}
+      : { collision: descriptor.collision }),
     ...(descriptor.subEmitters === undefined
       ? {}
       : { subEmitters: descriptor.subEmitters }),
@@ -781,6 +814,21 @@ function createResolvedParticleRendererModule(
     ...(renderer?.blendMode === undefined
       ? {}
       : { blendMode: renderer.blendMode }),
+    ...(renderer?.renderStage === undefined
+      ? {}
+      : { renderStage: renderer.renderStage }),
+    ...(renderer?.toneMapped === undefined
+      ? {}
+      : { toneMapped: renderer.toneMapped }),
+    ...(renderer?.outputColorSpace === undefined
+      ? {}
+      : { outputColorSpace: renderer.outputColorSpace }),
+    ...(renderer?.stretchedSpeedFactor === undefined
+      ? {}
+      : { stretchedSpeedFactor: renderer.stretchedSpeedFactor }),
+    ...(renderer?.stretchedLengthFactor === undefined
+      ? {}
+      : { stretchedLengthFactor: renderer.stretchedLengthFactor }),
     ...(renderer?.sortMode === undefined
       ? {}
       : { sortMode: renderer.sortMode }),
@@ -845,9 +893,166 @@ async function loadSystemTextureAsset(
       format: handle.colorSpace === "srgb" ? "rgba8unorm-srgb" : "rgba8unorm",
       colorSpace: handle.colorSpace,
       semantic: handle.semantic,
+      mipLevelCount: handle.generateMipmaps
+        ? fullMipLevelCount(decoded.width, decoded.height)
+        : 1,
       sourceData: decoded.sourceData,
     }),
   );
+}
+
+function fullMipLevelCount(width: number, height: number): number {
+  return Math.floor(Math.log2(Math.max(1, width, height))) + 1;
+}
+
+async function loadSystemHdrAsset(handle: SystemAssetHandle<"hdr">): Promise<{
+  readonly kind: "environment-map";
+  readonly label: string;
+  readonly url: string;
+  readonly virtualPath: string;
+  readonly diffuseResourceKey: string;
+  readonly specularResourceKey: string;
+  readonly equirectSource: {
+    readonly label: string;
+    readonly resourceKey: string;
+    readonly width: number;
+    readonly height: number;
+    readonly data: Uint8Array;
+    readonly faceSize: number;
+    readonly format: "rgba8unorm";
+    readonly mipLevelCount: number;
+  };
+  readonly source: {
+    readonly kind: "hdr-rgbe";
+    readonly format: "rgba32float";
+    readonly colorSpace: "linear";
+    readonly gamma: number;
+    readonly exposure: number;
+    readonly byteLength: number;
+  };
+  readonly standardMaterialCount: 1;
+}> {
+  const sourceUrl = handle.url;
+  const resolvedUrl =
+    sourceUrl === undefined ? null : resolveAssetUrl(sourceUrl);
+
+  if (resolvedUrl === null) {
+    throw new ApertureSystemError(
+      "aperture.asset.invalidUrl",
+      `HDR asset '${handle.id}' URL '${handle.url}' could not be resolved.`,
+      "Use an absolute URL, a root-relative Vite public asset URL, or a data URL in aperture.config.ts.",
+      {
+        asset: handle.id,
+        url: handle.url,
+        kind: handle.kind,
+        preload: handle.preload,
+        phase: "load",
+        blocksStartup: handle.preload === "blocking",
+      },
+    );
+  }
+
+  const loaded = await loadHdrFromUri(resolvedUrl);
+
+  if (!loaded.ok || loaded.image === null) {
+    throw new ApertureSystemError(
+      "aperture.asset.hdrLoadFailed",
+      `HDR asset '${handle.id}' failed to load. ${loaded.diagnostics
+        .map((diagnostic) => diagnostic.message)
+        .join(" ")}`,
+      "Check that the HDR URL resolves to valid Radiance RGBE data.",
+      {
+        asset: handle.id,
+        url: handle.url,
+        resolvedUrl,
+        kind: handle.kind,
+        preload: handle.preload,
+        phase: "load",
+        blocksStartup: handle.preload === "blocking",
+      },
+    );
+  }
+
+  const image = loaded.image;
+  const label = handle.label ?? handle.id;
+  const faceSize = defaultEnvironmentFaceSize(image);
+
+  return {
+    kind: "environment-map",
+    label,
+    url: resolvedUrl,
+    virtualPath: sourceUrl ?? resolvedUrl,
+    diffuseResourceKey: `environment-map:${handle.id}:diffuse`,
+    specularResourceKey: `environment-map:${handle.id}:specular`,
+    equirectSource: {
+      label,
+      resourceKey: `environment-map:${handle.id}:equirect-cube`,
+      width: image.width,
+      height: image.height,
+      data: hdrImageToRgba8(image),
+      faceSize,
+      format: "rgba8unorm",
+      mipLevelCount: defaultEnvironmentMipLevelCount(faceSize),
+    },
+    source: {
+      kind: image.kind,
+      format: image.format,
+      colorSpace: image.colorSpace,
+      gamma: image.gamma,
+      exposure: image.exposure,
+      byteLength: image.rgbe.byteLength,
+    },
+    standardMaterialCount: 1,
+  };
+}
+
+function hdrImageToRgba8(image: HdrRgbeImage): Uint8Array {
+  const pixelCount = image.width * image.height;
+  const bytes = new Uint8Array(pixelCount * 4);
+
+  for (let index = 0; index < pixelCount; index += 1) {
+    const sourceOffset = index * 4;
+    bytes[sourceOffset] = floatChannelToByte(image.data[sourceOffset] ?? 0);
+    bytes[sourceOffset + 1] = floatChannelToByte(
+      image.data[sourceOffset + 1] ?? 0,
+    );
+    bytes[sourceOffset + 2] = floatChannelToByte(
+      image.data[sourceOffset + 2] ?? 0,
+    );
+    bytes[sourceOffset + 3] = 255;
+  }
+
+  return bytes;
+}
+
+function floatChannelToByte(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.min(255, Math.max(0, Math.round(value * 255)));
+}
+
+function defaultEnvironmentFaceSize(image: HdrRgbeImage): number {
+  return Math.max(
+    4,
+    Math.min(128, highestPowerOfTwoAtMost(Math.min(image.width, image.height))),
+  );
+}
+
+function defaultEnvironmentMipLevelCount(faceSize: number): number {
+  return Math.max(1, Math.min(4, Math.floor(Math.log2(faceSize)) + 1));
+}
+
+function highestPowerOfTwoAtMost(value: number): number {
+  let size = 1;
+  const finite = Number.isFinite(value) ? Math.max(1, Math.floor(value)) : 1;
+
+  while (size * 2 <= finite) {
+    size *= 2;
+  }
+
+  return size;
 }
 
 function validatedTexture(

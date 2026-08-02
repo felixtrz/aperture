@@ -1,5 +1,5 @@
 import {
-  Enabled,
+  isHierarchyEnabled,
   type AssetRegistry,
   type Entity,
   type MaterialHandle,
@@ -38,11 +38,7 @@ export function readMeshEntityExtractionState(input: {
   readonly cameraLayerMask: number;
   readonly diagnoseLayerMismatch?: boolean;
 }): MeshEntityExtractionState | null {
-  if (
-    input.entity.hasComponent(Enabled) &&
-    input.entity.getValue(Enabled, "value") === false
-  ) {
-    input.diagnostics.push(diagnostic("render.disabled", input.entity));
+  if (!isHierarchyEnabled(input.entity)) {
     return null;
   }
 

@@ -89,7 +89,7 @@ export const Enabled = defineComponent(
   {
     value: { type: EcsType.Boolean, default: true },
   },
-  "General ECS enabled flag for systems that should ignore disabled entities.",
+  "General ECS enabled flag for systems that should ignore disabled entities. Disabled state is inherited by transform descendants.",
 );
 
 export const Name = defineComponent(

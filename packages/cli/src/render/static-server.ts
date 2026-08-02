@@ -29,6 +29,11 @@ export interface ApertureStaticServer {
   close(): Promise<void>;
 }
 
+export interface ApertureStaticVirtualFile {
+  readonly body: string | Uint8Array;
+  readonly contentType: string;
+}
+
 /**
  * A minimal static file server for the render harness. It serves a single
  * generated `index.html` at "/" and maps each {@link StaticMount} prefix to a
@@ -42,6 +47,13 @@ export async function startApertureStaticServer(options: {
    * render session can vary the canvas dimensions between renders (#61).
    */
   readonly index: string | (() => string);
+  /**
+   * Optional in-memory files resolved per request. This keeps large dynamic
+   * render payloads off Playwright's CDP initialization channel.
+   */
+  readonly resolveVirtualFile?: (
+    pathname: string,
+  ) => ApertureStaticVirtualFile | null;
 }): Promise<ApertureStaticServer> {
   // Pre-resolve each mount's real root once for fast, escape-proof containment.
   const mounts = options.mounts.map((mount) => ({
@@ -55,7 +67,13 @@ export async function startApertureStaticServer(options: {
       : () => configuredIndex;
 
   const server: Server = createServer((req, res) => {
-    void serveRequest(mounts, index(), req.url ?? "/", res);
+    void serveRequest(
+      mounts,
+      index(),
+      options.resolveVirtualFile,
+      req.url ?? "/",
+      res,
+    );
   });
 
   await new Promise<void>((resolve, reject) => {
@@ -82,6 +100,9 @@ export async function startApertureStaticServer(options: {
 async function serveRequest(
   mounts: ReadonlyArray<{ prefix: string; realDir: string }>,
   index: string,
+  resolveVirtualFile:
+    | ((pathname: string) => ApertureStaticVirtualFile | null)
+    | undefined,
   requestUrl: string,
   res: ServerResponse,
 ): Promise<void> {
@@ -94,6 +115,15 @@ async function serveRequest(
       res.statusCode = 200;
       res.setHeader("Content-Type", "text/html; charset=utf-8");
       res.end(index);
+      return;
+    }
+
+    const virtualFile = resolveVirtualFile?.(pathname);
+
+    if (virtualFile !== undefined && virtualFile !== null) {
+      res.statusCode = 200;
+      res.setHeader("Content-Type", virtualFile.contentType);
+      res.end(virtualFile.body);
       return;
     }
 

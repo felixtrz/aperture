@@ -1,5 +1,6 @@
 import {
   identityMat4,
+  isHierarchyEnabled,
   type AssetRegistry,
   type EcsWorld,
   WorldTransform,
@@ -39,6 +40,10 @@ export function extractLights(
   const lights: LightPacket[] = [];
 
   for (const entity of sortedEntities(query.entities)) {
+    if (!isHierarchyEnabled(entity)) {
+      continue;
+    }
+
     const validation = validateLightInput(lightInput(entity));
 
     if (!validation.valid) {

@@ -164,6 +164,7 @@ export function validateParticleEmitterInput(
   const capacity = emitter.capacity ?? 0;
   const seed = emitter.seed ?? 1;
   const resetEpoch = emitter.resetEpoch ?? 0;
+  const lifecycleStartTime = emitter.lifecycleStartTime ?? -1;
   const timeScale = emitter.timeScale ?? 1;
   const boundsRadius = emitter.boundsRadius ?? 0;
 
@@ -193,6 +194,17 @@ export function validateParticleEmitterInput(
       code: "particle.invalidResetEpoch",
       field: "resetEpoch",
       message: "Particle emitter resetEpoch must be a non-negative integer.",
+    });
+  }
+  if (
+    !Number.isFinite(lifecycleStartTime) ||
+    (lifecycleStartTime < 0 && lifecycleStartTime !== -1)
+  ) {
+    diagnostics.push({
+      code: "particle.invalidLifecycleStartTime",
+      field: "lifecycleStartTime",
+      message:
+        "Particle emitter lifecycleStartTime must be a non-negative number when provided.",
     });
   }
   if (!Number.isFinite(timeScale) || timeScale < 0) {

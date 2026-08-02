@@ -53,6 +53,12 @@ export interface ApertureTextureAssetOptions extends ApertureAssetOptions {
   readonly colorSpace?: TextureColorSpace;
   readonly semantic?: TextureSemantic;
   readonly mimeType?: string;
+  /**
+   * Allocate the complete mip chain and generate it from the decoded image.
+   * Particle sprites and other heavily minified textures should enable this
+   * to avoid unstable base-level sampling.
+   */
+  readonly generateMipmaps?: boolean;
 }
 
 export interface ApertureParticleEmitterEffectAssetOptions
@@ -109,6 +115,7 @@ export interface ApertureTextureAssetDescriptor extends ApertureConfigAssetDescr
   readonly colorSpace?: TextureColorSpace;
   readonly semantic?: TextureSemantic;
   readonly mimeType?: string;
+  readonly generateMipmaps?: boolean;
 }
 export type ApertureHdrAssetDescriptor = ApertureConfigAssetDescriptor<"hdr">;
 export type ApertureShaderAssetDescriptor =
@@ -533,6 +540,9 @@ export const asset: ApertureConfigAssetHelpers = Object.freeze({
         : { colorSpace: options.colorSpace }),
       ...(options.semantic === undefined ? {} : { semantic: options.semantic }),
       ...(options.mimeType === undefined ? {} : { mimeType: options.mimeType }),
+      ...(options.generateMipmaps === undefined
+        ? {}
+        : { generateMipmaps: options.generateMipmaps }),
     });
   },
   hdr(url: string, options: ApertureAssetOptions = {}) {
@@ -612,6 +622,27 @@ export const asset: ApertureConfigAssetHelpers = Object.freeze({
         ? {}
         : { limitVelocityOverLifetime: options.limitVelocityOverLifetime }),
       ...(options.noise === undefined ? {} : { noise: options.noise }),
+      ...(options.speedOverLifetime === undefined
+        ? {}
+        : { speedOverLifetime: options.speedOverLifetime }),
+      ...(options.colorBySpeed === undefined
+        ? {}
+        : { colorBySpeed: options.colorBySpeed }),
+      ...(options.sizeBySpeed === undefined
+        ? {}
+        : { sizeBySpeed: options.sizeBySpeed }),
+      ...(options.rotationBySpeed === undefined
+        ? {}
+        : { rotationBySpeed: options.rotationBySpeed }),
+      ...(options.orbitalVelocityOverLifetime === undefined
+        ? {}
+        : {
+            orbitalVelocityOverLifetime: options.orbitalVelocityOverLifetime,
+          }),
+      ...(options.trails === undefined ? {} : { trails: options.trails }),
+      ...(options.collision === undefined
+        ? {}
+        : { collision: options.collision }),
       ...(options.subEmitters === undefined
         ? {}
         : { subEmitters: options.subEmitters }),

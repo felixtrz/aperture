@@ -16,6 +16,7 @@ import {
   type LineListMeshOptions,
   type LineListMeshSubmeshOptions,
   type LineListPosition,
+  type MaterialTextureBinding,
   type MeshAsset,
   type SourceMaterialAsset,
 } from "@aperture-engine/render";
@@ -24,6 +25,7 @@ import {
   createMeshHandle,
   vec4,
   type AssetHandle,
+  type TextureHandle,
   type AssetRegistry,
   type MaterialHandle,
   type MeshHandle,
@@ -32,6 +34,7 @@ import type {
   PrimitiveMeshDescriptor,
   SpawnMeshOptions,
   MaterialDescriptor,
+  MaterialTextureInput,
 } from "./types.js";
 import { ApertureSystemError } from "../errors.js";
 
@@ -237,7 +240,11 @@ function materialDescriptorToAsset(
   }
 
   if (descriptorValue.kind === "unlit") {
+    const unlitTexture = resolveMaterialTexture(
+      descriptorValue.options.baseColorTexture,
+    );
     return createUnlitMaterialAsset({
+      ...(unlitTexture === undefined ? {} : { baseColorTexture: unlitTexture }),
       ...(descriptorValue.options.label === undefined
         ? {}
         : { label: descriptorValue.options.label }),
@@ -257,7 +264,13 @@ function materialDescriptorToAsset(
     });
   }
 
+  const standardTexture = resolveMaterialTexture(
+    descriptorValue.options.baseColorTexture,
+  );
   return createStandardMaterialAsset({
+    ...(standardTexture === undefined
+      ? {}
+      : { baseColorTexture: standardTexture }),
     ...(descriptorValue.options.label === undefined
       ? {}
       : { label: descriptorValue.options.label }),
@@ -607,4 +620,33 @@ function invalidLineListMesh(message: string): never {
     message,
     "Use mesh.lineList({ positions: [[x, y, z], [x, y, z], ...] }) with finite coordinates and paired positions or paired indices.",
   );
+}
+
+/**
+ * Resolve an app-level texture binding to the render-layer shape.
+ *
+ * Accepts either a raw `TextureHandle` or the `SystemTextureAssetHandle` from
+ * `this.assets.texture(id)`, mirroring how particle effects accept both.
+ */
+function resolveMaterialTexture(
+  input: MaterialTextureInput | undefined,
+): MaterialTextureBinding | undefined {
+  if (input === undefined) {
+    return undefined;
+  }
+
+  const source = input.texture as
+    | TextureHandle
+    | { readonly renderHandle: TextureHandle };
+  const texture =
+    typeof source === "object" && source !== null && "renderHandle" in source
+      ? source.renderHandle
+      : (source as TextureHandle);
+
+  return {
+    texture,
+    sampler: input.sampler ?? null,
+    ...(input.texCoord === undefined ? {} : { texCoord: input.texCoord }),
+    ...(input.transform === undefined ? {} : { transform: input.transform }),
+  };
 }

@@ -2892,8 +2892,21 @@ describe("WebGPU app facade", () => {
       preparedMaterialBindGroupsReused: 2,
       bindGroupsCreated: 4,
       bindGroupsReused: 2,
-      queuedBindGroupsCreated: 2,
-      queuedBindGroupsReused: 2,
+      // The queued shared bind-group cache lives in
+      // cache.queuedBuiltInSharedFrame.bindGroups (queued-frame-resources.ts
+      // passes it as sharedBindGroupCache), so it survives frame-resource
+      // cache misses: it is only reset when the shared view-uniform or
+      // world-transform buffer identity changes
+      // (queued-frame-shared-resources.ts). Frame 2 needs 2 draws x 16
+      // floats x 4 bytes = 128 bytes of transforms, within the 256-byte
+      // initial capacity, so both shared buffers (and their resource keys)
+      // are retained. Both items rebuild their frame resources (the packed
+      // transform byte length changed 64 -> 128) and each fetches the
+      // group-0 (view) and group-1 (transforms) bind groups from the warm
+      // cache: 2 items x 2 shared groups = 4 reuses, 0 creations, and the
+      // cache still holds exactly those 2 entries.
+      queuedBindGroupsCreated: 0,
+      queuedBindGroupsReused: 2 * 2,
       queuedBindGroupCacheSize: 2,
       dynamicBufferWrites: 0,
     });
@@ -3795,7 +3808,15 @@ describe("WebGPU app facade", () => {
       textureViews: firstResourceEvents.textureViews,
       samplers: firstResourceEvents.samplers,
       buffers: firstResourceEvents.buffers + 4,
-      bindGroups: firstResourceEvents.bindGroups + 2,
+      // No new device.createBindGroup calls in the second frame: the group-2
+      // material bind group comes from the prepared-material store, and the
+      // shared group-0/group-1 bind groups are cache hits in the persistent
+      // queued cache (cache.queuedBuiltInSharedFrame.bindGroups, passed as
+      // sharedBindGroupCache by queued-frame-resources.ts), which survives
+      // the frame-resource cache miss because the shared view-uniform and
+      // world-transform buffer identities are unchanged
+      // (queued-frame-shared-resources.ts resets it only on buffer change).
+      bindGroups: firstResourceEvents.bindGroups,
     });
     expect(
       webGpuAppRenderReportToJsonValue(secondFrame).resourceReuse,

@@ -89,7 +89,10 @@ import {
 } from "./user-pass.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 
-const SOFT_PARTICLE_PIPELINE_KEY_SUFFIX = ":soft-particles";
+const PARTICLE_OVERLAY_PIPELINE_KEY_SUFFIXES = [
+  ":soft-particles",
+  ":particle-overlay",
+] as const;
 
 export interface WebGpuAppFrameBoundaryAssemblyResult {
   readonly valid: boolean;
@@ -315,13 +318,15 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     const renderBundleCommandsForView =
       options.renderBundleCommands === undefined
         ? commandsForView
-        : writeCommandsForView(
-            options.renderBundleCommands,
-            options.snapshot,
-            target.view,
-            renderBundleViewCommands,
-            background.commands,
-          );
+        : options.renderBundleCommands.length === 0
+          ? []
+          : writeCommandsForView(
+              options.renderBundleCommands,
+              options.snapshot,
+              target.view,
+              renderBundleViewCommands,
+              background.commands,
+            );
     const occlusionCandidateRenderIds =
       collectOcclusionQueryRenderIds(commandsForView);
     const occlusionCullingPlan = planGpuOcclusionFeedbackCulling({
@@ -460,7 +465,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     const overlayCommands =
       target.source === "swapchain" ? (options.overlayCommands ?? []) : [];
     const overlayNeedsReadOnlyDepth =
-      containsSoftParticleOverlayCommands(overlayCommands);
+      containsDepthTestedParticleOverlayCommands(overlayCommands);
     const encodeOverlaySeparately =
       overlayNeedsReadOnlyDepth &&
       overlayCommands.length > 0 &&
@@ -1470,13 +1475,15 @@ function snapshotForwardGraphCommands(
   return target;
 }
 
-function containsSoftParticleOverlayCommands(
+function containsDepthTestedParticleOverlayCommands(
   commands: readonly RenderPassCommand[],
 ): boolean {
   return commands.some(
     (command) =>
       command.kind === "setPipeline" &&
-      command.pipelineKey.endsWith(SOFT_PARTICLE_PIPELINE_KEY_SUFFIX),
+      PARTICLE_OVERLAY_PIPELINE_KEY_SUFFIXES.some((suffix) =>
+        command.pipelineKey.endsWith(suffix),
+      ),
   );
 }
 

@@ -26,6 +26,7 @@ import {
   createGeneratedWorkerSnapshotTransport,
   createGeneratedWorkerSummaryCadence,
   publishGeneratedWorkerSnapshot,
+  stepGeneratedWorkerSimulation,
   type GeneratedWorkerSnapshotPublishTiming,
   type GeneratedWorkerSnapshotPublishReport,
 } from "./snapshot.js";
@@ -99,8 +100,13 @@ export async function runGeneratedWorkerLoop(options: {
     const pendingDevtoolsInput: ApertureGeneratedInputEvent[] = [];
     let previousPublishTiming: GeneratedWorkerSnapshotPublishTiming | null =
       null;
+    const workerTickRateHz = readWorkerTickRateHz(options.start);
     const tickScheduler = createGeneratedWorkerTickScheduler({
-      tickRateHz: readWorkerTickRateHz(options.start),
+      tickRateHz: workerTickRateHz,
+    });
+    const snapshotCadence = createGeneratedWorkerSnapshotCadence({
+      tickRateHz: workerTickRateHz,
+      snapshotRateHz: readWorkerSnapshotRateHz(options.start, workerTickRateHz),
     });
 
     const publishSnapshot = (
@@ -126,6 +132,20 @@ export async function runGeneratedWorkerLoop(options: {
       frame = report.nextFrame;
       previousPublishTiming = report.timing;
 
+      return report;
+    };
+    const stepSimulation = (delta: number, time: number) => {
+      const immediateInputEvents = pendingDevtoolsInput.splice(0);
+      const report = stepGeneratedWorkerSimulation({
+        app,
+        config: options.config,
+        pendingInput: options.pendingInput,
+        immediateInputEvents,
+        delta,
+        time,
+        frame,
+      });
+      frame = report.nextFrame;
       return report;
     };
     const devtools = createGeneratedDevtoolsBridge({
@@ -212,7 +232,11 @@ export async function runGeneratedWorkerLoop(options: {
         const delta = Math.max(0, (now - previousTime) / 1000);
         previousTime = now;
 
-        publishSnapshot(delta, now / 1000);
+        if (snapshotCadence.shouldPublish(frame)) {
+          publishSnapshot(delta, now / 1000);
+        } else {
+          stepSimulation(delta, now / 1000);
+        }
       } catch (error: unknown) {
         // A steady-state tick failure is otherwise uncaught (the reschedule
         // below never runs and the scheduler callback swallows it), leaving the
@@ -261,6 +285,38 @@ export interface GeneratedWorkerTickScheduler {
 
 export interface GeneratedWorkerTickSchedulerOptions {
   readonly tickRateHz?: number;
+}
+
+export interface GeneratedWorkerSnapshotCadence {
+  readonly tickRateHz: number;
+  readonly snapshotRateHz: number;
+  shouldPublish(frame: number): boolean;
+}
+
+export function createGeneratedWorkerSnapshotCadence(options: {
+  readonly tickRateHz: number;
+  readonly snapshotRateHz?: number;
+}): GeneratedWorkerSnapshotCadence {
+  const tickRateHz = normalizeGeneratedWorkerTickRateHz(options.tickRateHz);
+  const snapshotRateHz = normalizeGeneratedWorkerSnapshotRateHz(
+    options.snapshotRateHz,
+    tickRateHz,
+  );
+
+  return {
+    tickRateHz,
+    snapshotRateHz,
+    shouldPublish(frame) {
+      const normalizedFrame = Math.max(0, Math.trunc(frame));
+      if (normalizedFrame === 0 || snapshotRateHz >= tickRateHz) {
+        return true;
+      }
+      return (
+        Math.floor((normalizedFrame * snapshotRateHz) / tickRateHz) >
+        Math.floor(((normalizedFrame - 1) * snapshotRateHz) / tickRateHz)
+      );
+    },
+  };
 }
 
 export const DEFAULT_GENERATED_WORKER_TICK_RATE_HZ = 240;
@@ -378,6 +434,16 @@ function readWorkerTickRateHz(start: SimulationWorkerStartOptions): number {
   return normalizeGeneratedWorkerTickRateHz(start["workerTickRateHz"]);
 }
 
+function readWorkerSnapshotRateHz(
+  start: SimulationWorkerStartOptions,
+  tickRateHz: number,
+): number {
+  return normalizeGeneratedWorkerSnapshotRateHz(
+    start["workerSnapshotRateHz"],
+    tickRateHz,
+  );
+}
+
 function readWorkerInitialPaused(start: SimulationWorkerStartOptions): boolean {
   const value = start["simulationPaused"];
 
@@ -411,6 +477,16 @@ function normalizeGeneratedWorkerTickRateHz(value: unknown): number {
     MAX_GENERATED_WORKER_TICK_RATE_HZ,
     Math.max(MIN_GENERATED_WORKER_TICK_RATE_HZ, Math.floor(value)),
   );
+}
+
+function normalizeGeneratedWorkerSnapshotRateHz(
+  value: unknown,
+  tickRateHz: number,
+): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return tickRateHz;
+  }
+  return Math.min(tickRateHz, Math.max(1, Math.floor(value)));
 }
 
 function nowMilliseconds(): number {

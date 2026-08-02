@@ -1,7 +1,7 @@
 import {
   assetHandleKey,
   composeTrsMatrix,
-  Enabled,
+  isHierarchyEnabled,
   multiplyMat4,
   transformPoint,
   type Aabb,
@@ -45,6 +45,7 @@ import {
   createRenderSortKey,
   createStableRenderId,
   type BoundsPacket,
+  type ParticleBurstPacket,
   type ParticleEmitterPacket,
   type RenderDiagnostic,
   type RenderEntityRef,
@@ -54,7 +55,10 @@ import {
   particleBurstPositionRange,
   particleBurstVelocityRange,
   type ActiveParticleBurst,
+  type ParticleBurstRequest,
 } from "./particle-burst-queue.js";
+
+const PARTICLE_FIXED_RANDOM_SEED = -0x8000_0000;
 
 export function extractParticleEmitters(
   world: EcsWorld,
@@ -73,11 +77,7 @@ export function extractParticleEmitters(
   const packets: ParticleEmitterPacket[] = [];
 
   for (const entity of sortedEntities(query.entities)) {
-    if (
-      entity.hasComponent(Enabled) &&
-      entity.getValue(Enabled, "value") === false
-    ) {
-      diagnostics.push(diagnostic("render.disabled", entity));
+    if (!isHierarchyEnabled(entity)) {
       continue;
     }
     if (
@@ -164,9 +164,27 @@ export function extractParticleEmitters(
       0,
       finiteInteger(entity.getValue(ParticleEmitter, "resetEpoch"), 0),
     );
+    const authoredLifecycleStartTime = finiteNumber(
+      entity.getValue(ParticleEmitter, "lifecycleStartTime"),
+      -1,
+    );
+    const lifecycleStartTime =
+      authoredLifecycleStartTime >= 0 ? authoredLifecycleStartTime : undefined;
+    const authoredPlaybackTime = finiteNumber(
+      entity.getValue(ParticleEmitter, "playbackTime"),
+      -1,
+    );
+    const playbackTime =
+      authoredPlaybackTime >= 0 ? authoredPlaybackTime : undefined;
     const timeScale = Math.max(
       0,
       finiteNumber(entity.getValue(ParticleEmitter, "timeScale"), 1),
+    );
+    const burst = readAuthoredParticleBurst(
+      entity,
+      parentEmitterId,
+      resetEpoch,
+      lifecycleStartTime,
     );
     const simulationSpace =
       entity.getValue(ParticleEmitter, "simulationSpace") ===
@@ -175,7 +193,7 @@ export function extractParticleEmitters(
         : "world";
     const renderOrder = entity.hasComponent(RenderOrder)
       ? (entity.getValue(RenderOrder, "value") ?? 0)
-      : 0;
+      : null;
 
     const context: LeafEmitterExtractionContext = {
       assets,
@@ -194,6 +212,9 @@ export function extractParticleEmitters(
         parentEmitterId,
         seed,
         resetEpoch,
+        ...(lifecycleStartTime === undefined ? {} : { lifecycleStartTime }),
+        ...(playbackTime === undefined ? {} : { playbackTime }),
+        ...(burst === undefined ? {} : { burst }),
         timeScale,
         simulationSpace,
         layerMask,
@@ -221,6 +242,9 @@ export function extractParticleEmitters(
       capacity,
       seed,
       resetEpoch,
+      ...(lifecycleStartTime === undefined ? {} : { lifecycleStartTime }),
+      ...(playbackTime === undefined ? {} : { playbackTime }),
+      ...(burst === undefined ? {} : { burst }),
       timeScale,
       delay: 0,
       duration: null,
@@ -269,15 +293,20 @@ interface LeafEmitterRequest {
   readonly effectVersion: number;
   readonly worldMatrix: Mat4;
   readonly emitterId: number;
+  /** Transparent-sort tie breaker; state identity remains `emitterId`. */
+  readonly sortStableId?: number;
   readonly capacity: number;
   readonly seed: number;
   readonly resetEpoch: number;
+  readonly lifecycleStartTime?: number;
+  readonly playbackTime?: number;
+  readonly burst?: ParticleBurstPacket;
   readonly timeScale: number;
   readonly delay: number;
   readonly duration: number | null;
   readonly simulationSpace: "local" | "world";
   readonly layerMask: number;
-  readonly renderOrder: number;
+  readonly renderOrder: number | null;
   readonly boundsCenter: readonly [number, number, number];
   readonly authoredRadius: number;
 }
@@ -289,10 +318,13 @@ interface CompositeEmitterRequest {
   readonly parentEmitterId: number;
   readonly seed: number;
   readonly resetEpoch: number;
+  readonly lifecycleStartTime?: number;
+  readonly playbackTime?: number;
+  readonly burst?: ParticleBurstPacket;
   readonly timeScale: number;
   readonly simulationSpace: "local" | "world";
   readonly layerMask: number;
-  readonly renderOrder: number;
+  readonly renderOrder: number | null;
   readonly boundsCenter: readonly [number, number, number];
   readonly authoredRadius: number;
 }
@@ -308,6 +340,14 @@ function appendLeafEmitterPacket(
   request: LeafEmitterRequest,
 ): void {
   const effectKey = assetHandleKey(request.effect);
+  const burstBoundsCenter =
+    request.burst === undefined
+      ? request.boundsCenter
+      : ([
+          request.boundsCenter[0] + request.burst.position[0],
+          request.boundsCenter[1] + request.burst.position[1],
+          request.boundsCenter[2] + request.burst.position[2],
+        ] as const);
   const radius =
     request.authoredRadius > 0
       ? request.authoredRadius
@@ -321,7 +361,7 @@ function appendLeafEmitterPacket(
     context.bounds.length,
     request.entity,
     request.worldMatrix,
-    request.boundsCenter,
+    burstBoundsCenter,
     radius,
   );
   const boundsIndex = context.bounds.length;
@@ -342,12 +382,12 @@ function appendLeafEmitterPacket(
     queue: "transparent",
     viewId: sortViewId,
     layer: request.layerMask,
-    order: request.renderOrder,
+    order: request.renderOrder ?? request.asset.renderer.renderOrder,
     depth: sortDepth,
     pipelineKey: "gpu-particles",
     materialKey: effectKey,
     meshKey: "particle-quad",
-    stableId: request.emitterId,
+    stableId: request.sortStableId ?? request.emitterId,
   });
 
   context.bounds.push(boundsPacket);
@@ -356,9 +396,15 @@ function appendLeafEmitterPacket(
     entity: entityRef(request.entity),
     effect: request.effect,
     effectVersion: request.effectVersion,
-    capacity: request.capacity,
+    capacity: request.burst?.count ?? request.capacity,
     seed: request.seed,
     resetEpoch: request.resetEpoch,
+    ...(request.lifecycleStartTime === undefined
+      ? {}
+      : { lifecycleStartTime: request.lifecycleStartTime }),
+    ...(request.playbackTime === undefined
+      ? {}
+      : { playbackTime: request.playbackTime }),
     timeScale: request.timeScale,
     ...(request.delay !== 0 ? { delay: request.delay } : {}),
     ...(request.duration !== null ? { duration: request.duration } : {}),
@@ -367,6 +413,12 @@ function appendLeafEmitterPacket(
     boundsIndex,
     layerMask: request.layerMask,
     sortKey,
+    ...(request.burst === undefined
+      ? {}
+      : {
+          mode: "burst" as const,
+          burst: request.burst,
+        }),
   });
 }
 
@@ -456,9 +508,27 @@ function expandCompositeParticleEmitter(
       effectVersion: childEntry.version,
       worldMatrix: childWorldMatrix,
       emitterId: composeParticleChildEmitterId(request.parentEmitterId, index),
+      sortStableId: composeParticleChildSortId(request.parentEmitterId, index),
       capacity: childEntry.asset.runtime.capacity,
       seed: composeParticleChildSeed(request.seed, index),
       resetEpoch: request.resetEpoch,
+      ...(request.lifecycleStartTime === undefined
+        ? {}
+        : { lifecycleStartTime: request.lifecycleStartTime }),
+      ...(request.playbackTime === undefined
+        ? {}
+        : { playbackTime: request.playbackTime * child.timeScale }),
+      ...(request.burst === undefined
+        ? {}
+        : {
+            burst: {
+              ...request.burst,
+              burstId: composeParticleChildEmitterId(
+                request.parentEmitterId,
+                index,
+              ),
+            },
+          }),
       timeScale: request.timeScale * child.timeScale,
       delay: child.delay,
       duration: child.duration,
@@ -487,12 +557,106 @@ function composeParticleChildEmitterId(
   return (hash ^ (hash >>> 16)) >>> 0;
 }
 
+/**
+ * Keeps equal-depth/equal-order composite children in authored list order.
+ *
+ * GPU state still uses the well-distributed child emitter id above. Sorting
+ * only needs uniqueness among the simultaneously live children of an entity,
+ * so reserving the low byte for the child index is deterministic and mirrors
+ * Three.js's stable transparent-object insertion-order tie break.
+ */
+function composeParticleChildSortId(
+  parentEmitterId: number,
+  childIndex: number,
+): number {
+  return (
+    Math.imul(parentEmitterId & 0x00ff_ffff, 256) + Math.max(0, childIndex)
+  );
+}
+
 /** Derives a deterministic, distinct RNG seed for a composite child emitter. */
 function composeParticleChildSeed(
   parentSeed: number,
   childIndex: number,
 ): number {
+  // The minimum int32 seed is reserved for deterministic visual fixtures.
+  // Preserve it through a composite instead of hashing each child back into
+  // the normal random stream.
+  if ((parentSeed | 0) === PARTICLE_FIXED_RANDOM_SEED) {
+    return PARTICLE_FIXED_RANDOM_SEED;
+  }
   return (parentSeed + Math.imul(childIndex + 1, 0x9e3779b1)) | 0;
+}
+
+/**
+ * Reads an explicit ECS-owned one-shot from the emitter authoring component.
+ *
+ * A positive count switches the packet to the same analytic burst renderer
+ * used by the convenience queue, but identity, transform, clock, and reset
+ * intent remain on the ECS entity.
+ */
+function readAuthoredParticleBurst(
+  entity: Entity,
+  emitterId: number,
+  resetEpoch: number,
+  lifecycleStartTime: number | undefined,
+): ParticleBurstPacket | undefined {
+  const count = Math.max(
+    0,
+    finiteInteger(entity.getValue(ParticleEmitter, "burstCount"), 0),
+  );
+  if (count <= 0) {
+    return undefined;
+  }
+
+  const tuple3 = (
+    field:
+      | "burstPosition"
+      | "burstPositionJitterMin"
+      | "burstPositionJitterMax"
+      | "burstVelocityMin"
+      | "burstVelocityMax",
+  ): readonly [number, number, number] => {
+    const value = entity.getVectorView(ParticleEmitter, field);
+    return [
+      finiteNumber(value[0], 0),
+      finiteNumber(value[1], 0),
+      finiteNumber(value[2], 0),
+    ];
+  };
+  const color = entity.getVectorView(ParticleEmitter, "burstColor");
+
+  return {
+    burstId: emitterId,
+    startFrame: resetEpoch,
+    ...(lifecycleStartTime === undefined
+      ? {}
+      : { startTime: lifecycleStartTime }),
+    count,
+    position: tuple3("burstPosition"),
+    positionJitterMin: tuple3("burstPositionJitterMin"),
+    positionJitterMax: tuple3("burstPositionJitterMax"),
+    velocityMin: tuple3("burstVelocityMin"),
+    velocityMax: tuple3("burstVelocityMax"),
+    sizeScale: Math.max(
+      0,
+      finiteNumber(entity.getValue(ParticleEmitter, "burstSizeScale"), 1),
+    ),
+    speedScale: Math.max(
+      0,
+      finiteNumber(entity.getValue(ParticleEmitter, "burstSpeedScale"), 1),
+    ),
+    lifetimeScale: Math.max(
+      0,
+      finiteNumber(entity.getValue(ParticleEmitter, "burstLifetimeScale"), 1),
+    ),
+    colorTint: [
+      finiteNumber(color[0], 1),
+      finiteNumber(color[1], 1),
+      finiteNumber(color[2], 1),
+      finiteNumber(color[3], 1),
+    ],
+  };
 }
 
 function extractParticleBursts(
@@ -545,12 +709,35 @@ function extractParticleBursts(
     }
 
     const position = [
-      finiteNumber(burst.request.position[0], 0),
-      finiteNumber(burst.request.position[1], 0),
-      finiteNumber(burst.request.position[2], 0),
+      finiteNumber(burst.request.position[0], 0) + burst.origin[0],
+      finiteNumber(burst.request.position[1], 0) + burst.origin[1],
+      finiteNumber(burst.request.position[2], 0) + burst.origin[2],
     ] as const;
-    const positionRange = particleBurstPositionRange(burst.request);
+    const requestPositionRange = particleBurstPositionRange(burst.request);
+    const positionRange = {
+      min: [
+        requestPositionRange.min[0] + burst.origin[0],
+        requestPositionRange.min[1] + burst.origin[1],
+        requestPositionRange.min[2] + burst.origin[2],
+      ] as const,
+      max: [
+        requestPositionRange.max[0] + burst.origin[0],
+        requestPositionRange.max[1] + burst.origin[1],
+        requestPositionRange.max[2] + burst.origin[2],
+      ] as const,
+    };
     const velocityRange = particleBurstVelocityRange(burst.request);
+    const rotation = particleBurstRotation(burst.request);
+    const boundsPositionRange = rotateParticleBurstRange(
+      positionRange,
+      rotation,
+      position,
+    );
+    const boundsVelocityRange = rotateParticleBurstRange(
+      velocityRange,
+      rotation,
+      [0, 0, 0],
+    );
     const authoredRadius = finiteNumber(burst.request.boundsRadius, 0);
     const boundsPacket =
       authoredRadius > 0
@@ -562,8 +749,11 @@ function extractParticleBursts(
         : createAutomaticParticleBurstBoundsPacket({
             boundsId: input.bounds.length,
             position,
-            positionRange,
-            velocityRange,
+            positionRange: boundsPositionRange,
+            velocityRange: boundsVelocityRange,
+            sizeScale: particleBurstSizeScale(burst.request),
+            speedScale: particleBurstSpeedScale(burst.request),
+            lifetimeScale: particleBurstLifetimeScale(burst.request),
             ...(burst.request.boundsCenter === undefined
               ? {}
               : { centerOverride: burst.request.boundsCenter }),
@@ -602,6 +792,7 @@ function extractParticleBursts(
       queue: "transparent",
       viewId: sortViewId,
       layer: layerMask,
+      order: effect.renderer.renderOrder,
       depth: sortDepth,
       pipelineKey: "gpu-particles",
       materialKey: effectKey,
@@ -617,7 +808,15 @@ function extractParticleBursts(
       capacity: Math.max(1, Math.trunc(burst.request.count)),
       seed: finiteInteger(burst.request.seed, burst.seq),
       resetEpoch: burst.startFrame,
-      timeScale: Math.max(0, finiteNumber(burst.request.timeScale, 1)),
+      // The mutable burst queue is the authoritative playback clock. Publish
+      // its accumulated age explicitly so a renderer keeps the exact particle
+      // state when the shared clock freezes. Deriving from renderer wall time
+      // would continue aging world-space batched bursts after timeScale hit 0.
+      playbackTime: burst.ageSeconds,
+      // ageSeconds already includes both the shared clock and request rate.
+      // Keep the packet rate neutral so a legacy renderer cannot double-scale
+      // the authored clock.
+      timeScale: 1,
       simulationSpace: "world",
       worldTransformOffset,
       boundsIndex,
@@ -627,7 +826,8 @@ function extractParticleBursts(
       burst: {
         burstId: burst.seq,
         startFrame: burst.startFrame,
-        startTime: burst.startTime,
+        // Retain the rebased origin for backwards-compatible renderers.
+        startTime: input.time - burst.ageSeconds,
         count: Math.max(1, Math.trunc(burst.request.count)),
         position,
         positionJitterMin: [
@@ -642,9 +842,141 @@ function extractParticleBursts(
         ],
         velocityMin: velocityRange.min,
         velocityMax: velocityRange.max,
+        sizeScale: particleBurstSizeScale(burst.request),
+        speedScale: particleBurstSpeedScale(burst.request),
+        lifetimeScale: particleBurstLifetimeScale(burst.request),
+        colorTint: particleBurstColorTint(burst.request),
+        ...(isIdentityParticleRotation(rotation) ? {} : { rotation }),
       },
     });
   }
+}
+
+/** Authored particle size is the identity when no per-burst scale is supplied. */
+function particleBurstSizeScale(request: ParticleBurstRequest): number {
+  return Math.max(0, finiteNumber(request.sizeScale, 1));
+}
+
+/** Authored launch speed is the identity when no per-burst scale is supplied. */
+function particleBurstSpeedScale(request: ParticleBurstRequest): number {
+  return Math.max(0, finiteNumber(request.speedScale, 1));
+}
+
+/** Authored lifetime is the identity when no per-burst scale is supplied. */
+function particleBurstLifetimeScale(request: ParticleBurstRequest): number {
+  return Math.max(0, finiteNumber(request.lifetimeScale, 1));
+}
+
+/**
+ * Per-burst RGBA tint. Defaults to opaque white, which is the identity for the
+ * multiply the GPU applies — an untinted burst renders exactly as authored.
+ */
+function particleBurstColorTint(
+  request: ParticleBurstRequest,
+): readonly [number, number, number, number] {
+  const color = request.color;
+  if (color === undefined) {
+    return [1, 1, 1, 1];
+  }
+
+  return [
+    finiteNumber(color[0], 1),
+    finiteNumber(color[1], 1),
+    finiteNumber(color[2], 1),
+    finiteNumber(color[3], 1),
+  ];
+}
+
+function particleBurstRotation(
+  request: ParticleBurstRequest,
+): readonly [number, number, number, number] {
+  const rotation = request.rotation;
+  if (rotation === undefined) {
+    return [0, 0, 0, 1];
+  }
+  return [
+    finiteNumber(rotation[0], 0),
+    finiteNumber(rotation[1], 0),
+    finiteNumber(rotation[2], 0),
+    finiteNumber(rotation[3], 1),
+  ];
+}
+
+function isIdentityParticleRotation(
+  rotation: readonly [number, number, number, number],
+): boolean {
+  return (
+    rotation[0] === 0 &&
+    rotation[1] === 0 &&
+    rotation[2] === 0 &&
+    rotation[3] === 1
+  );
+}
+
+/**
+ * Rotates all eight corners of an axis-aligned range and encloses the result.
+ *
+ * Burst birth jitter and explicit velocity are rotated by the renderer. Bounds
+ * must use that same transform or a directional effect can be culled against
+ * the unrotated axis and flicker at a frustum edge.
+ */
+function rotateParticleBurstRange(
+  range: ReturnType<typeof particleBurstPositionRange>,
+  rotation: readonly [number, number, number, number],
+  pivot: readonly [number, number, number],
+): ReturnType<typeof particleBurstPositionRange> {
+  if (isIdentityParticleRotation(rotation)) {
+    return range;
+  }
+
+  const min: [number, number, number] = [
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+  ];
+  const max: [number, number, number] = [
+    Number.NEGATIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+  ];
+
+  for (const x of [range.min[0], range.max[0]]) {
+    for (const y of [range.min[1], range.max[1]]) {
+      for (const z of [range.min[2], range.max[2]]) {
+        const rotated = rotateParticleBurstVector(
+          [x - pivot[0], y - pivot[1], z - pivot[2]],
+          rotation,
+        );
+        const rx = rotated[0] + pivot[0];
+        const ry = rotated[1] + pivot[1];
+        const rz = rotated[2] + pivot[2];
+        min[0] = Math.min(min[0], rx);
+        min[1] = Math.min(min[1], ry);
+        min[2] = Math.min(min[2], rz);
+        max[0] = Math.max(max[0], rx);
+        max[1] = Math.max(max[1], ry);
+        max[2] = Math.max(max[2], rz);
+      }
+    }
+  }
+
+  return { min, max };
+}
+
+function rotateParticleBurstVector(
+  vector: readonly [number, number, number],
+  rotation: readonly [number, number, number, number],
+): readonly [number, number, number] {
+  const [x, y, z] = vector;
+  const [qx, qy, qz, qw] = rotation;
+  const tx = 2 * (qy * z - qz * y);
+  const ty = 2 * (qz * x - qx * z);
+  const tz = 2 * (qx * y - qy * x);
+  return [
+    x + qw * tx + (qy * tz - qz * ty),
+    y + qw * ty + (qz * tx - qx * tz),
+    z + qw * tz + (qx * ty - qy * tx),
+  ];
 }
 
 function createParticleBurstBoundsPacket(
@@ -673,44 +1005,54 @@ function createAutomaticParticleBurstBoundsPacket(input: {
   readonly position: readonly [number, number, number];
   readonly positionRange: ReturnType<typeof particleBurstPositionRange>;
   readonly velocityRange: ReturnType<typeof particleBurstVelocityRange>;
+  readonly sizeScale: number;
+  readonly speedScale: number;
+  readonly lifetimeScale: number;
   readonly centerOverride?: Vec3Like;
   readonly effect: ParticleEmitterEffectAsset;
   readonly diagnostics: RenderDiagnostic[];
   readonly effectKey: string;
 }): BoundsPacket {
-  const lifetime = particleLifetimeMax(input.effect);
-  const particleRadius = maxParticleBillboardRadius(input.effect);
+  const lifetime = particleLifetimeMax(input.effect) * input.lifetimeScale;
+  const particleRadius =
+    maxParticleBillboardRadius(input.effect) * input.sizeScale;
+  const shapeRadius = particleShapeBoundsRadius(input.effect);
+  const authoredSpeed =
+    Math.max(
+      Math.abs(input.effect.runtime.startSpeed.min),
+      Math.abs(input.effect.runtime.startSpeed.max),
+    ) * input.speedScale;
   const x = particleDisplacementRange(
-    input.velocityRange.min[0],
-    input.velocityRange.max[0],
+    input.velocityRange.min[0] - authoredSpeed,
+    input.velocityRange.max[0] + authoredSpeed,
     input.effect.runtime.gravity[0],
     input.effect.runtime.linearDamping,
     lifetime,
   );
   const y = particleDisplacementRange(
-    input.velocityRange.min[1],
-    input.velocityRange.max[1],
+    input.velocityRange.min[1] - authoredSpeed,
+    input.velocityRange.max[1] + authoredSpeed,
     input.effect.runtime.gravity[1],
     input.effect.runtime.linearDamping,
     lifetime,
   );
   const z = particleDisplacementRange(
-    input.velocityRange.min[2],
-    input.velocityRange.max[2],
+    input.velocityRange.min[2] - authoredSpeed,
+    input.velocityRange.max[2] + authoredSpeed,
     input.effect.runtime.gravity[2],
     input.effect.runtime.linearDamping,
     lifetime,
   );
   const worldAabb: Aabb = {
     min: [
-      input.positionRange.min[0] + x.min - particleRadius,
-      input.positionRange.min[1] + y.min - particleRadius,
-      input.positionRange.min[2] + z.min - particleRadius,
+      input.positionRange.min[0] + x.min - particleRadius - shapeRadius,
+      input.positionRange.min[1] + y.min - particleRadius - shapeRadius,
+      input.positionRange.min[2] + z.min - particleRadius - shapeRadius,
     ],
     max: [
-      input.positionRange.max[0] + x.max + particleRadius,
-      input.positionRange.max[1] + y.max + particleRadius,
-      input.positionRange.max[2] + z.max + particleRadius,
+      input.positionRange.max[0] + x.max + particleRadius + shapeRadius,
+      input.positionRange.max[1] + y.max + particleRadius + shapeRadius,
+      input.positionRange.max[2] + z.max + particleRadius + shapeRadius,
     ],
   };
   const center =
@@ -848,6 +1190,22 @@ function checkedAutoParticleBoundsRadius(
 
 function particleLifetimeMax(effect: ParticleEmitterEffectAsset): number {
   return Math.max(0, effect.runtime.lifetime.min, effect.runtime.lifetime.max);
+}
+
+function particleShapeBoundsRadius(effect: ParticleEmitterEffectAsset): number {
+  if (!effect.shape.enabled || effect.shape.type === "point") {
+    return 0;
+  }
+
+  const box = effect.shape.box;
+  const boxRadius =
+    Math.hypot(
+      Math.max(0, box[0] ?? 0),
+      Math.max(0, box[1] ?? 0),
+      Math.max(0, box[2] ?? 0),
+    ) * 0.5;
+
+  return Math.max(0, effect.shape.radius, boxRadius);
 }
 
 function maxParticleBillboardRadius(

@@ -1,5 +1,5 @@
 import {
-  Enabled,
+  isHierarchyEnabled,
   type EcsWorld,
   type Entity,
 } from "@aperture-engine/simulation";
@@ -30,11 +30,7 @@ export function extractRuntimeUniforms(
   const seenKeys = new Set<string>();
 
   for (const entity of sortedEntities(query.entities)) {
-    if (
-      entity.hasComponent(Enabled) &&
-      entity.getValue(Enabled, "value") === false
-    ) {
-      diagnostics.push(diagnostic("render.disabled", entity));
+    if (!isHierarchyEnabled(entity)) {
       continue;
     }
 

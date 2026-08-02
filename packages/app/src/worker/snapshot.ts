@@ -37,6 +37,13 @@ export interface GeneratedWorkerSnapshotPublishReport {
   readonly timing: GeneratedWorkerSnapshotPublishTiming;
 }
 
+export interface GeneratedWorkerSimulationStepReport {
+  readonly nextFrame: number;
+  readonly step: ReturnType<ApertureApp["step"]>;
+  readonly inputMilliseconds: number;
+  readonly stepMilliseconds: number;
+}
+
 export interface GeneratedWorkerSnapshotPublishTiming {
   readonly frame: number;
   readonly transport: "shared-array-buffer" | "transferable";
@@ -117,6 +124,14 @@ export type GeneratedWorkerSnapshotTransport =
 export interface GeneratedWorkerSummaryCadence {
   readonly intervalMilliseconds: number;
   shouldPublishFull(frame: number, timeSeconds: number): boolean;
+  /**
+   * Entity-tool results can contain complete ECS snapshots. Publish them once
+   * per tool revision; the browser merges sparse summaries and retains the
+   * latest result for status consumers without cloning it every heartbeat.
+   */
+  shouldPublishEntityTools?(
+    summary: ReturnType<GeneratedEntityToolBridge["summary"]>,
+  ): boolean;
 }
 
 export interface GeneratedWorkerSummaryCadenceOptions {
@@ -138,6 +153,7 @@ export function createGeneratedWorkerSummaryCadence(
       options.intervalMilliseconds,
     );
   let lastFullSummaryTimeMilliseconds: number | null = null;
+  let lastEntityToolsRevision: string | null = null;
 
   return {
     intervalMilliseconds,
@@ -156,6 +172,22 @@ export function createGeneratedWorkerSummaryCadence(
       }
 
       return false;
+    },
+    shouldPublishEntityTools(summary) {
+      const revision = [
+        summary.finds,
+        summary.gets,
+        summary.mutations,
+        summary.snapshots,
+        summary.diffs,
+        summary.hierarchies,
+      ].join(":");
+      if (revision === lastEntityToolsRevision) {
+        return false;
+      }
+
+      lastEntityToolsRevision = revision;
+      return true;
     },
   };
 }
@@ -221,27 +253,23 @@ export function publishGeneratedWorkerSnapshot(options: {
     return milliseconds;
   };
 
-  // Deterministic per-frame drain (AI-56 frame-stamping half): unstamped live
-  // events apply now; frame-stamped events apply at exactly their frame, so a
-  // recorded sequence replays identically.
-  const drainedInputEvents = drainGeneratedInputEventMessagesForFrame(
-    options.pendingInput,
-    options.frame,
-  );
-  const inputEvents =
-    options.immediateInputEvents === undefined ||
-    options.immediateInputEvents.length === 0
-      ? drainedInputEvents
-      : [...drainedInputEvents, ...options.immediateInputEvents];
-
-  advanceGeneratedInputFrame({
-    signals: options.app.context.input,
+  const simulation = stepGeneratedWorkerSimulation({
+    app: options.app,
     config: options.config,
-    events: inputEvents,
+    pendingInput: options.pendingInput,
+    ...(options.immediateInputEvents === undefined
+      ? {}
+      : { immediateInputEvents: options.immediateInputEvents }),
+    delta: options.delta,
+    time: options.time,
+    frame: options.frame,
   });
-  const inputMilliseconds = markTiming();
-  const step = options.app.step(options.delta, options.time);
-  const stepMilliseconds = markTiming();
+  const inputMilliseconds = simulation.inputMilliseconds;
+  const stepMilliseconds = simulation.stepMilliseconds;
+  const step = simulation.step;
+  // The step helper owns its own timing cursor. Start extraction timing at the
+  // point it returned so the following phase measurements remain disjoint.
+  timingCursor = nowMilliseconds();
   const snapshot = options.app.extract(options.frame);
   const extractMilliseconds = markTiming();
   const sourceAssets = serializeSourceAssetRegistry(
@@ -425,9 +453,64 @@ export function publishGeneratedWorkerSnapshot(options: {
   };
 
   return {
-    nextFrame: options.frame + 1,
+    nextFrame: simulation.nextFrame,
     step,
     timing,
+  };
+}
+
+/**
+ * Advance one authoritative simulation frame without extracting or publishing
+ * a render snapshot.
+ *
+ * A worker may run simulation faster than presentation; input still drains at
+ * the simulation frame boundary, so fixed-seed replay remains identical
+ * whether every frame or every Nth frame is presented.
+ */
+export function stepGeneratedWorkerSimulation(options: {
+  readonly app: ApertureApp;
+  readonly config: ApertureConfig;
+  readonly pendingInput: ApertureGeneratedInputEventMessage[];
+  readonly immediateInputEvents?: readonly ApertureGeneratedInputEvent[];
+  readonly delta: number;
+  readonly time: number;
+  readonly frame: number;
+}): GeneratedWorkerSimulationStepReport {
+  let timingCursor = nowMilliseconds();
+  const markTiming = (): number => {
+    const now = nowMilliseconds();
+    const milliseconds = Math.max(0, now - timingCursor);
+    timingCursor = now;
+    return milliseconds;
+  };
+
+  // Deterministic per-frame drain (AI-56 frame-stamping half): unstamped live
+  // events apply now; frame-stamped events apply at exactly their frame, so a
+  // recorded sequence replays identically.
+  const drainedInputEvents = drainGeneratedInputEventMessagesForFrame(
+    options.pendingInput,
+    options.frame,
+  );
+  const inputEvents =
+    options.immediateInputEvents === undefined ||
+    options.immediateInputEvents.length === 0
+      ? drainedInputEvents
+      : [...drainedInputEvents, ...options.immediateInputEvents];
+
+  advanceGeneratedInputFrame({
+    signals: options.app.context.input,
+    config: options.config,
+    events: inputEvents,
+  });
+  const inputMilliseconds = markTiming();
+  const step = options.app.step(options.delta, options.time);
+  const stepMilliseconds = markTiming();
+
+  return {
+    nextFrame: options.frame + 1,
+    step,
+    inputMilliseconds,
+    stepMilliseconds,
   };
 }
 
@@ -459,13 +542,17 @@ function createGeneratedWorkerSummary(options: GeneratedWorkerSummaryOptions) {
     return summary;
   }
 
+  const entityTools = options.entityTools.summary();
+  const publishEntityTools =
+    options.summaryCadence?.shouldPublishEntityTools?.(entityTools) ?? true;
+
   return {
     ...summary,
     resources: options.app.context.resources.summary(),
     startOptions: options.app.context.startOptions.summary(),
     assets: createAssetSummary(options.app.context.assets.list()),
     physics: options.app.context.physics.summary(),
-    entityTools: options.entityTools.summary(),
+    ...(publishEntityTools ? { entityTools } : {}),
   };
 }
 
@@ -845,8 +932,9 @@ function readWorkerSummaryFullFlag(
 
 /**
  * True when a snapshot carries packet kinds the SAB packed codec cannot encode
- * (sprites, UI, skyboxes, runtime uniforms, skinning/morph buffers). Such a
- * frame falls back to the transferable path, preserving every packet.
+ * (sprites, UI, skyboxes, skinning/morph buffers). Such a frame falls back to
+ * the transferable path, preserving every packet. Runtime uniforms are part
+ * of the SAB packed packet stream.
  *
  * Audio packets are part of the SAB packet stream; the placeholder sideband
  * remains as a compatibility/fallback path for callers that still subscribe to
@@ -861,7 +949,6 @@ export function hasUnsupportedSharedSnapshotPayload(
     hasItems(snapshot.uiNodes) ||
     hasItems(snapshot.uiHitRegions) ||
     hasItems(snapshot.skyboxes) ||
-    hasItems(snapshot.runtimeUniforms) ||
     hasItems(snapshot.instanceAttributePackets) ||
     hasBytes(snapshot.bones) ||
     hasBytes(snapshot.morphTargetWeights) ||

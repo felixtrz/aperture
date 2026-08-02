@@ -11,12 +11,13 @@ import type {
 } from "@aperture-engine/simulation";
 import { ParticleSimulationSpace as ParticleSimulationSpaceValue } from "@aperture-engine/particles";
 import type {
+  ParticleEmitterBurstInput,
   ParticleEmitterInput,
   ParticleSimulationSpace as ParticleSimulationSpaceType,
 } from "@aperture-engine/particles";
 import type { InstanceDataValues, JsonPrimitive } from "../materials/index.js";
 
-export { type ParticleEmitterInput };
+export { type ParticleEmitterBurstInput, type ParticleEmitterInput };
 
 export const ParticleSimulationSpace = ParticleSimulationSpaceValue;
 
@@ -502,6 +503,7 @@ export type RenderAuthoringDiagnosticCode =
   | "particle.invalidCapacity"
   | "particle.invalidSeed"
   | "particle.invalidResetEpoch"
+  | "particle.invalidLifecycleStartTime"
   | "particle.invalidTimeScale"
   | "particle.invalidSimulationSpace"
   | "particle.invalidBounds"

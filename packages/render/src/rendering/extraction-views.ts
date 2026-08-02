@@ -3,6 +3,7 @@ import {
   WorldTransform,
   identityMat4,
   invertMat4,
+  isHierarchyEnabled,
   makeOrthographic,
   makePerspective,
   multiplyMat4,
@@ -37,6 +38,10 @@ export function extractViews(
   const views: ViewPacket[] = [];
 
   for (const entity of sortedEntities(query.entities)) {
+    if (!isHierarchyEnabled(entity)) {
+      continue;
+    }
+
     if (!entity.hasComponent(WorldTransform)) {
       diagnostics.push(diagnostic("render.cameraMissingTransform", entity));
       continue;

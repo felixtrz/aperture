@@ -312,6 +312,9 @@ export function readWebGpuAppSharedSnapshot(
     ...(packets.proceduralSkies === undefined
       ? {}
       : { proceduralSkies: packets.proceduralSkies }),
+    ...(packets.runtimeUniforms === undefined
+      ? {}
+      : { runtimeUniforms: packets.runtimeUniforms }),
     transforms: frame.transforms,
     ...(frame.quadInstanceFloats.length === 0
       ? {}
@@ -341,6 +344,7 @@ export function readWebGpuAppSharedSnapshot(
       bounds: packets.bounds.length,
       quadBatches: packets.quadBatches?.length ?? 0,
       proceduralSkies: packets.proceduralSkies?.length ?? 0,
+      runtimeUniforms: packets.runtimeUniforms?.length ?? 0,
       quadInstances:
         frame.quadInstanceFloats.length / QUAD_INSTANCE_FLOAT_STRIDE,
       diagnostics: diagnostics.length,
