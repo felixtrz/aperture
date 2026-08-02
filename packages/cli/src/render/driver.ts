@@ -1,8 +1,8 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium, type LaunchOptions } from "playwright";
+import { chromium, type Browser, type LaunchOptions } from "playwright";
 import { ApertureCliError } from "../errors.js";
-import { readPngDimensions } from "../tools/png-readback.js";
+import { isPngBlank, readPngDimensions } from "../tools/png-readback.js";
 import { hasDisplay, startVirtualDisplay } from "../dev/xvfb.js";
 import { resolveEnginePackages } from "./resolve-engine-packages.js";
 import {
@@ -54,6 +54,11 @@ export interface RenderBundleBrowserMetadata {
   readonly channel: string;
   readonly headless: boolean;
   readonly args: readonly string[];
+  /**
+   * Set when a blank headless render was retried in a headed window (GPU-less
+   * Linux hosts where headless Chrome discards WebGPU submissions).
+   */
+  readonly fallbackFromHeadlessBlank?: boolean;
 }
 
 export interface RenderBundleDimensions {
@@ -160,6 +165,12 @@ export async function createApertureRenderSession(
     /** Minimum virtual-display size when Xvfb is auto-provisioned. */
     readonly displayWidth?: number;
     readonly displayHeight?: number;
+    /**
+     * Override the headless decision (normally taken from
+     * APERTURE_RENDER_HEADLESS). Used by the blank-frame fallback to retry a
+     * failed headless render in a headed window.
+     */
+    readonly headless?: boolean;
   } = {},
 ): Promise<ApertureRenderSession> {
   const engine = resolveEnginePackages();
@@ -198,10 +209,20 @@ export async function createApertureRenderSession(
   // `frame_capture` do not crash with "launched a headed browser without
   // having a XServer running". macOS/Windows and Linux hosts that already have
   // DISPLAY set fall through unchanged.
-  let virtualDisplay: Awaited<ReturnType<typeof startVirtualDisplay>> | null =
-    null;
-  const launch = resolveLaunchOptions();
-  try {
+  interface ProvisionedBrowser {
+    readonly launch: ResolvedLaunchOptions;
+    readonly virtualDisplay: Awaited<
+      ReturnType<typeof startVirtualDisplay>
+    > | null;
+    readonly browser: Browser;
+  }
+
+  async function provisionBrowser(
+    headlessOverride: boolean | undefined,
+  ): Promise<ProvisionedBrowser> {
+    let virtualDisplay: Awaited<ReturnType<typeof startVirtualDisplay>> | null =
+      null;
+    const launch = resolveLaunchOptions(headlessOverride);
     if (
       !launch.launchOptions.headless &&
       process.platform === "linux" &&
@@ -214,27 +235,31 @@ export async function createApertureRenderSession(
         height: Math.max(options.displayHeight ?? 0, 800),
       });
     }
+    const launchOptions: LaunchOptions =
+      virtualDisplay === null
+        ? launch.launchOptions
+        : {
+            ...launch.launchOptions,
+            env: { ...process.env, DISPLAY: virtualDisplay.display },
+          };
+    try {
+      const browser = await chromium.launch(launchOptions);
+      return { launch, virtualDisplay, browser };
+    } catch (error: unknown) {
+      await virtualDisplay?.close();
+      throw error;
+    }
+  }
+
+  let active: ProvisionedBrowser;
+  try {
+    active = await provisionBrowser(options.headless);
   } catch (error: unknown) {
     await server.close();
     throw error;
   }
 
-  const launchOptions: LaunchOptions =
-    virtualDisplay === null
-      ? launch.launchOptions
-      : {
-          ...launch.launchOptions,
-          env: { ...process.env, DISPLAY: virtualDisplay.display },
-        };
-
-  const browser = await chromium
-    .launch(launchOptions)
-    .catch(async (error: unknown) => {
-      await virtualDisplay?.close();
-      await server.close();
-      throw error;
-    });
-
+  let fellBackFromHeadlessBlank = false;
   let disposed = false;
   let chain: Promise<unknown> = Promise.resolve();
 
@@ -246,7 +271,7 @@ export async function createApertureRenderSession(
       height: renderOptions.height,
     };
     renderBundleJson = JSON.stringify(renderOptions.bundle);
-    const page = await browser.newPage({ viewport: dimensions });
+    const page = await active.browser.newPage({ viewport: dimensions });
 
     try {
       await page.goto(`${server.url}/`, { waitUntil: "domcontentloaded" });
@@ -272,13 +297,47 @@ export async function createApertureRenderSession(
       const png = await page.locator("#aperture-canvas").screenshot({
         type: "png",
       });
+
+      // Some GPU-less Linux hosts silently discard every WebGPU submission in
+      // headless Chrome (queue waits reject with the "external Instance"
+      // OperationError, frames come back flat) while a headed window under
+      // Xvfb renders the same bundle correctly — the split the WebGPU e2e
+      // suite handles by always running headed. When a headless render comes
+      // back blank there, swap this session's browser for a headed one and
+      // retry; the swap is sticky so long-lived hosts (the MCP render slot)
+      // pay the relaunch once.
+      if (
+        active.launch.metadata.headless &&
+        process.platform === "linux" &&
+        isPngBlank(png)
+      ) {
+        let replacement: ProvisionedBrowser | null = null;
+        try {
+          replacement = await provisionBrowser(false);
+        } catch {
+          // Headed retry is best-effort (no Xvfb binary, no display): fall
+          // through and report the headless result unchanged.
+        }
+        if (replacement !== null) {
+          const previous = active;
+          active = replacement;
+          fellBackFromHeadlessBlank = true;
+          await previous.browser.close().catch(() => undefined);
+          await previous.virtualDisplay?.close().catch(() => undefined);
+          await page.close().catch(() => undefined);
+          return renderOnce(renderOptions);
+        }
+      }
+
       const actualDimensions = readPngDimensions(png);
 
       return {
         png,
         frame: status.frame ?? null,
         metadata: {
-          browser: launch.metadata,
+          browser: fellBackFromHeadlessBlank
+            ? { ...active.launch.metadata, fallbackFromHeadlessBlank: true }
+            : active.launch.metadata,
           requestedDimensions: {
             width: renderOptions.width,
             height: renderOptions.height,
@@ -295,7 +354,7 @@ export async function createApertureRenderSession(
   }
 
   return {
-    browser: launch.metadata,
+    browser: active.launch.metadata,
     render(renderOptions) {
       if (disposed) {
         return Promise.reject(
@@ -315,9 +374,9 @@ export async function createApertureRenderSession(
       }
       disposed = true;
       await chain.catch(() => undefined);
-      await browser.close();
+      await active.browser.close();
       await server.close();
-      await virtualDisplay?.close();
+      await active.virtualDisplay?.close();
     },
   };
 }
@@ -340,7 +399,9 @@ export async function renderBundleToPng(options: {
   }
 }
 
-function resolveLaunchOptions(): ResolvedLaunchOptions {
+function resolveLaunchOptions(
+  headlessOverride?: boolean,
+): ResolvedLaunchOptions {
   const channel = process.env["APERTURE_RENDER_CHANNEL"] ?? "chrome";
   const browserArgs = process.env["APERTURE_RENDER_BROWSER_ARGS"];
   const args =
@@ -352,8 +413,15 @@ function resolveLaunchOptions(): ResolvedLaunchOptions {
   // render of the same bundle), so on-demand renders no longer pop a browser
   // window mid-session (agent-stumble: headed windows during verification).
   // Set APERTURE_RENDER_HEADLESS=0 to force a headed window for debugging;
-  // "1" remains accepted from the era when headless was the opt-in.
-  const headless = process.env["APERTURE_RENDER_HEADLESS"] !== "0";
+  // "1" remains accepted from the era when headless was the opt-in. Some
+  // GPU-less Linux hosts break the OTHER way: headless Chrome's GPU process
+  // accepts WebGPU submissions and silently discards them (every queue wait
+  // rejects with "A valid external Instance reference no longer exists" and
+  // frames come back flat), while a headed window under Xvfb renders
+  // correctly — renderBundleToPng retries headed on that signature via
+  // `headlessOverride`.
+  const headless =
+    headlessOverride ?? process.env["APERTURE_RENDER_HEADLESS"] !== "0";
 
   return {
     launchOptions: {
