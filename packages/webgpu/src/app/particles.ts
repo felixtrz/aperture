@@ -247,16 +247,14 @@ export async function prepareParticleFrameResourcesForSnapshot(options: {
 
   if (emitters.length === 0) {
     const activeKeys = new Set<string>();
-    await waitForParticleStateCleanup(
-      options.app.initialization.device,
-      options.cache,
-      activeKeys,
-      activeKeys,
-    );
     const staleStatesRemoved =
       cleanupParticleStates(options.cache, activeKeys) +
       cleanupParticleBurstCpuStates(options.cache, activeKeys) +
       cleanupParticleBurstBatchStates(options.cache, activeKeys);
+    retireStaleParticleBuffers(
+      options.app.initialization.device,
+      options.cache,
+    );
     const report = emptyParticleFrameReport();
 
     return {
@@ -628,7 +626,7 @@ async function createParticleFrameResources(options: {
     const burstBatchable =
       isBatchableParticleBurst(emitter) &&
       !particleEffectHasSpawnableSubEmitters(options.assets, emitter);
-    const prepared = await prepareParticleEmitterFrameResources({
+    const preparedResult = prepareParticleEmitterFrameResources({
       app: options.app,
       assets: options.assets,
       cache: options.cache,
@@ -642,6 +640,9 @@ async function createParticleFrameResources(options: {
       textureSamplerFrameCache,
       emitterResourceFrameCache,
     });
+    const prepared = isPromiseLike(preparedResult)
+      ? await preparedResult
+      : preparedResult;
 
     if (prepared === null) {
       continue;
@@ -812,7 +813,7 @@ async function createParticleFrameResources(options: {
         },
         mode: "continuous",
       };
-      const childPrepared = await prepareParticleEmitterFrameResources({
+      const childPreparedResult = prepareParticleEmitterFrameResources({
         app: options.app,
         assets: options.assets,
         cache: options.cache,
@@ -826,6 +827,9 @@ async function createParticleFrameResources(options: {
         textureSamplerFrameCache,
         emitterResourceFrameCache,
       });
+      const childPrepared = isPromiseLike(childPreparedResult)
+        ? await childPreparedResult
+        : childPreparedResult;
       if (childPrepared === null) {
         continue;
       }
@@ -911,15 +915,12 @@ async function createParticleFrameResources(options: {
       });
 
       diagnostics.push(...batchReport.diagnostics);
-      mutableReport.simulatedEmitters += unit.records.length;
+      mutableReport.simulatedEmitters += batchReport.simulatedEmitters;
       mutableReport.batchGroups += 1;
       mutableReport.batchedEmitters += unit.records.length;
       mutableReport.liveParticles += batchReport.liveParticles;
       mutableReport.drawCalls += batchReport.liveParticles > 0 ? 1 : 0;
-      mutableReport.uploadedBytes +=
-        batchReport.liveParticles *
-        PARTICLE_DATA_FLOAT_STRIDE *
-        Float32Array.BYTES_PER_ELEMENT;
+      mutableReport.uploadedBytes += batchReport.uploadedBytes;
       mutableReport.statesCreated += batchReport.statesCreated;
       mutableReport.statesReused += batchReport.statesReused;
       continue;
@@ -939,11 +940,11 @@ async function createParticleFrameResources(options: {
     }
 
     activeStateKeys.add(stateResult.state.key);
-    mutableReport.simulatedEmitters += 1;
     mutableReport.statesCreated += stateResult.created ? 1 : 0;
     mutableReport.statesReused += stateResult.created ? 0 : 1;
 
     let drawInstanceCount: number;
+    let reusedFrozenPack = false;
 
     if (unit.kind === "subEmitter") {
       const parentState = options.cache.particleEmitterStates.get(
@@ -1010,16 +1011,20 @@ async function createParticleFrameResources(options: {
 
       diagnostics.push(...continuousReport.diagnostics);
       drawInstanceCount = continuousReport.liveParticles;
+      reusedFrozenPack = continuousReport.reusedFrozenPack;
     }
+
+    mutableReport.simulatedEmitters += reusedFrozenPack ? 0 : 1;
 
     if (drawInstanceCount <= 0) {
       continue;
     }
     mutableReport.drawCalls += 1;
-    mutableReport.uploadedBytes +=
-      drawInstanceCount *
-      PARTICLE_DATA_FLOAT_STRIDE *
-      Float32Array.BYTES_PER_ELEMENT;
+    mutableReport.uploadedBytes += reusedFrozenPack
+      ? 0
+      : drawInstanceCount *
+        PARTICLE_DATA_FLOAT_STRIDE *
+        Float32Array.BYTES_PER_ELEMENT;
 
     const viewBindGroup = device.createBindGroup({
       label: `Particle/ViewBindGroup/${record.emitter.emitterId}`,
@@ -1119,12 +1124,6 @@ async function createParticleFrameResources(options: {
     reuse.samplerResourcesCreated - reuseStart.samplerResourcesCreated;
   mutableReport.samplerResourcesReused +=
     reuse.samplerResourcesReused - reuseStart.samplerResourcesReused;
-  await waitForParticleStateCleanup(
-    device,
-    options.cache,
-    activeStateKeys,
-    activeBurstBatchKeys,
-  );
   mutableReport.staleStatesRemoved = cleanupParticleStates(
     options.cache,
     activeStateKeys,
@@ -1137,6 +1136,7 @@ async function createParticleFrameResources(options: {
     options.cache,
     activeBurstBatchKeys,
   );
+  retireStaleParticleBuffers(device, options.cache);
 
   return {
     valid: diagnostics.length === 0,
@@ -1147,7 +1147,17 @@ async function createParticleFrameResources(options: {
   };
 }
 
-async function prepareParticleEmitterFrameResources(options: {
+/**
+ * Resolve one emitter's pipeline, texture, sampler, and soft-particle
+ * resources.
+ *
+ * Returns synchronously whenever nothing has to be compiled — which, after the
+ * first frame that used an effect, is every emitter. Only render-pipeline
+ * creation can be asynchronous, so the promise is returned instead of awaited
+ * and the per-frame loop pays one microtask per compiled pipeline rather than
+ * one per emitter per frame.
+ */
+function prepareParticleEmitterFrameResources(options: {
   readonly app: WebGpuAppParticleContext;
   readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
@@ -1166,7 +1176,7 @@ async function prepareParticleEmitterFrameResources(options: {
     string,
     PreparedParticleEmitterFrameResources | null
   >;
-}): Promise<PreparedParticleEmitterFrameResources | null> {
+}): MaybePromise<PreparedParticleEmitterFrameResources | null> {
   const effectKey = assetHandleKey(options.emitter.effect);
   const cacheKey = `${effectKey}@${options.emitter.effectVersion}:${options.burstBatchable ? "burst" : "computed"}`;
   const cached = options.emitterResourceFrameCache.get(cacheKey);
@@ -1242,14 +1252,56 @@ async function prepareParticleEmitterFrameResources(options: {
           effect.renderer.toneMapped,
           effect.renderer.outputColorSpace,
         );
-    renderPipelineResult = isPromiseLike(pipelineResult)
-      ? await pipelineResult
-      : pipelineResult;
+
+    if (isPromiseLike(pipelineResult)) {
+      return pipelineResult.then((resolved) => {
+        options.renderPipelineFrameCache.set(renderPipelineFrameKey, resolved);
+        return finishParticleEmitterFrameResources({
+          ...options,
+          cacheKey,
+          effectKey,
+          effect,
+          softResources,
+          renderPipelineResult: resolved,
+        });
+      });
+    }
+
+    renderPipelineResult = pipelineResult;
     options.renderPipelineFrameCache.set(
       renderPipelineFrameKey,
       renderPipelineResult,
     );
   }
+
+  return finishParticleEmitterFrameResources({
+    ...options,
+    cacheKey,
+    effectKey,
+    effect,
+    softResources,
+    renderPipelineResult,
+  });
+}
+
+function finishParticleEmitterFrameResources(options: {
+  readonly assets: AssetRegistry;
+  readonly cache: WebGpuAppResourceCache;
+  readonly device: unknown;
+  readonly reuse: AppTextureSamplerResourceReuseReport;
+  readonly diagnostics: unknown[];
+  readonly textureSamplerFrameCache: Map<string, ParticleTextureSampler>;
+  readonly emitterResourceFrameCache: Map<
+    string,
+    PreparedParticleEmitterFrameResources | null
+  >;
+  readonly cacheKey: string;
+  readonly effectKey: string;
+  readonly effect: ParticleEmitterEffectAsset;
+  readonly softResources: ParticleSoftResources | null;
+  readonly renderPipelineResult: CreateParticleRenderPipelineResourceResult;
+}): PreparedParticleEmitterFrameResources | null {
+  const { cacheKey, effect, effectKey, renderPipelineResult } = options;
 
   if (!renderPipelineResult.valid || renderPipelineResult.resource === null) {
     options.diagnostics.push(...renderPipelineResult.diagnostics);
@@ -1306,7 +1358,7 @@ async function prepareParticleEmitterFrameResources(options: {
     },
     renderPipelineResource,
     textureSampler,
-    softResources,
+    softResources: options.softResources,
   };
 
   options.emitterResourceFrameCache.set(cacheKey, prepared);
@@ -2024,6 +2076,9 @@ function writeParticleContinuousBatchCommands(options: {
   readonly commands: RenderPassCommand[];
 }): {
   readonly liveParticles: number;
+  /** Members whose CPU particle state was actually advanced this frame. */
+  readonly simulatedEmitters: number;
+  readonly uploadedBytes: number;
   readonly statesCreated: number;
   readonly statesReused: number;
   readonly diagnostics: readonly unknown[];
@@ -2036,6 +2091,8 @@ function writeParticleContinuousBatchCommands(options: {
   ) {
     return {
       liveParticles: 0,
+      simulatedEmitters: 0,
+      uploadedBytes: 0,
       statesCreated: 0,
       statesReused: 0,
       diagnostics: [
@@ -2051,12 +2108,14 @@ function writeParticleContinuousBatchCommands(options: {
   const diagnostics: unknown[] = [];
   const liveSlices: {
     readonly cpu: ParticleEmitterCpuStateResource;
+    readonly emitterId: number;
     readonly liveParticles: number;
   }[] = [];
   let totalCapacity = 0;
   let totalLiveParticles = 0;
   let statesCreated = 0;
   let statesReused = 0;
+  let simulatedEmitters = 0;
 
   for (const record of options.unit.records) {
     totalCapacity += Math.max(0, Math.trunc(record.emitter.capacity));
@@ -2076,12 +2135,14 @@ function writeParticleContinuousBatchCommands(options: {
       time: options.time,
     });
     diagnostics.push(...update.diagnostics);
+    simulatedEmitters += update.reusedFrozenPack ? 0 : 1;
     if (update.liveParticles <= 0) {
       continue;
     }
     totalLiveParticles += update.liveParticles;
     liveSlices.push({
       cpu: cpuState.cpu,
+      emitterId: record.emitter.emitterId,
       liveParticles: update.liveParticles,
     });
   }
@@ -2089,6 +2150,8 @@ function writeParticleContinuousBatchCommands(options: {
   if (totalLiveParticles <= 0) {
     return {
       liveParticles: 0,
+      simulatedEmitters,
+      uploadedBytes: 0,
       statesCreated,
       statesReused,
       diagnostics,
@@ -2104,6 +2167,8 @@ function writeParticleContinuousBatchCommands(options: {
   if (!batchState.valid || batchState.state === null) {
     return {
       liveParticles: 0,
+      simulatedEmitters,
+      uploadedBytes: 0,
       statesCreated,
       statesReused,
       diagnostics: [...diagnostics, ...batchState.diagnostics],
@@ -2113,23 +2178,36 @@ function writeParticleContinuousBatchCommands(options: {
   statesCreated += batchState.created ? 1 : 0;
   statesReused += batchState.created ? 0 : 1;
 
-  let targetFloatOffset = 0;
-  for (const slice of liveSlices) {
-    const floatCount = slice.liveParticles * PARTICLE_DATA_FLOAT_STRIDE;
-    batchState.state.bufferData.set(
-      slice.cpu.bufferData.subarray(0, floatCount),
-      targetFloatOffset,
+  // Nothing simulated and the same slices in the same order means the shared
+  // buffer already holds these exact bytes: skip the concatenation and the
+  // upload rather than re-writing an unchanged frozen field every frame.
+  const reuseUpload =
+    simulatedEmitters === 0 &&
+    !batchState.created &&
+    batchState.state.continuousUploadValid &&
+    particleContinuousBatchLayoutMatches(batchState.state, liveSlices);
+  let uploadedBytes = 0;
+
+  if (!reuseUpload) {
+    let targetFloatOffset = 0;
+    for (const slice of liveSlices) {
+      const floatCount = slice.liveParticles * PARTICLE_DATA_FLOAT_STRIDE;
+      batchState.state.bufferData.set(
+        slice.cpu.bufferData.subarray(0, floatCount),
+        targetFloatOffset,
+      );
+      targetFloatOffset += floatCount;
+    }
+    uploadedBytes = totalLiveParticles * PARTICLE_DATA_FLOAT_STRIDE * 4;
+    options.device.queue.writeBuffer(
+      batchState.state.particleBuffer,
+      0,
+      batchState.state.bufferData.buffer,
+      batchState.state.bufferData.byteOffset,
+      uploadedBytes,
     );
-    targetFloatOffset += floatCount;
+    recordParticleContinuousBatchLayout(batchState.state, liveSlices);
   }
-  const uploadBytes = totalLiveParticles * PARTICLE_DATA_FLOAT_STRIDE * 4;
-  options.device.queue.writeBuffer(
-    batchState.state.particleBuffer,
-    0,
-    batchState.state.bufferData.buffer,
-    batchState.state.bufferData.byteOffset,
-    uploadBytes,
-  );
 
   const bindGroups = getOrCreateParticleBatchBindGroups({
     device: options.device,
@@ -2191,10 +2269,57 @@ function writeParticleContinuousBatchCommands(options: {
 
   return {
     liveParticles: totalLiveParticles,
+    simulatedEmitters,
+    uploadedBytes,
     statesCreated,
     statesReused,
     diagnostics,
   };
+}
+
+function particleContinuousBatchLayoutMatches(
+  state: ParticleBurstBatchGpuStateResource,
+  slices: readonly {
+    readonly emitterId: number;
+    readonly liveParticles: number;
+  }[],
+): boolean {
+  if (state.continuousSliceIds.length !== slices.length) {
+    return false;
+  }
+
+  for (let index = 0; index < slices.length; index += 1) {
+    const slice = slices[index] as (typeof slices)[number];
+
+    if (
+      state.continuousSliceIds[index] !== slice.emitterId ||
+      state.continuousSliceCounts[index] !== slice.liveParticles
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function recordParticleContinuousBatchLayout(
+  state: ParticleBurstBatchGpuStateResource,
+  slices: readonly {
+    readonly emitterId: number;
+    readonly liveParticles: number;
+  }[],
+): void {
+  state.continuousSliceIds.length = slices.length;
+  state.continuousSliceCounts.length = slices.length;
+
+  for (let index = 0; index < slices.length; index += 1) {
+    const slice = slices[index] as (typeof slices)[number];
+
+    state.continuousSliceIds[index] = slice.emitterId;
+    state.continuousSliceCounts[index] = slice.liveParticles;
+  }
+
+  state.continuousUploadValid = true;
 }
 
 function particleVertexCount(effect: ParticleEmitterEffectAsset): number {
@@ -2507,7 +2632,7 @@ function getOrCreateParticleBurstBatchGpuState(options: {
   }
 
   if (cached !== undefined) {
-    destroyWebGpuBuffer(cached.particleBuffer);
+    retireParticleBuffer(options.cache, cached.particleBuffer);
   }
 
   const byteLength = capacity * PARTICLE_BURST_DATA_FLOAT_STRIDE * 4;
@@ -2546,6 +2671,9 @@ function getOrCreateParticleBurstBatchGpuState(options: {
     nextParticleSlot: 0,
     frozenLayoutKey: null,
     frozenRenderTime: null,
+    continuousSliceIds: [],
+    continuousSliceCounts: [],
+    continuousUploadValid: false,
     paramBuffer: null,
     paramByteLength: 0,
     paramData: null,
@@ -2952,6 +3080,7 @@ function createParticleEmitterCpuState(
     spawnSerial: 0,
     birthCount: 0,
     deathCount: 0,
+    frozenSignature: null,
     subEmissionTrackers: [],
     subEmissionTrackerPool: [],
     colorTint: [1, 1, 1, 1],
@@ -3110,15 +3239,13 @@ function updateParticleContinuousCpuState(options: {
   readonly effect: ParticleEmitterEffectAsset;
   readonly snapshot: RenderSnapshot;
   readonly time: number;
-}): {
-  readonly liveParticles: number;
-  readonly diagnostics: readonly unknown[];
-} {
+}): ParticleContinuousUpdateResult {
   const cpu = options.state.cpu;
 
   if (cpu === undefined) {
     return {
       liveParticles: 0,
+      reusedFrozenPack: false,
       diagnostics: [
         {
           code: "particleFrame.continuousStateMissing",
@@ -3132,6 +3259,7 @@ function updateParticleContinuousCpuState(options: {
   if (options.device.queue?.writeBuffer === undefined) {
     return {
       liveParticles: 0,
+      reusedFrozenPack: false,
       diagnostics: [
         {
           code: "particleFrame.continuousWriteBufferUnavailable",
@@ -3149,7 +3277,9 @@ function updateParticleContinuousCpuState(options: {
     time: options.time,
   });
 
-  if (update.liveParticles > 0) {
+  // A reused pack wrote no new bytes into `cpu.bufferData`, so the emitter's
+  // GPU buffer — written by this same path last frame — already holds them.
+  if (update.liveParticles > 0 && !update.reusedFrozenPack) {
     options.device.queue.writeBuffer(
       options.state.particleBuffer,
       0,
@@ -3162,16 +3292,23 @@ function updateParticleContinuousCpuState(options: {
   return update;
 }
 
+interface ParticleContinuousUpdateResult {
+  readonly liveParticles: number;
+  /**
+   * True when this frame could not change the packed bytes and the previous
+   * frame's pack (and its GPU upload) was reused verbatim.
+   */
+  readonly reusedFrozenPack: boolean;
+  readonly diagnostics: readonly unknown[];
+}
+
 function updateParticleContinuousCpuData(options: {
   readonly cpu: ParticleEmitterCpuStateResource;
   readonly emitter: ParticleEmitterPacket;
   readonly effect: ParticleEmitterEffectAsset;
   readonly snapshot: RenderSnapshot;
   readonly time: number;
-}): {
-  readonly liveParticles: number;
-  readonly diagnostics: readonly unknown[];
-} {
+}): ParticleContinuousUpdateResult {
   options.cpu.birthCount = 0;
   options.cpu.deathCount = 0;
   const wasInitialized = options.cpu.initialized;
@@ -3181,6 +3318,27 @@ function updateParticleContinuousCpuData(options: {
     options.emitter,
     options.effect,
   );
+  const frozen = particleContinuousFrozenReuse({
+    cpu: options.cpu,
+    emitter: options.emitter,
+    effect: options.effect,
+    snapshot: options.snapshot,
+    time: options.time,
+    authoritativeTime,
+  });
+
+  if (frozen !== null) {
+    // Keep the clock coherent so the first unfrozen frame steps by one frame,
+    // not by the whole frozen span.
+    options.cpu.lastTime = options.time;
+    options.cpu.startTime = options.time - options.cpu.simulatedTime;
+    return {
+      liveParticles: frozen,
+      reusedFrozenPack: true,
+      diagnostics: [],
+    };
+  }
+
   if (authoritativeTime !== null) {
     return updateParticleContinuousCpuToPlaybackTime({
       ...options,
@@ -3235,7 +3393,8 @@ function updateParticleContinuousCpuData(options: {
     applyContinuousModules: true,
   });
 
-  return { liveParticles, diagnostics: [] };
+  recordParticleContinuousFrozenSignature(options, liveParticles);
+  return { liveParticles, reusedFrozenPack: false, diagnostics: [] };
 }
 
 /**
@@ -3253,10 +3412,7 @@ function updateParticleContinuousCpuToPlaybackTime(options: {
   readonly time: number;
   readonly wasInitialized: boolean;
   readonly authoritativeTime: number;
-}): {
-  readonly liveParticles: number;
-  readonly diagnostics: readonly unknown[];
-} {
+}): ParticleContinuousUpdateResult {
   const localSimulation = options.emitter.simulationSpace === "local";
   const targetTime = Math.max(
     options.cpu.simulatedTime,
@@ -3300,7 +3456,8 @@ function updateParticleContinuousCpuToPlaybackTime(options: {
   } while (remainingDelta > 0.0000001);
 
   options.cpu.lastTime = options.time;
-  return { liveParticles, diagnostics: [] };
+  recordParticleContinuousFrozenSignature(options, liveParticles);
+  return { liveParticles, reusedFrozenPack: false, diagnostics: [] };
 }
 
 /**
@@ -3315,10 +3472,7 @@ function backfillParticleContinuousCpuData(options: {
   readonly effect: ParticleEmitterEffectAsset;
   readonly snapshot: RenderSnapshot;
   readonly time: number;
-}): {
-  readonly liveParticles: number;
-  readonly diagnostics: readonly unknown[];
-} {
+}): ParticleContinuousUpdateResult {
   const localSimulation = options.emitter.simulationSpace === "local";
   let cursor = options.cpu.lastTime;
   let liveParticles = 0;
@@ -3354,7 +3508,89 @@ function backfillParticleContinuousCpuData(options: {
     steps += 1;
   }
 
-  return { liveParticles, diagnostics: [] };
+  recordParticleContinuousFrozenSignature(options, liveParticles);
+  return { liveParticles, reusedFrozenPack: false, diagnostics: [] };
+}
+
+/**
+ * Decide whether a continuous emitter can reuse the bytes it packed last
+ * frame.
+ *
+ * `writeParticleCpuBuffer` derives the packed record purely from the CPU
+ * particle arrays, the effect, the step delta, and the emitter's world
+ * placement; `presentationAges` keeps a zero-delta repack byte-identical. So
+ * when the step is exactly zero and the placement is unchanged, both the
+ * repack and its GPU upload are provably redundant — the same invariant the
+ * frozen burst-batch layout already relies on. Returns the packed live count
+ * to reuse, or `null` when the frame must simulate.
+ */
+function particleContinuousFrozenReuse(options: {
+  readonly cpu: ParticleEmitterCpuStateResource;
+  readonly emitter: ParticleEmitterPacket;
+  readonly effect: ParticleEmitterEffectAsset;
+  readonly snapshot: RenderSnapshot;
+  readonly time: number;
+  readonly authoritativeTime: number | null;
+}): number | null {
+  const signature = options.cpu.frozenSignature;
+
+  if (signature === null || !options.cpu.initialized) {
+    return null;
+  }
+
+  if (options.authoritativeTime === null) {
+    const rawDelta = options.time - options.cpu.lastTime;
+    const timelineDelta =
+      !Number.isFinite(rawDelta) || rawDelta <= 0
+        ? 0
+        : rawDelta *
+          options.emitter.timeScale *
+          options.effect.runtime.simulationSpeed;
+
+    if (timelineDelta !== 0) {
+      return null;
+    }
+  } else if (options.authoritativeTime > options.cpu.simulatedTime) {
+    return null;
+  }
+
+  if (signature.simulationSpace !== options.emitter.simulationSpace) {
+    return null;
+  }
+
+  const transform = emitterWorldTransform(options.snapshot, options.emitter);
+
+  for (let index = 0; index < 16; index += 1) {
+    if (signature.worldTransform[index] !== (transform[index] ?? 0)) {
+      return null;
+    }
+  }
+
+  return signature.liveParticles;
+}
+
+function recordParticleContinuousFrozenSignature(
+  options: {
+    readonly cpu: ParticleEmitterCpuStateResource;
+    readonly emitter: ParticleEmitterPacket;
+    readonly snapshot: RenderSnapshot;
+  },
+  liveParticles: number,
+): void {
+  const transform = emitterWorldTransform(options.snapshot, options.emitter);
+  const existing = options.cpu.frozenSignature;
+  const worldTransform =
+    existing === null ? new Float32Array(16) : existing.worldTransform;
+
+  for (let index = 0; index < 16; index += 1) {
+    worldTransform[index] = transform[index] ?? 0;
+  }
+
+  options.cpu.frozenSignature = {
+    liveParticles,
+    simulationSpace: options.emitter.simulationSpace,
+    worldTransform,
+  };
 }
 
 function updateParticleSubEmitterCpuState(options: {
@@ -6079,7 +6315,10 @@ function cleanupParticleStates(
 
   for (const key of cache.particleEmitterStates.keys()) {
     if (!activeKeys.has(key)) {
-      destroyWebGpuBuffer(cache.particleEmitterStates.get(key)?.particleBuffer);
+      retireParticleBuffer(
+        cache,
+        cache.particleEmitterStates.get(key)?.particleBuffer,
+      );
       cache.particleEmitterStates.delete(key);
       removed += 1;
     }
@@ -6114,8 +6353,8 @@ function cleanupParticleBurstBatchStates(
     if (!activeKeys.has(key)) {
       const state = cache.particleBurstBatchStates.get(key);
 
-      destroyWebGpuBuffer(state?.particleBuffer);
-      destroyWebGpuBuffer(state?.paramBuffer);
+      retireParticleBuffer(cache, state?.particleBuffer);
+      retireParticleBuffer(cache, state?.paramBuffer);
       cache.particleBurstBatchStates.delete(key);
       removed += 1;
     }
@@ -6124,26 +6363,43 @@ function cleanupParticleBurstBatchStates(
   return removed;
 }
 
-/**
- * Particle state buffers can still be referenced by the preceding submitted
- * frame when the next snapshot drops an emitter. Wait for that work before
- * explicitly destroying stale buffers; otherwise WebGPU may invalidate the
- * prior command buffer during a short-lived burst.
- */
-async function waitForParticleStateCleanup(
-  device: unknown,
+function retireParticleBuffer(
   cache: WebGpuAppResourceCache,
-  activeEmitterKeys: ReadonlySet<string>,
-  activeBurstBatchKeys: ReadonlySet<string>,
-): Promise<void> {
-  const hasStaleGpuState =
-    hasStaleParticleState(cache.particleEmitterStates, activeEmitterKeys) ||
-    hasStaleParticleState(cache.particleBurstBatchStates, activeBurstBatchKeys);
-
-  if (!hasStaleGpuState) {
+  buffer: unknown,
+): void {
+  if (buffer === undefined || buffer === null) {
     return;
   }
 
+  cache.particleRetiredBuffers.buffers.push(buffer);
+}
+
+/**
+ * Destroy particle buffers dropped from the caches this frame.
+ *
+ * A retired buffer can still be referenced by the previously submitted frame,
+ * so destruction waits for that work — but the wait never blocks frame
+ * assembly. Awaiting the queue fence inline serialized the renderer against
+ * the GPU on every frame that dropped an emitter, which is every frame of live
+ * gameplay (bursts retire, projectiles despawn), and the browser app skips
+ * snapshots while a render is in flight: the fence therefore collapsed frame
+ * production exactly when particle churn was highest. Retiring asynchronously
+ * keeps the safety property (nothing is destroyed before the work that used it
+ * completes) without holding the frame open.
+ */
+function retireStaleParticleBuffers(
+  device: unknown,
+  cache: WebGpuAppResourceCache,
+): void {
+  const retired = cache.particleRetiredBuffers.buffers;
+
+  if (retired.length === 0) {
+    return;
+  }
+
+  // Take ownership of exactly this frame's batch: a later frame's buffers were
+  // used by a later submission and must wait for their own fence.
+  const batch = retired.splice(0, retired.length);
   const queue = (
     device as {
       readonly queue?: {
@@ -6152,22 +6408,22 @@ async function waitForParticleStateCleanup(
     }
   ).queue;
 
-  if (typeof queue?.onSubmittedWorkDone === "function") {
-    await queue.onSubmittedWorkDone.call(queue);
+  if (typeof queue?.onSubmittedWorkDone !== "function") {
+    destroyParticleBuffers(batch);
+    return;
   }
+
+  const destroy = (): void => {
+    destroyParticleBuffers(batch);
+  };
+
+  void queue.onSubmittedWorkDone.call(queue).then(destroy, destroy);
 }
 
-function hasStaleParticleState(
-  states: ReadonlyMap<string, unknown>,
-  activeKeys: ReadonlySet<string>,
-): boolean {
-  for (const key of states.keys()) {
-    if (!activeKeys.has(key)) {
-      return true;
-    }
+function destroyParticleBuffers(buffers: readonly unknown[]): void {
+  for (const buffer of buffers) {
+    destroyWebGpuBuffer(buffer);
   }
-
-  return false;
 }
 
 function nextPowerOfTwo(value: number): number {

@@ -169,6 +169,7 @@ export interface WebGpuAppResourceCache {
     string,
     ParticleBurstBatchGpuStateResource
   >;
+  readonly particleRetiredBuffers: ParticleRetiredBufferQueue;
   particleViewUniformBuffer: ParticleViewUniformBufferResource | null;
   readonly particleSoftParams: Map<string, ParticleSoftParamsResource>;
   readonly skyboxPipelines: Map<
@@ -241,6 +242,18 @@ export interface ParticleEmitterGpuStateResource {
   readonly cpu?: ParticleEmitterCpuStateResource;
 }
 
+/**
+ * GPU buffers dropped from the particle caches that the previously submitted
+ * frame may still reference.
+ *
+ * Destroying them inline would require blocking frame assembly on a queue
+ * fence, so they are parked here and destroyed once the work submitted before
+ * their retirement completes.
+ */
+export interface ParticleRetiredBufferQueue {
+  readonly buffers: unknown[];
+}
+
 export interface ParticleEmitterCpuStateResource {
   readonly positions: Float32Array;
   readonly velocities: Float32Array;
@@ -293,6 +306,15 @@ export interface ParticleEmitterCpuStateResource {
   spawnSerial: number;
   birthCount: number;
   deathCount: number;
+  /**
+   * Placement and clock inputs that produced the bytes currently packed into
+   * `bufferData`, or `null` when nothing has been packed yet.
+   *
+   * A continuous emitter stepped by exactly zero repacks byte-identical data
+   * (that is what `presentationAges` guarantees), so a frame whose inputs
+   * match this signature can reuse both the packed buffer and its GPU upload.
+   */
+  frozenSignature: ParticleContinuousFrozenSignature | null;
   readonly subEmissionTrackers: ParticleSubEmissionTracker[];
   readonly subEmissionTrackerPool: ParticleSubEmissionTracker[];
   /**
@@ -302,6 +324,22 @@ export interface ParticleEmitterCpuStateResource {
    * Opaque white is the identity.
    */
   colorTint: [number, number, number, number];
+}
+
+/**
+ * Inputs a zero-step continuous repack depends on.
+ *
+ * `writeParticleCpuBuffer` is a pure function of the CPU particle arrays, the
+ * effect, the step delta, and the emitter's world placement. With a zero delta
+ * the arrays cannot change, so matching placement plus a zero step proves the
+ * packed bytes — and therefore the GPU upload — are already current.
+ */
+export interface ParticleContinuousFrozenSignature {
+  /** Particles packed for these inputs. */
+  readonly liveParticles: number;
+  readonly simulationSpace: "local" | "world";
+  /** Emitter world matrix at pack time; the translation covers world space. */
+  readonly worldTransform: Float32Array;
 }
 
 export interface ParticleSubEmissionTracker {
@@ -344,6 +382,17 @@ export interface ParticleBurstBatchGpuStateResource {
   frozenLayoutKey: string | null;
   /** Wall-clock value paired with the frozen particle data in the GPU buffer. */
   frozenRenderTime: number | null;
+  /**
+   * Continuous-batch layout currently resident in the GPU buffer: one emitter
+   * id and packed particle count per concatenated slice, in upload order.
+   *
+   * A frame whose slices match this layout and whose every member reused its
+   * frozen CPU pack has already uploaded these exact bytes.
+   */
+  readonly continuousSliceIds: number[];
+  readonly continuousSliceCounts: number[];
+  /** False until a continuous upload has filled the buffer. */
+  continuousUploadValid: boolean;
   paramBuffer: unknown | null;
   paramByteLength: number;
   paramData: Float32Array | null;
@@ -474,6 +523,7 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     particleEmitterStates: new Map(),
     particleBurstCpuStates: new Map(),
     particleBurstBatchStates: new Map(),
+    particleRetiredBuffers: { buffers: [] },
     particleViewUniformBuffer: null,
     particleSoftParams: new Map(),
     skyboxPipelines: new Map(),
