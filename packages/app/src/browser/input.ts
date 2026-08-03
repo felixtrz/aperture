@@ -47,7 +47,22 @@ export function installGeneratedInputForwarding(
     canvas.tabIndex = 0;
   }
 
+  // Multi-touch ownership: exactly one browser pointerId owns each named
+  // worker pointer at a time. Without this every touch contact forwards as
+  // "primary", so two fingers make the worker-side position flicker between
+  // contacts and lifting EITHER finger releases the press. The model is
+  // newest-contact-wins: a second pointerdown transfers ownership (forwarded
+  // as a fresh press so apps see a re-grab edge via `pressedThisFrame`),
+  // moves and lifts from non-owning contacts are ignored, and only the
+  // owner's up/cancel releases the button.
+  const pointerOwners = new Map<ApertureGeneratedPointerName, number>();
+
   canvas.addEventListener("pointermove", (event) => {
+    const owner = pointerOwners.get("primary");
+    if (owner !== undefined && event.pointerId !== owner) {
+      return;
+    }
+
     forwardInput(worker, status, {
       kind: "pointer",
       pointer: "primary",
@@ -63,6 +78,7 @@ export function installGeneratedInputForwarding(
 
     canvas.focus();
     safelySetPointerCapture(canvas, event.pointerId);
+    pointerOwners.set(pointer, event.pointerId);
     forwardInput(worker, status, {
       kind: "pointer",
       pointer,
@@ -78,6 +94,13 @@ export function installGeneratedInputForwarding(
     }
 
     safelyReleasePointerCapture(canvas, event.pointerId);
+    if (pointerOwners.get(pointer) !== event.pointerId) {
+      // A non-owning contact lifted (its press was superseded by a newer
+      // pointerdown). The owner is still down; the button stays pressed.
+      return;
+    }
+
+    pointerOwners.delete(pointer);
     forwardInput(worker, status, {
       kind: "pointer",
       pointer,
@@ -88,7 +111,22 @@ export function installGeneratedInputForwarding(
 
   const releasePointer = (event: PointerEvent): void => {
     const position = pointerPosition(canvas, event);
-    for (const pointer of GENERATED_POINTER_BUTTONS) {
+    const ownedNames = GENERATED_POINTER_BUTTONS.filter(
+      (pointer) => pointerOwners.get(pointer) === event.pointerId,
+    );
+    // While any contact owns a button, only that owner's cancel/leave may
+    // release it — the superseded first finger's pointercancel or
+    // lostpointercapture must not release the press a newer finger is
+    // holding. An untracked cancel with no owners anywhere keeps the legacy
+    // release-everything behavior as a stuck-press safety net.
+    const releases =
+      ownedNames.length > 0
+        ? ownedNames
+        : pointerOwners.size === 0
+          ? GENERATED_POINTER_BUTTONS
+          : [];
+    for (const pointer of releases) {
+      pointerOwners.delete(pointer);
       forwardInput(worker, status, {
         kind: "pointer",
         pointer,
@@ -150,11 +188,13 @@ export function installGeneratedInputForwarding(
   });
 
   window.addEventListener("blur", () => {
+    pointerOwners.clear();
     forwardInputReset(worker, status, "window-blur");
   });
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
+      pointerOwners.clear();
       forwardInputReset(worker, status, "document-hidden");
     }
   });

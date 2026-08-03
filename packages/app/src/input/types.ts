@@ -151,7 +151,18 @@ export interface GamepadButtonState {
 export interface StatefulGamepadStickState {
   readonly x: number;
   readonly y: number;
+  /**
+   * Pre-deadzone axis samples, clamped to [-1, 1] but otherwise untouched.
+   * For consumers that apply their own response curve (for example a radial
+   * dead zone with rescale) — the per-axis default deadzone in `x`/`y`
+   * quantizes small cross-axis components toward the cardinal directions,
+   * which double-filters any downstream model.
+   */
+  readonly rawX: number;
+  readonly rawY: number;
   read(out: InputVec2Like): InputVec2Like;
+  /** Read the pre-deadzone axes into `out` (see `rawX`/`rawY`). */
+  readRaw(out: InputVec2Like): InputVec2Like;
   previous(out: InputVec2Like): InputVec2Like;
 }
 

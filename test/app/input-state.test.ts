@@ -182,6 +182,71 @@ describe("input state resource", () => {
     expect(jump?.kind === "button" ? jump.up() : false).toBe(true);
   });
 
+  it("exposes pre-deadzone stick axes through rawX/rawY and readRaw", () => {
+    const resource = createInputResource(
+      defineApertureConfig({
+        mode: "headless",
+        input: {
+          actions: {
+            jump: input.button([input.gamepadButton("south")]),
+          },
+        },
+      }),
+    );
+
+    // Both components sit under the 0.12 per-axis default deadzone or barely
+    // above it: a consumer applying its own radial dead zone (e.g. 0.18 on
+    // the vector magnitude, hypot(0.10, 0.16) ≈ 0.189) must see the raw
+    // samples, not the per-axis-quantized ones.
+    advanceInputResource(resource, [
+      {
+        kind: "gamepad",
+        gamepads: [
+          {
+            index: 0,
+            id: "Xbox Controller",
+            mapping: "standard",
+            connected: true,
+            buttons: [],
+            axes: [0.1, 0.16, -0.05, 2.5],
+          },
+        ],
+      },
+    ]);
+
+    const left = resource.gamepads.primary?.leftStick;
+    const right = resource.gamepads.primary?.rightStick;
+    expect(left?.x).toBe(0);
+    expect(left?.y).toBe(0.16);
+    expect(left?.rawX).toBe(0.1);
+    expect(left?.rawY).toBe(0.16);
+
+    const raw = { x: 0, y: 0 };
+    left?.readRaw(raw);
+    expect(raw).toEqual({ x: 0.1, y: 0.16 });
+
+    // Raw values are clamped to [-1, 1] but never zeroed by the deadzone.
+    expect(right?.rawX).toBe(-0.05);
+    expect(right?.rawY).toBe(1);
+
+    // Disconnect zeroes the raw axes alongside the filtered ones.
+    advanceInputResource(resource, [
+      {
+        kind: "gamepad",
+        gamepads: [
+          {
+            index: 0,
+            id: "Xbox Controller",
+            mapping: "standard",
+            connected: false,
+          },
+        ],
+      },
+    ]);
+    expect(left?.rawX).toBe(0);
+    expect(left?.rawY).toBe(0);
+  });
+
   it("reports unsupported gamepad mappings instead of driving actions", () => {
     const resource = createInputResource(
       defineApertureConfig({

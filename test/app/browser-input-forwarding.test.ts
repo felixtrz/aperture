@@ -71,6 +71,179 @@ describe("generated browser input forwarding", () => {
     expect(status.forwardedInputEvents).toBe(2);
   });
 
+  it("gives the newest contact ownership of a pointer button and ignores non-owner moves and lifts", () => {
+    const canvas = new FakeCanvas();
+    const windowTarget = new FakeEventTarget();
+    const documentTarget = new FakeEventTarget();
+    const messages: unknown[] = [];
+    const status = createStatus();
+
+    vi.stubGlobal("window", windowTarget);
+    vi.stubGlobal("document", {
+      addEventListener: documentTarget.addEventListener.bind(documentTarget),
+      visibilityState: "visible",
+    });
+    vi.stubGlobal("navigator", {});
+    vi.stubGlobal("WheelEvent", {
+      DOM_DELTA_LINE: 1,
+      DOM_DELTA_PAGE: 2,
+    });
+
+    installGeneratedInputForwarding(
+      canvas as unknown as HTMLCanvasElement,
+      {
+        postMessage(message: unknown) {
+          messages.push(message);
+        },
+      } as never,
+      status,
+      defineApertureConfig({ mode: "browser", canvas: "#aperture" }),
+    );
+
+    // First finger grabs and drags.
+    canvas.dispatch("pointerdown", {
+      pointerId: 11,
+      button: 0,
+      clientX: 20,
+      clientY: 20,
+    });
+    canvas.dispatch("pointermove", {
+      pointerId: 11,
+      clientX: 30,
+      clientY: 20,
+    });
+    // Second finger lands: ownership transfers (forwarded as a fresh press so
+    // the worker sees a re-grab edge at the new contact's position).
+    canvas.dispatch("pointerdown", {
+      pointerId: 12,
+      button: 0,
+      clientX: 80,
+      clientY: 80,
+    });
+    // The superseded finger's samples are ignored entirely: its move must not
+    // flicker the position, and its lift/cancel must not release the press
+    // the owning finger is holding.
+    canvas.dispatch("pointermove", {
+      pointerId: 11,
+      clientX: 40,
+      clientY: 20,
+    });
+    canvas.dispatch("pointerup", {
+      pointerId: 11,
+      button: 0,
+      clientX: 40,
+      clientY: 20,
+    });
+    canvas.dispatch("lostpointercapture", {
+      pointerId: 11,
+      clientX: 40,
+      clientY: 20,
+    });
+    // The owner keeps driving, and only the owner's lift releases.
+    canvas.dispatch("pointermove", {
+      pointerId: 12,
+      clientX: 70,
+      clientY: 80,
+    });
+    canvas.dispatch("pointerup", {
+      pointerId: 12,
+      button: 0,
+      clientX: 70,
+      clientY: 80,
+    });
+
+    expect(messages.map((message) => eventFromMessage(message))).toEqual([
+      {
+        kind: "pointer",
+        pointer: "primary",
+        position: [0.2, 0.2],
+        pressed: true,
+      },
+      {
+        kind: "pointer",
+        pointer: "primary",
+        position: [0.3, 0.2],
+      },
+      {
+        kind: "pointer",
+        pointer: "primary",
+        position: [0.8, 0.8],
+        pressed: true,
+      },
+      {
+        kind: "pointer",
+        pointer: "primary",
+        position: [0.7, 0.8],
+      },
+      {
+        kind: "pointer",
+        pointer: "primary",
+        position: [0.7, 0.8],
+        pressed: false,
+      },
+    ]);
+    // The non-owning lift still releases its capture handle.
+    expect(canvas.releasePointerCapture).toHaveBeenCalledWith(11);
+    expect(canvas.releasePointerCapture).toHaveBeenCalledWith(12);
+  });
+
+  it("keeps the legacy release-everything cancel behavior when no contact owns a button", () => {
+    const canvas = new FakeCanvas();
+    const windowTarget = new FakeEventTarget();
+    const documentTarget = new FakeEventTarget();
+    const messages: unknown[] = [];
+    const status = createStatus();
+
+    vi.stubGlobal("window", windowTarget);
+    vi.stubGlobal("document", {
+      addEventListener: documentTarget.addEventListener.bind(documentTarget),
+      visibilityState: "visible",
+    });
+    vi.stubGlobal("navigator", {});
+    vi.stubGlobal("WheelEvent", {
+      DOM_DELTA_LINE: 1,
+      DOM_DELTA_PAGE: 2,
+    });
+
+    installGeneratedInputForwarding(
+      canvas as unknown as HTMLCanvasElement,
+      {
+        postMessage(message: unknown) {
+          messages.push(message);
+        },
+      } as never,
+      status,
+      defineApertureConfig({ mode: "browser", canvas: "#aperture" }),
+    );
+
+    canvas.dispatch("pointercancel", {
+      pointerId: 3,
+      clientX: 50,
+      clientY: 50,
+    });
+
+    expect(messages.map((message) => eventFromMessage(message))).toEqual([
+      {
+        kind: "pointer",
+        pointer: "primary",
+        position: [0.5, 0.5],
+        pressed: false,
+      },
+      {
+        kind: "pointer",
+        pointer: "secondary",
+        position: [0.5, 0.5],
+        pressed: false,
+      },
+      {
+        kind: "pointer",
+        pointer: "middle",
+        position: [0.5, 0.5],
+        pressed: false,
+      },
+    ]);
+  });
+
   it("forwards middle and secondary mouse buttons as named pointer presses", () => {
     const canvas = new FakeCanvas();
     const windowTarget = new FakeEventTarget();

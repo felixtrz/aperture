@@ -326,6 +326,8 @@ class StatefulGamepadButtonStateImpl {
 class StatefulGamepadStickStateImpl implements StatefulGamepadStickState {
   x = 0;
   y = 0;
+  rawX = 0;
+  rawY = 0;
   #previousX = 0;
   #previousY = 0;
 
@@ -335,6 +337,8 @@ class StatefulGamepadStickStateImpl implements StatefulGamepadStickState {
   }
 
   set(x: number, y: number, deadzone: number): void {
+    this.rawX = clamp(Number.isFinite(x) ? x : 0, -1, 1);
+    this.rawY = clamp(Number.isFinite(y) ? y : 0, -1, 1);
     this.x = applyGamepadDeadzone(x, deadzone);
     this.y = applyGamepadDeadzone(y, deadzone);
   }
@@ -342,6 +346,12 @@ class StatefulGamepadStickStateImpl implements StatefulGamepadStickState {
   read(out: InputVec2Like): InputVec2Like {
     out.x = this.x;
     out.y = this.y;
+    return out;
+  }
+
+  readRaw(out: InputVec2Like): InputVec2Like {
+    out.x = this.rawX;
+    out.y = this.rawY;
     return out;
   }
 
